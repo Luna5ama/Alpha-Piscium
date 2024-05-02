@@ -2,6 +2,7 @@
 
 uniform sampler2D lightmap;
 uniform sampler2D gtexture;
+uniform sampler2D shadowtex0;
 
 in vec2 lmcoord;
 in vec2 texcoord;
@@ -16,4 +17,5 @@ void main() {
 	if (color.a < 0.1) {
 		discard;
 	}
+	color.a += texture(shadowtex0, texcoord).r;
 }

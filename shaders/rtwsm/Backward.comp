@@ -1,0 +1,133 @@
+#ifdef MC_GL_VENDOR_NVIDIA
+#extension GL_NV_shader_subgroup_partitioned : enable
+#extension GL_KHR_shader_subgroup_ballot : enable
+#else
+#extension GL_KHR_shader_subgroup_vote : enable
+#extension GL_KHR_shader_subgroup_clustered : enable
+#extension GL_KHR_shader_subgroup_arithmetic : enable
+#endif
+
+#include "../utils/PackedGBuffers.glsl"
+#include "../utils/Coords.glsl"
+#include "../utils/Uniforms.glsl"
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+const vec2 workGroupsRender = vec2(1.0f, 1.0f);
+
+uniform usampler2D colortex1;
+uniform sampler2D depthtex0;
+
+layout(r32ui) uniform uimage2D uimg_rtwsm_imap2D;
+
+void importance(ivec2 gCoord, out uint p, out float v) {
+    if (any(greaterThanEqual(gCoord, textureSize(colortex1, 0)))) {
+        p = 0xFFFFFFFFu;
+        v = 0u;
+        return;
+    }
+
+    float gDepth = texelFetch(depthtex0, gCoord, 0).x;
+    if (gDepth == 1.0) {
+        p = 0xFFFFFFFFu;
+        v = 0u;
+        return;
+    }
+
+    PackedGBufferData gData;
+    uvec4 packedData = texelFetch(colortex1, gCoord, 0);
+    pgbuffer_unpack(packedData, uvec4(0u), gData);
+
+//    vec3 viewCoord = vec3(gData.viewCoord, -coords_linearizeDepth(gDepth, near, far));
+    vec3 viewCoord = gData.viewCoord;
+    vec3 worldCoord = (gbufferModelViewInverse * vec4(viewCoord, 1.0)).xyz;
+    vec3 worldNormal = gData.worldNormal;
+
+    vec3 viewDir = normalize(worldCoord);
+
+    vec4 shadowCS = shadowProjection * shadowModelView * vec4(worldCoord, 1.0);
+    shadowCS /= shadowCS.w;
+    vec2 shadowTS = shadowCS.xy * 0.5 + 0.5;
+
+    float importance = 1.0;
+    float pDist = max(length(worldCoord), 1.0);
+
+    // Distance function
+    importance *= 1.0 / sqrt(pDist);
+
+    // Surface normal function
+    const float SN_BETA = 2.0;
+    importance *= 1.0 + SN_BETA * max(dot(worldNormal, -viewDir), 0.0);
+
+//    const float LSN_BETA = 1.0;
+//    importance *= 1.0 + LSN_BETA * sqrt(pDist) * pow(1.0 - abs(dot(worldNormal, uShadowMap.lightDir)), 8.0);
+
+    // Shadow Edge function
+//    vec2 shadowTSWarped = rtwsm_warpTexCoord(usam_warpingMap, shadowTS);
+//
+//    float center = texture(usam_shadowDepth, shadowTSWarped).x;
+//    float maxDiff = 0.0;
+//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(-1, -1)).x));
+//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(-1, 0)).x));
+//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(-1, 1)).x));
+//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(0, -1)).x));
+//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(0, 1)).x));
+//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(1, -1)).x));
+//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(1, 0)).x));
+//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(1, 1)).x));
+//    maxDiff *= far - near;
+//
+//    const float NON_EDGE = 0.01;
+//    importance *= mix(NON_EDGE, 1.0, smoothstep(0.5, 2.0, maxDiff));
+
+    if (shadowCS.x < -1.0 || shadowCS.x > 1.0 || shadowCS.y < -1.0 || shadowCS.y > 1.0 || shadowCS.z < -1.0 || shadowCS.z > 1.0) {
+        p = 0xFFFFFFFFu;
+        v = 0u;
+        return;
+    }
+
+    uvec2 shadowPos = uvec2(shadowTS.xy * imageSize(uimg_rtwsm_imap2D) + 0.5);
+
+    p = shadowPos.y << 16 | shadowPos.x;
+    v = importance;
+
+    return;
+}
+
+const float IMPORTANCE_MUL = uintBitsToFloat(0x4F800000u);
+
+void writeOutput(uint p, float v) {
+    if (p == 0xFFFFFFFFu) return;
+    imageAtomicMax(uimg_rtwsm_imap2D, ivec2(p & 0xFFFFu, p >> 16), uint(v * IMPORTANCE_MUL));
+}
+
+void main() {
+    uint p;
+    float v;
+    importance(ivec2(gl_GlobalInvocationID.xy), p, v);
+
+    #ifdef MC_GL_VENDOR_NVIDIA
+    uvec4 pballot = subgroupPartitionNV(p);
+    if (subgroupBallotFindLSB(pballot) == gl_SubgroupInvocationID) {
+        writeOutput(p, subgroupPartitionedMaxNV(v, pballot));
+    }
+    #else
+    if (p == 0xFFFFFFFFu) {
+        p = subgroupMin(p);
+    }
+    if (subgroupAllEqual(p)) {
+        if (gl_SubgroupInvocationID == 0) {
+            writeOutput(p, subgroupMax(v));
+        }
+        return;
+    }
+
+    #define CLUSTERED_DEDUP(n) if (subgroupClusteredXor(p, n) != 0) { writeOutput(p, v); return; } if ((gl_SubgroupInvocationID & (n - 1u)) != 0u) return; v = subgroupClusteredMax(v, n);
+
+    CLUSTERED_DEDUP(2u)
+    CLUSTERED_DEDUP(4u)
+    CLUSTERED_DEDUP(8u)
+    CLUSTERED_DEDUP(16u)
+    writeOutput(p, v);
+
+    #endif
+}

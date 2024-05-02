@@ -1,0 +1,11 @@
+#include "../utils/Settings.glsl"
+#include "RTWSM.glsl"
+
+layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
+const ivec3 workGroups = ivec3(WORKGROUP16_COUNT, WORKGROUP16_COUNT, 1);
+
+layout(r32ui) uniform writeonly uimage2D uimg_rtwsm_imap2D;
+
+void main() {
+    imageStore(uimg_rtwsm_imap2D, ivec2(gl_GlobalInvocationID.xy), uvec4(0));
+}
