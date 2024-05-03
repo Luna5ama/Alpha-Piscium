@@ -1,0 +1,5 @@
+option.RTWSM_IMAP_SIZE = Importance Map Size
+option.shadowMapResolution = Shadow Map Size
+option.RTWSM_BACKWARD_IMPORTANCE = Backward Importance
+option.RTWSM_SURFACE_NORMAL = Surface Normal Function
+option.RTWSM_SHADOW_EDGE = Shadow Edge Function

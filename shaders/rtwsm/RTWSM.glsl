@@ -1,5 +1,5 @@
-#ifndef RTWSM_GLSL_
-#define RTWSM_GLSL_
+#ifndef INCLUDE_RTWSM.glsl
+#define INCLUDE_RTWSM.glsl
 
 #include "../utils/Settings.glsl"
 

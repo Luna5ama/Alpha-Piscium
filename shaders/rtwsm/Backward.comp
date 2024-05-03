@@ -10,12 +10,15 @@
 #include "../utils/PackedGBuffers.glsl"
 #include "../utils/Coords.glsl"
 #include "../utils/Uniforms.glsl"
+#include "RTWSM.glsl"
 
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 const vec2 workGroupsRender = vec2(1.0f, 1.0f);
 
 uniform usampler2D colortex1;
 uniform sampler2D depthtex0;
+uniform sampler2D shadowtex0;
+uniform sampler2D usam_rtwsm_warpingMap;
 
 layout(r32ui) uniform uimage2D uimg_rtwsm_imap2D;
 
@@ -52,32 +55,33 @@ void importance(ivec2 gCoord, out uint p, out float v) {
     float pDist = max(length(worldCoord), 1.0);
 
     // Distance function
-    importance *= 1.0 / sqrt(pDist);
+    importance *= 1.0 / (pDist);
 
     // Surface normal function
-    const float SN_BETA = 2.0;
-    importance *= 1.0 + SN_BETA * max(dot(worldNormal, -viewDir), 0.0);
+    importance *= 1.0 + RTWSM_SURFACE_NORMAL * max(dot(worldNormal, -viewDir), 0.0);
+    #endif
 
 //    const float LSN_BETA = 1.0;
-//    importance *= 1.0 + LSN_BETA * sqrt(pDist) * pow(1.0 - abs(dot(worldNormal, uShadowMap.lightDir)), 8.0);
+//    importance *= 1.0 + LSN_BETA * sqrt(pDist) * pow(1.0 - abs(dot(normalMatrix * worldNormal, shadowLightPosition)), 8.0);
 
     // Shadow Edge function
-//    vec2 shadowTSWarped = rtwsm_warpTexCoord(usam_warpingMap, shadowTS);
-//
-//    float center = texture(usam_shadowDepth, shadowTSWarped).x;
-//    float maxDiff = 0.0;
-//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(-1, -1)).x));
-//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(-1, 0)).x));
-//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(-1, 1)).x));
-//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(0, -1)).x));
-//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(0, 1)).x));
-//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(1, -1)).x));
-//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(1, 0)).x));
-//    maxDiff = max(maxDiff, abs(center - textureOffset(usam_shadowDepth, shadowTSWarped, ivec2(1, 1)).x));
-//    maxDiff *= far - near;
-//
-//    const float NON_EDGE = 0.01;
-//    importance *= mix(NON_EDGE, 1.0, smoothstep(0.5, 2.0, maxDiff));
+    #if RTWSM_SHADOW_EDGE < 1.0
+    vec2 shadowTSWarped = rtwsm_warpTexCoord(usam_rtwsm_warpingMap, shadowTS);
+
+    float center = texture(shadowtex0, shadowTSWarped).x;
+    float maxDiff = 0.0;
+    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, -1)).x));
+    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, 0)).x));
+    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, 1)).x));
+    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(0, -1)).x));
+    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(0, 1)).x));
+    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(1, -1)).x));
+    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 0)).x));
+    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 1)).x));
+    maxDiff *= far - near;
+
+    importance *= mix(RTWSM_SHADOW_EDGE, 1.0, smoothstep(0.5, 2.0, maxDiff));
+    #endif
 
     if (shadowCS.x < -1.0 || shadowCS.x > 1.0 || shadowCS.y < -1.0 || shadowCS.y > 1.0 || shadowCS.z < -1.0 || shadowCS.z > 1.0) {
         p = 0xFFFFFFFFu;

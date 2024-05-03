@@ -51,7 +51,7 @@ void main() {
 	uint sceneCoordRand = uint(rand(sceneCoord.xyz) * 1024.0);
 	uint r2idx = sceneCoordRand * SHADOW_SAMPLES;
 
-	vec2 ssRange = texelSize * 256.0;
+	vec2 ssRange = texelSize * 128.0 * (float(shadowMapResolution) / 2048.0);
 
 	for (int i = 0; i < SHADOW_SAMPLES; i++) {
 		vec2 offset = r2Seq2(r2idx) * ssRange - ssRange * 0.5;
