@@ -1,4 +1,4 @@
-#include "../utils/Settings.glsl"
+#include "../utils/Common.glsl"
 
 #if RTWSM_IMAP_SIZE <= 1024
 #define GROUP_SIZE_X (RTWSM_IMAP_SIZE / 2)

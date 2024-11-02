@@ -1,8 +1,6 @@
 #version 460 compatibility
 
-#include "/utils/TextureConfig.glsl"
-
-#include "utils/Settings.glsl"
+#include "utils/Common.glsl"
 
 uniform sampler2D colortex0;
 

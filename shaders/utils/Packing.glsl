@@ -29,3 +29,19 @@ uint packing_packU12(float v) {
 float packing_unpackU12(uint v) {
     return float(v) / 4095.0;
 }
+
+uint packing_packS15(float v) {
+    return clamp(uint((v * 0.5 + 0.5) * 32767.0), 0u, 32767u);
+}
+
+float packing_unpackS15(uint v) {
+    return max((float(v) - 16383) / 16383.0, -1.0);
+}
+
+uint packing_packS16(float v) {
+    return clamp(uint((v * 0.5 + 0.5) * 65535.0), 0u, 65535u);
+}
+
+float packing_unpackS16(uint v) {
+    return max((float(v) - 32767) / 32767.0, -1.0);
+}

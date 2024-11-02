@@ -1,7 +1,7 @@
 #ifndef INCLUDE_RTWSM.glsl
 #define INCLUDE_RTWSM.glsl
 
-#include "../utils/Settings.glsl"
+#include "../utils/Common.glsl"
 
 #if RTWSM_IMAP_SIZE == 128
 
@@ -65,7 +65,7 @@ float rtwsm_sampleShadowDepthOffset(sampler2D shadowMap, vec2 coord, float lod, 
     return textureLod(shadowMap, offsetPos, lod).r;
 }
 
-//float rtwsm_linearDepth(float d) {
-//    return mix(uShadowMap.planeZ.x, uShadowMap.planeZ.y, d);
-//}
+float rtwsm_linearDepth(float d) {
+    return (d * 2.0 - 1.0) * shadowProjectionInverse[2][2] + shadowProjectionInverse[3][2];
+}
 #endif

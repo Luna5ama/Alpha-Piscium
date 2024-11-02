@@ -1,6 +1,6 @@
 #pragma optionNV (unroll all)
 
-#include "../utils/Settings.glsl"
+#include "../utils/Common.glsl"
 
 #define OUTPUT_SIZE (RTWSM_IMAP_SIZE / 4)
 
