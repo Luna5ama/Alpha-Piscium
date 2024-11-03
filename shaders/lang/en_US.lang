@@ -9,7 +9,9 @@ screen.POSTFX.comment = Post Processing settings
 screen.MISC = Misc
 screen.MISC.comment = Miscellaneous settings
 
-option.SETTING_SHADOW_MAP_RESOLUTION = Shadow Map Resolution
+option.SETTING_SHADOW_MR = Shadow Map Resolution
+option.SETTING_SHADOW_RD = Shadow Render Distance
+suffix.SETTING_SHADOW_RD = \ chunks
 
 option.SETTING_RTWSM_IMAP_SIZE = Importance Map Size
 option.SETTING_RTWSM_IMP_BBASE = Backward Base Importance
