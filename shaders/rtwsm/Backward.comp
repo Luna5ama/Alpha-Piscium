@@ -13,8 +13,8 @@
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 const vec2 workGroupsRender = vec2(1.0f, 1.0f);
 
-uniform sampler2D TEX_G_VIEWCOORD;
-uniform sampler2D TEX_G_NORMAL;
+uniform usampler2D usam_gbuffer;
+uniform sampler2D usam_viewZ;
 
 uniform sampler2D depthtex0;
 uniform sampler2D shadowtex0;
@@ -23,38 +23,36 @@ uniform sampler2D usam_rtwsm_warpingMap;
 layout(r32ui) uniform uimage2D uimg_rtwsm_imap2D;
 
 void importance(ivec2 gCoord, out uint p, out float v) {
-    if (any(greaterThanEqual(gCoord, textureSize(TEX_G_VIEWCOORD, 0)))) {
+    ivec2 gbufferTextureSize = textureSize(usam_gbuffer, 0);
+    if (any(greaterThanEqual(gCoord, gbufferTextureSize))) {
         p = 0xFFFFFFFFu;
         v = 0u;
         return;
     }
 
-    float gDepth = texelFetch(depthtex0, gCoord, 0).x;
-    if (gDepth == 1.0) {
-        p = 0xFFFFFFFFu;
-        v = 0u;
-        return;
-    }
-
-    vec3 viewCoord = texelFetch(TEX_G_VIEWCOORD, gCoord, 0).xyz;
+    vec2 texCoord = (vec2(gCoord) + 0.5) / vec2(gbufferTextureSize);
+    float viewZ = texelFetch(usam_viewZ, gCoord, 0).r;
+    vec3 viewCoord = coords_toViewPos(texCoord, viewZ, gbufferProjectionInverse);
     vec3 worldCoord = (gbufferModelViewInverse * vec4(viewCoord, 1.0)).xyz;
-    vec3 worldNormal = texelFetch(TEX_G_NORMAL, gCoord, 0).xyz * 2.0 - 1.0;
 
-    vec3 viewDir = normalize(worldCoord);
+    GBufferData gData;
+    gbuffer_unpack(texelFetch(usam_gbuffer, gCoord, 0), gData);
+
+    vec3 viewDir = normalize(-viewCoord);
 
     vec4 shadowCS = shadowProjection * shadowModelView * vec4(worldCoord, 1.0);
     shadowCS /= shadowCS.w;
     vec2 shadowTS = shadowCS.xy * 0.5 + 0.5;
 
     float importance = 1.0;
-    float pDist = max(length(worldCoord), 1.0);
+    float pDist = max(length(viewCoord), 1.0);
 
     // Distance function
     importance *= 1.0 / (pDist);
 
     // Surface normal function
     #if RTWSM_SURFACE_NORMAL > 0.0
-    importance *= 1.0 + RTWSM_SURFACE_NORMAL * max(dot(worldNormal, -viewDir), 0.0);
+    importance *= 1.0 + RTWSM_SURFACE_NORMAL * max(dot(gData.normal, viewDir), 0.0);
     #endif
 
 //    const float LSN_BETA = 1.0;

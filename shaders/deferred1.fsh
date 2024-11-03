@@ -22,13 +22,13 @@ uniform sampler2D usam_rtwsm_warpingMap;
 in vec2 frag_texCoord;
 in vec2 frag_scaledTexCoord;
 
-/* RENDERTARGETS:0 */
-layout(location = 0) out vec4 rt_out;
-
+ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
 GBufferData gData;
 vec3 g_viewPos;
-
 uint worldCoordRand[6];
+
+/* RENDERTARGETS:0 */
+layout(location = 0) out vec4 rt_out;
 
 float searchBlocker(vec3 shadowCoord, vec2 texelSize) {
 	const float BLOCKER_SEARCH_LOD = 0.0;
@@ -119,16 +119,17 @@ float calcShadow(float sssFactor) {
 }
 
 void doStuff() {
-//	float sssFactor = 0.0;
-//	float shadow = calcShadow(sssFactor);
+	float sssFactor = 0.0;
+	float shadow = calcShadow(sssFactor);
 
-	vec3 color = gData.albedo;
+	vec3 color = gData.albedo * mix(0.5, 1.0, shadow);
 	rt_out = vec4(color, 1.0);
 }
 
 void main() {
 	gbuffer_unpack(texelFetch(usam_gbuffer, ivec2(gl_FragCoord.xy), 0), gData);
-
+	float viewZ = texelFetch(usam_viewZ, ivec2(gl_FragCoord.xy), 0).r;
+	g_viewPos = coords_toViewPos(frag_texCoord, viewZ, gbufferProjectionInverse);
 
 	worldCoordRand[0] = uint(rand(g_viewPos.xyz) * 1024.0);
 	worldCoordRand[1] = uint(rand(g_viewPos.xzy) * 1024.0);
