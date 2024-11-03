@@ -23,7 +23,6 @@ bool inViewPort(vec4 originSize, out vec2 texCoord) {
     return false;
 }
 
-/* DRAWBUFFERS:0 */
 layout(location = 0) out vec4 rt_out;
 
 void main() {
