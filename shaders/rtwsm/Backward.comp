@@ -40,7 +40,7 @@ void importance(ivec2 gCoord, out uint p, out float v) {
 
     vec3 viewDir = normalize(-viewCoord);
 
-    vec4 shadowCS = shadowProjection * shadowModelView * vec4(worldCoord, 1.0);
+    vec4 shadowCS = coords_shadowDeRotateMatrix(shadowModelView) * shadowProjection * shadowModelView * vec4(worldCoord, 1.0);
     shadowCS /= shadowCS.w;
     vec2 shadowTS = shadowCS.xy * 0.5 + 0.5;
 

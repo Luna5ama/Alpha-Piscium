@@ -73,7 +73,7 @@ float calcShadow(float sssFactor) {
 	float lightDirOffset = -shadowProjection[2][2] * mix(minlightDirOffset, maxlightDirlOffset, lightDot);
 
 	vec4 worldCoord = gbufferModelViewInverse * vec4(g_viewPos, 1.0);
-	vec4 shadowCoordCS = shadowProjection * (shadowModelView * worldCoord);
+	vec4 shadowCoordCS = coords_shadowDeRotateMatrix(shadowModelView) * shadowProjection * shadowModelView * worldCoord;
 	shadowCoordCS /= shadowCoordCS.w;
 
 	vec3 shadowCoord = shadowCoordCS.xyz * 0.5 + 0.5;
@@ -85,14 +85,14 @@ float calcShadow(float sssFactor) {
 	float blockerDistance = searchBlocker(shadowCoord, texelSize);
 	float penumbraMult = 64.0 * blockerDistance;
 
-	#define SAMPLE_N 16
+	#define SAMPLE_N 1
 
 	vec2 ssRange = mix(
 			texelSize * 256.0,
 			texelSize * 4096.0 / max(sqrt(dist), 1.0),
 			sssFactor
 	);
-	ssRange += texelSize * penumbraMult;
+//	ssRange += texelSize * penumbraMult;
 
 	float shadow = 0.0;
 	uint idxSS = (frameCounter + worldCoordRand[0]) * SAMPLE_N;
@@ -102,7 +102,7 @@ float calcShadow(float sssFactor) {
 	vec2 offset = r2Seq2(idxSS) * ssRange - ssRange * 0.5;
 	vec3 zOffsetShadowCoord = shadowCoord;
 	zOffsetShadowCoord.z -= mix(1.0, r2Seq1(idxSSS), sssFactor) * lightDirOffset;
-	shadow += rtwsm_sampleShadowDepthOffset(shadowtex0, zOffsetShadowCoord, 0.0, offset);
+	shadow += rtwsm_sampleShadowDepth(shadowtex0, zOffsetShadowCoord, 0.0);
 	#else
 	for (int i = 0; i < SAMPLE_N; i++) {
 		vec2 offset = r2Seq2(idxSS) * ssRange - ssRange * 0.5;

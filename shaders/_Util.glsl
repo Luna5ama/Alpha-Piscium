@@ -4,3 +4,5 @@
 #include "util/R2Seqs.glsl"
 #include "util/Rand.glsl"
 #include "util/GBuffers.glsl"
+#include "util/FastMath.glsl"
+#include "util/Math.glsl"
