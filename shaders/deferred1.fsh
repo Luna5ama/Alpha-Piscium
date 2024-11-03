@@ -68,6 +68,8 @@ float calcShadow(float sssFactor) {
 	viewCoord += gData.normal * max(normalOffset * 2.0 * (normalDot * 0.6 + 0.4), 0.02);
 
 	vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
+	worldCoord = mix(worldCoord, vec4(0.0, 1.0, 0.0, 1.0), float(gData.materialID == 65534u));
+
 	vec4 shadowTexCoordCS = coords_shadowDeRotateMatrix(shadowModelView) * shadowProjection * shadowModelView * worldCoord;
 	shadowTexCoordCS /= shadowTexCoordCS.w;
 
@@ -109,7 +111,7 @@ float calcShadow(float sssFactor) {
 
 void doStuff() {
 	float shadow = calcShadow(0.0);
-	shadow *= step(0.0, dot(gData.normal, shadowLightPosition));
+	shadow *= saturate(dot(gData.normal, shadowLightPosition));
 
 	vec3 color = gData.albedo * mix(0.5, 1.0, shadow);
 	rt_out = vec4(color, 1.0);
