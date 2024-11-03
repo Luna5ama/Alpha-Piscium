@@ -27,7 +27,7 @@ GBufferData gData;
 vec3 g_viewCoord;
 vec3 g_viewDir;
 
-uint worldCoordRand[6];
+uint coord3Rand[2];
 
 /* RENDERTARGETS:0 */
 layout(location = 0) out vec4 rt_out;
@@ -38,7 +38,7 @@ float searchBlocker(vec3 shadowTexCoord) {
 	#define BLOCKER_SEARCH_N SETTING_PCSS_BLOCKER_SEARCH_COUNT
 
 	float blockerSearchRange = 0.2;
-	uint idxB = frameCounter * BLOCKER_SEARCH_N + worldCoordRand[1];
+	uint idxB = frameCounter * BLOCKER_SEARCH_N + coord3Rand[1];
 
 	float blockerDepth = 0.0f;
 	int n = 0;
@@ -85,7 +85,7 @@ float calcShadow(float sssFactor) {
 	#define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
 	float shadow = 0.0;
-	uint idxSS = (frameCounter + worldCoordRand[0]) * SAMPLE_N;
+	uint idxSS = (frameCounter + coord3Rand[0]) * SAMPLE_N;
 
 	#define DEPTH_BIAS_DISTANCE_FACTOR 4.0
 	float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + distnaceSq));
@@ -121,12 +121,8 @@ void main() {
 	g_viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
 	g_viewDir = normalize(-g_viewCoord);
 
-	worldCoordRand[0] = uint(rand(g_viewCoord.xyz) * 1024.0);
-	worldCoordRand[1] = uint(rand(g_viewCoord.xzy) * 1024.0);
-	worldCoordRand[2] = uint(rand(g_viewCoord.yxz) * 1024.0);
-	worldCoordRand[3] = uint(rand(g_viewCoord.yzx) * 1024.0);
-	worldCoordRand[4] = uint(rand(g_viewCoord.zxy) * 1024.0);
-	worldCoordRand[5] = uint(rand(g_viewCoord.zyx) * 1024.0);
+	coord3Rand[0] = hash31(floatBitsToUint(g_viewCoord.xyz)) & 1023u;
+	coord3Rand[1] = hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
 
 	doStuff();
 }
