@@ -3,30 +3,63 @@
 #include "../_Base.glsl"
 #include "BitPacking.glsl"
 
-void gbuffer_pack(out uvec4 value, vec4 colorMul, vec2 texCoord, vec2 lmCoord, vec3 viewNormal, uint blockID) {
-    value.r = packUnorm4x8(colorMul);
+// gbuffer:
+// r:
+// albedo: 8 x 3 = 24 bits
+// roughness: 8 bits
+// g:
+// f0: 8 bits
+// emissive: 8 bits
+// porosity/sss: 8 x 1 = 8 bits
+// ???: 8 bits
+// b:
+// normal: 11 + 11 + 10 = 32 bits
+// a:
+// lmCoord: 8 x 2 = 16 bits
+// materialID: 16 bits
 
-    value.g = packS11(viewNormal.x);
-    value.g |= packS11(viewNormal.y) << 11;
-    value.g |= packS10(viewNormal.z) << 22;
+// Extra:
+// viewZ: 32 bits
 
-    value.b = packUnorm2x16(texCoord);
+struct GBufferData {
+    vec3 albedo;
+    float roughness;
+    float f0;
+    float emissive;
+    float porositySSS;
+    vec3 normal;
+    vec2 lmCoord;
+    uint materialID;
+};
 
-    value.a = packUnorm4x8(vec4(lmCoord, 0.0, 0.0)) & 0x0000FFFFu;
-    value.a |= (blockID & 0xFFFFu) << 16;
+void gbuffer_pack(out uvec4 packedData, GBufferData gData) {
+    packedData.r = packUnorm4x8(vec4(gData.albedo, gData.roughness));
+    packedData.g = packUnorm4x8(vec4(gData.f0, gData.emissive, gData.porositySSS, 0.0));
+
+    packedData.b = packS11(gData.normal.x);
+    packedData.b |= packS11(gData.normal.y) << 11;
+    packedData.b |= packS10(gData.normal.z) << 22;
+
+    packedData.a = packUnorm4x8(vec4(gData.lmCoord, 0.0, 0.0)) & 0x0000FFFFu;
+    packedData.a |= (gData.materialID & 0xFFFFu) << 16;
 }
 
-void gbuffer_unpack(in uvec4 value, out vec4 colorMul, out vec2 texCoord, out vec2 lmCoord, out vec3 viewNormal, out uint blockID) {
-    colorMul = unpackUnorm4x8(value.r);
+void gbuffer_unpack(uvec4 packedData, out GBufferData gData) {
+    vec4 tempR = unpackUnorm4x8(packedData.r);
+    gData.albedo = tempR.rgb;
+    gData.roughness = tempR.a;
 
-    viewNormal.x = unpackS11(value.g & 0x7FFu);
-    viewNormal.y = unpackS11((value.g >> 11) & 0x7FFu);
-    viewNormal.z = unpackS10((value.g >> 22) & 0x3FFu);
+    vec4 tempG = unpackUnorm4x8(packedData.g);
+    gData.f0 = tempG.r;
+    gData.emissive = tempG.g;
+    gData.porositySSS = tempG.b;
 
-    texCoord = unpackUnorm2x16(value.b);
+    gData.normal.x = unpackS11(packedData.b & 0x7FFu);
+    gData.normal.y = unpackS11((packedData.b >> 11) & 0x7FFu);
+    gData.normal.z = unpackS10((packedData.b >> 22) & 0x3FFu);
 
-    lmCoord = unpackUnorm4x8(value.a).xy;
-    blockID = (value.a >> 16) & 0xFFFFu;
+    gData.lmCoord = unpackUnorm4x8(packedData.a).xy;
+    gData.materialID = (packedData.a >> 16) & 0xFFFFu;
 }
 
 #endif

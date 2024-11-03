@@ -25,11 +25,7 @@ in vec2 frag_scaledTexCoord;
 /* RENDERTARGETS:0 */
 layout(location = 0) out vec4 rt_out;
 
-vec4 g_colorMul;
-vec2 g_texCoord;
-vec2 g_lmCoord;
-vec3 g_viewNormal;
-uint g_blockID;
+GBufferData gData;
 vec3 g_viewPos;
 
 uint worldCoordRand[6];
@@ -66,11 +62,11 @@ float searchBlocker(vec3 shadowCoord, vec2 texelSize) {
 
 float calcShadow(float sssFactor) {
 	float dist = length(g_viewPos);
-	float lightDot = dot(g_viewNormal, normalize(shadowLightPosition)) * 0.5 + 0.5;
+	float lightDot = dot(gData.normal, normalize(shadowLightPosition)) * 0.5 + 0.5;
 
 	float minNormalOffset = 0.01;
 	float maxNormalOffset = clamp(dist * 0.01, 0.01, 0.5);
-	g_viewPos += g_viewNormal * mix(minNormalOffset, maxNormalOffset, lightDot);
+	g_viewPos += gData.normal * mix(minNormalOffset, maxNormalOffset, lightDot);
 
 	float minlightDirOffset = 0.001;
 	float maxlightDirlOffset = clamp(dist * 0.01, 0.005, 8.0);
@@ -126,14 +122,14 @@ void doStuff() {
 //	float sssFactor = 0.0;
 //	float shadow = calcShadow(sssFactor);
 
-	vec3 color = g_colorMul.rgb;
+	vec3 color = gData.albedo;
 	rt_out = vec4(color, 1.0);
 }
 
 void main() {
-	uvec4 gbufferData = texelFetch(usam_gbuffer, ivec2(gl_FragCoord.xy), 0);
+	GBufferData gData;
 
-	gbuffer_unpack(gbufferData, g_colorMul, g_texCoord, g_lmCoord, g_viewNormal, g_blockID);
+	gbuffer_unpack(texelFetch(usam_gbuffer, ivec2(gl_FragCoord.xy), 0), gData);
 
 
 	worldCoordRand[0] = uint(rand(g_viewPos.xyz) * 1024.0);
