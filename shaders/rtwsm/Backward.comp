@@ -32,7 +32,7 @@ void importance(ivec2 gCoord, out uint p, out float v) {
 
     vec2 texCoord = (vec2(gCoord) + 0.5) / vec2(gbufferTextureSize);
     float viewZ = texelFetch(usam_viewZ, gCoord, 0).r;
-    vec3 viewCoord = coords_toViewPos(texCoord, viewZ, gbufferProjectionInverse);
+    vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
     vec3 worldCoord = (gbufferModelViewInverse * vec4(viewCoord, 1.0)).xyz;
 
     GBufferData gData;
@@ -45,21 +45,22 @@ void importance(ivec2 gCoord, out uint p, out float v) {
     vec2 shadowTS = shadowCS.xy * 0.5 + 0.5;
 
     float importance = 1.0;
-    float pDist = max(length(viewCoord), 1.0);
 
     // Distance function
-    importance *= 1.0 / (pDist);
+    #if SETTING_RTWSM_IMP_D > 0.0
+    importance *= (SETTING_RTWSM_IMP_D) / (SETTING_RTWSM_IMP_D + dot(viewCoord, viewCoord));
+    #endif
 
     // Surface normal function
-    #if RTWSM_SURFACE_NORMAL > 0.0
-    importance *= 1.0 + RTWSM_SURFACE_NORMAL * max(dot(gData.normal, viewDir), 0.0);
+    #if SETTING_RTWSM_IMP_SN > 0.0
+    importance *= 1.0 + SETTING_RTWSM_IMP_SN * max(dot(gData.normal, viewDir), 0.0);
     #endif
 
 //    const float LSN_BETA = 1.0;
 //    importance *= 1.0 + LSN_BETA * sqrt(pDist) * pow(1.0 - abs(dot(normalMatrix * worldNormal, shadowLightPosition)), 8.0);
 
     // Shadow Edge function
-    #if RTWSM_SHADOW_EDGE < 1.0
+    #if SETTING_RTWSM_IMP_SE < 1.0
     vec2 shadowTSWarped = rtwsm_warpTexCoord(usam_rtwsm_warpingMap, shadowTS);
 
     float center = texture(shadowtex0, shadowTSWarped).x;
@@ -74,7 +75,7 @@ void importance(ivec2 gCoord, out uint p, out float v) {
     maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 1)).x));
     maxDiff *= far - near;
 
-    importance *= mix(RTWSM_SHADOW_EDGE, 1.0, smoothstep(0.5, 2.0, maxDiff));
+    importance *= mix(SETTING_RTWSM_IMP_SE, 1.0, smoothstep(0.5, 2.0, maxDiff));
     #endif
 
     if (shadowCS.x < -1.0 || shadowCS.x > 1.0 || shadowCS.y < -1.0 || shadowCS.y > 1.0 || shadowCS.z < -1.0 || shadowCS.z > 1.0) {

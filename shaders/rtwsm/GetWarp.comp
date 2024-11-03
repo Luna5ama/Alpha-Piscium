@@ -2,7 +2,7 @@
 
 #include "../_Util.glsl"
 
-#define OUTPUT_SIZE (RTWSM_IMAP_SIZE / 4)
+#define OUTPUT_SIZE (SETTING_RTWSM_IMAP_SIZE / 4)
 
 layout(local_size_x = OUTPUT_SIZE, local_size_y = 1, local_size_z = 1) in;
 const ivec3 workGroups = ivec3(2, 1, 1);

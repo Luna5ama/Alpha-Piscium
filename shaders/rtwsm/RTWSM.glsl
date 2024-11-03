@@ -3,27 +3,27 @@
 
 #include "../_Util.glsl"
 
-#if RTWSM_IMAP_SIZE == 128
+#if SETTING_RTWSM_IMAP_SIZE == 128
 
 #define WORKGROUP16_COUNT 8
 #define WORKGROUP128_COUNT 1
 
-#elif RTWSM_IMAP_SIZE == 256
+#elif SETTING_RTWSM_IMAP_SIZE == 256
 
 #define WORKGROUP16_COUNT 16
 #define WORKGROUP128_COUNT 2
 
-#elif RTWSM_IMAP_SIZE == 512
+#elif SETTING_RTWSM_IMAP_SIZE == 512
 
 #define WORKGROUP16_COUNT 32
 #define WORKGROUP128_COUNT 4
 
-#elif RTWSM_IMAP_SIZE == 1024
+#elif SETTING_RTWSM_IMAP_SIZE == 1024
 
 #define WORKGROUP16_COUNT 64
 #define WORKGROUP128_COUNT 8
 
-#elif RTWSM_IMAP_SIZE == 2048
+#elif SETTING_RTWSM_IMAP_SIZE == 2048
 
 #define WORKGROUP16_COUNT 128
 #define WORKGROUP128_COUNT 16
@@ -46,23 +46,15 @@ vec2 rtwsm_warpTexCoordTexelSize(sampler2D warpingMap, vec2 uv, out vec2 texelSi
 }
 
 float rtwsm_sampleShadowDepth(sampler2DShadow shadowMap, vec3 coord, float lod) {
-    return textureLod(shadowMap, coord, lod);
+    vec2 ndcCoord = coord.xy * 2.0 - 1.0;
+    float edgeCoord = max(abs(ndcCoord.x), abs(ndcCoord.y));
+    return mix(textureLod(shadowMap, coord, lod), 1.0, linearStep(1.0 - SHADOW_MAP_SIZE.y * 16, 1.0, edgeCoord));
 }
 
-float rtwsm_sampleShadowDepth(sampler2D shadowMap, vec2 coord, float lod) {
-    return textureLod(shadowMap, coord, lod).r;
-}
-
-float rtwsm_sampleShadowDepthOffset(sampler2DShadow shadowMap, vec3 coord, float lod, vec2 offsetPixels) {
-    vec3 offsetPos = coord;
-    offsetPos.xy += offsetPixels * SHADOW_MAP_SIZE.zw;
-    return textureLod(shadowMap, offsetPos, lod);
-}
-
-float rtwsm_sampleShadowDepthOffset(sampler2D shadowMap, vec2 coord, float lod, vec2 offsetPixels) {
-    vec2 offsetPos = coord;
-    offsetPos += offsetPixels * SHADOW_MAP_SIZE.zw;
-    return textureLod(shadowMap, offsetPos, lod).r;
+float rtwsm_sampleShadowDepth(sampler2D shadowMap, vec3 coord, float lod) {
+    uint flag = uint(any(lessThan(coord.xy, vec2(0.0))));
+    flag |= uint(any(greaterThan(coord.xy, vec2(1.0))));
+    return mix(textureLod(shadowMap, coord.xy, lod).r, coord.z, float(flag));
 }
 
 float rtwsm_linearDepth(float d) {

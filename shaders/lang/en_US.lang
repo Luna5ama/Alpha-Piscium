@@ -1,5 +1,21 @@
-option.RTWSM_IMAP_SIZE = Importance Map Size
-option.shadowMapResolution = Shadow Map Size
-option.RTWSM_BACKWARD_IMPORTANCE = Backward Importance
-option.RTWSM_SURFACE_NORMAL = Surface Normal Function
-option.RTWSM_SHADOW_EDGE = Shadow Edge Function
+screen.SHADOW = Shadow
+screen.SHADOW.comment = Shadow settings
+screen.RTWSM = RTWSM
+screen.RTWSM.comment = Rectilinear Texture Warping Shadow Mapping settings
+screen.PCSS = PCSS
+screen.PCSS.comment = Percentage Closer Soft Shadows settings
+screen.MISC = Misc
+
+option.SETTING_SHADOW_MAP_RESOLUTION = Shadow Map Resolution
+
+option.SETTING_RTWSM_IMAP_SIZE = Importance Map Size
+option.SETTING_RTWSM_IMP_BBASE = Backward Base Importance
+option.SETTING_RTWSM_IMP_D = Distance Function
+option.SETTING_RTWSM_IMP_SN = Surface Normal Function
+option.SETTING_RTWSM_IMP_SE = Shadow Edge Function
+
+option.SETTING_PCSS_BPF = Base Penumbra Factor
+option.SETTING_PCSS_VPF = Variable Penumbra Factor
+option.SETTING_PCSS_BLOCKER_SEARCH_COUNT = Blocker Search Count
+option.SETTING_PCSS_BLOCKER_SEARCH_LOD = Blocker Search LOD
+option.SETTING_PCSS_SAMPLE_COUNT = Sample Count

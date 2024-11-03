@@ -24,103 +24,92 @@ in vec2 frag_scaledTexCoord;
 
 ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
 GBufferData gData;
-vec3 g_viewPos;
+vec3 g_viewCoord;
+vec3 g_viewDir;
+
 uint worldCoordRand[6];
 
 /* RENDERTARGETS:0 */
 layout(location = 0) out vec4 rt_out;
 
-float searchBlocker(vec3 shadowCoord, vec2 texelSize) {
-	const float BLOCKER_SEARCH_LOD = 0.0;
+float searchBlocker(vec3 shadowTexCoord) {
+	#define BLOCKER_SEARCH_LOD SETTING_PCSS_BLOCKER_SEARCH_LOD
 
-	#define BLOCKER_SEARCH_N 4
+	#define BLOCKER_SEARCH_N SETTING_PCSS_BLOCKER_SEARCH_COUNT
 
-	vec2 blockerSearchRange = texelSize * 512.0;
+	float blockerSearchRange = 0.2;
 	uint idxB = frameCounter * BLOCKER_SEARCH_N + worldCoordRand[1];
 
 	float blockerDepth = 0.0f;
 	int n = 0;
 
-	#if BLOCKER_SEARCH_N == 1
-	vec2 offset = r2Seq2(idxB) * blockerSearchRange - blockerSearchRange * 0.5;
-	float depth = rtwsm_sampleShadowDepthOffset(shadowtex1, shadowCoord.xy, BLOCKER_SEARCH_LOD, offset).r;
-	blockerDepth += step(depth, shadowCoord.z) * depth;
-	n += int(shadowCoord.z > depth);
-	#else
 	for (int i = 0; i < BLOCKER_SEARCH_N; i++) {
-		vec2 offset = r2Seq2(idxB) * blockerSearchRange - blockerSearchRange * 0.5;
-		float depth = rtwsm_sampleShadowDepthOffset(shadowtex1, shadowCoord.xy, BLOCKER_SEARCH_LOD, offset).r;
-		blockerDepth += step(depth, shadowCoord.z) * depth;
-		n += int(shadowCoord.z > depth);
+		vec2 randomOffset = (r2Seq2(idxB) * 2.0 - 1.0);
+		vec3 sampleTexCoord = shadowTexCoord;
+		sampleTexCoord.xy += randomOffset * blockerSearchRange * vec2(shadowProjection[0][0], shadowProjection[1][1]);
+		vec2 texelSize;
+		sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, sampleTexCoord.xy, texelSize);
+		float depth = rtwsm_sampleShadowDepth(shadowtex1, sampleTexCoord, BLOCKER_SEARCH_LOD).r;
+		blockerDepth += step(depth, sampleTexCoord.z) * depth;
+		n += int(sampleTexCoord.z > depth);
 		idxB++;
 	}
 	blockerDepth /= float(n);
-	#endif
 
-	return n != 0 ? rtwsm_linearDepth(shadowCoord.z) - rtwsm_linearDepth(blockerDepth) : 0.0;
+	return n != 0 ? rtwsm_linearDepth(blockerDepth) - rtwsm_linearDepth(shadowTexCoord.z) : 0.0;
 }
 
 float calcShadow(float sssFactor) {
-	float dist = length(g_viewPos);
-	float lightDot = dot(gData.normal, normalize(shadowLightPosition)) * 0.5 + 0.5;
+	vec3 viewCoord = g_viewCoord;
+	float distnaceSq = dot(viewCoord, viewCoord);
+	#define NORMAL_OFFSET_DISTANCE_FACTOR 16384.0
+	float normalOffset = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR / (NORMAL_OFFSET_DISTANCE_FACTOR + distnaceSq));
+	float normalDot = (1.0 - abs(dot(gData.normal, g_viewDir)));
+	viewCoord += gData.normal * max(normalOffset * 2.0 * (normalDot * 0.6 + 0.4), 0.02);
 
-	float minNormalOffset = 0.01;
-	float maxNormalOffset = clamp(dist * 0.01, 0.01, 0.5);
-	g_viewPos += gData.normal * mix(minNormalOffset, maxNormalOffset, lightDot);
+	vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
+	vec4 shadowTexCoordCS = coords_shadowDeRotateMatrix(shadowModelView) * shadowProjection * shadowModelView * worldCoord;
+	shadowTexCoordCS /= shadowTexCoordCS.w;
 
-	float minlightDirOffset = 0.001;
-	float maxlightDirlOffset = clamp(dist * 0.01, 0.005, 8.0);
-	float lightDirOffset = -shadowProjection[2][2] * mix(minlightDirOffset, maxlightDirlOffset, lightDot);
+	vec3 shadowTexCoord = shadowTexCoordCS.xyz * 0.5 + 0.5;
 
-	vec4 worldCoord = gbufferModelViewInverse * vec4(g_viewPos, 1.0);
-	vec4 shadowCoordCS = coords_shadowDeRotateMatrix(shadowModelView) * shadowProjection * shadowModelView * worldCoord;
-	shadowCoordCS /= shadowCoordCS.w;
+	float blockerDistance = searchBlocker(shadowTexCoord);
+	float penumbraMult = 0.000005 * SETTING_PCSS_VPF * blockerDistance;
 
-	vec3 shadowCoord = shadowCoordCS.xyz * 0.5 + 0.5;
+	float ssRange = SETTING_PCSS_BPF * 0.01;
+	ssRange += SHADOW_MAP_SIZE.x * 1.0 * sssFactor;
+	ssRange += SHADOW_MAP_SIZE.x * penumbraMult;
+	ssRange = saturate(ssRange);
+	ssRange *= 0.2;
 
-	vec2 texelSize;
-	shadowCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, shadowCoord.xy, texelSize);
-	lightDirOffset *= 0.01 / (texelSize.x + texelSize.y);
-
-	float blockerDistance = searchBlocker(shadowCoord, texelSize);
-	float penumbraMult = 64.0 * blockerDistance;
-
-	#define SAMPLE_N 1
-
-	vec2 ssRange = mix(
-			texelSize * 256.0,
-			texelSize * 4096.0 / max(sqrt(dist), 1.0),
-			sssFactor
-	);
-//	ssRange += texelSize * penumbraMult;
+	#define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
 	float shadow = 0.0;
 	uint idxSS = (frameCounter + worldCoordRand[0]) * SAMPLE_N;
-	uint idxSSS = (frameCounter + worldCoordRand[1]) * SAMPLE_N;
 
-	#if SAMPLE_N == 1
-	vec2 offset = r2Seq2(idxSS) * ssRange - ssRange * 0.5;
-	vec3 zOffsetShadowCoord = shadowCoord;
-	zOffsetShadowCoord.z -= mix(1.0, r2Seq1(idxSSS), sssFactor) * lightDirOffset;
-	shadow += rtwsm_sampleShadowDepth(shadowtex0, zOffsetShadowCoord, 0.0);
-	#else
+	#define DEPTH_BIAS_DISTANCE_FACTOR 4.0
+	float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + distnaceSq));
+	float depthBiasFactor = mix(0.002, -0.0005, dbfDistanceCoeff);
+
 	for (int i = 0; i < SAMPLE_N; i++) {
-		vec2 offset = r2Seq2(idxSS) * ssRange - ssRange * 0.5;
-		vec3 zOffsetShadowCoord = shadowCoord;
-		zOffsetShadowCoord.z -= mix(1.0, r2Seq1(idxSSS), sssFactor) * lightDirOffset;
-		shadow += rtwsm_sampleShadowDepthOffset(shadowtex0, zOffsetShadowCoord, 0.0, offset);
+		vec2 randomOffset = (r2Seq2(idxSS) * 2.0 - 1.0);
+		vec3 sampleTexCoord = shadowTexCoord;
+		sampleTexCoord.xy += ssRange * randomOffset * vec2(shadowProjection[0][0], shadowProjection[1][1]);
+		vec2 texelSize;
+		sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, sampleTexCoord.xy, texelSize);
+		float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
+		sampleTexCoord.z -= depthBias;
+		shadow += rtwsm_sampleShadowDepth(shadowtex0, sampleTexCoord, 0.0);
 		idxSS++;
-		idxSSS++;
 	}
 	shadow /= float(SAMPLE_N);
-	#endif
 
-	return shadow;
+	return mix(shadow, 1.0, linearStep(shadowDistance - 16.0, shadowDistance, length(worldCoord.xz)));
 }
 
 void doStuff() {
-	float sssFactor = 0.0;
-	float shadow = calcShadow(sssFactor);
+	float shadow = calcShadow(0.0);
+	shadow *= step(0.0, dot(gData.normal, shadowLightPosition));
 
 	vec3 color = gData.albedo * mix(0.5, 1.0, shadow);
 	rt_out = vec4(color, 1.0);
@@ -129,14 +118,15 @@ void doStuff() {
 void main() {
 	gbuffer_unpack(texelFetch(usam_gbuffer, ivec2(gl_FragCoord.xy), 0), gData);
 	float viewZ = texelFetch(usam_viewZ, ivec2(gl_FragCoord.xy), 0).r;
-	g_viewPos = coords_toViewPos(frag_texCoord, viewZ, gbufferProjectionInverse);
+	g_viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
+	g_viewDir = normalize(-g_viewCoord);
 
-	worldCoordRand[0] = uint(rand(g_viewPos.xyz) * 1024.0);
-	worldCoordRand[1] = uint(rand(g_viewPos.xzy) * 1024.0);
-	worldCoordRand[2] = uint(rand(g_viewPos.yxz) * 1024.0);
-	worldCoordRand[3] = uint(rand(g_viewPos.yzx) * 1024.0);
-	worldCoordRand[4] = uint(rand(g_viewPos.zxy) * 1024.0);
-	worldCoordRand[5] = uint(rand(g_viewPos.zyx) * 1024.0);
+	worldCoordRand[0] = uint(rand(g_viewCoord.xyz) * 1024.0);
+	worldCoordRand[1] = uint(rand(g_viewCoord.xzy) * 1024.0);
+	worldCoordRand[2] = uint(rand(g_viewCoord.yxz) * 1024.0);
+	worldCoordRand[3] = uint(rand(g_viewCoord.yzx) * 1024.0);
+	worldCoordRand[4] = uint(rand(g_viewCoord.zxy) * 1024.0);
+	worldCoordRand[5] = uint(rand(g_viewCoord.zyx) * 1024.0);
 
 	doStuff();
 }

@@ -1,15 +1,15 @@
 #include "../_Util.glsl"
 
-#if RTWSM_IMAP_SIZE <= 1024
-#define GROUP_SIZE_X (RTWSM_IMAP_SIZE / 2)
+#if SETTING_RTWSM_IMAP_SIZE <= 1024
+#define GROUP_SIZE_X (SETTING_RTWSM_IMAP_SIZE / 2)
 #define SAMPLE_COUNT 1
 #else
 #define GROUP_SIZE_X 512
-#define SAMPLE_COUNT (RTWSM_IMAP_SIZE / 1024)
+#define SAMPLE_COUNT (SETTING_RTWSM_IMAP_SIZE / 1024)
 #endif
 
 layout(local_size_x = 512, local_size_y = 1, local_size_z = 1) in;
-const ivec3 workGroups = ivec3(RTWSM_IMAP_SIZE, 2, 1);
+const ivec3 workGroups = ivec3(SETTING_RTWSM_IMAP_SIZE, 2, 1);
 
 layout(r32f) uniform writeonly image2D uimg_rtwsm_imap1D;
 uniform sampler2D usam_rtwsm_imap2D;
@@ -17,7 +17,7 @@ uniform sampler2D usam_rtwsm_imap2D;
 shared float collapseBuffer[GROUP_SIZE_X];
 shared float finalBuffer;
 
-const vec2 TEXEL_SIZE = 1.0 / vec2(RTWSM_IMAP_SIZE);
+const vec2 TEXEL_SIZE = 1.0 / vec2(SETTING_RTWSM_IMAP_SIZE);
 
 void main() {
     uint xtIdx = gl_LocalInvocationID.x * (2 * SAMPLE_COUNT);

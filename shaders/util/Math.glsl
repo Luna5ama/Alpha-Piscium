@@ -8,6 +8,11 @@ const float RCP_PI_CONST = 1.0 / PI_CONST;
 const float RCP_PI_2_CONST = 1.0 / PI_2_CONST;
 const float RCP_PI_HALF_CONST = 1.0 / PI_HALF_CONST;
 
+float rcp(float x) { return 1.0 / x; }
+vec2 rcp(vec2 x) { return 1.0 / x; }
+vec3 rcp(vec3 x) { return 1.0 / x; }
+vec4 rcp(vec4 x) { return 1.0 / x; }
+
 float saturate(float x) { return clamp(x, 0.0, 1.0); }
 
 vec2 saturate(vec2 x) { return clamp(x, 0.0, 1.0); }
