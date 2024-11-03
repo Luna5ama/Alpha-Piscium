@@ -43,7 +43,7 @@ void main() {
     gbuffer_pack(rt_gbuffer, gData);
     rt_viewZ = frag_viewZ;
 
-    if (albedoTemp.a < 0.5) {
-        discard;
-    }
+//    if (albedoTemp.a < 0.5) {
+//        discard;
+//    }
 }

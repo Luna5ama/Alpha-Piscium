@@ -127,8 +127,6 @@ void doStuff() {
 }
 
 void main() {
-	GBufferData gData;
-
 	gbuffer_unpack(texelFetch(usam_gbuffer, ivec2(gl_FragCoord.xy), 0), gData);
 
 

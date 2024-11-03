@@ -3,6 +3,7 @@
 
 #include "base/Configs.glsl"
 #include "base/Settings.glsl"
+#include "base/TexFormats.glsl"
 #include "base/Uniforms.glsl"
 
 #endif
