@@ -1,3 +1,7 @@
+#ifndef INCLUDE_Rand.glsl
+#define INCLUDE_Rand.glsl
+#include "../_Base.glsl"
+
 // hash function by Inigo Quilez (https://www.shadertoy.com/view/4tXyWN)
 // The MIT License
 // Copyright © 2017 Inigo Quilez
@@ -19,3 +23,5 @@ float rand(vec2 v) {
 float rand(vec3 v) {
     return rand(v.xy + rand(v.z));
 }
+
+#endif

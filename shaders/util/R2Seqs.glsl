@@ -1,3 +1,7 @@
+#ifndef INCLUDE_R2Seqs.glsl
+#define INCLUDE_R2Seqs.glsl
+#include "../_Base.glsl"
+
 // R2 Sequence by Martine Roberts
 // https://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
 float r2Seq1(uint idx) {
@@ -11,3 +15,5 @@ vec2 r2Seq2(uint idx) {
     const vec2 a = vec2(1.0 / g, 1.0 / (g * g));
     return fract(0.5 + a * idx);
 }
+
+#endif

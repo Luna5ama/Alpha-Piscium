@@ -1,14 +1,10 @@
 #version 460 compatibility
 
-#include "utils/Common.glsl"
-#include "utils/Coords.glsl"
-#include "utils/R2Seqs.glsl"
-#include "utils/Rand.glsl"
+#include "_Util.glsl"
 #include "rtwsm/RTWSM.glsl"
 
-uniform sampler2D TEX_G_VIEWCOORD;
-uniform sampler2D TEX_G_ALBEDO;
-uniform sampler2D TEX_G_NORMAL;
+uniform usampler2D usam_gbuffer;
+uniform sampler2D usam_viewZ;
 
 uniform sampler2D depthtex0;
 
@@ -26,14 +22,15 @@ uniform sampler2D usam_rtwsm_warpingMap;
 in vec2 frag_texCoord;
 in vec2 frag_scaledTexCoord;
 
-/* DRAWBUFFERS:0 */
+/* RENDERTARGETS:0 */
 layout(location = 0) out vec4 rt_out;
 
-vec3 gViewCoord;
-vec4 gAlbedo;
-vec3 gWorldCoord;
-vec3 gWorldNormal;
-vec3 gViewNormal;
+vec4 g_colorMul;
+vec2 g_texCoord;
+vec2 g_lmCoord;
+vec3 g_viewNormal;
+uint g_blockID;
+vec3 g_viewPos;
 
 uint worldCoordRand[6];
 
@@ -68,20 +65,18 @@ float searchBlocker(vec3 shadowCoord, vec2 texelSize) {
 }
 
 float calcShadow(float sssFactor) {
-	vec3 viewCoord = gViewCoord;
-
-	float dist = length(gWorldCoord);
-	float lightDot = dot(gViewNormal, normalize(shadowLightPosition)) * 0.5 + 0.5;
+	float dist = length(g_viewPos);
+	float lightDot = dot(g_viewNormal, normalize(shadowLightPosition)) * 0.5 + 0.5;
 
 	float minNormalOffset = 0.01;
 	float maxNormalOffset = clamp(dist * 0.01, 0.01, 0.5);
-	viewCoord += gViewNormal * mix(minNormalOffset, maxNormalOffset, lightDot);
+	g_viewPos += g_viewNormal * mix(minNormalOffset, maxNormalOffset, lightDot);
 
 	float minlightDirOffset = 0.001;
 	float maxlightDirlOffset = clamp(dist * 0.01, 0.005, 8.0);
 	float lightDirOffset = -shadowProjection[2][2] * mix(minlightDirOffset, maxlightDirlOffset, lightDot);
 
-	vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
+	vec4 worldCoord = gbufferModelViewInverse * vec4(g_viewPos, 1.0);
 	vec4 shadowCoordCS = shadowProjection * (shadowModelView * worldCoord);
 	shadowCoordCS /= shadowCoordCS.w;
 
@@ -128,27 +123,25 @@ float calcShadow(float sssFactor) {
 }
 
 void doStuff() {
-	float sssFactor = 0.0;
-	float shadow = calcShadow(sssFactor);
+//	float sssFactor = 0.0;
+//	float shadow = calcShadow(sssFactor);
 
-	vec3 color = gAlbedo.rgb * mix(0.5, 1.0, shadow);
+	vec3 color = g_colorMul.rgb;
 	rt_out = vec4(color, 1.0);
 }
 
 void main() {
-	gViewCoord = texelFetch(TEX_G_VIEWCOORD, ivec2(gl_FragCoord.xy), 0).xyz;
-	gWorldCoord = (gbufferModelViewInverse * vec4(gViewCoord, 1.0)).xyz;
-	gAlbedo = texelFetch(TEX_G_ALBEDO, ivec2(gl_FragCoord.xy), 0);
-	gViewNormal = texelFetch(TEX_G_NORMAL, ivec2(gl_FragCoord.xy), 0).xyz * 2.0 - 1.0;
-	gWorldNormal = normalize(mat3(gbufferModelViewInverse) * gViewNormal);
+	uvec4 gbufferData = texelFetch(usam_gbuffer, ivec2(gl_FragCoord.xy), 0);
+
+	gbuffer_unpack(gbufferData, g_colorMul, g_texCoord, g_lmCoord, g_viewNormal, g_blockID);
 
 
-	worldCoordRand[0] = uint(rand(gWorldCoord.xyz) * 1024.0);
-	worldCoordRand[1] = uint(rand(gWorldCoord.xzy) * 1024.0);
-	worldCoordRand[2] = uint(rand(gWorldCoord.yxz) * 1024.0);
-	worldCoordRand[3] = uint(rand(gWorldCoord.yzx) * 1024.0);
-	worldCoordRand[4] = uint(rand(gWorldCoord.zxy) * 1024.0);
-	worldCoordRand[5] = uint(rand(gWorldCoord.zyx) * 1024.0);
+	worldCoordRand[0] = uint(rand(g_viewPos.xyz) * 1024.0);
+	worldCoordRand[1] = uint(rand(g_viewPos.xzy) * 1024.0);
+	worldCoordRand[2] = uint(rand(g_viewPos.yxz) * 1024.0);
+	worldCoordRand[3] = uint(rand(g_viewPos.yzx) * 1024.0);
+	worldCoordRand[4] = uint(rand(g_viewPos.zxy) * 1024.0);
+	worldCoordRand[5] = uint(rand(g_viewPos.zyx) * 1024.0);
 
 	doStuff();
 }

@@ -11,4 +11,4 @@ layout(r32f) uniform writeonly image2D uimg_rtwsm_imap2DSwap;
 #define GAUSSIAN_BLUR_KERNEL_RADIUS 16
 #define GAUSSIAN_BLUR_VERTICAL
 const ivec3 workGroups = ivec3(WORKGROUP128_COUNT, RTWSM_IMAP_SIZE, 1);
-#include "utils/GaussianBlur.comp"
+#include "pass/GaussianBlur.comp"

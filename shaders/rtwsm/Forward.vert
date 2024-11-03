@@ -33,10 +33,10 @@ void main() {
 
     // Surface Normal Function
     const float SN_BETA = 0.5;
-    importance *= 1.0 + SN_BETA * max(dot(vNormal, -viewDir), 0.0);
+    importance *= 1.0 + SN_BETA * max(dot(viewNormal, -viewDir), 0.0);
 
     const float LSN_BETA = 0.1;
-    importance *= 1.0 + LSN_BETA * sqrt(pDist) * pow(1.0 - abs(dot(vNormal, uShadowMap.lightDir)), 8.0);
+    importance *= 1.0 + LSN_BETA * sqrt(pDist) * pow(1.0 - abs(dot(viewNormal, uShadowMap.lightDir)), 8.0);
 
     fImportance = importance;
 }

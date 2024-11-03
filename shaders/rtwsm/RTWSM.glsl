@@ -1,7 +1,7 @@
 #ifndef INCLUDE_RTWSM.glsl
 #define INCLUDE_RTWSM.glsl
 
-#include "../utils/Common.glsl"
+#include "../_Util.glsl"
 
 #if RTWSM_IMAP_SIZE == 128
 
