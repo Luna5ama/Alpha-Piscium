@@ -56,9 +56,6 @@
   THE SOFTWARE.
 ********************************************************************************/
 
-#ifndef SHADER_FAST_MATH_INC_FX
-#define SHADER_FAST_MATH_INC_FX
-
 #define asint(_x)  floatBitsToInt(_x);
 #define asfloat(_x) intBitsToFloat(_x);
 
@@ -371,5 +368,4 @@ float atanFast4(float inX) {
     return x*(-0.1784f * abs(x) - 0.0663f * x * x + 1.0301f);
 }
 
-#endif//SHADER_FAST_MATH_INC_FX
 #endif
