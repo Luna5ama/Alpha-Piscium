@@ -73,3 +73,6 @@ uniform float alphaTestRef;                     // alpha test reference value, t
 // 1.19+
 uniform float darknessFactor;                   // strength of the darkness effect (0.0-1.0)
 uniform float darknessLightFactor;              // lightmap variations caused by the darkness effect (0.0-1.0)
+
+//
+const vec4 viewResolution = vec4(viewWidth, viewHeight, 1.0 / viewWidth, 1.0 / viewHeight);

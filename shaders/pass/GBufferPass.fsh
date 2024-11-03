@@ -43,7 +43,9 @@ void main() {
     gbuffer_pack(rt_gbuffer, gData);
     rt_viewZ = frag_viewZ;
 
-    if (albedoTemp.a < 0.5) {
+    #ifdef GBUFFER_PASS_ALPHA_TEST
+    if (albedoTemp.a < 0.1) {
         discard;
     }
+    #endif
 }

@@ -2,6 +2,7 @@
 #define INCLUDE_Coords.glsl
 #include "../_Base.glsl"
 #include "Math.glsl"
+#include "R2Seqs.glsl"
 
 float coords_linearizeDepth(float depth, float near, float far) {
     return (near * far) / (depth * (near - far) + far);
@@ -28,6 +29,20 @@ mat4 coords_shadowDeRotateMatrix(mat4 shadowMatrix) {
             -sin1, cos1, 0.0, 0.0,
             0.0, 0.0, 0.1, 0.0,
             0.0, 0.0, 0.0, 1.0
+    );
+}
+
+vec2 coords_taaJitter() {
+    return r2Seq2(frameCounter) - 0.5;
+}
+
+mat4 coords_taaJitterMat() {
+    vec2 jitter = coords_taaJitter() * 2.0 * viewResolution.zw;
+    return mat4(
+            1.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0,
+            0.0, 0.0, 1.0, 0.0,
+            jitter.x, jitter.y, 0.0, 1.0
     );
 }
 #endif
