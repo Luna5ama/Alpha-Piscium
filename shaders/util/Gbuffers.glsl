@@ -46,7 +46,14 @@ void gbuffer_pack(out uvec4 packedData, GBufferData gData) {
 
 void gbuffer_unpack(uvec4 packedData, out GBufferData gData) {
     vec4 tempR = unpackUnorm4x8(packedData.r);
-    gData.albedo = tempR.rgb;
+    const float a0 = 0.000570846;
+    const float a1 = -0.0403863;
+    const float a2 = 0.862127;
+    const float a3 = 0.178572;
+    vec3 x = max(tempR.rgb, 0.0232545);
+    vec3 x2 = x * x;
+    vec3 x3 = x2 * x;
+    gData.albedo = a0 + a1 * x + a2 * x2 + a3 * x3;
     gData.roughness = tempR.a;
 
     vec4 tempG = unpackUnorm4x8(packedData.g);

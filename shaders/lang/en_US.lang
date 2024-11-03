@@ -4,7 +4,10 @@ screen.RTWSM = RTWSM
 screen.RTWSM.comment = Rectilinear Texture Warping Shadow Mapping settings
 screen.PCSS = PCSS
 screen.PCSS.comment = Percentage Closer Soft Shadows settings
+screen.POSTFX = Post Processing
+screen.POSTFX.comment = Post Processing settings
 screen.MISC = Misc
+screen.MISC.comment = Miscellaneous settings
 
 option.SETTING_SHADOW_MAP_RESOLUTION = Shadow Map Resolution
 
