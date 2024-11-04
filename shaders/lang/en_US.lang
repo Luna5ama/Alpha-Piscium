@@ -12,8 +12,14 @@ screen.MISC = Misc
 screen.MISC.comment = Miscellaneous settings
 
 option.SETTING_SUN_TEMPERATURE = Sun temperature
-option.SETTING_SUN_TEMPERATURE.comment = Temperature of sun. The default value 5772 K is based on real life sun.
+option.SETTING_SUN_TEMPERATURE.comment = Temperature of sun in kelvin. The default value 5772 K is based on real life sun.
 suffix.SETTING_SUN_TEMPERATURE = \ K
+option.SETTING_FIRE_TEMPERATURE = Fire temperature
+option.SETTING_FIRE_TEMPERATURE.comment = Temperature of fire in kelvin. The default value 1900 K is based on real life average.
+suffix.SETTING_FIRE_TEMPERATURE = \ K
+option.SETTING_LAVA_TEMPERATURE = Lava temperature
+option.SETTING_LAVA_TEMPERATURE.comment = Temperature of lava in kelvin. The default value 1200 K is based on real life average.
+suffix.SETTING_LAVA_TEMPERATURE = \ K
 
 option.shadowMapResolution = Shadow Map Resolution
 option.shadowDistance = Shadow Render Distance
