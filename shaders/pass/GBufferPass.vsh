@@ -13,7 +13,7 @@ out uint frag_materialID; // 16 x 1 = 16 bits
 out float frag_viewZ;
 
 void main() {
-    gl_Position = ssbo_globalData.taaJitterMat * ftransform();
+    gl_Position = global_taaJitterMat * ftransform();
     vec4 viewCoord = gbufferProjectionInverse * gl_Position;
     frag_viewZ = viewCoord.z;
 

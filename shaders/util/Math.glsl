@@ -40,4 +40,66 @@ vec4 linearStep(float edge0, float edge1, vec4 x) {
 float toRadians(float degrees) {
     return degrees * PI_CONST / 180.0;
 }
+
+float pow2(float x) { return x * x; }
+vec2 pow2(vec2 x) { return x * x; }
+vec3 pow2(vec3 x) { return x * x; }
+vec4 pow2(vec4 x) { return x * x; }
+
+float pow3(float x) { return x * x * x; }
+vec2 pow3(vec2 x) { return x * x * x; }
+vec3 pow3(vec3 x) { return x * x * x; }
+vec4 pow3(vec4 x) { return x * x * x; }
+
+float pow4(float x) {
+    float x2 = x * x;
+    return x2 * x2;
+}
+vec2 pow4(vec2 x) {
+    vec2 x2 = x * x;
+    return x2 * x2;
+}
+vec3 pow4(vec3 x) {
+    vec3 x2 = x * x;
+    return x2 * x2;
+}
+vec4 pow4(vec4 x) {
+    vec4 x2 = x * x;
+    return x2 * x2;
+}
+
+float pow5(float x) {
+    float x2 = x * x;
+    return x2 * x2 * x;
+}
+vec2 pow5(vec2 x) {
+    vec2 x2 = x * x;
+    return x2 * x2 * x;
+}
+vec3 pow5(vec3 x) {
+    vec3 x2 = x * x;
+    return x2 * x2 * x;
+}
+vec4 pow5(vec4 x) {
+    vec4 x2 = x * x;
+    return x2 * x2 * x;
+}
+
+float pow6(float x) {
+    float x2 = x * x;
+    return x2 * x2 * x2;
+}
+vec2 pow6(vec2 x) {
+    vec2 x2 = x * x;
+    return x2 * x2 * x2;
+}
+vec3 pow6(vec3 x) {
+    vec3 x2 = x * x;
+    return x2 * x2 * x2;
+}
+vec4 pow6(vec4 x) {
+    vec4 x2 = x * x;
+    return x2 * x2 * x2;
+}
+
 #endif

@@ -1,6 +1,9 @@
 #ifndef INCLUDE_Colors.glsl
 #define INCLUDE_Colors.glsl
 
+// (695700 / 149600000)^2
+const float SUN_RADIANCE_DECAY = 2.1626230107380823014670136406531e-5;
+
 // Adopted from: https://github.com/zubetto/BlackBodyRadiation
 // MIT License
 //
@@ -23,12 +26,12 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 // SOFTWARE.
-vec4 colors_blackBodyRadiation(float T) {
+vec4 colors_blackBodyRadiation(float T, float radianceMul) {
     if (T <= 0.0) return vec4(0.0);
 
     vec4 chromaRadiance;
 
-    chromaRadiance.a = 230141698.067 / (exp(25724.2 / T) - 1.0);
+    chromaRadiance.a = (230141698.067 * radianceMul) / (exp(25724.2 / T) - 1.0);
 
     // luminance Lv = Km*ChromaRadiance.a in cd/m2, where Km = 683.002 lm/W
 

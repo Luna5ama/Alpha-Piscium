@@ -1,8 +1,7 @@
 #version 460 compatibility
 
 #define GLOBAL_DATA_MODIFIER writeonly
-#include "util/Math.glsl"
-#include "util/R2Seqs.glsl"
+#include "_Util.glsl"
 
 layout(local_size_x = 1) in;
 
@@ -39,7 +38,9 @@ mat4 taaJitterMat(vec2 baseJitter) {
 
 void main() {
     vec2 jitter = taaJitter();
-    ssbo_globalData.shadowRotationMatrix = shadowDeRotateMatrix(shadowModelView);
-    ssbo_globalData.taaJitter = jitter;
-    ssbo_globalData.taaJitterMat = taaJitterMat(jitter);
+    global_shadowRotationMatrix = shadowDeRotateMatrix(shadowModelView);
+    global_taaJitter = jitter;
+    global_taaJitterMat = taaJitterMat(jitter);
+
+    global_sunRadiance = colors_blackBodyRadiation(SETTING_SUN_TEMPERATURE, SUN_RADIANCE_DECAY);
 }

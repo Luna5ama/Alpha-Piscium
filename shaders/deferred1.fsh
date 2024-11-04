@@ -67,7 +67,7 @@ float calcShadow(float sssFactor) {
 	vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
 	worldCoord = mix(worldCoord, vec4(0.0, 1.0, 0.0, 1.0), float(gData.materialID == 65534u));
 
-	vec4 shadowTexCoordCS = ssbo_globalData.shadowRotationMatrix * shadowProjection * shadowModelView * worldCoord;
+	vec4 shadowTexCoordCS = global_shadowRotationMatrix * shadowProjection * shadowModelView * worldCoord;
 	shadowTexCoordCS /= shadowTexCoordCS.w;
 
 	vec3 shadowTexCoord = shadowTexCoordCS.xyz * 0.5 + 0.5;
@@ -106,12 +106,30 @@ float calcShadow(float sssFactor) {
 	return mix(shadow, 1.0, linearStep(shadowDistance - 16.0, shadowDistance, length(worldCoord.xz)));
 }
 
+vec3 calcDirectLighting(vec3 L, vec3 N, vec3 V, vec3 albedo, float shadow) {
+	vec3 directLight = vec3(0.0);
+	float ambient = 0.1;
+	directLight += ambient * gData.albedo;
+
+	vec3 H = normalize(L + V);
+	float NDotL = saturate(dot(N, L));
+	float NDotV = saturate(dot(N, V));
+	float NDotH = saturate(dot(N, H));
+	float LDotV = saturate(dot(L, V));
+
+	vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
+	vec3 diffuseV = bsdfs_diffuseHammon(NDotL, NDotV, NDotH, LDotV, albedo, 0.5);
+	directLight += shadow * diffuseV * gData.albedo * sunRadiance;
+
+	return directLight;
+}
+
 void doStuff() {
 	float shadow = calcShadow(0.0);
-	shadow *= saturate(dot(gData.normal, shadowLightPosition));
 
-	vec3 color = gData.albedo * mix(0.5, 1.0, shadow);
-	rt_out = vec4(color, 1.0);
+	vec3 directLight = calcDirectLighting(sunPosition * 0.01, gData.normal, g_viewDir, gData.albedo, shadow);
+
+	rt_out = vec4(directLight, 1.0);
 }
 
 void main() {
