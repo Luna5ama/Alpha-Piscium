@@ -12,7 +12,7 @@ layout(location = 1) out vec4 rt_taaLast;
 void main() {
     ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
 
-    vec2 unJitteredTexCoord = frag_texCoord + coords_taaJitter() * viewResolution.zw;
+    vec2 unJitteredTexCoord = frag_texCoord + ssbo_globalData.taaJitter * viewResolution.zw;
     vec4 currColor = texture(colortex0, unJitteredTexCoord);
     vec4 near1Min = currColor;
     vec4 near1Max = currColor;

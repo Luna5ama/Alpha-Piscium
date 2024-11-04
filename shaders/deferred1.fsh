@@ -68,7 +68,7 @@ float calcShadow(float sssFactor) {
 	vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
 	worldCoord = mix(worldCoord, vec4(0.0, 1.0, 0.0, 1.0), float(gData.materialID == 65534u));
 
-	vec4 shadowTexCoordCS = coords_shadowDeRotateMatrix(shadowModelView) * shadowProjection * shadowModelView * worldCoord;
+	vec4 shadowTexCoordCS = ssbo_globalData.shadowRotationMatrix * shadowProjection * shadowModelView * worldCoord;
 	shadowTexCoordCS /= shadowTexCoordCS.w;
 
 	vec3 shadowTexCoord = shadowTexCoordCS.xyz * 0.5 + 0.5;
