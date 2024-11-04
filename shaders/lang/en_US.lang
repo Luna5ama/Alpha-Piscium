@@ -1,15 +1,21 @@
-screen.SHADOW = Shadow
-screen.SHADOW.comment = Shadow settings
+screen.LIGHTING = Lighting
+screen.LIGHTING.comment = Lighting settings
+screen.LIGHTSRC = Light Source
+screen.LIGHTING.comment = Lighting source setting. e.g. sunlight, block light, etc.
 screen.RTWSM = RTWSM
 screen.RTWSM.comment = Rectilinear Texture Warping Shadow Mapping settings
 screen.PCSS = PCSS
 screen.PCSS.comment = Percentage Closer Soft Shadows settings
 screen.POSTFX = Post Processing
-screen.POSTFX.comment = Post Processing settings
+screen.POSTFX.comment = Post processing settings
 screen.MISC = Misc
 screen.MISC.comment = Miscellaneous settings
 
-option.SETTING_SHADOW_MR = Shadow Map Resolution
+option.SETTING_SUN_TEMPERATURE = Sun temperature
+option.SETTING_SUN_TEMPERATURE.comment = Temperature of sun. The default value 5772 K is based on real life sun.
+suffix.SETTING_SUN_TEMPERATURE = \ K
+
+option.shadowMapResolution = Shadow Map Resolution
 option.shadowDistance = Shadow Render Distance
 value.shadowDistance.64.0 = 4 chunks
 value.shadowDistance.128.0 = 8 chunks
@@ -18,7 +24,7 @@ value.shadowDistance.256.0 = 16 chunks
 value.shadowDistance.384.0 = 24 chunks
 value.shadowDistance.512.0 = 32 chunks
 
-option.SETTING_RTWSM_IMAP_SIZE = Importance Map Size
+option.SETTING_RTWSM_IMAP_SIZE = Importance Map Resolution
 option.SETTING_RTWSM_IMP_BBASE = Backward Base Importance
 option.SETTING_RTWSM_IMP_D = Distance Function
 option.SETTING_RTWSM_IMP_SN = Surface Normal Function
