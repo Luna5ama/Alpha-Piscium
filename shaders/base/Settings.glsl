@@ -1,5 +1,3 @@
-#define RENDER_RESOLUTION 1.0 // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-
 #define SETTING_SHADOW_MR 2048 // [256 512 1024 2048 4096]
 const float shadowDistance = 192.0; // [64.0 128.0 192.0 256.0 384.0 512.0]
 

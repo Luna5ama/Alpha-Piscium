@@ -18,7 +18,6 @@ uniform sampler2DShadow shadowtex0HW;
 uniform sampler2D usam_rtwsm_warpingMap;
 
 in vec2 frag_texCoord;
-in vec2 frag_scaledTexCoord;
 
 ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
 GBufferData gData;
