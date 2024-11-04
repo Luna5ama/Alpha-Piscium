@@ -10,8 +10,13 @@ screen.MISC = Misc
 screen.MISC.comment = Miscellaneous settings
 
 option.SETTING_SHADOW_MR = Shadow Map Resolution
-option.SETTING_SHADOW_RD = Shadow Render Distance
-suffix.SETTING_SHADOW_RD = \ chunks
+option.shadowDistance = Shadow Render Distance
+value.shadowDistance.64.0 = 4 chunks
+value.shadowDistance.128.0 = 8 chunks
+value.shadowDistance.192.0 = 12 chunks
+value.shadowDistance.256.0 = 16 chunks
+value.shadowDistance.384.0 = 24 chunks
+value.shadowDistance.512.0 = 32 chunks
 
 option.SETTING_RTWSM_IMAP_SIZE = Importance Map Size
 option.SETTING_RTWSM_IMP_BBASE = Backward Base Importance

@@ -1,7 +1,7 @@
 #define RENDER_RESOLUTION 1.0 // [0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
 
 #define SETTING_SHADOW_MR 2048 // [256 512 1024 2048 4096]
-#define SETTING_SHADOW_RD 12 // [4 8 12 16 20 24 28 32]
+const float shadowDistance = 192.0; // [64.0 128.0 192.0 256.0 384.0 512.0]
 
 #define SETTING_RTWSM_IMAP_SIZE 1024 // RTWSM importance map resolution [128 256 512 1024]
 #define SETTING_RTWSM_IMP_BBASE 8.0 // [1.0 2.0 3.0 4.0 5.0 6.0 7.0 8.0 9.0 10.0]
@@ -22,4 +22,3 @@
 
 const int shadowMapResolution = SETTING_SHADOW_MR;
 const vec2 SHADOW_MAP_SIZE = vec2(float(shadowMapResolution), 1.0 / float(shadowMapResolution));
-const float shadowDistance = SETTING_SHADOW_RD * 16.0;
