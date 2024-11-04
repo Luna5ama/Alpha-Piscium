@@ -10,13 +10,11 @@ uniform sampler2D depthtex0;
 
 const bool generateShadowMipmap = true;
 const bool shadowtex0Mipmap = true;
-const bool shadowtex1Mipmap = true;
 
-uniform sampler2DShadow shadowtex0;
 const bool shadowHardwareFiltering0 = true;
+uniform sampler2D shadowtex0;
+uniform sampler2DShadow shadowtex0HW;
 
-uniform sampler2D shadowtex1;
-const bool shadowHardwareFiltering1 = false;
 uniform sampler2D usam_rtwsm_warpingMap;
 
 in vec2 frag_texCoord;
@@ -49,7 +47,7 @@ float searchBlocker(vec3 shadowTexCoord) {
 		sampleTexCoord.xy += randomOffset * blockerSearchRange * vec2(shadowProjection[0][0], shadowProjection[1][1]);
 		vec2 texelSize;
 		sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, sampleTexCoord.xy, texelSize);
-		float depth = rtwsm_sampleShadowDepth(shadowtex1, sampleTexCoord, BLOCKER_SEARCH_LOD).r;
+		float depth = rtwsm_sampleShadowDepth(shadowtex0, sampleTexCoord, BLOCKER_SEARCH_LOD).r;
 		blockerDepth += step(depth, sampleTexCoord.z) * depth;
 		n += int(sampleTexCoord.z > depth);
 		idxB++;
@@ -101,7 +99,7 @@ float calcShadow(float sssFactor) {
 		sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, sampleTexCoord.xy, texelSize);
 		float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
 		sampleTexCoord.z -= depthBias;
-		shadow += rtwsm_sampleShadowDepth(shadowtex0, sampleTexCoord, 0.0);
+		shadow += rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
 		idxSS++;
 	}
 	shadow /= float(SAMPLE_N);
