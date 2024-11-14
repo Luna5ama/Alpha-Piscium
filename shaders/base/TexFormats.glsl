@@ -12,7 +12,10 @@ const int colortex15Format = RGBA16F; // TAA Last
 #define uimg_main colorimg0
 
 #define usam_gbuffer colortex1
+#define uimg_gbuffer colorimg1
+
 #define usam_viewZ colortex2
+#define uimg_viewZ colorimg2
 
 #define usam_tempUI colortex12
 #define uimg_tempUI colorimg12

@@ -146,8 +146,12 @@ void doStuff() {
 }
 
 void main() {
-	gbuffer_unpack(texelFetch(usam_gbuffer, ivec2(gl_FragCoord.xy), 0), gData);
 	float viewZ = texelFetch(usam_viewZ, ivec2(gl_FragCoord.xy), 0).r;
+	if (viewZ == 1.0) {
+		discard;
+	}
+
+	gbuffer_unpack(texelFetch(usam_gbuffer, ivec2(gl_FragCoord.xy), 0), gData);
 	g_viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
 	g_viewDir = normalize(-g_viewCoord);
 

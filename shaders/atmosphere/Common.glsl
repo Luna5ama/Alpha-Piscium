@@ -148,7 +148,7 @@ void LutTransmittanceParamsToUv(AtmosphereParameters atmosphere, in float viewHe
 
 void UvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float viewHeight, out float viewZenithCosAngle, in vec2 uv) {
     //uv = vec2(fromSubUvsToUnit(uv.x, TRANSMITTANCE_TEXTURE_WIDTH), fromSubUvsToUnit(uv.y, TRANSMITTANCE_TEXTURE_HEIGHT)); // No real impact so off
-    uv = clamp(uv, TRANSMITTANCE_TEXTURE_SIZE, vec2(1.0 - TRANSMITTANCE_TEXTURE_SIZE));
+    uv = clamp(uv, TRANSMITTANCE_TEXEL_SIZE, vec2(1.0 - TRANSMITTANCE_TEXEL_SIZE));
     float x_mu = uv.x;
     float x_r = uv.y;
 

@@ -1,6 +1,5 @@
 #version 460 compatibility
 
-#define GLOBAL_DATA_MODIFIER
 #include "_Util.glsl"
 
 layout(local_size_x = 1) in;

@@ -1,6 +1,5 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
-#define GLOBAL_DATA_MODIFIER
 #include "../_Util.glsl"
 
 layout(local_size_x = 32, local_size_y = 32) in;
@@ -64,8 +63,7 @@ void main() {
 
     if (all(lessThan(pixelPos, imgSize))) {
         vec4 color = imageLoad(uimg_main, pixelPos);
-//        color.rgb *= global_exposure;
-        color.rgb *= 0.001;
+        color.rgb *= global_exposure;
         float lumanance = colors_linearSRGBToLuminance(max(color.rgb, 0.0));
 
         uint binIndex = histoIndex(lumanance);
