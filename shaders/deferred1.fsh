@@ -109,7 +109,7 @@ float calcShadow(float sssFactor) {
 	return mix(shadow, 1.0, linearStep(shadowDistance - 16.0, shadowDistance, length(worldCoord.xz)));
 }
 
-vec3 calcDirectLighting(vec3 L, vec3 N, vec3 V, vec3 albedo, float shadow) {
+vec3 calcDirectLighting(vec3 L, vec3 N, vec3 V, vec3 albedo, float shadow, float emissive) {
 	vec3 directLight = vec3(0.0);
 	float ambient = 0.5;
 	directLight += ambient * gData.albedo;
@@ -131,7 +131,7 @@ vec3 calcDirectLighting(vec3 L, vec3 N, vec3 V, vec3 albedo, float shadow) {
 
 	sunRadiance *= transmittance;
 
-	vec3 diffuseV = bsdfs_diffuseHammon(NDotL, NDotV, NDotH, LDotV, albedo, 0.5);
+	vec3 diffuseV = bsdfs_diffuseHammon(NDotL, NDotV, NDotH, LDotV, albedo, 1.0);
 	directLight += shadow * diffuseV * gData.albedo * sunRadiance;
 
 	return directLight;
@@ -140,7 +140,7 @@ vec3 calcDirectLighting(vec3 L, vec3 N, vec3 V, vec3 albedo, float shadow) {
 void doStuff() {
 	float shadow = calcShadow(0.0);
 
-	vec3 directLight = calcDirectLighting(sunPosition * 0.01, gData.normal, g_viewDir, gData.albedo, shadow);
+	vec3 directLight = calcDirectLighting(sunPosition * 0.01, gData.normal, g_viewDir, gData.albedo, shadow, gData.emissive);
 
 	rt_out = vec4(directLight, 1.0);
 }

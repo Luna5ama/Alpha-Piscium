@@ -23,19 +23,33 @@ void main() {
 
     GBufferData gData;
 
-    gData.roughness = 0.0;
     #ifdef GBUFFER_PASS_TEXTURED
     albedoTemp *= texture(gtexture, frag_texCoord);
     #endif
     gData.albedo = albedoTemp.rgb;
 
+    #if defined(GBUFFER_PASS_TEXTURED) && defined(MC_TEXTURE_FORMAT_LAB_PBR)
+    vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
+    vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);
+
+    gData.f0 = specularSample.g;
+    gData.emissive = 1.0 - specularSample.a;
+    gData.porositySSS = specularSample.b;
+    gData.roughness = 1.0 - specularSample.r;
+    gData.roughness *= gData.roughness;
+
+    gData.normal = frag_viewNormal;
+
+    #else
     gData.f0 = 0.0;
+    gData.roughness = 0.0;
     gData.emissive = 0.0;
     gData.porositySSS = 0.0;
-    // TODO: hardcoded PBR + LABPBR
+    // TODO: hardcoded PBR
 
     gData.normal = frag_viewNormal;
     // TODO: normal map
+    #endif
 
     gData.lmCoord = frag_lmCoord;
     gData.materialID = frag_materialID;
