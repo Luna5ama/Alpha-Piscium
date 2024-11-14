@@ -39,7 +39,7 @@ vec4 colors_blackBodyRadiation(float T, float radianceMul) {
 }
 
 float colors_linearSRGBToLuminance(vec3 color) {
-    return dot(color, vec3(0.212639005872, 0.715168678768, 0.0721923153607));
+    return dot(color, vec3(0.2126, 0.7152, 0.0722));
 }
 
 #endif

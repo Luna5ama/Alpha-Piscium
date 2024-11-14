@@ -1,11 +1,11 @@
-#extension GL_KHR_shader_subgroup_ballot : enable
-
 #include "../_Util.glsl"
 
-layout(local_size_x = 32, local_size_y = 32) in;
+#extension GL_KHR_shader_subgroup_ballot : enable
+
+layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-shared uint shared_topBinCount = 0u;
+shared uint shared_lumHistogram[256];
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 layout(rgba16f) readonly uniform image2D uimg_temp1;
@@ -44,33 +44,36 @@ vec3 uchimura(vec3 x) {
     return uchimura(x, P, a, m, l, c, b);
 }
 
-uint histoIndex(float x) {
+uint histoIndex(float x, float range) {
     const float EPSILON = 0.001;
     uint binIndex;
     if (x < EPSILON) {
         binIndex = 0;
     } else {
-        float lumMapped = clamp(log2(x) + 1.0, 0.0, 1.0);
+        float lumMapped = saturate(log2(x + 1.0) / range);
         binIndex = uint(lumMapped * 254.0 + 1.0);
     }
     return binIndex;
 }
 
 void main() {
+    shared_lumHistogram[gl_LocalInvocationIndex] = 0u;
+
     ivec2 imgSize = imageSize(uimg_main);
     ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
 
-
     if (all(lessThan(pixelPos, imgSize))) {
         vec4 color = imageLoad(uimg_main, pixelPos);
-        color.rgb *= global_exposure;
+        color.rgb *= global_exposure.w;
         float lumanance = colors_linearSRGBToLuminance(max(color.rgb, 0.0));
 
-        uint binIndex = histoIndex(lumanance);
-        uvec4 topBinBallot = subgroupBallot(binIndex == 255u);
+        uint binIndex16 = histoIndex(lumanance, 16.0);
+        atomicAdd(shared_lumHistogram[binIndex16], 1u);
+
+        uint binIndex1 = histoIndex(lumanance, 1.0);
+        uvec4 topBinBallot = subgroupBallot(binIndex1 == 255u);
         if (subgroupElect()) {
-            uint topBinCount = subgroupBallotBitCount(topBinBallot);
-            atomicAdd(shared_topBinCount, topBinCount);
+            atomicAdd(global_lumHistogram[256], subgroupBallotBitCount(topBinBallot));
         }
 
         color.rgb = uchimura(color.rgb);
@@ -79,8 +82,6 @@ void main() {
 
         barrier();
 
-        if (gl_LocalInvocationID.x == 0) {
-            atomicAdd(global_topBinCount, shared_topBinCount);
-        }
+        atomicAdd(global_lumHistogram[gl_LocalInvocationIndex], shared_lumHistogram[gl_LocalInvocationIndex]);
     }
 }

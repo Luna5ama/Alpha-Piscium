@@ -111,7 +111,7 @@ float calcShadow(float sssFactor) {
 
 vec3 calcDirectLighting(vec3 L, vec3 N, vec3 V, vec3 albedo, float shadow) {
 	vec3 directLight = vec3(0.0);
-	float ambient = 100.0;
+	float ambient = 0.5;
 	directLight += ambient * gData.albedo;
 
 	vec3 H = normalize(L + V);
@@ -120,7 +120,7 @@ vec3 calcDirectLighting(vec3 L, vec3 N, vec3 V, vec3 albedo, float shadow) {
 	float NDotH = saturate(dot(N, H));
 	float LDotV = saturate(dot(L, V));
 
-	vec3 sunIlluminance = global_sunIlluminance.rgb * global_sunIlluminance.a;
+	vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
 
 	AtmosphereParameters atmosphere = getAtmosphereParameters();
 	vec3 sunWorldDir = mat3(gbufferModelViewInverse) * (sunPosition * 0.01);
@@ -129,10 +129,10 @@ vec3 calcDirectLighting(vec3 L, vec3 N, vec3 V, vec3 albedo, float shadow) {
 	LutTransmittanceParamsToUv(atmosphere, atmosphere.bottom, sunZenithCos, transmittanceUV);
 	vec3 transmittance = texture(usam_transmittanceLUT, transmittanceUV).rgb;
 
-	sunIlluminance *= transmittance;
+	sunRadiance *= transmittance;
 
 	vec3 diffuseV = bsdfs_diffuseHammon(NDotL, NDotV, NDotH, LDotV, albedo, 0.5);
-	directLight += shadow * diffuseV * gData.albedo * sunIlluminance;
+	directLight += shadow * diffuseV * gData.albedo * sunRadiance;
 
 	return directLight;
 }

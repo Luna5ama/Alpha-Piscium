@@ -3,10 +3,10 @@
 #endif
 
 layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
+    uint global_lumHistogram[257];
     mat4 global_shadowRotationMatrix;
     mat4 global_taaJitterMat;
-    vec4 global_sunIlluminance;
+    vec4 global_sunRadiance;
     vec2 global_taaJitter;
-    uint global_topBinCount;
-    float global_exposure;
+    vec4 global_exposure;
 };

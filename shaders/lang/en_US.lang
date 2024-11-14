@@ -45,3 +45,6 @@ option.SETTING_PCSS_VPF = Variable Penumbra Factor
 option.SETTING_PCSS_BLOCKER_SEARCH_COUNT = Blocker Search Count
 option.SETTING_PCSS_BLOCKER_SEARCH_LOD = Blocker Search LOD
 option.SETTING_PCSS_SAMPLE_COUNT = Sample Count
+
+option.SETTING_OUTPUT_GAMMA = Output Gamma
+option.SETTING_AE_TIME = Auto Exposure Time
