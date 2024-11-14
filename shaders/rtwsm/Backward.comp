@@ -84,7 +84,7 @@ void importance(ivec2 gCoord, out uint p, out float v) {
         return;
     }
 
-    uvec2 shadowPos = uvec2(shadowTS.xy * imageSize(uimg_rtwsm_imap2D) + 0.5);
+    uvec2 shadowPos = uvec2(shadowTS.xy * SETTING_RTWSM_IMAP_SIZE + 0.5);
 
     p = shadowPos.y << 16 | shadowPos.x;
     v = importance;

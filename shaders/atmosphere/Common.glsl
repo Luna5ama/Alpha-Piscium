@@ -68,6 +68,10 @@ AtmosphereParameters getAtmosphereParameters() {
     return atmosphere;
 }
 
+#define TRANSMITTANCE_TEXTURE_WIDTH 256
+#define TRANSMITTANCE_TEXTURE_HEIGHT 64
+const vec2 TRANSMITTANCE_TEXTURE_SIZE = vec2(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
+const vec2 TRANSMITTANCE_TEXEL_SIZE = 1.0 / TRANSMITTANCE_TEXTURE_SIZE;
 
 // Calculate the air density ratio at a given height(km) relative to sea level
 // See https://www.desmos.com/calculator/homrt1shnb
@@ -125,6 +129,8 @@ float fromUnitToSubUvs(float u, float resolution) { return (u + 0.5f / resolutio
 float fromSubUvsToUnit(float u, float resolution) { return (u - 0.5f / resolution) * (resolution / (resolution - 1.0f)); }
 
 void LutTransmittanceParamsToUv(AtmosphereParameters atmosphere, in float viewHeight, in float viewZenithCosAngle, out vec2 uv) {
+    viewHeight = clamp(viewHeight, atmosphere.bottom + 0.0001, atmosphere.top - 0.0001);
+    viewZenithCosAngle = clamp(viewZenithCosAngle, -1.0, 1.0);
     float H = sqrt(max(0.0, atmosphere.top * atmosphere.top - atmosphere.bottom * atmosphere.bottom));
     float rho = sqrt(max(0.0, viewHeight * viewHeight - atmosphere.bottom * atmosphere.bottom));
 
@@ -142,6 +148,7 @@ void LutTransmittanceParamsToUv(AtmosphereParameters atmosphere, in float viewHe
 
 void UvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float viewHeight, out float viewZenithCosAngle, in vec2 uv) {
     //uv = vec2(fromSubUvsToUnit(uv.x, TRANSMITTANCE_TEXTURE_WIDTH), fromSubUvsToUnit(uv.y, TRANSMITTANCE_TEXTURE_HEIGHT)); // No real impact so off
+    uv = clamp(uv, TRANSMITTANCE_TEXTURE_SIZE, vec2(1.0 - TRANSMITTANCE_TEXTURE_SIZE));
     float x_mu = uv.x;
     float x_r = uv.y;
 
