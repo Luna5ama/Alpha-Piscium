@@ -28,6 +28,7 @@ vec3 screenToView(vec3 screenPos) {
 layout(location = 0) out vec4 color;
 
 void main() {
+	discard;
 	if (starData.a > 0.5) {
 		color = vec4(starData.rgb, 1.0);
 	} else {
