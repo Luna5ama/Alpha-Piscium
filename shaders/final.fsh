@@ -8,6 +8,7 @@ uniform sampler2D shadowtex0;
 uniform sampler2D usam_rtwsm_imap2D;
 uniform sampler2D usam_rtwsm_imap1D;
 uniform sampler2D usam_rtwsm_warpingMap;
+uniform sampler2D usam_transmittanceLUT;
 
 varying vec2 texcoord;
 
@@ -31,7 +32,7 @@ void main() {
     vec4 color = texelFetch(colortex0, intTexCoord, 0);
 
     vec2 debugTexCoord;
-    #ifdef RTWSM_DEBUG
+    #ifdef SETTING_DEBUG_RTWSM
     if (inViewPort(vec4(0, 0, 512, 512), debugTexCoord)) {
         color.rgb = texture(shadowtex0, debugTexCoord).rrr;
     }
@@ -56,6 +57,12 @@ void main() {
     if (inViewPort(vec4(512 + 16, 512, 16, 512), debugTexCoord)) {
         vec2 v = texture(usam_rtwsm_warpingMap, vec2(debugTexCoord.y, 0.75)).rg;
         color.rgb = vec3(max(v.x, 0.0), max(-v.x, 0.0), 0.0);
+    }
+    #endif
+
+    #ifdef SETTING_DEBUG_ATMOSPHERE
+    if (inViewPort(vec4(0, 0, 256, 64), debugTexCoord)) {
+        color.rgb = texture(usam_transmittanceLUT, debugTexCoord).rgb;
     }
     #endif
 

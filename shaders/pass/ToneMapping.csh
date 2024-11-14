@@ -64,7 +64,8 @@ void main() {
 
     if (all(lessThan(pixelPos, imgSize))) {
         vec4 color = imageLoad(uimg_main, pixelPos);
-        color.rgb *= global_exposure;
+//        color.rgb *= global_exposure;
+        color.rgb *= 0.001;
         float lumanance = colors_linearSRGBToLuminance(max(color.rgb, 0.0));
 
         uint binIndex = histoIndex(lumanance);

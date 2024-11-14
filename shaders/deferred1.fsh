@@ -2,6 +2,7 @@
 
 #include "_Util.glsl"
 #include "rtwsm/RTWSM.glsl"
+#include "pass/atmosphere/AtmCommon.glsl"
 
 uniform usampler2D usam_gbuffer;
 uniform sampler2D usam_viewZ;
@@ -16,6 +17,8 @@ uniform sampler2D shadowtex0;
 uniform sampler2DShadow shadowtex0HW;
 
 uniform sampler2D usam_rtwsm_warpingMap;
+
+uniform sampler2D usam_transmittanceLUT;
 
 in vec2 frag_texCoord;
 
@@ -117,9 +120,19 @@ vec3 calcDirectLighting(vec3 L, vec3 N, vec3 V, vec3 albedo, float shadow) {
 	float NDotH = saturate(dot(N, H));
 	float LDotV = saturate(dot(L, V));
 
-	vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
+	vec3 sunIlluminance = global_sunIlluminance.rgb * global_sunIlluminance.a;
+
+	AtmosphereParameters atmosphere = getAtmosphereParameters();
+	vec3 sunWorldDir = mat3(gbufferModelViewInverse) * (sunPosition * 0.01);
+	float sunZenithCos = dot(sunWorldDir, vec3(0.0, 1.0, 0.0));
+	vec2 transmittanceUV;
+	LutTransmittanceParamsToUv(atmosphere, atmosphere.bottom, sunZenithCos, transmittanceUV);
+	vec3 transmittance = texture(usam_transmittanceLUT, transmittanceUV).rgb;
+
+	sunIlluminance *= transmittance;
+
 	vec3 diffuseV = bsdfs_diffuseHammon(NDotL, NDotV, NDotH, LDotV, albedo, 0.5);
-	directLight += shadow * diffuseV * gData.albedo * sunRadiance;
+	directLight += shadow * diffuseV * gData.albedo * sunIlluminance;
 
 	return directLight;
 }

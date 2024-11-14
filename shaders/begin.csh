@@ -51,7 +51,7 @@ void main() {
     vec4 sunRadiance = colors_blackBodyRadiation(SETTING_SUN_TEMPERATURE, OMEGA_SUN);
     #endif
     sunRadiance.a *= 683.002; // Radiance to luminance conversion factor
-    global_sunRadiance = sunRadiance;
+    global_sunIlluminance = sunRadiance;
 
     ivec2 mainImgSize = imageSize(uimg_main);
 

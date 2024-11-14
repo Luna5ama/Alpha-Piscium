@@ -4,6 +4,7 @@
 #include "util/Coords.glsl"
 #include "util/Colors.glsl"
 #include "util/FastMath.glsl"
+#include "util/FastMathLib.glsl"
 #include "util/GBuffers.glsl"
 #include "util/Hash.glsl"
 #include "util/Math.glsl"
