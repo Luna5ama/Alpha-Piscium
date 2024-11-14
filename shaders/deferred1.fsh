@@ -108,7 +108,7 @@ float calcShadow(float sssFactor) {
 
 vec3 calcDirectLighting(vec3 L, vec3 N, vec3 V, vec3 albedo, float shadow) {
 	vec3 directLight = vec3(0.0);
-	float ambient = 0.1;
+	float ambient = 100.0;
 	directLight += ambient * gData.albedo;
 
 	vec3 H = normalize(L + V);

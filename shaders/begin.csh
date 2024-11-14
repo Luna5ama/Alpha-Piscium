@@ -1,9 +1,12 @@
 #version 460 compatibility
 
-#define GLOBAL_DATA_MODIFIER writeonly
+#define GLOBAL_DATA_MODIFIER
 #include "_Util.glsl"
 
 layout(local_size_x = 1) in;
+const ivec3 workGroups = ivec3(1, 1, 1);
+
+layout(rgba16f) restrict uniform image2D uimg_main;
 
 mat4 shadowDeRotateMatrix(mat4 shadowMatrix) {
     vec2 p1 = (shadowMatrix * vec4(0.0, -1000.0, 0.0, 1.0)).xy;
@@ -49,4 +52,17 @@ void main() {
     #endif
     sunRadiance.a *= 683.002; // Radiance to luminance conversion factor
     global_sunRadiance = sunRadiance;
+
+    ivec2 mainImgSize = imageSize(uimg_main);
+
+    float top5Percent = float(mainImgSize.x * mainImgSize.y / 20);
+    float topBin = float(max(global_topBinCount, 1));
+    global_topBinCount = 0u;
+
+    float expLast = global_exposure;
+    float expNew = (top5Percent / topBin) * expLast;
+    const float timeCoeff = 0.01;
+    expNew = clamp(expNew, 0.00001, 1.0);
+    expNew = mix(expLast, expNew, timeCoeff);
+    global_exposure = expNew;
 }
