@@ -1,5 +1,5 @@
-#ifndef INCLUDE_Colors.glsl
-#define INCLUDE_Colors.glsl
+#ifndef INCLUDE_util_Colors.glsl
+#define INCLUDE_util_Colors.glsl
 
 // (695700 / 149600000)^2
 const float OMEGA_SUN = 2.1626230107380823014670136406531e-5;

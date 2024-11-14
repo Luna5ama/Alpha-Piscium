@@ -2,7 +2,7 @@
 // MIT License
 // Copyright (c) 2020 Epic Games, Inc.
 // You can find the full license text in /licenses/MIT.txt
-#include "AtmCommon.glsl"
+#include "Common.glsl"
 
 layout(rgba16f) uniform image2D uimg_transmittanceLUT;
 const ivec3 workGroups = ivec3(2, 64, 1);

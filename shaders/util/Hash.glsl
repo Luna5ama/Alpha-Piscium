@@ -1,8 +1,8 @@
 // MIT License
 // Copyright © 2017,2024 Inigo Quilez
 // You can find the full license text in /licenses/MIT.txt
-#ifndef INCLUDE_Hash.glsl
-#define INCLUDE_Hash.glsl
+#ifndef INCLUDE_util_Hash.glsl
+#define INCLUDE_util_Hash.glsl
 #include "../_Base.glsl"
 
 uint hash41(uvec4 x) {

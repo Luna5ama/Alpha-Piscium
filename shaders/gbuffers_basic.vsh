@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "pass/GBufferPass.vsh"
+#include "gbuffer/GBufferPass.vert"

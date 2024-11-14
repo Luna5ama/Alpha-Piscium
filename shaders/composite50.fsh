@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "pass/TAAResolve.fsh"
+#include "post/TAAResolve.frag"

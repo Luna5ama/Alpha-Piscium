@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "pass/ToneMapping.csh"
+#include "post/ToneMapping.comp"

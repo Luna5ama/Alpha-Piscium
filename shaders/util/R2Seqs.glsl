@@ -1,5 +1,5 @@
-#ifndef INCLUDE_R2Seqs.glsl
-#define INCLUDE_R2Seqs.glsl
+#ifndef INCLUDE_util_R2Seqs.glsl
+#define INCLUDE_util_R2Seqs.glsl
 #include "../_Base.glsl"
 
 // R2 Sequence by Martine Roberts

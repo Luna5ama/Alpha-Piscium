@@ -2,7 +2,7 @@
 
 #include "_Util.glsl"
 #include "rtwsm/RTWSM.glsl"
-#include "pass/atmosphere/AtmCommon.glsl"
+#include "atmosphere/Common.glsl"
 
 uniform usampler2D usam_gbuffer;
 uniform sampler2D usam_viewZ;

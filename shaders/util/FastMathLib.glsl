@@ -52,8 +52,8 @@
   OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
   THE SOFTWARE.
 ********************************************************************************/
-#ifndef INCLUDE_FastMathLib.glsl
-#define INCLUDE_FastMathLib.glsl
+#ifndef INCLUDE_util_FastMathLib.glsl
+#define INCLUDE_util_FastMathLib.glsl
 #include "../_Base.glsl"
 
 #define asint(_x)  floatBitsToInt(_x);

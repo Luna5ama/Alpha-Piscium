@@ -2,8 +2,8 @@
 // MIT License
 // Copyright (c) 2020 Epic Games, Inc.
 // You can find the full license text in /licenses/MIT.txt
-#ifndef INCLUDE_AtmCommon.glsl
-#define INCLUDE_AtmCommon.glsl
+#ifndef INCLUDE_atmosphere_Common.glsl
+#define INCLUDE_atmosphere_Common.glsl
 
 // Every length is in KM!!!
 

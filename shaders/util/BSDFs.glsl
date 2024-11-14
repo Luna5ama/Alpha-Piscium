@@ -1,5 +1,5 @@
-#ifndef INCLUDE_BSDF.glsl
-#define INCLUDE_BSDF.glsl
+#ifndef INCLUDE_util_BSDF.glsl
+#define INCLUDE_util_BSDF.glsl
 
 #include "Math.glsl"
 

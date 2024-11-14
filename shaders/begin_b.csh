@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/Atmosphere/RenderTransmittanceLut.csh"
+#include "atmosphere/RenderTransmittanceLut.comp"
