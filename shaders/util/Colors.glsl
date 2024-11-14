@@ -2,7 +2,7 @@
 #define INCLUDE_Colors.glsl
 
 // (695700 / 149600000)^2
-const float SUN_RADIANCE_DECAY = 2.1626230107380823014670136406531e-5;
+const float OMEGA_SUN = 2.1626230107380823014670136406531e-5;
 
 // Adopted from: https://github.com/zubetto/BlackBodyRadiation
 // MIT License
@@ -31,7 +31,9 @@ vec4 colors_blackBodyRadiation(float T, float radianceMul) {
 
     vec4 chromaRadiance;
 
-    chromaRadiance.a = (230141698.067 * radianceMul) / (exp(25724.2 / T) - 1.0);
+//    chromaRadiance.a = (230141698.067 * radianceMul) / (exp(25724.2 / T) - 1.0);
+    // 25724.2 * log2(e) = 37112.1757708
+    chromaRadiance.a = (230141698.067 * radianceMul) / (exp2(37112.1757708 / T) - 1.0);
 
     // luminance Lv = Km*ChromaRadiance.a in cd/m2, where Km = 683.002 lm/W
 

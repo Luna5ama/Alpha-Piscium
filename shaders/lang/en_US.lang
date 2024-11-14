@@ -1,7 +1,9 @@
+screen.WORLD = World
+screen.WORLD.comment = World settings
 screen.LIGHTING = Lighting
 screen.LIGHTING.comment = Lighting settings
 screen.LIGHTSRC = Light Source
-screen.LIGHTING.comment = Lighting source setting. e.g. sunlight, block light, etc.
+screen.LIGHTING.comment = Lighting source setting. e.g. block light, etc.
 screen.RTWSM = RTWSM
 screen.RTWSM.comment = Rectilinear Texture Warping Shadow Mapping settings
 screen.PCSS = PCSS
@@ -11,8 +13,10 @@ screen.POSTFX.comment = Post processing settings
 screen.MISC = Misc
 screen.MISC.comment = Miscellaneous settings
 
-option.SETTING_SUN_TEMPERATURE = Sun temperature
-option.SETTING_SUN_TEMPERATURE.comment = Temperature of sun in kelvin. The default value 5772 K is based on real life sun.
+option.SETTING_REAL_SUN_TEMPERATURE = Use Real Sun Temperature
+option.SETTING_REAL_SUN_TEMPERATURE.comment = Use real sun temperature of 5772 K.
+option.SETTING_SUN_TEMPERATURE = Sun Temperature
+option.SETTING_SUN_TEMPERATURE.comment = Temperature of sun in K (kelvin). Affects the color and intensity of sunlight.
 suffix.SETTING_SUN_TEMPERATURE = \ K
 option.SETTING_FIRE_TEMPERATURE = Fire temperature
 option.SETTING_FIRE_TEMPERATURE.comment = Temperature of fire in kelvin. The default value 1900 K is based on real life average.
