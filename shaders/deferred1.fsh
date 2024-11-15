@@ -62,10 +62,21 @@ float searchBlocker(vec3 shadowTexCoord) {
 float calcShadow(float sssFactor) {
 	vec3 viewCoord = g_viewCoord;
 	float distnaceSq = dot(viewCoord, viewCoord);
-	#define NORMAL_OFFSET_DISTANCE_FACTOR 16384.0
-	float normalOffset = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR / (NORMAL_OFFSET_DISTANCE_FACTOR + distnaceSq));
-	float normalDot = (1.0 - abs(dot(gData.normal, g_viewDir)));
-	viewCoord += gData.normal * max(normalOffset * 2.0 * (normalDot * 0.6 + 0.4), 0.02);
+
+	float normalOffset = 0.02;
+
+	float viewNormalDot = (1.0 - abs(dot(gData.normal, g_viewDir)));
+	#define NORMAL_OFFSET_DISTANCE_FACTOR1 8192.0
+	float normalOffset1 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR1 / (NORMAL_OFFSET_DISTANCE_FACTOR1 + distnaceSq));
+	normalOffset += clamp(normalOffset1 * 2.0 * viewNormalDot, 0.0, 0.5);
+
+	float lightNormalDot = saturate(dot(shadowLightPosition * 0.01, gData.normal));
+	lightNormalDot = (lightNormalDot * 0.5 + 0.5);
+	#define NORMAL_OFFSET_DISTANCE_FACTOR2 512.0
+	float normalOffset2 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR2 / (NORMAL_OFFSET_DISTANCE_FACTOR2 + distnaceSq));
+	normalOffset += clamp(normalOffset2 * 2.0 * lightNormalDot, 0.0, 1.0);
+
+	viewCoord += gData.normal * normalOffset;
 
 	vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
 	worldCoord = mix(worldCoord, vec4(0.0, 1.0, 0.0, 1.0), float(gData.materialID == MATERIAL_ID_HAND));
@@ -100,6 +111,7 @@ float calcShadow(float sssFactor) {
 		vec2 texelSize;
 		sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, sampleTexCoord.xy, texelSize);
 		float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
+		depthBias = min(depthBias, 0.0001);
 		sampleTexCoord.z -= depthBias;
 		shadow += rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
 		idxSS++;
