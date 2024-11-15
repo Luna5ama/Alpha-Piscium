@@ -3,6 +3,9 @@
 #include "../_Base.glsl"
 #include "BitPacking.glsl"
 
+#define MATERIAL_ID_UNDEFINED 65535u
+#define MATERIAL_ID_HAND 65534u
+
 // gbuffer:
 // r:
 // albedo: 8 x 3 = 24 bits

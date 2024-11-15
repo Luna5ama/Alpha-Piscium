@@ -68,7 +68,7 @@ float calcShadow(float sssFactor) {
 	viewCoord += gData.normal * max(normalOffset * 2.0 * (normalDot * 0.6 + 0.4), 0.02);
 
 	vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
-	worldCoord = mix(worldCoord, vec4(0.0, 1.0, 0.0, 1.0), float(gData.materialID == 65534u));
+	worldCoord = mix(worldCoord, vec4(0.0, 1.0, 0.0, 1.0), float(gData.materialID == MATERIAL_ID_HAND));
 
 	vec4 shadowTexCoordCS = global_shadowRotationMatrix * shadowProjection * shadowModelView * worldCoord;
 	shadowTexCoordCS /= shadowTexCoordCS.w;
