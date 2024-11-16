@@ -145,7 +145,8 @@ vec3 calcDirectLighting(Material material, float shadow, vec3 L, vec3 N, vec3 V)
 
     sunRadiance *= transmittance;
 
-    vec3 diffuseV = bsdfs_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
+//    vec3 diffuseV = bsdfs_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
+    vec3 diffuseV = saturate(NDotL) * material.albedo * RCP_PI_CONST;
     directLight += shadow * diffuseV * sunRadiance;
     directLight += material.emissive * material.albedo * 32.0;
 
