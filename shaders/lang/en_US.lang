@@ -1,7 +1,5 @@
 screen.WORLD = World
-screen.WORLD.comment = World settings
 screen.LIGHTING = Lighting
-screen.LIGHTING.comment = Lighting settings
 screen.LIGHTSRC = Light Source
 screen.LIGHTING.comment = Lighting source setting. e.g. block light, etc.
 screen.RTWSM = RTWSM
@@ -9,7 +7,8 @@ screen.RTWSM.comment = Rectilinear Texture Warping Shadow Mapping settings
 screen.PCSS = PCSS
 screen.PCSS.comment = Percentage Closer Soft Shadows settings
 screen.POSTFX = Post Processing
-screen.POSTFX.comment = Post processing settings
+screen.AE = Auto Exposure
+screen.TONEMAP = Tone Mapping
 screen.MISC = Misc
 screen.MISC.comment = Miscellaneous settings
 
@@ -46,5 +45,17 @@ option.SETTING_PCSS_BLOCKER_SEARCH_COUNT = Blocker Search Count
 option.SETTING_PCSS_BLOCKER_SEARCH_LOD = Blocker Search LOD
 option.SETTING_PCSS_SAMPLE_COUNT = Sample Count
 
-option.SETTING_OUTPUT_GAMMA = Output Gamma
-option.SETTING_AE_TIME = Auto Exposure Time
+option.SETTING_AE_AVG_LUMA = Average Luminance Weight
+option.SETTING_AE_AVG_LUMA.comment = Weight of average luminance AE in the final exposure value.
+
+option.SETTING_AE_AVG_LUMA_TIME = Average Luminance AE Time
+option.SETTING_AE_AVG_LUMA_TIME.comment = Time constant for average luminance AE.
+option.SETTING_AE_AVG_LUMA_TARGET =  Average Luminance Target
+option.SETTING_AE_AVG_LUMA_TARGET.comment = Target average luminance value for average luminance AE.
+
+option.SETTING_AE_TOP_BIN_TIME = Top Bin AE Time
+option.SETTING_AE_TOP_BIN_TIME.comment = Time constant for top bin AE.
+option.SETTING_AE_TOP_BIN_PERCENT = Top Bin Percentage
+option.SETTING_AE_TOP_BIN_PERCENT.comment = Adjusting exposure to keep the specified percentage of pixels in the top bin of histogram.
+
+option.SETTING_TONEMAP_OUTPUT_GAMMA = Output Gamma

@@ -9,12 +9,10 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 
-shared uint shared_lumHistogram[gl_NumSubgroups];
+shared uint shared_lumHistogram[256];
 
 void main() {
-    if (gl_LocalInvocationID.x < gl_NumSubgroups) {
-        shared_lumHistogram[gl_LocalInvocationID.x] = 0u;
-    }
+    shared_lumHistogram[gl_LocalInvocationID.x] = 0u;
     barrier();
 
     float topBin = float(max(global_lumHistogram[256], 1));
@@ -32,7 +30,7 @@ void main() {
         uint partialSum = shared_lumHistogram[gl_LocalInvocationID.x];
         uint subgroupSum = subgroupAdd(partialSum);
         if (subgroupElect()) {
-            global_lumHistogram[0] = subgroupSum;
+            shared_lumHistogram[0] = subgroupSum;
         }
     }
     barrier();
@@ -46,27 +44,25 @@ void main() {
         float totalPixel = mainImgSize.x * mainImgSize.y;
 
         float averageBinIndex = float(shared_lumHistogram[0]) / max(totalPixel, 1.0);
-        float averageLuminance = exp2(averageBinIndex / 255.0 * 16.0) - 1.0;
+        float averageLuminance = exp2(averageBinIndex / 255.0) * 16.0 - 16.0;
 
         vec4 expLast = global_exposure;
         vec4 expNew;
 
-        // Keep top 5% of pixels in the top bin
-        float top5Percent = totalPixel * 0.05;
+        // Keep top SETTING_AE_TOP_PERCENT% of pixels in the top bin
+        float top5Percent = totalPixel * SETTING_AE_TOP_BIN_PERCENT;
         expNew.x = (top5Percent / topBin) * expLast.x;
-        expNew.x = clamp(expNew.x, 0.00001, 1.0);
+        expNew.x = clamp(expNew.x, 0.00001, 16.0);
 
-        // Keep the average luminance at 0.05
-        const float targetLuminance = 0.05;
-        float targetExposure = targetLuminance / averageLuminance;
-        targetExposure = clamp(targetExposure, 0.0, 1.0);
-        expNew.y = targetExposure;
+        // Keep the average luminance at SETTING_AE_AVG_LUMA_TARGET
+        expNew.y = (SETTING_AE_AVG_LUMA_TARGET / averageLuminance) * expLast.y;
+        expNew.y = clamp(expNew.y, 0.00001, 16.0);
 
-        expNew.xyz = mix(expLast.xyz, expNew.xyz, exp2(-SETTING_AE_TIME));
+        expNew.xy = mix(expLast.xy, expNew.xy, vec2(0.01 * exp2(-SETTING_AE_TOP_BIN_TIME), exp2(-SETTING_AE_AVG_LUMA_TIME)));
 
-        expNew.w = min(expNew.x, expNew.y);
-        expNew.w = mix(expLast.w, expNew.w, exp2(-SETTING_AE_TIME));
+        expNew.w = mix(expNew.x, expNew.y, SETTING_AE_AVG_LUMA);
 
+        expNew.b = averageLuminance; // Debug
         global_exposure = expNew;
     }
 
