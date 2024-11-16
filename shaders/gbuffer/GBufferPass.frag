@@ -32,23 +32,18 @@ void main() {
     vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
     vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);
 
-    gData.f0 = specularSample.g;
-    gData.emissive = 1.0 - specularSample.a;
-    gData.porositySSS = specularSample.b;
-    gData.roughness = 1.0 - specularSample.r;
-    gData.roughness *= gData.roughness;
+    gData.materialAO = normalSample.b;
+    gData.pbrSpecular = specularSample;
 
+    // TODO: normal map
     gData.normal = frag_viewNormal;
 
     #else
-    gData.f0 = 0.0;
-    gData.roughness = 0.0;
-    gData.emissive = 0.0;
-    gData.porositySSS = 0.0;
     // TODO: hardcoded PBR
+    gData.materialAO = 1.0;
+    gData.pbrSpecular = vec4(0.0, 1.0, 0.0, 0.0);
 
     gData.normal = frag_viewNormal;
-    // TODO: normal map
     #endif
 
     gData.lmCoord = frag_lmCoord;
