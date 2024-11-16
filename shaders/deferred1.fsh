@@ -169,7 +169,7 @@ void doStuff() {
 
 void main() {
     float viewZ = texelFetch(usam_viewZ, ivec2(gl_FragCoord.xy), 0).r;
-    if (viewZ == 1.0) {
+    if (viewZ == -65536.0) {
         discard;
     }
 

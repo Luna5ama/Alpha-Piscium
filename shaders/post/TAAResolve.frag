@@ -21,7 +21,8 @@ void main() {
     vec3 viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
     vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
     vec3 cameraDelta = cameraPosition - previousCameraPosition;
-    vec4 prevWorldCoord = worldCoord + vec4(cameraDelta, 0.0);
+    vec4 prevWorldCoord = worldCoord;
+    prevWorldCoord.xyz += cameraDelta;
     vec4 prevViewCoord = gbufferPreviousModelView * prevWorldCoord;
     vec4 prevClipCoord = gbufferProjection * prevViewCoord;
     prevClipCoord /= prevClipCoord.w;
