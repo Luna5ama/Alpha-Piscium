@@ -9,28 +9,29 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 
-shared uint shared_lumHistogram[256];
+shared uvec2 shared_histogram[256];
 
 void main() {
-    shared_lumHistogram[gl_LocalInvocationID.x] = 0u;
+    shared_histogram[gl_LocalInvocationID.x] = uvec2(0u);
     barrier();
 
-    float topBin = float(max(global_lumHistogram[256], 1));
+    float topBin = float(max(global_lumHistogram[256], 2)) / 2.0;
     uint binCount = global_lumHistogram[gl_LocalInvocationID.x];
     {
         uint binCountWeighted = binCount * gl_LocalInvocationID.x;
-        uint subgroupSum = subgroupAdd(binCountWeighted);
+        uvec2 binCountCombined = uvec2(binCount, binCountWeighted);
+        uvec2 subgroupSum = subgroupAdd(binCountCombined);
         if (subgroupElect()) {
-            shared_lumHistogram[gl_SubgroupID] = subgroupSum;
+            shared_histogram[gl_SubgroupID] = subgroupSum;
         }
     }
     barrier();
 
     if (gl_LocalInvocationID.x < gl_NumSubgroups) {
-        uint partialSum = shared_lumHistogram[gl_LocalInvocationID.x];
-        uint subgroupSum = subgroupAdd(partialSum);
+        uvec2 partialSum = shared_histogram[gl_LocalInvocationID.x];
+        uvec2 subgroupSum = subgroupAdd(partialSum);
         if (subgroupElect()) {
-            shared_lumHistogram[0] = subgroupSum;
+            shared_histogram[0] = subgroupSum;
         }
     }
     barrier();
@@ -41,9 +42,10 @@ void main() {
         global_lumHistogram[256] = 0u;
 
         ivec2 mainImgSize = imageSize(uimg_main);
+        uvec2 histogramCounting = shared_histogram[0];
         float totalPixel = mainImgSize.x * mainImgSize.y;
 
-        float averageBinIndex = float(shared_lumHistogram[0]) / max(totalPixel, 1.0);
+        float averageBinIndex = float(histogramCounting.y) / max(totalPixel, 1.0);
         float averageLuminance = exp2(averageBinIndex / 255.0) - 1.0;
 
         vec4 expLast = global_exposure;
@@ -52,16 +54,20 @@ void main() {
         // Keep top SETTING_AE_TOP_PERCENT% of pixels in the top bin
         float top5Percent = totalPixel * SETTING_AE_TOP_BIN_PERCENT * 0.01;
         expNew.x = (top5Percent / topBin);
-        expNew.x = expNew.x * expLast.x;
-        expNew.x = clamp(expNew.x, 0.00001, 64.0);
+        expNew.x = clamp(expNew.x, 0.00001, 5.0);
 
         // Keep the average luminance at SETTING_AE_AVG_LUMA_TARGET
-        expNew.y = (SETTING_AE_AVG_LUMA_TARGET / averageLuminance) * expLast.y;
-        expNew.y = clamp(expNew.y, 0.00001, 64.0);
+        expNew.y = (SETTING_AE_AVG_LUMA_TARGET / averageLuminance);
+        expNew.y = clamp(expNew.y, 0.00001, 5.0);
 
+        expNew.xy = expNew.xy * expLast.xy;
         expNew.xy = mix(expLast.xy, expNew.xy, vec2(0.05 * exp2(-SETTING_AE_TOP_BIN_TIME), exp2(-SETTING_AE_AVG_LUMA_TIME)));
+        expNew.xy = clamp(expNew.xy, 0.00001, SETTING_AE_MAX_EXP);
 
-        expNew.w = mix(expNew.x, expNew.y, SETTING_AE_AVG_LUMA);
+        float totalWeight = SETTING_AE_TOP_BIN_MIX + SETTING_AE_AVG_LUMA_MIX;
+        expNew.w = expNew.x * SETTING_AE_TOP_BIN_MIX;
+        expNew.w += expNew.y * SETTING_AE_AVG_LUMA_MIX;
+        expNew.w /= totalWeight;
 
         expNew.b = averageLuminance; // Debug
         global_exposure = expNew;

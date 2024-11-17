@@ -64,7 +64,7 @@ float calcShadow(float sssFactor) {
     vec3 viewCoord = g_viewCoord;
     float distnaceSq = dot(viewCoord, viewCoord);
 
-    float normalOffset = 0.02;
+    float normalOffset = 0.03;
 
     float viewNormalDot = (1.0 - abs(dot(gData.normal, g_viewDir)));
     #define NORMAL_OFFSET_DISTANCE_FACTOR1 8192.0
@@ -73,7 +73,7 @@ float calcShadow(float sssFactor) {
 
     float lightNormalDot = saturate(dot(shadowLightPosition * 0.01, gData.normal));
     lightNormalDot = (lightNormalDot * 0.5 + 0.5);
-    #define NORMAL_OFFSET_DISTANCE_FACTOR2 2048.0
+    #define NORMAL_OFFSET_DISTANCE_FACTOR2 512.0
     float normalOffset2 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR2 / (NORMAL_OFFSET_DISTANCE_FACTOR2 + distnaceSq));
     normalOffset += saturate(normalOffset2 * lightNormalDot) * 0.5;
 
@@ -103,7 +103,7 @@ float calcShadow(float sssFactor) {
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 128.0
     float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distnaceSq, 1.0)));
-    float depthBiasFactor = mix(0.002, -0.0002, dbfDistanceCoeff);
+    float depthBiasFactor = mix(0.002, -0.0001, dbfDistanceCoeff);
 
     for (int i = 0; i < SAMPLE_N; i++) {
         vec2 randomOffset = (r2Seq2(idxSS) * 2.0 - 1.0);

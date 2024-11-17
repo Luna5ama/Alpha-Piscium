@@ -50,7 +50,12 @@ void main() {
     gData.materialID = frag_materialID;
 
     gbuffer_pack(rt_gbuffer, gData);
+
+    #ifdef GBUFFER_PASS_VIEWZ_OVERRIDE
+    rt_viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;
+    #else
     rt_viewZ = frag_viewZ;
+    #endif
 
     #ifdef GBUFFER_PASS_ALPHA_TEST
     if (albedoTemp.a < 0.1) {

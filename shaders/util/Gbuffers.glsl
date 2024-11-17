@@ -3,8 +3,8 @@
 #include "../_Base.glsl"
 #include "BitPacking.glsl"
 
-#define MATERIAL_ID_UNDEFINED 65535u
-#define MATERIAL_ID_HAND 65534u
+const uint MATERIAL_ID_UNDEFINED = 65535u;
+const uint MATERIAL_ID_HAND = 65534u;
 
 // gbuffer:
 // r:

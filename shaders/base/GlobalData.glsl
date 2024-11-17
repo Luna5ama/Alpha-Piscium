@@ -1,5 +1,6 @@
 #ifndef GLOBAL_DATA_MODIFIER
-#define GLOBAL_DATA_MODIFIER
+#define GLOBAL_DATA_MODIFIER \
+
 #endif
 
 layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
