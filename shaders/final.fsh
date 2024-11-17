@@ -62,7 +62,7 @@ void main() {
 
     #ifdef SETTING_DEBUG_ATMOSPHERE
     if (inViewPort(vec4(0, 0, 256, 64), debugTexCoord)) {
-        color.rgb = texture(usam_transmittanceLUT, debugTexCoord).rgb;
+        color.rgb = pow(texture(usam_transmittanceLUT, debugTexCoord).rgb, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
     }
     #endif
 

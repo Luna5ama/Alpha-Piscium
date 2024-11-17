@@ -7,6 +7,8 @@
 
 #include "../_Util.glsl"
 
+#define TRAPEZOIDAL_INTEGRATION 1
+
 // Every length is in KM!!!
 
 struct AtmosphereParameters {
@@ -81,7 +83,7 @@ const vec2 TRANSMITTANCE_TEXEL_SIZE = 1.0 / TRANSMITTANCE_TEXTURE_SIZE;
 
 // Calculate the air density ratio at a given height(km) relative to sea level
 // See https://www.desmos.com/calculator/homrt1shnb
-float densityRayleigh(AtmosphereParameters atmosphere, float h) {
+float sampleRayleighDensity(AtmosphereParameters atmosphere, float h) {
     const float a0 = 0.00947927584794;
     const float a1 = -0.138528179963;
     const float a2 = -0.00235619411773;
@@ -89,12 +91,20 @@ float densityRayleigh(AtmosphereParameters atmosphere, float h) {
     return exp2(a0 + a1 * h + a2 * h * h);
 }
 
-float densityMie(AtmosphereParameters atmosphere, float h) {
+float sampleMieDensity(AtmosphereParameters atmosphere, float h) {
     return exp(-h / atmosphere.mieHeight);
 }
 
-float densityOzone(AtmosphereParameters atmosphere, float h) {
+float sampleOzoneDensity(AtmosphereParameters atmosphere, float h) {
     return max(0.0, 1.0 - abs(h - atmosphere.ozoneCenter) / atmosphere.ozoneHalfWidth);
+}
+
+vec3 sampleParticleDensity(AtmosphereParameters atmosphere, float h) {
+    return vec3(
+        sampleRayleighDensity(atmosphere, h),
+        sampleMieDensity(atmosphere, h),
+        sampleOzoneDensity(atmosphere, h)
+    );
 }
 
 // - r0: ray origin
@@ -137,7 +147,7 @@ float fromSubUvsToUnit(float u, float resolution) { return (u - 0.5f / resolutio
 float calcViewAltitude(AtmosphereParameters atmosphere, vec3 worldPos) {
     float viewAltitude = worldPos.y;
     viewAltitude /= SETTING_ATM_ALT_SCALE;
-    viewAltitude += 1.0;
+    viewAltitude = max(viewAltitude, 1.0);
     viewAltitude += atmosphere.bottom;
     return viewAltitude;
 }
@@ -204,28 +214,46 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
     float stepLength = rayLenAtm / float(steps);
     vec3 stepDelta = dir * stepLength;
 
-    vec3 opticalDepth = vec3(0.0);
+    #if TRAPEZOIDAL_INTEGRATION
+    vec3 prevDensity = vec3(0.0);
+    {
+        vec3 samplePos = origin;
+        float sampleHeight = length(samplePos) - atmosphere.bottom;
+
+        prevDensity = sampleParticleDensity(atmosphere, sampleHeight);
+    }
+    vec3 totalDensity = vec3(0.0);
+    for (uint stepIndex = 1u; stepIndex <= steps; stepIndex++) {
+        float stepIndexF = float(stepIndex);
+        vec3 samplePos = origin + (stepIndexF) * stepDelta;
+        float sampleHeight = length(samplePos) - atmosphere.bottom;
+        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
+
+        totalDensity += (prevDensity + sampleDensity) * (stepLength * 0.5);
+        prevDensity = sampleDensity;
+    }
+    #else
+    vec3 totalDensity = vec3(0.0);
     for (uint stepIndex = 0u; stepIndex < steps; stepIndex++) {
         float stepIndexF = float(stepIndex);
         vec3 samplePos = origin + (stepIndexF + 0.5) * stepDelta;
         float sampleHeight = length(samplePos) - atmosphere.bottom;
+        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
 
-        float sampleDensityRayleigh = densityRayleigh(atmosphere, sampleHeight);
-        float sampleDensityMie = densityMie(atmosphere, sampleHeight);
-        float sampleDensityOzone = densityOzone(atmosphere, sampleHeight);
-
-        vec3 sampleExtinction = vec3(0.0);
-        vec3 rayleighExtinction = atmosphere.rayleighScattering;
-        vec3 mieExtinction = atmosphere.mieScattering + atmosphere.mieAbsorption;
-        vec3 ozoneExtinction = atmosphere.ozoneAbsorption;
-        sampleExtinction += rayleighExtinction * sampleDensityRayleigh;
-        sampleExtinction += mieExtinction * sampleDensityMie;
-        sampleExtinction += ozoneExtinction * sampleDensityOzone;
-
-        vec3 sampleOpticalDepth = sampleExtinction * stepLength;
-        opticalDepth += sampleOpticalDepth;
+        totalDensity += sampleDensity * stepLength;
     }
-    result = exp(-opticalDepth);
+    #endif
+
+    vec3 rayleighExtinction = atmosphere.rayleighScattering;
+    vec3 mieExtinction = atmosphere.mieScattering + atmosphere.mieAbsorption;
+    vec3 ozoneExtinction = atmosphere.ozoneAbsorption;
+    vec3 totalOpticalDepth = vec3(0.0);
+    totalOpticalDepth += rayleighExtinction * totalDensity.x;
+    totalOpticalDepth += mieExtinction * totalDensity.y;
+    totalOpticalDepth += ozoneExtinction * totalDensity.z;
+
+    result = exp(-totalOpticalDepth);
+
     return result;
 }
 
@@ -268,17 +296,15 @@ ScatteringResult raymarchSingleScattering(AtmosphereParameters atmosphere, Rayma
         vec3 samplePos = params.origin + (stepIndexF + 0.5) * stepDelta;
         float sampleHeight = length(samplePos) - atmosphere.bottom;
 
-        float sampleDensityRayleigh = densityRayleigh(atmosphere, sampleHeight);
-        float sampleDensityMie = densityMie(atmosphere, sampleHeight);
-        float sampleDensityOzone = densityOzone(atmosphere, sampleHeight);
+        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
 
         vec3 rayleighExtinction = atmosphere.rayleighScattering;
         vec3 mieExtinction = atmosphere.mieScattering + atmosphere.mieAbsorption;
         vec3 ozoneExtinction = atmosphere.ozoneAbsorption;
         vec3 sampleExtinction = vec3(0.0);
-        sampleExtinction += rayleighExtinction * sampleDensityRayleigh;
-        sampleExtinction += mieExtinction * sampleDensityMie;
-        sampleExtinction += ozoneExtinction * sampleDensityOzone;
+        sampleExtinction += rayleighExtinction * sampleDensity.x;
+        sampleExtinction += mieExtinction * sampleDensity.y;
+        sampleExtinction += ozoneExtinction * sampleDensity.z;
 
         vec3 sampleOpticalDepth = sampleExtinction * stepLength;
         vec3 sampleTransmittance = exp(-sampleOpticalDepth);
@@ -286,8 +312,8 @@ ScatteringResult raymarchSingleScattering(AtmosphereParameters atmosphere, Rayma
         vec3 rayleighScattering = atmosphere.rayleighScattering;
         vec3 mieScattering = atmosphere.mieScattering;
         vec3 sampleScattering = vec3(0.0);
-        sampleScattering += params.rayleighPhase * rayleighScattering * sampleDensityRayleigh;
-        sampleScattering += params.miePhase * mieScattering * sampleDensityMie;
+        sampleScattering += params.rayleighPhase * rayleighScattering * sampleDensity.x;
+        sampleScattering += params.miePhase * mieScattering * sampleDensity.y;
 
         // TODO: shadowed in-scattering
         float shadow = 1.0;
@@ -298,10 +324,15 @@ ScatteringResult raymarchSingleScattering(AtmosphereParameters atmosphere, Rayma
         vec3 tSunToSample = texture(usam_transmittanceLUT, tLUTUV).rgb;
         vec3 tSampleToOrigin = exp(-opticalDepth);
 
-        vec3 scattering = sampleScattering * tSunToSample;
+        #if 0
+        vec3 scattering = shadow * stepLength * tSunToSample * sampleScattering;
+        result.inScattering += tSampleToOrigin * scattering;
+        #else
+        vec3 scattering = shadow * sampleScattering * tSunToSample;
         // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
         vec3 scatteringInt = (scattering - scattering * sampleTransmittance) / sampleExtinction;
         result.inScattering += tSampleToOrigin * scatteringInt;
+        #endif
 
         opticalDepth += sampleOpticalDepth;
     }

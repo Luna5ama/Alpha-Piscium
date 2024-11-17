@@ -96,7 +96,7 @@ void main() {
         ScatteringResult result = computeSingleScattering(atmosphere, vec3(0.0), viewCoord);
 
         vec4 color = imageLoad(uimg_main, pixelPos);
-//        color.rgb *= result.transmittance;
+        color.rgb *= result.transmittance;
 
         vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
         color.rgb += sunRadiance * result.inScattering;
