@@ -1,7 +1,7 @@
-screen.WORLD = World
+screen.WORLD = World Properties
+screen.WORLD.comment = World properties settings. Such as earth, sun, moon, atmosphere, etc.
 screen.LIGHTING = Lighting
-screen.LIGHTSRC = Light Source
-screen.LIGHTING.comment = Lighting source setting. e.g. block light, etc.
+screen.BLOCK_LIGHT = Block Light Source
 screen.RTWSM = RTWSM
 screen.RTWSM.comment = Rectilinear Texture Warping Shadow Mapping settings
 screen.PCSS = PCSS
@@ -17,12 +17,11 @@ option.SETTING_REAL_SUN_TEMPERATURE.comment = Use real sun temperature of 5772 K
 option.SETTING_SUN_TEMPERATURE = Sun Temperature
 option.SETTING_SUN_TEMPERATURE.comment = Temperature of sun in K (kelvin). Affects the color and intensity of sunlight.
 suffix.SETTING_SUN_TEMPERATURE = \ K
-option.SETTING_FIRE_TEMPERATURE = Fire temperature
-option.SETTING_FIRE_TEMPERATURE.comment = Temperature of fire in kelvin. The default value 1900 K is based on real life average.
-suffix.SETTING_FIRE_TEMPERATURE = \ K
-option.SETTING_LAVA_TEMPERATURE = Lava temperature
-option.SETTING_LAVA_TEMPERATURE.comment = Temperature of lava in kelvin. The default value 1200 K is based on real life average.
-suffix.SETTING_LAVA_TEMPERATURE = \ K
+
+option.SETTING_ATM_ALT_SCALE = Atmosphere Altitude Scale
+option.SETTING_ATM_ALT_SCALE.comment = Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on.
+option.SETTING_ATM_D_SCALE = Atmosphere Distance Scale
+option.SETTING_ATM_D_SCALE.comment = Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on.
 
 option.shadowMapResolution = Shadow Map Resolution
 option.shadowDistance = Shadow Render Distance
@@ -44,6 +43,13 @@ option.SETTING_PCSS_VPF = Variable Penumbra Factor
 option.SETTING_PCSS_BLOCKER_SEARCH_COUNT = Blocker Search Count
 option.SETTING_PCSS_BLOCKER_SEARCH_LOD = Blocker Search LOD
 option.SETTING_PCSS_SAMPLE_COUNT = Sample Count
+
+option.SETTING_FIRE_TEMPERATURE = Fire temperature
+option.SETTING_FIRE_TEMPERATURE.comment = Temperature of fire in kelvin. The default value 1900 K is based on real life average.
+suffix.SETTING_FIRE_TEMPERATURE = \ K
+option.SETTING_LAVA_TEMPERATURE = Lava temperature
+option.SETTING_LAVA_TEMPERATURE.comment = Temperature of lava in kelvin. The default value 1200 K is based on real life average.
+suffix.SETTING_LAVA_TEMPERATURE = \ K
 
 option.SETTING_AE_AVG_LUMA = Average Luminance Weight
 option.SETTING_AE_AVG_LUMA.comment = Weight of average luminance AE in the final exposure value.

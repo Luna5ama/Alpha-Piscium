@@ -1,6 +1,7 @@
 #include "../_Util.glsl"
 
 #extension GL_KHR_shader_subgroup_ballot : enable
+#extension GL_KHR_shader_subgroup_arithmetic : enable
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -10,6 +11,16 @@ shared uint shared_lumHistogram[256];
 layout(rgba16f) restrict uniform image2D uimg_main;
 layout(rgba16f) readonly uniform image2D uimg_temp1;
 layout(rgba16f) writeonly uniform image2D uimg_temp2;
+
+vec3 aces(vec3 x) {
+    // Narkowicz 2015, "ACES Filmic Tone Mapping Curve"
+    const float a = 2.51;
+    const float b = 0.03;
+    const float c = 2.43;
+    const float d = 0.59;
+    const float e = 0.14;
+    return (x * (a * x + b)) / (x * (c * x + d) + e);
+}
 
 vec3 uchimura(vec3 x, float P, float a, float m, float l, float c, float b) {
     // Uchimura 2017, "HDR theory and practice"
@@ -44,14 +55,14 @@ vec3 uchimura(vec3 x) {
     return uchimura(x, P, a, m, l, c, b);
 }
 
-uint histoIndex(float x, float range) {
+uint histoIndex(float x, uint outputRangeExclusive) {
     const float EPSILON = 0.001;
     uint binIndex;
     if (x < EPSILON) {
         binIndex = 0;
     } else {
-        float lumMapped = saturate(log2(x / range + 1.0));
-        binIndex = uint(lumMapped * 254.0 + 1.0);
+        float lumMapped = saturate(log2(x + 1.0));
+        binIndex = uint(lumMapped * float(outputRangeExclusive - 2) + 1.0);
     }
     return binIndex;
 }
@@ -64,19 +75,22 @@ void main() {
 
     if (all(lessThan(pixelPos, imgSize))) {
         vec4 color = imageLoad(uimg_main, pixelPos);
+        uint lumaWeight = 1u;
         color.rgb *= global_exposure.w;
-        float lumanance = colors_linearSRGBToLuminance(max(color.rgb, 0.0));
+        float lumanancePre = colors_linearSRGBToLuminance(max(color.rgb, 0.0));
+        color.rgb = uchimura(color.rgb);
+        float lumanancePost = colors_linearSRGBToLuminance(max(color.rgb, 0.0));
 
-        uint binIndex16 = histoIndex(lumanance, 16.0);
-        atomicAdd(shared_lumHistogram[binIndex16], 1u);
-
-        uint binIndex1 = histoIndex(lumanance, 1.0);
-        uvec4 topBinBallot = subgroupBallot(binIndex1 == 255u);
+        uint binIndexPre = histoIndex(lumanancePre, 16);
+        uint topBinValue = uint(binIndexPre == 15u) * lumaWeight;
+        uint topBinSum = subgroupAdd(topBinValue);
         if (subgroupElect()) {
-            atomicAdd(global_lumHistogram[256], subgroupBallotBitCount(topBinBallot));
+            atomicAdd(global_lumHistogram[256], topBinSum);
         }
 
-        color.rgb = uchimura(color.rgb);
+        uint binIndexPost = histoIndex(lumanancePost, 256);
+        atomicAdd(shared_lumHistogram[binIndexPost], lumaWeight);
+
         color.rgb = pow(color.rgb, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
         imageStore(uimg_main, pixelPos, color);
 

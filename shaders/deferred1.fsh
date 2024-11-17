@@ -4,6 +4,7 @@
 #include "rtwsm/RTWSM.glsl"
 #include "atmosphere/Common.glsl"
 
+uniform sampler2D usam_main;
 uniform usampler2D usam_gbuffer;
 uniform sampler2D usam_viewZ;
 
@@ -137,10 +138,12 @@ vec3 calcDirectLighting(Material material, float shadow, vec3 L, vec3 N, vec3 V)
     vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
-    vec3 sunWorldDir = mat3(gbufferModelViewInverse) * L;
-    float sunZenithCos = dot(sunWorldDir, vec3(0.0, 1.0, 0.0));
+    vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(g_viewCoord, 1.0)).xyz;
+    vec3 worldPos = feetPlayerPos + cameraPosition;
+    float viewAltitude = calcViewAltitude(atmosphere, worldPos);
+    float cosSunZenith = calcCosSunZenith(atmosphere, L);
     vec2 transmittanceUV;
-    LutTransmittanceParamsToUv(atmosphere, atmosphere.bottom, sunZenithCos, transmittanceUV);
+    lutTransmittanceParamsToUv(atmosphere, viewAltitude, cosSunZenith, transmittanceUV);
     vec3 transmittance = texture(usam_transmittanceLUT, transmittanceUV).rgb;
 
     sunRadiance *= transmittance;
@@ -160,13 +163,15 @@ void doStuff() {
 
     vec3 directLight = calcDirectLighting(material, shadow, sunPosition * 0.01, gData.normal, g_viewDir);
 
-    rt_out = vec4(directLight, 1.0);
+    rt_out += vec4(directLight, 1.0);
 }
 
 void main() {
-    float viewZ = texelFetch(usam_viewZ, ivec2(gl_FragCoord.xy), 0).r;
-    if (viewZ == -65536.0) {
-        discard;
+    rt_out = vec4(0.0);
+    float viewZ = texelFetch(usam_viewZ, intTexCoord, 0).r;
+    if (viewZ == 1.0) {
+        rt_out = texelFetch(usam_main, intTexCoord, 0);
+        return;
     }
 
     gbuffer_unpack(texelFetch(usam_gbuffer, ivec2(gl_FragCoord.xy), 0), gData);

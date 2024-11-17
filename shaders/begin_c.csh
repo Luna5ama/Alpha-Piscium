@@ -44,21 +44,22 @@ void main() {
         float totalPixel = mainImgSize.x * mainImgSize.y;
 
         float averageBinIndex = float(shared_lumHistogram[0]) / max(totalPixel, 1.0);
-        float averageLuminance = exp2(averageBinIndex / 255.0) * 16.0 - 16.0;
+        float averageLuminance = exp2(averageBinIndex / 255.0) - 1.0;
 
         vec4 expLast = global_exposure;
         vec4 expNew;
 
         // Keep top SETTING_AE_TOP_PERCENT% of pixels in the top bin
-        float top5Percent = totalPixel * SETTING_AE_TOP_BIN_PERCENT;
-        expNew.x = (top5Percent / topBin) * expLast.x;
-        expNew.x = clamp(expNew.x, 0.00001, 16.0);
+        float top5Percent = totalPixel * SETTING_AE_TOP_BIN_PERCENT * 0.01;
+        expNew.x = (top5Percent / topBin);
+        expNew.x = expNew.x * expLast.x;
+        expNew.x = clamp(expNew.x, 0.00001, 64.0);
 
         // Keep the average luminance at SETTING_AE_AVG_LUMA_TARGET
         expNew.y = (SETTING_AE_AVG_LUMA_TARGET / averageLuminance) * expLast.y;
-        expNew.y = clamp(expNew.y, 0.00001, 16.0);
+        expNew.y = clamp(expNew.y, 0.00001, 64.0);
 
-        expNew.xy = mix(expLast.xy, expNew.xy, vec2(0.01 * exp2(-SETTING_AE_TOP_BIN_TIME), exp2(-SETTING_AE_AVG_LUMA_TIME)));
+        expNew.xy = mix(expLast.xy, expNew.xy, vec2(0.05 * exp2(-SETTING_AE_TOP_BIN_TIME), exp2(-SETTING_AE_AVG_LUMA_TIME)));
 
         expNew.w = mix(expNew.x, expNew.y, SETTING_AE_AVG_LUMA);
 

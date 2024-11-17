@@ -5,11 +5,14 @@
 #ifndef INCLUDE_atmosphere_Common.glsl
 #define INCLUDE_atmosphere_Common.glsl
 
+#include "../_Util.glsl"
+
 // Every length is in KM!!!
 
 struct AtmosphereParameters {
     float bottom;
     float top;
+    vec3 sunDirection;
 
     float mieHeight;
     float ozoneCenter;
@@ -20,6 +23,7 @@ struct AtmosphereParameters {
 
     vec3 mieScattering;
     vec3 mieAbsorption;
+    float miePhaseG;
 
 //    vec3 ozoneScattering;
     vec3 ozoneAbsorption;
@@ -32,21 +36,22 @@ AtmosphereParameters getAtmosphereParameters() {
     const float MIE_HEIGHT = 1.2;
     const float OZONE_CENTER = 25.0;
     const float OZONE_HALF_WIDTH = 15.0;
-
-    const vec3 RAYLEIGH_SCATTERING = vec3(7.23392672713746e-6, 1.19997766911071e-5, 2.65861007515866e-5) * 1000.0;
-    const vec3 RAYLEIGH_ABOSORPTION = vec3(0.0) * 1000.0;
-    const vec3 RAYLEIGH_EXTINCTION = RAYLEIGH_SCATTERING + RAYLEIGH_ABOSORPTION;
+    
+    // https://forums.flightsimulator.com/t/replace-the-atmosphere-parameters-with-more-accurate-ones-from-arpc/607603
+    const vec3 RAYLEIGH_SCATTERING = vec3(6.602e-6, 1.239e-5, 2.940e-5);
+//    const vec3 RAYLEIGH_SCATTERING = vec3(7.23392672713746e-6, 1.19997766911071e-5, 2.65861007515866e-5);
+    const vec3 RAYLEIGH_ABOSORPTION = vec3(0.0);
 
     // A Scalable and Production Ready Sky and Atmosphere Rendering Technique
     // by Sébastien Hillaire, 2020
     // https://sebh.github.io/publications/egsr2020.pdf
-    const vec3 MIE_SCATTERING = vec3(3.996e-6) * 1000.0;
-    const vec3 MIE_ABOSORPTION = vec3(4.4e-6) * 1000.0;
-    const vec3 MIE_EXTINCTION = MIE_SCATTERING + MIE_ABOSORPTION;
+    const vec3 MIE_SCATTERING = vec3(3.996e-6);
+    const vec3 MIE_ABOSORPTION = vec3(4.4e-6);
+    const float MIE_PHASE_G = 0.76;
 
-    const vec3 OZONE_SCATTERING = vec3(0.0) * 1000.0;
-    const vec3 OZONE_ABOSORPTION = vec3(0.650e-6, 1.881e-6, 0.085e-6) * 1000.0;
-    const vec3 OZONE_EXTINCTION = OZONE_SCATTERING + OZONE_ABOSORPTION;
+    const vec3 OZONE_SCATTERING = vec3(0.0);
+//    const vec3 OZONE_ABOSORPTION = vec3(0.650e-6, 1.881e-6, 0.085e-6);
+    const vec3 OZONE_ABOSORPTION = vec3(2.341e-6, 1.54e-6, 2.193e-25);
 
     AtmosphereParameters atmosphere;
     atmosphere.bottom = ATMOSPHERE_BOTTOM;
@@ -56,14 +61,15 @@ AtmosphereParameters getAtmosphereParameters() {
     atmosphere.ozoneCenter = OZONE_CENTER;
     atmosphere.ozoneHalfWidth = OZONE_HALF_WIDTH;
 
-    atmosphere.rayleighScattering = RAYLEIGH_SCATTERING;
-    //    atmosphere.rayleighAbsorption = RAYLEIGH_ABOSORPTION;
+    atmosphere.rayleighScattering = RAYLEIGH_SCATTERING * 1000.0;
+    //    atmosphere.rayleighAbsorption = RAYLEIGH_ABOSORPTION * 1000.0;
 
-    atmosphere.mieScattering = MIE_SCATTERING;
-    atmosphere.mieAbsorption = MIE_ABOSORPTION;
+    atmosphere.mieScattering = MIE_SCATTERING * 1000.0;
+    atmosphere.mieAbsorption = MIE_ABOSORPTION * 1000.0;
+    atmosphere.miePhaseG = MIE_PHASE_G;
 
-    //    atmosphere.ozoneScattering = OZONE_SCATTERING;
-    atmosphere.ozoneAbsorption = OZONE_ABOSORPTION;
+    //    atmosphere.ozoneScattering = OZONE_SCATTERING * 1000.0;
+    atmosphere.ozoneAbsorption = OZONE_ABOSORPTION * 1000.0;
 
     return atmosphere;
 }
@@ -124,20 +130,32 @@ float raySphereIntersectNearest(vec3 r0, vec3 rd, vec3 s0, float sR) {
 // Transmittance LUT function parameterisation from Bruneton 2017 https://github.com/ebruneton/precomputed_atmospheric_scattering
 // uv in [0,1]
 // viewZenithCosAngle in [-1,1]
-// viewHeight in [bottomRAdius, topRadius]
+// viewAltitude in [bottomRAdius, topRadius]
 float fromUnitToSubUvs(float u, float resolution) { return (u + 0.5f / resolution) * (resolution / (resolution + 1.0f)); }
 float fromSubUvsToUnit(float u, float resolution) { return (u - 0.5f / resolution) * (resolution / (resolution - 1.0f)); }
 
-void LutTransmittanceParamsToUv(AtmosphereParameters atmosphere, in float viewHeight, in float viewZenithCosAngle, out vec2 uv) {
-    viewHeight = clamp(viewHeight, atmosphere.bottom + 0.0001, atmosphere.top - 0.0001);
-    viewZenithCosAngle = clamp(viewZenithCosAngle, -1.0, 1.0);
+float calcViewAltitude(AtmosphereParameters atmosphere, vec3 worldPos) {
+    float viewAltitude = worldPos.y;
+    viewAltitude /= SETTING_ATM_ALT_SCALE;
+    viewAltitude += 1.0;
+    viewAltitude += atmosphere.bottom;
+    return viewAltitude;
+}
+
+float calcCosSunZenith(AtmosphereParameters atmosphere, vec3 sunDirection) {
+    return dot(sunDirection, upPosition * 0.01);
+}
+
+void lutTransmittanceParamsToUv(AtmosphereParameters atmosphere, float viewAltitude, float cosSunZenith, out vec2 uv) {
+    viewAltitude = clamp(viewAltitude, atmosphere.bottom + 0.0001, atmosphere.top - 0.0001);
+    cosSunZenith = clamp(cosSunZenith, -1.0, 1.0);
     float H = sqrt(max(0.0, atmosphere.top * atmosphere.top - atmosphere.bottom * atmosphere.bottom));
-    float rho = sqrt(max(0.0, viewHeight * viewHeight - atmosphere.bottom * atmosphere.bottom));
+    float rho = sqrt(max(0.0, viewAltitude * viewAltitude - atmosphere.bottom * atmosphere.bottom));
 
-    float discriminant = viewHeight * viewHeight * (viewZenithCosAngle * viewZenithCosAngle - 1.0) + atmosphere.top * atmosphere.top;
-    float d = max(0.0, (-viewHeight * viewZenithCosAngle + sqrt(discriminant)));// Distance to atmosphere boundary
+    float discriminant = viewAltitude * viewAltitude * (cosSunZenith * cosSunZenith - 1.0) + atmosphere.top * atmosphere.top;
+    float d = max(0.0, (-viewAltitude * cosSunZenith + sqrt(discriminant)));// Distance to atmosphere boundary
 
-    float d_min = atmosphere.top - viewHeight;
+    float d_min = atmosphere.top - viewAltitude;
     float d_max = rho + H;
     float x_mu = (d - d_min) / (d_max - d_min);
     float x_r = rho / H;
@@ -146,7 +164,7 @@ void LutTransmittanceParamsToUv(AtmosphereParameters atmosphere, in float viewHe
     //uv = vec2(fromUnitToSubUvs(uv.x, TRANSMITTANCE_TEXTURE_WIDTH), fromUnitToSubUvs(uv.y, TRANSMITTANCE_TEXTURE_HEIGHT)); // No real impact so off
 }
 
-void UvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float viewHeight, out float viewZenithCosAngle, in vec2 uv) {
+void uvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float viewAltitude, out float cosSunZenith, vec2 uv) {
     //uv = vec2(fromSubUvsToUnit(uv.x, TRANSMITTANCE_TEXTURE_WIDTH), fromSubUvsToUnit(uv.y, TRANSMITTANCE_TEXTURE_HEIGHT)); // No real impact so off
     uv = clamp(uv, TRANSMITTANCE_TEXEL_SIZE, vec2(1.0 - TRANSMITTANCE_TEXEL_SIZE));
     float x_mu = uv.x;
@@ -154,13 +172,13 @@ void UvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float viewH
 
     float H = sqrt(atmosphere.top * atmosphere.top - atmosphere.bottom * atmosphere.bottom);
     float rho = H * x_r;
-    viewHeight = sqrt(rho * rho + atmosphere.bottom * atmosphere.bottom);
+    viewAltitude = sqrt(rho * rho + atmosphere.bottom * atmosphere.bottom);
 
-    float d_min = atmosphere.top - viewHeight;
+    float d_min = atmosphere.top - viewAltitude;
     float d_max = rho + H;
     float d = d_min + x_mu * (d_max - d_min);
-    viewZenithCosAngle = d == 0.0 ? 1.0 : (H * H - rho * rho - d * d) / (2.0 * viewHeight * d);
-    viewZenithCosAngle = clamp(viewZenithCosAngle, -1.0, 1.0);
+    cosSunZenith = d == 0.0 ? 1.0 : (H * H - rho * rho - d * d) / (2.0 * viewAltitude * d);
+    cosSunZenith = clamp(cosSunZenith, -1.0, 1.0);
 }
 
 vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 dir, uint steps) {
@@ -169,26 +187,27 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
     vec3 earthCenter = vec3(0.0, 0.0, 0.0);
     float tBottom = raySphereIntersectNearest(origin, dir, earthCenter, atmosphere.bottom);
     float tTop = raySphereIntersectNearest(origin, dir, earthCenter, atmosphere.top);
-    float rayMax = 0.0;
+    float rayLenAtm = 0.0;
     if (tBottom < 0.0) {
         if (tTop < 0.0) {
-            rayMax = 0.0;// No intersection with earth nor atmosphere: stop right away
+            rayLenAtm = 0.0;// No intersection with earth nor atmosphere: stop right away
             return result;
         } else {
-            rayMax = tTop;
+            rayLenAtm = tTop;
         }
     } else {
         if (tTop > 0.0) {
-            rayMax = min(tTop, tBottom);
+            rayLenAtm = min(tTop, tBottom);
         }
     }
 
-    float stepLength = rayMax / float(steps);
+    float stepLength = rayLenAtm / float(steps);
+    vec3 stepDelta = dir * stepLength;
 
     vec3 opticalDepth = vec3(0.0);
     for (uint stepIndex = 0u; stepIndex < steps; stepIndex++) {
         float stepIndexF = float(stepIndex);
-        vec3 samplePos = origin + dir * (stepIndex * stepLength);
+        vec3 samplePos = origin + (stepIndexF + 0.5) * stepDelta;
         float sampleHeight = length(samplePos) - atmosphere.bottom;
 
         float sampleDensityRayleigh = densityRayleigh(atmosphere, sampleHeight);
@@ -203,10 +222,22 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
         sampleExtinction += mieExtinction * sampleDensityMie;
         sampleExtinction += ozoneExtinction * sampleDensityOzone;
 
-        opticalDepth += sampleExtinction * stepLength;
+        vec3 sampleOpticalDepth = sampleExtinction * stepLength;
+        opticalDepth += sampleOpticalDepth;
     }
     result = exp(-opticalDepth);
     return result;
+}
+
+float rayleighPhase(float cosTheta) {
+    float factor = 3.0f / (16.0f * PI_CONST);
+    return factor * (1.0f + cosTheta * cosTheta);
+}
+
+// Cornette-Shanks phase function for Mie scattering
+float miePhase(float cosTheta, float g) {
+    float k = 3.0 / (8.0 * PI_CONST) * (1.0 - g * g) / (2.0 + g * g);
+    return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
 }
 
 #endif

@@ -18,6 +18,7 @@ void main() {
     gbuffer_unpack(texelFetch(usam_gbuffer, intTexCoord, 0), gData);
 
     float viewZ = texelFetch(usam_viewZ, intTexCoord, 0).r;
+    viewZ = mix(viewZ, -65536.0, float(viewZ == 1.0));
     vec3 viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
     vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
     vec3 cameraDelta = cameraPosition - previousCameraPosition;

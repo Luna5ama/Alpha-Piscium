@@ -16,13 +16,13 @@ void main() {
 
     // Compute camera position from LUT coords
     vec2 uv = (pixPos) / imageSize(uimg_transmittanceLUT);
-    float viewHeight;
-    float viewZenithCosAngle;
-    UvToLutTransmittanceParams(atmosphere, viewHeight, viewZenithCosAngle, uv);
+    float viewAltitude;
+    float cosSunZenith;
+    uvToLutTransmittanceParams(atmosphere, viewAltitude, cosSunZenith, uv);
 
     //  A few extra needed constants
-    vec3 pos = vec3(0.0f, 0.0f, viewHeight);
-    vec3 dir = vec3(0.0f, sqrt(1.0 - viewZenithCosAngle * viewZenithCosAngle), viewZenithCosAngle);
+    vec3 pos = vec3(0.0f, 0.0f, viewAltitude);
+    vec3 dir = vec3(0.0f, sqrt(1.0 - cosSunZenith * cosSunZenith), cosSunZenith);
 
     vec3 transmittance = raymarchTransmittance(atmosphere, pos, dir, 64u);
 
