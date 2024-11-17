@@ -267,6 +267,19 @@ vec3 computeOpticalDepth(AtmosphereParameters atmosphere, vec3 density) {
     return result;
 }
 
+void computePointDiffInSctr(
+    vec3 sampleUnitDensity,
+    vec3 tSampleToOrigin,
+    vec3 tSunToSample,
+    out vec3 rayleighInSctr,
+    out vec3 mieInSctr
+) {
+    vec3 totalTransmittance = tSunToSample * tSampleToOrigin;
+
+    rayleighInSctr = sampleUnitDensity.x * totalTransmittance;
+    mieInSctr = sampleUnitDensity.y * totalTransmittance;
+}
+
 ScatteringResult raymarchSingleScattering(
 AtmosphereParameters atmosphere, RaymarchParameters params,
 sampler2D usam_transmittanceLUT
@@ -276,7 +289,60 @@ sampler2D usam_transmittanceLUT
     float stepLength = params.rayLen / float(params.steps);
     vec3 stepDelta = params.rayDir * stepLength;
 
-    vec3 opticalDepth = vec3(0.0);
+    #if TRAPEZOIDAL_INTEGRATION
+    vec3 prevDensity;
+    vec3 prevRayleighInSctr;
+    vec3 prevMieInSctr;
+
+    vec3 totalDensity = vec3(0.0);
+    vec3 totalRayleighInSctr = vec3(0.0);
+    vec3 totalMieInSctr = vec3(0.0);
+    {
+        vec3 samplePos = params.origin;
+        float sampleHeight = length(samplePos) - atmosphere.bottom;
+        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
+
+        prevDensity = sampleDensity;
+
+        vec3 tSunToSample = raymarchSampleTransmittanceLUT(atmosphere, params, samplePos, usam_transmittanceLUT);
+        vec3 tSampleToOrigin = vec3(1.0);
+
+        computePointDiffInSctr(sampleDensity, tSampleToOrigin, tSunToSample, prevRayleighInSctr, prevMieInSctr);
+    }
+
+    for (uint stepIndex = 1u; stepIndex <= params.steps; stepIndex++) {
+        float stepIndexF = float(stepIndex);
+        vec3 samplePos = params.origin + (stepIndexF) * stepDelta;
+        float sampleHeight = length(samplePos) - atmosphere.bottom;
+        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
+
+        totalDensity += (prevDensity + sampleDensity) * (stepLength * 0.5);
+        prevDensity = sampleDensity;
+
+        vec3 tSunToSample = raymarchSampleTransmittanceLUT(atmosphere, params, samplePos, usam_transmittanceLUT);
+        vec3 tSampleToOrigin = exp(-computeOpticalDepth(atmosphere, totalDensity));
+
+        vec3 sampleRayleightInSctr;
+        vec3 sampleMieInSctr;
+        computePointDiffInSctr(sampleDensity, tSampleToOrigin, tSunToSample, sampleRayleightInSctr, sampleMieInSctr);
+
+        totalRayleighInSctr += (prevRayleighInSctr + sampleRayleightInSctr) * (stepLength * 0.5);
+        totalMieInSctr += (prevMieInSctr + sampleMieInSctr) * (stepLength * 0.5);
+
+        prevRayleighInSctr = sampleRayleightInSctr;
+        prevMieInSctr = sampleMieInSctr;
+    }
+
+    vec3 totalOpticalDepth = computeOpticalDepth(atmosphere, totalDensity);
+    result.transmittance = exp(-totalOpticalDepth);
+
+    vec3 totalInSctr = vec3(0.0);
+    totalInSctr += params.rayleighPhaseAngular * atmosphere.rayleighSctrCoeffAngular * totalRayleighInSctr;
+    totalInSctr += params.miePhaseAngular * atmosphere.mieSctrCoeffAngular * totalMieInSctr;
+    result.inScattering = totalInSctr;
+
+    #else
+    vec3 totalOpticalDepth = vec3(0.0);
 
     for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
         float stepIndexF = float(stepIndex);
@@ -285,11 +351,7 @@ sampler2D usam_transmittanceLUT
 
         vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
 
-        vec3 sampleExtinction = vec3(0.0);
-        sampleExtinction += atmosphere.rayleighExtinction * sampleDensity.x;
-        sampleExtinction += atmosphere.mieExtinction * sampleDensity.y;
-        sampleExtinction += atmosphere.ozoneExtinction * sampleDensity.z;
-
+        vec3 sampleExtinction = computeOpticalDepth(atmosphere, sampleDensity);
         vec3 sampleOpticalDepth = sampleExtinction * stepLength;
         vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
@@ -300,11 +362,8 @@ sampler2D usam_transmittanceLUT
         // TODO: shadowed in-scattering
         float shadow = 1.0;
 
-        float sampleAltitude = length(samplePos);
-        vec2 tLUTUV;
-        lutTransmittanceParamsToUv(atmosphere, sampleAltitude, params.cosSunZenith, tLUTUV);
-        vec3 tSunToSample = texture(usam_transmittanceLUT, tLUTUV).rgb;
-        vec3 tSampleToOrigin = exp(-opticalDepth);
+        vec3 tSunToSample = raymarchSampleTransmittanceLUT(atmosphere, params, samplePos, usam_transmittanceLUT);
+        vec3 tSampleToOrigin = exp(-totalOpticalDepth);
 
         #if 0
         vec3 scattering = shadow * stepLength * tSunToSample * sampleScattering;
@@ -316,9 +375,11 @@ sampler2D usam_transmittanceLUT
         result.inScattering += tSampleToOrigin * scatteringInt;
         #endif
 
-        opticalDepth += sampleOpticalDepth;
+        totalOpticalDepth += sampleOpticalDepth;
     }
-    result.transmittance = exp(-opticalDepth);
+    result.transmittance = exp(-totalOpticalDepth);
+    #endif
+
     return result;
 }
 
