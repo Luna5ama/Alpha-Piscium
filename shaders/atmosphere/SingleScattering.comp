@@ -1,7 +1,7 @@
 // Adopted from: https://github.com/sebh/UnrealEngineSkyAtmosphere
 // MIT License
 // Copyright (c) 2020 Epic Games, Inc.
-// You can find the full license texts in /licenses
+// You can find full license texts in /licenses
 #include "../_Util.glsl"
 #include "Common.glsl"
 

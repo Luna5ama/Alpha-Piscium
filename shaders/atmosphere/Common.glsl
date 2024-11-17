@@ -1,7 +1,19 @@
-// References:
-// https://github.com/sebh/UnrealEngineSkyAtmosphere (MIT License, Copyright (c) 2020 Epic Games, Inc.)
-// https://github.com/GameTechDev/OutdoorLightScattering (Apache-2.0 License, Copyright (c) 2017 Intel Corporation)
-// You can find the full license texts in /licenses
+/*
+    References:
+        [BRU08] Bruneton, Eric. "Precomputed Atmospheric Scattering". EGSR 2008.
+            https://hal.inria.fr/inria-00290084/document
+        [HIL20] Hillaire, Sébastien. "A Scalable and Production Ready Sky and Atmosphere Rendering Technique".
+            EGSR 2020. https://sebh.github.io/publications/egsr2020.pdf
+            Code: https://github.com/sebh/UnrealEngineSkyAtmosphere (MIT License)
+        [YUS13] Yusov, Egor. “Practical Implementation of Light Scattering Effects Using Epipolar Sampling and
+            1D Min/Max Binary Trees”. GDC 2013.
+            http://gdcvault.com/play/1018227/Practical-Implementation-of-Light-Scattering
+            Code: https://github.com/GameTechDev/OutdoorLightScattering (Apache-2.0 License)
+        [BIO23] Biology2394. “Replace the atmosphere parameters with more accurate ones from ARPC”. 2023.
+            https://forums.flightsimulator.com/t/replace-the-atmosphere-parameters-with-more-accurate-ones-from-arpc/607603
+
+    You can find full license texts in /licenses
+*/
 #ifndef INCLUDE_atmosphere_Common.glsl
 #define INCLUDE_atmosphere_Common.glsl
 
@@ -21,8 +33,8 @@ struct AtmosphereParameters {
     float ozoneHalfWidth;
 
     vec3 rayleighSctrCoeffTotal;
-    // Angular Rayleigh scattering coefficient contains all the terms exepting 1 + cos^2(Theta):
-    // See https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/Structures.fxh
+// Angular Rayleigh scattering coefficient contains all the terms exepting 1 + cos^2(Theta):
+// See [YUS13] https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/Structures.fxh
     vec3 rayleighSctrCoeffAngular;
     vec3 rayleighExtinction;
 
@@ -43,23 +55,23 @@ AtmosphereParameters getAtmosphereParameters() {
     const float OZONE_CENTER = 25.0;
     const float OZONE_HALF_WIDTH = 15.0;
 
-    // https://forums.flightsimulator.com/t/replace-the-atmosphere-parameters-with-more-accurate-ones-from-arpc/607603
+    // Constants from [BIO23]
     const vec3 RAYLEIGH_SCATTERING = vec3(6.602e-6, 1.239e-5, 2.940e-5);
-//    const vec3 RAYLEIGH_SCATTERING = vec3(0.00000681500702284, 0.0000113048919257, 0.0000250466474553);
+    //    const vec3 RAYLEIGH_SCATTERING = vec3(0.00000681500702284, 0.0000113048919257, 0.0000250466474553);
 
-    // Constants from Hillaire, see https://sebh.github.io/publications/egsr2020.pdf
-//    const vec3 MIE_SCATTERING = vec3(3.996e-6);
-//    const vec3 MIE_ABOSORPTION = vec3(4.4e-6);
+    // Constants from [HIL20]
+    //    const vec3 MIE_SCATTERING = vec3(3.996e-6);
+    //    const vec3 MIE_ABOSORPTION = vec3(4.4e-6);
 
-    // Constants from Bruneton, see https://inria.hal.science/inria-00288758v1/document
+    // Constants from [BRU08]
     const vec3 MIE_SCATTERING = vec3(2.10e-5);
     const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 0.1;
 
     const float MIE_PHASE_G = 0.76;
 
-    // Constants from Hillaire, see https://sebh.github.io/publications/egsr2020.pdf
-//    const vec3 OZONE_ABOSORPTION = vec3(0.650e-6, 1.881e-6, 0.085e-6);
-    // See https://forums.flightsimulator.com/t/replace-the-atmosphere-parameters-with-more-accurate-ones-from-arpc/607603
+    // Constants from [HIL20]
+    //    const vec3 OZONE_ABOSORPTION = vec3(0.650e-6, 1.881e-6, 0.085e-6);
+    // Constants from [BIO23]
     const vec3 OZONE_ABOSORPTION = vec3(2.341e-6, 1.54e-6, 2.193e-25);
 
     AtmosphereParameters atmosphere;
@@ -91,6 +103,7 @@ const vec2 TRANSMITTANCE_TEXTURE_SIZE = vec2(TRANSMITTANCE_TEXTURE_WIDTH, TRANSM
 const vec2 TRANSMITTANCE_TEXEL_SIZE = 1.0 / TRANSMITTANCE_TEXTURE_SIZE;
 
 // Calculate the air density ratio at a given height(km) relative to sea level
+// Fitted to U.S. Standard Atmosphere 1976
 // See https://www.desmos.com/calculator/homrt1shnb
 float sampleRayleighDensity(AtmosphereParameters atmosphere, float h) {
     const float a0 = 0.00947927584794;
@@ -145,7 +158,7 @@ float raySphereIntersectNearest(vec3 r0, vec3 rd, vec3 s0, float sR) {
     return max(0.0, min(sol0, sol1));
 }
 
-// https://github.com/sebh/UnrealEngineSkyAtmosphere/blob/master/Resources/RenderSkyCommon.hlsl
+// [HIL20] https://github.com/sebh/UnrealEngineSkyAtmosphere/blob/master/Resources/RenderSkyCommon.hlsl
 // Transmittance LUT function parameterisation from Bruneton 2017 https://github.com/ebruneton/precomputed_atmospheric_scattering
 // uv in [0,1]
 // viewZenithCosAngle in [-1,1]
@@ -198,6 +211,115 @@ void uvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float viewA
     float d = d_min + x_mu * (d_max - d_min);
     cosSunZenith = d == 0.0 ? 1.0 : (H * H - rho * rho - d * d) / (2.0 * viewAltitude * d);
     cosSunZenith = clamp(cosSunZenith, -1.0, 1.0);
+}
+
+float rayleighPhase(float cosTheta) {
+    float factor = 3.0 / (16.0 * PI_CONST);
+    return factor * (1.0 + cosTheta * cosTheta);
+}
+
+// Cornette-Shanks phase function for Mie scattering
+float miePhase(float cosTheta, float g) {
+    float k = 3.0 / (8.0 * PI_CONST) * (1.0 - g * g) / (2.0 + g * g);
+    return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
+}
+
+// [YUS13] https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/LightScattering.fx
+float rayleighPhaseAngular(float cosTheta) {
+    return 1.0f + cosTheta * cosTheta;
+}
+
+// [YUS13] https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/LightScattering.fx
+float miePhaseAngular(float cosTheta, float g) {
+    return (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
+}
+
+struct ScatteringResult {
+    vec3 transmittance;
+    vec3 inScattering;
+};
+
+struct RaymarchParameters {
+    vec3 origin;
+    vec3 rayDir;
+    float rayLen;
+    float cosSunZenith;
+    float rayleighPhaseAngular;
+    float miePhaseAngular;
+    uint steps;
+};
+
+vec3 raymarchSampleTransmittanceLUT(
+AtmosphereParameters atmosphere, RaymarchParameters params,
+vec3 samplePos, sampler2D usam_transmittanceLUT
+) {
+    float sampleAltitude = length(samplePos);
+    vec2 tLUTUV;
+    lutTransmittanceParamsToUv(atmosphere, sampleAltitude, params.cosSunZenith, tLUTUV);
+    return texture(usam_transmittanceLUT, tLUTUV).rgb;
+}
+
+vec3 computeOpticalDepth(AtmosphereParameters atmosphere, vec3 density) {
+    vec3 result = vec3(0.0);
+    result += atmosphere.rayleighExtinction * density.x;
+    result += atmosphere.mieExtinction * density.y;
+    result += atmosphere.ozoneExtinction * density.z;
+    return result;
+}
+
+ScatteringResult raymarchSingleScattering(
+AtmosphereParameters atmosphere, RaymarchParameters params,
+sampler2D usam_transmittanceLUT
+) {
+    ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
+
+    float stepLength = params.rayLen / float(params.steps);
+    vec3 stepDelta = params.rayDir * stepLength;
+
+    vec3 opticalDepth = vec3(0.0);
+
+    for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
+        float stepIndexF = float(stepIndex);
+        vec3 samplePos = params.origin + (stepIndexF + 0.5) * stepDelta;
+        float sampleHeight = length(samplePos) - atmosphere.bottom;
+
+        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
+
+        vec3 sampleExtinction = vec3(0.0);
+        sampleExtinction += atmosphere.rayleighExtinction * sampleDensity.x;
+        sampleExtinction += atmosphere.mieExtinction * sampleDensity.y;
+        sampleExtinction += atmosphere.ozoneExtinction * sampleDensity.z;
+
+        vec3 sampleOpticalDepth = sampleExtinction * stepLength;
+        vec3 sampleTransmittance = exp(-sampleOpticalDepth);
+
+        vec3 sampleScattering = vec3(0.0);
+        sampleScattering += params.rayleighPhaseAngular * atmosphere.rayleighSctrCoeffAngular * sampleDensity.x;
+        sampleScattering += params.miePhaseAngular * atmosphere.mieSctrCoeffAngular * sampleDensity.y;
+
+        // TODO: shadowed in-scattering
+        float shadow = 1.0;
+
+        float sampleAltitude = length(samplePos);
+        vec2 tLUTUV;
+        lutTransmittanceParamsToUv(atmosphere, sampleAltitude, params.cosSunZenith, tLUTUV);
+        vec3 tSunToSample = texture(usam_transmittanceLUT, tLUTUV).rgb;
+        vec3 tSampleToOrigin = exp(-opticalDepth);
+
+        #if 0
+        vec3 scattering = shadow * stepLength * tSunToSample * sampleScattering;
+        result.inScattering += tSampleToOrigin * scattering;
+        #else
+        vec3 scattering = shadow * sampleScattering * tSunToSample;
+        // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
+        vec3 scatteringInt = (scattering - scattering * sampleTransmittance) / sampleExtinction;
+        result.inScattering += tSampleToOrigin * scatteringInt;
+        #endif
+
+        opticalDepth += sampleOpticalDepth;
+    }
+    result.transmittance = exp(-opticalDepth);
+    return result;
 }
 
 vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 dir, uint steps) {
@@ -253,102 +375,11 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
     }
     #endif
 
-    vec3 totalOpticalDepth = vec3(0.0);
-    totalOpticalDepth += atmosphere.rayleighExtinction * totalDensity.x;
-    totalOpticalDepth += atmosphere.mieExtinction * totalDensity.y;
-    totalOpticalDepth += atmosphere.ozoneExtinction * totalDensity.z;
-
+    vec3 totalOpticalDepth = computeOpticalDepth(atmosphere, totalDensity);
     result = exp(-totalOpticalDepth);
 
     return result;
 }
 
-float rayleighPhase(float cosTheta) {
-    float factor = 3.0 / (16.0 * PI_CONST);
-    return factor * (1.0 + cosTheta * cosTheta);
-}
-
-// Cornette-Shanks phase function for Mie scattering
-float miePhase(float cosTheta, float g) {
-    float k = 3.0 / (8.0 * PI_CONST) * (1.0 - g * g) / (2.0 + g * g);
-    return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
-}
-
-// See https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/LightScattering.fx
-float rayleighPhaseAngular(float cosTheta) {
-    return 1.0f + cosTheta * cosTheta;
-}
-
-// See https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/LightScattering.fx
-float miePhaseAngular(float cosTheta, float g) {
-    return (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
-}
-
-struct ScatteringResult {
-    vec3 transmittance;
-    vec3 inScattering;
-};
-
-struct RaymarchParameters {
-    vec3 origin;
-    vec3 rayDir;
-    float rayLen;
-    float cosSunZenith;
-    float rayleighPhaseAngular;
-    float miePhaseAngular;
-    uint steps;
-};
-
-ScatteringResult raymarchSingleScattering(AtmosphereParameters atmosphere, RaymarchParameters params, sampler2D usam_transmittanceLUT) {
-    ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
-
-    float stepLength = params.rayLen / float(params.steps);
-    vec3 stepDelta = params.rayDir * stepLength;
-
-    vec3 opticalDepth = vec3(0.0);
-
-    for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
-        float stepIndexF = float(stepIndex);
-        vec3 samplePos = params.origin + (stepIndexF + 0.5) * stepDelta;
-        float sampleHeight = length(samplePos) - atmosphere.bottom;
-
-        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
-
-        vec3 sampleExtinction = vec3(0.0);
-        sampleExtinction += atmosphere.rayleighExtinction * sampleDensity.x;
-        sampleExtinction += atmosphere.mieExtinction * sampleDensity.y;
-        sampleExtinction += atmosphere.ozoneExtinction * sampleDensity.z;
-
-        vec3 sampleOpticalDepth = sampleExtinction * stepLength;
-        vec3 sampleTransmittance = exp(-sampleOpticalDepth);
-
-        vec3 sampleScattering = vec3(0.0);
-        sampleScattering += params.rayleighPhaseAngular * atmosphere.rayleighSctrCoeffAngular * sampleDensity.x;
-        sampleScattering += params.miePhaseAngular * atmosphere.mieSctrCoeffAngular * sampleDensity.y;
-
-        // TODO: shadowed in-scattering
-        float shadow = 1.0;
-
-        float sampleAltitude = length(samplePos);
-        vec2 tLUTUV;
-        lutTransmittanceParamsToUv(atmosphere, sampleAltitude, params.cosSunZenith, tLUTUV);
-        vec3 tSunToSample = texture(usam_transmittanceLUT, tLUTUV).rgb;
-        vec3 tSampleToOrigin = exp(-opticalDepth);
-
-        #if 0
-        vec3 scattering = shadow * stepLength * tSunToSample * sampleScattering;
-        result.inScattering += tSampleToOrigin * scattering;
-        #else
-        vec3 scattering = shadow * sampleScattering * tSunToSample;
-        // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-        vec3 scatteringInt = (scattering - scattering * sampleTransmittance) / sampleExtinction;
-        result.inScattering += tSampleToOrigin * scatteringInt;
-        #endif
-
-        opticalDepth += sampleOpticalDepth;
-    }
-    result.transmittance = exp(-opticalDepth);
-    return result;
-}
 
 #endif
