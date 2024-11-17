@@ -48,29 +48,33 @@ void main() {
         float averageBinIndex = float(histogramCounting.y) / max(totalPixel, 1.0);
         float averageLuminance = exp2(averageBinIndex / 255.0) - 1.0;
 
+        #ifdef SETTING_EXPOSURE_MANUAL
+        global_exposure = vec4(0.0, 0.0, 0.0, exp2(SETTING_EXPOSURE_MANUAL_VALUE));
+        #else
         vec4 expLast = global_exposure;
         vec4 expNew;
 
-        // Keep top SETTING_AE_TOP_PERCENT% of pixels in the top bin
-        float top5Percent = totalPixel * SETTING_AE_TOP_BIN_PERCENT * 0.01;
+        // Keep top SETTING_EXPOSURE_TOP_PERCENT% of pixels in the top bin
+        float top5Percent = totalPixel * SETTING_EXPOSURE_TOP_BIN_PERCENT * 0.01;
         expNew.x = (top5Percent / topBin);
         expNew.x = clamp(expNew.x, 0.00001, 5.0);
 
-        // Keep the average luminance at SETTING_AE_AVG_LUMA_TARGET
-        expNew.y = (SETTING_AE_AVG_LUMA_TARGET / averageLuminance);
+        // Keep the average luminance at SETTING_EXPOSURE_AVG_LUMA_TARGET
+        expNew.y = (SETTING_EXPOSURE_AVG_LUMA_TARGET / averageLuminance);
         expNew.y = clamp(expNew.y, 0.00001, 5.0);
 
         expNew.xy = expNew.xy * expLast.xy;
-        expNew.xy = mix(expLast.xy, expNew.xy, vec2(0.05 * exp2(-SETTING_AE_TOP_BIN_TIME), exp2(-SETTING_AE_AVG_LUMA_TIME)));
-        expNew.xy = clamp(expNew.xy, 0.00001, SETTING_AE_MAX_EXP);
+        expNew.xy = mix(expLast.xy, expNew.xy, vec2(0.05 * exp2(-SETTING_EXPOSURE_TOP_BIN_TIME), exp2(-SETTING_EXPOSURE_AVG_LUMA_TIME)));
+        expNew.xy = clamp(expNew.xy, 0.00001, SETTING_EXPOSURE_MAX_EXP);
 
-        float totalWeight = SETTING_AE_TOP_BIN_MIX + SETTING_AE_AVG_LUMA_MIX;
-        expNew.w = expNew.x * SETTING_AE_TOP_BIN_MIX;
-        expNew.w += expNew.y * SETTING_AE_AVG_LUMA_MIX;
+        float totalWeight = SETTING_EXPOSURE_TOP_BIN_MIX + SETTING_EXPOSURE_AVG_LUMA_MIX;
+        expNew.w = expNew.x * SETTING_EXPOSURE_TOP_BIN_MIX;
+        expNew.w += expNew.y * SETTING_EXPOSURE_AVG_LUMA_MIX;
         expNew.w /= totalWeight;
 
         expNew.b = averageLuminance; // Debug
         global_exposure = expNew;
+        #endif
     }
 
 }
