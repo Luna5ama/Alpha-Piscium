@@ -69,13 +69,13 @@ float calcShadow(float sssFactor) {
     float viewNormalDot = (1.0 - abs(dot(gData.normal, g_viewDir)));
     #define NORMAL_OFFSET_DISTANCE_FACTOR1 8192.0
     float normalOffset1 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR1 / (NORMAL_OFFSET_DISTANCE_FACTOR1 + distnaceSq));
-    normalOffset += clamp(normalOffset1 * 2.0 * viewNormalDot, 0.0, 0.5);
+    normalOffset += saturate(normalOffset1 * viewNormalDot) * 0.5;
 
     float lightNormalDot = saturate(dot(shadowLightPosition * 0.01, gData.normal));
     lightNormalDot = (lightNormalDot * 0.5 + 0.5);
-    #define NORMAL_OFFSET_DISTANCE_FACTOR2 512.0
+    #define NORMAL_OFFSET_DISTANCE_FACTOR2 2048.0
     float normalOffset2 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR2 / (NORMAL_OFFSET_DISTANCE_FACTOR2 + distnaceSq));
-    normalOffset += clamp(normalOffset2 * 2.0 * lightNormalDot, 0.0, 1.0);
+    normalOffset += saturate(normalOffset2 * lightNormalDot) * 0.5;
 
     viewCoord += gData.normal * normalOffset;
 
@@ -101,9 +101,9 @@ float calcShadow(float sssFactor) {
     float shadow = 0.0;
     uint idxSS = (frameCounter + coord3Rand[0]) * SAMPLE_N;
 
-    #define DEPTH_BIAS_DISTANCE_FACTOR 4.0
-    float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + distnaceSq));
-    float depthBiasFactor = mix(0.002, -0.0005, dbfDistanceCoeff);
+    #define DEPTH_BIAS_DISTANCE_FACTOR 128.0
+    float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distnaceSq, 1.0)));
+    float depthBiasFactor = mix(0.002, -0.0002, dbfDistanceCoeff);
 
     for (int i = 0; i < SAMPLE_N; i++) {
         vec2 randomOffset = (r2Seq2(idxSS) * 2.0 - 1.0);
@@ -112,14 +112,14 @@ float calcShadow(float sssFactor) {
         vec2 texelSize;
         sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, sampleTexCoord.xy, texelSize);
         float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
-        depthBias = min(depthBias, 0.0001);
+        depthBias = min(depthBias, 0.001);
         sampleTexCoord.z -= depthBias;
         shadow += rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
         idxSS++;
     }
     shadow /= float(SAMPLE_N);
 
-    return mix(shadow, 1.0, linearStep(shadowDistance - 16.0, shadowDistance, length(worldCoord.xz)));
+    return mix(shadow, 1.0, linearStep(shadowDistance - 8.0, shadowDistance, length(worldCoord.xz)));
 }
 
 vec3 calcDirectLighting(Material material, float shadow, vec3 L, vec3 N, vec3 V) {

@@ -6,7 +6,7 @@ const ivec3 workGroups = ivec3(WORKGROUP16_COUNT, WORKGROUP16_COUNT, 1);
 
 layout(r32ui) uniform restrict uimage2D uimg_rtwsm_imap2D;
 
-const float IMPORTANCE_MUL = SETTING_RTWSM_IMP_BBASE / uintBitsToFloat(0x4F800000u);
+const float IMPORTANCE_MUL = SETTING_RTWSM_IMP_BMUL / uintBitsToFloat(0x4F800000u);
 
 void main() {
     ivec2 coord = ivec2(gl_GlobalInvocationID.xy);

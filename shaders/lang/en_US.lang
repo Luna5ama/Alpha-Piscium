@@ -33,7 +33,8 @@ value.shadowDistance.384.0 = 24 chunks
 value.shadowDistance.512.0 = 32 chunks
 
 option.SETTING_RTWSM_IMAP_SIZE = Importance Map Resolution
-option.SETTING_RTWSM_IMP_BBASE = Backward Base Importance
+option.SETTING_RTWSM_IMP_BMUL = Backward Multiplier
+option.SETTING_RTWSM_IMP_BMIN = Backward Min %
 option.SETTING_RTWSM_IMP_D = Distance Function
 option.SETTING_RTWSM_IMP_SN = Surface Normal Function
 option.SETTING_RTWSM_IMP_SE = Shadow Edge Function
@@ -61,7 +62,7 @@ option.SETTING_AE_AVG_LUMA_TARGET.comment = Target average luminance value for a
 
 option.SETTING_AE_TOP_BIN_TIME = Top Bin AE Time
 option.SETTING_AE_TOP_BIN_TIME.comment = Time constant for top bin AE.
-option.SETTING_AE_TOP_BIN_PERCENT = Top Bin Percentage
+option.SETTING_AE_TOP_BIN_PERCENT = Top Bin %
 option.SETTING_AE_TOP_BIN_PERCENT.comment = Adjusting exposure to keep the specified percentage of pixels in the top bin of histogram.
 
 option.SETTING_TONEMAP_OUTPUT_GAMMA = Output Gamma

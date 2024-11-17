@@ -38,7 +38,7 @@ void main() {
     }
 
     if (inViewPort(vec4(0, 512, 512, 512), debugTexCoord)) {
-        color.rgb = texture(usam_rtwsm_imap2D, debugTexCoord).rrr;
+        color.rgb = texture(usam_rtwsm_imap2D, debugTexCoord).rrr * 8.0;
     }
 
     if (inViewPort(vec4(0, 1024, 512, 16), debugTexCoord)) {
