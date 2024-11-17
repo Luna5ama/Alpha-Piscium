@@ -1,6 +1,6 @@
-// Contains code adopted from: https://github.com/sebh/UnrealEngineSkyAtmosphere
-// MIT License
-// Copyright (c) 2020 Epic Games, Inc.
+// References:
+// https://github.com/sebh/UnrealEngineSkyAtmosphere (MIT License, Copyright (c) 2020 Epic Games, Inc.)
+// https://github.com/GameTechDev/OutdoorLightScattering (Apache-2.0 License, Copyright (c) 2017 Intel Corporation)
 // You can find the full license text in /licenses/MIT.txt
 #ifndef INCLUDE_atmosphere_Common.glsl
 #define INCLUDE_atmosphere_Common.glsl
@@ -20,15 +20,19 @@ struct AtmosphereParameters {
     float ozoneCenter;
     float ozoneHalfWidth;
 
-    vec3 rayleighScattering;
-//    vec3 rayleighAbsorption;
+    vec3 rayleighSctrCoeffTotal;
+    // Angular Rayleigh scattering coefficient contains all the terms exepting 1 + cos^2(Theta):
+    // See https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/Structures.fxh
+    vec3 rayleighSctrCoeffAngular;
+    vec3 rayleighExtinction;
 
-    vec3 mieScattering;
-    vec3 mieAbsorption;
+    vec3 mieSctrCoeffTotal;
+    vec3 mieSctrCoeffAngular;
+    vec3 mieExtinction;
+
     float miePhaseG;
 
-//    vec3 ozoneScattering;
-    vec3 ozoneAbsorption;
+    vec3 ozoneExtinction;
 };
 
 AtmosphereParameters getAtmosphereParameters() {
@@ -38,21 +42,19 @@ AtmosphereParameters getAtmosphereParameters() {
     const float MIE_HEIGHT = 1.2;
     const float OZONE_CENTER = 25.0;
     const float OZONE_HALF_WIDTH = 15.0;
-    
+
     // https://forums.flightsimulator.com/t/replace-the-atmosphere-parameters-with-more-accurate-ones-from-arpc/607603
     const vec3 RAYLEIGH_SCATTERING = vec3(6.602e-6, 1.239e-5, 2.940e-5);
-//    const vec3 RAYLEIGH_SCATTERING = vec3(7.23392672713746e-6, 1.19997766911071e-5, 2.65861007515866e-5);
-    const vec3 RAYLEIGH_ABOSORPTION = vec3(0.0);
+//    const vec3 RAYLEIGH_SCATTERING = vec3(0.00000681500702284, 0.0000113048919257, 0.0000250466474553);
 
-    // A Scalable and Production Ready Sky and Atmosphere Rendering Technique
-    // by Sébastien Hillaire, 2020
-    // https://sebh.github.io/publications/egsr2020.pdf
+    // Constants from Hillaire, see https://sebh.github.io/publications/egsr2020.pdf
     const vec3 MIE_SCATTERING = vec3(3.996e-6);
     const vec3 MIE_ABOSORPTION = vec3(4.4e-6);
     const float MIE_PHASE_G = 0.76;
 
-    const vec3 OZONE_SCATTERING = vec3(0.0);
+    // Constants from Hillaire, see https://sebh.github.io/publications/egsr2020.pdf
 //    const vec3 OZONE_ABOSORPTION = vec3(0.650e-6, 1.881e-6, 0.085e-6);
+    // See https://forums.flightsimulator.com/t/replace-the-atmosphere-parameters-with-more-accurate-ones-from-arpc/607603
     const vec3 OZONE_ABOSORPTION = vec3(2.341e-6, 1.54e-6, 2.193e-25);
 
     AtmosphereParameters atmosphere;
@@ -63,15 +65,17 @@ AtmosphereParameters getAtmosphereParameters() {
     atmosphere.ozoneCenter = OZONE_CENTER;
     atmosphere.ozoneHalfWidth = OZONE_HALF_WIDTH;
 
-    atmosphere.rayleighScattering = RAYLEIGH_SCATTERING * 1000.0;
-    //    atmosphere.rayleighAbsorption = RAYLEIGH_ABOSORPTION * 1000.0;
+    atmosphere.rayleighSctrCoeffTotal = RAYLEIGH_SCATTERING * 1000.0;
+    atmosphere.rayleighSctrCoeffAngular = atmosphere.rayleighSctrCoeffTotal * (3.0 / (16.0 * PI_CONST));
+    atmosphere.rayleighExtinction = atmosphere.rayleighSctrCoeffTotal;
 
-    atmosphere.mieScattering = MIE_SCATTERING * 1000.0;
-    atmosphere.mieAbsorption = MIE_ABOSORPTION * 1000.0;
     atmosphere.miePhaseG = MIE_PHASE_G;
+    const float k = 3.0 / (8.0 * PI_CONST) * (1.0 - atmosphere.miePhaseG * atmosphere.miePhaseG) / (2.0 + atmosphere.miePhaseG * atmosphere.miePhaseG);
+    atmosphere.mieSctrCoeffTotal = MIE_SCATTERING * 1000.0;
+    atmosphere.mieSctrCoeffAngular = atmosphere.mieSctrCoeffTotal * k;
+    atmosphere.mieExtinction = atmosphere.mieSctrCoeffTotal + (MIE_ABOSORPTION * 1000.0);
 
-    //    atmosphere.ozoneScattering = OZONE_SCATTERING * 1000.0;
-    atmosphere.ozoneAbsorption = OZONE_ABOSORPTION * 1000.0;
+    atmosphere.ozoneExtinction = OZONE_ABOSORPTION * 1000.0;
 
     return atmosphere;
 }
@@ -214,6 +218,8 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
     float stepLength = rayLenAtm / float(steps);
     vec3 stepDelta = dir * stepLength;
 
+    vec3 totalDensity = vec3(0.0);
+
     #if TRAPEZOIDAL_INTEGRATION
     vec3 prevDensity = vec3(0.0);
     {
@@ -222,7 +228,6 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
 
         prevDensity = sampleParticleDensity(atmosphere, sampleHeight);
     }
-    vec3 totalDensity = vec3(0.0);
     for (uint stepIndex = 1u; stepIndex <= steps; stepIndex++) {
         float stepIndexF = float(stepIndex);
         vec3 samplePos = origin + (stepIndexF) * stepDelta;
@@ -233,7 +238,6 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
         prevDensity = sampleDensity;
     }
     #else
-    vec3 totalDensity = vec3(0.0);
     for (uint stepIndex = 0u; stepIndex < steps; stepIndex++) {
         float stepIndexF = float(stepIndex);
         vec3 samplePos = origin + (stepIndexF + 0.5) * stepDelta;
@@ -244,13 +248,10 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
     }
     #endif
 
-    vec3 rayleighExtinction = atmosphere.rayleighScattering;
-    vec3 mieExtinction = atmosphere.mieScattering + atmosphere.mieAbsorption;
-    vec3 ozoneExtinction = atmosphere.ozoneAbsorption;
     vec3 totalOpticalDepth = vec3(0.0);
-    totalOpticalDepth += rayleighExtinction * totalDensity.x;
-    totalOpticalDepth += mieExtinction * totalDensity.y;
-    totalOpticalDepth += ozoneExtinction * totalDensity.z;
+    totalOpticalDepth += atmosphere.rayleighExtinction * totalDensity.x;
+    totalOpticalDepth += atmosphere.mieExtinction * totalDensity.y;
+    totalOpticalDepth += atmosphere.ozoneExtinction * totalDensity.z;
 
     result = exp(-totalOpticalDepth);
 
@@ -258,14 +259,24 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
 }
 
 float rayleighPhase(float cosTheta) {
-    float factor = 3.0f / (16.0f * PI_CONST);
-    return factor * (1.0f + cosTheta * cosTheta);
+    float factor = 3.0 / (16.0 * PI_CONST);
+    return factor * (1.0 + cosTheta * cosTheta);
 }
 
 // Cornette-Shanks phase function for Mie scattering
 float miePhase(float cosTheta, float g) {
     float k = 3.0 / (8.0 * PI_CONST) * (1.0 - g * g) / (2.0 + g * g);
     return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
+}
+
+// See https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/LightScattering.fx
+float rayleighPhaseAngular(float cosTheta) {
+    return 1.0f + cosTheta * cosTheta;
+}
+
+// See https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/LightScattering.fx
+float miePhaseAngular(float cosTheta, float g) {
+    return (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
 }
 
 struct ScatteringResult {
@@ -278,8 +289,8 @@ struct RaymarchParameters {
     vec3 rayDir;
     float rayLen;
     float cosSunZenith;
-    float rayleighPhase;
-    float miePhase;
+    float rayleighPhaseAngular;
+    float miePhaseAngular;
     uint steps;
 };
 
@@ -298,22 +309,17 @@ ScatteringResult raymarchSingleScattering(AtmosphereParameters atmosphere, Rayma
 
         vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
 
-        vec3 rayleighExtinction = atmosphere.rayleighScattering;
-        vec3 mieExtinction = atmosphere.mieScattering + atmosphere.mieAbsorption;
-        vec3 ozoneExtinction = atmosphere.ozoneAbsorption;
         vec3 sampleExtinction = vec3(0.0);
-        sampleExtinction += rayleighExtinction * sampleDensity.x;
-        sampleExtinction += mieExtinction * sampleDensity.y;
-        sampleExtinction += ozoneExtinction * sampleDensity.z;
+        sampleExtinction += atmosphere.rayleighExtinction * sampleDensity.x;
+        sampleExtinction += atmosphere.mieExtinction * sampleDensity.y;
+        sampleExtinction += atmosphere.ozoneExtinction * sampleDensity.z;
 
         vec3 sampleOpticalDepth = sampleExtinction * stepLength;
         vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
-        vec3 rayleighScattering = atmosphere.rayleighScattering;
-        vec3 mieScattering = atmosphere.mieScattering;
         vec3 sampleScattering = vec3(0.0);
-        sampleScattering += params.rayleighPhase * rayleighScattering * sampleDensity.x;
-        sampleScattering += params.miePhase * mieScattering * sampleDensity.y;
+        sampleScattering += params.rayleighPhaseAngular * atmosphere.rayleighSctrCoeffAngular * sampleDensity.x;
+        sampleScattering += params.miePhaseAngular * atmosphere.mieSctrCoeffAngular * sampleDensity.y;
 
         // TODO: shadowed in-scattering
         float shadow = 1.0;
