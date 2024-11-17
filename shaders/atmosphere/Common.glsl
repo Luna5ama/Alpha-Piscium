@@ -48,8 +48,13 @@ AtmosphereParameters getAtmosphereParameters() {
 //    const vec3 RAYLEIGH_SCATTERING = vec3(0.00000681500702284, 0.0000113048919257, 0.0000250466474553);
 
     // Constants from Hillaire, see https://sebh.github.io/publications/egsr2020.pdf
-    const vec3 MIE_SCATTERING = vec3(3.996e-6);
-    const vec3 MIE_ABOSORPTION = vec3(4.4e-6);
+//    const vec3 MIE_SCATTERING = vec3(3.996e-6);
+//    const vec3 MIE_ABOSORPTION = vec3(4.4e-6);
+
+    // Constants from Bruneton, see https://inria.hal.science/inria-00288758v1/document
+    const vec3 MIE_SCATTERING = vec3(2.10e-5);
+    const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 0.1;
+
     const float MIE_PHASE_G = 0.76;
 
     // Constants from Hillaire, see https://sebh.github.io/publications/egsr2020.pdf
