@@ -14,7 +14,8 @@ void main() {
 	vec3 viewCoord = coords_toViewCoord(frag_texCoord, -far, gbufferProjectionInverse);
 
 	vec3 viewDir = normalize(viewCoord);
-	float sunDot = saturate(dot(viewDir, sunPosition * 0.01));
+	float cosSun = saturate(dot(viewDir, sunPosition * 0.01));
 
-	rt_out.rgb = pow(sunDot, 9000.0) * sunRadiance;
+//	rt_out.rgb = smoothstep(uval_sunAngularRadius.x * 4.0, uval_sunAngularRadius.x, acos(cosSun)) * sunRadiance;
+	rt_out.rgb = pow(cosSun, 9000.0) * sunRadiance;
 }

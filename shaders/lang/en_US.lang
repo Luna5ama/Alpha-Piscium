@@ -17,6 +17,12 @@ option.SETTING_REAL_SUN_TEMPERATURE.comment = Use real sun temperature of 5772 K
 option.SETTING_SUN_TEMPERATURE = Sun Temperature
 option.SETTING_SUN_TEMPERATURE.comment = Temperature of sun in K (kelvin). Affects the color and intensity of sunlight.
 suffix.SETTING_SUN_TEMPERATURE = \ K
+option.SETTING_SUN_RADIUS = Sun Radius
+option.SETTING_SUN_RADIUS.comment = Radius of sun relative to real sun radius of 696342 km.
+suffix.SETTING_SUN_RADIUS = \ R
+option.SETTING_SUN_DISTANCE = Sun Distance
+option.SETTING_SUN_DISTANCE.comment = Distance of sun in AU (astronomical units), which is relative to real sun distance of 149.6 million km.
+suffix.SETTING_SUN_DISTANCE = \ AU
 
 option.SETTING_ATM_ALT_SCALE = Atmosphere Altitude Scale
 option.SETTING_ATM_ALT_SCALE.comment = Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on.

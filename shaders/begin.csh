@@ -44,9 +44,9 @@ void main() {
     global_taaJitterMat = taaJitterMat(jitter);
 
     #ifdef SETTING_REAL_SUN_TEMPERATURE
-    vec4 sunRadiance = colors_blackBodyRadiation(5772, OMEGA_SUN);
+    vec4 sunRadiance = colors_blackBodyRadiation(5772, uval_sunOmega);
     #else
-    vec4 sunRadiance = colors_blackBodyRadiation(SETTING_SUN_TEMPERATURE, OMEGA_SUN);
+    vec4 sunRadiance = colors_blackBodyRadiation(SETTING_SUN_TEMPERATURE, uval_sunOmega);
     #endif
     global_sunRadiance = sunRadiance;
 }
