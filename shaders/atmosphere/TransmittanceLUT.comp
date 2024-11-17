@@ -1,7 +1,7 @@
 // Adopted from: https://github.com/sebh/UnrealEngineSkyAtmosphere
 // MIT License
 // Copyright (c) 2020 Epic Games, Inc.
-// You can find the full license text in /licenses/MIT.txt
+// You can find the full license texts in /licenses
 #include "Common.glsl"
 
 layout(rgba16f) uniform image2D uimg_transmittanceLUT;

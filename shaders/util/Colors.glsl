@@ -4,7 +4,7 @@
 // This function is adopted from: https://github.com/zubetto/BlackBodyRadiation
 // MIT License
 // Copyright (c) 2021 Alexander
-// You can find the full license text in /licenses/MIT.txt
+// You can find the full license text in /license
 vec4 colors_blackBodyRadiation(float T, float radianceMul) {
     if (T <= 0.0) return vec4(0.0);
 

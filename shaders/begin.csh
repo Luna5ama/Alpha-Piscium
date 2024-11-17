@@ -24,7 +24,7 @@ mat4 shadowDeRotateMatrix(mat4 shadowMatrix) {
 }
 
 vec2 taaJitter() {
-    return r2Seq2(frameCounter) - 0.5;
+    return rand_r2Seq2(frameCounter) - 0.5;
 }
 
 mat4 taaJitterMat(vec2 baseJitter) {

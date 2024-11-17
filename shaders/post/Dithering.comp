@@ -1,0 +1,18 @@
+#include "../_Util.glsl"
+
+layout(local_size_x = 128) in;
+
+layout(rgba16f) restrict uniform image2D uimg_main;
+
+void main() {
+    ivec2 imgSize = imageSize(uimg_main);
+    ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
+
+    if (all(lessThan(pixelPos, imgSize))) {
+        vec4 color = imageLoad(uimg_main, pixelPos);
+        float dither = rand_IGN(gl_GlobalInvocationID.xy, frameCounter) - 0.5;
+        dither *= 1.0 / 255.0;
+        color.rgb += dither;
+        imageStore(uimg_main, pixelPos, color);
+    }
+}

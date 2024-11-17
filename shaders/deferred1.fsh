@@ -45,7 +45,7 @@ float searchBlocker(vec3 shadowTexCoord) {
     int n = 0;
 
     for (int i = 0; i < BLOCKER_SEARCH_N; i++) {
-        vec2 randomOffset = (r2Seq2(idxB) * 2.0 - 1.0);
+        vec2 randomOffset = (rand_r2Seq2(idxB) * 2.0 - 1.0);
         vec3 sampleTexCoord = shadowTexCoord;
         sampleTexCoord.xy += randomOffset * blockerSearchRange * vec2(shadowProjection[0][0], shadowProjection[1][1]);
         vec2 texelSize;
@@ -106,7 +106,7 @@ float calcShadow(float sssFactor) {
     float depthBiasFactor = mix(0.002, -0.0001, dbfDistanceCoeff);
 
     for (int i = 0; i < SAMPLE_N; i++) {
-        vec2 randomOffset = (r2Seq2(idxSS) * 2.0 - 1.0);
+        vec2 randomOffset = (rand_r2Seq2(idxSS) * 2.0 - 1.0);
         vec3 sampleTexCoord = shadowTexCoord;
         sampleTexCoord.xy += ssRange * randomOffset * vec2(shadowProjection[0][0], shadowProjection[1][1]);
         vec2 texelSize;
@@ -178,8 +178,8 @@ void main() {
     g_viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
     g_viewDir = normalize(-g_viewCoord);
 
-    coord3Rand[0] = hash31(floatBitsToUint(g_viewCoord.xyz)) & 1023u;
-    coord3Rand[1] = hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
+    coord3Rand[0] = rand_hash31(floatBitsToUint(g_viewCoord.xyz)) & 1023u;
+    coord3Rand[1] = rand_hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
 
     doStuff();
 }

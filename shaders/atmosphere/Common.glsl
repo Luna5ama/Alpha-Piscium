@@ -1,7 +1,7 @@
 // References:
 // https://github.com/sebh/UnrealEngineSkyAtmosphere (MIT License, Copyright (c) 2020 Epic Games, Inc.)
 // https://github.com/GameTechDev/OutdoorLightScattering (Apache-2.0 License, Copyright (c) 2017 Intel Corporation)
-// You can find the full license text in /licenses/MIT.txt
+// You can find the full license texts in /licenses
 #ifndef INCLUDE_atmosphere_Common.glsl
 #define INCLUDE_atmosphere_Common.glsl
 
