@@ -240,4 +240,73 @@ float miePhase(float cosTheta, float g) {
     return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
 }
 
+struct ScatteringResult {
+    vec3 transmittance;
+    vec3 inScattering;
+};
+
+struct RaymarchParameters {
+    vec3 origin;
+    vec3 rayDir;
+    float rayLen;
+    float cosSunZenith;
+    float rayleighPhase;
+    float miePhase;
+    uint steps;
+};
+
+ScatteringResult raymarchSingleScattering(AtmosphereParameters atmosphere, RaymarchParameters params, sampler2D usam_transmittanceLUT) {
+    ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
+
+    float stepLength = params.rayLen / float(params.steps);
+    vec3 stepDelta = params.rayDir * stepLength;
+
+    vec3 opticalDepth = vec3(0.0);
+
+    for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
+        float stepIndexF = float(stepIndex);
+        vec3 samplePos = params.origin + (stepIndexF + 0.5) * stepDelta;
+        float sampleHeight = length(samplePos) - atmosphere.bottom;
+
+        float sampleDensityRayleigh = densityRayleigh(atmosphere, sampleHeight);
+        float sampleDensityMie = densityMie(atmosphere, sampleHeight);
+        float sampleDensityOzone = densityOzone(atmosphere, sampleHeight);
+
+        vec3 rayleighExtinction = atmosphere.rayleighScattering;
+        vec3 mieExtinction = atmosphere.mieScattering + atmosphere.mieAbsorption;
+        vec3 ozoneExtinction = atmosphere.ozoneAbsorption;
+        vec3 sampleExtinction = vec3(0.0);
+        sampleExtinction += rayleighExtinction * sampleDensityRayleigh;
+        sampleExtinction += mieExtinction * sampleDensityMie;
+        sampleExtinction += ozoneExtinction * sampleDensityOzone;
+
+        vec3 sampleOpticalDepth = sampleExtinction * stepLength;
+        vec3 sampleTransmittance = exp(-sampleOpticalDepth);
+
+        vec3 rayleighScattering = atmosphere.rayleighScattering;
+        vec3 mieScattering = atmosphere.mieScattering;
+        vec3 sampleScattering = vec3(0.0);
+        sampleScattering += params.rayleighPhase * rayleighScattering * sampleDensityRayleigh;
+        sampleScattering += params.miePhase * mieScattering * sampleDensityMie;
+
+        // TODO: shadowed in-scattering
+        float shadow = 1.0;
+
+        float sampleAltitude = length(samplePos);
+        vec2 tLUTUV;
+        lutTransmittanceParamsToUv(atmosphere, sampleAltitude, params.cosSunZenith, tLUTUV);
+        vec3 tSunToSample = texture(usam_transmittanceLUT, tLUTUV).rgb;
+        vec3 tSampleToOrigin = exp(-opticalDepth);
+
+        vec3 scattering = sampleScattering * tSunToSample;
+        // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
+        vec3 scatteringInt = (scattering - scattering * sampleTransmittance) / sampleExtinction;
+        result.inScattering += tSampleToOrigin * scatteringInt;
+
+        opticalDepth += sampleOpticalDepth;
+    }
+    result.transmittance = exp(-opticalDepth);
+    return result;
+}
+
 #endif

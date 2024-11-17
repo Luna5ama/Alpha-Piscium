@@ -13,56 +13,49 @@ layout(rgba16f) restrict uniform image2D uimg_main;
 uniform sampler2D usam_viewZ;
 uniform sampler2D usam_transmittanceLUT;
 
-struct ScatteringResult {
-    vec3 transmittance;
-    vec3 inScattering;
-};
-
 // originView: ray origin in view space
 // endView: ray end in view space
-ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 originView, vec3 endView, uint steps) {
+ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 originView, vec3 endView) {
     ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
+    RaymarchParameters params;
 
-    vec3 viewDir = normalize(endView - originView);
+    mat3 vectorView2World = mat3(gbufferModelViewInverse);
 
-    vec3 upView = upPosition * 0.01;
+    vec3 viewDirView = normalize(endView - originView);
+    vec3 viewDirWorld = vectorView2World * viewDirView;
 
     vec3 originFeetPlayer = (gbufferModelViewInverse * vec4(originView, 1.0)).xyz;
     vec3 originWorld = originFeetPlayer + cameraPosition;
     float originAltitude = calcViewAltitude(atmosphere, originWorld);
 
-    vec3 originAtm = vec3(originFeetPlayer.x, 0.0, originFeetPlayer.z) / SETTING_ATM_D_SCALE;
-    originAtm.y += originAltitude;
-
-    vec3 rayDirAtm;
-    float rayLenAtm;
+    params.origin = vec3(originFeetPlayer.x, 0.0, originFeetPlayer.z) / SETTING_ATM_D_SCALE;
+    params.origin.y += originAltitude;
 
     if (endView.z == -65536.0) {
         vec3 earthCenter = vec3(0.0, 0.0, 0.0);
-        vec3 viewDirWorld = mat3(gbufferModelViewInverse) * viewDir;
-        rayDirAtm = viewDirWorld;
+        params.rayDir = viewDirWorld;
 
         // Check if ray origin is outside the atmosphere
-        if (length(originAtm) > atmosphere.top) {
-            float tTop = raySphereIntersectNearest(originAtm, rayDirAtm, earthCenter, atmosphere.top);
+        if (length(params.origin) > atmosphere.top) {
+            float tTop = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.top);
             if (tTop < 0.0) {
-                return result;// No intersection with atmosphere: stop right away
+                return result; // No intersection with atmosphere: stop right away
             }
-            originAtm += rayDirAtm * (tTop + 0.01);
+            params.origin += params.rayDir * (tTop + 0.01);
         }
 
-        float tBottom = raySphereIntersectNearest(originAtm, rayDirAtm, earthCenter, atmosphere.bottom);
-        float tTop = raySphereIntersectNearest(originAtm, rayDirAtm, earthCenter, atmosphere.top);
-        rayLenAtm = 0.0;
+        float tBottom = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.bottom);
+        float tTop = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.top);
+        params.rayLen = 0.0;
         if (tBottom < 0.0) {
             if (tTop < 0.0) {
-                return result;// No intersection with earth nor atmosphere: stop right away
+                return result; // No intersection with earth nor atmosphere: stop right away
             } else {
-                rayLenAtm = tTop;
+                params.rayLen = tTop;
             }
         } else {
             if (tTop > 0.0) {
-                rayLenAtm = min(tTop, tBottom);
+                params.rayLen = min(tTop, tBottom);
             }
         }
     } else {
@@ -73,67 +66,18 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         vec3 endAtm = vec3(endFeetPlayer.x, 0.0, endFeetPlayer.z) / SETTING_ATM_D_SCALE;
         endAtm.y += endAltitude;
 
-        rayDirAtm = normalize(endAtm - originAtm);
-        rayLenAtm = length(endAtm - originAtm);
+        params.rayDir = normalize(endAtm - params.origin);
+        params.rayLen = length(endAtm - params.origin);
     }
 
-    float stepLength = rayLenAtm / float(steps);
-    vec3 stepDelta = rayDirAtm * stepLength;
+    vec3 sunDir = sunPosition * 0.01;
+    float cosTheta = -dot(sunDir, viewDirView);
+    params.cosSunZenith = dot(sunDir, upPosition * 0.01);
+    params.rayleighPhase = rayleighPhase(cosTheta);
+    params.miePhase = miePhase(cosTheta, atmosphere.miePhaseG);
+    params.steps = 64u;
 
-    vec3 opticalDepth = vec3(0.0);
-
-    vec3 sunDirV = sunPosition * 0.01;
-    float cosTheta = -dot(sunDirV, viewDir);
-
-    float cosSunZenith = calcCosSunZenith(atmosphere, sunDirV);
-
-    float rayleighPhase = rayleighPhase(cosTheta);
-    float miePhase = miePhase(cosTheta, atmosphere.miePhaseG);
-
-    for (uint stepIndex = 0u; stepIndex < steps; stepIndex++) {
-        float stepIndexF = float(stepIndex);
-        vec3 samplePos = originAtm + (stepIndexF + 0.5) * stepDelta;
-        float sampleHeight = length(samplePos) - atmosphere.bottom;
-
-        float sampleDensityRayleigh = densityRayleigh(atmosphere, sampleHeight);
-        float sampleDensityMie = densityMie(atmosphere, sampleHeight);
-        float sampleDensityOzone = densityOzone(atmosphere, sampleHeight);
-
-        vec3 rayleighExtinction = atmosphere.rayleighScattering;
-        vec3 mieExtinction = atmosphere.mieScattering + atmosphere.mieAbsorption;
-        vec3 ozoneExtinction = atmosphere.ozoneAbsorption;
-        vec3 sampleExtinction = vec3(0.0);
-        sampleExtinction += rayleighExtinction * sampleDensityRayleigh;
-        sampleExtinction += mieExtinction * sampleDensityMie;
-        sampleExtinction += ozoneExtinction * sampleDensityOzone;
-
-        vec3 sampleOpticalDepth = sampleExtinction * stepLength;
-        vec3 sampleTransmittance = exp(-sampleOpticalDepth);
-
-        vec3 rayleighScattering = atmosphere.rayleighScattering;
-        vec3 mieScattering = atmosphere.mieScattering;
-        vec3 sampleScattering = vec3(0.0);
-        sampleScattering += rayleighPhase * rayleighScattering * sampleDensityRayleigh;
-        sampleScattering += miePhase * mieScattering * sampleDensityMie;
-
-        // TODO: shadowed in-scattering
-        float shadow = 1.0;
-
-        float sampleAltitude = length(samplePos);
-        vec2 tLUTUV;
-        lutTransmittanceParamsToUv(atmosphere, sampleAltitude, cosSunZenith, tLUTUV);
-        vec3 tSunToSample = texture(usam_transmittanceLUT, tLUTUV).rgb;
-        vec3 tSampleToOrigin = exp(-opticalDepth);
-
-        vec3 scattering = sampleScattering * tSunToSample;
-        // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-        vec3 scatteringInt = (scattering - scattering * sampleTransmittance) / sampleExtinction;
-        result.inScattering += tSampleToOrigin * scatteringInt;
-
-        opticalDepth += sampleOpticalDepth;
-    }
-    result.transmittance = exp(-opticalDepth);
-    return result;
+    return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT);
 }
 
 void main() {
@@ -149,11 +93,10 @@ void main() {
         float viewZ2 = mix(viewZ, -65536.0, float(viewZ == 1.0));
         vec3 viewCoord = coords_toViewCoord(texCoord, viewZ2, gbufferProjectionInverse);
 
-        ScatteringResult result = computeSingleScattering(atmosphere, vec3(0.0), viewCoord, 64u);
+        ScatteringResult result = computeSingleScattering(atmosphere, vec3(0.0), viewCoord);
 
         vec4 color = imageLoad(uimg_main, pixelPos);
-        color.rgb *= result.transmittance;
-
+//        color.rgb *= result.transmittance;
 
         vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
         color.rgb += sunRadiance * result.inScattering;
