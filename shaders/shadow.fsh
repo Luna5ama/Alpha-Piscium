@@ -18,9 +18,9 @@ void main() {
 	uint r2Index = uint(rand_IGN(gl_FragCoord.xy, frameCounter) * 1024.0);
 	r2Index += (rand_hash11(floatBitsToUint(gl_FragCoord.z)) & 65535u);
 	r2Index += frameCounter;
-	float randZ = rand_r2Seq1(r2Index);
+	float randAlpha = rand_r2Seq1(r2Index);
 
-	if (color.a < randZ) {
+	if (color.a < randAlpha) {
 		discard;
 	}
 

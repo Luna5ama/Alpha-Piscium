@@ -128,7 +128,7 @@ vec3 calcShadow(float sssFactor) {
         float sampleShadow1 = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
         vec4 sampleColor = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0);
 
-        vec3 sampleShadow = mix(vec3(1.0), sampleColor.rgb, float(sampleShadow0 < 1.0) * sampleColor.a);
+        vec3 sampleShadow = mix(vec3(1.0), sampleColor.rgb, float(sampleShadow0 < 1.0));
         sampleShadow = min(sampleShadow, vec3(sampleShadow1));
 
         shadow += sampleShadow;

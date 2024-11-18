@@ -26,6 +26,26 @@ void main() {
     #ifdef GBUFFER_PASS_TEXTURED
     albedoTemp *= texture(gtexture, frag_texCoord);
     #endif
+
+    #ifdef GBUFFER_PASS_ALPHA_TEST
+    if (albedoTemp.a < 0.1) {
+        discard;
+    }
+    #endif
+
+    #ifdef GBUFFER_PASS_TRANLUCENT
+    uint r2Index = 0u;
+    r2Index += uint(rand_IGN(gl_FragCoord.xy, frameCounter) * 64.0);
+    r2Index += (rand_hash11(floatBitsToUint(gl_FragCoord.z)) & 255u);
+    float randAlpha = rand_r2Seq1(r2Index);
+
+//    float randAlpha = rand_IGN(gl_FragCoord.xy, frameCounter);
+
+    if (albedoTemp.a < randAlpha) {
+        discard;
+    }
+    #endif
+
     gData.albedo = albedoTemp.rgb;
 
     #if defined(GBUFFER_PASS_TEXTURED) && defined(MC_TEXTURE_FORMAT_LAB_PBR)
@@ -55,11 +75,5 @@ void main() {
     rt_viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;
     #else
     rt_viewZ = frag_viewZ;
-    #endif
-
-    #ifdef GBUFFER_PASS_ALPHA_TEST
-    if (albedoTemp.a < 0.1) {
-        discard;
-    }
     #endif
 }
