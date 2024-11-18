@@ -105,7 +105,7 @@ vec3 calcShadow(float sssFactor) {
 
     #define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
-    vec3 shadow = vec3(0.0);
+    vec4 totalShadow = vec4(0.0);
     uint idxSS = (frameCounter + coord3Rand[0]) * SAMPLE_N;
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 256.0
@@ -125,17 +125,16 @@ vec3 calcShadow(float sssFactor) {
         float sampleShadow0 = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
         float sampleShadow1 = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
         vec4 sampleColor = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0);
+        sampleColor.rgb = mix(vec3(1.0), sampleColor.rgb, float(sampleShadow0 < 1.0));
 
-        vec3 sampleShadow = mix(vec3(1.0), sampleColor.rgb, float(sampleShadow0 < 1.0) * sampleColor.a);
-        sampleShadow = min(sampleShadow, vec3(sampleShadow1));
-
-        shadow += sampleShadow;
-
+        totalShadow += vec4(sampleColor.rgb, sampleShadow1);
         idxSS++;
     }
-    shadow /= float(SAMPLE_N);
-    shadow *= shadow;
-    return mix(shadow, vec3(1.0), linearStep(shadowDistance - 8.0, shadowDistance, length(worldCoord.xz)));
+    totalShadow /= float(SAMPLE_N);
+    totalShadow.a *= totalShadow.a;
+    vec3 result = min(totalShadow.rgb, totalShadow.aaa);
+    float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(worldCoord.xz));
+    return mix(result, vec3(1.0), shadowRangeBlend);
 }
 
 vec3 calcDirectLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
