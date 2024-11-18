@@ -63,19 +63,18 @@ void importance(ivec2 gCoord, out uint p, out float v) {
     #if SETTING_RTWSM_IMP_SE < 1.0
     vec2 shadowTSWarped = rtwsm_warpTexCoord(usam_rtwsm_warpingMap, shadowTS);
 
-    float center = texture(shadowtex0, shadowTSWarped).x;
+    float center = rtwsm_linearDepth(texture(shadowtex0, shadowTSWarped).x);
     float maxDiff = 0.0;
-    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, -1)).x));
-    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, 0)).x));
-    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, 1)).x));
-    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(0, -1)).x));
-    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(0, 1)).x));
-    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(1, -1)).x));
-    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 0)).x));
-    maxDiff = max(maxDiff, abs(center - textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 1)).x));
-    maxDiff *= far - near;
+    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, -1)).x)));
+    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, 0)).x)));
+    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, 1)).x)));
+    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(0, -1)).x)));
+    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(0, 1)).x)));
+    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(1, -1)).x)));
+    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 0)).x)));
+    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 1)).x)));
 
-    importance *= mix(SETTING_RTWSM_IMP_SE, 1.0, smoothstep(0.5, 2.0, maxDiff));
+    importance *= mix(SETTING_RTWSM_IMP_SE, 1.0, linearStep(0.5, 4.0, maxDiff));
     #endif
 
     if (shadowCS.x < -1.0 || shadowCS.x > 1.0 || shadowCS.y < -1.0 || shadowCS.y > 1.0 || shadowCS.z < -1.0 || shadowCS.z > 1.0) {

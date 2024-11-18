@@ -12,13 +12,13 @@ mat4 shadowDeRotateMatrix(mat4 shadowMatrix) {
 
     float angle1 = -atan(p1.y, p1.x);
 
-    float cos1 = cos(angle1 - PI_HALF_CONST) * 0.9;
-    float sin1 = sin(angle1 - PI_HALF_CONST) * 0.9;
+    float cos1 = cos(angle1 - PI_HALF_CONST) * 0.7071;
+    float sin1 = sin(angle1 - PI_HALF_CONST) * 0.7071;
 
     return mat4(
             cos1, sin1, 0.0, 0.0,
             -sin1, cos1, 0.0, 0.0,
-            0.0, 0.0, 0.1, 0.0,
+            0.0, 0.0, 0.25, 0.0,
             0.0, 0.0, 0.0, 1.0
     );
 }

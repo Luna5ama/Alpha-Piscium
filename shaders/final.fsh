@@ -40,12 +40,12 @@ void main() {
     if (inViewPort(vec4(0, 0, 512, 512), debugTexCoord)) {
         color.rgb = pow(texture(shadowtex0, debugTexCoord).r, 2.0).rrr;
     }
-    if (inViewPort(vec4(512, 0, 512, 512), debugTexCoord)) {
-        color.rgb = pow(texture(shadowtex1, debugTexCoord).r, 2.0).rrr;
-    }
-    if (inViewPort(vec4(1024, 0, 512, 512), debugTexCoord)) {
-        color.rgb = texture(shadowcolor0, debugTexCoord).rgb;
-    }
+//    if (inViewPort(vec4(512, 0, 512, 512), debugTexCoord)) {
+//        color.rgb = pow(texture(shadowtex1, debugTexCoord).r, 2.0).rrr;
+//    }
+//    if (inViewPort(vec4(1024, 0, 512, 512), debugTexCoord)) {
+//        color.rgb = texture(shadowcolor0, debugTexCoord).rgb;
+//    }
 
     if (inViewPort(vec4(0, 512, 512, 512), debugTexCoord)) {
         color.rgb = texture(usam_rtwsm_imap2D, debugTexCoord).rrr * 8.0;

@@ -76,15 +76,15 @@ vec3 calcShadow(float sssFactor) {
     float normalOffset = 0.03;
 
     float viewNormalDot = (1.0 - abs(dot(gData.normal, g_viewDir)));
-    #define NORMAL_OFFSET_DISTANCE_FACTOR1 8192.0
+    #define NORMAL_OFFSET_DISTANCE_FACTOR1 4096.0
     float normalOffset1 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR1 / (NORMAL_OFFSET_DISTANCE_FACTOR1 + distnaceSq));
-    normalOffset += saturate(normalOffset1 * viewNormalDot) * 0.5;
+    normalOffset += saturate(normalOffset1 * viewNormalDot) * 0.2;
 
     float lightNormalDot = saturate(dot(shadowLightPosition * 0.01, gData.normal));
     lightNormalDot = (lightNormalDot * 0.5 + 0.5);
     #define NORMAL_OFFSET_DISTANCE_FACTOR2 512.0
     float normalOffset2 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR2 / (NORMAL_OFFSET_DISTANCE_FACTOR2 + distnaceSq));
-    normalOffset += saturate(normalOffset2 * lightNormalDot) * 0.5;
+    normalOffset += saturate(normalOffset2 * lightNormalDot) * 0.2;
 
     viewCoord += gData.normal * normalOffset;
 
@@ -97,20 +97,18 @@ vec3 calcShadow(float sssFactor) {
     vec3 shadowTexCoord = shadowTexCoordCS.xyz * 0.5 + 0.5;
 
     float blockerDistance = searchBlocker(shadowTexCoord);
-    float penumbraMult = 0.000005 * SETTING_PCSS_VPF * blockerDistance;
 
-    float ssRange = SETTING_PCSS_BPF * 0.01;
-    ssRange += 2048.0 * 1.0 * sssFactor;
-    ssRange += 2048.0 * penumbraMult;
+    float ssRange = exp2(SETTING_PCSS_BPF - 8.0);
+    ssRange += uval_sunAngularRadius.x * 2.0 * SETTING_PCSS_VPF * blockerDistance;
     ssRange = saturate(ssRange);
-    ssRange *= 0.2;
+    ssRange *= 0.4;
 
     #define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
     vec3 shadow = vec3(0.0);
     uint idxSS = (frameCounter + coord3Rand[0]) * SAMPLE_N;
 
-    #define DEPTH_BIAS_DISTANCE_FACTOR 128.0
+    #define DEPTH_BIAS_DISTANCE_FACTOR 256.0
     float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distnaceSq, 1.0)));
     float depthBiasFactor = mix(0.002, -0.0001, dbfDistanceCoeff);
 
@@ -136,6 +134,7 @@ vec3 calcShadow(float sssFactor) {
         idxSS++;
     }
     shadow /= float(SAMPLE_N);
+    shadow *= shadow;
     return mix(shadow, vec3(1.0), linearStep(shadowDistance - 8.0, shadowDistance, length(worldCoord.xz)));
 }
 

@@ -47,6 +47,7 @@ option.SETTING_RTWSM_IMP_SE = Shadow Edge Function
 
 option.SETTING_PCSS_BPF = Base Penumbra Factor
 option.SETTING_PCSS_VPF = Variable Penumbra Factor
+option.SETTING_PCSS_VPF.comment = The penumbra factor is multiplied by the sun angular radius to determine the penumbra size. Noted that the sun angular radius is affected by the sun radius and distance settings.
 option.SETTING_PCSS_BLOCKER_SEARCH_COUNT = Blocker Search Count
 option.SETTING_PCSS_BLOCKER_SEARCH_LOD = Blocker Search LOD
 option.SETTING_PCSS_SAMPLE_COUNT = Sample Count
