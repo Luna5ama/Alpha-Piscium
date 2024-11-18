@@ -5,8 +5,9 @@
 uniform sampler2D lightmap;
 uniform sampler2D texture;
 
-varying vec2 texcoord;
-varying vec4 glcolor;
+in vec2 texcoord;
+in vec4 glcolor;
+in float frag_viewZ;
 
 layout(location = 0) out vec4 rt_out;
 
@@ -15,10 +16,9 @@ void main() {
 
 	color.rgb = colors_srgbToLinear(color.rgb);
 
-	uint r2Index = uint(rand_IGN(gl_FragCoord.xy, frameCounter) * 1024.0);
-	r2Index += (rand_hash11(floatBitsToUint(gl_FragCoord.z)) & 65535u);
-	r2Index += frameCounter;
-	float randAlpha = rand_r2Seq1(r2Index);
+	vec2 randCoord = gl_FragCoord.xy;
+	randCoord.y += -frag_viewZ;
+	float randAlpha = rand_IGN(randCoord, frameCounter);
 
 	if (color.a < randAlpha) {
 		discard;

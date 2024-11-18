@@ -27,6 +27,10 @@ void main() {
     albedoTemp *= texture(gtexture, frag_texCoord);
     #endif
 
+    #ifdef GBUFFER_PASS_ENTITY
+    albedoTemp.rgb = mix(albedoTemp.rgb, entityColor.rgb, entityColor.a);
+    #endif
+
     #ifdef GBUFFER_PASS_ALPHA_TEST
     if (albedoTemp.a < 0.1) {
         discard;
@@ -34,12 +38,9 @@ void main() {
     #endif
 
     #ifdef GBUFFER_PASS_TRANLUCENT
-    uint r2Index = 0u;
-    r2Index += uint(rand_IGN(gl_FragCoord.xy, frameCounter) * 64.0);
-    r2Index += (rand_hash11(floatBitsToUint(gl_FragCoord.z)) & 255u);
-    float randAlpha = rand_r2Seq1(r2Index);
-
-//    float randAlpha = rand_IGN(gl_FragCoord.xy, frameCounter);
+    vec2 randCoord = gl_FragCoord.xy;
+    randCoord.y += -frag_viewZ;
+    float randAlpha = rand_IGN(randCoord, frameCounter);
 
     if (albedoTemp.a < randAlpha) {
         discard;

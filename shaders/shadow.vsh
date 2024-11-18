@@ -7,14 +7,16 @@ uniform sampler2D usam_rtwsm_warpingMap;
 
 attribute vec4 mc_Entity;
 
-varying vec2 texcoord;
-varying vec4 glcolor;
+out vec2 texcoord;
+out vec4 glcolor;
+out float frag_viewZ;
 
 void main() {
 	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
 	glcolor = gl_Color;
 
 	gl_Position = global_shadowRotationMatrix  * ftransform();
+	frag_viewZ = -gl_Position.w;
 	gl_Position /= gl_Position.w;
 
 	vec2 texelSize;

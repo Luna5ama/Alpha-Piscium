@@ -14,8 +14,7 @@ out float frag_viewZ;
 
 void main() {
     gl_Position = global_taaJitterMat * ftransform();
-    vec4 viewCoord = gbufferProjectionInverse * gl_Position;
-    frag_viewZ = viewCoord.z;
+    frag_viewZ = -gl_Position.w;
 
     frag_viewNormal = (gl_NormalMatrix * gl_Normal.xyz);
     frag_texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
