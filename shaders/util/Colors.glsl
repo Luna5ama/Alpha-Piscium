@@ -39,4 +39,15 @@ float colors_linearSRGBToLuminance(vec3 color) {
     return dot(color, vec3(0.2126, 0.7152, 0.0722));
 }
 
+vec3 colors_srgbToLinear(vec3 color) {
+    const float a0 = 0.000570846;
+    const float a1 = -0.0403863;
+    const float a2 = 0.862127;
+    const float a3 = 0.178572;
+    vec3 x = max(color, 0.0232545);
+    vec3 x2 = x * x;
+    vec3 x3 = x2 * x;
+    return a0 + a1 * x + a2 * x2 + a3 * x3;
+}
+
 #endif

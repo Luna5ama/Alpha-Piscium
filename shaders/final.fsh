@@ -5,6 +5,10 @@
 uniform sampler2D colortex0;
 
 uniform sampler2D shadowtex0;
+uniform sampler2D shadowtex1;
+uniform sampler2D shadowcolor0;
+uniform sampler2D shadowcolor1;
+
 uniform sampler2D usam_rtwsm_imap2D;
 uniform sampler2D usam_rtwsm_imap1D;
 uniform sampler2D usam_rtwsm_warpingMap;
@@ -34,7 +38,13 @@ void main() {
     vec2 debugTexCoord;
     #ifdef SETTING_DEBUG_RTWSM
     if (inViewPort(vec4(0, 0, 512, 512), debugTexCoord)) {
-        color.rgb = texture(shadowtex0, debugTexCoord).rrr;
+        color.rgb = pow(texture(shadowtex0, debugTexCoord).r, 2.0).rrr;
+    }
+    if (inViewPort(vec4(512, 0, 512, 512), debugTexCoord)) {
+        color.rgb = pow(texture(shadowtex1, debugTexCoord).r, 2.0).rrr;
+    }
+    if (inViewPort(vec4(1024, 0, 512, 512), debugTexCoord)) {
+        color.rgb = texture(shadowcolor0, debugTexCoord).rgb;
     }
 
     if (inViewPort(vec4(0, 512, 512, 512), debugTexCoord)) {

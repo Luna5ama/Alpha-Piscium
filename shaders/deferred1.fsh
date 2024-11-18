@@ -12,10 +12,17 @@ uniform sampler2D depthtex0;
 
 const bool generateShadowMipmap = true;
 const bool shadowtex0Mipmap = true;
+const bool shadowtex1Mipmap = true;
 
 const bool shadowHardwareFiltering0 = true;
 uniform sampler2D shadowtex0;
 uniform sampler2DShadow shadowtex0HW;
+
+const bool shadowHardwareFiltering1 = true;
+uniform sampler2D shadowtex1;
+uniform sampler2DShadow shadowtex1HW;
+
+uniform sampler2D shadowcolor0;
 
 uniform sampler2D usam_rtwsm_warpingMap;
 
@@ -51,16 +58,18 @@ float searchBlocker(vec3 shadowTexCoord) {
         vec2 texelSize;
         sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, sampleTexCoord.xy, texelSize);
         float depth = rtwsm_sampleShadowDepth(shadowtex0, sampleTexCoord, BLOCKER_SEARCH_LOD).r;
-        blockerDepth += step(depth, sampleTexCoord.z) * depth;
-        n += int(sampleTexCoord.z > depth);
+        bool isBlocker = sampleTexCoord.z > depth;
+        blockerDepth += float(isBlocker) * depth;
+        n += int(isBlocker);
         idxB++;
     }
-    blockerDepth /= float(n);
+    blockerDepth /= float(max(n, 1));
+    blockerDepth = mix(shadowTexCoord.z, blockerDepth, float(n != 0));
 
-    return n != 0 ? rtwsm_linearDepth(blockerDepth) - rtwsm_linearDepth(shadowTexCoord.z) : 0.0;
+    return rtwsm_linearDepth(blockerDepth) - rtwsm_linearDepth(shadowTexCoord.z);
 }
 
-float calcShadow(float sssFactor) {
+vec3 calcShadow(float sssFactor) {
     vec3 viewCoord = g_viewCoord;
     float distnaceSq = dot(viewCoord, viewCoord);
 
@@ -91,14 +100,14 @@ float calcShadow(float sssFactor) {
     float penumbraMult = 0.000005 * SETTING_PCSS_VPF * blockerDistance;
 
     float ssRange = SETTING_PCSS_BPF * 0.01;
-    ssRange += SHADOW_MAP_SIZE.x * 1.0 * sssFactor;
-    ssRange += SHADOW_MAP_SIZE.x * penumbraMult;
+    ssRange += 2048.0 * 1.0 * sssFactor;
+    ssRange += 2048.0 * penumbraMult;
     ssRange = saturate(ssRange);
     ssRange *= 0.2;
 
     #define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
-    float shadow = 0.0;
+    vec3 shadow = vec3(0.0);
     uint idxSS = (frameCounter + coord3Rand[0]) * SAMPLE_N;
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 128.0
@@ -114,15 +123,23 @@ float calcShadow(float sssFactor) {
         float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
         depthBias = min(depthBias, 0.001);
         sampleTexCoord.z -= depthBias;
-        shadow += rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
+
+        float sampleShadow0 = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
+        float sampleShadow1 = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
+        vec4 sampleColor = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0);
+
+        vec3 sampleShadow = mix(vec3(1.0), sampleColor.rgb, float(sampleShadow0 < 1.0) * sampleColor.a);
+        sampleShadow = min(sampleShadow, vec3(sampleShadow1));
+
+        shadow += sampleShadow;
+
         idxSS++;
     }
     shadow /= float(SAMPLE_N);
-
-    return mix(shadow, 1.0, linearStep(shadowDistance - 8.0, shadowDistance, length(worldCoord.xz)));
+    return mix(shadow, vec3(1.0), linearStep(shadowDistance - 8.0, shadowDistance, length(worldCoord.xz)));
 }
 
-vec3 calcDirectLighting(Material material, float shadow, vec3 L, vec3 N, vec3 V) {
+vec3 calcDirectLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec3 directLight = vec3(0.0);
     float ambient = 0.5;
     directLight += ambient * material.albedo;
@@ -157,7 +174,7 @@ vec3 calcDirectLighting(Material material, float shadow, vec3 L, vec3 N, vec3 V)
 }
 
 void doStuff() {
-    float shadow = calcShadow(0.0);
+    vec3 shadow = calcShadow(0.0);
 
     Material material = material_decode(gData);
 

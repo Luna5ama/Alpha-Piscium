@@ -1,5 +1,7 @@
 #version 460 compatibility
 
+#include "_Util.glsl"
+
 uniform sampler2D lightmap;
 uniform sampler2D gtexture;
 
@@ -16,4 +18,5 @@ void main() {
 	if (color.a < 0.1) {
 		discard;
 	}
+	color.rgb = colors_srgbToLinear(color.rgb) * 4.0;
 }

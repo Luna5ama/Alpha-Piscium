@@ -1,8 +1,9 @@
 #ifndef INCLUDE_util_Material.glsl
 #define INCLUDE_util_Material.glsl
 
-#include "Gbuffers.glsl"
+#include "GBuffers.glsl"
 #include "Math.glsl"
+#include "Colors.glsl"
 
 struct Material {
     vec3 albedo;
@@ -16,14 +17,7 @@ struct Material {
 Material material_decode(GBufferData gData) {
     Material material;
 
-    const float a0 = 0.000570846;
-    const float a1 = -0.0403863;
-    const float a2 = 0.862127;
-    const float a3 = 0.178572;
-    vec3 x = max(gData.albedo, 0.0232545);
-    vec3 x2 = x * x;
-    vec3 x3 = x2 * x;
-    material.albedo = a0 + a1 * x + a2 * x2 + a3 * x3;
+    material.albedo = colors_srgbToLinear(gData.albedo);
 
     material.materialAO = gData.materialAO;
 
