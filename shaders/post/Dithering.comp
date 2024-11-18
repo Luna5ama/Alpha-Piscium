@@ -10,9 +10,8 @@ void main() {
 
     if (all(lessThan(pixelPos, imgSize))) {
         vec4 color = imageLoad(uimg_main, pixelPos);
-        float dither = rand_IGN(gl_GlobalInvocationID.xy, frameCounter) - 0.5;
-        dither *= 1.0 / 255.0;
-        color.rgb += dither;
+        float noiseIGN = rand_IGN(gl_GlobalInvocationID.xy, frameCounter);
+        color.rgb = dither(color.rgb, noiseIGN, 255.0);
         imageStore(uimg_main, pixelPos, color);
     }
 }

@@ -4,6 +4,7 @@
 #include "GBuffers.glsl"
 #include "Math.glsl"
 #include "Colors.glsl"
+#include "Rand.glsl"
 
 struct Material {
     vec3 albedo;

@@ -1,10 +1,8 @@
 #include "../_Util.glsl"
 
-#ifdef GBUFFER_PASS_TEXTURED
 uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
-#endif
 
 in vec4 frag_colorMul; // 8 x 4 = 32 bits
 in vec3 frag_viewNormal; // 11 + 11 + 10 = 32 bits
@@ -14,25 +12,23 @@ flat in uint frag_materialID; // 16 x 1 = 16 bits
 
 in float frag_viewZ; // 32 bits
 
-/* RENDERTARGETS:1,2 */
+/* RENDERTARGETS:5,6 */
 layout(location = 0) out uvec4 rt_gbuffer;
 layout(location = 1) out float rt_viewZ;
 
-void main() {
-    vec4 albedoTemp = frag_colorMul;
-
-    GBufferData gData;
+vec4 processAlbedo() {
+    vec4 albedo = frag_colorMul;
 
     #ifdef GBUFFER_PASS_TEXTURED
-    albedoTemp *= texture(gtexture, frag_texCoord);
+    albedo *= texture(gtexture, frag_texCoord);
     #endif
 
-    #ifdef GBUFFER_PASS_ENTITY
-    albedoTemp.rgb = mix(albedoTemp.rgb, entityColor.rgb, entityColor.a);
+    #ifdef GBUFFER_PASS_ENTITY_COLOR
+    albedo.rgb = mix(albedo.rgb, entityColor.rgb, entityColor.a);
     #endif
 
     #ifdef GBUFFER_PASS_ALPHA_TEST
-    if (albedoTemp.a < 0.1) {
+    if (albedo.a < 0.1) {
         discard;
     }
     #endif
@@ -42,12 +38,47 @@ void main() {
     randCoord.y += -frag_viewZ;
     float randAlpha = rand_IGN(randCoord, frameCounter);
 
-    if (albedoTemp.a < randAlpha) {
+    if (albedo.a < randAlpha) {
         discard;
     }
     #endif
 
-    gData.albedo = albedoTemp.rgb;
+    return albedo;
+}
+
+#ifdef GBUFFER_PASS_ARMOR_GLINT
+uniform usampler2D usam_gbuffer;
+uniform sampler2D usam_viewZ;
+
+void processOutput(out GBufferData gData, out float viewZ) {
+    float noiseIGN = rand_IGN(gl_FragCoord.xy, frameCounter);
+    vec4 albedo = processAlbedo();
+
+    ivec2 pixelCoord = ivec2(gl_FragCoord.xy);
+
+    GBufferData gDataPrev;
+    gbuffer_unpack(texelFetch(usam_gbuffer, pixelCoord, 0), gDataPrev);
+
+    gData.albedo = gDataPrev.albedo + albedo.rgb * albedo.rgb;
+    gData.materialAO = gDataPrev.materialAO;
+    gData.pbrSpecular = gDataPrev.pbrSpecular;
+
+    gData.normal = gDataPrev.normal;
+    gData.lmCoord = gDataPrev.lmCoord;
+    gData.materialID = gDataPrev.materialID;
+
+    float glintEmissive = colors_linearSRGBToLuma(albedo.rgb);
+    glintEmissive *= 0.1;
+    glintEmissive = dither(glintEmissive, noiseIGN, 64.0);
+    gData.pbrSpecular.a -= glintEmissive;
+
+    viewZ = texelFetch(usam_viewZ, pixelCoord, 0).r;
+}
+#else
+void processOutput(out GBufferData gData, out float viewZ) {
+    vec4 albedo = processAlbedo();
+
+    gData.albedo = albedo.rgb;
 
     #if defined(GBUFFER_PASS_TEXTURED) && defined(MC_TEXTURE_FORMAT_LAB_PBR)
     vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
@@ -70,11 +101,16 @@ void main() {
     gData.lmCoord = frag_lmCoord;
     gData.materialID = frag_materialID;
 
-    gbuffer_pack(rt_gbuffer, gData);
-
     #ifdef GBUFFER_PASS_VIEWZ_OVERRIDE
-    rt_viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;
+    viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;
     #else
-    rt_viewZ = frag_viewZ;
+    viewZ = frag_viewZ;
     #endif
+}
+#endif
+
+void main() {
+    GBufferData gData;
+    processOutput(gData, rt_viewZ);
+    gbuffer_pack(rt_gbuffer, gData);
 }
