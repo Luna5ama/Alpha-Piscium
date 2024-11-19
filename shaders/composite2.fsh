@@ -140,7 +140,58 @@ vec3 calcShadow(float sssFactor) {
     return mix(result, vec3(1.0), shadowRangeBlend);
 }
 
-vec3 calcDirectLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
+vec3 calcFresnel(Material material, float LDotH) {
+    /*
+        Hardcoded metals
+        https://shaderlabs.org/wiki/LabPBR_Material_Standard
+        Metal	    Bit Value	N (R, G, B)	                K (R, G, B)
+        Iron	    230	        2.9114,  2.9497,  2.5845	3.0893, 2.9318, 2.7670
+        Gold	    231	        0.18299, 0.42108, 1.3734	3.4242, 2.3459, 1.7704
+        Aluminum	232	        1.3456,  0.96521, 0.61722	7.4746, 6.3995, 5.3031
+        Chrome	    233	        3.1071,  3.1812,  2.3230	3.3314, 3.3291, 3.1350
+        Copper	    234	        0.27105, 0.67693, 1.3164	3.6092, 2.6248, 2.2921
+        Lead	    235	        1.9100,  1.8300,  1.4400	3.5100, 3.4000, 3.1800
+        Platinum	236	        2.3757,  2.0847,  1.8453	4.2655, 3.7153, 3.1365
+        Silver	    237	        0.15943, 0.14512, 0.13547	3.9291, 3.1900, 2.3808
+    */
+    const vec3[] METAL_IOR = vec3[](
+        vec3(2.9114, 2.9497, 2.5845),
+        vec3(0.18299, 0.42108, 1.3734),
+        vec3(1.3456, 0.96521, 0.61722),
+        vec3(3.1071, 3.1812, 2.3230),
+        vec3(0.27105, 0.67693, 1.3164),
+        vec3(1.9100, 1.8300, 1.4400),
+        vec3(2.3757, 2.0847, 1.8453),
+        vec3(0.15943, 0.14512, 0.13547)
+    );
+
+    const vec3[] METAL_K = vec3[](
+        vec3(3.0893, 2.9318, 2.7670),
+        vec3(3.4242, 2.3459, 1.7704),
+        vec3(7.4746, 6.3995, 5.3031),
+        vec3(3.3314, 3.3291, 3.1350),
+        vec3(3.6092, 2.6248, 2.2921),
+        vec3(3.5100, 3.4000, 3.1800),
+        vec3(4.2655, 3.7153, 3.1365),
+        vec3(3.9291, 3.1900, 2.3808)
+    );
+
+    vec3 f = vec3(0.0);
+    if (material.f0 < 229.5 / 255.0) {
+        f = bsdf_frenel_cook_torrance(LDotH, material.f0) * material.albedo.rgb;
+    } else if (material.f0 < 237.5 / 255.0) {
+        uint metalIdx = clamp(uint(material.f0 * 255.0) - 230u, 0u, 7u);
+        vec3 ior = METAL_IOR[metalIdx];
+        vec3 k = METAL_K[metalIdx];
+        f = bsdf_fresnel_lazanyi(LDotH, ior, k);
+    } else {
+        f = bsdf_frenel_schlick_f0(LDotH, material.albedo.rgb);
+    }
+
+    return f;
+}
+
+vec3 doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec3 directLight = vec3(0.0);
     float ambient = 0.01;
     directLight += ambient * material.albedo;
@@ -150,6 +201,10 @@ vec3 calcDirectLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) 
     float NDotV = dot(N, V);
     float NDotH = dot(N, H);
     float LDotV = dot(L, V);
+    float LDotH = dot(L, H);
+
+    vec3 fresnel = calcFresnel(material, NDotV);
+    float nonMetal = float(material.f0 < 229.5 / 255.0);
 
     float alpha = material.roughness;
 
@@ -166,6 +221,13 @@ vec3 calcDirectLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) 
 
     sunRadiance *= transmittance;
 
+//    vec3 diffuseV = bsdf_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
+    vec3 diffuseV = shadow * saturate(NDotL) * RCP_PI_CONST * sunRadiance * material.albedo;
+
+    directLight += nonMetal * diffuseV;
+    directLight += material.emissive * material.albedo * 32.0;
+
+    // Sky diffuse
     vec3 worldNormal = mat3(gbufferModelViewInverse) * gData.normal;
     worldNormal.z = mix(worldNormal.z, sign(worldNormal.z) * max(abs(worldNormal.z), 0.05), float(worldNormal.y < 0.05));
     vec2 skyLUTUV = coords_polarAzimuthEqualArea(normalize(worldNormal));
@@ -173,15 +235,16 @@ vec3 calcDirectLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) 
 
     float skyLightIntensity = gData.lmCoord.y;
     skyLightIntensity *= skyLightIntensity;
-    skyLightIntensity *= RCP_PI_CONST;
-    vec3 skyLight = skyLightIntensity * material.albedo * skyRadiance;
+    vec3 skyLight = skyLightIntensity * RCP_PI_CONST * material.albedo * skyRadiance;
+    directLight += nonMetal * skyLight;
 
-//    vec3 diffuseV = bsdfs_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
-    vec3 diffuseV = shadow * saturate(NDotL) * RCP_PI_CONST * sunRadiance * material.albedo;
+    // Sky reflection
+    vec3 reflectDirView = reflect(-g_viewDir, gData.normal);
+    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
+    vec2 reflectLUTUV = coords_polarAzimuthEqualArea(reflectDir);
+    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
 
-    directLight += diffuseV;
-    directLight += material.emissive * material.albedo * 32.0;
-    directLight += skyLight;
+    directLight += fresnel * skyLightIntensity * reflectRadiance;
 
     return directLight;
 }
@@ -191,9 +254,9 @@ void doStuff() {
 
     Material material = material_decode(gData);
 
-    vec3 directLight = calcDirectLighting(material, shadow, sunPosition * 0.01, gData.normal, g_viewDir);
+    vec3 lighting = doLighting(material, shadow, sunPosition * 0.01, gData.normal, g_viewDir);
 
-    rt_out += vec4(directLight, 1.0);
+    rt_out += vec4(lighting, material.f0);
 }
 
 void main() {

@@ -81,7 +81,7 @@ void processOutput(out GBufferData gData, out float viewZ) {
 
     gData.albedo = albedo.rgb;
 
-    #if defined(GBUFFER_PASS_TEXTURED) && defined(MC_TEXTURE_FORMAT_LAB_PBR)
+    #if defined(GBUFFER_PASS_TEXTURED)
     vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
     vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);
 

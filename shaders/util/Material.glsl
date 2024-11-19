@@ -10,6 +10,7 @@ struct Material {
     vec3 albedo;
     float materialAO;
     float roughness;
+    float f0;
     float emissive;
     float porosity;
     float sss;
@@ -21,8 +22,8 @@ Material material_decode(GBufferData gData) {
     material.albedo = colors_srgbToLinear(gData.albedo);
 
     material.materialAO = gData.materialAO;
-
     material.roughness = 1.0 - gData.pbrSpecular.r;
+    material.f0 = gData.pbrSpecular.g;
 
     const float _1o255 = 1.0 / 255.0;
     material.emissive = linearStep(1.0, _1o255, gData.pbrSpecular.a);
