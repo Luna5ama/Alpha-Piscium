@@ -53,7 +53,7 @@ void importance(ivec2 gCoord, out uint p, out float v) {
 
     // Surface normal function
     #if SETTING_RTWSM_IMP_SN > 0.0
-    importance *= 1.0 + SETTING_RTWSM_IMP_SN * max(dot(gData.normal, viewDir), 0.0);
+    importance *= 1.0 + SETTING_RTWSM_IMP_SN * saturate(dot(gData.normal, viewDir));
     #endif
 
 //    const float LSN_BETA = 1.0;

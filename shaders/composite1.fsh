@@ -1,6 +1,7 @@
 #version 460 compatibility
 
 #include "_Util.glsl"
+#include "atmosphere/Common.glsl"
 
 in vec2 frag_texCoord;
 
@@ -16,6 +17,12 @@ void main() {
 	vec3 viewDir = normalize(viewCoord);
 	float cosSun = saturate(dot(viewDir, sunPosition * 0.01));
 
-//	rt_out.rgb = smoothstep(uval_sunAngularRadius.x * 4.0, uval_sunAngularRadius.x, acos(cosSun)) * sunRadiance;
-	rt_out.rgb = pow(cosSun, 9000.0) * sunRadiance;
+	vec3 viewDirWorld = mat3(gbufferModelViewInverse) * viewDir;
+
+	AtmosphereParameters atmosphere = getAtmosphereParameters();
+	vec3 origin = atmosphere_viewToAtm(atmosphere, vec3(0.0));
+	vec3 earthCenter = vec3(0.0);
+	float earthIntersect = raySphereIntersectNearest(origin, viewDirWorld, earthCenter, atmosphere.bottom);
+
+	rt_out.rgb = step(earthIntersect, 0.0) * pow(cosSun, 6000.0) * sunRadiance;
 }

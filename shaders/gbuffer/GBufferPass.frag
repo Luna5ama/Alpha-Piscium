@@ -4,6 +4,9 @@ uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
+uniform usampler2D usam_gbuffer;
+uniform sampler2D usam_viewZ;
+
 in vec4 frag_colorMul; // 8 x 4 = 32 bits
 in vec3 frag_viewNormal; // 11 + 11 + 10 = 32 bits
 in vec2 frag_texCoord; // 16 x 2 = 32 bits
@@ -47,14 +50,10 @@ vec4 processAlbedo() {
 }
 
 #ifdef GBUFFER_PASS_ARMOR_GLINT
-uniform usampler2D usam_gbuffer;
-uniform sampler2D usam_viewZ;
-
 void processOutput(out GBufferData gData, out float viewZ) {
+    ivec2 pixelCoord = ivec2(gl_FragCoord.xy);
     float noiseIGN = rand_IGN(gl_FragCoord.xy, frameCounter);
     vec4 albedo = processAlbedo();
-
-    ivec2 pixelCoord = ivec2(gl_FragCoord.xy);
 
     GBufferData gDataPrev;
     gbuffer_unpack(texelFetch(usam_gbuffer, pixelCoord, 0), gDataPrev);
@@ -76,6 +75,7 @@ void processOutput(out GBufferData gData, out float viewZ) {
 }
 #else
 void processOutput(out GBufferData gData, out float viewZ) {
+    ivec2 pixelCoord = ivec2(gl_FragCoord.xy);
     vec4 albedo = processAlbedo();
 
     gData.albedo = albedo.rgb;

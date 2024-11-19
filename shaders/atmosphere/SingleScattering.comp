@@ -24,12 +24,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
     vec3 viewDirView = normalize(endView - originView);
     vec3 viewDirWorld = vectorView2World * viewDirView;
 
-    vec3 originFeetPlayer = (gbufferModelViewInverse * vec4(originView, 1.0)).xyz;
-    vec3 originWorld = originFeetPlayer + cameraPosition;
-    float originAltitude = calcViewAltitude(atmosphere, originWorld);
-
-    params.origin = vec3(originFeetPlayer.x, 0.0, originFeetPlayer.z) / SETTING_ATM_D_SCALE;
-    params.origin.y += originAltitude;
+    params.origin = atmosphere_viewToAtm(atmosphere, originView);
 
     if (endView.z == -65536.0) {
         vec3 earthCenter = vec3(0.0, 0.0, 0.0);
@@ -41,7 +36,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
             if (tTop < 0.0) {
                 return result; // No intersection with atmosphere: stop right away
             }
-            params.origin += params.rayDir * (tTop + 0.01);
+            params.origin += params.rayDir * (tTop + 0.001);
         }
 
         float tBottom = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.bottom);
@@ -59,12 +54,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
             }
         }
     } else {
-        vec3 endFeetPlayer = (gbufferModelViewInverse * vec4(endView, 1.0)).xyz;
-        vec3 endWorld = endFeetPlayer + cameraPosition;
-        float endAltitude = calcViewAltitude(atmosphere, endWorld);
-
-        vec3 endAtm = vec3(endFeetPlayer.x, 0.0, endFeetPlayer.z) / SETTING_ATM_D_SCALE;
-        endAtm.y += endAltitude;
+        vec3 endAtm = atmosphere_viewToAtm(atmosphere, endView);
 
         params.rayDir = normalize(endAtm - params.origin);
         params.rayLen = length(endAtm - params.origin);

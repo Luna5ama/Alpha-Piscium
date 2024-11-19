@@ -1,0 +1,93 @@
+// Adopted from: https://github.com/sebh/UnrealEngineSkyAtmosphere
+// MIT License
+// Copyright (c) 2020 Epic Games, Inc.
+// You can find full license texts in /licenses
+#include "../_Util.glsl"
+#include "Common.glsl"
+
+layout(local_size_x = 128, local_size_y = 1) in;
+const ivec3 workGroups = ivec3(2, 256, 1);
+
+layout(rgba16f) restrict uniform image2D uimg_skyLUT;
+
+uniform sampler2D usam_viewZ;
+uniform sampler2D usam_transmittanceLUT;
+
+// originView: ray origin in view space
+// endView: ray end in view space
+ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 rayDir) {
+    ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
+    if (all(equal(rayDir, vec3(0.0)))) {
+        return result;
+    }
+
+    RaymarchParameters params;
+
+    vec3 originView = vec3(0.0, 0.0, 0.0);
+    vec3 originFeetPlayer = (gbufferModelViewInverse * vec4(originView, 1.0)).xyz;
+    vec3 originWorld = originFeetPlayer + cameraPosition;
+    float originAltitude = calcViewAltitude(atmosphere, originWorld);
+
+    params.origin = vec3(originFeetPlayer.x, 0.0, originFeetPlayer.z) / SETTING_ATM_D_SCALE;
+    params.origin.y += originAltitude;
+
+    vec3 earthCenter = vec3(0.0);
+    params.rayDir = rayDir;
+
+    // Check if ray origin is outside the atmosphere
+    if (length(params.origin) > atmosphere.top) {
+        float tTop = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.top);
+        if (tTop < 0.0) {
+            return result; // No intersection with atmosphere: stop right away
+        }
+        params.origin += params.rayDir * (tTop + 0.001);
+    }
+
+    float tBottom = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.bottom);
+    float tTop = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.top);
+    params.rayLen = 0.0;
+    if (tBottom < 0.0) {
+        if (tTop < 0.0) {
+            return result; // No intersection with earth nor atmosphere: stop right away
+        } else {
+            params.rayLen = tTop;
+        }
+    } else {
+        if (tTop > 0.0) {
+            params.rayLen = min(tTop, tBottom);
+        }
+    }
+
+    vec3 sunDir = sunPosition * 0.01;
+    float cosTheta = -dot(params.rayDir, atmosphere.sunDirection);
+    params.cosSunZenith = dot(sunDir, upPosition * 0.01);
+    params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
+    params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
+    params.steps = 64u;
+
+    return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT);
+}
+
+void main() {
+    ivec2 imgSize = imageSize(uimg_skyLUT);
+    ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
+
+    if (all(lessThan(pixelPos, imgSize))) {
+        vec2 texCoord = (pixelPos + 0.5) / vec2(imgSize);
+        AtmosphereParameters atmosphere = getAtmosphereParameters();
+        atmosphere.sunDirection = mat3(gbufferModelViewInverse) * (sunPosition * 0.01);
+
+        vec3 rayDir = coords_polarAzimuthEqualAreaInverse(texCoord);
+        ScatteringResult result = computeSingleScattering(atmosphere, rayDir);
+
+        vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
+
+        vec3 color = vec3(0.0);
+        float cosSun = saturate(dot(rayDir, atmosphere.sunDirection));
+        color += pow(cosSun, 6000.0);
+        color += result.inScattering;
+        color *= sunRadiance;
+
+        imageStore(uimg_skyLUT, pixelPos, vec4(color, 1.0));
+    }
+}

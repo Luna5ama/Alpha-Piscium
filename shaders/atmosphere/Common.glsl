@@ -178,6 +178,15 @@ float calcCosSunZenith(AtmosphereParameters atmosphere, vec3 sunDirection) {
     return dot(sunDirection, upPosition * 0.01);
 }
 
+vec3 atmosphere_viewToAtm(AtmosphereParameters atmosphere, vec3 viewPos) {
+    vec3 feetPlayer = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+    vec3 world = feetPlayer + cameraPosition;
+    float altitude = calcViewAltitude(atmosphere, world);
+    vec3 atm = vec3(feetPlayer.x, 0.0, feetPlayer.z) / SETTING_ATM_D_SCALE;
+    atm.y += altitude;
+    return atm;
+}
+
 void lutTransmittanceParamsToUv(AtmosphereParameters atmosphere, float viewAltitude, float cosSunZenith, out vec2 uv) {
     viewAltitude = clamp(viewAltitude, atmosphere.bottom + 0.0001, atmosphere.top - 0.0001);
     cosSunZenith = clamp(cosSunZenith, -1.0, 1.0);

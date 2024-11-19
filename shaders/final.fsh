@@ -13,6 +13,7 @@ uniform sampler2D usam_rtwsm_imap2D;
 uniform sampler2D usam_rtwsm_imap1D;
 uniform sampler2D usam_rtwsm_warpingMap;
 uniform sampler2D usam_transmittanceLUT;
+uniform sampler2D usam_skyLUT;
 
 varying vec2 texcoord;
 
@@ -73,6 +74,9 @@ void main() {
     #ifdef SETTING_DEBUG_ATMOSPHERE
     if (inViewPort(vec4(0, 0, 256, 64), debugTexCoord)) {
         color.rgb = pow(texture(usam_transmittanceLUT, debugTexCoord).rgb, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
+    }
+    if (inViewPort(vec4(0, 64, 256, 256), debugTexCoord)) {
+        color.rgb = pow(texture(usam_skyLUT, debugTexCoord).rgb * 0.1, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
     }
     #endif
 
