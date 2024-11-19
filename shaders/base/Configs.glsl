@@ -1,4 +1,4 @@
-const float sunPathRotation = 45.0;
+const float sunPathRotation = 15.0;
 const float ambientOcclusionLevel = 0.0;
 const bool shadowcolor0Clear = true;
 const vec4 shadowcolor0ClearColor = vec4(1.0, 1.0, 1.0, 1.0);

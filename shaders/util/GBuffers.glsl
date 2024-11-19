@@ -34,9 +34,9 @@ void gbuffer_pack(out uvec4 packedData, GBufferData gData) {
     packedData.r = packUnorm4x8(vec4(gData.albedo, gData.materialAO));
     packedData.g = packUnorm4x8(vec4(gData.pbrSpecular));
 
-    packedData.b = packS11(gData.normal.x);
-    packedData.b |= packS11(gData.normal.y) << 11;
-    packedData.b |= packS10(gData.normal.z) << 22;
+    packedData.b = packS10(gData.normal.x);
+    packedData.b |= packS10(gData.normal.y) << 10;
+    packedData.b |= packS10(gData.normal.z) << 20;
 
     packedData.a = packUnorm4x8(vec4(gData.lmCoord, 0.0, 0.0)) & 0x0000FFFFu;
     packedData.a |= (gData.materialID & 0xFFFFu) << 16;
@@ -49,9 +49,9 @@ void gbuffer_unpack(uvec4 packedData, out GBufferData gData) {
 
     gData.pbrSpecular = unpackUnorm4x8(packedData.g);
 
-    gData.normal.x = unpackS11(packedData.b & 0x7FFu);
-    gData.normal.y = unpackS11((packedData.b >> 11) & 0x7FFu);
-    gData.normal.z = unpackS10((packedData.b >> 22) & 0x3FFu);
+    gData.normal.x = unpackS10(packedData.b & 0x3FFu);
+    gData.normal.y = unpackS10((packedData.b >> 10) & 0x3FFu);
+    gData.normal.z = unpackS10((packedData.b >> 20) & 0x3FFu);
 
     gData.lmCoord = unpackUnorm4x8(packedData.a).xy;
     gData.materialID = (packedData.a >> 16) & 0xFFFFu;

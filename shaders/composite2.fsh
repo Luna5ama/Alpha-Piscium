@@ -27,6 +27,7 @@ uniform sampler2D shadowcolor0;
 uniform sampler2D usam_rtwsm_warpingMap;
 
 uniform sampler2D usam_transmittanceLUT;
+uniform sampler2D usam_skyLUT;
 
 in vec2 frag_texCoord;
 
@@ -141,7 +142,7 @@ vec3 calcShadow(float sssFactor) {
 
 vec3 calcDirectLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec3 directLight = vec3(0.0);
-    float ambient = 0.5;
+    float ambient = 0.01;
     directLight += ambient * material.albedo;
 
     vec3 H = normalize(L + V);
@@ -165,10 +166,22 @@ vec3 calcDirectLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) 
 
     sunRadiance *= transmittance;
 
+    vec3 worldNormal = mat3(gbufferModelViewInverse) * gData.normal;
+    worldNormal.z = mix(worldNormal.z, sign(worldNormal.z) * max(abs(worldNormal.z), 0.05), float(worldNormal.y < 0.05));
+    vec2 skyLUTUV = coords_polarAzimuthEqualArea(normalize(worldNormal));
+    vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
+
+    float skyLightIntensity = gData.lmCoord.y;
+    skyLightIntensity *= skyLightIntensity;
+    skyLightIntensity *= RCP_PI_CONST;
+    vec3 skyLight = skyLightIntensity * material.albedo * skyRadiance;
+
 //    vec3 diffuseV = bsdfs_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
-    vec3 diffuseV = saturate(NDotL) * material.albedo * RCP_PI_CONST;
-    directLight += shadow * diffuseV * sunRadiance;
+    vec3 diffuseV = shadow * saturate(NDotL) * RCP_PI_CONST * sunRadiance * material.albedo;
+
+    directLight += diffuseV;
     directLight += material.emissive * material.albedo * 32.0;
+    directLight += skyLight;
 
     return directLight;
 }

@@ -22,7 +22,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
     mat3 vectorView2World = mat3(gbufferModelViewInverse);
 
     vec3 viewDirView = normalize(endView - originView);
-    vec3 viewDirWorld = vectorView2World * viewDirView;
+    vec3 viewDirWorld = normalize(vectorView2World * viewDirView);
 
     params.origin = atmosphere_viewToAtm(atmosphere, originView);
 
@@ -77,7 +77,7 @@ void main() {
     if (all(lessThan(pixelPos, imgSize))) {
         vec2 texCoord = (pixelPos + 0.5) / vec2(imgSize);
         AtmosphereParameters atmosphere = getAtmosphereParameters();
-        atmosphere.sunDirection = mat3(gbufferModelViewInverse) * (sunPosition * 0.01);
+        atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * (sunPosition * 0.01));
         float viewZ = texelFetch(usam_viewZ, pixelPos, 0).r;
 
         float viewZ2 = mix(viewZ, -65536.0, float(viewZ == 1.0));

@@ -76,6 +76,7 @@ void processOutput(out GBufferData gData, out float viewZ) {
 #else
 void processOutput(out GBufferData gData, out float viewZ) {
     ivec2 pixelCoord = ivec2(gl_FragCoord.xy);
+    float noiseIGN = rand_IGN(gl_FragCoord.xy, frameCounter);
     vec4 albedo = processAlbedo();
 
     gData.albedo = albedo.rgb;
@@ -100,6 +101,9 @@ void processOutput(out GBufferData gData, out float viewZ) {
 
     gData.lmCoord = frag_lmCoord;
     gData.materialID = frag_materialID;
+
+    gData.lmCoord = dither(gData.lmCoord, noiseIGN, 255.0);
+    gData.normal = dither(gData.normal, noiseIGN, 1023.0);
 
     #ifdef GBUFFER_PASS_VIEWZ_OVERRIDE
     viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;

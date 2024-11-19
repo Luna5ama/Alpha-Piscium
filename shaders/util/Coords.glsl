@@ -50,7 +50,7 @@ vec2 coords_azimuthEqualArea(vec3 unitVector, float phi1, float lambda0) {
     float cosPhi1 = cos(phi1);
 
     float lat = asin(unitVector.y);
-    float lon = atan(unitVector.z, unitVector.x);
+    float lon = atan(unitVector.x, unitVector.z);
 
     float kPrime = sqrt(2.0 / (1.0 + sinPhi1 * sin(lat) + cosPhi1 * cos(lat) * cos(lon - lambda0)));
     float x = kPrime * cos(lat) * sin(lon - lambda0);
@@ -94,7 +94,7 @@ vec2 coords_polarAzimuthEqualArea(vec3 unitVector) {
     const float cosPhi1 = 0.0;
 
     float lat = asin(unitVector.y);
-    float lon = atan(unitVector.z, unitVector.x);
+    float lon = atan(unitVector.x, unitVector.z);
 
     float kPrime = sqrt(2.0 / (1.0 + sinPhi1 * sin(lat) + cosPhi1 * cos(lat) * cos(lon)));
     float x = kPrime * cos(lat) * sin(lon);
