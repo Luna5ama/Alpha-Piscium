@@ -3,8 +3,6 @@
 #define GBUFFER_PASS_ALPHA_TEST a
 #define GBUFFER_PASS_MATERIAL_ID a
 #define GBUFFER_PASS_TEXTURED a
-#ifndef IRIS_FEATURE_ENTITY_TRANSLUCENT
 #define GBUFFER_PASS_TRANLUCENT a
-#endif
 #define GBUFFER_PASS_ENTITY_COLOR a
 #include "gbuffer/GBufferPass.frag"

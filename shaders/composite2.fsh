@@ -96,7 +96,10 @@ vec3 calcShadow(float sssFactor) {
 
     float blockerDistance = searchBlocker(shadowTexCoord);
 
-    float ssRange = exp2(SETTING_PCSS_BPF - 8.0);
+    float ssRange = 0.0;
+    #if SETTING_PCSS_BPF > 0
+    ssRange += exp2(SETTING_PCSS_BPF - 10.0);
+    #endif
     ssRange += uval_sunAngularRadius.x * 2.0 * SETTING_PCSS_VPF * blockerDistance;
     ssRange = saturate(ssRange);
     ssRange *= 0.4;
