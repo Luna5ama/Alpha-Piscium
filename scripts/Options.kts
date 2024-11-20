@@ -625,6 +625,47 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
+            screen("INDIRECT", 2) {
+                lang(Locale.US) {
+                    name = "Indirect Lighting"
+                }
+                screen("SSVBIL", 1) {
+                    lang(Locale.US) {
+                        name = "SSVBIL"
+                        comment = "Screen Space Visibility Bitmask Indirect Lighting settings"
+                    }
+                    slider("SSVBIL_AO_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
+                        lang(Locale.US) {
+                            name = "AO Strength"
+                        }
+                    }
+                    slider("SSVBIL_RADIUS", 8.0, 0.1..10.0 step 0.1) {
+                        lang(Locale.US) {
+                            name = "AO Radius"
+                        }
+                    }
+                    slider("SSVBIL_MAX_RADIUS", 32.0, 0.1..32.0 step 0.1) {
+                        lang(Locale.US) {
+                            name = "Max Radius"
+                        }
+                    }
+                    slider("SSVBIL_AO_THICKNESS", 0.1, 0.1..10.0 step 0.1) {
+                        lang(Locale.US) {
+                            name = "AO Thickness"
+                        }
+                    }
+                    slider("SSVBIL_GI_THICKNESS", 0.2, 0.1..10.0 step 0.1) {
+                        lang(Locale.US) {
+                            name = "GI Thickness"
+                        }
+                    }
+                    slider("SSVBIL_GI_MB", 1.0, 0.0..2.0 step 0.1) {
+                        lang(Locale.US) {
+                            name = "GI Multi Bounce"
+                        }
+                    }
+                }
+            }
         }
         screen("POSTFX", 1) {
             lang(Locale.US) {
@@ -706,6 +747,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             }
             toggle("SETTING_DEBUG_RTWSM", false)
             toggle("SETTING_DEBUG_ATMOSPHERE", false)
+            toggle("DEBUG_SSVBIL_AO", false)
+            toggle("DEBUG_SSVBIL_GI", false)
         }
     }
 }

@@ -23,11 +23,12 @@ uniform sampler2D shadowtex1;
 uniform sampler2DShadow shadowtex1HW;
 
 uniform sampler2D shadowcolor0;
-
 uniform sampler2D usam_rtwsm_warpingMap;
 
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_skyLUT;
+
+uniform sampler2D usam_SSVBILLast;
 
 in vec2 frag_texCoord;
 
@@ -38,8 +39,10 @@ vec3 g_viewDir;
 
 uint coord3Rand[2];
 
-/* RENDERTARGETS:0 */
-layout(location = 0) out vec4 rt_out;
+/* RENDERTARGETS:0,1,2 */
+layout(location = 0) out vec4 rt_main;
+layout(location = 1) out vec4 rt_temp1;
+layout(location = 2) out vec4 rt_temp2;
 
 float searchBlocker(vec3 shadowTexCoord) {
     #define BLOCKER_SEARCH_LOD SETTING_PCSS_BLOCKER_SEARCH_LOD
@@ -191,7 +194,7 @@ vec3 calcFresnel(Material material, float LDotH) {
     return f;
 }
 
-vec3 doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
+void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec3 directLight = vec3(0.0);
 
     vec3 H = normalize(L + V);
@@ -201,11 +204,10 @@ vec3 doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);
 
+    vec3 emissiveV = material.emissive * material.albedo * 32.0;
+
     vec3 fresnel = calcFresnel(material, NDotV);
-    float nonMetal = float(material.f0 < 229.5 / 255.0);
-
     float alpha = material.roughness;
-
     vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
@@ -220,10 +222,7 @@ vec3 doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     sunRadiance *= transmittance;
 
 //    vec3 diffuseV = bsdf_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
-    vec3 diffuseV = shadow * saturate(NDotL) * RCP_PI_CONST * sunRadiance * material.albedo;
-
-    directLight += nonMetal * diffuseV;
-    directLight += material.emissive * material.albedo * 32.0;
+    vec3 sunDiffuseV = shadow * saturate(NDotL) * RCP_PI_CONST * sunRadiance * material.albedo;
 
     // Sky diffuse
     vec3 worldNormal = mat3(gbufferModelViewInverse) * gData.normal;
@@ -233,18 +232,30 @@ vec3 doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
 
     float skyLightIntensity = gData.lmCoord.y;
     skyLightIntensity *= skyLightIntensity;
-    vec3 skyLight = skyLightIntensity * RCP_PI_CONST * material.albedo * skyRadiance;
-    directLight += nonMetal * skyLight;
+    vec3 skyDiffuseV = skyLightIntensity * RCP_PI_CONST * material.albedo * skyRadiance;
+
 
     // Sky reflection
     vec3 reflectDirView = reflect(-g_viewDir, gData.normal);
     vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
     vec2 reflectLUTUV = coords_polarAzimuthEqualArea(reflectDir);
     vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
+    vec3 skySpecularV = fresnel * skyLightIntensity * reflectRadiance;
 
-    directLight += fresnel * skyLightIntensity * reflectRadiance;
+    vec4 SSVBILSample = texelFetch(usam_SSVBILLast, intTexCoord, 0);
+    vec3 multiBounceV = SSVBIL_GI_MB * RCP_PI_CONST * max(SSVBILSample.rgb, 0.0) * material.albedo;
 
-    return directLight;
+    rt_main = vec4(0.0, 0.0, 0.0, 1.0);
+    rt_main.rgb += sunDiffuseV;
+    rt_main.rgb += emissiveV;
+    rt_main.rgb += skyDiffuseV;
+    rt_main.rgb += skySpecularV;
+
+    rt_temp1 = vec4(0.0, 0.0, 0.0, 1.0);
+    rt_temp1.rgb += sunDiffuseV;
+    rt_temp1.rgb += emissiveV;
+    rt_temp1.rgb += skyDiffuseV;
+    rt_temp1.rgb += multiBounceV;
 }
 
 void doStuff() {
@@ -252,16 +263,17 @@ void doStuff() {
 
     Material material = material_decode(gData);
 
-    vec3 lighting = doLighting(material, shadow, sunPosition * 0.01, gData.normal, g_viewDir);
+    doLighting(material, shadow, sunPosition * 0.01, gData.normal, g_viewDir);
 
-    rt_out += vec4(lighting, material.f0);
+    rt_temp2.rgb = gData.normal;
+    rt_temp2.a = float(material.emissive > 0.0);
 }
 
 void main() {
-    rt_out = vec4(0.0);
+    rt_main = vec4(0.0);
     float viewZ = texelFetch(usam_viewZ, intTexCoord, 0).r;
     if (viewZ == 1.0) {
-        rt_out = texelFetch(usam_main, intTexCoord, 0);
+        rt_main = texelFetch(usam_main, intTexCoord, 0);
         return;
     }
 

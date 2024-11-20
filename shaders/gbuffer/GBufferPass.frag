@@ -15,7 +15,7 @@ flat in uint frag_materialID; // 16 x 1 = 16 bits
 
 in float frag_viewZ; // 32 bits
 
-/* RENDERTARGETS:5,6 */
+/* RENDERTARGETS:8,9 */
 layout(location = 0) out uvec4 rt_gbuffer;
 layout(location = 1) out float rt_viewZ;
 
