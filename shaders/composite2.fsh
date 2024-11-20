@@ -110,10 +110,10 @@ vec3 calcShadow(float sssFactor) {
     vec4 totalShadow = vec4(0.0);
     uint idxSS = (frameCounter + coord3Rand[0]) * SAMPLE_N;
 
-    #define DEPTH_BIAS_DISTANCE_FACTOR 1027.0
+    #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
     float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distnaceSq, 1.0)));
     float depthBiasFactor = 0.001 + lightNormalDot * 0.002;
-    depthBiasFactor += mix(0.05 + lightNormalDot * 0.005, -0.001, dbfDistanceCoeff);
+    depthBiasFactor += mix(0.005 + lightNormalDot * 0.005, -0.001, dbfDistanceCoeff);
 
     for (int i = 0; i < SAMPLE_N; i++) {
         vec2 randomOffset = (rand_r2Seq2(idxSS) * 2.0 - 1.0);
