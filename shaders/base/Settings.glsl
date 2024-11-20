@@ -10,11 +10,19 @@ const int shadowMapResolution = 2048; // [256 512 1024 2048 4096]
 const float shadowDistance = 192.0; // [64.0 128.0 192.0 256.0 384.0 512.0]
 
 #define SETTING_RTWSM_IMAP_SIZE 1024 // RTWSM importance map resolution [128 256 512 1024]
-#define SETTING_RTWSM_IMP_BMUL 1.0 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
-#define SETTING_RTWSM_IMP_BMIN 3.0 // [0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
-#define SETTING_RTWSM_IMP_D 32 // [0 1 2 4 8 16 32 64 128 256 512 1024]
-#define SETTING_RTWSM_IMP_SN 4.0 // [0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
-#define SETTING_RTWSM_IMP_SE 0.3 // [0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+#define SETTING_RTWSM_F
+#define SETTING_RTWSM_F_BASE 0.5 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define SETTING_RTWSM_F_MIN 12 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define SETTING_RTWSM_F_D 64 // [0 1 2 4 8 16 32 64 128 256 512 1024]
+#define SETTING_RTWSM_B
+#define SETTING_RTWSM_B_BASE 0.8 // [0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0]
+#define SETTING_RTWSM_B_MIN 6 // [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20]
+#define SETTING_RTWSM_B_D 16 // [0 1 2 4 8 16 32 64 128 256 512 1024]
+#define SETTING_RTWSM_B_SN 4.0 // [0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
+#define SETTING_RTWSM_B_SE 0.25 // [0.0 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 0.5 0.55 0.6 0.65 0.7 0.75 0.8 0.85 0.9 0.95 1.0]
+
+#ifdef SETTING_RTWSM_B
+#endif
 
 #define SETTING_PCSS_BPF 1.0 // [0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0 8.5 9.0 9.5 10.0]
 #define SETTING_PCSS_VPF 1.0 // [0.0 0.1 0.2 0.3 0.4 0.5 0.6 0.7 0.8 0.9 1.0 1.1 1.2 1.3 1.4 1.5 1.6 1.7 1.8 1.9 2.0]
@@ -39,6 +47,6 @@ const float shadowDistance = 192.0; // [64.0 128.0 192.0 256.0 384.0 512.0]
 
 // Debug
 //#define SETTING_DEBUG_RTWSM
-#define SETTING_DEBUG_ATMOSPHERE
+//#define SETTING_DEBUG_ATMOSPHERE
 
 const vec2 SHADOW_MAP_SIZE = vec2(float(shadowMapResolution), 1.0 / float(shadowMapResolution));
