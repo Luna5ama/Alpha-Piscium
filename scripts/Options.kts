@@ -41,6 +41,7 @@ class ScreenItem(val name: String) {
 
     companion object {
         val EMPTY = ScreenItem("<empty>")
+        val WILDCARD = ScreenItem("*")
     }
 }
 
@@ -50,6 +51,7 @@ abstract class OptionFactory {
     fun constToggle(name: String, value: Boolean, block: OptionBuilder<Boolean>.() -> Unit = {}): ScreenItem {
         val screenItem = ScreenItem(name)
         scope._addOption(OptionBuilder(name, value, true, emptyList()).apply(block))
+        handleOption(screenItem)
         return screenItem
     }
 
@@ -61,6 +63,7 @@ abstract class OptionFactory {
     ): ScreenItem {
         val screenItem = ScreenItem(name)
         scope._addOption(OptionBuilder(name, value, true, range).apply(block))
+        handleOption(screenItem)
         return screenItem
     }
 
@@ -72,6 +75,7 @@ abstract class OptionFactory {
     ): ScreenItem {
         val screenItem = ScreenItem(name)
         scope._addOption(OptionBuilder(name, value, true, range).apply(block))
+        handleOption(screenItem)
         return screenItem
     }
 
@@ -306,6 +310,7 @@ class Scope : OptionFactory() {
             output.writeShadersProperties {
                 appendLine("screen$ref.columns=$columns")
                 append("screen$ref=")
+                val items = if (name.isEmpty()) (items + ScreenItem.WILDCARD) else items
                 items.joinTo(this, " ")
                 appendLine()
             }
