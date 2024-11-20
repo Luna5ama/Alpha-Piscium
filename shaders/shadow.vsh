@@ -48,7 +48,7 @@ void main() {
 
 		// Distance function
 		#if SETTING_RTWSM_F_D > 0.0
-		importance *= (SETTING_RTWSM_B_D) / (SETTING_RTWSM_B_D + dot(camViewPos, camViewPos));
+		importance *= (SETTING_RTWSM_F_D) / (SETTING_RTWSM_F_D + dot(camViewPos, camViewPos));
 		#endif
 
 		importance = max(importance, uval_rtwsmMin.x);

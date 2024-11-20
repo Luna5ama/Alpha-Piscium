@@ -193,8 +193,6 @@ vec3 calcFresnel(Material material, float LDotH) {
 
 vec3 doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec3 directLight = vec3(0.0);
-    float ambient = 0.01;
-    directLight += ambient * material.albedo;
 
     vec3 H = normalize(L + V);
     float NDotL = dot(N, L);

@@ -11,3 +11,5 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     vec2 global_taaJitter;
     vec4 global_exposure;
 };
+
+const vec2 SHADOW_MAP_SIZE = vec2(float(shadowMapResolution), 1.0 / float(shadowMapResolution));
