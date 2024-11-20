@@ -8,9 +8,8 @@ const vec2 RADIUS_SQ = vec2(SSVBIL_RADIUS * SSVBIL_RADIUS, SSVBIL_MAX_RADIUS * S
 
 in vec2 frag_texCoord;
 
-/* RENDERTARGETS:3,14 */
-layout(location = 0) out vec3 rt_outGI;
-layout(location = 1) out vec4 rt_outAO;
+/* RENDERTARGETS:14 */
+layout(location = 0) out vec4 rt_out;
 
 float radiusToLodStep(float y) {
     #if SSVBIL_SAMPLE_STEPS == 16
@@ -109,14 +108,13 @@ float calcHorizonAngles(vec3 projNormal, vec3 pos) {
 }
 
 void main() {
-    rt_outGI = vec3(0.0);
-    rt_outAO = vec4(0.0, 0.0, 0.0, 1.0);
+    rt_out = vec4(0.0, 0.0, 0.0, 1.0);
 
     float centerViewZ = textureLod(usam_viewZ, frag_texCoord, 0.0).r;
 
     if (centerViewZ < 0.0) {
         vec3 centerViewCoord = coords_toViewCoord(frag_texCoord, centerViewZ, gbufferProjectionInverse);
-        vec3 centerViewNormal = textureLod(usam_temp2, frag_texCoord, 0.0).rgb;
+        vec3 centerViewNormal = textureLod(usam_temp1, frag_texCoord, 0.0).rgb;
         vec3 centerViewDir = normalize(-centerViewCoord);
 
         float sampleAngleDelta = 2.0 * PI_CONST / SSVBIL_SAMPLE_SLICES;
@@ -128,7 +126,7 @@ void main() {
         uint r2Index = (rand_hash21(hashKey) & 65535u) + NOISE_FRAME;
         float baseSampleLod = rand_r2Seq1(r2Index) * 0.5 - 0.25;
 
-        rt_outAO.a = 0.0;
+        rt_out.a = 0.0;
 
         for (uint sliceIndex = 0; sliceIndex < SSVBIL_SAMPLE_SLICES; sliceIndex++) {
             float sampleAngle = initialAngle + sampleAngleDelta * float(sliceIndex);
@@ -192,17 +190,17 @@ void main() {
                     if (bool(ilCond)) {
                         vec4 sample1 = textureLod(usam_temp1, sampleUV, sampleLod * 0.5);
                         vec4 sample2 = textureLod(usam_temp2, sampleUV, sampleLod * 0.5);
-                        vec3 sampleNormal = sample2.rgb;
-                        vec3 direct = sample1.rgb;
+                        vec3 sampleNormal = sample1.rgb;
+                        vec3 direct = sample2.rgb;
 
                         float ilBitCoeff = float(ilBit) * (1.0 / 32.0);
                         float rcpDist = fastRcpSqrtNR0(distSq);
                         float emitterCos = dot(sampleNormal, -diff) * rcpDist;
-                        emitterCos = mix(0.5 + linearStep(-0.6, 0.0, emitterCos), emitterCos, step(sample2.a, 0.0));
+                        emitterCos = mix(0.5 + linearStep(-0.6, 0.0, emitterCos), emitterCos, step(sample1.a, 0.0));
                         emitterCos = saturate(emitterCos);
                         float receiverCos = saturate(dot(centerViewNormal, diff) * rcpDist);
 
-                        rt_outGI += ilBitCoeff * emitterCos * receiverCos * direct;
+                        rt_out.rgb += ilBitCoeff * emitterCos * receiverCos * direct;
                     }
                 }
                 sampleLod = min(sampleLod + lodStep, maxLod);
@@ -211,18 +209,16 @@ void main() {
 
             // Blute force cosine weighted hemisphere LOL
             for (uint bitIndex = 0u; bitIndex < 32; bitIndex++) {
-                rt_outAO.a += float((aoSectionBits >> bitIndex) & 1u) * WEIGHTS[bitIndex];
+                rt_out.a += float((aoSectionBits >> bitIndex) & 1u) * WEIGHTS[bitIndex];
             }
         }
 
-        rt_outGI /= float(SSVBIL_SAMPLE_SLICES);
-        rt_outGI *= 16.0;
-        rt_outGI = min(rt_outGI, 64.0);
-        rt_outAO.rgb = rt_outGI;
+        rt_out.rgb /= float(SSVBIL_SAMPLE_SLICES);
+        rt_out.rgb *= 16.0;
 
-        rt_outAO.a /= float(SSVBIL_SAMPLE_SLICES);
-        rt_outAO.a = linearStep(0.1, 1.0, rt_outAO.a);
-        rt_outAO.a = saturate(1.0 - rt_outAO.a);
-        rt_outAO.a = pow(rt_outAO.a, SSVBIL_AO_STRENGTH);
+        rt_out.a /= float(SSVBIL_SAMPLE_SLICES);
+        rt_out.a = linearStep(0.1, 1.0, rt_out.a);
+        rt_out.a = saturate(1.0 - rt_out.a);
+        rt_out.a = pow(rt_out.a, SSVBIL_AO_STRENGTH);
     }
 }

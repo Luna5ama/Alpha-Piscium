@@ -8,8 +8,6 @@ uniform sampler2D usam_main;
 uniform usampler2D usam_gbuffer;
 uniform sampler2D usam_viewZ;
 
-uniform sampler2D depthtex0;
-
 const bool generateShadowMipmap = true;
 const bool shadowtex0Mipmap = true;
 const bool shadowtex1Mipmap = true;
@@ -28,7 +26,7 @@ uniform sampler2D usam_rtwsm_warpingMap;
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_skyLUT;
 
-uniform sampler2D usam_SSVBILLast;
+uniform sampler2D usam_ssvbil;
 
 in vec2 frag_texCoord;
 
@@ -110,7 +108,7 @@ vec3 calcShadow(float sssFactor) {
 
     #define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
-    vec4 totalShadow = vec4(0.0);
+    vec3 shadow = vec3(0.0);
     uint idxSS = (frameCounter + coord3Rand[0]) * SAMPLE_N;
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
@@ -131,16 +129,15 @@ vec3 calcShadow(float sssFactor) {
         float sampleShadow0 = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
         float sampleShadow1 = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
         vec4 sampleColor = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0);
-        sampleColor.rgb = mix(vec3(1.0), sampleColor.rgb, float(sampleShadow0 < 1.0) * sampleColor.a);
+        sampleColor.rgb = mix(vec3(1.0), sampleColor.rgb, float(sampleShadow0 < 1.0));
 
-        totalShadow += vec4(sampleColor.rgb, sampleShadow1);
+        shadow += min(sampleColor.rgb, sampleShadow1.rrr);
         idxSS++;
     }
-    totalShadow /= float(SAMPLE_N);
-    totalShadow.a *= totalShadow.a;
-    vec3 result = min(totalShadow.rgb, totalShadow.aaa);
+    shadow /= float(SAMPLE_N);
+    shadow *= shadow;
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(worldCoord.xz));
-    return mix(result, vec3(1.0), shadowRangeBlend);
+    return mix(shadow, vec3(1.0), shadowRangeBlend);
 }
 
 vec3 calcFresnel(Material material, float LDotH) {
@@ -206,6 +203,10 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
 
     vec3 emissiveV = material.emissive * material.albedo * 32.0;
 
+    vec4 ssvbilSample = texelFetch(usam_ssvbil, intTexCoord, 0);
+    float skyDiffuseAO = ssvbilSample.a * ssvbilSample.a;
+    vec3 multiBounceV = SSVBIL_GI_MB * RCP_PI_CONST * max(ssvbilSample.rgb, 0.0) * material.albedo;
+
     vec3 fresnel = calcFresnel(material, NDotV);
     float alpha = material.roughness;
     vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
@@ -232,8 +233,8 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
 
     float skyLightIntensity = gData.lmCoord.y;
     skyLightIntensity *= skyLightIntensity;
+    skyLightIntensity *= skyDiffuseAO;
     vec3 skyDiffuseV = skyLightIntensity * RCP_PI_CONST * material.albedo * skyRadiance;
-
 
     // Sky reflection
     vec3 reflectDirView = reflect(-g_viewDir, gData.normal);
@@ -242,20 +243,17 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
     vec3 skySpecularV = fresnel * skyLightIntensity * reflectRadiance;
 
-    vec4 SSVBILSample = texelFetch(usam_SSVBILLast, intTexCoord, 0);
-    vec3 multiBounceV = SSVBIL_GI_MB * RCP_PI_CONST * max(SSVBILSample.rgb, 0.0) * material.albedo;
-
     rt_main = vec4(0.0, 0.0, 0.0, 1.0);
     rt_main.rgb += sunDiffuseV;
     rt_main.rgb += emissiveV;
     rt_main.rgb += skyDiffuseV;
     rt_main.rgb += skySpecularV;
 
-    rt_temp1 = vec4(0.0, 0.0, 0.0, 1.0);
-    rt_temp1.rgb += sunDiffuseV;
-    rt_temp1.rgb += emissiveV;
-    rt_temp1.rgb += skyDiffuseV;
-    rt_temp1.rgb += multiBounceV;
+    rt_temp2 = vec4(0.0, 0.0, 0.0, 1.0);
+    rt_temp2.rgb += sunDiffuseV;
+    rt_temp2.rgb += emissiveV;
+    rt_temp2.rgb += skyDiffuseV;
+    rt_temp2.rgb += multiBounceV;
 }
 
 void doStuff() {
@@ -265,8 +263,8 @@ void doStuff() {
 
     doLighting(material, shadow, sunPosition * 0.01, gData.normal, g_viewDir);
 
-    rt_temp2.rgb = gData.normal;
-    rt_temp2.a = float(material.emissive > 0.0);
+    rt_temp1.rgb = gData.normal;
+    rt_temp1.a = float(material.emissive > 0.0);
 }
 
 void main() {

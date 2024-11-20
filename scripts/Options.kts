@@ -634,11 +634,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "SSVBIL"
                         comment = "Screen Space Visibility Bitmask Indirect Lighting settings"
                     }
-                    slider("SSVBIL_AO_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
-                        lang(Locale.US) {
-                            name = "AO Strength"
-                        }
-                    }
                     slider("SSVBIL_RADIUS", 8.0, 0.1..10.0 step 0.1) {
                         lang(Locale.US) {
                             name = "AO Radius"
@@ -649,9 +644,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Max Radius"
                         }
                     }
+                    slider("SSVBIL_AO_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
+                        lang(Locale.US) {
+                            name = "AO Strength"
+                        }
+                    }
                     slider("SSVBIL_AO_THICKNESS", 0.1, 0.1..10.0 step 0.1) {
                         lang(Locale.US) {
                             name = "AO Thickness"
+                        }
+                    }
+                    slider("SSVBIL_GI_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
+                        lang(Locale.US) {
+                            name = "GI Strength"
                         }
                     }
                     slider("SSVBIL_GI_THICKNESS", 0.2, 0.1..10.0 step 0.1) {

@@ -6,7 +6,7 @@ const int colortex3Format = RGBA16F; // Temp3
 const int colortex8Format = RGBA32UI;
 const int colortex9Format = R32F; // ViewZ
 const int colortex13Format = RGBA32UI; // TempUI
-const int colortex14Format = RGBA32UI; // SSVBIL Last
+const int colortex14Format = RGBA16F; // SSVBIL
 const int colortex15Format = RGBA16F; // TAA Last
 */
 
@@ -31,8 +31,8 @@ const int colortex15Format = RGBA16F; // TAA Last
 #define usam_tempUI colortex13
 #define uimg_tempUI colorimg13
 
-#define usam_SSVBILLast colortex14
-#define uimg_SSVBILLast colorimg14
+#define usam_ssvbil colortex14
+#define uimg_ssvbil colorimg14
 
 #define usam_taaLast colortex15
 #define uimg_taaLast colorimg15

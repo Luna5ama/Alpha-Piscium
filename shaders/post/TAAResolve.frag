@@ -54,9 +54,11 @@ void main() {
 
     vec4 lastColor = texture(usam_taaLast, prevTexCoord, 0);
     lastColor = saturate(lastColor);
-    lastColor = clamp(lastColor, near1Min, near1Max);
+    vec4 lastClamped = clamp(lastColor, near1Min, near1Max);
+    // TODO: Better TAA rejction
+    lastColor = mix(lastColor, lastClamped, 0.5);
 
-    vec4 finalColor = mix(currColor, lastColor, 0.9);
+    vec4 finalColor = mix(currColor, lastColor, 0.95);
 
     rt_out = finalColor;
     rt_taaLast = finalColor;
