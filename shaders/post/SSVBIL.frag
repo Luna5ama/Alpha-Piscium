@@ -154,7 +154,7 @@ void main() {
                 vec2 sampleTexelCoord = sampleDir * sampleTexelDist + gl_FragCoord.xy;
                 vec2 sampleUV = sampleTexelCoord / textureSize(usam_viewZ, 0).xy;
 
-                float sampleViewZ = textureLod(usam_viewZ, sampleUV, sampleLod * 0.5).r;
+                float sampleViewZ = textureLod(usam_viewZ, sampleUV, round(sampleLod * 0.5)).r;
                 vec3 sampleViewXYZ = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
                 vec3 diff = sampleViewXYZ - centerViewCoord;
                 float distSq = dot(diff, diff);
@@ -188,8 +188,8 @@ void main() {
                     ilCond &= uint(all(lessThanEqual(sampleUV, vec2(1.0))));
 
                     if (bool(ilCond)) {
-                        vec4 sample1 = textureLod(usam_temp1, sampleUV, sampleLod * 0.5);
-                        vec4 sample2 = textureLod(usam_temp2, sampleUV, sampleLod * 0.5);
+                        vec4 sample1 = textureLod(usam_temp1, sampleUV, round(sampleLod * 0.5));
+                        vec4 sample2 = textureLod(usam_temp2, sampleUV, round(sampleLod * 0.5));
                         vec3 sampleNormal = sample1.rgb;
                         vec3 direct = sample2.rgb;
 
