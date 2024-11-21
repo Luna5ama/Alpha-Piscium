@@ -80,14 +80,14 @@ void main() {
     vec3 lastColor = texture(usam_taaLast, prevTexCoord).rgb;
     lastColor = saturate(lastColor);
 
-    float clampRatio1 = 0.25;
+    float clampRatio1 = 0.05;
     clampRatio1 += newPixel * 0.4;
     clampRatio1 += frustumTest * 0.4;
     clampRatio1 += pixelSpeed * 0.002;
     clampRatio1 += cameraSpeed * 1.0;
     clampRatio1 = saturate(clampRatio1);
 
-    float clampRatio2 = 0.5;
+    float clampRatio2 = 0.1;
     clampRatio2 += newPixel * 0.8;
     clampRatio2 += frustumTest * 0.8;
     clampRatio2 += pixelSpeed * 0.005;

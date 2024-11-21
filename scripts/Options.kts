@@ -423,14 +423,13 @@ fun options(baseShadersProperties: File, shaderRootDir: File, optionGlslPath: St
 
 options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
     mainScreen(2) {
-        screen("WORLD", 2) {
+        screen("LIGHTING", 2) {
             lang(Locale.US) {
-                name = "World Properties"
-                comment = "World properties settings. Such as earth, sun, moon, atmosphere, etc."
+                name = "Lighting"
             }
-            screen("SUN", 1) {
+            screen("SUNLIGHT", 1) {
                 lang(Locale.US) {
-                    name = "Sun Properties"
+                    name = "Sunlight"
                 }
                 toggle("SETTING_REAL_SUN_TEMPERATURE", true) {
                     lang(Locale.US) {
@@ -461,28 +460,38 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("ATMOSPHERE", 1) {
+            screen("SKYLIGHT", 1) {
                 lang(Locale.US) {
-                    name = "Atmosphere Properties"
+                    name = "Skylight"
                 }
-                slider("SETTING_ATM_ALT_SCALE", 1000, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
+                slider("SETTING_SKYLIGHT_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
                     lang(Locale.US) {
-                        name = "Atmosphere Altitude Scale"
-                        comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
-                    }
-                }
-                slider("SETTING_ATM_D_SCALE", 1000, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
-                    lang(Locale.US) {
-                        name = "Atmosphere Distance Scale"
-                        comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
+                        name = "Skylight Strength"
                     }
                 }
             }
-        }
-        screen("LIGHTING", 2) {
-            lang(Locale.US) {
-                name = "Lighting"
+            screen("BLOCKLIGHT", 1) {
+                lang(Locale.US) {
+                    name = "Blocklight"
+                }
+                slider("SETTING_FIRE_TEMPERATURE", 1900, 1000..20000 step 100) {
+                    lang(Locale.US) {
+                        name = "Fire Temperature"
+                        comment =
+                            "Temperature of fire in K (kelvin). The default value 1900 K is based on real life average."
+                    }
+                }
+                slider("SETTING_LAVA_TEMPERATURE", 1200, 1000..20000 step 100) {
+                    lang(Locale.US) {
+                        name = "Lava Temperature"
+                        comment =
+                            "Temperature of lava in K (kelvin). The default value 1200 K is based on real life average."
+                    }
+                }
             }
+            empty()
+            empty()
+            empty()
             screen("SHADOW", 2) {
                 lang(Locale.US) {
                     name = "Shadow"
@@ -503,6 +512,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         512.0 value "32 chunks"
                     }
                 }
+                empty()
+                empty()
                 screen("RTWSM", 1) {
                     lang(Locale.US) {
                         name = "RTWSM"
@@ -603,85 +614,81 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
-                empty()
-                empty()
-                screen("BLOCKLIGHT", 1) {
-                    lang(Locale.US) {
-                        name = "Block Light Source"
-                    }
-                    slider("SETTING_FIRE_TEMPERATURE", 1900, 1000..20000 step 100) {
-                        lang(Locale.US) {
-                            name = "Fire Temperature"
-                            comment =
-                                "Temperature of fire in K (kelvin). The default value 1900 K is based on real life average."
-                        }
-                    }
-                    slider("SETTING_LAVA_TEMPERATURE", 1200, 1000..20000 step 100) {
-                        lang(Locale.US) {
-                            name = "Lava Temperature"
-                            comment =
-                                "Temperature of lava in K (kelvin). The default value 1200 K is based on real life average."
-                        }
-                    }
-                }
             }
-            screen("INDIRECT", 2) {
+            screen("SSVBIL", 1) {
                 lang(Locale.US) {
-                    name = "Indirect Lighting"
+                    name = "SSVBIL"
+                    comment = "Screen Space Visibility Bitmask Indirect Lighting"
                 }
-                screen("SSVBIL", 1) {
+                slider("SETTING_SSVBIL_STEPS", 16, listOf(8, 12, 16, 24, 32)) {
                     lang(Locale.US) {
-                        name = "SSVBIL"
-                        comment = "Screen Space Visibility Bitmask Indirect Lighting settings"
+                        name = "Sample Steps"
                     }
-                    slider("SETTING_SSVBIL_STEPS", 16, listOf(8, 12, 16, 24, 32)) {
-                        lang(Locale.US) {
-                            name = "Sample Steps"
-                        }
+                }
+                slider("SETTING_SSVBIL_SLICES", 2, 1..8) {
+                    lang(Locale.US) {
+                        name = "Sample Slice Count"
                     }
-                    slider("SETTING_SSVBIL_SLICES", 2, 1..8) {
-                        lang(Locale.US) {
-                            name = "Sample Slice Count"
-                        }
+                }
+                empty()
+                slider("SETTING_SSVBIL_RADIUS", 8, (0..7).map { 1 shl it }) {
+                    lang(Locale.US) {
+                        name = "Sample Radius"
                     }
-                    slider("SETTING_SSVBIL_RADIUS", 8.0, 0.1..10.0 step 0.1) {
-                        lang(Locale.US) {
-                            name = "Sample Radius"
-                        }
+                }
+                slider("SETTING_SSVBIL_MAX_RADIUS", 32, (0..7).map { 1 shl it }) {
+                    lang(Locale.US) {
+                        name = "Max Sample Radius"
                     }
-                    slider("SETTING_SSVBIL_MAX_RADIUS", 32.0, 0.1..32.0 step 0.1) {
-                        lang(Locale.US) {
-                            name = "Max Sample Radius"
-                        }
+                }
+                empty()
+                slider("SETTING_SSVBIL_AO_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "AO Strength"
                     }
-                    slider("SETTING_SSVBIL_AO_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
-                        lang(Locale.US) {
-                            name = "AO Strength"
-                        }
+                }
+                slider("SETTING_SSVBIL_AO_THICKNESS", 0.1, 0.1..10.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "AO Thickness"
                     }
-                    slider("SETTING_SSVBIL_AO_THICKNESS", 0.1, 0.1..10.0 step 0.1) {
-                        lang(Locale.US) {
-                            name = "AO Thickness"
-                        }
+                }
+                empty()
+                slider("SETTING_SSVBIL_GI_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "GI Strength"
                     }
-                    slider("SETTING_SSVBIL_GI_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
-                        lang(Locale.US) {
-                            name = "GI Strength"
-                        }
+                }
+                slider("SETTING_SSVBIL_GI_THICKNESS", 0.2, 0.1..10.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "GI Thickness"
                     }
-                    slider("SETTING_SSVBIL_GI_THICKNESS", 0.2, 0.1..10.0 step 0.1) {
-                        lang(Locale.US) {
-                            name = "GI Thickness"
-                        }
-                    }
-                    slider("SETTING_SSVBIL_GI_MB", 1.0, 0.0..2.0 step 0.1) {
-                        lang(Locale.US) {
-                            name = "GI Multi Bounce"
-                        }
+                }
+                slider("SETTING_SSVBIL_GI_MB", 1.0, 0.0..2.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "GI Multi Bounce"
                     }
                 }
             }
         }
+        screen("ATMOSPHERE", 1) {
+            lang(Locale.US) {
+                name = "Atmosphere"
+            }
+            slider("SETTING_ATM_ALT_SCALE", 100, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
+                lang(Locale.US) {
+                    name = "Atmosphere Altitude Scale"
+                    comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
+                }
+            }
+            slider("SETTING_ATM_D_SCALE", 100, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
+                lang(Locale.US) {
+                    name = "Atmosphere Distance Scale"
+                    comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
+                }
+            }
+        }
+        empty()
+        empty()
         screen("POSTFX", 1) {
             lang(Locale.US) {
                 name = "Post Processing"
@@ -701,43 +708,43 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_MAX_EXP", 2.0, 0.1..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_MAX_EXP", 1.0, 0.1..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Auto Exposure Max"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUMA_MIX", 0.5, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_AVG_LUMA_MIX", 0.8, 0.0..1.0 step 0.05) {
                     lang(Locale.US) {
                         name = "Average Luminance Weight"
                         comment = "Weight of average luminance AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUMA_TIME", 3.0, 0.0..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_AVG_LUMA_TIME", 5.0, 0.0..10.0 step 0.5) {
                     lang(Locale.US) {
                         name = "Average Luminance AE Time"
                         comment = "Time constant for average luminance AE."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUMA_TARGET", 0.25, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUMA_TARGET", 0.2, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Average Luminance Target"
                         comment = "Target average luminance value for average luminance EXPOSURE."
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_TOP_BIN_MIX", 0.0, 0.0..1.0 step 0.1) {
+                slider("SETTING_EXPOSURE_TOP_BIN_MIX", 0.4, 0.0..1.0 step 0.05) {
                     lang(Locale.US) {
                         name = "Top Bin Weight"
                         comment = "Weight of top bin AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_TIME", 1.5, 0.0..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_TOP_BIN_TIME", 2.0, 0.0..10.0 step 0.5) {
                     lang(Locale.US) {
                         name = "Top Bin AE Time"
                         comment = "Time constant for top bin aE."
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_PERCENT", 2.0, 0.1..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_TOP_BIN_PERCENT", 0.8, 0.1..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Top Bin %"
                         comment =

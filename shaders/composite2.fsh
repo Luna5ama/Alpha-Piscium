@@ -114,7 +114,7 @@ vec3 calcShadow(float sssFactor) {
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
     float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distnaceSq, 1.0)));
-    float depthBiasFactor = 0.001 + lightNormalDot * 0.002;
+    float depthBiasFactor = 0.001 + lightNormalDot * 0.001;
     depthBiasFactor += mix(0.005 + lightNormalDot * 0.005, -0.001, dbfDistanceCoeff);
 
     for (int i = 0; i < SAMPLE_N; i++) {
@@ -202,7 +202,7 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);
 
-    vec3 emissiveV = material.emissive * material.albedo * 32.0;
+    vec3 emissiveV = material.emissive * material.albedo * 16.0;
 
     vec4 ssvbilSample = texelFetch(usam_ssvbil, intTexCoord, 0);
     float skyDiffuseAO = ssvbilSample.a * ssvbilSample.a;
@@ -231,10 +231,11 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     skyNormal.z = mix(skyNormal.z, sign(skyNormal.z) * max(abs(skyNormal.z), 0.05), float(skyNormal.y < 0.05));
     vec2 skyLUTUV = coords_polarAzimuthEqualArea(normalize(skyNormal));
     vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
-    float skyLightIntensity = gData.lmCoord.y;
+    float skyLightIntensity = SETTING_SKYLIGHT_STRENGTH;
+    skyLightIntensity *= gData.lmCoord.y;
     skyLightIntensity *= skyLightIntensity;
     skyLightIntensity *= skyDiffuseAO;
-    vec3 skyDiffuseV = skyLightIntensity * RCP_PI_CONST * material.albedo * skyRadiance;
+    vec3 skyDiffuseV =  skyLightIntensity * material.albedo * skyRadiance;
 
     // Sky reflection
     vec3 reflectDirView = reflect(-g_viewDir, gData.normal);
