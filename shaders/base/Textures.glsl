@@ -5,7 +5,8 @@ const int colortex2Format = RGBA16F; // Temp2
 const int colortex3Format = RGBA16F; // Temp3
 const int colortex8Format = RGBA32UI;
 const int colortex9Format = R32F; // ViewZ
-const int colortex13Format = RGBA32UI; // TempUI
+const int colortex12Format = RG8; // Temporal Project Rejection
+const int colortex13Format = RG32UI; // Last Normal ViewZ
 const int colortex14Format = RGBA16F; // SSVBIL
 const int colortex15Format = RGBA16F; // TAA Last
 */
@@ -28,8 +29,11 @@ const int colortex15Format = RGBA16F; // TAA Last
 #define usam_viewZ colortex9
 #define uimg_viewZ colorimg9
 
-#define usam_tempUI colortex13
-#define uimg_tempUI colorimg13
+#define usam_projReject colortex12
+#define uimg_projReject colorimg12
+
+#define usam_lastNZ colortex13
+#define uimg_lastNZ colorimg13
 
 #define usam_ssvbil colortex14
 #define uimg_ssvbil colorimg14

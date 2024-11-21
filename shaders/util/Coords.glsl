@@ -107,4 +107,23 @@ vec2 coords_polarAzimuthEqualArea(vec3 unitVector) {
     return xy0;
 }
 
+vec4 coords_projDiv(mat4 m, vec4 c) {
+    vec4 r = m * c;
+    return r / r.w;
+}
+
+vec4 coord_sceneCurrToPrev(vec4 sceneCurr) {
+    vec3 cameraDelta = cameraPosition - previousCameraPosition;
+    vec4 scenePrev = sceneCurr;
+    scenePrev.xyz += cameraDelta;
+    return scenePrev;
+}
+
+vec4 coord_scenePrevToCurr(vec4 scenePrev) {
+    vec3 cameraDelta = cameraPosition - previousCameraPosition;
+    vec4 sceneCurr = scenePrev;
+    sceneCurr.xyz -= cameraDelta;
+    return sceneCurr;
+}
+
 #endif

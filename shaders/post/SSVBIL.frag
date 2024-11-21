@@ -1,3 +1,9 @@
+// Screen Space Indirect Lighting with Visiblity Bitmask
+// References:
+// https://arxiv.org/pdf/2301.11376
+// https://cdrinmatane.github.io/posts/ssaovb-code/
+// https://cybereality.com/screen-space-indirect-lighting-with-visibility-bitmask-improvement-to-gtao-ssao-real-time-ambient-occlusion-algorithm-glsl-shader-implementation/
+// https://www.shadertoy.com/view/XXGSDd
 #include "../_Util.glsl"
 
 uniform sampler2D usam_viewZ;
@@ -11,17 +17,33 @@ in vec2 frag_texCoord;
 /* RENDERTARGETS:14 */
 layout(location = 0) out vec4 rt_out;
 
+// Inverse function approximation
+// See https://www.desmos.com/calculator/cdliscjjvi
 float radiusToLodStep(float y) {
-    #if SSVBIL_SAMPLE_STEPS == 16
-    const float a0 = 0.0771784;
-    const float a1 = 0.139577;
-    const float a2 = -1.34389;
+    #if SSVBIL_SAMPLE_STEPS == 8
+    const float a0 = 0.16378974015;
+    const float a1 = 0.265434760971;
+    const float a2 = -1.20565634012;
+    #elif SSVBIL_SAMPLE_STEPS == 12
+    const float a0 = 0.101656225858;
+    const float a1 = 0.209110996684;
+    const float a2 = -1.6842356559;
+    #elif SSVBIL_SAMPLE_STEPS == 16
+    const float a0 = 0.0731878065138;
+    const float a1 = 0.181085743518;
+    const float a2 = -2.15482462553;
+    #elif SSVBIL_SAMPLE_STEPS == 24
+    const float a0 = 0.046627957233;
+    const float a1 = 0.152328399412;
+    const float a2 = -3.03009898524;
     #elif SSVBIL_SAMPLE_STEPS == 32
-    const float a0 = 0.0382693;
-    const float a1 = 0.0663488;
-    const float a2 = -1.20751;
+    const float a0 = 0.0341139143777;
+    const float a1 = 0.137416190981;
+    const float a2 = -3.83742275706;
+    #else
+    #error "Invalid SSVBIL_SAMPLE_STEPS"
     #endif
-    y = clamp(y, 16.0, 32768.0);
+    y = clamp(y, SSVBIL_SAMPLE_STEPS, 32768.0);
     return saturate(a0 * log2(a1 * y + a2));
 }
 
@@ -207,7 +229,7 @@ void main() {
                 sampleTexelDist += stepTexelSize;
             }
 
-            // Blute force cosine weighted hemisphere LOL
+            // Cosine weighted hemisphere as mentioned in GT-VBAO but blute forced
             for (uint bitIndex = 0u; bitIndex < 32; bitIndex++) {
                 rt_out.a += float((aoSectionBits >> bitIndex) & 1u) * WEIGHTS[bitIndex];
             }

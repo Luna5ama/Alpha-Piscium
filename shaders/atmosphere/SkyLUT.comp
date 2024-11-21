@@ -63,7 +63,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
     params.cosSunZenith = dot(sunDir, upPosition * 0.01);
     params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
     params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
-    params.steps = 64u;
+    params.steps = 32u;
 
     return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT);
 }
@@ -83,8 +83,6 @@ void main() {
         vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
 
         vec3 color = vec3(0.0);
-        float cosSun = saturate(dot(rayDir, atmosphere.sunDirection));
-        color += pow(cosSun, 6000.0);
         color += result.inScattering;
         color *= sunRadiance;
 

@@ -4,6 +4,7 @@ uniform sampler2D usam_main;
 uniform usampler2D usam_gbuffer;
 uniform sampler2D usam_viewZ;
 uniform sampler2D usam_taaLast;
+uniform sampler2D usam_projReject;
 
 in vec2 frag_texCoord;
 
@@ -11,11 +12,18 @@ in vec2 frag_texCoord;
 layout(location = 0) out vec4 rt_out;
 layout(location = 1) out vec4 rt_taaLast;
 
+void updateNearMinMax(vec3 currColor, inout vec3 nearMin, inout vec3 nearMax) {
+    nearMin = min(nearMin, currColor);
+    nearMax = max(nearMax, currColor);
+}
+
 void main() {
     ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
+    vec2 unjitteredTexCoord = frag_texCoord + global_taaJitterMat[3].xy;
 
     GBufferData gData;
     gbuffer_unpack(texelFetch(usam_gbuffer, intTexCoord, 0), gData);
+    float isHand = float(gData.materialID == MATERIAL_ID_HAND);
 
     float viewZ = texelFetch(usam_viewZ, intTexCoord, 0).r;
     viewZ = mix(viewZ, -65536.0, float(viewZ == 1.0));
@@ -28,38 +36,85 @@ void main() {
     vec4 prevClipCoord = gbufferProjection * prevViewCoord;
     prevClipCoord /= prevClipCoord.w;
     vec2 prevTexCoord = prevClipCoord.xy * 0.5 + 0.5;
-    prevTexCoord = mix(prevTexCoord, frag_texCoord, float(gData.materialID == MATERIAL_ID_HAND));
+    prevTexCoord = mix(prevTexCoord, frag_texCoord, isHand);
 
-    vec4 currColor = texelFetch(usam_main, intTexCoord, 0);
+    vec3 currColor = texture(usam_main, unjitteredTexCoord).rgb;
     currColor = saturate(currColor);
-    vec4 near1Min = currColor;
-    vec4 near1Max = currColor;
+    vec3 nearMin1 = currColor;
+    vec3 nearMax1 = currColor;
 
     {
-        #define SAMPLE_NEAR1(offset) \
-            nearColor = texelFetchOffset(usam_main, intTexCoord, 0, offset); \
-            near1Min = min(near1Min, nearColor); \
-            near1Max = max(near1Max, nearColor);
-
-        vec4 nearColor;
-        SAMPLE_NEAR1(ivec2(-1, -1));
-        SAMPLE_NEAR1(ivec2(-1, 0));
-        SAMPLE_NEAR1(ivec2(-1, 1));
-        SAMPLE_NEAR1(ivec2(0, -1));
-        SAMPLE_NEAR1(ivec2(0, 1));
-        SAMPLE_NEAR1(ivec2(1, -1));
-        SAMPLE_NEAR1(ivec2(1, 0));
-        SAMPLE_NEAR1(ivec2(1, 1));
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(-1, 0)).rgb, nearMin1, nearMax1);
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(1, 0)).rgb, nearMin1, nearMax1);
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(0, -1)).rgb, nearMin1, nearMax1);
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(0, 1)).rgb, nearMin1, nearMax1);
     }
 
-    vec4 lastColor = texture(usam_taaLast, prevTexCoord, 0);
+    vec3 nearMin2 = nearMin1;
+    vec3 nearMax2 = nearMax1;
+
+    {
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(-1, -1)).rgb, nearMin2, nearMax2);
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(1, 1)).rgb, nearMin2, nearMax2);
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(1, -1)).rgb, nearMin2, nearMax2);
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(-1, 1)).rgb, nearMin2, nearMax2);
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(-2, 0)).rgb, nearMin2, nearMax2);
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(2, 0)).rgb, nearMin2, nearMax2);
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(0, -2)).rgb, nearMin2, nearMax2);
+        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(0, 2)).rgb, nearMin2, nearMax2);
+    }
+
+    vec2 projReject = texelFetch(usam_projReject, intTexCoord, 0).rg;
+    projReject = max(projReject, texelFetchOffset(usam_projReject, intTexCoord, 0, ivec2(-1, 0)).rg);
+    projReject = max(projReject, texelFetchOffset(usam_projReject, intTexCoord, 0, ivec2(1, 0)).rg);
+    projReject = max(projReject, texelFetchOffset(usam_projReject, intTexCoord, 0, ivec2(0, -1)).rg);
+    projReject = max(projReject, texelFetchOffset(usam_projReject, intTexCoord, 0, ivec2(0, 1)).rg);
+
+    float frustumTest = float(projReject.x > 0.0);
+    float newPixel = float(projReject.y > 0.0);
+
+    vec2 pixelPosDiff = (frag_texCoord - prevTexCoord) * textureSize(usam_main, 0).xy;
+    float cameraSpeed = length(cameraDelta);
+    float pixelSpeed = length(pixelPosDiff);
+
+    vec3 lastColor = texture(usam_taaLast, prevTexCoord).rgb;
     lastColor = saturate(lastColor);
-    vec4 lastClamped = clamp(lastColor, near1Min, near1Max);
-    // TODO: Better TAA rejction
-    lastColor = mix(lastColor, lastClamped, 0.5);
 
-    vec4 finalColor = mix(currColor, lastColor, 0.95);
+    float clampRatio1 = 0.0;
+    clampRatio1 += newPixel * 0.4;
+    clampRatio1 += frustumTest * 0.4;
+    clampRatio1 += pixelSpeed * 0.002;
+    clampRatio1 += cameraSpeed * 1.0;
+    clampRatio1 = saturate(clampRatio1);
 
-    rt_out = finalColor;
-    rt_taaLast = finalColor;
+    float clampRatio2 = 0.0;
+    clampRatio2 += newPixel * 0.8;
+    clampRatio2 += frustumTest * 0.8;
+    clampRatio2 += pixelSpeed * 0.005;
+    clampRatio2 += cameraSpeed * 2.0;
+    clampRatio2 = saturate(clampRatio2);
+
+    lastColor = mix(lastColor, clamp(lastColor, nearMin2, nearMax2), clampRatio2);
+    lastColor = mix(lastColor, clamp(lastColor, nearMin1, nearMax1), clampRatio1);
+
+    float lastMixWeight = texture(usam_taaLast, frag_texCoord).a;
+//    float lastMixWeight2 = texture(usam_taaLast, prevTexCoord).a;
+//    lastMixWeight = min(lastMixWeight, lastMixWeight2);
+
+    float mixWeight = 0.95;
+    float mixDecrease = (1.0 - saturate(cameraSpeed * 1.0));
+    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.05));
+    mixWeight = max(mixWeight * mixDecrease, 0.8);
+
+    mixWeight = mix(lastMixWeight, mixWeight, 0.5);
+
+    float realMixWeight = mixWeight;
+    realMixWeight = clamp(realMixWeight, 0.5, 0.99);
+
+    rt_out.rgb = mix(currColor, lastColor, realMixWeight);
+    rt_out.a = 1.0;
+
+    mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);
+
+    rt_taaLast = vec4(rt_out.rgb, mixWeight);
 }
