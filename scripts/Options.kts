@@ -647,7 +647,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "AO Strength"
                     }
                 }
-                slider("SETTING_SSVBIL_AO_THICKNESS", 0.1, 0.1..10.0 step 0.1) {
+                slider("SETTING_SSVBIL_AO_THICKNESS", 0.5, 0.1..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "AO Thickness"
                     }
@@ -658,7 +658,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "GI Strength"
                     }
                 }
-                slider("SETTING_SSVBIL_GI_THICKNESS", 0.2, 0.1..10.0 step 0.1) {
+                slider("SETTING_SSVBIL_GI_THICKNESS", 1.0, 0.1..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "GI Thickness"
                     }
@@ -713,38 +713,45 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Auto Exposure Max"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUMA_MIX", 0.8, 0.0..1.0 step 0.05) {
+                empty()
+                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.4, 0.0..1.0 step 0.05) {
                     lang(Locale.US) {
                         name = "Average Luminance Weight"
                         comment = "Weight of average luminance AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUMA_TIME", 5.0, 0.0..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 5.0, 0.0..10.0 step 0.5) {
                     lang(Locale.US) {
                         name = "Average Luminance AE Time"
                         comment = "Time constant for average luminance AE."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUMA_TARGET", 0.2, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.18, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Average Luminance Target"
                         comment = "Target average luminance value for average luminance EXPOSURE."
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_TOP_BIN_MIX", 0.4, 0.0..1.0 step 0.05) {
+                slider("SETTING_EXPOSURE_TOP_BIN_MIX", .0, 0.0..1.0 step 0.05) {
                     lang(Locale.US) {
                         name = "Top Bin Weight"
                         comment = "Weight of top bin AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_TIME", 2.0, 0.0..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_TOP_BIN_TIME", 1.0, 0.0..10.0 step 0.5) {
                     lang(Locale.US) {
                         name = "Top Bin AE Time"
                         comment = "Time constant for top bin aE."
                     }
+                    slider("SETTING_EXPOSURE_TOP_BIN_LUM", 0.3, 0.0..1.0 step 0.01) {
+                        lang(Locale.US) {
+                            name = "Top Bin Luminance"
+                            comment = "Luminance threshold for top bin."
+                        }
+                    }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_PERCENT", 0.8, 0.1..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_TOP_BIN_PERCENT", 2.0, 0.1..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Top Bin %"
                         comment =

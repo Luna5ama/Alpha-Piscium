@@ -100,11 +100,11 @@ void main() {
     float lastMixWeight = texture(usam_taaLast, frag_texCoord).a;
 
     float mixWeight = 0.95;
-    float mixDecrease = (1.0 - saturate(cameraSpeed * 1.0));
-    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.05));
-    mixWeight = max(mixWeight * mixDecrease, 0.8);
-
     mixWeight = mix(lastMixWeight, mixWeight, 0.5);
+
+    float mixDecrease = (1.0 - saturate(cameraSpeed * 2.0));
+    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.05));
+    mixWeight = mixWeight * max(mixDecrease, 0.8);
 
     float realMixWeight = mixWeight;
     realMixWeight = clamp(realMixWeight, 0.5, 0.99);

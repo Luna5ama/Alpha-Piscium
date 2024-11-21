@@ -19,14 +19,6 @@ void main() {
 
     #if defined(SETTING_DEBUG_SSVBIL_GI)
     color = vec4(texelFetch(usam_ssvbil, intTexCoord, 0).rgb, 1.0);
-    #elif defined(SETTING_DEBUG_SSVBIL_AO)
-    color = vec4(texelFetch(usam_ssvbil, intTexCoord, 0).aaa, 1.0);
-    #elif defined(SETTING_DEBUG_SSVBIL_BENT_NORMAL)
-    color = vec4(texelFetch(usam_bentNormal, intTexCoord, 0).rgb, 1.0);
-    #elif defined(SETTING_DEBUG_WORLD_NORMAL)
-    vec3 viewNormal = texelFetch(usam_temp1, intTexCoord, 0).rgb;
-    vec3 worldNormal = mat3(gbufferModelViewInverse) * viewNormal;
-    color = vec4(worldNormal * 0.5 + 0.5, 1.0);
     #endif
 
     rt_out = color;

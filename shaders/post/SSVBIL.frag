@@ -149,7 +149,7 @@ void main() {
 
         uvec2 hashKey = (uvec2(gl_FragCoord.xy) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
         uint r2Index = (rand_hash21(hashKey) & 65535u) + NOISE_FRAME;
-        float baseSampleLod = rand_r2Seq1(r2Index) * 0.5 - 0.25;
+        float baseSampleLod = rand_r2Seq1(r2Index);
 
         rt_out.a = 0.0;
 
@@ -166,7 +166,7 @@ void main() {
 
             float lodStep = radiusToLodStep(maxDist);
             float maxLod = float(textureQueryLevels(usam_viewZ)) - 1.0;
-            float sampleLod = baseSampleLod;
+            float sampleLod = lodStep * baseSampleLod;
 
             float sampleTexelDist = 0.5;
             uint aoSectionBits = 0u;
@@ -177,7 +177,7 @@ void main() {
                 float stepTexelSize = sampleLodTexelSize * 0.5;
                 sampleTexelDist += stepTexelSize;
 
-                vec2 sampleTexelCoord = sampleDir * sampleTexelDist + gl_FragCoord.xy;
+                vec2 sampleTexelCoord = floor(sampleDir * sampleTexelDist + gl_FragCoord.xy) + 0.5;
                 vec2 sampleUV = sampleTexelCoord / textureSize(usam_viewZ, 0).xy;
 
                 float sampleViewZ = textureLod(usam_viewZ, sampleUV, round(sampleLod * 0.5)).r;
@@ -219,14 +219,16 @@ void main() {
                         vec3 sampleNormal = sample1.rgb;
                         vec3 direct = sample2.rgb;
 
+                        float emissive = float(sample1.a > 0.0);
                         float ilBitCoeff = float(ilBit) * (1.0 / 32.0);
                         float rcpDist = fastRcpSqrtNR0(distSq);
                         float emitterCos = dot(sampleNormal, -diff) * rcpDist;
-                        emitterCos = mix(0.5 + linearStep(-0.6, 0.0, emitterCos), emitterCos, step(sample1.a, 0.0));
+                        emitterCos = mix(emitterCos, 0.5 + linearStep(-0.6, 0.0, emitterCos), emissive);
                         emitterCos = saturate(emitterCos);
                         float receiverCos = saturate(dot(centerViewNormal, diff) * rcpDist);
+                        float attenuation = mix(1.0, 1.0 / (1.0 + distSq), emissive);
 
-                        rt_out.rgb += ilBitCoeff * emitterCos * receiverCos * direct;
+                        rt_out.rgb += ilBitCoeff * attenuation * emitterCos * receiverCos * direct;
                     }
                 }
                 sampleLod = min(sampleLod + lodStep, maxLod);

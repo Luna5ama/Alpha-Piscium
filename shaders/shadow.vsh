@@ -5,7 +5,7 @@
 
 uniform sampler2D usam_rtwsm_warpingMap;
 
-layout(r32ui) uniform uimage2D uimg_rtwsm_imap2D;
+layout(r32i) uniform iimage2D uimg_rtwsm_imap2D;
 
 attribute vec4 mc_Entity;
 
@@ -53,7 +53,7 @@ void main() {
 
 		importance = max(importance, uval_rtwsmMin.x);
 
-		imageAtomicMax(uimg_rtwsm_imap2D, importanceTexelPos, floatBitsToUint(importance));
+		imageAtomicMax(uimg_rtwsm_imap2D, importanceTexelPos, floatBitsToInt(importance));
  	}
 	#endif
 }

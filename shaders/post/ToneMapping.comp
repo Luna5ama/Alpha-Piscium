@@ -55,13 +55,13 @@ vec3 uchimura(vec3 x) {
     return uchimura(x, P, a, m, l, c, b);
 }
 
-uint histoIndex(float x, uint outputRangeExclusive) {
+uint histoIndex(float x, float range, uint outputRangeExclusive) {
     const float EPSILON = 0.001;
     uint binIndex;
     if (x < EPSILON) {
         binIndex = 0;
     } else {
-        float lumMapped = saturate(log2(x + 1.0));
+        float lumMapped = saturate(log2(x + 1.0) / range);
         binIndex = uint(lumMapped * float(outputRangeExclusive - 2) + 1.0);
     }
     return binIndex;
@@ -77,19 +77,18 @@ void main() {
         vec4 color = imageLoad(uimg_main, pixelPos);
         uint lumaWeight = 1u;
         color.rgb *= global_exposure.w;
-        float lumanancePre = colors_linearSRGBToLuma(max(color.rgb, 0.0));
-        color.rgb = uchimura(color.rgb);
-        float lumanancePost = colors_linearSRGBToLuma(max(color.rgb, 0.0));
+        color.rgb = saturate(uchimura(color.rgb));
+        float lumimance = colors_srgbLuma(color.rgb);
 
-        uint binIndexPre = histoIndex(lumanancePre, 16);
-        uint topBinValue = uint(binIndexPre == 15u) * lumaWeight;
+        uint binIndexTop = histoIndex(lumimance, SETTING_EXPOSURE_TOP_BIN_LUM, 4);
+        uint topBinValue = uint(binIndexTop == 3u) * lumaWeight;
         uint topBinSum = subgroupAdd(topBinValue);
         if (subgroupElect()) {
             atomicAdd(global_lumHistogram[256], topBinSum);
         }
 
-        uint binIndexPost = histoIndex(lumanancePost, 256);
-        atomicAdd(shared_lumHistogram[binIndexPost], lumaWeight);
+        uint binIndexAvg = histoIndex(lumimance, 1.0, 256);
+        atomicAdd(shared_lumHistogram[binIndexAvg], lumaWeight);
 
         color.rgb = pow(color.rgb, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
         imageStore(uimg_main, pixelPos, color);

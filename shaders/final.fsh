@@ -14,6 +14,10 @@ uniform sampler2D usam_rtwsm_imap1D;
 uniform sampler2D usam_rtwsm_warpingMap;
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_skyLUT;
+uniform sampler2D usam_temp1;
+uniform sampler2D usam_temp3;
+uniform sampler2D usam_ssvbil;
+uniform sampler2D usam_bentNormal;
 
 varying vec2 texcoord;
 
@@ -78,6 +82,17 @@ void main() {
     if (inViewPort(vec4(0, 64, 256, 256), debugTexCoord)) {
         color.rgb = pow(texture(usam_skyLUT, debugTexCoord).rgb * 0.1, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
     }
+    #endif
+
+
+    #if defined(SETTING_DEBUG_SSVBIL_AO)
+    color.rgb = texelFetch(usam_ssvbil, intTexCoord, 0).aaa;
+    #elif defined(SETTING_DEBUG_SSVBIL_BENT_NORMAL)
+    color.rgb = texelFetch(usam_bentNormal, intTexCoord, 0).rgb;
+    #elif defined(SETTING_DEBUG_WORLD_NORMAL)
+    vec3 viewNormal = texelFetch(usam_temp1, intTexCoord, 0).rgb;
+    vec3 worldNormal = mat3(gbufferModelViewInverse) * viewNormal;
+    color.rgb = worldNormal * 0.5 + 0.5;
     #endif
 
     rt_out = color;

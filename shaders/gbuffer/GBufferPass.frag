@@ -66,7 +66,7 @@ void processOutput(out GBufferData gData, out float viewZ) {
     gData.lmCoord = gDataPrev.lmCoord;
     gData.materialID = gDataPrev.materialID;
 
-    float glintEmissive = colors_linearSRGBToLuma(albedo.rgb);
+    float glintEmissive = colors_srgbLuma(albedo.rgb);
     glintEmissive *= 0.1;
     glintEmissive = dither(glintEmissive, noiseIGN, 64.0);
     gData.pbrSpecular.a -= glintEmissive;

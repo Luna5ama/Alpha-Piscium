@@ -20,7 +20,7 @@ uniform sampler2D depthtex0;
 uniform sampler2D shadowtex0;
 uniform sampler2D usam_rtwsm_warpingMap;
 
-layout(r32ui) uniform uimage2D uimg_rtwsm_imap2D;
+layout(r32i) uniform iimage2D uimg_rtwsm_imap2D;
 
 void importance(ivec2 gCoord, out uint p, out float v) {
     ivec2 gbufferTextureSize = textureSize(usam_gbuffer, 0);
@@ -95,7 +95,7 @@ void importance(ivec2 gCoord, out uint p, out float v) {
 
 void writeOutput(uint p, float v) {
     if (p == 0xFFFFFFFFu) return;
-    imageAtomicMax(uimg_rtwsm_imap2D, ivec2(p & 0xFFFFu, p >> 16), floatBitsToUint(v));
+    imageAtomicMax(uimg_rtwsm_imap2D, ivec2(p & 0xFFFFu, p >> 16), floatBitsToInt(v));
 }
 
 void main() {
