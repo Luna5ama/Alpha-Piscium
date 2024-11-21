@@ -30,7 +30,7 @@ layout(location = 0) out vec4 rt_main;
 
 void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec4 ssvbilSample = texelFetch(usam_ssvbil, intTexCoord, 0);
-    vec3 indirectV = SSVBIL_GI_STRENGTH * ssvbilSample.rgb * material.albedo;
+    vec3 indirectV = SETTING_SSVBIL_GI_STRENGTH * ssvbilSample.rgb * material.albedo;
 
     rt_main.rgb += indirectV;
 }

@@ -80,14 +80,14 @@ void main() {
     vec3 lastColor = texture(usam_taaLast, prevTexCoord).rgb;
     lastColor = saturate(lastColor);
 
-    float clampRatio1 = 0.0;
+    float clampRatio1 = 0.25;
     clampRatio1 += newPixel * 0.4;
     clampRatio1 += frustumTest * 0.4;
     clampRatio1 += pixelSpeed * 0.002;
     clampRatio1 += cameraSpeed * 1.0;
     clampRatio1 = saturate(clampRatio1);
 
-    float clampRatio2 = 0.0;
+    float clampRatio2 = 0.5;
     clampRatio2 += newPixel * 0.8;
     clampRatio2 += frustumTest * 0.8;
     clampRatio2 += pixelSpeed * 0.005;
@@ -98,8 +98,6 @@ void main() {
     lastColor = mix(lastColor, clamp(lastColor, nearMin1, nearMax1), clampRatio1);
 
     float lastMixWeight = texture(usam_taaLast, frag_texCoord).a;
-//    float lastMixWeight2 = texture(usam_taaLast, prevTexCoord).a;
-//    lastMixWeight = min(lastMixWeight, lastMixWeight2);
 
     float mixWeight = 0.95;
     float mixDecrease = (1.0 - saturate(cameraSpeed * 1.0));

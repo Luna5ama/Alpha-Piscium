@@ -634,37 +634,47 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "SSVBIL"
                         comment = "Screen Space Visibility Bitmask Indirect Lighting settings"
                     }
-                    slider("SSVBIL_RADIUS", 8.0, 0.1..10.0 step 0.1) {
+                    slider("SETTING_SSVBIL_STEPS", 16, listOf(8, 12, 16, 24, 32)) {
                         lang(Locale.US) {
-                            name = "AO Radius"
+                            name = "Sample Steps"
                         }
                     }
-                    slider("SSVBIL_MAX_RADIUS", 32.0, 0.1..32.0 step 0.1) {
+                    slider("SETTING_SSVBIL_SLICES", 2, 1..8) {
                         lang(Locale.US) {
-                            name = "Max Radius"
+                            name = "Sample Slice Count"
                         }
                     }
-                    slider("SSVBIL_AO_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
+                    slider("SETTING_SSVBIL_RADIUS", 8.0, 0.1..10.0 step 0.1) {
+                        lang(Locale.US) {
+                            name = "Sample Radius"
+                        }
+                    }
+                    slider("SETTING_SSVBIL_MAX_RADIUS", 32.0, 0.1..32.0 step 0.1) {
+                        lang(Locale.US) {
+                            name = "Max Sample Radius"
+                        }
+                    }
+                    slider("SETTING_SSVBIL_AO_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
                         lang(Locale.US) {
                             name = "AO Strength"
                         }
                     }
-                    slider("SSVBIL_AO_THICKNESS", 0.1, 0.1..10.0 step 0.1) {
+                    slider("SETTING_SSVBIL_AO_THICKNESS", 0.1, 0.1..10.0 step 0.1) {
                         lang(Locale.US) {
                             name = "AO Thickness"
                         }
                     }
-                    slider("SSVBIL_GI_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
+                    slider("SETTING_SSVBIL_GI_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
                         lang(Locale.US) {
                             name = "GI Strength"
                         }
                     }
-                    slider("SSVBIL_GI_THICKNESS", 0.2, 0.1..10.0 step 0.1) {
+                    slider("SETTING_SSVBIL_GI_THICKNESS", 0.2, 0.1..10.0 step 0.1) {
                         lang(Locale.US) {
                             name = "GI Thickness"
                         }
                     }
-                    slider("SSVBIL_GI_MB", 1.0, 0.0..2.0 step 0.1) {
+                    slider("SETTING_SSVBIL_GI_MB", 1.0, 0.0..2.0 step 0.1) {
                         lang(Locale.US) {
                             name = "GI Multi Bounce"
                         }
@@ -752,8 +762,10 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             }
             toggle("SETTING_DEBUG_RTWSM", false)
             toggle("SETTING_DEBUG_ATMOSPHERE", false)
-            toggle("DEBUG_SSVBIL_AO", false)
-            toggle("DEBUG_SSVBIL_GI", false)
+            toggle("SETTING_DEBUG_WORLD_NORMAL", false)
+            toggle("SETTING_DEBUG_SSVBIL_AO", false)
+            toggle("SETTING_DEBUG_SSVBIL_GI", false)
+            toggle("SETTING_DEBUG_SSVBIL_BENT_NORMAL", false)
         }
     }
 }

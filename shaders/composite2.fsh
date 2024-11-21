@@ -26,6 +26,7 @@ uniform sampler2D usam_rtwsm_warpingMap;
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_skyLUT;
 
+uniform sampler2D usam_bentNormal;
 uniform sampler2D usam_ssvbil;
 
 in vec2 frag_texCoord;
@@ -205,7 +206,7 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
 
     vec4 ssvbilSample = texelFetch(usam_ssvbil, intTexCoord, 0);
     float skyDiffuseAO = ssvbilSample.a * ssvbilSample.a;
-    vec3 multiBounceV = SSVBIL_GI_MB * RCP_PI_CONST * max(ssvbilSample.rgb, 0.0) * material.albedo;
+    vec3 multiBounceV = SETTING_SSVBIL_GI_MB * RCP_PI_CONST * max(ssvbilSample.rgb, 0.0) * material.albedo;
 
     vec3 fresnel = calcFresnel(material, NDotV);
     float alpha = material.roughness;
@@ -226,11 +227,10 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec3 sunDiffuseV = shadow * saturate(NDotL) * RCP_PI_CONST * sunRadiance * material.albedo;
 
     // Sky diffuse
-    vec3 worldNormal = mat3(gbufferModelViewInverse) * gData.normal;
-    worldNormal.z = mix(worldNormal.z, sign(worldNormal.z) * max(abs(worldNormal.z), 0.05), float(worldNormal.y < 0.05));
-    vec2 skyLUTUV = coords_polarAzimuthEqualArea(normalize(worldNormal));
+    vec3 skyNormal = texelFetch(usam_bentNormal, intTexCoord, 0).rgb * 2.0 - 1.0;
+    skyNormal.z = mix(skyNormal.z, sign(skyNormal.z) * max(abs(skyNormal.z), 0.05), float(skyNormal.y < 0.05));
+    vec2 skyLUTUV = coords_polarAzimuthEqualArea(normalize(skyNormal));
     vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
-
     float skyLightIntensity = gData.lmCoord.y;
     skyLightIntensity *= skyLightIntensity;
     skyLightIntensity *= skyDiffuseAO;
@@ -247,7 +247,7 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     rt_main.rgb += sunDiffuseV;
     rt_main.rgb += emissiveV;
     rt_main.rgb += skyDiffuseV;
-    rt_main.rgb += skySpecularV;
+//    rt_main.rgb += skySpecularV;
 
     rt_temp2 = vec4(0.0, 0.0, 0.0, 1.0);
     rt_temp2.rgb += sunDiffuseV;

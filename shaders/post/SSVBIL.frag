@@ -10,12 +10,13 @@ uniform sampler2D usam_viewZ;
 uniform sampler2D usam_temp1;
 uniform sampler2D usam_temp2;
 
-const vec2 RADIUS_SQ = vec2(SSVBIL_RADIUS * SSVBIL_RADIUS, SSVBIL_MAX_RADIUS * SSVBIL_MAX_RADIUS);
+const vec2 RADIUS_SQ = vec2(SETTING_SSVBIL_RADIUS * SETTING_SSVBIL_RADIUS, SETTING_SSVBIL_MAX_RADIUS * SETTING_SSVBIL_MAX_RADIUS);
 
 in vec2 frag_texCoord;
 
-/* RENDERTARGETS:14 */
-layout(location = 0) out vec4 rt_out;
+/* RENDERTARGETS:11,14 */
+layout(location = 0) out vec4 rt_bentNormal;
+layout(location = 1) out vec4 rt_out;
 
 // Inverse function approximation
 // See https://www.desmos.com/calculator/cdliscjjvi
@@ -130,6 +131,7 @@ float calcHorizonAngles(vec3 projNormal, vec3 pos) {
 }
 
 void main() {
+    rt_bentNormal = vec4(0.0, 1.0, 0.0, 0.0);
     rt_out = vec4(0.0, 0.0, 0.0, 1.0);
 
     float centerViewZ = textureLod(usam_viewZ, frag_texCoord, 0.0).r;
@@ -137,11 +139,12 @@ void main() {
     if (centerViewZ < 0.0) {
         vec3 centerViewCoord = coords_toViewCoord(frag_texCoord, centerViewZ, gbufferProjectionInverse);
         vec3 centerViewNormal = textureLod(usam_temp1, frag_texCoord, 0.0).rgb;
+        rt_bentNormal.xyz = centerViewNormal;
         vec3 centerViewDir = normalize(-centerViewCoord);
 
         float sampleAngleDelta = 2.0 * PI_CONST / SSVBIL_SAMPLE_SLICES;
         float initialAngle = rand_IGN(gl_FragCoord.xy, NOISE_FRAME) * sampleAngleDelta;
-        vec2 sphereRadius = (SSVBIL_RADIUS / -centerViewCoord.z) * vec2(gbufferProjection[0][0], gbufferProjection[1][1]);
+        vec2 sphereRadius = (SETTING_SSVBIL_RADIUS / -centerViewCoord.z) * vec2(gbufferProjection[0][0], gbufferProjection[1][1]);
         sphereRadius *= textureSize(usam_viewZ, 0).xy;
 
         uvec2 hashKey = (uvec2(gl_FragCoord.xy) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
@@ -157,6 +160,7 @@ void main() {
             vec3 planeNormal = normalize(cross(vec3(sampleDir, 0.0), centerViewDir));
             vec3 sliceTangent = cross(centerViewDir, planeNormal);
             vec3 projNormal = normalize(centerViewNormal - planeNormal * dot(centerViewNormal, planeNormal));
+            vec3 realTangent = -cross(projNormal, planeNormal);
 
             float maxDist = length(sampleDir * sphereRadius);
 
@@ -187,7 +191,7 @@ void main() {
 
                     uint aoStepSectorBits;
                     {
-                        vec3 backOffset = centerViewDir * SSVBIL_AO_THICKNESS;
+                        vec3 backOffset = centerViewDir * SETTING_SSVBIL_AO_THICKNESS;
                         vec3 backPos = diff - backOffset;
                         float backH = calcHorizonAngles(projNormal, backPos);
                         aoStepSectorBits = calcSectorBits(min(frontH, backH), max(frontH, backH));
@@ -196,7 +200,7 @@ void main() {
 
                     uint giStepSectorBits;
                     {
-                        vec3 backOffset = centerViewDir * SSVBIL_GI_THICKNESS * float(stepIndex);
+                        vec3 backOffset = centerViewDir * SETTING_SSVBIL_GI_THICKNESS * float(stepIndex);
                         vec3 backPos = diff - backOffset;
                         float backH = calcHorizonAngles(projNormal, backPos);
                         giStepSectorBits = calcSectorBits(min(frontH, backH), max(frontH, backH));
@@ -231,9 +235,16 @@ void main() {
 
             // Cosine weighted hemisphere as mentioned in GT-VBAO but blute forced
             for (uint bitIndex = 0u; bitIndex < 32; bitIndex++) {
-                rt_out.a += float((aoSectionBits >> bitIndex) & 1u) * WEIGHTS[bitIndex];
+                float indexF = float(bitIndex) / 31.0;
+                float bitFlag = float((aoSectionBits >> bitIndex) & 1u);
+                rt_bentNormal.xyz += bitFlag * normalize(mix(realTangent, projNormal, indexF));
+                rt_out.a += bitFlag * WEIGHTS[bitIndex];
             }
         }
+
+        rt_bentNormal.xyz = normalize(rt_bentNormal.xyz);
+        rt_bentNormal.xyz = mat3(gbufferModelViewInverse) * rt_bentNormal.xyz;
+        rt_bentNormal.xyz = rt_bentNormal.xyz * 0.5 + 0.5;
 
         rt_out.rgb /= float(SSVBIL_SAMPLE_SLICES);
         rt_out.rgb *= 16.0;
@@ -241,6 +252,6 @@ void main() {
         rt_out.a /= float(SSVBIL_SAMPLE_SLICES);
         rt_out.a = linearStep(0.1, 1.0, rt_out.a);
         rt_out.a = saturate(1.0 - rt_out.a);
-        rt_out.a = pow(rt_out.a, SSVBIL_AO_STRENGTH);
+        rt_out.a = pow(rt_out.a, SETTING_SSVBIL_AO_STRENGTH);
     }
 }

@@ -5,6 +5,7 @@ const int colortex2Format = RGBA16F; // Temp2
 const int colortex3Format = RGBA16F; // Temp3
 const int colortex8Format = RGBA32UI;
 const int colortex9Format = R32F; // ViewZ
+const int colortex11Format = RGB10_A2; // Bent Normal
 const int colortex12Format = RG8; // Temporal Project Rejection
 const int colortex13Format = RG32UI; // Last Normal ViewZ
 const int colortex14Format = RGBA16F; // SSVBIL
@@ -28,6 +29,9 @@ const int colortex15Format = RGBA16F; // TAA Last
 
 #define usam_viewZ colortex9
 #define uimg_viewZ colorimg9
+
+#define usam_bentNormal colortex11
+#define uimg_bentNormal colorimg11
 
 #define usam_projReject colortex12
 #define uimg_projReject colorimg12
@@ -54,6 +58,7 @@ const bool colortex3Clear = false;
 const bool colortex9Clear = true;
 const vec4 colortex9ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
 
+const bool colortex11Clear = false;
 const bool colortex12Clear = false;
 const bool colortex13Clear = false;
 const bool colortex14Clear = false;
