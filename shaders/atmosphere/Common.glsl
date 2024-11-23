@@ -56,21 +56,21 @@ AtmosphereParameters getAtmosphereParameters() {
     const float OZONE_HALF_WIDTH = 15.0;
 
     // Constants from [BIO23]
-    const vec3 RAYLEIGH_SCATTERING = vec3(6.602e-6, 1.239e-5, 2.940e-5);
-    //    const vec3 RAYLEIGH_SCATTERING = vec3(0.00000681500702284, 0.0000113048919257, 0.0000250466474553);
+    //    const vec3 RAYLEIGH_SCATTERING = vec3(6.602e-6, 1.239e-5, 2.940e-5);
+    const vec3 RAYLEIGH_SCATTERING = vec3(0.00000680947891096, 0.0000113062625584, 0.000025049347778);
 
     // Constants from [HIL20]
-    //    const vec3 MIE_SCATTERING = vec3(3.996e-6);
-    //    const vec3 MIE_ABOSORPTION = vec3(4.4e-6);
+    const vec3 MIE_SCATTERING = vec3(3.996e-6);
+    const vec3 MIE_ABOSORPTION = vec3(4.4e-6);
 
     // Constants from [BRU08]
-    const vec3 MIE_SCATTERING = vec3(2.10e-5);
-    const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 0.1;
+    //    const vec3 MIE_SCATTERING = vec3(2.10e-5);
+    //    const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 0.1;
 
     const float MIE_PHASE_G = 0.76;
 
     // Constants from [HIL20]
-    //    const vec3 OZONE_ABOSORPTION = vec3(0.650e-6, 1.881e-6, 0.085e-6);
+    //        const vec3 OZONE_ABOSORPTION = vec3(0.650e-6, 1.881e-6, 0.085e-6);
     // Constants from [BIO23]
     const vec3 OZONE_ABOSORPTION = vec3(2.341e-6, 1.54e-6, 2.193e-25);
 
@@ -277,11 +277,11 @@ vec3 computeOpticalDepth(AtmosphereParameters atmosphere, vec3 density) {
 }
 
 void computePointDiffInSctr(
-    vec3 sampleUnitDensity,
-    vec3 tSampleToOrigin,
-    vec3 tSunToSample,
-    out vec3 rayleighInSctr,
-    out vec3 mieInSctr
+vec3 sampleUnitDensity,
+vec3 tSampleToOrigin,
+vec3 tSunToSample,
+out vec3 rayleighInSctr,
+out vec3 mieInSctr
 ) {
     vec3 totalTransmittance = tSunToSample * tSampleToOrigin;
 

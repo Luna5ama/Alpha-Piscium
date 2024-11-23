@@ -24,7 +24,7 @@ void main() {
     vec3 pos = vec3(0.0f, 0.0f, viewAltitude);
     vec3 dir = vec3(0.0f, sqrt(1.0 - cosSunZenith * cosSunZenith), cosSunZenith);
 
-    vec3 transmittance = raymarchTransmittance(atmosphere, pos, dir, 32u);
+    vec3 transmittance = raymarchTransmittance(atmosphere, pos, dir, 64u);
 
     imageStore(uimg_transmittanceLUT, ipixPos, vec4(transmittance, 1.0));
 }

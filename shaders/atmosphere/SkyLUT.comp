@@ -63,7 +63,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
     params.cosSunZenith = dot(sunDir, upPosition * 0.01);
     params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
     params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
-    params.steps = 32u;
+    params.steps = 64u;
 
     return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT);
 }
