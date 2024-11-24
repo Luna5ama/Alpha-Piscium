@@ -1,62 +1,47 @@
 #pragma optionNV (unroll all)
 
+#extension GL_KHR_shader_subgroup_arithmetic : enable
+
 #include "../_Util.glsl"
 
-#define OUTPUT_SIZE (SETTING_RTWSM_IMAP_SIZE / 4)
-
-layout(local_size_x = OUTPUT_SIZE, local_size_y = 1, local_size_z = 1) in;
-const ivec3 workGroups = ivec3(2, 1, 1);
+layout(local_size_x = SETTING_RTWSM_IMAP_SIZE, local_size_y = 1, local_size_z = 1) in;
+const ivec3 workGroups = ivec3(1, 2, 1);
 
 layout(r32f) uniform readonly image2D uimg_rtwsm_imap1D;
 layout(rg16_snorm) uniform writeonly image2D uimg_rtwsm_warpingMap;
 
-shared vec4 sSumBuffer[OUTPUT_SIZE];
+shared float shared_prefixBuffer[gl_NumSubgroups];
 
 void main() {
-    int xtIdx = int(gl_LocalInvocationID.x * 4);
-    ivec2 ti1 = ivec2(xtIdx, gl_WorkGroupID.x);
-    ivec2 ti2 = ivec2(xtIdx + 1, gl_WorkGroupID.x);
-    ivec2 ti3 = ivec2(xtIdx + 2, gl_WorkGroupID.x);
-    ivec2 ti4 = ivec2(xtIdx + 3, gl_WorkGroupID.x);
-    vec4 localValue = vec4(
-        imageLoad(uimg_rtwsm_imap1D, ti1).r,
-        imageLoad(uimg_rtwsm_imap1D, ti2).r,
-        imageLoad(uimg_rtwsm_imap1D, ti3).r,
-        imageLoad(uimg_rtwsm_imap1D, ti4).r
-    );
-    vec4 localValue2 = localValue;
-//    localValue += 0.0001;
-    localValue.y += localValue.x;
-    localValue.z += localValue.y;
-    localValue.w += localValue.z;
-    sSumBuffer[gl_LocalInvocationID.x] = localValue;
-
+    shared_prefixBuffer[gl_LocalInvocationID.x] = 0.0;
     barrier();
 
-    if (gl_LocalInvocationID.x == 0) {
-        vec4 last = sSumBuffer[0].wwww;
-        for (int i = 1; i < OUTPUT_SIZE; i++) {
-            sSumBuffer[i] += last;
-            last = sSumBuffer[i].wwww;
-        }
+    ivec2 ti = ivec2(gl_GlobalInvocationID.xy);
+    float tValue = imageLoad(uimg_rtwsm_imap1D, ti).r;
+    float prefix = subgroupInclusiveAdd(tValue);
+    if (gl_SubgroupInvocationID == gl_SubgroupSize - 1) {
+        shared_prefixBuffer[gl_SubgroupID] = prefix;
     }
-
     barrier();
 
-    vec4 sum = sSumBuffer[gl_LocalInvocationID.x];
+    float tValue2 = shared_prefixBuffer[gl_LocalInvocationID.x];
+    barrier();
+    if (gl_SubgroupID == 0) {
+        float prefix2 = subgroupInclusiveAdd(tValue2);
+        shared_prefixBuffer[gl_LocalInvocationID.x] = prefix2;
+    }
+    barrier();
 
-    vec4 total = vec4(sSumBuffer[OUTPUT_SIZE - 1].w);
-    float fidx = float(xtIdx + 1.0);
-    vec4 ks = vec4(fidx, fidx + 1.0, fidx + 2.0, fidx + 3.0);
-    float nf = float(OUTPUT_SIZE * 4);
-    vec4 ksNf = ks / nf;
+    prefix += gl_SubgroupID == 0 ? 0.0 : shared_prefixBuffer[gl_SubgroupID - 1];
+    barrier();
 
-    vec4 ik = gl_LocalInvocationID.x == 0 ? vec4(0.0, sum.xyz) : vec4(sSumBuffer[gl_LocalInvocationID.x - 1].w, sum.xyz);
-    vec4 warping = ik / total - ksNf;
-    vec4 texelSize = localValue2 / max(total, 1.0);
+    float k = float(gl_LocalInvocationID.x + 1);
+    float n = float(gl_WorkGroupSize.x);
 
-    imageStore(uimg_rtwsm_warpingMap, ti1, vec4(warping.x, texelSize.x, 0.0, 0.0));
-    imageStore(uimg_rtwsm_warpingMap, ti2, vec4(warping.y, texelSize.y, 0.0, 0.0));
-    imageStore(uimg_rtwsm_warpingMap, ti3, vec4(warping.z, texelSize.z, 0.0, 0.0));
-    imageStore(uimg_rtwsm_warpingMap, ti4, vec4(warping.w, texelSize.w, 0.0, 0.0));
+    float prefixExcl = prefix - tValue;
+    float total = shared_prefixBuffer[gl_NumSubgroups - 1];
+    float warp = (prefixExcl / total) - (k / n);
+    float texelSize = tValue / max(total, 1.0);
+
+    imageStore(uimg_rtwsm_warpingMap, ti, vec4(warp, texelSize, 0.0, 0.0));
 }

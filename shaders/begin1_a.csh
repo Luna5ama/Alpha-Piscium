@@ -1,7 +1,7 @@
 #version 460 compatibility
 #include "rtwsm/RTWSM.glsl"
 
-const ivec3 workGroups = ivec3(WORKGROUP16_COUNT, WORKGROUP16_COUNT, 1);
+const ivec3 workGroups = ivec3(IMAP_SIZE_D16, IMAP_SIZE_D16, 1);
 
 layout(r32ui) uniform writeonly uimage2D uimg_rtwsm_imap2D;
 #define CLEAR_IMAGE1 uimg_rtwsm_imap2D
