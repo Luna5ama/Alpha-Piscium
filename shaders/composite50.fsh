@@ -3,10 +3,7 @@
 #include "../_Util.glsl"
 
 uniform sampler2D usam_main;
-uniform sampler2D usam_temp1;
-uniform sampler2D usam_temp3;
 uniform sampler2D usam_ssvbil;
-uniform sampler2D usam_bentNormal;
 
 in vec2 frag_texCoord;
 
