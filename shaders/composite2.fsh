@@ -193,8 +193,6 @@ vec3 calcFresnel(Material material, float LDotH) {
 }
 
 void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
-    vec3 directLight = vec3(0.0);
-
     vec3 H = normalize(L + V);
     float NDotL = dot(N, L);
     float NDotV = dot(N, V);
@@ -202,7 +200,7 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);
 
-    vec3 emissiveV = material.emissive * material.albedo * 16.0;
+    vec3 emissiveV = material.emissive;
 
     vec4 ssvbilSample = texelFetch(usam_ssvbil, intTexCoord, 0);
     float skyDiffuseAO = ssvbilSample.a * ssvbilSample.a;
@@ -224,7 +222,9 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     sunRadiance *= transmittance;
 
 //    vec3 diffuseV = bsdf_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
-    vec3 sunDiffuseV = shadow * saturate(NDotL) * RCP_PI_CONST * sunRadiance * material.albedo;
+    vec3 sunDiffuseV = shadow * saturate(NDotL) * sunRadiance * material.albedo;
+    vec4 stuff = colors_blackBodyRadiation(1500.0, 1.0);
+//    sunDiffuseV = max(stuff.rgb, 0.0) * material.albedo * skyDiffuseAO * skyDiffuseAO * 0.5;
 
     // Sky diffuse
     vec3 skyNormal = texelFetch(usam_bentNormal, intTexCoord, 0).rgb * 2.0 - 1.0;
@@ -245,6 +245,7 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec3 skySpecularV = fresnel * skyLightIntensity * reflectRadiance;
 
     rt_main = vec4(0.0, 0.0, 0.0, 1.0);
+    rt_main.rgb += 0.02 * material.albedo;
     rt_main.rgb += sunDiffuseV;
     rt_main.rgb += emissiveV;
     rt_main.rgb += skyDiffuseV;
@@ -252,9 +253,9 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
 
     rt_temp2 = vec4(0.0, 0.0, 0.0, 1.0);
     rt_temp2.rgb += sunDiffuseV;
-    rt_temp2.rgb += emissiveV;
     rt_temp2.rgb += skyDiffuseV;
     rt_temp2.rgb += multiBounceV;
+    rt_temp2.rgb += emissiveV;
 }
 
 void doStuff() {
@@ -265,7 +266,7 @@ void doStuff() {
     doLighting(material, shadow, sunPosition * 0.01, gData.normal, g_viewDir);
 
     rt_temp1.rgb = gData.normal;
-    rt_temp1.a = float(material.emissive > 0.0);
+    rt_temp1.a = float(any(greaterThan(material.emissive, vec3(0.0))));
 }
 
 void main() {
