@@ -219,23 +219,24 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     lutTransmittanceParamsToUv(atmosphere, viewAltitude, cosSunZenith, transmittanceUV);
     vec3 transmittance = texture(usam_transmittanceLUT, transmittanceUV).rgb;
 
-    sunRadiance *= transmittance;
-
 //    vec3 diffuseV = bsdf_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
-    vec3 sunDiffuseV = shadow * saturate(NDotL) * sunRadiance * material.albedo;
+    vec3 sunDiffuseV = saturate(NDotL) * RCP_PI_CONST * shadow * transmittance * sunRadiance * material.albedo;
     vec4 stuff = colors_blackBodyRadiation(1500.0, 1.0);
 //    sunDiffuseV = max(stuff.rgb, 0.0) * material.albedo * skyDiffuseAO * skyDiffuseAO * 0.5;
 
     // Sky diffuse
     vec3 skyNormal = texelFetch(usam_bentNormal, intTexCoord, 0).rgb * 2.0 - 1.0;
-    skyNormal.z = mix(skyNormal.z, sign(skyNormal.z) * max(abs(skyNormal.z), 0.05), float(skyNormal.y < 0.05));
+    skyNormal.x = dither(skyNormal.x, rand_IGN(gl_FragCoord.xy, frameCounter), 0.1);
+    skyNormal.y = dither(skyNormal.y, rand_IGN(gl_FragCoord.xy, frameCounter + 1), 0.1);
+    skyNormal.z = dither(skyNormal.z, rand_IGN(gl_FragCoord.xy, frameCounter + 2), 0.1);
     vec2 skyLUTUV = coords_polarAzimuthEqualArea(normalize(skyNormal));
     vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
-    float skyLightIntensity = SETTING_SKYLIGHT_STRENGTH;
+    float skyLightIntensity = 1.0;
     skyLightIntensity *= gData.lmCoord.y;
     skyLightIntensity *= skyLightIntensity;
     skyLightIntensity *= skyDiffuseAO;
-    vec3 skyDiffuseV =  skyLightIntensity * material.albedo * skyRadiance;
+    skyLightIntensity *= SETTING_SKYLIGHT_STRENGTH;
+    vec3 skyDiffuseV =  skyLightIntensity * sunRadiance * skyRadiance * material.albedo;
 
     // Sky reflection
     vec3 reflectDirView = reflect(-g_viewDir, gData.normal);

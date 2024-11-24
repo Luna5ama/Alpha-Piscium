@@ -80,11 +80,8 @@ void main() {
         vec3 rayDir = coords_polarAzimuthEqualAreaInverse(texCoord);
         ScatteringResult result = computeSingleScattering(atmosphere, rayDir);
 
-        vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
-
         vec3 color = vec3(0.0);
-        color += result.inScattering;
-        color *= sunRadiance;
+        color += result.inScattering * PI_CONST;
 
         imageStore(uimg_skyLUT, pixelPos, vec4(color, 1.0));
     }

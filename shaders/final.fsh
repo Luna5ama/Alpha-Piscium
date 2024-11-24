@@ -76,7 +76,7 @@ void main() {
         color.rgb = pow(texture(usam_transmittanceLUT, debugTexCoord).rgb, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
     }
     if (inViewPort(vec4(0, 64, 256, 256), debugTexCoord)) {
-        color.rgb = pow(texture(usam_skyLUT, debugTexCoord).rgb * 0.1, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
+        color.rgb = pow(texture(usam_skyLUT, debugTexCoord).rgb * 2.0, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
     }
     #endif
 

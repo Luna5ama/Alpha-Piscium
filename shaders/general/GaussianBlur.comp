@@ -108,7 +108,7 @@ void main() {
 
     barrier();
 
-    DATA_TYPE sum = 0.0;
+    DATA_TYPE sum = DATA_TYPE(0.0);
     uint centerIdx = gl_LocalInvocationID.x + GAUSSIAN_BLUR_KERNEL_RADIUS;
     #if GAUSSIAN_BLUR_KERNEL_RADIUS >= 64
     sum += dataCache[centerIdx - 64] * WEIGHTS[64];
