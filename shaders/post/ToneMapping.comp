@@ -7,6 +7,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 shared uint shared_lumHistogram[256];
+shared uint shared_topBinSum = 0u;
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 layout(rgba16f) readonly uniform image2D uimg_temp1;
@@ -115,7 +116,6 @@ void main() {
 
     if (all(lessThan(pixelPos, imgSize))) {
         vec4 color = imageLoad(uimg_main, pixelPos);
-        uint lumaWeight = 1u;
         color.rgb *= global_exposure.w;
         color.rgb = agx(color.rgb);
         color.rgb = agxLook(color.rgb);
@@ -125,14 +125,14 @@ void main() {
         float lumimance = colors_srgbLuma(color.rgb);
 
         uint binIndexTop = histoIndex(lumimance, SETTING_EXPOSURE_TOP_BIN_LUM, 4);
-        uint topBinValue = uint(binIndexTop == 3u) * lumaWeight;
-        uint topBinSum = subgroupAdd(topBinValue);
+        uvec4 topBinBallot = subgroupBallot(binIndexTop == 3u);
+        uint topBinSum = subgroupBallotBitCount(topBinBallot);
         if (subgroupElect()) {
-            atomicAdd(global_lumHistogram[256], topBinSum);
+            atomicAdd(shared_topBinSum, topBinSum);
         }
 
         uint binIndexAvg = histoIndex(lumimance, 1.0, 256);
-        atomicAdd(shared_lumHistogram[binIndexAvg], lumaWeight);
+        atomicAdd(shared_lumHistogram[binIndexAvg], 1u);
 
         color.rgb = pow(color.rgb, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
         imageStore(uimg_main, pixelPos, color);
@@ -140,5 +140,9 @@ void main() {
         barrier();
 
         atomicAdd(global_lumHistogram[gl_LocalInvocationIndex], shared_lumHistogram[gl_LocalInvocationIndex]);
+
+        if (gl_LocalInvocationIndex == 0) {
+            atomicAdd(global_lumHistogram[256], shared_topBinSum);
+        }
     }
 }
