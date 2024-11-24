@@ -71,7 +71,7 @@ void main() {
         expNew.w += expNew.y * SETTING_EXPOSURE_TOP_BIN_MIX;
         expNew.w /= totalWeight;
 
-        expNew.b = averageLuminance;// Debug
+        expNew.z = averageLuminance;// Debug
         global_exposure = expNew;
         #endif
     }

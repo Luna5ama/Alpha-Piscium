@@ -33,9 +33,9 @@ Material material_decode(GBufferData gData) {
     const float _1o255 = 1.0 / 255.0;
     float emissiveS = linearStep(1.0, _1o255, gData.pbrSpecular.a);
     emissiveS *= step(_1o255, gData.pbrSpecular.a);
-    material.emissive = mix(vec3(0.0), emissiveS * 128.0 * material.albedo, float(gData.materialID == 65535u));
-    material.emissive = mix(material.emissive, colors_blackBodyRadiation(SETTING_LAVA_TEMPERATURE, 1.0).a * gData.albedo, float(gData.materialID == 1u));
-    material.emissive = mix(material.emissive, colors_blackBodyRadiation(SETTING_FIRE_TEMPERATURE, 1.0).a * gData.albedo, float(gData.materialID == 2u));
+    material.emissive = mix(vec3(0.0), emissiveS * 64.0 * material.albedo, float(gData.materialID == 65535u));
+    material.emissive = mix(material.emissive, colors_blackBodyRadiation(SETTING_LAVA_TEMPERATURE, 1.0).a * material.albedo, float(gData.materialID == 1u));
+    material.emissive = mix(material.emissive, colors_blackBodyRadiation(SETTING_FIRE_TEMPERATURE, 1.0).a * material.albedo, float(gData.materialID == 2u));
 
     const float _64o255 = 64.0 / 255.0;
     const float _65o255 = 65.0 / 255.0;

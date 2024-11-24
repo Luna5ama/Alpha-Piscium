@@ -1,0 +1,62 @@
+/*
+    References:
+        [JIM14] Jimenez, Jorge. "Next Generation Post Processing in Call of Duty: Advanced Warfare" SIGGRAPH 2014.
+        https://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare/
+*/
+layout(local_size_x = 16, local_size_y = 16) in;
+shared uvec2 shared_dataCache[18][18];
+
+#include "Common.glsl"
+
+void computeReadPos(uint index, out ivec2 writePos, out ivec2 readPos) {
+    writePos = ivec2(index % 18, index / 18);
+    readPos = writePos + groupBasePixel - 1;
+}
+
+void main() {
+    ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
+
+    {
+        ivec2 writePos;
+        ivec2 readPos;
+
+        computeReadPos(gl_LocalInvocationIndex, writePos, readPos);
+        writeCache(writePos, bloom_input(readPos));
+
+        computeReadPos(gl_LocalInvocationIndex + 256, writePos, readPos);
+        if (writePos.y < 18) {
+            writeCache(writePos, bloom_input(readPos));
+        }
+    }
+
+    barrier();
+
+    if (all(lessThan(pixelPos, bloom_outputSize()))) {
+        ivec2 centerPos = ivec2(gl_LocalInvocationID.xy) + 1;
+
+        // a b c
+        // d e f
+        // g h i
+        // a,c,g,i: 1/16 (0.0625)
+        // b,d,f,h: 2/16 (0.125)
+        // e: 4/16 (0.25)
+        vec4 result = vec4(0.0);
+
+        vec4 a = readCache(centerPos + ivec2(-1, -1));
+        vec4 c = readCache(centerPos + ivec2(1, -1));
+        vec4 g = readCache(centerPos + ivec2(-1, 1));
+        vec4 i = readCache(centerPos + ivec2(1, 1));
+        result += (a + c + g + i) * 0.0625;
+
+        vec4 b = readCache(centerPos + ivec2(0, -1));
+        vec4 d = readCache(centerPos + ivec2(-1, 0));
+        vec4 f = readCache(centerPos + ivec2(1, 0));
+        vec4 h = readCache(centerPos + ivec2(0, 1));
+        result += (b + d + f + h) * 0.125;
+
+        vec4 e = readCache(centerPos);
+        result += e * 0.25;
+
+        bloom_output(pixelPos, result);
+    }
+}

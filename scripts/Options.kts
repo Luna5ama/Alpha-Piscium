@@ -684,7 +684,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
         }
         empty()
         empty()
-        screen("POSTFX", 1) {
+        screen("POSTFX", 2) {
             lang(Locale.US) {
                 name = "Post Processing"
             }
@@ -751,6 +751,21 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Top Bin %"
                         comment =
                             "Adjusting exposure to keep the specified percentage of pixels in the top bin of histogram."
+                    }
+                }
+            }
+            screen("BLOOM", 1) {
+                lang(Locale.US) {
+                    name = "Bloom"
+                }
+                toggle("SETTING_BLOOM", true) {
+                    lang(Locale.US) {
+                        name = "Bloom Enabled"
+                    }
+                }
+                slider("SETTING_BLOOM_INTENSITY", 0.5, 0.0..1.0 step 0.05) {
+                    lang(Locale.US) {
+                        name = "Bloom Intensity"
                     }
                 }
             }
