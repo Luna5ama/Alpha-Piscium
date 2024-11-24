@@ -15,6 +15,8 @@ uniform sampler2D usam_rtwsm_warpingMap;
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_skyLUT;
 
+uniform sampler2D usam_temp3;
+
 varying vec2 texcoord;
 
 const float IMPORTANCE_MUL = uintBitsToFloat(0x4F800000u);
@@ -78,6 +80,10 @@ void main() {
     if (inViewPort(vec4(0, 64, 256, 256), debugTexCoord)) {
         color.rgb = pow(texture(usam_skyLUT, debugTexCoord).rgb * 2.0, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
     }
+    #endif
+
+    #ifdef SETTING_DEBUG_TEMP3
+    color.rgb = pow(texelFetch(usam_temp3, intTexCoord, 0).rgb * .1, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
     #endif
 
     rt_out = color;

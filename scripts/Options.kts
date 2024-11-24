@@ -775,6 +775,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             toggle("SETTING_DEBUG_SSVBIL_AO", false)
             toggle("SETTING_DEBUG_SSVBIL_GI", false)
             toggle("SETTING_DEBUG_SSVBIL_BENT_NORMAL", false)
+            toggle("SETTING_DEBUG_TEMP3", false)
         }
     }
 }
