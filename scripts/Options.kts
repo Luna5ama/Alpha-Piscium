@@ -682,8 +682,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        empty()
-        empty()
         screen("POSTFX", 2) {
             lang(Locale.US) {
                 name = "Post Processing"
@@ -777,6 +775,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     lang(Locale.US) {
                         name = "Output Gamma"
                     }
+                }
+            }
+        }
+        screen("MISC", 2) {
+            lang(Locale.US) {
+                name = "Mics"
+            }
+            toggle("SETTING_SCREENSHOT_MODE", false) {
+                lang(Locale.US) {
+                    name = "Screenshot Mode"
                 }
             }
         }

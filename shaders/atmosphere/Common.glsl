@@ -298,7 +298,6 @@ sampler2D usam_transmittanceLUT
     float stepLength = params.rayLen / float(params.steps);
     vec3 stepDelta = params.rayDir * stepLength;
 
-    #if TRAPEZOIDAL_INTEGRATION
     vec3 prevDensity;
     vec3 prevRayleighInSctr;
     vec3 prevMieInSctr;
@@ -350,45 +349,6 @@ sampler2D usam_transmittanceLUT
     totalInSctr += params.miePhaseAngular * atmosphere.mieSctrCoeffAngular * totalMieInSctr;
     result.inScattering = totalInSctr;
 
-    #else
-    vec3 totalOpticalDepth = vec3(0.0);
-
-    for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
-        float stepIndexF = float(stepIndex);
-        vec3 samplePos = params.origin + (stepIndexF + 0.5) * stepDelta;
-        float sampleHeight = length(samplePos) - atmosphere.bottom;
-
-        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
-
-        vec3 sampleExtinction = computeOpticalDepth(atmosphere, sampleDensity);
-        vec3 sampleOpticalDepth = sampleExtinction * stepLength;
-        vec3 sampleTransmittance = exp(-sampleOpticalDepth);
-
-        vec3 sampleScattering = vec3(0.0);
-        sampleScattering += params.rayleighPhaseAngular * atmosphere.rayleighSctrCoeffAngular * sampleDensity.x;
-        sampleScattering += params.miePhaseAngular * atmosphere.mieSctrCoeffAngular * sampleDensity.y;
-
-        // TODO: shadowed in-scattering
-        float shadow = 1.0;
-
-        vec3 tSunToSample = raymarchSampleTransmittanceLUT(atmosphere, params, samplePos, usam_transmittanceLUT);
-        vec3 tSampleToOrigin = exp(-totalOpticalDepth);
-
-        #if 0
-        vec3 scattering = shadow * stepLength * tSunToSample * sampleScattering;
-        result.inScattering += tSampleToOrigin * scattering;
-        #else
-        vec3 scattering = shadow * sampleScattering * tSunToSample;
-        // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-        vec3 scatteringInt = (scattering - scattering * sampleTransmittance) / sampleExtinction;
-        result.inScattering += tSampleToOrigin * scatteringInt;
-        #endif
-
-        totalOpticalDepth += sampleOpticalDepth;
-    }
-    result.transmittance = exp(-totalOpticalDepth);
-    #endif
-
     return result;
 }
 
@@ -417,7 +377,6 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
 
     vec3 totalDensity = vec3(0.0);
 
-    #if TRAPEZOIDAL_INTEGRATION
     vec3 prevDensity = vec3(0.0);
     {
         vec3 samplePos = origin;
@@ -434,16 +393,6 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
         totalDensity += (prevDensity + sampleDensity) * (stepLength * 0.5);
         prevDensity = sampleDensity;
     }
-    #else
-    for (uint stepIndex = 0u; stepIndex < steps; stepIndex++) {
-        float stepIndexF = float(stepIndex);
-        vec3 samplePos = origin + (stepIndexF + 0.5) * stepDelta;
-        float sampleHeight = length(samplePos) - atmosphere.bottom;
-        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
-
-        totalDensity += sampleDensity * stepLength;
-    }
-    #endif
 
     vec3 totalOpticalDepth = computeOpticalDepth(atmosphere, totalDensity);
     result = exp(-totalOpticalDepth);

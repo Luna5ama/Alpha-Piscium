@@ -94,8 +94,10 @@ void main() {
     clampRatio2 += cameraSpeed * 2.0;
     clampRatio2 = saturate(clampRatio2);
 
+    #ifndef SETTING_SCREENSHOT_MODE
     lastColor = mix(lastColor, clamp(lastColor, nearMin2, nearMax2), clampRatio2);
     lastColor = mix(lastColor, clamp(lastColor, nearMin1, nearMax1), clampRatio1);
+    #endif
 
     float lastMixWeight = texture(usam_taaLast, frag_texCoord).a;
 

@@ -4,6 +4,7 @@
 // You can find full license texts in /licenses
 #include "../_Util.glsl"
 #include "Common.glsl"
+#include "../rtwsm/RTWSM.glsl"
 
 layout(local_size_x = 128, local_size_y = 1) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -12,6 +13,86 @@ layout(rgba16f) restrict uniform image2D uimg_main;
 
 uniform sampler2D usam_viewZ;
 uniform sampler2D usam_transmittanceLUT;
+
+uniform sampler2D usam_rtwsm_warpingMap;
+const bool shadowHardwareFiltering0 = true;
+uniform sampler2DShadow shadowtex0HW;
+
+float sampleShadow(vec3 shadowPos) {
+    vec3 sampleTexCoord = shadowPos;
+    sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_warpingMap, sampleTexCoord.xy);
+    return rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
+}
+
+ScatteringResult raymarchSingleScatteringShadowed(
+AtmosphereParameters atmosphere, RaymarchParameters params,
+vec3 startShadow, vec3 endShadow,
+sampler2D usam_transmittanceLUT
+) {
+    ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
+
+    float stepFraction = 1.0 / float(params.steps);
+    float stepJitter = rand_IGN(vec2(gl_GlobalInvocationID.xy), frameCounter);
+    float stepLength = params.rayLen / float(params.steps);
+    vec3 stepDelta = params.rayDir * stepLength;
+
+    vec3 prevDensity;
+    vec3 prevRayleighInSctr;
+    vec3 prevMieInSctr;
+
+    vec3 totalDensity = vec3(0.0);
+    vec3 totalRayleighInSctr = vec3(0.0);
+    vec3 totalMieInSctr = vec3(0.0);
+    {
+        vec3 samplePos = params.origin;
+        float sampleHeight = length(samplePos) - atmosphere.bottom;
+        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
+
+        prevDensity = sampleDensity;
+
+        vec3 tSunToSample = raymarchSampleTransmittanceLUT(atmosphere, params, samplePos, usam_transmittanceLUT);
+        tSunToSample *= sampleShadow(startShadow);
+        vec3 tSampleToOrigin = vec3(1.0);
+
+        computePointDiffInSctr(sampleDensity, tSampleToOrigin, tSunToSample, prevRayleighInSctr, prevMieInSctr);
+    }
+
+    for (uint stepIndex = 1u; stepIndex <= params.steps; stepIndex++) {
+        float stepIndexF = float(stepIndex) - stepJitter;
+        vec3 samplePos = params.origin + (stepIndexF) * stepDelta;
+        float sampleHeight = length(samplePos) - atmosphere.bottom;
+        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
+
+        totalDensity += (prevDensity + sampleDensity) * (stepLength * 0.5);
+        prevDensity = sampleDensity;
+
+        vec3 sampleShadowPos = mix(startShadow, endShadow, stepIndexF * stepFraction);
+        vec3 tSunToSample = raymarchSampleTransmittanceLUT(atmosphere, params, samplePos, usam_transmittanceLUT);
+        tSunToSample *= sampleShadow(sampleShadowPos);
+        vec3 tSampleToOrigin = exp(-computeOpticalDepth(atmosphere, totalDensity));
+
+        vec3 sampleRayleightInSctr;
+        vec3 sampleMieInSctr;
+        computePointDiffInSctr(sampleDensity, tSampleToOrigin, tSunToSample, sampleRayleightInSctr, sampleMieInSctr);
+
+        totalRayleighInSctr += (prevRayleighInSctr + sampleRayleightInSctr) * (stepLength * 0.5);
+        totalMieInSctr += (prevMieInSctr + sampleMieInSctr) * (stepLength * 0.5);
+
+        prevRayleighInSctr = sampleRayleightInSctr;
+        prevMieInSctr = sampleMieInSctr;
+    }
+
+    vec3 totalOpticalDepth = computeOpticalDepth(atmosphere, totalDensity);
+    result.transmittance = exp(-totalOpticalDepth);
+
+    vec3 totalInSctr = vec3(0.0);
+    totalInSctr += params.rayleighPhaseAngular * atmosphere.rayleighSctrCoeffAngular * totalRayleighInSctr;
+    totalInSctr += params.miePhaseAngular * atmosphere.mieSctrCoeffAngular * totalMieInSctr;
+    result.inScattering = totalInSctr;
+
+    return result;
+}
+
 
 // originView: ray origin in view space
 // endView: ray end in view space
@@ -25,6 +106,12 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
     vec3 viewDirWorld = normalize(vectorView2World * viewDirView);
 
     params.origin = atmosphere_viewToAtm(atmosphere, originView);
+
+    vec3 sunDir = sunPosition * 0.01;
+    float cosTheta = -dot(sunDir, viewDirView);
+    params.cosSunZenith = dot(sunDir, upPosition * 0.01);
+    params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
+    params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
 
     if (endView.z == -65536.0) {
         vec3 earthCenter = vec3(0.0, 0.0, 0.0);
@@ -53,21 +140,29 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
                 params.rayLen = min(tTop, tBottom);
             }
         }
+
+        params.steps = 32u;
+        return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT);
     } else {
         vec3 endAtm = atmosphere_viewToAtm(atmosphere, endView);
 
         params.rayDir = normalize(endAtm - params.origin);
         params.rayLen = length(endAtm - params.origin);
+
+        vec4 originScene = gbufferModelViewInverse * vec4(originView, 1.0);
+        vec4 endScene = gbufferModelViewInverse * vec4(endView, 1.0);
+
+        vec4 originShadowCS = global_shadowRotationMatrix * shadowProjection * shadowModelView * originScene;
+        vec4 endShadowCS = global_shadowRotationMatrix * shadowProjection * shadowModelView * endScene;
+
+        vec3 startShadow = originShadowCS.xyz / originShadowCS.w;
+        startShadow = startShadow * 0.5 + 0.5;
+        vec3 endShadow = endShadowCS.xyz / endShadowCS.w;
+        endShadow = endShadow * 0.5 + 0.5;
+
+        params.steps = 16u;
+        return raymarchSingleScatteringShadowed(atmosphere, params, startShadow, endShadow, usam_transmittanceLUT);
     }
-
-    vec3 sunDir = sunPosition * 0.01;
-    float cosTheta = -dot(sunDir, viewDirView);
-    params.cosSunZenith = dot(sunDir, upPosition * 0.01);
-    params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
-    params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
-    params.steps = 32u;
-
-    return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT);
 }
 
 void main() {
