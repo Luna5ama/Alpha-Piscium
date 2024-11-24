@@ -227,7 +227,7 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     // Sky diffuse
     vec3 skyNormal = texelFetch(usam_bentNormal, intTexCoord, 0).rgb * 2.0 - 1.0;
     skyNormal.x = dither(skyNormal.x, rand_IGN(gl_FragCoord.xy, frameCounter), 0.1);
-    skyNormal.y = dither(skyNormal.y, rand_IGN(gl_FragCoord.xy, frameCounter + 1), 0.1);
+    skyNormal.y = dither(skyNormal.y, -rand_IGN(gl_FragCoord.xy, frameCounter + 1), 0.1);
     skyNormal.z = dither(skyNormal.z, rand_IGN(gl_FragCoord.xy, frameCounter + 2), 0.1);
     vec2 skyLUTUV = coords_polarAzimuthEqualArea(normalize(skyNormal));
     vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
@@ -236,7 +236,7 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     skyLightIntensity *= skyLightIntensity;
     skyLightIntensity *= skyDiffuseAO;
     skyLightIntensity *= SETTING_SKYLIGHT_STRENGTH;
-    vec3 skyDiffuseV =  skyLightIntensity * sunRadiance * skyRadiance * material.albedo;
+    vec3 skyDiffuseV = skyLightIntensity * sunRadiance * skyRadiance * material.albedo;
 
     // Sky reflection
     vec3 reflectDirView = reflect(-g_viewDir, gData.normal);
@@ -274,7 +274,7 @@ void main() {
     rt_main = vec4(0.0);
     float viewZ = texelFetch(usam_viewZ, intTexCoord, 0).r;
     if (viewZ == 1.0) {
-        rt_main = texelFetch(usam_main, intTexCoord, 0);
+        rt_main.rgb = texelFetch(usam_main, intTexCoord, 0).rgb;
         return;
     }
 
@@ -286,4 +286,6 @@ void main() {
     coord3Rand[1] = rand_hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
 
     doStuff();
+
+    rt_main.a = float(uint(gData.isTranslucent));
 }

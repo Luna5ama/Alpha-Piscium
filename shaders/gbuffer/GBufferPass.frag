@@ -19,6 +19,14 @@ in float frag_viewZ; // 32 bits
 layout(location = 0) out uvec4 rt_gbuffer;
 layout(location = 1) out float rt_viewZ;
 
+float hash( vec2 x ) {
+    return fract( 1.0e4 * sin( 17.0*x.x + 0.1*x.y ) *( 0.1 + abs( sin( 13.0*x.y + x.x ))));
+}
+float hash3D( vec3 x ) {
+    return hash( vec2( hash( x.xy ), x.z ) );
+}
+
+
 vec4 processAlbedo() {
     vec4 albedo = frag_colorMul;
 
@@ -37,9 +45,9 @@ vec4 processAlbedo() {
     #endif
 
     #ifdef GBUFFER_PASS_TRANLUCENT
-    vec2 randCoord = gl_FragCoord.xy;
-    randCoord.y += -frag_viewZ;
-    float randAlpha = rand_IGN(randCoord, frameCounter);
+    uint r2Index = rand_hash11(floatBitsToUint(frag_viewZ)) & 31u;
+    vec2 randR2 = rand_r2Seq2(r2Index);
+    float randAlpha = rand_IGN(gl_FragCoord.xy + randR2, frameCounter);
 
     if (albedo.a < randAlpha) {
         discard;
@@ -109,6 +117,12 @@ void processOutput(out GBufferData gData, out float viewZ) {
     viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;
     #else
     viewZ = frag_viewZ;
+    #endif
+
+    #ifdef GBUFFER_PASS_TRANLUCENT
+    gData.isTranslucent = true;
+    #else
+    gData.isTranslucent = false;
     #endif
 }
 #endif
