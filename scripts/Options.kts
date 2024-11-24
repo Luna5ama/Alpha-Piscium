@@ -474,18 +474,18 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang(Locale.US) {
                     name = "Blocklight"
                 }
-                slider("SETTING_FIRE_TEMPERATURE", 1900, 1000..20000 step 100) {
+                slider("SETTING_FIRE_TEMPERATURE", 1600, 1000..20000 step 100) {
                     lang(Locale.US) {
                         name = "Fire Temperature"
                         comment =
-                            "Temperature of fire in K (kelvin). The default value 1900 K is based on real life average."
+                            "Temperature of fire in K (kelvin). The default value 1600 K is based on real life average."
                     }
                 }
-                slider("SETTING_LAVA_TEMPERATURE", 1200, 1000..20000 step 100) {
+                slider("SETTING_LAVA_TEMPERATURE", 1400, 1000..20000 step 100) {
                     lang(Locale.US) {
                         name = "Lava Temperature"
                         comment =
-                            "Temperature of lava in K (kelvin). The default value 1200 K is based on real life average."
+                            "Temperature of lava in K (kelvin). The default value 1400 K is based on real life average."
                     }
                 }
             }
@@ -641,26 +641,21 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Sample Radius"
                     }
                 }
+                slider("SETTING_SSVBIL_THICKNESS", 1.0, 0.1..10.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "Thickness"
+                    }
+                }
                 empty()
                 slider("SETTING_SSVBIL_AO_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
                     lang(Locale.US) {
                         name = "AO Strength"
                     }
                 }
-                slider("SETTING_SSVBIL_AO_THICKNESS", 0.5, 0.1..10.0 step 0.1) {
-                    lang(Locale.US) {
-                        name = "AO Thickness"
-                    }
-                }
                 empty()
                 slider("SETTING_SSVBIL_GI_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
                     lang(Locale.US) {
                         name = "GI Strength"
-                    }
-                }
-                slider("SETTING_SSVBIL_GI_THICKNESS", 1.0, 0.1..10.0 step 0.1) {
-                    lang(Locale.US) {
-                        name = "GI Thickness"
                     }
                 }
                 slider("SETTING_SSVBIL_GI_MB", 1.0, 0.0..2.0 step 0.1) {
@@ -733,7 +728,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_TOP_BIN_MIX", .0, 0.0..1.0 step 0.05) {
+                slider("SETTING_EXPOSURE_TOP_BIN_MIX", 1.0, 0.0..1.0 step 0.05) {
                     lang(Locale.US) {
                         name = "Top Bin Weight"
                         comment = "Weight of top bin AE in the final exposure value."

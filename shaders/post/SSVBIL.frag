@@ -124,10 +124,10 @@ vec3 acosFastPositive(vec3 inX) {
     return res;
 }
 
-float calcHorizonAngles(vec3 projNormal, vec3 pos) {
-    float cosH = dot(pos, projNormal) * inversesqrt(dot(pos, pos));
+float calcHorizonWeighted(vec3 projNormal, vec3 pos) {
+    float cosH = dot(pos, projNormal);
     cosH = saturate(cosH);
-    return acosFastPositive(cosH) * RCP_PI_HALF_CONST;
+    return sqrt(1.0 - cosH * cosH);
 }
 
 void main() {
@@ -139,7 +139,7 @@ void main() {
     if (centerViewZ < 0.0) {
         vec3 centerViewCoord = coords_toViewCoord(frag_texCoord, centerViewZ, gbufferProjectionInverse);
         vec3 centerViewNormal = textureLod(usam_temp1, frag_texCoord, 0.0).rgb;
-        rt_bentNormal.xyz = centerViewNormal;
+        rt_bentNormal.xyz = centerViewNormal * 0.0001;
         vec3 centerViewDir = normalize(-centerViewCoord);
 
         float sampleAngleDelta = 2.0 * PI_CONST / SSVBIL_SAMPLE_SLICES;
@@ -160,7 +160,7 @@ void main() {
             vec3 planeNormal = normalize(cross(vec3(sampleDir, 0.0), centerViewDir));
             vec3 sliceTangent = cross(centerViewDir, planeNormal);
             vec3 projNormal = normalize(centerViewNormal - planeNormal * dot(centerViewNormal, planeNormal));
-            vec3 realTangent = -cross(projNormal, planeNormal);
+            vec3 realTangent = cross(projNormal, planeNormal);
 
             float maxDist = length(sampleDir * sphereRadius);
 
@@ -170,7 +170,6 @@ void main() {
 
             float sampleTexelDist = 0.5;
             uint aoSectionBits = 0u;
-            uint giSectionBits = 0u;
 
             for (int stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; stepIndex++) {
                 float sampleLodTexelSize = lodTexelSize(sampleLod) * 1.0;
@@ -186,62 +185,46 @@ void main() {
                 float distSq = dot(diff, diff);
 
                 if (distSq <= RADIUS_SQ.y) {
-                    vec3 frontPos = diff;
-                    float frontH = calcHorizonAngles(projNormal, frontPos);
+                    float rcpDist = fastRcpSqrtNR0(distSq);
+                    vec3 frontPos = diff * rcpDist;
+                    float frontH = calcHorizonWeighted(projNormal, frontPos);
 
                     uint aoStepSectorBits;
-                    {
-                        vec3 backOffset = centerViewDir * SETTING_SSVBIL_AO_THICKNESS;
-                        vec3 backPos = diff - backOffset;
-                        float backH = calcHorizonAngles(projNormal, backPos);
-                        aoStepSectorBits = calcSectorBits(min(frontH, backH), max(frontH, backH));
-                    }
+                    vec3 backOffset = centerViewDir * SETTING_SSVBIL_THICKNESS;
+                    vec3 backPos = diff - backOffset;
+                    float backH = calcHorizonWeighted(projNormal, normalize(backPos));
+                    aoStepSectorBits = calcSectorBits(min(frontH, backH), max(frontH, backH));
+
+                    uint ilBit = bitCount(aoStepSectorBits & ~aoSectionBits);
                     aoSectionBits |= aoStepSectorBits;
-
-                    uint giStepSectorBits;
-                    {
-                        vec3 backOffset = centerViewDir * SETTING_SSVBIL_GI_THICKNESS * float(stepIndex);
-                        vec3 backPos = diff - backOffset;
-                        float backH = calcHorizonAngles(projNormal, backPos);
-                        giStepSectorBits = calcSectorBits(min(frontH, backH), max(frontH, backH));
-                    }
-
-                    uint ilBit = bitCount(giStepSectorBits & ~giSectionBits);
-                    giSectionBits |= giStepSectorBits;
 
                     uint ilCond = uint(ilBit != 0);
                     ilCond &= uint(all(greaterThanEqual(sampleUV, vec2(0.0))));
                     ilCond &= uint(all(lessThanEqual(sampleUV, vec2(1.0))));
 
                     if (bool(ilCond)) {
-                        vec4 sample1 = textureLod(usam_temp1, sampleUV, round(sampleLod * 0.5));
-                        vec4 sample2 = textureLod(usam_temp2, sampleUV, round(sampleLod * 0.5));
+                        float giSampleLod = round(sampleLod);
+                        vec4 sample1 = textureLod(usam_temp1, sampleUV, giSampleLod);
+                        vec4 sample2 = textureLod(usam_temp2, sampleUV, giSampleLod);
                         vec3 sampleNormal = sample1.rgb;
                         vec3 direct = sample2.rgb;
 
                         float emissive = float(sample1.a > 0.0);
                         float ilBitCoeff = float(ilBit) * (1.0 / 32.0);
-                        float rcpDist = fastRcpSqrtNR0(distSq);
-                        float emitterCos = dot(sampleNormal, -diff) * rcpDist;
-                        emitterCos = mix(emitterCos, 0.5 + linearStep(-0.6, 0.0, emitterCos), emissive);
-                        emitterCos = saturate(emitterCos);
-                        float receiverCos = saturate(dot(centerViewNormal, diff) * rcpDist);
-                        float attenuation = mix(1.0, 1.0 / (1.0 + distSq), emissive);
 
-                        rt_out.rgb += ilBitCoeff * attenuation * emitterCos * receiverCos * direct;
+                        float emitterCos = saturate(dot(sampleNormal, -diff) * rcpDist);
+                        emitterCos = mix(emitterCos, 1.0, emissive);
+
+                        rt_out.rgb += ilBitCoeff * emitterCos * direct;
                     }
                 }
                 sampleLod = min(sampleLod + lodStep, maxLod);
                 sampleTexelDist += stepTexelSize;
             }
 
-            // Cosine weighted hemisphere as mentioned in GT-VBAO but blute forced
-            for (uint bitIndex = 0u; bitIndex < 32; bitIndex++) {
-                float indexF = float(bitIndex) / 31.0;
-                float bitFlag = float((aoSectionBits >> bitIndex) & 1u);
-                rt_bentNormal.xyz += bitFlag * normalize(mix(realTangent, projNormal, indexF));
-                rt_out.a += bitFlag * WEIGHTS[bitIndex];
-            }
+            float sliceCount = float(bitCount(aoSectionBits)) * (1.0 / 32.0);
+            rt_bentNormal.xyz += normalize(mix(realTangent, projNormal, sliceCount));
+            rt_out.a += sliceCount;
         }
 
         rt_bentNormal.xyz = normalize(rt_bentNormal.xyz);
@@ -249,10 +232,9 @@ void main() {
         rt_bentNormal.xyz = rt_bentNormal.xyz * 0.5 + 0.5;
 
         rt_out.rgb /= float(SSVBIL_SAMPLE_SLICES);
-        rt_out.rgb *= 16.0;
+        rt_out.rgb *= 2.0 * PI_CONST;
 
         rt_out.a /= float(SSVBIL_SAMPLE_SLICES);
-        rt_out.a = linearStep(0.1, 1.0, rt_out.a);
         rt_out.a = saturate(1.0 - rt_out.a);
         rt_out.a = pow(rt_out.a, SETTING_SSVBIL_AO_STRENGTH);
     }

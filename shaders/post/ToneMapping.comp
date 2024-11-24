@@ -120,6 +120,7 @@ void main() {
         color.rgb = agx(color.rgb);
         color.rgb = agxLook(color.rgb);
         color.rgb = agxEotf(color.rgb);
+        color.rgb = saturate(color.rgb);
 
         float lumimance = colors_srgbLuma(color.rgb);
 
