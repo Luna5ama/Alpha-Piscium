@@ -763,7 +763,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Bloom Enabled"
                     }
                 }
-                slider("SETTING_BLOOM_INTENSITY", 0.5, 0.0..1.0 step 0.05) {
+                slider("SETTING_BLOOM_INTENSITY", 1.0, 0.0..5.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Bloom Intensity"
                     }

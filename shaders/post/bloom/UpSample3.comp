@@ -7,7 +7,7 @@ layout(rgba16f) uniform restrict image2D uimg_temp3;
 ivec2 colorTexSize = imageSize(uimg_temp3);
 vec2 texelSize = 1.0 / vec2(colorTexSize);
 
-int inputOffset = (colorTexSize.x >> 6) * 48;
+int inputOffset = (colorTexSize.x >> 2) * 3;
 int outputOffset = colorTexSize.x >> 1;
 ivec2 outputSize = colorTexSize >> 2;
 

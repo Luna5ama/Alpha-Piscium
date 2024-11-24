@@ -21,7 +21,7 @@ ivec2 bloom_outputSize() {
 }
 
 vec4 bloom_input(ivec2 coord) {
-    vec2 readPosUV = vec2((coord >> 1) + 0.5 + inputStartPixel) * texelSize;
+    vec2 readPosUV = ((vec2(coord) + 0.5) * 0.5 + inputStartPixel) * texelSize;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
     return texture(usam_temp3, readPosUV);
 }
@@ -29,6 +29,6 @@ vec4 bloom_input(ivec2 coord) {
 void bloom_output(ivec2 coord, vec4 data) {
     coord.x += outputOffset;
     vec4 writeData = imageLoad(uimg_main, coord);
-    writeData += data * exp2(-global_exposure.z) * SETTING_BLOOM_INTENSITY * 0.1;
+    writeData += data * global_exposure.w * SETTING_BLOOM_INTENSITY * 0.1;
     imageStore(uimg_main, coord, writeData);
 }
