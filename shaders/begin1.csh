@@ -6,6 +6,8 @@
 layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 
+layout(rgba16f) uniform writeonly readonly image2D uimg_main;
+
 mat4 shadowDeRotateMatrix(mat4 shadowMatrix) {
     vec2 p1 = (shadowMatrix * vec4(0.0, -1000.0, 0.0, 1.0)).xy;
     vec2 p2 = (shadowMatrix * vec4(0.0, 1000.0, 0.0, 1.0)).xy;
@@ -49,4 +51,13 @@ void main() {
     vec4 sunRadiance = colors_blackBodyRadiation(SETTING_SUN_TEMPERATURE, uval_sunOmega);
     #endif
     global_sunRadiance = sunRadiance;
+
+    vec4 sunClipPos = gbufferProjection * vec4(sunPosition * 0.01, 1.0);
+    global_sunOnScreen = uint(sunClipPos.w > 0.0) & uint(all(lessThan(abs(sunClipPos.xyz), sunClipPos.www)));
+    sunClipPos.xy /= sunClipPos.w;
+    global_sunScreenPos2 = sunClipPos.xy;
+    sunClipPos.xy = sunClipPos.xy * 0.5 + 0.5;
+    global_sunScreenPos = sunClipPos.xy;
+
+    global_mainImageSize = imageSize(uimg_main);
 }

@@ -14,6 +14,9 @@ uniform sampler2D usam_rtwsm_imap1D;
 uniform sampler2D usam_rtwsm_warpingMap;
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_skyLUT;
+uniform sampler2D usam_epipolarSliceEnd;
+uniform sampler2D usam_epipolarInSctr;
+uniform sampler2D usam_epipolarTransmittance;
 
 uniform sampler2D usam_temp3;
 
@@ -33,6 +36,14 @@ bool inViewPort(vec4 originSize, out vec2 texCoord) {
 
 layout(location = 0) out vec4 rt_out;
 
+vec3 gammaCorrect(vec3 color) {
+    return pow(color, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
+}
+
+float gammaCorrect(float color) {
+    return pow(color, float(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
+}
+
 void main() {
     ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
 
@@ -51,7 +62,7 @@ void main() {
 //    }
 
     if (inViewPort(vec4(0, 512, 512, 512), debugTexCoord)) {
-        color.rgb = pow(texture(usam_rtwsm_imap2D, debugTexCoord).r * 2.0, 1.0 / SETTING_TONEMAP_OUTPUT_GAMMA).rrr;
+        color.rgb = gammaCorrect(texture(usam_rtwsm_imap2D, debugTexCoord).r * 2.0).rrr;
     }
 
     if (inViewPort(vec4(0, 1024, 512, 16), debugTexCoord)) {
@@ -75,10 +86,23 @@ void main() {
 
     #ifdef SETTING_DEBUG_ATMOSPHERE
     if (inViewPort(vec4(0, 0, 256, 64), debugTexCoord)) {
-        color.rgb = pow(texture(usam_transmittanceLUT, debugTexCoord).rgb, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
+        color.rgb = gammaCorrect(texture(usam_transmittanceLUT, debugTexCoord).rgb);
     }
     if (inViewPort(vec4(0, 64, 256, 256), debugTexCoord)) {
-        color.rgb = pow(texture(usam_skyLUT, debugTexCoord).rgb * 2.0, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
+        color.rgb = gammaCorrect(texture(usam_skyLUT, debugTexCoord).rgb * 2.0);
+    }
+    if (inViewPort(vec4(256, 64, 1024, 16), debugTexCoord)) {
+        color.rgb = vec3(texture(usam_epipolarSliceEnd, vec2(debugTexCoord.x, 0.5)).rg, 0.0);
+    }
+    if (inViewPort(vec4(256, 80, 1024, 16), debugTexCoord)) {
+        color.rgb = vec3(texture(usam_epipolarSliceEnd, vec2(debugTexCoord.x, 0.5)).ba, 0.0);
+    }
+    float whRatio = float(SETTING_EPIPOLAR_SLICES) / float(SETTING_SLICE_SAMPLES);
+    if (inViewPort(vec4(0, 320, whRatio * 256, 256), debugTexCoord)) {
+        color.rgb = gammaCorrect(texture(usam_epipolarInSctr, debugTexCoord).rgb);
+    }
+    if (inViewPort(vec4(0, 320 + 256, whRatio * 256, 256), debugTexCoord)) {
+        color.rgb = gammaCorrect(texture(usam_epipolarTransmittance, debugTexCoord).rgb);
     }
     #endif
 

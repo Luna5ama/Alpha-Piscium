@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "atmosphere/SingleScattering.comp"
+#include "atmosphere/UnwrapEpipolar.comp"

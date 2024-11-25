@@ -9,8 +9,12 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     mat4 global_shadowRotationMatrix;
     mat4 global_taaJitterMat;
     vec4 global_sunRadiance;
-    vec2 global_taaJitter;
     vec4 global_exposure;
+    vec2 global_taaJitter;
+    vec2 global_sunScreenPos;
+    vec2 global_sunScreenPos2;
+    ivec2 global_mainImageSize;
+    uint global_sunOnScreen;
     uint global_lumHistogram[257];
 };
 

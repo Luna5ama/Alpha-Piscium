@@ -18,6 +18,7 @@
 #define INCLUDE_atmosphere_Common.glsl
 
 #include "../_Util.glsl"
+#include "Epipolar.glsl"
 
 #define TRAPEZOIDAL_INTEGRATION 1
 

@@ -2,14 +2,22 @@
 // MIT License
 // Copyright (c) 2020 Epic Games, Inc.
 // You can find full license texts in /licenses
+//
+// Adopted from: https://github.com/GameTechDev/OutdoorLightScattering
+// Apache License 2.0
+// Copyright (c) 2017 Intel Corporation
+// You can find full license texts in /licenses
 #include "../_Util.glsl"
 #include "Common.glsl"
 #include "../rtwsm/RTWSM.glsl"
 
-layout(local_size_x = 128, local_size_y = 1) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
+layout(local_size_x = 1, local_size_y = SETTING_SLICE_SAMPLES) in;
+const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
 
-layout(rgba16f) restrict uniform image2D uimg_main;
+layout(rgba16f) uniform readonly writeonly image2D uimg_main;
+layout(rgba32f) uniform readonly image2D uimg_epipolarSliceEnd;
+layout(rgba16f) uniform writeonly image2D uimg_epipolarInSctr;
+layout(rgba16f) uniform writeonly image2D uimg_epipolarTransmittance;
 
 uniform sampler2D usam_viewZ;
 uniform sampler2D usam_transmittanceLUT;
@@ -166,26 +174,29 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
 }
 
 void main() {
-    ivec2 imgSize = imageSize(uimg_main);
+    ivec2 imgSize = imageSize(uimg_epipolarInSctr);
     ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
+    uint sliceIndex = gl_WorkGroupID.x;
+    uint sliceSampleIndex = gl_LocalInvocationID.y;
+    vec4 sliceEndPoints = imageLoad(uimg_epipolarSliceEnd, ivec2(sliceIndex, 0));
 
-    if (all(lessThan(pixelPos, imgSize))) {
-        vec2 texCoord = (pixelPos + 0.5) / vec2(imgSize);
+    uint cond = uint(all(lessThan(pixelPos, imgSize)));
+    cond &= uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
+
+    if (bool(cond)) {
+        float sliceSampleP = float(sliceSampleIndex) / float(SETTING_SLICE_SAMPLES);
+
+        vec2 texCoord = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP);
+
         AtmosphereParameters atmosphere = getAtmosphereParameters();
         atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * (sunPosition * 0.01));
-        float viewZ = texelFetch(usam_viewZ, pixelPos, 0).r;
+        float viewZ = textureLod(usam_viewZ, texCoord * 0.5 + 0.5, 0.0).r;
 
         float viewZ2 = mix(viewZ, -65536.0, float(viewZ == 1.0));
-        vec3 viewCoord = coords_toViewCoord(texCoord, viewZ2, gbufferProjectionInverse);
+        vec3 viewCoord = coords_toViewCoord(texCoord * 0.5 + 0.5, viewZ2, gbufferProjectionInverse);
 
         ScatteringResult result = computeSingleScattering(atmosphere, vec3(0.0), viewCoord);
-
-        vec4 color = imageLoad(uimg_main, pixelPos);
-        color.rgb *= result.transmittance;
-
-        vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
-        color.rgb += sunRadiance * result.inScattering;
-
-        imageStore(uimg_main, pixelPos, color);
+        imageStore(uimg_epipolarInSctr, pixelPos, vec4(result.inScattering, 0.0));
+        imageStore(uimg_epipolarTransmittance, pixelPos, vec4(result.transmittance, 0.0));
     }
 }

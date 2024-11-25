@@ -681,6 +681,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
                 }
             }
+            empty()
+            slider("SETTING_EPIPOLAR_SLICES", 512, listOf(256, 512, 1024, 2048)) {
+                lang(Locale.US) {
+                    name = "Epipolar Slices"
+                }
+            }
+            slider("SETTING_SLICE_SAMPLES", 256, listOf(128, 256, 512, 1024)) {
+                lang(Locale.US) {
+                    name = "Slice Samples"
+                }
+            }
         }
         screen("POSTFX", 2) {
             lang(Locale.US) {
@@ -794,6 +805,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             }
             toggle("SETTING_DEBUG_RTWSM", false)
             toggle("SETTING_DEBUG_ATMOSPHERE", false)
+            toggle("SETTING_DEBUG_EPIPOLAR", false)
             toggle("SETTING_DEBUG_WORLD_NORMAL", false)
             toggle("SETTING_DEBUG_SSVBIL_AO", false)
             toggle("SETTING_DEBUG_SSVBIL_GI", false)
