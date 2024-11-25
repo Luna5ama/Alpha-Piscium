@@ -9,14 +9,14 @@
 uniform sampler2D usam_viewZ;
 uniform sampler2D usam_temp1;
 uniform sampler2D usam_temp2;
+uniform sampler2D usam_skyLUT;
 
 const vec2 RADIUS_SQ = vec2(SETTING_SSVBIL_RADIUS * SETTING_SSVBIL_RADIUS, SETTING_SSVBIL_MAX_RADIUS * SETTING_SSVBIL_MAX_RADIUS);
 
 in vec2 frag_texCoord;
 
-/* RENDERTARGETS:11,14 */
-layout(location = 0) out vec4 rt_bentNormal;
-layout(location = 1) out vec4 rt_out;
+/* RENDERTARGETS:14 */
+layout(location = 0) out vec4 rt_out;
 
 // Inverse function approximation
 // See https://www.desmos.com/calculator/cdliscjjvi
@@ -64,7 +64,7 @@ uint calcSectorBits(float minHorizon, float maxHorizon) {
     return currentBitfield;
 }
 
-#define NOISE_FRAME frameCounter
+#define NOISE_FRAME uint(frameCounter)
 //#define NOISE_FRAME 0u
 
 const float WEIGHTS[32] = float[](
@@ -131,15 +131,15 @@ float calcHorizonWeighted(vec3 projNormal, vec3 pos) {
 }
 
 void main() {
-    rt_bentNormal = vec4(0.0, 1.0, 0.0, 0.0);
+    ivec2 intTexelPos = ivec2(gl_FragCoord.xy);
+
     rt_out = vec4(0.0, 0.0, 0.0, 1.0);
 
-    float centerViewZ = textureLod(usam_viewZ, frag_texCoord, 0.0).r;
+    float centerViewZ = texelFetch(usam_viewZ, intTexelPos, 0).r;
 
     if (centerViewZ < 0.0) {
         vec3 centerViewCoord = coords_toViewCoord(frag_texCoord, centerViewZ, gbufferProjectionInverse);
-        vec3 centerViewNormal = textureLod(usam_temp1, frag_texCoord, 0.0).rgb;
-        rt_bentNormal.xyz = centerViewNormal * 0.0001;
+        vec3 centerViewNormal = texelFetch(usam_temp1, intTexelPos, 0).rgb;
         vec3 centerViewDir = normalize(-centerViewCoord);
 
         float sampleAngleDelta = 2.0 * PI_CONST / SSVBIL_SAMPLE_SLICES;
@@ -152,6 +152,8 @@ void main() {
         float baseSampleLod = rand_r2Seq1(r2Index);
 
         rt_out.a = 0.0;
+
+        vec3 skyLighting = vec3(0.0);
 
         for (uint sliceIndex = 0; sliceIndex < SSVBIL_SAMPLE_SLICES; sliceIndex++) {
             float sampleAngle = initialAngle + sampleAngleDelta * float(sliceIndex);
@@ -223,19 +225,45 @@ void main() {
             }
 
             float sliceCount = float(bitCount(aoSectionBits)) * (1.0 / 32.0);
-            rt_bentNormal.xyz += normalize(mix(realTangent, projNormal, sliceCount));
             rt_out.a += sliceCount;
-        }
 
-        rt_bentNormal.xyz = normalize(rt_bentNormal.xyz);
-        rt_bentNormal.xyz = mat3(gbufferModelViewInverse) * rt_bentNormal.xyz;
-        rt_bentNormal.xyz = rt_bentNormal.xyz * 0.5 + 0.5;
+            const float a0 = 0.988715059644;
+            const float a1 = 0.0064772724505;
+            const float a2 = -0.0578424751904;
+
+            mat3 viewToScene = mat3(gbufferModelViewInverse);
+
+            for (uint i = 0u; i < 4u; i++) {
+                float fi = float(i);
+                uint sectorBitMask = 0xFFu << (i << 3u);
+                uint sectorBits = (aoSectionBits & sectorBitMask);
+                float bitCount = float(bitCount(sectorBits)) * (1.0 / 32.0);
+                float cosH = 0.125 + 0.25 * fi;
+                float sinH = a0 + a1 * fi + a2 * fi * fi;
+                vec3 skyNormal = viewToScene * normalize(realTangent * cosH + centerViewNormal * sinH);
+                vec2 skyLUTUV = coords_polarAzimuthEqualArea(skyNormal);
+                vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
+                skyLighting += bitCount * skyRadiance;
+            }
+        }
 
         rt_out.rgb /= float(SSVBIL_SAMPLE_SLICES);
         rt_out.rgb *= 2.0 * PI_CONST;
+        rt_out.rgb *= SETTING_SSVBIL_GI_STRENGTH;
 
         rt_out.a /= float(SSVBIL_SAMPLE_SLICES);
         rt_out.a = saturate(1.0 - rt_out.a);
         rt_out.a = pow(rt_out.a, SETTING_SSVBIL_AO_STRENGTH);
+
+        float lmCoordSky = texelFetch(usam_temp2, intTexelPos, 0).a;
+        float skyLightingIntensity = 1.0 / float(SSVBIL_SAMPLE_SLICES);
+        skyLightingIntensity *= lmCoordSky * lmCoordSky;
+        skyLightingIntensity *= rt_out.a * rt_out.a;
+        skyLightingIntensity *= SETTING_SKYLIGHT_STRENGTH;
+        skyLightingIntensity *= global_sunRadiance.a;
+
+        skyLighting = skyLightingIntensity * global_sunRadiance.rgb * skyLighting;
+
+        rt_out.rgb += skyLighting;
     }
 }

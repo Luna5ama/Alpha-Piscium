@@ -6,7 +6,7 @@
 #include "Common.glsl"
 
 layout(local_size_x = 128) in;
-const ivec3 workGroups = ivec3(2, 256, 1);
+const ivec3 workGroups = ivec3(1, 128, 1);
 
 layout(rgba16f) restrict uniform image2D uimg_skyLUT;
 

@@ -23,6 +23,6 @@ void main() {
     Material material = material_decode(gData);
 
     vec4 ssvbilSample = texelFetch(usam_ssvbil, intTexCoord, 0);
-    vec3 indirectV = SETTING_SSVBIL_GI_STRENGTH * ssvbilSample.rgb * material.albedo;
+    vec3 indirectV = ssvbilSample.rgb * material.albedo;
     rt_main.rgb += indirectV;
 }

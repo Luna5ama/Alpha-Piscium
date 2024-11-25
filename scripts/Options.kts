@@ -780,7 +780,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
         }
         screen("MISC", 2) {
             lang(Locale.US) {
-                name = "Mics"
+                name = "Misc"
             }
             toggle("SETTING_SCREENSHOT_MODE", false) {
                 lang(Locale.US) {

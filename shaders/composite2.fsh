@@ -26,7 +26,6 @@ uniform sampler2D usam_rtwsm_warpingMap;
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_skyLUT;
 
-uniform sampler2D usam_bentNormal;
 uniform sampler2D usam_ssvbil;
 
 in vec2 frag_texCoord;
@@ -204,7 +203,7 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
 
     vec4 ssvbilSample = texelFetch(usam_ssvbil, intTexCoord, 0);
     float skyDiffuseAO = ssvbilSample.a * ssvbilSample.a;
-    vec3 multiBounceV = SETTING_SSVBIL_GI_MB * RCP_PI_CONST * max(ssvbilSample.rgb, 0.0) * material.albedo;
+    vec3 multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * RCP_PI_CONST * max(ssvbilSample.rgb, 0.0) * material.albedo;
 
     vec3 fresnel = calcFresnel(material, NDotV);
     float alpha = material.roughness;
@@ -224,39 +223,24 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec4 stuff = colors_blackBodyRadiation(1500.0, 1.0);
 //    sunDiffuseV = max(stuff.rgb, 0.0) * material.albedo * skyDiffuseAO * skyDiffuseAO * 0.5;
 
-    // Sky diffuse
-    vec3 skyNormal = texelFetch(usam_bentNormal, intTexCoord, 0).rgb * 2.0 - 1.0;
-    skyNormal.x = dither(skyNormal.x, rand_IGN(gl_FragCoord.xy, frameCounter), 0.1);
-    skyNormal.y = dither(skyNormal.y, -rand_IGN(gl_FragCoord.xy, frameCounter + 1), 0.1);
-    skyNormal.z = dither(skyNormal.z, rand_IGN(gl_FragCoord.xy, frameCounter + 2), 0.1);
-    vec2 skyLUTUV = coords_polarAzimuthEqualArea(normalize(skyNormal));
-    vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
-    float skyLightIntensity = 1.0;
-    skyLightIntensity *= gData.lmCoord.y;
-    skyLightIntensity *= skyLightIntensity;
-    skyLightIntensity *= skyDiffuseAO;
-    skyLightIntensity *= SETTING_SKYLIGHT_STRENGTH;
-    vec3 skyDiffuseV = skyLightIntensity * sunRadiance * skyRadiance * material.albedo;
-
     // Sky reflection
-    vec3 reflectDirView = reflect(-g_viewDir, gData.normal);
-    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
-    vec2 reflectLUTUV = coords_polarAzimuthEqualArea(reflectDir);
-    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
-    vec3 skySpecularV = fresnel * skyLightIntensity * reflectRadiance;
+//    vec3 reflectDirView = reflect(-g_viewDir, gData.normal);
+//    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
+//    vec2 reflectLUTUV = coords_polarAzimuthEqualArea(reflectDir);
+//    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
+//    vec3 skySpecularV = fresnel * skyLightIntensity * reflectRadiance;
 
     rt_main = vec4(0.0, 0.0, 0.0, 1.0);
     rt_main.rgb += 0.02 * material.albedo;
     rt_main.rgb += sunDiffuseV;
     rt_main.rgb += emissiveV;
-    rt_main.rgb += skyDiffuseV;
 //    rt_main.rgb += skySpecularV;
 
     rt_temp2 = vec4(0.0, 0.0, 0.0, 1.0);
     rt_temp2.rgb += sunDiffuseV;
-    rt_temp2.rgb += skyDiffuseV;
     rt_temp2.rgb += multiBounceV;
     rt_temp2.rgb += emissiveV;
+    rt_temp2.a = gData.lmCoord.y;
 }
 
 void doStuff() {
