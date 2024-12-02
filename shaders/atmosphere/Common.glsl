@@ -84,11 +84,11 @@ AtmosphereParameters getAtmosphereParameters() {
     atmosphere.ozoneHalfWidth = OZONE_HALF_WIDTH;
 
     atmosphere.rayleighSctrCoeffTotal = RAYLEIGH_SCATTERING * 1000.0;
-    atmosphere.rayleighSctrCoeffAngular = atmosphere.rayleighSctrCoeffTotal * (3.0 / (16.0 * PI_CONST));
+    atmosphere.rayleighSctrCoeffAngular = atmosphere.rayleighSctrCoeffTotal * (3.0 / (16.0 * PI));
     atmosphere.rayleighExtinction = atmosphere.rayleighSctrCoeffTotal;
 
     atmosphere.miePhaseG = MIE_PHASE_G;
-    const float k = 3.0 / (8.0 * PI_CONST) * (1.0 - atmosphere.miePhaseG * atmosphere.miePhaseG) / (2.0 + atmosphere.miePhaseG * atmosphere.miePhaseG);
+    const float k = 3.0 / (8.0 * PI) * (1.0 - atmosphere.miePhaseG * atmosphere.miePhaseG) / (2.0 + atmosphere.miePhaseG * atmosphere.miePhaseG);
     atmosphere.mieSctrCoeffTotal = MIE_SCATTERING * 1000.0;
     atmosphere.mieSctrCoeffAngular = atmosphere.mieSctrCoeffTotal * k;
     atmosphere.mieExtinction = atmosphere.mieSctrCoeffTotal + (MIE_ABOSORPTION * 1000.0);
@@ -224,13 +224,13 @@ void uvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float viewA
 }
 
 float rayleighPhase(float cosTheta) {
-    float factor = 3.0 / (16.0 * PI_CONST);
+    float factor = 3.0 / (16.0 * PI);
     return factor * (1.0 + cosTheta * cosTheta);
 }
 
 // Cornette-Shanks phase function for Mie scattering
 float miePhase(float cosTheta, float g) {
-    float k = 3.0 / (8.0 * PI_CONST) * (1.0 - g * g) / (2.0 + g * g);
+    float k = 3.0 / (8.0 * PI) * (1.0 - g * g) / (2.0 + g * g);
     return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
 }
 

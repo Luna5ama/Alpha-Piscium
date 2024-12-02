@@ -203,7 +203,7 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
 
     vec4 ssvbilSample = texelFetch(usam_ssvbil, intTexCoord, 0);
     float skyDiffuseAO = ssvbilSample.a * ssvbilSample.a;
-    vec3 multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * RCP_PI_CONST * max(ssvbilSample.rgb, 0.0) * material.albedo;
+    vec3 multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * RCP_PI * max(ssvbilSample.rgb, 0.0) * material.albedo;
 
     vec3 fresnel = calcFresnel(material, NDotV);
     float alpha = material.roughness;
@@ -219,7 +219,7 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec3 transmittance = texture(usam_transmittanceLUT, transmittanceUV).rgb;
 
 //    vec3 diffuseV = bsdf_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
-    vec3 sunDiffuseV = saturate(NDotL) * RCP_PI_CONST * shadow * transmittance * sunRadiance * material.albedo;
+    vec3 sunDiffuseV = saturate(NDotL) * RCP_PI * shadow * transmittance * sunRadiance * material.albedo;
     vec4 stuff = colors_blackBodyRadiation(1500.0, 1.0);
 //    sunDiffuseV = max(stuff.rgb, 0.0) * material.albedo * skyDiffuseAO * skyDiffuseAO * 0.5;
 

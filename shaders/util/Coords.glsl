@@ -64,7 +64,7 @@ vec2 coords_azimuthEqualArea(vec3 unitVector, float phi1, float lambda0) {
 }
 
 vec3 coords_polarAzimuthEqualAreaInverse(vec2 texCoord) {
-    //    const float phi1 = PI_HALF_CONST; // Standard parallel
+    //    const float phi1 = PI_HALF; // Standard parallel
     //    const float lambda0 = 0.0; // Central longitude
     const float sinPhi1 = 1.0;
     const float cosPhi1 = 0.0;
@@ -88,7 +88,7 @@ vec3 coords_polarAzimuthEqualAreaInverse(vec2 texCoord) {
 }
 
 vec2 coords_polarAzimuthEqualArea(vec3 unitVector) {
-    //    const float phi1 = PI_HALF_CONST; // Standard parallel
+    //    const float phi1 = PI_HALF; // Standard parallel
     //    const float lambda0 = 0.0; // Central longitude
     const float sinPhi1 = 1.0;
     const float cosPhi1 = 0.0;

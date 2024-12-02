@@ -1,12 +1,19 @@
 #ifndef INCLUDE_util_Math.glsl
 #define INCLUDE_util_Math.glsl
-const float PI_CONST = 3.14159265358979323846;
-const float PI_2_CONST = 2.0 * PI_CONST;
-const float PI_HALF_CONST = 0.5 * PI_CONST;
-const float PI_QUARTER_CONST = 0.25 * PI_CONST;
-const float RCP_PI_CONST = 1.0 / PI_CONST;
-const float RCP_PI_2_CONST = 1.0 / PI_2_CONST;
-const float RCP_PI_HALF_CONST = 1.0 / PI_HALF_CONST;
+
+#define PI 3.14159265358979323846
+#define PI_2 2.0 * PI
+#define PI_HALF 0.5 * PI
+#define PI_QUARTER 0.25 * PI
+#define RCP_PI 1.0 / PI
+#define RCP_PI_2 1.0 / PI_2
+#define RCP_PI_HALF 1.0 / PI_HALF
+
+#define FLT_MAX uintBitsToFloat(0x7F7FFFFF)
+#define FLT_MIN uintBitsToFloat(0x00800000)
+#define FLT_TRUE_MIN uintBitsToFloat(0x00000001)
+#define FLT_POS_INF uintBitsToFloat(0x7F800000)
+#define FLT_NEG_INF uintBitsToFloat(0xFF800000)
 
 float rcp(float x) { return 1.0 / x; }
 vec2 rcp(vec2 x) { return 1.0 / x; }
@@ -38,7 +45,7 @@ vec4 linearStep(float edge0, float edge1, vec4 x) {
 }
 
 float toRadians(float degrees) {
-    return degrees * PI_CONST / 180.0;
+    return degrees * PI / 180.0;
 }
 
 float pow2(float x) { return x * x; }

@@ -81,7 +81,7 @@ void main() {
         ScatteringResult result = computeSingleScattering(atmosphere, rayDir);
 
         vec3 color = vec3(0.0);
-        color += result.inScattering * PI_CONST;
+        color += result.inScattering * PI;
 
         imageStore(uimg_skyLUT, pixelPos, vec4(color, 1.0));
     }

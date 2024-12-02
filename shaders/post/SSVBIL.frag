@@ -142,7 +142,7 @@ void main() {
         vec3 centerViewNormal = texelFetch(usam_temp1, intTexelPos, 0).rgb;
         vec3 centerViewDir = normalize(-centerViewCoord);
 
-        float sampleAngleDelta = 2.0 * PI_CONST / SSVBIL_SAMPLE_SLICES;
+        float sampleAngleDelta = 2.0 * PI / SSVBIL_SAMPLE_SLICES;
         float initialAngle = rand_IGN(gl_FragCoord.xy, NOISE_FRAME) * sampleAngleDelta;
         vec2 sphereRadius = (SETTING_SSVBIL_RADIUS / -centerViewCoord.z) * vec2(gbufferProjection[0][0], gbufferProjection[1][1]);
         sphereRadius *= textureSize(usam_viewZ, 0).xy;
@@ -248,7 +248,7 @@ void main() {
         }
 
         rt_out.rgb /= float(SSVBIL_SAMPLE_SLICES);
-        rt_out.rgb *= 2.0 * PI_CONST;
+        rt_out.rgb *= 2.0 * PI;
         rt_out.rgb *= SETTING_SSVBIL_GI_STRENGTH;
 
         rt_out.a /= float(SSVBIL_SAMPLE_SLICES);

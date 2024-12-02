@@ -42,7 +42,7 @@ vec3 bsdf_diffuseHammon(float NDotL, float NDotV, float NDotH, float LDotV, vec3
     float facing = 0.5 + 0.5 * LDotV;
     float singleRough = facing * (0.9 - 0.4 * facing) * (0.5 + NDotH) / NDotH;
     float singleSmooth = 1.05 * (1.0 - pow5(1.0 - NDotL)) * (1.0 - pow5(1.0 - NDotV));
-    float single = mix(singleSmooth, singleRough, a) * RCP_PI_CONST;
+    float single = mix(singleSmooth, singleRough, a) * RCP_PI;
     float multi = 0.1159 * a;
     return albedo * (single + albedo * multi);
 }
@@ -66,7 +66,7 @@ vec3 bsdf_ggx(float NDotL, float NDotV, float NDotH, vec3 f, vec3 albedo, float 
     // GGX (Trowbridge-Reitz)
     {
         float sqTerm = NDotH2 * (a2 - 1.0) + 1.0;
-        d = a2 / max(PI_CONST * sqTerm * sqTerm, 0.00001);
+        d = a2 / max(PI * sqTerm * sqTerm, 0.00001);
     }
 
     // Geometric Shadowing Term
