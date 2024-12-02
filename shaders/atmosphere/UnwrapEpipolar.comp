@@ -23,7 +23,7 @@ out vec3 inScattering,
 out vec3 transmittance
 ){
     // Compute direction of the ray going from the light through the pixel
-    vec2 f2RayDir = normalize(screenPos - global_sunScreenPos2.xy);
+    vec2 f2RayDir = normalize(screenPos - uval_sunNdcPos);
 
     // Find, which boundary the ray intersects. For this, we will
     // find which two of four half spaces the f2RayDir belongs to
@@ -74,15 +74,15 @@ out vec3 transmittance
     // Note that b4SectorFlags now contains true (1) for the exit boundary and false (0) for 3 other
 
     // Compute distances to boundaries according to following lines:
-    //float fDistToLeftBoundary   = abs(f2RayDir.x) > 1e-5 ? ( -1 - global_sunScreenPos2.x) / f2RayDir.x : -FLT_MAX;
-    //float fDistToBottomBoundary = abs(f2RayDir.y) > 1e-5 ? ( -1 - global_sunScreenPos2.y) / f2RayDir.y : -FLT_MAX;
-    //float fDistToRightBoundary  = abs(f2RayDir.x) > 1e-5 ? (  1 - global_sunScreenPos2.x) / f2RayDir.x : -FLT_MAX;
-    //float fDistToTopBoundary    = abs(f2RayDir.y) > 1e-5 ? (  1 - global_sunScreenPos2.y) / f2RayDir.y : -FLT_MAX;
-    vec4 f4DistToBoundaries = (f4Boundaries - global_sunScreenPos2.xyxy) / (f2RayDir.xyxy + vec4(lessThan(abs(f2RayDir.xyxy), vec4(1e-6))));
+    //float fDistToLeftBoundary   = abs(f2RayDir.x) > 1e-5 ? ( -1 - uval_sunNdcPos.x) / f2RayDir.x : -FLT_MAX;
+    //float fDistToBottomBoundary = abs(f2RayDir.y) > 1e-5 ? ( -1 - uval_sunNdcPos.y) / f2RayDir.y : -FLT_MAX;
+    //float fDistToRightBoundary  = abs(f2RayDir.x) > 1e-5 ? (  1 - uval_sunNdcPos.x) / f2RayDir.x : -FLT_MAX;
+    //float fDistToTopBoundary    = abs(f2RayDir.y) > 1e-5 ? (  1 - uval_sunNdcPos.y) / f2RayDir.y : -FLT_MAX;
+    vec4 f4DistToBoundaries = (f4Boundaries - uval_sunNdcPos.xyxy) / (f2RayDir.xyxy + vec4(lessThan(abs(f2RayDir.xyxy), vec4(1e-6))));
     // Select distance to the exit boundary:
     float fDistToExitBoundary = dot(vec4(b4SectorFlags), f4DistToBoundaries);
     // Compute exit point on the boundary:
-    vec2 f2ExitPoint = global_sunScreenPos2.xy + f2RayDir * fDistToExitBoundary;
+    vec2 f2ExitPoint = uval_sunNdcPos + f2RayDir * fDistToExitBoundary;
 
     // Compute epipolar slice for each boundary:
     //if( LeftBoundary )

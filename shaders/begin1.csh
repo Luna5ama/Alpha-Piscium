@@ -52,13 +52,6 @@ void main() {
     #endif
     global_sunRadiance = sunRadiance;
 
-    vec4 sunClipPos = gbufferProjection * vec4(uval_sunDirView, 1.0);
-    global_sunOnScreen = uint(sunClipPos.w > 0.0) & uint(all(lessThan(abs(sunClipPos.xyz), sunClipPos.www)));
-    sunClipPos.xy /= sunClipPos.w;
-    global_sunScreenPos2 = sunClipPos.xy;
-    sunClipPos.xy = sunClipPos.xy * 0.5 + 0.5;
-    global_sunScreenPos = sunClipPos.xy;
-
     ivec2 mainImageSize = imageSize(uimg_main);
     global_mainImageSizeI = mainImageSize;
     global_mainImageSize = vec2(mainImageSize);

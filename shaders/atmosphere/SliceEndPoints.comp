@@ -29,16 +29,16 @@ layout(rgba32f) uniform writeonly image2D uimg_epipolarSliceEnd;
 vec2 getEpipolarLineEntryPoint(vec2 f2ExitPoint) {
     vec2 f2EntryPoint;
 
-    if (bool(global_sunOnScreen)) {
+    if (uval_sunVisible) {
         // If light source is on the screen, its location is entry point for each epipolar line
-        f2EntryPoint = global_sunScreenPos2.xy;
+        f2EntryPoint = uval_sunNdcPos;
     } else {
         // If light source is outside the screen, we need to compute intersection of the ray with
         // the screen boundaries
 
         // Compute direction from the light source to the exit point
         // Note that exit point must be located on shrinked screen boundary
-        vec2 f2RayDir = f2ExitPoint.xy - global_sunScreenPos2.xy;
+        vec2 f2RayDir = f2ExitPoint.xy - uval_sunNdcPos;
         float fDistToExitBoundary = length(f2RayDir);
         f2RayDir /= fDistToExitBoundary;
         // Compute signed distances along the ray from the light position to all four boundaries
@@ -53,7 +53,7 @@ vec2 getEpipolarLineEntryPoint(vec2 f2ExitPoint) {
         // smaller number of pixels which require inscattering correction
         vec4 f4Boundaries = getOutermostScreenPixelCoords();
         bvec4 b4IsCorrectIntersectionFlag = greaterThanEqual(abs(f2RayDir.xyxy), vec4(1e-5));
-        vec4 f4DistToBoundaries = (f4Boundaries - global_sunScreenPos2.xyxy) / (f2RayDir.xyxy + vec4(not(b4IsCorrectIntersectionFlag)));
+        vec4 f4DistToBoundaries = (f4Boundaries - uval_sunNdcPos.xyxy) / (f2RayDir.xyxy + vec4(not(b4IsCorrectIntersectionFlag)));
         // Addition of !b4IsCorrectIntersectionFlag is required to prevent divison by zero
         // Note that such incorrect lanes will be masked out anyway
 
@@ -78,12 +78,12 @@ vec2 getEpipolarLineEntryPoint(vec2 f2ExitPoint) {
         // fFirstIntersecDist = fDistToTopBoundary    < fDistToBoundary-1e-4 ? max(fFirstIntersecDist, fDistToTopBoundary)    : fFirstIntersecDist;
 
         // Now we can compute entry point:
-        f2EntryPoint = global_sunScreenPos2.xy + f2RayDir * fFirstIntersecDist;
+        f2EntryPoint = uval_sunNdcPos + f2RayDir * fFirstIntersecDist;
 
         // For invalid rays, coordinates are outside [-1,1]x[-1,1] area
         // and such rays will be discarded
         //
-        //       global_sunScreenPos2
+        //       uval_sunNdcPos
         //             *
         //              \|
         //               \-f2EntryPoint
@@ -138,7 +138,7 @@ vec4 generateepipolarSliceEndPS() {
     //                                  *
     //     Left Boundary       Bottom Boundary           Right Boundary          Top Boundary
     //
-    bvec4 b4IsInvalidBoundary = lessThanEqual((global_sunScreenPos2.xyxy - f4OutermostScreenPixelCoords.xyzw) * vec4(1.0, 1.0, -1.0, -1.0), vec4(0.0));
+    bvec4 b4IsInvalidBoundary = lessThanEqual((uval_sunNdcPos.xyxy - f4OutermostScreenPixelCoords.xyzw) * vec4(1.0, 1.0, -1.0, -1.0), vec4(0.0));
     if (any(b4IsInvalidBoundary && b4BoundaryFlags)) {
         return INVALID_EPIPOLAR_LINE;
     }
