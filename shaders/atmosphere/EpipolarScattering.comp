@@ -116,9 +116,8 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
 
     params.origin = atmosphere_viewToAtm(atmosphere, originView);
 
-    vec3 sunDir = sunPosition * 0.01;
-    float cosTheta = -dot(sunDir, viewDirView);
-    params.cosSunZenith = dot(sunDir, upPosition * 0.01);
+    float cosTheta = -dot(uval_sunDirView, viewDirView);
+    params.cosSunZenith = dot(uval_sunDirView, uval_upDirView);
     params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
     params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
 
@@ -194,7 +193,7 @@ void main() {
         texCoord = (round(texCoord * global_mainImageSize) + 0.5) * global_mainImageSizeRcp;
 
         AtmosphereParameters atmosphere = getAtmosphereParameters();
-        atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * (sunPosition * 0.01));
+        atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * (uval_sunDirView));
         float viewZ = textureLod(usam_viewZ, texCoord, 0.0).r;
          viewZ = mix(viewZ, -65536.0, float(viewZ == 1.0));
         vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);

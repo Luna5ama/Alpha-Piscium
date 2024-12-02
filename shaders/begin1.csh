@@ -52,7 +52,7 @@ void main() {
     #endif
     global_sunRadiance = sunRadiance;
 
-    vec4 sunClipPos = gbufferProjection * vec4(sunPosition * 0.01, 1.0);
+    vec4 sunClipPos = gbufferProjection * vec4(uval_sunDirView, 1.0);
     global_sunOnScreen = uint(sunClipPos.w > 0.0) & uint(all(lessThan(abs(sunClipPos.xyz), sunClipPos.www)));
     sunClipPos.xy /= sunClipPos.w;
     global_sunScreenPos2 = sunClipPos.xy;

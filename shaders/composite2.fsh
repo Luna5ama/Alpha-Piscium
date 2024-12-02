@@ -82,7 +82,7 @@ vec3 calcShadow(float sssFactor) {
     float normalOffset1 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR1 / (NORMAL_OFFSET_DISTANCE_FACTOR1 + distnaceSq));
     normalOffset += saturate(normalOffset1 * viewNormalDot) * 0.2;
 
-    float lightNormalDot = 1.0 - abs(dot(shadowLightPosition * 0.01, gData.normal));
+    float lightNormalDot = 1.0 - abs(dot(uval_shadowLightDirView, gData.normal));
     #define NORMAL_OFFSET_DISTANCE_FACTOR2 512.0
     float normalOffset2 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR2 / (NORMAL_OFFSET_DISTANCE_FACTOR2 + distnaceSq));
     normalOffset += saturate(normalOffset2 * lightNormalDot) * 0.2;
@@ -248,7 +248,7 @@ void doStuff() {
 
     Material material = material_decode(gData);
 
-    doLighting(material, shadow, sunPosition * 0.01, gData.normal, g_viewDir);
+    doLighting(material, shadow, uval_sunDirView, gData.normal, g_viewDir);
 
     rt_temp1.rgb = gData.normal;
     rt_temp1.a = float(any(greaterThan(material.emissive, vec3(0.0))));

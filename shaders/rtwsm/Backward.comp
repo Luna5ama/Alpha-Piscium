@@ -57,7 +57,7 @@ void importance(ivec2 gCoord, out uint p, out float v) {
     #endif
 
 //    const float LSN_BETA = 1.0;
-//    importance *= 1.0 + LSN_BETA * sqrt(pDist) * pow(1.0 - abs(dot(normalMatrix * worldNormal, shadowLightPosition)), 8.0);
+//    importance *= 1.0 + LSN_BETA * sqrt(pDist) * pow(1.0 - abs(dot(normalMatrix * worldNormal, uval_shadowLightDirView)), 8.0);
 
     // Shadow Edge function
     #if SETTING_RTWSM_B_SE < 1.0

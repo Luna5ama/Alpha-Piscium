@@ -176,7 +176,7 @@ float calcViewAltitude(AtmosphereParameters atmosphere, vec3 worldPos) {
 }
 
 float calcCosSunZenith(AtmosphereParameters atmosphere, vec3 sunDirection) {
-    return dot(sunDirection, upPosition * 0.01);
+    return dot(sunDirection, uval_upDirView);
 }
 
 vec3 atmosphere_viewToAtm(AtmosphereParameters atmosphere, vec3 viewPos) {

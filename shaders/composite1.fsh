@@ -15,7 +15,7 @@ void main() {
 	vec3 viewCoord = coords_toViewCoord(frag_texCoord, -far, gbufferProjectionInverse);
 
 	vec3 viewDir = normalize(viewCoord);
-	float cosSun = saturate(dot(viewDir, sunPosition * 0.01));
+	float cosSun = saturate(dot(viewDir, uval_sunDirView));
 
 	vec3 viewDirWorld = mat3(gbufferModelViewInverse) * viewDir;
 
