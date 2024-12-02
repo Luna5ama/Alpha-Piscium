@@ -34,14 +34,14 @@ void main() {
     ivec2 readPos;
 
     computeReadPos(gl_LocalInvocationIndex, writePos, readPos);
-    writeCache(writePos, bloom_input(readPos));
+    writeCache(writePos, max(bloom_input(readPos), 0.0));
 
     computeReadPos(gl_LocalInvocationIndex + 256, writePos, readPos);
-    writeCache(writePos, bloom_input(readPos));
+    writeCache(writePos, max(bloom_input(readPos), 0.0));
 
     computeReadPos(gl_LocalInvocationIndex + 512, writePos, readPos);
     if (writePos.y < 35) {
-        writeCache(writePos, bloom_input(readPos));
+        writeCache(writePos, max(bloom_input(readPos), 0.0));
     }
 
     barrier();
