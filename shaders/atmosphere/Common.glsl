@@ -261,12 +261,12 @@ struct RaymarchParameters {
 
 vec3 raymarchSampleTransmittanceLUT(
 AtmosphereParameters atmosphere, RaymarchParameters params,
-vec3 samplePos, sampler2D usam_transmittanceLUT
+vec3 samplePos, sampler2D transmittanceLUT
 ) {
     float sampleAltitude = length(samplePos);
     vec2 tLUTUV;
     lutTransmittanceParamsToUv(atmosphere, sampleAltitude, params.cosSunZenith, tLUTUV);
-    return texture(usam_transmittanceLUT, tLUTUV).rgb;
+    return texture(transmittanceLUT, tLUTUV).rgb;
 }
 
 vec3 computeOpticalDepth(AtmosphereParameters atmosphere, vec3 density) {

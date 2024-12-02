@@ -18,6 +18,7 @@ layout(rgba16f) uniform readonly writeonly image2D uimg_main;
 layout(rgba32f) uniform readonly image2D uimg_epipolarSliceEnd;
 layout(rgba16f) uniform writeonly image2D uimg_epipolarInSctr;
 layout(rgba16f) uniform writeonly image2D uimg_epipolarTransmittance;
+layout(r32f) uniform writeonly image2D uimg_epipolarViewZ;
 
 uniform sampler2D usam_viewZ;
 uniform sampler2D usam_transmittanceLUT;
@@ -174,29 +175,33 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
 }
 
 void main() {
-    ivec2 imgSize = imageSize(uimg_epipolarInSctr);
+    ivec2 imgSizei = ivec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
+    vec2 imgSize = vec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
     ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
     uint sliceIndex = gl_WorkGroupID.x;
     uint sliceSampleIndex = gl_LocalInvocationID.y;
     vec4 sliceEndPoints = imageLoad(uimg_epipolarSliceEnd, ivec2(sliceIndex, 0));
 
-    uint cond = uint(all(lessThan(pixelPos, imgSize)));
+    uint cond = uint(all(lessThan(pixelPos, imgSizei)));
     cond &= uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
 
     if (bool(cond)) {
-        float sliceSampleP = float(sliceSampleIndex) / float(SETTING_SLICE_SAMPLES);
+        float sliceSampleP = float(sliceSampleIndex);
+        sliceSampleP += rand_IGN(vec2(gl_GlobalInvocationID.xy), frameCounter) - 0.5;
+        sliceSampleP /= float(SETTING_SLICE_SAMPLES - 1);
 
-        vec2 texCoord = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP);
+        vec2 texCoord = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
+        texCoord = (round(texCoord * global_mainImageSize) + 0.5) * global_mainImageSizeRcp;
 
         AtmosphereParameters atmosphere = getAtmosphereParameters();
         atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * (sunPosition * 0.01));
-        float viewZ = textureLod(usam_viewZ, texCoord * 0.5 + 0.5, 0.0).r;
-
-        float viewZ2 = mix(viewZ, -65536.0, float(viewZ == 1.0));
-        vec3 viewCoord = coords_toViewCoord(texCoord * 0.5 + 0.5, viewZ2, gbufferProjectionInverse);
+        float viewZ = textureLod(usam_viewZ, texCoord, 0.0).r;
+         viewZ = mix(viewZ, -65536.0, float(viewZ == 1.0));
+        vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
 
         ScatteringResult result = computeSingleScattering(atmosphere, vec3(0.0), viewCoord);
         imageStore(uimg_epipolarInSctr, pixelPos, vec4(result.inScattering, 0.0));
         imageStore(uimg_epipolarTransmittance, pixelPos, vec4(result.transmittance, 0.0));
+        imageStore(uimg_epipolarViewZ, pixelPos, vec4(viewZ));
     }
 }

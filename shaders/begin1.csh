@@ -59,5 +59,8 @@ void main() {
     sunClipPos.xy = sunClipPos.xy * 0.5 + 0.5;
     global_sunScreenPos = sunClipPos.xy;
 
-    global_mainImageSize = imageSize(uimg_main);
+    ivec2 mainImageSize = imageSize(uimg_main);
+    global_mainImageSizeI = mainImageSize;
+    global_mainImageSize = vec2(mainImageSize);
+    global_mainImageSizeRcp = 1.0 / vec2(mainImageSize);
 }

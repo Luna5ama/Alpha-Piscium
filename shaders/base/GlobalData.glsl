@@ -13,7 +13,9 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     vec2 global_taaJitter;
     vec2 global_sunScreenPos;
     vec2 global_sunScreenPos2;
-    ivec2 global_mainImageSize;
+    ivec2 global_mainImageSizeI;
+    vec2 global_mainImageSize;
+    vec2 global_mainImageSizeRcp;
     uint global_sunOnScreen;
     uint global_lumHistogram[257];
 };
