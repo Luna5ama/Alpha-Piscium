@@ -682,12 +682,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             empty()
-            slider("SETTING_EPIPOLAR_SLICES", 512, listOf(256, 512, 1024, 2048)) {
+            slider("SETTING_EPIPOLAR_SLICES", 1024, listOf(512, 1024, 2048)) {
                 lang(Locale.US) {
                     name = "Epipolar Slices"
                 }
             }
-            slider("SETTING_SLICE_SAMPLES", 256, listOf(128, 256, 512, 1024)) {
+            slider("SETTING_SLICE_SAMPLES", 512, listOf(256, 512, 1024)) {
                 lang(Locale.US) {
                     name = "Slice Samples"
                 }
