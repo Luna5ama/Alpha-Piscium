@@ -38,11 +38,11 @@ bool inViewPort(vec4 originSize, out vec2 texCoord) {
 layout(location = 0) out vec4 rt_out;
 
 vec3 gammaCorrect(vec3 color) {
-    return pow(color, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
+    return pow(color, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
 }
 
 float gammaCorrect(float color) {
-    return pow(color, float(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
+    return pow(color, float(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
 }
 
 void main() {
@@ -116,7 +116,7 @@ void main() {
     #endif
 
     #ifdef SETTING_DEBUG_TEMP3
-    color.rgb = pow(texelFetch(usam_temp3, intTexCoord, 0).rgb * .1, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
+    color.rgb = pow(texelFetch(usam_temp3, intTexCoord, 0).rgb * .1, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
     #endif
 
     rt_out = color;

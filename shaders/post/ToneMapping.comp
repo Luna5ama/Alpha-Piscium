@@ -87,10 +87,10 @@ vec3 agxLook(vec3 val) {
 //    sat = 1.4;
 //    #endif
 
-    vec3 offset = vec3(SETTING_TONEMAP_OFFSET_R, SETTING_TONEMAP_OFFSET_G, SETTING_TONEMAP_OFFSET_B);
-    vec3 slope = vec3(SETTING_TONEMAP_SLOPE_R, SETTING_TONEMAP_SLOPE_G, SETTING_TONEMAP_SLOPE_B);
-    vec3 power = vec3(SETTING_TONEMAP_POWER_R, SETTING_TONEMAP_POWER_G, SETTING_TONEMAP_POWER_B);
-    float sat = SETTING_TONEMAP_SATURATION;
+    vec3 offset = vec3(SETTING_TONE_MAPPING_OFFSET_R, SETTING_TONE_MAPPING_OFFSET_G, SETTING_TONE_MAPPING_OFFSET_B);
+    vec3 slope = vec3(SETTING_TONE_MAPPING_SLOPE_R, SETTING_TONE_MAPPING_SLOPE_G, SETTING_TONE_MAPPING_SLOPE_B);
+    vec3 power = vec3(SETTING_TONE_MAPPING_POWER_R, SETTING_TONE_MAPPING_POWER_G, SETTING_TONE_MAPPING_POWER_B);
+    float sat = SETTING_TONE_MAPPING_SATURATION;
 
     // ASC CDL
     val = pow(val * slope + offset, power);
@@ -135,7 +135,7 @@ void main() {
         uint binIndexAvg = histoIndex(lumimance, 1.0, 256);
         atomicAdd(shared_lumHistogram[binIndexAvg], 1u);
 
-        color.rgb = pow(color.rgb, vec3(1.0 / SETTING_TONEMAP_OUTPUT_GAMMA));
+        color.rgb = pow(color.rgb, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
         imageStore(uimg_main, pixelPos, color);
 
         barrier();
