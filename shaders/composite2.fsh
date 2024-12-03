@@ -257,7 +257,7 @@ void doStuff() {
 void main() {
     rt_main = vec4(0.0);
     float viewZ = texelFetch(usam_viewZ, intTexCoord, 0).r;
-    if (viewZ == 1.0) {
+    if (viewZ == -65536.0) {
         rt_main.rgb = texelFetch(usam_main, intTexCoord, 0).rgb;
         return;
     }

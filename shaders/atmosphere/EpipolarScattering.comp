@@ -197,7 +197,6 @@ void main() {
         AtmosphereParameters atmosphere = getAtmosphereParameters();
         atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * uval_sunDirView);
         float viewZ = textureLod(usam_viewZ, texCoord, 0.0).r;
-         viewZ = mix(viewZ, -65536.0, float(viewZ == 1.0));
         vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
 
         ScatteringResult result = computeSingleScattering(atmosphere, vec3(0.0), viewCoord, ignValue);
