@@ -58,7 +58,9 @@ AtmosphereParameters getAtmosphereParameters() {
 
     // Constants from [BIO23]
     //    const vec3 RAYLEIGH_SCATTERING = vec3(6.602e-6, 1.239e-5, 2.940e-5);
-    const vec3 RAYLEIGH_SCATTERING = vec3(0.00000680947891096, 0.0000113062625584, 0.000025049347778);
+
+    // https://www.desmos.com/calculator/cbf7zuskon
+    const vec3 RAYLEIGH_SCATTERING = vec3(6.80947891096e-6, 1.13062625584e-5, 2.5049347778e-5);
 
     // Constants from [HIL20]
     const vec3 MIE_SCATTERING = vec3(3.996e-6);
@@ -169,7 +171,8 @@ float fromUnitToSubUvs(float u, float resolution) { return (u + 0.5f / resolutio
 float fromSubUvsToUnit(float u, float resolution) { return (u - 0.5f / resolution) * (resolution / (resolution - 1.0f)); }
 
 float atmosphere_height(AtmosphereParameters atmosphere, vec3 worldPos) {
-    return worldPos.y * (1.0 / float(SETTING_ATM_ALT_SCALE)) + atmosphere.bottom;
+    float worldHeight = max(worldPos.y - 62.0, float(SETTING_ATM_ALT_SCALE) * 0.001);
+    return worldHeight * (1.0 / float(SETTING_ATM_ALT_SCALE)) + atmosphere.bottom;
 }
 
 vec3 atmosphere_viewToAtm(AtmosphereParameters atmosphere, vec3 viewPos) {
