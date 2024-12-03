@@ -86,28 +86,28 @@ void main() {
     #endif
 
     #ifdef SETTING_DEBUG_ATMOSPHERE
-    if (inViewPort(vec4(0, 0, 256, 64), debugTexCoord)) {
+    if (inViewPort(vec4(0, 0, 1024, 16), debugTexCoord)) {
+        color.rgb = vec3(texture(usam_epipolarSliceEnd, vec2(debugTexCoord.x, 0.5)).rg, 0.0);
+    }
+    if (inViewPort(vec4(0, 16, 1024, 16), debugTexCoord)) {
+        color.rgb = vec3(texture(usam_epipolarSliceEnd, vec2(debugTexCoord.x, 0.5)).ba, 0.0);
+    }
+    if (inViewPort(vec4(0, 32, 256, 64), debugTexCoord)) {
         color.rgb = gammaCorrect(texture(usam_transmittanceLUT, debugTexCoord).rgb);
     }
-    if (inViewPort(vec4(0, 64, 256, 256), debugTexCoord)) {
+    if (inViewPort(vec4(0, 32 + 64, 256, 256), debugTexCoord)) {
         color.rgb = gammaCorrect(texture(usam_skyLUT, debugTexCoord).rgb * 2.0);
     }
-//    if (inViewPort(vec4(256, 64, 1024, 16), debugTexCoord)) {
-//        color.rgb = vec3(texture(usam_epipolarSliceEnd, vec2(debugTexCoord.x, 0.5)).rg, 0.0);
-//    }
-//    if (inViewPort(vec4(256, 80, 1024, 16), debugTexCoord)) {
-//        color.rgb = vec3(texture(usam_epipolarSliceEnd, vec2(debugTexCoord.x, 0.5)).ba, 0.0);
-//    }
     float whRatio = float(SETTING_EPIPOLAR_SLICES) / float(SETTING_SLICE_SAMPLES);
-    if (inViewPort(vec4(256, 0, whRatio * 256, 256), debugTexCoord)) {
+    if (inViewPort(vec4(256, 32, whRatio * 256, 256), debugTexCoord)) {
         debugTexCoord.y = 1.0 - debugTexCoord.y;
         color.rgb = gammaCorrect(texture(usam_epipolarInSctr, debugTexCoord).rgb);
     }
-    if (inViewPort(vec4(256, 256, whRatio * 256, 256), debugTexCoord)) {
+    if (inViewPort(vec4(256, 32 + 256, whRatio * 256, 256), debugTexCoord)) {
         debugTexCoord.y = 1.0 - debugTexCoord.y;
         color.rgb = gammaCorrect(texture(usam_epipolarTransmittance, debugTexCoord).rgb);
     }
-    if (inViewPort(vec4(256, 512, whRatio * 256, 256), debugTexCoord)) {
+    if (inViewPort(vec4(256, 32 + 512, whRatio * 256, 256), debugTexCoord)) {
         debugTexCoord.y = 1.0 - debugTexCoord.y;
         float depthV = texture(usam_epipolarViewZ, debugTexCoord).r;
         depthV = -depthV / far;

@@ -205,11 +205,12 @@ out vec3 transmittance
     }
 
     //#if CORRECT_INSCATTERING_AT_DEPTH_BREAKS
-//    if( totalWeight < 1e-2 ) {
+//    if(totalWeight < 1e-2) {
 //        // Discarded pixels will keep 0 value in stencil and will be later
 //        // processed to correct scattering
-//        inScattering = vec3(222.0);
+//        inScattering = vec3(1.0);
 //        transmittance = vec3(0.0);
+//        return;
 //    }
     //#endif
 

@@ -21,49 +21,44 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
         return result;
     }
 
-    RaymarchParameters params;
-
     vec3 originView = vec3(0.0, 0.0, 0.0);
-    vec3 originFeetPlayer = (gbufferModelViewInverse * vec4(originView, 1.0)).xyz;
-    vec3 originWorld = originFeetPlayer + cameraPosition;
-    float originAltitude = calcViewAltitude(atmosphere, originWorld);
 
-    params.origin = vec3(originFeetPlayer.x, 0.0, originFeetPlayer.z) / SETTING_ATM_D_SCALE;
-    params.origin.y += originAltitude;
+    RaymarchParameters params;
+    params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
+
+    float cosTheta = -dot(rayDir, atmosphere.sunDirection);
+    params.cosZenith = dot(uval_sunDirView, uval_sunDirView);
+    params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
+    params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
+    params.steps = 64u;
 
     vec3 earthCenter = vec3(0.0);
-    params.rayDir = rayDir;
 
     // Check if ray origin is outside the atmosphere
-    if (length(params.origin) > atmosphere.top) {
-        float tTop = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.top);
+    if (length(params.rayStart) > atmosphere.top) {
+        float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
         if (tTop < 0.0) {
             return result; // No intersection with atmosphere: stop right away
         }
-        params.origin += params.rayDir * (tTop + 0.001);
+        params.rayStart += rayDir * (tTop + 0.001);
     }
 
-    float tBottom = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.bottom);
-    float tTop = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.top);
-    params.rayLen = 0.0;
+    float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom);
+    float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
+    float rayLen = 0.0;
     if (tBottom < 0.0) {
         if (tTop < 0.0) {
             return result; // No intersection with earth nor atmosphere: stop right away
         } else {
-            params.rayLen = tTop;
+            rayLen = tTop;
         }
     } else {
         if (tTop > 0.0) {
-            params.rayLen = min(tTop, tBottom);
+            rayLen = min(tTop, tBottom);
         }
     }
 
-    vec3 sunDir = uval_sunDirView;
-    float cosTheta = -dot(params.rayDir, atmosphere.sunDirection);
-    params.cosSunZenith = dot(sunDir, uval_upDirView);
-    params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
-    params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
-    params.steps = 64u;
+    params.rayEnd = params.rayStart + rayDir * rayLen;
 
     return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT);
 }
@@ -75,7 +70,7 @@ void main() {
     if (all(lessThan(pixelPos, imgSize))) {
         vec2 texCoord = (pixelPos + 0.5) / vec2(imgSize);
         AtmosphereParameters atmosphere = getAtmosphereParameters();
-        atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * (uval_sunDirView));
+        atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * uval_sunDirView);
 
         vec3 rayDir = coords_polarAzimuthEqualAreaInverse(texCoord);
         ScatteringResult result = computeSingleScattering(atmosphere, rayDir);

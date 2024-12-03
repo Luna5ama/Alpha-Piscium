@@ -35,15 +35,15 @@ float sampleShadow(vec3 shadowPos) {
 
 ScatteringResult raymarchSingleScatteringShadowed(
 AtmosphereParameters atmosphere, RaymarchParameters params,
-vec3 startShadow, vec3 endShadow,
-sampler2D usam_transmittanceLUT
+vec3 shadowStart, vec3 shadowEnd, float stepJitter,
+sampler2D transmittanceLUT
 ) {
     ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
 
-    float stepFraction = 1.0 / float(params.steps);
-    float stepJitter = rand_IGN(vec2(gl_GlobalInvocationID.xy), frameCounter);
-    float stepLength = params.rayLen / float(params.steps);
-    vec3 stepDelta = params.rayDir * stepLength;
+    float rcpSteps = 1.0 / float(params.steps);
+    vec3 rayStepDelta = (params.rayEnd - params.rayStart) * rcpSteps;
+    float rayStepLength = length(params.rayEnd - params.rayStart) * rcpSteps;
+    vec3 shaodwStepDelta = (shadowEnd - shadowStart) * rcpSteps;
 
     vec3 prevDensity;
     vec3 prevRayleighInSctr;
@@ -53,39 +53,41 @@ sampler2D usam_transmittanceLUT
     vec3 totalRayleighInSctr = vec3(0.0);
     vec3 totalMieInSctr = vec3(0.0);
     {
-        vec3 samplePos = params.origin;
-        float sampleHeight = length(samplePos) - atmosphere.bottom;
+        vec3 samplePos = params.rayStart;
+        float sampleHeight = length(samplePos);
         vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
 
         prevDensity = sampleDensity;
 
-        vec3 tSunToSample = raymarchSampleTransmittanceLUT(atmosphere, params, samplePos, usam_transmittanceLUT);
-        tSunToSample *= sampleShadow(startShadow);
+        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params, sampleHeight, transmittanceLUT);
         vec3 tSampleToOrigin = vec3(1.0);
+
+        tSunToSample *= sampleShadow(shadowStart);
 
         computePointDiffInSctr(sampleDensity, tSampleToOrigin, tSunToSample, prevRayleighInSctr, prevMieInSctr);
     }
 
     for (uint stepIndex = 1u; stepIndex <= params.steps; stepIndex++) {
         float stepIndexF = float(stepIndex) - stepJitter;
-        vec3 samplePos = params.origin + (stepIndexF) * stepDelta;
-        float sampleHeight = length(samplePos) - atmosphere.bottom;
+        vec3 samplePos = params.rayStart;
+        float sampleHeight = length(samplePos);
         vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
 
-        totalDensity += (prevDensity + sampleDensity) * (stepLength * 0.5);
+        totalDensity += (prevDensity + sampleDensity) * (rayStepLength * 0.5);
         prevDensity = sampleDensity;
 
-        vec3 sampleShadowPos = mix(startShadow, endShadow, stepIndexF * stepFraction);
-        vec3 tSunToSample = raymarchSampleTransmittanceLUT(atmosphere, params, samplePos, usam_transmittanceLUT);
-        tSunToSample *= sampleShadow(sampleShadowPos);
+        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params, sampleHeight, transmittanceLUT);
         vec3 tSampleToOrigin = exp(-computeOpticalDepth(atmosphere, totalDensity));
+
+        vec3 sampleShadowPos = shadowStart + stepIndexF * shaodwStepDelta;
+        tSunToSample *= sampleShadow(sampleShadowPos);
 
         vec3 sampleRayleightInSctr;
         vec3 sampleMieInSctr;
         computePointDiffInSctr(sampleDensity, tSampleToOrigin, tSunToSample, sampleRayleightInSctr, sampleMieInSctr);
 
-        totalRayleighInSctr += (prevRayleighInSctr + sampleRayleightInSctr) * (stepLength * 0.5);
-        totalMieInSctr += (prevMieInSctr + sampleMieInSctr) * (stepLength * 0.5);
+        totalRayleighInSctr += (prevRayleighInSctr + sampleRayleightInSctr) * (rayStepLength * 0.5);
+        totalMieInSctr += (prevMieInSctr + sampleMieInSctr) * (rayStepLength * 0.5);
 
         prevRayleighInSctr = sampleRayleightInSctr;
         prevMieInSctr = sampleMieInSctr;
@@ -105,57 +107,57 @@ sampler2D usam_transmittanceLUT
 
 // originView: ray origin in view space
 // endView: ray end in view space
-ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 originView, vec3 endView) {
+ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 originView, vec3 endView, float stepJitter) {
     ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
-    RaymarchParameters params;
 
     mat3 vectorView2World = mat3(gbufferModelViewInverse);
 
     vec3 viewDirView = normalize(endView - originView);
     vec3 viewDirWorld = normalize(vectorView2World * viewDirView);
 
-    params.origin = atmosphere_viewToAtm(atmosphere, originView);
-
+    RaymarchParameters params;
+    params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
+    
     float cosTheta = -dot(uval_sunDirView, viewDirView);
-    params.cosSunZenith = dot(uval_sunDirView, uval_upDirView);
+    params.cosZenith = dot(uval_sunDirView, uval_upDirView);
     params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
     params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
+    params.steps = 32u;
+    
+    vec3 rayDir = viewDirWorld;
 
     if (endView.z == -65536.0) {
         vec3 earthCenter = vec3(0.0, 0.0, 0.0);
-        params.rayDir = viewDirWorld;
 
         // Check if ray origin is outside the atmosphere
-        if (length(params.origin) > atmosphere.top) {
-            float tTop = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.top);
+        if (length(params.rayStart) > atmosphere.top) {
+            float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
             if (tTop < 0.0) {
                 return result; // No intersection with atmosphere: stop right away
             }
-            params.origin += params.rayDir * (tTop + 0.001);
+            params.rayStart += rayDir * (tTop + 0.001);
         }
 
-        float tBottom = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.bottom);
-        float tTop = raySphereIntersectNearest(params.origin, params.rayDir, earthCenter, atmosphere.top);
-        params.rayLen = 0.0;
+        float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom);
+        float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
+        float rayLen = 0.0;
+
         if (tBottom < 0.0) {
             if (tTop < 0.0) {
                 return result; // No intersection with earth nor atmosphere: stop right away
             } else {
-                params.rayLen = tTop;
+                rayLen = tTop;
             }
         } else {
             if (tTop > 0.0) {
-                params.rayLen = min(tTop, tBottom);
+                rayLen = min(tTop, tBottom);
             }
         }
 
-        params.steps = 32u;
+        params.rayEnd = params.rayStart + rayDir * rayLen;
         return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT);
     } else {
-        vec3 endAtm = atmosphere_viewToAtm(atmosphere, endView);
-
-        params.rayDir = normalize(endAtm - params.origin);
-        params.rayLen = length(endAtm - params.origin);
+        params.rayEnd = atmosphere_viewToAtm(atmosphere, endView);
 
         vec4 originScene = gbufferModelViewInverse * vec4(originView, 1.0);
         vec4 endScene = gbufferModelViewInverse * vec4(endView, 1.0);
@@ -168,8 +170,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         vec3 endShadow = endShadowCS.xyz / endShadowCS.w;
         endShadow = endShadow * 0.5 + 0.5;
 
-        params.steps = 32u;
-        return raymarchSingleScatteringShadowed(atmosphere, params, startShadow, endShadow, usam_transmittanceLUT);
+        return raymarchSingleScatteringShadowed(atmosphere, params, startShadow, endShadow, stepJitter, usam_transmittanceLUT);
     }
 }
 
@@ -185,20 +186,21 @@ void main() {
     cond &= uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
 
     if (bool(cond)) {
+        float ignValue = rand_IGN(vec2(gl_GlobalInvocationID.xy), frameCounter);
         float sliceSampleP = float(sliceSampleIndex);
-        sliceSampleP += rand_IGN(vec2(gl_GlobalInvocationID.xy), frameCounter) - 0.5;
+        sliceSampleP += ignValue - 0.5;
         sliceSampleP /= float(SETTING_SLICE_SAMPLES - 1);
 
         vec2 texCoord = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
         texCoord = (round(texCoord * global_mainImageSize) + 0.5) * global_mainImageSizeRcp;
 
         AtmosphereParameters atmosphere = getAtmosphereParameters();
-        atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * (uval_sunDirView));
+        atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * uval_sunDirView);
         float viewZ = textureLod(usam_viewZ, texCoord, 0.0).r;
          viewZ = mix(viewZ, -65536.0, float(viewZ == 1.0));
         vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
 
-        ScatteringResult result = computeSingleScattering(atmosphere, vec3(0.0), viewCoord);
+        ScatteringResult result = computeSingleScattering(atmosphere, vec3(0.0), viewCoord, ignValue);
         imageStore(uimg_epipolarInSctr, pixelPos, vec4(result.inScattering, 0.0));
         imageStore(uimg_epipolarTransmittance, pixelPos, vec4(result.transmittance, 0.0));
         imageStore(uimg_epipolarViewZ, pixelPos, vec4(viewZ));

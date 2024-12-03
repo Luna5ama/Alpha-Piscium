@@ -106,27 +106,28 @@ const vec2 TRANSMITTANCE_TEXEL_SIZE = 1.0 / TRANSMITTANCE_TEXTURE_SIZE;
 // Calculate the air density ratio at a given height(km) relative to sea level
 // Fitted to U.S. Standard Atmosphere 1976
 // See https://www.desmos.com/calculator/homrt1shnb
-float sampleRayleighDensity(AtmosphereParameters atmosphere, float h) {
+float sampleRayleighDensity(AtmosphereParameters atmosphere, float altitude) {
     const float a0 = 0.00947927584794;
     const float a1 = -0.138528179963;
     const float a2 = -0.00235619411773;
     const float c = 8.163265e-6;
-    return exp2(a0 + a1 * h + a2 * h * h);
+    return exp2(a0 + a1 * altitude + a2 * altitude * altitude);
 }
 
-float sampleMieDensity(AtmosphereParameters atmosphere, float h) {
-    return exp(-h / atmosphere.mieHeight);
+float sampleMieDensity(AtmosphereParameters atmosphere, float altitude) {
+    return exp(-altitude / atmosphere.mieHeight);
 }
 
-float sampleOzoneDensity(AtmosphereParameters atmosphere, float h) {
-    return max(0.0, 1.0 - abs(h - atmosphere.ozoneCenter) / atmosphere.ozoneHalfWidth);
+float sampleOzoneDensity(AtmosphereParameters atmosphere, float altitude) {
+    return max(0.0, 1.0 - abs(altitude - atmosphere.ozoneCenter) / atmosphere.ozoneHalfWidth);
 }
 
-vec3 sampleParticleDensity(AtmosphereParameters atmosphere, float h) {
+vec3 sampleParticleDensity(AtmosphereParameters atmosphere, float height) {
+    float altitude = height - atmosphere.bottom;
     return vec3(
-        sampleRayleighDensity(atmosphere, h),
-        sampleMieDensity(atmosphere, h),
-        sampleOzoneDensity(atmosphere, h)
+        sampleRayleighDensity(atmosphere, altitude),
+        sampleMieDensity(atmosphere, altitude),
+        sampleOzoneDensity(atmosphere, altitude)
     );
 }
 
@@ -167,37 +168,27 @@ float raySphereIntersectNearest(vec3 r0, vec3 rd, vec3 s0, float sR) {
 float fromUnitToSubUvs(float u, float resolution) { return (u + 0.5f / resolution) * (resolution / (resolution + 1.0f)); }
 float fromSubUvsToUnit(float u, float resolution) { return (u - 0.5f / resolution) * (resolution / (resolution - 1.0f)); }
 
-float calcViewAltitude(AtmosphereParameters atmosphere, vec3 worldPos) {
-    float viewAltitude = worldPos.y;
-    viewAltitude /= SETTING_ATM_ALT_SCALE;
-    viewAltitude = max(viewAltitude, 1.0);
-    viewAltitude += atmosphere.bottom;
-    return viewAltitude;
-}
-
-float calcCosSunZenith(AtmosphereParameters atmosphere, vec3 sunDirection) {
-    return dot(sunDirection, uval_upDirView);
+float atmosphere_height(AtmosphereParameters atmosphere, vec3 worldPos) {
+    return worldPos.y * (1.0 / float(SETTING_ATM_ALT_SCALE)) + atmosphere.bottom;
 }
 
 vec3 atmosphere_viewToAtm(AtmosphereParameters atmosphere, vec3 viewPos) {
     vec3 feetPlayer = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
     vec3 world = feetPlayer + cameraPosition;
-    float altitude = calcViewAltitude(atmosphere, world);
-    vec3 atm = vec3(feetPlayer.x, 0.0, feetPlayer.z) / SETTING_ATM_D_SCALE;
-    atm.y += altitude;
-    return atm;
+    float height = atmosphere_height(atmosphere, world);
+    return vec3(feetPlayer.x, 0.0, feetPlayer.z) * (1.0 / float(SETTING_ATM_D_SCALE)) + vec3(0.0, height, 0.0);
 }
 
-void lutTransmittanceParamsToUv(AtmosphereParameters atmosphere, float viewAltitude, float cosSunZenith, out vec2 uv) {
-    viewAltitude = clamp(viewAltitude, atmosphere.bottom + 0.0001, atmosphere.top - 0.0001);
-    cosSunZenith = clamp(cosSunZenith, -1.0, 1.0);
+void lutTransmittanceParamsToUv(AtmosphereParameters atmosphere, float height, float cosZenith, out vec2 uv) {
+    height = clamp(height, atmosphere.bottom + 0.0001, atmosphere.top - 0.0001);
+    cosZenith = clamp(cosZenith, -1.0, 1.0);
     float H = sqrt(max(0.0, atmosphere.top * atmosphere.top - atmosphere.bottom * atmosphere.bottom));
-    float rho = sqrt(max(0.0, viewAltitude * viewAltitude - atmosphere.bottom * atmosphere.bottom));
+    float rho = sqrt(max(0.0, height * height - atmosphere.bottom * atmosphere.bottom));
 
-    float discriminant = viewAltitude * viewAltitude * (cosSunZenith * cosSunZenith - 1.0) + atmosphere.top * atmosphere.top;
-    float d = max(0.0, (-viewAltitude * cosSunZenith + sqrt(discriminant)));// Distance to atmosphere boundary
+    float discriminant = height * height * (cosZenith * cosZenith - 1.0) + atmosphere.top * atmosphere.top;
+    float d = max(0.0, (-height * cosZenith + sqrt(discriminant)));// Distance to atmosphere boundary
 
-    float d_min = atmosphere.top - viewAltitude;
+    float d_min = atmosphere.top - height;
     float d_max = rho + H;
     float x_mu = (d - d_min) / (d_max - d_min);
     float x_r = rho / H;
@@ -206,7 +197,7 @@ void lutTransmittanceParamsToUv(AtmosphereParameters atmosphere, float viewAltit
     //uv = vec2(fromUnitToSubUvs(uv.x, TRANSMITTANCE_TEXTURE_WIDTH), fromUnitToSubUvs(uv.y, TRANSMITTANCE_TEXTURE_HEIGHT)); // No real impact so off
 }
 
-void uvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float viewAltitude, out float cosSunZenith, vec2 uv) {
+void uvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float altitude, out float cosZenith, vec2 uv) {
     //uv = vec2(fromSubUvsToUnit(uv.x, TRANSMITTANCE_TEXTURE_WIDTH), fromSubUvsToUnit(uv.y, TRANSMITTANCE_TEXTURE_HEIGHT)); // No real impact so off
     uv = clamp(uv, TRANSMITTANCE_TEXEL_SIZE, vec2(1.0 - TRANSMITTANCE_TEXEL_SIZE));
     float x_mu = uv.x;
@@ -214,13 +205,13 @@ void uvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float viewA
 
     float H = sqrt(atmosphere.top * atmosphere.top - atmosphere.bottom * atmosphere.bottom);
     float rho = H * x_r;
-    viewAltitude = sqrt(rho * rho + atmosphere.bottom * atmosphere.bottom);
+    altitude = sqrt(rho * rho + atmosphere.bottom * atmosphere.bottom);
 
-    float d_min = atmosphere.top - viewAltitude;
+    float d_min = atmosphere.top - altitude;
     float d_max = rho + H;
     float d = d_min + x_mu * (d_max - d_min);
-    cosSunZenith = d == 0.0 ? 1.0 : (H * H - rho * rho - d * d) / (2.0 * viewAltitude * d);
-    cosSunZenith = clamp(cosSunZenith, -1.0, 1.0);
+    cosZenith = d == 0.0 ? 1.0 : (H * H - rho * rho - d * d) / (2.0 * altitude * d);
+    cosZenith = clamp(cosZenith, -1.0, 1.0);
 }
 
 float rayleighPhase(float cosTheta) {
@@ -250,22 +241,20 @@ struct ScatteringResult {
 };
 
 struct RaymarchParameters {
-    vec3 origin;
-    vec3 rayDir;
-    float rayLen;
-    float cosSunZenith;
+    vec3 rayStart;
+    vec3 rayEnd;
+    float cosZenith;
     float rayleighPhaseAngular;
     float miePhaseAngular;
     uint steps;
 };
 
-vec3 raymarchSampleTransmittanceLUT(
+vec3 sampleTransmittanceLUT(
 AtmosphereParameters atmosphere, RaymarchParameters params,
-vec3 samplePos, sampler2D transmittanceLUT
+float sampleAltitude, sampler2D transmittanceLUT
 ) {
-    float sampleAltitude = length(samplePos);
     vec2 tLUTUV;
-    lutTransmittanceParamsToUv(atmosphere, sampleAltitude, params.cosSunZenith, tLUTUV);
+    lutTransmittanceParamsToUv(atmosphere, sampleAltitude, params.cosZenith, tLUTUV);
     return texture(transmittanceLUT, tLUTUV).rgb;
 }
 
@@ -292,12 +281,13 @@ out vec3 mieInSctr
 
 ScatteringResult raymarchSingleScattering(
 AtmosphereParameters atmosphere, RaymarchParameters params,
-sampler2D usam_transmittanceLUT
+sampler2D transmittanceLUT
 ) {
     ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
 
-    float stepLength = params.rayLen / float(params.steps);
-    vec3 stepDelta = params.rayDir * stepLength;
+    float rcpSteps = 1.0 / float(params.steps);
+    vec3 stepDelta = (params.rayEnd - params.rayStart) * rcpSteps;
+    float stepLength = length(params.rayEnd - params.rayStart) * rcpSteps;
 
     vec3 prevDensity;
     vec3 prevRayleighInSctr;
@@ -307,13 +297,13 @@ sampler2D usam_transmittanceLUT
     vec3 totalRayleighInSctr = vec3(0.0);
     vec3 totalMieInSctr = vec3(0.0);
     {
-        vec3 samplePos = params.origin;
-        float sampleHeight = length(samplePos) - atmosphere.bottom;
+        vec3 samplePos = params.rayStart;
+        float sampleHeight = length(samplePos);
         vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
 
         prevDensity = sampleDensity;
 
-        vec3 tSunToSample = raymarchSampleTransmittanceLUT(atmosphere, params, samplePos, usam_transmittanceLUT);
+        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params, sampleHeight, transmittanceLUT);
         vec3 tSampleToOrigin = vec3(1.0);
 
         computePointDiffInSctr(sampleDensity, tSampleToOrigin, tSunToSample, prevRayleighInSctr, prevMieInSctr);
@@ -321,14 +311,14 @@ sampler2D usam_transmittanceLUT
 
     for (uint stepIndex = 1u; stepIndex <= params.steps; stepIndex++) {
         float stepIndexF = float(stepIndex);
-        vec3 samplePos = params.origin + (stepIndexF) * stepDelta;
-        float sampleHeight = length(samplePos) - atmosphere.bottom;
+        vec3 samplePos = params.rayStart + stepIndexF * stepDelta;
+        float sampleHeight = length(samplePos);
         vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
 
         totalDensity += (prevDensity + sampleDensity) * (stepLength * 0.5);
         prevDensity = sampleDensity;
 
-        vec3 tSunToSample = raymarchSampleTransmittanceLUT(atmosphere, params, samplePos, usam_transmittanceLUT);
+        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params, sampleHeight, transmittanceLUT);
         vec3 tSampleToOrigin = exp(-computeOpticalDepth(atmosphere, totalDensity));
 
         vec3 sampleRayleightInSctr;
@@ -381,14 +371,14 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
     vec3 prevDensity = vec3(0.0);
     {
         vec3 samplePos = origin;
-        float sampleHeight = length(samplePos) - atmosphere.bottom;
+        float sampleHeight = length(samplePos);
 
         prevDensity = sampleParticleDensity(atmosphere, sampleHeight);
     }
     for (uint stepIndex = 1u; stepIndex <= steps; stepIndex++) {
         float stepIndexF = float(stepIndex);
-        vec3 samplePos = origin + (stepIndexF) * stepDelta;
-        float sampleHeight = length(samplePos) - atmosphere.bottom;
+        vec3 samplePos = origin + stepIndexF * stepDelta;
+        float sampleHeight = length(samplePos);
         vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
 
         totalDensity += (prevDensity + sampleDensity) * (stepLength * 0.5);

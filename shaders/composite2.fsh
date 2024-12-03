@@ -212,10 +212,10 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(g_viewCoord, 1.0)).xyz;
     vec3 worldPos = feetPlayerPos + cameraPosition;
-    float viewAltitude = calcViewAltitude(atmosphere, worldPos);
-    float cosSunZenith = calcCosSunZenith(atmosphere, L);
+    float viewAltitude = atmosphere_height(atmosphere, worldPos);
+    float cosLightZenith = dot(L, uval_upDirView);
     vec2 transmittanceUV;
-    lutTransmittanceParamsToUv(atmosphere, viewAltitude, cosSunZenith, transmittanceUV);
+    lutTransmittanceParamsToUv(atmosphere, viewAltitude, cosLightZenith, transmittanceUV);
     vec3 transmittance = texture(usam_transmittanceLUT, transmittanceUV).rgb;
 
 //    vec3 diffuseV = bsdf_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
