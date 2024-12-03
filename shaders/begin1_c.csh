@@ -15,7 +15,7 @@ void main() {
     shared_histogram[gl_LocalInvocationID.x] = 0u;
     barrier();
 
-    float topBin = float(max(global_lumHistogram[256], 2)) / 2.0;
+    float topBin = float(max(global_lumHistogram[256], 1));
     uint binCount = global_lumHistogram[gl_LocalInvocationID.x];
     {
         uint binCountWeighted = binCount * gl_LocalInvocationID.x;

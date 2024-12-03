@@ -755,7 +755,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_PERCENT", 2.0, 0.1..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_TOP_BIN_PERCENT", 4.0, 0.1..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Top Bin %"
                         comment =
