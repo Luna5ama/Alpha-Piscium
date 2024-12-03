@@ -167,7 +167,6 @@ void main() {
             float maxDist = length(sampleDir * sphereRadius);
 
             float lodStep = radiusToLodStep(maxDist);
-            float maxLod = float(textureQueryLevels(usam_viewZ)) - 1.0;
             float sampleLod = lodStep * baseSampleLod;
 
             float sampleTexelDist = 0.5;
@@ -181,7 +180,8 @@ void main() {
                 vec2 sampleTexelCoord = floor(sampleDir * sampleTexelDist + gl_FragCoord.xy) + 0.5;
                 vec2 sampleUV = sampleTexelCoord / textureSize(usam_viewZ, 0).xy;
 
-                float sampleViewZ = textureLod(usam_viewZ, sampleUV, round(sampleLod * 0.5)).r;
+                float realSampleLod = round(sampleLod * 0.5);
+                float sampleViewZ = textureLod(usam_viewZ, sampleUV, realSampleLod).r;
                 vec3 sampleViewXYZ = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
                 vec3 diff = sampleViewXYZ - centerViewCoord;
                 float distSq = dot(diff, diff);
@@ -205,9 +205,8 @@ void main() {
                     ilCond &= uint(all(lessThanEqual(sampleUV, vec2(1.0))));
 
                     if (bool(ilCond)) {
-                        float giSampleLod = round(sampleLod);
-                        vec4 sample1 = textureLod(usam_temp1, sampleUV, giSampleLod);
-                        vec4 sample2 = textureLod(usam_temp2, sampleUV, giSampleLod);
+                        vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
+                        vec4 sample2 = textureLod(usam_temp2, sampleUV, realSampleLod);
                         vec3 sampleNormal = sample1.rgb;
                         vec3 direct = sample2.rgb;
 
@@ -220,7 +219,7 @@ void main() {
                         rt_out.rgb += ilBitCoeff * emitterCos * direct;
                     }
                 }
-                sampleLod = min(sampleLod + lodStep, maxLod);
+                sampleLod = sampleLod + lodStep;
                 sampleTexelDist += stepTexelSize;
             }
 
