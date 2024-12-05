@@ -56,11 +56,8 @@ AtmosphereParameters getAtmosphereParameters() {
     const float OZONE_CENTER = 25.0;
     const float OZONE_HALF_WIDTH = 15.0;
 
-    // Constants from [BIO23]
-    //    const vec3 RAYLEIGH_SCATTERING = vec3(6.602e-6, 1.239e-5, 2.940e-5);
-
-    // https://www.desmos.com/calculator/cbf7zuskon
-    const vec3 RAYLEIGH_SCATTERING = vec3(6.80947891096e-6, 1.13062625584e-5, 2.5049347778e-5);
+    // https://www.desmos.com/calculator/ugi2cb8qyj
+    const vec3 RAYLEIGH_SCATTERING = vec3(0.00000718336687547, 0.0000119270553606, 0.0000264247319705);
 
     // Constants from [HIL20]
     const vec3 MIE_SCATTERING = vec3(3.996e-6);
@@ -68,14 +65,12 @@ AtmosphereParameters getAtmosphereParameters() {
 
     // Constants from [BRU08]
     //    const vec3 MIE_SCATTERING = vec3(2.10e-5);
-    //    const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 0.1;
+    //    const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 1.1;
 
     const float MIE_PHASE_G = 0.76;
 
-    // Constants from [HIL20]
-    //        const vec3 OZONE_ABOSORPTION = vec3(0.650e-6, 1.881e-6, 0.085e-6);
-    // Constants from [BIO23]
-    const vec3 OZONE_ABOSORPTION = vec3(2.341e-6, 1.54e-6, 2.193e-25);
+    // https://www.desmos.com/calculator/ntnh7wwbd8
+    const vec3 OZONE_ABOSORPTION = vec3(6.2240628315e-16, 2.6898614109e-16, -2.2351831487e-18);
 
     AtmosphereParameters atmosphere;
     atmosphere.bottom = ATMOSPHERE_BOTTOM;
@@ -95,7 +90,7 @@ AtmosphereParameters getAtmosphereParameters() {
     atmosphere.mieSctrCoeffAngular = atmosphere.mieSctrCoeffTotal * k;
     atmosphere.mieExtinction = atmosphere.mieSctrCoeffTotal + (MIE_ABOSORPTION * 1000.0);
 
-    atmosphere.ozoneExtinction = OZONE_ABOSORPTION * 1000.0;
+    atmosphere.ozoneExtinction = OZONE_ABOSORPTION;
 
     return atmosphere;
 }
@@ -107,12 +102,11 @@ const vec2 TRANSMITTANCE_TEXEL_SIZE = 1.0 / TRANSMITTANCE_TEXTURE_SIZE;
 
 // Calculate the air density ratio at a given height(km) relative to sea level
 // Fitted to U.S. Standard Atmosphere 1976
-// See https://www.desmos.com/calculator/homrt1shnb
+// See https://www.desmos.com/calculator/ugi2cb8qyj
 float sampleRayleighDensity(AtmosphereParameters atmosphere, float altitude) {
     const float a0 = 0.00947927584794;
     const float a1 = -0.138528179963;
     const float a2 = -0.00235619411773;
-    const float c = 8.163265e-6;
     return exp2(a0 + a1 * altitude + a2 * altitude * altitude);
 }
 
@@ -120,8 +114,34 @@ float sampleMieDensity(AtmosphereParameters atmosphere, float altitude) {
     return exp(-altitude / atmosphere.mieHeight);
 }
 
+// Calculate the ozone number density in molecules/cm^3
+// See https://www.desmos.com/calculator/ntnh7wwbd8
 float sampleOzoneDensity(AtmosphereParameters atmosphere, float altitude) {
-    return max(0.0, 1.0 - abs(altitude - atmosphere.ozoneCenter) / atmosphere.ozoneHalfWidth);
+    float x = max(altitude, 0.0);
+    float x2 = x * x;
+    float x3 = x2 * x;
+    float x4 = x2 * x2;
+
+    const float d10 = 5.07148407148;
+    const float d11 = -0.713837088837;
+    const float d12 = 0.0518405205905;
+    const float d13 = -0.00185347060347;
+    const float d14 = 0.0000546328671329;
+    float d1 = d10 + d11 * x + d12 * x2 + d13 * x3 + d14 * x4;
+
+    const float d20 = -21.150982082;
+    const float d21 = 3.16169710887;
+    const float d22 = -0.141187419433;
+    const float d23 = 0.00261622221548;
+    const float d24 = -0.0000175765474848;
+    float d2 = exp2(d20 + d21 * x + d22 * x2 + d23 * x3 + d24 * x4);
+
+    const float l0 = 14.5;
+    const float l1 = 18.5;
+    float s = smoothstep(l0, l1, x);
+
+    float mPa = mix(d1, d2, s);
+    return mPa * 3.260396361e11;
 }
 
 vec3 sampleParticleDensity(AtmosphereParameters atmosphere, float height) {
