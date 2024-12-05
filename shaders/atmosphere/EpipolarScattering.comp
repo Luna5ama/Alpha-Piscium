@@ -156,9 +156,11 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         }
 
         params.rayEnd = params.rayStart + rayDir * rayLen;
+        params.rayEnd.y += 1.0;
         return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT);
     } else {
         params.rayEnd = atmosphere_viewToAtm(atmosphere, endView);
+        params.rayEnd.y += 1.0;
 
         vec4 originScene = gbufferModelViewInverse * vec4(originView, 1.0);
         vec4 endScene = gbufferModelViewInverse * vec4(endView, 1.0);
