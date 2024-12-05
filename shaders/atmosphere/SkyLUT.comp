@@ -27,7 +27,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
 
     float cosTheta = -dot(rayDir, atmosphere.sunDirection);
-    params.cosZenith = dot(uval_sunDirView, uval_sunDirView);
+    params.cosZenith = dot(uval_sunDirView, uval_upDirView);
     params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
     params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
     params.steps = 64u;
@@ -46,6 +46,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
     float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom);
     float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
     float rayLen = 0.0;
+
     if (tBottom < 0.0) {
         if (tTop < 0.0) {
             return result; // No intersection with earth nor atmosphere: stop right away

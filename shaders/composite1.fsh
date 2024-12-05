@@ -21,6 +21,7 @@ void main() {
 
 	AtmosphereParameters atmosphere = getAtmosphereParameters();
 	vec3 origin = atmosphere_viewToAtm(atmosphere, vec3(0.0));
+	origin.y += 1.0;
 	vec3 earthCenter = vec3(0.0);
 	float earthIntersect = raySphereIntersectNearest(origin, viewDirWorld, earthCenter, atmosphere.bottom);
 
