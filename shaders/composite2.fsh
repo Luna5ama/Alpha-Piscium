@@ -100,7 +100,7 @@ vec3 calcShadow(float sssFactor) {
     shadowTexCoord.z = rtwsm_linearDepth(shadowTexCoord.z);
 
     float ssRange = 0.0;
-    ssRange += sssFactor * 0.5;
+    ssRange += sssFactor * 0.25;
     #if SETTING_PCSS_BPF > 0
     ssRange += exp2(SETTING_PCSS_BPF - 10.0);
     #endif
@@ -196,7 +196,7 @@ vec3 calcFresnel(Material material, float dotP) {
 }
 
 vec3 directLighting(Material material, vec3 shadow, vec3 irradiance, vec3 L, vec3 N, vec3 V) {
-    vec3 NSss = normalize(mix(N, L, material.sss * 0.8));
+    vec3 NSss = normalize(mix(N, L, material.sss * 0.9));
     vec3 H = normalize(L + V);
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);
@@ -214,7 +214,6 @@ void doLighting(Material material, vec3 N, vec3 V) {
     vec3 emissiveV = material.emissive;
 
     vec4 ssvbilSample = texelFetch(usam_ssvbil, intTexCoord, 0);
-    float skyDiffuseAO = ssvbilSample.a * ssvbilSample.a;
     vec3 multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * RCP_PI * max(ssvbilSample.rgb, 0.0) * material.albedo;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
