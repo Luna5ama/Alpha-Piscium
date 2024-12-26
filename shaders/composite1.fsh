@@ -15,7 +15,7 @@ void main() {
 	vec3 viewCoord = coords_toViewCoord(frag_texCoord, -far, gbufferProjectionInverse);
 
 	vec3 viewDir = normalize(viewCoord);
-	float cosSun = saturate(dot(viewDir, uval_sunDirView));
+	float cosTheta = saturate(dot(viewDir, uval_sunDirView));
 
 	vec3 viewDirWorld = mat3(gbufferModelViewInverse) * viewDir;
 
@@ -25,5 +25,14 @@ void main() {
 	vec3 earthCenter = vec3(0.0);
 	float earthIntersect = raySphereIntersectNearest(origin, viewDirWorld, earthCenter, atmosphere.bottom);
 
-	rt_out.rgb = step(earthIntersect, 0.0) * pow(cosSun, 6000.0) * sunRadiance;
+	float sunCosTheta = cos(uval_sunAngularRadius * 1.0);
+
+	// https://www.shadertoy.com/view/slSXRW
+	float offset = sunCosTheta - cosTheta;
+	float gaussianBloom = exp(-offset * 50000.0) * 0.5;
+	float invBloom = 1.0 / (0.02 + offset * 300.0) * 0.01;
+
+	float sunV = step(sunCosTheta, cosTheta) + gaussianBloom + invBloom;
+
+	rt_out.rgb = step(earthIntersect, 0.0) * sunV * sunRadiance;
 }

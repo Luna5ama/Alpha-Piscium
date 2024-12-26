@@ -98,20 +98,20 @@ void processOutput(out GBufferData gData, out float viewZ) {
 
     // TODO: normal map
     gData.normal = frag_viewNormal;
+    gData.normal = dither(gData.normal, noiseIGN, 1023.0);
 
     #else
     // TODO: hardcoded PBR
     gData.materialAO = 1.0;
     gData.pbrSpecular = vec4(0.0, 1.0, 0.0, 0.0);
 
-    gData.normal = frag_viewNormal;
+    gData.normal = vec3(1.0);
     #endif
 
     gData.lmCoord = frag_lmCoord;
     gData.materialID = frag_materialID;
 
     gData.lmCoord = dither(gData.lmCoord, noiseIGN, 255.0);
-    gData.normal = dither(gData.normal, noiseIGN, 1023.0);
 
     #ifdef GBUFFER_PASS_VIEWZ_OVERRIDE
     viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;

@@ -57,7 +57,7 @@ AtmosphereParameters getAtmosphereParameters() {
     const float OZONE_HALF_WIDTH = 15.0;
 
     // https://www.desmos.com/calculator/ugi2cb8qyj
-    const vec3 RAYLEIGH_SCATTERING = vec3(0.00000718336687547, 0.0000119270553606, 0.0000264247319705);
+    const vec3 RAYLEIGH_SCATTERING = vec3(0.00000718336687547, 0.0000119270553606, 0.0000264247319705) * 0.5;
 
     // Constants from [HIL20]
     const vec3 MIE_SCATTERING = vec3(3.996e-6);
@@ -278,6 +278,11 @@ float sampleAltitude, sampler2D transmittanceLUT
 ) {
     vec2 tLUTUV;
     lutTransmittanceParamsToUv(atmosphere, sampleAltitude, params.cosZenith, tLUTUV);
+    uint cond = uint(any(lessThan(tLUTUV, vec2(0.0))));
+    cond |= uint(any(greaterThan(tLUTUV, vec2(1.0))));
+    if (bool(cond)) {
+        return vec3(0.0);
+    }
     return texture(transmittanceLUT, tLUTUV).rgb;
 }
 
