@@ -95,8 +95,9 @@ vec3 calcShadow(float sssFactor) {
     shadowTexCoordCS /= shadowTexCoordCS.w;
 
     vec3 shadowTexCoord = shadowTexCoordCS.xyz * 0.5 + 0.5;
-
     float blockerDistance = searchBlocker(shadowTexCoord);
+
+    shadowTexCoord.z = rtwsm_linearDepth(shadowTexCoord.z);
 
     float ssRange = 0.0;
     ssRange += sssFactor * 0.5;
@@ -118,9 +119,11 @@ vec3 calcShadow(float sssFactor) {
     depthBiasFactor += mix(0.005 + lightNormalDot * 0.005, -0.001, dbfDistanceCoeff);
 
     for (int i = 0; i < SAMPLE_N; i++) {
-        vec2 randomOffset = (rand_r2Seq2(idxSS) * 2.0 - 1.0);
+        vec3 randomOffset = rand_r2Seq3(idxSS);
+        randomOffset.xy = randomOffset.xy * 2.0 - 1.0;
         vec3 sampleTexCoord = shadowTexCoord;
-        sampleTexCoord.xy += ssRange * randomOffset * vec2(shadowProjection[0][0], shadowProjection[1][1]);
+        sampleTexCoord.xy += ssRange * randomOffset.xy * vec2(shadowProjection[0][0], shadowProjection[1][1]);
+        sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z + randomOffset.z * sssFactor);
         vec2 texelSize;
         sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, sampleTexCoord.xy, texelSize);
         float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
@@ -193,7 +196,7 @@ vec3 calcFresnel(Material material, float dotP) {
 }
 
 vec3 directLighting(Material material, vec3 shadow, vec3 irradiance, vec3 L, vec3 N, vec3 V) {
-    vec3 NSss = normalize(mix(N, L, material.sss));
+    vec3 NSss = normalize(mix(N, L, material.sss * 0.8));
     vec3 H = normalize(L + V);
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);

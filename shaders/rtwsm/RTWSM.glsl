@@ -63,4 +63,8 @@ float rtwsm_sampleShadowDepth(sampler2D shadowMap, vec3 coord, float lod) {
 float rtwsm_linearDepth(float d) {
     return (d * 2.0 - 1.0) * 4.0 * shadowProjectionInverse[2][2] + shadowProjectionInverse[3][2];
 }
+
+float rtwsm_linearDepthInverse(float depth) {
+    return ((depth - shadowProjectionInverse[3][2]) / (4.0 * shadowProjectionInverse[2][2]) + 1.0) / 2.0;
+}
 #endif

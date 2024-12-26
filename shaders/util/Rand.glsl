@@ -47,6 +47,12 @@ vec2 rand_r2Seq2(uint idx) {
     return fract(0.5 + a * idx);
 }
 
+vec3 rand_r2Seq3(uint idx) {
+    const float g = 1.32471795724474602596;
+    const vec3 a = vec3(1.0 / g, 1.0 / (g * g), 1.0 / (g * g * g));
+    return fract(0.5 + a * idx);
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 // Integer Hash Functions
 //
