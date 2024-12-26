@@ -248,14 +248,14 @@ void doLighting(Material material, vec3 N, vec3 V) {
 //    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
 //    vec3 skySpecularV = fresnel * sunRadiance * reflectRadiance;
 
-    rt_main = vec4(0.0, 0.0, 0.0, 1.0);
+    rt_main.rgb = vec3(0.0);
     rt_main.rgb += 0.02 * material.albedo;
     rt_main.rgb += emissiveV;
     rt_main.rgb += sunLighting;
     rt_main.rgb += moonLighting;
 //    rt_main.rgb += skySpecularV;
 
-    rt_temp2 = vec4(0.0, 0.0, 0.0, 1.0);
+    rt_temp2.rgb = vec3(0.0);
     rt_temp2.rgb += multiBounceV;
     rt_temp2.rgb += emissiveV;
     rt_temp2.rgb += sunLighting;
@@ -266,6 +266,7 @@ void doLighting(Material material, vec3 N, vec3 V) {
 void doStuff() {
     Material material = material_decode(gData);
 
+    rt_main.a = 1.0;
     rt_temp1.rgb = gData.normal;
     rt_temp1.a = float(any(greaterThan(material.emissive, vec3(0.0))));
     rt_temp2.a = gData.lmCoord.y;
