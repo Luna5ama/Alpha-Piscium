@@ -50,7 +50,7 @@ sampler2D transmittanceLUT
     vec3 tSampleToOrigin = vec3(1.0);
 
     for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
-        float stepIndexF = float(stepIndex) + 0.5;
+        float stepIndexF = float(stepIndex) + stepJitter;
         vec3 samplePos = params.rayStart + stepIndexF * rayStepDelta;
         float sampleHeight = length(samplePos);
 
