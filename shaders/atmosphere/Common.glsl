@@ -32,14 +32,10 @@ struct AtmosphereParameters {
     float ozoneCenter;
     float ozoneHalfWidth;
 
-    vec3 rayleighSctrCoeffTotal;
-// Angular Rayleigh scattering coefficient contains all the terms exepting 1 + cos^2(Theta):
-// See [YUS13] https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/Structures.fxh
-    vec3 rayleighSctrCoeffAngular;
+    vec3 rayleighSctrCoeff;
     vec3 rayleighExtinction;
 
-    vec3 mieSctrCoeffTotal;
-    vec3 mieSctrCoeffAngular;
+    vec3 mieSctrCoeff;
     vec3 mieExtinction;
 
     float miePhaseG;
@@ -79,15 +75,12 @@ AtmosphereParameters getAtmosphereParameters() {
     atmosphere.ozoneCenter = OZONE_CENTER;
     atmosphere.ozoneHalfWidth = OZONE_HALF_WIDTH;
 
-    atmosphere.rayleighSctrCoeffTotal = RAYLEIGH_SCATTERING * 1000.0;
-    atmosphere.rayleighSctrCoeffAngular = atmosphere.rayleighSctrCoeffTotal * (3.0 / (16.0 * PI));
-    atmosphere.rayleighExtinction = atmosphere.rayleighSctrCoeffTotal;
+    atmosphere.rayleighSctrCoeff = RAYLEIGH_SCATTERING * 1000.0;
+    atmosphere.rayleighExtinction = atmosphere.rayleighSctrCoeff;
 
     atmosphere.miePhaseG = MIE_PHASE_G;
-    const float k = 3.0 / (8.0 * PI) * (1.0 - atmosphere.miePhaseG * atmosphere.miePhaseG) / (2.0 + atmosphere.miePhaseG * atmosphere.miePhaseG);
-    atmosphere.mieSctrCoeffTotal = MIE_SCATTERING * 1000.0;
-    atmosphere.mieSctrCoeffAngular = atmosphere.mieSctrCoeffTotal * k;
-    atmosphere.mieExtinction = atmosphere.mieSctrCoeffTotal + (MIE_ABOSORPTION * 1000.0);
+    atmosphere.mieSctrCoeff = MIE_SCATTERING * 1000.0;
+    atmosphere.mieExtinction = atmosphere.mieSctrCoeff + (MIE_ABOSORPTION * 1000.0);
 
     atmosphere.ozoneExtinction = OZONE_ABOSORPTION;
 
@@ -237,24 +230,14 @@ void uvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float altit
 }
 
 float rayleighPhase(float cosTheta) {
-    float factor = 3.0 / (16.0 * PI);
-    return factor * (1.0 + cosTheta * cosTheta);
+    float k = 3.0 / (16.0 * PI);
+    return k * (1.0 + cosTheta * cosTheta);
 }
 
 // Cornette-Shanks phase function for Mie scattering
 float miePhase(float cosTheta, float g) {
     float k = 3.0 / (8.0 * PI) * (1.0 - g * g) / (2.0 + g * g);
     return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
-}
-
-// [YUS13] https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/LightScattering.fx
-float rayleighPhaseAngular(float cosTheta) {
-    return 1.0f + cosTheta * cosTheta;
-}
-
-// [YUS13] https://github.com/GameTechDev/OutdoorLightScattering/blob/master/fx/LightScattering.fx
-float miePhaseAngular(float cosTheta, float g) {
-    return (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
 }
 
 struct ScatteringResult {
@@ -266,8 +249,8 @@ struct RaymarchParameters {
     vec3 rayStart;
     vec3 rayEnd;
     float cosZenith;
-    float rayleighPhaseAngular;
-    float miePhaseAngular;
+    float rayleighPhase;
+    float miePhase;
     uint steps;
 };
 
@@ -293,17 +276,10 @@ vec3 computeOpticalDepth(AtmosphereParameters atmosphere, vec3 density) {
     return result;
 }
 
-void computePointDiffInSctr(
-vec3 sampleUnitDensity,
-vec3 tSampleToOrigin,
-vec3 tSunToSample,
-out vec3 rayleighInSctr,
-out vec3 mieInSctr
-) {
-    vec3 totalTransmittance = tSunToSample * tSampleToOrigin;
-
-    rayleighInSctr = sampleUnitDensity.x * totalTransmittance;
-    mieInSctr = sampleUnitDensity.y * totalTransmittance;
+vec3 computeTotalInSctr(AtmosphereParameters atmosphere, RaymarchParameters params, vec3 sampleDensity) {
+    vec3 rayleighInSctr = (sampleDensity.x * params.rayleighPhase) * atmosphere.rayleighSctrCoeff;
+    vec3 mieInSctr = (sampleDensity.y * params.miePhase) * atmosphere.mieSctrCoeff;
+    return rayleighInSctr + mieInSctr;
 }
 
 ScatteringResult raymarchSingleScattering(
@@ -313,58 +289,41 @@ sampler2D transmittanceLUT
     ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
 
     float rcpSteps = 1.0 / float(params.steps);
-    vec3 stepDelta = (params.rayEnd - params.rayStart) * rcpSteps;
-    float stepLength = length(params.rayEnd - params.rayStart) * rcpSteps;
-
-    vec3 prevDensity;
-    vec3 prevRayleighInSctr;
-    vec3 prevMieInSctr;
+    vec3 rayStepDelta = (params.rayEnd - params.rayStart) * rcpSteps;
+    float rayStepLength = length(params.rayEnd - params.rayStart) * rcpSteps;
 
     vec3 totalDensity = vec3(0.0);
-    vec3 totalRayleighInSctr = vec3(0.0);
-    vec3 totalMieInSctr = vec3(0.0);
-    {
-        vec3 samplePos = params.rayStart;
-        float sampleHeight = length(samplePos);
-        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
+    vec3 totalInSctr = vec3(0.0);
+    vec3 tSampleToOrigin = vec3(1.0);
 
-        prevDensity = sampleDensity;
+    for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
+        float stepIndexF = float(stepIndex) + 0.5;
+        vec3 samplePos = params.rayStart + stepIndexF * rayStepDelta;
+        float sampleHeight = length(samplePos);
+
+        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
+        vec3 sampleExtinction = computeOpticalDepth(atmosphere, sampleDensity);
+        vec3 sampleOpticalDepth = sampleExtinction * rayStepLength;
+        vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
         vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params.cosZenith, sampleHeight, transmittanceLUT);
-        vec3 tSampleToOrigin = vec3(1.0);
 
-        computePointDiffInSctr(sampleDensity, tSampleToOrigin, tSunToSample, prevRayleighInSctr, prevMieInSctr);
-    }
+        vec3 rayleighInSctr = sampleDensity.x * params.rayleighPhase * atmosphere.rayleighSctrCoeff;
+        vec3 mieInSctr = sampleDensity.y * params.miePhase * atmosphere.mieSctrCoeff;
+        vec3 inSctr = rayleighInSctr + mieInSctr;
 
-    for (uint stepIndex = 1u; stepIndex <= params.steps; stepIndex++) {
-        float stepIndexF = float(stepIndex);
-        vec3 samplePos = params.rayStart + stepIndexF * stepDelta;
-        float sampleHeight = length(samplePos);
-        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
+        vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, params, sampleDensity);
 
-        totalDensity += (prevDensity + sampleDensity) * (stepLength * 0.5);
-        prevDensity = sampleDensity;
+        // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
+        vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
+        totalInSctr += tSampleToOrigin * sampleInSctrInt;
 
-        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params.cosZenith, sampleHeight, transmittanceLUT);
-        vec3 tSampleToOrigin = exp(-computeOpticalDepth(atmosphere, totalDensity));
-
-        vec3 sampleRayleightInSctr;
-        vec3 sampleMieInSctr;
-        computePointDiffInSctr(sampleDensity, tSampleToOrigin, tSunToSample, sampleRayleightInSctr, sampleMieInSctr);
-
-        totalRayleighInSctr += (prevRayleighInSctr + sampleRayleightInSctr) * (stepLength * 0.5);
-        totalMieInSctr += (prevMieInSctr + sampleMieInSctr) * (stepLength * 0.5);
-
-        prevRayleighInSctr = sampleRayleightInSctr;
-        prevMieInSctr = sampleMieInSctr;
+        tSampleToOrigin *= sampleTransmittance;
     }
 
     vec3 totalOpticalDepth = computeOpticalDepth(atmosphere, totalDensity);
     result.transmittance = exp(-totalOpticalDepth);
 
-    vec3 totalInSctr = vec3(0.0);
-    totalInSctr += params.rayleighPhaseAngular * atmosphere.rayleighSctrCoeffAngular * totalRayleighInSctr;
-    totalInSctr += params.miePhaseAngular * atmosphere.mieSctrCoeffAngular * totalMieInSctr;
     result.inScattering = totalInSctr;
 
     return result;
@@ -394,22 +353,12 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
     vec3 stepDelta = dir * stepLength;
 
     vec3 totalDensity = vec3(0.0);
-
-    vec3 prevDensity = vec3(0.0);
-    {
-        vec3 samplePos = origin;
-        float sampleHeight = length(samplePos);
-
-        prevDensity = sampleParticleDensity(atmosphere, sampleHeight);
-    }
-    for (uint stepIndex = 1u; stepIndex <= steps; stepIndex++) {
+    for (uint stepIndex = 0u; stepIndex < steps; stepIndex++) {
         float stepIndexF = float(stepIndex);
-        vec3 samplePos = origin + stepIndexF * stepDelta;
+        vec3 samplePos = origin + (stepIndexF + 0.5) * stepDelta;
         float sampleHeight = length(samplePos);
-        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
-
-        totalDensity += (prevDensity + sampleDensity) * (stepLength * 0.5);
-        prevDensity = sampleDensity;
+        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight) * stepLength;
+        totalDensity += sampleDensity;
     }
 
     vec3 totalOpticalDepth = computeOpticalDepth(atmosphere, totalDensity);

@@ -28,8 +28,8 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
 
     params.cosZenith = dot(uval_shadowLightDirView, uval_upDirView);
     float cosLightTheta = -dot(rayDir, uval_shadowLightDirWorld);
-    params.rayleighPhaseAngular = rayleighPhaseAngular(cosLightTheta);
-    params.miePhaseAngular = miePhaseAngular(cosLightTheta, atmosphere.miePhaseG);
+    params.rayleighPhase = rayleighPhase(cosLightTheta);
+    params.miePhase = miePhase(cosLightTheta, atmosphere.miePhaseG);
     params.steps = 64u;
 
     vec3 earthCenter = vec3(0.0);
