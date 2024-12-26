@@ -37,7 +37,7 @@ void main() {
     vec2 prevTexCoord = prevClipCoord.xy * 0.5 + 0.5;
     prevTexCoord = mix(prevTexCoord, frag_texCoord, isHand);
 
-    vec3 currColor = texture(usam_main, unjitteredTexCoord).rgb;
+    vec3 currColor = texture(usam_main, frag_texCoord).rgb;
     currColor = saturate(currColor);
     vec3 nearMin1 = currColor;
     vec3 nearMax1 = currColor;
@@ -103,9 +103,17 @@ void main() {
     float mixWeight = 0.95;
     mixWeight = mix(lastMixWeight, mixWeight, 0.5);
 
+    #ifdef SETTING_SCREENSHOT_MODE
+    float mixDecrease = (1.0 - saturate(cameraSpeed * 69.0));
+    mixDecrease *= (1.0 - saturate(pixelSpeed * 69.0));
+    mixWeight = mixWeight * mixDecrease;
+    #else
     float mixDecrease = (1.0 - saturate(cameraSpeed * 2.0));
     mixDecrease *= (1.0 - saturate(pixelSpeed * 0.05));
-    mixWeight = mixWeight * max(mixDecrease, 0.8);
+    mixDecrease = max(mixDecrease, 0.8);
+    #endif
+
+    mixWeight = mixWeight * mixDecrease;
 
     float realMixWeight = mixWeight;
     realMixWeight = clamp(realMixWeight, 0.5, 0.99);

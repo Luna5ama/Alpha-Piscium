@@ -232,6 +232,8 @@ void main() {
 
             mat3 viewToScene = mat3(gbufferModelViewInverse);
 
+            aoSectionBits = ~aoSectionBits;
+
             for (uint i = 0u; i < 4u; i++) {
                 float fi = float(i);
                 uint sectorBitMask = 0xFFu << (i << 3u);

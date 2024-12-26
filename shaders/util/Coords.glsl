@@ -1,8 +1,3 @@
-/*
-    References:
-        [WEI] Weisstein, Eric W. "Lambert Azimuthal Equal-Area Projection." Wolfram MathWorld.
-        https://mathworld.wolfram.com/LambertAzimuthalEqual-AreaProjection.html
-*/
 #ifndef INCLUDE_util_Coords.glsl
 #define INCLUDE_util_Coords.glsl
 #include "../_Base.glsl"
@@ -20,91 +15,25 @@ vec3 coords_toViewCoord(vec2 texCoord, float viewZ, mat4 projInv) {
     return vec3(viewXY, viewZ);
 }
 
-// See [WEI]
-// phi1: Standard parallel
-// lambda0: Central longitude
-vec3 coords_azimuthEqualAreaInverse(vec2 texCoord, float phi1, float lambda0) {
-    float sinPhi1 = sin(phi1);
-    float cosPhi1 = cos(phi1);
-
-    vec2 xy0 = texCoord * 2.0 - 1.0;
-    xy0 *= 2.0;
-
-    float p = length(xy0);
-    if (p > 2.0) return vec3(0.0);
-
-    float c = 2.0 * asin(0.5 * p);
-
-    float lat = asin((cos(c) * sinPhi1) + ((xy0.y * sin(c) * cosPhi1) / p));
-    float lon = lambda0 + atan(p * cosPhi1 * cos(c) - xy0.y * sinPhi1 * sin(c), xy0.x * sin(c));
-
-    vec3 normal;
-    normal.x = cos(lat) * cos(lon);
-    normal.y = sin(lat);
-    normal.z = cos(lat) * sin(lon);
-    return normal;
+vec2 OctWrap(vec2 v) {
+    return (1.0 - abs(v.yx)) * mix(vec2(-1.0), vec2(1.0), vec2(greaterThanEqual(v.xy, vec2(0.0))));
 }
 
-vec2 coords_azimuthEqualArea(vec3 unitVector, float phi1, float lambda0) {
-    float sinPhi1 = sin(phi1);
-    float cosPhi1 = cos(phi1);
+vec3 coords_polarAzimuthEqualAreaInverse(vec2 f) {
+    f = f * 2.0 - 1.0;
 
-    float lat = asin(unitVector.y);
-    float lon = atan(unitVector.x, unitVector.z);
-
-    float kPrime = sqrt(2.0 / (1.0 + sinPhi1 * sin(lat) + cosPhi1 * cos(lat) * cos(lon - lambda0)));
-    float x = kPrime * cos(lat) * sin(lon - lambda0);
-    float y = kPrime * (cosPhi1 * sin(lat) - sinPhi1 * cos(lat) * cos(lon - lambda0));
-
-    vec2 xy0 = vec2(x, y);
-    xy0 /= 2.0;
-    xy0 = xy0 * 0.5 + 0.5;
-
-    return xy0;
+    // https://twitter.com/Stubbesaurus/status/937994790553227264
+    vec3 n = vec3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
+    float t = saturate(-n.z);
+    n.xy += mix(vec2(t), vec2(-t), vec2(greaterThanEqual(n.xy, vec2(0.0))));
+    return normalize(n);
 }
 
-vec3 coords_polarAzimuthEqualAreaInverse(vec2 texCoord) {
-    //    const float phi1 = PI_HALF; // Standard parallel
-    //    const float lambda0 = 0.0; // Central longitude
-    const float sinPhi1 = 1.0;
-    const float cosPhi1 = 0.0;
-
-    vec2 xy0 = texCoord * 2.0 - 1.0;
-    xy0 *= 2.0;
-
-    float p = length(xy0);
-    if (p > 2.0) return vec3(0.0);
-
-    float c = 2.0 * asin(0.5 * p);
-
-    float lat = asin((cos(c) * sinPhi1) + ((xy0.y * sin(c) * cosPhi1) / p));
-    float lon =  atan(p * cosPhi1 * cos(c) - xy0.y * sinPhi1 * sin(c), xy0.x * sin(c));
-
-    vec3 normal;
-    normal.x = cos(lat) * cos(lon);
-    normal.y = sin(lat);
-    normal.z = cos(lat) * sin(lon);
-    return normal;
-}
-
-vec2 coords_polarAzimuthEqualArea(vec3 unitVector) {
-    //    const float phi1 = PI_HALF; // Standard parallel
-    //    const float lambda0 = 0.0; // Central longitude
-    const float sinPhi1 = 1.0;
-    const float cosPhi1 = 0.0;
-
-    float lat = asin(unitVector.y);
-    float lon = atan(unitVector.x, unitVector.z);
-
-    float kPrime = sqrt(2.0 / (1.0 + sinPhi1 * sin(lat) + cosPhi1 * cos(lat) * cos(lon)));
-    float x = kPrime * cos(lat) * sin(lon);
-    float y = kPrime * (cosPhi1 * sin(lat) - sinPhi1 * cos(lat) * cos(lon));
-
-    vec2 xy0 = vec2(x, y);
-    xy0 /= 2.0;
-    xy0 = xy0 * 0.5 + 0.5;
-
-    return xy0;
+vec2 coords_polarAzimuthEqualArea(vec3 n) {
+    n /= (abs(n.x) + abs(n.y) + abs(n.z));
+    n.xy = mix(OctWrap(n.xy), n.xy, float(n.z >= 0.0));
+    n.xy = n.xy * 0.5 + 0.5;
+    return n.xy;
 }
 
 vec4 coords_projDiv(mat4 m, vec4 c) {
