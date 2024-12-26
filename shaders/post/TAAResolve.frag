@@ -83,14 +83,14 @@ void main() {
     clampRatio1 += newPixel * 0.4;
     clampRatio1 += frustumTest * 0.4;
     clampRatio1 += pixelSpeed * 0.002;
-    clampRatio1 += cameraSpeed * 1.0;
+    clampRatio1 += cameraSpeed * 2.0;
     clampRatio1 = saturate(clampRatio1);
 
     float clampRatio2 = 0.1;
     clampRatio2 += newPixel * 0.8;
     clampRatio2 += frustumTest * 0.8;
     clampRatio2 += pixelSpeed * 0.005;
-    clampRatio2 += cameraSpeed * 2.0;
+    clampRatio2 += cameraSpeed * 4.0;
     clampRatio2 = saturate(clampRatio2);
 
     #ifndef SETTING_SCREENSHOT_MODE
@@ -108,8 +108,8 @@ void main() {
     mixDecrease *= (1.0 - saturate(pixelSpeed * 69.0));
     mixWeight = mixWeight * mixDecrease;
     #else
-    float mixDecrease = (1.0 - saturate(cameraSpeed * 2.0));
-    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.05));
+    float mixDecrease = (1.0 - saturate(cameraSpeed * 4.0));
+    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.1));
     mixDecrease = max(mixDecrease, 0.8);
     #endif
 
