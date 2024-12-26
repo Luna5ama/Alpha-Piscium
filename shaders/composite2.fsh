@@ -99,6 +99,7 @@ vec3 calcShadow(float sssFactor) {
     float blockerDistance = searchBlocker(shadowTexCoord);
 
     float ssRange = 0.0;
+    ssRange += sssFactor * 0.5;
     #if SETTING_PCSS_BPF > 0
     ssRange += exp2(SETTING_PCSS_BPF - 10.0);
     #endif
@@ -192,10 +193,11 @@ vec3 calcFresnel(Material material, float dotP) {
 }
 
 vec3 directLighting(Material material, vec3 shadow, vec3 irradiance, vec3 L, vec3 N, vec3 V) {
+    vec3 NSss = normalize(mix(N, L, material.sss));
     vec3 H = normalize(L + V);
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);
-    float NDotL = dot(N, L);
+    float NDotL = dot(NSss, L);
     //    vec3 diffuseV = shadow * irradiance * bsdf_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
     //    sunDiffuseV *= vec3(1.0) - fresnel;
     vec3 diffuseV = saturate(NDotL) * RCP_PI * shadow * irradiance * material.albedo;
@@ -230,7 +232,7 @@ void doLighting(Material material, vec3 N, vec3 V) {
     vec3 tMoon = sampleTransmittanceLUT(atmosphere, cosMoonZenith, viewAltitude, usam_transmittanceLUT);
     vec3 moonIrradiance = sunRadiance * MOON_RADIANCE_MUL * tMoon;
 
-    vec3 shadow = calcShadow(0.0);
+    vec3 shadow = calcShadow(material.sss);
 
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
     vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
