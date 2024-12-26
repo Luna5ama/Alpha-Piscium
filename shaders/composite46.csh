@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "post/bloom/UpSample4.comp"
+#include "post/bloom/DownSample7.comp"

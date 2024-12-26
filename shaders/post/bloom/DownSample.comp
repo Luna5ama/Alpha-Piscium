@@ -6,7 +6,23 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 shared uvec2 shared_dataCache[35][18];
 
+vec4 readCache(ivec2 pos) {
+    uvec2 packedData = shared_dataCache[pos.y][pos.x];
+    vec4 data;
+    data.xy = unpackHalf2x16(packedData.x);
+    data.zw = unpackHalf2x16(packedData.y);
+    return data;
+}
+
+void writeCache(ivec2 pos, vec4 data) {
+    uvec2 packedData;
+    packedData.x = packHalf2x16(data.xy);
+    packedData.y = packHalf2x16(data.zw);
+    shared_dataCache[pos.y][pos.x] = packedData;
+}
+
 #include "Common.glsl"
+vec4 bloom_input_down(ivec2 coord);
 
 #if KARIS_AVERAGE
 vec4 karisAverage(vec4 sum) {
@@ -34,14 +50,14 @@ void main() {
     ivec2 readPos;
 
     computeReadPos(gl_LocalInvocationIndex, writePos, readPos);
-    writeCache(writePos, max(bloom_input(readPos), 0.0));
+    writeCache(writePos, max(bloom_input_down(readPos), 0.0));
 
     computeReadPos(gl_LocalInvocationIndex + 256, writePos, readPos);
-    writeCache(writePos, max(bloom_input(readPos), 0.0));
+    writeCache(writePos, max(bloom_input_down(readPos), 0.0));
 
     computeReadPos(gl_LocalInvocationIndex + 512, writePos, readPos);
     if (writePos.y < 35) {
-        writeCache(writePos, max(bloom_input(readPos), 0.0));
+        writeCache(writePos, max(bloom_input_down(readPos), 0.0));
     }
 
     barrier();

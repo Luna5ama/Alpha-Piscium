@@ -20,8 +20,8 @@ ivec2 bloom_outputSize() {
     return outputSize;
 }
 
-vec4 bloom_input(ivec2 coord) {
-    vec2 readPosUV = vec2((coord >> 1) + 0.5 + inputStartPixel) * texelSize;
+vec4 bloom_input_up(ivec2 coord, ivec2 offset) {
+    vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartPixel) * texelSize;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
     return texture(usam_temp3, readPosUV);
 }

@@ -93,6 +93,7 @@ option.SETTING_EXPOSURE_TOP_BIN_PERCENT=Top Bin %
 option.SETTING_EXPOSURE_TOP_BIN_PERCENT.comment=Adjusting exposure to keep the specified percentage of pixels in the top bin of histogram.
 option.SETTING_BLOOM=Bloom Enabled
 option.SETTING_BLOOM_INTENSITY=Bloom Intensity
+option.SETTING_BLOOM_RADIUS=Bloom Radius
 option.SETTING_TONE_MAPPING_OUTPUT_GAMMA=Output Gamma
 option.SETTING_TONE_MAPPING_OFFSET_R=Offset Red
 option.SETTING_TONE_MAPPING_OFFSET_G=Offset Green

@@ -1,5 +1,5 @@
 #include "UpSample.comp"
-const vec2 workGroupsRender = vec2(0.25, 0.25);
+const vec2 workGroupsRender = vec2(0.03125, 0.03125);
 
 uniform sampler2D usam_temp3;
 layout(rgba16f) uniform restrict image2D uimg_temp3;
@@ -7,9 +7,9 @@ layout(rgba16f) uniform restrict image2D uimg_temp3;
 ivec2 colorTexSize = imageSize(uimg_temp3);
 vec2 texelSize = 1.0 / vec2(colorTexSize);
 
-int inputOffset = (colorTexSize.x >> 2) * 3;
-int outputOffset = colorTexSize.x >> 1;
-ivec2 outputSize = colorTexSize >> 2;
+int inputOffset = (colorTexSize.x >> 5) * 31;
+int outputOffset = (colorTexSize.x >> 4) * 15;
+ivec2 outputSize = colorTexSize >> 5;
 
 ivec2 inputStartPixel = ivec2(inputOffset, 0);
 ivec2 inputEndPixel = inputStartPixel + (outputSize >> 1);
