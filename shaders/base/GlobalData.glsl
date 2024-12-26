@@ -18,3 +18,4 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
 };
 
 const vec2 SHADOW_MAP_SIZE = vec2(float(shadowMapResolution), 1.0 / float(shadowMapResolution));
+const vec3 MOON_RADIANCE_MUL = 0.08 * 0.12 * vec3(0.8, 0.9, 1.0);

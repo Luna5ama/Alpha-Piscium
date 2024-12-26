@@ -26,10 +26,10 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
 
-    float cosTheta = -dot(rayDir, atmosphere.sunDirection);
-    params.cosZenith = dot(uval_sunDirView, uval_upDirView);
-    params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
-    params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
+    params.cosZenith = dot(uval_shadowLightDirView, uval_upDirView);
+    float cosLightTheta = -dot(rayDir, uval_shadowLightDirWorld);
+    params.rayleighPhaseAngular = rayleighPhaseAngular(cosLightTheta);
+    params.miePhaseAngular = miePhaseAngular(cosLightTheta, atmosphere.miePhaseG);
     params.steps = 64u;
 
     vec3 earthCenter = vec3(0.0);
@@ -71,9 +71,8 @@ void main() {
     if (all(lessThan(pixelPos, imgSize))) {
         vec2 texCoord = (pixelPos + 0.5) / vec2(imgSize);
         AtmosphereParameters atmosphere = getAtmosphereParameters();
-        atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * uval_sunDirView);
-
         vec3 rayDir = coords_polarAzimuthEqualAreaInverse(texCoord);
+
         ScatteringResult result = computeSingleScattering(atmosphere, rayDir);
 
         vec3 color = vec3(0.0);

@@ -27,7 +27,6 @@
 struct AtmosphereParameters {
     float bottom;
     float top;
-    vec3 sunDirection;
 
     float mieHeight;
     float ozoneCenter;
@@ -273,11 +272,11 @@ struct RaymarchParameters {
 };
 
 vec3 sampleTransmittanceLUT(
-AtmosphereParameters atmosphere, RaymarchParameters params,
+AtmosphereParameters atmosphere, float cosLightZenith,
 float sampleAltitude, sampler2D transmittanceLUT
 ) {
     vec2 tLUTUV;
-    lutTransmittanceParamsToUv(atmosphere, sampleAltitude, params.cosZenith, tLUTUV);
+    lutTransmittanceParamsToUv(atmosphere, sampleAltitude, cosLightZenith, tLUTUV);
     uint cond = uint(any(lessThan(tLUTUV, vec2(0.0))));
     cond |= uint(any(greaterThan(tLUTUV, vec2(1.0))));
     if (bool(cond)) {
@@ -331,7 +330,7 @@ sampler2D transmittanceLUT
 
         prevDensity = sampleDensity;
 
-        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params, sampleHeight, transmittanceLUT);
+        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params.cosZenith, sampleHeight, transmittanceLUT);
         vec3 tSampleToOrigin = vec3(1.0);
 
         computePointDiffInSctr(sampleDensity, tSampleToOrigin, tSunToSample, prevRayleighInSctr, prevMieInSctr);
@@ -346,7 +345,7 @@ sampler2D transmittanceLUT
         totalDensity += (prevDensity + sampleDensity) * (stepLength * 0.5);
         prevDensity = sampleDensity;
 
-        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params, sampleHeight, transmittanceLUT);
+        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params.cosZenith, sampleHeight, transmittanceLUT);
         vec3 tSampleToOrigin = exp(-computeOpticalDepth(atmosphere, totalDensity));
 
         vec3 sampleRayleightInSctr;

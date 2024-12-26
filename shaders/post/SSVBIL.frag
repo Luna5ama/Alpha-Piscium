@@ -262,8 +262,10 @@ void main() {
         skyLightingIntensity *= rt_out.a * rt_out.a;
         skyLightingIntensity *= SETTING_SKYLIGHT_STRENGTH;
         skyLightingIntensity *= global_sunRadiance.a;
+        float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
 
         skyLighting = skyLightingIntensity * global_sunRadiance.rgb * skyLighting;
+        skyLighting *= mix(MOON_RADIANCE_MUL, vec3(1.0), shadowIsSun);
 
         rt_out.rgb += skyLighting;
     }

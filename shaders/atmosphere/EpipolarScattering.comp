@@ -59,7 +59,7 @@ sampler2D transmittanceLUT
 
         prevDensity = sampleDensity;
 
-        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params, sampleHeight, transmittanceLUT);
+        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params.cosZenith, sampleHeight, transmittanceLUT);
         vec3 tSampleToOrigin = vec3(1.0);
 
         tSunToSample *= sampleShadow(shadowStart);
@@ -76,7 +76,7 @@ sampler2D transmittanceLUT
         totalDensity += (prevDensity + sampleDensity) * (rayStepLength * 0.5);
         prevDensity = sampleDensity;
 
-        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params, sampleHeight, transmittanceLUT);
+        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params.cosZenith, sampleHeight, transmittanceLUT);
         vec3 tSampleToOrigin = exp(-computeOpticalDepth(atmosphere, totalDensity));
 
         vec3 sampleShadowPos = shadowStart + stepIndexF * shaodwStepDelta;
@@ -118,11 +118,11 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
     params.rayStart.y += 1.0;
-    
-    float cosTheta = -dot(uval_sunDirView, viewDirView);
-    params.cosZenith = dot(uval_sunDirView, uval_upDirView);
-    params.rayleighPhaseAngular = rayleighPhaseAngular(cosTheta);
-    params.miePhaseAngular = miePhaseAngular(cosTheta, atmosphere.miePhaseG);
+
+    params.cosZenith = dot(uval_shadowLightDirView, uval_upDirView);
+    float cosLightTheta = -dot(viewDirWorld, uval_shadowLightDirWorld);
+    params.rayleighPhaseAngular = rayleighPhaseAngular(cosLightTheta);
+    params.miePhaseAngular = miePhaseAngular(cosLightTheta, atmosphere.miePhaseG);
     params.steps = 32u;
     
     vec3 rayDir = viewDirWorld;
@@ -198,7 +198,6 @@ void main() {
         texCoord = (round(texCoord * global_mainImageSize) + 0.5) * global_mainImageSizeRcp;
 
         AtmosphereParameters atmosphere = getAtmosphereParameters();
-        atmosphere.sunDirection = normalize(mat3(gbufferModelViewInverse) * uval_sunDirView);
         float viewZ = textureLod(usam_viewZ, texCoord, 0.0).r;
         vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
 

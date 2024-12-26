@@ -191,13 +191,20 @@ vec3 calcFresnel(Material material, float dotP) {
     return saturate(f);
 }
 
-void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
+vec3 directLighting(Material material, vec3 shadow, vec3 irradiance, vec3 L, vec3 N, vec3 V) {
     vec3 H = normalize(L + V);
-    float NDotL = dot(N, L);
-    float NDotV = dot(N, V);
-    float NDotH = dot(N, H);
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);
+    float NDotL = dot(N, L);
+    //    vec3 diffuseV = shadow * irradiance * bsdf_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
+    //    sunDiffuseV *= vec3(1.0) - fresnel;
+    vec3 diffuseV = saturate(NDotL) * RCP_PI * shadow * irradiance * material.albedo;
+    vec3 result = diffuseV;
+    return result;
+}
+
+void doLighting(Material material, vec3 N, vec3 V) {
+    float NDotV = dot(N, V);
 
     vec3 emissiveV = material.emissive;
 
@@ -206,56 +213,67 @@ void doLighting(Material material, vec3 shadow, vec3 L, vec3 N, vec3 V) {
     vec3 multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * RCP_PI * max(ssvbilSample.rgb, 0.0) * material.albedo;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
-    vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(g_viewCoord, 1.0)).xyz;
-    vec3 worldPos = feetPlayerPos + cameraPosition;
-    float viewAltitude = atmosphere_height(atmosphere, worldPos);
-    float cosLightZenith = dot(L, uval_upDirView);
-    vec2 transmittanceUV;
-    lutTransmittanceParamsToUv(atmosphere, viewAltitude, cosLightZenith, transmittanceUV);
-    vec3 transmittance = texture(usam_transmittanceLUT, transmittanceUV).rgb;
 
     vec3 fresnel = calcFresnel(material, saturate(NDotV));
     float alpha = material.roughness * material.roughness;
-    vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a * transmittance;
 
-//    vec3 sunDiffuseV =  shadow * sunRadiance * bsdf_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
-    vec3 sunDiffuseV = saturate(NDotL) * RCP_PI * shadow * sunRadiance * material.albedo;
-//    sunDiffuseV *= vec3(1.0) - fresnel;
+    vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(g_viewCoord, 1.0)).xyz;
+    vec3 worldPos = feetPlayerPos + cameraPosition;
+    float viewAltitude = atmosphere_height(atmosphere, worldPos);
+    vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
+
+    float cosSunZenith = dot(uval_sunDirView, uval_upDirView);
+    vec3 tSun = sampleTransmittanceLUT(atmosphere, cosSunZenith, viewAltitude, usam_transmittanceLUT);
+    vec3 sunIrradiance = sunRadiance * tSun;
+
+    float cosMoonZenith = dot(uval_moonDirView, uval_upDirView);
+    vec3 tMoon = sampleTransmittanceLUT(atmosphere, cosMoonZenith, viewAltitude, usam_transmittanceLUT);
+    vec3 moonIrradiance = sunRadiance * MOON_RADIANCE_MUL * tMoon;
+
+    vec3 shadow = calcShadow(0.0);
+
+    float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
+    vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
+    vec3 sunLighting = directLighting(material, sunShadow, sunIrradiance, uval_sunDirView, N, V);
+
+    vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
+    vec3 moonLighting = directLighting(material, moonShadow, moonIrradiance, uval_moonDirView, N, V);
 
     // Sky reflection
-    vec3 reflectDirView = normalize(H + reflect(-V, gData.normal));
-    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
-    vec2 reflectLUTUV = coords_polarAzimuthEqualArea(reflectDir);
-    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
-    vec3 skySpecularV = fresnel * sunRadiance * reflectRadiance;
+//    vec3 reflectDirView = normalize(H + reflect(-V, gData.normal));
+//    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
+//    vec2 reflectLUTUV = coords_polarAzimuthEqualArea(reflectDir);
+//    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
+//    vec3 skySpecularV = fresnel * sunRadiance * reflectRadiance;
 
     rt_main = vec4(0.0, 0.0, 0.0, 1.0);
     rt_main.rgb += 0.02 * material.albedo;
-    rt_main.rgb += sunDiffuseV;
     rt_main.rgb += emissiveV;
+    rt_main.rgb += sunLighting;
+    rt_main.rgb += moonLighting;
 //    rt_main.rgb += skySpecularV;
 
     rt_temp2 = vec4(0.0, 0.0, 0.0, 1.0);
-    rt_temp2.rgb += sunDiffuseV;
     rt_temp2.rgb += multiBounceV;
     rt_temp2.rgb += emissiveV;
+    rt_temp2.rgb += sunLighting;
+    rt_temp2.rgb += moonLighting;
 //    rt_temp2.rgb += skySpecularV;
-    rt_temp2.a = gData.lmCoord.y;
 }
 
 void doStuff() {
     Material material = material_decode(gData);
 
-    vec3 shadow = calcShadow(material.sss);
+    rt_temp1.rgb = gData.normal;
+    rt_temp1.a = float(any(greaterThan(material.emissive, vec3(0.0))));
+    rt_temp2.a = gData.lmCoord.y;
+
     if (all(equal(gData.normal, vec3(1.0)))) {
         rt_main = vec4(material.albedo, 1.0);
         rt_temp2 = vec4(0.0, 0.0, 0.0, 1.0);
     } else {
-        doLighting(material, shadow, uval_sunDirView, gData.normal, g_viewDir);
+        doLighting(material, gData.normal, g_viewDir);
     }
-
-    rt_temp1.rgb = gData.normal;
-    rt_temp1.a = float(any(greaterThan(material.emissive, vec3(0.0))));
 }
 
 void main() {

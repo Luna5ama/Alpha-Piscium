@@ -232,6 +232,9 @@ void main() {
         vec4 color = imageLoad(uimg_main, pixelPos);
         color.rgb *= transmittance;
         vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
+        float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
+        sunRadiance *= mix(MOON_RADIANCE_MUL, vec3(1.0), shadowIsSun);
+
         color.rgb += sunRadiance * inScattering;
         imageStore(uimg_main, pixelPos, color);
     }

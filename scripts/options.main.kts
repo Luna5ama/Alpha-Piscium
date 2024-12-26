@@ -712,7 +712,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_MAX_EXP", 5.0, 0.1..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_MAX_EXP", 2.0, 0.1..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Auto Exposure Max"
                     }

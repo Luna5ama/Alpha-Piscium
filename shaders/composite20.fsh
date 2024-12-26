@@ -24,5 +24,9 @@ void main() {
 
     vec4 ssvbilSample = texelFetch(usam_ssvbil, intTexCoord, 0);
     vec3 indirectV = ssvbilSample.rgb * material.albedo;
+
+    float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
+    rt_main.rgb *= mix(ssvbilSample.a, 1.0, shadowIsSun);
+
     rt_main.rgb += indirectV;
 }
