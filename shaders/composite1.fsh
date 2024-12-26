@@ -37,10 +37,10 @@ void main() {
 
 	const float moonAngularRadius = 0.528611 * PI / 180.0;
 
-	float sunV = celestialObjWithBloom(viewDir, uval_sunDirView, uval_sunAngularRadius, 1.0);
-	float moonV = celestialObjWithBloom(viewDir, uval_moonDirView, moonAngularRadius, 2.0);
+	float sunV = celestialObjWithBloom(viewDir, uval_sunDirView, uval_sunAngularRadius, 2.0);
+	float moonV = celestialObjWithBloom(viewDir, uval_moonDirView, moonAngularRadius, 8.0);
 
 	rt_out.rgb += sunV * sunRadiance;
-	rt_out.rgb += moonV * sunRadiance * MOON_RADIANCE_MUL;
+	rt_out.rgb += moonV * sunRadiance * MOON_RADIANCE_MUL * 10.0;
 	rt_out.rgb *= step(earthIntersect, 0.0);
 }
