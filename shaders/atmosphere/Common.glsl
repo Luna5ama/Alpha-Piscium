@@ -292,7 +292,6 @@ sampler2D transmittanceLUT
     vec3 rayStepDelta = (params.rayEnd - params.rayStart) * rcpSteps;
     float rayStepLength = length(params.rayEnd - params.rayStart) * rcpSteps;
 
-    vec3 totalDensity = vec3(0.0);
     vec3 totalInSctr = vec3(0.0);
     vec3 tSampleToOrigin = vec3(1.0);
 
@@ -321,9 +320,7 @@ sampler2D transmittanceLUT
         tSampleToOrigin *= sampleTransmittance;
     }
 
-    vec3 totalOpticalDepth = computeOpticalDepth(atmosphere, totalDensity);
-    result.transmittance = exp(-totalOpticalDepth);
-
+    result.transmittance = tSampleToOrigin;
     result.inScattering = totalInSctr;
 
     return result;
@@ -353,6 +350,7 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
     vec3 stepDelta = dir * stepLength;
 
     vec3 totalDensity = vec3(0.0);
+
     for (uint stepIndex = 0u; stepIndex < steps; stepIndex++) {
         float stepIndexF = float(stepIndex);
         vec3 samplePos = origin + (stepIndexF + 0.5) * stepDelta;
