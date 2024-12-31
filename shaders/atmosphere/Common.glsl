@@ -55,12 +55,15 @@ AtmosphereParameters getAtmosphereParameters() {
     const vec3 RAYLEIGH_SCATTERING = vec3(0.00545913343349, 0.0113300647692, 0.0260718168503);
 
     // Constants from [HIL20]
-    const vec3 MIE_SCATTERING = vec3(3.996e-6) * 1000.0;
-    const vec3 MIE_ABOSORPTION = vec3(4.4e-6) * 1000.0;
+//    const vec3 MIE_SCATTERING = vec3(3.996e-6) * 1000.0;
+//    const vec3 MIE_ABOSORPTION = vec3(4.4e-6) * 1000.0;
 
     // Constants from [BRU08]
-    //    const vec3 MIE_SCATTERING = vec3(2.10e-5);
-    //    const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 1.1;
+//        const vec3 MIE_SCATTERING = vec3(2.10e-5) * 1000.0;
+//        const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 1.1;
+
+    const vec3 MIE_SCATTERING = vec3(2.10e-5) * 1000.0;
+    const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 1.1;
 
     const float MIE_PHASE_G = 0.76;
 

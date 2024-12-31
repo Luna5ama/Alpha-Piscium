@@ -94,7 +94,6 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
 
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
-    params.rayStart.y += 1.0;
 
     params.cosZenith = dot(uval_shadowLightDirView, uval_upDirView);
     float cosLightTheta = -dot(viewDirWorld, uval_shadowLightDirWorld);
@@ -105,6 +104,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
     vec3 rayDir = viewDirWorld;
 
     if (endView.z == -65536.0) {
+        params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
         vec3 earthCenter = vec3(0.0);
 
         // Check if ray origin is outside the atmosphere
@@ -133,11 +133,9 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         }
 
         params.rayEnd = params.rayStart + rayDir * rayLen;
-        params.rayEnd.y += 1.0;
         return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT);
     } else {
         params.rayEnd = atmosphere_viewToAtm(atmosphere, endView);
-        params.rayEnd.y += 1.0;
 
         vec4 originScene = gbufferModelViewInverse * vec4(originView, 1.0);
         vec4 endScene = gbufferModelViewInverse * vec4(endView, 1.0);
