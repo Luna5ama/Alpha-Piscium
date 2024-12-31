@@ -251,7 +251,7 @@ void doLighting(Material material, vec3 N, vec3 V) {
 //    vec3 skySpecularV = fresnel * sunRadiance * reflectRadiance;
 
     rt_main.rgb = vec3(0.0);
-    rt_main.rgb += 0.02 * material.albedo;
+    rt_main.rgb += 0.001 * material.albedo;
     rt_main.rgb += emissiveV;
     rt_main.rgb += sunLighting;
     rt_main.rgb += moonLighting;

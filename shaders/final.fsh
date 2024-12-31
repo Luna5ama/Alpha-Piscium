@@ -96,7 +96,7 @@ void main() {
         color.rgb = gammaCorrect(texture(usam_transmittanceLUT, debugTexCoord).rgb);
     }
     if (inViewPort(vec4(0, 32 + 64, 256, 256), debugTexCoord)) {
-        color.rgb = gammaCorrect(texture(usam_skyLUT, debugTexCoord).rgb * 2.0);
+        color.rgb = gammaCorrect(texture(usam_skyLUT, debugTexCoord).rgb * 0.1);
     }
     float whRatio = float(SETTING_EPIPOLAR_SLICES) / float(SETTING_SLICE_SAMPLES);
     if (inViewPort(vec4(256, 32, whRatio * 256, 256), debugTexCoord)) {
