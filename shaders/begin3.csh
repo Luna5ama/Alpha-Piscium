@@ -1,14 +1,11 @@
 #version 460 compatibility
+#include "atmosphere/Common.glsl"
 
-#include "rtwsm/RTWSM.glsl"
+const ivec3 workGroups = ivec3(EPIPOLAR_SLICE_D16, SLICE_SAMPLE_D16, 1);
 
-layout(rgba16f) uniform readonly image2D uimg_skyLUT;
-layout(rgba16f) uniform writeonly image2D uimg_main;
+layout(rgba16f) uniform writeonly image2D uimg_epipolarInSctr;
+#define CLEAR_IMAGE1 uimg_epipolarInSctr
+const ivec4 CLEAR_IMAGE_BOUND = ivec4(0, 0, SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
+const vec4 CLEAR_COLOR1 = vec4(0.0);
 
-#define GAUSSIAN_BLUR_INPUT uimg_skyLUT
-#define GAUSSIAN_BLUR_OUTPUT uimg_main
-#define GAUSSIAN_BLUR_CHANNELS 4
-#define GAUSSIAN_BLUR_KERNEL_RADIUS 16
-#define GAUSSIAN_BLUR_HORIZONTAL
-const ivec3 workGroups = ivec3(1, 128, 1);
-#include "general/GaussianBlur.comp"
+#include "general/Clear1.comp"
