@@ -51,8 +51,8 @@ AtmosphereParameters getAtmosphereParameters() {
     const float OZONE_CENTER = 25.0;
     const float OZONE_HALF_WIDTH = 15.0;
 
-    // https://www.desmos.com/calculator/xh7xkodlbp
-    const vec3 RAYLEIGH_SCATTERING = vec3(0.00000560312999123, 0.0000117610451136, 0.0000276567039654) * 1000.0;
+    // https://www.desmos.com/calculator/gqezbesffg
+    const vec3 RAYLEIGH_SCATTERING = vec3(0.00545913343349, 0.0113300647692, 0.0260718168503);
 
     // Constants from [HIL20]
     const vec3 MIE_SCATTERING = vec3(3.996e-6) * 1000.0;
@@ -64,8 +64,8 @@ AtmosphereParameters getAtmosphereParameters() {
 
     const float MIE_PHASE_G = 0.76;
 
-    // https://www.desmos.com/calculator/1lzniesgsr
-    const vec3 OZONE_ABOSORPTION = vec3(5.3136330769e-16, 3.0767786886e-16, 5.0003555457e-18);
+    // https://www.desmos.com/calculator/rggs64tsru
+    const vec3 OZONE_ABOSORPTION = vec3(5.3136330769e-10, 3.0767786886e-10, 5.0003555457e-12) * 100000.0;
 
     AtmosphereParameters atmosphere;
     atmosphere.bottom = ATMOSPHERE_BOTTOM;
@@ -94,7 +94,7 @@ const vec2 TRANSMITTANCE_TEXEL_SIZE = 1.0 / TRANSMITTANCE_TEXTURE_SIZE;
 
 // Calculate the air density ratio at a given height(km) relative to sea level
 // Fitted to U.S. Standard Atmosphere 1976
-// See https://www.desmos.com/calculator/xh7xkodlbp
+// See https://www.desmos.com/calculator/gqezbesffg
 float sampleRayleighDensity(AtmosphereParameters atmosphere, float altitude) {
     const float a0 = 0.00947927584794;
     const float a1 = -0.138528179963;
@@ -106,34 +106,29 @@ float sampleMieDensity(AtmosphereParameters atmosphere, float altitude) {
     return exp(-altitude / atmosphere.mieHeight);
 }
 
-// Calculate the ozone number density in molecules/cm^3
-// See https://www.desmos.com/calculator/1lzniesgsr
+// Calculate the ozone number density in 10^17 molecules/m^3
+// See https://www.desmos.com/calculator/rggs64tsru
 float sampleOzoneDensity(AtmosphereParameters atmosphere, float altitude) {
     float x = max(altitude, 0.0);
     float x2 = x * x;
     float x3 = x2 * x;
     float x4 = x2 * x2;
 
-    const float d10 = 5.07148407148;
-    const float d11 = -0.713837088837;
-    const float d12 = 0.0518405205905;
-    const float d13 = -0.00185347060347;
-    const float d14 = 0.0000546328671329;
-    float d1 = d10 + d11 * x + d12 * x2 + d13 * x3 + d14 * x4;
+    const float d10 = 3.14463183277;
+    const float d11 = 0.0498300739688;
+    const float d12 = -0.130539505915;
+    const float d13 = 0.021937805503;
+    const float d14 = -0.000931031499441;
+    float d1 = exp2(d10 + d11 * x + d12 * x2 + d13 * x3 + d14 * x4);
 
-    const float d20 = -21.150982082;
-    const float d21 = 3.16169710887;
-    const float d22 = -0.141187419433;
-    const float d23 = 0.00261622221548;
-    const float d24 = -0.0000175765474848;
+    const float d20 = -15.997595602;
+    const float d21 = 2.79421136325;
+    const float d22 = -0.128226752553;
+    const float d23 = 0.00249280242791;
+    const float d24 = -0.000018555830924;
     float d2 = exp2(d20 + d21 * x + d22 * x2 + d23 * x3 + d24 * x4);
 
-    const float l0 = 14.5;
-    const float l1 = 18.5;
-    float s = smoothstep(l0, l1, x);
-
-    float mPa = mix(d1, d2, s);
-    return mPa * 3.260396361e11;
+    return d1 + d2;
 }
 
 vec3 sampleParticleDensity(AtmosphereParameters atmosphere, float height) {
