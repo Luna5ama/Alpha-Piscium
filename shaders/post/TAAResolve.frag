@@ -74,22 +74,24 @@ void main() {
 
     vec2 pixelPosDiff = (frag_texCoord - prevTexCoord) * textureSize(usam_main, 0).xy;
     float cameraSpeed = length(cameraDelta);
+    float prevCameraSpeed = length(global_prevCameraDelta);
+    float cameraSpeedDiff = sqrt(abs(cameraSpeed - prevCameraSpeed));
     float pixelSpeed = length(pixelPosDiff);
 
     vec3 lastColor = texture(usam_taaLast, prevTexCoord).rgb;
     lastColor = saturate(lastColor);
 
-    float clampRatio1 = 0.05;
+    float clampRatio1 = 0.02;
     clampRatio1 += newPixel * 0.4;
     clampRatio1 += frustumTest * 0.4;
-    clampRatio1 += pixelSpeed * 0.002;
+    clampRatio1 += pixelSpeed * 0.005;
     clampRatio1 += cameraSpeed * 2.0;
     clampRatio1 = saturate(clampRatio1);
 
-    float clampRatio2 = 0.1;
+    float clampRatio2 = 0.05;
     clampRatio2 += newPixel * 0.8;
     clampRatio2 += frustumTest * 0.8;
-    clampRatio2 += pixelSpeed * 0.005;
+    clampRatio2 += pixelSpeed * 0.01;
     clampRatio2 += cameraSpeed * 4.0;
     clampRatio2 = saturate(clampRatio2);
 
@@ -104,19 +106,26 @@ void main() {
     mixWeight = mix(lastMixWeight, mixWeight, 0.5);
 
     #ifdef SETTING_SCREENSHOT_MODE
-    float mixDecrease = (1.0 - saturate(cameraSpeed * 69.0));
+    float mixDecrease = 1.0;
+    mixDecrease *= (1.0 - saturate(cameraSpeed * 69.0));
     mixDecrease *= (1.0 - saturate(pixelSpeed * 69.0));
-    mixWeight = mixWeight * mixDecrease;
     #else
-    float mixDecrease = (1.0 - saturate(cameraSpeed * 4.0));
-    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.1));
+    float mixDecrease = 1.0;
+    mixDecrease *= (1.0 - saturate(cameraSpeed * 2.0));
+    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.005));
     mixDecrease = max(mixDecrease, 0.8);
     #endif
 
     mixWeight = mixWeight * mixDecrease;
 
     float realMixWeight = mixWeight;
+    realMixWeight *= (1.0 - min(cameraSpeedDiff * 1.0, 0.5));
+
+    #ifdef SETTING_SCREENSHOT_MODE
+    realMixWeight = clamp(realMixWeight, 0.0, 0.99);
+    #else
     realMixWeight = clamp(realMixWeight, 0.5, 0.99);
+    #endif
 
     rt_out.rgb = mix(currColor, lastColor, realMixWeight);
     rt_out.a = 1.0;
