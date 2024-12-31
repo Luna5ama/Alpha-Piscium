@@ -641,7 +641,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Sample Radius"
                     }
                 }
-                slider("SETTING_SSVBIL_THICKNESS", 1.0, 0.1..10.0 step 0.1) {
+                slider("SETTING_SSVBIL_THICKNESS", 5.0, 0.1..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Thickness"
                     }
