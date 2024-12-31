@@ -100,7 +100,7 @@ vec3 calcShadow(float sssFactor) {
     shadowTexCoord.z = rtwsm_linearDepth(shadowTexCoord.z);
 
     float ssRange = 0.0;
-    ssRange += sssFactor * 0.25;
+    ssRange += sssFactor * 0.1;
     #if SETTING_PCSS_BPF > 0
     ssRange += exp2(SETTING_PCSS_BPF - 10.0);
     #endif
@@ -123,7 +123,7 @@ vec3 calcShadow(float sssFactor) {
         randomOffset.xy = randomOffset.xy * 2.0 - 1.0;
         vec3 sampleTexCoord = shadowTexCoord;
         sampleTexCoord.xy += ssRange * randomOffset.xy * vec2(shadowProjection[0][0], shadowProjection[1][1]);
-        sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z + randomOffset.z * sssFactor);
+        sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z + randomOffset.z * sssFactor * 2.0);
         vec2 texelSize;
         sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, sampleTexCoord.xy, texelSize);
         float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
