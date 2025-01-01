@@ -10,8 +10,8 @@ const ivec3 workGroups = ivec3(1, 64, 1);
 
 layout(rgba16f) restrict uniform image2D uimg_skyLUT;
 
-uniform sampler2D usam_viewZ;
 uniform sampler2D usam_transmittanceLUT;
+uniform sampler2D usam_multiSctrLUT;
 
 shared vec3 shared_resultMoon[64];
 
@@ -44,7 +44,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
         if (tTop < 0.0) {
             return result; // No intersection with atmosphere: stop right away
         }
-        params.rayStart += rayDir * (tTop + 0.001);
+        params.rayStart += rayDir * (tTop + PLANET_RADIUS_OFFSET);
     }
 
     float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom);
@@ -65,7 +65,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
 
     params.rayEnd = params.rayStart + rayDir * rayLen;
 
-    result = raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT);
+    result = raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT, usam_multiSctrLUT);
     result.inScattering *= global_sunRadiance.rgb * global_sunRadiance.a;
     result.inScattering *= gl_LocalInvocationID.z == 0 ? vec3(1.0) : MOON_RADIANCE_MUL;
 

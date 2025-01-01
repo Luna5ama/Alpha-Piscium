@@ -13,6 +13,7 @@ uniform sampler2D usam_rtwsm_imap2D;
 uniform sampler2D usam_rtwsm_imap1D;
 uniform sampler2D usam_rtwsm_warpingMap;
 uniform sampler2D usam_transmittanceLUT;
+uniform sampler2D usam_multiSctrLUT;
 uniform sampler2D usam_skyLUT;
 uniform sampler2D usam_epipolarSliceEnd;
 uniform sampler2D usam_epipolarInSctr;
@@ -97,6 +98,9 @@ void main() {
     }
     if (inViewPort(vec4(0, 32 + 64, 256, 256), debugTexCoord)) {
         color.rgb = gammaCorrect(texture(usam_skyLUT, debugTexCoord).rgb * 0.1);
+    }
+    if (inViewPort(vec4(0, 32 + 64 + 256, 256, 256), debugTexCoord)) {
+        color.rgb = gammaCorrect(texture(usam_multiSctrLUT, debugTexCoord).rgb * 10.0);
     }
     float whRatio = float(SETTING_EPIPOLAR_SLICES) / float(SETTING_SLICE_SAMPLES);
     if (inViewPort(vec4(256, 32, whRatio * 256, 256), debugTexCoord)) {

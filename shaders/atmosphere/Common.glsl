@@ -20,7 +20,8 @@
 #include "../_Util.glsl"
 #include "Epipolar.glsl"
 
-#define TRAPEZOIDAL_INTEGRATION 1
+#define MULTI_SCTR_LUT_SIZE 32
+#define PLANET_RADIUS_OFFSET 0.001
 
 // Every length is in KM!!!
 
@@ -180,6 +181,9 @@ float raySphereIntersectNearest(vec3 r0, vec3 rd, vec3 s0, float sR) {
 float fromUnitToSubUvs(float u, float resolution) { return (u + 0.5f / resolution) * (resolution / (resolution + 1.0f)); }
 float fromSubUvsToUnit(float u, float resolution) { return (u - 0.5f / resolution) * (resolution / (resolution - 1.0f)); }
 
+vec2 fromUnitToSubUvs(vec2 uv, vec2 resolution) { return (uv + 0.5 / resolution) * (resolution / (resolution + 1.0)); }
+vec2 fromSubUvsToUnit(vec2 uv, vec2 resolution) { return (uv - 0.5 / resolution) * (resolution / (resolution - 1.0)); }
+
 float atmosphere_height(AtmosphereParameters atmosphere, vec3 worldPos) {
     float worldHeight = max(worldPos.y - 62.0, float(SETTING_ATM_ALT_SCALE) * 0.001);
     return worldHeight * (1.0 / float(SETTING_ATM_ALT_SCALE)) + atmosphere.bottom;
@@ -252,6 +256,39 @@ struct RaymarchParameters {
     uint steps;
 };
 
+bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir) {
+    vec3 earthCenter = vec3(0.0);
+
+    // Check if ray origin is outside the atmosphere
+    if (length(params.rayStart) > atmosphere.top) {
+        float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
+        if (tTop < 0.0) {
+            return false; // No intersection with atmosphere: stop right away
+        }
+        params.rayStart += rayDir * (tTop + PLANET_RADIUS_OFFSET);
+    }
+
+    float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom);
+    float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
+    float rayLen = 0.0;
+
+    if (tBottom < 0.0) {
+        if (tTop < 0.0) {
+            return false; // No intersection with earth nor atmosphere: stop right away
+        } else {
+            rayLen = tTop;
+        }
+    } else {
+        if (tTop > 0.0) {
+            rayLen = min(tTop, tBottom);
+        }
+    }
+
+    params.rayEnd = params.rayStart + rayDir * rayLen;
+
+    return true;
+}
+
 vec3 sampleTransmittanceLUT(
 AtmosphereParameters atmosphere, float cosLightZenith,
 float sampleAltitude, sampler2D transmittanceLUT
@@ -264,6 +301,12 @@ float sampleAltitude, sampler2D transmittanceLUT
         return vec3(0.0);
     }
     return texture(transmittanceLUT, tLUTUV).rgb;
+}
+
+vec3 sampleMultiSctrLUT(AtmosphereParameters atmosphere, float cosLightZenith, float sampleAltitude, sampler2D multiSctrLUT) {
+    vec2 uv = saturate(vec2(cosLightZenith * 0.5 + 0.5, sampleAltitude / (atmosphere.top - atmosphere.bottom)));
+    uv = fromUnitToSubUvs(uv, vec2(MULTI_SCTR_LUT_SIZE));
+    return texture(multiSctrLUT, uv).rgb;
 }
 
 vec3 computeOpticalDepth(AtmosphereParameters atmosphere, vec3 density) {
@@ -282,7 +325,7 @@ vec3 computeTotalInSctr(AtmosphereParameters atmosphere, RaymarchParameters para
 
 ScatteringResult raymarchSingleScattering(
 AtmosphereParameters atmosphere, RaymarchParameters params,
-sampler2D transmittanceLUT
+sampler2D transmittanceLUT, sampler2D multiSctrLUT
 ) {
     ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
 
@@ -303,13 +346,14 @@ sampler2D transmittanceLUT
         vec3 sampleOpticalDepth = sampleExtinction * rayStepLength;
         vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
+        vec3 rayleighInSctr = sampleDensity.x * atmosphere.rayleighSctrCoeff;
+        vec3 mieInSctr = sampleDensity.y * atmosphere.mieSctrCoeff;
+
         vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params.cosZenith, sampleHeight, transmittanceLUT);
+        vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, params.cosZenith, sampleHeight, multiSctrLUT);
 
-        vec3 rayleighInSctr = sampleDensity.x * params.rayleighPhase * atmosphere.rayleighSctrCoeff;
-        vec3 mieInSctr = sampleDensity.y * params.miePhase * atmosphere.mieSctrCoeff;
-        vec3 inSctr = rayleighInSctr + mieInSctr;
-
-        vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, params, sampleDensity);
+        vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, params, sampleDensity) ;
+        sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
 
         // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
         vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
@@ -362,6 +406,5 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
 
     return result;
 }
-
 
 #endif
