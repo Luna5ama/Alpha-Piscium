@@ -665,6 +665,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
+        screen("PBR", 1) {
+            lang(Locale.US) {
+                name = "PBR"
+                comment = "Physically Based Rendering settings"
+            }
+            toggle("SETTING_NORMAL_MAPPING", true) {
+                lang(Locale.US) {
+                    name = "Normal Mapping"
+                }
+            }
+        }
         screen("ATMOSPHERE", 1) {
             lang(Locale.US) {
                 name = "Atmosphere"

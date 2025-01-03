@@ -10,6 +10,8 @@ screen.PCSS=Soft Shadows
 screen.PCSS.comment=Soft Shadows settings
 screen.SSVBIL=SSVBIL
 screen.SSVBIL.comment=Screen Space Visibility Bitmask Indirect Lighting
+screen.PBR=PBR
+screen.PBR.comment=Physically Based Rendering settings
 screen.ATMOSPHERE=Atmosphere
 screen.POSTFX=Post Processing
 screen.EXPOSURE=Exposure
@@ -68,6 +70,7 @@ option.SETTING_SSVBIL_THICKNESS=Thickness
 option.SETTING_SSVBIL_AO_STRENGTH=AO Strength
 option.SETTING_SSVBIL_GI_STRENGTH=GI Strength
 option.SETTING_SSVBIL_GI_MB=GI Multi Bounce
+option.SETTING_NORMAL_MAPPING=Normal Mapping
 option.SETTING_ATM_ALT_SCALE=Atmosphere Altitude Scale
 option.SETTING_ATM_ALT_SCALE.comment=Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on.
 option.SETTING_ATM_D_SCALE=Atmosphere Distance Scale

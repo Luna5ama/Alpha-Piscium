@@ -7,6 +7,8 @@ uniform sampler2D specular;
 uniform usampler2D usam_gbuffer;
 uniform sampler2D usam_viewZ;
 
+in vec3 frag_viewTangent;
+
 in vec4 frag_colorMul; // 8 x 4 = 32 bits
 in vec3 frag_viewNormal; // 11 + 11 + 10 = 32 bits
 in vec2 frag_texCoord; // 16 x 2 = 32 bits
@@ -96,8 +98,17 @@ void processOutput(out GBufferData gData, out float viewZ) {
     gData.materialAO = normalSample.b;
     gData.pbrSpecular = specularSample;
 
-    // TODO: normal map
+    #ifndef SETTING_NORMAL_MAPPING
     gData.normal = frag_viewNormal;
+    #else
+    vec3 bitangent = cross(frag_viewNormal, frag_viewTangent);
+    mat3 tbn = mat3(frag_viewTangent, bitangent, frag_viewNormal);
+    vec3 tagentNormal = normalSample.rgb * 2.0 - 1.0;
+    tagentNormal.z = sqrt(1.0 - dot(tagentNormal.xy, tagentNormal.xy));
+    vec3 mappedNormal = normalize(tbn * tagentNormal);
+    gData.normal = mappedNormal;
+    #endif
+
     gData.normal = dither(gData.normal, noiseIGN, 1023.0);
 
     #else
