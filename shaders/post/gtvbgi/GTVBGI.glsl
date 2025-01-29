@@ -389,10 +389,6 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
 
     vec2 rayStart = SPos_from_VPos(positionVS).xy;
 
-    uvec2 hashKey = (uvec2(gl_FragCoord.xy) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
-    uint r2Index = (rand_hash21(hashKey) & 65535u) + NOISE_FRAME;
-    float baseSampleLod = rand_r2Seq1(r2Index);
-
     vec4 rnd01 = Rnd01x4(gl_FragCoord.xy, NOISE_FRAME);
 
     ////////////////////////////////////////////////// slice direction sampling
@@ -464,6 +460,10 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
     float maxDistY = rayDir.y != 0.0 ? (rayDir.y < 0.0 ? (-gl_FragCoord.y / rayDir.y) : (global_mainImageSize.y - gl_FragCoord.y) / rayDir.y) : 1e6;
     float maxDist = min(maxDistX, maxDistY);
 
+    uvec2 hashKey = (uvec2(gl_FragCoord.xy) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
+    uint r2Index = (rand_hash21(hashKey) & 65535u) + NOISE_FRAME;
+    float baseSampleLod = rand_r2Seq1(r2Index);
+
     float lodStep = radiusToLodStep(maxDist);
     float sampleLod = lodStep * baseSampleLod;
 
@@ -485,22 +485,14 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
 
         vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
 
-        vec3 deltaPosFront = samplePosVS - positionVS;
-        vec3 deltaPosBack  = deltaPosFront - V * SETTING_SSVBIL_THICKNESS;
+        vec3 frontDiff = samplePosVS - positionVS;
+        vec3 backDiff = coords_toViewCoord(sampleUV, sampleViewZ - SETTING_SSVBIL_THICKNESS, gbufferProjectionInverse) - positionVS;
 
-        #if 1
-        // required for correctness, but probably not worth to keep active in a practical application:
-        #if 1
-        deltaPosBack =  coords_toViewCoord(sampleUV, sampleViewZ - SETTING_SSVBIL_THICKNESS, gbufferProjectionInverse) - positionVS;
-        #else
-        //                                 also valid, but not consistent with reference ray marcher
-        deltaPosBack = deltaPosFront + normalize(samplePosVS) * SETTING_SSVBIL_THICKNESS;
-        #endif
-        #endif
+        float frontDiffRcpLen = fastRcpSqrtNR0(dot(frontDiff, frontDiff));
+        float backDiffRcpLen = fastRcpSqrtNR0(dot(backDiff, backDiff));
 
         // project samples onto unit circle and compute angles relative to V
-        vec2 horCos = vec2(dot(normalize(deltaPosFront), V),
-            dot(normalize(deltaPosBack), V));
+        vec2 horCos = vec2(dot(frontDiff * frontDiffRcpLen, V), dot(backDiff * backDiffRcpLen, V));
 
         vec2 horAng = ACos(horCos);
 

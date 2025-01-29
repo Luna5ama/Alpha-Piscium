@@ -1,7 +1,7 @@
 #version 460 compatibility
 
 #define DENOISER_KERNEL_RADIUS 16
-#define DENOISER_GAUSSIAN 1
+#define DENOISER_BOX 1
 #define DENOISER_HORIZONTAL 1
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 #include "general/Denoiser.comp"
@@ -23,7 +23,5 @@ void denoiser_input(ivec2 coord, out vec4 data, out vec3 normal, out float viewZ
 }
 
 void denoiser_output(ivec2 coord, vec4 data) {
-    float ao = imageLoad(uimg_ssvbil, coord).a;
-    vec3 gi = data.rgb;
-    imageStore(uimg_temp3, coord, vec4(gi, ao));
+    imageStore(uimg_temp3, coord, vec4(data.rgb, 0.0));
 }

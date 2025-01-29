@@ -3,6 +3,7 @@ const int colortex0Format = RGBA16F; // Main 1
 const int colortex1Format = RGBA16F; // Temp1
 const int colortex2Format = RGBA16F; // Temp2
 const int colortex3Format = RGBA16F; // Temp3
+const int colortex4Format = RGBA16F; // Temp4
 const int colortex8Format = RGBA32UI;
 const int colortex9Format = R32F; // ViewZ
 const int colortex12Format = RG8; // Temporal Project Rejection
@@ -22,6 +23,9 @@ const int colortex15Format = RGBA16F; // TAA Last
 
 #define usam_temp3 colortex3
 #define uimg_temp3 colorimg3
+
+#define usam_temp4 colortex4
+#define uimg_temp4 colorimg4
 
 #define usam_gbuffer colortex8
 #define uimg_gbuffer colorimg8
