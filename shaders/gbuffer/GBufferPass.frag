@@ -101,12 +101,13 @@ void processOutput(out GBufferData gData, out float viewZ) {
     #ifndef SETTING_NORMAL_MAPPING
     gData.normal = frag_viewNormal;
     #else
-    vec3 bitangent = cross(frag_viewNormal, frag_viewTangent);
+    vec3 bitangent = cross(frag_viewTangent, frag_viewNormal);
     mat3 tbn = mat3(frag_viewTangent, bitangent, frag_viewNormal);
-    vec3 tagentNormal = normalSample.rgb * 2.0 - 1.0;
-    tagentNormal.z = sqrt(1.0 - dot(tagentNormal.xy, tagentNormal.xy));
+    vec3 tagentNormal;
+    tagentNormal.xy = normalSample.rg * 2.0 - 1.0;
+    tagentNormal.z = sqrt(saturate(1.0 - dot(tagentNormal.xy, tagentNormal.xy)));
     vec3 mappedNormal = normalize(tbn * tagentNormal);
-    gData.normal = mappedNormal;
+    gData.normal = normalize(mix(frag_viewNormal, mappedNormal, SETTING_NORMAL_MAPPING_STRENGTH));
     #endif
 
     gData.normal = dither(gData.normal, noiseIGN, 1023.0);
