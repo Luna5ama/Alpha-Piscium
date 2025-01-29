@@ -587,12 +587,71 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
         sampleTexelDist += stepTexelSize;
     }
 
+    mat3 viewToScene = mat3(gbufferModelViewInverse);
+
+    uint aoSectionBits = ~occBits;
+    vec3 realTangent = normalize(T);
+
+    vec3 skyLighting = vec3(0.0);
+    for (uint i = 0u; i < 4u; i++) {
+        float fi = float(i);
+
+        float ang0 = 0.25 * fi;
+
+        // shift relative angles from V to N + map to [0,1]
+        vec2 hor01 = vec2(ang0, ang0 + 0.25);
+
+        // map to slice relative distribution
+        hor01.x = SliceRelCDF_Cos(hor01.x, angN, cosN, true);
+        hor01.y = SliceRelCDF_Cos(hor01.y, angN, cosN, true);
+
+        // partial slice re-mapping
+        hor01 = hor01 * w0_remap_mul + w0_remap_add;
+
+        // jitter sample locations + clamp01
+        hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
+
+        uint sectorBitMask;// turn arc into bit mask
+        {
+            uvec2 horInt = uvec2(floor(hor01 * 32.0));
+
+            uint OxFFFFFFFFu = 0xFFFFFFFFu;// don't inline here! ANGLE bug: https://issues.angleproject.org/issues/353039526
+
+            uint mX = horInt.x < 32u ? OxFFFFFFFFu <<        horInt.x  : 0u;
+            uint mY = horInt.y != 0u ? OxFFFFFFFFu >> (32u - horInt.y) : 0u;
+
+            sectorBitMask = mX & mY;
+        }
+
+        uint sectorBits = (aoSectionBits & sectorBitMask);
+        float bitCount = float(bitCount(sectorBits)) * (1.0 / 32.0);
+
+        float angC = 0.125 + 0.25 * fi;
+        float cosC = cos(angC);
+        float sinC = sin(angC);
+
+        vec3 skyNormal = viewToScene * normalize(normalVS * cosC + realTangent * sinC);
+        vec2 skyLUTUV = coords_polarAzimuthEqualArea(skyNormal);
+        vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
+        skyLighting += bitCount * skyRadiance;
+    }
+
     // compute AO
     rt_out.a = float(CountBits(occBits)) * (1.0 / 32.0);
     rt_out.a = saturate(1.0 - rt_out.a);
     rt_out.a = pow(rt_out.a, SETTING_SSVBIL_AO_STRENGTH);
 
+    rt_out.rgb *= PI;
     rt_out.rgb *= SETTING_SSVBIL_GI_STRENGTH;
+
+    ivec2 intTexelPos = ivec2(gl_FragCoord.xy);
+
+    float lmCoordSky = texelFetch(usam_temp2, intTexelPos, 0).a;
+    float skyLightingIntensity = lmCoordSky * lmCoordSky;
+    skyLightingIntensity *= rt_out.a * rt_out.a;
+    skyLightingIntensity *= SETTING_SKYLIGHT_STRENGTH;
+
+    rt_out.rgb += skyLighting * skyLightingIntensity;
 }
 
 void main() {
