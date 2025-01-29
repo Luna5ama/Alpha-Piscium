@@ -149,7 +149,7 @@ void main() {
 
         uvec2 hashKey = (uvec2(gl_FragCoord.xy) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
         uint r2Index = (rand_hash21(hashKey) & 65535u) + NOISE_FRAME;
-        float baseSampleLod = rand_r2Seq1(r2Index);
+        float baseSampleLod = rand_r2Seq1(r2Index) - 0.5;
 
         rt_out.a = 0.0;
 

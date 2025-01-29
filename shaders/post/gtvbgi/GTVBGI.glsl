@@ -479,7 +479,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
         vec2 sampleTexelCoord = floor(rayDir * sampleTexelDist + rayStart) + 0.5;
         vec2 sampleUV = sampleTexelCoord / textureSize(usam_viewZ, 0).xy;
 
-        float realSampleLod = round(sampleLod * 0.5);
+        float realSampleLod = round(sampleLod * 0.25);
 
         float sampleViewZ = textureLod(usam_viewZ, sampleUV, realSampleLod).r;
 
@@ -641,14 +641,13 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
     rt_out.a = saturate(1.0 - rt_out.a);
     rt_out.a = pow(rt_out.a, SETTING_SSVBIL_AO_STRENGTH);
 
-    rt_out.rgb *= PI;
     rt_out.rgb *= SETTING_SSVBIL_GI_STRENGTH;
 
     ivec2 intTexelPos = ivec2(gl_FragCoord.xy);
 
     float lmCoordSky = texelFetch(usam_temp2, intTexelPos, 0).a;
     float skyLightingIntensity = lmCoordSky * lmCoordSky;
-    skyLightingIntensity *= rt_out.a * rt_out.a;
+    skyLightingIntensity *= rt_out.a;
     skyLightingIntensity *= SETTING_SKYLIGHT_STRENGTH;
 
     rt_out.rgb += skyLighting * skyLightingIntensity;
