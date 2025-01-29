@@ -620,7 +620,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "SSVBIL"
                     comment = "Screen Space Visibility Bitmask Indirect Lighting"
                 }
-                slider("SETTING_SSVBIL_STEPS", 16, listOf(8, 12, 16, 24, 32)) {
+                slider("SETTING_SSVBIL_STEPS", 16, listOf(8, 12, 16, 24, 32, 64)) {
                     lang(Locale.US) {
                         name = "Sample Steps"
                     }

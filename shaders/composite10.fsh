@@ -6,4 +6,4 @@ const bool colortex9MipmapEnabled = true;
 
 #define SSVBIL_SAMPLE_STEPS SETTING_SSVBIL_STEPS
 #define SSVBIL_SAMPLE_SLICES SETTING_SSVBIL_SLICES
-#include "post/SSVBIL.frag"
+#include "post/gtvbgi/GTVBGI.glsl"

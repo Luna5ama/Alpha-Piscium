@@ -244,7 +244,7 @@ void main() {
                 vec3 skyNormal = viewToScene * normalize(realTangent * cosH + centerViewNormal * sinH);
                 vec2 skyLUTUV = coords_polarAzimuthEqualArea(skyNormal);
                 vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
-                skyLighting += bitCount * skyRadiance;
+//                skyLighting += bitCount * skyRadiance;
             }
         }
 

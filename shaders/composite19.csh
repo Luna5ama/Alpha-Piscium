@@ -1,7 +1,7 @@
 #version 460 compatibility
 
 #define DENOISER_KERNEL_RADIUS 16
-#define DENOISER_BOX 1
+#define DENOISER_GAUSSIAN 1
 #define DENOISER_VERTICAL 1
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 #include "general/Denoiser.comp"

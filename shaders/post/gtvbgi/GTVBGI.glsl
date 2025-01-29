@@ -37,6 +37,10 @@ float radiusToLodStep(float y) {
     const float a0 = 0.0341139143777;
     const float a1 = 0.137416190981;
     const float a2 = -3.83742275706;
+    #elif SSVBIL_SAMPLE_STEPS == 64
+    const float a0 = 0.0163745667855;
+    const float a1 = 0.114241124966;
+    const float a2 = -6.79009299987;
     #else
     #error "Invalid SSVBIL_SAMPLE_STEPS"
     #endif
@@ -405,7 +409,7 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
     vec3 positionVS = (gbufferModelView * vec4(wpos, 1.0)).xyz;
     vec3 normalVS   = mat3(gbufferModelView) * normalWS;
 
-    vec3 V = isPerspectiveCam ? -normalize(positionVS) : vec3(0.0, 0.0, -1.0);
+    vec3 V = -normalize(positionVS);
 
     vec2 rayStart = SPos_from_VPos(positionVS).xy;
 
@@ -430,25 +434,22 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
 
         vec3 normalVVS = normalVS;
 
-        if (isPerspectiveCam) normalVVS = Transform_Qz0(normalVS, Q_fromV);
+        normalVVS = Transform_Qz0(normalVS, Q_fromV);
 
         dir = SamplePartialSliceDir(normalVVS, rnd01.x);
 
         smplDirVS = vec3(dir.xy, 0.0);
 
-        if (isPerspectiveCam)
-        {
-            smplDirVS = Transform_Vz0Qz0(dir, Q_toV);
+        smplDirVS = Transform_Vz0Qz0(dir, Q_toV);
 
-            vec3 rayStart = SPos_from_VPos(positionVS);
-            vec3 rayEnd   = SPos_from_VPos(positionVS + smplDirVS*(near*0.5));
+        vec3 rayStart = SPos_from_VPos(positionVS);
+        vec3 rayEnd   = SPos_from_VPos(positionVS + smplDirVS*(near*0.5));
 
-            vec3 rayDir   = rayEnd - rayStart;
+        vec3 rayDir   = rayEnd - rayStart;
 
-            rayDir /= length(rayDir.xy);
+        rayDir /= length(rayDir.xy);
 
-            dir = rayDir.xy;
-        }
+        dir = rayDir.xy;
     }
     //////////////////////////////////////////////////
 
@@ -504,22 +505,10 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
             float stepTexelSize = sampleLodTexelSize * 0.5;
             sampleTexelDist += stepTexelSize;
 
-//            vec2 samplePos = rayStart + rayDir * t;
-
-
             vec2 sampleTexelCoord = floor(rayDir * sampleTexelDist + rayStart) + 0.5;
             vec2 sampleUV = sampleTexelCoord / textureSize(usam_viewZ, 0).xy;
 
-
-
-//            t *= s;
-
-//            // handle oob
-//            if (samplePos.x < 0.0 || samplePos.x >= global_mainImageSize.x || samplePos.y < 0.0 || samplePos.y >= global_mainImageSize.y) break;
-
-            float realSampleLod = 0.0;
-            //                vec4 buff = textureLod(iChannel2, samplePos / Resolution.xy, 0.0);
-            //if(frameCounter != 0) buff.rgb = textureLod(iChannel0, samplePos / Resolution.xy, 0.0).rgb;// recursive bounces hack
+            float realSampleLod = round(sampleLod * 0.5);
 
             float sampleViewZ = textureLod(usam_viewZ, sampleUV, realSampleLod).r;
 
@@ -528,18 +517,15 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
             vec3 deltaPosFront = samplePosVS - positionVS;
             vec3 deltaPosBack  = deltaPosFront - V * SETTING_SSVBIL_THICKNESS;
 
-            //                #if 1
-            //                // required for correctness, but probably not worth to keep active in a practical application:
-            //                if(isPerspectiveCam)
-            //                {
-            //                    #if 1
-            //                   deltaPosBack =  coords_toViewCoord(sampleUV, sampleViewZ + Thickness, gbufferProjectionInverse) - positionVS;
-            //                    #else
-            //                    // also valid, but not consistent with reference ray marcher
-            //                    deltaPosBack = deltaPosFront + normalize(samplePosVS) * Thickness;
-            //                    #endif
-            //                }
-            //                #endif
+            #if 1
+            // required for correctness, but probably not worth to keep active in a practical application:
+            #if 0
+            deltaPosBack =  coords_toViewCoord(sampleUV, sampleViewZ - SETTING_SSVBIL_THICKNESS, gbufferProjectionInverse) - positionVS;
+            #else
+            //                                 also valid, but not consistent with reference ray marcher
+            deltaPosBack = deltaPosFront + normalize(samplePosVS) * SETTING_SSVBIL_THICKNESS;
+            #endif
+            #endif
 
             // project samples onto unit circle and compute angles relative to V
             vec2 horCos = vec2(dot(normalize(deltaPosFront), V),
@@ -581,14 +567,7 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
                     vec4 sample2 = textureLod(usam_temp2, sampleUV, realSampleLod);
                     vec3 sampleRad = sample2.rgb;
 
-                    //                        #ifdef USE_BACKFACE_REJECTION
-                    #if 1
-                    //                        #ifndef GTVBGI_USE_SIMPLE_HEURISTIC_FOR_BACKFACE_REJECTION
-                    #if 1
                     {
-
-                        //                            vec3 N0 = textureLod(iChannel3, samplePos / Resolution.xy, 0.0).xyz;
-                        //                            N0 = VVec_from_WVec(N0);
                         vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
                         float emissive = float(sample1.a > 0.0);
                         vec3 N0 = mix(sample1.rgb, normalize(positionVS - samplePosVS), emissive);
@@ -644,38 +623,8 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
                             visBits0 = visBits0 & visBitsN;
                         }
                     }
-                    #endif
-                    #endif
 
                     float vis0 = float(CountBits(visBits0)) * (1.0/32.0);
-
-                    //                        #ifdef USE_BACKFACE_REJECTION
-                    //                        #ifdef GTVBGI_USE_SIMPLE_HEURISTIC_FOR_BACKFACE_REJECTION
-                    //                        {
-                    //                            vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
-                    //                            vec3 N0 = sample1.rgb;
-                    //
-                    //                            vec3 projN0 = N0 - sliceN * dot(N0, sliceN);
-                    //
-                    //                            float projN0SqrLen = dot(projN0, projN0);
-                    //
-                    //                            if (projN0SqrLen != 0.0)
-                    //                            {
-                    //                                float projN0RcpLen = inversesqrt(projN0SqrLen);
-                    //
-                    //                                bool flipT = dot(T, N0) < 0.0;
-                    //
-                    //                                float u = dot(projN, projN0);
-                    //                                u *= projNRcpLen;
-                    //                                u *= projN0RcpLen;
-                    //
-                    //                                float v = u * -0.5 + 0.5;
-                    //
-                    //                                vis0 *= clamp(v * 4.0 + 0., 0.0, 1.0);// tune mapping for use case
-                    //                            }
-                    //                        }
-                    //                        #endif
-                    //                        #endif
 
                     gi0 += sampleRad * vis0;
                 }
