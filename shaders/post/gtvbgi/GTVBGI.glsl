@@ -14,52 +14,42 @@ in vec2 frag_texCoord;
 /* RENDERTARGETS:14 */
 layout(location = 0) out vec4 rt_out;
 
+// Inverse function approximation
+// See https://www.desmos.com/calculator/cdliscjjvi
+float radiusToLodStep(float y) {
+    #if SSVBIL_SAMPLE_STEPS == 8
+    const float a0 = 0.16378974015;
+    const float a1 = 0.265434760971;
+    const float a2 = -1.20565634012;
+    #elif SSVBIL_SAMPLE_STEPS == 12
+    const float a0 = 0.101656225858;
+    const float a1 = 0.209110996684;
+    const float a2 = -1.6842356559;
+    #elif SSVBIL_SAMPLE_STEPS == 16
+    const float a0 = 0.0731878065138;
+    const float a1 = 0.181085743518;
+    const float a2 = -2.15482462553;
+    #elif SSVBIL_SAMPLE_STEPS == 24
+    const float a0 = 0.046627957233;
+    const float a1 = 0.152328399412;
+    const float a2 = -3.03009898524;
+    #elif SSVBIL_SAMPLE_STEPS == 32
+    const float a0 = 0.0341139143777;
+    const float a1 = 0.137416190981;
+    const float a2 = -3.83742275706;
+    #else
+    #error "Invalid SSVBIL_SAMPLE_STEPS"
+    #endif
+    y = clamp(y, SSVBIL_SAMPLE_STEPS, 32768.0);
+    return saturate(a0 * log2(a1 * y + a2));
+}
 
-/*
-    This work is licensed under a dual license, public domain and MIT, unless noted otherwise. Choose the one that best suits your needs:
+float lodTexelSize(float lod) {
+    return exp2(lod);
+}
 
-    CC0 1.0 Universal https://creativecommons.org/publicdomain/zero/1.0/
-    To the extent possible under law, the author has waived all copyrights and related or neighboring rights to this work.
+#define NOISE_FRAME uint(frameCounter)
 
-    or
-
-    The MIT License
-    Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"),
-    to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense,
-    and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-    The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM,
-    DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR
-    THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-////////////////////////////////////////////////////////////////////////////////////// config
-//==================================================================================//
-
-/*
-    toggles:
-
-    Tab  : toggle temporal accumulation on/off
-    Ctrl : toggle ortho cam off/on
-    Space: toggle between cosine and uniform hemisphere weighting (changes appearance of UI | default: cosine)
-
-    U    : toggle UI off/on
-*/
-
-/*
-    1: uniform sampling + slice weighting (works for gi almost as well as 3)
-    2: exact  importance sampling via 2 random numbers
-    3: approx importance sampling via 1 random number (default)
-    -> only used if cosine weighting is active (otherwise uniform sampling is used)
-*/
-#define GTVBGI_SLICE_SAMPLING_MODE 3
-
-/*
-    1: GTAOFastAcos         : fastest; good enough
-    2: improved GTAOFastAcos: slightly slower than 1, but quite a bit better
-    3: acos                 : very slow, but very accurate (useful for testing/debugging)
-*/
 #define ACOS_QUALITY_MODE 2
 
 #define USE_HQ_APPROX_SLICE_IMPORTANCE_SAMPLING
@@ -358,18 +348,9 @@ vec4 Rnd01x4(vec2 uv, uint n)
 
     vec4 rnd01 = vec4(0.0);
 
-    #if GTVBGI_SLICE_SAMPLING_MODE == 1 || GTVBGI_SLICE_SAMPLING_MODE == 3
-
     rnd01.x  = rand_IGN(uv, n);
-    rnd01.z  = rand_IGN(uv, n + 1);
-    rnd01.w  = rand_IGN(uv, n + 2);
-
-    #elif GTVBGI_SLICE_SAMPLING_MODE == 2
-
-    rnd01   = BlueNoise01x4(uvu, n);
-    rnd01.x = BlueNoise01  (uvu, n);
-
-    #endif
+    rnd01.z  = rand_IGN(uv, n + 2);
+    rnd01.w  = rand_IGN(uv, n + 3);
 
     return rnd01;
 }
@@ -419,7 +400,7 @@ float SliceRelCDF_Cos(float x, float angN, float cosN)
 }
 
 
-vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS, uint dirCount)
+vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
 {
     vec3 positionVS = (gbufferModelView * vec4(wpos, 1.0)).xyz;
     vec3 normalVS   = mat3(gbufferModelView) * normalWS;
@@ -428,382 +409,303 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS, uint dirCount)
 
     vec2 rayStart = SPos_from_VPos(positionVS).xy;
 
-//    uint frame = USE_TEMP_ACCU_COND ? uint(frameCounter) : 0u;
-    uint frame = uint(frameCounter);
-
     vec3 gi = vec3(0.0);
     float ao = 0.0;
-    for (uint i = 0u; i < dirCount; ++i)
+
+    uvec2 hashKey = (uvec2(gl_FragCoord.xy) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
+    uint r2Index = (rand_hash21(hashKey) & 65535u) + NOISE_FRAME;
+    float baseSampleLod = rand_r2Seq1(r2Index);
+
+    vec4 rnd01 = Rnd01x4(uv0, NOISE_FRAME);
+
+    ////////////////////////////////////////////////// slice direction sampling
+    vec3 smplDirVS;// view space sampling vector
+    vec2 dir;// screen space sampling vector
     {
-        uint n = frame * dirCount + i;
-        vec4 rnd01 = Rnd01x4(uv0, n);
+        // approximate partial slice dir importance sampling via 1 rnd number
 
-        ////////////////////////////////////////////////// slice direction sampling
-        vec3 smplDirVS;// view space sampling vector
-        vec2 dir;// screen space sampling vector
+        // set up View Vec Space <-> View Space mapping
+        vec4   Q_toV = GetQuaternion(V);
+        vec4 Q_fromV = Q_toV * vec4(vec3(-1.0), 1.0);// conjugate
+
+        vec3 normalVVS = normalVS;
+
+        if (isPerspectiveCam) normalVVS = Transform_Qz0(normalVS, Q_fromV);
+
+        dir = SamplePartialSliceDir(normalVVS, rnd01.x);
+
+        smplDirVS = vec3(dir.xy, 0.0);
+
+        if (isPerspectiveCam)
         {
-            #if GTVBGI_SLICE_SAMPLING_MODE == 1
-            // sample partial slice dir uniformly and later compute slice_weight accordingly
+            smplDirVS = Transform_Vz0Qz0(dir, Q_toV);
 
-            float rndAng = rnd01.x * Pi2;
+            vec3 rayStart = SPos_from_VPos(positionVS);
+            vec3 rayEnd   = SPos_from_VPos(positionVS + smplDirVS*(near*0.5));
 
-            dir = vec2(cos(rndAng), sin(rndAng));
+            vec3 rayDir   = rayEnd - rayStart;
 
-            smplDirVS = vec3(dir.xy, 0.0);
-
-            if (isPerspectiveCam)
-            {
-                // set up View Vec Space -> View Space mapping
-                vec4 Q_toV = GetQuaternion(V);
-
-                smplDirVS = Transform_Vz0Qz0(dir, Q_toV);
-
-                vec3 rayStart = SPos_from_VPos(positionVS);
-                vec3 rayEnd   = SPos_from_VPos(positionVS + smplDirVS*(near * 0.5));
-
-                vec3 rayDir   = rayEnd - rayStart;
-
-                rayDir /= length(rayDir.xy);
-
-                dir = rayDir.xy;
-            }
-
-            #elif GTVBGI_SLICE_SAMPLING_MODE == 2
-            // exact partial slice dir importance sampling via 2 rnd numbers
-            // sample cos lobe in world space and project dir to screen space to be used as partial slice dir
-
-            vec2 s = rnd01.xy * 2.0 - 1.0;
-
-            vec3 cosDir;
-            {
-                #if 1
-                // align up-axis of local sampling frame with view vector
-                // -> results in better noise profile when looking straight at a surface
-                vec3 sph;// = Sample_Sphere(s); inlined here to ensure z is up
-                {
-                    float ang = Pi * s.x;
-                    float s1p = sqrt(1.0 - s.y*s.y);
-
-                    sph = vec3(vec2(cos(ang), sin(ang)) * s1p, s.y);
-                }
-
-                if (isPerspectiveCam)
-                {
-                    sph = Transform_Qz0(sph, GetQuaternion(V));
-                }
-
-                vec3 cosDirVS = normalize(sph + VVec_from_WVec(normalWS));
-                cosDir   = WVec_from_VVec(cosDirVS);
-
-                smplDirVS = cosDirVS;
-
-                #else
-
-                cosDir = normalize(Sample_Sphere(s) + normalWS);
-
-                smplDirVS = VVec_from_WVec(cosDir);
-
-                #endif
-            }
-
-            vec3 rayDir = smplDirVS;
-
-            if (isPerspectiveCam)
-            {
-                rayDir = SPos_from_WPos(wpos + cosDir * (near * 0.5)) - SPos_from_WPos(wpos);
-            }
-
-            // 1 px step size
             rayDir /= length(rayDir.xy);
 
             dir = rayDir.xy;
+        }
+    }
+    //////////////////////////////////////////////////
 
-            // make orthogonal to V (alternatively use sliceN = normalize(sliceN);)
-            smplDirVS = normalize(smplDirVS - V * dot(V, smplDirVS));
+    ////////////////////////////////////////////////// construct slice
+    vec3 sliceN, projN, T;
+    float cosN, angN, projNRcpLen;
+    {
+        sliceN = cross(V, smplDirVS);
 
-            #elif GTVBGI_SLICE_SAMPLING_MODE == 3
-            // approximate partial slice dir importance sampling via 1 rnd number
+        projN = normalVS - sliceN * dot(normalVS, sliceN);
 
-            // set up View Vec Space <-> View Space mapping
-            vec4   Q_toV = GetQuaternion(V);
-            vec4 Q_fromV = Q_toV * vec4(vec3(-1.0), 1.0);// conjugate
+        float projNSqrLen = dot(projN, projN);
+        if (projNSqrLen == 0.0) return vec4(0.0, 0.0, 0.0, 1.0);
 
-            vec3 normalVVS = normalVS;
+        projNRcpLen = inversesqrt(projNSqrLen);
 
-            if (isPerspectiveCam) normalVVS = Transform_Qz0(normalVS, Q_fromV);
+        cosN = dot(projN, V) * projNRcpLen;
 
-            dir = SamplePartialSliceDir(normalVVS, rnd01.x);
+        T = cross(sliceN, projN);
 
-            smplDirVS = vec3(dir.xy, 0.0);
+        float sgn = dot(V, T) < 0.0 ? -1.0 : 1.0;
 
-            if (isPerspectiveCam)
+        angN = sgn * ACos(cosN);
+    }
+    //////////////////////////////////////////////////
+
+    float angOff = angN * RcpPi + 0.5;
+
+    // percentage of the slice we don't use ([0, angN]-integrated slice-relative pdf)
+    float w0 = clamp((sin(angN) / (cos(angN) + angN * sin(angN))) * (Pi/4.0) + 0.5, 0.0, 1.0);
+
+    // partial slice re-mapping constants
+    float w0_remap_mul = 1.0 / (1.0 - w0);
+    float w0_remap_add = -w0 * w0_remap_mul;
+
+    vec3 gi0 = vec3(0.0);
+    float ao0 = 0.0;
+    {
+        vec2 rayDir = dir.xy;
+
+        float maxDistX = rayDir.x != 0.0 ? (rayDir.x >= 0.0 ? (global_mainImageSize.x - gl_FragCoord.x) / rayDir.x : -gl_FragCoord.x / rayDir.x) : 1e6;
+        float maxDistY = rayDir.y != 0.0 ? (rayDir.y < 0.0 ? (-gl_FragCoord.y / rayDir.y) : (global_mainImageSize.y - gl_FragCoord.y) / rayDir.y) : 1e6;
+        float maxDist = min(maxDistX, maxDistY);
+
+        float lodStep = radiusToLodStep(maxDist);
+        float sampleLod = lodStep * baseSampleLod;
+
+        float sampleTexelDist = 0.5;
+
+        uint occBits = 0u;
+        for (uint stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; ++stepIndex) {
+            float sampleLodTexelSize = lodTexelSize(sampleLod) * 1.0;
+            float stepTexelSize = sampleLodTexelSize * 0.5;
+            sampleTexelDist += stepTexelSize;
+
+//            vec2 samplePos = rayStart + rayDir * t;
+
+
+            vec2 sampleTexelCoord = floor(rayDir * sampleTexelDist + rayStart) + 0.5;
+            vec2 sampleUV = sampleTexelCoord / textureSize(usam_viewZ, 0).xy;
+
+
+
+//            t *= s;
+
+//            // handle oob
+//            if (samplePos.x < 0.0 || samplePos.x >= global_mainImageSize.x || samplePos.y < 0.0 || samplePos.y >= global_mainImageSize.y) break;
+
+            float realSampleLod = 0.0;
+            //                vec4 buff = textureLod(iChannel2, samplePos / Resolution.xy, 0.0);
+            //if(frameCounter != 0) buff.rgb = textureLod(iChannel0, samplePos / Resolution.xy, 0.0).rgb;// recursive bounces hack
+
+            float sampleViewZ = textureLod(usam_viewZ, sampleUV, realSampleLod).r;
+
+            vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
+
+            vec3 deltaPosFront = samplePosVS - positionVS;
+            vec3 deltaPosBack  = deltaPosFront - V * SETTING_SSVBIL_THICKNESS;
+
+            //                #if 1
+            //                // required for correctness, but probably not worth to keep active in a practical application:
+            //                if(isPerspectiveCam)
+            //                {
+            //                    #if 1
+            //                   deltaPosBack =  coords_toViewCoord(sampleUV, sampleViewZ + Thickness, gbufferProjectionInverse) - positionVS;
+            //                    #else
+            //                    // also valid, but not consistent with reference ray marcher
+            //                    deltaPosBack = deltaPosFront + normalize(samplePosVS) * Thickness;
+            //                    #endif
+            //                }
+            //                #endif
+
+            // project samples onto unit circle and compute angles relative to V
+            vec2 horCos = vec2(dot(normalize(deltaPosFront), V),
+                dot(normalize(deltaPosBack), V));
+
+            vec2 horAng = ACos(horCos);
+
+            // shift relative angles from V to N + map to [0,1]
+            vec2 hor01 = clamp(horAng * RcpPi + angOff, 0.0, 1.0);
+
+            // map to slice relative distribution
+            hor01.x = SliceRelCDF_Cos(hor01.x, angN, cosN, true);
+            hor01.y = SliceRelCDF_Cos(hor01.y, angN, cosN, true);
+
+            // partial slice re-mapping
+            hor01 = hor01 * w0_remap_mul + w0_remap_add;
+
+            // jitter sample locations + clamp01
+            hor01 = clamp(hor01 + rnd01.w * (1.0/32.0), 0.0, 1.0);
+
+            uint occBits0;// turn arc into bit mask
             {
-                smplDirVS = Transform_Vz0Qz0(dir, Q_toV);
+                uvec2 horInt = uvec2(floor(hor01 * 32.0));
 
-                vec3 rayStart = SPos_from_VPos(positionVS);
-                vec3 rayEnd   = SPos_from_VPos(positionVS + smplDirVS*(near*0.5));
+                uint OxFFFFFFFFu = 0xFFFFFFFFu;// don't inline here! ANGLE bug: https://issues.angleproject.org/issues/353039526
 
-                vec3 rayDir   = rayEnd - rayStart;
+                uint mX = horInt.x < 32u ? OxFFFFFFFFu <<        horInt.x  : 0u;
+                uint mY = horInt.y != 0u ? OxFFFFFFFFu >> (32u - horInt.y) : 0u;
 
-                rayDir /= length(rayDir.xy);
-
-                dir = rayDir.xy;
+                occBits0 = mX & mY;
             }
-            #endif
-        }
-        //////////////////////////////////////////////////
 
-        ////////////////////////////////////////////////// construct slice
-        vec3 sliceN, projN, T;
-        float cosN, angN, projNRcpLen;
-        {
-            sliceN = cross(V, smplDirVS);
+            // compute gi contribution
+            {
+                uint visBits0 = occBits0 & (~occBits);
 
-            projN = normalVS - sliceN * dot(normalVS, sliceN);
-
-            float projNSqrLen = dot(projN, projN);
-            if (projNSqrLen == 0.0) return vec4(0.0, 0.0, 0.0, 1.0);
-
-            projNRcpLen = inversesqrt(projNSqrLen);
-
-            cosN = dot(projN, V) * projNRcpLen;
-
-            T = cross(sliceN, projN);
-
-            float sgn = dot(V, T) < 0.0 ? -1.0 : 1.0;
-
-            angN = sgn * ACos(cosN);
-        }
-        //////////////////////////////////////////////////
-
-        float angOff = angN * RcpPi + 0.5;
-
-        // percentage of the slice we don't use ([0, angN]-integrated slice-relative pdf)
-        float w0 = clamp((sin(angN) / (cos(angN) + angN * sin(angN))) * (Pi/4.0) + 0.5, 0.0, 1.0);
-
-        // partial slice re-mapping constants
-        float w0_remap_mul = 1.0 / (1.0 - w0);
-        float w0_remap_add = -w0 * w0_remap_mul;
-
-        vec3 gi0 = vec3(0.0);
-        float ao0 = 0.0;
-        {
-            vec2 rayDir = dir.xy;
-
-            const float s = pow(Raymarching_Width, 1.0 / SSVBIL_SAMPLE_STEPS);
-
-            float t = pow(s, rnd01.z);// init t: [1, s]
-
-            uint occBits = 0u;
-            for (uint i = 0; i < SSVBIL_SAMPLE_STEPS; ++i) {
-                vec2 samplePos = rayStart + rayDir * t;
-
-                t *= s;
-
-                // handle oob
-                if (samplePos.x < 0.0 || samplePos.x >= global_mainImageSize.x || samplePos.y < 0.0 || samplePos.y >= global_mainImageSize.y) break;
-
-                vec2 sampleUV = samplePos * global_mainImageSizeRcp;
-                float realSampleLod = 0.0;
-                //                vec4 buff = textureLod(iChannel2, samplePos / Resolution.xy, 0.0);
-                //if(frameCounter != 0) buff.rgb = textureLod(iChannel0, samplePos / Resolution.xy, 0.0).rgb;// recursive bounces hack
-
-                float sampleViewZ = textureLod(usam_viewZ, sampleUV, realSampleLod).r;
-
-                vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
-
-                vec3 deltaPosFront = samplePosVS - positionVS;
-                vec3 deltaPosBack  = deltaPosFront - V * SETTING_SSVBIL_THICKNESS;
-
-                //                #if 1
-                //                // required for correctness, but probably not worth to keep active in a practical application:
-                //                if(isPerspectiveCam)
-                //                {
-                //                    #if 1
-                //                   deltaPosBack =  coords_toViewCoord(sampleUV, sampleViewZ + Thickness, gbufferProjectionInverse) - positionVS;
-                //                    #else
-                //                    // also valid, but not consistent with reference ray marcher
-                //                    deltaPosBack = deltaPosFront + normalize(samplePosVS) * Thickness;
-                //                    #endif
-                //                }
-                //                #endif
-
-                // project samples onto unit circle and compute angles relative to V
-                vec2 horCos = vec2(dot(normalize(deltaPosFront), V),
-                    dot(normalize(deltaPosBack), V));
-
-                vec2 horAng = ACos(horCos);
-
-                // shift relative angles from V to N + map to [0,1]
-                vec2 hor01 = clamp(horAng * RcpPi + angOff, 0.0, 1.0);
-
-                // map to slice relative distribution
-                hor01.x = SliceRelCDF_Cos(hor01.x, angN, cosN, true);
-                hor01.y = SliceRelCDF_Cos(hor01.y, angN, cosN, true);
-
-                // partial slice re-mapping
-                hor01 = hor01 * w0_remap_mul + w0_remap_add;
-
-                // jitter sample locations + clamp01
-                hor01 = clamp(hor01 + rnd01.w * (1.0/32.0), 0.0, 1.0);
-
-                uint occBits0;// turn arc into bit mask
+                if (visBits0 != 0u)
                 {
-                    uvec2 horInt = uvec2(floor(hor01 * 32.0));
+                    vec4 sample2 = textureLod(usam_temp2, sampleUV, realSampleLod);
+                    vec3 sampleRad = sample2.rgb;
 
-                    uint OxFFFFFFFFu = 0xFFFFFFFFu;// don't inline here! ANGLE bug: https://issues.angleproject.org/issues/353039526
-
-                    uint mX = horInt.x < 32u ? OxFFFFFFFFu <<        horInt.x  : 0u;
-                    uint mY = horInt.y != 0u ? OxFFFFFFFFu >> (32u - horInt.y) : 0u;
-
-                    occBits0 = mX & mY;
-                }
-
-                // compute gi contribution
-                {
-                    uint visBits0 = occBits0 & (~occBits);
-
-                    if (visBits0 != 0u)
+                    //                        #ifdef USE_BACKFACE_REJECTION
+                    #if 1
+                    //                        #ifndef GTVBGI_USE_SIMPLE_HEURISTIC_FOR_BACKFACE_REJECTION
+                    #if 1
                     {
-                        vec4 sample2 = textureLod(usam_temp2, sampleUV, realSampleLod);
-                        vec3 sampleRad = sample2.rgb;
 
-//                        #ifdef USE_BACKFACE_REJECTION
-                                                #if 1
-//                        #ifndef GTVBGI_USE_SIMPLE_HEURISTIC_FOR_BACKFACE_REJECTION
-                        #if 1
-                        {
-
-                            //                            vec3 N0 = textureLod(iChannel3, samplePos / Resolution.xy, 0.0).xyz;
-                            //                            N0 = VVec_from_WVec(N0);
-                            vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
+                        //                            vec3 N0 = textureLod(iChannel3, samplePos / Resolution.xy, 0.0).xyz;
+                        //                            N0 = VVec_from_WVec(N0);
+                        vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
                         float emissive = float(sample1.a > 0.0);
                         vec3 N0 = mix(sample1.rgb, normalize(positionVS - samplePosVS), emissive);
-//                            vec3 N0 = sample1.rgb;
+                        //                            vec3 N0 = sample1.rgb;
 
-                            vec3 projN0 = N0 - sliceN * dot(N0, sliceN);
+                        vec3 projN0 = N0 - sliceN * dot(N0, sliceN);
 
-                            float projN0SqrLen = dot(projN0, projN0);
+                        float projN0SqrLen = dot(projN0, projN0);
 
-                            if (projN0SqrLen != 0.0)
+                        if (projN0SqrLen != 0.0)
+                        {
+                            float projN0RcpLen = inversesqrt(projN0SqrLen);
+
+                            bool flipT = dot(T, N0) < 0.0;
+
+                            float u = dot(projN, projN0);
+                            u *= projNRcpLen;
+                            u *= projN0RcpLen;
+
+                            #if 1
+
+                            float hor01 = ACos(u) * RcpPi;
+
+                            if (flipT) hor01 = 1.0 - hor01;
+
+                            #else
+
+                            // same as above but allows to skip sign handling in ACos (prob not worth it)
+                            float hor01 = ACos(abs(u)) * RcpPi;
+
+                            if (flipT != (u < 0.0)) hor01 = 1.0 - hor01;
+
+                            #endif
+
+                            // map to slice relative distribution
+                            hor01 = SliceRelCDF_Cos(hor01, angN, cosN);
+
+                            // partial slice re-mapping
+                            hor01 = hor01 * w0_remap_mul + w0_remap_add;
+
+                            // jitter sample locations + clamp01
+                            hor01 = clamp(hor01 + rnd01.w * (1.0/32.0), 0.0, 1.0);
+
+                            uint visBitsN;// turn arc into bit mask
                             {
-                                float projN0RcpLen = inversesqrt(projN0SqrLen);
+                                uint horInt = uint(floor(hor01 * 32.0));
 
-                                bool flipT = dot(T, N0) < 0.0;
+                                visBitsN = horInt < 32u ? 0xFFFFFFFFu << horInt : 0u;
 
-                                float u = dot(projN, projN0);
-                                u *= projNRcpLen;
-                                u *= projN0RcpLen;
-
-                                #if 1
-
-                                float hor01 = ACos(u) * RcpPi;
-
-                                if (flipT) hor01 = 1.0 - hor01;
-
-                                #else
-
-                                // same as above but allows to skip sign handling in ACos (prob not worth it)
-                                float hor01 = ACos(abs(u)) * RcpPi;
-
-                                if (flipT != (u < 0.0)) hor01 = 1.0 - hor01;
-
-                                #endif
-
-                                // map to slice relative distribution
-                                hor01 = SliceRelCDF_Cos(hor01, angN, cosN);
-
-                                // partial slice re-mapping
-                                hor01 = hor01 * w0_remap_mul + w0_remap_add;
-
-                                // jitter sample locations + clamp01
-                                hor01 = clamp(hor01 + rnd01.w * (1.0/32.0), 0.0, 1.0);
-
-                                uint visBitsN;// turn arc into bit mask
-                                {
-                                    uint horInt = uint(floor(hor01 * 32.0));
-
-                                    visBitsN = horInt < 32u ? 0xFFFFFFFFu << horInt : 0u;
-
-                                    if (!flipT) visBitsN = ~visBitsN;
-                                }
-
-                                visBits0 = visBits0 & visBitsN;
+                                if (!flipT) visBitsN = ~visBitsN;
                             }
+
+                            visBits0 = visBits0 & visBitsN;
                         }
-                        #endif
-                        #endif
-
-                        float vis0 = float(CountBits(visBits0)) * (1.0/32.0);
-
-//                        #ifdef USE_BACKFACE_REJECTION
-//                        #ifdef GTVBGI_USE_SIMPLE_HEURISTIC_FOR_BACKFACE_REJECTION
-//                        {
-//                            vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
-//                            vec3 N0 = sample1.rgb;
-//
-//                            vec3 projN0 = N0 - sliceN * dot(N0, sliceN);
-//
-//                            float projN0SqrLen = dot(projN0, projN0);
-//
-//                            if (projN0SqrLen != 0.0)
-//                            {
-//                                float projN0RcpLen = inversesqrt(projN0SqrLen);
-//
-//                                bool flipT = dot(T, N0) < 0.0;
-//
-//                                float u = dot(projN, projN0);
-//                                u *= projNRcpLen;
-//                                u *= projN0RcpLen;
-//
-//                                float v = u * -0.5 + 0.5;
-//
-//                                vis0 *= clamp(v * 4.0 + 0., 0.0, 1.0);// tune mapping for use case
-//                            }
-//                        }
-//                        #endif
-//                        #endif
-
-                        gi0 += sampleRad * vis0;
                     }
+                    #endif
+                    #endif
+
+                    float vis0 = float(CountBits(visBits0)) * (1.0/32.0);
+
+                    //                        #ifdef USE_BACKFACE_REJECTION
+                    //                        #ifdef GTVBGI_USE_SIMPLE_HEURISTIC_FOR_BACKFACE_REJECTION
+                    //                        {
+                    //                            vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
+                    //                            vec3 N0 = sample1.rgb;
+                    //
+                    //                            vec3 projN0 = N0 - sliceN * dot(N0, sliceN);
+                    //
+                    //                            float projN0SqrLen = dot(projN0, projN0);
+                    //
+                    //                            if (projN0SqrLen != 0.0)
+                    //                            {
+                    //                                float projN0RcpLen = inversesqrt(projN0SqrLen);
+                    //
+                    //                                bool flipT = dot(T, N0) < 0.0;
+                    //
+                    //                                float u = dot(projN, projN0);
+                    //                                u *= projNRcpLen;
+                    //                                u *= projN0RcpLen;
+                    //
+                    //                                float v = u * -0.5 + 0.5;
+                    //
+                    //                                vis0 *= clamp(v * 4.0 + 0., 0.0, 1.0);// tune mapping for use case
+                    //                            }
+                    //                        }
+                    //                        #endif
+                    //                        #endif
+
+                    gi0 += sampleRad * vis0;
                 }
-
-                occBits = occBits | occBits0;
             }
 
-            // compute GI/AO contribution
-            {
-                float occ0 = float(CountBits(occBits)) * (1.0/32.0);
-                float w;
+            occBits = occBits | occBits0;
 
-                #if GTVBGI_SLICE_SAMPLING_MODE == 1
-                w = 2.0 - 2.0 * w0;
-                #else
-                w = 1.0;
-                #endif
-
-                ao0 = w - w * occ0;
-                gi0 =     w *  gi0;
-            }
+            sampleLod = sampleLod + lodStep;
+            sampleTexelDist += stepTexelSize;
         }
 
-        // accumulate AO contribution
+        // compute GI/AO contribution
         {
-            float slice_weight = 1.0;
+            float occ0 = float(CountBits(occBits)) * (1.0/32.0);
+            float w;
 
-            #if GTVBGI_SLICE_SAMPLING_MODE == 1
-            // if we sample the partial slice dir from a uniform distribution we need to account for that here
-            slice_weight = max(0.0, 1.0/projNRcpLen * (cosN + angN * sin(angN)));
-            #endif
+            w = 1.0;
 
-            ao += ao0 * slice_weight;
-            gi += gi0 * slice_weight;
+            ao0 = w - w * occ0;
+            gi0 =     w *  gi0;
         }
     }
 
-    float norm = 1.0 / float(dirCount);
-    //return vec4(ao) * norm;
-    return vec4(gi, ao) * norm;
+    // accumulate AO contribution
+    {
+        ao += ao0;
+        gi += gi0;
+    }
+
+    return vec4(gi, ao);
 }
 
 //==================================================================================//
@@ -836,8 +738,8 @@ void mainImage(out vec4 outCol, in vec2 uv0)
     Resolution = global_mainImageSize.xy;
     isLeft = uv0.x < global_mainImageSize.x * 0.5;
 
-//    vec4 mouseAccu  = ReadVar4(1, VAR_ROW);
-//    float frameAccu = ReadVar (3, VAR_ROW);
+    //    vec4 mouseAccu  = ReadVar4(1, VAR_ROW);
+    //    float frameAccu = ReadVar (3, VAR_ROW);
 
     ivec2 intTexelPos = ivec2(gl_FragCoord.xy);
 
@@ -858,9 +760,7 @@ void mainImage(out vec4 outCol, in vec2 uv0)
 
     vec3 gi;
     {
-        uint count = 1u;
-
-        gi = uniGTVBGI(uv0, wpos, N, count).rgb;
+        gi = uniGTVBGI(uv0, wpos, N).rgb;
     }
 
     //    col = rad + a * gi;
