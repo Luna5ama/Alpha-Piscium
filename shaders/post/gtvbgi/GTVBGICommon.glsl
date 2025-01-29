@@ -105,52 +105,44 @@ bool isPerspectiveCam = true;// ortho/proj cam toggle
 
 
 // ====== View <-> World ====== //
-vec3 VPos_from_WPos(vec3 wpos)
-{
+vec3 VPos_from_WPos(vec3 wpos) {
     return (gbufferModelView * vec4(wpos, 1.0)).xyz;
 }
 
-vec3 VVec_from_WVec(vec3 wvec)
-{
+vec3 VVec_from_WVec(vec3 wvec) {
     return mat3(gbufferModelView) * wvec;
 }
 
 ////
 
-vec3 WPos_from_VPos(vec3 vpos)
-{
+vec3 WPos_from_VPos(vec3 vpos) {
     return (gbufferModelViewInverse * vec4(vpos, 1.0)).xyz;
 }
 
-vec3 WVec_from_VVec(vec3 vvec)
-{
+vec3 WVec_from_VVec(vec3 vvec) {
     return mat3(gbufferModelViewInverse) * vvec;
 }
 // =========================== //
 
 // ====== Proj <-> View ====== //
-vec4 PPos_from_VPos(vec3 vpos)
-{
+vec4 PPos_from_VPos(vec3 vpos) {
     return gbufferProjection * vec4(vpos, 1.0);
 }
 
-vec3 VPos_from_PPos(vec4 ppos)
-{
+vec3 VPos_from_PPos(vec4 ppos) {
     vec4 vpos = gbufferProjectionInverse * ppos;
 
     return vpos.xyz / vpos.w;
 }
 
-vec4 PVec_from_VVec(vec3 vvec)
-{
+vec4 PVec_from_VVec(vec3 vvec) {
     return gbufferProjection * vec4(vvec, 0.0);
 }
 // =========================== //
 
 
 // ====== Screen <-> View ====== //
-vec3 SPos_from_VPos(vec3 vpos)
-{
+vec3 SPos_from_VPos(vec3 vpos) {
     vec4 ppos = PPos_from_VPos(vpos);
 
     vec2 tc21 = ppos.xy / ppos.w;
@@ -161,8 +153,7 @@ vec3 SPos_from_VPos(vec3 vpos)
 }
 ////
 
-vec3 VPos_from_SPos(vec3 spos)
-{
+vec3 VPos_from_SPos(vec3 spos) {
 //    vec2 uv0 = spos.xy;
 //    float depth = spos.z;
 //    depth = NonLinDepth_from_LinDepth(depth);
@@ -181,22 +172,19 @@ vec3 VPos_from_SPos(vec3 spos)
 // ============================= //
 
 // ====== Proj <-> World ====== //
-vec4 PPos_from_WPos(vec3 wpos)
-{
+vec4 PPos_from_WPos(vec3 wpos) {
     vec3 vpos = VPos_from_WPos(wpos);
 
     return PPos_from_VPos(vpos);
 }
 
-vec3 WPos_from_PPos(vec4 ppos)
-{
+vec3 WPos_from_PPos(vec4 ppos) {
     vec3 vpos = VPos_from_PPos(ppos);
 
     return WPos_from_VPos(vpos);
 }
 
-vec4 PVec_from_WVec(vec3 wvec)
-{
+vec4 PVec_from_WVec(vec3 wvec) {
     vec3 vvec = VVec_from_WVec(wvec);
 
     return PVec_from_VVec(vvec);
@@ -204,8 +192,7 @@ vec4 PVec_from_WVec(vec3 wvec)
 // =========================== //
 
 // ====== Screen <-> World ====== //
-vec3 SPos_from_WPos(vec3 wpos)
-{
+vec3 SPos_from_WPos(vec3 wpos) {
     vec3 vpos = VPos_from_WPos(wpos);
 
     return SPos_from_VPos(vpos);
@@ -213,8 +200,7 @@ vec3 SPos_from_WPos(vec3 wpos)
 
 ////
 
-vec3 WPos_from_SPos(vec3 spos)
-{
+vec3 WPos_from_SPos(vec3 spos) {
     vec3 vpos = VPos_from_SPos(spos);
 
     return WPos_from_VPos(vpos);
@@ -262,8 +248,7 @@ EXAMPLE:
 float Intersect_Ray_Cube(
 vec3 rp, vec3 rd,
 vec3 cp, vec3 cth,
-out vec2 t)
-{
+out vec2 t) {
     rp -= cp;
 
     vec3 m = 1.0 / -rd;
@@ -295,8 +280,7 @@ EXAMPLE:
 float Intersect_Ray_Cube(
 vec3 rp, vec3 rd,
 vec3 cp, vec3 cth,
-out vec2 t, out vec3 n0, out vec3 n1)
-{
+out vec2 t, out vec3 n0, out vec3 n1) {
     rp -= cp;
 
     vec3 m = 1.0 / -rd;
@@ -353,8 +337,7 @@ EXAMPLE:
 float Intersect_Ray_Sphere(
 vec3 rp, vec3 rd,
 vec3 sp, float sr2,
-out vec2 t)
-{
+out vec2 t) {
     rp -= sp;
 
     float a = dot(rd, rd);
@@ -376,46 +359,40 @@ out vec2 t)
     return t.x > 0.0 || c < 0.0 ? 1.0 : -1.0;
 }
 
-bvec2 minmask(vec2 v)
-{
+bvec2 minmask(vec2 v) {
     bool x = v.x < v.y || isnan(v.y);
 
     return bvec2(x, !x);
 }
 
 
-bvec2 maxmask(vec2 v)
-{
+bvec2 maxmask(vec2 v) {
     bool x = v.x >= v.y || isnan(v.y);
 
     return bvec2(x, !x);
 }
 
 
-bvec3 minmask(vec3 v)
-{
+bvec3 minmask(vec3 v) {
     return bvec3(v.x <= v.y && v.x <= v.z,
         v.y <  v.z && v.y <  v.x,
         v.z <  v.x && v.z <= v.y);
 }
 
-bvec3 maxmask(vec3 v)
-{
+bvec3 maxmask(vec3 v) {
     return bvec3(v.x >= v.y && v.x >= v.z,
         v.y >  v.z && v.y >  v.x,
         v.z >  v.x && v.z >= v.y);
 }
 
-bvec3 minmask2(vec3 v)
-{
+bvec3 minmask2(vec3 v) {
     bool x = !(v.x >  v.y || v.x >  v.z) && !isnan(v.x);
     bool y = !(v.y >= v.z || v.y >= v.x) && !isnan(v.y);
 
     return bvec3(x, y, !(x || y));
 }
 
-bvec3 maxmask2(vec3 v)
-{
+bvec3 maxmask2(vec3 v) {
     bool x = !(v.x <  v.y || v.x <  v.z) && !isnan(v.x);
     bool y = !(v.y <= v.z || v.y <= v.x) && !isnan(v.y);
 
@@ -425,8 +402,7 @@ bvec3 maxmask2(vec3 v)
 void Intersect_Ray_CubeBackside(
 vec3 rp, vec3 rd,
 vec3 cp, vec3 cth,
-out float t, out vec3 N)
-{
+out float t, out vec3 N) {
     rp -= cp;
 
     vec3 m = 1.0 / -rd;
@@ -442,8 +418,7 @@ out float t, out vec3 N)
     t = mb.x ? ub.x : mb.y ? ub.y : ub.z;
 }
 
-bool IsInsideCube(vec3 p, vec3 cp, vec3 cd)
-{
+bool IsInsideCube(vec3 p, vec3 cp, vec3 cd) {
     vec3 b = abs(p - cp);
 
     return b.x < cd.x && b.y < cd.y && b.z < cd.z;
@@ -498,16 +473,14 @@ const mat3 ACESOutputMat = mat3
     -0.00327, -0.07276,  1.07602
 );
 
-vec3 ToneTF(vec3 x)
-{
+vec3 ToneTF(vec3 x) {
     vec3 a = (x            + 0.0822192) * x;
     vec3 b = (x * 0.983521 + 0.5001330) * x + 0.274064;
 
     return a / b;
 }
 
-vec3 Tonemap(vec3 acescg)
-{
+vec3 Tonemap(vec3 acescg) {
     vec3 color = acescg * RRT_SAT;
 
     color = ToneTF(color);
@@ -524,8 +497,7 @@ vec3 Tonemap(vec3 acescg)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////// scene intersection
 //==========================================================================================================//
 bool Intersect_Ray_Cube(vec3 rp, vec3 rd, vec3 c0p, vec3 c0d,
-inout float hit, inout float t, inout vec3 n)
-{
+inout float hit, inout float t, inout vec3 n) {
     vec2 tt; vec3 n0, n1;
     float th = Intersect_Ray_Cube(rp, rd, c0p, c0d, /*out:*/ tt, n0, n1);
 
@@ -544,8 +516,7 @@ inout float hit, inout float t, inout vec3 n)
 }
 
 bool Intersect_Ray_Plate(vec3 rp, vec3 rd, vec3 c0p, vec3 c0d, float c1p_y, float c1dxz, float c1dy, float c1ps,
-inout float hit, inout float t, inout vec3 n, inout vec3 a)
-{
+inout float hit, inout float t, inout vec3 n, inout vec3 a) {
     vec3 c1p = vec3(0.0, c1p_y, 0.0);
     vec3 c1d = vec3(c1dxz, c1dy, c1dxz);
 
@@ -623,8 +594,7 @@ inout float hit, inout float t, inout vec3 n, inout vec3 a)
     return false;
 }
 
-vec3 TransA(vec3 u, bool foo)
-{
+vec3 TransA(vec3 u, bool foo) {
     if(foo)
     {
         u.xy = u.yx;
@@ -639,8 +609,7 @@ vec3 TransA(vec3 u, bool foo)
     return u;
 }
 
-vec3 TransB(vec3 u, bool foo)
-{
+vec3 TransB(vec3 u, bool foo) {
     if(foo)
     {
         u.zy = u.yz;
@@ -657,8 +626,7 @@ vec3 TransB(vec3 u, bool foo)
 
 
 bool Intersect_Ray_Plates(vec3 rp, vec3 rd, vec3 c0p, vec3 c0d, float c1p_y, float c1dxz, float c1dy, float c1ps,
-inout float hit, inout float t, inout vec3 n, inout vec3 a)
-{
+inout float hit, inout float t, inout vec3 n, inout vec3 a) {
     bool hit0 = false;
 
     rp.x += exp2(-18.0);
@@ -685,8 +653,7 @@ inout float hit, inout float t, inout vec3 n, inout vec3 a)
 
 float Intersect_Scene(
 vec3 rp, vec3 rd,
-out float t, out vec3 n, out vec3 a)
-{
+out float t, out vec3 n, out vec3 a) {
     float hit = 0.0;
 
     float c1dxz = 0.4;
@@ -823,8 +790,7 @@ out float t, out vec3 n, out vec3 a)
 ////////////////////////////////////////////////////////////////////////////////////////////////////////////// scene lighting
 //==========================================================================================================//
 
-float Eval_SpotLight(vec3 wpos, vec3 N, vec3 Lpos, vec3 Ldir, float Lap)
-{
+float Eval_SpotLight(vec3 wpos, vec3 N, vec3 Lpos, vec3 Ldir, float Lap) {
     vec3 Lvec = Lpos - wpos;
 
     vec3 L = normalize(Lvec);
@@ -853,8 +819,7 @@ float Eval_SpotLight(vec3 wpos, vec3 N, vec3 Lpos, vec3 Ldir, float Lap)
     return rad;
 }
 
-vec3 Eval_Lighting(vec3 wpos, vec3 N, vec3 a)
-{
+vec3 Eval_Lighting(vec3 wpos, vec3 N, vec3 a) {
     vec3 rad;
 
     #if 1
@@ -874,8 +839,7 @@ vec3 Eval_Lighting(vec3 wpos, vec3 N, vec3 a)
 // C. Schlick. "Fast alternatives to Perlin’s bias and gain function"
 // inverse(Bias(x,s)) =   Bias(x  ,1-s)
 // inverse(Bias(x,s)) = 1-Bias(1-x,  s)
-float Bias(float x, float s)
-{
+float Bias(float x, float s) {
     if(s == 0.0) return x != 1.0 ? 0.0 : 1.0;
     if(s == 1.0) return x != 0.0 ? 1.0 : 0.0;
 
@@ -888,8 +852,7 @@ float Bias(float x, float s)
 // s0 [-1..1], s1 [-1..1]
 // samples spherical cap for s1 [cosAng05..1]
 // samples hemisphere if s1 [0..1]
-vec3 Sample_Sphere(float s0, float s1)
-{
+vec3 Sample_Sphere(float s0, float s1) {
     float ang = Pi * s0;
     float s1p = sqrt(1.0 - s1*s1);
 
@@ -907,8 +870,7 @@ vec3 Sample_Sphere(vec2 s) { return Sample_Sphere(s.x, s.y); }
 // Jorge Jimenez http://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare
 float IGN(vec2 uv) { return fract(52.9829189 * fract(dot(uv, vec2(0.06711056, 0.00583715)))); }
 
-float IGN(vec2 uv, uint frame)
-{
+float IGN(vec2 uv, uint frame) {
     frame = frame % 64u;
 
     uv += 5.588238 * float(frame);
@@ -917,8 +879,7 @@ float IGN(vec2 uv, uint frame)
 }
 
 // linearizes uv using a Hilbert curve; tile dimension = 2^N
-uint EvalHilbertCurve(uvec2 uv, uint N)
-{
+uint EvalHilbertCurve(uvec2 uv, uint N) {
     uint C = 0xB4361E9Cu;// cost lookup
     uint P = 0xEC7A9107u;// pattern lookup
 
@@ -945,8 +906,7 @@ uint EvalHilbertCurve(uvec2 uv, uint N)
 //==========================================================================================================//
 // "Shuffled Scrambled Sobol (2D)" - https://www.shadertoy.com/view/3lcczS | license: unclear
 //  code taken from "Practical Hash-based Owen Scrambling" - http://www.jcgt.org/published/0009/04/01/
-uint reverse_bits(uint x)
-{
+uint reverse_bits(uint x) {
     x = (((x & 0xaaaaaaaau) >> 1) | ((x & 0x55555555u) << 1));
     x = (((x & 0xccccccccu) >> 2) | ((x & 0x33333333u) << 2));
     x = (((x & 0xf0f0f0f0u) >> 4) | ((x & 0x0f0f0f0fu) << 4));
@@ -956,8 +916,7 @@ uint reverse_bits(uint x)
 }
 
 // license: unclear
-uint laine_karras_permutation(uint x, uint seed)
-{
+uint laine_karras_permutation(uint x, uint seed) {
     x += seed;
     x ^= x*0x6c50b47cu;
     x ^= x*0xb82f1e52u;
@@ -968,8 +927,7 @@ uint laine_karras_permutation(uint x, uint seed)
 }
 
 // license: unclear
-uint nested_uniform_scramble(uint x, uint seed)
-{
+uint nested_uniform_scramble(uint x, uint seed) {
     x = reverse_bits(x);
     x = laine_karras_permutation(x, seed);
     x = reverse_bits(x);
@@ -978,8 +936,7 @@ uint nested_uniform_scramble(uint x, uint seed)
 }
 
 // from https://www.shadertoy.com/view/3ldXzM | license: unclear
-uvec2 sobol_2d(uint index)
-{
+uvec2 sobol_2d(uint index) {
     uvec2 p = uvec2(0u);
     uvec2 d = uvec2(0x80000000u);
 
@@ -998,8 +955,7 @@ uvec2 sobol_2d(uint index)
 }
 
 // license: unclear
-uvec2 shuffled_scrambled_sobol_2d(uint index, uint seed)
-{
+uvec2 shuffled_scrambled_sobol_2d(uint index, uint seed) {
     index = nested_uniform_scramble(index, seed);
 
     uvec2 p = sobol_2d(index);
@@ -1012,8 +968,7 @@ uvec2 shuffled_scrambled_sobol_2d(uint index, uint seed)
     return p;
 }
 
-uint shuffled_scrambled_sobol_angle01(uint x, uint seed)
-{
+uint shuffled_scrambled_sobol_angle01(uint x, uint seed) {
     x = reverse_bits(x);
 
     x = laine_karras_permutation(x, seed);
@@ -1056,8 +1011,7 @@ const uvec3 rPhi3 = uvec3(3518319153u, 2882110345u, 2360945575u);
 const uvec4 rPhi4 = uvec4(3679390609u, 3152041523u, 2700274805u, 2313257605u);
 
 // low bias version | https://nullprogram.com/blog/2018/07/31/ | license: public domain (http://unlicense.org/)
-uint WellonsHash(uint x)
-{
+uint WellonsHash(uint x) {
     x ^= x >> 16u;
     x *= 0x7feb352dU;
     x ^= x >> 15u;
@@ -1068,8 +1022,7 @@ uint WellonsHash(uint x)
 }
 
 // minimal bias version | https://nullprogram.com/blog/2018/07/31/ | license: public domain (http://unlicense.org/)
-uint WellonsHash2(uint x)
-{
+uint WellonsHash2(uint x) {
     x ^= x >> 17u;
     x *= 0xed5ad4bbU;
     x ^= x >> 11u;
@@ -1082,8 +1035,7 @@ uint WellonsHash2(uint x)
 }
 
 // http://marc-b-reynolds.github.io/math/2016/03/29/weyl_hash.html | license: public domain (http://unlicense.org/)
-uint WeylHash(uvec2 c)
-{
+uint WeylHash(uvec2 c) {
     return ((c.x * 0x3504f333u) ^ (c.y * 0xf1bbcdcbu)) * 741103597u;
 }
 
@@ -1091,8 +1043,7 @@ uint WeylHash(uvec2 c)
 // https://www.ams.org/journals/mcom/1999-68-225/S0025-5718-99-00996-5/S0025-5718-99-00996-5.pdf
 const uint lcgM = 2891336453u;// ideal for 32 bits with odd c
 
-uint lcg(uint h)
-{
+uint lcg(uint h) {
     return h * lcgM + 0x5C995C6Du;
 }
 
@@ -1103,8 +1054,7 @@ uint lcg(uint h)
 
 // Mark Jarzynski & Marc Olano - "Hash Functions for GPU Rendering"
 // http://jcgt.org/published/0009/03/02/ | https://www.shadertoy.com/view/XlGcRh
-uvec3 pcg3Mix(uvec3 h)
-{
+uvec3 pcg3Mix(uvec3 h) {
     h.x += h.y * h.z;
     h.y += h.z * h.x;
     h.z += h.x * h.y;
@@ -1112,8 +1062,7 @@ uvec3 pcg3Mix(uvec3 h)
     return h;
 }
 
-uvec3 pcg3Permute(uvec3 h)
-{
+uvec3 pcg3Permute(uvec3 h) {
     h = pcg3Mix(h);
 
     h ^= h >> 16u;
@@ -1121,22 +1070,19 @@ uvec3 pcg3Permute(uvec3 h)
     return pcg3Mix(h);
 }
 
-uvec3 pcg3(inout uint state)
-{
+uvec3 pcg3(inout uint state) {
     state = lcg(state);
 
     return pcg3Permute(uvec3(2447445413u, state, 3242174889u));
 }
 
-uvec3 pcg3(uvec3 h, uint seed)
-{
+uvec3 pcg3(uvec3 h, uint seed) {
     uvec3 c = (seed << 1u) ^ SEED.xyz;
 
     return pcg3Permute(h * lcgM + c);
 }
 
-uvec4 pcg4Mix(uvec4 h)
-{
+uvec4 pcg4Mix(uvec4 h) {
     h.x += h.y * h.w;
     h.y += h.z * h.x;
     h.z += h.x * h.y;
@@ -1145,8 +1091,7 @@ uvec4 pcg4Mix(uvec4 h)
     return h;
 }
 
-uvec4 pcg4Permute(uvec4 h)
-{
+uvec4 pcg4Permute(uvec4 h) {
     h = pcg4Mix(h);
 
     h ^= h >> 16u;
@@ -1154,22 +1099,19 @@ uvec4 pcg4Permute(uvec4 h)
     return pcg4Mix(h);
 }
 
-uvec4 pcg4(inout uint state)
-{
+uvec4 pcg4(inout uint state) {
     state = lcg(state);
 
     return pcg4Permute(uvec4(2882110345u, state, 3518319153u, 2360945575u));
 }
 
-uvec4 pcg4(uvec4 h, uint seed)
-{
+uvec4 pcg4(uvec4 h, uint seed) {
     uvec4 c = (seed << 1u) ^ SEED;
 
     return pcg4Permute(h * lcgM + c);
 }
 
-uint pcg(inout uint state)
-{
+uint pcg(inout uint state) {
     state = lcg(state);
 
     uint word = ((state >> ((state >> 28u) + 4u)) ^ state) * 277803737u;
@@ -1177,8 +1119,7 @@ uint pcg(inout uint state)
     return (word >> 22u) ^ word;
 }
 
-uint pcg(uint h, uint seed)
-{
+uint pcg(uint h, uint seed) {
     uint c = (seed << 1u) ^ SEED.x;
 
     h = h * lcgM + c;

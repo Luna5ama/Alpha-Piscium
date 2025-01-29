@@ -61,9 +61,6 @@ float lodTexelSize(float lod) {
 //==================================================================================//
 //////////////////////////////////////////////////////////////////////////////////////
 
-
-bool isLeft;// true on the left half of the screen; for debugging purposes
-
 //#define KeyBoard iChannel3
 //#define KeyBoardChannel w
 //
@@ -86,8 +83,7 @@ bool isLeft;// true on the left half of the screen; for debugging purposes
 
 // https://www.shadertoy.com/view/lXBfWm
 // dir: normalized vector | out: angle in radians [-Pi, Pi] (max abs error ~0.000000546448 rad)
-float ArcTan(vec2 dir)
-{
+float ArcTan(vec2 dir) {
     const float Pi = 3.14159265359;
 
     float x = abs(dir.x);
@@ -118,8 +114,7 @@ float ArcTan11(vec2 dir)// == ArcTan(dir) / Pi
     return f;
 }
 
-float ACosPoly(float x)
-{
+float ACosPoly(float x) {
     #if ACOS_QUALITY_MODE == 1
     // GTAOFastAcos
     return 1.5707963267948966 - 0.1565827644218014 * x;
@@ -130,8 +125,7 @@ float ACosPoly(float x)
     #endif
 }
 
-float ACos_Approx(float x)
-{
+float ACos_Approx(float x) {
     float u = ACosPoly(abs(x)) * sqrt(1.0 - abs(x));
 
     return x >= 0.0 ? u : Pi - u;
@@ -142,8 +136,7 @@ float ACos01_Approx(float x)// x: [0,1]
     return ACosPoly(x) * sqrt(1.0 - x);
 }
 
-float ASin_Approx(float x)
-{
+float ASin_Approx(float x) {
     float u = ACosPoly(abs(x)) * sqrt(1.0 - abs(x)) - 1.5707963267948966;
 
     return x >= 0.0 ? -u : u;
@@ -155,8 +148,7 @@ float ASin01_Approx(float x)// x: [0,1]
 }
 
 #if ACOS_QUALITY_MODE == 1 || ACOS_QUALITY_MODE == 2
-float ACos(float x)
-{
+float ACos(float x) {
     return ACos_Approx(clamp(x, -1.0, 1.0));
 }
 #else
@@ -166,8 +158,7 @@ float ACos(float x)// very slow; for debugging
 }
 #endif
 
-vec2 ACos(vec2 v)
-{
+vec2 ACos(vec2 v) {
     return vec2(ACos(v.x), ACos(v.y));
 }
 
@@ -178,14 +169,12 @@ vec2 ACos(vec2 v)
 ////////////////////////////////////////////////////////////////////////////////////// partial slice sampling
 //==================================================================================//
 
-vec2 cmul(vec2 c0, vec2 c1)
-{
+vec2 cmul(vec2 c0, vec2 c1) {
     return vec2(c0.x * c1.x - c0.y * c1.y,
         c0.y * c1.x + c0.x * c1.y);
 }
 
-float SamplePartialSlice(float x, float sin_thVN)
-{
+float SamplePartialSlice(float x, float sin_thVN) {
     const float Pi   = 3.1415926535897930;
     const float Pi05 = 1.5707963267948966;
 
@@ -238,8 +227,7 @@ float SamplePartialSlice(float x, float sin_thVN)
 }
 
 // vvsN: view vec space normal | rnd01: [0, 1]
-vec2 SamplePartialSliceDir(vec3 vvsN, float rnd01)
-{
+vec2 SamplePartialSliceDir(vec3 vvsN, float rnd01) {
     float ang0 = rnd01 * Pi2;
 
     vec2 dir0 = vec2(cos(ang0), sin(ang0));
@@ -278,8 +266,7 @@ vec2 SamplePartialSliceDir(vec3 vvsN, float rnd01)
 ////////////////////////////////////////////////////////////////////////////////////// quaternion utils
 //==================================================================================//
 
-vec4 GetQuaternion(vec3 from, vec3 to)
-{
+vec4 GetQuaternion(vec3 from, vec3 to) {
     vec3 xyz = cross(from, to);
     float s  =   dot(from, to);
 
@@ -291,8 +278,7 @@ vec4 GetQuaternion(vec3 from, vec3 to)
     return vec4(xyz, s);
 }
 
-vec4 GetQuaternion(vec3 to)
-{
+vec4 GetQuaternion(vec3 to) {
     //vec3 from = vec3(0.0, 0.0, 1.0);
 
     vec3 xyz = vec3(-to.y, to.x, 0.0);// cross(from, to);
@@ -307,8 +293,7 @@ vec4 GetQuaternion(vec3 to)
 }
 
 // transform v by unit quaternion q.xyzs
-vec3 Transform(vec3 v, vec4 q)
-{
+vec3 Transform(vec3 v, vec4 q) {
     vec3 k = cross(q.xyz, v);
 
     return v + 2.0 * vec3(dot(vec3(q.wy, -q.z), k.xzy),
@@ -317,8 +302,7 @@ vec3 Transform(vec3 v, vec4 q)
 }
 
 // transform v by unit quaternion q.xy0s
-vec3 Transform_Qz0(vec3 v, vec4 q)
-{
+vec3 Transform_Qz0(vec3 v, vec4 q) {
     float k = v.y * q.x - v.x * q.y;
     float g = 2.0 * (v.z * q.w + k);
 
@@ -330,8 +314,7 @@ vec3 Transform_Qz0(vec3 v, vec4 q)
 }
 
 // transform v.xy0 by unit quaternion q.xy0s
-vec3 Transform_Vz0Qz0(vec2 v, vec4 q)
-{
+vec3 Transform_Vz0Qz0(vec2 v, vec4 q) {
     float o = q.x * v.y;
     float c = q.y * v.x;
 
@@ -346,8 +329,7 @@ vec3 Transform_Vz0Qz0(vec2 v, vec4 q)
 // rnd01.x/rnd01.xy -> used to sample a slice direction (exact importance sampling needs 2 rnd numbers)
 // rnd01.z -> used to jitter sample positions along ray marching direction
 // rnd01.w -> used to jitter sample positions radially around slice normal
-vec4 Rnd01x4(vec2 uv, uint n)
-{
+vec4 Rnd01x4(vec2 uv, uint n) {
     uvec2 uvu = uvec2(uv);
 
     vec4 rnd01 = vec4(0.0);
@@ -364,8 +346,7 @@ uint CountBits(uint v) {
     return bitCount(v);
 }
 
-float SliceRelCDF_Cos(float x, float angN, float cosN, bool isPhiLargerThanAngN)
-{
+float SliceRelCDF_Cos(float x, float angN, float cosN, bool isPhiLargerThanAngN) {
     if (x <= 0.0 || x >= 1.0) return x;
 
     float phi = x * Pi - Pi05;
@@ -382,8 +363,7 @@ float SliceRelCDF_Cos(float x, float angN, float cosN, bool isPhiLargerThanAngN)
     return t0 / t1;
 }
 
-float SliceRelCDF_Cos(float x, float angN, float cosN)
-{
+float SliceRelCDF_Cos(float x, float angN, float cosN) {
     if (x <= 0.0 || x >= 1.0) return x;
 
     float phi = x * Pi - Pi05;
@@ -401,8 +381,7 @@ float SliceRelCDF_Cos(float x, float angN, float cosN)
 }
 
 
-vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
-{
+void uniGTVBGI(vec3 wpos, vec3 normalWS) {
     vec3 positionVS = (gbufferModelView * vec4(wpos, 1.0)).xyz;
     vec3 normalVS   = mat3(gbufferModelView) * normalWS;
 
@@ -414,7 +393,7 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
     uint r2Index = (rand_hash21(hashKey) & 65535u) + NOISE_FRAME;
     float baseSampleLod = rand_r2Seq1(r2Index);
 
-    vec4 rnd01 = Rnd01x4(uv0, NOISE_FRAME);
+    vec4 rnd01 = Rnd01x4(gl_FragCoord.xy, NOISE_FRAME);
 
     ////////////////////////////////////////////////// slice direction sampling
     vec3 smplDirVS;// view space sampling vector
@@ -456,7 +435,7 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
         projN = normalVS - sliceN * dot(normalVS, sliceN);
 
         float projNSqrLen = dot(projN, projN);
-        if (projNSqrLen == 0.0) return vec4(0.0, 0.0, 0.0, 1.0);
+        if (projNSqrLen == 0.0) return;
 
         projNRcpLen = inversesqrt(projNSqrLen);
 
@@ -491,7 +470,7 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
     float sampleTexelDist = 0.5;
 
     uint occBits = 0u;
-    vec4 result = vec4(0.0);
+
     for (uint stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; ++stepIndex) {
         float sampleLodTexelSize = lodTexelSize(sampleLod) * 1.0;
         float stepTexelSize = sampleLodTexelSize * 0.5;
@@ -511,7 +490,7 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
 
         #if 1
         // required for correctness, but probably not worth to keep active in a practical application:
-        #if 0
+        #if 1
         deltaPosBack =  coords_toViewCoord(sampleUV, sampleViewZ - SETTING_SSVBIL_THICKNESS, gbufferProjectionInverse) - positionVS;
         #else
         //                                 also valid, but not consistent with reference ray marcher
@@ -555,59 +534,49 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
             uint visBits0 = occBits0 & (~occBits);
 
             if (visBits0 != 0u) {
-                {
-                    vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
-                    float emissive = float(sample1.a > 0.0);
-                    vec3 N0 = mix(sample1.rgb, normalize(positionVS - samplePosVS), emissive);
-                    //                            vec3 N0 = sample1.rgb;
+                vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
+                float emissive = float(sample1.a > 0.0);
+                vec3 N0 = mix(sample1.rgb, normalize(positionVS - samplePosVS), emissive);
+                vec3 projN0 = N0 - sliceN * dot(N0, sliceN);
 
-                    vec3 projN0 = N0 - sliceN * dot(N0, sliceN);
+                float projN0SqrLen = dot(projN0, projN0);
 
-                    float projN0SqrLen = dot(projN0, projN0);
+                if (projN0SqrLen != 0.0){
+                    float projN0RcpLen = inversesqrt(projN0SqrLen);
 
-                    if (projN0SqrLen != 0.0){
-                        float projN0RcpLen = inversesqrt(projN0SqrLen);
+                    bool flipT = dot(T, N0) < 0.0;
 
-                        bool flipT = dot(T, N0) < 0.0;
+                    float u = dot(projN, projN0);
+                    u *= projNRcpLen;
+                    u *= projN0RcpLen;
 
-                        float u = dot(projN, projN0);
-                        u *= projNRcpLen;
-                        u *= projN0RcpLen;
+                    float hor01 = ACos(u) * RcpPi;
+                    if (flipT) hor01 = 1.0 - hor01;
 
-                        #if 1
-                        float hor01 = ACos(u) * RcpPi;
-                        if (flipT) hor01 = 1.0 - hor01;
-                        #else
-                        // same as above but allows to skip sign handling in ACos (prob not worth it)
-                        float hor01 = ACos(abs(u)) * RcpPi;
-                        if (flipT != (u < 0.0)) hor01 = 1.0 - hor01;
-                        #endif
+                    // map to slice relative distribution
+                    hor01 = SliceRelCDF_Cos(hor01, angN, cosN);
 
-                        // map to slice relative distribution
-                        hor01 = SliceRelCDF_Cos(hor01, angN, cosN);
+                    // partial slice re-mapping
+                    hor01 = hor01 * w0_remap_mul + w0_remap_add;
 
-                        // partial slice re-mapping
-                        hor01 = hor01 * w0_remap_mul + w0_remap_add;
+                    // jitter sample locations + clamp01
+                    hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
 
-                        // jitter sample locations + clamp01
-                        hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
-
-                        uint visBitsN;// turn arc into bit mask
-                        {
-                            uint horInt = uint(floor(hor01 * 32.0));
-                            visBitsN = horInt < 32u ? 0xFFFFFFFFu << horInt : 0u;
-                            if (!flipT) visBitsN = ~visBitsN;
-                        }
-
-                        visBits0 = visBits0 & visBitsN;
+                    uint visBitsN;// turn arc into bit mask
+                    {
+                        uint horInt = uint(floor(hor01 * 32.0));
+                        visBitsN = horInt < 32u ? 0xFFFFFFFFu << horInt : 0u;
+                        if (!flipT) visBitsN = ~visBitsN;
                     }
+
+                    visBits0 = visBits0 & visBitsN;
                 }
 
                 if (visBits0 != 0u) {
                     vec4 sample2 = textureLod(usam_temp2, sampleUV, realSampleLod);
                     vec3 sampleRad = sample2.rgb;
                     float vis0 = float(CountBits(visBits0)) * (1.0 / 32.0);
-                    result.rgb += sampleRad * vis0;
+                    rt_out.rgb += sampleRad * vis0;
                 }
             }
         }
@@ -619,65 +588,28 @@ vec4 uniGTVBGI(vec2 uv0, vec3 wpos, vec3 normalWS)
     }
 
     // compute AO
-    float occ0 = float(CountBits(occBits)) * (1.0 / 32.0);
-    result.a = 1.0 - occ0;
+    rt_out.a = float(CountBits(occBits)) * (1.0 / 32.0);
+    rt_out.a = saturate(1.0 - rt_out.a);
+    rt_out.a = pow(rt_out.a, SETTING_SSVBIL_AO_STRENGTH);
 
-    result.rgb *= SETTING_SSVBIL_GI_STRENGTH;
-
-    return result;
-}
-
-//==================================================================================//
-//////////////////////////////////////////////////////////////////////////////////////
-
-//vec3 Read_Albedo(vec2 uv0)
-//{
-//    // in a practical setting we would do a buffer read here, but because of shadertoy's
-//    // limitations it is easier and cleaner to just re-render the scene here once to get the albedo
-//    vec4 mouseAccu = ReadVar4(1, VAR_ROW);
-//
-//    uvec2 uv = uvec2(uv0.xy - 0.5);
-//    vec2 tex = uv0.xy / global_mainImageSize.xy;
-//    vec2 tex21 = tex * 2.0 - vec2(1.0);
-//
-//    PrepareCam(mouseAccu, USE_PERSPECTIVE_CAM_COND);
-//
-//    vec3 rp, rd;
-//    GetRay(uv0, /*out*/ rp, rd);
-//
-//    float t; vec3 N, a;
-//    Intersect_Scene(rp, rd, /*out:*/ t, N, a);
-//
-//    return a;
-//    return a;
-//}
-
-void mainImage(out vec4 outCol, in vec2 uv0)
-{
-    Resolution = global_mainImageSize.xy;
-    isLeft = uv0.x < global_mainImageSize.x * 0.5;
-
-    //    vec4 mouseAccu  = ReadVar4(1, VAR_ROW);
-    //    float frameAccu = ReadVar (3, VAR_ROW);
-
-    ivec2 intTexelPos = ivec2(gl_FragCoord.xy);
-
-    vec3 N = texelFetch(usam_temp1, intTexelPos, 0).rgb;
-    N = mat3(gbufferModelViewInverse) * N;
-    float centerViewZ = texelFetch(usam_viewZ, intTexelPos, 0).r;
-
-    if (centerViewZ >= 0.0) {
-        outCol = vec4(0.0);
-        return;
-    }
-
-    vec3 wpos = coords_toViewCoord(frag_texCoord, centerViewZ, gbufferProjectionInverse);
-    wpos = (gbufferModelViewInverse * vec4(wpos, 1.0)).xyz;
-    wpos += N * (1.0/1024.0);
-
-    outCol = uniGTVBGI(uv0, wpos, N);
+    rt_out.rgb *= SETTING_SSVBIL_GI_STRENGTH;
 }
 
 void main() {
-    mainImage(rt_out, gl_FragCoord.xy);
+    Resolution = global_mainImageSize.xy;
+
+    ivec2 intTexelPos = ivec2(gl_FragCoord.xy);
+    float centerViewZ = texelFetch(usam_viewZ, intTexelPos, 0).r;
+
+    rt_out = vec4(0.0);
+    if (centerViewZ < 0.0) {
+        vec3 N = texelFetch(usam_temp1, intTexelPos, 0).rgb;
+        N = mat3(gbufferModelViewInverse) * N;
+
+        vec3 wpos = coords_toViewCoord(frag_texCoord, centerViewZ, gbufferProjectionInverse);
+        wpos = (gbufferModelViewInverse * vec4(wpos, 1.0)).xyz;
+        wpos += N * (1.0 / 1024.0);
+
+        uniGTVBGI(wpos, N);
+    }
 }
