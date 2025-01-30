@@ -722,13 +722,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Manual Exposure"
                     }
                 }
-                slider("SETTING_EXPOSURE_MANUAL_VALUE", -2.5, -10.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_MANUAL_VALUE", 0.0, -10.0..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Manual Exposure Value"
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_MAX_EXP", 5.0, 0.1..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_MAX_EXP", 4.0, -10.0..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Auto Exposure Max"
                     }

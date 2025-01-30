@@ -55,16 +55,16 @@ void main() {
 
         // Keep the average luminance at SETTING_EXPOSURE_AVG_LUM_TARGET
         expNew.x = (SETTING_EXPOSURE_AVG_LUM_TARGET / averageLuminance);
-        expNew.x = clamp(expNew.x, 0.00001, 5.0);
+        expNew.x = clamp(expNew.x, 0.00001, 100000.0);
 
         // Keep top SETTING_EXPOSURE_TOP_PERCENT% of pixels in the top bin
         float top5Percent = totalPixel * SETTING_EXPOSURE_TOP_BIN_PERCENT * 0.01;
         expNew.y = (top5Percent / topBin);
-        expNew.y = clamp(expNew.y, 0.00001, 5.0);
+        expNew.y = clamp(expNew.y, 0.00001, 100000.0);
 
         expNew.xy = expNew.xy * expLast.xy;
         expNew.xy = mix(expLast.xy, expNew.xy, vec2(exp2(-SETTING_EXPOSURE_AVG_LUM_TIME), 0.05 * exp2(-SETTING_EXPOSURE_TOP_BIN_TIME)));
-        expNew.xy = clamp(expNew.xy, 0.00001, SETTING_EXPOSURE_MAX_EXP);
+        expNew.xy = clamp(expNew.xy, 0.00001, exp2(SETTING_EXPOSURE_MAX_EXP));
 
         float totalWeight = SETTING_EXPOSURE_TOP_BIN_MIX + SETTING_EXPOSURE_AVG_LUM_MIX;
         expNew.w = expNew.x * SETTING_EXPOSURE_AVG_LUM_MIX;
