@@ -52,8 +52,8 @@ AtmosphereParameters getAtmosphereParameters() {
     const float OZONE_CENTER = 25.0;
     const float OZONE_HALF_WIDTH = 15.0;
 
-    // https://www.desmos.com/calculator/gqezbesffg
-    const vec3 RAYLEIGH_SCATTERING = vec3(0.00545913343349, 0.0113300647692, 0.0260718168503);
+    // https://www.desmos.com/calculator/8zep6vmnxa
+    const vec3 RAYLEIGH_SCATTERING = vec3(0.00559495220371, 0.0117551946648, 0.02767445204);
 
     // Constants from [HIL20]
 //    const vec3 MIE_SCATTERING = vec3(3.996e-6) * 1000.0;
@@ -98,7 +98,7 @@ const vec2 TRANSMITTANCE_TEXEL_SIZE = 1.0 / TRANSMITTANCE_TEXTURE_SIZE;
 
 // Calculate the air density ratio at a given height(km) relative to sea level
 // Fitted to U.S. Standard Atmosphere 1976
-// See https://www.desmos.com/calculator/gqezbesffg
+// See https://www.desmos.com/calculator/8zep6vmnxa
 float sampleRayleighDensity(AtmosphereParameters atmosphere, float altitude) {
     const float a0 = 0.00947927584794;
     const float a1 = -0.138528179963;
