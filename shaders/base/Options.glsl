@@ -77,6 +77,9 @@ const float shadowDistance = 192.0; // [64.0 128.0 192.0 256.0 384.0 512.0]
 //#define SETTING_SCREENSHOT_MODE
 #ifdef SETTING_SCREENSHOT_MODE
 #endif
+//#define SETTING_DEBUG_WHITE_WORLD
+#ifdef SETTING_DEBUG_WHITE_WORLD
+#endif
 //#define SETTING_DEBUG_RTWSM
 #ifdef SETTING_DEBUG_RTWSM
 #endif
@@ -94,9 +97,6 @@ const float shadowDistance = 192.0; // [64.0 128.0 192.0 256.0 384.0 512.0]
 #endif
 //#define SETTING_DEBUG_SSVBIL_GI
 #ifdef SETTING_DEBUG_SSVBIL_GI
-#endif
-//#define SETTING_DEBUG_SSVBIL_BENT_NORMAL
-#ifdef SETTING_DEBUG_SSVBIL_BENT_NORMAL
 #endif
 //#define SETTING_DEBUG_TEMP3
 #ifdef SETTING_DEBUG_TEMP3

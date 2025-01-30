@@ -5,7 +5,6 @@
 uniform sampler2D usam_main;
 uniform sampler2D usam_temp1;
 uniform sampler2D usam_ssvbil;
-uniform sampler2D usam_bentNormal;
 
 in vec2 frag_texCoord;
 
@@ -18,8 +17,6 @@ void main() {
 
     #if defined(SETTING_DEBUG_SSVBIL_AO)
     color.rgb = texelFetch(usam_ssvbil, intTexCoord, 0).aaa;
-    #elif defined(SETTING_DEBUG_SSVBIL_BENT_NORMAL)
-    color.rgb = texelFetch(usam_bentNormal, intTexCoord, 0).rgb;
     #elif defined(SETTING_DEBUG_WORLD_NORMAL)
     vec3 viewNormal = texelFetch(usam_temp1, intTexCoord, 0).rgb;
     vec3 worldNormal = mat3(gbufferModelViewInverse) * viewNormal;

@@ -56,7 +56,11 @@ vec4 processAlbedo() {
     }
     #endif
 
+    #ifdef SETTING_DEBUG_WHITE_WORLD
+    return vec4(1.0);
+    #else
     return albedo;
+    #endif
 }
 
 #ifdef GBUFFER_PASS_ARMOR_GLINT

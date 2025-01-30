@@ -878,13 +878,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             lang(Locale.US) {
                 name = "Debug"
             }
+            toggle("SETTING_DEBUG_WHITE_WORLD", false)
             toggle("SETTING_DEBUG_RTWSM", false)
             toggle("SETTING_DEBUG_ATMOSPHERE", false)
             toggle("SETTING_DEBUG_EPIPOLAR", false)
             toggle("SETTING_DEBUG_WORLD_NORMAL", false)
             toggle("SETTING_DEBUG_SSVBIL_AO", false)
             toggle("SETTING_DEBUG_SSVBIL_GI", false)
-            toggle("SETTING_DEBUG_SSVBIL_BENT_NORMAL", false)
             toggle("SETTING_DEBUG_TEMP3", false)
         }
     }
