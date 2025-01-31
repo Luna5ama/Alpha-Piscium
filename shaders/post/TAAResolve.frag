@@ -78,21 +78,22 @@ void main() {
     float cameraSpeedDiff = sqrt(abs(cameraSpeed - prevCameraSpeed));
     float pixelSpeed = length(pixelPosDiff);
 
-    vec3 lastColor = texture(usam_taaLast, prevTexCoord).rgb;
-    lastColor = saturate(lastColor);
+    vec4 lastResult = texture(usam_taaLast, prevTexCoord);
+    vec3 lastColor = saturate(lastResult.rgb);
 
     float clampRatio1 = 0.02;
+    clampRatio1 += saturate(1.0 - lastResult.a);
     clampRatio1 += newPixel * 0.4;
     clampRatio1 += frustumTest * 0.4;
     clampRatio1 += pixelSpeed * 0.005;
-    clampRatio1 += cameraSpeed * 2.0;
+    clampRatio1 += cameraSpeed * 1.0;
     clampRatio1 = saturate(clampRatio1);
 
     float clampRatio2 = 0.05;
     clampRatio2 += newPixel * 0.8;
     clampRatio2 += frustumTest * 0.8;
     clampRatio2 += pixelSpeed * 0.01;
-    clampRatio2 += cameraSpeed * 4.0;
+    clampRatio2 += cameraSpeed * 2.0;
     clampRatio2 = saturate(clampRatio2);
 
     #ifndef SETTING_SCREENSHOT_MODE
@@ -107,30 +108,33 @@ void main() {
 
     #ifdef SETTING_SCREENSHOT_MODE
     float mixDecrease = 1.0;
+    mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 114.0));
     mixDecrease *= (1.0 - saturate(cameraSpeed * 69.0));
     mixDecrease *= (1.0 - saturate(pixelSpeed * 69.0));
     #else
     float mixDecrease = 1.0;
-    mixDecrease *= (1.0 - saturate(cameraSpeed * 2.0));
+    mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 4.0));
+    mixDecrease *= (1.0 - saturate(cameraSpeed * 1.0));
     mixDecrease *= (1.0 - saturate(pixelSpeed * 0.005));
-    mixDecrease = max(mixDecrease, 0.8);
+    mixDecrease = max(mixDecrease, 0.5);
     #endif
 
     mixWeight = mixWeight * mixDecrease;
 
-    float realMixWeight = mixWeight;
-    realMixWeight *= (1.0 - min(cameraSpeedDiff * 1.0, 0.5));
+    float finalMixWeight = mixWeight;
+    finalMixWeight *= (1.0 - min(cameraSpeedDiff * 1.0, 0.5));
 
     #ifdef SETTING_SCREENSHOT_MODE
-    realMixWeight = clamp(realMixWeight, 0.0, 0.99);
+    finalMixWeight = clamp(finalMixWeight, 0.0, 0.99);
     #else
-    realMixWeight = clamp(realMixWeight, 0.5, 0.99);
+    finalMixWeight = clamp(finalMixWeight, 0.5, 0.99);
     #endif
 
-    rt_out.rgb = mix(currColor, lastColor, realMixWeight);
+    rt_out.rgb = mix(currColor, lastColor, finalMixWeight);
     rt_out.a = 1.0;
 
     mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);
+    mixWeight = saturate(mixWeight - isHand);
 
     rt_taaLast = vec4(rt_out.rgb, mixWeight);
 }
