@@ -134,7 +134,10 @@ void main() {
     rt_out.a = 1.0;
 
     mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);
+
+    #ifndef SETTING_SCREENSHOT_MODE
     mixWeight = saturate(mixWeight - isHand);
+    #endif
 
     rt_taaLast = vec4(rt_out.rgb, mixWeight);
 }

@@ -24,7 +24,7 @@ void doLighting(Material material, vec3 N, vec3 V) {
     vec3 emissiveV = material.emissive;
 
     vec4 ssvbilSample = texelFetch(usam_ssvbil, texelPos, 0);
-    vec3 multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * RCP_PI * max(ssvbilSample.rgb, 0.0) * material.albedo;
+    vec3 multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * 2.0 * RCP_PI * max(ssvbilSample.rgb, 0.0) * material.albedo;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
