@@ -1,13 +1,13 @@
 uvec2 ndpacking_pack(vec3 normal, float depth) {
-    uvec2 packedV;
-    packedV.x = packSnorm4x8(vec4(normal, 0.0));
-    packedV.y = floatBitsToUint(depth);
-    return packedV;
+    uvec2 packedData;
+    packedData.x = packSnorm2x16(coords_octEncode11(normal));
+    packedData.y = floatBitsToUint(depth);
+    return packedData;
 }
 
-void ndpacking_unpack(uvec2 packedV, out vec3 normal, out float depth) {
-    normal = unpackSnorm4x8(packedV.x).xyz;
-    depth = uintBitsToFloat(packedV.y);
+void ndpacking_unpack(uvec2 packedData, out vec3 normal, out float depth) {
+    normal = coords_octDecode11(unpackSnorm2x16(packedData.x));
+    depth = uintBitsToFloat(packedData.y);
 }
 
 void ndpacking_updateProjReject(usampler2D lastNZTex, ivec2 texelCoord, vec2 screenCoord, vec3 currN, vec3 currView, out vec2 projReject) {

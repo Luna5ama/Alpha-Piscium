@@ -79,7 +79,7 @@ void main() {
     if (all(lessThan(pixelPos, imgSize))) {
         vec2 texCoord = (pixelPos + 0.5 + global_taaJitter) / vec2(imgSize);
         AtmosphereParameters atmosphere = getAtmosphereParameters();
-        vec3 rayDir = coords_polarAzimuthEqualAreaInverse(texCoord);
+        vec3 rayDir = coords_octDecode01(texCoord);
 
         ScatteringResult result = computeSingleScattering(atmosphere, rayDir);
 

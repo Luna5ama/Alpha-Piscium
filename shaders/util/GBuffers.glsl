@@ -2,6 +2,7 @@
 #define INCLUDE_util_GBuffers.glsl
 #include "../_Base.glsl"
 #include "BitPacking.glsl"
+#include "Coords.glsl"
 
 const uint MATERIAL_ID_UNDEFINED = 65535u;
 
@@ -31,29 +32,25 @@ struct GBufferData {
 };
 
 void gbuffer_pack(out uvec4 packedData, GBufferData gData) {
-    packedData.r = packUnorm4x8(vec4(gData.albedo, gData.materialAO));
+    packedData.r = packUnorm4x8(vec4(gData.albedo, gData.materialAO * 0.5)) & 0x7FFFFFFFu;
+    packedData.r |= uint(gData.isHand) << 31;
     packedData.g = packUnorm4x8(vec4(gData.pbrSpecular));
 
-    packedData.b = packS10(gData.normal.x);
-    packedData.b |= packS10(gData.normal.y) << 10;
-    packedData.b |= packS10(gData.normal.z) << 20;
-    packedData.b |= uint(gData.isHand) << 30;
+    packedData.b = packSnorm2x16(coords_octEncode11(gData.normal));
 
     packedData.a = packUnorm4x8(vec4(gData.lmCoord, 0.0, 0.0)) & 0x0000FFFFu;
     packedData.a |= (gData.materialID & 0xFFFFu) << 16;
 }
 
 void gbuffer_unpack(uvec4 packedData, out GBufferData gData) {
-    vec4 tempR = unpackUnorm4x8(packedData.r);
+    vec4 tempR = unpackUnorm4x8(packedData.r & 0x7FFFFFFFu);
     gData.albedo = tempR.rgb;
     gData.materialAO = tempR.a;
+    gData.isHand = bool(packedData.r >> 31u);
 
     gData.pbrSpecular = unpackUnorm4x8(packedData.g);
 
-    gData.normal.x = unpackS10(packedData.b & 0x3FFu);
-    gData.normal.y = unpackS10((packedData.b >> 10) & 0x3FFu);
-    gData.normal.z = unpackS10((packedData.b >> 20) & 0x3FFu);
-    gData.isHand = bool((packedData.b >> 30) & 1u);
+    gData.normal = coords_octDecode11(unpackSnorm2x16(packedData.b));
 
     gData.lmCoord = unpackUnorm4x8(packedData.a).xy;
     gData.materialID = (packedData.a >> 16) & 0xFFFFu;

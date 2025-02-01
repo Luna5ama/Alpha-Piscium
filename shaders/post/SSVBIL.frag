@@ -242,7 +242,7 @@ void main() {
                 float cosH = 0.125 + 0.25 * fi;
                 float sinH = a0 + a1 * fi + a2 * fi * fi;
                 vec3 skyNormal = viewToScene * normalize(realTangent * cosH + centerViewNormal * sinH);
-                vec2 skyLUTUV = coords_polarAzimuthEqualArea(skyNormal);
+                vec2 skyLUTUV = coords_octEncode01(skyNormal);
                 vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
                 skyLighting += bitCount * skyRadiance;
             }

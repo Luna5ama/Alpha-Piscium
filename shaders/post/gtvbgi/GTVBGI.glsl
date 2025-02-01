@@ -623,7 +623,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
         float sinC = sin(angC);
 
         vec3 skyNormal = viewToScene * normalize(normalVS * cosC + realTangent * sinC);
-        vec2 skyLUTUV = coords_polarAzimuthEqualArea(skyNormal);
+        vec2 skyLUTUV = coords_octEncode01(skyNormal);
         vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
         skyLighting += bitCount * skyRadiance;
     }

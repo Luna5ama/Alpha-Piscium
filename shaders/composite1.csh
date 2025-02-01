@@ -57,7 +57,7 @@ void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, out vec3 ss
     // Sky reflection
     //    vec3 reflectDirView = normalize(H + reflect(-V, gData.normal));
     //    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
-    //    vec2 reflectLUTUV = coords_polarAzimuthEqualArea(reflectDir);
+    //    vec2 reflectLUTUV = coords_octEncode01(reflectDir);
     //    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
     //    vec3 skySpecularV = fresnel * sunRadiance * reflectRadiance;
 
