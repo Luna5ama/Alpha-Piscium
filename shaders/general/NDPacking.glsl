@@ -10,7 +10,7 @@ void ndpacking_unpack(uvec2 packedData, out vec3 normal, out float depth) {
     depth = uintBitsToFloat(packedData.y);
 }
 
-void ndpacking_updateProjReject(usampler2D lastNZTex, ivec2 texelCoord, vec2 screenCoord, vec3 currN, vec3 currView, out vec2 projReject) {
+void ndpacking_updateProjReject(usampler2D prevNZTex, ivec2 texelCoord, vec2 screenCoord, vec3 currN, vec3 currView, out vec2 projReject) {
     vec3 cameraDelta = cameraPosition - previousCameraPosition;
     vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
     vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene);
@@ -20,7 +20,7 @@ void ndpacking_updateProjReject(usampler2D lastNZTex, ivec2 texelCoord, vec2 scr
     {
         float prevZ;
         vec3 prevN;
-        ndpacking_unpack(texelFetch(lastNZTex, texelCoord, 0).xy, prevN, prevZ);
+        ndpacking_unpack(texelFetch(prevNZTex, texelCoord, 0).xy, prevN, prevZ);
 
         vec3 prevView = coords_toViewCoord(screenCoord, prevZ, gbufferPrevProjectionInverse);
         vec4 prevScene = gbufferPrevModelViewInverse * vec4(prevView, 1.0);
@@ -35,7 +35,7 @@ void ndpacking_updateProjReject(usampler2D lastNZTex, ivec2 texelCoord, vec2 scr
     }
 
     {
-        vec4 prevZs = uintBitsToFloat(textureGather(lastNZTex, screenCoord, 1));
+        vec4 prevZs = uintBitsToFloat(textureGather(prevNZTex, screenCoord, 1));
 
         vec3 diff;
         float dotV = 0.0;

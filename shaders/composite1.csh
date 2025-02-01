@@ -11,7 +11,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_ssvbil;
-uniform usampler2D usam_lastNZ;
+uniform usampler2D usam_prevNZ;
 
 layout(r32f) uniform readonly image2D uimg_gbufferViewZ;
 layout(rg8) uniform writeonly image2D uimg_projReject;
@@ -91,7 +91,7 @@ void main() {
         coord3Rand[1] = rand_hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
 
         vec2 projRejectOut;
-        ndpacking_updateProjReject(usam_lastNZ, texelPos, screenCoord, gData.normal, g_viewCoord, projRejectOut);
+        ndpacking_updateProjReject(usam_prevNZ, texelPos, screenCoord, gData.normal, g_viewCoord, projRejectOut);
         imageStore(uimg_projReject, texelPos, vec4(projRejectOut, 0.0, 0.0));
 
         vec4 mainOut = vec4(0.0);

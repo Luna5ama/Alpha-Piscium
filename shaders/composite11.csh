@@ -10,7 +10,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform readonly image2D uimg_temp1;
 layout(r32f) uniform readonly image2D uimg_gbufferViewZ;
-layout(rg32ui) uniform writeonly uimage2D uimg_lastNZ;
+layout(rg32ui) uniform writeonly uimage2D uimg_prevNZ;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
@@ -21,6 +21,6 @@ void main() {
         vec3 viewCoord = coords_toViewCoord(screenCoord, viewZ, gbufferProjectionInverse);
         vec3 viewNormal = imageLoad(uimg_temp1, texelPos).rgb;
 
-        imageStore(uimg_lastNZ, texelPos, uvec4(ndpacking_pack(viewNormal, viewZ), 0u, 0u));
+        imageStore(uimg_prevNZ, texelPos, uvec4(ndpacking_pack(viewNormal, viewZ), 0u, 0u));
     }
 }
