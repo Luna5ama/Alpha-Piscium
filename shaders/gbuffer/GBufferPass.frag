@@ -17,6 +17,8 @@ flat in uint frag_materialID; // 16 x 1 = 16 bits
 
 in float frag_viewZ; // 32 bits
 
+ivec2 texelPos = ivec2(gl_FragCoord.xy);
+
 /* RENDERTARGETS:8,9 */
 layout(location = 0) out uvec4 rt_gbuffer;
 layout(location = 1) out float rt_viewZ;
@@ -65,12 +67,11 @@ vec4 processAlbedo() {
 
 #ifdef GBUFFER_PASS_ARMOR_GLINT
 void processOutput(out GBufferData gData, out float viewZ) {
-    ivec2 pixelCoord = ivec2(gl_FragCoord.xy);
     float noiseIGN = rand_IGN(gl_FragCoord.xy, frameCounter);
     vec4 albedo = processAlbedo();
 
     GBufferData gDataPrev;
-    gbuffer_unpack(texelFetch(usam_gbuffer, pixelCoord, 0), gDataPrev);
+    gbuffer_unpack(texelFetch(usam_gbuffer, texelPos, 0), gDataPrev);
 
     gData.albedo = gDataPrev.albedo + albedo.rgb * albedo.rgb;
     gData.materialAO = gDataPrev.materialAO;
@@ -83,13 +84,12 @@ void processOutput(out GBufferData gData, out float viewZ) {
     float glintEmissive = colors_srgbLuma(albedo.rgb);
     glintEmissive *= 0.1;
     glintEmissive = dither(glintEmissive, noiseIGN, 64.0);
-    gData.pbrSpecular.a -= glintEmissive;
+    gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + glintEmissive);
 
-    viewZ = texelFetch(usam_viewZ, pixelCoord, 0).r;
+    viewZ = texelFetch(usam_viewZ, texelPos, 0).r;
 }
 #else
 void processOutput(out GBufferData gData, out float viewZ) {
-    ivec2 pixelCoord = ivec2(gl_FragCoord.xy);
     float noiseIGN = rand_IGN(gl_FragCoord.xy, frameCounter);
     vec4 albedo = processAlbedo();
 
@@ -101,6 +101,12 @@ void processOutput(out GBufferData gData, out float viewZ) {
 
     gData.materialAO = normalSample.b;
     gData.pbrSpecular = specularSample;
+
+    const float _1o255 = 1.0 / 255.0;
+    float emissiveS = linearStep(1.0, _1o255, gData.pbrSpecular.a);
+    emissiveS *= step(_1o255, gData.pbrSpecular.a);
+
+    gData.pbrSpecular.a = emissiveS;
 
     #ifndef SETTING_NORMAL_MAPPING
     gData.normal = frag_viewNormal;

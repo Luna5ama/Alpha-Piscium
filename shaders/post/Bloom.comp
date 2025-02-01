@@ -112,7 +112,11 @@ vec2 inputEndTexel = (vec2(inputEndPixel) - 0.5) * texelSize;
 vec4 bloom_readInputDown(ivec2 coord) {
     vec2 readPosUV = vec2(coord + inputStartPixel) * texelSize;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
+    #if BLOOM_PASS == 1
+    return texture(BLOOM_SAMPLER, readPosUV) * SETTING_BLOOM_INTENSITY * 0.025;
+    #else
     return texture(BLOOM_SAMPLER, readPosUV);
+    #endif
 }
 
 void bloom_writeOutput(ivec2 coord, vec4 data) {
@@ -129,11 +133,7 @@ vec4 bloom_readInputUp(ivec2 coord, ivec2 offset) {
 void bloom_writeOutput(ivec2 coord, vec4 data) {
     coord.x += outputOffset;
     vec4 writeData = imageLoad(BLOOM_IMAGE, coord);
-    #if BLOOM_PASS == 1
-    writeData += data * SETTING_BLOOM_INTENSITY * 0.025;
-    #else
     writeData += data;
-    #endif
     imageStore(BLOOM_IMAGE, coord, writeData);
 }
 #endif
