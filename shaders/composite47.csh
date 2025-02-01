@@ -1,3 +1,5 @@
 #version 460 compatibility
 
-#include "post/bloom/UpSample7.comp"
+#define BLOOM_UP_SAMPLE 1
+#define BLOOM_PASS 7
+#include "post/Bloom.comp"
