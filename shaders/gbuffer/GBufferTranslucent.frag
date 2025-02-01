@@ -1,4 +1,5 @@
 #include "../_Util.glsl"
+#include "../general/Lighting.glsl"
 
 uniform sampler2D gtexture;
 uniform sampler2D normals;
@@ -9,20 +10,18 @@ uniform sampler2D usam_gbufferViewZ;
 
 in vec3 frag_viewTangent;
 
-in vec4 frag_colorMul; // 8 x 4 = 32 bits
-in vec3 frag_viewNormal; // 11 + 11 + 10 = 32 bits
-in vec2 frag_texCoord; // 16 x 2 = 32 bits
-in vec2 frag_lmCoord; // 8 x 2 = 16 bits
-flat in uint frag_materialID; // 16 x 1 = 16 bits
+in vec4 frag_colorMul;
+in vec3 frag_viewNormal;
+in vec2 frag_texCoord;
+in vec2 frag_lmCoord;
+flat in uint frag_materialID;
 
-in float frag_viewZ; // 32 bits
-
-ivec2 texelPos = ivec2(gl_FragCoord.xy);
+in vec3 frag_viewCoord;
 
 layout(early_fragment_tests) in;
 
-/* RENDERTARGETS:1 */
-layout(location = 0) out vec4 rt_temp1;
+/* RENDERTARGETS:10 */
+layout(location = 0) out vec4 rt_translucentColor;
 
 vec4 processAlbedo() {
     vec4 albedo = frag_colorMul;
@@ -51,11 +50,12 @@ GBufferData processOutput() {
 
     gData.pbrSpecular.a = emissiveS;
 
+    vec3 bitangent = cross(frag_viewTangent, frag_viewNormal);
+    mat3 tbn = mat3(frag_viewTangent, bitangent, frag_viewNormal);
+
     #ifndef SETTING_NORMAL_MAPPING
     gData.normal = frag_viewNormal;
     #else
-    vec3 bitangent = cross(frag_viewTangent.xyz, frag_viewNormal);
-    mat3 tbn = mat3(frag_viewTangent.xyz, bitangent, frag_viewNormal);
     vec3 tagentNormal;
     tagentNormal.xy = normalSample.rg * 2.0 - 1.0;
     tagentNormal.z = sqrt(saturate(1.0 - dot(tagentNormal.xy, tagentNormal.xy)));
@@ -74,9 +74,14 @@ GBufferData processOutput() {
 }
 
 void main() {
+    texelPos = ivec2(gl_FragCoord.xy);
     vec4 albedo = processAlbedo();
-    float viewZ = frag_viewZ;
-    GBufferData gData = processOutput();
+    gData = processOutput();
 
-    rt_temp1 = albedo;
+    g_viewCoord = frag_viewCoord;
+    g_viewDir = normalize(-g_viewCoord);
+    coord3Rand[0] = rand_hash31(floatBitsToUint(g_viewCoord.xyz)) & 1023u;
+    coord3Rand[1] = rand_hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
+
+    rt_translucentColor = albedo;
 }

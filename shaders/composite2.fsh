@@ -88,8 +88,6 @@ void doStuff() {
         rt_temp2 = vec4(0.0, 0.0, 0.0, 1.0);
     } else {
         doLighting(material, gData.normal, g_viewDir);
-        vec4 translucentColor = texelFetch(usam_temp1, texelPos, 0);
-        rt_main.rgb = rt_main.rgb * (1.0 - translucentColor.a) + translucentColor.rgb;
     }
 }
 
@@ -103,9 +101,9 @@ void main() {
     }
 
     gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
+
     g_viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
     g_viewDir = normalize(-g_viewCoord);
-
     coord3Rand[0] = rand_hash31(floatBitsToUint(g_viewCoord.xyz)) & 1023u;
     coord3Rand[1] = rand_hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
 
