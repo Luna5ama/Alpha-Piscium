@@ -43,7 +43,12 @@ void main() {
     vec2 jitter = taaJitter();
     global_shadowRotationMatrix = shadowDeRotateMatrix(shadowModelView);
     global_taaJitter = jitter;
-    global_taaJitterMat = taaJitterMat(jitter);
+    mat4 taaMat = taaJitterMat(jitter);
+    global_taaJitterMat = taaMat;
+
+    mat4 projectionJitter = taaMat * gbufferProjection;
+    gbufferProjectionJitter = projectionJitter;
+    gbufferProjectionJitterInverse = inverse(projectionJitter);
 
     #ifdef SETTING_REAL_SUN_TEMPERATURE
     vec4 sunRadiance = colors_blackBodyRadiation(5772, uval_sunOmega);

@@ -31,7 +31,7 @@ void main() {
     vec3 cameraDelta = cameraPosition - previousCameraPosition;
     vec4 prevWorldCoord = worldCoord;
     prevWorldCoord.xyz += cameraDelta;
-    vec4 prevViewCoord = gbufferPreviousModelView * prevWorldCoord;
+    vec4 prevViewCoord = gbufferPrevModelView * prevWorldCoord;
     vec4 prevClipCoord = gbufferProjection * prevViewCoord;
     prevClipCoord /= prevClipCoord.w;
     vec2 prevTexCoord = prevClipCoord.xy * 0.5 + 0.5;
