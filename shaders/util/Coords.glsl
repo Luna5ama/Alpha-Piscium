@@ -2,7 +2,6 @@
 #define INCLUDE_util_Coords.glsl
 #include "../_Base.glsl"
 #include "Math.glsl"
-#include "R2Seqs.glsl"
 
 float coords_linearizeDepth(float depth, float near, float far) {
     return (near * far) / (depth * (near - far) + far);

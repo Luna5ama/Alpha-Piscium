@@ -8,5 +8,5 @@
 #include "util/GBuffers.glsl"
 #include "util/Material.glsl"
 #include "util/Math.glsl"
-#include "util/R2Seqs.glsl"
+#include "util/Noise.glsl"
 #include "util/Rand.glsl"
