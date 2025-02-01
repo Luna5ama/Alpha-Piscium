@@ -3,7 +3,7 @@
 #include "_Util.glsl"
 
 uniform sampler2D usam_temp1;
-uniform sampler2D usam_viewZ;
+uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_lastNZ;
 
 in vec2 frag_texCoord;
@@ -26,7 +26,7 @@ void ndpacking_unpack(uvec2 packedV, out vec3 normal, out float depth) {
 
 void main() {
 	ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
-	float currZ = texelFetch(usam_viewZ, intTexCoord, 0).r;
+	float currZ = texelFetch(usam_gbufferViewZ, intTexCoord, 0).r;
 	vec3 currN = texelFetch(usam_temp1, intTexCoord, 0).rgb;
 
 	vec3 cameraDelta = cameraPosition - previousCameraPosition;

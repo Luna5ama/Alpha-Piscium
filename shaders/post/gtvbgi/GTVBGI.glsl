@@ -3,7 +3,7 @@
 // You can find full license texts in /licenses
 #include "GTVBGICommon.glsl"
 
-uniform sampler2D usam_viewZ;
+uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_temp1;
 uniform sampler2D usam_temp2;
 uniform sampler2D usam_skyLUT;
@@ -477,11 +477,11 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
         sampleTexelDist += stepTexelSize;
 
         vec2 sampleTexelCoord = floor(rayDir * sampleTexelDist + rayStart) + 0.5;
-        vec2 sampleUV = sampleTexelCoord / textureSize(usam_viewZ, 0).xy;
+        vec2 sampleUV = sampleTexelCoord / textureSize(usam_gbufferViewZ, 0).xy;
 
         float realSampleLod = round(sampleLod * 0.25);
 
-        float sampleViewZ = textureLod(usam_viewZ, sampleUV, realSampleLod).r;
+        float sampleViewZ = textureLod(usam_gbufferViewZ, sampleUV, realSampleLod).r;
 
         vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
 
@@ -649,7 +649,7 @@ void main() {
     Resolution = global_mainImageSize.xy;
 
     ivec2 intTexelPos = ivec2(gl_FragCoord.xy);
-    float centerViewZ = texelFetch(usam_viewZ, intTexelPos, 0).r;
+    float centerViewZ = texelFetch(usam_gbufferViewZ, intTexelPos, 0).r;
 
     rt_out = vec4(0.0, 0.0, 0.0, 1.0);
     if (centerViewZ < 0.0) {

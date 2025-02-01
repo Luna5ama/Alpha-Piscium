@@ -19,7 +19,7 @@ layout(rgba16f) uniform writeonly image2D uimg_epipolarInSctr;
 layout(rgba16f) uniform writeonly image2D uimg_epipolarTransmittance;
 layout(r32f) uniform writeonly image2D uimg_epipolarViewZ;
 
-uniform sampler2D usam_viewZ;
+uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_multiSctrLUT;
 
@@ -175,7 +175,7 @@ void main() {
         texCoord = (round(texCoord * global_mainImageSize) + 0.5) * global_mainImageSizeRcp;
 
         AtmosphereParameters atmosphere = getAtmosphereParameters();
-        float viewZ = textureLod(usam_viewZ, texCoord, 0.0).r;
+        float viewZ = textureLod(usam_gbufferViewZ, texCoord, 0.0).r;
         vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
 
         ScatteringResult result = computeSingleScattering(atmosphere, vec3(0.0), viewCoord, ignValue);

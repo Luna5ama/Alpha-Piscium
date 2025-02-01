@@ -7,8 +7,6 @@
 layout(local_size_x = 256) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 
-layout(rgba16f) restrict uniform image2D uimg_main;
-
 shared uint shared_histogram[256];
 
 void main() {
@@ -40,9 +38,8 @@ void main() {
     if (gl_LocalInvocationID.x == 0) {
         global_lumHistogram[256] = 0u;
 
-        ivec2 mainImgSize = imageSize(uimg_main);
         uint histogramCounting = shared_histogram[0];
-        float totalPixel = mainImgSize.x * mainImgSize.y;
+        float totalPixel = global_mainImageSize.x * global_mainImageSize.y;
 
         float averageBinIndex = float(histogramCounting) / max(totalPixel - global_lumHistogram[0], 1.0);
         float averageLuminance = exp2(averageBinIndex / 255.0) - 1.0;

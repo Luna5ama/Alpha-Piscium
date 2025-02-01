@@ -4,8 +4,9 @@ const int colortex1Format = RGBA16F; // Temp1
 const int colortex2Format = RGBA16F; // Temp2
 const int colortex3Format = RGBA16F; // Temp3
 const int colortex4Format = RGBA16F; // Temp4
-const int colortex8Format = RGBA32UI;
-const int colortex9Format = R32F; // ViewZ
+const int colortex5Format = RGBA8; // Temp5
+const int colortex8Format = RGBA32UI; // GBuffer
+const int colortex9Format = R32F; // GBuffer ViewZ
 const int colortex12Format = RG8; // Temporal Project Rejection
 const int colortex13Format = RG32UI; // Last Normal ViewZ
 const int colortex14Format = RGBA16F; // SSVBIL
@@ -27,11 +28,14 @@ const int colortex15Format = RGBA16F; // TAA Last
 #define usam_temp4 colortex4
 #define uimg_temp4 colorimg4
 
-#define usam_gbuffer colortex8
-#define uimg_gbuffer colorimg8
+#define usam_temp5 colortex5
+#define uimg_temp5 colorimg5
 
-#define usam_viewZ colortex9
-#define uimg_viewZ colorimg9
+#define usam_gbufferData colortex8
+#define uimg_gbufferData colorimg8
+
+#define usam_gbufferViewZ colortex9
+#define uimg_gbufferViewZ colorimg9
 
 #define usam_projReject colortex12
 #define uimg_projReject colorimg12
@@ -55,6 +59,9 @@ const bool colortex1Clear = false;
 const bool colortex2Clear = false;
 const bool colortex3Clear = false;
 const bool colortex4Clear = false;
+
+const bool colortex5Clear = true;
+const vec4 colortex5ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 
 const bool colortex9Clear = true;
 const vec4 colortex9ClearColor = vec4(-65536.0, -65536.0, -65536.0, -65536.0);

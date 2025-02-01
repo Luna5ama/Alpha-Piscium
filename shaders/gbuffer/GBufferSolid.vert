@@ -28,8 +28,6 @@ void main() {
 
     #ifdef GBUFFER_PASS_MATERIAL_ID
     frag_materialID = uint(int(mc_Entity.x)) & 0xFFFFu;
-    #elif defined(GBUFFER_PASS_MATERIAL_ID_OVERRIDE)
-    frag_materialID = GBUFFER_PASS_MATERIAL_ID_OVERRIDE;
     #else
     frag_materialID = 65535u;
     #endif

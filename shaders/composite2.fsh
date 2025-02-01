@@ -5,8 +5,9 @@
 #include "atmosphere/Common.glsl"
 
 uniform sampler2D usam_main;
-uniform usampler2D usam_gbuffer;
-uniform sampler2D usam_viewZ;
+uniform sampler2D usam_temp1;
+uniform usampler2D usam_gbufferData;
+uniform sampler2D usam_gbufferViewZ;
 
 const bool generateShadowMipmap = true;
 const bool shadowtex0Mipmap = true;
@@ -30,7 +31,7 @@ uniform sampler2D usam_ssvbil;
 
 in vec2 frag_texCoord;
 
-ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
+ivec2 texelPos = ivec2(gl_FragCoord.xy);
 GBufferData gData;
 vec3 g_viewCoord;
 vec3 g_viewDir;
@@ -213,7 +214,7 @@ void doLighting(Material material, vec3 N, vec3 V) {
 
     vec3 emissiveV = material.emissive;
 
-    vec4 ssvbilSample = texelFetch(usam_ssvbil, intTexCoord, 0);
+    vec4 ssvbilSample = texelFetch(usam_ssvbil, texelPos, 0);
     vec3 multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * RCP_PI * max(ssvbilSample.rgb, 0.0) * material.albedo;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
@@ -278,18 +279,20 @@ void doStuff() {
         rt_temp2 = vec4(0.0, 0.0, 0.0, 1.0);
     } else {
         doLighting(material, gData.normal, g_viewDir);
+        vec4 translucentColor = texelFetch(usam_temp1, texelPos, 0);
+        rt_main.rgb = rt_main.rgb * (1.0 - translucentColor.a) + translucentColor.rgb;
     }
 }
 
 void main() {
     rt_main = vec4(0.0);
-    float viewZ = texelFetch(usam_viewZ, intTexCoord, 0).r;
+    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
     if (viewZ == -65536.0) {
-        rt_main.rgb = texelFetch(usam_main, intTexCoord, 0).rgb;
+        rt_main.rgb = texelFetch(usam_main, texelPos, 0).rgb;
         return;
     }
 
-    gbuffer_unpack(texelFetch(usam_gbuffer, ivec2(gl_FragCoord.xy), 0), gData);
+    gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
     g_viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
     g_viewDir = normalize(-g_viewCoord);
 
@@ -297,6 +300,4 @@ void main() {
     coord3Rand[1] = rand_hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
 
     doStuff();
-
-    rt_main.a = float(uint(gData.isTranslucent));
 }

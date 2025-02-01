@@ -10,7 +10,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 
-uniform sampler2D usam_viewZ;
+uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_epipolarSliceEnd;
 uniform sampler2D usam_epipolarInSctr;
 uniform sampler2D usam_epipolarTransmittance;
@@ -226,7 +226,7 @@ void main() {
         vec3 inScattering;
         vec3 transmittance;
         vec2 texCoord = (vec2(pixelPos) + 0.5) / vec2(imgSize);
-        float viewZ = texelFetch(usam_viewZ, pixelPos, 0).r;
+        float viewZ = texelFetch(usam_gbufferViewZ, pixelPos, 0).r;
         UnwarpEpipolarInsctrImage(texCoord * 2.0 - 1.0, viewZ, inScattering, transmittance);
 
         vec4 color = imageLoad(uimg_main, pixelPos);

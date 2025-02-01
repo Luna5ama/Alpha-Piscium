@@ -1,8 +1,8 @@
 #include "../_Util.glsl"
 
 uniform sampler2D usam_main;
-uniform usampler2D usam_gbuffer;
-uniform sampler2D usam_viewZ;
+uniform usampler2D usam_gbufferData;
+uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_taaLast;
 uniform sampler2D usam_projReject;
 
@@ -22,10 +22,10 @@ void main() {
     vec2 unjitteredTexCoord = frag_texCoord + global_taaJitterMat[3].xy;
 
     GBufferData gData;
-    gbuffer_unpack(texelFetch(usam_gbuffer, intTexCoord, 0), gData);
-    float isHand = float(gData.materialID == MATERIAL_ID_HAND);
+    gbuffer_unpack(texelFetch(usam_gbufferData, intTexCoord, 0), gData);
+    float isHand = float(gData.isHand);
 
-    float viewZ = texelFetch(usam_viewZ, intTexCoord, 0).r;
+    float viewZ = texelFetch(usam_gbufferViewZ, intTexCoord, 0).r;
     vec3 viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
     vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
     vec3 cameraDelta = cameraPosition - previousCameraPosition;
