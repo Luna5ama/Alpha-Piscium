@@ -5,6 +5,7 @@
 #include "general/Lighting.glsl"
 #include "general/NDPacking.glsl"
 #include "atmosphere/SunMoon.glsl"
+#include "svgf/Reproject.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -12,12 +13,16 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_ssvbil;
 uniform usampler2D usam_prevNZ;
+uniform sampler2D usam_svgfHistoryColor;
+uniform sampler2D usam_svgfHistoryMoments;
 
 layout(r32f) uniform readonly image2D uimg_gbufferViewZ;
 layout(rg8) uniform writeonly image2D uimg_projReject;
 layout(rgba16f) uniform writeonly image2D uimg_main;
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
+layout(rgba16f) uniform writeonly image2D uimg_temp3;
+layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
 void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, out vec3 ssgiOut) {
     float NDotV = dot(N, V);
@@ -80,19 +85,34 @@ void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
-        vec2 screenCoord = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+        vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
 
         float viewZ = imageLoad(uimg_gbufferViewZ, texelPos).r;
         gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
 
-        g_viewCoord = coords_toViewCoord(screenCoord, viewZ, gbufferProjectionInverse);
+        g_viewCoord = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
         g_viewDir = normalize(-g_viewCoord);
         coord3Rand[0] = rand_hash31(floatBitsToUint(g_viewCoord.xyz)) & 1023u;
         coord3Rand[1] = rand_hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
 
         vec2 projRejectOut;
-        ndpacking_updateProjReject(usam_prevNZ, texelPos, screenCoord, gData.normal, g_viewCoord, projRejectOut);
+        ndpacking_updateProjReject(usam_prevNZ, texelPos, screenPos, gData.normal, g_viewCoord, projRejectOut);
         imageStore(uimg_projReject, texelPos, vec4(projRejectOut, 0.0, 0.0));
+
+        {
+            vec4 prevColorHLen;
+            vec2 prevMoments;
+
+            svgf_reproject(
+                usam_svgfHistoryColor, usam_svgfHistoryMoments, usam_prevNZ,
+                screenPos, viewZ, gData.normal, projRejectOut,
+                prevColorHLen, prevMoments
+            );
+
+            imageStore(uimg_temp3, texelPos, vec4(prevMoments, 0.0, 0.0));
+            imageStore(uimg_temp4, texelPos, prevColorHLen);
+        }
+
 
         vec4 mainOut = vec4(0.0);
         vec4 temp1Out = vec4(0.0);
