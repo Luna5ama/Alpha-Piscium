@@ -868,24 +868,60 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             lang(Locale.US) {
                 name = "Misc"
             }
+            screen("DEBUG_ATTRIB", 1) {
+                lang(Locale.US) {
+                    name = "Debug Attributes"
+                }
+                toggle("SETTING_DEBUG_WHITE_WORLD", false)
+                toggle("SETTING_DEBUG_RTWSM", false)
+                toggle("SETTING_DEBUG_ATMOSPHERE", false)
+                toggle("SETTING_DEBUG_EPIPOLAR", false)
+                toggle("SETTING_DEBUG_WORLD_NORMAL", false)
+                toggle("SETTING_DEBUG_SSVBIL_AO", false)
+                toggle("SETTING_DEBUG_SSVBIL_GI", false)
+            }
+            screen("DEBUG_TEX", 1) {
+                lang(Locale.US) {
+                    name = "Debug Textures"
+                }
+                toggle("SETTING_DEBUG_TEX_GAMMA_CORRECT", true) {
+                    lang(Locale.US) {
+                        name = "Gamma Correct"
+                    }
+                }
+                slider("SETTING_DEBUG_TEX_EXP", -3.0, -10.0..10.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "Exposure"
+                    }
+                }
+                toggle("SETTING_DEBUG_TEX_TEMP1", false) {
+                    lang(Locale.US) {
+                        name = "Temp1"
+                    }
+                }
+                toggle("SETTING_DEBUG_TEX_TEMP2", false) {
+                    lang(Locale.US) {
+                        name = "Temp2"
+                    }
+                }
+                toggle("SETTING_DEBUG_TEX_TEMP3", false) {
+                    lang(Locale.US) {
+                        name = "Temp3"
+                    }
+                }
+                toggle("SETTING_DEBUG_TEX_TEMP4", false) {
+                    lang(Locale.US) {
+                        name = "Temp4"
+                    }
+                }
+            }
+            empty()
+            empty()
             toggle("SETTING_SCREENSHOT_MODE", false) {
                 lang(Locale.US) {
                     name = "Screenshot Mode"
                 }
             }
-        }
-        screen("DEBUG", 1) {
-            lang(Locale.US) {
-                name = "Debug"
-            }
-            toggle("SETTING_DEBUG_WHITE_WORLD", false)
-            toggle("SETTING_DEBUG_RTWSM", false)
-            toggle("SETTING_DEBUG_ATMOSPHERE", false)
-            toggle("SETTING_DEBUG_EPIPOLAR", false)
-            toggle("SETTING_DEBUG_WORLD_NORMAL", false)
-            toggle("SETTING_DEBUG_SSVBIL_AO", false)
-            toggle("SETTING_DEBUG_SSVBIL_GI", false)
-            toggle("SETTING_DEBUG_TEMP3", false)
         }
     }
 }

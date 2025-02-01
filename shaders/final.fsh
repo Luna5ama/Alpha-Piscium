@@ -20,7 +20,19 @@ uniform sampler2D usam_epipolarInSctr;
 uniform sampler2D usam_epipolarTransmittance;
 uniform sampler2D usam_epipolarViewZ;
 
-uniform sampler2D usam_temp3;
+#if defined(SETTING_DEBUG_TEX_TEMP1)
+#define DEBUG_TEX_NAME usam_temp1
+#elif defined(SETTING_DEBUG_TEX_TEMP2)
+#define DEBUG_TEX_NAME usam_temp2
+#elif defined(SETTING_DEBUG_TEX_TEMP3)
+#define DEBUG_TEX_NAME usam_temp3
+#elif defined(SETTING_DEBUG_TEX_TEMP4)
+#define DEBUG_TEX_NAME usam_temp4
+#endif
+
+#ifdef DEBUG_TEX_NAME
+uniform sampler2D DEBUG_TEX_NAME;
+#endif
 
 varying vec2 texcoord;
 
@@ -52,7 +64,7 @@ void main() {
     vec4 color = texelFetch(colortex0, intTexCoord, 0);
 
     vec2 debugTexCoord;
-    #ifdef SETTING_DEBUG_RTWSM
+    #ifdef SETTING_DEBUG_TEX_RTWSM
     if (inViewPort(vec4(0, 0, 512, 512), debugTexCoord)) {
         color.rgb = pow(texture(shadowtex0, debugTexCoord).r, 2.0).rrr;
     }
@@ -86,7 +98,7 @@ void main() {
     }
     #endif
 
-    #ifdef SETTING_DEBUG_ATMOSPHERE
+    #ifdef SETTING_DEBUG_TEX_ATMOSPHERE
     if (inViewPort(vec4(0, 0, 1024, 16), debugTexCoord)) {
         color.rgb = vec3(texture(usam_epipolarSliceEnd, vec2(debugTexCoord.x, 0.5)).rg, 0.0);
     }
@@ -119,8 +131,12 @@ void main() {
     }
     #endif
 
-    #ifdef SETTING_DEBUG_TEMP3
-    color.rgb = pow(texelFetch(usam_temp3, intTexCoord, 0).rgb * .1, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
+    #ifdef DEBUG_TEX_NAME
+    color.rgb = texelFetch(DEBUG_TEX_NAME, intTexCoord, 0).rgb;
+    color.rgb *= exp2(SETTING_DEBUG_TEX_EXP);
+    #ifdef SETTING_DEBUG_TEX_GAMMA_CORRECT
+    color.rgb = pow(color.rgb, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
+    #endif
     #endif
 
     rt_out = color;
