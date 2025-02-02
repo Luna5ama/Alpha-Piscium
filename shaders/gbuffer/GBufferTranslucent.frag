@@ -83,5 +83,6 @@ void main() {
     coord3Rand[0] = rand_hash31(floatBitsToUint(g_viewCoord.xyz)) & 1023u;
     coord3Rand[1] = rand_hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
 
-    rt_translucentColor = albedo;
+    rt_translucentColor.rgb = colors_srgbToLinear(albedo.rgb);
+    rt_translucentColor.a = albedo.a;
 }

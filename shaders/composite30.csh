@@ -20,15 +20,17 @@ void main() {
 
         vec4 color = imageLoad(uimg_main, texelPos);
 
-        vec4 translucentColor = texelFetch(usam_translucentColor, texelPos, 0);
-        color.rgb = color.rgb * (1.0 - translucentColor.a) + translucentColor.rgb;
-
         color.rgb *= transmittance;
         vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
         float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
         sunRadiance *= mix(MOON_RADIANCE_MUL, vec3(1.0), shadowIsSun);
-
         color.rgb += sunRadiance * inScattering;
+
+        vec4 translucentColorSample = texelFetch(usam_translucentColor, texelPos, 0);
+        float luminance = colors_srgbLuma(color.rgb);
+        color.rgb = mix(color.rgb, translucentColorSample.rgb * luminance, translucentColorSample.a);
+
+
         imageStore(uimg_main, texelPos, color);
     }
 }
