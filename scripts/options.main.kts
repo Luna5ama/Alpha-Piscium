@@ -626,12 +626,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_SSVBIL_RADIUS", 8, (0..7).map { 1 shl it }) {
+                slider("SETTING_SSVBIL_RADIUS", 64, (0..8).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Sample Radius"
                     }
                 }
-                slider("SETTING_SSVBIL_MAX_RADIUS", 32, (0..7).map { 1 shl it }) {
+                slider("SETTING_SSVBIL_MAX_RADIUS", 128, (0..8).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Max Sample Radius"
                     }
@@ -648,7 +648,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_SSVBIL_GI_STRENGTH", 2.0, 0.0..5.0 step 0.1) {
+                slider("SETTING_SSVBIL_GI_STRENGTH", 2.5, 0.0..5.0 step 0.1) {
                     lang(Locale.US) {
                         name = "GI Strength"
                     }

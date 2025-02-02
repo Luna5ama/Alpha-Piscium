@@ -85,14 +85,14 @@ void main() {
     clampRatio1 += saturate(1.0 - lastResult.a);
     clampRatio1 += newPixel * 0.4;
     clampRatio1 += frustumTest * 0.4;
-    clampRatio1 += pixelSpeed * 0.04;
+    clampRatio1 += pixelSpeed * 0.02;
     clampRatio1 += cameraSpeed * 0.2;
     clampRatio1 = saturate(clampRatio1);
 
     float clampRatio2 = 0.1;
     clampRatio2 += newPixel * 0.8;
     clampRatio2 += frustumTest * 0.8;
-    clampRatio2 += pixelSpeed * 0.1;
+    clampRatio2 += pixelSpeed * 0.05;
     clampRatio2 += cameraSpeed * 0.5;
     clampRatio2 = saturate(clampRatio2);
 
@@ -115,7 +115,7 @@ void main() {
     float mixDecrease = 1.0;
     mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 4.0));
     mixDecrease *= (1.0 - saturate(cameraSpeed * 1.0));
-    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.1));
+    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.05));
     mixDecrease = max(mixDecrease, 0.5);
     #endif
 
