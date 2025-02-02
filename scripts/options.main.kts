@@ -659,6 +659,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
+            screen("SVGF", 1) {
+                lang(Locale.US) {
+                    name = "SVGF"
+                }
+                slider("SETTING_SVGF_MAX_ACCUM", 64, (2..8).map { 1 shl it }) {
+                    lang(Locale.US) {
+                        name = "Max Accumulation"
+                    }
+                }
+            }
         }
         screen("PBR", 1) {
             lang(Locale.US) {

@@ -9,7 +9,7 @@ float normalWeight(vec3 currWorldNormal, uint packedNormal) {
     return sdot * sdot * sdot * sdot;
 }
 
-float posWeight(vec3 currScene, vec2 curr2PrevScreen, uint prevViewZI) {
+float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prevViewZI) {
     float prevViewZ = uintBitsToFloat(prevViewZI);
     vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevViewZ, gbufferPrevProjectionInverse);
     vec4 prevScene = gbufferPrevModelViewInverse * vec4(prevView, 1.0);
@@ -17,27 +17,13 @@ float posWeight(vec3 currScene, vec2 curr2PrevScreen, uint prevViewZI) {
 
     vec3 diff = currScene.xyz - prevScene.xyz;
     float distSq = dot(diff, diff);
-    const float a = 0.0001;
+    const float a = -currViewZ * 0.00001;
     return a / (a + distSq);
-}
-
-void updatePrevSample(
-vec3 currWorldNormal, vec3 currScene, vec2 curr2PrevScreen,
-uvec2 newNZ,
-vec4 newColorHLen, vec2 newMoments,
-inout vec4 colorHLen, inout vec2 moments, inout float weightSum
-) {
-    float weight = 1.0;
-    weight *= normalWeight(currWorldNormal, newNZ.x);
-    weight *= posWeight(currScene, curr2PrevScreen, newNZ.y);
-    colorHLen += newColorHLen * weight;
-    moments += newMoments * weight;
-    weightSum += weight;
 }
 
 void svgf_reproject(
 sampler2D svgfHistoryColor, sampler2D svgfHistoryMoments, usampler2D prevNZTex,
-vec2 screenPos, float viewZ, vec3 currViewNormal, vec2 projReject,
+vec2 screenPos, float viewZ, vec3 currViewNormal, vec2 projReject, float isHand,
 out vec4 prevColorHLen, out vec2 prevMoments
 ) {
     vec3 currView = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
@@ -48,6 +34,7 @@ out vec4 prevColorHLen, out vec2 prevMoments
     vec4 curr2PrevClip = gbufferPrevProjection * curr2PrevView;
     vec2 curr2PrevNDC = curr2PrevClip.xy / curr2PrevClip.w;
     vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
+    curr2PrevScreen = mix(curr2PrevScreen, screenPos, isHand);
 
     vec2 pixelPos = curr2PrevScreen * global_mainImageSize - 0.5;
     vec2 originPixelPos = floor(pixelPos);
@@ -70,10 +57,10 @@ out vec4 prevColorHLen, out vec2 prevMoments
     bilateralWeights.w *= normalWeight(currWorldNormal, prevNs.w);
 
     uvec4 prevViewZs = textureGather(prevNZTex, gatherUV, 1);
-    bilateralWeights.x *= posWeight(currScene.xyz, gatherUV, prevViewZs.x);
-    bilateralWeights.y *= posWeight(currScene.xyz, gatherUV, prevViewZs.y);
-    bilateralWeights.z *= posWeight(currScene.xyz, gatherUV, prevViewZs.z);
-    bilateralWeights.w *= posWeight(currScene.xyz, gatherUV, prevViewZs.w);
+    bilateralWeights.x *= posWeight(viewZ, currScene.xyz, gatherUV, prevViewZs.x);
+    bilateralWeights.y *= posWeight(viewZ, currScene.xyz, gatherUV, prevViewZs.y);
+    bilateralWeights.z *= posWeight(viewZ, currScene.xyz, gatherUV, prevViewZs.z);
+    bilateralWeights.w *= posWeight(viewZ, currScene.xyz, gatherUV, prevViewZs.w);
 
     float weightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
     const float WEIGHT_EPSILON = 0.0001;
@@ -94,7 +81,7 @@ out vec4 prevColorHLen, out vec2 prevMoments
         prevColorHLen.b = dot(bilateralWeights, prevColorBs);
         prevColorHLen.a = dot(bilateralWeights, prevColorHLens);
         prevColorHLen *= rcpWeightSum;
-        prevColorHLen *= saturate(1.0 - projReject.x);
+        prevColorHLen *= saturate(1.0 - projReject.x * 0.1);
         prevColorHLen.a = max(floor(prevColorHLen.a), 0.0);
 
         vec4 prevMomentXs = textureGather(svgfHistoryMoments, gatherUV, 0);
