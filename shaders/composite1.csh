@@ -116,7 +116,7 @@ void main() {
 
         vec4 mainOut = vec4(0.0);
         vec4 temp1Out = vec4(0.0);
-        vec4 temp2Out = vec4(0.0);
+        vec4 ssgiOut = vec4(0.0);
 
         mainOut.a = 1.0;
         mainOut.rgb += renderSunMoon(texelPos);
@@ -126,18 +126,18 @@ void main() {
 
             temp1Out.rgb = gData.normal;
             temp1Out.a = float(any(greaterThan(material.emissive, vec3(0.0))));
-            temp2Out.a = gData.lmCoord.y;
+            ssgiOut.a = gData.lmCoord.y;
 
-            if (all(equal(gData.normal, vec3(1.0)))) {
+            if (gData.materialID == 65534u) {
                 mainOut = vec4(material.albedo, 1.0);
-                temp2Out = vec4(0.0, 0.0, 0.0, 1.0);
+                ssgiOut = vec4(0.0, 0.0, 0.0, 0.0);
             } else {
-                doLighting(material, gData.normal, g_viewDir, mainOut.rgb, temp2Out.rgb);
+                doLighting(material, gData.normal, g_viewDir, mainOut.rgb, ssgiOut.rgb);
             }
         }
 
         imageStore(uimg_main, texelPos, mainOut);
         imageStore(uimg_temp1, texelPos, temp1Out);
-        imageStore(uimg_temp2, texelPos, temp2Out);
+        imageStore(uimg_temp2, texelPos, ssgiOut);
     }
 }

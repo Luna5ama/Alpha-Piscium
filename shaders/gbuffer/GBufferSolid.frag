@@ -95,21 +95,19 @@ GBufferData processOutput() {
     tagentNormal.z = sqrt(saturate(1.0 - dot(tagentNormal.xy, tagentNormal.xy)));
     vec3 mappedNormal = normalize(tbn * tagentNormal);
     gData.normal = normalize(mix(frag_viewNormal, mappedNormal, SETTING_NORMAL_MAPPING_STRENGTH));
-    #endif
-
-    gData.normal = dither(gData.normal, noiseIGN, 1023.0);
-
-    #else
-    // TODO: hardcoded PBR
-    gData.materialAO = 1.0;
-    gData.pbrSpecular = vec4(0.0, 1.0, 0.0, 1.0);
-
-    gData.normal = vec3(1.0);
-    #endif
 
     gData.lmCoord = frag_lmCoord;
     gData.materialID = frag_materialID;
+    #endif
+    #else
+    gData.normal = frag_viewNormal;
+    gData.materialAO = 1.0;
+    gData.pbrSpecular = vec4(0.0, 1.0, 0.0, 1.0);
+    gData.lmCoord = frag_lmCoord;
+    gData.materialID = 65534u;
+    #endif
 
+    gData.normal = dither(gData.normal, noiseIGN, 1023.0);
     gData.lmCoord = dither(gData.lmCoord, noiseIGN, 255.0);
 
     return gData;
