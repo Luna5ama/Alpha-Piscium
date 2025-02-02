@@ -1,6 +1,6 @@
 #version 460 compatibility
 
-#define DENOISER_KERNEL_RADIUS 2
+#define DENOISER_KERNEL_RADIUS 4
 #define DENOISER_BOX 1
 #define DENOISER_HORIZONTAL 1
 const vec2 workGroupsRender = vec2(1.0, 1.0);

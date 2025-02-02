@@ -764,7 +764,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Weight of top bin AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_TIME", 2.0, 0.0..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_TOP_BIN_TIME", 1.0, 0.0..10.0 step 0.5) {
                     lang(Locale.US) {
                         name = "Top Bin AE Time"
                         comment = "Time constant for top bin aE."

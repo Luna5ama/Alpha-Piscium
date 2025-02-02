@@ -37,7 +37,7 @@ void writeSharedData(uint idx, vec4 value) {
 }
 #endif
 
-shared vec4 shared_pos[WORKGROUP_SIZE + DENOISER_KERNEL_RADIUS * 2];
+shared uvec4 shared_posNormal[WORKGROUP_SIZE + DENOISER_KERNEL_RADIUS * 2];
 
 #if DENOISER_KERNEL_RADIUS == 64
 const float WEIGHTS[] = { 0.07038609217001514, 0.06930322921355336, 0.06615308243111911, 0.061216285234766944, 0.05491460881354093, 0.04775183375090516, 0.040247974161477205, 0.03287862677979828, 0.026028912867340305, 0.019967385213302154, 0.01484062414502187, 0.010685249384415747, 0.007451555491763613, 0.0050322192931390635, 0.0032902972301293875, 0.0020824666013477136, 0.0012755107933254746, 7.558582478965775E-4, 4.33235825013892E-4, 2.401066018149281E-4, 1.2862853668656863E-4, 6.658418369657669E-5, 3.3292091848288346E-5, 1.6072044340552996E-5, 7.488111567757646E-6, 3.3654434012393916E-6, 1.4583588072037363E-6, 6.08984996414747E-7, 2.449178789928874E-7, 9.480692090047253E-8, 3.530044927145254E-8, 1.2633845002414594E-8, 4.342884219580017E-9, 1.4327040724387683E-9, 4.5320230862858996E-10, 1.3733403291775454E-10, 3.982686954614882E-11, 1.1041112349427394E-11, 2.922647386613134E-12, 7.377556509897231E-13, 1.7734510841099112E-13, 4.053602477965512E-14, 8.79555254652894E-15, 1.8084313647068848E-15, 3.5163943202633876E-16, 6.45209967020805E-17, 1.114453579399572E-17, 1.80722202064796E-18, 2.7431048527692E-19, 3.884042269408E-20, 5.11058193343E-21, 6.2215780059E-22, 6.97245811E-23, 7.15123909E-24, 6.6664093E-25, 5.602025E-26, 4.20152E-27, 2.7779E-28, 1.594E-29, 7.8E-31, 3.0E-32, 0.0, 0.0, 0.0, 0.0 };
@@ -57,6 +57,23 @@ const float WEIGHTS[] = { 0.42857142857142855, 0.2857142857142857, 0.07142857142
 
 ivec2 imgSize = denoiser_getImageSize();
 
+void readSharedPosNormal(uint index, out vec3 normal, out vec3 pos) {
+    uvec4 data = shared_posNormal[index];
+    pos = uintBitsToFloat(data.xyz);
+    normal.x = unpackS10(bitfieldExtract(data.w, 0, 10));
+    normal.y = unpackS10(bitfieldExtract(data.w, 10, 10));
+    normal.z = unpackS10(bitfieldExtract(data.w, 20, 10));
+}
+
+void writeSharedPosNormal(uint index, vec3 normal, vec3 pos) {
+    uvec4 data;
+    data.xyz = floatBitsToUint(pos);
+    data.w = bitfieldInsert(data.w, packS10(normal.x), 0, 10);
+    data.w = bitfieldInsert(data.w, packS10(normal.y), 10, 10);
+    data.w = bitfieldInsert(data.w, packS10(normal.z), 20, 10);
+    shared_posNormal[index] = data;
+}
+
 void readData(uint writeIndex, ivec2 coord, out vec3 normal, out vec3 pos) {
     coord = clamp(coord, ivec2(0), imgSize - 1);
     float viewZ;
@@ -68,7 +85,7 @@ void readData(uint writeIndex, ivec2 coord, out vec3 normal, out vec3 pos) {
     vec2 texCoord = (vec2(coord) + 0.5) / vec2(imgSize);
     pos = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
 
-    shared_pos[writeIndex] = vec4(pos, 0.0);
+    writeSharedPosNormal(writeIndex, normal, pos);
 }
 
 void readData(uint writeIndex, ivec2 coord) {
@@ -83,7 +100,7 @@ void readData(uint writeIndex, ivec2 coord) {
     vec2 texCoord = (vec2(coord) + 0.5) / vec2(imgSize);
     vec3 pos = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
 
-    shared_pos[writeIndex] = vec4(pos, 0.0);
+    writeSharedPosNormal(writeIndex, normal, pos);
 }
 
 #if defined(DENOISER_HORIZONTAL)
@@ -134,10 +151,24 @@ void setup(out ivec2 icoord, out vec3 normalC, out vec3 posC) {
 #error "Either DENOISER_BOX or DENOISER_GAUSSIAN must be defined"
 #endif
 
-float normalDepthWeight(vec3 normalC, vec3 posC, vec3 pos) {
-    vec3 diff = pos - posC;
-    float dotV = dot(normalC, diff);
-    return step(-0.001, dotV) * linearStep(0.005, 0.001, dotV);
+float normalWeight(vec3 normalC, vec3 normal) {
+    float sdot = saturate(dot(normalC, normal));
+    return pow(sdot, 32.0);
+}
+
+
+float posWeight(vec3 posC, vec3 pos) {
+    vec3 diff = posC - pos;
+    float distSq = dot(diff, diff);
+    float a = -posC.z * 0.00001;
+    return a / (a + distSq);
+}
+
+float computeWeight(vec3 normalC, vec3 posC, vec3 normal, vec3 pos) {
+    float weight = 1.0;
+    weight *= normalWeight(normalC, normal);
+    weight *= posWeight(posC, pos);
+    return weight;
 }
 
 void main() {
@@ -160,14 +191,18 @@ void main() {
     float weightSum = weight0;
 
     for (uint i = 1; i <= DENOISER_KERNEL_RADIUS; i++) {
-        vec3 pos = shared_pos[centerIdx - i].xyz;
-        float weight = baseWeight(i) * normalDepthWeight(normalC, posC, pos);
+        vec3 pos;
+        vec3 normal;
+        readSharedPosNormal(centerIdx - i, normal, pos);
+        float weight = baseWeight(i) * computeWeight(normalC, posC, normal, pos);
         sum += readSharedData(centerIdx - i) * weight;
         weightSum += weight;
     }
     for (uint i = 1; i <= DENOISER_KERNEL_RADIUS; i++) {
-        vec3 pos = shared_pos[centerIdx + i].xyz;
-        float weight = baseWeight(i) * normalDepthWeight(normalC, posC, pos);
+        vec3 pos;
+        vec3 normal;
+        readSharedPosNormal(centerIdx + i, normal, pos);
+        float weight = baseWeight(i) * computeWeight(normalC, posC, normal, pos);
         sum += readSharedData(centerIdx + i) * weight;
         weightSum += weight;
     }

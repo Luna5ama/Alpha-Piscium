@@ -17,7 +17,7 @@ float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prev
 
     vec3 diff = currScene.xyz - prevScene.xyz;
     float distSq = dot(diff, diff);
-    const float a = -currViewZ * 0.00001;
+    float a = -currViewZ * 0.00001;
     return a / (a + distSq);
 }
 
