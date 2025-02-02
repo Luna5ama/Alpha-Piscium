@@ -645,7 +645,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
     float lmCoordSky = texelFetch(usam_temp2, intTexelPos, 0).a;
     float skyLightingIntensity = lmCoordSky * lmCoordSky;
     skyLightingIntensity *= rt_out.a;
-    skyLightingIntensity *= SETTING_SKYLIGHT_STRENGTH;
+    skyLightingIntensity *= 0.5 * SETTING_SKYLIGHT_STRENGTH;
 
     rt_out.rgb += skyLighting * skyLightingIntensity;
 }

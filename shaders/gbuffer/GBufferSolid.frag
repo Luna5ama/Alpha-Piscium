@@ -78,6 +78,8 @@ GBufferData processOutput() {
 
     gData.materialAO = normalSample.b;
     gData.pbrSpecular = specularSample;
+    gData.lmCoord = frag_lmCoord;
+    gData.materialID = frag_materialID;
 
     const float _1o255 = 1.0 / 255.0;
     float emissiveS = linearStep(1.0, _1o255, gData.pbrSpecular.a);
@@ -95,10 +97,8 @@ GBufferData processOutput() {
     tagentNormal.z = sqrt(saturate(1.0 - dot(tagentNormal.xy, tagentNormal.xy)));
     vec3 mappedNormal = normalize(tbn * tagentNormal);
     gData.normal = normalize(mix(frag_viewNormal, mappedNormal, SETTING_NORMAL_MAPPING_STRENGTH));
-
-    gData.lmCoord = frag_lmCoord;
-    gData.materialID = frag_materialID;
     #endif
+
     #else
     gData.normal = frag_viewNormal;
     gData.materialAO = 1.0;
