@@ -431,6 +431,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang(Locale.US) {
                     name = "Sunlight"
                 }
+                slider("SETTING_SUN_RADIUS", 1.0, (-7..10).map { 2.0.pow(it) }) {
+                    lang(Locale.US) {
+                        name = "Sun Radius"
+                        comment = "Radius of sun relative to real sun radius of 696342 km."
+                        suffix = " R"
+                    }
+                }
+                slider("SETTING_SUN_DISTANCE", 1.0, (-7..10).map { 2.0.pow(it) }) {
+                    lang(Locale.US) {
+                        name = "Sun Distance"
+                        comment = "Distance of sun in AU (astronomical units), which is relative to real sun distance of 149.6 million km."
+                        suffix = " AU"
+                    }
+                }
+                constSlider("sunPathRotation", -15.0, -90.0..90.0 step 1.0) {
+                    lang(Locale.US) {
+                        name = "Sun Path Rotation"
+                        comment = "Rotation of sun path in degrees."
+                        suffix = " °"
+                    }
+                }
+                empty()
                 toggle("SETTING_REAL_SUN_TEMPERATURE", true) {
                     lang(Locale.US) {
                         name = "Use Real Sun Temperature"
@@ -442,21 +464,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Sun Temperature"
                         comment = "Temperature of sun in K (kelvin). Affects the color and intensity of sunlight."
                         suffix = " K"
-                    }
-                }
-                slider("SETTING_SUN_RADIUS", 1.0, (-7..10).map { 2.0.pow(it) }) {
-                    lang(Locale.US) {
-                        name = "Sun Radius"
-                        comment = "Radius of sun relative to real sun radius of 696342 km."
-                        suffix = " R"
-                    }
-                }
-                slider("SETTING_SUN_DISTANCE", 1.0, (-7..10).map { 2.0.pow(it) }) {
-                    lang(Locale.US) {
-                        name = "Sun Distance"
-                        comment =
-                            "Distance of sun in AU (astronomical units), which is relative to real sun distance of 149.6 million km."
-                        suffix = " AU"
                     }
                 }
             }
@@ -703,12 +710,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             empty()
-            slider("SETTING_EPIPOLAR_SLICES", 512, listOf(256, 512, 1024, 2048)) {
+            slider("SETTING_EPIPOLAR_SLICES", 1024, listOf(256, 512, 1024, 2048)) {
                 lang(Locale.US) {
                     name = "Epipolar Slices"
                 }
             }
-            slider("SETTING_SLICE_SAMPLES", 256, listOf(128, 256, 512, 1024)) {
+            slider("SETTING_SLICE_SAMPLES", 512, listOf(128, 256, 512, 1024)) {
                 lang(Locale.US) {
                     name = "Slice Samples"
                 }
