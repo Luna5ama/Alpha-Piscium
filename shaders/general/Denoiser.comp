@@ -151,23 +151,19 @@ void setup(out ivec2 icoord, out vec3 normalC, out vec3 posC) {
 #error "Either DENOISER_BOX or DENOISER_GAUSSIAN must be defined"
 #endif
 
-float normalWeight(vec3 normalC, vec3 normal) {
-    float sdot = saturate(dot(normalC, normal));
-    return pow(sdot, 32.0);
-}
-
-
-float posWeight(vec3 posC, vec3 pos) {
-    vec3 diff = posC - pos;
-    float distSq = dot(diff, diff);
-    float a = -posC.z * 0.00001;
-    return a / (a + distSq);
-}
-
 float computeWeight(vec3 normalC, vec3 posC, vec3 normal, vec3 pos) {
+    vec3 diff = pos - posC;
+    float posA = -posC.z * 0.1;
+    float distSq = dot(diff, diff);
+
+    float diffNormalDot = dot(normalC, normalize(diff));
+    float dnA = 0.001;
+
     float weight = 1.0;
-    weight *= normalWeight(normalC, normal);
-    weight *= posWeight(posC, pos);
+    weight *= pow(saturate(dot(normalC, normal)), 16.0);
+    weight *= posA / (posA + distSq);
+    weight *= saturate(dnA / (dnA + diffNormalDot * diffNormalDot));
+
     return weight;
 }
 

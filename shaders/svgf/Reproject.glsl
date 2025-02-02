@@ -6,7 +6,9 @@ float normalWeight(vec3 currWorldNormal, uint packedNormal) {
     vec3 prevViewNormal = coords_octDecode11(unpackSnorm2x16(packedNormal));
     vec3 prevWorldNormal = mat3(gbufferPrevModelViewInverse) * prevViewNormal;
     float sdot = saturate(dot(currWorldNormal, prevWorldNormal));
-    return sdot * sdot * sdot * sdot;
+    float sdot2 = sdot * sdot;
+    float sdot4 = sdot2 * sdot2;
+    return sdot4;
 }
 
 float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prevViewZI) {
@@ -105,25 +107,25 @@ out vec4 prevColorHLen, out vec2 prevMoments
 
     bilateralSample(
         svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel + vec2(-1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.1,
+        curr2PrevTexel + vec2(-1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
         prevColorHLen, prevMoments, weightSum
     );
 
     bilateralSample(
         svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel + vec2(1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.1,
+        curr2PrevTexel + vec2(1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
         prevColorHLen, prevMoments, weightSum
     );
 
     bilateralSample(
         svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel + vec2(0.0, -1.0), currScene.xyz, currViewZ, currWorldNormal, 0.1,
+        curr2PrevTexel + vec2(0.0, -1.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
         prevColorHLen, prevMoments, weightSum
     );
 
     bilateralSample(
         svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel + vec2(0.0, 1.0), currScene.xyz, currViewZ, currWorldNormal, 0.1,
+        curr2PrevTexel + vec2(0.0, 1.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
         prevColorHLen, prevMoments, weightSum
     );
 

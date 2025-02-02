@@ -9,11 +9,11 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(r32f) uniform readonly image2D uimg_gbufferViewZ;
 layout(rgba16f) uniform readonly image2D uimg_temp1;
 
-uniform sampler2D usam_temp5;
-uniform sampler2D usam_projReject;
-
 layout(rgba16f) uniform readonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_temp4;
+
+uniform sampler2D usam_temp5;
+uniform sampler2D usam_projReject;
 layout(rgba16f) uniform writeonly image2D uimg_svgfHistoryColor;
 
 ivec2 denoiser_getImageSize() {
