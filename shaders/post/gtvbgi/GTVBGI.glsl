@@ -262,6 +262,7 @@ vec2 SamplePartialSliceDir(vec3 vvsN, float rnd01) {
 //==================================================================================//
 //////////////////////////////////////////////////////////////////////////////////////
 
+const float MAX_RADIUS_SQ = SETTING_SSVBIL_MAX_RADIUS * SETTING_SSVBIL_MAX_RADIUS;
 
 ////////////////////////////////////////////////////////////////////////////////////// quaternion utils
 //==================================================================================//
@@ -380,6 +381,7 @@ float SliceRelCDF_Cos(float x, float angN, float cosN) {
     return t0 / t1;
 }
 
+const vec2 RADIUS_SQ = vec2(SETTING_SSVBIL_RADIUS * SETTING_SSVBIL_RADIUS, SETTING_SSVBIL_MAX_RADIUS * SETTING_SSVBIL_MAX_RADIUS);
 
 void uniGTVBGI(vec3 wpos, vec3 normalWS) {
     vec3 positionVS = (gbufferModelView * vec4(wpos, 1.0)).xyz;
@@ -482,98 +484,101 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
         float realSampleLod = round(sampleLod * 0.25);
 
         float sampleViewZ = textureLod(usam_gbufferViewZ, sampleUV, realSampleLod).r;
-
         vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
-
         vec3 frontDiff = samplePosVS - positionVS;
-        vec3 backDiff = coords_toViewCoord(sampleUV, sampleViewZ - SETTING_SSVBIL_THICKNESS, gbufferProjectionInverse) - positionVS;
+        float frontDistSq = dot(frontDiff, frontDiff);
 
-        float frontDiffRcpLen = fastRcpSqrtNR0(dot(frontDiff, frontDiff));
-        float backDiffRcpLen = fastRcpSqrtNR0(dot(backDiff, backDiff));
+        if (frontDistSq < RADIUS_SQ.y) {
+            vec3 backDiff = coords_toViewCoord(sampleUV, sampleViewZ - SETTING_SSVBIL_THICKNESS, gbufferProjectionInverse) - positionVS;
 
-        // project samples onto unit circle and compute angles relative to V
-        vec2 horCos = vec2(dot(frontDiff * frontDiffRcpLen, V), dot(backDiff * backDiffRcpLen, V));
+            float frontDiffRcpLen = fastRcpSqrtNR0(frontDistSq);
+            float backDiffRcpLen = fastRcpSqrtNR0(dot(backDiff, backDiff));
 
-        vec2 horAng = ACos(horCos);
+            // project samples onto unit circle and compute angles relative to V
+            vec2 horCos = vec2(dot(frontDiff * frontDiffRcpLen, V), dot(backDiff * backDiffRcpLen, V));
 
-        // shift relative angles from V to N + map to [0,1]
-        vec2 hor01 = clamp(horAng * RcpPi + angOff, 0.0, 1.0);
+            vec2 horAng = ACos(horCos);
 
-        // map to slice relative distribution
-        hor01.x = SliceRelCDF_Cos(hor01.x, angN, cosN, true);
-        hor01.y = SliceRelCDF_Cos(hor01.y, angN, cosN, true);
+            // shift relative angles from V to N + map to [0,1]
+            vec2 hor01 = clamp(horAng * RcpPi + angOff, 0.0, 1.0);
 
-        // partial slice re-mapping
-        hor01 = hor01 * w0_remap_mul + w0_remap_add;
+            // map to slice relative distribution
+            hor01.x = SliceRelCDF_Cos(hor01.x, angN, cosN, true);
+            hor01.y = SliceRelCDF_Cos(hor01.y, angN, cosN, true);
 
-        // jitter sample locations + clamp01
-        hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
+            // partial slice re-mapping
+            hor01 = hor01 * w0_remap_mul + w0_remap_add;
 
-        uint occBits0;// turn arc into bit mask
-        {
-            uvec2 horInt = uvec2(floor(hor01 * 32.0));
+            // jitter sample locations + clamp01
+            hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
 
-            uint OxFFFFFFFFu = 0xFFFFFFFFu;// don't inline here! ANGLE bug: https://issues.angleproject.org/issues/353039526
+            uint occBits0;// turn arc into bit mask
+            {
+                uvec2 horInt = uvec2(floor(hor01 * 32.0));
 
-            uint mX = horInt.x < 32u ? OxFFFFFFFFu <<        horInt.x  : 0u;
-            uint mY = horInt.y != 0u ? OxFFFFFFFFu >> (32u - horInt.y) : 0u;
+                uint OxFFFFFFFFu = 0xFFFFFFFFu;// don't inline here! ANGLE bug: https://issues.angleproject.org/issues/353039526
 
-            occBits0 = mX & mY;
-        }
+                uint mX = horInt.x < 32u ? OxFFFFFFFFu <<        horInt.x  : 0u;
+                uint mY = horInt.y != 0u ? OxFFFFFFFFu >> (32u - horInt.y) : 0u;
 
-        // compute gi contribution
-        {
-            uint visBits0 = occBits0 & (~occBits);
+                occBits0 = mX & mY;
+            }
 
-            if (visBits0 != 0u) {
-                vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
-                float emissive = float(sample1.a > 0.0);
-                vec3 N0 = mix(sample1.rgb, normalize(positionVS - samplePosVS), emissive);
-                vec3 projN0 = N0 - sliceN * dot(N0, sliceN);
-
-                float projN0SqrLen = dot(projN0, projN0);
-
-                if (projN0SqrLen != 0.0){
-                    float projN0RcpLen = inversesqrt(projN0SqrLen);
-
-                    bool flipT = dot(T, N0) < 0.0;
-
-                    float u = dot(projN, projN0);
-                    u *= projNRcpLen;
-                    u *= projN0RcpLen;
-
-                    float hor01 = ACos(u) * RcpPi;
-                    if (flipT) hor01 = 1.0 - hor01;
-
-                    // map to slice relative distribution
-                    hor01 = SliceRelCDF_Cos(hor01, angN, cosN);
-
-                    // partial slice re-mapping
-                    hor01 = hor01 * w0_remap_mul + w0_remap_add;
-
-                    // jitter sample locations + clamp01
-                    hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
-
-                    uint visBitsN;// turn arc into bit mask
-                    {
-                        uint horInt = uint(floor(hor01 * 32.0));
-                        visBitsN = horInt < 32u ? 0xFFFFFFFFu << horInt : 0u;
-                        if (!flipT) visBitsN = ~visBitsN;
-                    }
-
-                    visBits0 = visBits0 & visBitsN;
-                }
+            // compute gi contribution
+            {
+                uint visBits0 = occBits0 & (~occBits);
 
                 if (visBits0 != 0u) {
-                    vec4 sample2 = textureLod(usam_temp2, sampleUV, realSampleLod);
-                    vec3 sampleRad = sample2.rgb;
-                    float vis0 = float(CountBits(visBits0)) * (1.0 / 32.0);
-                    rt_out.rgb += sampleRad * vis0;
+                    vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
+                    float emissive = float(sample1.a > 0.0);
+                    vec3 N0 = mix(sample1.rgb, normalize(positionVS - samplePosVS), emissive);
+                    vec3 projN0 = N0 - sliceN * dot(N0, sliceN);
+
+                    float projN0SqrLen = dot(projN0, projN0);
+
+                    if (projN0SqrLen != 0.0){
+                        float projN0RcpLen = inversesqrt(projN0SqrLen);
+
+                        bool flipT = dot(T, N0) < 0.0;
+
+                        float u = dot(projN, projN0);
+                        u *= projNRcpLen;
+                        u *= projN0RcpLen;
+
+                        float hor01 = ACos(u) * RcpPi;
+                        if (flipT) hor01 = 1.0 - hor01;
+
+                        // map to slice relative distribution
+                        hor01 = SliceRelCDF_Cos(hor01, angN, cosN);
+
+                        // partial slice re-mapping
+                        hor01 = hor01 * w0_remap_mul + w0_remap_add;
+
+                        // jitter sample locations + clamp01
+                        hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
+
+                        uint visBitsN;// turn arc into bit mask
+                        {
+                            uint horInt = uint(floor(hor01 * 32.0));
+                            visBitsN = horInt < 32u ? 0xFFFFFFFFu << horInt : 0u;
+                            if (!flipT) visBitsN = ~visBitsN;
+                        }
+
+                        visBits0 = visBits0 & visBitsN;
+                    }
+
+                    if (visBits0 != 0u) {
+                        vec4 sample2 = textureLod(usam_temp2, sampleUV, realSampleLod);
+                        float falloff = linearStep(RADIUS_SQ.y, RADIUS_SQ.x, frontDistSq);
+                        vec3 sampleRad = sample2.rgb * falloff;
+                        float vis0 = float(CountBits(visBits0)) * (1.0 / 32.0);
+                        rt_out.rgb += sampleRad * vis0;
+                    }
                 }
             }
-        }
 
-        occBits = occBits | occBits0;
+            occBits = occBits | occBits0;
+        }
 
         sampleLod = sampleLod + lodStep;
         sampleTexelDist += stepTexelSize;

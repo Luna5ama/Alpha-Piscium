@@ -625,11 +625,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Sample Steps"
                     }
                 }
-                slider("SETTING_SSVBIL_SLICES", 2, 1..8) {
-                    lang(Locale.US) {
-                        name = "Sample Slice Count"
-                    }
-                }
                 empty()
                 slider("SETTING_SSVBIL_RADIUS", 8, (0..7).map { 1 shl it }) {
                     lang(Locale.US) {

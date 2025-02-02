@@ -64,7 +64,6 @@ option.SETTING_PCSS_SAMPLE_COUNT=Sample Count
 option.SETTING_PCSS_BLOCKER_SEARCH_COUNT=Blocker Search Count
 option.SETTING_PCSS_BLOCKER_SEARCH_LOD=Blocker Search LOD
 option.SETTING_SSVBIL_STEPS=Sample Steps
-option.SETTING_SSVBIL_SLICES=Sample Slice Count
 option.SETTING_SSVBIL_RADIUS=Sample Radius
 option.SETTING_SSVBIL_MAX_RADIUS=Max Sample Radius
 option.SETTING_SSVBIL_THICKNESS=Thickness
