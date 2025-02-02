@@ -21,27 +21,15 @@ float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prev
     return a / (a + distSq);
 }
 
-void svgf_reproject(
+void bilateralSample(
 sampler2D svgfHistoryColor, sampler2D svgfHistoryMoments, usampler2D prevNZTex,
-vec2 screenPos, float viewZ, vec3 currViewNormal, vec2 projReject, float isHand,
-out vec4 prevColorHLen, out vec2 prevMoments
+vec2 sampleTexel, vec3 currScene, float currViewZ, vec3 currWorldNormal, float baseWeight,
+inout vec4 prevColorHLen, inout vec2 prevMoments, inout float weightSum
 ) {
-    vec3 currView = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
-    vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
-
-    vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene);
-    vec4 curr2PrevView = gbufferPrevModelView * curr2PrevScene;
-    vec4 curr2PrevClip = gbufferPrevProjection * curr2PrevView;
-    vec2 curr2PrevNDC = curr2PrevClip.xy / curr2PrevClip.w;
-    vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
-    curr2PrevScreen = mix(curr2PrevScreen, screenPos, isHand);
-
-    vec2 pixelPos = curr2PrevScreen * global_mainImageSize - 0.5;
+    vec2 pixelPos = sampleTexel - 0.5;
     vec2 originPixelPos = floor(pixelPos);
     vec2 gatherUV = (originPixelPos + 1.0) * global_mainImageSizeRcp;
     vec2 bilinearWeights = pixelPos - originPixelPos;
-
-    vec3 currWorldNormal = mat3(gbufferModelViewInverse) * currViewNormal;
 
     vec4 bilateralWeights;
     bilateralWeights.yz = bilinearWeights.xx;
@@ -57,38 +45,97 @@ out vec4 prevColorHLen, out vec2 prevMoments
     bilateralWeights.w *= normalWeight(currWorldNormal, prevNs.w);
 
     uvec4 prevViewZs = textureGather(prevNZTex, gatherUV, 1);
-    bilateralWeights.x *= posWeight(viewZ, currScene.xyz, gatherUV, prevViewZs.x);
-    bilateralWeights.y *= posWeight(viewZ, currScene.xyz, gatherUV, prevViewZs.y);
-    bilateralWeights.z *= posWeight(viewZ, currScene.xyz, gatherUV, prevViewZs.z);
-    bilateralWeights.w *= posWeight(viewZ, currScene.xyz, gatherUV, prevViewZs.w);
+    bilateralWeights.x *= posWeight(currViewZ, currScene, gatherUV, prevViewZs.x);
+    bilateralWeights.y *= posWeight(currViewZ, currScene, gatherUV, prevViewZs.y);
+    bilateralWeights.z *= posWeight(currViewZ, currScene, gatherUV, prevViewZs.z);
+    bilateralWeights.w *= posWeight(currViewZ, currScene, gatherUV, prevViewZs.w);
 
-    float weightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
+    bilateralWeights *= baseWeight;
+    weightSum += bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
+
+    vec4 prevColorRs = textureGather(svgfHistoryColor, gatherUV, 0);
+    vec4 prevColorGs = textureGather(svgfHistoryColor, gatherUV, 1);
+    vec4 prevColorBs = textureGather(svgfHistoryColor, gatherUV, 2);
+    vec4 prevColorHLens = textureGather(svgfHistoryColor, gatherUV, 3);
+
+    prevColorHLen.r += dot(bilateralWeights, prevColorRs);
+    prevColorHLen.g += dot(bilateralWeights, prevColorGs);
+    prevColorHLen.b += dot(bilateralWeights, prevColorBs);
+    prevColorHLen.a += dot(bilateralWeights, prevColorHLens);
+
+    vec4 prevMomentXs = textureGather(svgfHistoryMoments, gatherUV, 0);
+    vec4 prevMomentYs = textureGather(svgfHistoryMoments, gatherUV, 1);
+
+    prevMoments.x += dot(bilateralWeights, prevMomentXs);
+    prevMoments.y += dot(bilateralWeights, prevMomentYs);
+}
+
+void svgf_reproject(
+sampler2D svgfHistoryColor, sampler2D svgfHistoryMoments, usampler2D prevNZTex,
+vec2 screenPos, float currViewZ, vec3 currViewNormal, vec2 projReject, float isHand,
+out vec4 prevColorHLen, out vec2 prevMoments
+) {
+    vec3 currView = coords_toViewCoord(screenPos, currViewZ, gbufferProjectionInverse);
+    vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
+
+    vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene);
+    vec4 curr2PrevView = gbufferPrevModelView * curr2PrevScene;
+    vec4 curr2PrevClip = gbufferPrevProjection * curr2PrevView;
+    vec2 curr2PrevNDC = curr2PrevClip.xy / curr2PrevClip.w;
+    vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
+    curr2PrevScreen = mix(curr2PrevScreen, screenPos, isHand);
+    vec2 curr2PrevTexel = curr2PrevScreen * global_mainImageSize;
+
+    vec3 currWorldNormal = mat3(gbufferModelViewInverse) * currViewNormal;
+
+    vec2 pixelPos = curr2PrevScreen * global_mainImageSize - 0.5;
+    vec2 originPixelPos = floor(pixelPos);
+    vec2 gatherUV = (originPixelPos + 1.0) * global_mainImageSizeRcp;
+    vec2 bilinearWeights = pixelPos - originPixelPos;
+
+    prevColorHLen = vec4(0.0);
+    prevMoments = vec2(0.0);
+    float weightSum = 0.0;
+
+    bilateralSample(
+        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+        curr2PrevTexel, currScene.xyz, currViewZ, currWorldNormal, 1.0,
+        prevColorHLen, prevMoments, weightSum
+    );
+
+    bilateralSample(
+        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+        curr2PrevTexel + vec2(-1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.1,
+        prevColorHLen, prevMoments, weightSum
+    );
+
+    bilateralSample(
+        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+        curr2PrevTexel + vec2(1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.1,
+        prevColorHLen, prevMoments, weightSum
+    );
+
+    bilateralSample(
+        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+        curr2PrevTexel + vec2(0.0, -1.0), currScene.xyz, currViewZ, currWorldNormal, 0.1,
+        prevColorHLen, prevMoments, weightSum
+    );
+
+    bilateralSample(
+        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+        curr2PrevTexel + vec2(0.0, 1.0), currScene.xyz, currViewZ, currWorldNormal, 0.1,
+        prevColorHLen, prevMoments, weightSum
+    );
+
     const float WEIGHT_EPSILON = 0.0001;
-
     if (weightSum < WEIGHT_EPSILON) {
         prevColorHLen = vec4(0.0, 0.0, 0.0, 1.0);
         prevMoments = vec2(0.0);
     } else {
         float rcpWeightSum = 1.0 / weightSum;
-
-        vec4 prevColorRs = textureGather(svgfHistoryColor, gatherUV, 0);
-        vec4 prevColorGs = textureGather(svgfHistoryColor, gatherUV, 1);
-        vec4 prevColorBs = textureGather(svgfHistoryColor, gatherUV, 2);
-        vec4 prevColorHLens = textureGather(svgfHistoryColor, gatherUV, 3);
-
-        prevColorHLen.r = dot(bilateralWeights, prevColorRs);
-        prevColorHLen.g = dot(bilateralWeights, prevColorGs);
-        prevColorHLen.b = dot(bilateralWeights, prevColorBs);
-        prevColorHLen.a = dot(bilateralWeights, prevColorHLens);
         prevColorHLen *= rcpWeightSum;
         prevColorHLen *= saturate(1.0 - projReject.x * 0.1);
         prevColorHLen.a = max(floor(prevColorHLen.a), 0.0);
-
-        vec4 prevMomentXs = textureGather(svgfHistoryMoments, gatherUV, 0);
-        vec4 prevMomentYs = textureGather(svgfHistoryMoments, gatherUV, 1);
-
-        prevMoments.x = dot(bilateralWeights, prevMomentXs);
-        prevMoments.y = dot(bilateralWeights, prevMomentYs);
         prevMoments *= rcpWeightSum;
     }
 }

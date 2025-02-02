@@ -105,12 +105,12 @@ void main() {
 
             svgf_reproject(
                 usam_svgfHistoryColor, usam_svgfHistoryMoments, usam_prevNZ,
-                screenPos, viewZ, gData.normal, projRejectOut,
+                screenPos, viewZ, gData.normal, projRejectOut, float(gData.isHand),
                 prevColorHLen, prevMoments
             );
 
-            imageStore(uimg_temp3, texelPos, vec4(prevMoments, 0.0, 0.0));
-            imageStore(uimg_temp4, texelPos, prevColorHLen);
+            imageStore(uimg_temp3, texelPos, prevColorHLen);
+            imageStore(uimg_temp4, texelPos, vec4(prevMoments, 0.0, 0.0));
         }
 
 
