@@ -73,6 +73,11 @@ void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, inout vec3 
     ssgiOut += emissiveV;
     ssgiOut += sunLighting;
     ssgiOut += moonLighting;
+
+    if (gData.materialID == 65533u) {
+        ssgiOut *= 0.25;
+    }
+
     //    ssgiOut += skySpecularV;
 }
 
@@ -94,18 +99,17 @@ void main() {
         ndpacking_updateProjReject(usam_prevNZ, texelPos, screenPos, gData.normal, g_viewCoord, projRejectOut);
         imageStore(uimg_projReject, texelPos, vec4(projRejectOut, 0.0, 0.0));
 
-            vec4 prevColorHLen;
-            vec2 prevMoments;
+        vec4 prevColorHLen;
+        vec2 prevMoments;
 
-            svgf_reproject(
-                usam_svgfHistoryColor, usam_svgfHistoryMoments, usam_prevNZ,
-                screenPos, viewZ, gData.normal, float(gData.isHand),
-                prevColorHLen, prevMoments
-            );
+        svgf_reproject(
+            usam_svgfHistoryColor, usam_svgfHistoryMoments, usam_prevNZ,
+            screenPos, viewZ, gData.normal, float(gData.isHand),
+            prevColorHLen, prevMoments
+        );
 
-            imageStore(uimg_temp3, texelPos, prevColorHLen);
-            imageStore(uimg_temp4, texelPos, vec4(prevMoments, 0.0, 0.0));
-
+        imageStore(uimg_temp3, texelPos, prevColorHLen);
+        imageStore(uimg_temp4, texelPos, vec4(prevMoments, 0.0, 0.0));
 
         vec4 mainOut = vec4(0.0);
         vec4 temp1Out = vec4(0.0);
