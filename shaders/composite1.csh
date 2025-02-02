@@ -24,13 +24,10 @@ layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
-void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, out vec3 ssgiOut) {
+void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, inout vec3 ssgiOut) {
     float NDotV = dot(N, V);
 
     vec3 emissiveV = material.emissive;
-
-    vec4 ssvbilSample = texelFetch(usam_ssvbil, texelPos, 0);
-    vec3 multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * 2.0 * RCP_PI * max(ssvbilSample.rgb, 0.0) * material.albedo;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
@@ -73,8 +70,6 @@ void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, out vec3 ss
     mainOut += moonLighting;
     //    mainOut += skySpecularV;
 
-    ssgiOut = vec3(0.0);
-    ssgiOut += multiBounceV;
     ssgiOut += emissiveV;
     ssgiOut += sunLighting;
     ssgiOut += moonLighting;
@@ -99,7 +94,6 @@ void main() {
         ndpacking_updateProjReject(usam_prevNZ, texelPos, screenPos, gData.normal, g_viewCoord, projRejectOut);
         imageStore(uimg_projReject, texelPos, vec4(projRejectOut, 0.0, 0.0));
 
-        {
             vec4 prevColorHLen;
             vec2 prevMoments;
 
@@ -111,7 +105,6 @@ void main() {
 
             imageStore(uimg_temp3, texelPos, prevColorHLen);
             imageStore(uimg_temp4, texelPos, vec4(prevMoments, 0.0, 0.0));
-        }
 
 
         vec4 mainOut = vec4(0.0);
@@ -132,6 +125,8 @@ void main() {
                 mainOut = vec4(material.albedo, 1.0);
                 ssgiOut = vec4(0.0, 0.0, 0.0, 0.0);
             } else {
+                float multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * 2.0 * RCP_PI;
+                ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo;
                 doLighting(material, gData.normal, g_viewDir, mainOut.rgb, ssgiOut.rgb);
             }
         }
