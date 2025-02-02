@@ -72,7 +72,7 @@ inout vec4 prevColorHLen, inout vec2 prevMoments, inout float weightSum
 
 void svgf_reproject(
 sampler2D svgfHistoryColor, sampler2D svgfHistoryMoments, usampler2D prevNZTex,
-vec2 screenPos, float currViewZ, vec3 currViewNormal, vec2 projReject, float isHand,
+vec2 screenPos, float currViewZ, vec3 currViewNormal, float isHand,
 out vec4 prevColorHLen, out vec2 prevMoments
 ) {
     vec3 currView = coords_toViewCoord(screenPos, currViewZ, gbufferProjectionInverse);
@@ -134,7 +134,6 @@ out vec4 prevColorHLen, out vec2 prevMoments
     } else {
         float rcpWeightSum = 1.0 / weightSum;
         prevColorHLen *= rcpWeightSum;
-        prevColorHLen *= saturate(1.0 - projReject.x * 0.1);
         prevColorHLen.a = max(floor(prevColorHLen.a), 0.0);
         prevMoments *= rcpWeightSum;
     }

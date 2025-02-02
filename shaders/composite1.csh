@@ -105,7 +105,7 @@ void main() {
 
             svgf_reproject(
                 usam_svgfHistoryColor, usam_svgfHistoryMoments, usam_prevNZ,
-                screenPos, viewZ, gData.normal, projRejectOut, float(gData.isHand),
+                screenPos, viewZ, gData.normal, float(gData.isHand),
                 prevColorHLen, prevMoments
             );
 
