@@ -26,8 +26,8 @@ vec3 renderSunMoon(ivec2 texelPos) {
 
     const float moonAngularRadius = 0.528611 * PI / 180.0;
 
-    float sunV = circle(viewDir, uval_sunDirView, uval_sunAngularRadius, 0.00002);
-    float moonV = circle(viewDir, uval_moonDirView, moonAngularRadius, 0.000005);
+    float sunV = circle(viewDir, uval_sunDirView, uval_sunAngularRadius, 0.000005);
+    float moonV = circle(viewDir, uval_moonDirView, moonAngularRadius, 0.000001);
 
     vec3 result = vec3(0.0);
     result += sunV * sunRadiance * 16.0;

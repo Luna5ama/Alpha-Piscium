@@ -96,7 +96,7 @@ vec4 bloom_readInputDown(ivec2 coord) {
     vec2 readPosUV = vec2(coord + inputStartPixel) * texelSize;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
     #if BLOOM_PASS == 1
-    return texture(BLOOM_SAMPLER, readPosUV) * SETTING_BLOOM_INTENSITY * 0.025;
+    return texture(BLOOM_SAMPLER, readPosUV) * SETTING_BLOOM_INTENSITY * 0.01;
     #else
     return texture(BLOOM_SAMPLER, readPosUV);
     #endif
