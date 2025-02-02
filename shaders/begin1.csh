@@ -1,10 +1,9 @@
 #version 460 compatibility
 
-#define GLOBAL_DATA_MODIFIER writeonly
 #include "_Util.glsl"
 
 layout(local_size_x = 1) in;
-const ivec3 workGroups = ivec3(1, 1, 1);
+const ivec3 workGroups = ivec3(2, 1, 1);
 
 layout(rgba16f) uniform writeonly readonly image2D uimg_main;
 
@@ -40,25 +39,40 @@ mat4 taaJitterMat(vec2 baseJitter) {
 }
 
 void main() {
-    vec2 jitter = taaJitter();
-    global_shadowRotationMatrix = shadowDeRotateMatrix(shadowModelView);
-    global_taaJitter = jitter;
-    mat4 taaMat = taaJitterMat(jitter);
-    global_taaJitterMat = taaMat;
+    if (gl_WorkGroupID.x == 0) {
+        vec2 jitter = taaJitter();
+        global_shadowRotationMatrix = shadowDeRotateMatrix(shadowModelView);
+        global_taaJitter = jitter;
+        mat4 taaMat = taaJitterMat(jitter);
+        global_taaJitterMat = taaMat;
 
-    mat4 projectionJitter = taaMat * gbufferProjection;
-    gbufferProjectionJitter = projectionJitter;
-    gbufferProjectionJitterInverse = inverse(projectionJitter);
+        mat4 projectionJitter = taaMat * gbufferProjection;
+        gbufferProjectionJitter = projectionJitter;
+        gbufferProjectionJitterInverse = inverse(projectionJitter);
 
-    #ifdef SETTING_REAL_SUN_TEMPERATURE
-    vec4 sunRadiance = colors_blackBodyRadiation(5772, uval_sunOmega);
-    #else
-    vec4 sunRadiance = colors_blackBodyRadiation(SETTING_SUN_TEMPERATURE, uval_sunOmega);
-    #endif
-    global_sunRadiance = sunRadiance;
+        #ifdef SETTING_REAL_SUN_TEMPERATURE
+        vec4 sunRadiance = colors_blackBodyRadiation(5772, uval_sunOmega);
+        #else
+        vec4 sunRadiance = colors_blackBodyRadiation(SETTING_SUN_TEMPERATURE, uval_sunOmega);
+        #endif
+        global_sunRadiance = sunRadiance;
 
-    ivec2 mainImageSize = imageSize(uimg_main);
-    global_mainImageSizeI = mainImageSize;
-    global_mainImageSize = vec2(mainImageSize);
-    global_mainImageSizeRcp = 1.0 / vec2(mainImageSize);
+        ivec2 mainImageSize = imageSize(uimg_main);
+        global_mainImageSizeI = mainImageSize;
+        global_mainImageSize = vec2(mainImageSize);
+        global_mainImageSizeRcp = 1.0 / vec2(mainImageSize);
+    } else {
+        ivec2 mainImageSize = imageSize(uimg_main);
+        for (uint i = 0; i < 16; i++) {
+            ivec2 mipSize = mainImageSize >> i;
+            global_mipmapSizes[i] = vec2(mipSize);
+            global_mipmapSizesRcp[i] = 1.0 / vec2(mipSize);
+            global_mipmapSizesI[i] = mipSize;
+            if (i == 0) {
+                global_mipmapSizePrefixes[i] = mipSize;
+            } else {
+                global_mipmapSizePrefixes[i] = global_mipmapSizePrefixes[i - 1] + mipSize;
+            }
+        }
+    }
 }

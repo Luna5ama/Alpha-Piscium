@@ -70,35 +70,18 @@ vec2 texelSize = 1.0 / vec2(colorTexSize);
 #define BIT_MASK(x) ((1 << (x)) - 1)
 
 #if BLOOM_DOWN_SAMPLE
-ivec2 bloom_inputSize = colorTexSize >> (BLOOM_PASS - 1);
-ivec2 bloom_outputSize = colorTexSize >> (BLOOM_PASS);
+ivec2 bloom_inputSize = global_mipmapSizesI[BLOOM_PASS - 1];
+ivec2 bloom_outputSize = global_mipmapSizesI[BLOOM_PASS];
 
-#if BLOOM_PASS <= 2
-int inputOffset = 0;
-#else
-int inputOffset = (colorTexSize.x >> (BLOOM_PASS - 2)) * BIT_MASK(BLOOM_PASS - 2);
-#endif
-#if BLOOM_PASS <= 1
-int outputOffset = 0;
-#else
-int outputOffset = bloom_inputSize.x * BIT_MASK(BLOOM_PASS - 1);
-#endif
+int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - global_mainImageSizeI.x;
+int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - global_mainImageSizeI.x;
 
 #elif BLOOM_UP_SAMPLE
-ivec2 bloom_inputSize = colorTexSize >> (BLOOM_PASS);
-ivec2 bloom_outputSize = colorTexSize >> (BLOOM_PASS - 1);
+ivec2 bloom_inputSize = global_mipmapSizesI[BLOOM_PASS];
+ivec2 bloom_outputSize = global_mipmapSizesI[BLOOM_PASS - 1];
 
-#if BLOOM_PASS <= 1
-int inputOffset = 0;
-#else
-int inputOffset = bloom_outputSize.x * BIT_MASK(BLOOM_PASS - 1);
-#endif
-
-#if BLOOM_PASS <= 2
-int outputOffset = 0;
-#else
-int outputOffset = (colorTexSize.x >> (BLOOM_PASS - 2)) * BIT_MASK(BLOOM_PASS - 2);
-#endif
+int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - global_mainImageSizeI.x;
+int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - global_mainImageSizeI.x;
 
 #endif
 

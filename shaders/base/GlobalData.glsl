@@ -22,6 +22,10 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     ivec2 global_mainImageSizeI;
     vec2 global_mainImageSize;
     vec2 global_mainImageSizeRcp;
+    vec2 global_mipmapSizes[16];
+    vec2 global_mipmapSizesRcp[16];
+    ivec2 global_mipmapSizesI[16];
+    ivec2 global_mipmapSizePrefixes[16];
     uint global_lumHistogram[257];
 };
 
