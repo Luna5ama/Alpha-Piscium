@@ -2,7 +2,7 @@
 #include "Common.glsl"
 
 float circle(vec3 rayDir, vec3 objDir, float objAngularRadius, float bloomPower) {
-    const float objCosTheta = cos(objAngularRadius);
+    float objCosTheta = cos(objAngularRadius);
     float cosTheta = saturate(dot(rayDir, objDir));
 
     float x = saturate(objCosTheta - cosTheta);

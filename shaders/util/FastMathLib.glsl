@@ -95,7 +95,7 @@
 //
 
 // Approximate guess using integer float arithmetics based on IEEE floating point standard
-float rcpSqrtIEEEIntApproximation(float inX, const int inRcpSqrtConst) {
+float rcpSqrtIEEEIntApproximation(float inX, int inRcpSqrtConst) {
     int x = asint(inX);
     x = inRcpSqrtConst - (x >> 1);
     return asfloat(x);
@@ -147,7 +147,7 @@ float fastRcpSqrtNR2(float inX) {
 //
 // SQRT
 //
-float sqrtIEEEIntApproximation(float inX, const int inSqrtConst) {
+float sqrtIEEEIntApproximation(float inX, int inSqrtConst) {
     int x = asint(inX);
     x = inSqrtConst + (x >> 1);
     return asfloat(x);
@@ -192,25 +192,25 @@ float fastSqrtNR2(float inX) {
 // RCP
 //
 
-float rcpIEEEIntApproximation(float inX, const int inRcpConst) {
+float rcpIEEEIntApproximation(float inX, int inRcpConst) {
     int x = asint(inX);
     x = inRcpConst - x;
     return asfloat(x);
 }
 
-vec2 rcpIEEEIntApproximation(vec2 inX, const int inRcpConst) {
+vec2 rcpIEEEIntApproximation(vec2 inX, int inRcpConst) {
     ivec2 x = asint(inX);
     x = inRcpConst - x;
     return asfloat(x);
 }
 
-vec3 rcpIEEEIntApproximation(vec3 inX, const int inRcpConst) {
+vec3 rcpIEEEIntApproximation(vec3 inX, int inRcpConst) {
     ivec3 x = asint(inX);
     x = inRcpConst - x;
     return asfloat(x);
 }
 
-vec4 rcpIEEEIntApproximation(vec4 inX, const int inRcpConst) {
+vec4 rcpIEEEIntApproximation(vec4 inX, int inRcpConst) {
     ivec4 x = asint(inX);
     x = inRcpConst - x;
     return asfloat(x);

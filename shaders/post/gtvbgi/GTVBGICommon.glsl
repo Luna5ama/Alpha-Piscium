@@ -85,9 +85,9 @@ vec2 Resolution;
 #define clamp01(x) clamp(x, 0.0, 1.0)
 #define If(cond, resT, resF) mix(resF, resT, cond)
 
-const float Pi   = 3.1415926535897930;
+const float Pi = 3.1415926535897930;
 const float Pi05 = 1.5707963267948966;
-const float Pi2= Pi * 2.0;
+const float Pi2 = Pi * 2.0;
 const float RcpPi = 1.0 / Pi;
 const float RcpPi05 = 1.0 / Pi05;
 

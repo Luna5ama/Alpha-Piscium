@@ -36,8 +36,6 @@ uniform sampler2D DEBUG_TEX_NAME;
 
 varying vec2 texcoord;
 
-const float IMPORTANCE_MUL = uintBitsToFloat(0x4F800000u);
-
 bool inViewPort(vec4 originSize, out vec2 texCoord) {
     vec2 min = originSize.xy;
     vec2 max = originSize.xy + originSize.zw;

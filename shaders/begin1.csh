@@ -29,7 +29,7 @@ vec2 taaJitter() {
 }
 
 mat4 taaJitterMat(vec2 baseJitter) {
-    vec2 jitter = baseJitter * 2.0 * viewResolution.zw;
+    vec2 jitter = baseJitter * 2.0 * (1.0 / imageSize(uimg_main));
     return mat4(
             1.0, 0.0, 0.0, 0.0,
             0.0, 1.0, 0.0, 0.0,
