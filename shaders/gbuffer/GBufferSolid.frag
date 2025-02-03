@@ -130,6 +130,7 @@ void main() {
     GBufferData gData = processOutput();
 
     #ifdef GBUFFER_PASS_ARMOR_GLINT
+    gData.materialID = 65532u;
     albedo.rgb *= albedo.rgb;
 
     float glintEmissive = colors_srgbLuma(albedo.rgb);
