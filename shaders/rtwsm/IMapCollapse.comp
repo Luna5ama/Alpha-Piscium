@@ -10,7 +10,7 @@ const ivec3 workGroups = ivec3(SETTING_RTWSM_IMAP_SIZE, 2, 1);
 layout(r32f) uniform writeonly image2D uimg_rtwsm_imap1D;
 uniform sampler2D usam_rtwsm_imap2D;
 
-shared float shared_reduceBuffer[gl_NumSubgroups];
+shared float shared_reduceBuffer[IMAP_SIZE_D32];
 
 const vec2 TEXEL_SIZE = 1.0 / vec2(SETTING_RTWSM_IMAP_SIZE);
 

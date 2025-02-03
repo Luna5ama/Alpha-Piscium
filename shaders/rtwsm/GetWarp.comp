@@ -2,7 +2,7 @@
 
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
-#include "../_Util.glsl"
+#include "RTWSM.glsl"
 
 layout(local_size_x = SETTING_RTWSM_IMAP_SIZE, local_size_y = 1, local_size_z = 1) in;
 const ivec3 workGroups = ivec3(1, 2, 1);
@@ -10,7 +10,7 @@ const ivec3 workGroups = ivec3(1, 2, 1);
 layout(r32f) uniform readonly image2D uimg_rtwsm_imap1D;
 layout(rg16_snorm) uniform writeonly image2D uimg_rtwsm_warpingMap;
 
-shared float shared_prefixBuffer[gl_NumSubgroups];
+shared float shared_prefixBuffer[IMAP_SIZE_D16];
 
 void main() {
     shared_prefixBuffer[gl_LocalInvocationID.x] = 0.0;

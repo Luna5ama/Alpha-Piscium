@@ -7,24 +7,28 @@
 
 #define IMAP_SIZE_D2 64
 #define IMAP_SIZE_D16 8
+#define IMAP_SIZE_D32 4
 #define IMAP_SIZE_D128 1
 
 #elif SETTING_RTWSM_IMAP_SIZE == 256
 
 #define IMAP_SIZE_D2 128
 #define IMAP_SIZE_D16 16
+#define IMAP_SIZE_D32 8
 #define IMAP_SIZE_D128 2
 
 #elif SETTING_RTWSM_IMAP_SIZE == 512
 
 #define IMAP_SIZE_D2 256
 #define IMAP_SIZE_D16 32
+#define IMAP_SIZE_D32 16
 #define IMAP_SIZE_D128 4
 
 #elif SETTING_RTWSM_IMAP_SIZE == 1024
 
 #define IMAP_SIZE_D2 512
 #define IMAP_SIZE_D16 64
+#define IMAP_SIZE_D32 32
 #define IMAP_SIZE_D128 8
 
 #endif
