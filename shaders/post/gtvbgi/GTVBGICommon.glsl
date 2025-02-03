@@ -361,14 +361,12 @@ out vec2 t) {
 
 bvec2 minmask(vec2 v) {
     bool x = v.x < v.y || isnan(v.y);
-
     return bvec2(x, !x);
 }
 
 
 bvec2 maxmask(vec2 v) {
     bool x = v.x >= v.y || isnan(v.y);
-
     return bvec2(x, !x);
 }
 

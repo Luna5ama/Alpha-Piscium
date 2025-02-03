@@ -50,7 +50,7 @@ vec2 getEpipolarLineEntryPoint(vec2 f2ExitPoint) {
         // 0.5 screen pixel size inwards. Using these adjusted boundaries improves precision and results in
         // smaller number of pixels which require inscattering correction
         vec4 f4Boundaries = getOutermostScreenPixelCoords();
-        bvec4 b4IsCorrectIntersectionFlag = greaterThanEqual(abs(f2RayDir.xyxy), vec4(1e-5));
+        uvec4 b4IsCorrectIntersectionFlag = uvec4(greaterThanEqual(abs(f2RayDir.xyxy), vec4(1e-5)));
         vec4 f4DistToBoundaries = (f4Boundaries - uval_sunNdcPos.xyxy) / (f2RayDir.xyxy + vec4(not(b4IsCorrectIntersectionFlag)));
         // Addition of !b4IsCorrectIntersectionFlag is required to prevent divison by zero
         // Note that such incorrect lanes will be masked out anyway
@@ -59,7 +59,7 @@ vec2 getEpipolarLineEntryPoint(vec2 f2ExitPoint) {
         // This means that we need to find maximum intersection distance which is less than fDistToBoundary
         // We thus need to skip all boundaries, distance to which is greater than the distance to exit boundary
         // Using -FLT_MAX as the distance to these boundaries will result in skipping them:
-        b4IsCorrectIntersectionFlag = b4IsCorrectIntersectionFlag && lessThan(f4DistToBoundaries, vec4(fDistToExitBoundary - 1e-4));
+        b4IsCorrectIntersectionFlag = b4IsCorrectIntersectionFlag & uvec4(lessThan(f4DistToBoundaries, vec4(fDistToExitBoundary - 1e-4)));
         f4DistToBoundaries = vec4(b4IsCorrectIntersectionFlag) * f4DistToBoundaries +
         vec4(not(b4IsCorrectIntersectionFlag)) * vec4(-FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX);
 
@@ -118,7 +118,7 @@ vec4 generateepipolarSliceEndPS() {
     uint uiBoundary = clamp(uint(floor(fEpipolarSlice * 4)), 0u, 3u);
     float fPosOnBoundary = fract(fEpipolarSlice * 4);
 
-    bvec4 b4BoundaryFlags = equal(uiBoundary.xxxx, uvec4(0, 1, 2, 3));
+    uvec4 b4BoundaryFlags = uvec4(equal(uiBoundary.xxxx, uvec4(0, 1, 2, 3)));
 
     // Note that in fact the outermost visible screen pixels do not lie exactly on the boundary (+1 or -1), but are biased by
     // 0.5 screen pixel size inwards. Using these adjusted boundaries improves precision and results in
@@ -136,8 +136,8 @@ vec4 generateepipolarSliceEndPS() {
     //                                  *
     //     Left Boundary       Bottom Boundary           Right Boundary          Top Boundary
     //
-    bvec4 b4IsInvalidBoundary = lessThanEqual((uval_sunNdcPos.xyxy - f4OutermostScreenPixelCoords.xyzw) * vec4(1.0, 1.0, -1.0, -1.0), vec4(0.0));
-    if (any(b4IsInvalidBoundary && b4BoundaryFlags)) {
+    uvec4 b4IsInvalidBoundary = uvec4(lessThanEqual((uval_sunNdcPos.xyxy - f4OutermostScreenPixelCoords.xyzw) * vec4(1.0, 1.0, -1.0, -1.0), vec4(0.0)));
+    if (any(bvec4(b4IsInvalidBoundary & b4BoundaryFlags))) {
         return INVALID_EPIPOLAR_LINE;
     }
     // Additinal check above is required to eliminate false epipolar lines which can appear is shown below.

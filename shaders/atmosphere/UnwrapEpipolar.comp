@@ -67,7 +67,7 @@ out vec3 transmittance
     //   | '   1    ' .   |
     //   |'____________ '_|
     //
-    bvec4 b4SectorFlags = b4HalfSpaceFlags.wxyz && not(b4HalfSpaceFlags.xyzw);
+    uvec4 b4SectorFlags = uvec4(b4HalfSpaceFlags.wxyz) & uvec4(not(b4HalfSpaceFlags.xyzw));
     // Note that b4SectorFlags now contains true (1) for the exit boundary and false (0) for 3 other
 
     // Compute distances to boundaries according to following lines:
