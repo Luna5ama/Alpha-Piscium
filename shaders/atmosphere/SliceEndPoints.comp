@@ -51,7 +51,7 @@ vec2 getEpipolarLineEntryPoint(vec2 f2ExitPoint) {
         // smaller number of pixels which require inscattering correction
         vec4 f4Boundaries = getOutermostScreenPixelCoords();
         uvec4 b4IsCorrectIntersectionFlag = uvec4(greaterThanEqual(abs(f2RayDir.xyxy), vec4(1e-5)));
-        vec4 f4DistToBoundaries = (f4Boundaries - uval_sunNdcPos.xyxy) / (f2RayDir.xyxy + vec4(not(b4IsCorrectIntersectionFlag)));
+        vec4 f4DistToBoundaries = (f4Boundaries - uval_sunNdcPos.xyxy) / (f2RayDir.xyxy + vec4(1u - b4IsCorrectIntersectionFlag));
         // Addition of !b4IsCorrectIntersectionFlag is required to prevent divison by zero
         // Note that such incorrect lanes will be masked out anyway
 
@@ -61,7 +61,7 @@ vec2 getEpipolarLineEntryPoint(vec2 f2ExitPoint) {
         // Using -FLT_MAX as the distance to these boundaries will result in skipping them:
         b4IsCorrectIntersectionFlag = b4IsCorrectIntersectionFlag & uvec4(lessThan(f4DistToBoundaries, vec4(fDistToExitBoundary - 1e-4)));
         f4DistToBoundaries = vec4(b4IsCorrectIntersectionFlag) * f4DistToBoundaries +
-        vec4(not(b4IsCorrectIntersectionFlag)) * vec4(-FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX);
+        vec4(1u - b4IsCorrectIntersectionFlag) * vec4(-FLT_MAX, -FLT_MAX, -FLT_MAX, -FLT_MAX);
 
         float fFirstIntersecDist = 0;
         fFirstIntersecDist = max(fFirstIntersecDist, f4DistToBoundaries.x);

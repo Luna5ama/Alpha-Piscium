@@ -54,7 +54,7 @@ out vec3 transmittance
     // smaller number of pixels which require inscattering correction
     vec4 f4Boundaries = getOutermostScreenPixelCoords();//left, bottom, right, top
     vec4 f4HalfSpaceEquationTerms = (screenPos.xxyy - f4Boundaries.xzyw) * f2RayDir.yyxx;
-    bvec4 b4HalfSpaceFlags = lessThan(f4HalfSpaceEquationTerms.xyyx, f4HalfSpaceEquationTerms.zzww);
+    uvec4 b4HalfSpaceFlags = uvec4(lessThan(f4HalfSpaceEquationTerms.xyyx, f4HalfSpaceEquationTerms.zzww));
 
     // Now compute mask indicating which of four sectors the f2RayDir belongs to and consiquently
     // which border the ray intersects:
@@ -67,7 +67,7 @@ out vec3 transmittance
     //   | '   1    ' .   |
     //   |'____________ '_|
     //
-    uvec4 b4SectorFlags = uvec4(b4HalfSpaceFlags.wxyz) & uvec4(not(b4HalfSpaceFlags.xyzw));
+    uvec4 b4SectorFlags = b4HalfSpaceFlags.wxyz & (1u - b4HalfSpaceFlags.xyzw);
     // Note that b4SectorFlags now contains true (1) for the exit boundary and false (0) for 3 other
 
     // Compute distances to boundaries according to following lines:
