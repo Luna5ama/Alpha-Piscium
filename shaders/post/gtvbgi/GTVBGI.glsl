@@ -1,5 +1,7 @@
-// Adopted from: https://www.shadertoy.com/view/XcdBWf
+// Contains code adopted from:
+// https://www.shadertoy.com/view/XcdBWf
 // MIT License
+//
 // You can find full license texts in /licenses
 #include "GTVBGICommon.glsl"
 

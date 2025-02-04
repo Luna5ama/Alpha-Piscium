@@ -1,22 +1,27 @@
-/*
-    References:
-        [BRU08] Bruneton, Eric. "Precomputed Atmospheric Scattering". EGSR 2008.
-            https://hal.inria.fr/inria-00290084/document
-        [HIL20] Hillaire, Sébastien. "A Scalable and Production Ready Sky and Atmosphere Rendering Technique".
-            EGSR 2020. https://sebh.github.io/publications/egsr2020.pdf
-            Code: https://github.com/sebh/UnrealEngineSkyAtmosphere (MIT License)
-        [YUS13] Yusov, Egor. “Practical Implementation of Light Scattering Effects Using Epipolar Sampling and
-            1D Min/Max Binary Trees”. GDC 2013.
-            http://gdcvault.com/play/1018227/Practical-Implementation-of-Light-Scattering
-            Code: https://github.com/GameTechDev/OutdoorLightScattering (Apache-2.0 License)
-
-    You can find full license texts in /licenses
-*/
+// References:
+//     [BRU08] Bruneton, Eric. "Precomputed Atmospheric Scattering". EGSR 2008.
+//         https://hal.inria.fr/inria-00290084/document
+//     [HIL20] Hillaire, Sébastien. "A Scalable and Production Ready Sky and Atmosphere Rendering Technique".
+//         EGSR 2020. https://sebh.github.io/publications/egsr2020.pdf
+//     [YUS13] Yusov, Egor. “Practical Implementation of Light Scattering Effects Using Epipolar Sampling and
+//         1D Min/Max Binary Trees”. GDC 2013.
+//         http://gdcvault.com/play/1018227/Practical-Implementation-of-Light-Scattering
+//
+// Contains code adopted from:
+// https://github.com/GameTechDev/OutdoorLightScattering
+// Apache License 2.0
+// Copyright (c) 2017 Intel Corporation
+//
+// Contains code adopted from:
+// https://github.com/sebh/UnrealEngineSkyAtmosphere
+// MIT License
+// Copyright (c) 2020 Epic Games, Inc.
+//
+// You can find full license texts in /licenses
 #ifndef INCLUDE_atmosphere_Common.glsl
 #define INCLUDE_atmosphere_Common.glsl
 
 #include "../_Util.glsl"
-#include "Epipolar.glsl"
 
 #define MULTI_SCTR_LUT_SIZE 32
 #define PLANET_RADIUS_OFFSET 0.001
@@ -403,6 +408,74 @@ vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 di
     result = exp(-totalOpticalDepth);
 
     return result;
+}
+
+#if SETTING_EPIPOLAR_SLICES == 256
+
+#define EPIPOLAR_SLICE_D16 16
+#define EPIPOLAR_SLICE_D128 2
+
+#elif SETTING_EPIPOLAR_SLICES == 512
+
+#define EPIPOLAR_SLICE_D16 32
+#define EPIPOLAR_SLICE_D128 4
+
+#elif SETTING_EPIPOLAR_SLICES == 1024
+
+#define EPIPOLAR_SLICE_D16 64
+#define EPIPOLAR_SLICE_D128 8
+
+#elif SETTING_EPIPOLAR_SLICES == 2048
+
+#define EPIPOLAR_SLICE_D16 128
+#define EPIPOLAR_SLICE_D128 16
+
+#endif
+
+#if SETTING_SLICE_SAMPLES == 128
+
+#define SLICE_SAMPLE_D16 8
+
+#elif SETTING_SLICE_SAMPLES == 256
+
+#define SLICE_SAMPLE_D16 16
+
+#elif SETTING_SLICE_SAMPLES == 512
+
+#define SLICE_SAMPLE_D16 32
+
+#elif SETTING_SLICE_SAMPLES == 1024
+
+#define SLICE_SAMPLE_D16 64
+
+#endif
+
+
+#define INVALID_EPIPOLAR_LINE vec4(-1000.0, -1000.0, -100.0, -100.0)
+
+bool isValidScreenLocation(vec2 f2XY) {
+    const float SAFETY_EPSILON = 0.2f;
+    return all(lessThanEqual(abs(f2XY), 1.0 - (1.0 - SAFETY_EPSILON) / vec2(global_mainImageSizeI)));
+}
+
+vec4 getOutermostScreenPixelCoords() {
+    // The outermost visible screen pixels centers do not lie exactly on the boundary (+1 or -1), but are biased by
+    // 0.5 screen pixel size inwards
+    //
+    //                                        2.0
+    //    |<---------------------------------------------------------------------->|
+    //
+    //       2.0/Res
+    //    |<--------->|
+    //    |     X     |      X     |     X     |    ...    |     X     |     X     |
+    //   -1     |                                                            |    +1
+    //          |                                                            |
+    //          |                                                            |
+    //      -1 + 1.0/Res                                                  +1 - 1.0/Res
+    //
+    // Using shader macro is much more efficient than using constant buffer variable
+    // because the compiler is able to optimize the code more aggressively
+    return vec4(-1.0, -1.0, 1.0, 1.0) + vec4(1.0, 1.0, -1.0, -1.0) / global_mainImageSizeI.xyxy;
 }
 
 #endif
