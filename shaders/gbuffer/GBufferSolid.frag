@@ -141,8 +141,8 @@ void main() {
 
     #ifdef GBUFFER_PASS_PARTICLE
     gData.materialID = 65533u;
-    float particleEmissive = colors_srgbLuma(albedo.rgb * albedo.rgb);
-    gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + particleEmissive);
+//    float particleEmissive = colors_srgbLuma(albedo.rgb * albedo.rgb);
+//    gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + particleEmissive);
     #endif
 
     #ifdef GBUFFER_PASS_HAND

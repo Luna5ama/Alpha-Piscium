@@ -28,7 +28,6 @@ Material material_decode(GBufferData gData) {
     const float _1o255 = 1.0 / 255.0;
     float emissiveS = gData.pbrSpecular.a;
     material.emissive = emissiveS * 64.0 * material.albedo;
-    material.emissive = mix(material.emissive, emissiveS * 128.0 * material.albedo, float(gData.materialID == 65533u));
     material.emissive = mix(material.emissive, colors_blackBodyRadiation(SETTING_LAVA_TEMPERATURE, 1.0).a * material.albedo, float(gData.materialID == 1u));
     material.emissive = mix(material.emissive, colors_blackBodyRadiation(SETTING_FIRE_TEMPERATURE, 1.0).a * material.albedo, float(gData.materialID == 2u));
 

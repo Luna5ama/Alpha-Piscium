@@ -74,9 +74,7 @@ void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, inout vec3 
     ssgiOut += sunLighting;
     ssgiOut += moonLighting;
 
-    if (gData.materialID == 65533u) {
-        ssgiOut *= 0.25;
-    }
+    ssgiOut *= mix(1.0, 0.0, gData.materialID == 65533u);
 
     //    ssgiOut += skySpecularV;
 }
