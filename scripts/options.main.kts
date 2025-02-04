@@ -791,26 +791,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("BLOOM", 1) {
-                lang(Locale.US) {
-                    name = "Bloom"
-                }
-                toggle("SETTING_BLOOM", true) {
-                    lang(Locale.US) {
-                        name = "Bloom Enabled"
-                    }
-                }
-                slider("SETTING_BLOOM_INTENSITY", 1.0, 0.1..5.0 step 0.1) {
-                    lang(Locale.US) {
-                        name = "Bloom Intensity"
-                    }
-                }
-                slider("SETTING_BLOOM_RADIUS", 3.0, 1.0..5.0 step 0.5) {
-                    lang(Locale.US) {
-                        name = "Bloom Radius"
-                    }
-                }
-            }
             screen("TONE_MAPPING", 1) {
                 lang(Locale.US) {
                     name = "Tone Mapping"
@@ -818,6 +798,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_TONE_MAPPING_OUTPUT_GAMMA", 2.2, 0.1..4.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Output Gamma"
+                    }
+                }
+                empty()
+                toggle("SETTING_TONE_MAPPING_LOOK", 3, 0..3) {
+                    lang(Locale.US) {
+                        name = "Look"
+                        0 value "Default"
+                        1 value "Golden"
+                        2 value "Punchy"
+                        3 value "Custom"
                     }
                 }
                 empty()
@@ -872,6 +862,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_TONE_MAPPING_SATURATION", 1.15, 0.0..2.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Saturation"
+                    }
+                }
+            }
+            screen("BLOOM", 1) {
+                lang(Locale.US) {
+                    name = "Bloom"
+                }
+                toggle("SETTING_BLOOM", true) {
+                    lang(Locale.US) {
+                        name = "Bloom Enabled"
+                    }
+                }
+                slider("SETTING_BLOOM_INTENSITY", 1.0, 0.1..5.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "Bloom Intensity"
+                    }
+                }
+                slider("SETTING_BLOOM_RADIUS", 3.0, 1.0..5.0 step 0.5) {
+                    lang(Locale.US) {
+                        name = "Bloom Radius"
                     }
                 }
             }
