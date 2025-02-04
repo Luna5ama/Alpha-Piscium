@@ -27,8 +27,9 @@ void main() {
         color.rgb += sunRadiance * inScattering;
 
         vec4 translucentColorSample = texelFetch(usam_translucentColor, texelPos, 0);
-        float luminance = colors_srgbLuma(color.rgb);
-        color.rgb = mix(color.rgb, translucentColorSample.rgb * luminance, translucentColorSample.a);
+        float luminanceC = colors_srgbLuma(color.rgb) * 4.0;
+        float luminanceT = max(colors_srgbLuma(translucentColorSample.rgb), 1.0);
+        color.rgb = mix(color.rgb, translucentColorSample.rgb * (luminanceC / luminanceT), translucentColorSample.a);
 
 
         imageStore(uimg_main, texelPos, color);
