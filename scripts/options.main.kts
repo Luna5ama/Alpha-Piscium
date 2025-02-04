@@ -890,55 +890,78 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             lang(Locale.US) {
                 name = "Misc"
             }
-            screen("DEBUG_ATTRIB", 1) {
+            screen("DEBUG", 1) {
                 lang(Locale.US) {
-                    name = "Debug Attributes"
+                    name = "Debug"
                 }
-                toggle("SETTING_DEBUG_WHITE_WORLD", false)
-                toggle("SETTING_DEBUG_RTWSM", false)
-                toggle("SETTING_DEBUG_ATMOSPHERE", false)
-                toggle("SETTING_DEBUG_EPIPOLAR", false)
-                toggle("SETTING_DEBUG_WORLD_NORMAL", false)
-                toggle("SETTING_DEBUG_SSVBIL_AO", false)
-                toggle("SETTING_DEBUG_SSVBIL_GI", false)
-            }
-            screen("DEBUG_TEX", 1) {
-                lang(Locale.US) {
-                    name = "Debug Textures"
+                toggle("SETTING_DEBUG_WHITE_WORLD", false) {
+                    lang(Locale.US) {
+                        name = "White World"
+                    }
                 }
-                toggle("SETTING_DEBUG_TEX_GAMMA_CORRECT", true) {
+                empty()
+                toggle("SETTING_DEBUG_OUTPUT", 0, 0..3) {
+                    lang(Locale.US) {
+                        name = "Debug Output"
+                        0 value "Off"
+                        1 value "Tone Mapping"
+                        2 value "TAA"
+                        3 value "Final"
+                    }
+                }
+                toggle("SETTING_DEBUG_GAMMA_CORRECT", true) {
                     lang(Locale.US) {
                         name = "Gamma Correct"
                     }
                 }
-                slider("SETTING_DEBUG_TEX_EXP", -3.0, -10.0..10.0 step 0.1) {
+                slider("SETTING_DEBUG_EXP", 0.0, -10.0..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Exposure"
                     }
                 }
-                toggle("SETTING_DEBUG_TEX_TEMP1", false) {
+                toggle("SETTING_DEBUG_NEGATE", false) {
                     lang(Locale.US) {
-                        name = "Temp1"
+                        name = "Negate"
                     }
                 }
-                toggle("SETTING_DEBUG_TEX_TEMP2", false) {
+                toggle("SETTING_DEBUG_ALPHA", false) {
                     lang(Locale.US) {
-                        name = "Temp2"
+                        name = "Alpha"
                     }
                 }
-                toggle("SETTING_DEBUG_TEX_TEMP3", false) {
+                empty()
+                toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..4) {
                     lang(Locale.US) {
-                        name = "Temp3"
+                        name = "Temp Tex"
+                        0 value "Off"
+                        1 value "temp1"
+                        2 value "temp2"
+                        3 value "temp3"
+                        4 value "temp4"
                     }
                 }
-                toggle("SETTING_DEBUG_TEX_TEMP4", false) {
+                toggle("SETTING_DEBUG_SSVBIL", 0, 0..2) {
                     lang(Locale.US) {
-                        name = "Temp4"
+                        name = "SSVBIL"
+                        0 value "Off"
+                        1 value "GI"
+                        2 value "AO"
                     }
                 }
+                empty()
+                toggle("SETTING_DEBUG_NORMAL", 0, 1..2) {
+                    lang(Locale.US) {
+                        name = "Normal"
+                        0 value "Off"
+                        1 value "World"
+                        2 value "View"
+                    }
+                }
+                empty()
+                toggle("SETTING_DEBUG_RTWSM", false)
+                toggle("SETTING_DEBUG_ATMOSPHERE", false)
+                toggle("SETTING_DEBUG_EPIPOLAR", false)
             }
-            empty()
-            empty()
             toggle("SETTING_SCREENSHOT_MODE", false) {
                 lang(Locale.US) {
                     name = "Screenshot Mode"
