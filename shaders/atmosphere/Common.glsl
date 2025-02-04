@@ -9,8 +9,6 @@
             1D Min/Max Binary Trees”. GDC 2013.
             http://gdcvault.com/play/1018227/Practical-Implementation-of-Light-Scattering
             Code: https://github.com/GameTechDev/OutdoorLightScattering (Apache-2.0 License)
-        [BIO23] Biology2394. “Replace the atmosphere parameters with more accurate ones from ARPC”. 2023.
-            https://forums.flightsimulator.com/t/replace-the-atmosphere-parameters-with-more-accurate-ones-from-arpc/607603
 
     You can find full license texts in /licenses
 */
