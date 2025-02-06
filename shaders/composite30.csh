@@ -51,9 +51,8 @@ void main() {
         applyAtmosphere(outputColor);
 
         vec4 translucentColorSample = texelFetch(usam_translucentColor, texelPos, 0);
-        float luminanceC = colors_srgbLuma(outputColor.rgb) * 4.0;
-        float luminanceT = max(colors_srgbLuma(translucentColorSample.rgb), 1.0);
-        outputColor.rgb = mix(outputColor.rgb, translucentColorSample.rgb * (luminanceC / luminanceT), translucentColorSample.a);
+        float luminanceC = colors_srgbLuma(outputColor.rgb) / colors_srgbLuma(material.albedo);
+        outputColor.rgb = mix(outputColor.rgb, translucentColorSample.rgb * luminanceC, translucentColorSample.a);
 
         imageStore(uimg_main, texelPos, outputColor);
     }
