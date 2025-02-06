@@ -87,7 +87,12 @@ vec3 calcShadow(float sssFactor) {
     #endif
     ssRange += uval_sunAngularRadius * 2.0 * SETTING_PCSS_VPF * blockerDistance;
     ssRange = saturate(ssRange);
+
+    #if SETTING_PCSS_SAMPLE_PATTERN == 1
+    ssRange *= 0.5;
+    #else
     ssRange *= 0.4;
+    #endif
 
     #define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
@@ -101,9 +106,17 @@ vec3 calcShadow(float sssFactor) {
 
     for (int i = 0; i < SAMPLE_N; i++) {
         vec3 randomOffset = rand_r2Seq3(idxSS);
-        randomOffset.xy = randomOffset.xy * 2.0 - 1.0;
         vec3 sampleTexCoord = shadowTexCoord;
+
+        #if SETTING_PCSS_SAMPLE_PATTERN == 1
+        float theta = randomOffset.x * PI_2;
+        float r = sqrt(randomOffset.y) * ssRange;
+        sampleTexCoord.xy += r * vec2(cos(theta), sin(theta)) * vec2(shadowProjection[0][0], shadowProjection[1][1]);
+        #else
+        randomOffset.xy = randomOffset.xy * 2.0 - 1.0;
         sampleTexCoord.xy += ssRange * randomOffset.xy * vec2(shadowProjection[0][0], shadowProjection[1][1]);
+        #endif
+
         sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z + randomOffset.z * sssFactor * 2.0);
         vec2 texelSize;
         sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);

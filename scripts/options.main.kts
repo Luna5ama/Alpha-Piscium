@@ -593,16 +593,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Soft Shadows"
                         comment = "Soft Shadows settings"
                     }
-                    slider("SETTING_PCSS_BPF", 1.0, 0.0..10.0 step 0.5) {
+                    toggle("SETTING_PCSS_SAMPLE_PATTERN", 1, 0..1) {
                         lang(Locale.US) {
-                            name = "Base Penumbra Factor"
-                        }
-                    }
-                    slider("SETTING_PCSS_VPF", 1.0, 0.0..2.0 step 0.1) {
-                        lang(Locale.US) {
-                            name = "Variable Penumbra Factor"
-                            comment =
-                                "The penumbra factor is multiplied by the sun angular radius to determine the penumbra size. Noted that the sun angular radius is affected by the sun radius and distance settings."
+                            name = "Sample Pattern"
+                            comment = "Pattern used in PCSS, box pattern is faster but less accurate."
+                            0 value "Box"
+                            1 value "Disk"
                         }
                     }
                     slider("SETTING_PCSS_SAMPLE_COUNT", 8, listOf(1, 2, 4, 8, 16, 32, 64)) {
@@ -618,6 +614,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     slider("SETTING_PCSS_BLOCKER_SEARCH_LOD", 4, 0..8) {
                         lang(Locale.US) {
                             name = "Blocker Search LOD"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_PCSS_BPF", 1.0, 0.0..10.0 step 0.5) {
+                        lang(Locale.US) {
+                            name = "Base Penumbra Factor"
+                        }
+                    }
+                    slider("SETTING_PCSS_VPF", 1.0, 0.0..2.0 step 0.1) {
+                        lang(Locale.US) {
+                            name = "Variable Penumbra Factor"
+                            comment =
+                                "The penumbra factor is multiplied by the sun angular radius to determine the penumbra size. Noted that the sun angular radius is affected by the sun radius and distance settings."
                         }
                     }
                 }
