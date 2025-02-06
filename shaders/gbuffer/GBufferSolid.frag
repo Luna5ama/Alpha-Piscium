@@ -33,7 +33,7 @@ vec4 processAlbedo() {
     vec4 albedo = frag_colorMul;
 
     #ifdef GBUFFER_PASS_TEXTURED
-    albedo *= texture(gtexture, frag_texCoord);
+    albedo *= textureLod(gtexture, frag_texCoord, 0.0);
     #endif
 
     #ifdef GBUFFER_PASS_ENTITY_COLOR

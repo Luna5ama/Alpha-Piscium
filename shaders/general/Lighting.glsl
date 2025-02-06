@@ -81,7 +81,6 @@ vec3 calcShadow(float sssFactor) {
     shadowTexCoord.z = rtwsm_linearDepth(shadowTexCoord.z);
 
     float ssRange = 0.0;
-    ssRange += sssFactor * 0.1;
     #if SETTING_PCSS_BPF > 0
     ssRange += exp2(SETTING_PCSS_BPF - 10.0);
     #endif
@@ -89,10 +88,12 @@ vec3 calcShadow(float sssFactor) {
     ssRange = saturate(ssRange);
 
     #if SETTING_PCSS_SAMPLE_PATTERN == 1
-    ssRange *= 0.5;
+    const float ssRangeMul = 0.5;
     #else
-    ssRange *= 0.4;
+    const float ssRangeMul = 0.4;
     #endif
+
+    ssRange *= ssRangeMul;
 
     #define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
@@ -106,18 +107,22 @@ vec3 calcShadow(float sssFactor) {
 
     for (int i = 0; i < SAMPLE_N; i++) {
         vec3 randomOffset = rand_r2Seq3(idxSS);
+        vec3 random2 = randomOffset * randomOffset;
         vec3 sampleTexCoord = shadowTexCoord;
 
         #if SETTING_PCSS_SAMPLE_PATTERN == 1
         float theta = randomOffset.x * PI_2;
         float r = sqrt(randomOffset.y) * ssRange;
+        r += random2.z * sssFactor * ssRangeMul * 2.0;
         sampleTexCoord.xy += r * vec2(cos(theta), sin(theta)) * vec2(shadowProjection[0][0], shadowProjection[1][1]);
         #else
-        randomOffset.xy = randomOffset.xy * 2.0 - 1.0;
-        sampleTexCoord.xy += ssRange * randomOffset.xy * vec2(shadowProjection[0][0], shadowProjection[1][1]);
+        vec2 r = (randomOffset.xy * 2.0 - 1.0) * ssRange;
+        r += (random2.xy * 2.0 - 1.0) * sssFactor * ssRangeMul * 0.5;
+        sampleTexCoord.xy += r * vec2(shadowProjection[0][0], shadowProjection[1][1]);
         #endif
 
-        sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z + randomOffset.z * sssFactor * 2.0);
+        sampleTexCoord.z += random2.z * sssFactor * 2.0;
+        sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
         vec2 texelSize;
         sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
         float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
@@ -127,13 +132,12 @@ vec3 calcShadow(float sssFactor) {
         float sampleShadow0 = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
         float sampleShadow1 = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
         vec4 sampleColor = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0);
-        sampleColor.rgb = mix(vec3(1.0), sampleColor.rgb, float(sampleShadow0 < 1.0));
+        sampleColor.rgb = mix(vec3(1.0), sampleColor.rgb * sampleColor.rgb, float(sampleShadow0 < 1.0));
 
         shadow += min(sampleColor.rgb, sampleShadow1.rrr);
         idxSS++;
     }
     shadow /= float(SAMPLE_N);
-    shadow *= shadow;
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(worldCoord.xz));
     return mix(shadow, vec3(1.0), shadowRangeBlend);
 }
@@ -192,14 +196,25 @@ vec3 calcFresnel(Material material, float dotP) {
 }
 
 vec3 directLighting(Material material, vec3 shadow, vec3 irradiance, vec3 L, vec3 N, vec3 V, vec3 F) {
-    vec3 NSss = normalize(mix(N, L, material.sss * 0.9));
     vec3 H = normalize(L + V);
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);
-    float NDotL = dot(NSss, L);
+    float NDotL = dot(N, L);
     //    vec3 diffuseV = shadow * irradiance * bsdf_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
     //    sunDiffuseV *= vec3(1.0) - fresnel;
-    vec3 diffuseV = saturate(NDotL) * RCP_PI * shadow * irradiance * material.albedo;
-    vec3 result = diffuseV;
+
+    float diffuseV = saturate(NDotL) * RCP_PI;
+    vec3 diffuse = diffuseV * shadow * irradiance * material.albedo;
+
+    float shadowPow = saturate(1.0 - colors_srgbLuma(shadow));
+    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + shadowPow * shadowPow;
+
+    float backDot = saturate(NDotL * -0.5 + 0.5);
+    float sssV = material.sss * RCP_PI * backDot;
+    vec3 sss = sssV * pow(material.albedo, vec3(shadowPow)) * shadow * irradiance;
+
+    vec3 result = vec3(0.0);
+    result += diffuse;
+    result += sss * SETTING_SSS_STRENGTH;
     return result;
 }

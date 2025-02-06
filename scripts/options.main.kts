@@ -499,6 +499,21 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             empty()
             empty()
             empty()
+            screen("DIRECT_LIGHTING", 1) {
+                lang(Locale.US) {
+                    name = "Direct Lighting"
+                }
+                slider("SETTING_SSS_STRENGTH", 2.0, 0.0..5.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "SSS Strength"
+                    }
+                }
+                slider("SETTING_SSS_HIGHLIGHT", 0.5, 0.0..1.0 step 0.05) {
+                    lang(Locale.US) {
+                        name = "SSS Highlight"
+                    }
+                }
+            }
             screen("SHADOW", 2) {
                 lang(Locale.US) {
                     name = "Shadow"
@@ -686,10 +701,10 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("PBR", 1) {
+        screen("TEXTURE", 1) {
             lang(Locale.US) {
-                name = "PBR"
-                comment = "Physically Based Rendering settings"
+                name = "Texture"
+                comment = "Texture settings"
             }
             toggle("SETTING_NORMAL_MAPPING", true) {
                 lang(Locale.US) {
