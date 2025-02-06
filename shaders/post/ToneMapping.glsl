@@ -8,20 +8,11 @@
 // All values used to derive this implementation are sourced from Troy’s initial AgX implementation/OCIO config file available here:
 //   https://github.com/sobotka/AgX
 
-#extension GL_KHR_shader_subgroup_ballot : enable
-#extension GL_KHR_shader_subgroup_arithmetic : enable
-
 #include "../_Util.glsl"
-
-layout(local_size_x = 16, local_size_y = 16) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
+#include "../util/FullScreenComp.glsl"
 
 shared uint shared_lumHistogram[256];
 shared uint shared_topBinSum;
-
-layout(rgba16f) restrict uniform image2D uimg_main;
-layout(rgba16f) readonly uniform image2D uimg_temp1;
-layout(rgba16f) writeonly uniform image2D uimg_temp2;
 
 // Mean error^2: 3.6705141e-06
 vec3 agxDefaultContrastApprox(vec3 x) {
@@ -40,7 +31,7 @@ vec3 agxDefaultContrastApprox(vec3 x) {
 vec3 agx(vec3 val) {
     const mat3 agx_mat = mat3(
         0.842479062253094, 0.0423282422610123, 0.0423756549057051,
-        0.0784335999999992,  0.878468636469772,  0.0784336,
+        0.0784335999999992, 0.878468636469772, 0.0784336,
         0.0792237451477643, 0.0791661274605434, 0.879142973793104
     );
 
@@ -121,43 +112,36 @@ uint histoIndex(float x, float range, uint outputRangeExclusive) {
     return binIndex;
 }
 
-void main() {
+void toneMapping_init() {
     shared_lumHistogram[gl_LocalInvocationIndex] = 0u;
     shared_topBinSum = 0u;
     barrier();
+}
 
-    ivec2 imgSize = imageSize(uimg_main);
-    ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
+void toneMapping_apply(inout vec4 outputColor) {
+    outputColor.rgb *= global_exposure.w;
+    outputColor.rgb = agx(outputColor.rgb);
+    outputColor.rgb = agxLook(outputColor.rgb);
+    outputColor.rgb = agxEotf(outputColor.rgb);
+    outputColor.rgb = saturate(outputColor.rgb);
 
-    if (all(lessThan(pixelPos, imgSize))) {
-        vec4 color = imageLoad(uimg_main, pixelPos);
-        color.rgb *= global_exposure.w;
-        color.rgb = agx(color.rgb);
-        color.rgb = agxLook(color.rgb);
-        color.rgb = agxEotf(color.rgb);
-        color.rgb = saturate(color.rgb);
+    float lumimance = colors_srgbLuma(outputColor.rgb);
 
-        float lumimance = colors_srgbLuma(color.rgb);
+    uint binIndexTop = histoIndex(lumimance, SETTING_EXPOSURE_TOP_BIN_LUM, 4);
+    uvec4 topBinBallot = subgroupBallot(binIndexTop == 3u);
+    uint topBinSum = subgroupBallotBitCount(topBinBallot);
+    if (subgroupElect()) {
+        atomicAdd(shared_topBinSum, topBinSum);
+    }
 
-        uint binIndexTop = histoIndex(lumimance, SETTING_EXPOSURE_TOP_BIN_LUM, 4);
-        uvec4 topBinBallot = subgroupBallot(binIndexTop == 3u);
-        uint topBinSum = subgroupBallotBitCount(topBinBallot);
-        if (subgroupElect()) {
-            atomicAdd(shared_topBinSum, topBinSum);
-        }
+    uint binIndexAvg = histoIndex(lumimance, 1.0, 256);
+    atomicAdd(shared_lumHistogram[binIndexAvg], 1u);
+    barrier();
 
-        uint binIndexAvg = histoIndex(lumimance, 1.0, 256);
-        atomicAdd(shared_lumHistogram[binIndexAvg], 1u);
+    outputColor.rgb = pow(outputColor.rgb, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
+    atomicAdd(global_lumHistogram[gl_LocalInvocationIndex], shared_lumHistogram[gl_LocalInvocationIndex]);
 
-        color.rgb = pow(color.rgb, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
-        imageStore(uimg_main, pixelPos, color);
-
-        barrier();
-
-        atomicAdd(global_lumHistogram[gl_LocalInvocationIndex], shared_lumHistogram[gl_LocalInvocationIndex]);
-
-        if (gl_LocalInvocationIndex == 0) {
-            atomicAdd(global_lumHistogram[256], shared_topBinSum);
-        }
+    if (gl_LocalInvocationIndex == 0) {
+        atomicAdd(global_lumHistogram[256], shared_topBinSum);
     }
 }

@@ -15,6 +15,7 @@
 #define BLOOM_SCALE_DIV (BLOOM_PASS - 1)
 #endif
 
+#ifndef BLOOM_NON_STANDALONE
 #if BLOOM_SCALE_DIV == 0
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 #elif BLOOM_SCALE_DIV == 1
@@ -38,6 +39,11 @@ const vec2 workGroupsRender = vec2(0.001953125, 0.001953125);
 #elif BLOOM_SCALE_DIV == 10
 const vec2 workGroupsRender = vec2(0.0009765625, 0.0009765625);
 #endif
+layout(local_size_x = 16, local_size_y = 16) in;
+#endif
+
+void bloom_init();
+vec4 bloom_main(ivec2 texelPos);
 
 #if BLOOM_DOWN_SAMPLE
 
@@ -91,7 +97,6 @@ vec2 inputStartTexel = (vec2(inputStartPixel) + 0.5) * texelSize;
 vec2 inputEndTexel = (vec2(inputEndPixel) - 0.5) * texelSize;
 
 #if BLOOM_DOWN_SAMPLE
-
 vec4 bloom_readInputDown(ivec2 coord) {
     vec2 readPosUV = vec2(coord + inputStartPixel) * texelSize;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
@@ -106,24 +111,6 @@ void bloom_writeOutput(ivec2 coord, vec4 data) {
     coord.x += outputOffset;
     imageStore(BLOOM_IMAGE, coord, data);
 }
-#elif BLOOM_UP_SAMPLE
-vec4 bloom_readInputUp(ivec2 coord, ivec2 offset) {
-    vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartPixel) * texelSize;
-    readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
-    return texture(BLOOM_SAMPLER, readPosUV);
-}
-
-void bloom_writeOutput(ivec2 coord, vec4 data) {
-    coord.x += outputOffset;
-    vec4 writeData = imageLoad(BLOOM_IMAGE, coord);
-    writeData += data;
-    imageStore(BLOOM_IMAGE, coord, writeData);
-}
-#endif
-
-layout(local_size_x = 16, local_size_y = 16) in;
-
-#if BLOOM_DOWN_SAMPLE
 // ------ Down Sample Pass ------
 shared uvec2 shared_dataCache[35][18];
 
@@ -162,9 +149,7 @@ void computeReadPos(uint index, out ivec2 writePos, out ivec2 readPos) {
     readPos -= 1 -(readPos.y & 1);
 }
 
-void main() {
-    ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
-
+void bloom_init() {
     ivec2 writePos;
     ivec2 readPos;
 
@@ -180,79 +165,98 @@ void main() {
     }
 
     barrier();
+}
+vec4 bloom_main(ivec2 texelPos) {
+    ivec2 centerPos = ivec2(gl_LocalInvocationID.xy);
+    centerPos.y = centerPos.y << 1;
 
-    if (all(lessThan(pixelPos, bloom_outputSize))) {
-        ivec2 centerPos = ivec2(gl_LocalInvocationID.xy);
-        centerPos.y = centerPos.y << 1;
+    // e _ f _ g
+    // _ a _ b _
+    // h _ i _ j
+    // _ c _ d _
+    // k _ l _ m
+    // a,b,c,d: 0.5 (0.125)
+    // e,f,h,i: 0.125 (0.03125)
+    // f,g,i,j: 0.125 (0.03125)
+    // h,i,k,l: 0.125 (0.03125)
+    // i,j,l,m: 0.125 (0.03125)
+    vec4 e = readCache(centerPos);
+    vec4 f = readCache(centerPos + ivec2(1, 0));
+    vec4 g = readCache(centerPos + ivec2(2, 0));
 
-        // e _ f _ g
-        // _ a _ b _
-        // h _ i _ j
-        // _ c _ d _
-        // k _ l _ m
-        // a,b,c,d: 0.5 (0.125)
-        // e,f,h,i: 0.125 (0.03125)
-        // f,g,i,j: 0.125 (0.03125)
-        // h,i,k,l: 0.125 (0.03125)
-        // i,j,l,m: 0.125 (0.03125)
-        vec4 e = readCache(centerPos);
-        vec4 f = readCache(centerPos + ivec2(1, 0));
-        vec4 g = readCache(centerPos + ivec2(2, 0));
+    vec4 a = readCache(centerPos + ivec2(0, 1));
+    vec4 b = readCache(centerPos + ivec2(1, 1));
 
-        vec4 a = readCache(centerPos + ivec2(0, 1));
-        vec4 b = readCache(centerPos + ivec2(1, 1));
+    vec4 h = readCache(centerPos + ivec2(0, 2));
+    vec4 i = readCache(centerPos + ivec2(1, 2));
+    vec4 j = readCache(centerPos + ivec2(2, 2));
 
-        vec4 h = readCache(centerPos + ivec2(0, 2));
-        vec4 i = readCache(centerPos + ivec2(1, 2));
-        vec4 j = readCache(centerPos + ivec2(2, 2));
+    vec4 c = readCache(centerPos + ivec2(0, 3));
+    vec4 d = readCache(centerPos + ivec2(1, 3));
 
-        vec4 c = readCache(centerPos + ivec2(0, 3));
-        vec4 d = readCache(centerPos + ivec2(1, 3));
+    vec4 k = readCache(centerPos + ivec2(0, 4));
+    vec4 l = readCache(centerPos + ivec2(1, 4));
+    vec4 m = readCache(centerPos + ivec2(2, 4));
 
-        vec4 k = readCache(centerPos + ivec2(0, 4));
-        vec4 l = readCache(centerPos + ivec2(1, 4));
-        vec4 m = readCache(centerPos + ivec2(2, 4));
+    vec4 result = vec4(0.0);
+    result += karisAverage(a + b + c + d) * 0.125;
+    result += karisAverage(e + f + g + h) * 0.03125;
+    result += karisAverage(f + g + i + j) * 0.03125;
+    result += karisAverage(h + i + k + l) * 0.03125;
+    result += karisAverage(i + j + l + m) * 0.03125;
 
-        vec4 result = vec4(0.0);
-        result += karisAverage(a + b + c + d) * 0.125;
-        result += karisAverage(e + f + g + h) * 0.03125;
-        result += karisAverage(f + g + i + j) * 0.03125;
-        result += karisAverage(h + i + k + l) * 0.03125;
-        result += karisAverage(i + j + l + m) * 0.03125;
-
-        bloom_writeOutput(pixelPos, result);
-    }
+    return result;
 }
 #elif BLOOM_UP_SAMPLE
+vec4 bloom_readInputUp(ivec2 coord, ivec2 offset) {
+    vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartPixel) * texelSize;
+    readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
+    return texture(BLOOM_SAMPLER, readPosUV);
+}
+
+void bloom_writeOutput(ivec2 coord, vec4 data) {
+    coord.x += outputOffset;
+    vec4 writeData = imageLoad(BLOOM_IMAGE, coord);
+    writeData += data;
+    imageStore(BLOOM_IMAGE, coord, writeData);
+}
 // ------ Up Sample Pass ------
+void bloom_init() { }
+vec4 bloom_main(ivec2 texelPos) {
+    // a b c
+    // d e f
+    // g h i
+    // a,c,g,i: 1/16 (0.0625)
+    // b,d,f,h: 2/16 (0.125)
+    // e: 4/16 (0.25)
+    vec4 result = vec4(0.0);
+
+    vec4 a = bloom_readInputUp(texelPos, ivec2(-1, -1));
+    vec4 c = bloom_readInputUp(texelPos, ivec2(1, -1));
+    vec4 g = bloom_readInputUp(texelPos, ivec2(-1, 1));
+    vec4 i = bloom_readInputUp(texelPos, ivec2(1, 1));
+    result += (a + c + g + i) * 0.0625;
+
+    vec4 b = bloom_readInputUp(texelPos, ivec2(0, -1));
+    vec4 d = bloom_readInputUp(texelPos, ivec2(-1, 0));
+    vec4 f = bloom_readInputUp(texelPos, ivec2(1, 0));
+    vec4 h = bloom_readInputUp(texelPos, ivec2(0, 1));
+    result += (b + d + f + h) * 0.125;
+
+    vec4 e = bloom_readInputUp(texelPos, ivec2(0, 0));
+    result += e * 0.25;
+
+    return result;
+}
+#endif
+
+#ifndef BLOOM_NON_STANDALONE
 void main() {
-    ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
-
-    if (all(lessThan(pixelPos, bloom_outputSize))) {
-        // a b c
-        // d e f
-        // g h i
-        // a,c,g,i: 1/16 (0.0625)
-        // b,d,f,h: 2/16 (0.125)
-        // e: 4/16 (0.25)
-        vec4 result = vec4(0.0);
-
-        vec4 a = bloom_readInputUp(pixelPos, ivec2(-1, -1));
-        vec4 c = bloom_readInputUp(pixelPos, ivec2(1, -1));
-        vec4 g = bloom_readInputUp(pixelPos, ivec2(-1, 1));
-        vec4 i = bloom_readInputUp(pixelPos, ivec2(1, 1));
-        result += (a + c + g + i) * 0.0625;
-
-        vec4 b = bloom_readInputUp(pixelPos, ivec2(0, -1));
-        vec4 d = bloom_readInputUp(pixelPos, ivec2(-1, 0));
-        vec4 f = bloom_readInputUp(pixelPos, ivec2(1, 0));
-        vec4 h = bloom_readInputUp(pixelPos, ivec2(0, 1));
-        result += (b + d + f + h) * 0.125;
-
-        vec4 e = bloom_readInputUp(pixelPos, ivec2(0, 0));
-        result += e * 0.25;
-
-        bloom_writeOutput(pixelPos, result);
+    bloom_init();
+    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+    if (all(lessThan(texelPos, bloom_outputSize))) {
+        vec4 result = bloom_main(texelPos);
+        bloom_writeOutput(texelPos, result);
     }
 }
 #endif
