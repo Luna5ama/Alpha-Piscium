@@ -24,13 +24,13 @@ uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_multiSctrLUT;
 
-uniform sampler2D usam_rtwsm_warpingMap;
+uniform sampler2D usam_rtwsm_imap;
 const bool shadowHardwareFiltering0 = true;
 uniform sampler2DShadow shadowtex0HW;
 
 float sampleShadow(vec3 shadowPos) {
     vec3 sampleTexCoord = shadowPos;
-    sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_warpingMap, sampleTexCoord.xy);
+    sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
     return rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
 }
 

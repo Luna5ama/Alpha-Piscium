@@ -7,8 +7,8 @@
 layout(local_size_x = IMAP_SIZE_D2, local_size_y = 1, local_size_z = 1) in;
 const ivec3 workGroups = ivec3(SETTING_RTWSM_IMAP_SIZE, 2, 1);
 
-layout(r32f) uniform writeonly image2D uimg_rtwsm_imap1D;
-uniform sampler2D usam_rtwsm_imap2D;
+layout(r32f) uniform writeonly image2D uimg_rtwsm_imap;
+uniform sampler2D usam_rtwsm_imap;
 
 shared float shared_reduceBuffer[IMAP_SIZE_D32];
 
@@ -25,7 +25,8 @@ void main() {
     vec2 coord = (vec2(coordI) + 0.5 + coordDelta * 0.5) * TEXEL_SIZE;
 
     {
-        float tValue = texture(usam_rtwsm_imap2D, coord).r;
+        coord.y = min(coord.y * IMAP2D_V_RANGE, IMAP2D_V_CLAMP);
+        float tValue = texture(usam_rtwsm_imap, coord).r;
         float subgroupMax = subgroupMax(tValue);
         if (subgroupElect()) {
             shared_reduceBuffer[gl_SubgroupID] = subgroupMax;
@@ -50,6 +51,8 @@ void main() {
     }
 
     if (gl_LocalInvocationID.x == 0) {
-        imageStore(uimg_rtwsm_imap1D, ivec2(gl_WorkGroupID.x, gl_WorkGroupID.y), vec4(shared_reduceBuffer[0], 0.0, 0.0, 0.0));
+        ivec2 outputPos = ivec2(gl_WorkGroupID.xy);
+        outputPos.y += IMAP1D_X_Y;
+        imageStore(uimg_rtwsm_imap, outputPos, vec4(shared_reduceBuffer[0], 0.0, 0.0, 0.0));
     }
 }

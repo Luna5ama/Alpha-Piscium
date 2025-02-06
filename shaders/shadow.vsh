@@ -3,9 +3,9 @@
 #include "_Util.glsl"
 #include "rtwsm/RTWSM.glsl"
 
-uniform sampler2D usam_rtwsm_warpingMap;
+uniform sampler2D usam_rtwsm_imap;
 
-layout(r32i) uniform iimage2D uimg_rtwsm_imap2D;
+layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 
 attribute vec4 mc_Entity;
 
@@ -23,9 +23,8 @@ void main() {
 	frag_viewZ = -gl_Position.w;
 	gl_Position /= gl_Position.w;
 
-	vec2 texelSize;
 	vec2 vPosTS = gl_Position.xy * 0.5 + 0.5;
-	vPosTS = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, vPosTS, texelSize);
+	vPosTS = rtwsm_warpTexCoord(usam_rtwsm_imap, vPosTS);
 
 	gl_Position.xy = vPosTS * 2.0 - 1.0;
 
@@ -53,7 +52,7 @@ void main() {
 
 		importance = max(importance, uval_rtwsmMin.x);
 
-		imageAtomicMax(uimg_rtwsm_imap2D, importanceTexelPos, floatBitsToInt(importance));
+		imageAtomicMax(uimg_rtwsm_imap, importanceTexelPos, floatBitsToInt(importance));
  	}
 	#endif
 }

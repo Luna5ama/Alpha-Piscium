@@ -18,9 +18,9 @@ uniform sampler2D usam_gbufferViewZ;
 
 uniform sampler2D depthtex0;
 uniform sampler2D shadowtex0;
-uniform sampler2D usam_rtwsm_warpingMap;
+//uniform sampler2D usam_rtwsm_imap;
 
-layout(r32i) uniform iimage2D uimg_rtwsm_imap2D;
+layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 
 void importance(ivec2 gCoord, out uint p, out float v) {
     ivec2 gbufferTextureSize = textureSize(usam_gbufferData, 0);
@@ -60,22 +60,22 @@ void importance(ivec2 gCoord, out uint p, out float v) {
 //    importance *= 1.0 + LSN_BETA * sqrt(pDist) * pow(1.0 - abs(dot(normalMatrix * worldNormal, uval_shadowLightDirView)), 8.0);
 
     // Shadow Edge function
-    #if SETTING_RTWSM_B_SE < 1.0
-    vec2 shadowTSWarped = rtwsm_warpTexCoord(usam_rtwsm_warpingMap, shadowTS);
-
-    float center = rtwsm_linearDepth(texture(shadowtex0, shadowTSWarped).x);
-    float maxDiff = 0.0;
-    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, -1)).x)));
-    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, 0)).x)));
-    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, 1)).x)));
-    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(0, -1)).x)));
-    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(0, 1)).x)));
-    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(1, -1)).x)));
-    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 0)).x)));
-    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 1)).x)));
-
-    importance *= mix(SETTING_RTWSM_B_SE, 1.0, linearStep(0.5, 4.0, maxDiff));
-    #endif
+//    #if SETTING_RTWSM_B_SE < 1.0
+//    vec2 shadowTSWarped = rtwsm_warpTexCoord(usam_rtwsm_imap, shadowTS);
+//
+//    float center = rtwsm_linearDepth(texture(shadowtex0, shadowTSWarped).x);
+//    float maxDiff = 0.0;
+//    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, -1)).x)));
+//    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, 0)).x)));
+//    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(-1, 1)).x)));
+//    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(0, -1)).x)));
+//    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(0, 1)).x)));
+//    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(1, -1)).x)));
+//    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 0)).x)));
+//    maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 1)).x)));
+//
+//    importance *= mix(SETTING_RTWSM_B_SE, 1.0, linearStep(0.5, 4.0, maxDiff));
+//    #endif
 
     if (shadowCS.x < -1.0 || shadowCS.x > 1.0 || shadowCS.y < -1.0 || shadowCS.y > 1.0 || shadowCS.z < -1.0 || shadowCS.z > 1.0) {
         p = 0xFFFFFFFFu;
@@ -95,7 +95,7 @@ void importance(ivec2 gCoord, out uint p, out float v) {
 
 void writeOutput(uint p, float v) {
     if (p == 0xFFFFFFFFu) return;
-    imageAtomicMax(uimg_rtwsm_imap2D, ivec2(p & 0xFFFFu, p >> 16), floatBitsToInt(v));
+    imageAtomicMax(uimg_rtwsm_imap, ivec2(p & 0xFFFFu, p >> 16), floatBitsToInt(v));
 }
 
 void main() {

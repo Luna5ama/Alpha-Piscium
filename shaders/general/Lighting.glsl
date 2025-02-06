@@ -13,7 +13,7 @@ uniform sampler2D shadowtex1;
 uniform sampler2DShadow shadowtex1HW;
 
 uniform sampler2D shadowcolor0;
-uniform sampler2D usam_rtwsm_warpingMap;
+uniform sampler2D usam_rtwsm_imap;
 
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_skyLUT;
@@ -39,8 +39,7 @@ float searchBlocker(vec3 shadowTexCoord) {
         vec2 randomOffset = (rand_r2Seq2(idxB) * 2.0 - 1.0);
         vec3 sampleTexCoord = shadowTexCoord;
         sampleTexCoord.xy += randomOffset * blockerSearchRange * vec2(shadowProjection[0][0], shadowProjection[1][1]);
-        vec2 texelSize;
-        sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, sampleTexCoord.xy, texelSize);
+        sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
         float depth = rtwsm_sampleShadowDepth(shadowtex0, sampleTexCoord, BLOCKER_SEARCH_LOD).r;
         bool isBlocker = sampleTexCoord.z > depth;
         blockerDepth += float(isBlocker) * depth;
@@ -107,7 +106,7 @@ vec3 calcShadow(float sssFactor) {
         sampleTexCoord.xy += ssRange * randomOffset.xy * vec2(shadowProjection[0][0], shadowProjection[1][1]);
         sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z + randomOffset.z * sssFactor * 2.0);
         vec2 texelSize;
-        sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_warpingMap, sampleTexCoord.xy, texelSize);
+        sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
         float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
         depthBias = min(depthBias, 0.001);
         sampleTexCoord.z -= depthBias;
