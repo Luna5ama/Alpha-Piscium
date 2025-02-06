@@ -16,9 +16,7 @@ layout(local_size_x = 1, local_size_y = SETTING_SLICE_SAMPLES) in;
 const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
 
 layout(rgba32f) uniform readonly image2D uimg_epipolarSliceEnd;
-layout(rgba16f) uniform writeonly image2D uimg_epipolarInSctr;
-layout(rgba16f) uniform writeonly image2D uimg_epipolarTransmittance;
-layout(r32f) uniform writeonly image2D uimg_epipolarViewZ;
+layout(rgba32ui) uniform writeonly uimage2D uimg_epipolarData;
 
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_transmittanceLUT;
@@ -180,8 +178,12 @@ void main() {
         vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
 
         ScatteringResult result = computeSingleScattering(atmosphere, vec3(0.0), viewCoord, ignValue);
-        imageStore(uimg_epipolarInSctr, pixelPos, vec4(result.inScattering, 0.0));
-        imageStore(uimg_epipolarTransmittance, pixelPos, vec4(result.transmittance, 0.0));
-        imageStore(uimg_epipolarViewZ, pixelPos, vec4(viewZ));
+
+        uvec4 outputData;
+        outputData.x = packHalf2x16(result.inScattering.rg);
+        outputData.y = packHalf2x16(vec2(result.inScattering.b, result.transmittance.r));
+        outputData.z = packHalf2x16(result.transmittance.gb);
+        outputData.w = floatBitsToUint(viewZ);
+        imageStore(uimg_epipolarData, pixelPos, outputData);
     }
 }

@@ -15,7 +15,7 @@ void main() {
         vec3 transmittance;
         vec2 texCoord = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-        UnwarpEpipolarInsctrImage(texCoord * 2.0 - 1.0, viewZ, inScattering, transmittance);
+        unwarpEpipolarInsctrImage(texCoord * 2.0 - 1.0, viewZ, inScattering, transmittance);
 
         vec4 outputColor = imageLoad(uimg_main, texelPos);
 
