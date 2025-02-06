@@ -526,7 +526,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "RTWSM"
                         comment = "Rectilinear Texture Warping Shadow Mapping settings"
                     }
-                    slider("SETTING_RTWSM_IMAP_SIZE", 1024, listOf(256, 512, 1024)) {
+                    slider("SETTING_RTWSM_IMAP_SIZE", 512, listOf(256, 512, 1024)) {
                         lang(Locale.US) {
                             name = "Importance Map Resolution"
                         }
@@ -537,19 +537,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Forward Importance Analysis"
                         }
                     }
-                    slider("SETTING_RTWSM_F_BASE", 0.4, 0.0..1.0 step 0.05) {
+                    slider("SETTING_RTWSM_F_BASE", 0.5, 0.0..1.0 step 0.05) {
                         lang(Locale.US) {
                             name = "Forward Base Value"
                         }
                     }
-                    slider("SETTING_RTWSM_F_MIN", 8, 0..20) {
+                    slider("SETTING_RTWSM_F_MIN", 20, 0..20) {
                         lang(Locale.US) {
                             name = "Forward Min Value"
                             comment =
                                 "Minimum importance value for forward importance analysis. The actual minimum value is calculated as 2^-x."
                         }
                     }
-                    slider("SETTING_RTWSM_F_D", 1024, listOf(0) + (0..16).map { 1 shl it }) {
+                    slider("SETTING_RTWSM_F_D", 256, listOf(0) + (0..16).map { 1 shl it }) {
                         lang(Locale.US) {
                             name = "Forward Distance Function"
                         }
@@ -565,7 +565,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Backward Base Value"
                         }
                     }
-                    slider("SETTING_RTWSM_B_MIN", 12, 0..20) {
+                    slider("SETTING_RTWSM_B_MIN", 4, 0..20) {
                         lang(Locale.US) {
                             name = "Backward Min Value"
                             comment =
@@ -577,7 +577,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Backward Distance Function"
                         }
                     }
-                    slider("SETTING_RTWSM_B_SN", 4.0, 0.0..10.0 step 0.5) {
+                    slider("SETTING_RTWSM_B_SN", 2.0, 0.0..10.0 step 0.5) {
                         lang(Locale.US) {
                             name = "Backward Surface Normal Function"
                         }
