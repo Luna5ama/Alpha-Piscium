@@ -17,10 +17,15 @@ layout(rgba16f) restrict uniform image2D uimg_main;
 
 void main() {
     toneMapping_init();
+    #ifdef SETTING_BLOOM
     bloom_init();
+    #endif
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
+
+        #ifdef SETTING_BLOOM
         outputColor += bloom_main(texelPos);
+        #endif
 
         #if SETTING_DEBUG_OUTPUT == 1
         debugOutput(outputColor);
