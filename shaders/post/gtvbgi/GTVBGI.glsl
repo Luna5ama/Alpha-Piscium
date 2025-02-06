@@ -658,7 +658,7 @@ void main() {
     ivec2 intTexelPos = ivec2(gl_FragCoord.xy);
     float centerViewZ = texelFetch(usam_gbufferViewZ, intTexelPos, 0).r;
 
-    rt_out = vec4(0.0, 0.0, 0.0, 1.0);
+    rt_out = vec4(0.0, 0.0, 0.0, 0.0);
     if (centerViewZ < 0.0) {
         vec3 N = texelFetch(usam_temp1, intTexelPos, 0).rgb;
         N = mat3(gbufferModelViewInverse) * N;

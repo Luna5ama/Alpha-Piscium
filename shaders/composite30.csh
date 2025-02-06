@@ -50,8 +50,9 @@ void main() {
 
         applyAtmosphere(outputColor);
 
+        float albedoLuminance = all(equal(gData.albedo, vec3(0.0))) ? 0.1 : colors_srgbLuma(material.albedo);
+        float luminanceC = colors_srgbLuma(outputColor.rgb) / albedoLuminance;
         vec4 translucentColorSample = texelFetch(usam_translucentColor, texelPos, 0);
-        float luminanceC = colors_srgbLuma(outputColor.rgb) / colors_srgbLuma(material.albedo);
         outputColor.rgb = mix(outputColor.rgb, translucentColorSample.rgb * luminanceC, translucentColorSample.a);
 
         imageStore(uimg_main, texelPos, outputColor);
