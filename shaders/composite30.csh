@@ -2,6 +2,7 @@
 
 #include "util/FullScreenComp.glsl"
 #include "atmosphere/UnwrapEpipolar.comp"
+#include "atmosphere/Scattering.glsl"
 
 uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_ssvbil;
@@ -9,14 +10,32 @@ uniform sampler2D usam_translucentColor;
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 
+float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
+
+void applyAtmosphere(inout vec4 outputColor) {
+    vec2 texCoord = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    ScatteringResult sctrResult;
+
+    #ifndef SETTING_DEPTH_BREAK_CORRECTION
+    unwarpEpipolarInsctrImage(texCoord * 2.0 - 1.0, viewZ, sctrResult);
+    #else
+    if (!unwarpEpipolarInsctrImage(texCoord * 2.0 - 1.0, viewZ, sctrResult)) {
+        float ignValue = rand_IGN(texelPos, frameCounter);
+        AtmosphereParameters atmosphere = getAtmosphereParameters();
+        vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
+        sctrResult = computeSingleScattering(atmosphere, vec3(0.0), viewCoord, ignValue);
+    }
+    #endif
+
+    outputColor.rgb *= sctrResult.transmittance;
+    vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
+    sunRadiance *= mix(MOON_RADIANCE_MUL, vec3(1.0), shadowIsSun);
+    outputColor.rgb += sunRadiance * sctrResult.inScattering;
+}
+
 void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
-        vec3 inScattering;
-        vec3 transmittance;
-        vec2 texCoord = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-        unwarpEpipolarInsctrImage(texCoord * 2.0 - 1.0, viewZ, inScattering, transmittance);
-
         vec4 outputColor = imageLoad(uimg_main, texelPos);
 
         GBufferData gData;
@@ -26,14 +45,10 @@ void main() {
         vec4 ssvbilSample = texelFetch(usam_ssvbil, texelPos, 0);
         vec3 indirectV = ssvbilSample.rgb * material.albedo;
 
-        float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
         outputColor.rgb *= mix(sqrt(ssvbilSample.a), 1.0, shadowIsSun);
         outputColor.rgb += indirectV;
 
-        outputColor.rgb *= transmittance;
-        vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
-        sunRadiance *= mix(MOON_RADIANCE_MUL, vec3(1.0), shadowIsSun);
-        outputColor.rgb += sunRadiance * inScattering;
+        applyAtmosphere(outputColor);
 
         vec4 translucentColorSample = texelFetch(usam_translucentColor, texelPos, 0);
         float luminanceC = colors_srgbLuma(outputColor.rgb) * 4.0;

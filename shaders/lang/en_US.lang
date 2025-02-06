@@ -82,6 +82,7 @@ option.SETTING_ATM_D_SCALE=Atmosphere Distance Scale
 option.SETTING_ATM_D_SCALE.comment=Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on.
 option.SETTING_EPIPOLAR_SLICES=Epipolar Slices
 option.SETTING_SLICE_SAMPLES=Slice Samples
+option.SETTING_DEPTH_BREAK_CORRECTION=Depth Break Correction
 option.SETTING_EXPOSURE_MANUAL=Manual Exposure
 option.SETTING_EXPOSURE_MANUAL_VALUE=Manual Exposure Value
 option.SETTING_EXPOSURE_MAX_EXP=Auto Exposure Max

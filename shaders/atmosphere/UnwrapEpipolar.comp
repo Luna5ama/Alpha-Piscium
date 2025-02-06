@@ -11,11 +11,10 @@ uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_epipolarSliceEnd;
 uniform usampler2D usam_epipolarData;
 
-void unwarpEpipolarInsctrImage(
+bool unwarpEpipolarInsctrImage(
 vec2 screenPos,
 in float screenViewZ,
-out vec3 inScattering,
-out vec3 transmittance
+out ScatteringResult result
 ){
     // Compute direction of the ray going from the light through the pixel
     vec2 f2RayDir = normalize(screenPos - uval_sunNdcPos);
@@ -112,8 +111,8 @@ out vec3 transmittance
     fSliceWeights[1] = (fEpipolarSlice * SETTING_EPIPOLAR_SLICES) - fPrecedingSliceInd;
     fSliceWeights[0] = 1 - fSliceWeights[1];
 
-    inScattering = vec3(0.0);
-    transmittance = vec3(0.0);
+    result.inScattering = vec3(0.0);
+    result.transmittance = vec3(0.0);
     float totalWeight = 0;
 
     for (int i = 0; i < 2; ++i) {
@@ -198,26 +197,17 @@ out vec3 transmittance
         vec2 unpacked22 = unpackHalf2x16(epipolarData2.y);
         vec2 unpacked23 = unpackHalf2x16(epipolarData2.z);
 
-        inScattering += bilateralVWeights.x * vec3(unpacked11.xy, unpacked12.x);
-        inScattering += bilateralVWeights.y * vec3(unpacked21.xy, unpacked22.x);
+        result.inScattering += bilateralVWeights.x * vec3(unpacked11.xy, unpacked12.x);
+        result.inScattering += bilateralVWeights.y * vec3(unpacked21.xy, unpacked22.x);
 
-        transmittance += bilateralVWeights.x * vec3(unpacked12.y, unpacked13.xy);
-        transmittance += bilateralVWeights.y * vec3(unpacked22.y, unpacked23.xy);
+        result.transmittance += bilateralVWeights.x * vec3(unpacked12.y, unpacked13.xy);
+        result.transmittance += bilateralVWeights.y * vec3(unpacked22.y, unpacked23.xy);
 
         // Update total weight
         totalWeight += bilateralVWeights.x + bilateralVWeights.y;
     }
 
-    //#if CORRECT_INSCATTERING_AT_DEPTH_BREAKS
-//    if(totalWeight < 1e-2) {
-//        // Discarded pixels will keep 0 value in stencil and will be later
-//        // processed to correct scattering
-//        inScattering = vec3(1.0);
-//        transmittance = vec3(0.0);
-//        return;
-//    }
-    //#endif
-
-    inScattering /= totalWeight;
-    transmittance /= totalWeight;
+    result.inScattering /= totalWeight;
+    result.transmittance /= totalWeight;
+    return totalWeight >= 1e-2;
 }
