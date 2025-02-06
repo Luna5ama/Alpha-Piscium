@@ -7,8 +7,6 @@
 #include "../_Util.glsl"
 #include "Common.glsl"
 
-layout(rgba16f) restrict uniform image2D uimg_main;
-
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_epipolarSliceEnd;
 uniform sampler2D usam_epipolarInSctr;

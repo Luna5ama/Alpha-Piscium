@@ -1,37 +1,45 @@
 #version 460 compatibility
 
+#include "util/FullScreenComp.glsl"
 #include "atmosphere/UnwrapEpipolar.comp"
 
-layout(local_size_x = 128, local_size_y = 1) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
-
+uniform usampler2D usam_gbufferData;
+uniform sampler2D usam_ssvbil;
 uniform sampler2D usam_translucentColor;
 
-void main() {
-    ivec2 imgSize = imageSize(uimg_main);
-    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+layout(rgba16f) restrict uniform image2D uimg_main;
 
-    if (all(lessThan(texelPos, imgSize))) {
+void main() {
+    if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec3 inScattering;
         vec3 transmittance;
-        vec2 texCoord = (vec2(texelPos) + 0.5) / vec2(imgSize);
+        vec2 texCoord = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         UnwarpEpipolarInsctrImage(texCoord * 2.0 - 1.0, viewZ, inScattering, transmittance);
 
-        vec4 color = imageLoad(uimg_main, texelPos);
+        vec4 outputColor = imageLoad(uimg_main, texelPos);
 
-        color.rgb *= transmittance;
-        vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
+        GBufferData gData;
+        gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
+        Material material = material_decode(gData);
+
+        vec4 ssvbilSample = texelFetch(usam_ssvbil, texelPos, 0);
+        vec3 indirectV = ssvbilSample.rgb * material.albedo;
+
         float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
+        outputColor.rgb *= mix(sqrt(ssvbilSample.a), 1.0, shadowIsSun);
+        outputColor.rgb += indirectV;
+
+        outputColor.rgb *= transmittance;
+        vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
         sunRadiance *= mix(MOON_RADIANCE_MUL, vec3(1.0), shadowIsSun);
-        color.rgb += sunRadiance * inScattering;
+        outputColor.rgb += sunRadiance * inScattering;
 
         vec4 translucentColorSample = texelFetch(usam_translucentColor, texelPos, 0);
-        float luminanceC = colors_srgbLuma(color.rgb) * 4.0;
+        float luminanceC = colors_srgbLuma(outputColor.rgb) * 4.0;
         float luminanceT = max(colors_srgbLuma(translucentColorSample.rgb), 1.0);
-        color.rgb = mix(color.rgb, translucentColorSample.rgb * (luminanceC / luminanceT), translucentColorSample.a);
+        outputColor.rgb = mix(outputColor.rgb, translucentColorSample.rgb * (luminanceC / luminanceT), translucentColorSample.a);
 
-
-        imageStore(uimg_main, texelPos, color);
+        imageStore(uimg_main, texelPos, outputColor);
     }
 }
