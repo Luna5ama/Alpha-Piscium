@@ -210,7 +210,7 @@ vec3 directLighting(Material material, vec3 shadow, vec3 irradiance, vec3 L, vec
     shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + shadowPow * shadowPow;
 
     float backDot = saturate(NDotL * -0.5 + 0.5);
-    float sssV = material.sss * RCP_PI * backDot;
+    float sssV = material.sss * RCP_PI * backDot * backDot;
     vec3 sss = sssV * pow(material.albedo, vec3(shadowPow)) * shadow * irradiance;
 
     vec3 result = vec3(0.0);
