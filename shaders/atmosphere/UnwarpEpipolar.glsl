@@ -125,6 +125,7 @@ out ScatteringResult result
 
         // Project current pixel onto the epipolar line
         float fSamplePosOnLine = dot((screenPos - f4SliceEndpoints.xy), f2SliceDir) / max(fSliceLenSqr, 1e-8);
+        fSamplePosOnLine = sqrt(saturate(fSamplePosOnLine));
         // Compute index of the slice on the line
         // Note that the first sample on the line (fSamplePosOnLine==0) is exactly the Entry Point, while
         // the last sample (fSamplePosOnLine==1) is exactly the Exit Point
