@@ -79,7 +79,7 @@ void main() {
 
         ScatteringResult result = computeSingleScattering(atmosphere, rayDir);
 
-        vec3 color = result.inScattering * PI;
+        vec3 color = result.inScattering;
 
         if (gl_LocalInvocationID.z == 1) {
             shared_resultMoon[gl_LocalInvocationID.x] = color;
