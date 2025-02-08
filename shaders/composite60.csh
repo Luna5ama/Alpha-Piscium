@@ -13,6 +13,9 @@ layout(rgba16f) restrict uniform image2D uimg_main;
 #define BLOOM_UP_SAMPLE 1
 #define BLOOM_PASS 1
 #define BLOOM_NON_STANDALONE a
+#if SETTING_DEBUG_TEMP_TEX == 3
+#define BLOOM_NO_SAMPLER a
+#endif
 #include "post/Bloom.comp"
 
 void main() {
