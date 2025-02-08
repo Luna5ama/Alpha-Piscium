@@ -103,32 +103,35 @@ out vec4 prevColorHLen, out vec2 prevMoments
         prevColorHLen, prevMoments, weightSum
     );
 
-    bilateralSample(
-        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel + vec2(-1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
-        prevColorHLen, prevMoments, weightSum
-    );
-
-    bilateralSample(
-        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel + vec2(1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
-        prevColorHLen, prevMoments, weightSum
-    );
-
-    bilateralSample(
-        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel + vec2(0.0, -1.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
-        prevColorHLen, prevMoments, weightSum
-    );
-
-    bilateralSample(
-        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel + vec2(0.0, 1.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
-        prevColorHLen, prevMoments, weightSum
-    );;
-
-    const float WEIGHT_EPSILON = 0.0001;
+    const float WEIGHT_EPSILON = 0.01;
     if (weightSum < WEIGHT_EPSILON) {
+        bilateralSample(
+            svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+            curr2PrevTexel + vec2(-1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
+            prevColorHLen, prevMoments, weightSum
+        );
+
+        bilateralSample(
+            svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+            curr2PrevTexel + vec2(1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
+            prevColorHLen, prevMoments, weightSum
+        );
+
+        bilateralSample(
+            svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+            curr2PrevTexel + vec2(0.0, -1.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
+            prevColorHLen, prevMoments, weightSum
+        );
+
+        bilateralSample(
+            svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+            curr2PrevTexel + vec2(0.0, 1.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
+            prevColorHLen, prevMoments, weightSum
+        );
+    }
+
+    const float WEIGHT_EPSILON_FINAL = 0.0001;
+    if (weightSum < WEIGHT_EPSILON_FINAL) {
         prevColorHLen = vec4(0.0);
         prevMoments = vec2(0.0);
     } else {
