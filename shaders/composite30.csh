@@ -45,7 +45,7 @@ void main() {
         vec4 ssvbilSample = texelFetch(usam_ssvbil, texelPos, 0);
         vec3 indirectV = ssvbilSample.rgb * material.albedo;
 
-        outputColor.rgb *= mix(sqrt(ssvbilSample.a), 1.0, shadowIsSun);
+//        outputColor.rgb *= mix(sqrt(ssvbilSample.a), 1.0, shadowIsSun);
         outputColor.rgb += indirectV;
 
         applyAtmosphere(outputColor);

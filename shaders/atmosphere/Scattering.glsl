@@ -89,7 +89,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
 
-    params.cosZenith = dot(uval_shadowLightDirView, uval_upDirView);
+    params.cosZenith = dot(uval_shadowLightDirWorld, vec3(0.0, 1.0, 0.0));
     float cosLightTheta = -dot(viewDirWorld, uval_shadowLightDirWorld);
     params.rayleighPhase = rayleighPhase(cosLightTheta);
     params.miePhase = miePhase(cosLightTheta, atmosphere.miePhaseG);
