@@ -1,7 +1,7 @@
 #version 460 compatibility
 
 #include "util/FullScreenComp.glsl"
-#include "atmosphere/UnwrapEpipolar.comp"
+#include "atmosphere/UnwarpEpipolar.glsl"
 #include "atmosphere/Scattering.glsl"
 
 uniform usampler2D usam_gbufferData;

@@ -88,12 +88,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
 
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
-
-    params.cosZenith = dot(uval_shadowLightDirWorld, vec3(0.0, 1.0, 0.0));
-    float cosLightTheta = -dot(viewDirWorld, uval_shadowLightDirWorld);
-    params.rayleighPhase = rayleighPhase(cosLightTheta);
-    params.miePhase = miePhase(cosLightTheta, atmosphere.miePhaseG);
-    params.steps = 32u;
+    raymarchParameters_setup(atmosphere, params, uval_shadowLightDirWorld, viewDirWorld);
     
     vec3 rayDir = viewDirWorld;
 
@@ -127,6 +122,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         }
 
         params.rayEnd = params.rayStart + rayDir * rayLen;
+        params.steps = SETTING_SKY_SAMPLES;
         return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT, usam_multiSctrLUT);
     } else {
         params.rayEnd = atmosphere_viewToAtm(atmosphere, endView);
@@ -142,6 +138,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         vec3 endShadow = endShadowCS.xyz / endShadowCS.w;
         endShadow = endShadow * 0.5 + 0.5;
 
+        params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
         return raymarchSingleScatteringShadowed(atmosphere, params, startShadow, endShadow, stepJitter, usam_transmittanceLUT, usam_multiSctrLUT);
     }
 }

@@ -259,6 +259,13 @@ struct RaymarchParameters {
     uint steps;
 };
 
+void raymarchParameters_setup(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 lightDir, vec3 rayDir) {
+    params.cosZenith = dot(lightDir, vec3(0.0, 1.0, 0.0));
+    float cosLightTheta = -dot(rayDir, lightDir);
+    params.rayleighPhase = rayleighPhase(cosLightTheta);
+    params.miePhase = miePhase(cosLightTheta, atmosphere.miePhaseG);
+}
+
 bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir) {
     vec3 earthCenter = vec3(0.0);
 

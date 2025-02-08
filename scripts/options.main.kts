@@ -765,10 +765,20 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Slice Samples"
                 }
             }
-            empty()
             toggle("SETTING_DEPTH_BREAK_CORRECTION", true) {
                 lang(Locale.US) {
                     name = "Depth Break Correction"
+                }
+            }
+            empty()
+            slider("SETTING_SKY_SAMPLES", 64, 16..128) {
+                lang(Locale.US) {
+                    name = "Sky Samples"
+                }
+            }
+            slider("SETTING_LIGHT_SHAFT_SAMPLES", 32, 8..64) {
+                lang(Locale.US) {
+                    name = "Light Shaft Samples"
                 }
             }
         }

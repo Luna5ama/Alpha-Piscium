@@ -32,11 +32,8 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
 
     vec3 lightDirWorld = gl_LocalInvocationID.z == 1 ? uval_moonDirWorld : uval_sunDirWorld;
 
-    params.cosZenith = dot(lightDirWorld, vec3(0.0, 1.0, 0.0));
-    float cosLightTheta = -dot(rayDir, lightDirWorld);
-    params.rayleighPhase = rayleighPhase(cosLightTheta);
-    params.miePhase = miePhase(cosLightTheta, atmosphere.miePhaseG);
-    params.steps = 64u;
+    raymarchParameters_setup(atmosphere, params, lightDirWorld, rayDir);
+    params.steps = SETTING_SKY_SAMPLES;
 
     vec3 earthCenter = vec3(0.0);
 
