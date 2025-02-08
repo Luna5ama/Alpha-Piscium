@@ -319,6 +319,22 @@ vec3 sampleMultiSctrLUT(AtmosphereParameters atmosphere, float cosLightZenith, f
     return texture(multiSctrLUT, uv).rgb;
 }
 
+void unpackEpipolarData(uvec4 epipolarData, out ScatteringResult sctrResult, out float viewZ) {
+    vec2 unpacked1 = unpackHalf2x16(epipolarData.x);
+    vec2 unpacked2 = unpackHalf2x16(epipolarData.y);
+    vec2 unpacked3 = unpackHalf2x16(epipolarData.z);
+    sctrResult.inScattering = vec3(unpacked1.xy, unpacked2.x);
+    sctrResult.transmittance = vec3(unpacked2.y, unpacked3.xy);
+    viewZ = uintBitsToFloat(epipolarData.w);
+}
+
+void packEpipolarData(out uvec4 epipolarData, ScatteringResult sctrResult, float viewZ) {
+    epipolarData.x = packHalf2x16(sctrResult.inScattering.xy);
+    epipolarData.y = packHalf2x16(vec2(sctrResult.inScattering.z, sctrResult.transmittance.x));
+    epipolarData.z = packHalf2x16(sctrResult.transmittance.yz);
+    epipolarData.w = floatBitsToUint(viewZ);
+}
+
 vec3 computeOpticalDepth(AtmosphereParameters atmosphere, vec3 density) {
     vec3 result = vec3(0.0);
     result += atmosphere.rayleighExtinction * density.x;

@@ -189,20 +189,23 @@ out ScatteringResult result
         //
         bilateralVWeights *= float(abs(fSamplePosOnLine - 0.5) < (0.5 + 1.0 / (SETTING_SLICE_SAMPLES - 1)));
 
-        uvec4 epipolarData1 = texture(usam_epipolarData, f2SctrColorUV);
-        uvec4 epipolarData2 = textureOffset(usam_epipolarData, f2SctrColorUV, ivec2(0, 1));
-        vec2 unpacked11 = unpackHalf2x16(epipolarData1.x);
-        vec2 unpacked12 = unpackHalf2x16(epipolarData1.y);
-        vec2 unpacked13 = unpackHalf2x16(epipolarData1.z);
-        vec2 unpacked21 = unpackHalf2x16(epipolarData2.x);
-        vec2 unpacked22 = unpackHalf2x16(epipolarData2.y);
-        vec2 unpacked23 = unpackHalf2x16(epipolarData2.z);
+        {
+            ScatteringResult sampleResult;
+            float viewZ;
+            unpackEpipolarData(texture(usam_epipolarData, f2SctrColorUV), sampleResult, viewZ);
 
-        result.inScattering += bilateralVWeights.x * vec3(unpacked11.xy, unpacked12.x);
-        result.inScattering += bilateralVWeights.y * vec3(unpacked21.xy, unpacked22.x);
+            result.inScattering += bilateralVWeights.x * sampleResult.inScattering;
+            result.transmittance += bilateralVWeights.x * sampleResult.transmittance;
+        }
 
-        result.transmittance += bilateralVWeights.x * vec3(unpacked12.y, unpacked13.xy);
-        result.transmittance += bilateralVWeights.y * vec3(unpacked22.y, unpacked23.xy);
+        {
+            ScatteringResult sampleResult;
+            float viewZ;
+            unpackEpipolarData(textureOffset(usam_epipolarData, f2SctrColorUV, ivec2(0, 1)), sampleResult, viewZ);
+
+            result.inScattering += bilateralVWeights.y * sampleResult.inScattering;
+            result.transmittance += bilateralVWeights.y * sampleResult.transmittance;
+        }
 
         // Update total weight
         totalWeight += bilateralVWeights.x + bilateralVWeights.y;
