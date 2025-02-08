@@ -26,6 +26,9 @@
 #define MULTI_SCTR_LUT_SIZE 32
 #define PLANET_RADIUS_OFFSET 0.001
 
+uniform sampler2D usam_transmittanceLUT;
+uniform sampler2D usam_multiSctrLUT;
+
 // Every length is in KM!!!
 
 struct AtmosphereParameters {
@@ -253,17 +256,20 @@ struct ScatteringResult {
 struct RaymarchParameters {
     vec3 rayStart;
     vec3 rayEnd;
-    float cosZenith;
-    float rayleighPhase;
-    float miePhase;
     uint steps;
 };
 
-void raymarchParameters_setup(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 lightDir, vec3 rayDir) {
-    params.cosZenith = dot(lightDir, vec3(0.0, 1.0, 0.0));
+struct LightParameters {
+    float cosZenith;
+    float rayleighPhase;
+    float miePhase;
+};
+
+void lightParameters_setup(AtmosphereParameters atmosphere, inout LightParameters lightParams, vec3 lightDir, vec3 rayDir) {
+    lightParams.cosZenith = dot(lightDir, vec3(0.0, 1.0, 0.0));
     float cosLightTheta = -dot(rayDir, lightDir);
-    params.rayleighPhase = rayleighPhase(cosLightTheta);
-    params.miePhase = miePhase(cosLightTheta, atmosphere.miePhaseG);
+    lightParams.rayleighPhase = rayleighPhase(cosLightTheta);
+    lightParams.miePhase = miePhase(cosLightTheta, atmosphere.miePhaseG);
 }
 
 bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir) {
@@ -299,10 +305,7 @@ bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters param
     return true;
 }
 
-vec3 sampleTransmittanceLUT(
-AtmosphereParameters atmosphere, float cosLightZenith,
-float sampleAltitude, sampler2D transmittanceLUT
-) {
+vec3 sampleTransmittanceLUT(AtmosphereParameters atmosphere, float cosLightZenith, float sampleAltitude) {
     vec2 tLUTUV;
     lutTransmittanceParamsToUv(atmosphere, sampleAltitude, cosLightZenith, tLUTUV);
     uint cond = uint(any(lessThan(tLUTUV, vec2(0.0))));
@@ -310,13 +313,13 @@ float sampleAltitude, sampler2D transmittanceLUT
     if (bool(cond)) {
         return vec3(0.0);
     }
-    return texture(transmittanceLUT, tLUTUV).rgb;
+    return texture(usam_transmittanceLUT, tLUTUV).rgb;
 }
 
-vec3 sampleMultiSctrLUT(AtmosphereParameters atmosphere, float cosLightZenith, float sampleAltitude, sampler2D multiSctrLUT) {
+vec3 sampleMultiSctrLUT(AtmosphereParameters atmosphere, float cosLightZenith, float sampleAltitude) {
     vec2 uv = saturate(vec2(cosLightZenith * 0.5 + 0.5, sampleAltitude / (atmosphere.top - atmosphere.bottom)));
     uv = fromUnitToSubUvs(uv, vec2(MULTI_SCTR_LUT_SIZE));
-    return texture(multiSctrLUT, uv).rgb;
+    return texture(usam_multiSctrLUT, uv).rgb;
 }
 
 void unpackEpipolarData(uvec4 epipolarData, out ScatteringResult sctrResult, out float viewZ) {
@@ -343,16 +346,13 @@ vec3 computeOpticalDepth(AtmosphereParameters atmosphere, vec3 density) {
     return result;
 }
 
-vec3 computeTotalInSctr(AtmosphereParameters atmosphere, RaymarchParameters params, vec3 sampleDensity) {
-    vec3 rayleighInSctr = (sampleDensity.x * params.rayleighPhase) * atmosphere.rayleighSctrCoeff;
-    vec3 mieInSctr = (sampleDensity.y * params.miePhase) * atmosphere.mieSctrCoeff;
+vec3 computeTotalInSctr(AtmosphereParameters atmosphere, LightParameters lightParams, vec3 sampleDensity) {
+    vec3 rayleighInSctr = (sampleDensity.x * lightParams.rayleighPhase) * atmosphere.rayleighSctrCoeff;
+    vec3 mieInSctr = (sampleDensity.y * lightParams.miePhase) * atmosphere.mieSctrCoeff;
     return rayleighInSctr + mieInSctr;
 }
 
-ScatteringResult raymarchSingleScattering(
-AtmosphereParameters atmosphere, RaymarchParameters params,
-sampler2D transmittanceLUT, sampler2D multiSctrLUT
-) {
+ScatteringResult raymarchSingleScattering(AtmosphereParameters atmosphere, RaymarchParameters params, LightParameters lightParams) {
     ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
 
     float rcpSteps = 1.0 / float(params.steps);
@@ -375,10 +375,10 @@ sampler2D transmittanceLUT, sampler2D multiSctrLUT
         vec3 rayleighInSctr = sampleDensity.x * atmosphere.rayleighSctrCoeff;
         vec3 mieInSctr = sampleDensity.y * atmosphere.mieSctrCoeff;
 
-        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params.cosZenith, sampleHeight, transmittanceLUT);
-        vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, params.cosZenith, sampleHeight, multiSctrLUT);
+        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, lightParams.cosZenith, sampleHeight);
+        vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, lightParams.cosZenith, sampleHeight);
 
-        vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, params, sampleDensity) ;
+        vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, lightParams, sampleDensity) ;
         sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
 
         // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/

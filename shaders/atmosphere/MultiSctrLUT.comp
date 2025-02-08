@@ -5,7 +5,6 @@
 //
 // You can find full license texts in /licenses
 #include "../_Util.glsl"
-#include "Common.glsl"
 
 #define SAMPLE_COUNT 64
 #define SAMPLE_COUNT_SQRT 8
@@ -15,7 +14,7 @@ const ivec3 workGroups = ivec3(32, 32, 1);
 
 layout(rgba16f) restrict uniform image2D uimg_multiSctrLUT;
 
-uniform sampler2D usam_transmittanceLUT;
+#include "Common.glsl"
 
 shared vec3 shared_inSctrSum[64];
 shared vec3 shared_multiSctrAs1Sum[64];
@@ -26,8 +25,7 @@ struct MultiScatteringResult {
 };
 
 MultiScatteringResult raymarchMultiScattering(
-AtmosphereParameters atmosphere, RaymarchParameters params,
-sampler2D transmittanceLUT
+AtmosphereParameters atmosphere, RaymarchParameters params, LightParameters lightParams
 ) {
     MultiScatteringResult result = MultiScatteringResult(vec3(0.0), vec3(0.0));
 
@@ -47,9 +45,9 @@ sampler2D transmittanceLUT
         vec3 sampleOpticalDepth = sampleExtinction * rayStepLength;
         vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
-        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params.cosZenith, sampleHeight, transmittanceLUT);
+        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, lightParams.cosZenith, sampleHeight);
 
-        vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, params, sampleDensity);
+        vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, lightParams, sampleDensity);
         // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
         vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
         result.inScattering += tSampleToOrigin * sampleInSctrInt;
@@ -100,12 +98,13 @@ void main() {
             RaymarchParameters params;
             params.rayStart = vec3(0.0, 0.0, viewHeight);
             setupRayEnd(atmosphere, params, rayDir);
-            params.cosZenith = cosLightZenith;
-            params.rayleighPhase = isotopicPhase;
-            params.miePhase = isotopicPhase;
+            LightParameters lightParams;
+            lightParams.cosZenith = cosLightZenith;
+            lightParams.rayleighPhase = isotopicPhase;
+            lightParams.miePhase = isotopicPhase;
             params.steps = 32u;
 
-            MultiScatteringResult result = raymarchMultiScattering(atmosphere, params, usam_transmittanceLUT);
+            MultiScatteringResult result = raymarchMultiScattering(atmosphere, params, lightParams);
             shared_inSctrSum[gl_LocalInvocationID.x] = result.inScattering * sphereSolidAngle / float(SAMPLE_COUNT);
             shared_multiSctrAs1Sum[gl_LocalInvocationID.x] = result.multiSctrAs1 * sphereSolidAngle / float(SAMPLE_COUNT);
         }

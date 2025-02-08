@@ -40,11 +40,11 @@ void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, inout vec3 
     vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
 
     float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
-    vec3 tSun = sampleTransmittanceLUT(atmosphere, cosSunZenith, viewAltitude, usam_transmittanceLUT);
+    vec3 tSun = sampleTransmittanceLUT(atmosphere, cosSunZenith, viewAltitude);
     vec3 sunIrradiance = sunRadiance * tSun;
 
     float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
-    vec3 tMoon = sampleTransmittanceLUT(atmosphere, cosMoonZenith, viewAltitude, usam_transmittanceLUT);
+    vec3 tMoon = sampleTransmittanceLUT(atmosphere, cosMoonZenith, viewAltitude);
     vec3 moonIrradiance = sunRadiance * MOON_RADIANCE_MUL * tMoon;
 
     vec3 shadow = calcShadow(material.sss);

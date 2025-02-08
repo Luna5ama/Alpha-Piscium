@@ -12,9 +12,6 @@
 #include "Common.glsl"
 #include "../rtwsm/RTWSM.glsl"
 
-uniform sampler2D usam_transmittanceLUT;
-uniform sampler2D usam_multiSctrLUT;
-
 uniform sampler2D usam_rtwsm_imap;
 const bool shadowHardwareFiltering0 = true;
 uniform sampler2DShadow shadowtex0HW;
@@ -26,9 +23,8 @@ float sampleShadow(vec3 shadowPos) {
 }
 
 ScatteringResult raymarchSingleScatteringShadowed(
-AtmosphereParameters atmosphere, RaymarchParameters params,
-vec3 shadowStart, vec3 shadowEnd, float stepJitter,
-sampler2D transmittanceLUT, sampler2D multiSctrLUT
+AtmosphereParameters atmosphere, RaymarchParameters params, LightParameters lightParams,
+vec3 shadowStart, vec3 shadowEnd, float stepJitter
 ) {
     ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
 
@@ -53,13 +49,13 @@ sampler2D transmittanceLUT, sampler2D multiSctrLUT
         vec3 rayleighInSctr = sampleDensity.x * atmosphere.rayleighSctrCoeff;
         vec3 mieInSctr = sampleDensity.y * atmosphere.mieSctrCoeff;
 
-        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, params.cosZenith, sampleHeight, transmittanceLUT);
-        vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, params.cosZenith, sampleHeight, multiSctrLUT);
+        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, lightParams.cosZenith, sampleHeight);
+        vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, lightParams.cosZenith, sampleHeight);
 
         vec3 sampleShadowPos = shadowStart + stepIndexF * shaodwStepDelta;
         float shadow = sampleShadow(sampleShadowPos);
 
-        vec3 sampleInSctr = shadow * tSunToSample * computeTotalInSctr(atmosphere, params, sampleDensity);
+        vec3 sampleInSctr = shadow * tSunToSample * computeTotalInSctr(atmosphere, lightParams, sampleDensity);
         sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
 
         // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
@@ -88,7 +84,8 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
 
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
-    raymarchParameters_setup(atmosphere, params, uval_shadowLightDirWorld, viewDirWorld);
+    LightParameters lightParams;
+    lightParameters_setup(atmosphere, lightParams, uval_shadowLightDirWorld, viewDirWorld);
     
     vec3 rayDir = viewDirWorld;
 
@@ -123,7 +120,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
 
         params.rayEnd = params.rayStart + rayDir * rayLen;
         params.steps = SETTING_SKY_SAMPLES;
-        return raymarchSingleScattering(atmosphere, params, usam_transmittanceLUT, usam_multiSctrLUT);
+        return raymarchSingleScattering(atmosphere, params, lightParams);
     } else {
         params.rayEnd = atmosphere_viewToAtm(atmosphere, endView);
 
@@ -139,6 +136,6 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         endShadow = endShadow * 0.5 + 0.5;
 
         params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
-        return raymarchSingleScatteringShadowed(atmosphere, params, startShadow, endShadow, stepJitter, usam_transmittanceLUT, usam_multiSctrLUT);
+        return raymarchSingleScatteringShadowed(atmosphere, params, lightParams, startShadow, endShadow, stepJitter);
     }
 }

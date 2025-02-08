@@ -15,7 +15,6 @@ uniform sampler2DShadow shadowtex1HW;
 uniform sampler2D shadowcolor0;
 uniform sampler2D usam_rtwsm_imap;
 
-uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_skyLUT;
 
 uint coord3Rand[2];

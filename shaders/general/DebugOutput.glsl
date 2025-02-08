@@ -9,8 +9,6 @@ uniform sampler2D usam_rtwsm_imap;
 #endif
 
 #ifdef SETTING_DEBUG_ATMOSPHERE
-uniform sampler2D usam_transmittanceLUT;
-uniform sampler2D usam_multiSctrLUT;
 uniform sampler2D usam_skyLUT;
 uniform sampler2D usam_epipolarSliceEnd;
 uniform usampler2D usam_epipolarData;
