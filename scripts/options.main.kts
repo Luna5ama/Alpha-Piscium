@@ -503,14 +503,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang(Locale.US) {
                     name = "Direct Lighting"
                 }
-                slider("SETTING_SSS_STRENGTH", 2.0, 0.0..5.0 step 0.1) {
+                slider("SETTING_SSS_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
                     lang(Locale.US) {
                         name = "SSS Strength"
                     }
                 }
-                slider("SETTING_SSS_HIGHLIGHT", 0.5, 0.0..1.0 step 0.05) {
+                slider("SETTING_SSS_HIGHLIGHT", 0.5, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "SSS Highlight"
+                    }
+                }
+                slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "SSS Scatter Factor"
                     }
                 }
             }
@@ -552,7 +557,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Forward Importance Analysis"
                         }
                     }
-                    slider("SETTING_RTWSM_F_BASE", 0.5, 0.0..1.0 step 0.05) {
+                    slider("SETTING_RTWSM_F_BASE", 0.5, 0.0..1.0 step 0.01) {
                         lang(Locale.US) {
                             name = "Forward Base Value"
                         }
@@ -575,7 +580,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Backward Importance Analysis"
                         }
                     }
-                    slider("SETTING_RTWSM_B_BASE", 1.0, 0.1..1.0 step 0.05) {
+                    slider("SETTING_RTWSM_B_BASE", 1.0, 0.1..1.0 step 0.01) {
                         lang(Locale.US) {
                             name = "Backward Base Value"
                         }
@@ -597,7 +602,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Backward Surface Normal Function"
                         }
                     }
-                    slider("SETTING_RTWSM_B_SE", 0.1, 0.0..1.0 step 0.05) {
+                    slider("SETTING_RTWSM_B_SE", 0.1, 0.0..1.0 step 0.01) {
                         lang(Locale.US) {
                             name = "Backward Shadow Edge Function"
                         }
@@ -711,7 +716,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Normal Mapping"
                 }
             }
-            slider("SETTING_NORMAL_MAPPING_STRENGTH", 0.5, 0.0..1.0 step 0.05) {
+            slider("SETTING_NORMAL_MAPPING_STRENGTH", 0.5, 0.0..1.0 step 0.01) {
                 lang(Locale.US) {
                     name = "Normal Mapping Strength"
                 }
@@ -776,7 +781,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.4, 0.0..1.0 step 0.05) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.4, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Average Luminance Weight"
                         comment = "Weight of average luminance AE in the final exposure value."
@@ -795,7 +800,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_TOP_BIN_MIX", 1.0, 0.0..1.0 step 0.05) {
+                slider("SETTING_EXPOSURE_TOP_BIN_MIX", 1.0, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Top Bin Weight"
                         comment = "Weight of top bin AE in the final exposure value."

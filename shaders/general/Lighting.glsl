@@ -98,7 +98,7 @@ vec3 calcShadow(float sssFactor) {
     #define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
     vec3 shadow = vec3(0.0);
-    uint idxSS = (frameCounter + coord3Rand[0]) * SAMPLE_N;
+    uint idxSS = uint(rand_IGN(vec2(texelPos), frameCounter) * 1111.0);
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
     float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distnaceSq, 1.0)));
@@ -107,21 +107,20 @@ vec3 calcShadow(float sssFactor) {
 
     for (int i = 0; i < SAMPLE_N; i++) {
         vec3 randomOffset = rand_r2Seq3(idxSS);
-        vec3 random2 = randomOffset * randomOffset;
         vec3 sampleTexCoord = shadowTexCoord;
 
         #if SETTING_PCSS_SAMPLE_PATTERN == 1
         float theta = randomOffset.x * PI_2;
         float r = sqrt(randomOffset.y) * ssRange;
-        r += random2.z * sssFactor * ssRangeMul * 2.0;
+        r += randomOffset.z * sssFactor * ssRangeMul * 0.5;
         sampleTexCoord.xy += r * vec2(cos(theta), sin(theta)) * vec2(shadowProjection[0][0], shadowProjection[1][1]);
         #else
         vec2 r = (randomOffset.xy * 2.0 - 1.0) * ssRange;
-        r += (random2.xy * 2.0 - 1.0) * sssFactor * ssRangeMul * 0.5;
+        r += (randomOffset.xy * 2.0 - 1.0) * sssFactor * ssRangeMul * 0.5;
         sampleTexCoord.xy += r * vec2(shadowProjection[0][0], shadowProjection[1][1]);
         #endif
 
-        sampleTexCoord.z += random2.z * sssFactor * 2.0;
+        sampleTexCoord.z += randomOffset.z * sssFactor * 0.5;
         sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
         vec2 texelSize;
         sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
@@ -207,9 +206,9 @@ vec3 directLighting(Material material, vec3 shadow, vec3 irradiance, vec3 L, vec
     vec3 diffuse = diffuseV * shadow * irradiance * material.albedo;
 
     float shadowPow = saturate(1.0 - colors_srgbLuma(shadow));
-    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + shadowPow * shadowPow;
+    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * material.sss * SETTING_SSS_SCTR_FACTOR;
 
-    float backDot = saturate(NDotL * -0.5 + 0.5);
+    float backDot = saturate(NDotL * - 0.5 + 0.5);
     float sssV = material.sss * RCP_PI * backDot * backDot;
     vec3 sss = sssV * pow(material.albedo, vec3(shadowPow)) * shadow * irradiance;
 

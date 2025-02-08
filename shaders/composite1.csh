@@ -80,7 +80,7 @@ void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, inout vec3 
 }
 
 void main() {
-    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+    texelPos = ivec2(gl_GlobalInvocationID.xy);
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;

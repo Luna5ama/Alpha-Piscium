@@ -42,6 +42,7 @@ option.SETTING_LAVA_TEMPERATURE=Lava Temperature
 option.SETTING_LAVA_TEMPERATURE.comment=Temperature of lava in K (kelvin). The default value 1400 K is based on real life average.
 option.SETTING_SSS_STRENGTH=SSS Strength
 option.SETTING_SSS_HIGHLIGHT=SSS Highlight
+option.SETTING_SSS_SCTR_FACTOR=SSS Scatter Factor
 option.shadowMapResolution=Shadow Map Resolution
 option.shadowDistance=Shadow Render Distance
 value.shadowDistance.64.0=4 chunks
