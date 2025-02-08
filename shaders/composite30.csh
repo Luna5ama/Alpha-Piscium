@@ -10,8 +10,6 @@ uniform sampler2D usam_translucentColor;
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 
-float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
-
 void applyAtmosphere(inout vec4 outputColor) {
     vec2 texCoord = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
     float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
@@ -29,9 +27,7 @@ void applyAtmosphere(inout vec4 outputColor) {
     #endif
 
     outputColor.rgb *= sctrResult.transmittance;
-    vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
-    sunRadiance *= mix(MOON_RADIANCE_MUL, vec3(1.0), shadowIsSun);
-    outputColor.rgb += sunRadiance * sctrResult.inScattering;
+    outputColor.rgb += sctrResult.inScattering;
 }
 
 void main() {
@@ -45,7 +41,6 @@ void main() {
         vec4 ssvbilSample = texelFetch(usam_ssvbil, texelPos, 0);
         vec3 indirectV = ssvbilSample.rgb * material.albedo;
 
-//        outputColor.rgb *= mix(sqrt(ssvbilSample.a), 1.0, shadowIsSun);
         outputColor.rgb += indirectV;
 
         applyAtmosphere(outputColor);

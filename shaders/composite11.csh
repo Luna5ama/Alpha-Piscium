@@ -26,7 +26,6 @@ void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec2 screenCoord = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-        vec3 viewCoord = coords_toViewCoord(screenCoord, viewZ, gbufferProjectionInverse);
         vec3 viewNormal = texelFetch(usam_temp1, texelPos, 0).rgb;
 
         imageStore(uimg_prevNZ, texelPos, uvec4(ndpacking_pack(viewNormal, viewZ), 0u, 0u));

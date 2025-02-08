@@ -263,9 +263,11 @@ struct LightParameters {
     float cosZenith;
     float rayleighPhase;
     float miePhase;
+    vec3 radiance;
 };
 
-void lightParameters_setup(AtmosphereParameters atmosphere, inout LightParameters lightParams, vec3 lightDir, vec3 rayDir) {
+void lightParameters_setup(AtmosphereParameters atmosphere, out LightParameters lightParams, vec3 radiance, vec3 lightDir, vec3 rayDir) {
+    lightParams.radiance = radiance;
     lightParams.cosZenith = dot(lightDir, vec3(0.0, 1.0, 0.0));
     float cosLightTheta = -dot(rayDir, lightDir);
     lightParams.rayleighPhase = rayleighPhase(cosLightTheta);
@@ -352,7 +354,9 @@ vec3 computeTotalInSctr(AtmosphereParameters atmosphere, LightParameters lightPa
     return rayleighInSctr + mieInSctr;
 }
 
-ScatteringResult raymarchSingleScattering(AtmosphereParameters atmosphere, RaymarchParameters params, LightParameters lightParams) {
+ScatteringResult raymarchSingleScattering(
+AtmosphereParameters atmosphere, RaymarchParameters params, LightParameters sunParams, LightParameters moonParams
+) {
     ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
 
     float rcpSteps = 1.0 / float(params.steps);
@@ -375,15 +379,28 @@ ScatteringResult raymarchSingleScattering(AtmosphereParameters atmosphere, Rayma
         vec3 rayleighInSctr = sampleDensity.x * atmosphere.rayleighSctrCoeff;
         vec3 mieInSctr = sampleDensity.y * atmosphere.mieSctrCoeff;
 
-        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, lightParams.cosZenith, sampleHeight);
-        vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, lightParams.cosZenith, sampleHeight);
+        {
+            vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, sunParams.cosZenith, sampleHeight);
+            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, sunParams.cosZenith, sampleHeight);
 
-        vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, lightParams, sampleDensity) ;
-        sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
+            vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, sunParams, sampleDensity);
+            sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
 
-        // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-        vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-        totalInSctr += tSampleToOrigin * sampleInSctrInt;
+            // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
+            vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
+            totalInSctr += tSampleToOrigin * sampleInSctrInt * sunParams.radiance;
+        }
+
+        {
+            vec3 tMoonToSample = sampleTransmittanceLUT(atmosphere, moonParams.cosZenith, sampleHeight);
+            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, moonParams.cosZenith, sampleHeight);
+
+            vec3 sampleInSctr = tMoonToSample * computeTotalInSctr(atmosphere, moonParams, sampleDensity);
+            sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
+
+            vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
+            totalInSctr += tSampleToOrigin * sampleInSctrInt * moonParams.radiance;
+        }
 
         tSampleToOrigin *= sampleTransmittance;
     }
