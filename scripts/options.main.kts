@@ -704,7 +704,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Accumulation"
                     }
                 }
-                slider("SETTING_SVGF_REPROJ_NORMAL_STRICTNESS", 128, (0..10).map { 1 shl it }) {
+                slider("SETTING_SVGF_REPROJ_NORMAL_STRICTNESS", 16, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Reprojection Normal Strictness"
                     }
