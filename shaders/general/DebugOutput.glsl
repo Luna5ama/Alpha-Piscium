@@ -19,13 +19,13 @@ uniform sampler2D usam_epipolarViewZ;
 
 uniform usampler2D usam_gbufferData;
 
-#if SETTING_DEBUG_TEX_NAME == 1
+#if SETTING_DEBUG_TEMP_TEX == 1
 #define DEBUG_TEX_NAME usam_temp1
-#elif SETTING_DEBUG_TEX_NAME == 2
+#elif SETTING_DEBUG_TEMP_TEX == 2
 #define DEBUG_TEX_NAME usam_temp2
-#elif SETTING_DEBUG_TEX_NAME == 3
+#elif SETTING_DEBUG_TEMP_TEX == 3
 #define DEBUG_TEX_NAME usam_temp3
-#elif SETTING_DEBUG_TEX_NAME == 4
+#elif SETTING_DEBUG_TEMP_TEX == 4
 #define DEBUG_TEX_NAME usam_temp4
 #elif SETTING_DEBUG_SSVBIL == 1
 #define DEBUG_TEX_NAME usam_ssvbil
