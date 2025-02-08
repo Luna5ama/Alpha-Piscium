@@ -1,6 +1,7 @@
 #include "../_Util.glsl"
 #include "../util/FullScreenComp.glsl"
 #include "../rtwsm/RTWSM.glsl"
+#include "../atmosphere/Common.glsl"
 
 #ifdef SETTING_DEBUG_RTWSM
 uniform sampler2D shadowtex0;
@@ -12,9 +13,7 @@ uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_multiSctrLUT;
 uniform sampler2D usam_skyLUT;
 uniform sampler2D usam_epipolarSliceEnd;
-uniform sampler2D usam_epipolarInSctr;
-uniform sampler2D usam_epipolarTransmittance;
-uniform sampler2D usam_epipolarViewZ;
+uniform usampler2D usam_epipolarData;
 #endif
 
 uniform usampler2D usam_gbufferData;
@@ -143,16 +142,24 @@ void debugOutput(inout vec4 outputColor) {
     float whRatio = float(SETTING_EPIPOLAR_SLICES) / float(SETTING_SLICE_SAMPLES);
     if (inViewPort(ivec4(256, 32, whRatio * 256, 256), debugTexCoord)) {
         debugTexCoord.y = 1.0 - debugTexCoord.y;
-        outputColor.rgb = gammaCorrect(texture(usam_epipolarInSctr, debugTexCoord).rgb);
+        ScatteringResult sampleResult;
+        float viewZ;
+        unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
+        outputColor.rgb = gammaCorrect(sampleResult.inScattering);
     }
     if (inViewPort(ivec4(256, 32 + 256, whRatio * 256, 256), debugTexCoord)) {
         debugTexCoord.y = 1.0 - debugTexCoord.y;
-        outputColor.rgb = gammaCorrect(texture(usam_epipolarTransmittance, debugTexCoord).rgb);
+        ScatteringResult sampleResult;
+        float viewZ;
+        unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
+        outputColor.rgb = gammaCorrect(sampleResult.transmittance);
     }
     if (inViewPort(ivec4(256, 32 + 512, whRatio * 256, 256), debugTexCoord)) {
         debugTexCoord.y = 1.0 - debugTexCoord.y;
-        float depthV = texture(usam_epipolarViewZ, debugTexCoord).r;
-        depthV = -depthV / far;
+        ScatteringResult sampleResult;
+        float viewZ;
+        unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
+        float depthV = -viewZ.r / far;
         outputColor.rgb = gammaCorrect(depthV).rrr;
     }
     #endif
