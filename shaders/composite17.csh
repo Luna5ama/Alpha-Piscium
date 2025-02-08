@@ -1,6 +1,6 @@
 #version 460 compatibility
 
-#define DENOISER_KERNEL_RADIUS 4
+#define DENOISER_KERNEL_RADIUS SETTING_SVGF_FILTER_RADIUS
 #define DENOISER_BOX 1
 #define DENOISER_VERTICAL 1
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -40,7 +40,6 @@ void denoiser_output(ivec2 coord, vec4 data) {
 
     float hLen = texelFetch(usam_temp5, coord, 0).r * 255.0 + 1.0;
     hLen *= saturate(1.0 - frustumTest * 0.5);
-    hLen *= saturate(1.0 - newPixel * 0.1);
 
     imageStore(uimg_svgfHistoryColor, coord, vec4(data.rgb, hLen));
 }

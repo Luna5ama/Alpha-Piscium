@@ -127,16 +127,16 @@ out vec4 prevColorHLen, out vec2 prevMoments
         svgfHistoryColor, svgfHistoryMoments, prevNZTex,
         curr2PrevTexel + vec2(0.0, 1.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
         prevColorHLen, prevMoments, weightSum
-    );
+    );;
 
     const float WEIGHT_EPSILON = 0.0001;
     if (weightSum < WEIGHT_EPSILON) {
-        prevColorHLen = vec4(0.0, 0.0, 0.0, 1.0);
+        prevColorHLen = vec4(0.0);
         prevMoments = vec2(0.0);
     } else {
         float rcpWeightSum = 1.0 / weightSum;
         prevColorHLen *= rcpWeightSum;
-        prevColorHLen.a = max(floor(prevColorHLen.a), 0.0);
+        prevColorHLen.a = max(floor(prevColorHLen.a), 1.0);
         prevMoments *= rcpWeightSum;
     }
 }

@@ -704,6 +704,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Accumulation"
                     }
                 }
+                slider("SETTING_SVGF_FILTER_RADIUS", 2, (0..2).map { 1 shl it }) {
+                    lang(Locale.US) {
+                        name = "Filter Radius"
+                    }
+                }
             }
         }
         screen("TEXTURE", 1) {

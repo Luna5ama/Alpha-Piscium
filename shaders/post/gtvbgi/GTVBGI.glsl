@@ -338,8 +338,8 @@ vec4 Rnd01x4(vec2 uv, uint n) {
     vec4 rnd01 = vec4(0.0);
 
     rnd01.x  = rand_IGN(uv, n);
-    rnd01.z  = rand_IGN(uv, n + 2);
-    rnd01.w  = rand_IGN(uv, n + 3);
+    rnd01.z  = rand_IGN(uv, n + 5);
+    rnd01.w  = rand_IGN(uv, n + 7);
 
     return rnd01;
 }

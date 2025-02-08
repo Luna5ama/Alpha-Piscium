@@ -28,8 +28,8 @@ void ndpacking_updateProjReject(usampler2D prevNZTex, ivec2 texelCoord, vec2 scr
         vec4 prev2CurrClip = gbufferPrevProjection * gbufferModelView * prev2CurrScene;
 
         uint flag = 0u;
-        flag |= uint(currView.z != 1.0) & uint(any(greaterThanEqual(abs(curr2PrevClip.xyz), curr2PrevClip.www)));
-        flag |= uint(prevZ != 0.0) & uint(any(greaterThanEqual(abs(prev2CurrClip.xyz), prev2CurrClip.www)));
+        flag |= uint(currView.z != -65536.0) & uint(any(greaterThanEqual(abs(curr2PrevClip.xyz), curr2PrevClip.www)));
+        flag |= uint(prevZ != -65536.0) & uint(any(greaterThanEqual(abs(prev2CurrClip.xyz), prev2CurrClip.www)));
 
         projReject.x = float(flag);
     }

@@ -82,6 +82,7 @@ option.SETTING_SSVBIL_AO_STRENGTH=AO Strength
 option.SETTING_SSVBIL_GI_STRENGTH=GI Strength
 option.SETTING_SSVBIL_GI_MB=GI Multi Bounce
 option.SETTING_SVGF_MAX_ACCUM=Max Accumulation
+option.SETTING_SVGF_FILTER_RADIUS=Filter Radius
 option.SETTING_NORMAL_MAPPING=Normal Mapping
 option.SETTING_NORMAL_MAPPING_STRENGTH=Normal Mapping Strength
 option.SETTING_ATM_ALT_SCALE=Atmosphere Altitude Scale
