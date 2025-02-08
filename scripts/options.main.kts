@@ -704,9 +704,20 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Accumulation"
                     }
                 }
+                slider("SETTING_SVGF_REPROJ_NORMAL_STRICTNESS", 128, (0..10).map { 1 shl it }) {
+                    lang(Locale.US) {
+                        name = "Reprojection Normal Strictness"
+                    }
+                }
+                empty()
                 slider("SETTING_SVGF_FILTER_RADIUS", 2, (0..2).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Filter Radius"
+                    }
+                }
+                slider("SETTING_SVGF_FILTER_NORMAL_STRICTNESS", 64, (0..10).map { 1 shl it }) {
+                    lang(Locale.US) {
+                        name = "Filter Normal Strictness"
                     }
                 }
             }

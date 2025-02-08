@@ -6,9 +6,7 @@ float normalWeight(vec3 currWorldNormal, uint packedNormal) {
     vec3 prevViewNormal = coords_octDecode11(unpackSnorm2x16(packedNormal));
     vec3 prevWorldNormal = mat3(gbufferPrevModelViewInverse) * prevViewNormal;
     float sdot = saturate(dot(currWorldNormal, prevWorldNormal));
-    float sdot2 = sdot * sdot;
-    float sdot4 = sdot2 * sdot2;
-    return sdot4;
+    return pow(sdot, SETTING_SVGF_REPROJ_NORMAL_STRICTNESS);
 }
 
 float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prevViewZI) {
