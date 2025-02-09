@@ -8,7 +8,7 @@
 #include "Common.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
-const ivec3 workGroups = ivec3(4, 4, 1);
+const ivec3 workGroups = ivec3(8, 8, 1);
 
 layout(rgba16f) restrict uniform image2D uimg_skyLUT;
 
@@ -74,7 +74,7 @@ void main() {
     ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
 
     if (all(lessThan(pixelPos, imgSize))) {
-        vec2 texCoord = (pixelPos + 0.5 + global_taaJitter) / vec2(imgSize);
+        vec2 texCoord = (pixelPos + 0.5) / vec2(imgSize);
         AtmosphereParameters atmosphere = getAtmosphereParameters();
         vec3 rayDir = coords_octDecode01(texCoord);
 

@@ -140,9 +140,7 @@ vec3 calcShadow(float sssFactor) {
     return mix(shadow, vec3(1.0), shadowRangeBlend);
 }
 
-
-
-vec3 calcFresnel(Material material, float dotP) {
+vec3 calcFresnel(Material material, float cosTheta) {
     /*
         Hardcoded metals
         https://shaderlabs.org/wiki/LabPBR_Material_Standard
@@ -180,39 +178,66 @@ vec3 calcFresnel(Material material, float dotP) {
 
     vec3 f = vec3(0.0);
     if (material.f0 < 229.5 / 255.0) {
-        f = bsdf_frenel_cook_torrance(dotP, material.f0) * material.albedo.rgb;
+        f = bsdf_frenel_cookTorrance_f0(cosTheta, material.f0) * material.albedo.rgb;
     } else if (material.f0 < 237.5 / 255.0) {
         uint metalIdx = clamp(uint(material.f0 * 255.0) - 230u, 0u, 7u);
         vec3 ior = METAL_IOR[metalIdx];
         vec3 k = METAL_K[metalIdx];
-        f = bsdf_fresnel_lazanyi(dotP, ior, k);
+        f = bsdf_fresnel_lazanyi(cosTheta, ior, k);
     } else {
-        f = bsdf_frenel_schlick_f0(dotP, material.albedo.rgb);
+        f = bsdf_frenel_schlick_f0(cosTheta, material.albedo.rgb);
     }
 
     return saturate(f);
 }
 
-vec3 directLighting(Material material, vec3 shadow, vec3 irradiance, vec3 L, vec3 N, vec3 V, vec3 F) {
+struct LightingResult {
+    vec3 diffuse;
+    vec3 diffuseLambertian;
+    vec3 specular;
+    vec3 sss;
+};
+
+LightingResult directLighting(Material material, vec3 shadow, vec3 irradiance, vec3 L, vec3 N, vec3 V) {
     vec3 H = normalize(L + V);
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);
     float NDotL = dot(N, L);
-    //    vec3 diffuseV = shadow * irradiance * bsdf_diffuseHammon(NDotL, NDotV, NDotH, LDotV, material.albedo, alpha);
-    //    sunDiffuseV *= vec3(1.0) - fresnel;
+    float NDotV = dot(N, V);
+    float NDotH = dot(N, H);
 
-    float diffuseV = saturate(NDotL) * RCP_PI;
-    vec3 diffuse = diffuseV * shadow * irradiance * material.albedo;
+    vec3 fresnel = calcFresnel(material, saturate(LDotH));
+    vec3 fresnelReflection = calcFresnel(material, saturate(NDotV));
+
+    LightingResult result;
+
+    vec3 shadowedIrradiance = shadow * irradiance;
+    float diffuseBase = 1.0 - material.metallic;
+
+    result.diffuse = diffuseBase * shadowedIrradiance * (vec3(1.0) - fresnel);
+    result.diffuse *= bsdf_disneyDiffuse(material, NDotL, NDotV, LDotH);
+
+    float diffuseV = diffuseBase * saturate(NDotL) * RCP_PI;
+    result.diffuseLambertian = diffuseV * (vec3(1.0) - fresnel) * shadowedIrradiance * material.albedo;
 
     float shadowPow = saturate(1.0 - colors_srgbLuma(shadow));
     shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * material.sss * SETTING_SSS_SCTR_FACTOR;
 
     float backDot = saturate(NDotL * - 0.5 + 0.5);
     float sssV = material.sss * RCP_PI * backDot * backDot;
-    vec3 sss = sssV * pow(material.albedo, vec3(shadowPow)) * shadow * irradiance;
+    result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * shadowedIrradiance;
 
-    vec3 result = vec3(0.0);
-    result += diffuse;
-    result += sss * SETTING_SSS_STRENGTH;
+    result.specular = shadowedIrradiance;
+    result.specular *= bsdf_ggx(material, fresnel, NDotL, NDotV, NDotH);
+
+    // Sky reflection
+    vec3 reflectDirView = reflect(-V, gData.normal);
+    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
+    vec2 reflectLUTUV = coords_octEncode01(reflectDir);
+    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
+    vec3 skyReflection = fresnelReflection * reflectRadiance * mix(vec3(1.0), material.albedo, material.metallic);
+
+    result.specular += skyReflection;
+
     return result;
 }

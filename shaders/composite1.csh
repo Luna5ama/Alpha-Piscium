@@ -25,13 +25,11 @@ layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
 void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, inout vec3 ssgiOut) {
-    float NDotV = dot(N, V);
 
     vec3 emissiveV = material.emissive;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
-    vec3 fresnel = calcFresnel(material, saturate(NDotV));
     float alpha = material.roughness * material.roughness;
 
     vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(g_viewCoord, 1.0)).xyz;
@@ -51,32 +49,29 @@ void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, inout vec3 
 
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
     vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
-    vec3 sunLighting = directLighting(material, sunShadow, sunIrradiance, uval_sunDirView, N, V, fresnel);
+    LightingResult sunLighting = directLighting(material, sunShadow, sunIrradiance, uval_sunDirView, N, V);
 
     vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
-    vec3 moonLighting = directLighting(material, moonShadow, moonIrradiance, uval_moonDirView, N, V, fresnel);
-
-    // Sky reflection
-    //    vec3 reflectDirView = normalize(H + reflect(-V, gData.normal));
-    //    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
-    //    vec2 reflectLUTUV = coords_octEncode01(reflectDir);
-    //    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
-    //    vec3 skySpecularV = fresnel * sunRadiance * reflectRadiance;
+    LightingResult moonLighting = directLighting(material, moonShadow, moonIrradiance, uval_moonDirView, N, V);
 
     mainOut = vec3(0.0);
     mainOut += 0.001 * material.albedo;
     mainOut += emissiveV;
-    mainOut += sunLighting;
-    mainOut += moonLighting;
-    //    mainOut += skySpecularV;
+    mainOut += sunLighting.diffuse;
+    mainOut += sunLighting.specular;
+    mainOut += sunLighting.sss;
+    mainOut += moonLighting.diffuse;
+    mainOut += moonLighting.specular;
+    mainOut += moonLighting.sss;
+
 
     ssgiOut += emissiveV;
-    ssgiOut += sunLighting;
-    ssgiOut += moonLighting;
+    ssgiOut += sunLighting.diffuseLambertian;
+    ssgiOut += sunLighting.sss;
+    ssgiOut += moonLighting.diffuseLambertian;
+    ssgiOut += moonLighting.sss;
 
     ssgiOut *= mix(1.0, 0.0, gData.materialID == 65533u);
-
-    //    ssgiOut += skySpecularV;
 }
 
 void main() {
