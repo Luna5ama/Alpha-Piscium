@@ -99,7 +99,7 @@ void debugOutput(inout vec4 outputColor) {
 
     #ifdef SETTING_DEBUG_RTWSM
     if (inViewPort(ivec4(0, 0, 512, 512), debugTexCoord)) {
-        outputColor.rgb = pow(texture(shadowtex0, debugTexCoord).r, 2.0).rrr;
+        outputColor.rgb = pow(texture(shadowtex0, debugTexCoord).r * 0.5, 2.0).rrr;
     }
     if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {
         debugTexCoord.y = min(debugTexCoord.y * IMAP2D_V_RANGE, IMAP2D_V_CLAMP);

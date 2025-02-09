@@ -44,7 +44,7 @@ void importance(ivec2 gCoord, out uint p, out float v) {
     shadowCS /= shadowCS.w;
     vec2 shadowTS = shadowCS.xy * 0.5 + 0.5;
 
-    float importance = 1.0;
+    float importance = SETTING_RTWSM_B_BASE;
 
     // Distance function
     #if SETTING_RTWSM_B_D > 0.0
@@ -56,11 +56,13 @@ void importance(ivec2 gCoord, out uint p, out float v) {
     importance *= 1.0 + SETTING_RTWSM_B_SN * saturate(dot(gData.normal, viewDir));
     #endif
 
-//    const float LSN_BETA = 1.0;
-//    importance *= 1.0 + LSN_BETA * sqrt(pDist) * pow(1.0 - abs(dot(normalMatrix * worldNormal, uval_shadowLightDirView)), 8.0);
+    #if SETTING_RTWSM_B_P > 0.0
+    float lightDir = dot(gData.normal, uval_shadowLightDirView);
+    importance *= 1.0 + SETTING_RTWSM_B_P * pow(1.0 - lightDir * lightDir, float(SETTING_RTWSM_B_PP));
+    #endif
 
     // Shadow Edge function
-    #if SETTING_RTWSM_B_SE < 1.0
+    #if SETTING_RTWSM_B_SE > 0.0
     vec2 shadowTSWarped = rtwsm_warpTexCoord(usam_rtwsm_imap, shadowTS);
 
     float center = rtwsm_linearDepth(texture(shadowtex0, shadowTSWarped).x);
@@ -74,7 +76,7 @@ void importance(ivec2 gCoord, out uint p, out float v) {
     maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 0)).x)));
     maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowTSWarped, ivec2(1, 1)).x)));
 
-    importance *= mix(SETTING_RTWSM_B_SE, 1.0, linearStep(0.5, 4.0, maxDiff));
+    importance *= 1.0 + SETTING_RTWSM_B_SE * linearStep(0.5, 4.0, maxDiff);
     #endif
 
     if (any(greaterThanEqual(abs(shadowCS.xy), vec2(1.0)))) {

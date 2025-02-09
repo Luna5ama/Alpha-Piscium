@@ -537,21 +537,23 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Forward Importance Analysis"
                         }
                     }
-                    slider("SETTING_RTWSM_F_BASE", 0.5, 0.0..1.0 step 0.01) {
+                    slider("SETTING_RTWSM_F_BASE", 1.0, 0.1..10.0 step 0.1) {
                         lang(Locale.US) {
                             name = "Forward Base Value"
                         }
                     }
-                    slider("SETTING_RTWSM_F_MIN", 20, 0..20) {
+                    slider("SETTING_RTWSM_F_MIN", -20, -20..0) {
                         lang(Locale.US) {
                             name = "Forward Min Value"
                             comment =
-                                "Minimum importance value for forward importance analysis. The actual minimum value is calculated as 2^-x."
+                                "Minimum importance value for forward importance analysis. The actual minimum value is calculated as 2^x."
+                            prefix = "2^"
                         }
                     }
-                    slider("SETTING_RTWSM_F_D", 256, listOf(0) + (0..16).map { 1 shl it }) {
+                    slider("SETTING_RTWSM_F_D", 1024, listOf(0) + (0..16).map { 1 shl it }) {
                         lang(Locale.US) {
                             name = "Forward Distance Function"
+                            comment = "Reduces weight based on distance. Larger setting value means slower decay."
                         }
                     }
                     empty()
@@ -560,31 +562,46 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Backward Importance Analysis"
                         }
                     }
-                    slider("SETTING_RTWSM_B_BASE", 1.0, 0.1..1.0 step 0.01) {
+                    slider("SETTING_RTWSM_B_BASE", 5.0, 0.1..10.0 step 0.1) {
                         lang(Locale.US) {
                             name = "Backward Base Value"
                         }
                     }
-                    slider("SETTING_RTWSM_B_MIN", 4, 0..20) {
+                    slider("SETTING_RTWSM_B_MIN", -10, -20..0) {
                         lang(Locale.US) {
                             name = "Backward Min Value"
                             comment =
-                                "Minimum importance value for backward importance analysis. The actual minimum value is calculated as 2^-x."
+                                "Minimum importance value for backward importance analysis. The actual minimum value is calculated as 2^x."
+                            prefix = "2^"
                         }
                     }
-                    slider("SETTING_RTWSM_B_D", 16, listOf(0) + (0..10).map { 2 shl it }) {
+                    slider("SETTING_RTWSM_B_D", 128, listOf(0) + (0..10).map { 2 shl it }) {
                         lang(Locale.US) {
                             name = "Backward Distance Function"
+                            comment = "Reduces weight based on distance. Larger setting value means slower decay."
+                        }
+                    }
+                    slider("SETTING_RTWSM_B_P", 4.0, 0.0..10.0 step 0.5) {
+                        lang(Locale.US) {
+                            name = "Backward Perpendicular Function"
+                            comment = "Adds extra weight to surface perpendicular to light direction."
+                        }
+                    }
+                    slider("SETTING_RTWSM_B_PP", 16, (0..8).map { 1 shl it }) {
+                        lang(Locale.US) {
+                            name = "Backward Perpendicular Function Power"
                         }
                     }
                     slider("SETTING_RTWSM_B_SN", 2.0, 0.0..10.0 step 0.5) {
                         lang(Locale.US) {
                             name = "Backward Surface Normal Function"
+                            comment = "Adds extra weight to surface directly facing towards camera."
                         }
                     }
-                    slider("SETTING_RTWSM_B_SE", 0.1, 0.0..1.0 step 0.01) {
+                    slider("SETTING_RTWSM_B_SE", 5.0, 0.0..10.0 step 0.5) {
                         lang(Locale.US) {
                             name = "Backward Shadow Edge Function"
+                            comment = "Adds extra weight for shadow edges."
                         }
                     }
                 }
