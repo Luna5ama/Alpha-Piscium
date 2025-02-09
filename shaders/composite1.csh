@@ -57,10 +57,13 @@ void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, inout vec3 
     mainOut = vec3(0.0);
     mainOut += 0.001 * material.albedo;
     mainOut += emissiveV;
-    mainOut += sunLighting.diffuse;
+
+    vec3 diffuseTotal = sunLighting.diffuse + moonLighting.diffuse;
+    vec3 diffuseLambertianTotal = sunLighting.diffuseLambertian + moonLighting.diffuseLambertian;
+
+    mainOut += mix(diffuseTotal, diffuseLambertianTotal, gData.isHand);
     mainOut += sunLighting.specular;
     mainOut += sunLighting.sss;
-    mainOut += moonLighting.diffuse;
     mainOut += moonLighting.specular;
     mainOut += moonLighting.sss;
 
