@@ -5,6 +5,7 @@
 // You can find full license texts in /licenses
 #include "GTVBGICommon.glsl"
 
+uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_temp1;
 uniform sampler2D usam_temp2;
@@ -385,6 +386,8 @@ float SliceRelCDF_Cos(float x, float angN, float cosN) {
 
 const vec2 RADIUS_SQ = vec2(SETTING_SSVBIL_RADIUS * SETTING_SSVBIL_RADIUS, SETTING_SSVBIL_MAX_RADIUS * SETTING_SSVBIL_MAX_RADIUS);
 
+ivec2 texelPos = ivec2(gl_FragCoord.xy);
+
 void uniGTVBGI(vec3 wpos, vec3 normalWS) {
     vec3 positionVS = (gbufferModelView * vec4(wpos, 1.0)).xyz;
     vec3 normalVS   = mat3(gbufferModelView) * normalWS;
@@ -475,6 +478,13 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
 
     uint occBits = 0u;
 
+    float NDotV = dot(normalVS, V);
+    GBufferData gData;
+    gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
+    Material material = material_decode(gData);
+    material.roughness *= 0.5;
+    material.roughness = max(material.roughness, 0.01);
+
     for (uint stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; ++stepIndex) {
         float sampleLodTexelSize = lodTexelSize(sampleLod) * 1.0;
         float stepTexelSize = sampleLodTexelSize * 0.5;
@@ -495,6 +505,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
 
             float frontDiffRcpLen = fastRcpSqrtNR0(frontDistSq);
             float backDiffRcpLen = fastRcpSqrtNR0(dot(backDiff, backDiff));
+            vec3 thisToSample = frontDiff * frontDiffRcpLen;
 
             // project samples onto unit circle and compute angles relative to V
             vec2 horCos = vec2(dot(frontDiff * frontDiffRcpLen, V), dot(backDiff * backDiffRcpLen, V));
@@ -533,7 +544,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
                 if (visBits0 != 0u) {
                     vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
                     float emissive = float(sample1.a > 0.0);
-                    vec3 N0 = mix(sample1.rgb, normalize(positionVS - samplePosVS), emissive);
+                    vec3 N0 = mix(sample1.rgb, -thisToSample, emissive);
                     vec3 projN0 = N0 - sliceN * dot(N0, sliceN);
 
                     float projN0SqrLen = dot(projN0, projN0);
@@ -574,7 +585,18 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
                         float falloff = linearStep(RADIUS_SQ.y, RADIUS_SQ.x, frontDistSq);
                         vec3 sampleRad = sample2.rgb * falloff;
                         float vis0 = float(CountBits(visBits0)) * (1.0 / 32.0);
-                        rt_out.rgb += sampleRad * vis0;
+
+                        vec3 N = normalVS;
+                        vec3 L = thisToSample;
+                        float halfWayLen = sqrt(2.0 * dot(L, V) + 2.0);
+                        float NDotL = dot(N, L);
+                        float NDotH = (NDotL + NDotV) / halfWayLen;
+                        float LDotH = 0.5 * halfWayLen;
+                        vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
+                        vec3 ggx = bsdf_ggx_noAlbedo(material, fresnel, NDotL, NDotV, NDotH);
+
+                        rt_out.rgb += sampleRad * (vis0 * (1.0 - material.metallic) * (vec3(1.0) - fresnel));
+                        rt_out.rgb += sampleRad * vis0 * ggx;
                     }
                 }
             }
@@ -642,9 +664,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
 
     rt_out.rgb *= SETTING_SSVBIL_GI_STRENGTH;
 
-    ivec2 intTexelPos = ivec2(gl_FragCoord.xy);
-
-    float lmCoordSky = texelFetch(usam_temp2, intTexelPos, 0).a;
+    float lmCoordSky = texelFetch(usam_temp2, texelPos, 0).a;
     float skyLightingIntensity = RCP_PI;
     skyLightingIntensity *= lmCoordSky * lmCoordSky;
     skyLightingIntensity *= rt_out.a;
@@ -656,12 +676,11 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
 void main() {
     Resolution = global_mainImageSize.xy;
 
-    ivec2 intTexelPos = ivec2(gl_FragCoord.xy);
-    float centerViewZ = texelFetch(usam_gbufferViewZ, intTexelPos, 0).r;
+    float centerViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
     rt_out = vec4(0.0, 0.0, 0.0, 1.0);
     if (centerViewZ < 0.0) {
-        vec3 N = texelFetch(usam_temp1, intTexelPos, 0).rgb;
+        vec3 N = texelFetch(usam_temp1, texelPos, 0).rgb;
         N = mat3(gbufferModelViewInverse) * N;
 
         vec3 wpos = coords_toViewCoord(frag_texCoord, centerViewZ, gbufferProjectionInverse);
