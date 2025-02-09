@@ -107,12 +107,9 @@ void main() {
         imageStore(uimg_temp3, texelPos, prevColorHLen);
         imageStore(uimg_temp4, texelPos, vec4(prevMoments, 0.0, 0.0));
 
-        vec4 mainOut = vec4(0.0);
+        vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
         vec4 temp1Out = vec4(0.0);
         vec4 ssgiOut = vec4(0.0);
-
-        mainOut.a = 1.0;
-        mainOut.rgb += renderSunMoon(texelPos);
 
         if (viewZ != -65536.0) {
             Material material = material_decode(gData);
@@ -129,6 +126,8 @@ void main() {
                 ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo;
                 doLighting(material, gData.normal, g_viewDir, mainOut.rgb, ssgiOut.rgb);
             }
+        } else {
+            mainOut.rgb += renderSunMoon(texelPos);
         }
 
         imageStore(uimg_main, texelPos, mainOut);
