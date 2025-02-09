@@ -24,6 +24,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
 
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
+    params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
 
     vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
     vec3 moonRadiance = sunRadiance * MOON_RADIANCE_MUL;
@@ -79,6 +80,6 @@ void main() {
         vec3 rayDir = coords_octDecode01(texCoord);
 
         ScatteringResult result = computeSingleScattering(atmosphere, rayDir);
-        imageStore(uimg_skyLUT, pixelPos, vec4(result.inScattering, 1.0));
+        imageStore(uimg_skyLUT, pixelPos, vec4(result.inScattering * 4.0, 1.0));
     }
 }

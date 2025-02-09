@@ -198,6 +198,32 @@ struct LightingResult {
     vec3 sss;
 };
 
+LightingResult lightingResult_add(LightingResult a, LightingResult b) {
+    LightingResult result;
+    result.diffuse = a.diffuse + b.diffuse;
+    result.diffuseLambertian = a.diffuseLambertian + b.diffuseLambertian;
+    result.specular = a.specular + b.specular;
+    result.sss = a.sss + b.sss;
+    return result;
+}
+
+vec3 skyReflection(Material material, float lmCoordSky, vec3 N, vec3 V) {
+    float NDotV = dot(N, V);
+    vec3 fresnelReflection = calcFresnel(material, saturate(NDotV));
+
+    vec3 reflectDirView = reflect(-V, N);
+    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
+    vec2 reflectLUTUV = coords_octEncode01(reflectDir);
+    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
+
+    vec3 result = fresnelReflection;
+    result *= mix(vec3(1.0), material.albedo, material.metallic);
+    result *= linearStep(1.5 / 16.0, 15.5 / 16.0, lmCoordSky);
+    result *= texture(usam_skyLUT, reflectLUTUV).rgb;
+
+    return result;
+}
+
 LightingResult directLighting(Material material, vec3 shadow, vec3 irradiance, vec3 L, vec3 N, vec3 V) {
     vec3 H = normalize(L + V);
     float LDotV = dot(L, V);
@@ -207,7 +233,6 @@ LightingResult directLighting(Material material, vec3 shadow, vec3 irradiance, v
     float NDotH = dot(N, H);
 
     vec3 fresnel = calcFresnel(material, saturate(LDotH));
-    vec3 fresnelReflection = calcFresnel(material, saturate(NDotV));
 
     LightingResult result;
 
@@ -229,15 +254,6 @@ LightingResult directLighting(Material material, vec3 shadow, vec3 irradiance, v
 
     result.specular = shadowedIrradiance;
     result.specular *= bsdf_ggx(material, fresnel, NDotL, NDotV, NDotH);
-
-    // Sky reflection
-    vec3 reflectDirView = reflect(-V, gData.normal);
-    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
-    vec2 reflectLUTUV = coords_octEncode01(reflectDir);
-    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
-    vec3 skyReflection = fresnelReflection * reflectRadiance * mix(vec3(1.0), material.albedo, material.metallic);
-
-    result.specular += skyReflection;
 
     return result;
 }

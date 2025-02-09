@@ -24,7 +24,7 @@ layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
-void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, inout vec3 ssgiOut) {
+void doLighting(Material material, vec3 N, vec3 V, inout vec3 mainOut, inout vec3 ssgiOut) {
 
     vec3 emissiveV = material.emissive;
 
@@ -54,25 +54,20 @@ void doLighting(Material material, vec3 N, vec3 V, out vec3 mainOut, inout vec3 
     vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
     LightingResult moonLighting = directLighting(material, moonShadow, moonIrradiance, uval_moonDirView, N, V);
 
-    mainOut = vec3(0.0);
+    LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
+
+    vec3 skyReflectionV = skyReflection(material, gData.lmCoord.y, N, V);
+
     mainOut += 0.001 * material.albedo;
     mainOut += emissiveV;
-
-    vec3 diffuseTotal = sunLighting.diffuse + moonLighting.diffuse;
-    vec3 diffuseLambertianTotal = sunLighting.diffuseLambertian + moonLighting.diffuseLambertian;
-
-    mainOut += mix(diffuseTotal, diffuseLambertianTotal, gData.isHand);
-    mainOut += sunLighting.specular;
-    mainOut += sunLighting.sss;
-    mainOut += moonLighting.specular;
-    mainOut += moonLighting.sss;
-
+    mainOut += mix(combinedLighting.diffuse, combinedLighting.diffuseLambertian, gData.isHand);
+    mainOut += combinedLighting.specular;
+    mainOut += combinedLighting.sss;
+    mainOut += skyReflectionV;
 
     ssgiOut += emissiveV;
-    ssgiOut += sunLighting.diffuseLambertian;
-    ssgiOut += sunLighting.sss;
-    ssgiOut += moonLighting.diffuseLambertian;
-    ssgiOut += moonLighting.sss;
+    ssgiOut += combinedLighting.diffuseLambertian;
+    ssgiOut += combinedLighting.sss;
 
     ssgiOut *= mix(1.0, 0.0, gData.materialID == 65533u);
 }
@@ -123,7 +118,7 @@ void main() {
                 ssgiOut = vec4(0.0, 0.0, 0.0, 0.0);
             } else {
                 float multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * 2.0 * RCP_PI;
-                ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo;
+                ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo * (1.0 - material.metallic);
                 doLighting(material, gData.normal, g_viewDir, mainOut.rgb, ssgiOut.rgb);
             }
         } else {
