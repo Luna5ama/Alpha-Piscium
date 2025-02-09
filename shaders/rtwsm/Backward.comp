@@ -77,7 +77,7 @@ void importance(ivec2 gCoord, out uint p, out float v) {
 //    importance *= mix(SETTING_RTWSM_B_SE, 1.0, linearStep(0.5, 4.0, maxDiff));
 //    #endif
 
-    if (shadowCS.x < -1.0 || shadowCS.x > 1.0 || shadowCS.y < -1.0 || shadowCS.y > 1.0 || shadowCS.z < -1.0 || shadowCS.z > 1.0) {
+    if (any(greaterThanEqual(abs(shadowCS.xy), vec2(1.0)))) {
         p = 0xFFFFFFFFu;
         v = 0u;
         return;

@@ -118,7 +118,7 @@ void main() {
                 ssgiOut = vec4(0.0, 0.0, 0.0, 0.0);
             } else {
                 float multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * 2.0 * RCP_PI;
-                ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo * (1.0 - material.metallic);
+                ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo;
                 doLighting(material, gData.normal, g_viewDir, mainOut.rgb, ssgiOut.rgb);
             }
         } else {

@@ -34,7 +34,7 @@ void main() {
 	vec4 camClipPos = gbufferProjection * camViewPos;
 
 	uint survived = uint((gl_VertexID & 3) == 0);
-	survived &= uint(any(lessThan(abs(shadowClipPosRotated.xyz), shadowClipPosRotated.www)));
+	survived &= uint(all(lessThan(abs(shadowClipPosRotated.xyz), shadowClipPosRotated.www)));
 	survived &= uint(camClipPos.w > 0.0);
 	survived &= uint(all(lessThan(abs(camClipPos.xyz), camClipPos.www)));
 
