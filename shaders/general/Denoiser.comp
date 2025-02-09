@@ -160,7 +160,7 @@ float computeWeight(vec3 normalC, vec3 posC, vec3 normal, vec3 pos) {
     float dnA = 0.001;
 
     float weight = 1.0;
-    weight *= pow(saturate(dot(normalC, normal)), SETTING_SVGF_FILTER_NORMAL_STRICTNESS);
+    weight *= pow(saturate(dot(normalC, normal)), SETTING_DENOISER_FILTER_NORMAL_STRICTNESS);
     weight *= posA / (posA + distSq);
     weight *= saturate(dnA / (dnA + diffNormalDot * diffNormalDot));
 

@@ -10,8 +10,8 @@ void svgf_update(vec3 currColor, vec4 prevColorHLen, vec2 prevMoments, out float
         newMoments = currMoments;
         filterInput.rgb = currColor;
     } else {
-        newHLen = min(prevColorHLen.a + 1.0, SETTING_SVGF_MAX_ACCUM);
-        float alpha = 1.0 / newHLen;
+        newHLen = min(prevColorHLen.a + 1.0, SETTING_DENOISER_MAX_ACCUM);
+        float alpha = 1.0 / pow(newHLen, SETTING_DENOISER_ACCUM_DECAY);
         newMoments = mix(prevMoments, currMoments, alpha);
         filterInput.rgb = mix(prevColorHLen.rgb, currColor, alpha);
     }

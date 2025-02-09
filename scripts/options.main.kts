@@ -692,27 +692,33 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("SVGF", 1) {
+            screen("DENOISER", 1) {
                 lang(Locale.US) {
-                    name = "SVGF"
+                    name = "Denoiser"
                 }
-                slider("SETTING_SVGF_MAX_ACCUM", 64, (2..8).map { 1 shl it }) {
+                slider("SETTING_DENOISER_MAX_ACCUM", 64, (2..8).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Max Accumulation"
                     }
                 }
-                slider("SETTING_SVGF_REPROJ_NORMAL_STRICTNESS", 16, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_ACCUM_DECAY", 1.33, 0.5..3.0 step 0.01) {
+                    lang(Locale.US) {
+                        name = "Accumulation Decay"
+                        comment = "Current mix rate decay factor for temporal accumulation. Larger value means faster decay."
+                    }
+                }
+                slider("SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS", 16, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Reprojection Normal Strictness"
                     }
                 }
                 empty()
-                slider("SETTING_SVGF_FILTER_RADIUS", 2, (0..2).map { 1 shl it }) {
+                slider("SETTING_DENOISER_FILTER_RADIUS", 2, (0..2).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Filter Radius"
                     }
                 }
-                slider("SETTING_SVGF_FILTER_NORMAL_STRICTNESS", 64, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_FILTER_NORMAL_STRICTNESS", 64, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Filter Normal Strictness"
                     }
