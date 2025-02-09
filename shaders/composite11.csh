@@ -20,6 +20,8 @@ layout(rg32ui) uniform writeonly uimage2D uimg_prevNZ;
 layout(rg16f) uniform writeonly image2D uimg_svgfHistoryMoments;
 layout(rgba8) uniform writeonly image2D uimg_temp5;
 
+uniform sampler2D usam_projReject;
+
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
 
@@ -33,6 +35,17 @@ void main() {
         vec3 currColor = texelFetch(usam_ssvbil, texelPos, 0).rgb;
         vec4 prevColorHLen = texelFetch(usam_temp3, texelPos, 0);
         vec2 prevMoments = imageLoad(uimg_temp4, texelPos).xy;
+
+        vec2 projReject = texelFetch(usam_projReject, texelPos, 0).rg;
+        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(-1, 0)).rg);
+        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(1, 0)).rg);
+        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(0, -1)).rg);
+        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(0, 1)).rg);
+
+        float frustumTest = float(projReject.x > 0.0);
+        float newPixel = float(projReject.y > 0.0);
+
+        prevColorHLen.a *= saturate(1.0 - frustumTest * 0.5);
 
         float newHLen;
         vec2 newMoments;

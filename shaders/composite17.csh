@@ -13,7 +13,6 @@ layout(rgba16f) uniform readonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
 uniform sampler2D usam_temp5;
-uniform sampler2D usam_projReject;
 layout(rgba16f) uniform writeonly image2D uimg_svgfHistoryColor;
 
 ivec2 denoiser_getImageSize() {
@@ -28,18 +27,6 @@ void denoiser_input(ivec2 coord, out vec4 data, out vec3 normal, out float viewZ
 
 void denoiser_output(ivec2 coord, vec4 data) {
     imageStore(uimg_temp4, coord, data);
-
-    vec2 projReject = texelFetch(usam_projReject, coord, 0).rg;
-    projReject = max(projReject, texelFetchOffset(usam_projReject, coord, 0, ivec2(-1, 0)).rg);
-    projReject = max(projReject, texelFetchOffset(usam_projReject, coord, 0, ivec2(1, 0)).rg);
-    projReject = max(projReject, texelFetchOffset(usam_projReject, coord, 0, ivec2(0, -1)).rg);
-    projReject = max(projReject, texelFetchOffset(usam_projReject, coord, 0, ivec2(0, 1)).rg);
-
-    float frustumTest = float(projReject.x > 0.0);
-    float newPixel = float(projReject.y > 0.0);
-
     float hLen = texelFetch(usam_temp5, coord, 0).r * 255.0 + 1.0;
-    hLen *= saturate(1.0 - frustumTest * 0.5);
-
     imageStore(uimg_svgfHistoryColor, coord, vec4(data.rgb, hLen));
 }
