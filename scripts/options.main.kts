@@ -499,26 +499,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             empty()
             empty()
             empty()
-            screen("DIRECT_LIGHTING", 1) {
-                lang(Locale.US) {
-                    name = "Direct Lighting"
-                }
-                slider("SETTING_SSS_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
-                    lang(Locale.US) {
-                        name = "SSS Strength"
-                    }
-                }
-                slider("SETTING_SSS_HIGHLIGHT", 0.5, 0.0..1.0 step 0.01) {
-                    lang(Locale.US) {
-                        name = "SSS Highlight"
-                    }
-                }
-                slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
-                    lang(Locale.US) {
-                        name = "SSS Scatter Factor"
-                    }
-                }
-            }
             screen("SHADOW", 2) {
                 lang(Locale.US) {
                     name = "Shadow"
@@ -722,11 +702,27 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("TEXTURE", 1) {
+        screen("Material", 1) {
             lang(Locale.US) {
-                name = "Texture"
-                comment = "Texture settings"
+                name = "Material"
+                comment = "Material settings"
             }
+            slider("SETTING_SSS_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
+                lang(Locale.US) {
+                    name = "SSS Strength"
+                }
+            }
+            slider("SETTING_SSS_HIGHLIGHT", 0.5, 0.0..1.0 step 0.01) {
+                lang(Locale.US) {
+                    name = "SSS Highlight"
+                }
+            }
+            slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
+                lang(Locale.US) {
+                    name = "SSS Scatter Factor"
+                }
+            }
+            empty()
             toggle("SETTING_NORMAL_MAPPING", true) {
                 lang(Locale.US) {
                     name = "Normal Mapping"

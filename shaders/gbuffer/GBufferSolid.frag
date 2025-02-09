@@ -87,7 +87,7 @@ GBufferData processOutput() {
 
     gData.pbrSpecular.a = emissiveS;
 
-    #ifndef SETTING_NORMAL_MAPPING
+    #if !defined(SETTING_NORMAL_MAPPING) || (!defined(SETTING_NORMAL_MAPPING_HANDHELD) && defined(GBUFFER_PASS_HAND))
     gData.normal = frag_viewNormal;
     #else
     vec3 bitangent = cross(frag_viewTangent, frag_viewNormal);
