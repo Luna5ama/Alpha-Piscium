@@ -836,19 +836,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.4, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.5, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Average Luminance Weight"
                         comment = "Weight of average luminance AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 5.0, 0.0..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 4.0, 0.0..10.0 step 0.5) {
                     lang(Locale.US) {
                         name = "Average Luminance AE Time"
                         comment = "Time constant for average luminance AE."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.2, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.18, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Average Luminance Target"
                         comment = "Target average luminance value for average luminance EXPOSURE."
@@ -866,7 +866,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Top Bin AE Time"
                         comment = "Time constant for top bin aE."
                     }
-                    slider("SETTING_EXPOSURE_TOP_BIN_LUM", 0.4, 0.0..1.0 step 0.01) {
+                    slider("SETTING_EXPOSURE_TOP_BIN_LUM", 0.5, 0.0..1.0 step 0.01) {
                         lang(Locale.US) {
                             name = "Top Bin Luminance"
                             comment = "Luminance threshold for top bin."

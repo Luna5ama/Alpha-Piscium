@@ -118,27 +118,37 @@ void toneMapping_init() {
     barrier();
 }
 
+vec3 applyAgx(vec3 color) {
+    vec3 result = color;
+    color = agx(color);
+    color = agxLook(color);
+    color = agxEotf(color);
+    color = saturate(color);
+    return color;
+}
+
 void toneMapping_apply(inout vec4 outputColor) {
-    outputColor.rgb *= global_exposure.w;
-    outputColor.rgb = agx(outputColor.rgb);
-    outputColor.rgb = agxLook(outputColor.rgb);
-    outputColor.rgb = agxEotf(outputColor.rgb);
-    outputColor.rgb = saturate(outputColor.rgb);
-
-    float lumimance = colors_srgbLuma(outputColor.rgb);
-
-    uint binIndexTop = histoIndex(lumimance, SETTING_EXPOSURE_TOP_BIN_LUM, 4);
-    uvec4 topBinBallot = subgroupBallot(binIndexTop == 3u);
-    uint topBinSum = subgroupBallotBitCount(topBinBallot);
-    if (subgroupElect()) {
-        atomicAdd(shared_topBinSum, topBinSum);
+    {
+        float lumimance = colors_srgbLuma(applyAgx(outputColor.rgb * global_exposure.x));
+        uint binIndexAvg = histoIndex(lumimance, 1.0, 256);
+        atomicAdd(shared_lumHistogram[binIndexAvg], 1u);
     }
 
-    uint binIndexAvg = histoIndex(lumimance, 1.0, 256);
-    atomicAdd(shared_lumHistogram[binIndexAvg], 1u);
+    {
+        float lumimance = colors_srgbLuma(applyAgx(outputColor.rgb * global_exposure.y));
+        uint binIndexTop = histoIndex(lumimance, SETTING_EXPOSURE_TOP_BIN_LUM, 4);
+        uvec4 topBinBallot = subgroupBallot(binIndexTop == 3u);
+        uint topBinSum = subgroupBallotBitCount(topBinBallot);
+        if (subgroupElect()) {
+            atomicAdd(shared_topBinSum, topBinSum);
+        }
+    }
+
+    outputColor.rgb = applyAgx(outputColor.rgb * global_exposure.w);
+    outputColor.rgb = pow(outputColor.rgb, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
+
     barrier();
 
-    outputColor.rgb = pow(outputColor.rgb, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
     atomicAdd(global_lumHistogram[gl_LocalInvocationIndex], shared_lumHistogram[gl_LocalInvocationIndex]);
 
     if (gl_LocalInvocationIndex == 0) {
