@@ -49,22 +49,27 @@ const bool shadowcolor0Clear = true;
 const vec4 shadowcolor0ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
 
 const bool colortex0Clear = false;
+
 const bool colortex1Clear = false;
 const bool colortex2Clear = false;
 const bool colortex3Clear = false;
 const bool colortex4Clear = false;
 
-const bool colortex5Clear = true;
-const vec4 colortex5ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const bool colortex5Clear = false;
+
+// Currently unused
+const bool colortex6Clear = false;
+const bool colortex7Clear = false;
 
 const bool colortex8Clear = false;
 const bool colortex9Clear = false;
 
-const bool colortex10Clear = true;
-const vec4 colortex10ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const bool colortex10Clear = false;
 
+// Currently unused
 const bool colortex11Clear = false;
 const bool colortex12Clear = false;
 const bool colortex13Clear = false;
+
 const bool colortex14Clear = false;
 const bool colortex15Clear = false;
