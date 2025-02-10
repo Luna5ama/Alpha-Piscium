@@ -13,30 +13,26 @@
 layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
 const vec2 workGroupsRender = vec2(1.0f, 1.0f);
 
-uniform usampler2D usam_gbufferData;
+uniform sampler2D usam_temp1;
 uniform sampler2D usam_gbufferViewZ;
 
-uniform sampler2D depthtex0;
 uniform sampler2D shadowtex0;
 uniform sampler2D usam_rtwsm_imap;
 
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 
-void importance(ivec2 gCoord, out uint p, out float v) {
-    ivec2 gbufferTextureSize = textureSize(usam_gbufferData, 0);
-    if (any(greaterThanEqual(gCoord, gbufferTextureSize))) {
+void importance(ivec2 texelPos, out uint p, out float v) {
+    if (any(greaterThanEqual(texelPos, global_mainImageSizeI))) {
         p = 0xFFFFFFFFu;
         v = 0u;
         return;
     }
 
-    vec2 texCoord = (vec2(gCoord) + 0.5) / vec2(gbufferTextureSize);
-    float viewZ = texelFetch(usam_gbufferViewZ, gCoord, 0).r;
-    vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
+    vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    vec3 viewCoord = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
     vec3 worldCoord = (gbufferModelViewInverse * vec4(viewCoord, 1.0)).xyz;
-
-    GBufferData gData;
-    gbuffer_unpack(texelFetch(usam_gbufferData, gCoord, 0), gData);
+    vec3 viewNormal = texelFetch(usam_temp1, texelPos, 0).rgb;
 
     vec3 viewDir = normalize(-viewCoord);
 
@@ -53,11 +49,11 @@ void importance(ivec2 gCoord, out uint p, out float v) {
 
     // Surface normal function
     #if SETTING_RTWSM_B_SN > 0.0
-    importance *= 1.0 + SETTING_RTWSM_B_SN * saturate(dot(gData.normal, viewDir));
+    importance *= 1.0 + SETTING_RTWSM_B_SN * saturate(dot(viewNormal, viewDir));
     #endif
 
     #if SETTING_RTWSM_B_P > 0.0
-    float lightDir = dot(gData.normal, uval_shadowLightDirView);
+    float lightDir = dot(viewNormal, uval_shadowLightDirView);
     importance *= 1.0 + SETTING_RTWSM_B_P * pow(1.0 - lightDir * lightDir, float(SETTING_RTWSM_B_PP));
     #endif
 

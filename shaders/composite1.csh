@@ -31,6 +31,15 @@ void main() {
             GBufferData gData;
             gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
 
+            Material material = material_decode(gData);
+
+            {
+                vec4 temp1Out = vec4(0.0);
+                temp1Out.rgb = gData.normal;
+                temp1Out.a = float(any(greaterThan(material.emissive, vec3(0.0))));
+                imageStore(uimg_temp1, texelPos, temp1Out);
+            }
+
             {
                 vec3 viewCoord = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
 
@@ -50,15 +59,6 @@ void main() {
 
             imageStore(uimg_temp3, texelPos, prevColorHLen);
             imageStore(uimg_temp4, texelPos, vec4(prevMoments, 0.0, 0.0));
-
-            Material material = material_decode(gData);
-
-            {
-                vec4 temp1Out = vec4(0.0);
-                temp1Out.rgb = gData.normal;
-                temp1Out.a = float(any(greaterThan(material.emissive, vec3(0.0))));
-                imageStore(uimg_temp1, texelPos, temp1Out);
-            }
 
             {
                 vec4 ssgiOut = vec4(0.0);
