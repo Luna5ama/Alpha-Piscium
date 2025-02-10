@@ -159,7 +159,8 @@ LightingResult lightingResult_add(LightingResult a, LightingResult b) {
     return result;
 }
 
-vec3 skyReflection(Material material, float lmCoordSky, vec3 N, vec3 V) {
+vec3 skyReflection(Material material, float lmCoordSky, vec3 N) {
+    vec3 V = lighting_viewDir;
     float NDotV = dot(N, V);
     vec3 fresnelReflection = bsdf_fresnel(material, saturate(NDotV));
 
@@ -176,7 +177,8 @@ vec3 skyReflection(Material material, float lmCoordSky, vec3 N, vec3 V) {
     return result;
 }
 
-LightingResult directLighting(Material material, vec3 shadow, vec3 irradiance, vec3 L, vec3 N, vec3 V) {
+LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N) {
+    vec3 V = lighting_viewDir;
     vec3 H = normalize(L + V);
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);
@@ -188,23 +190,22 @@ LightingResult directLighting(Material material, vec3 shadow, vec3 irradiance, v
 
     LightingResult result;
 
-    vec3 shadowedIrradiance = shadow * irradiance;
     float diffuseBase = 1.0 - material.metallic;
 
-    result.diffuse = diffuseBase * shadowedIrradiance * (vec3(1.0) - fresnel);
+    result.diffuse = diffuseBase * irradiance.rgb * (vec3(1.0) - fresnel);
     result.diffuse *= bsdf_disneyDiffuse(material, NDotL, NDotV, LDotH);
 
     float diffuseV = diffuseBase * saturate(NDotL) * RCP_PI;
-    result.diffuseLambertian = diffuseV * (vec3(1.0) - fresnel) * shadowedIrradiance * material.albedo;
+    result.diffuseLambertian = diffuseV * (vec3(1.0) - fresnel) * irradiance.rgb * material.albedo;
 
-    float shadowPow = saturate(1.0 - colors_srgbLuma(shadow));
+    float shadowPow = saturate(1.0 - irradiance.a);
     shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * material.sss * SETTING_SSS_SCTR_FACTOR;
 
     float backDot = saturate(NDotL * - 0.5 + 0.5);
     float sssV = material.sss * RCP_PI * backDot * backDot;
-    result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * shadowedIrradiance;
+    result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb;
 
-    result.specular = shadowedIrradiance;
+    result.specular = irradiance.rgb;
     result.specular *= bsdf_ggx(material, fresnel, NDotL, NDotV, NDotH);
 
     return result;

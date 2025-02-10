@@ -1,6 +1,10 @@
 #version 460 compatibility
 
+layout(local_size_x = 8, local_size_y = 8) in;
+const vec2 workGroupsRender = vec2(1.0, 1.0);
+
 #include "util/FullScreenComp.glsl"
+
 #include "_Util.glsl"
 #include "atmosphere/Common.glsl"
 #include "general/Lighting.glsl"
@@ -22,8 +26,7 @@ layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
-void doLighting(Material material, vec3 N, vec3 V, inout vec3 mainOut, inout vec3 ssgiOut) {
-
+void doLighting(Material material, vec3 N, inout vec3 mainOut, inout vec3 ssgiOut) {
     vec3 emissiveV = material.emissive;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
@@ -35,26 +38,25 @@ void doLighting(Material material, vec3 N, vec3 V, inout vec3 mainOut, inout vec
     float viewAltitude = atmosphere_height(atmosphere, worldPos);
     vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
 
-    float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
-    vec3 tSun = sampleTransmittanceLUT(atmosphere, cosSunZenith, viewAltitude);
-    vec3 sunIrradiance = sunRadiance * tSun;
-
-    float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
-    vec3 tMoon = sampleTransmittanceLUT(atmosphere, cosMoonZenith, viewAltitude);
-    vec3 moonIrradiance = sunRadiance * MOON_RADIANCE_MUL * tMoon;
-
     vec3 shadow = calcShadow(material.sss);
 
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
-    vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
-    LightingResult sunLighting = directLighting(material, sunShadow, sunIrradiance, uval_sunDirView, N, V);
 
+    float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
+    vec3 tSun = sampleTransmittanceLUT(atmosphere, cosSunZenith, viewAltitude);
+    vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
+    vec4 sunIrradiance = vec4(sunRadiance * tSun * sunShadow, colors_srgbLuma(sunShadow));
+    LightingResult sunLighting = directLighting(material, sunIrradiance, uval_sunDirView, N);
+
+    float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
+    vec3 tMoon = sampleTransmittanceLUT(atmosphere, cosMoonZenith, viewAltitude);
     vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
-    LightingResult moonLighting = directLighting(material, moonShadow, moonIrradiance, uval_moonDirView, N, V);
+    vec4 moonIrradiance = vec4(sunRadiance * MOON_RADIANCE_MUL * tMoon * moonShadow, colors_srgbLuma(moonShadow));
+    LightingResult moonLighting = directLighting(material, moonIrradiance, uval_moonDirView, N);
 
     LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
 
-    vec3 skyReflectionV = skyReflection(material, gData.lmCoord.y, N, V);
+    vec3 skyReflectionV = skyReflection(material, gData.lmCoord.y, N);
 
     mainOut += 0.001 * material.albedo;
     mainOut += emissiveV;
@@ -66,8 +68,6 @@ void doLighting(Material material, vec3 N, vec3 V, inout vec3 mainOut, inout vec
     ssgiOut += emissiveV;
     ssgiOut += combinedLighting.diffuseLambertian;
     ssgiOut += combinedLighting.sss;
-
-    ssgiOut *= mix(1.0, 0.0, gData.materialID == 65533u);
 }
 
 void main() {
@@ -112,7 +112,7 @@ void main() {
             } else {
                 float multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * 2.0 * RCP_PI;
                 ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo;
-                doLighting(material, gData.normal, lighting_viewDir, mainOut.rgb, ssgiOut.rgb);
+                doLighting(material, gData.normal, mainOut.rgb, ssgiOut.rgb);
             }
         } else {
             mainOut.rgb += renderSunMoon(texelPos);
