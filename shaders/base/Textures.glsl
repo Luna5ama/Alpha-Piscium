@@ -48,9 +48,7 @@ const int colortex15Format = RGBA16F; // TAA Last
 const bool shadowcolor0Clear = true;
 const vec4 shadowcolor0ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
 
-const bool colortex0Clear = true;
-const vec4 colortex0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
-
+const bool colortex0Clear = false;
 const bool colortex1Clear = false;
 const bool colortex2Clear = false;
 const bool colortex3Clear = false;

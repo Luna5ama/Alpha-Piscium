@@ -8,4 +8,4 @@ layout(rgba32ui) uniform writeonly uimage2D uimg_epipolarData;
 const ivec4 CLEAR_IMAGE_BOUND = ivec4(0, 0, SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
 const uvec4 CLEAR_COLOR1 = uvec4(0u);
 
-#include "general/Clear1.comp"
+#include "general/Clear.comp"

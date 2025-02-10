@@ -65,16 +65,16 @@ void main() {
         vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
 
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-        gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
-
-        lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse));
 
         vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
-        vec4 ssgiOut = imageLoad(uimg_temp2, texelPos);
 
         if (viewZ != -65536.0) {
+            gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
             Material material = material_decode(gData);
 
+            lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse));
+
+            vec4 ssgiOut = imageLoad(uimg_temp2, texelPos);
             ssgiOut.a = gData.lmCoord.y;
 
             if (gData.materialID == 65534u) {
@@ -84,11 +84,12 @@ void main() {
                 float multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * 2.0 * RCP_PI;
                 doLighting(material, gData.normal, mainOut.rgb, ssgiOut.rgb);
             }
+
+            imageStore(uimg_temp2, texelPos, ssgiOut);
         } else {
             mainOut.rgb += renderSunMoon(texelPos);
         }
 
         imageStore(uimg_main, texelPos, mainOut);
-        imageStore(uimg_temp2, texelPos, ssgiOut);
     }
 }

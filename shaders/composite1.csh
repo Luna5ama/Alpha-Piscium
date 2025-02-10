@@ -26,45 +26,50 @@ void main() {
         vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
 
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-        GBufferData gData;
-        gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
-
-        vec3 viewCoord = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
-
-        vec2 projRejectOut;
-        ndpacking_updateProjReject(usam_prevNZ, texelPos, screenPos, gData.normal, viewCoord, projRejectOut);
-        imageStore(uimg_projReject, texelPos, vec4(projRejectOut, 0.0, 0.0));
-
-        vec4 prevColorHLen;
-        vec2 prevMoments;
-
-        svgf_reproject(
-            usam_svgfHistoryColor, usam_svgfHistoryMoments, usam_prevNZ,
-            screenPos, viewZ, gData.normal, float(gData.isHand),
-            prevColorHLen, prevMoments
-        );
-
-        imageStore(uimg_temp3, texelPos, prevColorHLen);
-        imageStore(uimg_temp4, texelPos, vec4(prevMoments, 0.0, 0.0));
-
-        vec4 temp1Out = vec4(0.0);
-        vec4 ssgiOut = vec4(0.0);
 
         if (viewZ != -65536.0) {
+            GBufferData gData;
+            gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
+
+            {
+                vec3 viewCoord = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
+
+                vec2 projRejectOut;
+                ndpacking_updateProjReject(usam_prevNZ, texelPos, screenPos, gData.normal, viewCoord, projRejectOut);
+                imageStore(uimg_projReject, texelPos, vec4(projRejectOut, 0.0, 0.0));
+            }
+
+            vec4 prevColorHLen;
+            vec2 prevMoments;
+
+            svgf_reproject(
+                usam_svgfHistoryColor, usam_svgfHistoryMoments, usam_prevNZ,
+                screenPos, viewZ, gData.normal, float(gData.isHand),
+                prevColorHLen, prevMoments
+            );
+
+            imageStore(uimg_temp3, texelPos, prevColorHLen);
+            imageStore(uimg_temp4, texelPos, vec4(prevMoments, 0.0, 0.0));
+
             Material material = material_decode(gData);
 
-            temp1Out.rgb = gData.normal;
-            temp1Out.a = float(any(greaterThan(material.emissive, vec3(0.0))));
+            {
+                vec4 temp1Out = vec4(0.0);
+                temp1Out.rgb = gData.normal;
+                temp1Out.a = float(any(greaterThan(material.emissive, vec3(0.0))));
+                imageStore(uimg_temp1, texelPos, temp1Out);
+            }
 
-            if (gData.materialID == 65534u) {
-                ssgiOut = vec4(0.0, 0.0, 0.0, 0.0);
-            } else {
-                float multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * 2.0 * RCP_PI;
-                ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo;
+            {
+                vec4 ssgiOut = vec4(0.0);
+                if (gData.materialID == 65534u) {
+                    ssgiOut = vec4(0.0, 0.0, 0.0, 0.0);
+                } else {
+                    float multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * 2.0 * RCP_PI;
+                    ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo;
+                }
+                imageStore(uimg_temp2, texelPos, ssgiOut);
             }
         }
-
-        imageStore(uimg_temp1, texelPos, temp1Out);
-        imageStore(uimg_temp2, texelPos, ssgiOut);
     }
 }
