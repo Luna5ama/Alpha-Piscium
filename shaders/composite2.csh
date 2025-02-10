@@ -81,7 +81,6 @@ void main() {
                 mainOut = vec4(material.albedo, 1.0);
                 ssgiOut = vec4(0.0, 0.0, 0.0, 0.0);
             } else {
-                float multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * 2.0 * RCP_PI;
                 doLighting(material, gData.normal, mainOut.rgb, ssgiOut.rgb);
             }
 

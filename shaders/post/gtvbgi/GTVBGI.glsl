@@ -483,7 +483,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
     gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
     Material material = material_decode(gData);
     material.roughness *= 0.5;
-    material.roughness = max(material.roughness, 0.01);
+    material.roughness = max(material.roughness, 0.02);
 
     for (uint stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; ++stepIndex) {
         float sampleLodTexelSize = lodTexelSize(sampleLod) * 1.0;
@@ -493,7 +493,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
         vec2 sampleTexelCoord = floor(rayDir * sampleTexelDist + rayStart) + 0.5;
         vec2 sampleUV = sampleTexelCoord / textureSize(usam_gbufferViewZ, 0).xy;
 
-        float realSampleLod = round(sampleLod * 0.25);
+        float realSampleLod = 0.0;
 
         float sampleViewZ = textureLod(usam_gbufferViewZ, sampleUV, realSampleLod).r;
         vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
@@ -595,8 +595,8 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
                         vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
                         vec3 ggx = bsdf_ggx_noAlbedo(material, fresnel, NDotL, NDotV, NDotH);
 
-                        rt_out.rgb += sampleRad * (vis0 * (1.0 - material.metallic) * (vec3(1.0) - fresnel));
-                        rt_out.rgb += sampleRad * vis0 * ggx;
+                        rt_out.rgb += sampleRad * (vec3(1.0) - fresnel) * (vis0 * (1.0 - material.metallic) * SETTING_SSVBIL_DGI_STRENGTH);
+                        rt_out.rgb += sampleRad * ggx * (vis0 * SETTING_SSVBIL_SGI_STRENGTH);
                     }
                 }
             }
@@ -661,8 +661,6 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
     rt_out.a = float(CountBits(occBits)) * (1.0 / 32.0);
     rt_out.a = saturate(1.0 - rt_out.a);
     rt_out.a = pow(rt_out.a, SETTING_SSVBIL_AO_STRENGTH);
-
-    rt_out.rgb *= SETTING_SSVBIL_GI_STRENGTH;
 
     float lmCoordSky = texelFetch(usam_temp2, texelPos, 0).a;
     float skyLightingIntensity = RCP_PI;

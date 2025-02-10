@@ -681,9 +681,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_SSVBIL_GI_STRENGTH", 2.5, 0.0..5.0 step 0.1) {
+                slider("SETTING_SSVBIL_DGI_STRENGTH", 2.5, 0.0..5.0 step 0.1) {
                     lang(Locale.US) {
-                        name = "GI Strength"
+                        name = "Diffuse GI Strength"
+                    }
+                }
+                slider("SETTING_SSVBIL_SGI_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "Specular GI Strength"
                     }
                 }
                 slider("SETTING_SSVBIL_GI_MB", 1.0, 0.0..2.0 step 0.1) {
@@ -695,6 +700,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             screen("DENOISER", 1) {
                 lang(Locale.US) {
                     name = "Denoiser"
+                }
+                toggle("SETTING_DENOISER", true) {
+                    lang(Locale.US) {
+                        name = "Denoiser"
+                    }
                 }
                 slider("SETTING_DENOISER_MAX_ACCUM", 64, (2..8).map { 1 shl it }) {
                     lang(Locale.US) {
