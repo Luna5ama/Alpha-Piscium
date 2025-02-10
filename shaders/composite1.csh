@@ -1,14 +1,12 @@
 #version 460 compatibility
 
+#include "util/FullScreenComp.glsl"
 #include "_Util.glsl"
 #include "atmosphere/Common.glsl"
 #include "general/Lighting.glsl"
 #include "general/NDPacking.glsl"
 #include "atmosphere/SunMoon.glsl"
 #include "svgf/Reproject.glsl"
-
-layout(local_size_x = 16, local_size_y = 16) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_ssvbil;
@@ -32,7 +30,7 @@ void doLighting(Material material, vec3 N, vec3 V, inout vec3 mainOut, inout vec
 
     float alpha = material.roughness * material.roughness;
 
-    vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(g_viewCoord, 1.0)).xyz;
+    vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(lighting_viewCoord, 1.0)).xyz;
     vec3 worldPos = feetPlayerPos + cameraPosition;
     float viewAltitude = atmosphere_height(atmosphere, worldPos);
     vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
@@ -73,21 +71,16 @@ void doLighting(Material material, vec3 N, vec3 V, inout vec3 mainOut, inout vec
 }
 
 void main() {
-    texelPos = ivec2(gl_GlobalInvocationID.xy);
-
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
 
         float viewZ = imageLoad(uimg_gbufferViewZ, texelPos).r;
         gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
 
-        g_viewCoord = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
-        g_viewDir = normalize(-g_viewCoord);
-        coord3Rand[0] = rand_hash31(floatBitsToUint(g_viewCoord.xyz)) & 1023u;
-        coord3Rand[1] = rand_hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
+        lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse));
 
         vec2 projRejectOut;
-        ndpacking_updateProjReject(usam_prevNZ, texelPos, screenPos, gData.normal, g_viewCoord, projRejectOut);
+        ndpacking_updateProjReject(usam_prevNZ, texelPos, screenPos, gData.normal, lighting_viewCoord, projRejectOut);
         imageStore(uimg_projReject, texelPos, vec4(projRejectOut, 0.0, 0.0));
 
         vec4 prevColorHLen;
@@ -119,7 +112,7 @@ void main() {
             } else {
                 float multiBounceV = (SETTING_SSVBIL_GI_MB / SETTING_SSVBIL_GI_STRENGTH) * 2.0 * RCP_PI;
                 ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo;
-                doLighting(material, gData.normal, g_viewDir, mainOut.rgb, ssgiOut.rgb);
+                doLighting(material, gData.normal, lighting_viewDir, mainOut.rgb, ssgiOut.rgb);
             }
         } else {
             mainOut.rgb += renderSunMoon(texelPos);

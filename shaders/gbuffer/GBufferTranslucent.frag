@@ -1,6 +1,8 @@
 #include "../_Util.glsl"
-#include "../_Util.glsl"
+
+ivec2 texelPos;
 #include "../general/Lighting.glsl"
+
 
 uniform sampler2D gtexture;
 uniform sampler2D normals;
@@ -79,10 +81,7 @@ void main() {
     vec4 albedo = processAlbedo();
     gData = processOutput();
 
-    g_viewCoord = frag_viewCoord;
-    g_viewDir = normalize(-g_viewCoord);
-    coord3Rand[0] = rand_hash31(floatBitsToUint(g_viewCoord.xyz)) & 1023u;
-    coord3Rand[1] = rand_hash31(floatBitsToUint(g_viewCoord.xzy)) & 1023u;
+    lighting_init(frag_viewCoord);
 
     rt_translucentColor.rgb = colors_srgbToLinear(albedo.rgb);
     rt_translucentColor.a = albedo.a;

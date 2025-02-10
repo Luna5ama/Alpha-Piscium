@@ -17,11 +17,14 @@ uniform sampler2D usam_rtwsm_imap;
 
 uniform sampler2D usam_skyLUT;
 
-uint coord3Rand[2];
-ivec2 texelPos;
 GBufferData gData;
-vec3 g_viewCoord;
-vec3 g_viewDir;
+vec3 lighting_viewCoord;
+vec3 lighting_viewDir;
+
+void lighting_init(vec3 viewCoord) {
+    lighting_viewCoord = viewCoord;
+    lighting_viewDir = normalize(-viewCoord);
+}
 
 float searchBlocker(vec3 shadowTexCoord) {
     #define BLOCKER_SEARCH_LOD SETTING_PCSS_BLOCKER_SEARCH_LOD
@@ -29,7 +32,7 @@ float searchBlocker(vec3 shadowTexCoord) {
     #define BLOCKER_SEARCH_N SETTING_PCSS_BLOCKER_SEARCH_COUNT
 
     float blockerSearchRange = 0.2;
-    uint idxB = frameCounter * BLOCKER_SEARCH_N + coord3Rand[1];
+    uint idxB = frameCounter * BLOCKER_SEARCH_N + (rand_hash31(floatBitsToUint(lighting_viewCoord.xyz)) & 1023u);
 
     float blockerDepth = 0.0f;
     int n = 0;
@@ -52,12 +55,12 @@ float searchBlocker(vec3 shadowTexCoord) {
 }
 
 vec3 calcShadow(float sssFactor) {
-    vec3 viewCoord = g_viewCoord;
+    vec3 viewCoord = lighting_viewCoord;
     float distnaceSq = dot(viewCoord, viewCoord);
 
     float normalOffset = 0.03;
 
-    float viewNormalDot = 1.0 - abs(dot(gData.normal, g_viewDir));
+    float viewNormalDot = 1.0 - abs(dot(gData.normal, lighting_viewDir));
     #define NORMAL_OFFSET_DISTANCE_FACTOR1 2048.0
     float normalOffset1 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR1 / (NORMAL_OFFSET_DISTANCE_FACTOR1 + distnaceSq));
     normalOffset += saturate(normalOffset1 * viewNormalDot) * 0.2;
