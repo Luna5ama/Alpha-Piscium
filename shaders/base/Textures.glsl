@@ -35,6 +35,9 @@ const int colortex15Format = RGBA16F; // TAA Last
 #define usam_temp6 colortex6
 #define uimg_temp6 colorimg6
 
+#define usam_temp7 colortex7
+#define uimg_temp7 colorimg7
+
 #define usam_gbufferData colortex8
 #define uimg_gbufferData colorimg8
 
