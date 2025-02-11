@@ -3,31 +3,26 @@
 #extension GL_KHR_shader_subgroup_clustered : enable
 
 #include "../_Util.glsl"
+#include "util/Morton.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform sampler2D usam_gbufferViewZ;
+uniform sampler2D usam_temp5;
 
 layout(rgba32ui) uniform restrict uimage2D uimg_gbufferData;
-layout(rgba8) uniform restrict image2D uimg_temp5;
-
-uvec2 morton8bDecode(uint code) {
-    uvec2 result = uvec2(code, code >> 1) & 0x55u;
-    result = (result | (result >> 1)) & 0x33u;
-    result = (result | (result >> 2)) & 0x0fu;
-    return result;
-}
+layout(rgba8) uniform writeonly image2D uimg_temp7;
 
 void main() {
     uvec2 workGroupOrigin = gl_WorkGroupID.xy << 4;
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
-    uvec2 mortonPos = morton8bDecode(threadIdx);
+    uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     ivec2 texelPos = ivec2(mortonGlobalPosU);
 
     ivec2 clampedTexelPos = min(texelPos, global_mainImageSizeI - 1);
-    vec3 albedo = imageLoad(uimg_temp5, clampedTexelPos).rgb;
+    vec3 albedo = texelFetch(usam_temp5, clampedTexelPos, 0).rgb;
     GBufferData gData;
     gbuffer_unpack(imageLoad(uimg_gbufferData, clampedTexelPos), gData);
     gData.albedo = albedo;
@@ -64,12 +59,12 @@ void main() {
         vec4 vrsWeight2x2 = vec4(normalWeight, viewZWeight, albedoWeight, 1.0);
 
         if ((threadIdx & 3u) == 0u) {
-            imageStore(uimg_temp5, clampedTexelPos >> 1, vec4(vrsWeight2x2));
+            imageStore(uimg_temp7, clampedTexelPos >> 1, vec4(vrsWeight2x2));
             vec4 vrsWeighr4x4 = subgroupClusteredMin(vrsWeight2x2, 16u);
             if ((threadIdx & 15u) == 0u) {
                 ivec2 texelPos4x4 = clampedTexelPos >> 2;
                 texelPos4x4.x += (global_mainImageSizeI.x >> 1);
-                imageStore(uimg_temp5, texelPos4x4, vrsWeighr4x4);
+                imageStore(uimg_temp7, texelPos4x4, vrsWeighr4x4);
             }
         }
     }
