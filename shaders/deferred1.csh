@@ -56,7 +56,9 @@ void main() {
         albedoWeight = albedoA / (albedoA + albedoWeight);
         albedoWeight = subgroupClusteredMul(albedoWeight, 4u);
 
-        vec4 vrsWeight2x2 = vec4(normalWeight, viewZWeight, albedoWeight, 1.0);
+        float noPixelWeight = float(subgroupClusteredMin(viewZ, 4u) != -65536.0);
+
+        vec4 vrsWeight2x2 = vec4(normalWeight, viewZWeight, albedoWeight, 1.0) * noPixelWeight;
 
         if ((threadIdx & 3u) == 0u) {
             imageStore(uimg_temp7, clampedTexelPos >> 1, vec4(vrsWeight2x2));
