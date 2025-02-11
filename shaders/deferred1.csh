@@ -65,7 +65,7 @@ void main() {
             vec4 vrsWeighr4x4 = subgroupClusteredMin(vrsWeight2x2, 16u);
             if ((threadIdx & 15u) == 0u) {
                 ivec2 texelPos4x4 = clampedTexelPos >> 2;
-                texelPos4x4.x += (global_mainImageSizeI.x >> 1);
+                texelPos4x4.x += global_mipmapSizesI[1].x;
                 imageStore(uimg_temp7, texelPos4x4, vrsWeighr4x4);
             }
         }
