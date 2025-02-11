@@ -3,28 +3,28 @@
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-#define CLEAR_IMAGE2 uimg_gbufferViewZ
-#define CLEAR_IMAGE3 uimg_temp1
-#define CLEAR_IMAGE4 uimg_temp2
-#define CLEAR_IMAGE5 uimg_temp3
-#define CLEAR_IMAGE6 uimg_temp4
-#define CLEAR_IMAGE7 uimg_temp5
-#define CLEAR_IMAGE8 uimg_translucentColor
-layout(r32f) uniform writeonly image2D CLEAR_IMAGE2;
+#define CLEAR_IMAGE1 uimg_temp1
+#define CLEAR_IMAGE2 uimg_temp2
+#define CLEAR_IMAGE3 uimg_temp3
+#define CLEAR_IMAGE4 uimg_temp4
+#define CLEAR_IMAGE5 uimg_temp5
+#define CLEAR_IMAGE6 uimg_temp6
+#define CLEAR_IMAGE7 uimg_temp7
+layout(rgba16f) uniform writeonly image2D CLEAR_IMAGE1;
+layout(rgba16f) uniform writeonly image2D CLEAR_IMAGE2;
 layout(rgba16f) uniform writeonly image2D CLEAR_IMAGE3;
 layout(rgba16f) uniform writeonly image2D CLEAR_IMAGE4;
-layout(rgba16f) uniform writeonly image2D CLEAR_IMAGE5;
-layout(rgba16f) uniform writeonly image2D CLEAR_IMAGE6;
+layout(rgba8) uniform writeonly image2D CLEAR_IMAGE5;
+layout(rgba8) uniform writeonly image2D CLEAR_IMAGE6;
 layout(rgba8) uniform writeonly image2D CLEAR_IMAGE7;
-layout(rgba16f) uniform writeonly image2D CLEAR_IMAGE8;
 
 const ivec4 CLEAR_IMAGE_BOUND = ivec4(0, 0, global_mainImageSizeI);
-const vec4 CLEAR_COLOR2 = vec4(-65536.0);
+const vec4 CLEAR_COLOR1 = vec4(0.0);
+const vec4 CLEAR_COLOR2 = vec4(0.0);
 const vec4 CLEAR_COLOR3 = vec4(0.0);
 const vec4 CLEAR_COLOR4 = vec4(0.0);
 const vec4 CLEAR_COLOR5 = vec4(0.0);
 const vec4 CLEAR_COLOR6 = vec4(0.0);
 const vec4 CLEAR_COLOR7 = vec4(0.0);
-const vec4 CLEAR_COLOR8 = vec4(0.0);
 
 #include "general/Clear.comp"

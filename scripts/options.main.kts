@@ -1055,7 +1055,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..4) {
+                toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..7) {
                     lang(Locale.US) {
                         name = "Temp Tex"
                         0 value "Off"
@@ -1063,6 +1063,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         2 value "temp2"
                         3 value "temp3"
                         4 value "temp4"
+                        5 value "temp5"
+                        6 value "temp6"
+                        7 value "temp7"
                     }
                 }
                 toggle("SETTING_DEBUG_SSVBIL", 0, 0..2) {

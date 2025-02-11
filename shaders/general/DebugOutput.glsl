@@ -24,6 +24,12 @@ uniform usampler2D usam_gbufferData;
 #define DEBUG_TEX_NAME usam_temp3
 #elif SETTING_DEBUG_TEMP_TEX == 4
 #define DEBUG_TEX_NAME usam_temp4
+#elif SETTING_DEBUG_TEMP_TEX == 5
+#define DEBUG_TEX_NAME usam_temp5
+#elif SETTING_DEBUG_TEMP_TEX == 6
+#define DEBUG_TEX_NAME usam_temp6
+#elif SETTING_DEBUG_TEMP_TEX == 7
+#define DEBUG_TEX_NAME usam_temp7
 #elif SETTING_DEBUG_SSVBIL == 1
 #define DEBUG_TEX_NAME usam_ssvbil
 #ifdef SETTING_DEBUG_ALPHA

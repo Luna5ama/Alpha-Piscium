@@ -6,7 +6,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform sampler2D usam_temp4;
-uniform sampler2D usam_temp5;
+uniform sampler2D usam_temp6;
 uniform sampler2D usam_projReject;
 uniform sampler2D usam_gbufferViewZ;
 
@@ -36,7 +36,7 @@ void main() {
         float frustumTest = float(projReject.x > 0.0);
         float newPixel = float(projReject.y > 0.0);
 
-        float hLen = texelFetch(usam_temp5, texelPos, 0).r * 255.0 + 1.0;
+        float hLen = texelFetch(usam_temp6, texelPos, 0).r * 255.0 + 1.0;
         hLen *= saturate(1.0 - frustumTest * 0.5);
         
         imageStore(uimg_temp3, texelPos, filterOutput);
