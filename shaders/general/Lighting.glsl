@@ -31,11 +31,15 @@ float searchBlocker(vec3 shadowTexCoord) {
 
     #define BLOCKER_SEARCH_N SETTING_PCSS_BLOCKER_SEARCH_COUNT
 
-    float blockerSearchRange = 0.2;
+    float blockerSearchRange = 0.1;
     uint idxB = frameCounter * BLOCKER_SEARCH_N + (rand_hash31(floatBitsToUint(lighting_viewCoord.xyz)) & 1023u);
 
     float blockerDepth = 0.0f;
     int n = 0;
+
+    shadowTexCoord.z = rtwsm_linearDepth(shadowTexCoord.z);
+    float originalZ = shadowTexCoord.z;
+    shadowTexCoord.z = rtwsm_linearDepthInverse(shadowTexCoord.z);
 
     for (int i = 0; i < BLOCKER_SEARCH_N; i++) {
         vec2 randomOffset = (rand_r2Seq2(idxB) * 2.0 - 1.0);
@@ -51,7 +55,7 @@ float searchBlocker(vec3 shadowTexCoord) {
     blockerDepth /= float(max(n, 1));
     blockerDepth = mix(shadowTexCoord.z, blockerDepth, float(n != 0));
 
-    return rtwsm_linearDepth(blockerDepth) - rtwsm_linearDepth(shadowTexCoord.z);
+    return rtwsm_linearDepth(blockerDepth) - originalZ;
 }
 
 vec3 calcShadow(float sssFactor) {
@@ -100,7 +104,7 @@ vec3 calcShadow(float sssFactor) {
     #define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
     vec3 shadow = vec3(0.0);
-    uint idxSS = uint(rand_IGN(vec2(texelPos), frameCounter) * 1111.0);
+    uint idxSS = (frameCounter + rand_hash31(floatBitsToUint(viewCoord.xyz)) & 1023u) * SAMPLE_N;
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
     float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distnaceSq, 1.0)));
