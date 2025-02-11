@@ -483,7 +483,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
     gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
     Material material = material_decode(gData);
     material.roughness *= 0.5;
-    material.roughness = max(material.roughness, 0.02);
+    material.roughness = max(material.roughness, 0.01);
 
     for (uint stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; ++stepIndex) {
         float sampleLodTexelSize = lodTexelSize(sampleLod) * 1.0;
@@ -493,7 +493,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
         vec2 sampleTexelCoord = floor(rayDir * sampleTexelDist + rayStart) + 0.5;
         vec2 sampleUV = sampleTexelCoord / textureSize(usam_gbufferViewZ, 0).xy;
 
-        float realSampleLod = 0.0;
+        float realSampleLod = round(sampleLod * SETTING_SSVBIL_LOD_MUL);
 
         float sampleViewZ = textureLod(usam_gbufferViewZ, sampleUV, realSampleLod).r;
         vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);

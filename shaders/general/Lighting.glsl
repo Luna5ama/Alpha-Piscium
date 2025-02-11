@@ -170,7 +170,7 @@ vec3 skyReflection(Material material, float lmCoordSky, vec3 N) {
     vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
 
     vec3 result = fresnelReflection;
-    result *= mix(vec3(1.0), material.albedo, material.metallic);
+    result *= material.albedo;
     result *= linearStep(1.5 / 16.0, 15.5 / 16.0, lmCoordSky);
     result *= texture(usam_skyLUT, reflectLUTUV).rgb;
 

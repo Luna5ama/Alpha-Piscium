@@ -14,13 +14,13 @@ float bsdf_f0ToIor(float f0) {
     return (1.0 + f0Sqrt) / (1.0 - f0Sqrt);
 }
 
-vec3 bsdf_frenel_cookTorrance_ior(float cosTheta, float ior) {
+float bsdf_frenel_cookTorrance_ior(float cosTheta, float ior) {
     float c = float(cosTheta);
     float g = sqrt(ior * ior + c * c - float(1.0));
-    return vec3(0.5 * pow2((g - c) / (g + c)) * (1.0 + pow2(((g + c) * c - 1.0) / ((g - c) * c + 1.0))));
+    return 0.5 * pow2((g - c) / (g + c)) * (1.0 + pow2(((g + c) * c - 1.0) / ((g - c) * c + 1.0)));
 }
 
-vec3 bsdf_frenel_cookTorrance_f0(float cosTheta, float f0) {
+float bsdf_frenel_cookTorrance_f0(float cosTheta, float f0) {
     float ior = bsdf_f0ToIor(f0);
     return bsdf_frenel_cookTorrance_ior(cosTheta, ior);
 }
@@ -136,14 +136,15 @@ float _gs_Smith_Schlick_GGX(float NDotV, float a) {
 vec3 bsdf_ggx(Material material, vec3 F, float NDotL, float NDotV, float NDotH) {
     if (NDotL <= 0.0) return vec3(0.0);
     float NDotH2 = NDotH * NDotH;
-    float a2 = material.roughness * material.roughness;
+    float a = material.roughness;
+    float a2 = a * a;
 
     // Normal Distribution Function Term
     float d;
     // GGX (Trowbridge-Reitz)
     {
         float sqTerm = NDotH2 * (a2 - 1.0) + 1.0;
-        d = a2 / max(PI * sqTerm * sqTerm, 0.00001);
+        d = a2 / max(PI * sqTerm * sqTerm, 0.00001 * a2);
     }
 
     // Geometric Shadowing Term
@@ -153,8 +154,8 @@ vec3 bsdf_ggx(Material material, vec3 F, float NDotL, float NDotV, float NDotH) 
         float gl, gv;
         // Schlick GGX
         {
-            gl = _gs_Smith_Schlick_GGX(max(NDotL, 0.0), material.roughness);
-            gv = _gs_Smith_Schlick_GGX(max(NDotV, 0.0), material.roughness);
+            gl = _gs_Smith_Schlick_GGX(max(NDotL, 0.01), a);
+            gv = _gs_Smith_Schlick_GGX(max(NDotV, 0.01), a);
         }
         g = gl * gv;
     }

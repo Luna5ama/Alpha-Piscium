@@ -674,6 +674,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Thickness"
                     }
                 }
+                slider("SETTING_SSVBIL_LOD_MUL", 0.25, 0.0..1.0 step 0.01) {
+                    lang(Locale.US) {
+                        name = "Sample LOD Multiplier"
+                        comment = "Multiplier for sample LOD. Smaller values leads to more accurate but slower result."
+                    }
+                }
                 empty()
                 slider("SETTING_SSVBIL_AO_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
                     lang(Locale.US) {
@@ -848,7 +854,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Time constant for average luminance AE."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.18, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.35, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Average Luminance Target"
                         comment = "Target average luminance value for average luminance EXPOSURE."

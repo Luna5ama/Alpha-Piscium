@@ -26,7 +26,7 @@ Material material_decode(GBufferData gData) {
     material.roughness = 1.0 - gData.pbrSpecular.r;
     material.roughness *= material.roughness;
     material.f0 = gData.pbrSpecular.g;
-    material.metallic = float(material.f0 >= 229.5 / 255.0);
+    material.metallic = float(material.f0 >= (229.5 / 255.0));
 
     const float _1o255 = 1.0 / 255.0;
     float emissiveS = gData.pbrSpecular.a;
