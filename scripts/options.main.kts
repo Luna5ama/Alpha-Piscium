@@ -733,6 +733,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Denoiser"
                     }
                 }
+                empty()
+                slider("SETTING_DENOISER_REPROJ_FILTER", true) {
+                    lang(Locale.US) {
+                        name = "Reprojection Filter"
+                        comment = "Perform filtering during reprojection."
+                    }
+                }
+                slider("SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS", 16, (0..10).map { 1 shl it }) {
+                    lang(Locale.US) {
+                        name = "Reprojection Normal Strictness"
+                    }
+                }
+                empty()
                 slider("SETTING_DENOISER_MAX_ACCUM", 64, (2..8).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Max Accumulation"
@@ -742,11 +755,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     lang(Locale.US) {
                         name = "Accumulation Decay"
                         comment = "Current mix rate decay factor for temporal accumulation. Larger value means faster decay."
-                    }
-                }
-                slider("SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS", 16, (0..10).map { 1 shl it }) {
-                    lang(Locale.US) {
-                        name = "Reprojection Normal Strictness"
                     }
                 }
                 empty()

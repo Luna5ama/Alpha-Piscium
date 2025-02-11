@@ -6,7 +6,7 @@ float normalWeight(vec3 currWorldNormal, uint packedNormal) {
     vec3 prevViewNormal = coords_octDecode11(unpackSnorm2x16(packedNormal));
     vec3 prevWorldNormal = mat3(gbufferPrevModelViewInverse) * prevViewNormal;
     float sdot = saturate(dot(currWorldNormal, prevWorldNormal));
-    return pow(sdot, SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS);
+    return pow(sdot, 2.0);
 }
 
 float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prevViewZI) {
@@ -17,7 +17,7 @@ float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prev
 
     vec3 diff = currScene.xyz - prevScene.xyz;
     float distSq = dot(diff, diff);
-    float a = -currViewZ * 0.00001;
+    float a = -currViewZ * 0.001;
     return a / (a + distSq);
 }
 
@@ -88,15 +88,35 @@ out vec4 prevColorHLen, out vec2 prevMoments
 
     vec3 currWorldNormal = mat3(gbufferModelViewInverse) * currViewNormal;
 
-    vec2 pixelPos = curr2PrevScreen * global_mainImageSize - 0.5;
-    vec2 originPixelPos = floor(pixelPos);
-    vec2 gatherUV = (originPixelPos + 1.0) * global_mainImageSizeRcp;
-    vec2 bilinearWeights = pixelPos - originPixelPos;
-
     prevColorHLen = vec4(0.0);
     prevMoments = vec2(0.0);
     float weightSum = 0.0;
 
+    #ifdef SETTING_DENOISER_REPROJ_FILTER
+    bilateralSample(
+        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+        curr2PrevTexel + vec2(0.5), currScene.xyz, currViewZ, currWorldNormal, 1.0,
+        prevColorHLen, prevMoments, weightSum
+    );
+
+    bilateralSample(
+        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+        curr2PrevTexel - vec2(0.5), currScene.xyz, currViewZ, currWorldNormal, 1.0,
+        prevColorHLen, prevMoments, weightSum
+    );
+
+    bilateralSample(
+        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+        curr2PrevTexel + vec2(-0.5, 0.5), currScene.xyz, currViewZ, currWorldNormal, 1.0,
+        prevColorHLen, prevMoments, weightSum
+    );
+
+    bilateralSample(
+        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
+        curr2PrevTexel + vec2(0.5, -0.5), currScene.xyz, currViewZ, currWorldNormal, 1.0,
+        prevColorHLen, prevMoments, weightSum
+    );
+    #else
     bilateralSample(
         svgfHistoryColor, svgfHistoryMoments, prevNZTex,
         curr2PrevTexel, currScene.xyz, currViewZ, currWorldNormal, 1.0,
@@ -129,6 +149,7 @@ out vec4 prevColorHLen, out vec2 prevMoments
             prevColorHLen, prevMoments, weightSum
         );
     }
+    #endif
 
     const float WEIGHT_EPSILON_FINAL = 0.0001;
     if (weightSum < WEIGHT_EPSILON_FINAL) {
@@ -137,7 +158,7 @@ out vec4 prevColorHLen, out vec2 prevMoments
     } else {
         float rcpWeightSum = 1.0 / weightSum;
         prevColorHLen *= rcpWeightSum;
-        prevColorHLen.a = max(floor(prevColorHLen.a), 1.0);
+        prevColorHLen.a = max(ceil(prevColorHLen.a), 1.0);
         prevMoments *= rcpWeightSum;
     }
 }

@@ -41,7 +41,6 @@ void main() {
         
         imageStore(uimg_temp3, texelPos, filterOutput);
         imageStore(uimg_svgfHistoryColor, texelPos, vec4(filterOutput.rgb, hLen));
-        imageStore(uimg_svgfHistoryColor, texelPos, vec4(filterOutput.rgb, hLen));
 
         float ao = imageLoad(uimg_ssvbil, texelPos).a;
         vec3 gi = filterOutput.rgb;
