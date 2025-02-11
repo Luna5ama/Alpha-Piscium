@@ -69,7 +69,7 @@ AtmosphereParameters getAtmosphereParameters() {
 //        const vec3 MIE_SCATTERING = vec3(2.10e-5) * 1000.0;
 //        const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 1.1;
 
-    const vec3 MIE_SCATTERING = vec3(2.10e-5) * 1000.0;
+    const vec3 MIE_SCATTERING = vec3(2.10e-5) * 500.0;
     const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 1.1;
 
     const float MIE_PHASE_G = 0.76;
