@@ -388,9 +388,23 @@ const vec2 RADIUS_SQ = vec2(SETTING_SSVBIL_RADIUS * SETTING_SSVBIL_RADIUS, SETTI
 
 ivec2 texelPos = ivec2(gl_FragCoord.xy);
 
-void uniGTVBGI(vec3 wpos, vec3 normalWS) {
+uint toBitMask(vec2 h01) {
+    uint bitmask;// turn arc into bit mask
+    {
+        uvec2 horInt = uvec2(floor(h01 * 32.0));
+
+        uint OxFFFFFFFFu = 0xFFFFFFFFu;// don't inline here! ANGLE bug: https://issues.angleproject.org/issues/353039526
+
+        uint mX = horInt.x < 32u ? OxFFFFFFFFu <<        horInt.x  : 0u;
+        uint mY = horInt.y != 0u ? OxFFFFFFFFu >> (32u - horInt.y) : 0u;
+
+        bitmask = mX & mY;
+    }
+    return bitmask;
+}
+
+void uniGTVBGI(vec3 wpos, vec3 normalVS) {
     vec3 positionVS = (gbufferModelView * vec4(wpos, 1.0)).xyz;
-    vec3 normalVS   = mat3(gbufferModelView) * normalWS;
 
     vec3 V = -normalize(positionVS);
 
@@ -482,8 +496,11 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
     GBufferData gData;
     gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
     Material material = material_decode(gData);
-    material.roughness *= 0.5;
+    material.roughness *= SETTING_SSVBIL_A_MUL;
     material.roughness = max(material.roughness, 0.01);
+
+    float diffuseBase = (1.0 - material.metallic) * SETTING_SSVBIL_DGI_STRENGTH;
+    float specularBase = pow(material.roughness, -SETTING_SSVBIL_S_COMP) * SETTING_SSVBIL_SGI_STRENGTH;
 
     for (uint stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; ++stepIndex) {
         float sampleLodTexelSize = lodTexelSize(sampleLod) * 1.0;
@@ -524,18 +541,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
 
             // jitter sample locations + clamp01
             hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
-
-            uint occBits0;// turn arc into bit mask
-            {
-                uvec2 horInt = uvec2(floor(hor01 * 32.0));
-
-                uint OxFFFFFFFFu = 0xFFFFFFFFu;// don't inline here! ANGLE bug: https://issues.angleproject.org/issues/353039526
-
-                uint mX = horInt.x < 32u ? OxFFFFFFFFu <<        horInt.x  : 0u;
-                uint mY = horInt.y != 0u ? OxFFFFFFFFu >> (32u - horInt.y) : 0u;
-
-                occBits0 = mX & mY;
-            }
+            uint occBits0 = toBitMask(hor01);
 
             // compute gi contribution
             {
@@ -584,7 +590,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
                         vec4 sample2 = textureLod(usam_temp2, sampleUV, realSampleLod);
                         float falloff = linearStep(RADIUS_SQ.y, RADIUS_SQ.x, frontDistSq);
                         vec3 sampleRad = sample2.rgb * falloff;
-                        float vis0 = float(CountBits(visBits0)) * (1.0 / 32.0);
+                        float bitV = float(CountBits(visBits0)) * (1.0 / 32.0);
 
                         vec3 N = normalVS;
                         vec3 L = thisToSample;
@@ -595,8 +601,8 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
                         vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
                         vec3 ggx = bsdf_ggx_noAlbedo(material, fresnel, NDotL, NDotV, NDotH);
 
-                        rt_out.rgb += sampleRad * (vec3(1.0) - fresnel) * (vis0 * (1.0 - material.metallic) * SETTING_SSVBIL_DGI_STRENGTH);
-                        rt_out.rgb += sampleRad * ggx * (vis0 * SETTING_SSVBIL_SGI_STRENGTH);
+                        rt_out.rgb += sampleRad * (vec3(1.0) - fresnel) * (bitV * PI * diffuseBase);
+                        rt_out.rgb += sampleRad * ggx * (bitV * specularBase);
                     }
                 }
             }
@@ -610,17 +616,36 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
 
     mat3 viewToScene = mat3(gbufferModelViewInverse);
 
-    uint aoSectionBits = ~occBits;
+    uint aoSectionBits = ~0u;
     vec3 realTangent = normalize(T);
 
+    uint xyHash = uint(rand_IGN(gl_FragCoord.xy, frameCounter) * 1111.0);
+    float jitter = rand_r2Seq1(xyHash + frameCounter);
     vec3 skyLighting = vec3(0.0);
-    for (uint i = 0u; i < 4u; i++) {
-        float fi = float(i);
 
-        float ang0 = 0.25 * fi;
+    #if SETTING_SSVBIL_FALLBACK_SAMPLES == 4
+    const float w5 = 0.125;
+    const float w1 = 0.25;
+    for (uint i = 0u; i < 4u; i++) {
+    #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 8
+    const float w5 = 0.0625;
+    const float w1 = 0.125;
+    for (uint i = 0u; i < 8u; i++) {
+    #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 16
+    const float w5 = 0.03125;
+    const float w1 = 0.0625;
+    for (uint i = 0u; i < 16u; i++) {
+    #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 32
+    const float w5 = 0.015625;
+    const float w1 = 0.03125;
+    for (uint i = 0u; i < 32u; i++) {
+    #endif
+        float fi = float(i) + jitter - 0.5;
+
+        float ang0 = w1 * fi;
 
         // shift relative angles from V to N + map to [0,1]
-        vec2 hor01 = vec2(ang0, ang0 + 0.25);
+        vec2 hor01 = saturate(vec2(ang0, ang0 + w1));
 
         // map to slice relative distribution
         hor01.x = SliceRelCDF_Cos(hor01.x, angN, cosN, true);
@@ -632,29 +657,31 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
         // jitter sample locations + clamp01
         hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
 
-        uint sectorBitMask;// turn arc into bit mask
-        {
-            uvec2 horInt = uvec2(floor(hor01 * 32.0));
-
-            uint OxFFFFFFFFu = 0xFFFFFFFFu;// don't inline here! ANGLE bug: https://issues.angleproject.org/issues/353039526
-
-            uint mX = horInt.x < 32u ? OxFFFFFFFFu <<        horInt.x  : 0u;
-            uint mY = horInt.y != 0u ? OxFFFFFFFFu >> (32u - horInt.y) : 0u;
-
-            sectorBitMask = mX & mY;
-        }
+        uint sectorBitMask = toBitMask(hor01);
 
         uint sectorBits = (aoSectionBits & sectorBitMask);
-        float bitCount = float(bitCount(sectorBits)) * (1.0 / 32.0);
+        float bitV = float(bitCount(sectorBits)) * (1.0 / 32.0);
 
-        float angC = 0.125 + 0.25 * fi;
-        float cosC = cos(angC);
-        float sinC = sin(angC);
+//        float angC = saturate(a0 + a1 * fi) * PI - PI_HALF;
+        float cosC = saturate(w5 + w1 * fi) * 2.0 - 1.0;
+        float sinC = sqrt(1.0 - cosC * cosC);
 
-        vec3 skyNormal = viewToScene * normalize(normalVS * cosC + realTangent * sinC);
-        vec2 skyLUTUV = coords_octEncode01(skyNormal);
-        vec3 skyRadiance = texture(usam_skyLUT, skyLUTUV).rgb;
-        skyLighting += bitCount * skyRadiance;
+        vec3 sampleDirView = normalize((normalVS * sinC + realTangent * cosC));
+        vec3 sampleDirWorld = viewToScene * sampleDirView;
+        vec2 skyLUTUV = coords_octEncode01(sampleDirWorld);
+        vec3 sampleRad = texture(usam_skyLUT, skyLUTUV).rgb;
+
+        vec3 N = normalVS;
+        vec3 L = sampleDirView;
+        float halfWayLen = sqrt(2.0 * dot(L, V) + 2.0);
+        float NDotL = dot(N, L);
+        float NDotH = (NDotL + NDotV) / halfWayLen;
+        float LDotH = 0.5 * halfWayLen;
+        vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
+        vec3 ggx = max(bsdf_ggx_noAlbedo(material, fresnel, NDotL, NDotV, NDotH), 0.0);
+
+        skyLighting += sampleRad * (vec3(1.0) - fresnel) * (bitV * diffuseBase);
+        skyLighting += sampleRad * ggx * (bitV * specularBase);
     }
 
     // compute AO
@@ -663,10 +690,9 @@ void uniGTVBGI(vec3 wpos, vec3 normalWS) {
     rt_out.a = pow(rt_out.a, SETTING_SSVBIL_AO_STRENGTH);
 
     float lmCoordSky = texelFetch(usam_temp2, texelPos, 0).a;
-    float skyLightingIntensity = RCP_PI;
+    float skyLightingIntensity = SETTING_SKYLIGHT_STRENGTH;
     skyLightingIntensity *= lmCoordSky * lmCoordSky;
     skyLightingIntensity *= rt_out.a;
-    skyLightingIntensity *= SETTING_SKYLIGHT_STRENGTH;
 
     rt_out.rgb += skyLighting * skyLightingIntensity;
 }
@@ -678,13 +704,13 @@ void main() {
 
     rt_out = vec4(0.0, 0.0, 0.0, 1.0);
     if (centerViewZ < 0.0) {
-        vec3 N = texelFetch(usam_temp1, texelPos, 0).rgb;
-        N = mat3(gbufferModelViewInverse) * N;
+        vec3 normalVS = texelFetch(usam_temp1, texelPos, 0).rgb;
+        vec3 normalWS = mat3(gbufferModelViewInverse) * normalVS;
 
         vec3 wpos = coords_toViewCoord(frag_texCoord, centerViewZ, gbufferProjectionInverse);
         wpos = (gbufferModelViewInverse * vec4(wpos, 1.0)).xyz;
-        wpos += N * (1.0 / 1024.0);
+        wpos += normalWS * (1.0 / 1024.0);
 
-        uniGTVBGI(wpos, N);
+        uniGTVBGI(wpos, normalVS);
     }
 }

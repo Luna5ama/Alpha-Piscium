@@ -53,7 +53,6 @@ void doLighting(Material material, vec3 N, inout vec3 mainOut, inout vec3 ssgiOu
     mainOut += mix(combinedLighting.diffuse, combinedLighting.diffuseLambertian, gData.isHand);
     mainOut += combinedLighting.specular;
     mainOut += combinedLighting.sss;
-    mainOut += skyReflectionV;
 
     ssgiOut += emissiveV;
     ssgiOut += combinedLighting.diffuseLambertian;

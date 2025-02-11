@@ -421,6 +421,10 @@ fun options(baseShadersProperties: File, shaderRootDir: File, optionGlslPath: St
     Scope().apply(block).build(baseShadersProperties).writeOutput(File(absoluteFile, optionGlslPath), absoluteFile)
 }
 
+fun powerOfTwoRange(range: IntRange): List<Int> {
+    return range.map { 1 shl it }
+}
+
 options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
     mainScreen(2) {
         screen("LIGHTING", 2) {
@@ -445,7 +449,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         suffix = " AU"
                     }
                 }
-                constSlider("sunPathRotation", -15.0, -90.0..90.0 step 1.0) {
+                constSlider("sunPathRotation", -30.0, -90.0..90.0 step 1.0) {
                     lang(Locale.US) {
                         name = "Sun Path Rotation"
                         comment = "Rotation of sun path in degrees."
@@ -655,7 +659,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 slider("SETTING_SSVBIL_STEPS", 16, listOf(8, 12, 16, 24, 32, 64)) {
                     lang(Locale.US) {
-                        name = "Sample Steps"
+                        name = "Step Samples"
+                    }
+                }
+                slider("SETTING_SSVBIL_FALLBACK_SAMPLES", 8, powerOfTwoRange(2..5)) {
+                    lang(Locale.US) {
+                        name = "Fallback Samples"
                     }
                 }
                 empty()
@@ -681,23 +690,35 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
+                slider("SETTING_SSVBIL_A_MUL", 0.5, 0.0..1.0 step 0.01) {
+                    lang(Locale.US) {
+                        name = "Roughness Multiplier"
+                        comment = "Decrease roughness to compensate for over blury result."
+                    }
+                }
+                slider("SETTING_SSVBIL_S_COMP", 0.2, 0.0..1.0 step 0.01) {
+                    lang(Locale.US) {
+                        name = "Specular Compensation"
+                        comment = "Compensate specular for low roughness value. Larger value means more compensation."
+                    }
+                }
+                empty()
                 slider("SETTING_SSVBIL_AO_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
                     lang(Locale.US) {
                         name = "AO Strength"
                     }
                 }
-                empty()
-                slider("SETTING_SSVBIL_DGI_STRENGTH", 2.5, 0.0..5.0 step 0.1) {
+                slider("SETTING_SSVBIL_DGI_STRENGTH", 1.0, 0.0..2.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Diffuse GI Strength"
                     }
                 }
-                slider("SETTING_SSVBIL_SGI_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
+                slider("SETTING_SSVBIL_SGI_STRENGTH", 1.0, 0.0..2.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Specular GI Strength"
                     }
                 }
-                slider("SETTING_SSVBIL_GI_MB", 1.0, 0.0..2.0 step 0.1) {
+                slider("SETTING_SSVBIL_GI_MB", 1.0, 0.0..2.0 step 0.01) {
                     lang(Locale.US) {
                         name = "GI Multi Bounce"
                     }
