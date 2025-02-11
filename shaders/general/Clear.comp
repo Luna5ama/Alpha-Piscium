@@ -7,7 +7,9 @@ void main() {
     uint bitFlag = uint(all(greaterThanEqual(texelPos, CLEAR_IMAGE_BOUND.xy)));
     bitFlag |= uint(all(lessThanEqual(texelPos, CLEAR_IMAGE_BOUND.zw)));
     if (bool(bitFlag)) {
+        #ifdef CLEAR_IMAGE1
         imageStore(CLEAR_IMAGE1, texelPos, CLEAR_COLOR1);
+        #endif
         #ifdef CLEAR_IMAGE2
         imageStore(CLEAR_IMAGE2, texelPos, CLEAR_COLOR2);
         #endif
