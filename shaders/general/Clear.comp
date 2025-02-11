@@ -20,13 +20,16 @@ void main() {
         imageStore(CLEAR_IMAGE4, texelPos, CLEAR_COLOR4);
         #endif
         #ifdef CLEAR_IMAGE5
-        imageStore(CLEAR_IMAGE5, texelPos, CLEAR_COLOR4);
+        imageStore(CLEAR_IMAGE5, texelPos, CLEAR_COLOR5);
         #endif
         #ifdef CLEAR_IMAGE6
-        imageStore(CLEAR_IMAGE6, texelPos, CLEAR_COLOR4);
+        imageStore(CLEAR_IMAGE6, texelPos, CLEAR_COLOR6);
         #endif
         #ifdef CLEAR_IMAGE7
-        imageStore(CLEAR_IMAGE7, texelPos, CLEAR_COLOR4);
+        imageStore(CLEAR_IMAGE7, texelPos, CLEAR_COLOR7);
+        #endif
+        #ifdef CLEAR_IMAGE8
+        imageStore(CLEAR_IMAGE8, texelPos, CLEAR_COLOR8);
         #endif
     }
 }
