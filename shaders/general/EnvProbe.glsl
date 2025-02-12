@@ -69,7 +69,7 @@ out uvec4 outputData
     float viewZ = texelFetch(gbufferViewZ, texelPos, 0).r;
     vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
     vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
-    envProbeData.dist = length(realScenePos.xyz);
+    envProbeData.dist = viewZ == -65536.0 ? 32768.0 : length(realScenePos.xyz);
 
     outputData = envProbe_encode(envProbeData);
 

@@ -61,6 +61,7 @@ bool inViewPort(ivec4 originSize, out vec2 texCoord) {
     return false;
 }
 
+#ifdef SETTING_DEBUG_GAMMA_CORRECT
 float gammaCorrect(float color) {
     return pow(color, float(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
 }
@@ -72,6 +73,19 @@ vec3 gammaCorrect(vec3 color) {
 vec4 gammaCorrect(vec4 color) {
     return vec4(gammaCorrect(color.rgb), color.a);
 }
+#else
+float gammaCorrect(float color) {
+    return color;
+}
+
+vec3 gammaCorrect(vec3 color) {
+    return color;
+}
+
+vec4 gammaCorrect(vec4 color) {
+    return color;
+}
+#endif
 
 void debugOutput(inout vec4 outputColor) {
     #ifdef DEBUG_TEX_NAME
@@ -89,9 +103,7 @@ void debugOutput(inout vec4 outputColor) {
         outputColor.a = 1.0;
         #endif
 
-        #ifdef SETTING_DEBUG_GAMMA_CORRECT
         outputColor = gammaCorrect(outputColor);
-        #endif
     }
     #endif
 
@@ -183,7 +195,7 @@ void debugOutput(inout vec4 outputColor) {
     if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {
         ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
         EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
-        outputColor.rgb = vec3(saturate(envProbeData.dist / far));
+        outputColor.rgb = envProbeData.dist == 32768.0 ? vec3(0.0, 0.0, 1.0) : vec3(saturate(envProbeData.dist / far));
     }
     if (inViewPort(ivec4(512, 0, 512, 512), debugTexCoord)) {
         ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
