@@ -66,44 +66,26 @@ void vrs2x2(ivec2 texelPos2x2) {
                 imageStore2x2(texelPos1x1, result);
                 return;
             }
-
-            vec4 temp5Out;
-
-            shadingTexelPos = texelPos1x1;
-            temp5Out = compShadow(shadingTexelPos, viewZs.w) * 0.75 + result * 0.25;
-            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
-            shadingTexelPos = texelPos1x1 + ivec2(1, 0);
-
-            temp5Out = compShadow(shadingTexelPos, viewZs.z) * 0.75 + result * 0.25;
-            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
-
-            shadingTexelPos = texelPos1x1 + ivec2(0, 1);
-            temp5Out = compShadow(shadingTexelPos, viewZs.x) * 0.75 + result * 0.25;
-            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
-
-            shadingTexelPos = texelPos1x1 + ivec2(1, 1);
-            temp5Out = compShadow(shadingTexelPos, viewZs.y) * 0.75 + result * 0.25;
-            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
-        } else {
-            ivec2 shadingTexelPos;
-            vec4 temp5Out;
-
-            shadingTexelPos = texelPos1x1;
-            temp5Out = compShadow(shadingTexelPos, viewZs.w);
-            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
-
-            shadingTexelPos = texelPos1x1 + ivec2(1, 0);
-            temp5Out = compShadow(shadingTexelPos, viewZs.z);
-            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
-
-            shadingTexelPos = texelPos1x1 + ivec2(0, 1);
-            temp5Out = compShadow(shadingTexelPos, viewZs.x);
-            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
-
-            shadingTexelPos = texelPos1x1 + ivec2(1, 1);
-            temp5Out = compShadow(shadingTexelPos, viewZs.y);
-            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
         }
+
+        ivec2 shadingTexelPos;
+        vec4 temp5Out;
+
+        shadingTexelPos = texelPos1x1;
+        temp5Out = compShadow(shadingTexelPos, viewZs.w);
+        imageStore(uimg_temp5, shadingTexelPos, temp5Out);
+
+        shadingTexelPos = texelPos1x1 + ivec2(1, 0);
+        temp5Out = compShadow(shadingTexelPos, viewZs.z);
+        imageStore(uimg_temp5, shadingTexelPos, temp5Out);
+
+        shadingTexelPos = texelPos1x1 + ivec2(0, 1);
+        temp5Out = compShadow(shadingTexelPos, viewZs.x);
+        imageStore(uimg_temp5, shadingTexelPos, temp5Out);
+
+        shadingTexelPos = texelPos1x1 + ivec2(1, 1);
+        temp5Out = compShadow(shadingTexelPos, viewZs.y);
+        imageStore(uimg_temp5, shadingTexelPos, temp5Out);
     }
 }
 
