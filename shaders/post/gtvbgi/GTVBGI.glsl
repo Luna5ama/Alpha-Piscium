@@ -329,22 +329,6 @@ vec3 Transform_Vz0Qz0(vec2 v, vec4 q) {
     return vec3(v, 0.0) + 2.0 * (b * q.yxw);
 }
 
-// returns 4 uniformly distributed rnd numbers [0,1]
-// rnd01.x/rnd01.xy -> used to sample a slice direction (exact importance sampling needs 2 rnd numbers)
-// rnd01.z -> used to jitter sample positions along ray marching direction
-// rnd01.w -> used to jitter sample positions radially around slice normal
-vec4 Rnd01x4(vec2 uv, uint n) {
-    uvec2 uvu = uvec2(uv);
-
-    vec4 rnd01 = vec4(0.0);
-
-    rnd01.x  = rand_IGN(uv, n);
-    rnd01.z  = rand_IGN(uv, n + 5);
-    rnd01.w  = rand_IGN(uv, n + 7);
-
-    return rnd01;
-}
-
 // https://graphics.stanford.edu/%7Eseander/bithacks.html#CountBitsSetParallel | license: public domain
 uint CountBits(uint v) {
     return bitCount(v);
@@ -405,12 +389,8 @@ uint toBitMask(vec2 h01) {
 
 void uniGTVBGI(vec3 wpos, vec3 normalVS) {
     vec3 positionVS = (gbufferModelView * vec4(wpos, 1.0)).xyz;
-
     vec3 V = -normalize(positionVS);
-
     vec2 rayStart = SPos_from_VPos(positionVS).xy;
-
-    vec4 rnd01 = Rnd01x4(gl_FragCoord.xy, NOISE_FRAME);
 
     ////////////////////////////////////////////////// slice direction sampling
     vec3 smplDirVS;// view space sampling vector
@@ -421,24 +401,20 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
         // set up View Vec Space <-> View Space mapping
         vec4   Q_toV = GetQuaternion(V);
         vec4 Q_fromV = Q_toV * vec4(vec3(-1.0), 1.0);// conjugate
-
         vec3 normalVVS = normalVS;
-
         normalVVS = Transform_Qz0(normalVS, Q_fromV);
-
-        dir = SamplePartialSliceDir(normalVVS, rnd01.x);
+        
+        float dirRand = rand_IGN(texelPos, frameCounter);
+        dir = SamplePartialSliceDir(normalVVS, dirRand);
 
         smplDirVS = vec3(dir.xy, 0.0);
-
         smplDirVS = Transform_Vz0Qz0(dir, Q_toV);
 
         vec3 rayStart = SPos_from_VPos(positionVS);
-        vec3 rayEnd   = SPos_from_VPos(positionVS + smplDirVS*(near*0.5));
-
-        vec3 rayDir   = rayEnd - rayStart;
+        vec3 rayEnd = SPos_from_VPos(positionVS + smplDirVS*(near*0.5));
+        vec3 rayDir = rayEnd - rayStart;
 
         rayDir /= length(rayDir.xy);
-
         dir = rayDir.xy;
     }
     //////////////////////////////////////////////////
@@ -446,22 +422,19 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
     ////////////////////////////////////////////////// construct slice
     vec3 sliceN, projN, T;
     float cosN, angN, projNRcpLen;
+    float sgn;
     {
         sliceN = cross(V, smplDirVS);
-
         projN = normalVS - sliceN * dot(normalVS, sliceN);
 
         float projNSqrLen = dot(projN, projN);
         if (projNSqrLen == 0.0) return;
 
         projNRcpLen = inversesqrt(projNSqrLen);
-
         cosN = dot(projN, V) * projNRcpLen;
-
         T = cross(sliceN, projN);
 
-        float sgn = dot(V, T) < 0.0 ? -1.0 : 1.0;
-
+        sgn = dot(V, T) < 0.0 ? -1.0 : 1.0;
         angN = sgn * ACos(cosN);
     }
     //////////////////////////////////////////////////
@@ -483,10 +456,10 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
 
     uvec2 hashKey = (uvec2(gl_FragCoord.xy) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
     uint r2Index = (rand_hash21(hashKey) & 65535u) + NOISE_FRAME;
-    float baseSampleLod = rand_r2Seq1(r2Index);
+    float jitter = rand_r2Seq1(r2Index);
 
     float lodStep = radiusToLodStep(maxDist);
-    float sampleLod = lodStep * baseSampleLod;
+    float sampleLod = lodStep * jitter;
 
     float sampleTexelDist = 0.5;
 
@@ -500,7 +473,9 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
     material.roughness = max(material.roughness, 0.01);
 
     float diffuseBase = (1.0 - material.metallic) * SETTING_SSVBIL_DGI_STRENGTH;
-    float specularBase = pow(material.roughness, -SETTING_SSVBIL_S_COMP) * SETTING_SSVBIL_SGI_STRENGTH;
+    float specularBase = SETTING_SSVBIL_SGI_STRENGTH;
+
+    float bitmaskJitter = jitter * (1.0 / 32.0);
 
     for (uint stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; ++stepIndex) {
         float sampleLodTexelSize = lodTexelSize(sampleLod) * 1.0;
@@ -530,7 +505,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
             vec2 horAng = ACos(horCos);
 
             // shift relative angles from V to N + map to [0,1]
-            vec2 hor01 = clamp(horAng * RcpPi + angOff, 0.0, 1.0);
+            vec2 hor01 = saturate(horAng * RcpPi + angOff);
 
             // map to slice relative distribution
             hor01.x = SliceRelCDF_Cos(hor01.x, angN, cosN, true);
@@ -540,7 +515,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
             hor01 = hor01 * w0_remap_mul + w0_remap_add;
 
             // jitter sample locations + clamp01
-            hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
+            hor01 = saturate(hor01 + bitmaskJitter);
             uint occBits0 = toBitMask(hor01);
 
             // compute gi contribution
@@ -550,60 +525,24 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
                 if (visBits0 != 0u) {
                     vec4 sample1 = textureLod(usam_temp1, sampleUV, realSampleLod);
                     float emissive = float(sample1.a > 0.0);
-                    vec3 N0 = mix(sample1.rgb, -thisToSample, emissive);
-                    vec3 projN0 = N0 - sliceN * dot(N0, sliceN);
+                    vec3 sampleNormal = sample1.rgb;
+                    float emitterCos = mix(saturate(dot(sampleNormal, -thisToSample)), 1.0, emissive);
+                    vec4 sample2 = textureLod(usam_temp2, sampleUV, realSampleLod);
+                    float falloff = linearStep(RADIUS_SQ.y, RADIUS_SQ.x, frontDistSq);
+                    vec3 sampleRad = sample2.rgb * falloff;
+                    float bitV = float(CountBits(visBits0)) * (1.0 / 32.0);
 
-                    float projN0SqrLen = dot(projN0, projN0);
+                    vec3 N = normalVS;
+                    vec3 L = thisToSample;
+                    float halfWayLen = sqrt(2.0 * dot(L, V) + 2.0);
+                    float NDotL = dot(N, L);
+                    float NDotH = (NDotL + NDotV) / halfWayLen;
+                    float LDotH = 0.5 * halfWayLen;
+                    vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
+                    float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
-                    if (projN0SqrLen != 0.0){
-                        float projN0RcpLen = inversesqrt(projN0SqrLen);
-
-                        bool flipT = dot(T, N0) < 0.0;
-
-                        float u = dot(projN, projN0);
-                        u *= projNRcpLen;
-                        u *= projN0RcpLen;
-
-                        float hor01 = ACos(u) * RcpPi;
-                        if (flipT) hor01 = 1.0 - hor01;
-
-                        // map to slice relative distribution
-                        hor01 = SliceRelCDF_Cos(hor01, angN, cosN);
-
-                        // partial slice re-mapping
-                        hor01 = hor01 * w0_remap_mul + w0_remap_add;
-
-                        // jitter sample locations + clamp01
-                        hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
-
-                        uint visBitsN;// turn arc into bit mask
-                        {
-                            uint horInt = uint(floor(hor01 * 32.0));
-                            visBitsN = horInt < 32u ? 0xFFFFFFFFu << horInt : 0u;
-                            if (!flipT) visBitsN = ~visBitsN;
-                        }
-
-                        visBits0 = visBits0 & visBitsN;
-                    }
-
-                    if (visBits0 != 0u) {
-                        vec4 sample2 = textureLod(usam_temp2, sampleUV, realSampleLod);
-                        float falloff = linearStep(RADIUS_SQ.y, RADIUS_SQ.x, frontDistSq);
-                        vec3 sampleRad = sample2.rgb * falloff;
-                        float bitV = float(CountBits(visBits0)) * (1.0 / 32.0);
-
-                        vec3 N = normalVS;
-                        vec3 L = thisToSample;
-                        float halfWayLen = sqrt(2.0 * dot(L, V) + 2.0);
-                        float NDotL = dot(N, L);
-                        float NDotH = (NDotL + NDotV) / halfWayLen;
-                        float LDotH = 0.5 * halfWayLen;
-                        vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
-                        float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
-
-                        rt_out.rgb += sampleRad * (vec3(1.0) - fresnel) * (bitV * PI * diffuseBase);
-                        rt_out.rgb += sampleRad * fresnel * (bitV * ggx * specularBase);
-                    }
+                    rt_out.rgb += sampleRad * (vec3(1.0) - fresnel) * (bitV * emitterCos * diffuseBase);
+                    rt_out.rgb += sampleRad * fresnel * (bitV * emitterCos * ggx * specularBase);
                 }
             }
 
@@ -616,11 +555,9 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
 
     mat3 viewToScene = mat3(gbufferModelViewInverse);
 
-    uint aoSectionBits = ~0u;
+    uint unoccluedBits = ~occBits;
     vec3 realTangent = normalize(T);
 
-    uint xyHash = uint(rand_IGN(gl_FragCoord.xy, frameCounter) * 1111.0);
-    float jitter = rand_r2Seq1(xyHash + frameCounter);
     vec3 skyLighting = vec3(0.0);
 
     #if SETTING_SSVBIL_FALLBACK_SAMPLES == 4
@@ -643,33 +580,24 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
         float fi = float(i) + jitter - 0.5;
 
         float ang0 = w1 * fi;
-
-        // shift relative angles from V to N + map to [0,1]
         vec2 hor01 = saturate(vec2(ang0, ang0 + w1));
-
-        // map to slice relative distribution
         hor01.x = SliceRelCDF_Cos(hor01.x, angN, cosN, true);
         hor01.y = SliceRelCDF_Cos(hor01.y, angN, cosN, true);
-
-        // partial slice re-mapping
         hor01 = hor01 * w0_remap_mul + w0_remap_add;
-
-        // jitter sample locations + clamp01
-        hor01 = clamp(hor01 + rnd01.w * (1.0 / 32.0), 0.0, 1.0);
+        hor01 = clamp(hor01 + bitmaskJitter, 0.0, 1.0);
 
         uint sectorBitMask = toBitMask(hor01);
-
-        uint sectorBits = (aoSectionBits & sectorBitMask);
+        uint sectorBits = (unoccluedBits & sectorBitMask);
         float bitV = float(bitCount(sectorBits)) * (1.0 / 32.0);
 
-//        float angC = saturate(a0 + a1 * fi) * PI - PI_HALF;
-        float cosC = saturate(w5 + w1 * fi) * 2.0 - 1.0;
-        float sinC = sqrt(1.0 - cosC * cosC);
+        float angC = saturate(w5 + w1 * fi) * PI - PI_HALF;
+        float cosC = cos(angC);
+        float sinC = sin(angC);
 
-        vec3 sampleDirView = normalize((normalVS * sinC + realTangent * cosC));
+        vec3 sampleDirView = normalize((normalVS * cosC + realTangent * sinC));
         vec3 sampleDirWorld = viewToScene * sampleDirView;
         vec2 skyLUTUV = coords_octEncode01(sampleDirWorld);
-        vec3 sampleRad = texture(usam_skyLUT, skyLUTUV).rgb;
+        vec3 sampleRad = PI * texture(usam_skyLUT, skyLUTUV).rgb;
 
         vec3 N = normalVS;
         vec3 L = sampleDirView;

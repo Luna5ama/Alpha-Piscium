@@ -703,12 +703,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Decrease roughness to compensate for over blury result."
                     }
                 }
-                slider("SETTING_SSVBIL_S_COMP", 0.2, 0.0..1.0 step 0.01) {
-                    lang(Locale.US) {
-                        name = "Specular Compensation"
-                        comment = "Compensate specular for low roughness value. Larger value means more compensation."
-                    }
-                }
                 empty()
                 slider("SETTING_SSVBIL_AO_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
                     lang(Locale.US) {
