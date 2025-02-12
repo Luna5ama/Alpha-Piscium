@@ -114,14 +114,14 @@ vec3 bsdf_diffuseHammon(Material material, float NDotL, float NDotV, float NDotH
     return material.albedo * (singleRough + material.albedo * multi);
 }
 
-vec3 bsdf_disneyDiffuse(Material material, float NDotL, float NDotV, float LDotH) {
-    if (NDotL <= 0.0) return vec3(0.0);
+float bsdf_disneyDiffuse(Material material, float NDotL, float NDotV, float LDotH) {
+    if (NDotL <= 0.0) return 0.0;
 
     float f90 = 2.0 * material.roughness * LDotH * LDotH + 0.5;
     float fresnelNL90 = bsdf_frenel_schlick_f90(max(NDotL, 0.01), f90);
     float fresnelNV90 = bsdf_frenel_schlick_f90(max(NDotV, 0.01), f90);
 
-    return (RCP_PI * f90 * fresnelNL90 * fresnelNV90) * material.albedo;
+    return RCP_PI * f90 * fresnelNL90 * fresnelNV90;
 }
 
 float _gs_Smith_Schlick(float NDotV, float k) {
@@ -133,38 +133,8 @@ float _gs_Smith_Schlick_GGX(float NDotV, float a) {
     return _gs_Smith_Schlick(NDotV, k);
 }
 
-vec3 bsdf_ggx(Material material, vec3 F, float NDotL, float NDotV, float NDotH) {
-    if (NDotL <= 0.0) return vec3(0.0);
-    float NDotH2 = NDotH * NDotH;
-    float a = material.roughness;
-    float a2 = a * a;
-
-    // Normal Distribution Function Term
-    float d;
-    // GGX (Trowbridge-Reitz)
-    {
-        float sqTerm = NDotH2 * (a2 - 1.0) + 1.0;
-        d = a2 / max(PI * sqTerm * sqTerm, 0.00001 * a2);
-    }
-
-    // Geometric Shadowing Term
-    float g;
-    // Smith
-    {
-        float gl, gv;
-        // Schlick GGX
-        {
-            gl = _gs_Smith_Schlick_GGX(max(NDotL, 0.01), a);
-            gv = _gs_Smith_Schlick_GGX(max(NDotV, 0.01), a);
-        }
-        g = gl * gv;
-    }
-
-    return material.albedo * F * ((d * g) / (4 * NDotL * NDotV));
-}
-
-vec3 bsdf_ggx_noAlbedo(Material material, vec3 F, float NDotL, float NDotV, float NDotH) {
-    if (NDotL <= 0.0) return vec3(0.0);
+float bsdf_ggx(Material material, float NDotL, float NDotV, float NDotH) {
+    if (NDotL <= 0.01) return 0.0;
     float NDotH2 = NDotH * NDotH;
     float a2 = material.roughness * material.roughness;
 
@@ -183,13 +153,14 @@ vec3 bsdf_ggx_noAlbedo(Material material, vec3 F, float NDotL, float NDotV, floa
         float gl, gv;
         // Schlick GGX
         {
-            gl = _gs_Smith_Schlick_GGX(max(NDotL, 0.0), material.roughness);
-            gv = _gs_Smith_Schlick_GGX(max(NDotV, 0.0), material.roughness);
+            gl = _gs_Smith_Schlick_GGX(max(NDotL, 0.01), material.roughness);
+            gv = _gs_Smith_Schlick_GGX(max(NDotV, 0.01), material.roughness);
         }
         g = gl * gv;
     }
 
-    return F * ((d * g) / (4 * NDotL * NDotV));
+    float denom = 4.0 * NDotL * NDotV;
+    return denom > 0.0001 ? clamp((d * g) / denom, 0.0, 256.0) : 0.0;
 }
 
 #endif

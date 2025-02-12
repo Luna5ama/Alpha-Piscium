@@ -599,10 +599,10 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
                         float NDotH = (NDotL + NDotV) / halfWayLen;
                         float LDotH = 0.5 * halfWayLen;
                         vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
-                        vec3 ggx = bsdf_ggx_noAlbedo(material, fresnel, NDotL, NDotV, NDotH);
+                        float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
                         rt_out.rgb += sampleRad * (vec3(1.0) - fresnel) * (bitV * PI * diffuseBase);
-                        rt_out.rgb += sampleRad * ggx * (bitV * specularBase);
+                        rt_out.rgb += sampleRad * fresnel * (bitV * ggx * specularBase);
                     }
                 }
             }
@@ -678,10 +678,10 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
         float NDotH = (NDotL + NDotV) / halfWayLen;
         float LDotH = 0.5 * halfWayLen;
         vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
-        vec3 ggx = max(bsdf_ggx_noAlbedo(material, fresnel, NDotL, NDotV, NDotH), 0.0);
+        float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
         skyLighting += sampleRad * (vec3(1.0) - fresnel) * (bitV * diffuseBase);
-        skyLighting += sampleRad * ggx * (bitV * specularBase);
+        skyLighting += sampleRad * fresnel * (bitV * ggx * specularBase);
     }
 
     // compute AO

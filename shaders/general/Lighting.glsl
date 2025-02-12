@@ -196,7 +196,7 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N
 
     float diffuseBase = 1.0 - material.metallic;
 
-    result.diffuse = diffuseBase * irradiance.rgb * (vec3(1.0) - fresnel);
+    result.diffuse = diffuseBase * irradiance.rgb * (vec3(1.0) - fresnel) * material.albedo;
     result.diffuse *= bsdf_disneyDiffuse(material, NDotL, NDotV, LDotH);
 
     float diffuseV = diffuseBase * saturate(NDotL) * RCP_PI;
@@ -209,8 +209,8 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N
     float sssV = material.sss * RCP_PI * backDot * backDot;
     result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb;
 
-    result.specular = irradiance.rgb;
-    result.specular *= bsdf_ggx(material, fresnel, NDotL, NDotV, NDotH);
+    result.specular = irradiance.rgb * material.albedo * fresnel;
+    result.specular *= bsdf_ggx(material, NDotL, NDotV, NDotH);
 
     return result;
 }
