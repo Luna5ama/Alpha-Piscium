@@ -1,6 +1,7 @@
 #version 460 compatibility
 
 #extension GL_KHR_shader_subgroup_basic : enable
+#extension GL_KHR_shader_subgroup_vote : enable
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(0.5, 0.5);
@@ -50,26 +51,55 @@ void vrs2x2(ivec2 texelPos2x2) {
         vec4 viewZs = textureGather(usam_gbufferViewZ, quadCenterScreenPos, 0);
         uint bitFlag = uint(weight2x2 > 0.9);
         bitFlag &= uint(all(notEqual(viewZs, vec4(-65536.0))));
+        bool bitFlagBool = bool(bitFlag);
 
-        if (bool(bitFlag)) {
+        if (subgroupAll(bitFlagBool)) {
             ivec2 offset = ivec2(morton_8bDecode((gl_LocalInvocationIndex + frameCounter) & 3u));
             ivec2 shadingTexelPos = texelPos1x1 + offset;
             float viewZ = texelFetch(usam_gbufferViewZ, shadingTexelPos, 0).r;
 
-            imageStore2x2(texelPos1x1, compShadow(shadingTexelPos, viewZ));
+            vec4 result = compShadow(shadingTexelPos, viewZ);
+            float lum = colors_srgbLuma(result.rgb);
+            uint lumFlag = uint(lum < 0.05) | uint(lum > 0.95);
+            bool lumFlagBool = bool(lumFlag);
+            if (subgroupAll(lumFlagBool)) {
+                imageStore2x2(texelPos1x1, result);
+                return;
+            }
+
+            vec4 temp5Out;
+
+            shadingTexelPos = texelPos1x1;
+            temp5Out = compShadow(shadingTexelPos, viewZs.w) * 0.75 + result * 0.25;
+            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
+            shadingTexelPos = texelPos1x1 + ivec2(1, 0);
+
+            temp5Out = compShadow(shadingTexelPos, viewZs.z) * 0.75 + result * 0.25;
+            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
+
+            shadingTexelPos = texelPos1x1 + ivec2(0, 1);
+            temp5Out = compShadow(shadingTexelPos, viewZs.x) * 0.75 + result * 0.25;
+            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
+
+            shadingTexelPos = texelPos1x1 + ivec2(1, 1);
+            temp5Out = compShadow(shadingTexelPos, viewZs.y) * 0.75 + result * 0.25;
+            imageStore(uimg_temp5, shadingTexelPos, temp5Out);
         } else {
             ivec2 shadingTexelPos;
             vec4 temp5Out;
-            shadingTexelPos = texelPos1x1;
 
+            shadingTexelPos = texelPos1x1;
             temp5Out = compShadow(shadingTexelPos, viewZs.w);
             imageStore(uimg_temp5, shadingTexelPos, temp5Out);
+
             shadingTexelPos = texelPos1x1 + ivec2(1, 0);
             temp5Out = compShadow(shadingTexelPos, viewZs.z);
             imageStore(uimg_temp5, shadingTexelPos, temp5Out);
+
             shadingTexelPos = texelPos1x1 + ivec2(0, 1);
             temp5Out = compShadow(shadingTexelPos, viewZs.x);
             imageStore(uimg_temp5, shadingTexelPos, temp5Out);
+
             shadingTexelPos = texelPos1x1 + ivec2(1, 1);
             temp5Out = compShadow(shadingTexelPos, viewZs.y);
             imageStore(uimg_temp5, shadingTexelPos, temp5Out);

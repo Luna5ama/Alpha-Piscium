@@ -30,13 +30,7 @@ void doLighting(Material material, vec3 N, inout vec3 mainOut, inout vec3 ssgiOu
     vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
 
     #ifdef SETTING_SHADOW_HALF_RES
-    vec2 uv = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
-    vec2 offset = 0.5 * global_mainImageSizeRcp;
-    vec3 shadow = texture(usam_temp5, uv + offset).rgb;
-    shadow += texture(usam_temp5, uv - offset).rgb;
-    shadow += texture(usam_temp5, uv + vec2(offset.x, -offset.y)).rgb;
-    shadow += texture(usam_temp5, uv + vec2(-offset.x, offset.y)).rgb;
-    shadow *= 0.25;
+    vec3 shadow = texelFetch(usam_temp5, texelPos, 0).rgb;
     #else
     vec3 shadow = calcShadow(material.sss);
     #endif
