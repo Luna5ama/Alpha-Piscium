@@ -43,7 +43,7 @@ void main() {
         float frustumTest = float(projReject.x > 0.0);
         float newPixel = float(projReject.y > 0.0);
 
-        prevColorHLen.a *= saturate(1.0 - frustumTest * 0.5);
+        prevColorHLen.a *= saturate(1.0 - frustumTest * 0.8);
 
         float newHLen;
         vec2 newMoments;

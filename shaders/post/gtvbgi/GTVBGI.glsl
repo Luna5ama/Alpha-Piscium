@@ -4,13 +4,14 @@
 //
 // You can find full license texts in /licenses
 #include "GTVBGICommon.glsl"
+#include "../../general/EnvProbe.glsl"
 
 uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_temp1;
 uniform sampler2D usam_temp2;
 uniform sampler2D usam_skyLUT;
-
+uniform usampler2D usam_envProbe;
 
 in vec2 frag_texCoord;
 
@@ -596,8 +597,17 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
 
         vec3 sampleDirView = normalize((normalVS * cosC + realTangent * sinC));
         vec3 sampleDirWorld = viewToScene * sampleDirView;
+
         vec2 skyLUTUV = coords_octEncode01(sampleDirWorld);
-        vec3 sampleRad = PI * texture(usam_skyLUT, skyLUTUV).rgb;
+        vec3 skyRad = PI * texture(usam_skyLUT, skyLUTUV).rgb;
+
+        vec2 envUV = coords_mercatorForward(sampleDirWorld);
+        ivec2 envTexel = ivec2(envUV * ENV_PROBE_SIZE);
+        EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
+        vec3 envRad = 0.9 * PI * envData.radiance;
+
+        vec3 sampleRad = envData.dist == 32768.0 ? skyRad : envRad;
+        float emitterCos = envData.dist == 32768.0 ? 1.0 : saturate(dot(envData.normal, -sampleDirWorld));
 
         vec3 N = normalVS;
         vec3 L = sampleDirView;
@@ -608,8 +618,8 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
         vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
         float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
-        skyLighting += sampleRad * (vec3(1.0) - fresnel) * (bitV * diffuseBase);
-        skyLighting += sampleRad * fresnel * (bitV * ggx * specularBase);
+        skyLighting += sampleRad * (vec3(1.0) - fresnel) * (bitV * emitterCos * diffuseBase);
+        skyLighting += sampleRad * fresnel * (bitV * emitterCos * ggx * specularBase);
     }
 
     // compute AO
@@ -619,7 +629,6 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
 
     float lmCoordSky = texelFetch(usam_temp2, texelPos, 0).a;
     float skyLightingIntensity = SETTING_SKYLIGHT_STRENGTH;
-    skyLightingIntensity *= lmCoordSky * lmCoordSky;
     skyLightingIntensity *= rt_out.a;
 
     rt_out.rgb += skyLighting * skyLightingIntensity;

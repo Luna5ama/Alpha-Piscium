@@ -1087,6 +1087,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
+                toggle("SETTING_DEBUG_ENV_PROBE", false) {
+                    lang(Locale.US) {
+                        name = "Environment Probe"
+                    }
+                }
                 toggle("SETTING_DEBUG_RTWSM", false)
                 toggle("SETTING_DEBUG_ATMOSPHERE", false)
                 toggle("SETTING_DEBUG_EPIPOLAR", false)

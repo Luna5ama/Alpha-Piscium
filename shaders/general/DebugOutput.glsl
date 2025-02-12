@@ -2,6 +2,7 @@
 #include "../util/FullScreenComp.glsl"
 #include "../rtwsm/RTWSM.glsl"
 #include "../atmosphere/Common.glsl"
+#include "../general/EnvProbe.glsl"
 
 #ifdef SETTING_DEBUG_RTWSM
 uniform sampler2D shadowtex0;
@@ -12,6 +13,10 @@ uniform sampler2D usam_rtwsm_imap;
 uniform sampler2D usam_skyLUT;
 uniform sampler2D usam_epipolarSliceEnd;
 uniform usampler2D usam_epipolarData;
+#endif
+
+#ifdef SETTING_DEBUG_ENV_PROBE
+uniform usampler2D usam_envProbe;
 #endif
 
 uniform usampler2D usam_gbufferData;
@@ -165,6 +170,25 @@ void debugOutput(inout vec4 outputColor) {
         unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
         float depthV = -viewZ.r / far;
         outputColor.rgb = gammaCorrect(depthV).rrr;
+    }
+    #endif
+
+    #ifdef SETTING_DEBUG_ENV_PROBE
+    if (inViewPort(ivec4(0, 0, 512, 512), debugTexCoord)) {
+        ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
+        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+        outputColor.rgb = gammaCorrect(envProbeData.radiance);
+        outputColor *= exp2(SETTING_DEBUG_EXP);
+    }
+    if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {
+        ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
+        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+        outputColor.rgb = vec3(saturate(envProbeData.dist / far));
+    }
+    if (inViewPort(ivec4(512, 0, 512, 512), debugTexCoord)) {
+        ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
+        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+        outputColor.rgb = envProbeData.normal * 0.5 + 0.5;
     }
     #endif
 }
