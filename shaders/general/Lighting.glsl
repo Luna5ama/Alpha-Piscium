@@ -46,7 +46,7 @@ float searchBlocker(vec3 shadowTexCoord) {
         vec3 sampleTexCoord = shadowTexCoord;
         sampleTexCoord.xy += randomOffset * blockerSearchRange * vec2(shadowProjection[0][0], shadowProjection[1][1]);
         sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
-        float depth = rtwsm_sampleShadowDepth(shadowtex0, sampleTexCoord, BLOCKER_SEARCH_LOD).r;
+        float depth = rtwsm_sampleShadowDepth(shadowtex1, sampleTexCoord, BLOCKER_SEARCH_LOD).r;
         bool isBlocker = sampleTexCoord.z > depth;
         blockerDepth += float(isBlocker) * depth;
         n += int(isBlocker);
@@ -59,6 +59,12 @@ float searchBlocker(vec3 shadowTexCoord) {
 }
 
 vec3 calcShadow(float sssFactor) {
+    uint skipFlag = uint(dot(gData.normal, uval_upDirView) < -0.99);
+    skipFlag &= uint(sssFactor < 0.001);
+    if (bool(skipFlag)) {
+        return vec3(1.0);
+    }
+
     vec3 viewCoord = lighting_viewCoord;
     float distnaceSq = dot(viewCoord, viewCoord);
 
