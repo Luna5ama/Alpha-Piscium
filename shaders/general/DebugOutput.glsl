@@ -166,7 +166,7 @@ void debugOutput(inout vec4 outputColor) {
         ScatteringResult sampleResult;
         float viewZ;
         unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
-        outputColor.rgb = gammaCorrect(sampleResult.inScattering);
+        outputColor.rgb = gammaCorrect(sampleResult.inScattering * exp2(SETTING_DEBUG_EXP));
     }
     if (inViewPort(ivec4(256, 32 + 256, whRatio * 256, 256), debugTexCoord)) {
         debugTexCoord.y = 1.0 - debugTexCoord.y;
@@ -189,8 +189,8 @@ void debugOutput(inout vec4 outputColor) {
     if (inViewPort(ivec4(0, 0, 512, 512), debugTexCoord)) {
         ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
         EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+        outputColor.rgb *= exp2(SETTING_DEBUG_EXP);
         outputColor.rgb = gammaCorrect(envProbeData.radiance);
-        outputColor *= exp2(SETTING_DEBUG_EXP);
     }
     if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {
         ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
