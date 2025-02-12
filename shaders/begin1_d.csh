@@ -1,6 +1,8 @@
 #version 460 compatibility
-#include "rtwsm/RTWSM.glsl"
 
+#include "_Util.glsl"
+
+layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 #define CLEAR_IMAGE1 uimg_temp1

@@ -559,7 +559,10 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
     uint unoccluedBits = ~occBits;
     vec3 realTangent = normalize(T);
 
-    vec3 skyLighting = vec3(0.0);
+    vec3 fallbackLighting = vec3(0.0);
+
+    float lmCoordSky = texelFetch(usam_temp2, texelPos, 0).a;
+    float skyLightingBase = PI * SETTING_SKYLIGHT_STRENGTH * lmCoordSky * lmCoordSky;
 
     #if SETTING_SSVBIL_FALLBACK_SAMPLES == 4
     const float w5 = 0.125;
@@ -599,7 +602,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
         vec3 sampleDirWorld = viewToScene * sampleDirView;
 
         vec2 skyLUTUV = coords_octEncode01(sampleDirWorld);
-        vec3 skyRad = PI * texture(usam_skyLUT, skyLUTUV).rgb;
+        vec3 skyRad = skyLightingBase * texture(usam_skyLUT, skyLUTUV).rgb;
 
         vec2 envUV = coords_mercatorForward(sampleDirWorld);
         ivec2 envTexel = ivec2(envUV * ENV_PROBE_SIZE);
@@ -618,8 +621,8 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
         vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
         float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
-        skyLighting += sampleRad * (vec3(1.0) - fresnel) * (bitV * emitterCos * diffuseBase);
-        skyLighting += sampleRad * fresnel * (bitV * emitterCos * ggx * specularBase);
+        fallbackLighting += sampleRad * (vec3(1.0) - fresnel) * (bitV * emitterCos * diffuseBase);
+        fallbackLighting += sampleRad * fresnel * (bitV * emitterCos * ggx * specularBase);
     }
 
     // compute AO
@@ -627,11 +630,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
     rt_out.a = saturate(1.0 - rt_out.a);
     rt_out.a = pow(rt_out.a, SETTING_SSVBIL_AO_STRENGTH);
 
-    float lmCoordSky = texelFetch(usam_temp2, texelPos, 0).a;
-    float skyLightingIntensity = SETTING_SKYLIGHT_STRENGTH;
-    skyLightingIntensity *= rt_out.a;
-
-    rt_out.rgb += skyLighting * skyLightingIntensity;
+    rt_out.rgb += fallbackLighting * rt_out.a;
 }
 
 void main() {

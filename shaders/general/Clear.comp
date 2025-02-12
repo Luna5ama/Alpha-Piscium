@@ -1,7 +1,5 @@
 #include "../_Util.glsl"
 
-layout(local_size_x = 16, local_size_y = 16) in;
-
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     uint bitFlag = uint(all(greaterThanEqual(texelPos, CLEAR_IMAGE_BOUND.xy)));

@@ -61,7 +61,7 @@ out uvec4 outputData
 
     EnvProbeData envProbeData;
     envProbeData.normal = mat3(gbufferModelViewInverse) * gData.normal;
-    envProbeData.radiance = texelFetch(inputViewColor, texelPos, 0).rgb;
+    envProbeData.radiance = texture(inputViewColor, screenPos).rgb;
 
     Material material = material_decode(gData);
     envProbeData.emissive = colors_srgbLuma(material.emissive);
