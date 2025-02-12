@@ -52,9 +52,9 @@ void vrs2x2(ivec2 texelPos2x2) {
         bitFlag &= uint(all(notEqual(viewZs, vec4(-65536.0))));
 
         if (bool(bitFlag)) {
-            float viewZ = dot(viewZs, vec4(0.25));
             ivec2 offset = ivec2(morton_8bDecode((gl_LocalInvocationIndex + frameCounter) & 3u));
             ivec2 shadingTexelPos = texelPos1x1 + offset;
+            float viewZ = texelFetch(usam_gbufferViewZ, shadingTexelPos, 0).r;
 
             imageStore2x2(texelPos1x1, compShadow(shadingTexelPos, viewZ));
         } else {

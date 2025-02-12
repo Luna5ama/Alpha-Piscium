@@ -523,6 +523,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         512.0 value "32 chunks"
                     }
                 }
+                toggle("SETTING_SHADOW_HALF_RES", true) {
+                    lang(Locale.US) {
+                        name = "Half Resolution Sampling"
+                        comment = "Sample shadow map at half resolution. Allows for better performance."
+                    }
+                }
+                empty()
                 empty()
                 empty()
                 screen("RTWSM", 1) {
@@ -638,7 +645,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                     empty()
-                    slider("SETTING_PCSS_BPF", 1.0, 0.0..10.0 step 0.5) {
+                    slider("SETTING_PCSS_BPF", 0.0, 0.0..10.0 step 0.5) {
                         lang(Locale.US) {
                             name = "Base Penumbra Factor"
                         }
