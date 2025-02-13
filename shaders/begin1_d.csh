@@ -20,13 +20,13 @@ layout(rgba8) uniform writeonly image2D CLEAR_IMAGE5;
 layout(rgba8) uniform writeonly image2D CLEAR_IMAGE6;
 layout(rgba8) uniform writeonly image2D CLEAR_IMAGE7;
 
-const ivec4 CLEAR_IMAGE_BOUND = ivec4(0, 0, global_mainImageSizeI);
-const vec4 CLEAR_COLOR1 = vec4(0.0);
-const vec4 CLEAR_COLOR2 = vec4(0.0);
-const vec4 CLEAR_COLOR3 = vec4(0.0);
-const vec4 CLEAR_COLOR4 = vec4(0.0);
-const vec4 CLEAR_COLOR5 = vec4(0.0);
-const vec4 CLEAR_COLOR6 = vec4(0.0);
-const vec4 CLEAR_COLOR7 = vec4(0.0);
+#define CLEAR_IMAGE_BOUND ivec4(0, 0, global_mainImageSizeI)
+#define CLEAR_COLOR1 vec4(0.0)
+#define CLEAR_COLOR2 vec4(0.0)
+#define CLEAR_COLOR3 vec4(0.0)
+#define CLEAR_COLOR4 vec4(0.0)
+#define CLEAR_COLOR5 vec4(0.0)
+#define CLEAR_COLOR6 vec4(0.0)
+#define CLEAR_COLOR7 vec4(0.0)
 
 #include "/general/Clear.comp"
