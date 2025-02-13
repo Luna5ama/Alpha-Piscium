@@ -6,4 +6,4 @@ const bool colortex2MipmapEnabled = true;
 const bool colortex9MipmapEnabled = true;
 #endif
 
-#include "/atmosphere/EpipolarScattering.comp"
+#include "/atmosphere/EpipolarScattering.comp.glsl"

@@ -10,4 +10,4 @@ layout(r32ui) uniform writeonly uimage2D uimg_rtwsm_imap;
 #define CLEAR_IMAGE_BOUND ivec4(0, 0, SETTING_RTWSM_IMAP_SIZE, SETTING_RTWSM_IMAP_SIZE)
 #define CLEAR_COLOR1 uvec4(0u)
 
-#include "/general/Clear.comp"
+#include "/general/Clear.comp.glsl"

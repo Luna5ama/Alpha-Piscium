@@ -18,7 +18,7 @@ layout(rgba16f) restrict uniform image2D uimg_main;
 #if SETTING_DEBUG_TEMP_TEX == 3
 #define BLOOM_NO_SAMPLER a
 #endif
-#include "/post/Bloom.comp"
+#include "/post/Bloom.comp.glsl"
 
 void main() {
     toneMapping_init();

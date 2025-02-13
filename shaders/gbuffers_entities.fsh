@@ -4,4 +4,4 @@
 #define GBUFFER_PASS_MATERIAL_ID a
 #define GBUFFER_PASS_TEXTURED a
 #define GBUFFER_PASS_ENTITY_COLOR a
-#include "/gbuffer/GBufferSolid.frag"
+#include "/gbuffer/GBufferSolid.frag.glsl"

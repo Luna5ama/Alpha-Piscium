@@ -11,4 +11,4 @@ layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE1;
 #define CLEAR_IMAGE_BOUND ivec4(0, 0, ENV_PROBE_SIZEI)
 #define CLEAR_COLOR1 uvec4(0u, 0u, 0u, floatBitsToUint(32768.0))
 
-#include "/general/Clear.comp"
+#include "/general/Clear.comp.glsl"

@@ -4,7 +4,7 @@
 #define DENOISER_BOX 1
 #define DENOISER_VERTICAL 1
 const vec2 workGroupsRender = vec2(1.0, 1.0);
-#include "/general/Denoiser.comp"
+#include "/general/Denoiser.comp.glsl"
 
 layout(r32f) uniform readonly image2D uimg_gbufferViewZ;
 layout(rgba16f) uniform readonly image2D uimg_temp1;

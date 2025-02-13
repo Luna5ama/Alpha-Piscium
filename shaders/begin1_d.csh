@@ -29,4 +29,4 @@ layout(rgba8) uniform writeonly image2D CLEAR_IMAGE7;
 #define CLEAR_COLOR6 vec4(0.0)
 #define CLEAR_COLOR7 vec4(0.0)
 
-#include "/general/Clear.comp"
+#include "/general/Clear.comp.glsl"
