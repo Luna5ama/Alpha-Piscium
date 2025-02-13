@@ -1,7 +1,6 @@
 #version 460 compatibility
 
-#include "/_Base.glsl"
-#include "rtwsm/RTWSM.glsl"
+#include "/rtwsm/RTWSM.glsl"
 
 uniform sampler2D usam_rtwsm_imap;
 

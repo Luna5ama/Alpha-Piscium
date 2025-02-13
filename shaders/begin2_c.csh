@@ -14,4 +14,4 @@ const ivec4 CLEAR_IMAGE_BOUND = ivec4(0, 0, global_mainImageSizeI);
 const vec4 CLEAR_COLOR1 = vec4(-65536.0);
 const vec4 CLEAR_COLOR2 = vec4(0.0);
 
-#include "general/Clear.comp"
+#include "/general/Clear.comp"

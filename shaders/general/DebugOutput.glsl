@@ -1,8 +1,7 @@
-#include "/_Base.glsl"
-#include "../util/FullScreenComp.glsl"
-#include "../rtwsm/RTWSM.glsl"
-#include "../atmosphere/Common.glsl"
-#include "../general/EnvProbe.glsl"
+#include "/util/FullScreenComp.glsl"
+#include "/rtwsm/RTWSM.glsl"
+#include "/atmosphere/Common.glsl"
+#include "/general/EnvProbe.glsl"
 
 #ifdef SETTING_DEBUG_RTWSM
 uniform sampler2D shadowtex0;

@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "gbuffer/GBufferTranslucent.vert"
+#include "/gbuffer/GBufferTranslucent.vert"

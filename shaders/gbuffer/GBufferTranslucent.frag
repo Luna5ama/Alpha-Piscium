@@ -1,7 +1,5 @@
-#include "/_Base.glsl"
-
 ivec2 texelPos;
-#include "../general/Lighting.glsl"
+#include "/general/Lighting.glsl"
 
 
 uniform sampler2D gtexture;
