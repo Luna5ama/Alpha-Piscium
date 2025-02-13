@@ -1,7 +1,8 @@
 #ifndef INCLUDE_rtwsm_RTWSM_glsl
 #define INCLUDE_rtwsm_RTWSM_glsl
 
-#include "../_Util.glsl"
+#include "/util/Math.glsl"
+#include "/_Base.glsl"
 
 #if SETTING_RTWSM_IMAP_SIZE == 256
 

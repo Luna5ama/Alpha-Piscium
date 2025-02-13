@@ -1,3 +1,5 @@
+#include "/util/Coords.glsl"
+
 uvec2 ndpacking_pack(vec3 normal, float depth) {
     uvec2 packedData;
     packedData.x = packSnorm2x16(coords_octEncode11(normal));

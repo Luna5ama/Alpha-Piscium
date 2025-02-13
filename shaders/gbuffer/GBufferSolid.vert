@@ -1,4 +1,4 @@
-#include "../_Util.glsl"
+#include "/_Base.glsl"
 
 #ifdef GBUFFER_PASS_MATERIAL_ID
 in vec2 mc_Entity;

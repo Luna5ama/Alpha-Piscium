@@ -1,4 +1,7 @@
-#include "../_Util.glsl"
+#include "/util/Coords.glsl"
+#include "/util/GBuffers.glsl"
+#include "/util/Colors.glsl"
+#include "/util/Material.glsl"
 
 const ivec2 ENV_PROBE_SIZEI = ivec2(512, 512);
 const vec2 ENV_PROBE_SIZE = vec2(512.0, 512.0);

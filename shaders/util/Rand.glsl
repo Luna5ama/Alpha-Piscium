@@ -15,7 +15,7 @@
 
 #ifndef INCLUDE_util_Rand_glsl
 #define INCLUDE_util_Rand_glsl
-#include "../_Base.glsl"
+#include "/_Base.glsl"
 
 // --------------------------------------------------------------------------------------------------------------------
 // Interleaved Gradient Noise

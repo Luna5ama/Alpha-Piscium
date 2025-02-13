@@ -1,13 +1,13 @@
 #version 460 compatibility
 
+#include "/general/NDPacking.glsl"
+#include "/svgf/Reproject.glsl"
+#include "/util/GBuffers.glsl"
+#include "/util/Material.glsl"
+#include "/util/FullScreenComp.glsl"
+
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
-
-#include "util/FullScreenComp.glsl"
-
-#include "_Util.glsl"
-#include "general/NDPacking.glsl"
-#include "svgf/Reproject.glsl"
 
 uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_gbufferData;

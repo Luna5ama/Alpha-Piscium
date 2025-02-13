@@ -8,8 +8,7 @@
 // All values used to derive this implementation are sourced from Troy’s initial AgX implementation/OCIO config file available here:
 //   https://github.com/sobotka/AgX
 
-#include "../_Util.glsl"
-#include "../util/FullScreenComp.glsl"
+#include "/_Base.glsl"
 
 shared uint shared_lumHistogram[256];
 shared uint shared_topBinSum;

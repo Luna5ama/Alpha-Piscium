@@ -1,6 +1,6 @@
 #ifndef INCLUDE_util_BitPacking_glsl
 #define INCLUDE_util_BitPacking_glsl
-#include "../_Base.glsl"
+#include "/_Base.glsl"
 
 uint packU10(float v) { return uint(clamp(v, 0.0, 1.0) * 1023.0); }
 float unpackU10(uint v) { return clamp(float(v) / 1023.0, 0.0, 1.0); }

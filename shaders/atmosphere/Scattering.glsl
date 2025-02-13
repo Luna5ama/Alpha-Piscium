@@ -8,9 +8,8 @@
 // Copyright (c) 2017 Intel Corporation
 //
 // You can find full license texts in /licenses
-#include "../_Util.glsl"
 #include "Common.glsl"
-#include "../rtwsm/RTWSM.glsl"
+#include "/rtwsm/RTWSM.glsl"
 
 uniform sampler2D usam_rtwsm_imap;
 const bool shadowHardwareFiltering0 = true;

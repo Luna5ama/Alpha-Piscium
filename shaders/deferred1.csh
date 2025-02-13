@@ -2,8 +2,9 @@
 
 #extension GL_KHR_shader_subgroup_clustered : enable
 
-#include "../_Util.glsl"
-#include "util/Morton.glsl"
+#include "/util/Colors.glsl"
+#include "/util/GBuffers.glsl"
+#include "/util/Morton.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);

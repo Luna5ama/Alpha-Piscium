@@ -3,7 +3,7 @@
         [JIM14] Jimenez, Jorge. "Next Generation Post Processing in Call of Duty: Advanced Warfare" SIGGRAPH 2014.
         https://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare/
 */
-#include "../_Util.glsl"
+#include "/_Base.glsl"
 
 #if BLOOM_DOWN_SAMPLE
 #define BLOOM_SCALE_DIV BLOOM_PASS
@@ -70,7 +70,9 @@ vec4 bloom_main(ivec2 texelPos);
 #ifndef BLOOM_NO_SAMPLER
 uniform sampler2D BLOOM_SAMPLER;
 #endif
+#ifndef BLOOM_NON_STANDALONE
 layout(rgba16f) uniform BLOOM_IMAGE_ACCESS image2D BLOOM_IMAGE;
+#endif
 
 ivec2 colorTexSize = imageSize(BLOOM_IMAGE);
 vec2 texelSize = 1.0 / vec2(colorTexSize);

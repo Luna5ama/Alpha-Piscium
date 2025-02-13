@@ -1,5 +1,8 @@
-#include "../_Util.glsl"
-#include "../rtwsm/RTWSM.glsl"
+#include "/util/Rand.glsl"
+#include "/util/Material.glsl"
+#include "/util/GBuffers.glsl"
+#include "/util/BSDF.glsl"
+#include "/rtwsm/RTWSM.glsl"
 
 const bool shadowtex0Mipmap = true;
 const bool shadowtex1Mipmap = true;

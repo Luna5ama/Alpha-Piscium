@@ -4,7 +4,8 @@
 // Copyright (c) 2020 Epic Games, Inc.
 //
 // You can find full license texts in /licenses
-#include "../_Util.glsl"
+#include "/util/Rand.glsl"
+#include "Common.glsl"
 
 #define SAMPLE_COUNT 64
 #define SAMPLE_COUNT_SQRT 8
@@ -13,8 +14,6 @@ layout(local_size_x = SAMPLE_COUNT_SQRT, local_size_y = SAMPLE_COUNT_SQRT) in;
 const ivec3 workGroups = ivec3(32, 32, 1);
 
 layout(rgba16f) restrict uniform image2D uimg_multiSctrLUT;
-
-#include "Common.glsl"
 
 shared vec3 shared_inSctrSum[64];
 shared vec3 shared_multiSctrAs1Sum[64];

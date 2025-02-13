@@ -3,15 +3,14 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
+#include "/general/DebugOutput.glsl"
+#include "/post/ToneMapping.glsl"
+#include "/util/FullScreenComp.glsl"
+
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-#include "util/FullScreenComp.glsl"
-
 layout(rgba16f) restrict uniform image2D uimg_main;
-
-#include "general/DebugOutput.glsl"
-#include "post/ToneMapping.glsl"
 
 #define BLOOM_UP_SAMPLE 1
 #define BLOOM_PASS 1
@@ -19,7 +18,7 @@ layout(rgba16f) restrict uniform image2D uimg_main;
 #if SETTING_DEBUG_TEMP_TEX == 3
 #define BLOOM_NO_SAMPLER a
 #endif
-#include "post/Bloom.comp"
+#include "/post/Bloom.comp"
 
 void main() {
     toneMapping_init();

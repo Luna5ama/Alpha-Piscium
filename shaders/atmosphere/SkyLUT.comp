@@ -4,7 +4,9 @@
 // Copyright (c) 2020 Epic Games, Inc.
 //
 // You can find full license texts in /licenses
-#include "../_Util.glsl"
+
+#include "/_Base.glsl"
+#include "/util/Coords.glsl"
 #include "Common.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;

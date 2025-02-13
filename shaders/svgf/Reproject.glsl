@@ -1,4 +1,5 @@
 #include "Common.glsl"
+#include "/util/Coords.glsl"
 
 vec3 cameraDelta = cameraPosition - previousCameraPosition;
 

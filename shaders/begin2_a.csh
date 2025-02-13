@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "atmosphere/SliceEndPoints.comp"
+#include "/atmosphere/SliceEndPoints.comp"

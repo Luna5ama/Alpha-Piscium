@@ -21,7 +21,7 @@
 #ifndef INCLUDE_atmosphere_Common_glsl
 #define INCLUDE_atmosphere_Common_glsl
 
-#include "../_Util.glsl"
+#include "/util/Math.glsl"
 
 #define MULTI_SCTR_LUT_SIZE 32
 #define PLANET_RADIUS_OFFSET 0.001

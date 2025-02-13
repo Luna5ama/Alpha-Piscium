@@ -1,11 +1,14 @@
 #version 460 compatibility
 
+#include "/atmosphere/UnwarpEpipolar.glsl"
+#include "/atmosphere/Scattering.glsl"
+#include "/util/FullScreenComp.glsl"
+#include "/util/Coords.glsl"
+#include "/util/Rand.glsl"
+#include "/util/Material.glsl"
+
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
-
-#include "util/FullScreenComp.glsl"
-#include "atmosphere/UnwarpEpipolar.glsl"
-#include "atmosphere/Scattering.glsl"
 
 uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_ssvbil;

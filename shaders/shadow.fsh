@@ -1,6 +1,7 @@
 #version 460 compatibility
 
-#include "_Util.glsl"
+#include "/util/Colors.glsl"
+#include "/util/Rand.glsl"
 
 uniform sampler2D lightmap;
 uniform sampler2D texture;

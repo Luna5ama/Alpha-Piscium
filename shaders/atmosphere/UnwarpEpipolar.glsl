@@ -4,7 +4,7 @@
 // Copyright (c) 2017 Intel Corporation
 //
 // You can find full license texts in /licenses
-#include "../_Util.glsl"
+#include "/_Base.glsl"
 #include "Common.glsl"
 
 uniform sampler2D usam_gbufferViewZ;

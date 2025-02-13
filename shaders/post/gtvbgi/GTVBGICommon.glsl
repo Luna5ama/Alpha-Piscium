@@ -3,7 +3,8 @@
 // MIT License
 //
 // You can find full license texts in /licenses
-#include "../../_Util.glsl"
+#include "/_Base.glsl"
+#include "/util/Coords.glsl"
 
 /*
     This work is licensed under a dual license, public domain and MIT, unless noted otherwise. Choose the one that best suits your needs:

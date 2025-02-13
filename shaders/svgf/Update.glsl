@@ -1,4 +1,5 @@
 #include "Common.glsl"
+#include "/util/Colors.glsl"
 
 void svgf_update(vec3 currColor, vec4 prevColorHLen, vec2 prevMoments, out float newHLen, out vec2 newMoments, out vec4 filterInput) {
     vec2 currMoments;

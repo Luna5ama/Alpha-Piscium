@@ -1,5 +1,6 @@
 #ifndef INCLUDE_util_Math_glsl
 #define INCLUDE_util_Math_glsl
+#include "/_Base.glsl"
 
 #define PI 3.14159265358979323846
 #define PI_2 2.0 * PI

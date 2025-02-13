@@ -1,6 +1,8 @@
 #version 460 compatibility
 
-#include "_Util.glsl"
+#include "/util/Colors.glsl"
+#include "/util/Math.glsl"
+#include "/util/Rand.glsl"
 
 layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(2, 1, 1);

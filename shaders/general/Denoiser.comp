@@ -1,4 +1,8 @@
-#include "../_Util.glsl"
+#include "/util/BitPacking.glsl"
+#include "/util/Coords.glsl"
+#include "/util/Rand.glsl"
+#include "/util/Material.glsl"
+#include "/util/GBuffers.glsl"
 
 ivec2 denoiser_getImageSize();
 void denoiser_input(ivec2 coord, out vec4 data, out vec3 normal, out float viewZ);

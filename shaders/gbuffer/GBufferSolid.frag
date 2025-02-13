@@ -1,4 +1,7 @@
-#include "../_Util.glsl"
+#include "/util/Colors.glsl"
+#include "/util/Math.glsl"
+#include "/util/Rand.glsl"
+#include "/util/GBuffers.glsl"
 
 uniform sampler2D gtexture;
 uniform sampler2D normals;

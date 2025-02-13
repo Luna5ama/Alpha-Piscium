@@ -1,6 +1,6 @@
 #version 460 compatibility
 
-#include "general/EnvProbe.glsl"
+#include "/general/EnvProbe.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const ivec3 workGroups = ivec3(32, 32, 1);

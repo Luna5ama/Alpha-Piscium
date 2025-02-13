@@ -1,4 +1,5 @@
-#include "../_Util.glsl"
+#include "/util/Coords.glsl"
+#include "/util/GBuffers.glsl"
 
 uniform sampler2D usam_main;
 uniform usampler2D usam_gbufferData;

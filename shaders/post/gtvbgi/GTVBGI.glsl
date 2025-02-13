@@ -4,7 +4,9 @@
 //
 // You can find full license texts in /licenses
 #include "GTVBGICommon.glsl"
-#include "../../general/EnvProbe.glsl"
+#include "/general/EnvProbe.glsl"
+#include "/util/BSDF.glsl"
+#include "/util/FastMathLib.glsl"
 
 uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_gbufferViewZ;
