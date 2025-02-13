@@ -1,5 +1,5 @@
-#ifndef INCLUDE_rtwsm_RTWSM.glsl
-#define INCLUDE_rtwsm_RTWSM.glsl
+#ifndef INCLUDE_rtwsm_RTWSM_glsl
+#define INCLUDE_rtwsm_RTWSM_glsl
 
 #include "../_Util.glsl"
 

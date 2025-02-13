@@ -13,8 +13,8 @@
     You can find full license texts in /licenses
 */
 
-#ifndef INCLUDE_util_Rand.glsl
-#define INCLUDE_util_Rand.glsl
+#ifndef INCLUDE_util_Rand_glsl
+#define INCLUDE_util_Rand_glsl
 #include "../_Base.glsl"
 
 // --------------------------------------------------------------------------------------------------------------------

@@ -1,5 +1,5 @@
-#ifndef INCLUDE_util_BitPacking.glsl
-#define INCLUDE_util_BitPacking.glsl
+#ifndef INCLUDE_util_BitPacking_glsl
+#define INCLUDE_util_BitPacking_glsl
 #include "../_Base.glsl"
 
 uint packU10(float v) { return uint(clamp(v, 0.0, 1.0) * 1023.0); }

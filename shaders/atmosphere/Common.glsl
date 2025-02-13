@@ -18,8 +18,8 @@
 // Copyright (c) 2020 Epic Games, Inc.
 //
 // You can find full license texts in /licenses
-#ifndef INCLUDE_atmosphere_Common.glsl
-#define INCLUDE_atmosphere_Common.glsl
+#ifndef INCLUDE_atmosphere_Common_glsl
+#define INCLUDE_atmosphere_Common_glsl
 
 #include "../_Util.glsl"
 

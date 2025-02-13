@@ -1,5 +1,5 @@
-#ifndef INCLUDE_util_Material.glsl
-#define INCLUDE_util_Material.glsl
+#ifndef INCLUDE_util_Material_glsl
+#define INCLUDE_util_Material_glsl
 
 #include "GBuffers.glsl"
 #include "Math.glsl"

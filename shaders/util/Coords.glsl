@@ -1,5 +1,5 @@
-#ifndef INCLUDE_util_Coords.glsl
-#define INCLUDE_util_Coords.glsl
+#ifndef INCLUDE_util_Coords_glsl
+#define INCLUDE_util_Coords_glsl
 #include "../_Base.glsl"
 #include "Math.glsl"
 
