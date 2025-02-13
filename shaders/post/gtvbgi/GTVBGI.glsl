@@ -3,10 +3,11 @@
 // MIT License
 //
 // You can find full license texts in /licenses
-#include "GTVBGICommon.glsl"
 #include "/general/EnvProbe.glsl"
+#include "/util/Coords.glsl"
 #include "/util/BSDF.glsl"
 #include "/util/FastMathLib.glsl"
+#include "/util/Math.glsl"
 
 uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_gbufferViewZ;
@@ -58,10 +59,26 @@ float lodTexelSize(float lod) {
     return exp2(lod);
 }
 
+// ====== Proj <-> View ====== //
+vec4 PPos_from_VPos(vec3 vpos) {
+    return gbufferProjection * vec4(vpos, 1.0);
+}
+// =========================== //
+
+
+// ====== Screen <-> View ====== //
+vec3 SPos_from_VPos(vec3 vpos) {
+    vec4 ppos = PPos_from_VPos(vpos);
+
+    vec2 tc21 = ppos.xy / ppos.w;
+
+    vec2 uv0 = (tc21 * 0.5 + 0.5) * global_mainImageSize;
+
+    return vec3(uv0, vpos.z);
+}
+
 #define NOISE_FRAME uint(frameCounter)
-
 #define ACOS_QUALITY_MODE 2
-
 #define USE_HQ_APPROX_SLICE_IMPORTANCE_SAMPLING
 
 //==================================================================================//
@@ -88,10 +105,8 @@ float lodTexelSize(float lod) {
 //==================================================================================//
 
 // https://www.shadertoy.com/view/lXBfWm
-// dir: normalized vector | out: angle in radians [-Pi, Pi] (max abs error ~0.000000546448 rad)
+// dir: normalized vector | out: angle in radians [-PI, PI] (max abs error ~0.000000546448 rad)
 float ArcTan(vec2 dir) {
-    const float Pi = 3.14159265359;
-
     float x = abs(dir.x);
     float y =     dir.y;
 
@@ -100,12 +115,12 @@ float ArcTan(vec2 dir) {
 
     float f = y / u;
 
-    if (dir.x < 0.0) f = (dir.y < 0.0 ? -Pi : Pi) - f;
+    if (dir.x < 0.0) f = (dir.y < 0.0 ? -PI : PI) - f;
 
     return f;
 }
 
-float ArcTan11(vec2 dir)// == ArcTan(dir) / Pi
+float ArcTan11(vec2 dir)// == ArcTan(dir) / PI
 {
     float x = abs(dir.x);
     float y =     dir.y;
@@ -134,7 +149,7 @@ float ACosPoly(float x) {
 float ACos_Approx(float x) {
     float u = ACosPoly(abs(x)) * sqrt(1.0 - abs(x));
 
-    return x >= 0.0 ? u : Pi - u;
+    return x >= 0.0 ? u : PI - u;
 }
 
 float ACos01_Approx(float x)// x: [0,1]
@@ -181,9 +196,6 @@ vec2 cmul(vec2 c0, vec2 c1) {
 }
 
 float SamplePartialSlice(float x, float sin_thVN) {
-    const float Pi   = 3.1415926535897930;
-    const float Pi05 = 1.5707963267948966;
-
     if (x == 0.0 || abs(x) >= 1.0) return x;
 
     bool sgn = x < 0.0;
@@ -193,7 +205,7 @@ float SamplePartialSlice(float x, float sin_thVN) {
 
     #if 1
     float o = s - s * s;
-    float slp0 = 1.0 / (1.0 + (Pi  - 1.0) * (s - o * 0.30546));
+    float slp0 = 1.0 / (1.0 + (PI  - 1.0) * (s - o * 0.30546));
     float slp1 = 1.0 / (1.0 - (1.0 - exp2(-20.0)) * (s + o * mix(0.5, 0.785, s)));
 
     float k = mix(0.1, 0.25, s);
@@ -202,8 +214,8 @@ float SamplePartialSlice(float x, float sin_thVN) {
     float angVN = ASin01_Approx(s);
     float c = cos(angVN);
 
-    float slp0 = 1.0 / (c + s * (angVN  + Pi05));
-    float slp1 = 1.0 / (c + s * (abs(angVN) - Pi05));
+    float slp0 = 1.0 / (c + s * (angVN  + PI_HALF));
+    float slp1 = 1.0 / (c + s * (abs(angVN) - PI_HALF));
 
     float sb = s + (s - s*s) * -0.1;
     float cb = c + (c - c*c) * -0.;
@@ -211,13 +223,13 @@ float SamplePartialSlice(float x, float sin_thVN) {
     float k = sb * cb * 0.494162;
     #endif
 
-    float a = 1.0 - (Pi - 2.0) / (Pi - 1.0);
-    float b = 1.0 / (Pi - 1.0);
+    float a = 1.0 - (PI - 2.0) / (PI - 1.0);
+    float b = 1.0 / (PI - 1.0);
 
     float d0 =   a - slp0 * b;
     float d1 = 1.0 - slp1;
 
-    float f0 = d0 * (Pi * x - ASin01_Approx(x));
+    float f0 = d0 * (PI * x - ASin01_Approx(x));
     float f1 = d1 * (x - 1.0);
 
     float kk = k * k;
@@ -234,7 +246,7 @@ float SamplePartialSlice(float x, float sin_thVN) {
 
 // vvsN: view vec space normal | rnd01: [0, 1]
 vec2 SamplePartialSliceDir(vec3 vvsN, float rnd01) {
-    float ang0 = rnd01 * Pi2;
+    float ang0 = rnd01 * PI_2;
 
     vec2 dir0 = vec2(cos(ang0), sin(ang0));
 
@@ -253,7 +265,7 @@ vec2 SamplePartialSliceDir(vec3 vvsN, float rnd01) {
         float x = ArcTan11(dir0);
         float sinNV = l;
 
-        ang = SamplePartialSlice(x, sinNV) * Pi;
+        ang = SamplePartialSlice(x, sinNV) * PI;
     }
 
     // ray space slice direction
@@ -340,7 +352,7 @@ uint CountBits(uint v) {
 float SliceRelCDF_Cos(float x, float angN, float cosN, bool isPhiLargerThanAngN) {
     if (x <= 0.0 || x >= 1.0) return x;
 
-    float phi = x * Pi - Pi05;
+    float phi = x * PI - PI_HALF;
 
     bool c = isPhiLargerThanAngN;
 
@@ -348,7 +360,7 @@ float SliceRelCDF_Cos(float x, float angN, float cosN, bool isPhiLargerThanAngN)
     float n1 = c ? -1.0 : 1.0;
     float n2 = c ?  4.0 : 0.0;
 
-    float t0 = n0 * cosN + n1 * cos(angN - 2.0 * phi) + (n2 * angN + (n1 * 2.0) * phi + Pi) * sin(angN);
+    float t0 = n0 * cosN + n1 * cos(angN - 2.0 * phi) + (n2 * angN + (n1 * 2.0) * phi + PI) * sin(angN);
     float t1 = 4.0 * (cosN + angN * sin(angN));
 
     return t0 / t1;
@@ -357,7 +369,7 @@ float SliceRelCDF_Cos(float x, float angN, float cosN, bool isPhiLargerThanAngN)
 float SliceRelCDF_Cos(float x, float angN, float cosN) {
     if (x <= 0.0 || x >= 1.0) return x;
 
-    float phi = x * Pi - Pi05;
+    float phi = x * PI - PI_HALF;
 
     bool c = phi > angN;
 
@@ -365,7 +377,7 @@ float SliceRelCDF_Cos(float x, float angN, float cosN) {
     float n1 = c ? -1.0 : 1.0;
     float n2 = c ?  4.0 : 0.0;
 
-    float t0 = n0 * cosN + n1 * cos(angN - 2.0 * phi) + (n2 * angN + (n1 * 2.0) * phi + Pi) * sin(angN);
+    float t0 = n0 * cosN + n1 * cos(angN - 2.0 * phi) + (n2 * angN + (n1 * 2.0) * phi + PI) * sin(angN);
     float t1 = 4.0 * (cosN + angN * sin(angN));
 
     return t0 / t1;
@@ -442,10 +454,10 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
     }
     //////////////////////////////////////////////////
 
-    float angOff = angN * RcpPi + 0.5;
+    float angOff = angN * RCP_PI + 0.5;
 
     // percentage of the slice we don't use ([0, angN]-integrated slice-relative pdf)
-    float w0 = clamp((sin(angN) / (cos(angN) + angN * sin(angN))) * (Pi/4.0) + 0.5, 0.0, 1.0);
+    float w0 = clamp((sin(angN) / (cos(angN) + angN * sin(angN))) * (PI/4.0) + 0.5, 0.0, 1.0);
 
     // partial slice re-mapping constants
     float w0_remap_mul = 1.0 / (1.0 - w0);
@@ -508,7 +520,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
             vec2 horAng = ACos(horCos);
 
             // shift relative angles from V to N + map to [0,1]
-            vec2 hor01 = saturate(horAng * RcpPi + angOff);
+            vec2 hor01 = saturate(horAng * RCP_PI + angOff);
 
             // map to slice relative distribution
             hor01.x = SliceRelCDF_Cos(hor01.x, angN, cosN, true);
@@ -636,8 +648,6 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
 }
 
 void main() {
-    Resolution = global_mainImageSize.xy;
-
     float centerViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
     rt_out = vec4(0.0, 0.0, 0.0, 1.0);
