@@ -52,7 +52,7 @@ void doLighting(Material material, vec3 N, inout vec3 mainOut, inout vec3 ssgiOu
 
     mainOut += 0.001 * material.albedo;
     mainOut += emissiveV;
-    mainOut += mix(combinedLighting.diffuse, combinedLighting.diffuseLambertian, gData.isHand);
+    mainOut += gData.isHand ? combinedLighting.diffuseLambertian : combinedLighting.diffuse;
     mainOut += combinedLighting.specular;
     mainOut += combinedLighting.sss;
 
