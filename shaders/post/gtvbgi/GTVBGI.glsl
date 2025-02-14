@@ -556,8 +556,8 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
                     vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
                     float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
-                    rt_out.rgb += sampleRad * (vec3(1.0) - fresnel) * (bitV * emitterCos * diffuseBase);
-                    rt_out.rgb += sampleRad * fresnel * (bitV * emitterCos * ggx * specularBase);
+                    rt_out.rgb += sampleRad * (vec3(1.0) - fresnel) * (bitV * PI * emitterCos * diffuseBase);
+                    rt_out.rgb += sampleRad * fresnel * (bitV * PI * emitterCos * ggx * specularBase);
                 }
             }
 
@@ -576,7 +576,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
     vec3 fallbackLighting = vec3(0.0);
 
     float lmCoordSky = texelFetch(usam_temp2, texelPos, 0).a;
-    float skyLightingBase = PI * SETTING_SKYLIGHT_STRENGTH * lmCoordSky * lmCoordSky;
+    float skyLightingBase = SETTING_SKYLIGHT_STRENGTH * lmCoordSky * lmCoordSky;
 
     #if SETTING_SSVBIL_FALLBACK_SAMPLES == 4
     const float w5 = 0.125;
@@ -621,7 +621,7 @@ void uniGTVBGI(vec3 wpos, vec3 normalVS) {
         vec2 envUV = coords_mercatorForward(sampleDirWorld);
         ivec2 envTexel = ivec2(envUV * ENV_PROBE_SIZE);
         EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
-        vec3 envRad = 0.9 * PI * envData.radiance;
+        vec3 envRad = PI * envData.radiance;
 
         vec3 sampleRad = envData.dist == 32768.0 ? skyRad : envRad;
         float emitterCos = envData.dist == 32768.0 ? 1.0 : saturate(dot(envData.normal, -sampleDirWorld));
