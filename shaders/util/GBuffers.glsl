@@ -1,5 +1,5 @@
 #ifndef INCLUDE_util_GBuffers_glsl
-#define INCLUDE_util_GBuffers_glsl
+#define INCLUDE_util_GBuffers_glsl a
 #include "BitPacking.glsl"
 #include "Coords.glsl"
 

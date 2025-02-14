@@ -14,7 +14,7 @@
 */
 
 #ifndef INCLUDE_util_Rand_glsl
-#define INCLUDE_util_Rand_glsl
+#define INCLUDE_util_Rand_glsl a
 #include "/_Base.glsl"
 
 // --------------------------------------------------------------------------------------------------------------------

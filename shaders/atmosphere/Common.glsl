@@ -19,7 +19,7 @@
 //
 // You can find full license texts in /licenses
 #ifndef INCLUDE_atmosphere_Common_glsl
-#define INCLUDE_atmosphere_Common_glsl
+#define INCLUDE_atmosphere_Common_glsl a
 
 #include "/util/Math.glsl"
 

@@ -1,5 +1,5 @@
 #ifndef INCLUDE_util_Coords_glsl
-#define INCLUDE_util_Coords_glsl
+#define INCLUDE_util_Coords_glsl a
 #include "Math.glsl"
 
 float coords_linearizeDepth(float depth, float near, float far) {

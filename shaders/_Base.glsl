@@ -1,5 +1,5 @@
 #ifndef INCLUDE__Base_glsl
-#define INCLUDE__Base_glsl
+#define INCLUDE__Base_glsl a
 
 #include "/base/Options.glsl"
 #include "/base/Configs.glsl"

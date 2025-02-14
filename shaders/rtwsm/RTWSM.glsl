@@ -1,5 +1,5 @@
 #ifndef INCLUDE_rtwsm_RTWSM_glsl
-#define INCLUDE_rtwsm_RTWSM_glsl
+#define INCLUDE_rtwsm_RTWSM_glsl a
 
 #include "/util/Math.glsl"
 

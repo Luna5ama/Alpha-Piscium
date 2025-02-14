@@ -53,7 +53,7 @@
   THE SOFTWARE.
 ********************************************************************************/
 #ifndef INCLUDE_util_FastMathLib_glsl
-#define INCLUDE_util_FastMathLib_glsl
+#define INCLUDE_util_FastMathLib_glsl a
 #include "/_Base.glsl"
 
 #define asint(_x)  floatBitsToInt(_x);
