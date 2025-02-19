@@ -690,10 +690,22 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Thickness"
                     }
                 }
-                slider("SETTING_SSVBIL_LOD_MUL", 0.0, 0.0..1.0 step 0.01) {
+                empty()
+                slider("SETTING_SSVBIL_LOD_OPTIMIZE", false) {
+                    lang(Locale.US) {
+                        name = "LOD Optimization"
+                        comment = "Recommanded for large sample step count."
+                    }
+                }
+                slider("SETTING_SSVBIL_LOD_MUL", 1.0, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Sample LOD Multiplier"
                         comment = "Multiplier for sample LOD. Smaller values leads to more accurate but slower result."
+                    }
+                }
+                slider("SETTING_SSVBIL_MAX_LOD", 3, 1..5) {
+                    lang(Locale.US) {
+                        name = "Max Sample LOD"
                     }
                 }
                 empty()
@@ -752,7 +764,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Accumulation"
                     }
                 }
-                slider("SETTING_DENOISER_ACCUM_DECAY", 1.33, 0.5..3.0 step 0.01) {
+                slider("SETTING_DENOISER_ACCUM_DECAY", 1.0, 0.5..3.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Accumulation Decay"
                         comment = "Current mix rate decay factor for temporal accumulation. Larger value means faster decay."

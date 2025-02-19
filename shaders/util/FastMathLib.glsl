@@ -349,6 +349,10 @@ float acosFast4(float inX) {
     return inX >= 0.0f ? s : fsl_PI - s;
 }
 
+vec2 acosFast4(vec2 inX) {
+    return vec2(acosFast4(inX.x), acosFast4(inX.y));
+}
+
 // 4th order polynomial approximation
 // 4 VGRP, 16 ALU Full Rate
 // 7 * 10^-5 radians precision
