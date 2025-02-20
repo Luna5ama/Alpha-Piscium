@@ -3,6 +3,7 @@
 // MIT License
 //
 // You can find full license texts in /licenses
+#include "/util/FullScreenComp.glsl"
 #include "/general/EnvProbe.glsl"
 #include "/util/Coords.glsl"
 #include "/util/BSDF.glsl"
@@ -15,11 +16,6 @@ uniform sampler2D usam_temp1;
 uniform sampler2D usam_temp2;
 uniform sampler2D usam_skyLUT;
 uniform usampler2D usam_envProbe;
-
-in vec2 frag_texCoord;
-
-/* RENDERTARGETS:14 */
-layout(location = 0) out vec4 rt_out;
 
 // Inverse function approximation
 // See https://www.desmos.com/calculator/gs3clmp5hj
@@ -226,7 +222,7 @@ float sliceRelCDF(float x, float angN, float cosN) {
 
 const vec2 RADIUS_SQ = vec2(SETTING_SSVBIL_RADIUS * SETTING_SSVBIL_RADIUS, SETTING_SSVBIL_MAX_RADIUS * SETTING_SSVBIL_MAX_RADIUS);
 
-ivec2 texelPos = ivec2(gl_FragCoord.xy);
+vec2 texelCenterPos = vec2(texelPos) + 0.5;
 
 uint toBitMask(vec2 h01) {
     uint bitmask;// turn arc into bit mask
@@ -243,7 +239,7 @@ uint toBitMask(vec2 h01) {
     return bitmask;
 }
 
-void uniGTVBGI(vec3 viewPos, vec3 viewNormal) {
+void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
     vec3 viewDir = -normalize(viewPos);
     vec2 rayStart = view2screen(viewPos).xy;
 
@@ -305,11 +301,11 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal) {
 
     vec2 rayDir = dir.xy;
 
-    float maxDistX = rayDir.x != 0.0 ? (rayDir.x >= 0.0 ? (global_mainImageSize.x - gl_FragCoord.x) / rayDir.x : -gl_FragCoord.x / rayDir.x) : 1e6;
-    float maxDistY = rayDir.y != 0.0 ? (rayDir.y < 0.0 ? (-gl_FragCoord.y / rayDir.y) : (global_mainImageSize.y - gl_FragCoord.y) / rayDir.y) : 1e6;
+    float maxDistX = rayDir.x != 0.0 ? (rayDir.x >= 0.0 ? (global_mainImageSize.x - texelCenterPos.x) / rayDir.x : -texelCenterPos.x / rayDir.x) : 1e6;
+    float maxDistY = rayDir.y != 0.0 ? (rayDir.y < 0.0 ? (-texelCenterPos.y / rayDir.y) : (global_mainImageSize.y - texelCenterPos.y) / rayDir.y) : 1e6;
     float maxDist = min(maxDistX, maxDistY);
 
-    uvec2 hashKey = (uvec2(gl_FragCoord.xy) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
+    uvec2 hashKey = (uvec2(texelPos) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
     uint r2Index = (rand_hash21(hashKey) & 65535u) + NOISE_FRAME;
     float jitter = rand_r2Seq1(r2Index);
 
@@ -396,8 +392,8 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal) {
                     vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
                     float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
-                    rt_out.rgb += sampleRad * (vec3(1.0) - fresnel) * (bitV * PI * emitterCos * diffuseBase);
-                    rt_out.rgb += sampleRad * fresnel * (bitV * PI * emitterCos * ggx * specularBase);
+                    result.rgb += sampleRad * (vec3(1.0) - fresnel) * (bitV * PI * emitterCos * diffuseBase);
+                    result.rgb += sampleRad * fresnel * (bitV * PI * emitterCos * ggx * specularBase);
                 }
             }
 
@@ -408,93 +404,95 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal) {
         sampleTexelDist += stepTexelSize;
     }
 
-    mat3 viewToScene = mat3(gbufferModelViewInverse);
-
-    uint unoccluedBits = ~occBits;
-    vec3 realTangent = normalize(T);
-
-    vec3 fallbackLighting = vec3(0.0);
-
-    float lmCoordSky = texelFetch(usam_temp2, texelPos, 0).a;
-    float skyLightingBase = SETTING_SKYLIGHT_STRENGTH * lmCoordSky * lmCoordSky;
-
-    #if SETTING_SSVBIL_FALLBACK_SAMPLES == 4
-    const float w5 = 0.125;
-    const float w1 = 0.25;
-    for (uint i = 0u; i < 4u; i++) {
-    #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 8
-    const float w5 = 0.0625;
-    const float w1 = 0.125;
-    for (uint i = 0u; i < 8u; i++) {
-    #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 16
-    const float w5 = 0.03125;
-    const float w1 = 0.0625;
-    for (uint i = 0u; i < 16u; i++) {
-    #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 32
-    const float w5 = 0.015625;
-    const float w1 = 0.03125;
-    for (uint i = 0u; i < 32u; i++) {
-    #endif
-        float fi = float(i) + jitter - 0.5;
-
-        float ang0 = w1 * fi;
-        vec2 hor01 = saturate(vec2(ang0, ang0 + w1));
-        hor01.x = sliceRelCDF(hor01.x, angN, cosN);
-        hor01.y = sliceRelCDF(hor01.y, angN, cosN);
-        hor01 = hor01 * w0_remap_mul + w0_remap_add;
-        hor01 = clamp(hor01 + bitmaskJitter, 0.0, 1.0);
-
-        uint sectorBitMask = toBitMask(hor01);
-        uint sectorBits = (unoccluedBits & sectorBitMask);
-        float bitV = float(bitCount(sectorBits)) * (1.0 / 32.0);
-
-        float angC = saturate(w5 + w1 * fi) * PI - PI_HALF;
-        float cosC = cos(angC);
-        float sinC = sin(angC);
-
-        vec3 sampleDirView = normalize((viewNormal * cosC + realTangent * sinC));
-        vec3 sampleDirWorld = viewToScene * sampleDirView;
-
-        vec2 skyLUTUV = coords_octEncode01(sampleDirWorld);
-        vec3 skyRad = skyLightingBase * texture(usam_skyLUT, skyLUTUV).rgb;
-
-        vec2 envUV = coords_mercatorForward(sampleDirWorld);
-        ivec2 envTexel = ivec2(envUV * ENV_PROBE_SIZE);
-        EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
-        vec3 envRad = PI * envData.radiance;
-
-        vec3 sampleRad = envData.dist == 32768.0 ? skyRad : envRad;
-        float emitterCos = envData.dist == 32768.0 ? 1.0 : saturate(dot(envData.normal, -sampleDirWorld));
-
-        vec3 N = viewNormal;
-        vec3 L = sampleDirView;
-        float halfWayLen = sqrt(2.0 * dot(L, viewDir) + 2.0);
-        float NDotL = dot(N, L);
-        float NDotH = (NDotL + NDotV) / halfWayLen;
-        float LDotH = 0.5 * halfWayLen;
-        vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
-        float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
-
-        fallbackLighting += sampleRad * (vec3(1.0) - fresnel) * (bitV * emitterCos * diffuseBase);
-        fallbackLighting += sampleRad * fresnel * (bitV * emitterCos * ggx * specularBase);
-    }
-
     // compute AO
-    rt_out.a = float(bitCount(occBits)) * (1.0 / 32.0);
-    rt_out.a = saturate(1.0 - rt_out.a);
-    rt_out.a = pow(rt_out.a, SETTING_SSVBIL_AO_STRENGTH);
+    result.a = float(bitCount(occBits)) * (1.0 / 32.0);
+    result.a = saturate(1.0 - result.a);
+    result.a = pow(result.a, SETTING_SSVBIL_AO_STRENGTH);
 
-    rt_out.rgb += fallbackLighting * rt_out.a;
+    {
+        mat3 viewToScene = mat3(gbufferModelViewInverse);
+
+        uint unoccluedBits = ~occBits;
+        vec3 realTangent = normalize(T);
+
+        float lmCoordSky = texelFetch(usam_temp2, texelPos, 0).a;
+        float skyLightingBase = SETTING_SKYLIGHT_STRENGTH * lmCoordSky * lmCoordSky;
+
+        #if SETTING_SSVBIL_FALLBACK_SAMPLES == 4
+        const float w5 = 0.125;
+        const float w1 = 0.25;
+        for (uint i = 0u; i < 4u; i++) {
+        #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 8
+        const float w5 = 0.0625;
+        const float w1 = 0.125;
+        for (uint i = 0u; i < 8u; i++) {
+        #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 16
+        const float w5 = 0.03125;
+        const float w1 = 0.0625;
+        for (uint i = 0u; i < 16u; i++) {
+        #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 32
+        const float w5 = 0.015625;
+        const float w1 = 0.03125;
+        for (uint i = 0u; i < 32u; i++) {
+            #endif
+            float fi = float(i) + jitter - 0.5;
+
+            float ang0 = w1 * fi;
+            vec2 hor01 = saturate(vec2(ang0, ang0 + w1));
+            hor01.x = sliceRelCDF(hor01.x, angN, cosN);
+            hor01.y = sliceRelCDF(hor01.y, angN, cosN);
+            hor01 = hor01 * w0_remap_mul + w0_remap_add;
+            hor01 = clamp(hor01 + bitmaskJitter, 0.0, 1.0);
+
+            uint sectorBitMask = toBitMask(hor01);
+            uint sectorBits = (unoccluedBits & sectorBitMask);
+            float bitV = float(bitCount(sectorBits)) * (1.0 / 32.0);
+
+            float angC = saturate(w5 + w1 * fi) * PI - PI_HALF;
+            float cosC = cos(angC);
+            float sinC = sin(angC);
+
+            vec3 sampleDirView = normalize((viewNormal * cosC + realTangent * sinC));
+            vec3 sampleDirWorld = viewToScene * sampleDirView;
+
+            vec2 skyLUTUV = coords_octEncode01(sampleDirWorld);
+            vec3 skyRad = skyLightingBase * texture(usam_skyLUT, skyLUTUV).rgb;
+
+            vec2 envUV = coords_mercatorForward(sampleDirWorld);
+            ivec2 envTexel = ivec2(envUV * ENV_PROBE_SIZE);
+            EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
+            vec3 envRad = PI * envData.radiance;
+
+            vec3 sampleRad = envData.dist == 32768.0 ? skyRad : envRad;
+            float emitterCos = envData.dist == 32768.0 ? 1.0 : saturate(dot(envData.normal, -sampleDirWorld));
+
+            vec3 N = viewNormal;
+            vec3 L = sampleDirView;
+            float halfWayLen = sqrt(2.0 * dot(L, viewDir) + 2.0);
+            float NDotL = dot(N, L);
+            float NDotH = (NDotL + NDotV) / halfWayLen;
+            float LDotH = 0.5 * halfWayLen;
+            vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
+            float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
+
+            vec3 fallbackLighting = sampleRad * (vec3(1.0) - fresnel) * (bitV * emitterCos * diffuseBase);
+            fallbackLighting += sampleRad * fresnel * (bitV * emitterCos * ggx * specularBase);
+            result.rgb += fallbackLighting * result.a;
+        }
+    }
 }
 
-void main() {
+vec4 gtvbgi() {
     float centerViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
-    rt_out = vec4(0.0, 0.0, 0.0, 1.0);
+    vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
     if (centerViewZ < 0.0) {
+        vec2 screenPos = texelCenterPos * global_mainImageSizeRcp;
         vec3 normalVS = texelFetch(usam_temp1, texelPos, 0).rgb;
-        vec3 viewPos = coords_toViewCoord(frag_texCoord, centerViewZ, gbufferProjectionInverse);
+        vec3 viewPos = coords_toViewCoord(screenPos, centerViewZ, gbufferProjectionInverse);
         viewPos += normalVS * (1.0 / 1024.0);
-        uniGTVBGI(viewPos, normalVS);
+        uniGTVBGI(viewPos, normalVS, result);
     }
+
+    return result;
 }
