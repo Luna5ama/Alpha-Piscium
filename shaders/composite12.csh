@@ -12,7 +12,7 @@ uniform sampler2D usam_projReject;
 uniform sampler2D usam_gbufferViewZ;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
-layout(rgba16f) uniform writeonly image2D uimggiHistoryColor;
+layout(rgba16f) uniform writeonly image2D uimg_giHistoryColor;
 layout(rgba16f) uniform restrict image2D uimg_ssvbil;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
@@ -41,7 +41,7 @@ void main() {
         hLen *= saturate(1.0 - frustumTest * 0.5);
         
         imageStore(uimg_temp3, texelPos, filterOutput);
-        imageStore(uimggiHistoryColor, texelPos, vec4(filterOutput.rgb, hLen));
+        imageStore(uimg_giHistoryColor, texelPos, vec4(filterOutput.rgb, hLen));
 
         float ao = imageLoad(uimg_ssvbil, texelPos).a;
         vec3 gi = filterOutput.rgb;

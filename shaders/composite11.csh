@@ -17,7 +17,7 @@ uniform sampler2D usam_temp3;
 layout(rgba16f) uniform restrict image2D uimg_temp4;
 
 layout(rg32ui) uniform writeonly uimage2D uimg_prevNZ;
-layout(rg16f) uniform writeonly image2D uimggiHistoryMoments;
+layout(rg16f) uniform writeonly image2D uimg_giHistoryMoments;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
 layout(rgba8) uniform writeonly image2D uimg_temp7;
 
@@ -51,7 +51,7 @@ void main() {
         vec4 filterInput;
         gi_update(currColor, prevColorHLen, prevMoments, newHLen, newMoments, filterInput);
 
-        imageStore(uimggiHistoryMoments, texelPos, vec4(newMoments, 0.0, 0.0));
+        imageStore(uimg_giHistoryMoments, texelPos, vec4(newMoments, 0.0, 0.0));
         imageStore(uimg_temp4, texelPos, filterInput);
 
         float hLenEncoded = saturate((newHLen - 1.0) / 255.0);

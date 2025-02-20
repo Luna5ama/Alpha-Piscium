@@ -12,7 +12,7 @@ layout(rgba16f) uniform readonly image2D uimg_temp1;
 layout(rgba16f) uniform readonly image2D uimg_temp3;
 layout(rgba16f) uniform restrict image2D uimg_ssvbil;
 
-layout(rgba16f) uniform writeonly image2D uimggiHistoryColor;
+layout(rgba16f) uniform writeonly image2D uimg_giHistoryColor;
 
 ivec2 denoiser_getImageSize() {
     return global_mainImageSizeI;
@@ -30,5 +30,5 @@ void denoiser_output(ivec2 coord, vec4 data) {
     vec3 gi = data.rgb;
     imageStore(uimg_ssvbil, coord, vec4(gi, ao));
     float hLen = texelFetch(usam_temp6, coord, 0).r * 255.0 + 1.0;
-    imageStore(uimggiHistoryColor, coord, vec4(data.rgb, hLen));
+    imageStore(uimg_giHistoryColor, coord, vec4(data.rgb, hLen));
 }
