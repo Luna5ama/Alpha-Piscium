@@ -3,6 +3,7 @@
 #include "/util/Rand.glsl"
 #include "/util/Material.glsl"
 #include "/util/GBuffers.glsl"
+uniform sampler2D usam_temp6;
 
 ivec2 denoiser_getImageSize();
 void denoiser_input(ivec2 coord, out vec4 data, out vec3 normal, out float viewZ);
@@ -155,18 +156,24 @@ void setup(out ivec2 icoord, out vec3 normalC, out vec3 posC) {
 #error "Either DENOISER_BOX or DENOISER_GAUSSIAN must be defined"
 #endif
 
-float computeWeight(vec3 normalC, vec3 posC, vec3 normal, vec3 pos) {
+float hlenC;
+const float BASE_LUMA_ALPHA = 1.0 / SETTING_DENOISER_FILTER_COLOR_STRICTNESS;
+
+float computeWeight(vec3 normalC, vec3 posC, float lumaC, vec3 normal, vec3 pos, float luma) {
     vec3 diff = pos - posC;
     float posA = -posC.z * 0.1;
     float distSq = dot(diff, diff);
 
-    float diffNormalDot = dot(normalC, normalize(diff));
-    float dnA = 0.001;
+    float normalDot = dot(normalC, normal);
+    float diffNormalDot = dot(normalize(normalC), normalize(diff));
+    float lumaDiff = luma - lumaC;
 
     float weight = 1.0;
-    weight *= pow(saturate(dot(normalC, normal)), SETTING_DENOISER_FILTER_NORMAL_STRICTNESS);
-    weight *= posA / (posA + distSq);
-    weight *= saturate(dnA / (dnA + diffNormalDot * diffNormalDot));
+    weight *= pow(saturate(normalDot * normalDot), SETTING_DENOISER_FILTER_NORMAL_STRICTNESS);
+    weight *= pow(saturate(1.0 - diffNormalDot * diffNormalDot), SETTING_DENOISER_FILTER_DEPTH_STRICTNESS);
+
+    float la = BASE_LUMA_ALPHA / hlenC;
+    weight *= max(la / saturate(la + lumaDiff * lumaDiff), BASE_LUMA_ALPHA);
 
     return weight;
 }
@@ -183,27 +190,32 @@ void main() {
 
     barrier();
 
+    hlenC = texelFetch(usam_temp6, icoord, 0).r * 255.0 + 1.0;
+
     vec4 sum = vec4(0.0);
     uint centerIdx = gl_LocalInvocationIndex + DENOISER_KERNEL_RADIUS;
 
     float weight0 = baseWeight(0);
-    sum += readSharedData(centerIdx) * weight0;
+    vec4 colorC = readSharedData(centerIdx);
+    sum += colorC * weight0;
     float weightSum = weight0;
 
     for (uint i = 1; i <= DENOISER_KERNEL_RADIUS; i++) {
         vec3 pos;
         vec3 normal;
         readSharedPosNormal(centerIdx - i, normal, pos);
-        float weight = baseWeight(i) * computeWeight(normalC, posC, normal, pos);
-        sum += readSharedData(centerIdx - i) * weight;
+        vec4 color = readSharedData(centerIdx - i);
+        float weight = baseWeight(i) * computeWeight(normalC, posC, colorC.a, normal, pos, color.a);
+        sum += color * weight;
         weightSum += weight;
     }
     for (uint i = 1; i <= DENOISER_KERNEL_RADIUS; i++) {
         vec3 pos;
         vec3 normal;
         readSharedPosNormal(centerIdx + i, normal, pos);
-        float weight = baseWeight(i) * computeWeight(normalC, posC, normal, pos);
-        sum += readSharedData(centerIdx + i) * weight;
+        vec4 color = readSharedData(centerIdx + i);
+        float weight = baseWeight(i) * computeWeight(normalC, posC, colorC.a, normal, pos, color.a);
+        sum += color * weight;
         weightSum += weight;
     }
 

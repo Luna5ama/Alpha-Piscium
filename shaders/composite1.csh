@@ -1,7 +1,7 @@
 #version 460 compatibility
 
 #include "/general/NDPacking.glsl"
-#include "/svgf/Reproject.glsl"
+#include "/denoiser/Reproject.glsl"
 #include "/util/GBuffers.glsl"
 #include "/util/Material.glsl"
 #include "/util/FullScreenComp.glsl"
@@ -12,8 +12,8 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_gbufferData;
 uniform usampler2D usam_prevNZ;
-uniform sampler2D usam_svgfHistoryColor;
-uniform sampler2D usam_svgfHistoryMoments;
+uniform sampler2D usamgiHistoryColor;
+uniform sampler2D usamgiHistoryMoments;
 
 layout(rg8) uniform writeonly image2D uimg_projReject;
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
@@ -51,8 +51,8 @@ void main() {
             vec4 prevColorHLen;
             vec2 prevMoments;
 
-            svgf_reproject(
-                usam_svgfHistoryColor, usam_svgfHistoryMoments, usam_prevNZ,
+            gi_reproject(
+                usamgiHistoryColor, usamgiHistoryMoments, usam_prevNZ,
                 screenPos, viewZ, gData.normal, float(gData.isHand),
                 prevColorHLen, prevMoments
             );

@@ -2,7 +2,7 @@
 
 #include "/atmosphere/Common.glsl"
 #include "/general/NDPacking.glsl"
-#include "/svgf/Update.glsl"
+#include "/denoiser/Update.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Colors.glsl"
 
@@ -17,8 +17,9 @@ uniform sampler2D usam_temp3;
 layout(rgba16f) uniform restrict image2D uimg_temp4;
 
 layout(rg32ui) uniform writeonly uimage2D uimg_prevNZ;
-layout(rg16f) uniform writeonly image2D uimg_svgfHistoryMoments;
+layout(rg16f) uniform writeonly image2D uimggiHistoryMoments;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
+layout(rgba8) uniform writeonly image2D uimg_temp7;
 
 uniform sampler2D usam_projReject;
 
@@ -43,17 +44,19 @@ void main() {
         float frustumTest = float(projReject.x > 0.0);
         float newPixel = float(projReject.y > 0.0);
 
-        prevColorHLen.a *= saturate(1.0 - frustumTest * 0.8);
+        prevColorHLen.a *= saturate(1.0 - frustumTest * 0.5);
 
         float newHLen;
         vec2 newMoments;
         vec4 filterInput;
-        svgf_update(currColor, prevColorHLen, prevMoments, newHLen, newMoments, filterInput);
+        gi_update(currColor, prevColorHLen, prevMoments, newHLen, newMoments, filterInput);
 
-        imageStore(uimg_svgfHistoryMoments, texelPos, vec4(newMoments, 0.0, 0.0));
+        imageStore(uimggiHistoryMoments, texelPos, vec4(newMoments, 0.0, 0.0));
         imageStore(uimg_temp4, texelPos, filterInput);
 
         float hLenEncoded = saturate((newHLen - 1.0) / 255.0);
         imageStore(uimg_temp6, texelPos, vec4(hLenEncoded, 0.0, 0.0, 0.0));
+
+        imageStore(uimg_temp7, texelPos, vec4(filterInput.a * 0.01));
     }
 }

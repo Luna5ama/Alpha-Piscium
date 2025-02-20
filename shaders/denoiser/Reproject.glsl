@@ -71,7 +71,7 @@ inout vec4 prevColorHLen, inout vec2 prevMoments, inout float weightSum
     prevMoments.y += dot(bilateralWeights, prevMomentYs);
 }
 
-void svgf_reproject(
+void gi_reproject(
 sampler2D svgfHistoryColor, sampler2D svgfHistoryMoments, usampler2D prevNZTex,
 vec2 screenPos, float currViewZ, vec3 currViewNormal, float isHand,
 out vec4 prevColorHLen, out vec2 prevMoments
@@ -93,37 +93,11 @@ out vec4 prevColorHLen, out vec2 prevMoments
     prevMoments = vec2(0.0);
     float weightSum = 0.0;
 
-    #ifdef SETTING_DENOISER_REPROJ_FILTER
-    bilateralSample(
-        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel + vec2(0.5), currScene.xyz, currViewZ, currWorldNormal, 1.0,
-        prevColorHLen, prevMoments, weightSum
-    );
-
-    bilateralSample(
-        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel - vec2(0.5), currScene.xyz, currViewZ, currWorldNormal, 1.0,
-        prevColorHLen, prevMoments, weightSum
-    );
-
-    bilateralSample(
-        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel + vec2(-0.5, 0.5), currScene.xyz, currViewZ, currWorldNormal, 1.0,
-        prevColorHLen, prevMoments, weightSum
-    );
-
-    bilateralSample(
-        svgfHistoryColor, svgfHistoryMoments, prevNZTex,
-        curr2PrevTexel + vec2(0.5, -0.5), currScene.xyz, currViewZ, currWorldNormal, 1.0,
-        prevColorHLen, prevMoments, weightSum
-    );
-    #else
     bilateralSample(
         svgfHistoryColor, svgfHistoryMoments, prevNZTex,
         curr2PrevTexel, currScene.xyz, currViewZ, currWorldNormal, 1.0,
         prevColorHLen, prevMoments, weightSum
     );
-
     const float WEIGHT_EPSILON = 0.01;
     if (weightSum < WEIGHT_EPSILON) {
         bilateralSample(
@@ -150,7 +124,6 @@ out vec4 prevColorHLen, out vec2 prevMoments
             prevColorHLen, prevMoments, weightSum
         );
     }
-    #endif
 
     const float WEIGHT_EPSILON_FINAL = 0.0001;
     if (weightSum < WEIGHT_EPSILON_FINAL) {

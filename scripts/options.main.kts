@@ -771,14 +771,24 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FILTER_RADIUS", 2, (0..2).map { 1 shl it }) {
+                slider("SETTING_DENOISER_FILTER_RADIUS", 2, (0..3).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Filter Radius"
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_NORMAL_STRICTNESS", 64, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_FILTER_NORMAL_STRICTNESS", 8, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Filter Normal Strictness"
+                    }
+                }
+                slider("SETTING_DENOISER_FILTER_DEPTH_STRICTNESS", 16, (0..10).map { 1 shl it }) {
+                    lang(Locale.US) {
+                        name = "Filter Depth Strictness"
+                    }
+                }
+                slider("SETTING_DENOISER_FILTER_COLOR_STRICTNESS", 16, (0..10).map { 1 shl it }) {
+                    lang(Locale.US) {
+                        name = "Filter Color Strictness"
                     }
                 }
             }
