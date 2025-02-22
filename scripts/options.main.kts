@@ -621,12 +621,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Soft Shadows"
                         comment = "Soft Shadows settings"
                     }
-                    slider("SETTING_PCSS_SAMPLE_COUNT", 8, listOf(1, 2, 4, 8, 16, 32, 64)) {
+                    slider("SETTING_PCSS_SAMPLE_COUNT", 4, listOf(1, 2, 4, 8, 16, 32, 64)) {
                         lang(Locale.US) {
                             name = "Sample Count"
                         }
                     }
-                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 4, listOf(1, 2, 4, 8, 16)) {
+                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 2, listOf(1, 2, 4, 8, 16)) {
                         lang(Locale.US) {
                             name = "Blocker Search Count"
                         }
