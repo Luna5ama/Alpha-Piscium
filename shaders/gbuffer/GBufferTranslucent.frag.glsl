@@ -79,7 +79,7 @@ void main() {
     vec4 albedo = processAlbedo();
     gData = processOutput();
 
-    lighting_init(frag_viewCoord);
+    lighting_init(frag_viewCoord, texelPos);
 
     rt_translucentColor.rgb = colors_srgbToLinear(albedo.rgb);
     rt_translucentColor.a = albedo.a;

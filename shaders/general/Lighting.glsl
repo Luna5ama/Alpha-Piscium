@@ -23,10 +23,12 @@ uniform sampler2D usam_skyLUT;
 GBufferData gData;
 vec3 lighting_viewCoord;
 vec3 lighting_viewDir;
+ivec2 lighting_texelPos;
 
-void lighting_init(vec3 viewCoord) {
+void lighting_init(vec3 viewCoord, ivec2 texelPos) {
     lighting_viewCoord = viewCoord;
     lighting_viewDir = normalize(-viewCoord);
+    lighting_texelPos = texelPos;
 }
 
 float searchBlocker(vec3 shadowTexCoord) {
@@ -102,18 +104,16 @@ vec3 calcShadow(float sssFactor) {
     ssRange += uval_sunAngularRadius * 2.0 * SETTING_PCSS_VPF * blockerDistance;
     ssRange = saturate(ssRange);
 
-    #if SETTING_PCSS_SAMPLE_PATTERN == 1
     const float ssRangeMul = 0.5;
-    #else
-    const float ssRangeMul = 0.4;
-    #endif
 
     ssRange *= ssRangeMul;
 
     #define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
     vec3 shadow = vec3(0.0);
-    uint idxSS = (frameCounter + rand_hash31(floatBitsToUint(viewCoord.xyz)) & 1023u) * SAMPLE_N;
+    uint idxSS = frameCounter * SAMPLE_N;
+
+    uint hashss = rand_hash31(floatBitsToUint(viewCoord.xyz)) & 1023u;
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
     float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distnaceSq, 1.0)));
@@ -121,21 +121,17 @@ vec3 calcShadow(float sssFactor) {
     depthBiasFactor += mix(0.005 + lightNormalDot * 0.005, -0.001, dbfDistanceCoeff);
 
     for (int i = 0; i < SAMPLE_N; i++) {
-        vec3 randomOffset = rand_r2Seq3(idxSS);
+        vec2 randomOffset;
+        randomOffset.x = rand_IGN(lighting_texelPos, idxSS);
+        randomOffset.y = rand_r2Seq1(idxSS + hashss);
         vec3 sampleTexCoord = shadowTexCoord;
 
-        #if SETTING_PCSS_SAMPLE_PATTERN == 1
         float theta = randomOffset.x * PI_2;
         float r = sqrt(randomOffset.y) * ssRange;
-        r += randomOffset.z * sssFactor * ssRangeMul * 0.5;
+        r += randomOffset.y * sssFactor * ssRangeMul * 0.5;
         sampleTexCoord.xy += r * vec2(cos(theta), sin(theta)) * vec2(shadowProjection[0][0], shadowProjection[1][1]);
-        #else
-        vec2 r = (randomOffset.xy * 2.0 - 1.0) * ssRange;
-        r += (randomOffset.xy * 2.0 - 1.0) * sssFactor * ssRangeMul * 0.5;
-        sampleTexCoord.xy += r * vec2(shadowProjection[0][0], shadowProjection[1][1]);
-        #endif
 
-        sampleTexCoord.z += randomOffset.z * sssFactor * 0.5;
+        sampleTexCoord.z += randomOffset.y * sssFactor * 0.5;
         sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
         vec2 texelSize;
         sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);

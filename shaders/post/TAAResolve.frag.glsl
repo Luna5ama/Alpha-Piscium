@@ -133,7 +133,7 @@ void main() {
     finalMixWeight = clamp(finalMixWeight, 0.5, 0.99);
     #endif
 
-    rt_out.rgb = mix(currColor, lastColor, finalMixWeight);
+    rt_out.rgb = mix(currColor, lastColor, 0.8);
     rt_out.a = 1.0;
 
     mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);

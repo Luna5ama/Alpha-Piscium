@@ -26,7 +26,7 @@ vec4 compShadow(ivec2 texelPos, float viewZ) {
     vec2 screenPos = texel2Screen(texelPos);
     gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
     Material material = material_decode(gData);
-    lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse));
+    lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);
     return vec4(calcShadow(material.sss), 1.0);
 }
 

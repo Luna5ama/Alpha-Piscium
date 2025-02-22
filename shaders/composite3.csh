@@ -73,7 +73,7 @@ void main() {
             gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
             Material material = material_decode(gData);
 
-            lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse));
+            lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);
 
             vec4 ssgiOut = imageLoad(uimg_temp2, texelPos);
             ssgiOut.a = gData.lmCoord.y;

@@ -621,14 +621,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Soft Shadows"
                         comment = "Soft Shadows settings"
                     }
-                    toggle("SETTING_PCSS_SAMPLE_PATTERN", 1, 0..1) {
-                        lang(Locale.US) {
-                            name = "Sample Pattern"
-                            comment = "Pattern used in PCSS, box pattern is faster but less accurate."
-                            0 value "Box"
-                            1 value "Disk"
-                        }
-                    }
                     slider("SETTING_PCSS_SAMPLE_COUNT", 8, listOf(1, 2, 4, 8, 16, 32, 64)) {
                         lang(Locale.US) {
                             name = "Sample Count"
