@@ -461,8 +461,9 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
             vec3 envRad = PI * envData.radiance;
 
-            vec3 sampleRad = envData.dist == 32768.0 ? skyRad : envRad;
-            float emitterCos = envData.dist == 32768.0 ? 1.0 : saturate(dot(envData.normal, -sampleDirWorld));
+            bool probeIsSky = envProbe_isSky(envData);
+            vec3 sampleRad = probeIsSky ? skyRad : envRad;
+            float emitterCos = probeIsSky ? 1.0 : saturate(dot(envData.normal, -sampleDirWorld));
 
             vec3 N = viewNormal;
             vec3 L = sampleDirView;

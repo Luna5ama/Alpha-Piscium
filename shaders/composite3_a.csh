@@ -14,11 +14,13 @@ layout(rgba32ui) uniform restrict uimage2D uimg_envProbe;
 
 void main() {
     ivec2 texelPos = ivec2(morton_32bDecode(gl_GlobalInvocationID.x));
-    ivec2 outputPos = texelPos;
-    outputPos.x += 512;
+    ivec2 inputPos = texelPos;
+    uvec4 prevData = imageLoad(uimg_envProbe, inputPos);
 
-    EnvProbeData outputData;
-    if (envProbe_update(usam_gbufferData, usam_gbufferViewZ, usam_temp2, texelPos, outputData)) {
+    ivec2 outputPos = texelPos;
+    EnvProbeData outputData = envProbe_decode(prevData);
+    if (envProbe_reproject(texelPos, outputData, outputPos)) {
+        outputPos.x += 512;
         imageStore(uimg_envProbe, outputPos, envProbe_encode(outputData));
     }
 }

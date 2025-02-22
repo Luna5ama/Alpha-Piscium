@@ -10,44 +10,85 @@ const vec2 ENV_PROBE_RCP = vec2(1.0 / 512.0, 1.0 / 512.0);
 struct EnvProbeData {
     vec3 radiance;
     vec3 normal;
-    float dist;
-    float emissive;
+    vec3 scenePos;
 };
+
+void envProbe_initData(out EnvProbeData envProbeData) {
+    envProbeData.radiance = vec3(0.0);
+    envProbeData.normal = vec3(0.0);
+    envProbeData.scenePos = vec3(0.0);
+}
 
 EnvProbeData envProbe_decode(uvec4 packedData) {
     EnvProbeData unpackedData;
-    vec2 radianceRG = unpackHalf2x16(packedData.x);
-    vec2 radianceBA = unpackHalf2x16(packedData.y);
-    unpackedData.radiance = vec3(radianceRG, radianceBA.x);
-    unpackedData.emissive = radianceBA.y;
-    unpackedData.normal = coords_octDecode11(unpackSnorm2x16(packedData.z));
-    unpackedData.dist = uintBitsToFloat(packedData.w);
+    vec2 temp1 = unpackHalf2x16(packedData.x);
+    vec2 temp2 = unpackHalf2x16(packedData.y);
+    vec2 temp3 = unpackHalf2x16(packedData.z);
+    unpackedData.radiance = vec3(temp1, temp2.x);
+    unpackedData.scenePos = vec3(temp2.y, temp3);
+    unpackedData.normal = coords_octDecode11(unpackSnorm2x16(packedData.w));
     return unpackedData;
+}
+
+bool envProbe_isSky(EnvProbeData envProbeData) {
+    return all(lessThanEqual(envProbeData.radiance, vec3(0.0)));
+}
+
+bool envProbe_hasData(EnvProbeData envProbeData) {
+    return !all(equal(envProbeData.scenePos, vec3(0.0)));
+}
+
+EnvProbeData envProbe_add(EnvProbeData a, EnvProbeData b) {
+    EnvProbeData result;
+    result.radiance = a.radiance + b.radiance;
+    result.normal = a.normal + b.normal;
+    result.scenePos = a.scenePos + b.scenePos;
+    return result;
 }
 
 uvec4 envProbe_encode(EnvProbeData unpackedData) {
     uvec4 packedData;
-    packedData.x = packHalf2x16(vec2(unpackedData.radiance.r, unpackedData.radiance.g));
-    packedData.y = packHalf2x16(vec2(unpackedData.radiance.b, unpackedData.emissive));
-    packedData.z = packSnorm2x16(coords_octEncode11(unpackedData.normal));
-    packedData.w = floatBitsToUint(unpackedData.dist);
+    packedData.x = packHalf2x16(unpackedData.radiance.rg);
+    packedData.y = packHalf2x16(vec2(unpackedData.radiance.b, unpackedData.scenePos.x));
+    packedData.z = packHalf2x16(unpackedData.scenePos.yz);
+    packedData.w = packSnorm2x16(coords_octEncode11(unpackedData.normal));
     return packedData;
 }
 
+bool envProbe_reproject(ivec2 prevEnvProbeTexelPos, inout EnvProbeData envProbeData, out ivec2 outputTexelPos) {
+    if (all(equal(envProbeData.scenePos, vec3(0.0)))) {
+        return false;
+    }
+
+    vec3 prevEnvProbeScenePos = envProbeData.scenePos;
+    vec3 cameraDelta = cameraPosition - previousCameraPosition;
+    vec3 currEnvProbeScenePos = prevEnvProbeScenePos - cameraDelta * 2.0;
+    vec3 currEnvProbeWorldDir = normalize(currEnvProbeScenePos);
+    vec2 currEnvProbeScreenPos = coords_mercatorForward(currEnvProbeWorldDir);
+
+    if (any(notEqual(currEnvProbeScreenPos, saturate(currEnvProbeScreenPos)))) {
+        return false;
+    }
+
+    outputTexelPos = ivec2(currEnvProbeScreenPos * ENV_PROBE_SIZE);
+
+    envProbeData.scenePos = currEnvProbeScenePos;
+
+    return true;
+}
+
 bool envProbe_update(
-usampler2D gbufferData, sampler2D gbufferViewZ,
-sampler2D inputViewColor,
-//sampler2D inputColorZ,
-ivec2 envProbeTexelPos,
-out uvec4 outputData
+usampler2D gbufferData, sampler2D gbufferViewZ, sampler2D inputViewColor,
+ivec2 envProbeTexelPos, out EnvProbeData outputData
 ) {
-    vec2 envCacheScreenPos = (vec2(envProbeTexelPos) + 0.5) * ENV_PROBE_RCP;
-    vec3 envCachePixelWorldDir = coords_mercatorBackward(envCacheScreenPos);
-    vec4 viewPos = gbufferModelView * vec4(envCachePixelWorldDir, 1.0);
+    vec2 envProbeScreenPos = (vec2(envProbeTexelPos) + 0.5) * ENV_PROBE_RCP;
+    vec3 envProbePixelWorldDir = coords_mercatorBackward(envProbeScreenPos);
+    vec4 viewPos = gbufferModelView * vec4(envProbePixelWorldDir, 1.0);
     viewPos.xyz -= gbufferModelView[3].xyz;
     vec4 clipPos = gbufferProjection * viewPos;
 
-    outputData = uvec4(0.0);
+    envProbe_initData(outputData);
+
     if (!all(lessThan(abs(clipPos.xyz), clipPos.www))) {
         return false;
     }
@@ -62,19 +103,12 @@ out uvec4 outputData
         return false;
     }
 
-    EnvProbeData envProbeData;
-    envProbeData.normal = mat3(gbufferModelViewInverse) * gData.normal;
-    envProbeData.radiance = texture(inputViewColor, screenPos).rgb;
-
-    Material material = material_decode(gData);
-    envProbeData.emissive = colors_srgbLuma(material.emissive);
-
     float viewZ = texelFetch(gbufferViewZ, texelPos, 0).r;
     vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
     vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
-    envProbeData.dist = viewZ == -65536.0 ? 32768.0 : length(realScenePos.xyz);
-
-    outputData = envProbe_encode(envProbeData);
+    outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : texture(inputViewColor, screenPos).rgb;
+    outputData.normal = mat3(gbufferModelViewInverse) * gData.normal;
+    outputData.scenePos = realScenePos.xyz;
 
     return true;
 }

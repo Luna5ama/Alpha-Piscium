@@ -188,18 +188,28 @@ void debugOutput(inout vec4 outputColor) {
     if (inViewPort(ivec4(0, 0, 512, 512), debugTexCoord)) {
         ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
         EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+        bool envProbeIsSky = envProbe_isSky(envProbeData);
         outputColor.rgb *= exp2(SETTING_DEBUG_EXP);
-        outputColor.rgb = gammaCorrect(envProbeData.radiance);
+        outputColor.rgb = envProbeIsSky ? vec3(0.0) : gammaCorrect(envProbeData.radiance);
     }
     if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {
         ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
         EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
-        outputColor.rgb = envProbeData.dist == 32768.0 ? vec3(0.0, 0.0, 1.0) : vec3(saturate(envProbeData.dist / far));
+        bool envProbeIsSky = envProbe_isSky(envProbeData);
+        outputColor.rgb = envProbeIsSky ? vec3(0.0, 0.0, 1.0) : vec3(saturate(length(envProbeData.scenePos) / far));
     }
     if (inViewPort(ivec4(512, 0, 512, 512), debugTexCoord)) {
         ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
         EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
         outputColor.rgb = envProbeData.normal * 0.5 + 0.5;
+    }
+    if (inViewPort(ivec4(512, 512, 512, 512), debugTexCoord)) {
+        ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
+        texelPos.x += 512;
+        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+        bool envProbeIsSky = envProbe_isSky(envProbeData);
+        outputColor.rgb *= exp2(SETTING_DEBUG_EXP);
+        outputColor.rgb = envProbeIsSky ? vec3(0.0) : gammaCorrect(envProbeData.radiance);
     }
     #endif
 }
