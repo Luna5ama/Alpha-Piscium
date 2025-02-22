@@ -13,13 +13,11 @@ uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_gbufferData;
 uniform usampler2D usam_prevNZ;
 uniform sampler2D usam_giHistoryColor;
-uniform sampler2D usam_giHistoryMoments;
 
 layout(rg8) uniform writeonly image2D uimg_projReject;
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
-layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
 void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
@@ -49,16 +47,14 @@ void main() {
             }
 
             vec4 prevColorHLen;
-            vec2 prevMoments;
 
             gi_reproject(
-                usam_giHistoryColor, usam_giHistoryMoments, usam_prevNZ,
+                usam_giHistoryColor, usam_prevNZ,
                 screenPos, viewZ, gData.normal, float(gData.isHand),
-                prevColorHLen, prevMoments
+                prevColorHLen
             );
 
             imageStore(uimg_temp3, texelPos, prevColorHLen);
-            imageStore(uimg_temp4, texelPos, vec4(prevMoments, 0.0, 0.0));
 
             {
                 vec4 ssgiOut = vec4(0.0);

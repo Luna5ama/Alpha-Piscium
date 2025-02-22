@@ -14,10 +14,9 @@ uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_ssvbil;
 
 uniform sampler2D usam_temp3;
-layout(rgba16f) uniform restrict image2D uimg_temp4;
+layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
 layout(rg32ui) uniform writeonly uimage2D uimg_prevNZ;
-layout(rg16f) uniform writeonly image2D uimg_giHistoryMoments;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
 layout(rgba8) uniform writeonly image2D uimg_temp7;
 
@@ -33,7 +32,6 @@ void main() {
 
         vec3 currColor = texelFetch(usam_ssvbil, texelPos, 0).rgb;
         vec4 prevColorHLen = texelFetch(usam_temp3, texelPos, 0);
-        vec2 prevMoments = imageLoad(uimg_temp4, texelPos).xy;
 
         vec2 projReject = texelFetch(usam_projReject, texelPos, 0).rg;
         projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(-1, 0)).rg);
@@ -48,11 +46,9 @@ void main() {
         prevColorHLen.a *= saturate(1.0 - newPixel * 0.2);
 
         float newHLen;
-        vec2 newMoments;
         vec4 filterInput;
-        gi_update(currColor, prevColorHLen, prevMoments, newHLen, newMoments, filterInput);
+        gi_update(currColor, prevColorHLen, newHLen, filterInput);
 
-        imageStore(uimg_giHistoryMoments, texelPos, vec4(newMoments, 0.0, 0.0));
         imageStore(uimg_temp4, texelPos, filterInput);
 
         float hLenEncoded = saturate((newHLen - 1.0) / 255.0);
