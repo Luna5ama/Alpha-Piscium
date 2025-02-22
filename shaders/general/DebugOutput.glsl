@@ -2,6 +2,7 @@
 #include "/rtwsm/RTWSM.glsl"
 #include "/atmosphere/Common.glsl"
 #include "/general/EnvProbe.glsl"
+#include "/general/NDPacking.glsl"
 
 #ifdef SETTING_DEBUG_RTWSM
 uniform sampler2D shadowtex0;
@@ -48,6 +49,10 @@ uniform usampler2D usam_gbufferData;
 
 #ifdef DEBUG_TEX_NAME
 uniform sampler2D DEBUG_TEX_NAME;
+#endif
+
+#if SETTING_DEBUG_PREVNZ != 0
+uniform usampler2D usam_prevNZ;
 #endif
 
 bool inViewPort(ivec4 originSize, out vec2 texCoord) {
@@ -115,6 +120,17 @@ void debugOutput(inout vec4 outputColor) {
     outputColor.rgb = mat3(gbufferModelViewInverse) * outputColor.rgb;
     #endif
     outputColor.rgb = outputColor.rgb * 0.5 + 0.5;
+    #endif
+
+    #if SETTING_DEBUG_PREVNZ != 0
+    float prevZ;
+    vec3 prevN;
+    ndpacking_unpack(texelFetch(usam_prevNZ, texelPos, 0).xy, prevN, prevZ);
+    #if SETTING_DEBUG_PREVNZ == 1
+    outputColor.rgb = vec3(prevN * 0.5 + 0.5);
+    #else
+    outputColor.rgb = vec3(-prevZ / far);
+    #endif
     #endif
 
     vec2 debugTexCoord;

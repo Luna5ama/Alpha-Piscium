@@ -739,18 +739,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_REPROJ_FILTER", true) {
-                    lang(Locale.US) {
-                        name = "Reprojection Filter"
-                        comment = "Perform filtering during reprojection."
-                    }
-                }
-                slider("SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS", 16, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS", 64, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Reprojection Normal Strictness"
                     }
                 }
-                empty()
                 slider("SETTING_DENOISER_MAX_ACCUM", 64, (2..8).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Max Accumulation"
@@ -1089,6 +1082,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         0 value "Off"
                         1 value "GI"
                         2 value "AO"
+                    }
+                }
+                toggle("SETTING_DEBUG_PREVNZ", 0, 0..2) {
+                    lang(Locale.US) {
+                        name = "Prev NZ"
+                        0 value "Off"
+                        1 value "Normal"
+                        2 value "Z"
                     }
                 }
                 empty()

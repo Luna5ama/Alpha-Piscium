@@ -4,10 +4,9 @@
 vec3 cameraDelta = cameraPosition - previousCameraPosition;
 
 float normalWeight(vec3 currWorldNormal, uint packedNormal) {
-    vec3 prevViewNormal = coords_octDecode11(unpackSnorm2x16(packedNormal));
-    vec3 prevWorldNormal = mat3(gbufferPrevModelViewInverse) * prevViewNormal;
+    vec3 prevWorldNormal = coords_octDecode11(unpackSnorm2x16(packedNormal));
     float sdot = saturate(dot(currWorldNormal, prevWorldNormal));
-    return pow(sdot, 2.0);
+    return pow(sdot, float(SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS));
 }
 
 float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prevViewZI) {
@@ -18,7 +17,7 @@ float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prev
 
     vec3 diff = currScene.xyz - prevScene.xyz;
     float distSq = dot(diff, diff);
-    float a = -currViewZ * 0.001;
+    float a = abs(currViewZ) * 0.00001;
     return a / (a + distSq);
 }
 
@@ -37,7 +36,6 @@ inout vec4 prevColorHLen, inout float weightSum
     bilateralWeights.xw = 1.0 - bilinearWeights.xx;
     bilateralWeights.xy *= bilinearWeights.yy;
     bilateralWeights.zw *= 1.0 - bilinearWeights.yy;
-    bilateralWeights += 0.01;
 
     uvec4 prevNs = textureGather(prevNZTex, gatherUV, 0);
     bilateralWeights.x *= normalWeight(currWorldNormal, prevNs.x);
@@ -79,6 +77,10 @@ out vec4 prevColorHLen
     vec2 curr2PrevNDC = curr2PrevClip.xy / curr2PrevClip.w;
     vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
     curr2PrevScreen = mix(curr2PrevScreen, screenPos, isHand);
+    if (any(notEqual(curr2PrevScreen, saturate(curr2PrevScreen)))) {
+        prevColorHLen = vec4(0.0);
+        return;
+    }
     vec2 curr2PrevTexel = curr2PrevScreen * global_mainImageSize;
 
     vec3 currWorldNormal = mat3(gbufferModelViewInverse) * currViewNormal;
