@@ -3,7 +3,6 @@
 // MIT License
 //
 // You can find full license texts in /licenses
-#include "/util/FullScreenComp.glsl"
 #include "/general/EnvProbe.glsl"
 #include "/util/Coords.glsl"
 #include "/util/BSDF.glsl"
@@ -222,8 +221,6 @@ float sliceRelCDF(float x, float angN, float cosN) {
 
 const vec2 RADIUS_SQ = vec2(SETTING_SSVBIL_RADIUS * SETTING_SSVBIL_RADIUS, SETTING_SSVBIL_MAX_RADIUS * SETTING_SSVBIL_MAX_RADIUS);
 
-vec2 texelCenterPos = vec2(texelPos) + 0.5;
-
 uint toBitMask(vec2 h01) {
     uint bitmask;// turn arc into bit mask
     {
@@ -239,7 +236,7 @@ uint toBitMask(vec2 h01) {
     return bitmask;
 }
 
-void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
+void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result) {
     vec3 viewDir = -normalize(viewPos);
     vec2 rayStart = view2screen(viewPos).xy;
 
@@ -255,7 +252,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         vec3 normalVVS = viewNormal;
         normalVVS = Transform_Qz0(viewNormal, Q_fromV);
 
-        float dirRand = rand_IGN(texelPos, frameCounter);
+        float dirRand = rand_IGN(texelPos >> 1, frameCounter);
         dir = SamplePartialSliceDir(normalVVS, dirRand);
 
         smplDirVS = vec3(dir.xy, 0.0);
@@ -301,11 +298,12 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
 
     vec2 rayDir = dir.xy;
 
+    vec2 texelCenterPos = vec2(texelPos) + 0.5;
     float maxDistX = rayDir.x != 0.0 ? (rayDir.x >= 0.0 ? (global_mainImageSize.x - texelCenterPos.x) / rayDir.x : -texelCenterPos.x / rayDir.x) : 1e6;
     float maxDistY = rayDir.y != 0.0 ? (rayDir.y < 0.0 ? (-texelCenterPos.y / rayDir.y) : (global_mainImageSize.y - texelCenterPos.y) / rayDir.y) : 1e6;
     float maxDist = min(maxDistX, maxDistY);
 
-    uvec2 hashKey = (uvec2(texelPos) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
+    uvec2 hashKey = (uvec2(texelPos >> 1) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
     uint r2Index = (rand_hash21(hashKey) & 65535u) + NOISE_FRAME;
     float jitter = rand_r2Seq1(r2Index);
 
@@ -482,16 +480,16 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
     }
 }
 
-vec4 gtvbgi() {
+vec4 gtvbgi(ivec2 texelPos) {
     float centerViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
     vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
     if (centerViewZ < 0.0) {
-        vec2 screenPos = texelCenterPos * global_mainImageSizeRcp;
+        vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
         vec3 normalVS = texelFetch(usam_temp1, texelPos, 0).rgb;
         vec3 viewPos = coords_toViewCoord(screenPos, centerViewZ, gbufferProjectionInverse);
         viewPos += normalVS * (1.0 / 1024.0);
-        uniGTVBGI(viewPos, normalVS, result);
+        uniGTVBGI(texelPos, viewPos, normalVS, result);
     }
 
     return result;

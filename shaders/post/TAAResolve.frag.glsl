@@ -76,27 +76,27 @@ void main() {
     vec2 pixelPosDiff = (frag_texCoord - prevTexCoord) * textureSize(usam_main, 0).xy;
     float cameraSpeed = length(cameraDelta);
     float prevCameraSpeed = length(global_prevCameraDelta);
-    float cameraSpeedDiff = sqrt(abs(cameraSpeed - prevCameraSpeed));
+    float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
     float pixelSpeed = length(pixelPosDiff);
 
     vec4 lastResult = texture(usam_taaLast, prevTexCoord);
     vec3 lastColor = saturate(lastResult.rgb);
 
-    float clampRatio1 = 0.2;
+    float clampRatio1 = 0.1;
     clampRatio1 += saturate(1.0 - lastResult.a);
     clampRatio1 += newPixel * 0.4;
     clampRatio1 += frustumTest * 0.4;
-    clampRatio1 += pixelSpeed * 0.02;
-    clampRatio1 += cameraSpeed * 0.2;
-    clampRatio1 += cameraSpeedDiff * 4.0;
+    clampRatio1 += pixelSpeed * 0.01;
+    clampRatio1 += cameraSpeed * 0.1;
+    clampRatio1 += cameraSpeedDiff * 8.0;
     clampRatio1 = saturate(clampRatio1);
 
-    float clampRatio2 = 0.1;
-    clampRatio2 += newPixel * 0.8;
-    clampRatio2 += frustumTest * 0.8;
+    float clampRatio2 = 0.2;
+    clampRatio2 += newPixel * 1.0;
+    clampRatio2 += frustumTest * 1.0;
     clampRatio2 += pixelSpeed * 0.05;
     clampRatio2 += cameraSpeed * 0.5;
-    clampRatio1 += cameraSpeedDiff * 8.0;
+    clampRatio1 += cameraSpeedDiff * 32.0;
     clampRatio2 = saturate(clampRatio2);
 
     #ifndef SETTING_SCREENSHOT_MODE
@@ -116,10 +116,10 @@ void main() {
     mixDecrease *= (1.0 - saturate(pixelSpeed * 69.0));
     #else
     float mixDecrease = 1.0;
-    mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 2.0));
-    mixDecrease *= (1.0 - saturate(cameraSpeed * 0.2));
-    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.02));
-    mixDecrease = max(mixDecrease, 0.5);
+    mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 16.0));
+    mixDecrease *= (1.0 - saturate(cameraSpeed * 0.5));
+    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.01));
+    mixDecrease = max(mixDecrease, 0.75);
     #endif
 
     mixWeight = mixWeight * mixDecrease;
