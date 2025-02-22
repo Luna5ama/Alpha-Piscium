@@ -1,5 +1,6 @@
 #include "/util/Coords.glsl"
 #include "/util/GBuffers.glsl"
+#include "/post/Dithering.glsl"
 
 uniform sampler2D usam_main;
 uniform usampler2D usam_gbufferData;
@@ -84,8 +85,8 @@ void main() {
 
     float clampRatio1 = 0.1;
     clampRatio1 += saturate(1.0 - lastResult.a);
-    clampRatio1 += newPixel * 0.4;
-    clampRatio1 += frustumTest * 0.4;
+    clampRatio1 += newPixel * 0.5;
+    clampRatio1 += frustumTest * 0.5;
     clampRatio1 += pixelSpeed * 0.05;
     clampRatio1 += cameraSpeed * 0.1;
     clampRatio1 += cameraSpeedDiff * 8.0;
@@ -135,6 +136,7 @@ void main() {
 
     rt_out.rgb = mix(currColor, lastColor, finalMixWeight);
     rt_out.a = 1.0;
+    dithering(gl_FragCoord.xy, rt_out.rgb);
 
     mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);
 
