@@ -10,7 +10,7 @@
 #include "/util/FullScreenComp.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
-const vec2 workGroupsRender = vec2(0.5, 0.5);
+const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_gbufferData;
@@ -93,6 +93,10 @@ void main() {
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
 
-    ivec2 texelPos2x2 = ivec2(mortonGlobalPosU);
-    vrs2x2(texelPos2x2);
+//    ivec2 texelPos2x2 = ivec2(mortonGlobalPosU);
+//    vrs2x2(texelPos2x2);
+    ivec2 texelPos = ivec2(mortonGlobalPosU);
+    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    vec4 outputColor = compShadow(texelPos, viewZ);
+    imageStore(uimg_temp5, texelPos, outputColor);
 }
