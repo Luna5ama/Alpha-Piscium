@@ -44,7 +44,7 @@ void main() {
         float frustumTest = float(projReject.x > 0.0);
         float newPixel = float(projReject.y > 0.0);
 
-        prevColorHLen.a *= saturate(1.0 - frustumTest);
+        prevColorHLen.a *= saturate(1.0 - frustumTest * 0.8);
         prevColorHLen.a *= saturate(1.0 - newPixel * 0.2);
 
         float newHLen;
