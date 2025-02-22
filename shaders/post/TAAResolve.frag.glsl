@@ -118,7 +118,7 @@ void main() {
     float mixDecrease = 1.0;
     mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 16.0));
     mixDecrease *= (1.0 - saturate(cameraSpeed * 0.5));
-    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.1));
+    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.05));
     mixDecrease = max(mixDecrease, 0.75);
     #endif
 
