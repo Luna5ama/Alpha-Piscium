@@ -809,11 +809,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Normal Mapping Strength"
                 }
             }
-            slider("SETTING_NORMAL_MAPPING_JITTER", 2.0, 0.0..5.0 step 0.1) {
-                lang(Locale.US) {
-                    name = "Normal Mapping Jitter"
-                }
-            }
         }
         screen("ATMOSPHERE", 1) {
             lang(Locale.US) {

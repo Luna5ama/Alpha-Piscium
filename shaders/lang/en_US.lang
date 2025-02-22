@@ -107,7 +107,6 @@ option.SETTING_SSS_HIGHLIGHT=SSS Highlight
 option.SETTING_SSS_SCTR_FACTOR=SSS Scatter Factor
 option.SETTING_NORMAL_MAPPING=Normal Mapping
 option.SETTING_NORMAL_MAPPING_STRENGTH=Normal Mapping Strength
-option.SETTING_NORMAL_MAPPING_JITTER=Normal Mapping Jitter
 option.SETTING_ATM_ALT_SCALE=Atmosphere Altitude Scale
 option.SETTING_ATM_ALT_SCALE.comment=Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on.
 option.SETTING_ATM_D_SCALE=Atmosphere Distance Scale

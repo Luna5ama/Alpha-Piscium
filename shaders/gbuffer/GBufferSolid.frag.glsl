@@ -32,8 +32,6 @@ layout(location = 2) out float rt_gbufferViewZ;
 ivec2 texelPos = ivec2(gl_FragCoord.xy);
 float noiseIGN = rand_IGN(gl_FragCoord.xy, frameCounter);
 
-const float NORMAL_JITTER = SETTING_NORMAL_MAPPING_JITTER * PI / 180.0;
-
 vec4 processAlbedo() {
     vec4 albedo = frag_colorMul;
 
@@ -95,10 +93,8 @@ GBufferData processOutput() {
     #if !defined(SETTING_NORMAL_MAPPING) || (!defined(SETTING_NORMAL_MAPPING_HANDHELD) && defined(GBUFFER_PASS_HAND))
     gData.normal = frag_viewNormal;
     #else
-    float angle = noiseIGN * PI_2;
     vec3 bitangent = cross(frag_viewTangent, frag_viewNormal);
-    vec3 o = NORMAL_JITTER * (cos(angle) * frag_viewTangent + sin(angle) * bitangent);
-    mat3 tbn = mat3(frag_viewTangent, bitangent, normalize(frag_viewNormal + o));
+    mat3 tbn = mat3(frag_viewTangent, bitangent, frag_viewNormal);
     vec3 tagentNormal;
     tagentNormal.xy = normalSample.rg * 2.0 - 1.0;
     tagentNormal.z = sqrt(saturate(1.0 - dot(tagentNormal.xy, tagentNormal.xy)));
