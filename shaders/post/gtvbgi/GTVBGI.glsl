@@ -322,7 +322,7 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
     material.roughness = max(material.roughness, 0.01);
 
     float diffuseBase = (1.0 - material.metallic) * SETTING_SSVBIL_DGI_STRENGTH;
-    float specularBase = SETTING_SSVBIL_SGI_STRENGTH;
+    float specularBase = PI * SETTING_SSVBIL_SGI_STRENGTH;
 
     float bitmaskJitter = jitter * (1.0 / 32.0);
 
