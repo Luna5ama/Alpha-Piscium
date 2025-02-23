@@ -25,7 +25,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
 
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
-    params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
+    params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.001);
 
     vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
     vec3 moonRadiance = sunRadiance * MOON_RADIANCE_MUL;
