@@ -142,7 +142,7 @@ float bsdf_ggx(Material material, float NDotL, float NDotV, float NDotH) {
     // GGX (Trowbridge-Reitz)
     {
         float sqTerm = NDotH2 * (a2 - 1.0) + 1.0;
-        d = a2 / max(PI * sqTerm * sqTerm, 0.00001);
+        d = a2 / max(PI * sqTerm * sqTerm, 0.000000001);
     }
 
     // Geometric Shadowing Term
@@ -159,7 +159,7 @@ float bsdf_ggx(Material material, float NDotL, float NDotV, float NDotH) {
     }
 
     float denom = 4.0 * NDotL * NDotV;
-    return denom > 0.0001 ? clamp((d * g) / denom, 0.0, 256.0) : 0.0;
+    return denom > 0.00001 ? clamp((d * g) / denom, 0.0, 256.0) : 0.0;
 }
 
 #endif
