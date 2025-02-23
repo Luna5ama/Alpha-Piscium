@@ -1,4 +1,5 @@
 #include "/util/Colors.glsl"
+#include "/util/Dither.glsl"
 #include "/util/Math.glsl"
 #include "/util/Rand.glsl"
 #include "/util/GBuffers.glsl"
@@ -110,8 +111,7 @@ GBufferData processOutput() {
     gData.materialID = 65534u;
     #endif
 
-    gData.normal = dither(gData.normal, noiseIGN, 1023.0);
-    gData.lmCoord = dither(gData.lmCoord, noiseIGN, 255.0);
+    gData.lmCoord = dither_u8(gData.lmCoord, noiseIGN);
 
     return gData;
 }
@@ -138,7 +138,6 @@ void main() {
 
     float glintEmissive = colors_srgbLuma(albedo.rgb);
     glintEmissive *= 0.1;
-    glintEmissive = dither(glintEmissive, noiseIGN, 64.0);
     gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + glintEmissive);
     #endif
 

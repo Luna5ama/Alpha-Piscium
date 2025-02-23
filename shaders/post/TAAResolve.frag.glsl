@@ -1,6 +1,7 @@
 #include "/util/Coords.glsl"
 #include "/util/GBuffers.glsl"
-#include "/post/Dithering.glsl"
+#include "/util/Dither.glsl"
+#include "/util/Rand.glsl"
 
 uniform sampler2D usam_main;
 uniform usampler2D usam_gbufferData;
@@ -136,7 +137,7 @@ void main() {
 
     rt_out.rgb = mix(currColor, lastColor, finalMixWeight);
     rt_out.a = 1.0;
-    dithering(gl_FragCoord.xy, rt_out.rgb);
+    rt_out.rgb = dither_u8(rt_out.rgb, rand_IGN(intTexCoord, frameCounter));
 
     mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);
 

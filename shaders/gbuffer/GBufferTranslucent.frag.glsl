@@ -1,6 +1,6 @@
 ivec2 texelPos;
+#include "/util/Dither.glsl"
 #include "/general/Lighting.glsl"
-
 
 uniform sampler2D gtexture;
 uniform sampler2D normals;
@@ -64,12 +64,10 @@ GBufferData processOutput() {
     gData.normal = normalize(mix(frag_viewNormal, mappedNormal, SETTING_NORMAL_MAPPING_STRENGTH));
     #endif
 
-    gData.normal = dither(gData.normal, noiseIGN, 1023.0);
-
     gData.lmCoord = frag_lmCoord;
     gData.materialID = frag_materialID;
 
-    gData.lmCoord = dither(gData.lmCoord, noiseIGN, 255.0);
+    gData.lmCoord = dither_u8(gData.lmCoord, noiseIGN);
 
     return gData;
 }

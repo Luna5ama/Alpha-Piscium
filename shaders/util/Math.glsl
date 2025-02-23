@@ -110,9 +110,4 @@ vec4 pow6(vec4 x) {
     return x2 * x2 * x2;
 }
 
-float dither(float x, float noise, float range) { return x + (noise - 0.5) / range; }
-vec2 dither(vec2 x, float noise, float range) { return x + (noise - 0.5) / range; }
-vec3 dither(vec3 x, float noise, float range) { return x + (noise - 0.5) / range; }
-vec4 dither(vec4 x, float noise, float range) { return x + (noise - 0.5) / range; }
-
 #endif
