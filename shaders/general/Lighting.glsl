@@ -131,7 +131,7 @@ vec3 calcShadow(float sssFactor) {
         r += randomOffset.y * sssFactor * ssRangeMul * 0.5;
         sampleTexCoord.xy += r * vec2(cos(theta), sin(theta)) * vec2(shadowProjection[0][0], shadowProjection[1][1]);
 
-        sampleTexCoord.z += randomOffset.y * sssFactor * 0.5;
+        sampleTexCoord.z += randomOffset.y * min(sssFactor, 0.9);
         sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
         vec2 texelSize;
         sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
@@ -208,7 +208,7 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N
     result.diffuseLambertian = diffuseV * (vec3(1.0) - fresnel) * irradiance.rgb * material.albedo;
 
     float shadowPow = saturate(1.0 - irradiance.a);
-    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * material.sss * SETTING_SSS_SCTR_FACTOR;
+    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow(shadowPow, 8.0) * material.sss * SETTING_SSS_SCTR_FACTOR;
 
     float backDot = saturate(NDotL * - 0.5 + 0.5);
     float sssV = material.sss * RCP_PI * backDot * backDot;
