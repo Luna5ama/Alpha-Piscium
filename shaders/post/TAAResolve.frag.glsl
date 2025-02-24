@@ -138,11 +138,14 @@ void main() {
     rt_out.rgb = mix(currColor, lastColor, finalMixWeight);
     rt_out.a = 1.0;
     rt_taaLast = vec4(rt_out.rgb, mixWeight);
-    rt_out.rgb = dither_u8(rt_out.rgb, rand_IGN(intTexCoord, frameCounter));
+
+    float ditherNoise = rand_IGN(intTexCoord, frameCounter);
+    rt_taaLast.rgb = dither_fp16(rt_taaLast.rgb, ditherNoise);
+    rt_out.rgb = dither_u8(rt_out.rgb, ditherNoise);
 
     mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);
 
     #ifndef SETTING_SCREENSHOT_MODE
     mixWeight = saturate(mixWeight - isHand * 0.2);
     #endif
-    }
+}

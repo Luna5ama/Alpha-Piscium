@@ -3,6 +3,7 @@
 #include "/util/Rand.glsl"
 #include "/util/Material.glsl"
 #include "/util/GBuffers.glsl"
+#include "/util/Dither.glsl"
 uniform sampler2D usam_temp6;
 
 ivec2 denoiser_getImageSize();
@@ -220,6 +221,7 @@ void main() {
     }
 
     sum /= weightSum;
+    sum = dither_fp16(sum, rand_IGN(icoord, frameCounter + 1));
 
     denoiser_output(icoord, sum);
 }

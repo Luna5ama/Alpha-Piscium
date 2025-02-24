@@ -5,6 +5,8 @@
 #include "/denoiser/Update.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Colors.glsl"
+#include "/util/Rand.glsl"
+#include "/util/Dither.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -52,6 +54,8 @@ void main() {
         float newHLen;
         vec4 filterInput;
         gi_update(currColor, prevColorHLen, newHLen, filterInput);
+
+        filterInput.rgb = dither_fp16(filterInput.rgb, rand_IGN(texelPos, frameCounter));
 
         #ifdef SETTING_DENOISER
         imageStore(uimg_temp4, texelPos, filterInput);

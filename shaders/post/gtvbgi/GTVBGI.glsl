@@ -5,6 +5,7 @@
 // You can find full license texts in /licenses
 #include "/general/EnvProbe.glsl"
 #include "/util/Coords.glsl"
+#include "/util/Dither.glsl"
 #include "/util/BSDF.glsl"
 #include "/util/FastMathLib.glsl"
 #include "/util/Math.glsl"
@@ -479,6 +480,8 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
             result.rgb += fallbackLighting * result.a;
         }
     }
+
+    result = dither_fp16(result, rand_IGN(texelPos, frameCounter));
 }
 
 vec4 gtvbgi(ivec2 texelPos) {
