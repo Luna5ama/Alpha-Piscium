@@ -141,7 +141,7 @@ vec2 SamplePartialSliceDir(vec3 vvsN, float rnd01) {
 //==================================================================================//
 //////////////////////////////////////////////////////////////////////////////////////
 
-const float MAX_RADIUS_SQ = SETTING_SSVBIL_MAX_RADIUS * SETTING_SSVBIL_MAX_RADIUS;
+const float MAX_RADIUS_SQ = SETTING_VBGI_MAX_RADIUS * SETTING_VBGI_MAX_RADIUS;
 
 ////////////////////////////////////////////////////////////////////////////////////// quaternion utils
 //==================================================================================//
@@ -220,7 +220,7 @@ float sliceRelCDF(float x, float angN, float cosN) {
     return t0 / t1;
 }
 
-const vec2 RADIUS_SQ = vec2(SETTING_SSVBIL_RADIUS * SETTING_SSVBIL_RADIUS, SETTING_SSVBIL_MAX_RADIUS * SETTING_SSVBIL_MAX_RADIUS);
+const vec2 RADIUS_SQ = vec2(SETTING_VBGI_RADIUS * SETTING_VBGI_RADIUS, SETTING_VBGI_MAX_RADIUS * SETTING_VBGI_MAX_RADIUS);
 
 uint toBitMask(vec2 h01) {
     uint bitmask;// turn arc into bit mask
@@ -319,11 +319,11 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
     GBufferData gData;
     gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
     Material material = material_decode(gData);
-    material.roughness *= SETTING_SSVBIL_A_MUL;
+    material.roughness *= SETTING_VBGI_A_MUL;
     material.roughness = max(material.roughness, 0.01);
 
-    float diffuseBase = (1.0 - material.metallic) * SETTING_SSVBIL_DGI_STRENGTH;
-    float specularBase = PI * SETTING_SSVBIL_SGI_STRENGTH;
+    float diffuseBase = (1.0 - material.metallic) * SETTING_VBGI_DGI_STRENGTH;
+    float specularBase = PI * SETTING_VBGI_SGI_STRENGTH;
 
     float bitmaskJitter = jitter * (1.0 / 32.0);
 
@@ -335,7 +335,7 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
         vec2 sampleTexelCoord = floor(rayDir * sampleTexelDist + rayStart) + 0.5;
         vec2 sampleUV = sampleTexelCoord / textureSize(usam_gbufferViewZ, 0).xy;
 
-//        float realSampleLod = min(round(sampleLod * SETTING_SSVBIL_LOD_MUL), SETTING_SSVBIL_MAX_LOD);
+//        float realSampleLod = min(round(sampleLod * SETTING_VBGI_LOD_MUL), SETTING_VBGI_MAX_LOD);
         const float realSampleLod = 0.0;
 
         float sampleViewZ = textureLod(usam_gbufferViewZ, sampleUV, realSampleLod).r;
@@ -344,7 +344,7 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
         float frontDistSq = dot(frontDiff, frontDiff);
 
         if (frontDistSq < RADIUS_SQ.y) {
-            vec3 backDiff = coords_toViewCoord(sampleUV, sampleViewZ - SETTING_SSVBIL_THICKNESS, gbufferProjectionInverse) - viewPos;
+            vec3 backDiff = coords_toViewCoord(sampleUV, sampleViewZ - SETTING_VBGI_THICKNESS, gbufferProjectionInverse) - viewPos;
 
             float frontDiffRcpLen = fastRcpSqrtNR0(frontDistSq);
             float backDiffRcpLen = fastRcpSqrtNR0(dot(backDiff, backDiff));
@@ -392,8 +392,9 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
                     vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
                     float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
-                    result.rgb += sampleRad * (vec3(1.0) - fresnel) * (bitV * PI * emitterCos * diffuseBase);
-                    result.rgb += sampleRad * fresnel * (bitV * PI * emitterCos * ggx * specularBase);
+                    vec3 indirectBounce = (vec3(1.0) - fresnel) * (diffuseBase);
+                    indirectBounce += fresnel * (ggx * specularBase);
+                    result.rgb += sampleRad * indirectBounce * (bitV * emitterCos * (PI * SETTING_VGBI_IB_STRENGTH));
                 }
             }
 
@@ -407,7 +408,7 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
     // compute AO
     result.a = float(bitCount(occBits)) * (1.0 / 32.0);
     result.a = saturate(1.0 - result.a);
-    result.a = pow(result.a, SETTING_SSVBIL_AO_STRENGTH);
+    result.a = pow(result.a, SETTING_VBGI_AO_STRENGTH);
 
     {
         mat3 viewToScene = mat3(gbufferModelViewInverse);
@@ -416,21 +417,21 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
         vec3 realTangent = normalize(T);
 
         float lmCoordSky = texelFetch(usam_temp2, texelPos, 0).a;
-        float skyLightingBase = SETTING_SKYLIGHT_STRENGTH * lmCoordSky * lmCoordSky;
+        float skyLightingBase = SETTING_VBGI_SKYLIGHT_STRENGTH;
 
-        #if SETTING_SSVBIL_FALLBACK_SAMPLES == 4
+        #if SETTING_VBGI_FALLBACK_SAMPLES == 4
         const float w5 = 0.125;
         const float w1 = 0.25;
         for (uint i = 0u; i < 4u; i++) {
-        #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 8
+        #elif SETTING_VBGI_FALLBACK_SAMPLES == 8
         const float w5 = 0.0625;
         const float w1 = 0.125;
         for (uint i = 0u; i < 8u; i++) {
-        #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 16
+        #elif SETTING_VBGI_FALLBACK_SAMPLES == 16
         const float w5 = 0.03125;
         const float w1 = 0.0625;
         for (uint i = 0u; i < 16u; i++) {
-        #elif SETTING_SSVBIL_FALLBACK_SAMPLES == 32
+        #elif SETTING_VBGI_FALLBACK_SAMPLES == 32
         const float w5 = 0.015625;
         const float w1 = 0.03125;
         for (uint i = 0u; i < 32u; i++) {
@@ -461,7 +462,7 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
             vec2 envUV = coords_mercatorForward(sampleDirWorld);
             ivec2 envTexel = ivec2(envUV * ENV_PROBE_SIZE);
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
-            vec3 envRad = PI * envData.radiance;
+            vec3 envRad = envData.radiance * (2.0 * PI * SETTING_VGBI_ENV_STRENGTH);
 
             bool probeIsSky = envProbe_isSky(envData);
             vec3 sampleRad = probeIsSky ? skyRad : envRad;
@@ -476,9 +477,9 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
             vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
             float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
-            vec3 fallbackLighting = sampleRad * (vec3(1.0) - fresnel) * (bitV * emitterCos * diffuseBase);
-            fallbackLighting += sampleRad * fresnel * (bitV * emitterCos * ggx * specularBase);
-            result.rgb += fallbackLighting * result.a;
+            vec3 fallbackLighting = (vec3(1.0) - fresnel) * (diffuseBase);
+            fallbackLighting += fresnel * (ggx * specularBase);
+            result.rgb += sampleRad * fallbackLighting * (bitV * emitterCos * result.a);
         }
     }
 

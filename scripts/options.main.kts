@@ -471,16 +471,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("SKYLIGHT", 1) {
-                lang(Locale.US) {
-                    name = "Skylight"
-                }
-                slider("SETTING_SKYLIGHT_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
-                    lang(Locale.US) {
-                        name = "Skylight Strength"
-                    }
-                }
-            }
             screen("BLOCKLIGHT", 1) {
                 lang(Locale.US) {
                     name = "Blocklight"
@@ -505,7 +495,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            empty()
             empty()
             empty()
             screen("SHADOW", 2) {
@@ -534,7 +523,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Sample shadow map at half resolution. Allows for better performance."
                     }
                 }
-                empty()
                 empty()
                 empty()
                 screen("RTWSM", 1) {
@@ -661,74 +649,90 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "VBGI"
                     comment = "Visibility Bitmask Global Illumination settings"
                 }
-                slider("SETTING_SSVBIL_STEPS", 16, listOf(8, 12, 16, 24, 32, 64)) {
+                slider("SETTING_VBGI_STEPS", 16, listOf(8, 12, 16, 24, 32, 64)) {
                     lang(Locale.US) {
                         name = "Step Samples"
                     }
                 }
-                slider("SETTING_SSVBIL_FALLBACK_SAMPLES", 8, powerOfTwoRange(2..5)) {
+                slider("SETTING_VBGI_FALLBACK_SAMPLES", 8, powerOfTwoRange(2..5)) {
                     lang(Locale.US) {
                         name = "Fallback Samples"
                     }
                 }
                 empty()
-                slider("SETTING_SSVBIL_RADIUS", 64, (0..8).map { 1 shl it }) {
+                slider("SETTING_VBGI_RADIUS", 64, (0..8).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Sample Radius"
                     }
                 }
-                slider("SETTING_SSVBIL_MAX_RADIUS", 128, (0..8).map { 1 shl it }) {
+                slider("SETTING_VBGI_MAX_RADIUS", 128, (0..8).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Max Sample Radius"
                     }
                 }
-                slider("SETTING_SSVBIL_THICKNESS", 5.0, 0.1..10.0 step 0.1) {
+                slider("SETTING_VBGI_THICKNESS", 5.0, 0.1..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Thickness"
                     }
                 }
                 empty()
-//                slider("SETTING_SSVBIL_LOD_OPTIMIZE", false) {
+//                slider("SETTING_VBGI_LOD_OPTIMIZE", false) {
 //                    lang(Locale.US) {
 //                        name = "LOD Optimization"
 //                        comment = "Recommanded for large sample step count."
 //                    }
 //                }
-//                slider("SETTING_SSVBIL_LOD_MUL", 1.0, 0.0..1.0 step 0.01) {
+//                slider("SETTING_VBGI_LOD_MUL", 1.0, 0.0..1.0 step 0.01) {
 //                    lang(Locale.US) {
 //                        name = "Sample LOD Multiplier"
 //                        comment = "Multiplier for sample LOD. Smaller values leads to more accurate but slower result."
 //                    }
 //                }
-//                slider("SETTING_SSVBIL_MAX_LOD", 3, 1..5) {
+//                slider("SETTING_VBGI_MAX_LOD", 3, 1..5) {
 //                    lang(Locale.US) {
 //                        name = "Max Sample LOD"
 //                    }
 //                }
 //                empty()
-                slider("SETTING_SSVBIL_A_MUL", 0.5, 0.0..1.0 step 0.01) {
+                slider("SETTING_VBGI_A_MUL", 0.5, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Roughness Multiplier"
                         comment = "Decrease roughness to compensate for over blury result."
                     }
                 }
                 empty()
-                slider("SETTING_SSVBIL_AO_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
+                slider("SETTING_VBGI_SKYLIGHT_STRENGTH", 1.0, 0.0..5.0 step 0.01) {
+                    lang(Locale.US) {
+                        name = "Skylight Strength"
+                    }
+                }
+                slider("SETTING_VGBI_ENV_STRENGTH", 1.0, 0.0..5.0 step 0.01) {
+                    lang(Locale.US) {
+                        name = "Enviroment Probe Strength"
+                    }
+                }
+                slider("SETTING_VGBI_IB_STRENGTH", 1.0, 0.0..5.0 step 0.01) {
+                    lang(Locale.US) {
+                        name = "Indirect Bounce Strength"
+                    }
+                }
+                empty()
+                slider("SETTING_VBGI_AO_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
                     lang(Locale.US) {
                         name = "AO Strength"
                     }
                 }
-                slider("SETTING_SSVBIL_DGI_STRENGTH", 1.0, 0.0..2.0 step 0.01) {
+                slider("SETTING_VBGI_DGI_STRENGTH", 1.0, 0.0..5.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Diffuse GI Strength"
                     }
                 }
-                slider("SETTING_SSVBIL_SGI_STRENGTH", 1.0, 0.0..2.0 step 0.01) {
+                slider("SETTING_VBGI_SGI_STRENGTH", 1.0, 0.0..5.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Specular GI Strength"
                     }
                 }
-                slider("SETTING_SSVBIL_GI_MB", 1.0, 0.0..2.0 step 0.01) {
+                slider("SETTING_VBGI_GI_MB", 1.0, 0.0..2.0 step 0.01) {
                     lang(Locale.US) {
                         name = "GI Multi Bounce"
                     }
@@ -896,7 +900,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Time constant for average luminance AE."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.35, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.3, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Average Luminance Target"
                         comment = "Target average luminance value for average luminance EXPOSURE."

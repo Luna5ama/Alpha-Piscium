@@ -61,7 +61,7 @@ void main() {
                 if (gData.materialID == 65534u) {
                     ssgiOut = vec4(0.0, 0.0, 0.0, 0.0);
                 } else {
-                    float multiBounceV = SETTING_SSVBIL_GI_MB * 2.0 * RCP_PI;
+                    float multiBounceV = SETTING_VBGI_GI_MB * RCP_PI;
                     ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo;
                 }
                 imageStore(uimg_temp2, texelPos, ssgiOut);

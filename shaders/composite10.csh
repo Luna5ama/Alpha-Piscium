@@ -6,8 +6,8 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(0.5, 0.5);
 
-#define SSVBIL_SAMPLE_STEPS SETTING_SSVBIL_STEPS
-#define SSVBIL_SAMPLE_SLICES SETTING_SSVBIL_SLICES
+#define SSVBIL_SAMPLE_STEPS SETTING_VBGI_STEPS
+#define SSVBIL_SAMPLE_SLICES SETTING_VBGI_SLICES
 #include "/post/gtvbgi/GTVBGI.glsl"
 #include "/util/Morton.glsl"
 
