@@ -656,10 +656,10 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("SSVBIL", 1) {
+            screen("VBGI", 1) {
                 lang(Locale.US) {
-                    name = "SSVBIL"
-                    comment = "Screen Space Visibility Bitmask Indirect Lighting"
+                    name = "VBGI"
+                    comment = "Visibility Bitmask Global Illumination settings"
                 }
                 slider("SETTING_SSVBIL_STEPS", 16, listOf(8, 12, 16, 24, 32, 64)) {
                     lang(Locale.US) {
@@ -688,24 +688,24 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_SSVBIL_LOD_OPTIMIZE", false) {
-                    lang(Locale.US) {
-                        name = "LOD Optimization"
-                        comment = "Recommanded for large sample step count."
-                    }
-                }
-                slider("SETTING_SSVBIL_LOD_MUL", 1.0, 0.0..1.0 step 0.01) {
-                    lang(Locale.US) {
-                        name = "Sample LOD Multiplier"
-                        comment = "Multiplier for sample LOD. Smaller values leads to more accurate but slower result."
-                    }
-                }
-                slider("SETTING_SSVBIL_MAX_LOD", 3, 1..5) {
-                    lang(Locale.US) {
-                        name = "Max Sample LOD"
-                    }
-                }
-                empty()
+//                slider("SETTING_SSVBIL_LOD_OPTIMIZE", false) {
+//                    lang(Locale.US) {
+//                        name = "LOD Optimization"
+//                        comment = "Recommanded for large sample step count."
+//                    }
+//                }
+//                slider("SETTING_SSVBIL_LOD_MUL", 1.0, 0.0..1.0 step 0.01) {
+//                    lang(Locale.US) {
+//                        name = "Sample LOD Multiplier"
+//                        comment = "Multiplier for sample LOD. Smaller values leads to more accurate but slower result."
+//                    }
+//                }
+//                slider("SETTING_SSVBIL_MAX_LOD", 3, 1..5) {
+//                    lang(Locale.US) {
+//                        name = "Max Sample LOD"
+//                    }
+//                }
+//                empty()
                 slider("SETTING_SSVBIL_A_MUL", 0.5, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Roughness Multiplier"

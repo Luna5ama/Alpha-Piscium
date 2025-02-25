@@ -335,7 +335,8 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
         vec2 sampleTexelCoord = floor(rayDir * sampleTexelDist + rayStart) + 0.5;
         vec2 sampleUV = sampleTexelCoord / textureSize(usam_gbufferViewZ, 0).xy;
 
-        float realSampleLod = min(round(sampleLod * SETTING_SSVBIL_LOD_MUL), SETTING_SSVBIL_MAX_LOD);
+//        float realSampleLod = min(round(sampleLod * SETTING_SSVBIL_LOD_MUL), SETTING_SSVBIL_MAX_LOD);
+        const float realSampleLod = 0.0;
 
         float sampleViewZ = textureLod(usam_gbufferViewZ, sampleUV, realSampleLod).r;
         vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
