@@ -860,6 +860,22 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             empty()
+            slider("SETTING_ATM_MIE_MUL", 1.0, 0.0..5.0 step 0.01) {
+                lang(Locale.US) {
+                    name = "Mie Scattering Multiplier"
+                }
+            }
+            slider("SETTING_ATM_MIE_ABS", 1.1, 0.0..5.0 step 0.01) {
+                lang(Locale.US) {
+                    name = "Mie Absorption"
+                }
+            }
+            slider("SETTING_ATM_RAY_MUL", 1.0, 0.0..5.0 step 0.01) {
+                lang(Locale.US) {
+                    name = "Rayleigh Scattering Multiplier"
+                }
+            }
+            empty()
             slider("SETTING_EPIPOLAR_SLICES", 512, listOf(256, 512, 1024, 2048)) {
                 lang(Locale.US) {
                     name = "Epipolar Slices"
