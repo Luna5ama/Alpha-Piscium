@@ -128,10 +128,10 @@ vec3 calcShadow(float sssFactor) {
 
         float theta = randomOffset.x * PI_2;
         float r = sqrt(randomOffset.y) * ssRange;
-        r += randomOffset.y * sssFactor * ssRangeMul * 0.5;
+        r += randomOffset.y * sssFactor * ssRangeMul * SETTING_SSS_DIFFUSE_RANGE;
         sampleTexCoord.xy += r * vec2(cos(theta), sin(theta)) * vec2(shadowProjection[0][0], shadowProjection[1][1]);
 
-        sampleTexCoord.z += randomOffset.y * min(sssFactor, 0.9);
+        sampleTexCoord.z += randomOffset.y * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
         sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
         vec2 texelSize;
         sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
@@ -211,7 +211,7 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N
     shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow(shadowPow, 8.0) * material.sss * SETTING_SSS_SCTR_FACTOR;
 
     float backDot = saturate(NDotL * - 0.5 + 0.5);
-    float sssV = material.sss * RCP_PI * backDot * backDot;
+    float sssV = material.sss * RCP_PI * backDot * 0.5 * SETTING_SSS_STRENGTH;
     result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb;
 
     result.specular = irradiance.rgb * material.albedo * fresnel;

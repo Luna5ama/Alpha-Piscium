@@ -445,7 +445,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_SUN_DISTANCE", 1.0, (-7..10).map { 2.0.pow(it) }) {
                     lang(Locale.US) {
                         name = "Sun Distance"
-                        comment = "Distance of sun in AU (astronomical units), which is relative to real sun distance of 149.6 million km."
+                        comment =
+                            "Distance of sun in AU (astronomical units), which is relative to real sun distance of 149.6 million km."
                         suffix = " AU"
                     }
                 }
@@ -644,6 +645,43 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
+            screen("SSS", 1) {
+                lang(Locale.US) {
+                    name = "Subsurface Scattering"
+                    comment = "Subsurface Scattering settings"
+                }
+                slider("SETTING_SSS_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "Strength"
+                    }
+                }
+                slider("SETTING_SSS_HIGHLIGHT", 0.5, 0.0..1.0 step 0.01) {
+                    lang(Locale.US) {
+                        name = "Highlight"
+                    }
+                }
+                slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "Scatter Factor"
+                    }
+                }
+                empty()
+                slider("SETTING_SSS_DIFFUSE_RANGE", 0.5, 0.0..4.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "Diffuse Range"
+                    }
+                }
+                slider("SETTING_SSS_DEPTH_RANGE", 0.5, 0.0..4.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "Depth Range"
+                    }
+                }
+                slider("SETTING_SSS_MAX_DEPTH_RANGE", 0.9, 0.0..4.0 step 0.1) {
+                    lang(Locale.US) {
+                        name = "Max Depth Range"
+                    }
+                }
+            }
             screen("VBGI", 1) {
                 lang(Locale.US) {
                     name = "VBGI"
@@ -761,7 +799,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_DENOISER_ACCUM_DECAY", 1.0, 0.5..3.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Accumulation Decay"
-                        comment = "Current mix rate decay factor for temporal accumulation. Larger value means faster decay."
+                        comment =
+                            "Current mix rate decay factor for temporal accumulation. Larger value means faster decay."
                     }
                 }
                 empty()
@@ -791,21 +830,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             lang(Locale.US) {
                 name = "Material"
                 comment = "Material settings"
-            }
-            slider("SETTING_SSS_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
-                lang(Locale.US) {
-                    name = "SSS Strength"
-                }
-            }
-            slider("SETTING_SSS_HIGHLIGHT", 0.5, 0.0..1.0 step 0.01) {
-                lang(Locale.US) {
-                    name = "SSS Highlight"
-                }
-            }
-            slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
-                lang(Locale.US) {
-                    name = "SSS Scatter Factor"
-                }
             }
             empty()
             toggle("SETTING_NORMAL_MAPPING", true) {
