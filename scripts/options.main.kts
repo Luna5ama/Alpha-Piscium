@@ -499,6 +499,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             "Temperature of lava in K (kelvin). The default value 1400 K is based on real life average."
                     }
                 }
+                slider("SETTING_EMISSIVE_STRENGTH", 0.25, 0.0..2.0 step 0.01) {
+                    lang(Locale.US) {
+                        name = "Emissive Strength"
+                    }
+                }
             }
             empty()
             empty()
