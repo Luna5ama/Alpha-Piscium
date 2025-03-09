@@ -16,6 +16,7 @@ uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_ssvbil;
 
 uniform sampler2D usam_temp3;
+uniform sampler2D usam_temp7;
 
 #ifdef SETTING_DENOISER
 layout(rgba16f) uniform writeonly image2D uimg_temp4;
@@ -26,7 +27,6 @@ layout(rgba16f) uniform restrict image2D uimg_ssvbil;
 
 layout(rg32ui) uniform writeonly uimage2D uimg_prevNZ;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
-layout(rgba8) uniform writeonly image2D uimg_temp7;
 
 uniform sampler2D usam_projReject;
 
