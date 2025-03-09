@@ -98,7 +98,7 @@ void main() {
     clampRatio2 += frustumTest * 1.0;
     clampRatio2 += pixelSpeed * 0.1;
     clampRatio2 += cameraSpeed * 0.5;
-    clampRatio1 += cameraSpeedDiff * 32.0;
+    clampRatio2 += cameraSpeedDiff * 32.0;
     clampRatio2 = saturate(clampRatio2);
 
     #ifndef SETTING_SCREENSHOT_MODE
