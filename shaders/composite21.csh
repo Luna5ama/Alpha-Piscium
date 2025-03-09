@@ -8,14 +8,17 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 uniform sampler2D usam_temp6;
 uniform sampler2D usam_temp3;
 uniform usampler2D usam_prevNZ;
-layout(rgba16f) uniform writeonly image2D uimg_temp4;
+
+layout(rgba16f) uniform restrict image2D uimg_ssvbil;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         float hLen = texelFetch(usam_temp6, texelPos, 0).r;
         float sigmaL = SETTING_DENOISER_FILTER_COLOR_STRICTNESS * pow2(linearStep(0.0, 0.25, hLen));
-        vec4 outputColor = svgf_atrous(usam_temp3, usam_prevNZ, texelPos, ivec2(0, 4), sigmaL);
-        imageStore(uimg_temp4, texelPos, outputColor);
+        vec4 outputColor = svgf_atrous(usam_temp3, usam_prevNZ, texelPos, ivec2(0, 16), sigmaL);
+        float ao = imageLoad(uimg_ssvbil, texelPos).a;
+        vec3 gi = outputColor.rgb;
+        imageStore(uimg_ssvbil, texelPos, vec4(gi, ao));
     }
 }

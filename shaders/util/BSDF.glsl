@@ -142,7 +142,7 @@ float bsdf_ggx(Material material, float NDotL, float NDotV, float NDotH) {
     // GGX (Trowbridge-Reitz)
     {
         float sqTerm = NDotH2 * (a2 - 1.0) + 1.0;
-        d = a2 / max(PI * sqTerm * sqTerm, 0.000000001);
+        d = a2 / max(PI * sqTerm * sqTerm, 0.00000001);
     }
 
     // Geometric Shadowing Term

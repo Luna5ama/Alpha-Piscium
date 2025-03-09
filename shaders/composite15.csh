@@ -15,7 +15,7 @@ void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         float hLen = texelFetch(usam_temp6, texelPos, 0).r;
         float sigmaL = SETTING_DENOISER_FILTER_COLOR_STRICTNESS * pow2(linearStep(0.0, 0.25, hLen));
-        vec4 outputColor = svgf_atrous(usam_temp3, usam_prevNZ, texelPos, ivec2(0, 4), sigmaL);
+        vec4 outputColor = svgf_atrous(usam_temp3, usam_prevNZ, texelPos, ivec2(0, 2), sigmaL);
         imageStore(uimg_temp4, texelPos, outputColor);
     }
 }

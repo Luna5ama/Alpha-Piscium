@@ -17,6 +17,7 @@ void gi_update(vec3 currColor, vec4 prevColorHLen, vec2 prevMoments, out float n
         filterInput.rgb = mix(prevColorHLen.rgb, currColor, alpha);
     }
 
+    newMoments.y = min(newMoments.y, 32768.0);
     float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
     filterInput.a = variance;
 }

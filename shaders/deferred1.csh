@@ -76,7 +76,7 @@ void main() {
         normalWeight = pow4(subgroupClusteredMin(normalWeight, 4u));
 
         float viewZWeight = 1.0;
-        float a = max(0.01 * pow2(abs(centerViewZ)), 0.5);
+        float a = max(0.01 * pow2(centerViewZ), 0.5);
         viewZWeight *= a / (a + pow2(centerViewZ - shared_viewZData[centerShared.y - 1][centerShared.x]));
         viewZWeight *= a / (a + pow2(centerViewZ - shared_viewZData[centerShared.y + 1][centerShared.x]));
         viewZWeight *= a / (a + pow2(centerViewZ - shared_viewZData[centerShared.y][centerShared.x - 1]));

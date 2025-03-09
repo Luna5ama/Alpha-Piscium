@@ -739,33 +739,33 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_VBGI_SKYLIGHT_STRENGTH", 1.0, 0.0..5.0 step 0.01) {
+                slider("SETTING_VBGI_SKYLIGHT_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Skylight Strength"
                     }
                 }
-                slider("SETTING_VGBI_ENV_STRENGTH", 1.0, 0.0..5.0 step 0.01) {
+                slider("SETTING_VGBI_ENV_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Enviroment Probe Strength"
                     }
                 }
-                slider("SETTING_VGBI_IB_STRENGTH", 1.0, 0.0..5.0 step 0.01) {
+                slider("SETTING_VGBI_IB_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Indirect Bounce Strength"
                     }
                 }
                 empty()
-                slider("SETTING_VBGI_AO_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
+                slider("SETTING_VBGI_AO_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
                     lang(Locale.US) {
                         name = "AO Strength"
                     }
                 }
-                slider("SETTING_VBGI_DGI_STRENGTH", 1.0, 0.0..5.0 step 0.01) {
+                slider("SETTING_VBGI_DGI_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Diffuse GI Strength"
                     }
                 }
-                slider("SETTING_VBGI_SGI_STRENGTH", 1.0, 0.0..5.0 step 0.01) {
+                slider("SETTING_VBGI_SGI_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Specular GI Strength"
                     }
@@ -804,11 +804,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FILTER_RADIUS", 2, (0..3).map { 1 shl it }) {
-                    lang(Locale.US) {
-                        name = "Filter Radius"
-                    }
-                }
                 slider("SETTING_DENOISER_FILTER_NORMAL_STRICTNESS", 8, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Filter Normal Strictness"
@@ -819,7 +814,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Filter Depth Strictness"
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_COLOR_STRICTNESS", 16, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_FILTER_COLOR_STRICTNESS", 8, 0..16) {
                     lang(Locale.US) {
                         name = "Filter Color Strictness"
                     }

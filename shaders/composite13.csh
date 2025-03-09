@@ -10,12 +10,23 @@ uniform sampler2D usam_temp3;
 uniform usampler2D usam_prevNZ;
 layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
+layout(rgba32ui) uniform restrict uimage2D uimg_svgfHistory;
+
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         float hLen = texelFetch(usam_temp6, texelPos, 0).r;
         float sigmaL = SETTING_DENOISER_FILTER_COLOR_STRICTNESS * pow2(linearStep(0.0, 0.25, hLen));
-        vec4 outputColor = svgf_atrous(usam_temp3, usam_prevNZ, texelPos, ivec2(0, 4), sigmaL);
+        vec4 outputColor = svgf_atrous(usam_temp3, usam_prevNZ, texelPos, ivec2(0, 1), sigmaL);
         imageStore(uimg_temp4, texelPos, outputColor);
+
+
+        uvec4 packedData = imageLoad(uimg_svgfHistory, texelPos);
+        vec4 colorHLen;
+        vec2 moments;
+        svgf_unpack(packedData, colorHLen, moments);
+        colorHLen.rgb = outputColor.rgb;
+        svgf_pack(packedData, colorHLen, moments);
+        imageStore(uimg_svgfHistory, texelPos, packedData);
     }
 }

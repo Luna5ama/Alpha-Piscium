@@ -17,18 +17,14 @@ uniform sampler2D usam_ssvbil;
 
 uniform sampler2D usam_temp3;
 uniform sampler2D usam_temp4;
-uniform sampler2D usam_temp7;
 
-#ifdef SETTING_DENOISER
-layout(rgba16f) uniform writeonly image2D uimg_temp4;
-#else
 layout(rgba16f) uniform restrict image2D uimg_ssvbil;
-#endif
 
 layout(rg32ui) uniform writeonly uimage2D uimg_prevNZ;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
+layout(rgba8) uniform writeonly image2D uimg_temp6;
 
-uniform sampler2D usam_projReject;
+//uniform sampler2D usam_projReject;
 
 void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
@@ -37,33 +33,32 @@ void main() {
         vec3 viewNormal = texelFetch(usam_temp1, texelPos, 0).rgb;
         vec3 worldNormal = mat3(gbufferModelViewInverse) * viewNormal;
 
-        imageStore(uimg_prevNZ, texelPos, uvec4(ndpacking_pack(worldNormal, viewZ), 0u, 0u));
+        uvec4 prevNZOutput = uvec4(0u);
+        ndpacking_pack(prevNZOutput.xy, worldNormal, viewZ);
+        imageStore(uimg_prevNZ, texelPos, prevNZOutput);
 
         vec3 currColor = texelFetch(usam_ssvbil, texelPos, 0).rgb;
         vec4 prevColorHLen = texelFetch(usam_temp3, texelPos, 0);
         vec2 prevMoments = texelFetch(usam_temp4, texelPos, 0).rg;
 
-        vec2 projReject = texelFetch(usam_projReject, texelPos, 0).rg;
-        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(-1, 0)).rg);
-        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(1, 0)).rg);
-        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(0, -1)).rg);
-        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(0, 1)).rg);
-
-        float frustumTest = float(projReject.x > 0.0);
-        prevColorHLen.a *= saturate(1.0 - frustumTest * 0.9);
+//        vec2 projReject = texelFetch(usam_projReject, texelPos, 0).rg;
+//        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(-1, 0)).rg);
+//        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(1, 0)).rg);
+//        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(0, -1)).rg);
+//        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(0, 1)).rg);
+//
+//        float frustumTest = float(projReject.x > 0.0);
+//        prevColorHLen.a *= saturate(1.0 - frustumTest);
 
         float newHLen;
         vec2 newMoments;
         vec4 filterInput;
         gi_update(currColor, prevColorHLen, prevMoments, newHLen, newMoments, filterInput);
-
         filterInput.rgb = dither_fp16(filterInput.rgb, rand_IGN(texelPos, frameCounter));
-
-        #ifdef SETTING_DENOISER
-        imageStore(uimg_temp4, texelPos, filterInput);
-        #else
         imageStore(uimg_ssvbil, texelPos, filterInput);
-        #endif
+
+        float hLenEncoded = saturate((newHLen - 1.0) / 255.0);
+        imageStore(uimg_temp6, texelPos, vec4(hLenEncoded, 0.0, 0.0, 0.0));
 
         uvec4 packedData;
         svgf_pack(packedData, vec4(filterInput.rgb, newHLen), newMoments);
