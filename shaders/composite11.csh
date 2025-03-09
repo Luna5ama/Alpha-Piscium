@@ -16,17 +16,17 @@ uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_ssvbil;
 
 uniform sampler2D usam_temp3;
+uniform sampler2D usam_temp4;
 uniform sampler2D usam_temp7;
 
 #ifdef SETTING_DENOISER
 layout(rgba16f) uniform writeonly image2D uimg_temp4;
 #else
-layout(rgba16f) uniform writeonly image2D uimg_giHistoryColor;
 layout(rgba16f) uniform restrict image2D uimg_ssvbil;
 #endif
 
 layout(rg32ui) uniform writeonly uimage2D uimg_prevNZ;
-layout(rgba8) uniform writeonly image2D uimg_temp6;
+layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
 
 uniform sampler2D usam_projReject;
 
@@ -41,6 +41,7 @@ void main() {
 
         vec3 currColor = texelFetch(usam_ssvbil, texelPos, 0).rgb;
         vec4 prevColorHLen = texelFetch(usam_temp3, texelPos, 0);
+        vec2 prevMoments = texelFetch(usam_temp4, texelPos, 0).rg;
 
         vec2 projReject = texelFetch(usam_projReject, texelPos, 0).rg;
         projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(-1, 0)).rg);
@@ -52,18 +53,20 @@ void main() {
         prevColorHLen.a *= saturate(1.0 - frustumTest * 0.9);
 
         float newHLen;
+        vec2 newMoments;
         vec4 filterInput;
-        gi_update(currColor, prevColorHLen, newHLen, filterInput);
+        gi_update(currColor, prevColorHLen, prevMoments, newHLen, newMoments, filterInput);
 
         filterInput.rgb = dither_fp16(filterInput.rgb, rand_IGN(texelPos, frameCounter));
 
         #ifdef SETTING_DENOISER
         imageStore(uimg_temp4, texelPos, filterInput);
-        float hLenEncoded = saturate((newHLen - 1.0) / 255.0);
-        imageStore(uimg_temp6, texelPos, vec4(hLenEncoded, 0.0, 0.0, 0.0));
         #else
         imageStore(uimg_ssvbil, texelPos, filterInput);
-        imageStore(uimg_giHistoryColor, texelPos, vec4(filterInput.rgb, newHLen));
         #endif
+
+        uvec4 packedData;
+        svgf_pack(packedData, vec4(filterInput.rgb, newHLen), newMoments);
+        imageStore(uimg_svgfHistory, texelPos, packedData);
     }
 }

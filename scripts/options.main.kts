@@ -1125,9 +1125,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         7 value "temp7"
                     }
                 }
-                toggle("SETTING_DEBUG_SSVBIL", 0, 0..2) {
+                toggle("SETTING_DEBUG_SVGF", 0, 0..4) {
                     lang(Locale.US) {
-                        name = "SSVBIL"
+                        name = "SVGF"
+                        0 value "Off"
+                        1 value "Color"
+                        2 value "HLen"
+                        3 value "Moment"
+                        4 value "Moment^2"
+                    }
+                }
+                toggle("SETTING_DEBUG_VBGI", 0, 0..2) {
+                    lang(Locale.US) {
+                        name = "VBGI"
                         0 value "Off"
                         1 value "GI"
                         2 value "AO"

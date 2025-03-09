@@ -1,5 +1,7 @@
 #version 460 compatibility
 
+#include "/denoiser/Common.glsl"
+
 #define DENOISER_KERNEL_RADIUS (SETTING_DENOISER_FILTER_RADIUS * 2)
 #define DENOISER_BOX 1
 #define DENOISER_VERTICAL 1
@@ -12,7 +14,7 @@ layout(rgba16f) uniform readonly image2D uimg_temp1;
 layout(rgba16f) uniform readonly image2D uimg_temp3;
 layout(rgba16f) uniform restrict image2D uimg_ssvbil;
 
-layout(rgba16f) uniform writeonly image2D uimg_giHistoryColor;
+layout(rgba32ui) uniform restrict uimage2D uimg_svgfHistory;
 
 ivec2 denoiser_getImageSize() {
     return global_mainImageSizeI;
@@ -29,6 +31,12 @@ void denoiser_output(ivec2 coord, vec4 data) {
     float ao = imageLoad(uimg_ssvbil, coord).a;
     vec3 gi = data.rgb;
     imageStore(uimg_ssvbil, coord, vec4(gi, ao));
-    float hLen = texelFetch(usam_temp6, coord, 0).r * 255.0 + 1.0;
-    imageStore(uimg_giHistoryColor, coord, vec4(data.rgb, hLen));
+
+    uvec4 packedData = imageLoad(uimg_svgfHistory, coord);
+    vec4 colorHLen;
+    vec2 moments;
+    svgf_unpack(packedData, colorHLen, moments);
+    colorHLen.rgb = data.rgb;
+    svgf_pack(packedData, colorHLen, moments);
+    imageStore(uimg_svgfHistory, coord, packedData);
 }

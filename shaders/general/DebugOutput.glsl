@@ -3,6 +3,7 @@
 #include "/atmosphere/Common.glsl"
 #include "/general/EnvProbe.glsl"
 #include "/general/NDPacking.glsl"
+#include "/denoiser/Common.glsl"
 
 #ifdef SETTING_DEBUG_RTWSM
 uniform sampler2D shadowtex0;
@@ -35,16 +36,21 @@ uniform usampler2D usam_gbufferData;
 #define DEBUG_TEX_NAME usam_temp6
 #elif SETTING_DEBUG_TEMP_TEX == 7
 #define DEBUG_TEX_NAME usam_temp7
-#elif SETTING_DEBUG_SSVBIL == 1
+#elif SETTING_DEBUG_VBGI == 1
 #define DEBUG_TEX_NAME usam_ssvbil
 #ifdef SETTING_DEBUG_ALPHA
 #undef SETTING_DEBUG_ALPHA a
 #endif
-#elif SETTING_DEBUG_SSVBIL == 2
+#elif SETTING_DEBUG_VBGI == 2
 #define DEBUG_TEX_NAME usam_ssvbil
 #ifndef SETTING_DEBUG_ALPHA
 #define SETTING_DEBUG_ALPHA a
 #endif
+#endif
+
+
+#if SETTING_DEBUG_SVGF != 0
+uniform usampler2D usam_svgfHistory;
 #endif
 
 #ifdef DEBUG_TEX_NAME
@@ -130,6 +136,22 @@ void debugOutput(inout vec4 outputColor) {
     outputColor.rgb = vec3(prevN * 0.5 + 0.5);
     #else
     outputColor.rgb = vec3(-prevZ / far);
+    #endif
+    #endif
+
+    #if SETTING_DEBUG_SVGF != 0
+    uvec4 svgfData = texelFetch(usam_svgfHistory, texelPos, 0);
+    vec4 svgfColorHLen;
+    vec2 svgfMoments;
+    svgf_unpack(svgfData, svgfColorHLen, svgfMoments);
+    #if SETTING_DEBUG_SVGF == 1
+    outputColor.rgb = svgfColorHLen.rgb;
+    #elif SETTING_DEBUG_SVGF == 2
+    outputColor.rgb = vec3(svgfColorHLen.a / SETTING_DENOISER_MAX_ACCUM);
+    #elif SETTING_DEBUG_SVGF == 3
+    outputColor.rgb = svgfMoments.xxx;
+    #elif SETTING_DEBUG_SVGF == 4
+    outputColor.rgb = svgfMoments.yyy;
     #endif
     #endif
 
