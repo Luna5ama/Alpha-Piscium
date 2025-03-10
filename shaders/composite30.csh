@@ -44,7 +44,7 @@ void main() {
         gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
         Material material = material_decode(gData);
 
-        vec4 ssvbilSample = texelFetch(usam_ssvbil, texelPos, 0);
+        vec4 ssvbilSample = texelFetch(usam_ssvbil, texelPos >> 1, 0);
         vec3 indirectV = ssvbilSample.rgb * material.albedo;
 
         outputColor.rgb += indirectV;

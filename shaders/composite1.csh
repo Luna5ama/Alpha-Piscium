@@ -1,13 +1,15 @@
 #version 460 compatibility
 
-#include "/general/NDPacking.glsl"
+#extension GL_KHR_shader_subgroup_basic : enable
+
 #include "/denoiser/Reproject.glsl"
+#include "/util/NZPacking.glsl"
 #include "/util/GBuffers.glsl"
 #include "/util/Material.glsl"
-#include "/util/FullScreenComp.glsl"
+#include "/util/Morton.glsl"
 
 layout(local_size_x = 8, local_size_y = 8) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
+const vec2 workGroupsRender = vec2(0.5, 0.5);
 
 uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_gbufferData;
@@ -16,18 +18,23 @@ uniform usampler2D usam_svgfHistory;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
-layout(rgba16f) uniform writeonly image2D uimg_temp3;
-layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
 void main() {
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
-        vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+    uvec2 workGroupOrigin = gl_WorkGroupID.xy << 3;
+    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uvec2 mortonPos = morton_8bDecode(threadIdx);
+    uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
+    ivec2 texelPos2x2 = ivec2(mortonGlobalPosU);
 
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    if (all(lessThan(texelPos2x2, global_mipmapSizesI[1]))) {
+        ivec2 texelPos1x1 = texelPos2x2 << 1;
+        vec2 screenPos = (vec2(texelPos2x2) + 0.5) * global_mipmapSizesRcp[1];
+
+        float viewZ = texelFetch(usam_gbufferViewZ, texelPos1x1, 0).r;
 
         if (viewZ != -65536.0) {
             GBufferData gData;
-            gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
+            gbuffer_unpack(texelFetch(usam_gbufferData, texelPos1x1, 0), gData);
 
             Material material = material_decode(gData);
 
@@ -35,7 +42,7 @@ void main() {
                 vec4 temp1Out = vec4(0.0);
                 temp1Out.rgb = gData.normal;
                 temp1Out.a = float(any(greaterThan(material.emissive, vec3(0.0))));
-                imageStore(uimg_temp1, texelPos, temp1Out);
+                imageStore(uimg_temp1, texelPos2x2 + ivec2(global_mipmapSizesI[1].x, 0), temp1Out);
             }
 
             vec4 prevColorHLen;
@@ -47,18 +54,18 @@ void main() {
                 prevColorHLen, prevMoments
             );
 
-            imageStore(uimg_temp3, texelPos, prevColorHLen);
-            imageStore(uimg_temp4, texelPos, vec4(prevMoments, 0.0, 0.0));
+            imageStore(uimg_temp1, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), prevColorHLen);
+            imageStore(uimg_temp1, texelPos2x2 + global_mipmapSizesI[1], vec4(prevMoments, 0.0, 0.0));
 
             {
                 vec4 ssgiOut = vec4(0.0);
                 if (gData.materialID == 65534u) {
-                    ssgiOut = vec4(0.0, 0.0, 0.0, 0.0);
+                    ssgiOut = vec4(0.0);
                 } else {
                     float multiBounceV = SETTING_VBGI_GI_MB * RCP_PI;
                     ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo;
                 }
-                imageStore(uimg_temp2, texelPos, ssgiOut);
+                imageStore(uimg_temp1, texelPos2x2, ssgiOut);
             }
         }
     }

@@ -1,5 +1,5 @@
 #include "Common.glsl"
-#include "/general/NDPacking.glsl"
+#include "/util/NZPacking.glsl"
 #include "/util/Colors.glsl"
 
 float normalWeight(vec3 centerNormal, vec3 sampleNormal, float phiN) {
@@ -22,11 +22,11 @@ float phiN, float phiZ, float phiL,
 ivec2 texelPos, float sampleWeight,
 inout vec4 colorSum, inout float weightSum
 ) {
-    if (all(greaterThanEqual(texelPos, ivec2(0))) && all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(greaterThanEqual(texelPos, ivec2(0))) && all(lessThan(texelPos, global_mipmapSizesI[1]))) {
         vec4 sampleColor = texelFetch(filterInput, texelPos, 0);
         vec3 sampleNormal;
         float sampleViewZ;
-        ndpacking_unpack(texelFetch(packedNZ, texelPos, 0).xy, sampleNormal, sampleViewZ);
+        nzpacking_unpack(texelFetch(packedNZ, texelPos, 0).xy, sampleNormal, sampleViewZ);
 
         float sampleLuminance = colors_srgbLuma(sampleColor.rgb);
 
@@ -46,7 +46,7 @@ vec4 svgf_atrous(sampler2D filterInput, usampler2D packedNZ, ivec2 texelPos, ive
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec3 centerNormal;
         float centerViewZ;
-        ndpacking_unpack(texelFetch(packedNZ, texelPos, 0).xy, centerNormal, centerViewZ);
+        nzpacking_unpack(texelFetch(packedNZ, texelPos, 0).xy, centerNormal, centerViewZ);
 
         if (centerViewZ != -65536.0) {
             vec4 centerFilterData = texelFetch(filterInput, texelPos, 0);

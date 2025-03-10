@@ -3,7 +3,7 @@
 #include "/denoiser/Atrous.glsl"
 
 layout(local_size_x = 128, local_size_y = 1) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
+const vec2 workGroupsRender = vec2(0.5, 0.5);
 
 uniform sampler2D usam_temp6;
 uniform sampler2D usam_temp4;

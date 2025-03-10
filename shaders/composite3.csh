@@ -1,9 +1,11 @@
 #version 460 compatibility
 
-#include "/util/FullScreenComp.glsl"
+#extension GL_KHR_shader_subgroup_basic : enable
+
 #include "/atmosphere/Common.glsl"
-#include "/general/Lighting.glsl"
 #include "/atmosphere/SunMoon.glsl"
+#include "/general/Lighting.glsl"
+#include "/util/Morton.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -13,7 +15,9 @@ uniform sampler2D usam_temp5;
 uniform usampler2D usam_gbufferData;
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
-layout(rgba16f) uniform restrict image2D uimg_temp2;
+layout(rgba16f) uniform restrict image2D uimg_temp1;
+
+ivec2 texelPos;
 
 void doLighting(Material material, vec3 N, inout vec3 mainOut, inout vec3 ssgiOut) {
     vec3 emissiveV = material.emissive;
@@ -62,6 +66,12 @@ void doLighting(Material material, vec3 N, inout vec3 mainOut, inout vec3 ssgiOu
 }
 
 void main() {
+    uvec2 workGroupOrigin = gl_WorkGroupID.xy << 4;
+    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uvec2 mortonPos = morton_8bDecode(threadIdx);
+    uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
+    texelPos = ivec2(mortonGlobalPosU);
+
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
 
@@ -74,8 +84,9 @@ void main() {
             Material material = material_decode(gData);
 
             lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);
+            ivec2 texelPos2x2 = texelPos >> 1;
 
-            vec4 ssgiOut = imageLoad(uimg_temp2, texelPos);
+            vec4 ssgiOut = imageLoad(uimg_temp1, texelPos2x2);
             ssgiOut.a = gData.lmCoord.y;
 
             if (gData.materialID == 65534u) {
@@ -85,7 +96,9 @@ void main() {
                 doLighting(material, gData.normal, mainOut.rgb, ssgiOut.rgb);
             }
 
-            imageStore(uimg_temp2, texelPos, ssgiOut);
+            if ((threadIdx & 3u) == 0u) {
+                imageStore(uimg_temp1, texelPos2x2, ssgiOut);
+            }
         } else {
             mainOut.rgb += renderSunMoon(texelPos);
         }

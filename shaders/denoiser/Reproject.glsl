@@ -28,7 +28,7 @@ inout vec4 prevColorHLen, inout vec2 prevMoments, inout float weightSum
 ) {
     vec2 pixelPos = sampleTexel - 0.5;
     vec2 originPixelPos = floor(pixelPos);
-    vec2 gatherUV = (originPixelPos + 1.0) * global_mainImageSizeRcp;
+    vec2 gatherUV = (originPixelPos + 1.0) * global_mipmapSizesRcp[1];
     vec2 bilinearWeights = pixelPos - originPixelPos;
 
     vec4 bilateralWeights;
@@ -103,7 +103,7 @@ out vec4 prevColorHLen, out vec2 prevMoments
     if (any(notEqual(curr2PrevScreen, saturate(curr2PrevScreen)))) {
         return;
     }
-    vec2 curr2PrevTexel = curr2PrevScreen * global_mainImageSize;
+    vec2 curr2PrevTexel = curr2PrevScreen * global_mipmapSizes[1];
     vec3 currWorldNormal = mat3(gbufferModelViewInverse) * currViewNormal;
 
     float weightSum = 0.0;

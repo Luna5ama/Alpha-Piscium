@@ -2,7 +2,7 @@
 #include "/rtwsm/RTWSM.glsl"
 #include "/atmosphere/Common.glsl"
 #include "/general/EnvProbe.glsl"
-#include "/general/NDPacking.glsl"
+#include "/util/NZPacking.glsl"
 #include "/denoiser/Common.glsl"
 
 #ifdef SETTING_DEBUG_RTWSM
@@ -131,7 +131,7 @@ void debugOutput(inout vec4 outputColor) {
     #if SETTING_DEBUG_PREVNZ != 0
     float prevZ;
     vec3 prevN;
-    ndpacking_unpack(texelFetch(usam_prevNZ, texelPos, 0).xy, prevN, prevZ);
+    nzpacking_unpack(texelFetch(usam_prevNZ, texelPos, 0).xy, prevN, prevZ);
     #if SETTING_DEBUG_PREVNZ == 1
     outputColor.rgb = vec3(prevN * 0.5 + 0.5);
     #else
