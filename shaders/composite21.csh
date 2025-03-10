@@ -17,8 +17,6 @@ void main() {
         float hLen = texelFetch(usam_temp6, texelPos, 0).r;
         float sigmaL = SETTING_DENOISER_FILTER_COLOR_STRICTNESS * pow2(linearStep(0.0, 0.25, hLen));
         vec4 outputColor = svgf_atrous(usam_temp3, usam_prevNZ, texelPos, ivec2(0, 16), sigmaL);
-        float ao = imageLoad(uimg_ssvbil, texelPos).a;
-        vec3 gi = outputColor.rgb;
-        imageStore(uimg_ssvbil, texelPos, vec4(gi, ao));
+        imageStore(uimg_ssvbil, texelPos, vec4(outputColor.rgb, 1.0));
     }
 }

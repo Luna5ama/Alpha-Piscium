@@ -319,7 +319,6 @@ void uniGTVBGI(ivec2 texelPos, vec3 viewPos, vec3 viewNormal, inout vec4 result)
     GBufferData gData;
     gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
     Material material = material_decode(gData);
-    material.roughness *= SETTING_VBGI_A_MUL;
     material.roughness = max(material.roughness, 0.01);
 
     float diffuseBase = (1.0 - material.metallic) * SETTING_VBGI_DGI_STRENGTH;

@@ -41,15 +41,6 @@ void main() {
         vec4 prevColorHLen = texelFetch(usam_temp3, texelPos, 0);
         vec2 prevMoments = texelFetch(usam_temp4, texelPos, 0).rg;
 
-//        vec2 projReject = texelFetch(usam_projReject, texelPos, 0).rg;
-//        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(-1, 0)).rg);
-//        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(1, 0)).rg);
-//        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(0, -1)).rg);
-//        projReject = max(projReject, texelFetchOffset(usam_projReject, texelPos, 0, ivec2(0, 1)).rg);
-//
-//        float frustumTest = float(projReject.x > 0.0);
-//        prevColorHLen.a *= saturate(1.0 - frustumTest);
-
         float newHLen;
         vec2 newMoments;
         vec4 filterInput;

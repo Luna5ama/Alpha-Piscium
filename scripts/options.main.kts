@@ -732,12 +732,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
 //                    }
 //                }
 //                empty()
-                slider("SETTING_VBGI_A_MUL", 0.5, 0.0..1.0 step 0.01) {
-                    lang(Locale.US) {
-                        name = "Roughness Multiplier"
-                        comment = "Decrease roughness to compensate for over blury result."
-                    }
-                }
                 empty()
                 slider("SETTING_VBGI_SKYLIGHT_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
                     lang(Locale.US) {
@@ -804,7 +798,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FILTER_NORMAL_STRICTNESS", 8, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_FILTER_NORMAL_STRICTNESS", 32, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Filter Normal Strictness"
                     }
