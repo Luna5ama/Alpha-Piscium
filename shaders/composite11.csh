@@ -24,8 +24,6 @@ layout(rg32ui) uniform writeonly uimage2D uimg_prevNZ;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
 
-//uniform sampler2D usam_projReject;
-
 void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec2 screenCoord = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;

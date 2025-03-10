@@ -7,7 +7,6 @@ uniform sampler2D usam_main;
 uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_taaLast;
-uniform sampler2D usam_projReject;
 
 in vec2 frag_texCoord;
 
@@ -66,15 +65,6 @@ void main() {
         updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(0, 2)).rgb, nearMin2, nearMax2);
     }
 
-    vec2 projReject = texelFetch(usam_projReject, intTexCoord, 0).rg;
-    projReject = max(projReject, texelFetchOffset(usam_projReject, intTexCoord, 0, ivec2(-1, 0)).rg);
-    projReject = max(projReject, texelFetchOffset(usam_projReject, intTexCoord, 0, ivec2(1, 0)).rg);
-    projReject = max(projReject, texelFetchOffset(usam_projReject, intTexCoord, 0, ivec2(0, -1)).rg);
-    projReject = max(projReject, texelFetchOffset(usam_projReject, intTexCoord, 0, ivec2(0, 1)).rg);
-
-    float frustumTest = float(projReject.x > 0.0);
-    float newPixel = float(projReject.y > 0.0);
-
     vec2 pixelPosDiff = (frag_texCoord - prevTexCoord) * textureSize(usam_main, 0).xy;
     float cameraSpeed = length(cameraDelta);
     float prevCameraSpeed = length(global_prevCameraDelta);
@@ -86,16 +76,12 @@ void main() {
 
     float clampRatio1 = 0.1;
     clampRatio1 += saturate(1.0 - lastResult.a);
-    clampRatio1 += newPixel * 0.5;
-    clampRatio1 += frustumTest * 0.5;
     clampRatio1 += pixelSpeed * 0.05;
     clampRatio1 += cameraSpeed * 0.1;
     clampRatio1 += cameraSpeedDiff * 8.0;
     clampRatio1 = saturate(clampRatio1);
 
     float clampRatio2 = 0.2;
-    clampRatio2 += newPixel * 1.0;
-    clampRatio2 += frustumTest * 1.0;
     clampRatio2 += pixelSpeed * 0.1;
     clampRatio2 += cameraSpeed * 0.5;
     clampRatio2 += cameraSpeedDiff * 32.0;

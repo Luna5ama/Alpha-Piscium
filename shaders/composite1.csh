@@ -14,7 +14,6 @@ uniform usampler2D usam_gbufferData;
 uniform usampler2D usam_prevNZ;
 uniform usampler2D usam_svgfHistory;
 
-layout(rg8) uniform writeonly image2D uimg_projReject;
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
@@ -37,14 +36,6 @@ void main() {
                 temp1Out.rgb = gData.normal;
                 temp1Out.a = float(any(greaterThan(material.emissive, vec3(0.0))));
                 imageStore(uimg_temp1, texelPos, temp1Out);
-            }
-
-            {
-                vec3 viewCoord = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
-
-                vec2 projRejectOut;
-                ndpacking_updateProjReject(usam_prevNZ, texelPos, screenPos, gData.normal, viewCoord, projRejectOut);
-                imageStore(uimg_projReject, texelPos, vec4(projRejectOut, 0.0, 0.0));
             }
 
             vec4 prevColorHLen;
