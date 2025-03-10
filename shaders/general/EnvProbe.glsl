@@ -106,7 +106,9 @@ ivec2 envProbeTexelPos, out EnvProbeData outputData
     float viewZ = texelFetch(gbufferViewZ, texelPos, 0).r;
     vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
     vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
-    outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : texture(inputViewColor, screenPos).rgb;
+    vec2 clampedScreenPos = clamp(screenPos * 0.5, vec2(0.0), vec2(0.5 - global_mainImageSizeRcp * 0.5));
+
+    outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : texture(inputViewColor, clampedScreenPos).rgb;
     outputData.normal = mat3(gbufferModelViewInverse) * gData.normal;
     outputData.scenePos = realScenePos.xyz;
 
