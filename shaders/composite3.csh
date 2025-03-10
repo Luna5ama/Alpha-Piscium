@@ -14,7 +14,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_gbufferData;
-uniform sampler2D usam_temp7;
+uniform usampler2D usam_temp7;
 
 layout(rgba8) uniform writeonly image2D uimg_temp5;
 
@@ -43,7 +43,7 @@ void vrs2x2(ivec2 texelPos2x2) {
     if (all(lessThan(texelPos1x1, global_mainImageSizeI))) {
         vec2 quadCenterScreenPos = vec2(texelPos1x1 + 1) * global_mainImageSizeRcp;
 
-        vec4 vrsWeight2x2 = texelFetch(usam_temp7, texelPos2x2, 0);
+        vec4 vrsWeight2x2 = unpackUnorm4x8(texelFetch(usam_temp7, texelPos2x2, 0).r);
         float weight2x2 = dot(vrsWeight2x2, vec4(0.5, 0.5, 0.0, 0.0));
 
         vec4 viewZs = textureGather(usam_gbufferViewZ, quadCenterScreenPos, 0);

@@ -780,7 +780,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS", 64, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS", 128, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Reprojection Normal Strictness"
                     }
@@ -803,7 +803,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Filter Normal Strictness"
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_DEPTH_STRICTNESS", 16, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_FILTER_DEPTH_STRICTNESS", 64, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Filter Depth Strictness"
                     }

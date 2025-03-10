@@ -6,6 +6,7 @@
 #include "/general/EnvProbe.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Dither.glsl"
+#include "/util/NZPacking.glsl"
 #include "/util/BSDF.glsl"
 #include "/util/FastMathLib.glsl"
 #include "/util/Math.glsl"
@@ -13,6 +14,8 @@
 uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_temp1;
+uniform usampler2D usam_packedNZ;
+uniform sampler2D usam_temp7;
 uniform sampler2D usam_skyLUT;
 uniform usampler2D usam_envProbe;
 
@@ -333,11 +336,17 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         float stepTexelSize = sampleLodTexelSize * 0.5;
         sampleTexelDist += stepTexelSize;
 
+        int index = frameCounter & 3;
+        ivec2 downSampleOffset = ivec2(index, index >> 1) & ivec2(1);
         vec2 sampleTexelPos = floor(rayDir * sampleTexelDist + rayStart);
-        ivec2 sampleTexelPosHalf = ivec2(sampleTexelPos * 0.5);
+
+        ivec2 sampleTexelPosHalf = clamp(ivec2(sampleTexelPos * 0.5), ivec2(0), ivec2(global_mipmapSizesI[1] - 1));
         vec2 sampleUV = saturate((sampleTexelPos + 0.5) / textureSize(usam_gbufferViewZ, 0).xy);
 
-        float sampleViewZ = texture(usam_gbufferViewZ, sampleUV).r;
+        float sampleViewZ;
+        vec3 sampleWorldNormal;
+        nzpacking_unpack(texelFetch(usam_packedNZ, sampleTexelPosHalf, 0).xy, sampleWorldNormal, sampleViewZ);
+
         vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
         vec3 frontDiff = samplePosVS - viewPos;
         float frontDistSq = dot(frontDiff, frontDiff);
@@ -373,11 +382,11 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
                 uint visBits0 = occBits0 & (~occBits);
 
                 if (visBits0 != 0u) {
-                    vec4 sample1 = texelFetch(usam_temp1, sampleTexelPosHalf + ivec2(global_mipmapSizesI[1].x, 0), 0);
-                    float emissive = float(sample1.a > 0.0);
-                    vec3 sampleNormal = sample1.rgb;
-                    float emitterCos = mix(saturate(dot(sampleNormal, -thisToSample)), 1.0, emissive);
                     vec4 sample2 = texelFetch(usam_temp1, sampleTexelPosHalf, 0);
+                    float emissive = float(sample2.a > 0.0);
+                    vec3 sampleViewNormal = mat3(gbufferModelView) * sampleWorldNormal;
+                    float emitterCos = mix(saturate(dot(sampleViewNormal, -thisToSample)), 1.0, emissive);
+
                     float falloff = linearStep(RADIUS_SQ.y, RADIUS_SQ.x, frontDistSq);
                     vec3 sampleRad = sample2.rgb * falloff;
                     float bitV = float(bitCount(visBits0)) * (1.0 / 32.0);
@@ -415,7 +424,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         uint unoccluedBits = ~occBits;
         vec3 realTangent = normalize(T);
 
-        float lmCoordSky = texelFetch(usam_temp1, vbgi_texelPos2x2, 0).a;
+        float lmCoordSky = texelFetch(usam_temp1, vbgi_texelPos2x2 + ivec2(global_mipmapSizesI[1].x, 0), 0).a;
         float skyLightingBase = SETTING_VBGI_SKYLIGHT_STRENGTH;
 
         #if SETTING_VBGI_FALLBACK_SAMPLES == 4
@@ -492,11 +501,15 @@ vec4 gtvbgi(ivec2 texelPos2x2) {
     vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
     if (centerViewZ < 0.0) {
         vec2 screenPos = (vec2(vbgi_texelPos1x1) + 0.5) * global_mainImageSizeRcp;
-        vec3 normalVS = texelFetch(usam_temp1, vbgi_texelPos2x2 + ivec2(global_mipmapSizesI[1].x, 0), 0).rgb;
+        float centerZ;
+        vec3 centerWorldNormal;
+        nzpacking_unpack(texelFetch(usam_packedNZ, vbgi_texelPos2x2, 0).xy, centerWorldNormal, centerZ);
 
-        vec3 viewPos = coords_toViewCoord(screenPos, centerViewZ, gbufferProjectionInverse);
-        viewPos += normalVS * (1.0 / 1024.0);
-        uniGTVBGI(viewPos, normalVS, result);
+        vec3 centerViewNormal = mat3(gbufferModelView) * centerWorldNormal;
+        vec3 centerViewPos = coords_toViewCoord(screenPos, centerZ, gbufferProjectionInverse);
+        centerViewPos += centerViewNormal * (1.0 / 1024.0);
+
+        uniGTVBGI(centerViewPos, centerViewNormal, result);
     }
 
     return result;

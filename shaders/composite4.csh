@@ -87,7 +87,6 @@ void main() {
             ivec2 texelPos2x2 = texelPos >> 1;
 
             vec4 ssgiOut = imageLoad(uimg_temp1, texelPos2x2);
-            ssgiOut.a = gData.lmCoord.y;
 
             if (gData.materialID == 65534u) {
                 mainOut = vec4(material.albedo, 1.0);

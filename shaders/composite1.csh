@@ -15,6 +15,7 @@ uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_gbufferData;
 uniform usampler2D usam_packedNZ;
 uniform usampler2D usam_svgfHistory;
+uniform usampler2D usam_temp7;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
@@ -41,7 +42,7 @@ void main() {
             {
                 vec4 temp1Out = vec4(0.0);
                 temp1Out.rgb = gData.normal;
-                temp1Out.a = float(any(greaterThan(material.emissive, vec3(0.0))));
+                temp1Out.a = gData.lmCoord.y;
                 imageStore(uimg_temp1, texelPos2x2 + ivec2(global_mipmapSizesI[1].x, 0), temp1Out);
             }
 
@@ -64,6 +65,7 @@ void main() {
                 } else {
                     float multiBounceV = SETTING_VBGI_GI_MB * RCP_PI;
                     ssgiOut.rgb = multiBounceV * max(prevColorHLen.rgb, 0.0) * material.albedo;
+                    ssgiOut.a = float(any(greaterThan(material.emissive, vec3(0.0))));
                 }
                 imageStore(uimg_temp1, texelPos2x2, ssgiOut);
             }

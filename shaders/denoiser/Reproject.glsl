@@ -23,7 +23,7 @@ float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prev
 
 void bilateralSample(
 usampler2D svgfHistory, usampler2D prevNZTex,
-vec2 sampleTexel, vec3 currScene, float currViewZ, vec3 currWorldNormal, float baseWeight,
+vec2 sampleTexel, vec3 currScene, float currViewZ, vec3 currWorldNormal,
 inout vec4 prevColorHLen, inout vec2 prevMoments, inout float weightSum
 ) {
     vec2 pixelPos = sampleTexel - 0.5;
@@ -49,7 +49,6 @@ inout vec4 prevColorHLen, inout vec2 prevMoments, inout float weightSum
     bilateralWeights.z *= posWeight(currViewZ, currScene, gatherUV, prevViewZs.z);
     bilateralWeights.w *= posWeight(currViewZ, currScene, gatherUV, prevViewZs.w);
 
-    bilateralWeights *= baseWeight;
     weightSum += bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
 
     uvec4 prevDataR = textureGather(svgfHistory, gatherUV, 0);
@@ -119,32 +118,32 @@ out vec4 prevColorHLen, out vec2 prevMoments
 
     bilateralSample(
         svgfHistory, prevNZTex,
-        curr2PrevTexel, currScene.xyz, currViewZ, currWorldNormal, 1.0,
+        curr2PrevTexel, currScene.xyz, currViewZ, currWorldNormal,
         prevColorHLen, prevMoments, weightSum
     );
     const float WEIGHT_EPSILON = 0.01;
     if (weightSum < WEIGHT_EPSILON) {
         bilateralSample(
             svgfHistory, prevNZTex,
-            curr2PrevTexel + vec2(-1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
+            curr2PrevTexel + vec2(-1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal,
             prevColorHLen, prevMoments, weightSum
         );
 
         bilateralSample(
             svgfHistory, prevNZTex,
-            curr2PrevTexel + vec2(1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
+            curr2PrevTexel + vec2(1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal,
             prevColorHLen, prevMoments, weightSum
         );
 
         bilateralSample(
             svgfHistory, prevNZTex,
-            curr2PrevTexel + vec2(0.0, -1.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
+            curr2PrevTexel + vec2(0.0, -1.0), currScene.xyz, currViewZ, currWorldNormal,
             prevColorHLen, prevMoments, weightSum
         );
 
         bilateralSample(
             svgfHistory, prevNZTex,
-            curr2PrevTexel + vec2(0.0, 1.0), currScene.xyz, currViewZ, currWorldNormal, 0.5,
+            curr2PrevTexel + vec2(0.0, 1.0), currScene.xyz, currViewZ, currWorldNormal,
             prevColorHLen, prevMoments, weightSum
         );
     }

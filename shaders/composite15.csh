@@ -12,7 +12,7 @@ layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, global_mipmapSizesI[1]))) {
         float hLen = texelFetch(usam_temp6, texelPos, 0).r;
         float sigmaL = SETTING_DENOISER_FILTER_COLOR_STRICTNESS * pow4(linearStep(0.0, 0.25, hLen));
         vec4 outputColor = svgf_atrous(usam_temp3, usam_packedNZ, texelPos, ivec2(0, 2), sigmaL);

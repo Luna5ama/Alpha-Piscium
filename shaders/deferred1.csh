@@ -17,7 +17,7 @@ uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_temp5;
 
 layout(rgba32ui) uniform restrict uimage2D uimg_gbufferData;
-layout(rgba8) uniform writeonly image2D uimg_temp7;
+layout(r32ui) uniform writeonly uimage2D uimg_temp7;
 
 void loadShared(uint idx) {
     if (idx < 324){
@@ -60,9 +60,9 @@ void main() {
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
-    ivec2 texelPos = ivec2(mortonGlobalPosU);
+    ivec2 texelPos1x1 = ivec2(mortonGlobalPosU);
 
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos1x1, global_mainImageSizeI))) {
         ivec2 centerShared = ivec2(mortonPos) + 1;
         vec3 centerNormal = readSharedNormal(centerShared);
         float centerViewZ = shared_viewZData[centerShared.y][centerShared.x];
@@ -93,12 +93,13 @@ void main() {
         vec4 vrsWeight2x2 = vec4(normalWeight, viewZWeight, albedoWeight, 1.0) * noPixelWeight;
 
         if ((threadIdx & 3u) == 0u) {
-            imageStore(uimg_temp7, texelPos >> 1, vec4(vrsWeight2x2));
+            ivec2 texelPos2x2 = texelPos1x1 >> 1;
+            imageStore(uimg_temp7, texelPos2x2, uvec4(packUnorm4x8(vrsWeight2x2)));
             vec4 vrsWeighr4x4 = subgroupClusteredMin(vrsWeight2x2, 16u);
             if ((threadIdx & 15u) == 0u) {
-                ivec2 texelPos4x4 = texelPos >> 2;
+                ivec2 texelPos4x4 = texelPos1x1 >> 2;
                 texelPos4x4.x += global_mipmapSizesI[1].x;
-                imageStore(uimg_temp7, texelPos4x4, vrsWeighr4x4);
+                imageStore(uimg_temp7, texelPos4x4, uvec4(packUnorm4x8(vrsWeighr4x4)));
             }
         }
     }

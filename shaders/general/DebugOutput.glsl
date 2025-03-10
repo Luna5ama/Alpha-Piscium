@@ -99,8 +99,13 @@ vec4 gammaCorrect(vec4 color) {
 
 void debugOutput(inout vec4 outputColor) {
     #ifdef DEBUG_TEX_NAME
-    if (all(lessThan(texelPos, textureSize(DEBUG_TEX_NAME, 0)))) {
-        outputColor = texelFetch(DEBUG_TEX_NAME, texelPos, 0);
+    ivec2 sampleTexelPos = texelPos;
+    #if SETTING_DEBUG_VBGI != 0
+    sampleTexelPos = sampleTexelPos >> 1;
+    #endif
+    if (all(lessThan(sampleTexelPos, textureSize(DEBUG_TEX_NAME, 0)))) {
+
+        outputColor = texelFetch(DEBUG_TEX_NAME, sampleTexelPos, 0);
         outputColor *= exp2(SETTING_DEBUG_EXP);
 
         #ifdef SETTING_DEBUG_NEGATE
