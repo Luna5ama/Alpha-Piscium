@@ -19,6 +19,37 @@ void updateNearMinMax(vec3 currColor, inout vec3 nearMin, inout vec3 nearMax) {
     nearMax = max(nearMax, currColor);
 }
 
+// from https://github.com/GameTechDev/TAA
+vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST)
+{
+    const vec2 rcpResolution = global_mainImageSizeRcp;
+    const vec2 fractional = fract(inHistoryST - 0.5);
+    const vec2 uv = (floor(inHistoryST - 0.5) + vec2(0.5f, 0.5f)) * rcpResolution;
+
+    // 5-tap bicubic sampling (for Hermite/Carmull-Rom filter) -- (approximate from original 16->9-tap bilinear fetching)
+    const vec2 t = vec2(fractional);
+    const vec2 t2 = vec2(fractional * fractional);
+    const vec2 t3 = vec2(fractional * fractional * fractional);
+    const float s = float(0.5);
+    const vec2 w0 = -s * t3 + float(2.f) * s * t2 - s * t;
+    const vec2 w1 = (float(2.f) - s) * t3 + (s - float(3.f)) * t2 + float(1.f);
+    const vec2 w2 = (s - float(2.f)) * t3 + (3 - float(2.f) * s) * t2 + s * t;
+    const vec2 w3 = s * t3 - s * t2;
+    const vec2 s0 = w1 + w2;
+    const vec2 f0 = w2 / (w1 + w2);
+    const vec2 m0 = uv + f0 * rcpResolution;
+    const vec2 tc0 = uv - 1.f * rcpResolution;
+    const vec2 tc3 = uv + 2.f * rcpResolution;
+    
+    const vec4 A = vec4(texture(samplerV, vec2(m0.x, tc0.y)));
+    const vec4 B = vec4(texture(samplerV, vec2(tc0.x, m0.y)));
+    const vec4 C = vec4(texture(samplerV, vec2(m0.x, m0.y)));
+    const vec4 D = vec4(texture(samplerV, vec2(tc3.x, m0.y)));
+    const vec4 E = vec4(texture(samplerV, vec2(m0.x, tc3.y)));
+    const vec4 color = (float(0.5f) * (A + B) * w0.x + A * s0.x + float(0.5f) * (A + B) * w3.x) * w0.y + (B * w0.x + C * s0.x + D * w3.x) * s0.y + (float(0.5f) * (B + E) * w0.x + E * s0.x + float(0.5f) * (D + E) * w3.x) * w3.y;
+    return color;
+}
+
 void main() {
     ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
     vec2 unjitteredTexCoord = frag_texCoord + global_taaJitterMat[3].xy;
@@ -69,25 +100,25 @@ void main() {
     float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
     float pixelSpeed = length(pixelPosDiff);
 
-    vec4 lastResult = texture(usam_taaLast, prevTexCoord);
-    vec3 lastColor = saturate(lastResult.rgb);
+    vec4 prevResult = BicubicSampling5(usam_taaLast, prevTexCoord * global_mainImageSize);
+    vec3 prevColor = saturate(prevResult.rgb);
 
     float clampRatio1 = 0.1;
-    clampRatio1 += saturate(1.0 - lastResult.a);
+    clampRatio1 += saturate(1.0 - prevResult.a);
     clampRatio1 += pixelSpeed * 0.05;
     clampRatio1 += cameraSpeed * 0.1;
-    clampRatio1 += cameraSpeedDiff * 8.0;
+    clampRatio1 += cameraSpeedDiff * 4.0;
     clampRatio1 = saturate(clampRatio1);
 
     float clampRatio2 = 0.2;
     clampRatio2 += pixelSpeed * 0.1;
-    clampRatio2 += cameraSpeed * 0.5;
-    clampRatio2 += cameraSpeedDiff * 32.0;
+    clampRatio2 += cameraSpeed * 0.2;
+    clampRatio2 += cameraSpeedDiff * 16.0;
     clampRatio2 = saturate(clampRatio2);
 
     #ifndef SETTING_SCREENSHOT_MODE
-    lastColor = mix(lastColor, clamp(lastColor, nearMin2, nearMax2), clampRatio2);
-    lastColor = mix(lastColor, clamp(lastColor, nearMin1, nearMax1), clampRatio1);
+    prevColor = mix(prevColor, clamp(prevColor, nearMin2, nearMax2), clampRatio2);
+    prevColor = mix(prevColor, clamp(prevColor, nearMin1, nearMax1), clampRatio1);
     #endif
 
     float lastMixWeight = texture(usam_taaLast, frag_texCoord).a;
@@ -102,13 +133,13 @@ void main() {
     mixDecrease *= (1.0 - saturate(pixelSpeed * 69.0));
     #else
     float mixDecrease = 1.0;
-    mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 16.0));
-    mixDecrease *= (1.0 - saturate(cameraSpeed * 0.5));
-    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.1));
+    mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 4.0));
+    mixDecrease *= (1.0 - saturate(cameraSpeed * 0.02));
+    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.01));
     mixDecrease = max(mixDecrease, 0.75);
     #endif
 
-//    mixWeight = mixWeight * mixDecrease;
+    mixWeight = mixWeight * mixDecrease;
 
     float finalMixWeight = mixWeight;
     finalMixWeight *= (1.0 - min(cameraSpeedDiff * 1.0, 0.5));
@@ -119,7 +150,7 @@ void main() {
     finalMixWeight = clamp(finalMixWeight, 0.5, 0.99);
     #endif
 
-    rt_out.rgb = mix(currColor, lastColor, finalMixWeight);
+    rt_out.rgb = mix(currColor, prevColor, finalMixWeight);
     rt_out.a = 1.0;
     rt_taaLast = vec4(rt_out.rgb, mixWeight);
 
