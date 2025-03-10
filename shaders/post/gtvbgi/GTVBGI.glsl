@@ -316,7 +316,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
     float lodStep = radiusToLodStep(maxDist);
     float sampleLod = lodStep * jitter;
 
-    float sampleTexelDist = 0.5;
+    float sampleTexelDist = 1.5;
 
     uint occBits = 0u;
 
