@@ -687,7 +687,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "VBGI"
                     comment = "Visibility Bitmask Global Illumination settings"
                 }
-                slider("SETTING_VBGI_STEPS", 16, listOf(8, 12, 16, 24, 32, 64)) {
+                slider("SETTING_VBGI_STEPS", 64, listOf(8, 12, 16, 24, 32, 64)) {
                     lang(Locale.US) {
                         name = "Step Samples"
                     }
@@ -708,7 +708,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Sample Radius"
                     }
                 }
-                slider("SETTING_VBGI_THICKNESS", 5.0, 0.1..10.0 step 0.1) {
+                slider("SETTING_VBGI_THICKNESS", 1.0, 0.1..10.0 step 0.1) {
                     lang(Locale.US) {
                         name = "Thickness"
                     }
@@ -808,7 +808,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Filter Depth Strictness"
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_COLOR_STRICTNESS", 8, 0..16) {
+                slider("SETTING_DENOISER_FILTER_COLOR_STRICTNESS", 4, 0..32) {
                     lang(Locale.US) {
                         name = "Filter Color Strictness"
                     }

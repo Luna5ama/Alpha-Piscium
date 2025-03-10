@@ -57,8 +57,7 @@ vec4 svgf_atrous(sampler2D filterInput, usampler2D packedNZ, ivec2 texelPos, ive
 
             float phiN = SETTING_DENOISER_FILTER_NORMAL_STRICTNESS;
             float phiZ = max((1.0 / SETTING_DENOISER_FILTER_DEPTH_STRICTNESS) * pow2(centerViewZ), 0.5);
-            float phiL = (2.0 / sigmaL) * max(sqrt(centerVariance), 1e-10);
-            phiL = 1.0 / phiL;
+            float phiL = sigmaL / max(sqrt(centerVariance), 1e-10);
 
             vec4 colorSum = centerFilterData * 1.0;
             float weightSum = 1.0;
