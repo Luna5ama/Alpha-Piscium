@@ -18,7 +18,7 @@ uniform sampler2D usam_ssvbil;
 uniform sampler2D usam_temp3;
 uniform sampler2D usam_temp4;
 
-layout(rgba16f) uniform restrict image2D uimg_ssvbil;
+layout(rgba16f) uniform writeonly image2D uimg_ssvbil;
 
 layout(rg32ui) uniform writeonly uimage2D uimg_prevNZ;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
