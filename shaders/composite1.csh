@@ -50,7 +50,7 @@ void main() {
 
             gi_reproject(
                 usam_svgfHistory, usam_prevNZ,
-                screenPos, viewZ, gData.normal, float(gData.isHand),
+                screenPos, viewZ, gData.normal, gData.isHand,
                 prevColorHLen, prevMoments
             );
 

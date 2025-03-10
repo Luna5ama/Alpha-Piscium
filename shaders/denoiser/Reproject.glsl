@@ -85,7 +85,7 @@ inout vec4 prevColorHLen, inout vec2 prevMoments, inout float weightSum
 
 void gi_reproject(
 usampler2D svgfHistory, usampler2D prevNZTex,
-vec2 screenPos, float currViewZ, vec3 currViewNormal, float isHand,
+vec2 screenPos, float currViewZ, vec3 currViewNormal, bool isHand,
 out vec4 prevColorHLen, out vec2 prevMoments
 ) {
     prevColorHLen = vec4(0.0);
@@ -93,19 +93,22 @@ out vec4 prevColorHLen, out vec2 prevMoments
 
     vec3 currView = coords_toViewCoord(screenPos, currViewZ, gbufferProjectionInverse);
     vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
+    currScene.xyz = isHand ? currScene.xyz + gbufferModelViewInverse[3].xyz : currScene.xyz;
 
-    vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene);
+    vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene, isHand);
+    curr2PrevScene.xyz = isHand ? curr2PrevScene.xyz - gbufferPrevModelViewInverse[3].xyz : curr2PrevScene.xyz;
+
     vec4 curr2PrevView = gbufferPrevModelView * curr2PrevScene;
     vec4 curr2PrevClip = gbufferPrevProjection * curr2PrevView;
     uint clipFlag = uint(curr2PrevClip.z > 0.0);
-    clipFlag &= uint(all(lessThan(abs(curr2PrevClip.xyz), curr2PrevClip.www))) ;
+    clipFlag &= uint(all(lessThan(abs(curr2PrevClip.xyz), curr2PrevClip.www)));
     if (!bool(clipFlag)) {
         return;
     }
 
     vec2 curr2PrevNDC = curr2PrevClip.xy / curr2PrevClip.w;
     vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
-    curr2PrevScreen = mix(curr2PrevScreen, screenPos, isHand);
+
     if (any(notEqual(curr2PrevScreen, saturate(curr2PrevScreen)))) {
         return;
     }

@@ -36,6 +36,13 @@ vec4 coords_projDiv(mat4 m, vec4 c) {
     return r / r.w;
 }
 
+vec4 coord_sceneCurrToPrev(vec4 sceneCurr, bool isHand) {
+    vec3 cameraDelta = isHand ? vec3(0.0) : cameraPosition - previousCameraPosition;
+    vec4 scenePrev = sceneCurr;
+    scenePrev.xyz += cameraDelta;
+    return scenePrev;
+}
+
 vec4 coord_sceneCurrToPrev(vec4 sceneCurr) {
     vec3 cameraDelta = cameraPosition - previousCameraPosition;
     vec4 scenePrev = sceneCurr;

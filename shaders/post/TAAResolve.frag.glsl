@@ -25,19 +25,16 @@ void main() {
 
     GBufferData gData;
     gbuffer_unpack(texelFetch(usam_gbufferData, intTexCoord, 0), gData);
-    float isHand = float(gData.isHand);
 
     float viewZ = texelFetch(usam_gbufferViewZ, intTexCoord, 0).r;
     vec3 viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
-    vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
-    vec3 cameraDelta = cameraPosition - previousCameraPosition;
-    vec4 prevWorldCoord = worldCoord;
-    prevWorldCoord.xyz += cameraDelta;
-    vec4 prevViewCoord = gbufferPrevModelView * prevWorldCoord;
+    vec4 scenePos = gbufferModelViewInverse * vec4(viewCoord, 1.0);
+    vec4 prevScenePos = coord_sceneCurrToPrev(scenePos, gData.isHand);
+
+    vec4 prevViewCoord = gbufferPrevModelView * prevScenePos;
     vec4 prevClipCoord = gbufferProjection * prevViewCoord;
     prevClipCoord /= prevClipCoord.w;
     vec2 prevTexCoord = prevClipCoord.xy * 0.5 + 0.5;
-    prevTexCoord = mix(prevTexCoord, frag_texCoord, isHand);
 
     vec3 currColor = texture(usam_main, frag_texCoord).rgb;
     currColor = saturate(currColor);
@@ -66,6 +63,7 @@ void main() {
     }
 
     vec2 pixelPosDiff = (frag_texCoord - prevTexCoord) * textureSize(usam_main, 0).xy;
+    vec3 cameraDelta = cameraPosition - previousCameraPosition;
     float cameraSpeed = length(cameraDelta);
     float prevCameraSpeed = length(global_prevCameraDelta);
     float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
@@ -132,6 +130,6 @@ void main() {
     mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);
 
     #ifndef SETTING_SCREENSHOT_MODE
-    mixWeight = saturate(mixWeight - isHand * 0.2);
+    mixWeight = saturate(mixWeight - float(gData.isHand) * 0.2);
     #endif
 }
