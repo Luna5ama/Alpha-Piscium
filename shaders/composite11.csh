@@ -19,7 +19,7 @@ uniform sampler2D usam_ssvbil;
 
 layout(rgba16f) uniform writeonly image2D uimg_ssvbil;
 
-layout(rg32ui) uniform writeonly uimage2D uimg_prevNZ;
+layout(rg32ui) uniform writeonly uimage2D uimg_packedNZ;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
 
@@ -39,7 +39,7 @@ void main() {
 
         uvec4 prevNZOutput = uvec4(0u);
         nzpacking_pack(prevNZOutput.xy, worldNormal, viewZ);
-        imageStore(uimg_prevNZ, texelPos2x2, prevNZOutput);
+        imageStore(uimg_packedNZ, texelPos2x2, prevNZOutput);
 
         vec3 currColor = texelFetch(usam_ssvbil, texelPos2x2, 0).rgb;
         vec4 prevColorHLen = texelFetch(usam_temp1, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0);

@@ -1,68 +1,90 @@
 #version 460 compatibility
 
 #extension GL_KHR_shader_subgroup_basic : enable
+#extension GL_KHR_shader_subgroup_vote : enable
 
 #include "/atmosphere/Common.glsl"
-#include "/atmosphere/SunMoon.glsl"
 #include "/general/Lighting.glsl"
+#include "/atmosphere/SunMoon.glsl"
 #include "/util/Morton.glsl"
+#include "/util/FullScreenComp.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform sampler2D usam_gbufferViewZ;
-uniform sampler2D usam_temp5;
 uniform usampler2D usam_gbufferData;
+uniform sampler2D usam_temp7;
 
-layout(rgba16f) uniform writeonly image2D uimg_main;
-layout(rgba16f) uniform restrict image2D uimg_temp1;
+layout(rgba8) uniform writeonly image2D uimg_temp5;
 
-ivec2 texelPos;
+vec2 texel2Screen(ivec2 texelPos) {
+    return (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+}
 
-void doLighting(Material material, vec3 N, inout vec3 mainOut, inout vec3 ssgiOut) {
-    vec3 emissiveV = material.emissive;
+vec4 compShadow(ivec2 texelPos, float viewZ) {
+    vec2 screenPos = texel2Screen(texelPos);
+    gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
+    Material material = material_decode(gData);
+    lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);
+    return vec4(calcShadow(material.sss), 1.0);
+}
 
-    AtmosphereParameters atmosphere = getAtmosphereParameters();
+void imageStore2x2(ivec2 texelPos1x1, vec4 outputColor) {
+    imageStore(uimg_temp5, texelPos1x1, outputColor);
+    imageStore(uimg_temp5, texelPos1x1 + ivec2(0, 1), outputColor);
+    imageStore(uimg_temp5, texelPos1x1 + ivec2(1, 0), outputColor);
+    imageStore(uimg_temp5, texelPos1x1 + ivec2(1, 1), outputColor);
+}
 
-    float alpha = material.roughness * material.roughness;
+void vrs2x2(ivec2 texelPos2x2) {
+    ivec2 texelPos1x1 = texelPos2x2 << 1;
 
-    vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(lighting_viewCoord, 1.0)).xyz;
-    vec3 worldPos = feetPlayerPos + cameraPosition;
-    float viewAltitude = atmosphere_height(atmosphere, worldPos);
-    vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
+    if (all(lessThan(texelPos1x1, global_mainImageSizeI))) {
+        vec2 quadCenterScreenPos = vec2(texelPos1x1 + 1) * global_mainImageSizeRcp;
 
-    #ifdef SETTING_SHADOW_HALF_RES
-    vec3 shadow = texelFetch(usam_temp5, texelPos, 0).rgb;
-    #else
-    vec3 shadow = calcShadow(material.sss);
-    #endif
+        vec4 vrsWeight2x2 = texelFetch(usam_temp7, texelPos2x2, 0);
+        float weight2x2 = dot(vrsWeight2x2, vec4(0.5, 0.5, 0.0, 0.0));
 
+        vec4 viewZs = textureGather(usam_gbufferViewZ, quadCenterScreenPos, 0);
+        uint bitFlag = uint(weight2x2 > 0.9);
+        bitFlag &= uint(all(notEqual(viewZs, vec4(-65536.0))));
+        bool bitFlagBool = bool(bitFlag);
 
-    float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
+        if (subgroupAll(bitFlagBool)) {
+            ivec2 offset = ivec2(morton_8bDecode((gl_LocalInvocationIndex + frameCounter) & 3u));
+            ivec2 shadingTexelPos = texelPos1x1 + offset;
+            float viewZ = texelFetch(usam_gbufferViewZ, shadingTexelPos, 0).r;
 
-    float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
-    vec3 tSun = sampleTransmittanceLUT(atmosphere, cosSunZenith, viewAltitude);
-    vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
-    vec4 sunIrradiance = vec4(sunRadiance * tSun * sunShadow, colors_srgbLuma(sunShadow));
-    LightingResult sunLighting = directLighting(material, sunIrradiance, uval_sunDirView, N);
+            vec4 result = compShadow(shadingTexelPos, viewZ);
+            float lum = colors_srgbLuma(result.rgb);
+            uint lumFlag = uint(lum < 0.05) | uint(lum > 0.95);
+            bool lumFlagBool = bool(lumFlag);
+            if (subgroupAll(lumFlagBool)) {
+                imageStore2x2(texelPos1x1, result);
+                return;
+            }
+        }
 
-    float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
-    vec3 tMoon = sampleTransmittanceLUT(atmosphere, cosMoonZenith, viewAltitude);
-    vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
-    vec4 moonIrradiance = vec4(sunRadiance * MOON_RADIANCE_MUL * tMoon * moonShadow, colors_srgbLuma(moonShadow));
-    LightingResult moonLighting = directLighting(material, moonIrradiance, uval_moonDirView, N);
+        ivec2 shadingTexelPos;
+        vec4 temp5Out;
 
-    LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
+        shadingTexelPos = texelPos1x1;
+        temp5Out = compShadow(shadingTexelPos, viewZs.w);
+        imageStore(uimg_temp5, shadingTexelPos, temp5Out);
 
-    mainOut += 0.001 * material.albedo;
-    mainOut += emissiveV;
-    mainOut += gData.isHand ? combinedLighting.diffuseLambertian : combinedLighting.diffuse;
-    mainOut += combinedLighting.specular;
-    mainOut += combinedLighting.sss;
+        shadingTexelPos = texelPos1x1 + ivec2(1, 0);
+        temp5Out = compShadow(shadingTexelPos, viewZs.z);
+        imageStore(uimg_temp5, shadingTexelPos, temp5Out);
 
-    ssgiOut += emissiveV;
-    ssgiOut += combinedLighting.diffuseLambertian;
-    ssgiOut += combinedLighting.sss;
+        shadingTexelPos = texelPos1x1 + ivec2(0, 1);
+        temp5Out = compShadow(shadingTexelPos, viewZs.x);
+        imageStore(uimg_temp5, shadingTexelPos, temp5Out);
+
+        shadingTexelPos = texelPos1x1 + ivec2(1, 1);
+        temp5Out = compShadow(shadingTexelPos, viewZs.y);
+        imageStore(uimg_temp5, shadingTexelPos, temp5Out);
+    }
 }
 
 void main() {
@@ -70,39 +92,9 @@ void main() {
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
-    texelPos = ivec2(mortonGlobalPosU);
 
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
-        vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
-
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-
-        vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
-
-        if (viewZ != -65536.0) {
-            gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
-            Material material = material_decode(gData);
-
-            lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);
-            ivec2 texelPos2x2 = texelPos >> 1;
-
-            vec4 ssgiOut = imageLoad(uimg_temp1, texelPos2x2);
-            ssgiOut.a = gData.lmCoord.y;
-
-            if (gData.materialID == 65534u) {
-                mainOut = vec4(material.albedo, 1.0);
-                ssgiOut = vec4(0.0, 0.0, 0.0, 0.0);
-            } else {
-                doLighting(material, gData.normal, mainOut.rgb, ssgiOut.rgb);
-            }
-
-            if ((threadIdx & 3u) == 0u) {
-                imageStore(uimg_temp1, texelPos2x2, ssgiOut);
-            }
-        } else {
-            mainOut.rgb += renderSunMoon(texelPos);
-        }
-
-        imageStore(uimg_main, texelPos, mainOut);
-    }
+    ivec2 texelPos = ivec2(mortonGlobalPosU);
+    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    vec4 outputColor = compShadow(texelPos, viewZ);
+    imageStore(uimg_temp5, texelPos, outputColor);
 }

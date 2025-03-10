@@ -1132,7 +1132,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         2 value "AO"
                     }
                 }
-                toggle("SETTING_DEBUG_PREVNZ", 0, 0..2) {
+                toggle("SETTING_DEBUG_packedNZ", 0, 0..2) {
                     lang(Locale.US) {
                         name = "Prev NZ"
                         0 value "Off"

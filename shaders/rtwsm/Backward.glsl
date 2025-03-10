@@ -9,30 +9,17 @@
 
 #include "RTWSM.glsl"
 #include "/util/Coords.glsl"
-
-layout(local_size_x = 16, local_size_y = 16, local_size_z = 1) in;
-const vec2 workGroupsRender = vec2(1.0f, 1.0f);
-
-uniform sampler2D usam_temp1;
-uniform sampler2D usam_gbufferViewZ;
+#include "/util/Morton.glsl"
 
 uniform sampler2D shadowtex0;
 uniform sampler2D usam_rtwsm_imap;
 
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 
-void importance(ivec2 texelPos, out uint p, out float v) {
-    if (any(greaterThanEqual(texelPos, global_mainImageSizeI))) {
-        p = 0xFFFFFFFFu;
-        v = 0u;
-        return;
-    }
-
+void importance(ivec2 texelPos, float viewZ, vec3 viewNormal, out uint p, out float v) {
     vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
-    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
     vec3 viewCoord = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
     vec3 worldCoord = (gbufferModelViewInverse * vec4(viewCoord, 1.0)).xyz;
-    vec3 viewNormal = texelFetch(usam_temp1, texelPos, 0).rgb;
 
     vec3 viewDir = normalize(-viewCoord);
 
@@ -96,10 +83,10 @@ void writeOutput(uint p, float v) {
     imageAtomicMax(uimg_rtwsm_imap, ivec2(p & 0xFFFFu, p >> 16), floatBitsToInt(v));
 }
 
-void main() {
+void rtwsm_backward(ivec2 texelPos, float viewZ, vec3 viewNormal) {
     uint p;
     float v;
-    importance(ivec2(gl_GlobalInvocationID.xy), p, v);
+    importance(texelPos, viewZ, viewNormal, p, v);
 
     #ifdef MC_GL_VENDOR_NVIDIA
     uvec4 pballot = subgroupPartitionNV(p);

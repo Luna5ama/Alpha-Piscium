@@ -57,8 +57,8 @@ uniform usampler2D usam_svgfHistory;
 uniform sampler2D DEBUG_TEX_NAME;
 #endif
 
-#if SETTING_DEBUG_PREVNZ != 0
-uniform usampler2D usam_prevNZ;
+#if SETTING_DEBUG_packedNZ != 0
+uniform usampler2D usam_packedNZ;
 #endif
 
 bool inViewPort(ivec4 originSize, out vec2 texCoord) {
@@ -128,11 +128,11 @@ void debugOutput(inout vec4 outputColor) {
     outputColor.rgb = outputColor.rgb * 0.5 + 0.5;
     #endif
 
-    #if SETTING_DEBUG_PREVNZ != 0
+    #if SETTING_DEBUG_packedNZ != 0
     float prevZ;
     vec3 prevN;
-    nzpacking_unpack(texelFetch(usam_prevNZ, texelPos, 0).xy, prevN, prevZ);
-    #if SETTING_DEBUG_PREVNZ == 1
+    nzpacking_unpack(texelFetch(usam_packedNZ, texelPos, 0).xy, prevN, prevZ);
+    #if SETTING_DEBUG_packedNZ == 1
     outputColor.rgb = vec3(prevN * 0.5 + 0.5);
     #else
     outputColor.rgb = vec3(-prevZ / far);

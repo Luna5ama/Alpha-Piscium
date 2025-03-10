@@ -13,7 +13,7 @@ const vec2 workGroupsRender = vec2(0.5, 0.5);
 
 uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_gbufferData;
-uniform usampler2D usam_prevNZ;
+uniform usampler2D usam_packedNZ;
 uniform usampler2D usam_svgfHistory;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
@@ -49,7 +49,7 @@ void main() {
             vec2 prevMoments;
 
             gi_reproject(
-                usam_svgfHistory, usam_prevNZ,
+                usam_svgfHistory, usam_packedNZ,
                 screenPos, viewZ, gData.normal, gData.isHand,
                 prevColorHLen, prevMoments
             );
