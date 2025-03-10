@@ -108,7 +108,7 @@ void main() {
     mixDecrease = max(mixDecrease, 0.75);
     #endif
 
-    mixWeight = mixWeight * mixDecrease;
+//    mixWeight = mixWeight * mixDecrease;
 
     float finalMixWeight = mixWeight;
     finalMixWeight *= (1.0 - min(cameraSpeedDiff * 1.0, 0.5));

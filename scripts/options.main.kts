@@ -749,11 +749,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_VBGI_AO_STRENGTH", 1.0, 0.0..4.0 step 0.1) {
-                    lang(Locale.US) {
-                        name = "AO Strength"
-                    }
-                }
                 slider("SETTING_VBGI_DGI_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Diffuse GI Strength"

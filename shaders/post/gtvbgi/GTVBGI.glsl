@@ -413,11 +413,6 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         sampleTexelDist += stepTexelSize;
     }
 
-    // compute AO
-    result.a = float(bitCount(occBits)) * (1.0 / 32.0);
-    result.a = saturate(1.0 - result.a);
-    result.a = pow(result.a, SETTING_VBGI_AO_STRENGTH);
-
     {
         mat3 viewToScene = mat3(gbufferModelViewInverse);
 
@@ -485,7 +480,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
 
             vec3 fallbackLighting = (vec3(1.0) - fresnel) * (diffuseBase);
             fallbackLighting += fresnel * (ggx * specularBase);
-            result.rgb += sampleRad * fallbackLighting * (bitV * emitterCos * result.a);
+            result.rgb += sampleRad * fallbackLighting * (bitV * emitterCos );
         }
     }
 

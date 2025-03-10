@@ -92,7 +92,6 @@ option.SETTING_VBGI_THICKNESS=Thickness
 option.SETTING_VBGI_SKYLIGHT_STRENGTH=Skylight Strength
 option.SETTING_VGBI_ENV_STRENGTH=Enviroment Probe Strength
 option.SETTING_VGBI_IB_STRENGTH=Indirect Bounce Strength
-option.SETTING_VBGI_AO_STRENGTH=AO Strength
 option.SETTING_VBGI_DGI_STRENGTH=Diffuse GI Strength
 option.SETTING_VBGI_SGI_STRENGTH=Specular GI Strength
 option.SETTING_VBGI_GI_MB=GI Multi Bounce
