@@ -713,6 +713,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Thickness"
                     }
                 }
+                slider("SETTING_VBGI_ENV_DIR_WEIGHT", 16, (0..10).map { 1 shl it }) {
+                    lang(Locale.US) {
+                        name = "Env Probe Direction Weight"
+                    }
+                }
                 empty()
 //                slider("SETTING_VBGI_LOD_OPTIMIZE", false) {
 //                    lang(Locale.US) {
@@ -733,28 +738,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
 //                }
 //                empty()
                 empty()
-                slider("SETTING_VBGI_SKYLIGHT_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
+                slider("SETTING_VBGI_SKYLIGHT_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
                     lang(Locale.US) {
                         name = "Skylight Strength"
                     }
                 }
-                slider("SETTING_VGBI_ENV_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
+                slider("SETTING_VGBI_ENV_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
                     lang(Locale.US) {
                         name = "Enviroment Probe Strength"
                     }
                 }
-                slider("SETTING_VGBI_IB_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
+                slider("SETTING_VGBI_IB_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
                     lang(Locale.US) {
                         name = "Indirect Bounce Strength"
                     }
                 }
                 empty()
-                slider("SETTING_VBGI_DGI_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
+                slider("SETTING_VBGI_DGI_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
                     lang(Locale.US) {
                         name = "Diffuse GI Strength"
                     }
                 }
-                slider("SETTING_VBGI_SGI_STRENGTH", 1.0, 0.0..4.0 step 0.01) {
+                slider("SETTING_VBGI_SGI_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
                     lang(Locale.US) {
                         name = "Specular GI Strength"
                     }

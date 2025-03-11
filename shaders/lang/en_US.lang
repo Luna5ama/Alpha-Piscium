@@ -89,6 +89,7 @@ option.SETTING_VBGI_FALLBACK_SAMPLES=Fallback Samples
 option.SETTING_VBGI_RADIUS=Sample Radius
 option.SETTING_VBGI_MAX_RADIUS=Max Sample Radius
 option.SETTING_VBGI_THICKNESS=Thickness
+option.SETTING_VBGI_ENV_DIR_WEIGHT=Env Probe Direction Weight
 option.SETTING_VBGI_SKYLIGHT_STRENGTH=Skylight Strength
 option.SETTING_VGBI_ENV_STRENGTH=Enviroment Probe Strength
 option.SETTING_VGBI_IB_STRENGTH=Indirect Bounce Strength

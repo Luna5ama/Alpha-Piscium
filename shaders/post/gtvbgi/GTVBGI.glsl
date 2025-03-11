@@ -414,6 +414,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
     }
 
     {
+        vec3 centerScenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
         mat3 viewToScene = mat3(gbufferModelViewInverse);
 
         uint unoccluedBits = ~occBits;
@@ -461,13 +462,16 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
             vec3 skyRad = skyLightingBase * texture(usam_skyLUT, skyLUTUV).rgb;
 
             vec2 envUV = coords_mercatorForward(sampleDirWorld);
-            ivec2 envTexel = ivec2(envUV * ENV_PROBE_SIZE);
+            ivec2 envTexel = ivec2(envUV * (ENV_PROBE_SIZE - 1));
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
             vec3 envRad = envData.radiance * (2.0 * PI * SETTING_VGBI_ENV_STRENGTH);
+            envRad *= saturate(dot(envData.normal, -sampleDirWorld));
+            float dirMatch = pow(saturate(dot(normalize(envData.scenePos - centerScenePos), sampleDirWorld)), float(SETTING_VBGI_ENV_DIR_WEIGHT));
+            envRad *= dirMatch;
 
             bool probeIsSky = envProbe_isSky(envData);
+            float envProbeWeight = float(!probeIsSky) * dirMatch;
             vec3 sampleRad = probeIsSky ? skyRad : envRad;
-            float emitterCos = probeIsSky ? 1.0 : saturate(dot(envData.normal, -sampleDirWorld));
 
             vec3 N = viewNormal;
             vec3 L = sampleDirView;
@@ -480,7 +484,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
 
             vec3 fallbackLighting = (vec3(1.0) - fresnel) * (diffuseBase);
             fallbackLighting += fresnel * (ggx * specularBase);
-            result.rgb += sampleRad * fallbackLighting * (bitV * emitterCos );
+            result.rgb += sampleRad * fallbackLighting * bitV;
         }
     }
 
