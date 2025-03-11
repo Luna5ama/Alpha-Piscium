@@ -687,12 +687,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "VBGI"
                     comment = "Visibility Bitmask Global Illumination settings"
                 }
-                slider("SETTING_VBGI_STEPS", 64, listOf(8, 12, 16, 24, 32, 64)) {
+                slider("SETTING_VBGI_STEPS", 32, listOf(8, 12, 16, 24, 32, 64)) {
                     lang(Locale.US) {
                         name = "Step Samples"
                     }
                 }
-                slider("SETTING_VBGI_FALLBACK_SAMPLES", 8, powerOfTwoRange(2..5)) {
+                slider("SETTING_VBGI_FALLBACK_SAMPLES", 4, powerOfTwoRange(1..5)) {
                     lang(Locale.US) {
                         name = "Fallback Samples"
                     }
