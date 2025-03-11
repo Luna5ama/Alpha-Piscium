@@ -494,7 +494,7 @@ vec4 gtvbgi(ivec2 texelPos2x2) {
     float centerViewZ = texelFetch(usam_gbufferViewZ, vbgi_texelPos1x1, 0).r;
 
     vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
-    if (centerViewZ < 0.0) {
+    if (centerViewZ != -65536.0) {
         vec2 screenPos = (vec2(vbgi_texelPos1x1) + 0.5) * global_mainImageSizeRcp;
         float centerZ;
         vec3 centerWorldNormal;

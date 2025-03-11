@@ -50,7 +50,7 @@ void main() {
             vec2 prevMoments;
 
             gi_reproject(
-                usam_svgfHistory, usam_packedNZ, usam_temp7,
+                usam_svgfHistory, usam_packedNZ,
                 screenPos, viewZ, gData.normal, gData.isHand,
                 prevColorHLen, prevMoments
             );
