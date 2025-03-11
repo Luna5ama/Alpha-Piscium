@@ -15,7 +15,7 @@ uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_gbufferData;
 uniform usampler2D usam_packedNZ;
 uniform usampler2D usam_svgfHistory;
-uniform usampler2D usam_temp7;
+uniform sampler2D usam_temp7;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
@@ -50,7 +50,7 @@ void main() {
             vec2 prevMoments;
 
             gi_reproject(
-                usam_svgfHistory, usam_packedNZ,
+                usam_svgfHistory, usam_packedNZ, usam_temp7,
                 screenPos, viewZ, gData.normal, gData.isHand,
                 prevColorHLen, prevMoments
             );

@@ -36,16 +36,6 @@ uniform usampler2D usam_gbufferData;
 #define DEBUG_TEX_NAME usam_temp6
 #elif SETTING_DEBUG_TEMP_TEX == 7
 #define DEBUG_TEX_NAME usam_temp7
-#elif SETTING_DEBUG_VBGI == 1
-#define DEBUG_TEX_NAME usam_ssvbil
-#ifdef SETTING_DEBUG_ALPHA
-#undef SETTING_DEBUG_ALPHA a
-#endif
-#elif SETTING_DEBUG_VBGI == 2
-#define DEBUG_TEX_NAME usam_ssvbil
-#ifndef SETTING_DEBUG_ALPHA
-#define SETTING_DEBUG_ALPHA a
-#endif
 #endif
 
 
@@ -99,11 +89,7 @@ vec4 gammaCorrect(vec4 color) {
 
 void debugOutput(inout vec4 outputColor) {
     #ifdef DEBUG_TEX_NAME
-    ivec2 sampleTexelPos = texelPos;
-    #if SETTING_DEBUG_VBGI != 0
-    sampleTexelPos = sampleTexelPos >> 1;
-    #endif
-    if (all(lessThan(sampleTexelPos, textureSize(DEBUG_TEX_NAME, 0)))) {
+    if (all(lessThan(texelPos, textureSize(DEBUG_TEX_NAME, 0)))) {
 
         outputColor = texelFetch(DEBUG_TEX_NAME, sampleTexelPos, 0);
         outputColor *= exp2(SETTING_DEBUG_EXP);
@@ -145,7 +131,7 @@ void debugOutput(inout vec4 outputColor) {
     #endif
 
     #if SETTING_DEBUG_SVGF != 0
-    uvec4 svgfData = texelFetch(usam_svgfHistory, texelPos, 0);
+    uvec4 svgfData = texelFetch(usam_svgfHistory, texelPos >> 1, 0);
     vec4 svgfColorHLen;
     vec2 svgfMoments;
     svgf_unpack(svgfData, svgfColorHLen, svgfMoments);

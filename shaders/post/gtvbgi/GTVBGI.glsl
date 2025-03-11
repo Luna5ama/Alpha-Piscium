@@ -502,7 +502,7 @@ vec4 gtvbgi(ivec2 texelPos2x2) {
 
         vec3 centerViewNormal = mat3(gbufferModelView) * centerWorldNormal;
         vec3 centerViewPos = coords_toViewCoord(screenPos, centerZ, gbufferProjectionInverse);
-        centerViewPos += centerViewNormal * (1.0 / 1024.0);
+        centerViewPos += centerViewNormal * (1.0 / 128.0);
 
         uniGTVBGI(centerViewPos, centerViewNormal, result);
     }

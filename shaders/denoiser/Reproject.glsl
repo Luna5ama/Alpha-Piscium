@@ -1,5 +1,6 @@
 #include "Common.glsl"
 #include "/util/Coords.glsl"
+#include "/util/Interpo.glsl"
 
 vec3 cameraDelta = cameraPosition - previousCameraPosition;
 
@@ -17,25 +18,17 @@ float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prev
 
     vec3 diff = currScene.xyz - prevScene.xyz;
     float distSq = dot(diff, diff);
-    float a = abs(currViewZ) * 0.00001;
+    float a = abs(currViewZ) * 0.001;
     return a / (a + distSq);
 }
 
 void bilateralSample(
 usampler2D svgfHistory, usampler2D prevNZTex,
-vec2 sampleTexel, vec3 currScene, float currViewZ, vec3 currWorldNormal,
+vec2 gatherUV, vec4 baseWeights,
+vec3 currScene, float currViewZ, vec3 currWorldNormal,
 inout vec4 prevColorHLen, inout vec2 prevMoments, inout float weightSum
 ) {
-    vec2 pixelPos = sampleTexel - 0.5;
-    vec2 originPixelPos = floor(pixelPos);
-    vec2 gatherUV = (originPixelPos + 1.0) * global_mipmapSizesRcp[1];
-    vec2 bilinearWeights = pixelPos - originPixelPos;
-
-    vec4 bilateralWeights;
-    bilateralWeights.yz = bilinearWeights.xx;
-    bilateralWeights.xw = 1.0 - bilinearWeights.xx;
-    bilateralWeights.xy *= bilinearWeights.yy;
-    bilateralWeights.zw *= 1.0 - bilinearWeights.yy;
+    vec4 bilateralWeights = baseWeights;
 
     uvec4 prevNs = textureGather(prevNZTex, gatherUV, 0);
     bilateralWeights.x *= normalWeight(currWorldNormal, prevNs.x);
@@ -83,7 +76,7 @@ inout vec4 prevColorHLen, inout vec2 prevMoments, inout float weightSum
 }
 
 void gi_reproject(
-usampler2D svgfHistory, usampler2D prevNZTex,
+usampler2D svgfHistory, usampler2D prevNZTex, sampler2D edgeTex,
 vec2 screenPos, float currViewZ, vec3 currViewNormal, bool isHand,
 out vec4 prevColorHLen, out vec2 prevMoments
 ) {
@@ -116,39 +109,49 @@ out vec4 prevColorHLen, out vec2 prevMoments
 
     float weightSum = 0.0;
 
+    vec2 textureSizeRcp = global_mipmapSizesRcp[1];
+
+    vec2 centerPixel = curr2PrevTexel - 0.5;
+    vec2 centerPixelOrigin = floor(centerPixel);
+    vec2 gatherUV = (centerPixelOrigin + 1.0) * textureSizeRcp;
+    vec2 pixelPosFract = centerPixel - centerPixelOrigin;
+
+    vec4 edgeData = texelFetch(edgeTex, (ivec2(centerPixelOrigin) >> 1) + ivec2(global_mipmapSizesI[1].x, 0), 0);
+    float edgeV = dot(vec4(0.5, 0.5, 0.0, 0.0), edgeData);
+    vec4 weightX = interpo_catmullRomWeights(pixelPosFract.x);
+    vec4 weightY = interpo_catmullRomWeights(pixelPosFract.y);
+    weightX = edgeV < 0.9 ? vec4(1.0) : weightX;
+    weightY = edgeV < 0.9 ? vec4(1.0) : weightY;
+
     bilateralSample(
         svgfHistory, prevNZTex,
-        curr2PrevTexel, currScene.xyz, currViewZ, currWorldNormal,
+        gatherUV + vec2(-1.0, 1.0) * textureSizeRcp, weightX.xyyx * weightY.wwzz,
+        currScene.xyz, currViewZ, currWorldNormal,
         prevColorHLen, prevMoments, weightSum
     );
-    const float WEIGHT_EPSILON = 0.01;
-    if (weightSum < WEIGHT_EPSILON) {
-        bilateralSample(
-            svgfHistory, prevNZTex,
-            curr2PrevTexel + vec2(-1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal,
-            prevColorHLen, prevMoments, weightSum
-        );
 
-        bilateralSample(
-            svgfHistory, prevNZTex,
-            curr2PrevTexel + vec2(1.0, 0.0), currScene.xyz, currViewZ, currWorldNormal,
-            prevColorHLen, prevMoments, weightSum
-        );
+    bilateralSample(
+        svgfHistory, prevNZTex,
+        gatherUV + vec2(1.0, 1.0) * textureSizeRcp, weightX.zwwz * weightY.wwzz,
+        currScene.xyz, currViewZ, currWorldNormal,
+        prevColorHLen, prevMoments, weightSum
+    );
 
-        bilateralSample(
-            svgfHistory, prevNZTex,
-            curr2PrevTexel + vec2(0.0, -1.0), currScene.xyz, currViewZ, currWorldNormal,
-            prevColorHLen, prevMoments, weightSum
-        );
+    bilateralSample(
+        svgfHistory, prevNZTex,
+        gatherUV + vec2(1.0, -1.0) * textureSizeRcp, weightX.zwwz * weightY.yyxx,
+        currScene.xyz, currViewZ, currWorldNormal,
+        prevColorHLen, prevMoments, weightSum
+    );
 
-        bilateralSample(
-            svgfHistory, prevNZTex,
-            curr2PrevTexel + vec2(0.0, 1.0), currScene.xyz, currViewZ, currWorldNormal,
-            prevColorHLen, prevMoments, weightSum
-        );
-    }
+    bilateralSample(
+        svgfHistory, prevNZTex,
+        gatherUV + vec2(-1.0, -1.0) * textureSizeRcp, weightX.xyyx * weightY.yyxx,
+        currScene.xyz, currViewZ, currWorldNormal,
+        prevColorHLen, prevMoments, weightSum
+    );
 
-    const float WEIGHT_EPSILON_FINAL = 0.0001;
+    const float WEIGHT_EPSILON_FINAL = 0.1;
     if (weightSum < WEIGHT_EPSILON_FINAL) {
         prevColorHLen = vec4(0.0);
         prevMoments = vec2(0.0);
@@ -156,6 +159,8 @@ out vec4 prevColorHLen, out vec2 prevMoments
         float rcpWeightSum = 1.0 / weightSum;
         prevColorHLen *= rcpWeightSum;
         prevMoments *= rcpWeightSum;
+        prevColorHLen.rgb = max(prevColorHLen.rgb, 0.0);
+        prevMoments = max(prevMoments, 0.0);
         prevColorHLen.a = max(ceil(prevColorHLen.a), 1.0);
     }
 }

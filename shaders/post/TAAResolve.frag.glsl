@@ -20,8 +20,7 @@ void updateNearMinMax(vec3 currColor, inout vec3 nearMin, inout vec3 nearMax) {
 }
 
 // from https://github.com/GameTechDev/TAA
-vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST)
-{
+vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST){
     const vec2 rcpResolution = global_mainImageSizeRcp;
     const vec2 fractional = fract(inHistoryST - 0.5);
     const vec2 uv = (floor(inHistoryST - 0.5) + vec2(0.5f, 0.5f)) * rcpResolution;
@@ -40,7 +39,7 @@ vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST)
     const vec2 m0 = uv + f0 * rcpResolution;
     const vec2 tc0 = uv - 1.f * rcpResolution;
     const vec2 tc3 = uv + 2.f * rcpResolution;
-    
+
     const vec4 A = vec4(texture(samplerV, vec2(m0.x, tc0.y)));
     const vec4 B = vec4(texture(samplerV, vec2(tc0.x, m0.y)));
     const vec4 C = vec4(texture(samplerV, vec2(m0.x, m0.y)));

@@ -17,7 +17,7 @@ uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_temp5;
 
 layout(rgba32ui) uniform restrict uimage2D uimg_gbufferData;
-layout(r32ui) uniform writeonly uimage2D uimg_temp7;
+layout(rgba8) uniform writeonly image2D uimg_temp7;
 
 void loadShared(uint idx) {
     if (idx < 324){
@@ -90,16 +90,16 @@ void main() {
         albedoWeight *= albedoA / (albedoA + colors_srgbLuma(abs(centerAlbedo - readSharedAlbedo(centerShared + ivec2(0, 1)))));
 
         float noPixelWeight = float(subgroupClusteredMin(centerViewZ, 4u) != -65536.0);
-        vec4 vrsWeight2x2 = vec4(normalWeight, viewZWeight, albedoWeight, 1.0) * noPixelWeight;
+        vec4 vrsWeight2x2 = vec4(normalWeight, viewZWeight, albedoWeight, 1.0) ;
 
         if ((threadIdx & 3u) == 0u) {
             ivec2 texelPos2x2 = texelPos1x1 >> 1;
-            imageStore(uimg_temp7, texelPos2x2, uvec4(packUnorm4x8(vrsWeight2x2)));
+            imageStore(uimg_temp7, texelPos2x2, vrsWeight2x2);
             vec4 vrsWeighr4x4 = subgroupClusteredMin(vrsWeight2x2, 16u);
             if ((threadIdx & 15u) == 0u) {
                 ivec2 texelPos4x4 = texelPos1x1 >> 2;
                 texelPos4x4.x += global_mipmapSizesI[1].x;
-                imageStore(uimg_temp7, texelPos4x4, uvec4(packUnorm4x8(vrsWeighr4x4)));
+                imageStore(uimg_temp7, texelPos4x4, vrsWeighr4x4);
             }
         }
     }

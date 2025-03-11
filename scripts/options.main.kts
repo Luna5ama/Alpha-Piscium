@@ -1119,14 +1119,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         4 value "Moment^2"
                     }
                 }
-                toggle("SETTING_DEBUG_VBGI", 0, 0..2) {
-                    lang(Locale.US) {
-                        name = "VBGI"
-                        0 value "Off"
-                        1 value "GI"
-                        2 value "AO"
-                    }
-                }
                 toggle("SETTING_DEBUG_packedNZ", 0, 0..2) {
                     lang(Locale.US) {
                         name = "Prev NZ"
