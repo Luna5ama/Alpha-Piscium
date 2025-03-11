@@ -11,7 +11,7 @@ vec4 colors_blackBodyRadiation(float T, float radianceMul) {
 
     vec4 chromaRadiance;
 
-//    chromaRadiance.a = (230141698.067 * radianceMul) / (exp(25724.2 / T) - 1.0);
+    //    chromaRadiance.a = (230141698.067 * radianceMul) / (exp(25724.2 / T) - 1.0);
     // 25724.2 * log2(e) = 37112.1757708
     chromaRadiance.a = (230141698.067 * radianceMul) / (exp2(37112.1757708 / T) - 1.0);
 
@@ -60,6 +60,24 @@ vec4 colors_karisAverage(vec4 color) {
 vec3 colors_karisAverage(vec3 color) {
     float luma = colors_srgbLuma(color.rgb);
     return color / (1.0 + luma);
+}
+
+const mat3 _SRGB_TO_YCOCG = mat3(
+    0.25, 0.5, -0.25,
+    0.5, 0.0, 0.5,
+    0.25, -0.5, -0.25
+);
+vec3 colors_SRGBToYCoCg(vec3 color) {
+    return _SRGB_TO_YCOCG * color;
+}
+
+const mat3 _YCOCG_TO_SRGB = mat3(
+    1.0, 1.0, 1.0,
+    1.0, 0.0, -1.0,
+    -1.0, 1.0, -1.0
+);
+vec3 colors_YCoCgToSRGB(vec3 color) {
+        return _YCOCG_TO_SRGB * color;
 }
 
 #endif

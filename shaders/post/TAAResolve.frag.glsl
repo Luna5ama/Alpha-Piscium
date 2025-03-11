@@ -1,4 +1,5 @@
 #include "/util/Coords.glsl"
+#include "/util/Colors.glsl"
 #include "/util/GBuffers.glsl"
 #include "/util/Dither.glsl"
 #include "/util/Rand.glsl"
@@ -13,11 +14,6 @@ in vec2 frag_texCoord;
 /* RENDERTARGETS:0,15 */
 layout(location = 0) out vec4 rt_out;
 layout(location = 1) out vec4 rt_taaLast;
-
-void updateNearMinMax(vec3 currColor, inout vec3 nearMin, inout vec3 nearMax) {
-    nearMin = min(nearMin, currColor);
-    nearMax = max(nearMax, currColor);
-}
 
 // from https://github.com/GameTechDev/TAA
 vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST){
@@ -49,9 +45,14 @@ vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST){
     return color;
 }
 
+void updateMoments(vec3 colorSRGB, inout vec3 sum, inout vec3 sqSum) {
+    vec3 color = colors_SRGBToYCoCg(colorSRGB);
+    sum += color;
+    sqSum += color * color;
+}
+
 void main() {
     ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
-    vec2 unjitteredTexCoord = frag_texCoord + global_taaJitterMat[3].xy;
 
     GBufferData gData;
     gbuffer_unpack(texelFetch(usam_gbufferData, intTexCoord, 0), gData);
@@ -68,29 +69,32 @@ void main() {
 
     vec3 currColor = texture(usam_main, frag_texCoord).rgb;
     currColor = saturate(currColor);
-    vec3 nearMin1 = currColor;
-    vec3 nearMax1 = currColor;
 
-    {
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(-1, 0)).rgb, nearMin1, nearMax1);
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(1, 0)).rgb, nearMin1, nearMax1);
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(0, -1)).rgb, nearMin1, nearMax1);
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(0, 1)).rgb, nearMin1, nearMax1);
-    }
+    vec4 prevResult = BicubicSampling5(usam_taaLast, prevTexCoord * global_mainImageSize);
+    vec3 prevColor = saturate(prevResult.rgb);
 
-    vec3 nearMin2 = nearMin1;
-    vec3 nearMax2 = nearMax1;
+    #ifndef SETTING_SCREENSHOT_MODE
+    vec3 curr3x3Avg = vec3(0.0);
+    vec3 curr3x3SqAvg = vec3(0.0);
+    updateMoments(currColor, curr3x3Avg, curr3x3SqAvg);
+    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(-1, 0)).rgb, curr3x3Avg, curr3x3SqAvg);
+    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(1, 0)).rgb, curr3x3Avg, curr3x3SqAvg);
+    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(0, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
+    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(0, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
+    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(-1, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
+    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(1, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
+    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(-1, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
+    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(1, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
+    curr3x3Avg /= 9.0;
+    curr3x3SqAvg /= 9.0;
 
-    {
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(-1, -1)).rgb, nearMin2, nearMax2);
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(1, 1)).rgb, nearMin2, nearMax2);
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(1, -1)).rgb, nearMin2, nearMax2);
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(-1, 1)).rgb, nearMin2, nearMax2);
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(-2, 0)).rgb, nearMin2, nearMax2);
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(2, 0)).rgb, nearMin2, nearMax2);
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(0, -2)).rgb, nearMin2, nearMax2);
-        updateNearMinMax(textureOffset(usam_main, unjitteredTexCoord, ivec2(0, 2)).rgb, nearMin2, nearMax2);
-    }
+    // Ellipsoid intersection clipping by Marty
+    vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
+    vec3 stddev = sqrt(curr3x3SqAvg - curr3x3Avg * curr3x3Avg);
+    vec3 delta = prevColorYCoCg - curr3x3Avg;
+    const float clippingEps = 0.00001;
+    delta /= max(1.0, length(delta / (stddev + clippingEps)));
+    prevColorYCoCg = curr3x3Avg + delta;
 
     vec2 pixelPosDiff = (frag_texCoord - prevTexCoord) * textureSize(usam_main, 0).xy;
     vec3 cameraDelta = cameraPosition - previousCameraPosition;
@@ -99,25 +103,14 @@ void main() {
     float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
     float pixelSpeed = length(pixelPosDiff);
 
-    vec4 prevResult = BicubicSampling5(usam_taaLast, prevTexCoord * global_mainImageSize);
-    vec3 prevColor = saturate(prevResult.rgb);
+    float clipWeight = 0.1;
+    clipWeight += saturate(1.0 - prevResult.a);
+    clipWeight += pixelSpeed * 0.05;
+    clipWeight += cameraSpeed * 0.1;
+    clipWeight += cameraSpeedDiff * 4.0;
+    clipWeight = saturate(clipWeight);
 
-    float clampRatio1 = 0.1;
-    clampRatio1 += saturate(1.0 - prevResult.a);
-    clampRatio1 += pixelSpeed * 0.05;
-    clampRatio1 += cameraSpeed * 0.1;
-    clampRatio1 += cameraSpeedDiff * 4.0;
-    clampRatio1 = saturate(clampRatio1);
-
-    float clampRatio2 = 0.2;
-    clampRatio2 += pixelSpeed * 0.1;
-    clampRatio2 += cameraSpeed * 0.2;
-    clampRatio2 += cameraSpeedDiff * 16.0;
-    clampRatio2 = saturate(clampRatio2);
-
-    #ifndef SETTING_SCREENSHOT_MODE
-    prevColor = mix(prevColor, clamp(prevColor, nearMin2, nearMax2), clampRatio2);
-    prevColor = mix(prevColor, clamp(prevColor, nearMin1, nearMax1), clampRatio1);
+    prevColor = mix(prevColor, colors_YCoCgToSRGB(prevColorYCoCg), clipWeight);
     #endif
 
     float lastMixWeight = texture(usam_taaLast, frag_texCoord).a;
