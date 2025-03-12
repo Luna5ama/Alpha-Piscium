@@ -526,6 +526,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 empty()
                 empty()
+                empty()
                 screen("RTWSM", 1) {
                     lang(Locale.US) {
                         name = "RTWSM"
@@ -928,7 +929,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Time constant for average luminance AE."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.3, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.2, 0.0..1.0 step 0.01) {
                     lang(Locale.US) {
                         name = "Average Luminance Target"
                         comment = "Target average luminance value for average luminance EXPOSURE."

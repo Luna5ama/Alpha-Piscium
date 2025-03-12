@@ -134,8 +134,8 @@ out vec4 prevColorHLen, out vec2 prevMoments
     vec4 weightX;
     vec4 weightY;
     if (any(lessThan(centerWeights, vec4(WEIGHT_EPSILON)))) {
-        weightX = interpo_bSplineWeights(pixelPosFract.x);
-        weightY = interpo_bSplineWeights(pixelPosFract.y);
+        weightX = interpo_bSplineWeights(pixelPosFract.x) + .1;
+        weightY = interpo_bSplineWeights(pixelPosFract.y) + .1;
     } else {
         weightX = interpo_catmullRomWeights(pixelPosFract.x);
         weightY = interpo_catmullRomWeights(pixelPosFract.y);
