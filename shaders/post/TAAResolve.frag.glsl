@@ -73,6 +73,13 @@ void main() {
     vec4 prevResult = BicubicSampling5(usam_taaLast, prevTexCoord * global_mainImageSize);
     vec3 prevColor = saturate(prevResult.rgb);
 
+    vec2 pixelPosDiff = (frag_texCoord - prevTexCoord) * textureSize(usam_main, 0).xy;
+    vec3 cameraDelta = cameraPosition - previousCameraPosition;
+    float cameraSpeed = length(cameraDelta);
+    float prevCameraSpeed = length(global_prevCameraDelta);
+    float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
+    float pixelSpeed = length(pixelPosDiff);
+
     #ifndef SETTING_SCREENSHOT_MODE
     vec3 curr3x3Avg = vec3(0.0);
     vec3 curr3x3SqAvg = vec3(0.0);
@@ -96,14 +103,7 @@ void main() {
     delta /= max(1.0, length(delta / (stddev + clippingEps)));
     prevColorYCoCg = curr3x3Avg + delta;
 
-    vec2 pixelPosDiff = (frag_texCoord - prevTexCoord) * textureSize(usam_main, 0).xy;
-    vec3 cameraDelta = cameraPosition - previousCameraPosition;
-    float cameraSpeed = length(cameraDelta);
-    float prevCameraSpeed = length(global_prevCameraDelta);
-    float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
-    float pixelSpeed = length(pixelPosDiff);
-
-    float clipWeight = 0.1;
+    float clipWeight = 0.5;
     clipWeight += saturate(1.0 - prevResult.a);
     clipWeight += pixelSpeed * 0.05;
     clipWeight += cameraSpeed * 0.1;

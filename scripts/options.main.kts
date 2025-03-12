@@ -692,7 +692,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Step Samples"
                     }
                 }
-                slider("SETTING_VBGI_FALLBACK_SAMPLES", 4, powerOfTwoRange(1..5)) {
+                slider("SETTING_VBGI_FALLBACK_SAMPLES", 8, powerOfTwoRange(1..5)) {
                     lang(Locale.US) {
                         name = "Fallback Samples"
                     }
@@ -780,7 +780,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS", 128, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS", 8, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Reprojection Normal Strictness"
                     }
@@ -798,7 +798,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FILTER_NORMAL_STRICTNESS", 32, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_FILTER_NORMAL_STRICTNESS", 256, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Filter Normal Strictness"
                     }
@@ -820,13 +820,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 name = "Material"
                 comment = "Material settings"
             }
-            empty()
             toggle("SETTING_NORMAL_MAPPING", true) {
                 lang(Locale.US) {
                     name = "Normal Mapping"
                 }
             }
-            slider("SETTING_NORMAL_MAPPING_STRENGTH", 0.25, 0.0..1.0 step 0.01) {
+            slider("SETTING_NORMAL_MAPPING_STRENGTH", 0.5, 0.0..1.0 step 0.01) {
                 lang(Locale.US) {
                     name = "Normal Mapping Strength"
                 }

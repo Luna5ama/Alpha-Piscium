@@ -24,6 +24,7 @@ Material material_decode(GBufferData gData) {
     material.materialAO = gData.materialAO;
     material.roughness = 1.0 - gData.pbrSpecular.r;
     material.roughness *= material.roughness;
+    material.roughness = max(material.roughness, 0.01);
     material.f0 = gData.pbrSpecular.g;
     material.metallic = float(material.f0 >= (229.5 / 255.0));
 
