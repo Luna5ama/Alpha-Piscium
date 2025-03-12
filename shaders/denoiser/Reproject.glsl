@@ -45,10 +45,11 @@ vec3 currScene, float currViewZ, vec3 currWorldNormal
 
 void bilateralSample(
 usampler2D svgfHistory, usampler2D prevNZTex,
-vec2 gatherUV, vec4 baseWeights,
+vec2 gatherUVIn, vec4 baseWeights,
 vec3 currScene, float currViewZ, vec3 currWorldNormal,
 inout vec4 prevColorHLen, inout vec2 prevMoments, inout float weightSum
 ) {
+    vec2 gatherUV = clamp(gatherUVIn, global_mipmapSizesRcp[1] * 1.5, 1.0 - global_mipmapSizesRcp[1] * 1.5);
     vec4 bilateralWeights = computeBilateralWeights(prevNZTex, gatherUV, currScene, currViewZ, currWorldNormal);
 
     float bilateralWeightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
