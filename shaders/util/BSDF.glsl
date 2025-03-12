@@ -120,7 +120,7 @@ float bsdf_disneyDiffuse(Material material, float NDotL, float NDotV, float LDot
     float fresnelNL90 = bsdf_frenel_schlick_f90(max(NDotL, 0.01), f90);
     float fresnelNV90 = bsdf_frenel_schlick_f90(max(NDotV, 0.01), f90);
 
-    return RCP_PI * f90 * fresnelNL90 * fresnelNV90;
+    return NDotL * RCP_PI * f90 * fresnelNL90 * fresnelNV90;
 }
 
 float _gs_Smith_Schlick(float NDotV, float k) {
