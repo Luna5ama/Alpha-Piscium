@@ -10,7 +10,6 @@ const int colortex7Format = RGBA8; // Temp7
 const int colortex8Format = RGBA32UI; // GBuffer
 const int colortex9Format = R32F; // GBuffer ViewZ
 const int colortex10Format = RGBA16F; // Translucent Color
-const int colortex14Format = RGBA16F; // SSVBIL
 const int colortex15Format = RGBA16F; // TAA Last
 */
 
@@ -47,9 +46,6 @@ const int colortex15Format = RGBA16F; // TAA Last
 #define usam_translucentColor colortex10
 #define uimg_translucentColor colorimg10
 
-#define usam_ssvbil colortex14
-#define uimg_ssvbil colorimg14
-
 #define usam_taaLast colortex15
 #define uimg_taaLast colorimg15
 
@@ -82,8 +78,5 @@ const bool colortex10Clear = false;
 const bool colortex11Clear = false;
 const bool colortex12Clear = false;
 const bool colortex13Clear = false;
-
-const bool colortex14Clear = true;
-const vec4 colortex14ClearColor = vec4(0.0, 0.0, 0.0, 1.0);
 
 const bool colortex15Clear = false;

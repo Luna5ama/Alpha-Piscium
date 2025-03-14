@@ -9,7 +9,7 @@ uniform sampler2D usam_temp6;
 uniform sampler2D usam_temp3;
 uniform usampler2D usam_packedNZ;
 
-layout(rgba16f) uniform restrict image2D uimg_ssvbil;
+layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
@@ -17,6 +17,6 @@ void main() {
         float hLen = texelFetch(usam_temp6, texelPos, 0).r;
         float sigmaL = SETTING_DENOISER_FILTER_COLOR_STRICTNESS * pow4(linearStep(0.0, 0.25, hLen));
         vec4 outputColor = svgf_atrous(usam_temp3, usam_packedNZ, texelPos, ivec2(0, 16), sigmaL);
-        imageStore(uimg_ssvbil, texelPos, vec4(outputColor.rgb, 1.0));
+        imageStore(uimg_temp4, texelPos, vec4(outputColor.rgb, 1.0));
     }
 }

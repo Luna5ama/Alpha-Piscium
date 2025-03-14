@@ -6,7 +6,7 @@ layout(local_size_x = 128, local_size_y = 1) in;
 const vec2 workGroupsRender = vec2(0.5, 0.5);
 
 uniform sampler2D usam_temp6;
-uniform sampler2D usam_ssvbil;
+uniform sampler2D usam_temp4;
 uniform usampler2D usam_packedNZ;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 
@@ -15,7 +15,7 @@ void main() {
     if (all(lessThan(texelPos, global_mipmapSizesI[1]))) {
         float hLen = texelFetch(usam_temp6, texelPos, 0).r;
         float sigmaL = SETTING_DENOISER_FILTER_COLOR_STRICTNESS * pow4(linearStep(0.0, 0.25, hLen));
-        vec4 outputColor = svgf_atrous(usam_ssvbil, usam_packedNZ, texelPos, ivec2(1, 0), sigmaL);
+        vec4 outputColor = svgf_atrous(usam_temp4, usam_packedNZ, texelPos, ivec2(1, 0), sigmaL);
         imageStore(uimg_temp3, texelPos, outputColor);
     }
 }

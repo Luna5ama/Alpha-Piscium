@@ -10,7 +10,7 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform sampler2D usam_ssvbil;
+uniform sampler2D usam_temp4;
 uniform usampler2D usam_packedNZ;
 uniform usampler2D usam_gbufferData;
 uniform sampler2D usam_translucentColor;
@@ -50,7 +50,7 @@ inout vec3 colorSum, inout float weightSum
 ) {
     vec2 pixelPos = sampleTexel - 0.5;
     vec2 originPixelPos = floor(pixelPos);
-    vec2 gatherUV = (originPixelPos + 1.0) * global_mipmapSizesRcp[1];
+    vec2 gatherUV = (originPixelPos + 1.0) * global_mainImageSizeRcp;
     vec2 bilinearWeights = pixelPos - originPixelPos;
 
     vec4 bilateralWeights;
@@ -75,11 +75,11 @@ inout vec3 colorSum, inout float weightSum
     bilateralWeights *= baseWeight;
     weightSum += bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
 
-    vec4 colorRs = textureGather(usam_ssvbil, gatherUV, 0);
+    vec4 colorRs = textureGather(usam_temp4, gatherUV, 0);
     colorSum.r += dot(bilateralWeights, colorRs);
-    vec4 colorGs = textureGather(usam_ssvbil, gatherUV, 1);
+    vec4 colorGs = textureGather(usam_temp4, gatherUV, 1);
     colorSum.g += dot(bilateralWeights, colorGs);
-    vec4 colorBs = textureGather(usam_ssvbil, gatherUV, 2);
+    vec4 colorBs = textureGather(usam_temp4, gatherUV, 2);
     colorSum.b += dot(bilateralWeights, colorBs);
 }
 
@@ -106,7 +106,7 @@ void main() {
             {
                 vec2 pixelPos = texelPos2x2F - 0.5;
                 vec2 originPixelPos = floor(pixelPos);
-                vec2 gatherUV = (originPixelPos + 1.0) * global_mipmapSizesRcp[1];
+                vec2 gatherUV = (originPixelPos + 1.0) * global_mainImageSizeRcp;
                 vec2 bilinearWeights = pixelPos - originPixelPos;
 
                 vec4 bilateralWeights;
@@ -116,11 +116,11 @@ void main() {
                 bilateralWeights.zw *= 1.0 - bilinearWeights.yy;
                 weightSum += bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
 
-                vec4 colorRs = textureGather(usam_ssvbil, gatherUV, 0);
+                vec4 colorRs = textureGather(usam_temp4, gatherUV, 0);
                 colorSum.r += dot(bilateralWeights, colorRs);
-                vec4 colorGs = textureGather(usam_ssvbil, gatherUV, 1);
+                vec4 colorGs = textureGather(usam_temp4, gatherUV, 1);
                 colorSum.g += dot(bilateralWeights, colorGs);
-                vec4 colorBs = textureGather(usam_ssvbil, gatherUV, 2);
+                vec4 colorBs = textureGather(usam_temp4, gatherUV, 2);
                 colorSum.b += dot(bilateralWeights, colorBs);
             }
 
