@@ -22,8 +22,9 @@ layout(rgba8) uniform writeonly image2D uimg_temp7;
 void loadShared(uint idx) {
     if (idx < 324){
         uvec2 localPos = uvec2(idx % 18u, idx / 18u);
+        ivec2 localTexelOffset = ivec2(localPos) - 1;
         ivec2 texelPos = ivec2(gl_WorkGroupID.xy << 4);
-        texelPos += ivec2(localPos) - 1;
+        texelPos += localTexelOffset;
         texelPos = clamp(texelPos, ivec2(0), ivec2(global_mainImageSizeI) - 1);
         uvec4 packedData = imageLoad(uimg_gbufferData, texelPos);
         vec3 albedo = texelFetch(usam_temp5, texelPos, 0).rgb;
@@ -32,7 +33,7 @@ void loadShared(uint idx) {
         shared_normalData[localPos.y][localPos.x] = packedData.b;
         shared_viewZData[localPos.y][localPos.x] = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
-        if (all(lessThan(localPos, uvec2(16))) && all(greaterThanEqual(localPos, uvec2(0)))) {
+        if (all(lessThan(localTexelOffset, ivec2(16))) && all(greaterThanEqual(localTexelOffset, ivec2(0)))) {
             GBufferData gData;
             gbuffer_unpack(packedData, gData);
             gData.albedo = albedo;
