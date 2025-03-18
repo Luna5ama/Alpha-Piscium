@@ -335,13 +335,14 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         float sampleLodTexelSize = lodTexelSize(sampleLod);
         float stepTexelSize = sampleLodTexelSize * 0.5;
         sampleTexelDist += stepTexelSize;
+        sampleTexelDist = min(sampleTexelDist, maxDist);
 
         int index = frameCounter & 3;
         ivec2 downSampleOffset = ivec2(index, index >> 1) & ivec2(1);
         vec2 sampleTexelPos = floor(rayDir * sampleTexelDist + rayStart);
 
         ivec2 sampleTexelPosHalf = clamp(ivec2(sampleTexelPos * 0.5), ivec2(0), ivec2(global_mipmapSizesI[1] - 1));
-        vec2 sampleUV = saturate((sampleTexelPos + 0.5) / textureSize(usam_gbufferViewZ, 0).xy);
+        vec2 sampleUV = saturate((sampleTexelPos + 0.5) * global_mainImageSizeRcp);
 
         float sampleViewZ;
         vec3 sampleWorldNormal;
