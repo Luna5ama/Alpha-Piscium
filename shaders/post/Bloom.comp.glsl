@@ -4,10 +4,11 @@
         https://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare/
 */
 #include "/_Base.glsl"
+#include "/util/Colors.glsl"
 
 #if BLOOM_DOWN_SAMPLE
 #define BLOOM_SCALE_DIV BLOOM_PASS
-#if BLOOM_PASS <= 2
+#if BLOOM_PASS <= 1
 #define BLOOM_KARIS_AVERAGE 1
 #endif
 
@@ -135,13 +136,14 @@ void writeCache(ivec2 pos, vec4 data) {
 
 ivec2 groupBasePixel = ivec2(gl_WorkGroupID.xy) << 4;
 
-#if KARIS_AVERAGE
-vec4 karisAverage(vec4 sum) {
-    return colors_karisAverage(sum);
+#if BLOOM_KARIS_AVERAGE
+vec4 weightedSum(vec4 color) {
+    float karisWeight = colors_karisWeight(color.rgb);
+    return vec4(color.rgb * karisWeight, karisWeight);
 }
 #else
-vec4 karisAverage(vec4 sum) {
-    return sum;
+vec4 weightedSum(vec4 color) {
+    return vec4(color.rgb, 1.0);
 }
 #endif
 
@@ -203,13 +205,13 @@ vec4 bloom_main(ivec2 texelPos) {
     vec4 m = readCache(centerPos + ivec2(2, 4));
 
     vec4 result = vec4(0.0);
-    result += karisAverage(a + b + c + d) * 0.125;
-    result += karisAverage(e + f + g + h) * 0.03125;
-    result += karisAverage(f + g + i + j) * 0.03125;
-    result += karisAverage(h + i + k + l) * 0.03125;
-    result += karisAverage(i + j + l + m) * 0.03125;
+    result += weightedSum((a + b + c + d) * 0.125);
+    result += weightedSum((e + f + g + h) * 0.03125);
+    result += weightedSum((f + g + i + j) * 0.03125);
+    result += weightedSum((h + i + k + l) * 0.03125);
+    result += weightedSum((i + j + l + m) * 0.03125);
 
-    return result;
+    return result / (result.a * 0.2);
 }
 #elif BLOOM_UP_SAMPLE
 vec4 bloom_readInputUp(ivec2 coord, ivec2 offset) {

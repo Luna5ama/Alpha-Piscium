@@ -51,15 +51,9 @@ vec3 colors_srgbToLinear(vec3 color) {
     return a0 + a1 * x + a2 * x2 + a3 * x3;
 }
 
-vec4 colors_karisAverage(vec4 color) {
+float colors_karisWeight(vec3 color) {
     float luma = colors_srgbLuma(color.rgb);
-    return color / (1.0 + luma);
-}
-
-
-vec3 colors_karisAverage(vec3 color) {
-    float luma = colors_srgbLuma(color.rgb);
-    return color / (1.0 + luma);
+    return 1.0 / (1.0 + luma);
 }
 
 const mat3 _SRGB_TO_YCOCG = mat3(
