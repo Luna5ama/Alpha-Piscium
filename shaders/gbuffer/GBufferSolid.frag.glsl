@@ -89,6 +89,7 @@ void processData1() {
     gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gDataPrev);
     gData.pbrSpecular = gDataPrev.pbrSpecular;
 
+    gData.geometryNormal = gDataPrev.geometryNormal;
     gData.normal = gDataPrev.normal;
     gData.lmCoord = gDataPrev.lmCoord;
     gData.materialID = gDataPrev.materialID;
@@ -114,6 +115,7 @@ void processData1() {
 
     gData.pbrSpecular.a = emissiveS;
 
+    gData.geometryNormal = frag_viewNormal;
     #if !defined(SETTING_NORMAL_MAPPING)
     gData.normal = frag_viewNormal;
     #else

@@ -23,6 +23,7 @@ const uint MATERIAL_ID_UNDEFINED = 65535u;
 // isHand: 1 bit
 
 struct GBufferData {
+    vec3 geometryNormal;
     vec4 pbrSpecular;
     vec3 normal;
     vec2 lmCoord;
@@ -33,18 +34,17 @@ struct GBufferData {
 };
 
 void gbufferData1_pack(out uvec4 packedData, GBufferData gData) {
+    packedData.r = packSnorm2x16(coords_octEncode11(gData.geometryNormal));
     packedData.g = packUnorm4x8(vec4(gData.pbrSpecular));
     packedData.b = packSnorm2x16(coords_octEncode11(gData.normal));
-
     packedData.a = packUnorm4x8(vec4(gData.lmCoord, 0.0, 0.0)) & 0x0000FFFFu;
     packedData.a |= (gData.materialID & 0xFFFFu) << 16;
 }
 
 void gbufferData1_unpack(uvec4 packedData, inout GBufferData gData) {
+    gData.geometryNormal = coords_octDecode11(unpackSnorm2x16(packedData.r));
     gData.pbrSpecular = unpackUnorm4x8(packedData.g);
-
     gData.normal = coords_octDecode11(unpackSnorm2x16(packedData.b));
-
     gData.lmCoord = unpackUnorm4x8(packedData.a).xy;
     gData.materialID = (packedData.a >> 16) & 0xFFFFu;
 }
