@@ -12,8 +12,9 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
+uniform usampler2D usam_gbufferData32UI;
+uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
-uniform usampler2D usam_gbufferData;
 uniform usampler2D usam_temp7;
 
 layout(rgba8) uniform writeonly image2D uimg_temp5;
@@ -24,7 +25,8 @@ vec2 texel2Screen(ivec2 texelPos) {
 
 vec4 compShadow(ivec2 texelPos, float viewZ) {
     vec2 screenPos = texel2Screen(texelPos);
-    gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
+    gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
     Material material = material_decode(gData);
     lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);
     return vec4(calcShadow(material.sss), 1.0);

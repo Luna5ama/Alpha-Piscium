@@ -7,8 +7,7 @@ const uint MATERIAL_ID_UNDEFINED = 65535u;
 
 // gbuffer:
 // r:
-// albedo: 8 x 3 = 24 bits
-// materialAO: 8 bits
+//
 // g:
 // pbrS: 32 bits
 // b:
@@ -19,40 +18,45 @@ const uint MATERIAL_ID_UNDEFINED = 65535u;
 
 // Extra:
 // viewZ: 32 bits
+//
+// Albedo: 24 bits
+// isHand: 1 bit
 
 struct GBufferData {
-    vec3 albedo;
-    float materialAO;
     vec4 pbrSpecular;
     vec3 normal;
     vec2 lmCoord;
     uint materialID;
+
+    vec3 albedo;
     bool isHand;
 };
 
-void gbuffer_pack(out uvec4 packedData, GBufferData gData) {
-    packedData.r = packUnorm4x8(vec4(gData.albedo, gData.materialAO * 0.5)) & 0x7FFFFFFFu;
-    packedData.r |= uint(gData.isHand) << 31;
+void gbufferData1_pack(out uvec4 packedData, GBufferData gData) {
     packedData.g = packUnorm4x8(vec4(gData.pbrSpecular));
-
     packedData.b = packSnorm2x16(coords_octEncode11(gData.normal));
 
     packedData.a = packUnorm4x8(vec4(gData.lmCoord, 0.0, 0.0)) & 0x0000FFFFu;
     packedData.a |= (gData.materialID & 0xFFFFu) << 16;
 }
 
-void gbuffer_unpack(uvec4 packedData, out GBufferData gData) {
-    vec4 tempR = unpackUnorm4x8(packedData.r & 0x7FFFFFFFu);
-    gData.albedo = tempR.rgb;
-    gData.materialAO = tempR.a;
-    gData.isHand = bool(packedData.r >> 31u);
-
+void gbufferData1_unpack(uvec4 packedData, inout GBufferData gData) {
     gData.pbrSpecular = unpackUnorm4x8(packedData.g);
 
     gData.normal = coords_octDecode11(unpackSnorm2x16(packedData.b));
 
     gData.lmCoord = unpackUnorm4x8(packedData.a).xy;
     gData.materialID = (packedData.a >> 16) & 0xFFFFu;
+}
+
+void gbufferData2_pack(out vec4 packedData, GBufferData gData) {
+    packedData.rgb = gData.albedo;
+    packedData.a = float(gData.isHand);
+}
+
+void gbufferData2_unpack(vec4 packedData, inout GBufferData gData) {
+    gData.albedo = packedData.rgb;
+    gData.isHand = bool(uint(packedData.a));
 }
 
 #endif

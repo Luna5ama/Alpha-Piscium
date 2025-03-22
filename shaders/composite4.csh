@@ -10,9 +10,10 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_temp5;
-uniform usampler2D usam_gbufferData;
+uniform usampler2D usam_gbufferData32UI;
+uniform sampler2D usam_gbufferData8UN;
+uniform sampler2D usam_gbufferViewZ;
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
 layout(rgba16f) uniform restrict image2D uimg_temp1;
@@ -80,7 +81,8 @@ void main() {
         vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
 
         if (viewZ != -65536.0) {
-            gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
             Material material = material_decode(gData);
 
             lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);

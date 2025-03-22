@@ -6,7 +6,7 @@ uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
-uniform usampler2D usam_gbufferData;
+uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferViewZ;
 
 in vec3 frag_viewTangent;
@@ -21,7 +21,7 @@ in vec3 frag_viewCoord;
 
 layout(early_fragment_tests) in;
 
-/* RENDERTARGETS:10 */
+/* RENDERTARGETS:11 */
 layout(location = 0) out vec4 rt_translucentColor;
 
 vec4 processAlbedo() {
@@ -42,8 +42,8 @@ GBufferData processOutput() {
     vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
     vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);
 
-    gData.materialAO = normalSample.b;
     gData.pbrSpecular = specularSample;
+    gData.lmCoord.y *= normalSample.b;
 
     const float _1o255 = 1.0 / 255.0;
     float emissiveS = linearStep(1.0, _1o255, gData.pbrSpecular.a);

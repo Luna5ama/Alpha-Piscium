@@ -11,7 +11,7 @@
 #include "/util/FastMathLib.glsl"
 #include "/util/Math.glsl"
 
-uniform usampler2D usam_gbufferData;
+uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_temp1;
 uniform usampler2D usam_packedNZ;
@@ -322,7 +322,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
 
     float NDotV = dot(viewNormal, viewDir);
     GBufferData gData;
-    gbuffer_unpack(texelFetch(usam_gbufferData, vbgi_texelPos1x1, 0), gData);
+    gbufferData1_unpack(texelFetch(usam_gbufferData32UI, vbgi_texelPos1x1, 0), gData);
     Material material = material_decode(gData);
     material.roughness = max(material.roughness, 0.01);
 

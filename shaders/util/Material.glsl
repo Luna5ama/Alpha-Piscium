@@ -1,13 +1,12 @@
 #ifndef INCLUDE_util_Material_glsl
 #define INCLUDE_util_Material_glsl a
-#include "GBuffers.glsl"
+#include "GBufferData.glsl"
 #include "Math.glsl"
 #include "Colors.glsl"
 #include "Rand.glsl"
 
 struct Material {
     vec3 albedo;
-    float materialAO;
     float roughness;
     float f0;
     float metallic;
@@ -21,7 +20,6 @@ Material material_decode(GBufferData gData) {
 
     material.albedo = colors_srgbToLinear(gData.albedo);
 
-    material.materialAO = gData.materialAO;
     material.roughness = 1.0 - gData.pbrSpecular.r;
     material.roughness *= material.roughness;
     material.roughness = max(material.roughness, 0.01);

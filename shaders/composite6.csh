@@ -7,7 +7,7 @@ layout(local_size_x = 128) in;
 const ivec3 workGroups = ivec3(2048, 1, 1);
 
 uniform sampler2D usam_temp2;
-uniform usampler2D usam_gbufferData;
+uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferViewZ;
 
 layout(rgba32ui) uniform restrict uimage2D uimg_envProbe;

@@ -1,6 +1,6 @@
 #include "/util/Rand.glsl"
 #include "/util/Material.glsl"
-#include "/util/GBuffers.glsl"
+#include "/util/GBufferData.glsl"
 #include "/util/BSDF.glsl"
 #include "/rtwsm/RTWSM.glsl"
 

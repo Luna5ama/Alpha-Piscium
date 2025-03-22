@@ -20,7 +20,8 @@ uniform usampler2D usam_epipolarData;
 uniform usampler2D usam_envProbe;
 #endif
 
-uniform usampler2D usam_gbufferData;
+uniform usampler2D usam_gbufferData32UI;
+uniform sampler2D usam_gbufferData8UN;
 
 #if SETTING_DEBUG_TEMP_TEX == 1
 #define DEBUG_TEX_NAME usam_temp1
@@ -109,7 +110,8 @@ void debugOutput(inout vec4 outputColor) {
     #endif
 
     GBufferData gData;
-    gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
+    gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
     Material material = material_decode(gData);
 
     #if SETTING_DEBUG_GBUFFER_DATA == 1

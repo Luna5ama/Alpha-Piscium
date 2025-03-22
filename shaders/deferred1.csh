@@ -3,7 +3,7 @@
 #extension GL_KHR_shader_subgroup_clustered : enable
 
 #include "/util/Colors.glsl"
-#include "/util/GBuffers.glsl"
+#include "/util/GBufferData.glsl"
 #include "/util/Morton.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -13,10 +13,10 @@ shared uint shared_normalData[18][18];
 shared uint shared_albedoData[18][18];
 shared float shared_viewZData[18][18];
 
+uniform usampler2D usam_gbufferData32UI;
+uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
-uniform sampler2D usam_temp5;
 
-layout(rgba32ui) uniform restrict uimage2D uimg_gbufferData;
 layout(rgba8) uniform writeonly image2D uimg_temp7;
 
 void loadShared(uint idx) {
@@ -26,20 +26,12 @@ void loadShared(uint idx) {
         ivec2 texelPos = ivec2(gl_WorkGroupID.xy << 4);
         texelPos += localTexelOffset;
         texelPos = clamp(texelPos, ivec2(0), ivec2(global_mainImageSizeI) - 1);
-        uvec4 packedData = imageLoad(uimg_gbufferData, texelPos);
-        vec3 albedo = texelFetch(usam_temp5, texelPos, 0).rgb;
+        uvec4 packedData = texelFetch(usam_gbufferData32UI, texelPos, 0);
+        vec3 albedo = texelFetch(usam_gbufferData8UN, texelPos, 0).rgb;
 
         shared_albedoData[localPos.y][localPos.x] = packUnorm4x8(vec4(albedo, 1.0));
         shared_normalData[localPos.y][localPos.x] = packedData.b;
         shared_viewZData[localPos.y][localPos.x] = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-
-        if (all(lessThan(localTexelOffset, ivec2(16))) && all(greaterThanEqual(localTexelOffset, ivec2(0)))) {
-            GBufferData gData;
-            gbuffer_unpack(packedData, gData);
-            gData.albedo = albedo;
-            gbuffer_pack(packedData, gData);
-            imageStore(uimg_gbufferData, texelPos, packedData);
-        }
     }
 }
 

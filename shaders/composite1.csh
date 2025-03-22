@@ -4,15 +4,16 @@
 
 #include "/denoiser/Reproject.glsl"
 #include "/util/NZPacking.glsl"
-#include "/util/GBuffers.glsl"
+#include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Morton.glsl"
 
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(0.5, 0.5);
 
+uniform usampler2D usam_gbufferData32UI;
+uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
-uniform usampler2D usam_gbufferData;
 uniform usampler2D usam_packedNZ;
 uniform usampler2D usam_svgfHistory;
 uniform sampler2D usam_temp7;
@@ -35,7 +36,8 @@ void main() {
 
         if (viewZ != -65536.0) {
             GBufferData gData;
-            gbuffer_unpack(texelFetch(usam_gbufferData, texelPos1x1, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos1x1, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos1x1, 0), gData);
 
             Material material = material_decode(gData);
 

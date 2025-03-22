@@ -1,11 +1,11 @@
 #include "/util/Coords.glsl"
 #include "/util/Colors.glsl"
-#include "/util/GBuffers.glsl"
+#include "/util/GBufferData.glsl"
 #include "/util/Dither.glsl"
 #include "/util/Rand.glsl"
 
 uniform sampler2D usam_main;
-uniform usampler2D usam_gbufferData;
+uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_taaLast;
 
@@ -55,7 +55,7 @@ void main() {
     ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
 
     GBufferData gData;
-    gbuffer_unpack(texelFetch(usam_gbufferData, intTexCoord, 0), gData);
+    gbufferData1_unpack(texelFetch(usam_gbufferData32UI, intTexCoord, 0), gData);
 
     float viewZ = texelFetch(usam_gbufferViewZ, intTexCoord, 0).r;
     vec3 viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);

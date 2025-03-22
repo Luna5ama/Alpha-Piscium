@@ -1,5 +1,5 @@
 #include "/util/Coords.glsl"
-#include "/util/GBuffers.glsl"
+#include "/util/GBufferData.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Material.glsl"
 
@@ -98,7 +98,7 @@ ivec2 envProbeTexelPos, out EnvProbeData outputData
     ivec2 texelPos = ivec2(screenPos * global_mainImageSize);
 
     GBufferData gData;
-    gbuffer_unpack(texelFetch(gbufferData, texelPos, 0), gData);
+    gbufferData1_unpack(texelFetch(gbufferData, texelPos, 0), gData);
     if (gData.isHand) {
         return false;
     }

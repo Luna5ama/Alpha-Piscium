@@ -12,7 +12,8 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform sampler2D usam_temp4;
 uniform usampler2D usam_packedNZ;
-uniform usampler2D usam_gbufferData;
+uniform usampler2D usam_gbufferData32UI;
+uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_translucentColor;
 
 layout(rgba16f) restrict uniform image2D uimg_main;
@@ -89,7 +90,8 @@ void main() {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
 
         GBufferData gData;
-        gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
+        gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
+        gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
         Material material = material_decode(gData);
 
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
