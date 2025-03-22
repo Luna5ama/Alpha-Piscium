@@ -255,7 +255,7 @@ class Scope : OptionFactory() {
         get() = this
 
     internal fun _addScreen(screen: ScreenBuilder) {
-        check(_screens.add(screen)) { "Screen ${screen.name} already exists" }
+        check(_screens.add(screen)) { "Screen ${screen._name} already exists" }
     }
 
     internal fun _addOption(option: OptionBuilder<*>) {
@@ -288,18 +288,18 @@ class Scope : OptionFactory() {
         return output
     }
 
-    class ScreenBuilder(override val scope: Scope, var name: String, val columns: Int) : OptionFactory() {
+    class ScreenBuilder(override val scope: Scope, val _name: String, private val columns: Int) : OptionFactory() {
         init {
-            check(!name.contains(' ')) { "Screen name cannot contain space" }
+            check(!_name.contains(' ')) { "Screen name cannot contain space" }
         }
 
         private val langBuilders = mutableMapOf<Locale, LangBuilder>()
         private val options = mutableSetOf<OptionBuilder<*>>()
-        private val ref = if (name.isEmpty()) "" else ".${this@ScreenBuilder.name}"
+        private val ref = if (_name.isEmpty()) "" else ".${this@ScreenBuilder._name}"
         private val items = mutableListOf<ScreenItem>()
 
         fun lang(locale: Locale, block: LangBuilder.() -> Unit) {
-            check(name.isNotEmpty()) { "Main screen cannot have lang" }
+            check(_name.isNotEmpty()) { "Main screen cannot have lang" }
             langBuilders.getOrPut(locale) { LangBuilder(ref, locale) }.block()
         }
 
@@ -310,7 +310,7 @@ class Scope : OptionFactory() {
             output.writeShadersProperties {
                 appendLine("screen$ref.columns=$columns")
                 append("screen$ref=")
-                val items = if (name.isEmpty()) (items + ScreenItem.WILDCARD) else items
+                val items = if (_name.isEmpty()) (items + ScreenItem.WILDCARD) else items
                 items.joinTo(this, " ")
                 appendLine()
             }
@@ -359,13 +359,13 @@ class Scope : OptionFactory() {
             if (this === other) return true
             if (other !is ScreenBuilder) return false
 
-            if (name != other.name) return false
+            if (_name != other._name) return false
 
             return true
         }
 
         override fun hashCode(): Int {
-            return name.hashCode()
+            return _name.hashCode()
         }
     }
 
@@ -895,6 +895,21 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
         screen("POSTFX", 2) {
             lang(Locale.US) {
                 name = "Post Processing"
+            }
+            screen("AA", 1) {
+                lang(Locale.US) {
+                    name = "Anti Aliasing"
+                }
+                toggle("SETTING_TAA", true) {
+                    lang(Locale.US) {
+                        name = "Temporal Anti Aliasing"
+                    }
+                }
+                toggle("SETTING_TAA_JITTER", true) {
+                    lang(Locale.US) {
+                        name = "Temporal Jitter"
+                    }
+                }
             }
             screen("EXPOSURE", 1) {
                 lang(Locale.US) {
