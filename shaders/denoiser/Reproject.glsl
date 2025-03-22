@@ -45,48 +45,51 @@ vec3 currScene, float currViewZ, vec3 currWorldNormal
 
 void bilateralSample(
 usampler2D svgfHistory, usampler2D prevNZTex,
-vec2 gatherUVIn, vec4 baseWeights,
+vec2 gatherUV, vec4 baseWeights,
 vec3 currScene, float currViewZ, vec3 currWorldNormal,
 inout vec4 prevColorHLen, inout vec2 prevMoments, inout float weightSum
 ) {
-    vec2 gatherUV = clamp(gatherUVIn, global_mipmapSizesRcp[1] * 1.5, 1.0 - global_mipmapSizesRcp[1] * 1.5);
-    vec4 bilateralWeights = computeBilateralWeights(prevNZTex, gatherUV, currScene, currViewZ, currWorldNormal);
+    uint flag = uint(all(greaterThanEqual(gatherUV, global_mipmapSizesRcp[1] * 1.0)));
+    flag &= uint(all(lessThanEqual(gatherUV, vec2(1.0) - global_mipmapSizesRcp[1] * 1.0)));
+    if (bool(flag)) {
+        vec4 bilateralWeights = computeBilateralWeights(prevNZTex, gatherUV, currScene, currViewZ, currWorldNormal);
 
-    float bilateralWeightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
+        float bilateralWeightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
 
-    uvec4 prevDataG = textureGather(svgfHistory, gatherUV, 1);
-    vec2 prevDataG1 = unpackHalf2x16(prevDataG.x);
-    vec2 prevDataG2 = unpackHalf2x16(prevDataG.y);
-    vec2 prevDataG3 = unpackHalf2x16(prevDataG.z);
-    vec2 prevDataG4 = unpackHalf2x16(prevDataG.w);
-    vec4 prevColorHLens = vec4(prevDataG1.y, prevDataG2.y, prevDataG3.y, prevDataG4.y);
-    prevColorHLen.a = max(prevColorHLen.a, dot(bilateralWeights, prevColorHLens) / bilateralWeightSum);
+        uvec4 prevDataG = textureGather(svgfHistory, gatherUV, 1);
+        vec2 prevDataG1 = unpackHalf2x16(prevDataG.x);
+        vec2 prevDataG2 = unpackHalf2x16(prevDataG.y);
+        vec2 prevDataG3 = unpackHalf2x16(prevDataG.z);
+        vec2 prevDataG4 = unpackHalf2x16(prevDataG.w);
+        vec4 prevColorHLens = vec4(prevDataG1.y, prevDataG2.y, prevDataG3.y, prevDataG4.y);
+        prevColorHLen.a = max(prevColorHLen.a, dot(bilateralWeights, prevColorHLens) / bilateralWeightSum);
 
-    vec4 interpoWeights = baseWeights * bilateralWeights;
-    weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
+        vec4 interpoWeights = baseWeights * bilateralWeights;
+        weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
 
-    vec4 prevColorBs = vec4(prevDataG1.x, prevDataG2.x, prevDataG3.x, prevDataG4.x);
-    prevColorHLen.b += dot(interpoWeights, prevColorBs);
+        vec4 prevColorBs = vec4(prevDataG1.x, prevDataG2.x, prevDataG3.x, prevDataG4.x);
+        prevColorHLen.b += dot(interpoWeights, prevColorBs);
 
-    uvec4 prevDataR = textureGather(svgfHistory, gatherUV, 0);
-    vec2 prevDataR1 = unpackHalf2x16(prevDataR.x);
-    vec2 prevDataR2 = unpackHalf2x16(prevDataR.y);
-    vec2 prevDataR3 = unpackHalf2x16(prevDataR.z);
-    vec2 prevDataR4 = unpackHalf2x16(prevDataR.w);
-    vec4 prevColorRs = vec4(prevDataR1.x, prevDataR2.x, prevDataR3.x, prevDataR4.x);
-    vec4 prevColorGs = vec4(prevDataR1.y, prevDataR2.y, prevDataR3.y, prevDataR4.y);
-    prevColorHLen.r += dot(interpoWeights, prevColorRs);
-    prevColorHLen.g += dot(interpoWeights, prevColorGs);
+        uvec4 prevDataR = textureGather(svgfHistory, gatherUV, 0);
+        vec2 prevDataR1 = unpackHalf2x16(prevDataR.x);
+        vec2 prevDataR2 = unpackHalf2x16(prevDataR.y);
+        vec2 prevDataR3 = unpackHalf2x16(prevDataR.z);
+        vec2 prevDataR4 = unpackHalf2x16(prevDataR.w);
+        vec4 prevColorRs = vec4(prevDataR1.x, prevDataR2.x, prevDataR3.x, prevDataR4.x);
+        vec4 prevColorGs = vec4(prevDataR1.y, prevDataR2.y, prevDataR3.y, prevDataR4.y);
+        prevColorHLen.r += dot(interpoWeights, prevColorRs);
+        prevColorHLen.g += dot(interpoWeights, prevColorGs);
 
-    uvec4 prevDataB = textureGather(svgfHistory, gatherUV, 2);
-    vec2 prevDataB1 = unpackHalf2x16(prevDataB.x);
-    vec2 prevDataB2 = unpackHalf2x16(prevDataB.y);
-    vec2 prevDataB3 = unpackHalf2x16(prevDataB.z);
-    vec2 prevDataB4 = unpackHalf2x16(prevDataB.w);
-    vec4 prevMomentsRs = vec4(prevDataB1.x, prevDataB2.x, prevDataB3.x, prevDataB4.x);
-    vec4 prevMomentsGs = vec4(prevDataB1.y, prevDataB2.y, prevDataB3.y, prevDataB4.y);
-    prevMoments.x += dot(interpoWeights, prevMomentsRs);
-    prevMoments.y += dot(interpoWeights, prevMomentsGs);
+        uvec4 prevDataB = textureGather(svgfHistory, gatherUV, 2);
+        vec2 prevDataB1 = unpackHalf2x16(prevDataB.x);
+        vec2 prevDataB2 = unpackHalf2x16(prevDataB.y);
+        vec2 prevDataB3 = unpackHalf2x16(prevDataB.z);
+        vec2 prevDataB4 = unpackHalf2x16(prevDataB.w);
+        vec4 prevMomentsRs = vec4(prevDataB1.x, prevDataB2.x, prevDataB3.x, prevDataB4.x);
+        vec4 prevMomentsGs = vec4(prevDataB1.y, prevDataB2.y, prevDataB3.y, prevDataB4.y);
+        prevMoments.x += dot(interpoWeights, prevMomentsRs);
+        prevMoments.y += dot(interpoWeights, prevMomentsGs);
+    }
 }
 
 void gi_reproject(
@@ -132,7 +135,10 @@ out vec4 prevColorHLen, out vec2 prevMoments
 
     const float WEIGHT_EPSILON = 0.5;
     float weightSum = 0.0;
-    if (any(lessThan(centerWeights, vec4(WEIGHT_EPSILON)))) {
+    uint flag = uint(any(lessThan(centerWeights, vec4(WEIGHT_EPSILON))));
+    flag |= uint(any(lessThan(curr2PrevTexel, vec2(1.0))));
+    flag |= uint(any(greaterThan(curr2PrevTexel, global_mipmapSizes[1] - 2.0)));
+    if (bool(flag)) {
         vec2 bilinearWeights = pixelPosFract;
 
         vec4 gatherWeights;
