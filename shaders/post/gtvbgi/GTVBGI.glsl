@@ -314,7 +314,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
     float jitter = rand_r2Seq1(r2Index);
 
     float lodStep = radiusToLodStep(maxDist);
-    float sampleLod = lodStep * jitter;
+    float sampleLod = 0.0;
 
     float sampleTexelDist = 1.5;
 
@@ -329,12 +329,9 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
     float diffuseBase = (1.0 - material.metallic) * SETTING_VBGI_DGI_STRENGTH;
     float specularBase = PI * SETTING_VBGI_SGI_STRENGTH;
 
-    float bitmaskJitter = jitter * (1.0 / 32.0);
-
     for (uint stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; ++stepIndex) {
         float sampleLodTexelSize = lodTexelSize(sampleLod);
-        float stepTexelSize = sampleLodTexelSize * 0.5;
-        sampleTexelDist += stepTexelSize;
+        sampleTexelDist += sampleLodTexelSize * jitter;
         sampleTexelDist = min(sampleTexelDist, maxDist);
 
         int index = frameCounter & 3;
@@ -375,7 +372,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
             hor01 = hor01 * w0_remap_mul + w0_remap_add;
 
             // jitter sample locations + clamp01
-            hor01 = saturate(hor01 + bitmaskJitter);
+            hor01 = saturate(hor01);
             uint occBits0 = toBitMask(hor01);
 
             // compute gi contribution
@@ -411,7 +408,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         }
 
         sampleLod = sampleLod + lodStep;
-        sampleTexelDist += stepTexelSize;
+        sampleTexelDist += sampleLodTexelSize * (1.0 - jitter);
     }
 
     {
@@ -437,6 +434,8 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         const float w5 = 0.015625;
         const float w1 = 0.03125;
         #endif
+
+        float bitmaskJitter = (jitter - 0.5) * (1.0 / 32.0);
 
         for (uint i = 0u; i < SETTING_VBGI_FALLBACK_SAMPLES; i++) {
             float fi = float(i) + jitter - 0.5;
@@ -508,7 +507,6 @@ vec4 gtvbgi(ivec2 texelPos2x2) {
 
         vec3 centerViewNormal = mat3(gbufferModelView) * centerWorldNormal;
         vec3 centerViewPos = coords_toViewCoord(screenPos, centerZ, gbufferProjectionInverse);
-        centerViewPos += centerViewNormal * (1.0 / 128.0);
 
         uniGTVBGI(centerViewPos, centerViewNormal, result);
     }
