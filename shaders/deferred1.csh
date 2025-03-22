@@ -96,11 +96,11 @@ void main() {
         if ((threadIdx & 3u) == 0u) {
             ivec2 texelPos2x2 = texelPos1x1 >> 1;
             imageStore(uimg_temp7, texelPos2x2, vrsWeight2x2);
-            vec4 vrsWeighr4x4 = subgroupClusteredMin(vrsWeight2x2, 16u);
+            vec4 vrsWeight4x4 = subgroupClusteredMin(vrsWeight2x2, 16u);
             if ((threadIdx & 15u) == 0u) {
                 ivec2 texelPos4x4 = texelPos1x1 >> 2;
                 texelPos4x4.x += global_mipmapSizesI[1].x;
-                imageStore(uimg_temp7, texelPos4x4, vrsWeighr4x4);
+                imageStore(uimg_temp7, texelPos4x4, vrsWeight4x4);
             }
         }
     }
