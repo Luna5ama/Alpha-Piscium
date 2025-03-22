@@ -131,45 +131,75 @@ out vec4 prevColorHLen, out vec2 prevMoments
     vec4 centerWeights = computeBilateralWeights(prevNZTex, gatherUV, currScene.xyz, currViewZ, currWorldNormal);
 
     const float WEIGHT_EPSILON = 0.5;
-    vec4 weightX;
-    vec4 weightY;
-    if (any(lessThan(centerWeights, vec4(WEIGHT_EPSILON)))) {
-        weightX = interpo_bSplineWeights(pixelPosFract.x) + .1;
-        weightY = interpo_bSplineWeights(pixelPosFract.y) + .1;
-    } else {
-        weightX = interpo_catmullRomWeights(pixelPosFract.x);
-        weightY = interpo_catmullRomWeights(pixelPosFract.y);
-    }
-
     float weightSum = 0.0;
+    if (any(lessThan(centerWeights, vec4(WEIGHT_EPSILON)))) {
+        vec2 bilinearWeights = pixelPosFract;
 
-    bilateralSample(
-        svgfHistory, prevNZTex,
-        gatherUV + vec2(-1.0, 1.0) * textureSizeRcp, weightX.xyyx * weightY.wwzz,
-        currScene.xyz, currViewZ, currWorldNormal,
-        prevColorHLen, prevMoments, weightSum
-    );
+        vec4 gatherWeights;
+        gatherWeights.yz = bilinearWeights.xx;
+        gatherWeights.xw = 1.0 - bilinearWeights.xx;
+        gatherWeights.xy *= bilinearWeights.yy;
+        gatherWeights.zw *= 1.0 - bilinearWeights.yy;
 
-    bilateralSample(
-        svgfHistory, prevNZTex,
-        gatherUV + vec2(1.0, 1.0) * textureSizeRcp, weightX.zwwz * weightY.wwzz,
-        currScene.xyz, currViewZ, currWorldNormal,
-        prevColorHLen, prevMoments, weightSum
-    );
+        bilateralSample(
+            svgfHistory, prevNZTex,
+            gatherUV + vec2(-1.0, 1.0) * textureSizeRcp, gatherWeights,
+            currScene.xyz, currViewZ, currWorldNormal,
+            prevColorHLen, prevMoments, weightSum
+        );
 
-    bilateralSample(
-        svgfHistory, prevNZTex,
-        gatherUV + vec2(1.0, -1.0) * textureSizeRcp, weightX.zwwz * weightY.yyxx,
-        currScene.xyz, currViewZ, currWorldNormal,
-        prevColorHLen, prevMoments, weightSum
-    );
+        bilateralSample(
+            svgfHistory, prevNZTex,
+            gatherUV + vec2(1.0, 1.0) * textureSizeRcp, gatherWeights,
+            currScene.xyz, currViewZ, currWorldNormal,
+            prevColorHLen, prevMoments, weightSum
+        );
 
-    bilateralSample(
-        svgfHistory, prevNZTex,
-        gatherUV + vec2(-1.0, -1.0) * textureSizeRcp, weightX.xyyx * weightY.yyxx,
-        currScene.xyz, currViewZ, currWorldNormal,
-        prevColorHLen, prevMoments, weightSum
-    );
+        bilateralSample(
+            svgfHistory, prevNZTex,
+            gatherUV + vec2(1.0, -1.0) * textureSizeRcp, gatherWeights,
+            currScene.xyz, currViewZ, currWorldNormal,
+            prevColorHLen, prevMoments, weightSum
+        );
+
+        bilateralSample(
+            svgfHistory, prevNZTex,
+            gatherUV + vec2(-1.0, -1.0) * textureSizeRcp, gatherWeights,
+            currScene.xyz, currViewZ, currWorldNormal,
+            prevColorHLen, prevMoments, weightSum
+        );
+    } else {
+        vec4 weightX = interpo_catmullRomWeights(pixelPosFract.x);
+        vec4 weightY = interpo_catmullRomWeights(pixelPosFract.y);
+
+        bilateralSample(
+            svgfHistory, prevNZTex,
+            gatherUV + vec2(-1.0, 1.0) * textureSizeRcp, weightX.xyyx * weightY.wwzz,
+            currScene.xyz, currViewZ, currWorldNormal,
+            prevColorHLen, prevMoments, weightSum
+        );
+
+        bilateralSample(
+            svgfHistory, prevNZTex,
+            gatherUV + vec2(1.0, 1.0) * textureSizeRcp, weightX.zwwz * weightY.wwzz,
+            currScene.xyz, currViewZ, currWorldNormal,
+            prevColorHLen, prevMoments, weightSum
+        );
+
+        bilateralSample(
+            svgfHistory, prevNZTex,
+            gatherUV + vec2(1.0, -1.0) * textureSizeRcp, weightX.zwwz * weightY.yyxx,
+            currScene.xyz, currViewZ, currWorldNormal,
+            prevColorHLen, prevMoments, weightSum
+        );
+
+        bilateralSample(
+            svgfHistory, prevNZTex,
+            gatherUV + vec2(-1.0, -1.0) * textureSizeRcp, weightX.xyyx * weightY.yyxx,
+            currScene.xyz, currViewZ, currWorldNormal,
+            prevColorHLen, prevMoments, weightSum
+        );
+    }
 
 
     const float WEIGHT_EPSILON_FINAL = 0.0001;
