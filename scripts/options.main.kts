@@ -1133,12 +1133,23 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                toggle("SETTING_DEBUG_NORMAL", 0, 1..2) {
+                toggle("SETTING_DEBUG_GBUFFER_DATA", 0, 0..6) {
                     lang(Locale.US) {
-                        name = "Normal"
+                        name = "GBuffer Data"
                         0 value "Off"
-                        1 value "World"
-                        2 value "View"
+                        1 value "Albedo"
+                        2 value "Normal"
+                        3 value "Roughness"
+                        4 value "F0"
+                        5 value "Porosity"
+                        6 value "SSS"
+                    }
+                }
+                toggle("SETTING_DEBUG_NORMAL_MODE", 0, 0..1) {
+                    lang(Locale.US) {
+                        name = "Normal Mode"
+                        0 value "World"
+                        1 value "View"
                     }
                 }
                 empty()
@@ -1147,9 +1158,21 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Environment Probe"
                     }
                 }
-                toggle("SETTING_DEBUG_RTWSM", false)
-                toggle("SETTING_DEBUG_ATMOSPHERE", false)
-                toggle("SETTING_DEBUG_EPIPOLAR", false)
+                toggle("SETTING_DEBUG_RTWSM", false) {
+                    lang(Locale.US) {
+                        name = "RTWSM"
+                    }
+                }
+                toggle("SETTING_DEBUG_ATMOSPHERE", false) {
+                    lang(Locale.US) {
+                        name = "Atmosphere"
+                    }
+                }
+                toggle("SETTING_DEBUG_EPIPOLAR", false) {
+                    lang(Locale.US) {
+                        name = "Epipolar"
+                    }
+                }
             }
             toggle("SETTING_SCREENSHOT_MODE", false) {
                 lang(Locale.US) {

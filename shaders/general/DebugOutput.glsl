@@ -110,13 +110,24 @@ void debugOutput(inout vec4 outputColor) {
 
     GBufferData gData;
     gbuffer_unpack(texelFetch(usam_gbufferData, texelPos, 0), gData);
+    Material material = material_decode(gData);
 
-    #if SETTING_DEBUG_NORMAL != 0
+    #if SETTING_DEBUG_GBUFFER_DATA == 1
+    outputColor.rgb = material.albedo;
+    #elif SETTING_DEBUG_GBUFFER_DATA == 2
     outputColor.rgb = gData.normal;
-    #if SETTING_DEBUG_NORMAL == 1
+    #if SETTING_DEBUG_NORMAL_MODE == 0
     outputColor.rgb = mat3(gbufferModelViewInverse) * outputColor.rgb;
     #endif
     outputColor.rgb = outputColor.rgb * 0.5 + 0.5;
+    #elif SETTING_DEBUG_GBUFFER_DATA == 3
+    outputColor.rgb = vec3(material.roughness);
+    #elif SETTING_DEBUG_GBUFFER_DATA == 4
+    outputColor.rgb = vec3(material.f0);
+    #elif SETTING_DEBUG_GBUFFER_DATA == 5
+    outputColor.rgb = vec3(material.porosity);
+    #elif SETTING_DEBUG_GBUFFER_DATA == 6
+    outputColor.rgb = vec3(material.sss);
     #endif
 
     #if SETTING_DEBUG_packedNZ != 0
