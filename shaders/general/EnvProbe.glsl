@@ -78,7 +78,7 @@ bool envProbe_reproject(ivec2 prevEnvProbeTexelPos, inout EnvProbeData envProbeD
 }
 
 bool envProbe_update(
-usampler2D gbufferData, sampler2D gbufferViewZ, sampler2D inputViewColor,
+usampler2D gbufferData32UI, sampler2D gbufferData8UN, sampler2D gbufferViewZ, sampler2D inputViewColor,
 ivec2 envProbeTexelPos, out EnvProbeData outputData
 ) {
     vec2 envProbeScreenPos = (vec2(envProbeTexelPos) + 0.5) * ENV_PROBE_RCP;
@@ -98,7 +98,8 @@ ivec2 envProbeTexelPos, out EnvProbeData outputData
     ivec2 texelPos = ivec2(screenPos * global_mainImageSize);
 
     GBufferData gData;
-    gbufferData1_unpack(texelFetch(gbufferData, texelPos, 0), gData);
+    gbufferData1_unpack(texelFetch(gbufferData32UI, texelPos, 0), gData);
+    gbufferData2_unpack(texelFetch(gbufferData8UN, texelPos, 0), gData);
     if (gData.isHand) {
         return false;
     }
