@@ -37,7 +37,7 @@ void applyAtmosphere(vec2 screenPos, vec3 viewPos, float viewZ, inout vec4 outpu
 float normalWeight(vec3 centerNormal, uint packedNormal) {
     vec3 sampleNormal = coords_octDecode11(unpackSnorm2x16(packedNormal));
     float sdot = saturate(dot(centerNormal, sampleNormal));
-    return pow(sdot, 32.0);
+    return pow(sdot, 64.0);
 }
 
 float viewZWeight(float centerViewZ, float sampleViewZ, float phiZ) {
@@ -51,6 +51,7 @@ inout vec3 colorSum, inout float weightSum
     vec2 pixelPos = sampleTexel - 0.5;
     vec2 originPixelPos = floor(pixelPos);
     vec2 gatherUV = (originPixelPos + 1.0) * global_mainImageSizeRcp;
+    vec2 gatherUVHalf = (originPixelPos + 1.0) * global_mipmapSizesRcp[1];
     vec2 bilinearWeights = pixelPos - originPixelPos;
 
     vec4 bilateralWeights;
@@ -59,14 +60,14 @@ inout vec3 colorSum, inout float weightSum
     bilateralWeights.xy *= bilinearWeights.yy;
     bilateralWeights.zw *= 1.0 - bilinearWeights.yy;
 
-    uvec4 prevNs = textureGather(usam_packedNZ, gatherUV, 0);
+    uvec4 prevNs = textureGather(usam_packedNZ, gatherUVHalf, 0);
     bilateralWeights.x *= normalWeight(centerWorldNormal, prevNs.x);
     bilateralWeights.y *= normalWeight(centerWorldNormal, prevNs.y);
     bilateralWeights.z *= normalWeight(centerWorldNormal, prevNs.z);
     bilateralWeights.w *= normalWeight(centerWorldNormal, prevNs.w);
 
     float phiZ = max(0.01 * pow2(centerViewZ), 0.5);
-    vec4 prevViewZs = uintBitsToFloat(textureGather(usam_packedNZ, gatherUV, 1));
+    vec4 prevViewZs = uintBitsToFloat(textureGather(usam_packedNZ, gatherUVHalf, 1));
     bilateralWeights.x *= viewZWeight(centerViewZ, prevViewZs.x, phiZ);
     bilateralWeights.y *= viewZWeight(centerViewZ, prevViewZs.y, phiZ);
     bilateralWeights.z *= viewZWeight(centerViewZ, prevViewZs.z, phiZ);
@@ -124,10 +125,10 @@ void main() {
                 colorSum.b += dot(bilateralWeights, colorBs);
             }
 
-            bilateralSample(texelPos2x2F + vec2(-1.0, 0.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
-            bilateralSample(texelPos2x2F + vec2(1.0, 0.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
-            bilateralSample(texelPos2x2F + vec2(0.0, -1.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
-            bilateralSample(texelPos2x2F + vec2(0.0, 1.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
+            bilateralSample(texelPos2x2F + vec2(-1.0, -1.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
+            bilateralSample(texelPos2x2F + vec2(-1.0, 1.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
+            bilateralSample(texelPos2x2F + vec2(1.0, -1.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
+            bilateralSample(texelPos2x2F + vec2(1.0, 1.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
             colorSum /= weightSum;
             outputColor.rgb += colorSum * material.albedo;
         }
