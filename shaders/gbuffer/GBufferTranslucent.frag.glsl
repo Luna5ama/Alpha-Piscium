@@ -46,8 +46,8 @@ GBufferData processOutput() {
     gData.lmCoord.y *= normalSample.b;
 
     const float _1o255 = 1.0 / 255.0;
-    float emissiveS = linearStep(1.0, _1o255, gData.pbrSpecular.a);
-    emissiveS *= step(_1o255, gData.pbrSpecular.a);
+    float emissiveS = linearStep(_1o255, 1.0, specularSample.a);
+    emissiveS *= float(specularSample.a < 1.0);
 
     gData.pbrSpecular.a = emissiveS;
 
