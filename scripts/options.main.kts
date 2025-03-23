@@ -714,9 +714,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Thickness"
                     }
                 }
-                slider("SETTING_VBGI_ENV_DIR_WEIGHT", 16, (0..10).map { 1 shl it }) {
+                slider("SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT", 16, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
-                        name = "Env Probe Direction Weight"
+                        name = "Probe Direction Match Weight"
+                    }
+                }
+                slider("SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD", 1024, (0..10).map { 1 shl it }) {
+                    lang(Locale.US) {
+                        name = "Probe Direction Match Distance Threshold"
                     }
                 }
                 empty()

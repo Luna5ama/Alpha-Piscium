@@ -357,7 +357,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
             vec3 thisToSample = frontDiff * frontDiffRcpLen;
 
             // project samples onto unit circle and compute angles relative to viewDir
-            vec2 horCos = vec2(dot(frontDiff * frontDiffRcpLen, viewDir), dot(backDiff * backDiffRcpLen, viewDir));
+            vec2 horCos = vec2(dot(thisToSample, viewDir), dot(backDiff * backDiffRcpLen, viewDir));
 
             vec2 horAng = acosFast4(clamp(horCos, -1.0, 1.0));
 
@@ -469,7 +469,11 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
             vec3 envRad = envData.radiance * (2.0 * PI * SETTING_VGBI_ENV_STRENGTH);
             envRad *= saturate(dot(envData.normal, -sampleDirWorld));
-            float dirMatch = pow(saturate(dot(normalize(envData.scenePos - centerScenePos), sampleDirWorld)), float(SETTING_VBGI_ENV_DIR_WEIGHT));
+            vec3 worldPosDiff = envData.scenePos - centerScenePos;
+            float worldsDiffLenSq = dot(worldPosDiff, worldPosDiff);
+            float worldsDiffRcpLen = fastRcpSqrtNR0(worldsDiffLenSq);
+            float dirMatch = pow(saturate(dot(worldPosDiff * worldsDiffRcpLen, sampleDirWorld)), float(SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT));
+            dirMatch = mix(dirMatch, 1.0, (SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD / (SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD + worldsDiffLenSq)));
             envRad *= dirMatch;
 
             bool probeIsSky = envProbe_isSky(envData);
