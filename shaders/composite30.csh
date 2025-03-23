@@ -127,10 +127,10 @@ void main() {
                 colorSum.b += dot(bilateralWeights, colorBs);
             }
 
-            bilateralSample(texelPos2x2F + vec2(-1.0, -1.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
-            bilateralSample(texelPos2x2F + vec2(-1.0, 1.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
-            bilateralSample(texelPos2x2F + vec2(1.0, -1.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
-            bilateralSample(texelPos2x2F + vec2(1.0, 1.0), 128.0, viewZ, worldNormal, colorSum, weightSum);
+            bilateralSample(texelPos2x2F + vec2(-0.5, -0.5), 128.0, viewZ, worldNormal, colorSum, weightSum);
+            bilateralSample(texelPos2x2F + vec2(-0.5, 0.5), 128.0, viewZ, worldNormal, colorSum, weightSum);
+            bilateralSample(texelPos2x2F + vec2(0.5, -0.5), 128.0, viewZ, worldNormal, colorSum, weightSum);
+            bilateralSample(texelPos2x2F + vec2(0.5, 0.5), 128.0, viewZ, worldNormal, colorSum, weightSum);
             colorSum /= weightSum;
             outputColor.rgb += colorSum * material.albedo;
         }
