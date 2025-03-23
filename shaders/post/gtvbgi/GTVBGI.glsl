@@ -384,6 +384,9 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
                     float emissive = float(sample2.a > 0.0);
                     vec3 sampleViewNormal = mat3(gbufferModelView) * sampleWorldNormal;
                     float emitterCos = mix(saturate(dot(sampleViewNormal, -thisToSample)), 1.0, emissive);
+                    float planeDist = pow2(dot(frontDiff, sampleViewNormal));
+                    float emissiveA = 0.001 * pow2(sampleViewZ);
+                    emitterCos *= 1.0 - emissiveA / (emissiveA + planeDist);
 
                     float falloff = linearStep(RADIUS_SQ.y, RADIUS_SQ.x, frontDistSq);
                     vec3 sampleRad = sample2.rgb * falloff;
