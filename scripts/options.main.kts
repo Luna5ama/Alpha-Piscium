@@ -714,6 +714,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Thickness"
                     }
                 }
+                empty()
+                toggle("SETTING_VBGI_PROBE_HQ_OCC", true) {
+                    lang(Locale.US) {
+                        name = "High Quality Probe Lighting Occlusion"
+                    }
+                }
                 slider("SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT", 16, (0..10).map { 1 shl it }) {
                     lang(Locale.US) {
                         name = "Probe Direction Match Weight"

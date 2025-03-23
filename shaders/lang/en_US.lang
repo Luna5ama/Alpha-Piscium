@@ -90,6 +90,7 @@ option.SETTING_VBGI_FALLBACK_SAMPLES=Fallback Samples
 option.SETTING_VBGI_RADIUS=Sample Radius
 option.SETTING_VBGI_MAX_RADIUS=Max Sample Radius
 option.SETTING_VBGI_THICKNESS=Thickness
+option.SETTING_VBGI_PROBE_HQ_OCC=High Quality Probe Lighting Occlusion
 option.SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT=Probe Direction Match Weight
 option.SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD=Probe Direction Match Distance Threshold
 option.SETTING_VBGI_SKYLIGHT_STRENGTH=Skylight Strength

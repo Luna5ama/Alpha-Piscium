@@ -443,14 +443,17 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         for (uint i = 0u; i < SETTING_VBGI_FALLBACK_SAMPLES; i++) {
             float fi = float(i) + jitter - 0.5;
 
-            float ang0 = w1 * fi;
-            vec2 hor01 = saturate(vec2(ang0, ang0 + w1));
-            hor01.x = sliceRelCDF(hor01.x, angN, cosN);
-            hor01.y = sliceRelCDF(hor01.y, angN, cosN);
-            hor01 = hor01 * w0_remap_mul + w0_remap_add;
-            hor01 = clamp(hor01 + bitmaskJitter, 0.0, 1.0);
+            uint sectorBitMask;
+            {
+                float ang0 = w1 * fi;
+                vec2 hor01 = saturate(vec2(ang0, ang0 + w1));
+                hor01.x = sliceRelCDF(hor01.x, angN, cosN);
+                hor01.y = sliceRelCDF(hor01.y, angN, cosN);
+                hor01 = hor01 * w0_remap_mul + w0_remap_add;
+                hor01 = clamp(hor01 + bitmaskJitter, 0.0, 1.0);
+                sectorBitMask = toBitMask(hor01);
+            }
 
-            uint sectorBitMask = toBitMask(hor01);
             uint sectorBits = (unoccluedBits & sectorBitMask);
             float bitV = float(bitCount(sectorBits)) * (1.0 / 32.0);
 
@@ -479,6 +482,35 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
             bool probeIsSky = envProbe_isSky(envData);
             float envProbeWeight = float(!probeIsSky) * dirMatch;
             vec3 sampleRad = probeIsSky ? skyRad : envRad;
+
+            #ifdef SETTING_VBGI_PROBE_HQ_OCC
+            if (!probeIsSky) {
+                vec3 envProbeViewPos = (gbufferModelView * vec4(envData.scenePos, 1.0)).xyz;
+                vec3 frontDiff = envProbeViewPos - viewPos;
+                float frontDistSq = dot(frontDiff, frontDiff);
+                float frontDiffRcpLen = fastRcpSqrtNR0(frontDistSq);
+                vec3 backDiff = frontDiff - viewDir * SETTING_VBGI_THICKNESS;
+                float backDistSq = dot(backDiff, backDiff);
+                float backDiffRcpLen = fastRcpSqrtNR0(backDistSq);
+                vec2 horCos = vec2(dot(frontDiff * frontDiffRcpLen, viewDir), dot(backDiff * backDiffRcpLen, viewDir));
+                vec2 horAng = acosFast4(clamp(horCos, -1.0, 1.0));
+                // shift relative angles from viewDir to N + map to [0,1]
+                vec2 hor01 = saturate(horAng * RCP_PI + angOff);
+
+                // map to slice relative distribution
+                hor01.x = sliceRelCDF(hor01.x, angN, cosN);
+                hor01.y = sliceRelCDF(hor01.y, angN, cosN);
+
+                // partial slice re-mapping
+                hor01 = hor01 * w0_remap_mul + w0_remap_add;
+
+                // jitter sample locations + clamp01
+                hor01 = saturate(hor01);
+                uint sectorBitMask = toBitMask(hor01);
+                uint sectorBits = (unoccluedBits & sectorBitMask);
+                bitV = float(bitCount(sectorBits)) * (1.0 / 32.0);
+            }
+            #endif
 
             vec3 N = viewNormal;
             vec3 L = sampleDirView;
