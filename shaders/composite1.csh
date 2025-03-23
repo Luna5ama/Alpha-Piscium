@@ -19,7 +19,6 @@ uniform usampler2D usam_svgfHistory;
 uniform sampler2D usam_temp7;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
-layout(rgba16f) uniform writeonly image2D uimg_temp2;
 
 void main() {
     uvec2 workGroupOrigin = gl_WorkGroupID.xy << 3;
