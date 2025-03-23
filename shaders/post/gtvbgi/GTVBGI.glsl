@@ -401,8 +401,10 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
                     vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
                     float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
-                    vec3 indirectBounce = (vec3(1.0) - fresnel) * (diffuseBase);
-                    indirectBounce += fresnel * (ggx * specularBase);
+                    // TODO: separate diffuse and specular
+//                    vec3 indirectBounce = (vec3(1.0) - fresnel) * (diffuseBase);
+//                    indirectBounce += fresnel * (ggx * specularBase);
+                    vec3 indirectBounce = vec3(diffuseBase);
                     result.rgb += sampleRad * indirectBounce * (bitV * emitterCos * (PI * SETTING_VGBI_IB_STRENGTH));
                 }
             }
