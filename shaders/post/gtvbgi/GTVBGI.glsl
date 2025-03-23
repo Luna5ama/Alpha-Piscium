@@ -524,8 +524,9 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
             float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
             vec3 fallbackLighting = vec3(0.0);
-            fallbackLighting += (vec3(1.0) - fresnel) * (diffuseBase);
-            fallbackLighting += (ggx * specularBase);
+            fallbackLighting += vec3(diffuseBase);
+//            fallbackLighting += (vec3(1.0) - fresnel) * (diffuseBase);
+//            fallbackLighting += (ggx * specularBase);
             result.rgb += sampleRad * fallbackLighting * bitV;
         }
     }
