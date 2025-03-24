@@ -326,7 +326,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
     Material material = material_decode(gData);
     material.roughness = max(material.roughness, 0.01);
 
-    float diffuseBase = (1.0 - material.metallic) * SETTING_VBGI_DGI_STRENGTH;
+    float diffuseBase = /*(1.0 - material.metallic) * */SETTING_VBGI_DGI_STRENGTH;
     float specularBase = PI * SETTING_VBGI_SGI_STRENGTH;
 
     for (uint stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; ++stepIndex) {

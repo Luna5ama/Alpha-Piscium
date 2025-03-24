@@ -7,5 +7,5 @@ layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 
 void main() {
-    global_exposure = vec4(1.0, 1.0, 1.0, 1.0);
+    global_exposure = vec4(0.05);
 }

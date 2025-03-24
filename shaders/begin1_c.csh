@@ -51,17 +51,19 @@ void main() {
         vec4 expNew;
 
         // Keep the average luminance at SETTING_EXPOSURE_AVG_LUM_TARGET
+        const float MAX_DELTA_AVG_LUM = 1.5;
         expNew.x = (SETTING_EXPOSURE_AVG_LUM_TARGET / averageLuminance);
-        expNew.x = clamp(expNew.x, 0.00001, 100000.0);
+        expNew.x = clamp(expNew.x, 1.0 / MAX_DELTA_AVG_LUM, MAX_DELTA_AVG_LUM);
 
-        // Keep top SETTING_EXPOSURE_TOP_PERCENT% of pixels in the top bin
+        // Keep top SETTING_EXPOSURE_TOP_PERCENT % of pixels in the top bin
+        const float MAX_DELTA_TOP_BIN = 1.1;
         float top5Percent = totalPixel * SETTING_EXPOSURE_TOP_BIN_PERCENT * 0.01;
         expNew.y = (top5Percent / topBin);
-        expNew.y = clamp(expNew.y, 0.00001, 100000.0);
+        expNew.y = clamp(expNew.y, 1.0 / MAX_DELTA_TOP_BIN, MAX_DELTA_TOP_BIN);
 
         expNew.xy = expNew.xy * expLast.xy;
-        expNew.xy = mix(expLast.xy, expNew.xy, vec2(exp2(-SETTING_EXPOSURE_AVG_LUM_TIME), 0.05 * exp2(-SETTING_EXPOSURE_TOP_BIN_TIME)));
-        expNew.xy = clamp(expNew.xy, 0.00001, exp2(SETTING_EXPOSURE_MAX_EXP));
+        expNew.xy = mix(expLast.xy, expNew.xy, vec2(exp2(-SETTING_EXPOSURE_AVG_LUM_TIME), exp2(-SETTING_EXPOSURE_TOP_BIN_TIME)));
+        expNew.xy = clamp(expNew.xy, exp2(SETTING_EXPOSURE_MIN_EXP), exp2(SETTING_EXPOSURE_MAX_EXP));
 
         float totalWeight = SETTING_EXPOSURE_TOP_BIN_MIX + SETTING_EXPOSURE_AVG_LUM_MIX;
         expNew.w = expNew.x * SETTING_EXPOSURE_AVG_LUM_MIX;
