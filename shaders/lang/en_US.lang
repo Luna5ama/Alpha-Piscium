@@ -160,6 +160,7 @@ option.SETTING_TONE_MAPPING_SATURATION=Saturation
 option.SETTING_BLOOM=Bloom Enabled
 option.SETTING_BLOOM_INTENSITY=Bloom Intensity
 option.SETTING_BLOOM_RADIUS=Bloom Radius
+option.SETTING_BLOOM_PASS=Bloom Pass Count
 option.SETTING_DEBUG_WHITE_WORLD=White World
 option.SETTING_DEBUG_OUTPUT=Debug Output
 value.SETTING_DEBUG_OUTPUT.0=Off

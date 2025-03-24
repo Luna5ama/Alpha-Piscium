@@ -33,6 +33,8 @@ void main() {
             imageStore(uimg_packedNZ, texelPos2x2, prevNZOutput);
         }
 
+        #ifdef SETTING_RTWSM_B
         rtwsm_backward(texelPos1x1, viewZ, viewNormal);
+        #endif
     }
 }

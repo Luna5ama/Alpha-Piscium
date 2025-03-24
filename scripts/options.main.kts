@@ -1081,9 +1081,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Bloom Intensity"
                     }
                 }
-                slider("SETTING_BLOOM_RADIUS", 3.0, 1.0..5.0 step 0.5) {
+                slider("SETTING_BLOOM_RADIUS", 1.0, 1.0..5.0 step 0.5) {
                     lang(Locale.US) {
                         name = "Bloom Radius"
+                    }
+                }
+                slider("SETTING_BLOOM_PASS", 8, 1..10) {
+                    lang(Locale.US) {
+                        name = "Bloom Pass Count"
                     }
                 }
             }
