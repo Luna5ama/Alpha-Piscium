@@ -97,7 +97,9 @@ void main() {
                 doLighting(material, gData.normal, mainOut.rgb, ssgiOut.rgb);
             }
 
-            if ((threadIdx & 3u) == 0u) {
+            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == 0u);
+            ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
+            if (bool(ssgiOutWriteFlag)) {
                 imageStore(uimg_temp1, texelPos2x2, ssgiOut);
             }
         } else {
