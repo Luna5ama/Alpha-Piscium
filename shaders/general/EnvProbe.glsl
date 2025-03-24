@@ -19,19 +19,11 @@ void envProbe_initData(out EnvProbeData envProbeData) {
     envProbeData.scenePos = vec3(0.0);
 }
 
-EnvProbeData envProbe_decode(uvec4 packedData) {
-    EnvProbeData unpackedData;
-    vec2 temp1 = unpackHalf2x16(packedData.x);
-    vec2 temp2 = unpackHalf2x16(packedData.y);
-    vec2 temp3 = unpackHalf2x16(packedData.z);
-    unpackedData.radiance = vec3(temp1, temp2.x);
-    unpackedData.scenePos = vec3(temp2.y, temp3);
-    unpackedData.normal = coords_octDecode11(unpackSnorm2x16(packedData.w));
-    return unpackedData;
-}
-
 bool envProbe_isSky(EnvProbeData envProbeData) {
-    return all(lessThanEqual(envProbeData.radiance, vec3(0.0)));
+    float distSq = dot(envProbeData.scenePos, envProbeData.scenePos);
+    uint flag = uint(distSq == 0.0);
+    flag |= uint(distSq > 268386304.0);
+    return bool(flag);
 }
 
 bool envProbe_hasData(EnvProbeData envProbeData) {
@@ -44,6 +36,17 @@ EnvProbeData envProbe_add(EnvProbeData a, EnvProbeData b) {
     result.normal = a.normal + b.normal;
     result.scenePos = a.scenePos + b.scenePos;
     return result;
+}
+
+EnvProbeData envProbe_decode(uvec4 packedData) {
+    EnvProbeData unpackedData;
+    vec2 temp1 = unpackHalf2x16(packedData.x);
+    vec2 temp2 = unpackHalf2x16(packedData.y);
+    vec2 temp3 = unpackHalf2x16(packedData.z);
+    unpackedData.radiance = vec3(temp1, temp2.x);
+    unpackedData.scenePos = vec3(temp2.y, temp3);
+    unpackedData.normal = coords_octDecode11(unpackSnorm2x16(packedData.w));
+    return unpackedData;
 }
 
 uvec4 envProbe_encode(EnvProbeData unpackedData) {
@@ -74,6 +77,10 @@ bool envProbe_reproject(ivec2 prevEnvProbeTexelPos, inout EnvProbeData envProbeD
 
     envProbeData.scenePos = currEnvProbeScenePos;
 
+    if (envProbe_isSky(envProbeData)) {
+        envProbeData.scenePos = normalize(envProbeData.scenePos) * 65536.0;
+    }
+
     return true;
 }
 
@@ -95,21 +102,27 @@ ivec2 envProbeTexelPos, out EnvProbeData outputData
 
     vec2 ndcPos = clipPos.xy / clipPos.w;
     vec2 screenPos = ndcPos * 0.5 + 0.5;
-    ivec2 texelPos = ivec2(screenPos * global_mainImageSize);
+    ivec2 texelPos2x2 = ivec2(screenPos * global_mipmapSizes[1]);
+    uint edgeFlag = uint(any(lessThanEqual(texelPos2x2, ivec2(1))));
+    edgeFlag |= uint(any(greaterThanEqual(texelPos2x2, global_mipmapSizesI[1] - 2)));
+    if (bool(edgeFlag)) {
+        return false;
+    }
+
+    ivec2 texelPos1x1 = texelPos2x2 << 1;
 
     GBufferData gData;
-    gbufferData1_unpack(texelFetch(gbufferData32UI, texelPos, 0), gData);
-    gbufferData2_unpack(texelFetch(gbufferData8UN, texelPos, 0), gData);
+    gbufferData1_unpack(texelFetch(gbufferData32UI, texelPos1x1, 0), gData);
+    gbufferData2_unpack(texelFetch(gbufferData8UN, texelPos1x1, 0), gData);
     if (gData.isHand) {
         return false;
     }
 
-    float viewZ = texelFetch(gbufferViewZ, texelPos, 0).r;
+    float viewZ = texelFetch(gbufferViewZ, texelPos1x1, 0).r;
     vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
     vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
-    vec2 clampedScreenPos = clamp(screenPos * 0.5, vec2(0.0), vec2(0.5 - global_mainImageSizeRcp * 0.5));
 
-    outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : texture(inputViewColor, clampedScreenPos).rgb;
+    outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : texelFetch(inputViewColor, texelPos2x2, 0).rgb;
     outputData.normal = mat3(gbufferModelViewInverse) * gData.normal;
     outputData.scenePos = realScenePos.xyz;
 
