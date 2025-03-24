@@ -137,7 +137,7 @@ const float shadowDistance = 192.0; // [64.0 128.0 192.0 256.0 384.0 512.0]
 #define SETTING_DEBUG_TEMP_TEX 0 // [0 1 2 3 4 5 6 7]
 #define SETTING_DEBUG_SVGF 0 // [0 1 2 3 4]
 #define SETTING_DEBUG_packedNZ 0 // [0 1 2]
-#define SETTING_DEBUG_GBUFFER_DATA 0 // [0 1 2 3 4 5 6]
+#define SETTING_DEBUG_GBUFFER_DATA 0 // [0 1 2 3 4 5 6 7 8 9 10]
 #define SETTING_DEBUG_NORMAL_MODE 0 // [0 1]
 //#define SETTING_DEBUG_ENV_PROBE
 #ifdef SETTING_DEBUG_ENV_PROBE

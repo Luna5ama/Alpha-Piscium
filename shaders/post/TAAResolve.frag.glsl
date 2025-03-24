@@ -5,7 +5,7 @@
 #include "/util/Rand.glsl"
 
 uniform sampler2D usam_main;
-uniform usampler2D usam_gbufferData32UI;
+uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_taaLast;
 
@@ -55,7 +55,7 @@ void main() {
     ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
 
     GBufferData gData;
-    gbufferData1_unpack(texelFetch(usam_gbufferData32UI, intTexCoord, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData8UN, intTexCoord, 0), gData);
 
     float viewZ = texelFetch(usam_gbufferViewZ, intTexCoord, 0).r;
     vec3 viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);

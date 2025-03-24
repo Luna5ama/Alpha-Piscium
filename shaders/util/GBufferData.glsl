@@ -51,7 +51,7 @@ void gbufferData1_unpack(uvec4 packedData, inout GBufferData gData) {
 
 void gbufferData2_pack(out vec4 packedData, GBufferData gData) {
     packedData.rgb = gData.albedo;
-    packedData.a = float(gData.isHand);
+    packedData.a = float(uint(gData.isHand));
 }
 
 void gbufferData2_unpack(vec4 packedData, inout GBufferData gData) {
