@@ -165,13 +165,13 @@ class OptionBuilder<T>(
     private val const: Boolean,
     private val range: Iterable<T>
 ) {
-    private val langBuilders = mutableMapOf<Locale, LangBuilder<T>>()
+    private val langBuilder = LangBuilder<T>(name)
 
-    fun lang(locale: Locale, block: LangBuilder<T>.() -> Unit) {
-        langBuilders.getOrPut(locale) { LangBuilder(name, locale) }.block()
+    fun lang(block: LangBuilder<T>.() -> Unit) {
+        langBuilder.block()
     }
 
-    class LangBuilder<T>(private val optionName: String, private val locale: Locale) {
+    class LangBuilder<T>(private val optionName: String, private val locale: Locale = Locale.US) {
         var name = ""
             set(value) {
                 check(value.isNotEmpty()) { "Name cannot be empty" }; field = value
@@ -239,9 +239,7 @@ class OptionBuilder<T>(
                 appendLine()
             }
         }
-        langBuilders.forEach { (_, builder) ->
-            builder.build(output)
-        }
+        langBuilder.build(output)
     }
 }
 
@@ -293,20 +291,17 @@ class Scope : OptionFactory() {
             check(!_name.contains(' ')) { "Screen name cannot contain space" }
         }
 
-        private val langBuilders = mutableMapOf<Locale, LangBuilder>()
         private val options = mutableSetOf<OptionBuilder<*>>()
         private val ref = if (_name.isEmpty()) "" else ".${this@ScreenBuilder._name}"
         private val items = mutableListOf<ScreenItem>()
+        private val langBuilder = LangBuilder(ref)
 
-        fun lang(locale: Locale, block: LangBuilder.() -> Unit) {
-            check(_name.isNotEmpty()) { "Main screen cannot have lang" }
-            langBuilders.getOrPut(locale) { LangBuilder(ref, locale) }.block()
+        fun lang(block: LangBuilder.() -> Unit) {
+            langBuilder.block()
         }
 
         fun build(output: Output) {
-            langBuilders.forEach { (_, builder) ->
-                builder.build(output)
-            }
+            langBuilder.build(output)
             output.writeShadersProperties {
                 appendLine("screen$ref.columns=$columns")
                 append("screen$ref=")
@@ -336,7 +331,7 @@ class Scope : OptionFactory() {
             items.add(item)
         }
 
-        class LangBuilder(private val ref: String, private val locale: Locale) {
+        class LangBuilder(private val ref: String, private val locale: Locale = Locale.US) {
             var name = ""
                 set(value) {
                     check(value.isNotEmpty()) { "Name cannot be empty" }; field = value
@@ -428,22 +423,22 @@ fun powerOfTwoRange(range: IntRange): List<Int> {
 options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
     mainScreen(2) {
         screen("LIGHTING", 2) {
-            lang(Locale.US) {
+            lang {
                 name = "Lighting"
             }
             screen("SUNLIGHT", 1) {
-                lang(Locale.US) {
+                lang {
                     name = "Sunlight"
                 }
                 slider("SETTING_SUN_RADIUS", 1.0, (-7..10).map { 2.0.pow(it) }) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Sun Radius"
                         comment = "Radius of sun relative to real sun radius of 696342 km."
                         suffix = " R"
                     }
                 }
                 slider("SETTING_SUN_DISTANCE", 1.0, (-7..10).map { 2.0.pow(it) }) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Sun Distance"
                         comment =
                             "Distance of sun in AU (astronomical units), which is relative to real sun distance of 149.6 million km."
@@ -451,7 +446,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 constSlider("sunPathRotation", -30.0, -90.0..90.0 step 1.0) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Sun Path Rotation"
                         comment = "Rotation of sun path in degrees."
                         suffix = " °"
@@ -459,13 +454,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 empty()
                 toggle("SETTING_REAL_SUN_TEMPERATURE", true) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Use Real Sun Temperature"
                         comment = "Use real sun temperature of 5772 K."
                     }
                 }
                 slider("SETTING_SUN_TEMPERATURE", 5700, 1000..20000 step 100) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Sun Temperature"
                         comment = "Temperature of sun in K (kelvin). Affects the color and intensity of sunlight."
                         suffix = " K"
@@ -473,25 +468,25 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             screen("BLOCKLIGHT", 1) {
-                lang(Locale.US) {
+                lang {
                     name = "Blocklight"
                 }
                 slider("SETTING_FIRE_TEMPERATURE", 1600, 1000..20000 step 100) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Fire Temperature"
                         comment =
                             "Temperature of fire in K (kelvin). The default value 1600 K is based on real life average."
                     }
                 }
                 slider("SETTING_LAVA_TEMPERATURE", 1400, 1000..20000 step 100) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Lava Temperature"
                         comment =
                             "Temperature of lava in K (kelvin). The default value 1400 K is based on real life average."
                     }
                 }
                 slider("SETTING_EMISSIVE_STRENGTH", 0.25, 0.0..2.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Emissive Strength"
                     }
                 }
@@ -499,16 +494,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             empty()
             empty()
             screen("SHADOW", 2) {
-                lang(Locale.US) {
+                lang {
                     name = "Shadow"
                 }
                 constSlider("shadowMapResolution", 2048, listOf(1024, 2048, 3072, 4096)) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Shadow Map Resolution"
                     }
                 }
                 constSlider("shadowDistance", 192.0, listOf(64.0, 128.0, 192.0, 256.0, 384.0, 512.0)) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Shadow Render Distance"
                         64.0 value "4 chunks"
                         128.0 value "8 chunks"
@@ -519,7 +514,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 toggle("SETTING_SHADOW_HALF_RES", true) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Half Resolution Sampling"
                         comment = "Sample shadow map at half resolution. Allows for better performance."
                     }
@@ -528,28 +523,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 empty()
                 empty()
                 screen("RTWSM", 1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "RTWSM"
                         comment = "Rectilinear Texture Warping Shadow Mapping settings"
                     }
                     slider("SETTING_RTWSM_IMAP_SIZE", 512, listOf(256, 512, 1024)) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Importance Map Resolution"
                         }
                     }
                     empty()
                     toggle("SETTING_RTWSM_F", true) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Forward Importance Analysis"
                         }
                     }
                     slider("SETTING_RTWSM_F_BASE", 1.0, 0.1..10.0 step 0.1) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Forward Base Value"
                         }
                     }
                     slider("SETTING_RTWSM_F_MIN", -20, -20..0) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Forward Min Value"
                             comment =
                                 "Minimum importance value for forward importance analysis. The actual minimum value is calculated as 2^x."
@@ -557,24 +552,24 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                     slider("SETTING_RTWSM_F_D", 1024, listOf(0) + (0..16).map { 1 shl it }) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Forward Distance Function"
                             comment = "Reduces weight based on distance. Larger setting value means slower decay."
                         }
                     }
                     empty()
                     toggle("SETTING_RTWSM_B", true) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Backward Importance Analysis"
                         }
                     }
                     slider("SETTING_RTWSM_B_BASE", 5.0, 0.1..10.0 step 0.1) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Backward Base Value"
                         }
                     }
                     slider("SETTING_RTWSM_B_MIN", -10, -20..0) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Backward Min Value"
                             comment =
                                 "Minimum importance value for backward importance analysis. The actual minimum value is calculated as 2^x."
@@ -582,63 +577,63 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                     slider("SETTING_RTWSM_B_D", 128, listOf(0) + (0..10).map { 2 shl it }) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Backward Distance Function"
                             comment = "Reduces weight based on distance. Larger setting value means slower decay."
                         }
                     }
                     slider("SETTING_RTWSM_B_P", 4.0, 0.0..10.0 step 0.5) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Backward Perpendicular Function"
                             comment = "Adds extra weight to surface perpendicular to light direction."
                         }
                     }
                     slider("SETTING_RTWSM_B_PP", 16, (0..8).map { 1 shl it }) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Backward Perpendicular Function Power"
                         }
                     }
                     slider("SETTING_RTWSM_B_SN", 2.0, 0.0..10.0 step 0.5) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Backward Surface Normal Function"
                             comment = "Adds extra weight to surface directly facing towards camera."
                         }
                     }
                     slider("SETTING_RTWSM_B_SE", 5.0, 0.0..10.0 step 0.5) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Backward Shadow Edge Function"
                             comment = "Adds extra weight for shadow edges."
                         }
                     }
                 }
                 screen("PCSS", 1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Soft Shadows"
                         comment = "Soft Shadows settings"
                     }
                     slider("SETTING_PCSS_SAMPLE_COUNT", 4, listOf(1, 2, 4, 8, 16, 32, 64)) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Sample Count"
                         }
                     }
                     slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 2, listOf(1, 2, 4, 8, 16)) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Blocker Search Count"
                         }
                     }
                     slider("SETTING_PCSS_BLOCKER_SEARCH_LOD", 4, 0..8) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Blocker Search LOD"
                         }
                     }
                     empty()
                     slider("SETTING_PCSS_BPF", 0.0, 0.0..10.0 step 0.5) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Base Penumbra Factor"
                         }
                     }
                     slider("SETTING_PCSS_VPF", 1.0, 0.0..2.0 step 0.1) {
-                        lang(Locale.US) {
+                        lang {
                             name = "Variable Penumbra Factor"
                             comment =
                                 "The penumbra factor is multiplied by the sun angular radius to determine the penumbra size. Noted that the sun angular radius is affected by the sun radius and distance settings."
@@ -647,163 +642,144 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             screen("SSS", 1) {
-                lang(Locale.US) {
+                lang {
                     name = "Subsurface Scattering"
                     comment = "Subsurface Scattering settings"
                 }
                 slider("SETTING_SSS_STRENGTH", 1.0, 0.0..5.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Strength"
                     }
                 }
                 slider("SETTING_SSS_HIGHLIGHT", 0.5, 0.0..1.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Highlight"
                     }
                 }
                 slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Scatter Factor"
                     }
                 }
                 empty()
                 slider("SETTING_SSS_DIFFUSE_RANGE", 0.5, 0.0..4.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Diffuse Range"
                     }
                 }
                 slider("SETTING_SSS_DEPTH_RANGE", 0.5, 0.0..4.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Depth Range"
                     }
                 }
                 slider("SETTING_SSS_MAX_DEPTH_RANGE", 0.9, 0.0..4.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Max Depth Range"
                     }
                 }
             }
             screen("VBGI", 1) {
-                lang(Locale.US) {
+                lang {
                     name = "VBGI"
                     comment = "Visibility Bitmask Global Illumination settings"
                 }
                 slider("SETTING_VBGI_STEPS", 32, listOf(8, 12, 16, 24, 32, 64)) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Step Samples"
                     }
                 }
                 slider("SETTING_VBGI_FALLBACK_SAMPLES", 8, powerOfTwoRange(1..5)) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Fallback Samples"
                     }
                 }
                 empty()
                 slider("SETTING_VBGI_RADIUS", 64, (0..8).map { 1 shl it }) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Sample Radius"
                     }
                 }
                 slider("SETTING_VBGI_MAX_RADIUS", 128, (0..8).map { 1 shl it }) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Max Sample Radius"
                     }
                 }
                 slider("SETTING_VBGI_THICKNESS", 1.0, 0.1..10.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Thickness"
                     }
                 }
                 empty()
                 toggle("SETTING_VBGI_PROBE_HQ_OCC", true) {
-                    lang(Locale.US) {
+                    lang {
                         name = "High Quality Probe Lighting Occlusion"
                     }
                 }
                 slider("SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT", 16, (0..10).map { 1 shl it }) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Probe Direction Match Weight"
                     }
                 }
                 slider("SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD", 1024, (0..10).map { 1 shl it }) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Probe Direction Match Distance Threshold"
                     }
                 }
                 empty()
-//                slider("SETTING_VBGI_LOD_OPTIMIZE", false) {
-//                    lang(Locale.US) {
-//                        name = "LOD Optimization"
-//                        comment = "Recommanded for large sample step count."
-//                    }
-//                }
-//                slider("SETTING_VBGI_LOD_MUL", 1.0, 0.0..1.0 step 0.01) {
-//                    lang(Locale.US) {
-//                        name = "Sample LOD Multiplier"
-//                        comment = "Multiplier for sample LOD. Smaller values leads to more accurate but slower result."
-//                    }
-//                }
-//                slider("SETTING_VBGI_MAX_LOD", 3, 1..5) {
-//                    lang(Locale.US) {
-//                        name = "Max Sample LOD"
-//                    }
-//                }
-//                empty()
-                empty()
                 slider("SETTING_VBGI_SKYLIGHT_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Skylight Strength"
                     }
                 }
                 slider("SETTING_VGBI_ENV_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Enviroment Probe Strength"
                     }
                 }
                 slider("SETTING_VGBI_IB_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Indirect Bounce Strength"
                     }
                 }
                 empty()
                 slider("SETTING_VBGI_DGI_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Diffuse GI Strength"
                     }
                 }
                 slider("SETTING_VBGI_SGI_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Specular GI Strength"
                     }
                 }
                 slider("SETTING_VBGI_GI_MB", 1.0, 0.0..2.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "GI Multi Bounce"
                     }
                 }
             }
             screen("DENOISER", 1) {
-                lang(Locale.US) {
+                lang {
                     name = "Denoiser"
                 }
                 toggle("SETTING_DENOISER", true) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Denoiser"
                     }
                 }
                 empty()
                 slider("SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS", 8, (0..10).map { 1 shl it }) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Reprojection Normal Strictness"
                     }
                 }
                 slider("SETTING_DENOISER_MAX_ACCUM", 64, (2..8).map { 1 shl it }) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Max Accumulation"
                     }
                 }
                 slider("SETTING_DENOISER_ACCUM_DECAY", 1.0, 0.5..3.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Accumulation Decay"
                         comment =
                             "Current mix rate decay factor for temporal accumulation. Larger value means faster decay."
@@ -811,182 +787,180 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 empty()
                 slider("SETTING_DENOISER_FILTER_NORMAL_STRICTNESS", 256, (0..10).map { 1 shl it }) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Filter Normal Strictness"
                     }
                 }
                 slider("SETTING_DENOISER_FILTER_DEPTH_STRICTNESS", 64, (0..10).map { 1 shl it }) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Filter Depth Strictness"
                     }
                 }
                 slider("SETTING_DENOISER_FILTER_COLOR_STRICTNESS", 4, 0..32) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Filter Color Strictness"
                     }
                 }
             }
         }
         screen("Material", 1) {
-            lang(Locale.US) {
+            lang {
                 name = "Material"
                 comment = "Material settings"
             }
             toggle("SETTING_NORMAL_MAPPING", true) {
-                lang(Locale.US) {
+                lang {
                     name = "Normal Mapping"
                 }
             }
             slider("SETTING_NORMAL_MAPPING_STRENGTH", 0.5, 0.0..1.0 step 0.01) {
-                lang(Locale.US) {
+                lang {
                     name = "Normal Mapping Strength"
                 }
             }
         }
         screen("ATMOSPHERE", 1) {
-            lang(Locale.US) {
+            lang {
                 name = "Atmosphere"
             }
             slider("SETTING_ATM_ALT_SCALE", 100, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
-                lang(Locale.US) {
+                lang {
                     name = "Atmosphere Altitude Scale"
                     comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
                 }
             }
             slider("SETTING_ATM_D_SCALE", 100, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
-                lang(Locale.US) {
+                lang {
                     name = "Atmosphere Distance Scale"
                     comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
                 }
             }
             empty()
             slider("SETTING_ATM_MIE_MUL", 1.0, 0.0..5.0 step 0.01) {
-                lang(Locale.US) {
+                lang {
                     name = "Mie Scattering Multiplier"
                 }
             }
             slider("SETTING_ATM_MIE_ABS", 1.1, 0.0..5.0 step 0.01) {
-                lang(Locale.US) {
+                lang {
                     name = "Mie Absorption"
                 }
             }
             slider("SETTING_ATM_RAY_MUL", 1.0, 0.0..5.0 step 0.01) {
-                lang(Locale.US) {
+                lang {
                     name = "Rayleigh Scattering Multiplier"
                 }
             }
             empty()
             slider("SETTING_EPIPOLAR_SLICES", 512, listOf(256, 512, 1024, 2048)) {
-                lang(Locale.US) {
+                lang {
                     name = "Epipolar Slices"
                 }
             }
             slider("SETTING_SLICE_SAMPLES", 256, listOf(128, 256, 512, 1024)) {
-                lang(Locale.US) {
+                lang {
                     name = "Slice Samples"
                 }
             }
             toggle("SETTING_DEPTH_BREAK_CORRECTION", true) {
-                lang(Locale.US) {
+                lang {
                     name = "Depth Break Correction"
                 }
             }
             empty()
             slider("SETTING_SKY_SAMPLES", 64, 16..128) {
-                lang(Locale.US) {
+                lang {
                     name = "Sky Samples"
                 }
             }
             slider("SETTING_LIGHT_SHAFT_SAMPLES", 32, 8..64) {
-                lang(Locale.US) {
+                lang {
                     name = "Light Shaft Samples"
                 }
             }
         }
         screen("POSTFX", 2) {
-            lang(Locale.US) {
+            lang {
                 name = "Post Processing"
             }
             screen("AA", 1) {
-                lang(Locale.US) {
+                lang {
                     name = "Anti Aliasing"
                 }
                 toggle("SETTING_TAA", true) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Temporal Anti Aliasing"
                     }
                 }
                 toggle("SETTING_TAA_JITTER", true) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Temporal Jitter"
                     }
                 }
             }
             screen("EXPOSURE", 1) {
-                lang(Locale.US) {
+                lang {
                     name = "Exposure"
                 }
                 toggle("SETTING_EXPOSURE_MANUAL", false) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Manual Exposure"
                     }
                 }
                 slider("SETTING_EXPOSURE_MANUAL_VALUE", 0.0, -10.0..10.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Manual Exposure Value"
                     }
                 }
                 empty()
                 slider("SETTING_EXPOSURE_MIN_EXP", -4.0, -10.0..10.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Auto Exposure Min"
                     }
                 }
                 slider("SETTING_EXPOSURE_MAX_EXP", 2.0, -10.0..10.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Auto Exposure Max"
                     }
                 }
                 empty()
                 slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.5, 0.0..1.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Average Luminance Weight"
                         comment = "Weight of average luminance AE in the final exposure value."
                     }
                 }
                 slider("SETTING_EXPOSURE_AVG_LUM_TIME", 3.0, 0.0..10.0 step 0.5) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Average Luminance AE Time"
-                        comment = "Time constant for average luminance AE."
                     }
                 }
                 slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.2, 0.0..1.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Average Luminance Target"
                         comment = "Target average luminance value for average luminance EXPOSURE."
                     }
                 }
                 empty()
                 slider("SETTING_EXPOSURE_TOP_BIN_MIX", 1.0, 0.0..1.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Top Bin Weight"
                         comment = "Weight of top bin AE in the final exposure value."
                     }
                 }
                 slider("SETTING_EXPOSURE_TOP_BIN_TIME", 1.5, 0.0..10.0 step 0.5) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Top Bin AE Time"
-                        comment = "Time constant for top bin aE."
                     }
                 }
                 slider("SETTING_EXPOSURE_TOP_BIN_LUM", 0.3, 0.0..1.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Top Bin Luminance"
                         comment = "Luminance threshold for top bin."
                     }
                 }
                 slider("SETTING_EXPOSURE_TOP_BIN_PERCENT", 5.0, 0.1..10.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Top Bin %"
                         comment =
                             "Adjusting exposure to keep the specified percentage of pixels in the top bin of histogram."
@@ -994,17 +968,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             screen("TONE_MAPPING", 1) {
-                lang(Locale.US) {
+                lang {
                     name = "Tone Mapping"
                 }
                 slider("SETTING_TONE_MAPPING_OUTPUT_GAMMA", 2.2, 0.1..4.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Output Gamma"
                     }
                 }
                 empty()
                 toggle("SETTING_TONE_MAPPING_LOOK", 3, 0..3) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Look"
                         0 value "Default"
                         1 value "Golden"
@@ -1014,101 +988,101 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 empty()
                 slider("SETTING_TONE_MAPPING_OFFSET_R", 0.0, -1.0..1.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Offset Red"
                     }
                 }
                 slider("SETTING_TONE_MAPPING_OFFSET_G", 0.0, -1.0..1.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Offset Green"
                     }
                 }
                 slider("SETTING_TONE_MAPPING_OFFSET_B", 0.0, -1.0..1.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Offset Blue"
                     }
                 }
                 empty()
                 slider("SETTING_TONE_MAPPING_SLOPE_R", 1.0, 0.1..2.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Slope Red"
                     }
                 }
                 slider("SETTING_TONE_MAPPING_SLOPE_G", 1.0, 0.1..2.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Slope Green"
                     }
                 }
                 slider("SETTING_TONE_MAPPING_SLOPE_B", 1.0, 0.1..2.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Slope Blue"
                     }
                 }
                 empty()
                 slider("SETTING_TONE_MAPPING_POWER_R", 1.3, 0.1..2.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Power Red"
                     }
                 }
                 slider("SETTING_TONE_MAPPING_POWER_G", 1.3, 0.1..2.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Power Green"
                     }
                 }
                 slider("SETTING_TONE_MAPPING_POWER_B", 1.3, 0.1..2.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Power Blue"
                     }
                 }
                 empty()
                 slider("SETTING_TONE_MAPPING_SATURATION", 1.15, 0.0..2.0 step 0.01) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Saturation"
                     }
                 }
             }
             screen("BLOOM", 1) {
-                lang(Locale.US) {
+                lang {
                     name = "Bloom"
                 }
                 toggle("SETTING_BLOOM", true) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Bloom Enabled"
                     }
                 }
                 slider("SETTING_BLOOM_INTENSITY", 1.0, 0.1..5.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Bloom Intensity"
                     }
                 }
                 slider("SETTING_BLOOM_RADIUS", 1.0, 1.0..5.0 step 0.5) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Bloom Radius"
                     }
                 }
                 slider("SETTING_BLOOM_PASS", 8, 1..10) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Bloom Pass Count"
                     }
                 }
             }
         }
         screen("MISC", 2) {
-            lang(Locale.US) {
+            lang {
                 name = "Misc"
             }
             screen("DEBUG", 1) {
-                lang(Locale.US) {
+                lang {
                     name = "Debug"
                 }
                 toggle("SETTING_DEBUG_WHITE_WORLD", false) {
-                    lang(Locale.US) {
+                    lang {
                         name = "White World"
                     }
                 }
                 empty()
                 toggle("SETTING_DEBUG_OUTPUT", 0, 0..3) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Debug Output"
                         0 value "Off"
                         1 value "Tone Mapping"
@@ -1117,28 +1091,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 toggle("SETTING_DEBUG_GAMMA_CORRECT", true) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Gamma Correct"
                     }
                 }
                 slider("SETTING_DEBUG_EXP", 0.0, -10.0..10.0 step 0.1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Exposure"
                     }
                 }
                 toggle("SETTING_DEBUG_NEGATE", false) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Negate"
                     }
                 }
                 toggle("SETTING_DEBUG_ALPHA", false) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Alpha"
                     }
                 }
                 empty()
                 toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..7) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Temp Tex"
                         0 value "Off"
                         1 value "temp1"
@@ -1151,7 +1125,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 toggle("SETTING_DEBUG_SVGF", 0, 0..4) {
-                    lang(Locale.US) {
+                    lang {
                         name = "SVGF"
                         0 value "Off"
                         1 value "Color"
@@ -1161,7 +1135,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 toggle("SETTING_DEBUG_packedNZ", 0, 0..2) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Prev NZ"
                         0 value "Off"
                         1 value "Normal"
@@ -1170,7 +1144,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 empty()
                 toggle("SETTING_DEBUG_GBUFFER_DATA", 0, 0..10) {
-                    lang(Locale.US) {
+                    lang {
                         name = "GBuffer Data"
                         0 value "Off"
                         1 value "Albedo"
@@ -1186,7 +1160,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 toggle("SETTING_DEBUG_NORMAL_MODE", 0, 0..1) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Normal Mode"
                         0 value "World"
                         1 value "View"
@@ -1194,28 +1168,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 empty()
                 toggle("SETTING_DEBUG_ENV_PROBE", false) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Environment Probe"
                     }
                 }
                 toggle("SETTING_DEBUG_RTWSM", false) {
-                    lang(Locale.US) {
+                    lang {
                         name = "RTWSM"
                     }
                 }
                 toggle("SETTING_DEBUG_ATMOSPHERE", false) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Atmosphere"
                     }
                 }
                 toggle("SETTING_DEBUG_EPIPOLAR", false) {
-                    lang(Locale.US) {
+                    lang {
                         name = "Epipolar"
                     }
                 }
             }
             toggle("SETTING_SCREENSHOT_MODE", false) {
-                lang(Locale.US) {
+                lang {
                     name = "Screenshot Mode"
                 }
             }
