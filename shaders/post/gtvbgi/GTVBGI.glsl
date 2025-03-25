@@ -424,7 +424,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         vec3 realTangent = normalize(T);
 
         float lmCoordSky = texelFetch(usam_temp1, vbgi_texelPos2x2 + ivec2(global_mipmapSizesI[1].x, 0), 0).a;
-        float skyLightingBase = lmCoordSky * SETTING_VBGI_SKYLIGHT_STRENGTH;
+        float skyLightingBase = pow2(lmCoordSky) * SETTING_VBGI_SKYLIGHT_STRENGTH;
 
         #if SETTING_VBGI_FALLBACK_SAMPLES == 4
         const float w5 = 0.125;
