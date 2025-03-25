@@ -57,6 +57,21 @@ vec4 coord_scenePrevToCurr(vec4 scenePrev) {
     return sceneCurr;
 }
 
+vec4 coord_viewCurrToPrev(vec4 currViewPos, bool isHand) {
+    vec4 currScenePos = gbufferModelViewInverse * currViewPos;
+    vec4 prevViewCoord;
+    if (isHand) {
+        currScenePos.xyz = currScenePos.xyz + gbufferModelViewInverse[3].xyz;
+        vec4 prevScenePos = currScenePos;
+        prevScenePos.xyz = prevScenePos.xyz - gbufferPrevModelViewInverse[3].xyz;
+        prevViewCoord = gbufferModelView * prevScenePos;
+    } else {
+        vec4 prevScenePos = coord_sceneCurrToPrev(currScenePos);
+        prevViewCoord = gbufferPrevModelView * prevScenePos;
+    }
+    return prevViewCoord;
+}
+
 vec3 coords_octDecode01(vec2 f) {
     return coords_octDecode11(f * 2.0 - 1.0);
 }
@@ -66,8 +81,8 @@ vec2 coords_octEncode01(vec3 n) {
 }
 
 vec2 coords_equirectanglarForward(vec3 direction) {
-    float phi = atan(direction.z, direction.x); // Horizontal angle (longitude)
-    float theta = asin(direction.y); // Vertical angle (latitude)
+    float phi = atan(direction.z, direction.x);// Horizontal angle (longitude)
+    float theta = asin(direction.y);// Vertical angle (latitude)
 
     // Map angles to the [0, 1] range for UV coordinates
     vec2 uv = vec2((phi + PI) / (2.0 * PI), (theta + PI / 2.0) / PI);
@@ -76,8 +91,8 @@ vec2 coords_equirectanglarForward(vec3 direction) {
 
 vec3 coords_equirectanglarBackward(vec2 uv) {
     // Map UV back to angles
-    float phi = uv.x * 2.0 * PI - PI; // Longitude
-    float theta = uv.y * PI - PI / 2.0; // Latitude
+    float phi = uv.x * 2.0 * PI - PI;// Longitude
+    float theta = uv.y * PI - PI / 2.0;// Latitude
 
     // Convert spherical coordinates back to a 3D direction vector
     vec3 direction = vec3(cos(theta) * cos(phi), sin(theta), cos(theta) * sin(phi));
@@ -85,8 +100,8 @@ vec3 coords_equirectanglarBackward(vec2 uv) {
 }
 
 vec2 coords_mercatorForward(vec3 direction) {
-    float lon = atan(direction.z, direction.x);   // Longitude
-    float lat = asin(direction.y);                // Latitude
+    float lon = atan(direction.z, direction.x);// Longitude
+    float lat = asin(direction.y);// Latitude
 
     // Convert longitude and latitude to UV coordinates with Y flipped
     vec2 uv = vec2((lon + PI) / (2.0 * PI), 0.5 + log(tan(PI / 4.0 + lat / 2.0)) / (2.0 * PI));
@@ -95,8 +110,8 @@ vec2 coords_mercatorForward(vec3 direction) {
 
 vec3 coords_mercatorBackward(vec2 uv) {
     // Convert UV coordinates back to longitude and latitude with Y flipped
-    float lon = uv.x * 2.0 * PI - PI;               // Longitude
-    float lat = 2.0 * atan(exp((uv.y - 0.5) * 2.0 * PI)) - PI / 2.0;  // Latitude
+    float lon = uv.x * 2.0 * PI - PI;// Longitude
+    float lat = 2.0 * atan(exp((uv.y - 0.5) * 2.0 * PI)) - PI / 2.0;// Latitude
 
     // Convert longitude and latitude back to a 3D direction vector
     vec3 direction = vec3(cos(lat) * cos(lon), sin(lat), cos(lat) * sin(lon));

@@ -58,22 +58,18 @@ void main() {
     gbufferData2_unpack(texelFetch(usam_gbufferData8UN, intTexCoord, 0), gData);
 
     float viewZ = texelFetch(usam_gbufferViewZ, intTexCoord, 0).r;
-    vec3 viewCoord = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
-    vec4 scenePos = gbufferModelViewInverse * vec4(viewCoord, 1.0);
-    vec4 prevScenePos = coord_sceneCurrToPrev(scenePos, gData.isHand);
-
-    vec4 prevViewCoord = gbufferPrevModelView * prevScenePos;
-    vec4 prevClipCoord = gbufferProjection * prevViewCoord;
-    prevClipCoord /= prevClipCoord.w;
-    vec2 prevTexCoord = prevClipCoord.xy * 0.5 + 0.5;
+    vec3 currViewPos = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
+    vec4 prevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
+    vec4 prevClipPos = gbufferProjection * prevViewPos;
+    prevClipPos /= prevClipPos.w;
+    vec2 prevScreenPos = prevClipPos.xy * 0.5 + 0.5;
 
     vec3 currColor = texture(usam_main, frag_texCoord).rgb;
-    currColor = saturate(currColor);
 
-    vec4 prevResult = BicubicSampling5(usam_taaLast, prevTexCoord * global_mainImageSize);
+    vec4 prevResult = BicubicSampling5(usam_taaLast, prevScreenPos * global_mainImageSize);
     vec3 prevColor = saturate(prevResult.rgb);
 
-    vec2 pixelPosDiff = (frag_texCoord - prevTexCoord) * textureSize(usam_main, 0).xy;
+    vec2 pixelPosDiff = (frag_texCoord - prevScreenPos) * textureSize(usam_main, 0).xy;
     vec3 cameraDelta = cameraPosition - previousCameraPosition;
     float cameraSpeed = length(cameraDelta);
     float prevCameraSpeed = length(global_prevCameraDelta);
@@ -101,7 +97,6 @@ void main() {
     vec3 delta = prevColorYCoCg - curr3x3Avg;
     const float clippingEps = 0.00001;
     delta /= max(1.0, length(delta / (stddev + clippingEps)));
-    prevColorYCoCg = curr3x3Avg + delta;
 
     float clipWeight = 0.5;
     clipWeight += saturate(1.0 - prevResult.a);
@@ -109,8 +104,9 @@ void main() {
     clipWeight += cameraSpeed * 0.1;
     clipWeight += cameraSpeedDiff * 4.0;
     clipWeight = saturate(clipWeight);
+    prevColorYCoCg = mix(prevColorYCoCg, curr3x3Avg + delta, clipWeight);
 
-    prevColor = mix(prevColor, colors_YCoCgToSRGB(prevColorYCoCg), clipWeight);
+    prevColor = colors_YCoCgToSRGB(prevColorYCoCg);
     #endif
 
     float lastMixWeight = texture(usam_taaLast, frag_texCoord).a;
@@ -142,6 +138,12 @@ void main() {
     finalMixWeight = clamp(finalMixWeight, 0.5, 0.99);
     #endif
 
+    mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);
+
+    #ifndef SETTING_SCREENSHOT_MODE
+    mixWeight = saturate(mixWeight - float(gData.isHand) * 0.2);
+    #endif
+
     rt_out.rgb = mix(currColor, prevColor, finalMixWeight);
     rt_out.a = 1.0;
     rt_taaLast = vec4(rt_out.rgb, mixWeight);
@@ -149,10 +151,4 @@ void main() {
     float ditherNoise = rand_IGN(intTexCoord, frameCounter);
     rt_taaLast.rgb = dither_fp16(rt_taaLast.rgb, ditherNoise);
     rt_out.rgb = dither_u8(rt_out.rgb, ditherNoise);
-
-    mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);
-
-    #ifndef SETTING_SCREENSHOT_MODE
-    mixWeight = saturate(mixWeight - float(gData.isHand) * 0.2);
-    #endif
 }

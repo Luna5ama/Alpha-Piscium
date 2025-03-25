@@ -102,12 +102,7 @@ out vec4 prevColorHLen, out vec2 prevMoments
 
     vec3 currView = coords_toViewCoord(screenPos, currViewZ, gbufferProjectionInverse);
     vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
-    currScene.xyz = isHand ? currScene.xyz + gbufferModelViewInverse[3].xyz : currScene.xyz;
-
-    vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene, isHand);
-    curr2PrevScene.xyz = isHand ? curr2PrevScene.xyz - gbufferPrevModelViewInverse[3].xyz : curr2PrevScene.xyz;
-
-    vec4 curr2PrevView = gbufferPrevModelView * curr2PrevScene;
+    vec4 curr2PrevView = coord_viewCurrToPrev(vec4(currView, 1.0), isHand);
     vec4 curr2PrevClip = gbufferPrevProjection * curr2PrevView;
     uint clipFlag = uint(curr2PrevClip.z > 0.0);
     clipFlag &= uint(all(lessThan(abs(curr2PrevClip.xyz), curr2PrevClip.www)));
