@@ -110,4 +110,9 @@ vec4 pow6(vec4 x) {
     return x2 * x2 * x2;
 }
 
+float lengthSq(float x) { return x * x; }
+float lengthSq(vec2 x) { return dot(x, x); }
+float lengthSq(vec3 x) { return dot(x, x); }
+float lengthSq(vec4 x) { return dot(x, x); }
+
 #endif
