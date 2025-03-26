@@ -4,7 +4,7 @@
 #include "/util/Material.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Dither.glsl"
-uniform sampler2D usam_temp6;
+uniform sampler2D usam_temp5;
 
 ivec2 denoiser_getImageSize();
 void denoiser_input(ivec2 coord, out vec4 data, out vec3 normal, out float viewZ);
@@ -191,7 +191,7 @@ void main() {
 
     barrier();
 
-    hlenC = texelFetch(usam_temp6, icoord, 0).r * 255.0 + 1.0;
+    hlenC = texelFetch(usam_temp5, icoord, 0).r * 255.0 + 1.0;
 
     vec4 sum = vec4(0.0);
     uint centerIdx = gl_LocalInvocationIndex + DENOISER_KERNEL_RADIUS;

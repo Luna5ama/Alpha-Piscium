@@ -120,7 +120,7 @@ void main() {
         albedoWeight *= albedoA / (albedoA + colors_srgbLuma(abs(centerAlbedo - readSharedAlbedo(centerShared + ivec2(0, -1)))));
         albedoWeight *= albedoA / (albedoA + colors_srgbLuma(abs(centerAlbedo - readSharedAlbedo(centerShared + ivec2(0, 1)))));
 
-        vec4 vrsWeight2x2 = vec4(geometryWeight, normalWeight, albedoWeight, 1.0);
+        vec4 vrsWeight2x2 = vec4(geometryWeight);
         vrsWeight2x2 = subgroupClusteredMin(centerViewZ, 4u) == -65536.0 ? vec4(1.0) : vrsWeight2x2;
 
         if ((threadIdx & 3u) == 0u) {

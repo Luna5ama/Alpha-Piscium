@@ -15,7 +15,7 @@ const vec2 workGroupsRender = vec2(0.5, 0.5);
 
 layout(rgba16f) uniform writeonly image2D uimg_temp4;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
-layout(rgba8) uniform writeonly image2D uimg_temp6;
+layout(rgba8) uniform writeonly image2D uimg_temp5;
 
 void main() {
     uvec2 workGroupOrigin = gl_WorkGroupID.xy << 4;
@@ -37,7 +37,7 @@ void main() {
         imageStore(uimg_temp4, texelPos2x2, filterInput);
 
         float hLenEncoded = saturate((newHLen - 1.0) / 255.0);
-        imageStore(uimg_temp6, texelPos2x2, vec4(hLenEncoded, 0.0, 0.0, 0.0));
+        imageStore(uimg_temp5, texelPos2x2, vec4(hLenEncoded, 0.0, 0.0, 0.0));
 
         uvec4 packedData;
         svgf_pack(packedData, vec4(filterInput.rgb, newHLen), newMoments);
