@@ -21,6 +21,8 @@ uniform usampler2D usam_svgfHistory;
 layout(rgba32ui) uniform writeonly uimage2D uimg_tempRGBA32UI;
 layout(rg32ui) uniform writeonly uimage2D uimg_packedZN;
 
+layout(rgba16f) uniform writeonly image2D uimg_temp4;
+
 void main() {
     uvec2 workGroupOrigin = gl_WorkGroupID.xy << 3;
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
@@ -57,12 +59,13 @@ void main() {
                 0u
             );
 
+            imageStore(uimg_temp4, texelPos1x1, vec4(prevDiffuse, 0.0));
             imageStore(uimg_tempRGBA32UI, texelPos1x1, temp32UIOut);
 
             uvec4 packedZNOut = uvec4(0u);
             nzpacking_pack(packedZNOut.xy, gData.normal, viewZ);
 
-            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == 0u);
+            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == (uint(frameCounter) & 3u));
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
             if (bool(ssgiOutWriteFlag)) {
                 imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
@@ -90,7 +93,7 @@ void main() {
             uvec4 packedZNOut = uvec4(0u);
             packedZNOut.y = floatBitsToUint(viewZ);
 
-            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == 0u);
+            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == (uint(frameCounter) & 3u));
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
             if (bool(ssgiOutWriteFlag)) {
                 imageStore(uimg_packedZN, texelPos2x2, packedZNOut);

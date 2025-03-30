@@ -98,7 +98,7 @@ void main() {
             nzpacking_pack(packedZNOut.xy, gData.normal, viewZ);
             imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
 
-            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == 0u);
+            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == (uint(frameCounter) & 3u));
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
             if (bool(ssgiOutWriteFlag)) {
                 imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
@@ -111,7 +111,7 @@ void main() {
             packedZNOut.y = floatBitsToUint(viewZ);
             imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
 
-            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == 0u);
+            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == (uint(frameCounter) & 3u));
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
             if (bool(ssgiOutWriteFlag)) {
                 imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
