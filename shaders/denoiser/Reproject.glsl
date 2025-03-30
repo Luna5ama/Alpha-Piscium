@@ -11,7 +11,7 @@ float normalWeight(vec3 currWorldNormal, uint packedNormal) {
     return pow(sdot, float(SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS));
 }
 
-float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prevViewZI) {
+float posWeight(vec3 currScene, vec2 curr2PrevScreen, uint prevViewZI, float a) {
     float prevViewZ = uintBitsToFloat(prevViewZI);
     vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevViewZ, gbufferPrevProjectionInverse);
     vec4 prevScene = gbufferPrevModelViewInverse * vec4(prevView, 1.0);
@@ -19,14 +19,13 @@ float posWeight(float currViewZ, vec3 currScene, vec2 curr2PrevScreen, uint prev
 
     vec3 diff = currScene.xyz - prevScene.xyz;
     float distSq = dot(diff, diff);
-    float a = pow2(currViewZ) * 0.001;
     return a / (a + distSq);
 }
 
 vec4 computeBilateralWeights(
 usampler2D packedZN,
 vec2 gatherTexelPos,
-vec3 currScene, float currViewZ, vec3 currToPrevViewNormal
+vec3 currScene, vec3 currToPrevViewNormal, float a
 ) {
     vec2 screenPos = gatherTexelPos * global_mainImageSizeRcp;
     vec2 gatherUV = nzpacking_fullResGatherUV(gatherTexelPos);
@@ -39,10 +38,10 @@ vec3 currScene, float currViewZ, vec3 currToPrevViewNormal
     result.w *= normalWeight(currToPrevViewNormal, prevNs.w);
 
     uvec4 prevViewZs = textureGather(packedZN, gatherUV, 1);
-    result.x *= posWeight(currViewZ, currScene, screenPos + global_mainImageSizeRcp * vec2(-0.5, 0.5), prevViewZs.x);
-    result.y *= posWeight(currViewZ, currScene, screenPos + global_mainImageSizeRcp * vec2(0.5, 0.5), prevViewZs.y);
-    result.z *= posWeight(currViewZ, currScene, screenPos + global_mainImageSizeRcp * vec2(0.5, -0.5), prevViewZs.z);
-    result.w *= posWeight(currViewZ, currScene, screenPos + global_mainImageSizeRcp * vec2(-0.5, -0.5), prevViewZs.w);
+    result.x *= posWeight(currScene, screenPos + global_mainImageSizeRcp * vec2(-0.5, 0.5), prevViewZs.x, a);
+    result.y *= posWeight(currScene, screenPos + global_mainImageSizeRcp * vec2(0.5, 0.5), prevViewZs.y, a);
+    result.z *= posWeight(currScene, screenPos + global_mainImageSizeRcp * vec2(0.5, -0.5), prevViewZs.z, a);
+    result.w *= posWeight(currScene, screenPos + global_mainImageSizeRcp * vec2(-0.5, -0.5), prevViewZs.w, a);
 
     return result;
 }
@@ -57,7 +56,8 @@ inout vec3 prevDiffuse, inout vec2 prevMoments, inout float prevHLen, inout floa
     if (all(equal(gatherTexelPos, gatherTexelPosClamped))) {
         vec2 gatherUV1 = svgf_gatherUV1(gatherTexelPos);
 
-        vec4 bilateralWeights = computeBilateralWeights(packedZN, gatherTexelPos, currScene, currViewZ, currToPrevViewNormal);
+        float a = abs(currViewZ) * 0.0001;
+        vec4 bilateralWeights = computeBilateralWeights(packedZN, gatherTexelPos, currScene, currToPrevViewNormal, a);
         float bilateralWeightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
 
         vec4 interpoWeights = baseWeights * bilateralWeights;
@@ -101,7 +101,7 @@ inout vec3 prevDiffuse, inout vec2 prevMoments, inout float prevHLen, inout floa
             uvec4 prevHLenData = textureGather(svgfHistory, gatherUV1, 3);
             vec4 prevHLens = uintBitsToFloat(prevHLenData);
 
-            prevHLen += max(prevHLen, dot(bilateralWeights, prevHLens) / bilateralWeightSum);
+            prevHLen = max(prevHLen, dot(bilateralWeights, prevHLens) / bilateralWeightSum);
         }
     }
 }
@@ -142,7 +142,8 @@ out vec3 prevDiffuse, out vec2 prevMoments, out float prevHLen
     vec2 gatherTexelPos = centerPixelOrigin + 1.0;
     vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
-    vec4 centerWeights = computeBilateralWeights(packedZN, gatherTexelPos, currScene.xyz, currViewZ, currToPrevViewNormal);
+    float a = abs(currViewZ) * 0.002;
+    vec4 centerWeights = computeBilateralWeights(packedZN, gatherTexelPos, currScene.xyz, currToPrevViewNormal, a);
 
     const float WEIGHT_EPSILON = 0.5;
     float weightSum = 0.0;
@@ -150,45 +151,48 @@ out vec3 prevDiffuse, out vec2 prevMoments, out float prevHLen
     flag |= uint(any(lessThan(curr2PrevTexel, vec2(1.0))));
     flag |= uint(any(greaterThan(curr2PrevTexel, global_mainImageSize - 1.0)));
     if (bool(flag)) {
-        vec2 bilinearWeights = pixelPosFract;
+        vec4 weightX = interpo_bSplineWeights(pixelPosFract.x);
+        vec4 weightY = interpo_bSplineWeights(pixelPosFract.y);
 
-        vec4 gatherWeights;
-        gatherWeights.yz = bilinearWeights.xx;
-        gatherWeights.xw = 1.0 - bilinearWeights.xx;
-        gatherWeights.xy *= bilinearWeights.yy;
-        gatherWeights.zw *= 1.0 - bilinearWeights.yy;
+        vec2 bilinearWeights2 = pixelPosFract;
+        vec4 blinearWeights4;
+        blinearWeights4.yz = bilinearWeights2.xx;
+        blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
+        blinearWeights4.xy *= bilinearWeights2.yy;
+        blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
+        vec4 sampleGatherWeights = weightX.xyyx * weightY.wwzz;
+        sampleGatherWeights.z += blinearWeights4.x;
         bilateralSample(
             svgfHistory, packedZN,
-            gatherTexelPos, gatherWeights * 8.0,
+            gatherTexelPos + vec2(-1.0, 1.0), sampleGatherWeights,
             currScene.xyz, currViewZ, currToPrevViewNormal,
             prevDiffuse, prevMoments, prevHLen, weightSum
         );
 
+        sampleGatherWeights = weightX.zwwz * weightY.wwzz;
+        sampleGatherWeights.w += blinearWeights4.y;
         bilateralSample(
             svgfHistory, packedZN,
-            gatherTexelPos + vec2(-1.0, 1.0), gatherWeights,
+            gatherTexelPos + vec2(1.0, 1.0), sampleGatherWeights,
             currScene.xyz, currViewZ, currToPrevViewNormal,
             prevDiffuse, prevMoments, prevHLen, weightSum
         );
 
+        sampleGatherWeights = weightX.zwwz * weightY.yyxx;
+        sampleGatherWeights.x += blinearWeights4.z;
         bilateralSample(
             svgfHistory, packedZN,
-            gatherTexelPos + vec2(1.0, 1.0), gatherWeights,
+            gatherTexelPos + vec2(1.0, -1.0), sampleGatherWeights,
             currScene.xyz, currViewZ, currToPrevViewNormal,
             prevDiffuse, prevMoments, prevHLen, weightSum
         );
 
+        sampleGatherWeights = weightX.xyyx * weightY.yyxx;
+        sampleGatherWeights.y += blinearWeights4.w;
         bilateralSample(
             svgfHistory, packedZN,
-            gatherTexelPos + vec2(1.0, -1.0), gatherWeights,
-            currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevDiffuse, prevMoments, prevHLen, weightSum
-        );
-
-        bilateralSample(
-            svgfHistory, packedZN,
-            gatherTexelPos + vec2(-1.0, -1.0), gatherWeights,
+            gatherTexelPos + vec2(-1.0, -1.0), sampleGatherWeights,
             currScene.xyz, currViewZ, currToPrevViewNormal,
             prevDiffuse, prevMoments, prevHLen, weightSum
         );

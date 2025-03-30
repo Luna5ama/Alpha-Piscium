@@ -179,14 +179,14 @@ vec4 svgf_atrous(ivec2 texelPos) {
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                -2, 0.25,
+                -2, 1.0,
                 colorSum, weightSum
             );
 
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                -1, 0.5,
+                -1, 1.0,
                 colorSum, weightSum
             );
 
@@ -194,14 +194,14 @@ vec4 svgf_atrous(ivec2 texelPos) {
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                1, 0.5,
+                1, 1.0,
                 colorSum, weightSum
             );
 
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                2, 0.25,
+                2, 1.0,
                 colorSum, weightSum
             );
 
