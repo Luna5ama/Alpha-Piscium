@@ -13,9 +13,7 @@
 
 uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferViewZ;
-uniform sampler2D usam_temp1;
-uniform usampler2D usam_packedNZ;
-uniform sampler2D usam_temp7;
+uniform usampler2D usam_tempRG32UI;
 uniform sampler2D usam_skyLUT;
 uniform usampler2D usam_envProbe;
 
@@ -301,10 +299,10 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
 
     vec2 rayDir = dir.xy;
 
-    vec2 texelCenterPos = vec2(vbgi_texelPos1x1) + 0.5;
-    float maxDistX = rayDir.x != 0.0 ? (rayDir.x >= 0.0 ? (global_mainImageSize.x - texelCenterPos.x) / rayDir.x : -texelCenterPos.x / rayDir.x) : 1e6;
-    float maxDistY = rayDir.y != 0.0 ? (rayDir.y < 0.0 ? (-texelCenterPos.y / rayDir.y) : (global_mainImageSize.y - texelCenterPos.y) / rayDir.y) : 1e6;
-    float maxDist = min(maxDistX, maxDistY);
+    vec2 texelCenterPos = vec2(vbgi_texelPos2x2) + 0.5;
+    float maxDistX = rayDir.x != 0.0 ? (rayDir.x >= 0.0 ? (global_mipmapSizes[1].x - texelCenterPos.x) / rayDir.x : -texelCenterPos.x / rayDir.x) : 1e6;
+    float maxDistY = rayDir.y != 0.0 ? (rayDir.y < 0.0 ? (-texelCenterPos.y / rayDir.y) : (global_mipmapSizes[1].y - texelCenterPos.y) / rayDir.y) : 1e6;
+    float maxDist = min(maxDistX, maxDistY) - 2.0;
 
     uvec2 hashKey = (uvec2(vbgi_texelPos2x2 >> 1) & uvec2(31u)) ^ (NOISE_FRAME & 0xFFFFFFF0u);
     uint r2Index = (rand_hash21(hashKey) & 65535u) + NOISE_FRAME;
@@ -331,14 +329,13 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         sampleTexelDist += sampleLodTexelSize * jitter;
         sampleTexelDist = min(sampleTexelDist, maxDist);
 
-        vec2 sampleTexelPos = floor(rayDir * sampleTexelDist + rayStart);
-
-        ivec2 sampleTexelPosHalf = clamp(ivec2(sampleTexelPos * 0.5), ivec2(0), ivec2(global_mipmapSizesI[1] - 1));
-        vec2 sampleUV = saturate((sampleTexelPos + 0.5) * global_mainImageSizeRcp);
+        vec2 sampleTexelPosF = clamp(floor(rayDir * sampleTexelDist + rayStart), ivec2(0), global_mipmapSizesI[1] - 1);
+        ivec2 sampleTexelPos = ivec2(sampleTexelPosF);
+        vec2 sampleUV = saturate((sampleTexelPos + 0.5) * global_mipmapSizesRcp[1]);
 
         float sampleViewZ;
-        vec3 sampleWorldNormal;
-        nzpacking_unpack(texelFetch(usam_packedNZ, sampleTexelPosHalf, 0).xy, sampleWorldNormal, sampleViewZ);
+        vec3 sampleViewNormal;
+        nzpacking_unpack(texelFetch(usam_tempRG32UI, sampleTexelPos, 0).xy, sampleViewNormal, sampleViewZ);
 
         vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
         vec3 frontDiff = samplePosVS - viewPos;
@@ -375,16 +372,15 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
                 uint visBits0 = occBits0 & (~occBits);
 
                 if (visBits0 != 0u) {
-                    vec4 sample2 = texelFetch(usam_temp1, sampleTexelPosHalf, 0);
-                    float emissive = float(sample2.a > 0.0);
-                    vec3 sampleViewNormal = mat3(gbufferModelView) * sampleWorldNormal;
+                    uvec2 radianceData = texelFetch(usam_tempRG32UI, sampleTexelPos + ivec2(0, global_mipmapSizesI[1].y), 0).xy;
+                    vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
+                    float emissive = saturate(sign(radiance.a));
                     float emitterCos = mix(saturate(dot(sampleViewNormal, -thisToSample)), 1.0, emissive);
                     float planeDist = pow2(dot(frontDiff, sampleViewNormal));
                     float emissiveA = 0.001 * pow2(sampleViewZ);
                     emitterCos *= 1.0 - emissiveA / (emissiveA + planeDist);
 
-                    float falloff = linearStep(RADIUS_SQ.y, RADIUS_SQ.x, frontDistSq);
-                    vec3 sampleRad = sample2.rgb * falloff;
+                    vec3 sampleRad = radiance.rgb;
                     float bitV = float(bitCount(visBits0)) * (1.0 / 32.0);
 
                     vec3 N = viewNormal;
@@ -418,7 +414,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         uint unoccluedBits = ~occBits;
         vec3 realTangent = normalize(T);
 
-        float lmCoordSky = texelFetch(usam_temp1, vbgi_texelPos2x2 + ivec2(global_mipmapSizesI[1].x, 0), 0).a;
+        float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_tempRG32UI, vbgi_texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
         float skyLightingBase = pow2(lmCoordSky) * SETTING_VBGI_SKYLIGHT_STRENGTH;
 
         #if SETTING_VBGI_FALLBACK_SAMPLES == 4
@@ -533,18 +529,14 @@ vec4 gtvbgi(ivec2 texelPos2x2) {
     vbgi_texelPos2x2 = texelPos2x2;
     vbgi_texelPos1x1 = texelPos2x2 << 1;
 
-    float centerViewZ = texelFetch(usam_gbufferViewZ, vbgi_texelPos1x1, 0).r;
+    float centerViewZ;
+    vec3 centerViewNormal;
+    nzpacking_unpack(texelFetch(usam_tempRG32UI, vbgi_texelPos2x2, 0).xy, centerViewNormal, centerViewZ);
 
     vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
     if (centerViewZ != -65536.0) {
-        vec2 screenPos = (vec2(vbgi_texelPos1x1) + 0.5) * global_mainImageSizeRcp;
-        float centerZ;
-        vec3 centerWorldNormal;
-        nzpacking_unpack(texelFetch(usam_packedNZ, vbgi_texelPos2x2, 0).xy, centerWorldNormal, centerZ);
-
-        vec3 centerViewNormal = mat3(gbufferModelView) * centerWorldNormal;
-        vec3 centerViewPos = coords_toViewCoord(screenPos, centerZ, gbufferProjectionInverse);
-
+        vec2 screenPos = (vec2(vbgi_texelPos2x2) + 0.5) * global_mipmapSizesRcp[1];
+        vec3 centerViewPos = coords_toViewCoord(screenPos, centerViewZ, gbufferProjectionInverse);
         uniGTVBGI(centerViewPos, centerViewNormal, result);
     }
 

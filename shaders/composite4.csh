@@ -16,7 +16,7 @@ uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
-layout(rgba16f) uniform restrict image2D uimg_temp1;
+layout(rg32ui) uniform restrict uimage2D uimg_tempRG32UI;
 
 ivec2 texelPos;
 
@@ -81,12 +81,13 @@ void main() {
 
             lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);
             ivec2 texelPos2x2 = texelPos >> 1;
+            ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
 
-            vec4 ssgiOut = imageLoad(uimg_temp1, texelPos2x2);
+            uvec2 radianceData = imageLoad(uimg_tempRG32UI, radianceTexelPos).xy;
+            vec4 ssgiOut = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
 
             if (gData.materialID == 65534u) {
                 mainOut = vec4(material.albedo, 1.0);
-                ssgiOut = vec4(0.0, 0.0, 0.0, 0.0);
             } else {
                 doLighting(material, gData.normal, mainOut.rgb, ssgiOut.rgb);
             }
@@ -94,7 +95,7 @@ void main() {
             uint ssgiOutWriteFlag = uint((threadIdx & 3u) == 0u);
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
             if (bool(ssgiOutWriteFlag)) {
-                imageStore(uimg_temp1, texelPos2x2, ssgiOut);
+                imageStore(uimg_tempRG32UI, radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
             }
         } else {
             mainOut.rgb += renderSunMoon(texelPos);

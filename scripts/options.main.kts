@@ -1127,12 +1127,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         4 value "Moment^2"
                     }
                 }
-                toggle("SETTING_DEBUG_packedNZ", 0, 0..2) {
+                toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..5) {
                     lang {
-                        name = "Prev NZ"
+                        name = "GI Inputs"
                         0 value "Off"
-                        1 value "Normal"
-                        2 value "Z"
+                        1 value "Radiance"
+                        2 value "Light Map Sky"
+                        3 value "Emissive"
+                        4 value "Normal"
+                        5 value "View Z"
                     }
                 }
                 empty()

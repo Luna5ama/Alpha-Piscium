@@ -48,8 +48,8 @@ uniform usampler2D usam_svgfHistory;
 uniform sampler2D DEBUG_TEX_NAME;
 #endif
 
-#if SETTING_DEBUG_packedNZ != 0
-uniform usampler2D usam_packedNZ;
+#if SETTING_DEBUG_GI_INPUTS != 0
+uniform usampler2D usam_tempRG32UI;
 #endif
 
 bool inViewPort(ivec4 originSize, out vec2 texCoord) {
@@ -144,15 +144,29 @@ void debugOutput(inout vec4 outputColor) {
     outputColor.rgb = vec3(float(gData.isHand));
     #endif
 
-    #if SETTING_DEBUG_packedNZ != 0
-    float prevZ;
-    vec3 prevN;
-    nzpacking_unpack(texelFetch(usam_packedNZ, texelPos, 0).xy, prevN, prevZ);
-    #if SETTING_DEBUG_packedNZ == 1
-    outputColor.rgb = vec3(prevN * 0.5 + 0.5);
-    #else
-    outputColor.rgb = vec3(-prevZ / far);
-    #endif
+    #if SETTING_DEBUG_GI_INPUTS != 0
+    if (all(lessThan(texelPos, global_mipmapSizesI[1]))) {
+        uvec2 radianceData = texelFetch(usam_tempRG32UI, texelPos+ ivec2(0, global_mipmapSizesI[1].y), 0).xy;
+        vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
+
+        #if SETTING_DEBUG_GI_INPUTS == 1
+        outputColor.rgb = radiance.rgb;
+        #elif SETTING_DEBUG_GI_INPUTS == 2
+        outputColor.rgb = vec3(abs(radiance.a));
+        #elif SETTING_DEBUG_GI_INPUTS == 3
+        outputColor.rgb = saturate(sign(radiance.a));
+        #endif
+
+
+        float prevZ;
+        vec3 prevN;
+        nzpacking_unpack(texelFetch(usam_tempRG32UI, texelPos, 0).xy, prevN, prevZ);
+        #if SETTING_DEBUG_GI_INPUTS == 4
+        outputColor.rgb = vec3(prevN * 0.5 + 0.5);
+        #elif SETTING_DEBUG_GI_INPUTS == 5
+        outputColor.rgb = linearStep(near, far, -prevZ).rrr;
+        #endif
+    }
     #endif
 
     #if SETTING_DEBUG_SVGF != 0
