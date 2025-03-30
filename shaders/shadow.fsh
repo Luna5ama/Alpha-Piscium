@@ -19,7 +19,7 @@ void main() {
 
 	vec2 randCoord = gl_FragCoord.xy;
 	randCoord.y += -frag_viewZ;
-	float randAlpha = rand_IGN(randCoord, frameCounter);
+	float randAlpha = rand_IGN(uvec2(randCoord), frameCounter);
 
 	if (color.a < randAlpha) {
 		discard;

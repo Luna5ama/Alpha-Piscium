@@ -80,7 +80,7 @@ void main() {
         // We adjust again viewHeight according to PLANET_RADIUS_OFFSET to be in a valid range.
         float viewHeight = atmosphere.bottom + saturate(texCoord.y + PLANET_RADIUS_OFFSET) * (atmosphere.top - atmosphere.bottom - PLANET_RADIUS_OFFSET);
 
-        float randV = rand_IGN(vec2(gl_GlobalInvocationID.xy), frameCounter);
+        float randV = rand_IGN(gl_GlobalInvocationID.xy, frameCounter);
 
         {
             float i = randV + gl_LocalInvocationID.x;

@@ -96,7 +96,8 @@ vec4 svgf_atrous(sampler2D filterInput, usampler2D packedNZ, ivec2 texelPos, ive
             );
 
             outputColor = colorSum / vec4(vec3(weightSum), weightSum * weightSum);
-            outputColor = max(outputColor, 0.0); }
+            outputColor = max(outputColor, 0.0);
+        }
     }
 
     return outputColor;

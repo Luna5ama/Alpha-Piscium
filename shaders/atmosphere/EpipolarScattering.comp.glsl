@@ -34,7 +34,7 @@ void main() {
     cond &= uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
 
     if (bool(cond)) {
-        float ignValue = rand_IGN(vec2(gl_GlobalInvocationID.xy), frameCounter);
+        float ignValue = rand_IGN(gl_GlobalInvocationID.xy, frameCounter);
         float sliceSampleP = float(sliceSampleIndex);
         sliceSampleP += ignValue - 0.5;
         sliceSampleP /= float(SETTING_SLICE_SAMPLES - 1);
