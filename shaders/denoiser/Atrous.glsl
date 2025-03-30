@@ -2,6 +2,92 @@
 #include "/util/NZPacking.glsl"
 #include "/util/Colors.glsl"
 
+#if ATROUS_PASS == 1
+#define ATROUS_AXIS_X a
+#define ATROUS_RADIUS 1
+#define ATROUS_INPUT usam_temp2
+#define ATROUS_OUTPUT uimg_temp1
+
+#elif ATROUS_PASS == 2
+#define ATROUS_AXIS_Y a
+#define ATROUS_RADIUS 1
+#define ATROUS_INPUT usam_temp1
+#define ATROUS_OUTPUT uimg_temp2
+
+
+#elif ATROUS_PASS == 3
+#define ATROUS_AXIS_X a
+#define ATROUS_RADIUS 2
+#define ATROUS_INPUT usam_temp2
+#define ATROUS_OUTPUT uimg_temp1
+
+#elif ATROUS_PASS == 4
+#define ATROUS_AXIS_Y a
+#define ATROUS_RADIUS 2
+#define ATROUS_INPUT usam_temp1
+#define ATROUS_OUTPUT uimg_temp2
+
+
+#elif ATROUS_PASS == 5
+#define ATROUS_AXIS_X a
+#define ATROUS_RADIUS 4
+#define ATROUS_INPUT usam_temp2
+#define ATROUS_OUTPUT uimg_temp1
+
+#elif ATROUS_PASS == 6
+#define ATROUS_AXIS_Y a
+#define ATROUS_RADIUS 4
+#define ATROUS_INPUT usam_temp1
+#define ATROUS_OUTPUT uimg_temp2
+
+
+#elif ATROUS_PASS == 7
+#define ATROUS_AXIS_X a
+#define ATROUS_RADIUS 8
+#define ATROUS_INPUT usam_temp2
+#define ATROUS_OUTPUT uimg_temp1
+
+#elif ATROUS_PASS == 8
+#define ATROUS_AXIS_Y a
+#define ATROUS_RADIUS 8
+#define ATROUS_INPUT usam_temp1
+#define ATROUS_OUTPUT uimg_temp2
+
+
+#elif ATROUS_PASS == 9
+#define ATROUS_AXIS_X a
+#define ATROUS_RADIUS 16
+#define ATROUS_INPUT usam_temp2
+#define ATROUS_OUTPUT uimg_temp1
+
+#elif ATROUS_PASS == 10
+#define ATROUS_AXIS_Y a
+#define ATROUS_RADIUS 16
+#define ATROUS_INPUT usam_temp1
+#define ATROUS_OUTPUT uimg_temp2
+#endif
+
+#if ATROUS_PASS == 2
+#define ATROUS_UPDATE_HISTORY a
+#endif
+
+#ifdef ATROUS_AXIS_X
+layout(local_size_x = 128, local_size_y = 1) in;
+#define ATROUS_AXIS_VEC ivec2(1, 0)
+#else
+layout(local_size_x = 1, local_size_y = 128) in;
+#define ATROUS_AXIS_VEC ivec2(0, 1)
+#endif
+const vec2 workGroupsRender = vec2(1.0, 1.0);
+
+uniform sampler2D ATROUS_INPUT;
+uniform sampler2D usam_temp6;
+uniform usampler2D usam_packedZN;
+layout(rgba16f) uniform writeonly image2D ATROUS_OUTPUT;
+#ifdef ATROUS_UPDATE_HISTORY
+layout(rgba32ui) uniform restrict uimage2D uimg_svgfHistory;
+#endif
+
 float normalWeight(vec3 centerNormal, vec3 sampleNormal, float phiN) {
     float sdot = saturate(dot(centerNormal, sampleNormal));
     return pow(sdot, phiN);
@@ -15,18 +101,39 @@ float luminanceWeight(float centerLuminance, float sampleLuminance, float phiL) 
     return exp(-(abs(centerLuminance - sampleLuminance) * phiL));
 }
 
+#define SHARED_DATA_SIZE (128 + ATROUS_RADIUS * 4)
+#define SHARED_DATA_OFFSET (ATROUS_RADIUS * 2)
+ivec2 svgf_texelPos;
+shared uvec2 shared_colorData[SHARED_DATA_SIZE];
+
+void loadShared(uint index) {
+    if (index < SHARED_DATA_SIZE) {
+        ivec2 loadTexelPos = ivec2(gl_WorkGroupID.xy * gl_WorkGroupSize.xy);
+        loadTexelPos += ATROUS_AXIS_VEC * (int(index) - SHARED_DATA_OFFSET);
+        loadTexelPos = clamp(loadTexelPos, ivec2(0), global_mainImageSizeI - 1);
+        vec4 color = texelFetch(ATROUS_INPUT, loadTexelPos, 0);
+        uvec2 packedColor = uvec2(packHalf2x16(color.rg), packHalf2x16(color.ba));
+        shared_colorData[index] = packedColor;
+    }
+}
+
+vec4 readSharedColor(int offset) {
+    uvec2 packedColor = shared_colorData[gl_LocalInvocationIndex + offset + SHARED_DATA_OFFSET];
+    return vec4(unpackHalf2x16(packedColor.x), unpackHalf2x16(packedColor.y));
+}
+
 void atrousSample(
-sampler2D filterInput, usampler2D packedNZ,
 vec3 centerNormal, float centerViewZ, float centerLuminance,
 float phiN, float phiZ, float phiL,
-ivec2 texelPos, float sampleWeight,
+int offset, float sampleWeight,
 inout vec4 colorSum, inout float weightSum
 ) {
+    ivec2 texelPos = svgf_texelPos + offset * ATROUS_AXIS_VEC * ATROUS_RADIUS;
     if (all(greaterThanEqual(texelPos, ivec2(0))) && all(lessThan(texelPos, global_mainImageSizeI))) {
-        vec4 sampleColor = texelFetch(filterInput, texelPos, 0);
+        vec4 sampleColor = readSharedColor(offset);
         vec3 sampleNormal;
         float sampleViewZ;
-        nzpacking_unpack(texelFetch(packedNZ, texelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, sampleNormal, sampleViewZ);
+        nzpacking_unpack(texelFetch(usam_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, sampleNormal, sampleViewZ);
 
         float sampleLuminance = colors_srgbLuma(sampleColor.rgb);
 
@@ -40,21 +147,28 @@ inout vec4 colorSum, inout float weightSum
     }
 }
 
-vec4 svgf_atrous(sampler2D filterInput, usampler2D packedNZ, ivec2 texelPos, ivec2 radiusOffset, float sigmaL) {
+vec4 svgf_atrous(ivec2 texelPos) {
+    svgf_texelPos = texelPos;
+
+    loadShared(gl_LocalInvocationIndex);
+    loadShared(gl_LocalInvocationIndex + 128);
+    barrier();
+
     vec4 outputColor = vec4(0.0);
 
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(svgf_texelPos, global_mainImageSizeI))) {
         vec3 centerNormal;
         float centerViewZ;
-        nzpacking_unpack(texelFetch(packedNZ, texelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, centerNormal, centerViewZ);
+        nzpacking_unpack(texelFetch(usam_packedZN, svgf_texelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, centerNormal, centerViewZ);
 
         if (centerViewZ != -65536.0) {
-            vec4 centerFilterData = texelFetch(filterInput, texelPos, 0);
+            vec4 centerFilterData = readSharedColor(0);
             vec3 centerColor = centerFilterData.rgb;
 
             float centerVariance = centerFilterData.a;
             float centerLuminance = colors_srgbLuma(centerColor);
 
+            float sigmaL = SETTING_DENOISER_FILTER_COLOR_STRICTNESS * texelFetch(usam_temp6, svgf_texelPos, 0).r;
             float phiN = SETTING_DENOISER_FILTER_NORMAL_STRICTNESS;
             float phiZ = max((1.0 / SETTING_DENOISER_FILTER_DEPTH_STRICTNESS) * pow2(centerViewZ), 0.5);
             float phiL = sigmaL / max(sqrt(centerVariance), 1e-10);
@@ -63,35 +177,31 @@ vec4 svgf_atrous(sampler2D filterInput, usampler2D packedNZ, ivec2 texelPos, ive
             float weightSum = 1.0;
 
             atrousSample(
-                filterInput, packedNZ,
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                -2 * radiusOffset + texelPos, 0.25,
+                -2, 0.25,
                 colorSum, weightSum
             );
 
             atrousSample(
-                filterInput, packedNZ,
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                -1 * radiusOffset + texelPos, 0.5,
+                -1, 0.5,
                 colorSum, weightSum
             );
 
 
             atrousSample(
-                filterInput, packedNZ,
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                1 * radiusOffset + texelPos, 0.5,
+                1, 0.5,
                 colorSum, weightSum
             );
 
             atrousSample(
-                filterInput, packedNZ,
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                2 * radiusOffset + texelPos, 0.25,
+                2, 0.25,
                 colorSum, weightSum
             );
 
@@ -101,4 +211,25 @@ vec4 svgf_atrous(sampler2D filterInput, usampler2D packedNZ, ivec2 texelPos, ive
     }
 
     return outputColor;
+}
+
+void main() {
+    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+    vec4 outputColor = svgf_atrous(texelPos);
+
+    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+        imageStore(ATROUS_OUTPUT, texelPos, outputColor);
+
+        #ifdef ATROUS_UPDATE_HISTORY
+        uvec4 packedData = imageLoad(uimg_svgfHistory, texelPos);
+        vec3 color;
+        vec3 fastColor;
+        vec2 moments;
+        float hLen;
+        svgf_unpack(packedData, color, fastColor, moments, hLen);
+        color = outputColor.rgb;
+        svgf_pack(packedData, color, fastColor, moments, hLen);
+        imageStore(uimg_svgfHistory, texelPos, packedData);
+        #endif
+    }
 }
