@@ -19,10 +19,7 @@ uniform usampler2D usam_packedZN;
 uniform usampler2D usam_svgfHistory;
 
 layout(rgba32ui) uniform writeonly uimage2D uimg_tempRGBA32UI;
-layout(rg32ui) uniform writeonly uimage2D uimg_tempRG32UI;
-layout(rgba8) uniform writeonly image2D uimg_temp6;
-
-layout(rgba16f) uniform writeonly image2D uimg_temp3;
+layout(rg32ui) uniform writeonly uimage2D uimg_packedZN;
 
 void main() {
     uvec2 workGroupOrigin = gl_WorkGroupID.xy << 3;
@@ -60,7 +57,6 @@ void main() {
                 0u
             );
 
-            imageStore(uimg_temp3, texelPos1x1, vec4(prevDiffuse, 0.0));
             imageStore(uimg_tempRGBA32UI, texelPos1x1, temp32UIOut);
 
             uvec4 packedZNOut = uvec4(0u);
@@ -82,7 +78,7 @@ void main() {
                     uvec4 tempRG32UIOut = uvec4(0u);
                     tempRG32UIOut.x = packHalf2x16(ssgiOut.rg);
                     tempRG32UIOut.y = packHalf2x16(ssgiOut.ba);
-                    imageStore(uimg_tempRG32UI, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), tempRG32UIOut);
+                    imageStore(uimg_packedZN, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), tempRG32UIOut);
                 }
             }
 

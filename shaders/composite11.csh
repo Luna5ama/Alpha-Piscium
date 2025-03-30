@@ -17,7 +17,7 @@ uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferViewZ;
 
 layout(rgba16f) writeonly uniform image2D uimg_temp2;
-layout(rgba8) uniform writeonly image2D uimg_temp5;
+layout(rgba8) uniform writeonly image2D uimg_temp6;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
 
 float computeGeometryWeight(vec3 centerPos, vec3 centerNormal, float sampleViewZ, uint sampleNormal, vec2 sampleScreenPos, float a) {
@@ -113,6 +113,8 @@ void main() {
         gi_update(outputColor.rgb, prevColorHLen, prevMoments, newHLen, newMoments, filterInput);
         filterInput.rgb = dither_fp16(filterInput.rgb, rand_IGN(texelPos, frameCounter));
         imageStore(uimg_temp2, texelPos, filterInput);
+
+        imageStore(uimg_temp6, texelPos, vec4(pow2(linearStep(0.0, 64.0, newHLen))));
 
         uvec4 packedOutData;
         svgf_pack(packedData, filterInput.rgb, vec3(0.0), newMoments, newHLen);

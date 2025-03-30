@@ -3,19 +3,18 @@
 #include "/denoiser/Atrous.glsl"
 
 layout(local_size_x = 128, local_size_y = 1) in;
-const vec2 workGroupsRender = vec2(0.5, 0.5);
+const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform sampler2D usam_temp5;
-uniform sampler2D usam_temp4;
-uniform usampler2D usam_packedNZ;
-layout(rgba16f) uniform writeonly image2D uimg_temp3;
+uniform sampler2D usam_temp2;
+uniform sampler2D usam_temp6;
+uniform usampler2D usam_packedZN;
+layout(rgba16f) uniform writeonly image2D uimg_temp1;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-    if (all(lessThan(texelPos, global_mipmapSizesI[1]))) {
-        float hLen = texelFetch(usam_temp5, texelPos, 0).r;
-        float sigmaL = SETTING_DENOISER_FILTER_COLOR_STRICTNESS * linearStep(0.0, 0.2, hLen);
-        vec4 outputColor = svgf_atrous(usam_temp4, usam_packedNZ, texelPos, ivec2(2, 0), sigmaL);
-        imageStore(uimg_temp3, texelPos, outputColor);
+    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+        float sigmaL = SETTING_DENOISER_FILTER_COLOR_STRICTNESS * texelFetch(usam_temp6, texelPos, 0).r;
+        vec4 outputColor = svgf_atrous(usam_temp2, usam_packedZN, texelPos, ivec2(2, 0), sigmaL);
+        imageStore(uimg_temp1, texelPos, outputColor);
     }
 }
