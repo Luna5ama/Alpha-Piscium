@@ -170,14 +170,16 @@ void debugOutput(inout vec4 outputColor) {
     #endif
 
     #if SETTING_DEBUG_SVGF != 0
-    uvec4 svgfData = texelFetch(usam_svgfHistory, texelPos >> 1, 0);
-    vec4 svgfColorHLen;
+    uvec4 svgfData = texelFetch(usam_svgfHistory, texelPos, 0);
+    vec3 svgfColor;
+    vec3 svgfFastColor;
     vec2 svgfMoments;
-    svgf_unpack(svgfData, svgfColorHLen, svgfMoments);
+    float svgfHLen;
+    svgf_unpack(svgfData, svgfColor, svgfFastColor, svgfMoments, svgfHLen);
     #if SETTING_DEBUG_SVGF == 1
-    outputColor.rgb = svgfColorHLen.rgb;
+    outputColor.rgb = svgfColor;
     #elif SETTING_DEBUG_SVGF == 2
-    outputColor.rgb = vec3(svgfColorHLen.a / SETTING_DENOISER_MAX_ACCUM);
+    outputColor.rgb = vec3(svgfHLen / SETTING_DENOISER_MAX_ACCUM);
     #elif SETTING_DEBUG_SVGF == 3
     outputColor.rgb = svgfMoments.xxx;
     #elif SETTING_DEBUG_SVGF == 4

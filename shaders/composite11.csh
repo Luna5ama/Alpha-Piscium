@@ -1,19 +1,24 @@
 #version 460 compatibility
 
+#include "/denoiser/Update.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Material.glsl"
+#include "/util/Dither.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform sampler2D usam_temp1;
-uniform usampler2D usam_tempRG32UI;
+uniform usampler2D usam_tempRGBA32UI;
+uniform usampler2D usam_packedZN;
 uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferViewZ;
 
 layout(rgba16f) writeonly uniform image2D uimg_temp2;
+layout(rgba8) uniform writeonly image2D uimg_temp5;
+layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
 
 float computeGeometryWeight(vec3 centerPos, vec3 centerNormal, float sampleViewZ, uint sampleNormal, vec2 sampleScreenPos, float a) {
     vec3 sampleViewPos = coords_toViewCoord(sampleScreenPos, sampleViewZ, gbufferProjectionInverse);
@@ -36,8 +41,10 @@ inout vec3 colorSum, inout float weightSum
 ) {
     vec2 pixelPos = sampleTexel - 0.5;
     vec2 originPixelPos = floor(pixelPos);
-    vec2 originScreenPos = (originPixelPos * 2.0 + 2.0) * global_mainImageSizeRcp;
-    vec2 gatherUV = (originPixelPos + 1.0) * global_mainImageSizeRcp;
+    vec2 gatherTexelPos = originPixelPos + 1.0;
+    vec2 originScreenPos = (gatherTexelPos * 2.0) * global_mainImageSizeRcp;
+    vec2 gatherUV = gatherTexelPos * global_mainImageSizeRcp;
+    vec2 gatherUV2Y = gatherUV * vec2(1.0, 0.5);
     vec2 bilinearWeightXY = pixelPos - originPixelPos;
 
     vec4 bilinearWeightGather;
@@ -48,8 +55,8 @@ inout vec3 colorSum, inout float weightSum
 
     vec4 bilateralWeightGather = bilinearWeightGather * baseWeight;
 
-    uvec4 prevNs = textureGather(usam_tempRG32UI, gatherUV, 0);
-    vec4 prevZs = uintBitsToFloat(textureGather(usam_tempRG32UI, gatherUV, 1));
+    uvec4 prevNs = textureGather(usam_packedZN, gatherUV2Y, 0);
+    vec4 prevZs = uintBitsToFloat(textureGather(usam_packedZN, gatherUV2Y, 1));
     float a = 0.000001 * max(abs(centerPos.z), 0.1);
     bilateralWeightGather.x *= computeGeometryWeight(centerPos, centerNormal, prevZs.x, prevNs.x, global_mainImageSizeRcp * vec2(-1.0, 1.0) + originScreenPos, a);
     bilateralWeightGather.y *= computeGeometryWeight(centerPos, centerNormal, prevZs.y, prevNs.y, global_mainImageSizeRcp * vec2(1.0, 1.0) + originScreenPos, a);
@@ -95,6 +102,20 @@ void main() {
             }
         }
 
-        imageStore(uimg_temp2, texelPos, outputColor);
+        uvec4 packedData = texelFetch(usam_tempRGBA32UI, texelPos, 0);
+
+        vec4 prevColorHLen = vec4(unpackHalf2x16(packedData.x), unpackHalf2x16(packedData.y));
+        vec2 prevMoments = unpackHalf2x16(packedData.z);
+
+        float newHLen;
+        vec2 newMoments;
+        vec4 filterInput;
+        gi_update(outputColor.rgb, prevColorHLen, prevMoments, newHLen, newMoments, filterInput);
+        filterInput.rgb = dither_fp16(filterInput.rgb, rand_IGN(texelPos, frameCounter));
+        imageStore(uimg_temp2, texelPos, filterInput);
+
+        uvec4 packedOutData;
+        svgf_pack(packedData, filterInput.rgb, vec3(0.0), newMoments, newHLen);
+        imageStore(uimg_svgfHistory, svgf_texelPos1(texelPos), packedData);
     }
 }

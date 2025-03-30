@@ -22,18 +22,18 @@ float phiN, float phiZ, float phiL,
 ivec2 texelPos, float sampleWeight,
 inout vec4 colorSum, inout float weightSum
 ) {
-    if (all(greaterThanEqual(texelPos, ivec2(0))) && all(lessThan(texelPos, global_mipmapSizesI[1]))) {
+    if (all(greaterThanEqual(texelPos, ivec2(0))) && all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 sampleColor = texelFetch(filterInput, texelPos, 0);
         vec3 sampleNormal;
         float sampleViewZ;
-        nzpacking_unpack(texelFetch(packedNZ, texelPos, 0).xy, sampleNormal, sampleViewZ);
+        nzpacking_unpack(texelFetch(packedNZ, texelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, sampleNormal, sampleViewZ);
 
         float sampleLuminance = colors_srgbLuma(sampleColor.rgb);
 
         float weight = sampleWeight;
         weight *= normalWeight(centerNormal, sampleNormal, phiN);
-        weight *= viewZWeight(centerViewZ, sampleViewZ, phiZ);
-        weight *= luminanceWeight(centerLuminance, sampleLuminance, phiL);
+//        weight *= viewZWeight(centerViewZ, sampleViewZ, phiZ);
+//        weight *= luminanceWeight(centerLuminance, sampleLuminance, phiL);
 
         colorSum += sampleColor * vec4(vec3(weight), weight * weight);
         weightSum += weight;
@@ -46,7 +46,7 @@ vec4 svgf_atrous(sampler2D filterInput, usampler2D packedNZ, ivec2 texelPos, ive
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec3 centerNormal;
         float centerViewZ;
-        nzpacking_unpack(texelFetch(packedNZ, texelPos, 0).xy, centerNormal, centerViewZ);
+        nzpacking_unpack(texelFetch(packedNZ, texelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, centerNormal, centerViewZ);
 
         if (centerViewZ != -65536.0) {
             vec4 centerFilterData = texelFetch(filterInput, texelPos, 0);
