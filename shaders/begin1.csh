@@ -3,6 +3,7 @@
 #include "/util/Colors.glsl"
 #include "/util/Math.glsl"
 #include "/util/Rand.glsl"
+#include "/util/Morton.glsl"
 
 layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(2, 1, 1);
@@ -67,6 +68,8 @@ void main() {
         global_mainImageSizeI = mainImageSize;
         global_mainImageSize = vec2(mainImageSize);
         global_mainImageSizeRcp = 1.0 / vec2(mainImageSize);
+
+        global_frameMortonJitter = morton_8bDecode(uint(frameCounter) & 3u);
     } else {
         ivec2 mainImageSize = imageSize(uimg_main);
         for (uint i = 0; i < 16; i++) {
