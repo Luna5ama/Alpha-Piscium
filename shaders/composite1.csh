@@ -18,7 +18,7 @@ uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_svgfHistory;
 
 layout(rgba32ui) uniform writeonly uimage2D uimg_tempRGBA32UI;
-layout(rg32ui) uniform writeonly uimage2D uimg_tempRG32UI;
+layout(rg32ui) uniform writeonly uimage2D uimg_packedZN;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
 
 void main() {
@@ -29,6 +29,7 @@ void main() {
     ivec2 texelPos1x1 = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos1x1, global_mainImageSizeI))) {
+        ivec2 texelPos2x2 = texelPos1x1 >> 1;
         vec2 screenPos1x1 = (vec2(texelPos1x1) + 0.5) * global_mipmapSizesRcp[1];
 
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos1x1, 0).r;
@@ -40,7 +41,7 @@ void main() {
 
             Material material = material_decode(gData);
 
-//            imageStore(uimg_temp6, texelPos1x1, vec4(gData.normal * 0.5 + 0.5, 0.0));
+            //            imageStore(uimg_temp6, texelPos1x1, vec4(gData.normal * 0.5 + 0.5, 0.0));
 
             vec3 prevDiffuse;
             vec2 prevMoments;
@@ -61,14 +62,14 @@ void main() {
 
             imageStore(uimg_tempRGBA32UI, texelPos1x1, temp32UIOut);
 
-            if ((threadIdx & 3u) == 0u) {
-                ivec2 texelPos2x2 = texelPos1x1 >> 1;
+            uvec4 packedZNOut = uvec4(0u);
+            nzpacking_pack(packedZNOut.xy, gData.normal, viewZ);
+            imageStore(uimg_packedZN, texelPos1x1 + ivec2(0, global_mainImageSizeI.y), packedZNOut);
 
-                {
-                    uvec4 tempRG32UIOut = uvec4(0u);
-                    nzpacking_pack(tempRG32UIOut.xy, gData.normal, viewZ);
-                    imageStore(uimg_tempRG32UI, texelPos2x2, tempRG32UIOut);
-                }
+            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == 0u);
+            ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
+            if (bool(ssgiOutWriteFlag)) {
+                imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
 
                 {
                     vec4 ssgiOut = vec4(0.0);
@@ -81,7 +82,7 @@ void main() {
                     uvec4 tempRG32UIOut = uvec4(0u);
                     tempRG32UIOut.x = packHalf2x16(ssgiOut.rg);
                     tempRG32UIOut.y = packHalf2x16(ssgiOut.ba);
-                    imageStore(uimg_tempRG32UI, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), tempRG32UIOut);
+                    imageStore(uimg_packedZN, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), tempRG32UIOut);
                 }
             }
 
@@ -90,17 +91,16 @@ void main() {
             uvec4 temp32UIOut = uvec4(0u);
             imageStore(uimg_tempRGBA32UI, texelPos1x1, temp32UIOut);
 
-            if ((threadIdx & 3u) == 0u) {
-                ivec2 texelPos2x2 = texelPos1x1 >> 1;
-                {
-                    uvec4 tempRG32UIOut = uvec4(0u);
-                    tempRG32UIOut.y = floatBitsToUint(viewZ);
-                    imageStore(uimg_tempRG32UI, texelPos2x2, tempRG32UIOut);
-                }
-                {
-                    uvec4 tempRG32UIOut = uvec4(0u);
-                    imageStore(uimg_tempRG32UI, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), tempRG32UIOut);
-                }
+            uvec4 packedZNOut = uvec4(0u);
+            packedZNOut.y = floatBitsToUint(viewZ);
+            imageStore(uimg_packedZN, texelPos1x1 + ivec2(0, global_mainImageSizeI.y), packedZNOut);
+
+            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == 0u);
+            ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
+            if (bool(ssgiOutWriteFlag)) {
+                imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
+                uvec4 tempRG32UIOut = uvec4(0u);
+                imageStore(uimg_packedZN, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), tempRG32UIOut);
             }
         }
     }

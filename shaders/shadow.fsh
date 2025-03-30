@@ -17,13 +17,13 @@ void main() {
 
 	color.rgb = colors_srgbToLinear(color.rgb);
 
-	vec2 randCoord = gl_FragCoord.xy;
-	randCoord.y += -frag_viewZ;
-	float randAlpha = rand_IGN(randCoord, frameCounter);
-
-	if (color.a < randAlpha) {
-		discard;
-	}
+//	vec2 randCoord = gl_FragCoord.xy;
+//	randCoord.y += -frag_viewZ;
+//	float randAlpha = rand_IGN(randCoord, frameCounter);
+//
+//	if (color.a < randAlpha) {
+//		discard;
+//	}
 
 	rt_out.rgb = color.rgb;
 	rt_out.a = color.a;

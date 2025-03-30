@@ -31,7 +31,7 @@ layout(location = 1) out vec4 rt_gbufferData8UN;
 layout(location = 2) out float rt_gbufferViewZ;
 
 ivec2 texelPos = ivec2(gl_FragCoord.xy);
-float noiseIGN = rand_IGN(gl_FragCoord.xy, frameCounter);
+float noiseIGN = rand_IGN(texelPos, frameCounter);
 
 vec4 albedo;
 float viewZ;

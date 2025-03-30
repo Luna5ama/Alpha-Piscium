@@ -37,7 +37,7 @@ vec4 processAlbedo() {
 GBufferData processOutput() {
     GBufferData gData;
 
-    float noiseIGN = rand_IGN(gl_FragCoord.xy, frameCounter);
+    float noiseIGN = rand_IGN(texelPos, frameCounter);
 
     vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
     vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);

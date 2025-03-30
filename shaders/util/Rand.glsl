@@ -2,6 +2,8 @@
     References:
         [JIM17] Jimenez, Jorge. "Interleaved Gradient Noise". 2017.
             https://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare/
+        [GIL24] Gilcher, Pascal. "Stop using IGN!". 2024.
+            https://www.shadertoy.com/view/XfBSRy
         [ROB18] Roberts, Martine. "The Unreasonable Effectiveness of Quasirandom Sequences". 2018.
             https://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
         [WOL22] Wolfe, Alan. "Interleaved Gradient Noise: A Different Kind of Low Discrepancy Sequence". 2022.
@@ -19,16 +21,17 @@
 
 // --------------------------------------------------------------------------------------------------------------------
 // Interleaved Gradient Noise
-// See [JIM17] and [WOL22]
-float rand_IGN(vec2 v) {
-    return fract(52.9829189 * fract(0.06711056 * v.x + 0.00583715 * v.y));
+// See [JIM17], [WOL22] and [GIL24]
+float rand_IGN(uvec2 v) {
+    uvec2 umagic = uvec2(3242174889u, 2447445413u); //1/phi, 1/phi² * 2^32, replaces frac() with a static precision method
+    return float(v.x * umagic.x + v.y * umagic.y) * exp2(-32.0);
 }
 
-// See [JIM17] and [WOL22]
-float rand_IGN(vec2 v, uint frame) {
-    frame = frame % 64u;
-    v = v + 5.588238 * float(frame);
-    return fract(52.9829189 * fract(0.06711056 * v.x + 0.00583715 * v.y));
+// See [JIM17] and [WOL22] and [GIL24]
+float rand_IGN(uvec2 v, uint frame) {
+    frame = frame % 1024u;
+    v = v + uvec2(114u, 514u) * frame;
+    return rand_IGN(v);
 }
 
 // --------------------------------------------------------------------------------------------------------------------
