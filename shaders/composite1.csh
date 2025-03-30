@@ -20,9 +20,6 @@ uniform usampler2D usam_svgfHistory;
 
 layout(rgba32ui) uniform writeonly uimage2D uimg_tempRGBA32UI;
 layout(rg32ui) uniform writeonly uimage2D uimg_packedZN;
-layout(rgba8) uniform writeonly image2D uimg_temp6;
-
-layout(rgba16f) uniform writeonly image2D uimg_temp3;
 
 void main() {
     uvec2 workGroupOrigin = gl_WorkGroupID.xy << 3;
@@ -60,7 +57,6 @@ void main() {
                 0u
             );
 
-            imageStore(uimg_temp3, texelPos1x1, vec4(prevDiffuse, 0.0));
             imageStore(uimg_tempRGBA32UI, texelPos1x1, temp32UIOut);
 
             uvec4 packedZNOut = uvec4(0u);

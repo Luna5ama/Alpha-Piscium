@@ -10,7 +10,7 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform sampler2D usam_temp4;
+uniform sampler2D usam_temp2;
 
 uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferData8UN;
@@ -56,18 +56,18 @@ void main() {
 
         vec3 curr3x3Avg = vec3(0.0);
         vec3 curr3x3SqAvg = vec3(0.0);
-        updateMoments(texelFetchOffset(usam_temp4, texelPos, 0, ivec2(-1, 0)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp4, texelPos, 0, ivec2(1, 0)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp4, texelPos, 0, ivec2(0, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp4, texelPos, 0, ivec2(0, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp4, texelPos, 0, ivec2(-1, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp4, texelPos, 0, ivec2(1, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp4, texelPos, 0, ivec2(-1, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp4, texelPos, 0, ivec2(1, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
+        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(-1, 0)).rgb, curr3x3Avg, curr3x3SqAvg);
+        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(1, 0)).rgb, curr3x3Avg, curr3x3SqAvg);
+        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(0, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
+        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(0, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
+        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(-1, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
+        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(1, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
+        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(-1, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
+        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(1, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
         curr3x3Avg /= 9.0;
         curr3x3SqAvg /= 9.0;
 
-        vec3 centerGI = texelFetch(usam_temp4, texelPos, 0).rgb;
+        vec3 centerGI = texelFetch(usam_temp2, texelPos, 0).rgb;
 
         // Ellipsoid intersection clipping by Marty
         vec3 centerGIYCoCg = colors_SRGBToYCoCg(centerGI);

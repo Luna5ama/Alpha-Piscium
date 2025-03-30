@@ -32,8 +32,8 @@ inout vec4 colorSum, inout float weightSum
 
         float weight = sampleWeight;
         weight *= normalWeight(centerNormal, sampleNormal, phiN);
-//        weight *= viewZWeight(centerViewZ, sampleViewZ, phiZ);
-//        weight *= luminanceWeight(centerLuminance, sampleLuminance, phiL);
+        weight *= viewZWeight(centerViewZ, sampleViewZ, phiZ);
+        weight *= luminanceWeight(centerLuminance, sampleLuminance, phiL);
 
         colorSum += sampleColor * vec4(vec3(weight), weight * weight);
         weightSum += weight;
