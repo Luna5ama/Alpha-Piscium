@@ -1124,7 +1124,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         7 value "temp7"
                     }
                 }
-                toggle("SETTING_DEBUG_SVGF", 0, 0..4) {
+                toggle("SETTING_DEBUG_SVGF", 0, 0..5) {
                     lang {
                         name = "SVGF"
                         0 value "Off"
@@ -1132,6 +1132,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         2 value "HLen"
                         3 value "Moment"
                         4 value "Moment^2"
+                        5 value "Variance"
                     }
                 }
                 toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..5) {

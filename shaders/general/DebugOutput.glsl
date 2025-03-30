@@ -184,6 +184,8 @@ void debugOutput(inout vec4 outputColor) {
     outputColor.rgb = svgfMoments.xxx;
     #elif SETTING_DEBUG_SVGF == 4
     outputColor.rgb = svgfMoments.yyy;
+    #elif SETTING_DEBUG_SVGF == 5
+    outputColor.rgb = vec3(max(svgfMoments.g - svgfMoments.r * svgfMoments.r, 0.0));
     #endif
     #endif
 
