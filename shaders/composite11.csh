@@ -114,7 +114,7 @@ void main() {
         filterInput.rgb = dither_fp16(filterInput.rgb, rand_IGN(texelPos, frameCounter));
         imageStore(uimg_temp2, texelPos, filterInput);
 
-        imageStore(uimg_temp6, texelPos, vec4(pow2(linearStep(0.0, 64.0, newHLen))));
+        imageStore(uimg_temp6, texelPos, vec4(pow2(linearStep(0.0, 32.0, newHLen))));
 
         uvec4 packedOutData;
         svgf_pack(packedData, filterInput.rgb, vec3(0.0), newMoments, newHLen);
