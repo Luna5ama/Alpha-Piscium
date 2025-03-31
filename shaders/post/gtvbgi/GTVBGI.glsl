@@ -116,10 +116,7 @@ float SamplePartialSlice(float x, float sin_thVN) {
     return sgn ? -y : y;
 }
 
-// vvsN: view vec space normal | rnd01: [0, 1]
-vec2 SamplePartialSliceDir(vec3 vvsN, float rnd01) {
-    float ang0 = rnd01 * PI_2;
-    vec2 dir0 = vec2(cos(ang0), sin(ang0));
+vec2 SamplePartialSliceDir(vec3 vvsN, vec2 dir0) {
     float l = length(vvsN.xy);
     if (l == 0.0) return dir0;
 
@@ -244,7 +241,7 @@ uint toBitMask(vec2 h01) {
 
 void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
     vec3 viewDir = -normalize(viewPos);
-    vec2 rayStart = view2screen(viewPos).xy;
+    vec2 rayStart = vec2(vbgi_texelPos2x2) + 0.5;
 
     ////////////////////////////////////////////////// slice direction sampling
     vec3 smplDirVS;// view space sampling vector
@@ -258,8 +255,8 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         vec3 normalVVS = viewNormal;
         normalVVS = Transform_Qz0(viewNormal, Q_fromV);
 
-        float dirRand = rand_IGN(vbgi_texelPos2x2, frameCounter);
-        dir = SamplePartialSliceDir(normalVVS, dirRand);
+        vec2 dir0 = rand_stbnUnitVec211(vbgi_texelPos2x2, NOISE_FRAME);
+        dir = SamplePartialSliceDir(normalVVS, dir0);
 
         smplDirVS = vec3(dir.xy, 0.0);
         smplDirVS = Transform_Vz0Qz0(dir, Q_toV);
@@ -334,8 +331,6 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         sampleTexelDist += sampleLodTexelSize * jitter;
         sampleTexelDist = min(sampleTexelDist, maxDist);
 
-        int index = frameCounter & 3;
-        ivec2 downSampleOffset = ivec2(index, index >> 1) & ivec2(1);
         vec2 sampleTexelPos = floor(rayDir * sampleTexelDist + rayStart);
 
         ivec2 sampleTexelPosHalf = clamp(ivec2(sampleTexelPos * 0.5), ivec2(0), ivec2(global_mipmapSizesI[1] - 1));

@@ -19,6 +19,21 @@
 #define INCLUDE_util_Rand_glsl a
 #include "/_Base.glsl"
 
+uniform sampler3D usam_stbnVec1;
+uniform sampler3D usam_stbnUnitVec2;
+
+float rand_stbnVec1(ivec2 texelPos, uint frame) {
+    return texelFetch(usam_stbnVec1, ivec3(texelPos, frame) & ivec3(127, 127, 63), 0).x;
+}
+
+vec2 rand_stbnUnitVec201(ivec2 texelPos, uint frame) {
+    return normalize(texelFetch(usam_stbnUnitVec2, ivec3(texelPos, frame) & ivec3(127, 127, 63), 0).xy);
+}
+
+vec2 rand_stbnUnitVec211(ivec2 texelPos, uint frame) {
+    return normalize(texelFetch(usam_stbnUnitVec2, ivec3(texelPos, frame) & ivec3(127, 127, 63), 0).xy * 2.0 - 1.0);
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 // Interleaved Gradient Noise
 // See [JIM17], [WOL22] and [GIL24]
