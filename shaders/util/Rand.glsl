@@ -29,8 +29,8 @@ float rand_IGN(uvec2 v) {
 
 // See [JIM17] and [WOL22] and [GIL24]
 float rand_IGN(uvec2 v, uint frame) {
-    frame = frame % 1024u;
-    v = v + uvec2(114u, 514u) * frame;
+    frame = frame & 255u;
+    v = v + uvec2(114u) * frame;
     return rand_IGN(v);
 }
 
