@@ -3,7 +3,7 @@
 
 void gi_update(vec3 currColor, vec4 prevColorHLen, vec2 prevMoments, out float newHLen, out vec2 newMoments, out vec4 filterInput) {
     vec2 currMoments;
-    currMoments.r = colors_srgbLuma(currColor);
+    currMoments.r = min(colors_srgbLuma(currColor), 256.0);
     currMoments.g = currMoments.r * currMoments.r;
 
     if (prevColorHLen.a == 0.0) {
@@ -17,7 +17,6 @@ void gi_update(vec3 currColor, vec4 prevColorHLen, vec2 prevMoments, out float n
         filterInput.rgb = mix(prevColorHLen.rgb, currColor, alpha);
     }
 
-    newMoments.y = min(newMoments.y, 32768.0);
     float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
     filterInput.a = variance;
 }

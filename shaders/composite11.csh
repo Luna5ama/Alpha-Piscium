@@ -4,6 +4,7 @@
 #include "/util/FullScreenComp.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
+#include "/util/Interpo.glsl"
 #include "/util/Material.glsl"
 #include "/util/Dither.glsl"
 
@@ -36,41 +37,32 @@ float computeGeometryWeight(vec3 centerPos, vec3 centerNormal, float sampleViewZ
 }
 
 void bilateralBilinearSample(
-vec2 sampleTexel, float baseWeight, vec3 centerPos, vec3 centerNormal,
+vec2 gatherTexelPos, vec4 baseWeights,
+vec3 centerPos, vec3 centerNormal,
 inout vec3 colorSum, inout float weightSum
 ) {
-    vec2 pixelPos = sampleTexel - 0.5;
-    vec2 originPixelPos = floor(pixelPos);
-    vec2 gatherTexelPos = originPixelPos + 1.0;
     vec2 originScreenPos = (gatherTexelPos * 2.0) * global_mainImageSizeRcp;
     vec2 gatherUV = gatherTexelPos * global_mainImageSizeRcp;
     vec2 gatherUV2Y = gatherUV * vec2(1.0, 0.5);
-    vec2 bilinearWeightXY = pixelPos - originPixelPos;
 
-    vec4 bilinearWeightGather;
-    bilinearWeightGather.yz = bilinearWeightXY.xx;
-    bilinearWeightGather.xw = 1.0 - bilinearWeightXY.xx;
-    bilinearWeightGather.xy *= bilinearWeightXY.yy;
-    bilinearWeightGather.zw *= 1.0 - bilinearWeightXY.yy;
-
-    vec4 bilateralWeightGather = bilinearWeightGather * baseWeight;
-
+    vec4 bilateralWeights = vec4(1.0);
     uvec4 prevNs = textureGather(usam_packedZN, gatherUV2Y, 0);
     vec4 prevZs = uintBitsToFloat(textureGather(usam_packedZN, gatherUV2Y, 1));
     float a = 0.000001 * max(abs(centerPos.z), 0.1);
-    bilateralWeightGather.x *= computeGeometryWeight(centerPos, centerNormal, prevZs.x, prevNs.x, global_mainImageSizeRcp * vec2(-1.0, 1.0) + originScreenPos, a);
-    bilateralWeightGather.y *= computeGeometryWeight(centerPos, centerNormal, prevZs.y, prevNs.y, global_mainImageSizeRcp * vec2(1.0, 1.0) + originScreenPos, a);
-    bilateralWeightGather.z *= computeGeometryWeight(centerPos, centerNormal, prevZs.z, prevNs.z, global_mainImageSizeRcp * vec2(1.0, -1.0) + originScreenPos, a);
-    bilateralWeightGather.w *= computeGeometryWeight(centerPos, centerNormal, prevZs.w, prevNs.w, global_mainImageSizeRcp * vec2(-1.0, -1.0) + originScreenPos, a);
+    bilateralWeights.x *= computeGeometryWeight(centerPos, centerNormal, prevZs.x, prevNs.x, global_mainImageSizeRcp * vec2(-1.0, 1.0) + originScreenPos, a);
+    bilateralWeights.y *= computeGeometryWeight(centerPos, centerNormal, prevZs.y, prevNs.y, global_mainImageSizeRcp * vec2(1.0, 1.0) + originScreenPos, a);
+    bilateralWeights.z *= computeGeometryWeight(centerPos, centerNormal, prevZs.z, prevNs.z, global_mainImageSizeRcp * vec2(1.0, -1.0) + originScreenPos, a);
+    bilateralWeights.w *= computeGeometryWeight(centerPos, centerNormal, prevZs.w, prevNs.w, global_mainImageSizeRcp * vec2(-1.0, -1.0) + originScreenPos, a);
 
-    weightSum += bilateralWeightGather.x + bilateralWeightGather.y + bilateralWeightGather.z + bilateralWeightGather.w;
+    vec4 interpoWeights = baseWeights * bilateralWeights;
+    weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
 
     vec4 colorRs = textureGather(usam_temp1, gatherUV, 0);
-    colorSum.r += dot(bilateralWeightGather, colorRs);
+    colorSum.r += dot(interpoWeights, colorRs);
     vec4 colorGs = textureGather(usam_temp1, gatherUV, 1);
-    colorSum.g += dot(bilateralWeightGather, colorGs);
+    colorSum.g += dot(interpoWeights, colorGs);
     vec4 colorBs = textureGather(usam_temp1, gatherUV, 2);
-    colorSum.b += dot(bilateralWeightGather, colorBs);
+    colorSum.b += dot(interpoWeights, colorBs);
 }
 
 void main() {
@@ -91,10 +83,52 @@ void main() {
             vec3 colorSum = vec3(0.0);
             float weightSum = 0.0;
 
-            bilateralBilinearSample(texelPos2x2F + vec2(-1.0, 0.0), 1.0, viewPos, gData.geometryNormal, colorSum, weightSum);
-            bilateralBilinearSample(texelPos2x2F + vec2(1.0, 0.0), 1.0, viewPos, gData.geometryNormal, colorSum, weightSum);
-            bilateralBilinearSample(texelPos2x2F + vec2(0.0, -1.0), 1.0, viewPos, gData.geometryNormal, colorSum, weightSum);
-            bilateralBilinearSample(texelPos2x2F + vec2(0.0, 1.0), 1.0, viewPos, gData.geometryNormal, colorSum, weightSum);
+            vec2 centerPixel = texelPos2x2F - 0.5;
+            vec2 centerPixelOrigin = floor(centerPixel);
+            vec2 gatherTexelPos = centerPixelOrigin + 1.0;
+            vec2 pixelPosFract = centerPixel - centerPixelOrigin;
+
+            vec4 weightX = interpo_bSplineWeights(pixelPosFract.x);
+            vec4 weightY = interpo_bSplineWeights(pixelPosFract.y);
+
+            vec2 bilinearWeights2 = pixelPosFract;
+            vec4 blinearWeights4;
+            blinearWeights4.yz = bilinearWeights2.xx;
+            blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
+            blinearWeights4.xy *= bilinearWeights2.yy;
+            blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
+
+            vec4 sampleGatherWeights = weightX.xyyx * weightY.wwzz;
+            sampleGatherWeights.z += blinearWeights4.x;
+            bilateralBilinearSample(
+                texelPos2x2F + vec2(-1.0, 1.0), sampleGatherWeights,
+                viewPos, gData.geometryNormal,
+                colorSum, weightSum
+            );
+
+            sampleGatherWeights = weightX.zwwz * weightY.wwzz;
+            sampleGatherWeights.w += blinearWeights4.y;
+            bilateralBilinearSample(
+                texelPos2x2F + vec2(1.0, 1.0), sampleGatherWeights,
+                viewPos, gData.geometryNormal,
+                colorSum, weightSum
+            );
+
+            sampleGatherWeights = weightX.zwwz * weightY.yyxx;
+            sampleGatherWeights.x += blinearWeights4.z;
+            bilateralBilinearSample(
+                texelPos2x2F + vec2(1.0, -1.0), sampleGatherWeights,
+                viewPos, gData.geometryNormal,
+                colorSum, weightSum
+            );
+
+            sampleGatherWeights = weightX.xyyx * weightY.yyxx;
+            sampleGatherWeights.y += blinearWeights4.w;
+            bilateralBilinearSample(
+                texelPos2x2F + vec2(-1.0, -1.0), sampleGatherWeights,
+                viewPos, gData.geometryNormal,
+                colorSum, weightSum
+            );
 
             if (weightSum > 0.01) {
                 colorSum /= weightSum;
@@ -114,7 +148,7 @@ void main() {
         filterInput.rgb = dither_fp16(filterInput.rgb, rand_IGN(texelPos, frameCounter));
         imageStore(uimg_temp2, texelPos, filterInput);
 
-        imageStore(uimg_temp6, texelPos, vec4(pow2(linearStep(0.0, 32.0, newHLen))));
+        imageStore(uimg_temp6, texelPos, vec4(linearStep(1.0, 128.0, newHLen)));
 
         uvec4 packedOutData;
         svgf_pack(packedData, filterInput.rgb, vec3(0.0), newMoments, newHLen);
