@@ -599,7 +599,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             comment = "Adds extra weight to surface directly facing towards camera."
                         }
                     }
-                    slider("SETTING_RTWSM_B_SE", 5.0, 0.0..10.0 step 0.5) {
+                    slider("SETTING_RTWSM_B_SE", 0.0, 0.0..10.0 step 0.5) {
                         lang {
                             name = "Backward Shadow Edge Function"
                             comment = "Adds extra weight for shadow edges."
