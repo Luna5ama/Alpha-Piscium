@@ -8,21 +8,23 @@ layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 
 attribute vec4 mc_Entity;
 
-out vec2 texcoord;
-out vec4 glcolor;
-out float frag_viewZ;
+out vec2 vert_unwarpedTexCoord;
+out vec2 vert_texcoord;
+out vec4 vert_color;
+out float vert_viewZ;
 
 void main() {
-	texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-	glcolor = gl_Color;
+	vert_texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+	vert_color = gl_Color;
 
 	vec4 shadowClipPos = ftransform();
 	vec4 shadowClipPosRotated = global_shadowRotationMatrix * shadowClipPos;
 	gl_Position = shadowClipPosRotated;
-	frag_viewZ = -gl_Position.w;
+	vert_viewZ = -gl_Position.w;
 	gl_Position /= gl_Position.w;
 
 	vec2 vPosTS = gl_Position.xy * 0.5 + 0.5;
+	vert_unwarpedTexCoord = vPosTS;
 	vPosTS = rtwsm_warpTexCoord(usam_rtwsm_imap, vPosTS);
 
 	gl_Position.xy = vPosTS * 2.0 - 1.0;

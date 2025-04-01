@@ -12,14 +12,14 @@ layout(r32f) uniform restrict image2D uimg_rtwsm_imap;
 shared float shared_buffer[SETTING_RTWSM_IMAP_SIZE];
 
 #if SETTING_RTWSM_IMAP_SIZE == 256
+#define RADIUS 1
+#define SAMPLES 3
+#elif SETTING_RTWSM_IMAP_SIZE == 512
 #define RADIUS 2
 #define SAMPLES 5
-#elif SETTING_RTWSM_IMAP_SIZE == 512
+#elif SETTING_RTWSM_IMAP_SIZE == 1024
 #define RADIUS 4
 #define SAMPLES 9
-#elif SETTING_RTWSM_IMAP_SIZE == 1024
-#define RADIUS 8
-#define SAMPLES 17
 #endif
 
 void main() {

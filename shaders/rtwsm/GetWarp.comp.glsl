@@ -52,7 +52,7 @@ void main() {
 
     float prevWarp = imageLoad(uimg_rtwsm_imap, warpOutputPos).r;
     float prevTexelSize = imageLoad(uimg_rtwsm_imap, texelSizeOutputPos).r;
-    if (abs(warp - prevWarp) * float(shadowMapResolution) > 16.0) {
+    if (((uint(frameCounter) & 127u) == 0u) || abs(warp - prevWarp) * float(shadowMapResolution) > 16.0) {
         imageStore(uimg_rtwsm_imap, warpOutputPos, vec4(warp));
         imageStore(uimg_rtwsm_imap, texelSizeOutputPos, vec4(texelSize));
     }
