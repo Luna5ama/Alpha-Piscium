@@ -627,7 +627,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                     empty()
-                    slider("SETTING_PCSS_BPF", 0.0, 0.0..10.0 step 0.5) {
+                    slider("SETTING_PCSS_BPF", 2.0, 0.0..10.0 step 0.5) {
                         lang {
                             name = "Base Penumbra Factor"
                         }
