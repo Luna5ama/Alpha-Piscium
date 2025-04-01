@@ -125,8 +125,9 @@ vec3 calcShadow(float sssFactor) {
 
         float jitterR = rand_stbnVec1(lighting_texelPos + r2Offset, frameCounter);
         vec2 dir = rand_stbnUnitVec211(lighting_texelPos + r2Offset, frameCounter);
-        float r = sqrt(jitterR) * ssRange;
-        r += jitterR * sssFactor * ssRangeMul * SETTING_SSS_DIFFUSE_RANGE;
+        float sqrtJitterR = sqrt(jitterR);
+        float r = sqrtJitterR * ssRange;
+        r += sqrtJitterR * sssFactor * ssRangeMul * SETTING_SSS_DIFFUSE_RANGE;
 
         vec3 sampleTexCoord = shadowTexCoord;
         sampleTexCoord.xy += r * dir * vec2(shadowProjection[0][0], shadowProjection[1][1]);
@@ -208,7 +209,7 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N
     result.diffuseLambertian = diffuseV * (vec3(1.0) - fresnel) * irradiance.rgb * material.albedo;
 
     float shadowPow = saturate(1.0 - irradiance.a);
-    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow(shadowPow, 8.0) * material.sss * SETTING_SSS_SCTR_FACTOR;
+    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * SETTING_SSS_SCTR_FACTOR;
 
     float backDot = saturate(NDotL * - 0.5 + 0.5);
     float sssV = material.sss * RCP_PI * backDot * 0.5 * SETTING_SSS_STRENGTH;

@@ -656,7 +656,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Highlight"
                     }
                 }
-                slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_SSS_SCTR_FACTOR", 5.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Scatter Factor"
                     }
