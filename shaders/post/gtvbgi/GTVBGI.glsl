@@ -241,7 +241,7 @@ uint toBitMask(vec2 h01) {
 
 void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
     vec3 viewDir = -normalize(viewPos);
-    vec2 rayStart = vec2(vbgi_texelPos2x2) + 0.5;
+    vec2 rayStart = view2screen(viewPos).xy;
 
     ////////////////////////////////////////////////// slice direction sampling
     vec3 smplDirVS;// view space sampling vector
