@@ -13,8 +13,14 @@ void gi_update(vec3 currColor, vec4 prevColorHLen, vec2 prevMoments, out float n
     } else {
         newHLen = min(prevColorHLen.a + 1.0, 1024.0);
         float alpha = 1.0 / pow(min(newHLen, SETTING_DENOISER_MAX_ACCUM), SETTING_DENOISER_ACCUM_DECAY);
-        newMoments = mix(prevMoments, currMoments, alpha);
         filterInput.rgb = mix(prevColorHLen.rgb, currColor, alpha);
+
+        vec2 blurredMoments;
+        blurredMoments.r = min(colors_srgbLuma(filterInput.rgb), 256.0);
+        blurredMoments.g = blurredMoments.r * blurredMoments.r;
+        currMoments = mix(currMoments, blurredMoments, 0.0);
+
+        newMoments = mix(prevMoments, currMoments, alpha);
     }
 
     float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);

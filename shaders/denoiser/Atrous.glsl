@@ -1,73 +1,75 @@
 #include "Common.glsl"
+#include "/util/Dither.glsl"
 #include "/util/NZPacking.glsl"
+#include "/util/Rand.glsl"
 #include "/util/Colors.glsl"
 
 #if ATROUS_PASS == 1
 #define ATROUS_AXIS_X a
-#define ATROUS_RADIUS 1
+#define ATROUS_RADIUS 2
 #define ATROUS_INPUT usam_temp2
 #define ATROUS_OUTPUT uimg_temp1
 
 #elif ATROUS_PASS == 2
 #define ATROUS_AXIS_Y a
-#define ATROUS_RADIUS 1
+#define ATROUS_RADIUS 2
 #define ATROUS_INPUT usam_temp1
 #define ATROUS_OUTPUT uimg_temp2
 
 
 #elif ATROUS_PASS == 3
 #define ATROUS_AXIS_X a
-#define ATROUS_RADIUS 2
+#define ATROUS_RADIUS 4
 #define ATROUS_INPUT usam_temp2
 #define ATROUS_OUTPUT uimg_temp1
 
 #elif ATROUS_PASS == 4
 #define ATROUS_AXIS_Y a
-#define ATROUS_RADIUS 2
+#define ATROUS_RADIUS 4
 #define ATROUS_INPUT usam_temp1
 #define ATROUS_OUTPUT uimg_temp2
 
 
 #elif ATROUS_PASS == 5
 #define ATROUS_AXIS_X a
-#define ATROUS_RADIUS 4
+#define ATROUS_RADIUS 8
 #define ATROUS_INPUT usam_temp2
 #define ATROUS_OUTPUT uimg_temp1
 
 #elif ATROUS_PASS == 6
 #define ATROUS_AXIS_Y a
-#define ATROUS_RADIUS 4
+#define ATROUS_RADIUS 8
 #define ATROUS_INPUT usam_temp1
 #define ATROUS_OUTPUT uimg_temp2
 
 
 #elif ATROUS_PASS == 7
 #define ATROUS_AXIS_X a
-#define ATROUS_RADIUS 8
+#define ATROUS_RADIUS 16
 #define ATROUS_INPUT usam_temp2
 #define ATROUS_OUTPUT uimg_temp1
 
 #elif ATROUS_PASS == 8
 #define ATROUS_AXIS_Y a
-#define ATROUS_RADIUS 8
+#define ATROUS_RADIUS 16
 #define ATROUS_INPUT usam_temp1
 #define ATROUS_OUTPUT uimg_temp2
 
 
 #elif ATROUS_PASS == 9
 #define ATROUS_AXIS_X a
-#define ATROUS_RADIUS 16
+#define ATROUS_RADIUS 32
 #define ATROUS_INPUT usam_temp2
 #define ATROUS_OUTPUT uimg_temp1
 
 #elif ATROUS_PASS == 10
 #define ATROUS_AXIS_Y a
-#define ATROUS_RADIUS 16
+#define ATROUS_RADIUS 32
 #define ATROUS_INPUT usam_temp1
 #define ATROUS_OUTPUT uimg_temp2
 #endif
 
-#if ATROUS_PASS == 2
+#if ATROUS_PASS == 10
 #define ATROUS_UPDATE_HISTORY a
 #endif
 
@@ -98,7 +100,7 @@ float viewZWeight(float centerViewZ, float sampleViewZ, float phiZ) {
 }
 
 float luminanceWeight(float centerLuminance, float sampleLuminance, float phiL) {
-    return exp(-(abs(centerLuminance - sampleLuminance) * phiL));
+    return exp(-(sqrt(abs(centerLuminance - sampleLuminance)) * phiL));
 }
 
 #define SHARED_DATA_SIZE (128 + ATROUS_RADIUS * 4)
@@ -168,10 +170,11 @@ vec4 svgf_atrous(ivec2 texelPos) {
             float centerVariance = centerFilterData.a;
             float centerLuminance = colors_srgbLuma(centerColor);
 
-            float sigmaL = SETTING_DENOISER_FILTER_COLOR_STRICTNESS * texelFetch(usam_temp6, svgf_texelPos, 0).r;
+            float hDecay = texelFetch(usam_temp6, svgf_texelPos, 0).r;
+            float sigmaL = ATROUS_RADIUS * SETTING_DENOISER_FILTER_COLOR_STRICTNESS * pow2(hDecay) * 0.02;
             float phiN = SETTING_DENOISER_FILTER_NORMAL_STRICTNESS;
             float phiZ = max((1.0 / SETTING_DENOISER_FILTER_DEPTH_STRICTNESS) * pow2(centerViewZ), 0.5);
-            float phiL = sigmaL / max(sqrt(centerVariance), 1e-10);
+            float phiL = sigmaL / max(sqrt(centerVariance), 0.01);
 
             vec4 colorSum = centerFilterData * 1.0;
             float weightSum = 1.0;
@@ -179,14 +182,14 @@ vec4 svgf_atrous(ivec2 texelPos) {
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                -2, 1.0,
+                -2, mix(1.0, 0.25, hDecay),
                 colorSum, weightSum
             );
 
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                -1, 1.0,
+                -1, mix(1.0, 0.5, hDecay),
                 colorSum, weightSum
             );
 
@@ -194,14 +197,14 @@ vec4 svgf_atrous(ivec2 texelPos) {
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                1, 1.0,
+                1, mix(1.0, 0.5, hDecay),
                 colorSum, weightSum
             );
 
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                2, 1.0,
+                2, mix(1.0, 0.25, hDecay),
                 colorSum, weightSum
             );
 
@@ -216,6 +219,7 @@ vec4 svgf_atrous(ivec2 texelPos) {
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     vec4 outputColor = svgf_atrous(texelPos);
+    outputColor = dither_fp16(outputColor, rand_IGN(texelPos, frameCounter + ATROUS_PASS));
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         imageStore(ATROUS_OUTPUT, texelPos, outputColor);

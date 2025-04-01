@@ -766,12 +766,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Reprojection Normal Strictness"
                     }
                 }
-                slider("SETTING_DENOISER_MAX_ACCUM", 64, (2..8).map { 1 shl it }) {
+                slider("SETTING_DENOISER_MAX_ACCUM", 256, (2..10).map { 1 shl it }) {
                     lang {
                         name = "Max Accumulation"
                     }
                 }
-                slider("SETTING_DENOISER_ACCUM_DECAY", 1.0, 0.5..3.0 step 0.01) {
+                slider("SETTING_DENOISER_ACCUM_DECAY", 1.0, 0.5..2.0 step 0.01) {
                     lang {
                         name = "Accumulation Decay"
                         comment =
