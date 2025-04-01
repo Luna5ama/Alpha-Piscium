@@ -32,13 +32,7 @@ void doLighting(Material material, vec3 N, inout vec3 mainOut, inout vec3 ssgiOu
     float viewAltitude = atmosphere_height(atmosphere, worldPos);
     vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
 
-    #ifdef SETTING_SHADOW_HALF_RES
     vec3 shadow = texelFetch(usam_temp5, texelPos, 0).rgb;
-    #else
-    vec3 shadow = calcShadow(material.sss);
-    #endif
-
-
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
 
     float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));

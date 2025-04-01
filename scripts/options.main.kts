@@ -513,13 +513,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         512.0 value "32 chunks"
                     }
                 }
-                toggle("SETTING_SHADOW_HALF_RES", true) {
-                    lang {
-                        name = "Half Resolution Sampling"
-                        comment = "Sample shadow map at half resolution. Allows for better performance."
-                    }
-                }
-                empty()
                 empty()
                 empty()
                 screen("RTWSM", 1) {
@@ -611,7 +604,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Soft Shadows"
                         comment = "Soft Shadows settings"
                     }
-                    slider("SETTING_PCSS_SAMPLE_COUNT", 4, listOf(1, 2, 4, 8, 16, 32, 64)) {
+                    slider("SETTING_PCSS_SAMPLE_COUNT", 8, listOf(1, 2, 4, 8, 16, 32, 64)) {
                         lang {
                             name = "Sample Count"
                         }
