@@ -25,7 +25,7 @@ out vec3 newColor, out vec3 newFastColor, out vec2 newMoments, out float newHLen
         vec2 blurredMoments;
         blurredMoments.r = min(colors_srgbLuma(newColor), 256.0);
         blurredMoments.g = blurredMoments.r * blurredMoments.r;
-        currMoments = mix(currMoments, blurredMoments, 0.5);
+        currMoments = mix(currMoments, blurredMoments, 0.9);
 
         newMoments = mix(prevMoments, currMoments, alpha);
     }

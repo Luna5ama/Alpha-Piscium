@@ -801,7 +801,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Filter Depth Weight"
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 4, 0..32) {
+                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 8, 0..32) {
                     lang {
                         name = "Filter Color Weight"
                     }
