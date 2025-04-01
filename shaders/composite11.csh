@@ -67,7 +67,7 @@ inout vec3 colorSum, inout float weightSum
 
 void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
-        vec4 outputColor = vec4(0.0);
+        vec4 currColor = vec4(0.0);
 
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
@@ -132,30 +132,39 @@ void main() {
 
             if (weightSum > 0.01) {
                 colorSum /= weightSum;
-                outputColor.rgb = colorSum;
+                currColor.rgb = colorSum;
             }
         }
 
         uvec4 packedData = texelFetch(usam_tempRGBA32UI, texelPos, 0);
-        vec3 prevColor = colors_LogLuvToSRGB(unpackUnorm4x8(packedData.x));
-        vec3 prevFastColor = colors_LogLuvToSRGB(unpackUnorm4x8(packedData.y));
-        vec2 prevMoments = unpackHalf2x16(packedData.z);
-        float prevHLen = uintBitsToFloat(packedData.w);
+        vec3 prevColor;
+        vec3 prevFastColor;
+        vec2 prevMoments;
+        float prevHLen;
+        svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
 
-        float newHLen;
+        vec3 newColor;
+        vec3 newFastColor;
         vec2 newMoments;
-        vec4 filterInput;
-        gi_update(outputColor.rgb, prevColor.rgb, prevMoments, prevHLen, newHLen, newMoments, filterInput);
-        filterInput.rgb = dither_fp16(filterInput.rgb, rand_IGN(texelPos, frameCounter));
+        float newHLen;
+        gi_update(
+            currColor.rgb,
+            prevColor, prevFastColor, prevMoments, prevHLen,
+            newColor, newFastColor, newMoments, newHLen
+        );
+
+        float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
+        vec4 filterInput = vec4(newColor, variance);
+        filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
         imageStore(uimg_temp2, texelPos, filterInput);
 
         imageStore(uimg_temp6, texelPos, vec4(linearStep(1.0, 128.0, newHLen)));
 
         uvec4 packedOutData = uvec4(0u);
         #ifdef SETTING_DENOISER
-        svgf_packNoColor(packedOutData, prevFastColor, newMoments, newHLen);
+        svgf_packNoColor(packedOutData, newFastColor, newMoments, newHLen);
         #else
-        svgf_pack(packedOutData, filterInput.rgb, prevFastColor, newMoments, newHLen);
+        svgf_pack(packedOutData, newColor, newFastColor, newMoments, newHLen);
         #endif
         imageStore(uimg_svgfHistory, svgf_texelPos1(texelPos), packedOutData);
     }

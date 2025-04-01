@@ -122,6 +122,7 @@ vec2 screenPos, float currViewZ, vec3 currViewNormal, bool isHand,
 out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prevHLen
 ) {
     prevColor = vec3(0.0);
+    prevFastColor = vec3(0.0);
     prevMoments = vec2(0.0);
     prevHLen = 0.0;
 

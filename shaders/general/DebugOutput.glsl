@@ -40,7 +40,7 @@ uniform sampler2D usam_gbufferData8UN;
 #endif
 
 
-#if SETTING_DEBUG_SVGF != 0
+#if SETTING_DEBUG_DENOISER != 0
 uniform usampler2D usam_svgfHistory;
 #endif
 
@@ -169,22 +169,24 @@ void debugOutput(inout vec4 outputColor) {
     }
     #endif
 
-    #if SETTING_DEBUG_SVGF != 0
+    #if SETTING_DEBUG_DENOISER != 0
     uvec4 svgfData = texelFetch(usam_svgfHistory, texelPos, 0);
     vec3 svgfColor;
     vec3 svgfFastColor;
     vec2 svgfMoments;
     float svgfHLen;
     svgf_unpack(svgfData, svgfColor, svgfFastColor, svgfMoments, svgfHLen);
-    #if SETTING_DEBUG_SVGF == 1
+    #if SETTING_DEBUG_DENOISER == 1
     outputColor.rgb = svgfColor;
-    #elif SETTING_DEBUG_SVGF == 2
+    #elif SETTING_DEBUG_DENOISER == 2
+    outputColor.rgb = svgfFastColor;
+    #elif SETTING_DEBUG_DENOISER == 3
     outputColor.rgb = vec3(svgfHLen / SETTING_DENOISER_MAX_ACCUM);
-    #elif SETTING_DEBUG_SVGF == 3
+    #elif SETTING_DEBUG_DENOISER == 4
     outputColor.rgb = svgfMoments.xxx;
-    #elif SETTING_DEBUG_SVGF == 4
+    #elif SETTING_DEBUG_DENOISER == 5
     outputColor.rgb = svgfMoments.yyy;
-    #elif SETTING_DEBUG_SVGF == 5
+    #elif SETTING_DEBUG_DENOISER == 6
     outputColor.rgb = vec3(max(svgfMoments.g - svgfMoments.r * svgfMoments.r, 0.0));
     #endif
     #endif

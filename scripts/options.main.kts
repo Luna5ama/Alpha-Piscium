@@ -771,6 +771,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Accumulation"
                     }
                 }
+                slider("SETTING_DENOISER_MAX_FAST_ACCUM", 16, (2..10).map { 1 shl it }) {
+                    lang {
+                        name = "Max Fast Accumulation"
+                    }
+                }
                 slider("SETTING_DENOISER_ACCUM_DECAY", 1.0, 0.5..2.0 step 0.01) {
                     lang {
                         name = "Accumulation Decay"
@@ -1117,15 +1122,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         7 value "temp7"
                     }
                 }
-                toggle("SETTING_DEBUG_SVGF", 0, 0..5) {
+                toggle("SETTING_DEBUG_DENOISER", 0, 0..6) {
                     lang {
-                        name = "SVGF"
+                        name = "Denoiser"
                         0 value "Off"
                         1 value "Color"
-                        2 value "HLen"
-                        3 value "Moment"
-                        4 value "Moment^2"
-                        5 value "Variance"
+                        2 value "Fast Color"
+                        3 value "HLen"
+                        4 value "Moment"
+                        5 value "Moment^2"
+                        6 value "Variance"
                     }
                 }
                 toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..5) {
