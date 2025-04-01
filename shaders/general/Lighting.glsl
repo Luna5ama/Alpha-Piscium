@@ -111,7 +111,7 @@ vec3 calcShadow(float sssFactor) {
     #define SAMPLE_N SETTING_PCSS_SAMPLE_COUNT
 
     vec3 shadow = vec3(0.0);
-    uint idxSS = frameCounter * SAMPLE_N;
+    uint idxSS = 0;
 
     uint hashss = rand_hash31(floatBitsToUint(viewCoord.xyz)) & 1023u;
 
@@ -121,17 +121,17 @@ vec3 calcShadow(float sssFactor) {
     depthBiasFactor += mix(0.005 + lightNormalDot * 0.005, -0.001, dbfDistanceCoeff);
 
     for (int i = 0; i < SAMPLE_N; i++) {
-        vec2 randomOffset;
-        randomOffset.x = rand_IGN(lighting_texelPos, idxSS);
-        randomOffset.y = rand_r2Seq1(idxSS + hashss);
+        ivec2 r2Offset = ivec2(rand_r2Seq2(idxSS) * vec2(128, 128));
+
+        float jitterR = rand_stbnVec1(lighting_texelPos + r2Offset, frameCounter);
+        vec2 dir = rand_stbnUnitVec211(lighting_texelPos + r2Offset, frameCounter);
+        float r = sqrt(jitterR) * ssRange;
+        r += jitterR * sssFactor * ssRangeMul * SETTING_SSS_DIFFUSE_RANGE;
+
         vec3 sampleTexCoord = shadowTexCoord;
+        sampleTexCoord.xy += r * dir * vec2(shadowProjection[0][0], shadowProjection[1][1]);
 
-        float theta = randomOffset.x * PI_2;
-        float r = sqrt(randomOffset.y) * ssRange;
-        r += randomOffset.y * sssFactor * ssRangeMul * SETTING_SSS_DIFFUSE_RANGE;
-        sampleTexCoord.xy += r * vec2(cos(theta), sin(theta)) * vec2(shadowProjection[0][0], shadowProjection[1][1]);
-
-        sampleTexCoord.z += randomOffset.y * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
+        sampleTexCoord.z += jitterR * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
         sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
         vec2 texelSize;
         sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
