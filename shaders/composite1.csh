@@ -85,7 +85,9 @@ void main() {
                 }
             }
 
+            #ifdef SETTING_RTWSM_B
             rtwsm_backward(texelPos1x1, viewZ, gData.geometryNormal);
+            #endif
         } else {
             uvec4 temp32UIOut = uvec4(0u);
             imageStore(uimg_tempRGBA32UI, texelPos1x1, temp32UIOut);

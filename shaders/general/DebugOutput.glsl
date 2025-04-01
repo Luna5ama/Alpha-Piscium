@@ -146,7 +146,7 @@ void debugOutput(inout vec4 outputColor) {
 
     #if SETTING_DEBUG_GI_INPUTS != 0
     if (all(lessThan(texelPos, global_mipmapSizesI[1]))) {
-        uvec2 radianceData = texelFetch(usam_tempRG32UI, texelPos+ ivec2(0, global_mipmapSizesI[1].y), 0).xy;
+        uvec2 radianceData = texelFetch(usam_packedZN, texelPos+ ivec2(0, global_mipmapSizesI[1].y), 0).xy;
         vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
 
         #if SETTING_DEBUG_GI_INPUTS == 1
@@ -160,7 +160,7 @@ void debugOutput(inout vec4 outputColor) {
 
         float prevZ;
         vec3 prevN;
-        nzpacking_unpack(texelFetch(usam_tempRG32UI, texelPos, 0).xy, prevN, prevZ);
+        nzpacking_unpack(texelFetch(usam_packedZN, texelPos, 0).xy, prevN, prevZ);
         #if SETTING_DEBUG_GI_INPUTS == 4
         outputColor.rgb = vec3(prevN * 0.5 + 0.5);
         #elif SETTING_DEBUG_GI_INPUTS == 5

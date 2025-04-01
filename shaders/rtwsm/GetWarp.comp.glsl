@@ -46,12 +46,9 @@ void main() {
 
     ivec2 warpOutputPos = ti;
     warpOutputPos.y += WARP_X_Y;
+    imageStore(uimg_rtwsm_imap, warpOutputPos, vec4(warp));
 
     ivec2 texelSizeOutputPos = ti;
     texelSizeOutputPos.y += TEXELSIZE_X_Y;
-
-    float prevWarp = imageLoad(uimg_rtwsm_imap, warpOutputPos).r;
-    float prevTexelSize = imageLoad(uimg_rtwsm_imap, texelSizeOutputPos).r;
-    imageStore(uimg_rtwsm_imap, warpOutputPos, vec4(warp));
     imageStore(uimg_rtwsm_imap, texelSizeOutputPos, vec4(texelSize));
 }

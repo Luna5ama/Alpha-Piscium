@@ -12,7 +12,7 @@ const int colortex9Format = RGBA8; // GBuffer Data 8UN
 const int colortex10Format = R32F; // GBuffer ViewZ
 const int colortex11Format = RGBA16F; // Translucent Color
 const int colortex12Format = RGBA32UI; // tempRGBA32UI
-const int colortex13Format = RG32UI; // tempRG32UI
+const int colortex13Format = RG32UI; // packedZN
 const int colortex14Format = R32F; // tempR32F
 const int colortex15Format = RGBA16F; // TAA Last
 */
@@ -56,8 +56,8 @@ const int colortex15Format = RGBA16F; // TAA Last
 #define usam_tempRGBA32UI colortex12
 #define uimg_tempRGBA32UI colorimg12
 
-#define usam_tempRG32UI colortex13
-#define uimg_tempRG32UI colorimg13
+#define usam_packedZN colortex13
+#define uimg_packedZN colorimg13
 
 #define usam_tempR32F colortex14
 #define uimg_tempR32F colorimg14
