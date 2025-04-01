@@ -137,21 +137,26 @@ void main() {
         }
 
         uvec4 packedData = texelFetch(usam_tempRGBA32UI, texelPos, 0);
-
-        vec4 prevColorHLen = vec4(unpackHalf2x16(packedData.x), unpackHalf2x16(packedData.y));
+        vec3 prevColor = colors_LogLuvToSRGB(unpackUnorm4x8(packedData.x));
+        vec3 prevFastColor = colors_LogLuvToSRGB(unpackUnorm4x8(packedData.y));
         vec2 prevMoments = unpackHalf2x16(packedData.z);
+        float prevHLen = uintBitsToFloat(packedData.w);
 
         float newHLen;
         vec2 newMoments;
         vec4 filterInput;
-        gi_update(outputColor.rgb, prevColorHLen, prevMoments, newHLen, newMoments, filterInput);
+        gi_update(outputColor.rgb, prevColor.rgb, prevMoments, prevHLen, newHLen, newMoments, filterInput);
         filterInput.rgb = dither_fp16(filterInput.rgb, rand_IGN(texelPos, frameCounter));
         imageStore(uimg_temp2, texelPos, filterInput);
 
         imageStore(uimg_temp6, texelPos, vec4(linearStep(1.0, 128.0, newHLen)));
 
-        uvec4 packedOutData;
-        svgf_pack(packedData, filterInput.rgb, vec3(0.0), newMoments, newHLen);
-        imageStore(uimg_svgfHistory, svgf_texelPos1(texelPos), packedData);
+        uvec4 packedOutData = uvec4(0u);
+        #ifdef SETTING_DENOISER
+        svgf_packNoColor(packedOutData, prevFastColor, newMoments, newHLen);
+        #else
+        svgf_pack(packedOutData, filterInput.rgb, prevFastColor, newMoments, newHLen);
+        #endif
+        imageStore(uimg_svgfHistory, svgf_texelPos1(texelPos), packedOutData);
     }
 }

@@ -226,13 +226,7 @@ void main() {
 
         #ifdef ATROUS_UPDATE_HISTORY
         uvec4 packedData = imageLoad(uimg_svgfHistory, texelPos);
-        vec3 color;
-        vec3 fastColor;
-        vec2 moments;
-        float hLen;
-        svgf_unpack(packedData, color, fastColor, moments, hLen);
-        color = outputColor.rgb;
-        svgf_pack(packedData, color, fastColor, moments, hLen);
+        packedData.x = packUnorm4x8(colors_SRGBToLogLuv(outputColor.rgb));
         imageStore(uimg_svgfHistory, texelPos, packedData);
         #endif
     }

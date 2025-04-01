@@ -43,20 +43,21 @@ void main() {
 
             Material material = material_decode(gData);
             vec3 prevDiffuse;
+            vec3 prevFastDiffuse;
             vec2 prevMoments;
             float prevHLen;
 
             gi_reproject(
                 usam_svgfHistory, usam_packedZN,
                 screenPos1x1, viewZ, gData.normal, gData.isHand,
-                prevDiffuse, prevMoments, prevHLen
+                prevDiffuse, prevFastDiffuse, prevMoments, prevHLen
             );
 
             uvec4 temp32UIOut = uvec4(
-                packHalf2x16(prevDiffuse.rg),
-                packHalf2x16(vec2(prevDiffuse.b, prevHLen)),
+                packUnorm4x8(colors_SRGBToLogLuv(prevDiffuse)),
+                packUnorm4x8(colors_SRGBToLogLuv(prevFastDiffuse)),
                 packHalf2x16(prevMoments),
-                0u
+                floatBitsToUint(prevHLen)
             );
 
             imageStore(uimg_temp4, texelPos1x1, vec4(prevDiffuse, 0.0));

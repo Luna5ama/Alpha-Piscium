@@ -1,5 +1,6 @@
 #include "Common.glsl"
 #include "/util/Coords.glsl"
+#include "/util/Colors.glsl"
 #include "/util/Interpo.glsl"
 #include "/util/NZPacking.glsl"
 
@@ -50,7 +51,7 @@ void bilateralSample(
 usampler2D svgfHistory, usampler2D packedZN,
 vec2 gatherTexelPos, vec4 baseWeights,
 vec3 currScene, float currViewZ, vec3 currToPrevViewNormal,
-inout vec3 prevDiffuse, inout vec2 prevMoments, inout float prevHLen, inout float weightSum
+inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout float prevHLen, inout float weightSum
 ) {
     vec2 gatherTexelPosClamped = clamp(gatherTexelPos, vec2(1.0), global_mainImageSize - 1);
     if (all(equal(gatherTexelPos, gatherTexelPosClamped))) {
@@ -64,24 +65,33 @@ inout vec3 prevDiffuse, inout vec2 prevMoments, inout float prevHLen, inout floa
         weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
 
         {
-            uvec4 prevDiffuseData1 = textureGather(svgfHistory, gatherUV1, 0);
-            vec2 prevDiffuse11 = unpackHalf2x16(prevDiffuseData1.x);
-            vec2 prevDiffuse12 = unpackHalf2x16(prevDiffuseData1.y);
-            vec2 prevDiffuse13 = unpackHalf2x16(prevDiffuseData1.z);
-            vec2 prevDiffuse14 = unpackHalf2x16(prevDiffuseData1.w);
-            vec4 prevDiffuseR = vec4(prevDiffuse11.x, prevDiffuse12.x, prevDiffuse13.x, prevDiffuse14.x);
-            vec4 prevDiffuseG = vec4(prevDiffuse11.y, prevDiffuse12.y, prevDiffuse13.y, prevDiffuse14.y);
+            uvec4 prevColorData = textureGather(svgfHistory, gatherUV1, 0);
+            vec3 prevColor1 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.x));
+            vec3 prevColor2 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.y));
+            vec3 prevColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.z));
+            vec3 prevColor4 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.w));
 
-            uvec4 prevDiffuseData2 = textureGather(svgfHistory, gatherUV1, 1);
-            vec2 prevDiffuse21 = unpackHalf2x16(prevDiffuseData2.x);
-            vec2 prevDiffuse22 = unpackHalf2x16(prevDiffuseData2.y);
-            vec2 prevDiffuse23 = unpackHalf2x16(prevDiffuseData2.z);
-            vec2 prevDiffuse24 = unpackHalf2x16(prevDiffuseData2.w);
-            vec4 prevDiffuseB = vec4(prevDiffuse21.x, prevDiffuse22.x, prevDiffuse23.x, prevDiffuse24.x);
+            vec4 prevColorR = vec4(prevColor1.r, prevColor2.r, prevColor3.r, prevColor4.r);
+            prevColor.r += dot(interpoWeights, prevColorR);
+            vec4 prevColorG = vec4(prevColor1.g, prevColor2.g, prevColor3.g, prevColor4.g);
+            prevColor.g += dot(interpoWeights, prevColorG);
+            vec4 prevColorB = vec4(prevColor1.b, prevColor2.b, prevColor3.b, prevColor4.b);
+            prevColor.b += dot(interpoWeights, prevColorB);
+        }
 
-            prevDiffuse.r += dot(interpoWeights, prevDiffuseR);
-            prevDiffuse.g += dot(interpoWeights, prevDiffuseG);
-            prevDiffuse.b += dot(interpoWeights, prevDiffuseB);
+        {
+            uvec4 prevFastColorData = textureGather(svgfHistory, gatherUV1, 1);
+            vec3 prevFastColor1 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.x));
+            vec3 prevFastColor2 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.y));
+            vec3 prevFastColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.z));
+            vec3 prevFastColor4 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.w));
+
+            vec4 prevFastColorR = vec4(prevFastColor1.r, prevFastColor2.r, prevFastColor3.r, prevFastColor4.r);
+            prevFastColor.r += dot(interpoWeights, prevFastColorR);
+            vec4 prevFastColorG = vec4(prevFastColor1.g, prevFastColor2.g, prevFastColor3.g, prevFastColor4.g);
+            prevFastColor.g += dot(interpoWeights, prevFastColorG);
+            vec4 prevFastColorB = vec4(prevFastColor1.b, prevFastColor2.b, prevFastColor3.b, prevFastColor4.b);
+            prevFastColor.b += dot(interpoWeights, prevFastColorB);
         }
 
         {
@@ -109,9 +119,9 @@ inout vec3 prevDiffuse, inout vec2 prevMoments, inout float prevHLen, inout floa
 void gi_reproject(
 usampler2D svgfHistory, usampler2D packedZN,
 vec2 screenPos, float currViewZ, vec3 currViewNormal, bool isHand,
-out vec3 prevDiffuse, out vec2 prevMoments, out float prevHLen
+out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prevHLen
 ) {
-    prevDiffuse = vec3(0.0);
+    prevColor = vec3(0.0);
     prevMoments = vec2(0.0);
     prevHLen = 0.0;
 
@@ -167,7 +177,7 @@ out vec3 prevDiffuse, out vec2 prevMoments, out float prevHLen
             svgfHistory, packedZN,
             gatherTexelPos + vec2(-1.0, 1.0), sampleGatherWeights,
             currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevDiffuse, prevMoments, prevHLen, weightSum
+            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
         );
 
         sampleGatherWeights = weightX.zwwz * weightY.wwzz;
@@ -176,7 +186,7 @@ out vec3 prevDiffuse, out vec2 prevMoments, out float prevHLen
             svgfHistory, packedZN,
             gatherTexelPos + vec2(1.0, 1.0), sampleGatherWeights,
             currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevDiffuse, prevMoments, prevHLen, weightSum
+            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
         );
 
         sampleGatherWeights = weightX.zwwz * weightY.yyxx;
@@ -185,7 +195,7 @@ out vec3 prevDiffuse, out vec2 prevMoments, out float prevHLen
             svgfHistory, packedZN,
             gatherTexelPos + vec2(1.0, -1.0), sampleGatherWeights,
             currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevDiffuse, prevMoments, prevHLen, weightSum
+            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
         );
 
         sampleGatherWeights = weightX.xyyx * weightY.yyxx;
@@ -194,7 +204,7 @@ out vec3 prevDiffuse, out vec2 prevMoments, out float prevHLen
             svgfHistory, packedZN,
             gatherTexelPos + vec2(-1.0, -1.0), sampleGatherWeights,
             currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevDiffuse, prevMoments, prevHLen, weightSum
+            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
         );
     } else {
         vec4 weightX = interpo_catmullRomWeights(pixelPosFract.x);
@@ -204,40 +214,42 @@ out vec3 prevDiffuse, out vec2 prevMoments, out float prevHLen
             svgfHistory, packedZN,
             gatherTexelPos + vec2(-1.0, 1.0), weightX.xyyx * weightY.wwzz,
             currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevDiffuse, prevMoments, prevHLen, weightSum
+            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
         );
 
         bilateralSample(
             svgfHistory, packedZN,
             gatherTexelPos + vec2(1.0, 1.0), weightX.zwwz * weightY.wwzz,
             currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevDiffuse, prevMoments, prevHLen, weightSum
+            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
         );
 
         bilateralSample(
             svgfHistory, packedZN,
             gatherTexelPos + vec2(1.0, -1.0), weightX.zwwz * weightY.yyxx,
             currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevDiffuse, prevMoments, prevHLen, weightSum
+            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
         );
 
         bilateralSample(
             svgfHistory, packedZN,
             gatherTexelPos + vec2(-1.0, -1.0), weightX.xyyx * weightY.yyxx,
             currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevDiffuse, prevMoments, prevHLen, weightSum
+            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
         );
     }
 
 
     const float WEIGHT_EPSILON_FINAL = 0.0001;
     if (weightSum < WEIGHT_EPSILON_FINAL) {
-        prevDiffuse = vec3(0.0);
+        prevColor = vec3(0.0);
+        prevFastColor = vec3(0.0);
         prevMoments = vec2(0.0);
         prevHLen = 0.0;
     } else {
         float rcpWeightSum = 1.0 / weightSum;
-        prevDiffuse = max(prevDiffuse * rcpWeightSum, 0.0);
+        prevColor = max(prevColor * rcpWeightSum, 0.0);
+        prevFastColor = max(prevFastColor * rcpWeightSum, 0.0);
         prevMoments = max(prevMoments * rcpWeightSum, 0.0);
         prevHLen = max(ceil(prevHLen), 0.0);
     }

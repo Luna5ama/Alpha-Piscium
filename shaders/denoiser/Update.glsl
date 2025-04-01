@@ -1,19 +1,19 @@
 #include "Common.glsl"
 #include "/util/Colors.glsl"
 
-void gi_update(vec3 currColor, vec4 prevColorHLen, vec2 prevMoments, out float newHLen, out vec2 newMoments, out vec4 filterInput) {
+void gi_update(vec3 currColor, vec3 prevColor, vec2 prevMoments, float prevHLen, out float newHLen, out vec2 newMoments, out vec4 filterInput) {
     vec2 currMoments;
     currMoments.r = min(colors_srgbLuma(currColor), 256.0);
     currMoments.g = currMoments.r * currMoments.r;
 
-    if (prevColorHLen.a == 0.0) {
+    if (prevHLen == 0.0) {
         newHLen = 1.0;
         newMoments = currMoments;
         filterInput.rgb = currColor;
     } else {
-        newHLen = min(prevColorHLen.a + 1.0, 1024.0);
+        newHLen = min(prevHLen + 1.0, 1024.0);
         float alpha = 1.0 / pow(min(newHLen, SETTING_DENOISER_MAX_ACCUM), SETTING_DENOISER_ACCUM_DECAY);
-        filterInput.rgb = mix(prevColorHLen.rgb, currColor, alpha);
+        filterInput.rgb = mix(prevColor, currColor, alpha);
 
         vec2 blurredMoments;
         blurredMoments.r = min(colors_srgbLuma(filterInput.rgb), 256.0);
