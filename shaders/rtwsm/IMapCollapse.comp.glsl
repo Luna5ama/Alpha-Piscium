@@ -53,8 +53,6 @@ void main() {
     if (gl_LocalInvocationID.x == 0) {
         ivec2 outputPos = ivec2(gl_WorkGroupID.xy);
         outputPos.y += IMAP1D_X_Y;
-        float prevImportance = imageLoad(uimg_rtwsm_imap, outputPos).r;
-        float newImportance = mix(shared_reduceBuffer[0], prevImportance, 0.9);
-        imageStore(uimg_rtwsm_imap, outputPos, vec4(newImportance, 0.0, 0.0, 0.0));
+        imageStore(uimg_rtwsm_imap, outputPos, vec4(shared_reduceBuffer[0], 0.0, 0.0, 0.0));
     }
 }
