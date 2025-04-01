@@ -6,8 +6,7 @@
 layout(local_size_x = IMAP_SIZE_D2, local_size_y = 1, local_size_z = 1) in;
 const ivec3 workGroups = ivec3(SETTING_RTWSM_IMAP_SIZE, 2, 1);
 
-layout(r32f) uniform writeonly image2D uimg_rtwsm_imap;
-uniform sampler2D usam_rtwsm_imap;
+layout(r32f) uniform restrict image2D uimg_rtwsm_imap;
 
 shared float shared_reduceBuffer[IMAP_SIZE_D32];
 
@@ -25,11 +24,9 @@ void main() {
 
     ivec2 coordI = ivec2(xtIdx, ytIdx) * f + ivec2(ytIdx, xtIdx) * (f ^ 1);
     vec2 coordDelta = vec2(1.0, 0.0) * f + vec2(0.0, 1.0) * (f ^ 1);
-    vec2 coord = (vec2(coordI) + 0.5 + coordDelta * 0.5) * TEXEL_SIZE;
 
     {
-        coord.y = min(coord.y * IMAP2D_V_RANGE, IMAP2D_V_CLAMP);
-        float tValue = texture(usam_rtwsm_imap, coord).r;
+        float tValue = imageLoad(uimg_rtwsm_imap, coordI).r;
         float subgroupMax = subgroupMax(tValue);
         if (subgroupElect()) {
             shared_reduceBuffer[gl_SubgroupID] = subgroupMax;
