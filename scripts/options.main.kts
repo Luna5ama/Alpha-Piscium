@@ -761,19 +761,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS", 8, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_REPROJ_NORMAL_WEIGHT", 8, (0..10).map { 1 shl it }) {
                     lang {
-                        name = "Reprojection Normal Strictness"
+                        name = "Reprojection Normal Weight"
                     }
                 }
+                empty()
                 slider("SETTING_DENOISER_MAX_ACCUM", 256, (2..10).map { 1 shl it }) {
                     lang {
                         name = "Max Accumulation"
-                    }
-                }
-                slider("SETTING_DENOISER_MAX_FAST_ACCUM", 16, (2..10).map { 1 shl it }) {
-                    lang {
-                        name = "Max Fast Accumulation"
                     }
                 }
                 slider("SETTING_DENOISER_ACCUM_DECAY", 1.0, 0.5..2.0 step 0.01) {
@@ -784,19 +780,30 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FILTER_NORMAL_STRICTNESS", 256, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_MAX_FAST_ACCUM", 16, (2..10).map { 1 shl it }) {
                     lang {
-                        name = "Filter Normal Strictness"
+                        name = "Max Fast Accumulation"
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_DEPTH_STRICTNESS", 64, (0..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING", 0.2, 0.0..1.0 step 0.01) {
                     lang {
-                        name = "Filter Depth Strictness"
+                        name = "Fast History Clamping"
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_COLOR_STRICTNESS", 4, 0..32) {
+                empty()
+                slider("SETTING_DENOISER_FILTER_NORMAL_WEIGHT", 256, (0..10).map { 1 shl it }) {
                     lang {
-                        name = "Filter Color Strictness"
+                        name = "Filter Normal Weight"
+                    }
+                }
+                slider("SETTING_DENOISER_FILTER_DEPTH_WEIGHT", 64, (0..10).map { 1 shl it }) {
+                    lang {
+                        name = "Filter Depth Weight"
+                    }
+                }
+                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 4, 0..32) {
+                    lang {
+                        name = "Filter Color Weight"
                     }
                 }
             }

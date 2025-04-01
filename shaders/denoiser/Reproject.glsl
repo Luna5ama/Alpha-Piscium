@@ -9,7 +9,7 @@ vec3 cameraDelta = cameraPosition - previousCameraPosition;
 float normalWeight(vec3 currWorldNormal, uint packedNormal) {
     vec3 prevWorldNormal = coords_octDecode11(unpackSnorm2x16(packedNormal));
     float sdot = saturate(dot(currWorldNormal, prevWorldNormal));
-    return pow(sdot, float(SETTING_DENOISER_REPROJ_NORMAL_STRICTNESS));
+    return pow(sdot, float(SETTING_DENOISER_REPROJ_NORMAL_WEIGHT));
 }
 
 float posWeight(vec3 currScene, vec2 curr2PrevScreen, uint prevViewZI, float a) {

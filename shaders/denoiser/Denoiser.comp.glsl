@@ -158,7 +158,7 @@ void setup(out ivec2 icoord, out vec3 normalC, out vec3 posC) {
 #endif
 
 float hlenC;
-const float BASE_LUMA_ALPHA = 1.0 / SETTING_DENOISER_FILTER_COLOR_STRICTNESS;
+const float BASE_LUMA_ALPHA = 1.0 / SETTING_DENOISER_FILTER_COLOR_WEIGHT;
 
 float computeWeight(vec3 normalC, vec3 posC, float lumaC, vec3 normal, vec3 pos, float luma) {
     vec3 diff = pos - posC;
@@ -170,8 +170,8 @@ float computeWeight(vec3 normalC, vec3 posC, float lumaC, vec3 normal, vec3 pos,
     float lumaDiff = luma - lumaC;
 
     float weight = 1.0;
-    weight *= pow(saturate(normalDot * normalDot), SETTING_DENOISER_FILTER_NORMAL_STRICTNESS);
-    weight *= pow(saturate(1.0 - diffNormalDot * diffNormalDot), SETTING_DENOISER_FILTER_DEPTH_STRICTNESS);
+    weight *= pow(saturate(normalDot * normalDot), SETTING_DENOISER_FILTER_NORMAL_WEIGHT);
+    weight *= pow(saturate(1.0 - diffNormalDot * diffNormalDot), SETTING_DENOISER_FILTER_DEPTH_WEIGHT);
 
     float la = BASE_LUMA_ALPHA / hlenC;
     weight *= max(la / saturate(la + lumaDiff * lumaDiff), BASE_LUMA_ALPHA);

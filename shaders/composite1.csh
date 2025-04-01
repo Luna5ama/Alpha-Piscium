@@ -60,7 +60,6 @@ void main() {
                 floatBitsToUint(prevHLen)
             );
 
-            imageStore(uimg_temp4, texelPos1x1, vec4(prevDiffuse, 0.0));
             imageStore(uimg_tempRGBA32UI, texelPos1x1, temp32UIOut);
 
             uvec4 packedZNOut = uvec4(0u);

@@ -12,6 +12,8 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform sampler2D usam_temp1;
+uniform sampler2D usam_temp3;
+uniform sampler2D usam_temp4;
 uniform usampler2D usam_tempRGBA32UI;
 uniform usampler2D usam_packedZN;
 uniform usampler2D usam_gbufferData32UI;
@@ -20,6 +22,7 @@ uniform sampler2D usam_gbufferViewZ;
 layout(rgba16f) writeonly uniform image2D uimg_temp2;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
+layout(rgba16f) writeonly uniform image2D uimg_temp4;
 
 float computeGeometryWeight(vec3 centerPos, vec3 centerNormal, float sampleViewZ, uint sampleNormal, vec2 sampleScreenPos, float a) {
     vec3 sampleViewPos = coords_toViewCoord(sampleScreenPos, sampleViewZ, gbufferProjectionInverse);
@@ -143,6 +146,19 @@ void main() {
         float prevHLen;
         svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
 
+        // Ellipsoid intersection clipping by Marty
+        if (SETTING_DENOISER_FAST_HISTORY_CLAMPING > 0.0) {
+            vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
+            vec3 mean = texelFetch(usam_temp3, texelPos, 0).rgb;
+            vec3 stddev = texelFetch(usam_temp4, texelPos, 0).rgb;
+            vec3 delta = prevColorYCoCg - mean;
+            const float clippingEps = 0.00001;
+            float diff = length(delta / (stddev + clippingEps)) * SETTING_DENOISER_FAST_HISTORY_CLAMPING;
+            delta /= max(diff, 1.0);
+            prevColorYCoCg = mean + delta;
+            prevColor = mix(prevColor, colors_YCoCgToSRGB(prevColorYCoCg), linearStep(SETTING_DENOISER_MAX_FAST_ACCUM * 0.5, SETTING_DENOISER_MAX_FAST_ACCUM * 2.0, prevHLen));
+        }
+
         vec3 newColor;
         vec3 newFastColor;
         vec2 newMoments;
@@ -158,7 +174,7 @@ void main() {
         filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
         imageStore(uimg_temp2, texelPos, filterInput);
 
-        imageStore(uimg_temp6, texelPos, vec4(linearStep(1.0, 128.0, newHLen)));
+        imageStore(uimg_temp6, texelPos, vec4(linearStep(1.0, 64.0, newHLen)));
 
         uvec4 packedOutData = uvec4(0u);
         #ifdef SETTING_DENOISER
@@ -167,5 +183,7 @@ void main() {
         svgf_pack(packedOutData, newColor, newFastColor, newMoments, newHLen);
         #endif
         imageStore(uimg_svgfHistory, svgf_texelPos1(texelPos), packedOutData);
+
+        imageStore(uimg_temp4, texelPos, filterInput);
     }
 }
