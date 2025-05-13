@@ -21,12 +21,12 @@ ZipOutputStream(File(rootDir, "${rootDir.name}.zip").outputStream(), Charsets.UT
         }
         .forEach { file ->
             val relativePath = file.relativeTo(rootDir).invariantSeparatorsPath
-            if (file.isDirectory) {
+            if (file.isDirectory && file.listFiles()?.isNotEmpty() == true) {
                 zipOut.putNextEntry(ZipEntry("$relativePath/"))
                 zipOut.closeEntry()
                 return@forEach
             }
-            zipOut.putNextEntry(ZipEntry(relativePath.toString()))
+            zipOut.putNextEntry(ZipEntry(relativePath))
             file.inputStream().use { input ->
                 input.copyTo(zipOut)
             }

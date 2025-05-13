@@ -154,9 +154,11 @@ void main() {
             vec3 delta = prevColorYCoCg - mean;
             const float clippingEps = 0.00001;
             float diff = length(delta / (stddev + clippingEps)) * SETTING_DENOISER_FAST_HISTORY_CLAMPING;
-            delta /= max(diff, 1.0);
-            prevColorYCoCg = mean + delta;
-            prevColor = mix(prevColor, colors_YCoCgToSRGB(prevColorYCoCg), linearStep(SETTING_DENOISER_MAX_FAST_ACCUM * 0.5, SETTING_DENOISER_MAX_FAST_ACCUM * 2.0, prevHLen));
+            float invDiff = 1.0 / max(diff, 1.0);
+            delta *= invDiff;
+            prevColorYCoCg = mix(prevColorYCoCg, mean + delta, linearStep(SETTING_DENOISER_MAX_FAST_ACCUM * 0.5, SETTING_DENOISER_MAX_FAST_ACCUM * 2.0, prevHLen));
+            prevColor = colors_YCoCgToSRGB(prevColorYCoCg);
+            prevHLen *= invDiff;
         }
 
         vec3 newColor;
