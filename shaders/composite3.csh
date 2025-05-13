@@ -115,7 +115,7 @@ vec3 calcShadow(Material material, bool isHand) {
     depthBiasFactor += mix(0.005 + lightNormalDot * 0.005, -0.001, dbfDistanceCoeff);
 
     float sampleCountMul = sqrt(ssRange);
-    uint sampleCount = uint((ssRange + float(isHand)) * SETTING_PCSS_SAMPLE_COUNT);
+    uint sampleCount = uint((sampleCountMul + float(isHand)) * SETTING_PCSS_SAMPLE_COUNT);
     sampleCount = max(sampleCount, 1);
     sampleCount = subgroupMax(sampleCount);
 

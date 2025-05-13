@@ -604,7 +604,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Soft Shadows"
                         comment = "Soft Shadows settings"
                     }
-                    slider("SETTING_PCSS_SAMPLE_COUNT", 8, listOf(1, 2, 4, 8, 16, 32, 64)) {
+                    slider("SETTING_PCSS_SAMPLE_COUNT", 16, listOf(1, 2, 4, 8, 16, 32, 64)) {
                         lang {
                             name = "Sample Count"
                         }
