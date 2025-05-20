@@ -10,6 +10,7 @@ uniform sampler2D usam_temp1;
 uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
+uniform usampler2D usam_packedZN;
 
 layout(rgba32ui) uniform restrict uimage2D uimg_envProbe;
 
@@ -19,7 +20,7 @@ void main() {
     outputPos.x += 512;
 
     EnvProbeData outputData;
-    if (envProbe_update(usam_gbufferData32UI, usam_gbufferData8UN, usam_gbufferViewZ, usam_temp1, texelPos, outputData)) {
+    if (envProbe_update(usam_gbufferData32UI, usam_gbufferData8UN, usam_gbufferViewZ, usam_packedZN, texelPos, outputData)) {
         imageStore(uimg_envProbe, outputPos, envProbe_encode(outputData));
     }
 }

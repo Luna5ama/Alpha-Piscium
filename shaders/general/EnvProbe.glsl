@@ -85,7 +85,7 @@ bool envProbe_reproject(ivec2 prevEnvProbeTexelPos, inout EnvProbeData envProbeD
 }
 
 bool envProbe_update(
-usampler2D gbufferData32UI, sampler2D gbufferData8UN, sampler2D gbufferViewZ, sampler2D inputViewColor,
+usampler2D gbufferData32UI, sampler2D gbufferData8UN, sampler2D gbufferViewZ, usampler2D packedZN,
 ivec2 envProbeTexelPos, out EnvProbeData outputData
 ) {
     vec2 envProbeScreenPos = (vec2(envProbeTexelPos) + 0.5) * ENV_PROBE_RCP;
@@ -122,7 +122,10 @@ ivec2 envProbeTexelPos, out EnvProbeData outputData
     vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
     vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
 
-    outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : texelFetch(inputViewColor, texelPos2x2, 0).rgb;
+    uvec2 radianceData = texelFetch(packedZN, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).xy;
+    vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
+
+    outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : radiance.rgb;
     outputData.normal = mat3(gbufferModelViewInverse) * gData.normal;
     outputData.scenePos = realScenePos.xyz;
 
