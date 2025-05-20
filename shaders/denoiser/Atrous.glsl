@@ -127,7 +127,7 @@ vec4 readSharedColor(int offset) {
 void atrousSample(
 vec3 centerNormal, float centerViewZ, float centerLuminance,
 float phiN, float phiZ, float phiL,
-int offset,
+int offset, float baseWeight,
 inout vec4 colorSum, inout float weightSum
 ) {
     int realOffset = offset * ATROUS_RADIUS;
@@ -140,7 +140,7 @@ inout vec4 colorSum, inout float weightSum
 
         float sampleLuminance = colors_srgbLuma(sampleColor.rgb);
 
-        float weight = 1.0;
+        float weight = baseWeight;
         weight *= normalWeight(centerNormal, sampleNormal, phiN);
         weight *= viewZWeight(centerViewZ, sampleViewZ, phiZ);
         weight *= luminanceWeight(centerLuminance, sampleLuminance, phiL * float(abs(realOffset)));
@@ -171,8 +171,10 @@ vec4 svgf_atrous(ivec2 texelPos) {
             float centerVariance = centerFilterData.a;
             float centerLuminance = colors_srgbLuma(centerColor);
 
-            float hDecay = texelFetch(usam_temp6, svgf_texelPos, 0).r;
-            float sigmaL = SETTING_DENOISER_FILTER_COLOR_WEIGHT * pow2(hDecay) * 0.01;
+            vec2 hLenV = texelFetch(usam_temp6, svgf_texelPos, 0).xy;
+            float sigmaL = pow4(hLenV.x) * 0.01;
+            sigmaL *= mix(SETTING_DENOISER_FILTER_MAX_COLOR_WEIGHT, SETTING_DENOISER_FILTER_MIN_COLOR_WEIGHT, hLenV.y);
+
             float phiN = SETTING_DENOISER_FILTER_NORMAL_WEIGHT;
             float phiZ = max((1.0 / SETTING_DENOISER_FILTER_DEPTH_WEIGHT) * pow2(centerViewZ), 0.5);
             float phiL = sigmaL / max(sqrt(centerVariance), 0.01);
@@ -180,31 +182,35 @@ vec4 svgf_atrous(ivec2 texelPos) {
             vec4 colorSum = centerFilterData * 1.0;
             float weightSum = 1.0;
 
+            float kernelDecay = mix(SETTING_DENOISER_FILTER_KERNEL_MIN_SIGMA, SETTING_DENOISER_FILTER_KERNEL_MAX_SIGMA, pow2(hLenV.y));
+            float baseWeight1 = exp2(-1.0 * kernelDecay);
+            float baseWeight2 = exp2(-2.0 * kernelDecay);
+
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                -2,
+                -2, baseWeight2,
                 colorSum, weightSum
             );
 
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                -1,
+                -1, baseWeight1,
                 colorSum, weightSum
             );
 
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                1,
+                1, baseWeight1,
                 colorSum, weightSum
             );
 
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
                 phiN, phiZ, phiL,
-                2,
+                2, baseWeight2,
                 colorSum, weightSum
             );
 

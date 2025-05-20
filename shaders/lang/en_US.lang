@@ -103,10 +103,19 @@ option.SETTING_DENOISER_MAX_ACCUM=Max Accumulation
 option.SETTING_DENOISER_ACCUM_DECAY=Accumulation Decay
 option.SETTING_DENOISER_ACCUM_DECAY.comment=Current mix rate decay factor for temporal accumulation. Larger value means faster decay.
 option.SETTING_DENOISER_MAX_FAST_ACCUM=Max Fast Accumulation
-option.SETTING_DENOISER_FAST_HISTORY_CLAMPING=Fast History Clamping
+option.SETTING_DENOISER_FAST_HISTORY_CLAMPING_BOX_SCALE=Fast History Clamping Box Scale
 option.SETTING_DENOISER_FILTER_NORMAL_WEIGHT=Filter Normal Weight
 option.SETTING_DENOISER_FILTER_DEPTH_WEIGHT=Filter Depth Weight
-option.SETTING_DENOISER_FILTER_COLOR_WEIGHT=Filter Color Weight
+option.SETTING_DENOISER_FILTER_MIN_COLOR_WEIGHT=Filter Min Color Weight
+option.SETTING_DENOISER_FILTER_MIN_COLOR_WEIGHT.comment=Minimum color weight for denoiser. Smaller value means more blurring. This value is use when the number of accumulated frames is greater than the max accumulation setting.
+option.SETTING_DENOISER_FILTER_MAX_COLOR_WEIGHT=Filter Max Color Weight
+option.SETTING_DENOISER_FILTER_MAX_COLOR_WEIGHT.comment=Maximum color weight for denoiser. Smaller value means more blurring. This value is use in the beginning of accumulation.
+option.SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES=Filter Color Weight Fade In Frames
+option.SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES.comment=Number of frames to fade in color weight.
+option.SETTING_DENOISER_FILTER_KERNEL_MIN_SIGMA=Filter Kernel Min Sigma
+option.SETTING_DENOISER_FILTER_KERNEL_MIN_SIGMA.comment=Minimum kernel sigma value for denoiser. Smaller value means more blurring. 0 = box filter kernel.
+option.SETTING_DENOISER_FILTER_KERNEL_MAX_SIGMA=Filter Kernel Max Sigma
+option.SETTING_DENOISER_FILTER_KERNEL_MAX_SIGMA.comment=Maximum kernel sigma value for denoiser. Smaller value means more blurring. 0 = box filter kernel.
 option.SETTING_NORMAL_MAPPING=Normal Mapping
 option.SETTING_NORMAL_MAPPING_STRENGTH=Normal Mapping Strength
 option.SETTING_ATM_ALT_SCALE=Atmosphere Altitude Scale

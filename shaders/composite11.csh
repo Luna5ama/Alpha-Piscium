@@ -146,20 +146,16 @@ void main() {
         float prevHLen;
         svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
 
-        // Ellipsoid intersection clipping by Marty
-        if (SETTING_DENOISER_FAST_HISTORY_CLAMPING > 0.0) {
-            vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
-            vec3 mean = texelFetch(usam_temp3, texelPos, 0).rgb;
-            vec3 stddev = texelFetch(usam_temp4, texelPos, 0).rgb;
-            vec3 delta = prevColorYCoCg - mean;
-            const float clippingEps = 0.00001;
-            float diff = length(delta / (stddev + clippingEps)) * SETTING_DENOISER_FAST_HISTORY_CLAMPING;
-            float invDiff = 1.0 / max(diff, 1.0);
-            delta *= invDiff;
-            prevColorYCoCg = mix(prevColorYCoCg, mean + delta, linearStep(SETTING_DENOISER_MAX_FAST_ACCUM * 0.5, SETTING_DENOISER_MAX_FAST_ACCUM * 2.0, prevHLen));
-            prevColor = colors_YCoCgToSRGB(prevColorYCoCg);
-            prevHLen *= invDiff;
-        }
+        vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
+        vec3 mean = texelFetch(usam_temp3, texelPos, 0).rgb;
+        vec3 stddev = texelFetch(usam_temp4, texelPos, 0).rgb;
+        vec3 aabbMin = mean - stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_BOX_SCALE;
+        vec3 aabbMax = mean + stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_BOX_SCALE;
+        aabbMin = min(aabbMin, prevFastColor);
+        aabbMax = max(aabbMax, prevFastColor);
+        vec3 prevColorYCoCgClamped = clamp(prevColorYCoCg, aabbMin, aabbMax);
+        prevColorYCoCg = mix(prevColorYCoCg, prevColorYCoCgClamped, linearStep(SETTING_DENOISER_MAX_FAST_ACCUM * 0.5, SETTING_DENOISER_MAX_FAST_ACCUM * 2.0, prevHLen));
+        prevColor = colors_YCoCgToSRGB(prevColorYCoCg);
 
         vec3 newColor;
         vec3 newFastColor;
@@ -176,7 +172,10 @@ void main() {
         filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
         imageStore(uimg_temp2, texelPos, filterInput);
 
-        imageStore(uimg_temp6, texelPos, vec4(linearStep(1.0, 64.0, newHLen)));
+        vec4 hLenV = vec4(0.0);
+        hLenV.x = linearStep(1.0, 1.0 + SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES, newHLen);
+        hLenV.y = linearStep(1.0, SETTING_DENOISER_MAX_ACCUM, newHLen);
+        imageStore(uimg_temp6, texelPos, hLenV);
 
         uvec4 packedOutData = uvec4(0u);
         #ifdef SETTING_DENOISER

@@ -103,7 +103,7 @@ void main() {
         updateMoments1(readSharedXY, ivec2(2, 0), moment1, moment2);
         moment1 /= 5.0;
         moment2 /= 5.0;
-        vec3 variance = moment2 - moment1 * moment1;
+        vec3 variance = max(moment2 - moment1 * moment1, 0.0);
         vec3 stddev = sqrt(variance);
         imageStore(uimg_temp3, texelPos, vec4(moment1, 0.0));
         imageStore(uimg_temp4, texelPos, vec4(stddev, 0.0));

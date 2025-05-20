@@ -111,7 +111,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
             uvec4 prevHLenData = textureGather(svgfHistory, gatherUV1, 3);
             vec4 prevHLens = uintBitsToFloat(prevHLenData);
 
-            prevHLen = max(prevHLen, dot(bilateralWeights, prevHLens) / bilateralWeightSum);
+            prevHLen += dot(interpoWeights, prevHLens);
         }
     }
 }
@@ -252,6 +252,6 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
         prevColor = max(prevColor * rcpWeightSum, 0.0);
         prevFastColor = max(prevFastColor * rcpWeightSum, 0.0);
         prevMoments = max(prevMoments * rcpWeightSum, 0.0);
-        prevHLen = max(ceil(prevHLen), 0.0);
+        prevHLen = max(ceil(prevHLen * rcpWeightSum), 0.0);
     }
 }

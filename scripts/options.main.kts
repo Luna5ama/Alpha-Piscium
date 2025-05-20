@@ -760,7 +760,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Denoiser"
                     }
                 }
-                empty()
                 slider("SETTING_DENOISER_REPROJ_NORMAL_WEIGHT", 8, (0..10).map { 1 shl it }) {
                     lang {
                         name = "Reprojection Normal Weight"
@@ -775,19 +774,18 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_DENOISER_ACCUM_DECAY", 1.0, 0.5..2.0 step 0.01) {
                     lang {
                         name = "Accumulation Decay"
-                        comment =
-                            "Current mix rate decay factor for temporal accumulation. Larger value means faster decay."
+                        comment = "Current mix rate decay factor for temporal accumulation. Larger value means faster decay."
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_MAX_FAST_ACCUM", 16, (2..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_MAX_FAST_ACCUM", 16, 1..32 step 1) {
                     lang {
                         name = "Max Fast Accumulation"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING", 0.2, 0.0..1.0 step 0.01) {
+                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING_BOX_SCALE", 2.0, 1.0..3.0 step 0.01) {
                     lang {
-                        name = "Fast History Clamping"
+                        name = "Fast History Clamping Box Scale"
                     }
                 }
                 empty()
@@ -801,9 +799,36 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Filter Depth Weight"
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 8, 0..32) {
+                empty()
+                slider("SETTING_DENOISER_FILTER_MIN_COLOR_WEIGHT", 2.0, 0.0..16.0 step 0.1) {
                     lang {
-                        name = "Filter Color Weight"
+                        name = "Filter Min Color Weight"
+                        comment = "Minimum color weight for denoiser. Smaller value means more blurring. This value is use when the number of accumulated frames is greater than the max accumulation setting."
+                    }
+                }
+                slider("SETTING_DENOISER_FILTER_MAX_COLOR_WEIGHT", 8.0, 0.0..16.0 step 0.1) {
+                    lang {
+                        name = "Filter Max Color Weight"
+                        comment = "Maximum color weight for denoiser. Smaller value means more blurring. This value is use in the beginning of accumulation."
+                    }
+                }
+                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES", 8, 1..16) {
+                    lang {
+                        name = "Filter Color Weight Fade In Frames"
+                        comment = "Number of frames to fade in color weight."
+                    }
+                }
+                empty()
+                slider("SETTING_DENOISER_FILTER_KERNEL_MIN_SIGMA", 0.0, 0.0..8.0 step 0.1) {
+                    lang {
+                        name = "Filter Kernel Min Sigma"
+                        comment = "Minimum kernel sigma value for denoiser. Smaller value means more blurring. 0 = box filter kernel."
+                    }
+                }
+                slider("SETTING_DENOISER_FILTER_KERNEL_MAX_SIGMA", 2.0, 0.0..8.0 step 0.1) {
+                    lang {
+                        name = "Filter Kernel Max Sigma"
+                        comment = "Maximum kernel sigma value for denoiser. Smaller value means more blurring. 0 = box filter kernel."
                     }
                 }
             }
