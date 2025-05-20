@@ -106,22 +106,31 @@ float luminanceWeight(float centerLuminance, float sampleLuminance, float phiL) 
 #define SHARED_DATA_SIZE (128 + ATROUS_RADIUS * 4)
 #define SHARED_DATA_OFFSET (ATROUS_RADIUS * 2)
 ivec2 svgf_texelPos;
-shared uvec2 shared_colorData[SHARED_DATA_SIZE];
+shared uvec4 shared_data[SHARED_DATA_SIZE];
 
-void loadShared(uint index) {
+void initSharedData(uint index) {
     if (index < SHARED_DATA_SIZE) {
         ivec2 loadTexelPos = ivec2(gl_WorkGroupID.xy * gl_WorkGroupSize.xy);
         loadTexelPos += ATROUS_AXIS_VEC * (int(index) - SHARED_DATA_OFFSET);
         loadTexelPos = clamp(loadTexelPos, ivec2(0), global_mainImageSizeI - 1);
         vec4 color = texelFetch(ATROUS_INPUT, loadTexelPos, 0);
-        uvec2 packedColor = uvec2(packHalf2x16(color.rg), packHalf2x16(color.ba));
-        shared_colorData[index] = packedColor;
+        uvec4 packedData = uvec4(0u);
+        packedData.x = packHalf2x16(color.rg);
+        packedData.y = packHalf2x16(color.ba);
+        vec3 normal;
+        float viewZ;
+        nzpacking_unpack(texelFetch(usam_packedZN, loadTexelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, normal, viewZ);
+        packedData.z = packSnorm4x8(vec4(normal, 0.0));
+        packedData.w = floatBitsToUint(viewZ);
+        shared_data[index] = packedData;
     }
 }
 
-vec4 readSharedColor(int offset) {
-    uvec2 packedColor = shared_colorData[gl_LocalInvocationIndex + offset + SHARED_DATA_OFFSET];
-    return vec4(unpackHalf2x16(packedColor.x), unpackHalf2x16(packedColor.y));
+void loadSharedData(int offset, out vec4 color, out vec3 normal, out float viewZ) {
+    uvec4 packedData = shared_data[gl_LocalInvocationIndex + offset + SHARED_DATA_OFFSET];
+    color = vec4(unpackHalf2x16(packedData.x), unpackHalf2x16(packedData.y));
+    normal = unpackSnorm4x8(packedData.z).xyz;
+    viewZ = uintBitsToFloat(packedData.w);
 }
 
 void atrousSample(
@@ -133,10 +142,10 @@ inout vec4 colorSum, inout float weightSum
     int realOffset = offset * ATROUS_RADIUS;
     ivec2 texelPos = svgf_texelPos + realOffset * ATROUS_AXIS_VEC;
     if (all(greaterThanEqual(texelPos, ivec2(0))) && all(lessThan(texelPos, global_mainImageSizeI))) {
-        vec4 sampleColor = readSharedColor(realOffset);
+        vec4 sampleColor;
         vec3 sampleNormal;
         float sampleViewZ;
-        nzpacking_unpack(texelFetch(usam_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, sampleNormal, sampleViewZ);
+        loadSharedData(realOffset, sampleColor, sampleNormal, sampleViewZ);
 
         float sampleLuminance = colors_srgbLuma(sampleColor.rgb);
 
@@ -153,19 +162,19 @@ inout vec4 colorSum, inout float weightSum
 vec4 svgf_atrous(ivec2 texelPos) {
     svgf_texelPos = texelPos;
 
-    loadShared(gl_LocalInvocationIndex);
-    loadShared(gl_LocalInvocationIndex + 128);
+    initSharedData(gl_LocalInvocationIndex);
+    initSharedData(gl_LocalInvocationIndex + 128);
     barrier();
 
     vec4 outputColor = vec4(0.0);
 
     if (all(lessThan(svgf_texelPos, global_mainImageSizeI))) {
+        vec4 centerFilterData;
         vec3 centerNormal;
         float centerViewZ;
-        nzpacking_unpack(texelFetch(usam_packedZN, svgf_texelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, centerNormal, centerViewZ);
+        loadSharedData(0, centerFilterData, centerNormal, centerViewZ);
 
         if (centerViewZ != -65536.0) {
-            vec4 centerFilterData = readSharedColor(0);
             vec3 centerColor = centerFilterData.rgb;
 
             float centerVariance = centerFilterData.a;
