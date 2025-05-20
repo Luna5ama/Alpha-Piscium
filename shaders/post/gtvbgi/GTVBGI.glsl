@@ -522,7 +522,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         }
     }
 
-    result = dither_fp16(result, rand_IGN(vbgi_texelPos2x2, frameCounter));
+    result = dither_fp16(result, rand_IGN(vbgi_texelPos2x2, NOISE_FRAME));
 }
 
 vec4 gtvbgi(ivec2 texelPos2x2) {

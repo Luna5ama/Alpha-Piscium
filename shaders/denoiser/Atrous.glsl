@@ -133,7 +133,7 @@ inout vec4 colorSum, inout float weightSum
     int realOffset = offset * ATROUS_RADIUS;
     ivec2 texelPos = svgf_texelPos + realOffset * ATROUS_AXIS_VEC;
     if (all(greaterThanEqual(texelPos, ivec2(0))) && all(lessThan(texelPos, global_mainImageSizeI))) {
-        vec4 sampleColor = readSharedColor(offset);
+        vec4 sampleColor = readSharedColor(realOffset);
         vec3 sampleNormal;
         float sampleViewZ;
         nzpacking_unpack(texelFetch(usam_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, sampleNormal, sampleViewZ);
