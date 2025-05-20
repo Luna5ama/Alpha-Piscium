@@ -182,7 +182,7 @@ vec4 svgf_atrous(ivec2 texelPos) {
 
             vec2 hLenV = texelFetch(usam_temp6, svgf_texelPos, 0).xy;
             float sigmaL = pow4(hLenV.x) * 0.01;
-            sigmaL *= mix(SETTING_DENOISER_FILTER_MAX_COLOR_WEIGHT, SETTING_DENOISER_FILTER_MIN_COLOR_WEIGHT, hLenV.y);
+            sigmaL *= mix(SETTING_DENOISER_FILTER_INIT_COLOR_WEIGHT, SETTING_DENOISER_FILTER_FINAL_COLOR_WEIGHT, hLenV.y);
 
             float phiN = SETTING_DENOISER_FILTER_NORMAL_WEIGHT;
             float phiZ = max((1.0 / SETTING_DENOISER_FILTER_DEPTH_WEIGHT) * pow2(centerViewZ), 0.5);
@@ -191,7 +191,7 @@ vec4 svgf_atrous(ivec2 texelPos) {
             vec4 colorSum = centerFilterData * 1.0;
             float weightSum = 1.0;
 
-            float kernelDecay = mix(SETTING_DENOISER_FILTER_KERNEL_MIN_SIGMA, SETTING_DENOISER_FILTER_KERNEL_MAX_SIGMA, pow2(hLenV.y));
+            float kernelDecay = mix(SETTING_DENOISER_FILTER_KERNEL_INIT_SIGMA, SETTING_DENOISER_FILTER_KERNEL_FINAL_SIGMA, pow2(hLenV.y));
             float baseWeight1 = exp2(-1.0 * kernelDecay);
             float baseWeight2 = exp2(-2.0 * kernelDecay);
 

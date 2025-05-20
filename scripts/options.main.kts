@@ -805,16 +805,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FILTER_MIN_COLOR_WEIGHT", 2.0, 0.0..16.0 step 0.1) {
+                slider("SETTING_DENOISER_FILTER_INIT_COLOR_WEIGHT", 8.0, 0.0..16.0 step 0.1) {
                     lang {
-                        name = "Filter Min Color Weight"
-                        comment = "Minimum color weight for denoiser. Smaller value means more blurring. This value is use when the number of accumulated frames is greater than the max accumulation setting."
+                        name = "Filter Initial Color Weight"
+                        comment = "Smaller value means more blurring. This value is use in the beginning of accumulation."
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_MAX_COLOR_WEIGHT", 8.0, 0.0..16.0 step 0.1) {
+                slider("SETTING_DENOISER_FILTER_FINAL_COLOR_WEIGHT", 2.0, 0.0..16.0 step 0.1) {
                     lang {
-                        name = "Filter Max Color Weight"
-                        comment = "Maximum color weight for denoiser. Smaller value means more blurring. This value is use in the beginning of accumulation."
+                        name = "Filter Final Color Weight"
+                        comment = "Smaller value means more blurring. This value is use when the number of accumulated frames is greater than the max accumulation setting."
                     }
                 }
                 slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES", 8, 1..16) {
@@ -824,16 +824,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FILTER_KERNEL_MIN_SIGMA", 0.0, 0.0..8.0 step 0.1) {
+                slider("SETTING_DENOISER_FILTER_KERNEL_INIT_SIGMA", 0.0, 0.0..8.0 step 0.1) {
                     lang {
-                        name = "Filter Kernel Min Sigma"
-                        comment = "Minimum kernel sigma value for denoiser. Smaller value means more blurring. 0 = box filter kernel."
+                        name = "Filter Kernel Initial Sigma"
+                        comment = "Smaller value means more blurring. 0 = box filter kernel. This value is use in the beginning of accumulation."
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_KERNEL_MAX_SIGMA", 2.0, 0.0..8.0 step 0.1) {
+                slider("SETTING_DENOISER_FILTER_KERNEL_FINAL_SIGMA", 2.0, 0.0..8.0 step 0.1) {
                     lang {
-                        name = "Filter Kernel Max Sigma"
-                        comment = "Maximum kernel sigma value for denoiser. Smaller value means more blurring. 0 = box filter kernel."
+                        name = "Filter Kernel Final Sigma"
+                        comment = "Smaller value means more blurring. 0 = box filter kernel. This value is use when the number of accumulated frames is greater than the max accumulation setting."
                     }
                 }
             }
@@ -1106,6 +1106,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             lang {
                 name = "Misc"
             }
+            toggle("SETTING_SCREENSHOT_MODE", false) {
+                lang {
+                    name = "Screenshot Mode"
+                }
+            }
             screen("DEBUG", 1) {
                 lang {
                     name = "Debug"
@@ -1226,11 +1231,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     lang {
                         name = "Epipolar"
                     }
-                }
-            }
-            toggle("SETTING_SCREENSHOT_MODE", false) {
-                lang {
-                    name = "Screenshot Mode"
                 }
             }
         }
