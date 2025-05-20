@@ -8,7 +8,7 @@
 #include "/util/Material.glsl"
 #include "/util/Dither.glsl"
 
-layout(local_size_x = 16, local_size_y = 16) in;
+layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform sampler2D usam_temp1;

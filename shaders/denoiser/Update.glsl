@@ -1,5 +1,6 @@
 #include "Common.glsl"
 #include "/util/Colors.glsl"
+#include "/util/Math.glsl"
 
 void gi_update(
 vec3 currColor,
@@ -11,8 +12,7 @@ out vec3 newColor, out vec3 newFastColor, out vec2 newMoments, out float newHLen
 
     if (prevHLen != 0.0) {
         newHLen = min(prevHLen + 1.0, 1024.0);
-        alpha.x = 1.0 / pow(min(newHLen, SETTING_DENOISER_MAX_ACCUM), SETTING_DENOISER_ACCUM_DECAY);
-        alpha.y = 1.0 / pow(min(newHLen, SETTING_DENOISER_MAX_FAST_ACCUM), SETTING_DENOISER_ACCUM_DECAY);
+        alpha = rcp(pow(min(vec2(newHLen), vec2(SETTING_DENOISER_MAX_ACCUM, SETTING_DENOISER_MAX_FAST_ACCUM)), vec2(SETTING_DENOISER_ACCUM_DECAY)));
     }
     newColor = mix(prevColor, currColor, alpha.x);
     newFastColor = mix(prevFastColor, currColor, alpha.y);
