@@ -74,7 +74,7 @@ void main() {
                     vec4 ssgiOut = vec4(0.0);
                     ssgiOut.a = gData.lmCoord.y;
                     if (gData.materialID != 65534u) {
-                        float multiBounceV = SETTING_VBGI_GI_MB * RCP_PI;
+                        float multiBounceV = SETTING_VBGI_GI_MB;
                         ssgiOut.rgb = multiBounceV * max(prevDiffuse, 0.0) * material.albedo;
                         ssgiOut.a *= mix(-1.0, 1.0, any(greaterThan(material.emissive, vec3(0.0))));
                     }
