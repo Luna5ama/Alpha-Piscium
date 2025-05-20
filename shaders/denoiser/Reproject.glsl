@@ -222,7 +222,7 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
 
     bilateralSample(
         svgfHistory, packedZN,
-        gatherTexelPos + vec2(-1.0, -1.0), weights3,
+        gatherTexelPos + vec2(-1.0, -1.0), weights4,
         currScene.xyz, currViewZ, currToPrevViewNormal,
         prevColor, prevFastColor, prevMoments, prevHLen, weightSum
     );
