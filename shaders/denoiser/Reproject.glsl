@@ -161,6 +161,12 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     uint flag = uint(any(lessThan(centerWeights, vec4(WEIGHT_EPSILON))));
     flag |= uint(any(lessThan(curr2PrevTexel, vec2(1.0))));
     flag |= uint(any(greaterThan(curr2PrevTexel, global_mainImageSize - 1.0)));
+
+    vec4 weights1;
+    vec4 weights2;
+    vec4 weights3;
+    vec4 weights4;
+
     if (bool(flag)) {
         vec4 weightX = interpo_bSplineWeights(pixelPosFract.x);
         vec4 weightY = interpo_bSplineWeights(pixelPosFract.y);
@@ -172,74 +178,54 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
         blinearWeights4.xy *= bilinearWeights2.yy;
         blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
-        vec4 sampleGatherWeights = weightX.xyyx * weightY.wwzz;
-        sampleGatherWeights.z += blinearWeights4.x;
-        bilateralSample(
-            svgfHistory, packedZN,
-            gatherTexelPos + vec2(-1.0, 1.0), sampleGatherWeights,
-            currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
-        );
+        weights1 = weightX.xyyx * weightY.wwzz;
+        weights1.z += blinearWeights4.x;
 
-        sampleGatherWeights = weightX.zwwz * weightY.wwzz;
-        sampleGatherWeights.w += blinearWeights4.y;
-        bilateralSample(
-            svgfHistory, packedZN,
-            gatherTexelPos + vec2(1.0, 1.0), sampleGatherWeights,
-            currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
-        );
+        weights2 = weightX.zwwz * weightY.wwzz;
+        weights2.w += blinearWeights4.y;
 
-        sampleGatherWeights = weightX.zwwz * weightY.yyxx;
-        sampleGatherWeights.x += blinearWeights4.z;
-        bilateralSample(
-            svgfHistory, packedZN,
-            gatherTexelPos + vec2(1.0, -1.0), sampleGatherWeights,
-            currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
-        );
+        weights3 = weightX.zwwz * weightY.yyxx;
+        weights3.x += blinearWeights4.z;
 
-        sampleGatherWeights = weightX.xyyx * weightY.yyxx;
-        sampleGatherWeights.y += blinearWeights4.w;
-        bilateralSample(
-            svgfHistory, packedZN,
-            gatherTexelPos + vec2(-1.0, -1.0), sampleGatherWeights,
-            currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
-        );
+        weights4 = weightX.xyyx * weightY.yyxx;
+        weights4.y += blinearWeights4.w;
     } else {
         vec4 weightX = interpo_catmullRomWeights(pixelPosFract.x);
         vec4 weightY = interpo_catmullRomWeights(pixelPosFract.y);
 
-        bilateralSample(
-            svgfHistory, packedZN,
-            gatherTexelPos + vec2(-1.0, 1.0), weightX.xyyx * weightY.wwzz,
-            currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
-        );
-
-        bilateralSample(
-            svgfHistory, packedZN,
-            gatherTexelPos + vec2(1.0, 1.0), weightX.zwwz * weightY.wwzz,
-            currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
-        );
-
-        bilateralSample(
-            svgfHistory, packedZN,
-            gatherTexelPos + vec2(1.0, -1.0), weightX.zwwz * weightY.yyxx,
-            currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
-        );
-
-        bilateralSample(
-            svgfHistory, packedZN,
-            gatherTexelPos + vec2(-1.0, -1.0), weightX.xyyx * weightY.yyxx,
-            currScene.xyz, currViewZ, currToPrevViewNormal,
-            prevColor, prevFastColor, prevMoments, prevHLen, weightSum
-        );
+        weights1 = weightX.xyyx * weightY.wwzz;
+        weights2 = weightX.zwwz * weightY.wwzz;
+        weights3 = weightX.zwwz * weightY.yyxx;
+        weights4 = weightX.xyyx * weightY.yyxx;
     }
 
+    bilateralSample(
+        svgfHistory, packedZN,
+        gatherTexelPos + vec2(-1.0, 1.0), weights1,
+        currScene.xyz, currViewZ, currToPrevViewNormal,
+        prevColor, prevFastColor, prevMoments, prevHLen, weightSum
+    );
+
+    bilateralSample(
+        svgfHistory, packedZN,
+        gatherTexelPos + vec2(1.0, 1.0), weights2,
+        currScene.xyz, currViewZ, currToPrevViewNormal,
+        prevColor, prevFastColor, prevMoments, prevHLen, weightSum
+    );
+
+    bilateralSample(
+        svgfHistory, packedZN,
+        gatherTexelPos + vec2(1.0, -1.0), weights3,
+        currScene.xyz, currViewZ, currToPrevViewNormal,
+        prevColor, prevFastColor, prevMoments, prevHLen, weightSum
+    );
+
+    bilateralSample(
+        svgfHistory, packedZN,
+        gatherTexelPos + vec2(-1.0, -1.0), weights3,
+        currScene.xyz, currViewZ, currToPrevViewNormal,
+        prevColor, prevFastColor, prevMoments, prevHLen, weightSum
+    );
 
     const float WEIGHT_EPSILON_FINAL = 0.0001;
     if (weightSum < WEIGHT_EPSILON_FINAL) {
