@@ -92,11 +92,11 @@ void main() {
     curr3x3SqAvg /= 9.0;
 
     // Ellipsoid intersection clipping by Marty
-    vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
-    vec3 stddev = sqrt(curr3x3SqAvg - curr3x3Avg * curr3x3Avg);
-    vec3 delta = prevColorYCoCg - curr3x3Avg;
     const float clippingEps = 0.00001;
-    delta /= max(1.0, length(delta / (stddev + clippingEps)));
+    vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
+    vec3 stddev = sqrt(max(curr3x3SqAvg - curr3x3Avg * curr3x3Avg, clippingEps));
+    vec3 delta = prevColorYCoCg - curr3x3Avg;
+    delta /= max(1.0, length(delta / stddev));
 
     float clipWeight = 0.5;
     clipWeight += saturate(1.0 - prevResult.a);
