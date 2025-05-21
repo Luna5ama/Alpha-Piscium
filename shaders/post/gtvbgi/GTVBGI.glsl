@@ -375,7 +375,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
                     uvec2 radianceData = texelFetch(usam_packedZN, sampleTexelPos + ivec2(0, global_mipmapSizesI[1].y), 0).xy;
                     vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
                     float emissive = saturate(sign(radiance.a));
-                    float emitterCos = mix(saturate(dot(sampleViewNormal, -thisToSample)), 1.0, emissive);
+                    float emitterCos = mix(saturate(dot(sampleViewNormal, -thisToSample)), RCP_PI, emissive);
                     float planeDist = pow2(dot(frontDiff, sampleViewNormal));
                     float emissiveA = 0.001 * pow2(sampleViewZ);
                     emitterCos *= 1.0 - emissiveA / (emissiveA + planeDist);

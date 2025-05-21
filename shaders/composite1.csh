@@ -73,13 +73,10 @@ void main() {
                 {
                     vec4 ssgiOut = vec4(0.0);
                     ssgiOut.a = gData.lmCoord.y;
-                    if (gData.materialID != 65534u) {
-                        float multiBounceV = SETTING_VBGI_GI_MB;
-                        float albedoLum = colors_srgbLuma(material.albedo);
-                        vec3 limitedAlbedo = material.albedo / albedoLum * min(albedoLum, 0.8);
-                        ssgiOut.rgb = multiBounceV * max(prevDiffuse, 0.0) * limitedAlbedo;
-                        ssgiOut.a *= mix(-1.0, 1.0, any(greaterThan(material.emissive, vec3(0.0))));
-                    }
+                    float multiBounceV = SETTING_VBGI_GI_MB * 2.0 * RCP_PI;
+                    float albedoLum = colors_srgbLuma(material.albedo);
+                    ssgiOut.rgb = multiBounceV * max(prevFastDiffuse, 0.0) * material.albedo;
+                    ssgiOut.a *= mix(-1.0, 1.0, any(greaterThan(material.emissive, vec3(0.0))));
                     uvec4 tempRG32UIOut = uvec4(0u);
                     tempRG32UIOut.x = packHalf2x16(ssgiOut.rg);
                     tempRG32UIOut.y = packHalf2x16(ssgiOut.ba);
