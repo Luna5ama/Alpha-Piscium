@@ -155,7 +155,7 @@ void main() {
         aabbMax = max(aabbMax, prevFastColor);
         vec3 prevColorYCoCgClamped = clamp(prevColorYCoCg, aabbMin, aabbMax);
         float clippingWeight = linearStep(
-            max(SETTING_DENOISER_MAX_FAST_ACCUM, SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES),
+            SETTING_DENOISER_MAX_FAST_ACCUM,
             SETTING_DENOISER_MAX_FAST_ACCUM * 2.0,
             prevHLen
         );

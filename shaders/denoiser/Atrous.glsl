@@ -181,8 +181,9 @@ vec4 svgf_atrous(ivec2 texelPos) {
             float centerLuminance = colors_srgbLuma(centerColor);
 
             vec2 hLenV = texelFetch(usam_temp6, svgf_texelPos, 0).xy;
-            float sigmaL = pow4(hLenV.x) * 0.01;
+            float sigmaL = pow2(hLenV.x);
             sigmaL *= mix(SETTING_DENOISER_FILTER_INIT_COLOR_WEIGHT, SETTING_DENOISER_FILTER_FINAL_COLOR_WEIGHT, hLenV.y);
+            sigmaL *= 0.01;
 
             float phiN = SETTING_DENOISER_FILTER_NORMAL_WEIGHT;
             float phiZ = max((1.0 / SETTING_DENOISER_FILTER_DEPTH_WEIGHT) * pow2(centerViewZ), 0.5);

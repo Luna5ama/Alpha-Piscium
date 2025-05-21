@@ -810,32 +810,32 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FILTER_INIT_COLOR_WEIGHT", 8.0, 0.0..16.0 step 0.1) {
+                slider("SETTING_DENOISER_FILTER_INIT_COLOR_WEIGHT", 2.0, 0.0..16.0 step 0.1) {
                     lang {
                         name = "Filter Initial Color Weight"
                         comment = "Smaller value means more blurring. This value is use in the beginning of accumulation."
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_FINAL_COLOR_WEIGHT", 2.0, 0.0..16.0 step 0.1) {
+                slider("SETTING_DENOISER_FILTER_FINAL_COLOR_WEIGHT", 4.0, 0.0..16.0 step 0.1) {
                     lang {
                         name = "Filter Final Color Weight"
                         comment = "Smaller value means more blurring. This value is use when the number of accumulated frames is greater than the max accumulation setting."
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES", 8, 1..16) {
+                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES", 8, 2..32 step 2) {
                     lang {
                         name = "Filter Color Weight Fade In Frames"
                         comment = "Number of frames to fade in color weight."
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FILTER_KERNEL_INIT_SIGMA", 0.0, 0.0..8.0 step 0.1) {
+                slider("SETTING_DENOISER_FILTER_KERNEL_INIT_SIGMA", 0.0, 0.0..4.0 step 0.1) {
                     lang {
                         name = "Filter Kernel Initial Sigma"
                         comment = "Smaller value means more blurring. 0 = box filter kernel. This value is use in the beginning of accumulation."
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_KERNEL_FINAL_SIGMA", 2.0, 0.0..8.0 step 0.1) {
+                slider("SETTING_DENOISER_FILTER_KERNEL_FINAL_SIGMA", 1.0, 0.0..4.0 step 0.1) {
                     lang {
                         name = "Filter Kernel Final Sigma"
                         comment = "Smaller value means more blurring. 0 = box filter kernel. This value is use when the number of accumulated frames is greater than the max accumulation setting."
