@@ -8,9 +8,9 @@
 
 #if BLOOM_DOWN_SAMPLE
 #define BLOOM_SCALE_DIV BLOOM_PASS
-#if BLOOM_PASS <= 1
-#define BLOOM_KARIS_AVERAGE 1
-#endif
+//#if BLOOM_PASS <= 1
+//#define BLOOM_KARIS_AVERAGE 1
+//#endif
 
 #elif BLOOM_UP_SAMPLE
 #define BLOOM_SCALE_DIV (BLOOM_PASS - 1)
@@ -106,7 +106,7 @@ vec4 bloom_readInputDown(ivec2 coord) {
     vec2 readPosUV = vec2(coord + inputStartPixel) * texelSize;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
     #if BLOOM_PASS == 1
-    return texture(BLOOM_SAMPLER, readPosUV) * SETTING_BLOOM_INTENSITY * 0.01;
+    return texture(BLOOM_SAMPLER, readPosUV) * SETTING_BLOOM_INTENSITY * 0.02;
     #else
     return texture(BLOOM_SAMPLER, readPosUV);
     #endif

@@ -1,13 +1,10 @@
 #include "Common.glsl"
 #include "/util/Coords.glsl"
 
-float circle(vec3 rayDir, vec3 objDir, float objAngularRadius, float bloomPower) {
+float circle(vec3 rayDir, vec3 objDir, float objAngularRadius) {
     float objCosTheta = cos(objAngularRadius);
     float cosTheta = saturate(dot(rayDir, objDir));
-
-    float x = saturate(objCosTheta - cosTheta);
-    float invBloom = (bloomPower / (bloomPower + x)) * 1.0 * cosTheta * cosTheta;
-    return invBloom;
+    return float(cosTheta >= objCosTheta);
 }
 
 vec3 renderSunMoon(ivec2 texelPos) {
@@ -26,12 +23,12 @@ vec3 renderSunMoon(ivec2 texelPos) {
 
     const float moonAngularRadius = 0.528611 * PI / 180.0;
 
-    float sunV = circle(viewDir, uval_sunDirView, uval_sunAngularRadius, 0.000005);
-    float moonV = circle(viewDir, uval_moonDirView, moonAngularRadius, 0.000001);
+    float sunV = circle(viewDir, uval_sunDirView, uval_sunAngularRadius * 2.0);
+    float moonV = circle(viewDir, uval_moonDirView, moonAngularRadius * 2.0);
 
     vec3 result = vec3(0.0);
-    result += sunV * sunRadiance * 16.0;
-    result += moonV * sunRadiance * MOON_RADIANCE_MUL * 16.0;
+    result += min(sunV * sunRadiance * 256.0 * PI, 65000.0);
+    result += moonV * sunRadiance * MOON_RADIANCE_MUL * 16.0 * PI;
     result *= step(earthIntersect, 0.0);
 
     return result;
