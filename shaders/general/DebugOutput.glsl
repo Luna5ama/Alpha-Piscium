@@ -54,6 +54,7 @@ uniform usampler2D usam_geometryNormal;
 #endif
 
 bool inViewPort(ivec4 originSize, out vec2 texCoord) {
+    originSize = ivec4(vec4(originSize) * SETTING_DEBUG_SCALE);
     ivec2 min = originSize.xy;
     ivec2 max = originSize.xy + originSize.zw;
     texCoord = saturate((vec2(texelPos - min) + 0.5) / vec2(originSize.zw));
@@ -145,13 +146,35 @@ void debugOutput(inout vec4 outputColor) {
     outputColor.rgb = vec3(float(gData.isHand));
     #endif
 
+    #if SETTING_DEBUG_DENOISER != 0
+    uvec4 svgfData = texelFetch(usam_svgfHistory, texelPos, 0);
+    vec3 svgfColor;
+    vec3 svgfFastColor;
+    vec2 svgfMoments;
+    float svgfHLen;
+    svgf_unpack(svgfData, svgfColor, svgfFastColor, svgfMoments, svgfHLen);
+    #if SETTING_DEBUG_DENOISER == 1
+    outputColor.rgb = svgfColor;
+    #elif SETTING_DEBUG_DENOISER == 2
+    outputColor.rgb = svgfFastColor;
+    #elif SETTING_DEBUG_DENOISER == 3
+    outputColor.rgb = vec3(svgfHLen / SETTING_DENOISER_MAX_ACCUM);
+    #elif SETTING_DEBUG_DENOISER == 4
+    outputColor.rgb = svgfMoments.xxx;
+    #elif SETTING_DEBUG_DENOISER == 5
+    outputColor.rgb = svgfMoments.yyy;
+    #elif SETTING_DEBUG_DENOISER == 6
+    outputColor.rgb = vec3(max(svgfMoments.g - svgfMoments.r * svgfMoments.r, 0.0));
+    #endif
+    #endif
+
     #if SETTING_DEBUG_GI_INPUTS != 0
     if (all(lessThan(texelPos, global_mipmapSizesI[1]))) {
         uvec2 radianceData = texelFetch(usam_packedZN, texelPos+ ivec2(0, global_mipmapSizesI[1].y), 0).xy;
         vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
 
         #if SETTING_DEBUG_GI_INPUTS == 1
-        outputColor.rgb = radiance.rgb;
+        outputColor.rgb = radiance.rgb * 4.0;
         #elif SETTING_DEBUG_GI_INPUTS == 2
         outputColor.rgb = vec3(abs(radiance.a));
         #elif SETTING_DEBUG_GI_INPUTS == 3
@@ -177,43 +200,21 @@ void debugOutput(inout vec4 outputColor) {
     }
     #endif
 
-    #if SETTING_DEBUG_DENOISER != 0
-    uvec4 svgfData = texelFetch(usam_svgfHistory, texelPos, 0);
-    vec3 svgfColor;
-    vec3 svgfFastColor;
-    vec2 svgfMoments;
-    float svgfHLen;
-    svgf_unpack(svgfData, svgfColor, svgfFastColor, svgfMoments, svgfHLen);
-    #if SETTING_DEBUG_DENOISER == 1
-    outputColor.rgb = svgfColor;
-    #elif SETTING_DEBUG_DENOISER == 2
-    outputColor.rgb = svgfFastColor;
-    #elif SETTING_DEBUG_DENOISER == 3
-    outputColor.rgb = vec3(svgfHLen / SETTING_DENOISER_MAX_ACCUM);
-    #elif SETTING_DEBUG_DENOISER == 4
-    outputColor.rgb = svgfMoments.xxx;
-    #elif SETTING_DEBUG_DENOISER == 5
-    outputColor.rgb = svgfMoments.yyy;
-    #elif SETTING_DEBUG_DENOISER == 6
-    outputColor.rgb = vec3(max(svgfMoments.g - svgfMoments.r * svgfMoments.r, 0.0));
-    #endif
-    #endif
-
     vec2 debugTexCoord;
 
     #ifdef SETTING_DEBUG_RTWSM
     if (inViewPort(ivec4(0, 0, 512, 512), debugTexCoord)) {
-        outputColor.rgb = pow(texture(shadowtex0, debugTexCoord).r * 0.5, 2.0).rrr;
+        outputColor.rgb = linearStep(SETTING_DEBUG_RTWSM_MIN_DEPTH, SETTING_DEBUG_RTWSM_MAX_DEPTH, texture(shadowtex0, debugTexCoord).r).rrr;
     }
     if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {
         debugTexCoord.y = min(debugTexCoord.y * IMAP2D_V_RANGE, IMAP2D_V_CLAMP);
-        outputColor.rgb = gammaCorrect(texture(usam_rtwsm_imap, debugTexCoord).r * 2.0).rrr;
+        outputColor.rgb = gammaCorrect(texture(usam_rtwsm_imap, debugTexCoord).r * 0.1).rrr;
     }
     if (inViewPort(ivec4(0, 1024 + 4, 512, 16), debugTexCoord)) {
-        outputColor.rgb = gammaCorrect(texture(usam_rtwsm_imap, vec2(debugTexCoord.x, IMAP1D_X_V)).r * 2.0).rrr;
+        outputColor.rgb = gammaCorrect(texture(usam_rtwsm_imap, vec2(debugTexCoord.x, IMAP1D_X_V)).r * 0.1).rrr;
     }
     if (inViewPort(ivec4(512 + 4, 512, 16, 512), debugTexCoord)) {
-        outputColor.rgb = gammaCorrect(texture(usam_rtwsm_imap, vec2(debugTexCoord.y, IMAP1D_Y_V)).r * 2.0).rrr;
+        outputColor.rgb = gammaCorrect(texture(usam_rtwsm_imap, vec2(debugTexCoord.y, IMAP1D_Y_V)).r * 0.1).rrr;
     }
     if (inViewPort(ivec4(0, 1024 + 4 + 16 + 4, 512, 16), debugTexCoord)) {
         float v = texture(usam_rtwsm_imap, vec2(debugTexCoord.x, WARP_X_V)).r;

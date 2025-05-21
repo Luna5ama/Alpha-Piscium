@@ -784,7 +784,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_DENOISER_ACCUM_DECAY", 1.0, 0.5..2.0 step 0.01) {
                     lang {
                         name = "Accumulation Decay"
-                        comment = "Current mix rate decay factor for temporal accumulation. Larger value means faster decay."
+                        comment =
+                            "Current mix rate decay factor for temporal accumulation. Larger value means faster decay."
                     }
                 }
                 empty()
@@ -813,13 +814,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_DENOISER_FILTER_INIT_COLOR_WEIGHT", 2.0, 0.0..16.0 step 0.1) {
                     lang {
                         name = "Filter Initial Color Weight"
-                        comment = "Smaller value means more blurring. This value is use in the beginning of accumulation."
+                        comment =
+                            "Smaller value means more blurring. This value is use in the beginning of accumulation."
                     }
                 }
                 slider("SETTING_DENOISER_FILTER_FINAL_COLOR_WEIGHT", 4.0, 0.0..16.0 step 0.1) {
                     lang {
                         name = "Filter Final Color Weight"
-                        comment = "Smaller value means more blurring. This value is use when the number of accumulated frames is greater than the max accumulation setting."
+                        comment =
+                            "Smaller value means more blurring. This value is use when the number of accumulated frames is greater than the max accumulation setting."
                     }
                 }
                 slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES", 8, 2..32 step 2) {
@@ -832,13 +835,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_DENOISER_FILTER_KERNEL_INIT_SIGMA", 0.0, 0.0..4.0 step 0.1) {
                     lang {
                         name = "Filter Kernel Initial Sigma"
-                        comment = "Smaller value means more blurring. 0 = box filter kernel. This value is use in the beginning of accumulation."
+                        comment =
+                            "Smaller value means more blurring. 0 = box filter kernel. This value is use in the beginning of accumulation."
                     }
                 }
                 slider("SETTING_DENOISER_FILTER_KERNEL_FINAL_SIGMA", 1.0, 0.0..4.0 step 0.1) {
                     lang {
                         name = "Filter Kernel Final Sigma"
-                        comment = "Smaller value means more blurring. 0 = box filter kernel. This value is use when the number of accumulated frames is greater than the max accumulation setting."
+                        comment =
+                            "Smaller value means more blurring. 0 = box filter kernel. This value is use when the number of accumulated frames is greater than the max accumulation setting."
                     }
                 }
             }
@@ -1135,6 +1140,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         3 value "Final"
                     }
                 }
+                slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {
+                    lang {
+                        name = "Debug Scale"
+                    }
+                }
                 toggle("SETTING_DEBUG_GAMMA_CORRECT", true) {
                     lang {
                         name = "Gamma Correct"
@@ -1216,16 +1226,27 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         1 value "View"
                     }
                 }
-                empty()
-                toggle("SETTING_DEBUG_ENV_PROBE", false) {
-                    lang {
-                        name = "Environment Probe"
-                    }
+            }
+            empty()
+            toggle("SETTING_DEBUG_RTWSM", false) {
+                lang {
+                    name = "RTWSM"
                 }
-                toggle("SETTING_DEBUG_RTWSM", false) {
-                    lang {
-                        name = "RTWSM"
-                    }
+            }
+            slider("SETTING_DEBUG_RTWSM_MIN_DEPTH", 0.0, 0.0..1.0 step 0.01) {
+                lang {
+                    name = "RTWSM Min Depth"
+                }
+            }
+            slider("SETTING_DEBUG_RTWSM_MAX_DEPTH", 1.0, 0.0..1.0 step 0.01) {
+                lang {
+                    name = "RTWSM Max Depth"
+                }
+            }
+            empty()
+            toggle("SETTING_DEBUG_ENV_PROBE", false) {
+                lang {
+                    name = "Environment Probe"
                 }
                 toggle("SETTING_DEBUG_ATMOSPHERE", false) {
                     lang {
