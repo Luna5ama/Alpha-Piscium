@@ -49,7 +49,7 @@ uniform sampler2D DEBUG_TEX_NAME;
 #endif
 
 #if SETTING_DEBUG_GI_INPUTS != 0
-uniform usampler2D usam_tempRG32UI;
+uniform usampler2D usam_packedZN;
 #endif
 
 bool inViewPort(ivec4 originSize, out vec2 texCoord) {
