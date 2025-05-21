@@ -18,6 +18,7 @@ uniform sampler2D usam_gbufferViewZ;
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
 layout(rg32ui) uniform restrict uimage2D uimg_packedZN;
+layout(r32ui) uniform writeonly uimage2D uimg_geometryNormal;
 
 ivec2 texelPos;
 
@@ -93,6 +94,9 @@ void main() {
             } else {
                 doLighting(material, gData.normal, mainOut.rgb, ssgiOut.rgb);
             }
+
+            uint packedGeometryNormal = nzpacking_packNormal(gData.geometryNormal);
+            imageStore(uimg_geometryNormal, texelPos, uvec4(packedGeometryNormal));
 
             uvec4 packedZNOut = uvec4(0u);
             nzpacking_pack(packedZNOut.xy, gData.normal, viewZ);

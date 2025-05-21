@@ -6,7 +6,7 @@ const int colortex3Format = RGBA16F; // Temp3
 const int colortex4Format = RGBA16F; // Temp4
 const int colortex5Format = RGBA8; // Temp5
 const int colortex6Format = RGBA8; // Temp6
-const int colortex7Format = RGBA8; // Temp7
+const int colortex7Format = R32UI; // Geometry Normal
 const int colortex8Format = RGBA32UI; // GBuffer Data 32UI
 const int colortex9Format = RGBA8; // GBuffer Data 8UN
 const int colortex10Format = R32F; // GBuffer ViewZ
@@ -38,8 +38,8 @@ const int colortex15Format = RGBA16F; // TAA Last
 #define usam_temp6 colortex6
 #define uimg_temp6 colorimg6
 
-#define usam_temp7 colortex7
-#define uimg_temp7 colorimg7
+#define usam_geometryNormal colortex7
+#define uimg_geometryNormal colorimg7
 
 #define usam_gbufferData32UI colortex8
 #define uimg_gbufferData32UI colorimg8

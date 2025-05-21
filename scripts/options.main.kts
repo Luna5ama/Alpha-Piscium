@@ -1151,7 +1151,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..7) {
+                toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..6) {
                     lang {
                         name = "Temp Tex"
                         0 value "Off"
@@ -1161,7 +1161,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         4 value "temp4"
                         5 value "temp5"
                         6 value "temp6"
-                        7 value "temp7"
                     }
                 }
                 toggle("SETTING_DEBUG_DENOISER", 0, 0..6) {
@@ -1176,7 +1175,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         6 value "Variance"
                     }
                 }
-                toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..5) {
+                toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..6) {
                     lang {
                         name = "GI Inputs"
                         0 value "Off"
@@ -1185,6 +1184,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         3 value "Emissive"
                         4 value "Normal"
                         5 value "View Z"
+                        6 value "Geometry Normal"
                     }
                 }
                 empty()

@@ -45,7 +45,7 @@ EnvProbeData envProbe_decode(uvec4 packedData) {
     vec2 temp3 = unpackHalf2x16(packedData.z);
     unpackedData.radiance = vec3(temp1, temp2.x);
     unpackedData.scenePos = vec3(temp2.y, temp3);
-    unpackedData.normal = coords_octDecode11(unpackSnorm2x16(packedData.w));
+    unpackedData.normal = nzpacking_unpackNormal(packedData.w);
     return unpackedData;
 }
 
@@ -54,7 +54,7 @@ uvec4 envProbe_encode(EnvProbeData unpackedData) {
     packedData.x = packHalf2x16(unpackedData.radiance.rg);
     packedData.y = packHalf2x16(vec2(unpackedData.radiance.b, unpackedData.scenePos.x));
     packedData.z = packHalf2x16(unpackedData.scenePos.yz);
-    packedData.w = packSnorm2x16(coords_octEncode11(unpackedData.normal));
+    packedData.w = nzpacking_packNormal(unpackedData.normal);
     return packedData;
 }
 

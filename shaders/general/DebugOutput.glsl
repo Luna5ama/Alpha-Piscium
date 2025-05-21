@@ -36,7 +36,7 @@ uniform sampler2D usam_gbufferData8UN;
 #elif SETTING_DEBUG_TEMP_TEX == 6
 #define DEBUG_TEX_NAME usam_temp6
 #elif SETTING_DEBUG_TEMP_TEX == 7
-#define DEBUG_TEX_NAME usam_temp7
+#define DEBUG_TEX_NAME usam_geometryNormal
 #endif
 
 
@@ -50,6 +50,7 @@ uniform sampler2D DEBUG_TEX_NAME;
 
 #if SETTING_DEBUG_GI_INPUTS != 0
 uniform usampler2D usam_packedZN;
+uniform usampler2D usam_geometryNormal;
 #endif
 
 bool inViewPort(ivec4 originSize, out vec2 texCoord) {
@@ -154,7 +155,7 @@ void debugOutput(inout vec4 outputColor) {
         #elif SETTING_DEBUG_GI_INPUTS == 2
         outputColor.rgb = vec3(abs(radiance.a));
         #elif SETTING_DEBUG_GI_INPUTS == 3
-        outputColor.rgb = saturate(sign(radiance.a));
+        outputColor.rgb = vec3(saturate(sign(radiance.a)));
         #endif
 
 
@@ -166,6 +167,13 @@ void debugOutput(inout vec4 outputColor) {
         #elif SETTING_DEBUG_GI_INPUTS == 5
         outputColor.rgb = linearStep(near, far, -prevZ).rrr;
         #endif
+    }
+    #endif
+    #if SETTING_DEBUG_GI_INPUTS == 6
+    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+        uint packedGeometryNormal = texelFetch(usam_geometryNormal, texelPos, 0).r;
+        vec3 geometryNormal = nzpacking_unpackNormal(packedGeometryNormal);
+        outputColor.rgb = vec3(geometryNormal * 0.5 + 0.5);
     }
     #endif
 

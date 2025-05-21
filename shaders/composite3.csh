@@ -16,7 +16,6 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
-uniform usampler2D usam_temp7;
 
 layout(rgba8) uniform writeonly image2D uimg_temp5;
 
