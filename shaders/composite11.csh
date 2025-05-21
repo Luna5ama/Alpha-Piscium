@@ -154,7 +154,12 @@ void main() {
         aabbMin = min(aabbMin, prevFastColor);
         aabbMax = max(aabbMax, prevFastColor);
         vec3 prevColorYCoCgClamped = clamp(prevColorYCoCg, aabbMin, aabbMax);
-        prevColorYCoCg = mix(prevColorYCoCg, prevColorYCoCgClamped, linearStep(SETTING_DENOISER_MAX_FAST_ACCUM * 0.5, SETTING_DENOISER_MAX_FAST_ACCUM * 2.0, prevHLen));
+        float clippingWeight = linearStep(
+            max(SETTING_DENOISER_MAX_FAST_ACCUM, SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES),
+            SETTING_DENOISER_MAX_FAST_ACCUM * 2.0,
+            prevHLen
+        );
+        prevColorYCoCg = mix(prevColorYCoCg, prevColorYCoCgClamped, clippingWeight);
         prevColor = colors_YCoCgToSRGB(prevColorYCoCg);
 
         vec3 newColor;
