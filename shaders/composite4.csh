@@ -57,7 +57,7 @@ void doLighting(Material material, vec3 N, inout vec3 mainOut, inout vec3 ssgiOu
     mainOut += combinedLighting.specular;
     mainOut += combinedLighting.sss;
 
-    ssgiOut += emissiveV;
+    ssgiOut += emissiveV * PI;
     ssgiOut += combinedLighting.diffuseLambertian;
     ssgiOut += combinedLighting.sss;
 }

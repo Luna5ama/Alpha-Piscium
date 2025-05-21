@@ -6,22 +6,23 @@
 
 const uint MATERIAL_ID_UNDEFINED = 65535u;
 
-// gbuffer:
+// GBuffer Data 32UI (RGBA32UI):
 // r:
-//
+// geomertryNromal: 32 bits
 // g:
-// pbrS: 32 bits
+// pbrSpecular: 32 bits
 // b:
-// normal: 11 + 11 + 10 = 32 bits
+// normal: 32 bits
 // a:
 // lmCoord: 8 x 2 = 16 bits
 // materialID: 16 bits
-
-// Extra:
-// viewZ: 32 bits
 //
+// GBuffer Data 8UN (RGBA8UN):
 // Albedo: 24 bits
 // isHand: 1 bit
+//
+// GBuffer ViewZ (R32F):
+// viewZ: 32 bits
 
 struct GBufferData {
     vec3 geometryNormal;
