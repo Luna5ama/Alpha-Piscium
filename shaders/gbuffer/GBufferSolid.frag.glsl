@@ -139,9 +139,10 @@ void processData1() {
 
     #ifdef GBUFFER_PASS_PARTICLE
     gData.materialID = 65533u;
-    // TODO: particle emissive
-    //float particleEmissive = colors_srgbLuma(albedo.rgb * albedo.rgb);
-    //gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + particleEmissive);
+    if (textureQueryLevels(gtexture) == 1) {
+        float particleEmissive = pow2(colors_srgbLuma(albedo.rgb * albedo.rgb));
+        gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + particleEmissive);
+    }
     #endif
 }
 #endif
