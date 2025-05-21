@@ -4,68 +4,101 @@
 #include "/util/Interpo.glsl"
 #include "/util/NZPacking.glsl"
 
-vec3 cameraDelta = cameraPosition - previousCameraPosition;
+const float BASE_GEOM_WEIGHT = exp2(SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT);
+const float BASE_GEOM_WEIGHT_INIT = exp2(SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT);
+const float BASE_NORMAL_WEIGHT = exp2(SETTING_DENOISER_REPROJ_NORMAL_EDGE_WEIGHT);
 
-float normalWeight(vec3 currWorldNormal, uint packedNormal) {
-    vec3 prevWorldNormal = coords_octDecode11(unpackSnorm2x16(packedNormal));
-    float sdot = saturate(dot(currWorldNormal, prevWorldNormal));
-    return pow(sdot, float(SETTING_DENOISER_REPROJ_NORMAL_WEIGHT));
+vec3 reproject_curr2PrevView;
+vec3 reproject_currToPrevViewNormal;
+vec3 reproject_currToPrevViewGeomNormal;
+bool reproject_isHand;
+
+vec3 cameraDelta = mat3(gbufferPrevModelView) * (cameraPosition - previousCameraPosition);
+
+float computeNormalWeight(uint packedNormal, float weight) {
+    vec3 prevViewNormal = coords_octDecode11(unpackSnorm2x16(packedNormal));
+    float sdot = saturate(dot(reproject_currToPrevViewNormal, prevViewNormal));
+    return pow(sdot, weight);
 }
 
-float posWeight(vec3 currScene, vec2 curr2PrevScreen, uint prevViewZI, float a) {
+float computeGeometryWeight(
+vec2 curr2PrevScreen, uint prevViewZI, uint packedPrevViewGeomNormal,
+float planeWeight, float normalWeight
+) {
     float prevViewZ = uintBitsToFloat(prevViewZI);
     vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevViewZ, gbufferPrevProjectionInverse);
-    vec4 prevScene = gbufferPrevModelViewInverse * vec4(prevView, 1.0);
-    prevScene.xyz -= cameraDelta;
+    prevView.xyz -= cameraDelta;
 
-    vec3 diff = currScene.xyz - prevScene.xyz;
-    float distSq = dot(diff, diff);
-    return a / (a + distSq);
+    vec3 prevViewGeomNormal = coords_octDecode11(unpackSnorm2x16(packedPrevViewGeomNormal));
+
+    vec3 posDiff = reproject_curr2PrevView.xyz - prevView.xyz;
+    float planeDist1 = pow2(dot(posDiff, reproject_currToPrevViewGeomNormal));
+    float planeDist2 = pow2(dot(posDiff, prevViewGeomNormal));
+    float maxPlaneDist = max(planeDist1, planeDist2);
+    float normalDot = saturate(dot(reproject_currToPrevViewGeomNormal, prevViewGeomNormal));
+
+    float result = planeWeight / (planeWeight + maxPlaneDist);
+    result *= pow(normalDot, normalWeight);
+    
+    return result;
 }
 
 vec4 computeBilateralWeights(
-usampler2D packedZN,
 vec2 gatherTexelPos,
-vec3 currScene, vec3 currToPrevViewNormal, float a
+float geometryWeight
 ) {
     vec2 screenPos = gatherTexelPos * global_mainImageSizeRcp;
     vec2 gatherUV = nzpacking_fullResGatherUV(gatherTexelPos);
     vec4 result = vec4(1.0);
 
-    uvec4 prevNs = textureGather(packedZN, gatherUV, 0);
-    result.x *= normalWeight(currToPrevViewNormal, prevNs.x);
-    result.y *= normalWeight(currToPrevViewNormal, prevNs.y);
-    result.z *= normalWeight(currToPrevViewNormal, prevNs.z);
-    result.w *= normalWeight(currToPrevViewNormal, prevNs.w);
+    uvec4 prevViewNormals = textureGather(usam_packedZN, gatherUV, 0);
+    uvec4 prevViewGeomNormals = textureGather(usam_geometryNormal, screenPos, 0);
+    uvec4 prevViewZs = textureGather(usam_packedZN, gatherUV, 1);
 
-    uvec4 prevViewZs = textureGather(packedZN, gatherUV, 1);
-    result.x *= posWeight(currScene, screenPos + global_mainImageSizeRcp * vec2(-0.5, 0.5), prevViewZs.x, a);
-    result.y *= posWeight(currScene, screenPos + global_mainImageSizeRcp * vec2(0.5, 0.5), prevViewZs.y, a);
-    result.z *= posWeight(currScene, screenPos + global_mainImageSizeRcp * vec2(0.5, -0.5), prevViewZs.z, a);
-    result.w *= posWeight(currScene, screenPos + global_mainImageSizeRcp * vec2(-0.5, -0.5), prevViewZs.w, a);
+    float geometryPlaneWeight = rcp(geometryWeight) * max(abs(reproject_curr2PrevView.z), 0.1);
+    float geometryNormalWeight = mix(geometryWeight, BASE_NORMAL_WEIGHT, reproject_isHand);
+
+    result.x *= computeGeometryWeight(
+        screenPos + global_mainImageSizeRcp * vec2(-0.5, 0.5), prevViewZs.x, prevViewGeomNormals.x,
+        geometryPlaneWeight, geometryNormalWeight
+    );
+    result.y *= computeGeometryWeight(
+        screenPos + global_mainImageSizeRcp * vec2(0.5, 0.5), prevViewZs.y, prevViewGeomNormals.y,
+        geometryPlaneWeight, geometryNormalWeight
+    );
+    result.z *= computeGeometryWeight(
+        screenPos + global_mainImageSizeRcp * vec2(0.5, -0.5), prevViewZs.z, prevViewGeomNormals.z,
+        geometryPlaneWeight, geometryNormalWeight
+    );
+    result.w *= computeGeometryWeight(
+        screenPos + global_mainImageSizeRcp * vec2(-0.5, -0.5), prevViewZs.w, prevViewGeomNormals.w,
+        geometryPlaneWeight, geometryNormalWeight
+    );
+
+    result.x *= computeNormalWeight(prevViewNormals.x, BASE_NORMAL_WEIGHT);
+    result.y *= computeNormalWeight(prevViewNormals.y, BASE_NORMAL_WEIGHT);
+    result.z *= computeNormalWeight(prevViewNormals.z, BASE_NORMAL_WEIGHT);
+    result.w *= computeNormalWeight(prevViewNormals.w, BASE_NORMAL_WEIGHT);
 
     return result;
 }
 
 void bilateralSample(
-usampler2D svgfHistory, usampler2D packedZN,
 vec2 gatherTexelPos, vec4 baseWeights,
-vec3 currScene, float currViewZ, vec3 currToPrevViewNormal,
 inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout float prevHLen, inout float weightSum
 ) {
     vec2 gatherTexelPosClamped = clamp(gatherTexelPos, vec2(1.0), global_mainImageSize - 1);
     if (all(equal(gatherTexelPos, gatherTexelPosClamped))) {
         vec2 gatherUV1 = svgf_gatherUV1(gatherTexelPos);
 
-        float a = abs(currViewZ) * 0.0001;
-        vec4 bilateralWeights = computeBilateralWeights(packedZN, gatherTexelPos, currScene, currToPrevViewNormal, a);
+        vec4 bilateralWeights = computeBilateralWeights( gatherTexelPos, BASE_GEOM_WEIGHT);
         float bilateralWeightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
 
         vec4 interpoWeights = baseWeights * bilateralWeights;
         weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
 
         {
-            uvec4 prevColorData = textureGather(svgfHistory, gatherUV1, 0);
+            uvec4 prevColorData = textureGather(usam_svgfHistory, gatherUV1, 0);
             vec3 prevColor1 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.x));
             vec3 prevColor2 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.y));
             vec3 prevColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.z));
@@ -80,7 +113,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
         }
 
         {
-            uvec4 prevFastColorData = textureGather(svgfHistory, gatherUV1, 1);
+            uvec4 prevFastColorData = textureGather(usam_svgfHistory, gatherUV1, 1);
             vec3 prevFastColor1 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.x));
             vec3 prevFastColor2 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.y));
             vec3 prevFastColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.z));
@@ -95,7 +128,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
         }
 
         {
-            uvec4 prevMomentDatas = textureGather(svgfHistory, gatherUV1, 2);
+            uvec4 prevMomentDatas = textureGather(usam_svgfHistory, gatherUV1, 2);
             vec2 prevMoments1 = unpackHalf2x16(prevMomentDatas.x);
             vec2 prevMoments2 = unpackHalf2x16(prevMomentDatas.y);
             vec2 prevMoments3 = unpackHalf2x16(prevMomentDatas.z);
@@ -108,7 +141,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
         }
 
         {
-            uvec4 prevHLenData = textureGather(svgfHistory, gatherUV1, 3);
+            uvec4 prevHLenData = textureGather(usam_svgfHistory, gatherUV1, 3);
             vec4 prevHLens = uintBitsToFloat(prevHLenData);
 
             prevHLen += dot(interpoWeights, prevHLens);
@@ -117,10 +150,11 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
 }
 
 void gi_reproject(
-usampler2D svgfHistory, usampler2D packedZN,
-vec2 screenPos, float currViewZ, vec3 currViewNormal, bool isHand,
+vec2 screenPos, float currViewZ, vec3 currViewNormal, vec3 currViewGeomNormal, bool isHand,
 out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prevHLen
 ) {
+    reproject_isHand = isHand;
+
     prevColor = vec3(0.0);
     prevFastColor = vec3(0.0);
     prevMoments = vec2(0.0);
@@ -146,6 +180,9 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     vec3 currWorldNormal = mat3(gbufferModelViewInverse) * currViewNormal;
     vec3 currToPrevViewNormal = mat3(gbufferPrevModelView) * currWorldNormal;
 
+    vec3 currWorldGeomNormal = mat3(gbufferModelViewInverse) * currViewGeomNormal;
+    vec3 currToPrevViewGeomNormal = mat3(gbufferPrevModelView) * currWorldGeomNormal;
+
     vec2 textureSizeRcp = global_mainImageSizeRcp;
 
     vec2 centerPixel = curr2PrevTexel - 0.5;
@@ -153,8 +190,14 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     vec2 gatherTexelPos = centerPixelOrigin + 1.0;
     vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
-    float a = abs(currViewZ) * 0.002;
-    vec4 centerWeights = computeBilateralWeights(packedZN, gatherTexelPos, currScene.xyz, currToPrevViewNormal, a);
+    reproject_curr2PrevView = curr2PrevView.xyz;
+    reproject_currToPrevViewNormal = currToPrevViewNormal;
+    reproject_currToPrevViewGeomNormal = currToPrevViewGeomNormal;
+
+    vec4 centerWeights = computeBilateralWeights(
+        gatherTexelPos,
+        BASE_GEOM_WEIGHT_INIT
+    );
 
     const float WEIGHT_EPSILON = 0.5;
     float weightSum = 0.0;
@@ -200,30 +243,22 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     }
 
     bilateralSample(
-        svgfHistory, packedZN,
         gatherTexelPos + vec2(-1.0, 1.0), weights1,
-        currScene.xyz, currViewZ, currToPrevViewNormal,
         prevColor, prevFastColor, prevMoments, prevHLen, weightSum
     );
 
     bilateralSample(
-        svgfHistory, packedZN,
         gatherTexelPos + vec2(1.0, 1.0), weights2,
-        currScene.xyz, currViewZ, currToPrevViewNormal,
         prevColor, prevFastColor, prevMoments, prevHLen, weightSum
     );
 
     bilateralSample(
-        svgfHistory, packedZN,
         gatherTexelPos + vec2(1.0, -1.0), weights3,
-        currScene.xyz, currViewZ, currToPrevViewNormal,
         prevColor, prevFastColor, prevMoments, prevHLen, weightSum
     );
 
     bilateralSample(
-        svgfHistory, packedZN,
         gatherTexelPos + vec2(-1.0, -1.0), weights4,
-        currScene.xyz, currViewZ, currToPrevViewNormal,
         prevColor, prevFastColor, prevMoments, prevHLen, weightSum
     );
 

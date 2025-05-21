@@ -2,7 +2,6 @@
 
 #extension GL_KHR_shader_subgroup_basic : enable
 
-#include "/denoiser/Reproject.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
@@ -16,7 +15,10 @@ uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_packedZN;
+uniform usampler2D usam_geometryNormal;
 uniform usampler2D usam_svgfHistory;
+
+#include "/denoiser/Reproject.glsl"
 
 layout(rgba32ui) uniform writeonly uimage2D uimg_tempRGBA32UI;
 layout(rg32ui) uniform writeonly uimage2D uimg_packedZN;
@@ -48,8 +50,7 @@ void main() {
             float prevHLen;
 
             gi_reproject(
-                usam_svgfHistory, usam_packedZN,
-                screenPos1x1, viewZ, gData.normal, gData.isHand,
+                screenPos1x1, viewZ, gData.normal, gData.geometryNormal, gData.isHand,
                 prevDiffuse, prevFastDiffuse, prevMoments, prevHLen
             );
 
