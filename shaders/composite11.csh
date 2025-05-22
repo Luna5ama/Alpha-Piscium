@@ -146,21 +146,28 @@ void main() {
         float prevHLen;
         svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
 
+        // Ellipsoid intersection clipping by Marty
         vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
         vec3 mean = texelFetch(usam_temp3, texelPos, 0).rgb;
         vec3 stddev = texelFetch(usam_temp4, texelPos, 0).rgb;
-        vec3 aabbMin = mean - stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_BOX_SCALE;
-        vec3 aabbMax = mean + stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_BOX_SCALE;
-        aabbMin = min(aabbMin, prevFastColor);
-        aabbMax = max(aabbMax, prevFastColor);
-        vec3 prevColorYCoCgClamped = clamp(prevColorYCoCg, aabbMin, aabbMax);
+        vec3 delta = prevColorYCoCg - mean;
+        const float clippingEps = 0.00001;
+        float diff = length(delta / (stddev + clippingEps)) * SETTING_DENOISER_FAST_HISTORY_CLAMPING;
+        delta /= max(diff, 1.0);
+        vec3 prevColorYCoCgClamped = mean + delta;
         float clippingWeight = linearStep(
             SETTING_DENOISER_MAX_FAST_ACCUM,
             SETTING_DENOISER_MAX_FAST_ACCUM * 2.0,
             prevHLen
         );
-        prevColorYCoCg = mix(prevColorYCoCg, prevColorYCoCgClamped, clippingWeight);
-        prevColor = colors_YCoCgToSRGB(prevColorYCoCg);
+        prevColorYCoCgClamped = mix(prevColorYCoCg, prevColorYCoCgClamped, clippingWeight);
+        vec3 prevColorClamped = colors_YCoCgToSRGB(prevColorYCoCgClamped);
+
+        float moment2Correction = pow2(colors_srgbLuma(prevColorClamped)) - pow2(colors_srgbLuma(prevColor));
+        prevMoments.y += moment2Correction;
+        prevMoments.y = max(prevMoments.y, 0.0);
+
+        prevColor = prevColorClamped;
 
         vec3 newColor;
         vec3 newFastColor;
@@ -173,7 +180,7 @@ void main() {
         );
 
         float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
-        variance += SETTING_DENOISER_VARIANCE_BOOST * linearStep(1.0 + SETTING_DENOISER_VARIANCE_BOOST_FRAMES, 1.0, newHLen);
+        variance += SETTING_DENOISER_VARIANCE_BOOST * pow2(linearStep(1.0 + SETTING_DENOISER_VARIANCE_BOOST_FRAMES, 1.0, newHLen));
         vec4 filterInput = vec4(newColor, variance);
         filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
         imageStore(uimg_temp2, texelPos, filterInput);

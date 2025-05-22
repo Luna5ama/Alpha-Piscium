@@ -105,7 +105,7 @@ option.SETTING_DENOISER_MAX_ACCUM=Max Accumulation
 option.SETTING_DENOISER_ACCUM_DECAY=Accumulation Decay
 option.SETTING_DENOISER_ACCUM_DECAY.comment=Current mix rate decay factor for temporal accumulation. Larger value means faster decay.
 option.SETTING_DENOISER_MAX_FAST_ACCUM=Max Fast Accumulation
-option.SETTING_DENOISER_FAST_HISTORY_CLAMPING_BOX_SCALE=Fast History Clamping Box Scale
+option.SETTING_DENOISER_FAST_HISTORY_CLAMPING=Fast History Clamping
 option.SETTING_DENOISER_FILTER_KERNEL_INIT_SIGMA=Filter Kernel Initial Sigma
 option.SETTING_DENOISER_FILTER_KERNEL_INIT_SIGMA.comment=Smaller value generally leads to less noisy but more blurry result. 0 = box filter kernel. This value is use in the beginning of accumulation.
 option.SETTING_DENOISER_FILTER_KERNEL_FINAL_SIGMA=Filter Kernel Final Sigma

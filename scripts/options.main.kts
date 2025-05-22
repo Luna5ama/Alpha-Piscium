@@ -770,13 +770,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Reprojection Normal Edge Weight"
                     }
                 }
-                slider("SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT", 12.0, (0.0..32.0) step 0.1) {
+                slider("SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT", 20.0, (0.0..32.0) step 0.1) {
                     lang {
                         name = "Reprojection Geometry Edge Weight"
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_MAX_ACCUM", 64, (2..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_MAX_ACCUM", 128, (2..10).map { 1 shl it }) {
                     lang {
                         name = "Max Accumulation"
                     }
@@ -794,9 +794,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Fast Accumulation"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING_BOX_SCALE", 1.5, 1.0..3.0 step 0.01) {
+                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING", 0.5, 0.0..1.0 step 0.01) {
                     lang {
-                        name = "Fast History Clamping Box Scale"
+                        name = "Fast History Clamping"
                     }
                 }
                 empty()
@@ -815,13 +815,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_VARIANCE_BOOST", 2.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_DENOISER_VARIANCE_BOOST", 64, 0..128) {
                     lang {
                         name = "Variance Boost"
                         comment = "Boost variance for the first few frames."
                     }
                 }
-                slider("SETTING_DENOISER_VARIANCE_BOOST_FRAMES", 4, 2..32 step 2) {
+                slider("SETTING_DENOISER_VARIANCE_BOOST_FRAMES", 4, 1..16 step 1) {
                     lang {
                         name = "Variance Boost Frames"
                         comment = "Number of frames to boost variance."
@@ -845,7 +845,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Filter Depth Weight"
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 32, 0..128) {
+                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 48, 0..128) {
                     lang {
                         name = "Filter Color Weight"
                         comment = "Smaller value generally leads to less noisy but more blurry result."

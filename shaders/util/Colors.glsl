@@ -1,6 +1,7 @@
 #ifndef INCLUDE_util_Colors_glsl
 #define INCLUDE_util_Colors_glsl a
 #include "/_Base.glsl"
+#include "Math.glsl"
 
 // This function is adopted from: https://github.com/zubetto/BlackBodyRadiation
 // MIT License

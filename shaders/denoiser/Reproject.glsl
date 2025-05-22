@@ -13,7 +13,7 @@ vec3 reproject_currToPrevViewNormal;
 vec3 reproject_currToPrevViewGeomNormal;
 bool reproject_isHand;
 
-vec3 cameraDelta = (cameraPosition - previousCameraPosition);
+vec3 cameraDelta = mat3(gbufferPrevModelView) * (cameraPosition - previousCameraPosition);
 
 float computeNormalWeight(uint packedNormal, float weight) {
     vec3 prevViewNormal = coords_octDecode11(unpackSnorm2x16(packedNormal));
@@ -27,9 +27,7 @@ float planeWeight, float normalWeight
 ) {
     float prevViewZ = uintBitsToFloat(prevViewZI);
     vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevViewZ, gbufferPrevProjectionInverse);
-    vec4 prevScene = gbufferPrevModelViewInverse * vec4(prevView, 1.0);
-    prevScene.xyz -= cameraDelta;
-    prevView = (gbufferPrevModelView * prevScene).xyz;
+    prevView.xyz -= cameraDelta;
 
     vec3 prevViewGeomNormal = coords_octDecode11(unpackSnorm2x16(packedPrevViewGeomNormal));
 
