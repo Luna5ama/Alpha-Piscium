@@ -1226,36 +1226,36 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         1 value "View"
                     }
                 }
-            }
-            empty()
-            toggle("SETTING_DEBUG_RTWSM", false) {
-                lang {
-                    name = "RTWSM"
-                }
-            }
-            slider("SETTING_DEBUG_RTWSM_MIN_DEPTH", 0.0, 0.0..1.0 step 0.01) {
-                lang {
-                    name = "RTWSM Min Depth"
-                }
-            }
-            slider("SETTING_DEBUG_RTWSM_MAX_DEPTH", 1.0, 0.0..1.0 step 0.01) {
-                lang {
-                    name = "RTWSM Max Depth"
-                }
-            }
-            empty()
-            toggle("SETTING_DEBUG_ENV_PROBE", false) {
-                lang {
-                    name = "Environment Probe"
-                }
-                toggle("SETTING_DEBUG_ATMOSPHERE", false) {
+                empty()
+                toggle("SETTING_DEBUG_RTWSM", false) {
                     lang {
-                        name = "Atmosphere"
+                        name = "RTWSM"
                     }
                 }
-                toggle("SETTING_DEBUG_EPIPOLAR", false) {
+                slider("SETTING_DEBUG_RTWSM_MIN_DEPTH", 0.0, 0.0..1.0 step 0.01) {
                     lang {
-                        name = "Epipolar"
+                        name = "RTWSM Min Depth"
+                    }
+                }
+                slider("SETTING_DEBUG_RTWSM_MAX_DEPTH", 1.0, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "RTWSM Max Depth"
+                    }
+                }
+                empty()
+                toggle("SETTING_DEBUG_ENV_PROBE", false) {
+                    lang {
+                        name = "Environment Probe"
+                    }
+                    toggle("SETTING_DEBUG_ATMOSPHERE", false) {
+                        lang {
+                            name = "Atmosphere"
+                        }
+                    }
+                    toggle("SETTING_DEBUG_EPIPOLAR", false) {
+                        lang {
+                            name = "Epipolar"
+                        }
                     }
                 }
             }
