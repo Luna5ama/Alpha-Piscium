@@ -27,13 +27,6 @@ ivec2 svgf_texelPos2(ivec2 texelPos) {
     return ivec2(clampedTexelPos);
 }
 
-void svgf_packNoColor(out uvec4 packedData, vec3 fastColor, vec2 moments, float hLen) {
-    packedData.x = 0u;
-    packedData.y = packUnorm4x8(colors_SRGBToLogLuv(fastColor));
-    packedData.z = packHalf2x16(moments);
-    packedData.w = floatBitsToUint(hLen);
-}
-
 void svgf_pack(out uvec4 packedData, vec3 color, vec3 fastColor, vec2 moments, float hLen) {
     packedData.x = packUnorm4x8(colors_SRGBToLogLuv(color));
     packedData.y = packUnorm4x8(colors_SRGBToLogLuv(fastColor));

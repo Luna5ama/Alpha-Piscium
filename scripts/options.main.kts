@@ -770,7 +770,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Reprojection Normal Edge Weight"
                     }
                 }
-                slider("SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT", 20.0, (0.0..32.0) step 0.1) {
+                slider("SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT", 10.0, (0.0..32.0) step 0.1) {
                     lang {
                         name = "Reprojection Geometry Edge Weight"
                     }

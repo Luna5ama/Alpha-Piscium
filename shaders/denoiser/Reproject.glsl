@@ -5,8 +5,11 @@
 #include "/util/NZPacking.glsl"
 
 const float BASE_GEOM_WEIGHT = exp2(SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT);
-const float BASE_GEOM_WEIGHT_INIT = exp2(SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT);
 const float BASE_NORMAL_WEIGHT = exp2(SETTING_DENOISER_REPROJ_NORMAL_EDGE_WEIGHT);
+
+const float CUBIE_SAMPLE_WEIGHT_EPSILON = 0.5;
+const float FINAL_WEIGHT_SUM_EPSILON = 0.0001;
+const float BILATERAL_WEIGHT_SUM_EPSILON = 0.1;
 
 vec3 reproject_curr2PrevView;
 vec3 reproject_currToPrevViewNormal;
@@ -91,60 +94,62 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
     if (all(equal(gatherTexelPos, gatherTexelPosClamped))) {
         vec2 gatherUV1 = svgf_gatherUV1(gatherTexelPos);
 
-        vec4 bilateralWeights = computeBilateralWeights( gatherTexelPos, BASE_GEOM_WEIGHT);
+        vec4 bilateralWeights = computeBilateralWeights(gatherTexelPos, BASE_GEOM_WEIGHT);
         float bilateralWeightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
 
-        vec4 interpoWeights = baseWeights * bilateralWeights;
-        weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
+        if (bilateralWeightSum > BILATERAL_WEIGHT_SUM_EPSILON) {
+            vec4 interpoWeights = baseWeights * bilateralWeights;
+            weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
 
-        {
-            uvec4 prevColorData = textureGather(usam_svgfHistory, gatherUV1, 0);
-            vec3 prevColor1 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.x));
-            vec3 prevColor2 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.y));
-            vec3 prevColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.z));
-            vec3 prevColor4 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.w));
+            {
+                uvec4 prevColorData = textureGather(usam_svgfHistory, gatherUV1, 0);
+                vec3 prevColor1 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.x));
+                vec3 prevColor2 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.y));
+                vec3 prevColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.z));
+                vec3 prevColor4 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.w));
 
-            vec4 prevColorR = vec4(prevColor1.r, prevColor2.r, prevColor3.r, prevColor4.r);
-            prevColor.r += dot(interpoWeights, prevColorR);
-            vec4 prevColorG = vec4(prevColor1.g, prevColor2.g, prevColor3.g, prevColor4.g);
-            prevColor.g += dot(interpoWeights, prevColorG);
-            vec4 prevColorB = vec4(prevColor1.b, prevColor2.b, prevColor3.b, prevColor4.b);
-            prevColor.b += dot(interpoWeights, prevColorB);
-        }
+                vec4 prevColorR = vec4(prevColor1.r, prevColor2.r, prevColor3.r, prevColor4.r);
+                prevColor.r += dot(interpoWeights, prevColorR);
+                vec4 prevColorG = vec4(prevColor1.g, prevColor2.g, prevColor3.g, prevColor4.g);
+                prevColor.g += dot(interpoWeights, prevColorG);
+                vec4 prevColorB = vec4(prevColor1.b, prevColor2.b, prevColor3.b, prevColor4.b);
+                prevColor.b += dot(interpoWeights, prevColorB);
+            }
 
-        {
-            uvec4 prevFastColorData = textureGather(usam_svgfHistory, gatherUV1, 1);
-            vec3 prevFastColor1 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.x));
-            vec3 prevFastColor2 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.y));
-            vec3 prevFastColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.z));
-            vec3 prevFastColor4 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.w));
+            {
+                uvec4 prevFastColorData = textureGather(usam_svgfHistory, gatherUV1, 1);
+                vec3 prevFastColor1 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.x));
+                vec3 prevFastColor2 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.y));
+                vec3 prevFastColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.z));
+                vec3 prevFastColor4 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.w));
 
-            vec4 prevFastColorR = vec4(prevFastColor1.r, prevFastColor2.r, prevFastColor3.r, prevFastColor4.r);
-            prevFastColor.r += dot(interpoWeights, prevFastColorR);
-            vec4 prevFastColorG = vec4(prevFastColor1.g, prevFastColor2.g, prevFastColor3.g, prevFastColor4.g);
-            prevFastColor.g += dot(interpoWeights, prevFastColorG);
-            vec4 prevFastColorB = vec4(prevFastColor1.b, prevFastColor2.b, prevFastColor3.b, prevFastColor4.b);
-            prevFastColor.b += dot(interpoWeights, prevFastColorB);
-        }
+                vec4 prevFastColorR = vec4(prevFastColor1.r, prevFastColor2.r, prevFastColor3.r, prevFastColor4.r);
+                prevFastColor.r += dot(interpoWeights, prevFastColorR);
+                vec4 prevFastColorG = vec4(prevFastColor1.g, prevFastColor2.g, prevFastColor3.g, prevFastColor4.g);
+                prevFastColor.g += dot(interpoWeights, prevFastColorG);
+                vec4 prevFastColorB = vec4(prevFastColor1.b, prevFastColor2.b, prevFastColor3.b, prevFastColor4.b);
+                prevFastColor.b += dot(interpoWeights, prevFastColorB);
+            }
 
-        {
-            uvec4 prevMomentDatas = textureGather(usam_svgfHistory, gatherUV1, 2);
-            vec2 prevMoments1 = unpackHalf2x16(prevMomentDatas.x);
-            vec2 prevMoments2 = unpackHalf2x16(prevMomentDatas.y);
-            vec2 prevMoments3 = unpackHalf2x16(prevMomentDatas.z);
-            vec2 prevMoments4 = unpackHalf2x16(prevMomentDatas.w);
-            vec4 prevMomentsR = vec4(prevMoments1.x, prevMoments2.x, prevMoments3.x, prevMoments4.x);
-            vec4 prevMomentsG = vec4(prevMoments1.y, prevMoments2.y, prevMoments3.y, prevMoments4.y);
+            {
+                uvec4 prevMomentDatas = textureGather(usam_svgfHistory, gatherUV1, 2);
+                vec2 prevMoments1 = unpackHalf2x16(prevMomentDatas.x);
+                vec2 prevMoments2 = unpackHalf2x16(prevMomentDatas.y);
+                vec2 prevMoments3 = unpackHalf2x16(prevMomentDatas.z);
+                vec2 prevMoments4 = unpackHalf2x16(prevMomentDatas.w);
+                vec4 prevMomentsR = vec4(prevMoments1.x, prevMoments2.x, prevMoments3.x, prevMoments4.x);
+                vec4 prevMomentsG = vec4(prevMoments1.y, prevMoments2.y, prevMoments3.y, prevMoments4.y);
 
-            prevMoments.x += dot(interpoWeights, prevMomentsR);
-            prevMoments.y += dot(interpoWeights, prevMomentsG);
-        }
+                prevMoments.x += dot(interpoWeights, prevMomentsR);
+                prevMoments.y += dot(interpoWeights, prevMomentsG);
+            }
 
-        {
-            uvec4 prevHLenData = textureGather(usam_svgfHistory, gatherUV1, 3);
-            vec4 prevHLens = uintBitsToFloat(prevHLenData);
+            {
+                uvec4 prevHLenData = textureGather(usam_svgfHistory, gatherUV1, 3);
+                vec4 prevHLens = uintBitsToFloat(prevHLenData);
 
-            prevHLen += dot(interpoWeights, prevHLens);
+                prevHLen += dot(interpoWeights, prevHLens);
+            }
         }
     }
 }
@@ -194,14 +199,10 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     reproject_currToPrevViewNormal = currToPrevViewNormal;
     reproject_currToPrevViewGeomNormal = currToPrevViewGeomNormal;
 
-    vec4 centerWeights = computeBilateralWeights(
-        gatherTexelPos,
-        BASE_GEOM_WEIGHT_INIT
-    );
+    vec4 centerWeights = computeBilateralWeights(gatherTexelPos, BASE_GEOM_WEIGHT);
 
-    const float WEIGHT_EPSILON = 0.5;
     float weightSum = 0.0;
-    uint flag = uint(any(lessThan(centerWeights, vec4(WEIGHT_EPSILON))));
+    uint flag = uint(any(lessThan(centerWeights, vec4(CUBIE_SAMPLE_WEIGHT_EPSILON))));
     flag |= uint(any(lessThan(curr2PrevTexel, vec2(1.0))));
     flag |= uint(any(greaterThan(curr2PrevTexel, global_mainImageSize - 1.0)));
 
@@ -262,8 +263,7 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
         prevColor, prevFastColor, prevMoments, prevHLen, weightSum
     );
 
-    const float WEIGHT_EPSILON_FINAL = 0.0001;
-    if (weightSum < WEIGHT_EPSILON_FINAL) {
+    if (weightSum < FINAL_WEIGHT_SUM_EPSILON) {
         prevColor = vec3(0.0);
         prevFastColor = vec3(0.0);
         prevMoments = vec2(0.0);
