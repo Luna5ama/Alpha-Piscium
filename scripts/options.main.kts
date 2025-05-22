@@ -776,7 +776,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_MAX_ACCUM", 256, (2..10).map { 1 shl it }) {
+                slider("SETTING_DENOISER_MAX_ACCUM", 64, (2..10).map { 1 shl it }) {
                     lang {
                         name = "Max Accumulation"
                     }
@@ -789,14 +789,49 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_MAX_FAST_ACCUM", 16, 1..32 step 1) {
+                slider("SETTING_DENOISER_MAX_FAST_ACCUM", 8, 1..32 step 1) {
                     lang {
                         name = "Max Fast Accumulation"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING_BOX_SCALE", 2.0, 1.0..3.0 step 0.01) {
+                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING_BOX_SCALE", 1.5, 1.0..3.0 step 0.01) {
                     lang {
                         name = "Fast History Clamping Box Scale"
+                    }
+                }
+                empty()
+                slider("SETTING_DENOISER_FILTER_KERNEL_INIT_SIGMA", 0.0, 0.0..1.0 step 0.005) {
+                    lang {
+                        name = "Filter Kernel Initial Sigma"
+                        comment =
+                            "Smaller value generally leads to less noisy but more blurry result. 0 = box filter kernel. This value is use in the beginning of accumulation."
+                    }
+                }
+                slider("SETTING_DENOISER_FILTER_KERNEL_FINAL_SIGMA", 0.05, 0.0..1.0 step 0.005) {
+                    lang {
+                        name = "Filter Kernel Final Sigma"
+                        comment =
+                            "Smaller value generally leads to less noisy but more blurry result. 0 = box filter kernel. This value is use when the number of accumulated frames is greater than the max accumulation setting."
+                    }
+                }
+                empty()
+                slider("SETTING_DENOISER_VARIANCE_BOOST", 2.0, 0.0..10.0 step 0.1) {
+                    lang {
+                        name = "Variance Boost"
+                        comment = "Boost variance for the first few frames."
+                    }
+                }
+                slider("SETTING_DENOISER_VARIANCE_BOOST_FRAMES", 4, 2..32 step 2) {
+                    lang {
+                        name = "Variance Boost Frames"
+                        comment = "Number of frames to boost variance."
+                    }
+                }
+                slider("SETTING_DENOISER_MIN_VARIANCE_FACTOR", 16.0, 0.0..32.0 step 0.1) {
+                    lang {
+                        name = "Minimum Variance Factor"
+                        comment =
+                            "Minimum variance factor for the filter. Smaller value generally leads to less noisy but more blurry result. This value is used to calculate center variance in Atrous filter as \"max(variance, 2^-x)\""
                     }
                 }
                 empty()
@@ -810,40 +845,10 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Filter Depth Weight"
                     }
                 }
-                empty()
-                slider("SETTING_DENOISER_FILTER_INIT_COLOR_WEIGHT", 2.0, 0.0..16.0 step 0.1) {
+                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 15.0, 0.0..32.0 step 0.1) {
                     lang {
-                        name = "Filter Initial Color Weight"
-                        comment =
-                            "Smaller value means more blurring. This value is use in the beginning of accumulation."
-                    }
-                }
-                slider("SETTING_DENOISER_FILTER_FINAL_COLOR_WEIGHT", 4.0, 0.0..16.0 step 0.1) {
-                    lang {
-                        name = "Filter Final Color Weight"
-                        comment =
-                            "Smaller value means more blurring. This value is use when the number of accumulated frames is greater than the max accumulation setting."
-                    }
-                }
-                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES", 8, 2..32 step 2) {
-                    lang {
-                        name = "Filter Color Weight Fade In Frames"
-                        comment = "Number of frames to fade in color weight."
-                    }
-                }
-                empty()
-                slider("SETTING_DENOISER_FILTER_KERNEL_INIT_SIGMA", 0.0, 0.0..4.0 step 0.1) {
-                    lang {
-                        name = "Filter Kernel Initial Sigma"
-                        comment =
-                            "Smaller value means more blurring. 0 = box filter kernel. This value is use in the beginning of accumulation."
-                    }
-                }
-                slider("SETTING_DENOISER_FILTER_KERNEL_FINAL_SIGMA", 1.0, 0.0..4.0 step 0.1) {
-                    lang {
-                        name = "Filter Kernel Final Sigma"
-                        comment =
-                            "Smaller value means more blurring. 0 = box filter kernel. This value is use when the number of accumulated frames is greater than the max accumulation setting."
+                        name = "Filter Color Weight"
+                        comment = "Smaller value generally leads to less noisy but more blurry result."
                     }
                 }
             }

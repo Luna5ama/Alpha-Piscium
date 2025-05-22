@@ -173,21 +173,17 @@ void main() {
         );
 
         float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
+        variance += SETTING_DENOISER_VARIANCE_BOOST * linearStep(1.0 + SETTING_DENOISER_VARIANCE_BOOST_FRAMES, 1.0, newHLen);
         vec4 filterInput = vec4(newColor, variance);
         filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
         imageStore(uimg_temp2, texelPos, filterInput);
 
         vec4 hLenV = vec4(0.0);
-        hLenV.x = linearStep(1.0, 1.0 + SETTING_DENOISER_FILTER_COLOR_WEIGHT_FADE_IN_FRAMES, newHLen);
         hLenV.y = linearStep(1.0, SETTING_DENOISER_MAX_ACCUM, newHLen);
         imageStore(uimg_temp6, texelPos, hLenV);
 
         uvec4 packedOutData = uvec4(0u);
-        #ifdef SETTING_DENOISER
-        svgf_packNoColor(packedOutData, newFastColor, newMoments, newHLen);
-        #else
         svgf_pack(packedOutData, newColor, newFastColor, newMoments, newHLen);
-        #endif
         imageStore(uimg_svgfHistory, svgf_texelPos1(texelPos), packedOutData);
 
         imageStore(uimg_temp4, texelPos, filterInput);
