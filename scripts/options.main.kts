@@ -827,7 +827,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Number of frames to boost variance."
                     }
                 }
-                slider("SETTING_DENOISER_MIN_VARIANCE_FACTOR", 16.0, 0.0..32.0 step 0.1) {
+                slider("SETTING_DENOISER_MIN_VARIANCE_FACTOR", 12.0, 0.0..32.0 step 0.1) {
                     lang {
                         name = "Minimum Variance Factor"
                         comment =
@@ -845,7 +845,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Filter Depth Weight"
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 15.0, 0.0..32.0 step 0.1) {
+                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 32, 0..128) {
                     lang {
                         name = "Filter Color Weight"
                         comment = "Smaller value generally leads to less noisy but more blurry result."
