@@ -17,12 +17,10 @@ uniform sampler2D usam_temp4;
 uniform usampler2D usam_tempRGBA32UI;
 uniform usampler2D usam_packedZN;
 uniform usampler2D usam_gbufferData32UI;
-uniform sampler2D usam_gbufferViewZ;
 
-layout(rgba16f) writeonly uniform image2D uimg_temp2;
+layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
-layout(rgba16f) writeonly uniform image2D uimg_temp4;
 
 float computeGeometryWeight(vec3 centerPos, vec3 centerNormal, float sampleViewZ, uint sampleNormal, vec2 sampleScreenPos, float a) {
     vec3 sampleViewPos = coords_toViewCoord(sampleScreenPos, sampleViewZ, gbufferProjectionInverse);
@@ -72,7 +70,7 @@ void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 currColor = vec4(0.0);
 
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        float viewZ = uintBitsToFloat(texelFetch(usam_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), 0).g);
 
         if (viewZ != -65536.0) {
             vec2 texelPos2x2F = vec2(texelPos) * 0.5;
@@ -91,9 +89,6 @@ void main() {
             vec2 gatherTexelPos = centerPixelOrigin + 1.0;
             vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
-            vec4 weightX = interpo_bSplineWeights(pixelPosFract.x);
-            vec4 weightY = interpo_bSplineWeights(pixelPosFract.y);
-
             vec2 bilinearWeights2 = pixelPosFract;
             vec4 blinearWeights4;
             blinearWeights4.yz = bilinearWeights2.xx;
@@ -101,34 +96,8 @@ void main() {
             blinearWeights4.xy *= bilinearWeights2.yy;
             blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
-            vec4 sampleGatherWeights = weightX.xyyx * weightY.wwzz;
-            sampleGatherWeights.z += blinearWeights4.x;
             bilateralBilinearSample(
-                texelPos2x2F + vec2(-1.0, 1.0), sampleGatherWeights,
-                viewPos, gData.geometryNormal,
-                colorSum, weightSum
-            );
-
-            sampleGatherWeights = weightX.zwwz * weightY.wwzz;
-            sampleGatherWeights.w += blinearWeights4.y;
-            bilateralBilinearSample(
-                texelPos2x2F + vec2(1.0, 1.0), sampleGatherWeights,
-                viewPos, gData.geometryNormal,
-                colorSum, weightSum
-            );
-
-            sampleGatherWeights = weightX.zwwz * weightY.yyxx;
-            sampleGatherWeights.x += blinearWeights4.z;
-            bilateralBilinearSample(
-                texelPos2x2F + vec2(1.0, -1.0), sampleGatherWeights,
-                viewPos, gData.geometryNormal,
-                colorSum, weightSum
-            );
-
-            sampleGatherWeights = weightX.xyyx * weightY.yyxx;
-            sampleGatherWeights.y += blinearWeights4.w;
-            bilateralBilinearSample(
-                texelPos2x2F + vec2(-1.0, -1.0), sampleGatherWeights,
+                texelPos2x2F, blinearWeights4,
                 viewPos, gData.geometryNormal,
                 colorSum, weightSum
             );
@@ -191,7 +160,5 @@ void main() {
         uvec4 packedOutData = uvec4(0u);
         svgf_pack(packedOutData, newColor, newFastColor, newMoments, newHLen);
         imageStore(uimg_svgfHistory, svgf_texelPos1(texelPos), packedOutData);
-
-        imageStore(uimg_temp4, texelPos, filterInput);
     }
 }

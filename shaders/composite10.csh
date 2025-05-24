@@ -3,6 +3,7 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_vote : enable
 
+#include "/denoiser/Update.glsl"
 #include "/util/Morton.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -20,9 +21,11 @@ void main() {
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     ivec2 texelPos2x2 = ivec2(mortonGlobalPosU);
+    ivec2 texelPos1x1Base = texelPos2x2 << 1;
+    ivec2 texelPos1x1 = texelPos1x1Base + ivec2(morton_8bDecode(uint(frameCounter) & 3u));
 
-    if (all(lessThan(texelPos2x2, global_mipmapSizesI[1]))) {
-        vec4 ssvbilData = gtvbgi(texelPos2x2);
-        imageStore(uimg_temp1, texelPos2x2, ssvbilData);
+    if (all(lessThan(texelPos1x1, global_mainImageSizeI))) {
+        vec3 ssvbilData = gtvbgi(texelPos1x1);
+        imageStore(uimg_temp1, texelPos2x2, vec4(ssvbilData, 0.0));
     }
 }

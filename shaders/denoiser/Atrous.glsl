@@ -277,7 +277,7 @@ vec4 atrous_atrous(ivec2 texelPos) {
                 colorSum, weightSum
             );
             #endif
-            
+
             #if ATROUS_TAP_COUNT >= 7
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
@@ -285,7 +285,7 @@ vec4 atrous_atrous(ivec2 texelPos) {
                 colorSum, weightSum
             );
             #endif
-            
+
             #if ATROUS_TAP_COUNT >= 8
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,

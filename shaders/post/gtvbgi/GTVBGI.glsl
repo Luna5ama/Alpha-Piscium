@@ -66,7 +66,7 @@ vec3 view2screen(vec3 vpos) {
     return vec3(uv0, vpos.z);
 }
 
-#define NOISE_FRAME uint(frameCounter)
+#define NOISE_FRAME (uint(frameCounter) >> 2u)
 
 //==================================================================================//
 //////////////////////////////////////////////////////////////////////////////////////
@@ -237,7 +237,7 @@ uint toBitMask(vec2 h01) {
     return bitmask;
 }
 
-void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
+void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
     vec3 viewDir = -normalize(viewPos);
     vec2 rayStart = vec2(vbgi_texelPos2x2) + 0.5;
 
@@ -253,7 +253,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
         vec3 normalVVS = viewNormal;
         normalVVS = Transform_Qz0(viewNormal, Q_fromV);
 
-        vec2 dir0 = rand_stbnUnitVec211(vbgi_texelPos2x2, NOISE_FRAME);
+        vec2 dir0 = rand_stbnUnitVec211(vbgi_texelPos1x1, NOISE_FRAME);
         dir = SamplePartialSliceDir(normalVVS, dir0);
 
         smplDirVS = vec3(dir.xy, 0.0);
@@ -304,7 +304,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
     float maxDistY = rayDir.y != 0.0 ? (rayDir.y < 0.0 ? (-texelCenterPos.y / rayDir.y) : (global_mipmapSizes[1].y - texelCenterPos.y) / rayDir.y) : 1e6;
     float maxDist = min(maxDistX, maxDistY) - 2.0;
 
-    uvec2 hashKey = uvec2(vbgi_texelPos2x2) & uvec2(255u);
+    uvec2 hashKey = uvec2(vbgi_texelPos1x1) & uvec2(255u);
     uint r2Index = (rand_hash21(hashKey) & 1023u) + NOISE_FRAME;
     float jitter = rand_r2Seq1(r2Index);
 
@@ -396,7 +396,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
 //                    vec3 indirectBounce = (vec3(1.0) - fresnel) * (diffuseBase);
 //                    indirectBounce += fresnel * (ggx * specularBase);
                     vec3 indirectBounce = vec3(diffuseBase);
-                    result.rgb += sampleRad * indirectBounce * (bitV * emitterCos * (PI * SETTING_VGBI_IB_STRENGTH));
+                    result += sampleRad * indirectBounce * (bitV * emitterCos * (PI * SETTING_VGBI_IB_STRENGTH));
                 }
             }
 
@@ -518,24 +518,22 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec4 result) {
             fallbackLighting += vec3(diffuseBase);
 //            fallbackLighting += (vec3(1.0) - fresnel) * (diffuseBase);
 //            fallbackLighting += (ggx * specularBase);
-            result.rgb += sampleRad * fallbackLighting * bitV;
+            result += sampleRad * fallbackLighting * bitV;
         }
     }
-
-    result = dither_fp16(result, rand_IGN(vbgi_texelPos2x2, NOISE_FRAME));
 }
 
-vec4 gtvbgi(ivec2 texelPos2x2) {
-    vbgi_texelPos2x2 = texelPos2x2;
-    vbgi_texelPos1x1 = texelPos2x2 << 1;
+vec3 gtvbgi(ivec2 texelPos1x1) {
+    vbgi_texelPos1x1 = texelPos1x1;
+    vbgi_texelPos2x2 = texelPos1x1 >> 1;
 
     float centerViewZ;
     vec3 centerViewNormal;
-    nzpacking_unpack(texelFetch(usam_packedZN, vbgi_texelPos2x2, 0).xy, centerViewNormal, centerViewZ);
+    nzpacking_unpack(texelFetch(usam_packedZN, vbgi_texelPos1x1 + ivec2(0, global_mainImageSizeI.y), 0).xy, centerViewNormal, centerViewZ);
 
-    vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
+    vec3 result = vec3(0.0, 0.0, 0.0);
     if (centerViewZ != -65536.0) {
-        vec2 screenPos = (vec2(vbgi_texelPos2x2) + 0.5) * global_mipmapSizesRcp[1];
+        vec2 screenPos = (vec2(vbgi_texelPos1x1) + 0.5) * global_mainImageSizeRcp;
         vec3 centerViewPos = coords_toViewCoord(screenPos, centerViewZ, gbufferProjectionInverse);
         uniGTVBGI(centerViewPos, centerViewNormal, result);
     }
