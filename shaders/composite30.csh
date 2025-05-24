@@ -35,12 +35,6 @@ void applyAtmosphere(vec2 screenPos, vec3 viewPos, float viewZ, inout vec4 outpu
     outputColor.rgb += sctrResult.inScattering;
 }
 
-void updateMoments(vec3 colorSRGB, inout vec3 sum, inout vec3 sqSum) {
-    vec3 color = colors_SRGBToYCoCg(colorSRGB);
-    sum += color;
-    sqSum += color * color;
-}
-
 void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
@@ -54,31 +48,9 @@ void main() {
         vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
         vec3 viewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
 
-        vec3 curr3x3Avg = vec3(0.0);
-        vec3 curr3x3SqAvg = vec3(0.0);
-        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(-1, 0)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(1, 0)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(0, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(0, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(-1, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(1, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(-1, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
-        updateMoments(texelFetchOffset(usam_temp2, texelPos, 0, ivec2(1, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
-        curr3x3Avg /= 9.0;
-        curr3x3SqAvg /= 9.0;
+        vec3 giRadiance = texelFetch(usam_temp2, texelPos, 0).rgb;
 
-        vec3 centerGI = texelFetch(usam_temp2, texelPos, 0).rgb;
-
-        // Ellipsoid intersection clipping by Marty
-        vec3 centerGIYCoCg = colors_SRGBToYCoCg(centerGI);
-        vec3 stddev = sqrt(curr3x3SqAvg - curr3x3Avg * curr3x3Avg);
-        vec3 delta = centerGIYCoCg - curr3x3Avg;
-        const float clippingEps = 0.00001;
-        delta /= max(1.0, length(delta / (stddev + clippingEps)));
-        centerGIYCoCg = curr3x3Avg + delta;
-        centerGI.rgb = colors_YCoCgToSRGB(centerGIYCoCg);
-
-        outputColor.rgb += centerGI.rgb * material.albedo;
+        outputColor.rgb += giRadiance.rgb * material.albedo;
         applyAtmosphere(screenPos, viewPos, viewZ, outputColor);
 
         float albedoLuminance = all(equal(gData.albedo, vec3(0.0))) ? 0.1 : colors_srgbLuma(material.albedo);
