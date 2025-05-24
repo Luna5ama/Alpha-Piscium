@@ -14,7 +14,6 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform sampler2D usam_temp2;
 
-uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_translucentColor;
 
@@ -52,10 +51,7 @@ void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
 
-        GBufferData gData;
-        gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
-        gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
-        Material material = material_decode(gData);
+        vec3 albedo = colors_srgbToLinear(texelFetch(usam_gbufferData8UN, texelPos, 0).rgb);
 
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
@@ -63,7 +59,7 @@ void main() {
 
         vec3 giRadiance = texelFetch(usam_temp2, texelPos, 0).rgb;
 
-        outputColor.rgb += giRadiance.rgb * material.albedo;
+        outputColor.rgb += giRadiance.rgb * albedo;
         applyAtmosphere(screenPos, viewPos, viewZ, outputColor);
 
         imageStore(uimg_main, texelPos, outputColor);
