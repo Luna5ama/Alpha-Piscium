@@ -83,5 +83,10 @@ void main() {
                 global_mipmapSizePrefixes[i] = global_mipmapSizePrefixes[i - 1] + mipSize;
             }
         }
+
+        global_dispatchSize1 = uvec4(0u, 1u, 1u, 0u);
+        global_dispatchSize2 = uvec4(0u, 1u, 1u, 0u);
+        global_dispatchSize3 = uvec4(0u, 1u, 1u, 0u);
+        global_dispatchSize4 = uvec4(0u, 1u, 1u, 0u);
     }
 }

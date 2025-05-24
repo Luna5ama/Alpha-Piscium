@@ -7,6 +7,10 @@ mat4 gbufferPrevProjection = gbufferPreviousProjection;
 mat4 gbufferPrevModelView = gbufferPreviousModelView;
 
 layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
+    uvec4 global_dispatchSize1;
+    uvec4 global_dispatchSize2;
+    uvec4 global_dispatchSize3;
+    uvec4 global_dispatchSize4;
     mat4 gbufferPrevProjectionInverse;
     mat4 gbufferPrevModelViewInverse;
     mat4 global_shadowRotationMatrix;
@@ -28,6 +32,10 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     ivec2 global_mipmapSizePrefixes[16];
     uvec2 global_frameMortonJitter;
     uint global_lumHistogram[257];
+};
+
+layout(std430, binding = 1) GLOBAL_DATA_MODIFIER buffer IndirectComputeData {
+    uint indirectComputeData[];
 };
 
 const vec2 SHADOW_MAP_SIZE = vec2(float(shadowMapResolution), 1.0 / float(shadowMapResolution));

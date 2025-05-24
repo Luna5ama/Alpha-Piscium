@@ -22,4 +22,15 @@ float unpackU16(uint v) { return clamp(float(v) / 65535.0, 0.0, 1.0); }
 uint packS16(float v) { return packU16(v * 0.5 + 0.5); }
 float unpackS16(uint v) { return unpackU16(v) * 2.0 - 1.0; }
 
+uint packUInt2x16(uvec2 v) {
+    uint result = bitfieldInsert(0u, v.x, 0, 16);
+    result = bitfieldInsert(result, v.y, 16, 16);
+    return result;
+}
+
+uvec2 unpackUInt2x16(uint v) {
+    uvec2 result = uvec2(bitfieldExtract(v, 0, 16), bitfieldExtract(v, 16, 16));
+    return result;
+}
+
 #endif

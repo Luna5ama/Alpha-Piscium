@@ -242,6 +242,13 @@ struct ScatteringResult {
     vec3 inScattering;
 };
 
+ScatteringResult scatteringResult_init() {
+    ScatteringResult result;
+    result.transmittance = vec3(1.0);
+    result.inScattering = vec3(0.0);
+    return result;
+}
+
 struct RaymarchParameters {
     vec3 rayStart;
     vec3 rayEnd;

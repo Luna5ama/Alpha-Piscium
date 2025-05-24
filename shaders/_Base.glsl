@@ -5,7 +5,7 @@
 #include "/base/Configs.glsl"
 #include "/base/Uniforms.glsl"
 #include "/base/CustomUniforms.glsl"
-#include "/base/GlobalData.glsl"
+#include "/base/SSBO.glsl"
 #include "/base/Textures.glsl"
 
 #endif

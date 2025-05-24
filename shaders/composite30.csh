@@ -1,5 +1,7 @@
 #version 460 compatibility
 
+#extension GL_KHR_shader_subgroup_ballot : enable
+
 #include "/atmosphere/UnwarpEpipolar.glsl"
 #include "/atmosphere/Scattering.glsl"
 #include "/util/FullScreenComp.glsl"
@@ -7,7 +9,7 @@
 #include "/util/Rand.glsl"
 #include "/util/Material.glsl"
 
-layout(local_size_x = 8, local_size_y = 8) in;
+layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 uniform sampler2D usam_temp2;
@@ -24,10 +26,21 @@ void applyAtmosphere(vec2 screenPos, vec3 viewPos, float viewZ, inout vec4 outpu
     #ifndef SETTING_DEPTH_BREAK_CORRECTION
     unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
     #else
-    if (!unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult)) {
-        float ignValue = rand_IGN(texelPos, frameCounter);
-        AtmosphereParameters atmosphere = getAtmosphereParameters();
-        sctrResult = computeSingleScattering(atmosphere, vec3(0.0), viewPos, ignValue);
+    bool isDepthBreak = !unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
+    uvec4 balllot = subgroupBallot(isDepthBreak);
+    uint correctionCount = subgroupBallotBitCount(balllot);
+    uint writeIndexBase = 0u;
+    if (subgroupElect()) {
+        writeIndexBase = atomicAdd(global_dispatchSize1.w, correctionCount);
+        uint totalCount = writeIndexBase + correctionCount;
+        atomicMax(global_dispatchSize1.x, (totalCount | 0x3Fu) >> 6u);
+    }
+    writeIndexBase = subgroupBroadcastFirst(writeIndexBase);
+    if (isDepthBreak) {
+        uint writeIndex = writeIndexBase + subgroupBallotExclusiveBitCount(balllot);
+        uint texelPosEncoded = packUInt2x16(uvec2(texelPos));
+        indirectComputeData[writeIndex] = texelPosEncoded;
+        sctrResult = scatteringResult_init();
     }
     #endif
 
@@ -52,11 +65,6 @@ void main() {
 
         outputColor.rgb += giRadiance.rgb * material.albedo;
         applyAtmosphere(screenPos, viewPos, viewZ, outputColor);
-
-        float albedoLuminance = all(equal(gData.albedo, vec3(0.0))) ? 0.1 : colors_srgbLuma(material.albedo);
-        float luminanceC = colors_srgbLuma(outputColor.rgb) / albedoLuminance;
-        vec4 translucentColorSample = texelFetch(usam_translucentColor, texelPos, 0);
-        outputColor.rgb = mix(outputColor.rgb, translucentColorSample.rgb * luminanceC, translucentColorSample.a);
 
         imageStore(uimg_main, texelPos, outputColor);
     }
