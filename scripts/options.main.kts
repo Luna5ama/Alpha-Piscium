@@ -794,9 +794,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Fast Accumulation"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING", 0.5, 0.0..1.0 step 0.01) {
+                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD", 2.0, 1.0..4.0 step 0.1) {
                     lang {
-                        name = "Fast History Clamping"
+                        name = "Fast History Clamping Threshold"
                     }
                 }
                 empty()

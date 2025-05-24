@@ -146,22 +146,21 @@ void main() {
         float prevHLen;
         svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
 
-        // Ellipsoid intersection clipping by Marty
         vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
         vec3 mean = texelFetch(usam_temp3, texelPos, 0).rgb;
         vec3 stddev = texelFetch(usam_temp4, texelPos, 0).rgb;
-        vec3 delta = prevColorYCoCg - mean;
-        const float clippingEps = 0.00001;
-        float diff = length(delta / (stddev + clippingEps)) * SETTING_DENOISER_FAST_HISTORY_CLAMPING;
-        delta /= max(diff, 1.0);
-        vec3 prevColorYCoCgClamped = mean + delta;
+        vec3 aabbMin = mean - stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
+        vec3 aabbMax = mean + stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
+        aabbMin = min(aabbMin, prevFastColor);
+        aabbMax = max(aabbMax, prevFastColor);
+        vec3 prevColorYCoCgClamped = clamp(prevColorYCoCg, aabbMin, aabbMax);
         float clippingWeight = linearStep(
             SETTING_DENOISER_MAX_FAST_ACCUM,
             SETTING_DENOISER_MAX_FAST_ACCUM * 2.0,
             prevHLen
         );
-        prevColorYCoCgClamped = mix(prevColorYCoCg, prevColorYCoCgClamped, clippingWeight);
-        vec3 prevColorClamped = colors_YCoCgToSRGB(prevColorYCoCgClamped);
+        prevColorYCoCg = mix(prevColorYCoCg, prevColorYCoCgClamped, clippingWeight);
+        vec3 prevColorClamped = colors_YCoCgToSRGB(prevColorYCoCg);
 
         float moment2Correction = pow2(colors_srgbLuma(prevColorClamped)) - pow2(colors_srgbLuma(prevColor));
         prevMoments.y += moment2Correction;
