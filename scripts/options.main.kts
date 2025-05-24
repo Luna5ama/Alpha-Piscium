@@ -800,21 +800,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FILTER_KERNEL_INIT_SIGMA", 0.0, 0.0..1.0 step 0.005) {
-                    lang {
-                        name = "Filter Kernel Initial Sigma"
-                        comment =
-                            "Smaller value generally leads to less noisy but more blurry result. 0 = box filter kernel. This value is use in the beginning of accumulation."
-                    }
-                }
-                slider("SETTING_DENOISER_FILTER_KERNEL_FINAL_SIGMA", 0.05, 0.0..1.0 step 0.005) {
-                    lang {
-                        name = "Filter Kernel Final Sigma"
-                        comment =
-                            "Smaller value generally leads to less noisy but more blurry result. 0 = box filter kernel. This value is use when the number of accumulated frames is greater than the max accumulation setting."
-                    }
-                }
-                empty()
                 slider("SETTING_DENOISER_VARIANCE_BOOST", 64, 0..128) {
                     lang {
                         name = "Variance Boost"
@@ -827,7 +812,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Number of frames to boost variance."
                     }
                 }
-                slider("SETTING_DENOISER_MIN_VARIANCE_FACTOR", 12.0, 0.0..32.0 step 0.1) {
+                slider("SETTING_DENOISER_MIN_VARIANCE_FACTOR", 15.0, 0.0..32.0 step 0.1) {
                     lang {
                         name = "Minimum Variance Factor"
                         comment =

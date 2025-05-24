@@ -7,12 +7,14 @@
 #define ATROUS_THREAD_SIZE 128
 
 #if ATROUS_PASS == 1
+#define ATROUS_TAP_COUNT 2
 #define ATROUS_AXIS_X a
 #define ATROUS_RADIUS 2
 #define ATROUS_INPUT usam_temp2
 #define ATROUS_OUTPUT uimg_temp1
 
 #elif ATROUS_PASS == 2
+#define ATROUS_TAP_COUNT 2
 #define ATROUS_AXIS_Y a
 #define ATROUS_RADIUS 2
 #define ATROUS_INPUT usam_temp1
@@ -20,59 +22,22 @@
 
 
 #elif ATROUS_PASS == 3
+#define ATROUS_TAP_COUNT 4
 #define ATROUS_AXIS_X a
-#define ATROUS_RADIUS 4
+#define ATROUS_RADIUS 8
 #define ATROUS_INPUT usam_temp2
 #define ATROUS_OUTPUT uimg_temp1
 
 #elif ATROUS_PASS == 4
-#define ATROUS_AXIS_Y a
-#define ATROUS_RADIUS 4
-#define ATROUS_INPUT usam_temp1
-#define ATROUS_OUTPUT uimg_temp2
-
-
-#elif ATROUS_PASS == 5
-#define ATROUS_AXIS_X a
-#define ATROUS_RADIUS 8
-#define ATROUS_INPUT usam_temp2
-#define ATROUS_OUTPUT uimg_temp1
-
-#elif ATROUS_PASS == 6
+#define ATROUS_TAP_COUNT 4
 #define ATROUS_AXIS_Y a
 #define ATROUS_RADIUS 8
-#define ATROUS_INPUT usam_temp1
-#define ATROUS_OUTPUT uimg_temp2
-
-
-#elif ATROUS_PASS == 7
-#define ATROUS_AXIS_X a
-#define ATROUS_RADIUS 16
-#define ATROUS_INPUT usam_temp2
-#define ATROUS_OUTPUT uimg_temp1
-
-#elif ATROUS_PASS == 8
-#define ATROUS_AXIS_Y a
-#define ATROUS_RADIUS 16
-#define ATROUS_INPUT usam_temp1
-#define ATROUS_OUTPUT uimg_temp2
-
-
-#elif ATROUS_PASS == 9
-#define ATROUS_AXIS_X a
-#define ATROUS_RADIUS 32
-#define ATROUS_INPUT usam_temp2
-#define ATROUS_OUTPUT uimg_temp1
-
-#elif ATROUS_PASS == 10
-#define ATROUS_AXIS_Y a
-#define ATROUS_RADIUS 32
 #define ATROUS_INPUT usam_temp1
 #define ATROUS_OUTPUT uimg_temp2
 #endif
 
-#define SHARED_DATA_SIZE (ATROUS_THREAD_SIZE + ATROUS_RADIUS * 4)
-#define SHARED_DATA_OFFSET (ATROUS_RADIUS * 2)
+#define SHARED_DATA_OFFSET (ATROUS_RADIUS * ATROUS_TAP_COUNT)
+#define SHARED_DATA_SIZE (ATROUS_THREAD_SIZE + SHARED_DATA_OFFSET * 2)
 
 #ifdef ATROUS_AXIS_X
 layout(local_size_x = ATROUS_THREAD_SIZE, local_size_y = 1) in;
@@ -97,19 +62,27 @@ float atrous_normalWeight;
 float atrous_viewZWeight;
 float atrous_luminanceWeight;
 
+void loadGlobalData(ivec2 loadTexelPos, out vec4 color, out vec3 normal, out float viewZ) {
+    color = texelFetch(ATROUS_INPUT, loadTexelPos, 0);
+    uvec4 packedData = uvec4(0u);
+    nzpacking_unpack(texelFetch(usam_packedZN, loadTexelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, normal, viewZ);
+    normal = mat3(gbufferModelViewInverse) * normal;
+}
+
 void initSharedData(uint index) {
     if (index < SHARED_DATA_SIZE) {
+        int pos1d = int(index) - SHARED_DATA_OFFSET;
         ivec2 loadTexelPos = ivec2(gl_WorkGroupID.xy * gl_WorkGroupSize.xy);
-        loadTexelPos += ATROUS_AXIS_VEC * (int(index) - SHARED_DATA_OFFSET);
+        pos1d += int((rand_IGN(loadTexelPos + ATROUS_AXIS_VEC * pos1d, frameCounter) - 0.5) * ATROUS_RADIUS);
+        loadTexelPos += ATROUS_AXIS_VEC * pos1d;
         loadTexelPos = clamp(loadTexelPos, ivec2(0), global_mainImageSizeI - 1);
-        vec4 color = texelFetch(ATROUS_INPUT, loadTexelPos, 0);
+        vec4 color;
+        vec3 normal;
+        float viewZ;
+        loadGlobalData(loadTexelPos, color, normal, viewZ);
         uvec4 packedData = uvec4(0u);
         packedData.x = packHalf2x16(color.rg);
         packedData.y = packHalf2x16(color.ba);
-        vec3 normal;
-        float viewZ;
-        nzpacking_unpack(texelFetch(usam_packedZN, loadTexelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, normal, viewZ);
-        normal = mat3(gbufferModelViewInverse) * normal;
         packedData.z = packSnorm4x8(vec4(normal, 0.0));
         packedData.w = floatBitsToUint(viewZ);
         shared_data[index] = packedData;
@@ -140,11 +113,10 @@ float luminanceWeight(float centerLuminance, float sampleLuminance, float phi) {
 
 void atrousSample(
 vec3 centerNormal, float centerViewZ, float centerLuminance,
-int offset, float baseWeight,
+int offset,
 inout vec4 colorSum, inout float weightSum
 ) {
     int realOffset = offset * ATROUS_RADIUS;
-    realOffset += int((rand_IGN(atrous_texelPos + realOffset * ATROUS_AXIS_VEC, frameCounter) - 0.5) * ATROUS_RADIUS);
     ivec2 texelPos = atrous_texelPos + realOffset * ATROUS_AXIS_VEC;
     if (all(greaterThanEqual(texelPos, ivec2(0))) && all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 sampleColor;
@@ -154,7 +126,7 @@ inout vec4 colorSum, inout float weightSum
 
         float sampleLuminance = colors_srgbLuma(sampleColor.rgb);
 
-        float weight = baseWeight;
+        float weight = 1.0;
         weight *= normalWeight(centerNormal, sampleNormal, atrous_normalWeight);
         weight *= viewZWeight(centerViewZ, sampleViewZ, atrous_viewZWeight);
         weight *= luminanceWeight(centerLuminance, sampleLuminance, atrous_luminanceWeight * float(abs(realOffset)));
@@ -177,11 +149,10 @@ vec4 atrous_atrous(ivec2 texelPos) {
         vec4 centerFilterData;
         vec3 centerNormal;
         float centerViewZ;
-        loadSharedData(0, centerFilterData, centerNormal, centerViewZ);
+        loadGlobalData(atrous_texelPos, centerFilterData, centerNormal, centerViewZ);
 
         if (centerViewZ != -65536.0) {
             vec3 centerColor = centerFilterData.rgb;
-
             float centerVariance = centerFilterData.a;
             float centerLuminance = colors_srgbLuma(centerColor);
 
@@ -195,33 +166,133 @@ vec4 atrous_atrous(ivec2 texelPos) {
             vec4 colorSum = centerFilterData * 1.0;
             float weightSum = 1.0;
 
-            float kernelDecay = mix(SETTING_DENOISER_FILTER_KERNEL_INIT_SIGMA, SETTING_DENOISER_FILTER_KERNEL_FINAL_SIGMA, pow2(hLenV.y));
-            float baseWeight1 = exp2(-1.0 * ATROUS_RADIUS * kernelDecay);
-            float baseWeight2 = exp2(-2.0 * ATROUS_RADIUS * kernelDecay);
-
+            #if ATROUS_TAP_COUNT >= 8
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
-                -2, baseWeight2,
+                -8,
                 colorSum, weightSum
             );
+            #endif
 
+            #if ATROUS_TAP_COUNT >= 7
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
-                -1, baseWeight1,
+                -7,
                 colorSum, weightSum
             );
+            #endif
 
+            #if ATROUS_TAP_COUNT >= 6
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
-                1, baseWeight1,
+                -6,
                 colorSum, weightSum
             );
+            #endif
 
+            #if ATROUS_TAP_COUNT >= 5
             atrousSample(
                 centerNormal, centerViewZ, centerLuminance,
-                2, baseWeight2,
+                -5,
                 colorSum, weightSum
             );
+            #endif
+
+            #if ATROUS_TAP_COUNT >= 4
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                -4,
+                colorSum, weightSum
+            );
+            #endif
+
+            #if ATROUS_TAP_COUNT >= 3
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                -3,
+                colorSum, weightSum
+            );
+            #endif
+
+            #if ATROUS_TAP_COUNT >= 2
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                -2,
+                colorSum, weightSum
+            );
+            #endif
+
+            #if ATROUS_TAP_COUNT >= 1
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                -1,
+                colorSum, weightSum
+            );
+            #endif
+
+            #if ATROUS_TAP_COUNT >= 1
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                1,
+                colorSum, weightSum
+            );
+            #endif
+
+            #if ATROUS_TAP_COUNT >= 2
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                2,
+                colorSum, weightSum
+            );
+            #endif
+
+            #if ATROUS_TAP_COUNT >= 3
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                3,
+                colorSum, weightSum
+            );
+            #endif
+
+            #if ATROUS_TAP_COUNT >= 4
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                4,
+                colorSum, weightSum
+            );
+            #endif
+
+            #if ATROUS_TAP_COUNT >= 5
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                5,
+                colorSum, weightSum
+            );
+            #endif
+
+            #if ATROUS_TAP_COUNT >= 6
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                6,
+                colorSum, weightSum
+            );
+            #endif
+            
+            #if ATROUS_TAP_COUNT >= 7
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                7,
+                colorSum, weightSum
+            );
+            #endif
+            
+            #if ATROUS_TAP_COUNT >= 8
+            atrousSample(
+                centerNormal, centerViewZ, centerLuminance,
+                8,
+                colorSum, weightSum
+            );
+            #endif
 
             outputColor = colorSum / vec4(vec3(weightSum), weightSum * weightSum);
             outputColor = max(outputColor, 0.0);
