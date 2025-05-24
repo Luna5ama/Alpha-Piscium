@@ -54,12 +54,8 @@ void main() {
                 prevDiffuse, prevFastDiffuse, prevMoments, prevHLen
             );
 
-            uvec4 temp32UIOut = uvec4(
-                packUnorm4x8(colors_SRGBToLogLuv(prevDiffuse)),
-                packUnorm4x8(colors_SRGBToLogLuv(prevFastDiffuse)),
-                packHalf2x16(prevMoments),
-                floatBitsToUint(prevHLen)
-            );
+            uvec4 temp32UIOut = uvec4(0u);
+            svgf_pack(temp32UIOut, prevDiffuse, prevFastDiffuse, prevMoments, prevHLen);
 
             imageStore(uimg_tempRGBA32UI, texelPos1x1, temp32UIOut);
 

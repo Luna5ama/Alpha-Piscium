@@ -89,8 +89,8 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N
     float shadowPow = saturate(1.0 - irradiance.a);
     shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * SETTING_SSS_SCTR_FACTOR;
 
-    float backDot = saturate(NDotL * - 0.5 + 0.5);
-    float sssV = material.sss * RCP_PI * backDot * 0.5 * SETTING_SSS_STRENGTH;
+    float phase = miePhase(LDotV, 0.3);
+    float sssV = material.sss * phase * SETTING_SSS_STRENGTH;
     result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb;
 
     result.specular = irradiance.rgb * material.albedo * fresnel;
