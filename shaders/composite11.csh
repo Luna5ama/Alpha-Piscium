@@ -38,7 +38,7 @@ uvec4 packMoments(vec3 moment1, vec3 moment2) {
 }
 
 void loadSharedData(uint index) {
-    if (index < 400) {
+    if (index < 144) {
         uvec2 sharedXY = uvec2(index % 12, index / 12);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(global_mainImageSize - 1));
@@ -143,6 +143,7 @@ inout vec3 colorSum, inout float weightSum
 void main() {
     loadSharedData(gl_LocalInvocationIndex);
     loadSharedData(gl_LocalInvocationIndex + 64);
+    loadSharedData(gl_LocalInvocationIndex + 128);
     barrier();
 
     sampleV(gl_LocalInvocationIndex);
@@ -190,13 +191,6 @@ void main() {
             }
         }
 
-        uvec4 packedData = texelFetch(usam_tempRGBA32UI, texelPos, 0);
-        vec3 prevColor;
-        vec3 prevFastColor;
-        vec2 prevMoments;
-        float prevHLen;
-        svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
-
         vec3 mean;
         vec3 stddev;
         {
@@ -217,6 +211,13 @@ void main() {
             mean = moment1;
             stddev = sqrt(variance);
         }
+
+        uvec4 packedData = texelFetch(usam_tempRGBA32UI, texelPos, 0);
+        vec3 prevColor;
+        vec3 prevFastColor;
+        vec2 prevMoments;
+        float prevHLen;
+        svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
 
         vec3 aabbMin = mean - stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
         vec3 aabbMax = mean + stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
