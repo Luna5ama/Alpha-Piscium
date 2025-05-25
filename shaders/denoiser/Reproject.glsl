@@ -1,10 +1,12 @@
 #include "Common.glsl"
+#include "/util/BitPacking.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Interpo.glsl"
 #include "/util/NZPacking.glsl"
 
 const float BASE_GEOM_WEIGHT = exp2(SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT);
+const float BASE_GEOM_WEIGHT_RCP = rcp(exp2(SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT));
 const float BASE_NORMAL_WEIGHT = exp2(SETTING_DENOISER_REPROJ_NORMAL_EDGE_WEIGHT);
 
 const float CUBIE_SAMPLE_WEIGHT_EPSILON = 0.5;
@@ -29,7 +31,7 @@ float planeWeight, float normalWeight
     float prevViewZ = uintBitsToFloat(prevViewZI);
     vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevViewZ, gbufferPrevProjectionInverse);
 
-    vec3 prevViewGeomNormal = coords_octDecode11(unpackSnorm2x16(packedPrevViewGeomNormal));
+    vec3 prevViewGeomNormal = unpackSnorm3x10(packedPrevViewGeomNormal);
 
     vec3 posDiff = reproject_curr2PrevView.xyz - prevView.xyz;
     float planeDist1 = pow2(dot(posDiff, reproject_currToPrevViewGeomNormal));
@@ -43,10 +45,7 @@ float planeWeight, float normalWeight
     return result;
 }
 
-vec4 computeBilateralWeights(
-vec2 gatherTexelPos,
-float geometryWeight
-) {
+vec4 computeBilateralWeights(vec2 gatherTexelPos) {
     vec2 screenPos = gatherTexelPos * global_mainImageSizeRcp;
     vec2 gatherUV = nzpacking_fullResGatherUV(gatherTexelPos);
     vec4 result = vec4(1.0);
@@ -55,8 +54,8 @@ float geometryWeight
     uvec4 prevViewGeomNormals = textureGather(usam_geometryNormal, screenPos, 0);
     uvec4 prevViewZs = textureGather(usam_packedZN, gatherUV, 1);
 
-    float geometryPlaneWeight = rcp(geometryWeight) * max(abs(reproject_curr2PrevView.z), 0.1);
-    float geometryNormalWeight = mix(geometryWeight, BASE_NORMAL_WEIGHT, reproject_isHand);
+    float geometryPlaneWeight = BASE_GEOM_WEIGHT_RCP * max(abs(reproject_curr2PrevView.z), 0.1);
+    float geometryNormalWeight = mix(BASE_GEOM_WEIGHT, BASE_NORMAL_WEIGHT, reproject_isHand);
 
     result.x *= computeGeometryWeight(
         screenPos + global_mainImageSizeRcp * vec2(-0.5, 0.5), prevViewZs.x, prevViewGeomNormals.x,
@@ -91,7 +90,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
     if (all(equal(gatherTexelPos, gatherTexelPosClamped))) {
         vec2 gatherUV1 = svgf_gatherUV1(gatherTexelPos);
 
-        vec4 bilateralWeights = computeBilateralWeights(gatherTexelPos, BASE_GEOM_WEIGHT);
+        vec4 bilateralWeights = computeBilateralWeights(gatherTexelPos);
         float bilateralWeightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
 
         if (bilateralWeightSum > BILATERAL_WEIGHT_SUM_EPSILON) {
@@ -185,8 +184,6 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     vec3 currWorldGeomNormal = mat3(gbufferModelViewInverse) * currViewGeomNormal;
     vec3 currToPrevViewGeomNormal = mat3(gbufferPrevModelView) * currWorldGeomNormal;
 
-    vec2 textureSizeRcp = global_mainImageSizeRcp;
-
     vec2 centerPixel = curr2PrevTexel - 0.5;
     vec2 centerPixelOrigin = floor(centerPixel);
     vec2 gatherTexelPos = centerPixelOrigin + 1.0;
@@ -196,7 +193,7 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     reproject_currToPrevViewNormal = currToPrevViewNormal;
     reproject_currToPrevViewGeomNormal = currToPrevViewGeomNormal;
 
-    vec4 centerWeights = computeBilateralWeights(gatherTexelPos, BASE_GEOM_WEIGHT);
+    vec4 centerWeights = computeBilateralWeights(gatherTexelPos);
 
     float weightSum = 0.0;
     uint flag = uint(any(lessThan(centerWeights, vec4(CUBIE_SAMPLE_WEIGHT_EPSILON))));

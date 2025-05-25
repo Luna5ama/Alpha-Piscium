@@ -33,4 +33,21 @@ uvec2 unpackUInt2x16(uint v) {
     return result;
 }
 
+uint packSnorm3x10(vec3 v) {
+    uint result = packS10(v.x);
+    result = bitfieldInsert(result, packS10(v.y), 10, 10);
+    result = bitfieldInsert(result, packS10(v.z), 20, 10);
+    return result;
+}
+
+vec3 unpackSnorm3x10(uint v) {
+    vec3 result;
+    result.x = unpackS10(bitfieldExtract(v, 0, 10));
+    result.y = unpackS10(bitfieldExtract(v, 10, 10));
+    result.z = unpackS10(bitfieldExtract(v, 20, 10));
+    return result;
+}
+
+
+
 #endif

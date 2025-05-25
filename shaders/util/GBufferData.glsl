@@ -36,17 +36,17 @@ struct GBufferData {
 };
 
 void gbufferData1_pack(out uvec4 packedData, GBufferData gData) {
-    packedData.r = nzpacking_packNormal(gData.geometryNormal);
+    packedData.r = nzpacking_packNormalOct32(gData.geometryNormal);
     packedData.g = packUnorm4x8(vec4(gData.pbrSpecular));
-    packedData.b = nzpacking_packNormal(gData.normal);
+    packedData.b = nzpacking_packNormalOct32(gData.normal);
     packedData.a = packUnorm4x8(vec4(gData.lmCoord, 0.0, 0.0)) & 0x0000FFFFu;
     packedData.a |= (gData.materialID & 0xFFFFu) << 16;
 }
 
 void gbufferData1_unpack(uvec4 packedData, inout GBufferData gData) {
-    gData.geometryNormal = nzpacking_unpackNormal(packedData.r);
+    gData.geometryNormal = nzpacking_unpackNormalOct32(packedData.r);
     gData.pbrSpecular = unpackUnorm4x8(packedData.g);
-    gData.normal = nzpacking_unpackNormal(packedData.b);
+    gData.normal = nzpacking_unpackNormalOct32(packedData.b);
     gData.lmCoord = unpackUnorm4x8(packedData.a).xy;
     gData.materialID = (packedData.a >> 16) & 0xFFFFu;
 }

@@ -11,21 +11,21 @@ vec2 nzpacking_fullResGatherUV(vec2 gatherTexelPos) {
     return clampedGatherTexelPos * sizeRcp;
 }
 
-uint nzpacking_packNormal(vec3 normal) {
+uint nzpacking_packNormalOct32(vec3 normal) {
     return packSnorm2x16(coords_octEncode11(normal));
 }
 
-vec3 nzpacking_unpackNormal(uint packedNormal) {
+vec3 nzpacking_unpackNormalOct32(uint packedNormal) {
     return coords_octDecode11(unpackSnorm2x16(packedNormal));
 }
 
 void nzpacking_pack(out uvec2 packedData, vec3 normal, float depth) {
-    packedData.x = nzpacking_packNormal(normal);
+    packedData.x = nzpacking_packNormalOct32(normal);
     packedData.y = floatBitsToUint(depth);
 }
 
 void nzpacking_unpack(uvec2 packedData, out vec3 normal, out float depth) {
-    normal = nzpacking_unpackNormal(packedData.x);
+    normal = nzpacking_unpackNormalOct32(packedData.x);
     depth = uintBitsToFloat(packedData.y);
 }
 

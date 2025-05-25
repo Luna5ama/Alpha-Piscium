@@ -2,11 +2,12 @@
 
 #extension GL_KHR_shader_subgroup_basic : enable
 
+#include "/util/BitPacking.glsl"
+#include "/util/NZPacking.glsl"
+#include "/util/Morton.glsl"
 #include "/atmosphere/Common.glsl"
 #include "/atmosphere/SunMoon.glsl"
 #include "/general/Lighting.glsl"
-#include "/util/NZPacking.glsl"
-#include "/util/Morton.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -99,7 +100,7 @@ void main() {
                 doLighting(material, gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
             }
 
-            uint packedGeometryNormal = nzpacking_packNormal(gData.geometryNormal);
+            uint packedGeometryNormal = packSnorm3x10(gData.geometryNormal);
             imageStore(uimg_geometryNormal, texelPos, uvec4(packedGeometryNormal));
 
             uvec4 packedZNOut = uvec4(0u);
