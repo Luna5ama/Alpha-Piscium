@@ -153,7 +153,7 @@ vec4 atrous_atrous(ivec2 texelPos) {
 
         if (centerViewZ != -65536.0) {
             vec4 hLenV = texelFetch(usam_temp6, atrous_texelPos, 0);
-            float boostV = SETTING_DENOISER_VARIANCE_BOOST_ADD + centerFilterData.a * SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY;
+            float boostV = 64.0 + centerFilterData.a * SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY;
             centerFilterData.a += boostV * pow(hLenV.x, SETTING_DENOISER_VARIANCE_BOOST_DECAY);
 
             vec3 centerColor = centerFilterData.rgb;

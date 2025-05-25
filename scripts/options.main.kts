@@ -784,18 +784,18 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_MAX_FAST_ACCUM", 8, 1..32 step 1) {
+                slider("SETTING_DENOISER_MAX_FAST_ACCUM", 16, 1..32 step 1) {
                     lang {
                         name = "Max Fast Accumulation"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD", 1.0, 1.0..4.0 step 0.1) {
+                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD", 2.0, 1.0..4.0 step 0.1) {
                     lang {
                         name = "Fast History Clamping Threshold"
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_VARIANCE_BOOST_ADD", 0.3, 0.0..2.0 step 0.01) {
+                slider("SETTING_DENOISER_VARIANCE_BOOST_ADD", 4.0, 0.0..8.0 step 0.1) {
                     lang {
                         name = "Variance Boost Add"
                         comment = "Boost variance for the first few frames."
