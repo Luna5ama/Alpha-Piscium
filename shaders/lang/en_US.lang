@@ -72,7 +72,6 @@ option.SETTING_RTWSM_B_SN=Backward Surface Normal Function
 option.SETTING_RTWSM_B_SN.comment=Adds extra weight to surface directly facing towards camera.
 option.SETTING_RTWSM_B_SE=Backward Shadow Edge Function
 option.SETTING_RTWSM_B_SE.comment=Adds extra weight for shadow edges.
-option.SETTING_PCSS_SAMPLE_COUNT=Sample Count
 option.SETTING_PCSS_BLOCKER_SEARCH_COUNT=Blocker Search Count
 option.SETTING_PCSS_BLOCKER_SEARCH_LOD=Blocker Search LOD
 option.SETTING_PCSS_BPF=Base Penumbra Factor

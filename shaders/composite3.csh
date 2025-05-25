@@ -114,9 +114,7 @@ vec3 calcShadow(Material material, bool isHand) {
     depthBiasFactor += mix(0.005 + lightNormalDot * 0.005, -0.001, dbfDistanceCoeff);
 
     float sampleCountMul = sqrt(ssRange);
-    uint sampleCount = uint((sampleCountMul + float(isHand)) * SETTING_PCSS_SAMPLE_COUNT);
-    sampleCount = max(sampleCount, 1);
-    sampleCount = subgroupMax(sampleCount);
+    uint sampleCount = 1u;
 
     for (int i = 0; i < sampleCount; i++) {
         ivec2 r2Offset = ivec2(rand_r2Seq2(idxSS) * vec2(128, 128));

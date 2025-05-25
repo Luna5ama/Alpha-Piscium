@@ -609,11 +609,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Soft Shadows"
                         comment = "Soft Shadows settings"
                     }
-                    slider("SETTING_PCSS_SAMPLE_COUNT", 16, listOf(1, 2, 4, 8, 16, 32, 64)) {
-                        lang {
-                            name = "Sample Count"
-                        }
-                    }
                     slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 2, listOf(1, 2, 4, 8, 16)) {
                         lang {
                             name = "Blocker Search Count"
@@ -625,7 +620,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                     empty()
-                    slider("SETTING_PCSS_BPF", 2.0, 0.0..10.0 step 0.5) {
+                    slider("SETTING_PCSS_BPF", 0.0, 0.0..10.0 step 0.5) {
                         lang {
                             name = "Base Penumbra Factor"
                         }
@@ -649,23 +644,23 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Strength"
                     }
                 }
-                slider("SETTING_SSS_HIGHLIGHT", 0.5, 0.0..1.0 step 0.01) {
+                slider("SETTING_SSS_HIGHLIGHT", 0.6, 0.0..1.0 step 0.01) {
                     lang {
                         name = "Highlight"
                     }
                 }
-                slider("SETTING_SSS_SCTR_FACTOR", 5.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_SSS_SCTR_FACTOR", 6.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Scatter Factor"
                     }
                 }
                 empty()
-                slider("SETTING_SSS_DIFFUSE_RANGE", 0.5, 0.0..4.0 step 0.1) {
+                slider("SETTING_SSS_DIFFUSE_RANGE", 0.2, 0.0..4.0 step 0.1) {
                     lang {
                         name = "Diffuse Range"
                     }
                 }
-                slider("SETTING_SSS_DEPTH_RANGE", 0.5, 0.0..4.0 step 0.1) {
+                slider("SETTING_SSS_DEPTH_RANGE", 0.3, 0.0..4.0 step 0.1) {
                     lang {
                         name = "Depth Range"
                     }
@@ -794,7 +789,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Fast Accumulation"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD", 2.0, 1.0..4.0 step 0.1) {
+                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD", 1.0, 1.0..4.0 step 0.1) {
                     lang {
                         name = "Fast History Clamping Threshold"
                     }

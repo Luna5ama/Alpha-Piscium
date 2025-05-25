@@ -17,12 +17,13 @@ uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
+layout(rgba16f) uniform restrict image2D uimg_temp4;
 layout(rg32ui) uniform restrict uimage2D uimg_packedZN;
 layout(r32ui) uniform writeonly uimage2D uimg_geometryNormal;
 
 ivec2 texelPos;
 
-void doLighting(Material material, vec3 N, inout vec3 mainOut, inout vec3 ssgiOut) {
+void doLighting(Material material, vec3 N, inout vec3 directDiffuseOut, inout vec3 mainOut, inout vec3 ssgiOut) {
     vec3 emissiveV = material.emissive;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
@@ -53,9 +54,11 @@ void doLighting(Material material, vec3 N, inout vec3 mainOut, inout vec3 ssgiOu
 
     mainOut += 0.00001 * material.albedo;
     mainOut += emissiveV;
-    mainOut += gData.isHand ? combinedLighting.diffuseLambertian : combinedLighting.diffuse;
     mainOut += combinedLighting.specular;
-    mainOut += combinedLighting.sss;
+
+    directDiffuseOut += combinedLighting.diffuse;
+    directDiffuseOut += combinedLighting.sss;
+    directDiffuseOut /= material.albedo;
 
     ssgiOut += emissiveV * PI;
     ssgiOut += combinedLighting.diffuseLambertian;
@@ -76,6 +79,7 @@ void main() {
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
         vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
+        vec3 directDiffuseOut = vec3(0.0);
 
         if (viewZ != -65536.0) {
             gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
@@ -92,7 +96,7 @@ void main() {
             if (gData.materialID == 65534u) {
                 mainOut = vec4(material.albedo, 1.0);
             } else {
-                doLighting(material, gData.normal, mainOut.rgb, ssgiOut.rgb);
+                doLighting(material, gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
             }
 
             uint packedGeometryNormal = nzpacking_packNormal(gData.geometryNormal);
@@ -122,6 +126,7 @@ void main() {
             }
         }
 
+        imageStore(uimg_temp4, texelPos, vec4(directDiffuseOut, 0.0));
         imageStore(uimg_main, texelPos, mainOut);
     }
 }

@@ -13,6 +13,7 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
+uniform sampler2D usam_temp4;
 uniform usampler2D usam_tempRGBA32UI;
 uniform usampler2D usam_packedZN;
 uniform usampler2D usam_gbufferData32UI;
@@ -45,6 +46,7 @@ void loadSharedData(uint index) {
         srcXY = clamp(srcXY, ivec2(0), ivec2(global_mainImageSize - 1));
 
         vec3 inputColor = colors_LogLuvToSRGB(unpackUnorm4x8(texelFetch(usam_tempRGBA32UI, srcXY, 0).y));
+        inputColor += texelFetch(usam_temp4, srcXY, 0).xyz;
         inputColor = colors_SRGBToYCoCg(inputColor);
         vec3 moment1 = inputColor;
         vec3 moment2 = inputColor * inputColor;
@@ -152,7 +154,7 @@ void main() {
     barrier();
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
-        vec4 currColor = vec4(0.0);
+        vec3 currColor = vec3(0.0);
 
         float viewZ = uintBitsToFloat(texelFetch(usam_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), 0).g);
 
@@ -188,9 +190,13 @@ void main() {
 
             if (weightSum > 0.01) {
                 colorSum /= weightSum;
-                currColor.rgb = colorSum;
+                currColor += colorSum;
             }
         }
+
+        vec3 directColor = texelFetch(usam_temp4, texelPos, 0).xyz;
+        vec3 currTotalColor = currColor;
+        currTotalColor += directColor;
 
         vec3 mean;
         vec3 stddev;
@@ -222,8 +228,9 @@ void main() {
 
         vec3 aabbMin = mean - stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
         vec3 aabbMax = mean + stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
-        aabbMin = min(aabbMin, prevFastColor);
-        aabbMax = max(aabbMax, prevFastColor);
+        vec3 clipFastColor = colors_SRGBToYCoCg(prevFastColor + directColor);
+        aabbMin = min(aabbMin, clipFastColor);
+        aabbMax = max(aabbMax, clipFastColor);
         vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
         vec3 prevColorYCoCgClamped = clamp(prevColorYCoCg, aabbMin, aabbMax);
         float clippingWeight = linearStep(
@@ -244,11 +251,14 @@ void main() {
         vec3 newFastColor;
         vec2 newMoments;
         float newHLen;
-        gi_update(
-            currColor.rgb,
+        svgf_updateHistory(
+            currTotalColor, currColor,
             prevColor, prevFastColor, prevMoments, prevHLen,
             newColor, newFastColor, newMoments, newHLen
         );
+
+        vec3 meanSRGB = colors_YCoCgToSRGB(mean);
+        imageStore(uimg_temp3, texelPos, vec4(prevColorClamped, 1.0));
 
         {
             float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
