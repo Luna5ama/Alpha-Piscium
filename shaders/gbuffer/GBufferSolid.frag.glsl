@@ -39,9 +39,6 @@ float viewZ;
 GBufferData gData;
 
 void processAlbedo() {
-    #ifdef SETTING_DEBUG_WHITE_WORLD
-    albedo = vec4(1.0);
-    #else
     albedo = frag_colorMul;
 
     #ifdef GBUFFER_PASS_TEXTURED
@@ -61,6 +58,9 @@ void processAlbedo() {
     #ifdef GBUFFER_PASS_ARMOR_GLINT
     albedo.rgb *= albedo.rgb;
     #endif
+
+    #ifdef SETTING_DEBUG_WHITE_WORLD
+    albedo.rgb = vec3(1.0);
     #endif
 }
 
