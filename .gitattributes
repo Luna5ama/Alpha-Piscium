@@ -1,0 +1,7 @@
+*.glsl text linguist-language=glsl
+*.vsh text linguist-language=glsl
+*.gsh text linguist-language=glsl
+*.tcs text linguist-language=glsl
+*.tes text linguist-language=glsl
+*.fsh text linguist-language=glsl
+*.csh text linguist-language=glsl
