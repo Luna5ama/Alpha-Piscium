@@ -800,18 +800,30 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_VARIANCE_BOOST", 64, 0..128) {
+                slider("SETTING_DENOISER_VARIANCE_BOOST_ADD", 0.3, 0.0..2.0 step 0.01) {
                     lang {
-                        name = "Variance Boost"
+                        name = "Variance Boost Add"
                         comment = "Boost variance for the first few frames."
                     }
                 }
-                slider("SETTING_DENOISER_VARIANCE_BOOST_FRAMES", 4, 1..16 step 1) {
+                slider("SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY", 2.5, 1.0..8.0 step 0.1) {
+                    lang {
+                        name = "Variance Boost Multiply"
+                        comment = "Boost variance for the first few frames."
+                    }
+                }
+                slider("SETTING_DENOISER_VARIANCE_BOOST_FRAMES", 16, (0..6).map { 1 shl it }) {
                     lang {
                         name = "Variance Boost Frames"
                         comment = "Number of frames to boost variance."
                     }
                 }
+                slider("SETTING_DENOISER_VARIANCE_BOOST_DECAY", 8, 1..16 step 1) {
+                    lang {
+                        name = "Variance Boost Decay"
+                    }
+                }
+                empty()
                 slider("SETTING_DENOISER_MIN_VARIANCE_FACTOR", 15.0, 0.0..32.0 step 0.1) {
                     lang {
                         name = "Minimum Variance Factor"

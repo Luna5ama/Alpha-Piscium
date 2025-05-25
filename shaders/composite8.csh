@@ -19,6 +19,7 @@ uniform usampler2D usam_gbufferData32UI;
 uniform usampler2D usam_tempR32UI;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
+layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
 
@@ -251,7 +252,6 @@ void main() {
 
         {
             float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
-            variance += SETTING_DENOISER_VARIANCE_BOOST * pow2(linearStep(1.0 + SETTING_DENOISER_VARIANCE_BOOST_FRAMES, 1.0, newHLen));
             vec4 filterInput = vec4(newColor, variance);
             filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
             imageStore(uimg_temp2, texelPos, filterInput);
@@ -259,7 +259,7 @@ void main() {
 
         {
             vec4 hLenV = vec4(0.0);
-            hLenV.y = linearStep(1.0, SETTING_DENOISER_MAX_ACCUM, newHLen);
+            hLenV.x = linearStep(1.0 + SETTING_DENOISER_VARIANCE_BOOST_FRAMES, 1.0, newHLen);
             imageStore(uimg_temp6, texelPos, hLenV);
         }
 

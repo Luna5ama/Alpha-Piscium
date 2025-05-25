@@ -152,11 +152,14 @@ vec4 atrous_atrous(ivec2 texelPos) {
         loadGlobalData(atrous_texelPos, centerFilterData, centerNormal, centerViewZ);
 
         if (centerViewZ != -65536.0) {
+            vec4 hLenV = texelFetch(usam_temp6, atrous_texelPos, 0);
+            float boostV = SETTING_DENOISER_VARIANCE_BOOST_ADD + centerFilterData.a * SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY;
+            centerFilterData.a += boostV * pow(hLenV.x, SETTING_DENOISER_VARIANCE_BOOST_DECAY);
+
             vec3 centerColor = centerFilterData.rgb;
             float centerVariance = centerFilterData.a;
             float centerLuminance = colors_srgbLuma(centerColor);
 
-            vec2 hLenV = texelFetch(usam_temp6, atrous_texelPos, 0).xy;
             float sigmaL = 0.001 * SETTING_DENOISER_FILTER_COLOR_WEIGHT;
 
             atrous_normalWeight = SETTING_DENOISER_FILTER_NORMAL_WEIGHT;

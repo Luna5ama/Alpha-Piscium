@@ -23,8 +23,6 @@ uniform usampler2D usam_svgfHistory;
 layout(rgba32ui) uniform writeonly uimage2D uimg_tempRGBA32UI;
 layout(rg32ui) uniform writeonly uimage2D uimg_packedZN;
 
-layout(rgba16f) uniform writeonly image2D uimg_temp4;
-
 void main() {
     uvec2 workGroupOrigin = gl_WorkGroupID.xy << 3;
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
