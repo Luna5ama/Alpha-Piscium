@@ -1,7 +1,9 @@
 #version 460 compatibility
 
+#extension GL_KHR_shader_subgroup_basic : enable
+#extension GL_KHR_shader_subgroup_vote : enable
+
 #include "/denoiser/Update.glsl"
-#include "/util/FullScreenComp.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Interpo.glsl"
@@ -11,16 +13,82 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform sampler2D usam_temp1;
-uniform sampler2D usam_temp3;
-uniform sampler2D usam_temp4;
 uniform usampler2D usam_tempRGBA32UI;
 uniform usampler2D usam_packedZN;
 uniform usampler2D usam_gbufferData32UI;
+uniform usampler2D usam_tempR32UI;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
+
+shared uvec4 shared_moments[12][12];
+shared uvec4 shared_momentsV[8][12];
+
+uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 3u;
+ivec2 texelPos = ivec2(groupOriginTexelPos) + ivec2(gl_LocalInvocationID.xy);
+
+uvec4 packMoments(vec3 moment1, vec3 moment2) {
+    return uvec4(
+        packHalf2x16(moment1.xy),
+        packHalf2x16(vec2(moment1.z, moment2.x)),
+        packHalf2x16(vec2(moment2.y, moment2.z)),
+        0u
+    );
+}
+
+void loadSharedData(uint index) {
+    if (index < 400) {
+        uvec2 sharedXY = uvec2(index % 12, index / 12);
+        ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
+        srcXY = clamp(srcXY, ivec2(0), ivec2(global_mainImageSize - 1));
+
+        vec3 inputColor = colors_LogLuvToSRGB(unpackUnorm4x8(texelFetch(usam_tempRGBA32UI, srcXY, 0).y));
+        inputColor = colors_SRGBToYCoCg(inputColor);
+        vec3 moment1 = inputColor;
+        vec3 moment2 = inputColor * inputColor;
+
+        shared_moments[sharedXY.y][sharedXY.x] = packMoments(moment1, moment2);
+    }
+}
+
+void updateMoments0(uvec2 originXY, ivec2 offset, inout vec3 moment1, inout vec3 moment2) {
+    ivec2 sampleXY = ivec2(originXY) + offset;
+    uvec4 packedData = shared_moments[sampleXY.y][sampleXY.x];
+    vec2 temp1 = unpackHalf2x16(packedData.x);
+    vec2 temp2 = unpackHalf2x16(packedData.y);
+    vec2 temp3 = unpackHalf2x16(packedData.z);
+    moment1 += vec3(temp1, temp2.x);
+    moment2 += vec3(temp2.y, temp3.xy);
+}
+
+void sampleV(uint index) {
+    if (index < 96) {
+        uvec2 writeSharedXY = uvec2(index % 12, index / 12);
+        uvec2 readSharedXY = writeSharedXY;
+        readSharedXY.y += 2;
+        vec3 moment1 = vec3(0.0);
+        vec3 moment2 = vec3(0.0);
+        updateMoments0(readSharedXY, ivec2(0, -2), moment1, moment2);
+        updateMoments0(readSharedXY, ivec2(0, -1), moment1, moment2);
+        updateMoments0(readSharedXY, ivec2(0, 0), moment1, moment2);
+        updateMoments0(readSharedXY, ivec2(0, 1), moment1, moment2);
+        updateMoments0(readSharedXY, ivec2(0, 2), moment1, moment2);
+        moment1 /= 5.0;
+        moment2 /= 5.0;
+        shared_momentsV[writeSharedXY.y][writeSharedXY.x] = packMoments(moment1, moment2);
+    }
+}
+
+void updateMoments1(uvec2 originXY, ivec2 offset, inout vec3 moment1, inout vec3 moment2) {
+    ivec2 sampleXY = ivec2(originXY) + offset;
+    uvec4 packedData = shared_momentsV[sampleXY.y][sampleXY.x];
+    vec2 temp1 = unpackHalf2x16(packedData.x);
+    vec2 temp2 = unpackHalf2x16(packedData.y);
+    vec2 temp3 = unpackHalf2x16(packedData.z);
+    moment1 += vec3(temp1, temp2.x);
+    moment2 += vec3(temp2.y, temp3.xy);
+}
 
 float computeGeometryWeight(vec3 centerPos, vec3 centerNormal, float sampleViewZ, uint sampleNormal, vec2 sampleScreenPos, float a) {
     vec3 sampleViewPos = coords_toViewCoord(sampleScreenPos, sampleViewZ, gbufferProjectionInverse);
@@ -58,15 +126,29 @@ inout vec3 colorSum, inout float weightSum
     vec4 interpoWeights = baseWeights * bilateralWeights;
     weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
 
-    vec4 colorRs = textureGather(usam_temp1, gatherUV, 0);
+    uvec4 colorData = textureGather(usam_tempR32UI, gatherUV, 0);
+    vec3 color1 = colors_LogLuvToSRGB(unpackUnorm4x8(colorData.x));
+    vec3 color2 = colors_LogLuvToSRGB(unpackUnorm4x8(colorData.y));
+    vec3 color3 = colors_LogLuvToSRGB(unpackUnorm4x8(colorData.z));
+    vec3 color4 = colors_LogLuvToSRGB(unpackUnorm4x8(colorData.w));
+
+    vec4 colorRs = vec4(color1.r, color2.r, color3.r, color4.r);
     colorSum.r += dot(interpoWeights, colorRs);
-    vec4 colorGs = textureGather(usam_temp1, gatherUV, 1);
+    vec4 colorGs = vec4(color1.g, color2.g, color3.g, color4.g);
     colorSum.g += dot(interpoWeights, colorGs);
-    vec4 colorBs = textureGather(usam_temp1, gatherUV, 2);
+    vec4 colorBs = vec4(color1.b, color2.b, color3.b, color4.b);
     colorSum.b += dot(interpoWeights, colorBs);
 }
 
 void main() {
+    loadSharedData(gl_LocalInvocationIndex);
+    loadSharedData(gl_LocalInvocationIndex + 64);
+    barrier();
+
+    sampleV(gl_LocalInvocationIndex);
+    sampleV(gl_LocalInvocationIndex + 64);
+    barrier();
+
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 currColor = vec4(0.0);
 
@@ -115,13 +197,32 @@ void main() {
         float prevHLen;
         svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
 
-        vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
-        vec3 mean = texelFetch(usam_temp3, texelPos, 0).rgb;
-        vec3 stddev = texelFetch(usam_temp4, texelPos, 0).rgb;
+        vec3 mean;
+        vec3 stddev;
+        {
+            uvec2 readSharedXY = gl_LocalInvocationID.xy;
+            readSharedXY.x += 2;
+            vec3 moment1 = vec3(0.0);
+            vec3 moment2 = vec3(0.0);
+            updateMoments1(readSharedXY, ivec2(-2, 0), moment1, moment2);
+            updateMoments1(readSharedXY, ivec2(-1, 0), moment1, moment2);
+            updateMoments1(readSharedXY, ivec2(0, 0), moment1, moment2);
+            updateMoments1(readSharedXY, ivec2(1, 0), moment1, moment2);
+            updateMoments1(readSharedXY, ivec2(2, 0), moment1, moment2);
+            moment1 /= 5.0;
+            moment2 /= 5.0;
+            const float EPS = 0.00001;
+            vec3 variance = max(moment2 - moment1 * moment1, EPS);
+
+            mean = moment1;
+            stddev = sqrt(variance);
+        }
+
         vec3 aabbMin = mean - stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
         vec3 aabbMax = mean + stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
         aabbMin = min(aabbMin, prevFastColor);
         aabbMax = max(aabbMax, prevFastColor);
+        vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
         vec3 prevColorYCoCgClamped = clamp(prevColorYCoCg, aabbMin, aabbMax);
         float clippingWeight = linearStep(
             SETTING_DENOISER_MAX_FAST_ACCUM,
@@ -147,18 +248,24 @@ void main() {
             newColor, newFastColor, newMoments, newHLen
         );
 
-        float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
-        variance += SETTING_DENOISER_VARIANCE_BOOST * pow2(linearStep(1.0 + SETTING_DENOISER_VARIANCE_BOOST_FRAMES, 1.0, newHLen));
-        vec4 filterInput = vec4(newColor, variance);
-        filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
-        imageStore(uimg_temp2, texelPos, filterInput);
+        {
+            float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
+            variance += SETTING_DENOISER_VARIANCE_BOOST * pow2(linearStep(1.0 + SETTING_DENOISER_VARIANCE_BOOST_FRAMES, 1.0, newHLen));
+            vec4 filterInput = vec4(newColor, variance);
+            filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
+            imageStore(uimg_temp2, texelPos, filterInput);
+        }
 
-        vec4 hLenV = vec4(0.0);
-        hLenV.y = linearStep(1.0, SETTING_DENOISER_MAX_ACCUM, newHLen);
-        imageStore(uimg_temp6, texelPos, hLenV);
+        {
+            vec4 hLenV = vec4(0.0);
+            hLenV.y = linearStep(1.0, SETTING_DENOISER_MAX_ACCUM, newHLen);
+            imageStore(uimg_temp6, texelPos, hLenV);
+        }
 
-        uvec4 packedOutData = uvec4(0u);
-        svgf_pack(packedOutData, newColor, newFastColor, newMoments, newHLen);
-        imageStore(uimg_svgfHistory, svgf_texelPos1(texelPos), packedOutData);
+        {
+            uvec4 packedOutData = uvec4(0u);
+            svgf_pack(packedOutData, newColor, newFastColor, newMoments, newHLen);
+            imageStore(uimg_svgfHistory, svgf_texelPos1(texelPos), packedOutData);
+        }
     }
 }

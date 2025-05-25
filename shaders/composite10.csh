@@ -13,7 +13,7 @@ const vec2 workGroupsRender = vec2(0.5, 0.5);
 #define SSVBIL_SAMPLE_SLICES SETTING_VBGI_SLICES
 #include "/post/gtvbgi/GTVBGI.glsl"
 
-layout(rgba16f) uniform writeonly image2D uimg_temp1;
+layout(r32ui) uniform writeonly uimage2D uimg_tempR32UI;
 
 void main() {
     uvec2 workGroupOrigin = gl_WorkGroupID.xy << 4;
@@ -26,6 +26,6 @@ void main() {
 
     if (all(lessThan(texelPos1x1, global_mainImageSizeI))) {
         vec3 ssvbilData = gtvbgi(texelPos1x1);
-        imageStore(uimg_temp1, texelPos2x2, vec4(ssvbilData, 0.0));
+        imageStore(uimg_tempR32UI, texelPos2x2, uvec4(packUnorm4x8(colors_SRGBToLogLuv(ssvbilData))));
     }
 }
