@@ -73,8 +73,8 @@ void initSharedData(uint index) {
     if (index < SHARED_DATA_SIZE) {
         int pos1d = int(index) - SHARED_DATA_OFFSET;
         ivec2 loadTexelPos = ivec2(gl_WorkGroupID.xy * gl_WorkGroupSize.xy);
-        pos1d += int((rand_IGN(loadTexelPos + ATROUS_AXIS_VEC * pos1d, frameCounter) - 0.5) * ATROUS_RADIUS);
         loadTexelPos += ATROUS_AXIS_VEC * pos1d;
+        loadTexelPos += int(rand_stbnUnitVec211(loadTexelPos, frameCounter) * ATROUS_RADIUS);
         loadTexelPos = clamp(loadTexelPos, ivec2(0), global_mainImageSizeI - 1);
         vec4 color;
         vec3 normal;
