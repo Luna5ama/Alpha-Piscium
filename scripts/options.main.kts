@@ -655,7 +655,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Strength"
                     }
                 }
-                slider("SETTING_SSS_HIGHLIGHT", 0.8, 0.0..1.0 step 0.01) {
+                slider("SETTING_SSS_HIGHLIGHT", 0.5, 0.0..1.0 step 0.01) {
                     lang {
                         name = "Highlight"
                     }
@@ -889,19 +889,24 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             empty()
-            slider("SETTING_ATM_MIE_MUL", 1.0, 0.0..5.0 step 0.01) {
+            slider("SETTING_ATM_MIE_SCT_MUL", 0.5, 0.0..5.0 step 0.01) {
                 lang {
                     name = "Mie Scattering Multiplier"
                 }
             }
-            slider("SETTING_ATM_MIE_ABS", 1.1, 0.0..5.0 step 0.01) {
+            slider("SETTING_ATM_MIE_ABS_MUL", 1.1, 0.0..5.0 step 0.01) {
                 lang {
-                    name = "Mie Absorption"
+                    name = "Mie Absorption Multiplier"
                 }
             }
-            slider("SETTING_ATM_RAY_MUL", 1.0, 0.0..5.0 step 0.01) {
+            slider("SETTING_ATM_RAY_SCT_MUL", 1.1, 0.0..5.0 step 0.01) {
                 lang {
                     name = "Rayleigh Scattering Multiplier"
+                }
+            }
+            slider("SETTING_ATM_OZO_ABS_MUL", 1.14, 0.0..5.0 step 0.01) {
+                lang {
+                    name = "Ozone Absorption Multiplier"
                 }
             }
             empty()
@@ -1034,7 +1039,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Output Gamma"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 11.4, 1.0..32.0 step 0.1) {
+                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 12.0, 1.0..32.0 step 0.1) {
                     lang {
                         name = "Dynamic Range"
                     }
@@ -1071,12 +1076,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Slope Red"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_SLOPE_G", 1.03, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_G", 1.05, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Slope Green"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_SLOPE_B", 1.03, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_B", 1.05, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Slope Blue"
                     }

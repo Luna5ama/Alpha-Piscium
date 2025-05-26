@@ -126,9 +126,10 @@ option.SETTING_ATM_ALT_SCALE=Atmosphere Altitude Scale
 option.SETTING_ATM_ALT_SCALE.comment=Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on.
 option.SETTING_ATM_D_SCALE=Atmosphere Distance Scale
 option.SETTING_ATM_D_SCALE.comment=Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on.
-option.SETTING_ATM_MIE_MUL=Mie Scattering Multiplier
-option.SETTING_ATM_MIE_ABS=Mie Absorption
-option.SETTING_ATM_RAY_MUL=Rayleigh Scattering Multiplier
+option.SETTING_ATM_MIE_SCT_MUL=Mie Scattering Multiplier
+option.SETTING_ATM_MIE_ABS_MUL=Mie Absorption Multiplier
+option.SETTING_ATM_RAY_SCT_MUL=Rayleigh Scattering Multiplier
+option.SETTING_ATM_OZO_ABS_MUL=Ozone Absorption Multiplier
 option.SETTING_EPIPOLAR_SLICES=Epipolar Slices
 option.SETTING_SLICE_SAMPLES=Slice Samples
 option.SETTING_DEPTH_BREAK_CORRECTION=Depth Break Correction

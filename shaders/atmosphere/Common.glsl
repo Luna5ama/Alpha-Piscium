@@ -59,7 +59,7 @@ AtmosphereParameters getAtmosphereParameters() {
     const float OZONE_HALF_WIDTH = 15.0;
 
     // https://www.desmos.com/calculator/8zep6vmnxa
-    const vec3 RAYLEIGH_SCATTERING = vec3(0.00559495220371, 0.0117551946648, 0.02767445204) * SETTING_ATM_RAY_MUL;
+    const vec3 RAYLEIGH_SCATTERING = vec3(0.00559495220371, 0.0117551946648, 0.02767445204) * SETTING_ATM_RAY_SCT_MUL;
 
     // Constants from [HIL20]
 //    const vec3 MIE_SCATTERING = vec3(3.996e-6) * 1000.0;
@@ -69,13 +69,15 @@ AtmosphereParameters getAtmosphereParameters() {
 //        const vec3 MIE_SCATTERING = vec3(2.10e-5) * 1000.0;
 //        const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 1.1;
 
-    const vec3 MIE_SCATTERING = vec3(2.10e-5) * 1000.0 * SETTING_ATM_MIE_MUL;
-    const vec3 MIE_ABOSORPTION = MIE_SCATTERING * SETTING_ATM_MIE_ABS;
+    const vec3 MIE_SCATTERING_BASE = vec3(2.10e-5) * 1000.0;
+    const vec3 MIE_SCATTERING = MIE_SCATTERING_BASE * SETTING_ATM_MIE_SCT_MUL;
+    const vec3 MIE_ABOSORPTION = MIE_SCATTERING_BASE * SETTING_ATM_MIE_ABS_MUL;
 
     const float MIE_PHASE_G = 0.76;
 
     // https://www.desmos.com/calculator/rggs64tsru
-    const vec3 OZONE_ABOSORPTION = vec3(5.3136330769e-10, 3.0767786886e-10, 5.0003555457e-12) * 100000.0;
+    const vec3 OZONE_ABOSORPTION_BASE = vec3(5.3136330769e-10, 3.0767786886e-10, 5.0003555457e-12) * 100000.0;
+    const vec3 OZONE_ABOSORPTION = OZONE_ABOSORPTION_BASE * SETTING_ATM_OZO_ABS_MUL;
 
     AtmosphereParameters atmosphere;
     atmosphere.bottom = ATMOSPHERE_BOTTOM;
