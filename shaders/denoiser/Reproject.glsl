@@ -104,11 +104,11 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
                 vec3 prevColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.z));
                 vec3 prevColor4 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.w));
 
-                vec4 prevColorR = vec4(prevColor1.r, prevColor2.r, prevColor3.r, prevColor4.r);
+                vec4 prevColorR = max(vec4(prevColor1.r, prevColor2.r, prevColor3.r, prevColor4.r), 0.0);
                 prevColor.r += dot(interpoWeights, prevColorR);
-                vec4 prevColorG = vec4(prevColor1.g, prevColor2.g, prevColor3.g, prevColor4.g);
+                vec4 prevColorG = max(vec4(prevColor1.g, prevColor2.g, prevColor3.g, prevColor4.g), 0.0);
                 prevColor.g += dot(interpoWeights, prevColorG);
-                vec4 prevColorB = vec4(prevColor1.b, prevColor2.b, prevColor3.b, prevColor4.b);
+                vec4 prevColorB = max(vec4(prevColor1.b, prevColor2.b, prevColor3.b, prevColor4.b), 0.0);
                 prevColor.b += dot(interpoWeights, prevColorB);
             }
 
@@ -119,11 +119,11 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
                 vec3 prevFastColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.z));
                 vec3 prevFastColor4 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.w));
 
-                vec4 prevFastColorR = vec4(prevFastColor1.r, prevFastColor2.r, prevFastColor3.r, prevFastColor4.r);
+                vec4 prevFastColorR = max(vec4(prevFastColor1.r, prevFastColor2.r, prevFastColor3.r, prevFastColor4.r), 0.0);
                 prevFastColor.r += dot(interpoWeights, prevFastColorR);
-                vec4 prevFastColorG = vec4(prevFastColor1.g, prevFastColor2.g, prevFastColor3.g, prevFastColor4.g);
+                vec4 prevFastColorG = max(vec4(prevFastColor1.g, prevFastColor2.g, prevFastColor3.g, prevFastColor4.g), 0.0);
                 prevFastColor.g += dot(interpoWeights, prevFastColorG);
-                vec4 prevFastColorB = vec4(prevFastColor1.b, prevFastColor2.b, prevFastColor3.b, prevFastColor4.b);
+                vec4 prevFastColorB = max(vec4(prevFastColor1.b, prevFastColor2.b, prevFastColor3.b, prevFastColor4.b), 0.0);
                 prevFastColor.b += dot(interpoWeights, prevFastColorB);
             }
 
