@@ -8,10 +8,11 @@
 // All values used to derive this implementation are sourced from Troy’s initial AgX implementation/OCIO config file available here:
 //   https://github.com/sobotka/AgX
 
-#include "/_Base.glsl"
+#include "/util/Rand.glsl"
 
 shared uint shared_lumHistogram[256];
-shared uint shared_topBinSum;
+shared float shared_topBinSum[16];
+shared float shared_weightSum[16];
 
 // Mean error^2: 3.6705141e-06
 vec3 agxDefaultContrastApprox(vec3 x) {
@@ -34,15 +35,15 @@ vec3 agx(vec3 val) {
         0.0792237451477643, 0.0791661274605434, 0.879142973793104
     );
 
-    const float min_ev = -12.47393f;
-    const float max_ev = 4.026069f;
-
     // Input transform
     val = agx_mat * val;
 
     // Log2 space encoding
-    val = clamp(log2(val), min_ev, max_ev);
-    val = (val - min_ev) / (max_ev - min_ev);
+    const float EV_RANGE = SETTING_TONE_MAPPING_DYNAMIC_RANGE;
+    const float EV_RANGE_HALF = EV_RANGE * 0.5;
+    const float MID_GREY = 0.18;
+    val = clamp(log2(val / MID_GREY), -EV_RANGE_HALF, EV_RANGE_HALF);
+    val = (val + EV_RANGE_HALF) / EV_RANGE;
 
     // Apply sigmoid function approximation
     val = agxDefaultContrastApprox(val);
@@ -113,7 +114,10 @@ uint histoIndex(float x, float range, uint outputRangeExclusive) {
 
 void toneMapping_init() {
     shared_lumHistogram[gl_LocalInvocationIndex] = 0u;
-    shared_topBinSum = 0u;
+    if (gl_LocalInvocationIndex < 16) {
+        shared_topBinSum[gl_LocalInvocationIndex] = 0.0;
+        shared_weightSum[gl_LocalInvocationIndex] = 0.0;
+    }
     barrier();
 }
 
@@ -128,18 +132,26 @@ vec3 applyAgx(vec3 color) {
 
 void toneMapping_apply(inout vec4 outputColor) {
     {
+        float weightSum = subgroupAdd(outputColor.a);
+        if (subgroupElect()) {
+            shared_weightSum[gl_SubgroupID] = weightSum;
+        }
+    }
+
+    {
         float lumimance = colors_srgbLuma(applyAgx(outputColor.rgb * global_exposure.x));
         uint binIndexAvg = histoIndex(lumimance, 1.0, 256);
-        atomicAdd(shared_lumHistogram[binIndexAvg], 1u);
+        float noise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
+        atomicAdd(shared_lumHistogram[binIndexAvg], uint(outputColor.a + noise));
     }
 
     {
         float lumimance = colors_srgbLuma(applyAgx(outputColor.rgb * global_exposure.y));
         uint binIndexTop = histoIndex(lumimance, SETTING_EXPOSURE_TOP_BIN_LUM, 4);
-        uvec4 topBinBallot = subgroupBallot(binIndexTop == 3u);
-        uint topBinSum = subgroupBallotBitCount(topBinBallot);
+        float topBinV = float(binIndexTop == 3u) * outputColor.a;
+        float topBinSum = subgroupAdd(topBinV);
         if (subgroupElect()) {
-            atomicAdd(shared_topBinSum, topBinSum);
+            shared_topBinSum[gl_SubgroupID] = topBinSum;
         }
     }
 
@@ -148,9 +160,17 @@ void toneMapping_apply(inout vec4 outputColor) {
 
     barrier();
 
-    atomicAdd(global_lumHistogram[gl_LocalInvocationIndex], shared_lumHistogram[gl_LocalInvocationIndex]);
-
-    if (gl_LocalInvocationIndex == 0) {
-        atomicAdd(global_lumHistogram[256], shared_topBinSum);
+    if (gl_SubgroupID == 0 && gl_SubgroupInvocationID < gl_NumSubgroups) {
+        float topBinV = shared_topBinSum[gl_SubgroupInvocationID];
+        float topBinSum = subgroupAdd(topBinV);
+        float weightV = shared_weightSum[gl_SubgroupInvocationID];
+        float weightSum = subgroupAdd(weightV);
+        if (subgroupElect()) {
+            float noise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
+            atomicAdd(global_lumHistogram[256], uint(topBinSum + noise));
+            atomicAdd(global_lumHistogram[257], uint(weightSum + noise));
+        }
     }
+
+    atomicAdd(global_lumHistogram[gl_LocalInvocationIndex], shared_lumHistogram[gl_LocalInvocationIndex]);
 }

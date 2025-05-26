@@ -7,7 +7,7 @@ float circle(vec3 rayDir, vec3 objDir, float objAngularRadius) {
     return float(cosTheta >= objCosTheta);
 }
 
-vec3 renderSunMoon(ivec2 texelPos) {
+vec4 renderSunMoon(ivec2 texelPos) {
     vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
     vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
     vec3 viewCoord = coords_toViewCoord(screenPos, -far, gbufferProjectionInverse);
@@ -26,9 +26,9 @@ vec3 renderSunMoon(ivec2 texelPos) {
     float sunV = circle(viewDir, uval_sunDirView, uval_sunAngularRadius);
     float moonV = circle(viewDir, uval_moonDirView, moonAngularRadius);
 
-    vec3 result = vec3(0.0);
-    result += min(sunV * sunRadiance * 256.0 * PI, 65000.0);
-    result += moonV * sunRadiance * MOON_RADIANCE_MUL * 16.0 * PI;
+    vec4 result = vec4(0.0);
+    result += min(sunV * vec4(sunRadiance * 256.0 * PI, 4.0), 65000.0);
+    result += moonV * vec4(sunRadiance * MOON_RADIANCE_MUL * 16.0 * PI, 0.0);
     result *= step(earthIntersect, 0.0);
 
     return result;

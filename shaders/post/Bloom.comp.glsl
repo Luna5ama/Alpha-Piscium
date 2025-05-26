@@ -6,11 +6,15 @@
 #include "/_Base.glsl"
 #include "/util/Colors.glsl"
 
+#define BLOOM_USE_KARIS_AVERAGE 1
+
 #if BLOOM_DOWN_SAMPLE
 #define BLOOM_SCALE_DIV BLOOM_PASS
-//#if BLOOM_PASS <= 1
-//#define BLOOM_KARIS_AVERAGE 1
-//#endif
+#if BLOOM_USE_KARIS_AVERAGE
+#if BLOOM_PASS == 1
+#define BLOOM_KARIS_AVERAGE 1
+#endif
+#endif
 
 #elif BLOOM_UP_SAMPLE
 #define BLOOM_SCALE_DIV (BLOOM_PASS - 1)
@@ -105,11 +109,7 @@ vec2 inputEndTexel = (vec2(inputEndPixel) - 0.5) * texelSize;
 vec4 bloom_readInputDown(ivec2 coord) {
     vec2 readPosUV = vec2(coord + inputStartPixel) * texelSize;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
-    #if BLOOM_PASS == 1
-    return texture(BLOOM_SAMPLER, readPosUV) * SETTING_BLOOM_INTENSITY * 0.02;
-    #else
     return texture(BLOOM_SAMPLER, readPosUV);
-    #endif
 }
 
 void bloom_writeOutput(ivec2 coord, vec4 data) {
@@ -137,13 +137,17 @@ void writeCache(ivec2 pos, vec4 data) {
 ivec2 groupBasePixel = ivec2(gl_WorkGroupID.xy) << 4;
 
 #if BLOOM_KARIS_AVERAGE
-vec4 weightedSum(vec4 color) {
-    float karisWeight = colors_karisWeight(color.rgb);
-    return vec4(color.rgb * karisWeight, karisWeight);
+void weightedSum(vec4 color, float baseWeight, inout vec4 colorSum, inout float weightSum) {
+    float weight = baseWeight;
+    weight *= colors_karisWeight(color.rgb);
+    colorSum += color * weight;
+    weightSum += weight;
 }
 #else
-vec4 weightedSum(vec4 color) {
-    return vec4(color.rgb, 1.0);
+void weightedSum(vec4 color, float baseWeight, inout vec4 colorSum, inout float weightSum) {
+    float weight = baseWeight;
+    colorSum += color * weight;
+    weightSum += weight;
 }
 #endif
 
@@ -181,11 +185,11 @@ vec4 bloom_main(ivec2 texelPos) {
     // h _ i _ j
     // _ c _ d _
     // k _ l _ m
-    // a,b,c,d: 0.5 (0.125)
-    // e,f,h,i: 0.125 (0.03125)
-    // f,g,i,j: 0.125 (0.03125)
-    // h,i,k,l: 0.125 (0.03125)
-    // i,j,l,m: 0.125 (0.03125)
+    // a,b,c,d: 0.5
+    // e,f,h,i: 0.125
+    // f,g,i,j: 0.125
+    // h,i,k,l: 0.125
+    // i,j,l,m: 0.125
     vec4 e = readCache(centerPos);
     vec4 f = readCache(centerPos + ivec2(1, 0));
     vec4 g = readCache(centerPos + ivec2(2, 0));
@@ -204,14 +208,15 @@ vec4 bloom_main(ivec2 texelPos) {
     vec4 l = readCache(centerPos + ivec2(1, 4));
     vec4 m = readCache(centerPos + ivec2(2, 4));
 
-    vec4 result = vec4(0.0);
-    result += weightedSum((a + b + c + d) * 0.125);
-    result += weightedSum((e + f + g + h) * 0.03125);
-    result += weightedSum((f + g + i + j) * 0.03125);
-    result += weightedSum((h + i + k + l) * 0.03125);
-    result += weightedSum((i + j + l + m) * 0.03125);
+    vec4 colorSum = vec4(0.0);
+    float weightSum = 0.0;
+    weightedSum((a + b + c + d) * 0.25, 0.5, colorSum, weightSum);
+    weightedSum((e + f + g + h) * 0.25, 0.125, colorSum, weightSum);
+    weightedSum((f + g + i + j) * 0.25, 0.125, colorSum, weightSum);
+    weightedSum((h + i + k + l) * 0.25, 0.125, colorSum, weightSum);
+    weightedSum((i + j + l + m) * 0.25, 0.125, colorSum, weightSum);
 
-    return result / (result.a * 0.2);
+    return colorSum / weightSum;
 }
 #elif BLOOM_UP_SAMPLE
 vec4 bloom_readInputUp(ivec2 coord, ivec2 offset) {
@@ -252,6 +257,15 @@ vec4 bloom_main(ivec2 texelPos) {
     vec4 e = bloom_readInputUp(texelPos, ivec2(0, 0));
     result += e * 0.25;
 
+    return result;
+}
+vec4 bloom_mainOutput(ivec2 texelPos) {
+    vec4 result = bloom_main(texelPos);
+    #if !BLOOM_USE_KARIS_AVERAGE
+    result *= 0.6;
+    #endif
+    result *= 0.025;
+    result *= SETTING_BLOOM_INTENSITY;
     return result;
 }
 #endif

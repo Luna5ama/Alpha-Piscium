@@ -36,10 +36,8 @@ void main() {
     global_lumHistogram[gl_LocalInvocationIndex] = 0u;
 
     if (gl_LocalInvocationID.x == 0) {
-        global_lumHistogram[256] = 0u;
-
         uint histogramCounting = shared_histogram[0];
-        float totalPixel = global_mainImageSize.x * global_mainImageSize.y;
+        float totalPixel = float(global_lumHistogram[257]);
 
         float averageBinIndex = float(histogramCounting) / max(totalPixel - global_lumHistogram[0], 1.0);
         float averageLuminance = exp2(averageBinIndex / 255.0) - 1.0;
@@ -73,6 +71,9 @@ void main() {
         expNew.z = averageLuminance;// Debug
         global_exposure = expNew;
         #endif
+
+        global_lumHistogram[256] = 0u;
+        global_lumHistogram[257] = 0u;
     }
 
 }

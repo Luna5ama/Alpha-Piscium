@@ -27,8 +27,8 @@ Material material_decode(GBufferData gData) {
     material.metallic = float(material.f0 >= (229.5 / 255.0));
 
     const float _1o255 = 1.0 / 255.0;
-    float emissiveS = pow(gData.pbrSpecular.a, SETTING_EMISSIVE_CURVE);
-    material.emissive = emissiveS * 64.0 * material.albedo;
+    float emissiveS = pow(gData.pbrSpecular.a, SETTING_EMISSIVE_PBR_CURVE);
+    material.emissive = emissiveS * 64.0 * pow(material.albedo, vec3(SETTING_EMISSIVE_COLOR_CURVE));
     material.emissive = mix(material.emissive, colors_blackBodyRadiation(SETTING_LAVA_TEMPERATURE, 1.0).a * material.albedo, float(gData.materialID == 1u));
     material.emissive = mix(material.emissive, colors_blackBodyRadiation(SETTING_FIRE_TEMPERATURE, 1.0).a * material.albedo, float(gData.materialID == 2u));
     material.emissive *= SETTING_EMISSIVE_STRENGTH;

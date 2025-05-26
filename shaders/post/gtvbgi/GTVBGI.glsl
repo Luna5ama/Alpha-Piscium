@@ -47,6 +47,14 @@ float radiusToLodStep(float y) {
     const float a0 = 0.0199939489785;
     const float a1 = 0.0279244889461;
     const float a2 = -0.817485681694;
+    #elif SSVBIL_SAMPLE_STEPS == 96
+    const float a0 = 0.0134047383578;
+    const float a1 = 0.0181493759954;
+    const float a2 = -0.764070193656;
+    #elif SSVBIL_SAMPLE_STEPS == 128
+    const float a0 = 0.0101298394507;
+    const float a1 = 0.0132862874602;
+    const float a2 = -0.715597089117;
     #else
     #error "Invalid SSVBIL_SAMPLE_STEPS"
     #endif

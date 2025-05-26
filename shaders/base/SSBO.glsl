@@ -31,7 +31,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     ivec2 global_mipmapSizesI[16];
     ivec2 global_mipmapSizePrefixes[16];
     uvec2 global_frameMortonJitter;
-    uint global_lumHistogram[257];
+    uint global_lumHistogram[258];
     ivec3 global_shadowAABBMin;
     ivec3 global_shadowAABBMax;
     ivec3 global_shadowAABBMinPrev;

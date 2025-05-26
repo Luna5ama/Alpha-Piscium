@@ -30,7 +30,7 @@ void main() {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
 
         #ifdef SETTING_BLOOM
-        outputColor += bloom_main(texelPos);
+        outputColor += bloom_mainOutput(texelPos);
         #endif
 
         #if SETTING_DEBUG_OUTPUT == 1

@@ -114,7 +114,7 @@ void main() {
                 imageStore(uimg_packedZN, radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
             }
         } else {
-            mainOut.rgb += renderSunMoon(texelPos);
+            mainOut += renderSunMoon(texelPos);
 
             uvec4 packedZNOut = uvec4(0u);
             packedZNOut.y = floatBitsToUint(viewZ);
