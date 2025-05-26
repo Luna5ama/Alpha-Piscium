@@ -8,6 +8,7 @@ layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 
 attribute vec4 mc_Entity;
 
+out uint vert_survived;
 out vec2 vert_unwarpedTexCoord;
 out vec2 vert_texcoord;
 out vec4 vert_color;
@@ -19,6 +20,7 @@ void main() {
 
 	vec4 shadowClipPos = ftransform();
 	vec4 shadowClipPosRotated = global_shadowRotationMatrix * shadowClipPos;
+	vec4 shadowViewPos = shadowProjectionInverse * shadowClipPos;
 	gl_Position = shadowClipPosRotated;
 	vert_viewZ = -gl_Position.w;
 	gl_Position /= gl_Position.w;
@@ -29,16 +31,19 @@ void main() {
 
 	gl_Position.xy = vPosTS * 2.0 - 1.0;
 
-	#ifdef SETTING_RTWSM_F
-	vec4 camViewPos = gbufferModelView * shadowModelViewInverse * shadowProjectionInverse * shadowClipPos;
+	shadowViewPos /= shadowViewPos.w;
+	vec4 scenePos = shadowModelViewInverse * shadowViewPos;
+	vec4 camViewPos = gbufferModelView * scenePos;
 	camViewPos /= camViewPos.w;
-	vec4 camClipPos = gbufferProjection * camViewPos;
 
-	uint survived = uint((gl_VertexID & 3) == 0);
-	survived &= uint(all(lessThan(abs(shadowClipPosRotated.xyz), shadowClipPosRotated.www)));
-	survived &= uint(camClipPos.w > 0.0);
-	survived &= uint(all(lessThan(abs(camClipPos.xyz), camClipPos.www)));
+	uint survived = uint(all(lessThan(abs(shadowClipPosRotated.xyz), shadowClipPosRotated.www)));
+	survived &= uint(all(lessThan(shadowViewPos.xyz, vec3(global_shadowAABBMax))));
+	survived &= uint(all(greaterThan(shadowViewPos.xyz, vec3(global_shadowAABBMin))));
+	vert_survived = survived;
 
+	survived &= uint((gl_VertexID & 3) == 0);
+
+	#ifdef SETTING_RTWSM_F
 	if (bool(survived)){
 		vec2 shadowNdcPos = shadowClipPosRotated.xy / shadowClipPosRotated.w;
 		vec2 shadowScreenPos = shadowNdcPos * 0.5 + 0.5;
