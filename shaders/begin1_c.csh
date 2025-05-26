@@ -2,7 +2,7 @@
 
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
-#include "/_Base.glsl"
+#include "/util/Math.glsl"
 
 layout(local_size_x = 256) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
@@ -43,7 +43,7 @@ void main() {
         float averageLuminance = exp2(averageBinIndex / 255.0) - 1.0;
 
         #ifdef SETTING_EXPOSURE_MANUAL
-        global_exposure = vec4(0.0, 0.0, 0.0, exp2(SETTING_EXPOSURE_MANUAL_VALUE));
+        global_exposure = vec4(0.0, 0.0, 0.0, exp2(SETTING_EXPOSURE_MANUAL_EV));
         #else
         vec4 expLast = global_exposure;
         vec4 expNew;
@@ -59,14 +59,20 @@ void main() {
         expNew.y = (top5Percent / topBin);
         expNew.y = clamp(expNew.y, 1.0 / MAX_DELTA_TOP_BIN, MAX_DELTA_TOP_BIN);
 
+        float minExp = exp2(SETTING_EXPOSURE_MIN_EV);
+        float maxExp = exp2(SETTING_EXPOSURE_MAX_EV);
         expNew.xy = expNew.xy * expLast.xy;
         expNew.xy = mix(expLast.xy, expNew.xy, vec2(exp2(-SETTING_EXPOSURE_AVG_LUM_TIME), exp2(-SETTING_EXPOSURE_TOP_BIN_TIME)));
-        expNew.xy = clamp(expNew.xy, exp2(SETTING_EXPOSURE_MIN_EXP), exp2(SETTING_EXPOSURE_MAX_EXP));
+        expNew.xy = clamp(expNew.xy, minExp, maxExp);
 
         float totalWeight = SETTING_EXPOSURE_TOP_BIN_MIX + SETTING_EXPOSURE_AVG_LUM_MIX;
         expNew.w = expNew.x * SETTING_EXPOSURE_AVG_LUM_MIX;
         expNew.w += expNew.y * SETTING_EXPOSURE_TOP_BIN_MIX;
         expNew.w /= totalWeight;
+
+        expNew.w = linearStep(minExp, maxExp, expNew.w);
+        expNew.w = pow(expNew.w, SETTING_EXPOSURE_CURVE);
+        expNew.w = mix(minExp, maxExp, expNew.w);
 
         expNew.z = averageLuminance;// Debug
         global_exposure = expNew;
