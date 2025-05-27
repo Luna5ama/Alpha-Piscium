@@ -26,7 +26,7 @@ vec4 renderSunMoon(ivec2 texelPos) {
 
     vec4 result = vec4(0.0);
     result += sunV * vec4(SUN_LUMINANCE, 2.0);
-    result += moonV * vec4(MOON_LUMINANCE, 2.0);
+    result += moonV * vec4(MOON_LUMINANCE * 0.02, 2.0);
     result *= step(earthIntersect, 0.0);
 
     return result;
