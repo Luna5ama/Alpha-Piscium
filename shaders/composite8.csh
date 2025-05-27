@@ -24,8 +24,8 @@ layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
 
-shared vec3 shared_moments[12][12][2];
-shared vec3 shared_momentsV[8][12][2];
+shared vec4 shared_moments[12][12][2];
+shared vec4 shared_momentsV[8][12][2];
 
 uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 3u;
 ivec2 texelPos = ivec2(groupOriginTexelPos) + ivec2(gl_LocalInvocationID.xy);
@@ -36,18 +36,20 @@ void loadSharedData(uint index) {
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(global_mainImageSize - 1));
 
-        vec3 inputColor = colors_LogLuvToSRGB(unpackUnorm4x8(texelFetch(usam_tempRGBA32UI, srcXY, 0).y));
-        inputColor += texelFetch(usam_temp4, srcXY, 0).xyz;
+        vec3 fastColor = colors_LogLuvToSRGB(unpackUnorm4x8(texelFetch(usam_tempRGBA32UI, srcXY, 0).y));
+        vec3 directColor = texelFetch(usam_temp4, srcXY, 0).xyz;
+        vec3 inputColor = fastColor + directColor;
+
         inputColor = colors_SRGBToYCoCg(inputColor);
         vec3 moment1 = inputColor;
         vec3 moment2 = inputColor * inputColor;
 
-        shared_moments[sharedXY.y][sharedXY.x][0] = moment1;
-        shared_moments[sharedXY.y][sharedXY.x][1] = moment2;
+        shared_moments[sharedXY.y][sharedXY.x][0] = vec4(moment1, colors_srgbLuma(directColor));
+        shared_moments[sharedXY.y][sharedXY.x][1] = vec4(moment2, colors_srgbLuma(fastColor));
     }
 }
 
-void updateMoments0(uvec2 originXY, ivec2 offset, inout vec3 moment1, inout vec3 moment2) {
+void updateMoments0(uvec2 originXY, ivec2 offset, inout vec4 moment1, inout vec4 moment2) {
     ivec2 sampleXY = ivec2(originXY) + offset;
     moment1 += shared_moments[sampleXY.y][sampleXY.x][0];
     moment2 += shared_moments[sampleXY.y][sampleXY.x][1];
@@ -58,8 +60,8 @@ void sampleV(uint index) {
         uvec2 writeSharedXY = uvec2(index % 12, index / 12);
         uvec2 readSharedXY = writeSharedXY;
         readSharedXY.y += 2;
-        vec3 moment1 = vec3(0.0);
-        vec3 moment2 = vec3(0.0);
+        vec4 moment1 = vec4(0.0);
+        vec4 moment2 = vec4(0.0);
         updateMoments0(readSharedXY, ivec2(0, -2), moment1, moment2);
         updateMoments0(readSharedXY, ivec2(0, -1), moment1, moment2);
         updateMoments0(readSharedXY, ivec2(0, 0), moment1, moment2);
@@ -72,7 +74,7 @@ void sampleV(uint index) {
     }
 }
 
-void updateMoments1(uvec2 originXY, ivec2 offset, inout vec3 moment1, inout vec3 moment2) {
+void updateMoments1(uvec2 originXY, ivec2 offset, inout vec4 moment1, inout vec4 moment2) {
     ivec2 sampleXY = ivec2(originXY) + offset;
     moment1 += shared_momentsV[sampleXY.y][sampleXY.x][0];
     moment2 += shared_momentsV[sampleXY.y][sampleXY.x][1];
@@ -187,11 +189,13 @@ void main() {
 
         vec3 mean;
         vec3 stddev;
+        float directLum;
+        float giLum;
         {
             uvec2 readSharedXY = gl_LocalInvocationID.xy;
             readSharedXY.x += 2;
-            vec3 moment1 = vec3(0.0);
-            vec3 moment2 = vec3(0.0);
+            vec4 moment1 = vec4(0.0);
+            vec4 moment2 = vec4(0.0);
             updateMoments1(readSharedXY, ivec2(-2, 0), moment1, moment2);
             updateMoments1(readSharedXY, ivec2(-1, 0), moment1, moment2);
             updateMoments1(readSharedXY, ivec2(0, 0), moment1, moment2);
@@ -199,11 +203,15 @@ void main() {
             updateMoments1(readSharedXY, ivec2(2, 0), moment1, moment2);
             moment1 /= 5.0;
             moment2 /= 5.0;
-            vec3 variance = max(moment2 - moment1 * moment1, 0.0);
+            vec3 variance = max(moment2.rgb - pow2(moment1.rgb), 0.0);
 
-            mean = moment1;
+            mean = moment1.rgb;
             stddev = sqrt(variance);
+            directLum = moment1.a;
+            giLum = moment2.a;
         }
+
+        float directWeighting = exp2(-directLum / giLum);
 
         uvec4 packedData = texelFetch(usam_tempRGBA32UI, texelPos, 0);
         vec3 prevColor;
@@ -212,8 +220,9 @@ void main() {
         float prevHLen;
         svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
 
-        vec3 aabbMin = mean - stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
-        vec3 aabbMax = mean + stddev * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
+        float clampingThreshold = directWeighting * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
+        vec3 aabbMin = mean - stddev * clampingThreshold;
+        vec3 aabbMax = mean + stddev * clampingThreshold;
         vec3 clipFastColor = colors_SRGBToYCoCg(prevFastColor + directColor);
         aabbMin = min(aabbMin, clipFastColor);
         aabbMax = max(aabbMax, clipFastColor);
@@ -243,8 +252,8 @@ void main() {
             newColor, newFastColor, newMoments, newHLen
         );
 
-        vec3 meanSRGB = colors_YCoCgToSRGB(mean);
-        imageStore(uimg_temp3, texelPos, vec4(meanSRGB, 1.0));
+//        vec3 meanSRGB = colors_YCoCgToSRGB(mean);
+//        imageStore(uimg_temp3, texelPos, vec4(exp2(-max(directLum / giLum, 0.0))));
 
         {
             float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);

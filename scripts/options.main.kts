@@ -899,7 +899,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_MIN_VARIANCE_FACTOR", 15.0, 0.0..32.0 step 0.1) {
+                slider("SETTING_DENOISER_MIN_VARIANCE_FACTOR",30, 0..64) {
                     lang {
                         name = "Minimum Variance Factor"
                         comment =

@@ -49,7 +49,7 @@ void main() {
         vec4 expNew;
 
         // Keep the average luminance at SETTING_EXPOSURE_AVG_LUM_TARGET
-        const float MAX_DELTA_AVG_LUM = 1.5;
+        const float MAX_DELTA_AVG_LUM = 100.0;
         expNew.x = (SETTING_EXPOSURE_AVG_LUM_TARGET / averageLuminance);
         expNew.x = clamp(expNew.x, rcp(MAX_DELTA_AVG_LUM), MAX_DELTA_AVG_LUM);
 
