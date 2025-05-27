@@ -485,7 +485,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             "Temperature of lava in K (kelvin). The default value 1400 K is based on real life average."
                     }
                 }
-                slider("SETTING_EMISSIVE_STRENGTH", 0.75, 0.0..2.0 step 0.01) {
+                slider("SETTING_EMISSIVE_STRENGTH", 1.0, 0.0..2.0 step 0.01) {
                     lang {
                         name = "Emissive Strength"
                     }
@@ -650,17 +650,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Subsurface Scattering"
                     comment = "Subsurface Scattering settings"
                 }
-                slider("SETTING_SSS_STRENGTH", 0.8, 0.0..5.0 step 0.1) {
+                slider("SETTING_SSS_STRENGTH", 1.2, 0.0..5.0 step 0.1) {
                     lang {
                         name = "Strength"
                     }
                 }
-                slider("SETTING_SSS_HIGHLIGHT", 0.5, 0.0..1.0 step 0.01) {
+                slider("SETTING_SSS_HIGHLIGHT", 0.6, 0.0..1.0 step 0.01) {
                     lang {
                         name = "Highlight"
                     }
                 }
-                slider("SETTING_SSS_SCTR_FACTOR", 6.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Scatter Factor"
                     }
@@ -671,7 +671,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Diffuse Range"
                     }
                 }
-                slider("SETTING_SSS_DEPTH_RANGE", 0.5, 0.0..4.0 step 0.1) {
+                slider("SETTING_SSS_DEPTH_RANGE", 0.6, 0.0..4.0 step 0.1) {
                     lang {
                         name = "Depth Range"
                     }
@@ -872,7 +872,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             empty()
-            slider("SETTING_SPECULAR_MINIMUM_F0_FACTOR", 10, 1..32) {
+            slider("SETTING_SPECULAR_MINIMUM_F0_FACTOR", 12, 1..32) {
                 lang {
                     name = "Specular Minimum F0 Factor"
                     comment = "The actual value is calculated as 2^-x, where x is this setting value."
@@ -1110,7 +1110,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_SATURATION", 1.3, 0.0..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SATURATION", 1.25, 0.0..2.0 step 0.01) {
                     lang {
                         name = "Saturation"
                     }
@@ -1130,7 +1130,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Bloom Intensity"
                     }
                 }
-                slider("SETTING_BLOOM_RADIUS", 2.5, 1.0..5.0 step 0.5) {
+                slider("SETTING_BLOOM_RADIUS", 1.0, 1.0..5.0 step 0.5) {
                     lang {
                         name = "Bloom Radius"
                     }
