@@ -58,6 +58,9 @@ const mat3 InverseM = (mat3(
 ));
 
 vec4 colors_SRGBToLogLuv(in vec3 vRGB)  {
+    if (all(lessThanEqual(vRGB, vec3(0.0)))) {
+        return vec4(0.0);
+    }
     vec4 vResult;
     vec3 Xp_Y_XYZp = M * vRGB;
     Xp_Y_XYZp = max(Xp_Y_XYZp, vec3(1e-6, 1e-6, 1e-6));
@@ -69,6 +72,9 @@ vec4 colors_SRGBToLogLuv(in vec3 vRGB)  {
 }
 
 vec3 colors_LogLuvToSRGB(in vec4 vLogLuv) {
+    if (all(lessThanEqual(vLogLuv, vec4(0.0)))) {
+        return vec3(0.0);
+    }
     float Le = vLogLuv.z * 255 + vLogLuv.w;
     vec3 Xp_Y_XYZp;
     Xp_Y_XYZp.y = exp2((Le - 127) / 2);

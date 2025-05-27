@@ -17,27 +17,18 @@ uniform sampler2D usam_temp4;
 uniform usampler2D usam_tempRGBA32UI;
 uniform usampler2D usam_packedZN;
 uniform usampler2D usam_gbufferData32UI;
-uniform usampler2D usam_tempR32UI;
+uniform usampler2D usam_tempRG32UI;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba8) uniform writeonly image2D uimg_temp6;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
 
-shared uvec4 shared_moments[12][12];
-shared uvec4 shared_momentsV[8][12];
+shared vec3 shared_moments[12][12][2];
+shared vec3 shared_momentsV[8][12][2];
 
 uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 3u;
 ivec2 texelPos = ivec2(groupOriginTexelPos) + ivec2(gl_LocalInvocationID.xy);
-
-uvec4 packMoments(vec3 moment1, vec3 moment2) {
-    return uvec4(
-        packHalf2x16(moment1.xy),
-        packHalf2x16(vec2(moment1.z, moment2.x)),
-        packHalf2x16(vec2(moment2.y, moment2.z)),
-        0u
-    );
-}
 
 void loadSharedData(uint index) {
     if (index < 144) {
@@ -51,18 +42,15 @@ void loadSharedData(uint index) {
         vec3 moment1 = inputColor;
         vec3 moment2 = inputColor * inputColor;
 
-        shared_moments[sharedXY.y][sharedXY.x] = packMoments(moment1, moment2);
+        shared_moments[sharedXY.y][sharedXY.x][0] = moment1;
+        shared_moments[sharedXY.y][sharedXY.x][1] = moment2;
     }
 }
 
 void updateMoments0(uvec2 originXY, ivec2 offset, inout vec3 moment1, inout vec3 moment2) {
     ivec2 sampleXY = ivec2(originXY) + offset;
-    uvec4 packedData = shared_moments[sampleXY.y][sampleXY.x];
-    vec2 temp1 = unpackHalf2x16(packedData.x);
-    vec2 temp2 = unpackHalf2x16(packedData.y);
-    vec2 temp3 = unpackHalf2x16(packedData.z);
-    moment1 += vec3(temp1, temp2.x);
-    moment2 += vec3(temp2.y, temp3.xy);
+    moment1 += shared_moments[sampleXY.y][sampleXY.x][0];
+    moment2 += shared_moments[sampleXY.y][sampleXY.x][1];
 }
 
 void sampleV(uint index) {
@@ -79,18 +67,15 @@ void sampleV(uint index) {
         updateMoments0(readSharedXY, ivec2(0, 2), moment1, moment2);
         moment1 /= 5.0;
         moment2 /= 5.0;
-        shared_momentsV[writeSharedXY.y][writeSharedXY.x] = packMoments(moment1, moment2);
+        shared_momentsV[writeSharedXY.y][writeSharedXY.x][0] = moment1;
+        shared_momentsV[writeSharedXY.y][writeSharedXY.x][1] = moment2;
     }
 }
 
 void updateMoments1(uvec2 originXY, ivec2 offset, inout vec3 moment1, inout vec3 moment2) {
     ivec2 sampleXY = ivec2(originXY) + offset;
-    uvec4 packedData = shared_momentsV[sampleXY.y][sampleXY.x];
-    vec2 temp1 = unpackHalf2x16(packedData.x);
-    vec2 temp2 = unpackHalf2x16(packedData.y);
-    vec2 temp3 = unpackHalf2x16(packedData.z);
-    moment1 += vec3(temp1, temp2.x);
-    moment2 += vec3(temp2.y, temp3.xy);
+    moment1 += shared_momentsV[sampleXY.y][sampleXY.x][0];
+    moment2 += shared_momentsV[sampleXY.y][sampleXY.x][1];
 }
 
 float computeGeometryWeight(vec3 centerPos, vec3 centerNormal, float sampleViewZ, uint sampleNormal, vec2 sampleScreenPos, float a) {
@@ -120,7 +105,7 @@ inout vec3 colorSum, inout float weightSum
     vec4 bilateralWeights = vec4(1.0);
     uvec4 prevNs = textureGather(usam_packedZN, gatherUV2Y, 0);
     vec4 prevZs = uintBitsToFloat(textureGather(usam_packedZN, gatherUV2Y, 1));
-    float a = 0.000001 * max(abs(centerPos.z), 0.1);
+    float a = 0.0001 * max(abs(centerPos.z), 0.1);
     bilateralWeights.x *= computeGeometryWeight(centerPos, centerNormal, prevZs.x, prevNs.x, global_mainImageSizeRcp * vec2(-1.0, 1.0) + originScreenPos, a);
     bilateralWeights.y *= computeGeometryWeight(centerPos, centerNormal, prevZs.y, prevNs.y, global_mainImageSizeRcp * vec2(1.0, 1.0) + originScreenPos, a);
     bilateralWeights.z *= computeGeometryWeight(centerPos, centerNormal, prevZs.z, prevNs.z, global_mainImageSizeRcp * vec2(1.0, -1.0) + originScreenPos, a);
@@ -129,17 +114,19 @@ inout vec3 colorSum, inout float weightSum
     vec4 interpoWeights = baseWeights * bilateralWeights;
     weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
 
-    uvec4 colorData = textureGather(usam_tempR32UI, gatherUV, 0);
-    vec3 color1 = colors_LogLuvToSRGB(unpackUnorm4x8(colorData.x));
-    vec3 color2 = colors_LogLuvToSRGB(unpackUnorm4x8(colorData.y));
-    vec3 color3 = colors_LogLuvToSRGB(unpackUnorm4x8(colorData.z));
-    vec3 color4 = colors_LogLuvToSRGB(unpackUnorm4x8(colorData.w));
+    uvec4 packedColorData1 = textureGather(usam_tempRG32UI, gatherUV, 0);
+    uvec4 packedCOlorData2 = textureGather(usam_tempRG32UI, gatherUV, 1);
+    vec4 colorData11 = unpackHalf4x16(packedColorData1.xy);
+    vec4 colorData12 = unpackHalf4x16(packedColorData1.zw);
 
-    vec4 colorRs = vec4(color1.r, color2.r, color3.r, color4.r);
+    vec4 colorData21 = unpackHalf4x16(packedCOlorData2.xy);
+    vec4 colorData22 = unpackHalf4x16(packedCOlorData2.zw);
+
+    vec4 colorRs = vec4(colorData11.x, colorData11.z, colorData12.x, colorData12.z);
     colorSum.r += dot(interpoWeights, colorRs);
-    vec4 colorGs = vec4(color1.g, color2.g, color3.g, color4.g);
+    vec4 colorGs = vec4(colorData11.y, colorData11.w, colorData12.y, colorData12.w);
     colorSum.g += dot(interpoWeights, colorGs);
-    vec4 colorBs = vec4(color1.b, color2.b, color3.b, color4.b);
+    vec4 colorBs = vec4(colorData21.x, colorData21.z, colorData22.x, colorData22.z);
     colorSum.b += dot(interpoWeights, colorBs);
 }
 
@@ -212,8 +199,7 @@ void main() {
             updateMoments1(readSharedXY, ivec2(2, 0), moment1, moment2);
             moment1 /= 5.0;
             moment2 /= 5.0;
-            const float EPS = 0.00001;
-            vec3 variance = max(moment2 - moment1 * moment1, EPS);
+            vec3 variance = max(moment2 - moment1 * moment1, 0.0);
 
             mean = moment1;
             stddev = sqrt(variance);
@@ -258,7 +244,7 @@ void main() {
         );
 
         vec3 meanSRGB = colors_YCoCgToSRGB(mean);
-        imageStore(uimg_temp3, texelPos, vec4(prevColorClamped, 1.0));
+        imageStore(uimg_temp3, texelPos, vec4(meanSRGB, 1.0));
 
         {
             float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);

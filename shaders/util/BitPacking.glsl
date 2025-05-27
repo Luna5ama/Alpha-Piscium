@@ -48,6 +48,13 @@ vec3 unpackSnorm3x10(uint v) {
     return result;
 }
 
+uvec2 packHalf4x16(vec4 v) {
+    return uvec2(packHalf2x16(v.xy), packHalf2x16(v.zw));
+}
+
+vec4 unpackHalf4x16(uvec2 v) {
+    return vec4(unpackHalf2x16(v.x), unpackHalf2x16(v.y));
+}
 
 
 #endif

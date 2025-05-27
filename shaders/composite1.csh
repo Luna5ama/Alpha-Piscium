@@ -70,7 +70,7 @@ void main() {
                     ssgiOut.a = gData.lmCoord.y;
                     float multiBounceV = SETTING_VBGI_GI_MB * 2.0 * RCP_PI;
                     float albedoLum = colors_srgbLuma(material.albedo);
-                    ssgiOut.rgb = multiBounceV * max(prevDiffuse, 0.0) * material.albedo;
+                    ssgiOut.rgb = multiBounceV * max(prevFastDiffuse, 0.0) * material.albedo;
                     ssgiOut.a *= mix(-1.0, 1.0, any(greaterThan(material.emissive, vec3(0.0))));
                     uvec4 tempRG32UIOut = uvec4(0u);
                     tempRG32UIOut.x = packHalf2x16(ssgiOut.rg);

@@ -8,7 +8,6 @@
 */
 #include "/general/EnvProbe.glsl"
 #include "/util/Coords.glsl"
-#include "/util/Dither.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/BSDF.glsl"
 #include "/util/FastMathLib.glsl"
