@@ -51,28 +51,30 @@ void main() {
         // Keep the average luminance at SETTING_EXPOSURE_AVG_LUM_TARGET
         const float MAX_DELTA_AVG_LUM = 1.5;
         expNew.x = (SETTING_EXPOSURE_AVG_LUM_TARGET / averageLuminance);
-        expNew.x = clamp(expNew.x, 1.0 / MAX_DELTA_AVG_LUM, MAX_DELTA_AVG_LUM);
+        expNew.x = clamp(expNew.x, rcp(MAX_DELTA_AVG_LUM), MAX_DELTA_AVG_LUM);
 
         // Keep top SETTING_EXPOSURE_TOP_PERCENT % of pixels in the top bin
         const float MAX_DELTA_TOP_BIN = 1.1;
         float top5Percent = totalPixel * SETTING_EXPOSURE_TOP_BIN_PERCENT * 0.01;
         expNew.y = (top5Percent / topBin);
-        expNew.y = clamp(expNew.y, 1.0 / MAX_DELTA_TOP_BIN, MAX_DELTA_TOP_BIN);
+        expNew.y = clamp(expNew.y, rcp(MAX_DELTA_TOP_BIN), MAX_DELTA_TOP_BIN);
 
-        float minExp = exp2(SETTING_EXPOSURE_MIN_EV);
-        float maxExp = exp2(SETTING_EXPOSURE_MAX_EV);
+        const float MIN_EXP = exp2(SETTING_EXPOSURE_MIN_EV);
+        const float MAX_EXP = exp2(SETTING_EXPOSURE_MAX_EV);
+        const float FRAME_TIME_60FPS_SECS = 1.0 / 60.0;
         expNew.xy = expNew.xy * expLast.xy;
-        expNew.xy = mix(expLast.xy, expNew.xy, vec2(exp2(-SETTING_EXPOSURE_AVG_LUM_TIME), exp2(-SETTING_EXPOSURE_TOP_BIN_TIME)));
-        expNew.xy = clamp(expNew.xy, minExp, maxExp);
+        vec2 timeFactor = -vec2(SETTING_EXPOSURE_AVG_LUM_TIME, SETTING_EXPOSURE_TOP_BIN_TIME) + log2(frameTime / FRAME_TIME_60FPS_SECS);
+        expNew.xy = mix(expLast.xy, expNew.xy, exp2(timeFactor));
+        expNew.xy = clamp(expNew.xy, MIN_EXP, MAX_EXP);
 
-        float totalWeight = SETTING_EXPOSURE_TOP_BIN_MIX + SETTING_EXPOSURE_AVG_LUM_MIX;
+        const float totalWeight = SETTING_EXPOSURE_TOP_BIN_MIX + SETTING_EXPOSURE_AVG_LUM_MIX;
         expNew.w = expNew.x * SETTING_EXPOSURE_AVG_LUM_MIX;
         expNew.w += expNew.y * SETTING_EXPOSURE_TOP_BIN_MIX;
         expNew.w /= totalWeight;
 
-        expNew.w = linearStep(minExp, maxExp, expNew.w);
+        expNew.w = linearStep(MIN_EXP, MAX_EXP, expNew.w);
         expNew.w = pow(expNew.w, SETTING_EXPOSURE_CURVE);
-        expNew.w = mix(minExp, maxExp, expNew.w);
+        expNew.w = mix(MIN_EXP, MAX_EXP, expNew.w);
 
         expNew.z = averageLuminance;// Debug
         global_exposure = expNew;
