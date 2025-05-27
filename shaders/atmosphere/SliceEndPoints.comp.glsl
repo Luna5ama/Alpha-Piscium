@@ -1,9 +1,11 @@
-// Contains code adopted from:
-// https://github.com/GameTechDev/OutdoorLightScattering
-// Apache License 2.0
-// Copyright (c) 2017 Intel Corporation
-//
-// You can find full license texts in /licenses
+/*
+    Contains code adopted from:
+        https://github.com/GameTechDev/OutdoorLightScattering
+        Apache License 2.0
+        Copyright (c) 2017 Intel Corporation
+
+        You can find full license texts in /licenses
+*/
 #include "Common.glsl"
 
 layout(local_size_x = 128) in;

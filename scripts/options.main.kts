@@ -459,7 +459,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Use real sun temperature of 5772 K."
                     }
                 }
-                slider("SETTING_SUN_TEMPERATURE", 5700, 1000..20000 step 100) {
+                slider("SETTING_SUN_TEMPERATURE", 5700, (1000..10000 step 100) + (11000..50000 step 1000)) {
                     lang {
                         name = "Sun Temperature"
                         comment = "Temperature of sun in K (kelvin). Affects the color and intensity of sunlight."
@@ -471,21 +471,21 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Blocklight"
                 }
-                slider("SETTING_FIRE_TEMPERATURE", 1600, 1000..20000 step 100) {
+                slider("SETTING_FIRE_TEMPERATURE", 1500, 100..5000 step 100) {
                     lang {
                         name = "Fire Temperature"
                         comment =
-                            "Temperature of fire in K (kelvin). The default value 1600 K is based on real life average."
+                            "Temperature of fire in K (kelvin). The default value 1500 K is based on real life average."
                     }
                 }
-                slider("SETTING_LAVA_TEMPERATURE", 1400, 1000..20000 step 100) {
+                slider("SETTING_LAVA_TEMPERATURE", 1200, 100..5000 step 100) {
                     lang {
                         name = "Lava Temperature"
                         comment =
                             "Temperature of lava in K (kelvin). The default value 1400 K is based on real life average."
                     }
                 }
-                slider("SETTING_EMISSIVE_STRENGTH", 0.5, 0.0..2.0 step 0.01) {
+                slider("SETTING_EMISSIVE_STRENGTH", 0.75, 0.0..2.0 step 0.01) {
                     lang {
                         name = "Emissive Strength"
                     }
@@ -496,12 +496,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Emissive PBR Value Curve"
                     }
                 }
-                slider("SETTING_EMISSIVE_ALBEDO_COLOR_CURVE", 2.0, 0.1..4.0 step 0.05) {
+                slider("SETTING_EMISSIVE_ALBEDO_COLOR_CURVE", 1.6, 0.1..4.0 step 0.05) {
                     lang {
                         name = "Emissive Albedo Color Curve"
                     }
                 }
-                slider("SETTING_EMISSIVE_ALBEDO_LUM_CURVE", 1.5, 0.1..4.0 step 0.05) {
+                slider("SETTING_EMISSIVE_ALBEDO_LUM_CURVE", 1.3, 0.1..4.0 step 0.05) {
                     lang {
                         name = "Emissive Albedo Luminance Curve"
                     }
@@ -871,6 +871,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Normal Mapping Strength"
                 }
             }
+            empty()
+            slider("SETTING_SPECULAR_MINIMUM_F0_FACTOR", 10, 1..32) {
+                lang {
+                    name = "Specular Minimum F0 Factor"
+                    comment = "The actual value is calculated as 2^-x, where x is this setting value."
+                }
+            }
         }
         screen("ATMOSPHERE", 1) {
             lang {
@@ -965,23 +972,23 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Manual Exposure"
                     }
                 }
-                slider("SETTING_EXPOSURE_MANUAL_EV", 0.0, -10.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_MANUAL_EV", 3.0, -32.0..32.0 step 0.1) {
                     lang {
                         name = "Manual Exposure EV"
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_MIN_EV", -3.0, -10.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_MIN_EV", -6.0, -32.0..32.0 step 0.1) {
                     lang {
                         name = "Auto Exposure Min EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 3.5, -10.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_MAX_EV", 10.0, -32.0..32.0 step 0.1) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_CURVE", 1.2, 0.1..2.0 step 0.01) {
+                slider("SETTING_EXPOSURE_CURVE", 1.25, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Auto Exposure Curve"
                     }
@@ -998,7 +1005,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Average Luminance AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.3, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.6, 0.0..1.0 step 0.01) {
                     lang {
                         name = "Average Luminance Target"
                         comment = "Target average luminance value for average luminance EXPOSURE."
@@ -1016,13 +1023,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Top Bin AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_LUM", 0.75, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_TOP_BIN_LUM", 0.95, 0.0..1.0 step 0.01) {
                     lang {
                         name = "Top Bin Luminance"
                         comment = "Luminance threshold for top bin."
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_PERCENT", 2.0, 0.1..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_TOP_BIN_PERCENT", 5.0, 0.1..10.0 step 0.1) {
                     lang {
                         name = "Top Bin %"
                         comment =
@@ -1039,7 +1046,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Output Gamma"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 12.0, 1.0..32.0 step 0.1) {
+                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 13.5, 1.0..32.0 step 0.1) {
                     lang {
                         name = "Dynamic Range"
                     }
@@ -1076,34 +1083,34 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Slope Red"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_SLOPE_G", 1.05, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_G", 1.03, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Slope Green"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_SLOPE_B", 1.05, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_B", 1.03, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Slope Blue"
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_POWER_R", 0.9, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_R", 0.95, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Power Red"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_POWER_G", 0.9, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_G", 0.95, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Power Green"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_POWER_B", 0.9, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_B", 0.95, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Power Blue"
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_SATURATION", 1.1, 0.0..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SATURATION", 1.3, 0.0..2.0 step 0.01) {
                     lang {
                         name = "Saturation"
                     }

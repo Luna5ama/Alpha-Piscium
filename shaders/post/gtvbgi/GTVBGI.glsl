@@ -1,8 +1,11 @@
-// Contains code adopted from:
-// https://www.shadertoy.com/view/XcdBWf
-// MIT License
-//
-// You can find full license texts in /licenses
+/*
+    Contains code adopted from:
+        https://www.shadertoy.com/view/XcdBWf
+        MIT License
+        Copyright (c) 2024 Mirko Salm
+
+        You can find full license texts in /licenses
+*/
 #include "/general/EnvProbe.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Dither.glsl"
@@ -397,7 +400,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
                     float NDotL = dot(N, L);
                     float NDotH = (NDotL + NDotV) / halfWayLen;
                     float LDotH = 0.5 * halfWayLen;
-                    vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
+                    vec3 fresnel = fresnel_evalMaterial(material, saturate(LDotH));
                     float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
                     // TODO: separate diffuse and specular
@@ -519,7 +522,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
             float NDotL = dot(N, L);
             float NDotH = (NDotL + NDotV) / halfWayLen;
             float LDotH = 0.5 * halfWayLen;
-            vec3 fresnel = bsdf_fresnel(material, saturate(LDotH));
+            vec3 fresnel = fresnel_evalMaterial(material, saturate(LDotH));
             float ggx = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
             vec3 fallbackLighting = vec3(0.0);

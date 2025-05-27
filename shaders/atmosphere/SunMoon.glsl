@@ -1,4 +1,5 @@
 #include "Common.glsl"
+#include "/util/CelestialObjects.glsl"
 #include "/util/Coords.glsl"
 
 float circle(vec3 rayDir, vec3 objDir, float objAngularRadius) {
@@ -9,7 +10,6 @@ float circle(vec3 rayDir, vec3 objDir, float objAngularRadius) {
 
 vec4 renderSunMoon(ivec2 texelPos) {
     vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
-    vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
     vec3 viewCoord = coords_toViewCoord(screenPos, -far, gbufferProjectionInverse);
 
     vec3 viewDir = normalize(viewCoord);
@@ -21,14 +21,12 @@ vec4 renderSunMoon(ivec2 texelPos) {
     vec3 earthCenter = vec3(0.0);
     float earthIntersect = raySphereIntersectNearest(origin, viewDirWorld, earthCenter, atmosphere.bottom);
 
-    const float moonAngularRadius = 0.528611 * PI / 180.0;
-
-    float sunV = circle(viewDir, uval_sunDirView, uval_sunAngularRadius);
-    float moonV = circle(viewDir, uval_moonDirView, moonAngularRadius);
+    float sunV = circle(viewDir, uval_sunDirView, SUN_ANGULAR_RADIUS * 2.0);
+    float moonV = circle(viewDir, uval_moonDirView, MOON_ANGULAR_RADIUS * 2.0);
 
     vec4 result = vec4(0.0);
-    result += min(sunV * vec4(sunRadiance * 256.0 * PI, 4.0), 65000.0);
-    result += moonV * vec4(sunRadiance * MOON_RADIANCE_MUL * 16.0 * PI, 0.0);
+    result += sunV * vec4(SUN_LUMINANCE, 2.0);
+    result += moonV * vec4(MOON_LUMINANCE, 2.0);
     result *= step(earthIntersect, 0.0);
 
     return result;

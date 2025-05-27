@@ -62,8 +62,6 @@ void main() {
         outputColor.rgb += giRadiance.rgb * albedo;
         applyAtmosphere(screenPos, viewPos, viewZ, outputColor);
 
-        outputColor.a += float(viewZ == -65536.0) * 1.0;
-
         imageStore(uimg_main, texelPos, outputColor);
     }
 }

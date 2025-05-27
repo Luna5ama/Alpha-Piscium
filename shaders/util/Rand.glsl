@@ -5,12 +5,23 @@
         [ROB18] Roberts, Martine. "The Unreasonable Effectiveness of Quasirandom Sequences". 2018.
             https://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
         [WOL22] Wolfe, Alan. "Interleaved Gradient Noise: A Different Kind of Low Discrepancy Sequence". 2022.
-            https://blog.demofox.org/2022/01/01/interleaved-gradient-noise-a-different-kind-of-low-discrepancy-sequence/.
+            https://blog.demofox.org/2022/01/01/interleaved-gradient-noise-a-different-kind-of-low-discrepancy-sequence/
             (MIT License)
         [QUI] Quilez, Inigo. "Integer Hash Functions".
             (MIT License)
 
-    You can find full license texts in /licenses
+    Contains code adopted from:
+        https://blog.demofox.org/2022/01/01/interleaved-gradient-noise-a-different-kind-of-low-discrepancy-sequence/
+        MIT License
+        Copyright (c) 2019 Alan Wolfe
+
+        https://www.shadertoy.com/view/XlXcW4
+        https://www.shadertoy.com/view/llGSzw
+        https://www.shadertoy.com/view/4tXyWN
+        MIT License
+        Copyright © 2017,2024 Inigo Quilez
+
+        You can find full license texts in /licenses
 */
 
 #ifndef INCLUDE_util_Rand_glsl

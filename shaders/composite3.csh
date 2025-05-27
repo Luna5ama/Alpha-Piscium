@@ -95,7 +95,7 @@ vec3 calcShadow(Material material, bool isHand) {
     ssRange += exp2(SETTING_PCSS_BPF - 10.0);
     ssRange = mix(ssRange, ssRange + 0.05, isHand);
     #endif
-    ssRange += uval_sunAngularRadius * 2.0 * SETTING_PCSS_VPF * blockerDistance;
+    ssRange += SUN_ANGULAR_RADIUS * 2.0 * SETTING_PCSS_VPF * blockerDistance;
     ssRange = saturate(ssRange);
     ssRange += sssFactor * SETTING_SSS_DIFFUSE_RANGE;
 

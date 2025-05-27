@@ -1,15 +1,18 @@
-// Contains code adopted from:
-// https://github.com/sebh/UnrealEngineSkyAtmosphere
-// MIT License
-// Copyright (c) 2020 Epic Games, Inc.
-//
-// https://github.com/GameTechDev/OutdoorLightScattering
-// Apache License 2.0
-// Copyright (c) 2017 Intel Corporation
-//
-// You can find full license texts in /licenses
+/*
+    Contains code adopted from:
+        https://github.com/GameTechDev/OutdoorLightScattering
+        Apache License 2.0
+        Copyright (c) 2017 Intel Corporation
+
+        https://github.com/sebh/UnrealEngineSkyAtmosphere
+        MIT License
+        Copyright (c) 2020 Epic Games, Inc.
+
+        You can find full license texts in /licenses
+*/
 #include "Common.glsl"
 #include "/rtwsm/RTWSM.glsl"
+#include "/util/CelestialObjects.glsl"
 
 uniform sampler2D usam_rtwsm_imap;
 const bool shadowHardwareFiltering0 = true;
@@ -63,7 +66,7 @@ vec3 shadowStart, vec3 shadowEnd, float stepJitter
 
             // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
             vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-            totalInSctr += tSampleToOrigin * sampleInSctrInt * sunParams.radiance;
+            totalInSctr += tSampleToOrigin * sampleInSctrInt * sunParams.irradiance;
         }
 
         {
@@ -75,7 +78,7 @@ vec3 shadowStart, vec3 shadowEnd, float stepJitter
             sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
 
             vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-            totalInSctr += tSampleToOrigin * sampleInSctrInt * moonParams.radiance;
+            totalInSctr += tSampleToOrigin * sampleInSctrInt * moonParams.irradiance;
         }
 
         tSampleToOrigin *= sampleTransmittance;
@@ -99,15 +102,13 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
     vec3 viewDirWorld = normalize(vectorView2World * viewDirView);
 
     vec3 rayDir = viewDirWorld;
-    vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
-    vec3 moonRadiance = sunRadiance * MOON_RADIANCE_MUL;
 
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
     LightParameters sunParams;
-    lightParameters_setup(atmosphere, sunParams, sunRadiance, uval_sunDirWorld, rayDir);
+    lightParameters_setup(atmosphere, sunParams, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
     LightParameters moonParams;
-    lightParameters_setup(atmosphere, moonParams, moonRadiance, uval_moonDirWorld, rayDir);
+    lightParameters_setup(atmosphere, moonParams, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
 
     if (endView.z == -65536.0) {
         params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);

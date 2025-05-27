@@ -1,12 +1,14 @@
-// Contains code adopted from:
-// https://github.com/sebh/UnrealEngineSkyAtmosphere
-// MIT License
-// Copyright (c) 2020 Epic Games, Inc.
-//
-// You can find full license texts in /licenses
+/*
+    Contains code adopted from:
+        https://github.com/sebh/UnrealEngineSkyAtmosphere
+        MIT License
+        Copyright (c) 2020 Epic Games, Inc.
 
-#include "/util/Coords.glsl"
+        You can find full license texts in /licenses
+*/
 #include "Common.glsl"
+#include "/util/CelestialObjects.glsl"
+#include "/util/Coords.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const ivec3 workGroups = ivec3(8, 8, 1);
@@ -27,13 +29,10 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
     params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.001);
 
-    vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
-    vec3 moonRadiance = sunRadiance * MOON_RADIANCE_MUL;
-
     LightParameters sunParams;
-    lightParameters_setup(atmosphere, sunParams, sunRadiance, uval_sunDirWorld, rayDir);
+    lightParameters_setup(atmosphere, sunParams, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
     LightParameters moonParams;
-    lightParameters_setup(atmosphere, moonParams, moonRadiance, uval_moonDirWorld, rayDir);
+    lightParameters_setup(atmosphere, moonParams, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
 
     params.steps = SETTING_SKY_SAMPLES;
 

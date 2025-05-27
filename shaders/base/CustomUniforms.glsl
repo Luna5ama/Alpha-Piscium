@@ -1,7 +1,3 @@
-uniform float uval_sunRadius;
-uniform float uval_sunDistance;
-uniform float uval_sunAngularRadius;
-uniform float uval_sunOmega;
 uniform vec2 uval_rtwsmMin;
 
 uniform vec3 uval_sunDirView;

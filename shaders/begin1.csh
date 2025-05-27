@@ -59,13 +59,6 @@ void main() {
         gbufferProjectionJitter = projectionJitter;
         gbufferProjectionJitterInverse = inverse(projectionJitter);
 
-        #ifdef SETTING_REAL_SUN_TEMPERATURE
-        vec4 sunRadiance = colors_blackBodyRadiation(5772, uval_sunOmega);
-        #else
-        vec4 sunRadiance = colors_blackBodyRadiation(SETTING_SUN_TEMPERATURE, uval_sunOmega);
-        #endif
-        global_sunRadiance = max(sunRadiance, 0.0);
-
         ivec2 mainImageSize = imageSize(uimg_main);
         global_mainImageSizeI = mainImageSize;
         global_mainImageSize = vec2(mainImageSize);

@@ -1,23 +1,25 @@
-// References:
-//     [BRU08] Bruneton, Eric. "Precomputed Atmospheric Scattering". EGSR 2008.
-//         https://hal.inria.fr/inria-00290084/document
-//     [HIL20] Hillaire, Sébastien. "A Scalable and Production Ready Sky and Atmosphere Rendering Technique".
-//         EGSR 2020. https://sebh.github.io/publications/egsr2020.pdf
-//     [YUS13] Yusov, Egor. “Practical Implementation of Light Scattering Effects Using Epipolar Sampling and
-//         1D Min/Max Binary Trees”. GDC 2013.
-//         http://gdcvault.com/play/1018227/Practical-Implementation-of-Light-Scattering
-//
-// Contains code adopted from:
-// https://github.com/GameTechDev/OutdoorLightScattering
-// Apache License 2.0
-// Copyright (c) 2017 Intel Corporation
-//
-// Contains code adopted from:
-// https://github.com/sebh/UnrealEngineSkyAtmosphere
-// MIT License
-// Copyright (c) 2020 Epic Games, Inc.
-//
-// You can find full license texts in /licenses
+/*
+    References:
+        [BRU08] Bruneton, Eric. "Precomputed Atmospheric Scattering". EGSR 2008. 2008.
+            https://hal.inria.fr/inria-00290084/document
+        [HIL20] Hillaire, Sébastien. "A Scalable and Production Ready Sky and Atmosphere Rendering Technique".
+            EGSR 2020. 2020.
+            https://sebh.github.io/publications/egsr2020.pdf
+        [YUS13] Yusov, Egor. “Practical Implementation of Light Scattering Effects Using Epipolar Sampling and
+            1D Min/Max Binary Trees”. GDC 2013. 2013.
+            http://gdcvault.com/play/1018227/Practical-Implementation-of-Light-Scattering
+
+    Contains code adopted from:
+        https://github.com/GameTechDev/OutdoorLightScattering
+        Apache License 2.0
+        Copyright (c) 2017 Intel Corporation
+
+        https://github.com/sebh/UnrealEngineSkyAtmosphere
+        MIT License
+        Copyright (c) 2020 Epic Games, Inc.
+
+        You can find full license texts in /licenses
+*/
 #ifndef INCLUDE_atmosphere_Common_glsl
 #define INCLUDE_atmosphere_Common_glsl a
 
@@ -261,11 +263,11 @@ struct LightParameters {
     float cosZenith;
     float rayleighPhase;
     float miePhase;
-    vec3 radiance;
+    vec3 irradiance;
 };
 
-void lightParameters_setup(AtmosphereParameters atmosphere, out LightParameters lightParams, vec3 radiance, vec3 lightDir, vec3 rayDir) {
-    lightParams.radiance = radiance;
+void lightParameters_setup(AtmosphereParameters atmosphere, out LightParameters lightParams, vec3 irradiance, vec3 lightDir, vec3 rayDir) {
+    lightParams.irradiance = irradiance * PI;
     lightParams.cosZenith = dot(lightDir, vec3(0.0, 1.0, 0.0));
     float cosLightTheta = -dot(rayDir, lightDir);
     lightParams.rayleighPhase = rayleighPhase(cosLightTheta);
@@ -386,7 +388,7 @@ AtmosphereParameters atmosphere, RaymarchParameters params, LightParameters sunP
 
             // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
             vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-            totalInSctr += tSampleToOrigin * sampleInSctrInt * sunParams.radiance;
+            totalInSctr += tSampleToOrigin * sampleInSctrInt * sunParams.irradiance;
         }
 
         {
@@ -397,7 +399,7 @@ AtmosphereParameters atmosphere, RaymarchParameters params, LightParameters sunP
             sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
 
             vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-            totalInSctr += tSampleToOrigin * sampleInSctrInt * moonParams.radiance;
+            totalInSctr += tSampleToOrigin * sampleInSctrInt * moonParams.irradiance;
         }
 
         tSampleToOrigin *= sampleTransmittance;

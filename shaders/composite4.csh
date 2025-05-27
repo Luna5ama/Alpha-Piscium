@@ -2,6 +2,7 @@
 
 #extension GL_KHR_shader_subgroup_basic : enable
 
+#include "/util/CelestialObjects.glsl"
 #include "/util/BitPacking.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/Morton.glsl"
@@ -34,7 +35,6 @@ void doLighting(Material material, vec3 N, inout vec3 directDiffuseOut, inout ve
     vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(lighting_viewCoord, 1.0)).xyz;
     vec3 worldPos = feetPlayerPos + cameraPosition;
     float viewAltitude = atmosphere_height(atmosphere, worldPos);
-    vec3 sunRadiance = global_sunRadiance.rgb * global_sunRadiance.a;
 
     vec3 shadow = texelFetch(usam_temp5, texelPos, 0).rgb;
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
@@ -42,13 +42,13 @@ void doLighting(Material material, vec3 N, inout vec3 directDiffuseOut, inout ve
     float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
     vec3 tSun = sampleTransmittanceLUT(atmosphere, cosSunZenith, viewAltitude);
     vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
-    vec4 sunIrradiance = vec4(sunRadiance * tSun * sunShadow, colors_srgbLuma(sunShadow));
+    vec4 sunIrradiance = vec4(SUN_ILLUMINANCE * tSun * sunShadow, colors_srgbLuma(sunShadow));
     LightingResult sunLighting = directLighting(material, sunIrradiance, uval_sunDirView, N);
 
     float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
     vec3 tMoon = sampleTransmittanceLUT(atmosphere, cosMoonZenith, viewAltitude);
     vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
-    vec4 moonIrradiance = vec4(sunRadiance * MOON_RADIANCE_MUL * tMoon * moonShadow, colors_srgbLuma(moonShadow));
+    vec4 moonIrradiance = vec4(MOON_ILLUMINANCE * tMoon * moonShadow, colors_srgbLuma(moonShadow));
     LightingResult moonLighting = directLighting(material, moonIrradiance, uval_moonDirView, N);
 
     LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
@@ -95,9 +95,10 @@ void main() {
             vec4 ssgiOut = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
 
             if (gData.materialID == 65534u) {
-                mainOut = vec4(material.albedo, 1.0);
+                mainOut = vec4(material.albedo * 0.01, 2.0);
             } else {
                 doLighting(material, gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
+                mainOut.a += gData.pbrSpecular.a * 8.0;
             }
 
             uint packedGeometryNormal = packSnorm3x10(gData.geometryNormal);

@@ -19,7 +19,6 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     mat4 gbufferProjectionJitterInverse;
     mat4 gbufferPrevProjectionJitter;
     mat4 gbufferPrevProjectionJitterInverse;
-    vec4 global_sunRadiance;
     vec4 global_exposure;
     vec3 global_prevCameraDelta;
     vec2 global_taaJitter;
@@ -43,4 +42,3 @@ layout(std430, binding = 1) GLOBAL_DATA_MODIFIER buffer IndirectComputeData {
 };
 
 const vec2 SHADOW_MAP_SIZE = vec2(float(shadowMapResolution), 1.0 / float(shadowMapResolution));
-const vec3 MOON_RADIANCE_MUL = 0.002 * vec3(0.8, 0.9, 1.0);

@@ -1,9 +1,11 @@
-// Contains code adopted from:
-// https://iolite-engine.com/blog_posts/minimal_agx_implementation
-// MIT License
-// Copyright (c) 2024 Missing Deadlines (Benjamin Wrensch)
-//
-// You can find full license texts in /licenses
+/*
+    Contains code adopted from:
+        https://iolite-engine.com/blog_posts/minimal_agx_implementation
+        MIT License
+        Copyright (c) 2024 Missing Deadlines (Benjamin Wrensch)
+
+        You can find full license texts in /licenses
+*/
 
 // All values used to derive this implementation are sourced from Troy’s initial AgX implementation/OCIO config file available here:
 //   https://github.com/sobotka/AgX

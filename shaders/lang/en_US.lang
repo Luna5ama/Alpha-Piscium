@@ -37,7 +37,7 @@ option.SETTING_SUN_TEMPERATURE=Sun Temperature
 option.SETTING_SUN_TEMPERATURE.comment=Temperature of sun in K (kelvin). Affects the color and intensity of sunlight.
 option.SETTING_SUN_TEMPERATURE.suffix= K
 option.SETTING_FIRE_TEMPERATURE=Fire Temperature
-option.SETTING_FIRE_TEMPERATURE.comment=Temperature of fire in K (kelvin). The default value 1600 K is based on real life average.
+option.SETTING_FIRE_TEMPERATURE.comment=Temperature of fire in K (kelvin). The default value 1500 K is based on real life average.
 option.SETTING_LAVA_TEMPERATURE=Lava Temperature
 option.SETTING_LAVA_TEMPERATURE.comment=Temperature of lava in K (kelvin). The default value 1400 K is based on real life average.
 option.SETTING_EMISSIVE_STRENGTH=Emissive Strength
@@ -122,6 +122,8 @@ option.SETTING_DENOISER_FILTER_COLOR_WEIGHT=Filter Color Weight
 option.SETTING_DENOISER_FILTER_COLOR_WEIGHT.comment=Smaller value generally leads to less noisy but more blurry result.
 option.SETTING_NORMAL_MAPPING=Normal Mapping
 option.SETTING_NORMAL_MAPPING_STRENGTH=Normal Mapping Strength
+option.SETTING_SPECULAR_MINIMUM_F0_FACTOR=Specular Minimum F0 Factor
+option.SETTING_SPECULAR_MINIMUM_F0_FACTOR.comment=The actual value is calculated as 2^-x, where x is this setting value.
 option.SETTING_ATM_ALT_SCALE=Atmosphere Altitude Scale
 option.SETTING_ATM_ALT_SCALE.comment=Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on.
 option.SETTING_ATM_D_SCALE=Atmosphere Distance Scale

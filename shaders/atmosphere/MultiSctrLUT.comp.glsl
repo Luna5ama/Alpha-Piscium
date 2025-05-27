@@ -1,9 +1,11 @@
-// Contains code adopted from:
-// https://github.com/sebh/UnrealEngineSkyAtmosphere
-// MIT License
-// Copyright (c) 2020 Epic Games, Inc.
-//
-// You can find full license texts in /licenses
+/*
+    Contains code adopted from:
+        https://github.com/sebh/UnrealEngineSkyAtmosphere
+        MIT License
+        Copyright (c) 2020 Epic Games, Inc.
+
+        You can find full license texts in /licenses
+*/
 #include "/util/Rand.glsl"
 #include "Common.glsl"
 

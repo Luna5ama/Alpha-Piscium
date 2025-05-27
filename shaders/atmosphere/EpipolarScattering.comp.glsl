@@ -1,13 +1,15 @@
-// Contains code adopted from:
-// https://github.com/sebh/UnrealEngineSkyAtmosphere
-// MIT License
-// Copyright (c) 2020 Epic Games, Inc.
-//
-// https://github.com/GameTechDev/OutdoorLightScattering
-// Apache License 2.0
-// Copyright (c) 2017 Intel Corporation
-//
-// You can find full license texts in /licenses
+/*
+    Contains code adopted from:
+        https://github.com/GameTechDev/OutdoorLightScattering
+        Apache License 2.0
+        Copyright (c) 2017 Intel Corporation
+
+        https://github.com/sebh/UnrealEngineSkyAtmosphere
+        MIT License
+        Copyright (c) 2020 Epic Games, Inc.
+
+        You can find full license texts in /licenses
+*/
 #include "Common.glsl"
 #include "Scattering.glsl"
 #include "/rtwsm/RTWSM.glsl"

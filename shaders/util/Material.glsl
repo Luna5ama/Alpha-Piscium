@@ -1,8 +1,9 @@
 #ifndef INCLUDE_util_Material_glsl
 #define INCLUDE_util_Material_glsl a
+#include "BlackBody.glsl"
+#include "Colors.glsl"
 #include "GBufferData.glsl"
 #include "Math.glsl"
-#include "Colors.glsl"
 #include "Rand.glsl"
 
 struct Material {
@@ -15,6 +16,10 @@ struct Material {
     float sss;
 };
 
+const float _MATERIAL_F0_EPSILON = exp2(-SETTING_SPECULAR_MINIMUM_F0_FACTOR);
+const float _MATERIAL_LAVA_LUMINANCE = colors_srgbLuma(blackBody_evalRadiance(SETTING_LAVA_TEMPERATURE));
+const float _MATERIAL_FIRE_LUMINANCE = colors_srgbLuma(blackBody_evalRadiance(SETTING_FIRE_TEMPERATURE));
+
 Material material_decode(GBufferData gData) {
     Material material;
 
@@ -22,8 +27,11 @@ Material material_decode(GBufferData gData) {
 
     material.roughness = 1.0 - gData.pbrSpecular.r;
     material.roughness *= material.roughness;
-    material.roughness = max(material.roughness, 0.01);
+    material.roughness = clamp(material.roughness, 0.01, 0.99);
     material.f0 = gData.pbrSpecular.g;
+    #if SETTING_SPECULAR_MINIMUM_F0_FACTOR > 0
+    material.f0 = max(material.f0, _MATERIAL_F0_EPSILON);
+    #endif
     material.metallic = float(material.f0 >= (229.5 / 255.0));
 
     float emissivePBR = pow(gData.pbrSpecular.a, SETTING_EMISSIVE_PBR_VALUE_CURVE);
@@ -31,9 +39,9 @@ Material material_decode(GBufferData gData) {
     float albedoLuminanceAlternative = dot(material.albedo, (vec3(0.33) + vec3(0.2126, 0.7152, 0.0722)) * 0.5);
     vec4 emissiveAlbedo = pow(vec4(material.albedo, albedoLuminanceAlternative), emissiveAlbedoCurve);
 
-    float emissiveValue = emissivePBR * 64.0;
-    emissiveValue = gData.materialID == 1u ? colors_blackBodyRadiation(SETTING_LAVA_TEMPERATURE, 1.0).a : emissiveValue;
-    emissiveValue = gData.materialID == 2u ? colors_blackBodyRadiation(SETTING_FIRE_TEMPERATURE, 1.0).a : emissiveValue;
+    float emissiveValue = emissivePBR * 0.2;
+    emissiveValue = gData.materialID == 1u ? _MATERIAL_LAVA_LUMINANCE : emissiveValue;
+    emissiveValue = gData.materialID == 2u ? _MATERIAL_FIRE_LUMINANCE : emissiveValue;
     emissiveValue *= SETTING_EMISSIVE_STRENGTH;
 
     material.emissive = emissiveValue * emissiveAlbedo.a * emissiveAlbedo.rgb;
