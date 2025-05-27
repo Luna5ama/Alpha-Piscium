@@ -17,6 +17,8 @@ struct Material {
 };
 
 const float _MATERIAL_F0_EPSILON = exp2(-SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR);
+const float _MATERIAL_MINIMUM_ROUGHNESS = exp2(-SETTING_SPECULAR_MAPPING_MINIMUM_ROUGHNESS_FACTOR);
+const float _MATERIAL_MAXIMUM_ROUGHNESS = 1.0 - exp2(-SETTING_SPECULAR_MAPPING_MAXIMUM_ROUGHNESS_FACTOR);
 const float _MATERIAL_LAVA_LUMINANCE = colors_srgbLuma(blackBody_evalRadiance(SETTING_LAVA_TEMPERATURE));
 const float _MATERIAL_FIRE_LUMINANCE = colors_srgbLuma(blackBody_evalRadiance(SETTING_FIRE_TEMPERATURE));
 
@@ -27,7 +29,7 @@ Material material_decode(GBufferData gData) {
 
     material.roughness = 1.0 - gData.pbrSpecular.r;
     material.roughness *= material.roughness;
-    material.roughness = clamp(material.roughness, 0.01, 0.99);
+    material.roughness = clamp(material.roughness, _MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS);
     material.f0 = gData.pbrSpecular.g;
     #if SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR > 0
     material.f0 = max(material.f0, _MATERIAL_F0_EPSILON);

@@ -558,10 +558,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR", 10, 1..32) {
+                slider("SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR", 12, 4..32) {
                     lang {
                         name = "Specular Mapping Minimum F0 Factor"
                         comment = "The actual value is calculated as 2^-x, where x is this setting value."
+                    }
+                }
+                slider("SETTING_SPECULAR_MAPPING_MINIMUM_ROUGHNESS_FACTOR", 6, 4..16) {
+                    lang {
+                        name = "Specular Mapping Minimum Roughness Factor"
+                        comment = "The actual value is calculated as 2^-x, where x is this setting value."
+                    }
+                }
+                slider("SETTING_SPECULAR_MAPPING_MAXIMUM_ROUGHNESS_FACTOR", 5, 2..16) {
+                    lang {
+                        name = "Specular Mapping Maximum Roughness Factor"
+                        comment = "The actual value is calculated as 1 - 2^-x, where x is this setting value."
+                    }
+                }
+                slider("SETTING_MAXIMUM_SPECULAR_LUMINANCE", 65536, powerOfTwoRange(8..24)) {
+                    lang {
+                        name = "Maximum Specular Luminance"
+                        comment = "Maximum luminance of specular highlights in unit of 1000 cd/m^2."
                     }
                 }
                 empty()

@@ -1,3 +1,4 @@
+#include "/util/CelestialObjects.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Material.glsl"
 #include "/util/GBufferData.glsl"
@@ -93,6 +94,7 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N
     result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb;
 
     result.specular = irradiance.rgb * fresnel * bsdf_ggx(material, NDotL, NDotV, NDotH);
+    result.specular = min(result.specular, SETTING_MAXIMUM_SPECULAR_LUMINANCE);
 
     return result;
 }
