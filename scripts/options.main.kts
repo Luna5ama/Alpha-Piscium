@@ -426,9 +426,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             lang {
                 name = "Lighting"
             }
-            screen("SUNLIGHT", 1) {
+            screen("SUN_MOON", 1) {
                 lang {
-                    name = "Sunlight"
+                    name = "Sun & Moon"
                 }
                 slider("SETTING_SUN_RADIUS", 1.0, (-7..10).map { 2.0.pow(it) }) {
                     lang {
@@ -452,7 +452,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         suffix = " °"
                     }
                 }
-                empty()
                 toggle("SETTING_REAL_SUN_TEMPERATURE", true) {
                     lang {
                         name = "Use Real Sun Temperature"
@@ -466,23 +465,58 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         suffix = " K"
                     }
                 }
+                empty()
+                slider("SETTING_MOON_RADIUS", 1.0, (-7..10).map { 2.0.pow(it) }) {
+                    lang {
+                        name = "Moon Radius"
+                        comment = "Radius of moon relative to real moon radius of 1737.4 km."
+                        suffix = " R"
+                    }
+                }
+                slider("SETTING_MOON_DISTANCE", 1.0, (-7..10).map { 2.0.pow(it) }) {
+                    lang {
+                        name = "Moon Distance"
+                        comment = "Distance relative to real moon distance of 384399."
+                        suffix = " D"
+                    }
+                }
+                slider("SETTING_MOON_ALBEDO", 0.12, 0.01..1.0 step 0.01) {
+                    lang {
+                        name = "Moon Albedo"
+                    }
+                }
+                slider("SETTING_MOON_COLOR_R", 0.8, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Moon Color Red"
+                    }
+                }
+                slider("SETTING_MOON_COLOR_G", 0.9, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Moon Color Green"
+                    }
+                }
+                slider("SETTING_MOON_COLOR_B", 1.0, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Moon Color Blue"
+                    }
+                }
             }
             screen("BLOCKLIGHT", 1) {
                 lang {
                     name = "Blocklight"
                 }
-                slider("SETTING_FIRE_TEMPERATURE", 1500, 100..5000 step 100) {
+                slider("SETTING_FIRE_TEMPERATURE", 1400, 100..5000 step 100) {
                     lang {
                         name = "Fire Temperature"
                         comment =
-                            "Temperature of fire in K (kelvin). The default value 1500 K is based on real life average."
+                            "Temperature of fire in K (kelvin). The default value 1400 K is based on real life average."
                     }
                 }
-                slider("SETTING_LAVA_TEMPERATURE", 1200, 100..5000 step 100) {
+                slider("SETTING_LAVA_TEMPERATURE", 1300, 100..5000 step 100) {
                     lang {
                         name = "Lava Temperature"
                         comment =
-                            "Temperature of lava in K (kelvin). The default value 1400 K is based on real life average."
+                            "Temperature of lava in K (kelvin). The default value 1300 K is based on real life average."
                     }
                 }
                 slider("SETTING_EMISSIVE_STRENGTH", 1.0, 0.0..2.0 step 0.01) {
@@ -509,6 +543,60 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             }
             empty()
             empty()
+            screen("PBR", 1) {
+                lang {
+                    name = "PBR Settings"
+                }
+                toggle("SETTING_NORMAL_MAPPING", true) {
+                    lang {
+                        name = "Normal Mapping"
+                    }
+                }
+                slider("SETTING_NORMAL_MAPPING_STRENGTH", 0.5, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Normal Mapping Strength"
+                    }
+                }
+                empty()
+                slider("SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR", 10, 1..32) {
+                    lang {
+                        name = "Specular Mapping Minimum F0 Factor"
+                        comment = "The actual value is calculated as 2^-x, where x is this setting value."
+                    }
+                }
+                empty()
+                slider("SETTING_SSS_STRENGTH", 1.2, 0.0..5.0 step 0.1) {
+                    lang {
+                        name = "SSS Strength"
+                    }
+                }
+                slider("SETTING_SSS_HIGHLIGHT", 0.8, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "SSS Highlight"
+                    }
+                }
+                slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
+                    lang {
+                        name = "SSS Scatter Factor"
+                    }
+                }
+                empty()
+                slider("SETTING_SSS_DIFFUSE_RANGE", 0.3, 0.0..4.0 step 0.1) {
+                    lang {
+                        name = "SSS Diffuse Range"
+                    }
+                }
+                slider("SETTING_SSS_DEPTH_RANGE", 0.6, 0.0..4.0 step 0.1) {
+                    lang {
+                        name = "SSS Depth Range"
+                    }
+                }
+                slider("SETTING_SSS_MAX_DEPTH_RANGE", 0.9, 0.0..4.0 step 0.1) {
+                    lang {
+                        name = "SSS Max Depth Range"
+                    }
+                }
+            }
             screen("SHADOW", 2) {
                 lang {
                     name = "Shadow"
@@ -642,43 +730,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             comment =
                                 "The penumbra factor is multiplied by the sun angular radius to determine the penumbra size. Noted that the sun angular radius is affected by the sun radius and distance settings."
                         }
-                    }
-                }
-            }
-            screen("SSS", 1) {
-                lang {
-                    name = "Subsurface Scattering"
-                    comment = "Subsurface Scattering settings"
-                }
-                slider("SETTING_SSS_STRENGTH", 1.2, 0.0..5.0 step 0.1) {
-                    lang {
-                        name = "Strength"
-                    }
-                }
-                slider("SETTING_SSS_HIGHLIGHT", 0.6, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Highlight"
-                    }
-                }
-                slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
-                    lang {
-                        name = "Scatter Factor"
-                    }
-                }
-                empty()
-                slider("SETTING_SSS_DIFFUSE_RANGE", 0.3, 0.0..4.0 step 0.1) {
-                    lang {
-                        name = "Diffuse Range"
-                    }
-                }
-                slider("SETTING_SSS_DEPTH_RANGE", 0.6, 0.0..4.0 step 0.1) {
-                    lang {
-                        name = "Depth Range"
-                    }
-                }
-                slider("SETTING_SSS_MAX_DEPTH_RANGE", 0.9, 0.0..4.0 step 0.1) {
-                    lang {
-                        name = "Max Depth Range"
                     }
                 }
             }
@@ -853,29 +904,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Filter Color Weight"
                         comment = "Smaller value generally leads to less noisy but more blurry result."
                     }
-                }
-            }
-        }
-        screen("Material", 1) {
-            lang {
-                name = "Material"
-                comment = "Material settings"
-            }
-            toggle("SETTING_NORMAL_MAPPING", true) {
-                lang {
-                    name = "Normal Mapping"
-                }
-            }
-            slider("SETTING_NORMAL_MAPPING_STRENGTH", 0.5, 0.0..1.0 step 0.01) {
-                lang {
-                    name = "Normal Mapping Strength"
-                }
-            }
-            empty()
-            slider("SETTING_SPECULAR_MINIMUM_F0_FACTOR", 12, 1..32) {
-                lang {
-                    name = "Specular Minimum F0 Factor"
-                    comment = "The actual value is calculated as 2^-x, where x is this setting value."
                 }
             }
         }

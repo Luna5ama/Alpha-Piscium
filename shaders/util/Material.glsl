@@ -16,7 +16,7 @@ struct Material {
     float sss;
 };
 
-const float _MATERIAL_F0_EPSILON = exp2(-SETTING_SPECULAR_MINIMUM_F0_FACTOR);
+const float _MATERIAL_F0_EPSILON = exp2(-SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR);
 const float _MATERIAL_LAVA_LUMINANCE = colors_srgbLuma(blackBody_evalRadiance(SETTING_LAVA_TEMPERATURE));
 const float _MATERIAL_FIRE_LUMINANCE = colors_srgbLuma(blackBody_evalRadiance(SETTING_FIRE_TEMPERATURE));
 
@@ -29,7 +29,7 @@ Material material_decode(GBufferData gData) {
     material.roughness *= material.roughness;
     material.roughness = clamp(material.roughness, 0.01, 0.99);
     material.f0 = gData.pbrSpecular.g;
-    #if SETTING_SPECULAR_MINIMUM_F0_FACTOR > 0
+    #if SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR > 0
     material.f0 = max(material.f0, _MATERIAL_F0_EPSILON);
     #endif
     material.metallic = float(material.f0 >= (229.5 / 255.0));
