@@ -141,23 +141,22 @@ void toneMapping_apply(inout vec4 outputColor) {
     }
 
     {
-        float lumimance = colors_srgbLuma(applyAgx(outputColor.rgb * global_exposure.x));
+        float lumimance = colors_srgbLuma(applyAgx(outputColor.rgb * exp2(global_exposure.x)));
         uint binIndexAvg = histoIndex(lumimance, 1.0, 256);
         float noise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
         atomicAdd(shared_lumHistogram[binIndexAvg], uint(outputColor.a + noise));
     }
 
     {
-        float lumimance = colors_srgbLuma(applyAgx(outputColor.rgb * global_exposure.y));
-        uint binIndexTop = histoIndex(lumimance, SETTING_EXPOSURE_TOP_BIN_LUM, 4);
-        float topBinV = float(binIndexTop == 3u) * outputColor.a;
+        float lumimance = colors_srgbLuma(applyAgx(outputColor.rgb * exp2(global_exposure.y)));
+        float topBinV = float(lumimance > SETTING_EXPOSURE_TOP_BIN_LUM) * outputColor.a;
         float topBinSum = subgroupAdd(topBinV);
         if (subgroupElect()) {
             shared_topBinSum[gl_SubgroupID] = topBinSum;
         }
     }
 
-    outputColor.rgb = applyAgx(outputColor.rgb * global_exposure.w);
+    outputColor.rgb = applyAgx(outputColor.rgb * exp2(global_exposure.w));
     outputColor.rgb = pow(outputColor.rgb, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
 
     barrier();

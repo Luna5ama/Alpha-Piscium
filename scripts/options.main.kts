@@ -1034,42 +1034,45 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Auto Exposure Max EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_CURVE", 1.25, 0.1..2.0 step 0.01) {
-                    lang {
-                        name = "Auto Exposure Curve"
-                    }
-                }
                 empty()
-                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.5, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Average Luminance Weight"
-                        comment = "Weight of average luminance AE in the final exposure value."
-                    }
-                }
-                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 3.0, 0.0..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 3.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Average Luminance AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TARGET", 0.6, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 0.06, 0.0..1.0 step 0.01) {
                     lang {
-                        name = "Average Luminance Target"
-                        comment = "Target average luminance value for average luminance EXPOSURE."
+                        name = "Minimum Average Luminance Target"
+                        comment = "Target average luminance value for dark scene such as caves, indoors, and nighttime."
+                    }
+                }
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 0.25, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Maximum Average Luminance Target"
+                        comment = "Target average luminance value for bright scene such as daytime outdoors."
+                    }
+                }
+                slider("SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE", 2.0, (0.01..1.0 step 0.01) + (1.1..4.0 step 0.1)) {
+                    lang {
+                        name = "Average Luminance Target Curve"
+                        comment = "Curve for average luminance target. " +
+                            "Usually affects scene with medium brightness such as sunset/sunrise. " +
+                            "Smaller value will make those scenes darker."
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_TOP_BIN_MIX", 1.0, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_TOP_BIN_MIX", 0.5, 0.0..1.0 step 0.01) {
                     lang {
                         name = "Top Bin Weight"
                         comment = "Weight of top bin AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_TIME", 1.5, 0.0..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_TOP_BIN_TIME", 2.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Top Bin AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_LUM", 0.95, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_TOP_BIN_LUM", 0.75, 0.0..1.0 step 0.01) {
                     lang {
                         name = "Top Bin Luminance"
                         comment = "Luminance threshold for top bin."
