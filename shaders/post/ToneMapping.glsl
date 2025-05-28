@@ -168,8 +168,8 @@ void toneMapping_apply(inout vec4 outputColor) {
         float weightSum = subgroupAdd(weightV);
         if (subgroupElect()) {
             float noise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
-            atomicAdd(global_lumHistogram[256], uint(topBinSum + noise));
-            atomicAdd(global_lumHistogram[257], uint(weightSum + noise));
+            atomicAdd(global_lumHistogramTopBinSum, uint(topBinSum + noise));
+            atomicAdd(global_lumHistogramWeightSum, uint(weightSum + noise));
         }
     }
 

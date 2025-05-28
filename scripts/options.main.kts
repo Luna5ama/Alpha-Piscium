@@ -1326,15 +1326,20 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     lang {
                         name = "Environment Probe"
                     }
-                    toggle("SETTING_DEBUG_ATMOSPHERE", false) {
-                        lang {
-                            name = "Atmosphere"
-                        }
+                }
+                toggle("SETTING_DEBUG_ATMOSPHERE", false) {
+                    lang {
+                        name = "Atmosphere"
                     }
-                    toggle("SETTING_DEBUG_EPIPOLAR", false) {
-                        lang {
-                            name = "Epipolar"
-                        }
+                }
+                toggle("SETTING_DEBUG_EPIPOLAR", false) {
+                    lang {
+                        name = "Epipolar"
+                    }
+                }
+                toggle("SETTING_DEBUG_HISTOGRAM", false) {
+                    lang {
+                        name = "Histogram"
                     }
                 }
             }

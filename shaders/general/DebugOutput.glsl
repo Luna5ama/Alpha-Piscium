@@ -310,4 +310,19 @@ void debugOutput(inout vec4 outputColor) {
         outputColor.rgb = gammaCorrect(outputColor.rgb);
     }
     #endif
+
+    #ifdef SETTING_DEBUG_HISTOGRAM
+    if (inViewPort(ivec4(0, 0, 1024, 256), debugTexCoord)) {
+
+        uint binIndex = min(uint(debugTexCoord.x * 256.0), 255u);
+        float binCount = float(global_lumHistogram[binIndex]);
+        float maxBinCount = float(global_lumHistogramMaxBinCount);
+        float percentage = saturate(binCount / maxBinCount);
+        if (debugTexCoord.y < percentage) {
+            outputColor.rgb = interpolateTurbo(percentage);
+        } else {
+            outputColor.rgb = vec3(0.25);
+        }
+    }
+    #endif
 }

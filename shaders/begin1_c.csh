@@ -7,28 +7,37 @@
 layout(local_size_x = 256) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 
-shared uint shared_histogram[256];
+shared uint shared_binCountSum[16];
+shared uint shared_maxBinCount[16];
 
 void main() {
-    shared_histogram[gl_LocalInvocationID.x] = 0u;
+    if (gl_LocalInvocationIndex < 16) {
+        shared_binCountSum[gl_LocalInvocationIndex] = 0u;
+        shared_maxBinCount[gl_LocalInvocationIndex] = 0u;
+    }
     barrier();
 
-    float topBin = float(max(global_lumHistogram[256], 1));
+    float topBin = float(max(global_lumHistogramTopBinSum, 1));
     uint binCount = global_lumHistogram[gl_LocalInvocationID.x];
     {
         uint binCountWeighted = binCount * gl_LocalInvocationID.x;
         uint subgroupSum = subgroupAdd(binCountWeighted);
+        uint subgroupMaxV = subgroupMax(binCount);
         if (subgroupElect()) {
-            shared_histogram[gl_SubgroupID] = subgroupSum;
+            shared_binCountSum[gl_SubgroupID] = subgroupSum;
+            shared_maxBinCount[gl_SubgroupID] = subgroupMaxV;
         }
     }
     barrier();
 
-    if (gl_LocalInvocationID.x < gl_NumSubgroups) {
-        uint partialSum = shared_histogram[gl_LocalInvocationID.x];
+    if (gl_SubgroupID == 0 && gl_SubgroupInvocationID < gl_NumSubgroups) {
+        uint partialSum = shared_binCountSum[gl_SubgroupInvocationID];
+        uint partialMaxV = shared_maxBinCount[gl_SubgroupInvocationID];
         uint subgroupSum = subgroupAdd(partialSum);
+        uint subgroupMaxV = subgroupMax(partialMaxV);
         if (subgroupElect()) {
-            shared_histogram[0] = subgroupSum;
+            shared_binCountSum[0] = subgroupSum;
+            global_lumHistogramMaxBinCount = shared_maxBinCount[0];
         }
     }
     barrier();
@@ -36,8 +45,8 @@ void main() {
     global_lumHistogram[gl_LocalInvocationIndex] = 0u;
 
     if (gl_LocalInvocationID.x == 0) {
-        uint histogramCounting = shared_histogram[0];
-        float totalPixel = float(global_lumHistogram[257]);
+        uint histogramCounting = shared_binCountSum[0];
+        float totalPixel = float(global_lumHistogramWeightSum);
 
         float averageBinIndex = float(histogramCounting) / max(totalPixel - global_lumHistogram[0], 1.0);
         float averageLuminance = exp2(averageBinIndex / 255.0) - 1.0;
@@ -79,8 +88,8 @@ void main() {
         global_exposure = expNew;
         #endif
 
-        global_lumHistogram[256] = 0u;
-        global_lumHistogram[257] = 0u;
+        global_lumHistogramWeightSum = 0u;
+        global_lumHistogramTopBinSum = 0u;
     }
 
 }
