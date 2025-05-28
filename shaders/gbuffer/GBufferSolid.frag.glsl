@@ -94,7 +94,7 @@ void processData1() {
     gData.lmCoord = gDataPrev.lmCoord;
     gData.materialID = gDataPrev.materialID;
 
-    float glintEmissive = colors_srgbLuma(albedo.rgb);
+    float glintEmissive = colors_sRGB_luma(albedo.rgb);
     glintEmissive *= 0.1;
     gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + glintEmissive);
 }
@@ -139,7 +139,7 @@ void processData1() {
     #ifdef GBUFFER_PASS_PARTICLE
     gData.materialID = 65533u;
     if (textureQueryLevels(gtexture) == 1) {
-        float particleEmissive = pow2(colors_srgbLuma(albedo.rgb * albedo.rgb));
+        float particleEmissive = pow2(colors_sRGB_luma(albedo.rgb * albedo.rgb));
         gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + particleEmissive);
     }
     #endif

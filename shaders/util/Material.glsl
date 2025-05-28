@@ -19,8 +19,8 @@ struct Material {
 const float _MATERIAL_F0_EPSILON = exp2(-SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR);
 const float _MATERIAL_MINIMUM_ROUGHNESS = exp2(-SETTING_SPECULAR_MAPPING_MINIMUM_ROUGHNESS_FACTOR);
 const float _MATERIAL_MAXIMUM_ROUGHNESS = 1.0 - exp2(-SETTING_SPECULAR_MAPPING_MAXIMUM_ROUGHNESS_FACTOR);
-const float _MATERIAL_LAVA_LUMINANCE = colors_srgbLuma(blackBody_evalRadiance(SETTING_LAVA_TEMPERATURE));
-const float _MATERIAL_FIRE_LUMINANCE = colors_srgbLuma(blackBody_evalRadiance(SETTING_FIRE_TEMPERATURE));
+const float _MATERIAL_LAVA_LUMINANCE = colors_sRGB_luma(blackBody_evalRadiance(SETTING_LAVA_TEMPERATURE));
+const float _MATERIAL_FIRE_LUMINANCE = colors_sRGB_luma(blackBody_evalRadiance(SETTING_FIRE_TEMPERATURE));
 
 Material material_decode(GBufferData gData) {
     Material material;

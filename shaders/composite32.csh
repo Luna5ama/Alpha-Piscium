@@ -26,8 +26,8 @@ void main() {
             GBufferData gData;
             gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
 
-            float albedoLuminance = all(equal(gData.albedo, vec3(0.0))) ? 0.1 : colors_srgbLuma(gData.albedo);
-            float luminanceC = colors_srgbLuma(outputColor.rgb) / albedoLuminance;
+            float albedoLuminance = all(equal(gData.albedo, vec3(0.0))) ? 0.1 : colors_sRGB_luma(gData.albedo);
+            float luminanceC = colors_sRGB_luma(outputColor.rgb) / albedoLuminance;
             outputColor.rgb = mix(outputColor.rgb, translucentColorSample.rgb * luminanceC, translucentColorSample.a);
 
             imageStore(uimg_main, texelPos, outputColor);

@@ -525,7 +525,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EMISSIVE_PBR_VALUE_CURVE", 2.0, 0.1..8.0 step 0.1) {
+                slider("SETTING_EMISSIVE_PBR_VALUE_CURVE", 2.5, 0.1..8.0 step 0.1) {
                     lang {
                         name = "Emissive PBR Value Curve"
                     }
@@ -1024,31 +1024,57 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_MIN_EV", -6.0, -32.0..32.0 step 0.1) {
+                slider("SETTING_EXPOSURE_MIN_EV", -6.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Min EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 10.0, -32.0..32.0 step 0.1) {
+                slider("SETTING_EXPOSURE_MAX_EV", 10.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
                 }
+                slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", 0.1, 0.0..2.0 step 0.01) {
+                    lang {
+                        name = "Emissive Weighting"
+                        comment = "Extra weighting for emissive block pixels."
+                    }
+                }
+                slider("SETTING_EXPOSURE_CENTER_WEIGHTING", 1.0, 0.0..8.0 step 0.1) {
+                    lang {
+                        name = "Center Weighting"
+                        comment = "Weight of center pixels in the exposure calculation. " +
+                            "This value is the extra weight added to the very center pixel."
+                    }
+                }
+                slider("SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE", 2.0, 1.0..8.0 step 0.1) {
+                    lang {
+                        name = "Center Weighting Curve"
+                        comment = "Curve for center weighting. " +
+                            "Larger value will cause it to focus more on the center pixels."
+                    }
+                }
                 empty()
+                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 1.0, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Average Luminance Weight"
+                        comment = "Weight of average luminance AE in the final exposure value."
+                    }
+                }
                 slider("SETTING_EXPOSURE_AVG_LUM_TIME", 3.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Average Luminance AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 0.06, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 51, 0..255) {
                     lang {
-                        name = "Minimum Average Luminance Target"
+                        name = "Average Luminance Minimum Target"
                         comment = "Target average luminance value for dark scene such as caves, indoors, and nighttime."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 0.25, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 118, 0..255) {
                     lang {
-                        name = "Maximum Average Luminance Target"
+                        name = "Average Luminance Maximum Target"
                         comment = "Target average luminance value for bright scene such as daytime outdoors."
                     }
                 }
@@ -1061,18 +1087,18 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_TOP_BIN_MIX", 0.5, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_TOP_BIN_MIX", 1.0, 0.0..1.0 step 0.01) {
                     lang {
                         name = "Top Bin Weight"
                         comment = "Weight of top bin AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_TIME", 2.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_TOP_BIN_TIME", 1.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Top Bin AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_LUM", 0.75, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_TOP_BIN_LUM", 225, 0..255) {
                     lang {
                         name = "Top Bin Luminance"
                         comment = "Luminance threshold for top bin."
@@ -1090,12 +1116,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Tone Mapping"
                 }
-                slider("SETTING_TONE_MAPPING_OUTPUT_GAMMA", 2.2, 0.1..4.0 step 0.01) {
-                    lang {
-                        name = "Output Gamma"
-                    }
-                }
-                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 13.5, 1.0..32.0 step 0.1) {
+                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 12.0, 1.0..32.0 step 0.1) {
                     lang {
                         name = "Dynamic Range"
                     }
@@ -1143,23 +1164,23 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_POWER_R", 0.95, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_R", 0.9, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Power Red"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_POWER_G", 0.95, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_G", 0.9, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Power Green"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_POWER_B", 0.95, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_B", 0.9, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Power Blue"
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_SATURATION", 1.25, 0.0..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SATURATION", 1.3, 0.0..2.0 step 0.01) {
                     lang {
                         name = "Saturation"
                     }

@@ -79,15 +79,15 @@ bool inViewPort(ivec4 originSize, out vec2 texCoord) {
 
 #ifdef SETTING_DEBUG_GAMMA_CORRECT
 float gammaCorrect(float color) {
-    return pow(color, float(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
+    return colors_sRGB_encodeGamma(color);
 }
 
 vec3 gammaCorrect(vec3 color) {
-    return pow(color, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
+    return colors_sRGB_encodeGamma(color);
 }
 
 vec4 gammaCorrect(vec4 color) {
-    return vec4(gammaCorrect(color.rgb), color.a);
+    return vec4(colors_sRGB_encodeGamma(color.rgb), color.a);
 }
 #else
 float gammaCorrect(float color) {
@@ -313,7 +313,6 @@ void debugOutput(inout vec4 outputColor) {
 
     #ifdef SETTING_DEBUG_HISTOGRAM
     if (inViewPort(ivec4(0, 0, 1024, 256), debugTexCoord)) {
-
         uint binIndex = min(uint(debugTexCoord.x * 256.0), 255u);
         float binCount = float(global_lumHistogram[binIndex]);
         float maxBinCount = float(global_lumHistogramMaxBinCount);

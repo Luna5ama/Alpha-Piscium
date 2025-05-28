@@ -10,6 +10,7 @@
 // All values used to derive this implementation are sourced from Troy’s initial AgX implementation/OCIO config file available here:
 //   https://github.com/sobotka/AgX
 
+#include "/util/Colors.glsl"
 #include "/util/Rand.glsl"
 
 shared uint shared_lumHistogram[256];
@@ -141,15 +142,18 @@ void toneMapping_apply(inout vec4 outputColor) {
     }
 
     {
-        float lumimance = colors_srgbLuma(applyAgx(outputColor.rgb * exp2(global_exposure.x)));
-        uint binIndexAvg = histoIndex(lumimance, 1.0, 256);
+        vec3 postColor = colors_sRGB_encodeGamma(applyAgx(outputColor.rgb * exp2(global_exposure.x)));
+        float lumimance = colors_Rec601_luma(saturate(postColor)); // WTF Photoshop
+        uint binIndexAvg = clamp(uint(lumimance * 256.0), 0u, 255u);
         float noise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
         atomicAdd(shared_lumHistogram[binIndexAvg], uint(outputColor.a + noise));
     }
 
     {
-        float lumimance = colors_srgbLuma(applyAgx(outputColor.rgb * exp2(global_exposure.y)));
-        float topBinV = float(lumimance > SETTING_EXPOSURE_TOP_BIN_LUM) * outputColor.a;
+        const float TOP_BIN_LUMA = pow(SETTING_EXPOSURE_TOP_BIN_LUM / 255.0, 2.2);
+        vec3 postColor = colors_sRGB_encodeGamma(applyAgx(outputColor.rgb * exp2(global_exposure.y)));
+        float lumimance = colors_Rec601_luma(postColor);
+        float topBinV = float(lumimance > TOP_BIN_LUMA) * outputColor.a;
         float topBinSum = subgroupAdd(topBinV);
         if (subgroupElect()) {
             shared_topBinSum[gl_SubgroupID] = topBinSum;
@@ -157,7 +161,7 @@ void toneMapping_apply(inout vec4 outputColor) {
     }
 
     outputColor.rgb = applyAgx(outputColor.rgb * exp2(global_exposure.w));
-    outputColor.rgb = pow(outputColor.rgb, vec3(1.0 / SETTING_TONE_MAPPING_OUTPUT_GAMMA));
+    outputColor.rgb = saturate(colors_sRGB_encodeGamma(outputColor.rgb));
 
     barrier();
 

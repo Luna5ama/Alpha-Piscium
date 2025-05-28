@@ -3,8 +3,60 @@
 #include "/_Base.glsl"
 #include "Math.glsl"
 
-float colors_srgbLuma(vec3 color) {
+vec3 colors_Rec601_encodeGamma(vec3 color) {
+    vec3 lower = 4.5 * color;
+    vec3 higher = pow(color, vec3(0.45)) * 1.099 - 0.099;
+    return mix(lower, higher, vec3(greaterThanEqual(color, vec3(0.018))));
+}
+
+vec3 colors_Rec601_decodeGamma(vec3 color) {
+    vec3 lower = color / 4.5;
+    vec3 higher = pow((color + 0.099) / 1.099, vec3(1.0 / 0.45));
+    return mix(lower, higher, vec3(greaterThanEqual(color, vec3(0.081))));
+}
+
+float colors_Rec601_luma(vec3 color) {
+    return dot(color, vec3(0.299, 0.587, 0.114));
+}
+
+vec3 colors_Rec709_encodeGamma(vec3 color) {
+    return colors_Rec601_encodeGamma(color);
+}
+
+vec3 colors_Rec709_decodeGamma(vec3 color) {
+    return colors_Rec601_decodeGamma(color);
+}
+
+float colors_Rec709_luma(vec3 color) {
     return dot(color, vec3(0.2126, 0.7152, 0.0722));
+}
+
+float colors_sRGB_encodeGamma(float color) {
+    float lower = 12.92 * color;
+    float higher = pow(color, 1.0 / 2.4) * 1.055 - 0.055;
+    return mix(lower, higher, color > 0.0031308);
+}
+
+vec3 colors_sRGB_encodeGamma(vec3 color) {
+    vec3 lower = 12.92 * color;
+    vec3 higher = pow(color, vec3(1.0 / 2.4)) * 1.055 - 0.055;
+    return mix(lower, higher, vec3(greaterThan(color, vec3(0.0031308))));
+}
+
+float color_sRGB_decodeGamma(float color) {
+    float lower = color / 12.92;
+    float higher = pow((color + 0.055) / 1.055, 2.4);
+    return mix(lower, higher, color > 0.04045);
+}
+
+vec3 colors_sRGB_decodeGamma(vec3 color) {
+    vec3 lower = color / 12.92;
+    vec3 higher = pow((color + 0.055) / 1.055, vec3(2.4));
+    return mix(lower, higher, vec3(greaterThan(color, vec3(0.04045))));
+}
+
+float colors_sRGB_luma(vec3 color) {
+    return colors_Rec709_luma(color);
 }
 
 vec3 colors_srgbToLinear(vec3 color) {
@@ -19,7 +71,7 @@ vec3 colors_srgbToLinear(vec3 color) {
 }
 
 float colors_karisWeight(vec3 color) {
-    float luma = colors_srgbLuma(color.rgb);
+    float luma = colors_sRGB_luma(color.rgb);
     return 1.0 / (1.0 + luma);
 }
 

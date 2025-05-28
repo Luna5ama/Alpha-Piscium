@@ -42,13 +42,13 @@ void doLighting(Material material, vec3 N, inout vec3 directDiffuseOut, inout ve
     float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
     vec3 tSun = sampleTransmittanceLUT(atmosphere, cosSunZenith, viewAltitude);
     vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
-    vec4 sunIrradiance = vec4(SUN_ILLUMINANCE * tSun * sunShadow, colors_srgbLuma(sunShadow));
+    vec4 sunIrradiance = vec4(SUN_ILLUMINANCE * tSun * sunShadow, colors_sRGB_luma(sunShadow));
     LightingResult sunLighting = directLighting(material, sunIrradiance, uval_sunDirView, N);
 
     float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
     vec3 tMoon = sampleTransmittanceLUT(atmosphere, cosMoonZenith, viewAltitude);
     vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
-    vec4 moonIrradiance = vec4(MOON_ILLUMINANCE * tMoon * moonShadow, colors_srgbLuma(moonShadow));
+    vec4 moonIrradiance = vec4(MOON_ILLUMINANCE * tMoon * moonShadow, colors_sRGB_luma(moonShadow));
     LightingResult moonLighting = directLighting(material, moonIrradiance, uval_moonDirView, N);
 
     LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
@@ -98,7 +98,7 @@ void main() {
                 mainOut = vec4(material.albedo * 0.01, 2.0);
             } else {
                 doLighting(material, gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
-                mainOut.a += gData.pbrSpecular.a * 8.0;
+                mainOut.a += gData.pbrSpecular.a * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
             }
 
             uint packedGeometryNormal = packSnorm3x10(gData.geometryNormal);

@@ -44,8 +44,8 @@ void loadSharedData(uint index) {
         vec3 moment1 = inputColor;
         vec3 moment2 = inputColor * inputColor;
 
-        shared_moments[sharedXY.y][sharedXY.x][0] = vec4(moment1, colors_srgbLuma(directColor));
-        shared_moments[sharedXY.y][sharedXY.x][1] = vec4(moment2, colors_srgbLuma(fastColor));
+        shared_moments[sharedXY.y][sharedXY.x][0] = vec4(moment1, colors_sRGB_luma(directColor));
+        shared_moments[sharedXY.y][sharedXY.x][1] = vec4(moment2, colors_sRGB_luma(fastColor));
     }
 }
 
@@ -236,7 +236,7 @@ void main() {
         prevColorYCoCg = mix(prevColorYCoCg, prevColorYCoCgClamped, clippingWeight);
         vec3 prevColorClamped = colors_YCoCgToSRGB(prevColorYCoCg);
 
-        float moment2Correction = pow2(colors_srgbLuma(prevColorClamped)) - pow2(colors_srgbLuma(prevColor));
+        float moment2Correction = pow2(colors_sRGB_luma(prevColorClamped)) - pow2(colors_sRGB_luma(prevColor));
         prevMoments.y += moment2Correction;
         prevMoments.y = max(prevMoments.y, 0.0);
 

@@ -264,7 +264,7 @@ vec4 bloom_mainOutput(ivec2 texelPos) {
     #if !BLOOM_USE_KARIS_AVERAGE
     result *= 0.6;
     #endif
-    result *= 0.025;
+    result *= 0.015;
     result *= SETTING_BLOOM_INTENSITY;
     return result;
 }

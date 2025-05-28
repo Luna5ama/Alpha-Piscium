@@ -37,7 +37,7 @@ void main() {
         uint subgroupMaxV = subgroupMax(partialMaxV);
         if (subgroupElect()) {
             shared_binCountSum[0] = subgroupSum;
-            global_lumHistogramMaxBinCount = shared_maxBinCount[0];
+            global_lumHistogramMaxBinCount = subgroupMaxV;
         }
     }
     barrier();
@@ -48,8 +48,8 @@ void main() {
         uint histogramCounting = shared_binCountSum[0];
         float totalPixel = float(global_lumHistogramWeightSum);
 
-        float averageBinIndex = float(histogramCounting) / max(totalPixel - global_lumHistogram[0], 1.0);
-        float averageLuminance = exp2(averageBinIndex / 255.0) - 1.0;
+        float averageBinIndex = (float(histogramCounting) / totalPixel) + 0.5;
+        float averageLuminance = pow(averageBinIndex / 256.0, 2.2);
 
         #ifdef SETTING_EXPOSURE_MANUAL
         global_exposure = vec4(0.0, 0.0, 0.0, SETTING_EXPOSURE_MANUAL_EV);
@@ -62,14 +62,16 @@ void main() {
         const float FRAME_TIME_60FPS_SECS = 1.0 / 60.0;
 
         // Keep the average luminance at SETTING_EXPOSURE_AVG_LUM_TARGET
-        const float MIN_LUM_TARGET = SETTING_EXPOSURE_AVG_LUM_MIN_TARGET;
-        const float MAX_LUM_TARGET = SETTING_EXPOSURE_AVG_LUM_MAX_TARGET;
+        const float MAX_DELTA_AVG_LUM = 0.5;
+        const float MIN_LUM_TARGET = pow(SETTING_EXPOSURE_AVG_LUM_MIN_TARGET / 255.0, 2.2);
+        const float MAX_LUM_TARGET = pow(SETTING_EXPOSURE_AVG_LUM_MAX_TARGET / 255.0, 2.2);
         float lumTargetMixFactor = pow(linearStep(MIN_EXP, MAX_EXP, expLast.w), SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE);
         float lumTarget = mix(MAX_LUM_TARGET, MIN_LUM_TARGET, lumTargetMixFactor);
         expNew.x = log2(lumTarget / averageLuminance);
+        expNew.x = clamp(expNew.x, -MAX_DELTA_AVG_LUM, MAX_DELTA_AVG_LUM);
 
         // Keep top SETTING_EXPOSURE_TOP_PERCENT % of pixels in the top bin
-        const float MAX_DELTA_TOP_BIN = 0.2;
+        const float MAX_DELTA_TOP_BIN = 0.1;
         float top5Percent = totalPixel * SETTING_EXPOSURE_TOP_BIN_PERCENT * 0.01;
         expNew.y = log2(top5Percent / topBin);
         expNew.y = clamp(expNew.y, -MAX_DELTA_TOP_BIN, MAX_DELTA_TOP_BIN);
@@ -79,10 +81,10 @@ void main() {
         expNew.xy = mix(expLast.xy, expNew.xy, exp2(timeFactor));
         expNew.xy = clamp(expNew.xy, MIN_EXP, MAX_EXP);
 
-        expNew.w = mix(expNew.x, min(expNew.x, expNew.y), SETTING_EXPOSURE_TOP_BIN_MIX);
-
-        expNew.w = linearStep(MIN_EXP, MAX_EXP, expNew.w);
-        expNew.w = mix(MIN_EXP, MAX_EXP, expNew.w);
+        const float totalWeight = SETTING_EXPOSURE_TOP_BIN_MIX + SETTING_EXPOSURE_AVG_LUM_MIX;
+        expNew.w = expNew.x * SETTING_EXPOSURE_AVG_LUM_MIX;
+        expNew.w += expNew.y * SETTING_EXPOSURE_TOP_BIN_MIX;
+        expNew.w /= totalWeight;
 
         expNew.z = averageLuminance;// Debug
         global_exposure = expNew;

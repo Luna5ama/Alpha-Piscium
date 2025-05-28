@@ -124,7 +124,7 @@ inout vec4 colorSum, inout float weightSum
         float sampleViewZ;
         loadSharedData(realOffset, sampleColor, sampleNormal, sampleViewZ);
 
-        float sampleLuminance = colors_srgbLuma(sampleColor.rgb);
+        float sampleLuminance = colors_sRGB_luma(sampleColor.rgb);
 
         float weight = 1.0;
         weight *= normalWeight(centerNormal, sampleNormal, atrous_normalWeight);
@@ -158,7 +158,7 @@ vec4 atrous_atrous(ivec2 texelPos) {
 
             vec3 centerColor = centerFilterData.rgb;
             float centerVariance = centerFilterData.a;
-            float centerLuminance = colors_srgbLuma(centerColor);
+            float centerLuminance = colors_sRGB_luma(centerColor);
 
             float sigmaL = 0.001 * SETTING_DENOISER_FILTER_COLOR_WEIGHT;
 

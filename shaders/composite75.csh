@@ -37,6 +37,10 @@ void main() {
         debugOutput(outputColor);
         #endif
 
+        vec2 screenPos = coords_texelToScreen(texelPos, global_mainImageSizeRcp);
+        vec2 ndcPos = screenPos * 2.0 - 1.0;
+        float centerFactor = pow(saturate(1.0 - length(ndcPos)), SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE);
+        outputColor.a *= 1.0 + centerFactor * SETTING_EXPOSURE_CENTER_WEIGHTING;
         toneMapping_apply(outputColor);
 
         #if SETTING_DEBUG_OUTPUT == 2
