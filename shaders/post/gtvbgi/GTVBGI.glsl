@@ -8,6 +8,7 @@
 */
 #include "/general/EnvProbe.glsl"
 #include "/util/Coords.glsl"
+#include "/util/Lighting.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/BSDF.glsl"
 #include "/util/FastMathLib.glsl"
@@ -427,7 +428,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
         float skyLightingBase = SETTING_VBGI_SKYLIGHT_STRENGTH;
         #ifdef SETTING_VBGI_MC_SKYLIGHT_ATTENUATION
         float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, vbgi_texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
-        skyLightingBase *= pow2(lmCoordSky);
+        skyLightingBase *= lighting_skyLightFalloff(lmCoordSky);
         #endif
 
         #if SETTING_VBGI_FALLBACK_SAMPLES == 4

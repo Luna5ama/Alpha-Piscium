@@ -1,4 +1,4 @@
-#include "/_Base.glsl"
+#include "/util/Math.glsl"
 
 #ifdef GBUFFER_PASS_MATERIAL_ID
 in vec2 mc_Entity;
@@ -23,7 +23,9 @@ void main() {
     frag_viewTangent = gl_NormalMatrix * at_tangent.xyz;
     frag_viewNormal = gl_NormalMatrix * gl_Normal.xyz;
     frag_texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-    frag_lmCoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
+    frag_lmCoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
+    frag_lmCoord.x = linearStep(0.0625, 0.96875, frag_lmCoord.x);
+    frag_lmCoord.y = linearStep(0.125, 0.73438, frag_lmCoord.y);
     frag_colorMul = gl_Color;
 
     #ifdef GBUFFER_PASS_MATERIAL_ID
