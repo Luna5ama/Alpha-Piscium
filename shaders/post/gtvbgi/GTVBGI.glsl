@@ -428,6 +428,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
         float skyLightingBase = SETTING_VBGI_SKYLIGHT_STRENGTH;
         #ifdef SETTING_VBGI_MC_SKYLIGHT_ATTENUATION
         float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, vbgi_texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
+        lmCoordSky = mix(1.0, lmCoordSky, pow2(1.0 - linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y))));
         skyLightingBase *= lighting_skyLightFalloff(lmCoordSky);
         #endif
 

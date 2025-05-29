@@ -26,7 +26,7 @@ void main() {
         AtmosphereParameters atmosphere = getAtmosphereParameters();
 
         float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, (texelPos >> 1) + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
-        lmCoordSky = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightness.y)));
+        lmCoordSky = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y)));
         ScatteringResult sctrResult = computeSingleScattering(
             atmosphere,
             vec3(0.0),
