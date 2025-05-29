@@ -316,7 +316,7 @@ void debugOutput(inout vec4 outputColor) {
         uint binIndex = min(uint(debugTexCoord.x * 256.0), 255u);
         float binCount = float(global_lumHistogram[binIndex]);
         float maxBinCount = float(global_lumHistogramMaxBinCount);
-        float percentage = saturate(binCount / maxBinCount);
+        float percentage = (binCount / maxBinCount) * 0.9;
         if (debugTexCoord.y < percentage) {
             outputColor.rgb = interpolateTurbo(percentage);
         } else {

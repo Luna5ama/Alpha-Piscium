@@ -21,8 +21,9 @@ void main() {
     uint binCount = global_lumHistogram[gl_LocalInvocationID.x];
     {
         uint binCountWeighted = binCount * gl_LocalInvocationID.x;
+        uint binCountMaxV = gl_LocalInvocationIndex.x != 255 ? binCount : 0u;
         uint subgroupSum = subgroupAdd(binCountWeighted);
-        uint subgroupMaxV = subgroupMax(binCount);
+        uint subgroupMaxV = subgroupMax(binCountMaxV);
         if (subgroupElect()) {
             shared_binCountSum[gl_SubgroupID] = subgroupSum;
             shared_maxBinCount[gl_SubgroupID] = subgroupMaxV;
