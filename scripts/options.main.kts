@@ -1051,14 +1051,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Extra weighting for emissive block pixels."
                     }
                 }
-                slider("SETTING_EXPOSURE_CENTER_WEIGHTING", 1.0, 0.0..8.0 step 0.1) {
+                slider("SETTING_EXPOSURE_CENTER_WEIGHTING", 2.0, 0.0..8.0 step 0.1) {
                     lang {
                         name = "Center Weighting"
                         comment = "Weight of center pixels in the exposure calculation. " +
                             "This value is the extra weight added to the very center pixel."
                     }
                 }
-                slider("SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE", 2.0, 1.0..8.0 step 0.1) {
+                slider("SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE", 3.0, 1.0..8.0 step 0.1) {
                     lang {
                         name = "Center Weighting Curve"
                         comment = "Curve for center weighting. " +
@@ -1072,7 +1072,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Weight of average luminance AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 3.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 4.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Average Luminance AE Time"
                     }
@@ -1083,7 +1083,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Target average luminance value for dark scene such as caves, indoors, and nighttime."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 118, 0..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 94, 0..255) {
                     lang {
                         name = "Average Luminance Maximum Target"
                         comment = "Target average luminance value for bright scene such as daytime outdoors."
@@ -1098,28 +1098,39 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_TOP_BIN_MIX", 1.0, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_HS_MIX", 1.0, 0.0..1.0 step 0.01) {
                     lang {
-                        name = "Top Bin Weight"
-                        comment = "Weight of top bin AE in the final exposure value."
+                        name = "Highlight/Shadow Weight"
+                        comment = "Weight of highlight/shadow based AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_TIME", 1.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_HS_TIME", 2.0, 0.0..10.0 step 0.1) {
                     lang {
-                        name = "Top Bin AE Time"
+                        name = "Highlight/Shadow AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_LUM", 225, 0..255) {
+                slider("SETTING_EXPOSURE_H_LUM", 197, 0..255) {
                     lang {
-                        name = "Top Bin Luminance"
-                        comment = "Luminance threshold for top bin."
+                        name = "Highlight Luminance"
+                        comment = "Luminance threshold for highlight."
                     }
                 }
-                slider("SETTING_EXPOSURE_TOP_BIN_PERCENT", 5.0, 0.1..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_H_PERCENT", 5.0, 0.1..25.0 step 0.1) {
                     lang {
-                        name = "Top Bin %"
-                        comment =
-                            "Adjusting exposure to keep the specified percentage of pixels in the top bin of histogram."
+                        name = "Highlight %"
+                        comment = "Adjusting exposure to keep the specified percentage of pixels in the highlight part of histogram."
+                    }
+                }
+                slider("SETTING_EXPOSURE_S_LUM", 33, 0..255) {
+                    lang {
+                        name = "Shadow Luminance"
+                        comment = "Luminance threshold for shadow."
+                    }
+                }
+                slider("SETTING_EXPOSURE_S_PERCENT", 3.0, 0.1..25.0 step 0.1) {
+                    lang {
+                        name = "Shadow %"
+                        comment = "Adjusting exposure to keep the specified percentage of pixels in the shadow part of histogram."
                     }
                 }
             }
@@ -1369,9 +1380,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Epipolar"
                     }
                 }
-                toggle("SETTING_DEBUG_HISTOGRAM", false) {
+                toggle("SETTING_DEBUG_AE", false) {
                     lang {
-                        name = "Histogram"
+                        name = "Auto Exposure"
                     }
                 }
             }

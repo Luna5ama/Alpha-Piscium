@@ -3,6 +3,20 @@
 
 #endif
 
+struct AEData {
+    vec3 expValues;
+    uint shadowCount;
+    uint highlightCount;
+    uint weightSum;
+    uint avgLumHistogram[256];
+
+    #ifdef SETTING_DEBUG_AE
+    uint lumHistogram[256];
+    uint lumHistogramMaxBinCount;
+    float finalAvgLum;
+    #endif
+};
+
 mat4 gbufferPrevProjection = gbufferPreviousProjection;
 mat4 gbufferPrevModelView = gbufferPreviousModelView;
 
@@ -19,7 +33,6 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     mat4 gbufferProjectionJitterInverse;
     mat4 gbufferPrevProjectionJitter;
     mat4 gbufferPrevProjectionJitterInverse;
-    vec4 global_exposure;
     vec3 global_prevCameraDelta;
     vec2 global_taaJitter;
     ivec2 global_mainImageSizeI;
@@ -30,14 +43,11 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     ivec2 global_mipmapSizesI[16];
     ivec2 global_mipmapSizePrefixes[16];
     uvec2 global_frameMortonJitter;
-    uint global_lumHistogram[256];
-    uint global_lumHistogramTopBinSum;
-    uint global_lumHistogramWeightSum;
-    uint global_lumHistogramMaxBinCount;
     ivec3 global_shadowAABBMin;
     ivec3 global_shadowAABBMax;
     ivec3 global_shadowAABBMinPrev;
     ivec3 global_shadowAABBMaxPrev;
+    AEData global_aeData;
 };
 
 layout(std430, binding = 1) GLOBAL_DATA_MODIFIER buffer IndirectComputeData {

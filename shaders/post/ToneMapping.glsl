@@ -13,9 +13,13 @@
 #include "/util/Colors.glsl"
 #include "/util/Rand.glsl"
 
-shared uint shared_lumHistogram[256];
-shared float shared_topBinSum[16];
+shared uint shared_avgLumHistogram[256];
+shared float shared_highlightSum[16];
+shared float shared_shadowSum[16];
 shared float shared_weightSum[16];
+#ifdef SETTING_DEBUG_AE
+shared uint shared_lumHistogram[256];
+#endif
 
 // Mean error^2: 3.6705141e-06
 vec3 agxDefaultContrastApprox(vec3 x) {
@@ -116,9 +120,13 @@ uint histoIndex(float x, float range, uint outputRangeExclusive) {
 }
 
 void toneMapping_init() {
+    shared_avgLumHistogram[gl_LocalInvocationIndex] = 0u;
+    #ifdef SETTING_DEBUG_AE
     shared_lumHistogram[gl_LocalInvocationIndex] = 0u;
+    #endif
     if (gl_LocalInvocationIndex < 16) {
-        shared_topBinSum[gl_LocalInvocationIndex] = 0.0;
+        shared_highlightSum[gl_LocalInvocationIndex] = 0.0;
+        shared_shadowSum[gl_LocalInvocationIndex] = 0.0;
         shared_weightSum[gl_LocalInvocationIndex] = 0.0;
     }
     barrier();
@@ -133,49 +141,63 @@ vec3 applyAgx(vec3 color) {
     return color;
 }
 
+const float SHADOW_LUMA_THRESHOLD = SETTING_EXPOSURE_S_LUM / 255.0;
+const float HIGHLIGHT_LUMA_THRESHOLD = SETTING_EXPOSURE_H_LUM / 255.0;
+
 void toneMapping_apply(inout vec4 outputColor) {
+    float pixelNoise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
+    {
+        vec3 postColor = colors_sRGB_encodeGamma(applyAgx(outputColor.rgb * exp2(global_aeData.expValues.x)));
+        float lumimance = colors_Rec601_luma(saturate(postColor));// WTF Photoshop
+        uint binIndex = clamp(uint(lumimance * 256.0), 0u, 255u);
+        atomicAdd(shared_avgLumHistogram[binIndex], uint(outputColor.a + pixelNoise));
+    }
+
     {
         float weightSum = subgroupAdd(outputColor.a);
+        vec3 postColor = colors_sRGB_encodeGamma(applyAgx(outputColor.rgb * exp2(global_aeData.expValues.y)));
+        float lumimance = colors_Rec601_luma(postColor);
+        float highlightV = float(lumimance >= HIGHLIGHT_LUMA_THRESHOLD) * outputColor.a;
+        float shadowV = float(lumimance <= SHADOW_LUMA_THRESHOLD) * outputColor.a;
+        float highlightSum = subgroupAdd(highlightV);
+        float shadowSum = subgroupAdd(shadowV);
         if (subgroupElect()) {
+            shared_highlightSum[gl_SubgroupID] = highlightSum;
+            shared_shadowSum[gl_SubgroupID] = shadowSum;
             shared_weightSum[gl_SubgroupID] = weightSum;
         }
     }
 
-    {
-        vec3 postColor = colors_sRGB_encodeGamma(applyAgx(outputColor.rgb * exp2(global_exposure.x)));
-        float lumimance = colors_Rec601_luma(saturate(postColor)); // WTF Photoshop
-        uint binIndexAvg = clamp(uint(lumimance * 256.0), 0u, 255u);
-        float noise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
-        atomicAdd(shared_lumHistogram[binIndexAvg], uint(outputColor.a + noise));
-    }
-
-    {
-        const float TOP_BIN_LUMA = pow(SETTING_EXPOSURE_TOP_BIN_LUM / 255.0, 2.2);
-        vec3 postColor = colors_sRGB_encodeGamma(applyAgx(outputColor.rgb * exp2(global_exposure.y)));
-        float lumimance = colors_Rec601_luma(postColor);
-        float topBinV = float(lumimance > TOP_BIN_LUMA) * outputColor.a;
-        float topBinSum = subgroupAdd(topBinV);
-        if (subgroupElect()) {
-            shared_topBinSum[gl_SubgroupID] = topBinSum;
-        }
-    }
-
-    outputColor.rgb = applyAgx(outputColor.rgb * exp2(global_exposure.w));
+    outputColor.rgb = applyAgx(outputColor.rgb * exp2(global_aeData.expValues.z));
     outputColor.rgb = saturate(colors_sRGB_encodeGamma(outputColor.rgb));
+
+    #ifdef SETTING_DEBUG_AE
+    {
+        float luminanceFinal = colors_Rec601_luma(outputColor.rgb);
+        uint binIndex = clamp(uint(luminanceFinal * 256.0), 0u, 255u);
+        atomicAdd(shared_lumHistogram[binIndex], uint(outputColor.a + pixelNoise));
+    }
+    #endif
 
     barrier();
 
     if (gl_SubgroupID == 0 && gl_SubgroupInvocationID < gl_NumSubgroups) {
-        float topBinV = shared_topBinSum[gl_SubgroupInvocationID];
-        float topBinSum = subgroupAdd(topBinV);
+        float highlightV = shared_highlightSum[gl_SubgroupInvocationID];
+        float shadowV = shared_shadowSum[gl_SubgroupInvocationID];
         float weightV = shared_weightSum[gl_SubgroupInvocationID];
+        float highlightSum = subgroupAdd(highlightV);
+        float shadowSum = subgroupAdd(shadowV);
         float weightSum = subgroupAdd(weightV);
         if (subgroupElect()) {
-            float noise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
-            atomicAdd(global_lumHistogramTopBinSum, uint(topBinSum + noise));
-            atomicAdd(global_lumHistogramWeightSum, uint(weightSum + noise));
+            float noise = rand_stbnVec1(ivec2(gl_WorkGroupID.xy), frameCounter);
+            atomicAdd(global_aeData.highlightCount, uint(highlightSum + noise));
+            atomicAdd(global_aeData.shadowCount, uint(shadowSum + noise));
+            atomicAdd(global_aeData.weightSum, uint(weightSum + noise));
         }
     }
 
-    atomicAdd(global_lumHistogram[gl_LocalInvocationIndex], shared_lumHistogram[gl_LocalInvocationIndex]);
+    atomicAdd(global_aeData.avgLumHistogram[gl_LocalInvocationIndex], shared_avgLumHistogram[gl_LocalInvocationIndex]);
+    #ifdef SETTING_DEBUG_AE
+    atomicAdd(global_aeData.lumHistogram[gl_LocalInvocationIndex], shared_lumHistogram[gl_LocalInvocationIndex]);
+    #endif
 }

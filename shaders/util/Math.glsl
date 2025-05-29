@@ -29,6 +29,8 @@ vec3 saturate(vec3 x) { return clamp(x, 0.0, 1.0); }
 
 vec4 saturate(vec4 x) { return clamp(x, 0.0, 1.0); }
 
+float max2(vec2 v) { return max(v.x, v.y); }
+
 float linearStep(float edge0, float edge1, float x) {
     return saturate((x - edge0) / (edge1 - edge0));
 }
