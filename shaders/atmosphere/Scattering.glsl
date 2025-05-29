@@ -25,7 +25,7 @@ float sampleShadow(vec3 shadowPos) {
 }
 
 ScatteringResult raymarchSingleScatteringShadowed(
-AtmosphereParameters atmosphere, RaymarchParameters params, LightParameters sunParams, LightParameters moonParams,
+AtmosphereParameters atmosphere, RaymarchParameters params, ScatteringParameters scatteringParams,
 vec3 shadowStart, vec3 shadowEnd, float stepJitter
 ) {
     ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
@@ -57,28 +57,28 @@ vec3 shadowStart, vec3 shadowEnd, float stepJitter
         float shadowSample = sampleShadow(sampleShadowPos);
 
         {
-            vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, sunParams.cosZenith, sampleHeight);
-            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, sunParams.cosZenith, sampleHeight);
+            vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, scatteringParams.sunParams.cosZenith, sampleHeight);
+            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, scatteringParams.sunParams.cosZenith, sampleHeight);
 
             float shadow = mix(1.0, shadowSample, shadowIsSun);
-            vec3 sampleInSctr = shadow * tSunToSample * computeTotalInSctr(atmosphere, sunParams, sampleDensity);
-            sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
+            vec3 sampleInSctr = shadow * tSunToSample * computeTotalInSctr(atmosphere, scatteringParams.sunParams, sampleDensity);
+            sampleInSctr += scatteringParams.multiSctrFactor * multiSctrLuminance * (rayleighInSctr + mieInSctr);
 
             // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
             vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-            totalInSctr += tSampleToOrigin * sampleInSctrInt * sunParams.irradiance;
+            totalInSctr += tSampleToOrigin * sampleInSctrInt * scatteringParams.sunParams.irradiance;
         }
 
         {
-            vec3 tMoonToSample = sampleTransmittanceLUT(atmosphere, moonParams.cosZenith, sampleHeight);
-            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, moonParams.cosZenith, sampleHeight);
+            vec3 tMoonToSample = sampleTransmittanceLUT(atmosphere, scatteringParams.moonParams.cosZenith, sampleHeight);
+            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, scatteringParams.moonParams.cosZenith, sampleHeight);
 
             float shadow = mix(shadowSample, 1.0, shadowIsSun);
-            vec3 sampleInSctr = shadow * tMoonToSample * computeTotalInSctr(atmosphere, moonParams, sampleDensity);
-            sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
+            vec3 sampleInSctr = shadow * tMoonToSample * computeTotalInSctr(atmosphere, scatteringParams.moonParams, sampleDensity);
+            sampleInSctr += scatteringParams.multiSctrFactor * multiSctrLuminance * (rayleighInSctr + mieInSctr);
 
             vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-            totalInSctr += tSampleToOrigin * sampleInSctrInt * moonParams.irradiance;
+            totalInSctr += tSampleToOrigin * sampleInSctrInt * scatteringParams.moonParams.irradiance;
         }
 
         tSampleToOrigin *= sampleTransmittance;
@@ -93,7 +93,7 @@ vec3 shadowStart, vec3 shadowEnd, float stepJitter
 
 // originView: ray origin in view space
 // endView: ray end in view space
-ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 originView, vec3 endView, float stepJitter) {
+ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 originView, vec3 endView, float stepJitter, float multiSctrFactor) {
     ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
 
     mat3 vectorView2World = mat3(gbufferModelViewInverse);
@@ -105,10 +105,9 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
 
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
-    LightParameters sunParams;
-    lightParameters_setup(atmosphere, sunParams, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
-    LightParameters moonParams;
-    lightParameters_setup(atmosphere, moonParams, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
+    LightParameters sunParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
+    LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
+    ScatteringParameters scatteringParams = scatteringParameters_init(sunParam, moonParams, multiSctrFactor);
 
     if (endView.z == -65536.0) {
         params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
@@ -141,7 +140,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
 
         params.rayEnd = params.rayStart + rayDir * rayLen;
         params.steps = SETTING_SKY_SAMPLES;
-        return raymarchSingleScattering(atmosphere, params, sunParams, moonParams);
+        return raymarchSingleScattering(atmosphere, params, scatteringParams);
     } else {
         params.rayEnd = atmosphere_viewToAtm(atmosphere, endView);
 
@@ -157,6 +156,6 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         endShadow = endShadow * 0.5 + 0.5;
 
         params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
-        return raymarchSingleScatteringShadowed(atmosphere, params, sunParams, moonParams, startShadow, endShadow, stepJitter);
+        return raymarchSingleScatteringShadowed(atmosphere, params, scatteringParams, startShadow, endShadow, stepJitter);
     }
 }

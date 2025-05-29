@@ -29,10 +29,9 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
     params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.001);
 
-    LightParameters sunParams;
-    lightParameters_setup(atmosphere, sunParams, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
-    LightParameters moonParams;
-    lightParameters_setup(atmosphere, moonParams, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
+    LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
+    LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
+    ScatteringParameters scatteringParams = scatteringParameters_init(sunParams, moonParams, 1.0);
 
     params.steps = SETTING_SKY_SAMPLES;
 
@@ -65,7 +64,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
 
     params.rayEnd = params.rayStart + rayDir * rayLen;
 
-    result = raymarchSingleScattering(atmosphere, params, sunParams, moonParams);
+    result = raymarchSingleScattering(atmosphere, params, scatteringParams);
 
     return result;
 }

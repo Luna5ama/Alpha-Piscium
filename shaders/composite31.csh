@@ -2,12 +2,14 @@
 
 #include "/atmosphere/Scattering.glsl"
 #include "/util/Coords.glsl"
+#include "/util/Lighting.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Material.glsl"
 
 layout(local_size_x = 64) in;
 
 uniform sampler2D usam_gbufferViewZ;
+uniform usampler2D usam_packedZN;
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 
@@ -22,7 +24,16 @@ void main() {
 
         float ignValue = rand_IGN(texelPos, frameCounter);
         AtmosphereParameters atmosphere = getAtmosphereParameters();
-        ScatteringResult sctrResult = computeSingleScattering(atmosphere, vec3(0.0), viewPos, ignValue);
+
+        float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, (texelPos >> 1) + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
+        lmCoordSky = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightness.y)));
+        ScatteringResult sctrResult = computeSingleScattering(
+            atmosphere,
+            vec3(0.0),
+            viewPos,
+            ignValue,
+            lighting_skyLightFalloff(lmCoordSky)
+        );
 
         vec4 outputColor = imageLoad(uimg_main, texelPos);
         outputColor.rgb *= sctrResult.transmittance;
