@@ -38,7 +38,7 @@ Material material_decode(GBufferData gData) {
 
     float emissivePBR = pow(gData.pbrSpecular.a, SETTING_EMISSIVE_PBR_VALUE_CURVE);
     vec4 emissiveAlbedoCurve = vec4(vec3(SETTING_EMISSIVE_ALBEDO_COLOR_CURVE), SETTING_EMISSIVE_ALBEDO_LUM_CURVE);
-    float albedoLuminanceAlternative = dot(material.albedo, (vec3(0.33) + vec3(0.2126, 0.7152, 0.0722)) * 0.5);
+    float albedoLuminanceAlternative = colors_Rec601_luma(material.albedo);
     vec4 emissiveAlbedo = pow(vec4(material.albedo, albedoLuminanceAlternative), emissiveAlbedoCurve);
 
     float emissiveValue = emissivePBR * 0.2;

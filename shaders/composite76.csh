@@ -99,14 +99,14 @@ void main() {
         float lumTargetMixFactor = pow(linearStep(MIN_EXP, MAX_EXP, expLast.z), SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE);
         float lumTarget = mix(MAX_LUM_TARGET, MIN_LUM_TARGET, lumTargetMixFactor);
         expNew.x = log2(lumTarget / averageLuminance);
-        expNew.x = clamp(expNew.x, -MAX_DELTA_AVG_LUM, MAX_DELTA_AVG_LUM * 0.25);
+        expNew.x = clamp(expNew.x, -MAX_DELTA_AVG_LUM, MAX_DELTA_AVG_LUM * 0.5);
 
         // Keep top SETTING_EXPOSURE_TOP_PERCENT % of pixels in the top bin
-        const float MAX_DELTA_S = 0.25;
+        const float MAX_DELTA_S = 0.5;
         vec2 hsPercents = vec2(SETTING_EXPOSURE_H_PERCENT, SETTING_EXPOSURE_S_PERCENT) * (totalWeight * 0.01);
         vec2 hsExps = log2(vec2(hsPercents.x, shadowCount) / vec2(highlightCount, hsPercents.y));
         expNew.y = (hsExps.x + hsExps.y) / 2.0;
-        expNew.y = clamp(expNew.y, -MAX_DELTA_S, MAX_DELTA_S * 0.25);
+        expNew.y = clamp(expNew.y, -MAX_DELTA_S, MAX_DELTA_S * 0.5);
 
         expNew.xy = expNew.xy + expLast.xy;
         vec2 timeFactor = -vec2(SETTING_EXPOSURE_AVG_LUM_TIME, SETTING_EXPOSURE_HS_TIME) + log2(max(frameTime / FRAME_TIME_60FPS_SECS, 1.0));

@@ -519,7 +519,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             "Temperature of lava in K (kelvin). The default value 1300 K is based on real life average."
                     }
                 }
-                slider("SETTING_EMISSIVE_STRENGTH", 1.0, 0.0..4.0 step 0.25) {
+                slider("SETTING_EMISSIVE_STRENGTH", 2.0, 0.0..4.0 step 0.25) {
                     lang {
                         name = "Emissive Strength"
                     }
@@ -535,7 +535,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Emissive Albedo Color Curve"
                     }
                 }
-                slider("SETTING_EMISSIVE_ALBEDO_LUM_CURVE", 1.3, 0.0..4.0 step 0.05) {
+                slider("SETTING_EMISSIVE_ALBEDO_LUM_CURVE", 0.5, 0.0..4.0 step 0.05) {
                     lang {
                         name = "Emissive Albedo Luminance Curve"
                     }
@@ -851,12 +851,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Denoiser"
                     }
                 }
-                slider("SETTING_DENOISER_REPROJ_NORMAL_EDGE_WEIGHT", 3.0, (0.0..32.0) step 0.1) {
+                slider("SETTING_DENOISER_REPROJ_NORMAL_EDGE_WEIGHT", 1.0, 0.0..16.0 step 0.1) {
                     lang {
                         name = "Reprojection Normal Edge Weight"
                     }
                 }
-                slider("SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT", 10.0, (0.0..32.0) step 0.1) {
+                slider("SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT", 9.0, 0.0..16.0 step 0.1) {
                     lang {
                         name = "Reprojection Geometry Edge Weight"
                     }
