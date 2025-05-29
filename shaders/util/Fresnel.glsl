@@ -17,8 +17,8 @@
     Credits:
         Jessie - providing beam ratio equation for transmission (https://github.com/Jessie-LC)
 */
-#ifndef INCLUDE_util_Fresnel.glsl
-#define INCLUDE_util_Fresnel.glsl
+#ifndef INCLUDE_util_Fresnel_glsl
+#define INCLUDE_util_Fresnel_glsl a
 
 #include "Material.glsl"
 

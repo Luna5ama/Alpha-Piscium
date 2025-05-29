@@ -1,5 +1,5 @@
-#ifndef INCLUDE_util_CelestialObjects.glsl
-#define INCLUDE_util_CelestialObjects.glsl
+#ifndef INCLUDE_util_CelestialObjects_glsl
+#define INCLUDE_util_CelestialObjects_glsl a
 
 #include "BlackBody.glsl"
 

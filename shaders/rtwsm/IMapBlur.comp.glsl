@@ -1,5 +1,3 @@
-#pragma optionNV (unroll all)
-
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #include "RTWSM.glsl"

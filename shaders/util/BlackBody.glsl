@@ -1,5 +1,5 @@
-#ifndef INCLUDE_util_BlackBody.glsl
-#define INCLUDE_util_BlackBody.glsl
+#ifndef INCLUDE_util_BlackBody_glsl
+#define INCLUDE_util_BlackBody_glsl a
 
 #include "Math.glsl"
 
