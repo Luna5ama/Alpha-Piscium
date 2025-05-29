@@ -519,13 +519,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             "Temperature of lava in K (kelvin). The default value 1300 K is based on real life average."
                     }
                 }
-                slider("SETTING_EMISSIVE_STRENGTH", 1.0, 0.0..2.0 step 0.01) {
+                slider("SETTING_EMISSIVE_STRENGTH", 1.0, 0.0..4.0 step 0.25) {
                     lang {
                         name = "Emissive Strength"
                     }
                 }
                 empty()
-                slider("SETTING_EMISSIVE_PBR_VALUE_CURVE", 2.5, 0.1..8.0 step 0.1) {
+                slider("SETTING_EMISSIVE_PBR_VALUE_CURVE", 1.0, 0.1..4.0 step 0.05) {
                     lang {
                         name = "Emissive PBR Value Curve"
                     }
@@ -535,7 +535,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Emissive Albedo Color Curve"
                     }
                 }
-                slider("SETTING_EMISSIVE_ALBEDO_LUM_CURVE", 1.3, 0.1..4.0 step 0.05) {
+                slider("SETTING_EMISSIVE_ALBEDO_LUM_CURVE", 1.3, 0.0..4.0 step 0.05) {
                     lang {
                         name = "Emissive Albedo Luminance Curve"
                     }
@@ -793,9 +793,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Probe Direction Match Weight"
                     }
                 }
-                slider("SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD", 1024, (0..10).map { 1 shl it }) {
+                slider("SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD", 128, (0..10).map { 1 shl it }) {
                     lang {
                         name = "Probe Direction Match Distance Threshold"
+                    }
+                }
+                empty()
+                toggle("SETTING_VBGI_MC_SKYLIGHT_ATTENUATION", true) {
+                    lang {
+                        name = "Vanilla Skylight Attenuation"
                     }
                 }
                 empty()
@@ -1180,7 +1186,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_SATURATION", 1.3, 0.0..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SATURATION", 1.2, 0.0..2.0 step 0.01) {
                     lang {
                         name = "Saturation"
                     }

@@ -424,8 +424,11 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
         uint unoccluedBits = ~occBits;
         vec3 realTangent = normalize(T);
 
+        float skyLightingBase = SETTING_VBGI_SKYLIGHT_STRENGTH;
+        #ifdef SETTING_VBGI_MC_SKYLIGHT_ATTENUATION
         float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, vbgi_texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
-        float skyLightingBase = pow2(lmCoordSky) * SETTING_VBGI_SKYLIGHT_STRENGTH;
+        skyLightingBase *= pow2(lmCoordSky);
+        #endif
 
         #if SETTING_VBGI_FALLBACK_SAMPLES == 4
         const float w5 = 0.125;
@@ -467,24 +470,13 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
             vec3 sampleDirView = normalize((viewNormal * cosC + realTangent * sinC));
             vec3 sampleDirWorld = viewToScene * sampleDirView;
 
-            vec2 skyLUTUV = coords_octEncode01(sampleDirWorld);
-            vec3 skyRad = skyLightingBase * texture(usam_skyLUT, skyLUTUV).rgb;
-
             vec2 envUV = coords_mercatorForward(sampleDirWorld);
             ivec2 envTexel = ivec2(envUV * (ENV_PROBE_SIZE - 1));
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
-            vec3 envRad = envData.radiance * (2.0 * PI * SETTING_VGBI_ENV_STRENGTH);
-            envRad *= saturate(dot(envData.normal, -sampleDirWorld));
-            vec3 worldPosDiff = envData.scenePos - centerScenePos;
-            float worldsDiffLenSq = dot(worldPosDiff, worldPosDiff);
-            float worldsDiffRcpLen = fastRcpSqrtNR0(worldsDiffLenSq);
-            float dirMatch = pow(saturate(dot(worldPosDiff * worldsDiffRcpLen, sampleDirWorld)), float(SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT));
-            dirMatch = mix(dirMatch, 1.0, (SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD / (SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD + worldsDiffLenSq)));
-            envRad *= dirMatch;
 
             bool probeIsSky = envProbe_isSky(envData);
-            float envProbeWeight = float(!probeIsSky) * dirMatch;
-            vec3 sampleRad = probeIsSky ? skyRad : envRad;
+            float bitVEnv = bitV;
+            float bitVSky = bitV;
 
             #ifdef SETTING_VBGI_PROBE_HQ_OCC
             if (!probeIsSky) {
@@ -511,9 +503,25 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
                 hor01 = saturate(hor01);
                 uint sectorBitMask = toBitMask(hor01);
                 uint sectorBits = (unoccluedBits & sectorBitMask);
-                bitV = float(bitCount(sectorBits)) * (1.0 / 32.0);
+                bitVEnv = float(bitCount(sectorBits)) * (1.0 / 32.0);
             }
             #endif
+
+            vec2 skyLUTUV = coords_octEncode01(sampleDirWorld);
+            float skyRadBase = skyLightingBase * bitVSky;
+            vec3 skyRad = skyRadBase * texture(usam_skyLUT, skyLUTUV).rgb;
+
+            float envRadBase = bitVEnv * SETTING_VGBI_ENV_STRENGTH * saturate(dot(envData.normal, -sampleDirWorld));
+            vec3 envRad = envRadBase * envData.radiance.rgb;
+
+            vec3 worldPosDiff = envData.scenePos - centerScenePos;
+            float worldsDiffLenSq = dot(worldPosDiff, worldPosDiff);
+            float worldsDiffRcpLen = fastRcpSqrtNR0(worldsDiffLenSq);
+            float dirMatch = pow(saturate(dot(worldPosDiff, sampleDirWorld)) * worldsDiffRcpLen, float(SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT));
+            dirMatch = mix(dirMatch, 1.0, (SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD / (SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD + worldsDiffLenSq)));
+            float envProbeWeight = float(!probeIsSky) * dirMatch;
+
+            vec3 sampleRad = mix(skyRad, envRad, envProbeWeight);
 
             vec3 N = viewNormal;
             vec3 L = sampleDirView;
@@ -528,7 +536,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
             fallbackLighting += vec3(diffuseBase);
 //            fallbackLighting += (vec3(1.0) - fresnel) * (diffuseBase);
 //            fallbackLighting += (ggx * specularBase);
-            result += sampleRad * fallbackLighting * bitV;
+            result += sampleRad * fallbackLighting;
         }
     }
 }
