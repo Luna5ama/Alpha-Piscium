@@ -788,14 +788,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "High Quality Probe Lighting Occlusion"
                     }
                 }
-                slider("SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT", 16, (0..10).map { 1 shl it }) {
+                slider("SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT", 0, -10..10) {
                     lang {
                         name = "Probe Direction Match Weight"
                     }
                 }
-                slider("SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD", 128, (0..10).map { 1 shl it }) {
+                slider("SETTING_VBGI_PROBE_DIR_MATCH_FADE_START_DIST", 16, 0..32 step 4) {
                     lang {
-                        name = "Probe Direction Match Distance Threshold"
+                        name = "Probe Direction Match Distance Fade Start Distance"
+                    }
+                }
+                slider("SETTING_VBGI_PROBE_DIR_MATCH_FADE_END_DIST", 32, 0..64 step 4) {
+                    lang {
+                        name = "Probe Direction Match Distance Fade End Distance"
                     }
                 }
                 empty()

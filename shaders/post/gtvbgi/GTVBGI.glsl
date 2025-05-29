@@ -518,9 +518,13 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
             vec3 worldPosDiff = envData.scenePos - centerScenePos;
             float worldsDiffLenSq = dot(worldPosDiff, worldPosDiff);
             float worldsDiffRcpLen = fastRcpSqrtNR0(worldsDiffLenSq);
-            float dirMatch = pow(saturate(dot(worldPosDiff, sampleDirWorld)) * worldsDiffRcpLen, float(SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT));
-            dirMatch = mix(dirMatch, 1.0, (SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD / (SETTING_VBGI_PROBE_DIR_MATCH_DIST_THRESHOLD + worldsDiffLenSq)));
-            float envProbeWeight = float(!probeIsSky) * dirMatch;
+
+            const float DIR_MATCH_WEIGHT = exp2(SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT);
+            const float DIR_MATCH_FADE_START = pow2(SETTING_VBGI_PROBE_DIR_MATCH_FADE_START_DIST);
+            const float DIR_MATCH_FADE_END = pow2(SETTING_VBGI_PROBE_DIR_MATCH_FADE_END_DIST);
+            float dirMatch = pow(saturate(dot(worldPosDiff, sampleDirWorld) * worldsDiffRcpLen), exp2(SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT));
+            float envProbeWeight = float(!probeIsSky);
+            envProbeWeight *= smoothstep(DIR_MATCH_FADE_END, DIR_MATCH_FADE_START, worldsDiffLenSq);
 
             vec3 sampleRad = mix(skyRad, envRad, envProbeWeight);
 
