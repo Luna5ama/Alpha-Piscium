@@ -1,5 +1,6 @@
 #include "/util/BitPacking.glsl"
 #include "/util/FullScreenComp.glsl"
+#include "/util/Celestial.glsl"
 #include "/util/NZPacking.glsl"
 #include "/general/EnvProbe.glsl"
 #include "/atmosphere/Common.glsl"
@@ -213,6 +214,7 @@ void debugOutput(inout vec4 outputColor) {
     }
     #endif
 
+    vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
     vec2 debugTexCoord;
 
     #ifdef SETTING_DEBUG_RTWSM
@@ -323,5 +325,10 @@ void debugOutput(inout vec4 outputColor) {
             outputColor.rgb = vec3(0.25);
         }
     }
+    #endif
+
+    #ifdef SETTING_DEBUG_STARMAP
+    vec2 flippedCoord = vec2(screenPos.x, 1.0 - screenPos.y);
+    outputColor.rgb = gammaCorrect(colors_LogLuvToSRGB(texture(usam_starmap, flippedCoord)));
     #endif
 }

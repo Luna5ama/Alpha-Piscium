@@ -1,4 +1,4 @@
-#include "/util/CelestialObjects.glsl"
+#include "/util/Celestial.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Material.glsl"
 #include "/util/GBufferData.glsl"

@@ -109,7 +109,12 @@ vec2 inputEndTexel = (vec2(inputEndPixel) - 0.5) * texelSize;
 vec4 bloom_readInputDown(ivec2 coord) {
     vec2 readPosUV = vec2(coord + inputStartPixel) * texelSize;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
-    return texture(BLOOM_SAMPLER, readPosUV);
+    vec4 inputValue = texture(BLOOM_SAMPLER, readPosUV);
+    #if BLOOM_PASS == 1
+    inputValue.rgb *= inputValue.a;
+    inputValue *= 0.015;
+    #endif
+    return inputValue;
 }
 
 void bloom_writeOutput(ivec2 coord, vec4 data) {
@@ -139,7 +144,7 @@ ivec2 groupBasePixel = ivec2(gl_WorkGroupID.xy) << 4;
 #if BLOOM_KARIS_AVERAGE
 void weightedSum(vec4 color, float baseWeight, inout vec4 colorSum, inout float weightSum) {
     float weight = baseWeight;
-    weight *= colors_karisWeight(color.rgb);
+    weight *= colors_karisWeight(color.rgb / 0.015);
     colorSum += color * weight;
     weightSum += weight;
 }
@@ -264,7 +269,6 @@ vec4 bloom_mainOutput(ivec2 texelPos) {
     #if !BLOOM_USE_KARIS_AVERAGE
     result *= 0.6;
     #endif
-    result *= 0.015;
     result *= SETTING_BLOOM_INTENSITY;
     return result;
 }

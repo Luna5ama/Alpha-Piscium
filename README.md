@@ -12,3 +12,7 @@ My goal for this pack is archiving realistic and resonably performant graphics w
     - [*Epipolar Sampling*](https://gdcvault.com/play/1018227/Practical-Implementation-of-Light-Scattering)
 - High-quality, fast, and adaptive **Shadows**
     - [*Rectilinear Texture Warping*](https://www.cspaul.com/publications/Rosen.2012.I3D.pydf) (RTWSM)
+
+## Credits
+- Night sky image by [NASA](https://svs.gsfc.nasa.gov/4851/)\
+  NASA/Goddard Space Flight Center Scientific Visualization Studio. Gaia DR2: ESA/Gaia/DPAC. Constellation figures based on those developed for the IAU by Alan MacRobert of Sky and Telescope magazine (Roger Sinnott and Rick Fienberg).

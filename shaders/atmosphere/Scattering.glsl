@@ -12,7 +12,7 @@
 */
 #include "Common.glsl"
 #include "/rtwsm/RTWSM.glsl"
-#include "/util/CelestialObjects.glsl"
+#include "/util/Celestial.glsl"
 
 uniform sampler2D usam_rtwsm_imap;
 const bool shadowHardwareFiltering0 = true;

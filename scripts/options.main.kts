@@ -445,7 +445,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         suffix = " AU"
                     }
                 }
-                constSlider("sunPathRotation", -30.0, -90.0..90.0 step 1.0) {
+                constSlider("sunPathRotation", -15.0, -90.0..90.0 step 1.0) {
                     lang {
                         name = "Sun Path Rotation"
                         comment = "Rotation of sun path in degrees."
@@ -1000,6 +1000,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Light Shaft Samples"
                 }
             }
+            slider("SETTING_STARMAP_INTENSITY", 16, listOf(0) + powerOfTwoRange(0..10)) {
+                lang {
+                    name = "Starmap Intensity"
+                }
+            }
+            slider("SETTING_STARMAP_GAMMA", 1.6, 0.1..4.0 step 0.1) {
+                lang {
+                    name = "Starmap Gamma"
+                }
+            }
         }
         screen("POSTFX", 2) {
             lang {
@@ -1040,7 +1050,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Auto Exposure Min EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 10.5, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MAX_EV", 13.5, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
@@ -1170,17 +1180,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_SLOPE_R", 1.03, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_R", 1.0, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Slope Red"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_SLOPE_G", 1.03, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_G", 1.0, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Slope Green"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_SLOPE_B", 1.03, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_B", 1.0, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Slope Blue"
                     }
@@ -1383,6 +1393,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 toggle("SETTING_DEBUG_AE", false) {
                     lang {
                         name = "Auto Exposure"
+                    }
+                }
+                toggle("SETTING_DEBUG_STARMAP", false) {
+                    lang {
+                        name = "Star Map"
                     }
                 }
             }

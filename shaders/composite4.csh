@@ -2,12 +2,11 @@
 
 #extension GL_KHR_shader_subgroup_basic : enable
 
-#include "/util/CelestialObjects.glsl"
+#include "/util/Celestial.glsl"
 #include "/util/BitPacking.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/Morton.glsl"
 #include "/atmosphere/Common.glsl"
-#include "/atmosphere/SunMoon.glsl"
 #include "/general/Lighting.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -115,7 +114,7 @@ void main() {
                 imageStore(uimg_packedZN, radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
             }
         } else {
-            mainOut += renderSunMoon(texelPos);
+            mainOut = celestial_render(texelPos);
 
             uvec4 packedZNOut = uvec4(0u);
             packedZNOut.y = floatBitsToUint(viewZ);

@@ -7,7 +7,7 @@
         You can find full license texts in /licenses
 */
 #include "Common.glsl"
-#include "/util/CelestialObjects.glsl"
+#include "/util/Celestial.glsl"
 #include "/util/Coords.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;

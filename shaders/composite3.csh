@@ -6,7 +6,6 @@
 
 #include "/atmosphere/Common.glsl"
 #include "/general/Lighting.glsl"
-#include "/atmosphere/SunMoon.glsl"
 #include "/util/Morton.glsl"
 #include "/util/FullScreenComp.glsl"
 
