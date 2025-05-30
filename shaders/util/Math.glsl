@@ -29,7 +29,19 @@ vec3 saturate(vec3 x) { return clamp(x, 0.0, 1.0); }
 
 vec4 saturate(vec4 x) { return clamp(x, 0.0, 1.0); }
 
+float max2(float x, float y) { return max(x, y); }
 float max2(vec2 v) { return max(v.x, v.y); }
+float max3(float x, float y, float z) { return max(max(x, y), z); }
+float max3(vec3 v) { return max(max(v.x, v.y), v.z); }
+float max4(float x, float y, float z, float w) { return max(max(x, y), max(z, w)); }
+float max4(vec4 v) { return max(max(v.x, v.y), max(v.z, v.w)); }
+
+float min2(float x, float y) { return min(x, y); }
+float min2(vec2 v) { return min(v.x, v.y); }
+float min3(float x, float y, float z) { return min(min(x, y), z); }
+float min3(vec3 v) { return min(min(v.x, v.y), v.z); }
+float min4(float x, float y, float z, float w) { return min(min(x, y), min(z, w)); }
+float min4(vec4 v) { return min(min(v.x, v.y), min(v.z, v.w)); }
 
 float linearStep(float edge0, float edge1, float x) {
     return saturate((x - edge0) / (edge1 - edge0));

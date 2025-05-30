@@ -113,6 +113,7 @@ const float shadowDistance = 192.0; //[64.0 128.0 192.0 256.0 384.0 512.0]
 #define SETTING_TAA_JITTER
 #ifdef SETTING_TAA_JITTER
 #endif
+#define SETTING_TAA_CAS_SHARPNESS 1.0 //[0.0 0.5 1.0 1.5 2.0 2.5 3.0 3.5 4.0 4.5 5.0 5.5 6.0 6.5 7.0 7.5 8.0]
 //#define SETTING_EXPOSURE_MANUAL
 #ifdef SETTING_EXPOSURE_MANUAL
 #endif
