@@ -3,7 +3,7 @@ import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-val excluded = setOf("scripts", ".*\\.zip").map { it.toRegex() }
+val excluded = setOf("_", "scripts", ".*\\.zip").map { it.toRegex() }
 
 val currDir = File("")
 val rootDir = currDir.absoluteFile.parentFile
@@ -12,6 +12,7 @@ ZipOutputStream(File(rootDir, "${rootDir.name}.zip").outputStream(), Charsets.UT
     zipOut.setMethod(ZipOutputStream.DEFLATED)
 
     rootDir.walk().asSequence()
+        .filter { it != rootDir }
         .filter { file ->
             val baseDirName = file.relativeTo(rootDir).path.substringBefore(File.separator)
             if (baseDirName.startsWith('.')) return@filter false

@@ -235,7 +235,7 @@ class OptionBuilder<T>(
                 } else {
                     append("#define $name $value")
                 }
-                range.joinTo(this, " ", " // [", "]")
+                range.joinTo(this, " ", " //[", "]")
                 appendLine()
             }
         }
@@ -953,22 +953,22 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             empty()
-            slider("SETTING_ATM_MIE_SCT_MUL", 0.5, 0.0..5.0 step 0.01) {
+            slider("SETTING_ATM_MIE_SCT_MUL", 0.5, 0.0..5.0 step 0.05) {
                 lang {
                     name = "Mie Scattering Multiplier"
                 }
             }
-            slider("SETTING_ATM_MIE_ABS_MUL", 1.1, 0.0..5.0 step 0.01) {
+            slider("SETTING_ATM_MIE_ABS_MUL", 1.1, 0.0..5.0 step 0.05) {
                 lang {
                     name = "Mie Absorption Multiplier"
                 }
             }
-            slider("SETTING_ATM_RAY_SCT_MUL", 1.1, 0.0..5.0 step 0.01) {
+            slider("SETTING_ATM_RAY_SCT_MUL", 1.1, 0.0..5.0 step 0.05) {
                 lang {
                     name = "Rayleigh Scattering Multiplier"
                 }
             }
-            slider("SETTING_ATM_OZO_ABS_MUL", 1.14, 0.0..5.0 step 0.01) {
+            slider("SETTING_ATM_OZO_ABS_MUL", 1.14, 0.0..5.0 step 0.05) {
                 lang {
                     name = "Ozone Absorption Multiplier"
                 }
@@ -1039,9 +1039,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Manual Exposure"
                     }
                 }
-                slider("SETTING_EXPOSURE_MANUAL_EV", 3.0, -32.0..32.0 step 0.1) {
+                slider("SETTING_EXPOSURE_MANUAL_EV_COARSE", 3, -32..32) {
                     lang {
-                        name = "Manual Exposure EV"
+                        name = "Manual Exposure EV Coarse"
+                    }
+                }
+                slider("SETTING_EXPOSURE_MANUAL_EV_FINE", 0.0, -1.0..1.0 step 0.01) {
+                    lang {
+                        name = "Manual Exposure EV Fine"
                     }
                 }
                 empty()
@@ -1087,13 +1092,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Average Luminance AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 33, 0..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 33, 1..255) {
                     lang {
                         name = "Average Luminance Minimum Target"
                         comment = "Target average luminance value for dark scene such as caves, indoors, and nighttime."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 94, 0..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 94, 1..255) {
                     lang {
                         name = "Average Luminance Maximum Target"
                         comment = "Target average luminance value for bright scene such as daytime outdoors."
@@ -1119,13 +1124,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Highlight/Shadow AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_H_LUM", 197, 0..255) {
+                slider("SETTING_EXPOSURE_H_LUM", 197, 1..255) {
                     lang {
                         name = "Highlight Luminance"
                         comment = "Luminance threshold for highlight."
                     }
                 }
-                slider("SETTING_EXPOSURE_H_PERCENT", 5.0, 0.1..25.0 step 0.1) {
+                slider("SETTING_EXPOSURE_H_PERCENT", 5.0, 0.1..10.0 step 0.5) {
                     lang {
                         name = "Highlight %"
                         comment = "Adjusting exposure to keep the specified percentage of pixels in the highlight part of histogram."
@@ -1137,7 +1142,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Luminance threshold for shadow."
                     }
                 }
-                slider("SETTING_EXPOSURE_S_PERCENT", 3.0, 0.1..25.0 step 0.1) {
+                slider("SETTING_EXPOSURE_S_PERCENT", 3.0, 0.1..10.0 step 0.5) {
                     lang {
                         name = "Shadow %"
                         comment = "Adjusting exposure to keep the specified percentage of pixels in the shadow part of histogram."
@@ -1148,7 +1153,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Tone Mapping"
                 }
-                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 12.0, 1.0..32.0 step 0.1) {
+                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 12.0, 4.0..20.0 step 0.1) {
                     lang {
                         name = "Dynamic Range"
                     }

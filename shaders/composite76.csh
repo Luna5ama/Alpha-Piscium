@@ -83,7 +83,7 @@ void main() {
         float averageLuminance = pow(averageBinIndex / 256.0, 2.2);
 
         #ifdef SETTING_EXPOSURE_MANUAL
-        global_aeData.expValues = vec3(SETTING_EXPOSURE_MANUAL_EV);
+        global_aeData.expValues = vec3(SETTING_EXPOSURE_MANUAL_EV_COARSE + SETTING_EXPOSURE_MANUAL_EV_FINE);
         #else
         vec3 expLast = global_aeData.expValues;
         vec3 expNew;
