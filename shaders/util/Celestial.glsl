@@ -105,9 +105,9 @@ vec4 celestial_render(ivec2 texelPos) {
     float moonDarkV = _celestial_circle(viewDir, uval_moonDirView, MOON_ANGULAR_RADIUS * 4.0);
 
     vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
-    result += sunV * vec4(SUN_LUMINANCE, 2.0);
+    result += sunV * vec4(SUN_LUMINANCE, 4.0);
     result += moonV * vec4(MOON_LUMINANCE, 0.0);
-    result += moonDarkV * vec4(0.0, 0.0, 0.0, -0.999);
+    result += moonDarkV * vec4(0.0, 0.0, 0.0, -0.99);
 
     #if SETTING_STARMAP_INTENSITY
     vec2 starmapCoords = coords_equirectanglarForward(normalize(WORLD_TO_GALATIC * viewDirWorld));

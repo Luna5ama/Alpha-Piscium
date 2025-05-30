@@ -2,6 +2,7 @@
 
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_vote : enable
+#extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #include "/denoiser/Update.glsl"
 #include "/util/Coords.glsl"
@@ -258,8 +259,10 @@ void main() {
 //        imageStore(uimg_temp3, texelPos, vec4(exp2(-max(directLum / giLum, 0.0))));
 
         {
-            float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
             float boostFrameV = linearStep(1.0 + SETTING_DENOISER_VARIANCE_BOOST_FRAMES, 1.0, newHLen);
+            float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
+            float spatialVariance = subgroupAdd(newMoments.x / gl_SubgroupSize);
+            variance = mix(spatialVariance, variance, linearStep(1.0, 4.0, newHLen));
             float boostV = _BOOST_ADD + variance * SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY;
             variance += boostV * pow(boostFrameV, SETTING_DENOISER_VARIANCE_BOOST_DECAY);
 

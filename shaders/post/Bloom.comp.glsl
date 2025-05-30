@@ -6,6 +6,8 @@
 #include "/_Base.glsl"
 #include "/util/Colors.glsl"
 
+const float BASE_BLOOM_INTENSITY = 0.01;
+
 #define BLOOM_USE_KARIS_AVERAGE 1
 
 #if BLOOM_DOWN_SAMPLE
@@ -112,7 +114,7 @@ vec4 bloom_readInputDown(ivec2 coord) {
     vec4 inputValue = texture(BLOOM_SAMPLER, readPosUV);
     #if BLOOM_PASS == 1
     inputValue.rgb *= inputValue.a;
-    inputValue *= 0.015;
+    inputValue *= BASE_BLOOM_INTENSITY;
     #endif
     return inputValue;
 }
@@ -144,7 +146,7 @@ ivec2 groupBasePixel = ivec2(gl_WorkGroupID.xy) << 4;
 #if BLOOM_KARIS_AVERAGE
 void weightedSum(vec4 color, float baseWeight, inout vec4 colorSum, inout float weightSum) {
     float weight = baseWeight;
-    weight *= colors_karisWeight(color.rgb / 0.015);
+    weight *= colors_karisWeight(color.rgb / BASE_BLOOM_INTENSITY);
     colorSum += color * weight;
     weightSum += weight;
 }
