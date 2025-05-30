@@ -14,9 +14,7 @@
 #include "/util/Rand.glsl"
 
 shared uint shared_avgLumHistogram[256];
-shared float shared_highlightSum[16];
-shared float shared_shadowSum[16];
-shared float shared_weightSum[16];
+shared vec3 shared_sum[16];
 #ifdef SETTING_DEBUG_AE
 shared uint shared_lumHistogram[256];
 #endif
@@ -125,9 +123,7 @@ void toneMapping_init() {
     shared_lumHistogram[gl_LocalInvocationIndex] = 0u;
     #endif
     if (gl_LocalInvocationIndex < 16) {
-        shared_highlightSum[gl_LocalInvocationIndex] = 0.0;
-        shared_shadowSum[gl_LocalInvocationIndex] = 0.0;
-        shared_weightSum[gl_LocalInvocationIndex] = 0.0;
+        shared_sum[gl_LocalInvocationIndex] = vec3(0.0);
     }
     barrier();
 }
@@ -143,33 +139,32 @@ vec3 applyAgx(vec3 color) {
 
 const float SHADOW_LUMA_THRESHOLD = SETTING_EXPOSURE_S_LUM / 255.0;
 const float HIGHLIGHT_LUMA_THRESHOLD = SETTING_EXPOSURE_H_LUM / 255.0;
+const float HIGHLIGHT_LUMA_EPSILON = 1.0 / 255.0;
 
 void toneMapping_apply(inout vec4 outputColor) {
     float pixelNoise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
+
+    outputColor.rgb = applyAgx(outputColor.rgb * exp2(global_aeData.expValues.z));
+    outputColor.rgb = saturate(colors_sRGB_encodeGamma(outputColor.rgb));
+
+    float lumimance = colors_Rec601_luma(saturate(outputColor.rgb)); // WTF Photoshop
+
     {
-        vec3 postColor = colors_sRGB_encodeGamma(applyAgx(outputColor.rgb * exp2(global_aeData.expValues.x)));
-        float lumimance = colors_Rec601_luma(saturate(postColor));// WTF Photoshop
         uint binIndex = clamp(uint(lumimance * 256.0), 0u, 255u);
         atomicAdd(shared_avgLumHistogram[binIndex], uint(outputColor.a + pixelNoise));
     }
 
     {
-        float weightSum = subgroupAdd(outputColor.a);
-        vec3 postColor = colors_sRGB_encodeGamma(applyAgx(outputColor.rgb * exp2(global_aeData.expValues.y)));
-        float lumimance = colors_Rec601_luma(postColor);
-        float highlightV = float(lumimance >= HIGHLIGHT_LUMA_THRESHOLD) * outputColor.a;
+        uint highlightFlag = uint(lumimance >= HIGHLIGHT_LUMA_THRESHOLD);
+        highlightFlag &= uint(lumimance > HIGHLIGHT_LUMA_EPSILON);
+        float highlightV = float(highlightFlag) * outputColor.a;
         float shadowV = float(lumimance <= SHADOW_LUMA_THRESHOLD) * outputColor.a;
-        float highlightSum = subgroupAdd(highlightV);
-        float shadowSum = subgroupAdd(shadowV);
+        vec3 sumV = vec3(highlightV, shadowV, outputColor.a);
+        vec3 sum = subgroupAdd(sumV);
         if (subgroupElect()) {
-            shared_highlightSum[gl_SubgroupID] = highlightSum;
-            shared_shadowSum[gl_SubgroupID] = shadowSum;
-            shared_weightSum[gl_SubgroupID] = weightSum;
+            shared_sum[gl_SubgroupID] = sum;
         }
     }
-
-    outputColor.rgb = applyAgx(outputColor.rgb * exp2(global_aeData.expValues.z));
-    outputColor.rgb = saturate(colors_sRGB_encodeGamma(outputColor.rgb));
 
     #ifdef SETTING_DEBUG_AE
     {
@@ -182,17 +177,13 @@ void toneMapping_apply(inout vec4 outputColor) {
     barrier();
 
     if (gl_SubgroupID == 0 && gl_SubgroupInvocationID < gl_NumSubgroups) {
-        float highlightV = shared_highlightSum[gl_SubgroupInvocationID];
-        float shadowV = shared_shadowSum[gl_SubgroupInvocationID];
-        float weightV = shared_weightSum[gl_SubgroupInvocationID];
-        float highlightSum = subgroupAdd(highlightV);
-        float shadowSum = subgroupAdd(shadowV);
-        float weightSum = subgroupAdd(weightV);
+        vec3 partialSum = shared_sum[gl_SubgroupInvocationID];
+        vec3 sum = subgroupAdd(partialSum);
         if (subgroupElect()) {
             float noise = rand_stbnVec1(ivec2(gl_WorkGroupID.xy), frameCounter);
-            atomicAdd(global_aeData.highlightCount, uint(highlightSum + noise));
-            atomicAdd(global_aeData.shadowCount, uint(shadowSum + noise));
-            atomicAdd(global_aeData.weightSum, uint(weightSum + noise));
+            atomicAdd(global_aeData.highlightCount, uint(sum.x + noise));
+            atomicAdd(global_aeData.shadowCount, uint(sum.y + noise));
+            atomicAdd(global_aeData.weightSum, uint(sum.z + noise));
         }
     }
 

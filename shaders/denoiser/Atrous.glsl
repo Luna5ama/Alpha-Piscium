@@ -136,6 +136,8 @@ inout vec4 colorSum, inout float weightSum
     }
 }
 
+const float _ATROUS_MIN_VARIANCE_FACTOR = exp2(-SETTING_DENOISER_MIN_VARIANCE_FACTOR);
+
 vec4 atrous_atrous(ivec2 texelPos) {
     atrous_texelPos = texelPos;
 
@@ -152,10 +154,6 @@ vec4 atrous_atrous(ivec2 texelPos) {
         loadGlobalData(atrous_texelPos, centerFilterData, centerNormal, centerViewZ);
 
         if (centerViewZ != -65536.0) {
-            vec4 hLenV = texelFetch(usam_temp6, atrous_texelPos, 0);
-            float boostV = 64.0 + centerFilterData.a * SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY;
-            centerFilterData.a += boostV * pow(hLenV.x, SETTING_DENOISER_VARIANCE_BOOST_DECAY);
-
             vec3 centerColor = centerFilterData.rgb;
             float centerVariance = centerFilterData.a;
             float centerLuminance = colors_sRGB_luma(centerColor);
@@ -164,7 +162,7 @@ vec4 atrous_atrous(ivec2 texelPos) {
 
             atrous_normalWeight = SETTING_DENOISER_FILTER_NORMAL_WEIGHT;
             atrous_viewZWeight = max((1.0 / SETTING_DENOISER_FILTER_DEPTH_WEIGHT) * pow2(centerViewZ), 0.5);
-            atrous_luminanceWeight = -sigmaL * inversesqrt(max(centerVariance, exp2(-SETTING_DENOISER_MIN_VARIANCE_FACTOR)));
+            atrous_luminanceWeight = -sigmaL * inversesqrt(max(centerVariance, _ATROUS_MIN_VARIANCE_FACTOR));
 
             vec4 colorSum = centerFilterData * 1.0;
             float weightSum = 1.0;

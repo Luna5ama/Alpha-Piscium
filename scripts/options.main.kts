@@ -445,7 +445,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         suffix = " AU"
                     }
                 }
-                constSlider("sunPathRotation", -15.0, -90.0..90.0 step 1.0) {
+                constSlider("sunPathRotation", -30.0, -90.0..90.0 step 1.0) {
                     lang {
                         name = "Sun Path Rotation"
                         comment = "Rotation of sun path in degrees."
@@ -886,13 +886,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_VARIANCE_BOOST_ADD", 4.0, 0.0..8.0 step 0.1) {
+                slider("SETTING_DENOISER_VARIANCE_BOOST_ADD_FACTOR", 15, 0..64) {
                     lang {
                         name = "Variance Boost Add"
-                        comment = "Boost variance for the first few frames."
+                        comment = "Boost variance for the first few frames. Actual value is calculated as 2^-x."
                     }
                 }
-                slider("SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY", 2.5, 1.0..8.0 step 0.1) {
+                slider("SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY", 1.5, 1.0..4.0 step 0.05) {
                     lang {
                         name = "Variance Boost Multiply"
                         comment = "Boost variance for the first few frames."
@@ -904,7 +904,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Number of frames to boost variance."
                     }
                 }
-                slider("SETTING_DENOISER_VARIANCE_BOOST_DECAY", 8, 1..16 step 1) {
+                slider("SETTING_DENOISER_VARIANCE_BOOST_DECAY", 2, 1..16 step 1) {
                     lang {
                         name = "Variance Boost Decay"
                     }
@@ -1000,12 +1000,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Light Shaft Samples"
                 }
             }
-            slider("SETTING_STARMAP_INTENSITY", 16, listOf(0) + powerOfTwoRange(0..10)) {
+            slider("SETTING_STARMAP_INTENSITY", 8, listOf(0) + powerOfTwoRange(0..10)) {
                 lang {
                     name = "Starmap Intensity"
                 }
             }
-            slider("SETTING_STARMAP_GAMMA", 1.6, 0.1..4.0 step 0.1) {
+            slider("SETTING_STARMAP_GAMMA", 1.2, 0.1..4.0 step 0.1) {
                 lang {
                     name = "Starmap Gamma"
                 }
@@ -1050,7 +1050,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Auto Exposure Min EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 13.5, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MAX_EV", 12.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
@@ -1061,7 +1061,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Extra weighting for emissive block pixels."
                     }
                 }
-                slider("SETTING_EXPOSURE_CENTER_WEIGHTING", 2.0, 0.0..8.0 step 0.1) {
+                slider("SETTING_EXPOSURE_CENTER_WEIGHTING", 4.0, 0.0..8.0 step 0.1) {
                     lang {
                         name = "Center Weighting"
                         comment = "Weight of center pixels in the exposure calculation. " +
@@ -1082,12 +1082,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Weight of average luminance AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 4.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 5.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Average Luminance AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 51, 0..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 33, 0..255) {
                     lang {
                         name = "Average Luminance Minimum Target"
                         comment = "Target average luminance value for dark scene such as caves, indoors, and nighttime."
@@ -1114,7 +1114,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Weight of highlight/shadow based AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_HS_TIME", 2.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_HS_TIME", 3.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Highlight/Shadow AE Time"
                     }

@@ -264,9 +264,9 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
         prevHLen = 0.0;
     } else {
         float rcpWeightSum = 1.0 / weightSum;
-        prevColor = max(prevColor * rcpWeightSum, 0.0);
-        prevFastColor = max(prevFastColor * rcpWeightSum, 0.0);
-        prevMoments = max(prevMoments * rcpWeightSum, 0.0);
-        prevHLen = max(ceil(prevHLen * rcpWeightSum), 0.0);
+        prevColor = clamp(prevColor * rcpWeightSum, 0.0, 65000.0);
+        prevFastColor = clamp(prevFastColor * rcpWeightSum, 0.0, 65000.0);
+        prevMoments = clamp(prevMoments * rcpWeightSum, 0.0, 65000.0);
+        prevHLen = clamp(ceil(prevHLen * rcpWeightSum), 0.0, 65000.0);
     }
 }

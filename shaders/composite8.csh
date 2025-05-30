@@ -132,6 +132,8 @@ inout vec3 colorSum, inout float weightSum
     colorSum.b += dot(interpoWeights, colorBs);
 }
 
+const float _BOOST_ADD = exp2(-SETTING_DENOISER_VARIANCE_BOOST_ADD_FACTOR);
+
 void main() {
     loadSharedData(gl_LocalInvocationIndex);
     loadSharedData(gl_LocalInvocationIndex + 64);
@@ -257,15 +259,13 @@ void main() {
 
         {
             float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
+            float boostFrameV = linearStep(1.0 + SETTING_DENOISER_VARIANCE_BOOST_FRAMES, 1.0, newHLen);
+            float boostV = _BOOST_ADD + variance * SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY;
+            variance += boostV * pow(boostFrameV, SETTING_DENOISER_VARIANCE_BOOST_DECAY);
+
             vec4 filterInput = vec4(newColor, variance);
             filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
             imageStore(uimg_temp2, texelPos, filterInput);
-        }
-
-        {
-            vec4 hLenV = vec4(0.0);
-            hLenV.x = linearStep(1.0 + SETTING_DENOISER_VARIANCE_BOOST_FRAMES, 1.0, newHLen);
-            imageStore(uimg_temp6, texelPos, hLenV);
         }
 
         {
