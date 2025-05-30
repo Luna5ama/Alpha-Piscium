@@ -114,7 +114,7 @@ vec4 celestial_render(ivec2 texelPos) {
     // Adjust longitude direction (increases to the left)
     starmapCoords.x = 1.0 - starmapCoords.x;
 
-    vec3 starmap = colors_LogLuvToSRGB(BicubicSampling5(usam_starmap, starmapCoords * _CELESTIAL_STARMAP_SIZE));
+    vec3 starmap = colors_LogLuv32ToSRGB(BicubicSampling5(usam_starmap, starmapCoords * _CELESTIAL_STARMAP_SIZE));
     starmap = pow(starmap, vec3(SETTING_STARMAP_GAMMA));
     result.rgb += starmap * _CELESTIAL_STARMAP_EXP * SETTING_STARMAP_INTENSITY;
     #endif

@@ -329,6 +329,6 @@ void debugOutput(inout vec4 outputColor) {
 
     #ifdef SETTING_DEBUG_STARMAP
     vec2 flippedCoord = vec2(screenPos.x, 1.0 - screenPos.y);
-    outputColor.rgb = gammaCorrect(colors_LogLuvToSRGB(texture(usam_starmap, flippedCoord)));
+    outputColor.rgb = gammaCorrect(colors_LogLuv32ToSRGB(texture(usam_starmap, flippedCoord)));
     #endif
 }

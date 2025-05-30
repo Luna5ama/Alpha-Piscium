@@ -37,7 +37,7 @@ void loadSharedData(uint index) {
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(global_mainImageSize - 1));
 
-        vec3 fastColor = colors_LogLuvToSRGB(unpackUnorm4x8(texelFetch(usam_tempRGBA32UI, srcXY, 0).y));
+        vec3 fastColor = colors_LogLuv32ToSRGB(unpackUnorm4x8(texelFetch(usam_tempRGBA32UI, srcXY, 0).y));
         vec3 directColor = texelFetch(usam_temp4, srcXY, 0).xyz;
         vec3 inputColor = fastColor + directColor;
 

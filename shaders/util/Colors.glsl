@@ -1,3 +1,8 @@
+/*
+    References:
+        [ERI07] Ericson, Christer. "Converting RGB to LogLuv in a fragment shader". 2007.
+            https://realtimecollisiondetection.net/blog/?p=15
+*/
 #ifndef INCLUDE_util_Colors_glsl
 #define INCLUDE_util_Colors_glsl a
 #include "/_Base.glsl"
@@ -94,27 +99,20 @@ vec3 colors_YCoCgToSRGB(vec3 color) {
     return _YCOCG_TO_SRGB * color;
 }
 
-// https://graphicrants.blogspot.com/2009/04/rgbm-color-encoding.html
+// https://realtimecollisiondetection.net/blog/?page_id=2
 // M matrix, for encoding
-const mat3 M = (mat3(
+const mat3 _COLORS_LOGLUV32_M = mat3(
     0.2209, 0.3390, 0.4184,
     0.1138, 0.6780, 0.7319,
     0.0102, 0.1130, 0.2969
-));
+);
 
-// Inverse M matrix, for decoding
-const mat3 InverseM = (mat3(
-    6.0014, -2.7008, -1.7996,
-    -1.3320, 3.1029, -5.7721,
-    0.3008, -1.0882, 5.6268
-));
-
-vec4 colors_SRGBToLogLuv(in vec3 vRGB)  {
+vec4 colors_sRGBToLogLuv32(in vec3 vRGB)  {
     if (all(lessThanEqual(vRGB, vec3(0.0)))) {
         return vec4(0.0);
     }
     vec4 vResult;
-    vec3 Xp_Y_XYZp = M * vRGB;
+    vec3 Xp_Y_XYZp = _COLORS_LOGLUV32_M * vRGB;
     Xp_Y_XYZp = max(Xp_Y_XYZp, vec3(1e-6, 1e-6, 1e-6));
     vResult.xy = Xp_Y_XYZp.xy / Xp_Y_XYZp.z;
     float Le = 2 * log2(Xp_Y_XYZp.y) + 127;
@@ -123,7 +121,14 @@ vec4 colors_SRGBToLogLuv(in vec3 vRGB)  {
     return vResult;
 }
 
-vec3 colors_LogLuvToSRGB(in vec4 vLogLuv) {
+// Inverse M matrix, for decoding
+const mat3 _COLORS_LOGLUV32_INVERSE_M = mat3(
+    6.0014, -2.7008, -1.7996,
+    -1.3320, 3.1029, -5.7721,
+    0.3008, -1.0882, 5.6268
+);
+
+vec3 colors_LogLuv32ToSRGB(in vec4 vLogLuv) {
     if (all(lessThanEqual(vLogLuv, vec4(0.0)))) {
         return vec3(0.0);
     }
@@ -132,7 +137,7 @@ vec3 colors_LogLuvToSRGB(in vec4 vLogLuv) {
     Xp_Y_XYZp.y = exp2((Le - 127) / 2);
     Xp_Y_XYZp.z = Xp_Y_XYZp.y / vLogLuv.y;
     Xp_Y_XYZp.x = vLogLuv.x * Xp_Y_XYZp.z;
-    vec3 vRGB = InverseM * Xp_Y_XYZp;
+    vec3 vRGB = _COLORS_LOGLUV32_INVERSE_M * Xp_Y_XYZp;
     return max(vRGB, 0);
 }
 

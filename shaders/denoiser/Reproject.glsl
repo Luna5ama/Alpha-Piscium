@@ -99,10 +99,10 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
 
             {
                 uvec4 prevColorData = textureGather(usam_svgfHistory, gatherUV1, 0);
-                vec3 prevColor1 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.x));
-                vec3 prevColor2 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.y));
-                vec3 prevColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.z));
-                vec3 prevColor4 = colors_LogLuvToSRGB(unpackUnorm4x8(prevColorData.w));
+                vec3 prevColor1 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.x));
+                vec3 prevColor2 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.y));
+                vec3 prevColor3 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.z));
+                vec3 prevColor4 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.w));
 
                 vec4 prevColorR = max(vec4(prevColor1.r, prevColor2.r, prevColor3.r, prevColor4.r), 0.0);
                 prevColor.r += dot(interpoWeights, prevColorR);
@@ -114,10 +114,10 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
 
             {
                 uvec4 prevFastColorData = textureGather(usam_svgfHistory, gatherUV1, 1);
-                vec3 prevFastColor1 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.x));
-                vec3 prevFastColor2 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.y));
-                vec3 prevFastColor3 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.z));
-                vec3 prevFastColor4 = colors_LogLuvToSRGB(unpackUnorm4x8(prevFastColorData.w));
+                vec3 prevFastColor1 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.x));
+                vec3 prevFastColor2 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.y));
+                vec3 prevFastColor3 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.z));
+                vec3 prevFastColor4 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.w));
 
                 vec4 prevFastColorR = max(vec4(prevFastColor1.r, prevFastColor2.r, prevFastColor3.r, prevFastColor4.r), 0.0);
                 prevFastColor.r += dot(interpoWeights, prevFastColorR);
