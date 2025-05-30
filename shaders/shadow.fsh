@@ -6,8 +6,7 @@
 
 uniform sampler2D usam_rtwsm_imap;
 
-uniform sampler2D lightmap;
-uniform sampler2D texture;
+uniform sampler2D gtexture;
 
 in vec2 frag_unwarpedTexCoord;
 in vec2 frag_texcoord;
@@ -25,7 +24,7 @@ void main() {
 
 	vec2 offsetTexCoord = frag_texcoord + pixelDiff.x * dFdx(frag_texcoord) + pixelDiff.y * dFdy(frag_texcoord);
 	offsetTexCoord = clamp(offsetTexCoord, frag_texcoordMin, frag_texcoordMax);
-	vec4 color = textureLod(texture, offsetTexCoord, 0.0) * frag_color;
+	vec4 color = textureLod(gtexture, offsetTexCoord, 0.0) * frag_color;
 
 	color.rgb = colors_srgbToLinear(color.rgb);
 
