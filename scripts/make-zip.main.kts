@@ -4,10 +4,11 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
 val excluded = setOf("_", "scripts", ".*\\.zip").map { it.toRegex() }
+val commitTag = Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD")).inputStream.bufferedReader().readText().trim()
 
 val currDir = File("")
 val rootDir = currDir.absoluteFile.parentFile
-ZipOutputStream(File(rootDir, "${rootDir.name}.zip").outputStream(), Charsets.UTF_8).use { zipOut ->
+ZipOutputStream(File(rootDir, "${rootDir.name}_$commitTag.zip").outputStream(), Charsets.UTF_8).use { zipOut ->
     zipOut.setLevel(Deflater.DEFAULT_COMPRESSION)
     zipOut.setMethod(ZipOutputStream.DEFLATED)
 

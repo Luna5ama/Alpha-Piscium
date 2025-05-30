@@ -6,8 +6,6 @@ uniform sampler2D usam_rtwsm_imap;
 
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 
-attribute vec4 mc_Entity;
-
 out uint vert_survived;
 out vec2 vert_unwarpedTexCoord;
 out vec2 vert_texcoord;
