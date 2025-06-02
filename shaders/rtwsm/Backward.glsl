@@ -90,8 +90,9 @@ void rtwsm_backward(ivec2 texelPos, float viewZ, vec3 viewNormal) {
 
     #ifdef MC_GL_VENDOR_NVIDIA
     uvec4 pballot = subgroupPartitionNV(p);
+    float maxV = subgroupPartitionedMaxNV(v, pballot);
     if (subgroupBallotFindLSB(pballot) == gl_SubgroupInvocationID) {
-        writeOutput(p, subgroupPartitionedMaxNV(v, pballot));
+        writeOutput(p, maxV);
     }
     #else
     if (p == 0xFFFFFFFFu) {
