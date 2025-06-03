@@ -155,11 +155,17 @@ void toneMapping_apply(inout vec4 outputColor) {
     }
 
     {
-        uint highlightFlag = uint(lumimance >= HIGHLIGHT_LUMA_THRESHOLD);
-        highlightFlag &= uint(lumimance > HIGHLIGHT_LUMA_EPSILON);
+        uint not0Flag = uint(lumimance > HIGHLIGHT_LUMA_EPSILON);
+        uint highlightFlag = not0Flag;
+        highlightFlag &= uint(lumimance >= HIGHLIGHT_LUMA_THRESHOLD);
+        uint shadowFlag = not0Flag;
+        shadowFlag &= uint(lumimance <= SHADOW_LUMA_THRESHOLD);
+
         float highlightV = float(highlightFlag) * outputColor.a;
-        float shadowV = float(lumimance <= SHADOW_LUMA_THRESHOLD) * outputColor.a;
-        vec3 sumV = vec3(highlightV, shadowV, outputColor.a);
+        float shadowV = float(shadowFlag) * outputColor.a;
+        float totalV = float(not0Flag) * outputColor.a;
+
+        vec3 sumV = vec3(highlightV, shadowV, totalV);
         vec3 sum = subgroupAdd(sumV);
         if (subgroupElect()) {
             shared_sum[gl_SubgroupID] = sum;
