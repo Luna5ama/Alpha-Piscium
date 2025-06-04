@@ -9,7 +9,6 @@
 #include "Common.glsl"
 
 uniform sampler2D usam_gbufferViewZ;
-uniform sampler2D usam_epipolarSliceEnd;
 uniform usampler2D usam_epipolarData;
 
 bool unwarpEpipolarInsctrImage(
@@ -118,7 +117,7 @@ out ScatteringResult result
 
     for (int i = 0; i < 2; ++i) {
         // Load epipolar line endpoints
-        vec4 f4SliceEndpoints = texture(usam_epipolarSliceEnd, vec2(fSrcSliceV[i], 0.5));
+        vec4 f4SliceEndpoints = uintBitsToFloat(texture(usam_epipolarData, vec2(fSrcSliceV[i], EPIPOLAR_SLICE_END_POINTS_V)));
 
         // Compute line direction on the screen
         vec2 f2SliceDir = f4SliceEndpoints.zw - f4SliceEndpoints.xy;
@@ -141,7 +140,7 @@ out ScatteringResult result
         float fUWeight = fSampleInd - fPrecedingSampleInd;
         // Get texture coordinate of the left source texel. Again, offset by 0.5 is essential
         // to align with the texel center
-        float fPrecedingSampleU = (fPrecedingSampleInd + 0.5) / float(SETTING_SLICE_SAMPLES);
+        float fPrecedingSampleU = (fPrecedingSampleInd + 1.5) / float(EPIPOLAR_DATA_Y_SIZE);
 
         vec2 f2SctrColorUV = vec2(fSrcSliceV[i], fPrecedingSampleU);
 
@@ -164,7 +163,7 @@ out ScatteringResult result
         // z == g_tex2DEpipolarCamSpaceZ.SampleLevel(samPointClamp, f2SctrColorUV, 0, int2(1,0))
         // w == g_tex2DEpipolarCamSpaceZ.SampleLevel(samPointClamp, f2SctrColorUV, 0, int2(0,0))
 
-        const vec2 f2ScatteredColorTexDim = vec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
+        const vec2 f2ScatteredColorTexDim = vec2(SETTING_EPIPOLAR_SLICES, EPIPOLAR_DATA_Y_SIZE);
         vec2 epipolarViewZ = uintBitsToFloat(textureGather(usam_epipolarData, f2SctrColorUV + vec2(0.5, 0.5) / f2ScatteredColorTexDim.xy, 3).wx);
 
         // Compute depth weights in a way that if the difference is less than the threshold, the weight is 1 and

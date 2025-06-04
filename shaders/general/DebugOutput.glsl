@@ -26,7 +26,6 @@ uniform sampler2D usam_rtwsm_imap;
 
 #ifdef SETTING_DEBUG_ATMOSPHERE
 uniform sampler2D usam_skyLUT;
-uniform sampler2D usam_epipolarSliceEnd;
 uniform usampler2D usam_epipolarData;
 #endif
 
@@ -243,10 +242,10 @@ void debugOutput(inout vec4 outputColor) {
 
     #ifdef SETTING_DEBUG_ATMOSPHERE
     if (inViewPort(ivec4(0, 0, 1024, 16), debugTexCoord)) {
-        outputColor.rgb = vec3(texture(usam_epipolarSliceEnd, vec2(debugTexCoord.x, 0.5)).rg, 0.0);
+        outputColor.rgb = vec3(uintBitsToFloat(texture(usam_epipolarData, vec2(debugTexCoord.x, EPIPOLAR_SLICE_END_POINTS_V)).rg), 0.0);
     }
     if (inViewPort(ivec4(0, 16, 1024, 16), debugTexCoord)) {
-        outputColor.rgb = vec3(texture(usam_epipolarSliceEnd, vec2(debugTexCoord.x, 0.5)).ba, 0.0);
+        outputColor.rgb = vec3(uintBitsToFloat(texture(usam_epipolarData, vec2(debugTexCoord.x, EPIPOLAR_SLICE_END_POINTS_V)).ba), 0.0);
     }
     if (inViewPort(ivec4(0, 32, 256, 64), debugTexCoord)) {
         outputColor.rgb = gammaCorrect(texture(usam_transmittanceLUT, debugTexCoord).rgb);
@@ -262,14 +261,18 @@ void debugOutput(inout vec4 outputColor) {
         debugTexCoord.y = 1.0 - debugTexCoord.y;
         ScatteringResult sampleResult;
         float viewZ;
-        unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
+        vec2 sampleTexCoord = debugTexCoord;
+        sampleTexCoord.y = mix(1.0 / EPIPOLAR_DATA_Y_SIZE, 1.0, sampleTexCoord.y);
+        unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
         outputColor.rgb = gammaCorrect(sampleResult.inScattering * exp2(SETTING_DEBUG_EXP));
     }
     if (inViewPort(ivec4(256, 32 + 256, whRatio * 256, 256), debugTexCoord)) {
         debugTexCoord.y = 1.0 - debugTexCoord.y;
         ScatteringResult sampleResult;
         float viewZ;
-        unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
+        vec2 sampleTexCoord = debugTexCoord;
+        sampleTexCoord.y = mix(1.0 / EPIPOLAR_DATA_Y_SIZE, 1.0, sampleTexCoord.y);
+        unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
         outputColor.rgb = gammaCorrect(sampleResult.transmittance);
     }
     if (inViewPort(ivec4(256, 32 + 512, whRatio * 256, 256), debugTexCoord)) {

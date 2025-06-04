@@ -23,8 +23,7 @@ const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
 uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_packedZN;
 
-layout(rgba32f) uniform readonly image2D uimg_epipolarSliceEnd;
-layout(rgba32ui) uniform writeonly uimage2D uimg_epipolarData;
+layout(rgba32ui) uniform restrict uimage2D uimg_epipolarData;
 
 void main() {
     ivec2 imgSizei = ivec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
@@ -32,7 +31,7 @@ void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     uint sliceIndex = gl_WorkGroupID.x;
     uint sliceSampleIndex = gl_LocalInvocationID.y;
-    vec4 sliceEndPoints = imageLoad(uimg_epipolarSliceEnd, ivec2(sliceIndex, 0));
+    vec4 sliceEndPoints = uintBitsToFloat(imageLoad(uimg_epipolarData, ivec2(sliceIndex, 0)));
 
     uint cond = uint(all(lessThan(texelPos, imgSizei)));
     cond &= uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
@@ -63,6 +62,8 @@ void main() {
 
         uvec4 outputData;
         packEpipolarData(outputData, result, viewZ);
-        imageStore(uimg_epipolarData, texelPos, outputData);
+        ivec2 writeTexelPos = texelPos;
+        writeTexelPos.y += 1;
+        imageStore(uimg_epipolarData, writeTexelPos, outputData);
     }
 }
