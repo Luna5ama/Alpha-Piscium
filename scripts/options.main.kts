@@ -1477,6 +1477,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Auto Exposure"
                 }
             }
+            toggle("SETTING_DEBUG_NOISE_GEN", false) {
+                lang {
+                    name = "Noise Generation"
+                }
+            }
         }
     }
 }
