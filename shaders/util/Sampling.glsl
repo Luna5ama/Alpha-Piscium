@@ -61,7 +61,7 @@ vec3 sampling_textureRepeatGrad(sampler2D t, vec2 uv, float v ) {
 #endif
 
 // [QUI17]
-vec3 sampling_textureRepeatGrad(sampler2D t, vec2 uv, float v) {
+vec4 sampling_textureRepeat(sampler2D t, vec2 uv, float v) {
     float k = texture(noisetex, 0.005 * uv).x; // cheap (cache friendly) lookup
 
     float l = k * 8.0;
@@ -73,10 +73,10 @@ vec3 sampling_textureRepeatGrad(sampler2D t, vec2 uv, float v) {
     vec2 offa = sin(vec2(3.0, 7.0) * ia); // can replace with any other hash
     vec2 offb = sin(vec2(3.0, 7.0) * ib); // can replace with any other hash
 
-    vec3 cola = texture(t, uv + v * offa).xyz;
-    vec3 colb = texture(t, uv + v * offb).xyz;
+    vec4 cola = texture(t, uv + v * offa);
+    vec4 colb = texture(t, uv + v * offb);
 
-    return mix(cola, colb, smoothstep(0.2, 0.8, f - 0.1 * sum3(cola - colb)));
+    return mix(cola, colb, smoothstep(0.2, 0.8, f - 0.1 * sum4(cola - colb)));
 }
 
 
