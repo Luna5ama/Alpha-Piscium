@@ -23,9 +23,9 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     CloudRaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
 
+    vec3 earthCenter = vec3(0.0);
     if (endView.z == -65536.0) {
         params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
-        vec3 earthCenter = vec3(0.0);
 
         // Check if ray origin is outside the atmosphere
         if (length(params.rayStart) > atmosphere.top) {
@@ -64,12 +64,16 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
 
     vec3 intergralResult = vec3(0.0, 0.0, 1.0); // Sun scattering, sky scattering, transmittance
 
-    float cirrusCloudHeightDiff = atmosphere.bottom + CIRRUS_CLOUD_HEIGHT - params.rayStartHeight;
-    if (cirrusCloudHeightDiff > 0.0 && rayDir.y > 0.0) {
-        float rayLen = cirrusCloudHeightDiff / rayDir.y;
-        vec3 rayPos = params.rayStart + rayDir * rayLen;
+    float cirrusHeight = atmosphere.bottom + CIRRUS_CLOUD_HEIGHT;
+    float cirrusCloudHeightDiff = cirrusHeight - params.rayStartHeight;
+    float cirrusRayLen = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom + CIRRUS_CLOUD_HEIGHT);
+    uint cirrusFlag = uint(sign(cirrusCloudHeightDiff) == sign(rayDir.y)) & uint(cirrusRayLen > 0.0);
+
+    if (bool(cirrusFlag)) {
+        vec3 rayPos = params.rayStart + rayDir * cirrusRayLen;
 
         float density = clouds_cirrus_density(rayPos);
+
         float opticalDepth = density * 0.1;
         float transmittance = exp(-opticalDepth);
 
@@ -77,8 +81,6 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
         intergralResult.z *= transmittance;
     }
 
-    intergralResult.x *= smoothstep(0.0, 0.1, rayDir.y);
-
-//    outputColor.rgb *= intergralResult.z;
+    outputColor.rgb *= intergralResult.z;
     outputColor.rgb += intergralResult.x * 100.0;
 }
