@@ -13,6 +13,7 @@
 #include "/util/BSDF.glsl"
 #include "/util/FastMathLib.glsl"
 #include "/util/Math.glsl"
+#include "/util/Hash.glsl"
 
 uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferViewZ;
@@ -316,7 +317,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
     float maxDist = min(maxDistX, maxDistY) - 2.0;
 
     uvec2 hashKey = uvec2(vbgi_texelPos1x1) & uvec2(255u);
-    uint r2Index = (rand_hash21(hashKey) & 1023u) + NOISE_FRAME;
+    uint r2Index = (hash_21_q3(hashKey) & 1023u) + NOISE_FRAME;
     float jitter = rand_r2Seq1(r2Index);
 
     float lodStep = radiusToLodStep(maxDist);

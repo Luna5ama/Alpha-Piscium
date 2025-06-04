@@ -7,6 +7,7 @@
 #include "/atmosphere/Common.glsl"
 #include "/general/Lighting.glsl"
 #include "/util/Morton.glsl"
+#include "/util/Hash.glsl"
 #include "/util/FullScreenComp.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -27,7 +28,7 @@ float searchBlocker(vec3 shadowTexCoord) {
     #define BLOCKER_SEARCH_N SETTING_PCSS_BLOCKER_SEARCH_COUNT
 
     float blockerSearchRange = 0.1;
-    uint idxB = frameCounter * BLOCKER_SEARCH_N + (rand_hash31(floatBitsToUint(lighting_viewCoord.xyz)) & 1023u);
+    uint idxB = frameCounter * BLOCKER_SEARCH_N + (hash_31_q3(floatBitsToUint(lighting_viewCoord.xyz)) & 1023u);
 
     float blockerDepth = 0.0f;
     int n = 0;
@@ -104,8 +105,6 @@ vec3 calcShadow(Material material, bool isHand) {
 
     vec3 shadow = vec3(0.0);
     uint idxSS = 0;
-
-    uint hashss = rand_hash31(floatBitsToUint(viewCoord.xyz)) & 1023u;
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
     float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distnaceSq, 1.0)));
