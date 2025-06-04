@@ -1,16 +1,12 @@
 /*
     References:
         [QUI17] Quilez, Inigo. "Integer Hash Functions". 2017.
-            (MIT License)
+            MIT License. Copyright © 2017,2024 Inigo Quilez.
+            https://www.shadertoy.com/view/XlXcW4 (hash33)
+            https://www.shadertoy.com/view/llGSzw (hash11)
+            https://www.shadertoy.com/view/4tXyWN (hash21)
         [JAR20] Jarzynski, Mark. Olano, Marc. "Hash Functions for GPU Rendering". 2020.
             https://jcgt.org/published/0009/03/02/
-
-    Contains code adopted from:
-        https://www.shadertoy.com/view/XlXcW4 (hash33)
-        https://www.shadertoy.com/view/llGSzw (hash11)
-        https://www.shadertoy.com/view/4tXyWN (hash21)
-        MIT License
-        Copyright © 2017,2024 Inigo Quilez
 
         You can find full license texts in /licenses
 */

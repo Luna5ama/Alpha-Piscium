@@ -1,8 +1,8 @@
 /*
-    Contains code adopted from:
-        https://github.com/sebh/UnrealEngineSkyAtmosphere
-        MIT License
-        Copyright (c) 2020 Epic Games, Inc.
+    References:
+        [EPI20] Epic Games, Inc. "Unreal Engine Sky Atmosphere Rendering Technique". 2020.
+            MIT License. Copyright (c) 2020 Epic Games, Inc.
+            https://github.com/sebh/UnrealEngineSkyAtmosphere
 
         You can find full license texts in /licenses
 */

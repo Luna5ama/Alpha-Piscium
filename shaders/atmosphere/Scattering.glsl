@@ -1,12 +1,11 @@
 /*
-    Contains code adopted from:
-        https://github.com/GameTechDev/OutdoorLightScattering
-        Apache License 2.0
-        Copyright (c) 2017 Intel Corporation
-
-        https://github.com/sebh/UnrealEngineSkyAtmosphere
-        MIT License
-        Copyright (c) 2020 Epic Games, Inc.
+    References:
+        [EPI20] Epic Games, Inc. "Unreal Engine Sky Atmosphere Rendering Technique". 2020.
+            MIT License. Copyright (c) 2020 Epic Games, Inc.
+            https://github.com/sebh/UnrealEngineSkyAtmosphere
+        [INT17] Intel Corporation. "Outdoor Light Scattering Sample". 2017.
+            Apache License 2.0. Copyright (c) 2017 Intel Corporation.
+            https://github.com/GameTechDev/OutdoorLightScattering
 
         You can find full license texts in /licenses
 */

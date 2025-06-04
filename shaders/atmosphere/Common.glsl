@@ -2,21 +2,18 @@
     References:
         [BRU08] Bruneton, Eric. "Precomputed Atmospheric Scattering". EGSR 2008. 2008.
             https://hal.inria.fr/inria-00290084/document
+        [EPI20] Epic Games, Inc. "Unreal Engine Sky Atmosphere Rendering Technique". 2020.
+            MIT License. Copyright (c) 2020 Epic Games, Inc.
+            https://github.com/sebh/UnrealEngineSkyAtmosphere
         [HIL20] Hillaire, Sébastien. "A Scalable and Production Ready Sky and Atmosphere Rendering Technique".
             EGSR 2020. 2020.
             https://sebh.github.io/publications/egsr2020.pdf
+        [INT17] Intel Corporation. "Outdoor Light Scattering Sample". 2017.
+            Apache License 2.0. Copyright (c) 2017 Intel Corporation.
+            https://github.com/GameTechDev/OutdoorLightScattering
         [YUS13] Yusov, Egor. “Practical Implementation of Light Scattering Effects Using Epipolar Sampling and
             1D Min/Max Binary Trees”. GDC 2013. 2013.
             http://gdcvault.com/play/1018227/Practical-Implementation-of-Light-Scattering
-
-    Contains code adopted from:
-        https://github.com/GameTechDev/OutdoorLightScattering
-        Apache License 2.0
-        Copyright (c) 2017 Intel Corporation
-
-        https://github.com/sebh/UnrealEngineSkyAtmosphere
-        MIT License
-        Copyright (c) 2020 Epic Games, Inc.
 
         You can find full license texts in /licenses
 */

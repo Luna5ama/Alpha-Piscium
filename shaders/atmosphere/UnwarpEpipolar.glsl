@@ -1,8 +1,8 @@
 /*
-    Contains code adopted from:
-        https://github.com/GameTechDev/OutdoorLightScattering
-        Apache License 2.0
-        Copyright (c) 2017 Intel Corporation
+    References:
+        [INT17] Intel Corporation. "Outdoor Light Scattering Sample". 2017.
+            Apache License 2.0. Copyright (c) 2017 Intel Corporation.
+            https://github.com/GameTechDev/OutdoorLightScattering
 
         You can find full license texts in /licenses
 */

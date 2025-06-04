@@ -8,11 +8,6 @@
         [KAR10] Karis, Brian. "Specular BRDF Reference". Graphic Rants. 2013.
             https://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
 
-    Contains code adopted from:
-        https://github.com/BelmuTM/Noble
-        GPL v3.0 License
-        Copyright (c) 2025 Belmu
-
         You can find full license texts in /licenses)
 */
 #ifndef INCLUDE_util_BSDF_glsl

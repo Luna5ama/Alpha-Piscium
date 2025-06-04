@@ -5,13 +5,8 @@
         [ROB18] Roberts, Martine. "The Unreasonable Effectiveness of Quasirandom Sequences". 2018.
             https://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/
         [WOL22] Wolfe, Alan. "Interleaved Gradient Noise: A Different Kind of Low Discrepancy Sequence". 2022.
+            MIT License. Copyright (c) 2019 Alan Wolfe.
             https://blog.demofox.org/2022/01/01/interleaved-gradient-noise-a-different-kind-of-low-discrepancy-sequence/
-            (MIT License)
-
-    Contains code adopted from:
-        https://blog.demofox.org/2022/01/01/interleaved-gradient-noise-a-different-kind-of-low-discrepancy-sequence/
-        MIT License
-        Copyright (c) 2019 Alan Wolfe
 
         You can find full license texts in /licenses
 */

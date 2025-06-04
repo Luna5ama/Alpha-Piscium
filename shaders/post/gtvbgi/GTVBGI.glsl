@@ -1,8 +1,8 @@
 /*
-    Contains code adopted from:
-        https://www.shadertoy.com/view/XcdBWf
-        MIT License
-        Copyright (c) 2024 Mirko Salm
+    References:
+        [SAL24] Salm, Mirko. "GT-VBGI (diffuse) (unidir)". 2024.
+            MIT License. Copyright (c) 2024 Mirko Salm.
+            https://www.shadertoy.com/view/XcdBWf
 
         You can find full license texts in /licenses
 */

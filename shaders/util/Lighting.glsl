@@ -1,10 +1,10 @@
 /*
-    Contains code adopted from:
-        https://github.com/BelmuTM/Noble
-        GPL v3.0 License
-        Copyright (c) 2025 Belmu
+    References:
+        [BEL25] Belmu. Noble.
+            GPL v3.0 License. Copyright (c) 2025 Belmu
+            https://github.com/BelmuTM/Noble
 
-        You can find full license texts in /licenses)
+        You can find full license texts in /licenses
 
     Credits:
         Jessie - Skylight falloff function (https://github.com/zombye)

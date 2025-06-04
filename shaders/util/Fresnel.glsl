@@ -2,15 +2,18 @@
     References:
         [ARN08] Arnott, W.P. "Fresnel equations". 2008.
             https://www.patarnott.com/atms749/pdf/FresnelEquations.pdf
-        [LAG13] Lagarde, Sébastien . "Memo on Fresnel equations". 2013.
+        [LAB21] shaderLABS. "LabPBR Material Standard". 2021.
+            https://shaderlabs.org/wiki/LabPBR_Material_Standard
+        [LAG13] Lagarde, Sébastien. "Memo on Fresnel equations". 2013.
             https://seblagarde.wordpress.com/2013/04/29/memo-on-fresnel-equations/
         [WIK23] Wikipedia. "Snell's law". 2023.
             https://en.wikipedia.org/wiki/Snell%27s_law
-
-    Contains code adopted from:
-        https://github.com/BelmuTM/Noble
-        GPL v3.0 License
-        Copyright (c) 2025 Belmu
+        [BEL25a] Belmu. "fresnel.glsl". Noble Shaders.
+            GPL v3.0 License. Copyright (c) 2025 Belmu
+            https://github.com/BelmuTM/Noble/blob/4d3544b078e9c71debc0c6ac9936b9e9847b442d/shaders/include/fragment/fresnel.glsl
+        [BEL25b] Belmu. "material.glsl". Noble Shaders.
+            GPL v3.0 License. Copyright (c) 2025 Belmu
+            https://github.com/BelmuTM/Noble/blob/4d3544b078e9c71debc0c6ac9936b9e9847b442d/shaders/include/utility/material.glsl
 
         You can find full license texts in /licenses
 
@@ -25,24 +28,24 @@
 const float AIR_IOR = 1.00029;
 const float WATER_IOR = 1.333;
 
-vec3 _fresnel_calculateRefractedAngle(vec3 thetaI, vec3 n1, vec3 n2) {
-    return asin((n1 / n2) * sin(thetaI));
-}
-
+// [BEL25b]
 vec3 fresnel_f0ToIor(vec3 f0) {
     vec3 f0Sqrt = sqrt(f0) * 0.99999;
     return AIR_IOR * ((1.0 + f0Sqrt) / (1.0 - f0Sqrt));
 }
 
+// [BEL25b]
 float fresnel_f0ToIor(float f0) {
     float f0Sqrt = sqrt(f0) * 0.99999;
     return AIR_IOR * ((1.0 + f0Sqrt) / (1.0 - f0Sqrt));
 }
 
+// [BEL25b]
 float fresnel_iorToF0(float ior) {
     return pow2((ior - AIR_IOR) / (ior + AIR_IOR));
 }
 
+// [BEL25a]
 vec3 fresnel_dielectricDielectric_reflection(float cosThetaI, vec3 n1, vec3 n2) {
     float sinThetaI = sqrt(1.0 - pow2(cosThetaI));
     vec3 sinThetaT = (n1 / n2) * sinThetaI;
@@ -54,6 +57,7 @@ vec3 fresnel_dielectricDielectric_reflection(float cosThetaI, vec3 n1, vec3 n2) 
     return saturate((Rs * Rs + Rp * Rp) * 0.5);
 }
 
+// [BEL25a]
 vec3 fresnel_dielectricDielectric_transmittance(float cosThetaI, vec3 n1, vec3 n2) {
     float sinThetaI = sqrt(1.0 - pow2(cosThetaI));
     vec3 sinThetaT = (n1 / n2) * sinThetaI;
@@ -71,6 +75,7 @@ vec3 fresnel_dielectricDielectric_transmittance(float cosThetaI, vec3 n1, vec3 n
     return saturate(beamRatio * (Ts * Ts + Tp * Tp) * 0.5);
 }
 
+// [BEL25a]
 vec3 fresnel_dielectricConductor(float cosTheta, vec3 eta, vec3 etaK) {
     float cosThetaSq = cosTheta * cosTheta, sinThetaSq = 1.0 - cosThetaSq;
     vec3 etaSq = eta * eta, etaKSq = etaK * etaK;
@@ -88,14 +93,14 @@ vec3 fresnel_dielectricConductor(float cosTheta, vec3 eta, vec3 etaK) {
     return saturate((Rp + Rs) * 0.5);
 }
 
+// [LAG13]
 vec3 frenel_schlick(float cosTheta, vec3 f0) {
     return f0 + (1.0 - f0) * pow5(1.0 - cosTheta);
 }
 
 vec3 fresnel_evalMaterial(Material material, float cosTheta) {
     /*
-        Hardcoded metals
-        https://shaderlabs.org/wiki/LabPBR_Material_Standard
+        [LAB21]
         Metal	    Bit Value	N (R, G, B)	                K (R, G, B)
         Iron	    230	        2.9114,  2.9497,  2.5845	3.0893, 2.9318, 2.7670
         Gold	    231	        0.18299, 0.42108, 1.3734	3.4242, 2.3459, 1.7704

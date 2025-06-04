@@ -1,8 +1,8 @@
 /*
-    Contains code adopted from:
-        https://iolite-engine.com/blog_posts/minimal_agx_implementation
-        MIT License
-        Copyright (c) 2024 Missing Deadlines (Benjamin Wrensch)
+    References:
+        [WRE23] Wrensch, Benjamin. "Minimal AgX Implementation". IOLITE Development Blog. 2023.
+            MIT License. Copyright (c) 2024 Missing Deadlines (Benjamin Wrensch)
+            https://iolite-engine.com/blog_posts/minimal_agx_implementation
 
         You can find full license texts in /licenses
 */
