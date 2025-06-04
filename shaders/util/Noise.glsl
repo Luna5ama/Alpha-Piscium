@@ -2,6 +2,9 @@
     References:
         [QUI08] Quilez, Inigo. "Value Noise Derivatives". 2008.
             https://iquilezles.org/articles/morenoise/
+        [QUI13] Quilez, Inigo. "Noise - value - 3D ". 2013.
+            MIT License. Copyright (c) 2013 Inigo Quilez.
+            https://www.shadertoy.com/view/4sfGzS
         [QUI17a] Quilez, Inigo. "Gradient Noise Derivatives". 2017.
             https://iquilezles.org/articles/gradientnoise/
         [QUI17b] Quilez, Inigo. "Noise - Value - 3D - Deriv". 2017.
@@ -92,7 +95,7 @@ vec4 noise_value_3D_valueGrad(in vec3 x) {
         du * vec3(dot(dxdotk, dxdotu), dot(dydotk, dydotu), dot(dzdotk, dzdotu)));
 }
 
-// [QUI17b]
+// [QUI13]
 float noise_value_3D_value(vec3 x) {
     uvec3 i = uvec3(ivec3(floor(x)));
     vec3 w = fract(x);
@@ -100,31 +103,16 @@ float noise_value_3D_value(vec3 x) {
     // quintic interpolation
     vec3 u = w * w * w * (w * (w * 6.0 - 15.0) + 10.0);
 
-    float a = _noise_value_3D_hash(i + uvec3(0, 0, 0));
-    float b = _noise_value_3D_hash(i + uvec3(1, 0, 0));
-    float c = _noise_value_3D_hash(i + uvec3(0, 1, 0));
-    float d = _noise_value_3D_hash(i + uvec3(1, 1, 0));
-    float e = _noise_value_3D_hash(i + uvec3(0, 0, 1));
-    float f = _noise_value_3D_hash(i + uvec3(1, 0, 1));
-    float g = _noise_value_3D_hash(i + uvec3(0, 1, 1));
-    float h = _noise_value_3D_hash(i + uvec3(1, 1, 1));
+    float va = _noise_value_3D_hash(i + uvec3(0, 0, 0));
+    float vb = _noise_value_3D_hash(i + uvec3(1, 0, 0));
+    float vc = _noise_value_3D_hash(i + uvec3(0, 1, 0));
+    float vd = _noise_value_3D_hash(i + uvec3(1, 1, 0));
+    float ve = _noise_value_3D_hash(i + uvec3(0, 0, 1));
+    float vf = _noise_value_3D_hash(i + uvec3(1, 0, 1));
+    float vg = _noise_value_3D_hash(i + uvec3(0, 1, 1));
+    float vh = _noise_value_3D_hash(i + uvec3(1, 1, 1));
 
-    float k0 = a;
-    float k1 = b - a;
-    float k2 = c - a;
-    float k3 = e - a;
-    float k4 = a - b - c + d;
-    float k5 = a - c - e + g;
-    float k6 = a - b - e + f;
-    float k7 = -a + b + c - d + e - f - g + h;
-
-    vec4 vdotu1 = vec4(1.0, u.x, u.y, u.z);
-    vec4 vdotu2 = u.xyzx * u.yzxy * vec4(1.0, 1.0, 1.0, u.z);
-
-    vec4 vdotk1 = vec4(k0, k1, k2, k3);
-    vec4 vdotk2 = vec4(k4, k5, k6, k7);
-
-    return dot(vdotk1, vdotu1) + dot(vdotk2, vdotu2);
+    return mix(mix(mix(va, vb, u.x), mix(vc, vd, u.x), u.y), mix(mix(ve, vf, u.x), mix(vg, vh, u.x), u.y), u.z);
 }
 
 float noise_value_3D_value_fbm(FBMParameters params, vec3 position) {
