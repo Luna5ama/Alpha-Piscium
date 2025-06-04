@@ -4,23 +4,23 @@
 #include "/util/noise/GradientNoise.glsl"
 #include "/util/Sampling.glsl"
 
-#define CIRRUS_CLOUD_HEIGHT 9.0
-#define CIRRUS_CLOUD_COVERAGE 0.5
+#define CIRRUS_CLOUD_HEIGHT (12.0 / 1000.0)
+#define CIRRUS_CLOUD_COVERAGE 0.25
 
 float _clouds_cirrus_coverage(vec3 rayPos) {
     FBMParameters params;
 
-//    params.frequency = 0.02;
-//    params.persistence = 0.6;
-//    params.lacunarity = 2.5;
-//    params.octaveCount = 4u;
-//    float fbm = GradientNoise_2D_value_fbm(params, rayPos.xz + vec2(0.0, -24.0));
-
-    params.frequency = 0.02;
-    params.persistence = 0.5;
+    params.frequency = 0.03;
+    params.persistence = 0.6;
     params.lacunarity = 2.5;
-    params.octaveCount = 4u;
-    float fbm = ValueNoise_2D_value_fbm(params, rayPos.xz + vec2(72.0, 96.0));
+    params.octaveCount = 2u;
+    float fbm = GradientNoise_2D_value_fbm(params, rayPos.xz + vec2(0.0, -24.0));
+
+    //    params.frequency = 0.02;
+    //    params.persistence = 0.5;
+    //    params.lacunarity = 2.5;
+    //    params.octaveCount = 4u;
+    //    float fbm = ValueNoise_2D_value_fbm(params, rayPos.xz + vec2(72.0, 96.0));
 
     return pow2(linearStep(0.5 - CIRRUS_CLOUD_COVERAGE * 2.0, 1.0, fbm));
 }
@@ -44,17 +44,17 @@ float _clouds_cirrus_density_layer(vec2 texCoord) {
 
 float _clouds_cirrus_density_fbm(vec3 rayPos) {
     FBMParameters curlParams;
-    curlParams.frequency = 0.01;
+    curlParams.frequency = 0.008;
     curlParams.persistence = 0.6;
-    curlParams.lacunarity = 2.0;
+    curlParams.lacunarity = 1.75;
     curlParams.octaveCount = 3u;
     vec2 curl = GradientNoise_2D_grad_fbm(curlParams, rayPos.xz + vec2(11.4, 51.4));
 
     float density = 0.0;
-    density += _clouds_cirrus_density_layer((rayPos.xz + 0.114) * 0.04 + curl * 4.0) * 0.125;
-    density += _clouds_cirrus_density_layer((rayPos.xz + 0.514) * 0.01 + curl * -0.8) * 0.25;
-    density += _clouds_cirrus_density_layer(rayPos.xz * 0.005 + curl * 0.3) * 0.5;
-    return density;
+    density += _clouds_cirrus_density_layer((rayPos.xz + 0.114) * 0.04 + curl * 2.0) * 0.125;
+    density += _clouds_cirrus_density_layer((rayPos.xz + 0.514) * 0.01 + curl * 0.8) * 0.25;
+    density += _clouds_cirrus_density_layer(rayPos.xz * 0.005 + curl * 0.4) * 0.5;
+    return density * 2.5;
 }
 
 float clouds_cirrus_density(vec3 rayPos) {
