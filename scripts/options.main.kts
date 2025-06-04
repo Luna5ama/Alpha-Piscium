@@ -1263,152 +1263,163 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Screenshot Mode"
                 }
             }
-            screen("DEBUG", 1) {
+        }
+        empty()
+        empty()
+        screen("DEBUG", 3) {
+            lang {
+                name = "Debug"
+            }
+            toggle("SETTING_DEBUG_WHITE_WORLD", false) {
                 lang {
-                    name = "Debug"
+                    name = "White World"
                 }
-                toggle("SETTING_DEBUG_WHITE_WORLD", false) {
-                    lang {
-                        name = "White World"
-                    }
+            }
+            toggle("SETTING_DEBUG_OUTPUT", 0, 0..3) {
+                lang {
+                    name = "Debug Output"
+                    0 value "Off"
+                    1 value "Tone Mapping"
+                    2 value "TAA"
+                    3 value "Final"
                 }
-                empty()
-                toggle("SETTING_DEBUG_OUTPUT", 0, 0..3) {
-                    lang {
-                        name = "Debug Output"
-                        0 value "Off"
-                        1 value "Tone Mapping"
-                        2 value "TAA"
-                        3 value "Final"
-                    }
+            }
+            slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {
+                lang {
+                    name = "Debug Scale"
                 }
-                slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {
-                    lang {
-                        name = "Debug Scale"
-                    }
+            }
+            toggle("SETTING_DEBUG_GAMMA_CORRECT", true) {
+                lang {
+                    name = "Gamma Correct"
                 }
-                toggle("SETTING_DEBUG_GAMMA_CORRECT", true) {
-                    lang {
-                        name = "Gamma Correct"
-                    }
+            }
+            slider("SETTING_DEBUG_EXP", 0.0, -10.0..10.0 step 0.1) {
+                lang {
+                    name = "Exposure"
                 }
-                slider("SETTING_DEBUG_EXP", 0.0, -10.0..10.0 step 0.1) {
-                    lang {
-                        name = "Exposure"
-                    }
+            }
+            toggle("SETTING_DEBUG_NEGATE", false) {
+                lang {
+                    name = "Negate"
                 }
-                toggle("SETTING_DEBUG_NEGATE", false) {
-                    lang {
-                        name = "Negate"
-                    }
+            }
+            toggle("SETTING_DEBUG_ALPHA", false) {
+                lang {
+                    name = "Alpha"
                 }
-                toggle("SETTING_DEBUG_ALPHA", false) {
-                    lang {
-                        name = "Alpha"
-                    }
+            }
+            empty()
+            empty()
+            empty()
+            empty()
+            empty()
+            toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..6) {
+                lang {
+                    name = "Temp Tex"
+                    0 value "Off"
+                    1 value "temp1"
+                    2 value "temp2"
+                    3 value "temp3"
+                    4 value "temp4"
+                    5 value "temp5"
+                    6 value "temp6"
                 }
-                empty()
-                toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..6) {
-                    lang {
-                        name = "Temp Tex"
-                        0 value "Off"
-                        1 value "temp1"
-                        2 value "temp2"
-                        3 value "temp3"
-                        4 value "temp4"
-                        5 value "temp5"
-                        6 value "temp6"
-                    }
+            }
+            toggle("SETTING_DEBUG_GBUFFER_DATA", 0, 0..10) {
+                lang {
+                    name = "GBuffer Data"
+                    0 value "Off"
+                    1 value "Albedo"
+                    2 value "Normal"
+                    3 value "Geometry Normal"
+                    4 value "Roughness"
+                    5 value "F0"
+                    6 value "Porosity"
+                    7 value "SSS"
+                    8 value "Light Map Block"
+                    9 value "Light Map Sky"
+                    10 value "isHand"
                 }
-                toggle("SETTING_DEBUG_DENOISER", 0, 0..6) {
-                    lang {
-                        name = "Denoiser"
-                        0 value "Off"
-                        1 value "Color"
-                        2 value "Fast Color"
-                        3 value "HLen"
-                        4 value "Moment"
-                        5 value "Moment^2"
-                        6 value "Variance"
-                    }
+            }
+            toggle("SETTING_DEBUG_NORMAL_MODE", 0, 0..1) {
+                lang {
+                    name = "Normal Mode"
+                    0 value "World"
+                    1 value "View"
                 }
-                toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..6) {
-                    lang {
-                        name = "GI Inputs"
-                        0 value "Off"
-                        1 value "Radiance"
-                        2 value "Light Map Sky"
-                        3 value "Emissive"
-                        4 value "Normal"
-                        5 value "View Z"
-                        6 value "Geometry Normal"
-                    }
+            }
+            empty()
+            empty()
+            empty()
+            toggle("SETTING_DEBUG_DENOISER", 0, 0..6) {
+                lang {
+                    name = "Denoiser"
+                    0 value "Off"
+                    1 value "Color"
+                    2 value "Fast Color"
+                    3 value "HLen"
+                    4 value "Moment"
+                    5 value "Moment^2"
+                    6 value "Variance"
                 }
-                empty()
-                toggle("SETTING_DEBUG_GBUFFER_DATA", 0, 0..10) {
-                    lang {
-                        name = "GBuffer Data"
-                        0 value "Off"
-                        1 value "Albedo"
-                        2 value "Normal"
-                        3 value "Geometry Normal"
-                        4 value "Roughness"
-                        5 value "F0"
-                        6 value "Porosity"
-                        7 value "SSS"
-                        8 value "Light Map Block"
-                        9 value "Light Map Sky"
-                        10 value "isHand"
-                    }
+            }
+            toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..6) {
+                lang {
+                    name = "GI Inputs"
+                    0 value "Off"
+                    1 value "Radiance"
+                    2 value "Light Map Sky"
+                    3 value "Emissive"
+                    4 value "Normal"
+                    5 value "View Z"
+                    6 value "Geometry Normal"
                 }
-                toggle("SETTING_DEBUG_NORMAL_MODE", 0, 0..1) {
-                    lang {
-                        name = "Normal Mode"
-                        0 value "World"
-                        1 value "View"
-                    }
+            }
+            toggle("SETTING_DEBUG_ENV_PROBE", false) {
+                lang {
+                    name = "Env Probe"
                 }
-                empty()
-                toggle("SETTING_DEBUG_RTWSM", false) {
-                    lang {
-                        name = "RTWSM"
-                    }
+            }
+            empty()
+            empty()
+            empty()
+            toggle("SETTING_DEBUG_RTWSM", false) {
+                lang {
+                    name = "RTWSM"
                 }
-                slider("SETTING_DEBUG_RTWSM_MIN_DEPTH", 0.0, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "RTWSM Min Depth"
-                    }
+            }
+            slider("SETTING_DEBUG_RTWSM_MIN_DEPTH", 0.0, 0.0..1.0 step 0.01) {
+                lang {
+                    name = "RTWSM Min Depth"
                 }
-                slider("SETTING_DEBUG_RTWSM_MAX_DEPTH", 1.0, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "RTWSM Max Depth"
-                    }
+            }
+            slider("SETTING_DEBUG_RTWSM_MAX_DEPTH", 1.0, 0.0..1.0 step 0.01) {
+                lang {
+                    name = "RTWSM Max Depth"
                 }
-                empty()
-                toggle("SETTING_DEBUG_ENV_PROBE", false) {
-                    lang {
-                        name = "Environment Probe"
-                    }
+            }
+            empty()
+            empty()
+            empty()
+            toggle("SETTING_DEBUG_ATMOSPHERE", false) {
+                lang {
+                    name = "Atmosphere"
                 }
-                toggle("SETTING_DEBUG_ATMOSPHERE", false) {
-                    lang {
-                        name = "Atmosphere"
-                    }
+            }
+            toggle("SETTING_DEBUG_EPIPOLAR", false) {
+                lang {
+                    name = "Epipolar"
                 }
-                toggle("SETTING_DEBUG_EPIPOLAR", false) {
-                    lang {
-                        name = "Epipolar"
-                    }
+            }
+            toggle("SETTING_DEBUG_STARMAP", false) {
+                lang {
+                    name = "Star Map"
                 }
-                toggle("SETTING_DEBUG_AE", false) {
-                    lang {
-                        name = "Auto Exposure"
-                    }
-                }
-                toggle("SETTING_DEBUG_STARMAP", false) {
-                    lang {
-                        name = "Star Map"
-                    }
+            }
+            toggle("SETTING_DEBUG_AE", false) {
+                lang {
+                    name = "Auto Exposure"
                 }
             }
         }
