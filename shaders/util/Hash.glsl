@@ -13,6 +13,7 @@
 
 #ifndef INCLUDE_util_Hash_glsl
 #define INCLUDE_util_Hash_glsl a
+
 #include "/_Base.glsl"
 
 // --------------------------------------------------- Intenal Utils ---------------------------------------------------

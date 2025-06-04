@@ -96,3 +96,10 @@ const bool colortex13Clear = false;
 const bool colortex14Clear = false;
 
 const bool colortex15Clear = false;
+
+
+// -------------------------------------------------- Custom Textures --------------------------------------------------
+uniform sampler2D noisetex;
+uniform sampler3D usam_stbnVec1;
+uniform sampler3D usam_stbnUnitVec2;
+uniform sampler2D usam_starmap;
