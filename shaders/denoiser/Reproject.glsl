@@ -2,7 +2,7 @@
 #include "/util/BitPacking.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Colors.glsl"
-#include "/util/Interpo.glsl"
+#include "/util/Sampling.glsl"
 #include "/util/NZPacking.glsl"
 
 const float BASE_GEOM_WEIGHT = exp2(SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT);
@@ -206,8 +206,8 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     vec4 weights4;
 
     if (bool(flag)) {
-        vec4 weightX = interpo_bSplineWeights(pixelPosFract.x);
-        vec4 weightY = interpo_bSplineWeights(pixelPosFract.y);
+        vec4 weightX = sampling_bSplineWeights(pixelPosFract.x);
+        vec4 weightY = sampling_bSplineWeights(pixelPosFract.y);
 
         vec2 bilinearWeights2 = pixelPosFract;
         vec4 blinearWeights4;
@@ -228,8 +228,8 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
         weights4 = weightX.xyyx * weightY.yyxx;
         weights4.y += blinearWeights4.w;
     } else {
-        vec4 weightX = interpo_catmullRomWeights(pixelPosFract.x);
-        vec4 weightY = interpo_catmullRomWeights(pixelPosFract.y);
+        vec4 weightX = sampling_catmullRomWeights(pixelPosFract.x);
+        vec4 weightY = sampling_catmullRomWeights(pixelPosFract.y);
 
         weights1 = weightX.xyyx * weightY.wwzz;
         weights2 = weightX.zwwz * weightY.wwzz;

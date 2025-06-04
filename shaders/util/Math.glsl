@@ -34,6 +34,13 @@ float min3(vec3 v) { return min(min(v.x, v.y), v.z); }
 float min4(float x, float y, float z, float w) { return min(min(x, y), min(z, w)); }
 float min4(vec4 v) { return min(min(v.x, v.y), min(v.z, v.w)); }
 
+float sum2(float x, float y) { return x + y; }
+float sum2(vec2 v) { return v.x + v.y; }
+float sum3(float x, float y, float z) { return x + y + z; }
+float sum3(vec3 v) { return v.x + v.y + v.z; }
+float sum4(float x, float y, float z, float w) { return x + y + z + w; }
+float sum4(vec4 v) { return v.x + v.y + v.z + v.w; }
+
 float linearStep(float edge0, float edge1, float x) { return saturate((x - edge0) / (edge1 - edge0)); }
 vec2 linearStep(float edge0, float edge1, vec2 x) { return saturate((x - edge0) / (edge1 - edge0)); }
 vec3 linearStep(float edge0, float edge1, vec3 x) { return saturate((x - edge0) / (edge1 - edge0)); }

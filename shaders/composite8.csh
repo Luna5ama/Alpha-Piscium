@@ -7,7 +7,6 @@
 #include "/denoiser/Update.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
-#include "/util/Interpo.glsl"
 #include "/util/Material.glsl"
 #include "/util/Dither.glsl"
 
