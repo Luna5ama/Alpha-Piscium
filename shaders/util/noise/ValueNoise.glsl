@@ -48,6 +48,27 @@ float ValueNoise_2D_value(vec2 x) {
 }
 
 // [QUI17a]
+vec2 ValueNoise_2D_grad(vec2 x) {
+    uvec2 i = _noise_hash_coord(x);
+    vec2 w = fract(x);
+
+    vec2 u = _NOISE_INTERPO(w);
+    vec2 du = _NOISE_INTERPO_GRAD(w);
+
+    float va = _ValueNoise_2D_hash(i + uvec2(0, 0));
+    float vb = _ValueNoise_2D_hash(i + uvec2(1, 0));
+    float vc = _ValueNoise_2D_hash(i + uvec2(0, 1));
+    float vd = _ValueNoise_2D_hash(i + uvec2(1, 1));
+
+    vec2 grad = du * vec2(
+        mix(vb - va, vd - vc, u.y),
+        mix(vc - va, vd - vb, u.x)
+    );
+
+    return grad;
+}
+
+// [QUI17a]
 vec3 ValueNoise_2D_valueGrad(vec2 x) {
     uvec2 i = _noise_hash_coord(x);
     vec2 w = fract(x);
@@ -82,6 +103,30 @@ float ValueNoise_2D_value_fbm(FBMParameters params, vec2 position) {
         currentFrequency *= params.lacunarity;
     }
     return value;
+}
+
+vec2 ValueNoise_2D_grad_fbm(FBMParameters params, vec2 position) {
+    vec2 grad = vec2(0.0);
+    float amplitude = 1.0;
+    float currentFrequency = params.frequency;
+    for (uint i = 0; i < params.octaveCount; i++) {
+        grad += ValueNoise_2D_grad(position * currentFrequency) * amplitude;
+        amplitude *= params.persistence;
+        currentFrequency *= params.lacunarity;
+    }
+    return grad;
+}
+
+vec3 ValueNoise_2D_valueGrad_fbm(FBMParameters params, vec2 position) {
+    vec3 valueGrad = vec3(0.0);
+    float amplitude = 1.0;
+    float currentFrequency = params.frequency;
+    for (uint i = 0; i < params.octaveCount; i++) {
+        valueGrad += ValueNoise_2D_valueGrad(position * currentFrequency) * amplitude;
+        amplitude *= params.persistence;
+        currentFrequency *= params.lacunarity;
+    }
+    return valueGrad;
 }
 
 

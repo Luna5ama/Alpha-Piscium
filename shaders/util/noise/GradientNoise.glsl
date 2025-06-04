@@ -53,6 +53,31 @@ float GradientNoise_2D_value(vec2 x) {
 }
 
 // [QUI17a]
+vec2 GradientNoise_2D_grad(vec2 x) {
+    uvec2 i = _noise_hash_coord(x);
+    vec2 w = fract(x);
+
+    vec2 u = _NOISE_INTERPO(w);
+    vec2 du = _NOISE_INTERPO_GRAD(w);
+
+    vec2 ga = _GradientNoise_2D_hash(i + uvec2(0, 0));
+    vec2 gb = _GradientNoise_2D_hash(i + uvec2(1, 0));
+    vec2 gc = _GradientNoise_2D_hash(i + uvec2(0, 1));
+    vec2 gd = _GradientNoise_2D_hash(i + uvec2(1, 1));
+
+    float va = dot(ga, w - vec2(0.0, 0.0));
+    float vb = dot(gb, w - vec2(1.0, 0.0));
+    float vc = dot(gc, w - vec2(0.0, 1.0));
+    float vd = dot(gd, w - vec2(1.0, 1.0));
+
+    vec2 g = mix(mix(ga, gb, u.x), mix(gc, gd, u.x), u.y);
+    vec2 d = mix(vec2(vb, vc)-va, vd - vec2(vc, vb), u.yx);
+    vec2 grad = g + du * d;
+
+    return grad;
+}
+
+// [QUI17a]
 vec3 GradientNoise_2D_valueGrad(vec2 x) {
     uvec2 i = _noise_hash_coord(x);
     vec2 w = fract(x);
@@ -87,6 +112,30 @@ float GradientNoise_2D_value_fbm(FBMParameters params, vec2 position) {
     float currentFrequency = params.frequency;
     for (uint i = 0; i < params.octaveCount; i++) {
         value += GradientNoise_2D_value(position * currentFrequency) * amplitude;
+        amplitude *= params.persistence;
+        currentFrequency *= params.lacunarity;
+    }
+    return value;
+}
+
+vec2 GradientNoise_2D_grad_fbm(FBMParameters params, vec2 position) {
+    vec2 value = vec2(0.0);
+    float amplitude = 1.0;
+    float currentFrequency = params.frequency;
+    for (uint i = 0; i < params.octaveCount; i++) {
+        value += GradientNoise_2D_grad(position * currentFrequency) * amplitude;
+        amplitude *= params.persistence;
+        currentFrequency *= params.lacunarity;
+    }
+    return value;
+}
+
+vec3 GradientNoise_2D_valueGrad_fbm(FBMParameters params, vec2 position) {
+    vec3 value = vec3(0.0);
+    float amplitude = 1.0;
+    float currentFrequency = params.frequency;
+    for (uint i = 0; i < params.octaveCount; i++) {
+        value += GradientNoise_2D_valueGrad(position * currentFrequency) * amplitude;
         amplitude *= params.persistence;
         currentFrequency *= params.lacunarity;
     }
