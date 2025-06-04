@@ -227,3 +227,6 @@ const float shadowDistance = 192.0; //[64.0 128.0 192.0 256.0 384.0 512.0]
 //#define SETTING_DEBUG_AE
 #ifdef SETTING_DEBUG_AE
 #endif
+//#define SETTING_DEBUG_NOISE_GEN
+#ifdef SETTING_DEBUG_NOISE_GEN
+#endif
