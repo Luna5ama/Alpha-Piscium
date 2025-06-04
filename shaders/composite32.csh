@@ -4,7 +4,7 @@
 #include "/util/Coords.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Colors.glsl"
-#include "/post/DOF.glsl"
+#include "/clouds/Render.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -23,6 +23,7 @@ void main() {
         vec4 translucentColorSample = texelFetch(usam_translucentColor, texelPos, 0);
 
         vec4 outputColor = imageLoad(uimg_main, texelPos);
+        renderCloud(texelPos, usam_gbufferViewZ, outputColor);
 
         GBufferData gData = gbufferData_init();
         gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);

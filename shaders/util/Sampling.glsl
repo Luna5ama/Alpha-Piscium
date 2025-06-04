@@ -60,6 +60,22 @@ vec3 sampling_textureRepeatGrad(sampler2D t, vec2 uv, float v ) {
 }
 #endif
 
+
+vec4 texture_tiling(sampler2D t, vec2 texCoord) {
+    vec2 dist0 = smoothstep(0.0, 0.5, abs(fract(texCoord - vec2(0.5, 0.5)) - vec2(0.5, 0.5)));
+    vec2 dist1 = smoothstep(0.0, 0.5, abs(fract(texCoord - vec2(0.5, 0.5) + vec2(0.5, 0.5)) - vec2(0.5, 0.5)));
+    vec2 dist2 = smoothstep(0.0, 0.5, abs(fract(texCoord - vec2(0.5, 0.5) + vec2(1.0, 0.5)) - vec2(0.5, 0.5)));
+    vec2 dist3 = smoothstep(0.0, 0.5, abs(fract(texCoord - vec2(0.5, 0.5) + vec2(0.5, 1.0)) - vec2(0.5, 0.5)));
+
+    vec4 result = vec4(0.0);
+    result += texture(t, texCoord) * dist0.x * dist0.y;
+    result += texture(t, texCoord + vec2(0.5, 0.5)) * dist1.x * dist1.y;
+    result += texture(t, texCoord + vec2(1.0, 0.5)) * dist2.x * dist2.y;
+    result += texture(t, texCoord + vec2(0.5, 1.0)) * dist3.x * dist3.y;
+
+    return result;
+}
+
 // [QUI17]
 vec4 sampling_textureRepeat(sampler2D t, vec2 uv, float v) {
     float k = texture(noisetex, 0.005 * uv).x; // cheap (cache friendly) lookup
@@ -73,8 +89,8 @@ vec4 sampling_textureRepeat(sampler2D t, vec2 uv, float v) {
     vec2 offa = sin(vec2(3.0, 7.0) * ia); // can replace with any other hash
     vec2 offb = sin(vec2(3.0, 7.0) * ib); // can replace with any other hash
 
-    vec4 cola = texture(t, uv + v * offa);
-    vec4 colb = texture(t, uv + v * offb);
+    vec4 cola = texture_tiling(t, uv + v * offa);
+    vec4 colb = texture_tiling(t, uv + v * offb);
 
     return mix(cola, colb, smoothstep(0.2, 0.8, f - 0.1 * sum4(cola - colb)));
 }

@@ -103,3 +103,4 @@ uniform sampler2D noisetex;
 uniform sampler3D usam_stbnVec1;
 uniform sampler3D usam_stbnUnitVec2;
 uniform sampler2D usam_starmap;
+uniform sampler2D usam_cirrus;
