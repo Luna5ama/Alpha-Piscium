@@ -2,13 +2,13 @@
     References:
         [QUI08] Quilez, Inigo. "Value Noise Derivatives". 2008.
             https://iquilezles.org/articles/morenoise/
-        [QUI13a] Quilez, Inigo. "Noise - value - 2D ". 2013.
+        [QUI13a] Quilez, Inigo. "Noise - value - 2D". 2013.
             MIT License. Copyright (c) 2013 Inigo Quilez.
             https://www.shadertoy.com/view/lsf3WH
-        [QUI13b] Quilez, Inigo. "Noise - value - 3D ". 2013.
+        [QUI13b] Quilez, Inigo. "Noise - value - 3D". 2013.
             MIT License. Copyright (c) 2013 Inigo Quilez.
             https://www.shadertoy.com/view/4sfGzS
-        [QUI17a] Quilez, Inigo. "Noise - Value - 2D - Deriv ". 2017.
+        [QUI17a] Quilez, Inigo. "Noise - Value - 2D - Deriv". 2017.
             MIT License. Copyright (c) 2017 Inigo Quilez.
             https://www.shadertoy.com/view/4dXBRH
         [QUI17b] Quilez, Inigo. "Noise - Value - 3D - Deriv". 2017.
@@ -18,8 +18,8 @@
         You can find full license texts in /licenses
 */
 
-#ifndef INCLUDE_util_noise_Value_glsl
-#define INCLUDE_util_noise_Value_glsl a
+#ifndef INCLUDE_util_noise_ValueNoise_glsl
+#define INCLUDE_util_noise_ValueNoise_glsl a
 
 #include "_Common.glsl"
 

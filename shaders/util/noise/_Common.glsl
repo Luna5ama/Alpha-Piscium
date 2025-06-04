@@ -1,8 +1,11 @@
+#ifndef INCLUDE_util_noise__Common_glsl
+#define INCLUDE_util_noise__Common_glsl a
+
 #include "/util/Hash.glsl"
 
 // 0: cubic
 // 1: quintic
-#define _NOISE_INTERPOLANT 0
+#define _NOISE_INTERPOLANT 1
 
 struct FBMParameters {
     float frequency;
@@ -26,3 +29,5 @@ uvec2 _noise_hash_coord(vec2 x) {
 uvec3 _noise_hash_coord(vec3 x) {
     return uvec3(ivec3(floor(x)));
 }
+
+#endif
