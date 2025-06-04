@@ -29,12 +29,19 @@
 #define INCLUDE_util_GradientNoise_glsl a
 #include "Hash.glsl"
 
+struct FBMParameters {
+    float frequency;
+    float persistence;
+    float lacunarity;
+    uint octaveCount;
+};
+
 float _noise_value_2D_hash(uvec2 x) {
     return hash_uintToFloat(hash_21_q3(x)) * 2.0 - 1.0;
 }
 
 float _noise_value_3D_hash(uvec3 x) {
-    return hash_uintToFloat(hash_31_q3(x)) * 2.0 - 1.0;
+    return hash_uintToFloat(hash_31_q5(x)) * 2.0 - 1.0;
 }
 
 // [QUI17b]
@@ -118,6 +125,18 @@ float noise_value_3D_value(vec3 x) {
     vec4 vdotk2 = vec4(k4, k5, k6, k7);
 
     return dot(vdotk1, vdotu1) + dot(vdotk2, vdotu2);
+}
+
+float noise_value_3D_value_fbm(FBMParameters params, vec3 position) {
+    float value = 0.0;
+    float amplitude = 1.0;
+    float currentFrequency = params.frequency;
+    for (uint i = 0; i < params.octaveCount; i++) {
+        value += noise_value_3D_value(position * currentFrequency) * amplitude;
+        amplitude *= params.persistence;
+        currentFrequency *= params.lacunarity;
+    }
+    return value;
 }
 
 #endif
