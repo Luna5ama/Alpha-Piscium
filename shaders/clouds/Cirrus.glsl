@@ -4,7 +4,7 @@
 #include "/util/noise/GradientNoise.glsl"
 #include "/util/Sampling.glsl"
 
-#define CIRRUS_CLOUD_HEIGHT 12.0
+#define CIRRUS_CLOUD_HEIGHT 9.0
 #define CIRRUS_CLOUD_COVERAGE 0.5
 
 float _clouds_cirrus_coverage(vec3 rayPos) {
@@ -14,15 +14,15 @@ float _clouds_cirrus_coverage(vec3 rayPos) {
 //    params.persistence = 0.6;
 //    params.lacunarity = 2.5;
 //    params.octaveCount = 4u;
-//    float coverage = GradientNoise_2D_value_fbm(params, rayPos.xz + vec2(0.0, -24.0));
+//    float fbm = GradientNoise_2D_value_fbm(params, rayPos.xz + vec2(0.0, -24.0));
 
     params.frequency = 0.02;
     params.persistence = 0.5;
     params.lacunarity = 2.5;
     params.octaveCount = 4u;
-    float coverage = ValueNoise_2D_value_fbm(params, rayPos.xz + vec2(72.0, 96.0));
+    float fbm = ValueNoise_2D_value_fbm(params, rayPos.xz + vec2(72.0, 96.0));
 
-    return pow2(linearStep(0.5 - CIRRUS_CLOUD_COVERAGE * 2.0, 1.0, coverage));
+    return pow2(linearStep(0.5 - CIRRUS_CLOUD_COVERAGE * 2.0, 1.0, fbm));
 }
 
 float _clouds_cirrus_density_layer(vec2 texCoord) {
@@ -51,8 +51,8 @@ float _clouds_cirrus_density_fbm(vec3 rayPos) {
     vec2 curl = GradientNoise_2D_grad_fbm(curlParams, rayPos.xz + vec2(11.4, 51.4));
 
     float density = 0.0;
-    density += _clouds_cirrus_density_layer((rayPos.xz + 114.0) * 0.04 + curl * 4.0) * 0.25;
-    density += _clouds_cirrus_density_layer((rayPos.xz + 514.0) * 0.01 + curl * -0.8) * 0.25;
+    density += _clouds_cirrus_density_layer((rayPos.xz + 0.114) * 0.04 + curl * 4.0) * 0.125;
+    density += _clouds_cirrus_density_layer((rayPos.xz + 0.514) * 0.01 + curl * -0.8) * 0.25;
     density += _clouds_cirrus_density_layer(rayPos.xz * 0.005 + curl * 0.3) * 0.5;
     return density;
 }
