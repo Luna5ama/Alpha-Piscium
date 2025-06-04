@@ -1,6 +1,6 @@
 #include "Common.glsl"
 #include "/util/Rand.glsl"
-#include "/util/Noise.glsl"
+#include "/util/noise/ValueNoise.glsl"
 #include "/util/Sampling.glsl"
 
 #define CIRRUS_CLOUD_HEIGHT 12.0
@@ -12,7 +12,7 @@ float _clouds_cirrus_coverage(vec3 rayPos) {
     params.persistence = 0.5;
     params.lacunarity = 3.0;
     params.octaveCount = 4u;
-    float coverage = noise_value_2D_value_fbm(params, rayPos.xz + vec2(16.0, 64.0));
+    float coverage = ValueNoise_2D_value_fbm(params, rayPos.xz + vec2(16.0, 64.0));
     return pow2(linearStep(0.5 - CIRRUS_CLOUD_COVERAGE * 1.5, 1.0, coverage)) * CIRRUS_CLOUD_COVERAGE * 2.0;
 }
 
