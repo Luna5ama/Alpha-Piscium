@@ -1,7 +1,7 @@
 /*
     References:
         [QUI17] Quilez, Inigo. "Integer Hash Functions". 2017.
-            MIT License. Copyright © 2017,2024 Inigo Quilez.
+            MIT License. Copyright (c) 2017,2024 Inigo Quilez.
             https://www.shadertoy.com/view/XlXcW4 (hash33)
             https://www.shadertoy.com/view/llGSzw (hash11)
             https://www.shadertoy.com/view/4tXyWN (hash21)
