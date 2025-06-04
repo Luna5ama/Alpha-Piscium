@@ -78,6 +78,7 @@ vec4 texture_tiling(sampler2D t, vec2 texCoord) {
 
 // [QUI17]
 vec4 sampling_textureRepeat(sampler2D t, vec2 uv, float v) {
+//    return texture_tiling(t, uv);
     float k = texture(noisetex, 0.005 * uv).x; // cheap (cache friendly) lookup
 
     float l = k * 8.0;

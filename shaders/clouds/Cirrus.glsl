@@ -43,8 +43,6 @@ float _clouds_cirrus_density_layer(vec2 texCoord) {
 }
 
 float _clouds_cirrus_density_fbm(vec3 rayPos) {
-    float density = 0.0;
-
     FBMParameters curlParams;
     curlParams.frequency = 0.01;
     curlParams.persistence = 0.6;
@@ -52,6 +50,7 @@ float _clouds_cirrus_density_fbm(vec3 rayPos) {
     curlParams.octaveCount = 3u;
     vec2 curl = GradientNoise_2D_grad_fbm(curlParams, rayPos.xz + vec2(11.4, 51.4));
 
+    float density = 0.0;
     density += _clouds_cirrus_density_layer((rayPos.xz + 114.0) * 0.04 + curl * 4.0) * 0.25;
     density += _clouds_cirrus_density_layer((rayPos.xz + 514.0) * 0.01 + curl * -0.8) * 0.25;
     density += _clouds_cirrus_density_layer(rayPos.xz * 0.005 + curl * 0.3) * 0.5;
