@@ -80,7 +80,7 @@ void main() {
         uint histogramCounting = shared_avgLumBinCountSum[0];
 
         float averageBinIndex = (float(histogramCounting) / totalWeight) + 0.5;
-        float averageLuminance = pow(averageBinIndex / 256.0, 2.2);
+        float averageLuminance = averageBinIndex / 256.0;
 
         #ifdef SETTING_EXPOSURE_MANUAL
         global_aeData.expValues = vec3(SETTING_EXPOSURE_MANUAL_EV_COARSE + SETTING_EXPOSURE_MANUAL_EV_FINE);
@@ -105,7 +105,7 @@ void main() {
         const float MAX_DELTA_S = 0.5;
         vec2 hsPercents = vec2(SETTING_EXPOSURE_H_PERCENT, SETTING_EXPOSURE_S_PERCENT) * (totalWeight * 0.01);
         vec2 hsExps = log2(vec2(hsPercents.x, shadowCount) / vec2(highlightCount, hsPercents.y));
-        expNew.y = (hsExps.x + hsExps.y) + max2(hsExps) / 3.0;
+        expNew.y = hsExps.x;
         expNew.y = clamp(expNew.y, -MAX_DELTA_S, MAX_DELTA_S * 0.5);
 
         expNew.xy = expNew.xy + expLast.xy;

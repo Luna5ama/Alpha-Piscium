@@ -139,9 +139,9 @@ vec3 applyAgx(vec3 color) {
 
 const float SHADOW_LUMA_THRESHOLD = SETTING_EXPOSURE_S_LUM / 255.0;
 const float HIGHLIGHT_LUMA_THRESHOLD = SETTING_EXPOSURE_H_LUM / 255.0;
-const float HIGHLIGHT_LUMA_EPSILON = 1.0 / 255.0;
 
 void toneMapping_apply(inout vec4 outputColor) {
+    vec3 preExposureColor = outputColor.rgb;
     float pixelNoise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
 
     outputColor.rgb = applyAgx(outputColor.rgb * exp2(global_aeData.expValues.z));
@@ -155,7 +155,7 @@ void toneMapping_apply(inout vec4 outputColor) {
     }
 
     {
-        uint not0Flag = uint(lumimance > HIGHLIGHT_LUMA_EPSILON);
+        uint not0Flag = uint(any(greaterThan(preExposureColor, vec3(0.0))));
         uint highlightFlag = not0Flag;
         highlightFlag &= uint(lumimance >= HIGHLIGHT_LUMA_THRESHOLD);
         uint shadowFlag = not0Flag;
@@ -174,9 +174,8 @@ void toneMapping_apply(inout vec4 outputColor) {
 
     #ifdef SETTING_DEBUG_AE
     {
-        float luminanceFinal = colors_Rec601_luma(outputColor.rgb);
-        uint binIndex = clamp(uint(luminanceFinal * 256.0), 0u, 255u);
-        atomicAdd(shared_lumHistogram[binIndex], uint(outputColor.a + pixelNoise));
+        uint binIndex = clamp(uint(lumimance * 256.0), 0u, 255u);
+        atomicAdd(shared_lumHistogram[binIndex], 1u);
     }
     #endif
 

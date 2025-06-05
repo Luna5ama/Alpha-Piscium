@@ -119,7 +119,7 @@ vec4 celestial_render(ivec2 texelPos) {
     result.rgb += starmap * _CELESTIAL_STARMAP_EXP * SETTING_STARMAP_INTENSITY;
     #endif
 
-    result *= step(earthIntersect, 0.0);
+    result.rgb *= step(earthIntersect, 0.0);
 
     return result;
 }
