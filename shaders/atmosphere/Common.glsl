@@ -129,9 +129,9 @@ AtmosphereParameters getAtmosphereParameters() {
 
     const float MIE_PHASE_G = 0.76;
 
-    // https://www.desmos.com/calculator/rggs64tsru
+    // https://www.desmos.com/calculator/fumphpur14
     // cm to km conversion
-    const vec3 OZONE_ABOSORPTION_BASE = vec3(5.3136330769e-10, 3.0767786886e-10, 5.0003555457e-12) * 100000.0;
+    const vec3 OZONE_ABOSORPTION_BASE = vec3(4.9799463143e-10, 3.0842607592e-10, -9.1714404502e-12) * 100000.0;
     const vec3 OZONE_ABOSORPTION = OZONE_ABOSORPTION_BASE * SETTING_ATM_OZO_ABS_MUL;
 
     AtmosphereParameters atmosphere;

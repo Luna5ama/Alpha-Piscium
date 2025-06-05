@@ -131,7 +131,7 @@ float lengthSq(vec4 x) { return dot(x, x); }
 
 float rayleighPhase(float cosTheta) {
     float k = 3.0 / (16.0 * PI);
-    return k * (1.0 + cosTheta * cosTheta);
+    return k * (1.0 + pow2(cosTheta));
 }
 
 // Cornette-Shanks phase function for Mie scattering

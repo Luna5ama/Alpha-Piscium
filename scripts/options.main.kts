@@ -968,7 +968,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Rayleigh Scattering Multiplier"
                 }
             }
-            slider("SETTING_ATM_OZO_ABS_MUL", 1.14, 0.0..5.0 step 0.05) {
+            slider("SETTING_ATM_OZO_ABS_MUL", 1.0, 0.0..5.0 step 0.05) {
                 lang {
                     name = "Ozone Absorption Multiplier"
                 }
