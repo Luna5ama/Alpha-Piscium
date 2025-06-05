@@ -4,7 +4,7 @@
 #include "/util/noise/GradientNoise.glsl"
 #include "/util/Sampling.glsl"
 
-#define CIRRUS_CLOUD_HEIGHT (12.0 / 1000.0)
+#define CIRRUS_CLOUD_HEIGHT 9.0
 #define CIRRUS_CLOUD_COVERAGE 0.25
 
 float _clouds_cirrus_coverage(vec3 rayPos) {
