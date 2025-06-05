@@ -963,7 +963,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Mie Absorption Multiplier"
                 }
             }
-            slider("SETTING_ATM_RAY_SCT_MUL", 1.1, 0.0..5.0 step 0.05) {
+            slider("SETTING_ATM_RAY_SCT_MUL", 1.0, 0.0..5.0 step 0.05) {
                 lang {
                     name = "Rayleigh Scattering Multiplier"
                 }

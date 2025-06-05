@@ -313,7 +313,7 @@ struct RaymarchParameters {
 };
 
 struct LightParameters {
-    float cosZenith;
+    vec3 lightDir;
     float rayleighPhase;
     float miePhase;
     vec3 irradiance;
@@ -322,7 +322,7 @@ struct LightParameters {
 LightParameters lightParameters_init(AtmosphereParameters atmosphere, vec3 irradiance, vec3 lightDir, vec3 rayDir) {
     LightParameters lightParams;
     lightParams.irradiance = irradiance * PI;
-    lightParams.cosZenith = dot(lightDir, vec3(0.0, 1.0, 0.0));
+    lightParams.lightDir = lightDir;
     float cosLightTheta = -dot(rayDir, lightDir);
     lightParams.rayleighPhase = rayleighPhase(cosLightTheta);
     lightParams.miePhase = miePhase(cosLightTheta, atmosphere.miePhaseG);
@@ -442,6 +442,7 @@ AtmosphereParameters atmosphere, RaymarchParameters params, ScatteringParameters
         float stepIndexF = float(stepIndex) + 0.5;
         vec3 samplePos = params.rayStart + stepIndexF * rayStepDelta;
         float sampleHeight = length(samplePos);
+        float rcpSampleHeight = rcp(sampleHeight);
 
         vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
         vec3 sampleExtinction = computeOpticalDepth(atmosphere, sampleDensity);
@@ -452,8 +453,9 @@ AtmosphereParameters atmosphere, RaymarchParameters params, ScatteringParameters
         vec3 mieInSctr = sampleDensity.y * atmosphere.mieSctrCoeff;
 
         {
-            vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, scatteringParams.sunParams.cosZenith, sampleHeight);
-            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, scatteringParams.sunParams.cosZenith, sampleHeight);
+            float cosZenith = dot(samplePos, scatteringParams.sunParams.lightDir) * rcpSampleHeight;
+            vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
+            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
 
             vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, scatteringParams.sunParams, sampleDensity);
             sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
@@ -464,8 +466,9 @@ AtmosphereParameters atmosphere, RaymarchParameters params, ScatteringParameters
         }
 
         {
-            vec3 tMoonToSample = sampleTransmittanceLUT(atmosphere, scatteringParams.moonParams.cosZenith, sampleHeight);
-            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, scatteringParams.moonParams.cosZenith, sampleHeight);
+            float cosZenith = dot(samplePos, scatteringParams.moonParams.lightDir) * rcpSampleHeight;
+            vec3 tMoonToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
+            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
 
             vec3 sampleInSctr = tMoonToSample * computeTotalInSctr(atmosphere, scatteringParams.moonParams, sampleDensity);
             sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);

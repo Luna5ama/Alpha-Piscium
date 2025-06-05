@@ -46,9 +46,10 @@ AtmosphereParameters atmosphere, RaymarchParameters params, LightParameters ligh
         vec3 sampleOpticalDepth = sampleExtinction * rayStepLength;
         vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
-        vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, lightParams.cosZenith, sampleHeight);
+        float cosZenith = dot(samplePos, lightParams.lightDir) / sampleHeight;
+        vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
 
-        vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, lightParams, sampleDensity);
+        vec3 sampleInSctr = tLightToSample * computeTotalInSctr(atmosphere, lightParams, sampleDensity);
         // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
         vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
         result.inScattering += tSampleToOrigin * sampleInSctrInt;
@@ -101,8 +102,7 @@ void main() {
             RaymarchParameters params;
             params.rayStart = vec3(0.0, 0.0, viewHeight);
             setupRayEnd(atmosphere, params, rayDir);
-            LightParameters lightParams;
-            lightParams.cosZenith = cosLightZenith;
+            LightParameters lightParams = lightParameters_init(atmosphere, vec3(0.0), lightDir, rayDir);
             lightParams.rayleighPhase = isotopicPhase;
             lightParams.miePhase = isotopicPhase;
             params.steps = 8u;

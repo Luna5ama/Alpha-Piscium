@@ -43,6 +43,7 @@ vec3 shadowStart, vec3 shadowEnd, float stepJitter
         float stepIndexF = float(stepIndex) + stepJitter;
         vec3 samplePos = params.rayStart + stepIndexF * rayStepDelta;
         float sampleHeight = length(samplePos);
+        float rcpSampleHeight = rcp(sampleHeight);
 
         vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
         vec3 sampleExtinction = computeOpticalDepth(atmosphere, sampleDensity);
@@ -56,8 +57,9 @@ vec3 shadowStart, vec3 shadowEnd, float stepJitter
         float shadowSample = sampleShadow(sampleShadowPos);
 
         {
-            vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, scatteringParams.sunParams.cosZenith, sampleHeight);
-            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, scatteringParams.sunParams.cosZenith, sampleHeight);
+            float cosZenith = dot(samplePos, scatteringParams.sunParams.lightDir) * rcpSampleHeight;
+            vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
+            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
 
             float shadow = mix(1.0, shadowSample, shadowIsSun);
             vec3 sampleInSctr = shadow * tSunToSample * computeTotalInSctr(atmosphere, scatteringParams.sunParams, sampleDensity);
@@ -69,8 +71,9 @@ vec3 shadowStart, vec3 shadowEnd, float stepJitter
         }
 
         {
-            vec3 tMoonToSample = sampleTransmittanceLUT(atmosphere, scatteringParams.moonParams.cosZenith, sampleHeight);
-            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, scatteringParams.moonParams.cosZenith, sampleHeight);
+            float cosZenith = dot(samplePos, scatteringParams.moonParams.lightDir) * rcpSampleHeight;
+            vec3 tMoonToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
+            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
 
             float shadow = mix(shadowSample, 1.0, shadowIsSun);
             vec3 sampleInSctr = shadow * tMoonToSample * computeTotalInSctr(atmosphere, scatteringParams.moonParams, sampleDensity);
