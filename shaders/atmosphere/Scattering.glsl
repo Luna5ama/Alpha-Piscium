@@ -110,36 +110,11 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
 
     if (endView.z == -65536.0) {
         params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
-        vec3 earthCenter = vec3(0.0);
-
-        // Check if ray origin is outside the atmosphere
-        if (length(params.rayStart) > atmosphere.top) {
-            float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
-            if (tTop < 0.0) {
-                return result; // No intersection with atmosphere: stop right away
-            }
-            params.rayStart += rayDir * (tTop + 0.001);
-        }
-
-        float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom);
-        float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
-        float rayLen = 0.0;
-
-        if (tBottom < 0.0) {
-            if (tTop < 0.0) {
-                return result; // No intersection with earth nor atmosphere: stop right away
-            } else {
-                rayLen = tTop;
-            }
-        } else {
-            if (tTop > 0.0) {
-                rayLen = min(tTop, tBottom);
-            }
-        }
-
-        params.rayEnd = params.rayStart + rayDir * rayLen;
         params.steps = SETTING_SKY_SAMPLES;
-        return raymarchSingleScattering(atmosphere, params, scatteringParams);
+
+        if (setupRayEnd(atmosphere, params, rayDir)) {
+            result = raymarchSingleScattering(atmosphere, params, scatteringParams);
+        }
     } else {
         params.rayEnd = atmosphere_viewToAtm(atmosphere, endView);
 
@@ -155,6 +130,8 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         endShadow = endShadow * 0.5 + 0.5;
 
         params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
-        return raymarchSingleScatteringShadowed(atmosphere, params, scatteringParams, startShadow, endShadow, stepJitter);
+        result = raymarchSingleScatteringShadowed(atmosphere, params, scatteringParams, startShadow, endShadow, stepJitter);
     }
+
+    return result;
 }

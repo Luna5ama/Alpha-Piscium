@@ -27,44 +27,19 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
 
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
-    params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.001);
+    params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
+    params.steps = SETTING_SKY_SAMPLES;
 
     LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParams, moonParams, 1.0);
 
-    params.steps = SETTING_SKY_SAMPLES;
 
     vec3 earthCenter = vec3(0.0);
 
-    // Check if ray origin is outside the atmosphere
-    if (length(params.rayStart) > atmosphere.top) {
-        float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
-        if (tTop < 0.0) {
-            return result; // No intersection with atmosphere: stop right away
-        }
-        params.rayStart += rayDir * (tTop + PLANET_RADIUS_OFFSET);
+    if (setupRayEnd(atmosphere, params, rayDir)) {
+        result = raymarchSingleScattering(atmosphere, params, scatteringParams);
     }
-
-    float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom);
-    float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
-    float rayLen = 0.0;
-
-    if (tBottom < 0.0) {
-        if (tTop < 0.0) {
-            return result; // No intersection with earth nor atmosphere: stop right away
-        } else {
-            rayLen = tTop;
-        }
-    } else {
-        if (tTop > 0.0) {
-            rayLen = min(tTop, tBottom);
-        }
-    }
-
-    params.rayEnd = params.rayStart + rayDir * rayLen;
-
-    result = raymarchSingleScattering(atmosphere, params, scatteringParams);
 
     return result;
 }

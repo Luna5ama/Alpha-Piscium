@@ -71,7 +71,7 @@
 #endif
 
 #define MULTI_SCTR_LUT_SIZE 32
-#define PLANET_RADIUS_OFFSET 0.001
+#define PLANET_RADIUS_OFFSET 0.01
 
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_multiSctrLUT;
@@ -262,10 +262,10 @@ vec3 atmosphere_viewToAtm(AtmosphereParameters atmosphere, vec3 viewPos) {
 void lutTransmittanceParamsToUv(AtmosphereParameters atmosphere, float height, float cosZenith, out vec2 uv) {
     height = clamp(height, atmosphere.bottom + 0.0001, atmosphere.top - 0.0001);
     cosZenith = clamp(cosZenith, -1.0, 1.0);
-    float H = sqrt(max(0.0, atmosphere.top * atmosphere.top - atmosphere.bottom * atmosphere.bottom));
-    float rho = sqrt(max(0.0, height * height - atmosphere.bottom * atmosphere.bottom));
+    float H = sqrt(max(0.0, pow2(atmosphere.top) - pow2(atmosphere.bottom)));
+    float rho = sqrt(max(0.0, pow2(height) - pow2(atmosphere.bottom)));
 
-    float discriminant = height * height * (cosZenith * cosZenith - 1.0) + atmosphere.top * atmosphere.top;
+    float discriminant = pow2(height) * (cosZenith * cosZenith - 1.0) + pow2(atmosphere.top);
     float d = max(0.0, (-height * cosZenith + sqrt(discriminant)));// Distance to atmosphere boundary
 
     float d_min = atmosphere.top - height;
@@ -344,15 +344,18 @@ ScatteringParameters scatteringParameters_init(LightParameters sunParams, LightP
 }
 
 bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir) {
-    vec3 earthCenter = vec3(0.0);
+    const vec3 earthCenter = vec3(0.0);
+    float rayStartHeight = length(params.rayStart);
 
     // Check if ray origin is outside the atmosphere
-    if (length(params.rayStart) > atmosphere.top) {
+    if (rayStartHeight > atmosphere.top) {
         float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
         if (tTop < 0.0) {
             return false; // No intersection with atmosphere: stop right away
         }
-        params.rayStart += rayDir * (tTop + PLANET_RADIUS_OFFSET);
+        vec3 upVector = params.rayStart / rayStartHeight;
+        vec3 upOffset = upVector * -PLANET_RADIUS_OFFSET;
+        params.rayStart += rayDir * tTop + upOffset;
     }
 
     float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom);
