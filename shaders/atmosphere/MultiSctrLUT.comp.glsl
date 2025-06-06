@@ -10,9 +10,8 @@
 #include "Common.glsl"
 
 #define SAMPLE_COUNT 64
-#define SAMPLE_COUNT_SQRT 8
 
-layout(local_size_x = SAMPLE_COUNT_SQRT, local_size_y = SAMPLE_COUNT_SQRT) in;
+layout(local_size_x = SAMPLE_COUNT) in;
 const ivec3 workGroups = ivec3(32, 32, 1);
 
 #define ATMOSPHERE_RAYMARCHING_MULTI_SCTR a
@@ -20,18 +19,18 @@ const ivec3 workGroups = ivec3(32, 32, 1);
 
 layout(rgba16f) restrict uniform image2D uimg_multiSctrLUT;
 
-shared vec3 shared_inSctrSum[64];
-shared vec3 shared_multiSctrAs1Sum[64];
+shared vec3 shared_inSctrSum[SAMPLE_COUNT];
+shared vec3 shared_multiSctrAs1Sum[SAMPLE_COUNT];
 
 
 void main() {
-    ivec2 pixelPos = ivec2(gl_WorkGroupID.xy);
+    ivec2 texelPos = ivec2(gl_WorkGroupID.xy);
 
-    if (all(lessThan(pixelPos, ivec2(MULTI_SCTR_LUT_SIZE)))) {
+    if (all(lessThan(texelPos, ivec2(MULTI_SCTR_LUT_SIZE)))) {
         const float sphereSolidAngle = 4.0 * PI;
         const float isotopicPhase = 1.0 / sphereSolidAngle;
 
-        vec2 texCoord = (pixelPos + 0.5) / vec2(MULTI_SCTR_LUT_SIZE);
+        vec2 texCoord = (texelPos + 0.5) / vec2(MULTI_SCTR_LUT_SIZE);
         texCoord = fromSubUvsToUnit(texCoord, vec2(MULTI_SCTR_LUT_SIZE));
 
         AtmosphereParameters atmosphere = getAtmosphereParameters();
@@ -41,13 +40,10 @@ void main() {
         // We adjust again viewHeight according to PLANET_RADIUS_OFFSET to be in a valid range.
         float viewHeight = atmosphere.bottom + saturate(texCoord.y + PLANET_RADIUS_OFFSET) * (atmosphere.top - atmosphere.bottom - PLANET_RADIUS_OFFSET);
 
-        float randV = rand_IGN(gl_GlobalInvocationID.xy, frameCounter);
-
         {
-            float i = randV + gl_LocalInvocationID.x;
-            float j = randV + gl_LocalInvocationID.y;
-            float randA = i / float(SAMPLE_COUNT_SQRT);
-            float randB = j / float(SAMPLE_COUNT_SQRT);
+            vec3 randV = rand_r2Seq3(gl_LocalInvocationIndex + SAMPLE_COUNT * frameCounter);
+            float randA = randV.x;
+            float randB = randV.y;
             float theta = 2.0 * PI * randA;
             float phi = acos(1.0 - 2.0 * randB);
             float cosPhi = cos(phi);
@@ -60,8 +56,8 @@ void main() {
             RaymarchParameters params = raymarchParameters_init();
             params.rayStart = vec3(0.0, 0.0, viewHeight);
             setupRayEnd(atmosphere, params, rayDir);
-            params.stepJitter = randV;
-            params.steps = 8u;
+            params.stepJitter = randV.z;
+            params.steps = 64u;
 
             LightParameters lightParams = lightParameters_init(atmosphere, vec3(0.0), lightDir, rayDir);
             lightParams.rayleighPhase = isotopicPhase;
@@ -120,10 +116,12 @@ void main() {
             vec3 sumOfAllMultiSctrEventsContribution = 1.0 / (1.0 - r);
             vec3 currResult = inSctrLuminance * sumOfAllMultiSctrEventsContribution;
 
-            vec3 prevResult = imageLoad(uimg_multiSctrLUT, pixelPos).rgb;
-            vec3 newResult = mix(currResult, prevResult, 0.9);
+            vec4 prevResult = imageLoad(uimg_multiSctrLUT, texelPos);
+            vec4 newResult;
+            newResult.a = min(prevResult.a + 1.0, 512.0);
+            newResult.rgb = mix(prevResult.rgb, currResult, 1.0 / newResult.a);
 
-            imageStore(uimg_multiSctrLUT, pixelPos, vec4(newResult, 1.0));
+            imageStore(uimg_multiSctrLUT, texelPos, newResult);
         }
     }
 }
