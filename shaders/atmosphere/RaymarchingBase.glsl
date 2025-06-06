@@ -18,7 +18,6 @@ MultiScatteringResult multiScatteringResult_init() {
 struct RaymarchParameters {
     vec3 rayStart;
     vec3 rayEnd;
-    float stepJitter;
     uint steps;
 };
 
@@ -26,7 +25,6 @@ RaymarchParameters raymarchParameters_init() {
     RaymarchParameters params;
     params.rayStart = vec3(0.0);
     params.rayEnd = vec3(0.0);
-    params.stepJitter = 0.5;
     params.steps = 0u;
     return params;
 }

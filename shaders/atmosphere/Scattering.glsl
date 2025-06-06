@@ -40,7 +40,6 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
     vec3 rayDir = viewDirWorld;
 
     RaymarchParameters params = raymarchParameters_init();
-    params.stepJitter = stepJitter;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
     LightParameters sunParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
@@ -70,7 +69,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         endShadow = endShadow * 0.5 + 0.5;
 
         params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
-        result = raymarchAerialPerspective(atmosphere, params, scatteringParams, startShadow, endShadow);
+        result = raymarchAerialPerspective(atmosphere, params, scatteringParams, startShadow, endShadow, stepJitter);
     }
 
     return result;

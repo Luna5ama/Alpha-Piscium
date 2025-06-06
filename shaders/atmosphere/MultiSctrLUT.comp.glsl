@@ -56,7 +56,6 @@ void main() {
             RaymarchParameters params = raymarchParameters_init();
             params.rayStart = vec3(0.0, 0.0, viewHeight);
             setupRayEnd(atmosphere, params, rayDir);
-            params.stepJitter = randV.z;
             params.steps = 64u;
 
             LightParameters lightParams = lightParameters_init(atmosphere, vec3(0.0), lightDir, rayDir);

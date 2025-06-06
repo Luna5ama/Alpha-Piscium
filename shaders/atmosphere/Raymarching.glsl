@@ -23,7 +23,8 @@ ScatteringResult raymarchAerialPerspective(
     RaymarchParameters params,
     ScatteringParameters scatteringParams,
     vec3 shadowStart,
-    vec3 shadowEnd
+    vec3 shadowEnd,
+    float stepJitter
 );
 
 #ifdef ATMOSPHERE_RAYMARCHING_TRANSMITTANCE

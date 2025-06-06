@@ -36,7 +36,8 @@ AtmosphereParameters atmosphere, \
 RaymarchParameters params, \
 ScatteringParameters scatteringParams, \
 vec3 shadowStart, \
-vec3 shadowEnd
+vec3 shadowEnd, \
+float stepJitter
 
 #endif
 
@@ -59,7 +60,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
     #endif
 
     for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
-        float stepIndexF = float(stepIndex) + params.stepJitter;
+        float stepIndexF = float(stepIndex);
         vec3 samplePos = params.rayStart + stepIndexF * rayStepDelta;
         float sampleHeight = length(samplePos);
         float rcpSampleHeight = rcp(sampleHeight);
@@ -97,7 +98,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
         #else
         {
             #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 3
-            vec3 sampleShadowPos = shadowStart + stepIndexF * shaodwStepDelta;
+            vec3 sampleShadowPos = shadowStart + (stepIndexF + stepJitter) * shaodwStepDelta;
             float shadowSample = atmosphere_sample_shadow(sampleShadowPos);
             #endif
 
