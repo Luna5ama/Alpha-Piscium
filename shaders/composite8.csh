@@ -22,7 +22,6 @@ uniform usampler2D usam_tempRG32UI;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
-layout(rgba8) uniform writeonly image2D uimg_temp6;
 layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
 
 shared vec4 shared_moments[12][12][2];

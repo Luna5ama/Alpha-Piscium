@@ -25,10 +25,16 @@ in float frag_viewZ;// 32 bits
 layout(early_fragment_tests) in;
 #endif
 
+#ifdef GBUFFER_PASS_NO_LIGHTING
+/* RENDERTARGETS:6,10 */
+layout(location = 0) out vec4 rt_color;
+layout(location = 1) out float rt_gbufferViewZ;
+#else
 /* RENDERTARGETS:8,9,10 */
 layout(location = 0) out uvec4 rt_gbufferData32UI;
 layout(location = 1) out vec4 rt_gbufferData8UN;
 layout(location = 2) out float rt_gbufferViewZ;
+#endif
 
 ivec2 texelPos = ivec2(gl_FragCoord.xy);
 float noiseIGN = rand_IGN(texelPos, frameCounter);
@@ -150,10 +156,15 @@ void main() {
     processAlbedo();
     processViewZ();
 
+    #ifdef GBUFFER_PASS_NO_LIGHTING
+    rt_color = albedo;
+    rt_gbufferViewZ = viewZ;
+    #else
     processData1();
     processData2();
 
     gbufferData1_pack(rt_gbufferData32UI, gData);
     gbufferData2_pack(rt_gbufferData8UN, gData);
     rt_gbufferViewZ = viewZ;
+    #endif
 }

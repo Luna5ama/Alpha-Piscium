@@ -11,6 +11,10 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #include "/util/FullScreenComp.glsl"
 #include "/rtwsm/ShadowAABB.glsl"
 
+#if SETTING_DEBUG_TEMP_TEX != 6
+uniform sampler2D usam_temp6;
+#endif
+
 layout(rgba16f) restrict uniform image2D uimg_main;
 
 #define BLOOM_UP_SAMPLE 1
@@ -59,6 +63,9 @@ void main() {
         float centerFactor = pow(saturate(1.0 - length(ndcPos)), SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE);
         outputColor.a *= 1.0 + centerFactor * SETTING_EXPOSURE_CENTER_WEIGHTING;
         toneMapping_apply(outputColor);
+
+        vec4 basicColor = texelFetch(usam_temp6, texelPos, 0);
+        outputColor.rgb = mix(outputColor.rgb, basicColor.rgb, float(basicColor.a > 0.1));
 
         #if SETTING_DEBUG_OUTPUT == 2
         debugOutput(outputColor);
