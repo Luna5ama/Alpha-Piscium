@@ -97,7 +97,7 @@ vec4 celestial_render(ivec2 texelPos) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     vec3 origin = atmosphere_viewToAtm(atmosphere, vec3(0.0));
     origin.y = max(origin.y, atmosphere.bottom + 0.5);
-    vec3 earthCenter = vec3(0.0);
+    const vec3 earthCenter = vec3(0.0);
     float earthIntersect = raySphereIntersectNearest(origin, viewDirWorld, earthCenter, atmosphere.bottom);
     float earthOcclusionV = step(earthIntersect, 0.0);
 

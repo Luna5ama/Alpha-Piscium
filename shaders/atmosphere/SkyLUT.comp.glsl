@@ -37,7 +37,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParams, moonParams, 1.0);
 
-    vec3 earthCenter = vec3(0.0);
+    const vec3 earthCenter = vec3(0.0);
 
     if (setupRayEnd(atmosphere, params, rayDir)) {
         result = raymarchSky(atmosphere, params, scatteringParams);
