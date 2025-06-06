@@ -28,6 +28,7 @@ void main() {
     #endif
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
+        vec3 hdrColor = outputColor.rgb;
 
         #ifdef SETTING_BLOOM
         outputColor += bloom_mainOutput(texelPos);
@@ -35,6 +36,21 @@ void main() {
 
         #if SETTING_DEBUG_OUTPUT == 1
         debugOutput(outputColor);
+        #endif
+
+        #ifdef SETTING_PURKINJE_EFFECT
+        // https://www.desmos.com/calculator/dvpjm8jrmx
+        const vec3 ROD_RESPONSE = vec3(0.05, 0.562, 0.604);
+        const vec3 SCOPTIC_BASE_COLOR = vec3(SETTING_PURKINJE_EFFECT_CR, SETTING_PURKINJE_EFFECT_CG, SETTING_PURKINJE_EFFECT_CB);
+        const float EPSILON = 0.00000000001;
+
+        float luminance = colors_sRGB_luma(hdrColor);
+        float rodLuminance = dot(hdrColor, ROD_RESPONSE);
+        vec3 scopticColor = SCOPTIC_BASE_COLOR * rodLuminance;
+        float scopticLuminance = colors_sRGB_luma(scopticColor);
+        float mesopicFactor = linearStep(SETTING_PURKINJE_EFFECT_MIN_LUM, SETTING_PURKINJE_EFFECT_MAX_LUM, log2(luminance * 1000.0));
+        scopticColor *= luminance / max(scopticLuminance, EPSILON);
+        outputColor.rgb = mix(scopticColor, outputColor.rgb, saturate(mesopicFactor + float(scopticLuminance <= EPSILON)));
         #endif
 
         vec2 screenPos = coords_texelToScreen(texelPos, global_mainImageSizeRcp);

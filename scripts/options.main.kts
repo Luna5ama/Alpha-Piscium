@@ -202,8 +202,20 @@ class OptionBuilder<T>(
             output.writeLang(locale) {
                 if (name.isNotEmpty()) appendLine("option.$optionName=$name")
                 if (comment.isNotEmpty()) appendLine("option.$optionName.comment=$comment")
-                if (prefix.isNotEmpty()) appendLine("prefix.$optionName=$prefix")
-                if (suffix.isNotEmpty()) appendLine("suffix.$optionName=$suffix")
+                if (prefix.isNotEmpty()) {
+                    append("prefix.$optionName=")
+                    if (prefix.startsWith(" ")) {
+                        append('\\')
+                    }
+                    appendLine(prefix)
+                }
+                if (suffix.isNotEmpty()) {
+                    append("suffix.$optionName=")
+                    if (suffix.startsWith(" ")) {
+                        append('\\')
+                    }
+                    appendLine(suffix)
+                }
                 valueLabel.forEach { (value, label) ->
                     appendLine("value.$optionName.$value=$label")
                 }
@@ -579,7 +591,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_MAXIMUM_SPECULAR_LUMINANCE", 65536, powerOfTwoRange(8..24)) {
                     lang {
                         name = "Maximum Specular Luminance"
-                        comment = "Maximum luminance of specular highlights in unit of 1000 cd/m^2."
+                        comment = "Maximum luminance of specular highlights in unit of 1000 cd/m²."
                     }
                 }
                 empty()
@@ -1000,12 +1012,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Light Shaft Samples"
                 }
             }
-            slider("SETTING_STARMAP_INTENSITY", 8, listOf(0) + powerOfTwoRange(0..10)) {
+            empty()
+            slider("SETTING_STARMAP_INTENSITY", 20, 0..64) {
                 lang {
                     name = "Starmap Intensity"
                 }
             }
-            slider("SETTING_STARMAP_GAMMA", 1.2, 0.1..4.0 step 0.1) {
+            slider("SETTING_STARMAP_GAMMA", 0.8, 0.1..2.0 step 0.1) {
                 lang {
                     name = "Starmap Gamma"
                 }
@@ -1060,7 +1073,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Auto Exposure Min EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 12.0, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MAX_EV", 11.5, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
@@ -1092,7 +1105,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Weight of average luminance AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 5.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 4.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Average Luminance AE Time"
                     }
@@ -1124,7 +1137,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Weight of highlight/shadow based AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_HS_TIME", 3.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_HS_TIME", 2.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Highlight/Shadow AE Time"
                     }
@@ -1253,6 +1266,48 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
+            screen("PURKINJE_EFFECT", 1) {
+                lang {
+                    name = "Purkinje Effect"
+                }
+                toggle("SETTING_PURKINJE_EFFECT", true) {
+                    lang {
+                        name = "Purkinje Effect Enabled"
+                    }
+                }
+                slider("SETTING_PURKINJE_EFFECT_MIN_LUM", -8.0, -10.0..1.0 step 0.1) {
+                    lang {
+                        name = "Minimum Luminance"
+                        prefix = "10^"
+                        suffix = " cd/m²"
+                        comment = "Luminance below this value will become colorless"
+                    }
+                }
+                slider("SETTING_PURKINJE_EFFECT_MAX_LUM", -3.0, -10.0..1.0 step 0.1) {
+                    lang {
+                        name = "Maximum Luminance"
+                        prefix = "10^"
+                        suffix = " cd/m²"
+                        comment = "Luminance above this value will become fully colored"
+                    }
+                }
+                empty()
+                slider("SETTING_PURKINJE_EFFECT_CR", 0.9, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Scoptic Color Red"
+                    }
+                }
+                slider("SETTING_PURKINJE_EFFECT_CG", 0.95, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Scoptic Color Green"
+                    }
+                }
+                slider("SETTING_PURKINJE_EFFECT_CB", 1.0, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Scoptic Color Blue"
+                    }
+                }
+            }
         }
         screen("MISC", 2) {
             lang {
@@ -1360,7 +1415,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     2 value "Fast Color"
                     3 value "HLen"
                     4 value "Moment"
-                    5 value "Moment^2"
+                    5 value "Moment²"
                     6 value "Variance"
                 }
             }
