@@ -904,7 +904,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Boost variance for the first few frames. Actual value is calculated as 2^-x."
                     }
                 }
-                slider("SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY", 2.0, 1.0..4.0 step 0.1) {
+                slider("SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY", 1.5, 1.0..4.0 step 0.05) {
                     lang {
                         name = "Variance Boost Multiply"
                         comment = "Boost variance for the first few frames."
