@@ -156,7 +156,7 @@ void main() {
             vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
 
-            GBufferData gData;
+            GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
 
             vec3 colorSum = vec3(0.0);

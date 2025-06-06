@@ -28,10 +28,9 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
 
     vec3 originView = vec3(0.0, 0.0, 0.0);
 
-    RaymarchParameters params;
+    RaymarchParameters params = raymarchParameters_init();
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
     params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
-    params.stepJitter = 0.5;
     params.steps = SETTING_SKY_SAMPLES;
 
     LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);

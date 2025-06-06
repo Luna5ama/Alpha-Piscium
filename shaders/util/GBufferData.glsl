@@ -35,6 +35,20 @@ struct GBufferData {
     bool isHand;
 };
 
+GBufferData gbufferData_init() {
+    GBufferData gData;;
+    gData.geometryNormal = vec3(0.0);
+    gData.pbrSpecular = vec4(0.0);
+    gData.normal = vec3(0.0);
+    gData.lmCoord = vec2(0.0);
+    gData.materialID = MATERIAL_ID_UNDEFINED;
+
+    gData.albedo = vec3(0.0);
+    gData.isHand = false;
+
+    return gData;
+}
+
 void gbufferData1_pack(out uvec4 packedData, GBufferData gData) {
     packedData.r = nzpacking_packNormalOct32(gData.geometryNormal);
     packedData.g = packUnorm4x8(vec4(gData.pbrSpecular));

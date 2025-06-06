@@ -23,7 +23,7 @@ void main() {
         if (translucentColorSample.a > 0.0) {
             vec4 outputColor = imageLoad(uimg_main, texelPos);
 
-            GBufferData gData;
+            GBufferData gData = gbufferData_init();
             gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
 
             float albedoLuminance = all(equal(gData.albedo, vec3(0.0))) ? 0.1 : colors_sRGB_luma(gData.albedo);

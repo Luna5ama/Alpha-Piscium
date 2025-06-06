@@ -54,7 +54,7 @@ void updateMoments(vec3 colorSRGB, inout vec3 sum, inout vec3 sqSum) {
 void main() {
     ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
 
-    GBufferData gData;
+    GBufferData gData = gbufferData_init();
     gbufferData2_unpack(texelFetch(usam_gbufferData8UN, intTexCoord, 0), gData);
 
     float viewZ = texelFetch(usam_gbufferViewZ, intTexCoord, 0).r;

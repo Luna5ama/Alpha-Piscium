@@ -124,7 +124,7 @@ void debugOutput(inout vec4 outputColor) {
     }
     #endif
 
-    GBufferData gData;
+    GBufferData gData = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
     gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
     Material material = material_decode(gData);

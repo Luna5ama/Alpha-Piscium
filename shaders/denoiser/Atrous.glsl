@@ -58,9 +58,9 @@ layout(rgba16f) uniform writeonly image2D ATROUS_OUTPUT;
 shared uvec4 shared_data[SHARED_DATA_SIZE];
 
 ivec2 atrous_texelPos;
-float atrous_normalWeight;
-float atrous_viewZWeight;
-float atrous_luminanceWeight;
+float atrous_normalWeight = 0.0;
+float atrous_viewZWeight = 0.0;
+float atrous_luminanceWeight = 0.0;
 
 void loadGlobalData(ivec2 loadTexelPos, out vec4 color, out vec3 normal, out float viewZ) {
     color = texelFetch(ATROUS_INPUT, loadTexelPos, 0);

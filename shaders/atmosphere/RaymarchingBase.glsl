@@ -22,6 +22,15 @@ struct RaymarchParameters {
     uint steps;
 };
 
+RaymarchParameters raymarchParameters_init() {
+    RaymarchParameters params;
+    params.rayStart = vec3(0.0);
+    params.rayEnd = vec3(0.0);
+    params.stepJitter = 0.5;
+    params.steps = 0u;
+    return params;
+}
+
 bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir) {
     const vec3 earthCenter = vec3(0.0);
     float rayStartHeight = length(params.rayStart);

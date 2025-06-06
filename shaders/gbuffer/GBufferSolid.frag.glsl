@@ -36,7 +36,7 @@ float noiseIGN = rand_IGN(texelPos, frameCounter);
 vec4 albedo;
 float viewZ;
 
-GBufferData gData;
+GBufferData gData = gbufferData_init();
 
 void processAlbedo() {
     albedo = frag_colorMul;

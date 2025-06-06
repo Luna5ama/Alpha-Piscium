@@ -28,10 +28,9 @@ void main() {
     uvToLutTransmittanceParams(atmosphere, altitude, cosZenith, uv);
 
     vec3 rayDir = vec3(0.0, sqrt(1.0 - cosZenith * cosZenith), cosZenith);
-    RaymarchParameters params;
+    RaymarchParameters params = raymarchParameters_init();
     params.rayStart = vec3(0.0f, 0.0f, altitude);
     setupRayEnd(atmosphere, params, rayDir);
-    params.stepJitter = 0.5;
     params.steps = 64u;
 
     vec3 transmittance = raymarchTransmittance(atmosphere, params);

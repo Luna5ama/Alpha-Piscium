@@ -328,7 +328,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
     uint occBits = 0u;
 
     float NDotV = dot(viewNormal, viewDir);
-    GBufferData gData;
+    GBufferData gData = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferData32UI, vbgi_texelPos1x1, 0), gData);
     Material material = material_decode(gData);
     material.roughness = max(material.roughness, 0.01);

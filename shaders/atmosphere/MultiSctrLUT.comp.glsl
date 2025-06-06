@@ -57,7 +57,7 @@ void main() {
 
             vec3 rayDir = vec3(cosTheta * sinPhi, sinTheta * sinPhi, cosPhi);
 
-            RaymarchParameters params;
+            RaymarchParameters params = raymarchParameters_init();
             params.rayStart = vec3(0.0, 0.0, viewHeight);
             setupRayEnd(atmosphere, params, rayDir);
             params.stepJitter = randV;

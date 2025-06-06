@@ -35,7 +35,7 @@ vec4 processAlbedo() {
 }
 
 GBufferData processOutput() {
-    GBufferData gData;
+    GBufferData gData = gbufferData_init();
 
     float noiseIGN = rand_IGN(texelPos, frameCounter);
 

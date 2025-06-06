@@ -111,7 +111,7 @@ ivec2 envProbeTexelPos, out EnvProbeData outputData
 
     ivec2 texelPos1x1 = texelPos2x2 << 1;
 
-    GBufferData gData;
+    GBufferData gData = gbufferData_init();
     gbufferData1_unpack(texelFetch(gbufferData32UI, texelPos1x1, 0), gData);
     gbufferData2_unpack(texelFetch(gbufferData8UN, texelPos1x1, 0), gData);
     if (gData.isHand) {

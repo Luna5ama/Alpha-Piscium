@@ -37,7 +37,7 @@ void main() {
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos1x1, 0).r;
 
         if (viewZ != -65536.0) {
-            GBufferData gData;
+            GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos1x1, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos1x1, 0), gData);
 
