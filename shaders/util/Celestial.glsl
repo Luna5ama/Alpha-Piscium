@@ -119,6 +119,7 @@ vec4 celestial_render(ivec2 texelPos) {
     starmap = pow(starmap, vec3(SETTING_STARMAP_GAMMA));
     result.rgb += earthOcclusionV * starmap * _CELESTIAL_STARMAP_EXP * SETTING_STARMAP_INTENSITY;
     #endif
+    result.a = max(result.a, 0.0);
 
     return result;
 }

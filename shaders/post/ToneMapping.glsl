@@ -139,6 +139,7 @@ vec3 applyAgx(vec3 color) {
 
 const float SHADOW_LUMA_THRESHOLD = SETTING_EXPOSURE_S_LUM / 255.0;
 const float HIGHLIGHT_LUMA_THRESHOLD = SETTING_EXPOSURE_H_LUM / 255.0;
+const float LUMA_EPSILON = 0.5 / 255.0;
 
 void toneMapping_apply(inout vec4 outputColor) {
     vec3 preExposureColor = outputColor.rgb;
@@ -148,14 +149,14 @@ void toneMapping_apply(inout vec4 outputColor) {
     outputColor.rgb = saturate(colors_sRGB_encodeGamma(outputColor.rgb));
 
     float lumimance = colors_Rec601_luma(saturate(outputColor.rgb)); // WTF Photoshop
+    uint not0Flag = uint(lumimance > LUMA_EPSILON);
 
-    {
+    if (bool(not0Flag)) {
         uint binIndex = clamp(uint(lumimance * 256.0), 0u, 255u);
         atomicAdd(shared_avgLumHistogram[binIndex], uint(outputColor.a + pixelNoise));
     }
 
     {
-        uint not0Flag = uint(any(greaterThan(preExposureColor, vec3(0.0))));
         uint highlightFlag = not0Flag;
         highlightFlag &= uint(lumimance >= HIGHLIGHT_LUMA_THRESHOLD);
         uint shadowFlag = not0Flag;

@@ -28,11 +28,11 @@ void main() {
     #endif
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
-        vec3 hdrColor = outputColor.rgb;
 
         #ifdef SETTING_BLOOM
         outputColor += bloom_mainOutput(texelPos);
         #endif
+        vec3 hdrColor = outputColor.rgb;
 
         #if SETTING_DEBUG_OUTPUT == 1
         debugOutput(outputColor);
