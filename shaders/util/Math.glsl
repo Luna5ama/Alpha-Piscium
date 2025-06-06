@@ -16,18 +16,8 @@
 #define FLT_POS_INF uintBitsToFloat(0x7F800000)
 #define FLT_NEG_INF uintBitsToFloat(0xFF800000)
 
-float rcp(float x) { return 1.0 / x; }
-vec2 rcp(vec2 x) { return 1.0 / x; }
-vec3 rcp(vec3 x) { return 1.0 / x; }
-vec4 rcp(vec4 x) { return 1.0 / x; }
-
-float saturate(float x) { return clamp(x, 0.0, 1.0); }
-
-vec2 saturate(vec2 x) { return clamp(x, 0.0, 1.0); }
-
-vec3 saturate(vec3 x) { return clamp(x, 0.0, 1.0); }
-
-vec4 saturate(vec4 x) { return clamp(x, 0.0, 1.0); }
+#define rcp(x) (1.0 / (x))
+#define saturate(x) clamp(x, 0.0, 1.0)
 
 float max2(float x, float y) { return max(x, y); }
 float max2(vec2 v) { return max(v.x, v.y); }
@@ -43,25 +33,10 @@ float min3(vec3 v) { return min(min(v.x, v.y), v.z); }
 float min4(float x, float y, float z, float w) { return min(min(x, y), min(z, w)); }
 float min4(vec4 v) { return min(min(v.x, v.y), min(v.z, v.w)); }
 
-float linearStep(float edge0, float edge1, float x) {
-    return saturate((x - edge0) / (edge1 - edge0));
-}
-
-vec2 linearStep(float edge0, float edge1, vec2 x) {
-    return saturate((x - edge0) / (edge1 - edge0));
-}
-
-vec3 linearStep(float edge0, float edge1, vec3 x) {
-    return saturate((x - edge0) / (edge1 - edge0));
-}
-
-vec4 linearStep(float edge0, float edge1, vec4 x) {
-    return saturate((x - edge0) / (edge1 - edge0));
-}
-
-float toRadians(float degrees) {
-    return degrees * PI / 180.0;
-}
+float linearStep(float edge0, float edge1, float x) { return saturate((x - edge0) / (edge1 - edge0)); }
+vec2 linearStep(float edge0, float edge1, vec2 x) { return saturate((x - edge0) / (edge1 - edge0)); }
+vec3 linearStep(float edge0, float edge1, vec3 x) { return saturate((x - edge0) / (edge1 - edge0)); }
+vec4 linearStep(float edge0, float edge1, vec4 x) { return saturate((x - edge0) / (edge1 - edge0)); }
 
 float pow2(float x) { return x * x; }
 vec2 pow2(vec2 x) { return x * x; }

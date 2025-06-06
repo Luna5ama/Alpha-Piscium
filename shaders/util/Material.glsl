@@ -19,8 +19,6 @@ struct Material {
 const float _MATERIAL_F0_EPSILON = exp2(-SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR);
 const float _MATERIAL_MINIMUM_ROUGHNESS = exp2(-SETTING_SPECULAR_MAPPING_MINIMUM_ROUGHNESS_FACTOR);
 const float _MATERIAL_MAXIMUM_ROUGHNESS = 1.0 - exp2(-SETTING_SPECULAR_MAPPING_MAXIMUM_ROUGHNESS_FACTOR);
-const float _MATERIAL_LAVA_LUMINANCE = colors_sRGB_luma(blackBody_evalRadiance(SETTING_LAVA_TEMPERATURE));
-const float _MATERIAL_FIRE_LUMINANCE = colors_sRGB_luma(blackBody_evalRadiance(SETTING_FIRE_TEMPERATURE));
 
 Material material_decode(GBufferData gData) {
     Material material;
@@ -41,9 +39,12 @@ Material material_decode(GBufferData gData) {
     float albedoLuminanceAlternative = colors_Rec601_luma(material.albedo);
     vec4 emissiveAlbedo = pow(vec4(material.albedo, albedoLuminanceAlternative), emissiveAlbedoCurve);
 
+    const float MATERIAL_LAVA_LUMINANCE = colors_sRGB_luma(blackBody_evalRadiance(SETTING_LAVA_TEMPERATURE));
+    const float MATERIAL_FIRE_LUMINANCE = colors_sRGB_luma(blackBody_evalRadiance(SETTING_FIRE_TEMPERATURE));
+
     float emissiveValue = emissivePBR * 0.2;
-    emissiveValue = gData.materialID == 1u ? _MATERIAL_LAVA_LUMINANCE : emissiveValue;
-    emissiveValue = gData.materialID == 2u ? _MATERIAL_FIRE_LUMINANCE : emissiveValue;
+    emissiveValue = gData.materialID == 1u ? MATERIAL_LAVA_LUMINANCE : emissiveValue;
+    emissiveValue = gData.materialID == 2u ? MATERIAL_FIRE_LUMINANCE : emissiveValue;
     emissiveValue *= SETTING_EMISSIVE_STRENGTH;
 
     material.emissive = emissiveValue * emissiveAlbedo.a * emissiveAlbedo.rgb;
