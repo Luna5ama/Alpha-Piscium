@@ -94,8 +94,8 @@ void main() {
 
         // Keep the average luminance at SETTING_EXPOSURE_AVG_LUM_TARGET
         const float MAX_DELTA_AVG_LUM = 5.0;
-        const float MIN_LUM_TARGET = pow(SETTING_EXPOSURE_AVG_LUM_MIN_TARGET / 255.0, 2.2);
-        const float MAX_LUM_TARGET = pow(SETTING_EXPOSURE_AVG_LUM_MAX_TARGET / 255.0, 2.2);
+        const float MIN_LUM_TARGET = SETTING_EXPOSURE_AVG_LUM_MIN_TARGET / 255.0;
+        const float MAX_LUM_TARGET = SETTING_EXPOSURE_AVG_LUM_MAX_TARGET / 255.0;
         float lumTargetMixFactor = pow(linearStep(MIN_EXP, MAX_EXP, expLast.z), SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE);
         float lumTarget = mix(MAX_LUM_TARGET, MIN_LUM_TARGET, lumTargetMixFactor);
         expNew.x = log2(lumTarget / averageLuminance);
