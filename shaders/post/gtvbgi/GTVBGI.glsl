@@ -356,7 +356,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
         if (frontDistSq < RADIUS_SQ.y) {
             float frontDiffRcpLen = fastRcpSqrtNR0(frontDistSq);
             float frontDist = frontDistSq * frontDiffRcpLen;
-            float thickness = SETTING_VBGI_THICKNESS * frontDist;
+            float thickness = max(SETTING_VBGI_THICKNESS * frontDist, 0.25);
             vec3 backDiff = coords_toViewCoord(sampleUV, sampleViewZ - thickness, gbufferProjectionInverse) - viewPos;
 
             float backDiffRcpLen = fastRcpSqrtNR0(dot(backDiff, backDiff));
@@ -490,7 +490,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
                 float frontDistSq = dot(frontDiff, frontDiff);
                 float frontDiffRcpLen = fastRcpSqrtNR0(frontDistSq);
                 float frontDist = frontDiffRcpLen * frontDistSq;
-                float thickness = SETTING_VBGI_THICKNESS * frontDist;
+                float thickness = max(SETTING_VBGI_THICKNESS * frontDist, 0.25);
                 vec3 backDiff = frontDiff - viewDir * thickness;
                 float backDistSq = dot(backDiff, backDiff);
                 float backDiffRcpLen = fastRcpSqrtNR0(backDistSq);
