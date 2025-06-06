@@ -23,8 +23,8 @@ float atmosphere_sample_shadow(vec3 shadowPos) {
     return rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
 }
 
-#define ATMOSPHERE_RAYMARCHING_SKY
-#define ATMOSPHERE_RAYMARCHING_AERIAL_PERSPECTIVE
+#define ATMOSPHERE_RAYMARCHING_SKY  a
+#define ATMOSPHERE_RAYMARCHING_AERIAL_PERSPECTIVE a
 #include "Raymarching.glsl"
 
 // originView: ray origin in view space
@@ -47,6 +47,8 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParam, moonParams, multiSctrFactor);
 
     if (endView.z == -65536.0) {
+        scatteringParams.multiSctrFactor = 1.0;
+
         params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
         params.steps = SETTING_SKY_SAMPLES;
 
