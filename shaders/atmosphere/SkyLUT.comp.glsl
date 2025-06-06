@@ -13,12 +13,15 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const ivec3 workGroups = ivec3(8, 8, 1);
 
+#define ATMOSPHERE_RAYMARCHING_SKY
+#include "Raymarching.glsl"
+
 layout(rgba16f) restrict uniform image2D uimg_skyLUT;
 
 // originView: ray origin in view space
 // endView: ray end in view space
 ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 rayDir) {
-    ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
+    ScatteringResult result = scatteringResult_init();
     if (all(equal(rayDir, vec3(0.0)))) {
         return result;
     }
@@ -28,17 +31,17 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
     RaymarchParameters params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
     params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
+    params.stepJitter = 0.5;
     params.steps = SETTING_SKY_SAMPLES;
 
     LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParams, moonParams, 1.0);
 
-
     vec3 earthCenter = vec3(0.0);
 
     if (setupRayEnd(atmosphere, params, rayDir)) {
-        result = raymarchSingleScattering(atmosphere, params, scatteringParams);
+        result = raymarchSky(atmosphere, params, scatteringParams);
     }
 
     return result;

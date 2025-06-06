@@ -15,56 +15,14 @@
 layout(local_size_x = SAMPLE_COUNT_SQRT, local_size_y = SAMPLE_COUNT_SQRT) in;
 const ivec3 workGroups = ivec3(32, 32, 1);
 
+#define ATMOSPHERE_RAYMARCHING_MULTI_SCTR
+#include "Raymarching.glsl"
+
 layout(rgba16f) restrict uniform image2D uimg_multiSctrLUT;
 
 shared vec3 shared_inSctrSum[64];
 shared vec3 shared_multiSctrAs1Sum[64];
 
-struct MultiScatteringResult {
-    vec3 inScattering;
-    vec3 multiSctrAs1;
-};
-
-MultiScatteringResult raymarchMultiScattering(
-AtmosphereParameters atmosphere, RaymarchParameters params, LightParameters lightParams, float stepJitter
-) {
-    MultiScatteringResult result = MultiScatteringResult(vec3(0.0), vec3(0.0));
-
-    float rcpSteps = 1.0 / float(params.steps);
-    vec3 rayStepDelta = (params.rayEnd - params.rayStart) * rcpSteps;
-    float rayStepLength = length(params.rayEnd - params.rayStart) * rcpSteps;
-
-    vec3 tSampleToOrigin = vec3(1.0);
-
-    for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
-        float stepIndexF = float(stepIndex) + stepJitter;
-        vec3 samplePos = params.rayStart + stepIndexF * rayStepDelta;
-        float sampleHeight = length(samplePos);
-
-        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
-        vec3 sampleExtinction = computeOpticalDepth(atmosphere, sampleDensity);
-        vec3 sampleOpticalDepth = sampleExtinction * rayStepLength;
-        vec3 sampleTransmittance = exp(-sampleOpticalDepth);
-
-        float cosZenith = dot(samplePos, lightParams.lightDir) / sampleHeight;
-        vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
-
-        vec3 sampleInSctr = tLightToSample * computeTotalInSctr(atmosphere, lightParams, sampleDensity);
-        // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-        vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-        result.inScattering += tSampleToOrigin * sampleInSctrInt;
-
-        vec3 rayleighInSctr = sampleDensity.x * atmosphere.rayleighSctrCoeff;
-        vec3 mieInSctr = sampleDensity.y * atmosphere.mieSctrCoeff;
-        vec3 sampleMultiSctr = rayleighInSctr + mieInSctr;
-        vec3 sampleMultiSctrInt = (sampleMultiSctr - sampleMultiSctr * sampleTransmittance) / sampleExtinction;
-        result.multiSctrAs1 += tSampleToOrigin * sampleMultiSctrInt;
-
-        tSampleToOrigin *= sampleTransmittance;
-    }
-
-    return result;
-}
 
 void main() {
     ivec2 pixelPos = ivec2(gl_WorkGroupID.xy);
@@ -102,12 +60,14 @@ void main() {
             RaymarchParameters params;
             params.rayStart = vec3(0.0, 0.0, viewHeight);
             setupRayEnd(atmosphere, params, rayDir);
+            params.stepJitter = randV;
+            params.steps = 8u;
+
             LightParameters lightParams = lightParameters_init(atmosphere, vec3(0.0), lightDir, rayDir);
             lightParams.rayleighPhase = isotopicPhase;
             lightParams.miePhase = isotopicPhase;
-            params.steps = 8u;
 
-            MultiScatteringResult result = raymarchMultiScattering(atmosphere, params, lightParams, randV);
+            MultiScatteringResult result = raymarchMultiScattering(atmosphere, params, lightParams);
             shared_inSctrSum[gl_LocalInvocationIndex] = result.inScattering * sphereSolidAngle / float(SAMPLE_COUNT);
             shared_multiSctrAs1Sum[gl_LocalInvocationIndex] = result.multiSctrAs1 * sphereSolidAngle / float(SAMPLE_COUNT);
         }

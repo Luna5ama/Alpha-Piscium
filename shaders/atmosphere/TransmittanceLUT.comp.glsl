@@ -13,6 +13,9 @@ const ivec3 workGroups = ivec3(2, 64, 1);
 
 layout(local_size_x = 128) in;
 
+#define ATMOSPHERE_RAYMARCHING_TRANSMITTANCE
+#include "Raymarching.glsl"
+
 void main() {
     ivec2 ipixPos = ivec2(gl_GlobalInvocationID.xy);
     vec2 pixPos = vec2(ipixPos + 0.5);
@@ -24,11 +27,14 @@ void main() {
     float cosZenith;
     uvToLutTransmittanceParams(atmosphere, altitude, cosZenith, uv);
 
-    //  A few extra needed constants
-    vec3 pos = vec3(0.0f, 0.0f, altitude);
-    vec3 dir = vec3(0.0f, sqrt(1.0 - cosZenith * cosZenith), cosZenith);
+    vec3 rayDir = vec3(0.0, sqrt(1.0 - cosZenith * cosZenith), cosZenith);
+    RaymarchParameters params;
+    params.rayStart = vec3(0.0f, 0.0f, altitude);
+    setupRayEnd(atmosphere, params, rayDir);
+    params.stepJitter = 0.5;
+    params.steps = 64u;
 
-    vec3 transmittance = raymarchTransmittance(atmosphere, pos, dir, 64u);
+    vec3 transmittance = raymarchTransmittance(atmosphere, params);
 
     imageStore(uimg_transmittanceLUT, ipixPos, vec4(transmittance, 1.0));
 }

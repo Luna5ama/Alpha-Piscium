@@ -17,86 +17,20 @@ uniform sampler2D usam_rtwsm_imap;
 const bool shadowHardwareFiltering0 = true;
 uniform sampler2DShadow shadowtex0HW;
 
-float sampleShadow(vec3 shadowPos) {
+float atmosphere_sample_shadow(vec3 shadowPos) {
     vec3 sampleTexCoord = shadowPos;
     sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
     return rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
 }
 
-ScatteringResult raymarchSingleScatteringShadowed(
-AtmosphereParameters atmosphere, RaymarchParameters params, ScatteringParameters scatteringParams,
-vec3 shadowStart, vec3 shadowEnd, float stepJitter
-) {
-    ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
-
-    float rcpSteps = 1.0 / float(params.steps);
-    vec3 rayStepDelta = (params.rayEnd - params.rayStart) * rcpSteps;
-    float rayStepLength = length(params.rayEnd - params.rayStart) * rcpSteps;
-    vec3 shaodwStepDelta = (shadowEnd - shadowStart) * rcpSteps;
-
-    vec3 totalInSctr = vec3(0.0);
-    vec3 tSampleToOrigin = vec3(1.0);
-
-    float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
-
-    for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
-        float stepIndexF = float(stepIndex) + stepJitter;
-        vec3 samplePos = params.rayStart + stepIndexF * rayStepDelta;
-        float sampleHeight = length(samplePos);
-        float rcpSampleHeight = rcp(sampleHeight);
-
-        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
-        vec3 sampleExtinction = computeOpticalDepth(atmosphere, sampleDensity);
-        vec3 sampleOpticalDepth = sampleExtinction * rayStepLength;
-        vec3 sampleTransmittance = exp(-sampleOpticalDepth);
-
-        vec3 rayleighInSctr = sampleDensity.x * atmosphere.rayleighSctrCoeff;
-        vec3 mieInSctr = sampleDensity.y * atmosphere.mieSctrCoeff;
-
-        vec3 sampleShadowPos = shadowStart + stepIndexF * shaodwStepDelta;
-        float shadowSample = sampleShadow(sampleShadowPos);
-
-        {
-            float cosZenith = dot(samplePos, scatteringParams.sunParams.lightDir) * rcpSampleHeight;
-            vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
-            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
-
-            float shadow = mix(1.0, shadowSample, shadowIsSun);
-            vec3 sampleInSctr = shadow * tSunToSample * computeTotalInSctr(atmosphere, scatteringParams.sunParams, sampleDensity);
-            sampleInSctr += scatteringParams.multiSctrFactor * multiSctrLuminance * (rayleighInSctr + mieInSctr);
-
-            // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-            vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-            totalInSctr += tSampleToOrigin * sampleInSctrInt * scatteringParams.sunParams.irradiance;
-        }
-
-        {
-            float cosZenith = dot(samplePos, scatteringParams.moonParams.lightDir) * rcpSampleHeight;
-            vec3 tMoonToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
-            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
-
-            float shadow = mix(shadowSample, 1.0, shadowIsSun);
-            vec3 sampleInSctr = shadow * tMoonToSample * computeTotalInSctr(atmosphere, scatteringParams.moonParams, sampleDensity);
-            sampleInSctr += scatteringParams.multiSctrFactor * multiSctrLuminance * (rayleighInSctr + mieInSctr);
-
-            vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-            totalInSctr += tSampleToOrigin * sampleInSctrInt * scatteringParams.moonParams.irradiance;
-        }
-
-        tSampleToOrigin *= sampleTransmittance;
-    }
-
-    result.transmittance = tSampleToOrigin;
-    result.inScattering = totalInSctr;
-
-    return result;
-}
-
+#define ATMOSPHERE_RAYMARCHING_SKY
+#define ATMOSPHERE_RAYMARCHING_AERIAL_PERSPECTIVE
+#include "Raymarching.glsl"
 
 // originView: ray origin in view space
 // endView: ray end in view space
 ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 originView, vec3 endView, float stepJitter, float multiSctrFactor) {
-    ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
+    ScatteringResult result = scatteringResult_init();
 
     mat3 vectorView2World = mat3(gbufferModelViewInverse);
 
@@ -106,6 +40,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
     vec3 rayDir = viewDirWorld;
 
     RaymarchParameters params;
+    params.stepJitter = stepJitter;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
     LightParameters sunParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
@@ -116,7 +51,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         params.steps = SETTING_SKY_SAMPLES;
 
         if (setupRayEnd(atmosphere, params, rayDir)) {
-            result = raymarchSingleScattering(atmosphere, params, scatteringParams);
+            result = raymarchSky(atmosphere, params, scatteringParams);
         }
     } else {
         params.rayEnd = atmosphere_viewToAtm(atmosphere, endView);
@@ -133,7 +68,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         endShadow = endShadow * 0.5 + 0.5;
 
         params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
-        result = raymarchSingleScatteringShadowed(atmosphere, params, scatteringParams, startShadow, endShadow, stepJitter);
+        result = raymarchAerialPerspective(atmosphere, params, scatteringParams, startShadow, endShadow);
     }
 
     return result;

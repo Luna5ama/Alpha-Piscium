@@ -294,91 +294,6 @@ void uvToLutTransmittanceParams(AtmosphereParameters atmosphere, out float altit
     cosZenith = clamp(cosZenith, -1.0, 1.0);
 }
 
-struct ScatteringResult {
-    vec3 transmittance;
-    vec3 inScattering;
-};
-
-ScatteringResult scatteringResult_init() {
-    ScatteringResult result;
-    result.transmittance = vec3(1.0);
-    result.inScattering = vec3(0.0);
-    return result;
-}
-
-struct RaymarchParameters {
-    vec3 rayStart;
-    vec3 rayEnd;
-    uint steps;
-};
-
-struct LightParameters {
-    vec3 lightDir;
-    float rayleighPhase;
-    float miePhase;
-    vec3 irradiance;
-};
-
-LightParameters lightParameters_init(AtmosphereParameters atmosphere, vec3 irradiance, vec3 lightDir, vec3 rayDir) {
-    LightParameters lightParams;
-    lightParams.irradiance = irradiance * PI;
-    lightParams.lightDir = lightDir;
-    float cosLightTheta = -dot(rayDir, lightDir);
-    lightParams.rayleighPhase = rayleighPhase(cosLightTheta);
-    lightParams.miePhase = miePhase(cosLightTheta, atmosphere.miePhaseG);
-    return lightParams;
-}
-
-struct ScatteringParameters {
-    LightParameters sunParams;
-    LightParameters moonParams;
-    float multiSctrFactor;
-};
-
-ScatteringParameters scatteringParameters_init(LightParameters sunParams, LightParameters moonParams, float multiSctrFactor) {
-    ScatteringParameters params;
-    params.sunParams = sunParams;
-    params.moonParams = moonParams;
-    params.multiSctrFactor = multiSctrFactor;
-    return params;
-}
-
-bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir) {
-    const vec3 earthCenter = vec3(0.0);
-    float rayStartHeight = length(params.rayStart);
-
-    // Check if ray origin is outside the atmosphere
-    if (rayStartHeight > atmosphere.top) {
-        float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
-        if (tTop < 0.0) {
-            return false; // No intersection with atmosphere: stop right away
-        }
-        vec3 upVector = params.rayStart / rayStartHeight;
-        vec3 upOffset = upVector * -PLANET_RADIUS_OFFSET;
-        params.rayStart += rayDir * tTop + upOffset;
-    }
-
-    float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom);
-    float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
-    float rayLen = 0.0;
-
-    if (tBottom < 0.0) {
-        if (tTop < 0.0) {
-            return false; // No intersection with earth nor atmosphere: stop right away
-        } else {
-            rayLen = tTop;
-        }
-    } else {
-        if (tTop > 0.0) {
-            rayLen = min(tTop, tBottom);
-        }
-    }
-
-    params.rayEnd = params.rayStart + rayDir * rayLen;
-
-    return true;
-}
-
 vec3 sampleTransmittanceLUT(AtmosphereParameters atmosphere, float cosLightZenith, float sampleAltitude) {
     vec2 tLUTUV;
     lutTransmittanceParamsToUv(atmosphere, sampleAltitude, cosLightZenith, tLUTUV);
@@ -396,6 +311,18 @@ vec3 sampleMultiSctrLUT(AtmosphereParameters atmosphere, float cosLightZenith, f
     return texture(usam_multiSctrLUT, uv).rgb;
 }
 
+struct ScatteringResult {
+    vec3 transmittance;
+    vec3 inScattering;
+};
+
+ScatteringResult scatteringResult_init() {
+    ScatteringResult result;
+    result.transmittance = vec3(1.0);
+    result.inScattering = vec3(0.0);
+    return result;
+}
+
 void unpackEpipolarData(uvec4 epipolarData, out ScatteringResult sctrResult, out float viewZ) {
     vec2 unpacked1 = unpackHalf2x16(epipolarData.x);
     vec2 unpacked2 = unpackHalf2x16(epipolarData.y);
@@ -411,120 +338,6 @@ void packEpipolarData(out uvec4 epipolarData, ScatteringResult sctrResult, float
     epipolarData.z = packHalf2x16(sctrResult.transmittance.yz);
     epipolarData.w = floatBitsToUint(viewZ);
 }
-
-vec3 computeOpticalDepth(AtmosphereParameters atmosphere, vec3 density) {
-    vec3 result = vec3(0.0);
-    result += atmosphere.rayleighExtinction * density.x;
-    result += atmosphere.mieExtinction * density.y;
-    result += atmosphere.ozoneExtinction * density.z;
-    return result;
-}
-
-vec3 computeTotalInSctr(AtmosphereParameters atmosphere, LightParameters lightParams, vec3 sampleDensity) {
-    vec3 rayleighInSctr = (sampleDensity.x * lightParams.rayleighPhase) * atmosphere.rayleighSctrCoeff;
-    vec3 mieInSctr = (sampleDensity.y * lightParams.miePhase) * atmosphere.mieSctrCoeff;
-    return rayleighInSctr + mieInSctr;
-}
-
-ScatteringResult raymarchSingleScattering(
-AtmosphereParameters atmosphere, RaymarchParameters params, ScatteringParameters scatteringParams
-) {
-    ScatteringResult result = ScatteringResult(vec3(1.0), vec3(0.0));
-
-    float rcpSteps = 1.0 / float(params.steps);
-    vec3 rayStepDelta = (params.rayEnd - params.rayStart) * rcpSteps;
-    float rayStepLength = length(params.rayEnd - params.rayStart) * rcpSteps;
-
-    vec3 totalInSctr = vec3(0.0);
-    vec3 tSampleToOrigin = vec3(1.0);
-
-    for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
-        float stepIndexF = float(stepIndex) + 0.5;
-        vec3 samplePos = params.rayStart + stepIndexF * rayStepDelta;
-        float sampleHeight = length(samplePos);
-        float rcpSampleHeight = rcp(sampleHeight);
-
-        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
-        vec3 sampleExtinction = computeOpticalDepth(atmosphere, sampleDensity);
-        vec3 sampleOpticalDepth = sampleExtinction * rayStepLength;
-        vec3 sampleTransmittance = exp(-sampleOpticalDepth);
-
-        vec3 rayleighInSctr = sampleDensity.x * atmosphere.rayleighSctrCoeff;
-        vec3 mieInSctr = sampleDensity.y * atmosphere.mieSctrCoeff;
-
-        {
-            float cosZenith = dot(samplePos, scatteringParams.sunParams.lightDir) * rcpSampleHeight;
-            vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
-            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
-
-            vec3 sampleInSctr = tSunToSample * computeTotalInSctr(atmosphere, scatteringParams.sunParams, sampleDensity);
-            sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
-
-            // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-            vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-            totalInSctr += tSampleToOrigin * sampleInSctrInt * scatteringParams.sunParams.irradiance;
-        }
-
-        {
-            float cosZenith = dot(samplePos, scatteringParams.moonParams.lightDir) * rcpSampleHeight;
-            vec3 tMoonToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
-            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
-
-            vec3 sampleInSctr = tMoonToSample * computeTotalInSctr(atmosphere, scatteringParams.moonParams, sampleDensity);
-            sampleInSctr += multiSctrLuminance * (rayleighInSctr + mieInSctr);
-
-            vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-            totalInSctr += tSampleToOrigin * sampleInSctrInt * scatteringParams.moonParams.irradiance;
-        }
-
-        tSampleToOrigin *= sampleTransmittance;
-    }
-
-    result.transmittance = tSampleToOrigin;
-    result.inScattering = totalInSctr;
-
-    return result;
-}
-
-vec3 raymarchTransmittance(AtmosphereParameters atmosphere, vec3 origin, vec3 dir, uint steps) {
-    vec3 result = vec3(1.0);
-
-    vec3 earthCenter = vec3(0.0, 0.0, 0.0);
-    float tBottom = raySphereIntersectNearest(origin, dir, earthCenter, atmosphere.bottom);
-    float tTop = raySphereIntersectNearest(origin, dir, earthCenter, atmosphere.top);
-    float rayLenAtm = 0.0;
-    if (tBottom < 0.0) {
-        if (tTop < 0.0) {
-            rayLenAtm = 0.0;// No intersection with earth nor atmosphere: stop right away
-            return result;
-        } else {
-            rayLenAtm = tTop;
-        }
-    } else {
-        if (tTop > 0.0) {
-            rayLenAtm = min(tTop, tBottom);
-        }
-    }
-
-    float stepLength = rayLenAtm / float(steps);
-    vec3 stepDelta = dir * stepLength;
-
-    vec3 totalDensity = vec3(0.0);
-
-    for (uint stepIndex = 0u; stepIndex < steps; stepIndex++) {
-        float stepIndexF = float(stepIndex);
-        vec3 samplePos = origin + (stepIndexF + 0.5) * stepDelta;
-        float sampleHeight = length(samplePos);
-        vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight) * stepLength;
-        totalDensity += sampleDensity;
-    }
-
-    vec3 totalOpticalDepth = computeOpticalDepth(atmosphere, totalDensity);
-    result = exp(-totalOpticalDepth);
-
-    return result;
-}
-
 
 #define INVALID_EPIPOLAR_LINE vec4(-1000.0, -1000.0, -100.0, -100.0)
 
