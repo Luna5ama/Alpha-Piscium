@@ -261,7 +261,7 @@ void main() {
         {
             float boostFrameV = linearStep(1.0 + SETTING_DENOISER_VARIANCE_BOOST_FRAMES, 1.0, newHLen);
             float variance = max(newMoments.g - newMoments.r * newMoments.r, 0.0);
-            float spatialVariance = subgroupAdd(newMoments.x / gl_SubgroupSize);
+            float spatialVariance = subgroupAdd(newMoments.x / gl_SubgroupSize) * 5.0;
             variance = mix(spatialVariance, variance, linearStep(1.0, 4.0, newHLen));
             float boostV = _BOOST_ADD + variance * SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY;
             variance += boostV * pow(boostFrameV, SETTING_DENOISER_VARIANCE_BOOST_DECAY);
