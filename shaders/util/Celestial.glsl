@@ -117,7 +117,7 @@ vec4 celestial_render(ivec2 texelPos) {
 
     vec3 starmap = colors_LogLuv32ToSRGB(BicubicSampling5(usam_starmap, starmapCoords * _CELESTIAL_STARMAP_SIZE));
     starmap = pow(starmap, vec3(SETTING_STARMAP_GAMMA));
-    result.rgb += starmap * _CELESTIAL_STARMAP_EXP * SETTING_STARMAP_INTENSITY;
+    result.rgb += earthOcclusionV * starmap * _CELESTIAL_STARMAP_EXP * SETTING_STARMAP_INTENSITY;
     #endif
 
     return result;
