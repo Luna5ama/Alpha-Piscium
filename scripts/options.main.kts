@@ -922,7 +922,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_MIN_VARIANCE_FACTOR",30, 0..64) {
+                slider("SETTING_DENOISER_MIN_VARIANCE_FACTOR",25, 0..64) {
                     lang {
                         name = "Minimum Variance Factor"
                         comment =
@@ -940,7 +940,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Filter Depth Weight"
                     }
                 }
-                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 48, 0..128) {
+                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 56, 0..128) {
                     lang {
                         name = "Filter Color Weight"
                         comment = "Smaller value generally leads to less noisy but more blurry result."
@@ -1105,7 +1105,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Weight of average luminance AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 4.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 5.0, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Average Luminance AE Time"
                     }
@@ -1137,7 +1137,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Weight of highlight/shadow based AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_HS_TIME", 2.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_HS_TIME", 2.5, 0.0..10.0 step 0.1) {
                     lang {
                         name = "Highlight/Shadow AE Time"
                     }
