@@ -789,7 +789,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Max Sample Radius"
                     }
                 }
-                slider("SETTING_VBGI_THICKNESS", 0.5, 0.1..1.0 step 0.01) {
+                slider("SETTING_VBGI_THICKNESS", 0.25, 0.1..1.0 step 0.01) {
                     lang {
                         name = "Thickness"
                     }
@@ -1013,7 +1013,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             empty()
-            slider("SETTING_STARMAP_INTENSITY", 20, 0..64) {
+            slider("SETTING_STARMAP_INTENSITY", 18, 0..64) {
                 lang {
                     name = "Starmap Intensity"
                 }
@@ -1116,7 +1116,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Target average luminance value for dark scene such as caves, indoors, and nighttime."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 94, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 101, 1..255) {
                     lang {
                         name = "Average Luminance Maximum Target"
                         comment = "Target average luminance value for bright scene such as daytime outdoors."
@@ -1160,7 +1160,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Luminance threshold for shadow."
                     }
                 }
-                slider("SETTING_EXPOSURE_S_PERCENT", 3.0, 0.5..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_S_PERCENT", 6.0, 0.5..10.0 step 0.5) {
                     lang {
                         name = "Shadow %"
                         comment = "Adjusting exposure to keep the specified percentage of pixels in the shadow part of histogram."

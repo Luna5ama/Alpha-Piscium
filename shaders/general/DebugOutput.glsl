@@ -251,7 +251,7 @@ void debugOutput(inout vec4 outputColor) {
         outputColor.rgb = gammaCorrect(texture(usam_transmittanceLUT, debugTexCoord).rgb);
     }
     if (inViewPort(ivec4(0, 32 + 64, 256, 256), debugTexCoord)) {
-        outputColor.rgb = gammaCorrect(texture(usam_skyLUT, debugTexCoord).rgb * 0.1);
+        outputColor.rgb = gammaCorrect(texture(usam_skyLUT, debugTexCoord).rgb * exp2(SETTING_DEBUG_EXP));
     }
     if (inViewPort(ivec4(0, 32 + 64 + 256, 256, 256), debugTexCoord)) {
         outputColor.rgb = gammaCorrect(texture(usam_multiSctrLUT, debugTexCoord).rgb * 10.0);
