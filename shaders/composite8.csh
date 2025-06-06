@@ -214,8 +214,6 @@ void main() {
             giLum = moment2.a;
         }
 
-        float directWeighting = exp2(-directLum / giLum);
-
         uvec4 packedData = texelFetch(usam_tempRGBA32UI, texelPos, 0);
         vec3 prevColor;
         vec3 prevFastColor;
@@ -223,6 +221,8 @@ void main() {
         float prevHLen;
         svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
 
+        // Goes to zero (more clamping) as direct lighting is more brighter than GI
+        float directWeighting = saturate(exp2(-directLum / giLum));
         float clampingThreshold = directWeighting * SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD;
         vec3 aabbMin = mean - stddev * clampingThreshold;
         vec3 aabbMax = mean + stddev * clampingThreshold;
@@ -232,12 +232,12 @@ void main() {
         vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
         vec3 prevColorYCoCgClamped = clamp(prevColorYCoCg, aabbMin, aabbMax);
         float clippingWeight = linearStep(
-            SETTING_DENOISER_MAX_FAST_ACCUM,
-            SETTING_DENOISER_MAX_FAST_ACCUM * 2.0,
+            SETTING_DENOISER_MAX_FAST_ACCUM * directWeighting,
+            SETTING_DENOISER_MAX_FAST_ACCUM * 2.0 * directWeighting,
             prevHLen
         );
         prevColorYCoCg = mix(prevColorYCoCg, prevColorYCoCgClamped, clippingWeight);
-        vec3 prevColorClamped = colors_YCoCgToSRGB(prevColorYCoCg);
+        vec3 prevColorClamped = colors_YCoCgToSRGB(prevColorYCoCgClamped);
 
         float moment2Correction = pow2(colors_sRGB_luma(prevColorClamped)) - pow2(colors_sRGB_luma(prevColor));
         prevMoments.y += moment2Correction;

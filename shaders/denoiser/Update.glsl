@@ -10,7 +10,7 @@ vec3 prevColor, vec3 prevFastColor, vec2 prevMoments, float prevHLen,
 out vec3 newColor, out vec3 newFastColor, out vec2 newMoments, out float newHLen
 ) {
     vec2 currMoments;
-    currMoments.r = min(colors_sRGB_luma(currFastColor), 256.0);
+    currMoments.r = min(colors_sRGB_luma(currColor), 256.0);
     currMoments.g = currMoments.r * currMoments.r;
 
     vec2 alpha = vec2(1.0);
