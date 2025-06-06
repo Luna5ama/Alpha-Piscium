@@ -43,7 +43,7 @@ vec3 shadowEnd
 ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPHERE_RAYMARCHING_FUNC_PARAMS) {
     float rcpSteps = 1.0 / float(params.steps);
     vec3 rayStepDelta = (params.rayEnd - params.rayStart) * rcpSteps;
-    float rayStepLength = length(params.rayEnd - params.rayStart) * rcpSteps;
+    float rayStepLength = length(rayStepDelta);
 
     #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 0
     vec3 totalDensity = vec3(0.0);
@@ -78,7 +78,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
 
         #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 0
         {
-            totalDensity += sampleDensity;
+            totalDensity += sampleDensity * rayStepLength;
         }
         #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
         {
