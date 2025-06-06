@@ -202,8 +202,8 @@ class OptionBuilder<T>(
             output.writeLang(locale) {
                 if (name.isNotEmpty()) appendLine("option.$optionName=$name")
                 if (comment.isNotEmpty()) appendLine("option.$optionName.comment=$comment")
-                if (prefix.isNotEmpty()) appendLine("option.$optionName.prefix=$prefix")
-                if (suffix.isNotEmpty()) appendLine("option.$optionName.suffix=$suffix")
+                if (prefix.isNotEmpty()) appendLine("prefix.$optionName=$prefix")
+                if (suffix.isNotEmpty()) appendLine("suffix.$optionName=$suffix")
                 valueLabel.forEach { (value, label) ->
                     appendLine("value.$optionName.$value=$label")
                 }
