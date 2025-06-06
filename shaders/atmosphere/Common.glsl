@@ -309,7 +309,7 @@ vec3 sampleMultiSctrLUT(AtmosphereParameters atmosphere, float cosLightZenith, f
     vec2 uv = saturate(vec2(cosLightZenith * 0.5 + 0.5, sampleAltitude / (atmosphere.top - atmosphere.bottom)));
     uv = fromUnitToSubUvs(uv, vec2(MULTI_SCTR_LUT_SIZE));
     // Hacky twilight multiple scattering fix
-    return texture(usam_multiSctrLUT, uv).rgb * pow4(linearStep(-0.2, 0.0, cosLightZenith));
+    return texture(usam_multiSctrLUT, uv).rgb * pow6(linearStep(-0.2, 0.0, cosLightZenith));
 }
 
 struct ScatteringResult {
