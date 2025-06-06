@@ -542,7 +542,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Emissive PBR Value Curve"
                     }
                 }
-                slider("SETTING_EMISSIVE_ALBEDO_COLOR_CURVE", 1.6, 0.1..4.0 step 0.05) {
+                slider("SETTING_EMISSIVE_ALBEDO_COLOR_CURVE", 1.8, 0.1..4.0 step 0.05) {
                     lang {
                         name = "Emissive Albedo Color Curve"
                     }
@@ -898,13 +898,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_VARIANCE_BOOST_ADD_FACTOR", 15, 0..64) {
+                slider("SETTING_DENOISER_VARIANCE_BOOST_ADD_FACTOR", 10, 0..64) {
                     lang {
                         name = "Variance Boost Add"
                         comment = "Boost variance for the first few frames. Actual value is calculated as 2^-x."
                     }
                 }
-                slider("SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY", 1.5, 1.0..4.0 step 0.05) {
+                slider("SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY", 2.5, 1.0..4.0 step 0.1) {
                     lang {
                         name = "Variance Boost Multiply"
                         comment = "Boost variance for the first few frames."

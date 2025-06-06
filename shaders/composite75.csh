@@ -48,7 +48,8 @@ void main() {
         float rodLuminance = dot(hdrColor, ROD_RESPONSE);
         vec3 scopticColor = SCOPTIC_BASE_COLOR * rodLuminance;
         float scopticLuminance = colors_sRGB_luma(scopticColor);
-        float mesopicFactor = linearStep(SETTING_PURKINJE_EFFECT_MIN_LUM, SETTING_PURKINJE_EFFECT_MAX_LUM, log2(luminance * 1000.0));
+        float mesopicFactor = log2(luminance * 1000.0);
+        mesopicFactor = smoothstep(SETTING_PURKINJE_EFFECT_MIN_LUM, SETTING_PURKINJE_EFFECT_MAX_LUM, mesopicFactor);
         scopticColor *= luminance / max(scopticLuminance, EPSILON);
         outputColor.rgb = mix(scopticColor, outputColor.rgb, saturate(mesopicFactor + float(scopticLuminance <= EPSILON)));
         #endif
