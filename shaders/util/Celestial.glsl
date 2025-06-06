@@ -12,16 +12,16 @@
 #define SUN_TEMPERATURE SETTING_SUN_TEMPERATURE
 #endif
 
-#define SUN_RADIUS (695700.0 * SETTING_SUN_RADIUS) // in km
-#define SUN_DISTANCE (149597870.7 * SETTING_SUN_DISTANCE) // in km
+#define SUN_RADIUS (695700.0 * SETTING_SUN_RADIUS)// in km
+#define SUN_DISTANCE (149597870.7 * SETTING_SUN_DISTANCE)// in km
 #define SUN_ANGULAR_RADIUS atan(SUN_RADIUS / SUN_DISTANCE)
 #define SUN_SOLID_ANGLE (2.0 * PI * (1.0 - sqrt(pow2(SUN_DISTANCE) - pow2(SUN_RADIUS)) / SUN_DISTANCE))
 
 #define SUN_LUMINANCE blackBody_evalRadiance(SUN_TEMPERATURE)
 #define SUN_ILLUMINANCE (SUN_LUMINANCE * SUN_SOLID_ANGLE)
 
-#define MOON_RADIUS (1737.4 * SETTING_MOON_RADIUS) // in km
-#define MOON_DISTANCE (384399 * SETTING_MOON_DISTANCE) // in km
+#define MOON_RADIUS (1737.4 * SETTING_MOON_RADIUS)// in km
+#define MOON_DISTANCE (384399 * SETTING_MOON_DISTANCE)// in km
 #define MOON_ANGULAR_RADIUS atan(MOON_RADIUS / MOON_DISTANCE)
 #define MOON_SOLID_ANGLE (2.0 * PI * (1.0 - sqrt(pow2(MOON_DISTANCE) - pow2(MOON_RADIUS)) / MOON_DISTANCE))
 
@@ -50,8 +50,8 @@ const mat3 WORLD_TO_GALATIC =mat3(
     -sin(radians(40.0)), cos(radians(40.0)), 0.0,
     0.0, 0.0, 1.0
 ) * mat3(
-    0.0, 0.0, 1.0,  // First column
-    1.0, 0.0, 0.0,  // Second column
+    0.0, 0.0, 1.0, // First column
+    1.0, 0.0, 0.0, // Second column
     0.0, 1.0, 0.0
 );
 
@@ -99,10 +99,11 @@ vec4 celestial_render(ivec2 texelPos) {
     origin.y = max(origin.y, atmosphere.bottom + 0.5);
     vec3 earthCenter = vec3(0.0);
     float earthIntersect = raySphereIntersectNearest(origin, viewDirWorld, earthCenter, atmosphere.bottom);
+    float earthOcclusionV = step(earthIntersect, 0.0);
 
-    float sunV = _celestial_circle(viewDir, uval_sunDirView, SUN_ANGULAR_RADIUS * 2.0);
-    float moonV = _celestial_circle(viewDir, uval_moonDirView, MOON_ANGULAR_RADIUS * 2.0);
-    float moonDarkV = _celestial_circle(viewDir, uval_moonDirView, MOON_ANGULAR_RADIUS * 4.0);
+    float sunV = earthOcclusionV *_celestial_circle(viewDir, uval_sunDirView, SUN_ANGULAR_RADIUS * 2.0);
+    float moonV = earthOcclusionV *_celestial_circle(viewDir, uval_moonDirView, MOON_ANGULAR_RADIUS * 2.0);
+    float moonDarkV = earthOcclusionV * _celestial_circle(viewDir, uval_moonDirView, MOON_ANGULAR_RADIUS * 4.0);
 
     vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
     result += sunV * vec4(SUN_LUMINANCE, 4.0);
@@ -118,8 +119,6 @@ vec4 celestial_render(ivec2 texelPos) {
     starmap = pow(starmap, vec3(SETTING_STARMAP_GAMMA));
     result.rgb += starmap * _CELESTIAL_STARMAP_EXP * SETTING_STARMAP_INTENSITY;
     #endif
-
-    result.rgb *= step(earthIntersect, 0.0);
 
     return result;
 }
