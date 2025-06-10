@@ -37,20 +37,7 @@ float _clouds_cirrus_coverage(vec3 rayPos) {
 }
 
 float _clouds_cirrus_density_layer(vec2 texCoord) {
-    return sampling_textureRepeat(usam_cirrus, texCoord, 1.0).x;
-
-    vec2 dist0 = smoothstep(0.0, 0.5, abs(fract(texCoord - vec2(0.5, 0.5)) - vec2(0.5, 0.5)));
-    vec2 dist1 = smoothstep(0.0, 0.5, abs(fract(texCoord - vec2(0.5, 0.5) + vec2(0.5, 0.5)) - vec2(0.5, 0.5)));
-    vec2 dist2 = smoothstep(0.0, 0.5, abs(fract(texCoord - vec2(0.5, 0.5) + vec2(1.0, 0.5)) - vec2(0.5, 0.5)));
-    vec2 dist3 = smoothstep(0.0, 0.5, abs(fract(texCoord - vec2(0.5, 0.5) + vec2(0.5, 1.0)) - vec2(0.5, 0.5)));
-
-    float density = 0.0;
-    density += texture(usam_cirrus, texCoord).r * dist0.x * dist0.y;
-    density += texture(usam_cirrus, texCoord + vec2(0.5, 0.5)).r * dist1.x * dist1.y;
-    density += texture(usam_cirrus, texCoord + vec2(1.0, 0.5)).r * dist2.x * dist2.y;
-    density += texture(usam_cirrus, texCoord + vec2(0.5, 1.0)).r * dist3.x * dist3.y;
-
-    return density;
+    return texture(usam_cirrus, texCoord).x;
 }
 
 float _clouds_cirrus_density_fbm(vec3 rayPos) {
