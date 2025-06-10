@@ -5,16 +5,17 @@
 #include "/util/Sampling.glsl"
 
 #define CIRRUS_CLOUD_HEIGHT 9.0
-#define CIRRUS_CLOUD_COVERAGE 0.5
+#define CIRRUS_CLOUD_COVERAGE 0.4
 
 float _clouds_cirrus_coverage(vec3 rayPos) {
-    FBMParameters earthParams;
-    earthParams.frequency = 0.005;
-    earthParams.persistence = 0.8;
-    earthParams.lacunarity = 3.0;
-    earthParams.octaveCount = 2u;
-    float earthCoverage = ValueNoise_2D_value_fbm(earthParams, rayPos.xz + vec2(-140.0, 120.0));
-    earthCoverage = pow2(linearStep(0.0, 0.6, earthCoverage));
+//    FBMParameters earthParams;
+//    earthParams.frequency = 0.008;
+//    earthParams.persistence = 0.8;
+//    earthParams.lacunarity = 3.0;
+//    earthParams.octaveCount = 2u;
+//    float earthCoverage = ValueNoise_2D_value_fbm(earthParams, rayPos.xz + vec2(120.0, -350.0));
+//    earthCoverage = pow2(linearStep(0.0, 0.6, earthCoverage));
+    float earthCoverage = 1.0;
 
     FBMParameters shapeParams;
     shapeParams.frequency = 0.05;
@@ -24,16 +25,10 @@ float _clouds_cirrus_coverage(vec3 rayPos) {
     float shapeCoverage = GradientNoise_2D_value_fbm(shapeParams, rayPos.xz + vec2(0.0, -12.0));
     shapeCoverage = pow3(linearStep(0.5 - CIRRUS_CLOUD_COVERAGE * 1.5, 1.0, shapeCoverage));
 
-//    FBMParameters puffyParams;
-//    puffyParams.frequency = 0.5;
-//    puffyParams.persistence = 0.8;
-//    puffyParams.lacunarity = 3.0;
-//    puffyParams.octaveCount = 1u;
-//    float puffyCoverage = GradientNoise_2D_value_fbm(puffyParams, rayPos.xz);
     float puffyCoverage = GradientNoise_2D_value(rayPos.xz * 0.8);
-    puffyCoverage = 1.0 - pow3(1.0 - linearStep(-1.0, 1.0, puffyCoverage + 0.2));
+    puffyCoverage = saturate(1.0 - pow2(1.0 - linearStep(-1.0, 1.0, puffyCoverage)) + 0.5);
 
-    return earthCoverage * shapeCoverage * 1.0;
+    return earthCoverage * shapeCoverage * puffyCoverage;
 }
 
 float _clouds_cirrus_density_layer(vec2 texCoord) {
