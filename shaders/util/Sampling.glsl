@@ -78,7 +78,6 @@ vec4 texture_tiling(sampler2D t, vec2 texCoord) {
 
 // [QUI17]
 vec4 sampling_textureRepeat(sampler2D t, vec2 uv, float v) {
-//    return texture_tiling(t, uv);
     float k = texture(noisetex, 0.005 * uv).x; // cheap (cache friendly) lookup
 
     float l = k * 8.0;
@@ -90,8 +89,8 @@ vec4 sampling_textureRepeat(sampler2D t, vec2 uv, float v) {
     vec2 offa = sin(vec2(3.0, 7.0) * ia); // can replace with any other hash
     vec2 offb = sin(vec2(3.0, 7.0) * ib); // can replace with any other hash
 
-    vec4 cola = texture_tiling(t, uv + v * offa);
-    vec4 colb = texture_tiling(t, uv + v * offb);
+    vec4 cola = texture(t, uv + v * offa);
+    vec4 colb = texture(t, uv + v * offb);
 
     return mix(cola, colb, smoothstep(0.2, 0.8, f - 0.1 * sum4(cola - colb)));
 }
