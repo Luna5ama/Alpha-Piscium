@@ -17,11 +17,11 @@ float _clouds_cirrus_coverage(vec3 rayPos) {
     earthCoverage = pow2(linearStep(0.0, 0.6, earthCoverage));
 
     FBMParameters shapeParams;
-    shapeParams.frequency = 0.03;
+    shapeParams.frequency = 0.05;
     shapeParams.persistence = 0.6;
     shapeParams.lacunarity = 2.5;
     shapeParams.octaveCount = 2u;
-    float shapeCoverage = GradientNoise_2D_value_fbm(shapeParams, rayPos.xz + vec2(0.0, -24.0));
+    float shapeCoverage = GradientNoise_2D_value_fbm(shapeParams, rayPos.xz + vec2(0.0, -12.0));
     shapeCoverage = pow3(linearStep(0.5 - CIRRUS_CLOUD_COVERAGE * 1.5, 1.0, shapeCoverage));
 
 //    FBMParameters puffyParams;
@@ -56,8 +56,8 @@ float _clouds_cirrus_density_layer(vec2 texCoord) {
 float _clouds_cirrus_density_fbm(vec3 rayPos) {
     FBMParameters curlParams;
     curlParams.frequency = 0.008;
-    curlParams.persistence = 0.6;
-    curlParams.lacunarity = 1.75;
+    curlParams.persistence = -0.7;
+    curlParams.lacunarity = 1.5;
     curlParams.octaveCount = 3u;
     vec2 curl = GradientNoise_2D_grad_fbm(curlParams, rayPos.xz + vec2(11.4, 51.4));
 
