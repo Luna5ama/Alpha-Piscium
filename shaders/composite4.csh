@@ -88,9 +88,9 @@ void main() {
         vec3 directDiffuseOut = vec3(0.0);
 
         if (viewZ != -65536.0) {
-            gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
-            Material material = material_decode(gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), lighting_gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), lighting_gData);
+            Material material = material_decode(lighting_gData);
 
             lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);
             ivec2 texelPos2x2 = texelPos >> 1;
@@ -99,18 +99,18 @@ void main() {
             uvec2 radianceData = imageLoad(uimg_packedZN, radianceTexelPos).xy;
             vec4 ssgiOut = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
 
-            if (gData.materialID == 65534u) {
+            if (lighting_gData.materialID == 65534u) {
                 mainOut = vec4(material.albedo * 0.01, 2.0);
             } else {
-                doLighting(material, gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
-                mainOut.a += gData.pbrSpecular.a * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
+                doLighting(material, lighting_gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
+                mainOut.a += lighting_gData.pbrSpecular.a * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
             }
 
-            uint packedGeometryNormal = packSnorm3x10(gData.geometryNormal);
+            uint packedGeometryNormal = packSnorm3x10(lighting_gData.geometryNormal);
             imageStore(uimg_geometryNormal, texelPos, uvec4(packedGeometryNormal));
 
             uvec4 packedZNOut = uvec4(0u);
-            nzpacking_pack(packedZNOut.xy, gData.normal, viewZ);
+            nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
             imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
 
             uint ssgiOutWriteFlag = uint((threadIdx & 3u) == (uint(frameCounter) & 3u));

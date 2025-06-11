@@ -6,7 +6,6 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Morton.glsl"
-#include "/rtwsm/Backward.glsl"
 
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -78,10 +77,6 @@ void main() {
                     imageStore(uimg_packedZN, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), tempRG32UIOut);
                 }
             }
-
-            #ifdef SETTING_RTWSM_B
-            rtwsm_backward(texelPos1x1, viewZ, gData.geometryNormal);
-            #endif
         } else {
             uvec4 temp32UIOut = uvec4(0u);
             imageStore(uimg_tempRGBA32UI, texelPos1x1, temp32UIOut);

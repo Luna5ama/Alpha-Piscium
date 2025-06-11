@@ -4,8 +4,6 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_vote : enable
 
-#include "/atmosphere/Common.glsl"
-#include "/general/Lighting.glsl"
 #include "/util/Morton.glsl"
 #include "/util/Hash.glsl"
 #include "/util/FullScreenComp.glsl"
@@ -18,6 +16,11 @@ uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
 
 layout(rgba8) uniform writeonly image2D uimg_temp5;
+layout(r32i) uniform iimage2D uimg_rtwsm_imap;
+
+#include "/general/Lighting.glsl"
+#include "/atmosphere/Common.glsl"
+#include "/rtwsm/Backward.glsl"
 
 vec2 texel2Screen(ivec2 texelPos) {
     return (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
@@ -57,7 +60,7 @@ float searchBlocker(vec3 shadowTexCoord) {
 
 vec3 calcShadow(Material material, bool isHand) {
     float sssFactor = material.sss;
-    uint skipFlag = uint(dot(gData.normal, uval_upDirView) < -0.99);
+    uint skipFlag = uint(dot(lighting_gData.normal, uval_upDirView) < -0.99);
     skipFlag &= uint(sssFactor < 0.001);
     if (bool(skipFlag)) {
         return vec3(1.0);
@@ -68,17 +71,17 @@ vec3 calcShadow(Material material, bool isHand) {
 
     float normalOffset = 0.03;
 
-    float viewNormalDot = 1.0 - abs(dot(gData.normal, lighting_viewDir));
+    float viewNormalDot = 1.0 - abs(dot(lighting_gData.normal, lighting_viewDir));
     #define NORMAL_OFFSET_DISTANCE_FACTOR1 2048.0
     float normalOffset1 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR1 / (NORMAL_OFFSET_DISTANCE_FACTOR1 + distnaceSq));
     normalOffset += saturate(normalOffset1 * viewNormalDot) * 0.2;
 
-    float lightNormalDot = 1.0 - abs(dot(uval_shadowLightDirView, gData.normal));
+    float lightNormalDot = 1.0 - abs(dot(uval_shadowLightDirView, lighting_gData.normal));
     #define NORMAL_OFFSET_DISTANCE_FACTOR2 512.0
     float normalOffset2 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR2 / (NORMAL_OFFSET_DISTANCE_FACTOR2 + distnaceSq));
     normalOffset += saturate(normalOffset2 * lightNormalDot) * 0.2;
 
-    viewCoord = mix(viewCoord + gData.normal * normalOffset, viewCoord, isHand);
+    viewCoord = mix(viewCoord + lighting_gData.normal * normalOffset, viewCoord, isHand);
 
     vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
 
@@ -149,11 +152,9 @@ vec3 calcShadow(Material material, bool isHand) {
 
 vec4 compShadow(ivec2 texelPos, float viewZ) {
     vec2 screenPos = texel2Screen(texelPos);
-    gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
-    gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
-    Material material = material_decode(gData);
+    Material material = material_decode(lighting_gData);
     lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);
-    return vec4(calcShadow(material, gData.isHand), 1.0);
+    return vec4(calcShadow(material, lighting_gData.isHand), 1.0);
 }
 
 void main() {
@@ -164,6 +165,13 @@ void main() {
 
     ivec2 texelPos = ivec2(mortonGlobalPosU);
     float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), lighting_gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), lighting_gData);
     vec4 outputColor = compShadow(texelPos, viewZ);
     imageStore(uimg_temp5, texelPos, outputColor);
+
+
+    #ifdef SETTING_RTWSM_B
+    rtwsm_backward(texelPos, viewZ, lighting_gData.geometryNormal);
+    #endif
 }

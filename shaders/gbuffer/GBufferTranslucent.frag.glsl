@@ -75,7 +75,7 @@ GBufferData processOutput() {
 void main() {
     texelPos = ivec2(gl_FragCoord.xy);
     vec4 albedo = processAlbedo();
-    gData = processOutput();
+    lighting_gData = processOutput();
 
     lighting_init(frag_viewCoord, texelPos);
 

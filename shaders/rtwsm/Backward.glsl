@@ -11,10 +11,10 @@
 #include "/util/Coords.glsl"
 #include "/util/Morton.glsl"
 
-uniform sampler2D shadowtex0;
-uniform sampler2D usam_rtwsm_imap;
-
-layout(r32i) uniform iimage2D uimg_rtwsm_imap;
+// Required resources
+// uniform sampler2D shadowtex0;
+// uniform sampler2D usam_rtwsm_imap;
+// layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 
 void importance(ivec2 texelPos, float viewZ, vec3 viewNormal, out uint p, out float v) {
     vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;

@@ -22,7 +22,7 @@ uniform sampler2D usam_rtwsm_imap;
 
 uniform sampler2D usam_skyLUT;
 
-GBufferData gData = gbufferData_init();
+GBufferData lighting_gData = gbufferData_init();
 vec3 lighting_viewCoord;
 vec3 lighting_viewDir;
 ivec2 lighting_texelPos;
