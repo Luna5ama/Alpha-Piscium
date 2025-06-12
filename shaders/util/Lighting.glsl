@@ -7,7 +7,7 @@
         You can find full license texts in /licenses
 
     Credits:
-        Jessie - Skylight falloff function (https://github.com/zombye)
+        Jessie - Skylight falloff function (https://github.com/Jessie-LC)
 */
 #ifndef INCLUDE_util_Lighting_glsl
 #define INCLUDE_util_Lighting_glsl a

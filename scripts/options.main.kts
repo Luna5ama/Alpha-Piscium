@@ -965,6 +965,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             empty()
+            slider("SETTING_ATM_MIE_TURBIDITY", 4, powerOfTwoRange(0..6)) {
+                lang {
+                    name = "Mie Tubidity"
+                }
+            }
             slider("SETTING_ATM_MIE_SCT_MUL", 0.5, 0.0..5.0 step 0.05) {
                 lang {
                     name = "Mie Scattering Multiplier"

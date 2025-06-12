@@ -16,6 +16,10 @@
             http://gdcvault.com/play/1018227/Practical-Implementation-of-Light-Scattering
 
         You can find full license texts in /licenses
+
+    Credits:
+    Credits:
+        Jessie - Helping with Mie coefficients (https://github.com/Jessie-LC)
 */
 #ifndef INCLUDE_atmosphere_Common_glsl
 #define INCLUDE_atmosphere_Common_glsl a
@@ -114,16 +118,28 @@ AtmosphereParameters getAtmosphereParameters() {
 
     const vec3 RAYLEIGH_SCATTERING = RAYLEIGH_SCATTERING_BASE * SETTING_ATM_RAY_SCT_MUL;
 
-    // Constants from [HIL20]
-//    const vec3 MIE_SCATTERING = vec3(3.996e-6) * 1000.0;
-//    const vec3 MIE_ABOSORPTION = vec3(4.4e-6) * 1000.0;
-
     // Constants from [BRU08]
-//        const vec3 MIE_SCATTERING = vec3(2.10e-5) * 1000.0;
-//        const vec3 MIE_ABOSORPTION = MIE_SCATTERING * 1.1;
+//    const vec3 MIE_SCATTERING_BASE = vec3(2.10e-5) * 1000.0;
+
+    // Constants from [HIL20]
+//    const vec3 MIE_SCATTERING_BASE = vec3(3.996e-6) * 1000.0;
 
     // m to km conversion
-    const vec3 MIE_SCATTERING_BASE = vec3(2.10e-5) * 1000.0;
+    #if SETTING_ATM_MIE_TURBIDITY == 1
+    const vec3 MIE_SCATTERING_BASE = vec3(0.0000295396336329, 0.0000416143192178, 0.0000616465407936);
+    #elif SETTING_ATM_MIE_TURBIDITY == 2
+    const vec3 MIE_SCATTERING_BASE = vec3(0.00571505029522, 0.00805114681809, 0.01192679251);
+    #elif SETTING_ATM_MIE_TURBIDITY == 4
+    const vec3 MIE_SCATTERING_BASE = vec3(0.0170860716184, 0.0240702118158, 0.0356570844484);
+    #elif SETTING_ATM_MIE_TURBIDITY == 8
+    const vec3 MIE_SCATTERING_BASE = vec3(0.0398281142647, 0.0561083418113, 0.0831176683253);
+    #elif SETTING_ATM_MIE_TURBIDITY == 16
+    const vec3 MIE_SCATTERING_BASE = vec3(0.0853121995575, 0.120184601802, 0.178038836079);
+    #elif SETTING_ATM_MIE_TURBIDITY == 32
+    const vec3 MIE_SCATTERING_BASE = vec3(0.176280370143, 0.248337121784, 0.367881171587);
+    #elif SETTING_ATM_MIE_TURBIDITY == 64
+    const vec3 MIE_SCATTERING_BASE = vec3(0.358216711314, 0.504642161748, 0.747565842601);
+    #endif
     const vec3 MIE_SCATTERING = MIE_SCATTERING_BASE * SETTING_ATM_MIE_SCT_MUL;
     const vec3 MIE_ABOSORPTION = MIE_SCATTERING_BASE * SETTING_ATM_MIE_ABS_MUL;
 
