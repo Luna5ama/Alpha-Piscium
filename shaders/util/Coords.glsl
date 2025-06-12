@@ -1,6 +1,7 @@
 #ifndef INCLUDE_util_Coords_glsl
 #define INCLUDE_util_Coords_glsl a
 #include "Math.glsl"
+#include "Mat3.glsl"
 
 float coords_linearizeDepth(float depth, float near, float far) {
     return (near * far) / (depth * (near - far) + far);
@@ -148,6 +149,43 @@ mat4 coords_createOrthographicMatrix(float left, float right, float bottom, floa
         0.0, 0.0, -2.0 / depth, 0.0,
         -(right + left) / width, -(top + bottom) / height, -(far + near) / depth, 1.0
     );
+}
+
+const mat3 _COORDS_EQUATORIAL_TO_GALACTIC = mat3(
+    -0.0548755604, 0.4941094279, -0.8676661490,
+    -0.8734370902, -0.4448296300,  -0.1980763734,
+    -0.4838350155, 0.7469822445,  0.4559837762
+);
+
+vec3 coords_equatorialToGalactic(vec3 equatorial) {
+    return _COORDS_EQUATORIAL_TO_GALACTIC * equatorial;
+}
+
+const mat3 _COORDS_WORLD_TO_EQUATORIAL = mat3(
+    0.0,  1.0,  0.0,   // Y+ (Up) -> X+ (RA 0h)
+    1.0,  0.0,  0.0,   // X+ (East) -> Y+ (RA 6h)
+    0.0,  0.0,  -1.0    // Z- (North) -> Z+ (Dec +90°)
+);
+
+vec3 coords_worldToEquatorial(vec3 world) {
+    return _COORDS_WORLD_TO_EQUATORIAL * world;
+}
+
+// Converts equatorial coordinates to ecliptic coordinates
+// equatorial: input vector in equatorial coordinates
+// solarLon: longitude of the Sun in radians, 0.0 PI = Spring Equinox, 0.5 PI = Summer Solstice, 1.0 PI = Autumn Equinox, 1.5 PI = Winter Solstice
+// hourAngle: hour angle of the observer in radians, 0.0 = 0h, 0.5 PI = 6h, 1.0 PI = 12h, 1.5 PI = 18h
+// observerLat: latitude of the observer in radians
+vec3 coords_equatorial_observerRotation(vec3 equatorial, float solarLon, float hourAngle, float observerLat) {
+    mat3 latRotation = mat3_rotateY(observerLat);
+    mat3 solarRotation = mat3_rotateZ(PI - solarLon - hourAngle);
+    return solarRotation * latRotation * equatorial;
+}
+
+vec2 coords_equatorial_rectangularToSpherical(vec3 equatorial) {
+    float dec = asin(equatorial.z); // Declination
+    float ra = atan(equatorial.y, equatorial.x); // Right Ascension
+    return vec2(ra, dec);
 }
 
 #endif

@@ -42,19 +42,6 @@ const float _CELESTIAL_REAL_MILKYWAY_LUMINANCE_MCD = 1.5;
 const float _CELESTIAL_REAL_MILKYWAY_LUMINANCE_KCD = _CELESTIAL_REAL_MILKYWAY_LUMINANCE_MCD / 1000000.0;
 const float _CELESTIAL_STARMAP_EXP = _CELESTIAL_REAL_MILKYWAY_LUMINANCE_KCD / _CELESTIAL_STARMAP_MILKYWAY_LUMINANCE;
 
-
-// Rotation matrix to transform from world space to galactic coordinates
-// This aligns +Y with galactic north pole and centers galaxy at phi=0
-const mat3 WORLD_TO_GALATIC =mat3(
-    cos(radians(40.0)), sin(radians(40.0)), 0.0,
-    -sin(radians(40.0)), cos(radians(40.0)), 0.0,
-    0.0, 0.0, 1.0
-) * mat3(
-    0.0, 0.0, 1.0, // First column
-    1.0, 0.0, 0.0, // Second column
-    0.0, 1.0, 0.0
-);
-
 const vec2 _CELESTIAL_STARMAP_SIZE = vec2(4096.0, 2048.0);
 
 // from https://github.com/GameTechDev/TAA
@@ -111,11 +98,22 @@ vec4 celestial_render(ivec2 texelPos) {
     result += moonDarkV * vec4(0.0, 0.0, 0.0, -0.99);
 
     #if SETTING_STARMAP_INTENSITY
-    vec2 starmapCoords = coords_equirectanglarForward(normalize(WORLD_TO_GALATIC * viewDirWorld));
-    // Adjust longitude direction (increases to the left)
-    starmapCoords.x = 1.0 - starmapCoords.x;
+    // 0.0 = spring equinox, 0.25 = summer solstice, 0.5 = autumn equinox, 0.75 = winter solstice
+    float solarPos = 0.25;
+    float hourAngle = float(worldTime - 18000) / 24000.0 * PI_2;
 
-    vec3 starmap = colors_LogLuv32ToSRGB(BicubicSampling5(usam_starmap, starmapCoords * _CELESTIAL_STARMAP_SIZE));
+    vec3 starmapDir = viewDirWorld;
+    starmapDir = coords_worldToEquatorial(starmapDir);
+    starmapDir = coords_equatorial_observerRotation(starmapDir, solarPos * PI_2, hourAngle, radians(43.0));
+
+    vec2 starmapSpherical = coords_equatorial_rectangularToSpherical(normalize(starmapDir));
+    // map is centered at 0h right ascension, and r.a. increases to the left.
+    vec2 starmapUV = vec2(
+        starmapSpherical.x * RCP_PI * -0.5 + 0.5,
+        starmapSpherical.y * RCP_PI + 0.5
+    );
+
+    vec3 starmap = colors_LogLuv32ToSRGB(BicubicSampling5(usam_starmap, starmapUV * _CELESTIAL_STARMAP_SIZE));
     starmap = pow(starmap, vec3(SETTING_STARMAP_GAMMA));
     result.rgb += earthOcclusionV * starmap * _CELESTIAL_STARMAP_EXP * SETTING_STARMAP_INTENSITY;
     #endif

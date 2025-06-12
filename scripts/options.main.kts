@@ -457,7 +457,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         suffix = " AU"
                     }
                 }
-                constSlider("sunPathRotation", -30.0, -90.0..90.0 step 1.0) {
+                constSlider("sunPathRotation", -20.0, -90.0..90.0 step 1.0) {
                     lang {
                         name = "Sun Path Rotation"
                         comment = "Rotation of sun path in degrees."
@@ -970,7 +970,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Mie Tubidity"
                 }
             }
-            slider("SETTING_ATM_MIE_SCT_MUL", 0.5, 0.0..5.0 step 0.05) {
+            slider("SETTING_ATM_MIE_SCT_MUL", 1.0, 0.0..5.0 step 0.05) {
                 lang {
                     name = "Mie Scattering Multiplier"
                 }
@@ -1078,7 +1078,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Auto Exposure Min EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 11.5, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MAX_EV", 12.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
