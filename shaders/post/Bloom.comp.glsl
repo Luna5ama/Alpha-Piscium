@@ -6,7 +6,7 @@
 #include "/_Base.glsl"
 #include "/util/Colors.glsl"
 
-const float BASE_BLOOM_INTENSITY = 0.005;
+const float BASE_BLOOM_INTENSITY = 0.003;
 
 #define BLOOM_USE_KARIS_AVERAGE 1
 

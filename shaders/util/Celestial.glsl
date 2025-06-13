@@ -42,7 +42,7 @@ const float _CELESTIAL_REAL_MILKYWAY_LUMINANCE_MCD = 1.5;
 const float _CELESTIAL_REAL_MILKYWAY_LUMINANCE_KCD = _CELESTIAL_REAL_MILKYWAY_LUMINANCE_MCD / 1000000.0;
 const float _CELESTIAL_STARMAP_EXP = _CELESTIAL_REAL_MILKYWAY_LUMINANCE_KCD / _CELESTIAL_STARMAP_MILKYWAY_LUMINANCE;
 
-const vec2 _CELESTIAL_STARMAP_SIZE = vec2(4096.0, 2048.0);
+const vec2 _CELESTIAL_STARMAP_SIZE = vec2(8192.0, 4096.0);
 
 // from https://github.com/GameTechDev/TAA
 vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST){
@@ -95,7 +95,7 @@ vec4 celestial_render(ivec2 texelPos) {
     vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
     result += sunV * vec4(SUN_LUMINANCE, 8.0);
     result += moonV * vec4(MOON_LUMINANCE, 0.0);
-    result += moonDarkV * vec4(0.0, 0.0, 0.0, -0.97);
+    result += moonDarkV * vec4(0.0, 0.0, 0.0, -0.98);
 
     #if SETTING_STARMAP_INTENSITY
     // 0.0 = spring equinox, 0.25 = summer solstice, 0.5 = autumn equinox, 0.75 = winter solstice
@@ -115,6 +115,7 @@ vec4 celestial_render(ivec2 texelPos) {
 
     vec3 starmap = colors_LogLuv32ToSRGB(BicubicSampling5(usam_starmap, starmapUV * _CELESTIAL_STARMAP_SIZE));
     starmap = pow(starmap, vec3(SETTING_STARMAP_GAMMA));
+    starmap *= exp2(colors_Rec601_luma(starmap) * SETTING_STARMAP_BRIGHT_STAR_BOOST);
     result.rgb += earthOcclusionV * starmap * _CELESTIAL_STARMAP_EXP * SETTING_STARMAP_INTENSITY;
     #endif
     result.a = max(result.a, 0.0);

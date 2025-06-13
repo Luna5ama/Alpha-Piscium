@@ -155,6 +155,7 @@ option.SETTING_DEPTH_BREAK_CORRECTION=Depth Break Correction
 option.SETTING_SKY_SAMPLES=Sky Samples
 option.SETTING_LIGHT_SHAFT_SAMPLES=Light Shaft Samples
 option.SETTING_STARMAP_INTENSITY=Starmap Intensity
+option.SETTING_STARMAP_BRIGHT_STAR_BOOST=Starmap Bright Star Boost
 option.SETTING_STARMAP_GAMMA=Starmap Gamma
 option.SETTING_TAA=Temporal Anti Aliasing
 option.SETTING_TAA_JITTER=Temporal Jitter

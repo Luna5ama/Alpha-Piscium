@@ -1018,12 +1018,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             empty()
-            slider("SETTING_STARMAP_INTENSITY", 20, 0..64) {
+            slider("SETTING_STARMAP_INTENSITY", 5, 0..16) {
                 lang {
                     name = "Starmap Intensity"
                 }
             }
-            slider("SETTING_STARMAP_GAMMA", 0.8, 0.1..2.0 step 0.1) {
+            slider("SETTING_STARMAP_BRIGHT_STAR_BOOST", 6, 0..8) {
+                lang {
+                    name = "Starmap Bright Star Boost"
+                }
+            }
+            slider("SETTING_STARMAP_GAMMA", 1.0, 0.1..2.0 step 0.1) {
                 lang {
                     name = "Starmap Gamma"
                 }
@@ -1073,12 +1078,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_MIN_EV", -5.5, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MIN_EV", -6.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Min EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 11.0, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MAX_EV", 12.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
@@ -1121,7 +1126,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Target average luminance value for dark scene such as caves, indoors, and nighttime."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 101, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 94, 1..255) {
                     lang {
                         name = "Average Luminance Maximum Target"
                         comment = "Target average luminance value for bright scene such as daytime outdoors."

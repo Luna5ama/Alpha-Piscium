@@ -74,7 +74,7 @@ struct LightParameters {
 
 LightParameters lightParameters_init(AtmosphereParameters atmosphere, vec3 irradiance, vec3 lightDir, vec3 rayDir) {
     LightParameters lightParams;
-    lightParams.irradiance = irradiance * PI;
+    lightParams.irradiance = irradiance;
     lightParams.lightDir = lightDir;
     float cosLightTheta = -dot(rayDir, lightDir);
     lightParams.rayleighPhase = rayleighPhase(cosLightTheta);
