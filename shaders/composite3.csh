@@ -103,48 +103,35 @@ vec3 calcShadow(Material material, bool isHand) {
     ssRange += sssFactor * SETTING_SSS_DIFFUSE_RANGE;
 
     const float ssRangeMul = 0.5;
-
     ssRange *= ssRangeMul;
-
-    vec3 shadow = vec3(0.0);
-    uint idxSS = 0;
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
     float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distnaceSq, 1.0)));
     float depthBiasFactor = 0.001 + lightNormalDot * 0.001;
     depthBiasFactor += mix(0.005 + lightNormalDot * 0.005, -0.001, dbfDistanceCoeff);
 
-    float sampleCountMul = sqrt(ssRange);
-    uint sampleCount = 1u;
+    float jitterR = rand_stbnVec1(lighting_texelPos, frameCounter);
+    vec2 dir = rand_stbnUnitVec211(lighting_texelPos, frameCounter);
+    float sqrtJitterR = sqrt(jitterR);
+    float r = sqrtJitterR * ssRange;
 
-    for (int i = 0; i < sampleCount; i++) {
-        ivec2 r2Offset = ivec2(rand_r2Seq2(idxSS) * vec2(128, 128));
+    vec3 sampleTexCoord = shadowTexCoord;
+    sampleTexCoord.xy += r * dir * vec2(shadowProjection[0][0], shadowProjection[1][1]);
 
-        float jitterR = rand_stbnVec1(lighting_texelPos + r2Offset, frameCounter);
-        vec2 dir = rand_stbnUnitVec211(lighting_texelPos + r2Offset, frameCounter);
-        float sqrtJitterR = sqrt(jitterR);
-        float r = sqrtJitterR * ssRange;
+    sampleTexCoord.z += jitterR * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
+    sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
+    vec2 texelSize;
+    sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
+    float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
+    depthBias = min(depthBias, 0.001);
+    sampleTexCoord.z -= depthBias;
 
-        vec3 sampleTexCoord = shadowTexCoord;
-        sampleTexCoord.xy += r * dir * vec2(shadowProjection[0][0], shadowProjection[1][1]);
+    float sampleShadow0 = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
+    float sampleShadow1 = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
+    vec4 sampleColor = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0);
+    sampleColor.rgb = mix(vec3(1.0), sampleColor.rgb * sampleColor.rgb, float(sampleShadow0 < 1.0));
 
-        sampleTexCoord.z += jitterR * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
-        sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
-        vec2 texelSize;
-        sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
-        float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
-        depthBias = min(depthBias, 0.001);
-        sampleTexCoord.z -= depthBias;
-
-        float sampleShadow0 = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
-        float sampleShadow1 = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
-        vec4 sampleColor = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0);
-        sampleColor.rgb = mix(vec3(1.0), sampleColor.rgb * sampleColor.rgb, float(sampleShadow0 < 1.0));
-
-        shadow += min(sampleColor.rgb, sampleShadow1.rrr);
-        idxSS++;
-    }
-    shadow /= float(sampleCount);
+    vec3 shadow = min(sampleColor.rgb, sampleShadow1.rrr);
 
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(worldCoord.xz));
     return mix(vec3(shadow), vec3(1.0), shadowRangeBlend);
