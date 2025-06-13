@@ -24,7 +24,7 @@ void main() {
 
 	vec2 offsetTexCoord = frag_texcoord + pixelDiff.x * dFdx(frag_texcoord) + pixelDiff.y * dFdy(frag_texcoord);
 	offsetTexCoord = clamp(offsetTexCoord, frag_texcoordMin, frag_texcoordMax);
-	vec4 color = textureLod(gtexture, offsetTexCoord, 0.0) * frag_color;
+	vec4 color = texture(gtexture, offsetTexCoord) * frag_color;
 
 	color.rgb = colors_srgbToLinear(color.rgb);
 
@@ -32,7 +32,7 @@ void main() {
 	randCoord.y += -frag_viewZ;
 	float randAlpha = rand_IGN(uvec2(randCoord), frameCounter);
 
-	if (color.a < randAlpha) {
+	if (color.a < min(alphaTestRef, randAlpha)) {
 		discard;
 	}
 

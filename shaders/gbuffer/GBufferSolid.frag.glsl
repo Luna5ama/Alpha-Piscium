@@ -36,6 +36,9 @@ layout(location = 1) out vec4 rt_gbufferData8UN;
 layout(location = 2) out float rt_gbufferViewZ;
 #endif
 
+vec2 dUVdx = dFdx(frag_texCoord);
+vec2 dUVdy = dFdy(frag_texCoord);
+
 ivec2 texelPos = ivec2(gl_FragCoord.xy);
 float noiseIGN = rand_IGN(texelPos, frameCounter);
 
@@ -48,7 +51,9 @@ void processAlbedo() {
     albedo = frag_colorMul;
 
     #ifdef GBUFFER_PASS_TEXTURED
-    albedo *= textureLod(gtexture, frag_texCoord, 0.0);
+    vec4 sample1 = textureGrad(gtexture, frag_texCoord, dUVdx * 0.5, dUVdy * 0.5);
+    vec4 sample2 = textureGrad(gtexture, frag_texCoord, dUVdx * 0.25, dUVdy * 0.25);
+    albedo *= vec4(sample2.rgb, sample1.a);
     #endif
 
     #ifdef GBUFFER_PASS_ENTITY_COLOR
@@ -107,8 +112,8 @@ void processData1() {
 #else
 void processData1() {
     #if defined(GBUFFER_PASS_TEXTURED)
-    vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
-    vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);
+    vec4 normalSample = textureGrad(normals, frag_texCoord, dUVdx, dUVdy);
+    vec4 specularSample = textureGrad(specular, frag_texCoord, dUVdx, dUVdy);
 
     gData.pbrSpecular = specularSample;
     gData.lmCoord = frag_lmCoord;

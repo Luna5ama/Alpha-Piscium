@@ -1052,7 +1052,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Temporal Jitter"
                     }
                 }
-                slider("SETTING_TAA_CAS_SHARPNESS", 1.0, 0.0..8.0 step 0.5) {
+                slider("SETTING_TAA_CAS_SHARPNESS", 2.0, 0.0..8.0 step 0.5) {
                     lang {
                         name = "AMD FidelityFX CAS Sharpness"
                     }
