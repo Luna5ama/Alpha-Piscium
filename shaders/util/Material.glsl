@@ -45,7 +45,7 @@ Material material_decode(GBufferData gData) {
     float emissiveValue = emissivePBR * 0.2;
     emissiveValue = gData.materialID == 1u ? MATERIAL_LAVA_LUMINANCE : emissiveValue;
     emissiveValue = gData.materialID == 2u ? MATERIAL_FIRE_LUMINANCE : emissiveValue;
-    emissiveValue *= SETTING_EMISSIVE_STRENGTH;
+    emissiveValue *= exp2(SETTING_EMISSIVE_STRENGTH);
 
     material.emissive = emissiveValue * emissiveAlbedo.a * emissiveAlbedo.rgb;
 

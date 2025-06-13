@@ -66,7 +66,7 @@ void doLighting(Material material, vec3 N, inout vec3 directDiffuseOut, inout ve
     directDiffuseOut += combinedLighting.sss;
     directDiffuseOut /= material.albedo;
 
-    ssgiOut += emissiveV * PI;
+    ssgiOut += emissiveV;
     ssgiOut += combinedLighting.diffuseLambertian;
     ssgiOut += combinedLighting.sss;
 }
@@ -103,8 +103,13 @@ void main() {
                 mainOut = vec4(material.albedo * 0.01, 2.0);
             } else {
                 doLighting(material, lighting_gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
-                mainOut.a += lighting_gData.pbrSpecular.a * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
-                mainOut.a *= pow(1.0 - pow(1.0 - colors_Rec601_luma(lighting_gData.albedo), 16.0), 4.0);
+                float albedoLuma = colors_Rec601_luma(lighting_gData.albedo);
+                float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
+                mainOut.a += emissiveFlag * albedoLuma * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
+                float albedoLumaWeight = pow(1.0 - pow(1.0 - albedoLuma, 16.0), 4.0);
+                albedoLumaWeight += pow(albedoLuma, 16.0);
+                mainOut.a *= albedoLumaWeight;
+                mainOut.a *= mix(1.0, -1.0, emissiveFlag);
             }
 
             uint packedGeometryNormal = packSnorm3x10(lighting_gData.geometryNormal);

@@ -531,18 +531,18 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             "Temperature of lava in K (kelvin). The default value 1300 K is based on real life average."
                     }
                 }
-                slider("SETTING_EMISSIVE_STRENGTH", 1.0, 0.0..4.0 step 0.25) {
+                slider("SETTING_EMISSIVE_STRENGTH", 4.0, 0.0..8.0 step 0.25) {
                     lang {
                         name = "Emissive Strength"
                     }
                 }
                 empty()
-                slider("SETTING_EMISSIVE_PBR_VALUE_CURVE", 1.0, 0.1..4.0 step 0.05) {
+                slider("SETTING_EMISSIVE_PBR_VALUE_CURVE", 0.9, 0.1..4.0 step 0.05) {
                     lang {
                         name = "Emissive PBR Value Curve"
                     }
                 }
-                slider("SETTING_EMISSIVE_ALBEDO_COLOR_CURVE", 1.8, 0.1..4.0 step 0.05) {
+                slider("SETTING_EMISSIVE_ALBEDO_COLOR_CURVE", 2.0, 0.1..4.0 step 0.05) {
                     lang {
                         name = "Emissive Albedo Color Curve"
                     }
@@ -975,7 +975,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Mie Scattering Multiplier"
                 }
             }
-            slider("SETTING_ATM_MIE_ABS_MUL", 1.1, 0.0..5.0 step 0.05) {
+            slider("SETTING_ATM_MIE_ABS_MUL", 0.1, 0.0..2.0 step 0.01) {
                 lang {
                     name = "Mie Absorption Multiplier"
                 }
@@ -1018,7 +1018,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             empty()
-            slider("SETTING_STARMAP_INTENSITY", 18, 0..64) {
+            slider("SETTING_STARMAP_INTENSITY", 20, 0..64) {
                 lang {
                     name = "Starmap Intensity"
                 }
@@ -1078,12 +1078,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Auto Exposure Min EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 12.0, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MAX_EV", 11.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", 0.1, 0.0..2.0 step 0.01) {
+                slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", 1.0, 0.0..4.0 step 0.1) {
                     lang {
                         name = "Emissive Weighting"
                         comment = "Extra weighting for emissive block pixels."
@@ -1153,7 +1153,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Luminance threshold for highlight."
                     }
                 }
-                slider("SETTING_EXPOSURE_H_PERCENT", 5.0, 0.5..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_H_PERCENT", 3.0, 0.5..10.0 step 0.5) {
                     lang {
                         name = "Highlight %"
                         comment = "Adjusting exposure to keep the specified percentage of pixels in the highlight part of histogram."

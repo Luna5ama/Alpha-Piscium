@@ -6,7 +6,7 @@
 #include "/_Base.glsl"
 #include "/util/Colors.glsl"
 
-const float BASE_BLOOM_INTENSITY = 0.01;
+const float BASE_BLOOM_INTENSITY = 0.005;
 
 #define BLOOM_USE_KARIS_AVERAGE 1
 
@@ -113,7 +113,9 @@ vec4 bloom_readInputDown(ivec2 coord) {
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
     vec4 inputValue = texture(BLOOM_SAMPLER, readPosUV);
     #if BLOOM_PASS == 1
-    inputValue.rgb *= inputValue.a;
+    float emissiveFlag = float(inputValue.a < 0.0);
+    inputValue.a = abs(inputValue.a);
+    inputValue.rgb *= mix(inputValue.a, saturate(inputValue.a * 0.5), emissiveFlag);
     inputValue *= BASE_BLOOM_INTENSITY;
     #endif
     return inputValue;

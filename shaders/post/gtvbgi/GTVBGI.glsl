@@ -333,7 +333,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
     Material material = material_decode(gData);
     material.roughness = max(material.roughness, 0.01);
 
-    float diffuseBase = /*(1.0 - material.metallic) * */SETTING_VBGI_DGI_STRENGTH;
+    float diffuseBase = RCP_PI * SETTING_VBGI_DGI_STRENGTH;
     float specularBase = PI * SETTING_VBGI_SGI_STRENGTH;
 
     for (uint stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; ++stepIndex) {
@@ -389,10 +389,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
                     uvec2 radianceData = texelFetch(usam_packedZN, sampleTexelPos + ivec2(0, global_mipmapSizesI[1].y), 0).xy;
                     vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
                     float emissive = saturate(sign(radiance.a));
-                    float emitterCos = mix(saturate(dot(sampleViewNormal, -thisToSample)), RCP_PI, emissive);
-                    float planeDist = pow2(dot(frontDiff, sampleViewNormal));
-                    float emissiveA = 0.001 * pow2(sampleViewZ);
-                    emitterCos *= 1.0 - emissiveA / (emissiveA + planeDist);
+                    float emitterCos = mix(saturate(dot(sampleViewNormal, -thisToSample)), 1.0, emissive);
 
                     vec3 sampleRad = radiance.rgb;
                     float bitV = float(bitCount(visBits0)) * (1.0 / 32.0);
@@ -410,7 +407,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
 //                    vec3 indirectBounce = (vec3(1.0) - fresnel) * (diffuseBase);
 //                    indirectBounce += fresnel * (ggx * specularBase);
                     vec3 indirectBounce = vec3(diffuseBase);
-                    result += sampleRad * indirectBounce * (bitV * emitterCos * (PI * SETTING_VGBI_IB_STRENGTH));
+                    result += sampleRad * indirectBounce * (bitV * emitterCos * SETTING_VGBI_IB_STRENGTH);
                 }
             }
 

@@ -94,8 +94,8 @@ void main() {
         const float MAX_DELTA_AVG_LUM = 8.0;
         const float MIN_LUM_TARGET = SETTING_EXPOSURE_AVG_LUM_MIN_TARGET / 255.0;
         const float MAX_LUM_TARGET = SETTING_EXPOSURE_AVG_LUM_MAX_TARGET / 255.0;
-        float lumTargetMixFactor = pow(linearStep(MIN_EXP, MAX_EXP, expLast.z), SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE);
-        float lumTarget = mix(MAX_LUM_TARGET, MIN_LUM_TARGET, lumTargetMixFactor);
+        float expCurveValue = pow(linearStep(MIN_EXP, MAX_EXP, expLast.z), SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE);
+        float lumTarget = mix(MAX_LUM_TARGET, MIN_LUM_TARGET, expCurveValue);
         expNew.x = log2(lumTarget / averageLuminance);
         expNew.x = clamp(expNew.x, -MAX_DELTA_AVG_LUM, MAX_DELTA_AVG_LUM * 0.5);
 
@@ -103,7 +103,7 @@ void main() {
         const float MAX_DELTA_S = 1.0;
         vec2 hsPercents = vec2(SETTING_EXPOSURE_H_PERCENT, SETTING_EXPOSURE_S_PERCENT) * (totalWeight * 0.01);
         vec2 hsExps = log2(vec2(hsPercents.x, shadowCount) / vec2(highlightCount, hsPercents.y));
-        expNew.y = (hsExps.x + hsExps.y) * 0.5;
+        expNew.y = mix(hsExps.y, hsExps.x, expCurveValue * 0.6 + 0.2);
         expNew.y = clamp(expNew.y, -MAX_DELTA_S, MAX_DELTA_S * 0.5);
 
         expNew.xy = expNew.xy + expLast.xy;

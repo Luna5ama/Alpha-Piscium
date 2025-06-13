@@ -235,7 +235,7 @@ void main() {
             SETTING_DENOISER_MAX_FAST_ACCUM * 2.0 * directWeighting,
             prevHLen
         );
-        prevColorYCoCg = mix(prevColorYCoCg, prevColorYCoCgClamped, clippingWeight);
+        prevColorYCoCgClamped = mix(prevColorYCoCg, prevColorYCoCgClamped, clippingWeight);
         vec3 prevColorClamped = colors_YCoCgToSRGB(prevColorYCoCgClamped);
 
         float moment2Correction = pow2(colors_sRGB_luma(prevColorClamped)) - pow2(colors_sRGB_luma(prevColor));

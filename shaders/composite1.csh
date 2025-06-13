@@ -67,7 +67,7 @@ void main() {
                 {
                     vec4 ssgiOut = vec4(0.0);
                     ssgiOut.a = gData.lmCoord.y;
-                    float multiBounceV = SETTING_VBGI_GI_MB * 2.0 * RCP_PI;
+                    float multiBounceV = SETTING_VBGI_GI_MB;
                     float albedoLum = colors_sRGB_luma(material.albedo);
                     ssgiOut.rgb = multiBounceV * max(prevDiffuse, 0.0) * material.albedo;
                     ssgiOut.a *= mix(-1.0, 1.0, any(greaterThan(material.emissive, vec3(0.0))));
