@@ -104,6 +104,7 @@ void main() {
             } else {
                 doLighting(material, lighting_gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
                 mainOut.a += lighting_gData.pbrSpecular.a * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
+                mainOut.a *= pow(1.0 - pow(1.0 - colors_Rec601_luma(lighting_gData.albedo), 16.0), 4.0);
             }
 
             uint packedGeometryNormal = packSnorm3x10(lighting_gData.geometryNormal);
