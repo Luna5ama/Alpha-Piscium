@@ -67,7 +67,7 @@ vec3 agxEotf(vec3 val) {
     val = agx_mat_inv * val;
 
     // sRGB IEC 61966-2-1 2.2 Exponent Reference EOTF Display
-    val = pow(val, vec3(2.2));
+//    val = pow(val, vec3(2.2));
 
     return val;
 }
@@ -145,7 +145,6 @@ void toneMapping_apply(inout vec4 outputColor) {
     float pixelNoise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
 
     outputColor.rgb = applyAgx(outputColor.rgb * exp2(global_aeData.expValues.z));
-    outputColor.rgb = saturate(colors_sRGB_encodeGamma(outputColor.rgb));
 
     float lumimance = colors_Rec601_luma(saturate(outputColor.rgb)); // WTF Photoshop
     uint not0Flag = uint(any(greaterThan(preExposureColor, vec3(0.0))));
