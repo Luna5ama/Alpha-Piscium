@@ -23,9 +23,11 @@ ZipOutputStream(File(rootDir, "${rootDir.name}_$commitTag.zip").outputStream(), 
         }
         .forEach { file ->
             val relativePath = file.relativeTo(rootDir).invariantSeparatorsPath
-            if (file.isDirectory && file.listFiles()?.isNotEmpty() == true) {
-                zipOut.putNextEntry(ZipEntry("$relativePath/"))
-                zipOut.closeEntry()
+            if (file.isDirectory) {
+                if (file.listFiles()?.isNotEmpty() == true) {
+                    zipOut.putNextEntry(ZipEntry("$relativePath/"))
+                    zipOut.closeEntry()
+                }
                 return@forEach
             }
             zipOut.putNextEntry(ZipEntry(relativePath))
