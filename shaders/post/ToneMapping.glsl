@@ -1,10 +1,18 @@
 /*
     References:
+        [SOB22] Sobotka, Troy. "AgX". 2022.
+            https://sobotka.github.io/AgX
         [WRE23] Wrensch, Benjamin. "Minimal AgX Implementation". IOLITE Development Blog. 2023.
             MIT License. Copyright (c) 2024 Missing Deadlines (Benjamin Wrensch)
             https://iolite-engine.com/blog_posts/minimal_agx_implementation
+        [LIN24] linlin, "AgX". 2024.
+            MIT License. Copyright (c) 2024 linlin
+            https://github.com/bWFuanVzYWth/AgX
 
         You can find full license texts in /licenses
+
+    Credits:
+        - GeforceLegend - Optimized AgX curve function (https://github.com/GeForceLegend)
 */
 
 // All values used to derive this implementation are sourced from Troy’s initial AgX implementation/OCIO config file available here:
@@ -21,16 +29,18 @@ shared uint shared_lumHistogram[256];
 
 // Mean error^2: 3.6705141e-06
 vec3 agxDefaultContrastApprox(vec3 x) {
-    vec3 x2 = x * x;
-    vec3 x4 = x2 * x2;
+    const float scale0 = 59.507875;
+    const float scale1 = 69.862789;
 
-    return + 15.5     * x4 * x2
-    - 40.14    * x4 * x
-    + 31.96    * x4
-    - 6.868    * x2 * x
-    + 0.4298   * x2
-    + 0.1191   * x
-    - 0.00232;
+    x -= 20.0 / 33.0;
+    vec3 type = vec3(floatBitsToUint(x) >> 31);
+
+    vec3 scale = scale1 + (scale0 - scale1) * type;
+    vec3 power0 = 13.0 / 4.0 - 0.25 * type;
+    vec3 power1 = -4.0 / 13.0 + (4.0 / 13.0 - 1.0 / 3.0) * type;
+
+    x = 2.0 * x * pow(1.0 + scale * pow(abs(x), power0), power1) + 0.5;
+    return x;
 }
 
 vec3 agx(vec3 val) {
@@ -65,9 +75,6 @@ vec3 agxEotf(vec3 val) {
 
     // Undo input transform
     val = agx_mat_inv * val;
-
-    // sRGB IEC 61966-2-1 2.2 Exponent Reference EOTF Display
-//    val = pow(val, vec3(2.2));
 
     return val;
 }
