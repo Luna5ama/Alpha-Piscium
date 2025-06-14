@@ -47,6 +47,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     ivec3 global_shadowAABBMax;
     ivec3 global_shadowAABBMinPrev;
     ivec3 global_shadowAABBMaxPrev;
+    float global_focusDistance;
     AEData global_aeData;
 };
 

@@ -1038,23 +1038,85 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             lang {
                 name = "Post Processing"
             }
-            screen("AA", 1) {
+            screen("DOF", 1) {
                 lang {
-                    name = "Anti Aliasing"
+                    name = "Depth of Field"
                 }
-                toggle("SETTING_TAA", true) {
+                slider("SETTING_DOF_FOCUS_TIME", 2.0, 0.0..10.0 step 0.25) {
                     lang {
-                        name = "Temporal Anti Aliasing"
+                        name = "Focus Transition Time"
                     }
                 }
-                toggle("SETTING_TAA_JITTER", true) {
+                toggle("SETTING_DOF_SHOW_FOCUS_PLANE", false) {
                     lang {
-                        name = "Temporal Jitter"
+                        name = "Show Focus Plane"
                     }
                 }
-                slider("SETTING_TAA_CAS_SHARPNESS", 1.5, 0.0..5.0 step 0.25) {
+            }
+            screen("BLOOM", 1) {
+                lang {
+                    name = "Bloom"
+                }
+                toggle("SETTING_BLOOM", true) {
                     lang {
-                        name = "AMD FidelityFX CAS Sharpness"
+                        name = "Bloom Enabled"
+                    }
+                }
+                slider("SETTING_BLOOM_INTENSITY", 1.0, 0.1..5.0 step 0.1) {
+                    lang {
+                        name = "Bloom Intensity"
+                    }
+                }
+                slider("SETTING_BLOOM_RADIUS", 1.0, 1.0..5.0 step 0.5) {
+                    lang {
+                        name = "Bloom Radius"
+                    }
+                }
+                slider("SETTING_BLOOM_PASS", 8, 1..10) {
+                    lang {
+                        name = "Bloom Pass Count"
+                    }
+                }
+            }
+            screen("PURKINJE_EFFECT", 1) {
+                lang {
+                    name = "Purkinje Effect"
+                }
+                toggle("SETTING_PURKINJE_EFFECT", true) {
+                    lang {
+                        name = "Purkinje Effect Enabled"
+                    }
+                }
+                slider("SETTING_PURKINJE_EFFECT_MIN_LUM", -9.0, -10.0..1.0 step 0.1) {
+                    lang {
+                        name = "Minimum Luminance"
+                        prefix = "10^"
+                        suffix = " cd/m²"
+                        comment = "Luminance below this value will become colorless"
+                    }
+                }
+                slider("SETTING_PURKINJE_EFFECT_MAX_LUM", -3.0, -10.0..1.0 step 0.1) {
+                    lang {
+                        name = "Maximum Luminance"
+                        prefix = "10^"
+                        suffix = " cd/m²"
+                        comment = "Luminance above this value will become fully colored"
+                    }
+                }
+                empty()
+                slider("SETTING_PURKINJE_EFFECT_CR", 0.9, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Scoptic Color Red"
+                    }
+                }
+                slider("SETTING_PURKINJE_EFFECT_CG", 0.95, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Scoptic Color Green"
+                    }
+                }
+                slider("SETTING_PURKINJE_EFFECT_CB", 1.0, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Scoptic Color Blue"
                     }
                 }
             }
@@ -1251,70 +1313,23 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("BLOOM", 1) {
+            screen("AA", 1) {
                 lang {
-                    name = "Bloom"
+                    name = "Anti Aliasing"
                 }
-                toggle("SETTING_BLOOM", true) {
+                toggle("SETTING_TAA", true) {
                     lang {
-                        name = "Bloom Enabled"
+                        name = "Temporal Anti Aliasing"
                     }
                 }
-                slider("SETTING_BLOOM_INTENSITY", 1.0, 0.1..5.0 step 0.1) {
+                toggle("SETTING_TAA_JITTER", true) {
                     lang {
-                        name = "Bloom Intensity"
+                        name = "Temporal Jitter"
                     }
                 }
-                slider("SETTING_BLOOM_RADIUS", 1.0, 1.0..5.0 step 0.5) {
+                slider("SETTING_TAA_CAS_SHARPNESS", 1.5, 0.0..5.0 step 0.25) {
                     lang {
-                        name = "Bloom Radius"
-                    }
-                }
-                slider("SETTING_BLOOM_PASS", 8, 1..10) {
-                    lang {
-                        name = "Bloom Pass Count"
-                    }
-                }
-            }
-            screen("PURKINJE_EFFECT", 1) {
-                lang {
-                    name = "Purkinje Effect"
-                }
-                toggle("SETTING_PURKINJE_EFFECT", true) {
-                    lang {
-                        name = "Purkinje Effect Enabled"
-                    }
-                }
-                slider("SETTING_PURKINJE_EFFECT_MIN_LUM", -9.0, -10.0..1.0 step 0.1) {
-                    lang {
-                        name = "Minimum Luminance"
-                        prefix = "10^"
-                        suffix = " cd/m²"
-                        comment = "Luminance below this value will become colorless"
-                    }
-                }
-                slider("SETTING_PURKINJE_EFFECT_MAX_LUM", -3.0, -10.0..1.0 step 0.1) {
-                    lang {
-                        name = "Maximum Luminance"
-                        prefix = "10^"
-                        suffix = " cd/m²"
-                        comment = "Luminance above this value will become fully colored"
-                    }
-                }
-                empty()
-                slider("SETTING_PURKINJE_EFFECT_CR", 0.9, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Scoptic Color Red"
-                    }
-                }
-                slider("SETTING_PURKINJE_EFFECT_CG", 0.95, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Scoptic Color Green"
-                    }
-                }
-                slider("SETTING_PURKINJE_EFFECT_CB", 1.0, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Scoptic Color Blue"
+                        name = "AMD FidelityFX CAS Sharpness"
                     }
                 }
             }

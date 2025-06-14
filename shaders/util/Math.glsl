@@ -9,6 +9,7 @@
 #define RCP_PI 1.0 / PI
 #define RCP_PI_2 1.0 / PI_2
 #define RCP_PI_HALF 1.0 / PI_HALF
+#define GOLDEN_ANGLE 2.39996322972865332
 
 #define FLT_MAX uintBitsToFloat(0x7F7FFFFF)
 #define FLT_MIN uintBitsToFloat(0x00800000)

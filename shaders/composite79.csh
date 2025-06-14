@@ -7,6 +7,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #include "/general/DebugOutput.glsl"
 
 layout(rgba16f) restrict uniform image2D uimg_main;
+uniform sampler2D usam_gbufferViewZ;
 
 #define FFXCAS_SHARPENESS SETTING_TAA_CAS_SHARPNESS
 #include "/post/FFXCas.glsl"
@@ -21,6 +22,11 @@ void main() {
         outputColor.rgb = ffxcas_pass(texelPos);
         #if SETTING_DEBUG_OUTPUT == 3
         debugOutput(outputColor);
+        #endif
+        #ifdef SETTING_DOF_SHOW_FOCUS_PLANE
+        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        float alpha = float(viewZ < -global_focusDistance);
+        outputColor.rgb = mix(outputColor.rgb, vec3(1.0, 0.0, 1.0), alpha * 0.25);
         #endif
         imageStore(uimg_main, texelPos, outputColor);
     }
