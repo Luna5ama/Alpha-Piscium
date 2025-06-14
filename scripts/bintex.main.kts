@@ -6,14 +6,11 @@ import java.nio.file.StandardOpenOption
 import javax.imageio.ImageIO
 import kotlin.io.path.Path
 import kotlin.io.path.absolute
-import kotlin.io.path.createDirectories
-import kotlin.io.path.exists
-import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.nameWithoutExtension
 import kotlin.system.exitProcess
 
-if (args.size != 5) {
-    println("Usage: bintex.main.kts <dimensions (separated by underscore '_')> <channels> <input directory> <input prefix> <output file>")
+if (args.size < 4) {
+    println("Usage: bintex.main.kts <dimensions (separated by underscore '_')> <channels> <output file> <input file(s)>")
     exitProcess(1)
 }
 
@@ -33,30 +30,18 @@ if (channels !in 1..4) {
     exitProcess(1)
 }
 
-val inputDirectory = Path(args[2]).absolute()
-if (!inputDirectory.exists()) {
-    println("Input directory does not exist")
-    exitProcess(1)
-}
-
-val inputPrefix = args[3]
-if (inputPrefix.isEmpty()) {
-    println("Input prefix cannot be empty")
-    exitProcess(1)
-}
-
-val outputFile = Path(args[4]).absolute()
-outputFile.parent.createDirectories()
-
-val inputFiles = inputDirectory.listDirectoryEntries("$inputPrefix*")
-    .filter { it.nameWithoutExtension.removePrefix(inputPrefix).toIntOrNull() != null }
-    .sortedBy { it.nameWithoutExtension.removePrefix(inputPrefix).toInt() }
+val numberRegex = """.+?(\d+)$""".toRegex()
+val outputFile = Path(args[2]).absolute()
+val inputFiles = args.asSequence()
+    .drop(3)
+    .map { Path(it).absolute() }
+    .sortedBy { path ->
+        val matchResult = numberRegex.matchEntire(path.nameWithoutExtension)
+        matchResult?.let {
+            it.groupValues[1].toIntOrNull()
+        } ?: Int.MAX_VALUE
+    }
     .toList()
-
-if (inputFiles.isEmpty()) {
-    println("No input files found with prefix $inputPrefix")
-    exitProcess(1)
-}
 
 val outputSize = dimensions.fold(1L) { acc, dim -> acc * dim } * channels
 
@@ -80,7 +65,7 @@ fun BufferedImage.copyDataTo(buffer: ByteBuffer) {
             for (y in 0..<height) {
                 for (x in 0..<width) {
                     val dataElement = raster.getDataElements(x, y, data)
-                        buffer.put(colorModel.getRed(dataElement).toByte())
+                    buffer.put(colorModel.getRed(dataElement).toByte())
                 }
             }
         }
@@ -117,8 +102,13 @@ fun BufferedImage.copyDataTo(buffer: ByteBuffer) {
     }
 }
 
-FileChannel.open(outputFile, StandardOpenOption.CREATE, StandardOpenOption.READ, StandardOpenOption.WRITE).use {
-    val mapped = it.map(FileChannel.MapMode.READ_WRITE, 0L, outputSize)
+FileChannel.open(
+    outputFile,
+    StandardOpenOption.CREATE,
+    StandardOpenOption.READ,
+    StandardOpenOption.WRITE
+).use { outputChannel ->
+    val mapped = outputChannel.map(FileChannel.MapMode.READ_WRITE, 0L, outputSize)
     inputFiles.forEach {
         ImageIO.read(it.toFile()).copyDataTo(mapped)
     }
