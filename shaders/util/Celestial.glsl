@@ -95,9 +95,9 @@ vec4 celestial_render(ivec2 texelPos, inout vec4 temp6Out) {
     float moonDarkV = earthOcclusionV * _celestial_circle(viewDir, uval_moonDirView, MOON_ANGULAR_RADIUS * 4.0);
 
     vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
-    result += sunV * vec4(SUN_LUMINANCE, 8.0);
+    result += sunV * vec4(SUN_LUMINANCE, 16.0);
     result += moonV * vec4(MOON_LUMINANCE, 0.0);
-    result += moonDarkV * vec4(0.0, 0.0, 0.0, -0.98);
+    result += moonDarkV * vec4(0.0, 0.0, 0.0, -0.95);
 
     #if SETTING_STARMAP_INTENSITY
     // 0.0 = spring equinox, 0.25 = summer solstice, 0.5 = autumn equinox, 0.75 = winter solstice

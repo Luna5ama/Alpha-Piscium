@@ -1052,7 +1052,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Temporal Jitter"
                     }
                 }
-                slider("SETTING_TAA_CAS_SHARPNESS", 2.0, 0.0..8.0 step 0.5) {
+                slider("SETTING_TAA_CAS_SHARPNESS", 1.5, 0.0..5.0 step 0.25) {
                     lang {
                         name = "AMD FidelityFX CAS Sharpness"
                     }
@@ -1109,13 +1109,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 1.0, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 1.0, 0.0..1.0 step 0.05) {
                     lang {
                         name = "Average Luminance Weight"
                         comment = "Weight of average luminance AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 5.0, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 5.0, 0.0..10.0 step 0.25) {
                     lang {
                         name = "Average Luminance AE Time"
                     }
@@ -1126,7 +1126,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Target average luminance value for dark scene such as caves, indoors, and nighttime."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 94, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 118, 1..255) {
                     lang {
                         name = "Average Luminance Maximum Target"
                         comment = "Target average luminance value for bright scene such as daytime outdoors."
@@ -1141,13 +1141,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_HS_MIX", 1.0, 0.0..1.0 step 0.01) {
+                slider("SETTING_EXPOSURE_HS_MIX", 1.0, 0.0..1.0 step 0.05) {
                     lang {
                         name = "Highlight/Shadow Weight"
                         comment = "Weight of highlight/shadow based AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_HS_TIME", 2.5, 0.0..10.0 step 0.1) {
+                slider("SETTING_EXPOSURE_HS_TIME", 3.0, 0.0..10.0 step 0.25) {
                     lang {
                         name = "Highlight/Shadow AE Time"
                     }
@@ -1285,7 +1285,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Purkinje Effect Enabled"
                     }
                 }
-                slider("SETTING_PURKINJE_EFFECT_MIN_LUM", -8.0, -10.0..1.0 step 0.1) {
+                slider("SETTING_PURKINJE_EFFECT_MIN_LUM", -9.0, -10.0..1.0 step 0.1) {
                     lang {
                         name = "Minimum Luminance"
                         prefix = "10^"
