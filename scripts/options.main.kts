@@ -531,7 +531,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             "Temperature of lava in K (kelvin). The default value 1300 K is based on real life average."
                     }
                 }
-                slider("SETTING_EMISSIVE_STRENGTH", 4.0, 0.0..8.0 step 0.25) {
+                slider("SETTING_EMISSIVE_STRENGTH", 5.0, 0.0..8.0 step 0.25) {
                     lang {
                         name = "Emissive Strength"
                     }
@@ -1088,7 +1088,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Auto Exposure Max EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", 1.0, 0.0..4.0 step 0.1) {
+                slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", 0.1, 0.0..4.0 step 0.1) {
                     lang {
                         name = "Emissive Weighting"
                         comment = "Extra weighting for emissive block pixels."
@@ -1326,6 +1326,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             toggle("SETTING_SCREENSHOT_MODE", false) {
                 lang {
                     name = "Screenshot Mode"
+                }
+            }
+            toggle("SETTING_CONSTELLATIONS", false) {
+                lang {
+                    name = "Show Constellations"
                 }
             }
         }

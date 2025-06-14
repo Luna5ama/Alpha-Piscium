@@ -66,7 +66,7 @@ void main() {
         toneMapping_apply(outputColor);
 
         vec4 basicColor = texelFetch(usam_temp6, texelPos, 0);
-        outputColor.rgb = mix(outputColor.rgb, basicColor.rgb, float(basicColor.a > 0.1));
+        outputColor.rgb = mix(outputColor.rgb, basicColor.rgb, basicColor.a);
 
         #if SETTING_DEBUG_OUTPUT == 2
         debugOutput(outputColor);

@@ -30,6 +30,7 @@
 #define MOON_ILLUMINANCE (MOON_LUMINANCE * MOON_SOLID_ANGLE)
 
 uniform sampler2D usam_starmap;
+uniform sampler2D usam_constellations;
 
 float _celestial_circle(vec3 rayDir, vec3 objDir, float objAngularRadius) {
     float objCosTheta = cos(objAngularRadius);
@@ -45,8 +46,9 @@ const float _CELESTIAL_STARMAP_EXP = _CELESTIAL_REAL_MILKYWAY_LUMINANCE_KCD / _C
 const vec2 _CELESTIAL_STARMAP_SIZE = vec2(8192.0, 4096.0);
 
 // from https://github.com/GameTechDev/TAA
-vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST){
-    const vec2 rcpResolution = rcp(_CELESTIAL_STARMAP_SIZE);
+vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryUV, vec2 resolution) {
+    vec2 inHistoryST = inHistoryUV * resolution;
+    const vec2 rcpResolution = rcp(resolution);
     const vec2 fractional = fract(inHistoryST - 0.5);
     const vec2 uv = (floor(inHistoryST - 0.5) + vec2(0.5f, 0.5f)) * rcpResolution;
 
@@ -74,7 +76,7 @@ vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST){
     return color;
 }
 
-vec4 celestial_render(ivec2 texelPos) {
+vec4 celestial_render(ivec2 texelPos, inout vec4 temp6Out) {
     vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
     vec3 viewCoord = coords_toViewCoord(screenPos, -far, gbufferProjectionInverse);
 
@@ -113,10 +115,15 @@ vec4 celestial_render(ivec2 texelPos) {
         starmapSpherical.y * RCP_PI + 0.5
     );
 
-    vec3 starmap = colors_LogLuv32ToSRGB(BicubicSampling5(usam_starmap, starmapUV * _CELESTIAL_STARMAP_SIZE));
+    vec3 starmap = colors_LogLuv32ToSRGB(BicubicSampling5(usam_starmap, starmapUV, _CELESTIAL_STARMAP_SIZE));
     starmap = pow(starmap, vec3(SETTING_STARMAP_GAMMA));
     starmap *= exp2(colors_Rec601_luma(starmap) * SETTING_STARMAP_BRIGHT_STAR_BOOST);
     result.rgb += earthOcclusionV * starmap * _CELESTIAL_STARMAP_EXP * SETTING_STARMAP_INTENSITY;
+
+    #ifdef SETTING_CONSTELLATIONS
+    float constellationV = earthOcclusionV * texture(usam_constellations, starmapUV).r;
+    temp6Out = vec4(vec3(1.0), constellationV * 0.5);
+    #endif
     #endif
     result.a = max(result.a, 0.0);
 

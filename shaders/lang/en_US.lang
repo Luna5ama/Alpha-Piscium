@@ -224,6 +224,7 @@ option.SETTING_PURKINJE_EFFECT_CR=Scoptic Color Red
 option.SETTING_PURKINJE_EFFECT_CG=Scoptic Color Green
 option.SETTING_PURKINJE_EFFECT_CB=Scoptic Color Blue
 option.SETTING_SCREENSHOT_MODE=Screenshot Mode
+option.SETTING_CONSTELLATIONS=Show Constellations
 option.SETTING_DEBUG_WHITE_WORLD=White World
 option.SETTING_DEBUG_OUTPUT=Debug Output
 value.SETTING_DEBUG_OUTPUT.0=Off

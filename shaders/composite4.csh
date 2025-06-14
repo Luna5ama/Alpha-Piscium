@@ -19,6 +19,7 @@ uniform sampler2D usam_gbufferViewZ;
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
 layout(rgba16f) uniform restrict image2D uimg_temp4;
+layout(rgba8) uniform restrict image2D uimg_temp6;
 layout(rg32ui) uniform restrict uimage2D uimg_packedZN;
 layout(r32ui) uniform writeonly uimage2D uimg_geometryNormal;
 
@@ -126,7 +127,8 @@ void main() {
                 imageStore(uimg_packedZN, radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
             }
         } else {
-            mainOut = celestial_render(texelPos);
+            vec4 temp6Out = vec4(0.0);
+            mainOut = celestial_render(texelPos, temp6Out);
 
             uvec4 packedZNOut = uvec4(0u);
             packedZNOut.y = floatBitsToUint(viewZ);
@@ -137,6 +139,13 @@ void main() {
             if (bool(ssgiOutWriteFlag)) {
                 imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
             }
+
+            #ifdef SETTING_CONSTELLATIONS
+            vec4 prevTemp6Value = imageLoad(uimg_temp6, texelPos);
+            temp6Out.rgb += temp6Out.rgb;
+            temp6Out.a += temp6Out.a;
+            imageStore(uimg_temp6, texelPos, temp6Out);
+            #endif
         }
 
         imageStore(uimg_temp4, texelPos, vec4(directDiffuseOut, 0.0));
