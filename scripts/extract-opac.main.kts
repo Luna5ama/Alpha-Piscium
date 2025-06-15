@@ -199,9 +199,22 @@ opacDataDir.useDirectoryEntries { entries ->
 
             val angleCol = rows.map { it.first }.toDoubleArray()
 
+            fun luma(rgb: DoubleArray): Double {
+                return 0.2126 * rgb[0] + 0.7152 * rgb[1] + 0.0722 * rgb[2]
+            }
+
             val phaseRGBRows = rows.asSequence()
                 .map { (angle, Ys) -> doColorMatching(Xs, Ys) }
                 .toList()
+
+            val maxV = luma(phaseRGBRows[angleCol.indexOfFirst { it == 1.0 }]) * 16.0
+            phaseRGBRows.forEach { rgbValue ->
+                val lumaIt = luma(rgbValue)
+                var mul = min(1.0, maxV / lumaIt)
+                repeat(rgbValue.size) {
+                    rgbValue[it] *= mul
+                }
+            }
 
             val phaseRGBCols = transpose(phaseRGBRows)
 

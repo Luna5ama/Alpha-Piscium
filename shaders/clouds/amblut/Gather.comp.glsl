@@ -3,6 +3,7 @@
 #include "Common.glsl"
 #include "../Common.glsl"
 #include "/util/Coords.glsl"
+#include "/util/Rand.glsl"
 
 #define ATMOSPHERE_RAYMARCHING_SKY a
 #include "/atmosphere/Raymarching.glsl"
@@ -15,9 +16,10 @@ shared vec3 shared_inSctrSum[8];
 layout(rgba16f) uniform restrict image3D uimg_cloudsAmbLUT;
 
 void main() {
+    vec2 jitter = rand_r2Seq2(gl_LocalInvocationID.x + gl_WorkGroupSize.x * frameCounter) * 2.0;
     ivec2 texelPos = ivec2(gl_WorkGroupID.xy);
-    vec2 viewDirOct = ivec2(texelPos) / vec2(AMBIENT_IRRADIANCE_LUT_SIZE - 1);
-    vec3 viewDir = coords_octDecode01(viewDirOct);
+    vec2 viewDirUV = (vec2(texelPos) + jitter) / vec2(AMBIENT_IRRADIANCE_LUT_SIZE);
+    vec3 viewDir = coords_octDecode01(viewDirUV);
 
     vec2 rayDirSpherical = ssbo_ambLUTWorkingBuffer.rayDir[gl_LocalInvocationIndex];
     float phi = rayDirSpherical.x;
@@ -30,8 +32,9 @@ void main() {
     vec3 inSctr = ssbo_ambLUTWorkingBuffer.inSctr[gl_LocalInvocationIndex];
 
     CloudParticpatingMedium cloudMedium = clouds_cirrus_medium(dot(viewDir, rayDir));
+    vec3 phase = cloudMedium.phase;
 
-    vec3 phasedInSctr = inSctr * SPHERE_SOLID_ANGLE * cloudMedium.phase / float(SAMPLE_COUNT);
+    vec3 phasedInSctr = inSctr * phase * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
     vec3 subgroupSum1 = subgroupAdd(phasedInSctr);
     if (subgroupElect()) {
         shared_inSctrSum[gl_SubgroupID] = subgroupSum1;
@@ -39,7 +42,7 @@ void main() {
     barrier();
 
     if (gl_SubgroupID == 0 && gl_SubgroupInvocationID < gl_NumSubgroups) {
-        vec3 subgroupSum2 = shared_inSctrSum[gl_SubgroupID];
+        vec3 subgroupSum2 = shared_inSctrSum[gl_SubgroupInvocationID];
         subgroupSum2 = subgroupAdd(subgroupSum2);
         if (subgroupElect()) {
             vec3 currResult = subgroupSum2;
