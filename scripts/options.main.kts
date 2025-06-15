@@ -1042,6 +1042,54 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Depth of Field"
                 }
+                toggle("SETTING_DOF", false) {
+                    lang {
+                        name = "Depth of Field Enabled"
+                    }
+                }
+                empty()
+                slider("SETTING_DOF_FOCAL_LENGTH", 50.0, listOf(18.0, 24.0, 35.0, 50.0, 75.0, 100.0)) {
+                    lang {
+                        name = "Focal Length"
+                        suffix = " mm"
+                    }
+                }
+                slider("SETTING_DOF_F_STOP", 1.4, listOf(1.0, 1.4, 2.0, 2.8, 4.0, 5.6, 8.0, 11.0, 16.0)) {
+                    lang {
+                        name = "F-Stop"
+                        prefix = "F/"
+                    }
+                }
+                empty()
+                slider("SETTING_DOF_MAX_SAMPLE_RADIUS", 16, powerOfTwoRange(0..6)) {
+                    lang {
+                        name = "Max Sample Radius"
+                    }
+                }
+                slider("SETTING_DOF_MASKING_HEURISTIC", 4, 0..16) {
+                    lang {
+                        name = "Masking Heuristic"
+                        comment = "Larger value means more aggressive masking."
+                    }
+                }
+                empty()
+                toggle("SETTING_DOF_MANUAL_FOCUS", false) {
+                    lang {
+                        name = "Manual Focus"
+                    }
+                }
+                slider("SETTING_DOF_FOCUS_DISTANCE_COARSE", 10, 1..100) {
+                    lang {
+                        name = "Focus Distance Coarse"
+                        suffix = " m"
+                    }
+                }
+                slider("SETTING_DOF_FOCUS_DISTANCE_FINE", 0.0, -1.0..1.0 step 0.01) {
+                    lang {
+                        name = "Focus Distance Fine"
+                        suffix = " m"
+                    }
+                }
                 slider("SETTING_DOF_FOCUS_TIME", 2.0, 0.0..10.0 step 0.25) {
                     lang {
                         name = "Focus Transition Time"
