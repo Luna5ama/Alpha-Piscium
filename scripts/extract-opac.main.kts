@@ -365,19 +365,51 @@ val outputImagePath = outputDir.resolve("opac_cloud_phases.png")
 val outputImage = BufferedImage(phaseLUTWidth, angAndPhaseCols.size, BufferedImage.TYPE_INT_ARGB)
 val outputDataArray = IntArray(4)
 
-fun inverseFunction(y: Double): Double {
-    return 0.5 + Math.cbrt(2 * y - 1) / 2
+fun inversePolynomial(
+    y: Double,
+    initialGuess: Double = 0.0,
+    maxIterations: Int = 16,
+    epsilon: Double = 1e-8
+): Double {
+    var x = initialGuess
+
+    // Newton's method iterations
+    repeat(maxIterations) {
+        // Calculate the function value at current x
+        val fx = 0.0189677 * x*x*x*x + 0.351847 * x*x*x +
+            0.0946675 * x*x + 0.147379 * x + 0.384577
+
+        // Calculate the derivative at current x
+        val fPrime = 0.0189677 * 4 * x*x*x + 0.351847 * 3 * x*x +
+            0.0946675 * 2 * x + 0.147379
+
+        // Newton's update
+        val xNew = x - (fx - y) / fPrime
+
+        // Check for convergence
+        if (Math.abs(xNew - x) < epsilon) {
+            return xNew
+        }
+
+        x = xNew
+    }
+
+    return x // Return best estimate after maxIterations
 }
 
 var maxError = Double.MIN_VALUE
 
 angAndPhaseCols.forEachIndexed { index, anglesAndPhase ->
     val (angles, phaseRGB) = anglesAndPhase
+    var initial = -1.0
     repeat(phaseLUTWidth) { px ->
-        val theta01 = px.toDouble() / (phaseLUTWidth - 1)
-        val theta = inverseFunction(theta01) * 180.0
+        val px01 = px.toDouble() / (phaseLUTWidth - 1)
+        val cosTheta = if (px == 0) -1.0 else inversePolynomial(px01, initial).coerceIn(-1.0, 1.0)
+        initial = cosTheta
+        val theta = acos(cosTheta)
+        val thetaDeg = Math.toDegrees(theta)
         val rgbValue = (0..<3).map { rgbIndex ->
-            cubicBSplineInterpolate(angles, phaseRGB[rgbIndex], theta)
+            cubicBSplineInterpolate(angles, phaseRGB[rgbIndex], thetaDeg)
         }.toDoubleArray()
         val logluv32Value = sRGBToLogLuv(rgbValue)
         val rgbValueBack = logLuv32TosRGB(logluv32Value)
