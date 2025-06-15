@@ -86,7 +86,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                 renderParams,
                 cirrusMedium,
                 stepState,
-                0.5,
+                0.3,
                 accumState
             );
         }
