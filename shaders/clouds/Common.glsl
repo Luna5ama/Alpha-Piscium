@@ -60,11 +60,11 @@ vec3 samplePhaseLUT(float cosTheta, float type) {
     return colors_LogLuv32ToSRGB(texture(usam_cloudPhases, vec2(u, v)));
 }
 
-CloudParticpatingMedium clouds_cirrus_medium(CloudRenderParams renderParams) {
+CloudParticpatingMedium clouds_cirrus_medium(float cosTheta) {
     CloudParticpatingMedium medium;
     medium.scattering = CLOUDS_CIRRUS_SCATTERING;
     medium.extinction = CLOUDS_CIRRUS_EXTINCTION;
-    medium.phase = samplePhaseLUT(renderParams.LDotV, 0.0);
+    medium.phase = samplePhaseLUT(cosTheta, 0.0);
     return medium;
 }
 

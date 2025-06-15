@@ -29,6 +29,10 @@ uniform sampler2D usam_skyLUT;
 uniform usampler2D usam_epipolarData;
 #endif
 
+#ifdef SETTING_DEBUG_CLOUDS
+uniform sampler3D usam_cloudsAmbLUT;
+#endif
+
 #ifdef SETTING_DEBUG_ENV_PROBE
 uniform usampler2D usam_envProbe;
 #endif
@@ -75,6 +79,18 @@ bool inViewPort(ivec4 originSize, out vec2 texCoord) {
         return true;
     }
     return false;
+}
+
+float applyExposure(float color) {
+    return color * exp2(SETTING_DEBUG_EXP);
+}
+
+vec2 applyExposure(vec2 color) {
+    return color * exp2(SETTING_DEBUG_EXP);
+}
+
+vec3 applyExposure(vec3 color) {
+    return color * exp2(SETTING_DEBUG_EXP);
 }
 
 #ifdef SETTING_DEBUG_GAMMA_CORRECT
@@ -282,6 +298,12 @@ void debugOutput(inout vec4 outputColor) {
         unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
         float depthV = -viewZ.r / far;
         outputColor.rgb = gammaCorrect(depthV).rrr;
+    }
+    #endif
+
+    #ifdef SETTING_DEBUG_CLOUDS
+    if (inViewPort(ivec4(0, 0, 128, 128), debugTexCoord)) {
+        outputColor.rgb = gammaCorrect(applyExposure(texture(usam_cloudsAmbLUT, vec3(debugTexCoord, 0.5 / 3.0)).rgb));
     }
     #endif
 

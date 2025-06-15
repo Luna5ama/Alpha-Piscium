@@ -80,7 +80,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
 
         if (sampleDensity > DENSITY_EPSILON) {
             CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
-            CloudParticpatingMedium cirrusMedium = clouds_cirrus_medium(renderParams);
+            CloudParticpatingMedium cirrusMedium = clouds_cirrus_medium(renderParams.LDotV);
             clouds_computeLighting(
                 atmosphere,
                 renderParams,

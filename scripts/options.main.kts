@@ -1552,6 +1552,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Atmosphere"
                 }
             }
+            toggle("SETTING_DEBUG_CLOUDS", false) {
+                lang {
+                    name = "Clouds"
+                }
+            }
             toggle("SETTING_DEBUG_EPIPOLAR", false) {
                 lang {
                     name = "Epipolar"
