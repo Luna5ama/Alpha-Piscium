@@ -78,7 +78,7 @@ LightParameters lightParameters_init(AtmosphereParameters atmosphere, vec3 irrad
     lightParams.lightDir = lightDir;
     float cosLightTheta = -dot(rayDir, lightDir);
     lightParams.rayleighPhase = rayleighPhase(cosLightTheta);
-    lightParams.miePhase = miePhase(cosLightTheta, atmosphere.miePhaseG);
+    lightParams.miePhase = cornetteShanksPhase(cosLightTheta, atmosphere.miePhaseG);
     return lightParams;
 }
 

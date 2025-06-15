@@ -3,13 +3,15 @@
 #include "/_Base.glsl"
 
 #define PI 3.14159265358979323846
-#define PI_2 2.0 * PI
-#define PI_HALF 0.5 * PI
-#define PI_QUARTER 0.25 * PI
-#define RCP_PI 1.0 / PI
-#define RCP_PI_2 1.0 / PI_2
-#define RCP_PI_HALF 1.0 / PI_HALF
+#define PI_2 (2.0 * PI)
+#define PI_HALF (0.5 * PI)
+#define PI_QUARTER (0.25 * PI)
+#define RCP_PI (1.0 / PI)
+#define RCP_PI_2 (1.0 / PI_2)
+#define RCP_PI_HALF (1.0 / PI_HALF)
+
 #define GOLDEN_ANGLE 2.39996322972865332
+#define SPHERE_SOLID_ANGLE (4.0 * PI)
 
 #define FLT_MAX uintBitsToFloat(0x7F7FFFFF)
 #define FLT_MIN uintBitsToFloat(0x00800000)
@@ -111,16 +113,5 @@ float lengthSq(float x) { return x * x; }
 float lengthSq(vec2 x) { return dot(x, x); }
 float lengthSq(vec3 x) { return dot(x, x); }
 float lengthSq(vec4 x) { return dot(x, x); }
-
-float rayleighPhase(float cosTheta) {
-    float k = 3.0 / (16.0 * PI);
-    return k * (1.0 + pow2(cosTheta));
-}
-
-// Cornette-Shanks phase function for Mie scattering
-float miePhase(float cosTheta, float g) {
-    float k = 3.0 / (8.0 * PI) * (1.0 - g * g) / (2.0 + g * g);
-    return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
-}
 
 #endif
