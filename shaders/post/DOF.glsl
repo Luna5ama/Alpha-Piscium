@@ -21,7 +21,7 @@ const float BASE_WEIGHT = rcp(SAMPLE_COUNT);
 #if SETTING_APERTURE_SHAPE == 0 // Circular aperture
 float _dof_intersectCoc(vec2 p, float radius) {
     float texelDistSq = dot(p, p);
-    return smoothstep(pow2(sampleCoc + 0.01), pow2(sampleCoc - 0.01), texelDistSq);
+    return smoothstep(pow2(radius + 0.01), pow2(radius - 0.01), texelDistSq);
 }
 #elif SETTING_APERTURE_SHAPE == 1 // Hexagonal aperture
 float _dof_intersectCoc(vec2 p, float radius) {
@@ -39,6 +39,7 @@ vec4 _dof_sampleTap(sampler2D inputTex, vec2 centerTexelPos, vec2 sampleTexelPos
     vec3 sampleColor = sampleData.rgb;
     float sampleViewZ = sampleData.a;
     float sampleCoc = _dof_computeCoC(sampleViewZ);
+    sampleViewZ = min(far, sampleViewZ);
     vec2 texelPosDiff = sampleTexelPos - centerTexelPos;
     float weight = BASE_WEIGHT;
     weight *= _dof_intersectCoc(texelPosDiff, sampleCoc);

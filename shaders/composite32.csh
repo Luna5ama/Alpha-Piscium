@@ -35,7 +35,7 @@ void main() {
 
         #ifdef SETTING_DOF
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-        outputColor.a = min(abs(viewZ), far);
+        outputColor.a = abs(viewZ);
         imageStore(uimg_temp1, texelPos, outputColor);
         #endif
     }
