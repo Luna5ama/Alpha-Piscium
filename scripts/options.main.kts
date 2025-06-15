@@ -1057,16 +1057,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_DOF_F_STOP", 1.4, listOf(1.0, 1.4, 2.0, 2.8, 4.0, 5.6, 8.0, 11.0, 16.0)) {
                     lang {
                         name = "F-Stop"
-                        prefix = "F/"
+                        prefix = "f/"
+                    }
+                }
+                toggle("SETTING_APERTURE_SHAPE", 1, 0..1) {
+                    lang {
+                        name = "Aperture Shape"
+                        0 value "Circle"
+                        1 value "Hexagon"
                     }
                 }
                 empty()
-                slider("SETTING_DOF_MAX_SAMPLE_RADIUS", 16, powerOfTwoRange(0..6)) {
+                slider("SETTING_DOF_QUALITY", 3, 1..5) {
+                    lang {
+                        name = "Quality"
+                    }
+                }
+                slider("SETTING_DOF_MAX_SAMPLE_RADIUS", 8, listOf(2, 4, 8, 12, 16, 20, 24)) {
                     lang {
                         name = "Max Sample Radius"
                     }
                 }
-                slider("SETTING_DOF_MASKING_HEURISTIC", 4, 0..16) {
+                slider("SETTING_DOF_MASKING_HEURISTIC", 8, 0..32) {
                     lang {
                         name = "Masking Heuristic"
                         comment = "Larger value means more aggressive masking."
