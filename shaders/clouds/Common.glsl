@@ -31,12 +31,14 @@ struct CloudRayParams {
 
 struct CloudRenderParams {
     vec3 lightDir;
+    vec3 lightIrradiance;
     float LDotV;
 };
 
-CloudRenderParams cloudRenderParams_init(CloudRayParams rayParam, vec3 lightDir) {
+CloudRenderParams cloudRenderParams_init(CloudRayParams rayParam, vec3 lightDir, vec3 lightIrradiance) {
     CloudRenderParams params;
     params.lightDir = normalize(lightDir);
+    params.lightIrradiance = lightIrradiance;
     params.LDotV = -dot(rayParam.rayDir, lightDir);
     return params;
 }
@@ -66,6 +68,24 @@ CloudParticpatingMedium clouds_cirrus_medium(float cosTheta) {
     medium.extinction = CLOUDS_CIRRUS_EXTINCTION;
     medium.phase = samplePhaseLUT(cosTheta, 0.0);
     return medium;
+}
+
+struct CloudRaymarchLayerParam {
+    CloudParticpatingMedium medium;
+    float rayStepLength;
+    vec3 ambientIrradiance;
+};
+
+CloudRaymarchLayerParam clouds_raymarchLayerParam_init(
+    CloudParticpatingMedium medium,
+    float rayStepLength,
+    vec3 ambientIrradiance
+) {
+    CloudRaymarchLayerParam param;
+    param.medium = medium;
+    param.rayStepLength = rayStepLength;
+    param.ambientIrradiance = ambientIrradiance;
+    return param;
 }
 
 struct CloudRaymarchAccumState {
@@ -99,20 +119,22 @@ CloudRaymarchStepState clouds_raymarchStepState_init(vec3 samplePos, float sampl
 void clouds_computeLighting(
     AtmosphereParameters atmosphere,
     CloudRenderParams renderParams,
-    CloudParticpatingMedium medium,
+    CloudRaymarchLayerParam layerParam,
     CloudRaymarchStepState stepState,
-    float rayStepLength,
     inout CloudRaymarchAccumState accumState
 ) {
     float cosLightZenith = dot(stepState.upVector, renderParams.lightDir);
     vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosLightZenith, stepState.sampleHeight);
 
-    vec3 sampleExtinction = medium.extinction * stepState.sampleDensity;
-    vec3 sampleOpticalDepth = sampleExtinction * rayStepLength;
+    vec3 sampleExtinction = layerParam.medium.extinction * stepState.sampleDensity;
+    vec3 sampleOpticalDepth = sampleExtinction * layerParam.rayStepLength;
     vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
-    vec3 sampleInSctr = medium.phase * medium.scattering * stepState.sampleDensity;
-    sampleInSctr *= tLightToSample;
+    vec3 sampleTotalInSctrCoeff = layerParam.medium.scattering * stepState.sampleDensity;
+
+    vec3 sampleInSctr = renderParams.lightIrradiance * tLightToSample * layerParam.medium.phase;
+    sampleInSctr += layerParam.ambientIrradiance * accumState.totalTransmittance;
+    sampleInSctr *= sampleTotalInSctrCoeff;
     // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
     vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
 
