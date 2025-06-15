@@ -54,7 +54,7 @@ float clouds_cirrus_density(vec3 rayPos) {
     return _clouds_cirrus_coverage(rayPos) * _clouds_cirrus_density_fbm(rayPos);
 }
 
-vec4 clouds_renderCirrus(inout CloudRaymarchParameters params) {
+vec4 clouds_renderCirrus(inout CloudRayParams params) {
     vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
 
     return result;
