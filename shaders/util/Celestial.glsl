@@ -29,9 +29,6 @@
 #define MOON_LUMINANCE (SUN_ILLUMINANCE * MOON_ALBEDO * RCP_PI)
 #define MOON_ILLUMINANCE (MOON_LUMINANCE * MOON_SOLID_ANGLE)
 
-uniform sampler2D usam_starmap;
-uniform sampler2D usam_constellations;
-
 float _celestial_circle(vec3 rayDir, vec3 objDir, float objAngularRadius) {
     float objCosTheta = cos(objAngularRadius);
     float cosTheta = saturate(dot(rayDir, objDir));
