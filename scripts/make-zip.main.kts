@@ -3,7 +3,7 @@ import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-val excluded = setOf("_", "scripts", ".*\\.zip").map { it.toRegex() }
+val excluded = setOf("_", "data", "scripts", ".*\\.zip").map { it.toRegex() }
 val commitTag = Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD")).inputStream.bufferedReader().readText().trim()
 
 val currDir = File("")
