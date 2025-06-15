@@ -1,6 +1,9 @@
 #include "Common.glsl"
 #include "Cirrus.glsl"
 #include "/atmosphere/Common.glsl"
+#include "/util/Celestial.glsl"
+
+const float DENSITY_EPSILON = 0.0001;
 
 void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     float viewZ = texelFetch(viewZTex, texelPos, 0).r;
@@ -20,7 +23,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     float ignValue = rand_IGN(texelPos, frameCounter);
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
-    CloudRaymarchParameters params;
+    CloudRayParams params;
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
 
     vec3 earthCenter = vec3(0.0);
@@ -62,7 +65,9 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     params.rayStartHeight = length(params.rayStart);
     params.rayEndHeight = length(params.rayEnd);
 
-    vec3 intergralResult = vec3(0.0, 0.0, 1.0); // Sun scattering, sky scattering, transmittance
+    CloudRenderParams renderParams = cloudRenderParams_init(params, uval_shadowLightDirWorld);
+
+    CloudRaymarchAccumState accumState = clouds_raymarchAccumState_init();
 
     float cirrusHeight = atmosphere.bottom + CIRRUS_CLOUD_HEIGHT;
     float cirrusCloudHeightDiff = cirrusHeight - params.rayStartHeight;
@@ -71,16 +76,25 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
 
     if (bool(cirrusFlag)) {
         vec3 rayPos = params.rayStart + rayDir * cirrusRayLen;
+        float sampleDensity = clouds_cirrus_density(rayPos);
 
-        float density = clouds_cirrus_density(rayPos);
-
-        float opticalDepth = density * 0.1;
-        float transmittance = exp(-opticalDepth);
-
-        intergralResult.x += density;
-        intergralResult.z *= transmittance;
+        if (sampleDensity > DENSITY_EPSILON) {
+            CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
+            CloudParticpatingMedium cirrusMedium = clouds_cirrus_medium(renderParams);
+            clouds_computeLighting(
+                atmosphere,
+                renderParams,
+                cirrusMedium,
+                stepState,
+                0.5,
+                accumState
+            );
+        }
     }
 
-    outputColor.rgb *= intergralResult.z;
-    outputColor.rgb += intergralResult.x * 100.0;
+    float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
+    vec3 lightIlluminance = mix(MOON_ILLUMINANCE, SUN_ILLUMINANCE * PI, shadowIsSun);
+
+    outputColor.rgb += accumState.totalInSctr * lightIlluminance;
+    outputColor.rgb *= accumState.totalTransmittance;
 }

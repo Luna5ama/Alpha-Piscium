@@ -30,10 +30,24 @@ float henyeyGreensteinPhase(float cosTheta, float g) {
     return term0 * term1;
 }
 
+vec3 henyeyGreensteinPhase(float cosTheta, vec3 g) {
+    vec3 g2 = pow2(g);
+    vec3 numerator = 1.0 - g2;
+    vec3 denominator = pow(1.0 + g2 - 2.0 * g * cosTheta, vec3(3.0 / 2.0));
+    float term0 = UNIFORM_PHASE;
+    vec3 term1 = numerator / denominator;
+    return term0 * term1;
+}
+
 // Cornette-Shanks phase function for Mie scattering
 float cornetteShanksPhase(float cosTheta, float g) {
     float k = 3.0 / (8.0 * PI) * (1.0 - g * g) / (2.0 + g * g);
     return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
+}
+
+vec3 cornetteShanksPhase(float cosTheta, vec3 g) {
+    vec3 k = 3.0 / (8.0 * PI) * (1.0 - g * g) / (2.0 + g * g);
+    return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, vec3(1.5));
 }
 
 // [DRA03]
