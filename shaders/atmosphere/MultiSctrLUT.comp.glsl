@@ -27,8 +27,7 @@ void main() {
     ivec2 texelPos = ivec2(gl_WorkGroupID.xy);
 
     if (all(lessThan(texelPos, ivec2(MULTI_SCTR_LUT_SIZE)))) {
-        const float sphereSolidAngle = 4.0 * PI;
-        const float isotopicPhase = 1.0 / sphereSolidAngle;
+        const float isotopicPhase = UNIFORM_PHASE;
 
         vec2 texCoord = (texelPos + 0.5) / vec2(MULTI_SCTR_LUT_SIZE);
         texCoord = fromSubUvsToUnit(texCoord, vec2(MULTI_SCTR_LUT_SIZE));
@@ -63,8 +62,8 @@ void main() {
             lightParams.miePhase = isotopicPhase;
 
             MultiScatteringResult result = raymarchMultiScattering(atmosphere, params, lightParams);
-            shared_inSctrSum[gl_LocalInvocationIndex] = result.inScattering * sphereSolidAngle / float(SAMPLE_COUNT);
-            shared_multiSctrAs1Sum[gl_LocalInvocationIndex] = result.multiSctrAs1 * sphereSolidAngle / float(SAMPLE_COUNT);
+            shared_inSctrSum[gl_LocalInvocationIndex] = result.inScattering * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
+            shared_multiSctrAs1Sum[gl_LocalInvocationIndex] = result.multiSctrAs1 * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
         }
 
         barrier();

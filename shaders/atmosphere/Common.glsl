@@ -25,6 +25,7 @@
 #define INCLUDE_atmosphere_Common_glsl a
 
 #include "/util/Math.glsl"
+#include "/util/PhaseFunc.glsl"
 
 #if SETTING_EPIPOLAR_SLICES == 256
 
