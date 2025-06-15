@@ -1,6 +1,8 @@
+import java.awt.image.BufferedImage
 import java.nio.file.Path
+import javax.imageio.ImageIO
 import kotlin.io.path.*
-import kotlin.math.sin
+import kotlin.math.*
 
 val dataDir = Path("../data")
 val opacDataDir = dataDir.resolve("opac_raw")
@@ -18,25 +20,39 @@ val scientificRegex = """E([+-\\d]+)""".toRegex()
  * @return The interpolated y value
  */
 fun catmullRomInterpolate(Xs: DoubleArray, Ys: DoubleArray, xPos: Double): Double {
+    // Validate input
+    if (Xs.size < 4 || Xs.size != Ys.size) {
+        throw IllegalArgumentException("Arrays must contain at least 4 points and be of equal length")
+    }
+
+    // Handle out of bounds cases
+    if (xPos <= Xs[0]) return Ys[0]
+    if (xPos >= Xs[Xs.size - 1]) return Ys[Ys.size - 1]
+
     // Find the segment containing xPos
     var i = 1
     while (i < Xs.size - 2 && Xs[i + 1] < xPos) {
         i++
     }
 
-    // Get the four points needed for the interpolation
-    val x0 = Xs[i - 1]
-    val x1 = Xs[i]
-    val x2 = Xs[i + 1]
-    val x3 = Xs[i + 2]
+    // Get the four control points needed
+    val i0 = maxOf(0, i - 1)
+    val i1 = i
+    val i2 = minOf(i + 1, Xs.size - 1)
+    val i3 = minOf(i + 2, Xs.size - 1)
 
-    val y0 = Ys[i - 1]
-    val y1 = Ys[i]
-    val y2 = Ys[i + 1]
-    val y3 = Ys[i + 2]
+    val x0 = Xs[i0]
+    val x1 = Xs[i1]
+    val x2 = Xs[i2]
+    val x3 = Xs[i3]
+
+    val y0 = Ys[i0]
+    val y1 = Ys[i1]
+    val y2 = Ys[i2]
+    val y3 = Ys[i3]
 
     // Calculate the t parameter in [0,1]
-    val t = (xPos - x1) / (x2 - x1)
+    val t = if (x2 == x1) 0.0 else (xPos - x1) / (x2 - x1)
 
     // Catmull-Rom interpolation
     val t2 = t * t
@@ -106,6 +122,8 @@ fun doColorMatching(
     return Csrgb
 }
 
+val angAndPhaseCols = mutableListOf<Pair<DoubleArray, List<DoubleArray>>>()
+
 opacDataDir.useDirectoryEntries { entries ->
     entries
         .filter { it.isRegularFile() && it.extension == "txt" }
@@ -138,65 +156,67 @@ opacDataDir.useDirectoryEntries { entries ->
             println("asymmetry: ${doColorMatching(X, asym).contentToString()}")
 
             val vpfIndex = textLines.indexOf("# volume phase function [1/km]:")
+            val Xs = textLines[vpfIndex + 5]
+                .substring(13)
+                .splitToSequence(spacesRegex)
+                .map(String::toDouble)
+                .toList()
+                .toDoubleArray()
+
+            fun integratePhaseFunction(angles: DoubleArray, phaseValues: DoubleArray): Double {
+                var sum = 0.0
+
+                // Integrate using the trapezoidal rule with sin(θ) weighting
+                for (i in 0 until angles.size - 1) {
+                    val theta1 = Math.toRadians(angles[i])
+                    val theta2 = Math.toRadians(angles[i + 1])
+
+                    val sinTheta1 = sin(theta1)
+                    val sinTheta2 = sin(theta2)
+
+                    val y1 = phaseValues[i] * sinTheta1
+                    val y2 = phaseValues[i + 1] * sinTheta2
+
+                    // Trapezoidal area
+                    sum += (theta2 - theta1) * (y1 + y2) / 2.0
+                }
+
+                // Multiply by 2π for the azimuthal integration
+                return sum * 2.0 * Math.PI
+            }
+
+            val rows = textLines.asSequence()
+                .drop(vpfIndex + 7)
+                .map {
+                    val list = it.substring(2)
+                        .splitToSequence(spacesRegex)
+                        .map(String::toDouble)
+                        .toList()
+                    list.first() to (list.drop(1).toDoubleArray() zip sca).map { (phase, sca) -> phase / sca }
+                        .toDoubleArray()
+                }
+                .toList()
+
+            val angleCol = rows.map { it.first }.toDoubleArray()
+
+            val phaseRGBRows = rows.asSequence()
+                .map { (angle, Ys) -> doColorMatching(Xs, Ys) }
+                .toList()
+
+            val phaseRGBCols = transpose(phaseRGBRows)
+
+            val phaseSums = (0..<3).map { rgbIndex ->
+                integratePhaseFunction(angleCol, phaseRGBCols[rgbIndex])
+            }
+
+            repeat(3) { rgbIndex ->
+                phaseRGBCols[rgbIndex].indices.forEach { angleIndex ->
+                    phaseRGBCols[rgbIndex][angleIndex] /= phaseSums[rgbIndex]
+                }
+            }
+
             outputDir.resolve("${name}_phase.csv").bufferedWriter().use { writer ->
-                val Xs = textLines[vpfIndex + 5]
-                    .substring(13)
-                    .splitToSequence(spacesRegex)
-                    .map(String::toDouble)
-                    .toList()
-                    .toDoubleArray()
-
-                fun integratePhaseFunction(angles: DoubleArray, phaseValues: DoubleArray): Double {
-                    var sum = 0.0
-
-                    // Integrate using the trapezoidal rule with sin(θ) weighting
-                    for (i in 0 until angles.size - 1) {
-                        val theta1 = Math.toRadians(angles[i])
-                        val theta2 = Math.toRadians(angles[i + 1])
-
-                        val sinTheta1 = sin(theta1)
-                        val sinTheta2 = sin(theta2)
-
-                        val y1 = phaseValues[i] * sinTheta1
-                        val y2 = phaseValues[i + 1] * sinTheta2
-
-                        // Trapezoidal area
-                        sum += (theta2 - theta1) * (y1 + y2) / 2.0
-                    }
-
-                    // Multiply by 2π for the azimuthal integration
-                    return sum * 2.0 * Math.PI
-                }
-
-                val rows = textLines.asSequence()
-                    .drop(vpfIndex + 7)
-                    .map {
-                        val list = it.substring(2)
-                            .splitToSequence(spacesRegex)
-                            .map(String::toDouble)
-                            .toList()
-                        list.first() to (list.drop(1).toDoubleArray() zip sca).map { (phase, sca) -> phase / sca }
-                            .toDoubleArray()
-                    }
-                    .toList()
-
-                val angles = rows.map { it.first }.toDoubleArray()
-
-                val phaseRGB = rows.asSequence()
-                    .map { (angle, Ys) -> doColorMatching(Xs, Ys) }
-                    .toList()
-
-                val phaseSums = (0..<3).map { rgbIndex ->
-                    integratePhaseFunction(angles, phaseRGB.map { it[rgbIndex] }.toDoubleArray())
-                }
-
-                phaseRGB.forEach { anglePhase ->
-                    repeat(3) { rgbIndex ->
-                        anglePhase[rgbIndex] /= phaseSums[rgbIndex]
-                    }
-                }
-
-                (angles zip phaseRGB).forEach { (angle, rgb) ->
+                (angleCol zip phaseRGBRows).forEach { (angle, rgb) ->
                     writer.append(angle.toString())
                     repeat(3) {
                         writer.append(',')
@@ -206,6 +226,171 @@ opacDataDir.useDirectoryEntries { entries ->
                 }
             }
 
+            angAndPhaseCols.add(angleCol to transpose(phaseRGBRows))
+
             println()
         }
 }
+
+/**
+ * Converts SRGB colors to LogLuv format.
+ * @param vRGB Input RGB color as FloatArray of size 3
+ * @return LogLuv encoded color as FloatArray of size 4
+ */
+fun sRGBToLogLuv(vRGB: DoubleArray): DoubleArray {
+    // Check if all RGB values are less than or equal to 0
+    if (vRGB[0] <= 0.0 && vRGB[1] <= 0.0 && vRGB[2] <= 0.0) {
+        return doubleArrayOf(0.0, 0.0, 0.0, 0.0)
+    }
+
+    val M = arrayOf(
+        doubleArrayOf(0.2209, 0.1138, 0.0102),
+        doubleArrayOf(0.3390, 0.6780, 0.1130),
+        doubleArrayOf(0.4184, 0.7319, 0.2969)
+    )
+
+    // Calculate Xp_Y_XYZp = M * vRGB
+    val Xp_Y_XYZp = DoubleArray(3)
+    for (i in 0 until 3) {
+        Xp_Y_XYZp[i] = M[i][0] * vRGB[0] + M[i][1] * vRGB[1] + M[i][2] * vRGB[2]
+        Xp_Y_XYZp[i] = maxOf(Xp_Y_XYZp[i], 1e-6)
+    }
+
+    val vResult = DoubleArray(4)
+    vResult[0] = Xp_Y_XYZp[0] / Xp_Y_XYZp[2]
+    vResult[1] = Xp_Y_XYZp[1] / Xp_Y_XYZp[2]
+
+    val Le = 2f * log2(Xp_Y_XYZp[1]) + 127.0
+    vResult[3] = Le - floor(Le)
+    vResult[2] = (Le - (floor(vResult[3] * 255.0)) / 255.0) / 255.0
+
+    return vResult
+}
+
+/**
+ * Converts LogLuv32 format to sRGB colors.
+ *
+ * @param vLogLuv Input LogLuv color as DoubleArray of size 4
+ * @return sRGB color as DoubleArray of size 3
+ */
+fun logLuv32TosRGB(vLogLuv: DoubleArray): DoubleArray {
+    // Check if all LogLuv values are less than or equal to 0
+    if (vLogLuv[0] <= 0.0 && vLogLuv[1] <= 0.0 && vLogLuv[2] <= 0.0 && vLogLuv[3] <= 0.0) {
+        return doubleArrayOf(0.0, 0.0, 0.0)
+    }
+
+    // [ERI07] Inverse M matrix, for decoding
+    val inverseM = arrayOf(
+        doubleArrayOf(6.0014, -1.3320, 0.3008),
+        doubleArrayOf(-2.7008, 3.1029, -1.0882),
+        doubleArrayOf(-1.7996, -5.7721, 5.6268)
+    )
+
+    val Le = vLogLuv[2] * 255 + vLogLuv[3]
+    val Xp_Y_XYZp = DoubleArray(3)
+
+    Xp_Y_XYZp[1] = 2.0.pow((Le - 127) / 2)
+    Xp_Y_XYZp[2] = Xp_Y_XYZp[1] / vLogLuv[1]
+    Xp_Y_XYZp[0] = vLogLuv[0] * Xp_Y_XYZp[2]
+
+    val vRGB = DoubleArray(3)
+    for (i in 0 until 3) {
+        vRGB[i] = inverseM[i][0] * Xp_Y_XYZp[0] +
+            inverseM[i][1] * Xp_Y_XYZp[1] +
+            inverseM[i][2] * Xp_Y_XYZp[2]
+        vRGB[i] = maxOf(vRGB[i], 0.0)
+    }
+
+    return vRGB
+}
+
+/**
+ * Performs cubic B-spline interpolation.
+ *
+ * @param Xs Array of x-coordinates of the data points
+ * @param Ys Array of y-coordinates of the data points
+ * @param xPos The x value to interpolate at
+ * @return The interpolated y value
+ */
+fun cubicBSplineInterpolate(Xs: DoubleArray, Ys: DoubleArray, xPos: Double): Double {
+    // Validate input
+    if (Xs.size < 4 || Xs.size != Ys.size) {
+        throw IllegalArgumentException("Arrays must contain at least 4 points and be of equal length")
+    }
+
+    // Handle out of bounds cases
+    if (xPos <= Xs[0]) return Ys[0]
+    if (xPos >= Xs[Xs.size - 1]) return Ys[Ys.size - 1]
+
+    // Find the segment containing xPos
+    var i = 0
+    while (i < Xs.size - 1 && Xs[i + 1] < xPos) {
+        i++
+    }
+
+    // Get the four control points needed
+    val i0 = maxOf(0, i - 1)
+    val i1 = i
+    val i2 = minOf(i + 1, Xs.size - 1)
+    val i3 = minOf(i + 2, Xs.size - 1)
+
+    val x0 = Xs[i0]
+    val x1 = Xs[i1]
+    val x2 = Xs[i2]
+    val x3 = Xs[i3]
+
+    val y0 = Ys[i0]
+    val y1 = Ys[i1]
+    val y2 = Ys[i2]
+    val y3 = Ys[i3]
+
+    // Calculate the t parameter in [0,1]
+    val t = if (x2 == x1) 0.0 else (xPos - x1) / (x2 - x1)
+
+    // B-spline basis functions
+    val t2 = t * t
+    val t3 = t2 * t
+
+    val b0 = (1 - t) * (1 - t) * (1 - t) / 6.0
+    val b1 = (3 * t3 - 6 * t2 + 4) / 6.0
+    val b2 = (-3 * t3 + 3 * t2 + 3 * t + 1) / 6.0
+    val b3 = t3 / 6.0
+
+    // Calculate the interpolated value
+    return y0 * b0 + y1 * b1 + y2 * b2 + y3 * b3
+}
+
+val phaseLUTWidth = 256
+val outputImagePath = outputDir.resolve("opac_cloud_phases.png")
+val outputImage = BufferedImage(phaseLUTWidth, angAndPhaseCols.size, BufferedImage.TYPE_INT_ARGB)
+val outputDataArray = IntArray(4)
+
+fun inverseFunction(y: Double): Double {
+    return 0.5 + Math.cbrt(2 * y - 1) / 2
+}
+
+var maxError = Double.MIN_VALUE
+
+angAndPhaseCols.forEachIndexed { index, anglesAndPhase ->
+    val (angles, phaseRGB) = anglesAndPhase
+    repeat(phaseLUTWidth) { px ->
+        val theta01 = px.toDouble() / (phaseLUTWidth - 1)
+        val theta = inverseFunction(theta01) * 180.0
+        val rgbValue = (0..<3).map { rgbIndex ->
+            cubicBSplineInterpolate(angles, phaseRGB[rgbIndex], theta)
+        }.toDoubleArray()
+        val logluv32Value = sRGBToLogLuv(rgbValue)
+        val rgbValueBack = logLuv32TosRGB(logluv32Value)
+        maxError = max(maxError, (rgbValue zip rgbValueBack).maxOf {
+            abs(it.first - it.second) / it.first
+        })
+        outputDataArray.indices.forEach { i ->
+            outputDataArray[i] = (logluv32Value[i] * 255.0).toInt().coerceIn(0, 255)
+        }
+        outputImage.raster.setPixel(px, index, outputDataArray)
+    }
+}
+
+ImageIO.write(outputImage, "png", outputImagePath.toFile())
+
+println("Max error: $maxError")
