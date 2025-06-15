@@ -17,6 +17,7 @@
 #ifndef INCLUDE_clouds_Common_glsl
 #define INCLUDE_clouds_Common_glsl a
 
+#include "/util/Colors.glsl"
 #include "/atmosphere/Common.glsl"
 #include "Constants.glsl"
 
@@ -46,11 +47,24 @@ struct CloudParticpatingMedium {
     vec3 phase;
 };
 
+// See https://www.desmos.com/calculator/vzc8sfwbfv
+vec3 samplePhaseLUT(float cosTheta, float type) {
+    const vec4 COEFFS = vec4(0.0189677, 0.351847, 0.0946675, 0.147379);
+    float x1 = -cosTheta;
+    float x2 = x1 * x1;
+    float x3 = x2 * x1;
+    float x4 = x3 * x1;
+    vec4 x = vec4(x4, x3, x2, x1);
+    float u = dot(COEFFS, x) + 0.384577;
+    float v = (type + 0.5) / 3.0;
+    return colors_LogLuv32ToSRGB(texture(usam_cloudPhases, vec2(u, v)));
+}
+
 CloudParticpatingMedium clouds_cirrus_medium(CloudRenderParams renderParams) {
     CloudParticpatingMedium medium;
     medium.scattering = CLOUDS_CIRRUS_SCATTERING;
     medium.extinction = CLOUDS_CIRRUS_EXTINCTION;
-    medium.phase = cornetteShanksPhase(renderParams.LDotV, CLOUDS_CIRRUS_ASYM);
+    medium.phase = samplePhaseLUT(renderParams.LDotV, 0.0);
     return medium;
 }
 
