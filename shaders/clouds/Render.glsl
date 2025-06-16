@@ -98,17 +98,26 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                 ambientIrradiance
             );
 
-            if (sampleDensity > DENSITY_EPSILON) {
-                CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
-                clouds_computeLighting(
-                    atmosphere,
-                    renderParams,
-                    layerParam,
-                    stepState,
-                    accumState
-                );
-            }
+        CloudRaymarchAccumState ciAccum = clouds_raymarchAccumState_init();
+
+        if (sampleDensity > DENSITY_EPSILON) {
+            CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
+            CloudParticpatingMedium cirrusMedium = clouds_cirrus_medium(renderParams.LDotV);
+            clouds_computeLighting(
+                atmosphere,
+                renderParams,
+                layerParam,
+                stepState,
+                ciAccum
+            );
         }
+        float aboveFlag = float(cirrusCloudHeightDiff < 0.0);
+        accumState.totalInSctr = mix(
+            accumState.totalInSctr + ciAccum.totalInSctr * accumState.totalTransmittance, // Below
+            ciAccum.totalInSctr * ciAccum.totalTransmittance + ciAccum.totalInSctr, // Above
+            aboveFlag
+        );
+        accumState.totalTransmittance *= ciAccum.totalTransmittance;
     }
     #endif
 

@@ -1063,6 +1063,38 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
+                screen("LOW_CLOUDS", 1) {
+                    lang {
+                        name = "High Clouds"
+                    }
+                    toggle("SETTING_CLOUDS_CU", true) {
+                        lang {
+                            name = "Cumulus Clouds"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_HEIGHT", 2.0, 0.0..20.0 step 0.1) {
+                        lang {
+                            name = "Cumulus Height"
+                            suffix = " km"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_DENSITY", 1.0, 0.0..4.0 step 0.05) {
+                        lang {
+                            name = "Cumulus Density"
+                            suffix = " x"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.3, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Cumulus Coverage"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_PHASE_RATIO", 0.9, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Cumulus Phase Ratio"
+                        }
+                    }
+                }
                 screen("HIGH_CLOUDS", 1) {
                     lang {
                         name = "High Clouds"
