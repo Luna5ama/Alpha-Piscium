@@ -22,12 +22,20 @@ struct FBMParameters {
 #define _NOISE_INTERPO_GRAD(w) (6.0 * w * (1.0 - w))
 #endif
 
+ivec2 _noise_hash_coord_signed(vec2 x) {
+    return ivec2(floor(x));
+}
+
+ivec3 _noise_hash_coord_signed(vec3 x) {
+    return ivec3(floor(x));
+}
+
 uvec2 _noise_hash_coord(vec2 x) {
-    return uvec2(ivec2(floor(x)));
+    return uvec2(_noise_hash_coord_signed(x));
 }
 
 uvec3 _noise_hash_coord(vec3 x) {
-    return uvec3(ivec3(floor(x)));
+    return uvec3(_noise_hash_coord_signed(x));
 }
 
 #endif

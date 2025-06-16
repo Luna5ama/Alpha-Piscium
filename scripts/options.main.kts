@@ -1036,12 +1036,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Multi-Scattering Order"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.5, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.6, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Scattering Falloff"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.4, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.5, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Extinction Falloff"
                         }
@@ -1051,7 +1051,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Multi-Scattering Phase Falloff"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_AMB", 0.3, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_AMB", 0.4, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Ambient Irradiance Falloff"
                         }
@@ -1067,29 +1067,29 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     lang {
                         name = "High Clouds"
                     }
-                    toggle("SETTING_CIRRUS", true) {
+                    toggle("SETTING_CLOUDS_CI", true) {
                         lang {
                             name = "Cirrus Clouds"
                         }
                     }
-                    slider("SETTING_CIRRUS_HEIGHT", 9.0, 0.0..20.0 step 0.1) {
+                    slider("SETTING_CLOUDS_CI_HEIGHT", 9.0, 0.0..20.0 step 0.1) {
                         lang {
                             name = "Cirrus Height"
                             suffix = " km"
                         }
                     }
-                    slider("SETTING_CIRRUS_DENSITY", 1.0, 0.0..4.0 step 0.05) {
+                    slider("SETTING_CLOUDS_CI_DENSITY", 1.0, 0.0..4.0 step 0.05) {
                         lang {
                             name = "Cirrus Density"
                             suffix = " x"
                         }
                     }
-                    slider("SETTING_CIRRUS_COVERAGE", 0.3, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_CI_COVERAGE", 0.35, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Cirrus Coverage"
                         }
                     }
-                    slider("SETTING_CIRRUS_PHASE_RATIO", 0.6, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_CI_PHASE_RATIO", 0.6, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Cirrus Phase Ratio"
                         }

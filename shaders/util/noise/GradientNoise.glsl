@@ -22,10 +22,15 @@
 #define INCLUDE_util_noise_GradientNoise_glsl a
 
 #include "_Common.glsl"
+#include "/util/Rand.glsl"
 
 // -------------------------------------------------- Value Noise 2D --------------------------------------------------
 vec2 _GradientNoise_2D_hash(uvec2 x) {
     return hash_uintToFloat(hash_22_q2(x)) * 2.0 - 1.0;
+}
+
+vec2 _GradientNoise_2D_hash_hf(ivec2 x) {
+    return rand_stbnVec2(x, 0u) * 2.0 - 1.0;
 }
 
 // [QUI13a]
@@ -52,6 +57,29 @@ float GradientNoise_2D_value(vec2 x) {
     return value;
 }
 
+float GradientNoise_2D_value_hf(vec2 x) {
+    ivec2 i = _noise_hash_coord_signed(x);
+    vec2 w = fract(x);
+
+    vec2 u = _NOISE_INTERPO(w);
+
+    vec2 ga = _GradientNoise_2D_hash_hf(i + ivec2(0, 0));
+    vec2 gb = _GradientNoise_2D_hash_hf(i + ivec2(1, 0));
+    vec2 gc = _GradientNoise_2D_hash_hf(i + ivec2(0, 1));
+    vec2 gd = _GradientNoise_2D_hash_hf(i + ivec2(1, 1));
+
+    float va = dot(ga, w - vec2(0.0, 0.0));
+    float vb = dot(gb, w - vec2(1.0, 0.0));
+    float vc = dot(gc, w - vec2(0.0, 1.0));
+    float vd = dot(gd, w - vec2(1.0, 1.0));
+
+    float xy0 = mix(va, vb, u.x);
+    float xy1 = mix(vc, vd, u.x);
+    float value = mix(xy0, xy1, u.y);
+
+    return value;
+}
+
 // [QUI17a]
 vec2 GradientNoise_2D_grad(vec2 x) {
     uvec2 i = _noise_hash_coord(x);
@@ -64,6 +92,31 @@ vec2 GradientNoise_2D_grad(vec2 x) {
     vec2 gb = _GradientNoise_2D_hash(i + uvec2(1, 0));
     vec2 gc = _GradientNoise_2D_hash(i + uvec2(0, 1));
     vec2 gd = _GradientNoise_2D_hash(i + uvec2(1, 1));
+
+    float va = dot(ga, w - vec2(0.0, 0.0));
+    float vb = dot(gb, w - vec2(1.0, 0.0));
+    float vc = dot(gc, w - vec2(0.0, 1.0));
+    float vd = dot(gd, w - vec2(1.0, 1.0));
+
+    vec2 g = mix(mix(ga, gb, u.x), mix(gc, gd, u.x), u.y);
+    vec2 d = mix(vec2(vb, vc)-va, vd - vec2(vc, vb), u.yx);
+    vec2 grad = g + du * d;
+
+    return grad;
+}
+
+
+vec2 GradientNoise_2D_grad_hf(vec2 x) {
+    ivec2 i = _noise_hash_coord_signed(x);
+    vec2 w = fract(x);
+
+    vec2 u = _NOISE_INTERPO(w);
+    vec2 du = _NOISE_INTERPO_GRAD(w);
+
+    vec2 ga = _GradientNoise_2D_hash_hf(i + ivec2(0, 0));
+    vec2 gb = _GradientNoise_2D_hash_hf(i + ivec2(1, 0));
+    vec2 gc = _GradientNoise_2D_hash_hf(i + ivec2(0, 1));
+    vec2 gd = _GradientNoise_2D_hash_hf(i + ivec2(1, 1));
 
     float va = dot(ga, w - vec2(0.0, 0.0));
     float vb = dot(gb, w - vec2(1.0, 0.0));
@@ -106,7 +159,36 @@ vec3 GradientNoise_2D_valueGrad(vec2 x) {
     return vec3(value, grad);
 }
 
-float GradientNoise_2D_value_fbm(FBMParameters params, vec2 position) {
+
+vec3 GradientNoise_2D_valueGrad_hf(vec2 x) {
+    ivec2 i = _noise_hash_coord_signed(x);
+    vec2 w = fract(x);
+
+    vec2 u = _NOISE_INTERPO(w);
+    vec2 du = _NOISE_INTERPO_GRAD(w);
+
+    vec2 ga = _GradientNoise_2D_hash_hf(i + ivec2(0, 0));
+    vec2 gb = _GradientNoise_2D_hash_hf(i + ivec2(1, 0));
+    vec2 gc = _GradientNoise_2D_hash_hf(i + ivec2(0, 1));
+    vec2 gd = _GradientNoise_2D_hash_hf(i + ivec2(1, 1));
+
+    float va = dot(ga, w - vec2(0.0, 0.0));
+    float vb = dot(gb, w - vec2(1.0, 0.0));
+    float vc = dot(gc, w - vec2(0.0, 1.0));
+    float vd = dot(gd, w - vec2(1.0, 1.0));
+
+    float xy0 = mix(va, vb, u.x);
+    float xy1 = mix(vc, vd, u.x);
+    float value = mix(xy0, xy1, u.y);
+
+    vec2 g = mix(mix(ga, gb, u.x), mix(gc, gd, u.x), u.y);
+    vec2 d = mix(vec2(vb, vc)-va, vd - vec2(vc, vb), u.yx);
+    vec2 grad = g + du * d;
+
+    return vec3(value, grad);
+}
+
+float GradientNoise_2D_value_fbm(FBMParameters params, mat2 rotationMatrix, vec2 position) {
     float value = 0.0;
     float amplitude = 1.0;
     float currentFrequency = params.frequency;
@@ -118,24 +200,42 @@ float GradientNoise_2D_value_fbm(FBMParameters params, vec2 position) {
     return value;
 }
 
-vec2 GradientNoise_2D_grad_fbm(FBMParameters params, vec2 position) {
-    vec2 value = vec2(0.0);
+float GradientNoise_2D_value_hf_fbm(FBMParameters params, mat2 rotationMatrix, vec2 position) {
+    float value = 0.0;
     float amplitude = 1.0;
     float currentFrequency = params.frequency;
+    vec2 currPosition = position;
     for (uint i = 0; i < params.octaveCount; i++) {
-        value += GradientNoise_2D_grad(position * currentFrequency) * amplitude;
+        currPosition = (rotationMatrix * currPosition) * currentFrequency;
+        value += GradientNoise_2D_value_hf(currPosition) * amplitude;
         amplitude *= params.persistence;
         currentFrequency *= params.lacunarity;
     }
     return value;
 }
 
-vec3 GradientNoise_2D_valueGrad_fbm(FBMParameters params, vec2 position) {
+vec2 GradientNoise_2D_grad_fbm(FBMParameters params, mat2 rotationMatrix, vec2 position) {
+    vec2 value = vec2(0.0);
+    float amplitude = 1.0;
+    float currentFrequency = params.frequency;
+    vec2 currPosition = position;
+    for (uint i = 0; i < params.octaveCount; i++) {
+        currPosition = (rotationMatrix * currPosition) * currentFrequency;
+        value += GradientNoise_2D_grad(currPosition) * amplitude;
+        amplitude *= params.persistence;
+        currentFrequency *= params.lacunarity;
+    }
+    return value;
+}
+
+vec3 GradientNoise_2D_valueGrad_fbm(FBMParameters params, mat2 rotationMatrix, vec2 position) {
     vec3 value = vec3(0.0);
     float amplitude = 1.0;
     float currentFrequency = params.frequency;
+    vec2 currPosition = position;
     for (uint i = 0; i < params.octaveCount; i++) {
-        value += GradientNoise_2D_valueGrad(position * currentFrequency) * amplitude;
+        currPosition = (rotationMatrix * currPosition) * currentFrequency;
+        value += GradientNoise_2D_valueGrad(currPosition) * amplitude;
         amplitude *= params.persistence;
         currentFrequency *= params.lacunarity;
     }
