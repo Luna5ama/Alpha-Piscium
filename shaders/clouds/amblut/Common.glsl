@@ -19,12 +19,12 @@ int clouds_amblut_currLayerIndex() {
 }
 
 const float _CLOUDS_AMBLUT_HEIGHTS[] = float[](
-    SETTING_CLOUDS_CU_HEIGHT, // Stratus
+    1.0, // Stratus
     SETTING_CLOUDS_CU_HEIGHT, // Cumulus
-    SETTING_CLOUDS_CU_HEIGHT, // Altocumulus
+    4.0, // Altocumulus
     SETTING_CLOUDS_CI_HEIGHT, // Cirrus/Cirrocumulus
-    SETTING_CLOUDS_CI_HEIGHT, // Cirrostratus
-    SETTING_CLOUDS_CI_HEIGHT // Noctilucent
+    10.0, // Cirrostratus
+    80.0 // Noctilucent
 );
 
 float clouds_amblut_height(int layerIndex) {
@@ -33,10 +33,22 @@ float clouds_amblut_height(int layerIndex) {
 
 vec3 clouds_amblut_phase(float cosTheta, int layerIndex) {
     vec3 phase = vec3(UNIFORM_PHASE);
+    if (layerIndex == 0) {
+        phase = cornetteShanksPhase(cosTheta, CLOUDS_ST_ASYM);
+    }
     if (layerIndex == 1) {
         phase = cornetteShanksPhase(cosTheta, CLOUDS_CU_ASYM);
     }
+    if (layerIndex == 2) {
+        phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM), cornetteShanksPhase(cosTheta, CLOUDS_CU_ASYM), 0.8);
+    }
     if (layerIndex == 3) {
+        phase = cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM);
+    }
+    if (layerIndex == 4) {
+        phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_ST_ASYM), cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM), 0.8);
+    }
+    if (layerIndex == 5) {
         phase = cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM);
     }
     return phase;
