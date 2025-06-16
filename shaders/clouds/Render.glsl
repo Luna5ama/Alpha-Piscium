@@ -1,5 +1,6 @@
 #include "Common.glsl"
 #include "Cirrus.glsl"
+#include "Cumulus.glsl"
 #include "/atmosphere/Common.glsl"
 #include "/util/Celestial.glsl"
 
@@ -80,6 +81,48 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     vec3 viewDir = -params.rayDir;
     vec2 ambLutUV = coords_equirectanglarForwardHorizonBoost(viewDir);
 
+    #ifdef SETTING_CLOUDS_CU
+    {
+        float cuHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
+        float cuMinHeight = cuHeight - SETTING_CLOUDS_CU_THICKNESS * 0.5;
+        float cuMaxHeight = cuHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
+        float cuCloudHeightDiff = cuHeight - params.rayStartHeight;
+        float cuRayLen = abs(cuCloudHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5 ? 0.0 :
+        min(
+            raySphereIntersectNearest(params.rayStart, params.rayDir, earthCenter, cuMinHeight),
+            raySphereIntersectNearest(params.rayStart, params.rayDir, earthCenter, cuMaxHeight)
+        );
+        uint cuFlag = uint(sign(cuCloudHeightDiff) == sign(rayDir.y)) & uint(cuRayLen >= 0.0);
+
+//        if (bool(cuFlag)) {
+//            vec3 rayPos = params.rayStart + rayDir * cuRayLen;
+//            float sampleDensity = clouds_cumulus_density(rayPos);
+//            vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 1.5 / 6.0)).rgb;
+//            CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
+//                clouds_cumulus_medium(renderParams.LDotV),
+//                1.0,
+//                ambientIrradiance
+//            );
+//
+//            CloudRaymarchAccumState cumulusAccum = clouds_raymarchAccumState_init();
+//
+//            if (sampleDensity > DENSITY_EPSILON) {
+//                CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
+//                CloudParticpatingMedium cumulusMedium = clouds_cumulus_medium(renderParams.LDotV);
+//                clouds_computeLighting(
+//                    atmosphere,
+//                    renderParams,
+//                    layerParam,
+//                    stepState,
+//                    cumulusAccum
+//                );
+//            }
+//            accumState.totalInSctr += cumulusAccum.totalInSctr * accumState.totalTransmittance;
+//            accumState.totalTransmittance *= cumulusAccum.totalTransmittance;
+//        }
+    }
+    #endif
+
     #ifdef SETTING_CLOUDS_CI
     {
         float ciHeight = atmosphere.bottom + SETTING_CLOUDS_CI_HEIGHT;
@@ -98,26 +141,26 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                 ambientIrradiance
             );
 
-        CloudRaymarchAccumState ciAccum = clouds_raymarchAccumState_init();
+            CloudRaymarchAccumState ciAccum = clouds_raymarchAccumState_init();
 
-        if (sampleDensity > DENSITY_EPSILON) {
-            CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
-            CloudParticpatingMedium cirrusMedium = clouds_cirrus_medium(renderParams.LDotV);
-            clouds_computeLighting(
-                atmosphere,
-                renderParams,
-                layerParam,
-                stepState,
-                ciAccum
+            if (sampleDensity > DENSITY_EPSILON) {
+                CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
+                clouds_computeLighting(
+                    atmosphere,
+                    renderParams,
+                    layerParam,
+                    stepState,
+                    ciAccum
+                );
+            }
+            float aboveFlag = float(ciHeightDiff < 0.0);
+            accumState.totalInSctr = mix(
+                accumState.totalInSctr + ciAccum.totalInSctr * accumState.totalTransmittance, // Below
+                ciAccum.totalInSctr * ciAccum.totalTransmittance + ciAccum.totalInSctr, // Above
+                aboveFlag
             );
+            accumState.totalTransmittance *= ciAccum.totalTransmittance;
         }
-        float aboveFlag = float(cirrusCloudHeightDiff < 0.0);
-        accumState.totalInSctr = mix(
-            accumState.totalInSctr + ciAccum.totalInSctr * accumState.totalTransmittance, // Below
-            ciAccum.totalInSctr * ciAccum.totalTransmittance + ciAccum.totalInSctr, // Above
-            aboveFlag
-        );
-        accumState.totalTransmittance *= ciAccum.totalTransmittance;
     }
     #endif
 

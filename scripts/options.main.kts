@@ -1078,6 +1078,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             suffix = " km"
                         }
                     }
+                    slider("SETTING_CLOUDS_CU_THICKNESS", 2.0, 0.0..5.0 step 0.05) {
+                        lang {
+                            name = "Cumulus Thickness"
+                            suffix = " km"
+                        }
+                    }
                     slider("SETTING_CLOUDS_CU_DENSITY", 1.0, 0.0..4.0 step 0.05) {
                         lang {
                             name = "Cumulus Density"

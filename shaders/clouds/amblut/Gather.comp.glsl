@@ -1,7 +1,6 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #include "Common.glsl"
-#include "../Common.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
 
@@ -30,9 +29,9 @@ void main() {
     vec3 rayDir = vec3(cosTheta * sinPhi, cosPhi, sinTheta * sinPhi);
     vec3 inSctr = ssbo_ambLUTWorkingBuffer.inSctr[gl_LocalInvocationIndex];
 
+    int layerIndex = clouds_amblut_currLayerIndex();
     float cosLightTheta = dot(viewDir, rayDir);
-    CloudParticpatingMedium cloudMedium = clouds_ci_medium(cosLightTheta);
-    vec3 phase = cornetteShanksPhase(cosLightTheta, CLOUDS_CI_ASYM);
+    vec3 phase = clouds_amblut_phase(cosLightTheta, layerIndex);
     phase = mix(phase, vec3(UNIFORM_PHASE), SETTING_CLOUDS_AMB_UNI_PHASE_RATIO);
 
     vec3 phasedInSctr = inSctr * phase * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
@@ -47,7 +46,7 @@ void main() {
         subgroupSum2 = subgroupAdd(subgroupSum2);
         if (subgroupElect()) {
             vec3 currResult = subgroupSum2;
-            ivec3 texelPos3D = ivec3(texelPos, 0);
+            ivec3 texelPos3D = ivec3(texelPos, layerIndex);
             vec4 prevResult = imageLoad(uimg_cloudsAmbLUT, texelPos3D);
             vec4 newResult;
             prevResult.a *= global_historyResetFactor;
