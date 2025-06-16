@@ -952,13 +952,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             lang {
                 name = "Atmosphere"
             }
-            slider("SETTING_ATM_ALT_SCALE", 100, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
+            slider("SETTING_ATM_ALT_SCALE", 1000, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
                 lang {
                     name = "Atmosphere Altitude Scale"
                     comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
                 }
             }
-            slider("SETTING_ATM_D_SCALE", 100, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
+            slider("SETTING_ATM_D_SCALE", 1000, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
                 lang {
                     name = "Atmosphere Distance Scale"
                     comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
