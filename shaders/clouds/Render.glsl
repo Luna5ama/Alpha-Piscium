@@ -67,9 +67,13 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     params.rayStartHeight = length(params.rayStart);
     params.rayEndHeight = length(params.rayEnd);
 
-    float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
-    vec3 lightIlluminance = mix(MOON_ILLUMINANCE, SUN_ILLUMINANCE * PI, shadowIsSun);
-    CloudRenderParams renderParams = cloudRenderParams_init(params, uval_shadowLightDirWorld, lightIlluminance);
+    float sunAngleWarped = fract(sunAngle + 0.25);
+    float sunLightFactor = smoothstep(0.23035, 0.24035, sunAngleWarped);
+    sunLightFactor *= smoothstep(0.76965, 0.75965, sunAngleWarped);
+    sunLightFactor *= step(0.5, sunLightFactor);
+    vec3 lightDir = mix(uval_moonDirWorld, uval_sunDirWorld, sunLightFactor);
+    vec3 lightIlluminance = mix(MOON_ILLUMINANCE, SUN_ILLUMINANCE * PI, sunLightFactor);
+    CloudRenderParams renderParams = cloudRenderParams_init(params, lightDir, lightIlluminance);
 
     CloudRaymarchAccumState accumState = clouds_raymarchAccumState_init();
 
