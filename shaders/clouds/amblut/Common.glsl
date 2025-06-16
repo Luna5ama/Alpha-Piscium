@@ -3,7 +3,7 @@
 
 #endif
 
-#define AMBIENT_IRRADIANCE_LUT_SIZE 32
+#define AMBIENT_IRRADIANCE_LUT_SIZE 16
 #define SAMPLE_COUNT 256
 
 layout(std430, binding = 2) AMBLUT_DATA_MODIFIER buffer AmbLUTWorkingBuffer {

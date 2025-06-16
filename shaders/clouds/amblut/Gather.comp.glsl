@@ -9,15 +9,16 @@
 #include "/atmosphere/Raymarching.glsl"
 
 layout(local_size_x = 256) in;
-const ivec3 workGroups = ivec3(32, 32, 1);
+const ivec3 workGroups = ivec3(AMBIENT_IRRADIANCE_LUT_SIZE, AMBIENT_IRRADIANCE_LUT_SIZE, 1);
 
 shared vec3 shared_inSctrSum[8];
 
 layout(rgba16f) uniform restrict image3D uimg_cloudsAmbLUT;
 
 void main() {
+    vec2 jitter = rand_r2Seq2(gl_LocalInvocationID.x + gl_WorkGroupSize.x * frameCounter);
     ivec2 texelPos = ivec2(gl_WorkGroupID.xy);
-    vec2 viewDirUV = (vec2(texelPos) + 0.5) / vec2(AMBIENT_IRRADIANCE_LUT_SIZE);
+    vec2 viewDirUV = (vec2(texelPos) + jitter) / vec2(AMBIENT_IRRADIANCE_LUT_SIZE);
     vec3 viewDir = coords_octDecode01(viewDirUV);
 
     vec2 rayDirSpherical = ssbo_ambLUTWorkingBuffer.rayDir[gl_LocalInvocationIndex];
@@ -32,7 +33,7 @@ void main() {
 
     float cosLightTheta = dot(viewDir, rayDir);
     CloudParticpatingMedium cloudMedium = clouds_cirrus_medium(cosLightTheta);
-    vec3 phase = cornetteShanksPhase(cosLightTheta, CLOUDS_CIRRUS_ASYM);
+    vec3 phase = mix(cornetteShanksPhase(cosLightTheta, CLOUDS_CIRRUS_ASYM), cloudMedium.phase, 0.5);
 
     vec3 phasedInSctr = inSctr * phase * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
     vec3 subgroupSum1 = subgroupAdd(phasedInSctr);

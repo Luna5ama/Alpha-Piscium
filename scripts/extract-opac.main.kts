@@ -374,7 +374,7 @@ fun cubicBSplineInterpolate(Xs: DoubleArray, Ys: DoubleArray, xPos: Double): Dou
 }
 
 val phaseLUTWidth = 256
-val outputImagePath = outputDir.resolve("opac_cloud_phases.png")
+val outputImagePath = Path("../shaders/textures/opac_cloud_phases.png")
 val outputImage = BufferedImage(phaseLUTWidth, angAndPhaseCols.size, BufferedImage.TYPE_INT_ARGB)
 val outputDataArray = IntArray(4)
 
