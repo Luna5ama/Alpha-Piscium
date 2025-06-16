@@ -87,7 +87,7 @@ void main() {
             abs(global_lastWorldTime + 24000 - worldTime) % 24000,
             abs(worldTime + 24000 - global_lastWorldTime) % 24000
         );
-        global_historyResetFactor = exp2(-pow2(0.001 * float(worldTimeDiff)));
+        global_historyResetFactor = exp2(-pow2(0.005 * float(worldTimeDiff)));
         global_lastWorldTime = worldTime;
     }
 }

@@ -33,7 +33,7 @@ void main() {
 
     float cosLightTheta = dot(viewDir, rayDir);
     CloudParticpatingMedium cloudMedium = clouds_cirrus_medium(cosLightTheta);
-    vec3 phase = mix(cornetteShanksPhase(cosLightTheta, CLOUDS_CIRRUS_ASYM), cloudMedium.phase, 0.5);
+    vec3 phase = cloudMedium.phase;
     phase = mix(phase, vec3(UNIFORM_PHASE), 0.25);
 
     vec3 phasedInSctr = inSctr * phase * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);

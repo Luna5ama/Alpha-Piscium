@@ -15,7 +15,7 @@ void main() {
 
     float lutHeight = atmosphere.bottom + 9.0;
 
-    vec3 randV = rand_r2Seq3(gl_GlobalInvocationID.x + SAMPLE_COUNT * frameCounter);
+    vec3 randV = rand_r2Seq3((gl_GlobalInvocationID.x + SAMPLE_COUNT * frameCounter) & 0xFFFFu);
     float randA = randV.x;
     float randB = randV.y;
     float theta = 2.0 * PI * randA;
@@ -28,8 +28,7 @@ void main() {
     vec3 rayDir = vec3(cosTheta * sinPhi, sinTheta * sinPhi, cosPhi);
 
     RaymarchParameters params = raymarchParameters_init();
-    params.rayStart = vec3(0.0, 0.0, lutHeight);
-    setupRayEnd(atmosphere, params, rayDir);
+    params.rayStart = vec3(0.0, lutHeight, 0.0);
     params.steps = 64u;
 
     LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, uval_sunDirWorld, rayDir);
