@@ -27,7 +27,7 @@ void main() {
     barrier();
 
     if (gl_SubgroupID == 0 && gl_SubgroupInvocationID < gl_NumSubgroups) {
-        float subgroupMinV = shared_subgroupTemp[gl_SubgroupID].x;
+        float subgroupMinV = shared_subgroupTemp[gl_SubgroupInvocationID].x;
         subgroupMinV = subgroupMin(subgroupMinV);
         if (subgroupElect()) {
             shared_groupTemp.x = subgroupMinV;
@@ -48,7 +48,7 @@ void main() {
     barrier();
 
     if (gl_SubgroupID == 0 && gl_SubgroupInvocationID < gl_NumSubgroups) {
-        vec2 subgroupSum = shared_subgroupTemp[gl_SubgroupID];
+        vec2 subgroupSum = shared_subgroupTemp[gl_SubgroupInvocationID];
         subgroupSum = subgroupAdd(subgroupSum);
         if (subgroupElect()) {
             float weightedAverage = subgroupSum.x / subgroupSum.y;
