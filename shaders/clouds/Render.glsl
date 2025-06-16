@@ -80,33 +80,37 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     vec3 viewDir = -params.rayDir;
     vec2 ambLutUV = coords_equirectanglarForwardHorizonBoost(viewDir);
 
-    float cirrusHeight = atmosphere.bottom + SETTING_CLOUDS_CI_HEIGHT;
-    float cirrusCloudHeightDiff = cirrusHeight - params.rayStartHeight;
-    float cirrusRayLen = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom + SETTING_CLOUDS_CI_HEIGHT);
-    uint cirrusFlag = uint(sign(cirrusCloudHeightDiff) == sign(rayDir.y)) & uint(cirrusRayLen > 0.0);
+    #ifdef SETTING_CLOUDS_CI
+    {
+        float ciHeight = atmosphere.bottom + SETTING_CLOUDS_CI_HEIGHT;
+        float ciHeightDiff = ciHeight - params.rayStartHeight;
+        float ciRayLen = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, ciHeight);
+        uint ciFlag = uint(sign(ciHeightDiff) == sign(rayDir.y)) & uint(ciRayLen > 0.0);
 
-    if (bool(cirrusFlag)) {
-        vec3 rayPos = params.rayStart + rayDir * cirrusRayLen;
-        float sampleDensity = clouds_cirrus_density(rayPos);
-        vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 0.5 / 3.0)).rgb;
-        CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
-            clouds_cirrus_medium(renderParams.LDotV),
-            1.0,
-            ambientIrradiance
-        );
-
-        if (sampleDensity > DENSITY_EPSILON) {
-            CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
-            CloudParticpatingMedium cirrusMedium = clouds_cirrus_medium(renderParams.LDotV);
-            clouds_computeLighting(
-                atmosphere,
-                renderParams,
-                layerParam,
-                stepState,
-                accumState
+        if (bool(ciFlag)) {
+            vec3 rayPos = params.rayStart + rayDir * ciRayLen;
+            float sampleDensity = clouds_ci_density(rayPos);
+            vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 0.5 / 3.0)).rgb;
+            CloudParticpatingMedium ciMedium = clouds_ci_medium(renderParams.LDotV);
+            CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
+                ciMedium,
+                1.0,
+                ambientIrradiance
             );
+
+            if (sampleDensity > DENSITY_EPSILON) {
+                CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
+                clouds_computeLighting(
+                    atmosphere,
+                    renderParams,
+                    layerParam,
+                    stepState,
+                    accumState
+                );
+            }
         }
     }
+    #endif
 
     outputColor.rgb += accumState.totalInSctr;
     outputColor.rgb *= accumState.totalTransmittance;

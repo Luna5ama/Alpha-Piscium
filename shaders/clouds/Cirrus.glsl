@@ -5,11 +5,11 @@
 #include "/util/noise/GradientNoise.glsl"
 #include "/util/Sampling.glsl"
 
-float _clouds_cirrus_density_layer(vec2 texCoord) {
+float _clouds_ci_density_layer(vec2 texCoord) {
     return texture(usam_cirrus, texCoord).x;
 }
 
-float clouds_cirrus_density(vec3 rayPos) {
+float clouds_ci_density(vec3 rayPos) {
     FBMParameters curlParams;
     curlParams.frequency = 0.01;
     curlParams.persistence = 0.8;
@@ -29,9 +29,9 @@ float clouds_cirrus_density(vec3 rayPos) {
 
 
     float density = 0.0;
-    density += _clouds_cirrus_density_layer((rayPos.xz + 0.114) * 0.12 + curl * 2.5) * 0.125;
-    density += _clouds_cirrus_density_layer((rayPos.xz + 0.514) * 0.08 + curl * 0.8) * 0.25;
-    density += pow2(saturate(_clouds_cirrus_density_layer(rayPos.xz * 0.02 + curl * 0.4) * 2.0)) * 0.5;
+    density += _clouds_ci_density_layer((rayPos.xz + 0.114) * 0.12 + curl * 2.5) * 0.125;
+    density += _clouds_ci_density_layer((rayPos.xz + 0.514) * 0.08 + curl * 0.8) * 0.25;
+    density += pow2(saturate(_clouds_ci_density_layer(rayPos.xz * 0.02 + curl * 0.4) * 2.0)) * 0.5;
     density *= 2.0 * SETTING_CLOUDS_CI_DENSITY;
 
     return coverage * density;
