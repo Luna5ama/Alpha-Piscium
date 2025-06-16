@@ -1,6 +1,8 @@
 import java.awt.image.BufferedImage
 import java.nio.file.Path
 import javax.imageio.ImageIO
+import kotlin.compareTo
+import kotlin.div
 import kotlin.io.path.*
 import kotlin.math.*
 
@@ -207,17 +209,17 @@ opacDataDir.useDirectoryEntries { entries ->
                 .map { (angle, Ys) -> doColorMatching(Xs, Ys) }
                 .toList()
 
-            val maxV = phaseRGBRows
-                .drop(angleCol.indexOfFirst { it == 1.0 })
-                .maxOf { luma(it) } * 16.0
-
-            phaseRGBRows.forEach { rgbValue ->
-                val lumaIt = luma(rgbValue)
-                var mul = min(1.0, maxV / lumaIt)
-                repeat(rgbValue.size) {
-                    rgbValue[it] *= mul
-                }
-            }
+//            val maxV = phaseRGBRows
+//                .drop(angleCol.indexOfFirst { it == 1.0 })
+//                .maxOf { luma(it) } * 256.0
+//
+//            phaseRGBRows.forEach { rgbValue ->
+//                val lumaIt = luma(rgbValue)
+//                var mul = min(1.0, maxV / lumaIt)
+//                repeat(rgbValue.size) {
+//                    rgbValue[it] *= mul
+//                }
+//            }
 
             val phaseRGBCols = transpose(phaseRGBRows)
 
@@ -384,26 +386,34 @@ val outputDataArray = IntArray(4)
 fun inversePolynomial(
     y: Double,
     initialGuess: Double = 0.0,
-    maxIterations: Int = 16,
-    epsilon: Double = 1e-8
+    maxIterations: Int = 32,
+    epsilon: Double = 1e-10
 ): Double {
+    // Constants from the formula
+    val a0 = 0.672617934627
+    val a1 = -0.0713555761181
+    val a2 = 0.0299320735609
+    val b = 0.264767018876
+
     var x = initialGuess
 
-    // Newton's method iterations
+    // Newton-Raphson method
     repeat(maxIterations) {
-        // Calculate the function value at current x
-        val fx = 0.0189677 * x*x*x*x + 0.351847 * x*x*x +
-            0.0946675 * x*x + 0.147379 * x + 0.384577
+        // Calculate polynomial part
+        val poly = a0 + a1 * x + a2 * x * x
 
-        // Calculate the derivative at current x
-        val fPrime = 0.0189677 * 4 * x*x*x + 0.351847 * 3 * x*x +
-            0.0946675 * 2 * x + 0.147379
+        // Calculate f(x) = (poly) * x^b
+        val fx = poly * x.pow(b)
+
+        // Calculate f'(x) = b * poly * x^(b-1) + (a1 + 2*a2*x) * x^b
+        val dPoly = a1 + 2 * a2 * x
+        val dfx = b * poly * x.pow(b - 1) + dPoly * x.pow(b)
 
         // Newton's update
-        val xNew = x - (fx - y) / fPrime
+        val xNew = x - (fx - y) / max(dfx, 1e-10)
 
         // Check for convergence
-        if (Math.abs(xNew - x) < epsilon) {
+        if (abs(xNew - x) < epsilon) {
             return xNew
         }
 
@@ -415,14 +425,15 @@ fun inversePolynomial(
 
 var maxError = Double.MIN_VALUE
 
-angAndPhaseCols.forEachIndexed { index, anglesAndPhase ->
+angAndPhaseCols.take(1).forEachIndexed { index, anglesAndPhase ->
     val (angles, phaseRGB) = anglesAndPhase
-    var initial = -1.0
     repeat(phaseLUTWidth) { px ->
         val px01 = px.toDouble() / (phaseLUTWidth - 1)
-        val cosTheta = if (px == 0) -1.0 else inversePolynomial(px01, initial).coerceIn(-1.0, 1.0)
-        initial = cosTheta
-        val theta = acos(cosTheta)
+        var theta = when(px01) {
+            0.0 -> 0.0
+            1.0 -> PI
+            else -> inversePolynomial(px01, 1e-10)
+        }
         val thetaDeg = Math.toDegrees(theta)
         val rgbValue = (0..<3).map { rgbIndex ->
             cubicBSplineInterpolate(angles, phaseRGB[rgbIndex], thetaDeg)

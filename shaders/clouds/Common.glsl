@@ -49,15 +49,15 @@ struct CloudParticpatingMedium {
     vec3 phase;
 };
 
-// See https://www.desmos.com/calculator/vzc8sfwbfv
+// See https://www.desmos.com/calculator/yerfmyqpuh
 vec3 samplePhaseLUT(float cosTheta, float type) {
-    const vec4 COEFFS = vec4(0.0189677, 0.351847, 0.0946675, 0.147379);
-    float x1 = -cosTheta;
+    const float a0 = 0.672617934627;
+    const float a1 = -0.0713555761181;
+    const float a2 = 0.0299320735609;
+    const float b = 0.264767018876;
+    float x1 = acos(-cosTheta);
     float x2 = x1 * x1;
-    float x3 = x2 * x1;
-    float x4 = x3 * x1;
-    vec4 x = vec4(x4, x3, x2, x1);
-    float u = dot(COEFFS, x) + 0.384577;
+    float u = saturate((a0 + a1 * x1 + a2 * x2) * pow(x1, b));
     float v = (type + 0.5) / 3.0;
     return colors_LogLuv32ToSRGB(texture(usam_cloudPhases, vec2(u, v)));
 }
