@@ -21,7 +21,7 @@
 #include "/atmosphere/Common.glsl"
 #include "Mediums.glsl"
 
-struct CloudRayParams {
+struct CloudMainRayParams {
     vec3 rayStart;
     vec3 rayDir;
     vec3 rayEnd;
@@ -35,7 +35,7 @@ struct CloudRenderParams {
     float LDotV;
 };
 
-CloudRenderParams cloudRenderParams_init(CloudRayParams rayParam, vec3 lightDir, vec3 lightIrradiance) {
+CloudRenderParams cloudRenderParams_init(CloudMainRayParams rayParam, vec3 lightDir, vec3 lightIrradiance) {
     CloudRenderParams params;
     params.lightDir = normalize(lightDir);
     params.lightIrradiance = lightIrradiance;
@@ -46,15 +46,28 @@ CloudRenderParams cloudRenderParams_init(CloudRayParams rayParam, vec3 lightDir,
 struct CloudRaymarchLayerParam {
     CloudParticpatingMedium medium;
     vec3 ambientIrradiance;
+    vec2 layerRange;
+    vec3 rayStart;
+    vec3 rayEnd;
+    vec4 rayStep;
 };
 
 CloudRaymarchLayerParam clouds_raymarchLayerParam_init(
+    CloudMainRayParams mainRayParam,
     CloudParticpatingMedium medium,
-    vec3 ambientIrradiance
+    vec3 ambientIrradiance,
+    vec2 layerRange,
+    float origin2RayOffset,
+    float rayLength,
+    float rayRcpStepCount
 ) {
     CloudRaymarchLayerParam param;
     param.medium = medium;
     param.ambientIrradiance = ambientIrradiance;
+    param.layerRange = layerRange;
+    param.rayStart = mainRayParam.rayStart + mainRayParam.rayDir * origin2RayOffset;
+    param.rayEnd = param.rayStart + mainRayParam.rayDir * rayLength;
+    param.rayStep = vec4(param.rayEnd - param.rayStart, rayLength) * rayRcpStepCount;
     return param;
 }
 
@@ -76,12 +89,14 @@ struct CloudRaymarchStepState {
     float sampleHeight;
     vec3 upVector;
     float sampleDensity;
+    vec3 lightTransmittance;
 };
 
 CloudRaymarchStepState clouds_raymarchStepState_init(
     float rayStepLength,
     vec3 samplePos,
-    float sampleDensity
+    float sampleDensity,
+    vec3 lightTransmittance
 ) {
     CloudRaymarchStepState state;
     state.rayStepLength = rayStepLength;
@@ -89,6 +104,7 @@ CloudRaymarchStepState clouds_raymarchStepState_init(
     state.sampleHeight = length(samplePos);
     state.upVector = samplePos / state.sampleHeight;
     state.sampleDensity = sampleDensity;
+    state.lightTransmittance = lightTransmittance;
     return state;
 }
 
@@ -109,8 +125,10 @@ void clouds_computeLighting(
     float cosLightZenith = dot(stepState.upVector, renderParams.lightDir);
     vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosLightZenith, stepState.sampleHeight);
 
-    vec3 sampleLightIrradiance = renderParams.lightIrradiance * tLightToSample;
-    vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance * accumState.totalTransmittance;
+    vec3 sampleLightIrradiance = renderParams.lightIrradiance;
+    sampleLightIrradiance *= tLightToSample * stepState.lightTransmittance;
+    vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
+    sampleAmbientIrradiance *= accumState.totalTransmittance * mix(stepState.lightTransmittance, vec3(1.0), 0.25);
 
     vec3 sampleScattering = layerParam.medium.scattering * stepState.sampleDensity;
     vec3 sampleExtinction = layerParam.medium.extinction * stepState.sampleDensity;
@@ -126,7 +144,7 @@ void clouds_computeLighting(
         vec3 sampleTransmittanceMS = exp(-sampleOpticalDepthMS);
 
         vec3 sampleInSctr = sampleLightIrradiance * samplePhaseMS;
-        sampleInSctr += sampleAmbientIrradiance * multSctrFalloffs.w;
+//        sampleInSctr += sampleAmbientIrradiance * multSctrFalloffs.w;
         sampleInSctr *= sampleScatteringMS;
         // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
         vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittanceMS) / sampleOpticalDepthMS;
