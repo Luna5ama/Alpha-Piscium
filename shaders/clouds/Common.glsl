@@ -21,6 +21,11 @@
 #include "/atmosphere/Common.glsl"
 #include "Constants.glsl"
 
+#define CLOUDS_MULTI_SCTR_COUNT 2
+#define CLOUDS_MS_FALLOFF_SCTTERING 0.5
+#define CLOUDS_MS_FALLOFF_EXTINCTION 0.4
+#define CLOUDS_MS_FALLOFF_PHASE 0.5
+
 struct CloudRayParams {
     vec3 rayStart;
     vec3 rayDir;
@@ -126,20 +131,38 @@ void clouds_computeLighting(
     float cosLightZenith = dot(stepState.upVector, renderParams.lightDir);
     vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosLightZenith, stepState.sampleHeight);
 
+    vec3 sampleLightIrradiance = renderParams.lightIrradiance * tLightToSample;
+    vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance * accumState.totalTransmittance;
+
+    vec3 sampleScattering = layerParam.medium.scattering * stepState.sampleDensity;
     vec3 sampleExtinction = layerParam.medium.extinction * stepState.sampleDensity;
     vec3 sampleOpticalDepth = sampleExtinction * layerParam.rayStepLength;
-    vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
-    vec3 sampleTotalInSctrCoeff = layerParam.medium.scattering * stepState.sampleDensity;
+    vec3 multSctrFalloffs = vec3(CLOUDS_MS_FALLOFF_SCTTERING, CLOUDS_MS_FALLOFF_EXTINCTION, CLOUDS_MS_FALLOFF_PHASE);
 
-    vec3 sampleInSctr = renderParams.lightIrradiance * tLightToSample * layerParam.medium.phase;
-    sampleInSctr += layerParam.ambientIrradiance * accumState.totalTransmittance;
-    sampleInSctr *= sampleTotalInSctrCoeff;
-    // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-    vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
+    vec3 sampleScatteringMS = sampleScattering;
+    vec3 sampleOpticalDepthMS = sampleOpticalDepth;
+    vec3 samplePhaseMS = layerParam.medium.phase;
 
-    accumState.totalInSctr += sampleInSctrInt;
-    accumState.totalTransmittance *= sampleTransmittance;
+    // See [HIL16] and [QIU25]
+    for (uint i = 0; i < CLOUDS_MULTI_SCTR_COUNT; i++) {
+        vec3 sampleTransmittanceMS = exp(-sampleOpticalDepthMS);
+
+        vec3 sampleInSctr = sampleLightIrradiance * samplePhaseMS;
+        sampleInSctr += sampleAmbientIrradiance;
+        sampleInSctr *= sampleScatteringMS;
+        // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
+        vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittanceMS) / sampleOpticalDepthMS;
+
+        accumState.totalInSctr += sampleInSctrInt;
+
+        sampleScatteringMS *= multSctrFalloffs.x;
+        sampleOpticalDepthMS *= multSctrFalloffs.y;
+        samplePhaseMS = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, multSctrFalloffs.z);
+        multSctrFalloffs *= multSctrFalloffs;
+    }
+
+    accumState.totalTransmittance *= exp(-sampleOpticalDepth);
 }
 
 #endif

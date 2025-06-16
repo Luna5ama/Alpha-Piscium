@@ -5,7 +5,7 @@
 #include "/util/Sampling.glsl"
 
 #define CIRRUS_CLOUD_HEIGHT 9.0
-#define CIRRUS_CLOUD_COVERAGE 0.5
+#define CIRRUS_CLOUD_COVERAGE 0.4
 
 float _clouds_cirrus_coverage(vec3 rayPos) {
 //    FBMParameters earthParams;
