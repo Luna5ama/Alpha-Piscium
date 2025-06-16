@@ -127,6 +127,7 @@ void main() {
     mixDecrease = max(mixDecrease, 0.75);
     #endif
 
+    mixDecrease *= global_historyResetFactor;
     mixWeight = mixWeight * mixDecrease;
 
     float finalMixWeight = mixWeight;

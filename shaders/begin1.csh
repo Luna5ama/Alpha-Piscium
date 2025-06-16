@@ -83,5 +83,11 @@ void main() {
         global_dispatchSize2 = uvec4(0u, 1u, 1u, 0u);
         global_dispatchSize3 = uvec4(0u, 1u, 1u, 0u);
         global_dispatchSize4 = uvec4(0u, 1u, 1u, 0u);
+        int worldTimeDiff = min(
+            abs(global_lastWorldTime + 24000 - worldTime) % 24000,
+            abs(worldTime + 24000 - global_lastWorldTime) % 24000
+        );
+        global_historyResetFactor = exp2(-pow2(0.001 * float(worldTimeDiff)));
+        global_lastWorldTime = worldTime;
     }
 }

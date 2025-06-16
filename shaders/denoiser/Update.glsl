@@ -15,6 +15,7 @@ out vec3 newColor, out vec3 newFastColor, out vec2 newMoments, out float newHLen
 
     vec2 alpha = vec2(1.0);
     newHLen = 1.0;
+    prevHLen *= global_historyResetFactor;
 
     if (prevHLen != 0.0) {
         newHLen = min(prevHLen + 1.0, 1024.0);

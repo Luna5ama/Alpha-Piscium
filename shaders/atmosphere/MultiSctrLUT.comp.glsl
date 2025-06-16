@@ -117,6 +117,7 @@ void main() {
 
             vec4 prevResult = imageLoad(uimg_multiSctrLUT, texelPos);
             vec4 newResult;
+            prevResult.a *= global_historyResetFactor;
             newResult.a = min(prevResult.a + 1.0, 1024.0);
             newResult.rgb = mix(prevResult.rgb, currResult, 1.0 / newResult.a);
 
