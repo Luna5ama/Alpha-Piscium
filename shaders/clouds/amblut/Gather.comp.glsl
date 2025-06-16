@@ -51,7 +51,8 @@ void main() {
             ivec3 texelPos3D = ivec3(texelPos, 0);
             vec4 prevResult = imageLoad(uimg_cloudsAmbLUT, texelPos3D);
             vec4 newResult;
-            newResult.a = min(prevResult.a + 1.0, 1024.0);
+            prevResult.a *= global_historyResetFactor;
+            newResult.a = min(prevResult.a + 1.0, 256.0);
             newResult.rgb = mix(prevResult.rgb, currResult, 1.0 / newResult.a);
 
             imageStore(uimg_cloudsAmbLUT, texelPos3D, newResult);
