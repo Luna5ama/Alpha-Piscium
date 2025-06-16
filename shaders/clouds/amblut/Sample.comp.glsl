@@ -25,7 +25,7 @@ void main() {
     float cosTheta = cos(theta);
     float sinTheta = sin(theta);
 
-    vec3 rayDir = vec3(cosTheta * sinPhi, sinTheta * sinPhi, cosPhi);
+    vec3 rayDir = vec3(cosTheta * sinPhi, cosPhi, sinTheta * sinPhi);
 
     RaymarchParameters params = raymarchParameters_init();
     params.rayStart = vec3(0.0, lutHeight, 0.0);

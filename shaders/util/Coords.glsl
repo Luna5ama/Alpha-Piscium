@@ -100,6 +100,27 @@ vec3 coords_equirectanglarBackward(vec2 uv) {
     return normalize(direction);
 }
 
+vec2 coords_equirectanglarForwardHorizonBoost(vec3 direction) {
+    float phi = atan(direction.z, direction.x);// Horizontal angle (longitude)
+    float theta = asin(direction.y);// Vertical angle (latitude)
+
+    // Map angles to the [0, 1] range for UV coordinates
+    vec2 uv = vec2((phi + PI) / (2.0 * PI), 0.5 + 0.5 * sign(theta) * sqrt(abs(theta) * RCP_PI_HALF));
+    return uv;
+}
+
+vec3 coords_equirectanglarBackwardHorizonBoost(vec2 uv) {
+    // Map UV back to angles
+    float phi = uv.x * 2.0 * PI - PI; // Longitude
+    float theta = uv.y * 2.0 - 1.0;
+    theta = sign(theta) * pow2(theta);
+    theta *= PI_HALF;
+
+    // Convert spherical coordinates back to a 3D direction vector
+    vec3 direction = vec3(cos(theta) * cos(phi), sin(theta), cos(theta) * sin(phi));
+    return normalize(direction);
+}
+
 vec2 coords_mercatorForward(vec3 direction) {
     float lon = atan(direction.z, direction.x);// Longitude
     float lat = asin(direction.y);// Latitude

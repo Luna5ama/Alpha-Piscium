@@ -78,7 +78,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     CloudRaymarchAccumState accumState = clouds_raymarchAccumState_init();
 
     vec3 viewDir = -params.rayDir;
-    vec2 ambLutUV = coords_octEncode01(viewDir);
+    vec2 ambLutUV = coords_equirectanglarForwardHorizonBoost(viewDir);
 
     float cirrusHeight = atmosphere.bottom + SETTING_CIRRUS_HEIGHT;
     float cirrusCloudHeightDiff = cirrusHeight - params.rayStartHeight;

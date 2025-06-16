@@ -16,10 +16,9 @@ shared vec3 shared_inSctrSum[8];
 layout(rgba16f) uniform restrict image3D uimg_cloudsAmbLUT;
 
 void main() {
-    vec2 jitter = rand_r2Seq2(gl_LocalInvocationID.x + gl_WorkGroupSize.x * frameCounter);
     ivec2 texelPos = ivec2(gl_WorkGroupID.xy);
-    vec2 viewDirUV = (vec2(texelPos) + jitter) / vec2(AMBIENT_IRRADIANCE_LUT_SIZE);
-    vec3 viewDir = coords_octDecode01(viewDirUV);
+    vec2 viewDirUV = (vec2(texelPos) + 0.5) / vec2(AMBIENT_IRRADIANCE_LUT_SIZE);
+    vec3 viewDir = coords_equirectanglarBackwardHorizonBoost(viewDirUV);
 
     vec2 rayDirSpherical = ssbo_ambLUTWorkingBuffer.rayDir[gl_LocalInvocationIndex];
     float phi = rayDirSpherical.x;
@@ -28,12 +27,12 @@ void main() {
     float sinPhi = sin(phi);
     float cosTheta = cos(theta);
     float sinTheta = sin(theta);
-    vec3 rayDir = vec3(cosTheta * sinPhi, sinTheta * sinPhi, cosPhi);
+    vec3 rayDir = vec3(cosTheta * sinPhi, cosPhi, sinTheta * sinPhi);
     vec3 inSctr = ssbo_ambLUTWorkingBuffer.inSctr[gl_LocalInvocationIndex];
 
     float cosLightTheta = dot(viewDir, rayDir);
     CloudParticpatingMedium cloudMedium = clouds_cirrus_medium(cosLightTheta);
-    vec3 phase = cloudMedium.phase;
+    vec3 phase = cornetteShanksPhase(cosLightTheta, CLOUDS_CIRRUS_ASYM);
     phase = mix(phase, vec3(UNIFORM_PHASE), SETTING_CLOUDS_AMB_UNI_PHASE_RATIO);
 
     vec3 phasedInSctr = inSctr * phase * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
