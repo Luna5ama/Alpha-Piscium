@@ -66,7 +66,7 @@ CloudParticpatingMedium clouds_cirrus_medium(float cosTheta) {
     CloudParticpatingMedium medium;
     medium.scattering = CLOUDS_CIRRUS_SCATTERING;
     medium.extinction = CLOUDS_CIRRUS_EXTINCTION;
-    medium.phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_CIRRUS_ASYM), samplePhaseLUT(cosTheta, 0.0), SETTING_CIRRUS_PHASE_RATIO);
+    medium.phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_CIRRUS_ASYM), samplePhaseLUT(cosTheta, 0.0), SETTING_CLOUDS_CI_PHASE_RATIO);
     return medium;
 }
 
