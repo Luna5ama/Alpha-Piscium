@@ -84,28 +84,29 @@ CloudRaymarchAccumState clouds_raymarchAccumState_init() {
 }
 
 struct CloudRaymarchStepState {
-    float rayStepLength;
-    vec3 samplePos;
-    float sampleHeight;
+    vec3 position;
+    float height;
+    vec4 rayStep;
     vec3 upVector;
-    float sampleDensity;
-    vec3 lightTransmittance;
 };
 
-CloudRaymarchStepState clouds_raymarchStepState_init(
-    float rayStepLength,
-    vec3 samplePos,
-    float sampleDensity,
-    vec3 lightTransmittance
-) {
+CloudRaymarchStepState clouds_raymarchStepState_init(CloudRaymarchLayerParam layerParam) {
     CloudRaymarchStepState state;
-    state.rayStepLength = rayStepLength;
-    state.samplePos = samplePos;
-    state.sampleHeight = length(samplePos);
-    state.upVector = samplePos / state.sampleHeight;
-    state.sampleDensity = sampleDensity;
-    state.lightTransmittance = lightTransmittance;
+    state.position = layerParam.rayStart;
+    state.height = length(state.position);
+    state.upVector = state.position / state.height;
+    state.rayStep = layerParam.rayStep;
     return state;
+}
+
+void clouds_raymarchStepState_update(
+    inout CloudRaymarchStepState state,
+    float stepLengthMultiplier
+) {
+    state.rayStep *= stepLengthMultiplier;
+    state.position += state.rayStep.xyz;
+    state.height = length(state.position);
+    state.upVector = state.position / state.height;
 }
 
 const vec4 _CLOUDS_MS_FALLOFFS = vec4(
@@ -120,19 +121,21 @@ void clouds_computeLighting(
     CloudRenderParams renderParams,
     CloudRaymarchLayerParam layerParam,
     CloudRaymarchStepState stepState,
+    float sampleDensity,
+    vec3 lightTransmittance,
     inout CloudRaymarchAccumState accumState
 ) {
     float cosLightZenith = dot(stepState.upVector, renderParams.lightDir);
-    vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosLightZenith, stepState.sampleHeight);
+    vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosLightZenith, stepState.height);
 
     vec3 sampleLightIrradiance = renderParams.lightIrradiance;
-    sampleLightIrradiance *= tLightToSample * stepState.lightTransmittance;
+    sampleLightIrradiance *= tLightToSample * lightTransmittance;
     vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
-    sampleAmbientIrradiance *= accumState.totalTransmittance * mix(stepState.lightTransmittance, vec3(1.0), 0.25);
+    sampleAmbientIrradiance *= accumState.totalTransmittance * mix(lightTransmittance, vec3(1.0), 0.25);
 
-    vec3 sampleScattering = layerParam.medium.scattering * stepState.sampleDensity;
-    vec3 sampleExtinction = layerParam.medium.extinction * stepState.sampleDensity;
-    vec3 sampleOpticalDepth = sampleExtinction * stepState.rayStepLength;
+    vec3 sampleScattering = layerParam.medium.scattering * sampleDensity;
+    vec3 sampleExtinction = layerParam.medium.extinction * sampleDensity;
+    vec3 sampleOpticalDepth = sampleExtinction * stepState.rayStep.w;
 
     vec3 sampleScatteringMS = sampleScattering;
     vec3 sampleOpticalDepthMS = sampleOpticalDepth;

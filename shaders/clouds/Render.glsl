@@ -116,14 +116,15 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                 cuRayLen,
                 CLOUDS_CU_RAYMARCH_STEP_RCP
             );
+            CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam);
 
             CloudRaymarchAccumState cuAccum = clouds_raymarchAccumState_init();
             float jitter = rand_stbnVec1(texelPos, frameCounter);
 
             for (uint stepIndex = 0; stepIndex < CLOUDS_CU_RAYMARCH_STEP; ++stepIndex) {
-                float stepIndexF = float(stepIndex);
-                vec3 rayPosCenter = layerParam.rayStart + (stepIndexF + 0.5) * layerParam.rayStep.xyz;
-                vec3 rayPosJittered = layerParam.rayStart + (stepIndexF + jitter) * layerParam.rayStep.xyz;
+                vec3 rayPosCenter = stepState.position + 0.5 * stepState.rayStep.xyz;
+                vec3 rayPosJittered = stepState.position + jitter * stepState.rayStep.xyz;
+
                 float coverage = clouds_cu_coverage(rayPosJittered);
 
                 if (coverage > DENSITY_EPSILON) {
@@ -149,21 +150,19 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                         vec3 lightRayOpticalDepth = cuMedium.extinction * lightRayTotalDensity;
                         vec3 lightRayTransmittance = exp(-lightRayOpticalDepth);
 
-                        CloudRaymarchStepState stepState = clouds_raymarchStepState_init(
-                            layerParam.rayStep.w,
-                            rayPosCenter,
-                            sampleDensity,
-                            lightRayTransmittance
-                        );
                         clouds_computeLighting(
                             atmosphere,
                             renderParams,
                             layerParam,
                             stepState,
+                            sampleDensity,
+                            lightRayTransmittance,
                             cuAccum
                         );
                     }
                 }
+
+                clouds_raymarchStepState_update(stepState, 1.0);
             }
 
 
@@ -199,23 +198,21 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                 1.0,
                 1.0
             );
+            CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam);
 
-            float sampleDensity = clouds_ci_density(layerParam.rayStart);
+            float sampleDensity = clouds_ci_density(stepState.position);
             vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 3.5 / 6.0)).rgb;
 
             CloudRaymarchAccumState ciAccum = clouds_raymarchAccumState_init();
 
             if (sampleDensity > DENSITY_EPSILON) {
-                CloudRaymarchStepState stepState = clouds_raymarchStepState_init(
-                    1.0,
-                    layerParam.rayStart,
-                    sampleDensity
-                );
                 clouds_computeLighting(
                     atmosphere,
                     renderParams,
                     layerParam,
                     stepState,
+                    sampleDensity,
+                    lightRayTransmittance,
                     ciAccum
                 );
             }
