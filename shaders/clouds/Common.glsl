@@ -21,11 +21,6 @@
 #include "/atmosphere/Common.glsl"
 #include "Constants.glsl"
 
-#define CLOUDS_MULTI_SCTR_COUNT 2
-#define CLOUDS_MS_FALLOFF_SCTTERING 0.5
-#define CLOUDS_MS_FALLOFF_EXTINCTION 0.4
-#define CLOUDS_MS_FALLOFF_PHASE 0.5
-
 struct CloudRayParams {
     vec3 rayStart;
     vec3 rayDir;
@@ -71,7 +66,7 @@ CloudParticpatingMedium clouds_cirrus_medium(float cosTheta) {
     CloudParticpatingMedium medium;
     medium.scattering = CLOUDS_CIRRUS_SCATTERING;
     medium.extinction = CLOUDS_CIRRUS_EXTINCTION;
-    medium.phase = samplePhaseLUT(cosTheta, 0.0);
+    medium.phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_CIRRUS_ASYM), samplePhaseLUT(cosTheta, 0.0), SETTING_CIRRUS_PHASE_RATIO);
     return medium;
 }
 
@@ -121,6 +116,13 @@ CloudRaymarchStepState clouds_raymarchStepState_init(vec3 samplePos, float sampl
     return state;
 }
 
+const vec4 _CLOUDS_MS_FALLOFFS = vec4(
+    SETTING_CLOUDS_MS_FALLOFF_SCTTERING,
+    SETTING_CLOUDS_MS_FALLOFF_EXTINCTION,
+    SETTING_CLOUDS_MS_FALLOFF_PHASE,
+    SETTING_CLOUDS_MS_FALLOFF_AMB
+);
+
 void clouds_computeLighting(
     AtmosphereParameters atmosphere,
     CloudRenderParams renderParams,
@@ -138,14 +140,13 @@ void clouds_computeLighting(
     vec3 sampleExtinction = layerParam.medium.extinction * stepState.sampleDensity;
     vec3 sampleOpticalDepth = sampleExtinction * layerParam.rayStepLength;
 
-    vec3 multSctrFalloffs = vec3(CLOUDS_MS_FALLOFF_SCTTERING, CLOUDS_MS_FALLOFF_EXTINCTION, CLOUDS_MS_FALLOFF_PHASE);
-
     vec3 sampleScatteringMS = sampleScattering;
     vec3 sampleOpticalDepthMS = sampleOpticalDepth;
     vec3 samplePhaseMS = layerParam.medium.phase;
+    vec4 multSctrFalloffs = _CLOUDS_MS_FALLOFFS;
 
     // See [HIL16] and [QIU25]
-    for (uint i = 0; i < CLOUDS_MULTI_SCTR_COUNT; i++) {
+    for (uint i = 0; i < SETTING_CLOUDS_MS_ORDER; i++) {
         vec3 sampleTransmittanceMS = exp(-sampleOpticalDepthMS);
 
         vec3 sampleInSctr = sampleLightIrradiance * samplePhaseMS;
@@ -159,6 +160,7 @@ void clouds_computeLighting(
         sampleScatteringMS *= multSctrFalloffs.x;
         sampleOpticalDepthMS *= multSctrFalloffs.y;
         samplePhaseMS = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, multSctrFalloffs.z);
+        sampleAmbientIrradiance *= multSctrFalloffs.w;
         multSctrFalloffs *= multSctrFalloffs;
     }
 

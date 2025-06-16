@@ -76,9 +76,9 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     vec3 viewDir = -params.rayDir;
     vec2 ambLutUV = coords_octEncode01(viewDir);
 
-    float cirrusHeight = atmosphere.bottom + CIRRUS_CLOUD_HEIGHT;
+    float cirrusHeight = atmosphere.bottom + SETTING_CIRRUS_HEIGHT;
     float cirrusCloudHeightDiff = cirrusHeight - params.rayStartHeight;
-    float cirrusRayLen = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom + CIRRUS_CLOUD_HEIGHT);
+    float cirrusRayLen = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom + SETTING_CIRRUS_HEIGHT);
     uint cirrusFlag = uint(sign(cirrusCloudHeightDiff) == sign(rayDir.y)) & uint(cirrusRayLen > 0.0);
 
     if (bool(cirrusFlag)) {

@@ -207,7 +207,10 @@ opacDataDir.useDirectoryEntries { entries ->
                 .map { (angle, Ys) -> doColorMatching(Xs, Ys) }
                 .toList()
 
-            val maxV = luma(phaseRGBRows[angleCol.indexOfFirst { it == 1.0 }]) * 16.0
+            val maxV = phaseRGBRows
+                .drop(angleCol.indexOfFirst { it == 1.0 })
+                .maxOf { luma(it) } * 16.0
+
             phaseRGBRows.forEach { rgbValue ->
                 val lumaIt = luma(rgbValue)
                 var mul = min(1.0, maxV / lumaIt)

@@ -34,7 +34,7 @@ void main() {
     float cosLightTheta = dot(viewDir, rayDir);
     CloudParticpatingMedium cloudMedium = clouds_cirrus_medium(cosLightTheta);
     vec3 phase = cloudMedium.phase;
-    phase = mix(phase, vec3(UNIFORM_PHASE), 0.25);
+    phase = mix(phase, vec3(UNIFORM_PHASE), SETTING_CLOUDS_AMB_UNI_PHASE_RATIO);
 
     vec3 phasedInSctr = inSctr * phase * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
     vec3 subgroupSum1 = subgroupAdd(phasedInSctr);

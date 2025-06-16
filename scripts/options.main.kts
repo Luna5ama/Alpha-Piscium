@@ -948,89 +948,172 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("ATMOSPHERE", 1) {
+        screen("ATMOSPHERE", 2) {
             lang {
                 name = "Atmosphere"
             }
             slider("SETTING_ATM_ALT_SCALE", 1000, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
                 lang {
-                    name = "Atmosphere Altitude Scale"
+                    name = "Altitude Scale"
                     comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
                 }
             }
             slider("SETTING_ATM_D_SCALE", 1000, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
                 lang {
-                    name = "Atmosphere Distance Scale"
+                    name = "Distance Scale"
                     comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
                 }
             }
             empty()
-            slider("SETTING_ATM_MIE_TURBIDITY", 4, powerOfTwoRange(0..6)) {
-                lang {
-                    name = "Mie Tubidity"
-                }
-            }
-            slider("SETTING_ATM_MIE_SCT_MUL", 1.0, 0.0..5.0 step 0.05) {
-                lang {
-                    name = "Mie Scattering Multiplier"
-                }
-            }
-            slider("SETTING_ATM_MIE_ABS_MUL", 0.1, 0.0..2.0 step 0.01) {
-                lang {
-                    name = "Mie Absorption Multiplier"
-                }
-            }
-            slider("SETTING_ATM_RAY_SCT_MUL", 1.0, 0.0..5.0 step 0.05) {
-                lang {
-                    name = "Rayleigh Scattering Multiplier"
-                }
-            }
-            slider("SETTING_ATM_OZO_ABS_MUL", 1.0, 0.0..5.0 step 0.05) {
-                lang {
-                    name = "Ozone Absorption Multiplier"
-                }
-            }
             empty()
-            slider("SETTING_EPIPOLAR_SLICES", 512, listOf(256, 512, 1024, 2048)) {
+            screen("AIR", 1) {
                 lang {
-                    name = "Epipolar Slices"
+                    name = "Air"
+                }
+                slider("SETTING_ATM_MIE_TURBIDITY", 4, powerOfTwoRange(0..6)) {
+                    lang {
+                        name = "Mie Tubidity"
+                    }
+                }
+                slider("SETTING_ATM_MIE_SCT_MUL", 1.0, 0.0..5.0 step 0.05) {
+                    lang {
+                        name = "Mie Scattering Multiplier"
+                    }
+                }
+                slider("SETTING_ATM_MIE_ABS_MUL", 0.1, 0.0..2.0 step 0.01) {
+                    lang {
+                        name = "Mie Absorption Multiplier"
+                    }
+                }
+                slider("SETTING_ATM_RAY_SCT_MUL", 1.0, 0.0..5.0 step 0.05) {
+                    lang {
+                        name = "Rayleigh Scattering Multiplier"
+                    }
+                }
+                slider("SETTING_ATM_OZO_ABS_MUL", 1.0, 0.0..5.0 step 0.05) {
+                    lang {
+                        name = "Ozone Absorption Multiplier"
+                    }
+                }
+                empty()
+                slider("SETTING_EPIPOLAR_SLICES", 512, listOf(256, 512, 1024, 2048)) {
+                    lang {
+                        name = "Epipolar Slices"
+                    }
+                }
+                slider("SETTING_SLICE_SAMPLES", 256, listOf(128, 256, 512, 1024)) {
+                    lang {
+                        name = "Slice Samples"
+                    }
+                }
+                toggle("SETTING_DEPTH_BREAK_CORRECTION", true) {
+                    lang {
+                        name = "Depth Break Correction"
+                    }
+                }
+                empty()
+                slider("SETTING_SKY_SAMPLES", 64, 16..128) {
+                    lang {
+                        name = "Sky Samples"
+                    }
+                }
+                slider("SETTING_LIGHT_SHAFT_SAMPLES", 32, 8..64) {
+                    lang {
+                        name = "Light Shaft Samples"
+                    }
                 }
             }
-            slider("SETTING_SLICE_SAMPLES", 256, listOf(128, 256, 512, 1024)) {
+            screen("CLOUDS", 2) {
                 lang {
-                    name = "Slice Samples"
+                    name = "Clouds"
+                }
+                screen("CLOUDS_LIGHTING", 1) {
+                    lang {
+                        name = "Clouds Lighting"
+                    }
+                    slider("SETTING_CLOUDS_MS_ORDER", 4, 1..10) {
+                        lang {
+                            name = "Multi-Scattering Order"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Multi-Scattering Scattering Falloff"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.4, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Multi-Scattering Extinction Falloff"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_MS_FALLOFF_PHASE", 0.6, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Multi-Scattering Phase Falloff"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_MS_FALLOFF_AMB", 0.3, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Multi-Scattering Ambient Irradiance Falloff"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_CLOUDS_AMB_UNI_PHASE_RATIO", 0.3, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Ambient Irradiance Uniform Phase Ratio"
+                        }
+                    }
+                }
+                screen("HIGH_CLOUDS", 1) {
+                    lang {
+                        name = "High Clouds"
+                    }
+                    toggle("SETTING_CIRRUS", true) {
+                        lang {
+                            name = "Cirrus Clouds"
+                        }
+                    }
+                    slider("SETTING_CIRRUS_HEIGHT", 9.0, 0.0..20.0 step 0.1) {
+                        lang {
+                            name = "Cirrus Height"
+                            suffix = " km"
+                        }
+                    }
+                    slider("SETTING_CIRRUS_DENSITY", 1.0, 0.0..4.0 step 0.05) {
+                        lang {
+                            name = "Cirrus Density"
+                            suffix = " x"
+                        }
+                    }
+                    slider("SETTING_CIRRUS_COVERAGE", 0.3, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Cirrus Coverage"
+                        }
+                    }
+                    slider("SETTING_CIRRUS_PHASE_RATIO", 0.6, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Cirrus Phase Ratio"
+                        }
+                    }
                 }
             }
-            toggle("SETTING_DEPTH_BREAK_CORRECTION", true) {
+            screen("STARS", 1) {
                 lang {
-                    name = "Depth Break Correction"
+                    name = "Stars"
                 }
-            }
-            empty()
-            slider("SETTING_SKY_SAMPLES", 64, 16..128) {
-                lang {
-                    name = "Sky Samples"
+                slider("SETTING_STARMAP_INTENSITY", 5, 0..16) {
+                    lang {
+                        name = "Starmap Intensity"
+                    }
                 }
-            }
-            slider("SETTING_LIGHT_SHAFT_SAMPLES", 32, 8..64) {
-                lang {
-                    name = "Light Shaft Samples"
+                slider("SETTING_STARMAP_BRIGHT_STAR_BOOST", 6, 0..8) {
+                    lang {
+                        name = "Starmap Bright Star Boost"
+                    }
                 }
-            }
-            empty()
-            slider("SETTING_STARMAP_INTENSITY", 5, 0..16) {
-                lang {
-                    name = "Starmap Intensity"
-                }
-            }
-            slider("SETTING_STARMAP_BRIGHT_STAR_BOOST", 6, 0..8) {
-                lang {
-                    name = "Starmap Bright Star Boost"
-                }
-            }
-            slider("SETTING_STARMAP_GAMMA", 1.0, 0.1..2.0 step 0.1) {
-                lang {
-                    name = "Starmap Gamma"
+                slider("SETTING_STARMAP_GAMMA", 1.0, 0.1..2.0 step 0.1) {
+                    lang {
+                        name = "Starmap Gamma"
+                    }
                 }
             }
         }

@@ -4,9 +4,6 @@
 #include "/util/noise/GradientNoise.glsl"
 #include "/util/Sampling.glsl"
 
-#define CIRRUS_CLOUD_HEIGHT 9.0
-#define CIRRUS_CLOUD_COVERAGE 0.4
-
 float _clouds_cirrus_coverage(vec3 rayPos) {
 //    FBMParameters earthParams;
 //    earthParams.frequency = 0.008;
@@ -23,7 +20,7 @@ float _clouds_cirrus_coverage(vec3 rayPos) {
     shapeParams.lacunarity = 2.5;
     shapeParams.octaveCount = 2u;
     float shapeCoverage = GradientNoise_2D_value_fbm(shapeParams, rayPos.xz + vec2(0.0, -12.0));
-    shapeCoverage = pow3(linearStep(0.5 - CIRRUS_CLOUD_COVERAGE * 1.5, 1.0, shapeCoverage));
+    shapeCoverage = pow3(linearStep(0.5 - SETTING_CIRRUS_COVERAGE * 1.5, 1.0, shapeCoverage));
 
     float puffyCoverage = GradientNoise_2D_value(rayPos.xz * 0.8);
     puffyCoverage = saturate(1.0 - pow2(1.0 - linearStep(-1.0, 1.0, puffyCoverage)) + 0.5);
@@ -47,7 +44,7 @@ float _clouds_cirrus_density_fbm(vec3 rayPos) {
     density += _clouds_cirrus_density_layer((rayPos.xz + 0.114) * 0.04 + curl * 2.0) * 0.125;
     density += _clouds_cirrus_density_layer((rayPos.xz + 0.514) * 0.01 + curl * 0.8) * 0.25;
     density += _clouds_cirrus_density_layer(rayPos.xz * 0.005 + curl * 0.4) * 0.5;
-    return density * 3.0;
+    return density * 4.0 * SETTING_CIRRUS_DENSITY;
 }
 
 float clouds_cirrus_density(vec3 rayPos) {
