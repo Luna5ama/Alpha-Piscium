@@ -4,7 +4,7 @@
 #include "/util/noise/ValueNoise.glsl"
 #include "/util/noise/GradientNoise.glsl"
 
-float _clouds_cu_coverage(vec3 rayPos) {
+float clouds_cu_coverage(vec3 rayPos) {
     //    FBMParameters earthParams;
     //    earthParams.frequency = 0.008;
     //    earthParams.persistence = 0.8;
@@ -20,16 +20,22 @@ float _clouds_cu_coverage(vec3 rayPos) {
     shapeParams.lacunarity = 2.0;
     shapeParams.octaveCount = 4u;
     mat2 rotationMatrix = mat2_rotate(GOLDEN_RATIO);
-    float shapeCoverage = GradientNoise_2D_value_fbm(shapeParams, rotationMatrix, rayPos.xz);
+    vec3 samplePos = rayPos;
+    samplePos.y *= 2.0;
+    float shapeCoverage = GradientNoise_3D_value_fbm(shapeParams, samplePos);
     shapeCoverage = linearStep(1.0 - SETTING_CLOUDS_CU_COVERAGE * 2.0, 1.0, shapeCoverage);
 
     return shapeCoverage;
 }
 
-float _clouds_cu_density_fbm(vec3 rayPos) {
-    return SETTING_CLOUDS_CU_DENSITY;
-}
-
 float clouds_cu_density(vec3 rayPos) {
-    return _clouds_cu_coverage(rayPos) * _clouds_cu_density_fbm(rayPos);
+    FBMParameters densityParams;
+    densityParams.frequency = 2.5;
+    densityParams.persistence = 0.5;
+    densityParams.lacunarity = 2.5;
+    densityParams.octaveCount = 3u;
+    float density = GradientNoise_3D_value_fbm(densityParams, rayPos);
+    density = linearStep(-1.0, 1.0, density);
+
+    return density;
 }

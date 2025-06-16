@@ -114,21 +114,25 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
             for (uint stepIndex = 0; stepIndex < CLOUDS_CU_RAYMARCH_STEP; ++stepIndex) {
                 float stepIndexF = float(stepIndex) + 0.5;
                 vec3 rayPos = cuRayStart + stepIndexF * cuRayStepDelta;
-                float sampleDensity = clouds_cu_density(rayPos) * 5.0;
+                float coverage = clouds_cu_coverage(rayPos);
 
-                if (sampleDensity > DENSITY_EPSILON) {
-                    CloudRaymarchStepState stepState = clouds_raymarchStepState_init(
-                        cuRayStepLength,
-                        rayPos,
-                        sampleDensity
-                    );
-                    clouds_computeLighting(
-                        atmosphere,
-                        renderParams,
-                        layerParam,
-                        stepState,
-                        cuAccum
-                    );
+                if (coverage > DENSITY_EPSILON) {
+                    float density = clouds_cu_density(rayPos);
+                    float sampleDensity = linearStep(density * 0.25, 1.0, coverage);
+                    if (sampleDensity > DENSITY_EPSILON) {
+                        CloudRaymarchStepState stepState = clouds_raymarchStepState_init(
+                            cuRayStepLength,
+                            rayPos,
+                            sampleDensity
+                        );
+                        clouds_computeLighting(
+                            atmosphere,
+                            renderParams,
+                            layerParam,
+                            stepState,
+                            cuAccum
+                        );
+                    }
                 }
             }
 
