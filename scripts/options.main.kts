@@ -1065,7 +1065,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 screen("LOW_CLOUDS", 1) {
                     lang {
-                        name = "High Clouds"
+                        name = "Low Clouds"
                     }
                     toggle("SETTING_CLOUDS_CU", true) {
                         lang {
