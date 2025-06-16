@@ -22,6 +22,10 @@ float rand_stbnVec1(ivec2 texelPos, uint frame) {
     return texelFetch(usam_stbnVec1, ivec3(texelPos, frame) & ivec3(127, 127, 63), 0).x;
 }
 
+vec2 rand_stbnVec2(ivec2 texelPos, uint frame) {
+    return texelFetch(usam_stbnVec2, ivec3(texelPos, frame) & ivec3(127, 127, 63), 0).xy;
+}
+
 vec2 rand_stbnUnitVec201(ivec2 texelPos, uint frame) {
     return normalize(texelFetch(usam_stbnUnitVec2, ivec3(texelPos, frame) & ivec3(127, 127, 63), 0).xy);
 }
