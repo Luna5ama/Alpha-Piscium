@@ -86,40 +86,45 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
         float cuHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
         float cuMinHeight = cuHeight - SETTING_CLOUDS_CU_THICKNESS * 0.5;
         float cuMaxHeight = cuHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
-        float cuCloudHeightDiff = cuHeight - params.rayStartHeight;
-        float cuRayLen = abs(cuCloudHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5 ? 0.0 :
+        float cuHeightDiff = cuHeight - params.rayStartHeight;
+        float cuRayLen = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5 ? 0.0 :
         min(
             raySphereIntersectNearest(params.rayStart, params.rayDir, earthCenter, cuMinHeight),
             raySphereIntersectNearest(params.rayStart, params.rayDir, earthCenter, cuMaxHeight)
         );
-        uint cuFlag = uint(sign(cuCloudHeightDiff) == sign(rayDir.y)) & uint(cuRayLen >= 0.0);
+        uint cuFlag = uint(sign(cuHeightDiff) == sign(rayDir.y)) & uint(cuRayLen >= 0.0);
 
-//        if (bool(cuFlag)) {
-//            vec3 rayPos = params.rayStart + rayDir * cuRayLen;
-//            float sampleDensity = clouds_cumulus_density(rayPos);
-//            vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 1.5 / 6.0)).rgb;
-//            CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
-//                clouds_cumulus_medium(renderParams.LDotV),
-//                1.0,
-//                ambientIrradiance
-//            );
-//
-//            CloudRaymarchAccumState cumulusAccum = clouds_raymarchAccumState_init();
-//
-//            if (sampleDensity > DENSITY_EPSILON) {
-//                CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
-//                CloudParticpatingMedium cumulusMedium = clouds_cumulus_medium(renderParams.LDotV);
-//                clouds_computeLighting(
-//                    atmosphere,
-//                    renderParams,
-//                    layerParam,
-//                    stepState,
-//                    cumulusAccum
-//                );
-//            }
-//            accumState.totalInSctr += cumulusAccum.totalInSctr * accumState.totalTransmittance;
-//            accumState.totalTransmittance *= cumulusAccum.totalTransmittance;
-//        }
+        if (bool(cuFlag)) {
+            vec3 rayPos = params.rayStart + rayDir * cuRayLen;
+            float sampleDensity = clouds_cu_density(rayPos);
+            vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 1.5 / 6.0)).rgb;
+            CloudParticpatingMedium cuMedium = clouds_cu_medium(renderParams.LDotV);
+            CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
+                cuMedium,
+                1.0,
+                ambientIrradiance
+            );
+
+            CloudRaymarchAccumState cuAccum = clouds_raymarchAccumState_init();
+
+            if (sampleDensity > DENSITY_EPSILON) {
+                CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
+                clouds_computeLighting(
+                    atmosphere,
+                    renderParams,
+                    layerParam,
+                    stepState,
+                    cuAccum
+                );
+            }
+            float aboveFlag = float(cuHeightDiff < 0.0);
+            accumState.totalInSctr = mix(
+                accumState.totalInSctr + cuAccum.totalInSctr * accumState.totalTransmittance, // Below
+                cuAccum.totalInSctr * cuAccum.totalTransmittance + cuAccum.totalInSctr, // Above
+                aboveFlag
+            );
+            accumState.totalTransmittance *= cuAccum.totalTransmittance;
+        }
     }
     #endif
 
