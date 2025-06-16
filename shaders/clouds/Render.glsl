@@ -87,36 +87,52 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
         float cuMinHeight = cuHeight - SETTING_CLOUDS_CU_THICKNESS * 0.5;
         float cuMaxHeight = cuHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
         float cuHeightDiff = cuHeight - params.rayStartHeight;
-        float cuRayLen = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5 ? 0.0 :
-        min(
-            raySphereIntersectNearest(params.rayStart, params.rayDir, earthCenter, cuMinHeight),
-            raySphereIntersectNearest(params.rayStart, params.rayDir, earthCenter, cuMaxHeight)
-        );
-        uint cuFlag = uint(sign(cuHeightDiff) == sign(rayDir.y)) & uint(cuRayLen >= 0.0);
+        float cuRayLenBottom = raySphereIntersectNearest(params.rayStart, params.rayDir, earthCenter, cuMinHeight);
+        float cuRayLenTop = raySphereIntersectNearest(params.rayStart, params.rayDir, earthCenter, cuMaxHeight);
+        float cuStartRayLen = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5 ? 0.0 :
+            min(cuRayLenBottom, cuRayLenTop);
+        float cuEndRayLen = max(cuRayLenBottom, cuRayLenTop);
+        uint cuFlag = uint(sign(cuHeightDiff) == sign(rayDir.y)) & uint(cuStartRayLen >= 0.0);
 
         if (bool(cuFlag)) {
-            vec3 rayPos = params.rayStart + rayDir * cuRayLen;
-            float sampleDensity = clouds_cu_density(rayPos);
+            #define CLOUDS_CU_RAYMARCH_STEP 64
+            #define CLOUDS_CU_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_RAYMARCH_STEP))
+            vec3 cuRayStart = params.rayStart + rayDir * cuStartRayLen;
+            vec3 cuRayEnd = params.rayStart + rayDir * cuEndRayLen;
+            vec3 cuRayStepDelta = (cuRayEnd - cuRayStart) * CLOUDS_CU_RAYMARCH_STEP_RCP;
+            float cuRayStepLength = length(cuRayStepDelta);
+
             vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 1.5 / 6.0)).rgb;
             CloudParticpatingMedium cuMedium = clouds_cu_medium(renderParams.LDotV);
             CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
                 cuMedium,
-                1.0,
                 ambientIrradiance
             );
 
             CloudRaymarchAccumState cuAccum = clouds_raymarchAccumState_init();
 
-            if (sampleDensity > DENSITY_EPSILON) {
-                CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
-                clouds_computeLighting(
-                    atmosphere,
-                    renderParams,
-                    layerParam,
-                    stepState,
-                    cuAccum
-                );
+            for (uint stepIndex = 0; stepIndex < CLOUDS_CU_RAYMARCH_STEP; ++stepIndex) {
+                float stepIndexF = float(stepIndex) + 0.5;
+                vec3 rayPos = cuRayStart + stepIndexF * cuRayStepDelta;
+                float sampleDensity = clouds_cu_density(rayPos) * 5.0;
+
+                if (sampleDensity > DENSITY_EPSILON) {
+                    CloudRaymarchStepState stepState = clouds_raymarchStepState_init(
+                        cuRayStepLength,
+                        rayPos,
+                        sampleDensity
+                    );
+                    clouds_computeLighting(
+                        atmosphere,
+                        renderParams,
+                        layerParam,
+                        stepState,
+                        cuAccum
+                    );
+                }
             }
+
+
             float aboveFlag = float(cuHeightDiff < 0.0);
             accumState.totalInSctr = mix(
                 accumState.totalInSctr + cuAccum.totalInSctr * accumState.totalTransmittance, // Below
@@ -131,25 +147,28 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     #ifdef SETTING_CLOUDS_CI
     {
         float ciHeight = atmosphere.bottom + SETTING_CLOUDS_CI_HEIGHT;
-        float ciHeightDiff = ciHeight - params.rayStartHeight;
+        float ciHeighDiff = ciHeight - params.rayStartHeight;
         float ciRayLen = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, ciHeight);
-        uint ciFlag = uint(sign(ciHeightDiff) == sign(rayDir.y)) & uint(ciRayLen > 0.0);
+        uint ciFlag = uint(sign(ciHeighDiff) == sign(rayDir.y)) & uint(ciRayLen > 0.0);
 
         if (bool(ciFlag)) {
             vec3 rayPos = params.rayStart + rayDir * ciRayLen;
             float sampleDensity = clouds_ci_density(rayPos);
-            vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 0.5 / 3.0)).rgb;
+            vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 3.5 / 6.0)).rgb;
             CloudParticpatingMedium ciMedium = clouds_ci_medium(renderParams.LDotV);
             CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
                 ciMedium,
-                1.0,
                 ambientIrradiance
             );
 
             CloudRaymarchAccumState ciAccum = clouds_raymarchAccumState_init();
 
             if (sampleDensity > DENSITY_EPSILON) {
-                CloudRaymarchStepState stepState = clouds_raymarchStepState_init(rayPos, sampleDensity);
+                CloudRaymarchStepState stepState = clouds_raymarchStepState_init(
+                    1.0,
+                    rayPos,
+                    sampleDensity
+                );
                 clouds_computeLighting(
                     atmosphere,
                     renderParams,
@@ -158,7 +177,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                     ciAccum
                 );
             }
-            float aboveFlag = float(ciHeightDiff < 0.0);
+            float aboveFlag = float(ciHeighDiff < 0.0);
             accumState.totalInSctr = mix(
                 accumState.totalInSctr + ciAccum.totalInSctr * accumState.totalTransmittance, // Below
                 ciAccum.totalInSctr * ciAccum.totalTransmittance + ciAccum.totalInSctr, // Above

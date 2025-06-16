@@ -45,18 +45,15 @@ CloudRenderParams cloudRenderParams_init(CloudRayParams rayParam, vec3 lightDir,
 
 struct CloudRaymarchLayerParam {
     CloudParticpatingMedium medium;
-    float rayStepLength;
     vec3 ambientIrradiance;
 };
 
 CloudRaymarchLayerParam clouds_raymarchLayerParam_init(
     CloudParticpatingMedium medium,
-    float rayStepLength,
     vec3 ambientIrradiance
 ) {
     CloudRaymarchLayerParam param;
     param.medium = medium;
-    param.rayStepLength = rayStepLength;
     param.ambientIrradiance = ambientIrradiance;
     return param;
 }
@@ -74,14 +71,20 @@ CloudRaymarchAccumState clouds_raymarchAccumState_init() {
 }
 
 struct CloudRaymarchStepState {
+    float rayStepLength;
     vec3 samplePos;
     float sampleHeight;
     vec3 upVector;
     float sampleDensity;
 };
 
-CloudRaymarchStepState clouds_raymarchStepState_init(vec3 samplePos, float sampleDensity) {
+CloudRaymarchStepState clouds_raymarchStepState_init(
+    float rayStepLength,
+    vec3 samplePos,
+    float sampleDensity
+) {
     CloudRaymarchStepState state;
+    state.rayStepLength = rayStepLength;
     state.samplePos = samplePos;
     state.sampleHeight = length(samplePos);
     state.upVector = samplePos / state.sampleHeight;
@@ -111,7 +114,7 @@ void clouds_computeLighting(
 
     vec3 sampleScattering = layerParam.medium.scattering * stepState.sampleDensity;
     vec3 sampleExtinction = layerParam.medium.extinction * stepState.sampleDensity;
-    vec3 sampleOpticalDepth = sampleExtinction * layerParam.rayStepLength;
+    vec3 sampleOpticalDepth = sampleExtinction * stepState.rayStepLength;
 
     vec3 sampleScatteringMS = sampleScattering;
     vec3 sampleOpticalDepthMS = sampleOpticalDepth;

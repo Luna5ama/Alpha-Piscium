@@ -15,18 +15,19 @@ float _clouds_cu_coverage(vec3 rayPos) {
     float earthCoverage = 1.0;
 
     FBMParameters shapeParams;
-    shapeParams.frequency = 0.05;
-    shapeParams.persistence = 0.6;
-    shapeParams.lacunarity = 2.5;
-    shapeParams.octaveCount = 2u;
-    float shapeCoverage = GradientNoise_2D_value_fbm(shapeParams, mat2_identity(), rayPos.xz + vec2(0.0, -12.0));
-    shapeCoverage = pow3(linearStep(0.5 - SETTING_CLOUDS_CU_COVERAGE * 1.5, 1.0, shapeCoverage));
+    shapeParams.frequency = 0.2;
+    shapeParams.persistence = 0.5;
+    shapeParams.lacunarity = 2.0;
+    shapeParams.octaveCount = 4u;
+    mat2 rotationMatrix = mat2_rotate(GOLDEN_RATIO);
+    float shapeCoverage = GradientNoise_2D_value_fbm(shapeParams, rotationMatrix, rayPos.xz);
+    shapeCoverage = linearStep(1.0 - SETTING_CLOUDS_CU_COVERAGE * 2.0, 1.0, shapeCoverage);
 
-    return earthCoverage * shapeCoverage;
+    return shapeCoverage;
 }
 
 float _clouds_cu_density_fbm(vec3 rayPos) {
-    return 1.0;
+    return SETTING_CLOUDS_CU_DENSITY;
 }
 
 float clouds_cu_density(vec3 rayPos) {
