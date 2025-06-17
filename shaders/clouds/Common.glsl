@@ -135,7 +135,7 @@ void clouds_computeLighting(
 
     vec3 sampleScattering = layerParam.medium.scattering * sampleDensity;
     vec3 sampleExtinction = layerParam.medium.extinction * sampleDensity;
-    vec3 sampleOpticalDepth = sampleExtinction * stepState.rayStep.w;
+    vec3 sampleOpticalDepth = sampleExtinction * min(stepState.rayStep.w, 0.05);
 
     vec3 sampleScatteringMS = sampleScattering;
     vec3 sampleOpticalDepthMS = sampleOpticalDepth;

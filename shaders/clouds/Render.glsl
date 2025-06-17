@@ -99,7 +99,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
         if (bool(cuFlag)) {
             #define CLOUDS_CU_RAYMARCH_STEP 64
             #define CLOUDS_CU_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_RAYMARCH_STEP))
-            #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 8
+            #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 5
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
 
             float cuRayLen = max(cuRayLenBottom, cuRayLenTop) - cuOrigin2RayStart;
@@ -131,28 +131,29 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                 if (coverage > DENSITY_EPSILON) {
                     float density = clouds_cu_density(rayPosJittered);
                     float sampleDensity = coverage;
-                    sampleDensity = linearStep(density * 0.25, 1.0, coverage) * 4.0;
+                    sampleDensity = linearStep(density * 0.3, 1.0, coverage) * 4.0;
 
                     if (sampleDensity > DENSITY_EPSILON) {
-                        float lightRayLen = 0.5;
+                        float lightRayLen = 3.0;
                         float lightRayStepDelta = lightRayLen * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
 
                         float lightRayTotalDensity = 0.0;
                         {
                             vec3 lightSamplePos = rayPosJittered;
                             for (uint lightStepIndex = 0; lightStepIndex < CLOUDS_CU_LIGHT_RAYMARCH_STEP; ++lightStepIndex) {
+                                if (length(lightSamplePos) > cuMaxHeight) break;
                                 float lightStepIndexF = float(lightStepIndex) + jitters.y;
                                 float lightCoverage = clouds_cu_coverage(lightSamplePos);
                                 if (lightCoverage > DENSITY_EPSILON) {
                                     float lightDensity = clouds_cu_density(lightSamplePos);
-                                    float lightSampleDensity = linearStep(lightDensity * 0.25, 1.0, lightCoverage);
+                                    float lightSampleDensity = linearStep(lightDensity * 0.3, 1.0, lightCoverage);
                                     lightRayTotalDensity += lightSampleDensity * lightRayStepDelta;
                                 }
                                 lightSamplePos += renderParams.lightDir * lightRayStepDelta * jitters.y;
                                 lightRayStepDelta *= 1.5;
                             }
                         }
-                        lightRayTotalDensity *= 4.0 * 16.0;
+                        lightRayTotalDensity *= 4.0 * 4.0;
                         vec3 lightRayOpticalDepth = cuMedium.extinction * lightRayTotalDensity;
                         vec3 lightRayTransmittance = exp(-lightRayOpticalDepth);
 
