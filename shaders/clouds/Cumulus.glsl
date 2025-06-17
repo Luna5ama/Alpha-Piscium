@@ -51,19 +51,26 @@ float clouds_cu_coverage(vec3 rayPos, float heightFraction) {
 }
 
 float clouds_cu_density(vec3 rayPos) {
+    FBMParameters curlParams;
+    curlParams.frequency = 0.01;
+    curlParams.persistence = 0.7;
+    curlParams.lacunarity = 3.9;
+    curlParams.octaveCount = 2u;
+    vec3 curl = GradientNoise_3D_grad_fbm(curlParams, rayPos);
+
     FBMParameters densityParams;
     densityParams.frequency = 3.5;
     densityParams.persistence = 0.7;
     densityParams.lacunarity = 2.6;
     densityParams.octaveCount = 1u;
-    float density = GradientNoise_3D_value_fbm(densityParams, rayPos);
+    float density = GradientNoise_3D_value_fbm(densityParams, rayPos + curl * 1.0);
 
     FBMParameters valueNoiseParams;
     valueNoiseParams.frequency = 8.1;
     valueNoiseParams.persistence = 0.6;
     valueNoiseParams.lacunarity = 2.7;
     valueNoiseParams.octaveCount = 2u;
-    density += ValueNoise_3D_value_fbm(valueNoiseParams, rayPos) * 0.5;
+    density += ValueNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * 0.5) * 0.5;
 
     density = linearStep(-1.0, 1.0, density);
 
