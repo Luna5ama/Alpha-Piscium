@@ -32,6 +32,9 @@ void main() {
     uint sliceSampleIndex = gl_LocalInvocationID.y;
     vec4 sliceEndPoints = uintBitsToFloat(imageLoad(uimg_epipolarData, ivec2(sliceIndex, 0)));
 
+    ScatteringResult result = scatteringResult_init();
+    float viewZ = 65536.0;
+
     uint cond = uint(all(lessThan(texelPos, imgSizei)));
     cond &= uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
 
@@ -46,23 +49,23 @@ void main() {
         texCoord = (round(texCoord * global_mainImageSize) + 0.5) * global_mainImageSizeRcp;
 
         AtmosphereParameters atmosphere = getAtmosphereParameters();
-        float viewZ = textureLod(usam_gbufferViewZ, texCoord, 0.0).r;
+        viewZ = textureLod(usam_gbufferViewZ, texCoord, 0.0).r;
         vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
 
         float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, (texelPos >> 1) + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
         lmCoordSky = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y)));
-        ScatteringResult result = computeSingleScattering(
+        result = computeSingleScattering(
             atmosphere,
             vec3(0.0),
             viewCoord,
             ignValue,
             lighting_skyLightFalloff(lmCoordSky)
         );
-
-        uvec4 outputData;
-        packEpipolarData(outputData, result, viewZ);
-        ivec2 writeTexelPos = texelPos;
-        writeTexelPos.y += 1;
-        imageStore(uimg_epipolarData, writeTexelPos, outputData);
     }
+
+    uvec4 outputData;
+    packEpipolarData(outputData, result, viewZ);
+    ivec2 writeTexelPos = texelPos;
+    writeTexelPos.y += 1;
+    imageStore(uimg_epipolarData, writeTexelPos, outputData);
 }
