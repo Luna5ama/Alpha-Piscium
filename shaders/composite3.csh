@@ -151,14 +151,20 @@ void main() {
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
 
     ivec2 texelPos = ivec2(mortonGlobalPosU);
-    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-    gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), lighting_gData);
-    gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), lighting_gData);
-    vec4 outputColor = compShadow(texelPos, viewZ);
-    imageStore(uimg_temp5, texelPos, outputColor);
+
+    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+
+        if (viewZ != -65536.0) {
+            gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), lighting_gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), lighting_gData);
+            vec4 outputColor = compShadow(texelPos, viewZ);
+            imageStore(uimg_temp5, texelPos, outputColor);
 
 
-    #ifdef SETTING_RTWSM_B
-    rtwsm_backward(texelPos, viewZ, lighting_gData.geometryNormal);
-    #endif
+            #ifdef SETTING_RTWSM_B
+            rtwsm_backward(texelPos, viewZ, lighting_gData.geometryNormal);
+            #endif
+        }
+    }
 }
