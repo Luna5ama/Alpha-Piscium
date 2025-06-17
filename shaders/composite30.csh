@@ -3,7 +3,6 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/atmosphere/UnwarpEpipolar.glsl"
-#include "/atmosphere/Scattering.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"

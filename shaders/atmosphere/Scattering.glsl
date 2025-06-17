@@ -13,9 +13,11 @@
 #include "/rtwsm/RTWSM.glsl"
 #include "/util/Celestial.glsl"
 
-uniform sampler2D usam_rtwsm_imap;
-const bool shadowHardwareFiltering0 = true;
-uniform sampler2DShadow shadowtex0HW;
+//uniform sampler2D usam_rtwsm_imap;
+//const bool shadowHardwareFiltering0 = true;
+//uniform sampler2DShadow shadowtex0HW;
+//uniform sampler2D usam_gbufferViewZ;
+//uniform usampler2D usam_packedZN;
 
 float atmosphere_sample_shadow(vec3 shadowPos) {
     vec3 sampleTexCoord = shadowPos;
@@ -27,25 +29,30 @@ float atmosphere_sample_shadow(vec3 shadowPos) {
 #define ATMOSPHERE_RAYMARCHING_AERIAL_PERSPECTIVE a
 #include "Raymarching.glsl"
 
-// originView: ray origin in view space
-// endView: ray end in view space
-ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 originView, vec3 endView, float stepJitter, float multiSctrFactor) {
+const vec3 ORIGIN_VIEW = vec3(0.0);
+
+ScatteringResult computeSingleScattering(vec2 screenPos, float viewZ, float noiseV) {
+    AtmosphereParameters atmosphere = getAtmosphereParameters();
     ScatteringResult result = scatteringResult_init();
 
-    mat3 vectorView2World = mat3(gbufferModelViewInverse);
+    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
+    ivec2 texelPos = ivec2(screenPos * global_mainImageSize);
+    ivec2 texePos2x2 = texelPos >> 1;
+    float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, texePos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
+    float multiSctrFactor = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y)));
 
-    vec3 viewDirView = normalize(endView - originView);
-    vec3 viewDirWorld = normalize(vectorView2World * viewDirView);
+    mat3 vectorView2World = mat3(gbufferModelViewInverse);
+    vec3 viewDirWorld = normalize(vectorView2World * (viewPos - ORIGIN_VIEW));
 
     vec3 rayDir = viewDirWorld;
 
     RaymarchParameters params = raymarchParameters_init();
-    params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
+    params.rayStart = atmosphere_viewToAtm(atmosphere, ORIGIN_VIEW);
     LightParameters sunParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, uval_sunDirWorld, rayDir);
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParam, moonParams, multiSctrFactor);
 
-    if (endView.z == -65536.0) {
+    if (viewZ == -65536.0) {
         scatteringParams.multiSctrFactor = 1.0;
 
         params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
@@ -55,10 +62,10 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
             result = raymarchSky(atmosphere, params, scatteringParams);
         }
     } else {
-        params.rayEnd = atmosphere_viewToAtm(atmosphere, endView);
+        params.rayEnd = atmosphere_viewToAtm(atmosphere, viewPos);
 
-        vec4 originScene = gbufferModelViewInverse * vec4(originView, 1.0);
-        vec4 endScene = gbufferModelViewInverse * vec4(endView, 1.0);
+        vec4 originScene = gbufferModelViewInverse * vec4(ORIGIN_VIEW, 1.0);
+        vec4 endScene = gbufferModelViewInverse * vec4(viewPos, 1.0);
 
         vec4 originShadowCS = global_shadowRotationMatrix * shadowProjection * shadowModelView * originScene;
         vec4 endShadowCS = global_shadowRotationMatrix * shadowProjection * shadowModelView * endScene;
@@ -69,7 +76,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 o
         endShadow = endShadow * 0.5 + 0.5;
 
         params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
-        result = raymarchAerialPerspective(atmosphere, params, scatteringParams, startShadow, endShadow, stepJitter);
+        result = raymarchAerialPerspective(atmosphere, params, scatteringParams, startShadow, endShadow, noiseV);
     }
 
     return result;

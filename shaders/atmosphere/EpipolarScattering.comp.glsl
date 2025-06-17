@@ -10,7 +10,6 @@
         You can find full license texts in /licenses
 */
 #include "Common.glsl"
-#include "Scattering.glsl"
 #include "/rtwsm/RTWSM.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Lighting.glsl"
@@ -19,8 +18,13 @@
 layout(local_size_x = 1, local_size_y = SETTING_SLICE_SAMPLES) in;
 const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
 
+uniform sampler2D usam_rtwsm_imap;
+const bool shadowHardwareFiltering0 = true;
+uniform sampler2DShadow shadowtex0HW;
 uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_packedZN;
+
+#include "Scattering.glsl"
 
 layout(rgba32ui) uniform restrict uimage2D uimg_epipolarData;
 
@@ -39,28 +43,17 @@ void main() {
     cond &= uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
 
     if (bool(cond)) {
-        float ignValue = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
+        vec2 noiseV = rand_stbnVec2(ivec2(gl_GlobalInvocationID.xy), frameCounter);
         float sliceSampleP = float(sliceSampleIndex);
-        sliceSampleP += ignValue - 0.5;
+        sliceSampleP += noiseV.x - 0.5;
         sliceSampleP /= float(SETTING_SLICE_SAMPLES - 1);
         sliceSampleP = sliceSampleP * sliceSampleP;
 
-        vec2 texCoord = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
-        texCoord = (round(texCoord * global_mainImageSize) + 0.5) * global_mainImageSizeRcp;
+        vec2 screenPos = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
+        screenPos = (round(screenPos * global_mainImageSize) + 0.5) * global_mainImageSizeRcp;
 
-        AtmosphereParameters atmosphere = getAtmosphereParameters();
-        viewZ = textureLod(usam_gbufferViewZ, texCoord, 0.0).r;
-        vec3 viewCoord = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
-
-        float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, (texelPos >> 1) + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
-        lmCoordSky = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y)));
-        result = computeSingleScattering(
-            atmosphere,
-            vec3(0.0),
-            viewCoord,
-            ignValue,
-            lighting_skyLightFalloff(lmCoordSky)
-        );
+        viewZ = textureLod(usam_gbufferViewZ, screenPos, 0.0).r;
+        result = computeSingleScattering(screenPos, viewZ, noiseV.y);
     }
 
     uvec4 outputData;

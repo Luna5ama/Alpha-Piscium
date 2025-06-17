@@ -88,8 +88,6 @@ struct AtmosphereParameters {
     float top;
 
     float mieHeight;
-    float ozoneCenter;
-    float ozoneHalfWidth;
 
     vec3 rayleighSctrCoeff;
     vec3 rayleighExtinction;
@@ -107,8 +105,6 @@ AtmosphereParameters getAtmosphereParameters() {
     const float ATMOSPHERE_TOP = ATMOSPHERE_BOTTOM + 100.0;
 
     const float MIE_HEIGHT = 1.2;
-    const float OZONE_CENTER = 25.0;
-    const float OZONE_HALF_WIDTH = 15.0;
 
     // https://www.desmos.com/calculator/8zep6vmnxa
     // Already in km
@@ -156,8 +152,6 @@ AtmosphereParameters getAtmosphereParameters() {
     atmosphere.top = ATMOSPHERE_TOP;
 
     atmosphere.mieHeight = MIE_HEIGHT;
-    atmosphere.ozoneCenter = OZONE_CENTER;
-    atmosphere.ozoneHalfWidth = OZONE_HALF_WIDTH;
 
     atmosphere.rayleighSctrCoeff = RAYLEIGH_SCATTERING;
     atmosphere.rayleighExtinction = RAYLEIGH_SCATTERING;
