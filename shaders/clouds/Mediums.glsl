@@ -22,8 +22,6 @@ const vec3 CLOUDS_CI_EXTINCTION = vec3(6.18410168687, 6.18700464438, 6.193909024
 const vec3 CLOUDS_CI_ASYM = vec3(0.785425549428, 0.783514530696, 0.779705038777);
 const float CLOUDS_CI_R_EFF = 91.7;
 
-
-
 struct CloudParticpatingMedium {
     vec3 scattering;
     vec3 extinction;

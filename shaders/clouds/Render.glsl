@@ -99,11 +99,10 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
         if (bool(cuFlag)) {
             #define CLOUDS_CU_RAYMARCH_STEP 64
             #define CLOUDS_CU_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_RAYMARCH_STEP))
-            #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 4
+            #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 8
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
 
             float cuRayLen = max(cuRayLenBottom, cuRayLenTop) - cuOrigin2RayStart;
-            cuRayLen = min(cuRayLen, SETTING_CLOUDS_CU_THICKNESS * 4.0); // Limit raymarching length to avoid artifacts
 
             vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 1.5 / 6.0)).rgb;
             CloudParticpatingMedium cuMedium = clouds_cu_medium(renderParams.LDotV);
@@ -119,34 +118,41 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
             CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam);
 
             CloudRaymarchAccumState cuAccum = clouds_raymarchAccumState_init();
-            float jitter = rand_stbnVec1(texelPos, frameCounter);
+
+            vec2 jitters = rand_stbnVec2(texelPos, frameCounter);
 
             for (uint stepIndex = 0; stepIndex < CLOUDS_CU_RAYMARCH_STEP; ++stepIndex) {
-                vec3 rayPosCenter = stepState.position + 0.5 * stepState.rayStep.xyz;
-                vec3 rayPosJittered = stepState.position + jitter * stepState.rayStep.xyz;
+                if (stepState.position.w > cuRayLen) break;
+                vec3 rayPosCenter = stepState.position.xyz + 0.5 * stepState.rayStep.xyz;
+                vec3 rayPosJittered = stepState.position.xyz + jitters.x * stepState.rayStep.xyz;
 
                 float coverage = clouds_cu_coverage(rayPosJittered);
 
                 if (coverage > DENSITY_EPSILON) {
                     float density = clouds_cu_density(rayPosJittered);
-                    float sampleDensity = linearStep(density * 0.2, 1.0, coverage) * 4.0;
+                    float sampleDensity = coverage;
+                    sampleDensity = linearStep(density * 0.25, 1.0, coverage) * 4.0;
 
                     if (sampleDensity > DENSITY_EPSILON) {
-                        float lightRayLen = raySphereIntersectNearest(rayPosCenter, renderParams.lightDir, earthCenter, cuMaxHeight);
-                        lightRayLen = min(lightRayLen, 0.5);
+                        float lightRayLen = 0.5;
                         float lightRayStepDelta = lightRayLen * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
 
                         float lightRayTotalDensity = 0.0;
-//                        for (uint lightStepIndex = 0; lightStepIndex < CLOUDS_CU_LIGHT_RAYMARCH_STEP; ++lightStepIndex) {
-//                            float lightStepIndexF = float(lightStepIndex) + jitter;
-//                            vec3 lightSamplePos = rayPosCenter + renderParams.lightDir * lightStepIndexF * lightRayStepDelta;
-//                            float lightCoverage = clouds_cu_coverage(lightSamplePos);
-//                            if (lightCoverage > DENSITY_EPSILON) {
-//                                float lightDensity = clouds_cu_density(lightSamplePos);
-//                                float lightSampleDensity = linearStep(lightDensity * 0.25, 1.0, lightCoverage) * 192.0;
-//                                lightRayTotalDensity += lightSampleDensity * lightRayStepDelta;
-//                            }
-//                        }
+                        {
+                            vec3 lightSamplePos = rayPosJittered;
+                            for (uint lightStepIndex = 0; lightStepIndex < CLOUDS_CU_LIGHT_RAYMARCH_STEP; ++lightStepIndex) {
+                                float lightStepIndexF = float(lightStepIndex) + jitters.y;
+                                float lightCoverage = clouds_cu_coverage(lightSamplePos);
+                                if (lightCoverage > DENSITY_EPSILON) {
+                                    float lightDensity = clouds_cu_density(lightSamplePos);
+                                    float lightSampleDensity = linearStep(lightDensity * 0.25, 1.0, lightCoverage);
+                                    lightRayTotalDensity += lightSampleDensity * lightRayStepDelta;
+                                }
+                                lightSamplePos += renderParams.lightDir * lightRayStepDelta * jitters.y;
+                                lightRayStepDelta *= 1.5;
+                            }
+                        }
+                        lightRayTotalDensity *= 4.0 * 16.0;
                         vec3 lightRayOpticalDepth = cuMedium.extinction * lightRayTotalDensity;
                         vec3 lightRayTransmittance = exp(-lightRayOpticalDepth);
 
@@ -162,7 +168,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                     }
                 }
 
-                clouds_raymarchStepState_update(stepState, 1.0);
+                clouds_raymarchStepState_update(stepState);
             }
 
 
@@ -170,7 +176,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
             accumState.totalInSctr = mix(
                 accumState.totalInSctr + cuAccum.totalInSctr * accumState.totalTransmittance, // Below
                 cuAccum.totalInSctr * cuAccum.totalTransmittance + cuAccum.totalInSctr, // Above
-                aboveFlag
+                0.0
             );
             accumState.totalTransmittance *= cuAccum.totalTransmittance;
         }
@@ -200,7 +206,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
             );
             CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam);
 
-            float sampleDensity = clouds_ci_density(stepState.position);
+            float sampleDensity = clouds_ci_density(stepState.position.xyz);
             vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 3.5 / 6.0)).rgb;
 
             CloudRaymarchAccumState ciAccum = clouds_raymarchAccumState_init();

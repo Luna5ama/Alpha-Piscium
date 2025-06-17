@@ -84,7 +84,7 @@ CloudRaymarchAccumState clouds_raymarchAccumState_init() {
 }
 
 struct CloudRaymarchStepState {
-    vec3 position;
+    vec4 position;
     float height;
     vec4 rayStep;
     vec3 upVector;
@@ -92,21 +92,21 @@ struct CloudRaymarchStepState {
 
 CloudRaymarchStepState clouds_raymarchStepState_init(CloudRaymarchLayerParam layerParam) {
     CloudRaymarchStepState state;
-    state.position = layerParam.rayStart;
-    state.height = length(state.position);
-    state.upVector = state.position / state.height;
+    state.position = vec4(layerParam.rayStart, 0.0);
+    state.height = length(state.position.xyz);
+    state.upVector = state.position.xyz / state.height;
     state.rayStep = layerParam.rayStep;
     return state;
 }
 
 void clouds_raymarchStepState_update(
-    inout CloudRaymarchStepState state,
-    float stepLengthMultiplier
+    inout CloudRaymarchStepState state
+//    float stepLengthMultiplier
 ) {
-    state.rayStep *= stepLengthMultiplier;
-    state.position += state.rayStep.xyz;
-    state.height = length(state.position);
-    state.upVector = state.position / state.height;
+//    state.rayStep *= stepLengthMultiplier;
+    state.position += state.rayStep;
+    state.height = length(state.position.xyz);
+    state.upVector = state.position.xyz / state.height;
 }
 
 const vec4 _CLOUDS_MS_FALLOFFS = vec4(
@@ -147,7 +147,7 @@ void clouds_computeLighting(
         vec3 sampleTransmittanceMS = exp(-sampleOpticalDepthMS);
 
         vec3 sampleInSctr = sampleLightIrradiance * samplePhaseMS;
-//        sampleInSctr += sampleAmbientIrradiance * multSctrFalloffs.w;
+        sampleInSctr += sampleAmbientIrradiance * multSctrFalloffs.w;
         sampleInSctr *= sampleScatteringMS;
         // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
         vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittanceMS) / sampleOpticalDepthMS;
