@@ -66,10 +66,10 @@ float clouds_cu_density(vec3 rayPos) {
     float density = GradientNoise_3D_value_fbm(densityParams, rayPos + curl * 1.0);
 
     FBMParameters valueNoiseParams;
-    valueNoiseParams.frequency = 8.1;
-    valueNoiseParams.persistence = 0.6;
-    valueNoiseParams.lacunarity = 2.7;
-    valueNoiseParams.octaveCount = 2u;
+    valueNoiseParams.frequency = 8.9;
+    valueNoiseParams.persistence = 0.7;
+    valueNoiseParams.lacunarity = 3.1;
+    valueNoiseParams.octaveCount = 3u;
     density += ValueNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * 0.5) * 0.5;
 
     density = linearStep(-1.0, 1.0, density);
