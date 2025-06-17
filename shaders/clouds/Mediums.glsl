@@ -60,21 +60,21 @@ vec3 clouds_phase_cu(float cosTheta) {
 }
 
 vec3 clouds_phase_ci(float cosTheta) {
-    return mix(cornetteShanksPhase(cosTheta, CLOUDS_CU_ASYM), _clouds_cumulusLUTPhase(cosTheta), SETTING_CLOUDS_CI_PHASE_RATIO);
-}
-
-CloudParticpatingMedium clouds_ci_medium(float cosTheta) {
-    CloudParticpatingMedium medium;
-    medium.scattering = CLOUDS_CI_SCATTERING;
-    medium.extinction = CLOUDS_CI_EXTINCTION;
-    medium.phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM), _clouds_samplePhaseLUT(cosTheta, 0.0), SETTING_CLOUDS_CI_PHASE_RATIO);
-    return medium;
+    return mix(cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM), _clouds_cirrusLUTPhase(cosTheta), SETTING_CLOUDS_CI_PHASE_RATIO);
 }
 
 CloudParticpatingMedium clouds_cu_medium(float cosTheta) {
     CloudParticpatingMedium medium;
     medium.scattering = CLOUDS_CU_SCATTERING;
     medium.extinction = CLOUDS_CU_EXTINCTION;
-    medium.phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_CU_ASYM), _clouds_cumulusLUTPhase(cosTheta), SETTING_CLOUDS_CU_PHASE_RATIO);
+    medium.phase = clouds_phase_cu(cosTheta);
+    return medium;
+}
+
+CloudParticpatingMedium clouds_ci_medium(float cosTheta) {
+    CloudParticpatingMedium medium;
+    medium.scattering = CLOUDS_CI_SCATTERING;
+    medium.extinction = CLOUDS_CI_EXTINCTION;
+    medium.phase = clouds_phase_ci(cosTheta);
     return medium;
 }
