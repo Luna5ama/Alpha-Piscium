@@ -7,7 +7,7 @@
 #define ATMOSPHERE_RAYMARCHING_SKY a
 #include "/atmosphere/Raymarching.glsl"
 
-layout(local_size_x = 256) in;
+layout(local_size_x = SAMPLE_COUNT) in;
 const ivec3 workGroups = ivec3(AMBIENT_IRRADIANCE_LUT_SIZE, AMBIENT_IRRADIANCE_LUT_SIZE, 1);
 
 shared vec3 shared_inSctrSum[8];

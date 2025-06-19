@@ -3,6 +3,9 @@
         [GEI05] GEISA. "The Database and Associated Software OPAC". 2005. https://cds-espri.ipsl.upmc.fr/etherTypo/?id=989&L=0
 */
 
+#include "/util/Colors.glsl"
+#include "/util/PhaseFunc.glsl"
+
 // See https://www.desmos.com/calculator/m39bzkcevu
 // Stratus (continental)
 const vec3 CLOUDS_ST_SCATTERING = vec3(0.239422239197, 0.237947659001, 0.236198745092);
