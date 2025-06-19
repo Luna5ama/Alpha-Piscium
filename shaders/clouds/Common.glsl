@@ -6,6 +6,11 @@
         [SCH15] Schneider, Andrew. "The Real-Time Volumetric Cloudscapes Of Horizon: Zero Dawn"
             SIGGRAPH 2015. 2015.
             https://www.guerrilla-games.com/read/the-real-time-volumetric-cloudscapes-of-horizon-zero-dawn
+        [SCH16] Schneider, Andrew. "Real-Time Volumetric Cloudscapes"
+            GPU Pro 7. 2016.
+        [SCH17] Schneider, Andrew. "Nubis: Authoring Real-Time Volumetric Cloudscapes with the Decima Engine"
+            SIGGRAPH 17. 2017.
+            https://www.guerrilla-games.com/read/nubis-authoring-real-time-volumetric-cloudscapes-with-the-decima-engine
         [QIU25] QiuTang98. "Flower Engine"
             MIT License. Copyright (c) 2025 QiuTang98.
             https://github.com/qiutang98/flower
@@ -101,9 +106,7 @@ CloudRaymarchStepState clouds_raymarchStepState_init(CloudRaymarchLayerParam lay
 
 void clouds_raymarchStepState_update(
     inout CloudRaymarchStepState state
-//    float stepLengthMultiplier
 ) {
-//    state.rayStep *= stepLengthMultiplier;
     state.position += state.rayStep;
     state.height = length(state.position.xyz);
     state.upVector = state.position.xyz / state.height;
@@ -131,40 +134,37 @@ void clouds_computeLighting(
     vec3 sampleLightIrradiance = renderParams.lightIrradiance;
     sampleLightIrradiance *= tLightToSample * lightTransmittance;
     vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
-    sampleAmbientIrradiance *= accumState.totalTransmittance * mix(lightTransmittance, vec3(1.0), 0.25);
+    sampleAmbientIrradiance *= accumState.totalTransmittance * mix(lightTransmittance, vec3(1.0), 0.5);
 
     vec3 sampleScattering = layerParam.medium.scattering * sampleDensity;
     vec3 sampleExtinction = layerParam.medium.extinction * sampleDensity;
-    vec3 sampleOpticalDepth = sampleExtinction * min(stepState.rayStep.w, 0.05);
+    vec3 sampleOpticalDepth = sampleExtinction * stepState.rayStep.w;
+    // See [SCH17]
+    vec3 sampleTransmittance = max(exp(-sampleOpticalDepth), exp(-sampleOpticalDepth * 0.25) * 0.7);
 
-    vec3 sampleScatteringMS = sampleScattering;
-    vec3 sampleOpticalDepthMS = sampleOpticalDepth;
-    vec3 samplePhaseMS = layerParam.medium.phase;
-    vec3 sampleAmbientIrradianceMS = sampleAmbientIrradiance;
-    vec4 multSctrFalloffs = _CLOUDS_MS_FALLOFFS;
+    vec4 multSctrFalloffs = vec4(1.0);
 
     vec3 sampleTotalInSctr = vec3(0.0);
 
     // See [HIL16] and [QIU25]
     for (uint i = 0; i < SETTING_CLOUDS_MS_ORDER; i++) {
-        vec3 sampleTransmittanceMS = exp(-sampleOpticalDepthMS);
+        vec3 sampleScatteringMS = sampleScattering * multSctrFalloffs.x;
+        vec3 sampleExtinctionMS = sampleExtinction * multSctrFalloffs.y;
+        vec3 samplePhaseMS = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, multSctrFalloffs.z);
+        vec3 sampleAmbientIrradianceMS = sampleAmbientIrradiance * multSctrFalloffs.w;
 
         vec3 sampleInSctr = sampleLightIrradiance * samplePhaseMS;
         sampleInSctr += sampleAmbientIrradianceMS;
         sampleInSctr *= sampleScatteringMS;
         // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-        vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittanceMS) / sampleOpticalDepthMS;
+        vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinctionMS;
 
         sampleTotalInSctr += sampleInSctrInt;
-
-        sampleScatteringMS *= multSctrFalloffs.x;
-        sampleOpticalDepthMS *= multSctrFalloffs.y;
-        samplePhaseMS = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, multSctrFalloffs.z);
-        multSctrFalloffs *= multSctrFalloffs;
+        multSctrFalloffs *= _CLOUDS_MS_FALLOFFS;
     }
 
     accumState.totalInSctr += sampleTotalInSctr * accumState.totalTransmittance;
-    accumState.totalTransmittance *= exp(-sampleOpticalDepth);
+    accumState.totalTransmittance *= sampleTransmittance;
 }
 
 #endif

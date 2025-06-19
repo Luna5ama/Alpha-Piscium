@@ -1031,7 +1031,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     lang {
                         name = "Clouds Lighting"
                     }
-                    slider("SETTING_CLOUDS_MS_ORDER", 3, 1..10) {
+                    slider("SETTING_CLOUDS_MS_ORDER", 4, 1..10) {
                         lang {
                             name = "Multi-Scattering Order"
                         }
@@ -1041,7 +1041,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Multi-Scattering Scattering Falloff"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.6, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.5, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Extinction Falloff"
                         }
@@ -1051,7 +1051,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Multi-Scattering Phase Falloff"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_AMB", 0.1, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_AMB", 0.2, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Ambient Irradiance Falloff"
                         }
