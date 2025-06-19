@@ -143,6 +143,8 @@ void clouds_computeLighting(
     vec3 sampleAmbientIrradianceMS = sampleAmbientIrradiance;
     vec4 multSctrFalloffs = _CLOUDS_MS_FALLOFFS;
 
+    vec3 sampleTotalInSctr = vec3(0.0);
+
     // See [HIL16] and [QIU25]
     for (uint i = 0; i < SETTING_CLOUDS_MS_ORDER; i++) {
         vec3 sampleTransmittanceMS = exp(-sampleOpticalDepthMS);
@@ -153,7 +155,7 @@ void clouds_computeLighting(
         // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
         vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittanceMS) / sampleOpticalDepthMS;
 
-        accumState.totalInSctr += sampleInSctrInt;
+        sampleTotalInSctr += sampleInSctrInt;
 
         sampleScatteringMS *= multSctrFalloffs.x;
         sampleOpticalDepthMS *= multSctrFalloffs.y;
@@ -161,6 +163,7 @@ void clouds_computeLighting(
         multSctrFalloffs *= multSctrFalloffs;
     }
 
+    accumState.totalInSctr += sampleTotalInSctr * accumState.totalTransmittance;
     accumState.totalTransmittance *= exp(-sampleOpticalDepth);
 }
 
