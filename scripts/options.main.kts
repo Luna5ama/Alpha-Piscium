@@ -1036,28 +1036,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Multi-Scattering Order"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.8, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.6, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Scattering Falloff"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.5, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.6, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Extinction Falloff"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_PHASE", 0.4, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_PHASE", 0.5, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Phase Falloff"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_AMB", 0.2, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_AMB", 0.4, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Ambient Irradiance Falloff"
                         }
                     }
                     empty()
-                    slider("SETTING_CLOUDS_AMB_UNI_PHASE_RATIO", 0.3, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_AMB_UNI_PHASE_RATIO", 0.5, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Ambient Irradiance Uniform Phase Ratio"
                         }

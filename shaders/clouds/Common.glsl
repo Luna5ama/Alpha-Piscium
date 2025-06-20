@@ -95,9 +95,9 @@ struct CloudRaymarchStepState {
     vec3 upVector;
 };
 
-CloudRaymarchStepState clouds_raymarchStepState_init(CloudRaymarchLayerParam layerParam) {
+CloudRaymarchStepState clouds_raymarchStepState_init(CloudRaymarchLayerParam layerParam, float posJitter) {
     CloudRaymarchStepState state;
-    state.position = vec4(layerParam.rayStart, 0.0);
+    state.position = vec4(layerParam.rayStart + layerParam.rayStep.xyz * posJitter, 0.0);
     state.height = length(state.position.xyz);
     state.upVector = state.position.xyz / state.height;
     state.rayStep = layerParam.rayStep;
