@@ -15,10 +15,10 @@ float clouds_cu_coverage(vec3 rayPos, float heightFraction) {
     float earthCoverage = 1.0;
 
     FBMParameters shapeParams;
-    shapeParams.frequency = 0.1;
-    shapeParams.persistence = 0.5;
+    shapeParams.frequency = 0.08;
+    shapeParams.persistence = 0.7;
     shapeParams.lacunarity = 2.0;
-    shapeParams.octaveCount = 4u;
+    shapeParams.octaveCount = 3u;
     mat2 rotationMatrix = mat2_rotate(GOLDEN_RATIO);
     float baseCoverage = GradientNoise_2D_value_fbm(shapeParams, rotationMatrix, rayPos.xz + vec2(110.0, 0.0));
     baseCoverage = linearStep(1.0 - SETTING_CLOUDS_CU_COVERAGE * 2.0, 1.0, baseCoverage);
@@ -62,18 +62,18 @@ float clouds_cu_density(vec3 rayPos) {
     vec3 curl = GradientNoise_3D_grad_fbm(curlParams, rayPos);
 
     FBMParameters densityParams;
-    densityParams.frequency = 2.5;
+    densityParams.frequency = 1.5;
     densityParams.persistence = 0.6;
     densityParams.lacunarity = 2.0;
     densityParams.octaveCount = 2u;
     float density = GradientNoise_3D_value_fbm(densityParams, rayPos + curl * 2.0) * 1.0;
 
     FBMParameters valueNoiseParams;
-    valueNoiseParams.frequency = 6.9;
+    valueNoiseParams.frequency = 5.9;
     valueNoiseParams.persistence = 0.7;
     valueNoiseParams.lacunarity = 3.1;
     valueNoiseParams.octaveCount = 3u;
-    density += ValueNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * 1.0) * 0.25;
+    density += ValueNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * 0.5) * 0.5;
 
     density = linearStep(-1.0, 1.0, density);
 
