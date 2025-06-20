@@ -321,12 +321,61 @@ vec4 GradientNoise_3D_valueGrad(vec3 x) {
     return vec4(value, grad);
 }
 
+vec3 GradientNoise_3D_grad(vec3 x) {
+    uvec3 i = _noise_hash_coord(x);
+    vec3 w = fract(x);
+
+    vec3 u = _NOISE_INTERPO(w);
+    vec3 du = _NOISE_INTERPO_GRAD(w);
+
+    vec3 ga = _GradientNoise_3D_hash(i + ivec3(0, 0, 0));
+    vec3 gb = _GradientNoise_3D_hash(i + ivec3(1, 0, 0));
+    vec3 gc = _GradientNoise_3D_hash(i + ivec3(0, 1, 0));
+    vec3 gd = _GradientNoise_3D_hash(i + ivec3(1, 1, 0));
+    vec3 ge = _GradientNoise_3D_hash(i + ivec3(0, 0, 1));
+    vec3 gf = _GradientNoise_3D_hash(i + ivec3(1, 0, 1));
+    vec3 gg = _GradientNoise_3D_hash(i + ivec3(0, 1, 1));
+    vec3 gh = _GradientNoise_3D_hash(i + ivec3(1, 1, 1));
+
+    float va = dot(ga, w - vec3(0.0, 0.0, 0.0));
+    float vb = dot(gb, w - vec3(1.0, 0.0, 0.0));
+    float vc = dot(gc, w - vec3(0.0, 1.0, 0.0));
+    float vd = dot(gd, w - vec3(1.0, 1.0, 0.0));
+    float ve = dot(ge, w - vec3(0.0, 0.0, 1.0));
+    float vf = dot(gf, w - vec3(1.0, 0.0, 1.0));
+    float vg = dot(gg, w - vec3(0.0, 1.0, 1.0));
+    float vh = dot(gh, w - vec3(1.0, 1.0, 1.0));
+
+
+    vec3 g = mix(mix(mix(ga, gb, u.x), mix(gc, gd, u.x), u.y), mix(mix(ge, gf, u.x), mix(gg, gh, u.x), u.y), u.z);
+    vec3 d = mix(
+        mix(vec3(vb, vc, ve) - va, vec3(vd - vc, vd - vb, vf - vb), u.yxx),
+        mix(vec3(vf - ve, vg - ve, vg-vc), vh-vec3(vg, vf, vd), u.yxx),
+        u.zzy
+    );
+    vec3 grad = g + du * d;
+
+    return grad;
+}
+
 float GradientNoise_3D_value_fbm(FBMParameters params, vec3 position) {
     float value = 0.0;
     float amplitude = 1.0;
     float currentFrequency = params.frequency;
     for (uint i = 0; i < params.octaveCount; i++) {
         value += GradientNoise_3D_value(position * currentFrequency) * amplitude;
+        amplitude *= params.persistence;
+        currentFrequency *= params.lacunarity;
+    }
+    return value;
+}
+
+vec3 GradientNoise_3D_grad_fbm(FBMParameters params, vec3 position) {
+    vec3 value = vec3(0.0);
+    float amplitude = 1.0;
+    float currentFrequency = params.frequency;
+    for (uint i = 0; i < params.octaveCount; i++) {
+        value += GradientNoise_3D_grad(position * currentFrequency) * amplitude;
         amplitude *= params.persistence;
         currentFrequency *= params.lacunarity;
     }

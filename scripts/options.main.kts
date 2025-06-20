@@ -1041,12 +1041,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Multi-Scattering Scattering Falloff"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.5, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.6, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Extinction Falloff"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_PHASE", 0.6, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_PHASE", 0.5, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Phase Falloff"
                         }
@@ -1060,6 +1060,44 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     slider("SETTING_CLOUDS_AMB_UNI_PHASE_RATIO", 0.3, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Ambient Irradiance Uniform Phase Ratio"
+                        }
+                    }
+                }
+                screen("LOW_CLOUDS", 1) {
+                    lang {
+                        name = "Low Clouds"
+                    }
+                    toggle("SETTING_CLOUDS_CU", true) {
+                        lang {
+                            name = "Cumulus Clouds"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_HEIGHT", 2.5, 0.0..10.0 step 0.1) {
+                        lang {
+                            name = "Cumulus Height"
+                            suffix = " km"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_THICKNESS", 2.5, 0.0..5.0 step 0.1) {
+                        lang {
+                            name = "Cumulus Thickness"
+                            suffix = " km"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_DENSITY", 1.0, 0.0..4.0 step 0.05) {
+                        lang {
+                            name = "Cumulus Density"
+                            suffix = " x"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.35, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Cumulus Coverage"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_PHASE_RATIO", 0.9, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Cumulus Phase Ratio"
                         }
                     }
                 }

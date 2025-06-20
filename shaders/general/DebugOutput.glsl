@@ -302,8 +302,13 @@ void debugOutput(inout vec4 outputColor) {
     #endif
 
     #ifdef SETTING_DEBUG_CLOUDS
-    if (inViewPort(ivec4(0, 0, 128, 128), debugTexCoord)) {
-        outputColor.rgb = gammaCorrect(applyExposure(texture(usam_cloudsAmbLUT, vec3(debugTexCoord, 0.5 / 3.0)).rgb));
+    #define CLOUDS_AMB_LUT_SIZE 128
+    for (int i = 0; i < 6; i++) {
+        if (inViewPort(ivec4(0, CLOUDS_AMB_LUT_SIZE * i, CLOUDS_AMB_LUT_SIZE, CLOUDS_AMB_LUT_SIZE), debugTexCoord)) {
+            vec3 lutCoord = vec3(debugTexCoord, (float(i) + 0.5) / 6.0);
+            outputColor.rgb = gammaCorrect(applyExposure(texture(usam_cloudsAmbLUT, lutCoord).rgb));
+            break;
+        }
     }
     #endif
 

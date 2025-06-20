@@ -425,7 +425,7 @@ fun inversePolynomial(
 
 var maxError = Double.MIN_VALUE
 
-angAndPhaseCols.take(1).forEachIndexed { index, anglesAndPhase ->
+angAndPhaseCols.forEachIndexed { index, anglesAndPhase ->
     val (angles, phaseRGB) = anglesAndPhase
     repeat(phaseLUTWidth) { px ->
         val px01 = px.toDouble() / (phaseLUTWidth - 1)

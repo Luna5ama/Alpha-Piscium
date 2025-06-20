@@ -1,5 +1,4 @@
 #include "Common.glsl"
-#include "../Common.glsl"
 
 #define ATMOSPHERE_RAYMARCHING_SKY a
 #include "/atmosphere/Raymarching.glsl"
@@ -8,14 +7,15 @@
 #include "/util/Rand.glsl"
 
 layout(local_size_x = 256) in;
-const ivec3 workGroups = ivec3(1, 1, 1);
+const ivec3 workGroups = ivec3(SAMPLE_COUNT_D256, 1, 1);
 
 void main() {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
-    float lutHeight = atmosphere.bottom + 9.0;
+    int layerIndex = clouds_amblut_currLayerIndex();
+    float lutHeight = atmosphere.bottom + clouds_amblut_height(layerIndex);
 
-    vec3 randV = rand_r2Seq3((gl_GlobalInvocationID.x + SAMPLE_COUNT * frameCounter) & 0xFFFFu);
+    vec3 randV = rand_r2Seq3((gl_GlobalInvocationID.x + SAMPLE_COUNT * (frameCounter / 6)) & 0xFFFFu);
     float randA = randV.x;
     float randB = randV.y;
     float theta = 2.0 * PI * randA;

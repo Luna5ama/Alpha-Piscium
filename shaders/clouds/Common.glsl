@@ -6,6 +6,11 @@
         [SCH15] Schneider, Andrew. "The Real-Time Volumetric Cloudscapes Of Horizon: Zero Dawn"
             SIGGRAPH 2015. 2015.
             https://www.guerrilla-games.com/read/the-real-time-volumetric-cloudscapes-of-horizon-zero-dawn
+        [SCH16] Schneider, Andrew. "Real-Time Volumetric Cloudscapes"
+            GPU Pro 7. 2016.
+        [SCH17] Schneider, Andrew. "Nubis: Authoring Real-Time Volumetric Cloudscapes with the Decima Engine"
+            SIGGRAPH 17. 2017.
+            https://www.guerrilla-games.com/read/nubis-authoring-real-time-volumetric-cloudscapes-with-the-decima-engine
         [QIU25] QiuTang98. "Flower Engine"
             MIT License. Copyright (c) 2025 QiuTang98.
             https://github.com/qiutang98/flower
@@ -19,9 +24,9 @@
 
 #include "/util/Colors.glsl"
 #include "/atmosphere/Common.glsl"
-#include "Constants.glsl"
+#include "Mediums.glsl"
 
-struct CloudRayParams {
+struct CloudMainRayParams {
     vec3 rayStart;
     vec3 rayDir;
     vec3 rayEnd;
@@ -35,7 +40,7 @@ struct CloudRenderParams {
     float LDotV;
 };
 
-CloudRenderParams cloudRenderParams_init(CloudRayParams rayParam, vec3 lightDir, vec3 lightIrradiance) {
+CloudRenderParams cloudRenderParams_init(CloudMainRayParams rayParam, vec3 lightDir, vec3 lightIrradiance) {
     CloudRenderParams params;
     params.lightDir = normalize(lightDir);
     params.lightIrradiance = lightIrradiance;
@@ -43,48 +48,31 @@ CloudRenderParams cloudRenderParams_init(CloudRayParams rayParam, vec3 lightDir,
     return params;
 }
 
-struct CloudParticpatingMedium {
-    vec3 scattering;
-    vec3 extinction;
-    vec3 phase;
-};
-
-// See https://www.desmos.com/calculator/yerfmyqpuh
-vec3 samplePhaseLUT(float cosTheta, float type) {
-    const float a0 = 0.672617934627;
-    const float a1 = -0.0713555761181;
-    const float a2 = 0.0299320735609;
-    const float b = 0.264767018876;
-    float x1 = acos(-cosTheta);
-    float x2 = x1 * x1;
-    float u = saturate((a0 + a1 * x1 + a2 * x2) * pow(x1, b));
-    float v = (type + 0.5) / 3.0;
-    return colors_LogLuv32ToSRGB(texture(usam_cloudPhases, vec2(u, v)));
-}
-
-CloudParticpatingMedium clouds_ci_medium(float cosTheta) {
-    CloudParticpatingMedium medium;
-    medium.scattering = CLOUDS_CI_SCATTERING;
-    medium.extinction = CLOUDS_CI_EXTINCTION;
-    medium.phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM), samplePhaseLUT(cosTheta, 0.0), SETTING_CLOUDS_CI_PHASE_RATIO);
-    return medium;
-}
-
 struct CloudRaymarchLayerParam {
     CloudParticpatingMedium medium;
-    float rayStepLength;
     vec3 ambientIrradiance;
+    vec2 layerRange;
+    vec3 rayStart;
+    vec3 rayEnd;
+    vec4 rayStep;
 };
 
 CloudRaymarchLayerParam clouds_raymarchLayerParam_init(
+    CloudMainRayParams mainRayParam,
     CloudParticpatingMedium medium,
-    float rayStepLength,
-    vec3 ambientIrradiance
+    vec3 ambientIrradiance,
+    vec2 layerRange,
+    float origin2RayOffset,
+    float rayLength,
+    float rayRcpStepCount
 ) {
     CloudRaymarchLayerParam param;
     param.medium = medium;
-    param.rayStepLength = rayStepLength;
     param.ambientIrradiance = ambientIrradiance;
+    param.layerRange = layerRange;
+    param.rayStart = mainRayParam.rayStart + mainRayParam.rayDir * origin2RayOffset;
+    param.rayEnd = param.rayStart + mainRayParam.rayDir * rayLength;
+    param.rayStep = vec4(param.rayEnd - param.rayStart, rayLength) * rayRcpStepCount;
     return param;
 }
 
@@ -101,19 +89,27 @@ CloudRaymarchAccumState clouds_raymarchAccumState_init() {
 }
 
 struct CloudRaymarchStepState {
-    vec3 samplePos;
-    float sampleHeight;
+    vec4 position;
+    float height;
+    vec4 rayStep;
     vec3 upVector;
-    float sampleDensity;
 };
 
-CloudRaymarchStepState clouds_raymarchStepState_init(vec3 samplePos, float sampleDensity) {
+CloudRaymarchStepState clouds_raymarchStepState_init(CloudRaymarchLayerParam layerParam, float posJitter) {
     CloudRaymarchStepState state;
-    state.samplePos = samplePos;
-    state.sampleHeight = length(samplePos);
-    state.upVector = samplePos / state.sampleHeight;
-    state.sampleDensity = sampleDensity;
+    state.position = vec4(layerParam.rayStart + layerParam.rayStep.xyz * posJitter, 0.0);
+    state.height = length(state.position.xyz);
+    state.upVector = state.position.xyz / state.height;
+    state.rayStep = layerParam.rayStep;
     return state;
+}
+
+void clouds_raymarchStepState_update(
+    inout CloudRaymarchStepState state
+) {
+    state.position += state.rayStep;
+    state.height = length(state.position.xyz);
+    state.upVector = state.position.xyz / state.height;
 }
 
 const vec4 _CLOUDS_MS_FALLOFFS = vec4(
@@ -128,42 +124,47 @@ void clouds_computeLighting(
     CloudRenderParams renderParams,
     CloudRaymarchLayerParam layerParam,
     CloudRaymarchStepState stepState,
+    float sampleDensity,
+    vec3 lightTransmittance,
     inout CloudRaymarchAccumState accumState
 ) {
     float cosLightZenith = dot(stepState.upVector, renderParams.lightDir);
-    vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosLightZenith, stepState.sampleHeight);
+    vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosLightZenith, stepState.height);
 
-    vec3 sampleLightIrradiance = renderParams.lightIrradiance * tLightToSample;
-    vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance * accumState.totalTransmittance;
+    vec3 sampleLightIrradiance = renderParams.lightIrradiance;
+    sampleLightIrradiance *= tLightToSample * lightTransmittance;
+    vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
+    sampleAmbientIrradiance *= 0.5 + 0.5 * lightTransmittance * accumState.totalTransmittance;
 
-    vec3 sampleScattering = layerParam.medium.scattering * stepState.sampleDensity;
-    vec3 sampleExtinction = layerParam.medium.extinction * stepState.sampleDensity;
-    vec3 sampleOpticalDepth = sampleExtinction * layerParam.rayStepLength;
+    vec3 sampleScattering = layerParam.medium.scattering * sampleDensity;
+    vec3 sampleExtinction = layerParam.medium.extinction * sampleDensity;
+    vec3 sampleOpticalDepth = sampleExtinction * stepState.rayStep.w;
+    // See [SCH17]
+    vec3 sampleTransmittance = max(exp(-sampleOpticalDepth), exp(-sampleOpticalDepth * 0.25) * 0.7);
 
-    vec3 sampleScatteringMS = sampleScattering;
-    vec3 sampleOpticalDepthMS = sampleOpticalDepth;
-    vec3 samplePhaseMS = layerParam.medium.phase;
-    vec4 multSctrFalloffs = _CLOUDS_MS_FALLOFFS;
+    vec4 multSctrFalloffs = vec4(1.0);
+
+    vec3 sampleTotalInSctr = vec3(0.0);
 
     // See [HIL16] and [QIU25]
     for (uint i = 0; i < SETTING_CLOUDS_MS_ORDER; i++) {
-        vec3 sampleTransmittanceMS = exp(-sampleOpticalDepthMS);
+        vec3 sampleScatteringMS = sampleScattering * multSctrFalloffs.x;
+        vec3 sampleExtinctionMS = sampleExtinction * multSctrFalloffs.y;
+        vec3 samplePhaseMS = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, multSctrFalloffs.z);
+        vec3 sampleAmbientIrradianceMS = sampleAmbientIrradiance * multSctrFalloffs.w;
 
         vec3 sampleInSctr = sampleLightIrradiance * samplePhaseMS;
-        sampleInSctr += sampleAmbientIrradiance * multSctrFalloffs.w;
+        sampleInSctr += sampleAmbientIrradianceMS;
         sampleInSctr *= sampleScatteringMS;
         // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-        vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittanceMS) / sampleOpticalDepthMS;
+        vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinctionMS;
 
-        accumState.totalInSctr += sampleInSctrInt;
-
-        sampleScatteringMS *= multSctrFalloffs.x;
-        sampleOpticalDepthMS *= multSctrFalloffs.y;
-        samplePhaseMS = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, multSctrFalloffs.z);
-        multSctrFalloffs *= multSctrFalloffs;
+        sampleTotalInSctr += sampleInSctrInt;
+        multSctrFalloffs *= _CLOUDS_MS_FALLOFFS;
     }
 
-    accumState.totalTransmittance *= exp(-sampleOpticalDepth);
+    accumState.totalInSctr += sampleTotalInSctr * accumState.totalTransmittance;
+    accumState.totalTransmittance *= sampleTransmittance;
 }
 
 #endif
