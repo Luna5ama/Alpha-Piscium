@@ -1090,7 +1090,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             suffix = " x"
                         }
                     }
-                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.4, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.5, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Cumulus Coverage"
                         }

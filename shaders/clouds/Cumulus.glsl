@@ -15,7 +15,7 @@ float clouds_cu_coverage(vec3 rayPos, float heightFraction) {
     float earthCoverage = 1.0;
 
     FBMParameters shapeParams;
-    shapeParams.frequency = 0.25;
+    shapeParams.frequency = 0.1;
     shapeParams.persistence = 0.5;
     shapeParams.lacunarity = 2.0;
     shapeParams.octaveCount = 4u;
@@ -23,12 +23,13 @@ float clouds_cu_coverage(vec3 rayPos, float heightFraction) {
     float baseCoverage = GradientNoise_2D_value_fbm(shapeParams, rotationMatrix, rayPos.xz + vec2(110.0, 0.0));
     baseCoverage = linearStep(1.0 - SETTING_CLOUDS_CU_COVERAGE * 2.0, 1.0, baseCoverage);
 
-    const float a0 = -0.0260850540764;
-    const float a1 = 9.11429816918;
-    const float a2 = -21.7898143764;
-    const float a3 = -0.345733581708;
-    const float a4 = 33.8065785787;
-    const float a5 = -20.8033796867;
+    // https://www.desmos.com/calculator/5ttnmabiq2
+    const float a0 = -0.0716611475481;
+    const float a1 = 12.5479827742;
+    const float a2 = -55.4236072975;
+    const float a3 = 105.501792431;
+    const float a4 = -92.0798828757;
+    const float a5 = 29.5155575344;
 
     float xzDist = length(rayPos.xz);
     float x0 = 1.0;
