@@ -1,8 +1,6 @@
 import java.awt.image.BufferedImage
 import java.nio.file.Path
 import javax.imageio.ImageIO
-import kotlin.compareTo
-import kotlin.div
 import kotlin.io.path.*
 import kotlin.math.*
 
@@ -150,12 +148,12 @@ opacDataDir.useDirectoryEntries { entries ->
 
             val cols = transpose(opticalParamRows)
             val X = cols[0]
-            val ext = cols[1]
-            val sca = cols[2]
-            val asym = cols[5]
-            println("extinction: ${doColorMatching(X, ext).contentToString()}")
-            println("scattering: ${doColorMatching(X, sca).contentToString()}")
-            println("asymmetry: ${doColorMatching(X, asym).contentToString()}")
+            val sctr = doColorMatching(X, cols[2])
+            val exti = doColorMatching(X, (cols[2] zip cols[3]).map { it.first + it.second }.toDoubleArray())
+            val asym = doColorMatching(X, cols[5])
+            println("scattering: ${sctr.contentToString()}")
+            println("extinction: ${exti.contentToString()}")
+            println("asymmetry: ${asym.contentToString()}")
 
             val vpfIndex = textLines.indexOf("# volume phase function [1/km]:")
             val Xs = textLines[vpfIndex + 5]
@@ -194,7 +192,7 @@ opacDataDir.useDirectoryEntries { entries ->
                         .splitToSequence(spacesRegex)
                         .map(String::toDouble)
                         .toList()
-                    list.first() to (list.drop(1).toDoubleArray() zip sca).map { (phase, sca) -> phase / sca }
+                    list.first() to (list.drop(1).toDoubleArray() zip cols[2]).map { (phase, sca) -> phase / sca }
                         .toDoubleArray()
                 }
                 .toList()
