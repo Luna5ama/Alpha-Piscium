@@ -236,6 +236,6 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     }
     #endif
 
-    outputColor.rgb += accumState.totalInSctr;
     outputColor.rgb *= accumState.totalTransmittance;
+    outputColor.rgb += accumState.totalInSctr;
 }
