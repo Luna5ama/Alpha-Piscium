@@ -29,8 +29,8 @@ float clouds_ci_density(vec3 rayPos) {
 
 
     float density = 0.0;
-    density += _clouds_ci_density_layer((rayPos.xz + 0.114) * 0.12 + curl * 2.0) * 0.125;
-    density += _clouds_ci_density_layer((rayPos.xz + 0.514) * 0.08 + curl * 1.1) * 0.25;
+    density += _clouds_ci_density_layer((rayPos.xz + 0.114) * 0.12 + curl * 2.0) * 0.25;
+    density += _clouds_ci_density_layer((rayPos.xz + 0.514) * 0.08 + curl * 1.1) * 0.375;
     density += _clouds_ci_density_layer(rayPos.xz * 0.01 + curl * 0.1) * 0.5;
     density *= 0.5 * SETTING_CLOUDS_CI_DENSITY;
 
