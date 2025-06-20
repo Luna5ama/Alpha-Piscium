@@ -37,13 +37,13 @@ vec3 clouds_amblut_phase(float cosTheta, int layerIndex) {
         phase = cornetteShanksPhase(cosTheta, CLOUDS_ST_ASYM);
     }
     if (layerIndex == 1) {
-        phase = cornetteShanksPhase(cosTheta, CLOUDS_CU_ASYM);
+        phase = clouds_phase_cu(cosTheta, SETTING_CLOUDS_CU_PHASE_RATIO * 0.5);
     }
     if (layerIndex == 2) {
         phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM), cornetteShanksPhase(cosTheta, CLOUDS_CU_ASYM), 0.8);
     }
     if (layerIndex == 3) {
-        phase = cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM);
+        phase = clouds_phase_ci(cosTheta, SETTING_CLOUDS_CI_PHASE_RATIO * 0.5);
     }
     if (layerIndex == 4) {
         phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_ST_ASYM), cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM), 0.8);
