@@ -10,13 +10,14 @@
 layout(local_size_x = SAMPLE_COUNT) in;
 const ivec3 workGroups = ivec3(AMBIENT_IRRADIANCE_LUT_SIZE, AMBIENT_IRRADIANCE_LUT_SIZE, 1);
 
-shared vec3 shared_inSctrSum[8];
+shared vec3 shared_inSctrSum[32];
 
 layout(rgba16f) uniform restrict image3D uimg_cloudsAmbLUT;
 
 void main() {
+    vec2 jitter = rand_r2Seq2(gl_LocalInvocationID.x + gl_WorkGroupSize.x * frameCounter);
     ivec2 texelPos = ivec2(gl_WorkGroupID.xy);
-    vec2 viewDirUV = (vec2(texelPos) + 0.5) / vec2(AMBIENT_IRRADIANCE_LUT_SIZE);
+    vec2 viewDirUV = (vec2(texelPos) + jitter) / vec2(AMBIENT_IRRADIANCE_LUT_SIZE);
     vec3 viewDir = coords_equirectanglarBackwardHorizonBoost(viewDirUV);
 
     vec2 rayDirSpherical = ssbo_ambLUTWorkingBuffer.rayDir[gl_LocalInvocationIndex];
@@ -50,7 +51,7 @@ void main() {
             vec4 prevResult = imageLoad(uimg_cloudsAmbLUT, texelPos3D);
             vec4 newResult;
             prevResult.a *= global_historyResetFactor;
-            newResult.a = min(prevResult.a + 1.0, 256.0);
+            newResult.a = min(prevResult.a + 1.0, 64.0);
             newResult.rgb = mix(prevResult.rgb, currResult, 1.0 / newResult.a);
 
             imageStore(uimg_cloudsAmbLUT, texelPos3D, newResult);

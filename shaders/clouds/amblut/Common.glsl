@@ -7,7 +7,8 @@
 #endif
 
 #define AMBIENT_IRRADIANCE_LUT_SIZE 16
-#define SAMPLE_COUNT 256
+#define SAMPLE_COUNT 1024
+#define SAMPLE_COUNT_D256 4
 
 layout(std430, binding = 2) AMBLUT_DATA_MODIFIER buffer AmbLUTWorkingBuffer {
     vec2 rayDir[SAMPLE_COUNT];

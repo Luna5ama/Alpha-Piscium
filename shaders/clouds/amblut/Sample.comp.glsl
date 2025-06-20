@@ -7,7 +7,7 @@
 #include "/util/Rand.glsl"
 
 layout(local_size_x = 256) in;
-const ivec3 workGroups = ivec3(1, 1, 1);
+const ivec3 workGroups = ivec3(SAMPLE_COUNT_D256, 1, 1);
 
 void main() {
     AtmosphereParameters atmosphere = getAtmosphereParameters();

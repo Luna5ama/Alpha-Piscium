@@ -134,7 +134,7 @@ void clouds_computeLighting(
     vec3 sampleLightIrradiance = renderParams.lightIrradiance;
     sampleLightIrradiance *= tLightToSample * lightTransmittance;
     vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
-    sampleAmbientIrradiance *= accumState.totalTransmittance * mix(lightTransmittance, vec3(1.0), 0.5);
+    sampleAmbientIrradiance *= 0.5 + 0.5 * lightTransmittance * accumState.totalTransmittance;
 
     vec3 sampleScattering = layerParam.medium.scattering * sampleDensity;
     vec3 sampleExtinction = layerParam.medium.extinction * sampleDensity;
