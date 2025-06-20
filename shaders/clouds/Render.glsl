@@ -197,7 +197,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                 1.0,
                 1.0
             );
-            CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam, jitters.x);
+            CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam, 0.0);
             float sampleDensity = clouds_ci_density(stepState.position.xyz);
             CloudRaymarchAccumState ciAccum = clouds_raymarchAccumState_init();
             if (sampleDensity > DENSITY_EPSILON) {
