@@ -29,7 +29,7 @@ vec2 curr2PrevScreen, uint prevViewZI, uint packedPrevViewGeomNormal,
 float planeWeight, float normalWeight
 ) {
     float prevViewZ = uintBitsToFloat(prevViewZI);
-    vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevViewZ, gbufferPrevProjectionInverse);
+    vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevViewZ, global_prevCamProjInverse);
 
     vec3 prevViewGeomNormal = unpackSnorm3x10(packedPrevViewGeomNormal);
 
@@ -161,10 +161,10 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     prevMoments = vec2(0.0);
     prevHLen = 0.0;
 
-    vec3 currView = coords_toViewCoord(screenPos, currViewZ, gbufferProjectionInverse);
+    vec3 currView = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
     vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
     vec4 curr2PrevView = coord_viewCurrToPrev(vec4(currView, 1.0), isHand);
-    vec4 curr2PrevClip = gbufferPrevProjection * curr2PrevView;
+    vec4 curr2PrevClip = global_prevCamProj * curr2PrevView;
     uint clipFlag = uint(curr2PrevClip.z > 0.0);
     clipFlag &= uint(all(lessThan(abs(curr2PrevClip.xyz), curr2PrevClip.www)));
     if (!bool(clipFlag)) {

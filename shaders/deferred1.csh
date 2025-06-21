@@ -61,7 +61,7 @@ vec3 readSharedViewPos(ivec2 sharedPos) {
     texelPos += localTexelOffset;
     texelPos = clamp(texelPos, ivec2(0), ivec2(global_mainImageSizeI) - 1);
     vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
-    return coords_toViewCoord(screenPos, readSharedViewZ(sharedPos), gbufferProjectionInverse);
+    return coords_toViewCoord(screenPos, readSharedViewZ(sharedPos), global_camProjInverse);
 }
 
 float computeGeometryWeight(vec3 centerViewPos, vec3 centerViewGeomNormal, ivec2 sharedPos, float a) {

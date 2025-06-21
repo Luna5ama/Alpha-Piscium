@@ -17,7 +17,6 @@ struct AEData {
     #endif
 };
 
-mat4 gbufferPrevProjection = gbufferPreviousProjection;
 mat4 gbufferPrevModelView = gbufferPreviousModelView;
 
 layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
@@ -25,14 +24,13 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     uvec4 global_dispatchSize2;
     uvec4 global_dispatchSize3;
     uvec4 global_dispatchSize4;
-    mat4 gbufferPrevProjectionInverse;
     mat4 gbufferPrevModelViewInverse;
     mat4 global_shadowRotationMatrix;
     mat4 global_taaJitterMat;
-    mat4 gbufferProjectionJitter;
-    mat4 gbufferProjectionJitterInverse;
-    mat4 gbufferPrevProjectionJitter;
-    mat4 gbufferPrevProjectionJitterInverse;
+    mat4 global_camProj;
+    mat4 global_camProjInverse;
+    mat4 global_prevCamProj;
+    mat4 global_prevCamProjInverse;
     vec3 global_prevCameraDelta;
     vec2 global_taaJitter;
     ivec2 global_mainImageSizeI;

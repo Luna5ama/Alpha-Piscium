@@ -11,7 +11,7 @@ const float DENSITY_EPSILON = 0.0001;
 void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     float viewZ = texelFetch(viewZTex, texelPos, 0).r;
     vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
-    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
+    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
     vec3 originView = vec3(0.0);
     vec3 endView = viewPos;

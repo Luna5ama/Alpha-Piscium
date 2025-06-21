@@ -72,7 +72,7 @@ float lodTexelSize(float lod) {
 
 
 vec3 view2screen(vec3 vpos) {
-    vec4 ppos = gbufferProjection * vec4(vpos, 1.0);
+    vec4 ppos = global_camProj * vec4(vpos, 1.0);
     vec2 tc21 = ppos.xy / ppos.w;
     vec2 uv0 = (tc21 * 0.5 + 0.5) * global_mainImageSize;
     return vec3(uv0, vpos.z);
@@ -349,7 +349,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
         vec3 sampleViewNormal;
         nzpacking_unpack(texelFetch(usam_packedZN, sampleTexelPos, 0).xy, sampleViewNormal, sampleViewZ);
 
-        vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, gbufferProjectionInverse);
+        vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, global_camProjInverse);
         vec3 frontDiff = samplePosVS - viewPos;
         float frontDistSq = dot(frontDiff, frontDiff);
 
@@ -357,7 +357,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
             float frontDiffRcpLen = fastRcpSqrtNR0(frontDistSq);
             float frontDist = frontDistSq * frontDiffRcpLen;
             float thickness = max(SETTING_VBGI_THICKNESS * frontDist, 0.25);
-            vec3 backDiff = coords_toViewCoord(sampleUV, sampleViewZ - thickness, gbufferProjectionInverse) - viewPos;
+            vec3 backDiff = coords_toViewCoord(sampleUV, sampleViewZ - thickness, global_camProjInverse) - viewPos;
 
             float backDiffRcpLen = fastRcpSqrtNR0(dot(backDiff, backDiff));
             vec3 thisToSample = frontDiff * frontDiffRcpLen;
@@ -560,7 +560,7 @@ vec3 gtvbgi(ivec2 texelPos1x1) {
     vec3 result = vec3(0.0, 0.0, 0.0);
     if (centerViewZ != -65536.0) {
         vec2 screenPos = (vec2(vbgi_texelPos1x1) + 0.5) * global_mainImageSizeRcp;
-        vec3 centerViewPos = coords_toViewCoord(screenPos, centerViewZ, gbufferProjectionInverse);
+        vec3 centerViewPos = coords_toViewCoord(screenPos, centerViewZ, global_camProjInverse);
         uniGTVBGI(centerViewPos, centerViewNormal, result);
     }
 

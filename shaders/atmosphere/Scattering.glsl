@@ -35,7 +35,7 @@ ScatteringResult computeSingleScattering(vec2 screenPos, float viewZ, float nois
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     ScatteringResult result = scatteringResult_init();
 
-    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
+    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     ivec2 texelPos = ivec2(screenPos * global_mainImageSize);
     ivec2 texePos2x2 = texelPos >> 1;
     float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, texePos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);

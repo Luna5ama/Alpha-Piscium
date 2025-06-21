@@ -18,7 +18,7 @@
 
 void importance(ivec2 texelPos, float viewZ, vec3 viewNormal, out uint p, out float v) {
     vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
-    vec3 viewCoord = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
+    vec3 viewCoord = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec3 worldCoord = (gbufferModelViewInverse * vec4(viewCoord, 1.0)).xyz;
 
     vec3 viewDir = normalize(-viewCoord);

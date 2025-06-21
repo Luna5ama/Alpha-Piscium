@@ -80,7 +80,7 @@ void updateMoments1(uvec2 originXY, ivec2 offset, inout vec4 moment1, inout vec4
 }
 
 float computeGeometryWeight(vec3 centerPos, vec3 centerNormal, float sampleViewZ, uint sampleNormal, vec2 sampleScreenPos, float a) {
-    vec3 sampleViewPos = coords_toViewCoord(sampleScreenPos, sampleViewZ, gbufferProjectionInverse);
+    vec3 sampleViewPos = coords_toViewCoord(sampleScreenPos, sampleViewZ, global_camProjInverse);
     vec3 sampleViewGeomNormal = coords_octDecode11(unpackSnorm2x16(sampleNormal));
 
     float normalWeight = pow4(dot(centerNormal, sampleViewGeomNormal));
@@ -152,7 +152,7 @@ void main() {
             vec2 texelPos2x2F = vec2(texelPos) * 0.5;
 
             vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
-            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
+            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
             GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);

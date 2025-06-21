@@ -140,7 +140,7 @@ vec3 calcShadow(Material material, bool isHand) {
 vec4 compShadow(ivec2 texelPos, float viewZ) {
     vec2 screenPos = texel2Screen(texelPos);
     Material material = material_decode(lighting_gData);
-    lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);
+    lighting_init(coords_toViewCoord(screenPos, viewZ, global_camProjInverse), texelPos);
     return vec4(calcShadow(material, lighting_gData.isHand), 1.0);
 }
 

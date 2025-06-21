@@ -92,7 +92,7 @@ ivec2 envProbeTexelPos, out EnvProbeData outputData
     vec3 envProbePixelWorldDir = coords_mercatorBackward(envProbeScreenPos);
     vec4 viewPos = gbufferModelView * vec4(envProbePixelWorldDir, 1.0);
     viewPos.xyz -= gbufferModelView[3].xyz;
-    vec4 clipPos = gbufferProjection * viewPos;
+    vec4 clipPos = global_camProj * viewPos;
 
     envProbe_initData(outputData);
 
@@ -119,7 +119,7 @@ ivec2 envProbeTexelPos, out EnvProbeData outputData
     }
 
     float viewZ = texelFetch(gbufferViewZ, texelPos1x1, 0).r;
-    vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
+    vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
 
     uvec2 radianceData = texelFetch(packedZN, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).xy;

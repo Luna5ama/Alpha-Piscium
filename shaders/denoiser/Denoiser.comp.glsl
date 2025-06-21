@@ -89,7 +89,7 @@ void readData(uint writeIndex, ivec2 coord, out vec3 normal, out vec3 pos) {
     writeSharedData(writeIndex, data);
 
     vec2 texCoord = (vec2(coord) + 0.5) / vec2(imgSize);
-    pos = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
+    pos = coords_toViewCoord(texCoord, viewZ, global_camProjInverse);
 
     writeSharedPosNormal(writeIndex, normal, pos);
 }
@@ -104,7 +104,7 @@ void readData(uint writeIndex, ivec2 coord) {
     writeSharedData(writeIndex, data);
 
     vec2 texCoord = (vec2(coord) + 0.5) / vec2(imgSize);
-    vec3 pos = coords_toViewCoord(texCoord, viewZ, gbufferProjectionInverse);
+    vec3 pos = coords_toViewCoord(texCoord, viewZ, global_camProjInverse);
 
     writeSharedPosNormal(writeIndex, normal, pos);
 }

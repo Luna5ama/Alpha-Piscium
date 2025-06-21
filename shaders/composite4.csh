@@ -93,7 +93,7 @@ void main() {
             gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), lighting_gData);
             Material material = material_decode(lighting_gData);
 
-            lighting_init(coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse), texelPos);
+            lighting_init(coords_toViewCoord(screenPos, viewZ, global_camProjInverse), texelPos);
             ivec2 texelPos2x2 = texelPos >> 1;
             ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
 

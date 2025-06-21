@@ -152,26 +152,6 @@ ivec2 coords_clampTexelPos(ivec2 texelPos, ivec2 imageSizeV) {
     return clamp(texelPos, ivec2(0), imageSizeV);
 }
 
-mat4 coords_createOrthographicMatrix(float left, float right, float bottom, float top, float near, float far) {
-    // Calculate matrix components
-    float width = right - left;
-    float height = top - bottom;
-    float depth = far - near;
-
-    // Avoid division by zero
-    width = width != 0.0 ? width : 1.0;
-    height = height != 0.0 ? height : 1.0;
-    depth = depth != 0.0 ? depth : 1.0;
-
-    // Build the orthographic projection matrix
-    return mat4(
-        2.0 / width, 0.0, 0.0, 0.0,
-        0.0, 2.0 / height, 0.0, 0.0,
-        0.0, 0.0, -2.0 / depth, 0.0,
-        -(right + left) / width, -(top + bottom) / height, -(far + near) / depth, 1.0
-    );
-}
-
 const mat3 _COORDS_EQUATORIAL_TO_GALACTIC = mat3(
     -0.0548755604, 0.4941094279, -0.8676661490,
     -0.8734370902, -0.4448296300,  -0.1980763734,

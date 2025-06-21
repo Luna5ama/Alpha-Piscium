@@ -58,9 +58,9 @@ void main() {
     gbufferData2_unpack(texelFetch(usam_gbufferData8UN, intTexCoord, 0), gData);
 
     float viewZ = texelFetch(usam_gbufferViewZ, intTexCoord, 0).r;
-    vec3 currViewPos = coords_toViewCoord(frag_texCoord, viewZ, gbufferProjectionInverse);
+    vec3 currViewPos = coords_toViewCoord(frag_texCoord, viewZ, global_camProjInverse);
     vec4 prevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
-    vec4 prevClipPos = gbufferProjection * prevViewPos;
+    vec4 prevClipPos = global_prevCamProj * prevViewPos;
     prevClipPos /= prevClipPos.w;
     vec2 prevScreenPos = prevClipPos.xy * 0.5 + 0.5;
 

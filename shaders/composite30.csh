@@ -54,7 +54,7 @@ void main() {
 
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
-        vec3 viewPos = coords_toViewCoord(screenPos, viewZ, gbufferProjectionInverse);
+        vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
         vec3 giRadiance = texelFetch(usam_temp2, texelPos, 0).rgb;
 

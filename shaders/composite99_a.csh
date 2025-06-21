@@ -12,12 +12,8 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 
 void main() {
     if (gl_LocalInvocationIndex == 0) {
-        gbufferPrevProjectionInverse = gbufferProjectionInverse;
         gbufferPrevModelViewInverse = gbufferModelViewInverse;
         global_prevCameraDelta = cameraPosition - previousCameraPosition;
-
-        gbufferPrevProjectionJitter = gbufferProjectionJitter;
-        gbufferPrevProjectionJitterInverse = gbufferProjectionJitterInverse;
     }
     #ifdef SETTING_DEBUG_AE
     global_aeData.lumHistogram[gl_LocalInvocationIndex] = 0u;
