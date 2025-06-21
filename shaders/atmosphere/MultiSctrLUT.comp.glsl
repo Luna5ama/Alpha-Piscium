@@ -55,13 +55,13 @@ void main() {
         RaymarchParameters params = raymarchParameters_init();
         params.rayStart = vec3(0.0, 0.0, viewHeight);
         setupRayEnd(atmosphere, params, rayDir);
-        params.steps = 64u;
+        params.steps = 16u;
 
         LightParameters lightParams = lightParameters_init(atmosphere, vec3(0.0), lightDir, rayDir);
         lightParams.rayleighPhase = isotopicPhase;
         lightParams.miePhase = isotopicPhase;
 
-        MultiScatteringResult result = raymarchMultiScattering(atmosphere, params, lightParams);
+        MultiScatteringResult result = raymarchMultiScattering(atmosphere, params, lightParams, randV.z);
         vec3 inSctr = result.inScattering * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
         vec3 multiSctrAs1 = result.multiSctrAs1 * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
 
@@ -86,7 +86,7 @@ void main() {
             vec3 currResult = inSctrSum * sumOfAllMultiSctrEventsContribution;
 
             vec4 prevData = imageLoad(uimg_multiSctrLUT, texelPos);
-            imageStore(uimg_multiSctrLUT, texelPos, temporalUpdate(prevData, currResult, 32.0));
+            imageStore(uimg_multiSctrLUT, texelPos, temporalUpdate(prevData, currResult, 64.0));
         }
     }
 }

@@ -19,7 +19,8 @@ float stepJitter
 #define ATMOSPHERE_RAYMARCHING_FUNC_PARAMS \
 AtmosphereParameters atmosphere, \
 RaymarchParameters params, \
-LightParameters lightParams
+LightParameters lightParams, \
+float stepJitter
 
 #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 2
 #define ATMOSPHERE_RAYMARCHING_FUNC_NAME raymarchSky
@@ -62,7 +63,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
 
     for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
         float stepIndexF = float(stepIndex);
-        #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 0
+        #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 0 || ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
         vec3 samplePos = params.rayStart + (stepIndexF + stepJitter) * rayStepDelta;
         #else
         vec3 samplePos = params.rayStart + stepIndexF * rayStepDelta;
