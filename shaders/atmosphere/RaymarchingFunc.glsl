@@ -10,7 +10,8 @@
 #define ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE vec3
 #define ATMOSPHERE_RAYMARCHING_FUNC_PARAMS \
 AtmosphereParameters atmosphere, \
-RaymarchParameters params
+RaymarchParameters params, \
+float stepJitter
 
 #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
 #define ATMOSPHERE_RAYMARCHING_FUNC_NAME raymarchMultiScattering
@@ -61,7 +62,11 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
 
     for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
         float stepIndexF = float(stepIndex);
+        #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 0
+        vec3 samplePos = params.rayStart + (stepIndexF + stepJitter) * rayStepDelta;
+        #else
         vec3 samplePos = params.rayStart + stepIndexF * rayStepDelta;
+        #endif
         float sampleHeight = length(samplePos);
 
         vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);

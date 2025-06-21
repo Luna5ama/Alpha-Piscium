@@ -3,7 +3,8 @@
 
 vec3 raymarchTransmittance(
     AtmosphereParameters atmosphere,
-    RaymarchParameters params
+    RaymarchParameters params,
+    float stepJitter
 );
 
 MultiScatteringResult raymarchMultiScattering(

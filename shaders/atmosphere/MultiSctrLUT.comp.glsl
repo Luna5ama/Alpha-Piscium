@@ -86,7 +86,7 @@ void main() {
             vec3 currResult = inSctrSum * sumOfAllMultiSctrEventsContribution;
 
             vec4 prevData = imageLoad(uimg_multiSctrLUT, texelPos);
-            imageStore(uimg_multiSctrLUT, texelPos, temporalUpdate(prevData, currResult, 256.0));
+            imageStore(uimg_multiSctrLUT, texelPos, temporalUpdate(prevData, currResult, 32.0));
         }
     }
 }
