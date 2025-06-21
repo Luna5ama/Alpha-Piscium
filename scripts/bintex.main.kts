@@ -1,6 +1,7 @@
 import java.awt.image.BufferedImage
 import java.awt.image.DataBuffer
 import java.nio.ByteBuffer
+import java.nio.ByteOrder
 import java.nio.channels.FileChannel
 import java.nio.file.StandardOpenOption
 import javax.imageio.ImageIO
@@ -109,6 +110,7 @@ FileChannel.open(
     StandardOpenOption.WRITE
 ).use { outputChannel ->
     val mapped = outputChannel.map(FileChannel.MapMode.READ_WRITE, 0L, outputSize)
+        .order(ByteOrder.nativeOrder())
     inputFiles.forEach {
         ImageIO.read(it.toFile()).copyDataTo(mapped)
     }
