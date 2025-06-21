@@ -1321,7 +1321,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_MIN_EV", -6.0, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MIN_EV", -5.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Min EV"
                     }
@@ -1358,7 +1358,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Weight of average luminance AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 5.0, 0.0..10.0 step 0.25) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 4.0, 0.0..10.0 step 0.25) {
                     lang {
                         name = "Average Luminance AE Time"
                     }
@@ -1390,7 +1390,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Weight of highlight/shadow based AE in the final exposure value."
                     }
                 }
-                slider("SETTING_EXPOSURE_HS_TIME", 3.0, 0.0..10.0 step 0.25) {
+                slider("SETTING_EXPOSURE_HS_TIME", 2.0, 0.0..10.0 step 0.25) {
                     lang {
                         name = "Highlight/Shadow AE Time"
                     }
