@@ -134,13 +134,14 @@ void clouds_computeLighting(
     vec3 sampleLightIrradiance = renderParams.lightIrradiance;
     sampleLightIrradiance *= tLightToSample * lightTransmittance;
     vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
-    sampleAmbientIrradiance *= 0.5 + 0.5 * lightTransmittance * accumState.totalTransmittance;
+    sampleAmbientIrradiance *= 0.8 + 0.2 * lightTransmittance * accumState.totalTransmittance;
 
     vec3 sampleScattering = layerParam.medium.scattering * sampleDensity;
     vec3 sampleExtinction = layerParam.medium.extinction * sampleDensity;
     vec3 sampleOpticalDepth = sampleExtinction * stepState.rayStep.w;
     // See [SCH17]
-    vec3 sampleTransmittance = max(exp(-sampleOpticalDepth), exp(-sampleOpticalDepth * 0.25) * 0.7);
+//    vec3 sampleTransmittance = max(exp(-sampleOpticalDepth), exp(-sampleOpticalDepth * 0.25) * 0.7);
+    vec3 sampleTransmittance = exp(-sampleOpticalDepth); // More shadow details
 
     vec4 multSctrFalloffs = vec4(1.0);
 
