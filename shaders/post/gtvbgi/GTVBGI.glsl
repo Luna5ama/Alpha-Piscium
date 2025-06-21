@@ -333,7 +333,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
     Material material = material_decode(gData);
     material.roughness = max(material.roughness, 0.01);
 
-    float diffuseBase = RCP_PI * SETTING_VBGI_DGI_STRENGTH;
+    float diffuseBase = SETTING_VBGI_DGI_STRENGTH;
     float specularBase = PI * SETTING_VBGI_SGI_STRENGTH;
 
     for (uint stepIndex = 0; stepIndex < SSVBIL_SAMPLE_STEPS; ++stepIndex) {

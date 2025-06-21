@@ -531,7 +531,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             "Temperature of lava in K (kelvin). The default value 1300 K is based on real life average."
                     }
                 }
-                slider("SETTING_EMISSIVE_STRENGTH", 5.0, 0.0..8.0 step 0.25) {
+                slider("SETTING_EMISSIVE_STRENGTH", 4.0, 0.0..8.0 step 0.25) {
                     lang {
                         name = "Emissive Strength"
                     }
@@ -1268,7 +1268,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Purkinje Effect Enabled"
                     }
                 }
-                slider("SETTING_PURKINJE_EFFECT_MIN_LUM", -9.0, -10.0..1.0 step 0.1) {
+                slider("SETTING_PURKINJE_EFFECT_MIN_LUM", -8.0, -10.0..1.0 step 0.1) {
                     lang {
                         name = "Minimum Luminance"
                         prefix = "10^"
