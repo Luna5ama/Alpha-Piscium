@@ -27,7 +27,6 @@ float clouds_ci_density(vec3 rayPos) {
     float coverage = GradientNoise_2D_value_fbm(shapeParams, shapeRotMat, rayPos.xz + vec2(-8.0, -4.0) + curl * 16.0);
     coverage = pow3(linearStep(0.5 - SETTING_CLOUDS_CI_COVERAGE * 1.5, 1.0, coverage));
 
-
     float density = 0.0;
     density += _clouds_ci_density_layer((rayPos.xz + 0.114) * 0.12 + curl * 2.0) * 0.25;
     density += _clouds_ci_density_layer((rayPos.xz + 0.514) * 0.08 + curl * 1.1) * 0.375;

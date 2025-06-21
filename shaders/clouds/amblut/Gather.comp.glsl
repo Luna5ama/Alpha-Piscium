@@ -7,15 +7,27 @@
 #define ATMOSPHERE_RAYMARCHING_SKY a
 #include "/atmosphere/Raymarching.glsl"
 
-layout(local_size_x = SAMPLE_COUNT) in;
+layout(local_size_x = 16, local_size_y = 16) in;
 const ivec3 workGroups = ivec3(AMBIENT_IRRADIANCE_LUT_SIZE, AMBIENT_IRRADIANCE_LUT_SIZE, 1);
 
-shared vec3 shared_inSctrSum[32];
+shared vec3 shared_inSctrSum[16];
 
 layout(rgba16f) uniform restrict image3D uimg_cloudsAmbLUT;
 
 void main() {
-    vec2 jitter = rand_r2Seq2(gl_LocalInvocationID.x + gl_WorkGroupSize.x * frameCounter);
+    int layerIndex = clouds_amblut_currLayerIndex();
+    uint clearFlag = uint(global_historyResetFactor < 1.0);
+    clearFlag &= uint(gl_WorkGroupID.x != layerIndex);
+    clearFlag &= uint(gl_WorkGroupID.x < AMBIENT_IRRADIANCE_LUT_LAYERS);
+    clearFlag &= uint(gl_WorkGroupID.y == 0u);
+    if (bool(clearFlag)) {
+        ivec3 texelPos3D = ivec3(uvec3(gl_LocalInvocationID.xy, gl_WorkGroupID.x));
+        vec4 result = imageLoad(uimg_cloudsAmbLUT, texelPos3D);
+        result.a *= global_historyResetFactor;
+        imageStore(uimg_cloudsAmbLUT, texelPos3D, result);
+    }
+
+    vec2 jitter = rand_r2Seq2(gl_LocalInvocationIndex + gl_WorkGroupSize.x * frameCounter);
     ivec2 texelPos = ivec2(gl_WorkGroupID.xy);
     vec2 viewDirUV = (vec2(texelPos) + jitter) / vec2(AMBIENT_IRRADIANCE_LUT_SIZE);
     vec3 viewDir = coords_equirectanglarBackwardHorizonBoost(viewDirUV);
@@ -30,7 +42,6 @@ void main() {
     vec3 rayDir = vec3(cosTheta * sinPhi, cosPhi, sinTheta * sinPhi);
     vec3 inSctr = ssbo_ambLUTWorkingBuffer.inSctr[gl_LocalInvocationIndex];
 
-    int layerIndex = clouds_amblut_currLayerIndex();
     float cosLightTheta = dot(viewDir, rayDir);
     vec3 phase = clouds_amblut_phase(cosLightTheta, layerIndex);
     phase = mix(phase, vec3(UNIFORM_PHASE), SETTING_CLOUDS_AMB_UNI_PHASE_RATIO);

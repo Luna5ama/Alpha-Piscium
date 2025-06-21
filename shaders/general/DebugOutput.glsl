@@ -307,7 +307,10 @@ void debugOutput(inout vec4 outputColor) {
         if (inViewPort(ivec4(0, CLOUDS_AMB_LUT_SIZE * i, CLOUDS_AMB_LUT_SIZE, CLOUDS_AMB_LUT_SIZE), debugTexCoord)) {
             vec3 lutCoord = vec3(debugTexCoord, (float(i) + 0.5) / 6.0);
             outputColor.rgb = gammaCorrect(applyExposure(texture(usam_cloudsAmbLUT, lutCoord).rgb));
-            break;
+        }
+        if (inViewPort(ivec4(CLOUDS_AMB_LUT_SIZE, CLOUDS_AMB_LUT_SIZE * i, CLOUDS_AMB_LUT_SIZE, CLOUDS_AMB_LUT_SIZE), debugTexCoord)) {
+            vec3 lutCoord = vec3(debugTexCoord, (float(i) + 0.5) / 6.0);
+            outputColor.rgb = interpolateTurbo(texture(usam_cloudsAmbLUT, lutCoord).a);
         }
     }
     #endif
