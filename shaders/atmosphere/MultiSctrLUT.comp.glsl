@@ -85,13 +85,8 @@ void main() {
             vec3 sumOfAllMultiSctrEventsContribution = 1.0 / (1.0 - r);
             vec3 currResult = inSctrSum * sumOfAllMultiSctrEventsContribution;
 
-            vec4 prevResult = imageLoad(uimg_multiSctrLUT, texelPos);
-            vec4 newResult;
-            prevResult.a *= global_historyResetFactor;
-            newResult.a = min(prevResult.a + 1.0, 1024.0);
-            newResult.rgb = mix(prevResult.rgb, currResult, 1.0 / newResult.a);
-
-            imageStore(uimg_multiSctrLUT, texelPos, newResult);
+            vec4 prevData = imageLoad(uimg_multiSctrLUT, texelPos);
+            imageStore(uimg_multiSctrLUT, texelPos, temporalUpdate(prevData, currResult, 256.0));
         }
     }
 }

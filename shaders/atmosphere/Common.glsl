@@ -378,4 +378,11 @@ vec4 getOutermostScreenPixelCoords() {
     return vec4(-1.0, -1.0, 1.0, 1.0) + vec4(1.0, 1.0, -1.0, -1.0) / global_mainImageSizeI.xyxy;
 }
 
+vec4 temporalUpdate(vec4 prevData, vec3 currData, float maxFrames) {
+    vec4 newResult = vec4(0.0);
+    newResult.a = min(prevData.a * global_historyResetFactor + 1.0, maxFrames);
+    newResult.rgb = mix(prevData.rgb, currData, 1.0 / newResult.a);
+    return newResult;
+}
+
 #endif
