@@ -7,6 +7,9 @@
             SIGGRAPH 2023. 2023.
             https://research.nvidia.com/labs/rtr/approximate-mie/publications/approximate-mie.pdf
 
+     Credits:
+        Jessie - Bi-Lambertian plate phase function
+
         You can find full license texts in /licenses
 */
 #ifndef INCLUDE_util_PhaseFunc_glsl
@@ -71,6 +74,12 @@ float hgDrainePhase(float cosTheta, float d) {
     float a = exp(3.62489 - 8.29288 / (d + 5.52825));
     float wD = exp(-0.599085 / (d - 0.641583) - 0.665888);
     return mix(henyeyGreensteinPhase(cosTheta, gHG), drainePhase(cosTheta, gD, a), wD);
+}
+
+// Thanks Jessie
+float biLambertianPlatePhase(float cosTheta, float g) {
+    float phase = 2.0 * (-PI * g * cosTheta + sqrt(1.0 - pow2(cosTheta)) + cosTheta * acos(-cosTheta));
+    return phase / (3.0 * pow2(PI));
 }
 
 #endif

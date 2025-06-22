@@ -75,7 +75,7 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N
     float shadowPow = saturate(1.0 - irradiance.a);
     shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * SETTING_SSS_SCTR_FACTOR;
 
-    float phase = cornetteShanksPhase(LDotV, 0.3);
+    float phase = biLambertianPlatePhase(LDotV, 0.3);
     float sssV = material.sss * phase * SETTING_SSS_STRENGTH;
     result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb;
 
