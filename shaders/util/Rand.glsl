@@ -16,7 +16,7 @@
 #ifndef INCLUDE_util_Rand_glsl
 #define INCLUDE_util_Rand_glsl a
 
-#include "/_Base.glsl"
+#include "/Base.glsl"
 
 float rand_stbnVec1(ivec2 texelPos, uint frame) {
     return texelFetch(usam_stbnVec1, ivec3(texelPos, frame) & ivec3(127, 127, 63), 0).x;

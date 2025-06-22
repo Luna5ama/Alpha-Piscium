@@ -1,6 +1,6 @@
 #ifndef INCLUDE_util_Morton_glsl
 #define INCLUDE_util_Morton_glsl a
-#include "/_Base.glsl"
+#include "/Base.glsl"
 
 // Adapted from https://gist.github.com/JarkkoPFC/0e4e599320b0cc7ea92df45fb416d79a
 uvec2 morton_8bDecode(uint code) {

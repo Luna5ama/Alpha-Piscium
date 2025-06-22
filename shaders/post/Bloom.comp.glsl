@@ -3,7 +3,7 @@
         [JIM14] Jimenez, Jorge. "Next Generation Post Processing in Call of Duty: Advanced Warfare" SIGGRAPH 2014.
             https://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare/
 */
-#include "/_Base.glsl"
+#include "/Base.glsl"
 #include "/util/Colors.glsl"
 
 const float BASE_BLOOM_INTENSITY = 0.003;

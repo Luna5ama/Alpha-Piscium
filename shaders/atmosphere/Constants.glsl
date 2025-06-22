@@ -18,7 +18,7 @@
 #ifndef INCLUDE_atmosphere_Constants_glsl
 #define INCLUDE_atmosphere_Constants_glsl a
 
-#include "/_Base.glsl"
+#include "/Base.glsl"
 
 #if SETTING_EPIPOLAR_SLICES == 256
 
