@@ -15,8 +15,13 @@ uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
 
-layout(rgba8) uniform writeonly image2D uimg_temp5;
+#ifdef DISTANT_HORIZONS
+uniform sampler2D dhDepthTex0;
+#endif
+
+layout(rgba8) uniform restrict image2D uimg_temp5;
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
+layout(rgba16f) uniform restrict image2D uimg_translucentColor;
 
 #include "/general/Lighting.glsl"
 #include "/atmosphere/Common.glsl"
@@ -154,6 +159,18 @@ void main() {
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+
+        #ifdef DISTANT_HORIZONS
+        vec4 translucentColor = imageLoad(uimg_translucentColor, texelPos);
+        if (translucentColor.a <= 0.00001) {
+            float dhDepth = texelFetch(dhDepthTex0, texelPos, 0).r;
+            float dhViewZ = -coords_linearizeDepth(dhDepth, dhNearPlane, dhFarPlane);
+            if (dhViewZ > viewZ) {
+                translucentColor = imageLoad(uimg_temp5, texelPos);
+                imageStore(uimg_translucentColor, texelPos, translucentColor);
+            }
+        }
+        #endif
 
         if (viewZ != -65536.0) {
             gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), lighting_gData);

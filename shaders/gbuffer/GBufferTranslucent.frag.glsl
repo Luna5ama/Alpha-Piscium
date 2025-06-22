@@ -21,8 +21,13 @@ in vec3 frag_viewCoord;
 
 layout(early_fragment_tests) in;
 
+#ifdef GBUFFER_PASS_DH
+/* RENDERTARGETS:5 */
+layout(location = 0) out vec4 rt_translucentColor;
+#else
 /* RENDERTARGETS:11 */
 layout(location = 0) out vec4 rt_translucentColor;
+#endif
 
 vec4 processAlbedo() {
     vec4 albedo = frag_colorMul;
