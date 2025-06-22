@@ -4,6 +4,7 @@
 #include "/util/NZPacking.glsl"
 #include "/general/EnvProbe.glsl"
 #include "/atmosphere/Common.glsl"
+#include "/atmosphere/lut/Common.glsl"
 #include "/denoiser/Common.glsl"
 #include "/rtwsm/RTWSM.glsl"
 

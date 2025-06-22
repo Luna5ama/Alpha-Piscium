@@ -1,10 +1,11 @@
 #ifndef INCLUDE_util_CelestialObjects_glsl
 #define INCLUDE_util_CelestialObjects_glsl a
 
+#include "/atmosphere/Common.glsl"
 #include "BlackBody.glsl"
 #include "Colors.glsl"
 #include "Coords.glsl"
-#include "/atmosphere/Common.glsl"
+#include "Math.glsl"
 
 #ifdef SETTING_REAL_SUN_TEMPERATURE
 #define SUN_TEMPERATURE 5772.0

@@ -6,20 +6,6 @@
 #include "/util/BSDF.glsl"
 #include "/rtwsm/RTWSM.glsl"
 
-const bool shadowtex0Mipmap = true;
-const bool shadowtex1Mipmap = true;
-
-const bool shadowHardwareFiltering0 = true;
-uniform sampler2D shadowtex0;
-uniform sampler2DShadow shadowtex0HW;
-
-const bool shadowHardwareFiltering1 = true;
-uniform sampler2D shadowtex1;
-uniform sampler2DShadow shadowtex1HW;
-
-uniform sampler2D shadowcolor0;
-uniform sampler2D usam_rtwsm_imap;
-
 uniform sampler2D usam_skyLUT;
 
 GBufferData lighting_gData = gbufferData_init();

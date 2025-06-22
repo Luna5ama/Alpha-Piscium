@@ -22,9 +22,10 @@
 #ifndef INCLUDE_clouds_Common_glsl
 #define INCLUDE_clouds_Common_glsl a
 
-#include "/util/Colors.glsl"
-#include "/atmosphere/Common.glsl"
 #include "Mediums.glsl"
+#include "/atmosphere/Constants.glsl"
+#include "/atmosphere/lut/Common.glsl"
+#include "/util/Colors.glsl"
 
 struct CloudMainRayParams {
     vec3 rayStart;

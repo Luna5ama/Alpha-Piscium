@@ -1,6 +1,8 @@
 #include "Common.glsl"
 #include "RaymarchingBase.glsl"
 
+#include "lut/Common.glsl"
+
 vec3 raymarchTransmittance(
     AtmosphereParameters atmosphere,
     RaymarchParameters params,

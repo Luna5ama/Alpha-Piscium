@@ -8,8 +8,8 @@
 */
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
-#include "/util/Rand.glsl"
 #include "Common.glsl"
+#include "/util/Rand.glsl"
 
 #define SAMPLE_COUNT 64
 
@@ -17,7 +17,7 @@ layout(local_size_x = SAMPLE_COUNT) in;
 const ivec3 workGroups = ivec3(32, 32, 1);
 
 #define ATMOSPHERE_RAYMARCHING_MULTI_SCTR a
-#include "Raymarching.glsl"
+#include "../Raymarching.glsl"
 
 layout(rgba16f) restrict uniform image2D uimg_multiSctrLUT;
 

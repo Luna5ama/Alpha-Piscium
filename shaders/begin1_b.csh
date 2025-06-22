@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/atmosphere/TransmittanceLUT.comp.glsl"
+#include "/atmosphere/lut/GenerateTransmittance.comp.glsl"

@@ -1,8 +1,8 @@
 #include "Common.glsl"
 #include "Cirrus.glsl"
 #include "Cumulus.glsl"
-#include "/atmosphere/Common.glsl"
 #include "/util/Celestial.glsl"
+#include "/util/Math.glsl"
 
 uniform sampler3D usam_cloudsAmbLUT;
 

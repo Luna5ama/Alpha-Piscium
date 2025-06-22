@@ -16,7 +16,7 @@ const ivec3 workGroups = ivec3(2, 64, 1);
 layout(local_size_x = 128) in;
 
 #define ATMOSPHERE_RAYMARCHING_TRANSMITTANCE a
-#include "Raymarching.glsl"
+#include "../Raymarching.glsl"
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);

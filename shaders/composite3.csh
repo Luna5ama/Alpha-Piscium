@@ -4,12 +4,29 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_vote : enable
 
+#include "/util/Celestial.glsl"
+#include "/util/Material.glsl"
 #include "/util/Morton.glsl"
 #include "/util/Hash.glsl"
-#include "/util/FullScreenComp.glsl"
+#include "/util/Rand.glsl"
+#include "/util/GBufferData.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
+
+const bool shadowtex0Mipmap = true;
+const bool shadowtex1Mipmap = true;
+
+const bool shadowHardwareFiltering0 = true;
+uniform sampler2D shadowtex0;
+uniform sampler2DShadow shadowtex0HW;
+
+const bool shadowHardwareFiltering1 = true;
+uniform sampler2D shadowtex1;
+uniform sampler2DShadow shadowtex1HW;
+
+uniform sampler2D shadowcolor0;
+uniform sampler2D usam_rtwsm_imap;
 
 uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferData8UN;
@@ -23,9 +40,12 @@ layout(rgba8) uniform restrict image2D uimg_temp5;
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 layout(rgba16f) uniform restrict image2D uimg_translucentColor;
 
-#include "/general/Lighting.glsl"
-#include "/atmosphere/Common.glsl"
 #include "/rtwsm/Backward.glsl"
+
+ivec2 texelPos = ivec2(0);
+GBufferData gData = gbufferData_init();
+vec3 viewPos = vec3(0.0);
+vec3 viewDir = vec3(0.0);
 
 vec2 texel2Screen(ivec2 texelPos) {
     return (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
@@ -36,9 +56,9 @@ float searchBlocker(vec3 shadowTexCoord) {
     #define BLOCKER_SEARCH_N SETTING_PCSS_BLOCKER_SEARCH_COUNT
 
     float blockerSearchRange = 0.1;
-    uint idxB = frameCounter * BLOCKER_SEARCH_N + (hash_31_q3(floatBitsToUint(lighting_viewCoord.xyz)) & 1023u);
+    uint idxB = frameCounter * BLOCKER_SEARCH_N + (hash_31_q3(floatBitsToUint(viewPos.xyz)) & 1023u);
 
-    float blockerDepth = 0.0f;
+    float blockerDepth = 0.0;
     int n = 0;
 
     shadowTexCoord.z = rtwsm_linearDepth(shadowTexCoord.z);
@@ -65,28 +85,28 @@ float searchBlocker(vec3 shadowTexCoord) {
 
 vec3 calcShadow(Material material, bool isHand) {
     float sssFactor = material.sss;
-    uint skipFlag = uint(dot(lighting_gData.normal, uval_upDirView) < -0.99);
+    uint skipFlag = uint(dot(gData.normal, uval_upDirView) < -0.99);
     skipFlag &= uint(sssFactor < 0.001);
     if (bool(skipFlag)) {
         return vec3(1.0);
     }
 
-    vec3 viewCoord = lighting_viewCoord;
+    vec3 viewCoord = viewPos;
     float distnaceSq = dot(viewCoord, viewCoord);
 
     float normalOffset = 0.03;
 
-    float viewNormalDot = 1.0 - abs(dot(lighting_gData.normal, lighting_viewDir));
+    float viewNormalDot = 1.0 - abs(dot(gData.normal, viewDir));
     #define NORMAL_OFFSET_DISTANCE_FACTOR1 2048.0
     float normalOffset1 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR1 / (NORMAL_OFFSET_DISTANCE_FACTOR1 + distnaceSq));
     normalOffset += saturate(normalOffset1 * viewNormalDot) * 0.2;
 
-    float lightNormalDot = 1.0 - abs(dot(uval_shadowLightDirView, lighting_gData.normal));
+    float lightNormalDot = 1.0 - abs(dot(uval_shadowLightDirView, gData.normal));
     #define NORMAL_OFFSET_DISTANCE_FACTOR2 512.0
     float normalOffset2 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR2 / (NORMAL_OFFSET_DISTANCE_FACTOR2 + distnaceSq));
     normalOffset += saturate(normalOffset2 * lightNormalDot) * 0.2;
 
-    viewCoord = mix(viewCoord + lighting_gData.normal * normalOffset, viewCoord, isHand);
+    viewCoord = mix(viewCoord + gData.normal * normalOffset, viewCoord, isHand);
 
     vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
 
@@ -115,8 +135,8 @@ vec3 calcShadow(Material material, bool isHand) {
     float depthBiasFactor = 0.001 + lightNormalDot * 0.001;
     depthBiasFactor += mix(0.005 + lightNormalDot * 0.005, -0.001, dbfDistanceCoeff);
 
-    float jitterR = rand_stbnVec1(lighting_texelPos, frameCounter);
-    vec2 dir = rand_stbnUnitVec211(lighting_texelPos, frameCounter);
+    float jitterR = rand_stbnVec1(texelPos, frameCounter);
+    vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);
     float sqrtJitterR = sqrt(jitterR);
     float r = sqrtJitterR * ssRange;
 
@@ -144,9 +164,10 @@ vec3 calcShadow(Material material, bool isHand) {
 
 vec4 compShadow(ivec2 texelPos, float viewZ) {
     vec2 screenPos = texel2Screen(texelPos);
-    Material material = material_decode(lighting_gData);
-    lighting_init(coords_toViewCoord(screenPos, viewZ, global_camProjInverse), texelPos);
-    return vec4(calcShadow(material, lighting_gData.isHand), 1.0);
+    Material material = material_decode(gData);
+    viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+    viewDir = normalize(-viewPos);
+    return vec4(calcShadow(material, gData.isHand), 1.0);
 }
 
 void main() {
@@ -173,14 +194,14 @@ void main() {
         #endif
 
         if (viewZ != -65536.0) {
-            gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), lighting_gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), lighting_gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
             vec4 outputColor = compShadow(texelPos, viewZ);
             imageStore(uimg_temp5, texelPos, outputColor);
 
 
             #ifdef SETTING_RTWSM_B
-            rtwsm_backward(texelPos, viewZ, lighting_gData.geometryNormal);
+            rtwsm_backward(texelPos, viewZ, gData.geometryNormal);
             #endif
         }
     }
