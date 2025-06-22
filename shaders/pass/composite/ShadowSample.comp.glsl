@@ -104,7 +104,7 @@ vec3 calcShadow(Material material, bool isHand) {
     float normalOffset2 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR2 / (NORMAL_OFFSET_DISTANCE_FACTOR2 + distnaceSq));
     normalOffset += saturate(normalOffset2 * lightNormalDot) * 0.2;
 
-    viewCoord = mix(viewCoord + gData.normal * normalOffset, viewCoord, isHand);
+    viewCoord = mix(viewCoord + gData.normal * normalOffset, viewCoord, bvec3(isHand));
 
     vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
 
