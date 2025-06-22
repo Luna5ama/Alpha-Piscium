@@ -14,8 +14,6 @@
 #ifndef INCLUDE_util_Hash_glsl
 #define INCLUDE_util_Hash_glsl a
 
-#include "/Base.glsl"
-
 // --------------------------------------------------- Intenal Utils ---------------------------------------------------
 uint _hash_sum(uvec2 v) {
     return v.x + v.y;
@@ -172,6 +170,7 @@ uint hash_iqint3_21(uvec2 v) {
 
 
 // 1 to 1
+// Not recommended
 uint hash_11_q1(uint v) {
     return hash_lcg_11(v);
 }
@@ -194,6 +193,7 @@ uint hash_11_q5(uint v) {
 
 
 // 2 to 1
+// Not recommended
 uint hash_21_q1(uvec2 v) {
     return hash_lcg_21_linear(v);
 }
@@ -216,6 +216,7 @@ uint hash_21_q5(uvec2 v) {
 
 
 // 3 to 1
+// Not recommended
 uint hash_31_q1(uvec3 v) {
     return hash_lcg_31_linear(v);
 }
@@ -238,6 +239,7 @@ uint hash_31_q5(uvec3 v) {
 
 
 // 4 to 1
+// Not recommended
 uint hash_41_q1(uvec4 v) {
     return hash_lcg_41_linear(v);
 }
