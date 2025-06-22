@@ -167,8 +167,7 @@ void main() {
     #ifndef GBUFFER_PASS_DH
     vec2 screenPos = gl_FragCoord.xy * global_mainImageSizeRcp;
     vec3 viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
-    vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
-    float edgeFactor = linearStep(far * 0.75, far, length(scenePos.xz));
+    float edgeFactor = linearStep(min(far * 0.75, far - 24.0), far, length(viewPos));
     if (noiseIGN < edgeFactor) {
         discard;
         return;

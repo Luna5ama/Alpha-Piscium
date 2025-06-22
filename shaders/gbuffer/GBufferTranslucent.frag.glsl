@@ -46,9 +46,7 @@ GBufferData processOutput() {
 
     #ifdef DISTANT_HORIZONS
     #ifndef GBUFFER_PASS_DH
-    vec4 scenePos = gbufferModelViewInverse * vec4(frag_viewCoord, 1.0);
-
-    float edgeFactor = linearStep(far * 0.75, far, length(scenePos.xz));
+    float edgeFactor = linearStep(min(far * 0.75, far - 24.0), far, length(frag_viewCoord));
     if (noiseIGN < edgeFactor) {
         discard;
     }
