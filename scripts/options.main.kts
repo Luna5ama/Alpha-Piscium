@@ -1596,16 +1596,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "GBuffer Data"
                     0 value "Off"
-                    1 value "Albedo"
-                    2 value "Normal"
-                    3 value "Geometry Normal"
-                    4 value "Roughness"
-                    5 value "F0"
-                    6 value "Porosity"
-                    7 value "SSS"
-                    8 value "Light Map Block"
-                    9 value "Light Map Sky"
-                    10 value "isHand"
+                    1 value "View Z"
+                    2 value "Albedo"
+                    3 value "Normal"
+                    4 value "Geometry Normal"
+                    5 value "Roughness"
+                    6 value "F0"
+                    7 value "Porosity"
+                    8 value "SSS"
+                    9 value "Light Map Block"
+                    10 value "Light Map Sky"
+                    11 value "isHand"
                 }
             }
             toggle("SETTING_DEBUG_NORMAL_MODE", 0, 0..1) {

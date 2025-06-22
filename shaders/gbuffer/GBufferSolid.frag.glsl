@@ -111,6 +111,8 @@ void processData1() {
 }
 #else
 void processData1() {
+    gData.geometryNormal = frag_viewNormal;
+
     #if defined(GBUFFER_PASS_TEXTURED)
     vec4 normalSample = textureGrad(normals, frag_texCoord, dUVdx, dUVdy);
     vec4 specularSample = textureGrad(specular, frag_texCoord, dUVdx, dUVdy);
@@ -125,7 +127,6 @@ void processData1() {
 
     gData.pbrSpecular.a = emissiveS;
 
-    gData.geometryNormal = frag_viewNormal;
     #if !defined(SETTING_NORMAL_MAPPING)
     gData.normal = frag_viewNormal;
     #else
@@ -140,9 +141,13 @@ void processData1() {
 
     #else
     gData.normal = frag_viewNormal;
-    gData.pbrSpecular = vec4(0.0, 1.0, 0.0, 1.0);
+    gData.pbrSpecular = vec4(0.0, 0.0, 0.0, 0.0);
     gData.lmCoord = frag_lmCoord;
     gData.materialID = 65534u;
+    #endif
+
+    #ifdef GBUFFER_PASS_DH a
+    gData.materialID = 65533;
     #endif
 
     gData.lmCoord = dither_u8(gData.lmCoord, noiseIGN);
@@ -158,6 +163,19 @@ void processData1() {
 #endif
 
 void main() {
+    #ifdef DISTANT_HORIZONS
+    #ifndef GBUFFER_PASS_DH
+    vec2 screenPos = gl_FragCoord.xy * global_mainImageSizeRcp;
+    vec3 viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
+    vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
+    float edgeFactor = linearStep(far * 0.75, far, length(scenePos.xz));
+    if (noiseIGN < edgeFactor) {
+        discard;
+        return;
+    }
+    #endif
+    #endif
+
     processAlbedo();
     processViewZ();
 

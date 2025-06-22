@@ -73,3 +73,12 @@ uniform float alphaTestRef;                     // alpha test reference value, t
 // 1.19+
 uniform float darknessFactor;                   // strength of the darkness effect (0.0-1.0)
 uniform float darknessLightFactor;              // lightmap variations caused by the darkness effect (0.0-1.0)
+
+#ifdef DISTANT_HORIZONS
+uniform float dhNearPlane;
+uniform float dhFarPlane;
+uniform int dhRenderDistance;
+uniform mat4 dhProjection;
+uniform mat4 dhProjectionInverse;
+uniform mat4 dhPreviousProjection;
+#endif

@@ -39,6 +39,17 @@ GBufferData processOutput() {
 
     float noiseIGN = rand_IGN(texelPos, frameCounter);
 
+    #ifdef DISTANT_HORIZONS
+    #ifndef GBUFFER_PASS_DH
+    vec4 scenePos = gbufferModelViewInverse * vec4(frag_viewCoord, 1.0);
+
+    float edgeFactor = linearStep(far * 0.75, far, length(scenePos.xz));
+    if (noiseIGN < edgeFactor) {
+        discard;
+    }
+    #endif
+    #endif
+
     vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
     vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);
 

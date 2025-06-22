@@ -7,7 +7,6 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #include "/general/DebugOutput.glsl"
 
 layout(rgba16f) restrict uniform image2D uimg_main;
-uniform sampler2D usam_gbufferViewZ;
 
 #define FFXCAS_SHARPENESS SETTING_TAA_CAS_SHARPNESS
 #include "/post/FFXCas.glsl"
