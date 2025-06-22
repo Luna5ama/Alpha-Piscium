@@ -12,14 +12,9 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-const bool shadowtex0Mipmap = true;
-const bool shadowtex1Mipmap = true;
-
-const bool shadowHardwareFiltering0 = true;
 uniform sampler2D shadowtex0;
 uniform sampler2DShadow shadowtex0HW;
 
-const bool shadowHardwareFiltering1 = true;
 uniform sampler2D shadowtex1;
 uniform sampler2DShadow shadowtex1HW;
 
@@ -173,8 +168,7 @@ void main() {
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
-
-    ivec2 texelPos = ivec2(mortonGlobalPosU);
+    texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;

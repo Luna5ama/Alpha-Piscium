@@ -19,7 +19,6 @@ layout(local_size_x = 1, local_size_y = SETTING_SLICE_SAMPLES) in;
 const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
 
 uniform sampler2D usam_rtwsm_imap;
-const bool shadowHardwareFiltering0 = true;
 uniform sampler2DShadow shadowtex0HW;
 uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_packedZN;

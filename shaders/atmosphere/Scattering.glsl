@@ -14,7 +14,6 @@
 #include "/util/Celestial.glsl"
 
 //uniform sampler2D usam_rtwsm_imap;
-//const bool shadowHardwareFiltering0 = true;
 //uniform sampler2DShadow shadowtex0HW;
 //uniform sampler2D usam_gbufferViewZ;
 //uniform usampler2D usam_packedZN;
