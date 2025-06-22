@@ -13,7 +13,9 @@ in float frag_viewZ;
 flat in vec2 frag_texcoordMin;
 flat in vec2 frag_texcoordMax;
 
+#ifdef SHADOW_PASS_TRANSLUCENT
 layout(location = 0) out vec4 rt_out;
+#endif
 
 void main() {
     vec2 fragUV = gl_FragCoord.xy * SHADOW_MAP_SIZE.y;
@@ -24,22 +26,20 @@ void main() {
     offsetTexCoord = clamp(offsetTexCoord, frag_texcoordMin, frag_texcoordMax);
     vec4 color = texture(gtexture, offsetTexCoord) * frag_color;
 
-    color.rgb = colors_srgbToLinear(color.rgb);
-
-    #ifdef SHADOW_PASS_TRANSLUCENT
-    vec2 randCoord = gl_FragCoord.xy;
-    randCoord.y += -frag_viewZ;
-    float randAlpha = rand_IGN(uvec2(randCoord), frameCounter);
-    if (color.a < randAlpha) {
-        discard;
-    }
-    #endif
-
     #ifdef SHADOW_PASS_ALPHA_TEST
     if (color.a < alphaTestRef) {
         discard;
     }
     #endif
 
+    #ifdef SHADOW_PASS_TRANSLUCENT
+    color.rgb = colors_srgbToLinear(color.rgb);
+    vec2 randCoord = gl_FragCoord.xy;
+    randCoord.y += -frag_viewZ;
+    float randAlpha = rand_IGN(uvec2(randCoord), frameCounter);
+    if (color.a < randAlpha) {
+        discard;
+    }
     rt_out = mix(color, vec4(1.0, 1.0, 1.0, 0.0), float(color.a == 1.0));
+    #endif
 }
