@@ -57,27 +57,27 @@ vec4 computeBilateralWeights(vec2 gatherTexelPos) {
     float geometryPlaneWeight = BASE_GEOM_WEIGHT_RCP * max(abs(reproject_curr2PrevView.z), 0.1);
     float geometryNormalWeight = mix(BASE_GEOM_WEIGHT, BASE_NORMAL_WEIGHT, reproject_isHand);
 
-    result.x *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(-0.5, 0.5), prevViewZs.x, prevViewGeomNormals.x,
-        geometryPlaneWeight, geometryNormalWeight
-    );
-    result.y *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(0.5, 0.5), prevViewZs.y, prevViewGeomNormals.y,
-        geometryPlaneWeight, geometryNormalWeight
-    );
-    result.z *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(0.5, -0.5), prevViewZs.z, prevViewGeomNormals.z,
-        geometryPlaneWeight, geometryNormalWeight
-    );
-    result.w *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(-0.5, -0.5), prevViewZs.w, prevViewGeomNormals.w,
-        geometryPlaneWeight, geometryNormalWeight
-    );
+//    result.x *= computeGeometryWeight(
+//        screenPos + global_mainImageSizeRcp * vec2(-0.5, 0.5), prevViewZs.x, prevViewGeomNormals.x,
+//        geometryPlaneWeight, geometryNormalWeight
+//    );
+//    result.y *= computeGeometryWeight(
+//        screenPos + global_mainImageSizeRcp * vec2(0.5, 0.5), prevViewZs.y, prevViewGeomNormals.y,
+//        geometryPlaneWeight, geometryNormalWeight
+//    );
+//    result.z *= computeGeometryWeight(
+//        screenPos + global_mainImageSizeRcp * vec2(0.5, -0.5), prevViewZs.z, prevViewGeomNormals.z,
+//        geometryPlaneWeight, geometryNormalWeight
+//    );
+//    result.w *= computeGeometryWeight(
+//        screenPos + global_mainImageSizeRcp * vec2(-0.5, -0.5), prevViewZs.w, prevViewGeomNormals.w,
+//        geometryPlaneWeight, geometryNormalWeight
+//    );
 
-    result.x *= computeNormalWeight(prevViewNormals.x, BASE_NORMAL_WEIGHT);
-    result.y *= computeNormalWeight(prevViewNormals.y, BASE_NORMAL_WEIGHT);
-    result.z *= computeNormalWeight(prevViewNormals.z, BASE_NORMAL_WEIGHT);
-    result.w *= computeNormalWeight(prevViewNormals.w, BASE_NORMAL_WEIGHT);
+//    result.x *= computeNormalWeight(prevViewNormals.x, BASE_NORMAL_WEIGHT);
+//    result.y *= computeNormalWeight(prevViewNormals.y, BASE_NORMAL_WEIGHT);
+//    result.z *= computeNormalWeight(prevViewNormals.z, BASE_NORMAL_WEIGHT);
+//    result.w *= computeNormalWeight(prevViewNormals.w, BASE_NORMAL_WEIGHT);
 
     return result;
 }
@@ -166,7 +166,7 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     vec4 curr2PrevView = coord_viewCurrToPrev(vec4(currView, 1.0), isHand);
     vec4 curr2PrevClip = global_prevCamProj * curr2PrevView;
     uint clipFlag = uint(curr2PrevClip.z > 0.0);
-    clipFlag &= uint(all(lessThan(abs(curr2PrevClip.xyz), curr2PrevClip.www)));
+    clipFlag &= uint(all(lessThan(abs(curr2PrevClip.xy), curr2PrevClip.ww)));
     if (!bool(clipFlag)) {
         return;
     }
