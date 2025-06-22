@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/UpdateGlobalData.comp.glsl"
+#include "/pass/begin/UpdateGlobalData.comp.glsl"
