@@ -4,12 +4,12 @@
 #include "/util/Colors.glsl"
 #include "/textile/CSRGBA32UI.glsl"
 
-#define CLOUDS_SS_MAX_ACCUM 64
+#define CLOUDS_SS_MAX_ACCUM 16
 
 struct CloudSSHistoryData {
     vec3 inScattering;
     vec3 transmittance;
-    float viewZ;
+    float viewZ; // in unit km, positive
     float hLen;
 };
 

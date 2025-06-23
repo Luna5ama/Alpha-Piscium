@@ -80,12 +80,14 @@ CloudRaymarchLayerParam clouds_raymarchLayerParam_init(
 struct CloudRaymarchAccumState {
     vec3 totalInSctr;
     vec3 totalTransmittance;
+    float viewZ; // in unit km, positive
 };
 
 CloudRaymarchAccumState clouds_raymarchAccumState_init() {
     CloudRaymarchAccumState state;
     state.totalInSctr = vec3(0.0);
     state.totalTransmittance = vec3(1.0);
+    state.viewZ = 1145141919810.0;
     return state;
 }
 
@@ -167,6 +169,10 @@ void clouds_computeLighting(
 
     accumState.totalInSctr += sampleTotalInSctr * accumState.totalTransmittance;
     accumState.totalTransmittance *= sampleTransmittance;
+
+    if (colors_sRGB_luma(accumState.totalTransmittance) < 0.99) {
+        accumState.viewZ = min(accumState.viewZ, stepState.position.w);
+    }
 }
 
 #endif

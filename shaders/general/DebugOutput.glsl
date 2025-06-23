@@ -354,7 +354,7 @@ void debugOutput(inout vec4 outputColor) {
         #elif SETTING_DEBUG_CLOUDS_SS == 2
         outputColor.rgb = expGamma(historyData.transmittance);
         #elif SETTING_DEBUG_CLOUDS_SS == 3
-        outputColor.rgb = interpolateTurbo(linearStep(0.0, 4.0, historyData.viewZ));
+        outputColor.rgb = interpolateTurbo(linearStep(0.0, 64.0, historyData.viewZ));
         #elif SETTING_DEBUG_CLOUDS_SS == 4
         outputColor.rgb = interpolateTurbo(1.0 - (historyData.hLen - 2.0) / (float(CLOUDS_SS_MAX_ACCUM) - 2.0));
         #endif
