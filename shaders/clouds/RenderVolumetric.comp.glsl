@@ -1,8 +1,5 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 
-layout(local_size_x = 8, local_size_y = 8) in;
-const vec2 workGroupsRender = vec2(0.5, 0.5);
-
 #include "Common.glsl"
 #include "Cirrus.glsl"
 #include "Cumulus.glsl"
@@ -11,54 +8,13 @@ const vec2 workGroupsRender = vec2(0.5, 0.5);
 #include "/util/Math.glsl"
 #include "/util/Morton.glsl"
 
-#define UPSCALE_FACTOR 4
-
-#if UPSCALE_FACTOR == 1
-ivec2 renderSize = global_mipmapSizesI[0];
-#define UPSCALE_BLOCK_SIZE 1
-#elif UPSCALE_FACTOR == 2
-ivec2 renderSize = global_mipmapSizesI[1];
-#define UPSCALE_BLOCK_SIZE 4
-#elif UPSCALE_FACTOR == 4
-ivec2 renderSize = global_mipmapSizesI[2];
-#define UPSCALE_BLOCK_SIZE 16
-#elif UPSCALE_FACTOR == 8
-ivec2 renderSize = global_mipmapSizesI[3];
-#define UPSCALE_BLOCK_SIZE 64
-#endif
+layout(local_size_x = 8, local_size_y = 8) in;
+const vec2 workGroupsRender = vec2(RENDER_MULTIPLIER, RENDER_MULTIPLIER);
 
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler3D usam_cloudsAmbLUT;
 
-layout(rgba32ui) uniform restrict uimage2D uimg_csrgba32ui;
-
-vec2 getTexelPos1x1(ivec2 texelPosDownScale) {
-    vec2 texelPos1x1F = vec2(texelPosDownScale * UPSCALE_FACTOR);
-    vec2 offset = rand_r2Seq2(frameCounter);
-    offset *= UPSCALE_FACTOR;
-    offset = mod(offset, vec2(UPSCALE_FACTOR));
-    return clamp(texelPos1x1F + offset, vec2(0.5), global_mainImageSize - 0.5);
-}
-
-void writePixel(ivec2 outputTexelPos, CloudRaymarchAccumState accumState, float weight) {
-    if (weight > 0.0) {
-        ivec2 actualTexelPos = clouds_ss_history_texelToTexel(outputTexelPos);
-        CloudSSHistoryData prevData = clouds_ss_historyData_init();
-        clouds_ss_historyData_unpack(imageLoad(uimg_csrgba32ui, actualTexelPos), prevData);
-
-        CloudSSHistoryData newData = clouds_ss_historyData_init();
-        newData.hLen = min(prevData.hLen + weight, CLOUDS_SS_MAX_ACCUM);
-
-        float alpha = weight / newData.hLen;
-        newData.inScattering = mix(prevData.inScattering, accumState.totalInSctr, alpha);
-        newData.transmittance = mix(prevData.transmittance, accumState.totalTransmittance, alpha);
-        newData.viewZ = mix(prevData.viewZ, accumState.viewZ, alpha);
-
-        uvec4 packedData = uvec4(0);
-        clouds_ss_historyData_pack(packedData, newData);
-        imageStore(uimg_csrgba32ui, actualTexelPos, packedData);
-    }
-}
+layout(rgba32ui) uniform writeonly uimage2D uimg_tempRGBA32UI;
 
 void render(ivec2 texelPosDownScale) {
     vec2 texelPosF = getTexelPos1x1(texelPosDownScale);
@@ -231,25 +187,14 @@ void render(ivec2 texelPosDownScale) {
         }
     }
 
-    vec2 centerPixel = texelPosF - 0.5;
-    vec2 centerPixelOrigin = floor(centerPixel);
-    vec2 gatherTexelPos = centerPixelOrigin + 1.0;
-    vec2 pixelPosFract = centerPixel - centerPixelOrigin;
-
-    vec2 bilinearWeights2 = pixelPosFract;
-    vec4 blinearWeights4;
-    blinearWeights4.yz = bilinearWeights2.xx;
-    blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
-    blinearWeights4.xy *= bilinearWeights2.yy;
-    blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
-    blinearWeights4 *= 4.0;
-
-    ivec2 centerPixelOriginI = ivec2(centerPixelOrigin);
-
-    writePixel(centerPixelOriginI, accumState, blinearWeights4.w);
-    writePixel(centerPixelOriginI + ivec2(1, 0), accumState, blinearWeights4.z);
-    writePixel(centerPixelOriginI + ivec2(0, 1), accumState, blinearWeights4.x);
-    writePixel(centerPixelOriginI + ivec2(1, 1), accumState, blinearWeights4.y);
+    CloudSSHistoryData historyData = clouds_ss_historyData_init();
+    historyData.inScattering = accumState.totalInSctr;
+    historyData.transmittance = accumState.totalTransmittance;
+    historyData.viewZ = accumState.viewZ;
+    historyData.hLen = 1.0;
+    uvec4 packedOutput = uvec4(0u);
+    clouds_ss_historyData_pack(packedOutput, historyData);
+    imageStore(uimg_tempRGBA32UI, texelPosDownScale, packedOutput);
 }
 
 void main() {

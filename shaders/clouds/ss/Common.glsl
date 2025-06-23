@@ -2,7 +2,40 @@
 #define INCLUDE_clouds_ss_Common_glsl a
 
 #include "/util/Colors.glsl"
+#include "/util/Rand.glsl"
 #include "/textile/CSRGBA32UI.glsl"
+
+#define UPSCALE_FACTOR 8
+
+#if UPSCALE_FACTOR == 1
+ivec2 renderSize = global_mipmapSizesI[0];
+#define RENDER_MULTIPLIER 1.0
+#define UPSCALE_BLOCK_SIZE 1
+
+#elif UPSCALE_FACTOR == 2
+ivec2 renderSize = global_mipmapSizesI[1];
+#define UPSCALE_BLOCK_SIZE 4
+#define RENDER_MULTIPLIER 0.5
+
+#elif UPSCALE_FACTOR == 4
+ivec2 renderSize = global_mipmapSizesI[2];
+#define UPSCALE_BLOCK_SIZE 16
+#define RENDER_MULTIPLIER 0.25
+
+#elif UPSCALE_FACTOR == 8
+ivec2 renderSize = global_mipmapSizesI[3];
+#define UPSCALE_BLOCK_SIZE 64
+#define RENDER_MULTIPLIER 0.125
+
+#endif
+
+vec2 getTexelPos1x1(ivec2 texelPosDownScale) {
+    vec2 texelPos1x1F = vec2(texelPosDownScale * UPSCALE_FACTOR);
+    vec2 offset = rand_r2Seq2(frameCounter);
+    offset *= UPSCALE_FACTOR;
+    offset = mod(offset, vec2(UPSCALE_FACTOR));
+    return clamp(texelPos1x1F + offset, vec2(0.5), global_mainImageSize - 0.5);
+}
 
 #define CLOUDS_SS_MAX_ACCUM 16
 
