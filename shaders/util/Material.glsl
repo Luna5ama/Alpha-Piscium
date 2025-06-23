@@ -23,7 +23,7 @@ const float _MATERIAL_MAXIMUM_ROUGHNESS = 1.0 - exp2(-SETTING_SPECULAR_MAPPING_M
 Material material_decode(GBufferData gData) {
     Material material;
 
-    material.albedo = colors_srgbToLinear(gData.albedo);
+    material.albedo = colors_sRGB_decodeGamma(gData.albedo);
 
     material.roughness = 1.0 - gData.pbrSpecular.r;
     material.roughness *= material.roughness;

@@ -33,7 +33,7 @@ void main() {
     #endif
 
     #ifdef SHADOW_PASS_TRANSLUCENT
-    color.rgb = colors_srgbToLinear(color.rgb);
+    color.rgb = colors_sRGB_decodeGamma(color.rgb);
     vec2 randCoord = gl_FragCoord.xy;
     randCoord.y += -frag_viewZ;
     float randAlpha = rand_IGN(uvec2(randCoord), frameCounter);

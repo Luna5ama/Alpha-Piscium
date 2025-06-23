@@ -88,12 +88,12 @@ vec4 celestial_render(ivec2 texelPos, inout vec4 temp6Out) {
     float earthIntersect = raySphereIntersectNearest(origin, viewDirWorld, earthCenter, atmosphere.bottom);
     float earthOcclusionV = step(earthIntersect, 0.0);
 
-    float sunV = earthOcclusionV *_celestial_circle(viewDir, uval_sunDirView, SUN_ANGULAR_RADIUS * 1.0);
-    float moonV = earthOcclusionV *_celestial_circle(viewDir, uval_moonDirView, MOON_ANGULAR_RADIUS * 1.0);
-    float moonDarkV = earthOcclusionV * _celestial_circle(viewDir, uval_moonDirView, MOON_ANGULAR_RADIUS * 2.0);
+    float sunV = earthOcclusionV *_celestial_circle(viewDir, uval_sunDirView, SUN_ANGULAR_RADIUS * 2.0);
+    float moonV = earthOcclusionV *_celestial_circle(viewDir, uval_moonDirView, MOON_ANGULAR_RADIUS * 2.0);
+    float moonDarkV = earthOcclusionV * _celestial_circle(viewDir, uval_moonDirView, MOON_ANGULAR_RADIUS * 4.0);
 
     vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
-    result += sunV * vec4(SUN_LUMINANCE, 16.0);
+    result += sunV * vec4(SUN_LUMINANCE, 1.0);
     result += moonV * vec4(MOON_LUMINANCE, 0.0);
     result += moonDarkV * vec4(0.0, 0.0, 0.0, -0.95);
 

@@ -93,6 +93,6 @@ void main() {
 
     lighting_init(frag_viewCoord, texelPos);
 
-    rt_translucentColor.rgb = colors_srgbToLinear(albedo.rgb);
+    rt_translucentColor.rgb = colors_sRGB_decodeGamma(albedo.rgb);
     rt_translucentColor.a = albedo.a;
 }

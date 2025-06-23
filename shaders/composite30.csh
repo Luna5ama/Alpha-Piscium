@@ -50,7 +50,7 @@ void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
 
-        vec3 albedo = colors_srgbToLinear(texelFetch(usam_gbufferData8UN, texelPos, 0).rgb);
+        vec3 albedo = colors_sRGB_decodeGamma(texelFetch(usam_gbufferData8UN, texelPos, 0).rgb);
 
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;

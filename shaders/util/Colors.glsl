@@ -29,14 +29,14 @@
 vec3 colors_Rec601_encodeGamma(vec3 color) {
     vec3 lower = 4.5 * color;
     vec3 higher = pow(color, vec3(0.45)) * 1.099 - 0.099;
-    return mix(lower, higher, vec3(greaterThanEqual(color, vec3(0.018))));
+    return mix(lower, higher, greaterThanEqual(color, vec3(0.018)));
 }
 
 // [WIK25a]
 vec3 colors_Rec601_decodeGamma(vec3 color) {
     vec3 lower = color / 4.5;
     vec3 higher = pow((color + 0.099) / 1.099, vec3(1.0 / 0.45));
-    return mix(lower, higher, vec3(greaterThanEqual(color, vec3(0.081))));
+    return mix(lower, higher, greaterThanEqual(color, vec3(0.081)));
 }
 
 // [ITU11]
@@ -72,11 +72,11 @@ float colors_sRGB_encodeGamma(float color) {
 vec3 colors_sRGB_encodeGamma(vec3 color) {
     vec3 lower = 12.92 * color;
     vec3 higher = pow(color, vec3(1.0 / 2.4)) * 1.055 - 0.055;
-    return mix(lower, higher, vec3(greaterThan(color, vec3(0.0031308))));
+    return mix(lower, higher, greaterThan(color, vec3(0.0031308)));
 }
 
 // [WIK25c]
-float color_sRGB_decodeGamma(float color) {
+float colors_sRGB_decodeGamma(float color) {
     float lower = color / 12.92;
     float higher = pow((color + 0.055) / 1.055, 2.4);
     return mix(lower, higher, color > 0.04045);
@@ -86,24 +86,12 @@ float color_sRGB_decodeGamma(float color) {
 vec3 colors_sRGB_decodeGamma(vec3 color) {
     vec3 lower = color / 12.92;
     vec3 higher = pow((color + 0.055) / 1.055, vec3(2.4));
-    return mix(lower, higher, vec3(greaterThan(color, vec3(0.04045))));
+    return mix(lower, higher, greaterThan(color, vec3(0.04045)));
 }
 
 // [WIK25c]
 float colors_sRGB_luma(vec3 color) {
     return colors_Rec709_luma(color);
-}
-
-// Simple approximation of sRGB to linear conversion
-vec3 colors_srgbToLinear(vec3 color) {
-    const float a0 = 0.000570846;
-    const float a1 = -0.0403863;
-    const float a2 = 0.862127;
-    const float a3 = 0.178572;
-    vec3 x = max(color, 0.0232545);
-    vec3 x2 = x * x;
-    vec3 x3 = x2 * x;
-    return a0 + a1 * x + a2 * x2 + a3 * x3;
 }
 
 // ------------------------------------------------------- YCoCg -------------------------------------------------------
