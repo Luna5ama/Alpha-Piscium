@@ -92,7 +92,7 @@ void render(ivec2 texelPosDownScale) {
 
     vec3 viewDir = -mainRayParams.rayDir;
     vec2 ambLutUV = coords_equirectanglarForwardHorizonBoost(viewDir);
-    vec2 jitters = rand_stbnVec2(texelPosDownScale, frameCounter);
+    vec2 jitters = rand_stbnVec2(ivec2(texelPosF), frameCounter / UPSCALE_BLOCK_SIZE);
 
     {
         float cuHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
@@ -112,7 +112,7 @@ void render(ivec2 texelPosDownScale) {
             #define CLOUDS_CU_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_RAYMARCH_STEP))
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 4
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
-            #define CLOUDS_CU_DENSITY (128.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (64.0 * SETTING_CLOUDS_CU_DENSITY)
 
             float cuRayLen = max(cuRayLenBottom, cuRayLenTop) - cuOrigin2RayStart;
 

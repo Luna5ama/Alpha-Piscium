@@ -110,26 +110,17 @@ void main() {
         Vec4PackedData centerData = loadCurrData(texelPosDownScale);
         Vec4PackedData currSumData = vec4PackedData_mul(centerData, computeSampleWeight(texelCenter, texelPosDownScale));
 
-        loadAndAccumCurr(texelCenter, texelPosDownScale, ivec2(-1, -1), currSumData);
-        loadAndAccumCurr(texelCenter, texelPosDownScale, ivec2(0, -1), currSumData);
-        loadAndAccumCurr(texelCenter, texelPosDownScale, ivec2(1, -1), currSumData);
-        loadAndAccumCurr(texelCenter, texelPosDownScale, ivec2(-1, 0), currSumData);
-        loadAndAccumCurr(texelCenter, texelPosDownScale, ivec2(1, 0), currSumData);
-        loadAndAccumCurr(texelCenter, texelPosDownScale, ivec2(-1, 1), currSumData);
-        loadAndAccumCurr(texelCenter, texelPosDownScale, ivec2(0, 1), currSumData);
-        loadAndAccumCurr(texelCenter, texelPosDownScale, ivec2(1, 1), currSumData);
-
-        Vec4PackedData prevSumData = vec4PackedData_init();
-        float prevWeightSum = 0.0;
-
         float averageViewZ = currSumData.transmittanceHLen.w <= 1.0 ? 65.536 : currSumData.inScatteringViewZ.w / currSumData.transmittanceHLen.w;
         averageViewZ *= -1000.0; // Convert to meters
         vec3 currView = coords_toViewCoord(uv, averageViewZ, global_camProjInverse);
         vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
-        vec4 curr2PrevView = coord_viewCurrToPrev(vec4(currView, 1.0), false);
+        vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene);
+        vec4 curr2PrevView = gbufferPrevModelView * curr2PrevScene;
         vec4 curr2PrevClip = global_prevCamProj * curr2PrevView;
         uint clipFlag = uint(curr2PrevClip.z > 0.0);
         clipFlag &= uint(all(lessThan(abs(curr2PrevClip.xy), curr2PrevClip.ww)));
+
+        Vec4PackedData prevAvgData = vec4PackedData_init();
         if (bool(clipFlag)) {
             vec2 curr2PrevNDC = curr2PrevClip.xy / curr2PrevClip.w;
             vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
@@ -145,6 +136,8 @@ void main() {
 
             ivec2 centerPixelOriginI = ivec2(centerPixelOrigin);
 
+            Vec4PackedData prevSumData = vec4PackedData_init();
+            float prevWeightSum = 0.0;
             vec4 weights4 = weightX.xyyx * weightY.wwzz;
             loadAndAccumPrev(centerPixelOriginI + ivec2(-1, 1), weights4.w, prevSumData, prevWeightSum);
             loadAndAccumPrev(centerPixelOriginI + ivec2(-1, 1) + ivec2(1, 0), weights4.z, prevSumData, prevWeightSum);
@@ -168,14 +161,18 @@ void main() {
             loadAndAccumPrev(centerPixelOriginI + ivec2(-1, -1) + ivec2(1, 0), weights4.z, prevSumData, prevWeightSum);
             loadAndAccumPrev(centerPixelOriginI + ivec2(-1, -1) + ivec2(0, 1), weights4.x, prevSumData, prevWeightSum);
             loadAndAccumPrev(centerPixelOriginI + ivec2(-1, -1) + ivec2(1, 1), weights4.y, prevSumData, prevWeightSum);
+
+            if (prevWeightSum > WEIGHT_EPSILON) {
+                prevAvgData = vec4PackedData_mul(prevSumData, rcp(prevWeightSum));
+                vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevAvgData.inScatteringViewZ.w * -1000.0, global_prevCamProjInverse);
+                vec4 prevScene = gbufferPrevModelViewInverse * vec4(prevView, 1.0);
+                vec4 prev2CurrScene = coord_scenePrevToCurr(prevScene);
+                vec4 prev2CurrView = gbufferModelView * prev2CurrScene;
+                prevAvgData.inScatteringViewZ.w = prev2CurrView.z / -1000.0;
+            }
         }
 
         float currWeight = currSumData.transmittanceHLen.w;
-
-        Vec4PackedData prevAvgData = vec4PackedData_init();
-        if (prevWeightSum > WEIGHT_EPSILON) {
-            prevAvgData = vec4PackedData_mul(prevSumData, rcp(prevWeightSum));
-        }
 
         CloudSSHistoryData newData = vec4PackedData_toHistoryData(prevAvgData);
         newData.hLen = min(prevAvgData.transmittanceHLen.w + currWeight, CLOUDS_SS_MAX_ACCUM);
