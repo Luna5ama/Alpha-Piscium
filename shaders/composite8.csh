@@ -21,7 +21,7 @@ uniform usampler2D usam_tempRG32UI;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
-layout(rgba32ui) uniform writeonly uimage2D uimg_svgfHistory;
+layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
 
 shared vec4 shared_moments[12][12][2];
 shared vec4 shared_momentsV[8][12][2];
@@ -272,7 +272,7 @@ void main() {
         {
             uvec4 packedOutData = uvec4(0u);
             svgf_pack(packedOutData, newColor, newFastColor, newMoments, newHLen);
-            imageStore(uimg_svgfHistory, gi_diffuseHistory_texelToTexel(texelPos), packedOutData);
+            imageStore(uimg_csrgba32ui, gi_diffuseHistory_texelToTexel(texelPos), packedOutData);
         }
     }
 }

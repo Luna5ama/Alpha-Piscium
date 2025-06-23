@@ -3,8 +3,9 @@
 
 #include "Common.glsl"
 
-#define _CSRGBA32UI_TEXTURE_SIZE (global_mainImageSize * vec2(1.0, 2.0))
-#define _CSRGBA32UI_TEXTURE_SIZE_RCP rcp(_CSRGBA32UI_TEXTURE_SIZE)
+#define _CSRGBA32UI_TEXTURE_SIZE (global_mainImageSizeI * ivec2(1, 2))
+#define _CSRGBA32UI_TEXTURE_SIZE_F (global_mainImageSize * vec2(1.0, 2.0))
+#define _CSRGBA32UI_TEXTURE_SIZE_RCP rcp(_CSRGBA32UI_TEXTURE_SIZE_F)
 
 #define _CSRGBA32UI_DIFFUSE_HISTORY_OFFSET ivec2(0)
 #define _CSRGBA32UI_DIFFUSE_HISTORY_OFFSET_F vec2(0.0)

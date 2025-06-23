@@ -60,7 +60,7 @@ uniform sampler2D usam_gbufferViewZ;
 
 
 #if SETTING_DEBUG_DENOISER != 0
-uniform usampler2D usam_svgfHistory;
+uniform usampler2D usam_csrgba32ui;
 #endif
 
 #ifdef DEBUG_TEX_NAME
@@ -190,7 +190,7 @@ void debugOutput(inout vec4 outputColor) {
     #endif
 
     #if SETTING_DEBUG_DENOISER != 0
-    uvec4 svgfData = texelFetch(usam_svgfHistory, texelPos, 0);
+    uvec4 svgfData = texelFetch(usam_csrgba32ui, texelPos, 0);
     vec3 svgfColor;
     vec3 svgfFastColor;
     vec2 svgfMoments;

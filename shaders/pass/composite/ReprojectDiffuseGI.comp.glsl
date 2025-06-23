@@ -13,7 +13,7 @@ uniform sampler2D usam_gbufferData8UN;
 uniform sampler2D usam_gbufferViewZ;
 uniform usampler2D usam_packedZN;
 uniform usampler2D usam_geometryNormal;
-uniform usampler2D usam_svgfHistory;
+uniform usampler2D usam_csrgba32ui;
 
 #include "/denoiser/Reproject.glsl"
 

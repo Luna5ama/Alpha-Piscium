@@ -96,7 +96,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
         weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
 
         {
-            uvec4 prevColorData = textureGather(usam_svgfHistory, gatherUV1, 0);
+            uvec4 prevColorData = textureGather(usam_csrgba32ui, gatherUV1, 0);
             vec3 prevColor1 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.x));
             vec3 prevColor2 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.y));
             vec3 prevColor3 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.z));
@@ -111,7 +111,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
         }
 
         {
-            uvec4 prevFastColorData = textureGather(usam_svgfHistory, gatherUV1, 1);
+            uvec4 prevFastColorData = textureGather(usam_csrgba32ui, gatherUV1, 1);
             vec3 prevFastColor1 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.x));
             vec3 prevFastColor2 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.y));
             vec3 prevFastColor3 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.z));
@@ -126,7 +126,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
         }
 
         {
-            uvec4 prevMomentDatas = textureGather(usam_svgfHistory, gatherUV1, 2);
+            uvec4 prevMomentDatas = textureGather(usam_csrgba32ui, gatherUV1, 2);
             vec2 prevMoments1 = unpackHalf2x16(prevMomentDatas.x);
             vec2 prevMoments2 = unpackHalf2x16(prevMomentDatas.y);
             vec2 prevMoments3 = unpackHalf2x16(prevMomentDatas.z);
@@ -139,7 +139,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
         }
 
         {
-            uvec4 prevHLenData = textureGather(usam_svgfHistory, gatherUV1, 3);
+            uvec4 prevHLenData = textureGather(usam_csrgba32ui, gatherUV1, 3);
             vec4 prevHLens = uintBitsToFloat(prevHLenData);
 
             prevHLen += dot(interpoWeights, prevHLens);
