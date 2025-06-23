@@ -59,12 +59,12 @@ vec3 _clouds_stratusLUTPhase(float cosTheta) {
 }
 
 vec3 clouds_phase_cu(float cosTheta, float mixRatio) {
-    return mix(vec3(hgDrainePhase(cosTheta, CLOUDS_CU_R_EFF * 2.0)), _clouds_cumulusLUTPhase(cosTheta), mixRatio);
+    return mix(vec3(phasefunc_HenyeyGreensteinDraine(cosTheta, CLOUDS_CU_R_EFF * 2.0)), _clouds_cumulusLUTPhase(cosTheta), mixRatio);
 }
 
 vec3 clouds_phase_ci(float cosTheta, float mixRatio) {
     // Not using Nishina phase to fill the gap between center and 22 degree halo
-    return mix(henyeyGreensteinPhase(cosTheta, CLOUDS_CI_ASYM), _clouds_cirrusLUTPhase(cosTheta), mixRatio);
+    return mix(phasefunc_HenyeyGreenstein(cosTheta, CLOUDS_CI_ASYM), _clouds_cirrusLUTPhase(cosTheta), mixRatio);
 }
 
 CloudParticpatingMedium clouds_cu_medium(float cosTheta) {

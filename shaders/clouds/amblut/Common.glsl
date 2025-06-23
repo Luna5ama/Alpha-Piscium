@@ -36,22 +36,22 @@ float clouds_amblut_height(int layerIndex) {
 vec3 clouds_amblut_phase(float cosTheta, int layerIndex) {
     vec3 phase = vec3(UNIFORM_PHASE);
     if (layerIndex == 0) {
-        phase = cornetteShanksPhase(cosTheta, CLOUDS_ST_ASYM);
+        phase = phasefunc_CornetteShanks(cosTheta, CLOUDS_ST_ASYM);
     }
     if (layerIndex == 1) {
         phase = clouds_phase_cu(cosTheta, SETTING_CLOUDS_CU_PHASE_RATIO * 0.25);
     }
     if (layerIndex == 2) {
-        phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM), cornetteShanksPhase(cosTheta, CLOUDS_CU_ASYM), 0.8);
+        phase = mix(phasefunc_CornetteShanks(cosTheta, CLOUDS_CI_ASYM), phasefunc_CornetteShanks(cosTheta, CLOUDS_CU_ASYM), 0.8);
     }
     if (layerIndex == 3) {
         phase = clouds_phase_ci(cosTheta, SETTING_CLOUDS_CI_PHASE_RATIO * 0.25);
     }
     if (layerIndex == 4) {
-        phase = mix(cornetteShanksPhase(cosTheta, CLOUDS_ST_ASYM), cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM), 0.8);
+        phase = mix(phasefunc_CornetteShanks(cosTheta, CLOUDS_ST_ASYM), phasefunc_CornetteShanks(cosTheta, CLOUDS_CI_ASYM), 0.8);
     }
     if (layerIndex == 5) {
-        phase = cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM);
+        phase = phasefunc_CornetteShanks(cosTheta, CLOUDS_CI_ASYM);
     }
     return phase;
 }
