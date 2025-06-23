@@ -36,6 +36,39 @@ vec4 sampling_catmullRomWeights(float t) {
     );
 }
 
+vec4 sampling_mitchellNetravaliWeights(float t, float B, float C) {
+    float t2 = t * t;
+    float t3 = t2 * t;
+
+    vec4 c1 = vec4(B / -6.0 - C, 0.5 * B + 2.0 * C, -0.5 * B - C, B / 6.0);
+    vec3 c2 = vec3(-1.5 * B - C + 2.0, 2.0 * B + C - 3.0, B / -3.0 + 1.0);
+    vec4 c3 = vec4(1.5 * B + C - 2.0, -2.5 * B - 2.0 * C + 3.0, 0.5 * B + C, B / 6.0);
+    vec2 c4 = vec2(B / 6.0 + C, -C);
+
+    vec4 catmull = sampling_catmullRomWeights(t);
+
+    return vec4(
+        dot(c1, vec4(t3, t2, t, 1.0)),
+        dot(c2, vec3(t3, t2, 1.0)),
+        dot(c3, vec4(t3, t2, t, 1.0)),
+        dot(c4, vec2(t3, t2))
+    );
+}
+
+vec4 _sampling_sincn(vec4 x) {
+    return mix(vec4(1.0), sin(PI * x) / (PI * x), greaterThan(abs(x), vec4(0.001)));
+}
+
+vec4 _sampling_lanczoc2(vec4 x) {
+    x = clamp(x, -2.0, 2.0);
+    return _sampling_sincn(x) * _sampling_sincn(0.5 * x);
+}
+
+vec4 sampling_lanczoc2Weights(float t) {
+    vec4 x = vec4(t) + vec4(1.0, 0.0, -1.0, -2.0);
+    return _sampling_lanczoc2(x);
+}
+
 #if DERIVATIVE_AVAILABLE
 // [QUI17]
 vec3 sampling_textureRepeatGrad(sampler2D t, vec2 uv, float v ) {

@@ -29,4 +29,17 @@ ivec2 gi_diffuseHistory_texelToTexel(ivec2 texelPos) {
     );
 }
 
+#define _CSRGBA32UI_CLOUDS_SS_HISTORY_OFFSET ivec2(0, global_mainImageSizeI.y)
+#define _CSRGBA32UI_CLOUDS_SS_HISTORY_OFFSET_F vec2(0.0, global_mainImageSize.y)
+#define _CSRGBA32UI_CLOUDS_SS_HISTORY_SIZE global_mainImageSizeI
+#define _CSRGBA32UI_CLOUDS_SS_HISTORY_SIZE_F global_mainImageSize
+
+ivec2 clouds_ss_history_texelToTexel(ivec2 texelPos) {
+    return textile_texelToTexel(
+        texelPos,
+        _CSRGBA32UI_CLOUDS_SS_HISTORY_OFFSET,
+        _CSRGBA32UI_CLOUDS_SS_HISTORY_SIZE
+    );
+}
+
 #endif
