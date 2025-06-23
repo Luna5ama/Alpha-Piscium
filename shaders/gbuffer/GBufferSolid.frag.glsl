@@ -146,7 +146,7 @@ void processData1() {
     gData.materialID = 65534u;
     #endif
 
-    #ifdef GBUFFER_PASS_DH a
+    #ifdef GBUFFER_PASS_DH
     gData.materialID = 65533;
     #endif
 
