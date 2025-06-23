@@ -2,14 +2,14 @@
 
 #include "Common.glsl"
 #include "/util/Coords.glsl"
+#include "/util/Sampling.glsl"
 
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform usampler2D usam_tempRGBA32UI;
 uniform usampler2D usam_csrgba32ui;
 
-layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
+layout(rgba32ui) uniform restrict writeonly uimage2D uimg_tempRGBA32UI;
 
 struct Vec4PackedData {
     vec4 inScatteringViewZ;
@@ -62,7 +62,7 @@ Vec4PackedData vec4PackData_clamp(Vec4PackedData data, Vec4PackedData minVal, Ve
 
 Vec4PackedData loadCurrData(ivec2 texelPosD) {
     CloudSSHistoryData historyData = clouds_ss_historyData_init();
-    clouds_ss_historyData_unpack(texelFetch(usam_tempRGBA32UI, texelPosD, 0), historyData);
+    clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, gi_diffuseHistory_texelToTexel(texelPosD), 0), historyData);
     return vec4PackedData_fromHistoryData(historyData);
 }
 
@@ -124,7 +124,7 @@ void main() {
         Vec4PackedData prevSumData = vec4PackedData_init();
         float prevWeightSum = 0.0;
 
-        float averageViewZ = currSumData.inScatteringViewZ.w / max(currSumData.transmittanceHLen.w, 1e-6);
+        float averageViewZ = currSumData.transmittanceHLen.w <= 1.0 ? 65.536 : currSumData.inScatteringViewZ.w / currSumData.transmittanceHLen.w;
         averageViewZ *= -1000.0; // Convert to meters
         vec3 currView = coords_toViewCoord(uv, averageViewZ, global_camProjInverse);
         vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
@@ -142,19 +142,34 @@ void main() {
             vec2 gatherTexelPos = centerPixelOrigin + 1.0;
             vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
-            vec2 bilinearWeights2 = pixelPosFract;
-            vec4 blinearWeights4;
-            blinearWeights4.yz = bilinearWeights2.xx;
-            blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
-            blinearWeights4.xy *= bilinearWeights2.yy;
-            blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
+            vec4 weightX = sampling_catmullRomWeights(pixelPosFract.x);
+            vec4 weightY = sampling_catmullRomWeights(pixelPosFract.y);
 
             ivec2 centerPixelOriginI = ivec2(centerPixelOrigin);
 
-            loadAndAccumPrev(centerPixelOriginI, blinearWeights4.w, prevSumData, prevWeightSum);
-            loadAndAccumPrev(centerPixelOriginI + ivec2(1, 0), blinearWeights4.z, prevSumData, prevWeightSum);
-            loadAndAccumPrev(centerPixelOriginI + ivec2(0, 1), blinearWeights4.x, prevSumData, prevWeightSum);
-            loadAndAccumPrev(centerPixelOriginI + ivec2(1, 1), blinearWeights4.y, prevSumData, prevWeightSum);
+            vec4 weights4 = weightX.xyyx * weightY.wwzz;
+            loadAndAccumPrev(centerPixelOriginI + ivec2(-1, 1), weights4.w, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(-1, 1) + ivec2(1, 0), weights4.z, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(-1, 1) + ivec2(0, 1), weights4.x, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(-1, 1) + ivec2(1, 1), weights4.y, prevSumData, prevWeightSum);
+
+            weights4 = weightX.zwwz * weightY.wwzz;
+            loadAndAccumPrev(centerPixelOriginI+ ivec2(1, 1), weights4.w, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(1, 1) + ivec2(1, 0), weights4.z, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(1, 1) + ivec2(0, 1), weights4.x, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(1, 1) + ivec2(1, 1), weights4.y, prevSumData, prevWeightSum);
+
+            weights4 = weightX.zwwz * weightY.yyxx;
+            loadAndAccumPrev(centerPixelOriginI+ ivec2(1, -1), weights4.w, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(1, -1) + ivec2(1, 0), weights4.z, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(1, -1) + ivec2(0, 1), weights4.x, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(1, -1) + ivec2(1, 1), weights4.y, prevSumData, prevWeightSum);
+
+            weights4 = weightX.xyyx * weightY.yyxx;
+            loadAndAccumPrev(centerPixelOriginI+ ivec2(-1, -1), weights4.w, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(-1, -1) + ivec2(1, 0), weights4.z, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(-1, -1) + ivec2(0, 1), weights4.x, prevSumData, prevWeightSum);
+            loadAndAccumPrev(centerPixelOriginI + ivec2(-1, -1) + ivec2(1, 1), weights4.y, prevSumData, prevWeightSum);
         }
 
         float currWeight = currSumData.transmittanceHLen.w;
@@ -168,7 +183,7 @@ void main() {
         newData.hLen = min(prevAvgData.transmittanceHLen.w + currWeight, CLOUDS_SS_MAX_ACCUM);
         if (newData.hLen > WEIGHT_EPSILON) {
             Vec4PackedData currAvgData = prevAvgData;
-            if (currWeight > linearStep(0.0, CLOUDS_SS_MAX_ACCUM, newData.hLen) * 0.5 + WEIGHT_EPSILON) {
+            if (currWeight > linearStep(0.0, CLOUDS_SS_MAX_ACCUM, newData.hLen) * 0.25 + WEIGHT_EPSILON) {
                 currAvgData = vec4PackedData_mul(currSumData, rcp(currWeight));
             }
 
@@ -177,12 +192,12 @@ void main() {
             newData.transmittance = mix(newData.transmittance, currAvgData.transmittanceHLen.xyz, alpha);
             newData.viewZ = mix(newData.viewZ, currAvgData.inScatteringViewZ.w, alpha);
             newData.inScattering = max(newData.inScattering, vec3(0.0));
-            newData.transmittance = max(newData.transmittance, vec3(0.0));
+            newData.transmittance = saturate(newData.transmittance);
             newData.viewZ = max(newData.viewZ, 0.0);
         }
 
         uvec4 packedOutput = uvec4(0u);
         clouds_ss_historyData_pack(packedOutput, newData);
-        imageStore(uimg_csrgba32ui, gi_diffuseHistory_texelToTexel(texelPos), packedOutput);
+        imageStore(uimg_tempRGBA32UI, texelPos, packedOutput);
     }
 }
