@@ -8,7 +8,7 @@ shared vec3 shared_shadowAABBMax[16];
 
 void rtwsm_shadowAABB() {
     ivec2 clampedTexelPos = coords_clampTexelPos(texelPos, global_mainImageSizeI);
-    vec2 screenPos = coords_texelToScreen(clampedTexelPos, global_mainImageSizeRcp);
+    vec2 screenPos = coords_texelToUV(clampedTexelPos, global_mainImageSizeRcp);
     float viewZ = texelFetch(usam_gbufferViewZ, clampedTexelPos, 0).x;
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec4 scenePos = viewZ != -65536.0 ? gbufferModelViewInverse * vec4(viewPos, 1.0) : vec4(0.0, 0.0, 0.0, 1.0);

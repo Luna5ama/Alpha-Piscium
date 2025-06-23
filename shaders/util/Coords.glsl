@@ -140,12 +140,8 @@ vec3 coords_mercatorBackward(vec2 uv) {
     return normalize(direction);
 }
 
-vec2 coords_texelToScreen(vec2 texelPos, vec2 texelSize) {
-    return (texelPos + vec2(0.5)) * texelSize;
-}
-
-vec2 coords_texelToScreen(ivec2 texelPos, vec2 texelSize) {
-    return coords_texelToScreen(vec2(texelPos), texelSize);
+vec2 coords_texelToUV(ivec2 texelPos, vec2 rcpTextureSize) {
+    return saturate((vec2(texelPos) + 0.5) * rcpTextureSize);
 }
 
 ivec2 coords_clampTexelPos(ivec2 texelPos, ivec2 imageSizeV) {

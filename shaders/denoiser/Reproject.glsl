@@ -86,66 +86,63 @@ void bilateralSample(
 vec2 gatherTexelPos, vec4 baseWeights,
 inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout float prevHLen, inout float weightSum
 ) {
-    vec2 gatherTexelPosClamped = clamp(gatherTexelPos, vec2(1.0), global_mainImageSize - 1);
-    if (all(equal(gatherTexelPos, gatherTexelPosClamped))) {
-        vec2 gatherUV1 = svgf_gatherUV1(gatherTexelPos);
+    vec2 gatherUV1 = gi_diffuseHistory_texelToGatherUV(gatherTexelPos);
 
-        vec4 bilateralWeights = computeBilateralWeights(gatherTexelPos);
-        float bilateralWeightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
+    vec4 bilateralWeights = computeBilateralWeights(gatherTexelPos);
+    float bilateralWeightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
 
-        if (bilateralWeightSum > BILATERAL_WEIGHT_SUM_EPSILON) {
-            vec4 interpoWeights = baseWeights * bilateralWeights;
-            weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
+    if (bilateralWeightSum > BILATERAL_WEIGHT_SUM_EPSILON) {
+        vec4 interpoWeights = baseWeights * bilateralWeights;
+        weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
 
-            {
-                uvec4 prevColorData = textureGather(usam_svgfHistory, gatherUV1, 0);
-                vec3 prevColor1 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.x));
-                vec3 prevColor2 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.y));
-                vec3 prevColor3 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.z));
-                vec3 prevColor4 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.w));
+        {
+            uvec4 prevColorData = textureGather(usam_svgfHistory, gatherUV1, 0);
+            vec3 prevColor1 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.x));
+            vec3 prevColor2 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.y));
+            vec3 prevColor3 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.z));
+            vec3 prevColor4 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.w));
 
-                vec4 prevColorR = max(vec4(prevColor1.r, prevColor2.r, prevColor3.r, prevColor4.r), 0.0);
-                prevColor.r += dot(interpoWeights, prevColorR);
-                vec4 prevColorG = max(vec4(prevColor1.g, prevColor2.g, prevColor3.g, prevColor4.g), 0.0);
-                prevColor.g += dot(interpoWeights, prevColorG);
-                vec4 prevColorB = max(vec4(prevColor1.b, prevColor2.b, prevColor3.b, prevColor4.b), 0.0);
-                prevColor.b += dot(interpoWeights, prevColorB);
-            }
+            vec4 prevColorR = max(vec4(prevColor1.r, prevColor2.r, prevColor3.r, prevColor4.r), 0.0);
+            prevColor.r += dot(interpoWeights, prevColorR);
+            vec4 prevColorG = max(vec4(prevColor1.g, prevColor2.g, prevColor3.g, prevColor4.g), 0.0);
+            prevColor.g += dot(interpoWeights, prevColorG);
+            vec4 prevColorB = max(vec4(prevColor1.b, prevColor2.b, prevColor3.b, prevColor4.b), 0.0);
+            prevColor.b += dot(interpoWeights, prevColorB);
+        }
 
-            {
-                uvec4 prevFastColorData = textureGather(usam_svgfHistory, gatherUV1, 1);
-                vec3 prevFastColor1 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.x));
-                vec3 prevFastColor2 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.y));
-                vec3 prevFastColor3 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.z));
-                vec3 prevFastColor4 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.w));
+        {
+            uvec4 prevFastColorData = textureGather(usam_svgfHistory, gatherUV1, 1);
+            vec3 prevFastColor1 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.x));
+            vec3 prevFastColor2 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.y));
+            vec3 prevFastColor3 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.z));
+            vec3 prevFastColor4 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.w));
 
-                vec4 prevFastColorR = max(vec4(prevFastColor1.r, prevFastColor2.r, prevFastColor3.r, prevFastColor4.r), 0.0);
-                prevFastColor.r += dot(interpoWeights, prevFastColorR);
-                vec4 prevFastColorG = max(vec4(prevFastColor1.g, prevFastColor2.g, prevFastColor3.g, prevFastColor4.g), 0.0);
-                prevFastColor.g += dot(interpoWeights, prevFastColorG);
-                vec4 prevFastColorB = max(vec4(prevFastColor1.b, prevFastColor2.b, prevFastColor3.b, prevFastColor4.b), 0.0);
-                prevFastColor.b += dot(interpoWeights, prevFastColorB);
-            }
+            vec4 prevFastColorR = max(vec4(prevFastColor1.r, prevFastColor2.r, prevFastColor3.r, prevFastColor4.r), 0.0);
+            prevFastColor.r += dot(interpoWeights, prevFastColorR);
+            vec4 prevFastColorG = max(vec4(prevFastColor1.g, prevFastColor2.g, prevFastColor3.g, prevFastColor4.g), 0.0);
+            prevFastColor.g += dot(interpoWeights, prevFastColorG);
+            vec4 prevFastColorB = max(vec4(prevFastColor1.b, prevFastColor2.b, prevFastColor3.b, prevFastColor4.b), 0.0);
+            prevFastColor.b += dot(interpoWeights, prevFastColorB);
+        }
 
-            {
-                uvec4 prevMomentDatas = textureGather(usam_svgfHistory, gatherUV1, 2);
-                vec2 prevMoments1 = unpackHalf2x16(prevMomentDatas.x);
-                vec2 prevMoments2 = unpackHalf2x16(prevMomentDatas.y);
-                vec2 prevMoments3 = unpackHalf2x16(prevMomentDatas.z);
-                vec2 prevMoments4 = unpackHalf2x16(prevMomentDatas.w);
-                vec4 prevMomentsR = vec4(prevMoments1.x, prevMoments2.x, prevMoments3.x, prevMoments4.x);
-                vec4 prevMomentsG = vec4(prevMoments1.y, prevMoments2.y, prevMoments3.y, prevMoments4.y);
+        {
+            uvec4 prevMomentDatas = textureGather(usam_svgfHistory, gatherUV1, 2);
+            vec2 prevMoments1 = unpackHalf2x16(prevMomentDatas.x);
+            vec2 prevMoments2 = unpackHalf2x16(prevMomentDatas.y);
+            vec2 prevMoments3 = unpackHalf2x16(prevMomentDatas.z);
+            vec2 prevMoments4 = unpackHalf2x16(prevMomentDatas.w);
+            vec4 prevMomentsR = vec4(prevMoments1.x, prevMoments2.x, prevMoments3.x, prevMoments4.x);
+            vec4 prevMomentsG = vec4(prevMoments1.y, prevMoments2.y, prevMoments3.y, prevMoments4.y);
 
-                prevMoments.x += dot(interpoWeights, prevMomentsR);
-                prevMoments.y += dot(interpoWeights, prevMomentsG);
-            }
+            prevMoments.x += dot(interpoWeights, prevMomentsR);
+            prevMoments.y += dot(interpoWeights, prevMomentsG);
+        }
 
-            {
-                uvec4 prevHLenData = textureGather(usam_svgfHistory, gatherUV1, 3);
-                vec4 prevHLens = uintBitsToFloat(prevHLenData);
+        {
+            uvec4 prevHLenData = textureGather(usam_svgfHistory, gatherUV1, 3);
+            vec4 prevHLens = uintBitsToFloat(prevHLenData);
 
-                prevHLen += dot(interpoWeights, prevHLens);
-            }
+            prevHLen += dot(interpoWeights, prevHLens);
         }
     }
 }

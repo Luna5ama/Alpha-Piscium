@@ -272,7 +272,7 @@ void main() {
         {
             uvec4 packedOutData = uvec4(0u);
             svgf_pack(packedOutData, newColor, newFastColor, newMoments, newHLen);
-            imageStore(uimg_svgfHistory, svgf_texelPos1(texelPos), packedOutData);
+            imageStore(uimg_svgfHistory, gi_diffuseHistory_texelToTexel(texelPos), packedOutData);
         }
     }
 }

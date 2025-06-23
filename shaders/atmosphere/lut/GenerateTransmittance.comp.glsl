@@ -23,7 +23,7 @@ void main() {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
     // Compute camera position from LUT coords
-    vec2 screenPos = coords_texelToScreen(texelPos, TRANSMITTANCE_TEXEL_SIZE);
+    vec2 screenPos = coords_texelToUV(texelPos, TRANSMITTANCE_TEXEL_SIZE);
     float altitude;
     float cosZenith;
     uvToLutTransmittanceParams(atmosphere, altitude, cosZenith, screenPos);
