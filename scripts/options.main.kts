@@ -1704,7 +1704,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Clouds"
                 }
             }
-            empty()
+            toggle("SETTING_DEBUG_CLOUDS_SS", 0, 0..4) {
+                lang {
+                    name = "Clouds Upscaling"
+                    0 value "Off"
+                    1 value "Scattering"
+                    2 value "Transmittance"
+                    3 value "View Z"
+                    4 value "HLen"
+                }
+            }
             empty()
             empty()
             empty()

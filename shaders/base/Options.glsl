@@ -251,6 +251,7 @@ const float shadowDistance = 192.0; //[64.0 128.0 192.0 256.0 384.0 512.0]
 //#define SETTING_DEBUG_CLOUDS
 #ifdef SETTING_DEBUG_CLOUDS
 #endif
+#define SETTING_DEBUG_CLOUDS_SS 0 //[0 1 2 3 4]
 //#define SETTING_DEBUG_STARMAP
 #ifdef SETTING_DEBUG_STARMAP
 #endif
