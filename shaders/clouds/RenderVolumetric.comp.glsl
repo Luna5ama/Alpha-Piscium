@@ -1,7 +1,6 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 
 #include "Common.glsl"
-#include "Cirrus.glsl"
 #include "Cumulus.glsl"
 #include "ss/Common.glsl"
 #include "/util/Celestial.glsl"
@@ -11,10 +10,7 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(RENDER_MULTIPLIER, RENDER_MULTIPLIER);
 
-uniform sampler2D usam_gbufferViewZ;
-uniform sampler3D usam_cloudsAmbLUT;
-
-layout(rgba32ui) uniform writeonly uimage2D uimg_tempRGBA32UI;
+layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
 
 void render(ivec2 texelPosDownScale) {
     vec2 texelPosF = getTexelPos1x1(texelPosDownScale);
@@ -34,7 +30,7 @@ void render(ivec2 texelPosDownScale) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
     CloudMainRayParams mainRayParams;
-    mainRayParams.rayStart = atmosphere_viewToAtm(atmosphere, originView);
+    mainRayParams.rayStart = atmosphere_viewToAtmNoClamping(atmosphere, originView);
     const vec3 earthCenter = vec3(0.0);
 
     float maxRayLen = 0.0;
@@ -53,7 +49,8 @@ void render(ivec2 texelPosDownScale) {
                 mainRayParams.rayStart += rayDir * (tTop + 0.001);
             }
 
-            float tBottom = raySphereIntersectNearest(mainRayParams.rayStart, rayDir, earthCenter, atmosphere.bottom);
+            float clampedBottom = min(atmosphere.bottom, length(mainRayParams.rayStart) - 0.001);
+            float tBottom = raySphereIntersectNearest(mainRayParams.rayStart, rayDir, earthCenter, clampedBottom);
             float tTop = raySphereIntersectNearest(mainRayParams.rayStart, rayDir, earthCenter, atmosphere.top);
             float rayLen = 0.0;
 
@@ -95,7 +92,7 @@ void render(ivec2 texelPosDownScale) {
 
     vec3 viewDir = -mainRayParams.rayDir;
     vec2 ambLutUV = coords_equirectanglarForwardHorizonBoost(viewDir);
-    vec2 jitters = rand_stbnVec2(ivec2(texelPosF), frameCounter / UPSCALE_BLOCK_SIZE);
+    vec2 jitters = rand_stbnVec2(texelPosDownScale, frameCounter);
 
     {
         float cuHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
@@ -115,7 +112,7 @@ void render(ivec2 texelPosDownScale) {
             #define CLOUDS_CU_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_RAYMARCH_STEP))
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 4
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
-            #define CLOUDS_CU_DENSITY (256.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (128.0 * SETTING_CLOUDS_CU_DENSITY)
 
             float cuRayLen = max(cuRayLenBottom, cuRayLenTop) - cuOrigin2RayStart;
 
@@ -194,7 +191,7 @@ void render(ivec2 texelPosDownScale) {
     historyData.hLen = 1.0;
     uvec4 packedOutput = uvec4(0u);
     clouds_ss_historyData_pack(packedOutput, historyData);
-    imageStore(uimg_tempRGBA32UI, texelPosDownScale, packedOutput);
+    imageStore(uimg_csrgba32ui, gi_diffuseHistory_texelToTexel(texelPosDownScale), packedOutput);
 }
 
 void main() {

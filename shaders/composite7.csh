@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/clouds/ss/Accum.comp.glsl"
+#include "/clouds/RenderVolumetric.comp.glsl"
