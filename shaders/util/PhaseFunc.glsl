@@ -8,7 +8,7 @@
             https://research.nvidia.com/labs/rtr/approximate-mie/publications/approximate-mie.pdf
 
      Credits:
-        Jessie - Bi-Lambertian plate phase function
+        Jessie - Bi-Lambertian plate and Klein-Nishina phase functions
 
         You can find full license texts in /licenses
 */
@@ -45,12 +45,12 @@ vec3 henyeyGreensteinPhase(float cosTheta, vec3 g) {
 // Cornette-Shanks phase function for Mie scattering
 float cornetteShanksPhase(float cosTheta, float g) {
     float k = 3.0 / (8.0 * PI) * (1.0 - g * g) / (2.0 + g * g);
-    return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, 1.5);
+    return k * (1.0 + pow2(cosTheta)) / pow(1.0 + g * g - 2.0 * g * cosTheta, 1.5);
 }
 
 vec3 cornetteShanksPhase(float cosTheta, vec3 g) {
     vec3 k = 3.0 / (8.0 * PI) * (1.0 - g * g) / (2.0 + g * g);
-    return k * (1.0 + cosTheta * cosTheta) / pow(1.0 + g * g - 2.0 * g * -cosTheta, vec3(1.5));
+    return k * (1.0 + pow2(cosTheta)) / pow(1.0 + g * g - 2.0 * g * cosTheta, vec3(1.5));
 }
 
 // [DRA03]
@@ -76,10 +76,39 @@ float hgDrainePhase(float cosTheta, float d) {
     return mix(henyeyGreensteinPhase(cosTheta, gHG), drainePhase(cosTheta, gD, a), wD);
 }
 
-// Thanks Jessie
-float biLambertianPlatePhase(float cosTheta, float g) {
+float phasefunc_biLambertianPlatePhase(float cosTheta, float g) {
     float phase = 2.0 * (-PI * g * cosTheta + sqrt(1.0 - pow2(cosTheta)) + cosTheta * acos(-cosTheta));
     return phase / (3.0 * pow2(PI));
+}
+
+float phasefunc_KleinNishinaE(float cosTheta, float e) {
+    return e / (2.0 * PI * (e * (1.0 - cosTheta) + 1.0) * log(2.0 * e + 1.0));
+}
+
+vec3 phasefunc_KleinNishinaE(float cosTheta, vec3 e) {
+    return e / (2.0 * PI * (e * (1.0 - cosTheta) + 1.0) * log(2.0 * e + 1.0));
+}
+
+float phasefunc_KleinNishina(float cosTheta, float g) {
+    float e = 1.0;
+    for (int i = 0; i < 8; ++i) {
+        float gFromE = 1.0 / e - 2.0 / log(2.0 * e + 1.0) + 1.0;
+        float deriv = 4.0 / ((2.0 * e + 1.0) * pow2(log(2.0 * e + 1.0))) - 1.0 / pow2(e);
+        e = e - (gFromE - g) / deriv;
+    }
+
+    return phasefunc_KleinNishinaE(cosTheta, e);
+}
+
+vec3 phasefunc_KleinNishina(float cosTheta, vec3 g) {
+    vec3 e = vec3(1.0);
+    for (int i = 0; i < 8; ++i) {
+        vec3 gFromE = 1.0 / e - 2.0 / log(2.0 * e + 1.0) + 1.0;
+        vec3 deriv = 4.0 / ((2.0 * e + 1.0) * pow2(log(2.0 * e + 1.0))) - 1.0 / pow2(e);
+        e = e - (gFromE - g) / deriv;
+    }
+
+    return phasefunc_KleinNishinaE(cosTheta, e);
 }
 
 #endif

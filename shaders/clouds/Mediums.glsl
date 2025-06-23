@@ -10,18 +10,21 @@
 const vec3 CLOUDS_ST_SCATTERING = vec3(0.23977311964607095, 0.23773623658142246, 0.23611086956416943);
 const vec3 CLOUDS_ST_EXTINCTION = vec3(0.23977368314514727, 0.2377362922769532, 0.23611087968268715);
 const vec3 CLOUDS_ST_ASYM = vec3(0.8649476668256066, 0.8650419167426422, 0.8647112740133283);
+const vec3 CLOUDS_ST_E = vec3(1350310.702004877, 1364349.2463699712, 1315815.5507871697);
 const float CLOUDS_ST_R_EFF = 7.33;
 
 // Cumulus (cont., clean)
 const vec3 CLOUDS_CU_SCATTERING = vec3(0.18243438230318823, 0.18051322139189785, 0.17912261606289154);
 const vec3 CLOUDS_CU_EXTINCTION = vec3(0.1824347555801482, 0.1805132687424516, 0.17912261461420664);
 const vec3 CLOUDS_CU_ASYM = vec3(0.8589638232616821, 0.8658317471227941, 0.8690792504193543);
+const vec3 CLOUDS_CU_E = vec3(720334.7487994698, 1488729.9251146298, 2154815.596607296);
 const float CLOUDS_CU_R_EFF = 5.77;
 
 // Cirrus 1: -25° C
 const vec3 CLOUDS_CI_SCATTERING = vec3(6.187642992926912, 6.184357289476479, 6.175761065554168);
 const vec3 CLOUDS_CI_EXTINCTION = vec3(6.187642992746775, 6.184357289496035, 6.175761065555373);
 const vec3 CLOUDS_CI_ASYM = vec3(0.7863210552363993, 0.7827084906574567, 0.7783142662154189);
+const vec3 CLOUDS_CI_E = vec3(5761.8070510103225, 4926.5118094988975, 4099.395291792094);
 const float CLOUDS_CI_R_EFF = 91.7;
 
 struct CloudParticpatingMedium {
@@ -36,7 +39,7 @@ vec3 _clouds_samplePhaseLUT(float cosTheta, float type) {
     const float a1 = -0.0713555761181;
     const float a2 = 0.0299320735609;
     const float b = 0.264767018876;
-    float x1 = acos(-cosTheta);
+    float x1 = acos(cosTheta);
     float x2 = x1 * x1;
     float u = saturate((a0 + a1 * x1 + a2 * x2) * pow(x1, b));
     float v = (type + 0.5) / 3.0;
@@ -60,7 +63,8 @@ vec3 clouds_phase_cu(float cosTheta, float mixRatio) {
 }
 
 vec3 clouds_phase_ci(float cosTheta, float mixRatio) {
-    return mix(cornetteShanksPhase(cosTheta, CLOUDS_CI_ASYM), _clouds_cirrusLUTPhase(cosTheta), mixRatio);
+    // Not using Nishina phase to fill the gap between center and 22 degree halo
+    return mix(henyeyGreensteinPhase(cosTheta, CLOUDS_CI_ASYM), _clouds_cirrusLUTPhase(cosTheta), mixRatio);
 }
 
 CloudParticpatingMedium clouds_cu_medium(float cosTheta) {

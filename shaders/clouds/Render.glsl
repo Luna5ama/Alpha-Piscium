@@ -107,7 +107,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
             float cuRayLen = max(cuRayLenBottom, cuRayLenTop) - cuOrigin2RayStart;
 
             vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 1.5 / 6.0)).rgb;
-            CloudParticpatingMedium cuMedium = clouds_cu_medium(renderParams.LDotV);
+            CloudParticpatingMedium cuMedium = clouds_cu_medium(renderParams.cosLightTheta);
             CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
                 mainRayParams,
                 cuMedium,
@@ -187,7 +187,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
 
         if (bool(ciFlag)) {
             vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 3.5 / 6.0)).rgb;
-            CloudParticpatingMedium ciMedium = clouds_ci_medium(renderParams.LDotV);
+            CloudParticpatingMedium ciMedium = clouds_ci_medium(renderParams.cosLightTheta);
             CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
                 mainRayParams,
                 ciMedium,

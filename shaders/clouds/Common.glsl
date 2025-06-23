@@ -38,14 +38,14 @@ struct CloudMainRayParams {
 struct CloudRenderParams {
     vec3 lightDir;
     vec3 lightIrradiance;
-    float LDotV;
+    float cosLightTheta;
 };
 
 CloudRenderParams cloudRenderParams_init(CloudMainRayParams rayParam, vec3 lightDir, vec3 lightIrradiance) {
     CloudRenderParams params;
     params.lightDir = normalize(lightDir);
     params.lightIrradiance = lightIrradiance;
-    params.LDotV = -dot(rayParam.rayDir, lightDir);
+    params.cosLightTheta = dot(rayParam.rayDir, lightDir);
     return params;
 }
 

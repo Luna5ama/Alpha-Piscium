@@ -86,6 +86,7 @@ struct AtmosphereParameters {
     vec3 mieExtinction;
 
     float miePhaseG;
+    float miePhaseE;
 
     vec3 ozoneExtinction;
 };
@@ -130,7 +131,8 @@ AtmosphereParameters getAtmosphereParameters() {
     const vec3 MIE_SCATTERING = MIE_SCATTERING_BASE * SETTING_ATM_MIE_SCT_MUL;
     const vec3 MIE_ABOSORPTION = MIE_SCATTERING_BASE * SETTING_ATM_MIE_ABS_MUL;
 
-    const float MIE_PHASE_G = 0.76;
+    const float MIE_PHASE_G = 0.7034;
+    const float MIE_PHASE_E = 400.3675086806737; // For Klein-Nishina phase function
 
     // https://www.desmos.com/calculator/fumphpur14
     // cm to km conversion
@@ -147,6 +149,7 @@ AtmosphereParameters getAtmosphereParameters() {
     atmosphere.rayleighExtinction = RAYLEIGH_SCATTERING;
 
     atmosphere.miePhaseG = MIE_PHASE_G;
+    atmosphere.miePhaseE = MIE_PHASE_E;
     atmosphere.mieSctrCoeff = MIE_SCATTERING;
     atmosphere.mieExtinction = MIE_SCATTERING + MIE_ABOSORPTION;
 
