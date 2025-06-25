@@ -200,4 +200,28 @@ float ValueNoise_3D_value_fbm(FBMParameters params, vec3 position) {
     return value;
 }
 
+vec3 ValueNoise_3D_grad_fbm(FBMParameters params, vec3 position) {
+    vec3 grad = vec3(0.0);
+    float amplitude = 1.0;
+    float currentFrequency = params.frequency;
+    for (uint i = 0; i < params.octaveCount; i++) {
+        grad += ValueNoise_3D_valueGrad(position * currentFrequency).yzw * amplitude;
+        amplitude *= params.persistence;
+        currentFrequency *= params.lacunarity;
+    }
+    return grad;
+}
+
+vec4 ValueNoise_3D_valueGrad_fbm(FBMParameters params, vec3 position) {
+    vec4 valueGrad = vec4(0.0);
+    float amplitude = 1.0;
+    float currentFrequency = params.frequency;
+    for (uint i = 0; i < params.octaveCount; i++) {
+        valueGrad += ValueNoise_3D_valueGrad(position * currentFrequency) * amplitude;
+        amplitude *= params.persistence;
+        currentFrequency *= params.lacunarity;
+    }
+    return valueGrad;
+}
+
 #endif

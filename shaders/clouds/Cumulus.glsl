@@ -18,25 +18,27 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
     float earthCoverage = 1.0;
 
     FBMParameters shapeParams;
-    shapeParams.frequency = 0.1;
-    shapeParams.persistence = 0.8;
-    shapeParams.lacunarity = 2.1;
-    shapeParams.octaveCount = 3u;
-    mat2 rotationMatrix = mat2_rotate(GOLDEN_RATIO);
-    float coverage = GradientNoise_2D_value_fbm(shapeParams, rotationMatrix, rayPos.xz + vec2(0.0, -32.0));
+    shapeParams.frequency = 0.015;
+    shapeParams.persistence = -1.8;
+    shapeParams.lacunarity = 2.6;
+    shapeParams.octaveCount = 4u;
+    mat2 rotationMatrix = mat2_rotate(GOLDEN_ANGLE);
+        float coverage = GradientNoise_2D_value_fbm(shapeParams, rotationMatrix, rayPos.xz + vec2(3.0, -6.0));
     float xzDist = length(rayPos.xz);
-    const float DISTANCE_DECAY = 0.005;
-    coverage *= exp2(-xzDist * DISTANCE_DECAY);
+    const float DISTANCE_DECAY = 0.002;
+    const float CUMULUS_FACTOR = 0.8;
+    const float SIGMOID_K = mix(0.2, 2.0, pow2(CUMULUS_FACTOR));
+    coverage = rcp(1.0 + exp2(-coverage * SIGMOID_K)); // Sigmoid
     coverage = linearStep(_CU_COVERAGE_FACTOR, 1.0, coverage);
-    coverage = saturate(coverage * (1.0 + pow2(SETTING_CLOUDS_CU_COVERAGE)));
+    coverage *= exp2(-xzDist * DISTANCE_DECAY);
     coverage = pow2(coverage);
 
-    // https://www.desmos.com/calculator/bdcmyniav9
-    const float a0 = -0.0248956145304;
-    const float a1 = 9.7248812371;
-    const float a2 = -31.1921421103;
-    const float a3 = 38.7372454749;
-    const float a4 = -17.3174088441;
+    // https://www.desmos.com/calculator/2c5574fcdc
+    const float a0 = 0.379724148315;
+    const float a1 = 5.83589350096;
+    const float a2 = -18.9521206139;
+    const float a3 = 24.4587627067;
+    const float a4 = -11.7641185037;
 
     float x1 = heightFraction;
     float x2 = heightFraction * heightFraction;
@@ -54,34 +56,45 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
 
     if (base > _CU_DENSITY_EPSILON) {
         FBMParameters curlParams;
-        curlParams.frequency = 0.01;
+        curlParams.frequency = 0.04;
         curlParams.persistence = 0.7;
-        curlParams.lacunarity = 3.9;
+        curlParams.lacunarity = 2.6;
         curlParams.octaveCount = 2u;
-        vec3 curl = GradientNoise_3D_grad_fbm(curlParams, rayPos);
-
-        FBMParameters densityParams;
-        densityParams.frequency = 1.7;
-        densityParams.persistence = 0.7;
-        densityParams.lacunarity = 2.5;
-        densityParams.octaveCount = 2u;
-        float detail = GradientNoise_3D_value_fbm(densityParams, rayPos + curl * 2.0) * 2.0;
-
-        FBMParameters valueNoiseParams;
-        valueNoiseParams.frequency = 6.9;
-        valueNoiseParams.persistence = 0.7;
-        valueNoiseParams.lacunarity = 2.3;
-        valueNoiseParams.octaveCount = 2u;
-        detail += ValueNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * 1.0) * 0.5;
-
-        detail = linearStep(-1.0, 1.0, detail);
+        vec3 curSamplePos = rayPos;
+        curSamplePos.y *= 0.8;
+        vec3 curl = GradientNoise_3D_grad_fbm(curlParams, curSamplePos);
+        curl *= 0.8 + heightFraction * 0.5;
 
         densityOut = base;
-        densityOut = linearStep(detail * heightFraction * 0.5, 1.0, densityOut);
-        densityOut *= 1.0 - heightFraction;
+
+        FBMParameters densityParams;
+        densityParams.frequency = 0.6;
+        densityParams.persistence = -0.65;
+        densityParams.lacunarity = 2.7;
+        densityParams.octaveCount = 2u;
+        float detail1 = GradientNoise_3D_value_fbm(densityParams, rayPos + curl * 1.2) * 1.5;
+        detail1 = linearStep(-1.0, 1.0, detail1);
+        detail1 *= mix(0.7, 1.8, pow2(heightFraction));
+        detail1 *= mix(0.1, 1.0, CUMULUS_FACTOR);
+        densityOut = linearStep(saturate(detail1), 1.0, densityOut);
 
         if (densityOut > _CU_DENSITY_EPSILON) {
-            return true;
+            FBMParameters valueNoiseParams;
+            valueNoiseParams.frequency = 5.2;
+            valueNoiseParams.persistence = 0.7;
+            valueNoiseParams.lacunarity = 2.6;
+            valueNoiseParams.octaveCount = 2u;
+            float detail2 = GradientNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * 0.6);
+            detail2 = mix(saturate(linearStep(-1.0, 1.0, detail2) - 0.3), abs(detail2), heightFraction * 0.8);
+            detail2 *= mix(0.4, 0.6, heightFraction);
+            detail2 *= mix(0.1, 1.0, CUMULUS_FACTOR);
+            densityOut = linearStep(saturate(detail2), 1.0, densityOut);
+
+            densityOut *= pow3(1.0 - heightFraction);
+
+            if (densityOut > _CU_DENSITY_EPSILON) {
+                return true;
+            }
         }
     }
 

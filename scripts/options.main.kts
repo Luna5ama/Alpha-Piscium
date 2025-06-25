@@ -1036,17 +1036,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Multi-Scattering Order"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.6, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.7, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Scattering Falloff"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.55, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.6, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Extinction Falloff"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_PHASE", 0.45, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_PHASE", 0.5, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Phase Falloff"
                         }
@@ -1072,13 +1072,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Cumulus Clouds"
                         }
                     }
-                    slider("SETTING_CLOUDS_CU_HEIGHT", 2.5, 0.0..10.0 step 0.1) {
+                    slider("SETTING_CLOUDS_CU_HEIGHT", 2.0, 0.0..10.0 step 0.1) {
                         lang {
                             name = "Cumulus Height"
                             suffix = " km"
                         }
                     }
-                    slider("SETTING_CLOUDS_CU_THICKNESS", 2.5, 0.0..5.0 step 0.1) {
+                    slider("SETTING_CLOUDS_CU_THICKNESS", 2.0, 0.0..5.0 step 0.1) {
                         lang {
                             name = "Cumulus Thickness"
                             suffix = " km"
