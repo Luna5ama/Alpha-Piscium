@@ -79,7 +79,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
         if (densityOut > _CU_DENSITY_EPSILON) {
             // Add some high frequency detail to edges
             FBMParameters valueNoiseParams;
-            valueNoiseParams.frequency = 8.2;
+            valueNoiseParams.frequency = 9.2;
             valueNoiseParams.persistence = 0.7;
             valueNoiseParams.lacunarity = 3.1;
             valueNoiseParams.octaveCount = 2u;

@@ -169,6 +169,9 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                 clouds_raymarchStepState_update(stepState);
             }
 
+            const float TRANSMITTANCE_DECAY = 10.0;
+            cuAccum.totalTransmittance = pow(cuAccum.totalTransmittance, vec3(exp2(-cuOrigin2RayStart * 0.1)));
+            cuAccum.totalInSctr *= exp2(-pow2(cuOrigin2RayStart) * 0.002);
 
             float aboveFlag = float(cuHeightDiff < 0.0);
             accumState.totalInSctr = mix(
@@ -217,6 +220,11 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                     ciAccum
                 );
             }
+
+            const float TRANSMITTANCE_DECAY = 10.0;
+            ciAccum.totalTransmittance = pow(ciAccum.totalTransmittance, vec3(exp2(-ciOrigin2RayOffset * 0.1)));
+            ciAccum.totalInSctr *= exp2(-pow2(ciOrigin2RayOffset) * 0.002);
+
             float aboveFlag = float(ciHeighDiff < 0.0);
             accumState.totalInSctr = mix(
                 accumState.totalInSctr + ciAccum.totalInSctr * accumState.totalTransmittance, // Below
