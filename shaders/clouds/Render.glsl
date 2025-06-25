@@ -1,10 +1,9 @@
 #include "Common.glsl"
 #include "Cirrus.glsl"
 #include "Cumulus.glsl"
+#include "./amblut/API.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Math.glsl"
-
-uniform sampler3D usam_cloudsAmbLUT;
 
 const float DENSITY_EPSILON = 0.0001;
 const float TRANSMITTANCE_EPSILON = 0.01;
@@ -80,9 +79,9 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
 
     CloudRaymarchAccumState accumState = clouds_raymarchAccumState_init();
 
-    vec3 viewDir = -mainRayParams.rayDir;
-    vec2 ambLutUV = coords_equirectanglarForwardHorizonBoost(viewDir);
     vec2 jitters = rand_stbnVec2(texelPos, frameCounter);
+    vec3 viewDir = -mainRayParams.rayDir;
+    vec2 ambLutUV = cloods_amblut_uv(viewDir, jitters);
 
     #ifdef SETTING_CLOUDS_CU
     {
@@ -107,7 +106,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
 
             float cuRayLen = max(cuRayLenBottom, cuRayLenTop) - cuOrigin2RayStart;
 
-            vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 1.5 / 6.0)).rgb;
+            vec3 ambientIrradiance = clouds_amblut_sample(ambLutUV, CLOUDS_AMBLUT_LAYER_CUMULUS);
             CloudParticpatingMedium cuMedium = clouds_cu_medium(renderParams.cosLightTheta);
             CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
                 mainRayParams,
@@ -192,7 +191,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
         uint ciFlag = uint(sign(ciHeighDiff) == sign(mainRayParams.rayDir.y)) & uint(ciOrigin2RayOffset > 0.0);
 
         if (bool(ciFlag)) {
-            vec3 ambientIrradiance = texture(usam_cloudsAmbLUT, vec3(ambLutUV, 3.5 / 6.0)).rgb;
+            vec3 ambientIrradiance = clouds_amblut_sample(ambLutUV, CLOUDS_AMBLUT_LAYER_CIRRUS);
             CloudParticpatingMedium ciMedium = clouds_ci_medium(renderParams.cosLightTheta);
             CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
                 mainRayParams,
