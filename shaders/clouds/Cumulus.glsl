@@ -5,6 +5,7 @@
 #include "/util/noise/GradientNoise.glsl"
 
 const float _CU_DENSITY_EPSILON = 0.0001;
+const float _CU_COVERAGE_FACTOR = 1.0 - SETTING_CLOUDS_CU_COVERAGE * 2.0;
 
 bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) {
     //    FBMParameters earthParams;
@@ -19,14 +20,16 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
     FBMParameters shapeParams;
     shapeParams.frequency = 0.1;
     shapeParams.persistence = 0.8;
-    shapeParams.lacunarity = 2.2;
+    shapeParams.lacunarity = 2.1;
     shapeParams.octaveCount = 3u;
     mat2 rotationMatrix = mat2_rotate(GOLDEN_RATIO);
-    float coverage = GradientNoise_2D_value_fbm(shapeParams, rotationMatrix, rayPos.xz + vec2(14.0, -6.0));
+    float coverage = GradientNoise_2D_value_fbm(shapeParams, rotationMatrix, rayPos.xz + vec2(0.0, -32.0));
     float xzDist = length(rayPos.xz);
     const float DISTANCE_DECAY = 0.005;
     coverage *= exp2(-xzDist * DISTANCE_DECAY);
-    coverage = linearStep(1.0 - SETTING_CLOUDS_CU_COVERAGE * 2.0, 1.0, coverage);
+    coverage = linearStep(_CU_COVERAGE_FACTOR, 1.0, coverage);
+    coverage = saturate(coverage * (1.0 + pow2(SETTING_CLOUDS_CU_COVERAGE)));
+    coverage = pow2(coverage);
 
     // https://www.desmos.com/calculator/bdcmyniav9
     const float a0 = -0.0248956145304;
@@ -58,18 +61,18 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
         vec3 curl = GradientNoise_3D_grad_fbm(curlParams, rayPos);
 
         FBMParameters densityParams;
-        densityParams.frequency = 1.5;
+        densityParams.frequency = 1.7;
         densityParams.persistence = 0.7;
         densityParams.lacunarity = 2.5;
         densityParams.octaveCount = 2u;
         float detail = GradientNoise_3D_value_fbm(densityParams, rayPos + curl * 2.0) * 2.0;
 
         FBMParameters valueNoiseParams;
-        valueNoiseParams.frequency = 5.9;
+        valueNoiseParams.frequency = 6.9;
         valueNoiseParams.persistence = 0.7;
-        valueNoiseParams.lacunarity = 2.5;
+        valueNoiseParams.lacunarity = 2.3;
         valueNoiseParams.octaveCount = 2u;
-        detail += ValueNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * 0.5) * 0.5;
+        detail += ValueNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * 1.0) * 0.5;
 
         detail = linearStep(-1.0, 1.0, detail);
 
