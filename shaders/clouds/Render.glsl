@@ -90,12 +90,14 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
         float cuMaxHeight = cuHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
         float cuHeightDiff = cuHeight - mainRayParams.rayStartHeight;
 
-        float cuRayLenBottom = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMinHeight);
+        float cuRayLenBot = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMinHeight);
         float cuRayLenTop = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMaxHeight);
 
-        float cuOrigin2RayStart = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5 ? 0.0 : min(cuRayLenBottom, cuRayLenTop);
+        bool inLayer = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5;
+        float cuOrigin2RayStart = inLayer ? 0.0 : min(cuRayLenBot, cuRayLenTop);
 
-        uint cuFlag = uint(sign(cuHeightDiff) == sign(mainRayParams.rayDir.y)) & uint(cuOrigin2RayStart >= 0.0);
+        uint cuFlag = uint(sign(cuHeightDiff) == sign(mainRayParams.rayDir.y)) | uint(inLayer);
+        cuFlag &= uint(cuOrigin2RayStart >= 0.0);
 
         if (bool(cuFlag)) {
             #define CLOUDS_CU_RAYMARCH_STEP 32
@@ -104,7 +106,8 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
             #define CLOUDS_CU_DENSITY (160.0 * SETTING_CLOUDS_CU_DENSITY)
 
-            float cuRayLen = max(cuRayLenBottom, cuRayLenTop) - cuOrigin2RayStart;
+            float cuRayLen = inLayer ? (cuRayLenBot > 0.0 ? cuRayLenBot : min(cuRayLenTop, cuOrigin2RayStart + CLOUDS_CU_RAYMARCH_STEP)) : max(cuRayLenBot, cuRayLenTop);
+            cuRayLen -= cuOrigin2RayStart;
 
             vec3 ambientIrradiance = clouds_amblut_sample(ambLutUV, CLOUDS_AMBLUT_LAYER_CUMULUS);
             CloudParticpatingMedium cuMedium = clouds_cu_medium(renderParams.cosLightTheta);
