@@ -1072,13 +1072,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Cumulus Clouds"
                         }
                     }
-                    slider("SETTING_CLOUDS_CU_HEIGHT", 2.0, 0.0..10.0 step 0.1) {
+                    slider("SETTING_CLOUDS_CU_HEIGHT", 2.0, 0.0..8.0 step 0.1) {
                         lang {
                             name = "Cumulus Height"
                             suffix = " km"
                         }
                     }
-                    slider("SETTING_CLOUDS_CU_THICKNESS", 2.0, 0.0..5.0 step 0.1) {
+                    slider("SETTING_CLOUDS_CU_THICKNESS", 1.5, 0.0..4.0 step 0.1) {
                         lang {
                             name = "Cumulus Thickness"
                             suffix = " km"
@@ -1110,7 +1110,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Cirrus Clouds"
                         }
                     }
-                    slider("SETTING_CLOUDS_CI_HEIGHT", 9.0, 0.0..20.0 step 0.1) {
+                    slider("SETTING_CLOUDS_CI_HEIGHT", 9.0, 6.0..14.0 step 0.1) {
                         lang {
                             name = "Cirrus Height"
                             suffix = " km"

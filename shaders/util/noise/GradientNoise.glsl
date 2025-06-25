@@ -219,12 +219,11 @@ vec2 GradientNoise_2D_grad_fbm(FBMParameters params, mat2 rotationMatrix, vec2 p
     vec2 value = vec2(0.0);
     float amplitude = 1.0;
     float currentFrequency = params.frequency;
-    vec2 currPosition = position;
+    vec2 currPosition = position * params.frequency;
     for (uint i = 0; i < params.octaveCount; i++) {
-        currPosition = (rotationMatrix * currPosition) * currentFrequency;
         value += GradientNoise_2D_grad(currPosition) * amplitude;
         amplitude *= params.persistence;
-        currentFrequency *= params.lacunarity;
+        currPosition = (rotationMatrix * currPosition) * params.lacunarity;
     }
     return value;
 }
@@ -233,12 +232,11 @@ vec3 GradientNoise_2D_valueGrad_fbm(FBMParameters params, mat2 rotationMatrix, v
     vec3 value = vec3(0.0);
     float amplitude = 1.0;
     float currentFrequency = params.frequency;
-    vec2 currPosition = position;
+    vec2 currPosition = position * params.frequency;
     for (uint i = 0; i < params.octaveCount; i++) {
-        currPosition = (rotationMatrix * currPosition) * currentFrequency;
         value += GradientNoise_2D_valueGrad(currPosition) * amplitude;
         amplitude *= params.persistence;
-        currentFrequency *= params.lacunarity;
+        currPosition = (rotationMatrix * currPosition) * params.lacunarity;
     }
     return value;
 }
