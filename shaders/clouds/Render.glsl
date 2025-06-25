@@ -6,7 +6,7 @@
 #include "/util/Math.glsl"
 
 const float DENSITY_EPSILON = 0.0001;
-const float TRANSMITTANCE_EPSILON = 0.2;
+const float TRANSMITTANCE_EPSILON = 0.01;
 
 void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     float viewZ = texelFetch(viewZTex, texelPos, 0).r;
@@ -31,8 +31,6 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     {
         vec3 rayDir = viewDirWorld;
         if (endView.z == -65536.0) {
-            mainRayParams.rayStart.y = max(mainRayParams.rayStart.y, atmosphere.bottom + 0.5);
-
             // Check if ray origin is outside the atmosphere
             if (length(mainRayParams.rayStart) > atmosphere.top) {
                 float tTop = raySphereIntersectNearest(mainRayParams.rayStart, rayDir, earthCenter, atmosphere.top);
@@ -104,7 +102,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
             #define CLOUDS_CU_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_RAYMARCH_STEP))
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 4
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
-            #define CLOUDS_CU_DENSITY (160.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (47.0 * SETTING_CLOUDS_CU_DENSITY)
 
             float cuRayLen = inLayer ? (cuRayLenBot > 0.0 ? cuRayLenBot : min(cuRayLenTop, cuOrigin2RayStart + CLOUDS_CU_RAYMARCH_STEP)) : max(cuRayLenBot, cuRayLenTop);
             cuRayLen -= cuOrigin2RayStart;
