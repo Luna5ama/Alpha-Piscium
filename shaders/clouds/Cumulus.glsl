@@ -5,7 +5,6 @@
 #include "/util/noise/GradientNoise.glsl"
 
 const float _CU_DENSITY_EPSILON = 0.0001;
-const float _CU_COVERAGE_FACTOR = 1.0 - SETTING_CLOUDS_CU_COVERAGE * 2.0;
 
 bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) {
     //    FBMParameters earthParams;
@@ -27,6 +26,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
     float xzDist = length(rayPos.xz);
     const float DISTANCE_DECAY = 0.002;
     const float CUMULUS_FACTOR = 0.8;
+    const float _CU_COVERAGE_FACTOR = 1.0 - SETTING_CLOUDS_CU_COVERAGE * (1.5 + CUMULUS_FACTOR * 0.5);
     const float SIGMOID_K = mix(0.2, 2.0, pow2(CUMULUS_FACTOR));
     coverage = rcp(1.0 + exp2(-coverage * SIGMOID_K)); // Sigmoid
     coverage = linearStep(_CU_COVERAGE_FACTOR, 1.0, coverage);
@@ -46,9 +46,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
     float x4 = heightFraction * x3;
 
     vec4 xs = vec4(x1, x2, x3, x4);
-
     const vec4 as = vec4(a1, a2, a3, a4);
-
     float heightCurve = saturate(dot(as, xs) + a0);
 
     float base = coverage;
@@ -75,7 +73,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
         float detail1 = GradientNoise_3D_value_fbm(densityParams, rayPos + curl * 1.2) * 1.5;
         detail1 = linearStep(-1.0, 1.0, detail1);
         detail1 *= mix(0.7, 1.8, pow2(heightFraction));
-        detail1 *= mix(0.1, 1.0, CUMULUS_FACTOR);
+        detail1 *= mix(0.2, 1.0, CUMULUS_FACTOR);
         densityOut = linearStep(saturate(detail1), 1.0, densityOut);
 
         if (densityOut > _CU_DENSITY_EPSILON) {
@@ -91,6 +89,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
             densityOut = linearStep(saturate(detail2), 1.0, densityOut);
 
             densityOut *= pow3(1.0 - heightFraction);
+            densityOut *= CUMULUS_FACTOR * 0.9 + 0.1;
 
             if (densityOut > _CU_DENSITY_EPSILON) {
                 return true;
