@@ -6,7 +6,7 @@
 #include "/util/Math.glsl"
 
 const float DENSITY_EPSILON = 0.0001;
-const float TRANSMITTANCE_EPSILON = 0.4;
+const float TRANSMITTANCE_EPSILON = 0.2;
 
 void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     float viewZ = texelFetch(viewZTex, texelPos, 0).r;

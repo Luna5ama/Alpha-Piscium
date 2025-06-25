@@ -39,7 +39,7 @@ vec3 clouds_amblut_phase(float cosTheta, int layerIndex) {
         phase = phasefunc_CornetteShanks(cosTheta, CLOUDS_ST_ASYM);
     }
     if (layerIndex == 1) {
-        phase = clouds_phase_cu(cosTheta, SETTING_CLOUDS_CU_PHASE_RATIO * 0.25);
+        phase = clouds_phase_cu(cosTheta, SETTING_CLOUDS_CU_PHASE_RATIO * 0.5);
     }
     if (layerIndex == 2) {
         phase = mix(phasefunc_CornetteShanks(cosTheta, CLOUDS_CI_ASYM), phasefunc_CornetteShanks(cosTheta, CLOUDS_CU_ASYM), 0.8);
