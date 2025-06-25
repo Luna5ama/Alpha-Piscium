@@ -102,7 +102,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
             #define CLOUDS_CU_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_RAYMARCH_STEP))
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 4
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
-            #define CLOUDS_CU_DENSITY (256.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (128.0 * SETTING_CLOUDS_CU_DENSITY)
 
             float cuRayLen = max(cuRayLenBottom, cuRayLenTop) - cuOrigin2RayStart;
 
@@ -130,19 +130,20 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                     float lightRayTotalDensity = 0.0;
                     {
                         float lightRayLen = 0.5;
-                        float lightRayStepDelta = lightRayLen * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
+                        float lightRayStepLength = lightRayLen * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
                         vec3 lightRayPos = stepState.position.xyz;
                         for (uint lightStepIndex = 0; lightStepIndex < CLOUDS_CU_LIGHT_RAYMARCH_STEP; ++lightStepIndex) {
-                            lightRayPos += renderParams.lightDir * lightRayStepDelta;
-                            vec3 lightRaySamplePos = lightRayPos + renderParams.lightDir * (jitters.y - 0.5);
+                            vec3 lightRayStepDelta = lightRayStepLength * renderParams.lightDir;
+                            lightRayPos += lightRayStepDelta;
+                            vec3 lightRaySamplePos = lightRayPos + lightRayStepDelta * (jitters.y - 0.5);
                             float lightSampleHeight = length(lightRaySamplePos);
                             if (lightSampleHeight > cuMaxHeight) break;
                             float lightHeightFraction = linearStep(cuMinHeight, cuMaxHeight, lightSampleHeight);
                             float lightSampleDensity = 0.0;
                             if (clouds_cu_density(lightRaySamplePos, lightHeightFraction, lightSampleDensity)) {
-                                lightRayTotalDensity += lightSampleDensity * lightRayStepDelta;
+                                lightRayTotalDensity += lightSampleDensity * lightRayStepLength;
                             }
-                            lightRayStepDelta *= 1.5;
+                            lightRayStepLength *= 1.5;
                         }
                     }
                     lightRayTotalDensity *= CLOUDS_CU_DENSITY;
