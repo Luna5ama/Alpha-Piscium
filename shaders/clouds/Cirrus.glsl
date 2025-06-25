@@ -28,8 +28,8 @@ float clouds_ci_density(vec3 rayPos) {
     coverage = pow3(linearStep(0.5 - SETTING_CLOUDS_CI_COVERAGE * 1.5, 1.0, coverage));
 
     float density = 0.0;
-    density += _clouds_ci_density_layer((rayPos.xz + 0.114) * 0.12 + curl * 2.3) * 0.15;
-    density += _clouds_ci_density_layer((rayPos.xz + 0.514) * 0.08 + curl * 1.1) * 0.05;
+    density += _clouds_ci_density_layer(rayPos.xz * 0.2 + curl * 4.3) * 0.1;
+    density += _clouds_ci_density_layer(rayPos.xz * 0.08 + curl * 2.1) * 0.1;
     density += _clouds_ci_density_layer(rayPos.xz * 0.01 + curl * 0.2) * 0.6;
     density *= 0.25 * SETTING_CLOUDS_CI_DENSITY;
 

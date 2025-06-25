@@ -1036,7 +1036,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Multi-Scattering Order"
                         }
                     }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.7, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.55, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Scattering Falloff"
                         }
