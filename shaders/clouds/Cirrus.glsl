@@ -19,19 +19,20 @@ float clouds_ci_density(vec3 rayPos) {
     vec2 curl = GradientNoise_2D_grad_fbm(curlParams, rotatioMatrix, rayPos.xz);
 
     FBMParameters shapeParams;
-    shapeParams.frequency = 0.05;
+    shapeParams.frequency = 0.04;
     shapeParams.persistence = 0.6;
-    shapeParams.lacunarity = 2.1;
+    shapeParams.lacunarity = 1.9;
     shapeParams.octaveCount = 3u;
     mat2 shapeRotMat = mat2_rotate(PI_QUARTER);
-    float coverage = GradientNoise_2D_value_fbm(shapeParams, shapeRotMat, rayPos.xz + curl * 15.0);
+    float coverage = GradientNoise_2D_value_fbm(shapeParams, shapeRotMat, rayPos.xz + vec2(-8.0, -4.0) + curl * 16.0);
     coverage = pow3(linearStep(0.5 - SETTING_CLOUDS_CI_COVERAGE * 1.5, 1.0, coverage));
 
+
     float density = 0.0;
-    density += _clouds_ci_density_layer(rayPos.xz * 0.2 + curl * 4.3) * 0.1;
-    density += _clouds_ci_density_layer(rayPos.xz * 0.08 + curl * 2.1) * 0.1;
-    density += _clouds_ci_density_layer(rayPos.xz * 0.01 + curl * 0.2) * 0.6;
-    density *= 0.25 * SETTING_CLOUDS_CI_DENSITY;
+    density += _clouds_ci_density_layer((rayPos.xz + 0.114) * 0.12 + curl * 2.5) * 0.125;
+    density += _clouds_ci_density_layer((rayPos.xz + 0.514) * 0.08 + curl * 0.8) * 0.25;
+    density += _clouds_ci_density_layer(rayPos.xz * 0.02 + curl * 0.4) * 0.5;
+    density *= 0.1 * SETTING_CLOUDS_CI_DENSITY;
 
     return coverage * density;
 }
