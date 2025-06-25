@@ -7,6 +7,7 @@
 const float _CU_DENSITY_EPSILON = 0.0001;
 
 bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) {
+    densityOut = 0.0;
     //    FBMParameters earthParams;
     //    earthParams.frequency = 0.008;
     //    earthParams.persistence = 0.8;
@@ -17,7 +18,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
     float earthCoverage = 1.0;
 
     FBMParameters shapeParams;
-    shapeParams.frequency = 0.015;
+    shapeParams.frequency = 0.018;
     shapeParams.persistence = -1.8;
     shapeParams.lacunarity = 2.6;
     shapeParams.octaveCount = 4u;
@@ -54,42 +55,42 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
 
     if (base > _CU_DENSITY_EPSILON) {
         FBMParameters curlParams;
-        curlParams.frequency = 0.04;
-        curlParams.persistence = 0.7;
-        curlParams.lacunarity = 2.6;
+        curlParams.frequency = 0.15;
+        curlParams.persistence = -0.8;
+        curlParams.lacunarity = 3.2;
         curlParams.octaveCount = 2u;
         vec3 curSamplePos = rayPos;
-        curSamplePos.y *= 0.8;
+        curSamplePos.y *= 0.1;
         vec3 curl = GradientNoise_3D_grad_fbm(curlParams, curSamplePos);
-        curl *= 0.8 + heightFraction * 0.5;
+        curl *= 0.5 + heightFraction * 1.5;
 
         densityOut = base;
 
         FBMParameters densityParams;
-        densityParams.frequency = 0.6;
+        densityParams.frequency = 0.9;
         densityParams.persistence = -0.65;
         densityParams.lacunarity = 2.7;
         densityParams.octaveCount = 2u;
-        float detail1 = GradientNoise_3D_value_fbm(densityParams, rayPos + curl * 1.2) * 1.5;
+        float detail1 = GradientNoise_3D_value_fbm(densityParams, rayPos + curl * 0.3) * 2.0;
         detail1 = linearStep(-1.0, 1.0, detail1);
-        detail1 *= mix(0.7, 1.8, pow2(heightFraction));
-        detail1 *= mix(0.2, 1.0, CUMULUS_FACTOR);
+        detail1 *= mix(0.5, 1.5, pow2(heightFraction));
+        detail1 *= CUMULUS_FACTOR * 0.8 + 0.2;
         densityOut = linearStep(saturate(detail1), 1.0, densityOut);
 
         if (densityOut > _CU_DENSITY_EPSILON) {
             FBMParameters valueNoiseParams;
-            valueNoiseParams.frequency = 5.2;
+            valueNoiseParams.frequency = 6.1;
             valueNoiseParams.persistence = 0.7;
             valueNoiseParams.lacunarity = 2.6;
             valueNoiseParams.octaveCount = 2u;
-            float detail2 = GradientNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * 0.6);
+            float detail2 = GradientNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * -0.15);
             detail2 = mix(saturate(linearStep(-1.0, 1.0, detail2) - 0.3), abs(detail2), heightFraction * 0.8);
-            detail2 *= mix(0.4, 0.6, heightFraction);
-            detail2 *= mix(0.1, 1.0, CUMULUS_FACTOR);
+            detail2 *= mix(0.2, 0.4, heightFraction);
+            detail2 *= CUMULUS_FACTOR * 0.9 + 1.0;
             densityOut = linearStep(saturate(detail2), 1.0, densityOut);
 
             densityOut *= pow3(1.0 - heightFraction);
-            densityOut *= CUMULUS_FACTOR * 0.9 + 0.1;
+            densityOut *= CUMULUS_FACTOR * 0.8 + 0.2;
 
             if (densityOut > _CU_DENSITY_EPSILON) {
                 return true;
