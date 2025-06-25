@@ -7,6 +7,7 @@
 uniform sampler3D usam_cloudsAmbLUT;
 
 const float DENSITY_EPSILON = 0.0001;
+const float TRANSMITTANCE_EPSILON = 0.01;
 
 void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     float viewZ = texelFetch(viewZTex, texelPos, 0).r;
@@ -159,6 +160,10 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                         lightRayTransmittance,
                         cuAccum
                     );
+
+                    if (colors_sRGB_luma(cuAccum.totalTransmittance) < TRANSMITTANCE_EPSILON) {
+                        break;
+                    }
                 }
 
                 clouds_raymarchStepState_update(stepState);
