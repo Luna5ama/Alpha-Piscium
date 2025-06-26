@@ -1477,17 +1477,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_SLOPE_R", 1.03, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_R", 1.0, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Slope Red"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_SLOPE_G", 1.03, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_G", 1.0, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Slope Green"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_SLOPE_B", 1.03, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_B", 1.0, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Slope Blue"
                     }
