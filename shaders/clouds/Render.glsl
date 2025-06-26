@@ -107,7 +107,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
 
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 4
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
-            #define CLOUDS_CU_DENSITY (64.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (72.0 * SETTING_CLOUDS_CU_DENSITY)
 
             float cuRayLen = inLayer ? (cuRayLenBot > 0.0 ? cuRayLenBot : min(cuRayLenTop, cuOrigin2RayStart + cuRaySteps)) : max(cuRayLenBot, cuRayLenTop);
             cuRayLen -= cuOrigin2RayStart;

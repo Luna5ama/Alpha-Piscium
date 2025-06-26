@@ -68,30 +68,31 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
 
         // Carve out basic cloud shape
         FBMParameters densityParams;
-        densityParams.frequency = 1.4;
+        densityParams.frequency = 1.9;
         densityParams.persistence = -0.65;
         densityParams.lacunarity = 2.2;
         densityParams.octaveCount = 2u;
         float detail1 = GradientNoise_3D_value_fbm(densityParams, rayPos + curl * 0.4) * 3.0;
         detail1 = smoothstep(-1.0, 1.0, detail1);
-        detail1 *= mix(0.6, 0.7, heightFraction);
+        detail1 *= mix(0.4, 0.7, heightFraction);
         detail1 *= CUMULUS_FACTOR * 0.95 + 0.05;
         densityOut = linearStep(saturate(detail1), 1.0, densityOut);
 
         if (densityOut > _CU_DENSITY_EPSILON) {
             // Add some high frequency detail to edges
             FBMParameters valueNoiseParams;
-            valueNoiseParams.frequency = 6.9;
+            valueNoiseParams.frequency = 5.9;
             valueNoiseParams.persistence = 0.7;
             valueNoiseParams.lacunarity = 3.1;
             valueNoiseParams.octaveCount = 2u;
-            float detail2 = GradientNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * -0.4) * 2.0;
-            detail2 = mix(saturate(detail2 * 0.5 + 0.5), abs(detail2), heightFraction * 0.4);
-            detail2 *= mix(0.3, 0.5, heightFraction);
+            float detail2 = GradientNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * -0.5) * 2.0;
+            detail2 = mix(saturate(detail2 * 0.5 + 0.5), abs(detail2), heightFraction * 0.6);
+            detail2 = pow2(detail2);
+            detail2 *= mix(0.3, 1.0, heightFraction);
             detail2 *= CUMULUS_FACTOR * 0.95 + 0.05;
-            densityOut = linearStep(saturate(detail2), 1.0, densityOut);
+            densityOut = linearStep(detail2, 1.0, densityOut);
 
-            densityOut *= 1.0 - heightFraction;
+            densityOut *= pow2(1.0 - heightFraction);
             densityOut *= (1.0 - pow2(1.0 - CUMULUS_FACTOR)) * 0.6 + 0.4;
 
             if (densityOut > _CU_DENSITY_EPSILON) {
