@@ -54,7 +54,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
     float base = coverage;
     base = saturate(base + heightCurve - 1.0);
 
-    if (base > _CU_DENSITY_EPSILON) {
+    if (base > _CU_DENSITY_EPSILON) {;
         FBMParameters curlParams;
         curlParams.frequency = 0.2;
         curlParams.persistence = -0.8;
@@ -63,6 +63,10 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
         vec2 curl2D = GradientNoise_2D_grad_fbm(curlParams, rotationMatrix, rayPos.xz);
         vec3 curl = vec3(curl2D.x, 0.0, curl2D.y);
         curl *= 0.5 + 0.5 * heightFraction;
+
+        #ifndef SETTING_SCREENSHOT_MODE
+        rayPos += uval_cuDetailWind;
+        #endif
 
         densityOut = base;
 

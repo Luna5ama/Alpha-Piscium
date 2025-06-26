@@ -17,3 +17,5 @@ uniform bool uval_moonVisible;
 uniform vec2 uval_moonNdcPos;
 
 uniform float uval_dayNightTransition;
+
+uniform vec3 uval_cuDetailWind;
