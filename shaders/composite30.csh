@@ -11,10 +11,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform sampler2D usam_temp2;
 
-uniform sampler2D usam_gbufferData8UN;
-uniform sampler2D usam_translucentColor;
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 

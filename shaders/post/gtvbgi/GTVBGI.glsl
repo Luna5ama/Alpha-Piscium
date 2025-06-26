@@ -15,11 +15,6 @@
 #include "/util/Math.glsl"
 #include "/util/Hash.glsl"
 
-uniform usampler2D usam_gbufferData32UI;
-uniform sampler2D usam_gbufferViewZ;
-uniform usampler2D usam_packedZN;
-uniform sampler2D usam_skyLUT;
-uniform usampler2D usam_envProbe;
 
 ivec2 vbgi_texelPos1x1;
 ivec2 vbgi_texelPos2x2;

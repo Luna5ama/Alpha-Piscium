@@ -5,7 +5,6 @@
 layout(local_size_x = 32, local_size_y = 32) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 
-uniform sampler2D usam_gbufferViewZ;
 
 shared vec2 shared_subgroupTemp[32];
 shared vec2 shared_groupTemp;

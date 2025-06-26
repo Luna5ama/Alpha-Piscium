@@ -8,9 +8,6 @@ uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
-uniform usampler2D usam_gbufferData32UI;
-uniform sampler2D usam_gbufferViewZ;
-
 in vec3 frag_viewTangent;
 
 in vec4 frag_colorMul;// 8 x 4 = 32 bits

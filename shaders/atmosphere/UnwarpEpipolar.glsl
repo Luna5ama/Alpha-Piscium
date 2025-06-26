@@ -8,8 +8,6 @@
 */
 #include "Common.glsl"
 
-uniform sampler2D usam_gbufferViewZ;
-uniform usampler2D usam_epipolarData;
 
 bool unwarpEpipolarInsctrImage(
 vec2 screenPos,

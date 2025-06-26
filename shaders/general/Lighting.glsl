@@ -6,7 +6,6 @@
 #include "/util/BSDF.glsl"
 #include "/rtwsm/RTWSM.glsl"
 
-uniform sampler2D usam_skyLUT;
 
 GBufferData lighting_gData = gbufferData_init();
 vec3 lighting_viewCoord;

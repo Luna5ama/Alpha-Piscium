@@ -4,7 +4,6 @@
 #include "/util/Material.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Dither.glsl"
-uniform sampler2D usam_temp5;
 
 ivec2 denoiser_getImageSize();
 void denoiser_input(ivec2 coord, out vec4 data, out vec3 normal, out float viewZ);

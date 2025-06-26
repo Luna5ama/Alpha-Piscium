@@ -4,10 +4,6 @@
 #include "/util/Dither.glsl"
 #include "/util/Rand.glsl"
 
-uniform sampler2D usam_main;
-uniform sampler2D usam_gbufferData8UN;
-uniform sampler2D usam_gbufferViewZ;
-uniform sampler2D usam_taaLast;
 
 in vec2 frag_texCoord;
 

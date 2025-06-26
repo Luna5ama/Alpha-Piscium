@@ -97,6 +97,40 @@ const bool colortex14Clear = false;
 
 const bool colortex15Clear = false;
 
+// ------------------------------------------------- Colortex Samplers -------------------------------------------------
+uniform sampler2D usam_main;
+uniform sampler2D usam_temp1;
+uniform sampler2D usam_temp2;
+uniform sampler2D usam_temp3;
+uniform sampler2D usam_temp4;
+uniform sampler2D usam_temp5;
+uniform sampler2D usam_temp6;
+uniform usampler2D usam_geometryNormal;
+uniform usampler2D usam_gbufferData32UI;
+uniform sampler2D usam_gbufferData8UN;
+uniform sampler2D usam_gbufferViewZ;
+uniform sampler2D usam_translucentColor;
+uniform usampler2D usam_tempRGBA32UI;
+uniform usampler2D usam_tempRG32UI;
+uniform usampler2D usam_packedZN;
+uniform sampler2D usam_taaLast;
+
+// -------------------------------------------------- Shadow Samplers --------------------------------------------------
+uniform sampler2D shadowtex0;
+uniform sampler2DShadow shadowtex0HW;
+uniform sampler2D shadowtex1;
+uniform sampler2DShadow shadowtex1HW;
+uniform sampler2D shadowcolor0;
+
+// --------------------------------------------------- Custom Images ---------------------------------------------------
+uniform sampler2D usam_rtwsm_imap;
+uniform sampler2D usam_transmittanceLUT;
+uniform sampler2D usam_multiSctrLUT;
+uniform sampler2D usam_skyLUT;
+uniform usampler2D usam_epipolarData;
+uniform usampler2D usam_csrgba32ui;
+uniform sampler3D usam_cloudsAmbLUT;
+uniform usampler2D usam_envProbe;
 
 // -------------------------------------------------- Custom Textures --------------------------------------------------
 uniform sampler2D noisetex;

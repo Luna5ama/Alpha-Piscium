@@ -4,7 +4,6 @@
 #include "/util/Coords.glsl"
 #include "/util/Math.glsl"
 
-uniform sampler3D usam_cloudsAmbLUT;
 
 #define CLOUDS_AMBLUT_LAYER_STRAUS 0.5
 #define CLOUDS_AMBLUT_LAYER_CUMULUS 1.5

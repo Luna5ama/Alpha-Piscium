@@ -20,28 +20,6 @@ vec3 interpolateTurbo(float x) {
     return turboCurve[int(x)] + (turboCurve[min(255, int(x) + 1)] - turboCurve[int(x)]) * fract(x);
 }
 
-#ifdef SETTING_DEBUG_RTWSM
-uniform sampler2D shadowtex0;
-uniform sampler2D usam_rtwsm_imap;
-#endif
-
-#ifdef SETTING_DEBUG_ATMOSPHERE
-uniform sampler2D usam_skyLUT;
-uniform usampler2D usam_epipolarData;
-#endif
-
-#ifdef SETTING_DEBUG_CLOUDS
-uniform sampler3D usam_cloudsAmbLUT;
-#endif
-
-#ifdef SETTING_DEBUG_ENV_PROBE
-uniform usampler2D usam_envProbe;
-#endif
-
-uniform usampler2D usam_gbufferData32UI;
-uniform sampler2D usam_gbufferData8UN;
-uniform sampler2D usam_gbufferViewZ;
-
 #if SETTING_DEBUG_TEMP_TEX == 1
 #define DEBUG_TEX_NAME usam_temp1
 #elif SETTING_DEBUG_TEMP_TEX == 2
@@ -56,20 +34,6 @@ uniform sampler2D usam_gbufferViewZ;
 #define DEBUG_TEX_NAME usam_temp6
 #elif SETTING_DEBUG_TEMP_TEX == 7
 #define DEBUG_TEX_NAME usam_geometryNormal
-#endif
-
-
-#if SETTING_DEBUG_DENOISER != 0
-uniform usampler2D usam_csrgba32ui;
-#endif
-
-#ifdef DEBUG_TEX_NAME
-uniform sampler2D DEBUG_TEX_NAME;
-#endif
-
-#if SETTING_DEBUG_GI_INPUTS != 0
-uniform usampler2D usam_packedZN;
-uniform usampler2D usam_geometryNormal;
 #endif
 
 bool inViewPort(ivec4 originSize, out vec2 texCoord) {

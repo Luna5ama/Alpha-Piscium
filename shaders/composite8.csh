@@ -13,11 +13,6 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform sampler2D usam_temp4;
-uniform usampler2D usam_tempRGBA32UI;
-uniform usampler2D usam_packedZN;
-uniform usampler2D usam_gbufferData32UI;
-uniform usampler2D usam_tempRG32UI;
 
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;

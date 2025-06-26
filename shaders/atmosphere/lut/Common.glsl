@@ -26,8 +26,6 @@ float fromSubUvsToUnit(float u, float resolution) { return (u - 0.5f / resolutio
 vec2 fromUnitToSubUvs(vec2 uv, vec2 resolution) { return (uv + 0.5 / resolution) * (resolution / (resolution + 1.0)); }
 vec2 fromSubUvsToUnit(vec2 uv, vec2 resolution) { return (uv - 0.5 / resolution) * (resolution / (resolution - 1.0)); }
 
-uniform sampler2D usam_transmittanceLUT;
-uniform sampler2D usam_multiSctrLUT;
 
 
 void lutTransmittanceParamsToUv(AtmosphereParameters atmosphere, float height, float cosZenith, out vec2 uv) {

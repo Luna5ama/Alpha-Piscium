@@ -9,15 +9,12 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #include "/util/Coords.glsl"
 #if SETTING_DEBUG_OUTPUT == 1 || SETTING_DEBUG_OUTPUT == 2
 #include "/general/DebugOutput.glsl"
-#else
-uniform sampler2D usam_gbufferViewZ;
 #endif
 #include "/post/ToneMapping.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/rtwsm/ShadowAABB.glsl"
 
 #if SETTING_DEBUG_TEMP_TEX != 6
-uniform sampler2D usam_temp6;
 #endif
 
 layout(rgba16f) restrict uniform image2D uimg_main;

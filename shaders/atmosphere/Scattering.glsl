@@ -13,10 +13,6 @@
 #include "/rtwsm/RTWSM.glsl"
 #include "/util/Celestial.glsl"
 
-//uniform sampler2D usam_rtwsm_imap;
-//uniform sampler2DShadow shadowtex0HW;
-//uniform sampler2D usam_gbufferViewZ;
-//uniform usampler2D usam_packedZN;
 
 float atmosphere_sample_shadow(vec3 shadowPos) {
     vec3 sampleTexCoord = shadowPos;

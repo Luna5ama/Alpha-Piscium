@@ -8,12 +8,6 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform usampler2D usam_gbufferData32UI;
-uniform sampler2D usam_gbufferData8UN;
-uniform sampler2D usam_gbufferViewZ;
-uniform usampler2D usam_packedZN;
-uniform usampler2D usam_geometryNormal;
-uniform usampler2D usam_csrgba32ui;
 
 #include "/denoiser/Reproject.glsl"
 

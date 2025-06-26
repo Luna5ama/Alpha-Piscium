@@ -12,21 +12,11 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform sampler2D shadowtex0;
-uniform sampler2DShadow shadowtex0HW;
 
-uniform sampler2D shadowtex1;
-uniform sampler2DShadow shadowtex1HW;
 
-uniform sampler2D shadowcolor0;
-uniform sampler2D usam_rtwsm_imap;
 
-uniform usampler2D usam_gbufferData32UI;
-uniform sampler2D usam_gbufferData8UN;
-uniform sampler2D usam_gbufferViewZ;
 
 #ifdef DISTANT_HORIZONS
-uniform sampler2D dhDepthTex0;
 #endif
 
 layout(rgba8) uniform restrict image2D uimg_temp5;

@@ -4,8 +4,6 @@
 shared vec3 shared_shadowAABBMin[16];
 shared vec3 shared_shadowAABBMax[16];
 
-//uniform sampler2D usam_gbufferViewZ;
-
 void rtwsm_shadowAABB() {
     ivec2 clampedTexelPos = coords_clampTexelPos(texelPos, global_mainImageSizeI);
     vec2 screenPos = coords_texelToUV(clampedTexelPos, global_mainImageSizeRcp);

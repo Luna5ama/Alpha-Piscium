@@ -12,8 +12,6 @@
 #include "/util/Morton.glsl"
 
 // Required resources
-// uniform sampler2D shadowtex0;
-// uniform sampler2D usam_rtwsm_imap;
 // layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 
 void importance(ivec2 texelPos, float viewZ, vec3 viewNormal, out uint p, out float v) {

@@ -75,7 +75,6 @@ vec4 bloom_main(ivec2 texelPos);
 #endif
 
 #ifndef BLOOM_NO_SAMPLER
-uniform sampler2D BLOOM_SAMPLER;
 #endif
 #ifndef BLOOM_NON_STANDALONE
 layout(rgba16f) uniform BLOOM_IMAGE_ACCESS image2D BLOOM_IMAGE;

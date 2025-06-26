@@ -50,8 +50,6 @@ layout(local_size_x = 1, local_size_y = ATROUS_THREAD_SIZE) in;
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform sampler2D ATROUS_INPUT;
-uniform usampler2D usam_packedZN;
 layout(rgba16f) uniform writeonly image2D ATROUS_OUTPUT;
 
 shared uvec4 shared_data[SHARED_DATA_SIZE];
