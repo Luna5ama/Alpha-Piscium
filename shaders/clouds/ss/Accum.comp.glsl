@@ -71,7 +71,7 @@ Vec4PackedData loadPrevData(ivec2 texelPos) {
 }
 
 float computeSampleWeight(vec2 centerTexelCenter, ivec2 sampleTexelPosD) {
-    const float DISTANCE_FACTOR = 0.05 * float(UPSCALE_FACTOR);
+    const float DISTANCE_FACTOR = 0.005 * float(UPSCALE_FACTOR);
     vec2 sampleTexelPos1x1 = getTexelPos1x1(sampleTexelPosD);
     vec2 texelPosDiff = sampleTexelPos1x1 - centerTexelCenter;
     float sampleDist = dot(texelPosDiff, texelPosDiff);
@@ -178,9 +178,7 @@ void main() {
         newData.hLen = min(prevAvgData.transmittanceHLen.w + currWeight, CLOUDS_SS_MAX_ACCUM);
         if (newData.hLen > WEIGHT_EPSILON) {
             Vec4PackedData currAvgData = prevAvgData;
-            if (currWeight > linearStep(0.0, CLOUDS_SS_MAX_ACCUM, newData.hLen) * 0.25 + WEIGHT_EPSILON) {
-                currAvgData = vec4PackedData_mul(currSumData, rcp(currWeight));
-            }
+            currAvgData = vec4PackedData_mul(currSumData, rcp(currWeight));
 
             float alpha = saturate(currWeight / newData.hLen);
             newData.inScattering = mix(newData.inScattering, currAvgData.inScatteringViewZ.xyz, alpha);

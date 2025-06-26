@@ -5,7 +5,7 @@
 #include "/util/Rand.glsl"
 #include "/textile/CSRGBA32UI.glsl"
 
-#define UPSCALE_FACTOR 2
+#define UPSCALE_FACTOR 8
 
 #if UPSCALE_FACTOR == 1
 ivec2 renderSize = global_mipmapSizesI[0];

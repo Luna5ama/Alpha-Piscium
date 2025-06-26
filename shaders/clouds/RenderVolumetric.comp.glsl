@@ -92,7 +92,7 @@ void render(ivec2 texelPosDownScale) {
     accumState.viewZ = maxRayLen;
 
     vec3 viewDir = -mainRayParams.rayDir;
-    vec2 jitters = rand_stbnVec2(ivec2(texelPosF), frameCounter / UPSCALE_BLOCK_SIZE);
+    vec2 jitters = rand_stbnVec2(ivec2(texelPosF), frameCounter);
     vec2 ambLutUV = cloods_amblut_uv(viewDir, jitters);
 
     {

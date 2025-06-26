@@ -1077,6 +1077,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Cumulus Clouds"
                         }
                     }
+                    toggle("SETTING_CLOUDS_LOW_RENDER_SCALE", 2, 1..5) {
+                        lang {
+                            name = "Ray marching minimum step"
+                            0 value "1x"
+                            1 value "1/2x"
+                            2 value "1/4x"
+                            3 value "1/8x"
+                        }
+                    }
                     slider("SETTING_CLOUDS_LOW_STEP_MIN", 8, 4..64 step 4) {
                         lang {
                             name = "Ray marching minimum step"
