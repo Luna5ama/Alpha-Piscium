@@ -15,20 +15,20 @@ vec3 coords_toViewCoord(vec2 texCoord, float viewZ, mat4 projInv) {
 }
 
 vec2 OctWrap(vec2 v) {
-    return (1.0 - abs(v.yx)) * mix(vec2(-1.0), vec2(1.0), vec2(greaterThanEqual(v.xy, vec2(0.0))));
+    return (1.0 - abs(v.yx)) * mix(vec2(-1.0), vec2(1.0), greaterThanEqual(v.xy, vec2(0.0)));
 }
 
 vec3 coords_octDecode11(vec2 f) {
     // https://twitter.com/Stubbesaurus/status/937994790553227264
     vec3 n = vec3(f.x, f.y, 1.0 - abs(f.x) - abs(f.y));
     float t = saturate(-n.z);
-    n.xy += mix(vec2(t), vec2(-t), vec2(greaterThanEqual(n.xy, vec2(0.0))));
+    n.xy += mix(vec2(t), vec2(-t), greaterThanEqual(n.xy, vec2(0.0)));
     return normalize(n);
 }
 
 vec2 coords_octEncode11(vec3 n) {
     n /= (abs(n.x) + abs(n.y) + abs(n.z));
-    n.xy = mix(OctWrap(n.xy), n.xy, float(n.z >= 0.0));
+    n.xy = n.z >= 0.0 ? n.xy : OctWrap(n.xy);
     return n.xy;
 }
 
