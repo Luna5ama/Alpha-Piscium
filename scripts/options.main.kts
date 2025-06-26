@@ -1088,6 +1088,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                     empty()
+                    slider("SETTING_CLOUDS_CU_WEIGHT", 0.8, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Cumulus Weight"
+                        }
+                    }
                     slider("SETTING_CLOUDS_CU_HEIGHT", 2.0, 0.0..8.0 step 0.1) {
                         lang {
                             name = "Cumulus Height"

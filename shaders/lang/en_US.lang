@@ -171,6 +171,7 @@ option.SETTING_CLOUDS_CU=Cumulus Clouds
 option.SETTING_CLOUDS_LOW_STEP_MIN=Ray marching minimum step
 option.SETTING_CLOUDS_LOW_STEP_MAX=Ray marching maximum step
 option.SETTING_CLOUDS_LOW_STEP_CURVE=Ray marching maximum step
+option.SETTING_CLOUDS_CU_WEIGHT=Cumulus Weight
 option.SETTING_CLOUDS_CU_HEIGHT=Cumulus Height
 suffix.SETTING_CLOUDS_CU_HEIGHT=\ km
 option.SETTING_CLOUDS_CU_THICKNESS=Cumulus Thickness

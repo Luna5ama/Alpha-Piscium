@@ -27,7 +27,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
     vec3 coveragePos = rayPos;
     coveragePos.y -= 1.0;
     float coverage = GradientNoise_3D_value_fbm(shapeParams, coveragePos);
-    const float CUMULUS_FACTOR = 0.8;
+    const float CUMULUS_FACTOR = SETTING_CLOUDS_CU_WEIGHT;
     const float _CU_COVERAGE_FACTOR = 1.0 - (pow(SETTING_CLOUDS_CU_COVERAGE, 0.4 + CUMULUS_FACTOR * 1.0));
     const float SIGMOID_K = mix(0.5, 8.0, pow2(CUMULUS_FACTOR));
     coverage = rcp(1.0 + exp2(-coverage * SIGMOID_K)); // Sigmoid
