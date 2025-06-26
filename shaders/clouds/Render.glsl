@@ -98,13 +98,18 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
         cuFlag &= uint(cuOrigin2RayStart >= 0.0);
 
         if (bool(cuFlag)) {
-            #define CLOUDS_CU_RAYMARCH_STEP 32
-            #define CLOUDS_CU_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_RAYMARCH_STEP))
+            float cuRaySteps = mix(
+                SETTING_CLOUDS_LOW_STEP_MIN,
+                SETTING_CLOUDS_LOW_STEP_MAX,
+                pow(1.0 - abs(mainRayParams.rayDir.y), SETTING_CLOUDS_LOW_STEP_CURVE)
+            );
+            cuRaySteps = round(cuRaySteps);
+
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 4
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
             #define CLOUDS_CU_DENSITY (64.0 * SETTING_CLOUDS_CU_DENSITY)
 
-            float cuRayLen = inLayer ? (cuRayLenBot > 0.0 ? cuRayLenBot : min(cuRayLenTop, cuOrigin2RayStart + CLOUDS_CU_RAYMARCH_STEP)) : max(cuRayLenBot, cuRayLenTop);
+            float cuRayLen = inLayer ? (cuRayLenBot > 0.0 ? cuRayLenBot : min(cuRayLenTop, cuOrigin2RayStart + cuRaySteps)) : max(cuRayLenBot, cuRayLenTop);
             cuRayLen -= cuOrigin2RayStart;
 
             vec3 ambientIrradiance = clouds_amblut_sample(ambLutUV, CLOUDS_AMBLUT_LAYER_CUMULUS);
@@ -116,12 +121,14 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                 vec2(cuMinHeight, cuMaxHeight),
                 cuOrigin2RayStart,
                 cuRayLen,
-                CLOUDS_CU_RAYMARCH_STEP_RCP
+                rcp(cuRaySteps)
             );
             CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam, jitters.x);
             CloudRaymarchAccumState cuAccum = clouds_raymarchAccumState_init();
 
-            for (uint stepIndex = 0; stepIndex < CLOUDS_CU_RAYMARCH_STEP; ++stepIndex) {
+            uint cuRayStepsI = uint(cuRaySteps);
+
+            for (uint stepIndex = 0; stepIndex < cuRayStepsI; ++stepIndex) {
                 if (stepState.position.w > cuRayLen) break;
                 float heightFraction = linearStep(cuMinHeight, cuMaxHeight, stepState.height);
                 float sampleDensity = 0.0;

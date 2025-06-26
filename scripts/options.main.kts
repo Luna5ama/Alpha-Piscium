@@ -1072,6 +1072,22 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Cumulus Clouds"
                         }
                     }
+                    slider("SETTING_CLOUDS_LOW_STEP_MIN", 8, 4..64 step 4) {
+                        lang {
+                            name = "Ray marching minimum step"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_STEP_MAX", 64, 16..128 step 4) {
+                        lang {
+                            name = "Ray marching maximum step"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_STEP_CURVE", 4.0, 1.0..8.0 step 0.5) {
+                        lang {
+                            name = "Ray marching maximum step"
+                        }
+                    }
+                    empty()
                     slider("SETTING_CLOUDS_CU_HEIGHT", 2.0, 0.0..8.0 step 0.1) {
                         lang {
                             name = "Cumulus Height"
