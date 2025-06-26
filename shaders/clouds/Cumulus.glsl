@@ -19,15 +19,17 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
     float earthCoverage = 1.0;
 
     FBMParameters shapeParams;
-    shapeParams.frequency = 0.036;
-    shapeParams.persistence = -1.7;
+    shapeParams.frequency = 0.05;
+    shapeParams.persistence = -1.2;
     shapeParams.lacunarity = 2.6;
     shapeParams.octaveCount = 4u;
     mat2 rotationMatrix = mat2_rotate(GOLDEN_ANGLE);
-    float coverage = GradientNoise_3D_value_fbm(shapeParams, rayPos + vec3(0.0, 12.0, 0.0));
+    vec3 coveragePos = rayPos;
+    coveragePos.y -= 1.0;
+    float coverage = GradientNoise_3D_value_fbm(shapeParams, coveragePos);
     const float CUMULUS_FACTOR = 0.8;
-    const float _CU_COVERAGE_FACTOR = 1.0 - (pow(SETTING_CLOUDS_CU_COVERAGE, 0.3 + CUMULUS_FACTOR * 1.0));
-    const float SIGMOID_K = mix(0.2, 4.0, pow2(CUMULUS_FACTOR));
+    const float _CU_COVERAGE_FACTOR = 1.0 - (pow(SETTING_CLOUDS_CU_COVERAGE, 0.4 + CUMULUS_FACTOR * 1.0));
+    const float SIGMOID_K = mix(0.5, 8.0, pow2(CUMULUS_FACTOR));
     coverage = rcp(1.0 + exp2(-coverage * SIGMOID_K)); // Sigmoid
     coverage = linearStep(_CU_COVERAGE_FACTOR, 1.0, coverage);
     coverage = pow2(coverage);
@@ -85,12 +87,12 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
             valueNoiseParams.octaveCount = 2u;
             float detail2 = GradientNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * -0.4) * 2.0;
             detail2 = mix(saturate(detail2 * 0.5 + 0.5), abs(detail2), heightFraction * 0.4);
-            detail2 *= mix(0.4, 0.6, heightFraction);
+            detail2 *= mix(0.3, 0.5, heightFraction);
             detail2 *= CUMULUS_FACTOR * 0.95 + 0.05;
             densityOut = linearStep(saturate(detail2), 1.0, densityOut);
 
             densityOut *= 1.0 - heightFraction;
-            densityOut *= (1.0 - pow2(1.0 - CUMULUS_FACTOR)) * 0.8 + 0.2;
+            densityOut *= (1.0 - pow2(1.0 - CUMULUS_FACTOR)) * 0.6 + 0.4;
 
             if (densityOut > _CU_DENSITY_EPSILON) {
                 return true;
