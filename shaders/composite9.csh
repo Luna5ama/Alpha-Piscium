@@ -5,7 +5,6 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-uniform usampler2D usam_tempRGBA32UI;
 layout(rgba32ui) uniform restrict uimage2D uimg_csrgba32ui;
 
 void main() {
