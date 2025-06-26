@@ -89,5 +89,9 @@ void main() {
         );
         global_historyResetFactor = exp2(-pow2(mix(0.05, 0.2, uval_dayNightTransition) * float(worldTimeDiff)));
         global_lastWorldTime = worldTime;
+
+        #ifdef SETTING_DOF_MANUAL_FOCUS
+        global_focusDistance = SETTING_DOF_FOCUS_DISTANCE_COARSE + SETTING_DOF_FOCUS_DISTANCE_FINE;
+        #endif
     }
 }
