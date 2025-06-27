@@ -2,6 +2,7 @@
 #include "/util/FullScreenComp.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/NZPacking.glsl"
+#include "/util/TextRender.glsl"
 #include "/general/EnvProbe.glsl"
 #include "/atmosphere/Common.glsl"
 #include "/atmosphere/lut/Common.glsl"
@@ -95,6 +96,8 @@ vec3 displayViewZ(float viewZ) {
 }
 
 void debugOutput(inout vec4 outputColor) {
+    beginText(texelPos >> ivec2(2), ivec2(0, global_mainImageSizeI.y >> 2));
+
     #ifdef DEBUG_TEX_NAME
     if (all(lessThan(texelPos, textureSize(DEBUG_TEX_NAME, 0)))) {
 
@@ -211,12 +214,19 @@ void debugOutput(inout vec4 outputColor) {
     vec2 debugTexCoord;
 
     #ifdef SETTING_DEBUG_RTWSM
+    printIvec3(global_shadowAABBMin);
+    printLine();
+    printLine();
+    printIvec3(global_shadowAABBMax);
+
     if (inViewPort(ivec4(0, 0, 512, 512), debugTexCoord)) {
-        outputColor.rgb = linearStep(SETTING_DEBUG_RTWSM_MIN_DEPTH, SETTING_DEBUG_RTWSM_MAX_DEPTH, texture(shadowtex0, debugTexCoord).r).rrr;
+        float linearDepth = rtwsm_linearDepth(texture(shadowtex0, debugTexCoord).r);
+        float remappedDepth = linearStep(-global_shadowAABBMin.z + 16.0, -global_shadowAABBMax.z - 512.0 - 16.0, linearDepth);
+        outputColor.rgb = vec3(remappedDepth);
     }
     if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {
         debugTexCoord.y = min(debugTexCoord.y * IMAP2D_V_RANGE, IMAP2D_V_CLAMP);
-        outputColor.rgb = gammaCorrect(texture(usam_rtwsm_imap, debugTexCoord).r * 0.1).rrr;
+        outputColor.rgb = gammaCorrect(texture(usam_rtwsm_imap, debugTexCoord).r * 0.5).rrr;
     }
     if (inViewPort(ivec4(0, 1024 + 4, 512, 16), debugTexCoord)) {
         outputColor.rgb = gammaCorrect(texture(usam_rtwsm_imap, vec2(debugTexCoord.x, IMAP1D_X_V)).r * 0.1).rrr;
@@ -341,4 +351,6 @@ void debugOutput(inout vec4 outputColor) {
     #ifdef SETTING_DEBUG_STARMAP
     outputColor.rgb = gammaCorrect(colors_LogLuv32ToSRGB(texture(usam_starmap, screenPos)));
     #endif
+
+    endText(outputColor.rgb);
 }

@@ -9,19 +9,39 @@ const ivec3 workGroups = ivec3(2, 1, 1);
 
 layout(rgba16f) uniform writeonly readonly image2D uimg_main;
 
-mat4 shadowDeRotateMatrix(mat4 shadowMatrix) {
-    vec2 p1 = (shadowMatrix * vec4(0.0, -1000.0, 0.0, 1.0)).xy;
-    vec2 p2 = (shadowMatrix * vec4(0.0, 1000.0, 0.0, 1.0)).xy;
+vec3 rotateAxis(vec3 unitAxis) {
+    vec4 p1 = shadowModelView * vec4(unitAxis * -65536.0, 0.0);
+    vec4 p2 = shadowModelView * vec4(unitAxis * 65536.0, 0.0);
+    vec2 delta = p2.xy - p1.xy;
+    return vec3(delta, dot(delta, delta));
+}
 
-    float angle1 = -atan(p1.y, p1.x);
+mat4 shadowDeRotateMatrix() {
+    vec3 axisX = rotateAxis(vec3(1.0, 0.0, 0.0));
+    vec3 axisY = rotateAxis(vec3(0.0, 1.0, 0.0));
+    vec3 axisZ = rotateAxis(vec3(0.0, 0.0, 1.0));
 
-    float cos1 = cos(angle1 - PI_HALF) * 0.7071;
-    float sin1 = sin(angle1 - PI_HALF) * 0.7071;
+    vec3 maxAxisDelta = axisX;
+    maxAxisDelta = axisY.z > maxAxisDelta.z ? axisY : maxAxisDelta;
+    maxAxisDelta = axisZ.z > maxAxisDelta.z ? axisZ : maxAxisDelta;
+
+    float angle1 = atan(maxAxisDelta.x, maxAxisDelta.y);
+    float cos1 = cos(angle1);
+    float sin1 = sin(angle1);
+
+    mat2 rotMat1 = mat2(cos1, sin1, -sin1, cos1);
+
+    vec2 axisY1 = rotMat1 * axisY.xy;
+
+    float angleToYUp = atan(axisY1.x, axisY1.y);
+    angleToYUp = round(angleToYUp * RCP_PI_HALF) * PI_HALF;
+    float cos2 = cos(angle1 + angleToYUp);
+    float sin2 = sin(angle1 + angleToYUp);
 
     return mat4(
-        cos1, sin1, 0.0, 0.0,
-        -sin1, cos1, 0.0, 0.0,
-        0.0, 0.0, 0.25, 0.0,
+        cos2, sin2, 0.0, 0.0,
+        -sin2, cos2, 0.0, 0.0,
+        0.0, 0.0, 1.0, 0.0,
         0.0, 0.0, 0.0, 1.0
     );
 }
@@ -49,7 +69,15 @@ void main() {
         global_shadowAABBMin = min(global_shadowAABBMin, ivec3(floor(mix(vec3(global_shadowAABBMin), vec3(global_shadowAABBMinPrev), 0.9))));
         global_shadowAABBMax = max(global_shadowAABBMax, ivec3(ceil(mix(vec3(global_shadowAABBMax), vec3(global_shadowAABBMaxPrev), 0.9))));
         vec2 jitter = taaJitter();
-        global_shadowRotationMatrix = shadowDeRotateMatrix(shadowModelView);
+        global_shadowRotationMatrix = shadowDeRotateMatrix();
+        global_shadowProjPrev = global_shadowProj;
+        global_shadowProjInversePrev = global_shadowProjInverse;
+        global_shadowProj = mat4_createOrthographicMatrix(
+            global_shadowAABBMin.x, global_shadowAABBMax.x,
+            global_shadowAABBMin.y, global_shadowAABBMax.y,
+            -global_shadowAABBMax.z, -global_shadowAABBMin.z
+        );
+        global_shadowProjInverse = inverse(global_shadowProj);
         global_taaJitter = jitter;
         mat4 taaMat = taaJitterMat(jitter);
         global_taaJitterMat = taaMat;

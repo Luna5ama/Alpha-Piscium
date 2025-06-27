@@ -15,9 +15,9 @@ void main() {
     vert_color = gl_Color;
 
     vec4 shadowClipPos = ftransform();
-    vec4 shadowClipPosRotated = global_shadowRotationMatrix * shadowClipPos;
-    vec4 shadowViewPos = shadowProjectionInverse * shadowClipPos;
-    gl_Position = shadowClipPosRotated;
+    vec4 shadowViewPos = global_shadowRotationMatrix * shadowProjectionInverse * shadowClipPos;
+    shadowClipPos = global_shadowProjPrev * shadowViewPos;
+    gl_Position = shadowClipPos;
     vert_viewZ = -gl_Position.w;
     gl_Position /= gl_Position.w;
 
@@ -32,16 +32,14 @@ void main() {
     vec4 camViewPos = gbufferModelView * scenePos;
     camViewPos /= camViewPos.w;
 
-    uint survived = uint(all(lessThan(abs(shadowClipPosRotated.xyz), shadowClipPosRotated.www)));
-    survived &= uint(all(lessThan(shadowViewPos.xyz, vec3(global_shadowAABBMax))));
-    survived &= uint(all(greaterThan(shadowViewPos.xyz, vec3(global_shadowAABBMin))));
+    uint survived = uint(all(lessThan(abs(shadowClipPos.xy), shadowClipPos.ww)));
     vert_survived = survived;
 
     survived &= uint((gl_VertexID & 3) == 0);
 
     #ifdef SETTING_RTWSM_F
     if (bool(survived)){
-        vec2 shadowNdcPos = shadowClipPosRotated.xy / shadowClipPosRotated.w;
+        vec2 shadowNdcPos = shadowClipPos.xy / shadowClipPos.w;
         vec2 shadowScreenPos = shadowNdcPos * 0.5 + 0.5;
         ivec2 importanceTexelPos = ivec2(shadowScreenPos * vec2(SETTING_RTWSM_IMAP_SIZE));
 

@@ -45,7 +45,7 @@ float searchBlocker(vec3 shadowTexCoord) {
     for (int i = 0; i < BLOCKER_SEARCH_N; i++) {
         vec2 randomOffset = (rand_r2Seq2(idxB) * 2.0 - 1.0);
         vec3 sampleTexCoord = shadowTexCoord;
-        sampleTexCoord.xy += randomOffset * blockerSearchRange * vec2(shadowProjection[0][0], shadowProjection[1][1]);
+        sampleTexCoord.xy += randomOffset * blockerSearchRange * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
         sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
         float depth = rtwsm_sampleShadowDepth(shadowtex1, sampleTexCoord, BLOCKER_SEARCH_LOD).r;
         bool isBlocker = sampleTexCoord.z > depth;
@@ -86,7 +86,7 @@ vec3 calcShadow(Material material, bool isHand) {
 
     vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
 
-    vec4 shadowTexCoordCS = global_shadowRotationMatrix * shadowProjection * shadowModelView * worldCoord;
+    vec4 shadowTexCoordCS = global_shadowProjPrev * global_shadowRotationMatrix * shadowModelView * worldCoord;
     shadowTexCoordCS /= shadowTexCoordCS.w;
 
     vec3 shadowTexCoord = shadowTexCoordCS.xyz * 0.5 + 0.5;
@@ -117,7 +117,7 @@ vec3 calcShadow(Material material, bool isHand) {
     float r = sqrtJitterR * ssRange;
 
     vec3 sampleTexCoord = shadowTexCoord;
-    sampleTexCoord.xy += r * dir * vec2(shadowProjection[0][0], shadowProjection[1][1]);
+    sampleTexCoord.xy += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
 
     sampleTexCoord.z += jitterR * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
     sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);

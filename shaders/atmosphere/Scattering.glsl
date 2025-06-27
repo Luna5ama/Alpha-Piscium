@@ -62,8 +62,8 @@ ScatteringResult computeSingleScattering(vec2 screenPos, float viewZ, float nois
         vec4 originScene = gbufferModelViewInverse * vec4(ORIGIN_VIEW, 1.0);
         vec4 endScene = gbufferModelViewInverse * vec4(viewPos, 1.0);
 
-        vec4 originShadowCS = global_shadowRotationMatrix * shadowProjection * shadowModelView * originScene;
-        vec4 endShadowCS = global_shadowRotationMatrix * shadowProjection * shadowModelView * endScene;
+        vec4 originShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * shadowModelView * originScene;
+        vec4 endShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * shadowModelView * endScene;
 
         vec3 startShadow = originShadowCS.xyz / originShadowCS.w;
         startShadow = startShadow * 0.5 + 0.5;

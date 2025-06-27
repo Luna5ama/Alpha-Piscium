@@ -31,6 +31,10 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     mat4 global_camProjInverse;
     mat4 global_prevCamProj;
     mat4 global_prevCamProjInverse;
+    mat4 global_shadowProjPrev;
+    mat4 global_shadowProjInversePrev;
+    mat4 global_shadowProj;
+    mat4 global_shadowProjInverse;
     vec3 global_prevCameraDelta;
     vec2 global_taaJitter;
     ivec2 global_mainImageSizeI;

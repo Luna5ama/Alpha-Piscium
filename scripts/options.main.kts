@@ -654,7 +654,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "RTWSM"
                         comment = "Rectilinear Texture Warping Shadow Mapping settings"
                     }
-                    slider("SETTING_RTWSM_IMAP_SIZE", 512, listOf(256, 512, 1024)) {
+                    slider("SETTING_RTWSM_IMAP_SIZE", 256, listOf(256, 512, 1024)) {
                         lang {
                             name = "Importance Map Resolution"
                         }
