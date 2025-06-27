@@ -48,30 +48,6 @@ void main() {
             value += shared_buffer[pos];
         }
         value /= float(SAMPLES);
-        shared_buffer[gl_LocalInvocationID.x] = value;
-        barrier();
-    }
-
-    {
-        float value = 0.0;
-        for (int i = 0; i < SAMPLES; i++) {
-            int pos = int(gl_LocalInvocationID.x) + i - RADIUS;
-            pos = clamp(pos, 0, int(gl_WorkGroupSize.x) - 1);
-            value += shared_buffer[pos];
-        }
-        value /= float(SAMPLES);
-        shared_buffer[gl_LocalInvocationID.x] = value;
-        barrier();
-    }
-
-    {
-        float value = 0.0;
-        for (int i = 0; i < SAMPLES; i++) {
-            int pos = int(gl_LocalInvocationID.x) + i - RADIUS;
-            pos = clamp(pos, 0, int(gl_WorkGroupSize.x) - 1);
-            value += shared_buffer[pos];
-        }
-        value /= float(SAMPLES);
         imageStore(uimg_rtwsm_imap, dataPos, vec4(value));
     }
 }

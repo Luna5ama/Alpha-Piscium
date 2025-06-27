@@ -678,7 +678,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             prefix = "2^"
                         }
                     }
-                    slider("SETTING_RTWSM_F_D", 1024, listOf(0) + (0..16).map { 1 shl it }) {
+                    slider("SETTING_RTWSM_F_D", 0.5, 0.0..2.0 step 0.05) {
                         lang {
                             name = "Forward Distance Function"
                             comment = "Reduces weight based on distance. Larger setting value means slower decay."
@@ -703,7 +703,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             prefix = "2^"
                         }
                     }
-                    slider("SETTING_RTWSM_B_D", 128, listOf(0) + (0..10).map { 2 shl it }) {
+                    slider("SETTING_RTWSM_B_D", 0.6, 0.0..2.0 step 0.05) {
                         lang {
                             name = "Backward Distance Function"
                             comment = "Reduces weight based on distance. Larger setting value means slower decay."

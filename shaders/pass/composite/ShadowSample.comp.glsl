@@ -92,8 +92,8 @@ vec3 calcShadow(Material material, bool isHand) {
     ssRange *= ssRangeMul;
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
-    float depthBiasFactor = 1.0;
-    depthBiasFactor += (1.0 - saturate(cosLightTheta)) * 16.0;
+    float depthBiasFactor = 4.0;
+    depthBiasFactor += (1.0 - saturate(cosLightTheta)) * 8.0;
 
     float jitterR = rand_stbnVec1(texelPos, frameCounter);
     vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);

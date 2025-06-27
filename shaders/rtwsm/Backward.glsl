@@ -63,12 +63,12 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
     float importance = SETTING_RTWSM_B_BASE;
 
     // Distance function
-    #if SETTING_RTWSM_B_D > 0.0
-    importance *= (SETTING_RTWSM_B_D) / (SETTING_RTWSM_B_D + dot(viewPos, viewPos));
-    #endif
+    const float Fa = 1.0;
+    importance *= 1.0 / (1.0 + pow(dot(viewPos, viewPos), SETTING_RTWSM_B_D));
 
     // Surface normal function
     #if SETTING_RTWSM_B_SN > 0.0
+    vec3 viewDir = normalize(-viewPos);
     importance *= 1.0 + SETTING_RTWSM_B_SN * saturate(dot(gData.geometryNormal, viewDir));
     #endif
 
@@ -92,7 +92,7 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
     maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowScreenPosWarped, ivec2(1, 0)).x)));
     maxDiff = max(maxDiff, abs(center - rtwsm_linearDepth(textureOffset(shadowtex0, shadowScreenPosWarped, ivec2(1, 1)).x)));
 
-    importance *= 1.0 + SETTING_RTWSM_B_SE * linearStep(0.5, 4.0, maxDiff);
+    importance *= 1.0 + SETTING_RTWSM_B_SE * linearStep(0.5, 2.0, maxDiff) * 100.0;
     #endif
 
     if (any(greaterThanEqual(abs(shadowClipPos.xy), vec2(1.0)))) {
