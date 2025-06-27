@@ -13,7 +13,12 @@ flat in vec2 frag_texcoordMin;
 flat in vec2 frag_texcoordMax;
 
 #ifdef SHADOW_PASS_TRANSLUCENT
-layout(location = 0) out vec4 rt_out;
+/* RENDERTARGETS:0,1 */
+layout(location = 0) out float rt_depthOffset;
+layout(location = 1) out vec4 rt_translucentColor;
+#else
+/* RENDERTARGETS:0 */
+layout(location = 0) out float rt_depthOffset;
 #endif
 
 void main() {
@@ -24,6 +29,8 @@ void main() {
     vec2 offsetTexCoord = frag_texcoord + pixelDiff.x * dFdx(frag_texcoord) + pixelDiff.y * dFdy(frag_texcoord);
     offsetTexCoord = clamp(offsetTexCoord, frag_texcoordMin, frag_texcoordMax);
     vec4 color = textureLod(gtexture, offsetTexCoord, 0.0) * frag_color;
+    float depthFixOffset = pixelDiff.x * dFdx(gl_FragCoord.z) + pixelDiff.y * dFdy(gl_FragCoord.z);
+    rt_depthOffset = depthFixOffset;
 
     #ifdef SHADOW_PASS_ALPHA_TEST
     if (color.a < alphaTestRef) {
@@ -39,6 +46,6 @@ void main() {
     if (color.a < randAlpha) {
         discard;
     }
-    rt_out = mix(color, vec4(1.0, 1.0, 1.0, 0.0), float(color.a == 1.0));
+    rt_translucentColor = mix(color, vec4(1.0, 1.0, 1.0, 0.0), float(color.a == 1.0));
     #endif
 }

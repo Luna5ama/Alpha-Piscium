@@ -67,26 +67,11 @@ vec3 calcShadow(Material material, bool isHand) {
         return vec3(1.0);
     }
 
-    vec3 viewCoord = viewPos;
-    float distanceToCam = length(viewCoord);
+    float cosLightTheta = dot(uval_shadowLightDirView, gData.normal);
 
-    float normalOffset = 0.03;
+    vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
 
-    float viewNormalDot = 1.0 - abs(dot(gData.normal, viewDir));
-    #define NORMAL_OFFSET_DISTANCE_FACTOR1 2048.0
-    float normalOffset1 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR1 / (NORMAL_OFFSET_DISTANCE_FACTOR1 + distanceToCam));
-    normalOffset += saturate(normalOffset1 * viewNormalDot) * 0.2;
-
-    float lightNormalDot = 1.0 - abs(dot(uval_shadowLightDirView, gData.normal));
-    #define NORMAL_OFFSET_DISTANCE_FACTOR2 512.0
-    float normalOffset2 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR2 / (NORMAL_OFFSET_DISTANCE_FACTOR2 + distanceToCam));
-    normalOffset += saturate(normalOffset2 * lightNormalDot) * 0.2;
-
-    viewCoord = mix(viewCoord + gData.normal * normalOffset, viewCoord, bvec3(isHand));
-
-    vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
-
-    vec4 shadowTexCoordCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * worldCoord;
+    vec4 shadowTexCoordCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * scenePos;
     shadowTexCoordCS /= shadowTexCoordCS.w;
 
     vec3 shadowTexCoord = shadowTexCoordCS.xyz * 0.5 + 0.5;
@@ -107,9 +92,8 @@ vec3 calcShadow(Material material, bool isHand) {
     ssRange *= ssRangeMul;
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
-    float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distanceToCam, 1.0)));
-    float depthBiasFactor = 10.0 + lightNormalDot * 10.0;
-    depthBiasFactor += mix(50.0 + lightNormalDot * 50.0, -10.0, dbfDistanceCoeff);
+    float depthBiasFactor = 1.0;
+    depthBiasFactor += (1.0 - saturate(cosLightTheta)) * 16.0;
 
     float jitterR = rand_stbnVec1(texelPos, frameCounter);
     vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);
@@ -122,18 +106,21 @@ vec3 calcShadow(Material material, bool isHand) {
     sampleTexCoord.z -= jitterR * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
     vec2 texelSize;
     sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
-    float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
+    float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / min(texelSize.x, texelSize.y);
     sampleTexCoord.z -= depthBias;
     sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
 
+    float sampleShadowDepthOffset = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0).x;
+    sampleTexCoord.z -= sampleShadowDepthOffset;
+
     float sampleShadow0 = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
     float sampleShadow1 = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
-    vec4 sampleColor = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0);
+    vec4 sampleColor = rtwsm_sampleShadowColor(shadowcolor1, sampleTexCoord.xy, 0.0);
     sampleColor.rgb = mix(vec3(1.0), sampleColor.rgb, float(sampleShadow0 < 1.0));
 
     vec3 shadow = min(sampleColor.rgb, sampleShadow1.rrr);
 
-    float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(worldCoord.xz));
+    float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
     return mix(vec3(shadow), vec3(1.0), shadowRangeBlend);
 }
 
