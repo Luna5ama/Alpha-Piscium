@@ -117,10 +117,10 @@ float rtwsm_sampleShadowDepth(sampler2D shadowMap, vec3 coord, float lod) {
 }
 
 float rtwsm_linearDepth(float d) {
-    return (d * 2.0 - 1.0) * 4.0 * global_shadowProjInversePrev[2][2] + global_shadowProjInversePrev[3][2];
+    return mix(global_shadowAABBMax.z, global_shadowAABBMin.z, d);
 }
 
 float rtwsm_linearDepthInverse(float depth) {
-    return ((depth - global_shadowProjInversePrev[3][2]) / (4.0 * global_shadowProjInversePrev[2][2]) + 1.0) / 2.0;
+    return linearStep(global_shadowAABBMax.z, global_shadowAABBMin.z, depth);
 }
 #endif

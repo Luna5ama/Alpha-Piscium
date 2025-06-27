@@ -66,8 +66,13 @@ mat4 taaJitterMat(vec2 baseJitter) {
 
 void main() {
     if (gl_WorkGroupID.x == 0) {
-        global_shadowAABBMin = min(global_shadowAABBMin, ivec3(floor(mix(vec3(global_shadowAABBMin), vec3(global_shadowAABBMinPrev), 0.9))));
-        global_shadowAABBMax = max(global_shadowAABBMax, ivec3(ceil(mix(vec3(global_shadowAABBMax), vec3(global_shadowAABBMaxPrev), 0.9))));
+        global_shadowAABBMin = min(global_shadowAABBMinNew, ivec3(floor(mix(vec3(global_shadowAABBMin), vec3(global_shadowAABBMinNew), 0.1))));
+        global_shadowAABBMax = max(global_shadowAABBMaxNew, ivec3(ceil(mix(vec3(global_shadowAABBMax), vec3(global_shadowAABBMaxNew), 0.1))));
+        vec4 shadowAABBMin = global_shadowRotationMatrix * shadowModelView * vec4(0.0, 0.0, 0.0, 1.0);
+        vec4 shadowAABBMax = global_shadowRotationMatrix * shadowModelView * vec4(0.0, 0.0, 0.0, 1.0);
+        global_shadowAABBMinNew = ivec3(floor(shadowAABBMin.xyz));
+        global_shadowAABBMaxNew = ivec3(ceil(shadowAABBMax.xyz));
+
         vec2 jitter = taaJitter();
         global_shadowRotationMatrix = shadowDeRotateMatrix();
         global_shadowProjPrev = global_shadowProj;

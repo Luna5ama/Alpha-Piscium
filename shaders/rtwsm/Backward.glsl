@@ -48,12 +48,12 @@ void shadowAABB2() {
         if (subgroupElect()) {
             ivec3 min4 = ivec3(floor(min3));
             ivec3 max4 = ivec3(ceil(max3));
-            atomicMin(global_shadowAABBMin.x, min4.x);
-            atomicMin(global_shadowAABBMin.y, min4.y);
-            atomicMin(global_shadowAABBMin.z, min4.z);
-            atomicMax(global_shadowAABBMax.x, max4.x);
-            atomicMax(global_shadowAABBMax.y, max4.y);
-            atomicMax(global_shadowAABBMax.z, max4.z);
+            atomicMin(global_shadowAABBMinNew.x, min4.x);
+            atomicMin(global_shadowAABBMinNew.y, min4.y);
+            atomicMin(global_shadowAABBMinNew.z, min4.z);
+            atomicMax(global_shadowAABBMaxNew.x, max4.x);
+            atomicMax(global_shadowAABBMaxNew.y, max4.y);
+            atomicMax(global_shadowAABBMaxNew.z, max4.z);
         }
     }
 }

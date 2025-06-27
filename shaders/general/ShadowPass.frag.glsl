@@ -23,7 +23,7 @@ void main() {
 
     vec2 offsetTexCoord = frag_texcoord + pixelDiff.x * dFdx(frag_texcoord) + pixelDiff.y * dFdy(frag_texcoord);
     offsetTexCoord = clamp(offsetTexCoord, frag_texcoordMin, frag_texcoordMax);
-    vec4 color = texture(gtexture, offsetTexCoord) * frag_color;
+    vec4 color = textureLod(gtexture, offsetTexCoord, 0.0) * frag_color;
 
     #ifdef SHADOW_PASS_ALPHA_TEST
     if (color.a < alphaTestRef) {
