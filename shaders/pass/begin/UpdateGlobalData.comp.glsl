@@ -10,8 +10,8 @@ const ivec3 workGroups = ivec3(2, 1, 1);
 layout(rgba16f) uniform writeonly readonly image2D uimg_main;
 
 vec3 rotateAxis(vec3 unitAxis) {
-    vec4 p1 = shadowModelView * vec4(unitAxis * -65536.0, 0.0);
-    vec4 p2 = shadowModelView * vec4(unitAxis * 65536.0, 0.0);
+    vec4 p1 = global_shadowView * vec4(unitAxis * -65536.0, 0.0);
+    vec4 p2 = global_shadowView * vec4(unitAxis * 65536.0, 0.0);
     vec2 delta = p2.xy - p1.xy;
     return vec3(delta, dot(delta, delta));
 }
@@ -73,14 +73,16 @@ void main() {
         global_shadowAABBMinNew = ivec3(floor(shadowAABBMin.xyz));
         global_shadowAABBMaxNew = ivec3(ceil(shadowAABBMax.xyz));
 
+        vec3 cameraDelta = cameraPosition - previousCameraPosition;
+
         vec2 jitter = taaJitter();
         global_shadowRotationMatrix = shadowDeRotateMatrix();
         global_shadowProjPrev = global_shadowProj;
         global_shadowProjInversePrev = global_shadowProjInverse;
         global_shadowProj = mat4_createOrthographicMatrix(
-            global_shadowAABBMin.x, global_shadowAABBMax.x,
-            global_shadowAABBMin.y, global_shadowAABBMax.y,
-            -global_shadowAABBMax.z, -global_shadowAABBMin.z
+            global_shadowAABBMin.x - 16.0, global_shadowAABBMax.x + 16.0,
+            global_shadowAABBMin.y - 16.0, global_shadowAABBMax.y + 16.0,
+            -global_shadowAABBMax.z - 512.0, -global_shadowAABBMin.z + 16.0
         );
         global_shadowProjInverse = inverse(global_shadowProj);
         global_taaJitter = jitter;

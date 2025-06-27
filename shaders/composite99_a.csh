@@ -14,6 +14,9 @@ void main() {
     if (gl_LocalInvocationIndex == 0) {
         gbufferPrevModelViewInverse = gbufferModelViewInverse;
         global_prevCameraDelta = cameraPosition - previousCameraPosition;
+
+        global_shadowView = shadowModelView;
+        global_shadowViewInverse = shadowModelViewInverse;
     }
     #ifdef SETTING_DEBUG_AE
     global_aeData.lumHistogram[gl_LocalInvocationIndex] = 0u;

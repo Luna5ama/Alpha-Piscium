@@ -1669,24 +1669,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Env Probe"
                 }
             }
-            empty()
-            empty()
-            empty()
             toggle("SETTING_DEBUG_RTWSM", false) {
                 lang {
                     name = "RTWSM"
                 }
             }
-            slider("SETTING_DEBUG_RTWSM_MIN_DEPTH", 0.0, 0.0..1.0 step 0.01) {
-                lang {
-                    name = "RTWSM Min Depth"
-                }
-            }
-            slider("SETTING_DEBUG_RTWSM_MAX_DEPTH", 1.0, 0.0..1.0 step 0.01) {
-                lang {
-                    name = "RTWSM Max Depth"
-                }
-            }
+            empty()
+            empty()
             empty()
             empty()
             empty()

@@ -19,17 +19,8 @@ shared vec3 shared_shadowAABBMin[16];
 shared vec3 shared_shadowAABBMax[16];
 
 void shadowAABB1(vec3 shadowViewPos) {
-    const float EXTEND_SIZE = 16.0;
-    const vec3 EXTEND_VEC = vec3(EXTEND_SIZE);
-    const vec3 EXTEND_Z = vec3(0.0, 0.0, 512.0);
-
-    vec3 min0 = shadowViewPos - EXTEND_SIZE;
-    min0 = min(min0, min0 + EXTEND_Z);
-    vec3 max0 = shadowViewPos + EXTEND_SIZE;
-    max0 = max(max0, max0 + EXTEND_Z);
-
-    vec3 min1 = subgroupMin(min0);
-    vec3 max1 = subgroupMax(max0);
+    vec3 min1 = subgroupMin(shadowViewPos);
+    vec3 max1 = subgroupMax(shadowViewPos);
 
     if (subgroupElect()) {
         shared_shadowAABBMin[gl_SubgroupID] = min1;
@@ -46,8 +37,8 @@ void shadowAABB2() {
         vec3 max3 = subgroupMax(max2);
 
         if (subgroupElect()) {
-            ivec3 min4 = ivec3(floor(min3));
-            ivec3 max4 = ivec3(ceil(max3));
+            ivec3 min4 = ivec3(floor(min3 / 16.0)) * 16;
+            ivec3 max4 = ivec3(ceil(max3 / 16.0)) * 16;
             atomicMin(global_shadowAABBMinNew.x, min4.x);
             atomicMin(global_shadowAABBMinNew.y, min4.y);
             atomicMin(global_shadowAABBMinNew.z, min4.z);
@@ -62,11 +53,8 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
     vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
-
-    vec3 viewDir = normalize(-viewPos);
-
     vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
-//    shadowAABB1(shadowViewPos.xyz);
+    shadowAABB1(shadowViewPos.xyz);
 
     vec4 shadowClipPos = global_shadowProj * shadowViewPos;
     vec3 shadowNDCPos = shadowClipPos.xyz / shadowClipPos.w;
@@ -171,13 +159,13 @@ void rtwsm_backward(ivec2 texelPos, float viewZ, GBufferData gData) {
         importance(texelPos, viewZ, gData, p, v);
         backwardOutput(p, v);
         #else
+        vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
+        vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+        vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
+        vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
+        shadowAABB1(shadowViewPos.xyz);
         #endif
     }
-    vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
-    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-    vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
-    vec4 shadowViewPos = global_shadowRotationMatrix * (shadowModelView * scenePos);
-    shadowAABB1(shadowViewPos.xyz);
 
     barrier();
     shadowAABB2();

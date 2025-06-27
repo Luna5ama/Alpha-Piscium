@@ -56,7 +56,7 @@ float searchBlocker(vec3 shadowTexCoord) {
     blockerDepth /= float(max(n, 1));
     blockerDepth = mix(shadowTexCoord.z, blockerDepth, float(n != 0));
 
-    return rtwsm_linearDepth(blockerDepth) - originalZ;
+    return abs(rtwsm_linearDepth(blockerDepth) - originalZ);
 }
 
 vec3 calcShadow(Material material, bool isHand) {
@@ -68,25 +68,25 @@ vec3 calcShadow(Material material, bool isHand) {
     }
 
     vec3 viewCoord = viewPos;
-    float distnaceSq = dot(viewCoord, viewCoord);
+    float distanceToCam = length(viewCoord);
 
     float normalOffset = 0.03;
 
     float viewNormalDot = 1.0 - abs(dot(gData.normal, viewDir));
     #define NORMAL_OFFSET_DISTANCE_FACTOR1 2048.0
-    float normalOffset1 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR1 / (NORMAL_OFFSET_DISTANCE_FACTOR1 + distnaceSq));
+    float normalOffset1 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR1 / (NORMAL_OFFSET_DISTANCE_FACTOR1 + distanceToCam));
     normalOffset += saturate(normalOffset1 * viewNormalDot) * 0.2;
 
     float lightNormalDot = 1.0 - abs(dot(uval_shadowLightDirView, gData.normal));
     #define NORMAL_OFFSET_DISTANCE_FACTOR2 512.0
-    float normalOffset2 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR2 / (NORMAL_OFFSET_DISTANCE_FACTOR2 + distnaceSq));
+    float normalOffset2 = 1.0 - (NORMAL_OFFSET_DISTANCE_FACTOR2 / (NORMAL_OFFSET_DISTANCE_FACTOR2 + distanceToCam));
     normalOffset += saturate(normalOffset2 * lightNormalDot) * 0.2;
 
     viewCoord = mix(viewCoord + gData.normal * normalOffset, viewCoord, bvec3(isHand));
 
     vec4 worldCoord = gbufferModelViewInverse * vec4(viewCoord, 1.0);
 
-    vec4 shadowTexCoordCS = global_shadowProjPrev * global_shadowRotationMatrix * shadowModelView * worldCoord;
+    vec4 shadowTexCoordCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * worldCoord;
     shadowTexCoordCS /= shadowTexCoordCS.w;
 
     vec3 shadowTexCoord = shadowTexCoordCS.xyz * 0.5 + 0.5;
@@ -107,9 +107,9 @@ vec3 calcShadow(Material material, bool isHand) {
     ssRange *= ssRangeMul;
 
     #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
-    float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distnaceSq, 1.0)));
-    float depthBiasFactor = 0.001 + lightNormalDot * 0.001;
-    depthBiasFactor += mix(0.005 + lightNormalDot * 0.005, -0.001, dbfDistanceCoeff);
+    float dbfDistanceCoeff = (DEPTH_BIAS_DISTANCE_FACTOR / (DEPTH_BIAS_DISTANCE_FACTOR + max(distanceToCam, 1.0)));
+    float depthBiasFactor = 10.0 + lightNormalDot * 10.0;
+    depthBiasFactor += mix(50.0 + lightNormalDot * 50.0, -10.0, dbfDistanceCoeff);
 
     float jitterR = rand_stbnVec1(texelPos, frameCounter);
     vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);
@@ -119,13 +119,12 @@ vec3 calcShadow(Material material, bool isHand) {
     vec3 sampleTexCoord = shadowTexCoord;
     sampleTexCoord.xy += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
 
-    sampleTexCoord.z += jitterR * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
-    sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
+    sampleTexCoord.z -= jitterR * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
     vec2 texelSize;
     sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
     float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / length(texelSize);
-    depthBias = min(depthBias, 0.001);
     sampleTexCoord.z -= depthBias;
+    sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
 
     float sampleShadow0 = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
     float sampleShadow1 = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);

@@ -1,6 +1,4 @@
-
 #include "/rtwsm/RTWSM.glsl"
-
 
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 
@@ -28,7 +26,7 @@ void main() {
     gl_Position.xy = vPosTS * 2.0 - 1.0;
 
     shadowViewPos /= shadowViewPos.w;
-    vec4 scenePos = shadowModelViewInverse * shadowViewPos;
+    vec4 scenePos = global_shadowViewInverse * shadowViewPos;
     vec4 camViewPos = gbufferModelView * scenePos;
     camViewPos /= camViewPos.w;
 
