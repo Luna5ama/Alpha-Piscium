@@ -17,7 +17,8 @@ const int colortex14Format = RG32UI; // packedZN
 const int colortex15Format = RGBA16F; // TAA Last
 
 const int shadowcolor0Format = R16F; // Depth offset
-const int shadowcolor1Format = RGBA8; // Translucent color
+const int shadowcolor1Format = RGBA8; // Normal
+const int shadowcolor2Format = RGBA8; // Translucent color
 */
 
 #define usam_main colortex0
@@ -99,9 +100,10 @@ const bool colortex15Clear = false;
 
 const bool shadowcolor0Clear = true;
 const vec4 shadowcolor0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
-
 const bool shadowcolor1Clear = true;
-const vec4 shadowcolor1ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
+const vec4 shadowcolor1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const bool shadowcolor2Clear = true;
+const vec4 shadowcolor2ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
 
 // ------------------------------------------------- Colortex Samplers -------------------------------------------------
 uniform sampler2D usam_main;
@@ -128,6 +130,7 @@ uniform sampler2D shadowtex1;
 uniform sampler2DShadow shadowtex1HW;
 uniform sampler2D shadowcolor0;
 uniform sampler2D shadowcolor1;
+uniform sampler2D shadowcolor2;
 
 // --------------------------------------------------- Custom Images ---------------------------------------------------
 uniform sampler2D usam_rtwsm_imap;

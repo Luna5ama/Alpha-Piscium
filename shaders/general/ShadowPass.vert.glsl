@@ -6,17 +6,17 @@ out uint vert_survived;
 out vec2 vert_unwarpedTexCoord;
 out vec2 vert_texcoord;
 out vec4 vert_color;
-out float vert_viewZ;
+out vec3 vert_normal;
 
 void main() {
     vert_texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     vert_color = gl_Color;
+    vert_normal = normalize(mat3(global_shadowViewInverse) * (gl_NormalMatrix * gl_Normal.xyz));
 
     vec4 shadowClipPos = ftransform();
     vec4 shadowViewPos = global_shadowRotationMatrix * shadowProjectionInverse * shadowClipPos;
     shadowClipPos = global_shadowProjPrev * shadowViewPos;
     gl_Position = shadowClipPos;
-    vert_viewZ = -gl_Position.w;
     gl_Position /= gl_Position.w;
 
     vec2 vPosTS = gl_Position.xy * 0.5 + 0.5;

@@ -63,7 +63,6 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
     float importance = SETTING_RTWSM_B_BASE;
 
     // Distance function
-    const float Fa = 1.0;
     importance *= 1.0 / (1.0 + pow(dot(viewPos, viewPos), SETTING_RTWSM_B_D));
 
     // Surface normal function

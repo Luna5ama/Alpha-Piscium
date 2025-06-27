@@ -8,17 +8,19 @@ uniform sampler2D gtexture;
 in vec2 frag_unwarpedTexCoord;
 in vec2 frag_texcoord;
 in vec4 frag_color;
-in float frag_viewZ;
+in vec3 frag_normal;
 flat in vec2 frag_texcoordMin;
 flat in vec2 frag_texcoordMax;
 
 #ifdef SHADOW_PASS_TRANSLUCENT
+/* RENDERTARGETS:0,1,2 */
+layout(location = 0) out float rt_depthOffset;
+layout(location = 1) out vec3 rt_normal;
+layout(location = 2) out vec4 rt_translucentColor;
+#else
 /* RENDERTARGETS:0,1 */
 layout(location = 0) out float rt_depthOffset;
-layout(location = 1) out vec4 rt_translucentColor;
-#else
-/* RENDERTARGETS:0 */
-layout(location = 0) out float rt_depthOffset;
+layout(location = 1) out vec3 rt_normal;
 #endif
 
 void main() {
@@ -31,6 +33,7 @@ void main() {
     vec4 color = textureLod(gtexture, offsetTexCoord, 0.0) * frag_color;
     float depthFixOffset = pixelDiff.x * dFdx(gl_FragCoord.z) + pixelDiff.y * dFdy(gl_FragCoord.z);
     rt_depthOffset = depthFixOffset;
+    rt_normal = normalize(frag_normal);
 
     #ifdef SHADOW_PASS_ALPHA_TEST
     if (color.a < alphaTestRef) {
@@ -41,7 +44,7 @@ void main() {
     #ifdef SHADOW_PASS_TRANSLUCENT
     color.rgb = colors_sRGB_decodeGamma(color.rgb);
     vec2 randCoord = gl_FragCoord.xy;
-    randCoord.y += -frag_viewZ;
+    randCoord.y += abs(rtwsm_linearDepth(gl_FragCoord.z));
     float randAlpha = rand_IGN(uvec2(randCoord), frameCounter);
     if (color.a < randAlpha) {
         discard;

@@ -1,6 +1,7 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_vote : enable
+#extension GL_KHR_shader_subgroup_clustered : enable
 
 #include "/util/Celestial.glsl"
 #include "/util/Material.glsl"
@@ -37,11 +38,6 @@ float searchBlocker(vec3 shadowTexCoord) {
     float blockerDepth = 0.0;
     int n = 0;
 
-    shadowTexCoord.z = rtwsm_linearDepth(shadowTexCoord.z);
-    shadowTexCoord.z += 0.5;
-    float originalZ = shadowTexCoord.z;
-    shadowTexCoord.z = rtwsm_linearDepthInverse(shadowTexCoord.z);
-
     for (int i = 0; i < BLOCKER_SEARCH_N; i++) {
         vec2 randomOffset = (rand_r2Seq2(idxB) * 2.0 - 1.0);
         vec3 sampleTexCoord = shadowTexCoord;
@@ -56,7 +52,7 @@ float searchBlocker(vec3 shadowTexCoord) {
     blockerDepth /= float(max(n, 1));
     blockerDepth = mix(shadowTexCoord.z, blockerDepth, float(n != 0));
 
-    return abs(rtwsm_linearDepth(blockerDepth) - originalZ);
+    return abs(rtwsm_linearDepth(blockerDepth) - rtwsm_linearDepth(shadowTexCoord.z));
 }
 
 vec3 calcShadow(Material material, bool isHand) {
@@ -68,16 +64,17 @@ vec3 calcShadow(Material material, bool isHand) {
     }
 
     float cosLightTheta = dot(uval_shadowLightDirView, gData.normal);
+    float sideFacingFactor = 1.0 - abs(cosLightTheta);
 
-    vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
+    vec3 offsetViewPos = viewPos;
+    offsetViewPos += gData.geometryNormal * mix(0.0, 0.02, sideFacingFactor);
+    vec4 scenePos = gbufferModelViewInverse * vec4(offsetViewPos, 1.0);
 
     vec4 shadowTexCoordCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * scenePos;
     shadowTexCoordCS /= shadowTexCoordCS.w;
 
     vec3 shadowTexCoord = shadowTexCoordCS.xyz * 0.5 + 0.5;
     float blockerDistance = searchBlocker(shadowTexCoord);
-
-    shadowTexCoord.z = rtwsm_linearDepth(shadowTexCoord.z);
 
     float ssRange = 0.0;
     #if SETTING_PCSS_BPF > 0
@@ -91,31 +88,37 @@ vec3 calcShadow(Material material, bool isHand) {
     const float ssRangeMul = 0.5;
     ssRange *= ssRangeMul;
 
-    #define DEPTH_BIAS_DISTANCE_FACTOR 1024.0
-    float depthBiasFactor = 4.0;
-    depthBiasFactor += (1.0 - saturate(cosLightTheta)) * 8.0;
-
     float jitterR = rand_stbnVec1(texelPos, frameCounter);
     vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);
     float sqrtJitterR = sqrt(jitterR);
     float r = sqrtJitterR * ssRange;
 
     vec3 sampleTexCoord = shadowTexCoord;
+
     sampleTexCoord.xy += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
 
-    sampleTexCoord.z -= jitterR * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
     vec2 texelSize;
     sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
-    float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / min(texelSize.x, texelSize.y);
-    sampleTexCoord.z -= depthBias;
-    sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
 
     float sampleShadowDepthOffset = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0).x;
     sampleTexCoord.z -= sampleShadowDepthOffset;
 
+    vec3 worldGeometryNormal = mat3(gbufferModelViewInverse) * gData.geometryNormal;
+    vec3 shadowNormal = rtwsm_sampleShadowColor(shadowcolor1, sampleTexCoord.xy, 0.0).xyz;
+    float confidence = saturate(dot(worldGeometryNormal, shadowNormal));
+
+    float depthBiasFactor = 2.0;
+    depthBiasFactor += sideFacingFactor * 8.0;
+    depthBiasFactor *= confidence;
+    float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / min(texelSize.x, texelSize.y);
+    sampleTexCoord.z = rtwsm_linearDepth(sampleTexCoord.z);
+    sampleTexCoord.z -= jitterR * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
+    sampleTexCoord.z -= depthBias;
+    sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
+
     float sampleShadow0 = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
     float sampleShadow1 = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
-    vec4 sampleColor = rtwsm_sampleShadowColor(shadowcolor1, sampleTexCoord.xy, 0.0);
+    vec4 sampleColor = rtwsm_sampleShadowColor(shadowcolor2, sampleTexCoord.xy, 0.0);
     sampleColor.rgb = mix(vec3(1.0), sampleColor.rgb, float(sampleShadow0 < 1.0));
 
     vec3 shadow = min(sampleColor.rgb, sampleShadow1.rrr);
