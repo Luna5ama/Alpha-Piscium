@@ -55,6 +55,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     float global_focusDistance;
     int global_lastWorldTime;
     float global_historyResetFactor;
+    float global_turbidity;
     AEData global_aeData;
     uint global_atomicCounters[16];
 };

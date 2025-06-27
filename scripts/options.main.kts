@@ -432,6 +432,16 @@ fun powerOfTwoRange(range: IntRange): List<Int> {
     return range.map { 1 shl it }
 }
 
+fun powerOfTwoRangeAndHalf(range: IntRange): List<Int> {
+    return range.flatMap {
+        if (it <= 1) {
+            listOf(1 shl it)
+        } else {
+            listOf((1 shl (it - 1)) + (1 shl (it - 2)), 1 shl it)
+        }
+    }
+}
+
 options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
     mainScreen(2) {
         screen("LIGHTING", 2) {
@@ -966,35 +976,101 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             }
             empty()
             empty()
-            screen("AIR", 1) {
+            screen("AIR", 2) {
                 lang {
                     name = "Air"
                 }
-                slider("SETTING_ATM_MIE_TURBIDITY", 4, powerOfTwoRange(0..6)) {
+                screen("MIE_COEFF", 1) {
                     lang {
-                        name = "Mie Tubidity"
+                        name = "Mie Coefficients"
+                    }
+                    slider("SETTING_ATM_MIE_TURBIDITY", 2.0, 0.0..8.0 step 0.25) {
+                        lang {
+                            name = "Mie Turbidity"
+                            prefix = "2^"
+                        }
+                    }
+                    toggle("SETTING_ATM_MIE_TIME", true) {
+                        lang {
+                            name = "Time of Day Mie Turbidity"
+                        }
+                    }
+                    slider("SETTING_ATM_MIE_TURBIDITY_EARLY_MORNING", 4.5, 0.0..8.0 step 0.25) {
+                        lang {
+                            name = "Early Morning Turbidity"
+                            prefix = "2^"
+                        }
+                    }
+                    slider("SETTING_ATM_MIE_TURBIDITY_SUNRISE", 5.25, 0.0..8.0 step 0.25) {
+                        lang {
+                            name = "Sunrise Turbidity"
+                            prefix = "2^"
+                        }
+                    }
+                    slider("SETTING_ATM_MIE_TURBIDITY_MORNING", 4.0, 0.0..8.0 step 0.25) {
+                        lang {
+                            name = "Morning Turbidity"
+                            prefix = "2^"
+                        }
+                    }
+                    slider("SETTING_ATM_MIE_TURBIDITY_NOON", 2.0, 0.0..8.0 step 0.25) {
+                        lang {
+                            name = "Noon Turbidity"
+                            prefix = "2^"
+                        }
+                    }
+                    slider("SETTING_ATM_MIE_TURBIDITY_AFTERNOON", 1.0, 0.0..8.0 step 0.25) {
+                        lang {
+                            name = "Afternoon Turbidity"
+                            prefix = "2^"
+                        }
+                    }
+                    slider("SETTING_ATM_MIE_TURBIDITY_SUNSET", 3.0, 0.0..8.0 step 0.25) {
+                        lang {
+                            name = "Sunset Turbidity"
+                            prefix = "2^"
+                        }
+                    }
+                    slider("SETTING_ATM_MIE_TURBIDITY_NIGHT", 3.5, 0.0..8.0 step 0.25) {
+                        lang {
+                            name = "Night Turbidity"
+                            prefix = "2^"
+                        }
+                    }
+                    slider("SETTING_ATM_MIE_TURBIDITY_MIDNIGHT", 4.0, 0.0..8.0 step 0.25) {
+                        lang {
+                            name = "Midnight Turbidity"
+                            prefix = "2^"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_ATM_MIE_SCT_MUL", 1.0, 0.0..5.0 step 0.05) {
+                        lang {
+                            name = "Mie Scattering Multiplier"
+                        }
+                    }
+                    slider("SETTING_ATM_MIE_ABS_MUL", 0.1, 0.0..2.0 step 0.01) {
+                        lang {
+                            name = "Mie Absorption Multiplier"
+                        }
                     }
                 }
-                slider("SETTING_ATM_MIE_SCT_MUL", 1.0, 0.0..5.0 step 0.05) {
+                screen("RAY_COEFF", 1) {
                     lang {
-                        name = "Mie Scattering Multiplier"
+                        name = "Rayleigh Coefficients"
+                    }
+                    slider("SETTING_ATM_RAY_SCT_MUL", 1.0, 0.0..5.0 step 0.05) {
+                        lang {
+                            name = "Rayleigh Scattering Multiplier"
+                        }
+                    }
+                    slider("SETTING_ATM_OZO_ABS_MUL", 1.0, 0.0..5.0 step 0.05) {
+                        lang {
+                            name = "Ozone Absorption Multiplier"
+                        }
                     }
                 }
-                slider("SETTING_ATM_MIE_ABS_MUL", 0.1, 0.0..2.0 step 0.01) {
-                    lang {
-                        name = "Mie Absorption Multiplier"
-                    }
-                }
-                slider("SETTING_ATM_RAY_SCT_MUL", 1.0, 0.0..5.0 step 0.05) {
-                    lang {
-                        name = "Rayleigh Scattering Multiplier"
-                    }
-                }
-                slider("SETTING_ATM_OZO_ABS_MUL", 1.0, 0.0..5.0 step 0.05) {
-                    lang {
-                        name = "Ozone Absorption Multiplier"
-                    }
-                }
+                empty()
                 empty()
                 slider("SETTING_SKYVIEW_RES", 256, powerOfTwoRange(7..10)) {
                     lang {
@@ -1016,6 +1092,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Depth Break Correction"
                     }
                 }
+                empty()
                 empty()
                 slider("SETTING_SKY_SAMPLES", 64, 16..128 step 8) {
                     lang {

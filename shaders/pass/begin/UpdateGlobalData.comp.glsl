@@ -4,6 +4,7 @@
 #include "/util/Math.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Morton.glsl"
+#include "/util/Time.glsl"
 
 layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(2, 1, 1);
@@ -140,6 +141,21 @@ void main() {
 
         #ifdef SETTING_DOF_MANUAL_FOCUS
         global_focusDistance = SETTING_DOF_FOCUS_DISTANCE_COARSE + SETTING_DOF_FOCUS_DISTANCE_FINE;
+        #endif
+
+        #ifdef SETTING_ATM_MIE_TIME
+        float turbidityExp = 0.0;
+        turbidityExp += SETTING_ATM_MIE_TURBIDITY_EARLY_MORNING * time_interpolate(TIME_MIDNIGHT, TIME_EARLY_MORNING, TIME_SUNRISE);
+        turbidityExp += SETTING_ATM_MIE_TURBIDITY_SUNRISE * time_interpolate(TIME_EARLY_MORNING, TIME_SUNRISE, TIME_MORNING);
+        turbidityExp += SETTING_ATM_MIE_TURBIDITY_MORNING * time_interpolate(TIME_SUNRISE, TIME_MORNING, TIME_NOON);
+        turbidityExp += SETTING_ATM_MIE_TURBIDITY_NOON * time_interpolate(TIME_MORNING, TIME_NOON, TIME_AFTERNOON);
+        turbidityExp += SETTING_ATM_MIE_TURBIDITY_AFTERNOON * time_interpolate(TIME_NOON, TIME_AFTERNOON, TIME_SUNSET);
+        turbidityExp += SETTING_ATM_MIE_TURBIDITY_SUNSET * time_interpolate(TIME_AFTERNOON, TIME_SUNSET, TIME_NIGHT);
+        turbidityExp += SETTING_ATM_MIE_TURBIDITY_NIGHT * time_interpolate(TIME_SUNSET, TIME_NIGHT, TIME_MIDNIGHT);
+        turbidityExp += SETTING_ATM_MIE_TURBIDITY_MIDNIGHT * time_interpolate(TIME_NIGHT, TIME_MIDNIGHT, TIME_EARLY_MORNING);
+        global_turbidity = exp2(turbidityExp);
+        #else
+        global_turbidity = exp2(SETTING_ATM_MIE_TURBIDITY);
         #endif
     }
 }

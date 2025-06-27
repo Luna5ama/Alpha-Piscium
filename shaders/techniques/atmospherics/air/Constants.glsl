@@ -9,6 +9,9 @@
         [INT17] Intel Corporation. "Outdoor Light Scattering Sample". 2017.
             Apache License 2.0. Copyright (c) 2017 Intel Corporation.
             https://github.com/GameTechDev/OutdoorLightScattering
+        [PRE99] Preetham, A. J. et al. "A Practical Analytic Model for Daylight"
+            SIGGRAPH 1999. 1999.
+            https://courses.cs.duke.edu/fall01/cps124/resources/p91-preetham.pdf
 
         You can find full license texts in /licenses
 
@@ -91,6 +94,13 @@ struct AtmosphereParameters {
     vec3 ozoneExtinction;
 };
 
+// [PRE99], see also https://www.desmos.com/calculator/2e43734e0c
+vec3 atmosphere_mieCoefficientsPreetham(float turbidity) {
+    const vec3 a0 = vec3(-0.00565597102796, -0.00796791817965, -0.0118034994284);
+    const vec3 a1 = vec3(0.00568551066159, 0.00800953249887, 0.0118651459692);
+    return a0 + a1 * turbidity;
+}
+
 AtmosphereParameters getAtmosphereParameters() {
     const float ATMOSPHERE_BOTTOM = 6378.137;
     const float ATMOSPHERE_TOP = ATMOSPHERE_BOTTOM + 100.0;
@@ -112,24 +122,9 @@ AtmosphereParameters getAtmosphereParameters() {
     // Constants from [HIL20]
     //    const vec3 MIE_SCATTERING_BASE = vec3(3.996e-6) * 1000.0;
 
-    // m to km conversion
-    #if SETTING_ATM_MIE_TURBIDITY == 1
-    const vec3 MIE_SCATTERING_BASE = vec3(0.0000295396336329, 0.0000416143192178, 0.0000616465407936);
-    #elif SETTING_ATM_MIE_TURBIDITY == 2
-    const vec3 MIE_SCATTERING_BASE = vec3(0.00571505029522, 0.00805114681809, 0.01192679251);
-    #elif SETTING_ATM_MIE_TURBIDITY == 4
-    const vec3 MIE_SCATTERING_BASE = vec3(0.0170860716184, 0.0240702118158, 0.0356570844484);
-    #elif SETTING_ATM_MIE_TURBIDITY == 8
-    const vec3 MIE_SCATTERING_BASE = vec3(0.0398281142647, 0.0561083418113, 0.0831176683253);
-    #elif SETTING_ATM_MIE_TURBIDITY == 16
-    const vec3 MIE_SCATTERING_BASE = vec3(0.0853121995575, 0.120184601802, 0.178038836079);
-    #elif SETTING_ATM_MIE_TURBIDITY == 32
-    const vec3 MIE_SCATTERING_BASE = vec3(0.176280370143, 0.248337121784, 0.367881171587);
-    #elif SETTING_ATM_MIE_TURBIDITY == 64
-    const vec3 MIE_SCATTERING_BASE = vec3(0.358216711314, 0.504642161748, 0.747565842601);
-    #endif
-    const vec3 MIE_SCATTERING = MIE_SCATTERING_BASE * SETTING_ATM_MIE_SCT_MUL;
-    const vec3 MIE_ABOSORPTION = MIE_SCATTERING_BASE * SETTING_ATM_MIE_ABS_MUL;
+    vec3 MIE_SCATTERING_BASE = atmosphere_mieCoefficientsPreetham(global_turbidity);
+    vec3 MIE_SCATTERING = MIE_SCATTERING_BASE * SETTING_ATM_MIE_SCT_MUL;
+    vec3 MIE_ABOSORPTION = MIE_SCATTERING_BASE * SETTING_ATM_MIE_ABS_MUL;
 
     const float MIE_PHASE_G = 0.7034;
     const float MIE_PHASE_E = 2500.0; // For Klein-Nishina phase function
