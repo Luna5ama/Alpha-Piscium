@@ -12,7 +12,6 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #endif
 #include "/post/ToneMapping.glsl"
 #include "/util/FullScreenComp.glsl"
-#include "/rtwsm/ShadowAABB.glsl"
 
 #if SETTING_DEBUG_TEMP_TEX != 6
 #endif
@@ -76,6 +75,4 @@ void main() {
 
         imageStore(uimg_main, texelPos, outputColor);
     }
-
-    rtwsm_shadowAABB();
 }

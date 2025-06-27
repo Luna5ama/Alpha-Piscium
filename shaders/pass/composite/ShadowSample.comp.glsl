@@ -12,13 +12,6 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-
-
-
-
-#ifdef DISTANT_HORIZONS
-#endif
-
 layout(rgba8) uniform restrict image2D uimg_temp5;
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 layout(rgba16f) uniform restrict image2D uimg_translucentColor;
@@ -181,10 +174,7 @@ void main() {
             vec4 outputColor = compShadow(texelPos, viewZ);
             imageStore(uimg_temp5, texelPos, outputColor);
 
-
-            #ifdef SETTING_RTWSM_B
-            rtwsm_backward(texelPos, viewZ, gData.geometryNormal);
-            #endif
+            rtwsm_backward(texelPos, viewZ, gData);
         }
     }
 }
