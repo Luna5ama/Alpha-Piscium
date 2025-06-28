@@ -10,12 +10,12 @@
 
 
 bool unwarpEpipolarInsctrImage(
-vec2 screenPos,
+vec2 ndcPos,
 in float screenViewZ,
 out ScatteringResult result
 ){
     // Compute direction of the ray going from the light through the pixel
-    vec2 f2RayDir = normalize(screenPos - uval_sunNdcPos);
+    vec2 f2RayDir = normalize(ndcPos - uval_sunNdcPos);
 
     // Find, which boundary the ray intersects. For this, we will
     // find which two of four half spaces the f2RayDir belongs to
@@ -48,7 +48,7 @@ out ScatteringResult result
     // 0.5 screen pixel size inwards. Using these adjusted boundaries improves precision and results in
     // smaller number of pixels which require inscattering correction
     vec4 f4Boundaries = getOutermostScreenPixelCoords();//left, bottom, right, top
-    vec4 f4HalfSpaceEquationTerms = (screenPos.xxyy - f4Boundaries.xzyw) * f2RayDir.yyxx;
+    vec4 f4HalfSpaceEquationTerms = (ndcPos.xxyy - f4Boundaries.xzyw) * f2RayDir.yyxx;
     uvec4 b4HalfSpaceFlags = uvec4(lessThan(f4HalfSpaceEquationTerms.xyyx, f4HalfSpaceEquationTerms.zzww));
 
     // Now compute mask indicating which of four sectors the f2RayDir belongs to and consiquently
@@ -122,7 +122,7 @@ out ScatteringResult result
         float fSliceLenSqr = dot(f2SliceDir, f2SliceDir);
 
         // Project current pixel onto the epipolar line
-        float fSamplePosOnLine = dot((screenPos - f4SliceEndpoints.xy), f2SliceDir) / max(fSliceLenSqr, 1e-8);
+        float fSamplePosOnLine = dot((ndcPos - f4SliceEndpoints.xy), f2SliceDir) / max(fSliceLenSqr, 1e-8);
         fSamplePosOnLine = sqrt(saturate(fSamplePosOnLine));
         // Compute index of the slice on the line
         // Note that the first sample on the line (fSamplePosOnLine==0) is exactly the Entry Point, while

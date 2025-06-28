@@ -352,5 +352,30 @@ void debugOutput(inout vec4 outputColor) {
     outputColor.rgb = gammaCorrect(colors_LogLuv32ToSRGB(texture(usam_starmap, screenPos)));
     #endif
 
+    #ifdef SETTING_DEBUG_EPIPOLAR
+    {
+        vec2 ndcPos = screenPos * 2.0 - 1.0;
+        vec2 f2RayDir = normalize(ndcPos - uval_sunNdcPos);
+        vec4 f4Boundaries = getOutermostScreenPixelCoords();
+        vec4 f4HalfSpaceEquationTerms = (ndcPos.xxyy - f4Boundaries.xzyw) * f2RayDir.yyxx;
+        uvec4 b4HalfSpaceFlags = uvec4(lessThan(f4HalfSpaceEquationTerms.xyyx, f4HalfSpaceEquationTerms.zzww));
+        uvec4 b4SectorFlags = b4HalfSpaceFlags.wxyz & (1u - b4HalfSpaceFlags.xyzw);
+        vec4 f4DistToBoundaries = (f4Boundaries - uval_sunNdcPos.xyxy) / (f2RayDir.xyxy + vec4(lessThan(abs(f2RayDir.xyxy), vec4(1e-6))));
+        float fDistToExitBoundary = dot(vec4(b4SectorFlags), f4DistToBoundaries);
+        vec2 f2ExitPoint = uval_sunNdcPos + f2RayDir * fDistToExitBoundary;
+        vec4 f4EpipolarSlice = vec4(0.0, 0.25, 0.5, 0.75) +
+        saturate((f2ExitPoint.yxyx - f4Boundaries.wxyz) * vec4(-1.0, 1.0, 1.0, -1.0) / (f4Boundaries.wzwz - f4Boundaries.yxyx)) / 4.0;
+        float fEpipolarSlice = dot(vec4(b4SectorFlags), f4EpipolarSlice);
+        float fEpipolarSliceIndex = fEpipolarSlice * SETTING_EPIPOLAR_SLICES;
+        fEpipolarSliceIndex = fract(fEpipolarSliceIndex + 0.5);
+        float lineWidth = SETTING_EPIPOLAR_SLICES / min2(global_mainImageSize);
+        lineWidth *= 0.25;
+        lineWidth = saturate(lineWidth / distance(uval_sunNdcPos, ndcPos) * (1.0 + length(uval_sunNdcPos)));
+        float lineAlpha = smoothstep(0.5 - lineWidth, 0.5, fEpipolarSliceIndex);
+        lineAlpha *= smoothstep(0.5 + lineWidth, 0.5, fEpipolarSliceIndex);
+        outputColor.rgb = mix(outputColor.rgb, vec3(1.0, 0.5, 0.5), lineAlpha);
+    }
+    #endif
+
     endText(outputColor.rgb);
 }
