@@ -518,11 +518,12 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
             float worldsDiffRcpLen = fastRcpSqrtNR0(worldsDiffLenSq);
 
             const float DIR_MATCH_WEIGHT = exp2(SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT);
-            const float DIR_MATCH_FADE_START = pow2(SETTING_VBGI_PROBE_DIR_MATCH_FADE_START_DIST);
-            const float DIR_MATCH_FADE_END = pow2(SETTING_VBGI_PROBE_DIR_MATCH_FADE_END_DIST);
-            float dirMatch = pow(saturate(dot(worldPosDiff, sampleDirWorld) * worldsDiffRcpLen), exp2(SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT));
+            const float DIR_MATCH_FADE_START = pow2(SETTING_VBGI_PROBE_FADE_START_DIST);
+            const float DIR_MATCH_FADE_END = pow2(SETTING_VBGI_PROBE_FADE_END_DIST);
+            float dirMatch = pow(saturate(dot(worldPosDiff, sampleDirWorld) * worldsDiffRcpLen), DIR_MATCH_WEIGHT);
             float envProbeWeight = float(!probeIsSky);
             envProbeWeight *= smoothstep(DIR_MATCH_FADE_END, DIR_MATCH_FADE_START, worldsDiffLenSq);
+            envProbeWeight *= dirMatch;
 
             vec3 sampleRad = mix(skyRad, envRad, envProbeWeight);
 
