@@ -45,9 +45,11 @@ void main() {
         sliceSampleP = sliceSampleP * sliceSampleP;
 
         vec2 screenPos = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
-        screenPos = (round(screenPos * global_mainImageSize) + 0.5) * global_mainImageSizeRcp;
+        vec2 texelPos = screenPos * global_mainImageSize;
+        texelPos = clamp(texelPos, vec2(0.5), vec2(global_mainImageSize - 0.5));
+        screenPos = texelPos * global_mainImageSizeRcp;
 
-        viewZ = textureLod(usam_gbufferViewZ, screenPos, 0.0).r;
+        viewZ = texelFetch(usam_gbufferViewZ, ivec2(texelPos), 0).r;
         result = computeSingleScattering(screenPos, viewZ, noiseV.y);
     }
 
