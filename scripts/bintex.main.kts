@@ -1,4 +1,5 @@
 import java.awt.image.BufferedImage
+import java.awt.image.ComponentColorModel
 import java.awt.image.DataBuffer
 import java.nio.ByteBuffer
 import java.nio.ByteOrder
@@ -44,70 +45,78 @@ val inputFiles = args.asSequence()
     }
     .toList()
 
-val outputSize = dimensions.fold(1L) { acc, dim -> acc * dim } * channels
-
 fun BufferedImage.copyDataTo(buffer: ByteBuffer) {
-    fun BufferedImage.createDataArray(): Any {
-        val numBands = raster.numBands
-        return when (val dataType = raster.dataBuffer.dataType) {
-            DataBuffer.TYPE_BYTE -> ByteArray(numBands)
-            DataBuffer.TYPE_USHORT -> ShortArray(numBands)
-            DataBuffer.TYPE_INT -> IntArray(numBands)
-            DataBuffer.TYPE_FLOAT -> FloatArray(numBands)
-            DataBuffer.TYPE_DOUBLE -> DoubleArray(numBands)
-            else -> throw IllegalArgumentException("Unknown data buffer type: $dataType")
-        }
-    }
+    var dataArray: Any? = null
 
-    val data = createDataArray()
+    for (y in 0..<height) {
+        for (x in 0..<width) {
+            dataArray = raster.getDataElements(x, y, dataArray)
 
-    when (channels) {
-        1 -> {
-            for (y in 0..<height) {
-                for (x in 0..<width) {
-                    val dataElement = raster.getDataElements(x, y, data)
-                    buffer.put(colorModel.getRed(dataElement).toByte())
+            if (colorModel is ComponentColorModel) {
+                when (dataArray) {
+                    is ByteArray -> {
+                        buffer.put(dataArray, 0, channels)
+                    }
+                    is ShortArray -> {
+                        for (i in 0..<channels) {
+                            buffer.putShort(dataArray[i])
+                        }
+                    }
+                    is IntArray -> {
+                        for (i in 0..<channels) {
+                            buffer.putInt(dataArray[i])
+                        }
+                    }
+                    is FloatArray -> {
+                        for (i in 0..<channels) {
+                            buffer.putFloat(dataArray[i])
+                        }
+                    }
+                    is DoubleArray -> {
+                        for (i in 0..<channels) {
+                            buffer.putDouble(dataArray[i])
+                        }
+                    }
+                    else -> {
+                        throw IllegalArgumentException("Unsupported data array type: ${dataArray?.javaClass?.name}")
+                    }
                 }
-            }
-        }
-        2 -> {
-            for (y in 0..<height) {
-                for (x in 0..<width) {
-                    val dataElement = raster.getDataElements(x, y, data)
-                    buffer.put(colorModel.getRed(dataElement).toByte())
-                    buffer.put(colorModel.getGreen(dataElement).toByte())
-                }
-            }
-        }
-        3 -> {
-            for (y in 0..<height) {
-                for (x in 0..<width) {
-                    val dataElement = raster.getDataElements(x, y, data)
-                    buffer.put(colorModel.getRed(dataElement).toByte())
-                    buffer.put(colorModel.getGreen(dataElement).toByte())
-                    buffer.put(colorModel.getBlue(dataElement).toByte())
-                }
-            }
-        }
-        4 -> {
-            for (y in 0..<height) {
-                for (x in 0..<width) {
-                    val dataElement = raster.getDataElements(x, y, data)
-                    buffer.put(colorModel.getRed(dataElement).toByte())
-                    buffer.put(colorModel.getGreen(dataElement).toByte())
-                    buffer.put(colorModel.getBlue(dataElement).toByte())
-                    buffer.put(colorModel.getAlpha(dataElement).toByte())
+            } else {
+                when (channels) {
+                    1 -> {
+                        buffer.put(colorModel.getRed(dataArray).toByte())
+                    }
+                    2 -> {
+                        buffer.put(colorModel.getRed(dataArray).toByte())
+                        buffer.put(colorModel.getGreen(dataArray).toByte())
+                    }
+                    3 -> {
+                        buffer.put(colorModel.getRed(dataArray).toByte())
+                        buffer.put(colorModel.getGreen(dataArray).toByte())
+                        buffer.put(colorModel.getBlue(dataArray).toByte())
+                    }
+                    4 -> {
+                        buffer.put(colorModel.getRed(dataArray).toByte())
+                        buffer.put(colorModel.getGreen(dataArray).toByte())
+                        buffer.put(colorModel.getBlue(dataArray).toByte())
+                        buffer.put(colorModel.getAlpha(dataArray).toByte())
+                    }
                 }
             }
         }
     }
 }
 
+val colorModel = ImageIO.read(inputFiles.first().toFile()).colorModel!!
+val pixelSizeByte = colorModel.pixelSize / colorModel.numComponents / 8
+val outputSize = dimensions.fold(1L) { acc, dim -> acc * dim } * channels * pixelSizeByte
+
 FileChannel.open(
     outputFile,
     StandardOpenOption.CREATE,
     StandardOpenOption.READ,
-    StandardOpenOption.WRITE
+    StandardOpenOption.WRITE,
+    StandardOpenOption.TRUNCATE_EXISTING
 ).use { outputChannel ->
     val mapped = outputChannel.map(FileChannel.MapMode.READ_WRITE, 0L, outputSize)
         .order(ByteOrder.nativeOrder())

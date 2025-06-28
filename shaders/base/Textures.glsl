@@ -144,6 +144,7 @@ uniform usampler2D usam_envProbe;
 
 // -------------------------------------------------- Custom Textures --------------------------------------------------
 uniform sampler2D noisetex;
+uniform sampler3D usam_blueNoise3D;
 uniform sampler3D usam_stbnVec1;
 uniform sampler3D usam_stbnUnitVec2;
 uniform sampler3D usam_stbnVec2;
