@@ -59,31 +59,30 @@ float searchBlocker(vec3 shadowTexCoord) {
     return abs(rtwsm_linearDepth(blockerDepth) - rtwsm_linearDepth(shadowTexCoord.z));
 }
 
-vec3 calcShadow(Material material, bool isHand) {
+vec3 calcShadow(Material material) {
     float sssFactor = material.sss;
     uint skipFlag = uint(dot(gData.normal, uval_upDirView) < -0.99);
     skipFlag &= uint(sssFactor < 0.001);
     if (bool(skipFlag)) {
-        return vec3(1.0);
+        return vec3(0.0);
     }
 
-    float cosLightTheta = dot(uval_shadowLightDirView, gData.normal);
+    float cosLightTheta = dot(uval_shadowLightDirView, gData.geometryNormal);
     float sideFacingFactor = 1.0 - abs(cosLightTheta);
 
     vec3 offsetViewPos = viewPos;
-    offsetViewPos += gData.geometryNormal * mix(0.0, 0.02, sideFacingFactor);
+    offsetViewPos += gData.geometryNormal * mix(0.01, 0.03, sideFacingFactor);
     vec4 scenePos = gbufferModelViewInverse * vec4(offsetViewPos, 1.0);
-
-    vec4 shadowTexCoordCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * scenePos;
-    shadowTexCoordCS /= shadowTexCoordCS.w;
-
-    vec3 shadowTexCoord = shadowTexCoordCS.xyz * 0.5 + 0.5;
-    float blockerDistance = searchBlocker(shadowTexCoord);
+    vec4 shadowViewPos = global_shadowRotationMatrix * global_shadowView * scenePos;
+    vec4 shadowClipPos = global_shadowProjPrev * shadowViewPos;
+    vec3 shadowNDCPos = shadowClipPos.xyz / shadowClipPos.w;
+    vec3 shadowScreenPos = shadowNDCPos * 0.5 + 0.5;
+    float blockerDistance = searchBlocker(shadowScreenPos);
 
     float ssRange = 0.0;
     #if SETTING_PCSS_BPF > 0
     ssRange += exp2(SETTING_PCSS_BPF - 10.0);
-    ssRange = mix(ssRange, ssRange + 0.05, isHand);
+    ssRange = mix(ssRange, ssRange + 0.05, gData.isHand);
     #endif
     ssRange += SUN_ANGULAR_RADIUS * 2.0 * SETTING_PCSS_VPF * blockerDistance;
     ssRange = saturate(ssRange);
@@ -97,7 +96,7 @@ vec3 calcShadow(Material material, bool isHand) {
     float sqrtJitterR = sqrt(jitterR);
     float r = sqrtJitterR * ssRange;
 
-    vec3 sampleTexCoord = shadowTexCoord;
+    vec3 sampleTexCoord = shadowScreenPos;
 
     sampleTexCoord.xy += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
 
@@ -105,19 +104,25 @@ vec3 calcShadow(Material material, bool isHand) {
     sampleTexCoord.xy = rtwsm_warpTexCoordTexelSize(usam_rtwsm_imap, sampleTexCoord.xy, texelSize);
 
     float sampleShadowDepthOffset = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0).x;
-    sampleTexCoord.z -= sampleShadowDepthOffset;
+    sampleTexCoord.z -= max(sampleShadowDepthOffset, 0.0);
 
     vec3 worldGeometryNormal = mat3(gbufferModelViewInverse) * gData.geometryNormal;
-    vec3 shadowNormal = rtwsm_sampleShadowColor(shadowcolor1, sampleTexCoord.xy, 0.0).xyz;
-    float confidence = saturate(dot(worldGeometryNormal, shadowNormal));
+    vec3 sampleNormal = rtwsm_sampleShadowColor(shadowcolor1, sampleTexCoord.xy, 0.0).xyz;
+    float shadowNormalCos = dot(worldGeometryNormal, sampleNormal);
+    float confidance = pow2(shadowNormalCos * 0.5 + 0.5);
+    confidance = subgroupClusteredMax(confidance, 16);
 
     float depthBiasFactor = 2.0;
-    depthBiasFactor += sideFacingFactor * 8.0;
-    depthBiasFactor *= confidence;
+    depthBiasFactor += (1.0 - pow2(1.0 - sideFacingFactor)) * 8.0;
+    depthBiasFactor *= confidance;
+    float depthBiasConstant = 0.02;
+    depthBiasConstant += sideFacingFactor * 0.03;
+    depthBiasConstant *= pow2(confidance);
     float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / min(texelSize.x, texelSize.y);
     sampleTexCoord.z = rtwsm_linearDepth(sampleTexCoord.z);
     sampleTexCoord.z -= jitterR * min(sssFactor * SETTING_SSS_DEPTH_RANGE, SETTING_SSS_MAX_DEPTH_RANGE);
     sampleTexCoord.z -= depthBias;
+    sampleTexCoord.z -= depthBiasConstant;
     sampleTexCoord.z = rtwsm_linearDepthInverse(sampleTexCoord.z);
 
     float sampleShadow0 = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
@@ -136,7 +141,7 @@ vec4 compShadow(ivec2 texelPos, float viewZ) {
     Material material = material_decode(gData);
     viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     viewDir = normalize(-viewPos);
-    return vec4(calcShadow(material, gData.isHand), 1.0);
+    return vec4(calcShadow(material), 1.0);
 }
 
 void main() {
