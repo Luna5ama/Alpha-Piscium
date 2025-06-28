@@ -84,6 +84,18 @@ vec3 atmosphere_viewToAtm(AtmosphereParameters atmosphere, vec3 viewPos) {
     return vec3(feetPlayer.x, 0.0, feetPlayer.z) * (1.0 / float(SETTING_ATM_D_SCALE)) + vec3(0.0, height, 0.0);
 }
 
+float atmosphere_heightNoClamping(AtmosphereParameters atmosphere, vec3 worldPos) {
+    float worldHeight = worldPos.y - 62.0;
+    return worldHeight * (1.0 / float(SETTING_ATM_ALT_SCALE)) + atmosphere.bottom;
+}
+
+vec3 atmosphere_viewToAtmNoClamping(AtmosphereParameters atmosphere, vec3 viewPos) {
+    vec3 feetPlayer = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+    vec3 world = feetPlayer + cameraPosition;
+    float height = atmosphere_heightNoClamping(atmosphere, world);
+    return vec3(feetPlayer.x, 0.0, feetPlayer.z) * (1.0 / float(SETTING_ATM_D_SCALE)) + vec3(0.0, height, 0.0);
+}
+
 struct ScatteringResult {
     vec3 transmittance;
     vec3 inScattering;

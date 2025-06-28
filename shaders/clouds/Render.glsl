@@ -25,7 +25,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
     CloudMainRayParams mainRayParams;
-    mainRayParams.rayStart = atmosphere_viewToAtm(atmosphere, originView);
+    mainRayParams.rayStart = atmosphere_viewToAtmNoClamping(atmosphere, originView);
     const vec3 earthCenter = vec3(0.0);
 
     {
@@ -40,7 +40,8 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                 mainRayParams.rayStart += rayDir * (tTop + 0.001);
             }
 
-            float tBottom = raySphereIntersectNearest(mainRayParams.rayStart, rayDir, earthCenter, atmosphere.bottom);
+            float clampedBottom = min(atmosphere.bottom, length(mainRayParams.rayStart) - 0.001);
+            float tBottom = raySphereIntersectNearest(mainRayParams.rayStart, rayDir, earthCenter, clampedBottom);
             float tTop = raySphereIntersectNearest(mainRayParams.rayStart, rayDir, earthCenter, atmosphere.top);
             float rayLen = 0.0;
 
