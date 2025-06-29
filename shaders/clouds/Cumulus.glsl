@@ -1,4 +1,5 @@
 #include "Common.glsl"
+#include "/util/AxisAngle.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Mat2.glsl"
 #include "/util/noise/ValueNoise.glsl"
@@ -6,98 +7,111 @@
 
 const float _CU_DENSITY_EPSILON = 0.0001;
 
+float _clouds_cu_heightCurve1(vec4 xs) {
+    // https://www.desmos.com/calculator/2c5574fcdc
+    const float a0 = 0.477365819688;
+//    const float a1 = 5.24645878304;
+//    const float a2 = -17.5442672791;
+//    const float a3 = 21.3254889271;
+//    const float a4 = -9.55952308113;
+
+    const vec4 as = vec4(5.24645878304, -17.5442672791, 21.3254889271, -9.55952308113);
+    return saturate(dot(as, xs) + a0);
+}
+
+
+float _clouds_cu_heightCurve2(vec4 xs) {
+    // https://www.desmos.com/calculator/2c5574fcdc
+    const float a0 = 0.615;
+//    const float a1 = -2.4;
+//    const float a2 = 2.9;
+    const vec2 as = vec2(-3.2, 2.8);
+    return saturate(dot(as, xs.xy) + a0);
+}
 bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) {
+    mat2 rotation2D = mat2_rotate(GOLDEN_ANGLE);
+    AxisAngle rotation3D = AxisAngle_init(normalize(vec3(1.0, -1.0, 1.0)), GOLDEN_ANGLE);
+    const float CUMULUS_FACTOR = SETTING_CLOUDS_CU_WEIGHT;
 
-    densityOut = 0.0;
-    //    FBMParameters earthParams;
-    //    earthParams.frequency = 0.008;
-    //    earthParams.persistence = 0.8;
-    //    earthParams.lacunarity = 3.0;
-    //    earthParams.octaveCount = 2u;
-    //    float earthCoverage = ValueNoise_2D_value_fbm(earthParams, rayPos.xz + vec2(120.0, -350.0));
-    //    earthCoverage = pow2(linearStep(0.0, 0.6, earthCoverage));
-    float earthCoverage = 1.0;
+    FBMParameters baseCoverageParams;
+    baseCoverageParams.frequency = 0.03;
+    baseCoverageParams.persistence = 0.8;
+    baseCoverageParams.lacunarity = 2.5;
+    baseCoverageParams.octaveCount = 2u;
+    vec2 baseCoveragePos = rayPos.xz;
+    baseCoveragePos += vec2(-10.0, 12.0);
+    float baseCoverage = GradientNoise_2D_value_fbm(baseCoverageParams, rotation2D, baseCoveragePos);
+    const float BASE_COVERAGE_BIAS = -SETTING_CLOUDS_CI_COVERAGE;
+    const float BASE_COVERAGE_RANGE = 0.8;
+    baseCoverage = linearStep(BASE_COVERAGE_BIAS - BASE_COVERAGE_RANGE, BASE_COVERAGE_BIAS + BASE_COVERAGE_RANGE, baseCoverage);
+    baseCoverage = pow4(baseCoverage);
+    densityOut = baseCoverage;
 
-    FBMParameters shapeParams;
-    shapeParams.frequency = 0.05;
-    shapeParams.persistence = -1.2;
-    shapeParams.lacunarity = 2.6;
-    shapeParams.octaveCount = 4u;
+    FBMParameters coverageParams;
+    coverageParams.frequency = 0.4;
+    coverageParams.persistence = -1.0;
+    coverageParams.lacunarity = 1.2;
+    coverageParams.octaveCount = 4u;
     mat2 rotationMatrix = mat2_rotate(GOLDEN_ANGLE);
     vec3 coveragePos = rayPos;
-    coveragePos.y -= 1.0;
-    float coverage = GradientNoise_3D_value_fbm(shapeParams, coveragePos);
-    const float CUMULUS_FACTOR = SETTING_CLOUDS_CU_WEIGHT;
-    const float _CU_COVERAGE_FACTOR = 1.0 - (pow(SETTING_CLOUDS_CU_COVERAGE, 0.4 + CUMULUS_FACTOR * 1.0));
+    float coverage = GradientNoise_3D_value_blue_fbm(coverageParams, rotation3D, coveragePos);
+    const float _CU_COVERAGE_FACTOR = 1.0 - SETTING_CLOUDS_CU_COVERAGE - (1.0 - CUMULUS_FACTOR) * 0.3;
     const float SIGMOID_K = mix(0.5, 8.0, pow2(CUMULUS_FACTOR));
     coverage = rcp(1.0 + exp2(-coverage * SIGMOID_K)); // Sigmoid
     coverage = linearStep(_CU_COVERAGE_FACTOR, 1.0, coverage);
-    coverage = pow2(coverage);
-
-    // Make the top small
-    // https://www.desmos.com/calculator/2c5574fcdc
-    const float a0 = 0.477365819688;
-    const float a1 = 5.24645878304;
-    const float a2 = -17.5442672791;
-    const float a3 = 21.3254889271;
-    const float a4 = -9.55952308113;
 
     float x1 = heightFraction;
     float x2 = heightFraction * heightFraction;
     float x3 = heightFraction * x2;
     float x4 = heightFraction * x3;
-
     vec4 xs = vec4(x1, x2, x3, x4);
-    const vec4 as = vec4(a1, a2, a3, a4);
-    float heightCurve = saturate(dot(as, xs) + a0);
+    float heightCurve = _clouds_cu_heightCurve1(xs);
 
-    float base = coverage;
-    base = saturate(base + heightCurve - 1.0);
+    densityOut *= coverage;
+    densityOut = saturate(densityOut + heightCurve - 1.0);
 
-    if (base > _CU_DENSITY_EPSILON) {;
-        FBMParameters curlParams;
-        curlParams.frequency = 0.2;
-        curlParams.persistence = -0.8;
-        curlParams.lacunarity = 2.6;
-        curlParams.octaveCount = 2u;
-        vec2 curl2D = GradientNoise_2D_grad_fbm(curlParams, rotationMatrix, rayPos.xz);
-        vec3 curl = vec3(curl2D.x, 0.0, curl2D.y);
-        curl *= 0.5 + 0.5 * heightFraction;
-
+    if (densityOut > _CU_DENSITY_EPSILON) {
         #ifndef SETTING_SCREENSHOT_MODE
         rayPos += uval_cuDetailWind;
         #endif
 
-        densityOut = base;
+        FBMParameters curlParams;
+        curlParams.frequency = 0.2;
+        curlParams.persistence = -0.8;
+        curlParams.lacunarity = 1.2;
+        curlParams.octaveCount = 2u;
+        vec3 curl = GradientNoise_3D_grad_fbm(curlParams, rotation3D, rayPos);
+        curl *= 0.5 + 0.5 * heightFraction;
 
         // Carve out basic cloud shape
         FBMParameters densityParams;
-        densityParams.frequency = 1.9;
+        densityParams.frequency = 1.6;
         densityParams.persistence = -0.65;
-        densityParams.lacunarity = 2.2;
+        densityParams.lacunarity = 2.8;
         densityParams.octaveCount = 2u;
-        float detail1 = GradientNoise_3D_value_fbm(densityParams, rayPos + curl * 0.4) * 3.0;
-        detail1 = smoothstep(-1.0, 1.0, detail1);
-        detail1 *= mix(0.4, 0.7, heightFraction);
-        detail1 *= CUMULUS_FACTOR * 0.95 + 0.05;
+        float detail1 = GradientNoise_3D_value_fbm(densityParams, rotation3D, rayPos + curl * 0.3);
+        float detail1SigmoidK = mix(12.0, 32.0, _clouds_cu_heightCurve2(xs));
+        detail1SigmoidK *= CUMULUS_FACTOR * 0.9 + 0.1;
+        detail1 = rcp(1.0 + exp2(-detail1 * detail1SigmoidK)); // Controls carve out hardness
+        detail1 *= mix(0.4, 0.6, heightFraction); // Controls how much to carve out
         densityOut = linearStep(saturate(detail1), 1.0, densityOut);
 
         if (densityOut > _CU_DENSITY_EPSILON) {
             // Add some high frequency detail to edges
             FBMParameters valueNoiseParams;
-            valueNoiseParams.frequency = 5.9;
+            valueNoiseParams.frequency = 4.9;
             valueNoiseParams.persistence = 0.7;
-            valueNoiseParams.lacunarity = 3.1;
+            valueNoiseParams.lacunarity = 2.1;
             valueNoiseParams.octaveCount = 2u;
-            float detail2 = GradientNoise_3D_value_fbm(valueNoiseParams, rayPos + curl * -0.5) * 2.0;
+            float detail2 = GradientNoise_3D_value_fbm(valueNoiseParams, rotation3D, rayPos + curl * -0.2) * 2.0;
             detail2 = mix(saturate(detail2 * 0.5 + 0.5), abs(detail2), heightFraction * 0.6);
             detail2 = pow2(detail2);
-            detail2 *= mix(0.3, 1.0, heightFraction);
-            detail2 *= CUMULUS_FACTOR * 0.95 + 0.05;
-            densityOut = linearStep(detail2, 1.0, densityOut);
+            detail2 *= mix(0.3, 0.6, heightFraction);
+            detail2 *= CUMULUS_FACTOR * 0.9 + 0.1;
+            densityOut = linearStep(saturate(detail2), 1.0, densityOut);
 
-            densityOut *= pow2(1.0 - heightFraction);
-            densityOut *= (1.0 - pow2(1.0 - CUMULUS_FACTOR)) * 0.6 + 0.4;
+            densityOut *= 1.0 - pow2(heightFraction);
+            densityOut *= (1.0 - pow2(1.0 - CUMULUS_FACTOR)) * 0.5 + 0.5;
 
             if (densityOut > _CU_DENSITY_EPSILON) {
                 return true;
@@ -105,5 +119,6 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
         }
     }
 
+    densityOut = 0.0;
     return false;
 }
