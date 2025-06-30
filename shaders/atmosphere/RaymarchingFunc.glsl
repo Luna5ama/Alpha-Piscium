@@ -66,7 +66,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
         #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 0 || ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
         vec3 samplePos = params.rayStart + (stepIndexF + stepJitter) * rayStepDelta;
         #else
-        vec3 samplePos = params.rayStart + stepIndexF * rayStepDelta;
+        vec3 samplePos = params.rayStart + (stepIndexF + 0.5) * rayStepDelta;
         #endif
         float sampleHeight = length(samplePos);
 
