@@ -241,7 +241,8 @@ vec3 GradientNoise_2D_valueGrad_fbm(FBMParameters params, mat2 rotationMatrix, v
 
 // -------------------------------------------------- Value Noise 3D --------------------------------------------------
 vec3 _GradientNoise_3D_hash(uvec3 x) {
-    return hash_uintToFloat(hash_33_q2(x)) * 2.0 - 1.0;
+//    return hash_uintToFloat(hash_33_q2(x)) * 2.0 - 1.0;
+    return noisetex_whiteNoise3D(ivec3(x)).xyz * 2.0 - 1.0;
 }
 
 vec3 _GradientNoise_3D_hash_blue(uvec3 x) {

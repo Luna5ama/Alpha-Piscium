@@ -1088,7 +1088,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                     empty()
-                    slider("SETTING_CLOUDS_CU_WEIGHT", 0.8, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_CU_WEIGHT", 0.75, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Cumulus Weight"
                         }
@@ -1111,7 +1111,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             suffix = " x"
                         }
                     }
-                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.4, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.25, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Cumulus Coverage"
                         }

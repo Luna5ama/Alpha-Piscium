@@ -34,7 +34,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
     const float CUMULUS_FACTOR = SETTING_CLOUDS_CU_WEIGHT;
 
     FBMParameters baseCoverageParams;
-    baseCoverageParams.frequency = 0.03;
+    baseCoverageParams.frequency = 0.04;
     baseCoverageParams.persistence = 0.8;
     baseCoverageParams.lacunarity = 2.5;
     baseCoverageParams.octaveCount = 2u;
@@ -48,13 +48,13 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
     densityOut = baseCoverage;
 
     FBMParameters coverageParams;
-    coverageParams.frequency = 0.4;
-    coverageParams.persistence = -1.0;
-    coverageParams.lacunarity = 1.2;
+    coverageParams.frequency = 0.5;
+    coverageParams.persistence = -0.5;
+    coverageParams.lacunarity = -1.1;
     coverageParams.octaveCount = 4u;
-    mat2 rotationMatrix = mat2_rotate(GOLDEN_ANGLE);
     vec3 coveragePos = rayPos;
-    float coverage = GradientNoise_3D_value_blue_fbm(coverageParams, rotation3D, coveragePos);
+    coveragePos.y *= 0.5;
+    float coverage = GradientNoise_3D_value_fbm(coverageParams, rotation3D, coveragePos) * 2.0;
     const float _CU_COVERAGE_FACTOR = 1.0 - SETTING_CLOUDS_CU_COVERAGE - (1.0 - CUMULUS_FACTOR) * 0.3;
     const float SIGMOID_K = mix(0.5, 8.0, pow2(CUMULUS_FACTOR));
     coverage = rcp(1.0 + exp2(-coverage * SIGMOID_K)); // Sigmoid
@@ -72,7 +72,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
 
     if (densityOut > _CU_DENSITY_EPSILON) {
         #ifndef SETTING_SCREENSHOT_MODE
-        rayPos += uval_cuDetailWind;
+//        rayPos += uval_cuDetailWind;
         #endif
 
         FBMParameters curlParams;
@@ -93,7 +93,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
         float detail1SigmoidK = mix(12.0, 32.0, _clouds_cu_heightCurve2(xs));
         detail1SigmoidK *= CUMULUS_FACTOR * 0.9 + 0.1;
         detail1 = rcp(1.0 + exp2(-detail1 * detail1SigmoidK)); // Controls carve out hardness
-        detail1 *= mix(0.4, 0.6, heightFraction); // Controls how much to carve out
+        detail1 *= mix(0.2, 0.7, heightFraction); // Controls how much to carve out
         densityOut = linearStep(saturate(detail1), 1.0, densityOut);
 
         if (densityOut > _CU_DENSITY_EPSILON) {
@@ -101,7 +101,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
             FBMParameters valueNoiseParams;
             valueNoiseParams.frequency = 4.9;
             valueNoiseParams.persistence = 0.7;
-            valueNoiseParams.lacunarity = 2.1;
+            valueNoiseParams.lacunarity = 2.9;
             valueNoiseParams.octaveCount = 2u;
             float detail2 = GradientNoise_3D_value_fbm(valueNoiseParams, rotation3D, rayPos + curl * -0.2) * 2.0;
             detail2 = mix(saturate(detail2 * 0.5 + 0.5), abs(detail2), heightFraction * 0.6);
