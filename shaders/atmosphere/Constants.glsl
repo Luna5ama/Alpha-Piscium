@@ -132,7 +132,7 @@ AtmosphereParameters getAtmosphereParameters() {
     const vec3 MIE_ABOSORPTION = MIE_SCATTERING_BASE * SETTING_ATM_MIE_ABS_MUL;
 
     const float MIE_PHASE_G = 0.7034;
-    const float MIE_PHASE_E = 500.0; // For Klein-Nishina phase function
+    const float MIE_PHASE_E = 2500.0; // For Klein-Nishina phase function
 
     // https://www.desmos.com/calculator/fumphpur14
     // cm to km conversion

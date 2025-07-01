@@ -26,7 +26,7 @@ float atmosphere_sample_shadow(vec3 shadowPos) {
 
 const vec3 ORIGIN_VIEW = vec3(0.0);
 
-ScatteringResult computeSingleScattering(vec2 screenPos, float viewZ, float noiseV) {
+ScatteringResult raymarchScreenViewAtmosphere(vec2 screenPos, float viewZ, float noiseV) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     ScatteringResult result = scatteringResult_init();
 
@@ -50,11 +50,22 @@ ScatteringResult computeSingleScattering(vec2 screenPos, float viewZ, float nois
     if (viewZ == -65536.0) {
         scatteringParams.multiSctrFactor = 1.0;
 
-        params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
         params.steps = SETTING_SKY_SAMPLES;
 
-        if (setupRayEnd(atmosphere, params, rayDir)) {
-            result = raymarchSky(atmosphere, params, scatteringParams);
+        if (setupRayEnd(atmosphere, params, rayDir, shadowDistance / SETTING_ATM_D_SCALE)) {
+            vec4 originScene = gbufferModelViewInverse * vec4(ORIGIN_VIEW, 1.0);
+            vec4 endScene = vec4(originScene.xyz + rayDir * shadowDistance, 1.0);
+
+            vec4 originShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * originScene;
+            vec4 endShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * endScene;
+
+            vec3 startShadow = originShadowCS.xyz / originShadowCS.w;
+            startShadow = startShadow * 0.5 + 0.5;
+            vec3 endShadow = endShadowCS.xyz / endShadowCS.w;
+            endShadow = endShadow * 0.5 + 0.5;
+
+            params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
+            result = raymarchAerialPerspective(atmosphere, params, scatteringParams, startShadow, endShadow, noiseV);
         }
     } else {
         params.rayEnd = atmosphere_viewToAtm(atmosphere, viewPos);

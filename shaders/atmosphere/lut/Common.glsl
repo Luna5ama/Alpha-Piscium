@@ -15,6 +15,11 @@
 #include "../Constants.glsl"
 #include "/util/Math.glsl"
 
+#define SKYVIEW_LUT_WIDTH (SETTING_SKYVIEW_RES / 2)
+#define SKYVIEW_LUT_HEIGHT SETTING_SKYVIEW_RES
+#define SKYVIEW_LUT_SIZE ivec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
+#define SKYVIEW_LUT_SIZE_F vec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
+
 // [HIL20] https://github.com/sebh/UnrealEngineSkyAtmosphere/blob/master/Resources/RenderSkyCommon.hlsl
 // Transmittance LUT function parameterisation from Bruneton 2017 https://github.com/ebruneton/precomputed_atmospheric_scattering
 // uv in [0,1]
@@ -79,6 +84,73 @@ vec3 sampleMultiSctrLUT(AtmosphereParameters atmosphere, float cosLightZenith, f
     uv = fromUnitToSubUvs(uv, vec2(MULTI_SCTR_LUT_SIZE));
     // Hacky twilight multiple scattering fix
     return texture(usam_multiSctrLUT, uv).rgb * pow6(linearStep(-0.2, 0.0, cosLightZenith));
+}
+
+void uvToSkyViewLutParams(
+    AtmosphereParameters atmosphere,
+    out float viewZenithCosAngle,
+    out float lightViewCosAngle,
+    in float viewHeight,
+    in vec2 uv
+) {
+    uv.y = 1.0 - uv.y;
+    uv = vec2(fromSubUvsToUnit(uv.x, SKYVIEW_LUT_WIDTH), fromSubUvsToUnit(uv.y, SKYVIEW_LUT_HEIGHT));
+
+    float vHorizon = sqrt(pow2(viewHeight) - pow2(atmosphere.bottom));
+    float cosBeta = vHorizon / viewHeight;  // GroundToHorizonCos
+    float beta = acos(cosBeta);
+    float zenithHorizonAngle = PI - beta;
+
+    if (uv.y < 0.5) {
+        float coord = 2.0 * uv.y;
+        coord = 1.0 - coord;
+        coord *= coord; // Non linear sky view LUT
+        coord = 1.0 - coord;
+        viewZenithCosAngle = cos(zenithHorizonAngle * coord);
+    } else {
+        float coord = uv.y * 2.0 - 1.0;
+        coord *= coord; // Non linear sky view LUT
+        viewZenithCosAngle = cos(zenithHorizonAngle + beta * coord);
+    }
+
+    float coord = uv.x;
+    coord *= coord;
+    lightViewCosAngle = -(coord * 2.0 - 1.0);
+}
+
+void skyViewLutParamsToUv(
+    in AtmosphereParameters atmosphere,
+    in bool intersectGround,
+    in float viewZenithCosAngle,
+    in float lightViewCosAngle,
+    in float viewHeight,
+    out vec2 uv
+) {
+    float Vhorizon = sqrt(viewHeight * viewHeight - atmosphere.bottom * atmosphere.bottom);
+    float CosBeta = Vhorizon / viewHeight;  // GroundToHorizonCos
+    float Beta = acos(CosBeta);
+    float ZenithHorizonAngle = PI - Beta;
+
+    if (!intersectGround) {
+        float coord = acos(viewZenithCosAngle) / ZenithHorizonAngle;
+        coord = 1.0 - coord;
+        coord = sqrt(coord);    // Non linear sky view LUT
+        coord = 1.0 - coord;
+        uv.y = coord * 0.5;
+    } else {
+        float coord = (acos(viewZenithCosAngle) - ZenithHorizonAngle) / Beta;
+        coord = sqrt(coord);    // Non linear sky view LUT
+        uv.y = coord * 0.5 + 0.5;
+    }
+
+    {
+        float coord = -lightViewCosAngle * 0.5 + 0.5;
+        coord = sqrt(coord);
+        uv.x = coord;
+    }
+
+    uv = vec2(fromUnitToSubUvs(uv.x, SKYVIEW_LUT_WIDTH), fromUnitToSubUvs(uv.y, SKYVIEW_LUT_HEIGHT));
+    uv.y = 1.0 - uv.y;
 }
 
 #endif

@@ -14,7 +14,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const ivec3 workGroups = ivec3(8, 8, 1);
 
 #define ATMOSPHERE_RAYMARCHING_SKY a
-#include "Raymarching.glsl"
+#include "../Raymarching.glsl"
 
 layout(rgba16f) restrict uniform image2D uimg_skyLUT;
 
@@ -30,7 +30,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
 
     RaymarchParameters params = raymarchParameters_init();
     params.rayStart = atmosphere_viewToAtm(atmosphere, originView);
-    params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 0.5);
+    params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 1.0);
     params.steps = SETTING_SKY_SAMPLES;
 
     LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, uval_sunDirWorld, rayDir);

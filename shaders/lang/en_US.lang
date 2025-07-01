@@ -156,6 +156,7 @@ option.SETTING_ATM_MIE_SCT_MUL=Mie Scattering Multiplier
 option.SETTING_ATM_MIE_ABS_MUL=Mie Absorption Multiplier
 option.SETTING_ATM_RAY_SCT_MUL=Rayleigh Scattering Multiplier
 option.SETTING_ATM_OZO_ABS_MUL=Ozone Absorption Multiplier
+option.SETTING_SKYVIEW_RES=Sky View Resolution
 option.SETTING_EPIPOLAR_SLICES=Epipolar Slices
 option.SETTING_SLICE_SAMPLES=Slice Samples
 option.SETTING_DEPTH_BREAK_CORRECTION=Depth Break Correction

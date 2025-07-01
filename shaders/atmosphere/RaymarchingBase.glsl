@@ -29,7 +29,7 @@ RaymarchParameters raymarchParameters_init() {
     return params;
 }
 
-bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir) {
+bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir, float maxRayLen) {
     const vec3 earthCenter = vec3(0.0);
     float rayStartHeight = length(params.rayStart);
 
@@ -60,9 +60,13 @@ bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters param
         }
     }
 
-    params.rayEnd = params.rayStart + rayDir * rayLen;
+    params.rayEnd = params.rayStart + rayDir * min(rayLen, maxRayLen);
 
     return true;
+}
+
+bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir) {
+    return setupRayEnd(atmosphere, params, rayDir, FLT_MAX);
 }
 
 struct LightParameters {
