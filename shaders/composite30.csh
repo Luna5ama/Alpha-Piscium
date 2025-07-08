@@ -3,6 +3,7 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/atmosphere/UnwarpEpipolar.glsl"
+#include "/atmosphere/UnwarpSkyViewLUT.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
@@ -11,12 +12,16 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-
-
 layout(rgba16f) restrict uniform image2D uimg_main;
 
 void applyAtmosphere(vec2 screenPos, vec3 viewPos, float viewZ, inout vec4 outputColor) {
     ScatteringResult sctrResult;
+
+    if (viewZ == -65536.0f) {
+        ScatteringResult skyView = unwarpSkyView(screenPos, viewPos, viewZ);
+        outputColor.rgb *= skyView.transmittance;
+        outputColor.rgb += skyView.inScattering;
+    }
 
     #ifndef SETTING_DEPTH_BREAK_CORRECTION
     unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
