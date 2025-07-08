@@ -50,7 +50,7 @@ void main() {
         screenPos = texelPos * global_mainImageSizeRcp;
 
         viewZ = texelFetch(usam_gbufferViewZ, ivec2(texelPos), 0).r;
-        result = computeSingleScattering(screenPos, viewZ, noiseV.y);
+        result = computeSingleScattering(screenPos, viewZ, noiseV.y, shadowDistance);
     }
 
     uvec4 outputData;
