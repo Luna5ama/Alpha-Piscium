@@ -129,11 +129,12 @@ void processData1() {
     #else
     vec3 bitangent = cross(frag_viewTangent, frag_viewNormal);
     mat3 tbn = mat3(frag_viewTangent, bitangent, frag_viewNormal);
-    vec3 tagentNormal;
-    tagentNormal.xy = normalSample.rg * 2.0 - 1.0;
-    tagentNormal.z = sqrt(saturate(1.0 - dot(tagentNormal.xy, tagentNormal.xy)));
-    vec3 mappedNormal = normalize(tbn * tagentNormal);
-    gData.normal = normalize(mix(frag_viewNormal, mappedNormal, SETTING_NORMAL_MAPPING_STRENGTH));
+    vec3 tangentNormal;
+    tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
+    tangentNormal.z = sqrt(saturate(1.0 - dot(tangentNormal.xy, tangentNormal.xy)));
+    tangentNormal.xy *= exp2(SETTING_NORMAL_MAPPING_STRENGTH);
+    tangentNormal = normalize(tangentNormal);
+    gData.normal = normalize(tbn * tangentNormal);
     #endif
 
     #else

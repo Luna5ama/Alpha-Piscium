@@ -564,7 +564,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Normal Mapping"
                     }
                 }
-                slider("SETTING_NORMAL_MAPPING_STRENGTH", 0.5, 0.0..1.0 step 0.01) {
+                slider("SETTING_NORMAL_MAPPING_STRENGTH", -1.0, -5.0..5.0 step 0.5) {
                     lang {
                         name = "Normal Mapping Strength"
                     }
