@@ -26,11 +26,20 @@ float atmosphere_sample_shadow(vec3 shadowPos) {
 
 const vec3 ORIGIN_VIEW = vec3(0.0);
 
-ScatteringResult computeSingleScattering(vec2 screenPos, float viewZ, float noiseV) {
+/**
+ * Computes the scattering for a single pixel.
+ * @param screenPos The screen position of the pixel
+ * @param viewZ The view Z coordinate of the pixel
+ * @param noiseV The noise value for the pixel
+ * @param maxDistance The maximum distance to raymarch. Disable when maxDistance <= 0.0f
+ */
+ScatteringResult computeSingleScattering(vec2 screenPos, float viewZ, float noiseV, float maxDistance) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     ScatteringResult result = scatteringResult_init();
 
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+    if (maxDistance > 0.0f) viewPos = normalize(viewPos) * maxDistance;
+
     ivec2 texelPos = ivec2(screenPos * global_mainImageSize);
     ivec2 texePos2x2 = texelPos >> 1;
     float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, texePos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
