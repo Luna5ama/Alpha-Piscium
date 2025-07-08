@@ -57,7 +57,7 @@ float radiusToLodStep(float y) {
     #else
     #error "Invalid SSVBIL_SAMPLE_STEPS"
     #endif
-    y = clamp(y, SSVBIL_SAMPLE_STEPS, 32768.0);
+    y = clamp(y, float(SSVBIL_SAMPLE_STEPS), 32768.0);
     return max(a0 * log2(a1 * y + a2), 0.0);
 }
 

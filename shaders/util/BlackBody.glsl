@@ -42,7 +42,7 @@ _blackBody_func2_v5 * pow5(x)
 #define blackBody_evalRadiance(temperture) _LUMINOUS_EFFICACY * mix( \
 _blackBody_func1(temperture), \
 _blackBody_func2(temperture), \
-smoothstep(9000.0, 10000.0, temperture) \
+smoothstep(9000.0, 10000.0, float(temperture)) \
 )
 
 #endif
