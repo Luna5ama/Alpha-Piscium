@@ -18,7 +18,7 @@ void applyAtmosphere(vec2 screenPos, vec3 viewPos, float viewZ, inout vec4 outpu
     ScatteringResult sctrResult;
 
     if (viewZ == -65536.0f) {
-        ScatteringResult skyView = unwarpSkyView(screenPos, viewPos, viewZ);
+        ScatteringResult skyView = sampleSkyViewLUT(screenPos, viewPos, viewZ);
         outputColor.rgb *= skyView.transmittance;
         outputColor.rgb += skyView.inScattering;
     }

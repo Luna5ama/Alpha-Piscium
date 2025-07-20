@@ -260,6 +260,12 @@ void debugOutput(inout vec4 outputColor) {
     if (inViewPort(ivec4(0, 32 + 64 + 256, 256, 256), debugTexCoord)) {
         outputColor.rgb = gammaCorrect(texture(usam_multiSctrLUT, debugTexCoord).rgb * 10.0);
     }
+    if (inViewPort(ivec4(256 * 3, 32, 256, 256), debugTexCoord)) {
+        outputColor.rgb = gammaCorrect(texture(usam_skyViewLUT_scattering, debugTexCoord).rgb * exp2(SETTING_DEBUG_EXP));
+    }
+    if (inViewPort(ivec4(256 * 3, 32 + 256, 256, 256), debugTexCoord)) {
+        outputColor.rgb = gammaCorrect(texture(usam_skyViewLUT_transmittance, debugTexCoord).rgb * exp2(SETTING_DEBUG_EXP));
+    }
     float whRatio = float(SETTING_EPIPOLAR_SLICES) / float(SETTING_SLICE_SAMPLES);
     if (inViewPort(ivec4(256, 32, whRatio * 256, 256), debugTexCoord)) {
         debugTexCoord.y = 1.0 - debugTexCoord.y;

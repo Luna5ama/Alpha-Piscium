@@ -1,57 +1,78 @@
-
+#include "lut/Common.glsl"
 #include "Common.glsl"
 
-ScatteringResult unwarpSkyView(vec2 screenPos, vec3 viewPos, float viewZ) {
-    ScatteringResult result = scatteringResult_init();
+void uvToSkyViewLutParams(
+    AtmosphereParameters Atmosphere,
+    out float viewZenithCosAngle,
+    out float lightViewCosAngle,
+    in float viewHeight,
+    in vec2 uv
+) {
+    uv = vec2(fromSubUvsToUnit(uv.x, 256.0), fromSubUvsToUnit(uv.y, 256.0));
 
-    AtmosphereParameters atmosphere = getAtmosphereParameters();
-
-    vec3 feetPlayer = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-    vec4 worldPos = vec4(feetPlayer + cameraPosition, 1.0);
-    vec3 rayDir = normalize(worldPos.xyz - cameraPosition);
-
-    float viewHeight = length(cameraPosition);
-
-    vec3 zenithDir = normalize(cameraPosition);
-
-    float viewZenithCosAngle = dot(zenithDir, rayDir);
-
-    vec3 sunDir = normalize(sunPosition - cameraPosition);
-    float lightViewCosAngle = dot(sunDir, rayDir);
-
-    float Vhorizon = sqrt(max(0.0, viewHeight * viewHeight - atmosphere.bottom * atmosphere.bottom));
-    float CosBeta = Vhorizon / viewHeight;
+    float Vhorizon = sqrt(viewHeight * viewHeight - Atmosphere.bottom * Atmosphere.bottom);
+    float CosBeta = Vhorizon / viewHeight;  // GroundToHorizonCos
     float Beta = acos(CosBeta);
     float ZenithHorizonAngle = PI - Beta;
 
-    float viewZenithAngle = acos(viewZenithCosAngle);
-    bool IntersectGround = (viewZenithAngle > ZenithHorizonAngle);
-
-    vec2 uv;
-    if (!IntersectGround) {
-        float coord = viewZenithAngle / ZenithHorizonAngle;
+    if (uv.y < 0.5) {
+        float coord = 2.0 * uv.y;
         coord = 1.0 - coord;
-        coord = sqrt(coord); // Non linear mapping
+        coord *= coord; // Non linear sky view LUT
         coord = 1.0 - coord;
-        uv.y = coord * 0.5f;
+        viewZenithCosAngle = cos(ZenithHorizonAngle * coord);
     } else {
-        float coord = (viewZenithAngle - ZenithHorizonAngle) / Beta;
-        coord = sqrt(coord); // Non linear mapping
-        uv.y = coord * 0.5f + 0.5f;
+        float coord = uv.y * 2.0 - 1.0;
+        coord *= coord; // Non linear sky view LUT
+        viewZenithCosAngle = cos(ZenithHorizonAngle + Beta * coord);
     }
 
-    float coord = -lightViewCosAngle * 0.5 + 0.5;
-    coord = sqrt(coord);
-    uv.x = coord;
+    float coord = uv.x;
+    coord *= coord;
+    lightViewCosAngle = -(coord * 2.0 - 1.0);
+}
 
-    const vec2 skyViewLutSize = vec2(192.0, 108.0);
-    uv.x = (uv.x * skyViewLutSize.x + 0.5) / skyViewLutSize.x;
-    uv.y = (uv.y * skyViewLutSize.y + 0.5) / skyViewLutSize.y;
+void skyViewLutParamsToUv(
+    in AtmosphereParameters Atmosphere,
+    in bool IntersectGround,
+    in float viewZenithCosAngle,
+    in float lightViewCosAngle,
+    in float viewHeight,
+    out vec2 uv
+) {
+    float Vhorizon = sqrt(viewHeight * viewHeight - Atmosphere.bottom * Atmosphere.bottom);
+    float CosBeta = Vhorizon / viewHeight;  // GroundToHorizonCos
+    float Beta = acos(CosBeta);
+    float ZenithHorizonAngle = PI - Beta;
 
-    vec3 scattering = texture(usam_skyViewLUT_scattering, uv).rgb;
-    float transmittance = texture(usam_skyViewLUT_transmittance, uv).r;
+    if (!IntersectGround) {
+        float coord = acos(viewZenithCosAngle) / ZenithHorizonAngle;
+        coord = 1.0 - coord;
+        coord = sqrt(coord);    // Non linear sky view LUT
+        coord = 1.0 - coord;
+        uv.y = coord * 0.5;
+    } else {
+        float coord = (acos(viewZenithCosAngle) - ZenithHorizonAngle) / Beta;
+        coord = sqrt(coord);    // Non linear sky view LUT
+        uv.y = coord * 0.5 + 0.5;
+    }
 
-    result.inScattering = scattering;
-    result.transmittance = vec3(transmittance);
+    {
+        float coord = -lightViewCosAngle * 0.5 + 0.5;
+        coord = sqrt(coord);
+        uv.x = coord;
+    }
+
+    uv = vec2(fromUnitToSubUvs(uv.x, 256.0), fromUnitToSubUvs(uv.y, 256.0));
+}
+
+ScatteringResult sampleSkyViewLUT(
+    vec2 screenPos, vec3 viewPos, float viewZ
+) {
+    AtmosphereParameters atmosphere = getAtmosphereParameters();
+    ScatteringResult result = scatteringResult_init();
+
+    // TODO: Implement sky view LUT sampling
+
     return result;
 }
