@@ -7,6 +7,7 @@
         You can find full license texts in /licenses
 */
 #include "Common.glsl"
+#include "/atmosphere/lut/GenerateLut.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Coords.glsl"
 
@@ -27,7 +28,7 @@ void main() {
         AtmosphereParameters atmosphere = getAtmosphereParameters();
         vec3 rayDir = coords_octDecode01(texCoord);
 
-        ScatteringResult result = computeSingleScattering(atmosphere, rayDir, vec3(0.0));
+        ScatteringResult result = lut_computeSingleScattering(atmosphere, rayDir, vec3(0.0));
         imageStore(uimg_skyLUT, pixelPos, vec4(result.inScattering, 1.0));
     }
 }
