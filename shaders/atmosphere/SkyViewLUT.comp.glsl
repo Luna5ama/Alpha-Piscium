@@ -21,7 +21,7 @@ layout(rgba16f) restrict uniform image2D uimg_skyViewLUT_scattering;
 layout(rgba16f) restrict uniform image2D uimg_skyViewLUT_transmittance;
 
 void main() {
-    ivec2 imgSize = ivec2(256, 256);
+    ivec2 imgSize = imageSize(uimg_skyViewLUT_scattering);
     ivec2 pixelPos = ivec2(gl_GlobalInvocationID.xy);
 
     if (all(lessThan(pixelPos, imgSize))) {

@@ -15,6 +15,11 @@
 #include "../Constants.glsl"
 #include "/util/Math.glsl"
 
+#define SKYVIEW_LUT_WIDTH 256
+#define SKYVIEW_LUT_HEIGHT 128
+#define SKYVIEW_LUT_SIZE ivec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
+#define SKYVIEW_LUT_SIZE_F vec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
+
 // [HIL20] https://github.com/sebh/UnrealEngineSkyAtmosphere/blob/master/Resources/RenderSkyCommon.hlsl
 // Transmittance LUT function parameterisation from Bruneton 2017 https://github.com/ebruneton/precomputed_atmospheric_scattering
 // uv in [0,1]
@@ -25,8 +30,6 @@ float fromSubUvsToUnit(float u, float resolution) { return (u - 0.5f / resolutio
 
 vec2 fromUnitToSubUvs(vec2 uv, vec2 resolution) { return (uv + 0.5 / resolution) * (resolution / (resolution + 1.0)); }
 vec2 fromSubUvsToUnit(vec2 uv, vec2 resolution) { return (uv - 0.5 / resolution) * (resolution / (resolution - 1.0)); }
-
-
 
 void lutTransmittanceParamsToUv(AtmosphereParameters atmosphere, float height, float cosZenith, out vec2 uv) {
     height = clamp(height, atmosphere.bottom + 0.0001, atmosphere.top - 0.0001);
