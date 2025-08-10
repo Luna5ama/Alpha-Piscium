@@ -1401,7 +1401,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Target average luminance value for bright scene such as daytime outdoors."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE", 2.0, (0.01..1.0 step 0.01) + (1.1..4.0 step 0.1)) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE", 0.5, (0.01..1.0 step 0.01) + (1.1..4.0 step 0.1)) {
                     lang {
                         name = "Average Luminance Target Curve"
                         comment = "Curve for average luminance target. " +

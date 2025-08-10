@@ -168,10 +168,6 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
                         lightRayTransmittance,
                         cuAccum
                     );
-
-                    if (colors_sRGB_luma(cuAccum.totalTransmittance) < TRANSMITTANCE_EPSILON) {
-                        break;
-                    }
                 }
 
                 clouds_raymarchStepState_update(stepState);
