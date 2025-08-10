@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/atmosphere/SkyLUT.comp.glsl"
+#include "/atmosphere/lut/GenerateSkyLUT.comp.glsl"

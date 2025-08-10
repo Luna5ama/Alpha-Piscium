@@ -7,7 +7,6 @@
         You can find full license texts in /licenses
 */
 #include "Common.glsl"
-#include "/atmosphere/lut/GenerateLut.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Coords.glsl"
 
@@ -15,7 +14,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const ivec3 workGroups = ivec3(16, 16, 1);
 
 #define ATMOSPHERE_RAYMARCHING_SKY a
-#include "Raymarching.glsl"
+#include "../Raymarching.glsl"
 
 layout(rgba16f) restrict uniform image2D uimg_skyViewLUT_scattering;
 layout(rgba16f) restrict uniform image2D uimg_skyViewLUT_transmittance;

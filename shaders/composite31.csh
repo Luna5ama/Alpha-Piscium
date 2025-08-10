@@ -20,7 +20,7 @@ void main() {
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         float noiseV = rand_stbnVec1(texelPos, frameCounter + 1);
 
-        ScatteringResult sctrResult = computeSingleScattering(screenPos, viewZ, noiseV, -1.0f);
+        ScatteringResult sctrResult = computeSingleScattering(screenPos, viewZ, noiseV);
 
         vec4 outputColor = imageLoad(uimg_main, texelPos);
         outputColor.rgb *= sctrResult.transmittance;
