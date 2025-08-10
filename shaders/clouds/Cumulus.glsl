@@ -72,7 +72,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
 
     if (densityOut > _CU_DENSITY_EPSILON) {
         #ifndef SETTING_SCREENSHOT_MODE
-//        rayPos += uval_cuDetailWind;
+        rayPos += uval_cuDetailWind;
         #endif
 
         FBMParameters curlParams;
