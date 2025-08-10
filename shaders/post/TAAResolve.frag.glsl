@@ -141,6 +141,10 @@ void main() {
     mixWeight = saturate(mixWeight - float(gData.isHand) * 0.2);
     #endif
 
+    #ifndef SETTING_TAA
+    finalMixWeight = 0.0;
+    #endif
+
     rt_out.rgb = mix(currColor, prevColor, finalMixWeight);
     rt_out.a = 1.0;
     rt_taaLast = vec4(rt_out.rgb, mixWeight);
