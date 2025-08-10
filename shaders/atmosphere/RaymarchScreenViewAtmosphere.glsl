@@ -43,14 +43,13 @@ ScatteringResult raymarchScreenViewAtmosphere(vec2 screenPos, float viewZ, float
 
     RaymarchParameters params = raymarchParameters_init();
     params.rayStart = atmosphere_viewToAtm(atmosphere, ORIGIN_VIEW);
+    params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
     LightParameters sunParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, uval_sunDirWorld, rayDir);
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParam, moonParams, multiSctrFactor);
 
     if (viewZ == -65536.0) {
         scatteringParams.multiSctrFactor = 1.0;
-
-        params.steps = SETTING_SKY_SAMPLES;
 
         if (setupRayEnd(atmosphere, params, rayDir, shadowDistance / SETTING_ATM_D_SCALE)) {
             vec4 originScene = gbufferModelViewInverse * vec4(ORIGIN_VIEW, 1.0);
@@ -81,7 +80,6 @@ ScatteringResult raymarchScreenViewAtmosphere(vec2 screenPos, float viewZ, float
         vec3 endShadow = endShadowCS.xyz / endShadowCS.w;
         endShadow = endShadow * 0.5 + 0.5;
 
-        params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
         result = raymarchAerialPerspective(atmosphere, params, scatteringParams, startShadow, endShadow, noiseV);
     }
 
