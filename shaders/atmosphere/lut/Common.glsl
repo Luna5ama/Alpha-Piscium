@@ -136,12 +136,12 @@ void skyViewLutParamsToUv(
     if (!intersectGround) {
         float coord = acos(viewZenithCosAngle) / ZenithHorizonAngle;
         coord = 1.0 - coord;
-        coord = sqrt(coord);    // Non linear sky view LUT
+        coord = sqrt(saturate(coord));    // Non linear sky view LUT
         coord = 1.0 - coord;
         uv.y = coord * 0.5;
     } else {
         float coord = (acos(viewZenithCosAngle) - ZenithHorizonAngle) / Beta;
-        coord = sqrt(coord);    // Non linear sky view LUT
+        coord = sqrt(saturate(coord));    // Non linear sky view LUT
         uv.y = coord * 0.5 + 0.5;
     }
 
@@ -160,7 +160,7 @@ vec3 sampleSkyViewLUTSlice(vec2 sliceUV, float sliceIndex) {
     return colors_LogLuv32ToSRGB(texture(usam_skyViewLUT, sampleUV));
 }
 
-ScatteringResult sasmpleSkyViewLUT(
+ScatteringResult sampleSkyViewLUT(
     AtmosphereParameters atmosphere,
     bool intersectGround,
     float viewZenithCosAngle,

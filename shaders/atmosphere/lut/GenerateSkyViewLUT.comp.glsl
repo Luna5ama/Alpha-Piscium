@@ -9,6 +9,7 @@
 #include "Common.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Coords.glsl"
+#include "/util/Rand.glsl"
 
 layout(local_size_x = 8, local_size_y = 16) in;
 
@@ -21,12 +22,48 @@ layout(local_size_x = 8, local_size_y = 16) in;
 #elif SETTING_SKYVIEW_RES == 1024
 #define SKYVIEW_RES_D16 64
 #endif
-    const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 2);
+const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 2);
 
 #define ATMOSPHERE_RAYMARCHING_SKY_SINGLE a
 #include "../Raymarching.glsl"
 
 layout(rgba8) restrict uniform writeonly image3D uimg_skyViewLUT;
+
+bool setupRayEndC(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir, float bottomOffset) {
+    const vec3 earthCenter = vec3(0.0);
+    float rayStartHeight = length(params.rayStart);
+
+    // Check if ray origin is outside the atmosphere
+    if (rayStartHeight > atmosphere.top) {
+        float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
+        if (tTop < 0.0) {
+            return false; // No intersection with atmosphere: stop right away
+        }
+        vec3 upVector = params.rayStart / rayStartHeight;
+        vec3 upOffset = upVector * -PLANET_RADIUS_OFFSET;
+        params.rayStart += rayDir * tTop + upOffset;
+    }
+
+    float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom - bottomOffset);
+    float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
+    float rayLen = 0.0;
+
+    if (tBottom < 0.0) {
+        if (tTop < 0.0) {
+            return false; // No intersection with earth nor atmosphere: stop right away
+        } else {
+            rayLen = tTop;
+        }
+    } else {
+        if (tTop > 0.0) {
+            rayLen = min(tTop, tBottom);
+        }
+    }
+
+    params.rayEnd = params.rayStart + rayDir * rayLen;
+
+    return true;
+}
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
@@ -56,7 +93,10 @@ void main() {
     int workGroupZI = int(gl_WorkGroupID.z);
     int isMoonI = workGroupZI & 1;
 
-    if (setupRayEnd(atmosphere, params, rayDir)) {
+    float groundFactor = exp2(-4.0 * (viewHeight - atmosphere.bottom));
+    float bottomOffset = groundFactor * 10.0;
+
+    if (setupRayEndC(atmosphere, params, rayDir, bottomOffset)) {
         vec3 upVector = params.rayStart / viewHeight;
 
         LightParameters lightParam;
@@ -65,7 +105,7 @@ void main() {
             float moonZenithSinAngle = sqrt(1.0 - pow2(moonZenithCosAngle));
             vec3 moonDir = normalize(vec3(moonZenithSinAngle, moonZenithCosAngle, 0.0));
             lightParam = lightParameters_init(atmosphere, MOON_ILLUMINANCE, moonDir, rayDir);
-        } else{
+        } else {
             float sunZenithCosAngle = dot(upVector, uval_sunDirWorld);
             float sunZenithSinAngle = sqrt(1.0 - pow2(sunZenithCosAngle));
             vec3 sunDir = normalize(vec3(sunZenithSinAngle, sunZenithCosAngle, 0.0));
@@ -73,7 +113,7 @@ void main() {
         }
 
         params.rayStart = params.rayStart + rayDir * (shadowDistance / SETTING_ATM_D_SCALE);
-        result = raymarchSkySingle(atmosphere, params, lightParam, 0.5);
+        result = raymarchSkySingle(atmosphere, params, lightParam, bottomOffset);
     }
 
     uint layerIndex = workGroupZI >> 1u;

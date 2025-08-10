@@ -42,10 +42,10 @@ ScatteringResult sampleSkyViewLUT(vec3 viewPos, float viewZ) {
     moonOnPlane = normalize(moonOnPlane);
     float moonViewCosAngle = moonOnPlane.x;
 
-
-    bool intersectGround = tBottom >= 0.0;
+    float horizonZenthCosAngle = -sqrt(1.0 - pow2(atmosphere.bottom / viewHeight));
+    bool intersectGround = viewZenithCosAngle < (horizonZenthCosAngle);
     vec2 sampleUV;
-    ScatteringResult result = sasmpleSkyViewLUT(
+    ScatteringResult result = sampleSkyViewLUT(
         atmosphere,
         intersectGround,
         viewZenithCosAngle,
@@ -54,28 +54,6 @@ ScatteringResult sampleSkyViewLUT(vec3 viewPos, float viewZ) {
         viewHeight,
         0.0
     );
-
-    float altitude = viewHeight - atmosphere.bottom;
-    float horizonZenthCosAngle = -sqrt(1.0 - pow2(atmosphere.bottom / viewHeight));
-    uint cond = uint(intersectGround) | uint(viewZenithCosAngle <= (horizonZenthCosAngle + 0.001));
-    cond &= uint(altitude < 2.0);
-
-    if (bool(cond)) {
-        float groundMixFactor = linearStep(-1.0, horizonZenthCosAngle, viewZenithCosAngle);
-        groundMixFactor = pow(groundMixFactor, exp2(8.0 * altitude));
-        groundMixFactor *= linearStep(2.0, 0.0, altitude);
-        ScatteringResult groundResult = sasmpleSkyViewLUT(
-            atmosphere,
-            false,
-            horizonZenthCosAngle + 0.001,
-            sunViewCosAngle,
-            moonViewCosAngle,
-            viewHeight,
-            0.0
-        );
-        result.inScattering = mix(result.inScattering, groundResult.inScattering, groundMixFactor);
-        result.transmittance = mix(result.transmittance, groundResult.transmittance, groundMixFactor);
-    }
 
     return result;
 }

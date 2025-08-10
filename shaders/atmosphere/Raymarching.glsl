@@ -16,12 +16,12 @@ MultiScatteringResult raymarchMultiScattering(
     float stepJitter
 );
 
-//MultiScatteringResult raymarchSkySingle(
-//    AtmosphereParameters atmosphere,
-//    RaymarchParameters params,
-//    LightParameters lightParams,
-//    float stepJitter
-//);
+ScatteringResult raymarchSkySingle(
+    AtmosphereParameters atmosphere,
+    RaymarchParameters params,
+    LightParameters lightParams,
+    float bottomOffset
+);
 
 ScatteringResult raymarchSky(
     AtmosphereParameters atmosphere,

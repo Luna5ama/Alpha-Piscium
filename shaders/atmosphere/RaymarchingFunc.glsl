@@ -29,7 +29,7 @@ float stepJitter
 AtmosphereParameters atmosphere, \
 RaymarchParameters params, \
 LightParameters lightParams, \
-float stepJitter
+float bottomOffset
 
 #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 3
 #define ATMOSPHERE_RAYMARCHING_FUNC_NAME raymarchSky
@@ -78,6 +78,9 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
         vec3 samplePos = params.rayStart + (stepIndexF + 0.5) * rayStepDelta;
         #endif
         float sampleHeight = length(samplePos);
+        #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 2
+        sampleHeight = max(sampleHeight, atmosphere.bottom);
+        #endif
 
         vec3 sampleDensity = sampleParticleDensity(atmosphere, sampleHeight);
 
@@ -122,7 +125,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
             vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
             vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
 
-            float tEarth = raySphereIntersectNearest(samplePos, lightParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom);
+            float tEarth = raySphereIntersectNearest(samplePos, lightParams.lightDir, earthCenter, atmosphere.bottom - bottomOffset);
             float earthShadow = float(tEarth < 0.0);
 
             vec3 sampleInSctr = earthShadow * tLightToSample * computeTotalInSctr(atmosphere, lightParams, sampleDensity);
