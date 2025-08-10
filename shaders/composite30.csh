@@ -2,8 +2,8 @@
 
 #extension GL_KHR_shader_subgroup_ballot : enable
 
+#include "/atmosphere/lut/Common.glsl"
 #include "/atmosphere/UnwarpEpipolar.glsl"
-#include "/atmosphere/UnwarpSkyViewLUT.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
@@ -14,38 +14,79 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 
+ScatteringResult sampleSkyViewLUT(vec3 viewPos, float viewZ) {
+    vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
+
+    AtmosphereParameters atmosphere = getAtmosphereParameters();
+    ScatteringResult result = scatteringResult_init();
+
+    vec3 rayStart = atmosphere_viewToAtm(atmosphere, vec3(0.0));
+    float viewHeight = length(rayStart);
+    vec3 upVector = rayStart / viewHeight;
+
+    vec3 rayEndView = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+    vec3 rayDir = normalize(mat3(gbufferModelViewInverse) * rayEndView);
+
+    float viewZenithCosAngle = dot(rayDir, upVector);
+
+    const vec3 earthCenter = vec3(0.0);
+    float tBottom = raySphereIntersectNearest(rayStart, rayDir, earthCenter, atmosphere.bottom);
+
+    vec3 sideVector = normalize(cross(upVector, rayDir));		// assumes non parallel vectors
+    vec3 forwardVector = normalize(cross(sideVector, upVector));	// aligns toward the sun light but perpendicular to up vector
+    vec2 lightOnPlane = vec2(dot(uval_sunDirWorld, forwardVector), dot(uval_sunDirWorld, sideVector));
+    lightOnPlane = normalize(lightOnPlane);
+    float lightViewCosAngle = lightOnPlane.x;
+
+    vec2 sampleUV;
+
+    skyViewLutParamsToUv(
+        atmosphere,
+        tBottom >= 0.0,
+        viewZenithCosAngle,
+        lightViewCosAngle,
+        viewHeight,
+        sampleUV
+    );
+
+    result.inScattering = texture(usam_skyViewLUT_scattering, sampleUV).rgb;
+    result.transmittance = texture(usam_skyViewLUT_transmittance, sampleUV).rgb;
+
+    return result;
+}
+
 void applyAtmosphere(vec2 screenPos, vec3 viewPos, float viewZ, inout vec4 outputColor) {
     ScatteringResult sctrResult;
 
     if (viewZ == -65536.0f) {
-        ScatteringResult skyView = sampleSkyViewLUT(screenPos, viewPos, viewZ);
+        ScatteringResult skyView = sampleSkyViewLUT(viewPos, viewZ);
         outputColor.rgb *= skyView.transmittance;
         outputColor.rgb += skyView.inScattering;
     }
 
-    #ifndef SETTING_DEPTH_BREAK_CORRECTION
-    unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
-    #else
-    bool isDepthBreak = !unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
-    uvec4 balllot = subgroupBallot(isDepthBreak);
-    uint correctionCount = subgroupBallotBitCount(balllot);
-    uint writeIndexBase = 0u;
-    if (subgroupElect()) {
-        writeIndexBase = atomicAdd(global_dispatchSize1.w, correctionCount);
-        uint totalCount = writeIndexBase + correctionCount;
-        atomicMax(global_dispatchSize1.x, (totalCount | 0x3Fu) >> 6u);
-    }
-    writeIndexBase = subgroupBroadcastFirst(writeIndexBase);
-    if (isDepthBreak) {
-        uint writeIndex = writeIndexBase + subgroupBallotExclusiveBitCount(balllot);
-        uint texelPosEncoded = packUInt2x16(uvec2(texelPos));
-        indirectComputeData[writeIndex] = texelPosEncoded;
-        sctrResult = scatteringResult_init();
-    }
-    #endif
-
-    outputColor.rgb *= sctrResult.transmittance;
-    outputColor.rgb += sctrResult.inScattering;
+//    #ifndef SETTING_DEPTH_BREAK_CORRECTION
+//    unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
+//    #else
+//    bool isDepthBreak = !unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
+//    uvec4 balllot = subgroupBallot(isDepthBreak);
+//    uint correctionCount = subgroupBallotBitCount(balllot);
+//    uint writeIndexBase = 0u;
+//    if (subgroupElect()) {
+//        writeIndexBase = atomicAdd(global_dispatchSize1.w, correctionCount);
+//        uint totalCount = writeIndexBase + correctionCount;
+//        atomicMax(global_dispatchSize1.x, (totalCount | 0x3Fu) >> 6u);
+//    }
+//    writeIndexBase = subgroupBroadcastFirst(writeIndexBase);
+//    if (isDepthBreak) {
+//        uint writeIndex = writeIndexBase + subgroupBallotExclusiveBitCount(balllot);
+//        uint texelPosEncoded = packUInt2x16(uvec2(texelPos));
+//        indirectComputeData[writeIndex] = texelPosEncoded;
+//        sctrResult = scatteringResult_init();
+//    }
+//    #endif
+//
+//    outputColor.rgb *= sctrResult.transmittance;
+//    outputColor.rgb += sctrResult.inScattering;
 }
 
 void main() {
