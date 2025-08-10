@@ -31,6 +31,8 @@ float fromSubUvsToUnit(float u, float resolution) { return (u - 0.5f / resolutio
 vec2 fromUnitToSubUvs(vec2 uv, vec2 resolution) { return (uv + 0.5 / resolution) * (resolution / (resolution + 1.0)); }
 vec2 fromSubUvsToUnit(vec2 uv, vec2 resolution) { return (uv - 0.5 / resolution) * (resolution / (resolution - 1.0)); }
 
+
+
 void lutTransmittanceParamsToUv(AtmosphereParameters atmosphere, float height, float cosZenith, out vec2 uv) {
     height = clamp(height, atmosphere.bottom + 0.0001, atmosphere.top - 0.0001);
     cosZenith = clamp(cosZenith, -1.0, 1.0);

@@ -19,7 +19,7 @@ layout(local_size_x = 1, local_size_y = SETTING_SLICE_SAMPLES) in;
 const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
 
 
-#include "Scattering.glsl"
+#include "RaymarchScreenViewAtmosphere.glsl"
 
 layout(rgba32ui) uniform restrict uimage2D uimg_epipolarData;
 
@@ -50,7 +50,7 @@ void main() {
         screenPos = texelPos * global_mainImageSizeRcp;
 
         viewZ = texelFetch(usam_gbufferViewZ, ivec2(texelPos), 0).r;
-        result = computeSingleScattering(screenPos, viewZ, noiseV.y);
+        result = raymarchScreenViewAtmosphere(screenPos, viewZ, noiseV.y);
     }
 
     uvec4 outputData;

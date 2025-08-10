@@ -64,29 +64,29 @@ void applyAtmosphere(vec2 screenPos, vec3 viewPos, float viewZ, inout vec4 outpu
         outputColor.rgb += skyView.inScattering;
     }
 
-//    #ifndef SETTING_DEPTH_BREAK_CORRECTION
-//    unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
-//    #else
-//    bool isDepthBreak = !unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
-//    uvec4 balllot = subgroupBallot(isDepthBreak);
-//    uint correctionCount = subgroupBallotBitCount(balllot);
-//    uint writeIndexBase = 0u;
-//    if (subgroupElect()) {
-//        writeIndexBase = atomicAdd(global_dispatchSize1.w, correctionCount);
-//        uint totalCount = writeIndexBase + correctionCount;
-//        atomicMax(global_dispatchSize1.x, (totalCount | 0x3Fu) >> 6u);
-//    }
-//    writeIndexBase = subgroupBroadcastFirst(writeIndexBase);
-//    if (isDepthBreak) {
-//        uint writeIndex = writeIndexBase + subgroupBallotExclusiveBitCount(balllot);
-//        uint texelPosEncoded = packUInt2x16(uvec2(texelPos));
-//        indirectComputeData[writeIndex] = texelPosEncoded;
-//        sctrResult = scatteringResult_init();
-//    }
-//    #endif
-//
-//    outputColor.rgb *= sctrResult.transmittance;
-//    outputColor.rgb += sctrResult.inScattering;
+    #ifndef SETTING_DEPTH_BREAK_CORRECTION
+    unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
+    #else
+    bool isDepthBreak = !unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
+    uvec4 balllot = subgroupBallot(isDepthBreak);
+    uint correctionCount = subgroupBallotBitCount(balllot);
+    uint writeIndexBase = 0u;
+    if (subgroupElect()) {
+        writeIndexBase = atomicAdd(global_dispatchSize1.w, correctionCount);
+        uint totalCount = writeIndexBase + correctionCount;
+        atomicMax(global_dispatchSize1.x, (totalCount | 0x3Fu) >> 6u);
+    }
+    writeIndexBase = subgroupBroadcastFirst(writeIndexBase);
+    if (isDepthBreak) {
+        uint writeIndex = writeIndexBase + subgroupBallotExclusiveBitCount(balllot);
+        uint texelPosEncoded = packUInt2x16(uvec2(texelPos));
+        indirectComputeData[writeIndex] = texelPosEncoded;
+        sctrResult = scatteringResult_init();
+    }
+    #endif
+
+    outputColor.rgb *= sctrResult.transmittance;
+    outputColor.rgb += sctrResult.inScattering;
 }
 
 void main() {

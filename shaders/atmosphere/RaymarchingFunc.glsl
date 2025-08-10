@@ -125,7 +125,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
                 float shadow = 1.0;
                 #endif
 
-                float tEarth = raySphereIntersectNearest(samplePos, scatteringParams.sunParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom);
+                float tEarth = raySphereIntersectNearest(samplePos, scatteringParams.sunParams.lightDir, earthCenter, atmosphere.bottom);
                 float earthShadow = float(tEarth < 0.0);
 
                 vec3 sampleInSctr = earthShadow * shadow * tSunToSample * computeTotalInSctr(atmosphere, scatteringParams.sunParams, sampleDensity);

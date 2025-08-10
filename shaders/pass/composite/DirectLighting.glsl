@@ -30,7 +30,7 @@ void doLighting(Material material, vec3 N, inout vec3 directDiffuseOut, inout ve
     vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(lighting_viewCoord, 1.0)).xyz;
     vec3 worldPos = feetPlayerPos + cameraPosition;
     vec3 atmPos = atmosphere_viewToAtm(atmosphere, lighting_viewCoord);
-    atmPos.y = max(atmPos.y, atmosphere.bottom + 0.5);
+    atmPos.y = max(atmPos.y, atmosphere.bottom + 0.1);
     float viewAltitude = length(atmPos);
     vec3 upVector = atmPos / viewAltitude;
     const vec3 earthCenter = vec3(0.0, 0.0, 0.0);
