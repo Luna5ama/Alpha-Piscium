@@ -18,8 +18,7 @@ layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
 
-shared vec4 shared_moments[12][12][2];
-shared vec4 shared_momentsV[8][12][2];
+shared vec4 shared_moments[2][12][12];
 
 uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 3u;
 ivec2 texelPos = ivec2(groupOriginTexelPos) + ivec2(gl_LocalInvocationID.xy);
@@ -38,40 +37,21 @@ void loadSharedData(uint index) {
         vec3 moment1 = inputColor;
         vec3 moment2 = inputColor * inputColor;
 
-        shared_moments[sharedXY.y][sharedXY.x][0] = vec4(moment1, colors_sRGB_luma(directColor));
-        shared_moments[sharedXY.y][sharedXY.x][1] = vec4(moment2, colors_sRGB_luma(fastColor));
+        shared_moments[0][sharedXY.y][sharedXY.x] = vec4(moment1, colors_sRGB_luma(directColor));
+        shared_moments[1][sharedXY.y][sharedXY.x] = vec4(moment2, colors_sRGB_luma(fastColor));
     }
 }
 
-void updateMoments0(uvec2 originXY, ivec2 offset, inout vec4 moment1, inout vec4 moment2) {
+void updateMomentsV(uvec2 originXY, ivec2 offset, inout vec4 moment1, inout vec4 moment2) {
     ivec2 sampleXY = ivec2(originXY) + offset;
-    moment1 += shared_moments[sampleXY.y][sampleXY.x][0];
-    moment2 += shared_moments[sampleXY.y][sampleXY.x][1];
+    moment1 += shared_moments[0][sampleXY.y][sampleXY.x];
+    moment2 += shared_moments[1][sampleXY.y][sampleXY.x];
 }
 
-void sampleV(uint index) {
-    if (index < 96) {
-        uvec2 writeSharedXY = uvec2(index % 12, index / 12);
-        uvec2 readSharedXY = writeSharedXY;
-        readSharedXY.y += 2;
-        vec4 moment1 = vec4(0.0);
-        vec4 moment2 = vec4(0.0);
-        updateMoments0(readSharedXY, ivec2(0, -2), moment1, moment2);
-        updateMoments0(readSharedXY, ivec2(0, -1), moment1, moment2);
-        updateMoments0(readSharedXY, ivec2(0, 0), moment1, moment2);
-        updateMoments0(readSharedXY, ivec2(0, 1), moment1, moment2);
-        updateMoments0(readSharedXY, ivec2(0, 2), moment1, moment2);
-        moment1 /= 5.0;
-        moment2 /= 5.0;
-        shared_momentsV[writeSharedXY.y][writeSharedXY.x][0] = moment1;
-        shared_momentsV[writeSharedXY.y][writeSharedXY.x][1] = moment2;
-    }
-}
-
-void updateMoments1(uvec2 originXY, ivec2 offset, inout vec4 moment1, inout vec4 moment2) {
+void updateMomentsH(uvec2 originXY, ivec2 offset, inout vec4 moment1, inout vec4 moment2) {
     ivec2 sampleXY = ivec2(originXY) + offset;
-    moment1 += shared_momentsV[sampleXY.y][sampleXY.x][0];
-    moment2 += shared_momentsV[sampleXY.y][sampleXY.x][1];
+    moment1 += shared_moments[0][sampleXY.y][sampleXY.x];
+    moment2 += shared_moments[1][sampleXY.y][sampleXY.x];
 }
 
 float computeGeometryWeight(vec3 centerPos, vec3 centerNormal, float sampleViewZ, uint sampleNormal, vec2 sampleScreenPos, float a) {
@@ -134,9 +114,47 @@ void main() {
     loadSharedData(gl_LocalInvocationIndex + 128);
     barrier();
 
-    sampleV(gl_LocalInvocationIndex);
-    sampleV(gl_LocalInvocationIndex + 64);
-    barrier();
+    {
+        uint index1 = gl_LocalInvocationIndex;
+        uint index2 = index1 + 64;
+        uvec2 writeSharedXY1 = uvec2(index1 % 12, index1 / 12);
+        uvec2 writeSharedXY2 = uvec2(index2 % 12, index2 / 12);
+        vec4 moment11 = vec4(0.0);
+        vec4 moment21 = vec4(0.0);
+        vec4 moment12 = vec4(0.0);
+        vec4 moment22 = vec4(0.0);
+        {
+            uvec2 readSharedXY = writeSharedXY1;
+            readSharedXY.y += 2;
+            updateMomentsV(readSharedXY, ivec2(0, -2), moment11, moment21);
+            updateMomentsV(readSharedXY, ivec2(0, -1), moment11, moment21);
+            updateMomentsV(readSharedXY, ivec2(0, 0), moment11, moment21);
+            updateMomentsV(readSharedXY, ivec2(0, 1), moment11, moment21);
+            updateMomentsV(readSharedXY, ivec2(0, 2), moment11, moment21);
+            moment11 /= 5.0;
+            moment21 /= 5.0;
+        }
+        if (index2 < 96) {
+            uvec2 readSharedXY = writeSharedXY2;
+            readSharedXY.y += 2;
+            updateMomentsV(readSharedXY, ivec2(0, -2), moment12, moment22);
+            updateMomentsV(readSharedXY, ivec2(0, -1), moment12, moment22);
+            updateMomentsV(readSharedXY, ivec2(0, 0), moment12, moment22);
+            updateMomentsV(readSharedXY, ivec2(0, 1), moment12, moment22);
+            updateMomentsV(readSharedXY, ivec2(0, 2), moment12, moment22);
+            moment12 /= 5.0;
+            moment22 /= 5.0;
+        }
+        barrier();
+        {
+            shared_moments[0][writeSharedXY1.y][writeSharedXY1.x] = moment11;
+            shared_moments[1][writeSharedXY1.y][writeSharedXY1.x] = moment21;
+        }
+        if (index2 < 96) {
+            shared_moments[0][writeSharedXY2.y][writeSharedXY2.x] = moment12;
+            shared_moments[1][writeSharedXY2.y][writeSharedXY2.x] = moment22;
+        }
+    }
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec3 currColor = vec3(0.0);
@@ -192,11 +210,11 @@ void main() {
             readSharedXY.x += 2;
             vec4 moment1 = vec4(0.0);
             vec4 moment2 = vec4(0.0);
-            updateMoments1(readSharedXY, ivec2(-2, 0), moment1, moment2);
-            updateMoments1(readSharedXY, ivec2(-1, 0), moment1, moment2);
-            updateMoments1(readSharedXY, ivec2(0, 0), moment1, moment2);
-            updateMoments1(readSharedXY, ivec2(1, 0), moment1, moment2);
-            updateMoments1(readSharedXY, ivec2(2, 0), moment1, moment2);
+            updateMomentsH(readSharedXY, ivec2(-2, 0), moment1, moment2);
+            updateMomentsH(readSharedXY, ivec2(-1, 0), moment1, moment2);
+            updateMomentsH(readSharedXY, ivec2(0, 0), moment1, moment2);
+            updateMomentsH(readSharedXY, ivec2(1, 0), moment1, moment2);
+            updateMomentsH(readSharedXY, ivec2(2, 0), moment1, moment2);
             moment1 /= 5.0;
             moment2 /= 5.0;
             vec3 variance = max(moment2.rgb - pow2(moment1.rgb), 0.0);

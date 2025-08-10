@@ -25,18 +25,17 @@ float computeNormalWeight(uint packedNormal, float weight) {
 }
 
 float computeGeometryWeight(
-vec2 curr2PrevScreen, uint prevViewZI, uint packedPrevViewGeomNormal,
+vec2 curr2PrevScreen, float prevViewZ, uint packedPrevViewGeomNormal,
 float planeWeight, float normalWeight
 ) {
-    float prevViewZ = uintBitsToFloat(prevViewZI);
     vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevViewZ, global_prevCamProjInverse);
 
     vec3 prevViewGeomNormal = unpackSnorm3x10(packedPrevViewGeomNormal);
 
     vec3 posDiff = reproject_curr2PrevView.xyz - prevView.xyz;
-    float planeDist1 = pow2(dot(posDiff, reproject_currToPrevViewGeomNormal));
-    float planeDist2 = pow2(dot(posDiff, prevViewGeomNormal));
-    float maxPlaneDist = max(planeDist1, planeDist2);
+    float planeDist1 = abs(dot(posDiff, reproject_currToPrevViewGeomNormal));
+    float planeDist2 = abs(dot(posDiff, prevViewGeomNormal));
+    float maxPlaneDist = pow2(max(planeDist1, planeDist2));
     float normalDot = saturate(dot(reproject_currToPrevViewGeomNormal, prevViewGeomNormal));
 
     float result = planeWeight / (planeWeight + maxPlaneDist);
@@ -52,7 +51,7 @@ vec4 computeBilateralWeights(vec2 gatherTexelPos) {
 
     uvec4 prevViewNormals = textureGather(usam_packedZN, gatherUV, 0);
     uvec4 prevViewGeomNormals = textureGather(usam_geometryNormal, screenPos, 0);
-    uvec4 prevViewZs = textureGather(usam_packedZN, gatherUV, 1);
+    vec4 prevViewZs = uintBitsToFloat(textureGather(usam_packedZN, gatherUV, 1));
 
     float geometryPlaneWeight = BASE_GEOM_WEIGHT_RCP * max(abs(reproject_curr2PrevView.z), 0.1);
     float geometryNormalWeight = mix(BASE_GEOM_WEIGHT, BASE_NORMAL_WEIGHT, reproject_isHand);
