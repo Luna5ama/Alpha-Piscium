@@ -26,7 +26,6 @@ void main() {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
     vec3 rayStart = atmosphere_viewToAtm(atmosphere, vec3(0.0));
-    rayStart.y = max(rayStart.y, atmosphere.bottom + 0.5);
     float viewHeight = length(rayStart);
 
     float viewZenithCosAngle, lightViewCosAngle;
@@ -41,7 +40,7 @@ void main() {
     );
 
     RaymarchParameters params = raymarchParameters_init();
-    params.rayStart = rayStart + rayDir * (shadowDistance / SETTING_ATM_D_SCALE);
+    params.rayStart = rayStart;
     params.steps = SETTING_SKY_SAMPLES;
 
     ScatteringResult result = scatteringResult_init();
@@ -54,6 +53,8 @@ void main() {
         LightParameters sunParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, sunDir, rayDir);
         LightParameters moonParams = lightParameters_init(atmosphere, vec3(0.0), vec3(0.0), rayDir);
         ScatteringParameters scatteringParams = scatteringParameters_init(sunParam, moonParams, 1.0);
+
+        params.rayStart = params.rayStart + rayDir * (shadowDistance / SETTING_ATM_D_SCALE);
         result = raymarchSky(atmosphere, params, scatteringParams);
     }
 

@@ -18,9 +18,9 @@ uniform float frameTimeCounter;                 // run time, seconds (resets to 
 uniform float sunAngle;                         // 0.0-1.0
 uniform float shadowAngle;                      // 0.0-1.0
 uniform float rainStrength;                     // 0.0-1.0
-uniform float aspectRatio;                      // viewWidth / viewHeight
-uniform float viewWidth;                        // viewWidth
-uniform float viewHeight;                       // viewHeight
+//uniform float aspectRatio;                      // viewWidth / viewHeight
+//uniform float viewWidth;                        // viewWidth
+//uniform float viewHeight;                       // viewHeight
 uniform float near;                             // near viewing plane distance
 uniform float far;                              // far viewing plane distance
 uniform vec3 sunPosition;                       // sun position in eye space

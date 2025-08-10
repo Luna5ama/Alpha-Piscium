@@ -38,19 +38,40 @@ ScatteringResult sampleSkyViewLUT(vec3 viewPos, float viewZ) {
     lightOnPlane = normalize(lightOnPlane);
     float lightViewCosAngle = lightOnPlane.x;
 
-    vec2 sampleUV;
 
+    bool intersectGround = tBottom >= 0.0;
+    vec2 sampleUV;
     skyViewLutParamsToUv(
         atmosphere,
-        tBottom >= 0.0,
+        intersectGround,
         viewZenithCosAngle,
         lightViewCosAngle,
         viewHeight,
         sampleUV
     );
-
     result.inScattering = texture(usam_skyViewLUT_scattering, sampleUV).rgb;
     result.transmittance = texture(usam_skyViewLUT_transmittance, sampleUV).rgb;
+
+    float altitude = viewHeight - atmosphere.bottom;
+    float horizonZenthCosAngle = -sqrt(1.0 - pow2(atmosphere.bottom / viewHeight));
+    uint cond = uint(intersectGround) | uint(viewZenithCosAngle <= (horizonZenthCosAngle + 0.001));
+    cond &= uint(altitude < 2.0);
+
+    if (bool(cond)) {
+        float groundMixFactor = linearStep(-1.0, horizonZenthCosAngle, viewZenithCosAngle);
+        groundMixFactor = pow(groundMixFactor, exp2(8.0 * altitude));
+        groundMixFactor *= linearStep(2.0, 0.0, altitude);
+        skyViewLutParamsToUv(
+            atmosphere,
+            false,
+            horizonZenthCosAngle + 0.001,
+            lightViewCosAngle,
+            viewHeight,
+            sampleUV
+        );
+        result.inScattering = mix(result.inScattering, texture(usam_skyViewLUT_scattering, sampleUV).rgb, groundMixFactor);
+        result.transmittance = mix(result.transmittance, texture(usam_skyViewLUT_transmittance, sampleUV).rgb, groundMixFactor);
+    }
 
     return result;
 }
