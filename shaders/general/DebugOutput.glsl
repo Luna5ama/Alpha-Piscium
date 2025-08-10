@@ -1,4 +1,5 @@
 #include "/util/BitPacking.glsl"
+#include "/util/Colors.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/NZPacking.glsl"
@@ -60,8 +61,16 @@ vec3 applyExposure(vec3 color) {
     return color * exp2(SETTING_DEBUG_EXP);
 }
 
-#ifdef SETTING_DEBUG_GAMMA_CORRECT
+vec4 applyExposure(vec4 color) {
+    return color * exp2(SETTING_DEBUG_EXP);
+}
+
+#if defined(SETTING_DEBUG_GAMMA_CORRECT) && (SETTING_DEBUG_OUTPUT != 1)
 float gammaCorrect(float color) {
+    return colors_sRGB_encodeGamma(color);
+}
+
+vec2 gammaCorrect(vec2 color) {
     return colors_sRGB_encodeGamma(color);
 }
 
@@ -77,6 +86,10 @@ float gammaCorrect(float color) {
     return color;
 }
 
+vec2 gammaCorrect(vec2 color) {
+    return color;
+}
+
 vec3 gammaCorrect(vec3 color) {
     return color;
 }
@@ -85,6 +98,22 @@ vec4 gammaCorrect(vec4 color) {
     return color;
 }
 #endif
+
+float expGamma(float color) {
+    return gammaCorrect(applyExposure(color));
+}
+
+vec2 expGamma(vec2 color) {
+    return gammaCorrect(applyExposure(color));
+}
+
+vec3 expGamma(vec3 color) {
+    return gammaCorrect(applyExposure(color));
+}
+
+vec4 expGamma(vec4 color) {
+    return gammaCorrect(applyExposure(color));
+}
 
 vec3 displayViewZ(float viewZ) {
     #ifdef DISTANT_HORIZONS
@@ -260,12 +289,6 @@ void debugOutput(inout vec4 outputColor) {
     if (inViewPort(ivec4(0, 32 + 64 + 256, 256, 256), debugTexCoord)) {
         outputColor.rgb = gammaCorrect(texture(usam_multiSctrLUT, debugTexCoord).rgb * 10.0);
     }
-    if (inViewPort(ivec4(256 * 3, 32, 256, 256), debugTexCoord)) {
-        outputColor.rgb = gammaCorrect(texture(usam_skyViewLUT_scattering, debugTexCoord).rgb * exp2(SETTING_DEBUG_EXP));
-    }
-    if (inViewPort(ivec4(256 * 3, 32 + 256, 256, 256), debugTexCoord)) {
-        outputColor.rgb = gammaCorrect(texture(usam_skyViewLUT_transmittance, debugTexCoord).rgb * exp2(SETTING_DEBUG_EXP));
-    }
     float whRatio = float(SETTING_EPIPOLAR_SLICES) / float(SETTING_SLICE_SAMPLES);
     if (inViewPort(ivec4(256, 32, whRatio * 256, 256), debugTexCoord)) {
         debugTexCoord.y = 1.0 - debugTexCoord.y;
@@ -292,6 +315,18 @@ void debugOutput(inout vec4 outputColor) {
         unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
         float depthV = -viewZ.r / far;
         outputColor.rgb = gammaCorrect(depthV).rrr;
+    }
+    #endif
+
+    #ifdef SETTING_DEBUG_SKY_VIEW_LUT
+    if (inViewPort(ivec4(0, 0, 256, 256), debugTexCoord)) {
+        outputColor.rgb = expGamma(sampleSkyViewLUTSlice(debugTexCoord, 0.0));
+    }
+    if (inViewPort(ivec4(0, 256, 256, 256), debugTexCoord)) {
+        outputColor.rgb = expGamma(sampleSkyViewLUTSlice(debugTexCoord, 1.0));
+    }
+    if (inViewPort(ivec4(0, 512, 256, 256), debugTexCoord)) {
+        outputColor.rgb = gammaCorrect(sampleSkyViewLUTSlice(debugTexCoord, 2.0));
     }
     #endif
 
@@ -358,7 +393,7 @@ void debugOutput(inout vec4 outputColor) {
     outputColor.rgb = gammaCorrect(colors_LogLuv32ToSRGB(texture(usam_starmap, screenPos)));
     #endif
 
-    #ifdef SETTING_DEBUG_EPIPOLAR
+    #ifdef SETTING_DEBUG_EPIPOLAR_LINES
     {
         vec2 ndcPos = screenPos * 2.0 - 1.0;
         vec2 f2RayDir = normalize(ndcPos - uval_sunNdcPos);

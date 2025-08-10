@@ -69,10 +69,24 @@ float colors_sRGB_encodeGamma(float color) {
 }
 
 // [WIK25c]
+vec2 colors_sRGB_encodeGamma(vec2 color) {
+    vec2 lower = 12.92 * color;
+    vec2 higher = pow(color, vec2(1.0 / 2.4)) * 1.055 - 0.055;
+    return mix(lower, higher, greaterThan(color, vec2(0.0031308)));
+}
+
+// [WIK25c]
 vec3 colors_sRGB_encodeGamma(vec3 color) {
     vec3 lower = 12.92 * color;
     vec3 higher = pow(color, vec3(1.0 / 2.4)) * 1.055 - 0.055;
     return mix(lower, higher, greaterThan(color, vec3(0.0031308)));
+}
+
+// [WIK25c]
+vec4 colors_sRGB_encodeGamma(vec4 color) {
+    vec4 lower = 12.92 * color;
+    vec4 higher = pow(color, vec4(1.0 / 2.4)) * 1.055 - 0.055;
+    return mix(lower, higher, greaterThan(color, vec4(0.0031308)));
 }
 
 // [WIK25c]

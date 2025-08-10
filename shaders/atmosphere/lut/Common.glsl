@@ -12,11 +12,13 @@
 #ifndef INCLUDE_atmosphere_lut_Common_glsl
 #define INCLUDE_atmosphere_lut_Common_glsl a
 
-#include "../Constants.glsl"
+#include "../Common.glsl"
+#include "/util/Colors.glsl"
 #include "/util/Math.glsl"
 
 #define SKYVIEW_LUT_WIDTH (SETTING_SKYVIEW_RES / 2)
 #define SKYVIEW_LUT_HEIGHT SETTING_SKYVIEW_RES
+#define SKYVIEW_LUT_DEPTH 3
 #define SKYVIEW_LUT_SIZE ivec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
 #define SKYVIEW_LUT_SIZE_F vec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
 
@@ -151,6 +153,49 @@ void skyViewLutParamsToUv(
 
     uv = vec2(fromUnitToSubUvs(uv.x, SKYVIEW_LUT_WIDTH), fromUnitToSubUvs(uv.y, SKYVIEW_LUT_HEIGHT));
     uv.y = 1.0 - uv.y;
+}
+
+vec3 sampleSkyViewLUTSlice(vec2 sliceUV, float sliceIndex) {
+    vec3 sampleUV = vec3(sliceUV, (sliceIndex + 0.5) / SKYVIEW_LUT_DEPTH);
+    return colors_LogLuv32ToSRGB(texture(usam_skyViewLUT, sampleUV));
+}
+
+ScatteringResult sasmpleSkyViewLUT(
+    AtmosphereParameters atmosphere,
+    bool intersectGround,
+    float viewZenithCosAngle,
+    float sunViewCosAngle,
+    float MoonViewCosAngle,
+    float viewHeight,
+    float layerIndex
+) {
+    vec2 sunSliceUV;
+    skyViewLutParamsToUv(
+        atmosphere,
+        intersectGround,
+        viewZenithCosAngle,
+        sunViewCosAngle,
+        viewHeight,
+        sunSliceUV
+    );
+    vec2 moonSliceUV;
+    skyViewLutParamsToUv(
+        atmosphere,
+        intersectGround,
+        viewZenithCosAngle,
+        MoonViewCosAngle,
+        viewHeight,
+        moonSliceUV
+    );
+    float sunSlice = layerIndex * 3;
+    float moonSlice = sunSlice + 1;
+    float tSlice = sunSlice + 2;
+
+    ScatteringResult result = scatteringResult_init();
+    result.inScattering = sampleSkyViewLUTSlice(sunSliceUV, sunSlice);
+    result.inScattering += sampleSkyViewLUTSlice(moonSliceUV, moonSlice);
+    result.transmittance = sampleSkyViewLUTSlice(sunSliceUV, tSlice);
+    return result;
 }
 
 #endif

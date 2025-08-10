@@ -18,7 +18,6 @@ ScatteringResult sampleSkyViewLUT(vec3 viewPos, float viewZ) {
     vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
-    ScatteringResult result = scatteringResult_init();
 
     vec3 rayStart = atmosphere_viewToAtm(atmosphere, vec3(0.0));
     float viewHeight = length(rayStart);
@@ -34,23 +33,27 @@ ScatteringResult sampleSkyViewLUT(vec3 viewPos, float viewZ) {
 
     vec3 sideVector = normalize(cross(upVector, rayDir));		// assumes non parallel vectors
     vec3 forwardVector = normalize(cross(sideVector, upVector));	// aligns toward the sun light but perpendicular to up vector
-    vec2 lightOnPlane = vec2(dot(uval_sunDirWorld, forwardVector), dot(uval_sunDirWorld, sideVector));
-    lightOnPlane = normalize(lightOnPlane);
-    float lightViewCosAngle = lightOnPlane.x;
+
+    vec2 sunOnPlane = vec2(dot(uval_sunDirWorld, forwardVector), dot(uval_sunDirWorld, sideVector));
+    sunOnPlane = normalize(sunOnPlane);
+    float sunViewCosAngle = sunOnPlane.x;
+
+    vec2 moonOnPlane = vec2(dot(uval_moonDirWorld, forwardVector), dot(uval_moonDirWorld, sideVector));
+    moonOnPlane = normalize(moonOnPlane);
+    float moonViewCosAngle = moonOnPlane.x;
 
 
     bool intersectGround = tBottom >= 0.0;
     vec2 sampleUV;
-    skyViewLutParamsToUv(
+    ScatteringResult result = sasmpleSkyViewLUT(
         atmosphere,
         intersectGround,
         viewZenithCosAngle,
-        lightViewCosAngle,
+        sunViewCosAngle,
+        moonViewCosAngle,
         viewHeight,
-        sampleUV
+        0.0
     );
-    result.inScattering = texture(usam_skyViewLUT_scattering, sampleUV).rgb;
-    result.transmittance = texture(usam_skyViewLUT_transmittance, sampleUV).rgb;
 
     float altitude = viewHeight - atmosphere.bottom;
     float horizonZenthCosAngle = -sqrt(1.0 - pow2(atmosphere.bottom / viewHeight));
@@ -61,16 +64,17 @@ ScatteringResult sampleSkyViewLUT(vec3 viewPos, float viewZ) {
         float groundMixFactor = linearStep(-1.0, horizonZenthCosAngle, viewZenithCosAngle);
         groundMixFactor = pow(groundMixFactor, exp2(8.0 * altitude));
         groundMixFactor *= linearStep(2.0, 0.0, altitude);
-        skyViewLutParamsToUv(
+        ScatteringResult groundResult = sasmpleSkyViewLUT(
             atmosphere,
             false,
             horizonZenthCosAngle + 0.001,
-            lightViewCosAngle,
+            sunViewCosAngle,
+            moonViewCosAngle,
             viewHeight,
-            sampleUV
+            0.0
         );
-        result.inScattering = mix(result.inScattering, texture(usam_skyViewLUT_scattering, sampleUV).rgb, groundMixFactor);
-        result.transmittance = mix(result.transmittance, texture(usam_skyViewLUT_transmittance, sampleUV).rgb, groundMixFactor);
+        result.inScattering = mix(result.inScattering, groundResult.inScattering, groundMixFactor);
+        result.transmittance = mix(result.transmittance, groundResult.transmittance, groundMixFactor);
     }
 
     return result;

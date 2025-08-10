@@ -23,6 +23,15 @@ LightParameters lightParams, \
 float stepJitter
 
 #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 2
+#define ATMOSPHERE_RAYMARCHING_FUNC_NAME raymarchSkySingle
+#define ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ScatteringResult
+#define ATMOSPHERE_RAYMARCHING_FUNC_PARAMS \
+AtmosphereParameters atmosphere, \
+RaymarchParameters params, \
+LightParameters lightParams, \
+float stepJitter
+
+#elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 3
 #define ATMOSPHERE_RAYMARCHING_FUNC_NAME raymarchSky
 #define ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ScatteringResult
 #define ATMOSPHERE_RAYMARCHING_FUNC_PARAMS \
@@ -30,7 +39,7 @@ AtmosphereParameters atmosphere, \
 RaymarchParameters params, \
 ScatteringParameters scatteringParams
 
-#elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 3
+#elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
 #define ATMOSPHERE_RAYMARCHING_FUNC_NAME raymarchAerialPerspective
 #define ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ScatteringResult
 #define ATMOSPHERE_RAYMARCHING_FUNC_PARAMS \
@@ -55,7 +64,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
     vec3 tSampleToOrigin = vec3(1.0);
     #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
     vec3 totalMultiSctrAs1 = vec3(0.0);
-    #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 3
+    #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
     vec3 shaodwStepDelta = (shadowEnd - shadowStart) * rcpSteps;
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
     #endif
@@ -95,7 +104,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
             float cosZenith = dot(upVector, lightParams.lightDir);
             vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
 
-            float tEarth = raySphereIntersectNearest(samplePos, lightParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom);
+            float tEarth = raySphereIntersectNearest(samplePos, lightParams.lightDir, earthCenter, atmosphere.bottom);
             float earthShadow = float(tEarth < 0.0);
 
             vec3 sampleInSctr = tLightToSample * computeTotalInSctr(atmosphere, lightParams, sampleDensity);
@@ -107,9 +116,24 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
             vec3 sampleMultiSctrInt = (sampleMultiSctr - sampleMultiSctr * sampleTransmittance) / sampleExtinction;
             totalMultiSctrAs1 += tSampleToOrigin * sampleMultiSctrInt;
         }
+        #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 2
+        {
+            float cosZenith = dot(upVector, lightParams.lightDir);
+            vec3 tLightToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
+            vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
+
+            float tEarth = raySphereIntersectNearest(samplePos, lightParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom);
+            float earthShadow = float(tEarth < 0.0);
+
+            vec3 sampleInSctr = earthShadow * tLightToSample * computeTotalInSctr(atmosphere, lightParams, sampleDensity);
+            sampleInSctr += multiSctrLuminance * (sampleTotalInSctr);
+
+            vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
+            totalInSctr += tSampleToOrigin * sampleInSctrInt * lightParams.irradiance;
+        }
         #else
         {
-            #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 3
+            #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
             vec3 sampleShadowPos = shadowStart + (stepIndexF + stepJitter) * shaodwStepDelta;
             float shadowSample = atmosphere_sample_shadow(sampleShadowPos);
             #endif
@@ -119,7 +143,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
                 vec3 tSunToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
                 vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
 
-                #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 3
+                #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
                 float shadow = mix(1.0, shadowSample, shadowIsSun);
                 #else
                 float shadow = 1.0;
@@ -141,7 +165,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
                 vec3 tMoonToSample = sampleTransmittanceLUT(atmosphere, cosZenith, sampleHeight);
                 vec3 multiSctrLuminance = sampleMultiSctrLUT(atmosphere, cosZenith, sampleHeight);
 
-                #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 3
+                #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
                 float shadow = mix(shadowSample, 1.0, shadowIsSun);
                 #else
                 float shadow = 1.0;
@@ -172,7 +196,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
     #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
     result.inScattering = totalInSctr;
     result.multiSctrAs1 = totalMultiSctrAs1;
-    #else ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 2
+    #else
     result.transmittance = tSampleToOrigin;
     result.inScattering = totalInSctr;
     #endif

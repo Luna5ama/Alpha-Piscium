@@ -21,13 +21,12 @@ layout(local_size_x = 8, local_size_y = 16) in;
 #elif SETTING_SKYVIEW_RES == 1024
 #define SKYVIEW_RES_D16 64
 #endif
-const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 1);
+    const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 2);
 
-#define ATMOSPHERE_RAYMARCHING_SKY a
+#define ATMOSPHERE_RAYMARCHING_SKY_SINGLE a
 #include "../Raymarching.glsl"
 
-layout(rgba16f) restrict uniform image2D uimg_skyViewLUT_scattering;
-layout(rgba16f) restrict uniform image2D uimg_skyViewLUT_transmittance;
+layout(rgba8) restrict uniform writeonly image3D uimg_skyViewLUT;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
@@ -54,20 +53,35 @@ void main() {
     params.steps = SETTING_SKY_SAMPLES;
 
     ScatteringResult result = scatteringResult_init();
+    int workGroupZI = int(gl_WorkGroupID.z);
+    int isMoonI = workGroupZI & 1;
+
     if (setupRayEnd(atmosphere, params, rayDir)) {
         vec3 upVector = params.rayStart / viewHeight;
-        float sunZenithCosAngle = dot(upVector, uval_sunDirWorld);
-        float sunZenithSinAngle = sqrt(1.0 - pow2(sunZenithCosAngle));
-        vec3 sunDir = normalize(vec3(sunZenithSinAngle, sunZenithCosAngle, 0.0));
 
-        LightParameters sunParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, sunDir, rayDir);
-        LightParameters moonParams = lightParameters_init(atmosphere, vec3(0.0), vec3(0.0), rayDir);
-        ScatteringParameters scatteringParams = scatteringParameters_init(sunParam, moonParams, 1.0);
+        LightParameters lightParam;
+        if (bool(isMoonI)) {
+            float moonZenithCosAngle = dot(upVector, uval_moonDirWorld);
+            float moonZenithSinAngle = sqrt(1.0 - pow2(moonZenithCosAngle));
+            vec3 moonDir = normalize(vec3(moonZenithSinAngle, moonZenithCosAngle, 0.0));
+            lightParam = lightParameters_init(atmosphere, MOON_ILLUMINANCE, moonDir, rayDir);
+        } else{
+            float sunZenithCosAngle = dot(upVector, uval_sunDirWorld);
+            float sunZenithSinAngle = sqrt(1.0 - pow2(sunZenithCosAngle));
+            vec3 sunDir = normalize(vec3(sunZenithSinAngle, sunZenithCosAngle, 0.0));
+            lightParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, sunDir, rayDir);
+        }
 
         params.rayStart = params.rayStart + rayDir * (shadowDistance / SETTING_ATM_D_SCALE);
-        result = raymarchSky(atmosphere, params, scatteringParams);
+        result = raymarchSkySingle(atmosphere, params, lightParam, 0.5);
     }
 
-    imageStore(uimg_skyViewLUT_scattering, texelPos, vec4(result.inScattering, 1.0));
-    imageStore(uimg_skyViewLUT_transmittance, texelPos, vec4(result.transmittance, 1.0));
+    uint layerIndex = workGroupZI >> 1u;
+    ivec3 writePos = ivec3(texelPos, layerIndex * 3);
+    writePos.z += isMoonI;
+    imageStore(uimg_skyViewLUT, writePos, colors_sRGBToLogLuv32(result.inScattering));
+    if (isMoonI == 0) {
+        writePos.z += 2;
+        imageStore(uimg_skyViewLUT, writePos, colors_sRGBToLogLuv32(result.transmittance));
+    }
 }

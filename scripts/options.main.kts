@@ -1689,16 +1689,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Atmosphere"
                 }
             }
+            toggle("SETTING_DEBUG_SKY_VIEW_LUT", false) {
+                lang {
+                    name = "Sky View LUT"
+                }
+            }
+            toggle("SETTING_DEBUG_EPIPOLAR_LINES", false) {
+                lang {
+                    name = "Epipolar Lines"
+                }
+            }
             toggle("SETTING_DEBUG_CLOUDS", false) {
                 lang {
                     name = "Clouds"
                 }
             }
-            toggle("SETTING_DEBUG_EPIPOLAR", false) {
-                lang {
-                    name = "Epipolar"
-                }
-            }
+            empty()
+            empty()
+            empty()
+            empty()
+            empty()
             toggle("SETTING_DEBUG_STARMAP", false) {
                 lang {
                     name = "Star Map"

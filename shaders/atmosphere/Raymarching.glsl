@@ -16,6 +16,13 @@ MultiScatteringResult raymarchMultiScattering(
     float stepJitter
 );
 
+//MultiScatteringResult raymarchSkySingle(
+//    AtmosphereParameters atmosphere,
+//    RaymarchParameters params,
+//    LightParameters lightParams,
+//    float stepJitter
+//);
+
 ScatteringResult raymarchSky(
     AtmosphereParameters atmosphere,
     RaymarchParameters params,
@@ -43,14 +50,20 @@ ScatteringResult raymarchAerialPerspective(
 #undef ATMOSPHERE_RAYMARCHING_FUNC_TYPE
 #endif
 
-#ifdef ATMOSPHERE_RAYMARCHING_SKY
+#ifdef ATMOSPHERE_RAYMARCHING_SKY_SINGLE
 #define ATMOSPHERE_RAYMARCHING_FUNC_TYPE 2
 #include "RaymarchingFunc.glsl"
 #undef ATMOSPHERE_RAYMARCHING_FUNC_TYPE
 #endif
 
-#ifdef ATMOSPHERE_RAYMARCHING_AERIAL_PERSPECTIVE
+#ifdef ATMOSPHERE_RAYMARCHING_SKY
 #define ATMOSPHERE_RAYMARCHING_FUNC_TYPE 3
+#include "RaymarchingFunc.glsl"
+#undef ATMOSPHERE_RAYMARCHING_FUNC_TYPE
+#endif
+
+#ifdef ATMOSPHERE_RAYMARCHING_AERIAL_PERSPECTIVE
+#define ATMOSPHERE_RAYMARCHING_FUNC_TYPE 4
 #include "RaymarchingFunc.glsl"
 #undef ATMOSPHERE_RAYMARCHING_FUNC_TYPE
 #endif
