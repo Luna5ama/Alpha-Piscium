@@ -36,6 +36,24 @@ vec4 sampling_catmullRomWeights(float t) {
     );
 }
 
+vec4 _sampling_sincn(vec4 x) {
+    return mix(vec4(1.0), sin(PI * x) / (PI * x), greaterThan(abs(x), vec4(0.001)));
+}
+
+vec4 _sampling_lanczoc2(vec4 x) {
+//    x = clamp(x, -2.0, 2.0);
+//    return _sampling_sincn(x) * _sampling_sincn(0.5 * x);
+    vec4 x2 = x * x;
+    vec4 a = (2.0 / 5.0) * x2 - 1.0;
+    vec4 b = (1.0 / 4.0) * x2 - 1.0;
+    return ((25.0 / 16.0) * a * a - (25.0 / 16.0 - 1.0)) * (b * b);
+}
+
+vec4 sampling_lanczoc2Weights(float t) {
+    vec4 x = vec4(t) + vec4(1.0, 0.0, -1.0, -2.0);
+    return _sampling_lanczoc2(x);
+}
+
 #if DERIVATIVE_AVAILABLE
 // [QUI17]
 vec3 sampling_textureRepeatGrad(sampler2D t, vec2 uv, float v ) {

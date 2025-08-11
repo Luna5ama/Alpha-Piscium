@@ -5,7 +5,7 @@
 #include "/util/Rand.glsl"
 #include "/textile/CSRGBA32UI.glsl"
 
-#define UPSCALE_FACTOR 8
+#define UPSCALE_FACTOR 2
 
 #if UPSCALE_FACTOR == 1
 ivec2 renderSize = global_mipmapSizesI[0];
@@ -33,11 +33,10 @@ vec2 getTexelPos1x1(ivec2 texelPosDownScale) {
     vec2 texelPos1x1F = vec2(texelPosDownScale * UPSCALE_FACTOR);
     vec2 offset = rand_r2Seq2(frameCounter);
     offset *= UPSCALE_FACTOR;
-    offset = mod(offset, vec2(UPSCALE_FACTOR));
     return clamp(texelPos1x1F + offset, vec2(0.5), global_mainImageSize - 0.5);
 }
 
-#define CLOUDS_SS_MAX_ACCUM 2
+#define CLOUDS_SS_MAX_ACCUM 16
 
 struct CloudSSHistoryData {
     vec3 inScattering;

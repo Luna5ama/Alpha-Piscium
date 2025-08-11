@@ -39,8 +39,6 @@ void render(ivec2 texelPosDownScale) {
     {
         vec3 rayDir = viewDirWorld;
         if (endView.z == -65536.0) {
-            mainRayParams.rayStart.y = max(mainRayParams.rayStart.y, atmosphere.bottom + 0.5);
-
             // Check if ray origin is outside the atmosphere
             if (length(mainRayParams.rayStart) > atmosphere.top) {
                 float tTop = raySphereIntersectNearest(mainRayParams.rayStart, rayDir, earthCenter, atmosphere.top);
@@ -116,6 +114,7 @@ void render(ivec2 texelPosDownScale) {
                 SETTING_CLOUDS_LOW_STEP_MAX,
                 pow(1.0 - abs(mainRayParams.rayDir.y), SETTING_CLOUDS_LOW_STEP_CURVE)
             );
+            cuRaySteps = 64.0;
             cuRaySteps = round(cuRaySteps);
 
             #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 4
@@ -146,6 +145,7 @@ void render(ivec2 texelPosDownScale) {
                 float heightFraction = linearStep(cuMinHeight, cuMaxHeight, stepState.height);
                 float sampleDensity = 0.0;
                 if (clouds_cu_density(stepState.position.xyz, heightFraction, sampleDensity)) {
+                    accumState.viewZ = min(cuOrigin2RayStart + stepState.position.w, accumState.viewZ);
                     sampleDensity *= CLOUDS_CU_DENSITY;
 
                     float lightRayTotalDensity = 0.0;
