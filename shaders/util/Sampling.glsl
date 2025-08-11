@@ -41,12 +41,8 @@ vec4 _sampling_sincn(vec4 x) {
 }
 
 vec4 _sampling_lanczoc2(vec4 x) {
-//    x = clamp(x, -2.0, 2.0);
-//    return _sampling_sincn(x) * _sampling_sincn(0.5 * x);
-    vec4 x2 = x * x;
-    vec4 a = (2.0 / 5.0) * x2 - 1.0;
-    vec4 b = (1.0 / 4.0) * x2 - 1.0;
-    return ((25.0 / 16.0) * a * a - (25.0 / 16.0 - 1.0)) * (b * b);
+    x = clamp(x, -2.0, 2.0);
+    return _sampling_sincn(x) * _sampling_sincn(0.5 * x);
 }
 
 vec4 sampling_lanczoc2Weights(float t) {
