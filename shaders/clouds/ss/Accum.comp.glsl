@@ -71,23 +71,12 @@ Vec4PackedData loadPrevData(ivec2 texelPos) {
     return vec4PackedData_fromHistoryData(historyData);
 }
 
-void loadAndAccumData(Vec4PackedData sampleData, float sampleWeight, inout Vec4PackedData prevSumData, inout float weightSum) {
-    prevSumData = vec4PackedData_add(prevSumData, vec4PackedData_mul(sampleData, sampleWeight));
-    weightSum += sampleWeight;
-}
-
-void loadAndAccumCurr(ivec2 prevSampleTexelPos, float sampleWeight, inout Vec4PackedData prevSumData, inout float weightSum) {
-    loadAndAccumData(loadCurrData(prevSampleTexelPos), sampleWeight, prevSumData, weightSum);
-}
-
-void loadAndAccumPrev(ivec2 prevSampleTexelPos, float sampleWeight, inout Vec4PackedData prevSumData, inout float weightSum) {
-    loadAndAccumData(loadPrevData(prevSampleTexelPos), sampleWeight, prevSumData, weightSum);
-}
-
 const float WEIGHT_EPSILON = 0.0001;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+    float B = 0.0;
+    float C = 1.0;
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec2 texelCenter = vec2(texelPos) + 0.5;
@@ -96,53 +85,27 @@ void main() {
 
         Vec4PackedData currSumData = vec4PackedData_init();
         {
-            float currWeightSum = 0.0;
             vec2 centerTexel = texelCenter / UPSCALE_FACTOR;
             centerTexel -= clouds_ss_upscaleoffset() - 0.5;
             vec2 centerPixel = centerTexel - 0.5;
             vec2 centerPixelOrigin = floor(centerPixel);
             vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
-//            vec4 weightX = sampling_catmullRomWeights(pixelPosFract.x);
-//            vec4 weightY = sampling_catmullRomWeights(pixelPosFract.y);
-
-            vec4 weightX = sampling_lanczoc2Weights(pixelPosFract.x);
-            vec4 weightY = sampling_lanczoc2Weights(pixelPosFract.y);
+            vec4 weightX = sampling_mitchellNetravaliWeights(pixelPosFract.x, B, C);
+            vec4 weightY = sampling_mitchellNetravaliWeights(pixelPosFract.y, B, C);
 
             ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
-
-            Vec4PackedData prevSumData = vec4PackedData_init();
-            float prevWeightSum = 0.0;
-            vec4 weights4 = weightX.xyyx * weightY.wwzz;
-            loadAndAccumCurr(gatherTexelPos + ivec2(-2, 1), weights4.x, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(-1, 1), weights4.y, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(-1, 0), weights4.z, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(-2, 0), weights4.w, currSumData, currWeightSum);
-
-            weights4 = weightX.zwwz * weightY.wwzz;
-            loadAndAccumCurr(gatherTexelPos + ivec2(0, 1), weights4.x, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(1, 1), weights4.y, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(1, 0), weights4.z, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(0, 0), weights4.w, currSumData, currWeightSum);
-
-            weights4 = weightX.zwwz * weightY.yyxx;
-            loadAndAccumCurr(gatherTexelPos + ivec2(0, -1), weights4.x, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(1, -1), weights4.y, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(1, -2), weights4.z, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(0, -2), weights4.w, currSumData, currWeightSum);
-
-            weights4 = weightX.xyyx * weightY.yyxx;
-            loadAndAccumCurr(gatherTexelPos + ivec2(-2, -1), weights4.x, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(-1, -1), weights4.y, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(-1, -2), weights4.z, currSumData, currWeightSum);
-            loadAndAccumCurr(gatherTexelPos + ivec2(-2, -2), weights4.w, currSumData, currWeightSum);
-
-            currSumData = vec4PackedData_mul(currSumData, rcp(currWeightSum));
+            for (int iy = 0; iy < 4; ++iy) {
+                for (int ix = 0; ix < 4; ++ix) {
+                    ivec2 offset = ivec2(ix, iy) - 2;
+                    currSumData = vec4PackedData_add(currSumData, vec4PackedData_mul(loadCurrData(gatherTexelPos + offset), weightX[ix] * weightY[iy]));
+                }
+            }
         }
 
         float averageViewZ = currSumData.inScatteringViewZ.w;
         averageViewZ = 65.536;
-        averageViewZ *= -1000.0; // Convert to meters
+        averageViewZ *= -1000.0;// Convert to meters
         vec3 currView = coords_toViewCoord(uv, averageViewZ, global_camProjInverse);
         vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
         vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene);
@@ -161,48 +124,22 @@ void main() {
             vec2 centerPixelOrigin = floor(centerPixel);
             vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
-//            vec4 weightX = sampling_catmullRomWeights(pixelPosFract.x);
-//            vec4 weightY = sampling_catmullRomWeights(pixelPosFract.y);
-
-            vec4 weightX = sampling_lanczoc2Weights(pixelPosFract.x);
-            vec4 weightY = sampling_lanczoc2Weights(pixelPosFract.y);
+            vec4 weightX = sampling_mitchellNetravaliWeights(pixelPosFract.x, B, C);
+            vec4 weightY = sampling_mitchellNetravaliWeights(pixelPosFract.y, B, C);
 
             ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
-
-            Vec4PackedData prevSumData = vec4PackedData_init();
-            float prevWeightSum = 0.0;
-            vec4 weights4 = weightX.xyyx * weightY.wwzz;
-            loadAndAccumPrev(gatherTexelPos + ivec2(-2, 1), weights4.x, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(-1, 1), weights4.y, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(-1, 0), weights4.z, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(-2, 0), weights4.w, prevSumData, prevWeightSum);
-
-            weights4 = weightX.zwwz * weightY.wwzz;
-            loadAndAccumPrev(gatherTexelPos + ivec2(0, 1), weights4.x, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(1, 1), weights4.y, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(1, 0), weights4.z, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(0, 0), weights4.w, prevSumData, prevWeightSum);
-
-            weights4 = weightX.zwwz * weightY.yyxx;
-            loadAndAccumPrev(gatherTexelPos + ivec2(0, -1), weights4.x, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(1, -1), weights4.y, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(1, -2), weights4.z, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(0, -2), weights4.w, prevSumData, prevWeightSum);
-
-            weights4 = weightX.xyyx * weightY.yyxx;
-            loadAndAccumPrev(gatherTexelPos + ivec2(-2, -1), weights4.x, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(-1, -1), weights4.y, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(-1, -2), weights4.z, prevSumData, prevWeightSum);
-            loadAndAccumPrev(gatherTexelPos + ivec2(-2, -2), weights4.w, prevSumData, prevWeightSum);
-
-            if (prevWeightSum > WEIGHT_EPSILON) {
-                prevAvgData = vec4PackedData_mul(prevSumData, rcp(prevWeightSum));
-                vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevAvgData.inScatteringViewZ.w * -1000.0, global_prevCamProjInverse);
-                vec4 prevScene = gbufferPrevModelViewInverse * vec4(prevView, 1.0);
-                vec4 prev2CurrScene = coord_scenePrevToCurr(prevScene);
-                vec4 prev2CurrView = gbufferModelView * prev2CurrScene;
-                prevAvgData.inScatteringViewZ.w = prev2CurrView.z / -1000.0;
+            for (int iy = 0; iy < 4; ++iy) {
+                for (int ix = 0; ix < 4; ++ix) {
+                    ivec2 offset = ivec2(ix, iy) - 2;
+                    prevAvgData = vec4PackedData_add(prevAvgData, vec4PackedData_mul(loadPrevData(gatherTexelPos + offset), weightX[ix] * weightY[iy]));
+                }
             }
+
+            vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevAvgData.inScatteringViewZ.w * -1000.0, global_prevCamProjInverse);
+            vec4 prevScene = gbufferPrevModelViewInverse * vec4(prevView, 1.0);
+            vec4 prev2CurrScene = coord_scenePrevToCurr(prevScene);
+            vec4 prev2CurrView = gbufferModelView * prev2CurrScene;
+            prevAvgData.inScatteringViewZ.w = prev2CurrView.z / -1000.0;
         }
 
         float currWeight = currSumData.transmittanceHLen.w;
