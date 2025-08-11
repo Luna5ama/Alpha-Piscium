@@ -89,8 +89,8 @@ void render(ivec2 texelPosDownScale) {
     CloudRaymarchAccumState accumState = clouds_raymarchAccumState_init();
     accumState.viewZ = maxRayLen;
 
-    vec3 viewDir = -mainRayParams.rayDir;
-    vec2 jitters = rand_stbnVec2(ivec2(texelPosF), frameCounter);
+    vec2 jitters = rand_stbnVec2(texelPosDownScale, frameCounter);
+    vec3 viewDir = mainRayParams.rayDir;
     vec2 ambLutUV = cloods_amblut_uv(viewDir, jitters);
 
     {

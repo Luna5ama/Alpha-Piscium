@@ -117,8 +117,8 @@ void main() {
         Vec4PackedData currSumData = vec4PackedData_init();
         {
             float currWeightSum = 0.0;
-            vec2 centerTexel = texelCenter / vec2(UPSCALE_FACTOR);
-            centerTexel -= rand_r2Seq2(frameCounter);
+            vec2 centerTexel = (texelCenter) / vec2(UPSCALE_FACTOR);
+            centerTexel -= rand_r2Seq2(frameCounter) - 0.5;
             vec2 centerPixel = centerTexel - 0.5;
             vec2 centerPixelOrigin = floor(centerPixel);
             vec2 pixelPosFract = centerPixel - centerPixelOrigin;
