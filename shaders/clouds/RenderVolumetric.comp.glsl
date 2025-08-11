@@ -13,6 +13,8 @@ const vec2 workGroupsRender = vec2(RENDER_MULTIPLIER, RENDER_MULTIPLIER);
 
 layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
 
+const float TRANSMITTANCE_EPSILON = 0.01;
+
 void render(ivec2 texelPosDownScale) {
     vec2 texelPosF = clouds_ss_upscaledTexelCenter(texelPosDownScale);
     float viewZ = -65536.0;
@@ -180,6 +182,10 @@ void render(ivec2 texelPosDownScale) {
                         lightRayTransmittance,
                         cuAccum
                     );
+                }
+
+                if (cuAccum.totalTransmittance.y < TRANSMITTANCE_EPSILON) {
+                    break;
                 }
 
                 clouds_raymarchStepState_update(stepState);
