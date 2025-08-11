@@ -119,8 +119,6 @@ void render(ivec2 texelPosDownScale) {
             cuRaySteps = 64.0;
             cuRaySteps = round(cuRaySteps);
 
-            #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 4
-            #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
             #define CLOUDS_CU_DENSITY (72.0 * SETTING_CLOUDS_CU_DENSITY)
 
             float cuRayLen = inLayer ? (cuRayLenBot > 0.0 ? cuRayLenBot : min(cuRayLenTop, cuOrigin2RayStart + cuRaySteps)) : max(cuRayLenBot, cuRayLenTop);
@@ -150,23 +148,30 @@ void render(ivec2 texelPosDownScale) {
                     accumState.viewZ = min(cuOrigin2RayStart + stepState.position.w, accumState.viewZ);
                     sampleDensity *= CLOUDS_CU_DENSITY;
 
+                    #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 8
+                    #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
+                    const float C = 0.5 * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
+
                     float lightRayTotalDensity = 0.0;
                     {
-                        float lightRayLen = 0.5;
-                        float lightRayStepLength = lightRayLen * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
-                        vec3 lightRayPos = stepState.position.xyz;
+                        float lightRayLen = SETTING_CLOUDS_CU_THICKNESS * 2.0;
+                        vec3 lightRayTotalDelta = renderParams.lightDir * lightRayLen;
                         for (uint lightStepIndex = 0; lightStepIndex < CLOUDS_CU_LIGHT_RAYMARCH_STEP; ++lightStepIndex) {
-                            vec3 lightRayStepDelta = lightRayStepLength * renderParams.lightDir;
-                            lightRayPos += lightRayStepDelta;
-                            vec3 lightRaySamplePos = lightRayPos + lightRayStepDelta * (jitters.y - 0.5);
+                            // Use x^2 curve to distribute more samples near the starting point
+                            float indexF = float(lightStepIndex);
+                            float x = (indexF + jitters.y) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
+                            vec3 lightRaySamplePos = stepState.position.xyz + lightRayTotalDelta * pow2(x);
+
                             float lightSampleHeight = length(lightRaySamplePos);
                             if (lightSampleHeight > cuMaxHeight) break;
                             float lightHeightFraction = linearStep(cuMinHeight, cuMaxHeight, lightSampleHeight);
                             float lightSampleDensity = 0.0;
                             if (clouds_cu_density(lightRaySamplePos, lightHeightFraction, lightSampleDensity)) {
+                                // (x + c)^2 - (x - c)^2 = 4xc
+                                float x = (indexF + 0.5) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
+                                float lightRayStepLength = 4.0 * x * C * lightRayLen;
                                 lightRayTotalDensity += lightSampleDensity * lightRayStepLength;
                             }
-                            lightRayStepLength *= 1.5;
                         }
                     }
                     lightRayTotalDensity *= CLOUDS_CU_DENSITY;
