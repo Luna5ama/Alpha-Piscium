@@ -5,29 +5,44 @@
 #include "/util/Rand.glsl"
 #include "/textile/CSRGBA32UI.glsl"
 
-#define UPSCALE_FACTOR 2
-
-#if UPSCALE_FACTOR == 1
-ivec2 renderSize = global_mipmapSizesI[0];
+#if SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 0
+#define UPSCALE_FACTOR 1.0
+#define DOWNSCALE_DIVIDE(x) x
 #define RENDER_MULTIPLIER 1.0
-#define UPSCALE_BLOCK_SIZE 1
 
-#elif UPSCALE_FACTOR == 2
-ivec2 renderSize = global_mipmapSizesI[1];
-#define UPSCALE_BLOCK_SIZE 4
+#elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 1
+#define UPSCALE_FACTOR 1.5
+#define DOWNSCALE_DIVIDE(x) (x * 2 / 3)
+#define RENDER_MULTIPLIER 0.6666666667
+
+#elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 2
+#define UPSCALE_FACTOR 2.0
+#define DOWNSCALE_DIVIDE(x) (x / 2)
 #define RENDER_MULTIPLIER 0.5
 
-#elif UPSCALE_FACTOR == 4
-ivec2 renderSize = global_mipmapSizesI[2];
-#define UPSCALE_BLOCK_SIZE 16
+#elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 3
+#define UPSCALE_FACTOR 2.5
+#define DOWNSCALE_DIVIDE(x) (x * 2 / 5)
+#define RENDER_MULTIPLIER 0.4
+
+#elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 4
+#define UPSCALE_FACTOR 3.0
+#define DOWNSCALE_DIVIDE(x) (x / 3)
+#define RENDER_MULTIPLIER 0.3333333333
+
+#elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 5
+#define UPSCALE_FACTOR 3.5
+#define DOWNSCALE_DIVIDE(x) (x * 2 / 7)
+#define RENDER_MULTIPLIER 0.2857142857
+
+#elif SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 6
+#define UPSCALE_FACTOR 4.0
+#define DOWNSCALE_DIVIDE(x) (x / 4)
 #define RENDER_MULTIPLIER 0.25
 
-#elif UPSCALE_FACTOR == 8
-ivec2 renderSize = global_mipmapSizesI[3];
-#define UPSCALE_BLOCK_SIZE 64
-#define RENDER_MULTIPLIER 0.125
-
 #endif
+
+ivec2 renderSize = DOWNSCALE_DIVIDE(global_mainImageSizeI);
 
 vec2 getTexelPos1x1(ivec2 texelPosDownScale) {
     vec2 texelPos1x1F = vec2(texelPosDownScale * UPSCALE_FACTOR);
@@ -36,7 +51,7 @@ vec2 getTexelPos1x1(ivec2 texelPosDownScale) {
     return clamp(texelPos1x1F + offset, vec2(0.5), global_mainImageSize - 0.5);
 }
 
-#define CLOUDS_SS_MAX_ACCUM 16
+#define CLOUDS_SS_MAX_ACCUM SETTING_CLOUDS_LOW_MAX_ACCUM
 
 struct CloudSSHistoryData {
     vec3 inScattering;

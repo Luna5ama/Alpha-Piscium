@@ -59,6 +59,7 @@ Vec4PackedData vec4PackData_clamp(Vec4PackedData data, Vec4PackedData minVal, Ve
 }
 
 Vec4PackedData loadCurrData(ivec2 texelPosD) {
+    texelPosD = clamp(texelPosD, ivec2(0), renderSize - 1);
     CloudSSHistoryData historyData = clouds_ss_historyData_init();
     clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, gi_diffuseHistory_texelToTexel(texelPosD), 0), historyData);
     return vec4PackedData_fromHistoryData(historyData);
@@ -68,27 +69,6 @@ Vec4PackedData loadPrevData(ivec2 texelPos) {
     CloudSSHistoryData historyData = clouds_ss_historyData_init();
     clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), 0), historyData);
     return vec4PackedData_fromHistoryData(historyData);
-}
-
-float computeSampleWeight(vec2 centerTexelCenter, ivec2 sampleTexelPosD) {
-    const float DISTANCE_FACTOR = 0.005 * float(UPSCALE_FACTOR);
-    vec2 sampleTexelPos1x1 = getTexelPos1x1(sampleTexelPosD);
-    vec2 texelPosDiff = sampleTexelPos1x1 - centerTexelCenter;
-    float sampleDist = dot(texelPosDiff, texelPosDiff);
-    return DISTANCE_FACTOR / (DISTANCE_FACTOR + sampleDist);
-}
-
-void accumSample(Vec4PackedData sampleData, float sampleWeight, inout Vec4PackedData sumData) {
-    sumData = vec4PackedData_add(sumData, vec4PackedData_mul(sampleData, sampleWeight));
-}
-
-void loadAndAccumCurr(vec2 centerTexelCenter, ivec2 centerTexelPosD, ivec2 offset, inout Vec4PackedData sumData) {
-    ivec2 neighborTexelPosD = centerTexelPosD + offset;
-    if (all(lessThan(neighborTexelPosD, renderSize))) {
-        Vec4PackedData sampleData = loadCurrData(neighborTexelPosD);
-        float sampleWeight = computeSampleWeight(centerTexelCenter, neighborTexelPosD);
-        accumSample(sampleData, sampleWeight, sumData);
-    }
 }
 
 void loadAndAccumData(Vec4PackedData sampleData, float sampleWeight, inout Vec4PackedData prevSumData, inout float weightSum) {
@@ -112,12 +92,12 @@ void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec2 texelCenter = vec2(texelPos) + 0.5;
         vec2 uv = texelCenter * global_mainImageSizeRcp;
-        ivec2 texelPosDownScale = texelPos / UPSCALE_FACTOR;
+        ivec2 texelPosDownScale = DOWNSCALE_DIVIDE(texelPos);
 
         Vec4PackedData currSumData = vec4PackedData_init();
         {
             float currWeightSum = 0.0;
-            vec2 centerTexel = (texelCenter) / vec2(UPSCALE_FACTOR);
+            vec2 centerTexel = texelCenter / UPSCALE_FACTOR;
             centerTexel -= rand_r2Seq2(frameCounter) - 0.5;
             vec2 centerPixel = centerTexel - 0.5;
             vec2 centerPixelOrigin = floor(centerPixel);
