@@ -18,7 +18,7 @@
 #define _CLOUDS_AMBLUT_SIZE_LAYERS_RCP rcp(_CLOUDS_AMBLUT_SIZE_LAYERS)
 
 vec2 cloods_amblut_uv(vec3 viewDir, vec2 jitter) {
-    vec2 uv = coords_equirectanglarForwardHorizonBoost(viewDir);
+    vec2 uv = coords_equirectanglarForward(viewDir);
     uv += (jitter - 0.5) * _CLOUDS_AMBLUT_SIZE_RCP;
     uv = fract(uv);
     return uv;

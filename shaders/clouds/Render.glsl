@@ -79,7 +79,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     CloudRaymarchAccumState accumState = clouds_raymarchAccumState_init();
 
     vec2 jitters = rand_stbnVec2(texelPos, frameCounter);
-    vec3 viewDir = -mainRayParams.rayDir;
+    vec3 viewDir = mainRayParams.rayDir;
     vec2 ambLutUV = cloods_amblut_uv(viewDir, jitters);
 
     #ifdef SETTING_CLOUDS_CU
