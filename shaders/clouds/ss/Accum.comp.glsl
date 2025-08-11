@@ -75,15 +75,13 @@ const float WEIGHT_EPSILON = 0.0001;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-    float B = 0.0;
-    float C = 1.0;
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec2 texelCenter = vec2(texelPos) + 0.5;
         vec2 uv = texelCenter * global_mainImageSizeRcp;
         ivec2 texelPosDownScale = DOWNSCALE_DIVIDE(texelPos);
 
-        Vec4PackedData currSumData = vec4PackedData_init();
+        Vec4PackedData currAvgData = vec4PackedData_init();
         {
             vec2 centerTexel = texelCenter / UPSCALE_FACTOR;
             centerTexel -= clouds_ss_upscaleoffset() - 0.5;
@@ -91,19 +89,26 @@ void main() {
             vec2 centerPixelOrigin = floor(centerPixel);
             vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
+            float B = 0.0;
+            float C = 1.0;
             vec4 weightX = sampling_mitchellNetravaliWeights(pixelPosFract.x, B, C);
             vec4 weightY = sampling_mitchellNetravaliWeights(pixelPosFract.y, B, C);
+            float maxWeight = 0.0;
 
             ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
             for (int iy = 0; iy < 4; ++iy) {
                 for (int ix = 0; ix < 4; ++ix) {
                     ivec2 offset = ivec2(ix, iy) - 2;
-                    currSumData = vec4PackedData_add(currSumData, vec4PackedData_mul(loadCurrData(gatherTexelPos + offset), weightX[ix] * weightY[iy]));
+                    Vec4PackedData sampleData = loadCurrData(gatherTexelPos + offset);
+                    float weight = weightX[ix] * weightY[iy];
+                    maxWeight = max(maxWeight, weight);
+                    currAvgData = vec4PackedData_add(currAvgData, vec4PackedData_mul(sampleData, weight));
                 }
             }
+            currAvgData.transmittanceHLen.w = pow2(maxWeight);
         }
 
-        float averageViewZ = currSumData.inScatteringViewZ.w;
+        float averageViewZ = currAvgData.inScatteringViewZ.w;
         averageViewZ = 65.536;
         averageViewZ *= -1000.0;// Convert to meters
         vec3 currView = coords_toViewCoord(uv, averageViewZ, global_camProjInverse);
@@ -124,6 +129,8 @@ void main() {
             vec2 centerPixelOrigin = floor(centerPixel);
             vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
+            float B = 0.0;
+            float C = 0.5;
             vec4 weightX = sampling_mitchellNetravaliWeights(pixelPosFract.x, B, C);
             vec4 weightY = sampling_mitchellNetravaliWeights(pixelPosFract.y, B, C);
 
@@ -131,7 +138,9 @@ void main() {
             for (int iy = 0; iy < 4; ++iy) {
                 for (int ix = 0; ix < 4; ++ix) {
                     ivec2 offset = ivec2(ix, iy) - 2;
-                    prevAvgData = vec4PackedData_add(prevAvgData, vec4PackedData_mul(loadPrevData(gatherTexelPos + offset), weightX[ix] * weightY[iy]));
+                    Vec4PackedData sampleData = loadPrevData(gatherTexelPos + offset);
+                    float weight = weightX[ix] * weightY[iy];
+                    prevAvgData = vec4PackedData_add(prevAvgData, vec4PackedData_mul(sampleData, weight));
                 }
             }
 
@@ -142,25 +151,24 @@ void main() {
             prevAvgData.inScatteringViewZ.w = prev2CurrView.z / -1000.0;
         }
 
-        float currWeight = currSumData.transmittanceHLen.w;
+        float prevWeight = prevAvgData.transmittanceHLen.w;
+        float currWeight = currAvgData.transmittanceHLen.w;
+        float newWeight = min(currWeight + prevWeight, CLOUDS_SS_MAX_ACCUM);
 
-        CloudSSHistoryData newData = vec4PackedData_toHistoryData(prevAvgData);
-        newData.hLen = min(prevAvgData.transmittanceHLen.w + currWeight, CLOUDS_SS_MAX_ACCUM);
-        if (newData.hLen > WEIGHT_EPSILON) {
-            Vec4PackedData currAvgData = prevAvgData;
-            currAvgData = vec4PackedData_mul(currSumData, rcp(currWeight));
+        Vec4PackedData newData = prevAvgData;
+        newData.transmittanceHLen.w = newWeight;
 
-            float alpha = saturate(currWeight / newData.hLen);
-            newData.inScattering = mix(newData.inScattering, currAvgData.inScatteringViewZ.xyz, alpha);
-            newData.transmittance = mix(newData.transmittance, currAvgData.transmittanceHLen.xyz, alpha);
-            newData.viewZ = mix(newData.viewZ, currAvgData.inScatteringViewZ.w, alpha);
-            newData.inScattering = max(newData.inScattering, vec3(0.0));
-            newData.transmittance = saturate(newData.transmittance);
-            newData.viewZ = max(newData.viewZ, 0.0);
-        }
+        float alpha = saturate(currWeight / newWeight);
+        newData.inScatteringViewZ = mix(newData.inScatteringViewZ, currAvgData.inScatteringViewZ, alpha);
+        newData.transmittanceHLen.xyz = mix(newData.transmittanceHLen.xyz, currAvgData.transmittanceHLen.xyz, alpha);
+
+        CloudSSHistoryData newHistoryData = vec4PackedData_toHistoryData(newData);
+        newHistoryData.inScattering = max(newHistoryData.inScattering, vec3(0.0));
+        newHistoryData.transmittance = saturate(newHistoryData.transmittance);
+        newHistoryData.viewZ = max(newHistoryData.viewZ, 0.0);
 
         uvec4 packedOutput = uvec4(0u);
-        clouds_ss_historyData_pack(packedOutput, newData);
+        clouds_ss_historyData_pack(packedOutput, newHistoryData);
         imageStore(uimg_tempRGBA32UI, texelPos, packedOutput);
     }
 }
