@@ -85,21 +85,32 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
 
     #ifdef SETTING_CLOUDS_CU
     {
-        CloudSSHistoryData historyData = clouds_ss_historyData_init();
-        clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), 0), historyData);
-
         float cuHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
         float cuMinHeight = cuHeight - SETTING_CLOUDS_CU_THICKNESS * 0.5;
         float cuMaxHeight = cuHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
         float cuHeightDiff = cuHeight - mainRayParams.rayStartHeight;
 
-        float aboveFlag = float(cuHeightDiff < 0.0);
-        accumState.totalInSctr = mix(
-            accumState.totalInSctr + historyData.inScattering * accumState.totalTransmittance, // Below
-            accumState.totalInSctr * historyData.transmittance + historyData.inScattering, // Above
-            aboveFlag
-        );
-        accumState.totalTransmittance *= historyData.transmittance;
+        float cuRayLenBot = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMinHeight);
+        float cuRayLenTop = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMaxHeight);
+
+        bool inLayer = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5;
+        float cuOrigin2RayStart = inLayer ? 0.0 : min(cuRayLenBot, cuRayLenTop);
+
+        uint cuFlag = uint(sign(cuHeightDiff) == sign(mainRayParams.rayDir.y)) | uint(inLayer);
+        cuFlag &= uint(cuOrigin2RayStart >= 0.0);
+
+        if (bool(cuFlag)) {
+            CloudSSHistoryData historyData = clouds_ss_historyData_init();
+            clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), 0), historyData);
+
+            float aboveFlag = float(cuHeightDiff < 0.0);
+            accumState.totalInSctr = mix(
+                accumState.totalInSctr + historyData.inScattering * accumState.totalTransmittance, // Below
+                accumState.totalInSctr * historyData.transmittance + historyData.inScattering, // Above
+                aboveFlag
+            );
+            accumState.totalTransmittance *= historyData.transmittance;
+        }
     }
     #endif
 
