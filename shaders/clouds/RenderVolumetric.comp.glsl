@@ -14,7 +14,7 @@ const vec2 workGroupsRender = vec2(RENDER_MULTIPLIER, RENDER_MULTIPLIER);
 layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
 
 void render(ivec2 texelPosDownScale) {
-    vec2 texelPosF = getTexelPos1x1(texelPosDownScale);
+    vec2 texelPosF = clouds_ss_upscaledTexelCenter(texelPosDownScale);
     float viewZ = -65536.0;
 
     vec2 screenPos = texelPosF * global_mainImageSizeRcp;

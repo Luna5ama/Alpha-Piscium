@@ -98,7 +98,7 @@ void main() {
         {
             float currWeightSum = 0.0;
             vec2 centerTexel = texelCenter / UPSCALE_FACTOR;
-            centerTexel -= rand_r2Seq2(frameCounter) - 0.5;
+            centerTexel -= clouds_ss_upscaleoffset() - 0.5;
             vec2 centerPixel = centerTexel - 0.5;
             vec2 centerPixelOrigin = floor(centerPixel);
             vec2 pixelPosFract = centerPixel - centerPixelOrigin;
@@ -150,7 +150,6 @@ void main() {
         vec4 curr2PrevClip = global_prevCamProj * curr2PrevView;
         uint clipFlag = uint(curr2PrevClip.z > 0.0);
         clipFlag &= uint(all(lessThan(abs(curr2PrevClip.xy), curr2PrevClip.ww)));
-//        clipFlag = 0u;
 
         Vec4PackedData prevAvgData = vec4PackedData_init();
         if (bool(clipFlag)) {
