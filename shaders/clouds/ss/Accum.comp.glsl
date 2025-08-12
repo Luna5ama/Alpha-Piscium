@@ -10,28 +10,27 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_tempRGBA32UI;
 
 struct Vec4PackedData {
-    vec4 inScatteringViewZ;
     vec4 transmittanceHLen;
+    vec3 inScattering;
 };
 
 Vec4PackedData vec4PackedData_init() {
     Vec4PackedData data;
-    data.inScatteringViewZ = vec4(0.0);
+    data.inScattering = vec3(0.0);
     data.transmittanceHLen = vec4(0.0);
     return data;
 }
 
 Vec4PackedData vec4PackedData_fromHistoryData(CloudSSHistoryData historyData) {
     Vec4PackedData data;
-    data.inScatteringViewZ = vec4(historyData.inScattering, historyData.viewZ);
+    data.inScattering = historyData.inScattering;
     data.transmittanceHLen = vec4(historyData.transmittance, historyData.hLen);
     return data;
 }
 
 CloudSSHistoryData vec4PackedData_toHistoryData(Vec4PackedData packedData) {
     CloudSSHistoryData historyData = clouds_ss_historyData_init();
-    historyData.inScattering = packedData.inScatteringViewZ.rgb;
-    historyData.viewZ = packedData.inScatteringViewZ.a;
+    historyData.inScattering = packedData.inScattering;
     historyData.transmittance = packedData.transmittanceHLen.rgb;
     historyData.hLen = packedData.transmittanceHLen.a;
     return historyData;
@@ -39,21 +38,21 @@ CloudSSHistoryData vec4PackedData_toHistoryData(Vec4PackedData packedData) {
 
 Vec4PackedData vec4PackedData_mul(Vec4PackedData a, float b) {
     Vec4PackedData result;
-    result.inScatteringViewZ = a.inScatteringViewZ * b;
+    result.inScattering = a.inScattering * b;
     result.transmittanceHLen = a.transmittanceHLen * b;
     return result;
 }
 
 Vec4PackedData vec4PackedData_add(Vec4PackedData a, Vec4PackedData b) {
     Vec4PackedData result;
-    result.inScatteringViewZ = a.inScatteringViewZ + b.inScatteringViewZ;
+    result.inScattering = a.inScattering + b.inScattering;
     result.transmittanceHLen = a.transmittanceHLen + b.transmittanceHLen;
     return result;
 }
 
 Vec4PackedData vec4PackData_clamp(Vec4PackedData data, Vec4PackedData minVal, Vec4PackedData maxVal) {
     Vec4PackedData result;
-    result.inScatteringViewZ = clamp(data.inScatteringViewZ, minVal.inScatteringViewZ, maxVal.inScatteringViewZ);
+    result.inScattering = clamp(data.inScattering, minVal.inScattering, maxVal.inScattering);
     result.transmittanceHLen.xyz = clamp(data.transmittanceHLen.xyz, minVal.transmittanceHLen.xyz, maxVal.transmittanceHLen.xyz);
     return result;
 }
@@ -108,7 +107,7 @@ void main() {
                     maxWeight = max(maxWeight, weight);
                     currAvgData = vec4PackedData_add(currAvgData, vec4PackedData_mul(sampleData, weight));
 
-                    vec3 inSctrYCoCg = colors_SRGBToYCoCg(sampleData.inScatteringViewZ.rgb);
+                    vec3 inSctrYCoCg = colors_SRGBToYCoCg(sampleData.inScattering);
                     vec3 transmittanceYCoCg = colors_SRGBToYCoCg(sampleData.transmittanceHLen.rgb);
                     inSctrMoment1 += inSctrYCoCg;
                     inSctrMoment2 += inSctrYCoCg * inSctrYCoCg;
@@ -123,10 +122,7 @@ void main() {
             currAvgData.transmittanceHLen.w = pow2(maxWeight);
         }
 
-        float averageViewZ = currAvgData.inScatteringViewZ.w;
-        averageViewZ = 65.536;
-        averageViewZ *= -1000.0;// Convert to meters
-        vec3 currView = coords_toViewCoord(uv, averageViewZ, global_camProjInverse);
+        vec3 currView = coords_toViewCoord(uv, -65536.0, global_camProjInverse);
         vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
         vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene);
         vec4 curr2PrevView = gbufferPrevModelView * curr2PrevScene;
@@ -159,15 +155,9 @@ void main() {
                 }
             }
 
-            vec3 prevView = coords_toViewCoord(curr2PrevScreen, prevAvgData.inScatteringViewZ.w * -1000.0, global_prevCamProjInverse);
-            vec4 prevScene = gbufferPrevModelViewInverse * vec4(prevView, 1.0);
-            vec4 prev2CurrScene = coord_scenePrevToCurr(prevScene);
-            vec4 prev2CurrView = gbufferModelView * prev2CurrScene;
-            prevAvgData.inScatteringViewZ.w = prev2CurrView.z / -1000.0;
-
             const float clippingEps = 0.00001;
 
-            vec3 prevInSctrYCoCg = colors_SRGBToYCoCg(prevAvgData.inScatteringViewZ.rgb);
+            vec3 prevInSctrYCoCg = colors_SRGBToYCoCg(prevAvgData.inScattering);
             vec3 prevTransmittanceYCoCg = colors_SRGBToYCoCg(prevAvgData.transmittanceHLen.rgb);
 
             // Ellipsoid intersection clipping by Marty
@@ -181,7 +171,7 @@ void main() {
             transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev));
             prevTransmittanceYCoCg = transmittanceMoment1 + transmittanceDelta;
 
-            prevAvgData.inScatteringViewZ.rgb = colors_YCoCgToSRGB(prevInSctrYCoCg);
+            prevAvgData.inScattering = colors_YCoCgToSRGB(prevInSctrYCoCg);
             prevAvgData.transmittanceHLen.rgb = colors_YCoCgToSRGB(prevTransmittanceYCoCg);
         }
 
@@ -193,13 +183,12 @@ void main() {
         newData.transmittanceHLen.w = newWeight;
 
         float alpha = saturate(currWeight / newWeight);
-        newData.inScatteringViewZ = mix(newData.inScatteringViewZ, currAvgData.inScatteringViewZ, alpha);
+        newData.inScattering = mix(newData.inScattering, currAvgData.inScattering, alpha);
         newData.transmittanceHLen.xyz = mix(newData.transmittanceHLen.xyz, currAvgData.transmittanceHLen.xyz, alpha);
 
         CloudSSHistoryData newHistoryData = vec4PackedData_toHistoryData(newData);
         newHistoryData.inScattering = max(newHistoryData.inScattering, vec3(0.0));
         newHistoryData.transmittance = saturate(newHistoryData.transmittance);
-        newHistoryData.viewZ = max(newHistoryData.viewZ, 0.0);
 
         uvec4 packedOutput = uvec4(0u);
         clouds_ss_historyData_pack(packedOutput, newHistoryData);

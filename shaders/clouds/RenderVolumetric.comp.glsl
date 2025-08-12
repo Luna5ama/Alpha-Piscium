@@ -89,7 +89,6 @@ void render(ivec2 texelPosDownScale) {
     CloudRenderParams renderParams = cloudRenderParams_init(mainRayParams, lightDir, lightIlluminance);
 
     CloudRaymarchAccumState accumState = clouds_raymarchAccumState_init();
-    accumState.viewZ = maxRayLen;
 
     vec2 jitters = rand_stbnVec2(texelPosDownScale, frameCounter);
     vec3 viewDir = mainRayParams.rayDir;
@@ -145,7 +144,6 @@ void render(ivec2 texelPosDownScale) {
                 float heightFraction = linearStep(cuMinHeight, cuMaxHeight, stepState.height);
                 float sampleDensity = 0.0;
                 if (clouds_cu_density(stepState.position.xyz, heightFraction, sampleDensity)) {
-                    accumState.viewZ = min(cuOrigin2RayStart + stepState.position.w, accumState.viewZ);
                     sampleDensity *= CLOUDS_CU_DENSITY;
 
                     #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 8
@@ -213,7 +211,6 @@ void render(ivec2 texelPosDownScale) {
     CloudSSHistoryData historyData = clouds_ss_historyData_init();
     historyData.inScattering = accumState.totalInSctr;
     historyData.transmittance = accumState.totalTransmittance;
-    historyData.viewZ = accumState.viewZ;
     historyData.hLen = 1.0;
     uvec4 packedOutput = uvec4(0u);
     clouds_ss_historyData_pack(packedOutput, historyData);
