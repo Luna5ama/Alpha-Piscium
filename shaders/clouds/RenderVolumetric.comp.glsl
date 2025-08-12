@@ -152,7 +152,7 @@ void render(ivec2 texelPosDownScale) {
 
                     float lightRayTotalDensity = 0.0;
                     {
-                        float lightRayLen = SETTING_CLOUDS_CU_THICKNESS * 2.0;
+                        float lightRayLen = SETTING_CLOUDS_CU_THICKNESS * 1.0;
                         vec3 lightRayTotalDelta = renderParams.lightDir * lightRayLen;
                         for (uint lightStepIndex = 0; lightStepIndex < CLOUDS_CU_LIGHT_RAYMARCH_STEP; ++lightStepIndex) {
                             // Use x^2 curve to distribute more samples near the starting point
