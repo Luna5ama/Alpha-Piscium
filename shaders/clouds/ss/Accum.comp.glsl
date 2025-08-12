@@ -96,6 +96,8 @@ void main() {
             float C = 1.0;
             vec4 weightX = sampling_mitchellNetravaliWeights(pixelPosFract.x, B, C);
             vec4 weightY = sampling_mitchellNetravaliWeights(pixelPosFract.y, B, C);
+            vec4 bSplineWeightX = sampling_bSplineWeights(pixelPosFract.x);
+            vec4 bSplineWeightY = sampling_bSplineWeights(pixelPosFract.y);
             float maxWeight = 0.0;
 
             ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
@@ -109,16 +111,13 @@ void main() {
 
                     vec3 inSctrYCoCg = colors_SRGBToYCoCg(sampleData.inScattering);
                     vec3 transmittanceYCoCg = colors_SRGBToYCoCg(sampleData.transmittanceHLen.rgb);
-                    inSctrMoment1 += inSctrYCoCg;
-                    inSctrMoment2 += inSctrYCoCg * inSctrYCoCg;
-                    transmittanceMoment1 += transmittanceYCoCg;
-                    transmittanceMoment2 += transmittanceYCoCg * transmittanceYCoCg;
+                    float momentWeight = bSplineWeightX[ix] * bSplineWeightY[iy];
+                    inSctrMoment1 += inSctrYCoCg * momentWeight;
+                    inSctrMoment2 += inSctrYCoCg * inSctrYCoCg * momentWeight;
+                    transmittanceMoment1 += transmittanceYCoCg * momentWeight;
+                    transmittanceMoment2 += transmittanceYCoCg * transmittanceYCoCg * momentWeight;
                 }
             }
-            inSctrMoment1 /= 16.0;
-            inSctrMoment2 /= 16.0;
-            transmittanceMoment1 /= 16.0;
-            transmittanceMoment2 /= 16.0;
             currAvgData.transmittanceHLen.w = pow2(maxWeight);
         }
 
@@ -163,12 +162,12 @@ void main() {
             // Ellipsoid intersection clipping by Marty
             vec3 inSctrStddev = sqrt(max(inSctrMoment2 - inSctrMoment1 * inSctrMoment1, clippingEps));
             vec3 inSctrDelta = prevInSctrYCoCg - inSctrMoment1;
-            inSctrDelta /= max(1.0, length(inSctrDelta / inSctrStddev));
+            inSctrDelta /= max(1.0, length(inSctrDelta / inSctrStddev * 0.5));
             prevInSctrYCoCg = inSctrMoment1 + inSctrDelta;
 
             vec3 transmittanceStddev = sqrt(max(transmittanceMoment2 - transmittanceMoment1 * transmittanceMoment1, clippingEps));
             vec3 transmittanceDelta = prevTransmittanceYCoCg - transmittanceMoment1;
-            transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev));
+            transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev * 0.5));
             prevTransmittanceYCoCg = transmittanceMoment1 + transmittanceDelta;
 
             prevAvgData.inScattering = colors_YCoCgToSRGB(prevInSctrYCoCg);
