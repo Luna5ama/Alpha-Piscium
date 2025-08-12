@@ -115,7 +115,6 @@ void render(ivec2 texelPosDownScale) {
                 SETTING_CLOUDS_LOW_STEP_MAX,
                 pow(1.0 - abs(mainRayParams.rayDir.y), SETTING_CLOUDS_LOW_STEP_CURVE)
             );
-            cuRaySteps = 64.0;
             cuRaySteps = round(cuRaySteps);
 
             #define CLOUDS_CU_DENSITY (72.0 * SETTING_CLOUDS_CU_DENSITY)
