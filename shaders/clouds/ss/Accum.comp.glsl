@@ -82,6 +82,10 @@ void main() {
         ivec2 texelPosDownScale = DOWNSCALE_DIVIDE(texelPos);
 
         Vec4PackedData currAvgData = vec4PackedData_init();
+        vec3 inSctrMoment1 = vec3(0.0);
+        vec3 inSctrMoment2 = vec3(0.0);
+        vec3 transmittanceMoment1 = vec3(0.0);
+        vec3 transmittanceMoment2 = vec3(0.0);
         {
             vec2 centerTexel = texelCenter / UPSCALE_FACTOR;
             centerTexel -= clouds_ss_upscaleoffset() - 0.5;
@@ -103,8 +107,19 @@ void main() {
                     float weight = weightX[ix] * weightY[iy];
                     maxWeight = max(maxWeight, weight);
                     currAvgData = vec4PackedData_add(currAvgData, vec4PackedData_mul(sampleData, weight));
+
+                    vec3 inSctrYCoCg = colors_SRGBToYCoCg(sampleData.inScatteringViewZ.rgb);
+                    vec3 transmittanceYCoCg = colors_SRGBToYCoCg(sampleData.transmittanceHLen.rgb);
+                    inSctrMoment1 += inSctrYCoCg;
+                    inSctrMoment2 += inSctrYCoCg * inSctrYCoCg;
+                    transmittanceMoment1 += transmittanceYCoCg;
+                    transmittanceMoment2 += transmittanceYCoCg * transmittanceYCoCg;
                 }
             }
+            inSctrMoment1 /= 16.0;
+            inSctrMoment2 /= 16.0;
+            transmittanceMoment1 /= 16.0;
+            transmittanceMoment2 /= 16.0;
             currAvgData.transmittanceHLen.w = pow2(maxWeight);
         }
 
@@ -149,6 +164,25 @@ void main() {
             vec4 prev2CurrScene = coord_scenePrevToCurr(prevScene);
             vec4 prev2CurrView = gbufferModelView * prev2CurrScene;
             prevAvgData.inScatteringViewZ.w = prev2CurrView.z / -1000.0;
+
+            const float clippingEps = 0.00001;
+
+            vec3 prevInSctrYCoCg = colors_SRGBToYCoCg(prevAvgData.inScatteringViewZ.rgb);
+            vec3 prevTransmittanceYCoCg = colors_SRGBToYCoCg(prevAvgData.transmittanceHLen.rgb);
+
+            // Ellipsoid intersection clipping by Marty
+            vec3 inSctrStddev = sqrt(max(inSctrMoment2 - inSctrMoment1 * inSctrMoment1, clippingEps));
+            vec3 inSctrDelta = prevInSctrYCoCg - inSctrMoment1;
+            inSctrDelta /= max(1.0, length(inSctrDelta / inSctrStddev));
+            prevInSctrYCoCg = inSctrMoment1 + inSctrDelta;
+
+            vec3 transmittanceStddev = sqrt(max(transmittanceMoment2 - transmittanceMoment1 * transmittanceMoment1, clippingEps));
+            vec3 transmittanceDelta = prevTransmittanceYCoCg - transmittanceMoment1;
+            transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev));
+            prevTransmittanceYCoCg = transmittanceMoment1 + transmittanceDelta;
+
+            prevAvgData.inScatteringViewZ.rgb = colors_YCoCgToSRGB(prevInSctrYCoCg);
+            prevAvgData.transmittanceHLen.rgb = colors_YCoCgToSRGB(prevTransmittanceYCoCg);
         }
 
         float prevWeight = prevAvgData.transmittanceHLen.w;
