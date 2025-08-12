@@ -151,5 +151,4 @@ void main() {
 
     float ditherNoise = rand_IGN(intTexCoord, frameCounter);
     rt_taaLast.rgb = dither_fp16(rt_taaLast.rgb, ditherNoise);
-    rt_out.rgb = dither_u8(rt_out.rgb, ditherNoise);
 }
