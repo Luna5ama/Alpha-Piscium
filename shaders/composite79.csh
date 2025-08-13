@@ -22,7 +22,7 @@ void main() {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
         outputColor.rgb = ffxcas_pass(texelPos);
         #if SETTING_DEBUG_OUTPUT == 3
-        debugOutput(outputColor);
+        debugOutput(texelPos, outputColor);
         #endif
         #ifdef SETTING_DOF_SHOW_FOCUS_PLANE
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;

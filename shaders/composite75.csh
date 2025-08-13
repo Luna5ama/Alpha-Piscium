@@ -37,13 +37,13 @@ void main() {
         #ifdef SETTING_BLOOM
         outputColor += bloom_mainOutput(texelPos);
         #endif
-        vec3 hdrColor = outputColor.rgb;
 
         #if SETTING_DEBUG_OUTPUT == 1
-        debugOutput(outputColor);
+        debugOutput(texelPos, outputColor);
         #endif
 
         #ifdef SETTING_PURKINJE_EFFECT
+        vec3 hdrColor = outputColor.rgb;
         // https://www.desmos.com/calculator/dvpjm8jrmx
         const vec3 ROD_RESPONSE = vec3(0.05, 0.562, 0.604);
         const vec3 SCOPTIC_BASE_COLOR = vec3(SETTING_PURKINJE_EFFECT_CR, SETTING_PURKINJE_EFFECT_CG, SETTING_PURKINJE_EFFECT_CB);
@@ -70,7 +70,7 @@ void main() {
         outputColor.rgb = mix(outputColor.rgb, basicColor.rgb, basicColor.a);
 
         #if SETTING_DEBUG_OUTPUT == 2
-        debugOutput(outputColor);
+        debugOutput(texelPos, outputColor);
         #endif
 
         imageStore(uimg_main, texelPos, outputColor);

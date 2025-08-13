@@ -1,6 +1,5 @@
 #include "/util/BitPacking.glsl"
 #include "/util/Colors.glsl"
-#include "/util/FullScreenComp.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/TextRender.glsl"
@@ -39,12 +38,14 @@ vec3 interpolateTurbo(float x) {
 #define DEBUG_TEX_NAME usam_geometryNormal
 #endif
 
+ivec2 _debug_texelPos = ivec2(0);
+
 bool inViewPort(ivec4 originSize, out vec2 texCoord) {
     originSize = ivec4(vec4(originSize) * SETTING_DEBUG_SCALE);
     ivec2 min = originSize.xy;
     ivec2 max = originSize.xy + originSize.zw;
-    texCoord = saturate((vec2(texelPos - min) + 0.5) / vec2(originSize.zw));
-    if (all(greaterThanEqual(texelPos.xy, min)) && all(lessThan(texelPos.xy, max))) {
+    texCoord = saturate((vec2(_debug_texelPos - min) + 0.5) / vec2(originSize.zw));
+    if (all(greaterThanEqual(_debug_texelPos.xy, min)) && all(lessThan(_debug_texelPos.xy, max))) {
         return true;
     }
     return false;
@@ -125,7 +126,8 @@ vec3 displayViewZ(float viewZ) {
     return interpolateTurbo(sqrt(viewZRemapped));
 }
 
-void debugOutput(inout vec4 outputColor) {
+void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
+    _debug_texelPos = texelPos;
     beginText(texelPos >> ivec2(2), ivec2(0, global_mainImageSizeI.y >> 2));
 
     #ifdef DEBUG_TEX_NAME
