@@ -1,3 +1,4 @@
+#include "/post/gtvbgi/Common.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Mat4.glsl"
 #include "/util/Math.glsl"
@@ -94,7 +95,7 @@ void main() {
         global_mainImageSize = vec2(mainImageSize);
         global_mainImageSizeRcp = 1.0 / vec2(mainImageSize);
 
-        global_frameMortonJitter = morton_8bDecode(uint(frameCounter) & 3u);
+        global_frameMortonJitter = morton_8bDecode(vbgi_downSampleInputMortonIndex());
 
         global_prevCamProj = global_camProj;
         global_prevCamProjInverse = global_camProjInverse;

@@ -1,5 +1,6 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 
+#include "/post/gtvbgi/Common.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
@@ -51,7 +52,7 @@ void main() {
             uvec4 packedZNOut = uvec4(0u);
             nzpacking_pack(packedZNOut.xy, gData.normal, viewZ);
 
-            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == (uint(frameCounter) & 3u));
+            uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
             if (bool(ssgiOutWriteFlag)) {
                 imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
@@ -76,7 +77,7 @@ void main() {
             uvec4 packedZNOut = uvec4(0u);
             packedZNOut.y = floatBitsToUint(viewZ);
 
-            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == (uint(frameCounter) & 3u));
+            uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
             if (bool(ssgiOutWriteFlag)) {
                 imageStore(uimg_packedZN, texelPos2x2, packedZNOut);

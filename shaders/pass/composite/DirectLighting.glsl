@@ -1,5 +1,6 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 
+#include "/post/gtvbgi/Common.glsl"
 #include "/atmosphere/Constants.glsl"
 #include "/atmosphere/lut/Common.glsl"
 #include "/general/Lighting.glsl"
@@ -115,7 +116,7 @@ void main() {
             nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
             imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
 
-            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == (uint(frameCounter) & 3u));
+            uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
             if (bool(ssgiOutWriteFlag)) {
                 imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
@@ -129,7 +130,7 @@ void main() {
             packedZNOut.y = floatBitsToUint(viewZ);
             imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
 
-            uint ssgiOutWriteFlag = uint((threadIdx & 3u) == (uint(frameCounter) & 3u));
+            uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
             if (bool(ssgiOutWriteFlag)) {
                 imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
