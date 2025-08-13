@@ -14,6 +14,7 @@ const vec2 workGroupsRender = vec2(0.5, 0.5);
 #include "/post/gtvbgi/GTVBGI.glsl"
 
 layout(rg32ui) uniform writeonly uimage2D uimg_tempRG32UI;
+layout(rgba16f) uniform writeonly image2D uimg_debug;
 
 void main() {
     uvec2 workGroupOrigin = gl_WorkGroupID.xy << 4;
@@ -27,5 +28,8 @@ void main() {
     if (all(lessThan(texelPos1x1, global_mainImageSizeI))) {
         vec3 ssvbilData = gtvbgi(texelPos1x1);
         imageStore(uimg_tempRG32UI, texelPos2x2, uvec4(packHalf4x16(vec4(ssvbilData, 0.0)), 0u, 0u));
+        #ifdef SETTING_DEBUG_DEDICATED
+        imageStore(uimg_debug, texelPos2x2, vec4(ssvbilData, 1.0));
+        #endif
     }
 }

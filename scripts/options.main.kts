@@ -1618,7 +1618,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Alpha"
                 }
             }
-            empty()
+            toggle("SETTING_DEBUG_DEDICATED", false) {
+                lang {
+                    name = "Dedicated Debug"
+                }
+            }
             empty()
             empty()
             empty()
