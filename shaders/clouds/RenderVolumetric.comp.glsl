@@ -190,8 +190,8 @@ void render(ivec2 texelPosDownScale) {
             }
 
             const float TRANSMITTANCE_DECAY = 10.0;
-            cuAccum.totalTransmittance = pow(cuAccum.totalTransmittance, vec3(exp2(-cuOrigin2RayStart * 0.1)));
-            cuAccum.totalInSctr *= exp2(-pow2(cuOrigin2RayStart) * 0.002);
+//            cuAccum.totalTransmittance = pow(cuAccum.totalTransmittance, vec3(exp2(-cuOrigin2RayStart * 0.1)));
+//            cuAccum.totalInSctr *= exp2(-pow2(cuOrigin2RayStart) * 0.002);
 
             float aboveFlag = float(cuHeightDiff < 0.0);
         }

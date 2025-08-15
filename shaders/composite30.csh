@@ -4,6 +4,7 @@
 
 #include "/atmosphere/lut/Common.glsl"
 #include "/atmosphere/UnwarpEpipolar.glsl"
+#include "/clouds/Render.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
@@ -66,6 +67,7 @@ void applyAtmosphere(vec2 screenPos, vec3 viewPos, float viewZ, inout vec4 outpu
         outputColor.rgb *= skyView.transmittance;
         outputColor.rgb += skyView.inScattering;
     }
+    renderCloud(texelPos, usam_gbufferViewZ, outputColor);
 
     #ifndef SETTING_DEPTH_BREAK_CORRECTION
     unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, sctrResult);
