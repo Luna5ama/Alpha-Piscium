@@ -90,25 +90,25 @@ CloudRaymarchAccumState clouds_raymarchAccumState_init() {
 }
 
 struct CloudRaymarchStepState {
+    vec4 origin;
     vec4 position;
     float height;
     vec4 rayStep;
     vec3 upVector;
 };
 
-CloudRaymarchStepState clouds_raymarchStepState_init(CloudRaymarchLayerParam layerParam, float posJitter) {
+CloudRaymarchStepState clouds_raymarchStepState_init(CloudRaymarchLayerParam layerParam) {
     CloudRaymarchStepState state;
-    state.position = vec4(layerParam.rayStart + layerParam.rayStep.xyz * posJitter, 0.0);
+    state.origin = vec4(layerParam.rayStart, 0.0);
+    state.position = state.origin;
     state.height = length(state.position.xyz);
     state.upVector = state.position.xyz / state.height;
     state.rayStep = layerParam.rayStep;
     return state;
 }
 
-void clouds_raymarchStepState_update(
-    inout CloudRaymarchStepState state
-) {
-    state.position += state.rayStep;
+void clouds_raymarchStepState_update(inout CloudRaymarchStepState state, float stepCount) {
+    state.position = state.origin + state.rayStep * stepCount;
     state.height = length(state.position.xyz);
     state.upVector = state.position.xyz / state.height;
 }

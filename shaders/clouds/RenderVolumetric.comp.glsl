@@ -71,7 +71,6 @@ void render(ivec2 texelPosDownScale) {
 
             mainRayParams.rayEnd = mainRayParams.rayStart + rayDir * rayLen;
         } else {
-            mainRayParams.rayEnd = atmosphere_viewToAtm(atmosphere, endView);
             return;
         }
     }
@@ -109,18 +108,15 @@ void render(ivec2 texelPosDownScale) {
         cuFlag &= uint(cuOrigin2RayStart >= 0.0);
 
         if (bool(cuFlag)) {
-            float cuRaySteps = mix(
-                SETTING_CLOUDS_LOW_STEP_MIN,
-                SETTING_CLOUDS_LOW_STEP_MAX,
-                pow(1.0 - abs(mainRayParams.rayDir.y), SETTING_CLOUDS_LOW_STEP_CURVE)
-            );
-            cuRaySteps += jitters.x * 2.0;
-            cuRaySteps = ceil(cuRaySteps);
-
             #define CLOUDS_CU_DENSITY (72.0 * SETTING_CLOUDS_CU_DENSITY)
 
-            float cuRayLen = inLayer ? (cuRayLenBot > 0.0 ? cuRayLenBot : min(cuRayLenTop, cuOrigin2RayStart + cuRaySteps)) : max(cuRayLenBot, cuRayLenTop);
+            const float CLOUDS_CU_MAX_RAY_LENGTH = 20.0;
+            float cuRayLen = mainRayParams.rayDir.y < 0.0 ? cuRayLenBot : cuRayLenTop;
             cuRayLen -= cuOrigin2RayStart;
+            cuRayLen = cuRayLen <= 0.0 ? 20.0 : cuRayLen;
+            cuRayLen = min(cuRayLen, CLOUDS_CU_MAX_RAY_LENGTH);
+            float cuRaySteps = cuRayLen / CLOUDS_CU_MAX_RAY_LENGTH * float(SETTING_CLOUDS_LOW_STEP_MAX);
+            cuRaySteps = max(cuRaySteps, SETTING_CLOUDS_LOW_STEP_MIN);
 
             vec3 ambientIrradiance = clouds_amblut_sample(ambLutUV, CLOUDS_AMBLUT_LAYER_CUMULUS);
             CloudParticpatingMedium cuMedium = clouds_cu_medium(renderParams.cosLightTheta);
@@ -133,12 +129,13 @@ void render(ivec2 texelPosDownScale) {
                 cuRayLen,
                 rcp(cuRaySteps)
             );
-            CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam, jitters.x);
+            CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam);
 
             uint cuRayStepsI = uint(cuRaySteps);
 
             for (uint stepIndex = 0; stepIndex < cuRayStepsI; ++stepIndex) {
                 if (stepState.position.w > cuRayLen) break;
+
                 float heightFraction = linearStep(cuMinHeight, cuMaxHeight, stepState.height);
                 float sampleDensity = 0.0;
                 if (clouds_cu_density(stepState.position.xyz, heightFraction, sampleDensity)) {
@@ -189,7 +186,7 @@ void render(ivec2 texelPosDownScale) {
                     break;
                 }
 
-                clouds_raymarchStepState_update(stepState);
+                clouds_raymarchStepState_update(stepState, float(stepIndex) + jitters.x);
             }
 
             const float TRANSMITTANCE_DECAY = 10.0;
