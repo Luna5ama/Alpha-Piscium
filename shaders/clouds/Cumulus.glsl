@@ -28,7 +28,8 @@ float _clouds_cu_heightCurve2(vec4 xs) {
     const vec2 as = vec2(-3.2, 2.8);
     return saturate(dot(as, xs.xy) + a0);
 }
-bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) {
+
+bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float densityOut) {
     mat2 rotation2D = mat2_rotate(GOLDEN_ANGLE);
     AxisAngle rotation3D = AxisAngle_init(normalize(vec3(1.0, -1.0, 1.0)), GOLDEN_ANGLE);
     const float CUMULUS_FACTOR = SETTING_CLOUDS_CU_WEIGHT;
@@ -97,18 +98,20 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, out float densityOut) 
         densityOut = linearStep(saturate(detail1), 1.0, densityOut);
 
         if (densityOut > _CU_DENSITY_EPSILON) {
-            // Add some high frequency detail to edges
-            FBMParameters valueNoiseParams;
-            valueNoiseParams.frequency = 4.9;
-            valueNoiseParams.persistence = 0.7;
-            valueNoiseParams.lacunarity = 2.9;
-            valueNoiseParams.octaveCount = 2u;
-            float detail2 = GradientNoise_3D_value_fbm(valueNoiseParams, rotation3D, rayPos + curl * -0.2) * 2.0;
-            detail2 = mix(saturate(detail2 * 0.5 + 0.5), abs(detail2), heightFraction * 0.6);
-            detail2 = pow2(detail2);
-            detail2 *= mix(0.3, 0.6, heightFraction);
-            detail2 *= CUMULUS_FACTOR * 0.9 + 0.1;
-            densityOut = linearStep(saturate(detail2), 1.0, densityOut);
+            if (detail) {
+                // Add some high frequency detail to edges
+                FBMParameters valueNoiseParams;
+                valueNoiseParams.frequency = 4.9;
+                valueNoiseParams.persistence = 0.7;
+                valueNoiseParams.lacunarity = 2.9;
+                valueNoiseParams.octaveCount = 2u;
+                float detail2 = GradientNoise_3D_value_fbm(valueNoiseParams, rotation3D, rayPos + curl * -0.2) * 2.0;
+                detail2 = mix(saturate(detail2 * 0.5 + 0.5), abs(detail2), heightFraction * 0.6);
+                detail2 = pow2(detail2);
+                detail2 *= mix(0.3, 0.6, heightFraction);
+                detail2 *= CUMULUS_FACTOR * 0.9 + 0.1;
+                densityOut = linearStep(saturate(detail2), 1.0, densityOut);
+            }
 
             densityOut *= 1.0 - pow2(heightFraction);
             densityOut *= (1.0 - pow2(1.0 - CUMULUS_FACTOR)) * 0.5 + 0.5;

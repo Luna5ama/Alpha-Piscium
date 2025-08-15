@@ -138,7 +138,7 @@ void render(ivec2 texelPosDownScale) {
 
                 float heightFraction = linearStep(cuMinHeight, cuMaxHeight, stepState.height);
                 float sampleDensity = 0.0;
-                if (clouds_cu_density(stepState.position.xyz, heightFraction, sampleDensity)) {
+                if (clouds_cu_density(stepState.position.xyz, heightFraction, true, sampleDensity)) {
                     sampleDensity *= CLOUDS_CU_DENSITY;
 
                     #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 8
@@ -159,7 +159,7 @@ void render(ivec2 texelPosDownScale) {
                             if (lightSampleHeight > cuMaxHeight) break;
                             float lightHeightFraction = linearStep(cuMinHeight, cuMaxHeight, lightSampleHeight);
                             float lightSampleDensity = 0.0;
-                            if (clouds_cu_density(lightRaySamplePos, lightHeightFraction, lightSampleDensity)) {
+                            if (clouds_cu_density(lightRaySamplePos, lightHeightFraction, false, lightSampleDensity)) {
                                 // (x + c)^2 - (x - c)^2 = 4xc
                                 float x = (indexF + 0.5) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
                                 float lightRayStepLength = 4.0 * x * C * lightRayLen;
