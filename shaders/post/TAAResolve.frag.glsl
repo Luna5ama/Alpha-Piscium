@@ -93,14 +93,7 @@ void main() {
     vec3 stddev = sqrt(max(curr3x3SqAvg - curr3x3Avg * curr3x3Avg, clippingEps));
     vec3 delta = prevColorYCoCg - curr3x3Avg;
     delta /= max(1.0, length(delta / stddev));
-
-    float clipWeight = 0.5;
-    clipWeight += saturate(1.0 - prevResult.a);
-    clipWeight += pixelSpeed * 0.05;
-    clipWeight += cameraSpeed * 0.1;
-    clipWeight += cameraSpeedDiff * 4.0;
-    clipWeight = saturate(clipWeight);
-    prevColorYCoCg = mix(prevColorYCoCg, curr3x3Avg + delta, clipWeight);
+    prevColorYCoCg = curr3x3Avg + delta;
 
     prevColor = colors_YCoCgToSRGB(prevColorYCoCg);
     #endif

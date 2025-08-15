@@ -80,6 +80,42 @@ void main() {
         vec2 uv = texelCenter * global_mainImageSizeRcp;
         ivec2 texelPosDownScale = DOWNSCALE_DIVIDE(texelPos);
 
+        vec3 currView = coords_toViewCoord(uv, -65536.0, global_camProjInverse);
+        vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
+        vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene);
+        vec4 curr2PrevView = gbufferPrevModelView * curr2PrevScene;
+        vec4 curr2PrevClip = global_prevCamProj * curr2PrevView;
+        uint clipFlag = uint(curr2PrevClip.z > 0.0);
+        clipFlag &= uint(all(lessThan(abs(curr2PrevClip.xy), curr2PrevClip.ww)));
+
+        Vec4PackedData prevAvgData = vec4PackedData_init();
+        if (bool(clipFlag)) {
+            vec2 curr2PrevNDC = curr2PrevClip.xy / curr2PrevClip.w;
+            vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
+            vec2 curr2PrevTexel = curr2PrevScreen * global_mainImageSize;
+
+            vec2 centerPixel = curr2PrevTexel - 0.5;
+            vec2 centerPixelOrigin = floor(centerPixel);
+            vec2 pixelPosFract = centerPixel - centerPixelOrigin;
+
+            float B = 0.0;
+            float C = 0.5;
+            vec4 weightX = sampling_mitchellNetravaliWeights(pixelPosFract.x, B, C);
+            vec4 weightY = sampling_mitchellNetravaliWeights(pixelPosFract.y, B, C);
+
+            ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
+            for (int iy = 0; iy < 4; ++iy) {
+                for (int ix = 0; ix < 4; ++ix) {
+                    ivec2 offset = ivec2(ix, iy) - 2;
+                    Vec4PackedData sampleData = loadPrevData(gatherTexelPos + offset);
+                    float weight = weightX[ix] * weightY[iy];
+                    prevAvgData = vec4PackedData_add(prevAvgData, vec4PackedData_mul(sampleData, weight));
+                }
+            }
+        }
+
+        float prevWeight = prevAvgData.transmittanceHLen.w;
+
         Vec4PackedData currAvgData = vec4PackedData_init();
         vec3 inSctrMoment1 = vec3(0.0);
         vec3 inSctrMoment2 = vec3(0.0);
@@ -118,42 +154,11 @@ void main() {
                     transmittanceMoment2 += transmittanceYCoCg * transmittanceYCoCg * momentWeight;
                 }
             }
-            currAvgData.transmittanceHLen.w = pow2(maxWeight);
+            vec2 v = abs(2.0 * pixelPosFract - 1.0);
+            currAvgData.transmittanceHLen.w = pow(dot(v, v), prevWeight * SETTING_CLOUDS_LOW_SHARPENING);
         }
 
-        vec3 currView = coords_toViewCoord(uv, -65536.0, global_camProjInverse);
-        vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
-        vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene);
-        vec4 curr2PrevView = gbufferPrevModelView * curr2PrevScene;
-        vec4 curr2PrevClip = global_prevCamProj * curr2PrevView;
-        uint clipFlag = uint(curr2PrevClip.z > 0.0);
-        clipFlag &= uint(all(lessThan(abs(curr2PrevClip.xy), curr2PrevClip.ww)));
-
-        Vec4PackedData prevAvgData = vec4PackedData_init();
-        if (bool(clipFlag)) {
-            vec2 curr2PrevNDC = curr2PrevClip.xy / curr2PrevClip.w;
-            vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
-            vec2 curr2PrevTexel = curr2PrevScreen * global_mainImageSize;
-
-            vec2 centerPixel = curr2PrevTexel - 0.5;
-            vec2 centerPixelOrigin = floor(centerPixel);
-            vec2 pixelPosFract = centerPixel - centerPixelOrigin;
-
-            float B = 0.0;
-            float C = 0.5;
-            vec4 weightX = sampling_mitchellNetravaliWeights(pixelPosFract.x, B, C);
-            vec4 weightY = sampling_mitchellNetravaliWeights(pixelPosFract.y, B, C);
-
-            ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
-            for (int iy = 0; iy < 4; ++iy) {
-                for (int ix = 0; ix < 4; ++ix) {
-                    ivec2 offset = ivec2(ix, iy) - 2;
-                    Vec4PackedData sampleData = loadPrevData(gatherTexelPos + offset);
-                    float weight = weightX[ix] * weightY[iy];
-                    prevAvgData = vec4PackedData_add(prevAvgData, vec4PackedData_mul(sampleData, weight));
-                }
-            }
-
+        {
             const float clippingEps = 0.00001;
 
             vec3 prevInSctrYCoCg = colors_SRGBToYCoCg(prevAvgData.inScattering);
@@ -174,7 +179,6 @@ void main() {
             prevAvgData.transmittanceHLen.rgb = colors_YCoCgToSRGB(prevTransmittanceYCoCg);
         }
 
-        float prevWeight = prevAvgData.transmittanceHLen.w;
         float currWeight = currAvgData.transmittanceHLen.w;
         float newWeight = min(currWeight + prevWeight, CLOUDS_SS_MAX_ACCUM);
 
