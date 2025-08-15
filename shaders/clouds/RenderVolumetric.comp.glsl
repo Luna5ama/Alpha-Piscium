@@ -87,8 +87,7 @@ void render(ivec2 texelPosDownScale) {
     vec3 lightDir = mix(uval_moonDirWorld, uval_sunDirWorld, sunLightFactor);
     vec3 lightIlluminance = mix(MOON_ILLUMINANCE, SUN_ILLUMINANCE * PI, sunLightFactor);
     CloudRenderParams renderParams = cloudRenderParams_init(mainRayParams, lightDir, lightIlluminance);
-
-    CloudRaymarchAccumState accumState = clouds_raymarchAccumState_init();
+    CloudRaymarchAccumState cuAccum = clouds_raymarchAccumState_init();
 
     vec2 jitters = rand_stbnVec2(texelPosDownScale, frameCounter);
     vec3 viewDir = mainRayParams.rayDir;
@@ -135,7 +134,6 @@ void render(ivec2 texelPosDownScale) {
                 rcp(cuRaySteps)
             );
             CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam, jitters.x);
-            CloudRaymarchAccumState cuAccum = clouds_raymarchAccumState_init();
 
             uint cuRayStepsI = uint(cuRaySteps);
 
@@ -199,18 +197,12 @@ void render(ivec2 texelPosDownScale) {
             cuAccum.totalInSctr *= exp2(-pow2(cuOrigin2RayStart) * 0.002);
 
             float aboveFlag = float(cuHeightDiff < 0.0);
-            accumState.totalInSctr = mix(
-                accumState.totalInSctr + cuAccum.totalInSctr * accumState.totalTransmittance, // Below
-                cuAccum.totalInSctr * cuAccum.totalTransmittance + cuAccum.totalInSctr, // Above
-                aboveFlag
-            );
-            accumState.totalTransmittance *= cuAccum.totalTransmittance;
         }
     }
 
     CloudSSHistoryData historyData = clouds_ss_historyData_init();
-    historyData.inScattering = accumState.totalInSctr;
-    historyData.transmittance = accumState.totalTransmittance;
+    historyData.inScattering = cuAccum.totalInSctr;
+    historyData.transmittance = cuAccum.totalTransmittance;
     historyData.hLen = 1.0;
     uvec4 packedOutput = uvec4(0u);
     clouds_ss_historyData_pack(packedOutput, historyData);
