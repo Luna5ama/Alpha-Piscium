@@ -13,7 +13,7 @@ const float BASE_BLOOM_INTENSITY = 0.005;
 #if BLOOM_DOWN_SAMPLE
 #define BLOOM_SCALE_DIV BLOOM_PASS
 #if BLOOM_USE_KARIS_AVERAGE
-#if BLOOM_PASS == 1
+#if BLOOM_PASS <= 2
 #define BLOOM_KARIS_AVERAGE 1
 #endif
 #endif
@@ -89,22 +89,22 @@ vec2 texelSize = 1.0 / vec2(colorTexSize);
 ivec2 bloom_inputSize = global_mipmapSizesI[BLOOM_PASS - 1];
 ivec2 bloom_outputSize = global_mipmapSizesI[BLOOM_PASS];
 
-int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - global_mainImageSizeI.x;
-int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - global_mainImageSizeI.x;
+int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - global_mainImageSizeI.x + BLOOM_PASS - 1;
+int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - global_mainImageSizeI.x + BLOOM_PASS;
 
 #elif BLOOM_UP_SAMPLE
 ivec2 bloom_inputSize = global_mipmapSizesI[BLOOM_PASS];
 ivec2 bloom_outputSize = global_mipmapSizesI[BLOOM_PASS - 1];
 
-int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - global_mainImageSizeI.x;
-int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - global_mainImageSizeI.x;
+int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - global_mainImageSizeI.x + BLOOM_PASS;
+int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - global_mainImageSizeI.x + BLOOM_PASS - 1;
 
 #endif
 
-ivec2 inputStartPixel = ivec2(inputOffset, 0);
+ivec2 inputStartPixel = ivec2(inputOffset, 1);
 ivec2 inputEndPixel = inputStartPixel + bloom_inputSize;
-vec2 inputStartTexel = (vec2(inputStartPixel) + 0.5) * texelSize;
-vec2 inputEndTexel = (vec2(inputEndPixel) - 0.5) * texelSize;
+vec2 inputStartTexel = (vec2(inputStartPixel) + 0.0) * texelSize;
+vec2 inputEndTexel = (vec2(inputEndPixel) - 0.0) * texelSize;
 
 #if BLOOM_DOWN_SAMPLE
 vec4 bloom_readInputDown(ivec2 coord) {
@@ -121,6 +121,7 @@ vec4 bloom_readInputDown(ivec2 coord) {
 }
 
 void bloom_writeOutput(ivec2 coord, vec4 data) {
+    coord.y += 1;
     coord.x += outputOffset;
     imageStore(BLOOM_IMAGE, coord, data);
 }
@@ -164,7 +165,8 @@ void computeReadPos(uint index, out ivec2 writePos, out ivec2 readPos) {
     readPos = writePos;
     readPos.x = readPos.x << 1;
     readPos += groupBasePixel << 1;
-    readPos -= 1 -(readPos.y & 1);
+    readPos -= 1;
+    readPos.x += (writePos.y & 1);
 }
 
 void bloom_init() {
@@ -219,7 +221,7 @@ vec4 bloom_main(ivec2 texelPos) {
     vec4 colorSum = vec4(0.0);
     float weightSum = 0.0;
     weightedSum((a + b + c + d) * 0.25, 0.5, colorSum, weightSum);
-    weightedSum((e + f + g + h) * 0.25, 0.125, colorSum, weightSum);
+    weightedSum((e + f + h + i) * 0.25, 0.125, colorSum, weightSum);
     weightedSum((f + g + i + j) * 0.25, 0.125, colorSum, weightSum);
     weightedSum((h + i + k + l) * 0.25, 0.125, colorSum, weightSum);
     weightedSum((i + j + l + m) * 0.25, 0.125, colorSum, weightSum);
@@ -234,6 +236,7 @@ vec4 bloom_readInputUp(ivec2 coord, ivec2 offset) {
 }
 
 void bloom_writeOutput(ivec2 coord, vec4 data) {
+    coord.y += 1;
     coord.x += outputOffset;
     vec4 writeData = imageLoad(BLOOM_IMAGE, coord);
     writeData += data;
