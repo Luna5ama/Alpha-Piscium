@@ -38,19 +38,18 @@ void main() {
     cond &= uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
 
     if (bool(cond)) {
-        vec2 noiseV = rand_stbnVec2(ivec2(gl_GlobalInvocationID.xy), frameCounter);
         float sliceSampleP = float(sliceSampleIndex);
-        sliceSampleP += noiseV.x - 0.5;
         sliceSampleP /= float(SETTING_SLICE_SAMPLES - 1);
-        sliceSampleP = sliceSampleP * sliceSampleP;
 
         vec2 screenPos = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
         vec2 texelPos = screenPos * global_mainImageSize;
         texelPos = clamp(texelPos, vec2(0.5), vec2(global_mainImageSize - 0.5));
         screenPos = texelPos * global_mainImageSizeRcp;
+        ivec2 texelPosI = ivec2(texelPos);
+        float noiseV = rand_IGN(texelPosI, frameCounter);
 
-        viewZ = texelFetch(usam_gbufferViewZ, ivec2(texelPos), 0).r;
-        result = raymarchScreenViewAtmosphere(screenPos, viewZ, noiseV.y);
+        viewZ = texelFetch(usam_gbufferViewZ, texelPosI, 0).r;
+        result = raymarchScreenViewAtmosphere(screenPos, viewZ, noiseV);
     }
 
     uvec4 outputData;

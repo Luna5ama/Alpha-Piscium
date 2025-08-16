@@ -63,7 +63,6 @@ ScatteringResult raymarchScreenViewAtmosphere(vec2 screenPos, float viewZ, float
             vec3 endShadow = endShadowCS.xyz / endShadowCS.w;
             endShadow = endShadow * 0.5 + 0.5;
 
-            params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
             result = raymarchAerialPerspective(atmosphere, params, scatteringParams, startShadow, endShadow, noiseV);
         }
     } else {
