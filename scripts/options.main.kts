@@ -1017,12 +1017,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_SKY_SAMPLES", 64, 16..128) {
+                slider("SETTING_SKY_SAMPLES", 64, 16..128 step 8) {
                     lang {
                         name = "Sky Samples"
                     }
                 }
-                slider("SETTING_LIGHT_SHAFT_SAMPLES", 32, 8..64) {
+                slider("SETTING_LIGHT_SHAFT_SAMPLES", 32, 16..128 step 8) {
                     lang {
                         name = "Light Shaft Samples"
                     }

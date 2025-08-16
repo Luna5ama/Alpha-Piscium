@@ -23,6 +23,17 @@ const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
 
 layout(rgba32ui) uniform restrict uimage2D uimg_epipolarData;
 
+shared vec4 shared_inSctrBlurTemp[SETTING_SLICE_SAMPLES];
+
+void blur(float viewZ, float baseWeight, int offset, inout vec3 inSctrSum, inout float weightSum) {
+    int sampleIndex = clamp(int(gl_LocalInvocationID.y) + offset, 0, SETTING_SLICE_SAMPLES - 1);
+    vec4 sampleData = shared_inSctrBlurTemp[sampleIndex];
+    float sampleViewZ = sampleData.w;
+    float weight = exp2(baseWeight * abs(viewZ - sampleViewZ));
+    inSctrSum += sampleData.xyz * weight;
+    weightSum += weight;
+}
+
 void main() {
     ivec2 imgSizei = ivec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
     vec2 imgSize = vec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
@@ -49,6 +60,37 @@ void main() {
 
         viewZ = texelFetch(usam_gbufferViewZ, texelPosI, 0).r;
         result = raymarchScreenViewAtmosphere(texelPosI, viewZ, noiseV);
+    }
+
+    shared_inSctrBlurTemp[sliceSampleIndex] = vec4(result.inScattering, viewZ);
+    barrier();
+
+    const float C = 10.0;
+    float baseWeight = -10.0 * (C / (C + abs(viewZ)));
+    {
+        float weightSum = 1.0;
+        blur(viewZ, baseWeight, -3, result.inScattering, weightSum);
+        blur(viewZ, baseWeight, -2, result.inScattering, weightSum);
+        blur(viewZ, baseWeight, -1, result.inScattering, weightSum);
+        blur(viewZ, baseWeight, 1, result.inScattering, weightSum);
+        blur(viewZ, baseWeight, 2, result.inScattering, weightSum);
+        blur(viewZ, baseWeight, 3, result.inScattering, weightSum);
+        result.inScattering /= weightSum;
+    }
+    barrier();
+    shared_inSctrBlurTemp[sliceSampleIndex] = vec4(result.inScattering, viewZ);
+
+    barrier();
+
+    {
+        float weightSum = 1.0;
+        blur(viewZ, baseWeight, -3, result.inScattering, weightSum);
+        blur(viewZ, baseWeight, -2, result.inScattering, weightSum);
+        blur(viewZ, baseWeight, -1, result.inScattering, weightSum);
+        blur(viewZ, baseWeight, 1, result.inScattering, weightSum);
+        blur(viewZ, baseWeight, 2, result.inScattering, weightSum);
+        blur(viewZ, baseWeight, 3, result.inScattering, weightSum);
+        result.inScattering /= weightSum;
     }
 
     uvec4 outputData;
