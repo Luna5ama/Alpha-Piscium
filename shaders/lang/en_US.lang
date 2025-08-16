@@ -162,6 +162,7 @@ option.SETTING_SLICE_SAMPLES=Slice Samples
 option.SETTING_DEPTH_BREAK_CORRECTION=Depth Break Correction
 option.SETTING_SKY_SAMPLES=Sky Samples
 option.SETTING_LIGHT_SHAFT_SAMPLES=Light Shaft Samples
+option.SETTING_LIGHT_SHAFT_PCSS=Light Shaft PCSS
 option.SETTING_CLOUDS_MS_ORDER=Multi-Scattering Order
 option.SETTING_CLOUDS_MS_FALLOFF_SCTTERING=Multi-Scattering Scattering Falloff
 option.SETTING_CLOUDS_MS_FALLOFF_EXTINCTION=Multi-Scattering Extinction Falloff

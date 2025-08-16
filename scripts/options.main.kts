@@ -1027,6 +1027,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Light Shaft Samples"
                     }
                 }
+                slider("SETTING_LIGHT_SHAFT_PCSS", true) {
+                    lang {
+                        name = "Light Shaft PCSS"
+                    }
+                }
             }
             screen("CLOUDS", 2) {
                 lang {

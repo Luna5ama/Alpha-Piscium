@@ -15,11 +15,10 @@ void main() {
     if (gl_GlobalInvocationID.x < global_dispatchSize1.w) {
         uint texelPosEncoded = indirectComputeData[gl_GlobalInvocationID.x];
         ivec2 texelPos = ivec2(unpackUInt2x16(texelPosEncoded));
-        vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         float noiseV = rand_stbnVec1(texelPos, frameCounter + 1);
 
-        ScatteringResult sctrResult = raymarchScreenViewAtmosphere(screenPos, viewZ, noiseV);
+        ScatteringResult sctrResult = raymarchScreenViewAtmosphere(texelPos, viewZ, noiseV);
 
         vec4 outputColor = imageLoad(uimg_main, texelPos);
         outputColor.rgb *= sctrResult.transmittance;

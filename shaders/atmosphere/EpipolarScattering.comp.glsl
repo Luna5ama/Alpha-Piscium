@@ -44,12 +44,11 @@ void main() {
         vec2 screenPos = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
         vec2 texelPos = screenPos * global_mainImageSize;
         texelPos = clamp(texelPos, vec2(0.5), vec2(global_mainImageSize - 0.5));
-        screenPos = texelPos * global_mainImageSizeRcp;
         ivec2 texelPosI = ivec2(texelPos);
         float noiseV = rand_IGN(texelPosI, frameCounter);
 
         viewZ = texelFetch(usam_gbufferViewZ, texelPosI, 0).r;
-        result = raymarchScreenViewAtmosphere(screenPos, viewZ, noiseV);
+        result = raymarchScreenViewAtmosphere(texelPosI, viewZ, noiseV);
     }
 
     uvec4 outputData;
