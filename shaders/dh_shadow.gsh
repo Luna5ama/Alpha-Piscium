@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/general/ShadowPass.geom.glsl"
+#include "/pass/geometry/ShadowPass.geom.glsl"

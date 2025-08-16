@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/post/TAAResolve.frag.glsl"
+#include "/techniques/TAAResolve.frag.glsl"

@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/atmosphere/SliceEndPoints.comp.glsl"
+#include "/techniques/atmospherics/air/SliceEndPoints.comp.glsl"

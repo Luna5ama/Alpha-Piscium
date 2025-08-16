@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/gbuffer/GBufferSolid.vert.glsl"
+#include "/pass/geometry/GBufferSolid.vert.glsl"

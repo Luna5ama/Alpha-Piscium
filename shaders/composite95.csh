@@ -1,2 +1,2 @@
 #version 460 compatibility
-#include "/rtwsm/IMapBlur.comp.glsl"
+#include "/techniques/rtwsm/IMapBlur.comp.glsl"

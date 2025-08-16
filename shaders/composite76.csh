@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/post/ExposureGather.comp.glsl"
+#include "/techniques/ExposureGather.comp.glsl"

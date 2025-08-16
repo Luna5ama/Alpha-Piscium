@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/gbuffer/GBufferTranslucent.vert.glsl"
+#include "/pass/geometry/GBufferTranslucent.vert.glsl"

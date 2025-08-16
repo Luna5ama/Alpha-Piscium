@@ -2,9 +2,9 @@
 
 #extension GL_KHR_shader_subgroup_ballot : enable
 
-#include "/atmosphere/lut/Common.glsl"
-#include "/atmosphere/UnwarpEpipolar.glsl"
-#include "/clouds/Render.glsl"
+#include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/atmospherics/air/UnwarpEpipolar.glsl"
+#include "/techniques/atmospherics/clouds//Render.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
@@ -46,7 +46,7 @@ ScatteringResult sampleSkyViewLUT(vec3 viewPos, float viewZ) {
     float horizonZenthCosAngle = -sqrt(1.0 - pow2(atmosphere.bottom / viewHeight));
     bool intersectGround = viewZenithCosAngle < (horizonZenthCosAngle);
     vec2 sampleUV;
-    ScatteringResult result = sampleSkyViewLUT(
+    ScatteringResult result = atmospherics_air_lut_sampleSkyView(
         atmosphere,
         intersectGround,
         viewZenithCosAngle,

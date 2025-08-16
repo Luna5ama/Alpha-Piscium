@@ -21,7 +21,7 @@ layout(rgba8) uniform restrict image2D uimg_temp5;
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 layout(rgba16f) uniform restrict image2D uimg_translucentColor;
 
-#include "/rtwsm/Backward.glsl"
+#include "/techniques/rtwsm/Backward.glsl"
 
 ivec2 texelPos = ivec2(0);
 GBufferData gData = gbufferData_init();

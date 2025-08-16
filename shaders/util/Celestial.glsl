@@ -1,7 +1,7 @@
 #ifndef INCLUDE_util_CelestialObjects_glsl
 #define INCLUDE_util_CelestialObjects_glsl a
 
-#include "/atmosphere/Common.glsl"
+#include "/techniques/atmospherics/air/Common.glsl"
 #include "BlackBody.glsl"
 #include "Colors.glsl"
 #include "Coords.glsl"

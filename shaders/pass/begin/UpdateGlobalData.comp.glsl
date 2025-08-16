@@ -1,4 +1,4 @@
-#include "/post/gtvbgi/Common.glsl"
+#include "/techniques/gtvbgi/Common.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Mat4.glsl"
 #include "/util/Math.glsl"

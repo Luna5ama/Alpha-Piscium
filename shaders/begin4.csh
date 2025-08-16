@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/clouds/amblut/Gather.comp.glsl"
+#include "/techniques/atmospherics/clouds//amblut/Gather.comp.glsl"

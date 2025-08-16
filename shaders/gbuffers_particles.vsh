@@ -1,4 +1,4 @@
 #version 460 compatibility
 
 #define GBUFFER_PASS_TEXTURED a
-#include "/gbuffer/GBufferSolid.vert.glsl"
+#include "/pass/geometry/GBufferSolid.vert.glsl"

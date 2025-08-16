@@ -7,7 +7,7 @@
 
 layout(local_size_x = 64) in;
 
-#include "/atmosphere/RaymarchScreenViewAtmosphere.glsl"
+#include "/techniques/atmospherics/air/RaymarchScreenViewAtmosphere.glsl"
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 

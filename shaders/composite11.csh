@@ -4,7 +4,7 @@
 #extension GL_KHR_shader_subgroup_vote : enable
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
-#include "/denoiser/Update.glsl"
+#include "/techniques/svgf/Update.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Material.glsl"

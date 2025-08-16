@@ -1,9 +1,9 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 
-#include "/post/gtvbgi/Common.glsl"
-#include "/atmosphere/Constants.glsl"
-#include "/atmosphere/lut/Common.glsl"
-#include "/general/Lighting.glsl"
+#include "/techniques/gtvbgi/Common.glsl"
+#include "/techniques/atmospherics/air/Constants.glsl"
+#include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/Lighting.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/BitPacking.glsl"
 #include "/util/NZPacking.glsl"
@@ -40,14 +40,14 @@ void doLighting(Material material, vec3 N, inout vec3 directDiffuseOut, inout ve
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
 
     float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
-    vec3 tSun = sampleTransmittanceLUT(atmosphere, cosSunZenith, viewAltitude);
+    vec3 tSun = atmospherics_air_lut_sampleTransmittance(atmosphere, cosSunZenith, viewAltitude);
     tSun *= float(raySphereIntersectNearest(atmPos, uval_sunDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
     vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
     vec4 sunIrradiance = vec4(SUN_ILLUMINANCE * tSun * sunShadow, colors_sRGB_luma(sunShadow));
     LightingResult sunLighting = directLighting(material, sunIrradiance, uval_sunDirView, N);
 
     float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
-    vec3 tMoon = sampleTransmittanceLUT(atmosphere, cosMoonZenith, viewAltitude);
+    vec3 tMoon = atmospherics_air_lut_sampleTransmittance(atmosphere, cosMoonZenith, viewAltitude);
     tMoon *= float(raySphereIntersectNearest(atmPos, uval_moonDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
     vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
     vec4 moonIrradiance = vec4(MOON_ILLUMINANCE * tMoon * moonShadow, colors_sRGB_luma(moonShadow));

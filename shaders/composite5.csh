@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/atmosphere/EpipolarScattering.comp.glsl"
+#include "/techniques/atmospherics/air/EpipolarScattering.comp.glsl"

@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/clouds/RenderVolumetric.comp.glsl"
+#include "/techniques/atmospherics/clouds//RenderVolumetric.comp.glsl"

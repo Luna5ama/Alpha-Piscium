@@ -5,13 +5,13 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 #include "/util/FullScreenComp.glsl"
 #if SETTING_DEBUG_OUTPUT == 3
-#include "/general/DebugOutput.glsl"
+#include "/techniques/DebugOutput.glsl"
 #endif
 
 layout(rgba16f) restrict uniform writeonly image2D uimg_temp1;
 
 #define FFXCAS_SHARPENESS SETTING_TAA_CAS_SHARPNESS
-#include "/post/FFXCas.glsl"
+#include "/techniques/ffx/FFXCas.glsl"
 
 vec3 ffxcas_load(ivec2 texelPos) {
     return texelFetch(usam_main, texelPos, 0).rgb;

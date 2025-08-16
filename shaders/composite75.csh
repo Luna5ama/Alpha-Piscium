@@ -8,9 +8,9 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 #include "/util/Coords.glsl"
 #if SETTING_DEBUG_OUTPUT == 1 || SETTING_DEBUG_OUTPUT == 2
-#include "/general/DebugOutput.glsl"
+#include "/techniques/DebugOutput.glsl"
 #endif
-#include "/post/ToneMapping.glsl"
+#include "/techniques/ToneMapping.glsl"
 #include "/util/FullScreenComp.glsl"
 
 #if SETTING_DEBUG_TEMP_TEX != 6
@@ -24,7 +24,7 @@ layout(rgba16f) restrict uniform image2D uimg_main;
 #if SETTING_DEBUG_TEMP_TEX == 3
 #define BLOOM_NO_SAMPLER a
 #endif
-#include "/post/Bloom.comp.glsl"
+#include "/techniques/Bloom.comp.glsl"
 
 void main() {
     toneMapping_init();

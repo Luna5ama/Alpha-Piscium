@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/general/CompositeGeneric.vert.glsl"
+#include "/pass/general/CompositeGeneric.vert.glsl"

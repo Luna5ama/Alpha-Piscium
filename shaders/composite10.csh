@@ -3,7 +3,7 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_vote : enable
 
-#include "/denoiser/Update.glsl"
+#include "/techniques/svgf/Update.glsl"
 #include "/util/Morton.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -11,7 +11,7 @@ const vec2 workGroupsRender = vec2(0.5, 0.5);
 
 #define SSVBIL_SAMPLE_STEPS SETTING_VBGI_STEPS
 #define SSVBIL_SAMPLE_SLICES SETTING_VBGI_SLICES
-#include "/post/gtvbgi/GTVBGI.glsl"
+#include "/techniques/gtvbgi/GTVBGI.glsl"
 
 layout(rg32ui) uniform writeonly uimage2D uimg_tempRG32UI;
 layout(rgba16f) uniform writeonly image2D uimg_debug;

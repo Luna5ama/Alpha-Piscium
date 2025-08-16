@@ -1,6 +1,6 @@
 #version 460 compatibility
 
-#include "/general/EnvProbe.glsl"
+#include "/techniques/EnvProbe.glsl"
 #include "/util/Morton.glsl"
 
 layout(local_size_x = 128) in;

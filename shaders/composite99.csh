@@ -1,2 +1,2 @@
 #version 460 compatibility
-#include "/rtwsm/GetWarp.comp.glsl"
+#include "/techniques/rtwsm/GetWarp.comp.glsl"

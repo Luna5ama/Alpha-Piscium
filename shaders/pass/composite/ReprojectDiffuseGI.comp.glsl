@@ -1,6 +1,6 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 
-#include "/post/gtvbgi/Common.glsl"
+#include "/techniques/gtvbgi/Common.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
@@ -10,7 +10,7 @@ layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 
-#include "/denoiser/Reproject.glsl"
+#include "/techniques/svgf/Reproject.glsl"
 
 layout(rgba32ui) uniform writeonly uimage2D uimg_tempRGBA32UI;
 layout(rg32ui) uniform writeonly uimage2D uimg_packedZN;
