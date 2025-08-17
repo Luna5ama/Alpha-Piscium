@@ -26,7 +26,7 @@
 #define FFX_PARAMETER_IN        in
 #define FFX_PARAMETER_OUT       out
 #define FFX_PARAMETER_INOUT     inout
-#define FFX_PARAMETER_UNIFORM const //[cacao_placeholder] until a better fit is found!
+//#define FFX_PARAMETER_UNIFORM const //[cacao_placeholder] until a better fit is found!
 
 #define FfxFloat32Mat4 mat4
 #define FfxFloat32Mat3 mat3

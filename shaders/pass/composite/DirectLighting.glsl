@@ -8,6 +8,7 @@
 #include "/util/BitPacking.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/Morton.glsl"
+#include "/techniques/HiZ.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -79,55 +80,63 @@ void main() {
         ivec2 texelPos2x2 = texelPos >> 1;
         vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
 
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        if (hiz_groupGroundCheck(gl_WorkGroupID.xy, 4)) {
+            float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+            if (viewZ != -65536.0) {
+                gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), lighting_gData);
+                gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), lighting_gData);
+                Material material = material_decode(lighting_gData);
 
-        vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
-        vec3 directDiffuseOut = vec3(0.0);
+                lighting_init(coords_toViewCoord(screenPos, viewZ, global_camProjInverse), texelPos);
+                ivec2 texelPos2x2 = texelPos >> 1;
+                ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
 
-        if (viewZ != -65536.0) {
-            gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), lighting_gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), lighting_gData);
-            Material material = material_decode(lighting_gData);
+                uvec2 radianceData = imageLoad(uimg_packedZN, radianceTexelPos).xy;
+                vec4 ssgiOut = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
 
-            lighting_init(coords_toViewCoord(screenPos, viewZ, global_camProjInverse), texelPos);
-            ivec2 texelPos2x2 = texelPos >> 1;
-            ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
+                vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
+                vec3 directDiffuseOut = vec3(0.0);
+                if (lighting_gData.materialID == 65534u) {
+                    mainOut = vec4(material.albedo * 0.01, 2.0);
+                } else {
+                    doLighting(material, lighting_gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
+                    float albedoLuma = colors_Rec601_luma(lighting_gData.albedo);
+                    float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
+                    mainOut.a += emissiveFlag * albedoLuma * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
+                    float albedoLumaWeight = pow(1.0 - pow(1.0 - albedoLuma, 16.0), 4.0);
+                    albedoLumaWeight += pow(albedoLuma, 16.0);
+                    mainOut.a *= albedoLumaWeight;
+                    mainOut.a *= mix(1.0, -1.0, emissiveFlag);
+                }
 
-            uvec2 radianceData = imageLoad(uimg_packedZN, radianceTexelPos).xy;
-            vec4 ssgiOut = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
+                uint packedGeometryNormal = packSnorm3x10(lighting_gData.geometryNormal);
+                imageStore(uimg_geometryNormal, texelPos, uvec4(packedGeometryNormal));
 
-            if (lighting_gData.materialID == 65534u) {
-                mainOut = vec4(material.albedo * 0.01, 2.0);
-            } else {
-                doLighting(material, lighting_gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
-                float albedoLuma = colors_Rec601_luma(lighting_gData.albedo);
-                float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
-                mainOut.a += emissiveFlag * albedoLuma * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
-                float albedoLumaWeight = pow(1.0 - pow(1.0 - albedoLuma, 16.0), 4.0);
-                albedoLumaWeight += pow(albedoLuma, 16.0);
-                mainOut.a *= albedoLumaWeight;
-                mainOut.a *= mix(1.0, -1.0, emissiveFlag);
-            }
+                uvec4 packedZNOut = uvec4(0u);
+                nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
+                imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
 
-            uint packedGeometryNormal = packSnorm3x10(lighting_gData.geometryNormal);
-            imageStore(uimg_geometryNormal, texelPos, uvec4(packedGeometryNormal));
+                uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
+                ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
+                if (bool(ssgiOutWriteFlag)) {
+                    imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
+                    imageStore(uimg_packedZN, radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
+                }
 
-            uvec4 packedZNOut = uvec4(0u);
-            nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
-            imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
+                imageStore(uimg_temp4, texelPos, vec4(directDiffuseOut, 0.0));
+                imageStore(uimg_main, texelPos, mainOut);
+                return;
+            } }
 
-            uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
-            ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
-            if (bool(ssgiOutWriteFlag)) {
-                imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
-                imageStore(uimg_packedZN, radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
-            }
-        } else {
+        {
+            vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
+            vec3 directDiffuseOut = vec3(0.0);
+
             vec4 temp6Out = vec4(0.0);
             mainOut = celestial_render(texelPos, temp6Out);
 
             uvec4 packedZNOut = uvec4(0u);
-            packedZNOut.y = floatBitsToUint(viewZ);
+            packedZNOut.y = floatBitsToUint(-65536.0);
             imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
 
             uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
@@ -142,9 +151,9 @@ void main() {
             temp6Out.a += temp6Out.a;
             imageStore(uimg_temp6, texelPos, temp6Out);
             #endif
-        }
 
-        imageStore(uimg_temp4, texelPos, vec4(directDiffuseOut, 0.0));
-        imageStore(uimg_main, texelPos, mainOut);
+            imageStore(uimg_temp4, texelPos, vec4(directDiffuseOut, 0.0));
+            imageStore(uimg_main, texelPos, mainOut);
+        }
     }
 }

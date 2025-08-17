@@ -154,3 +154,4 @@ uniform sampler2D usam_starmap;
 uniform sampler2D usam_constellations;
 uniform sampler2D usam_cirrus;
 uniform sampler2D usam_cloudPhases;
+uniform sampler2D usam_hiz;

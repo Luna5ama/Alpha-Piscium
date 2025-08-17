@@ -104,7 +104,7 @@ void main() {
     } else {
         ivec2 mainImageSize = imageSize(uimg_main);
         for (uint i = 0; i < 16; i++) {
-            ivec2 mipSize = mainImageSize >> i;
+            ivec2 mipSize = ivec2(ceil(mainImageSize / exp2(float(i))));
             global_mipmapSizes[i] = vec2(mipSize);
             global_mipmapSizesRcp[i] = 1.0 / vec2(mipSize);
             global_mipmapSizesI[i] = mipSize;

@@ -5,6 +5,7 @@
 
 #include "/techniques/svgf/Update.glsl"
 #include "/util/Morton.glsl"
+#include "/techniques/HiZ.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(0.5, 0.5);
@@ -26,7 +27,12 @@ void main() {
     ivec2 texelPos1x1 = texelPos1x1Base + ivec2(morton_8bDecode(uint(frameCounter) & 3u));
 
     if (all(lessThan(texelPos1x1, global_mainImageSizeI))) {
-        vec3 ssvbilData = gtvbgi(texelPos1x1);
+        vec3 ssvbilData = vec3(0.0);
+
+        if (hiz_groupGroundCheck(gl_WorkGroupID.xy, 5)) {
+            ssvbilData = gtvbgi(texelPos1x1);
+        }
+
         imageStore(uimg_tempRG32UI, texelPos2x2, uvec4(packHalf4x16(vec4(ssvbilData, 0.0)), 0u, 0u));
         #ifdef SETTING_DEBUG_DEDICATED
         imageStore(uimg_debug, texelPos2x2, vec4(ssvbilData, 1.0));

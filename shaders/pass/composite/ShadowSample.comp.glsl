@@ -9,6 +9,7 @@
 #include "/util/Hash.glsl"
 #include "/util/Rand.glsl"
 #include "/util/GBufferData.glsl"
+#include "/techniques/HiZ.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -152,9 +153,10 @@ void main() {
     texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        float viewZ = -65536.0;
 
         #ifdef DISTANT_HORIZONS
+        viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         vec4 translucentColor = imageLoad(uimg_translucentColor, texelPos);
         if (translucentColor.a <= 0.00001) {
             float dhDepth = texelFetch(dhDepthTex0, texelPos, 0).r;
@@ -163,6 +165,10 @@ void main() {
                 translucentColor = imageLoad(uimg_temp5, texelPos);
                 imageStore(uimg_translucentColor, texelPos, translucentColor);
             }
+        }
+        #else
+        if (hiz_groupGroundCheck(gl_WorkGroupID.xy, 4)) {
+            viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         }
         #endif
 

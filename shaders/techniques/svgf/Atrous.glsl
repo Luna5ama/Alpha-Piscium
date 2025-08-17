@@ -3,6 +3,7 @@
 #include "/util/NZPacking.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Colors.glsl"
+#include "/techniques/HiZ.glsl"
 
 #define ATROUS_THREAD_SIZE 128
 

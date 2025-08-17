@@ -1,3 +1,7 @@
+/*
+    References:
+        [WRE18] Wrensch, Benjamin. "Reverse Z Cheatsheet". IOLITE Development Blog. 2023.
+*/
 #ifndef INCLUDE_util_Coords_glsl
 #define INCLUDE_util_Coords_glsl a
 #include "Math.glsl"
@@ -5,6 +9,14 @@
 
 float coords_linearizeDepth(float depth, float near, float far) {
     return (near * far) / (depth * (near - far) + far);
+}
+
+float coords_viewZToReversedZ(float viewZ, float near) {
+    return near / -viewZ;
+}
+
+float coords_reversedZToViewZ(float revZ, float near) {
+    return near / -revZ;
 }
 
 vec3 coords_toViewCoord(vec2 texCoord, float viewZ, mat4 projInv) {
