@@ -110,8 +110,17 @@ void main() {
             global_mipmapSizesI[i] = mipSize;
             if (i == 0) {
                 global_mipmapSizePrefixes[i] = mipSize;
+                ivec4 mipTile1 = ivec4(ivec2(0), mipSize);
+                global_mipmapTiles[0][i] = mipTile1;
+                global_mipmapTiles[1][i] = mipTile1;
             } else {
                 global_mipmapSizePrefixes[i] = global_mipmapSizePrefixes[i - 1] + mipSize;
+                ivec2 mipTileOffset = ivec2(global_mipmapSizePrefixes[i - 1].x - mainImageSize.x, mainImageSize.y);
+                ivec4 mipTile1 = ivec4(mipTileOffset, mipSize);
+                ivec4 mipTile2 = mipTile1;
+                mipTile2.y += global_mipmapSizesI[1].y;
+                global_mipmapTiles[0][i] = mipTile1;
+                global_mipmapTiles[1][i] = mipTile2;
             }
         }
 
@@ -119,6 +128,9 @@ void main() {
         global_dispatchSize2 = uvec4(0u, 1u, 1u, 0u);
         global_dispatchSize3 = uvec4(0u, 1u, 1u, 0u);
         global_dispatchSize4 = uvec4(0u, 1u, 1u, 0u);
+        for (uint i = 0u; i < 16u; i++) {
+            global_atomicCounters[i] = 0u;
+        }
         int worldTimeDiff = min(
             abs(global_lastWorldTime + 24000 - worldTime) % 24000,
             abs(worldTime + 24000 - global_lastWorldTime) % 24000

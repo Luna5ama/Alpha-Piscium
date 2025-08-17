@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/techniques/atmospherics/clouds//ss/Accum.comp.glsl"
+#include "/pass/composite/ShadowSample.comp.glsl"
