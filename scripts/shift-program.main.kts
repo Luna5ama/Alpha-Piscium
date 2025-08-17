@@ -116,6 +116,26 @@ moved.forEach { (oldPath, newPath) ->
     check(oldHash.contentEquals(newHash)) { "Hashes do not match for $oldPath and $newPath, revert your files using git" }
 }
 
+val scriptsShadersProperites = Path("shaders.properties")
+val shadersShaderProperties = shadersDir.resolve(scriptsShadersProperites.name)
+
+val movedRenames = moved.map { (oldPath, newPath) ->
+    "(?<!\\w)${oldPath.nameWithoutExtension}(?!\\w)".toRegex() to newPath.nameWithoutExtension
+}
+
+listOf(scriptsShadersProperites, shadersShaderProperties).forEach { path ->
+    path.writeLines(
+        path.readLines()
+            .map {
+                var line = it
+                movedRenames.forEach { (old, new) ->
+                    line = line.replace(old, new)
+                }
+                line
+            }
+    )
+}
+
 val updated = moved.asSequence()
     .map { it.second }
     .distinct()
