@@ -53,7 +53,10 @@ void main() {
             float weightedAverage = subgroupSum.x / subgroupSum.y;
             const float FRAME_TIME_60FPS_SECS = 1.0 / 60.0;
             float mixWeight = exp2(-SETTING_DOF_FOCUS_TIME + log2(max(frameTime / FRAME_TIME_60FPS_SECS, 1.0)));
-            global_focusDistance = mix(global_focusDistance, weightedAverage, mixWeight);
+            float a = saturate(coords_viewZToReversedZ(-global_focusDistance, near));
+            float b = saturate(coords_viewZToReversedZ(-weightedAverage, near));
+            float c = mix(a, b, mixWeight);
+            global_focusDistance = -coords_reversedZToViewZ(c, near);
         }
     }
     barrier();
