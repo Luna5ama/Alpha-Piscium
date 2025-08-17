@@ -16,3 +16,6 @@ My goal for this pack is archiving realistic and resonably performant graphics w
 ## Credits
 - Night sky image by [NASA](https://svs.gsfc.nasa.gov/4851/)\
   NASA/Goddard Space Flight Center Scientific Visualization Studio. Gaia DR2: ESA/Gaia/DPAC. Constellation figures based on those developed for the IAU by Alan MacRobert of Sky and Telescope magazine (Roger Sinnott and Rick Fienberg).
+
+## License
+Files under `script` directory are licensed under MIT license. All other files are licensed under GNU General Public License v3.0.
