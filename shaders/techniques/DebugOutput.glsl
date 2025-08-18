@@ -335,24 +335,6 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
             outputColor.rgb = gammaCorrect(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 2.0 + float(i * 3)));
         }
     }
-    {
-
-        if (inViewPort(ivec4(1280, 0, 256, 256), debugTexCoord)) {
-            vec3 a = _atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 0.0);
-            vec3 b = _atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 12.0);
-            outputColor.rgb = expGamma(pow2(a - b));
-        }
-        if (inViewPort(ivec4(1280, 256, 256, 256), debugTexCoord)) {
-            vec3 a = _atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 1.0);
-            vec3 b = _atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 13.0);
-            outputColor.rgb = expGamma(pow2(a - b));
-        }
-        if (inViewPort(ivec4(1280, 512, 256, 256), debugTexCoord)) {
-            vec3 a = _atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 2.0);
-            vec3 b = _atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 14.0);
-            outputColor.rgb = expGamma(pow2(a - b));
-        }
-    }
     #endif
 
     #ifdef SETTING_DEBUG_CLOUDS_AMBLUT
