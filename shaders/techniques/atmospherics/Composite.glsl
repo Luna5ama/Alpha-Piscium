@@ -1,8 +1,16 @@
 #include "Common.glsl"
+#include "clouds/Common.glsl"
+#include "clouds/amblut/API.glsl"
+#include "clouds/Cirrus.glsl"
+#include "clouds/Cumulus.glsl"
+#include "clouds/ss/Common.glsl"
 #include "air/lut/API.glsl"
 #include "air/UnwarpEpipolar.glsl"
-#include "clouds/Render.glsl"
 #include "/util/BitPacking.glsl"
+#include "/util/Celestial.glsl"
+#include "/util/Math.glsl"
+
+const float DENSITY_EPSILON = 0.0001;
 
 struct SkyViewLutParams {
     bool intersectGround;
@@ -157,7 +165,7 @@ ScatteringResult atmospherics_composite(ivec2 texelPos) {
             if (bool(cuFlag)) {
                 CloudSSHistoryData historyData = clouds_ss_historyData_init();
                 clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), 0), historyData);
-                bool above = cuHeightDiff < 0.0;
+                bool above = inLayer || cuHeightDiff < 0.0;
                 ScatteringResult layerResult = ScatteringResult(
                     historyData.transmittance,
                     historyData.inScattering
