@@ -1171,16 +1171,22 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             6 value "4.0 x"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 16, powerOfTwoRange(2..8)) {
+                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 64, powerOfTwoRange(2..8)) {
                         lang {
                             name = "Max Accumulation"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_SHARPENING", 0.1, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_LOW_SHARPENING", 0.25, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Sharpening"
                         }
                     }
+                    slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Variance Clipping"
+                        }
+                    }
+                    empty()
                     slider("SETTING_CLOUDS_LOW_STEP_MIN", 24, 4..64 step 4) {
                         lang {
                             name = "Ray Marching Min Step"
@@ -1223,6 +1229,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     slider("SETTING_CLOUDS_CU_PHASE_RATIO", 0.9, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Cumulus Phase Ratio"
+                        }
+                    }
+                    empty()
+                    toggle("SETTING_CLOUDS_CU_WIND", true) {
+                        lang {
+                            name = "Cumulus Wind"
                         }
                     }
                 }

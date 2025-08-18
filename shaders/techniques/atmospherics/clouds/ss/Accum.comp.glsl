@@ -135,9 +135,10 @@ void main() {
                 float C = 1.0;
                 vec4 weightX = sampling_mitchellNetravaliWeights(pixelPosFract.x, B, C);
                 vec4 weightY = sampling_mitchellNetravaliWeights(pixelPosFract.y, B, C);
-                vec4 bSplineWeightX = sampling_bSplineWeights(pixelPosFract.x);
-                vec4 bSplineWeightY = sampling_bSplineWeights(pixelPosFract.y);
+                vec4 momentWeightX = sampling_gaussianWeights(pixelPosFract.x, 1.0);
+                vec4 momentWeightY = sampling_gaussianWeights(pixelPosFract.y, 1.0);
                 float maxWeight = 0.0;
+                float totalMomentWeight = 0.0;
 
                 ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
                 for (int iy = 0; iy < 4; ++iy) {
@@ -150,15 +151,20 @@ void main() {
 
                         vec3 inSctrYCoCg = colors_SRGBToYCoCg(sampleData.inScattering);
                         vec3 transmittanceYCoCg = colors_SRGBToYCoCg(sampleData.transmittanceHLen.rgb);
-                        float momentWeight = bSplineWeightX[ix] * bSplineWeightY[iy];
+                        float momentWeight = momentWeightX[ix] * momentWeightY[iy];
                         inSctrMoment1 += inSctrYCoCg * momentWeight;
                         inSctrMoment2 += inSctrYCoCg * inSctrYCoCg * momentWeight;
                         transmittanceMoment1 += transmittanceYCoCg * momentWeight;
                         transmittanceMoment2 += transmittanceYCoCg * transmittanceYCoCg * momentWeight;
+                        totalMomentWeight += momentWeight;
                     }
                 }
-                vec2 v = abs(2.0 * pixelPosFract - 1.0);
-                currAvgData.transmittanceHLen.w = pow(dot(v, v), prevWeight * SETTING_CLOUDS_LOW_SHARPENING);
+                inSctrMoment1 /= totalMomentWeight;
+                inSctrMoment2 /= totalMomentWeight;
+                transmittanceMoment1 /= totalMomentWeight;
+                transmittanceMoment2 /= totalMomentWeight;
+                vec2 v = pow2(2.0 * pixelPosFract - 1.0);
+                currAvgData.transmittanceHLen.w = saturate(pow(dot(v, v), prevWeight * pow2(SETTING_CLOUDS_LOW_SHARPENING)));
             }
 
             {
@@ -170,12 +176,12 @@ void main() {
                 // Ellipsoid intersection clipping by Marty
                 vec3 inSctrStddev = sqrt(max(inSctrMoment2 - inSctrMoment1 * inSctrMoment1, clippingEps));
                 vec3 inSctrDelta = prevInSctrYCoCg - inSctrMoment1;
-                inSctrDelta /= max(1.0, length(inSctrDelta / inSctrStddev * 0.5));
+                inSctrDelta /= max(1.0, length(inSctrDelta / inSctrStddev * SETTING_CLOUDS_LOW_VARIANCE_CLIPPING));
                 prevInSctrYCoCg = inSctrMoment1 + inSctrDelta;
 
                 vec3 transmittanceStddev = sqrt(max(transmittanceMoment2 - transmittanceMoment1 * transmittanceMoment1, clippingEps));
                 vec3 transmittanceDelta = prevTransmittanceYCoCg - transmittanceMoment1;
-                transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev * 0.5));
+                transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev * SETTING_CLOUDS_LOW_VARIANCE_CLIPPING));
                 prevTransmittanceYCoCg = transmittanceMoment1 + transmittanceDelta;
 
                 prevAvgData.inScattering = colors_YCoCgToSRGB(prevInSctrYCoCg);

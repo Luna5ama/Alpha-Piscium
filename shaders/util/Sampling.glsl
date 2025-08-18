@@ -55,6 +55,11 @@ vec4 sampling_mitchellNetravaliWeights(float t, float B, float C) {
     );
 }
 
+vec4 sampling_gaussianWeights(float t, float sigma) {
+    vec4 x = vec4(t) + vec4(1.0, 0.0, -1.0, -2.0);
+    return exp(-pow2(x) / (2.0 * pow2(sigma)));
+}
+
 vec4 _sampling_sincn(vec4 x) {
     return mix(vec4(1.0), sin(PI * x) / (PI * x), greaterThan(abs(x), vec4(0.001)));
 }

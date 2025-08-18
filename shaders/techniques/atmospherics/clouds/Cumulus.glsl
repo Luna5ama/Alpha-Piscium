@@ -72,7 +72,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
     densityOut = saturate(densityOut + heightCurve - 1.0);
 
     if (densityOut > _CU_DENSITY_EPSILON) {
-        #ifndef SETTING_SCREENSHOT_MODE
+        #if !defined(SETTING_SCREENSHOT_MODE) && defined(SETTING_CLOUDS_CU_WIND)
         rayPos += uval_cuDetailWind;
         #endif
 
