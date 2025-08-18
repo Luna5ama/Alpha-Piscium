@@ -16,8 +16,8 @@
 #include "/util/Hash.glsl"
 
 
-ivec2 vbgi_texelPos1x1;
-ivec2 vbgi_texelPos2x2;
+ivec2 vbgi_texelPos1x1 = ivec2(0);
+ivec2 vbgi_texelPos2x2 = ivec2(0);
 
 // Inverse function approximation
 // See https://www.desmos.com/calculator/gs3clmp5hj
