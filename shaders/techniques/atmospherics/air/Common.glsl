@@ -20,6 +20,7 @@
 #ifndef INCLUDE_atmosphere_Common_glsl
 #define INCLUDE_atmosphere_Common_glsl a
 
+#include "../Common.glsl"
 #include "Constants.glsl"
 #include "/util/Math.glsl"
 #include "/util/PhaseFunc.glsl"
@@ -94,18 +95,6 @@ vec3 atmosphere_viewToAtmNoClamping(AtmosphereParameters atmosphere, vec3 viewPo
     vec3 world = feetPlayer + cameraPosition;
     float height = atmosphere_heightNoClamping(atmosphere, world);
     return vec3(feetPlayer.x, 0.0, feetPlayer.z) * (1.0 / float(SETTING_ATM_D_SCALE)) + vec3(0.0, height, 0.0);
-}
-
-struct ScatteringResult {
-    vec3 transmittance;
-    vec3 inScattering;
-};
-
-ScatteringResult scatteringResult_init() {
-    ScatteringResult result;
-    result.transmittance = vec3(1.0);
-    result.inScattering = vec3(0.0);
-    return result;
 }
 
 void unpackEpipolarData(uvec4 epipolarData, out ScatteringResult sctrResult, out float viewZ) {

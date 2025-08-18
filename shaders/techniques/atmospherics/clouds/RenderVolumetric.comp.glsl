@@ -56,11 +56,11 @@ void render(ivec2 texelPosDownScale) {
     {
         vec3 rayDir = viewDirWorld;
         if (endView.z == -65536.0) {
-            // Check if ray origin is outside the techniques.atmosphere
+            // Check if ray origin is outside the atmosphere
             if (length(mainRayParams.rayStart) > atmosphere.top) {
                 float tTop = raySphereIntersectNearest(mainRayParams.rayStart, rayDir, earthCenter, atmosphere.top);
                 if (tTop < 0.0) {
-                    return;// No intersection with techniques.atmosphere: stop right away
+                    return;// No intersection with atmosphere: stop right away
                 }
                 mainRayParams.rayStart += rayDir * (tTop + 0.001);
             }
@@ -72,7 +72,7 @@ void render(ivec2 texelPosDownScale) {
 
             if (tBottom < 0.0) {
                 if (tTop < 0.0) {
-                    return;// No intersection with earth nor techniques.atmosphere: stop right away
+                    return;// No intersection with earth nor atmosphere: stop right away
                 } else {
                     rayLen = tTop;
                     maxRayLen = tTop;
@@ -203,10 +203,6 @@ void render(ivec2 texelPosDownScale) {
 
                 clouds_raymarchStepState_update(stepState, float(stepIndex) + jitters.x);
             }
-
-            const float TRANSMITTANCE_DECAY = 10.0;
-            cuAccum.totalTransmittance = pow(cuAccum.totalTransmittance, vec3(exp2(-cuOrigin2RayStart * 0.1)));
-            cuAccum.totalInSctr *= exp2(-pow2(cuOrigin2RayStart) * 0.002);
 
             float aboveFlag = float(cuHeightDiff < 0.0);
         }

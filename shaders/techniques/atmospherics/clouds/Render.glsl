@@ -32,11 +32,11 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     {
         vec3 rayDir = viewDirWorld;
         if (endView.z == -65536.0) {
-            // Check if ray origin is outside the techniques.atmosphere
+            // Check if ray origin is outside the atmosphere
             if (length(mainRayParams.rayStart) > atmosphere.top) {
                 float tTop = raySphereIntersectNearest(mainRayParams.rayStart, rayDir, earthCenter, atmosphere.top);
                 if (tTop < 0.0) {
-                    return;// No intersection with techniques.atmosphere: stop right away
+                    return;// No intersection with atmosphere: stop right away
                 }
                 mainRayParams.rayStart += rayDir * (tTop + 0.001);
             }
@@ -48,7 +48,7 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
 
             if (tBottom < 0.0) {
                 if (tTop < 0.0) {
-                    return;// No intersection with earth nor techniques.atmosphere: stop right away
+                    return;// No intersection with earth nor atmosphere: stop right away
                 } else {
                     rayLen = tTop;
                 }
@@ -82,37 +82,6 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
     vec2 jitters = rand_stbnVec2(texelPos, frameCounter);
     vec3 viewDir = mainRayParams.rayDir;
     vec2 ambLutUV = cloods_amblut_uv(viewDir, jitters);
-
-    #ifdef SETTING_CLOUDS_CU
-    {
-        float cuHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
-        float cuMinHeight = cuHeight - SETTING_CLOUDS_CU_THICKNESS * 0.5;
-        float cuMaxHeight = cuHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
-        float cuHeightDiff = cuHeight - mainRayParams.rayStartHeight;
-
-        float cuRayLenBot = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMinHeight);
-        float cuRayLenTop = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMaxHeight);
-
-        bool inLayer = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5;
-        float cuOrigin2RayStart = inLayer ? 0.0 : min(cuRayLenBot, cuRayLenTop);
-
-        uint cuFlag = uint(sign(cuHeightDiff) == sign(mainRayParams.rayDir.y)) | uint(inLayer);
-        cuFlag &= uint(cuOrigin2RayStart >= 0.0);
-
-        if (bool(cuFlag)) {
-            CloudSSHistoryData historyData = clouds_ss_historyData_init();
-            clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), 0), historyData);
-
-            float aboveFlag = float(cuHeightDiff < 0.0);
-            accumState.totalInSctr = mix(
-                accumState.totalInSctr + historyData.inScattering * accumState.totalTransmittance, // Below
-                accumState.totalInSctr * historyData.transmittance + historyData.inScattering, // Above
-                aboveFlag
-            );
-            accumState.totalTransmittance *= historyData.transmittance;
-        }
-    }
-    #endif
 
     #ifdef SETTING_CLOUDS_CI
     {
@@ -157,11 +126,42 @@ void renderCloud(ivec2 texelPos, sampler2D viewZTex, inout vec4 outputColor) {
 
             float aboveFlag = float(ciHeighDiff < 0.0);
             accumState.totalInSctr = mix(
-                accumState.totalInSctr + ciAccum.totalInSctr * accumState.totalTransmittance, // Below
-                accumState.totalInSctr * ciAccum.totalTransmittance + ciAccum.totalInSctr, // Above
+                accumState.totalInSctr * ciAccum.totalTransmittance + ciAccum.totalInSctr, // Below
+                accumState.totalInSctr + ciAccum.totalInSctr * accumState.totalTransmittance, // Above
                 aboveFlag
             );
             accumState.totalTransmittance *= ciAccum.totalTransmittance;
+        }
+    }
+    #endif
+
+    #ifdef SETTING_CLOUDS_CU
+    {
+        float cuHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
+        float cuMinHeight = cuHeight - SETTING_CLOUDS_CU_THICKNESS * 0.5;
+        float cuMaxHeight = cuHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
+        float cuHeightDiff = cuHeight - mainRayParams.rayStartHeight;
+
+        float cuRayLenBot = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMinHeight);
+        float cuRayLenTop = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMaxHeight);
+
+        bool inLayer = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5;
+        float cuOrigin2RayStart = inLayer ? 0.0 : min(cuRayLenBot, cuRayLenTop);
+
+        uint cuFlag = uint(sign(cuHeightDiff) == sign(mainRayParams.rayDir.y)) | uint(inLayer);
+        cuFlag &= uint(cuOrigin2RayStart >= 0.0);
+
+        if (bool(cuFlag)) {
+            CloudSSHistoryData historyData = clouds_ss_historyData_init();
+            clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), 0), historyData);
+
+            float aboveFlag = float(cuHeightDiff < 0.0);
+            accumState.totalInSctr = mix(
+                accumState.totalInSctr + historyData.inScattering * accumState.totalTransmittance, // Below
+                accumState.totalInSctr * historyData.transmittance + historyData.inScattering, // Above
+                aboveFlag
+            );
+            accumState.totalTransmittance *= historyData.transmittance;
         }
     }
     #endif

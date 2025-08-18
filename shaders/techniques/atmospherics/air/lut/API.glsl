@@ -38,7 +38,7 @@ vec3 _atmospherics_air_lut_sampleSkyViewSlice(vec2 sliceUV, float sliceIndex) {
 }
 
 ScatteringResult atmospherics_air_lut_sampleSkyView(
-AtmosphereParameters atmosphere,
+    AtmosphereParameters atmosphere,
     bool intersectGround,
     float viewZenithCosAngle,
     float sunViewCosAngle,

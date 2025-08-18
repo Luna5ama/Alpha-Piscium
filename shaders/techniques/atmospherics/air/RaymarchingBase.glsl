@@ -33,11 +33,11 @@ bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters param
     const vec3 earthCenter = vec3(0.0);
     float rayStartHeight = length(params.rayStart);
 
-    // Check if ray origin is outside the techniques.atmosphere
+    // Check if ray origin is outside the atmosphere
     if (rayStartHeight > atmosphere.top) {
         float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
         if (tTop < 0.0) {
-            return false; // No intersection with techniques.atmosphere: stop right away
+            return false; // No intersection with atmosphere: stop right away
         }
         vec3 upVector = params.rayStart / rayStartHeight;
         vec3 upOffset = upVector * -PLANET_RADIUS_OFFSET;
@@ -50,7 +50,7 @@ bool setupRayEnd(AtmosphereParameters atmosphere, inout RaymarchParameters param
 
     if (tBottom < 0.0) {
         if (tTop < 0.0) {
-            return false; // No intersection with earth nor techniques.atmosphere: stop right away
+            return false; // No intersection with earth nor atmosphere: stop right away
         } else {
             rayLen = tTop;
         }

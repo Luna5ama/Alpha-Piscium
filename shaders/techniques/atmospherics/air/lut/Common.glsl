@@ -12,15 +12,26 @@
 #ifndef INCLUDE_atmosphere_lut_Common_glsl
 #define INCLUDE_atmosphere_lut_Common_glsl a
 
-#define SKYVIEW_LUT_WIDTH (SETTING_SKYVIEW_RES / 2)
-#define SKYVIEW_LUT_HEIGHT SETTING_SKYVIEW_RES
-#define SKYVIEW_LUT_DEPTH 3
-#define SKYVIEW_LUT_SIZE ivec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
-#define SKYVIEW_LUT_SIZE_F vec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
-
 #include "../Common.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Math.glsl"
+
+#define SKYVIEW_LUT_WIDTH (SETTING_SKYVIEW_RES / 2)
+#define SKYVIEW_LUT_HEIGHT SETTING_SKYVIEW_RES
+#define SKYVIEW_LUT_LAYERS 5
+#define SKYVIEW_LUT_DEPTH 15
+#define SKYVIEW_LUT_SIZE ivec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
+#define SKYVIEW_LUT_SIZE_F vec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
+
+#if SETTING_SKYVIEW_RES == 128
+#define SKYVIEW_RES_D16 8
+#elif SETTING_SKYVIEW_RES == 256
+#define SKYVIEW_RES_D16 16
+#elif SETTING_SKYVIEW_RES == 512
+#define SKYVIEW_RES_D16 32
+#elif SETTING_SKYVIEW_RES == 1024
+#define SKYVIEW_RES_D16 64
+#endif
 
 // [HIL20] https://github.com/sebh/UnrealEngineSkyAtmosphere/blob/master/Resources/RenderSkyCommon.hlsl
 // Transmittance LUT function parameterisation from Bruneton 2017 https://github.com/ebruneton/precomputed_atmospheric_scattering
@@ -40,7 +51,7 @@ void _atmospherics_air_lut_lutTransmittanceParamsToUv(AtmosphereParameters atmos
     float rho = sqrt(max(0.0, pow2(height) - pow2(atmosphere.bottom)));
 
     float discriminant = pow2(height) * (cosZenith * cosZenith - 1.0) + pow2(atmosphere.top);
-    float d = max(0.0, (-height * cosZenith + sqrt(discriminant)));// Distance to techniques.atmosphere boundary
+    float d = max(0.0, (-height * cosZenith + sqrt(discriminant)));// Distance to atmosphere boundary
 
     float d_min = atmosphere.top - height;
     float d_max = rho + H;
