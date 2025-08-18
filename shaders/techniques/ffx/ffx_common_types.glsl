@@ -175,6 +175,4 @@
 
 #endif // FFX_HALF
 
-#endif // #if defined(FFX_GLSL)
-
 #endif // #ifndef FFX_COMMON_TYPES_H
