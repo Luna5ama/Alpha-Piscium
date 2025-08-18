@@ -1,4 +1,6 @@
 #extension GL_KHR_shader_subgroup_basic : enable
+#extension GL_KHR_shader_subgroup_ballot : enable
+#define HIZ_SUBGROUP_CHECK a
 
 #include "/techniques/gtvbgi/Common.glsl"
 #include "/util/NZPacking.glsl"
@@ -26,7 +28,7 @@ void main() {
         ivec2 texelPos2x2 = texelPos1x1 >> 1;
         vec2 screenPos1x1 = (vec2(texelPos1x1) + 0.5) * global_mainImageSizeRcp;
 
-        if (hiz_groupGroundCheck(gl_WorkGroupID.xy, 3)) {
+        if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 3)) {
             float viewZ = texelFetch(usam_gbufferViewZ, texelPos1x1, 0).r;
             if (viewZ != -65536.0) {
                 GBufferData gData = gbufferData_init();

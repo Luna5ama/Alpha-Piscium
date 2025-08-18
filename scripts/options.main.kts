@@ -1176,24 +1176,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Max Accumulation"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_SHARPENING", 0.25, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_LOW_SHARPENING", 0.1, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Sharpening"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_STEP_MIN", 32, 4..64 step 4) {
+                    slider("SETTING_CLOUDS_LOW_STEP_MIN", 24, 4..64 step 4) {
                         lang {
                             name = "Ray Marching Min Step"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_STEP_MAX", 96, 16..128 step 4) {
+                    slider("SETTING_CLOUDS_LOW_STEP_MAX", 64, 16..128 step 4) {
                         lang {
                             name = "Ray Marching Max Step"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_STEP_CURVE", 3.0, 1.0..8.0 step 0.5) {
-                        lang {
-                            name = "Ray Marching Step Curve"
                         }
                     }
                     empty()

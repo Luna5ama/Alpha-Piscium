@@ -12,25 +12,13 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(RENDER_MULTIPLIER, RENDER_MULTIPLIER);
 
+shared bool shared_worldGroupCheck;
+
 layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
 
 const float TRANSMITTANCE_EPSILON = 0.01;
 
 void render(ivec2 texelPosDownScale) {
-    vec2 groupCenter = vec2(gl_WorkGroupID.xy << 3u) + 4.0;
-    vec2 hizCheckPos = groupCenter * UPSCALE_FACTOR / CHECK_MIP_FACTOR;
-
-    if (!hiz_groupSkyCheck4x4(hizCheckPos, CHECK_MIP_LEVEL)) {
-        CloudSSHistoryData historyData = clouds_ss_historyData_init();
-        historyData.inScattering = vec3(0.0);
-        historyData.transmittance = vec3(1.0);
-        historyData.hLen = 0.0;
-        uvec4 packedOutput = uvec4(0u);
-        clouds_ss_historyData_pack(packedOutput, historyData);
-        imageStore(uimg_csrgba32ui, gi_diffuseHistory_texelToTexel(texelPosDownScale), packedOutput);
-        return;
-    }
-
     vec2 texelPosF = clouds_ss_upscaledTexelCenter(texelPosDownScale);
     float viewZ = -65536.0;
 
@@ -218,12 +206,21 @@ void render(ivec2 texelPosDownScale) {
 }
 
 void main() {
-    uvec2 workGroupOrigin = gl_WorkGroupID.xy << 3;
-    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
-    uvec2 mortonPos = morton_8bDecode(threadIdx);
-    uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
-    ivec2 texelPos = ivec2(mortonGlobalPosU);
-    if (all(lessThan(texelPos, renderSize))) {
-        render(texelPos);
+    if (gl_LocalInvocationIndex == 0) {
+        vec2 groupCenter = vec2(gl_WorkGroupID.xy << 3u) + 4.0;
+        vec2 hizCheckPos = groupCenter * UPSCALE_FACTOR / CHECK_MIP_FACTOR;
+        shared_worldGroupCheck = hiz_groupSkyCheck4x4(hizCheckPos, CHECK_MIP_LEVEL);
+    }
+    barrier();
+
+    if (shared_worldGroupCheck) {
+        uvec2 workGroupOrigin = gl_WorkGroupID.xy << 3;
+        uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+        uvec2 mortonPos = morton_8bDecode(threadIdx);
+        uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
+        ivec2 texelPos = ivec2(mortonGlobalPosU);
+        if (all(lessThan(texelPos, renderSize))) {
+            render(texelPos);
+        }
     }
 }

@@ -1,4 +1,6 @@
 #extension GL_KHR_shader_subgroup_basic : enable
+#extension GL_KHR_shader_subgroup_ballot : enable
+#define HIZ_SUBGROUP_CHECK a
 
 #include "/techniques/gtvbgi/Common.glsl"
 #include "/techniques/atmospherics/air/Constants.glsl"
@@ -80,7 +82,7 @@ void main() {
         ivec2 texelPos2x2 = texelPos >> 1;
         vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
 
-        if (hiz_groupGroundCheck(gl_WorkGroupID.xy, 4)) {
+        if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
             float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
             if (viewZ != -65536.0) {
                 gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), lighting_gData);

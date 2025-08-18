@@ -23,6 +23,16 @@ bool hiz_groupGroundCheck(uvec2 groupOrigin, int level) {
     return hiz_closest_load(ivec2(groupOrigin), level) > coords_viewZToReversedZ(-65536.0, near);
 }
 
+#ifdef HIZ_SUBGROUP_CHECK
+bool hiz_groupGroundCheckSubgroup(uvec2 groupOrigin, int level) {
+    bool subgroupCheck = false;
+    if (subgroupElect()) {
+        subgroupCheck = hiz_closest_load(ivec2(groupOrigin), level) > coords_viewZToReversedZ(-65536.0, near);
+    }
+    return subgroupBroadcastFirst(subgroupCheck);
+}
+#endif
+
 bool hiz_groupGroundCheck4x4(vec2 groupOrigin, int level) {
     vec4 hizValues = hiz_closest_gather(groupOrigin + vec2(-1.0, -1.0), level);
     hizValues = max(hizValues, hiz_closest_gather(groupOrigin + vec2(1.0, -1.0), level));
@@ -34,7 +44,7 @@ bool hiz_groupGroundCheck4x4(vec2 groupOrigin, int level) {
 float hiz_furthest_load(ivec2 texelPos, int level) {
     ivec4 mipTile = global_mipmapTiles[1][level];
     ivec2 readPos = mipTile.xy + clamp(texelPos, ivec2(0), mipTile.zw - 1);
-    return texelFetch(usam_hiz, readPos, 0).g;
+    return texelFetch(usam_hiz, readPos, 0).r;
 }
 
 float hiz_furthest_sample(vec2 texelPos, int level) {
@@ -52,6 +62,16 @@ vec4 hiz_furthest_gather(vec2 texelPos, int level) {
 bool hiz_groupSkyCheck(uvec2 groupOrigin, int level) {
     return hiz_furthest_load(ivec2(groupOrigin), level) <= coords_viewZToReversedZ(-65536.0, near);
 }
+
+#ifdef HIZ_SUBGROUP_CHECK
+bool hiz_groupSkyCheckSubgroup(uvec2 groupOrigin, int level) {
+    bool subgroupCheck = false;
+    if (subgroupElect()) {
+        subgroupCheck = hiz_furthest_load(ivec2(groupOrigin), level) <= coords_viewZToReversedZ(-65536.0, near);
+    }
+    return subgroupBroadcastFirst(subgroupCheck);
+}
+#endif
 
 bool hiz_groupSkyCheck4x4(vec2 groupOrigin, int level) {
     vec4 hizValues = hiz_furthest_gather(groupOrigin + vec2(-1.0, -1.0), level);

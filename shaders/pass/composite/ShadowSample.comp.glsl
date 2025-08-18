@@ -2,6 +2,8 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_vote : enable
 #extension GL_KHR_shader_subgroup_clustered : enable
+#extension GL_KHR_shader_subgroup_ballot : enable
+#define HIZ_SUBGROUP_CHECK a
 
 #include "/util/Celestial.glsl"
 #include "/util/Material.glsl"
@@ -167,7 +169,7 @@ void main() {
             }
         }
         #else
-        if (hiz_groupGroundCheck(gl_WorkGroupID.xy, 4)) {
+        if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
             viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         }
         #endif

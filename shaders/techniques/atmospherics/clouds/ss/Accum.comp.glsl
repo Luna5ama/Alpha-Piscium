@@ -1,4 +1,6 @@
 #extension GL_KHR_shader_subgroup_basic : enable
+#extension GL_KHR_shader_subgroup_ballot : enable
+#define HIZ_SUBGROUP_CHECK a
 
 #include "Common.glsl"
 #include "/util/Coords.glsl"
@@ -74,10 +76,9 @@ Vec4PackedData loadPrevData(ivec2 texelPos) {
 const float WEIGHT_EPSILON = 0.0001;
 
 void main() {
-    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
-        if (true) {
+    if (hiz_groupSkyCheckSubgroup(gl_WorkGroupID.xy, 3)) {
+        ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+        if (all(lessThan(texelPos, global_mainImageSizeI))) {
             vec2 texelCenter = vec2(texelPos) + 0.5;
             vec2 uv = texelCenter * global_mainImageSizeRcp;
             ivec2 texelPosDownScale = DOWNSCALE_DIVIDE(texelPos);
@@ -195,11 +196,6 @@ void main() {
             newHistoryData.inScattering = max(newHistoryData.inScattering, vec3(0.0));
             newHistoryData.transmittance = saturate(newHistoryData.transmittance);
 
-            uvec4 packedOutput = uvec4(0u);
-            clouds_ss_historyData_pack(packedOutput, newHistoryData);
-            imageStore(uimg_tempRGBA32UI, texelPos, packedOutput);
-        } else {
-            CloudSSHistoryData newHistoryData = clouds_ss_historyData_init();
             uvec4 packedOutput = uvec4(0u);
             clouds_ss_historyData_pack(packedOutput, newHistoryData);
             imageStore(uimg_tempRGBA32UI, texelPos, packedOutput);

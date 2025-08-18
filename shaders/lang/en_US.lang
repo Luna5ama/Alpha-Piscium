@@ -202,7 +202,6 @@ option.SETTING_CLOUDS_LOW_MAX_ACCUM=Max Accumulation
 option.SETTING_CLOUDS_LOW_SHARPENING=Sharpening
 option.SETTING_CLOUDS_LOW_STEP_MIN=Ray Marching Min Step
 option.SETTING_CLOUDS_LOW_STEP_MAX=Ray Marching Max Step
-option.SETTING_CLOUDS_LOW_STEP_CURVE=Ray Marching Step Curve
 option.SETTING_CLOUDS_CU_WEIGHT=Cumulus Weight
 option.SETTING_CLOUDS_CU_HEIGHT=Cumulus Height
 suffix.SETTING_CLOUDS_CU_HEIGHT=\ km

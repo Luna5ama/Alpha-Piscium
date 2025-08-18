@@ -2,6 +2,8 @@
 
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_vote : enable
+#extension GL_KHR_shader_subgroup_ballot : enable
+#define HIZ_SUBGROUP_CHECK a
 
 #include "/techniques/svgf/Update.glsl"
 #include "/util/Morton.glsl"
@@ -29,7 +31,7 @@ void main() {
     if (all(lessThan(texelPos1x1, global_mainImageSizeI))) {
         vec3 ssvbilData = vec3(0.0);
 
-        if (hiz_groupGroundCheck(gl_WorkGroupID.xy, 5)) {
+        if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 5)) {
             ssvbilData = gtvbgi(texelPos1x1);
         }
 
