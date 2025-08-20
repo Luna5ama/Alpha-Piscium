@@ -202,7 +202,7 @@ void render(ivec2 texelPosDownScale) {
     historyData.hLen = 1.0;
     uvec4 packedOutput = uvec4(0u);
     clouds_ss_historyData_pack(packedOutput, historyData);
-    imageStore(uimg_csrgba32ui, gi_diffuseHistory_texelToTexel(texelPosDownScale), packedOutput);
+    imageStore(uimg_csrgba32ui, csrgba32ui_temp1_texelToTexel(texelPosDownScale), packedOutput);
 }
 
 void main() {

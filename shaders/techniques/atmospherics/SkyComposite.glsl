@@ -10,6 +10,8 @@
 #include "/util/Celestial.glsl"
 #include "/util/Math.glsl"
 
+layout(rgba32ui) uniform restrict writeonly uimage2D uimg_csrgba32ui;
+
 const float DENSITY_EPSILON = 0.0001;
 
 struct SkyViewLutParams {
@@ -32,7 +34,7 @@ ScatteringResult _atmospherics_sampleSkyViewLUT(AtmosphereParameters atmosphere,
     );
 }
 
-ScatteringResult atmospherics_composite(ivec2 texelPos) {
+ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
     float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
     vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
@@ -148,6 +150,9 @@ ScatteringResult atmospherics_composite(ivec2 texelPos) {
 
         #ifdef SETTING_CLOUDS_CU
         {
+            uvec4 packedData = texelFetch(usam_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), 0);
+            imageStore(uimg_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), packedData);
+
             float cuHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
             float cuMinHeight = cuHeight - SETTING_CLOUDS_CU_THICKNESS * 0.5;
             float cuMaxHeight = cuHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
@@ -164,7 +169,7 @@ ScatteringResult atmospherics_composite(ivec2 texelPos) {
 
             if (bool(cuFlag)) {
                 CloudSSHistoryData historyData = clouds_ss_historyData_init();
-                clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), 0), historyData);
+                clouds_ss_historyData_unpack(packedData, historyData);
                 bool above = inLayer || cuHeightDiff < 0.0;
                 ScatteringResult layerResult = ScatteringResult(
                     historyData.transmittance,
@@ -243,30 +248,30 @@ ScatteringResult atmospherics_composite(ivec2 texelPos) {
         }
     }
 
-    {
-        ScatteringResult layerResult;
-        #ifndef SETTING_DEPTH_BREAK_CORRECTION
-        unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, layerResult);
-        #else
-        bool isDepthBreak = !unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, layerResult);
-        uvec4 balllot = subgroupBallot(isDepthBreak);
-        uint correctionCount = subgroupBallotBitCount(balllot);
-        uint writeIndexBase = 0u;
-        if (subgroupElect()) {
-            writeIndexBase = atomicAdd(global_dispatchSize1.w, correctionCount);
-            uint totalCount = writeIndexBase + correctionCount;
-            atomicMax(global_dispatchSize1.x, (totalCount | 0x3Fu) >> 6u);
-        }
-        writeIndexBase = subgroupBroadcastFirst(writeIndexBase);
-        if (isDepthBreak) {
-            uint writeIndex = writeIndexBase + subgroupBallotExclusiveBitCount(balllot);
-            uint texelPosEncoded = packUInt2x16(uvec2(texelPos));
-            indirectComputeData[writeIndex] = texelPosEncoded;
-            layerResult = scatteringResult_init();
-        }
-        #endif
-        compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, true);
-    }
+//    {
+//        ScatteringResult layerResult;
+//        #ifndef SETTING_DEPTH_BREAK_CORRECTION
+//        unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, layerResult);
+//        #else
+//        bool isDepthBreak = !unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, layerResult);
+//        uvec4 balllot = subgroupBallot(isDepthBreak);
+//        uint correctionCount = subgroupBallotBitCount(balllot);
+//        uint writeIndexBase = 0u;
+//        if (subgroupElect()) {
+//            writeIndexBase = atomicAdd(global_dispatchSize1.w, correctionCount);
+//            uint totalCount = writeIndexBase + correctionCount;
+//            atomicMax(global_dispatchSize1.x, (totalCount | 0x3Fu) >> 6u);
+//        }
+//        writeIndexBase = subgroupBroadcastFirst(writeIndexBase);
+//        if (isDepthBreak) {
+//            uint writeIndex = writeIndexBase + subgroupBallotExclusiveBitCount(balllot);
+//            uint texelPosEncoded = packUInt2x16(uvec2(texelPos));
+//            indirectComputeData[writeIndex] = texelPosEncoded;
+//            layerResult = scatteringResult_init();
+//        }
+//        #endif
+//        compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, true);
+//    }
 
     return compositeResult;
 }
