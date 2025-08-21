@@ -1814,9 +1814,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Epipolar Lines"
                 }
             }
-            toggle("SETTING_DEBUG_CLOUDS", false) {
+            toggle("SETTING_DEBUG_CLOUDS_AMBLUT", false) {
                 lang {
-                    name = "Clouds"
+                    name = "Clouds Amb. LUT"
                 }
             }
             toggle("SETTING_DEBUG_CLOUDS_SS", 0, 0..4) {
