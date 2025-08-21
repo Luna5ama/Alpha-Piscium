@@ -225,11 +225,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
                         vec3(1.0),
                         ciAccum
                     );
-                }
-
-                const float TRANSMITTANCE_DECAY = 10.0;
-                ciAccum.totalTransmittance = pow(ciAccum.totalTransmittance, vec3(exp2(-ciOrigin2RayOffset * 0.1)));
-                ciAccum.totalInSctr *= exp2(-pow2(ciOrigin2RayOffset) * 0.002);
+                };
 
                 ScatteringResult layerResult = ScatteringResult(
                     ciAccum.totalTransmittance,
@@ -247,31 +243,6 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
             compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, above);
         }
     }
-
-//    {
-//        ScatteringResult layerResult;
-//        #ifndef SETTING_DEPTH_BREAK_CORRECTION
-//        unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, layerResult);
-//        #else
-//        bool isDepthBreak = !unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, layerResult);
-//        uvec4 balllot = subgroupBallot(isDepthBreak);
-//        uint correctionCount = subgroupBallotBitCount(balllot);
-//        uint writeIndexBase = 0u;
-//        if (subgroupElect()) {
-//            writeIndexBase = atomicAdd(global_dispatchSize1.w, correctionCount);
-//            uint totalCount = writeIndexBase + correctionCount;
-//            atomicMax(global_dispatchSize1.x, (totalCount | 0x3Fu) >> 6u);
-//        }
-//        writeIndexBase = subgroupBroadcastFirst(writeIndexBase);
-//        if (isDepthBreak) {
-//            uint writeIndex = writeIndexBase + subgroupBallotExclusiveBitCount(balllot);
-//            uint texelPosEncoded = packUInt2x16(uvec2(texelPos));
-//            indirectComputeData[writeIndex] = texelPosEncoded;
-//            layerResult = scatteringResult_init();
-//        }
-//        #endif
-//        compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, true);
-//    }
 
     return compositeResult;
 }
