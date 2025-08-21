@@ -56,7 +56,7 @@ vec4 SpdLoadSourceImage(ivec2 tex, uint slice) {
 }
 
 vec4 SpdLoad(ivec2 tex, uint slice) {
-    return SPD_DATA_CAST_TO_4(spd_loadOutput(tex, 5));
+    return SPD_DATA_CAST_TO_4(spd_loadOutput(tex, 6));
 }
 
 void SpdStore(FfxInt32x2 pix, vec4 outValue, uint mip, uint slice) {
