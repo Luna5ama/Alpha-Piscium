@@ -1094,7 +1094,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 empty()
                 empty()
-                slider("SETTING_SKY_SAMPLES", 64, 16..128 step 8) {
+                slider("SETTING_SKY_SAMPLES", 32, 16..64 step 8) {
                     lang {
                         name = "Sky Samples"
                     }

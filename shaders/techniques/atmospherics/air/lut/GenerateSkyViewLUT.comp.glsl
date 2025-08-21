@@ -13,48 +13,12 @@
 
 layout(local_size_x = 8, local_size_y = 16) in;
 
-const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 8);
+const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 6);
 
 #define ATMOSPHERE_RAYMARCHING_SKY_SINGLE a
 #include "../Raymarching.glsl"
 
 layout(rgba8) restrict uniform writeonly image3D uimg_skyViewLUT;
-
-bool setupRayEndC(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir, float bottomOffset) {
-    const vec3 earthCenter = vec3(0.0);
-    float rayStartHeight = length(params.rayStart);
-
-    // Check if ray origin is outside the atmosphere
-    if (rayStartHeight > atmosphere.top) {
-        float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
-        if (tTop < 0.0) {
-            return false; // No intersection with atmosphere: stop right away
-        }
-        vec3 upVector = params.rayStart / rayStartHeight;
-        vec3 upOffset = upVector * -PLANET_RADIUS_OFFSET;
-        params.rayStart += rayDir * tTop + upOffset;
-    }
-
-    float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom - bottomOffset);
-    float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
-    float rayLen = 0.0;
-
-    if (tBottom < 0.0) {
-        if (tTop < 0.0) {
-            return false; // No intersection with earth nor atmosphere: stop right away
-        } else {
-            rayLen = tTop;
-        }
-    } else {
-        if (tTop > 0.0) {
-            rayLen = min(tTop, tBottom);
-        }
-    }
-
-    params.rayEnd = params.rayStart + rayDir * rayLen;
-
-    return true;
-}
 
 bool setupRayEndLayered(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir, vec2 layerBound, float bottomOffset) {
     const vec3 earthCenter = vec3(0.0);
@@ -176,18 +140,11 @@ void main() {
     float groundFactor = exp2(-4.0 * (viewHeight - atmosphere.bottom));
     float bottomOffset = groundFactor * 10.0;
 
-    if (workGroupZI == 0) {
-        if (setupRayEndC(atmosphere, params, rayDir, bottomOffset)) {
-            params.rayStart = params.rayStart + rayDir * (shadowDistance / SETTING_ATM_D_SCALE);
-            result = raymarchSkySingle(atmosphere, params, lightParam, bottomOffset);
-        }
-    } else {
-        vec2 layerBound = LAYER_BOUNDS[layerIndex - 1] + atmosphere.bottom;
-        layerBound = min(layerBound, vec2(atmosphere.top));
+    vec2 layerBound = LAYER_BOUNDS[layerIndex] + atmosphere.bottom;
+    layerBound = min(layerBound, vec2(atmosphere.top));
 
-        if (setupRayEndLayered(atmosphere, params, rayDir, layerBound, bottomOffset)) {
-            result = raymarchSkySingle(atmosphere, params, lightParam, bottomOffset);
-        }
+    if (setupRayEndLayered(atmosphere, params, rayDir, layerBound, bottomOffset)) {
+        result = raymarchSkySingle(atmosphere, params, lightParam, bottomOffset);
     }
 
     ivec3 writePos = ivec3(texelPos, layerIndex * 3);

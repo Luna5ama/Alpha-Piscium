@@ -144,7 +144,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
 
     if (viewZ == -65536.0) {
         {
-            ScatteringResult layerResult = _atmospherics_sampleSkyViewLUT(atmosphere, skyViewLutParams, 1.0);
+            ScatteringResult layerResult = _atmospherics_sampleSkyViewLUT(atmosphere, skyViewLutParams, 0.0);
             compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, true);
         }
 
@@ -185,7 +185,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
         #endif
 
         {
-            ScatteringResult layerResult = _atmospherics_sampleSkyViewLUT(atmosphere, skyViewLutParams, 2.0);
+            ScatteringResult layerResult = _atmospherics_sampleSkyViewLUT(atmosphere, skyViewLutParams, 1.0);
             bool above = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
             compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, above);
         }
@@ -238,7 +238,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
         #endif
 
         {
-            ScatteringResult layerResult = _atmospherics_sampleSkyViewLUT(atmosphere, skyViewLutParams, 3.0);
+            ScatteringResult layerResult = _atmospherics_sampleSkyViewLUT(atmosphere, skyViewLutParams, 2.0);
             bool above = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CI_HEIGHT;
             compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, above);
         }
