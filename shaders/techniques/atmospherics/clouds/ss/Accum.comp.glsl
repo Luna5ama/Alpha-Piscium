@@ -118,6 +118,7 @@ void main() {
             }
 
             float prevWeight = prevAvgData.transmittanceHLen.w;
+            prevWeight *= global_historyResetFactor;
 
             Vec4PackedData currAvgData = vec4PackedData_init();
             vec3 inSctrMoment1 = vec3(0.0);
@@ -176,7 +177,7 @@ void main() {
                 // Ellipsoid intersection clipping by Marty
                 vec3 inSctrStddev = sqrt(max(inSctrMoment2 - inSctrMoment1 * inSctrMoment1, clippingEps));
                 vec3 inSctrDelta = prevInSctrYCoCg - inSctrMoment1;
-                inSctrDelta /= max(1.0, length(inSctrDelta / inSctrStddev * SETTING_CLOUDS_LOW_VARIANCE_CLIPPING));
+                inSctrDelta /= max(1.0, length(inSctrDelta / inSctrStddev * SETTING_CLOUDS_LOW_VARIANCE_CLIPPING / global_historyResetFactor));
                 prevInSctrYCoCg = inSctrMoment1 + inSctrDelta;
 
                 vec3 transmittanceStddev = sqrt(max(transmittanceMoment2 - transmittanceMoment1 * transmittanceMoment1, clippingEps));
