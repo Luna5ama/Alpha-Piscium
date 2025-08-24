@@ -1237,6 +1237,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             name = "Cumulus Wind"
                         }
                     }
+                    slider("SETTING_CLOUDS_CU_WIND_SPEED", 0.0, -4.0..4.0 step 0.25) {
+                        lang {
+                            name = "Cumulus Wind Speed"
+                        }
+                    }
                 }
                 screen("HIGH_CLOUDS", 1) {
                     lang {
