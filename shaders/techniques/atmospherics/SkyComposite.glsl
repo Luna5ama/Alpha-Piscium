@@ -141,6 +141,10 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
             viewHeight
         );
     }
+    #ifdef SETTING_CLOUDS_CU
+    uvec4 packedData = texelFetch(usam_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), 0);
+    imageStore(uimg_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), packedData);
+    #endif
 
     if (viewZ == -65536.0) {
         {
@@ -150,9 +154,6 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
 
         #ifdef SETTING_CLOUDS_CU
         {
-            uvec4 packedData = texelFetch(usam_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), 0);
-            imageStore(uimg_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), packedData);
-
             float cuHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
             float cuMinHeight = cuHeight - SETTING_CLOUDS_CU_THICKNESS * 0.5;
             float cuMaxHeight = cuHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;

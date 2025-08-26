@@ -76,8 +76,8 @@ Vec4PackedData loadPrevData(ivec2 texelPos) {
 const float WEIGHT_EPSILON = 0.0001;
 
 void main() {
+    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (hiz_groupSkyCheckSubgroup(gl_WorkGroupID.xy, 3)) {
-        ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
         if (all(lessThan(texelPos, global_mainImageSizeI))) {
             vec2 texelCenter = vec2(texelPos) + 0.5;
             vec2 uv = texelCenter * global_mainImageSizeRcp;
@@ -207,5 +207,7 @@ void main() {
             clouds_ss_historyData_pack(packedOutput, newHistoryData);
             imageStore(uimg_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), packedOutput);
         }
+    } else {
+        imageStore(uimg_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), uvec4(0u));
     }
 }
