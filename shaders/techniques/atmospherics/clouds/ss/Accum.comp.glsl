@@ -169,12 +169,12 @@ void main() {
             }
 
             {
-                const float clippingEps = 0.00001;
 
                 vec3 prevInSctrYCoCg = colors_SRGBToYCoCg(prevAvgData.inScattering);
                 vec3 prevTransmittanceYCoCg = colors_SRGBToYCoCg(prevAvgData.transmittanceHLen.rgb);
 
                 // Ellipsoid intersection clipping by Marty
+                const float clippingEps = FLT_MIN;
                 vec3 inSctrStddev = sqrt(max(inSctrMoment2 - inSctrMoment1 * inSctrMoment1, clippingEps));
                 vec3 inSctrDelta = prevInSctrYCoCg - inSctrMoment1;
                 inSctrDelta /= max(1.0, length(inSctrDelta / inSctrStddev * SETTING_CLOUDS_LOW_VARIANCE_CLIPPING / global_historyResetFactor));
@@ -182,7 +182,7 @@ void main() {
 
                 vec3 transmittanceStddev = sqrt(max(transmittanceMoment2 - transmittanceMoment1 * transmittanceMoment1, clippingEps));
                 vec3 transmittanceDelta = prevTransmittanceYCoCg - transmittanceMoment1;
-                transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev * SETTING_CLOUDS_LOW_VARIANCE_CLIPPING));
+                transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev / global_historyResetFactor));
                 prevTransmittanceYCoCg = transmittanceMoment1 + transmittanceDelta;
 
                 prevAvgData.inScattering = colors_YCoCgToSRGB(prevInSctrYCoCg);
