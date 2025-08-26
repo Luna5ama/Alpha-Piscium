@@ -131,6 +131,7 @@ vec3 displayViewZ(float viewZ) {
 void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     _debug_texelPos = texelPos;
     beginText(texelPos >> ivec2(2), ivec2(0, global_mainImageSizeI.y >> 2));
+    text.fpPrecision = 4;
 
     #ifdef DEBUG_TEX_NAME
     if (all(lessThan(texelPos, textureSize(DEBUG_TEX_NAME, 0)))) {
@@ -399,6 +400,24 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #endif
 
     #ifdef SETTING_DEBUG_AE
+    printChar(_A);
+    printChar(_V);
+    printChar(_G);
+    printChar(_space);
+    printFloat(global_aeData.expValues.x);
+    printLine();
+    printChar(_H);
+    printChar(_I);
+    printChar(_S);
+    printChar(_space);
+    printFloat(global_aeData.expValues.y);
+    printLine();
+    printChar(_M);
+    printChar(_I);
+    printChar(_X);
+    printChar(_space);
+    printFloat(global_aeData.expValues.z);
+    printLine();
     if (inViewPort(ivec4(0, 0, 1024, 256), debugTexCoord)) {
         uint binIndex = min(uint(debugTexCoord.x * 256.0), 255u);
         float binCount = float(global_aeData.lumHistogram[binIndex]);
@@ -445,8 +464,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     outputColor = expGamma(texelFetch(usam_debug, ivec2((vec2(texelPos) + 0.5) / SETTING_DEBUG_SCALE), 0));
     #endif
 
-    text.fpPrecision = 4;
-    beginText(texelPos >> ivec2(2), ivec2(0, global_mainImageSizeI.y >> 2));
-    printFloat(global_turbidity);
+//    beginText(texelPos >> ivec2(2), ivec2(0, global_mainImageSizeI.y >> 2));
+//    printFloat(global_turbidity);
     endText(outputColor.rgb);
 }

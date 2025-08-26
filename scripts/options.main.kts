@@ -1285,7 +1285,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Starmap Intensity"
                     }
                 }
-                slider("SETTING_STARMAP_BRIGHT_STAR_BOOST", 6, 0..8) {
+                slider("SETTING_STARMAP_BRIGHT_STAR_BOOST", 2, 0..8) {
                     lang {
                         name = "Starmap Bright Star Boost"
                     }
@@ -1463,7 +1463,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_MIN_EV", -5.0, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MIN_EV", -4.5, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Min EV"
                     }
@@ -1494,7 +1494,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 1.0, 0.0..1.0 step 0.05) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.5, 0.0..1.0 step 0.05) {
                     lang {
                         name = "Average Luminance Weight"
                         comment = "Weight of average luminance AE in the final exposure value."
@@ -1505,13 +1505,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Average Luminance AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 33, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 25, 1..255) {
                     lang {
                         name = "Average Luminance Minimum Target"
                         comment = "Target average luminance value for dark scene such as caves, indoors, and nighttime."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 118, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 66, 1..255) {
                     lang {
                         name = "Average Luminance Maximum Target"
                         comment = "Target average luminance value for bright scene such as daytime outdoors."
@@ -1543,19 +1543,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Luminance threshold for highlight."
                     }
                 }
-                slider("SETTING_EXPOSURE_H_PERCENT", 3.0, 0.5..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_H_PERCENT", 5.0, 0.5..10.0 step 0.5) {
                     lang {
                         name = "Highlight %"
                         comment = "Adjusting exposure to keep the specified percentage of pixels in the highlight part of histogram."
                     }
                 }
-                slider("SETTING_EXPOSURE_S_LUM", 33, 0..255) {
+                slider("SETTING_EXPOSURE_S_LUM", 8, 0..255) {
                     lang {
                         name = "Shadow Luminance"
                         comment = "Luminance threshold for shadow."
                     }
                 }
-                slider("SETTING_EXPOSURE_S_PERCENT", 6.0, 0.5..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_S_PERCENT", 2.0, 0.5..10.0 step 0.5) {
                     lang {
                         name = "Shadow %"
                         comment = "Adjusting exposure to keep the specified percentage of pixels in the shadow part of histogram."

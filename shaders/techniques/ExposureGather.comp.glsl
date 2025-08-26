@@ -108,14 +108,20 @@ void main() {
 
         // Keep top SETTING_EXPOSURE_TOP_PERCENT % of pixels in the top bin
         vec2 hsPercents = vec2(SETTING_EXPOSURE_H_PERCENT, SETTING_EXPOSURE_S_PERCENT) * (totalWeight * 0.01);
-        vec2 hsExps = log2(vec2(hsPercents.x, shadowCount) / vec2(highlightCount, hsPercents.y));
-        expNew.y = mix(hsExps.y, hsExps.x, expCurveValue * 0.4 + 0.5);
+        // x: shadow, y: highlight
+        vec2 hsExps = log2(vec2(shadowCount, hsPercents.x) / vec2(hsPercents.y, highlightCount));
+        expNew.y = expNew.x;
+        expNew.y = max(expNew.y, hsExps.x);
+        expNew.y = min(expNew.y, hsExps.y) * 0.5 + expNew.y * 0.5;
         expNew.y = sqrtTanhSoftLimit(expNew.y, (SETTING_EXPOSURE_HS_TIME + 1.0) * 0.05);
 
         expNew.xy = expNew.xy + expLast.xy;
-        vec2 timeFactor = -vec2(SETTING_EXPOSURE_AVG_LUM_TIME, SETTING_EXPOSURE_HS_TIME) + log2(max(frameTime / FRAME_TIME_60FPS_SECS, 1.0));
-        expNew.xy = mix(expLast.xy, expNew.xy, exp2(timeFactor));
-        expNew.xy = clamp(expNew.xy, MIN_EXP, MAX_EXP);
+        vec2 timeFactor = exp2(-vec2(SETTING_EXPOSURE_AVG_LUM_TIME, SETTING_EXPOSURE_HS_TIME) + log2(max(frameTime / FRAME_TIME_60FPS_SECS, 1.0)));
+        expNew.x = mix(expLast.x, expNew.x, timeFactor.x);
+        expNew.x = clamp(expNew.x, MIN_EXP, MAX_EXP);
+        expNew.y = clamp(expNew.y, expNew.x - 2.0, expNew.x + 2.0);
+        expNew.y = mix(expLast.y, expNew.y, timeFactor.y);
+        expNew.y = clamp(expNew.y, MIN_EXP - 1.0, MAX_EXP + 1.0);
 
         const float AE_TOTAL_WEIGHT = SETTING_EXPOSURE_AVG_LUM_MIX + SETTING_EXPOSURE_HS_MIX;
         expNew.z = expNew.x * SETTING_EXPOSURE_AVG_LUM_MIX;
