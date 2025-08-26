@@ -149,9 +149,9 @@ void main() {
 
     ivec3 writePos = ivec3(texelPos, layerIndex * 3);
     writePos.z += isMoonI;
-    imageStore(uimg_skyViewLUT, writePos, colors_sRGBToLogLuv32(result.inScattering));
+    imageStore(uimg_skyViewLUT, writePos, colors_sRGBToLogLuv32(result.inScattering * 8.0));
     if (isMoonI == 0) {
         writePos.z += 2;
-        imageStore(uimg_skyViewLUT, writePos, colors_sRGBToLogLuv32(result.transmittance));
+        imageStore(uimg_skyViewLUT, writePos, colors_sRGBToLogLuv32(result.transmittance * 256.0));
     }
 }

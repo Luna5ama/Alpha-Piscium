@@ -69,9 +69,9 @@ ScatteringResult atmospherics_air_lut_sampleSkyView(
     float tSlice = sunSlice + 2;
 
     ScatteringResult result = scatteringResult_init();
-    result.inScattering = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, sunSlice);
-    result.inScattering += _atmospherics_air_lut_sampleSkyViewSlice(moonSliceUV, moonSlice);
-    result.transmittance = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, tSlice);
+    result.inScattering = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, sunSlice) / 8.0;
+    result.inScattering += _atmospherics_air_lut_sampleSkyViewSlice(moonSliceUV, moonSlice) / 8.0;
+    result.transmittance = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, tSlice) / 256.0;
     return result;
 }
 
