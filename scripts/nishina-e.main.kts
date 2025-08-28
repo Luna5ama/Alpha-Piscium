@@ -1,6 +1,6 @@
 import kotlin.math.*
 
-val Gs = doubleArrayOf(0.7)
+val Gs = doubleArrayOf(0.8615159687912013, 0.8732937077048064, 0.9375708300315341)
 var Es = DoubleArray(Gs.size) { 1.0 }
 
 repeat(10000) {

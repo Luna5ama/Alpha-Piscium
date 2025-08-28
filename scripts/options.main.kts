@@ -1280,17 +1280,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Stars"
                 }
-                slider("SETTING_STARMAP_INTENSITY", 5, 0..16) {
+                slider("SETTING_STARMAP_INTENSITY", 6, 0..16) {
                     lang {
                         name = "Starmap Intensity"
                     }
                 }
-                slider("SETTING_STARMAP_BRIGHT_STAR_BOOST", 2, 0..8) {
+                slider("SETTING_STARMAP_BRIGHT_STAR_BOOST", 4, 0..8) {
                     lang {
                         name = "Starmap Bright Star Boost"
                     }
                 }
-                slider("SETTING_STARMAP_GAMMA", 1.0, 0.1..2.0 step 0.1) {
+                slider("SETTING_STARMAP_GAMMA", 0.8, 0.1..2.0 step 0.1) {
                     lang {
                         name = "Starmap Gamma"
                     }
@@ -1418,7 +1418,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Luminance below this value will become colorless"
                     }
                 }
-                slider("SETTING_PURKINJE_EFFECT_MAX_LUM", -3.0, -10.0..1.0 step 0.1) {
+                slider("SETTING_PURKINJE_EFFECT_MAX_LUM", 0.0, -10.0..1.0 step 0.1) {
                     lang {
                         name = "Maximum Luminance"
                         prefix = "10^"
@@ -1463,7 +1463,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_MIN_EV", -4.5, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MIN_EV", -3.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Min EV"
                     }
@@ -1494,7 +1494,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.5, 0.0..1.0 step 0.05) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.25, 0.0..1.0 step 0.05) {
                     lang {
                         name = "Average Luminance Weight"
                         comment = "Weight of average luminance AE in the final exposure value."
@@ -1505,13 +1505,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Average Luminance AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 25, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 40, 1..255) {
                     lang {
                         name = "Average Luminance Minimum Target"
                         comment = "Target average luminance value for dark scene such as caves, indoors, and nighttime."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 66, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 70, 1..255) {
                     lang {
                         name = "Average Luminance Maximum Target"
                         comment = "Target average luminance value for bright scene such as daytime outdoors."
@@ -1549,13 +1549,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "Adjusting exposure to keep the specified percentage of pixels in the highlight part of histogram."
                     }
                 }
-                slider("SETTING_EXPOSURE_S_LUM", 8, 0..255) {
+                slider("SETTING_EXPOSURE_S_LUM", 16, 0..255) {
                     lang {
                         name = "Shadow Luminance"
                         comment = "Luminance threshold for shadow."
                     }
                 }
-                slider("SETTING_EXPOSURE_S_PERCENT", 2.0, 0.5..10.0 step 0.5) {
+                slider("SETTING_EXPOSURE_S_PERCENT", 3.0, 0.5..10.0 step 0.5) {
                     lang {
                         name = "Shadow %"
                         comment = "Adjusting exposure to keep the specified percentage of pixels in the shadow part of histogram."
@@ -1566,7 +1566,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Tone Mapping"
                 }
-                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 12.0, 4.0..20.0 step 0.1) {
+                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 16.0, 4.0..32.0 step 0.5) {
                     lang {
                         name = "Dynamic Range"
                     }
@@ -1614,17 +1614,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_POWER_R", 0.9, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_R", 1.0, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Power Red"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_POWER_G", 0.9, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_G", 1.0, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Power Green"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_POWER_B", 0.9, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_B", 1.0, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Power Blue"
                     }
@@ -1657,6 +1657,92 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
+        screen("COLOR_MANAGEMENT", 1) {
+            lang {
+                name = "Color Management"
+            }
+            toggle("SETTING_MATERIAL_COLOR_SPACE", 1, 0..7) {
+                lang {
+                    name = "Input Material Color Space"
+                    0 value "CIE XYZ"
+                    1 value "sRGB"
+                    2 value "Rec. 709"
+                    3 value "Rec. 2020"
+                    4 value "DCI-P3"
+                    5 value "Adobe RGB (1998)"
+                    6 value "ACES2065-1"
+                    7 value "ACEScg"
+                }
+            }
+            toggle("SETTING_MATERIAL_TRANSFER_FUNC", 3, 0..7) {
+                lang {
+                    name = "Input Material Transfer Function"
+                    0 value "Linear"
+                    1 value "Rec. 601"
+                    2 value "Rec. 709"
+                    3 value "sRGB"
+                    4 value "Exponential 2.2"
+                    5 value "Exponential 2.4"
+                    6 value "ST 2084 (PQ)"
+                    7 value "HLG"
+                }
+            }
+            empty()
+            toggle("SETTING_WORKING_COLOR_SPACE", 7, 0..7) {
+                lang {
+                    name = "Rendering Working Color Space"
+                    0 value "CIE XYZ"
+                    1 value "sRGB"
+                    2 value "Rec. 709"
+                    3 value "Rec. 2020"
+                    4 value "DCI-P3"
+                    5 value "Adobe RGB (1998)"
+                    6 value "ACES2065-1"
+                    7 value "ACEScg"
+                }
+            }
+            empty()
+            toggle("SETTING_DRT_WORKING_COLOR_SPACE", 3, 0..7) {
+                lang {
+                    name = "DRT Working Color Space"
+                    0 value "CIE XYZ"
+                    1 value "sRGB"
+                    2 value "Rec. 709"
+                    3 value "Rec. 2020"
+                    4 value "DCI-P3"
+                    5 value "Adobe RGB (1998)"
+                    6 value "ACES2065-1"
+                    7 value "ACEScg"
+                }
+            }
+            empty()
+            toggle("SETTING_OUTPUT_COLOR_SPACE", 1, 0..7) {
+                lang {
+                    name = "Output Color Space"
+                    0 value "CIE XYZ"
+                    1 value "sRGB"
+                    2 value "Rec. 709"
+                    3 value "Rec. 2020"
+                    4 value "DCI-P3"
+                    5 value "Adobe RGB (1998)"
+                    6 value "ACES2065-1"
+                    7 value "ACEScg"
+                }
+            }
+            toggle("SETTING_OUTPUT_TRANSFER_FUNC", 3, 0..7) {
+                lang {
+                    name = "Output Transfer Function"
+                    0 value "Linear"
+                    1 value "Rec. 601"
+                    2 value "Rec. 709"
+                    3 value "sRGB"
+                    4 value "Exponential 2.2"
+                    5 value "Exponential 2.4"
+                    6 value "ST 2084 (PQ)"
+                    7 value "HLG"
+                }
+            }
+        }
         screen("MISC", 2) {
             lang {
                 name = "Misc"
@@ -1672,6 +1758,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
+        empty()
         empty()
         empty()
         screen("DEBUG", 3) {

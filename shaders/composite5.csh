@@ -27,6 +27,7 @@ void main() {
 
         ScatteringResult sctrResult = atmospherics_skyComposite(texelPos);
         mainOut.rgb = scatteringResult_apply(sctrResult, mainOut.rgb);
+        mainOut.rgb = clamp(mainOut.rgb, 0.0, FP16_MAX);
         imageStore(uimg_main, texelPos, mainOut);
     }
 }

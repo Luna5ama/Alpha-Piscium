@@ -2,6 +2,7 @@
 #include "/util/BitPacking.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Colors.glsl"
+#include "/util/Colors2.glsl"
 #include "/util/Sampling.glsl"
 #include "/util/NZPacking.glsl"
 
@@ -260,9 +261,9 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
         prevHLen = 0.0;
     } else {
         float rcpWeightSum = 1.0 / weightSum;
-        prevColor = clamp(prevColor * rcpWeightSum, 0.0, 65000.0);
-        prevFastColor = clamp(prevFastColor * rcpWeightSum, 0.0, 65000.0);
-        prevMoments = clamp(prevMoments * rcpWeightSum, 0.0, 65000.0);
-        prevHLen = clamp(ceil(prevHLen * rcpWeightSum), 0.0, 65000.0);
+        prevColor = clamp(prevColor * rcpWeightSum, 0.0, FP16_MAX);
+        prevFastColor = clamp(prevFastColor * rcpWeightSum, 0.0, FP16_MAX);
+        prevMoments = clamp(prevMoments * rcpWeightSum, 0.0, FP16_MAX);
+        prevHLen = clamp(ceil(prevHLen * rcpWeightSum), 0.0, FP16_MAX);
     }
 }

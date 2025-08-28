@@ -1,4 +1,5 @@
 #include "/util/Colors.glsl"
+#include "/util/Colors2.glsl"
 #include "/util/Dither.glsl"
 #include "/util/Math.glsl"
 #include "/util/Rand.glsl"
@@ -102,7 +103,7 @@ void processData1() {
     gData.lmCoord = gDataPrev.lmCoord;
     gData.materialID = gDataPrev.materialID;
 
-    float glintEmissive = colors_sRGB_luma(albedo.rgb);
+    float glintEmissive = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_idt(albedo.rgb));
     glintEmissive *= 0.1;
     gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + glintEmissive);
 }
@@ -153,7 +154,7 @@ void processData1() {
     #ifdef GBUFFER_PASS_PARTICLE
     gData.materialID = 65533u;
     if (textureQueryLevels(gtexture) == 1) {
-        float particleEmissive = pow2(colors_sRGB_luma(albedo.rgb * albedo.rgb));
+        float particleEmissive = pow2(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_idt(albedo.rgb)));
         gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + particleEmissive);
     }
     #endif

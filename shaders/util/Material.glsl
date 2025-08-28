@@ -2,12 +2,13 @@
 #define INCLUDE_util_Material_glsl a
 #include "BlackBody.glsl"
 #include "Colors.glsl"
+#include "Colors2.glsl"
 #include "GBufferData.glsl"
 #include "Math.glsl"
 #include "Rand.glsl"
 
 struct Material {
-    vec3 albedo;
+    vec3 albedo; // Working space
     float roughness;
     float f0;
     float metallic;
@@ -23,7 +24,7 @@ const float _MATERIAL_MAXIMUM_ROUGHNESS = 1.0 - exp2(-SETTING_SPECULAR_MAPPING_M
 Material material_decode(GBufferData gData) {
     Material material;
 
-    material.albedo = colors_sRGB_decodeGamma(gData.albedo);
+    material.albedo = colors2_material_idt(gData.albedo);
 
     material.roughness = 1.0 - gData.pbrSpecular.r;
     material.roughness *= material.roughness;
@@ -36,13 +37,13 @@ Material material_decode(GBufferData gData) {
 
     float emissivePBR = pow(gData.pbrSpecular.a, SETTING_EMISSIVE_PBR_VALUE_CURVE);
     vec4 emissiveAlbedoCurve = vec4(vec3(SETTING_EMISSIVE_ALBEDO_COLOR_CURVE), SETTING_EMISSIVE_ALBEDO_LUM_CURVE);
-    float albedoLuminanceAlternative = colors_Rec601_luma(material.albedo);
+    float albedoLuminanceAlternative = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.albedo);
     vec4 emissiveAlbedo = pow(vec4(material.albedo, albedoLuminanceAlternative), emissiveAlbedoCurve);
 
-    const float MATERIAL_LAVA_LUMINANCE = colors_sRGB_luma(blackBody_evalRadiance(SETTING_LAVA_TEMPERATURE));
-    const float MATERIAL_FIRE_LUMINANCE = colors_sRGB_luma(blackBody_evalRadiance(SETTING_FIRE_TEMPERATURE));
+    float MATERIAL_LAVA_LUMINANCE = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_constants_idt(blackBody_evalRadiance_AP0(SETTING_LAVA_TEMPERATURE)));
+    float MATERIAL_FIRE_LUMINANCE = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_constants_idt(blackBody_evalRadiance_AP0(SETTING_FIRE_TEMPERATURE)));
 
-    float emissiveValue = emissivePBR * 0.2;
+    float emissiveValue = emissivePBR * 0.5;
     emissiveValue = gData.materialID == 1u ? MATERIAL_LAVA_LUMINANCE : emissiveValue;
     emissiveValue = gData.materialID == 2u ? MATERIAL_FIRE_LUMINANCE : emissiveValue;
     emissiveValue *= exp2(SETTING_EMISSIVE_STRENGTH);

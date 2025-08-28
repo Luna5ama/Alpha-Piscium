@@ -96,10 +96,10 @@ val cn = (cieCMF[2] zip cieCMF[4]).sumOf {
     it.first * it.second
 }
 
-val XYZ2SRGBR = doubleArrayOf(3.2406255, -1.537208, -0.4986286)
-val XYZ2SRGBG = doubleArrayOf(-0.9689307, 1.8757561, 0.0415175)
-val XYZ2SRGBB = doubleArrayOf(0.0557101, -0.2040211, 1.0569959)
-val XYZ2SRGB = listOf(XYZ2SRGBR, XYZ2SRGBG, XYZ2SRGBB)
+val XYZ2AP0R = doubleArrayOf(1.0498110175, 0.0, -9.74845e-05,)
+val XYZ2AP0G = doubleArrayOf(-0.4959030231, 1.3733130458, 0.0982400361,)
+val XYZ2AP0B = doubleArrayOf(0.0, 0.0, 0.9912520182)
+val XYZ2AP0 = listOf(XYZ2AP0R, XYZ2AP0G, XYZ2AP0B)
 
 fun doColorMatching(
     Xs: DoubleArray,
@@ -115,7 +115,7 @@ fun doColorMatching(
         } / cn
     }.toDoubleArray()
 
-    val Csrgb = XYZ2SRGB.map { row ->
+    val Csrgb = XYZ2AP0.map { row ->
         (Cxyz zip row).sumOf { it.first * it.second }
     }.toDoubleArray()
 

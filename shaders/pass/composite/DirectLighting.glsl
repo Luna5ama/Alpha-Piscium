@@ -7,6 +7,7 @@
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/util/Celestial.glsl"
+#include "/util/Colors2.glsl"
 #include "/util/BitPacking.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/Morton.glsl"
@@ -45,14 +46,14 @@ void doLighting(Material material, vec3 N, inout vec3 directDiffuseOut, inout ve
     vec3 tSun = atmospherics_air_lut_sampleTransmittance(atmosphere, cosSunZenith, viewAltitude);
     tSun *= float(raySphereIntersectNearest(atmPos, uval_sunDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
     vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
-    vec4 sunIrradiance = vec4(SUN_ILLUMINANCE * tSun * sunShadow, colors_sRGB_luma(sunShadow));
+    vec4 sunIrradiance = vec4(SUN_ILLUMINANCE * tSun * sunShadow, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, sunShadow));
     LightingResult sunLighting = directLighting(material, sunIrradiance, uval_sunDirView, N);
 
     float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
     vec3 tMoon = atmospherics_air_lut_sampleTransmittance(atmosphere, cosMoonZenith, viewAltitude);
     tMoon *= float(raySphereIntersectNearest(atmPos, uval_moonDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
     vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
-    vec4 moonIrradiance = vec4(MOON_ILLUMINANCE * tMoon * moonShadow, colors_sRGB_luma(moonShadow));
+    vec4 moonIrradiance = vec4(MOON_ILLUMINANCE * tMoon * moonShadow, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, moonShadow));
     LightingResult moonLighting = directLighting(material, moonIrradiance, uval_moonDirView, N);
 
     LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
@@ -65,7 +66,7 @@ void doLighting(Material material, vec3 N, inout vec3 directDiffuseOut, inout ve
     directDiffuseOut += combinedLighting.sss;
     directDiffuseOut /= material.albedo;
 
-    ssgiOut += emissiveV * 2.0;
+    ssgiOut += emissiveV;
     ssgiOut += combinedLighting.diffuseLambertian * 4.0;
     ssgiOut += combinedLighting.sss * 4.0;
 }
@@ -101,7 +102,7 @@ void main() {
                     mainOut = vec4(material.albedo * 0.01, 2.0);
                 } else {
                     doLighting(material, lighting_gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
-                    float albedoLuma = colors_Rec601_luma(lighting_gData.albedo);
+                    float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_idt(lighting_gData.albedo));
                     float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
                     mainOut.a += emissiveFlag * albedoLuma * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
                     float albedoLumaWeight = pow(1.0 - pow(1.0 - albedoLuma, 16.0), 4.0);

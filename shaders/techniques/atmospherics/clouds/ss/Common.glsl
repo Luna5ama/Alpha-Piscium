@@ -85,6 +85,7 @@ CloudSSHistoryData clouds_ss_historyData_init() {
 }
 
 void clouds_ss_historyData_pack(out uvec4 packedData, CloudSSHistoryData data) {
+    data.inScattering = clamp(data.inScattering, 0.0, FP16_MAX);
     packedData.x = packHalf2x16(data.inScattering.xy);
     packedData.y = packHalf2x16(vec2(data.inScattering.z, data.transmittance.x));
     packedData.z = packHalf2x16(data.transmittance.yz);

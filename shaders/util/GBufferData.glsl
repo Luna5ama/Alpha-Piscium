@@ -31,7 +31,7 @@ struct GBufferData {
     vec2 lmCoord;
     uint materialID;
 
-    vec3 albedo;
+    vec3 albedo; // Still in its input space (Typically gamma encoded sRGB)
     bool isHand;
 };
 

@@ -3,6 +3,7 @@
 #include "/util/NZPacking.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Colors.glsl"
+#include "/util/Colors2.glsl"
 #include "/techniques/HiZ.glsl"
 
 #define ATROUS_THREAD_SIZE 128
@@ -122,7 +123,7 @@ inout vec4 colorSum, inout float weightSum
         float sampleViewZ;
         loadSharedData(realOffset, sampleColor, sampleNormal, sampleViewZ);
 
-        float sampleLuminance = colors_sRGB_luma(sampleColor.rgb);
+        float sampleLuminance = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, sampleColor.rgb);
 
         float weight = 1.0;
         weight *= normalWeight(centerNormal, sampleNormal, atrous_normalWeight);
@@ -154,7 +155,7 @@ vec4 atrous_atrous(ivec2 texelPos) {
         if (centerViewZ != -65536.0) {
             vec3 centerColor = centerFilterData.rgb;
             float centerVariance = centerFilterData.a;
-            float centerLuminance = colors_sRGB_luma(centerColor);
+            float centerLuminance = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerColor);
 
             float sigmaL = 0.001 * SETTING_DENOISER_FILTER_COLOR_WEIGHT;
 

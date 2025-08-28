@@ -6,6 +6,7 @@
 
 #include "/techniques/svgf/Update.glsl"
 #include "/util/Coords.glsl"
+#include "/util/Colors2.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Material.glsl"
 #include "/util/Dither.glsl"
@@ -37,8 +38,8 @@ void loadSharedData(uint index) {
         vec3 moment1 = inputColor;
         vec3 moment2 = inputColor * inputColor;
 
-        shared_moments[0][sharedXY.y][sharedXY.x] = vec4(moment1, colors_sRGB_luma(directColor));
-        shared_moments[1][sharedXY.y][sharedXY.x] = vec4(moment2, colors_sRGB_luma(fastColor));
+        shared_moments[0][sharedXY.y][sharedXY.x] = vec4(moment1, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, directColor));
+        shared_moments[1][sharedXY.y][sharedXY.x] = vec4(moment2, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fastColor));
     }
 }
 
@@ -250,7 +251,7 @@ void main() {
         prevColorYCoCgClamped = mix(prevColorYCoCg, prevColorYCoCgClamped, clippingWeight);
         vec3 prevColorClamped = colors_YCoCgToSRGB(prevColorYCoCgClamped);
 
-        float moment2Correction = pow2(colors_sRGB_luma(prevColorClamped)) - pow2(colors_sRGB_luma(prevColor));
+        float moment2Correction = pow2(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevColorClamped)) - pow2(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevColor));
         prevMoments.y += moment2Correction;
         prevMoments.y = max(prevMoments.y, 0.0);
 

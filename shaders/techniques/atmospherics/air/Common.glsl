@@ -40,25 +40,25 @@ float sampleMieDensity(AtmosphereParameters atmosphere, float altitude) {
 }
 
 // Calculate the ozone number density in 10^17 molecules/m^3
-// See https://www.desmos.com/calculator/rggs64tsru
+// See https://www.desmos.com/calculator/ykoihjoqdm
 float sampleOzoneDensity(AtmosphereParameters atmosphere, float altitude) {
     float x = max(altitude, 0.0);
     float x2 = x * x;
     float x3 = x2 * x;
     float x4 = x2 * x2;
 
-    const float d10 = 3.14463183277;
-    const float d11 = 0.0498300739688;
-    const float d12 = -0.130539505915;
-    const float d13 = 0.021937805503;
-    const float d14 = -0.000931031499441;
+    const float d10 = 3.14463183276;
+    const float d11 = 0.0498300739786;
+    const float d12 = -0.13053950591;
+    const float d13 = 0.021937805502;
+    const float d14 = -0.000931031499395;
     float d1 = exp2(d10 + d11 * x + d12 * x2 + d13 * x3 + d14 * x4);
 
-    const float d20 = -15.997595602;
-    const float d21 = 2.79421136325;
-    const float d22 = -0.128226752553;
-    const float d23 = 0.00249280242791;
-    const float d24 = -0.000018555830924;
+    const float d20 = -15.9975955967;
+    const float d21 = 2.79421136239;
+    const float d22 = -0.128226752502;
+    const float d23 = 0.00249280242662;
+    const float d24 = -0.0000185558309121;
     float d2 = exp2(d20 + d21 * x + d22 * x2 + d23 * x3 + d24 * x4);
 
     return d1 + d2;

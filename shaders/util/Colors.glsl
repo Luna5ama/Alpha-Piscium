@@ -23,6 +23,7 @@
 #define INCLUDE_util_Colors_glsl a
 #include "/Base.glsl"
 #include "Math.glsl"
+#include "Colors2.glsl"
 
 // ----------------------------------------------------- Rec. 601 -----------------------------------------------------
 // [WIK25a]
@@ -183,7 +184,7 @@ vec3 colors_LogLuv32ToSRGB(in vec4 vLogLuv) {
 // -------------------------------------------------- Misc functions --------------------------------------------------
 // [KAR13]
 float colors_karisWeight(vec3 color) {
-    float luma = colors_sRGB_luma(color.rgb);
+    float luma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, color.rgb);
     return 1.0 / (1.0 + luma);
 }
 

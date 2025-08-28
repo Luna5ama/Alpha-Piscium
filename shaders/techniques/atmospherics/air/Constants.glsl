@@ -21,7 +21,7 @@
 #ifndef INCLUDE_atmosphere_Constants_glsl
 #define INCLUDE_atmosphere_Constants_glsl a
 
-#include "/Base.glsl"
+#include "/util/Colors2.glsl"
 
 #if SETTING_EPIPOLAR_SLICES == 256
 
@@ -94,11 +94,11 @@ struct AtmosphereParameters {
     vec3 ozoneExtinction;
 };
 
-// [PRE99], see also https://www.desmos.com/calculator/2e43734e0c
+// [PRE99], see also https://www.desmos.com/calculator/giz0uiar7k
 vec3 atmosphere_mieCoefficientsPreetham(float turbidity) {
-    const vec3 a0 = vec3(-0.00565597102796, -0.00796791817965, -0.0118034994284);
-    const vec3 a1 = vec3(0.00568551066159, 0.00800953249887, 0.0118651459692);
-    return a0 + a1 * turbidity;
+    const vec3 a0 = vec3(-0.00767542206226, -0.00822772032997, -0.0121707541321);
+    const vec3 a1 = vec3(0.00771550875198, 0.00827069152678, 0.0122343187466);
+    return colors2_constants_idt(a0 + a1 * turbidity);
 }
 
 AtmosphereParameters getAtmosphereParameters() {
@@ -107,14 +107,11 @@ AtmosphereParameters getAtmosphereParameters() {
 
     const float MIE_HEIGHT = 1.2;
 
-    // https://www.desmos.com/calculator/8zep6vmnxa
+    // https://www.desmos.com/calculator/1qbdlareew
     // Already in km
-    const vec3 RAYLEIGH_SCATTERING_BASE = vec3(0.00559495220371, 0.0117551946648, 0.02767445204); // CIE 1931 2 deg
-    //    const vec3 RAYLEIGH_SCATTERING_BASE = vec3(0.00523321397326, 0.0127899562336, 0.0279251882303); // CIE 1964 2 deg
-    //    const vec3 RAYLEIGH_SCATTERING_BASE = vec3(0.00472928809669, 0.0122555400301, 0.0282925884685); // CIE 2006 2 deg
-    //    const vec3 RAYLEIGH_SCATTERING_BASE = vec3(0.00500767075505, 0.013021188889, 0.0280120803159); // CIE 2006 10 deg
+    const vec3 RAYLEIGH_SCATTERING_BASE = colors2_constants_idt(vec3(0.0120766817597, 0.0129498634753, 0.0275704559807));
 
-    const vec3 RAYLEIGH_SCATTERING = RAYLEIGH_SCATTERING_BASE * SETTING_ATM_RAY_SCT_MUL;
+    vec3 RAYLEIGH_SCATTERING = RAYLEIGH_SCATTERING_BASE * SETTING_ATM_RAY_SCT_MUL;
 
     // Constants from [BRU08]
     //    const vec3 MIE_SCATTERING_BASE = vec3(2.10e-5) * 1000.0;
@@ -129,9 +126,9 @@ AtmosphereParameters getAtmosphereParameters() {
     const float MIE_PHASE_G = 0.7034;
     const float MIE_PHASE_E = 2500.0; // For Klein-Nishina phase function
 
-    // https://www.desmos.com/calculator/fumphpur14
+    // https://www.desmos.com/calculator/ykoihjoqdm
     // cm to km conversion
-    const vec3 OZONE_ABOSORPTION_BASE = vec3(4.9799463143e-10, 3.0842607592e-10, -9.1714404502e-12) * 100000.0;
+    const vec3 OZONE_ABOSORPTION_BASE = colors2_constants_idt(vec3(3.2964135827e-10, 2.9538443418e-10, 3.7326149468e-11) * 100000.0);
     const vec3 OZONE_ABOSORPTION = OZONE_ABOSORPTION_BASE * SETTING_ATM_OZO_ABS_MUL;
 
     AtmosphereParameters atmosphere;

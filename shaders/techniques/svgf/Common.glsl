@@ -1,5 +1,6 @@
 #include "/Base.glsl"
 #include "/util/Colors.glsl"
+#include "/util/Colors2.glsl"
 #include "/techniques/textile/CSRGBA32UI.glsl"
 
 void svgf_pack(out uvec4 packedData, vec3 color, vec3 fastColor, vec2 moments, float hLen) {

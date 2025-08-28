@@ -3,6 +3,7 @@
 #define HIZ_SUBGROUP_CHECK a
 
 #include "/techniques/gtvbgi/Common.glsl"
+#include "/util/Colors2.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
@@ -62,7 +63,7 @@ void main() {
                         vec4 ssgiOut = vec4(0.0);
                         ssgiOut.a = gData.lmCoord.y + 0.000001;
                         float multiBounceV = SETTING_VBGI_GI_MB;
-                        float albedoLum = colors_sRGB_luma(material.albedo);
+                        float albedoLum = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.albedo);
                         ssgiOut.rgb = multiBounceV * max(prevDiffuse, 0.0) * material.albedo;
                         ssgiOut.a *= mix(-1.0, 1.0, any(greaterThan(material.emissive, vec3(0.0))));
                         uvec4 tempRG32UIOut = uvec4(0u);

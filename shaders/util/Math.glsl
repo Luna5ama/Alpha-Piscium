@@ -19,6 +19,7 @@
 #define FLT_TRUE_MIN uintBitsToFloat(0x00000001)
 #define FLT_POS_INF uintBitsToFloat(0x7F800000)
 #define FLT_NEG_INF uintBitsToFloat(0xFF800000)
+#define FP16_MAX 65504.0
 
 #define rcp(x) (1.0 / (x))
 #define saturate(x) clamp(x, 0.0, 1.0)

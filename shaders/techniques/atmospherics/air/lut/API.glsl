@@ -34,7 +34,7 @@ vec3 atmospherics_air_lut_sampleMultiSctr(AtmosphereParameters atmosphere, float
 
 vec3 _atmospherics_air_lut_sampleSkyViewSlice(vec2 sliceUV, float sliceIndex) {
     vec3 sampleUV = vec3(sliceUV, (sliceIndex + 0.5) / SKYVIEW_LUT_DEPTH);
-    return colors_LogLuv32ToSRGB(texture(usam_skyViewLUT, sampleUV));
+    return texture(usam_skyViewLUT, sampleUV).rgb;
 }
 
 ScatteringResult atmospherics_air_lut_sampleSkyView(
@@ -69,9 +69,9 @@ ScatteringResult atmospherics_air_lut_sampleSkyView(
     float tSlice = sunSlice + 2;
 
     ScatteringResult result = scatteringResult_init();
-    result.inScattering = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, sunSlice) / 8.0;
-    result.inScattering += _atmospherics_air_lut_sampleSkyViewSlice(moonSliceUV, moonSlice) / 8.0;
-    result.transmittance = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, tSlice) / 256.0;
+    result.inScattering = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, sunSlice);
+    result.inScattering += _atmospherics_air_lut_sampleSkyViewSlice(moonSliceUV, moonSlice);
+    result.transmittance = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, tSlice);
     return result;
 }
 

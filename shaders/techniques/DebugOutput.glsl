@@ -1,5 +1,6 @@
 #include "/util/BitPacking.glsl"
 #include "/util/Colors.glsl"
+#include "/util/Colors2.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/TextRender.glsl"
@@ -131,6 +132,8 @@ vec3 displayViewZ(float viewZ) {
 void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     _debug_texelPos = texelPos;
     beginText(texelPos >> ivec2(2), ivec2(0, global_mainImageSizeI.y >> 2));
+    printLine();
+    printLine();
     text.fpPrecision = 4;
 
     #ifdef DEBUG_TEX_NAME
@@ -432,7 +435,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #endif
 
     #ifdef SETTING_DEBUG_STARMAP
-    outputColor.rgb = gammaCorrect(colors_LogLuv32ToSRGB(texture(usam_starmap, screenPos)));
+    outputColor.rgb = gammaCorrect(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, colors_LogLuv32ToSRGB(texture(usam_starmap, screenPos))));
     #endif
 
     #ifdef SETTING_DEBUG_EPIPOLAR_LINES

@@ -4,6 +4,7 @@
 #include "/techniques/atmospherics/air/Common.glsl"
 #include "BlackBody.glsl"
 #include "Colors.glsl"
+#include "Colors2.glsl"
 #include "Coords.glsl"
 #include "Math.glsl"
 
@@ -18,7 +19,7 @@
 #define SUN_ANGULAR_RADIUS atan(SUN_RADIUS / SUN_DISTANCE)
 #define SUN_SOLID_ANGLE (2.0 * PI * (1.0 - sqrt(pow2(SUN_DISTANCE) - pow2(SUN_RADIUS)) / SUN_DISTANCE))
 
-#define SUN_LUMINANCE blackBody_evalRadiance(SUN_TEMPERATURE)
+#define SUN_LUMINANCE colors2_constants_idt(blackBody_evalRadiance_AP0(SUN_TEMPERATURE))
 #define SUN_ILLUMINANCE (SUN_LUMINANCE * SUN_SOLID_ANGLE)
 
 #define MOON_RADIUS (1737.4 * SETTING_MOON_RADIUS)// in km
@@ -113,10 +114,10 @@ vec4 celestial_render(ivec2 texelPos, inout vec4 temp6Out) {
         starmapSpherical.y * RCP_PI + 0.5
     );
 
-    vec3 starmap = colors_LogLuv32ToSRGB(BicubicSampling5(usam_starmap, starmapUV, _CELESTIAL_STARMAP_SIZE));
+    vec3 starmap = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, colors_LogLuv32ToSRGB(BicubicSampling5(usam_starmap, starmapUV, _CELESTIAL_STARMAP_SIZE)));
     starmap = pow(starmap, vec3(SETTING_STARMAP_GAMMA));
-    starmap *= exp2(colors_Rec601_luma(starmap) * SETTING_STARMAP_BRIGHT_STAR_BOOST);
-    result.rgb += earthOcclusionV * starmap * _CELESTIAL_STARMAP_EXP * SETTING_STARMAP_INTENSITY;
+    starmap *= exp2(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, starmap) * SETTING_STARMAP_BRIGHT_STAR_BOOST);
+    result.rgb += earthOcclusionV * starmap * _CELESTIAL_STARMAP_EXP * SETTING_STARMAP_INTENSITY * 4.0;
 
     #ifdef SETTING_CONSTELLATIONS
     float constellationV = earthOcclusionV * texture(usam_constellations, starmapUV).r;
