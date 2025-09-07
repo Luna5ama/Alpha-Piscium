@@ -133,13 +133,15 @@ uniform sampler2D shadowcolor1;
 uniform sampler2D shadowcolor2;
 
 // --------------------------------------------------- Custom Images ---------------------------------------------------
+uniform usampler2D usam_csrgba32ui;
+uniform sampler2D usam_csrgba16f;
+
 uniform sampler2D usam_rtwsm_imap;
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_multiSctrLUT;
 uniform sampler2D usam_skyLUT;
 uniform sampler3D usam_skyViewLUT;
 uniform usampler2D usam_epipolarData;
-uniform usampler2D usam_csrgba32ui;
 uniform sampler3D usam_cloudsAmbLUT;
 uniform usampler2D usam_envProbe;
 
