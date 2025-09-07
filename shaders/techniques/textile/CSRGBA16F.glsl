@@ -29,6 +29,16 @@ ivec2 csrgba16f_temp1_texelToTexel(ivec2 texelPos) {
     );
 }
 
+vec2 csrgba16f_temp1_texelToUV(ivec2 texelPos) {
+    return textile_texelToUV(
+        texelPos,
+        _CSRGBA16F_TEMP1_OFFSET,
+        _CSRGBA16F_TEMP1_SIZE,
+        _CSRGBA16F_TEXTURE_SIZE_RCP
+    );
+}
+
+
 #define _CSRGBA16F_TEMP2_OFFSET ivec2(0, global_mainImageSizeI.y)
 #define _CSRGBA16F_TEMP2_OFFSET_F vec2(0.0, global_mainImageSize.y)
 #define _CSRGBA16F_TEMP2_SIZE global_mainImageSizeI

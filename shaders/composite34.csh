@@ -12,7 +12,7 @@ void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
-        outputColor.rgb = dof_sample(usam_temp1, texelPos);
+        outputColor.rgb = dof_sample(texelPos);
         imageStore(uimg_main, texelPos, outputColor);
     }
 }

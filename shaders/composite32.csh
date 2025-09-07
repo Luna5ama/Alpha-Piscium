@@ -10,7 +10,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_main;
-layout(rgba16f) uniform writeonly image2D uimg_temp1;
+layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
 
 void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
@@ -30,7 +30,7 @@ void main() {
         #ifdef SETTING_DOF
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         outputColor.a = abs(viewZ);
-        imageStore(uimg_temp1, texelPos, outputColor);
+        imageStore(uimg_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), outputColor);
         #endif
     }
 }

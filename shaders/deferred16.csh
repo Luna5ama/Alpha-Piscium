@@ -5,6 +5,7 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #include "/techniques/svgf/Update.glsl"
+#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Colors2.glsl"
 #include "/util/Rand.glsl"
@@ -15,9 +16,9 @@ layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 
-layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
+layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
 
 shared vec4 shared_moments[2][12][12];
 
@@ -280,7 +281,7 @@ void main() {
 
             vec4 filterInput = vec4(newColor, variance);
             filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
-            imageStore(uimg_temp2, texelPos, filterInput);
+            imageStore(uimg_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), filterInput);
         }
 
         {

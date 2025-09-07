@@ -5,6 +5,7 @@
 #include "/util/Colors.glsl"
 #include "/util/Colors2.glsl"
 #include "/techniques/HiZ.glsl"
+#include "/techniques/textile/CSRGBA16F.glsl"
 
 #define ATROUS_THREAD_SIZE 128
 
@@ -12,30 +13,30 @@
 #define ATROUS_TAP_COUNT 2
 #define ATROUS_AXIS_X a
 #define ATROUS_RADIUS 2
-#define ATROUS_INPUT usam_temp2
-#define ATROUS_OUTPUT uimg_temp1
+#define ATROUS_INPUT csrgba16f_temp1_texelToTexel
+#define ATROUS_OUTPUT csrgba16f_temp2_texelToTexel
 
 #elif ATROUS_PASS == 2
 #define ATROUS_TAP_COUNT 2
 #define ATROUS_AXIS_Y a
 #define ATROUS_RADIUS 2
-#define ATROUS_INPUT usam_temp1
-#define ATROUS_OUTPUT uimg_temp2
+#define ATROUS_INPUT csrgba16f_temp2_texelToTexel
+#define ATROUS_OUTPUT csrgba16f_temp1_texelToTexel
 
 
 #elif ATROUS_PASS == 3
 #define ATROUS_TAP_COUNT 4
 #define ATROUS_AXIS_X a
 #define ATROUS_RADIUS 8
-#define ATROUS_INPUT usam_temp2
-#define ATROUS_OUTPUT uimg_temp1
+#define ATROUS_INPUT csrgba16f_temp1_texelToTexel
+#define ATROUS_OUTPUT csrgba16f_temp2_texelToTexel
 
 #elif ATROUS_PASS == 4
 #define ATROUS_TAP_COUNT 4
 #define ATROUS_AXIS_Y a
 #define ATROUS_RADIUS 8
-#define ATROUS_INPUT usam_temp1
-#define ATROUS_OUTPUT uimg_temp2
+#define ATROUS_INPUT csrgba16f_temp2_texelToTexel
+#define ATROUS_OUTPUT csrgba16f_temp1_texelToTexel
 #endif
 
 #define SHARED_DATA_OFFSET (ATROUS_RADIUS * ATROUS_TAP_COUNT)
@@ -52,7 +53,7 @@ layout(local_size_x = 1, local_size_y = ATROUS_THREAD_SIZE) in;
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba16f) uniform writeonly image2D ATROUS_OUTPUT;
+layout(rgba16f) uniform restrict image2D uimg_csrgba16f;
 
 shared uvec4 shared_data[SHARED_DATA_SIZE];
 
@@ -62,7 +63,7 @@ float atrous_viewZWeight = 0.0;
 float atrous_luminanceWeight = 0.0;
 
 void loadGlobalData(ivec2 loadTexelPos, out vec4 color, out vec3 normal, out float viewZ) {
-    color = texelFetch(ATROUS_INPUT, loadTexelPos, 0);
+    color = imageLoad(uimg_csrgba16f, ATROUS_INPUT(loadTexelPos));
     uvec4 packedData = uvec4(0u);
     nzpacking_unpack(texelFetch(usam_packedZN, loadTexelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, normal, viewZ);
     normal = mat3(gbufferModelViewInverse) * normal;
@@ -308,6 +309,6 @@ void main() {
 //    outputColor = dither_fp16(outputColor, rand_IGN(texelPos, frameCounter + ATROUS_PASS));
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
-        imageStore(ATROUS_OUTPUT, texelPos, outputColor);
+        imageStore(uimg_csrgba16f, ATROUS_OUTPUT(texelPos), outputColor);
     }
 }

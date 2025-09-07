@@ -1,3 +1,4 @@
+#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Math.glsl"
 
@@ -33,9 +34,8 @@ float _dof_intersectCoc(vec2 p, float radius) {
 }
 #endif
 
-vec4 _dof_sampleTap(sampler2D inputTex, vec2 centerTexelPos, vec2 sampleTexelPos, float centerCoc, float centerViewZ) {
-    vec2 sampleScreenPos = sampleTexelPos * global_mainImageSizeRcp;
-    vec4 sampleData = texture(inputTex, sampleScreenPos);
+vec4 _dof_sampleTap(vec2 centerTexelPos, vec2 sampleTexelPos, float centerCoc, float centerViewZ) {
+    vec4 sampleData = texture(usam_csrgba16f, csrgba16f_temp1_texelToUV(sampleTexelPos));
     vec3 sampleColor = sampleData.rgb;
     float sampleViewZ = sampleData.a;
     float sampleCoc = _dof_computeCoC(sampleViewZ);
@@ -65,10 +65,10 @@ vec2 _dof_hexagonalSpiral(int index) {
 const int SAMPLE_JITTER_GRID_LAYER = 4;
 const int SAMPLE_JITTER_GRID = HEXGONAL_SPIRAL_COUNT(SAMPLE_JITTER_GRID_LAYER);
 
-vec3 dof_sample(sampler2D inputTex, ivec2 texelPos) {
+vec3 dof_sample(ivec2 texelPos) {
     vec2 centerTexelPos = vec2(texelPos) + 0.5;
 
-    vec4 centerData = texelFetch(inputTex, texelPos, 0);
+    vec4 centerData = texelFetch(usam_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), 0);
     vec3 centerColor = centerData.rgb;
     float centerViewZ = centerData.a;
     float centerCoc = _dof_computeCoC(centerViewZ);
@@ -83,7 +83,7 @@ vec3 dof_sample(sampler2D inputTex, ivec2 texelPos) {
         vec2 offset = u * DISK_RADIUS;
 
         vec2 sampleTexelPos = centerTexelPos + offset;
-        sum += _dof_sampleTap(inputTex, centerTexelPos, sampleTexelPos, centerCoc, centerViewZ);
+        sum += _dof_sampleTap(centerTexelPos, sampleTexelPos, centerCoc, centerViewZ);
     }
     #elif SETTING_APERTURE_SHAPE == 1 // Hexagonal aperture
     float jitterIndex = rand_stbnVec1(texelPos, frameCounter) * SAMPLE_JITTER_GRID;
@@ -91,12 +91,12 @@ vec3 dof_sample(sampler2D inputTex, ivec2 texelPos) {
 
     vec2 centerOffset = jitter / (SETTING_DOF_QUALITY + 0.5) * DISK_RADIUS;
     vec2 centerSampleTexelPos = centerTexelPos + centerOffset;
-    sum += _dof_sampleTap(inputTex, centerTexelPos, centerSampleTexelPos, centerCoc, centerViewZ);
+    sum += _dof_sampleTap(centerTexelPos, centerSampleTexelPos, centerCoc, centerViewZ);
 
     for (int i = 0; i < SAMPLE_COUNT; i++) {
         vec2 offset = (_dof_hexagonalSpiral(i + 1) + jitter) / (SETTING_DOF_QUALITY + 0.5) * DISK_RADIUS;
         vec2 sampleTexelPos = centerTexelPos + offset;
-        sum += _dof_sampleTap(inputTex, centerTexelPos, sampleTexelPos, centerCoc, centerViewZ);
+        sum += _dof_sampleTap(centerTexelPos, sampleTexelPos, centerCoc, centerViewZ);
     }
     #endif
 

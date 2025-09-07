@@ -3,6 +3,7 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/techniques/atmospherics/LocalComposite.glsl"
+#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
@@ -20,7 +21,7 @@ void main() {
         gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
         Material material = material_decode(gData);
 
-        vec3 giRadiance = texelFetch(usam_temp2, texelPos, 0).rgb;
+        vec3 giRadiance = texelFetch(usam_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), 0).rgb;
         outputColor.rgb += giRadiance.rgb * material.albedo;
         ScatteringResult sctrResult = atmospherics_localComposite(texelPos);
         outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
