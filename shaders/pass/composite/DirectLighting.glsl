@@ -2,9 +2,10 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 #define HIZ_SUBGROUP_CHECK a
 
-#include "/techniques/gtvbgi/Common.glsl"
 #include "/techniques/atmospherics/air/Constants.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/gtvbgi/Common.glsl"
+#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Colors2.glsl"
@@ -18,7 +19,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
-layout(rgba16f) uniform restrict image2D uimg_temp4;
+layout(rgba16f) uniform restrict image2D uimg_csrgba16f;
 layout(rg32ui) uniform restrict uimage2D uimg_packedZN;
 layout(r32ui) uniform writeonly uimage2D uimg_geometryNormal;
 
@@ -125,7 +126,7 @@ void main() {
                     imageStore(uimg_packedZN, radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
                 }
 
-                imageStore(uimg_temp4, texelPos, vec4(directDiffuseOut, 0.0));
+                imageStore(uimg_csrgba16f, csrgba16f_temp2_texelToTexel(texelPos), vec4(directDiffuseOut, 0.0));
                 imageStore(uimg_main, texelPos, mainOut);
                 return;
             } }
@@ -142,7 +143,7 @@ void main() {
             if (bool(ssgiOutWriteFlag)) {
                 imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
             }
-            imageStore(uimg_temp4, texelPos, vec4(directDiffuseOut, 0.0));
+            imageStore(uimg_csrgba16f, csrgba16f_temp2_texelToTexel(texelPos), vec4(directDiffuseOut, 0.0));
         }
     }
 }
