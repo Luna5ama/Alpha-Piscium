@@ -10,7 +10,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) restrict uniform image2D uimg_main;
-layout(rgba8) uniform restrict image2D uimg_temp6;
+layout(rgba8) uniform restrict image2D uimg_overlays;
 
 void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
@@ -18,10 +18,10 @@ void main() {
         vec4 mainOut = celestial_render(texelPos, temp6Out);
 
         #ifdef SETTING_CONSTELLATIONS
-        vec4 prevTemp6Value = imageLoad(uimg_temp6, texelPos);
+        vec4 prevTemp6Value = imageLoad(uimg_overlays, texelPos);
         temp6Out.rgb += temp6Out.rgb;
         temp6Out.a += temp6Out.a;
-        imageStore(uimg_temp6, texelPos, temp6Out);
+        imageStore(uimg_overlays, texelPos, temp6Out);
         #endif
 
 

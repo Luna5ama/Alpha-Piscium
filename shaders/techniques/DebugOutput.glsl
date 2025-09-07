@@ -36,7 +36,7 @@ vec3 interpolateTurbo(float x) {
 #elif SETTING_DEBUG_TEMP_TEX == 5
 #define DEBUG_TEX_NAME usam_temp5
 #elif SETTING_DEBUG_TEMP_TEX == 6
-#define DEBUG_TEX_NAME usam_temp6
+#define DEBUG_TEX_NAME usam_overlays
 #elif SETTING_DEBUG_TEMP_TEX == 7
 #define DEBUG_TEX_NAME usam_geometryNormal
 #endif

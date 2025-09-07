@@ -39,8 +39,8 @@ const int shadowcolor2Format = RGBA8; // Translucent color
 #define usam_temp5 colortex5
 #define uimg_temp5 colorimg5
 
-#define usam_temp6 colortex6
-#define uimg_temp6 colorimg6
+#define usam_overlays colortex6
+#define uimg_overlays colorimg6
 
 #define usam_geometryNormal colortex7
 #define uimg_geometryNormal colorimg7
@@ -112,7 +112,7 @@ uniform sampler2D usam_temp2;
 uniform sampler2D usam_temp3;
 uniform sampler2D usam_temp4;
 uniform sampler2D usam_temp5;
-uniform sampler2D usam_temp6;
+uniform sampler2D usam_overlays;
 uniform usampler2D usam_geometryNormal;
 uniform usampler2D usam_gbufferData32UI;
 uniform sampler2D usam_gbufferData8UN;

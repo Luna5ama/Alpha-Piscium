@@ -67,7 +67,7 @@ void main() {
         outputColor.a = abs(outputColor.a);
         displaytransform_apply(outputColor);
 
-        vec4 basicColor = texelFetch(usam_temp6, texelPos, 0);
+        vec4 basicColor = texelFetch(usam_overlays, texelPos, 0);
         outputColor.rgb = mix(outputColor.rgb, basicColor.rgb, basicColor.a);
 
         #if SETTING_DEBUG_OUTPUT == 2
