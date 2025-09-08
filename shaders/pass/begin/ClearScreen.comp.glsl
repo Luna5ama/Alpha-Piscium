@@ -11,8 +11,9 @@ layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE1;
 layout(rgba8) uniform writeonly image2D CLEAR_IMAGE2;
 layout(r32f) uniform writeonly image2D CLEAR_IMAGE3;
 layout(rgba16f) uniform writeonly image2D CLEAR_IMAGE4;
+layout(r32f) uniform writeonly image2D CLEAR_IMAGE5;
 
-#define CLEAR_IMAGE_BOUND ivec4(0, 0, global_mainImageSizeI)
+#define CLEAR_IMAGE_SIZE ivec2(global_mainImageSizeI)
 #define CLEAR_COLOR1 uvec4(0u)
 #define CLEAR_COLOR2 vec4(0.0)
 #define CLEAR_COLOR3 vec4(-65536.0)
