@@ -2,6 +2,8 @@ ivec2 texelPos;
 #include "/util/Dither.glsl"
 #include "/techniques/Lighting.glsl"
 
+layout(r32i) uniform iimage2D uimg_translucentDepthLayers;
+
 uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
@@ -91,4 +93,17 @@ void main() {
     lighting_init(frag_viewCoord, texelPos);
 
     rt_translucentColor = albedo;
+
+    ivec2 farDepthTexelPos = texelPos;
+    ivec2 nearDepthTexelPos = texelPos;
+    if (frag_materialID == 3) {
+        nearDepthTexelPos.x += global_mainImageSizeI.x;
+    } else {
+        farDepthTexelPos.y += global_mainImageSizeI.y;
+        nearDepthTexelPos += global_mainImageSizeI;
+    }
+
+    int cDepth = floatBitsToInt(-frag_viewCoord.z);
+    imageAtomicMax(uimg_translucentDepthLayers, farDepthTexelPos, cDepth);
+    imageAtomicMin(uimg_translucentDepthLayers, nearDepthTexelPos, cDepth);
 }
