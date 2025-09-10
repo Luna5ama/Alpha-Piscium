@@ -18,8 +18,6 @@ flat in uint frag_materialID;
 
 in vec3 frag_viewCoord;
 
-layout(early_fragment_tests) in;
-
 #ifdef GBUFFER_PASS_DH
 /* RENDERTARGETS:5 */
 layout(location = 0) out vec4 rt_translucentColor;
@@ -87,6 +85,12 @@ GBufferData processOutput() {
 
 void main() {
     texelPos = ivec2(gl_FragCoord.xy);
+    float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    if (solidViewZ > frag_viewCoord.z) {
+        discard;
+    }
+
+    gl_FragDepth = 0.0;
     vec4 albedo = processAlbedo();
     lighting_gData = processOutput();
 
