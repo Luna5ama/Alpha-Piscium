@@ -4,6 +4,7 @@
 
 #include "/techniques/atmospherics/LocalComposite.glsl"
 #include "/util/FullScreenComp.glsl"
+#include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -15,9 +16,12 @@ void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
 
-        vec3 albedo = colors_sRGB_decodeGamma(texelFetch(usam_gbufferData8UN, texelPos, 0).rgb);
+        GBufferData gData = gbufferData_init();
+        gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
+        Material material = material_decode(gData);
+
         vec3 giRadiance = texelFetch(usam_temp2, texelPos, 0).rgb;
-        outputColor.rgb += giRadiance.rgb * albedo;
+        outputColor.rgb += giRadiance.rgb * material.albedo;
         ScatteringResult sctrResult = atmospherics_localComposite(texelPos);
         outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
 

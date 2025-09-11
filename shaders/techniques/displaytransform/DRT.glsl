@@ -63,7 +63,7 @@ vec3 agxEotf(vec3 val) {
         -0.0990297440797205, -0.0989611768448433, 1.15107367264116);
 
     // Inverse input transform (outset)
-//    val = agx_mat_inv * val;
+    val = agx_mat_inv * val;
 
     // sRGB IEC 61966-2-1 2.2 Exponent Reference EOTF Display
     // NOTE: We're linearizing the output here. Comment/adjust when
