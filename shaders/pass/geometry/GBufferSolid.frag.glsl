@@ -10,6 +10,7 @@ uniform sampler2D normals;
 uniform sampler2D specular;
 
 in vec3 frag_viewTangent;
+in vec3 frag_viewBitangent;
 
 in vec4 frag_colorMul;// 8 x 4 = 32 bits
 in vec3 frag_viewNormal;// 11 + 11 + 10 = 32 bits
@@ -128,8 +129,7 @@ void processData1() {
     #if !defined(SETTING_NORMAL_MAPPING)
     gData.normal = frag_viewNormal;
     #else
-    vec3 bitangent = cross(frag_viewTangent, frag_viewNormal);
-    mat3 tbn = mat3(frag_viewTangent, bitangent, frag_viewNormal);
+    mat3 tbn = mat3(frag_viewTangent, frag_viewBitangent, frag_viewNormal);
     vec3 tangentNormal;
     tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
     tangentNormal.z = sqrt(saturate(1.0 - dot(tangentNormal.xy, tangentNormal.xy)));
