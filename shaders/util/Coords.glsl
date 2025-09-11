@@ -197,4 +197,12 @@ vec2 coords_equatorial_rectangularToSpherical(vec3 equatorial) {
     return vec2(ra, dec);
 }
 
+vec3 coords_dir_viewToWorld(vec3 dirView) {
+    return normalize((mat3(gbufferModelViewInverse) * dirView));
+}
+
+vec3 coords_dir_worldToView(vec3 dirWorld) {
+    return normalize((mat3(gbufferModelView) * dirWorld));
+}
+
 #endif

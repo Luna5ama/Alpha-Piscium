@@ -9,8 +9,7 @@ uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
-in vec3 frag_viewTangent;
-in vec3 frag_viewBitangent;
+in vec4 frag_viewTangent;
 
 in vec4 frag_colorMul;// 8 x 4 = 32 bits
 in vec3 frag_viewNormal;// 11 + 11 + 10 = 32 bits
@@ -30,8 +29,8 @@ layout(location = 0) out vec4 rt_color;
 layout(location = 1) out float rt_gbufferViewZ;
 #else
 /* RENDERTARGETS:8,9,10 */
-layout(location = 0) out uvec4 rt_gbufferData32UI;
-layout(location = 1) out vec4 rt_gbufferData8UN;
+layout(location = 0) out uvec4 rt_gbufferData1;
+layout(location = 1) out uvec4 rt_gbufferData2;
 layout(location = 2) out float rt_gbufferViewZ;
 #endif
 
@@ -96,10 +95,11 @@ void processData2() {
 #ifdef GBUFFER_PASS_ARMOR_GLINT
 void processData1() {
     GBufferData gDataPrev;
-    gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gDataPrev);
+    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gDataPrev);
     gData.pbrSpecular = gDataPrev.pbrSpecular;
 
-    gData.geometryNormal = gDataPrev.geometryNormal;
+    gData.geomNormal = gDataPrev.geomNormal;
+    gData.geomTangent = gDataPrev.geomTangent;
     gData.normal = gDataPrev.normal;
     gData.lmCoord = gDataPrev.lmCoord;
     gData.materialID = gDataPrev.materialID;
@@ -110,7 +110,14 @@ void processData1() {
 }
 #else
 void processData1() {
-    gData.geometryNormal = frag_viewNormal;
+    float bitangentSignF = frag_viewTangent.w < 0.0 ? -1.0 : 1.0;
+    vec3 geomViewNormal = normalize(frag_viewNormal);
+    vec3 geomViewTangent = normalize(frag_viewTangent.xyz);
+    vec3 geomViewBitangent = normalize(cross(geomViewNormal, geomViewTangent) * bitangentSignF);
+
+    gData.geomNormal = geomViewNormal;
+    gData.geomTangent = geomViewTangent;
+    gData.bitangentSign = int(bitangentSignF);
 
     #if defined(GBUFFER_PASS_TEXTURED)
     vec4 normalSample = textureGrad(normals, frag_texCoord, dUVdx, dUVdy);
@@ -127,9 +134,9 @@ void processData1() {
     gData.pbrSpecular.a = emissiveS;
 
     #if !defined(SETTING_NORMAL_MAPPING)
-    gData.normal = frag_viewNormal;
+    gData.normal = geomViewNormal;
     #else
-    mat3 tbn = mat3(frag_viewTangent, frag_viewBitangent, frag_viewNormal);
+    mat3 tbn = mat3(geomViewTangent, geomViewBitangent, geomViewNormal);
     vec3 tangentNormal;
     tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
     tangentNormal.z = sqrt(saturate(1.0 - dot(tangentNormal.xy, tangentNormal.xy)));
@@ -139,7 +146,7 @@ void processData1() {
     #endif
 
     #else
-    gData.normal = frag_viewNormal;
+    gData.normal = geomViewNormal;
     gData.pbrSpecular = vec4(0.0, 0.0, 0.0, 0.0);
     gData.lmCoord = frag_lmCoord;
     gData.materialID = 65534u;
@@ -184,8 +191,8 @@ void main() {
     processData1();
     processData2();
 
-    gbufferData1_pack(rt_gbufferData32UI, gData);
-    gbufferData2_pack(rt_gbufferData8UN, gData);
+    gbufferData1_pack(rt_gbufferData1, gData);
+    gbufferData2_pack(rt_gbufferData2, gData);
     rt_gbufferViewZ = viewZ;
     #endif
 }

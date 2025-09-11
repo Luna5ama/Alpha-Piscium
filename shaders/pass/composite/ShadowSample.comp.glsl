@@ -70,11 +70,11 @@ vec3 calcShadow(Material material) {
         return vec3(0.0);
     }
 
-    float cosLightTheta = dot(uval_shadowLightDirView, gData.geometryNormal);
+    float cosLightTheta = dot(uval_shadowLightDirView, gData.geomNormal);
     float sideFacingFactor = 1.0 - abs(cosLightTheta);
 
     vec3 offsetViewPos = viewPos;
-    offsetViewPos += gData.geometryNormal * mix(0.01, 0.03, sideFacingFactor);
+    offsetViewPos += gData.geomNormal * mix(0.01, 0.03, sideFacingFactor);
     vec4 scenePos = gbufferModelViewInverse * vec4(offsetViewPos, 1.0);
     vec4 shadowViewPos = global_shadowRotationMatrix * global_shadowView * scenePos;
     vec4 shadowClipPos = global_shadowProjPrev * shadowViewPos;
@@ -109,7 +109,7 @@ vec3 calcShadow(Material material) {
     float sampleShadowDepthOffset = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0).x;
     sampleTexCoord.z -= max(sampleShadowDepthOffset, 0.0);
 
-    vec3 worldGeometryNormal = mat3(gbufferModelViewInverse) * gData.geometryNormal;
+    vec3 worldGeometryNormal = mat3(gbufferModelViewInverse) * gData.geomNormal;
     vec3 sampleNormal = rtwsm_sampleShadowColor(shadowcolor1, sampleTexCoord.xy, 0.0).xyz;
     float shadowNormalCos = dot(worldGeometryNormal, sampleNormal);
     float confidance = pow2(shadowNormalCos * 0.5 + 0.5);
@@ -176,8 +176,8 @@ void main() {
         #endif
 
         if (viewZ != -65536.0) {
-            gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             vec4 outputColor = compShadow(texelPos, viewZ);
             imageStore(uimg_temp5, texelPos, outputColor);
 

@@ -86,8 +86,8 @@ void main() {
         if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
             float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
             if (viewZ != -65536.0) {
-                gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), lighting_gData);
-                gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), lighting_gData);
+                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), lighting_gData);
+                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), lighting_gData);
                 Material material = material_decode(lighting_gData);
 
                 lighting_init(coords_toViewCoord(screenPos, viewZ, global_camProjInverse), texelPos);
@@ -112,7 +112,7 @@ void main() {
                     mainOut.a *= mix(1.0, -1.0, emissiveFlag);
                 }
 
-                uint packedGeometryNormal = packSnorm3x10(lighting_gData.geometryNormal);
+                uint packedGeometryNormal = packSnorm3x10(lighting_gData.geomNormal);
                 imageStore(uimg_geometryNormal, texelPos, uvec4(packedGeometryNormal));
 
                 uvec4 packedZNOut = uvec4(0u);

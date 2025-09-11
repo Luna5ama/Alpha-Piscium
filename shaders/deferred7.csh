@@ -15,7 +15,7 @@ void main() {
     outputPos.x += 512;
 
     EnvProbeData outputData;
-    if (envProbe_update(usam_gbufferData32UI, usam_gbufferData8UN, usam_gbufferViewZ, usam_packedZN, texelPos, outputData)) {
+    if (envProbe_update(texelPos, outputData)) {
         imageStore(uimg_envProbe, outputPos, envProbe_encode(outputData));
     }
 }

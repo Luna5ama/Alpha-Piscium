@@ -84,10 +84,7 @@ bool envProbe_reproject(ivec2 prevEnvProbeTexelPos, inout EnvProbeData envProbeD
     return true;
 }
 
-bool envProbe_update(
-usampler2D gbufferData32UI, sampler2D gbufferData8UN, sampler2D gbufferViewZ, usampler2D packedZN,
-ivec2 envProbeTexelPos, out EnvProbeData outputData
-) {
+bool envProbe_update(ivec2 envProbeTexelPos, out EnvProbeData outputData) {
     vec2 envProbeScreenPos = (vec2(envProbeTexelPos) + 0.5) * ENV_PROBE_RCP;
     vec3 envProbePixelWorldDir = coords_mercatorBackward(envProbeScreenPos);
     vec4 viewPos = gbufferModelView * vec4(envProbePixelWorldDir, 1.0);
@@ -112,17 +109,17 @@ ivec2 envProbeTexelPos, out EnvProbeData outputData
     ivec2 texelPos1x1 = texelPos2x2 << 1;
 
     GBufferData gData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(gbufferData32UI, texelPos1x1, 0), gData);
-    gbufferData2_unpack(texelFetch(gbufferData8UN, texelPos1x1, 0), gData);
+    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos1x1, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos1x1, 0), gData);
     if (gData.isHand) {
         return false;
     }
 
-    float viewZ = texelFetch(gbufferViewZ, texelPos1x1, 0).r;
+    float viewZ = texelFetch(usam_gbufferViewZ, texelPos1x1, 0).r;
     vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
 
-    uvec2 radianceData = texelFetch(packedZN, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).xy;
+    uvec2 radianceData = texelFetch(usam_packedZN, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).xy;
     vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
 
     outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : radiance.rgb;

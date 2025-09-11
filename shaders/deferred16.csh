@@ -170,7 +170,7 @@ void main() {
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
             GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
 
             vec3 colorSum = vec3(0.0);
             float weightSum = 0.0;
@@ -189,7 +189,7 @@ void main() {
 
             bilateralBilinearSample(
                 texelPos2x2F, blinearWeights4,
-                viewPos, gData.geometryNormal,
+                viewPos, gData.geomNormal,
                 colorSum, weightSum
             );
 

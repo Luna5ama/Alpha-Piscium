@@ -8,7 +8,7 @@ const int colortex5Format = RGBA8; // Temp5
 const int colortex6Format = RGBA8; // Temp6
 const int colortex7Format = R32UI; // Geometry Normal
 const int colortex8Format = RGBA32UI; // GBuffer Data 32UI
-const int colortex9Format = RGBA8; // GBuffer Data 8UN
+const int colortex9Format = R32UI; // GBuffer Data 8UN
 const int colortex10Format = R32F; // GBuffer ViewZ
 const int colortex11Format = RGBA16F; // Translucent Color
 const int colortex12Format = RGBA16F; // Translucent Data
@@ -45,11 +45,11 @@ const int shadowcolor2Format = RGBA8; // Translucent color
 #define usam_geometryNormal colortex7
 #define uimg_geometryNormal colorimg7
 
-#define usam_gbufferData32UI colortex8
-#define uimg_gbufferData32UI colorimg8
+#define usam_gbufferData1 colortex8
+#define uimg_gbufferData1 colorimg8
 
-#define usam_gbufferData8UN colortex9
-#define uimg_gbufferData8UN colorimg9
+#define usam_gbufferData2 colortex9
+#define uimg_gbufferData2 colorimg9
 
 #define usam_gbufferViewZ colortex10
 #define uimg_gbufferViewZ colorimg10
@@ -116,8 +116,8 @@ uniform sampler2D usam_temp4;
 uniform sampler2D usam_temp5;
 uniform sampler2D usam_overlays;
 uniform usampler2D usam_geometryNormal;
-uniform usampler2D usam_gbufferData32UI;
-uniform sampler2D usam_gbufferData8UN;
+uniform usampler2D usam_gbufferData1;
+uniform usampler2D usam_gbufferData2;
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_translucentColor;
 uniform sampler2D usam_translucentData;

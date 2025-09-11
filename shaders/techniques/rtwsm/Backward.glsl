@@ -68,11 +68,11 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
     // Surface normal function
     #if SETTING_RTWSM_B_SN > 0.0
     vec3 viewDir = normalize(-viewPos);
-    importance *= 1.0 + SETTING_RTWSM_B_SN * saturate(dot(gData.geometryNormal, viewDir));
+    importance *= 1.0 + SETTING_RTWSM_B_SN * saturate(dot(gData.geomNormal, viewDir));
     #endif
 
     #if SETTING_RTWSM_B_P > 0.0
-    float lightDir = dot(gData.geometryNormal, uval_shadowLightDirView);
+    float lightDir = dot(gData.geomNormal, uval_shadowLightDirView);
     importance *= 1.0 + SETTING_RTWSM_B_P * pow(1.0 - lightDir * lightDir, float(SETTING_RTWSM_B_PP));
     #endif
 

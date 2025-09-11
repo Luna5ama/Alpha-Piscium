@@ -18,7 +18,7 @@ void main() {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
 
         GBufferData gData = gbufferData_init();
-        gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
+        gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
         Material material = material_decode(gData);
 
         vec3 giRadiance = texelFetch(usam_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), 0).rgb;

@@ -51,7 +51,7 @@ void main() {
     ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
 
     GBufferData gData = gbufferData_init();
-    gbufferData2_unpack(texelFetch(usam_gbufferData8UN, intTexCoord, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData2, intTexCoord, 0), gData);
 
     float viewZ = texelFetch(usam_gbufferViewZ, intTexCoord, 0).r;
     vec3 currViewPos = coords_toViewCoord(frag_texCoord, viewZ, global_camProjInverse);

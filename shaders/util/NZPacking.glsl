@@ -19,6 +19,17 @@ vec3 nzpacking_unpackNormalOct32(uint packedNormal) {
     return coords_octDecode11(unpackSnorm2x16(packedNormal));
 }
 
+void nzpacking_packNormalOct16(out uint packedNormal, vec3 normal1, vec3 normal2) {
+    vec4 xyzw = vec4(coords_octEncode11(normal1), coords_octEncode11(normal2));
+    packedNormal = packSnorm4x8(xyzw);
+}
+
+void nzpacking_unpackNormalOct16(uint packedNormal, out vec3 normal1, out vec3 normal2) {
+    vec4 xyzw = unpackSnorm4x8(packedNormal);
+    normal1 = coords_octDecode11(xyzw.xy);
+    normal2 = coords_octDecode11(xyzw.zw);
+}
+
 void nzpacking_pack(out uvec2 packedData, vec3 normal, float depth) {
     packedData.x = nzpacking_packNormalOct32(normal);
     packedData.y = floatBitsToUint(depth);

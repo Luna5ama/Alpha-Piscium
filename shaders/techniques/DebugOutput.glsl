@@ -157,8 +157,8 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #endif
 
     GBufferData gData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos, 0), gData);
-    gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
+    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
     Material material = material_decode(gData);
 
     #if SETTING_DEBUG_GBUFFER_DATA == 1
@@ -170,7 +170,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #if SETTING_DEBUG_GBUFFER_DATA == 3
     outputColor.rgb = gData.normal;
     #else
-    outputColor.rgb = gData.geometryNormal;
+    outputColor.rgb = gData.geomNormal;
     #endif
 
     #if SETTING_DEBUG_NORMAL_MODE == 0

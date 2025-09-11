@@ -34,8 +34,8 @@ void main() {
             float viewZ = texelFetch(usam_gbufferViewZ, texelPos1x1, 0).r;
             if (viewZ != -65536.0) {
                 GBufferData gData = gbufferData_init();
-                gbufferData1_unpack(texelFetch(usam_gbufferData32UI, texelPos1x1, 0), gData);
-                gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos1x1, 0), gData);
+                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos1x1, 0), gData);
+                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos1x1, 0), gData);
 
                 Material material = material_decode(gData);
                 vec3 prevDiffuse;
@@ -44,7 +44,7 @@ void main() {
                 float prevHLen;
 
                 gi_reproject(
-                    screenPos1x1, viewZ, gData.normal, gData.geometryNormal, gData.isHand,
+                    screenPos1x1, viewZ, gData.normal, gData.geomNormal, gData.isHand,
                     prevDiffuse, prevFastDiffuse, prevMoments, prevHLen
                 );
 
