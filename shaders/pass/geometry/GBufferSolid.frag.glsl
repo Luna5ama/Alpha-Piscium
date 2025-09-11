@@ -115,10 +115,6 @@ void processData1() {
     vec3 geomViewTangent = normalize(frag_viewTangent.xyz);
     vec3 geomViewBitangent = normalize(cross(geomViewNormal, geomViewTangent) * bitangentSignF);
 
-    gData.geomNormal = geomViewNormal;
-    gData.geomTangent = geomViewTangent;
-    gData.bitangentSign = int(bitangentSignF);
-
     #if defined(GBUFFER_PASS_TEXTURED)
     vec4 normalSample = textureGrad(normals, frag_texCoord, dUVdx, dUVdy);
     vec4 specularSample = textureGrad(specular, frag_texCoord, dUVdx, dUVdy);

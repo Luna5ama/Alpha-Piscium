@@ -1,7 +1,7 @@
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
 
-in vec3 vert_viewTangent[];
+in vec4 vert_viewTangent[];
 in vec4 vert_colorMul[];
 in vec3 vert_viewNormal[];
 in vec2 vert_texCoord[];
@@ -9,7 +9,7 @@ in vec2 vert_lmCoord[];
 in uint vert_materialID[];
 in vec3 vert_viewCoord[];
 
-out vec3 frag_viewTangent;
+out vec4 frag_viewTangent;
 out vec4 frag_colorMul;
 out vec3 frag_viewNormal;
 out vec2 frag_texCoord;

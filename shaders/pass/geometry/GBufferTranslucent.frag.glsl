@@ -9,7 +9,7 @@ uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
-in vec3 frag_viewTangent;
+in vec4 frag_viewTangent;
 
 in vec4 frag_colorMul;
 in vec3 frag_viewNormal;
@@ -23,9 +23,11 @@ in vec3 frag_viewCoord;
 /* RENDERTARGETS:5 */
 layout(location = 0) out vec4 rt_translucentColor;
 #else
-/* RENDERTARGETS:11,12 */
-layout(location = 0) out vec4 rt_translucentColor;
-layout(location = 1) out vec4 rt_translucentData;
+/* RENDERTARGETS:8,9,11,12 */
+layout(location = 0) out uvec4 rt_gbufferData1;
+layout(location = 1) out uvec4 rt_gbufferData2;
+layout(location = 2) out vec4 rt_translucentColor;
+layout(location = 3) out vec4 rt_translucentData;
 #endif
 
 vec4 processAlbedo() {
@@ -39,7 +41,15 @@ vec4 processAlbedo() {
 }
 
 GBufferData processOutput() {
+    float bitangentSignF = frag_viewTangent.w < 0.0 ? -1.0 : 1.0;
+    vec3 geomViewNormal = normalize(frag_viewNormal);
+    vec3 geomViewTangent = normalize(frag_viewTangent.xyz);
+    vec3 geomViewBitangent = normalize(cross(geomViewNormal, geomViewTangent) * bitangentSignF);
+
     GBufferData gData = gbufferData_init();
+    gData.geomNormal = geomViewNormal;
+    gData.geomTangent = geomViewTangent;
+    gData.bitangentSign = int(bitangentSignF);
 
     float noiseIGN = rand_IGN(texelPos, frameCounter);
 
@@ -64,17 +74,16 @@ GBufferData processOutput() {
 
     gData.pbrSpecular.a = emissiveS;
 
-    vec3 bitangent = cross(frag_viewTangent, frag_viewNormal);
-    mat3 tbn = mat3(frag_viewTangent, bitangent, frag_viewNormal);
-
-    #ifndef SETTING_NORMAL_MAPPING
-    gData.normal = frag_viewNormal;
+    #if !defined(SETTING_NORMAL_MAPPING)
+    gData.normal = geomViewNormal;
     #else
-    vec3 tagentNormal;
-    tagentNormal.xy = normalSample.rg * 2.0 - 1.0;
-    tagentNormal.z = sqrt(saturate(1.0 - dot(tagentNormal.xy, tagentNormal.xy)));
-    vec3 mappedNormal = normalize(tbn * tagentNormal);
-    gData.normal = normalize(mix(frag_viewNormal, mappedNormal, SETTING_NORMAL_MAPPING_STRENGTH));
+    mat3 tbn = mat3(geomViewTangent, geomViewBitangent, geomViewNormal);
+    vec3 tangentNormal;
+    tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
+    tangentNormal.z = sqrt(saturate(1.0 - dot(tangentNormal.xy, tangentNormal.xy)));
+    tangentNormal.xy *= exp2(SETTING_NORMAL_MAPPING_STRENGTH);
+    tangentNormal = normalize(tangentNormal);
+    gData.normal = normalize(tbn * tangentNormal);
     #endif
 
     gData.lmCoord = frag_lmCoord;
@@ -110,10 +119,10 @@ void main() {
 
     vec3 t = normalize(materialColor);
     float lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);
-    float sat = isWater ? 0.3 : 0.6;
+    float sat = isWater ? 0.1 : 0.6;
     t = lumaT + sat * (t - lumaT);
 
-    float tv = isWater ? 0.1 : 0.5;
+    float tv = isWater ? 0.2 : 0.4;
 
     vec3 tAbsorption = -log(t) * pow2(alpha) / sqrt(luma) * tv;
     tAbsorption = max(tAbsorption, 0.0);
@@ -133,4 +142,7 @@ void main() {
     int cDepth = floatBitsToInt(-frag_viewCoord.z);
     imageAtomicMax(uimg_translucentDepthLayers, farDepthTexelPos, cDepth);
     imageAtomicMin(uimg_translucentDepthLayers, nearDepthTexelPos, cDepth);
+
+    gbufferData1_pack(rt_gbufferData1, lighting_gData);
+    gbufferData2_pack(rt_gbufferData2, lighting_gData);
 }

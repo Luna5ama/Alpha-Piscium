@@ -6,8 +6,7 @@ in vec2 mc_Entity;
 
 in vec4 at_tangent;
 
-out vec3 frag_viewTangent;
-out vec3 frag_viewBitangent;
+out vec4 frag_viewTangent;
 
 out vec4 frag_colorMul; // 8 x 4 = 32 bits
 out vec3 frag_viewNormal; // 11 + 11 + 10 = 32 bits
@@ -22,9 +21,8 @@ void main() {
     frag_viewZ = -gl_Position.w;
 
     frag_viewNormal = gl_NormalMatrix * normalize(gl_Normal.xyz);
-    frag_viewTangent = gl_NormalMatrix * normalize(at_tangent.xyz);
-    float handedness = clamp(at_tangent.w * FLT_POS_INF, -1.0, 1.0); // -1.0 when at_tangent.w is negative, and 1.0 when it's positive
-    frag_viewBitangent = cross(frag_viewTangent, frag_viewNormal) * handedness;
+    frag_viewTangent.xyz = gl_NormalMatrix * normalize(at_tangent.xyz);
+    frag_viewTangent.w = sign(at_tangent.w);
 
     frag_texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     frag_lmCoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;

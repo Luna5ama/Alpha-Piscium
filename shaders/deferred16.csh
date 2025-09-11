@@ -19,6 +19,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
 layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
+layout(rgba8) uniform writeonly image2D uimg_temp5;
 
 shared vec4 shared_moments[2][12][12];
 
@@ -171,6 +172,8 @@ void main() {
 
             GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            imageStore(uimg_temp5, texelPos, vec4(gData.albedo, 0.0));
 
             vec3 colorSum = vec3(0.0);
             float weightSum = 0.0;

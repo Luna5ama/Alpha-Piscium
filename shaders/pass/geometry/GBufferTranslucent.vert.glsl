@@ -22,7 +22,7 @@ in vec4 at_tangent;
 #define vertOut_viewCoord vert_viewCoord
 #endif
 
-out vec3 vertOut_viewTangent;
+out vec4 vertOut_viewTangent;
 out vec4 vertOut_colorMul;
 out vec3 vertOut_viewNormal;
 out vec2 vertOut_texCoord;
@@ -35,8 +35,10 @@ void main() {
     vec4 temp = gbufferProjectionInverse * gl_Position;
     vertOut_viewCoord = temp.xyz / temp.w;
 
-    vertOut_viewTangent.xyz = gl_NormalMatrix * at_tangent.xyz;
-    vertOut_viewNormal = gl_NormalMatrix * gl_Normal.xyz;
+    vertOut_viewNormal = gl_NormalMatrix * normalize(gl_Normal.xyz);
+    vertOut_viewTangent.xyz = gl_NormalMatrix * normalize(at_tangent.xyz);
+    vertOut_viewTangent.w = sign(at_tangent.w);
+
     vertOut_texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     vertOut_lmCoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     vertOut_colorMul = gl_Color;
