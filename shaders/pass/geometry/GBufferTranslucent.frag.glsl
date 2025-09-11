@@ -29,7 +29,7 @@ layout(location = 1) out vec4 rt_translucentData;
 #endif
 
 vec4 processAlbedo() {
-    vec4 albedo = frag_colorMul;
+    vec4 albedo = vec4(1.0);
     albedo *= texture(gtexture, frag_texCoord);
     #ifdef SETTING_DEBUG_WHITE_WORLD
     return vec4(1.0);
