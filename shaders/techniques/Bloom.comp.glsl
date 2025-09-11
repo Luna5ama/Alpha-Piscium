@@ -5,6 +5,7 @@
 */
 #include "/Base.glsl"
 #include "/util/Colors.glsl"
+#include "/techniques/textile/CSRGBA16F.glsl"
 
 const float BASE_BLOOM_INTENSITY = 0.01;
 
@@ -52,36 +53,57 @@ layout(local_size_x = 16, local_size_y = 16) in;
 void bloom_init();
 vec4 bloom_main(ivec2 texelPos);
 
+vec4 _bloom_imageLoad(ivec2 coord);
+void _bloom_imageStore(ivec2 coord, vec4 data);
+vec4 _bloom_imageSample(vec2 uv);
+
 #if BLOOM_DOWN_SAMPLE
 
-#define BLOOM_IMAGE_ACCESS writeonly
 #if BLOOM_PASS == 1
-#define BLOOM_SAMPLER usam_main
+vec4 _bloom_imageSample(vec2 uv) {
+    return texture(usam_main, uv);
+}
 #else
-#define BLOOM_SAMPLER usam_temp3
+vec4 _bloom_imageSample(vec2 uv) {
+    return texture(usam_csrgba16f, csrgba16f_temp3_uvToUV(uv));
+}
 #endif
-#define BLOOM_IMAGE uimg_temp3
+
+layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
+vec4 _bloom_imageLoad(ivec2 coord) {
+    return vec4(0.0);
+}
+void _bloom_imageStore(ivec2 coord, vec4 data) {
+    imageStore(uimg_csrgba16f, csrgba16f_temp3_texelToTexel(coord), data);
+}
+
 
 #elif BLOOM_UP_SAMPLE
 
-#define BLOOM_IMAGE_ACCESS restrict
-#define BLOOM_SAMPLER usam_temp3
+vec4 _bloom_imageSample(vec2 uv) {
+    return texture(usam_csrgba16f, csrgba16f_temp3_uvToUV(uv));
+}
 #if BLOOM_PASS == 1
-#define BLOOM_IMAGE uimg_main
+vec4 _bloom_imageLoad(ivec2 coord) {
+    return imageLoad(uimg_main, coord);
+}
+void _bloom_imageStore(ivec2 coord, vec4 data) {
+    imageStore(uimg_main, coord, data);
+}
 #else
-#define BLOOM_IMAGE uimg_temp3
+layout(rgba16f) uniform restrict image2D uimg_csrgba16f;
+vec4 _bloom_imageLoad(ivec2 coord) {
+    return imageLoad(uimg_csrgba16f, csrgba16f_temp3_texelToTexel(coord));
+}
+void _bloom_imageStore(ivec2 coord, vec4 data) {
+    imageStore(uimg_csrgba16f, csrgba16f_temp3_texelToTexel(coord), data);
+}
 #endif
 
 #endif
 
 #ifndef BLOOM_NO_SAMPLER
 #endif
-#ifndef BLOOM_NON_STANDALONE
-layout(rgba16f) uniform BLOOM_IMAGE_ACCESS image2D BLOOM_IMAGE;
-#endif
-
-ivec2 colorTexSize = imageSize(BLOOM_IMAGE);
-vec2 texelSize = 1.0 / vec2(colorTexSize);
 
 #define BIT_MASK(x) ((1 << (x)) - 1)
 
@@ -103,14 +125,14 @@ int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - global_
 
 ivec2 inputStartPixel = ivec2(inputOffset, 1);
 ivec2 inputEndPixel = inputStartPixel + bloom_inputSize;
-vec2 inputStartTexel = (vec2(inputStartPixel) + 0.0) * texelSize;
-vec2 inputEndTexel = (vec2(inputEndPixel) - 0.0) * texelSize;
+vec2 inputStartTexel = (vec2(inputStartPixel) + 0.0) * global_mainImageSizeRcp;
+vec2 inputEndTexel = (vec2(inputEndPixel) - 0.0) * global_mainImageSizeRcp;
 
 #if BLOOM_DOWN_SAMPLE
 vec4 bloom_readInputDown(ivec2 coord) {
-    vec2 readPosUV = vec2(coord + inputStartPixel) * texelSize;
+    vec2 readPosUV = vec2(coord + inputStartPixel) * global_mainImageSizeRcp;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
-    vec4 inputValue = texture(BLOOM_SAMPLER, readPosUV);
+    vec4 inputValue = _bloom_imageSample(readPosUV);
     #if BLOOM_PASS == 1
     float emissiveFlag = float(inputValue.a < 0.0);
     inputValue.a = abs(inputValue.a);
@@ -123,7 +145,7 @@ vec4 bloom_readInputDown(ivec2 coord) {
 void bloom_writeOutput(ivec2 coord, vec4 data) {
     coord.y += 1;
     coord.x += outputOffset;
-    imageStore(BLOOM_IMAGE, coord, data);
+    _bloom_imageStore(coord, data);
 }
 // ------ Down Sample Pass ------
 shared uvec2 shared_dataCache[35][18];
@@ -230,17 +252,17 @@ vec4 bloom_main(ivec2 texelPos) {
 }
 #elif BLOOM_UP_SAMPLE
 vec4 bloom_readInputUp(ivec2 coord, ivec2 offset) {
-    vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartPixel) * texelSize;
+    vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartPixel) * global_mainImageSizeRcp;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
-    return texture(BLOOM_SAMPLER, readPosUV);
+    return _bloom_imageSample(readPosUV);
 }
 
 void bloom_writeOutput(ivec2 coord, vec4 data) {
     coord.y += 1;
     coord.x += outputOffset;
-    vec4 writeData = imageLoad(BLOOM_IMAGE, coord);
+    vec4 writeData = _bloom_imageLoad(coord);
     writeData += data;
-    imageStore(BLOOM_IMAGE, coord, writeData);
+    _bloom_imageStore(coord, writeData);
 }
 // ------ Up Sample Pass ------
 void bloom_init() { }

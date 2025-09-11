@@ -23,7 +23,7 @@ ivec2 textile_uvToTexel(vec2 uv, ivec2 tileOffset, ivec2 tileSizeI, vec2 tileSiz
 
 vec2 textile_uvToUV(vec2 uv, vec2 tileOffsetF, vec2 tileSizeF, vec2 textureSizeRcp) {
     vec2 textureTexelPos = clamp(uv * tileSizeF, vec2(0.0), tileSizeF - 1.0) + tileOffsetF;
-    return saturate((textureTexelPos + 0.5) * textureSizeRcp);
+    return saturate(textureTexelPos * textureSizeRcp);
 }
 
 #endif
