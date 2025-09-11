@@ -1,8 +1,8 @@
 #version 460 compatibility
 
+#include "/techniques/Lighting.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Coords.glsl"
-#include "/util/Colors2.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Colors.glsl"
 
@@ -19,11 +19,27 @@ void main() {
         GBufferData gData = gbufferData_init();
         gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
 
-        vec4 translucentColorSample = texelFetch(usam_translucentColor, texelPos, 0);
-        translucentColorSample.rgb = colors2_material_idt(translucentColorSample.rgb);
-        float albedoLuminance = all(equal(gData.albedo, vec3(0.0))) ? 0.1 : colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_idt(gData.albedo));
-        float luminanceC = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, outputColor.rgb) / albedoLuminance;
-        outputColor.rgb = mix(outputColor.rgb, translucentColorSample.rgb * luminanceC, translucentColorSample.a);
+        vec4 translucentColor = texelFetch(usam_translucentColor, texelPos, 0);
+        vec4 translucentData = texelFetch(usam_translucentData, texelPos, 0);
+
+
+        vec3 tScatteringCoeff = mix(vec3(0.0), translucentColor.rgb / translucentColor.a, translucentColor.a > 0.0);
+
+        vec3 tTransmittanceCoeff = saturate(translucentData.rgb);
+        vec3 tAbsorptionCoeff = -log(tTransmittanceCoeff);
+        vec3 tExtionctionCoeff = tAbsorptionCoeff + tScatteringCoeff;
+        vec3 tOpticalDepth = tExtionctionCoeff;
+        vec3 sampleTransmittance = exp(-tOpticalDepth);
+
+        outputColor.rgb *= sampleTransmittance;
+
+        ivec2 farDepthTexelPos = texelPos;
+        ivec2 nearDepthTexelPos = texelPos;
+        farDepthTexelPos.y += global_mainImageSizeI.y;
+        nearDepthTexelPos += global_mainImageSizeI;
+
+        float startViewZ = -texelFetch(usam_translucentDepthLayers, nearDepthTexelPos, 0).r;
+        float endViewZ = -texelFetch(usam_translucentDepthLayers, farDepthTexelPos, 0).r;
 
         imageStore(uimg_main, texelPos, outputColor);
 

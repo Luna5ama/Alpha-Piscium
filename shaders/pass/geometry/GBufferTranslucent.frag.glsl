@@ -1,4 +1,5 @@
 ivec2 texelPos;
+#include "/util/Colors2.glsl"
 #include "/util/Dither.glsl"
 #include "/techniques/Lighting.glsl"
 
@@ -22,8 +23,9 @@ in vec3 frag_viewCoord;
 /* RENDERTARGETS:5 */
 layout(location = 0) out vec4 rt_translucentColor;
 #else
-/* RENDERTARGETS:11 */
+/* RENDERTARGETS:11,12 */
 layout(location = 0) out vec4 rt_translucentColor;
+layout(location = 1) out vec4 rt_translucentData;
 #endif
 
 vec4 processAlbedo() {
@@ -91,16 +93,37 @@ void main() {
     }
 
     gl_FragDepth = 0.0;
-    vec4 albedo = processAlbedo();
+    vec4 inputAlbedo = processAlbedo();
     lighting_gData = processOutput();
+
+    bool isWater = frag_materialID == 3u;
 
     lighting_init(frag_viewCoord, texelPos);
 
-    rt_translucentColor = albedo;
+    inputAlbedo.rgb = colors2_eotf(COLORS2_MATERIAL_TF, inputAlbedo.rgb);
+    float alpha = inputAlbedo.a;
+    vec3 materialColor = colors2_colorspaces_convert(COLORS2_MATERIAL_COLORSPACE, COLORS2_WORKING_COLORSPACE, inputAlbedo.rgb);
+
+    rt_translucentColor = vec4(materialColor * pow2(inputAlbedo.a), 1.0);
+
+    float luma = saturate(colors2_colorspaces_luma(COLORS2_MATERIAL_COLORSPACE, inputAlbedo.rgb));
+
+    vec3 t = normalize(materialColor);
+    float lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);
+    float sat = isWater ? 0.3 : 0.6;
+    t = lumaT + sat * (t - lumaT);
+
+    float tv = isWater ? 0.1 : 0.5;
+
+    vec3 tAbsorption = -log(t) * pow2(alpha) / sqrt(luma) * tv;
+    tAbsorption = max(tAbsorption, 0.0);
+    vec3 tTransmittance = exp(-tAbsorption);
+
+    rt_translucentData = vec4(tTransmittance, float(alpha > 0.0));
 
     ivec2 farDepthTexelPos = texelPos;
     ivec2 nearDepthTexelPos = texelPos;
-    if (frag_materialID == 3) {
+    if (isWater) {
         nearDepthTexelPos.x += global_mainImageSizeI.x;
     } else {
         farDepthTexelPos.y += global_mainImageSizeI.y;
