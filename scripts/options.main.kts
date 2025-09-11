@@ -1468,7 +1468,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Auto Exposure Min EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 12.0, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MAX_EV", 11.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
@@ -1566,7 +1566,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Tone Mapping"
                 }
-                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 16.0, 4.0..32.0 step 0.5) {
+                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 13.5, 4.0..32.0 step 0.5) {
                     lang {
                         name = "Dynamic Range"
                     }
