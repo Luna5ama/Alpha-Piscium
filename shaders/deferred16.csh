@@ -31,7 +31,7 @@ void loadSharedData(uint index) {
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(global_mainImageSize - 1));
 
-        vec3 fastColor = colors_LogLuv32ToSRGB(unpackUnorm4x8(texelFetch(usam_tempRGBA32UI, srcXY, 0).y));
+        vec3 fastColor = colors_LogLuv32ToSRGB(unpackUnorm4x8(texelFetch(usam_csrgba32ui, csrgba32ui_temp3_texelToTexel(srcXY), 0).y));
         vec3 directColor = texelFetch(usam_csrgba16f, csrgba16f_temp2_texelToTexel(srcXY), 0).xyz;
         vec3 inputColor = fastColor + directColor;
 
@@ -227,7 +227,7 @@ void main() {
             giLum = moment2.a;
         }
 
-        uvec4 packedData = texelFetch(usam_tempRGBA32UI, texelPos, 0);
+        uvec4 packedData = texelFetch(usam_csrgba32ui, csrgba32ui_temp3_texelToTexel(texelPos), 0);
         vec3 prevColor;
         vec3 prevFastColor;
         vec2 prevMoments;

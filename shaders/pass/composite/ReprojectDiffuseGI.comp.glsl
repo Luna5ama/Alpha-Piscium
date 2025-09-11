@@ -3,6 +3,7 @@
 #define HIZ_SUBGROUP_CHECK a
 
 #include "/techniques/gtvbgi/Common.glsl"
+#include "/techniques/textile/CSRGBA32UI.glsl"
 #include "/util/Colors2.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/GBufferData.glsl"
@@ -15,7 +16,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 #include "/techniques/svgf/Reproject.glsl"
 
-layout(rgba32ui) uniform writeonly uimage2D uimg_tempRGBA32UI;
+layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
 layout(rg32ui) uniform writeonly uimage2D uimg_packedZN;
 
 void main() {
@@ -49,7 +50,7 @@ void main() {
 
                 uvec4 temp32UIOut = uvec4(0u);
                 svgf_pack(temp32UIOut, prevDiffuse, prevFastDiffuse, prevMoments, prevHLen);
-                imageStore(uimg_tempRGBA32UI, texelPos1x1, temp32UIOut);
+                imageStore(uimg_csrgba32ui, csrgba32ui_temp3_texelToTexel(texelPos1x1), temp32UIOut);
 
                 uvec4 packedZNOut = uvec4(0u);
                 nzpacking_pack(packedZNOut.xy, gData.normal, viewZ);
@@ -77,7 +78,7 @@ void main() {
         }
 
         uvec4 temp32UIOut = uvec4(0u);
-        imageStore(uimg_tempRGBA32UI, texelPos1x1, temp32UIOut);
+        imageStore(uimg_csrgba32ui, csrgba32ui_temp3_texelToTexel(texelPos1x1), temp32UIOut);
 
         uvec4 packedZNOut = uvec4(0u);
         packedZNOut.y = floatBitsToUint(-65536.0);

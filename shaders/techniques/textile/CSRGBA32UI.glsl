@@ -3,8 +3,8 @@
 
 #include "Common.glsl"
 
-#define _CSRGBA32UI_TEXTURE_SIZE (global_mainImageSizeI * ivec2(2, 2))
-#define _CSRGBA32UI_TEXTURE_SIZE_F (global_mainImageSize * vec2(2.0, 2.0))
+#define _CSRGBA32UI_TEXTURE_SIZE (global_mainImageSizeI * ivec2(2, 3))
+#define _CSRGBA32UI_TEXTURE_SIZE_F (global_mainImageSize * vec2(2.0, 3.0))
 #define _CSRGBA32UI_TEXTURE_SIZE_RCP rcp(_CSRGBA32UI_TEXTURE_SIZE_F)
 
 #define _CSRGBA32UI_DIFFUSE_HISTORY_OFFSET ivec2(0)
@@ -65,6 +65,32 @@ ivec2 csrgba32ui_temp2_texelToTexel(ivec2 texelPos) {
         texelPos,
         _CSRGBA32UI_TEMP2_OFFSET,
         _CSRGBA32UI_TEMP2_SIZE
+    );
+}
+
+#define _CSRGBA32UI_TEMP3_OFFSET ivec2(0, global_mainImageSizeI.y * 2)
+#define _CSRGBA32UI_TEMP3_OFFSET_F vec2(0.0, global_mainImageSize.y * 2.0)
+#define _CSRGBA32UI_TEMP3_SIZE global_mainImageSizeI
+#define _CSRGBA32UI_TEMP3_SIZE_F global_mainImageSize
+
+ivec2 csrgba32ui_temp3_texelToTexel(ivec2 texelPos) {
+    return textile_texelToTexel(
+        texelPos,
+        _CSRGBA32UI_TEMP3_OFFSET,
+        _CSRGBA32UI_TEMP3_SIZE
+    );
+}
+
+#define _CSRGBA32UI_TEMP4_OFFSET ivec2(global_mainImageSizeI.x, global_mainImageSizeI.y * 2)
+#define _CSRGBA32UI_TEMP4_OFFSET_F vec2(global_mainImageSize.x, global_mainImageSize.y * 2.0)
+#define _CSRGBA32UI_TEMP4_SIZE global_mainImageSizeI
+#define _CSRGBA32UI_TEMP4_SIZE_F global_mainImageSize
+
+ivec2 csrgba32ui_temp4_texelToTexel(ivec2 texelPos) {
+    return textile_texelToTexel(
+        texelPos,
+        _CSRGBA32UI_TEMP4_OFFSET,
+        _CSRGBA32UI_TEMP4_SIZE
     );
 }
 
