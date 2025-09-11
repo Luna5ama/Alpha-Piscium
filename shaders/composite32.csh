@@ -1,9 +1,7 @@
 #version 460 compatibility
 
-#include "/techniques/Lighting.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Coords.glsl"
-#include "/util/GBufferData.glsl"
 #include "/util/Colors.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -15,9 +13,6 @@ layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
 void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
-
-        GBufferData gData = gbufferData_init();
-        gbufferData2_unpack(texelFetch(usam_gbufferData8UN, texelPos, 0), gData);
 
         vec4 translucentColor = texelFetch(usam_translucentColor, texelPos, 0);
         vec4 translucentData = texelFetch(usam_translucentData, texelPos, 0);

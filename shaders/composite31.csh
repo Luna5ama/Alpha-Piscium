@@ -1,9 +1,8 @@
 #version 460 compatibility
 
+#include "/util/BitPacking.glsl"
 #include "/util/Coords.glsl"
-#include "/util/Lighting.glsl"
 #include "/util/Rand.glsl"
-#include "/util/Material.glsl"
 
 layout(local_size_x = 64) in;
 
