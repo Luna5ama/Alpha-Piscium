@@ -22,12 +22,12 @@ mat4 mat4_createOrthographicMatrix(float left, float right, float bottom, float 
 }
 
 mat4 mat4_infRevZFromRegular(mat4 regularPerspective, float zNear) {
-    mat4 infRevZ = regularPerspective;
-    infRevZ[2][2] = 0.0;
-    infRevZ[3][2] = -1.0;
-    infRevZ[2][3] = zNear;
-    infRevZ[3][3] = 0.0;
-    return infRevZ;
+    return mat4(
+        regularPerspective[0][0], regularPerspective[0][1], regularPerspective[0][2], regularPerspective[0][3],
+        regularPerspective[1][0], regularPerspective[1][1], regularPerspective[1][2], regularPerspective[1][3],
+        regularPerspective[2][0], regularPerspective[2][1], 0.0, -1.0,
+        regularPerspective[3][0], regularPerspective[3][1], zNear, 0.0
+    );
 }
 
 #endif
