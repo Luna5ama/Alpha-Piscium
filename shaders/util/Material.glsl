@@ -15,6 +15,7 @@ struct Material {
     vec3 emissive;
     float porosity;
     float sss;
+    float hardCodedIOR;
 };
 
 const float _MATERIAL_F0_EPSILON = exp2(-SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR);
@@ -59,6 +60,8 @@ Material material_decode(GBufferData gData) {
     material.sss = linearStep(_65o255, 1.0, gData.pbrSpecular.b);
     material.sss *= step64;
     material.sss = sqrt(material.sss);
+
+    material.hardCodedIOR = gData.materialID == 3u ? 1.333 : 1.5;
 
     return material;
 }

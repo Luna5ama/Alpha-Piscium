@@ -119,13 +119,13 @@ void main() {
 
     t = pow(t, vec3(1.0 / 2.2));
     lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);
-    float sat = isWater ? 0.4 : 1.0;
+    float sat = isWater ? 0.9 : 1.0;
     t = lumaT + sat * (t - lumaT);
     t = pow(t, vec3(2.2));
 
-    float tv = isWater ? 0.3 : 0.9;
+    float tv = isWater ? 1.0 : 1.0;
 
-    vec3 tAbsorption = -log(t) * pow2(alpha) * tv;
+    vec3 tAbsorption = -log(t) * (alpha * sqrt(alpha)) * tv;
     tAbsorption = max(tAbsorption, 0.0);
     vec3 tTransmittance = exp(-tAbsorption);
 
