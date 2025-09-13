@@ -22,7 +22,7 @@ layout(r32f) uniform writeonly image2D CLEAR_IMAGE5;
 #define CLEAR_COLOR1 uvec4(0u)
 #define CLEAR_COLOR2 vec4(0.0)
 #define CLEAR_COLOR3 vec4(-65536.0)
-#define CLEAR_COLOR4 vec4(0.0)
+#define CLEAR_COLOR4 vec4(1.0, 1.0, 1.0, 0.0)
 
 #define CLEAR_OFFSET5 ivec2(0)
 #define CLEAR_COLOR5 vec4(0.0)

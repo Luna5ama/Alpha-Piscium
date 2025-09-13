@@ -8,7 +8,7 @@ layout(local_size_x = 64) in;
 
 #include "/techniques/atmospherics/air/RaymarchScreenViewAtmosphere.glsl"
 
-layout(rgba16f) restrict uniform image2D uimg_main;
+layout(rgba16f) restrict uniform image2D uimg_temp1;
 
 void main() {
     if (gl_GlobalInvocationID.x < global_dispatchSize1.w) {
@@ -19,9 +19,9 @@ void main() {
 
         ScatteringResult sctrResult = raymarchScreenViewAtmosphere(texelPos, viewZ, noiseV);
 
-        vec4 outputColor = imageLoad(uimg_main, texelPos);
+        vec4 outputColor = imageLoad(uimg_temp1, texelPos);
         outputColor.rgb *= sctrResult.transmittance;
         outputColor.rgb += sctrResult.inScattering;
-        imageStore(uimg_main, texelPos, outputColor);
+        imageStore(uimg_temp1, texelPos, outputColor);
     }
 }

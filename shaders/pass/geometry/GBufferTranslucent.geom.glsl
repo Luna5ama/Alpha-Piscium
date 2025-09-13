@@ -24,21 +24,21 @@ void main() {
     int flag = int(determinant(mat2(pos3 - pos1, pos2 - pos1)) > 0.0);
     flag |= int(dot(vert_viewCoord[0], vert_viewNormal[0]) > 0.0);
 
-    if (bool(flag)) {
-        for (int i = 0; i < 3; i++) {
-            int j = 2 - i;
-            gl_Position = gl_in[j].gl_Position;
-            frag_viewCoord = vert_viewCoord[j];
-            frag_viewTangent = vert_viewTangent[j];
-            frag_viewNormal = vert_viewNormal[j];
-            frag_texCoord = vert_texCoord[j];
-            frag_lmCoord = vert_lmCoord[j];
-            frag_colorMul = vert_colorMul[j];
-            frag_materialID = vert_materialID[j];
-            EmitVertex();
-        }
-        EndPrimitive();
-    } else {
+//    if (bool(flag)) {
+//        for (int i = 0; i < 3; i++) {
+//            int j = 2 - i;
+//            gl_Position = gl_in[j].gl_Position;
+//            frag_viewCoord = vert_viewCoord[j];
+//            frag_viewTangent = vert_viewTangent[j];
+//            frag_viewNormal = vert_viewNormal[j];
+//            frag_texCoord = vert_texCoord[j];
+//            frag_lmCoord = vert_lmCoord[j];
+//            frag_colorMul = vert_colorMul[j];
+//            frag_materialID = vert_materialID[j];
+//            EmitVertex();
+//        }
+//        EndPrimitive();
+//    } else {
         for (int i = 0; i < 3; i++) {
             int j = i;
             gl_Position = gl_in[j].gl_Position;
@@ -52,5 +52,5 @@ void main() {
             EmitVertex();
         }
         EndPrimitive();
-    }
+//    }
 }

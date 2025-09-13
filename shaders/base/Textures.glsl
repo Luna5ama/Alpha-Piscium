@@ -89,11 +89,8 @@ const bool colortex8Clear = false;
 const bool colortex9Clear = false;
 const bool colortex10Clear = false;
 
-const bool colortex11Clear = true;
-const vec4 colortex11ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
-
-const bool colortex12Clear = true;
-const vec4 colortex12ClearColor = vec4(1.0, 1.0, 1.0, 0.0);
+const bool colortex11Clear = false;
+const bool colortex12Clear = false;
 
 const bool colortex13Clear = false;
 const bool colortex14Clear = false;
