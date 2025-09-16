@@ -61,8 +61,8 @@ void main() {
 
             vec3 viewDir = normalize(-startViewPos);
 
-            vec3 bitangent = cross(gData.geomNormal, gData.geomTangent) * float(gData.bitangentSign);
-            mat3 tbn = mat3(gData.geomTangent, bitangent, gData.geomNormal);
+            vec3 bitangent = cross(gData.normal, gData.geomTangent) * float(gData.bitangentSign);
+            mat3 tbn = mat3(gData.geomTangent, bitangent, gData.normal);
             mat3 tbnInv = inverse(tbn);
             vec3 localViewDir = normalize(tbnInv * viewDir);
 

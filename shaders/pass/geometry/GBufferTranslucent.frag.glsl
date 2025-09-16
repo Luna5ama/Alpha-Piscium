@@ -61,8 +61,8 @@ GBufferData processOutput() {
     #endif
     #endif
 
-    vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
-    vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);
+    vec4 normalSample = texture(normals, frag_texCoord);
+    vec4 specularSample = texture(specular, frag_texCoord);
 
     gData.pbrSpecular = specularSample;
     gData.lmCoord.y *= normalSample.b;
@@ -73,19 +73,17 @@ GBufferData processOutput() {
 
     gData.pbrSpecular.a = emissiveS;
 
-//    #if !defined(SETTING_NORMAL_MAPPING)
-//    gData.normal = geomViewNormal;
-//    #else
-//    mat3 tbn = mat3(geomViewTangent, geomViewBitangent, geomViewNormal);
-//    vec3 tangentNormal;
-//    tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
-//    tangentNormal.z = sqrt(saturate(1.0 - dot(tangentNormal.xy, tangentNormal.xy)));
-//    tangentNormal.xy *= exp2(SETTING_NORMAL_MAPPING_STRENGTH);
-//    tangentNormal = normalize(tangentNormal);
-//    gData.normal = normalize(tbn * tangentNormal);
-//    #endif
-
+    #if !defined(SETTING_NORMAL_MAPPING)
     gData.normal = geomViewNormal;
+    #else
+    mat3 tbn = mat3(geomViewTangent, geomViewBitangent, geomViewNormal);
+    vec3 tangentNormal;
+    tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
+    tangentNormal.z = sqrt(saturate(1.0 - dot(tangentNormal.xy, tangentNormal.xy)));
+    tangentNormal.xy *= exp2(SETTING_NORMAL_MAPPING_STRENGTH);
+    tangentNormal = normalize(tangentNormal);
+    gData.normal = normalize(tbn * tangentNormal);
+    #endif
 
     gData.lmCoord = frag_lmCoord;
     gData.materialID = frag_materialID;
