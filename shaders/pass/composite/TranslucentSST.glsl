@@ -1,5 +1,6 @@
-#include "/techniques/SST.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/EnvProbe.glsl"
+#include "/techniques/SST.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
@@ -64,9 +65,15 @@ void main() {
 
             SSTResult reflectResult = sst_trace(startViewPos, reflectDir);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
-            AtmosphereParameters atmosphere = getAtmosphereParameters();
-            SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, reflectDirWorld);
-            vec3 reflectColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+            vec2 envUV = coords_mercatorForward(reflectDirWorld);
+            ivec2 envTexel = ivec2(envUV * (ENV_PROBE_SIZE - 1));
+            EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
+            vec3 reflectColor = envData.radiance.rgb;
+            if (envProbe_isSky(envData)) {
+                AtmosphereParameters atmosphere = getAtmosphereParameters();
+                SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, reflectDirWorld);
+                reflectColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+            }
             if (reflectResult.hit) {
                 reflectColor = mix(reflectColor, texture(usam_main, reflectResult.hitScreenPos.xy).rgb, edgeReductionFactor(reflectResult.hitScreenPos.xy));
             }

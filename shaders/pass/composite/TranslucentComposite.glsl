@@ -1,3 +1,4 @@
+#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
@@ -48,7 +49,7 @@ void main() {
             vec3 reflectColor = sstData2.xyz;
 
             float MDotV = sstData1.w;
-            float NDotV = saturate(dot(gData.normal, viewDir));
+            float NDotV = dot(gData.normal, viewDir);
             float NDotL = sstData2.w;
 
             float fresnelTransmittance = fresnel_dielectricDielectric_transmittance(MDotV, AIR_IOR, material.hardCodedIOR);
@@ -56,7 +57,7 @@ void main() {
             float g1 = bsdf_smithG1(NDotV, material.roughness);
             float g2 = bsdf_smithG2(NDotV, NDotL, material.roughness);
 
-            float reflectance = fresnelReflectance * pdfRatio * (g2 / g1);
+            float reflectance = max(fresnelReflectance * pdfRatio * (g2 / g1), 0.0);
             vec3 reflectanceAlbedo = reflectance * material.albedo;
 
             vec3 translucentColor = vec3(0.0);
@@ -69,6 +70,7 @@ void main() {
 
         #ifdef SETTING_DOF
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        viewZ = max(startViewZ, viewZ);
         outputColor.a = abs(viewZ);
         imageStore(uimg_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), outputColor);
         #endif
