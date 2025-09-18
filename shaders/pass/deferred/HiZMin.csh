@@ -1,4 +1,5 @@
-#define GLOBAL_DATA_MODIFIER
+#define GLOBAL_DATA_MODIFIER \
+
 #include "/util/Coords.glsl"
 
 #define SPD_CHANNELS 1

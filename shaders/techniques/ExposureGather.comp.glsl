@@ -1,6 +1,7 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
-#define GLOBAL_DATA_MODIFIER
+#define GLOBAL_DATA_MODIFIER \
+
 #include "/util/Math.glsl"
 
 layout(local_size_x = 256) in;

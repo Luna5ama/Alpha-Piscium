@@ -1,4 +1,5 @@
-#define GLOBAL_DATA_MODIFIER
+#define GLOBAL_DATA_MODIFIER \
+
 #include "/techniques/gtvbgi/Common.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Mat4.glsl"
