@@ -1,5 +1,8 @@
 /*
     References:
+        [GIL23] Gilcher, Pascal. "Better GGX VNDF Sampler". Shadertoy. 2023.
+            https://www.shadertoy.com/view/MX3XDf
+            MIT License. Copyright (c) 2023 Pascal Gilcher.
         [HAM17] Hammon, Earl, Jr. "PBR Diffuse Lighting for GGX+Smith Microsurfaces". GDC 2017. 2017.
             https://ubm-twvideo01.s3.amazonaws.com/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf
         [HOF13] Hoffman, Naty. "Crafting Physically Motivated Shading Models for Game Development".
@@ -52,6 +55,68 @@ float bsdf_ggx(Material material, float NDotL, float NDotV, float NDotH) {
     float v = rcp(_bsdf_g_Smith_Schlick_denom(NDotL, k) * _bsdf_g_Smith_Schlick_denom(saturate(NDotV), k));
 
     return NDotL * d * v;
+}
+
+// [GIL23]
+float _bsdf_lambdaSmith(float ndotx, float alpha) {
+    float alpha_sqr = alpha * alpha;
+    float ndotx_sqr = ndotx * ndotx;
+    return (-1.0 + sqrt(alpha_sqr * (1.0 - ndotx_sqr) / ndotx_sqr + 1.0)) * 0.5;
+}
+
+// [GIL23]
+float bsdf_smithG1(float ndotv, float alpha) {
+    float lambda_v = _bsdf_lambdaSmith(ndotv, alpha);
+    return 1.0 / (1.0 + lambda_v);
+}
+
+// [GIL23]
+float bsdf_smithG2(float ndotl, float ndotv, float alpha) {
+    //height correlated
+    float lambda_v = _bsdf_lambdaSmith(ndotv, alpha);
+    float lambda_l = _bsdf_lambdaSmith(ndotl, alpha);
+    return 1.0 / (1.0 + lambda_v + lambda_l);
+}
+
+// [GIL23]
+vec3 bsdf_SphericalCapBoundedWithPDFRatio(vec2 u, vec3 wi, vec2 alpha, out float pdf_ratio) {
+    #define mad(a,b,c) ((a)*(b)+(c))
+    // warp to the hemisphere configuration
+
+    //PGilcher: save the length t here for pdf ratio
+    vec3 wiStd = vec3(wi.xy * alpha, wi.z);
+    float t = length(wiStd);
+    wiStd /= t;
+
+    // sample a spherical cap in (-wi.z, 1]
+    float phi = (2.0f * u.x - 1.0f) * PI;
+
+    float a = saturate(min( alpha.x, alpha.y)); // Eq. 6
+    float s = 1.0f + length(wi.xy); // Omit sgn for a <=1
+    float a2 = a * a;
+    float s2 = s * s;
+    float k = (1.0 - a2) * s2 / (s2 + a2 * wi.z * wi.z);
+
+    float b = wiStd.z;
+    b = wi.z > 0.0 ? k * b : b;
+
+    //PGilcher: compute ratio of unchanged pdf to actual pdf (ndf/2 cancels out)
+    //Dupuy's method is identical to this except that "k" is always 1, so
+    //we extract the differences of the PDFs (Listing 2 in the paper)
+    pdf_ratio = (k * wi.z + t) / (wi.z + t);
+
+    float z = mad((1.0f - u.y), (1.0f + b), -b);
+    float sinTheta = sqrt(clamp(1.0f - z * z, 0.0f, 1.0f));
+    float x = sinTheta * cos(phi);
+    float y = sinTheta * sin(phi);
+    vec3 c = vec3(x, y, z);
+    // compute halfway direction as standard normal
+    vec3 wmStd = c + wiStd;
+    // warp back to the ellipsoid configuration
+    vec3 wm = normalize(vec3(wmStd.xy * alpha, wmStd.z));
+    // return final normal
+    return wm;
+    #undef mad
 }
 
 #endif

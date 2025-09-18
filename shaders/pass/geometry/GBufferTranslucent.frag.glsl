@@ -61,8 +61,13 @@ GBufferData processOutput() {
     #endif
     #endif
 
+    #ifdef SETTING_SCREENSHOT_MODE
+    vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
+    vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);
+    #else
     vec4 normalSample = texture(normals, frag_texCoord);
     vec4 specularSample = texture(specular, frag_texCoord);
+    #endif
 
     gData.pbrSpecular = specularSample;
     gData.lmCoord.y *= normalSample.b;

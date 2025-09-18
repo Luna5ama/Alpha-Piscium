@@ -103,7 +103,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
     float currT = 0.0;
 //    const uvec2 DEBUG_COORD = uvec2(1350, 510);
     const uvec2 DEBUG_COORD = uvec2(487, 250);
-    const uint HI_Z_STEPS = 64;
+    const uint HI_Z_STEPS = 128;
 
     vec2 mainImageSize = global_mainImageSize;
     vec2 mainImageSizeRcp = global_mainImageSizeRcp;

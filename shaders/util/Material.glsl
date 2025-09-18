@@ -16,6 +16,8 @@ struct Material {
     float porosity;
     float sss;
     float hardCodedIOR;
+    mat3 tbn;
+    mat3 tbnInv;
 };
 
 const float _MATERIAL_F0_EPSILON = exp2(-SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR);
@@ -62,6 +64,10 @@ Material material_decode(GBufferData gData) {
     material.sss = sqrt(material.sss);
 
     material.hardCodedIOR = gData.materialID == 3u ? 1.333 : 1.5;
+
+    vec3 bitangent = cross(gData.normal, gData.geomTangent) * float(gData.bitangentSign);
+    material.tbn = mat3(gData.geomTangent, bitangent, gData.normal);
+    material.tbnInv = inverse(material.tbn);
 
     return material;
 }
