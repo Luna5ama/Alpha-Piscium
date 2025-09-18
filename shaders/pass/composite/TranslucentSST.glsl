@@ -24,8 +24,6 @@ void main() {
     sst_init();
 
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
-        vec4 outputColor = texelFetch(usam_temp1, texelPos, 0);
-
         ivec2 farDepthTexelPos = texelPos;
         ivec2 nearDepthTexelPos = texelPos;
         farDepthTexelPos.y += global_mainImageSizeI.y;
@@ -59,6 +57,10 @@ void main() {
 
             SSTResult refractResult = sst_trace(startViewPos, refractDir);
             vec2 refractCoord = refractResult.hit ? refractResult.hitScreenPos.xy : coords_viewToScreen(startViewPos + refractDir * edgeReductionFactor(screenPos), global_camProj).xy;
+            float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
+            if (refractDepth > startViewZ) {
+                refractCoord =  coords_viewToScreen(startViewPos + refractDir * 0.1 / (refractDepth - startViewZ), global_camProj).xy;
+            }
             vec3 refractColor = texture(usam_main, refractCoord).rgb;
             float MDotV = saturate(dot(microNormal, viewDir));
             imageStore(uimg_temp1, texelPos, vec4(refractColor, MDotV));
