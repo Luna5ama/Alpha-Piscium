@@ -22,6 +22,8 @@ float edgeReductionFactor(vec2 screenPos) {
 }
 
 void main() {
+    sst_init();
+
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_temp1, texelPos, 0);
 
