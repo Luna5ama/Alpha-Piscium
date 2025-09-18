@@ -71,8 +71,8 @@ void main() {
                 reflectColor = mix(reflectColor, texture(usam_temp1, reflectResult.hitScreenPos.xy).rgb, edgeReductionFactor(reflectResult.hitScreenPos.xy));
             }
 
-            float MDotV = dot(microNormal, -viewDir);
-            float NDotV = dot(gData.normal, -viewDir);
+            float MDotV = saturate(dot(microNormal, viewDir));
+            float NDotV = saturate(dot(gData.normal, viewDir));
             float NDotL = saturate(dot(gData.normal, reflectDir));
 
             float fresnelTransmittance = fresnel_dielectricDielectric_transmittance(MDotV, AIR_IOR, material.hardCodedIOR);
