@@ -168,6 +168,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
             float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : currScreenPos.z * MAX_THICKNESS_FACTOR;
             if (any(lessThanEqual(vec2(cellMinZ, thicknessFactor), vec2(currScreenPos.z, cellMinZ)))) {
                 newT = intersectCellBoundary(pRayStart, pRayVector, invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
+                newT = max(newT, currT);
                 level = min(maxLevels, level + 2);
 //                v = 1.0;
             }
@@ -184,12 +185,13 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
                 float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : currScreenPos.z * MAX_THICKNESS_FACTOR;
                 if (thicknessFactor >= cellMinZ) {
                     newT = depthT;
+                    newT = max(newT, currT);
                 } else {
                     level++;
                 }
             }
         }
-        currT = max(newT, currT);
+        currT = newT;
         level--;
         if (level < STOP_LEVEL) {
             result.hitScreenPos = pRayStart + pRayVector * currT;
