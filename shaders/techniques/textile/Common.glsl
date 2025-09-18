@@ -12,6 +12,11 @@ vec2 textile_texelToUV(ivec2 texelPos, ivec2 tileOffset, ivec2 tileSize, vec2 te
     return saturate((vec2(textureTexelPos) + 0.5) * textureSizeRcp);
 }
 
+vec2 textile_texelToUV(vec2 texelPos, vec2 tileOffset, vec2 tileSize, vec2 textureSizeRcp) {
+    vec2 textureTexelPos = clamp(texelPos, vec2(0), tileSize - 1.0) + tileOffset;
+    return saturate((textureTexelPos + 0.5) * textureSizeRcp);
+}
+
 vec2  textile_texelToGatherUV(vec2 texelPos, vec2 tileOffsetF, vec2 tileSizeF, vec2 textureSizeRcp) {
     vec2 textureTexelPos = clamp(texelPos, vec2(1.0), tileSizeF - 1.0) + tileOffsetF;
     return saturate(textureTexelPos * textureSizeRcp);
