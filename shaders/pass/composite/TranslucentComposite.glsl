@@ -1,10 +1,7 @@
-#include "/techniques/SST.glsl"
-#include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Coords.glsl"
-#include "/util/Colors.glsl"
 #include "/util/Fresnel.glsl"
 #include "/util/BSDF.glsl"
 
@@ -14,18 +11,9 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform restrict image2D uimg_main;
 layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
 
-float edgeReductionFactor(vec2 screenPos) {
-    const float SQUIRCLE_M = 4.0;
-    vec2 ndcPos = screenPos * 2.0 - 1.0;
-    vec2 squircle = pow(smoothstep(0.5, 0.95, abs(ndcPos)), vec2(SQUIRCLE_M));
-    return saturate(1.0 - (squircle.x + squircle.y));
-}
-
 void main() {
-    sst_init();
-
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
-        vec4 outputColor = texelFetch(usam_temp1, texelPos, 0);
+        vec4 outputColor = texelFetch(usam_main, texelPos, 0);
 
         ivec2 farDepthTexelPos = texelPos;
         ivec2 nearDepthTexelPos = texelPos;
@@ -48,34 +36,20 @@ void main() {
             material.roughness *= 0.5;
 
             vec3 viewDir = normalize(-startViewPos);
-
             vec3 localViewDir = normalize(material.tbnInv * viewDir);
 
             vec2 noiseV = rand_stbnVec2(texelPos, frameCounter);
             float pdfRatio = 1.0;
-            vec3 tangentMicroNormal = bsdf_SphericalCapBoundedWithPDFRatio(noiseV, localViewDir, vec2(material.roughness), pdfRatio);
-            vec3 microNormal = normalize(material.tbn * tangentMicroNormal);
+            bsdf_SphericalCapBoundedWithPDFRatio(noiseV, localViewDir, vec2(material.roughness), pdfRatio);
 
-            float rior = AIR_IOR / material.hardCodedIOR;
-            vec3 refractDir = refract(-viewDir, microNormal, rior);
-            vec3 reflectDir = reflect(-viewDir, microNormal);
+            vec4 sstData1 = texelFetch(usam_temp1, texelPos, 0);
+            vec4 sstData2 = texelFetch(usam_temp2, texelPos, 0);
+            vec3 refractColor = sstData1.xyz;
+            vec3 reflectColor = sstData2.xyz;
 
-            SSTResult refractResult = sst_trace(startViewPos, refractDir);
-            vec2 refractCoord = refractResult.hit ? refractResult.hitScreenPos.xy : coords_viewToScreen(startViewPos + refractDir * edgeReductionFactor(screenPos), global_camProj).xy;
-            vec3 refractColor = texture(usam_temp1, refractCoord).rgb;
-
-            SSTResult reflectResult = sst_trace(startViewPos, reflectDir);
-            vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
-            AtmosphereParameters atmosphere = getAtmosphereParameters();
-            SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, reflectDirWorld);
-            vec3 reflectColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
-            if (reflectResult.hit) {
-                reflectColor = mix(reflectColor, texture(usam_temp1, reflectResult.hitScreenPos.xy).rgb, edgeReductionFactor(reflectResult.hitScreenPos.xy));
-            }
-
-            float MDotV = saturate(dot(microNormal, viewDir));
+            float MDotV = sstData1.w;
             float NDotV = saturate(dot(gData.normal, viewDir));
-            float NDotL = saturate(dot(gData.normal, reflectDir));
+            float NDotL = sstData2.w;
 
             float fresnelTransmittance = fresnel_dielectricDielectric_transmittance(MDotV, AIR_IOR, material.hardCodedIOR);
             vec3 translucentTransmittance = texelFetch(usam_translucentColor, texelPos, 0).rgb;
@@ -84,10 +58,11 @@ void main() {
             float g2 = bsdf_smithG2(NDotV, NDotL, material.roughness);
 
             float reflectance = fresnelReflectance * pdfRatio * (g2 / g1);
+            vec3 reflectanceAlbedo = reflectance * material.albedo;
 
             vec3 translucentColor = vec3(0.0);
             translucentColor += fresnelTransmittance * translucentTransmittance * refractColor;
-            translucentColor += reflectance * translucentTransmittance * material.albedo * reflectColor;
+            translucentColor += reflectance * reflectanceAlbedo * reflectColor;
             outputColor.rgb = translucentColor;
         }
 

@@ -12,7 +12,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba16f) restrict uniform image2D uimg_temp1;
+layout(rgba16f) restrict uniform image2D uimg_main;
 
 void main() {
     if (all(lessThan(texelPos, global_mainImageSizeI))) {
@@ -25,6 +25,6 @@ void main() {
         ScatteringResult sctrResult = atmospherics_localComposite(texelPos);
         outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
 
-        imageStore(uimg_temp1, texelPos, outputColor);
+        imageStore(uimg_main, texelPos, outputColor);
     }
 }
