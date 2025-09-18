@@ -52,7 +52,6 @@ void main() {
             float NDotL = sstData2.w;
 
             float fresnelTransmittance = fresnel_dielectricDielectric_transmittance(MDotV, AIR_IOR, material.hardCodedIOR);
-            vec3 translucentTransmittance = texelFetch(usam_translucentColor, texelPos, 0).rgb;
             float fresnelReflectance = fresnel_dielectricDielectric_reflection(MDotV, AIR_IOR, material.hardCodedIOR);
             float g1 = bsdf_smithG1(NDotV, material.roughness);
             float g2 = bsdf_smithG2(NDotV, NDotL, material.roughness);
@@ -61,7 +60,7 @@ void main() {
             vec3 reflectanceAlbedo = reflectance * material.albedo;
 
             vec3 translucentColor = vec3(0.0);
-            translucentColor += fresnelTransmittance * translucentTransmittance * refractColor;
+            translucentColor += fresnelTransmittance * gData.albedo * refractColor;
             translucentColor += reflectance * reflectanceAlbedo * reflectColor;
             outputColor.rgb = translucentColor;
         }
