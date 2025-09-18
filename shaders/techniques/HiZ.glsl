@@ -1,3 +1,6 @@
+#ifndef INCLUDE_techniques_HiZ_glsl
+#define INCLUDE_techniques_HiZ_glsl a
+
 #include "/util/Coords.glsl"
 #include "/util/Math.glsl"
 
@@ -80,3 +83,5 @@ bool hiz_groupSkyCheck4x4(vec2 groupOrigin, int level) {
     hizValues = min(hizValues, hiz_furthest_gather(groupOrigin + vec2(1.0, 1.0), level));
     return min4(hizValues) <= coords_viewZToReversedZ(-65536.0, near);
 }
+
+#endif
