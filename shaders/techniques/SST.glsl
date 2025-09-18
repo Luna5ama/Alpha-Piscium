@@ -36,7 +36,7 @@ SSTResult sst_initResult() {
 }
 
 float intersectCellBoundary(vec3 o, vec3 d, vec3 invD, vec2 cellIdOffset, vec2 cond2, vec2 cellId, vec2 invCellCount) {
-    vec2 cellMin = floor(cellId) - 0.01;
+    vec2 cellMin = floor(cellId);
 //    vec2 cellMax = cellMin + 1.02;
 //    cellMin *= invCellCount;
 //    cellMax *= invCellCount;
@@ -122,7 +122,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
     vec4 mainImageSizeParams = vec4(global_mainImageSize, global_mainImageSizeRcp);
     vec3 invD = rcp(pRayVector);
     bvec2 intersectCond1 = greaterThan(pRayVector.xy, vec2(0.0));
-    vec2 cellIdOffset = mix(vec2(0.0), vec2(1.02), intersectCond1);
+    vec2 cellIdOffset = mix(vec2(-0.01), vec2(1.01), intersectCond1);
     bvec2 vec0Cond = equal(pRayVector.xy, vec2(0.0));
     invD.xy = mix(invD.xy, vec2(0.0), vec0Cond);
     vec2 vec0Fix = vec2(vec0Cond) * 114514.0;
@@ -150,10 +150,10 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
         vec4 cellCountData = shared_cellCounts[level];
         vec2 cellCount = cellCountData.xy;
         vec2 invCellCount = cellCountData.zw;
-        vec2 oldCellIdx = currScreenPos.xy * cellCount;
+        vec2 oldCellIdx = saturate(currScreenPos.xy) * cellCount;
 
         ivec2 oldCellIdxI = ivec2(oldCellIdx);
-        ivec2 readPos = mipTile.xy + ivec2(clamp(oldCellIdxI, ivec2(0), mipTile.zw));
+        ivec2 readPos = mipTile.xy + min(oldCellIdxI, mipTile.zw);
         float cellMinZ = texelFetch(usam_hiz, readPos, 0).r;
 
         float newT = currT;
@@ -221,10 +221,10 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
         for (uint i = 0; i < FIX_STEPS; i++) {
             float t = minT + ((float(i) + 1.0) * stepRcp * deltaT);
             vec3 screenPos = pRayStart + pRayVector * t;
-            vec2 texelPos = screenPos.xy * mainImageSizeParams.xy;
+            vec2 texelPos = saturate(screenPos.xy) * mainImageSizeParams.xy;
             vec2 cellIdx = texelPos;
             ivec2 readPos = ivec2(cellIdx);
-            readPos = ivec2(clamp(readPos, ivec2(0), mipTile));
+            readPos = min(readPos, mipTile);
             float cellMinZ = texelFetch(usam_hiz, readPos, 0).r;
 
             if (cellMinZ > screenPos.z) {
