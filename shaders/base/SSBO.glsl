@@ -1,5 +1,5 @@
 #ifndef GLOBAL_DATA_MODIFIER
-#define GLOBAL_DATA_MODIFIER \
+#define GLOBAL_DATA_MODIFIER restrict readonly
 
 #endif
 
