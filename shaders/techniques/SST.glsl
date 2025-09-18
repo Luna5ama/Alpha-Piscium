@@ -108,6 +108,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
     float maxZ = pRayStart.z + pRayVector.z;
     float deltaZ = maxZ - minZ;
     const float MAX_THICKNESS = 0.01;
+    const float MAX_THICKNESS_FACTOR = 1.0101010101; // 1.0 / (1.0 - MAX_THICKNESS)
     int maxLevels = findMSB(min(global_mainImageSizeI.x, global_mainImageSizeI.y));
 
     #define START_LEVEL 1
@@ -158,11 +159,14 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
 
         float newT = currT;
         if (isBackwardRay) {
-            float linearCurr = coords_reversedZToViewZ(currScreenPos.z, near);
-            float linearDepth = coords_reversedZToViewZ(cellMinZ, near);
-            float diff = (linearDepth - linearCurr);
-            float thickness = level > STOP_LEVEL ? 1145141919810.0 : MAX_THICKNESS * abs(linearCurr);
-            if (any(lessThanEqual(vec2(cellMinZ, thickness), vec2(currScreenPos.z, diff)))) {
+            // float linearCurr = coords_reversedZToViewZ(currScreenPos.z, near);
+            // float linearDepth = coords_reversedZToViewZ(cellMinZ, near);
+            // float diff = (linearDepth - linearCurr);
+            // float thickness = level > STOP_LEVEL ? 1145141919810.0 : MAX_THICKNESS * abs(linearCurr);
+            // diff >= thickness ...
+            // simplyfied to:
+            float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : currScreenPos.z * MAX_THICKNESS_FACTOR;
+            if (any(lessThanEqual(vec2(cellMinZ, thicknessFactor), vec2(currScreenPos.z, cellMinZ)))) {
                 newT = intersectCellBoundary(pRayStart, pRayVector, invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
                 level = min(maxLevels, level + 2);
 //                v = 1.0;
@@ -177,11 +181,8 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
                 level = min(maxLevels, level + 2);
 //                v = 1.0;
             } else {
-                float linearCurr = coords_reversedZToViewZ(currScreenPos.z, near);
-                float linearDepth = coords_reversedZToViewZ(cellMinZ, near);
-                float diff = linearDepth - linearCurr;
-                float thickness = level > STOP_LEVEL ? 1145141919810.0 : MAX_THICKNESS * abs(linearCurr);
-                if (diff < thickness) {
+                float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : currScreenPos.z * MAX_THICKNESS_FACTOR;
+                if (thicknessFactor >= cellMinZ) {
                     newT = depthT;
                 } else {
                     level++;
