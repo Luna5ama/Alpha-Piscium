@@ -58,11 +58,10 @@ void main() {
             float g2 = bsdf_smithG2(NDotV, NDotL, material.roughness);
 
             float reflectance = max(fresnelReflectance * pdfRatio * (g2 / g1), 0.0);
-            vec3 reflectanceAlbedo = reflectance * material.albedo;
 
             vec3 translucentColor = vec3(0.0);
             translucentColor += fresnelTransmittance * gData.albedo * refractColor;
-            translucentColor += reflectance * reflectanceAlbedo * reflectColor;
+            translucentColor += reflectance * gData.albedo * reflectColor;
             outputColor.rgb = translucentColor;
         }
 
