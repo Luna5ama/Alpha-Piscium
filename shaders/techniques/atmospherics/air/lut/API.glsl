@@ -37,7 +37,7 @@ vec3 _atmospherics_air_lut_sampleSkyViewSlice(vec2 sliceUV, float sliceIndex) {
     return texture(usam_skyViewLUT, sampleUV).rgb;
 }
 
-ScatteringResult atmospherics_air_lut_sampleSkyView(
+ScatteringResult _atmospherics_air_lut_sampleSkyView(
     AtmosphereParameters atmosphere,
     bool intersectGround,
     float viewZenithCosAngle,
@@ -73,6 +73,62 @@ ScatteringResult atmospherics_air_lut_sampleSkyView(
     result.inScattering += _atmospherics_air_lut_sampleSkyViewSlice(moonSliceUV, moonSlice);
     result.transmittance = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, tSlice);
     return result;
+}
+
+struct SkyViewLutParams {
+    bool intersectGround;
+    float viewZenithCosAngle;
+    float sunViewCosAngle;
+    float moonViewCosAngle;
+    float viewHeight;
+};
+
+SkyViewLutParams atmospherics_air_lut_setupSkyViewLutParams(
+    AtmosphereParameters atmosphere,
+    vec3 rayDir
+) {
+    vec3 rayStart = atmosphere_viewToAtm(atmosphere, vec3(0.0));
+    float viewHeight = length(rayStart);
+    vec3 upVector = rayStart / viewHeight;
+
+    float viewZenithCosAngle = dot(rayDir, upVector);
+
+    const vec3 earthCenter = vec3(0.0);
+    float tBottom = raySphereIntersectNearest(rayStart, rayDir, earthCenter, atmosphere.bottom);
+
+    vec3 sideVector = normalize(cross(upVector, rayDir));		// assumes non parallel vectors
+    vec3 forwardVector = normalize(cross(sideVector, upVector));	// aligns toward the sun light but perpendicular to up vector
+
+    vec2 sunOnPlane = vec2(dot(uval_sunDirWorld, forwardVector), dot(uval_sunDirWorld, sideVector));
+    sunOnPlane = normalize(sunOnPlane);
+    float sunViewCosAngle = sunOnPlane.x;
+
+    vec2 moonOnPlane = vec2(dot(uval_moonDirWorld, forwardVector), dot(uval_moonDirWorld, sideVector));
+    moonOnPlane = normalize(moonOnPlane);
+    float moonViewCosAngle = moonOnPlane.x;
+
+    float horizonZenthCosAngle = -sqrt(1.0 - pow2(atmosphere.bottom / viewHeight));
+    bool intersectGround = viewZenithCosAngle < (horizonZenthCosAngle);
+
+    return SkyViewLutParams(
+        intersectGround,
+        viewZenithCosAngle,
+        sunViewCosAngle,
+        moonViewCosAngle,
+        viewHeight
+    );
+}
+
+ScatteringResult atmospherics_air_lut_sampleSkyViewLUT(AtmosphereParameters atmosphere, SkyViewLutParams params, float layerIndex) {
+    return _atmospherics_air_lut_sampleSkyView(
+        atmosphere,
+        params.intersectGround,
+        params.viewZenithCosAngle,
+        params.sunViewCosAngle,
+        params.moonViewCosAngle,
+        params.viewHeight,
+        layerIndex
+    );
 }
 
 #endif

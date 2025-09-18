@@ -131,6 +131,7 @@ void main() {
     vec3 tAbsorption = -log(t) * (alpha * sqrt(alpha)) * tv;
     tAbsorption = max(tAbsorption, 0.0);
     vec3 tTransmittance = exp(-tAbsorption);
+    lighting_gData.albedo = tTransmittance;
 
     rt_translucentColor = vec4(tTransmittance, 0.0);
 

@@ -14,26 +14,6 @@ layout(rgba32ui) uniform restrict writeonly uimage2D uimg_csrgba32ui;
 
 const float DENSITY_EPSILON = 0.0001;
 
-struct SkyViewLutParams {
-    bool intersectGround;
-    float viewZenithCosAngle;
-    float sunViewCosAngle;
-    float moonViewCosAngle;
-    float viewHeight;
-};
-
-ScatteringResult _atmospherics_sampleSkyViewLUT(AtmosphereParameters atmosphere, SkyViewLutParams params, float layerIndex) {
-    return atmospherics_air_lut_sampleSkyView(
-        atmosphere,
-        params.intersectGround,
-        params.viewZenithCosAngle,
-        params.sunViewCosAngle,
-        params.moonViewCosAngle,
-        params.viewHeight,
-        layerIndex
-    );
-}
-
 ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
     float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
     vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
@@ -105,42 +85,9 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
     vec3 viewDir = mainRayParams.rayDir;
     vec2 ambLutUV = cloods_amblut_uv(viewDir, jitters);
 
-    SkyViewLutParams skyViewLutParams;
-    {
-        vec3 rayStart = atmosphere_viewToAtm(atmosphere, vec3(0.0));
-        float viewHeight = length(rayStart);
-        vec3 upVector = rayStart / viewHeight;
-
-        vec3 rayEndView = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-        vec3 rayDir = normalize(mat3(gbufferModelViewInverse) * rayEndView);
-
-        float viewZenithCosAngle = dot(rayDir, upVector);
-
-        const vec3 earthCenter = vec3(0.0);
-        float tBottom = raySphereIntersectNearest(rayStart, rayDir, earthCenter, atmosphere.bottom);
-
-        vec3 sideVector = normalize(cross(upVector, rayDir));		// assumes non parallel vectors
-        vec3 forwardVector = normalize(cross(sideVector, upVector));	// aligns toward the sun light but perpendicular to up vector
-
-        vec2 sunOnPlane = vec2(dot(uval_sunDirWorld, forwardVector), dot(uval_sunDirWorld, sideVector));
-        sunOnPlane = normalize(sunOnPlane);
-        float sunViewCosAngle = sunOnPlane.x;
-
-        vec2 moonOnPlane = vec2(dot(uval_moonDirWorld, forwardVector), dot(uval_moonDirWorld, sideVector));
-        moonOnPlane = normalize(moonOnPlane);
-        float moonViewCosAngle = moonOnPlane.x;
-
-        float horizonZenthCosAngle = -sqrt(1.0 - pow2(atmosphere.bottom / viewHeight));
-        bool intersectGround = viewZenithCosAngle < (horizonZenthCosAngle);
-
-        skyViewLutParams = SkyViewLutParams(
-            intersectGround,
-            viewZenithCosAngle,
-            sunViewCosAngle,
-            moonViewCosAngle,
-            viewHeight
-        );
-    }
+    vec3 rayEndView = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+    vec3 rayDir = normalize(mat3(gbufferModelViewInverse) * rayEndView);
+    SkyViewLutParams skyViewLutParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, rayDir);
     #ifdef SETTING_CLOUDS_CU
     uvec4 packedData = texelFetch(usam_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), 0);
     imageStore(uimg_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), packedData);
@@ -148,7 +95,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
 
     if (viewZ == -65536.0) {
         {
-            ScatteringResult layerResult = _atmospherics_sampleSkyViewLUT(atmosphere, skyViewLutParams, 0.0);
+            ScatteringResult layerResult = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyViewLutParams, 1.0);
             compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, true);
         }
 
@@ -186,7 +133,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
         #endif
 
         {
-            ScatteringResult layerResult = _atmospherics_sampleSkyViewLUT(atmosphere, skyViewLutParams, 1.0);
+            ScatteringResult layerResult = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyViewLutParams, 2.0);
             bool above = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
             compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, above);
         }
@@ -239,7 +186,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
         #endif
 
         {
-            ScatteringResult layerResult = _atmospherics_sampleSkyViewLUT(atmosphere, skyViewLutParams, 2.0);
+            ScatteringResult layerResult = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyViewLutParams, 3.0);
             bool above = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CI_HEIGHT;
             compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, above);
         }
