@@ -23,10 +23,13 @@ in float frag_viewZ;// 32 bits
 layout(early_fragment_tests) in;
 #endif
 
-#ifdef GBUFFER_PASS_NO_LIGHTING
+#if defined(GBUFFER_PASS_NO_LIGHTING)
 /* RENDERTARGETS:6,10 */
 layout(location = 0) out vec4 rt_color;
 layout(location = 1) out float rt_gbufferViewZ;
+#elif defined(GBUFFER_PASS_ARMOR_GLINT)
+/* RENDERTARGETS:4 */
+layout(location = 0) out vec4 rt_glintColor;
 #else
 /* RENDERTARGETS:8,9,10 */
 layout(location = 0) out uvec4 rt_gbufferData1;
@@ -38,7 +41,7 @@ vec2 dUVdx = dFdx(frag_texCoord);
 vec2 dUVdy = dFdy(frag_texCoord);
 
 ivec2 texelPos = ivec2(gl_FragCoord.xy);
-float noiseIGN = rand_IGN(texelPos, frameCounter);
+float ditherNoise = rand_stbnVec1(texelPos, frameCounter);
 
 vec4 albedo;
 float viewZ;
@@ -64,10 +67,6 @@ void processAlbedo() {
     }
     #endif
 
-    #ifdef GBUFFER_PASS_ARMOR_GLINT
-    albedo.rgb *= albedo.rgb;
-    #endif
-
     #ifdef SETTING_DEBUG_WHITE_WORLD
     albedo.rgb = vec3(1.0);
     #endif
@@ -76,8 +75,6 @@ void processAlbedo() {
 void processViewZ() {
     #if defined(GBUFFER_PASS_VIEWZ_OVERRIDE)
     viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;
-    #elif defined(GBUFFER_PASS_ARMOR_GLINT)
-    viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
     #else
     viewZ = frag_viewZ;
     #endif
@@ -92,23 +89,6 @@ void processData2() {
     #endif
 }
 
-#ifdef GBUFFER_PASS_ARMOR_GLINT
-void processData1() {
-    GBufferData gDataPrev;
-    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gDataPrev);
-    gData.pbrSpecular = gDataPrev.pbrSpecular;
-
-    gData.geomNormal = gDataPrev.geomNormal;
-    gData.geomTangent = gDataPrev.geomTangent;
-    gData.normal = gDataPrev.normal;
-    gData.lmCoord = gDataPrev.lmCoord;
-    gData.materialID = gDataPrev.materialID;
-
-    float glintEmissive = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_idt(albedo.rgb));
-    glintEmissive *= 0.1;
-    gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + glintEmissive);
-}
-#else
 void processData1() {
     float bitangentSignF = frag_viewTangent.w < 0.0 ? -1.0 : 1.0;
     vec3 geomViewNormal = normalize(frag_viewNormal);
@@ -152,7 +132,7 @@ void processData1() {
     gData.materialID = 65533;
     #endif
 
-    gData.lmCoord = dither_u8(gData.lmCoord, noiseIGN);
+    gData.lmCoord = dither_u8(gData.lmCoord, ditherNoise);
 
     #ifdef GBUFFER_PASS_PARTICLE
     gData.materialID = 65533u;
@@ -162,7 +142,6 @@ void processData1() {
     }
     #endif
 }
-#endif
 
 void main() {
     #ifdef DISTANT_HORIZONS
@@ -170,7 +149,7 @@ void main() {
     vec2 screenPos = gl_FragCoord.xy * global_mainImageSizeRcp;
     vec3 viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
     float edgeFactor = linearStep(min(far * 0.75, far - 24.0), far, length(viewPos));
-    if (noiseIGN < edgeFactor) {
+    if (ditherNoise < edgeFactor) {
         discard;
         return;
     }
@@ -180,9 +159,11 @@ void main() {
     processAlbedo();
     processViewZ();
 
-    #ifdef GBUFFER_PASS_NO_LIGHTING
+    #if defined(GBUFFER_PASS_NO_LIGHTING)
     rt_color = albedo;
     rt_gbufferViewZ = viewZ;
+    #elif defined(GBUFFER_PASS_ARMOR_GLINT)
+    rt_glintColor = dither_u8(albedo, ditherNoise);
     #else
     processData1();
     processData2();

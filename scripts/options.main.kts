@@ -562,6 +562,18 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Emissive Albedo Luminance Curve"
                     }
                 }
+                empty()
+                slider("SETTING_EMISSIVE_ARMOR_GLINT_MULT", -10, -20..0 step 1) {
+                    lang {
+                        name = "Emissive Armor Glint Multiplier"
+                        prefix = "2^"
+                    }
+                }
+                slider("SETTING_EMISSIVE_ARMOR_GLINT_CURVE", 1.3, 0.1..2.0 step 0.1) {
+                    lang {
+                        name = "Emissive Armor Glint Curve"
+                    }
+                }
             }
             empty()
             empty()
@@ -1825,7 +1837,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     6 value "temp6"
                 }
             }
-            toggle("SETTING_DEBUG_GBUFFER_DATA", 0, 0..10) {
+            toggle("SETTING_DEBUG_GBUFFER_DATA", 0, 0..12) {
                 lang {
                     name = "GBuffer Data"
                     0 value "Off"
@@ -1837,9 +1849,10 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     6 value "F0"
                     7 value "Porosity"
                     8 value "SSS"
-                    9 value "Light Map Block"
-                    10 value "Light Map Sky"
-                    11 value "isHand"
+                    9 value "Emissive"
+                    10 value "Light Map Block"
+                    11 value "Light Map Sky"
+                    12 value "isHand"
                 }
             }
             toggle("SETTING_DEBUG_NORMAL_MODE", 0, 0..1) {

@@ -187,10 +187,12 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #elif SETTING_DEBUG_GBUFFER_DATA == 8
     outputColor.rgb = vec3(material.sss);
     #elif SETTING_DEBUG_GBUFFER_DATA == 9
-    outputColor.rgb = vec3(gData.lmCoord.x);
+    outputColor.rgb = vec3(gData.pbrSpecular.a);
     #elif SETTING_DEBUG_GBUFFER_DATA == 10
-    outputColor.rgb = vec3(gData.lmCoord.y);
+    outputColor.rgb = vec3(gData.lmCoord.x);
     #elif SETTING_DEBUG_GBUFFER_DATA == 11
+    outputColor.rgb = vec3(gData.lmCoord.y);
+    #elif SETTING_DEBUG_GBUFFER_DATA == 12
     outputColor.rgb = vec3(float(gData.isHand));
     #endif
 

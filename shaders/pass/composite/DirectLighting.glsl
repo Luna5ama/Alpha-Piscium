@@ -89,6 +89,11 @@ void main() {
                 gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), lighting_gData);
                 gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), lighting_gData);
                 Material material = material_decode(lighting_gData);
+                vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
+                vec3 glintColor = colors2_material_idt(glintColorData.rgb) * glintColorData.a;
+                glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
+                glintColor *= exp2(SETTING_EMISSIVE_STRENGTH + SETTING_EMISSIVE_ARMOR_GLINT_MULT);
+                material.emissive += glintColor + material.albedo * glintColor * 4.0;
 
                 lighting_init(coords_toViewCoord(screenPos, viewZ, global_camProjInverse), texelPos);
                 ivec2 texelPos2x2 = texelPos >> 1;
@@ -129,7 +134,8 @@ void main() {
                 imageStore(uimg_csrgba16f, csrgba16f_temp2_texelToTexel(texelPos), vec4(directDiffuseOut, 0.0));
                 imageStore(uimg_main, texelPos, mainOut);
                 return;
-            } }
+            }
+        }
 
         {
             vec3 directDiffuseOut = vec3(0.0);
