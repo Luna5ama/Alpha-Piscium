@@ -7,16 +7,16 @@
 #include "Math.glsl"
 #include "Mat3.glsl"
 
-float coords_linearizeDepth(float depth, float near, float far) {
-    return (near * far) / (depth * (near - far) + far);
+float coords_linearizeDepth(float depth, float nearZ, float farZ) {
+    return (nearZ * farZ) / (depth * (nearZ - farZ) + farZ);
 }
 
-float coords_viewZToReversedZ(float viewZ, float near) {
-    return near / -viewZ;
+float coords_viewZToReversedZ(float viewZ, float nearZ) {
+    return nearZ / -viewZ;
 }
 
-float coords_reversedZToViewZ(float revZ, float near) {
-    return near / -revZ;
+float coords_reversedZToViewZ(float revZ, float nearZ) {
+    return nearZ / -revZ;
 }
 
 vec3 coords_toViewCoord(vec2 texCoord, float viewZ, mat4 projInv) {

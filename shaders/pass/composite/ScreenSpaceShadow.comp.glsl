@@ -51,7 +51,7 @@ float sss() {
     vec3 rayDir = sampleInCone(uval_shadowLightDirView, SUN_ANGULAR_RADIUS, rand_stbnVec2(texelPos, frameCounter));
     SSTResult result = sst_trace(viewPos, rayDir, 128u);
 
-    return float(!result.hit);
+    return float(!result.hit || result.hitScreenPos.z < 1e-6);
 }
 
 void main() {

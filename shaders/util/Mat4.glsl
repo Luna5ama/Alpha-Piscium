@@ -1,11 +1,11 @@
 #ifndef INCLUDE_util_Mat4_glsl
 #define INCLUDE_util_Mat4_glsl a
 
-mat4 mat4_createOrthographicMatrix(float left, float right, float bottom, float top, float near, float far) {
+mat4 mat4_createOrthographicMatrix(float left, float right, float bottom, float top, float nearZ, float farZ) {
     // Calculate matrix components
     float width = right - left;
     float height = top - bottom;
-    float depth = far - near;
+    float depth = farZ - nearZ;
 
     // Avoid division by zero
     width = width != 0.0 ? width : 1.0;
@@ -17,7 +17,7 @@ mat4 mat4_createOrthographicMatrix(float left, float right, float bottom, float 
         2.0 / width, 0.0, 0.0, 0.0,
         0.0, 2.0 / height, 0.0, 0.0,
         0.0, 0.0, -2.0 / depth, 0.0,
-        -(right + left) / width, -(top + bottom) / height, -(far + near) / depth, 1.0
+        -(right + left) / width, -(top + bottom) / height, -(farZ + nearZ) / depth, 1.0
     );
 }
 
