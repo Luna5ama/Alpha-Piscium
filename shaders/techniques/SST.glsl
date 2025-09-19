@@ -109,6 +109,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
     float deltaZ = maxZ - minZ;
     const float MAX_THICKNESS = 0.01;
     const float MAX_THICKNESS_FACTOR = 1.0101010101; // 1.0 / (1.0 - MAX_THICKNESS)
+    const float NEAR_Z_THICKNESS_CLAMP = 0.05;
     int maxLevels = findMSB(min(global_mainImageSizeI.x, global_mainImageSizeI.y));
 
     #define START_LEVEL 1
@@ -165,7 +166,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
             // float thickness = level > STOP_LEVEL ? 1145141919810.0 : MAX_THICKNESS * abs(linearCurr);
             // diff >= thickness ...
             // simplyfied to:
-            float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : currScreenPos.z * MAX_THICKNESS_FACTOR;
+            float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * MAX_THICKNESS_FACTOR;
             if (any(lessThanEqual(vec2(cellMinZ, thicknessFactor), vec2(currScreenPos.z, cellMinZ)))) {
                 newT = intersectCellBoundary(pRayStart, pRayVector, invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
                 newT = max(newT, currT);
@@ -182,7 +183,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
                 level = min(maxLevels, level + 2);
 //                v = 1.0;
             } else {
-                float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : currScreenPos.z * MAX_THICKNESS_FACTOR;
+                float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * MAX_THICKNESS_FACTOR;
                 if (thicknessFactor >= cellMinZ) {
                     newT = depthT;
                     newT = max(newT, currT);
