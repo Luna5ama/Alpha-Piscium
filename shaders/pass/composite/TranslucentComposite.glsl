@@ -1,4 +1,6 @@
+#include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/textile/CSRGBA16F.glsl"
+#include "/techniques/Lighting.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
@@ -62,6 +64,50 @@ void main() {
             vec3 translucentColor = vec3(0.0);
             translucentColor += fresnelTransmittance * gData.albedo * refractColor;
             translucentColor += reflectance * gData.albedo * reflectColor;
+
+            // TODO: Cleanup
+            {
+                lighting_init(startViewPos, texelPos);
+                AtmosphereParameters atmosphere = getAtmosphereParameters();
+                material.albedo = max(material.albedo, 0.0001);
+                vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(lighting_viewCoord, 1.0)).xyz;
+                vec3 worldPos = feetPlayerPos + cameraPosition;
+                vec3 atmPos = atmosphere_viewToAtm(atmosphere, lighting_viewCoord);
+                atmPos.y = max(atmPos.y, atmosphere.bottom + 0.1);
+                float viewAltitude = length(atmPos);
+                vec3 upVector = atmPos / viewAltitude;
+                const vec3 earthCenter = vec3(0.0, 0.0, 0.0);
+
+                vec4 shadowPos = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * vec4(feetPlayerPos, 1.0);
+
+                vec3 sampleTexCoord = shadowPos.xyz / shadowPos.w;
+                sampleTexCoord = sampleTexCoord * 0.5 + 0.5;
+                sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
+                float shadowV = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
+
+
+                vec3 shadow = vec3(shadowV);
+                float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
+
+                float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
+                vec3 tSun = atmospherics_air_lut_sampleTransmittance(atmosphere, cosSunZenith, viewAltitude);
+                tSun *= float(raySphereIntersectNearest(atmPos, uval_sunDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
+                vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
+                vec4 sunIrradiance = vec4(SUN_ILLUMINANCE * tSun * sunShadow, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, sunShadow));
+                LightingResult sunLighting = directLighting2(material, sunIrradiance, uval_sunDirView, gData.normal, material.hardCodedIOR);
+
+                float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
+                vec3 tMoon = atmospherics_air_lut_sampleTransmittance(atmosphere, cosMoonZenith, viewAltitude);
+                tMoon *= float(raySphereIntersectNearest(atmPos, uval_moonDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
+                vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
+                vec4 moonIrradiance = vec4(MOON_ILLUMINANCE * tMoon * moonShadow, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, moonShadow));
+                LightingResult moonLighting = directLighting2(material, moonIrradiance, uval_moonDirView, gData.normal, material.hardCodedIOR);
+
+                LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
+
+                translucentColor += combinedLighting.specular;
+            }
+
             outputColor.rgb = translucentColor;
         }
 

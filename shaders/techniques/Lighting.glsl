@@ -83,3 +83,36 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N
 
     return result;
 }
+
+// TODO: Cleanup
+LightingResult directLighting2(Material material, vec4 irradiance, vec3 L, vec3 N, float ior) {
+    vec3 V = lighting_viewDir;
+    vec3 H = normalize(L + V);
+    float LDotV = dot(L, V);
+    float LDotH = dot(L, H);
+    float NDotL = dot(N, L);
+    float NDotV = dot(N, V);
+    float NDotH = dot(N, H);
+
+    float fresnel = fresnel_dielectricDielectric_reflection(saturate(LDotH), AIR_IOR, ior);
+
+    LightingResult result;
+
+    float diffuseBaseF = 1.0 - material.metallic;
+    vec3 diffuseBaseVec3 = diffuseBaseF * (irradiance.rgb * (vec3(1.0) - fresnel) * material.albedo);
+
+    result.diffuse = diffuseBaseVec3 * bsdf_diffuseHammon(material, NDotL, NDotV, LDotH, LDotV);
+    result.diffuseLambertian = diffuseBaseVec3 * (RCP_PI * saturate(NDotL));
+
+    float shadowPow = saturate(1.0 - irradiance.a);
+    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * SETTING_SSS_SCTR_FACTOR;
+
+    float phase = phasefunc_BiLambertianPlate(-LDotV, 0.3);
+    float sssV = material.sss * phase * SETTING_SSS_STRENGTH;
+    result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb;
+
+    result.specular = irradiance.rgb * fresnel * bsdf_ggx(material, NDotL, NDotV, NDotH);
+    result.specular = min(result.specular, SETTING_MAXIMUM_SPECULAR_LUMINANCE);
+
+    return result;
+}
