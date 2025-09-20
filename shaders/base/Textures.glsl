@@ -134,6 +134,7 @@ uniform sampler2D shadowcolor2;
 // --------------------------------------------------- Custom Images ---------------------------------------------------
 uniform usampler2D usam_csrgba32ui;
 uniform sampler2D usam_csrgba16f;
+uniform sampler2D usam_cfrgba16f;
 uniform sampler2D usam_translucentDepthLayers;
 
 uniform sampler2D usam_rtwsm_imap;

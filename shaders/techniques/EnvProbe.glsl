@@ -22,7 +22,7 @@ void envProbe_initData(out EnvProbeData envProbeData) {
 bool envProbe_isSky(EnvProbeData envProbeData) {
     float distSq = dot(envProbeData.scenePos, envProbeData.scenePos);
     uint flag = uint(distSq == 0.0);
-    flag |= uint(distSq > 268386304.0);
+    flag |= uint(distSq > 4194304.0);
     return bool(flag);
 }
 
@@ -35,6 +35,14 @@ EnvProbeData envProbe_add(EnvProbeData a, EnvProbeData b) {
     result.radiance = a.radiance + b.radiance;
     result.normal = a.normal + b.normal;
     result.scenePos = a.scenePos + b.scenePos;
+    return result;
+}
+
+EnvProbeData envProbe_addWeighted(EnvProbeData a, EnvProbeData b, float weight) {
+    EnvProbeData result;
+    result.radiance = a.radiance + b.radiance * weight;
+    result.normal = a.normal + b.normal * weight;
+    result.scenePos = a.scenePos + b.scenePos * weight;
     return result;
 }
 
@@ -65,7 +73,7 @@ bool envProbe_reproject(ivec2 prevEnvProbeTexelPos, inout EnvProbeData envProbeD
 
     vec3 prevEnvProbeScenePos = envProbeData.scenePos;
     vec3 cameraDelta = cameraPosition - previousCameraPosition;
-    vec3 currEnvProbeScenePos = prevEnvProbeScenePos - cameraDelta * 2.0;
+    vec3 currEnvProbeScenePos = prevEnvProbeScenePos - cameraDelta;
     vec3 currEnvProbeWorldDir = normalize(currEnvProbeScenePos);
     vec2 currEnvProbeScreenPos = coords_mercatorForward(currEnvProbeWorldDir);
 
@@ -78,7 +86,7 @@ bool envProbe_reproject(ivec2 prevEnvProbeTexelPos, inout EnvProbeData envProbeD
     envProbeData.scenePos = currEnvProbeScenePos;
 
     if (envProbe_isSky(envProbeData)) {
-        envProbeData.scenePos = normalize(envProbeData.scenePos) * 65536.0;
+        envProbeData.scenePos = normalize(envProbeData.scenePos) * 4096.0;
     }
 
     return true;
@@ -124,7 +132,7 @@ bool envProbe_update(ivec2 envProbeTexelPos, out EnvProbeData outputData) {
 
     outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : radiance.rgb;
     outputData.normal = mat3(gbufferModelViewInverse) * gData.normal;
-    outputData.scenePos = realScenePos.xyz;
+    outputData.scenePos = normalize(realScenePos.xyz) * min(length(realScenePos.xyz), 8192.0);
 
     return true;
 }

@@ -1,5 +1,3 @@
-#version 460 compatibility
-
 #include "/techniques/EnvProbe.glsl"
 #include "/util/Morton.glsl"
 
@@ -10,13 +8,17 @@ layout(rgba32ui) uniform restrict uimage2D uimg_envProbe;
 
 void main() {
     ivec2 texelPos = ivec2(morton_32bDecode(gl_GlobalInvocationID.x));
-    ivec2 inputPos = texelPos;
-    uvec4 prevData = imageLoad(uimg_envProbe, inputPos);
-
     ivec2 outputPos = texelPos;
-    EnvProbeData outputData = envProbe_decode(prevData);
-    if (envProbe_reproject(texelPos, outputData, outputPos)) {
-        outputPos.x += 512;
+
+    EnvProbeData outputData;
+    envProbe_initData(outputData);
+    envProbe_update(texelPos, outputData);
+    if (envProbe_update(texelPos, outputData)) {
         imageStore(uimg_envProbe, outputPos, envProbe_encode(outputData));
+    } else {
+        ivec2 prevTexelPos = texelPos;
+        prevTexelPos.x += ENV_PROBE_SIZEI.x;
+        uvec4 prevData = imageLoad(uimg_envProbe, prevTexelPos);
+        imageStore(uimg_envProbe, texelPos, prevData);
     }
 }
