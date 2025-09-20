@@ -105,9 +105,9 @@ void main() {
 
     #ifdef SETTING_SCREENSHOT_MODE
     float mixDecrease = 1.0;
-    mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 114.0));
-    mixDecrease *= (1.0 - saturate(cameraSpeed * 69.0));
-    mixDecrease *= (1.0 - saturate(pixelSpeed * 69.0));
+    mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 114514.0));
+    mixDecrease *= (1.0 - saturate(cameraSpeed * 114514.0));
+    mixDecrease *= (1.0 - saturate(pixelSpeed * 114.0));
     #else
     float mixDecrease = 1.0;
     mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 4.0));
@@ -128,7 +128,11 @@ void main() {
     finalMixWeight = clamp(finalMixWeight, 0.5, 0.99);
     #endif
 
+    #ifdef SETTING_SCREENSHOT_MODE
+    mixWeight = mix(lastMixWeight + 0.005, mixWeight, 0.05);
+    #else
     mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);
+    #endif
 
     #ifndef SETTING_SCREENSHOT_MODE
     mixWeight = saturate(mixWeight - float(gData.isHand) * 0.2);
