@@ -52,9 +52,13 @@ void processAlbedo() {
     albedo = frag_colorMul;
 
     #ifdef GBUFFER_PASS_TEXTURED
+    #ifdef SETTING_SCREENSHOT_MODE
+    albedo *= textureLod(gtexture, frag_texCoord, 0.0);
+    #else
     vec4 sample1 = textureGrad(gtexture, frag_texCoord, dUVdx * 0.5, dUVdy * 0.5);
     vec4 sample2 = textureGrad(gtexture, frag_texCoord, dUVdx * 0.25, dUVdy * 0.25);
     albedo *= vec4(sample2.rgb, sample1.a);
+    #endif
     #endif
 
     #ifdef GBUFFER_PASS_ENTITY_COLOR
@@ -96,8 +100,13 @@ void processData1() {
     vec3 geomViewBitangent = normalize(cross(geomViewNormal, geomViewTangent) * bitangentSignF);
 
     #if defined(GBUFFER_PASS_TEXTURED)
+    #ifdef SETTING_SCREENSHOT_MODE
+    vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
+    vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);
+    #else
     vec4 normalSample = textureGrad(normals, frag_texCoord, dUVdx, dUVdy);
     vec4 specularSample = textureGrad(specular, frag_texCoord, dUVdx, dUVdy);
+    #endif
 
     gData.pbrSpecular = specularSample;
     gData.lmCoord = frag_lmCoord;

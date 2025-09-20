@@ -31,7 +31,11 @@ layout(location = 2) out vec4 rt_translucentColor;
 
 vec4 processAlbedo() {
     vec4 albedo = vec4(1.0);
+    #ifdef SETTING_SCREENSHOT_MODE
+    albedo *= textureLod(gtexture, frag_texCoord, 0.0);
+    #else
     albedo *= texture(gtexture, frag_texCoord);
+    #endif
     #ifdef SETTING_DEBUG_WHITE_WORLD
     return vec4(1.0);
     #else
