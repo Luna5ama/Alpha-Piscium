@@ -467,8 +467,10 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
             vec3 sampleDirView = normalize((viewNormal * cosC + realTangent * sinC));
             vec3 sampleDirWorld = viewToScene * sampleDirView;
 
-            vec2 envUV = coords_mercatorForward(sampleDirWorld);
-            ivec2 envTexel = ivec2(envUV * (ENV_PROBE_SIZE - 1));
+            vec2 envSliceUV = vec2(-1.0);
+            vec2 envSliceID = vec2(-1.0);
+            coords_cubeMapForward(sampleDirWorld, envSliceUV, envSliceID);
+            ivec2 envTexel = ivec2((envSliceUV + envSliceID) * ENV_PROBE_SIZE);
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
 
             bool probeIsSky = envProbe_isSky(envData);

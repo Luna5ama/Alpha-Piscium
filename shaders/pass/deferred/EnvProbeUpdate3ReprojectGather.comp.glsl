@@ -2,43 +2,46 @@
 #include "/util/Morton.glsl"
 
 layout(local_size_x = 128) in;
-const ivec3 workGroups = ivec3(2048, 1, 1);
+const ivec3 workGroups = ivec3(512, 2, 3);
 
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_envProbe;
 
 void main() {
-    ivec2 texelPos = ivec2(morton_32bDecode(gl_GlobalInvocationID.x));
-    ivec2 centerCurrTexelPos = texelPos;
+    ivec2 sliceTexelPos = ivec2(morton_32bDecode(gl_GlobalInvocationID.x));
+    ivec2 sliceID = ivec2(gl_GlobalInvocationID.yz);
+    ivec2 inputPos = sliceTexelPos + sliceID * ENV_PROBE_SIZEI;
 
-    vec4 currData = texelFetch(usam_cfrgba16f, centerCurrTexelPos, 0);
-    float leng = currData.w == 0.0 ? 65536.0 : length(currData.xyz);
+    vec4 currData = texelFetch(usam_cfrgba16f, inputPos, 0);
+    float worldDistance = currData.w == 0.0 ? 65536.0 : length(currData.xyz);
 
-    vec2 centerCurrTexelPosF = vec2(texelPos) + 0.5;
-    vec2 centerCurrScreenPos = centerCurrTexelPosF * ENV_PROBE_RCP;
-    vec3 centerCurrWorldDir = coords_mercatorBackward(centerCurrScreenPos);
+    vec2 centerCurrSliceUV = coords_texelToUV(sliceTexelPos, ENV_PROBE_RCP);
+    vec2 centerCurrSliceID = vec2(sliceID);
+    vec3 centerCurrWorldDir = vec3(-1.0);
+    coords_cubeMapBackward(centerCurrWorldDir, centerCurrSliceUV, centerCurrSliceID);
 
-    vec3 currScenePos = leng * centerCurrWorldDir;
+    vec3 currScenePos = worldDistance * centerCurrWorldDir;
     vec3 cameraDelta = cameraPosition - previousCameraPosition;
     vec3 currToPrevScenePos = currScenePos + cameraDelta;
     vec3 currToPrevWorldDir = normalize(currToPrevScenePos);
-    vec2 currToPrevScreenPos = coords_mercatorForward(currToPrevWorldDir);
+    vec2 currToPrevSliceUV = vec2(-1.0);
+    vec2 currToPrevSliceID = vec2(-1.0);
+    coords_cubeMapForward(currToPrevWorldDir, currToPrevSliceUV, currToPrevSliceID);
 
-    if (any(notEqual(currToPrevScreenPos, saturate(currToPrevScreenPos)))) {
+    if (any(notEqual(currToPrevSliceUV, saturate(currToPrevSliceUV)))) {
         return;
     }
 
-    vec2 centerToPrevTexelPosF = currToPrevScreenPos * ENV_PROBE_SIZE;
+    vec2 centerToPrevTexelPosF = (currToPrevSliceUV + currToPrevSliceID) * ENV_PROBE_SIZE;
     ivec2 centerTexelPos = ivec2(centerToPrevTexelPosF);
     EnvProbeData dataSum;
     envProbe_initData(dataSum);
     {
-        vec2 centerPosF = vec2(centerTexelPos) + 0.5;
-        float maxDot = 0.99;
+        float maxDot = 0.999;
 
         for (int yo = -1; yo <= 1; ++yo) {
             for (int xo = -1; xo <= 1; ++xo) {
                 ivec2 offset = ivec2(xo, yo);
-                ivec2 samplePos = (centerTexelPos + offset) % ENV_PROBE_SIZEI;
+                ivec2 samplePos = (centerTexelPos + offset);
                 EnvProbeData sampleData = envProbe_decode(texelFetch(usam_envProbe, samplePos, 0));
 
                 vec3 samplePrevPos = sampleData.scenePos;
@@ -59,7 +62,7 @@ void main() {
         }
     }
 
-    ivec2 outputPos = texelPos;
-    outputPos.x += ENV_PROBE_SIZEI.x;
+    ivec2 outputPos = sliceTexelPos + sliceID * ENV_PROBE_SIZEI;
+    outputPos.x += ENV_PROBE_SIZEI.x * 2;
     imageStore(uimg_envProbe, outputPos, envProbe_encode(dataSum));
 }

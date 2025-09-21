@@ -3,9 +3,9 @@
 #include "/util/Colors.glsl"
 #include "/util/Material.glsl"
 
-const ivec2 ENV_PROBE_SIZEI = ivec2(512, 512);
-const vec2 ENV_PROBE_SIZE = vec2(512.0, 512.0);
-const vec2 ENV_PROBE_RCP = vec2(1.0 / 512.0, 1.0 / 512.0);
+const ivec2 ENV_PROBE_SIZEI = ivec2(256, 256);
+const vec2 ENV_PROBE_SIZE = vec2(256.0, 256.0);
+const vec2 ENV_PROBE_RCP = vec2(1.0 / 256.0, 1.0 / 256.0);
 
 struct EnvProbeData {
     vec3 radiance;
@@ -64,75 +64,4 @@ uvec4 envProbe_encode(EnvProbeData unpackedData) {
     packedData.z = packHalf2x16(unpackedData.scenePos.yz);
     packedData.w = nzpacking_packNormalOct32(unpackedData.normal);
     return packedData;
-}
-
-bool envProbe_reproject(ivec2 prevEnvProbeTexelPos, inout EnvProbeData envProbeData, out ivec2 outputTexelPos) {
-    if (all(equal(envProbeData.scenePos, vec3(0.0)))) {
-        return false;
-    }
-
-    vec3 prevEnvProbeScenePos = envProbeData.scenePos;
-    vec3 cameraDelta = cameraPosition - previousCameraPosition;
-    vec3 currEnvProbeScenePos = prevEnvProbeScenePos - cameraDelta;
-    vec3 currEnvProbeWorldDir = normalize(currEnvProbeScenePos);
-    vec2 currEnvProbeScreenPos = coords_mercatorForward(currEnvProbeWorldDir);
-
-    if (any(notEqual(currEnvProbeScreenPos, saturate(currEnvProbeScreenPos)))) {
-        return false;
-    }
-
-    outputTexelPos = ivec2(currEnvProbeScreenPos * ENV_PROBE_SIZE);
-
-    envProbeData.scenePos = currEnvProbeScenePos;
-
-    if (envProbe_isSky(envProbeData)) {
-        envProbeData.scenePos = normalize(envProbeData.scenePos) * 4096.0;
-    }
-
-    return true;
-}
-
-bool envProbe_update(ivec2 envProbeTexelPos, out EnvProbeData outputData) {
-    vec2 envProbeScreenPos = (vec2(envProbeTexelPos) + 0.5) * ENV_PROBE_RCP;
-    vec3 envProbePixelWorldDir = coords_mercatorBackward(envProbeScreenPos);
-    vec4 viewPos = gbufferModelView * vec4(envProbePixelWorldDir, 1.0);
-    viewPos.xyz -= gbufferModelView[3].xyz;
-    vec4 clipPos = global_camProj * viewPos;
-
-    envProbe_initData(outputData);
-
-    if (!all(lessThan(abs(clipPos.xyz), clipPos.www))) {
-        return false;
-    }
-
-    vec2 ndcPos = clipPos.xy / clipPos.w;
-    vec2 screenPos = ndcPos * 0.5 + 0.5;
-    ivec2 texelPos2x2 = ivec2(screenPos * global_mipmapSizes[1]);
-    uint edgeFlag = uint(any(lessThanEqual(texelPos2x2, ivec2(1))));
-    edgeFlag |= uint(any(greaterThanEqual(texelPos2x2, global_mipmapSizesI[1] - 2)));
-    if (bool(edgeFlag)) {
-        return false;
-    }
-
-    ivec2 texelPos1x1 = texelPos2x2 << 1;
-
-    GBufferData gData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos1x1, 0), gData);
-    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos1x1, 0), gData);
-    if (gData.isHand) {
-        return false;
-    }
-
-    float viewZ = texelFetch(usam_gbufferViewZ, texelPos1x1, 0).r;
-    vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-    vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
-
-    uvec2 radianceData = texelFetch(usam_packedZN, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).xy;
-    vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
-
-    outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : radiance.rgb;
-    outputData.normal = mat3(gbufferModelViewInverse) * gData.normal;
-    outputData.scenePos = normalize(realScenePos.xyz) * min(length(realScenePos.xyz), 8192.0);
-
-    return true;
 }

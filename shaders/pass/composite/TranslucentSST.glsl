@@ -67,8 +67,10 @@ void main() {
 
             SSTResult reflectResult = sst_trace(startViewPos, reflectDir);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
-            vec2 envUV = coords_mercatorForward(reflectDirWorld);
-            ivec2 envTexel = ivec2(envUV * (ENV_PROBE_SIZE - 1));
+            vec2 envSliceUV = vec2(-1.0);
+            vec2 envSliceID = vec2(-1.0);
+            coords_cubeMapForward(reflectDirWorld, envSliceUV, envSliceID);
+            ivec2 envTexel = ivec2((envSliceUV + envSliceID) * ENV_PROBE_SIZE);
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
             vec3 reflectColor = envData.radiance.rgb;
             if (envProbe_isSky(envData)) {

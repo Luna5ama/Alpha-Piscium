@@ -3,18 +3,20 @@
 
 #if PASS == 1
 #define READ_OFFSET 0
-#define WRITE_OFFSET ENV_PROBE_SIZEI.x
+#define WRITE_OFFSET (ENV_PROBE_SIZEI.x * 2)
 #else
-#define READ_OFFSET ENV_PROBE_SIZEI.x
+#define READ_OFFSET (ENV_PROBE_SIZEI.x * 2)
 #define WRITE_OFFSET 0
 #endif
 
 layout(local_size_x = 16, local_size_y = 16) in;
-const ivec3 workGroups = ivec3(32, 32, 1);
+const ivec3 workGroups = ivec3(16, 16, 6);
 
 layout(rgba16f) uniform image2D uimg_cfrgba16f;
 
 shared vec4 shared_scenePos[20][20];
+
+ivec2 sliceID = ivec2(0);
 
 void loadSharedData(uint index) {
     if (index < 400) {
@@ -23,12 +25,14 @@ void loadSharedData(uint index) {
         globalPos += ivec2(localPos);
         globalPos -= 2;
         globalPos = clamp(globalPos, ivec2(0), ENV_PROBE_SIZEI - 1);
+        globalPos += sliceID * ENV_PROBE_SIZEI;
         globalPos.x += READ_OFFSET;
         shared_scenePos[localPos.y][localPos.x] = imageLoad(uimg_cfrgba16f, globalPos);
     }
 }
 
 void main() {
+    sliceID = ivec2(gl_WorkGroupID.z % 2, gl_WorkGroupID.z / 2);
     loadSharedData(gl_LocalInvocationIndex);
     loadSharedData(gl_LocalInvocationIndex + 256u);
     barrier();
@@ -54,6 +58,7 @@ void main() {
     sum = sum.w < 0.001 || centerData.a > 0.1 ? centerData : sum / sum.w;
 
     ivec2 centerGlobalPos = ivec2(gl_GlobalInvocationID.xy);
+    centerGlobalPos += sliceID * ENV_PROBE_SIZEI;
     centerGlobalPos.x += WRITE_OFFSET;
     imageStore(uimg_cfrgba16f, centerGlobalPos, sum);
 }

@@ -152,6 +152,27 @@ vec3 coords_mercatorBackward(vec2 uv) {
     return normalize(direction);
 }
 
+// xy: uv
+// z: sign of the major axis (0=-, 1=+)
+// w: index of the major axis (0=X, 1=Y, 2=Z)
+void coords_cubeMapForward(vec3 direction, out vec2 sliceUV, out vec2 sliceID) {
+    vec4 axisDataX = vec4(direction.yz, direction.x, 0.0);
+    vec4 axisDataY = vec4(direction.xz, direction.y, 1.0);
+    vec4 axisDataZ = vec4(direction.xy, direction.z, 2.0);
+    vec4 maxAxisData = axisDataX;
+    maxAxisData = abs(direction.y) > abs(maxAxisData.z) ? axisDataY : maxAxisData;
+    maxAxisData = abs(direction.z) > abs(maxAxisData.z) ? axisDataZ : maxAxisData;
+    sliceUV = (maxAxisData.xy / abs(maxAxisData.z)) * 0.5 + 0.5;
+    sliceID = vec2(float(maxAxisData.z > 0.0), float(maxAxisData.w));
+}
+
+void coords_cubeMapBackward(out vec3 direction, vec2 sliceUV, vec2 sliceID) {
+    vec3 directionTemp = vec3(sliceID.x, sliceUV) * 2.0 - 1.0;
+    directionTemp = sliceID.y == 1.0 ? directionTemp.yxz : directionTemp;
+    directionTemp = sliceID.y == 2.0 ? directionTemp.yzx : directionTemp;
+    direction = normalize(directionTemp);
+}
+
 vec2 coords_texelToUV(ivec2 texelPos, vec2 rcpTextureSize) {
     return saturate((vec2(texelPos) + 0.5) * rcpTextureSize);
 }
