@@ -1,3 +1,5 @@
+#define MATERIAL_TRANSLUCENT a
+
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/textile/CSRGBA16F.glsl"
 #include "/techniques/Lighting.glsl"
@@ -36,7 +38,6 @@ void main() {
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
 
             Material material = material_decode(gData);
-            material.roughness *= 0.5;
 
             vec3 viewDir = normalize(-startViewPos);
             vec3 localViewDir = normalize(material.tbnInv * viewDir);
@@ -83,8 +84,7 @@ void main() {
                 vec3 sampleTexCoord = shadowPos.xyz / shadowPos.w;
                 sampleTexCoord = sampleTexCoord * 0.5 + 0.5;
                 sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
-                float shadowV = rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
-
+                float shadowV = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
 
                 vec3 shadow = vec3(shadowV);
                 float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));

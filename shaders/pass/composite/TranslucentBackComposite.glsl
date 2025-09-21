@@ -1,3 +1,5 @@
+#define MATERIAL_TRANSLUCENT a
+
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"

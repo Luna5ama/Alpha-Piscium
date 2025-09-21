@@ -592,22 +592,39 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_SPECULAR_MAPPING_MINIMUM_F0_FACTOR", 12, 4..32) {
+                slider("SETTING_MINIMUM_F0", 12, 4..32) {
                     lang {
-                        name = "Specular Mapping Minimum F0 Factor"
-                        comment = "The actual value is calculated as 2^-x, where x is this setting value."
+                        name = "Minimum F0 Factor"
                     }
                 }
-                slider("SETTING_SPECULAR_MAPPING_MINIMUM_ROUGHNESS_FACTOR", 6, 4..16) {
+                slider("SETTING_MINIMUM_ROUGHNESS", 6, 4..16) {
                     lang {
-                        name = "Specular Mapping Minimum Roughness Factor"
-                        comment = "The actual value is calculated as 2^-x, where x is this setting value."
+                        name = "Minimum Roughness"
+                        prefix = "2^"
                     }
                 }
-                slider("SETTING_SPECULAR_MAPPING_MAXIMUM_ROUGHNESS_FACTOR", 5, 2..16) {
+                slider("SETTING_MAXIMUM_ROUGHNESS", 5, 2..16) {
                     lang {
-                        name = "Specular Mapping Maximum Roughness Factor"
-                        comment = "The actual value is calculated as 1 - 2^-x, where x is this setting value."
+                        name = "Maximum Roughness"
+                        prefix = "2^"
+                    }
+                }
+                slider("SETTING_TRANSLUCENT_ROUGHNESS_REDUCTION", 1.0, 0.0..8.0 step 0.5) {
+                    lang {
+                        name = "Translucent Roughness Reduction"
+                        prefix = "2^-"
+                    }
+                }
+                slider("SETTING_TRANSLUCENT_MINIMUM_ROUGHNESS", 7.0, 4.0..10.0 step 0.5) {
+                    lang {
+                        name = "Translucent Minimum Roughness"
+                        prefix = "2^-"
+                    }
+                }
+                slider("SETTING_TRANSLUCENT_MAXIMUM_ROUGHNESS", 4.0, 1.0..10.0 step 0.5) {
+                    lang {
+                        name = "Translucent Maximum Roughness"
+                        prefix = "2^-"
                     }
                 }
                 slider("SETTING_MAXIMUM_SPECULAR_LUMINANCE", 65536, powerOfTwoRange(8..24)) {

@@ -1,3 +1,5 @@
+#define MATERIAL_TRANSLUCENT a
+
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/EnvProbe.glsl"
 #include "/techniques/SST.glsl"
@@ -40,7 +42,6 @@ void main() {
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
 
             Material material = material_decode(gData);
-            material.roughness *= 0.5;
 
             vec3 viewDir = normalize(-startViewPos);
 
