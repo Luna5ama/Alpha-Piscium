@@ -4,6 +4,7 @@
 #extension GL_KHR_shader_subgroup_clustered : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
 #define HIZ_SUBGROUP_CHECK a
+#define GLOBAL_DATA_MODIFIER \
 
 #include "/util/Celestial.glsl"
 #include "/util/Material.glsl"
