@@ -111,6 +111,11 @@ void main() {
 
     gl_FragDepth = 0.0;
     vec4 inputAlbedo = processAlbedo();
+
+    if (inputAlbedo.a < alphaTestRef) {
+        discard;
+    }
+
     lighting_gData = processOutput();
 
     bool isWater = frag_materialID == 3u;
