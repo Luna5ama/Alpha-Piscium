@@ -11,7 +11,7 @@ in vec4 at_tangent;
 #define vertOut_texCoord frag_texCoord
 #define vertOut_lmCoord frag_lmCoord
 #define vertOut_materialID frag_materialID
-#define vertOut_viewCoord frag_viewCoord
+#define vertOut_viewZ frag_viewZ
 #else
 #define vertOut_viewTangent vert_viewTangent
 #define vertOut_colorMul vert_colorMul
@@ -19,7 +19,7 @@ in vec4 at_tangent;
 #define vertOut_texCoord vert_texCoord
 #define vertOut_lmCoord vert_lmCoord
 #define vertOut_materialID vert_materialID
-#define vertOut_viewCoord vert_viewCoord
+#define vertOut_viewZ vert_viewZ
 #endif
 
 out vec4 vertOut_viewTangent;
@@ -28,12 +28,14 @@ out vec3 vertOut_viewNormal;
 out vec2 vertOut_texCoord;
 out vec2 vertOut_lmCoord;
 out uint vertOut_materialID;
-out vec3 vertOut_viewCoord;
+out float vertOut_viewZ;
 
 void main() {
-    gl_Position = global_taaJitterMat * ftransform();
-    vec4 temp = gbufferProjectionInverse * gl_Position;
-    vertOut_viewCoord = temp.xyz / temp.w;
+    vec4 clipPos = ftransform();
+    vec4 viewPos = gbufferProjectionInverse * clipPos;
+    viewPos /= viewPos.w;
+    vertOut_viewZ = viewPos.z;
+    gl_Position = global_taaJitterMat * clipPos;
 
     vertOut_viewNormal = gl_NormalMatrix * normalize(gl_Normal.xyz);
     vertOut_viewTangent.xyz = gl_NormalMatrix * normalize(at_tangent.xyz);

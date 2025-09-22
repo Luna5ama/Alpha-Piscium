@@ -41,7 +41,11 @@ Material material_decode(GBufferData gData) {
     material.roughness *= material.roughness;
     material.roughness *= _MATERIAL_ROUGHNESS_MULTIPLIER;
     material.roughness = clamp(material.roughness, _MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS);
+    #ifdef MATERIAL_TRANSLUCENT
+    material.roughness = gData.materialID == 3u ? 0.01 : material.roughness;
+    #endif
     material.f0 = gData.pbrSpecular.g;
+
     #if SETTING_MINIMUM_F0_FACTOR > 0
     material.f0 = max(material.f0, _MATERIAL_F0_EPSILON);
     #endif
@@ -72,7 +76,11 @@ Material material_decode(GBufferData gData) {
     material.sss *= step64;
     material.sss = sqrt(material.sss);
 
-    material.hardCodedIOR = gData.materialID == 3u ? 1.333 : 1.5;
+    #ifdef MATERIAL_TRANSLUCENT
+    material.hardCodedIOR = gData.materialID == 3u ? 1.3333 : 1.5;
+    #else
+    material.hardCodedIOR = 1.0;
+    #endif
 
     vec3 bitangent = cross(gData.normal, gData.geomTangent) * float(gData.bitangentSign);
     material.tbn = mat3(gData.geomTangent, bitangent, gData.normal);

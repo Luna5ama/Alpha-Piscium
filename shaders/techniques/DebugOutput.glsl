@@ -176,7 +176,9 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #if SETTING_DEBUG_NORMAL_MODE == 0
     outputColor.rgb = mat3(gbufferModelViewInverse) * outputColor.rgb;
     #endif
-    outputColor.rgb = outputColor.rgb * 0.5 + 0.5;
+    outputColor.r = linearStep(-SETTING_DEBUG_NORMAL_X_RANGE, SETTING_DEBUG_NORMAL_X_RANGE, outputColor.r);
+    outputColor.g = linearStep(-SETTING_DEBUG_NORMAL_Y_RANGE, SETTING_DEBUG_NORMAL_Y_RANGE, outputColor.g);
+    outputColor.b = linearStep(-SETTING_DEBUG_NORMAL_Z_RANGE, SETTING_DEBUG_NORMAL_Z_RANGE, outputColor.b);
 
     #elif SETTING_DEBUG_GBUFFER_DATA == 5
     outputColor.rgb = vec3(material.roughness);

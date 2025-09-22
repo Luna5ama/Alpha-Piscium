@@ -2,6 +2,7 @@ ivec2 texelPos;
 #include "/util/Colors2.glsl"
 #include "/util/Dither.glsl"
 #include "/techniques/Lighting.glsl"
+#include "/techniques/WaterWave.glsl"
 
 layout(r32i) uniform iimage2D uimg_translucentDepthLayers;
 
@@ -17,7 +18,10 @@ in vec2 frag_texCoord;
 in vec2 frag_lmCoord;
 flat in uint frag_materialID;
 
-in vec3 frag_viewCoord;
+in float frag_viewZ;
+
+vec3 viewPos = vec3(0.0);
+float fuckO = 0.0;
 
 #ifdef GBUFFER_PASS_DH
 /* RENDERTARGETS:5 */
@@ -30,12 +34,14 @@ layout(location = 2) out vec4 rt_translucentColor;
 #endif
 
 vec4 processAlbedo() {
-    vec4 albedo = vec4(1.0);
-    #ifdef SETTING_SCREENSHOT_MODE
-    albedo *= textureLod(gtexture, frag_texCoord, 0.0);
-    #else
-    albedo *= texture(gtexture, frag_texCoord);
-    #endif
+    vec4 albedo = frag_colorMul;
+    if (frag_materialID != 3u) {
+        #ifdef SETTING_SCREENSHOT_MODE
+        albedo *= textureLod(gtexture, frag_texCoord, 0.0);
+        #else
+        albedo *= texture(gtexture, frag_texCoord);
+        #endif
+    }
     #ifdef SETTING_DEBUG_WHITE_WORLD
     return vec4(1.0);
     #else
@@ -87,10 +93,72 @@ GBufferData processOutput() {
     #else
     mat3 tbn = mat3(geomViewTangent, geomViewBitangent, geomViewNormal);
     vec3 tangentNormal;
-    tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
-    tangentNormal.z = sqrt(saturate(1.0 - dot(tangentNormal.xy, tangentNormal.xy)));
-    tangentNormal.xy *= exp2(SETTING_NORMAL_MAPPING_STRENGTH);
+
+    if (frag_materialID == 3u) {
+        vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+
+        vec3 cameraPosWaveSpace = vec3(cameraPositionInt >> 5) + ldexp(vec3(cameraPositionInt & ivec3(31)), ivec3(-5));
+        cameraPosWaveSpace = cameraPositionFract * WAVE_POS_BASE + cameraPosWaveSpace * 0.736;
+
+        vec3 waveWorldPos = scenePos * WAVE_POS_BASE + cameraPosWaveSpace;
+
+        vec3 viewDir = normalize(-viewPos);
+
+        #ifdef SETTING_WATER_PARALLEX
+        const uint MAX_STEPS = uint(SETTING_WATER_PARALLEX_STEPS);
+        const float PARALLEX_STRENGTH = float(SETTING_WATER_PARALLEX_STRENGTH);
+
+        vec3 rayDir = scenePos / abs(scenePos.y);
+        rayDir.xz *= WAVE_POS_BASE * PARALLEX_STRENGTH;
+        const float MAX_WAVE_HEIGHT = 1.7;
+        float rayStepLength = MAX_WAVE_HEIGHT / float(MAX_STEPS);
+
+        for (uint i = 0u; i < MAX_STEPS; i++) {
+            float fi = float(i) + 0.5;
+            vec3 sampleDelta = rayDir * fi * rayStepLength;
+
+            vec3 samplePos = waveWorldPos + sampleDelta;
+            samplePos.y = waveWorldPos.y;
+            float sampleHeight = waveHeight(samplePos, false);
+
+            float currHeight = MAX_WAVE_HEIGHT + sampleDelta.y;
+            if (currHeight < sampleHeight) {
+                waveWorldPos = samplePos;
+                fuckO = (fi * rayStepLength + -0.5 * MAX_WAVE_HEIGHT) * PARALLEX_STRENGTH;
+                break;
+            }
+        }
+        #endif
+
+        float NDotV = dot(geomViewNormal, viewDir);
+        float weightHeightMul = 1.0;
+        vec3 dVCdx = dFdx(viewPos);
+        vec3 dVCdy = dFdy(viewPos);
+        vec3 maxVec = max(abs(dVCdx), abs(dVCdy));
+        float maxLen = length(maxVec);
+        weightHeightMul *= saturate(rcp(maxLen) * 2.0);
+
+        const float NORMAL_EPS = 0.05;
+        const float NORMAL_WEIGHT = SETTING_WATER_NORMAL_SCALE;
+        float waveHeightC = waveHeight(waveWorldPos, true) * weightHeightMul;
+        float waveHeightX = waveHeight(waveWorldPos + vec3(NORMAL_EPS * WAVE_POS_BASE, 0.0, 0.0), true) * weightHeightMul;
+        float waveHeightZ = waveHeight(waveWorldPos + vec3(0.0, 0.0, NORMAL_EPS * WAVE_POS_BASE), true) * weightHeightMul;
+        vec3 waveNormal = vec3(
+            waveHeightX,
+            waveHeightZ,
+            NORMAL_EPS
+        );
+        waveNormal.xy -= waveHeightC;
+        waveNormal.xy *= NORMAL_WEIGHT;
+        tangentNormal = waveNormal;
+    } else {
+        tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
+        tangentNormal.z = sqrt(saturate(1.0 - dot(tangentNormal.xy, tangentNormal.xy)));
+        tangentNormal.xy *= exp2(SETTING_NORMAL_MAPPING_STRENGTH);
+    }
+
     tangentNormal = normalize(tangentNormal);
+
     gData.normal = normalize(tbn * tangentNormal);
     #endif
 
@@ -104,8 +172,12 @@ GBufferData processOutput() {
 
 void main() {
     texelPos = ivec2(gl_FragCoord.xy);
+
+    vec2 screenPos = gl_FragCoord.xy * global_mainImageSizeRcp;
+    viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
+
     float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-    if (solidViewZ > frag_viewCoord.z) {
+    if (solidViewZ > frag_viewZ) {
         discard;
     }
 
@@ -120,7 +192,7 @@ void main() {
 
     bool isWater = frag_materialID == 3u;
 
-    lighting_init(frag_viewCoord, texelPos);
+    lighting_init(viewPos, texelPos);
 
     float alpha = inputAlbedo.a;
     vec3 materialColor = colors2_material_idt(inputAlbedo.rgb);
@@ -131,11 +203,14 @@ void main() {
 
     t = pow(t, vec3(1.0 / 2.2));
     lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);
-    float sat = isWater ? 0.9 : 1.0;
+    float sat = isWater ? 0.3 : 1.0;
     t = lumaT + sat * (t - lumaT);
     t = pow(t, vec3(2.2));
+    if (isWater) {
+        t.g *= 1.9;
+    }
 
-    float tv = isWater ? 1.0 : 1.0;
+    float tv = isWater ? 0.1 : 1.0;
 
     vec3 tAbsorption = -log(t) * (alpha * sqrt(alpha)) * tv;
     tAbsorption = max(tAbsorption, 0.0);
@@ -153,7 +228,9 @@ void main() {
         nearDepthTexelPos += global_mainImageSizeI;
 //    }
 
-    int cDepth = floatBitsToInt(-frag_viewCoord.z);
+    float offsetViewZ = frag_viewZ;
+    offsetViewZ -= fuckO;
+    int cDepth = floatBitsToInt(-offsetViewZ);
     imageAtomicMax(uimg_translucentDepthLayers, farDepthTexelPos, cDepth);
     imageAtomicMin(uimg_translucentDepthLayers, nearDepthTexelPos, cDepth);
 
