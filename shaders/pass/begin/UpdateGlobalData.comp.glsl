@@ -68,10 +68,21 @@ mat4 taaJitterMat(vec2 baseJitter) {
     );
 }
 
+#define SMOOTH 0
+
+vec3 shadowAABBSmooth(vec3 historyF, ivec3 newI) {
+    vec3 newF = vec3(newI);
+    vec3 dist = sqrt(abs(historyF - newF));
+    return mix(newF, historyF, max(saturate(rcp(1.0 + dist * 0.1)), 0.8));
+}
+
 void main() {
     if (gl_WorkGroupID.x == 0) {
-        global_shadowAABBMin = min(global_shadowAABBMinNew, ivec3(floor(mix(vec3(global_shadowAABBMin), vec3(global_shadowAABBMinNew), 0.1))));
-        global_shadowAABBMax = max(global_shadowAABBMaxNew, ivec3(ceil(mix(vec3(global_shadowAABBMax), vec3(global_shadowAABBMaxNew), 0.1))));
+        global_shadowAABBMinHistory = min(vec3(global_shadowAABBMinNew), shadowAABBSmooth(global_shadowAABBMinHistory, global_shadowAABBMinNew));
+        global_shadowAABBMaxHistory = max(vec3(global_shadowAABBMaxNew), shadowAABBSmooth(global_shadowAABBMaxHistory, global_shadowAABBMaxNew));
+        global_shadowAABBMin = ivec3(floor(global_shadowAABBMinHistory / 16.0)) * 16;
+        global_shadowAABBMax = ivec3(ceil(global_shadowAABBMaxHistory / 16.0)) * 16;
+
         vec4 shadowAABBMin = global_shadowRotationMatrix * shadowModelView * vec4(0.0, 0.0, 0.0, 1.0);
         vec4 shadowAABBMax = global_shadowRotationMatrix * shadowModelView * vec4(0.0, 0.0, 0.0, 1.0);
         global_shadowAABBMinNew = ivec3(floor(shadowAABBMin.xyz));

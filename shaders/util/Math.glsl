@@ -21,6 +21,9 @@
 #define FLT_NEG_INF uintBitsToFloat(0xFF800000)
 #define FP16_MAX 65504.0
 
+#define INT32_MAX 2147483647
+#define INT32_MIN -2147483648
+
 #define rcp(x) (1.0 / (x))
 #define saturate(x) clamp(x, 0.0, 1.0)
 

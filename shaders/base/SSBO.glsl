@@ -50,6 +50,8 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     uvec2 global_frameMortonJitter;
     ivec3 global_shadowAABBMin;
     ivec3 global_shadowAABBMax;
+    vec3 global_shadowAABBMinHistory;
+    vec3 global_shadowAABBMaxHistory;
     ivec3 global_shadowAABBMinNew;
     ivec3 global_shadowAABBMaxNew;
     float global_focusDistance;
