@@ -11,13 +11,9 @@ Experimental Minecraft shaderpack. ~~(aka. graphics tech demo)~~
     - [*Unreal Engine Sky Atmosphere Rendering Technique*](https://sebh.github.io/publications/egsr2020.pdf)
     - [*Epipolar Sampling*](https://gdcvault.com/play/1018227/Practical-Implementation-of-Light-Scattering)
 - High-quality, fast, and adaptive **Shadows**
-    - [*Rectilinear Texture Warping*](https://www.cspaul.com/publications/Rosen.2012.I3D.pydf) (RTWSM)
+    - [*Rectilinear Texture Warping*](https://www.cspaul.com/publications/Rosen.2012.I3D.pdf) (RTWSM)
 - Real-time **Volumetric Clouds**
     - [*Nubis*](https://drive.google.com/file/d/0B-D275g6LH7LOE1RcVFERGpkS28/view?resourcekey=0-P04mYcVQ1lDPdn7FDunEIw)
-
-## Credits
-- Night sky image by [NASA](https://svs.gsfc.nasa.gov/4851/)\
-  NASA/Goddard Space Flight Center Scientific Visualization Studio. Gaia DR2: ESA/Gaia/DPAC. Constellation figures based on those developed for the IAU by Alan MacRobert of Sky and Telescope magazine (Roger Sinnott and Rick Fienberg).
 
 ## License
 Files under `script` directory are licensed under MIT license. All other files are licensed under GNU General Public License v3.0.
