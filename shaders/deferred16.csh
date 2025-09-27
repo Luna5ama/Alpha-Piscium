@@ -32,16 +32,24 @@ void loadSharedData(uint index) {
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(global_mainImageSize - 1));
 
-        vec3 fastColor = colors_LogLuv32ToSRGB(unpackUnorm4x8(texelFetch(usam_csrgba32ui, csrgba32ui_temp3_texelToTexel(srcXY), 0).y));
+
+        uvec4 packedData = texelFetch(usam_csrgba32ui, csrgba32ui_temp3_texelToTexel(texelPos), 0);
+        vec3 prevColor;
+        vec3 prevFastColor;
+        vec2 prevMoments;
+        float prevHLen;
+        svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
+
+
         vec3 directColor = texelFetch(usam_csrgba16f, csrgba16f_temp2_texelToTexel(srcXY), 0).xyz;
-        vec3 inputColor = fastColor + directColor;
+        vec3 inputColor = prevFastColor + directColor;
 
         inputColor = colors_SRGBToYCoCg(inputColor);
         vec3 moment1 = inputColor;
         vec3 moment2 = inputColor * inputColor;
 
         shared_moments[0][sharedXY.y][sharedXY.x] = vec4(moment1, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, directColor));
-        shared_moments[1][sharedXY.y][sharedXY.x] = vec4(moment2, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fastColor));
+        shared_moments[1][sharedXY.y][sharedXY.x] = vec4(moment2, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevFastColor));
     }
 }
 
