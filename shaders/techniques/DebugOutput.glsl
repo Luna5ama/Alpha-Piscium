@@ -263,7 +263,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 
     if (inViewPort(ivec4(0, 0, 512, 512), debugTexCoord)) {
         float linearDepth = rtwsm_linearDepth(texture(shadowtex0, debugTexCoord).r);
-        float remappedDepth = linearStep(-global_shadowAABBMax.z, -global_shadowAABBMin.z, linearDepth);
+        float remappedDepth = linearStep(-global_shadowAABBMaxPrev.z, -global_shadowAABBMinPrev.z, linearDepth);
         outputColor.rgb = vec3(remappedDepth);
     }
     if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {

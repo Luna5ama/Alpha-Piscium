@@ -80,6 +80,9 @@ void main() {
     if (gl_WorkGroupID.x == 0) {
         global_shadowAABBMinHistory = min(vec3(global_shadowAABBMinNew), shadowAABBSmooth(global_shadowAABBMinHistory, global_shadowAABBMinNew));
         global_shadowAABBMaxHistory = max(vec3(global_shadowAABBMaxNew), shadowAABBSmooth(global_shadowAABBMaxHistory, global_shadowAABBMaxNew));
+        global_shadowAABBMinPrev = global_shadowAABBMin;
+        global_shadowAABBMaxPrev = global_shadowAABBMax;
+
         global_shadowAABBMin = ivec3(floor(global_shadowAABBMinHistory / 16.0)) * 16;
         global_shadowAABBMax = ivec3(ceil(global_shadowAABBMaxHistory / 16.0)) * 16;
 
