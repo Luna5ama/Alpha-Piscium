@@ -251,6 +251,11 @@ const float sunPathRotation = -20.0; //[-90.0 -89.0 -88.0 -87.0 -86.0 -85.0 -84.
 //#define SETTING_CONSTELLATIONS
 #ifdef SETTING_CONSTELLATIONS
 #endif
+#define SPONSOR_TITLE1 0 //[0]
+#define SPONSOR_TITLE2 0 //[0]
+#define SPONSOR_TITLE3 0 //[0]
+#define SPONSOR_0 0 //[0]
+#define SPONSOR_1 0 //[0]
 //#define SETTING_DEBUG_WHITE_WORLD
 #ifdef SETTING_DEBUG_WHITE_WORLD
 #endif

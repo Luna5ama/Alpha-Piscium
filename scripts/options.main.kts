@@ -1,6 +1,8 @@
 import java.io.File
 import java.math.BigDecimal
 import java.util.*
+import kotlin.io.path.Path
+import kotlin.io.path.readLines
 import kotlin.math.pow
 
 class FloatProgression(val start: Double, val endInclusive: Double, val step: Double) : Iterable<Double> {
@@ -194,7 +196,6 @@ class OptionBuilder<T>(
         private val valueLabel = mutableMapOf<T, String>()
 
         infix fun T.value(label: String) {
-            check(label.isNotEmpty()) { "Label cannot be empty" }
             valueLabel[this] = label
         }
 
@@ -1822,7 +1823,42 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
         }
         empty()
         empty()
-        empty()
+        screen("SPONSORS", 4) {
+            lang {
+                name = "Sponsors"
+            }
+            toggle("SPONSOR_TITLE1", 0, 0..0) {
+                lang {
+                    name = "Special"
+                    0 value ""
+                }
+            }
+            toggle("SPONSOR_TITLE2", 0, 0..0) {
+                lang {
+                    name = "Thanks"
+                    0 value ""
+                }
+            }
+            toggle("SPONSOR_TITLE3", 0, 0..0) {
+                lang {
+                    name = "To"
+                    0 value ""
+                }
+            }
+            empty()
+            empty()
+            empty()
+            empty()
+            empty()
+            Path("sponsors.txt").readLines().forEachIndexed { i,sname ->
+                toggle("SPONSOR_$i", 0, 0..0) {
+                    lang {
+                        name = sname
+                        0 value ""
+                    }
+                }
+            }
+        }
         screen("DEBUG", 3) {
             lang {
                 name = "Debug"
