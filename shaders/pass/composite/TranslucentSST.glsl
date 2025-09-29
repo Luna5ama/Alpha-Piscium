@@ -110,7 +110,7 @@ void main() {
                 float refractDistance = distance(startViewPos, refractViewPos);
                 refractDistance = min(refractDistance, far);
                 vec3 scatteringCoeff = -log(gData.albedo);
-                vec3 extinctionCoeff = scatteringCoeff * vec3(2.0, 1.2, 1.1) * 2.0;
+                vec3 extinctionCoeff = scatteringCoeff * vec3(1.3, 1.1, 1.05) * 1.5;
                 vec3 opticalDepth = extinctionCoeff * refractDistance;
                 vec3 transmittance = exp(-opticalDepth);
                 refractColor *= transmittance;
