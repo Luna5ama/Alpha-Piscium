@@ -92,16 +92,20 @@ void main() {
             vec3 tangentMicroNormal = bsdf_SphericalCapBoundedWithPDFRatio(noiseV, localViewDir, vec2(material.roughness), pdfRatio);
             vec3 microNormal = normalize(material.tbn * tangentMicroNormal);
 
-            float rior = AIR_IOR / mix(1.0, material.hardCodedIOR, edgeReductionFactor2(screenPos));
+            vec2 ndcPos = abs(screenPos * 2.0 - 1.0);
+
+            float rior = AIR_IOR / mix(material.hardCodedIOR, 1.0, min(max2(ndcPos), 1.0 - pow2(saturate(dot(vec3(0.0, 0.0, 1.0), gData.geomNormal)))));
+//            float rior = AIR_IOR / mix(material.hardCodedIOR, 1.0, 1.0 - saturate(dot(vec3(0.0, 0.0, 1.0), gData.geomNormal)));
             vec3 refractDir = refract(-viewDir, microNormal, rior);
             vec3 reflectDir = reflect(-viewDir, microNormal);
 
             SSTResult refractResult = sst_trace(startViewPos, refractDir, 0.01);
-            vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (global_taaJitter * global_mainImageSizeRcp)) : coords_viewToScreen(startViewPos + refractDir * edgeReductionFactor(screenPos), global_camProj).xy;
+            vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (global_taaJitter * global_mainImageSizeRcp)) : screenPos;
             float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
             if (refractDepth > startViewZ) {
-                refractCoord = coords_viewToScreen(startViewPos + refractDir * 0.1 / (refractDepth - startViewZ), global_camProj).xy;
+                refractCoord = screenPos;
             }
+
             vec3 refractColor = BicubicSampling56(usam_main, refractCoord, global_mainImageSize).rgb;
             //            vec3 refractColor = texture(usam_main, refractCoord).rgb;
             if (gData.materialID == 3u) {
@@ -136,7 +140,7 @@ void main() {
                 tMoon *= float(raySphereIntersectNearest(atmPos, uval_moonDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
                 vec3 moonIrradiance = MOON_ILLUMINANCE * tMoon *  phasefunc_Rayleigh(dot(uval_moonDirView, refractDir));
 
-                vec3 totalInSctr = (sunIrradiance + moonIrradiance) * sampleInSctrInt * 0.01;
+                vec3 totalInSctr = (sunIrradiance + moonIrradiance) * sampleInSctrInt * 0.02;
                 refractColor += totalInSctr;
             }
 
