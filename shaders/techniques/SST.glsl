@@ -49,15 +49,17 @@ shared vec4 shared_cellCounts[16];
 
 void sst_init() {
     if (gl_LocalInvocationIndex < 16u) {
-        ivec4 temp = global_mipmapTiles[0][gl_LocalInvocationIndex];
+        uint maxMip = min(findMSB(min(global_mainImageSizeI.x, global_mainImageSizeI.y)), 12u);
+        uint mipLevel = min(gl_LocalInvocationIndex, maxMip);
+        ivec4 temp = global_mipmapTiles[0][mipLevel];
         temp.zw -= 1;
-        shared_mipmapTiles[gl_LocalInvocationIndex] = temp;
+        shared_mipmapTiles[mipLevel] = temp;
 
-        int level = int(gl_LocalInvocationIndex);
+        int mipLevelI = int(mipLevel);
         vec4 mainImageSizeParams = vec4(global_mainImageSize, global_mainImageSizeRcp);
-        vec2 cellCount = ldexp(mainImageSizeParams.xy, ivec2(-level));
-        vec2 invCellCount = ldexp(mainImageSizeParams.zw, ivec2(level));
-        shared_cellCounts[gl_LocalInvocationIndex] = vec4(cellCount, invCellCount);
+        vec2 cellCount = ldexp(mainImageSizeParams.xy, ivec2(-mipLevelI));
+        vec2 invCellCount = ldexp(mainImageSizeParams.zw, ivec2(mipLevelI));
+        shared_cellCounts[mipLevel] = vec4(cellCount, invCellCount);
     }
     barrier();
 }
@@ -95,7 +97,6 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
     float deltaZ = maxZ - minZ;
     float maxThicknessFactor = rcp(1.0 - maxThickness); // 1.0 / (1.0 - maxThickness)
     const float NEAR_Z_THICKNESS_CLAMP = 0.05;
-    int maxLevels = findMSB(min(global_mainImageSizeI.x, global_mainImageSizeI.y));
 
     #define START_LEVEL 1
     #define STOP_LEVEL 0
@@ -141,7 +142,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         vec2 oldCellIdx = saturate(currScreenPos.xy) * cellCount;
 
         ivec2 oldCellIdxI = ivec2(oldCellIdx);
-        ivec2 readPos = mipTile.xy + oldCellIdxI;
+        ivec2 readPos = mipTile.xy + min(oldCellIdxI, mipTile.zw);
         float cellMinZ = texelFetch(usam_hiz, readPos, 0).r;
 
         float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * maxThicknessFactor;

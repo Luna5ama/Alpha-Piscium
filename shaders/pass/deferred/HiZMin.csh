@@ -21,11 +21,23 @@ float spd_loadOutput(ivec2 texelPos, uint level) {
 }
 void spd_storeOutput(ivec2 texelPos, uint level, float value) {
     ivec4 mipTile = global_mipmapTiles[1][level];
+    ivec2 storePos = mipTile.xy + texelPos;
+    ivec2 offsetTexelPos = texelPos + 1;
+    if (all(lessThanEqual(offsetTexelPos, mipTile.zw))) {
+        if (offsetTexelPos.x == mipTile.z) {
+            imageStore(uimg_hiz, storePos + ivec2(1, 0), vec4(value));
+        }
+        if (offsetTexelPos.y == mipTile.w) {
+            imageStore(uimg_hiz, storePos + ivec2(0, 1), vec4(value));
+        }
+        if (all(equal(offsetTexelPos, mipTile.zw))) {
+            imageStore(uimg_hiz, storePos + ivec2(1, 1), vec4(value));
+        }
+    }
     if (all(lessThanEqual(texelPos, mipTile.zw))) {
-        ivec2 storePos = mipTile.xy + texelPos;
         imageStore(uimg_hiz, storePos, vec4(value));
     }
 }
 uint spd_mipCount() {
-    return findMSB(min(global_mainImageSizeI.x, global_mainImageSizeI.y));
+    return min(findMSB(min(global_mainImageSizeI.x, global_mainImageSizeI.y)), 12u);
 }
