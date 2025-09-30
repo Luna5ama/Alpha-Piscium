@@ -6,17 +6,9 @@
 #include "/util/BSDF.glsl"
 #include "/techniques/rtwsm/RTWSM.glsl"
 
+layout(rgba16f) uniform writeonly image2D uimg_temp3;
 
 GBufferData lighting_gData = gbufferData_init();
-vec3 lighting_viewCoord;
-vec3 lighting_viewDir;
-ivec2 lighting_texelPos;
-
-void lighting_init(vec3 viewCoord, ivec2 texelPos) {
-    lighting_viewCoord = viewCoord;
-    lighting_viewDir = normalize(-viewCoord);
-    lighting_texelPos = texelPos;
-}
 
 struct LightingResult {
     vec3 diffuse;
@@ -34,26 +26,9 @@ LightingResult lightingResult_add(LightingResult a, LightingResult b) {
     return result;
 }
 
-vec3 skyReflection(Material material, float lmCoordSky, vec3 N) {
-    vec3 V = lighting_viewDir;
-    float NDotV = dot(N, V);
-    vec3 fresnelReflection = fresnel_evalMaterial(material, saturate(NDotV));
+LightingResult directLighting(Material material, vec4 irradiance, vec3 V, vec3 L, vec3 N) {
+    imageStore(uimg_temp3, ivec2(gl_GlobalInvocationID.xy), vec4(V, 1.0));
 
-    vec3 reflectDirView = reflect(-V, N);
-    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
-    vec2 reflectLUTUV = coords_octEncode01(reflectDir);
-    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
-
-    vec3 result = fresnelReflection;
-    result *= material.albedo;
-    result *= linearStep(1.5 / 16.0, 15.5 / 16.0, lmCoordSky);
-    result *= texture(usam_skyLUT, reflectLUTUV).rgb;
-
-    return result;
-}
-
-LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N) {
-    vec3 V = lighting_viewDir;
     vec3 H = normalize(L + V);
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);
@@ -85,8 +60,7 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N
 }
 
 // TODO: Cleanup
-LightingResult directLighting2(Material material, vec4 irradiance, vec3 L, vec3 N, float ior) {
-    vec3 V = lighting_viewDir;
+LightingResult directLighting2(Material material, vec4 irradiance, vec3 V, vec3 L, vec3 N, float ior) {
     vec3 H = normalize(L + V);
     float LDotV = dot(L, V);
     float LDotH = dot(L, H);

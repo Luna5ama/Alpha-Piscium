@@ -192,8 +192,6 @@ void main() {
 
     bool isWater = frag_materialID == 3u;
 
-    lighting_init(viewPos, texelPos);
-
     float alpha = inputAlbedo.a;
     vec3 materialColor = colors2_material_idt(inputAlbedo.rgb);
 

@@ -336,8 +336,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
         sampleTexelDist += sampleLodTexelSize * jitter;
         sampleTexelDist = min(sampleTexelDist, maxDist);
 
-        vec2 sampleTexelPosF = clamp(floor(rayDir * sampleTexelDist + rayStart), ivec2(0), global_mipmapSizesI[1] - 1);
-        ivec2 sampleTexelPos = ivec2(sampleTexelPosF);
+        ivec2 sampleTexelPos = clamp(ivec2(rayDir * sampleTexelDist + rayStart), ivec2(0), global_mipmapSizesI[1] - 1);
         vec2 sampleUV = saturate((sampleTexelPos + 0.5) * global_mipmapSizesRcp[1]);
 
         float sampleViewZ;

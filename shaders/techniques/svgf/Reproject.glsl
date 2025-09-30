@@ -97,10 +97,10 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
 
         {
             uvec4 prevColorData = textureGather(usam_csrgba32ui, gatherUV1, 0);
-            vec2 temp1 = max(unpackHalf2x16(prevColorData.x), 0.0);
-            vec2 temp2 = max(unpackHalf2x16(prevColorData.y), 0.0);
-            vec2 temp3 = max(unpackHalf2x16(prevColorData.z), 0.0);
-            vec2 temp4 = max(unpackHalf2x16(prevColorData.w), 0.0);
+            vec2 temp1 = unpackHalf2x16(prevColorData.x);
+            vec2 temp2 = unpackHalf2x16(prevColorData.y);
+            vec2 temp3 = unpackHalf2x16(prevColorData.z);
+            vec2 temp4 = unpackHalf2x16(prevColorData.w);
 
             vec4 prevColorR = vec4(temp1.r, temp2.r, temp3.r, temp4.r);
             prevColor.r += dot(interpoWeights, prevColorR);
@@ -110,10 +110,10 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
 
         {
             uvec4 prevColorData = textureGather(usam_csrgba32ui, gatherUV1, 1);
-            vec2 temp1 = max(unpackHalf2x16(prevColorData.x), 0.0);
-            vec2 temp2 = max(unpackHalf2x16(prevColorData.y), 0.0);
-            vec2 temp3 = max(unpackHalf2x16(prevColorData.z), 0.0);
-            vec2 temp4 = max(unpackHalf2x16(prevColorData.w), 0.0);
+            vec2 temp1 = unpackHalf2x16(prevColorData.x);
+            vec2 temp2 = unpackHalf2x16(prevColorData.y);
+            vec2 temp3 = unpackHalf2x16(prevColorData.z);
+            vec2 temp4 = unpackHalf2x16(prevColorData.w);
 
             vec4 prevColorR = vec4(temp1.x, temp2.x, temp3.x, temp4.x);
             prevColor.b += dot(interpoWeights, prevColorR);
@@ -123,10 +123,10 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
 
         {
             uvec4 prevData = textureGather(usam_csrgba32ui, gatherUV1, 2);
-            vec2 temp1 = max(unpackHalf2x16(prevData.x), 0.0);
-            vec2 temp2 = max(unpackHalf2x16(prevData.y), 0.0);
-            vec2 temp3 = max(unpackHalf2x16(prevData.z), 0.0);
-            vec2 temp4 = max(unpackHalf2x16(prevData.w), 0.0);
+            vec2 temp1 = unpackHalf2x16(prevData.x);
+            vec2 temp2 = unpackHalf2x16(prevData.y);
+            vec2 temp3 = unpackHalf2x16(prevData.z);
+            vec2 temp4 = unpackHalf2x16(prevData.w);
 
             vec4 prevFastColorR = vec4(temp1.x, temp2.x, temp3.x, temp4.x);
             prevFastColor.r += dot(interpoWeights, prevFastColorR);
@@ -136,10 +136,10 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
 
         {
             uvec4 prevData = textureGather(usam_csrgba32ui, gatherUV1, 3);
-            vec2 temp1 = max(unpackHalf2x16(prevData.x), 0.0);
-            vec2 temp2 = max(unpackHalf2x16(prevData.y), 0.0);
-            vec2 temp3 = max(unpackHalf2x16(prevData.z), 0.0);
-            vec2 temp4 = max(unpackHalf2x16(prevData.w), 0.0);
+            vec2 temp1 = unpackHalf2x16(prevData.x);
+            vec2 temp2 = unpackHalf2x16(prevData.y);
+            vec2 temp3 = unpackHalf2x16(prevData.z);
+            vec2 temp4 = unpackHalf2x16(prevData.w);
 
             vec4 prevFastColorR = vec4(temp1.x, temp2.x, temp3.x, temp4.x);
             prevFastColor.b += dot(interpoWeights, prevFastColorR);
