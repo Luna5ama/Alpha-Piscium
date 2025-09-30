@@ -47,9 +47,9 @@ float fresnel_iorToF0(float ior) {
 
 // [BEL25a]
 vec3 fresnel_dielectricDielectric_reflection(float cosThetaI, vec3 n1, vec3 n2) {
-    float sinThetaI = sqrt(1.0 - pow2(cosThetaI));
+    float sinThetaI = sqrt(saturate(1.0 - pow2(cosThetaI)));
     vec3 sinThetaT = (n1 / n2) * sinThetaI;
-    vec3 cosThetaT = sqrt(1.0 - pow2(sinThetaT));
+    vec3 cosThetaT = sqrt(saturate(1.0 - pow2(sinThetaT)));
 
     vec3 Rs = (n1 * cosThetaI - n2 * cosThetaT) / (n1 * cosThetaI + n2 * cosThetaT);
     vec3 Rp = (n1 * cosThetaT - n2 * cosThetaI) / (n1 * cosThetaT + n2 * cosThetaI);
@@ -58,9 +58,9 @@ vec3 fresnel_dielectricDielectric_reflection(float cosThetaI, vec3 n1, vec3 n2) 
 }
 
 float fresnel_dielectricDielectric_reflection(float cosThetaI, float n1, float n2) {
-    float sinThetaI = sqrt(1.0 - pow2(cosThetaI));
+    float sinThetaI = sqrt(saturate(1.0 - pow2(cosThetaI)));
     float sinThetaT = (n1 / n2) * sinThetaI;
-    float cosThetaT = sqrt(1.0 - pow2(sinThetaT));
+    float cosThetaT = sqrt(saturate(1.0 - pow2(sinThetaT)));
 
     float Rs = (n1 * cosThetaI - n2 * cosThetaT) / (n1 * cosThetaI + n2 * cosThetaT);
     float Rp = (n1 * cosThetaT - n2 * cosThetaI) / (n1 * cosThetaT + n2 * cosThetaI);
@@ -70,9 +70,9 @@ float fresnel_dielectricDielectric_reflection(float cosThetaI, float n1, float n
 
 // [BEL25a]
 vec3 fresnel_dielectricDielectric_transmittance(float cosThetaI, vec3 n1, vec3 n2) {
-    float sinThetaI = sqrt(1.0 - pow2(cosThetaI));
+    float sinThetaI = sqrt(saturate(1.0 - pow2(cosThetaI)));
     vec3 sinThetaT = (n1 / n2) * sinThetaI;
-    vec3 cosThetaT = sqrt(1.0 - pow2(sinThetaT));
+    vec3 cosThetaT = sqrt(saturate(1.0 - pow2(sinThetaT)));
 
     if (any(greaterThan(abs(sinThetaT), vec3(1.0)))) return vec3(1.0);
 
@@ -88,9 +88,9 @@ vec3 fresnel_dielectricDielectric_transmittance(float cosThetaI, vec3 n1, vec3 n
 
 // [BEL25a]
 float fresnel_dielectricDielectric_transmittance(float cosThetaI, float n1, float n2) {
-    float sinThetaI = sqrt(1.0 - pow2(cosThetaI));
+    float sinThetaI = sqrt(saturate(1.0 - pow2(cosThetaI)));
     float sinThetaT = (n1 / n2) * sinThetaI;
-    float cosThetaT = sqrt(1.0 - pow2(sinThetaT));
+    float cosThetaT = sqrt(saturate(1.0 - pow2(sinThetaT)));
 
     if (sinThetaT > 1.0) return 1.0;
 

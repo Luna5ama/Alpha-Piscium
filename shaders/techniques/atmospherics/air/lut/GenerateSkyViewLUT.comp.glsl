@@ -142,8 +142,8 @@ void main() {
     float viewZenithCosAngle, lightViewCosAngle;
     _atmospherics_air_lut_uvToSkyViewLutParams(atmosphere, viewZenithCosAngle, lightViewCosAngle, viewHeight, screenPos);
 
-    float viewZenithSinAngle = sqrt(1.0 - pow2(viewZenithCosAngle));
-    float lightViewSinAngle = sqrt(1.0 - pow2(lightViewCosAngle));
+    float viewZenithSinAngle = sqrt(saturate(1.0 - pow2(viewZenithCosAngle)));
+    float lightViewSinAngle = sqrt(saturate(1.0 - pow2(lightViewCosAngle)));
     vec3 rayDir = vec3(
         viewZenithSinAngle * lightViewCosAngle,
         viewZenithCosAngle,
@@ -163,12 +163,12 @@ void main() {
     LightParameters lightParam;
     if (bool(isMoonI)) {
         float moonZenithCosAngle = dot(upVector, uval_moonDirWorld);
-        float moonZenithSinAngle = sqrt(1.0 - pow2(moonZenithCosAngle));
+        float moonZenithSinAngle = sqrt(saturate(1.0 - pow2(moonZenithCosAngle)));
         vec3 moonDir = normalize(vec3(moonZenithSinAngle, moonZenithCosAngle, 0.0));
         lightParam = lightParameters_init(atmosphere, MOON_ILLUMINANCE, moonDir, rayDir);
     } else {
         float sunZenithCosAngle = dot(upVector, uval_sunDirWorld);
-        float sunZenithSinAngle = sqrt(1.0 - pow2(sunZenithCosAngle));
+        float sunZenithSinAngle = sqrt(saturate(1.0 - pow2(sunZenithCosAngle)));
         vec3 sunDir = normalize(vec3(sunZenithSinAngle, sunZenithCosAngle, 0.0));
         lightParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, sunDir, rayDir);
     }

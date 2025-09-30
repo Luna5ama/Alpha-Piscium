@@ -30,11 +30,11 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 V, vec3 L
     imageStore(uimg_temp3, ivec2(gl_GlobalInvocationID.xy), vec4(V, 1.0));
 
     vec3 H = normalize(L + V);
-    float LDotV = dot(L, V);
-    float LDotH = dot(L, H);
-    float NDotL = dot(N, L);
-    float NDotV = dot(N, V);
-    float NDotH = dot(N, H);
+    float LDotV = clamp(dot(L, V), -1.0, 1.0);
+    float LDotH = clamp(dot(L, H), -1.0, 1.0);
+    float NDotL = clamp(dot(N, L), -1.0, 1.0);
+    float NDotV = clamp(dot(N, V), -1.0, 1.0);
+    float NDotH = clamp(dot(N, H), -1.0, 1.0);
 
     vec3 fresnel = fresnel_evalMaterial(material, saturate(LDotH));
 
@@ -62,11 +62,11 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 V, vec3 L
 // TODO: Cleanup
 LightingResult directLighting2(Material material, vec4 irradiance, vec3 V, vec3 L, vec3 N, float ior) {
     vec3 H = normalize(L + V);
-    float LDotV = dot(L, V);
-    float LDotH = dot(L, H);
-    float NDotL = dot(N, L);
-    float NDotV = dot(N, V);
-    float NDotH = dot(N, H);
+    float LDotV = clamp(dot(L, V), -1.0, 1.0);
+    float LDotH = clamp(dot(L, H), -1.0, 1.0);
+    float NDotL = clamp(dot(N, L), -1.0, 1.0);
+    float NDotV = clamp(dot(N, V), -1.0, 1.0);
+    float NDotH = clamp(dot(N, H), -1.0, 1.0);
 
     float fresnel = fresnel_dielectricDielectric_reflection(saturate(LDotH), AIR_IOR, ior);
 

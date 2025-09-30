@@ -28,7 +28,7 @@ void main() {
     float cosZenith;
     _atmospherics_air_lut_uvToLutTransmittanceParams(atmosphere, altitude, cosZenith, screenPos);
 
-    vec3 rayDir = vec3(0.0, sqrt(1.0 - pow2(cosZenith)), cosZenith);
+    vec3 rayDir = vec3(0.0, sqrt(saturate(1.0 - pow2(cosZenith))), cosZenith);
     RaymarchParameters params = raymarchParameters_init();
     params.rayStart = vec3(0.0, 0.0, altitude);
     setupRayEnd(atmosphere, params, rayDir);

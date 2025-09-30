@@ -107,7 +107,7 @@ SkyViewLutParams atmospherics_air_lut_setupSkyViewLutParams(
     moonOnPlane = normalize(moonOnPlane);
     float moonViewCosAngle = moonOnPlane.x;
 
-    float horizonZenthCosAngle = -sqrt(1.0 - pow2(atmosphere.bottom / viewHeight));
+    float horizonZenthCosAngle = -sqrt(saturate(1.0 - pow2(atmosphere.bottom / viewHeight)));
     bool intersectGround = viewZenithCosAngle < (horizonZenthCosAngle);
 
     return SkyViewLutParams(

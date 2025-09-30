@@ -76,7 +76,7 @@ float phasefunc_HenyeyGreensteinDraine(float cosTheta, float d) {
 }
 
 float phasefunc_BiLambertianPlate(float cosTheta, float g) {
-    float phase = 2.0 * (-PI * g * cosTheta + sqrt(1.0 - pow2(cosTheta)) + cosTheta * acos(-cosTheta));
+    float phase = 2.0 * (-PI * g * cosTheta + sqrt(saturate(1.0 - pow2(cosTheta))) + cosTheta * acos(-cosTheta));
     return phase / (3.0 * pow2(PI));
 }
 
