@@ -12,7 +12,7 @@ const vec2 workGroupsRender = vec2(0.25, 0.25);
 float spd_loadInput(ivec2 texelPos) {
     float viewZ = texelFetch(usam_gbufferViewZ, clamp(texelPos, ivec2(0), global_mainImageSizeI - 1), 0).r;
     float revZ = coords_viewZToReversedZ(viewZ, near);
-    if (all(lessThan(texelPos, global_mainImageSizeI))){
+    if (all(lessThanEqual(texelPos, global_mainImageSizeI))){
         imageStore(uimg_hiz, texelPos, vec4(revZ));
     }
     return revZ;
@@ -24,8 +24,8 @@ float spd_loadOutput(ivec2 texelPos, uint level) {
 }
 void spd_storeOutput(ivec2 texelPos, uint level, float value) {
     ivec4 mipTile = global_mipmapTiles[0][level];
-    if (all(lessThan(texelPos, mipTile.zw))) {
-        ivec2 storePos = mipTile.xy + texelPos;
+    ivec2 storePos = mipTile.xy + texelPos;
+    if (all(lessThanEqual(texelPos, mipTile.zw))) {
         imageStore(uimg_hiz, storePos, vec4(value));
     }
 }

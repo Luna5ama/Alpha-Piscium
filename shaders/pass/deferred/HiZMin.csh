@@ -21,7 +21,7 @@ float spd_loadOutput(ivec2 texelPos, uint level) {
 }
 void spd_storeOutput(ivec2 texelPos, uint level, float value) {
     ivec4 mipTile = global_mipmapTiles[1][level];
-    if (all(lessThan(texelPos, mipTile.zw))) {
+    if (all(lessThanEqual(texelPos, mipTile.zw))) {
         ivec2 storePos = mipTile.xy + texelPos;
         imageStore(uimg_hiz, storePos, vec4(value));
     }

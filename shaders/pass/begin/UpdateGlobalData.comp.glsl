@@ -126,13 +126,13 @@ void main() {
             global_mipmapSizesRcp[i] = 1.0 / vec2(mipSize);
             global_mipmapSizesI[i] = mipSize;
             if (i == 0) {
-                global_mipmapSizePrefixes[i] = mipSize;
+                global_mipmapSizePrefixes[i] = mipSize + 1;
                 ivec4 mipTile1 = ivec4(ivec2(0), mipSize);
                 global_mipmapTiles[0][i] = mipTile1;
                 global_mipmapTiles[1][i] = mipTile1;
             } else {
-                global_mipmapSizePrefixes[i] = global_mipmapSizePrefixes[i - 1] + mipSize;
-                ivec2 mipTileOffset = ivec2(global_mipmapSizePrefixes[i - 1].x - mainImageSize.x, mainImageSize.y);
+                global_mipmapSizePrefixes[i] = global_mipmapSizePrefixes[i - 1] + mipSize + 1;
+                ivec2 mipTileOffset = ivec2(global_mipmapSizePrefixes[i - 1].x - mainImageSize.x, mainImageSize.y + 1);
                 ivec4 mipTile1 = ivec4(mipTileOffset, mipSize);
                 ivec4 mipTile2 = mipTile1;
                 mipTile2.y += global_mipmapSizesI[1].y;
