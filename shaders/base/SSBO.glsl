@@ -45,6 +45,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     vec2 global_mipmapSizes[16];
     vec2 global_mipmapSizesRcp[16];
     ivec2 global_mipmapSizesI[16];
+    ivec2 global_mipmapSizePrefixesPadded[16];
     ivec2 global_mipmapSizePrefixes[16];
     ivec4 global_mipmapTiles[2][16];
     uvec2 global_frameMortonJitter;
