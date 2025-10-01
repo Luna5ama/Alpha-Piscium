@@ -6,8 +6,6 @@
 #include "/util/BSDF.glsl"
 #include "/techniques/rtwsm/RTWSM.glsl"
 
-layout(rgba16f) uniform writeonly image2D uimg_temp3;
-
 GBufferData lighting_gData = gbufferData_init();
 
 struct LightingResult {
@@ -27,8 +25,6 @@ LightingResult lightingResult_add(LightingResult a, LightingResult b) {
 }
 
 LightingResult directLighting(Material material, vec4 irradiance, vec3 V, vec3 L, vec3 N) {
-    imageStore(uimg_temp3, ivec2(gl_GlobalInvocationID.xy), vec4(V, 1.0));
-
     vec3 H = normalize(L + V);
     float LDotV = clamp(dot(L, V), -1.0, 1.0);
     float LDotH = clamp(dot(L, H), -1.0, 1.0);
