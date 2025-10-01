@@ -91,7 +91,7 @@ void main() {
         global_shadowAABBMinNew = ivec3(floor(shadowAABBMin.xyz));
         global_shadowAABBMaxNew = ivec3(ceil(shadowAABBMax.xyz));
 
-        vec3 cameraDelta = cameraPosition - previousCameraPosition;
+        vec3 cameraDelta = uval_cameraDelta;
 
         vec2 jitter = taaJitter();
         global_shadowRotationMatrix = shadowDeRotateMatrix();

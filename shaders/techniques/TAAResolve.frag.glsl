@@ -66,7 +66,7 @@ void main() {
     vec3 prevColor = saturate(prevResult.rgb);
 
     vec2 pixelPosDiff = (frag_texCoord - prevScreenPos) * textureSize(usam_main, 0).xy;
-    vec3 cameraDelta = cameraPosition - previousCameraPosition;
+    vec3 cameraDelta = uval_cameraDelta;
     float cameraSpeed = length(cameraDelta);
     float prevCameraSpeed = length(global_prevCameraDelta);
     float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);

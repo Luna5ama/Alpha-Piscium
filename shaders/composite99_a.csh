@@ -13,7 +13,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 void main() {
     if (gl_LocalInvocationIndex == 0) {
         gbufferPrevModelViewInverse = gbufferModelViewInverse;
-        global_prevCameraDelta = cameraPosition - previousCameraPosition;
+        global_prevCameraDelta = uval_cameraDelta;
 
         global_shadowView = shadowModelView;
         global_shadowViewInverse = shadowModelViewInverse;
