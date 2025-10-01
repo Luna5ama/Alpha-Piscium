@@ -117,7 +117,7 @@ void packEpipolarData(out uvec4 epipolarData, ScatteringResult sctrResult, float
 
 bool isValidScreenLocation(vec2 f2XY) {
     const float SAFETY_EPSILON = 0.2f;
-    return all(lessThanEqual(abs(f2XY), 1.0 - (1.0 - SAFETY_EPSILON) / vec2(global_mainImageSizeI)));
+    return all(lessThanEqual(abs(f2XY), 1.0 - (1.0 - SAFETY_EPSILON) / vec2(uval_mainImageSizeI)));
 }
 
 vec4 getOutermostScreenPixelCoords() {
@@ -137,7 +137,7 @@ vec4 getOutermostScreenPixelCoords() {
     //
     // Using shader macro is much more efficient than using constant buffer variable
     // because the compiler is able to optimize the code more aggressively
-    return vec4(-1.0, -1.0, 1.0, 1.0) + vec4(1.0, 1.0, -1.0, -1.0) / global_mainImageSizeI.xyxy;
+    return vec4(-1.0, -1.0, 1.0, 1.0) + vec4(1.0, 1.0, -1.0, -1.0) / uval_mainImageSizeI.xyxy;
 }
 
 vec4 temporalUpdate(vec4 prevData, vec3 currData, float maxFrames) {

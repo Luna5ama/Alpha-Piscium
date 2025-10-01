@@ -30,7 +30,7 @@ void loadSharedData(uint index) {
     if (index < 144) {
         uvec2 sharedXY = uvec2(index % 12, index / 12);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
-        srcXY = clamp(srcXY, ivec2(0), ivec2(global_mainImageSize - 1));
+        srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
 
 
         uvec4 packedData = texelFetch(usam_csrgba32ui, csrgba32ui_temp3_texelToTexel(texelPos), 0);
@@ -85,18 +85,18 @@ vec2 gatherTexelPos, vec4 baseWeights,
 vec3 centerPos, vec3 centerNormal,
 inout vec3 colorSum, inout float weightSum
 ) {
-    vec2 originScreenPos = (gatherTexelPos * 2.0) * global_mainImageSizeRcp;
-    vec2 gatherUV = gatherTexelPos * global_mainImageSizeRcp;
+    vec2 originScreenPos = (gatherTexelPos * 2.0) * uval_mainImageSizeRcp;
+    vec2 gatherUV = gatherTexelPos * uval_mainImageSizeRcp;
     vec2 gatherUV2Y = gatherUV * vec2(1.0, 0.5);
 
     vec4 bilateralWeights = vec4(1.0);
     uvec4 prevNs = textureGather(usam_packedZN, gatherUV2Y, 0);
     vec4 prevZs = uintBitsToFloat(textureGather(usam_packedZN, gatherUV2Y, 1));
     float a = 0.0001 * max(abs(centerPos.z), 0.1);
-    bilateralWeights.x *= computeGeometryWeight(centerPos, centerNormal, prevZs.x, prevNs.x, global_mainImageSizeRcp * vec2(-1.0, 1.0) + originScreenPos, a);
-    bilateralWeights.y *= computeGeometryWeight(centerPos, centerNormal, prevZs.y, prevNs.y, global_mainImageSizeRcp * vec2(1.0, 1.0) + originScreenPos, a);
-    bilateralWeights.z *= computeGeometryWeight(centerPos, centerNormal, prevZs.z, prevNs.z, global_mainImageSizeRcp * vec2(1.0, -1.0) + originScreenPos, a);
-    bilateralWeights.w *= computeGeometryWeight(centerPos, centerNormal, prevZs.w, prevNs.w, global_mainImageSizeRcp * vec2(-1.0, -1.0) + originScreenPos, a);
+    bilateralWeights.x *= computeGeometryWeight(centerPos, centerNormal, prevZs.x, prevNs.x, uval_mainImageSizeRcp * vec2(-1.0, 1.0) + originScreenPos, a);
+    bilateralWeights.y *= computeGeometryWeight(centerPos, centerNormal, prevZs.y, prevNs.y, uval_mainImageSizeRcp * vec2(1.0, 1.0) + originScreenPos, a);
+    bilateralWeights.z *= computeGeometryWeight(centerPos, centerNormal, prevZs.z, prevNs.z, uval_mainImageSizeRcp * vec2(1.0, -1.0) + originScreenPos, a);
+    bilateralWeights.w *= computeGeometryWeight(centerPos, centerNormal, prevZs.w, prevNs.w, uval_mainImageSizeRcp * vec2(-1.0, -1.0) + originScreenPos, a);
 
     vec4 interpoWeights = baseWeights * bilateralWeights;
     weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
@@ -167,15 +167,15 @@ void main() {
         }
     }
 
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec3 currColor = vec3(0.0);
 
-        float viewZ = uintBitsToFloat(texelFetch(usam_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), 0).g);
+        float viewZ = uintBitsToFloat(texelFetch(usam_packedZN, texelPos + ivec2(0, uval_mainImageSizeI.y), 0).g);
 
         if (viewZ != -65536.0) {
             vec2 texelPos2x2F = vec2(texelPos) * 0.5;
 
-            vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+            vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
             GBufferData gData = gbufferData_init();

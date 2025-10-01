@@ -49,14 +49,14 @@ shared vec4 shared_cellCounts[16];
 
 void sst_init() {
     if (gl_LocalInvocationIndex < 16u) {
-        uint maxMip = min(findMSB(min(global_mainImageSizeI.x, global_mainImageSizeI.y)), 12u);
+        uint maxMip = min(findMSB(min(uval_mainImageSizeI.x, uval_mainImageSizeI.y)), 12u);
         uint mipLevel = min(gl_LocalInvocationIndex, maxMip);
         ivec4 temp = global_mipmapTiles[0][mipLevel];
         temp.zw -= 1;
         shared_mipmapTiles[mipLevel] = temp;
 
         int mipLevelI = int(mipLevel);
-        vec4 mainImageSizeParams = vec4(global_mainImageSize, global_mainImageSizeRcp);
+        vec4 mainImageSizeParams = vec4(uval_mainImageSize, uval_mainImageSizeRcp);
         vec2 cellCount = ldexp(mainImageSizeParams.xy, ivec2(-mipLevelI));
         vec2 invCellCount = ldexp(mainImageSizeParams.zw, ivec2(mipLevelI));
         shared_cellCounts[mipLevel] = vec4(cellCount, invCellCount);
@@ -107,7 +107,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
 //    const uvec2 DEBUG_COORD = uvec2(487, 250);
     const uint HI_Z_STEPS = 128;
 
-    vec4 mainImageSizeParams = vec4(global_mainImageSize, global_mainImageSizeRcp);
+    vec4 mainImageSizeParams = vec4(uval_mainImageSize, uval_mainImageSizeRcp);
     vec3 invD = rcp(pRayVector);
     bvec2 intersectCond1 = greaterThan(pRayVector.xy, vec2(0.0));
     bvec2 vec0Cond = equal(pRayVector.xy, vec2(0.0));

@@ -56,7 +56,7 @@
 
 #endif
 
-ivec2 renderSize = DOWNSCALE_DIVIDE(global_mainImageSizeI);
+ivec2 renderSize = DOWNSCALE_DIVIDE(uval_mainImageSizeI);
 
 vec2 clouds_ss_upscaleoffset() {
     return rand_r2Seq2(frameCounter);
@@ -65,7 +65,7 @@ vec2 clouds_ss_upscaleoffset() {
 vec2 clouds_ss_upscaledTexelCenter(ivec2 texelPosDownScale) {
     vec2 texelPos1x1F = vec2(texelPosDownScale * UPSCALE_FACTOR);
     vec2 offset = clouds_ss_upscaleoffset() * UPSCALE_FACTOR;
-    return clamp(texelPos1x1F + offset, vec2(0.0), global_mainImageSize);
+    return clamp(texelPos1x1F + offset, vec2(0.0), uval_mainImageSize);
 }
 
 #define CLOUDS_SS_MAX_ACCUM SETTING_CLOUDS_LOW_MAX_ACCUM

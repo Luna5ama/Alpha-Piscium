@@ -131,7 +131,7 @@ vec3 displayViewZ(float viewZ) {
 
 void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     _debug_texelPos = texelPos;
-    beginText(texelPos >> ivec2(2), ivec2(0, global_mainImageSizeI.y >> 2));
+    beginText(texelPos >> ivec2(2), ivec2(0, uval_mainImageSizeI.y >> 2));
     printLine();
     printLine();
     text.fpPrecision = 4;
@@ -245,14 +245,14 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     }
     #endif
     #if SETTING_DEBUG_GI_INPUTS == 6
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         uint packedGeometryNormal = texelFetch(usam_geometryNormal, texelPos, 0).r;
         vec3 geometryNormal = unpackSnorm3x10(packedGeometryNormal);
         outputColor.rgb = vec3(geometryNormal * 0.5 + 0.5);
     }
     #endif
 
-    vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+    vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
     vec2 debugTexCoord;
 
     #ifdef SETTING_DEBUG_RTWSM
@@ -458,7 +458,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         float fEpipolarSlice = dot(vec4(b4SectorFlags), f4EpipolarSlice);
         float fEpipolarSliceIndex = fEpipolarSlice * SETTING_EPIPOLAR_SLICES;
         fEpipolarSliceIndex = fract(fEpipolarSliceIndex + 0.5);
-        float lineWidth = SETTING_EPIPOLAR_SLICES / min2(global_mainImageSize);
+        float lineWidth = SETTING_EPIPOLAR_SLICES / min2(uval_mainImageSize);
         lineWidth *= 0.25;
         lineWidth = saturate(lineWidth / distance(uval_sunNdcPos, ndcPos) * (1.0 + length(uval_sunNdcPos)));
         float lineAlpha = smoothstep(0.5 - lineWidth, 0.5, fEpipolarSliceIndex);
@@ -471,7 +471,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     outputColor = expGamma(texelFetch(usam_debug, ivec2((vec2(texelPos) + 0.5) / SETTING_DEBUG_SCALE), 0));
     #endif
 
-//    beginText(texelPos >> ivec2(2), ivec2(0, global_mainImageSizeI.y >> 2));
+//    beginText(texelPos >> ivec2(2), ivec2(0, uval_mainImageSizeI.y >> 2));
 //    printFloat(global_turbidity);
     endText(outputColor.rgb);
 }

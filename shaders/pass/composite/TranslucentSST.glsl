@@ -65,16 +65,16 @@ vec4 BicubicSampling56(sampler2D samplerV, vec2 inHistoryUV, vec2 resolution) {
 void main() {
     sst_init();
 
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         ivec2 farDepthTexelPos = texelPos;
         ivec2 nearDepthTexelPos = texelPos;
-        farDepthTexelPos.y += global_mainImageSizeI.y;
-        nearDepthTexelPos += global_mainImageSizeI;
+        farDepthTexelPos.y += uval_mainImageSizeI.y;
+        nearDepthTexelPos += uval_mainImageSizeI;
 
         float startViewZ = -texelFetch(usam_translucentDepthLayers, nearDepthTexelPos, 0).r;
 
         if (startViewZ > -65536.0) {
-            vec2 screenPos = coords_texelToUV(texelPos, global_mainImageSizeRcp);
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
             vec3 startViewPos = coords_toViewCoord(screenPos, startViewZ, global_camProjInverse);
 
             GBufferData gData = gbufferData_init();
@@ -100,13 +100,13 @@ void main() {
             vec3 reflectDir = reflect(-viewDir, microNormal);
 
             SSTResult refractResult = sst_trace(startViewPos, refractDir, 0.01);
-            vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (global_taaJitter * global_mainImageSizeRcp)) : screenPos;
+            vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp)) : screenPos;
             float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
             if (refractDepth > startViewZ) {
                 refractCoord = screenPos;
             }
 
-            vec3 refractColor = BicubicSampling56(usam_main, refractCoord, global_mainImageSize).rgb;
+            vec3 refractColor = BicubicSampling56(usam_main, refractCoord, uval_mainImageSize).rgb;
             //            vec3 refractColor = texture(usam_main, refractCoord).rgb;
             if (gData.materialID == 3u) {
                 float refractViewZ = texture(usam_gbufferViewZ, refractCoord).r;
@@ -161,8 +161,8 @@ void main() {
                 reflectColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
             }
             if (reflectResult.hit) {
-                vec2 sampleCoord = reflectResult.hitScreenPos.xy + (global_taaJitter * global_mainImageSizeRcp);
-                reflectColor = mix(reflectColor, BicubicSampling56(usam_main, sampleCoord, global_mainImageSize).rgb, edgeReductionFactor(reflectResult.hitScreenPos.xy));
+                vec2 sampleCoord = reflectResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp);
+                reflectColor = mix(reflectColor, BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb, edgeReductionFactor(reflectResult.hitScreenPos.xy));
             }
 
             float NDotL = dot(gData.normal, reflectDir);

@@ -188,7 +188,7 @@ vec4 generateepipolarSliceEndPS() {
     // If epipolar slice is not invisible, advance its exit point if necessary
     if (isValidScreenLocation(f2EntryPoint)) {
         // Compute length of the epipolar line in screen pixels:
-        float fEpipolarSliceScreenLen = length((f2ExitPoint - f2EntryPoint) * global_mainImageSizeI / 2);
+        float fEpipolarSliceScreenLen = length((f2ExitPoint - f2EntryPoint) * uval_mainImageSizeI / 2);
         // If epipolar line is too short, update epipolar line exit point to provide 1:1 texel to screen pixel correspondence:
         f2ExitPoint = f2EntryPoint + (f2ExitPoint - f2EntryPoint) * max(vec2(SETTING_SLICE_SAMPLES) / fEpipolarSliceScreenLen, 1);
     }

@@ -34,7 +34,7 @@ void main() {
     #ifdef SETTING_BLOOM
     bloom_init();
     #endif
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
 
         #ifdef SETTING_BLOOM
@@ -62,7 +62,7 @@ void main() {
         outputColor.rgb = mix(scopticColor, outputColor.rgb, saturate(mesopicFactor + float(scopticLuminance <= EPSILON)));
         #endif
 
-        vec2 screenPos = coords_texelToUV(texelPos, global_mainImageSizeRcp);
+        vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
         vec2 ndcPos = screenPos * 2.0 - 1.0;
         float centerFactor = pow(saturate(1.0 - length(ndcPos)), SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE);
         outputColor.a *= 1.0 + centerFactor * SETTING_EXPOSURE_CENTER_WEIGHTING;

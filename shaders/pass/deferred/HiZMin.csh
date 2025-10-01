@@ -10,7 +10,7 @@ layout(r32f) uniform coherent image2D uimg_hiz;
 const vec2 workGroupsRender = vec2(0.25, 0.25);
 
 float spd_loadInput(ivec2 texelPos) {
-    float viewZ = texelFetch(usam_gbufferViewZ, clamp(texelPos, ivec2(0), global_mainImageSizeI - 1), 0).r;
+    float viewZ = texelFetch(usam_gbufferViewZ, clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1), 0).r;
     float revZ = coords_viewZToReversedZ(viewZ, near);
     return revZ;
 }
@@ -39,5 +39,5 @@ void spd_storeOutput(ivec2 texelPos, uint level, float value) {
     }
 }
 uint spd_mipCount() {
-    return min(findMSB(min(global_mainImageSizeI.x, global_mainImageSizeI.y)), 12u);
+    return min(findMSB(min(uval_mainImageSizeI.x, uval_mainImageSizeI.y)), 12u);
 }

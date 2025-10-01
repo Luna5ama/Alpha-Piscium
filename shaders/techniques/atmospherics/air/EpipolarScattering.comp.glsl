@@ -53,8 +53,8 @@ void main() {
         sliceSampleP /= float(SETTING_SLICE_SAMPLES - 1);
 
         vec2 screenPos = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
-        vec2 texelPos = screenPos * global_mainImageSize;
-        texelPos = clamp(texelPos, vec2(0.5), vec2(global_mainImageSize - 0.5));
+        vec2 texelPos = screenPos * uval_mainImageSize;
+        texelPos = clamp(texelPos, vec2(0.5), vec2(uval_mainImageSize - 0.5));
         ivec2 texelPosI = ivec2(texelPos);
         float noiseV = rand_IGN(texelPosI, frameCounter);
 

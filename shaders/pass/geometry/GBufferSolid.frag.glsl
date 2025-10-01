@@ -155,7 +155,7 @@ void processData1() {
 void main() {
     #ifdef DISTANT_HORIZONS
     #ifndef GBUFFER_PASS_DH
-    vec2 screenPos = gl_FragCoord.xy * global_mainImageSizeRcp;
+    vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp;
     vec3 viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
     float edgeFactor = linearStep(min(far * 0.75, far - 24.0), far, length(viewPos));
     if (ditherNoise < edgeFactor) {

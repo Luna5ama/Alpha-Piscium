@@ -14,13 +14,13 @@ layout(rgba16f) uniform restrict image2D uimg_main;
 layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
 
 void main() {
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
 
         ivec2 farDepthTexelPos = texelPos;
         ivec2 nearDepthTexelPos = texelPos;
-        farDepthTexelPos.y += global_mainImageSizeI.y;
-        nearDepthTexelPos += global_mainImageSizeI;
+        farDepthTexelPos.y += uval_mainImageSizeI.y;
+        nearDepthTexelPos += uval_mainImageSizeI;
 
         float startViewZ = -texelFetch(usam_translucentDepthLayers, nearDepthTexelPos, 0).r;
 

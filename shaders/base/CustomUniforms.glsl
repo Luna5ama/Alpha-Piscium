@@ -19,3 +19,9 @@ uniform vec2 uval_moonNdcPos;
 uniform float uval_dayNightTransition;
 
 uniform vec3 uval_cuDetailWind;
+
+uniform vec2 uval_mainImageSize;
+uniform vec2 uval_mainImageSizeRcp;
+uniform int uval_mainImageSizeIX;
+uniform int uval_mainImageSizeIY;
+ivec2 uval_mainImageSizeI = ivec2(uval_mainImageSizeIX, uval_mainImageSizeIY);

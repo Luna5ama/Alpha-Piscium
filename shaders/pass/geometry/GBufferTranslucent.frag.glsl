@@ -173,7 +173,7 @@ GBufferData processOutput() {
 void main() {
     texelPos = ivec2(gl_FragCoord.xy);
 
-    vec2 screenPos = gl_FragCoord.xy * global_mainImageSizeRcp;
+    vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp;
     viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
 
     float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
@@ -220,10 +220,10 @@ void main() {
     ivec2 farDepthTexelPos = texelPos;
     ivec2 nearDepthTexelPos = texelPos;
 //    if (isWater) {
-//        nearDepthTexelPos.x += global_mainImageSizeI.x;
+//        nearDepthTexelPos.x += uval_mainImageSizeI.x;
 //    } else {
-        farDepthTexelPos.y += global_mainImageSizeI.y;
-        nearDepthTexelPos += global_mainImageSizeI;
+        farDepthTexelPos.y += uval_mainImageSizeI.y;
+        nearDepthTexelPos += uval_mainImageSizeI;
 //    }
 
     float offsetViewZ = frag_viewZ;

@@ -26,9 +26,9 @@ void main() {
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     ivec2 texelPos1x1 = ivec2(mortonGlobalPosU);
 
-    if (all(lessThan(texelPos1x1, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos1x1, uval_mainImageSizeI))) {
         ivec2 texelPos2x2 = texelPos1x1 >> 1;
-        vec2 screenPos1x1 = (vec2(texelPos1x1) + 0.5) * global_mainImageSizeRcp;
+        vec2 screenPos1x1 = (vec2(texelPos1x1) + 0.5) * uval_mainImageSizeRcp;
 
         if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 3)) {
             float viewZ = texelFetch(usam_gbufferViewZ, texelPos1x1, 0).r;

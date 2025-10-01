@@ -80,9 +80,9 @@ void main() {
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     texelPos = ivec2(mortonGlobalPosU);
 
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         ivec2 texelPos2x2 = texelPos >> 1;
-        vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+        vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
 
         if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
             float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
@@ -123,7 +123,7 @@ void main() {
 
                 uvec4 packedZNOut = uvec4(0u);
                 nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
-                imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
+                imageStore(uimg_packedZN, texelPos + ivec2(0, uval_mainImageSizeI.y), packedZNOut);
 
                 uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
                 ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
@@ -143,7 +143,7 @@ void main() {
 
             uvec4 packedZNOut = uvec4(0u);
             packedZNOut.y = floatBitsToUint(-65536.0);
-            imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
+            imageStore(uimg_packedZN, texelPos + ivec2(0, uval_mainImageSizeI.y), packedZNOut);
 
             uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));

@@ -13,7 +13,7 @@ layout(rgba16f) restrict uniform image2D uimg_main;
 layout(rgba8) uniform restrict image2D uimg_overlays;
 
 void main() {
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 temp6Out = vec4(0.0);
         vec4 mainOut = celestial_render(texelPos, temp6Out);
 

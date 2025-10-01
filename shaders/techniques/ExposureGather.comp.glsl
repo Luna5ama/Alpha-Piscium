@@ -67,7 +67,7 @@ void main() {
         if (subgroupElect()) {
             shared_avgLumBinCountSum[0] = avgLumBinCountSum;
             #ifdef SETTING_DEBUG_AE
-            uint totalPixel = global_mainImageSizeI.x * global_mainImageSizeI.y;
+            uint totalPixel = uval_mainImageSizeI.x * uval_mainImageSizeI.y;
             global_aeData.finalAvgLum = float(lumSum) / float(totalPixel);
             global_aeData.lumHistogramMaxBinCount = lumMax;
             #endif

@@ -33,7 +33,7 @@ vec3 viewPos = vec3(0.0);
 vec3 viewDir = vec3(0.0);
 
 vec2 texel2Screen(ivec2 texelPos) {
-    return (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+    return (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
 }
 
 float searchBlocker(vec3 shadowTexCoord) {
@@ -156,7 +156,7 @@ void main() {
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     texelPos = ivec2(mortonGlobalPosU);
 
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         float viewZ = -65536.0;
 
         #ifdef DISTANT_HORIZONS

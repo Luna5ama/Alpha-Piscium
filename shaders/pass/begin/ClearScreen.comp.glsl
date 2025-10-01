@@ -18,7 +18,7 @@ layout(r32f) uniform writeonly image2D CLEAR_IMAGE3;
 layout(rgba16f) uniform writeonly image2D CLEAR_IMAGE4;
 layout(r32f) uniform writeonly image2D CLEAR_IMAGE5;
 
-#define CLEAR_IMAGE_SIZE ivec2(global_mainImageSizeI)
+#define CLEAR_IMAGE_SIZE ivec2(uval_mainImageSizeI)
 #define CLEAR_COLOR1 uvec4(0u)
 #define CLEAR_COLOR2 vec4(0.0)
 #define CLEAR_COLOR3 vec4(-65536.0)
@@ -26,11 +26,11 @@ layout(r32f) uniform writeonly image2D CLEAR_IMAGE5;
 
 #define CLEAR_OFFSET5 ivec2(0)
 #define CLEAR_COLOR5 vec4(0.0)
-#define CLEAR_OFFSET6 ivec2(global_mainImageSizeI.x, 0)
+#define CLEAR_OFFSET6 ivec2(uval_mainImageSizeI.x, 0)
 #define CLEAR_COLOR6 vec4(65536.0)
-#define CLEAR_OFFSET7 ivec2(0, global_mainImageSizeI.y)
+#define CLEAR_OFFSET7 ivec2(0, uval_mainImageSizeI.y)
 #define CLEAR_COLOR7 vec4(0.0)
-#define CLEAR_OFFSET8 ivec2(global_mainImageSizeI.x, global_mainImageSizeI.y)
+#define CLEAR_OFFSET8 ivec2(uval_mainImageSizeI.x, uval_mainImageSizeI.y)
 #define CLEAR_COLOR8 vec4(65536.0)
 
 #include "/techniques/Clear.comp.glsl"

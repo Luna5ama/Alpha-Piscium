@@ -17,20 +17,20 @@ layout(rgba16f) uniform restrict image2D uimg_main;
 layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
 
 void main() {
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
 
         ivec2 farDepthTexelPos = texelPos;
         ivec2 nearDepthTexelPos = texelPos;
-        farDepthTexelPos.y += global_mainImageSizeI.y;
-        nearDepthTexelPos += global_mainImageSizeI;
+        farDepthTexelPos.y += uval_mainImageSizeI.y;
+        nearDepthTexelPos += uval_mainImageSizeI;
 
         float startViewZ = -texelFetch(usam_translucentDepthLayers, nearDepthTexelPos, 0).r;
         //            float endViewZ = -texelFetch(usam_translucentDepthLayers, farDepthTexelPos, 0).r;
         //            float startViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
         if (startViewZ > -65536.0) {
-            vec2 screenPos = coords_texelToUV(texelPos, global_mainImageSizeRcp);
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
             vec3 startViewPos = coords_toViewCoord(screenPos, startViewZ, global_camProjInverse);
 
             GBufferData gData = gbufferData_init();

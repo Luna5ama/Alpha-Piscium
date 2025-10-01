@@ -46,7 +46,7 @@ float planeWeight, float normalWeight
 }
 
 vec4 computeBilateralWeights(vec2 gatherTexelPos) {
-    vec2 screenPos = gatherTexelPos * global_mainImageSizeRcp;
+    vec2 screenPos = gatherTexelPos * uval_mainImageSizeRcp;
     vec2 gatherUV = nzpacking_fullResGatherUV(gatherTexelPos);
     vec4 result = vec4(1.0);
 
@@ -58,19 +58,19 @@ vec4 computeBilateralWeights(vec2 gatherTexelPos) {
     float geometryNormalWeight = mix(BASE_GEOM_WEIGHT, BASE_NORMAL_WEIGHT, reproject_isHand);
 
     result.x *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(-0.5, 0.5), prevViewZs.x, prevViewGeomNormals.x,
+        screenPos + uval_mainImageSizeRcp * vec2(-0.5, 0.5), prevViewZs.x, prevViewGeomNormals.x,
         geometryPlaneWeight, geometryNormalWeight
     );
     result.y *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(0.5, 0.5), prevViewZs.y, prevViewGeomNormals.y,
+        screenPos + uval_mainImageSizeRcp * vec2(0.5, 0.5), prevViewZs.y, prevViewGeomNormals.y,
         geometryPlaneWeight, geometryNormalWeight
     );
     result.z *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(0.5, -0.5), prevViewZs.z, prevViewGeomNormals.z,
+        screenPos + uval_mainImageSizeRcp * vec2(0.5, -0.5), prevViewZs.z, prevViewGeomNormals.z,
         geometryPlaneWeight, geometryNormalWeight
     );
     result.w *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(-0.5, -0.5), prevViewZs.w, prevViewGeomNormals.w,
+        screenPos + uval_mainImageSizeRcp * vec2(-0.5, -0.5), prevViewZs.w, prevViewGeomNormals.w,
         geometryPlaneWeight, geometryNormalWeight
     );
 
@@ -176,7 +176,7 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     if (any(notEqual(curr2PrevScreen, saturate(curr2PrevScreen)))) {
         return;
     }
-    vec2 curr2PrevTexel = curr2PrevScreen * global_mainImageSize;
+    vec2 curr2PrevTexel = curr2PrevScreen * uval_mainImageSize;
     vec3 currWorldNormal = mat3(gbufferModelViewInverse) * currViewNormal;
     vec3 currToPrevViewNormal = mat3(gbufferPrevModelView) * currWorldNormal;
 
@@ -197,7 +197,7 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     float weightSum = 0.0;
     uint flag = uint(any(lessThan(centerWeights, vec4(CUBIE_SAMPLE_WEIGHT_EPSILON))));
     flag |= uint(any(lessThan(curr2PrevTexel, vec2(1.0))));
-    flag |= uint(any(greaterThan(curr2PrevTexel, global_mainImageSize - 1.0)));
+    flag |= uint(any(greaterThan(curr2PrevTexel, uval_mainImageSize - 1.0)));
 
     vec4 weights1;
     vec4 weights2;

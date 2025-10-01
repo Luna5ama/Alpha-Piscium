@@ -15,7 +15,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) restrict uniform image2D uimg_main;
 
 void main() {
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
 
         vec3 albedo = colors2_material_idt(texelFetch(usam_temp5, texelPos, 0).rgb);

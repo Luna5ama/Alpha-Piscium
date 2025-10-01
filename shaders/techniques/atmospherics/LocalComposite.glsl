@@ -12,7 +12,7 @@
 
 ScatteringResult atmospherics_localComposite(ivec2 texelPos) {
     float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-    vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * global_mainImageSizeRcp;
+    vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * uval_mainImageSizeRcp;
 
     ScatteringResult compositeResult = scatteringResult_init();
 

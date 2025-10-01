@@ -13,7 +13,7 @@ layout(location = 1) out vec4 rt_taaLast;
 
 // from https://github.com/GameTechDev/TAA
 vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST){
-    const vec2 rcpResolution = global_mainImageSizeRcp;
+    const vec2 rcpResolution = uval_mainImageSizeRcp;
     const vec2 fractional = fract(inHistoryST - 0.5);
     const vec2 uv = (floor(inHistoryST - 0.5) + vec2(0.5f, 0.5f)) * rcpResolution;
 
@@ -62,7 +62,7 @@ void main() {
 
     vec3 currColor = texture(usam_main, frag_texCoord).rgb;
 
-    vec4 prevResult = BicubicSampling5(usam_taaLast, prevScreenPos * global_mainImageSize);
+    vec4 prevResult = BicubicSampling5(usam_taaLast, prevScreenPos * uval_mainImageSize);
     vec3 prevColor = saturate(prevResult.rgb);
 
     vec2 pixelPosDiff = (frag_texCoord - prevScreenPos) * textureSize(usam_main, 0).xy;

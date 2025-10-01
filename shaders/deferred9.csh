@@ -28,7 +28,7 @@ void main() {
     ivec2 texelPos1x1Base = texelPos2x2 << 1;
     ivec2 texelPos1x1 = texelPos1x1Base + ivec2(morton_8bDecode(uint(frameCounter) & 3u));
 
-    if (all(lessThan(texelPos1x1, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos1x1, uval_mainImageSizeI))) {
         vec3 ssvbilData = vec3(0.0);
 
         if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 5)) {

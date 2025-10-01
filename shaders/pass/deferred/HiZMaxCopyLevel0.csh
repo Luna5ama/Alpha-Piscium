@@ -10,21 +10,21 @@ layout(r32f) uniform coherent image2D uimg_hiz;
 const vec2 workGroupsRender = vec2(0.25, 0.25);
 
 float spd_loadInput(ivec2 texelPos) {
-    float viewZ = texelFetch(usam_gbufferViewZ, clamp(texelPos, ivec2(0), global_mainImageSizeI - 1), 0).r;
+    float viewZ = texelFetch(usam_gbufferViewZ, clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1), 0).r;
     float revZ = coords_viewZToReversedZ(viewZ, near);
     ivec2 offsetTexelPos = texelPos + 1;
-    if (all(lessThanEqual(offsetTexelPos, global_mainImageSizeI))) {
-        if (offsetTexelPos.x == global_mainImageSizeI.x) {
+    if (all(lessThanEqual(offsetTexelPos, uval_mainImageSizeI))) {
+        if (offsetTexelPos.x == uval_mainImageSizeI.x) {
             imageStore(uimg_hiz, texelPos + ivec2(1, 0), vec4(revZ));
         }
-        if (offsetTexelPos.y == global_mainImageSizeI.y) {
+        if (offsetTexelPos.y == uval_mainImageSizeI.y) {
             imageStore(uimg_hiz, texelPos + ivec2(0, 1), vec4(revZ));
         }
-        if (all(equal(offsetTexelPos, global_mainImageSizeI))) {
+        if (all(equal(offsetTexelPos, uval_mainImageSizeI))) {
             imageStore(uimg_hiz, texelPos + ivec2(1, 1), vec4(revZ));
         }
     }
-    if (all(lessThan(texelPos, global_mainImageSizeI))){
+    if (all(lessThan(texelPos, uval_mainImageSizeI))){
         imageStore(uimg_hiz, texelPos, vec4(revZ));
     }
     return revZ;
@@ -54,5 +54,5 @@ void spd_storeOutput(ivec2 texelPos, uint level, float value) {
     }
 }
 uint spd_mipCount() {
-    return min(findMSB(min(global_mainImageSizeI.x, global_mainImageSizeI.y)), 12u);
+    return min(findMSB(min(uval_mainImageSizeI.x, uval_mainImageSizeI.y)), 12u);
 }

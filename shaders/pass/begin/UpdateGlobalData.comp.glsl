@@ -107,11 +107,6 @@ void main() {
         mat4 taaMat = taaJitterMat(jitter);
         global_taaJitterMat = taaMat;
 
-        ivec2 mainImageSize = imageSize(uimg_main);
-        global_mainImageSizeI = mainImageSize;
-        global_mainImageSize = vec2(mainImageSize);
-        global_mainImageSizeRcp = 1.0 / vec2(mainImageSize);
-
         global_frameMortonJitter = morton_8bDecode(vbgi_downSampleInputMortonIndex());
 
         global_prevCamProj = global_camProj;

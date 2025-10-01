@@ -79,7 +79,7 @@ ScatteringResult raymarchScreenViewAtmosphere(ivec2 texelPos, float viewZ, float
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     ScatteringResult result = scatteringResult_init();
 
-    vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+    vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     ivec2 texePos2x2 = texelPos >> 1;
     float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, texePos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);

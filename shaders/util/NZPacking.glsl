@@ -4,9 +4,9 @@
 #include "/util/Coords.glsl"
 
 vec2 nzpacking_fullResGatherUV(vec2 gatherTexelPos) {
-    vec2 clampedGatherTexelPos = clamp(gatherTexelPos, vec2(1.0), global_mainImageSize - 1);
-    clampedGatherTexelPos.y += global_mainImageSize.y;
-    vec2 sizeRcp = global_mainImageSizeRcp;
+    vec2 clampedGatherTexelPos = clamp(gatherTexelPos, vec2(1.0), uval_mainImageSize - 1);
+    clampedGatherTexelPos.y += uval_mainImageSize.y;
+    vec2 sizeRcp = uval_mainImageSizeRcp;
     sizeRcp.y *= 0.5;
     return clampedGatherTexelPos * sizeRcp;
 }
