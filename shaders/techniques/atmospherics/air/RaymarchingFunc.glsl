@@ -53,6 +53,8 @@ float stepJitter
 #endif
 
 ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPHERE_RAYMARCHING_FUNC_PARAMS) {
+    const vec3 earthCenter = vec3(0.0);
+
     float rcpSteps = 1.0 / float(params.steps);
     vec3 rayStepDelta = (params.rayEnd - params.rayStart) * rcpSteps;
     float rayStepLength = length(rayStepDelta);
@@ -60,6 +62,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
     #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 0
     vec3 totalDensity = vec3(0.0);
     #else
+
     vec3 totalInSctr = vec3(0.0);
     vec3 tSampleToOrigin = vec3(1.0);
     #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
@@ -67,7 +70,31 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
     #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
     vec3 shaodwStepDelta = (shadowEnd - shadowStart) * rcpSteps;
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
+
+    vec3 samplePosMid = (params.rayEnd + params.rayStart) * 0.5;
+    float sampleHeightMid = length(samplePosMid);
+    vec3 upVectorMid = samplePosMid / sampleHeightMid;
+
+    float cosZenithSun = dot(upVectorMid, scatteringParams.sunParams.lightDir);
+    vec3 tSunToSampleMid = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenithSun, sampleHeightMid);
+    float tEarthSun = raySphereIntersectNearest(samplePosMid, scatteringParams.sunParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVectorMid, atmosphere.bottom);
+    tSunToSampleMid *= float(tEarthSun < 0.0);
+    tSunToSampleMid *= scatteringParams.sunParams.irradiance;
+
+    vec3 multiSctrLuminanceSun = atmospherics_air_lut_sampleMultiSctr(atmosphere, cosZenithSun, sampleHeightMid);
+    multiSctrLuminanceSun *= scatteringParams.multiSctrFactor * scatteringParams.sunParams.irradiance;
+
+    float cosZenithMoon = dot(upVectorMid, scatteringParams.moonParams.lightDir);
+    vec3 tMoonToSampleMid = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenithMoon, sampleHeightMid);
+    float tEarthMoon = float(raySphereIntersectNearest(samplePosMid, scatteringParams.moonParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVectorMid, atmosphere.bottom) < 0.0);
+    tMoonToSampleMid *= tEarthMoon;
+    tMoonToSampleMid *= scatteringParams.moonParams.irradiance;
+
+    vec3 multiSctrLuminanceMoon = atmospherics_air_lut_sampleMultiSctr(atmosphere, cosZenithMoon, sampleHeightMid);
+    multiSctrLuminanceMoon *= scatteringParams.multiSctrFactor * scatteringParams.moonParams.irradiance;
+
     #endif
+
     #endif
 
     for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
@@ -95,8 +122,6 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
         vec3 sampleMieInSctr = sampleDensity.y * atmosphere.mieSctrCoeff;
         vec3 sampleTotalInSctr = sampleRayleighInSctr + sampleMieInSctr;
         #endif
-
-        const vec3 earthCenter = vec3(0.0);
 
         #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 0
         {
@@ -141,48 +166,74 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
             float shadowSample = atmosphere_sample_shadow(sampleShadowPos);
             #endif
 
-            {
-                float cosZenith = dot(upVector, scatteringParams.sunParams.lightDir);
-                vec3 tSunToSample = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenith, sampleHeight);
-                vec3 multiSctrLuminance = atmospherics_air_lut_sampleMultiSctr(atmosphere, cosZenith, sampleHeight);
+            vec3 sampleInSctr = vec3(0.0);
 
+            {
                 #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
-                float shadow = mix(1.0, shadowSample, shadowIsSun);
+                float shadowTerm = mix(1.0, shadowSample, shadowIsSun);
                 #else
-                float shadow = 1.0;
+                float tEarth = raySphereIntersectNearest(samplePos, scatteringParams.sunParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom);
+                float shadowTerm = float(tEarth < 0.0);
                 #endif
 
-                float tEarth = raySphereIntersectNearest(samplePos, scatteringParams.sunParams.lightDir, earthCenter, atmosphere.bottom);
-                float earthShadow = float(tEarth < 0.0);
+                #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
+                vec3 tSunToSample = tSunToSampleMid;
+                #else
+                float cosZenithSun = dot(upVector, scatteringParams.sunParams.lightDir);
+                vec3 tSunToSample = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenithSun, sampleHeight);
+                vec3 multiSctrLuminanceSun = atmospherics_air_lut_sampleMultiSctr(atmosphere, cosZenithSun, sampleHeight);
+                multiSctrLuminanceSun *= scatteringParams.multiSctrFactor;
+                #endif
+                tSunToSample *= shadowTerm;
 
-                vec3 sampleInSctr = earthShadow * shadow * tSunToSample * computeTotalInSctr(atmosphere, scatteringParams.sunParams, sampleDensity);
-                sampleInSctr += scatteringParams.multiSctrFactor * multiSctrLuminance * (sampleTotalInSctr);
+                vec3 sampleInSctrC = sampleRayleighInSctr * scatteringParams.sunParams.rayleighPhase;
+                sampleInSctrC += sampleMieInSctr * scatteringParams.sunParams.miePhase;
 
-                // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-                vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-                totalInSctr += tSampleToOrigin * sampleInSctrInt * scatteringParams.sunParams.irradiance;
+
+                #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
+                sampleInSctr += sampleInSctrC * tSunToSample;
+                sampleInSctr += multiSctrLuminanceSun * sampleTotalInSctr;
+                #else
+                sampleInSctrC *= tSunToSample;
+                sampleInSctrC += multiSctrLuminanceSun * sampleTotalInSctr;
+                sampleInSctr += sampleInSctrC * scatteringParams.sunParams.irradiance;
+                #endif
             }
 
             {
-                float cosZenith = dot(upVector, scatteringParams.moonParams.lightDir);
-                vec3 tMoonToSample = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenith, sampleHeight);
-                vec3 multiSctrLuminance = atmospherics_air_lut_sampleMultiSctr(atmosphere, cosZenith, sampleHeight);
-
                 #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
-                float shadow = mix(shadowSample, 1.0, shadowIsSun);
+                float shadowTerm = mix(shadowSample, 1.0, shadowIsSun);
                 #else
-                float shadow = 1.0;
-                #endif
-
                 float tEarth = raySphereIntersectNearest(samplePos, scatteringParams.moonParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom);
-                float earthShadow = float(tEarth < 0.0);
+                float shadowTerm = float(tEarth < 0.0);
+                #endif
 
-                vec3 sampleInSctr = earthShadow * shadow * tMoonToSample * computeTotalInSctr(atmosphere, scatteringParams.moonParams, sampleDensity);
-                sampleInSctr += scatteringParams.multiSctrFactor * multiSctrLuminance * (sampleTotalInSctr);
+                #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
+                vec3 tMoonToSample = tMoonToSampleMid;
+                #else
+                float cosZenithMoon = dot(upVector, scatteringParams.moonParams.lightDir);
+                vec3 tMoonToSample = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenithMoon, sampleHeight);
+                vec3 multiSctrLuminanceMoon = atmospherics_air_lut_sampleMultiSctr(atmosphere, cosZenithMoon, sampleHeight);
+                multiSctrLuminanceMoon *= scatteringParams.multiSctrFactor;
+                #endif
 
-                vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-                totalInSctr += tSampleToOrigin * sampleInSctrInt * scatteringParams.moonParams.irradiance;
+                tMoonToSample *= shadowTerm;
+                vec3 sampleInSctrC = sampleRayleighInSctr * scatteringParams.moonParams.rayleighPhase;
+                sampleInSctrC += sampleMieInSctr * scatteringParams.moonParams.miePhase;
+
+                #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
+                sampleInSctr += sampleInSctrC * tMoonToSample;
+                sampleInSctr += multiSctrLuminanceMoon * sampleTotalInSctr;
+                #else
+                sampleInSctrC *= tMoonToSample;
+                sampleInSctrC += multiSctrLuminanceMoon * sampleTotalInSctr;
+                sampleInSctr += sampleInSctrC * scatteringParams.moonParams.irradiance;
+                #endif
             }
+
+            // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
+            vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
+            totalInSctr += tSampleToOrigin * sampleInSctrInt;
         }
         #endif
 
