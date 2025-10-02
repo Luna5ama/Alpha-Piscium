@@ -80,7 +80,7 @@ float waveHeight(vec3 wavePos, bool base) {
         vec2 curlCoord2 = waveTexCoordOg;
         curlCoord2 += waveTime * 0.3082;
         curlCoord2 += (MAT2_GOLDEN_ANGLE * waveTime) * 0.4163;
-        curlCoord2 *= 1.0869565217391304347826086956522;
+        curlCoord2 *= 1.12;
         curl += textureLod(usam_waveHFCurl, curlCoord2, 0.0).rg * 0.04806;
     }
 
@@ -100,7 +100,7 @@ float waveHeight(vec3 wavePos, bool base) {
     {
         vec2 curlCoord2 = waveTexCoordOg * 0.61;
 
-        curl += textureLod(usam_waveHFCurl, curlCoord2, 0.0).rg * 0.135;
+//        curl += textureLod(usam_waveHFCurl, curlCoord2, 0.0).rg * 0.135;
 
         curlCoord2 = MAT2_GOLDEN_ANGLE * curlCoord2;
         curlCoord2 += sin(timeV * 2.7 + 2.1) * 0.017 * CURL_DIR;
