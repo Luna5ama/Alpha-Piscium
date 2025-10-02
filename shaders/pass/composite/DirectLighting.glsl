@@ -118,6 +118,9 @@ void main() {
                     mainOut.a *= mix(1.0, -1.0, emissiveFlag);
                 }
 
+                mainOut.rgb = clamp(mainOut.rgb, 0.0, FP16_MAX);
+                ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
+
                 uint packedGeometryNormal = packSnorm3x10(lighting_gData.geomNormal);
                 imageStore(uimg_geometryNormal, texelPos, uvec4(packedGeometryNormal));
 

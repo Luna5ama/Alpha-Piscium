@@ -206,9 +206,9 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     float svgfHLen;
     svgf_unpack(svgfData, svgfColor, svgfFastColor, svgfMoments, svgfHLen);
     #if SETTING_DEBUG_DENOISER == 1
-    outputColor.rgb = svgfColor;
+    outputColor.rgb = expGamma(svgfColor);
     #elif SETTING_DEBUG_DENOISER == 2
-    outputColor.rgb = svgfFastColor;
+    outputColor.rgb = expGamma(svgfFastColor);
     #elif SETTING_DEBUG_DENOISER == 3
     outputColor.rgb = interpolateTurbo(1.0 - (svgfHLen - 2.0) / (SETTING_DENOISER_MAX_ACCUM - 2.0));
     #elif SETTING_DEBUG_DENOISER == 4

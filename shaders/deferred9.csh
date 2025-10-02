@@ -11,7 +11,7 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         ivec2 readPos = texelPos;
         int area = imageLoad(uimg_causticsPhoton, readPos).r;
-        area = clamp(area, 0, 256 * 16 * 4);
+        area = clamp(area, 0, 256 * 32 * 16);
         float v = float(area) / 256.0 / 16.0;
         imageStore(uimg_causticsPhoton, texelPos, ivec4(floatBitsToInt(v)));
     }

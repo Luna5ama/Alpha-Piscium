@@ -140,7 +140,7 @@ vec3 calcShadow(Material material) {
     if (texture(usam_shadow_waterMask, sampleTexCoord.xy).r > 0.9) {
         ivec2 readPos = texelPos;
         readPos.y += uval_mainImageSizeI.y;
-        shadow *= vec3(texelFetch(usam_causticsPhoton, readPos, 0).r);
+        shadow *= 0.1 + vec3(texelFetch(usam_causticsPhoton, readPos, 0).r);
     }
 
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
@@ -186,6 +186,7 @@ void main() {
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             vec4 outputColor = compShadow(texelPos, viewZ);
+            outputColor = clamp(outputColor, 0.0, FP16_MAX);
             imageStore(uimg_temp3, texelPos, outputColor);
 
             rtwsm_backward(texelPos, viewZ, gData);
