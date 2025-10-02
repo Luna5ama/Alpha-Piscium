@@ -41,7 +41,7 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
     const vec3 earthCenter = vec3(0.0, 0.0, 0.0);
     vec3 V = normalize(-viewPos);
 
-    vec3 shadow = texelFetch(usam_temp5, texelPos, 0).rgb;
+    vec3 shadow = texelFetch(usam_temp3, texelPos, 0).rgb;
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
 
     float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));

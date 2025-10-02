@@ -200,7 +200,7 @@ void main() {
     t *= saturate(0.3 / lumaT);
 
     if (isWater) {
-        t.g *= 3.0;
+        t.g *= 2.5;
     }
     t = pow(t, vec3(1.0 / 2.2));
     lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);
@@ -208,7 +208,7 @@ void main() {
     t = lumaT + sat * (t - lumaT);
     t = pow(t, vec3(2.2));
 
-    float tv = isWater ? 0.4 : 1.0;
+    float tv = isWater ? 0.5 : 1.0;
 
     vec3 tAbsorption = -log(t) * (alpha * sqrt(alpha)) * tv;
     tAbsorption = max(tAbsorption, 0.0);

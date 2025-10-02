@@ -3,12 +3,10 @@ import java.nio.file.Path
 import java.nio.file.StandardOpenOption
 import java.security.MessageDigest
 import kotlin.io.path.*
-import kotlin.math.abs
-import kotlin.math.sign
 import kotlin.system.exitProcess
 
 if (args.size != 3) {
-    println("Usage: shift-program.main.kts <prefix>> <center> <delta>")
+    println("Usage: shift-program.main.kts <prefix> <center> <delta>")
     exitProcess(1)
 }
 
@@ -34,41 +32,29 @@ val entries = shadersDir.listDirectoryEntries("$prefix*").asSequence()
 
 check(center in entries) { "Center index not found in shader names" }
 
+val movingSrc = if (delta > 0) entries.keys.sorted() else entries.keys.sortedDescending()
+val movingDst = movingSrc.toMutableList()
+val toMove = mutableListOf<Pair<Int, Int>>()
 
-var spaces = 0
-val toMove = entries.keys.asSequence()
-    .run {
-        if (delta > 0) {
-            filter { it >= center }.sorted()
-        } else {
-            filter { it <= center }.sortedDescending()
-        }
+for (i in movingSrc.indices) {
+    val src = movingSrc[i]
+    if (delta > 0 && src < center) continue
+    if (delta < 0 && src > center) continue
+    if (src == center) {
+        movingDst[i] += delta
+    } else if (i > 0) {
+        movingDst[i] = if (delta > 0) maxOf(movingDst[i], movingDst[i - 1] + 1)
+        else minOf(movingDst[i], movingDst[i - 1] - 1)
     }
-    .windowed(2, 1, false)
-    .map { (a, b) ->
-        val diff = abs(a - b)
-        val move = abs(delta) - spaces
-        spaces += diff - 1
-        a to move
+    val newDst = movingDst[i]
+    if (newDst != src) {
+        check(newDst in 1..99) { "shift too big" }
+        toMove.add(src to newDst)
     }
-    .takeWhile { it.second > 0 }
-    .map { it.first to it.first + it.second * delta.sign }
-    .run {
-        if (delta > 0) {
-            sortedByDescending { it.first }
-        } else {
-            sortedBy { it.first }
-        }
-    }
-    .toList()
-
-val toMoveIndices = toMove.mapTo(mutableSetOf()) { it.first }
-
-if (delta > 0) {
-    check(99 !in toMoveIndices) { "shift too big" }
-} else {
-    check(1 !in toMoveIndices) { "shift too big" }
 }
+
+toMove.reverse()
+toMove.forEach(::println)
 
 fun hash(path: Path): ByteArray {
     return FileChannel.open(path, StandardOpenOption.READ).use { channel ->
@@ -79,9 +65,9 @@ fun hash(path: Path): ByteArray {
     }
 }
 
-val hashes = entries.asSequence()
-    .filter { it.key in toMoveIndices }
-    .flatMap { (_, paths) ->
+val hashes = toMove.asSequence()
+    .mapNotNull { entries[it.first] }
+    .flatMap { paths ->
         paths.map {
             it to hash(it)
         }

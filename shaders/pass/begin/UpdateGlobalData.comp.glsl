@@ -95,6 +95,7 @@ void main() {
 
         vec2 jitter = taaJitter();
         global_shadowRotationMatrix = shadowDeRotateMatrix();
+        global_shadowRotationMatrixInverse = inverse(global_shadowRotationMatrix);
         global_shadowProjPrev = global_shadowProj;
         global_shadowProjInversePrev = global_shadowProjInverse;
         global_shadowProj = mat4_createOrthographicMatrix(
@@ -113,6 +114,43 @@ void main() {
         global_prevCamProjInverse = global_camProjInverse;
         global_camProj = mat4_infRevZFromRegular(gbufferProjection, near);
         global_camProjInverse = inverse(global_camProj);
+
+        {
+            const float EPS = 1e-32;
+            mat4 rowProj = transpose(gbufferProjection);
+            vec4 row0 = rowProj[0];
+            vec4 row1 = rowProj[1];
+            vec4 row2 = rowProj[2];
+            vec4 row3 = rowProj[3];
+
+            // Build candidate planes. We use the form:
+            //   plane(p) = dot(plane.xyz, p.xyz) + plane.w  >= 0  means "inside".
+            // For NDC x,y in [-w,w] and z in [0,w] (reverse-Z):
+            // left:   q.w + q.x >= 0   ->  row3 + row0
+            // right:  q.w - q.x >= 0   ->  row3 - row0
+            // bottom: q.w + q.y >= 0   ->  row3 + row1
+            // top:    q.w - q.y >= 0   ->  row3 - row1
+            // near:   q.w - q.z >= 0   ->  row3 - row2  (reverse-Z: near maps to NDC z = 1)
+            // far:    q.z     >= 0     ->  row2         (maps to NDC z = 0)  -- may be degenerate for infinite far
+            vec4 cand[6];
+            cand[0] = row3 + row0;// left
+            cand[1] = row3 - row0;// right
+            cand[2] = row3 + row1;// bottom
+            cand[3] = row3 - row1;// top
+            cand[4] = row3 + row2;// near (reverse-Z)
+            cand[5] = row3 - row2;// far-ish (z >= 0). Skip if degenerate.
+
+            // normalize and collect valid planes
+            vec4 planes[6];
+            uint pcount = 0;
+            for (uint i = 0; i < 6; ++i) {
+                float nlen = length(cand[i].xyz);
+                if (nlen > EPS) {
+                    global_cameraData.frustumPlanes[pcount++] = cand[i] / nlen; // normalize plane (xyz and w)
+                }
+            }
+            global_cameraData.frustumPlaneCount = pcount;
+        }
     } else {
         ivec2 mainImageSize = imageSize(uimg_main);
         for (uint i = 0; i < 16; i++) {

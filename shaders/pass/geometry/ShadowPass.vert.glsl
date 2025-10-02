@@ -2,19 +2,27 @@
 
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 
+in vec2 mc_Entity;
+
 out uint vert_survived;
 out vec2 vert_unwarpedTexCoord;
 out vec2 vert_texcoord;
 out vec4 vert_color;
 out vec3 vert_normal;
+out vec3 vert_scenePos;
+out uint vert_materialID;
 
 void main() {
     vert_texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     vert_color = gl_Color;
     vert_normal = normalize(mat3(global_shadowViewInverse) * (gl_NormalMatrix * gl_Normal.xyz));
+    vert_materialID = uint(int(mc_Entity.x)) & 0xFFFFu;
 
     vec4 shadowClipPos = ftransform();
-    vec4 shadowViewPos = global_shadowRotationMatrix * shadowProjectionInverse * shadowClipPos;
+    vec4 shadowViewPos = shadowProjectionInverse * shadowClipPos;
+    vec4 scenePos = shadowModelViewInverse * shadowViewPos;
+    vert_scenePos = scenePos.xyz / scenePos.w;
+    shadowViewPos = global_shadowRotationMatrix * shadowViewPos;
     shadowClipPos = global_shadowProjPrev * shadowViewPos;
     gl_Position = shadowClipPos;
     gl_Position /= gl_Position.w;
@@ -26,7 +34,6 @@ void main() {
     gl_Position.xy = vPosTS * 2.0 - 1.0;
 
     shadowViewPos /= shadowViewPos.w;
-    vec4 scenePos = global_shadowViewInverse * shadowViewPos;
     vec4 camViewPos = gbufferModelView * scenePos;
     camViewPos /= camViewPos.w;
 

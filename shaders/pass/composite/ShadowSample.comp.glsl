@@ -21,7 +21,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 uniform sampler2D dhDepthTex0;
 #endif
 
-layout(rgba8) uniform restrict image2D uimg_temp5;
+layout(rgba16f) uniform restrict image2D uimg_temp3;
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 layout(rgba16f) uniform restrict image2D uimg_translucentColor;
 
@@ -137,6 +137,12 @@ vec3 calcShadow(Material material) {
 
     vec3 shadow = min(sampleColor.rgb, sampleShadow1.rrr);
 
+    if (texture(usam_shadow_waterMask, sampleTexCoord.xy).r > 0.9) {
+        ivec2 readPos = texelPos;
+        readPos.y += uval_mainImageSizeI.y;
+        shadow *= vec3(texelFetch(usam_causticsPhoton, readPos, 0).r);
+    }
+
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
     return mix(vec3(shadow), vec3(1.0), shadowRangeBlend);
 }
@@ -166,7 +172,7 @@ void main() {
             float dhDepth = texelFetch(dhDepthTex0, texelPos, 0).r;
             float dhViewZ = -coords_linearizeDepth(dhDepth, dhNearPlane, dhFarPlane);
             if (dhViewZ > viewZ) {
-                translucentColor = imageLoad(uimg_temp5, texelPos);
+                translucentColor = texelFetch(usam_temp5, texelPos);
                 imageStore(uimg_translucentColor, texelPos, translucentColor);
             }
         }
@@ -180,7 +186,7 @@ void main() {
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             vec4 outputColor = compShadow(texelPos, viewZ);
-            imageStore(uimg_temp5, texelPos, outputColor);
+            imageStore(uimg_temp3, texelPos, outputColor);
 
             rtwsm_backward(texelPos, viewZ, gData);
         }
