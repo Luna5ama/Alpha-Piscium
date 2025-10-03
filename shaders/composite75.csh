@@ -34,8 +34,12 @@ void main() {
     #ifdef SETTING_BLOOM
     bloom_init();
     #endif
-    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec4 outputColor = imageLoad(uimg_main, texelPos);
+
+    bool valid = all(lessThan(texelPos, uval_mainImageSizeI));
+    vec4 outputColor = vec4(0.0);
+
+    if (valid) {
+        outputColor = imageLoad(uimg_main, texelPos);
 
         #ifdef SETTING_BLOOM
         outputColor += bloom_mainOutput(texelPos);
@@ -67,8 +71,11 @@ void main() {
         float centerFactor = pow(saturate(1.0 - length(ndcPos)), SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE);
         outputColor.a *= 1.0 + centerFactor * SETTING_EXPOSURE_CENTER_WEIGHTING;
         outputColor.a = abs(outputColor.a);
-        displaytransform_apply(outputColor);
+    }
 
+    displaytransform_apply(valid, outputColor);
+
+    if (valid) {
         vec4 basicColor = texelFetch(usam_overlays, texelPos, 0);
         outputColor.rgb = mix(outputColor.rgb, basicColor.rgb, basicColor.a);
 
