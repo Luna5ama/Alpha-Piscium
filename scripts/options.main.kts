@@ -1074,9 +1074,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Light Shaft Depth Break Correction Samples"
                     }
                 }
-                slider("SETTING_LIGHT_SHAFT_PCSS", true) {
+                slider("SETTING_LIGHT_SHAFT_SOFTNESS", 5, 0..10 step 1) {
                     lang {
-                        name = "Light Shaft PCSS"
+                        name = "Light Shaft Softness"
                     }
                 }
             }

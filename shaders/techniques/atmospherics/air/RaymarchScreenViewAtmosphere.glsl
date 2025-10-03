@@ -14,26 +14,31 @@
 #include "/util/Celestial.glsl"
 #include "/util/Rand.glsl"
 
+vec2 _processShadowSampleUV(vec2 sampleShadowUV, ivec2 randCoord) {
+    float rv = rand_stbnVec1(randCoord, 0);
+    vec2 dir = rand_stbnUnitVec211(randCoord, 0);
+    float sqrtJitterR = sqrt(rv);
+    float r = ldexp(sqrtJitterR, -12 + SETTING_LIGHT_SHAFT_SOFTNESS);
+    vec2 result = sampleShadowUV;
+    result += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
+    result = rtwsm_warpTexCoord(usam_rtwsm_imap, result);
+    return result;
+}
+
 #ifdef SHARED_MEMORY_SHADOW_SAMPLE
 shared vec4 shared_sliceShadowScreenStartEnd;
-shared vec2 shared_shadowPixelSizeParams;
-#define SHADOW_SAMPLE_COUNT (WORK_GROUP_SIZE * 4)
+#define SHADOW_SAMPLE_COUNT (WORK_GROUP_SIZE * 8)
 shared float shared_sliceShadowSamples[SHADOW_SAMPLE_COUNT];
 
+
 void loadSharedShadowSample(uint index) {
-    ivec2 randCoord = ivec2(gl_WorkGroupID.x, index);
-    float jitter = rand_stbnVec1(randCoord, frameCounter);
-    float t = saturate((float(index) + jitter) / float(SHADOW_SAMPLE_COUNT - 1));
+    float fi = float(index);
+    float t = saturate(pow2(fi / float(SHADOW_SAMPLE_COUNT - 1)));
+
     vec4 endPoints = shared_sliceShadowScreenStartEnd;
     vec2 sampleShadowUV = mix(endPoints.xy, endPoints.zw, saturate(t));
-
-
-    vec2 dir = rand_stbnUnitVec211(randCoord, frameCounter);
-    float sqrtJitterR = sqrt(jitter);
-    float r = sqrtJitterR * 0.05;
-    sampleShadowUV.xy += r * dir * shared_shadowPixelSizeParams;
-
-    sampleShadowUV.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleShadowUV.xy);
+    ivec2 randCoord = ivec2(gl_WorkGroupID.x, index);
+    sampleShadowUV.xy = _processShadowSampleUV(sampleShadowUV.xy, randCoord);
 
     float shadowSampleDepth = texture(shadowtex1, sampleShadowUV).r;
     vec2 ndcCoord = sampleShadowUV * 2.0 - 1.0;
@@ -43,10 +48,7 @@ void loadSharedShadowSample(uint index) {
 }
 
 void screenViewRaymarch_init(vec2 screenPos) {
-    if (gl_LocalInvocationIndex == 0) {
-        shared_shadowPixelSizeParams = vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
-    }
-    if (gl_LocalInvocationIndex == WORK_GROUP_SIZE - 1) {
+    if (gl_LocalInvocationIndex == (WORK_GROUP_SIZE - 1)) {
         vec3 viewDir = normalize(coords_toViewCoord(screenPos, -1.0, global_camProjInverse));
         vec3 sliceNormal = normalize(cross(uval_shadowLightDirView, viewDir));
         vec3 perpViewDir = normalize(cross(uval_shadowLightDirView, sliceNormal));
@@ -75,6 +77,10 @@ void screenViewRaymarch_init(vec2 screenPos) {
     loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE);
     loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 2);
     loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 3);
+    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 4);
+    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 5);
+    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 6);
+    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 7);
     barrier();
 }
 
@@ -86,8 +92,8 @@ float compT(vec4 endPoints, vec3 shadowPos) {
 
 float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos) {
     vec4 endPoints = shared_sliceShadowScreenStartEnd;
-    float startT = compT(endPoints, startShadowPos);
-    float endT = compT(endPoints, endShadowPos);
+    float startT = sqrt(compT(endPoints, startShadowPos));
+    float endT = sqrt(compT(endPoints, endShadowPos));
     float shadowSum = 0.0;
     const uint SHADOW_STEPS = SETTING_LIGHT_SHAFT_SHADOW_SAMPLES;
     vec2 startTAndDepth = vec2(startT, startShadowPos.z);
@@ -102,10 +108,11 @@ float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos) {
     return shadowSum / float(SHADOW_STEPS);
 }
 #else
+ivec2 _texelPos = ivec2(-1);
 float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos) {
-    vec3 sampleTexCoord = (startShadowPos + endShadowPos) * 0.5;
-    sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
-    return rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
+    vec3 sampleShadowUV = (startShadowPos + endShadowPos) * 0.5;
+    sampleShadowUV.xy = _processShadowSampleUV(sampleShadowUV.xy, _texelPos);
+    return rtwsm_sampleShadowDepth(shadowtex0HW, sampleShadowUV, 0.0);
 }
 #endif
 
@@ -115,6 +122,9 @@ float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos) {
 const vec3 ORIGIN_VIEW = vec3(0.0);
 
 ScatteringResult raymarchScreenViewAtmosphere(ivec2 texelPos, float viewZ, uint steps, float noiseV) {
+    #ifndef SHARED_MEMORY_SHADOW_SAMPLE
+    _texelPos = texelPos;
+    #endif
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     ScatteringResult result = scatteringResult_init();
 
