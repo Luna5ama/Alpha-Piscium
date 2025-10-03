@@ -16,7 +16,8 @@
 
 #ifdef SHARED_MEMORY_SHADOW_SAMPLE
 shared vec4 shared_sliceShadowScreenStartEnd;
-#define SHADOW_SAMPLE_COUNT (SETTING_SLICE_SAMPLES * 2)
+shared vec2 shared_shadowPixelSizeParams;
+#define SHADOW_SAMPLE_COUNT (WORK_GROUP_SIZE * 4)
 shared float shared_sliceShadowSamples[SHADOW_SAMPLE_COUNT];
 
 void loadSharedShadowSample(uint index) {
@@ -30,7 +31,7 @@ void loadSharedShadowSample(uint index) {
     vec2 dir = rand_stbnUnitVec211(randCoord, frameCounter);
     float sqrtJitterR = sqrt(jitter);
     float r = sqrtJitterR * 0.05;
-    sampleShadowUV.xy += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
+    sampleShadowUV.xy += r * dir * shared_shadowPixelSizeParams;
 
     sampleShadowUV.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleShadowUV.xy);
 
@@ -42,7 +43,10 @@ void loadSharedShadowSample(uint index) {
 }
 
 void screenViewRaymarch_init(vec2 screenPos) {
-    if (gl_LocalInvocationIndex == 127) {
+    if (gl_LocalInvocationIndex == 0) {
+        shared_shadowPixelSizeParams = vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
+    }
+    if (gl_LocalInvocationIndex == WORK_GROUP_SIZE - 1) {
         vec3 viewDir = normalize(coords_toViewCoord(screenPos, -1.0, global_camProjInverse));
         vec3 sliceNormal = normalize(cross(uval_shadowLightDirView, viewDir));
         vec3 perpViewDir = normalize(cross(uval_shadowLightDirView, sliceNormal));
@@ -68,7 +72,9 @@ void screenViewRaymarch_init(vec2 screenPos) {
     barrier();
 
     loadSharedShadowSample(gl_LocalInvocationIndex);
-    loadSharedShadowSample(gl_LocalInvocationIndex + SETTING_SLICE_SAMPLES);
+    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE);
+    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 2);
+    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 3);
     barrier();
 }
 

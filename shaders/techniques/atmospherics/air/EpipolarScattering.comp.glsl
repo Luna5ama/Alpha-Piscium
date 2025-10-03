@@ -15,8 +15,21 @@
 #include "/util/Lighting.glsl"
 #include "/util/Rand.glsl"
 
-layout(local_size_x = 1, local_size_y = SETTING_SLICE_SAMPLES) in;
-const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
+#if SETTING_SLICE_SAMPLES == 128
+#define WORK_GROUP_SIZE 128
+#define WORK_GROUP_COUNT 1
+#elif SETTING_SLICE_SAMPLES == 256
+#define WORK_GROUP_SIZE 256
+#define WORK_GROUP_COUNT 1
+#elif SETTING_SLICE_SAMPLES == 512
+#define WORK_GROUP_SIZE 256
+#define WORK_GROUP_COUNT 2
+#elif SETTING_SLICE_SAMPLES == 1024
+#define WORK_GROUP_SIZE 256
+#define WORK_GROUP_COUNT 4
+#endif
+layout(local_size_x = 1, local_size_y = WORK_GROUP_SIZE) in;
+const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, WORK_GROUP_COUNT, 1);
 
 #define SHARED_MEMORY_SHADOW_SAMPLE a
 #include "RaymarchScreenViewAtmosphere.glsl"
@@ -28,7 +41,7 @@ void main() {
     vec2 imgSize = vec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     uint sliceIndex = gl_WorkGroupID.x;
-    uint sliceSampleIndex = gl_LocalInvocationID.y;
+    uint sliceSampleIndex = gl_GlobalInvocationID.y;
     vec4 sliceEndPoints = uintBitsToFloat(imageLoad(uimg_epipolarData, ivec2(sliceIndex, 0)));
 
     ScatteringResult result = scatteringResult_init();
