@@ -162,8 +162,11 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
         #else
         {
             #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
-            vec3 sampleShadowPos = shadowStart + (stepIndexF + stepJitter) * shaodwStepDelta;
-            float shadowSample = atmosphere_sample_shadow(sampleShadowPos);
+            float startShadowT = max(stepIndexF + stepJitter - 0.5, 0.0);
+            float endShadowT = min(stepIndexF + stepJitter + 0.5, float(params.steps));
+            vec3 startShadowPos = shadowStart + startShadowT * shaodwStepDelta;
+            vec3 endShadowPos = shadowStart + endShadowT * shaodwStepDelta;
+            float shadowSample = atmosphere_sample_shadow(startShadowPos, endShadowPos);
             #endif
 
             vec3 sampleInSctr = vec3(0.0);

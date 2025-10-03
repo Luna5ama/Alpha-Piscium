@@ -17,7 +17,7 @@ void main() {
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         float noiseV = rand_stbnVec1(texelPos, frameCounter + 1);
 
-        ScatteringResult sctrResult = raymarchScreenViewAtmosphere(texelPos, viewZ, noiseV);
+        ScatteringResult sctrResult = raymarchScreenViewAtmosphere(texelPos, viewZ, SETTING_LIGHT_SHAFT_DEPTH_BREAK_CORRECTION_SAMPLES, noiseV);
 
         vec4 outputColor = imageLoad(uimg_main, texelPos);
         outputColor.rgb *= sctrResult.transmittance;

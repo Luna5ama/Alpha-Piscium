@@ -503,7 +503,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             }
             screen("NORMAL_MAPPING", 1) {
                 lang {
-                    name = "PBR Settings"
+                    name = "Normal Mapping"
                 }
                 toggle("SETTING_NORMAL_MAPPING", true) {
                     lang {
@@ -518,7 +518,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             }
             screen("SPECULAR_MAPPING", 1) {
                 lang {
-                    name = "PBR Settings"
+                    name = "Specular Mapping"
                 }
                 slider("SETTING_MINIMUM_F0", 12, 4..32) {
                     lang {
@@ -1037,12 +1037,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Sky View Resolution"
                     }
                 }
-                slider("SETTING_EPIPOLAR_SLICES", 512, listOf(256, 512, 1024, 2048)) {
+                slider("SETTING_EPIPOLAR_SLICES", 1024, listOf(256, 512, 1024, 2048)) {
                     lang {
                         name = "Epipolar Slices"
                     }
                 }
-                slider("SETTING_SLICE_SAMPLES", 256, listOf(128, 256, 512, 1024)) {
+                slider("SETTING_SLICE_SAMPLES", 512, listOf(128, 256, 512, 1024)) {
                     lang {
                         name = "Slice Samples"
                     }
@@ -1059,9 +1059,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Sky Samples"
                     }
                 }
-                slider("SETTING_LIGHT_SHAFT_SAMPLES", 32, 16..128 step 8) {
+                slider("SETTING_LIGHT_SHAFT_SAMPLES", 12, 4..32 step 4) {
                     lang {
                         name = "Light Shaft Samples"
+                    }
+                }
+                slider("SETTING_LIGHT_SHAFT_SHADOW_SAMPLES", 8, 1..16 step 1) {
+                    lang {
+                        name = "Light Shaft Shadow Samples"
+                    }
+                }
+                slider("SETTING_LIGHT_SHAFT_DEPTH_BREAK_CORRECTION_SAMPLES", 32, 8..64 step 8) {
+                    lang {
+                        name = "Light Shaft Depth Break Correction Samples"
                     }
                 }
                 slider("SETTING_LIGHT_SHAFT_PCSS", true) {

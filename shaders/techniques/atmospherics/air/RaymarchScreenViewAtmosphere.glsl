@@ -14,68 +14,101 @@
 #include "/util/Celestial.glsl"
 #include "/util/Rand.glsl"
 
-#ifdef SETTING_LIGHT_SHAFT_PCSS
-ivec2 _shadow_texelPos = ivec2(0);
-uint _shadow_blocker_index = 0u;
-uint _shadow_index = 0u;
+#ifdef SHARED_MEMORY_SHADOW_SAMPLE
+shared vec4 shared_sliceShadowScreenStartEnd;
+#define SHADOW_SAMPLE_COUNT (SETTING_SLICE_SAMPLES * 2)
+shared float shared_sliceShadowSamples[SHADOW_SAMPLE_COUNT];
 
-float searchBlocker(vec3 shadowTexCoord) {
-    const float blockerSearchRange = 0.1;
+void loadSharedShadowSample(uint index) {
+    ivec2 randCoord = ivec2(gl_WorkGroupID.x, index);
+    float jitter = rand_stbnVec1(randCoord, frameCounter);
+    float t = saturate((float(index) + jitter) / float(SHADOW_SAMPLE_COUNT - 1));
+    vec4 endPoints = shared_sliceShadowScreenStartEnd;
+    vec2 sampleShadowUV = mix(endPoints.xy, endPoints.zw, saturate(t));
 
-    float blockerDepth = 0.0;
-    int n = 0;
 
-    for (int i = 0; i < 1; i++) {
-        ivec2 r2Offset = ivec2(rand_r2Seq2(_shadow_blocker_index++) * vec2(128, 128));
-        vec2 randomOffset = rand_stbnVec2(_shadow_texelPos + r2Offset, frameCounter) * 2.0 - 1.0;
-        vec3 sampleTexCoord = shadowTexCoord;
-        sampleTexCoord.xy += randomOffset * blockerSearchRange * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
-        sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
-        float depth = rtwsm_sampleShadowDepth(shadowtex1, sampleTexCoord, 4.0).r;
-        bool isBlocker = sampleTexCoord.z > depth;
-        blockerDepth += float(isBlocker) * depth;
-        n += int(isBlocker);
-    }
-    blockerDepth /= float(max(n, 1));
-    blockerDepth = mix(shadowTexCoord.z, blockerDepth, float(n != 0));
+    vec2 dir = rand_stbnUnitVec211(randCoord, frameCounter);
+    float sqrtJitterR = sqrt(jitter);
+    float r = sqrtJitterR * 0.05;
+    sampleShadowUV.xy += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
 
-    return abs(rtwsm_linearDepth(blockerDepth) - rtwsm_linearDepth(shadowTexCoord.z));
+    sampleShadowUV.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleShadowUV.xy);
+
+    float shadowSampleDepth = texture(shadowtex1, sampleShadowUV).r;
+    vec2 ndcCoord = sampleShadowUV * 2.0 - 1.0;
+    float edgeCoord = max(abs(ndcCoord.x), abs(ndcCoord.y));
+    shadowSampleDepth = mix(shadowSampleDepth, 1.0, linearStep(1.0 - SHADOW_MAP_SIZE.y * 16, 1.0, edgeCoord));
+    shared_sliceShadowSamples[index] = shadowSampleDepth;
 }
 
-float atmosphere_sample_shadow(vec3 shadowPos) {
-    float blockerDistance = searchBlocker(shadowPos);
-    float ssRange = saturate(SUN_ANGULAR_RADIUS * 2.0 * SETTING_PCSS_VPF * blockerDistance);
+void screenViewRaymarch_init(vec2 screenPos) {
+    if (gl_LocalInvocationIndex == 127) {
+        vec3 viewDir = normalize(coords_toViewCoord(screenPos, -1.0, global_camProjInverse));
+        vec3 sliceNormal = normalize(cross(uval_shadowLightDirView, viewDir));
+        vec3 perpViewDir = normalize(cross(uval_shadowLightDirView, sliceNormal));
+        perpViewDir = viewDir;
 
-    ivec2 r2Offset = ivec2(rand_r2Seq2(_shadow_index++) * vec2(128, 128));
-    ivec2 noisePos = _shadow_texelPos + r2Offset;
-    float jitterR = rand_stbnVec1(noisePos, frameCounter);
-    vec2 dir = rand_stbnUnitVec211(noisePos, frameCounter);
-    float sqrtJitterR = sqrt(jitterR);
-    float r = sqrtJitterR * ssRange;
-    vec3 sampleTexCoord = shadowPos;
-    sampleTexCoord.xy += r * dir * vec2(shadowProjection[0][0], shadowProjection[1][1]);
-    sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
-    return rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
+        vec3 sliceShadowStartView = perpViewDir * near;
+        vec3 sliceShadowEndView = perpViewDir * shadowDistance;
+
+        vec4 sliceShadowStartScene = gbufferModelViewInverse * vec4(sliceShadowStartView, 1.0);
+        vec4 sliceShadowEndScene = gbufferModelViewInverse * vec4(sliceShadowEndView, 1.0);
+
+        vec4 sliceShadowStartShadowClip = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * sliceShadowStartScene;
+        vec4 sliceShadowEndShadowClip = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * sliceShadowEndScene;
+
+        vec2 sliceShadowStartShadowScreen = sliceShadowStartShadowClip.xy / sliceShadowStartShadowClip.w;
+        sliceShadowStartShadowScreen = sliceShadowStartShadowScreen * 0.5 + 0.5;
+        vec2 sliceShadowEndShadowScreen = sliceShadowEndShadowClip.xy / sliceShadowEndShadowClip.w;
+        sliceShadowEndShadowScreen = sliceShadowEndShadowScreen * 0.5 + 0.5;
+
+        shared_sliceShadowScreenStartEnd = vec4(sliceShadowStartShadowScreen, sliceShadowEndShadowScreen);
+    }
+
+    barrier();
+
+    loadSharedShadowSample(gl_LocalInvocationIndex);
+    loadSharedShadowSample(gl_LocalInvocationIndex + SETTING_SLICE_SAMPLES);
+    barrier();
+}
+
+float compT(vec4 endPoints, vec3 shadowPos) {
+    float distanceToStart = distance(shadowPos.xy, endPoints.xy);
+    float distanceToEnd = distance(shadowPos.xy, endPoints.zw);
+    return saturate(distanceToStart / (distanceToStart + distanceToEnd));
+}
+
+float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos) {
+    vec4 endPoints = shared_sliceShadowScreenStartEnd;
+    float startT = compT(endPoints, startShadowPos);
+    float endT = compT(endPoints, endShadowPos);
+    float shadowSum = 0.0;
+    const uint SHADOW_STEPS = SETTING_LIGHT_SHAFT_SHADOW_SAMPLES;
+    vec2 startTAndDepth = vec2(startT, startShadowPos.z);
+    vec2 stepT = vec2(endT - startT, endShadowPos.z - startShadowPos.z) / float(SHADOW_STEPS);
+    for (uint i = 0u; i < SHADOW_STEPS; ++i) {
+        float fi = float(i) + 0.5;
+        vec2 sampleTAndDepth = saturate(startTAndDepth + fi * stepT);
+        float indexF = sampleTAndDepth.x * float(SHADOW_SAMPLE_COUNT - 1);
+        uint index = uint(indexF);
+        shadowSum += float(shared_sliceShadowSamples[index] > sampleTAndDepth.y);
+    }
+    return shadowSum / float(SHADOW_STEPS);
 }
 #else
-float atmosphere_sample_shadow(vec3 shadowPos) {
-    vec3 sampleTexCoord = shadowPos;
+float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos) {
+    vec3 sampleTexCoord = (startShadowPos + endShadowPos) * 0.5;
     sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
     return rtwsm_sampleShadowDepth(shadowtex0HW, sampleTexCoord, 0.0);
 }
 #endif
 
-#define ATMOSPHERE_RAYMARCHING_SKY  a
 #define ATMOSPHERE_RAYMARCHING_AERIAL_PERSPECTIVE a
 #include "Raymarching.glsl"
 
 const vec3 ORIGIN_VIEW = vec3(0.0);
 
-ScatteringResult raymarchScreenViewAtmosphere(ivec2 texelPos, float viewZ, float noiseV) {
-    #ifdef SETTING_LIGHT_SHAFT_PCSS
-    _shadow_texelPos = texelPos;
-    #endif
-
+ScatteringResult raymarchScreenViewAtmosphere(ivec2 texelPos, float viewZ, uint steps, float noiseV) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     ScatteringResult result = scatteringResult_init();
 
@@ -92,7 +125,7 @@ ScatteringResult raymarchScreenViewAtmosphere(ivec2 texelPos, float viewZ, float
 
     RaymarchParameters params = raymarchParameters_init();
     params.rayStart = atmosphere_viewToAtm(atmosphere, ORIGIN_VIEW);
-    params.steps = SETTING_LIGHT_SHAFT_SAMPLES;
+    params.steps = steps;
     LightParameters sunParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, uval_sunDirWorld, rayDir);
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParam, moonParams, multiSctrFactor);
