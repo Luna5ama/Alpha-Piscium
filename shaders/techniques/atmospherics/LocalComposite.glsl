@@ -16,14 +16,14 @@ ScatteringResult atmospherics_localComposite(ivec2 texelPos) {
 
     ScatteringResult compositeResult = scatteringResult_init();
 
-    {
-        ScatteringResult layerResult;
-        #ifndef SETTING_DEPTH_BREAK_CORRECTION
-        unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, layerResult);
-        #else
-        bool isDepthBreak = !unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, layerResult);
-        uvec4 balllot = subgroupBallot(isDepthBreak);
-        uint correctionCount = subgroupBallotBitCount(balllot);
+    ScatteringResult layerResult;
+    #ifndef SETTING_DEPTH_BREAK_CORRECTION
+    unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, layerResult);
+    #else
+    bool isDepthBreak = !unwarpEpipolarInsctrImage(screenPos * 2.0 - 1.0, viewZ, layerResult);
+    uvec4 balllot = subgroupBallot(isDepthBreak);
+    uint correctionCount = subgroupBallotBitCount(balllot);
+    if (correctionCount > 0) {
         uint writeIndexBase = 0u;
         if (subgroupElect()) {
             writeIndexBase = atomicAdd(global_dispatchSize1.w, correctionCount);
@@ -37,9 +37,9 @@ ScatteringResult atmospherics_localComposite(ivec2 texelPos) {
             indirectComputeData[writeIndex] = texelPosEncoded;
             layerResult = scatteringResult_init();
         }
-        #endif
-        compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, true);
     }
+    #endif
+    compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, true);
 
     return compositeResult;
 }
