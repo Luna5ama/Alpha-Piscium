@@ -213,6 +213,7 @@ option.SETTING_CLOUDS_CI_DENSITY=Cirrus Density
 suffix.SETTING_CLOUDS_CI_DENSITY=\ x
 option.SETTING_CLOUDS_CI_COVERAGE=Cirrus Coverage
 option.SETTING_CLOUDS_CI_PHASE_RATIO=Cirrus Phase Ratio
+option.SETTING_WATER_CAUSTICS=Water Caustics
 option.SETTING_WATER_PARALLEX=Water Parallax
 option.SETTING_WATER_PARALLEX_STRENGTH=Water Parallax Strength
 option.SETTING_WATER_PARALLEX_STEPS=Water Parallax Steps

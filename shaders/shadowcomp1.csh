@@ -11,38 +11,41 @@ layout(rgb10_a2) uniform image2D uimg_shadow_waterNormal;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-    float waterMask = texelFetch(usam_shadow_waterMask, texelPos, 0).r;
-    if (waterMask > 0.5) {
-        vec2 screenPos = texelFetch(usam_shadow_unwarpedUV, texelPos, 0).rg;
+    // Iris bug, must have some reference to the sampler for shadow image to work
+    if (all(lessThan(texelPos, textureSize(usam_shadow_waterNormal, 0)))) {
+        float waterMask = texelFetch(usam_shadow_waterMask, texelPos, 0).r;
+        if (waterMask > 0.5) {
+            vec2 screenPos = texelFetch(usam_shadow_unwarpedUV, texelPos, 0).rg;
 
-        float shadowDepth = texelFetch(shadowtex0, texelPos, 0).r;
-        vec3 shadowScreenPos = vec3(screenPos, shadowDepth);
+            float shadowDepth = texelFetch(shadowtex0, texelPos, 0).r;
+            vec3 shadowScreenPos = vec3(screenPos, shadowDepth);
 
-        vec3 shadowNDCPos = shadowScreenPos * 2.0 - 1.0;
-        vec4 shadowViewPos = global_shadowProjInversePrev * vec4(shadowNDCPos, 1.0);
-        shadowViewPos /= shadowViewPos.w;
-        vec4 scenePos = global_shadowViewInverse * global_shadowRotationMatrixInverse * shadowViewPos;
+            vec3 shadowNDCPos = shadowScreenPos * 2.0 - 1.0;
+            vec4 shadowViewPos = global_shadowProjInversePrev * vec4(shadowNDCPos, 1.0);
+            shadowViewPos /= shadowViewPos.w;
+            vec4 scenePos = global_shadowViewInverse * global_shadowRotationMatrixInverse * shadowViewPos;
 
 
-        vec3 cameraPosWaveSpace = vec3(cameraPositionInt >> 5) + ldexp(vec3(cameraPositionInt & ivec3(31)), ivec3(-5));
-        cameraPosWaveSpace = cameraPositionFract * WAVE_POS_BASE + cameraPosWaveSpace * 0.736;
-        vec3 waveWorldPos = scenePos.xyz * WAVE_POS_BASE + cameraPosWaveSpace;
+            vec3 cameraPosWaveSpace = vec3(cameraPositionInt >> 5) + ldexp(vec3(cameraPositionInt & ivec3(31)), ivec3(-5));
+            cameraPosWaveSpace = cameraPositionFract * WAVE_POS_BASE + cameraPosWaveSpace * 0.736;
+            vec3 waveWorldPos = scenePos.xyz * WAVE_POS_BASE + cameraPosWaveSpace;
 
-        float weightHeightMul = 1.0;
-        const float NORMAL_EPS = 0.05;
-        const float NORMAL_WEIGHT = SETTING_WATER_NORMAL_SCALE;
-        float waveHeightC = waveHeight(waveWorldPos, true) * weightHeightMul;
-        float waveHeightX = waveHeight(waveWorldPos + vec3(NORMAL_EPS * WAVE_POS_BASE, 0.0, 0.0), true) * weightHeightMul;
-        float waveHeightZ = waveHeight(waveWorldPos + vec3(0.0, 0.0, NORMAL_EPS * WAVE_POS_BASE), true) * weightHeightMul;
-        vec3 waveNormal = vec3(
-            waveHeightX,
-            NORMAL_EPS,
-            waveHeightZ
-        );
-        waveNormal.xz -= waveHeightC;
-        waveNormal.xz *= NORMAL_WEIGHT;
-        vec3 waterNormal = normalize(waveNormal);
+            float weightHeightMul = 1.0;
+            const float NORMAL_EPS = 0.05;
+            const float NORMAL_WEIGHT = SETTING_WATER_NORMAL_SCALE;
+            float waveHeightC = waveHeight(waveWorldPos, true) * weightHeightMul;
+            float waveHeightX = waveHeight(waveWorldPos + vec3(NORMAL_EPS * WAVE_POS_BASE, 0.0, 0.0), true) * weightHeightMul;
+            float waveHeightZ = waveHeight(waveWorldPos + vec3(0.0, 0.0, NORMAL_EPS * WAVE_POS_BASE), true) * weightHeightMul;
+            vec3 waveNormal = vec3(
+                waveHeightX,
+                NORMAL_EPS,
+                waveHeightZ
+            );
+            waveNormal.xz -= waveHeightC;
+            waveNormal.xz *= NORMAL_WEIGHT;
+            vec3 waterNormal = normalize(waveNormal);
 
-        imageStore(uimg_shadow_waterNormal, texelPos, vec4(waterNormal * 0.5 + 0.5, 1.0));
+            imageStore(uimg_shadow_waterNormal, texelPos, vec4(waterNormal * 0.5 + 0.5, 1.0));
+        }
     }
 }

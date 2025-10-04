@@ -137,11 +137,13 @@ vec3 calcShadow(Material material) {
 
     vec3 shadow = min(sampleColor.rgb, sampleShadow1.rrr);
 
+    #ifdef SETTING_WATER_CAUSTICS
     if (texture(usam_shadow_waterMask, sampleTexCoord.xy).r > 0.9) {
         ivec2 readPos = texelPos;
         readPos.y += uval_mainImageSizeI.y;
         shadow *= 0.1 + vec3(texelFetch(usam_causticsPhoton, readPos, 0).r);
     }
+    #endif
 
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
     return mix(vec3(shadow), vec3(1.0), shadowRangeBlend);

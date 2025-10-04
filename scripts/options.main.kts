@@ -1256,6 +1256,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Water"
                 }
+                toggle("SETTING_WATER_CAUSTICS", true) {
+                    lang {
+                        name = "Water Caustics"
+                    }
+                }
+                empty()
                 toggle("SETTING_WATER_PARALLEX", true) {
                     lang {
                         name = "Water Parallax"
