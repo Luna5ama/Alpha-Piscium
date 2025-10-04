@@ -1267,7 +1267,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Water Parallax"
                     }
                 }
-                slider("SETTING_WATER_PARALLEX_STRENGTH", 0.5, 0.0..1.0 step 0.05) {
+                slider("SETTING_WATER_PARALLEX_STRENGTH", 1.0, 0.0..2.0 step 0.05) {
                     lang {
                         name = "Water Parallax Strength"
                     }
@@ -1278,7 +1278,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_WATER_NORMAL_SCALE", 0.25, 0.0..1.0 step 0.05) {
+                slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..2.0 step 0.05) {
                     lang {
                         name = "Water Normal Scale"
                     }

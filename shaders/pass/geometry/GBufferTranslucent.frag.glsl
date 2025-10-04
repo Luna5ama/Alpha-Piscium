@@ -110,7 +110,8 @@ GBufferData processOutput() {
 
         vec3 rayDir = scenePos / abs(scenePos.y);
         rayDir.xz *= WAVE_POS_BASE * PARALLEX_STRENGTH;
-        const float MAX_WAVE_HEIGHT = 1.7;
+        const float WAVE_Y_OFFSET = 0.05;
+        const float MAX_WAVE_HEIGHT = 1.4;
         float rayStepLength = MAX_WAVE_HEIGHT / float(MAX_STEPS);
 
         for (uint i = 0u; i < MAX_STEPS; i++) {
@@ -121,10 +122,10 @@ GBufferData processOutput() {
             samplePos.y = waveWorldPos.y;
             float sampleHeight = waveHeight(samplePos, false);
 
-            float currHeight = MAX_WAVE_HEIGHT + sampleDelta.y;
+            float currHeight = WAVE_Y_OFFSET + sampleDelta.y;
             if (currHeight < sampleHeight) {
                 waveWorldPos = samplePos;
-                fuckO = (fi * rayStepLength + -0.5 * MAX_WAVE_HEIGHT) * PARALLEX_STRENGTH;
+                fuckO = (fi * rayStepLength + -0.5 * MAX_WAVE_HEIGHT) * 0.5 * PARALLEX_STRENGTH;
                 break;
             }
         }
