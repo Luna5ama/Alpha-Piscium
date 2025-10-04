@@ -106,7 +106,7 @@ void main() {
                 refractCoord = screenPos;
             }
 
-            vec3 refractColor = BicubicSampling56(usam_main, refractCoord, uval_mainImageSize).rgb;
+            vec3 refractColor = BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb;
             //            vec3 refractColor = texture(usam_main, refractCoord).rgb;
             if (gData.materialID == 3u) {
                 float refractViewZ = texture(usam_gbufferViewZ, refractCoord).r;
@@ -161,7 +161,7 @@ void main() {
                 reflectColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
             }
             if (reflectResult.hit) {
-                vec2 sampleCoord = reflectResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp);
+                vec2 sampleCoord = saturate(reflectResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp));
                 reflectColor = mix(reflectColor, BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb, edgeReductionFactor(reflectResult.hitScreenPos.xy));
             }
 
