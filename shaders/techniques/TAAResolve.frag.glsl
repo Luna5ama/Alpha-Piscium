@@ -108,6 +108,9 @@ void main() {
     mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 114514.0));
     mixDecrease *= (1.0 - saturate(cameraSpeed * 114514.0));
     mixDecrease *= (1.0 - saturate(pixelSpeed * 114.0));
+    #ifdef SETTING_SCREENSHOT_MODE_SKIP_INITIAL
+    mixDecrease *= float(frameCounter > 120);
+    #endif
     #else
     float mixDecrease = 1.0;
     mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 4.0));

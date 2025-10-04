@@ -1825,6 +1825,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Screenshot Mode"
                 }
             }
+            toggle("SETTING_SCREENSHOT_MODE_SKIP_INITIAL", false) {
+                lang {
+                    name = "Screenshot Mode Skip Initial Frames"
+                }
+            }
             toggle("SETTING_CONSTELLATIONS", false) {
                 lang {
                     name = "Show Constellations"
