@@ -142,7 +142,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         vec2 oldCellIdx = saturate(currScreenPos.xy) * cellCount;
 
         ivec2 oldCellIdxI = ivec2(oldCellIdx);
-        ivec2 readPos = mipTile.xy + min(oldCellIdxI, mipTile.zw);
+        ivec2 readPos = mipTile.xy + oldCellIdxI;
         float cellMinZ = texelFetch(usam_hiz, readPos, 0).r;
 
         float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * maxThicknessFactor;
