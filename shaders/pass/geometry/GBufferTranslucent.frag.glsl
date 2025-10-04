@@ -111,7 +111,7 @@ GBufferData processOutput() {
         vec3 rayDir = scenePos / abs(scenePos.y);
         rayDir.xz *= WAVE_POS_BASE * PARALLEX_STRENGTH;
         const float WAVE_Y_OFFSET = 0.05;
-        const float MAX_WAVE_HEIGHT = 1.4;
+        const float MAX_WAVE_HEIGHT = 0.8;
         float rayStepLength = MAX_WAVE_HEIGHT / float(MAX_STEPS);
 
         for (uint i = 0u; i < MAX_STEPS; i++) {

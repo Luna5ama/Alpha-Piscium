@@ -64,7 +64,7 @@ float waveHeight(vec3 wavePos, bool base) {
         wave += amp * sampleNoise((waveTexCoord + curl + waveTime * 0.27) * vec2(0.7, 1.1) + curl * 1.8);
     }
 
-    amp *= -0.64;
+    amp *= -0.36;
     waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord * 2.23 + waveTime * 1.21);
     curl = MAT2_GOLDEN_ANGLE * (curl * 2.67);
     {
