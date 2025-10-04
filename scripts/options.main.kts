@@ -525,16 +525,24 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Minimum F0 Factor"
                     }
                 }
-                slider("SETTING_MINIMUM_ROUGHNESS", 6, 4..16) {
+                empty()
+                slider("SETTING_SOLID_MINIMUM_ROUGHNESS", 6, 4..16) {
                     lang {
-                        name = "Minimum Roughness"
+                        name = "Minimum Solid Roughness"
                         prefix = "2^"
                     }
                 }
-                slider("SETTING_MAXIMUM_ROUGHNESS", 5, 2..16) {
+                slider("SETTING_SOLID_MAXIMUM_ROUGHNESS", 5, 2..16) {
                     lang {
-                        name = "Maximum Roughness"
+                        name = "Maximum Solid Roughness"
                         prefix = "2^"
+                    }
+                }
+                empty()
+                slider("SETTING_WATER_ROUGHNESS", 9.0, 4.0..12.0 step 0.5) {
+                    lang {
+                        name = "Water Roughness"
+                        prefix = "2^-"
                     }
                 }
                 slider("SETTING_TRANSLUCENT_ROUGHNESS_REDUCTION", 1.0, 0.0..8.0 step 0.5) {
@@ -555,6 +563,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         prefix = "2^-"
                     }
                 }
+                empty()
                 slider("SETTING_MAXIMUM_SPECULAR_LUMINANCE", 65536, powerOfTwoRange(8..24)) {
                     lang {
                         name = "Maximum Specular Luminance"

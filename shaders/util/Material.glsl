@@ -25,11 +25,12 @@ const float _MATERIAL_F0_EPSILON = exp2(-SETTING_MINIMUM_F0);
 const float _MATERIAL_ROUGHNESS_MULTIPLIER = exp2(-SETTING_TRANSLUCENT_ROUGHNESS_REDUCTION);
 const float _MATERIAL_MINIMUM_ROUGHNESS = exp2(-SETTING_TRANSLUCENT_MINIMUM_ROUGHNESS);
 const float _MATERIAL_MAXIMUM_ROUGHNESS = exp2(-SETTING_TRANSLUCENT_MAXIMUM_ROUGHNESS);
+const float _MATERIAL_WATER_ROUGHNESS = exp2(-SETTING_WATER_ROUGHNESS);
 #else
 const float _MATERIAL_F0_EPSILON = exp2(-SETTING_MINIMUM_F0);
 const float _MATERIAL_ROUGHNESS_MULTIPLIER = 1.0;
-const float _MATERIAL_MINIMUM_ROUGHNESS = exp2(-SETTING_MINIMUM_ROUGHNESS);
-const float _MATERIAL_MAXIMUM_ROUGHNESS = 1.0 - exp2(-SETTING_MAXIMUM_ROUGHNESS);
+const float _MATERIAL_MINIMUM_ROUGHNESS = exp2(-SETTING_SOLID_MINIMUM_ROUGHNESS);
+const float _MATERIAL_MAXIMUM_ROUGHNESS = 1.0 - exp2(-SETTING_SOLID_MAXIMUM_ROUGHNESS);
 #endif
 
 Material material_decode(GBufferData gData) {
@@ -42,7 +43,7 @@ Material material_decode(GBufferData gData) {
     material.roughness *= _MATERIAL_ROUGHNESS_MULTIPLIER;
     material.roughness = clamp(material.roughness, _MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS);
     #ifdef MATERIAL_TRANSLUCENT
-    material.roughness = gData.materialID == 3u ? 0.01 : material.roughness;
+    material.roughness = gData.materialID == 3u ? _MATERIAL_WATER_ROUGHNESS : material.roughness;
     #endif
     material.f0 = gData.pbrSpecular.g;
 
