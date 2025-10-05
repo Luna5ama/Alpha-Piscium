@@ -18,7 +18,7 @@ const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 8);
 #define ATMOSPHERE_RAYMARCHING_SKY_SINGLE a
 #include "../Raymarching.glsl"
 
-layout(rgba8) restrict uniform writeonly image3D uimg_skyViewLUT;
+layout(rgba16f) restrict uniform writeonly image3D uimg_skyViewLUT;
 
 bool setupRayEndC(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir, float bottomOffset) {
     const vec3 earthCenter = vec3(0.0);
