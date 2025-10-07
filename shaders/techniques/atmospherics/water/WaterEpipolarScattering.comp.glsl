@@ -272,9 +272,7 @@ void main() {
         }
         for (uint i = 0; i < LOOP_COUNT; i++) {
             uint sliceSampleIndex = gl_LocalInvocationID.y + i * WORK_GROUP_SIZE;
-            float sliceSampleP = float(sliceSampleIndex);
-            sliceSampleP /= float(SETTING_SLICE_SAMPLES - 1);
-
+            float sliceSampleP = float(sliceSampleIndex) / float(SETTING_SLICE_SAMPLES - 1);
             vec2 screenPos = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
 
             vec2 texelPos = screenPos * uval_mainImageSize;
