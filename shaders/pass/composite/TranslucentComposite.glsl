@@ -2,6 +2,7 @@
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/textile/CSRGBA16F.glsl"
+#include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
@@ -20,13 +21,11 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
 
-        ivec2 farDepthTexelPos = texelPos;
-        ivec2 nearDepthTexelPos = texelPos;
-        farDepthTexelPos.y += uval_mainImageSizeI.y;
-        nearDepthTexelPos += uval_mainImageSizeI;
+        ivec2 nearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
+        ivec2 farDepthTexelPos = csr32f_tile2_texelToTexel(texelPos);
 
-        float startViewZ = -texelFetch(usam_translucentDepthLayers, nearDepthTexelPos, 0).r;
-        //            float endViewZ = -texelFetch(usam_translucentDepthLayers, farDepthTexelPos, 0).r;
+        float startViewZ = -texelFetch(usam_csr32f, nearDepthTexelPos, 0).r;
+        //            float endViewZ = -texelFetch(usam_csr32f, farDepthTexelPos, 0).r;
         //            float startViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
         if (startViewZ > -65536.0) {

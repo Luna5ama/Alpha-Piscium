@@ -2,6 +2,7 @@
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/EnvProbe.glsl"
+#include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/SST.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/FullScreenComp.glsl"
@@ -66,12 +67,10 @@ void main() {
     sst_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        ivec2 farDepthTexelPos = texelPos;
-        ivec2 nearDepthTexelPos = texelPos;
-        farDepthTexelPos.y += uval_mainImageSizeI.y;
-        nearDepthTexelPos += uval_mainImageSizeI;
+        ivec2 nearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
+        ivec2 farDepthTexelPos = csr32f_tile2_texelToTexel(texelPos);
 
-        float startViewZ = -texelFetch(usam_translucentDepthLayers, nearDepthTexelPos, 0).r;
+        float startViewZ = -texelFetch(usam_csr32f, nearDepthTexelPos, 0).r;
 
         if (startViewZ > -65536.0) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
@@ -97,7 +96,12 @@ void main() {
             float rior = AIR_IOR / mix(material.hardCodedIOR, 1.0, min(max2(ndcPos), 1.0 - pow2(saturate(dot(vec3(0.0, 0.0, 1.0), gData.geomNormal)))));
 //            float rior = AIR_IOR / mix(material.hardCodedIOR, 1.0, 1.0 - saturate(dot(vec3(0.0, 0.0, 1.0), gData.geomNormal)));
             vec3 refractDir = refract(-viewDir, microNormal, rior);
+            refractDir = mix(refractDir, refract(-viewDir, gData.geomNormal, rior), pow4(smoothstep(-0.5, 0.5, dot(refractDir, gData.geomNormal))));
+
             vec3 reflectDir = reflect(-viewDir, microNormal);
+
+            reflectDir = mix(reflectDir, reflect(-viewDir, gData.geomNormal), pow2(smoothstep(0.5, -0.3, dot(reflectDir, gData.geomNormal))));
+            reflectDir = normalize(reflectDir);
 
             SSTResult refractResult = sst_trace(startViewPos, refractDir, 0.01);
             vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp)) : screenPos;
@@ -108,41 +112,6 @@ void main() {
 
             vec3 refractColor = BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb;
             //            vec3 refractColor = texture(usam_main, refractCoord).rgb;
-            if (gData.materialID == 3u) {
-                float refractViewZ = texture(usam_gbufferViewZ, refractCoord).r;
-                vec3 refractViewPos = coords_toViewCoord(refractCoord, refractViewZ, global_camProjInverse);
-                float refractDistance = distance(startViewPos, refractViewPos);
-                refractDistance = min(refractDistance, far);
-                vec3 scatteringCoeff = -log(gData.albedo);
-                vec3 extinctionCoeff = scatteringCoeff * vec3(1.3, 1.1, 1.05) * 1.5;
-                vec3 opticalDepth = extinctionCoeff * refractDistance;
-                vec3 transmittance = exp(-opticalDepth);
-                refractColor *= transmittance;
-                vec3 sampleInSctr = scatteringCoeff * refractDistance;
-                vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * transmittance) / extinctionCoeff;
-
-
-                AtmosphereParameters atmosphere = getAtmosphereParameters();
-                float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
-                vec3 atmPos = atmosphere_viewToAtm(atmosphere, refractViewPos);
-                atmPos.y = max(atmPos.y, atmosphere.bottom + 0.1);
-                float viewAltitude = length(atmPos);
-                vec3 upVector = atmPos / viewAltitude;
-                const vec3 earthCenter = vec3(0.0, 0.0, 0.0);
-
-                float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
-                vec3 tSun = atmospherics_air_lut_sampleTransmittance(atmosphere, cosSunZenith, viewAltitude);
-                tSun *= float(raySphereIntersectNearest(atmPos, uval_sunDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
-                vec3 sunIrradiance = SUN_ILLUMINANCE * tSun * phasefunc_Rayleigh(dot(uval_sunDirView, refractDir));
-
-                float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
-                vec3 tMoon = atmospherics_air_lut_sampleTransmittance(atmosphere, cosMoonZenith, viewAltitude);
-                tMoon *= float(raySphereIntersectNearest(atmPos, uval_moonDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
-                vec3 moonIrradiance = MOON_ILLUMINANCE * tMoon *  phasefunc_Rayleigh(dot(uval_moonDirView, refractDir));
-
-                vec3 totalInSctr = (sunIrradiance + moonIrradiance) * sampleInSctrInt * 0.02;
-                refractColor += totalInSctr;
-            }
 
             float MDotV = dot(microNormal, viewDir);
             imageStore(uimg_temp1, texelPos, vec4(refractColor, MDotV));

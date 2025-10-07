@@ -63,22 +63,46 @@ void main() {
             ivec2 texelPosI = ivec2(texelPos);
             float noiseV = rand_stbnVec1(texelPosI, frameCounter);
 
-            float viewZ = texelFetch(usam_gbufferViewZ, texelPosI, 0).r;
-            ScatteringResult result = raymarchScreenViewAtmosphere(texelPosI, viewZ, SETTING_LIGHT_SHAFT_SAMPLES, noiseV);
-            uvec4 outputData;
-            packEpipolarData(outputData, result, viewZ);
-            ivec2 writeTexelPos = ivec2(gl_GlobalInvocationID.x, sliceSampleIndex + 1u);
-            imageStore(uimg_epipolarData, writeTexelPos, outputData);
+            ivec2 baseWriteTexelPos = ivec2(gl_GlobalInvocationID.x, sliceSampleIndex + 1u);
+
+            for (int layerIndex = 0; layerIndex < 2; layerIndex++) {
+                int actualIndex = layerIndex * 2;
+                ivec2 readScreenTexelPos = texelPosI;
+                readScreenTexelPos.y += actualIndex * int(uval_mainImageSizeIY);
+                vec2 layerViewZ = -abs(texelFetch(usam_csrg32f, readScreenTexelPos, 0).rg);
+                ScatteringResult result = scatteringResult_init();
+
+                if (layerViewZ.x > -FLT_MAX) {
+                    result = raymarchScreenViewAtmosphere(
+                        texelPosI,
+                        layerViewZ.x,
+                        layerViewZ.y,
+                        SETTING_LIGHT_SHAFT_SAMPLES,
+                        noiseV
+                    );
+                }
+
+                uvec4 outputData;
+                packEpipolarData(outputData, result, texelPosI);
+                ivec2 writeTexelPos = baseWriteTexelPos;
+                writeTexelPos.y += actualIndex * int(SETTING_SLICE_SAMPLES);
+                imageStore(uimg_epipolarData, writeTexelPos, outputData);
+            }
         }
     } else {
-        float viewZ = 65536.0;
+        ivec2 texelPos = ivec2(65535);
         ScatteringResult result = scatteringResult_init();
         uvec4 outputData;
-        packEpipolarData(outputData, result, viewZ);
+        packEpipolarData(outputData, result, texelPos);
         for (uint i = 0; i < LOOP_COUNT; i++) {
-            ivec2 writeTexelPos = ivec2(gl_GlobalInvocationID.xy);
-            writeTexelPos.y += int(1u + i * WORK_GROUP_SIZE);
-            imageStore(uimg_epipolarData, writeTexelPos, outputData);
+            ivec2 baseWriteTexelPos = ivec2(gl_GlobalInvocationID.xy);
+            baseWriteTexelPos.y += int(1u + i * WORK_GROUP_SIZE);
+            for (int layerIndex = 0; layerIndex < 2; layerIndex++) {
+                int actualIndex = layerIndex * 2;
+                ivec2 writeTexelPos = baseWriteTexelPos;
+                writeTexelPos.y += actualIndex * int(SETTING_SLICE_SAMPLES);
+                imageStore(uimg_epipolarData, writeTexelPos, outputData);
+            }
         }
     }
 }

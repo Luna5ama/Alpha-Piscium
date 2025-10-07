@@ -27,9 +27,13 @@ void main() {
 
         vec3 giRadiance = texelFetch(usam_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), 0).rgb;
         outputColor.rgb += giRadiance.rgb * albedo;
-        ScatteringResult sctrResult = atmospherics_localComposite(texelPos);
+        ScatteringResult sctrResult = atmospherics_localComposite(0, texelPos);
         outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
 
+        if (isEyeInWater != 1) {
+            ScatteringResult sctrResult = atmospherics_localComposite(1, texelPos);
+            outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
+        }
         imageStore(uimg_main, texelPos, outputColor);
     }
 }

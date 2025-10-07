@@ -287,6 +287,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #endif
 
     #ifdef SETTING_DEBUG_ATMOSPHERE
+    const float EPIPOLAR_SLICE_END_POINTS_V = 0.5 / float(EPIPOLAR_DATA_Y_SIZE);
     if (inViewPort(ivec4(0, 0, 1024, 16), debugTexCoord)) {
         outputColor.rgb = vec3(uintBitsToFloat(texture(usam_epipolarData, vec2(debugTexCoord.x, EPIPOLAR_SLICE_END_POINTS_V)).rg), 0.0);
     }
@@ -303,8 +304,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         outputColor.rgb = gammaCorrect(texture(usam_multiSctrLUT, debugTexCoord).rgb * 10.0);
     }
     float whRatio = float(SETTING_EPIPOLAR_SLICES) / float(SETTING_SLICE_SAMPLES);
-    if (inViewPort(ivec4(256, 32, whRatio * 256, 256), debugTexCoord)) {
-        debugTexCoord.y = 1.0 - debugTexCoord.y;
+    if (inViewPort(ivec4(256, 32, whRatio * 512, 768), debugTexCoord)) {
         ScatteringResult sampleResult;
         float viewZ;
         vec2 sampleTexCoord = debugTexCoord;
@@ -312,23 +312,21 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
         outputColor.rgb = gammaCorrect(sampleResult.inScattering * exp2(SETTING_DEBUG_EXP));
     }
-    if (inViewPort(ivec4(256, 32 + 256, whRatio * 256, 256), debugTexCoord)) {
-        debugTexCoord.y = 1.0 - debugTexCoord.y;
-        ScatteringResult sampleResult;
-        float viewZ;
-        vec2 sampleTexCoord = debugTexCoord;
-        sampleTexCoord.y = mix(1.0 / EPIPOLAR_DATA_Y_SIZE, 1.0, sampleTexCoord.y);
-        unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
-        outputColor.rgb = gammaCorrect(sampleResult.transmittance);
-    }
-    if (inViewPort(ivec4(256, 32 + 512, whRatio * 256, 256), debugTexCoord)) {
-        debugTexCoord.y = 1.0 - debugTexCoord.y;
-        ScatteringResult sampleResult;
-        float viewZ;
-        unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
-        float depthV = -viewZ.r / far;
-        outputColor.rgb = gammaCorrect(depthV).rrr;
-    }
+//    if (inViewPort(ivec4(256, 32 + 256, whRatio * 256, 256), debugTexCoord)) {
+//        ScatteringResult sampleResult;
+//        float viewZ;
+//        vec2 sampleTexCoord = debugTexCoord;
+//        sampleTexCoord.y = mix(1.0 / EPIPOLAR_DATA_Y_SIZE, 1.0, sampleTexCoord.y);
+//        unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
+//        outputColor.rgb = gammaCorrect(sampleResult.transmittance);
+//    }
+//    if (inViewPort(ivec4(256, 32 + 512, whRatio * 256, 256), debugTexCoord)) {
+//        ScatteringResult sampleResult;
+//        float viewZ;
+//        unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
+//        float depthV = -viewZ.r / far;
+//        outputColor.rgb = gammaCorrect(depthV).rrr;
+//    }
     #endif
 
     #ifdef SETTING_DEBUG_SKY_VIEW_LUT

@@ -73,15 +73,15 @@ vec3 sampleParticleDensity(AtmosphereParameters atmosphere, float height) {
     );
 }
 
-float atmosphere_height(AtmosphereParameters atmosphere, vec3 worldPos) {
-    float worldHeight = max(worldPos.y - 62.0, float(SETTING_ATM_ALT_SCALE) * 0.001);
+float atmosphere_height(AtmosphereParameters atmosphere, float worldPosY) {
+    float worldHeight = max(worldPosY - 62.0, float(SETTING_ATM_ALT_SCALE) * 0.001);
     return worldHeight * (1.0 / float(SETTING_ATM_ALT_SCALE)) + atmosphere.bottom;
 }
 
 vec3 atmosphere_viewToAtm(AtmosphereParameters atmosphere, vec3 viewPos) {
     vec3 feetPlayer = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
     vec3 world = feetPlayer + cameraPosition;
-    float height = atmosphere_height(atmosphere, world);
+    float height = atmosphere_height(atmosphere, world.y);
     return vec3(feetPlayer.x, 0.0, feetPlayer.z) * (1.0 / float(SETTING_ATM_D_SCALE)) + vec3(0.0, height, 0.0);
 }
 
@@ -106,11 +106,11 @@ void unpackEpipolarData(uvec4 epipolarData, out ScatteringResult sctrResult, out
     viewZ = uintBitsToFloat(epipolarData.w);
 }
 
-void packEpipolarData(out uvec4 epipolarData, ScatteringResult sctrResult, float viewZ) {
+void packEpipolarData(out uvec4 epipolarData, ScatteringResult sctrResult, ivec2 texelPos) {
     epipolarData.x = packHalf2x16(sctrResult.inScattering.xy);
     epipolarData.y = packHalf2x16(vec2(sctrResult.inScattering.z, sctrResult.transmittance.x));
     epipolarData.z = packHalf2x16(sctrResult.transmittance.yz);
-    epipolarData.w = floatBitsToUint(viewZ);
+    epipolarData.w = bitfieldInsert(texelPos.x, texelPos.y, 16, 16);
 }
 
 #define INVALID_EPIPOLAR_LINE vec4(-1000.0, -1000.0, -100.0, -100.0)

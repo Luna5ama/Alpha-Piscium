@@ -22,7 +22,7 @@ void main() {
         farDepthTexelPos.y += uval_mainImageSizeI.y;
         nearDepthTexelPos += uval_mainImageSizeI;
 
-        float startViewZ = -texelFetch(usam_translucentDepthLayers, nearDepthTexelPos, 0).r;
+        float startViewZ = -texelFetch(usam_csr32f, nearDepthTexelPos, 0).r;
 
         if (startViewZ > -65536.0) {
             GBufferData gData = gbufferData_init();
@@ -32,6 +32,6 @@ void main() {
             outputColor.rgb *= mix(translucentTransmittance / gData.albedo, vec3(0.0), lessThan(gData.albedo, vec3(0.001)));
         }
 
-        imageStore(uimg_main, texelPos, outputColor);
+//        imageStore(uimg_main, texelPos, outputColor);
     }
 }

@@ -2,9 +2,10 @@ ivec2 texelPos;
 #include "/util/Colors2.glsl"
 #include "/util/Dither.glsl"
 #include "/techniques/Lighting.glsl"
+#include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/WaterWave.glsl"
 
-layout(r32i) uniform iimage2D uimg_translucentDepthLayers;
+layout(r32i) uniform iimage2D uimg_csr32f;
 
 uniform sampler2D gtexture;
 uniform sampler2D normals;
@@ -17,8 +18,10 @@ in vec3 frag_viewNormal;
 in vec2 frag_texCoord;
 in vec2 frag_lmCoord;
 flat in uint frag_materialID;
-
 in float frag_viewZ;
+
+flat in uint frag_midBlock;
+in vec3 frag_offsetToCenter;
 
 vec3 viewPos = vec3(0.0);
 float fuckO = 0.0;
@@ -176,6 +179,24 @@ GBufferData processOutput() {
     return gData;
 }
 
+float calculateRayBoxIntersection(vec3 p, vec3 d, vec3 halfSize) {
+    const float LARGE = 114514.0;
+    const float UPPER_BOUND = 3.4641016151; // Max diagonal length of a 2x2x2 box
+    const float EPS = 1e-6;
+    float tExit = LARGE;
+
+    bvec3 notZeroCond = greaterThan(abs(d), vec3(EPS));
+    vec3 t1 = (halfSize - p) / d;
+    t1 = mix(vec3(LARGE), t1, notZeroCond && greaterThan(t1, vec3(0.0)));
+    tExit = min(tExit, min3(t1));
+
+    vec3 t2 = (-halfSize - p) / d;
+    t2 = mix(vec3(LARGE), t2, notZeroCond && greaterThan(t2, vec3(0.0)));
+    tExit = min(tExit, min3(t2));
+
+    return tExit < UPPER_BOUND ? tExit : 0.0;
+}
+
 void main() {
     texelPos = ivec2(gl_FragCoord.xy);
 
@@ -221,22 +242,33 @@ void main() {
     vec3 tTransmittance = exp(-tAbsorption);
     lighting_gData.albedo = tTransmittance;
 
-    rt_translucentColor = vec4(tTransmittance, 0.0);
+    rt_translucentColor = isWater ? vec4(1.0) : vec4(tTransmittance, 0.0);
 
     ivec2 farDepthTexelPos = texelPos;
     ivec2 nearDepthTexelPos = texelPos;
-//    if (isWater) {
-//        nearDepthTexelPos.x += uval_mainImageSizeI.x;
-//    } else {
-        farDepthTexelPos.y += uval_mainImageSizeI.y;
-        nearDepthTexelPos += uval_mainImageSizeI;
-//    }
+    if (isWater) {
+        nearDepthTexelPos = csr32f_tile1_texelToTexel(nearDepthTexelPos);
+        farDepthTexelPos = csr32f_tile2_texelToTexel(farDepthTexelPos);
+    } else {
+        nearDepthTexelPos = csr32f_tile3_texelToTexel(nearDepthTexelPos);
+        farDepthTexelPos = csr32f_tile4_texelToTexel(farDepthTexelPos);
+    }
 
     float offsetViewZ = frag_viewZ;
     offsetViewZ -= fuckO;
-    int cDepth = floatBitsToInt(-offsetViewZ);
-    imageAtomicMax(uimg_translucentDepthLayers, farDepthTexelPos, cDepth);
-    imageAtomicMin(uimg_translucentDepthLayers, nearDepthTexelPos, cDepth);
+    imageAtomicMin(uimg_csr32f, nearDepthTexelPos, floatBitsToInt(-offsetViewZ));
+    vec4 midBlockDecoded = unpackUnorm4x8(frag_midBlock);
+    if (!isWater) {
+        vec3 rayDir = coords_dir_viewToWorld(normalize(viewPos));
+        vec3 p = frag_offsetToCenter;
+        vec3 halfSize = midBlockDecoded.xyz * 2.0;
+        offsetViewZ -= max(calculateRayBoxIntersection(p, rayDir, halfSize), 0.1);
+    }
+    imageAtomicMax(uimg_csr32f, farDepthTexelPos, floatBitsToInt(-offsetViewZ));
+
+    if (isWater) {
+        imageAtomicMax(uimg_csr32f, csr32f_tile5_texelToTexel(texelPos), int(packUnorm4x8(inputAlbedo)));
+    }
 
     gbufferData1_pack(rt_gbufferData1, lighting_gData);
     gbufferData2_pack(rt_gbufferData2, lighting_gData);

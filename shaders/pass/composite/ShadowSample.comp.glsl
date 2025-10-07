@@ -6,6 +6,7 @@
 #define HIZ_SUBGROUP_CHECK a
 #define GLOBAL_DATA_MODIFIER \
 
+#include "/techniques/Atmospherics/water/Constants.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Material.glsl"
 #include "/util/Morton.glsl"
@@ -137,13 +138,19 @@ vec3 calcShadow(Material material) {
 
     vec3 shadow = min(sampleColor.rgb, sampleShadow1.rrr);
 
-    #ifdef SETTING_WATER_CAUSTICS
     if (texture(usam_shadow_waterMask, sampleTexCoord.xy).r > 0.9) {
+        float rcpShadowY = rcp(uval_shadowLightDirWorld.y);
+        vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
+        float worldHeight = scenePos.y + cameraPosition.y;
+        float waterDepth = max(63.0 - worldHeight, 0.0) * rcpShadowY;
+        #ifdef SETTING_WATER_CAUSTICS
         ivec2 readPos = texelPos;
         readPos.y += uval_mainImageSizeI.y;
-        shadow *= 0.1 + vec3(texelFetch(usam_causticsPhoton, readPos, 0).r);
+        float causticsV = texelFetch(usam_causticsPhoton, readPos, 0).r;
+        shadow *= mix(1.0, causticsV, exp2(-waterDepth * 0.05));
+        #endif
+        shadow *= exp(-waterDepth * WATER_EXTINCTION);
     }
-    #endif
 
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
     return mix(vec3(shadow), vec3(1.0), shadowRangeBlend);

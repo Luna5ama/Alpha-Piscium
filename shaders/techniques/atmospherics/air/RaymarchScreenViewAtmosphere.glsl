@@ -27,6 +27,7 @@ vec2 _processShadowSampleUV(vec2 sampleShadowUV, ivec2 randCoord) {
 
 #ifdef SHARED_MEMORY_SHADOW_SAMPLE
 shared vec4 shared_sliceShadowScreenStartEnd;
+shared vec3 shared_sliceShadowScreenStartLength;
 #define SHADOW_SAMPLE_COUNT (WORK_GROUP_SIZE * 8)
 shared float shared_sliceShadowSamples[SHADOW_SAMPLE_COUNT];
 
@@ -69,6 +70,7 @@ void screenViewRaymarch_init(vec2 screenPos) {
         sliceShadowEndShadowScreen = sliceShadowEndShadowScreen * 0.5 + 0.5;
 
         shared_sliceShadowScreenStartEnd = vec4(sliceShadowStartShadowScreen, sliceShadowEndShadowScreen);
+        shared_sliceShadowScreenStartLength = vec3(sliceShadowStartShadowScreen, distance(sliceShadowStartShadowScreen, sliceShadowEndShadowScreen));
     }
 
     barrier();
@@ -84,26 +86,25 @@ void screenViewRaymarch_init(vec2 screenPos) {
     barrier();
 }
 
-float compT(vec4 endPoints, vec3 shadowPos) {
-    float distanceToStart = distance(shadowPos.xy, endPoints.xy);
-    float distanceToEnd = distance(shadowPos.xy, endPoints.zw);
-    return saturate(distanceToStart / (distanceToStart + distanceToEnd));
+float compT(vec3 startLength, vec3 shadowPos) {
+    return distance(shadowPos.xy, startLength.xy) / startLength.z;
 }
 
 float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos) {
-    vec4 endPoints = shared_sliceShadowScreenStartEnd;
-    float startT = sqrt(compT(endPoints, startShadowPos));
-    float endT = sqrt(compT(endPoints, endShadowPos));
+    vec3 startLength = shared_sliceShadowScreenStartLength;
+    float startT = sqrt(compT(startLength, startShadowPos));
+    float endT = sqrt(compT(startLength, endShadowPos));
     float shadowSum = 0.0;
     const uint SHADOW_STEPS = SETTING_LIGHT_SHAFT_SHADOW_SAMPLES;
     vec2 startTAndDepth = vec2(startT, startShadowPos.z);
     vec2 stepT = vec2(endT - startT, endShadowPos.z - startShadowPos.z) / float(SHADOW_STEPS);
     for (uint i = 0u; i < SHADOW_STEPS; ++i) {
         float fi = float(i) + 0.5;
-        vec2 sampleTAndDepth = saturate(startTAndDepth + fi * stepT);
+        vec2 sampleTAndDepth = startTAndDepth + fi * stepT;
         float indexF = sampleTAndDepth.x * float(SHADOW_SAMPLE_COUNT - 1);
         uint index = uint(indexF);
-        shadowSum += float(shared_sliceShadowSamples[index] > sampleTAndDepth.y);
+        float shadowTerm = float(shared_sliceShadowSamples[index] > saturate(sampleTAndDepth.y));
+        shadowSum += saturate(shadowTerm + float(sampleTAndDepth.x > 1.0));
     }
     return shadowSum / float(SHADOW_STEPS);
 }
@@ -121,62 +122,52 @@ float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos) {
 
 const vec3 ORIGIN_VIEW = vec3(0.0);
 
-ScatteringResult raymarchScreenViewAtmosphere(ivec2 texelPos, float viewZ, uint steps, float noiseV) {
+ScatteringResult raymarchScreenViewAtmosphere(ivec2 texelPos, float startZ, float endZ, uint steps, float noiseV) {
     #ifndef SHARED_MEMORY_SHADOW_SAMPLE
     _texelPos = texelPos;
     #endif
-    AtmosphereParameters atmosphere = getAtmosphereParameters();
     ScatteringResult result = scatteringResult_init();
 
     vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
-    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+    vec3 startViewPos = coords_toViewCoord(screenPos, startZ, global_camProjInverse);
+    vec3 endViewPos = coords_toViewCoord(screenPos, max(endZ, -shadowDistance), global_camProjInverse);
+
     ivec2 texePos2x2 = texelPos >> 1;
     float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, texePos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
     float multiSctrFactor = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y)));
 
     mat3 vectorView2World = mat3(gbufferModelViewInverse);
-    vec3 viewDirWorld = normalize(vectorView2World * (viewPos - ORIGIN_VIEW));
+    vec3 viewDirWorld = normalize(vectorView2World * (endViewPos - startViewPos));
 
     vec3 rayDir = viewDirWorld;
 
+    AtmosphereParameters atmosphere = getAtmosphereParameters();
     RaymarchParameters params = raymarchParameters_init();
-    params.rayStart = atmosphere_viewToAtm(atmosphere, ORIGIN_VIEW);
+    params.rayStart = atmosphere_viewToAtm(atmosphere, startViewPos);
     params.steps = steps;
     LightParameters sunParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, uval_sunDirWorld, rayDir);
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParam, moonParams, multiSctrFactor);
 
-    if (viewZ == -65536.0) {
+    vec4 originScene = gbufferModelViewInverse * vec4(startViewPos, 1.0);
+    vec4 endScene = gbufferModelViewInverse * vec4(endViewPos, 1.0);
+
+    vec4 originShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * originScene;
+    vec4 endShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * endScene;
+
+    vec3 startShadow = originShadowCS.xyz / originShadowCS.w;
+    startShadow = startShadow * 0.5 + 0.5;
+    vec3 endShadow = endShadowCS.xyz / endShadowCS.w;
+    endShadow = endShadow * 0.5 + 0.5;
+
+    if (endZ == -65536.0) {
         scatteringParams.multiSctrFactor = 1.0;
 
         if (setupRayEnd(atmosphere, params, rayDir, shadowDistance / SETTING_ATM_D_SCALE)) {
-            vec4 originScene = gbufferModelViewInverse * vec4(ORIGIN_VIEW, 1.0);
-            vec4 endScene = vec4(originScene.xyz + rayDir * shadowDistance, 1.0);
-
-            vec4 originShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * originScene;
-            vec4 endShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * endScene;
-
-            vec3 startShadow = originShadowCS.xyz / originShadowCS.w;
-            startShadow = startShadow * 0.5 + 0.5;
-            vec3 endShadow = endShadowCS.xyz / endShadowCS.w;
-            endShadow = endShadow * 0.5 + 0.5;
-
             result = raymarchAerialPerspective(atmosphere, params, scatteringParams, startShadow, endShadow, noiseV);
         }
     } else {
-        params.rayEnd = atmosphere_viewToAtm(atmosphere, viewPos);
-
-        vec4 originScene = gbufferModelViewInverse * vec4(ORIGIN_VIEW, 1.0);
-        vec4 endScene = gbufferModelViewInverse * vec4(viewPos, 1.0);
-
-        vec4 originShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * originScene;
-        vec4 endShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * endScene;
-
-        vec3 startShadow = originShadowCS.xyz / originShadowCS.w;
-        startShadow = startShadow * 0.5 + 0.5;
-        vec3 endShadow = endShadowCS.xyz / endShadowCS.w;
-        endShadow = endShadow * 0.5 + 0.5;
-
+        params.rayEnd = atmosphere_viewToAtm(atmosphere, endViewPos);
         result = raymarchAerialPerspective(atmosphere, params, scatteringParams, startShadow, endShadow, noiseV);
     }
 

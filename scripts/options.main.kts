@@ -1283,6 +1283,56 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Water Normal Scale"
                     }
                 }
+                empty()
+                slider("SETTING_WATER_SCATTERING_R", 14, 0..100) {
+                    lang {
+                        name = "Scattering Coefficient Red"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_SCATTERING_G", 22, 0..100) {
+                    lang {
+                        name = "Scattering Coefficient Green"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_SCATTERING_B", 38, 0..100) {
+                    lang {
+                        name = "Scattering Coefficient Blue"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_SCATTERING_MULTIPLIER", -9.0, -15.0..-5.0 step 0.25) {
+                    lang {
+                        name = "Scattering Coefficient Multiplier"
+                        prefix = "2^"
+                    }
+                }
+                empty()
+                slider("SETTING_WATER_ABSORPTION_R", 100, 0..100) {
+                    lang {
+                        name = "Absorption Coefficient Red"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_ABSORPTION_G", 40, 0..100) {
+                    lang {
+                        name = "Absorption Coefficient Green"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_ABSORPTION_B", 24, 0..100) {
+                    lang {
+                        name = "Absorption Coefficient Blue"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_ABSORPTION_MULTIPLIER", -9.5, -15.0..-5.0 step 0.25) {
+                    lang {
+                        name = "Absorption Coefficient Multiplier"
+                        prefix = "2^"
+                    }
+                }
             }
         }
         screen("OUTER_SPACE", 2) {

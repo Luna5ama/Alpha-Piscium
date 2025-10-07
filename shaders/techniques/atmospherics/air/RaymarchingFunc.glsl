@@ -77,7 +77,8 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
 
     float cosZenithSun = dot(upVectorMid, scatteringParams.sunParams.lightDir);
     vec3 tSunToSampleMid = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenithSun, sampleHeightMid);
-    float tEarthSun = raySphereIntersectNearest(samplePosMid, scatteringParams.sunParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVectorMid, atmosphere.bottom);
+    vec3 earthShadowPos = vec3(0.0, 0.0, max(sampleHeightMid, atmosphere.bottom + PLANET_RADIUS_OFFSET));
+    float tEarthSun = raySphereIntersectNearest(earthShadowPos, scatteringParams.sunParams.lightDir, earthCenter, atmosphere.bottom);
     tSunToSampleMid *= float(tEarthSun < 0.0);
     tSunToSampleMid *= scatteringParams.sunParams.irradiance;
 
@@ -86,8 +87,8 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
 
     float cosZenithMoon = dot(upVectorMid, scatteringParams.moonParams.lightDir);
     vec3 tMoonToSampleMid = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenithMoon, sampleHeightMid);
-    float tEarthMoon = float(raySphereIntersectNearest(samplePosMid, scatteringParams.moonParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVectorMid, atmosphere.bottom) < 0.0);
-    tMoonToSampleMid *= tEarthMoon;
+    float tEarthMoon = raySphereIntersectNearest(earthShadowPos, scatteringParams.moonParams.lightDir, earthCenter, atmosphere.bottom);
+    tMoonToSampleMid *= float(tEarthMoon < 0.0);
     tMoonToSampleMid *= scatteringParams.moonParams.irradiance;
 
     vec3 multiSctrLuminanceMoon = atmospherics_air_lut_sampleMultiSctr(atmosphere, cosZenithMoon, sampleHeightMid);
