@@ -110,7 +110,7 @@ GBufferData processOutput() {
 
         vec3 rayDir = scenePos / abs(scenePos.y);
         rayDir.xz *= WAVE_POS_BASE * PARALLEX_STRENGTH;
-        const float WAVE_Y_OFFSET = 0.05;
+        const float WAVE_Y_OFFSET = 0.15;
         const float MAX_WAVE_HEIGHT = 0.8;
         float rayStepLength = MAX_WAVE_HEIGHT / float(MAX_STEPS);
 
@@ -141,16 +141,21 @@ GBufferData processOutput() {
 
         const float NORMAL_EPS = 0.05;
         const float NORMAL_WEIGHT = SETTING_WATER_NORMAL_SCALE;
-        float waveHeightC = waveHeight(waveWorldPos, true) * weightHeightMul;
-        float waveHeightX = waveHeight(waveWorldPos + vec3(NORMAL_EPS * WAVE_POS_BASE, 0.0, 0.0), true) * weightHeightMul;
-        float waveHeightZ = waveHeight(waveWorldPos + vec3(0.0, 0.0, NORMAL_EPS * WAVE_POS_BASE), true) * weightHeightMul;
+        float waveHeightC = waveHeight(waveWorldPos, true);
+
+
+        float waveOffset  = NORMAL_EPS * WAVE_POS_BASE;
+        vec3 offsetTangentX = coords_dir_viewToWorld(geomViewTangent) * waveOffset;
+        float waveHeightX = waveHeight(waveWorldPos + offsetTangentX, true);
+        vec3 offsetTangentY = coords_dir_viewToWorld(geomViewBitangent) * waveOffset;
+        float waveHeightZ = waveHeight(waveWorldPos + offsetTangentY, true);
         vec3 waveNormal = vec3(
             waveHeightX,
             waveHeightZ,
             NORMAL_EPS
         );
         waveNormal.xy -= waveHeightC;
-        waveNormal.xy *= NORMAL_WEIGHT;
+        waveNormal.xy *= NORMAL_WEIGHT * weightHeightMul;
         tangentNormal = waveNormal;
     } else {
         tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
