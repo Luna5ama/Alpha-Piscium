@@ -6,7 +6,7 @@
 #define HIZ_SUBGROUP_CHECK a
 #define GLOBAL_DATA_MODIFIER \
 
-#include "/techniques/Atmospherics/water/Constants.glsl"
+#include "/techniques/atmospherics/water/Constants.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Material.glsl"
 #include "/util/Morton.glsl"
