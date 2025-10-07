@@ -67,10 +67,16 @@ void main() {
     sst_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        ivec2 nearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
-        ivec2 farDepthTexelPos = csr32f_tile2_texelToTexel(texelPos);
+        ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
+        ivec2 waterFarDepthTexelPos = csr32f_tile2_texelToTexel(texelPos);
 
-        float startViewZ = -texelFetch(usam_csr32f, nearDepthTexelPos, 0).r;
+        ivec2 translucentNearDepthTexelPos = csr32f_tile3_texelToTexel(texelPos);
+        ivec2 translucentFarDepthTexelPos = csr32f_tile4_texelToTexel(texelPos);
+
+        float waterStartViewZ = -texelFetch(usam_csr32f, waterNearDepthTexelPos, 0).r;
+        float translucentStartViewZ = -texelFetch(usam_csr32f, translucentNearDepthTexelPos, 0).r;
+
+        float startViewZ = max(translucentStartViewZ, waterStartViewZ);
 
         if (startViewZ > -65536.0) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
