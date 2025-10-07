@@ -1302,7 +1302,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         suffix = " %"
                     }
                 }
-                slider("SETTING_WATER_SCATTERING_MULTIPLIER", -9.0, -15.0..-5.0 step 0.25) {
+                slider("SETTING_WATER_SCATTERING_MULTIPLIER", -8.75, -15.0..-5.0 step 0.25) {
                     lang {
                         name = "Scattering Coefficient Multiplier"
                         prefix = "2^"
@@ -1327,7 +1327,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         suffix = " %"
                     }
                 }
-                slider("SETTING_WATER_ABSORPTION_MULTIPLIER", -9.5, -15.0..-5.0 step 0.25) {
+                slider("SETTING_WATER_ABSORPTION_MULTIPLIER", -9.25, -15.0..-5.0 step 0.25) {
                     lang {
                         name = "Absorption Coefficient Multiplier"
                         prefix = "2^"
