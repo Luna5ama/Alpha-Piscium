@@ -189,7 +189,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         }
     }
 
-    if (!result.hit) {
+    if (!result.hit && currT > 0.01) {
         level = 0;
         ivec2 mipTile = shared_mipmapTiles[level].zw - 1;
 
