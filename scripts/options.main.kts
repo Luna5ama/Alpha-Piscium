@@ -1256,7 +1256,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Water"
                 }
-                toggle("SETTING_WATER_CAUSTICS", true) {
+                toggle("SETTING_WATER_CAUSTICS", false) {
                     lang {
                         name = "Water Caustics"
                     }
