@@ -121,7 +121,7 @@ void main() {
             float MDotV = dot(microNormal, viewDir);
             imageStore(uimg_temp1, texelPos, vec4(refractColor, MDotV));
 
-            SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.02);
+            SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.05);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
             const float SQRT_2 = 1.41421356237;
             const float SQRT_1_2 = 0.7071067812;

@@ -551,13 +551,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         prefix = "2^-"
                     }
                 }
-                slider("SETTING_TRANSLUCENT_MINIMUM_ROUGHNESS", 7.0, 4.0..10.0 step 0.5) {
+                slider("SETTING_TRANSLUCENT_MINIMUM_ROUGHNESS", 10.0, 4.0..16.0 step 0.5) {
                     lang {
                         name = "Translucent Minimum Roughness"
                         prefix = "2^-"
                     }
                 }
-                slider("SETTING_TRANSLUCENT_MAXIMUM_ROUGHNESS", 4.0, 1.0..10.0 step 0.5) {
+                slider("SETTING_TRANSLUCENT_MAXIMUM_ROUGHNESS", 5.0, 1.0..16.0 step 0.5) {
                     lang {
                         name = "Translucent Maximum Roughness"
                         prefix = "2^-"

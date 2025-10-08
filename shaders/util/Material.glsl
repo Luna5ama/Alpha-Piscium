@@ -41,7 +41,7 @@ Material material_decode(GBufferData gData) {
     material.roughness = 1.0 - gData.pbrSpecular.r;
     material.roughness *= material.roughness;
     material.roughness *= _MATERIAL_ROUGHNESS_MULTIPLIER;
-    material.roughness = clamp(material.roughness, _MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS);
+    material.roughness = mix(_MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS, smoothstep(_MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS, material.roughness));
     #ifdef MATERIAL_TRANSLUCENT
     material.roughness = gData.materialID == 3u ? _MATERIAL_WATER_ROUGHNESS : material.roughness;
     #endif
