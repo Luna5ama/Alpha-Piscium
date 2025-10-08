@@ -34,24 +34,6 @@ void initSharedData() {
     }
 }
 
-vec3 sampleInCone(vec3 center, float coneHalfAngle, vec2 rand) {
-    // Random azimuth angle
-    float phi = PI_2 * rand.x;
-
-    // Uniform sampling on spherical cap
-    float cosTheta = cos(coneHalfAngle);
-    float cosAlpha = mix(1.0, cosTheta, rand.y);
-    float sinAlpha = sqrt(1.0 - cosAlpha * cosAlpha);
-
-    // Build orthonormal basis (u, v, center)
-    vec3 other = abs(center.x) < 0.9 ? vec3(1, 0, 0) : vec3(0, 1, 0);
-    vec3 u = normalize(cross(center, other));
-    vec3 v = cross(center, u);
-
-    // Final direction
-    return normalize(cosAlpha * center + sinAlpha * (cos(phi) * u + sin(phi) * v));
-}
-
 bool intersectViewFrustumFromProj(vec3 ro, vec3 rd, out vec3 hitPos) {
     float tHit = 0.0;
     hitPos = ro;
@@ -139,7 +121,7 @@ void main() {
 
         const float RIOR = AIR_IOR / WATER_IOR;
         vec3 L = uval_shadowLightDirWorld;
-        L = sampleInCone(L, SUN_ANGULAR_RADIUS, jitter);
+        L = rand_sampleInCone(L, SUN_ANGULAR_RADIUS, jitter);
         vec3 refractDir = refract(-L, waterNormal, RIOR);
 
         {

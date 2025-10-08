@@ -62,7 +62,6 @@ vec4 BicubicSampling56(sampler2D samplerV, vec2 inHistoryUV, vec2 resolution) {
     return color;
 }
 
-
 void main() {
     sst_init();
 
@@ -101,12 +100,12 @@ void main() {
 
             float rior = AIR_IOR / mix(material.hardCodedIOR, 1.0, min(max2(ndcPos), 1.0 - pow2(saturate(dot(vec3(0.0, 0.0, 1.0), gData.geomNormal)))));
 //            float rior = AIR_IOR / mix(material.hardCodedIOR, 1.0, 1.0 - saturate(dot(vec3(0.0, 0.0, 1.0), gData.geomNormal)));
-            vec3 refractDir = refract(-viewDir, microNormal, rior);
-            refractDir = mix(refractDir, refract(-viewDir, gData.geomNormal, rior), pow4(smoothstep(-0.5, 0.5, dot(refractDir, gData.geomNormal))));
+            vec3 refViewDir = normalize(-viewDir - gData.geomNormal * 0.01 * pow(1.0 - abs(dot(viewDir, gData.geomNormal)), 128.0));
+            vec3 refractDir = refract(refViewDir, microNormal, rior);
+            refractDir = mix(refractDir, refract(refViewDir, gData.geomNormal, rior), pow4(smoothstep(-0.5, 0.5, dot(refractDir, gData.geomNormal))));
 
-            vec3 reflectDir = reflect(-viewDir, microNormal);
-
-            reflectDir = mix(reflectDir, reflect(-viewDir, gData.geomNormal), pow2(smoothstep(0.5, -0.3, dot(reflectDir, gData.geomNormal))));
+            vec3 reflectDir = reflect(refViewDir, microNormal);
+            reflectDir = mix(reflectDir, reflect(refViewDir, gData.geomNormal), pow2(linearStep(0.5, -0.3, dot(reflectDir, gData.geomNormal))));
             reflectDir = normalize(reflectDir);
 
             SSTResult refractResult = sst_trace(startViewPos, refractDir, 0.01);
@@ -124,12 +123,17 @@ void main() {
 
             SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.02);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
+            const float SQRT_2 = 1.41421356237;
+            const float SQRT_1_2 = 0.7071067812;
+            vec2 nv = SQRT_2 * noiseV - SQRT_1_2;
+            nv = pow3(nv) + 0.5;
+            reflectDirWorld = rand_sampleInCone(reflectDirWorld, 0.002, noiseV);
             vec2 envSliceUV = vec2(-1.0);
             vec2 envSliceID = vec2(-1.0);
             coords_cubeMapForward(reflectDirWorld, envSliceUV, envSliceID);
             ivec2 envTexel = ivec2((envSliceUV + envSliceID) * ENV_PROBE_SIZE);
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
-            vec3 reflectColor = envData.radiance.rgb;
+            vec3 reflectColor = envData.radiance.rgb * RCP_PI;
             if (envProbe_isSky(envData)) {
                 AtmosphereParameters atmosphere = getAtmosphereParameters();
                 SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, reflectDirWorld);

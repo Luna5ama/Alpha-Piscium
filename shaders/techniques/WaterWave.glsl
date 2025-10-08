@@ -57,50 +57,47 @@ float waveHeight(vec3 wavePos, bool base) {
 
     waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord + waveTime * -0.025);
 
-    float amp = 0.25;
+    float amp = 0.2;
     float wave = 0.0;
 
     if (base) {
         wave += amp * sampleNoise((waveTexCoord + curl + waveTime * 0.29) * vec2(0.5, 0.8));
     }
 
-    amp *= 1.23;
+    amp *= 0.51;
     waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord * 2.23);
     curl = MAT2_GOLDEN_ANGLE * (curl * 1.85);
     {
         waveTexCoordOgCurl = MAT2_GOLDEN_ANGLE * waveTexCoordOgCurl;
         vec2 curlCoord2 = waveTexCoordOgCurl * 0.92;
-        curlCoord2 -= waveTime * 0.945;
-        curlCoord2 -= (MAT2_GOLDEN_ANGLE * waveTime) * 1.368;
+        curlCoord2 -= waveTime * 0.98;
+        curlCoord2 -= (MAT2_GOLDEN_ANGLE * waveTime) * 1.37;
         curl += textureLod(usam_waveHFCurl, curlCoord2, 0.0).rg * 0.032;
     }
 
-    wave += amp * sampleNoise((waveTexCoord + curl - waveTime * 0.91) * vec2(-0.85, 0.52));
+    wave += amp * sampleNoise((waveTexCoord + curl - waveTime * 0.86) * vec2(-0.85, 0.52));
 
-    amp *= -2.58;
-    waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord * 1.13 - waveTime * 2.12);
+    amp *= -2.28;
+    waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord * 1.03 - waveTime * 1.82);
     curl = MAT2_GOLDEN_ANGLE * (curl * 1.65);
 
-    wave += amp * (sampleNoise((waveTexCoord + curl) * vec2(-0.13, -0.45)));
+    wave += amp * pow2(sampleNoise((waveTexCoord + curl) * vec2(-0.11, -0.41))) * 2.0;
 
-    amp *= 0.077;
-    waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord * 2.24 - waveTime * 2.68);
-    curl = MAT2_GOLDEN_ANGLE * (curl * 0.97);
+    amp *= 0.17;
+    waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord * 1.94 - waveTime * 1.68);
+    curl = MAT2_GOLDEN_ANGLE * (curl * 1.15);
 
     {
         waveTexCoordOgCurl = MAT2_GOLDEN_ANGLE * waveTexCoordOgCurl;
-        vec2 curlCoord2 = waveTexCoordOgCurl * 1.68;
-
-        curl += textureLod(usam_waveHFCurl, curlCoord2, 0.0).rg * 0.075;
-
-        curlCoord2 = MAT2_GOLDEN_ANGLE * (curlCoord2 * 0.72);
+        vec2 curlCoord2 = waveTexCoordOgCurl;
+        curlCoord2 = curlCoord2 * 1.41;
         curlCoord2 += sin(timeV * 6.1 + 2.1) * 0.032 * CURL_DIR;
-        curlCoord2 -= waveTime * 2.57;
-        curlCoord2 -= (MAT2_GOLDEN_ANGLE * waveTime) * 1.63;
+        curlCoord2 -= waveTime * 1.87;
+        curlCoord2 -= (MAT2_GOLDEN_ANGLE * waveTime) * 1.33;
         curl += textureLod(usam_waveHFCurl, curlCoord2, 0.0).rg * 0.048;
     }
 
-    wave += amp * sampleNoise((waveTexCoord + curl) * vec2(-0.57, -0.89) + waveTime * vec2(-0.2, -6.1));
+    wave += amp * sampleNoise((waveTexCoord + curl) * vec2(-0.57, -0.89) + waveTime * vec2(1.1, -4.8));
 
     return wave;
 }

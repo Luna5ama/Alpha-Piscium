@@ -120,8 +120,8 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
     {
         vec3 currScreenPos = pRayStart + pRayVector * currT;
         vec2 currTexelPos = currScreenPos.xy * mainImageSizeParams.xy;
-        ivec4 newMipTile = shared_mipmapTiles[level];
-        vec4 cellCountData = shared_cellCounts[level];
+        ivec4 newMipTile = shared_mipmapTiles[0];
+        vec4 cellCountData = shared_cellCounts[0];
         vec2 cellCount = cellCountData.xy;
         vec2 invCellCount = cellCountData.zw;
         vec2 cellIdx = (currScreenPos.xy + crossStep) * cellCount;
