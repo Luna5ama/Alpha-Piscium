@@ -610,7 +610,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Shadow"
                 }
-                constSlider("shadowMapResolution", 2048, listOf(1024, 2048, 3072, 4096)) {
+                slider("SETTING_SHADOW_MAP_RESOLUTION", 2048, listOf(1024, 2048, 3072, 4096)) {
                     lang {
                         name = "Shadow Map Resolution"
                     }

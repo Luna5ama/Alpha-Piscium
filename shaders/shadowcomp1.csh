@@ -5,7 +5,7 @@
 #include "/techniques/WaterWave.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
-const ivec3 workGroups = ivec3(128, 128, 1);
+const ivec3 workGroups = ivec3(SHADOW_MAP_SIZE_D16, SHADOW_MAP_SIZE_D16, 1);
 
 layout(rgb10_a2) uniform image2D uimg_shadow_waterNormal;
 
