@@ -1,3 +1,6 @@
+#extension GL_KHR_shader_subgroup_vote : enable
+#extension GL_KHR_shader_subgroup_arithmetic : enable
+
 ivec2 texelPos;
 #include "/util/Colors2.glsl"
 #include "/util/Dither.glsl"
@@ -107,6 +110,16 @@ GBufferData processOutput() {
 
         vec3 viewDir = normalize(-viewPos);
 
+        float NDotV = dot(geomViewNormal, viewDir);
+        float weightHeightMul = 1.0;
+        vec3 dVCdx = dFdx(viewPos);
+        vec3 dVCdy = dFdy(viewPos);
+        vec3 maxVec = max(abs(dVCdx), abs(dVCdy));
+        float maxLen = inversesqrt(dot(maxVec, maxVec));
+        vec2 avgNoise = subgroupAdd(vec2(noiseIGN, 1.0));
+        bool detail = maxLen * 0.2 > (avgNoise.x / avgNoise.y);
+        weightHeightMul *= saturate(maxLen * 2.0);
+
         #ifdef SETTING_WATER_PARALLEX
         const uint MAX_STEPS = uint(SETTING_WATER_PARALLEX_STEPS);
         const float PARALLEX_STRENGTH = float(SETTING_WATER_PARALLEX_STRENGTH);
@@ -123,7 +136,7 @@ GBufferData processOutput() {
 
             vec3 samplePos = waveWorldPos + sampleDelta;
             samplePos.y = waveWorldPos.y;
-            float sampleHeight = waveHeight(samplePos, false);
+            float sampleHeight = waveHeight(samplePos, false, detail);
 
             float currHeight = WAVE_Y_OFFSET + sampleDelta.y;
             if (currHeight < sampleHeight) {
@@ -134,24 +147,16 @@ GBufferData processOutput() {
         }
         #endif
 
-        float NDotV = dot(geomViewNormal, viewDir);
-        float weightHeightMul = 1.0;
-        vec3 dVCdx = dFdx(viewPos);
-        vec3 dVCdy = dFdy(viewPos);
-        vec3 maxVec = max(abs(dVCdx), abs(dVCdy));
-        float maxLen = length(maxVec);
-        weightHeightMul *= saturate(rcp(maxLen) * 2.0);
-
         const float NORMAL_EPS = 0.05;
         const float NORMAL_WEIGHT = SETTING_WATER_NORMAL_SCALE;
-        float waveHeightC = waveHeight(waveWorldPos, true);
+        float waveHeightC = waveHeight(waveWorldPos, true, detail);
 
 
         float waveOffset  = NORMAL_EPS * WAVE_POS_BASE;
         vec3 offsetTangentX = coords_dir_viewToWorld(geomViewTangent) * waveOffset;
-        float waveHeightX = waveHeight(waveWorldPos + offsetTangentX, true);
+        float waveHeightX = waveHeight(waveWorldPos + offsetTangentX, true, detail);
         vec3 offsetTangentY = coords_dir_viewToWorld(geomViewBitangent) * waveOffset;
-        float waveHeightZ = waveHeight(waveWorldPos + offsetTangentY, true);
+        float waveHeightZ = waveHeight(waveWorldPos + offsetTangentY, true, detail);
         vec3 waveNormal = vec3(
             waveHeightX,
             waveHeightZ,
