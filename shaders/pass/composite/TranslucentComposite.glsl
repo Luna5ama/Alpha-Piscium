@@ -1,6 +1,11 @@
+#extension GL_KHR_shader_subgroup_ballot : enable
+
+#define GLOBAL_DATA_MODIFIER \
+
 #define MATERIAL_TRANSLUCENT a
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/atmospherics/LocalComposite.glsl"
 #include "/techniques/textile/CSRGBA16F.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/Lighting.glsl"
@@ -15,7 +20,6 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_main;
-layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
 
 void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
@@ -59,8 +63,9 @@ void main() {
             float NDotV = dot(gData.normal, viewDir);
             float NDotL = sstData2.w;
 
-            float fresnelTransmittance = fresnel_dielectricDielectric_transmittance(MDotV, AIR_IOR, material.hardCodedIOR);
-            float fresnelReflectance = fresnel_dielectricDielectric_reflection(MDotV, AIR_IOR, material.hardCodedIOR);
+            vec2 iors = mix(vec2(AIR_IOR, material.hardCodedIOR), vec2(material.hardCodedIOR, AIR_IOR), bvec2(isEyeInWater == 1));
+            float fresnelTransmittance = fresnel_dielectricDielectric_transmittance(MDotV, iors.x, iors.y);
+            float fresnelReflectance = fresnel_dielectricDielectric_reflection(MDotV, iors.x, iors.y);
             float g1 = bsdf_smithG1(NDotV, material.roughness);
             float g2 = bsdf_smithG2(NDotV, NDotL, material.roughness);
 
@@ -117,11 +122,14 @@ void main() {
 
         imageStore(uimg_main, texelPos, outputColor);
 
+        if (isEyeInWater == 1) {
+            ScatteringResult sctrResult = atmospherics_localComposite(1, texelPos);
+            outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
+        }
+        ScatteringResult sctrResult = atmospherics_localComposite(2, texelPos);
+        outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
+
         #ifdef SETTING_DOF
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-        viewZ = max(startViewZ, viewZ);
-        outputColor.a = abs(viewZ);
-        imageStore(uimg_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), outputColor);
         #endif
     }
 }

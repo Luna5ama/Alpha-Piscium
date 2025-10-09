@@ -25,9 +25,9 @@ float edgeReductionFactor(vec2 screenPos) {
 }
 
 float edgeReductionFactor2(vec2 screenPos) {
-    const float SQUIRCLE_M = 1.0;
+    const float SQUIRCLE_M = 2.0;
     vec2 ndcPos = screenPos * 2.0 - 1.0;
-    vec2 squircle = pow(linearStep(0.5, 0.98, abs(ndcPos)), vec2(SQUIRCLE_M));
+    vec2 squircle = pow(saturate(1.5 * abs(ndcPos)), vec2(SQUIRCLE_M));
     return saturate(1.0 - (squircle.x + squircle.y));
 }
 
@@ -98,24 +98,53 @@ void main() {
 
             vec2 ndcPos = abs(screenPos * 2.0 - 1.0);
 
-            float rior = AIR_IOR / mix(material.hardCodedIOR, 1.0, min(max2(ndcPos), 1.0 - pow2(saturate(dot(vec3(0.0, 0.0, 1.0), gData.geomNormal)))));
-//            float rior = AIR_IOR / mix(material.hardCodedIOR, 1.0, 1.0 - saturate(dot(vec3(0.0, 0.0, 1.0), gData.geomNormal)));
+            float inWaterDisable = float(isEyeInWater == 1);
+            float riorFixWeight = min(max2(ndcPos), 1.0 - pow2(saturate(dot(vec3(0.0, 0.0, 1.0), gData.geomNormal))));
+            riorFixWeight = saturate(riorFixWeight - inWaterDisable);
+            float rior = AIR_IOR / mix(material.hardCodedIOR, 1.0, riorFixWeight);
+            float cosThetaSign = 1.0;
+            if (isEyeInWater == 1) {
+                rior = rcp(rior);
+                cosThetaSign = -1.0;
+            }
             vec3 refViewDir = normalize(-viewDir - gData.geomNormal * 0.01 * pow(1.0 - abs(dot(viewDir, gData.geomNormal)), 128.0));
             vec3 refractDir = refract(refViewDir, microNormal, rior);
-            refractDir = mix(refractDir, refract(refViewDir, gData.geomNormal, rior), pow4(smoothstep(-0.5, 0.5, dot(refractDir, gData.geomNormal))));
+            float refractFixWeight = pow4(smoothstep(-0.5, 0.5, dot(refractDir, gData.geomNormal))) - inWaterDisable;
+            refractDir = mix(refractDir, refract(refViewDir, gData.geomNormal, rior), saturate(refractFixWeight));
 
             vec3 reflectDir = reflect(refViewDir, microNormal);
             reflectDir = mix(reflectDir, reflect(refViewDir, gData.geomNormal), pow2(linearStep(0.5, -0.3, dot(reflectDir, gData.geomNormal))));
             reflectDir = normalize(reflectDir);
 
+            const float SQRT_2 = 1.41421356237;
+            const float SQRT_1_2 = 0.7071067812;
+            vec2 nv = SQRT_2 * noiseV - SQRT_1_2;
+            nv = pow3(nv) + 0.5;
+            AtmosphereParameters atmosphere = getAtmosphereParameters();
+
             SSTResult refractResult = sst_trace(startViewPos, refractDir, 0.01);
-            vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp)) : screenPos;
-            float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
-            if (refractDepth > startViewZ) {
-                refractCoord = screenPos;
+            vec3 refractColor = vec3(0.0);
+
+            if (isEyeInWater == 1) {
+                vec3 refractDirWorld = coords_dir_viewToWorld(refractDir);
+                if (refractDirWorld.y > 0.0) {
+                    SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, refractDirWorld);
+                    refractColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+                    if (refractResult.hit) {
+                        vec2 refractCoord = refractResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp);
+                        float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
+                        refractColor = mix(refractColor, BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb, edgeReductionFactor2(refractResult.hitScreenPos.xy));
+                    }
+                }
+            } else {
+                vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp)) : screenPos;
+                float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
+                if (refractDepth > startViewZ) {
+                    refractCoord = screenPos;
+                }
+                refractColor = BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb;
             }
 
-            vec3 refractColor = BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb;
             //            vec3 refractColor = texture(usam_main, refractCoord).rgb;
 
             float MDotV = dot(microNormal, viewDir);
@@ -123,10 +152,6 @@ void main() {
 
             SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.05);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
-            const float SQRT_2 = 1.41421356237;
-            const float SQRT_1_2 = 0.7071067812;
-            vec2 nv = SQRT_2 * noiseV - SQRT_1_2;
-            nv = pow3(nv) + 0.5;
             reflectDirWorld = rand_sampleInCone(reflectDirWorld, 0.002, noiseV);
             vec2 envSliceUV = vec2(-1.0);
             vec2 envSliceID = vec2(-1.0);
@@ -134,14 +159,21 @@ void main() {
             ivec2 envTexel = ivec2((envSliceUV + envSliceID) * ENV_PROBE_SIZE);
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
             vec3 reflectColor = envData.radiance.rgb * RCP_PI;
-            if (envProbe_isSky(envData)) {
+            if (envProbe_isSky(envData) && reflectDirWorld.y > 0.0) {
                 AtmosphereParameters atmosphere = getAtmosphereParameters();
                 SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, reflectDirWorld);
                 reflectColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
             }
             if (reflectResult.hit) {
                 vec2 sampleCoord = saturate(reflectResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp));
-                reflectColor = mix(reflectColor, BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb, edgeReductionFactor(reflectResult.hitScreenPos.xy));
+                if (isEyeInWater == 1) {
+                    float reflectDepth = texture(usam_gbufferViewZ, sampleCoord).r;
+                    if (reflectDepth > -far) {
+                        reflectColor = mix(reflectColor, BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb, edgeReductionFactor(reflectResult.hitScreenPos.xy));
+                    }
+                } else {
+                    reflectColor = mix(reflectColor, BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb, edgeReductionFactor(reflectResult.hitScreenPos.xy));
+                }
             }
 
             float NDotL = dot(gData.normal, reflectDir);
