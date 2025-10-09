@@ -6,6 +6,7 @@
 #define HIZ_SUBGROUP_CHECK a
 #define GLOBAL_DATA_MODIFIER \
 
+#include "/techniques/atmospherics/water/Constants.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Material.glsl"
 #include "/util/Morton.glsl"
@@ -21,7 +22,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 uniform sampler2D dhDepthTex0;
 #endif
 
-layout(rgba8) uniform restrict image2D uimg_temp5;
+layout(rgba16f) uniform restrict image2D uimg_temp3;
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 layout(rgba16f) uniform restrict image2D uimg_translucentColor;
 
@@ -33,7 +34,7 @@ vec3 viewPos = vec3(0.0);
 vec3 viewDir = vec3(0.0);
 
 vec2 texel2Screen(ivec2 texelPos) {
-    return (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+    return (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
 }
 
 float searchBlocker(vec3 shadowTexCoord) {
@@ -61,6 +62,23 @@ float searchBlocker(vec3 shadowTexCoord) {
     blockerDepth = mix(shadowTexCoord.z, blockerDepth, float(n != 0));
 
     return abs(rtwsm_linearDepth(blockerDepth) - rtwsm_linearDepth(shadowTexCoord.z));
+}
+
+float waterSurfaceDistance(vec3 shadowUVPos) {
+    shadowUVPos.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, shadowUVPos.xy);
+    vec2 ndcCoord = shadowUVPos.xy * 2.0 - 1.0;
+    float edgeCoord = max(abs(ndcCoord.x), abs(ndcCoord.y));
+    if (edgeCoord > 1.0 - SHADOW_MAP_SIZE.y * 16) {
+        return -1.0;
+    }
+    if (texture(usam_shadow_waterMask, shadowUVPos.xy).r < 0.9) {
+        return -1.0;
+    }
+    float sampleDepth = texture(shadowtex0, shadowUVPos.xy).r;
+    if (texture(shadowtex1, shadowUVPos.xy).r <= sampleDepth) {
+        return -1.0;
+    }
+    return abs(rtwsm_linearDepth(shadowUVPos.z) - rtwsm_linearDepth(sampleDepth));
 }
 
 vec3 calcShadow(Material material) {
@@ -137,6 +155,23 @@ vec3 calcShadow(Material material) {
 
     vec3 shadow = min(sampleColor.rgb, sampleShadow1.rrr);
 
+    if (texture(usam_shadow_waterMask, sampleTexCoord.xy).r > 0.9) {
+        float rcpShadowY = rcp(uval_shadowLightDirWorld.y);
+        vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
+        float worldHeight = scenePos.y + cameraPosition.y;
+        float waterDepth = waterSurfaceDistance(shadowScreenPos);
+        if (waterDepth == -1.0) {
+            max(63.0 - worldHeight, 0.0) * rcpShadowY;
+        }
+        #ifdef SETTING_WATER_CAUSTICS
+        ivec2 readPos = texelPos;
+        readPos.y += uval_mainImageSizeI.y;
+        float causticsV = texelFetch(usam_causticsPhoton, readPos, 0).r;
+        shadow *= mix(1.0, causticsV, exp2(-waterDepth * 0.05));
+        #endif
+        shadow *= exp(-waterDepth * WATER_EXTINCTION);
+    }
+
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
     return mix(vec3(shadow), vec3(1.0), shadowRangeBlend);
 }
@@ -156,7 +191,7 @@ void main() {
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     texelPos = ivec2(mortonGlobalPosU);
 
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         float viewZ = -65536.0;
 
         #ifdef DISTANT_HORIZONS
@@ -166,7 +201,7 @@ void main() {
             float dhDepth = texelFetch(dhDepthTex0, texelPos, 0).r;
             float dhViewZ = -coords_linearizeDepth(dhDepth, dhNearPlane, dhFarPlane);
             if (dhViewZ > viewZ) {
-                translucentColor = imageLoad(uimg_temp5, texelPos);
+                translucentColor = texelFetch(usam_temp5, texelPos);
                 imageStore(uimg_translucentColor, texelPos, translucentColor);
             }
         }
@@ -180,7 +215,8 @@ void main() {
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             vec4 outputColor = compShadow(texelPos, viewZ);
-            imageStore(uimg_temp5, texelPos, outputColor);
+            outputColor = clamp(outputColor, 0.0, FP16_MAX);
+            imageStore(uimg_temp3, texelPos, outputColor);
 
             rtwsm_backward(texelPos, viewZ, gData);
         }

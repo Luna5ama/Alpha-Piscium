@@ -1,50 +1,40 @@
-#include "/Base.glsl"
+#include "/util/Math.glsl"
 
 in vec2 mc_Entity;
-
 in vec4 at_tangent;
+in vec4 at_midBlock;
 
-#ifdef GBUFFER_PASS_DIRECT
-#define vertOut_viewTangent frag_viewTangent
-#define vertOut_colorMul frag_colorMul
-#define vertOut_viewNormal frag_viewNormal
-#define vertOut_texCoord frag_texCoord
-#define vertOut_lmCoord frag_lmCoord
-#define vertOut_materialID frag_materialID
-#define vertOut_viewCoord frag_viewCoord
-#else
-#define vertOut_viewTangent vert_viewTangent
-#define vertOut_colorMul vert_colorMul
-#define vertOut_viewNormal vert_viewNormal
-#define vertOut_texCoord vert_texCoord
-#define vertOut_lmCoord vert_lmCoord
-#define vertOut_materialID vert_materialID
-#define vertOut_viewCoord vert_viewCoord
-#endif
-
-out vec4 vertOut_viewTangent;
-out vec4 vertOut_colorMul;
-out vec3 vertOut_viewNormal;
-out vec2 vertOut_texCoord;
-out vec2 vertOut_lmCoord;
-out uint vertOut_materialID;
-out vec3 vertOut_viewCoord;
+out vec4 frag_viewTangent;
+out vec4 frag_colorMul;
+out vec3 frag_viewNormal;
+out vec2 frag_texCoord;
+out vec2 frag_lmCoord;
+out uint frag_materialID;
+out float frag_viewZ;
+out uint frag_midBlock;
+out vec3 frag_offsetToCenter;
 
 void main() {
-    gl_Position = global_taaJitterMat * ftransform();
-    vec4 temp = gbufferProjectionInverse * gl_Position;
-    vertOut_viewCoord = temp.xyz / temp.w;
+    vec4 clipPos = ftransform();
+    vec4 viewPos = gbufferProjectionInverse * clipPos;
+    viewPos /= viewPos.w;
+    frag_viewZ = viewPos.z;
+    gl_Position = global_taaJitterMat * clipPos;
 
-    vertOut_viewNormal = gl_NormalMatrix * normalize(gl_Normal.xyz);
-    vertOut_viewTangent.xyz = gl_NormalMatrix * normalize(at_tangent.xyz);
-    vertOut_viewTangent.w = sign(at_tangent.w);
+    frag_viewNormal = gl_NormalMatrix * normalize(gl_Normal.xyz);
+    frag_viewTangent.xyz = gl_NormalMatrix * normalize(at_tangent.xyz);
+    frag_viewTangent.w = sign(at_tangent.w);
 
-    vertOut_texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
-    vertOut_lmCoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
-    vertOut_colorMul = gl_Color;
+    frag_texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+    frag_lmCoord  = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
+    frag_colorMul = gl_Color;
     #ifdef GBUFFER_PASS_HAND
-    vertOut_colorMul = vec4(1.0);
+    frag_colorMul = vec4(1.0);
     #endif
 
-    vertOut_materialID = uint(int(mc_Entity.x)) & 0xFFFFu;
+    frag_materialID = uint(int(mc_Entity.x)) & 0xFFFFu;
+
+    vec3 offsetToCenter = at_midBlock.xyz / 64.0;
+    frag_midBlock = packUnorm4x8(vec4(saturate(abs(offsetToCenter) / 2.0), at_midBlock.w / 15.0));
+    frag_offsetToCenter = offsetToCenter;
 }

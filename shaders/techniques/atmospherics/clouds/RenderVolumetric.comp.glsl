@@ -22,7 +22,7 @@ void render(ivec2 texelPosDownScale) {
     vec2 texelPosF = clouds_ss_upscaledTexelCenter(texelPosDownScale);
     float viewZ = -65536.0;
 
-    vec2 screenPos = texelPosF * global_mainImageSizeRcp;
+    vec2 screenPos = texelPosF * uval_mainImageSizeRcp;
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
     vec3 originView = vec3(0.0);

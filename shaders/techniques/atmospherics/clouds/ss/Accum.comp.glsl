@@ -78,9 +78,9 @@ const float WEIGHT_EPSILON = 0.0001;
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (hiz_groupSkyCheckSubgroup(gl_WorkGroupID.xy, 3)) {
-        if (all(lessThan(texelPos, global_mainImageSizeI))) {
+        if (all(lessThan(texelPos, uval_mainImageSizeI))) {
             vec2 texelCenter = vec2(texelPos) + 0.5;
-            vec2 uv = texelCenter * global_mainImageSizeRcp;
+            vec2 uv = texelCenter * uval_mainImageSizeRcp;
             ivec2 texelPosDownScale = DOWNSCALE_DIVIDE(texelPos);
 
             vec3 currView = coords_toViewCoord(uv, -65536.0, global_camProjInverse);
@@ -95,7 +95,7 @@ void main() {
             if (bool(clipFlag)) {
                 vec2 curr2PrevNDC = curr2PrevClip.xy / curr2PrevClip.w;
                 vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
-                vec2 curr2PrevTexel = curr2PrevScreen * global_mainImageSize;
+                vec2 curr2PrevTexel = curr2PrevScreen * uval_mainImageSize;
 
                 vec2 centerPixel = curr2PrevTexel - 0.5;
                 vec2 centerPixelOrigin = floor(centerPixel);

@@ -12,7 +12,7 @@ bool envProbe_reproject(ivec4 inputCubeMapPos, inout EnvProbeData envProbeData, 
     }
 
     vec3 prevScenePos = envProbeData.scenePos;
-    vec3 cameraDelta = cameraPosition - previousCameraPosition;
+    vec3 cameraDelta = uval_cameraDelta;
     vec3 currScenePos = prevScenePos - cameraDelta;
     vec3 currWorldDir = normalize(currScenePos);
     vec2 currSliceUV = vec2(-1.0);

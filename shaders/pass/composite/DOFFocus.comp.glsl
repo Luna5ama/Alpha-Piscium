@@ -13,7 +13,7 @@ shared vec2 shared_subgroupTemp[32];
 shared vec2 shared_groupTemp;
 
 void main() {
-    vec2 centerTexelPos = global_mainImageSize / 4.0;
+    vec2 centerTexelPos = uval_mainImageSize / 4.0;
     vec2 texelPos = centerTexelPos + vec2(gl_LocalInvocationID.xy) - 16.0;
     float hiz = hiz_closest_load(ivec2(texelPos), 1);
     float viewZ = abs(coords_reversedZToViewZ(hiz, near));

@@ -25,22 +25,23 @@ layout(r32ui) uniform writeonly uimage2D uimg_geometryNormal;
 
 ivec2 texelPos;
 
-void doLighting(Material material, vec3 N, inout vec3 directDiffuseOut, inout vec3 mainOut, inout vec3 ssgiOut) {
+void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffuseOut, inout vec3 mainOut, inout vec3 ssgiOut) {
     vec3 emissiveV = material.emissive;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
     material.albedo = max(material.albedo, 0.0001);
 
-    vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(lighting_viewCoord, 1.0)).xyz;
+    vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
     vec3 worldPos = feetPlayerPos + cameraPosition;
-    vec3 atmPos = atmosphere_viewToAtm(atmosphere, lighting_viewCoord);
+    vec3 atmPos = atmosphere_viewToAtm(atmosphere, viewPos);
     atmPos.y = max(atmPos.y, atmosphere.bottom + 0.1);
     float viewAltitude = length(atmPos);
     vec3 upVector = atmPos / viewAltitude;
     const vec3 earthCenter = vec3(0.0, 0.0, 0.0);
+    vec3 V = normalize(-viewPos);
 
-    vec3 shadow = texelFetch(usam_temp5, texelPos, 0).rgb;
+    vec3 shadow = texelFetch(usam_temp3, texelPos, 0).rgb;
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
 
     float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
@@ -48,14 +49,14 @@ void doLighting(Material material, vec3 N, inout vec3 directDiffuseOut, inout ve
     tSun *= float(raySphereIntersectNearest(atmPos, uval_sunDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
     vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
     vec4 sunIrradiance = vec4(SUN_ILLUMINANCE * tSun * sunShadow, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, sunShadow));
-    LightingResult sunLighting = directLighting(material, sunIrradiance, uval_sunDirView, N);
+    LightingResult sunLighting = directLighting(material, sunIrradiance, V, uval_sunDirView, N);
 
     float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
     vec3 tMoon = atmospherics_air_lut_sampleTransmittance(atmosphere, cosMoonZenith, viewAltitude);
     tMoon *= float(raySphereIntersectNearest(atmPos, uval_moonDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
     vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
     vec4 moonIrradiance = vec4(MOON_ILLUMINANCE * tMoon * moonShadow, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, moonShadow));
-    LightingResult moonLighting = directLighting(material, moonIrradiance, uval_moonDirView, N);
+    LightingResult moonLighting = directLighting(material, moonIrradiance, V, uval_moonDirView, N);
 
     LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
 
@@ -79,9 +80,9 @@ void main() {
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     texelPos = ivec2(mortonGlobalPosU);
 
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         ivec2 texelPos2x2 = texelPos >> 1;
-        vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+        vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
 
         if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
             float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
@@ -95,7 +96,7 @@ void main() {
                 glintColor *= exp2(SETTING_EMISSIVE_STRENGTH + SETTING_EMISSIVE_ARMOR_GLINT_MULT);
                 material.emissive += glintColor + material.albedo * glintColor * 4.0;
 
-                lighting_init(coords_toViewCoord(screenPos, viewZ, global_camProjInverse), texelPos);
+                vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
                 ivec2 texelPos2x2 = texelPos >> 1;
                 ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
 
@@ -107,7 +108,7 @@ void main() {
                 if (lighting_gData.materialID == 65534u) {
                     mainOut = vec4(material.albedo * 0.01, 2.0);
                 } else {
-                    doLighting(material, lighting_gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
+                    doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
                     float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_idt(lighting_gData.albedo));
                     float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
                     mainOut.a += emissiveFlag * albedoLuma * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
@@ -117,12 +118,15 @@ void main() {
                     mainOut.a *= mix(1.0, -1.0, emissiveFlag);
                 }
 
+                mainOut.rgb = clamp(mainOut.rgb, 0.0, FP16_MAX);
+                ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
+
                 uint packedGeometryNormal = packSnorm3x10(lighting_gData.geomNormal);
                 imageStore(uimg_geometryNormal, texelPos, uvec4(packedGeometryNormal));
 
                 uvec4 packedZNOut = uvec4(0u);
                 nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
-                imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
+                imageStore(uimg_packedZN, texelPos + ivec2(0, uval_mainImageSizeI.y), packedZNOut);
 
                 uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
                 ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
@@ -142,7 +146,7 @@ void main() {
 
             uvec4 packedZNOut = uvec4(0u);
             packedZNOut.y = floatBitsToUint(-65536.0);
-            imageStore(uimg_packedZN, texelPos + ivec2(0, global_mainImageSizeI.y), packedZNOut);
+            imageStore(uimg_packedZN, texelPos + ivec2(0, uval_mainImageSizeI.y), packedZNOut);
 
             uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));

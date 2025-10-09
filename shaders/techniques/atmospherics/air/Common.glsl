@@ -73,15 +73,15 @@ vec3 sampleParticleDensity(AtmosphereParameters atmosphere, float height) {
     );
 }
 
-float atmosphere_height(AtmosphereParameters atmosphere, vec3 worldPos) {
-    float worldHeight = max(worldPos.y - 62.0, float(SETTING_ATM_ALT_SCALE) * 0.001);
+float atmosphere_height(AtmosphereParameters atmosphere, float worldPosY) {
+    float worldHeight = max(worldPosY - 62.0, float(SETTING_ATM_ALT_SCALE) * 0.001);
     return worldHeight * (1.0 / float(SETTING_ATM_ALT_SCALE)) + atmosphere.bottom;
 }
 
 vec3 atmosphere_viewToAtm(AtmosphereParameters atmosphere, vec3 viewPos) {
     vec3 feetPlayer = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
     vec3 world = feetPlayer + cameraPosition;
-    float height = atmosphere_height(atmosphere, world);
+    float height = atmosphere_height(atmosphere, world.y);
     return vec3(feetPlayer.x, 0.0, feetPlayer.z) * (1.0 / float(SETTING_ATM_D_SCALE)) + vec3(0.0, height, 0.0);
 }
 
@@ -106,18 +106,18 @@ void unpackEpipolarData(uvec4 epipolarData, out ScatteringResult sctrResult, out
     viewZ = uintBitsToFloat(epipolarData.w);
 }
 
-void packEpipolarData(out uvec4 epipolarData, ScatteringResult sctrResult, float viewZ) {
+void packEpipolarData(out uvec4 epipolarData, ScatteringResult sctrResult, ivec2 texelPos) {
     epipolarData.x = packHalf2x16(sctrResult.inScattering.xy);
     epipolarData.y = packHalf2x16(vec2(sctrResult.inScattering.z, sctrResult.transmittance.x));
     epipolarData.z = packHalf2x16(sctrResult.transmittance.yz);
-    epipolarData.w = floatBitsToUint(viewZ);
+    epipolarData.w = bitfieldInsert(texelPos.x, texelPos.y, 16, 16);
 }
 
 #define INVALID_EPIPOLAR_LINE vec4(-1000.0, -1000.0, -100.0, -100.0)
 
 bool isValidScreenLocation(vec2 f2XY) {
     const float SAFETY_EPSILON = 0.2f;
-    return all(lessThanEqual(abs(f2XY), 1.0 - (1.0 - SAFETY_EPSILON) / vec2(global_mainImageSizeI)));
+    return all(lessThanEqual(abs(f2XY), 1.0 - (1.0 - SAFETY_EPSILON) / vec2(uval_mainImageSizeI)));
 }
 
 vec4 getOutermostScreenPixelCoords() {
@@ -137,7 +137,7 @@ vec4 getOutermostScreenPixelCoords() {
     //
     // Using shader macro is much more efficient than using constant buffer variable
     // because the compiler is able to optimize the code more aggressively
-    return vec4(-1.0, -1.0, 1.0, 1.0) + vec4(1.0, 1.0, -1.0, -1.0) / global_mainImageSizeI.xyxy;
+    return vec4(-1.0, -1.0, 1.0, 1.0) + vec4(1.0, 1.0, -1.0, -1.0) / uval_mainImageSizeI.xyxy;
 }
 
 vec4 temporalUpdate(vec4 prevData, vec3 currData, float maxFrames) {

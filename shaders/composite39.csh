@@ -10,7 +10,7 @@ layout(rgba16f) uniform restrict image2D uimg_main;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = imageLoad(uimg_main, texelPos);
         outputColor.rgb = dof_sample(texelPos);
         imageStore(uimg_main, texelPos, outputColor);

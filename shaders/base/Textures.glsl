@@ -10,15 +10,19 @@ const int colortex7Format = R32UI; // Geometry Normal
 const int colortex8Format = RGBA32UI; // GBuffer Data 32UI
 const int colortex9Format = R32UI; // GBuffer Data 8UN
 const int colortex10Format = R32F; // GBuffer ViewZ
-const int colortex11Format = RGBA16; // Translucent Color
+const int colortexdFormat = RGB10_A2; // Translucent Color
 const int colortex12Format = RGBA16F; // Translucent Data
 const int colortex13Format = RG32UI; // tempR32UI
 const int colortex14Format = RG32UI; // packedZN
 const int colortex15Format = RGBA16F; // TAA Last
 
 const int shadowcolor0Format = R16F; // Depth offset
-const int shadowcolor1Format = RGBA8; // Normal
+const int shadowcolor1Format = RGBA8_SNORM; // Normal
 const int shadowcolor2Format = RGBA8; // Translucent color
+const int shadowcolor3Format = RG16; // Unwarped UV
+const int shadowcolor4Format = R32F; // Pixel area
+const int shadowcolor5Format = RGBA8; // Water mask
+const int shadowcolor6Format = RGB10_A2; // Water normal
 */
 
 #define usam_main colortex0
@@ -97,12 +101,32 @@ const bool colortex14Clear = false;
 
 const bool colortex15Clear = false;
 
+#define usam_shadow_unwarpedUV shadowcolor3
+#define uimg_shadow_unwarpedUV shadowcolorimg3
+
+#define usam_shadow_pixelArea shadowcolor4
+#define uimg_shadow_pixelArea shadowcolorimg4
+
+#define usam_shadow_waterMask shadowcolor5
+#define uimg_shadow_waterMask shadowcolorimg5
+
+#define usam_shadow_waterNormal shadowcolor6
+#define uimg_shadow_waterNormal shadowcolorimg6
+
 const bool shadowcolor0Clear = true;
 const vec4 shadowcolor0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const bool shadowcolor1Clear = true;
 const vec4 shadowcolor1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const bool shadowcolor2Clear = true;
 const vec4 shadowcolor2ClearColor = vec4(1.0, 1.0, 1.0, 1.0);
+const bool shadowcolor3Clear = true;
+const vec4 shadowcolor3ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const bool shadowcolor4Clear = true;
+const vec4 shadowcolor4ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const bool shadowcolor5Clear = true;
+const vec4 shadowcolor5ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
+const bool shadowcolor6Clear = true;
+const vec4 shadowcolor6ClearColor = vec4(0.0, 1.0, 0.0, 0.0);
 
 // ------------------------------------------------- Colortex Samplers -------------------------------------------------
 uniform sampler2D usam_main;
@@ -130,12 +154,17 @@ uniform sampler2DShadow shadowtex1HW;
 uniform sampler2D shadowcolor0;
 uniform sampler2D shadowcolor1;
 uniform sampler2D shadowcolor2;
+uniform sampler2D usam_shadow_unwarpedUV;
+uniform sampler2D usam_shadow_pixelArea;
+uniform sampler2D usam_shadow_waterMask;
+uniform sampler2D usam_shadow_waterNormal;
 
 // --------------------------------------------------- Custom Images ---------------------------------------------------
 uniform usampler2D usam_csrgba32ui;
 uniform sampler2D usam_csrgba16f;
 uniform sampler2D usam_cfrgba16f;
-uniform sampler2D usam_translucentDepthLayers;
+uniform sampler2D usam_csr32f;
+uniform sampler2D usam_csrg32f;
 
 uniform sampler2D usam_rtwsm_imap;
 uniform sampler2D usam_transmittanceLUT;
@@ -145,9 +174,12 @@ uniform sampler3D usam_skyViewLUT;
 uniform usampler2D usam_epipolarData;
 uniform sampler3D usam_cloudsAmbLUT;
 uniform usampler2D usam_envProbe;
+uniform sampler2D usam_causticsPhoton;
 
 // -------------------------------------------------- Custom Textures --------------------------------------------------
 uniform sampler2D noisetex;
+uniform sampler2D usam_waveNoise;
+uniform sampler2D usam_waveHFCurl;
 uniform sampler3D usam_blueNoise3D;
 uniform sampler3D usam_whiteNoise3D;
 uniform sampler3D usam_stbnVec1;

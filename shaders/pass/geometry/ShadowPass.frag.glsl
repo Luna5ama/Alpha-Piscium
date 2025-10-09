@@ -9,14 +9,19 @@ in vec2 frag_unwarpedTexCoord;
 in vec2 frag_texcoord;
 in vec4 frag_color;
 in vec3 frag_normal;
+in vec3 frag_scenePos;
+flat in uint frag_materialID;
 flat in vec2 frag_texcoordMin;
 flat in vec2 frag_texcoordMax;
 
 #ifdef SHADOW_PASS_TRANSLUCENT
-/* RENDERTARGETS:0,1,2 */
+/* RENDERTARGETS:0,1,2,3,4,5 */
 layout(location = 0) out float rt_depthOffset;
 layout(location = 1) out vec3 rt_normal;
 layout(location = 2) out vec4 rt_translucentColor;
+layout(location = 3) out vec2 rt_unwarpedUV;
+layout(location = 4) out float rt_pixelArea;
+layout(location = 5) out vec4 rt_waterMask;
 #else
 /* RENDERTARGETS:0,1 */
 layout(location = 0) out float rt_depthOffset;
@@ -24,6 +29,7 @@ layout(location = 1) out vec3 rt_normal;
 #endif
 
 void main() {
+
     vec2 fragUV = gl_FragCoord.xy * SHADOW_MAP_SIZE.y;
     vec2 warppedUV = rtwsm_warpTexCoord(usam_rtwsm_imap, frag_unwarpedTexCoord);
     vec2 pixelDiff = (fragUV - warppedUV) * SHADOW_MAP_SIZE.x;
@@ -42,12 +48,10 @@ void main() {
     #endif
 
     #ifdef SHADOW_PASS_TRANSLUCENT
-    vec2 randCoord = gl_FragCoord.xy;
-    randCoord.y += abs(rtwsm_linearDepth(gl_FragCoord.z));
-    float randAlpha = rand_IGN(uvec2(randCoord), frameCounter);
-    if (color.a < randAlpha) {
-        discard;
-    }
-    rt_translucentColor = mix(color, vec4(1.0, 1.0, 1.0, 0.0), float(color.a == 1.0));
+    rt_pixelArea = length(dFdx(frag_scenePos)) * length(dFdy(frag_scenePos));
+    rt_unwarpedUV = frag_unwarpedTexCoord;
+    float waterMask = float(frag_materialID == 3u);
+    rt_waterMask = vec4(waterMask);
+    rt_translucentColor = mix(color, vec4(1.0, 1.0, 1.0, 0.0), saturate(color.a + waterMask));
     #endif
 }

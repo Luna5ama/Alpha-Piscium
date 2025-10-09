@@ -37,8 +37,13 @@ layout(location = 1) out uvec4 rt_gbufferData2;
 layout(location = 2) out float rt_gbufferViewZ;
 #endif
 
+#ifdef SETTING_SCREENSHOT_MODE
+vec2 dUVdx = vec2(0.0);
+vec2 dUVdy = vec2(0.0);
+#else
 vec2 dUVdx = dFdx(frag_texCoord);
 vec2 dUVdy = dFdy(frag_texCoord);
+#endif
 
 ivec2 texelPos = ivec2(gl_FragCoord.xy);
 float ditherNoise = rand_stbnVec1(texelPos, frameCounter);
@@ -52,13 +57,9 @@ void processAlbedo() {
     albedo = frag_colorMul;
 
     #ifdef GBUFFER_PASS_TEXTURED
-    #ifdef SETTING_SCREENSHOT_MODE
-    albedo *= textureLod(gtexture, frag_texCoord, 0.0);
-    #else
     vec4 sample1 = textureGrad(gtexture, frag_texCoord, dUVdx * 0.5, dUVdy * 0.5);
     vec4 sample2 = textureGrad(gtexture, frag_texCoord, dUVdx * 0.25, dUVdy * 0.25);
     albedo *= vec4(sample2.rgb, sample1.a);
-    #endif
     #endif
 
     #ifdef GBUFFER_PASS_ENTITY_COLOR
@@ -99,17 +100,20 @@ void processData1() {
     vec3 geomViewTangent = normalize(frag_viewTangent.xyz);
     vec3 geomViewBitangent = normalize(cross(geomViewNormal, geomViewTangent) * bitangentSignF);
 
+    gData.normal = geomViewNormal;
+    gData.geomNormal = geomViewNormal;
+    gData.geomTangent = geomViewTangent;
+    gData.bitangentSign = int(bitangentSignF);
+
+    gData.pbrSpecular = vec4(0.0, 0.0, 0.0, 0.0);
+    gData.lmCoord = frag_lmCoord;
+    gData.materialID = 65534u;
+
     #if defined(GBUFFER_PASS_TEXTURED)
-    #ifdef SETTING_SCREENSHOT_MODE
-    vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
-    vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);
-    #else
     vec4 normalSample = textureGrad(normals, frag_texCoord, dUVdx, dUVdy);
     vec4 specularSample = textureGrad(specular, frag_texCoord, dUVdx, dUVdy);
-    #endif
 
     gData.pbrSpecular = specularSample;
-    gData.lmCoord = frag_lmCoord;
     gData.lmCoord.y *= normalSample.b;
     gData.materialID = frag_materialID;
 
@@ -118,9 +122,7 @@ void processData1() {
 
     gData.pbrSpecular.a = emissiveS;
 
-    #if !defined(SETTING_NORMAL_MAPPING)
-    gData.normal = geomViewNormal;
-    #else
+    #ifdef SETTING_NORMAL_MAPPING
     mat3 tbn = mat3(geomViewTangent, geomViewBitangent, geomViewNormal);
     vec3 tangentNormal;
     tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
@@ -130,18 +132,12 @@ void processData1() {
     gData.normal = normalize(tbn * tangentNormal);
     #endif
 
-    #else
-    gData.normal = geomViewNormal;
-    gData.pbrSpecular = vec4(0.0, 0.0, 0.0, 0.0);
-    gData.lmCoord = frag_lmCoord;
-    gData.materialID = 65534u;
     #endif
+
 
     #ifdef GBUFFER_PASS_DH
     gData.materialID = 65533;
     #endif
-
-    gData.lmCoord = dither_u8(gData.lmCoord, ditherNoise);
 
     #ifdef GBUFFER_PASS_PARTICLE
     gData.materialID = 65533u;
@@ -150,12 +146,14 @@ void processData1() {
         gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + particleEmissive);
     }
     #endif
+
+    gData.lmCoord = dither_u8(gData.lmCoord, ditherNoise);
 }
 
 void main() {
     #ifdef DISTANT_HORIZONS
     #ifndef GBUFFER_PASS_DH
-    vec2 screenPos = gl_FragCoord.xy * global_mainImageSizeRcp;
+    vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp;
     vec3 viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
     float edgeFactor = linearStep(min(far * 0.75, far - 24.0), far, length(viewPos));
     if (ditherNoise < edgeFactor) {

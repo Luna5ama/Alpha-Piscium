@@ -14,10 +14,10 @@
         [GRE17] Grenier, Jean-Philippe. "Notes On Screen Space HIZ Tracing".
             jpg's blog.
             https://www.jpgrenier.org/ssr.html
-*/
 
-#include "HiZ.glsl"
-#include "/util/Coords.glsl"
+    Credit:
+        - GeforceLegend (https://github.com/GeForceLegend) - Helping with optimizations.
+*/
 
 struct SSTResult {
     bool hit;
@@ -35,27 +35,13 @@ SSTResult sst_initResult() {
     return result;
 }
 
-float intersectCellBoundary(vec3 o, vec3 d, vec3 invD, vec2 cellIdOffset, vec2 cond2, vec2 cellId, vec2 invCellCount) {
-    vec2 cellMin = floor(cellId);
-//    vec2 cellMax = cellMin + 1.02;
-//    cellMin *= invCellCount;
-//    cellMax *= invCellCount;
-
-    vec2 t;
-    //    t.x = d.x > 0.0 ? (cellMax.x - o.x) / d.x : (cellMin.x - o.x) / d.x;
-    //    t.y = d.y > 0.0 ? (cellMax.y - o.y) / d.y : (cellMin.y - o.y) / d.y;
-    vec2 a = cellMin + cellIdOffset;
-    a *= invCellCount;
-    t = (a - o.xy) * invD.xy + cond2;
+float intersectCellBoundary(vec3 invD, vec2 cellIdOffset, vec2 cond2, vec2 cellId, vec2 invCellCount) {
+    vec2 cellMin = trunc(cellId);
+    vec2 a = cellMin * invD.xy + cellIdOffset;
+    vec2 t = a * invCellCount + cond2;
 
     float tEdge = min(t.x, t.y);
     return tEdge;
-}
-
-float _sst_reverseZLinearDistance(float a, float b) {
-    const float c = near;
-    // (-c / a) - (-c / b)
-    return ((a - b) * c) / (a * b);
 }
 
 shared ivec4 shared_mipmapTiles[16];
@@ -63,20 +49,22 @@ shared vec4 shared_cellCounts[16];
 
 void sst_init() {
     if (gl_LocalInvocationIndex < 16u) {
-        ivec4 temp = global_mipmapTiles[0][gl_LocalInvocationIndex];
+        uint maxMip = min(findMSB(min(uval_mainImageSizeI.x, uval_mainImageSizeI.y)), 12u);
+        uint mipLevel = min(gl_LocalInvocationIndex, maxMip);
+        ivec4 temp = global_mipmapTiles[0][mipLevel];
         temp.zw -= 1;
-        shared_mipmapTiles[gl_LocalInvocationIndex] = temp;
+        shared_mipmapTiles[mipLevel] = temp;
 
-        int level = int(gl_LocalInvocationIndex);
-        vec4 mainImageSizeParams = vec4(global_mainImageSize, global_mainImageSizeRcp);
-        vec2 cellCount = ldexp(mainImageSizeParams.xy, ivec2(-level));
-        vec2 invCellCount = ldexp(mainImageSizeParams.zw, ivec2(level));
-        shared_cellCounts[gl_LocalInvocationIndex] = vec4(cellCount, invCellCount);
+        int mipLevelI = int(mipLevel);
+        vec4 mainImageSizeParams = vec4(uval_mainImageSize, uval_mainImageSizeRcp);
+        vec2 cellCount = ldexp(mainImageSizeParams.xy, ivec2(-mipLevelI));
+        vec2 invCellCount = ldexp(mainImageSizeParams.zw, ivec2(mipLevelI));
+        shared_cellCounts[mipLevel] = vec4(cellCount, invCellCount);
     }
     barrier();
 }
 
-SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
+SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
     vec4 originClip = global_camProj * vec4(originView, 1.0);
     vec3 originNDC = originClip.xyz / originClip.w;
     vec3 originScreen = originNDC;
@@ -107,58 +95,57 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
     float minZ = pRayStart.z;
     float maxZ = pRayStart.z + pRayVector.z;
     float deltaZ = maxZ - minZ;
-    const float MAX_THICKNESS = 0.01;
-    const float MAX_THICKNESS_FACTOR = 1.0101010101; // 1.0 / (1.0 - MAX_THICKNESS)
+    float maxThicknessFactor = rcp(1.0 - maxThickness); // 1.0 / (1.0 - maxThickness)
     const float NEAR_Z_THICKNESS_CLAMP = 0.05;
-    int maxLevels = findMSB(min(global_mainImageSizeI.x, global_mainImageSizeI.y));
 
     #define START_LEVEL 1
     #define STOP_LEVEL 0
 
     int level = START_LEVEL;
     float currT = 0.0;
-//    const uvec2 DEBUG_COORD = uvec2(1350, 510);
+//    const uvec2 DEBUG_COORD = uvec2(960, 300);
 //    const uvec2 DEBUG_COORD = uvec2(487, 250);
     const uint HI_Z_STEPS = 128;
 
-    vec4 mainImageSizeParams = vec4(global_mainImageSize, global_mainImageSizeRcp);
+    vec4 mainImageSizeParams = vec4(uval_mainImageSize, uval_mainImageSizeRcp);
     vec3 invD = rcp(pRayVector);
     bvec2 intersectCond1 = greaterThan(pRayVector.xy, vec2(0.0));
-    vec2 cellIdOffset = mix(vec2(-0.01), vec2(1.01), intersectCond1);
     bvec2 vec0Cond = equal(pRayVector.xy, vec2(0.0));
     invD.xy = mix(invD.xy, vec2(0.0), vec0Cond);
-    vec2 vec0Fix = vec2(vec0Cond) * 114514.0;
+    vec2 vec0Fix = vec2(vec0Cond) * 114514.0 - pRayStart.xy * invD.xy;
+    vec2 cellIdOffset = mix(vec2(-0.01), vec2(1.01), intersectCond1) * invD.xy;
 
     vec2 crossStep = sign(pRayVector.xy) * mainImageSizeParams.zw;
 
     {
         vec3 currScreenPos = pRayStart + pRayVector * currT;
         vec2 currTexelPos = currScreenPos.xy * mainImageSizeParams.xy;
-        ivec4 newMipTile = shared_mipmapTiles[level];
-        vec4 cellCountData = shared_cellCounts[level];
+        ivec4 newMipTile = shared_mipmapTiles[0];
+        vec4 cellCountData = shared_cellCounts[0];
         vec2 cellCount = cellCountData.xy;
         vec2 invCellCount = cellCountData.zw;
         vec2 cellIdx = (currScreenPos.xy + crossStep) * cellCount;
-        currT = max(intersectCellBoundary(pRayStart, pRayVector, invD, cellIdOffset, vec0Fix, cellIdx, invCellCount), currT);
+        currT = max(intersectCellBoundary(invD, cellIdOffset, vec0Fix, cellIdx, invCellCount), currT);
     }
 
     result.hit = false;
+    float negRayEndZ = -pRayStart.z * invD.z;
 
     for (uint i = 0; i < HI_Z_STEPS; i++) {
+        vec4 cellCountData = shared_cellCounts[level];
         ivec4 mipTile = shared_mipmapTiles[level];
         vec3 currScreenPos = pRayStart + pRayVector * currT;
         result.lastMissScreenPos = currScreenPos;
 
-        vec4 cellCountData = shared_cellCounts[level];
         vec2 cellCount = cellCountData.xy;
         vec2 invCellCount = cellCountData.zw;
         vec2 oldCellIdx = saturate(currScreenPos.xy) * cellCount;
 
         ivec2 oldCellIdxI = ivec2(oldCellIdx);
-        ivec2 readPos = mipTile.xy + min(oldCellIdxI, mipTile.zw);
+        ivec2 readPos = mipTile.xy + oldCellIdxI;
         float cellMinZ = texelFetch(usam_hiz, readPos, 0).r;
 
-        float newT = currT;
+        float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * maxThicknessFactor;
         if (isBackwardRay) {
             // float linearCurr = coords_reversedZToViewZ(currScreenPos.z, near);
             // float linearDepth = coords_reversedZToViewZ(cellMinZ, near);
@@ -166,51 +153,43 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
             // float thickness = level > STOP_LEVEL ? 1145141919810.0 : MAX_THICKNESS * abs(linearCurr);
             // diff >= thickness ...
             // simplyfied to:
-            float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * MAX_THICKNESS_FACTOR;
             if (any(lessThanEqual(vec2(cellMinZ, thicknessFactor), vec2(currScreenPos.z, cellMinZ)))) {
-                newT = intersectCellBoundary(pRayStart, pRayVector, invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
-                newT = max(newT, currT);
-                level = min(maxLevels, level + 2);
-//                v = 1.0;
+                float newT = intersectCellBoundary(invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
+                currT = newT;
+                level++;
+            } else  {
+                level--;
             }
         } else {
-            float depthT = (cellMinZ - pRayStart.z) * invD.z;
-            vec3 depthRayPos = pRayStart + pRayVector * depthT;
-            vec2 depthRayCellIndex = depthRayPos.xy * cellCount;
-            uint cond = uint(depthT > currT) & uint(any(notEqual(oldCellIdxI, ivec2(depthRayCellIndex))));
-            if (bool(cond)) {
-                newT = min(intersectCellBoundary(pRayStart, pRayVector, invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount), depthT);
-                level = min(maxLevels, level + 2);
-//                v = 1.0;
+            float depthT = cellMinZ * invD.z + negRayEndZ;
+            if (depthT > currT && any(notEqual(oldCellIdxI, ivec2((pRayStart.xy + pRayVector.xy * depthT) * cellCount)))) {
+                float newT = intersectCellBoundary(invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
+                currT = min(newT, depthT);
+                level++;
             } else {
-                float thicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * MAX_THICKNESS_FACTOR;
                 if (thicknessFactor >= cellMinZ) {
-                    newT = depthT;
-                    newT = max(newT, currT);
-                } else {
-                    level++;
+                    currT = max(depthT, currT);
+                    level--;
                 }
             }
         }
-        currT = newT;
-        level--;
+
+        //        if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
+        //            testBuffer[i] = vec4(currScreenPos.xy, floor(oldCellIdx));
+        //            testBuffer[i + 2048] = vec4(float(l), 0.0, 0.0, 0.0);
+        //            atomicMax(global_atomicCounters[15], i);
+        //        }
+        if (currT >= 1.0) {
+            break;
+        }
         if (level < STOP_LEVEL) {
             result.hitScreenPos = pRayStart + pRayVector * currT;
             result.hit = true;
             break;
         }
-
-        if (currT > 1.0) {
-            break;
-        }
-
-//        if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
-//            testBuffer[i] = vec4(currScreenPos.xy, floor(oldCellIdx));
-//            testBuffer[i + 2048] = vec4(float(l), 0.0, 0.0, 0.0);
-//        }
     }
 
-    if (!result.hit) {
+    if (!result.hit && currT > 0.01) {
         level = 0;
         ivec2 mipTile = shared_mipmapTiles[level].zw - 1;
 
@@ -235,7 +214,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView) {
                 float linearCurr = coords_reversedZToViewZ(screenPos.z, near);
                 float linearDepth = coords_reversedZToViewZ(cellMinZ, near);
                 float diff = linearDepth - linearCurr;
-                float thickness = MAX_THICKNESS * abs(linearCurr) * 0.01;
+                float thickness = maxThickness * abs(linearCurr) * 0.01;
                 uint cond = uint(diff < thickness) | uint(linearDepth < -65000.0);
                 if (bool(cond)) {
                     result.hitScreenPos = screenPos;

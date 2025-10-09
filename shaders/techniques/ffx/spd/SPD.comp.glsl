@@ -22,7 +22,7 @@
 // Requirements:
 // #define SPD_CHANNELS <1, 2, 3, 4> - Number of channels to process
 // #define SPD_HALF <0, 1> - Use half precision (1) or full precision
-// #define SPD_OP <1, 2, 3> - Downsample operation: 0 for min, 1 for max, 2 for average
+// #define SPD_OP <0, 1, 2> - Downsample operation: 0 for min, 1 for max, 2 for average
 //
 // and following functions:
 SPD_DATA_TYPE spd_loadInput(ivec2 texelPos);

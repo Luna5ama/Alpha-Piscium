@@ -20,7 +20,7 @@ void main() {
     coords_cubeMapBackward(centerCurrWorldDir, centerCurrSliceUV, centerCurrSliceID);
 
     vec3 currScenePos = worldDistance * centerCurrWorldDir;
-    vec3 cameraDelta = cameraPosition - previousCameraPosition;
+    vec3 cameraDelta = uval_cameraDelta;
     vec3 currToPrevScenePos = currScenePos + cameraDelta;
     vec3 currToPrevWorldDir = normalize(currToPrevScenePos);
     vec2 currToPrevSliceUV = vec2(-1.0);

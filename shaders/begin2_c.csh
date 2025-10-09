@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/begin/ClearScreen.comp.glsl"
+#include "/pass/begin/ClearScreen1.comp.glsl"

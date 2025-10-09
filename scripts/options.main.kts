@@ -1,6 +1,8 @@
 import java.io.File
 import java.math.BigDecimal
 import java.util.*
+import kotlin.io.path.Path
+import kotlin.io.path.readLines
 import kotlin.math.pow
 
 class FloatProgression(val start: Double, val endInclusive: Double, val step: Double) : Iterable<Double> {
@@ -194,7 +196,6 @@ class OptionBuilder<T>(
         private val valueLabel = mutableMapOf<T, String>()
 
         infix fun T.value(label: String) {
-            check(label.isNotEmpty()) { "Label cannot be empty" }
             valueLabel[this] = label
         }
 
@@ -444,84 +445,9 @@ fun powerOfTwoRangeAndHalf(range: IntRange): List<Int> {
 
 options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
     mainScreen(2) {
-        screen("LIGHTING", 2) {
+        screen("TERRAIN", 2) {
             lang {
-                name = "Lighting"
-            }
-            screen("SUN_MOON", 1) {
-                lang {
-                    name = "Sun & Moon"
-                }
-                slider("SETTING_SUN_RADIUS", 1.0, (-7..10).map { 2.0.pow(it) }) {
-                    lang {
-                        name = "Sun Radius"
-                        comment = "Radius of sun relative to real sun radius of 696342 km."
-                        suffix = " R"
-                    }
-                }
-                slider("SETTING_SUN_DISTANCE", 1.0, (-7..10).map { 2.0.pow(it) }) {
-                    lang {
-                        name = "Sun Distance"
-                        comment =
-                            "Distance of sun in AU (astronomical units), which is relative to real sun distance of 149.6 million km."
-                        suffix = " AU"
-                    }
-                }
-                constSlider("sunPathRotation", -20.0, -90.0..90.0 step 1.0) {
-                    lang {
-                        name = "Sun Path Rotation"
-                        comment = "Rotation of sun path in degrees."
-                        suffix = " °"
-                    }
-                }
-                toggle("SETTING_REAL_SUN_TEMPERATURE", true) {
-                    lang {
-                        name = "Use Real Sun Temperature"
-                        comment = "Use real sun temperature of 5772 K."
-                    }
-                }
-                slider("SETTING_SUN_TEMPERATURE", 5700, (1000..10000 step 100) + (11000..50000 step 1000)) {
-                    lang {
-                        name = "Sun Temperature"
-                        comment = "Temperature of sun in K (kelvin). Affects the color and intensity of sunlight."
-                        suffix = " K"
-                    }
-                }
-                empty()
-                slider("SETTING_MOON_RADIUS", 1.0, (-7..10).map { 2.0.pow(it) }) {
-                    lang {
-                        name = "Moon Radius"
-                        comment = "Radius of moon relative to real moon radius of 1737.4 km."
-                        suffix = " R"
-                    }
-                }
-                slider("SETTING_MOON_DISTANCE", 1.0, (-7..10).map { 2.0.pow(it) }) {
-                    lang {
-                        name = "Moon Distance"
-                        comment = "Distance relative to real moon distance of 384399."
-                        suffix = " D"
-                    }
-                }
-                slider("SETTING_MOON_ALBEDO", 0.12, 0.01..1.0 step 0.01) {
-                    lang {
-                        name = "Moon Albedo"
-                    }
-                }
-                slider("SETTING_MOON_COLOR_R", 0.8, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Moon Color Red"
-                    }
-                }
-                slider("SETTING_MOON_COLOR_G", 0.9, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Moon Color Green"
-                    }
-                }
-                slider("SETTING_MOON_COLOR_B", 1.0, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Moon Color Blue"
-                    }
-                }
+                name = "Terrain"
             }
             screen("BLOCKLIGHT", 1) {
                 lang {
@@ -575,11 +501,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            empty()
-            empty()
-            screen("PBR", 1) {
+            screen("NORMAL_MAPPING", 1) {
                 lang {
-                    name = "PBR Settings"
+                    name = "Normal Mapping"
                 }
                 toggle("SETTING_NORMAL_MAPPING", true) {
                     lang {
@@ -591,22 +515,34 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Normal Mapping Strength"
                     }
                 }
-                empty()
+            }
+            screen("SPECULAR_MAPPING", 1) {
+                lang {
+                    name = "Specular Mapping"
+                }
                 slider("SETTING_MINIMUM_F0", 12, 4..32) {
                     lang {
                         name = "Minimum F0 Factor"
                     }
                 }
-                slider("SETTING_MINIMUM_ROUGHNESS", 6, 4..16) {
+                empty()
+                slider("SETTING_SOLID_MINIMUM_ROUGHNESS", 6, 4..16) {
                     lang {
-                        name = "Minimum Roughness"
+                        name = "Minimum Solid Roughness"
                         prefix = "2^"
                     }
                 }
-                slider("SETTING_MAXIMUM_ROUGHNESS", 5, 2..16) {
+                slider("SETTING_SOLID_MAXIMUM_ROUGHNESS", 5, 2..16) {
                     lang {
-                        name = "Maximum Roughness"
+                        name = "Maximum Solid Roughness"
                         prefix = "2^"
+                    }
+                }
+                empty()
+                slider("SETTING_WATER_ROUGHNESS", 9.0, 4.0..12.0 step 0.5) {
+                    lang {
+                        name = "Water Roughness"
+                        prefix = "2^-"
                     }
                 }
                 slider("SETTING_TRANSLUCENT_ROUGHNESS_REDUCTION", 1.0, 0.0..8.0 step 0.5) {
@@ -615,25 +551,27 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         prefix = "2^-"
                     }
                 }
-                slider("SETTING_TRANSLUCENT_MINIMUM_ROUGHNESS", 7.0, 4.0..10.0 step 0.5) {
+                slider("SETTING_TRANSLUCENT_MINIMUM_ROUGHNESS", 10.0, 4.0..16.0 step 0.5) {
                     lang {
                         name = "Translucent Minimum Roughness"
                         prefix = "2^-"
                     }
                 }
-                slider("SETTING_TRANSLUCENT_MAXIMUM_ROUGHNESS", 4.0, 1.0..10.0 step 0.5) {
+                slider("SETTING_TRANSLUCENT_MAXIMUM_ROUGHNESS", 5.0, 1.0..16.0 step 0.5) {
                     lang {
                         name = "Translucent Maximum Roughness"
                         prefix = "2^-"
                     }
                 }
+                empty()
                 slider("SETTING_MAXIMUM_SPECULAR_LUMINANCE", 65536, powerOfTwoRange(8..24)) {
                     lang {
                         name = "Maximum Specular Luminance"
                         comment = "Maximum luminance of specular highlights in unit of 1000 cd/m²."
                     }
                 }
-                empty()
+            }
+            screen("SSS", 1) {
                 slider("SETTING_SSS_STRENGTH", 1.2, 0.0..5.0 step 0.1) {
                     lang {
                         name = "SSS Strength"
@@ -666,11 +604,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
+            empty()
+            empty()
             screen("SHADOW", 2) {
                 lang {
                     name = "Shadow"
                 }
-                constSlider("shadowMapResolution", 2048, listOf(1024, 2048, 3072, 4096)) {
+                slider("SETTING_SHADOW_MAP_RESOLUTION", 2048, listOf(1024, 2048, 3072, 4096)) {
                     lang {
                         name = "Shadow Map Resolution"
                     }
@@ -987,9 +927,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("ATMOSPHERE", 2) {
+        screen("VOLUMETRICS", 2) {
             lang {
-                name = "Atmosphere"
+                name = "Volumetrics"
             }
             slider("SETTING_ATM_ALT_SCALE", 1000, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
                 lang {
@@ -1106,12 +1046,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Sky View Resolution"
                     }
                 }
-                slider("SETTING_EPIPOLAR_SLICES", 512, listOf(256, 512, 1024, 2048)) {
+                slider("SETTING_EPIPOLAR_SLICES", 1024, listOf(256, 512, 1024, 2048)) {
                     lang {
                         name = "Epipolar Slices"
                     }
                 }
-                slider("SETTING_SLICE_SAMPLES", 256, listOf(128, 256, 512, 1024)) {
+                slider("SETTING_SLICE_SAMPLES", 512, listOf(128, 256, 512, 1024)) {
                     lang {
                         name = "Slice Samples"
                     }
@@ -1128,180 +1068,356 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Sky Samples"
                     }
                 }
-                slider("SETTING_LIGHT_SHAFT_SAMPLES", 32, 16..128 step 8) {
+                slider("SETTING_LIGHT_SHAFT_SAMPLES", 12, 4..32 step 4) {
                     lang {
                         name = "Light Shaft Samples"
                     }
                 }
-                slider("SETTING_LIGHT_SHAFT_PCSS", true) {
+                slider("SETTING_LIGHT_SHAFT_SHADOW_SAMPLES", 8, 1..16 step 1) {
                     lang {
-                        name = "Light Shaft PCSS"
+                        name = "Light Shaft Shadow Samples"
+                    }
+                }
+                slider("SETTING_LIGHT_SHAFT_DEPTH_BREAK_CORRECTION_SAMPLES", 32, 8..64 step 8) {
+                    lang {
+                        name = "Light Shaft Depth Break Correction Samples"
+                    }
+                }
+                slider("SETTING_LIGHT_SHAFT_SOFTNESS", 5, 0..10 step 1) {
+                    lang {
+                        name = "Light Shaft Softness"
                     }
                 }
             }
-            screen("CLOUDS", 2) {
+            screen("CLOUDS_LIGHTING", 1) {
                 lang {
-                    name = "Clouds"
+                    name = "Clouds Lighting"
                 }
-                screen("CLOUDS_LIGHTING", 1) {
+                slider("SETTING_CLOUDS_MS_ORDER", 4, 1..10) {
                     lang {
-                        name = "Clouds Lighting"
-                    }
-                    slider("SETTING_CLOUDS_MS_ORDER", 4, 1..10) {
-                        lang {
-                            name = "Multi-Scattering Order"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.55, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Multi-Scattering Scattering Falloff"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.6, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Multi-Scattering Extinction Falloff"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_PHASE", 0.6, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Multi-Scattering Phase Falloff"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_MS_FALLOFF_AMB", 0.1, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Multi-Scattering Ambient Irradiance Falloff"
-                        }
-                    }
-                    empty()
-                    slider("SETTING_CLOUDS_AMB_UNI_PHASE_RATIO", 0.5, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Ambient Irradiance Uniform Phase Ratio"
-                        }
+                        name = "Multi-Scattering Order"
                     }
                 }
-                screen("LOW_CLOUDS", 1) {
+                slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.55, 0.0..1.0 step 0.05) {
                     lang {
-                        name = "Low Clouds"
-                    }
-                    toggle("SETTING_CLOUDS_CU", true) {
-                        lang {
-                            name = "Cumulus Clouds"
-                        }
-                    }
-                    toggle("SETTING_CLOUDS_LOW_UPSCALE_FACTOR", 4, 0..6) {
-                        lang {
-                            name = "Upscale Factor"
-                            0 value "1.0 x"
-                            1 value "1.5 x"
-                            2 value "2.0 x"
-                            3 value "2.5 x"
-                            4 value "3.0 x"
-                            5 value "3.5 x"
-                            6 value "4.0 x"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 64, powerOfTwoRange(2..8)) {
-                        lang {
-                            name = "Max Accumulation"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_SHARPENING", 0.25, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Sharpening"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.5, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Variance Clipping"
-                        }
-                    }
-                    empty()
-                    slider("SETTING_CLOUDS_LOW_STEP_MIN", 24, 4..64 step 4) {
-                        lang {
-                            name = "Ray Marching Min Step"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_STEP_MAX", 64, 16..128 step 4) {
-                        lang {
-                            name = "Ray Marching Max Step"
-                        }
-                    }
-                    empty()
-                    slider("SETTING_CLOUDS_CU_WEIGHT", 0.75, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Cumulus Weight"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_CU_HEIGHT", 2.0, 0.0..8.0 step 0.1) {
-                        lang {
-                            name = "Cumulus Height"
-                            suffix = " km"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_CU_THICKNESS", 1.5, 0.0..4.0 step 0.1) {
-                        lang {
-                            name = "Cumulus Thickness"
-                            suffix = " km"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_CU_DENSITY", 1.0, 0.0..4.0 step 0.05) {
-                        lang {
-                            name = "Cumulus Density"
-                            suffix = " x"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.25, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Cumulus Coverage"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_CU_PHASE_RATIO", 0.9, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Cumulus Phase Ratio"
-                        }
-                    }
-                    empty()
-                    toggle("SETTING_CLOUDS_CU_WIND", true) {
-                        lang {
-                            name = "Cumulus Wind"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_CU_WIND_SPEED", 0.0, -4.0..4.0 step 0.25) {
-                        lang {
-                            name = "Cumulus Wind Speed"
-                        }
+                        name = "Multi-Scattering Scattering Falloff"
                     }
                 }
-                screen("HIGH_CLOUDS", 1) {
+                slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.6, 0.0..1.0 step 0.05) {
                     lang {
-                        name = "High Clouds"
+                        name = "Multi-Scattering Extinction Falloff"
                     }
-                    toggle("SETTING_CLOUDS_CI", true) {
-                        lang {
-                            name = "Cirrus Clouds"
-                        }
+                }
+                slider("SETTING_CLOUDS_MS_FALLOFF_PHASE", 0.6, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "Multi-Scattering Phase Falloff"
                     }
-                    slider("SETTING_CLOUDS_CI_HEIGHT", 9.0, 6.0..14.0 step 0.1) {
-                        lang {
-                            name = "Cirrus Height"
-                            suffix = " km"
-                        }
+                }
+                slider("SETTING_CLOUDS_MS_FALLOFF_AMB", 0.1, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "Multi-Scattering Ambient Irradiance Falloff"
                     }
-                    slider("SETTING_CLOUDS_CI_DENSITY", 1.0, 0.0..4.0 step 0.05) {
-                        lang {
-                            name = "Cirrus Density"
-                            suffix = " x"
-                        }
+                }
+                empty()
+                slider("SETTING_CLOUDS_AMB_UNI_PHASE_RATIO", 0.5, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "Ambient Irradiance Uniform Phase Ratio"
                     }
-                    slider("SETTING_CLOUDS_CI_COVERAGE", 0.4, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Cirrus Coverage"
-                        }
+                }
+            }
+            screen("LOW_CLOUDS", 1) {
+                lang {
+                    name = "Low Clouds"
+                }
+                toggle("SETTING_CLOUDS_CU", true) {
+                    lang {
+                        name = "Cumulus Clouds"
                     }
-                    slider("SETTING_CLOUDS_CI_PHASE_RATIO", 0.6, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Cirrus Phase Ratio"
-                        }
+                }
+                toggle("SETTING_CLOUDS_LOW_UPSCALE_FACTOR", 4, 0..6) {
+                    lang {
+                        name = "Upscale Factor"
+                        0 value "1.0 x"
+                        1 value "1.5 x"
+                        2 value "2.0 x"
+                        3 value "2.5 x"
+                        4 value "3.0 x"
+                        5 value "3.5 x"
+                        6 value "4.0 x"
+                    }
+                }
+                slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 64, powerOfTwoRange(2..8)) {
+                    lang {
+                        name = "Max Accumulation"
+                    }
+                }
+                slider("SETTING_CLOUDS_LOW_SHARPENING", 0.25, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "Sharpening"
+                    }
+                }
+                slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.5, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "Variance Clipping"
+                    }
+                }
+                empty()
+                slider("SETTING_CLOUDS_LOW_STEP_MIN", 24, 4..64 step 4) {
+                    lang {
+                        name = "Ray Marching Min Step"
+                    }
+                }
+                slider("SETTING_CLOUDS_LOW_STEP_MAX", 64, 16..128 step 4) {
+                    lang {
+                        name = "Ray Marching Max Step"
+                    }
+                }
+                empty()
+                slider("SETTING_CLOUDS_CU_WEIGHT", 0.75, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "Cumulus Weight"
+                    }
+                }
+                slider("SETTING_CLOUDS_CU_HEIGHT", 2.0, 0.0..8.0 step 0.1) {
+                    lang {
+                        name = "Cumulus Height"
+                        suffix = " km"
+                    }
+                }
+                slider("SETTING_CLOUDS_CU_THICKNESS", 1.5, 0.0..4.0 step 0.1) {
+                    lang {
+                        name = "Cumulus Thickness"
+                        suffix = " km"
+                    }
+                }
+                slider("SETTING_CLOUDS_CU_DENSITY", 1.0, 0.0..4.0 step 0.05) {
+                    lang {
+                        name = "Cumulus Density"
+                        suffix = " x"
+                    }
+                }
+                slider("SETTING_CLOUDS_CU_COVERAGE", 0.25, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "Cumulus Coverage"
+                    }
+                }
+                slider("SETTING_CLOUDS_CU_PHASE_RATIO", 0.9, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "Cumulus Phase Ratio"
+                    }
+                }
+                empty()
+                toggle("SETTING_CLOUDS_CU_WIND", true) {
+                    lang {
+                        name = "Cumulus Wind"
+                    }
+                }
+                slider("SETTING_CLOUDS_CU_WIND_SPEED", 0.0, -4.0..4.0 step 0.25) {
+                    lang {
+                        name = "Cumulus Wind Speed"
+                    }
+                }
+            }
+            screen("HIGH_CLOUDS", 1) {
+                lang {
+                    name = "High Clouds"
+                }
+                toggle("SETTING_CLOUDS_CI", true) {
+                    lang {
+                        name = "Cirrus Clouds"
+                    }
+                }
+                slider("SETTING_CLOUDS_CI_HEIGHT", 9.0, 6.0..14.0 step 0.1) {
+                    lang {
+                        name = "Cirrus Height"
+                        suffix = " km"
+                    }
+                }
+                slider("SETTING_CLOUDS_CI_DENSITY", 1.0, 0.0..4.0 step 0.05) {
+                    lang {
+                        name = "Cirrus Density"
+                        suffix = " x"
+                    }
+                }
+                slider("SETTING_CLOUDS_CI_COVERAGE", 0.4, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "Cirrus Coverage"
+                    }
+                }
+                slider("SETTING_CLOUDS_CI_PHASE_RATIO", 0.6, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "Cirrus Phase Ratio"
+                    }
+                }
+            }
+            empty()
+            empty()
+            screen("WATER", 1) {
+                lang {
+                    name = "Water"
+                }
+                empty()
+                toggle("SETTING_WATER_REFRACT_APPROX", true) {
+                    lang {
+                        name = "Water Refraction Approximation"
+                    }
+                }
+                empty()
+                toggle("SETTING_WATER_CAUSTICS", false) {
+                    lang {
+                        name = "Water Caustics"
+                    }
+                }
+                empty()
+                toggle("SETTING_WATER_PARALLEX", true) {
+                    lang {
+                        name = "Water Parallax"
+                    }
+                }
+                slider("SETTING_WATER_PARALLEX_STRENGTH", 1.0, 0.0..2.0 step 0.05) {
+                    lang {
+                        name = "Water Parallax Strength"
+                    }
+                }
+                slider("SETTING_WATER_PARALLEX_STEPS", 16, powerOfTwoRangeAndHalf(2..6)) {
+                    lang {
+                        name = "Water Parallax Steps"
+                    }
+                }
+                empty()
+                slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..2.0 step 0.05) {
+                    lang {
+                        name = "Water Normal Scale"
+                    }
+                }
+                empty()
+                slider("SETTING_WATER_SCATTERING_R", 14, 0..100) {
+                    lang {
+                        name = "Scattering Coefficient Red"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_SCATTERING_G", 22, 0..100) {
+                    lang {
+                        name = "Scattering Coefficient Green"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_SCATTERING_B", 38, 0..100) {
+                    lang {
+                        name = "Scattering Coefficient Blue"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_SCATTERING_MULTIPLIER", -8.75, -15.0..-5.0 step 0.25) {
+                    lang {
+                        name = "Scattering Coefficient Multiplier"
+                        prefix = "2^"
+                    }
+                }
+                empty()
+                slider("SETTING_WATER_ABSORPTION_R", 100, 0..100) {
+                    lang {
+                        name = "Absorption Coefficient Red"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_ABSORPTION_G", 40, 0..100) {
+                    lang {
+                        name = "Absorption Coefficient Green"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_ABSORPTION_B", 24, 0..100) {
+                    lang {
+                        name = "Absorption Coefficient Blue"
+                        suffix = " %"
+                    }
+                }
+                slider("SETTING_WATER_ABSORPTION_MULTIPLIER", -9.25, -15.0..-5.0 step 0.25) {
+                    lang {
+                        name = "Absorption Coefficient Multiplier"
+                        prefix = "2^"
+                    }
+                }
+            }
+        }
+        screen("OUTER_SPACE", 2) {
+            lang {
+                name = "Outer Space"
+            }
+            screen("SUN_MOON", 1) {
+                lang {
+                    name = "Sun & Moon"
+                }
+                slider("SETTING_SUN_RADIUS", 1.0, (-7..10).map { 2.0.pow(it) }) {
+                    lang {
+                        name = "Sun Radius"
+                        comment = "Radius of sun relative to real sun radius of 696342 km."
+                        suffix = " R"
+                    }
+                }
+                slider("SETTING_SUN_DISTANCE", 1.0, (-7..10).map { 2.0.pow(it) }) {
+                    lang {
+                        name = "Sun Distance"
+                        comment =
+                            "Distance of sun in AU (astronomical units), which is relative to real sun distance of 149.6 million km."
+                        suffix = " AU"
+                    }
+                }
+                constSlider("sunPathRotation", -20.0, -90.0..90.0 step 1.0) {
+                    lang {
+                        name = "Sun Path Rotation"
+                        comment = "Rotation of sun path in degrees."
+                        suffix = " °"
+                    }
+                }
+                toggle("SETTING_REAL_SUN_TEMPERATURE", true) {
+                    lang {
+                        name = "Use Real Sun Temperature"
+                        comment = "Use real sun temperature of 5772 K."
+                    }
+                }
+                slider("SETTING_SUN_TEMPERATURE", 5700, (1000..10000 step 100) + (11000..50000 step 1000)) {
+                    lang {
+                        name = "Sun Temperature"
+                        comment = "Temperature of sun in K (kelvin). Affects the color and intensity of sunlight."
+                        suffix = " K"
+                    }
+                }
+                empty()
+                slider("SETTING_MOON_RADIUS", 1.0, (-7..10).map { 2.0.pow(it) }) {
+                    lang {
+                        name = "Moon Radius"
+                        comment = "Radius of moon relative to real moon radius of 1737.4 km."
+                        suffix = " R"
+                    }
+                }
+                slider("SETTING_MOON_DISTANCE", 1.0, (-7..10).map { 2.0.pow(it) }) {
+                    lang {
+                        name = "Moon Distance"
+                        comment = "Distance relative to real moon distance of 384399."
+                        suffix = " D"
+                    }
+                }
+                slider("SETTING_MOON_ALBEDO", 0.12, 0.01..1.0 step 0.01) {
+                    lang {
+                        name = "Moon Albedo"
+                    }
+                }
+                slider("SETTING_MOON_COLOR_R", 0.8, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Moon Color Red"
+                    }
+                }
+                slider("SETTING_MOON_COLOR_G", 0.9, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Moon Color Green"
+                    }
+                }
+                slider("SETTING_MOON_COLOR_B", 1.0, 0.0..1.0 step 0.01) {
+                    lang {
+                        name = "Moon Color Blue"
                     }
                 }
             }
@@ -1497,7 +1613,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Auto Exposure Min EV"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 11.0, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MAX_EV", 12.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
@@ -1781,6 +1897,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Screenshot Mode"
                 }
             }
+            toggle("SETTING_SCREENSHOT_MODE_SKIP_INITIAL", false) {
+                lang {
+                    name = "Screenshot Mode Skip Initial Frames"
+                }
+            }
             toggle("SETTING_CONSTELLATIONS", false) {
                 lang {
                     name = "Show Constellations"
@@ -1789,7 +1910,42 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
         }
         empty()
         empty()
-        empty()
+        screen("SPONSORS", 4) {
+            lang {
+                name = "Sponsors"
+            }
+            toggle("SPONSOR_TITLE1", 0, 0..0) {
+                lang {
+                    name = "Special"
+                    0 value ""
+                }
+            }
+            toggle("SPONSOR_TITLE2", 0, 0..0) {
+                lang {
+                    name = "Thanks"
+                    0 value ""
+                }
+            }
+            toggle("SPONSOR_TITLE3", 0, 0..0) {
+                lang {
+                    name = "To"
+                    0 value ""
+                }
+            }
+            empty()
+            empty()
+            empty()
+            empty()
+            empty()
+            Path("sponsors.txt").readLines().forEachIndexed { i,sname ->
+                toggle("SPONSOR_$i", 0, 0..0) {
+                    lang {
+                        name = sname
+                        0 value ""
+                    }
+                }
+            }
+        }
         screen("DEBUG", 3) {
             lang {
                 name = "Debug"
@@ -1877,6 +2033,21 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Normal Mode"
                     0 value "World"
                     1 value "View"
+                }
+            }
+            slider("SETTING_DEBUG_NORMAL_X_RANGE", 1.0, 0.0..1.0 step 0.1) {
+                lang {
+                    name = "Normal X Range"
+                }
+            }
+            slider("SETTING_DEBUG_NORMAL_Y_RANGE", 1.0, 0.0..1.0 step 0.1) {
+                lang {
+                    name = "Normal Y Range"
+                }
+            }
+            slider("SETTING_DEBUG_NORMAL_Z_RANGE", 1.0, 0.0..1.0 step 0.1) {
+                lang {
+                    name = "Normal Z Range"
                 }
             }
             empty()

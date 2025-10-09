@@ -65,7 +65,7 @@ float atrous_luminanceWeight = 0.0;
 void loadGlobalData(ivec2 loadTexelPos, out vec4 color, out vec3 normal, out float viewZ) {
     color = imageLoad(uimg_csrgba16f, ATROUS_INPUT(loadTexelPos));
     uvec4 packedData = uvec4(0u);
-    nzpacking_unpack(texelFetch(usam_packedZN, loadTexelPos + ivec2(0, global_mainImageSizeI.y), 0).xy, normal, viewZ);
+    nzpacking_unpack(texelFetch(usam_packedZN, loadTexelPos + ivec2(0, uval_mainImageSizeI.y), 0).xy, normal, viewZ);
     normal = mat3(gbufferModelViewInverse) * normal;
 }
 
@@ -75,7 +75,7 @@ void initSharedData(uint index) {
         ivec2 loadTexelPos = ivec2(gl_WorkGroupID.xy * gl_WorkGroupSize.xy);
         loadTexelPos += ATROUS_AXIS_VEC * pos1d;
         loadTexelPos += int(rand_stbnUnitVec211(loadTexelPos, frameCounter) * ATROUS_RADIUS);
-        loadTexelPos = clamp(loadTexelPos, ivec2(0), global_mainImageSizeI - 1);
+        loadTexelPos = clamp(loadTexelPos, ivec2(0), uval_mainImageSizeI - 1);
         vec4 color;
         vec3 normal;
         float viewZ;
@@ -118,7 +118,7 @@ inout vec4 colorSum, inout float weightSum
 ) {
     int realOffset = offset * ATROUS_RADIUS;
     ivec2 texelPos = atrous_texelPos + realOffset * ATROUS_AXIS_VEC;
-    if (all(greaterThanEqual(texelPos, ivec2(0))) && all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(greaterThanEqual(texelPos, ivec2(0))) && all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 sampleColor;
         vec3 sampleNormal;
         float sampleViewZ;
@@ -147,7 +147,7 @@ vec4 atrous_atrous(ivec2 texelPos) {
 
     vec4 outputColor = vec4(0.0);
 
-    if (all(lessThan(atrous_texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(atrous_texelPos, uval_mainImageSizeI))) {
         vec4 centerFilterData;
         vec3 centerNormal;
         float centerViewZ;
@@ -308,7 +308,7 @@ void main() {
     vec4 outputColor = atrous_atrous(texelPos);
 //    outputColor = dither_fp16(outputColor, rand_IGN(texelPos, frameCounter + ATROUS_PASS));
 
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         imageStore(uimg_csrgba16f, ATROUS_OUTPUT(texelPos), outputColor);
     }
 }

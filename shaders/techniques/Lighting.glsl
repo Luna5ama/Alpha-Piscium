@@ -6,17 +6,7 @@
 #include "/util/BSDF.glsl"
 #include "/techniques/rtwsm/RTWSM.glsl"
 
-
 GBufferData lighting_gData = gbufferData_init();
-vec3 lighting_viewCoord;
-vec3 lighting_viewDir;
-ivec2 lighting_texelPos;
-
-void lighting_init(vec3 viewCoord, ivec2 texelPos) {
-    lighting_viewCoord = viewCoord;
-    lighting_viewDir = normalize(-viewCoord);
-    lighting_texelPos = texelPos;
-}
 
 struct LightingResult {
     vec3 diffuse;
@@ -34,32 +24,13 @@ LightingResult lightingResult_add(LightingResult a, LightingResult b) {
     return result;
 }
 
-vec3 skyReflection(Material material, float lmCoordSky, vec3 N) {
-    vec3 V = lighting_viewDir;
-    float NDotV = dot(N, V);
-    vec3 fresnelReflection = fresnel_evalMaterial(material, saturate(NDotV));
-
-    vec3 reflectDirView = reflect(-V, N);
-    vec3 reflectDir = normalize(mat3(gbufferModelViewInverse) * reflectDirView);
-    vec2 reflectLUTUV = coords_octEncode01(reflectDir);
-    vec3 reflectRadiance = texture(usam_skyLUT, reflectLUTUV).rgb;
-
-    vec3 result = fresnelReflection;
-    result *= material.albedo;
-    result *= linearStep(1.5 / 16.0, 15.5 / 16.0, lmCoordSky);
-    result *= texture(usam_skyLUT, reflectLUTUV).rgb;
-
-    return result;
-}
-
-LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N) {
-    vec3 V = lighting_viewDir;
+LightingResult directLighting(Material material, vec4 irradiance, vec3 V, vec3 L, vec3 N) {
     vec3 H = normalize(L + V);
-    float LDotV = dot(L, V);
-    float LDotH = dot(L, H);
-    float NDotL = dot(N, L);
-    float NDotV = dot(N, V);
-    float NDotH = dot(N, H);
+    float LDotV = clamp(dot(L, V), -1.0, 1.0);
+    float LDotH = clamp(dot(L, H), -1.0, 1.0);
+    float NDotL = clamp(dot(N, L), -1.0, 1.0);
+    float NDotV = clamp(dot(N, V), -1.0, 1.0);
+    float NDotH = clamp(dot(N, H), -1.0, 1.0);
 
     vec3 fresnel = fresnel_evalMaterial(material, saturate(LDotH));
 
@@ -85,14 +56,13 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 L, vec3 N
 }
 
 // TODO: Cleanup
-LightingResult directLighting2(Material material, vec4 irradiance, vec3 L, vec3 N, float ior) {
-    vec3 V = lighting_viewDir;
+LightingResult directLighting2(Material material, vec4 irradiance, vec3 V, vec3 L, vec3 N, float ior) {
     vec3 H = normalize(L + V);
-    float LDotV = dot(L, V);
-    float LDotH = dot(L, H);
-    float NDotL = dot(N, L);
-    float NDotV = dot(N, V);
-    float NDotH = dot(N, H);
+    float LDotV = clamp(dot(L, V), -1.0, 1.0);
+    float LDotH = clamp(dot(L, H), -1.0, 1.0);
+    float NDotL = clamp(dot(N, L), -1.0, 1.0);
+    float NDotV = clamp(dot(N, V), -1.0, 1.0);
+    float NDotH = clamp(dot(N, H), -1.0, 1.0);
 
     float fresnel = fresnel_dielectricDielectric_reflection(saturate(LDotH), AIR_IOR, ior);
 

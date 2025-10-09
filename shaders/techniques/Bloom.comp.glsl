@@ -111,26 +111,26 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
 ivec2 bloom_inputSize = global_mipmapSizesI[BLOOM_PASS - 1];
 ivec2 bloom_outputSize = global_mipmapSizesI[BLOOM_PASS];
 
-int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - global_mainImageSizeI.x + BLOOM_PASS - 1;
-int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - global_mainImageSizeI.x + BLOOM_PASS;
+int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - uval_mainImageSizeI.x + BLOOM_PASS - 1;
+int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - uval_mainImageSizeI.x + BLOOM_PASS;
 
 #elif BLOOM_UP_SAMPLE
 ivec2 bloom_inputSize = global_mipmapSizesI[BLOOM_PASS];
 ivec2 bloom_outputSize = global_mipmapSizesI[BLOOM_PASS - 1];
 
-int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - global_mainImageSizeI.x + BLOOM_PASS;
-int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - global_mainImageSizeI.x + BLOOM_PASS - 1;
+int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - uval_mainImageSizeI.x + BLOOM_PASS;
+int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - uval_mainImageSizeI.x + BLOOM_PASS - 1;
 
 #endif
 
 ivec2 inputStartPixel = ivec2(inputOffset, 1);
 ivec2 inputEndPixel = inputStartPixel + bloom_inputSize;
-vec2 inputStartTexel = (vec2(inputStartPixel) + 0.0) * global_mainImageSizeRcp;
-vec2 inputEndTexel = (vec2(inputEndPixel) - 0.0) * global_mainImageSizeRcp;
+vec2 inputStartTexel = (vec2(inputStartPixel) + 0.0) * uval_mainImageSizeRcp;
+vec2 inputEndTexel = (vec2(inputEndPixel) - 0.0) * uval_mainImageSizeRcp;
 
 #if BLOOM_DOWN_SAMPLE
 vec4 bloom_readInputDown(ivec2 coord) {
-    vec2 readPosUV = vec2(coord + inputStartPixel) * global_mainImageSizeRcp;
+    vec2 readPosUV = vec2(coord + inputStartPixel) * uval_mainImageSizeRcp;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
     vec4 inputValue = _bloom_imageSample(readPosUV);
     #if BLOOM_PASS == 1
@@ -252,7 +252,7 @@ vec4 bloom_main(ivec2 texelPos) {
 }
 #elif BLOOM_UP_SAMPLE
 vec4 bloom_readInputUp(ivec2 coord, ivec2 offset) {
-    vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartPixel) * global_mainImageSizeRcp;
+    vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartPixel) * uval_mainImageSizeRcp;
     readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
     return _bloom_imageSample(readPosUV);
 }

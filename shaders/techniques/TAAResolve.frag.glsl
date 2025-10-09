@@ -13,7 +13,7 @@ layout(location = 1) out vec4 rt_taaLast;
 
 // from https://github.com/GameTechDev/TAA
 vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST){
-    const vec2 rcpResolution = global_mainImageSizeRcp;
+    const vec2 rcpResolution = uval_mainImageSizeRcp;
     const vec2 fractional = fract(inHistoryST - 0.5);
     const vec2 uv = (floor(inHistoryST - 0.5) + vec2(0.5f, 0.5f)) * rcpResolution;
 
@@ -62,11 +62,11 @@ void main() {
 
     vec3 currColor = texture(usam_main, frag_texCoord).rgb;
 
-    vec4 prevResult = BicubicSampling5(usam_taaLast, prevScreenPos * global_mainImageSize);
+    vec4 prevResult = BicubicSampling5(usam_taaLast, prevScreenPos * uval_mainImageSize);
     vec3 prevColor = saturate(prevResult.rgb);
 
     vec2 pixelPosDiff = (frag_texCoord - prevScreenPos) * textureSize(usam_main, 0).xy;
-    vec3 cameraDelta = cameraPosition - previousCameraPosition;
+    vec3 cameraDelta = uval_cameraDelta;
     float cameraSpeed = length(cameraDelta);
     float prevCameraSpeed = length(global_prevCameraDelta);
     float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
@@ -108,6 +108,9 @@ void main() {
     mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 114514.0));
     mixDecrease *= (1.0 - saturate(cameraSpeed * 114514.0));
     mixDecrease *= (1.0 - saturate(pixelSpeed * 114.0));
+    #ifdef SETTING_SCREENSHOT_MODE_SKIP_INITIAL
+    mixDecrease *= float(frameCounter > 60);
+    #endif
     #else
     float mixDecrease = 1.0;
     mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 4.0));

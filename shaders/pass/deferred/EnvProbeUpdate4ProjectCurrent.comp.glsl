@@ -59,12 +59,18 @@ void main() {
 
     EnvProbeData outputData;
     envProbe_initData(outputData);
+    ivec2 prevTexelPos = outputPos;
+    prevTexelPos.x += ENV_PROBE_SIZEI.x * 2;
+    uvec4 prevData = imageLoad(uimg_envProbe, prevTexelPos);
+
     if (envProbe_update(sliceTexelPos, sliceID, outputData)) {
+        EnvProbeData prevDataDecoded = envProbe_decode(prevData);
+        if (envProbe_hasData(prevDataDecoded)) {
+            outputData.radiance = mix(outputData.radiance, prevDataDecoded.radiance, 0.8);
+            outputData.normal = normalize(mix(outputData.normal, prevDataDecoded.normal, 0.8));
+        }
         imageStore(uimg_envProbe, outputPos, envProbe_encode(outputData));
     } else {
-        ivec2 prevTexelPos = outputPos;
-        prevTexelPos.x += ENV_PROBE_SIZEI.x * 2;
-        uvec4 prevData = imageLoad(uimg_envProbe, prevTexelPos);
         imageStore(uimg_envProbe, outputPos, prevData);
     }
 }

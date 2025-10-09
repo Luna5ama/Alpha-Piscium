@@ -46,7 +46,7 @@ float planeWeight, float normalWeight
 }
 
 vec4 computeBilateralWeights(vec2 gatherTexelPos) {
-    vec2 screenPos = gatherTexelPos * global_mainImageSizeRcp;
+    vec2 screenPos = gatherTexelPos * uval_mainImageSizeRcp;
     vec2 gatherUV = nzpacking_fullResGatherUV(gatherTexelPos);
     vec4 result = vec4(1.0);
 
@@ -58,19 +58,19 @@ vec4 computeBilateralWeights(vec2 gatherTexelPos) {
     float geometryNormalWeight = mix(BASE_GEOM_WEIGHT, BASE_NORMAL_WEIGHT, reproject_isHand);
 
     result.x *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(-0.5, 0.5), prevViewZs.x, prevViewGeomNormals.x,
+        screenPos + uval_mainImageSizeRcp * vec2(-0.5, 0.5), prevViewZs.x, prevViewGeomNormals.x,
         geometryPlaneWeight, geometryNormalWeight
     );
     result.y *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(0.5, 0.5), prevViewZs.y, prevViewGeomNormals.y,
+        screenPos + uval_mainImageSizeRcp * vec2(0.5, 0.5), prevViewZs.y, prevViewGeomNormals.y,
         geometryPlaneWeight, geometryNormalWeight
     );
     result.z *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(0.5, -0.5), prevViewZs.z, prevViewGeomNormals.z,
+        screenPos + uval_mainImageSizeRcp * vec2(0.5, -0.5), prevViewZs.z, prevViewGeomNormals.z,
         geometryPlaneWeight, geometryNormalWeight
     );
     result.w *= computeGeometryWeight(
-        screenPos + global_mainImageSizeRcp * vec2(-0.5, -0.5), prevViewZs.w, prevViewGeomNormals.w,
+        screenPos + uval_mainImageSizeRcp * vec2(-0.5, -0.5), prevViewZs.w, prevViewGeomNormals.w,
         geometryPlaneWeight, geometryNormalWeight
     );
 
@@ -97,52 +97,54 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
 
         {
             uvec4 prevColorData = textureGather(usam_csrgba32ui, gatherUV1, 0);
-            vec3 prevColor1 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.x));
-            vec3 prevColor2 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.y));
-            vec3 prevColor3 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.z));
-            vec3 prevColor4 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevColorData.w));
+            vec2 temp1 = unpackHalf2x16(prevColorData.x);
+            vec2 temp2 = unpackHalf2x16(prevColorData.y);
+            vec2 temp3 = unpackHalf2x16(prevColorData.z);
+            vec2 temp4 = unpackHalf2x16(prevColorData.w);
 
-            vec4 prevColorR = max(vec4(prevColor1.r, prevColor2.r, prevColor3.r, prevColor4.r), 0.0);
+            vec4 prevColorR = vec4(temp1.r, temp2.r, temp3.r, temp4.r);
             prevColor.r += dot(interpoWeights, prevColorR);
-            vec4 prevColorG = max(vec4(prevColor1.g, prevColor2.g, prevColor3.g, prevColor4.g), 0.0);
+            vec4 prevColorG = vec4(temp1.g, temp2.g, temp3.g, temp4.g);
             prevColor.g += dot(interpoWeights, prevColorG);
-            vec4 prevColorB = max(vec4(prevColor1.b, prevColor2.b, prevColor3.b, prevColor4.b), 0.0);
-            prevColor.b += dot(interpoWeights, prevColorB);
         }
 
         {
-            uvec4 prevFastColorData = textureGather(usam_csrgba32ui, gatherUV1, 1);
-            vec3 prevFastColor1 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.x));
-            vec3 prevFastColor2 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.y));
-            vec3 prevFastColor3 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.z));
-            vec3 prevFastColor4 = colors_LogLuv32ToSRGB(unpackUnorm4x8(prevFastColorData.w));
+            uvec4 prevColorData = textureGather(usam_csrgba32ui, gatherUV1, 1);
+            vec2 temp1 = unpackHalf2x16(prevColorData.x);
+            vec2 temp2 = unpackHalf2x16(prevColorData.y);
+            vec2 temp3 = unpackHalf2x16(prevColorData.z);
+            vec2 temp4 = unpackHalf2x16(prevColorData.w);
 
-            vec4 prevFastColorR = max(vec4(prevFastColor1.r, prevFastColor2.r, prevFastColor3.r, prevFastColor4.r), 0.0);
+            vec4 prevColorR = vec4(temp1.x, temp2.x, temp3.x, temp4.x);
+            prevColor.b += dot(interpoWeights, prevColorR);
+            vec4 prevMoment2 = vec4(temp1.y, temp2.y, temp3.y, temp4.y);
+            prevMoments.y += dot(interpoWeights, prevMoment2);
+        }
+
+        {
+            uvec4 prevData = textureGather(usam_csrgba32ui, gatherUV1, 2);
+            vec2 temp1 = unpackHalf2x16(prevData.x);
+            vec2 temp2 = unpackHalf2x16(prevData.y);
+            vec2 temp3 = unpackHalf2x16(prevData.z);
+            vec2 temp4 = unpackHalf2x16(prevData.w);
+
+            vec4 prevFastColorR = vec4(temp1.x, temp2.x, temp3.x, temp4.x);
             prevFastColor.r += dot(interpoWeights, prevFastColorR);
-            vec4 prevFastColorG = max(vec4(prevFastColor1.g, prevFastColor2.g, prevFastColor3.g, prevFastColor4.g), 0.0);
+            vec4 prevFastColorG = vec4(temp1.y, temp2.y, temp3.y, temp4.y);
             prevFastColor.g += dot(interpoWeights, prevFastColorG);
-            vec4 prevFastColorB = max(vec4(prevFastColor1.b, prevFastColor2.b, prevFastColor3.b, prevFastColor4.b), 0.0);
-            prevFastColor.b += dot(interpoWeights, prevFastColorB);
         }
 
         {
-            uvec4 prevMomentDatas = textureGather(usam_csrgba32ui, gatherUV1, 2);
-            vec2 prevMoments1 = unpackHalf2x16(prevMomentDatas.x);
-            vec2 prevMoments2 = unpackHalf2x16(prevMomentDatas.y);
-            vec2 prevMoments3 = unpackHalf2x16(prevMomentDatas.z);
-            vec2 prevMoments4 = unpackHalf2x16(prevMomentDatas.w);
-            vec4 prevMomentsR = vec4(prevMoments1.x, prevMoments2.x, prevMoments3.x, prevMoments4.x);
-            vec4 prevMomentsG = vec4(prevMoments1.y, prevMoments2.y, prevMoments3.y, prevMoments4.y);
+            uvec4 prevData = textureGather(usam_csrgba32ui, gatherUV1, 3);
+            vec2 temp1 = unpackHalf2x16(prevData.x);
+            vec2 temp2 = unpackHalf2x16(prevData.y);
+            vec2 temp3 = unpackHalf2x16(prevData.z);
+            vec2 temp4 = unpackHalf2x16(prevData.w);
 
-            prevMoments.x += dot(interpoWeights, prevMomentsR);
-            prevMoments.y += dot(interpoWeights, prevMomentsG);
-        }
-
-        {
-            uvec4 prevHLenData = textureGather(usam_csrgba32ui, gatherUV1, 3);
-            vec4 prevHLens = uintBitsToFloat(prevHLenData);
-
-            prevHLen += dot(interpoWeights, prevHLens);
+            vec4 prevFastColorR = vec4(temp1.x, temp2.x, temp3.x, temp4.x);
+            prevFastColor.b += dot(interpoWeights, prevFastColorR);
+            vec4 prevHLenV = vec4(temp1.y, temp2.y, temp3.y, temp4.y);
+            prevHLen += dot(interpoWeights, prevHLenV);
         }
     }
 }
@@ -174,7 +176,7 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     if (any(notEqual(curr2PrevScreen, saturate(curr2PrevScreen)))) {
         return;
     }
-    vec2 curr2PrevTexel = curr2PrevScreen * global_mainImageSize;
+    vec2 curr2PrevTexel = curr2PrevScreen * uval_mainImageSize;
     vec3 currWorldNormal = mat3(gbufferModelViewInverse) * currViewNormal;
     vec3 currToPrevViewNormal = mat3(gbufferPrevModelView) * currWorldNormal;
 
@@ -195,7 +197,7 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
     float weightSum = 0.0;
     uint flag = uint(any(lessThan(centerWeights, vec4(CUBIE_SAMPLE_WEIGHT_EPSILON))));
     flag |= uint(any(lessThan(curr2PrevTexel, vec2(1.0))));
-    flag |= uint(any(greaterThan(curr2PrevTexel, global_mainImageSize - 1.0)));
+    flag |= uint(any(greaterThan(curr2PrevTexel, uval_mainImageSize - 1.0)));
 
     vec4 weights1;
     vec4 weights2;
@@ -264,6 +266,7 @@ out vec3 prevColor, out vec3 prevFastColor, out vec2 prevMoments, out float prev
         prevColor = clamp(prevColor * rcpWeightSum, 0.0, FP16_MAX);
         prevFastColor = clamp(prevFastColor * rcpWeightSum, 0.0, FP16_MAX);
         prevMoments = clamp(prevMoments * rcpWeightSum, 0.0, FP16_MAX);
+        prevMoments.x = min(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevColor), 256.0);
         prevHLen = clamp(ceil(prevHLen * rcpWeightSum), 0.0, FP16_MAX);
     }
 }

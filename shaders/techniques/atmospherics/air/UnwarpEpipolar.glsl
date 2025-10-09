@@ -8,10 +8,10 @@
 */
 #include "Common.glsl"
 
-
 bool unwarpEpipolarInsctrImage(
+int layerIndex,
 vec2 ndcPos,
-in float screenViewZ,
+vec2 screenLayerViewZ,
 out ScatteringResult result
 ){
     // Compute direction of the ray going from the light through the pixel
@@ -93,16 +93,14 @@ out ScatteringResult result
     // Now find two closest epipolar slices, from which we will interpolate
     // First, find index of the slice which precedes our slice
     // Note that 0 <= fEpipolarSlice <= 1, and both 0 and 1 refer to the first slice
-    float fPrecedingSliceInd = min(floor(fEpipolarSlice * SETTING_EPIPOLAR_SLICES), SETTING_EPIPOLAR_SLICES - 1);
+    float fPrecedingSliceInd = floor(fEpipolarSlice * SETTING_EPIPOLAR_SLICES);
 
     // Compute EXACT texture coordinates of preceding and succeeding slices and their weights
     // Note that slice 0 is stored in the first texel which has exact texture coordinate 0.5/SETTING_EPIPOLAR_SLICES
     // (search for "fEpipolarSlice = saturate(f2UV.x - 0.5f / (float)SETTING_EPIPOLAR_SLICES)"):
-    float fSrcSliceV[2];
-    // Compute V coordinate to refer exactly the center of the slice row
-    fSrcSliceV[0] = (fPrecedingSliceInd + 0.5) / float(SETTING_EPIPOLAR_SLICES);
-    // Use frac() to wrap around to the first slice from the next-to-last slice:
-    fSrcSliceV[1] = fract(fSrcSliceV[0] + 1.0 / float(SETTING_EPIPOLAR_SLICES));
+    float fSrcSliceTexelX[2];
+    fSrcSliceTexelX[0] = fPrecedingSliceInd + 0.5;
+    fSrcSliceTexelX[1] = mod(fPrecedingSliceInd + 1.5, float(SETTING_EPIPOLAR_SLICES));
 
     // Compute slice weights
     float fSliceWeights[2];
@@ -113,9 +111,13 @@ out ScatteringResult result
     result.transmittance = vec3(0.0);
     float totalWeight = 0;
 
+    // Add 1 to account for the endpoint data stored in the first texel row
+    #define TEXEL_Y_OFFSET (1 + layerIndex * SETTING_SLICE_SAMPLES)
+
     for (int i = 0; i < 2; ++i) {
         // Load epipolar line endpoints
-        vec4 f4SliceEndpoints = uintBitsToFloat(texture(usam_epipolarData, vec2(fSrcSliceV[i], EPIPOLAR_SLICE_END_POINTS_V)));
+        uvec4 endPointData = texelFetch(usam_epipolarData, ivec2(int(fSrcSliceTexelX[i]), 0), 0);
+        vec4 f4SliceEndpoints = uintBitsToFloat(endPointData);
 
         // Compute line direction on the screen
         vec2 f2SliceDir = f4SliceEndpoints.zw - f4SliceEndpoints.xy;
@@ -138,9 +140,9 @@ out ScatteringResult result
         float fUWeight = fSampleInd - fPrecedingSampleInd;
         // Get texture coordinate of the left source texel. Again, offset by 0.5 is essential
         // to align with the texel center
-        float fPrecedingSampleU = (fPrecedingSampleInd + 1.5) / float(EPIPOLAR_DATA_Y_SIZE);
+        float fPrecedingSampleTexelY = fPrecedingSampleInd + 0.5;
 
-        vec2 f2SctrColorUV = vec2(fSrcSliceV[i], fPrecedingSampleU);
+        vec2 epipolarDataTexelF = vec2(fSrcSliceTexelX[i], fPrecedingSampleInd + 0.5);
 
         // Gather 4 camera space z values
         // Note that we need to bias f2SctrColorUV by 0.5 texel size to refer the location between all four texels and
@@ -161,17 +163,48 @@ out ScatteringResult result
         // z == g_tex2DEpipolarCamSpaceZ.SampleLevel(samPointClamp, f2SctrColorUV, 0, int2(1,0))
         // w == g_tex2DEpipolarCamSpaceZ.SampleLevel(samPointClamp, f2SctrColorUV, 0, int2(0,0))
 
-        const vec2 f2ScatteredColorTexDim = vec2(SETTING_EPIPOLAR_SLICES, EPIPOLAR_DATA_Y_SIZE);
-        vec2 epipolarViewZ = uintBitsToFloat(textureGather(usam_epipolarData, f2SctrColorUV + vec2(0.5, 0.5) / f2ScatteredColorTexDim.xy, 3).wx);
+        const vec2 EPIPOLAR_DATA_TEX_SIZE = vec2(SETTING_EPIPOLAR_SLICES, EPIPOLAR_DATA_Y_SIZE);
+        const vec2 LAYER_SIZE = vec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
 
-        // Compute depth weights in a way that if the difference is less than the threshold, the weight is 1 and
-        // the weights fade out to 0 as the difference becomes larger than the threshold:
-        vec2 f2MaxZ = max(-epipolarViewZ, max(-screenViewZ, 1.0));
+
+        ivec2 epipolarDataTexelI = ivec2(epipolarDataTexelF);
+        ivec2 sampleTexelPos1 = epipolarDataTexelI;
+        sampleTexelPos1.y += int(TEXEL_Y_OFFSET);
+        ivec2 sampleTexelPos2 = epipolarDataTexelI + ivec2(0, 1);
+        sampleTexelPos2.y = min(sampleTexelPos2.y, SETTING_SLICE_SAMPLES - 1);
+        sampleTexelPos2.y += int(TEXEL_Y_OFFSET);
+
+        uint viewZData1 = texelFetch(usam_epipolarData, sampleTexelPos1, 0).a;
+        uint viewZData2 = texelFetch(usam_epipolarData, sampleTexelPos2, 0).a;
+        uvec2 viewZData = uvec2(viewZData1, viewZData2);
+        uvec2 viewZTexelPosXs = bitfieldExtract(viewZData, 0, 16);
+        uvec2 viewZTexelPosYs = bitfieldExtract(viewZData, 16, 16);
+        ivec2 viewZTexelPos1 = ivec2(uvec2(viewZTexelPosXs.x, viewZTexelPosYs.x));
+        ivec2 viewZTexelPos2 = ivec2(uvec2(viewZTexelPosXs.y, viewZTexelPosYs.y));
+        viewZTexelPos1.y += layerIndex * uval_mainImageSizeIY;
+        viewZTexelPos2.y += layerIndex * uval_mainImageSizeIY;
+        vec2 viewZ1 = -abs(texelFetch(usam_csrg32f, viewZTexelPos1, 0).rg);
+        vec2 viewZ2 = -abs(texelFetch(usam_csrg32f, viewZTexelPos2, 0).rg);
+
+        vec2 startZs = viewZData1 == 0xFFFFFFFFu ? vec2(65536.0) : vec2(viewZ1.x, viewZ2.x);
+        vec2 endZs = viewZData2 == 0xFFFFFFFFu ? vec2(65536.0) : vec2(viewZ1.y, viewZ2.y);
+
         const float refinementThreshold = 0.03;
-        vec2 f2DepthWeights = saturate(refinementThreshold / max(abs(epipolarViewZ - screenViewZ) / f2MaxZ, refinementThreshold));
-        // Note that if the sample is located outside the [-1,1]x[-1,1] area, the sample is invalid and fCurrCamSpaceZ == fInvalidCoordinate
-        // Depth weight computed for such sample will be zero
-        f2DepthWeights = pow(f2DepthWeights, vec2(4.0));
+        vec2 f2DepthWeights = vec2(1.0);
+        {
+            // Compute depth weights in a way that if the difference is less than the threshold, the weight is 1 and
+            // the weights fade out to 0 as the difference becomes larger than the threshold:
+            vec2 f2MaxZ = max(-startZs, max(-screenLayerViewZ.x, 1.0));
+            f2DepthWeights *= saturate(refinementThreshold / max(abs(startZs - screenLayerViewZ.x) / f2MaxZ, refinementThreshold));
+            // Note that if the sample is located outside the [-1,1]x[-1,1] area, the sample is invalid and fCurrCamSpaceZ == fInvalidCoordinate
+            // Depth weight computed for such sample will be zero
+        }
+        {
+            vec2 f2MaxZ = max(-endZs, max(-screenLayerViewZ.y, 1.0));
+            f2DepthWeights *= saturate(refinementThreshold / max(abs(endZs - screenLayerViewZ.y) / f2MaxZ, refinementThreshold));
+        }
+
+        f2DepthWeights = pow4(f2DepthWeights);
 
         // Multiply bilinear weights with the depth weights:
         vec2 bilateralVWeights = vec2(1 - fUWeight, fUWeight) * f2DepthWeights * fSliceWeights[i];
@@ -190,7 +223,7 @@ out ScatteringResult result
         {
             ScatteringResult sampleResult;
             float viewZ;
-            unpackEpipolarData(texture(usam_epipolarData, f2SctrColorUV), sampleResult, viewZ);
+            unpackEpipolarData(texelFetch(usam_epipolarData, sampleTexelPos1, 0), sampleResult, viewZ);
 
             result.inScattering += bilateralVWeights.x * sampleResult.inScattering;
             result.transmittance += bilateralVWeights.x * sampleResult.transmittance;
@@ -199,7 +232,7 @@ out ScatteringResult result
         {
             ScatteringResult sampleResult;
             float viewZ;
-            unpackEpipolarData(textureOffset(usam_epipolarData, f2SctrColorUV, ivec2(0, 1)), sampleResult, viewZ);
+            unpackEpipolarData(texelFetch(usam_epipolarData, sampleTexelPos2, 0), sampleResult, viewZ);
 
             result.inScattering += bilateralVWeights.y * sampleResult.inScattering;
             result.transmittance += bilateralVWeights.y * sampleResult.transmittance;

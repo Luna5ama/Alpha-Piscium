@@ -131,7 +131,7 @@ vec3 displayViewZ(float viewZ) {
 
 void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     _debug_texelPos = texelPos;
-    beginText(texelPos >> ivec2(2), ivec2(0, global_mainImageSizeI.y >> 2));
+    beginText(texelPos >> ivec2(2), ivec2(0, uval_mainImageSizeI.y >> 2));
     printLine();
     printLine();
     text.fpPrecision = 4;
@@ -176,7 +176,9 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #if SETTING_DEBUG_NORMAL_MODE == 0
     outputColor.rgb = mat3(gbufferModelViewInverse) * outputColor.rgb;
     #endif
-    outputColor.rgb = outputColor.rgb * 0.5 + 0.5;
+    outputColor.r = linearStep(-SETTING_DEBUG_NORMAL_X_RANGE, SETTING_DEBUG_NORMAL_X_RANGE, outputColor.r);
+    outputColor.g = linearStep(-SETTING_DEBUG_NORMAL_Y_RANGE, SETTING_DEBUG_NORMAL_Y_RANGE, outputColor.g);
+    outputColor.b = linearStep(-SETTING_DEBUG_NORMAL_Z_RANGE, SETTING_DEBUG_NORMAL_Z_RANGE, outputColor.b);
 
     #elif SETTING_DEBUG_GBUFFER_DATA == 5
     outputColor.rgb = vec3(material.roughness);
@@ -204,9 +206,9 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     float svgfHLen;
     svgf_unpack(svgfData, svgfColor, svgfFastColor, svgfMoments, svgfHLen);
     #if SETTING_DEBUG_DENOISER == 1
-    outputColor.rgb = svgfColor;
+    outputColor.rgb = expGamma(svgfColor);
     #elif SETTING_DEBUG_DENOISER == 2
-    outputColor.rgb = svgfFastColor;
+    outputColor.rgb = expGamma(svgfFastColor);
     #elif SETTING_DEBUG_DENOISER == 3
     outputColor.rgb = interpolateTurbo(1.0 - (svgfHLen - 2.0) / (SETTING_DENOISER_MAX_ACCUM - 2.0));
     #elif SETTING_DEBUG_DENOISER == 4
@@ -243,14 +245,14 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     }
     #endif
     #if SETTING_DEBUG_GI_INPUTS == 6
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         uint packedGeometryNormal = texelFetch(usam_geometryNormal, texelPos, 0).r;
         vec3 geometryNormal = unpackSnorm3x10(packedGeometryNormal);
         outputColor.rgb = vec3(geometryNormal * 0.5 + 0.5);
     }
     #endif
 
-    vec2 screenPos = (vec2(texelPos) + 0.5) * global_mainImageSizeRcp;
+    vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
     vec2 debugTexCoord;
 
     #ifdef SETTING_DEBUG_RTWSM
@@ -261,7 +263,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 
     if (inViewPort(ivec4(0, 0, 512, 512), debugTexCoord)) {
         float linearDepth = rtwsm_linearDepth(texture(shadowtex0, debugTexCoord).r);
-        float remappedDepth = linearStep(-global_shadowAABBMax.z, -global_shadowAABBMin.z, linearDepth);
+        float remappedDepth = linearStep(-global_shadowAABBMaxPrev.z, -global_shadowAABBMinPrev.z, linearDepth);
         outputColor.rgb = vec3(remappedDepth);
     }
     if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {
@@ -285,6 +287,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #endif
 
     #ifdef SETTING_DEBUG_ATMOSPHERE
+    const float EPIPOLAR_SLICE_END_POINTS_V = 0.5 / float(EPIPOLAR_DATA_Y_SIZE);
     if (inViewPort(ivec4(0, 0, 1024, 16), debugTexCoord)) {
         outputColor.rgb = vec3(uintBitsToFloat(texture(usam_epipolarData, vec2(debugTexCoord.x, EPIPOLAR_SLICE_END_POINTS_V)).rg), 0.0);
     }
@@ -301,8 +304,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         outputColor.rgb = gammaCorrect(texture(usam_multiSctrLUT, debugTexCoord).rgb * 10.0);
     }
     float whRatio = float(SETTING_EPIPOLAR_SLICES) / float(SETTING_SLICE_SAMPLES);
-    if (inViewPort(ivec4(256, 32, whRatio * 256, 256), debugTexCoord)) {
-        debugTexCoord.y = 1.0 - debugTexCoord.y;
+    if (inViewPort(ivec4(256, 32, whRatio * 512, 768), debugTexCoord)) {
         ScatteringResult sampleResult;
         float viewZ;
         vec2 sampleTexCoord = debugTexCoord;
@@ -310,23 +312,21 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
         outputColor.rgb = gammaCorrect(sampleResult.inScattering * exp2(SETTING_DEBUG_EXP));
     }
-    if (inViewPort(ivec4(256, 32 + 256, whRatio * 256, 256), debugTexCoord)) {
-        debugTexCoord.y = 1.0 - debugTexCoord.y;
-        ScatteringResult sampleResult;
-        float viewZ;
-        vec2 sampleTexCoord = debugTexCoord;
-        sampleTexCoord.y = mix(1.0 / EPIPOLAR_DATA_Y_SIZE, 1.0, sampleTexCoord.y);
-        unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
-        outputColor.rgb = gammaCorrect(sampleResult.transmittance);
-    }
-    if (inViewPort(ivec4(256, 32 + 512, whRatio * 256, 256), debugTexCoord)) {
-        debugTexCoord.y = 1.0 - debugTexCoord.y;
-        ScatteringResult sampleResult;
-        float viewZ;
-        unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
-        float depthV = -viewZ.r / far;
-        outputColor.rgb = gammaCorrect(depthV).rrr;
-    }
+//    if (inViewPort(ivec4(256, 32 + 256, whRatio * 256, 256), debugTexCoord)) {
+//        ScatteringResult sampleResult;
+//        float viewZ;
+//        vec2 sampleTexCoord = debugTexCoord;
+//        sampleTexCoord.y = mix(1.0 / EPIPOLAR_DATA_Y_SIZE, 1.0, sampleTexCoord.y);
+//        unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
+//        outputColor.rgb = gammaCorrect(sampleResult.transmittance);
+//    }
+//    if (inViewPort(ivec4(256, 32 + 512, whRatio * 256, 256), debugTexCoord)) {
+//        ScatteringResult sampleResult;
+//        float viewZ;
+//        unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
+//        float depthV = -viewZ.r / far;
+//        outputColor.rgb = gammaCorrect(depthV).rrr;
+//    }
     #endif
 
     #ifdef SETTING_DEBUG_SKY_VIEW_LUT
@@ -456,7 +456,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         float fEpipolarSlice = dot(vec4(b4SectorFlags), f4EpipolarSlice);
         float fEpipolarSliceIndex = fEpipolarSlice * SETTING_EPIPOLAR_SLICES;
         fEpipolarSliceIndex = fract(fEpipolarSliceIndex + 0.5);
-        float lineWidth = SETTING_EPIPOLAR_SLICES / min2(global_mainImageSize);
+        float lineWidth = SETTING_EPIPOLAR_SLICES / min2(uval_mainImageSize);
         lineWidth *= 0.25;
         lineWidth = saturate(lineWidth / distance(uval_sunNdcPos, ndcPos) * (1.0 + length(uval_sunNdcPos)));
         float lineAlpha = smoothstep(0.5 - lineWidth, 0.5, fEpipolarSliceIndex);
@@ -469,7 +469,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     outputColor = expGamma(texelFetch(usam_debug, ivec2((vec2(texelPos) + 0.5) / SETTING_DEBUG_SCALE), 0));
     #endif
 
-//    beginText(texelPos >> ivec2(2), ivec2(0, global_mainImageSizeI.y >> 2));
+//    beginText(texelPos >> ivec2(2), ivec2(0, uval_mainImageSizeI.y >> 2));
 //    printFloat(global_turbidity);
     endText(outputColor.rgb);
 }

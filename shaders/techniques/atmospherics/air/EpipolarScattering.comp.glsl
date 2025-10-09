@@ -15,87 +15,92 @@
 #include "/util/Lighting.glsl"
 #include "/util/Rand.glsl"
 
-layout(local_size_x = 1, local_size_y = SETTING_SLICE_SAMPLES) in;
+#if SETTING_SLICE_SAMPLES == 128
+#define WORK_GROUP_SIZE 128
+#define LOOP_COUNT 1
+#elif SETTING_SLICE_SAMPLES == 256
+#define WORK_GROUP_SIZE 256
+#define LOOP_COUNT 1
+#elif SETTING_SLICE_SAMPLES == 512
+#define WORK_GROUP_SIZE 256
+#define LOOP_COUNT 2
+#elif SETTING_SLICE_SAMPLES == 1024
+#define WORK_GROUP_SIZE 256
+#define LOOP_COUNT 4
+#endif
+layout(local_size_x = 1, local_size_y = WORK_GROUP_SIZE) in;
 const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
 
-
+#define SHARED_MEMORY_SHADOW_SAMPLE a
 #include "RaymarchScreenViewAtmosphere.glsl"
 
 layout(rgba32ui) uniform restrict uimage2D uimg_epipolarData;
 
-shared vec4 shared_inSctrBlurTemp[SETTING_SLICE_SAMPLES];
-
-void blur(float viewZ, float baseWeight, int offset, inout vec3 inSctrSum, inout float weightSum) {
-    int sampleIndex = clamp(int(gl_LocalInvocationID.y) + offset, 0, SETTING_SLICE_SAMPLES - 1);
-    vec4 sampleData = shared_inSctrBlurTemp[sampleIndex];
-    float sampleViewZ = sampleData.w;
-    float weight = exp2(baseWeight * abs(viewZ - sampleViewZ));
-    inSctrSum += sampleData.xyz * weight;
-    weightSum += weight;
-}
-
 void main() {
     ivec2 imgSizei = ivec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
     vec2 imgSize = vec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
-    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     uint sliceIndex = gl_WorkGroupID.x;
-    uint sliceSampleIndex = gl_LocalInvocationID.y;
     vec4 sliceEndPoints = uintBitsToFloat(imageLoad(uimg_epipolarData, ivec2(sliceIndex, 0)));
 
-    ScatteringResult result = scatteringResult_init();
-    float viewZ = 65536.0;
-
-    uint cond = uint(all(lessThan(texelPos, imgSizei)));
-    cond &= uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
+    uint cond = uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
 
     if (bool(cond)) {
-        float sliceSampleP = float(sliceSampleIndex);
-        sliceSampleP /= float(SETTING_SLICE_SAMPLES - 1);
+        {
+            uint sliceSampleIndex = gl_LocalInvocationID.y + (LOOP_COUNT - 1) * WORK_GROUP_SIZE;
+            float sliceSampleP = float(sliceSampleIndex)  / float(SETTING_SLICE_SAMPLES - 1);
+            vec2 screenPos = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
+            screenViewRaymarch_init(screenPos);
+        }
+        for (uint i = 0; i < LOOP_COUNT; i++) {
+            uint sliceSampleIndex = gl_LocalInvocationID.y + i * WORK_GROUP_SIZE;
+            float sliceSampleP = float(sliceSampleIndex)  / float(SETTING_SLICE_SAMPLES - 1);
+            vec2 screenPos = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
 
-        vec2 screenPos = mix(sliceEndPoints.xy, sliceEndPoints.zw, sliceSampleP) * 0.5 + 0.5;
-        vec2 texelPos = screenPos * global_mainImageSize;
-        texelPos = clamp(texelPos, vec2(0.5), vec2(global_mainImageSize - 0.5));
-        ivec2 texelPosI = ivec2(texelPos);
-        float noiseV = rand_IGN(texelPosI, frameCounter);
+            vec2 texelPos = screenPos * uval_mainImageSize;
+            texelPos = clamp(texelPos, vec2(0.5), vec2(uval_mainImageSize - 0.5));
+            ivec2 texelPosI = ivec2(texelPos);
+            float noiseV = rand_stbnVec1(texelPosI, frameCounter);
 
-        viewZ = texelFetch(usam_gbufferViewZ, texelPosI, 0).r;
-        result = raymarchScreenViewAtmosphere(texelPosI, viewZ, noiseV);
+            ivec2 baseWriteTexelPos = ivec2(gl_GlobalInvocationID.x, sliceSampleIndex + 1u);
+
+            for (int layerIndex = 0; layerIndex < 2; layerIndex++) {
+                int actualIndex = layerIndex * 2;
+                ivec2 readScreenTexelPos = texelPosI;
+                readScreenTexelPos.y += actualIndex * int(uval_mainImageSizeIY);
+                vec2 layerViewZ = -abs(texelFetch(usam_csrg32f, readScreenTexelPos, 0).rg);
+                ScatteringResult result = scatteringResult_init();
+
+                if (layerViewZ.x > -FLT_MAX) {
+                    result = raymarchScreenViewAtmosphere(
+                        texelPosI,
+                        layerViewZ.x,
+                        layerViewZ.y,
+                        SETTING_LIGHT_SHAFT_SAMPLES,
+                        noiseV
+                    );
+                }
+
+                uvec4 outputData;
+                packEpipolarData(outputData, result, texelPosI);
+                ivec2 writeTexelPos = baseWriteTexelPos;
+                writeTexelPos.y += actualIndex * int(SETTING_SLICE_SAMPLES);
+                imageStore(uimg_epipolarData, writeTexelPos, outputData);
+            }
+        }
+    } else {
+        ivec2 texelPos = ivec2(65535);
+        ScatteringResult result = scatteringResult_init();
+        uvec4 outputData;
+        packEpipolarData(outputData, result, texelPos);
+        for (uint i = 0; i < LOOP_COUNT; i++) {
+            ivec2 baseWriteTexelPos = ivec2(gl_GlobalInvocationID.xy);
+            baseWriteTexelPos.y += int(1u + i * WORK_GROUP_SIZE);
+            for (int layerIndex = 0; layerIndex < 2; layerIndex++) {
+                int actualIndex = layerIndex * 2;
+                ivec2 writeTexelPos = baseWriteTexelPos;
+                writeTexelPos.y += actualIndex * int(SETTING_SLICE_SAMPLES);
+                imageStore(uimg_epipolarData, writeTexelPos, outputData);
+            }
+        }
     }
-
-    shared_inSctrBlurTemp[sliceSampleIndex] = vec4(result.inScattering, viewZ);
-    barrier();
-
-    const float C = 10.0;
-    float baseWeight = -10.0 * (C / (C + abs(viewZ)));
-    {
-        float weightSum = 1.0;
-        blur(viewZ, baseWeight, -3, result.inScattering, weightSum);
-        blur(viewZ, baseWeight, -2, result.inScattering, weightSum);
-        blur(viewZ, baseWeight, -1, result.inScattering, weightSum);
-        blur(viewZ, baseWeight, 1, result.inScattering, weightSum);
-        blur(viewZ, baseWeight, 2, result.inScattering, weightSum);
-        blur(viewZ, baseWeight, 3, result.inScattering, weightSum);
-        result.inScattering /= weightSum;
-    }
-    barrier();
-    shared_inSctrBlurTemp[sliceSampleIndex] = vec4(result.inScattering, viewZ);
-
-    barrier();
-
-    {
-        float weightSum = 1.0;
-        blur(viewZ, baseWeight, -3, result.inScattering, weightSum);
-        blur(viewZ, baseWeight, -2, result.inScattering, weightSum);
-        blur(viewZ, baseWeight, -1, result.inScattering, weightSum);
-        blur(viewZ, baseWeight, 1, result.inScattering, weightSum);
-        blur(viewZ, baseWeight, 2, result.inScattering, weightSum);
-        blur(viewZ, baseWeight, 3, result.inScattering, weightSum);
-        result.inScattering /= weightSum;
-    }
-
-    uvec4 outputData;
-    packEpipolarData(outputData, result, viewZ);
-    ivec2 writeTexelPos = texelPos;
-    writeTexelPos.y += 1;
-    imageStore(uimg_epipolarData, writeTexelPos, outputData);
 }
