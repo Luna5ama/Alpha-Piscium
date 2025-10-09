@@ -121,28 +121,30 @@ GBufferData processOutput() {
         weightHeightMul *= saturate(maxLen * 2.0);
 
         #ifdef SETTING_WATER_PARALLEX
-        const uint MAX_STEPS = uint(SETTING_WATER_PARALLEX_STEPS);
-        const float PARALLEX_STRENGTH = float(SETTING_WATER_PARALLEX_STRENGTH);
+        if (detail) {
+            const uint MAX_STEPS = uint(SETTING_WATER_PARALLEX_STEPS);
+            const float PARALLEX_STRENGTH = float(SETTING_WATER_PARALLEX_STRENGTH);
 
-        vec3 rayDir = scenePos / abs(scenePos.y);
-        rayDir.xz *= WAVE_POS_BASE * PARALLEX_STRENGTH;
-        const float WAVE_Y_OFFSET = 0.1;
-        const float MAX_WAVE_HEIGHT = 0.55;
-        float rayStepLength = MAX_WAVE_HEIGHT / float(MAX_STEPS);
+            vec3 rayDir = scenePos / abs(scenePos.y);
+            rayDir.xz *= WAVE_POS_BASE * PARALLEX_STRENGTH;
+            const float WAVE_Y_OFFSET = 0.1;
+            const float MAX_WAVE_HEIGHT = 0.55;
+            float rayStepLength = MAX_WAVE_HEIGHT / float(MAX_STEPS);
 
-        for (uint i = 0u; i < MAX_STEPS; i++) {
-            float fi = float(i) + 0.5;
-            vec3 sampleDelta = rayDir * fi * rayStepLength;
+            for (uint i = 0u; i < MAX_STEPS; i++) {
+                float fi = float(i) + 0.5;
+                vec3 sampleDelta = rayDir * fi * rayStepLength;
 
-            vec3 samplePos = waveWorldPos + sampleDelta;
-            samplePos.y = waveWorldPos.y;
-            float sampleHeight = waveHeight(samplePos, false, detail);
+                vec3 samplePos = waveWorldPos + sampleDelta;
+                samplePos.y = waveWorldPos.y;
+                float sampleHeight = waveHeight(samplePos, false, detail);
 
-            float currHeight = WAVE_Y_OFFSET + sampleDelta.y;
-            if (currHeight < sampleHeight) {
-                waveWorldPos = samplePos;
-                fuckO = (fi * rayStepLength + -0.5 * MAX_WAVE_HEIGHT) * 0.5 * PARALLEX_STRENGTH;
-                break;
+                float currHeight = WAVE_Y_OFFSET + sampleDelta.y;
+                if (currHeight < sampleHeight) {
+                    waveWorldPos = samplePos;
+                    fuckO = (fi * rayStepLength + -0.5 * MAX_WAVE_HEIGHT) * 0.5 * PARALLEX_STRENGTH;
+                    break;
+                }
             }
         }
         #endif
