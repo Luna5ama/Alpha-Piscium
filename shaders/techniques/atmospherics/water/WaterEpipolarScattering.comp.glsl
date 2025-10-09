@@ -145,6 +145,9 @@ float waterSurfaceDistance(vec3 shadowUVPos) {
         return -1.0;
     }
     float sampleDepth = texture(shadowtex0, shadowUVPos.xy).r;
+    if (texture(shadowtex1, shadowUVPos.xy).r <= sampleDepth) {
+        return -1.0;
+    }
     return abs(rtwsm_linearDepth(shadowUVPos.z) - rtwsm_linearDepth(sampleDepth));
 }
 

@@ -64,6 +64,23 @@ float searchBlocker(vec3 shadowTexCoord) {
     return abs(rtwsm_linearDepth(blockerDepth) - rtwsm_linearDepth(shadowTexCoord.z));
 }
 
+float waterSurfaceDistance(vec3 shadowUVPos) {
+    shadowUVPos.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, shadowUVPos.xy);
+    vec2 ndcCoord = shadowUVPos.xy * 2.0 - 1.0;
+    float edgeCoord = max(abs(ndcCoord.x), abs(ndcCoord.y));
+    if (edgeCoord > 1.0 - SHADOW_MAP_SIZE.y * 16) {
+        return -1.0;
+    }
+    if (texture(usam_shadow_waterMask, shadowUVPos.xy).r < 0.9) {
+        return -1.0;
+    }
+    float sampleDepth = texture(shadowtex0, shadowUVPos.xy).r;
+    if (texture(shadowtex1, shadowUVPos.xy).r <= sampleDepth) {
+        return -1.0;
+    }
+    return abs(rtwsm_linearDepth(shadowUVPos.z) - rtwsm_linearDepth(sampleDepth));
+}
+
 vec3 calcShadow(Material material) {
     float sssFactor = material.sss;
     uint skipFlag = uint(dot(gData.normal, uval_upDirView) < -0.99);
@@ -142,7 +159,10 @@ vec3 calcShadow(Material material) {
         float rcpShadowY = rcp(uval_shadowLightDirWorld.y);
         vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
         float worldHeight = scenePos.y + cameraPosition.y;
-        float waterDepth = max(63.0 - worldHeight, 0.0) * rcpShadowY;
+        float waterDepth = waterSurfaceDistance(shadowScreenPos);
+        if (waterDepth == -1.0) {
+            max(63.0 - worldHeight, 0.0) * rcpShadowY;
+        }
         #ifdef SETTING_WATER_CAUSTICS
         ivec2 readPos = texelPos;
         readPos.y += uval_mainImageSizeI.y;
