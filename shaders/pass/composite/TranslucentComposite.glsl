@@ -120,8 +120,6 @@ void main() {
             outputColor.rgb = translucentColor;
         }
 
-        imageStore(uimg_main, texelPos, outputColor);
-
         if (isEyeInWater == 1) {
             ScatteringResult sctrResult = atmospherics_localComposite(1, texelPos);
             outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
@@ -129,7 +127,6 @@ void main() {
         ScatteringResult sctrResult = atmospherics_localComposite(2, texelPos);
         outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
 
-        #ifdef SETTING_DOF
-        #endif
+        imageStore(uimg_main, texelPos, outputColor);
     }
 }

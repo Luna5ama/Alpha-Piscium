@@ -86,6 +86,7 @@ void main() {
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
 
             Material material = material_decode(gData);
+            bool isWater = gData.materialID == 3u;
 
             vec3 viewDir = normalize(-startViewPos);
 
@@ -100,7 +101,7 @@ void main() {
 
             float inWaterDisable = float(isEyeInWater == 1);
             float riorFixWeight = min(max2(ndcPos), 1.0 - pow2(saturate(dot(vec3(0.0, 0.0, 1.0), gData.geomNormal))));
-            riorFixWeight = saturate(riorFixWeight - inWaterDisable);
+            riorFixWeight = saturate(riorFixWeight - inWaterDisable) * float(isWater);
             float rior = AIR_IOR / mix(material.hardCodedIOR, 1.0, riorFixWeight);
             float cosThetaSign = 1.0;
             if (isEyeInWater == 1) {
@@ -108,12 +109,25 @@ void main() {
                 cosThetaSign = -1.0;
             }
             vec3 refViewDir = normalize(-viewDir - gData.geomNormal * 0.01 * pow(1.0 - abs(dot(viewDir, gData.geomNormal)), 128.0));
-            vec3 refractDir = refract(refViewDir, microNormal, rior);
-            float refractFixWeight = pow4(smoothstep(-0.5, 0.5, dot(refractDir, gData.geomNormal))) - inWaterDisable;
-            refractDir = mix(refractDir, refract(refViewDir, gData.geomNormal, rior), saturate(refractFixWeight));
+            vec3 refractDir;
+
+            if (isEyeInWater == 1 || !isWater) {
+                refractDir = refract(refViewDir, microNormal, rior);
+            } else {
+                #ifdef SETTING_WATER_REFRACT_APPROX
+                refractDir = refract(refViewDir, (gData.geomNormal - gData.normal), rior);
+                #else
+                refractDir = refract(refViewDir, microNormal, rior);
+                float refractFixWeight = pow4(smoothstep(-0.5, 0.5, dot(refractDir, gData.geomNormal)));
+                refractDir = mix(refractDir, refract(refViewDir, gData.geomNormal, rior), refractFixWeight);
+                #endif
+            }
+            refractDir = normalize(refractDir);
 
             vec3 reflectDir = reflect(refViewDir, microNormal);
-            reflectDir = mix(reflectDir, reflect(refViewDir, gData.geomNormal), pow2(linearStep(0.5, -0.3, dot(reflectDir, gData.geomNormal))));
+            if (isWater) {
+                reflectDir = mix(reflectDir, reflect(refViewDir, gData.geomNormal), pow2(linearStep(0.5, -0.3, dot(reflectDir, gData.geomNormal))));
+            }
             reflectDir = normalize(reflectDir);
 
             const float SQRT_2 = 1.41421356237;

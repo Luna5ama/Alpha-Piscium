@@ -1256,6 +1256,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Water"
                 }
+                empty()
+                toggle("SETTING_WATER_REFRACT_APPROX", true) {
+                    lang {
+                        name = "Water Refraction Approximation"
+                    }
+                }
+                empty()
                 toggle("SETTING_WATER_CAUSTICS", false) {
                     lang {
                         name = "Water Caustics"
