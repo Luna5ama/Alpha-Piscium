@@ -38,12 +38,10 @@ const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
 layout(rgba32ui) uniform restrict uimage2D uimg_epipolarData;
 
 vec2 _processShadowSampleUV(vec2 sampleShadowUV, ivec2 randCoord) {
-    float rv = rand_stbnVec1(randCoord, 0);
-    vec2 dir = rand_stbnUnitVec211(randCoord, 0);
+    float rv = rand_stbnVec1(randCoord, frameCounter);
+    vec2 dir = rand_stbnUnitVec211(randCoord, frameCounter);
     float sqrtJitterR = sqrt(rv);
-    //    const int SOFTNESS = SETTING_LIGHT_SHAFT_SOFTNESS;
-    const int SOFTNESS = 7;
-    float r = ldexp(sqrtJitterR, -12 + SOFTNESS);
+    float r = ldexp(sqrtJitterR, -12 + SETTING_LIGHT_SHAFT_SOFTNESS);
     vec2 result = sampleShadowUV;
     result += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
     result = rtwsm_warpTexCoord(usam_rtwsm_imap, result);
@@ -56,12 +54,12 @@ shared float shared_sliceShadowSamples[SHADOW_SAMPLE_COUNT];
 
 
 void loadSharedShadowSample(uint index) {
-    float fi = float(index);
-    float t = saturate(pow2(fi / float(SHADOW_SAMPLE_COUNT - 1)));
+    ivec2 randCoord = ivec2(gl_WorkGroupID.x, index);
+    float fi = float(index) + rand_stbnVec1(randCoord, frameCounter) - 0.5;
+    float t = saturate(pow2(saturate(fi / float(SHADOW_SAMPLE_COUNT - 1))));
 
     vec4 endPoints = shared_sliceShadowScreenStartEnd;
-    vec2 sampleShadowUV = mix(endPoints.xy, endPoints.zw, saturate(t));
-    ivec2 randCoord = ivec2(gl_WorkGroupID.x, index);
+    vec2 sampleShadowUV = mix(endPoints.xy, endPoints.zw, t);
     sampleShadowUV.xy = _processShadowSampleUV(sampleShadowUV.xy, randCoord);
 
     float shadowSampleDepth = texture(shadowtex1, sampleShadowUV).r;
@@ -110,24 +108,26 @@ void screenViewRaymarch_init(vec2 screenPos) {
 }
 
 float compT(vec3 startLength, vec3 shadowPos) {
-    return distance(shadowPos.xy, startLength.xy) / startLength.z;
+    return sqrt(distance(shadowPos.xy, startLength.xy) / startLength.z);
 }
 
 float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitter) {
     vec3 startLength = shared_sliceShadowScreenStartLength;
-    float startT = sqrt(compT(startLength, startShadowPos));
-    float endT = sqrt(compT(startLength, endShadowPos));
-    float shadowSum = 0.0;
+    float startT = compT(startLength, startShadowPos);
+    float endT = compT(startLength, endShadowPos);
+    endShadowPos = startShadowPos + (endShadowPos - startShadowPos) / max(endT, 1.0);
+    endT = saturate(endT);
     const uint SHADOW_STEPS = 128u;
     vec2 startTAndDepth = vec2(startT, startShadowPos.z);
     vec2 stepT = vec2(endT - startT, endShadowPos.z - startShadowPos.z) / float(SHADOW_STEPS);
+    float shadowSum = 0.0;
     for (uint i = 0u; i < SHADOW_STEPS; ++i) {
         float fi = float(i) + jitter;
-        vec2 sampleTAndDepth = startTAndDepth + fi * stepT;
+        vec2 sampleTAndDepth = saturate(startTAndDepth + fi * stepT);
         float indexF = sampleTAndDepth.x * float(SHADOW_SAMPLE_COUNT - 1);
         uint index = uint(indexF);
-        float shadowTerm = float(shared_sliceShadowSamples[index] > saturate(sampleTAndDepth.y));
-        shadowSum += saturate(shadowTerm + float(sampleTAndDepth.x > 1.0));
+        float shadowTerm = float(shared_sliceShadowSamples[index] > sampleTAndDepth.y);
+        shadowSum += shadowTerm;
     }
     return shadowSum / float(SHADOW_STEPS);
 }
@@ -278,7 +278,7 @@ void main() {
             vec2 texelPos = screenPos * uval_mainImageSize;
             texelPos = clamp(texelPos, vec2(0.5), vec2(uval_mainImageSize - 0.5));
             ivec2 texelPosI = ivec2(texelPos);
-            float noiseV = rand_stbnVec1(texelPosI, frameCounter);
+            float noiseV = rand_stbnVec1(ivec2(gl_GlobalInvocationID.x, sliceSampleIndex), frameCounter);
 
             ivec2 readScreenTexelPos = texelPosI;
             readScreenTexelPos.y += int(uval_mainImageSizeIY);

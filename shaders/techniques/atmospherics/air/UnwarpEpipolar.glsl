@@ -93,14 +93,14 @@ out ScatteringResult result
     // Now find two closest epipolar slices, from which we will interpolate
     // First, find index of the slice which precedes our slice
     // Note that 0 <= fEpipolarSlice <= 1, and both 0 and 1 refer to the first slice
-    float fPrecedingSliceInd = min(floor(fEpipolarSlice * SETTING_EPIPOLAR_SLICES), SETTING_EPIPOLAR_SLICES - 1);
+    float fPrecedingSliceInd = floor(fEpipolarSlice * SETTING_EPIPOLAR_SLICES);
 
     // Compute EXACT texture coordinates of preceding and succeeding slices and their weights
     // Note that slice 0 is stored in the first texel which has exact texture coordinate 0.5/SETTING_EPIPOLAR_SLICES
     // (search for "fEpipolarSlice = saturate(f2UV.x - 0.5f / (float)SETTING_EPIPOLAR_SLICES)"):
     float fSrcSliceTexelX[2];
     fSrcSliceTexelX[0] = fPrecedingSliceInd + 0.5;
-    fSrcSliceTexelX[1] = mod(fSrcSliceTexelX[0] + 1.0, float(SETTING_EPIPOLAR_SLICES));
+    fSrcSliceTexelX[1] = mod(fPrecedingSliceInd + 1.5, float(SETTING_EPIPOLAR_SLICES));
 
     // Compute slice weights
     float fSliceWeights[2];
@@ -174,10 +174,6 @@ out ScatteringResult result
         sampleTexelPos2.y = min(sampleTexelPos2.y, SETTING_SLICE_SAMPLES - 1);
         sampleTexelPos2.y += int(TEXEL_Y_OFFSET);
 
-        vec2 viewZGatherUV = epipolarDataTexelF + vec2(0.5, 0.5); // 0.5 to get correct gather location
-//        viewZGatherUV = clamp(viewZGatherUV, vec2(0.5), LAYER_SIZE - vec2(0.5));
-        viewZGatherUV.y += float(TEXEL_Y_OFFSET);
-        viewZGatherUV /= EPIPOLAR_DATA_TEX_SIZE;
         uint viewZData1 = texelFetch(usam_epipolarData, sampleTexelPos1, 0).a;
         uint viewZData2 = texelFetch(usam_epipolarData, sampleTexelPos2, 0).a;
         uvec2 viewZData = uvec2(viewZData1, viewZData2);
