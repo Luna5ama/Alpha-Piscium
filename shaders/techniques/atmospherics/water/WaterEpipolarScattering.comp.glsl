@@ -112,6 +112,7 @@ float compT(vec3 startLength, vec3 shadowPos) {
 }
 
 float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitter) {
+    return 1.0;
     vec3 startLength = shared_sliceShadowScreenStartLength;
     float startT = compT(startLength, startShadowPos);
     float endT = compT(startLength, endShadowPos);
@@ -236,7 +237,7 @@ ScatteringResult raymarchScreenViewWater(ivec2 texelPos, float startZ, float end
 
     vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
     vec3 startViewPos = coords_toViewCoord(screenPos, startZ, global_camProjInverse);
-    vec3 endViewPos = coords_toViewCoord(screenPos, max(endZ, -max(shadowDistance, far)), global_camProjInverse);
+    vec3 endViewPos = coords_toViewCoord(screenPos, max(endZ, -4096.0), global_camProjInverse);
 
     ivec2 texePos2x2 = texelPos >> 1;
     float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, texePos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);

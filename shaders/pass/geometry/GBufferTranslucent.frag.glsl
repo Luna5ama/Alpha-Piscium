@@ -29,15 +29,10 @@ in vec3 frag_offsetToCenter;
 vec3 viewPos = vec3(0.0);
 float fuckO = 0.0;
 
-#ifdef GBUFFER_PASS_DH
-/* RENDERTARGETS:5 */
-layout(location = 0) out vec4 rt_translucentColor;
-#else
 /* RENDERTARGETS:8,9,11 */
 layout(location = 0) out uvec4 rt_gbufferData1;
 layout(location = 1) out uvec4 rt_gbufferData2;
 layout(location = 2) out vec4 rt_translucentColor;
-#endif
 
 vec4 processAlbedo() {
     vec4 albedo = frag_colorMul;
@@ -56,10 +51,17 @@ vec4 processAlbedo() {
 }
 
 GBufferData processOutput() {
+    #ifdef GBUFFER_PASS_DH
+    vec3 geomViewNormal = uval_upDirView;
+    vec3 geomViewTangent = coords_dir_worldToView(vec3(0.0, 0.0, 1.0));
+    vec3 geomViewBitangent = coords_dir_worldToView(vec3(1.0, 0.0, 0.0));
+    float bitangentSignF = 1.0;
+    #else
     float bitangentSignF = frag_viewTangent.w < 0.0 ? -1.0 : 1.0;
     vec3 geomViewNormal = normalize(frag_viewNormal);
     vec3 geomViewTangent = normalize(frag_viewTangent.xyz);
     vec3 geomViewBitangent = normalize(cross(geomViewNormal, geomViewTangent) * bitangentSignF);
+    #endif
 
     GBufferData gData = gbufferData_init();
     gData.geomNormal = geomViewNormal;
@@ -70,10 +72,10 @@ GBufferData processOutput() {
 
     #ifdef DISTANT_HORIZONS
     #ifndef GBUFFER_PASS_DH
-    float edgeFactor = linearStep(min(far * 0.75, far - 24.0), far, length(frag_viewCoord));
-    if (noiseIGN < edgeFactor) {
-        discard;
-    }
+    float edgeFactor = linearStep(min(far * 0.75, far - 24.0), far, length(viewPos));
+//    if (noiseIGN < edgeFactor) {
+//        discard;
+//    }
     #endif
     #endif
 
@@ -118,7 +120,6 @@ GBufferData processOutput() {
         float maxLen = inversesqrt(dot(maxVec, maxVec));
         vec2 avgNoise = subgroupAdd(vec2(noiseIGN, 1.0));
         bool detail = maxLen * 0.2 > (avgNoise.x / avgNoise.y);
-        weightHeightMul *= saturate(maxLen * 2.0);
 
         #ifdef SETTING_WATER_PARALLEX
         if (detail) {

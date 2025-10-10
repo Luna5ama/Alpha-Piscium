@@ -194,22 +194,9 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         float viewZ = -65536.0;
 
-        #ifdef DISTANT_HORIZONS
-        viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-        vec4 translucentColor = imageLoad(uimg_translucentColor, texelPos);
-        if (translucentColor.a <= 0.00001) {
-            float dhDepth = texelFetch(dhDepthTex0, texelPos, 0).r;
-            float dhViewZ = -coords_linearizeDepth(dhDepth, dhNearPlane, dhFarPlane);
-            if (dhViewZ > viewZ) {
-                translucentColor = texelFetch(usam_temp5, texelPos);
-                imageStore(uimg_translucentColor, texelPos, translucentColor);
-            }
-        }
-        #else
         if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
             viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         }
-        #endif
 
         if (viewZ != -65536.0) {
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);

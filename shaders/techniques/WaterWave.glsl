@@ -57,14 +57,17 @@ float waveHeight(vec3 wavePos, bool base, bool detail) {
 
     waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord + waveTime * -0.025);
 
-    float amp = 0.2;
+    float amp = 0.4;
     float wave = 0.0;
 
     if (base) {
+        #ifdef DISTANT_HORIZONS
+        wave += amp * sampleNoise((waveTexCoord + curl + waveTime * 0.31) * vec2(0.1, 0.06)) * 2.0;
+        #endif
         wave += amp * sampleNoise((waveTexCoord + curl + waveTime * 0.29) * vec2(0.5, 0.8));
     }
 
-    amp *= 0.51;
+    amp *= 0.25;
     waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord * 2.23);
     curl = MAT2_GOLDEN_ANGLE * (curl * 1.85);
     {

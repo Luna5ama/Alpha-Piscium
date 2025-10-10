@@ -1,6 +1,8 @@
 #include "/util/Math.glsl"
 
+#ifndef GBUFFER_PASS_DH
 in vec2 mc_Entity;
+#endif
 in vec4 at_tangent;
 in vec4 at_midBlock;
 
@@ -15,11 +17,8 @@ out uint frag_midBlock;
 out vec3 frag_offsetToCenter;
 
 void main() {
-    vec4 clipPos = ftransform();
-    vec4 viewPos = gbufferProjectionInverse * clipPos;
-    viewPos /= viewPos.w;
-    frag_viewZ = viewPos.z;
-    gl_Position = global_taaJitterMat * clipPos;
+    gl_Position = global_taaJitterMat * ftransform();
+    frag_viewZ = -gl_Position.w;
 
     frag_viewNormal = gl_NormalMatrix * normalize(gl_Normal.xyz);
     frag_viewTangent.xyz = gl_NormalMatrix * normalize(at_tangent.xyz);
@@ -32,7 +31,14 @@ void main() {
     frag_colorMul = vec4(1.0);
     #endif
 
+    #ifdef GBUFFER_PASS_DH
+    frag_materialID = 65533u;
+    if (dhMaterialId == DH_BLOCK_WATER) {
+        frag_materialID = 3u;
+    }
+    #else
     frag_materialID = uint(int(mc_Entity.x)) & 0xFFFFu;
+    #endif
 
     vec3 offsetToCenter = at_midBlock.xyz / 64.0;
     frag_midBlock = packUnorm4x8(vec4(saturate(abs(offsetToCenter) / 2.0), at_midBlock.w / 15.0));

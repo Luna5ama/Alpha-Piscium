@@ -12,7 +12,7 @@ layout(rg32f) uniform writeonly image2D uimg_csrg32f;
 
 shared vec4 shared_dilateData[16];
 
-const float EPS = 0.0001;
+const float EPS = 0.2;
 
 // layer 1: air behind translucent
 // inscattering: 3x16f
@@ -38,8 +38,8 @@ void main() {
             nearWaterOg = 0.0;
         }
 
-        float farTranslucent = farTranslucentOg < farWaterOg - EPS  ? farTranslucentOg : 0.0f;
-        float farWater = farWaterOg < nearWaterOg - EPS ? farWaterOg : 0.0f;
+        float farTranslucent = abs(farTranslucentOg - farWaterOg) > EPS * abs(min(farTranslucentOg, farWaterOg)) ? farTranslucentOg : 0.0f;
+        float farWater = abs(farWaterOg - nearWaterOg) > EPS * abs(min(nearWaterOg, farWaterOg)) ? farWaterOg : 0.0f;
 
         layer1.y = solid;
         layer1.x = min(farWater, farTranslucent);
