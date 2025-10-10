@@ -66,8 +66,8 @@ void main() {
     if (envProbe_update(sliceTexelPos, sliceID, outputData)) {
         EnvProbeData prevDataDecoded = envProbe_decode(prevData);
         if (envProbe_hasData(prevDataDecoded)) {
-            outputData.radiance = mix(outputData.radiance, prevDataDecoded.radiance, 0.8);
-            outputData.normal = normalize(mix(outputData.normal, prevDataDecoded.normal, 0.8));
+            outputData.radiance = mix(outputData.radiance, prevDataDecoded.radiance, 0.8 * global_historyResetFactor);
+            outputData.normal = normalize(mix(outputData.normal, prevDataDecoded.normal, 0.8 * global_historyResetFactor));
         }
         imageStore(uimg_envProbe, outputPos, envProbe_encode(outputData));
     } else {
