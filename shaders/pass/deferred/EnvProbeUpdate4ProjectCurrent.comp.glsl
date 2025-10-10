@@ -6,7 +6,7 @@ const ivec3 workGroups = ivec3(512, 2, 3);
 
 layout(rgba32ui) uniform restrict uimage2D uimg_envProbe;
 
-bool envProbe_update(ivec2 sliceTexelPos, ivec2 sliceID, out EnvProbeData outputData) {
+bool envProbe_update(ivec2 sliceTexelPos, ivec2 sliceID, inout EnvProbeData outputData) {
     vec3 pixelWorldDir = vec3(0.0);
     vec2 sliceUV = coords_texelToUV(sliceTexelPos, ENV_PROBE_RCP);
     coords_cubeMapBackward(pixelWorldDir, sliceUV, vec2(sliceID));
@@ -61,16 +61,19 @@ void main() {
     envProbe_initData(outputData);
     ivec2 prevTexelPos = outputPos;
     prevTexelPos.x += ENV_PROBE_SIZEI.x * 2;
-    uvec4 prevData = imageLoad(uimg_envProbe, prevTexelPos);
+    EnvProbeData prevData = envProbe_decode(imageLoad(uimg_envProbe, prevTexelPos));
 
     if (envProbe_update(sliceTexelPos, sliceID, outputData)) {
-        EnvProbeData prevDataDecoded = envProbe_decode(prevData);
-        if (envProbe_hasData(prevDataDecoded)) {
-            outputData.radiance = mix(outputData.radiance, prevDataDecoded.radiance, 0.8 * global_historyResetFactor);
-            outputData.normal = normalize(mix(outputData.normal, prevDataDecoded.normal, 0.8 * global_historyResetFactor));
+        if (envProbe_hasData(prevData)) {
+            outputData.radiance = mix(outputData.radiance, prevData.radiance, 0.8 * global_historyResetFactor);
+            outputData.normal = normalize(mix(outputData.normal, prevData.normal, 0.8 * global_historyResetFactor));
         }
         imageStore(uimg_envProbe, outputPos, envProbe_encode(outputData));
     } else {
-        imageStore(uimg_envProbe, outputPos, prevData);
+        if (global_historyResetFactor > 0.1) {
+            outputData = prevData;
+            outputData.radiance *= global_historyResetFactor;
+        }
+        imageStore(uimg_envProbe, outputPos, envProbe_encode(outputData));
     }
 }

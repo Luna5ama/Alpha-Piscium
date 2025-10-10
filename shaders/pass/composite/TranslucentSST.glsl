@@ -166,7 +166,7 @@ void main() {
 
             SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.05);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
-            reflectDirWorld = rand_sampleInCone(reflectDirWorld, 0.002, noiseV);
+            reflectDirWorld = rand_sampleInCone(reflectDirWorld, 0.005, noiseV);
             vec2 envSliceUV = vec2(-1.0);
             vec2 envSliceID = vec2(-1.0);
             coords_cubeMapForward(reflectDirWorld, envSliceUV, envSliceID);
