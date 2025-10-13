@@ -112,7 +112,6 @@ float compT(vec3 startLength, vec3 shadowPos) {
 }
 
 float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitter) {
-    return 1.0;
     vec3 startLength = shared_sliceShadowScreenStartLength;
     float startT = compT(startLength, startShadowPos);
     float endT = compT(startLength, endShadowPos);
