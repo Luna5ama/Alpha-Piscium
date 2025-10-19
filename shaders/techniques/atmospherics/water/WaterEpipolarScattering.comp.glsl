@@ -178,12 +178,12 @@ ScatteringResult raymarchWaterVolume(
     float rcpShadowY = rcp(uval_shadowLightDirWorld.y);
     float startWorldHeight = rayStart.y + cameraPosition.y;
     float endWorldHeight = rayEnd.y + cameraPosition.y;
-//    if (startLightRayLength == -1.0) {
+    if (startLightRayLength == -1.0) {
         startLightRayLength = max(63.0 - startWorldHeight, 0.0) * rcpShadowY;
-//    }
-//    if (endLightRayLength == -1.0) {
+    }
+    if (endLightRayLength == -1.0) {
         endLightRayLength = max(63.0 - endWorldHeight, 0.0) * rcpShadowY;
-//    }
+    }
 
     vec3 rayDiff = rayEnd - rayStart;
     float totalRayLength = length(rayDiff);

@@ -5,6 +5,7 @@ vec3 volumetrics_intergrateScatteringLerpLightOpticalDepth(vec3 sctCoeff, vec3 e
     vec3 v = exp(-extCoeff * lightRayLen1) - exp(-extCoeff * (lightRayLen2 + segmentLen));
     vec3 numer = sctCoeff * segmentLen * v;
     vec3 denom = extCoeff * (lightRayLen2 - lightRayLen1 + segmentLen);
+    if (any(equal(denom, vec3(0.0)))) return vec3(0.0);
     return numer / denom;
 }
 
