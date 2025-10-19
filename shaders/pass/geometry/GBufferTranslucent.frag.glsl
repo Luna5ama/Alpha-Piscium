@@ -128,8 +128,8 @@ GBufferData processOutput() {
 
             vec3 rayDir = scenePos / abs(scenePos.y);
             rayDir.xz *= WAVE_POS_BASE * PARALLEX_STRENGTH;
-            const float WAVE_Y_OFFSET = 0.1;
-            const float MAX_WAVE_HEIGHT = 0.55;
+            const float WAVE_Y_OFFSET = -0.05;
+            const float MAX_WAVE_HEIGHT = 0.6;
             float rayStepLength = MAX_WAVE_HEIGHT / float(MAX_STEPS);
 
             for (uint i = 0u; i < MAX_STEPS; i++) {
@@ -138,7 +138,7 @@ GBufferData processOutput() {
 
                 vec3 samplePos = waveWorldPos + sampleDelta;
                 samplePos.y = waveWorldPos.y;
-                float sampleHeight = waveHeight(samplePos, false, detail);
+                float sampleHeight = waveHeight(samplePos, false);
 
                 float currHeight = WAVE_Y_OFFSET + sampleDelta.y;
                 if (currHeight < sampleHeight) {
@@ -150,16 +150,16 @@ GBufferData processOutput() {
         }
         #endif
 
-        const float NORMAL_EPS = 0.05;
+        const float NORMAL_EPS = 0.5;
         const float NORMAL_WEIGHT = SETTING_WATER_NORMAL_SCALE;
-        float waveHeightC = waveHeight(waveWorldPos, true, detail);
+        float waveHeightC = waveHeight(waveWorldPos, true);
 
 
         float waveOffset  = NORMAL_EPS * WAVE_POS_BASE;
         vec3 offsetTangentX = coords_dir_viewToWorld(geomViewTangent) * waveOffset;
-        float waveHeightX = waveHeight(waveWorldPos + offsetTangentX, true, detail);
+        float waveHeightX = waveHeight(waveWorldPos + offsetTangentX, true);
         vec3 offsetTangentY = coords_dir_viewToWorld(geomViewBitangent) * waveOffset;
-        float waveHeightZ = waveHeight(waveWorldPos + offsetTangentY, true, detail);
+        float waveHeightZ = waveHeight(waveWorldPos + offsetTangentY, true);
         vec3 waveNormal = vec3(
             waveHeightX,
             waveHeightZ,
