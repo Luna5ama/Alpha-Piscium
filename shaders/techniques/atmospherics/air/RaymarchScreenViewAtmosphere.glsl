@@ -49,11 +49,11 @@ void loadSharedShadowSample(uint index) {
 }
 
 void screenViewRaymarch_init(vec2 screenPos) {
-    if (gl_LocalInvocationIndex == (WORK_GROUP_SIZE - 1)) {
+    if (gl_LocalInvocationIndex == 0) {
         vec3 viewDir = normalize(coords_toViewCoord(screenPos, -1.0, global_camProjInverse));
         vec3 sliceNormal = normalize(cross(uval_shadowLightDirView, viewDir));
         vec3 perpViewDir = normalize(cross(uval_shadowLightDirView, sliceNormal));
-        perpViewDir = viewDir;
+        perpViewDir = faceforward(-perpViewDir, viewDir, perpViewDir);
 
         vec3 sliceShadowStartView = perpViewDir * near;
         vec3 sliceShadowEndView = perpViewDir * shadowDistance;
