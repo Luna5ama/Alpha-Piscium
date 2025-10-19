@@ -108,25 +108,28 @@ void main() {
                 rior = rcp(rior);
                 cosThetaSign = -1.0;
             }
-            vec3 refViewDir = normalize(-viewDir - gData.geomNormal * 0.01 * pow(1.0 - abs(dot(viewDir, gData.geomNormal)), 128.0));
+            vec3 refIncidentDir = -viewDir;
             vec3 refractDir;
 
             if (isEyeInWater == 1 || !isWater) {
-                refractDir = refract(refViewDir, microNormal, rior);
+                refractDir = refract(refIncidentDir, microNormal, rior);
             } else {
                 #ifdef SETTING_WATER_REFRACT_APPROX
-                refractDir = refract(refViewDir, (gData.geomNormal - gData.normal), rior);
+                refractDir = refract(refIncidentDir, (gData.geomNormal - gData.normal), rior);
                 #else
-                refractDir = refract(refViewDir, microNormal, rior);
+                refractDir = refract(refIncidentDir, microNormal, rior);
                 float refractFixWeight = pow4(smoothstep(-0.5, 0.5, dot(refractDir, gData.geomNormal)));
-                refractDir = mix(refractDir, refract(refViewDir, gData.geomNormal, rior), refractFixWeight);
+                refractDir = mix(refractDir, refract(refIncidentDir, gData.geomNormal, rior), refractFixWeight);
                 #endif
             }
             refractDir = normalize(refractDir);
 
-            vec3 reflectDir = reflect(refViewDir, microNormal);
+            vec3 reflectDir = reflect(refIncidentDir, microNormal);
+            if (dot(reflectDir, gData.geomNormal) < 0.0) {
+                reflectDir = reflect(reflectDir, gData.geomNormal);
+            }
             if (isWater) {
-                reflectDir = mix(reflectDir, reflect(refViewDir, gData.geomNormal), pow2(linearStep(0.5, -0.3, dot(reflectDir, gData.geomNormal))));
+                reflectDir = mix(reflectDir, reflect(refIncidentDir, gData.geomNormal), pow2(linearStep(0.5, -0.3, dot(reflectDir, gData.geomNormal))));
             }
             reflectDir = normalize(reflectDir);
 
