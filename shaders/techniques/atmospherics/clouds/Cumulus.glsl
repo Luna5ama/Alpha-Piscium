@@ -72,9 +72,9 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
     densityOut = saturate(densityOut + heightCurve - 1.0);
 
     if (densityOut > _CU_DENSITY_EPSILON) {
-        #if !defined(SETTING_SCREENSHOT_MODE) && defined(SETTING_CLOUDS_CU_WIND)
+//        #if !defined(SETTING_SCREENSHOT_MODE) && defined(SETTING_CLOUDS_CU_WIND)
         rayPos += uval_cuDetailWind;
-        #endif
+//        #endif
 
         FBMParameters curlParams;
         curlParams.frequency = 0.2;

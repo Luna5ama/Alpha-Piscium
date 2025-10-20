@@ -19,11 +19,11 @@ float waveHeight(vec3 wavePos, bool base) {
     const vec2 WAVE_DIR = vec2(0.777, -0.555);
     const vec2 CURL_DIR = vec2(-0.21, 0.15);
 
-    #ifndef SETTING_SCREENSHOT_MODE
+//    #ifndef SETTING_SCREENSHOT_MODE
     float timeV = frameTimeCounter;
-    #else
-    float timeV = 13.37;
-    #endif
+//    #else
+//    float timeV = 13.37;
+//    #endif
 
     vec2 waveTime = vec2(0.0);
     waveTime += timeV * WAVE_DIR * 0.1;

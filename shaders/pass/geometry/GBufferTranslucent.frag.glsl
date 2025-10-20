@@ -122,7 +122,7 @@ GBufferData processOutput() {
         bool detail = maxLen * 0.2 > (avgNoise.x / avgNoise.y);
 
         #ifdef SETTING_WATER_PARALLEX
-        if (detail) {
+//        if (detail) {
             const uint MAX_STEPS = uint(SETTING_WATER_PARALLEX_STEPS);
             const float PARALLEX_STRENGTH = float(SETTING_WATER_PARALLEX_STRENGTH);
 
@@ -147,7 +147,7 @@ GBufferData processOutput() {
                     break;
                 }
             }
-        }
+//        }
         #endif
 
         const float NORMAL_EPS = 0.5;

@@ -10,16 +10,16 @@
 #define ATROUS_THREAD_SIZE 128
 
 #if ATROUS_PASS == 1
-#define ATROUS_TAP_COUNT 2
+#define ATROUS_TAP_COUNT 4
 #define ATROUS_AXIS_X a
-#define ATROUS_RADIUS 2
+#define ATROUS_RADIUS 1
 #define ATROUS_INPUT csrgba16f_temp1_texelToTexel
 #define ATROUS_OUTPUT csrgba16f_temp2_texelToTexel
 
 #elif ATROUS_PASS == 2
-#define ATROUS_TAP_COUNT 2
+#define ATROUS_TAP_COUNT 4
 #define ATROUS_AXIS_Y a
-#define ATROUS_RADIUS 2
+#define ATROUS_RADIUS 1
 #define ATROUS_INPUT csrgba16f_temp2_texelToTexel
 #define ATROUS_OUTPUT csrgba16f_temp1_texelToTexel
 
@@ -27,14 +27,14 @@
 #elif ATROUS_PASS == 3
 #define ATROUS_TAP_COUNT 4
 #define ATROUS_AXIS_X a
-#define ATROUS_RADIUS 8
+#define ATROUS_RADIUS 2
 #define ATROUS_INPUT csrgba16f_temp1_texelToTexel
 #define ATROUS_OUTPUT csrgba16f_temp2_texelToTexel
 
 #elif ATROUS_PASS == 4
 #define ATROUS_TAP_COUNT 4
 #define ATROUS_AXIS_Y a
-#define ATROUS_RADIUS 8
+#define ATROUS_RADIUS 2
 #define ATROUS_INPUT csrgba16f_temp2_texelToTexel
 #define ATROUS_OUTPUT csrgba16f_temp1_texelToTexel
 #endif
