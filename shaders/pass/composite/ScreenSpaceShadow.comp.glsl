@@ -49,7 +49,7 @@ float sss() {
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec3 rayDir = sampleInCone(uval_shadowLightDirView, SUN_ANGULAR_RADIUS, rand_stbnVec2(texelPos, frameCounter));
-    SSTResult result = sst_trace(viewPos, rayDir, 0.05);
+    SSTResult result = sst_trace(viewPos, rayDir, 0.02);
 
     vec2 diff = (vec2(texelPos) + 0.5) - result.hitScreenPos.xy * uval_mainImageSize;
     return float(!result.hit || result.hitScreenPos.z < 1e-6 || saturate(result.hitScreenPos.xy) != result.hitScreenPos.xy || dot(diff, diff) <= 1.5);
