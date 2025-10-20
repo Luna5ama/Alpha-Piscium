@@ -20,7 +20,7 @@ float waveHeight(vec3 wavePos, bool base) {
     const vec2 CURL_DIR = vec2(-0.21, 0.15);
 
 //    #ifndef SETTING_SCREENSHOT_MODE
-    float timeV = frameTimeCounter;
+    float timeV = frameTimeCounter * exp2(SETTING_CLOUDS_CU_WIND_SPEED);
 //    #else
 //    float timeV = 13.37;
 //    #endif
@@ -37,8 +37,8 @@ float waveHeight(vec3 wavePos, bool base) {
         vec2 curlCoord = waveTexCoordOgCurl * 0.11;
         float ff = fuck(timeV * 4.5 + 6.9);
         curlCoord += ff * CURL_DIR * 0.0018;
-        curlCoord += waveTime * 0.21;
-        curl = textureLod(usam_waveHFCurl, curlCoord, 0.0).rg * 0.072;
+        curlCoord += waveTime * 0.11;
+        curl = textureLod(usam_waveHFCurl, curlCoord, 0.0).rg * 0.061;
     }
 
     waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord + waveTime * -0.025);
