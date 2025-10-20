@@ -15,7 +15,7 @@
 
 float time_interpolate(float currTime, float startTime, float midTime, float endTime) {
     vec4 timePoints = vec4(currTime, startTime, midTime, endTime);
-    float offset = 0.0;
+    float offset = startTime > endTime ? TIME_DAY_TOTAL / 2.0 : 0.0;
     vec4 offsetTime = timePoints + offset;
     vec4 normalizedTime = fract(offsetTime / TIME_DAY_TOTAL);
     return linearStep(normalizedTime.y, normalizedTime.z, normalizedTime.x) *

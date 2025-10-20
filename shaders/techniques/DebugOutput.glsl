@@ -469,7 +469,10 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     outputColor = expGamma(texelFetch(usam_debug, ivec2((vec2(texelPos) + 0.5) / SETTING_DEBUG_SCALE), 0));
     #endif
 
-//    beginText(texelPos >> ivec2(2), ivec2(0, uval_mainImageSizeI.y >> 2));
-//    printFloat(global_turbidity);
+    #ifdef SETTING_DEBUG_ATMOSPHERE
+    beginText(texelPos >> ivec2(2), ivec2(0, (uval_mainImageSizeI.y >> 2) - 8));
+    printFloat(global_turbidity);
+    #endif
+
     endText(outputColor.rgb);
 }
