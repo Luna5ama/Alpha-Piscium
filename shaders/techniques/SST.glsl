@@ -105,7 +105,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
     float currT = 0.0;
 //    const uvec2 DEBUG_COORD = uvec2(960, 300);
 //    const uvec2 DEBUG_COORD = uvec2(487, 250);
-    const uint HI_Z_STEPS = 128;
+    const uint HI_Z_STEPS = 256;
 
     vec4 mainImageSizeParams = vec4(uval_mainImageSize, uval_mainImageSizeRcp);
     vec3 invD = rcp(pRayVector);
@@ -189,48 +189,48 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         }
     }
 
-    if (!result.hit && currT > 0.01) {
-        level = 0;
-        ivec2 mipTile = shared_mipmapTiles[level].zw - 1;
-
-        #define FIX_STEPS 4
-
-        float stepRcp = rcp(float(FIX_STEPS));
-
-        float minT = currT - 0.01;
-        float maxT = 1.0;
-        float deltaT = maxT - minT;
-
-        for (uint i = 0; i < FIX_STEPS; i++) {
-            float t = minT + ((float(i) + 1.0) * stepRcp * deltaT);
-            vec3 screenPos = pRayStart + pRayVector * t;
-            vec2 texelPos = saturate(screenPos.xy) * mainImageSizeParams.xy;
-            vec2 cellIdx = texelPos;
-            ivec2 readPos = ivec2(cellIdx);
-            readPos = min(readPos, mipTile);
-            float cellMinZ = texelFetch(usam_hiz, readPos, 0).r;
-
-            if (cellMinZ > screenPos.z) {
-                float linearCurr = coords_reversedZToViewZ(screenPos.z, near);
-                float linearDepth = coords_reversedZToViewZ(cellMinZ, near);
-                float diff = linearDepth - linearCurr;
-                float thickness = maxThickness * abs(linearCurr) * 0.01;
-                uint cond = uint(diff < thickness) | uint(linearDepth < -65000.0);
-                if (bool(cond)) {
-                    result.hitScreenPos = screenPos;
-                    result.hit = true;
-                    return result;
-                } else {
-                    return result;
-                }
-            }
-
-//            if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
-//                testBuffer[i + HI_Z_STEPS] = vec4(screenPos.xy, floor(cellIdx));
-//                testBuffer[i + 2048 + HI_Z_STEPS] = vec4(float(level), 0.0, 0.0, 0.0);
+//    if (!result.hit && currT > 0.01) {
+//        level = 0;
+//        ivec2 mipTile = shared_mipmapTiles[level].zw - 1;
+//
+//        #define FIX_STEPS 4
+//
+//        float stepRcp = rcp(float(FIX_STEPS));
+//
+//        float minT = currT - 0.01;
+//        float maxT = 1.0;
+//        float deltaT = maxT - minT;
+//
+//        for (uint i = 0; i < FIX_STEPS; i++) {
+//            float t = minT + ((float(i) + 1.0) * stepRcp * deltaT);
+//            vec3 screenPos = pRayStart + pRayVector * t;
+//            vec2 texelPos = saturate(screenPos.xy) * mainImageSizeParams.xy;
+//            vec2 cellIdx = texelPos;
+//            ivec2 readPos = ivec2(cellIdx);
+//            readPos = min(readPos, mipTile);
+//            float cellMinZ = texelFetch(usam_hiz, readPos, 0).r;
+//
+//            if (cellMinZ > screenPos.z) {
+//                float linearCurr = coords_reversedZToViewZ(screenPos.z, near);
+//                float linearDepth = coords_reversedZToViewZ(cellMinZ, near);
+//                float diff = linearDepth - linearCurr;
+//                float thickness = maxThickness * abs(linearCurr) * 0.01;
+//                uint cond = uint(diff < thickness) | uint(linearDepth < -65000.0);
+//                if (bool(cond)) {
+//                    result.hitScreenPos = screenPos;
+//                    result.hit = true;
+//                    return result;
+//                } else {
+//                    return result;
+//                }
 //            }
-        }
-    }
+//
+////            if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
+////                testBuffer[i + HI_Z_STEPS] = vec4(screenPos.xy, floor(cellIdx));
+////                testBuffer[i + 2048 + HI_Z_STEPS] = vec4(float(level), 0.0, 0.0, 0.0);
+////            }
+//        }
+//    }
 
     return result;
 }

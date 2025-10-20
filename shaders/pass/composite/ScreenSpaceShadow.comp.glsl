@@ -14,7 +14,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba8) uniform restrict image2D uimg_temp5;
+layout(rgba16f) uniform restrict image2D uimg_temp3;
 
 ivec2 texelPos = ivec2(0);
 
@@ -46,10 +46,10 @@ float sss() {
     }
 
     float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-    vec2 screenPos = coords_texelToUV(texelPos, global_mainImageSizeRcp);
+    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec3 rayDir = sampleInCone(uval_shadowLightDirView, SUN_ANGULAR_RADIUS, rand_stbnVec2(texelPos, frameCounter));
-    SSTResult result = sst_trace(viewPos, rayDir, 128u);
+    SSTResult result = sst_trace(viewPos, rayDir, 0.01);
 
     return float(!result.hit || result.hitScreenPos.z < 1e-6);
 }
@@ -63,12 +63,12 @@ void main() {
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     texelPos = ivec2(mortonGlobalPosU);
 
-    if (all(lessThan(texelPos, global_mainImageSizeI))) {
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
             float sssV = sss();
-            vec4 result = imageLoad(uimg_temp5, texelPos);
+            vec4 result = imageLoad(uimg_temp3, texelPos);
             result.rgb *= sssV;
-            imageStore(uimg_temp5, texelPos, result);
+            imageStore(uimg_temp3, texelPos, result);
         }
     }
 }
