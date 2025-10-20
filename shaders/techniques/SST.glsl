@@ -45,11 +45,15 @@ float intersectCellBoundary(vec3 invD, vec2 cellIdOffset, vec2 cond2, vec2 cellI
 }
 
 shared ivec4 shared_mipmapTiles[16];
+shared uint shared_maxMipLevel;
 shared vec4 shared_cellCounts[16];
 
 void sst_init() {
     if (gl_LocalInvocationIndex < 16u) {
-        uint maxMip = min(findMSB(min(uval_mainImageSizeI.x, uval_mainImageSizeI.y)), 12u);
+        uint maxMip = min(findMSB(min(uval_mainImageSizeI.x, uval_mainImageSizeI.y)), 16u);
+        if (gl_LocalInvocationIndex == 0u) {
+            shared_maxMipLevel = maxMip;
+        }
         uint mipLevel = min(gl_LocalInvocationIndex, maxMip);
         ivec4 temp = global_mipmapTiles[0][mipLevel];
         temp.zw -= 1;
@@ -130,6 +134,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
 
     result.hit = false;
     float negRayEndZ = -pRayStart.z * invD.z;
+    int maxMip = int(shared_maxMipLevel);
 
     for (uint i = 0; i < HI_Z_STEPS; i++) {
         vec4 cellCountData = shared_cellCounts[level];
@@ -173,6 +178,8 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
                 }
             }
         }
+
+        level = min(level, maxMip);
 
         //        if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
         //            testBuffer[i] = vec4(currScreenPos.xy, floor(oldCellIdx));
