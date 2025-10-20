@@ -167,7 +167,7 @@ void main() {
             float MDotV = dot(microNormal, viewDir);
             imageStore(uimg_temp1, texelPos, vec4(refractColor, MDotV));
 
-            SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.05);
+            SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.01);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
             reflectDirWorld = rand_sampleInCone(reflectDirWorld, 0.005, noiseV);
             vec2 envSliceUV = vec2(-1.0);
