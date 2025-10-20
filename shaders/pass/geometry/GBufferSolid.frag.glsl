@@ -106,7 +106,10 @@ void processData1() {
     gData.geomTangent = geomViewTangent;
     gData.bitangentSign = int(bitangentSignF);
 
-    gData.pbrSpecular = vec4(0.0, 0.0, 0.0, 0.0);
+    gData.pbrSpecular = vec4(0.1, 0.01, 0.0, 0.0);
+    #ifdef GBUFFER_PASS_DH
+    gData.pbrSpecular.a = frag_emissiveOverride;
+    #endif
     gData.lmCoord = frag_lmCoord;
     gData.materialID = 65534u;
 
@@ -135,10 +138,8 @@ void processData1() {
 
     #endif
 
-
     #ifdef GBUFFER_PASS_DH
     gData.materialID = 65533;
-    gData.pbrSpecular.a = frag_emissiveOverride;
     #endif
 
     #ifdef GBUFFER_PASS_PARTICLE
