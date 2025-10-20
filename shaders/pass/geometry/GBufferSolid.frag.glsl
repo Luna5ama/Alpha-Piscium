@@ -16,6 +16,7 @@ in vec3 frag_viewNormal;// 11 + 11 + 10 = 32 bits
 in vec2 frag_texCoord;// 16 x 2 = 32 bits
 in vec2 frag_lmCoord;// 8 x 2 = 16 bits
 flat in uint frag_materialID;// 16 x 1 = 16 bits
+flat in float frag_emissiveOverride;
 
 in float frag_viewZ;// 32 bits
 
@@ -137,6 +138,7 @@ void processData1() {
 
     #ifdef GBUFFER_PASS_DH
     gData.materialID = 65533;
+    gData.pbrSpecular.a = frag_emissiveOverride;
     #endif
 
     #ifdef GBUFFER_PASS_PARTICLE
