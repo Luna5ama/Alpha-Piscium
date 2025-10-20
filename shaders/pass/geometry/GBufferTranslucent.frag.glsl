@@ -52,9 +52,22 @@ vec4 processAlbedo() {
 
 GBufferData processOutput() {
     #ifdef GBUFFER_PASS_DH
-    vec3 geomViewNormal = uval_upDirView;
-    vec3 geomViewTangent = coords_dir_worldToView(vec3(0.0, 0.0, 1.0));
-    vec3 geomViewBitangent = coords_dir_worldToView(vec3(1.0, 0.0, 0.0));
+    vec3 geomViewNormal = normalize(frag_viewNormal);
+    vec3 geomWorldNormal = coords_dir_viewToWorld(geomViewNormal);
+
+    const vec3 X_VECTOR = vec3(1.0, 0.0, 0.0);
+    const vec3 Y_VECTOR = vec3(0.0, 1.0, 0.0);
+    const vec3 Z_VECTOR = vec3(0.0, 0.0, 1.0);
+
+    vec4 xData = vec4(X_VECTOR, abs(dot(geomWorldNormal, X_VECTOR)));
+    vec4 yData = vec4(Y_VECTOR, abs(dot(geomWorldNormal, Y_VECTOR)));
+    vec4 zData = vec4(Z_VECTOR, abs(dot(geomWorldNormal, Z_VECTOR)));
+
+    vec4 tangentVecData = xData;
+    tangentVecData = yData.w < tangentVecData.w ? yData : tangentVecData;
+    tangentVecData = zData.w < tangentVecData.w ? zData : tangentVecData;
+    vec3 geomViewTangent = coords_dir_worldToView(tangentVecData.xyz);
+    vec3 geomViewBitangent = normalize(cross(geomViewNormal, geomViewTangent));
     float bitangentSignF = 1.0;
     #else
     float bitangentSignF = frag_viewTangent.w < 0.0 ? -1.0 : 1.0;
