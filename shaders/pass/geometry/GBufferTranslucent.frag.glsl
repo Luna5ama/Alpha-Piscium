@@ -87,6 +87,10 @@ GBufferData processOutput() {
     vec4 specularSample = texture(specular, frag_texCoord);
     #endif
 
+    #ifdef GBUFFER_PASS_DH
+    specularSample.x = 232.0 / 255.0;
+    #endif
+
     gData.pbrSpecular = specularSample;
     gData.lmCoord.y *= normalSample.b;
 

@@ -16,6 +16,7 @@ in vec3 frag_viewNormal;// 11 + 11 + 10 = 32 bits
 in vec2 frag_texCoord;// 16 x 2 = 32 bits
 in vec2 frag_lmCoord;// 8 x 2 = 16 bits
 flat in uint frag_materialID;// 16 x 1 = 16 bits
+flat in float frag_emissiveOverride;
 
 in float frag_viewZ;// 32 bits
 
@@ -105,7 +106,10 @@ void processData1() {
     gData.geomTangent = geomViewTangent;
     gData.bitangentSign = int(bitangentSignF);
 
-    gData.pbrSpecular = vec4(0.0, 0.0, 0.0, 0.0);
+    gData.pbrSpecular = vec4(0.1, 0.01, 0.0, 0.0);
+    #ifdef GBUFFER_PASS_DH
+    gData.pbrSpecular.a = frag_emissiveOverride;
+    #endif
     gData.lmCoord = frag_lmCoord;
     gData.materialID = 65534u;
 
@@ -133,7 +137,6 @@ void processData1() {
     #endif
 
     #endif
-
 
     #ifdef GBUFFER_PASS_DH
     gData.materialID = 65533;
