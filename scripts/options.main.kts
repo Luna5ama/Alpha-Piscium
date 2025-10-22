@@ -500,6 +500,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Emissive Armor Glint Curve"
                     }
                 }
+                empty()
+                toggle("SETTING_EMISSIVE_PARTICLE", true) {
+                    lang {
+                        name = "Emissive Particle"
+                    }
+                }
             }
             screen("NORMAL_MAPPING", 1) {
                 lang {

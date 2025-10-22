@@ -44,6 +44,7 @@ option.SETTING_EMISSIVE_ALBEDO_LUM_CURVE=Emissive Albedo Luminance Curve
 option.SETTING_EMISSIVE_ARMOR_GLINT_MULT=Emissive Armor Glint Multiplier
 prefix.SETTING_EMISSIVE_ARMOR_GLINT_MULT=2^
 option.SETTING_EMISSIVE_ARMOR_GLINT_CURVE=Emissive Armor Glint Curve
+option.SETTING_EMISSIVE_PARTICLE=Emissive Particle
 option.SETTING_NORMAL_MAPPING=Normal Mapping
 option.SETTING_NORMAL_MAPPING_STRENGTH=Normal Mapping Strength
 option.SETTING_MINIMUM_F0=Minimum F0 Factor

@@ -144,10 +144,12 @@ void processData1() {
 
     #ifdef GBUFFER_PASS_PARTICLE
     gData.materialID = 65533u;
+    #ifdef SETTING_EMISSIVE_PARTICLE
     if (textureQueryLevels(gtexture) == 1) {
         float particleEmissive = pow2(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_idt(albedo.rgb)));
         gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + particleEmissive);
     }
+    #endif
     #endif
 
     gData.lmCoord = dither_u8(gData.lmCoord, ditherNoise);
