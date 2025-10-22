@@ -22,7 +22,8 @@ Discord server link: https://discord.gg/E2Uq2MmHgq
 - Can't load shaderpack: Please use Iris with version 1.7+.
 - Everything goes dark when turning back: This is due to the limitation of screenspace techniques, there isn't a perfect way to fix this.
 - Intel GPU: Alpha Piscium uses cutting edge graphics technology. Unforunately Intel doesn't maintain their OpenGL driver well. Thus can't support Intel GPU.
-- Error while loading on AMD GPU and other error: Press Ctrl+D in Iris's shaderpack selection screen. Reload the shaderpack. Make an [issue](https://github.com/Luna5ama/Alpha-Piscium/issues) with the error message and the relevant files in `.minecraft/patched_shaders` as shown in the error message.
+- AMD GPU: Check if your GPU driver is newer than 22.7.1, if older please update your driver.
+- Other loading error: Press Ctrl+D in Iris's shaderpack selection screen. Reload the shaderpack. Make an [issue](https://github.com/Luna5ama/Alpha-Piscium/issues) with the error message and the relevant files in `.minecraft/patched_shaders` as shown in the error message.
 
 ## License
 Files under `script` directory are licensed under MIT license. All other files are licensed under GNU General Public License v3.0.
