@@ -21,7 +21,7 @@ vec3 ssgiRef(uint sampleIndex, ivec2 texelPos) {
     gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
     gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
     Material material = material_decode(gData);
-    #define RAND_TYPE 2
+    #define RAND_TYPE 1
     #if RAND_TYPE == 0
     vec2 rand2 = rand_r2Seq2(frameCounter * SSP + sampleIndex);
     #elif RAND_TYPE == 1
@@ -31,14 +31,14 @@ vec3 ssgiRef(uint sampleIndex, ivec2 texelPos) {
     vec2 rand2 = rand_stbnVec2(stbnPos, finalIndex % 64u);
     #endif
 
-    vec3 sampleDirTangent = rand_sampleInHemistexelPosphere(rand2);
-    vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
+    vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
+    vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
     float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
     SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.01);
-    float samplePdf = 1.0 / (2.0 * PI);
+    float samplePdf = sampleDirTangentAndPdf.w;
 
     if (sstResult.hit) {
         vec3 hitRadiance = texture(usam_temp2, sstResult.hitScreenPos.xy).rgb;
