@@ -19,16 +19,15 @@ void main() {
         vec4 ssgiOut = vec4(0.0);
         if (RANDOM_FRAME >= 0) {
             ssgiOut = imageLoad(uimg_temp1, texelPos);
-            for (uint i = 0u; i < SSP; i++) {
-                vec3 result;
-                #if USE_REFERENCE
-                result = ssgiRef(i, texelPos);
-                #else
-                //        result =
-                #endif
-                ssgiOut.a += 1.0;
-                ssgiOut.rgb = mix(ssgiOut.rgb, result, 1.0 / ssgiOut.a);
-            }
+
+            vec3 result;
+            #if USE_REFERENCE
+            result = ssgiRef(texelPos);
+            #else
+            result = texelFetch(usam_temp3, texelPos, 0).rgb;
+            #endif
+            ssgiOut.a += 1.0;
+            ssgiOut.rgb = mix(ssgiOut.rgb, result, 1.0 / ssgiOut.a);
         }
         imageStore(uimg_temp1, texelPos, ssgiOut);
     } else {
