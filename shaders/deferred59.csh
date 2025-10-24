@@ -39,10 +39,10 @@ void main() {
                 ReSTIRReservoir spatialReservoir = originalReservoir;
 
                 const uint reuseCount = 2u;
-                const float REUSE_RADIUS = 4.0;
+                const float REUSE_RADIUS = 16.0;
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
-                vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_restir3_texelToTexel(texelPos)));
+                vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
                 float pHatMe = 0.0;
                 {
                     ivec2 hitTexelPos = ivec2(originalReservoir.Y);
@@ -198,7 +198,7 @@ void main() {
                         float mWeight = 1.0 / neighborPHat * m;
                         float W = spatialWSum * mWeight;
                         resultReservoir.avgWY = clamp(W, 0.0, 10.0);
-                        ssgiOut = vec4(neighborSample * resultReservoir.avgWY, 1.0);
+//                        ssgiOut = vec4(neighborSample * resultReservoir.avgWY, 1.0);
                     }
                 }
 
