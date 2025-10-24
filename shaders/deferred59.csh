@@ -39,9 +39,11 @@ void main() {
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
                 vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 0)).xy);
-                vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
+//                vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
+                vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
                 vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
                 float samplePdf = sampleDirTangentAndPdf.w;
+//                samplePdf = 1.0 / (2.0 * PI);
                 ivec2 hitTexelPos;
 
                 vec3 initalSample = ssgiEval(viewPos, gData, sampleDirView, samplePdf, hitTexelPos) * samplePdf;
@@ -76,8 +78,8 @@ void main() {
                     vec3 prevHitViewPos = coords_toViewCoord(prevHitScreenPos, prevHitViewZ, global_camProjInverse);
                     vec3 prevSampleDirView = normalize(prevHitViewPos - viewPos);
 //                    float prevSamplePdf = prevReservoir.pY;
-//                    float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
-                    float prevSamplePdf = 1.0 / (2.0 * PI);
+                    float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
+//                    float prevSamplePdf = 1.0 / (2.0 * PI);
                     ivec2 newHitTexelPos;
                     vec3 prevSample = ssgiEval(viewPos, gData, prevSampleDirView, prevSamplePdf, newHitTexelPos) * prevSamplePdf;
 //                    if (newHitTexelPos == prevHitTexelPos){

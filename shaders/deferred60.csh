@@ -29,7 +29,7 @@ void main() {
                 result = ssgiRef(texelPos);
                 #else
                 result = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_restir2_texelToTexel(texelPos)).rgb);
-    //            ssgiOut.a = 1.0;
+//                ssgiOut.a = 1.0;
                 #endif
                 ssgiOut.rgb = mix(ssgiOut.rgb, result, 1.0 / ssgiOut.a);
             }
