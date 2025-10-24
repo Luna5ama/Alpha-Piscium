@@ -89,13 +89,9 @@ void main() {
                         if (restir_updateReservoir(newReservoir, newHitTexelPos, prevWi, prevReservoir.m, reservoirRand2)) {
                             restir_updateReservoirWY(newReservoir, prevPHatY);
                             ssgiOut = vec4(prevSample * newReservoir.wY, 1.0);
-                        } else {
-                            restir_updateReservoirWY(newReservoir, pHatXInitial);
-                            ssgiOut = vec4(initalSample * newReservoir.wY, 1.0);
                         }
                 } else  {
                     newReservoir.m += prevReservoir.m;
-                    restir_updateReservoirWY(newReservoir, pHatXInitial);
                 }
 
                 restir_storeReservoir(texelPos, newReservoir, 0);

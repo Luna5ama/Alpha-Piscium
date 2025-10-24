@@ -9,7 +9,7 @@
 
 #define USE_REFERENCE 0
 #define SKIP_FRAMES 32
-#define MAX_FRAMES 1024
+#define MAX_FRAMES 4096
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 
 layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
