@@ -93,8 +93,76 @@ void main() {
 //                            float neighborPHat = length(f);
 
 
+                        //                    // Calculate target function.
+                        //                    float3 offsetB = neighborReservoir.position - neighborReservoir.creationPoint;
+                        //                    float3 offsetA = neighborReservoir.position - worldPosition;
+                        //                    float pNewTN = evalTargetFunction(neighborReservoir.radiance, worldNormal, worldPosition, neighborReservoir.position, evalContext);
+                        //                    // Discard back-face.
+                        //                    if (dot(worldNormal, offsetA) <= 0.f)
+                        //                    {
+                        //                        pNewTN = 0.f;
+                        //                    }
+                        //
+                        //                    float RB2 = dot(offsetB, offsetB);
+                        //                    float RA2 = dot(offsetA, offsetA);
+                        //                    offsetB = normalize(offsetB);
+                        //                    offsetA = normalize(offsetA);
+                        //                    float cosA = dot(worldNormal, offsetA);
+                        //                    float cosB = dot(neighborReservoir.creationNormal, offsetB);
+                        //                    float cosPhiA = -dot(offsetA, neighborReservoir.normal);
+                        //                    float cosPhiB = -dot(offsetB, neighborReservoir.normal);
+                        //                    if (cosB <= 0.f || cosPhiB <= 0.f)
+                        //                    {
+                        //                        continue;
+                        //                    }
+                        //                    if (cosA <= 0.f || cosPhiA <= 0.f || RA2 <= 0.f || RB2 <= 0.f)
+                        //                    {
+                        //                        pNewTN = 0.f;
+                        //                    }
+                        //
+                        //                    bool isVisible = evalSegmentVisibility(computeRayOrigin(worldPosition, worldNormal), neighborReservoir.position);
+                        //                    if (!isVisible)
+                        //                    {
+                        //                        pNewTN = 0.f;
+                        //                    }
+//                        // Calculate Jacobian determinant and weight.
+//                        const float maxJacobian = enableJacobianClamping ? jacobianClampThreshold : largeFloat;
+//                        float jacobian = RA2 * cosPhiB <= 0.f ? 0.f : clamp(RB2 * cosPhiA / (RA2 * cosPhiB), 0.f, maxJacobian);
+//                        float wiTN = clamp(neighborReservoir.avgWeight * pNewTN * neighborReservoir.M * jacobian, 0.f, largeFloat);
+//
+//                        // Conditionally update spatial reservoir.
+//                        bool isUpdated = updateReservoir(wiTN, neighborReservoir, sg, wSumS, spatialReservoir);
+//                        if (isUpdated) reuseID = nReuse;
+                        float neightborViewZ = texelFetch(usam_gbufferViewZ, sampleTexelPos, 0).x;
+                        vec2 neighborScreenPos = sampleTexelPosF * uval_mainImageSizeRcp;
+                        vec3 neightborViewPos = coords_toViewCoord(neighborScreenPos, neightborViewZ, global_camProjInverse);
+                        vec3 offsetB = neighborHitViewPos - neightborViewPos;
+                        vec3 offsetA = neighborHitViewPos - viewPos;
 
-                        float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m);
+                        if (dot(gData.normal, offsetA) <= 0.0) {
+                            neighborPHat = 0.0;
+                        }
+
+                        float RB2 = dot(offsetB, offsetB);
+                        float RA2 = dot(offsetA, offsetA);
+                        offsetB = normalize(offsetB);
+                        offsetA = normalize(offsetA);
+                        float cosA = dot(gData.normal, offsetA);
+                        float cosB = dot(sampleGData.normal, offsetB);
+                        GBufferData hitGData = gbufferData_init();
+                        gbufferData1_unpack(texelFetch(usam_gbufferData1, neighborHitTexelPos, 0), hitGData);
+                        float cosPhiA = -dot(offsetA, hitGData.normal);
+                        float cosPhiB = -dot(offsetB, hitGData.normal);
+                        if (cosB <= 0.0 || cosPhiB <= 0.0) {
+                            neighborPHat = 0.0;
+                        }
+                        if (cosA <= 0.0 || cosPhiA <= 0.0 || RA2 <= 0.0 || RB2 <= 0.0) {
+                            neighborPHat = 0.0;
+                        }
+
+                        float jacobian = RA2 * cosPhiB <= 0.0 ? 0.0 : (RB2 * cosPhiA) / (RA2 * cosPhiB);
+
+                        float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
                         float neighborRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2u + i)).x);
 
                         restir_updateReservoir(
