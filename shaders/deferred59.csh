@@ -83,7 +83,7 @@ void main() {
                     vec3 prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, newHitTexelPos);
                         float prevPHatY = length(prevSample);
                         restir_updateReservoirWY(prevReservoir, prevPHatY);
-                        float prevWi = prevPHatY * prevReservoir.wY * float(prevReservoir.m);
+                        float prevWi = (prevPHatY / (prevPHatY + pHatXInitial))  * prevPHatY * prevReservoir.wY * float(prevReservoir.m);
 
                         float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2)).x);
                         if (restir_updateReservoir(newReservoir, newHitTexelPos, prevWi, prevReservoir.m, reservoirRand2)) {
