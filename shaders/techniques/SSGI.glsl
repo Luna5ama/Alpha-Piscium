@@ -9,7 +9,7 @@
 
 #define USE_REFERENCE 0
 #define SKIP_FRAMES 32
-#define MAX_FRAMES 200
+#define MAX_FRAMES 1024
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 
 layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
@@ -82,9 +82,10 @@ ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
     uvec4 data1 = imageLoad(uimg_csrgba32ui, sampleTexelPos);
 
     ReSTIRReservoir reservoir;
-    reservoir.Y.x = bitfieldExtract(data1.x, 0, 12);
-    reservoir.Y.y = bitfieldExtract(data1.x, 12, 12);
-    reservoir.m = bitfieldExtract(data1.x, 24, 8);
+//    reservoir.Y.x = bitfieldExtract(data1.x, 0, 12);
+//    reservoir.Y.y = bitfieldExtract(data1.x, 12, 12);
+//    reservoir.m = bitfieldExtract(data1.x, 24, 8);
+    reservoir.Y = unpackUInt2x16(data1.x);
 
     reservoir.pY = uintBitsToFloat(data1.y);
     reservoir.wY = uintBitsToFloat(data1.z);
@@ -102,9 +103,10 @@ void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIn
         storeTexelPos = csrgba32ui_restir2_texelToTexel(texelPos);
     }
     uvec4 data1 = uvec4(0u);
-    data1.x = bitfieldInsert(data1.x, reservoir.Y.x, 0, 12);
-    data1.x = bitfieldInsert(data1.x, reservoir.Y.y, 12, 12);
-    data1.x = bitfieldInsert(data1.x, min(reservoir.m, 255u), 24, 8);
+//    data1.x = bitfieldInsert(data1.x, reservoir.Y.x, 0, 12);
+//    data1.x = bitfieldInsert(data1.x, reservoir.Y.y, 12, 12);
+//    data1.x = bitfieldInsert(data1.x, min(reservoir.m, 255u), 24, 8);
+    data1.x = packUInt2x16(reservoir.Y);
 
     data1.y = floatBitsToUint(reservoir.pY);
     data1.z = floatBitsToUint(reservoir.wY);

@@ -44,30 +44,30 @@ void main() {
                 float samplePdf = sampleDirTangentAndPdf.w;
                 ivec2 hitTexelPos;
 
-                vec3 initalSample = ssgiEval(viewPos, gData, sampleDirView, samplePdf, hitTexelPos);
-                float pHatXInitial = length(initalSample) * samplePdf; // Get f back
+                vec3 initalSample = ssgiEval(viewPos, gData, sampleDirView, samplePdf, hitTexelPos) * samplePdf;
+                float pHatXInitial = length(initalSample); // Get f back
 
                 float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 1)).x);
                 if (restir_updateReservoir(newReservoir, hitTexelPos, pHatXInitial, samplePdf, 1u, reservoirRand1)) {
                     ssgiOut = vec4(initalSample * newReservoir.wY, 1.0);
                 }
 
-//                ReSTIRReservoir prevReservoir = restir_loadReservoir(texelPos, 0);
-//
-//                if (restir_isReservoirValid(prevReservoir)) {
-//                    ivec2 prevHitTexelPos = ivec2(prevReservoir.Y);
-//                    float prevHitViewZ = texelFetch(usam_gbufferViewZ, prevHitTexelPos, 0).x;
-//                    vec2 prevHitScreenPos = coords_texelToUV(prevHitTexelPos, uval_mainImageSizeRcp);
-//                    vec3 prevHitViewPos = coords_toViewCoord(prevHitScreenPos, prevHitViewZ, global_camProjInverse);
-//                    vec3 prevSampleDirView = normalize(prevHitViewPos - viewPos);
-//                    float prevSamplePdf = prevReservoir.pY;
-//                    vec3 prevSample = ssgiEval(viewPos, gData, prevSampleDirView, prevSamplePdf, prevHitTexelPos);
-//                    float prevPHatY = length(prevSample) * prevSamplePdf;
-//                    float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2)).x);
-//                    if (restir_updateReservoir(newReservoir, prevHitTexelPos, prevPHatY, prevSamplePdf, prevReservoir.m, reservoirRand2)) {
-//                        ssgiOut = vec4(prevSample * newReservoir.wY, 1.0);
-//                    }
-//                }
+                ReSTIRReservoir prevReservoir = restir_loadReservoir(texelPos, 0);
+
+                if (restir_isReservoirValid(prevReservoir)) {
+                    ivec2 prevHitTexelPos = ivec2(prevReservoir.Y);
+                    float prevHitViewZ = texelFetch(usam_gbufferViewZ, prevHitTexelPos, 0).x;
+                    vec2 prevHitScreenPos = coords_texelToUV(prevHitTexelPos, uval_mainImageSizeRcp);
+                    vec3 prevHitViewPos = coords_toViewCoord(prevHitScreenPos, prevHitViewZ, global_camProjInverse);
+                    vec3 prevSampleDirView = normalize(prevHitViewPos - viewPos);
+                    float prevSamplePdf = prevReservoir.pY;
+                    vec3 prevSample = ssgiEval(viewPos, gData, prevSampleDirView, prevSamplePdf, prevHitTexelPos) * prevSamplePdf;
+                    float prevPHatY = length(prevSample);
+                    float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2)).x);
+                    if (restir_updateReservoir(newReservoir, prevHitTexelPos, prevPHatY, prevSamplePdf, prevReservoir.m, reservoirRand2)) {
+                        ssgiOut = vec4(prevSample * newReservoir.wY, 1.0);
+                    }
+                }
 
                 restir_storeReservoir(texelPos, newReservoir, 0);
             }
