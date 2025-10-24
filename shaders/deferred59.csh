@@ -25,7 +25,7 @@ void main() {
         vec4 ssgiOut = vec4(0.0);
         if (RANDOM_FRAME < MAX_FRAMES){
             if (RANDOM_FRAME >= 0) {
-                ReSTIRReservoir newReservoir = restir_initReservoir(texelPos);
+                ReSTIRReservoir temporalReservoir = restir_initReservoir(texelPos);
 
                 float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
                 vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
@@ -38,69 +38,59 @@ void main() {
 
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
-                vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 0)).xy);
-//                vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
-                vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
-                vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
-                float samplePdf = sampleDirTangentAndPdf.w;
-//                samplePdf = 1.0 / (2.0 * PI);
-                ivec2 hitTexelPos;
+                temporalReservoir = restir_loadReservoir(texelPos, 0);
 
-                vec3 initalSample = ssgiEvalF(viewPos, gData, sampleDirView, hitTexelPos);
-                float pHatXInitial = length(initalSample);
+                float wSum = 0.0;
+                float prevPHat = 0.0;
+                vec3 prevSample = vec3(0.0);
 
-                float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 1)).x);
-                {
-                    float WXi = rcp(samplePdf); // WXi: unbiased contribution weight
-                    //        float mi = float(m) / float(max(1u, reservoir.m));
-//                            float mi = pX / (pX + reservoir.pY);
-//                    float mi = 1.0;
-                    float wi = /*mi **/ pHatXInitial * WXi; // Wi: Resampling weight
-                    if (restir_updateReservoir(newReservoir, hitTexelPos, wi, 1u, reservoirRand1)) {
-                        restir_updateReservoirWY(newReservoir, pHatXInitial);
-                        ssgiOut = vec4(initalSample * newReservoir.wY, 1.0);
-                    }
-                }
-
-                ReSTIRReservoir prevReservoir = restir_loadReservoir(texelPos, 0);
-
-                uint newM = 20 * newReservoir.m;
-                uint prevM = prevReservoir.m;
-                if (prevReservoir.m > newM) {
-                    prevReservoir.wSum *= float(newM) / float(prevReservoir.m);
-                    prevReservoir.m = newM;
-                }
-
-                if (restir_isReservoirValid(prevReservoir)) {
-                    ivec2 prevHitTexelPos = ivec2(prevReservoir.Y);
+                if (restir_isReservoirValid(temporalReservoir)) {
+                    ivec2 prevHitTexelPos = ivec2(temporalReservoir.Y);
                     float prevHitViewZ = texelFetch(usam_gbufferViewZ, prevHitTexelPos, 0).x;
                     vec2 prevHitScreenPos = coords_texelToUV(prevHitTexelPos, uval_mainImageSizeRcp);
                     vec3 prevHitViewPos = coords_toViewCoord(prevHitScreenPos, prevHitViewZ, global_camProjInverse);
                     vec3 prevSampleDirView = normalize(prevHitViewPos - viewPos);
                     float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
-//                    float prevSamplePdf = 1.0 / (2.0 * PI);
                     ivec2 newHitTexelPos;
-                    vec3 prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, newHitTexelPos);
-                        float prevPHatY = length(prevSample);
-                        restir_updateReservoirWY(prevReservoir, prevPHatY);
-                        float prevWi = (prevPHatY / (prevPHatY + pHatXInitial))  * prevPHatY * prevReservoir.wY * float(prevReservoir.m);
-
-                        float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2)).x);
-                        if (restir_updateReservoir(newReservoir, newHitTexelPos, prevWi, prevReservoir.m, reservoirRand2)) {
-                            restir_updateReservoirWY(newReservoir, prevPHatY);
-                            ssgiOut = vec4(prevSample * newReservoir.wY, 1.0);
-                        }
+                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, newHitTexelPos);
+                    prevPHat = length(prevSample);
                 } else  {
-                    newReservoir.m += prevReservoir.m;
+                    temporalReservoir.m = 0u;
                 }
 
-                restir_storeReservoir(texelPos, newReservoir, 0);
+                wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
+
+                {
+                    vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 0)).xy);
+                    vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
+                    vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
+                    float samplePdf = sampleDirTangentAndPdf.w;
+                    ivec2 hitTexelPos;
+
+                    vec3 initalSample = ssgiEvalF(viewPos, gData, sampleDirView, hitTexelPos);
+                    float newPHat = length(initalSample);
+                    float newWi = newPHat / samplePdf;
+
+                    float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 1)).x);
+
+                    float reservoirPHat = prevPHat;
+                    vec3 finalSample = prevSample;
+                    if (restir_updateReservoir(temporalReservoir, wSum, hitTexelPos, newWi, 1u, reservoirRand1)) {
+                        reservoirPHat = newPHat;
+                        finalSample = initalSample;
+                    }
+                    float avgWSum = wSum / float(temporalReservoir.m);
+                    temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
+                    temporalReservoir.m = clamp(temporalReservoir.m, 0u, 32u);
+                    ssgiOut = vec4(finalSample * temporalReservoir.avgWY, 1.0);
+                }
+
+                restir_storeReservoir(texelPos, temporalReservoir, 0);
             } else {
                 ReSTIRReservoir newReservoir = restir_initReservoir(texelPos);
                 restir_storeReservoir(texelPos, newReservoir, 0);
             }
         }
-//        imageStore(uimg_temp3, texelPos, ssgiOut);
         imageStore(uimg_csrgba32ui, csrgba32ui_restir2_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
     }
 }

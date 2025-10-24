@@ -15,10 +15,9 @@
 layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
 
 struct ReSTIRReservoir {
-    uvec2 Y; // sample hit texel position
-//    float pY; // sample pdf value
-    float wY; // sample unbiased contribution weight
-    float wSum; // weight sum of all processed samples
+    uvec2 Y;// sample hit texel position
+    float avgWY;// average unbiased contribution weight
+//    float wSum; // weight sum of all processed samples
     uint m;
     ivec2 texelPos;
 };
@@ -26,8 +25,8 @@ struct ReSTIRReservoir {
 ReSTIRReservoir restir_initReservoir(ivec2 texelPos) {
     ReSTIRReservoir reservoir;
     reservoir.Y = uvec2(65535u);
-    reservoir.wY = 0.0;
-    reservoir.wSum = 0.0;
+    reservoir.avgWY = 0.0;
+    //    reservoir.wSum = 0.0;
     reservoir.m = 0u;
     reservoir.texelPos = texelPos;
     return reservoir;
@@ -70,22 +69,15 @@ const float EPSILON = 0.0000001;
 //
 //    return false;
 //}
-bool restir_updateReservoir(inout ReSTIRReservoir reservoir, ivec2 X, float wi, uint m, float rand) {
-//    if (wi > EPSILON && !isnan(wi)) {
-        reservoir.wSum += wi;
-        reservoir.m += m;
-        if (rand < wi / reservoir.wSum) {
-//            reservoir.pY = pX;
-            reservoir.Y = uvec2(X);
-            return true;
-        }
-//    }
+bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, ivec2 X, float wi, uint m, float rand) {
+    wSum += wi;
+    reservoir.m += m;
+    bool updateCond = rand < wi / wSum;
+    if (updateCond) {
+        reservoir.Y = uvec2(X);
+    }
 
-    return false;
-}
-
-void restir_updateReservoirWY(inout ReSTIRReservoir reservoir, float pHatY) {
-    reservoir.wY = pHatY > EPSILON ? reservoir.wSum / pHatY / float(reservoir.m) : 0.0;
+    return updateCond;
 }
 
 ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
@@ -99,16 +91,16 @@ ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
     uvec4 data1 = imageLoad(uimg_csrgba32ui, sampleTexelPos);
 
     ReSTIRReservoir reservoir;
-//    reservoir.Y.x = bitfieldExtract(data1.x, 0, 12);
-//    reservoir.Y.y = bitfieldExtract(data1.x, 12, 12);
-//    reservoir.m = bitfieldExtract(data1.x, 24, 8);
+    //    reservoir.Y.x = bitfieldExtract(data1.x, 0, 12);
+    //    reservoir.Y.y = bitfieldExtract(data1.x, 12, 12);
+    //    reservoir.m = bitfieldExtract(data1.x, 24, 8);
     reservoir.Y = unpackUInt2x16(data1.x);
 
-//    reservoir.pY = uintBitsToFloat(data1.y);
+    //    reservoir.pY = uintBitsToFloat(data1.y);
 
     reservoir.m = data1.y;
-    reservoir.wY = uintBitsToFloat(data1.z);
-    reservoir.wSum = uintBitsToFloat(data1.w);
+    reservoir.avgWY = uintBitsToFloat(data1.z);
+//    reservoir.wSum = uintBitsToFloat(data1.w);
     reservoir.texelPos = texelPos;
     return reservoir;
 }
@@ -122,15 +114,15 @@ void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIn
         storeTexelPos = csrgba32ui_restir2_texelToTexel(texelPos);
     }
     uvec4 data1 = uvec4(0u);
-//    data1.x = bitfieldInsert(data1.x, reservoir.Y.x, 0, 12);
-//    data1.x = bitfieldInsert(data1.x, reservoir.Y.y, 12, 12);
-//    data1.x = bitfieldInsert(data1.x, min(reservoir.m, 255u), 24, 8);
+    //    data1.x = bitfieldInsert(data1.x, reservoir.Y.x, 0, 12);
+    //    data1.x = bitfieldInsert(data1.x, reservoir.Y.y, 12, 12);
+    //    data1.x = bitfieldInsert(data1.x, min(reservoir.m, 255u), 24, 8);
     data1.x = packUInt2x16(reservoir.Y);
 
-//    data1.y = floatBitsToUint(reservoir.pY);
+    //    data1.y = floatBitsToUint(reservoir.pY);
     data1.y = reservoir.m;
-    data1.z = floatBitsToUint(reservoir.wY);
-    data1.w = floatBitsToUint(reservoir.wSum);
+    data1.z = floatBitsToUint(reservoir.avgWY);
+//    data1.w = floatBitsToUint(reservoir.wSum);
     imageStore(uimg_csrgba32ui, storeTexelPos, data1);
 }
 
