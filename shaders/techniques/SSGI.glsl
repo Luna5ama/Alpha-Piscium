@@ -16,6 +16,7 @@ layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
 
 struct ReSTIRReservoir {
     uvec2 Y; // sample hit texel position
+    float pHatY; // sample target function value
     float wY; // sample unbiased contribution weight
     float wSum; // weight sum of all processed samples
     ivec2 texelPos;
@@ -23,7 +24,7 @@ struct ReSTIRReservoir {
 
 ReSTIRReservoir restir_initReservoir(ivec2 texelPos) {
     ReSTIRReservoir reservoir;
-    reservoir.Y = uvec2(99999u);// initial ray direction angle
+    reservoir.Y = uvec2(65535u);
     reservoir.wY = 0.0;
     reservoir.wSum = 0.0;
     reservoir.texelPos = texelPos;
@@ -40,23 +41,32 @@ ReSTIRReservoir restir_initReservoir(ivec2 texelPos) {
 //}
 
 bool restir_isReservoirValid(ReSTIRReservoir reservoir) {
-    return reservoir.Y != uvec2(99999u);
+    return reservoir.Y != uvec2(65535u);
 }
+
+const float EPSILON = 0.0000001;
 
 // X: candidate sample texel position
 // pHatX: candidate sample target function value
 // pX: candidate sample pdf value
 bool restir_updateReservoir(inout ReSTIRReservoir reservoir, ivec2 X, float pHatX, float pX, float rand) {
-    float WXi = rcp(pX); // WXi: unbiased contribution weight
-    float wi = pHatX * WXi; // Wi: Resampling weight
+    if (pX > EPSILON) {
+        float WXi = rcp(pX); // WXi: unbiased contribution weight
+        float wi = pHatX * WXi; // Wi: Resampling weight
 
-    reservoir.wSum += wi;
-    if (rand < wi / reservoir.wSum) {
-        reservoir.Y = uvec2(X);
-        return true;
+        reservoir.wSum += wi;
+        if (rand < wi / reservoir.wSum) {
+            reservoir.Y = uvec2(X);
+            return true;
+        }
     }
 
     return false;
+}
+
+void restir_updateReservoirWY(inout ReSTIRReservoir reservoir) {
+    float pHatY = reservoir.pHatY;
+    reservoir.wY = pHatY > EPSILON ? rcp(pHatY) * reservoir.wSum : 0.0;
 }
 
 ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
