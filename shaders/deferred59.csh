@@ -38,8 +38,8 @@ void main() {
                 ReSTIRReservoir originalReservoir = restir_loadReservoir(texelPos, 0);
                 ReSTIRReservoir spatialReservoir = originalReservoir;
 
-                const uint reuseCount = 4u;
-                const float REUSE_RADIUS = 16.0;
+                const uint reuseCount = 2u;
+                const float REUSE_RADIUS = 4.0;
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
                 vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_restir3_texelToTexel(texelPos)));
@@ -196,14 +196,15 @@ void main() {
                         float m = resultReservoir.m <= 0u ? 0.0 : 1.0 / float(resultReservoir.m); // spatial reuse weight
                         resultReservoir.m = clamp(resultReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
                         float mWeight = 1.0 / neighborPHat * m;
-                        resultReservoir.avgWY = spatialWSum * mWeight;
+                        float W = spatialWSum * mWeight;
+                        resultReservoir.avgWY = clamp(W, 0.0, 10.0);
                         ssgiOut = vec4(neighborSample * resultReservoir.avgWY, 1.0);
                     }
                 }
 
 //                restir_storeReservoir(texelPos, resultReservoir, 1);
 
-                imageStore(uimg_csrgba32ui, csrgba32ui_restir3_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
+                imageStore(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
             }
         }
     }

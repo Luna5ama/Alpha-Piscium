@@ -93,7 +93,7 @@ void main() {
                 restir_storeReservoir(texelPos, newReservoir, 1);
             }
         }
-        imageStore(uimg_csrgba32ui, csrgba32ui_restir3_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
+        imageStore(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
     }
 }
 #endif
