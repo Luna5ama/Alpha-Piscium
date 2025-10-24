@@ -85,6 +85,8 @@ void main() {
                             ssgiOut = vec4(prevSample * newReservoir.wY, 1.0);
                         }
 //                    }
+                } else  {
+                    newReservoir.m += prevReservoir.m;
                 }
 
                 restir_storeReservoir(texelPos, newReservoir, 0);
