@@ -1,6 +1,6 @@
 /*
 const int colortex0Format = RGBA16F; // Main 1
-const int colortex1Format = RGBA16F; // Temp1
+const int colortex1Format = RGBA32F; // Temp1
 const int colortex2Format = RGBA16F; // Temp2
 const int colortex3Format = RGBA16F; // Temp3
 const int colortex4Format = RGBA8; // Temp4

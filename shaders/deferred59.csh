@@ -62,6 +62,13 @@ void main() {
 
                 ReSTIRReservoir prevReservoir = restir_loadReservoir(texelPos, 0);
 
+                uint newM = 20 * newReservoir.m;
+                uint prevM = prevReservoir.m;
+                if (prevReservoir.m > newM) {
+                    prevReservoir.wSum *= float(newM) / float(prevReservoir.m);
+                    prevReservoir.m = newM;
+                }
+
                 if (restir_isReservoirValid(prevReservoir)) {
                     ivec2 prevHitTexelPos = ivec2(prevReservoir.Y);
                     float prevHitViewZ = texelFetch(usam_gbufferViewZ, prevHitTexelPos, 0).x;
@@ -95,7 +102,8 @@ void main() {
                 restir_storeReservoir(texelPos, newReservoir, 0);
             }
         }
-        imageStore(uimg_temp3, texelPos, ssgiOut);
+//        imageStore(uimg_temp3, texelPos, ssgiOut);
+        imageStore(uimg_csrgba32ui, csrgba32ui_restir2_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
     }
 }
 #endif
