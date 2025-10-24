@@ -9,7 +9,7 @@
 
 #define USE_REFERENCE 1
 #define SKIP_FRAMES 32
-#define MAX_FRAMES 1
+#define MAX_FRAMES 32
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 
 layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
@@ -125,7 +125,7 @@ vec3 ssgiEval(ivec2 texelPos, vec3 sampleDirView, float samplePdf) {
     return result;
 }
 
-#define SSP 32u
+#define SSP 1u
 
 vec3 ssgiRef(uint sampleIndex, ivec2 texelPos) {
     uint finalIndex = RANDOM_FRAME * SSP + sampleIndex;
