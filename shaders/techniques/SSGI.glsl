@@ -3,6 +3,9 @@
 #include "/util/Hash.glsl"
 #include "/util/Math.glsl"
 #include "/techniques/textile/CSRGBA32UI.glsl"
+#include "/util/GBufferData.glsl"
+#include "/util/Material.glsl"
+#include "/techniques/SST.glsl"
 
 #define USE_REFERENCE 1
 #define SKIP_FRAMES 32
@@ -87,4 +90,65 @@ void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIn
     data1.y = floatBitsToUint(reservoir.wY);
     data1.z = floatBitsToUint(reservoir.wSum);
     imageStore(uimg_csrgba32ui, storeTexelPos, data1);
+}
+
+vec3 ssgiEval(ivec2 texelPos, vec3 sampleDirView, float samplePdf) {
+    vec3 result = vec3(0.0);
+    GBufferData gData = gbufferData_init();
+    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+    Material material = material_decode(gData);
+
+    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
+    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+
+    SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.01);
+
+    if (sstResult.hit) {
+        vec3 hitRadiance = texture(usam_temp2, sstResult.hitScreenPos.xy).rgb;
+        float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
+        vec3 f = brdf * hitRadiance;
+        result = f / samplePdf;
+    }
+
+    return result;
+}
+
+#define SSP 32u
+
+vec3 ssgiRef(uint sampleIndex, ivec2 texelPos) {
+    uint finalIndex = RANDOM_FRAME * SSP + sampleIndex;
+    vec3 result = vec3(0.0);
+    GBufferData gData = gbufferData_init();
+    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+    Material material = material_decode(gData);
+    #define RAND_TYPE 1
+    #if RAND_TYPE == 0
+    vec2 rand2 = rand_r2Seq2(frameCounter * SSP + sampleIndex);
+    #elif RAND_TYPE == 1
+    vec2 rand2 = hash_uintToFloat(hash_33_q3(uvec3(texelPos, finalIndex)).xy);
+    #else
+    ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(finalIndex / 64) * vec2(128, 128));
+    vec2 rand2 = rand_stbnVec2(stbnPos, finalIndex % 64u);
+    #endif
+
+    vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
+    vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
+    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
+    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+
+    SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.01);
+    float samplePdf = sampleDirTangentAndPdf.w;
+
+    if (sstResult.hit) {
+        vec3 hitRadiance = texture(usam_temp2, sstResult.hitScreenPos.xy).rgb;
+        float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
+        vec3 f = brdf * hitRadiance;
+        result = f / samplePdf;
+    }
+
+    return result;
 }
