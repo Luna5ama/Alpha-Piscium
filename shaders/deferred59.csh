@@ -81,7 +81,7 @@ void main() {
                     }
                     float avgWSum = wSum / float(temporalReservoir.m);
                     temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
-                    temporalReservoir.m = clamp(temporalReservoir.m, 0u, 32u);
+                    temporalReservoir.m = clamp(temporalReservoir.m, 0u, 128u);
                     ssgiOut = vec4(finalSample * temporalReservoir.avgWY, 1.0);
                 }
 
