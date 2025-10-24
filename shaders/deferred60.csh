@@ -5,8 +5,9 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
+#include "/util/Hash.glsl"
 
-#define SSP 128u
+#define SSP 32u
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -14,12 +15,21 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform restrict image2D uimg_temp1;
 
 vec3 ssgiRef(uint sampleIndex, ivec2 texelPos) {
+    uint finalIndex = RANDOM_FRAME * SSP + sampleIndex;
     vec3 result = vec3(0.0);
     GBufferData gData = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
     gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
     Material material = material_decode(gData);
+    #define RAND_TYPE 2
+    #if RAND_TYPE == 0
     vec2 rand2 = rand_r2Seq2(frameCounter * SSP + sampleIndex);
+    #elif RAND_TYPE == 1
+    vec2 rand2 = hash_uintToFloat(hash_33_q3(uvec3(texelPos, finalIndex)).xy);
+    #else
+    ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(finalIndex / 64) * vec2(128, 128));
+    vec2 rand2 = rand_stbnVec2(stbnPos, finalIndex % 64u);
+    #endif
 
     vec3 sampleDirTangent = rand_sampleInHemistexelPosphere(rand2);
     vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
