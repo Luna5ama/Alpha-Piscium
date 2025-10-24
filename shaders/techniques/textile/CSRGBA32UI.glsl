@@ -120,4 +120,17 @@ ivec2 csrgba32ui_restir2_texelToTexel(ivec2 texelPos) {
     );
 }
 
+#define _CSRGBA32UI_RESTIR3_OFFSET ivec2(uval_mainImageSizeI.x * 2, uval_mainImageSizeI.y * 2)
+#define _CSRGBA32UI_RESTIR3_OFFSET_F vec2(uval_mainImageSize.x * 2.0, uval_mainImageSize.y * 2.0)
+#define _CSRGBA32UI_RESTIR3_SIZE uval_mainImageSizeI
+#define _CSRGBA32UI_RESTIR3_SIZE_F uval_mainImageSize
+
+ivec2 csrgba32ui_restir3_texelToTexel(ivec2 texelPos) {
+    return textile_texelToTexel(
+        texelPos,
+        _CSRGBA32UI_RESTIR3_OFFSET,
+        _CSRGBA32UI_RESTIR3_SIZE
+    );
+}
+
 #endif

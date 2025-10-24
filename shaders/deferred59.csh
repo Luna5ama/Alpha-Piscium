@@ -17,7 +17,6 @@ void main() {
 }
 #else
 void main() {
-
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     sst_init();
 
@@ -25,8 +24,6 @@ void main() {
         vec4 ssgiOut = vec4(0.0);
         if (RANDOM_FRAME < MAX_FRAMES){
             if (RANDOM_FRAME >= 0) {
-                ReSTIRReservoir temporalReservoir = restir_initReservoir(texelPos);
-
                 float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
                 vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
                 vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
@@ -38,60 +35,109 @@ void main() {
 
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
-                temporalReservoir = restir_loadReservoir(texelPos, 0);
+                ReSTIRReservoir originalReservoir = restir_loadReservoir(texelPos, 0);
+                ReSTIRReservoir spatialReservoir = originalReservoir;
 
-                float wSum = 0.0;
-                float prevPHat = 0.0;
-                vec3 prevSample = vec3(0.0);
+                const uint reuseCount = 4u;
+                const float REUSE_RADIUS = 16.0;
+                vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
-                if (restir_isReservoirValid(temporalReservoir)) {
-                    ivec2 prevHitTexelPos = ivec2(temporalReservoir.Y);
-                    float prevHitViewZ = texelFetch(usam_gbufferViewZ, prevHitTexelPos, 0).x;
-                    vec2 prevHitScreenPos = coords_texelToUV(prevHitTexelPos, uval_mainImageSizeRcp);
-                    vec3 prevHitViewPos = coords_toViewCoord(prevHitScreenPos, prevHitViewZ, global_camProjInverse);
-                    vec3 prevSampleDirView = normalize(prevHitViewPos - viewPos);
-                    float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
-                    ivec2 newHitTexelPos;
-                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, newHitTexelPos);
-                    prevPHat = length(prevSample);
-                } else  {
-                    temporalReservoir.m = 0u;
-                }
-
-                wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
-
+                vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_restir3_texelToTexel(texelPos)));
+                float pHatMe = 0.0;
                 {
-                    vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 0)).xy);
-                    vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
-                    vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
-                    float samplePdf = sampleDirTangentAndPdf.w;
-                    ivec2 hitTexelPos;
+                    ivec2 hitTexelPos = ivec2(originalReservoir.Y);
+                    float hitViewZ = texelFetch(usam_gbufferViewZ, hitTexelPos, 0).x;
+                    vec2 hitScreenPos = coords_texelToUV(hitTexelPos, uval_mainImageSizeRcp);
+                    vec3 hitViewPos = coords_toViewCoord(hitScreenPos, hitViewZ, global_camProjInverse);
+                    vec3 sampleDirView = normalize(hitViewPos - viewPos);
+                    float samplePdf = saturate(dot(gData.normal, sampleDirView)) / PI;
+                    vec3 hitRadiance = texture(usam_temp2, hitScreenPos.xy).rgb;
+                    float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
+                    vec3 f = brdf * hitRadiance;
+                    pHatMe = length(f);
+                }
+                float spatialWSum = max(spatialReservoir.avgWY, 0.0) * pHatMe * float(spatialReservoir.m);
 
-                    vec3 initalSample = ssgiEvalF(viewPos, gData, sampleDirView, hitTexelPos);
-                    float newPHat = length(initalSample);
-                    float newWi = newPHat / samplePdf;
+                for (uint i = 0u; i < reuseCount; ++i) {
+                    ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(i) * vec2(128, 128));
+                    float r = rand_stbnVec1(stbnPos, RANDOM_FRAME);
+                    vec2 dir = rand_stbnUnitVec211(stbnPos, RANDOM_FRAME);
+                    vec2 offset = sqrt(r) * dir * REUSE_RADIUS;
+                    vec2 sampleTexelPosF = texelPosF + offset;
+                    sampleTexelPosF = clamp(sampleTexelPosF, vec2(0.0), uval_mainImageSizeI - 1.0);
+                    ivec2 sampleTexelPos = ivec2(sampleTexelPosF);
 
-                    float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 1)).x);
+                    GBufferData sampleGData = gbufferData_init();
+                    gbufferData1_unpack(texelFetch(usam_gbufferData1, sampleTexelPos, 0), sampleGData);
 
-                    float reservoirPHat = prevPHat;
-                    vec3 finalSample = prevSample;
-                    if (restir_updateReservoir(temporalReservoir, wSum, hitTexelPos, newWi, 1u, reservoirRand1)) {
-                        reservoirPHat = newPHat;
-                        finalSample = initalSample;
+                    if (dot(gData.geomNormal, sampleGData.geomNormal) < 0.99) {
+                        continue;
                     }
-                    float avgWSum = wSum / float(temporalReservoir.m);
-                    temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
-                    temporalReservoir.m = clamp(temporalReservoir.m, 0u, 128u);
-                    ssgiOut = vec4(finalSample * temporalReservoir.avgWY, 1.0);
+
+                    ReSTIRReservoir neighborReservoir = restir_loadReservoir(sampleTexelPos, 0);
+
+                    if (restir_isReservoirValid(neighborReservoir)) {
+                        ivec2 neighborHitTexelPos = ivec2(neighborReservoir.Y);
+                        float neighborHitViewZ = texelFetch(usam_gbufferViewZ, neighborHitTexelPos, 0).x;
+                        vec2 neighborHitScreenPos = coords_texelToUV(neighborHitTexelPos, uval_mainImageSizeRcp);
+                        vec3 neighborHitViewPos = coords_toViewCoord(neighborHitScreenPos, neighborHitViewZ, global_camProjInverse);
+                        vec3 neighborSampleDirView = normalize(neighborHitViewPos - viewPos);
+                        float neighborSamplePdf = saturate(dot(gData.normal, neighborSampleDirView)) / PI;
+                        ivec2 newHitTexelPos;
+                        vec3 neighborSample = ssgiEvalF(viewPos, gData, neighborSampleDirView, newHitTexelPos);
+                        float neighborPHat = length(neighborSample);
+
+//                            vec3 hitRadiance = texture(usam_temp2, neighborHitScreenPos.xy).rgb;
+//                            float brdf = saturate(dot(gData.normal, neighborSampleDirView)) / PI;
+//                            vec3 f = brdf * hitRadiance;
+//                            float neighborPHat = length(f);
+
+
+
+                        float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m);
+                        float neighborRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2u + i)).x);
+
+                        restir_updateReservoir(
+                            spatialReservoir,
+                            spatialWSum,
+                            neighborHitTexelPos,
+                            neighborWi,
+                            neighborReservoir.m,
+                            neighborRand
+                        );
+                    }
                 }
 
-                restir_storeReservoir(texelPos, temporalReservoir, 0);
-            } else {
-                ReSTIRReservoir newReservoir = restir_initReservoir(texelPos);
-                restir_storeReservoir(texelPos, newReservoir, 0);
+                const uint SPATIAL_REUSE_MAX_M = 128u;
+
+
+                ReSTIRReservoir resultReservoir = originalReservoir;
+                if (spatialReservoir.Y != originalReservoir.Y) {
+                    ivec2 neighborHitTexelPos = ivec2(spatialReservoir.Y);
+                    float neighborHitViewZ = texelFetch(usam_gbufferViewZ, neighborHitTexelPos, 0).x;
+                    vec2 neighborHitScreenPos = coords_texelToUV(neighborHitTexelPos, uval_mainImageSizeRcp);
+                    vec3 neighborHitViewPos = coords_toViewCoord(neighborHitScreenPos, neighborHitViewZ, global_camProjInverse);
+                    vec3 neighborSampleDirView = normalize(neighborHitViewPos - viewPos);
+                    float neighborSamplePdf = saturate(dot(gData.normal, neighborSampleDirView)) / PI;
+                    ivec2 newHitTexelPos;
+                    vec3 neighborSample = ssgiEvalF(viewPos, gData, neighborSampleDirView, newHitTexelPos);
+                    float neighborPHat = length(neighborSample);
+
+                    if (neighborPHat > 0.0) {
+                        resultReservoir = spatialReservoir;
+                        float m = resultReservoir.m <= 0u ? 0.0 : 1.0 / float(resultReservoir.m); // spatial reuse weight
+                        resultReservoir.m = clamp(resultReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
+                        float mWeight = 1.0 / neighborPHat * m;
+                        resultReservoir.avgWY = spatialWSum * mWeight;
+                        ssgiOut = vec4(neighborSample * resultReservoir.avgWY, 1.0);
+                    }
+                }
+
+//                restir_storeReservoir(texelPos, resultReservoir, 1);
+
+                imageStore(uimg_csrgba32ui, csrgba32ui_restir3_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
             }
         }
-        imageStore(uimg_csrgba32ui, csrgba32ui_restir2_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
     }
 }
 #endif
