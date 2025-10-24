@@ -94,4 +94,30 @@ ivec2 csrgba32ui_temp4_texelToTexel(ivec2 texelPos) {
     );
 }
 
+#define _CSRGBA32UI_RESTIR1_OFFSET ivec2(uval_mainImageSizeI.x * 2, 0)
+#define _CSRGBA32UI_RESTIR1_OFFSET_F vec2(uval_mainImageSize.x * 2.0, 0.0)
+#define _CSRGBA32UI_RESTIR1_SIZE uval_mainImageSizeI
+#define _CSRGBA32UI_RESTIR1_SIZE_F uval_mainImageSize
+
+ivec2 csrgba32ui_restir1_texelToTexel(ivec2 texelPos) {
+    return textile_texelToTexel(
+        texelPos,
+        _CSRGBA32UI_RESTIR1_OFFSET,
+        _CSRGBA32UI_RESTIR1_SIZE
+    );
+}
+
+#define _CSRGBA32UI_RESTIR2_OFFSET ivec2(uval_mainImageSizeI.x * 2, uval_mainImageSizeI.y)
+#define _CSRGBA32UI_RESTIR2_OFFSET_F vec2(uval_mainImageSize.x * 2.0, uval_mainImageSize.y)
+#define _CSRGBA32UI_RESTIR2_SIZE uval_mainImageSizeI
+#define _CSRGBA32UI_RESTIR2_SIZE_F uval_mainImageSize
+
+ivec2 csrgba32ui_restir2_texelToTexel(ivec2 texelPos) {
+    return textile_texelToTexel(
+        texelPos,
+        _CSRGBA32UI_RESTIR2_OFFSET,
+        _CSRGBA32UI_RESTIR2_SIZE
+    );
+}
+
 #endif
