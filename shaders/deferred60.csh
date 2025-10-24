@@ -21,12 +21,13 @@ void main() {
             ssgiOut = imageLoad(uimg_temp1, texelPos);
 
             vec3 result;
+            ssgiOut.a += 1.0;
             #if USE_REFERENCE
             result = ssgiRef(texelPos);
             #else
             result = texelFetch(usam_temp3, texelPos, 0).rgb;
+//            ssgiOut.a = 1.0;
             #endif
-            ssgiOut.a += 1.0;
             ssgiOut.rgb = mix(ssgiOut.rgb, result, 1.0 / ssgiOut.a);
         }
         imageStore(uimg_temp1, texelPos, ssgiOut);

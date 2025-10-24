@@ -39,7 +39,7 @@ void main() {
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
                 vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 0)).xy);
-                vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
+                vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
                 vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
                 float samplePdf = sampleDirTangentAndPdf.w;
                 ivec2 hitTexelPos;
@@ -48,8 +48,16 @@ void main() {
                 float pHatXInitial = length(initalSample); // Get f back
 
                 float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 1)).x);
-                if (restir_updateReservoir(newReservoir, hitTexelPos, pHatXInitial, samplePdf, 1u, reservoirRand1)) {
-                    ssgiOut = vec4(initalSample * newReservoir.wY, 1.0);
+                {
+                    float WXi = rcp(samplePdf); // WXi: unbiased contribution weight
+                    //        float mi = float(m) / float(max(1u, reservoir.m));
+//                            float mi = pX / (pX + reservoir.pY);
+                    float mi = 1.0;
+                    float wi = mi * pHatXInitial * WXi; // Wi: Resampling weight
+                    if (restir_updateReservoir(newReservoir, hitTexelPos, wi, 1u, reservoirRand1)) {
+                        restir_updateReservoirWY(newReservoir, pHatXInitial);
+                        ssgiOut = vec4(initalSample * newReservoir.wY, 1.0);
+                    }
                 }
 
                 ReSTIRReservoir prevReservoir = restir_loadReservoir(texelPos, 0);
@@ -60,15 +68,28 @@ void main() {
                     vec2 prevHitScreenPos = coords_texelToUV(prevHitTexelPos, uval_mainImageSizeRcp);
                     vec3 prevHitViewPos = coords_toViewCoord(prevHitScreenPos, prevHitViewZ, global_camProjInverse);
                     vec3 prevSampleDirView = normalize(prevHitViewPos - viewPos);
-                    float prevSamplePdf = prevReservoir.pY;
-                    vec3 prevSample = ssgiEval(viewPos, gData, prevSampleDirView, prevSamplePdf, prevHitTexelPos) * prevSamplePdf;
-                    float prevPHatY = length(prevSample);
-                    float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2)).x);
-                    if (restir_updateReservoir(newReservoir, prevHitTexelPos, prevPHatY, prevSamplePdf, prevReservoir.m, reservoirRand2)) {
-                        ssgiOut = vec4(prevSample * newReservoir.wY, 1.0);
-                    }
+//                    float prevSamplePdf = prevReservoir.pY;
+//                    float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
+                    float prevSamplePdf = 1.0 / (2.0 * PI);
+                    ivec2 newHitTexelPos;
+                    vec3 prevSample = ssgiEval(viewPos, gData, prevSampleDirView, prevSamplePdf, newHitTexelPos) * prevSamplePdf;
+//                    if (newHitTexelPos == prevHitTexelPos){
+                        float prevPHatY = length(prevSample);
+                        restir_updateReservoirWY(prevReservoir, prevPHatY);
+                        float prevWYi = rcp(prevSamplePdf);
+                        float prevWi = prevPHatY * prevReservoir.wY * float(prevReservoir.m);
+
+                        float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2)).x);
+                        if (restir_updateReservoir(newReservoir, newHitTexelPos, prevWi, prevReservoir.m, reservoirRand2)) {
+                            restir_updateReservoirWY(newReservoir, prevPHatY);
+                            ssgiOut = vec4(prevSample * newReservoir.wY, 1.0);
+                        }
+//                    }
                 }
 
+                restir_storeReservoir(texelPos, newReservoir, 0);
+            } else {
+                ReSTIRReservoir newReservoir = restir_initReservoir(texelPos);
                 restir_storeReservoir(texelPos, newReservoir, 0);
             }
         }

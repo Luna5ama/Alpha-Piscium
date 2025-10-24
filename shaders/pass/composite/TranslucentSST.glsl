@@ -63,6 +63,7 @@ vec4 BicubicSampling56(sampler2D samplerV, vec2 inHistoryUV, vec2 resolution) {
 }
 
 void main() {
+    return;
     sst_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {

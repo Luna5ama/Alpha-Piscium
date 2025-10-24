@@ -16,7 +16,7 @@ layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
 
 struct ReSTIRReservoir {
     uvec2 Y; // sample hit texel position
-    float pY; // sample pdf value
+//    float pY; // sample pdf value
     float wY; // sample unbiased contribution weight
     float wSum; // weight sum of all processed samples
     uint m;
@@ -51,24 +51,41 @@ const float EPSILON = 0.0000001;
 // X: candidate sample texel position
 // pHatX: candidate sample target function value
 // pX: candidate sample pdf value
-bool restir_updateReservoir(inout ReSTIRReservoir reservoir, ivec2 X, float pHatX, float pX, uint m, float rand) {
-    if (pX > EPSILON) {
-        float WXi = rcp(pX); // WXi: unbiased contribution weight
+//bool restir_updateReservoir(inout ReSTIRReservoir reservoir, ivec2 X, float pHatX, float pX, uint m, float rand) {
+//    if (pX > EPSILON) {
+//        float WXi = rcp(pX); // WXi: unbiased contribution weight
 //        reservoir.m += m;
-//        float mi = float(m) / float(max(1u, reservoir.m));
-        float mi = pX / (pX + reservoir.pY);
-        float wi = mi * pHatX * WXi; // Wi: Resampling weight
-
+////        float mi = float(m) / float(max(1u, reservoir.m));
+//        float mi = pX / (pX + reservoir.pY);
+//        float wi = mi * pHatX * WXi; // Wi: Resampling weight
+//
+//        reservoir.wSum += wi;
+//        if (rand < wi / reservoir.wSum) {
+//            reservoir.pY = pX;
+//            reservoir.Y = uvec2(X);
+//            reservoir.wY = rcp(pHatX) * reservoir.wSum;
+//            return true;
+//        }
+//    }
+//
+//    return false;
+//}
+bool restir_updateReservoir(inout ReSTIRReservoir reservoir, ivec2 X, float wi, uint m, float rand) {
+//    if (wi > EPSILON && !isnan(wi)) {
         reservoir.wSum += wi;
+        reservoir.m += m;
         if (rand < wi / reservoir.wSum) {
-            reservoir.pY = pX;
+//            reservoir.pY = pX;
             reservoir.Y = uvec2(X);
-            reservoir.wY = rcp(pHatX) * reservoir.wSum;
             return true;
         }
-    }
+//    }
 
     return false;
+}
+
+void restir_updateReservoirWY(inout ReSTIRReservoir reservoir, float pHatY) {
+    reservoir.wY = pHatY > EPSILON ? reservoir.wSum / pHatY / float(reservoir.m) : 0.0;
 }
 
 ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
@@ -87,7 +104,9 @@ ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
 //    reservoir.m = bitfieldExtract(data1.x, 24, 8);
     reservoir.Y = unpackUInt2x16(data1.x);
 
-    reservoir.pY = uintBitsToFloat(data1.y);
+//    reservoir.pY = uintBitsToFloat(data1.y);
+
+    reservoir.m = data1.y;
     reservoir.wY = uintBitsToFloat(data1.z);
     reservoir.wSum = uintBitsToFloat(data1.w);
     reservoir.texelPos = texelPos;
@@ -108,7 +127,8 @@ void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIn
 //    data1.x = bitfieldInsert(data1.x, min(reservoir.m, 255u), 24, 8);
     data1.x = packUInt2x16(reservoir.Y);
 
-    data1.y = floatBitsToUint(reservoir.pY);
+//    data1.y = floatBitsToUint(reservoir.pY);
+    data1.y = reservoir.m;
     data1.z = floatBitsToUint(reservoir.wY);
     data1.w = floatBitsToUint(reservoir.wSum);
     imageStore(uimg_csrgba32ui, storeTexelPos, data1);
