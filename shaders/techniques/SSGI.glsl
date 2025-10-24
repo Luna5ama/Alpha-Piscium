@@ -134,7 +134,7 @@ void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIn
     imageStore(uimg_csrgba32ui, storeTexelPos, data1);
 }
 
-vec3 ssgiEval(vec3 viewPos, GBufferData gData, vec3 sampleDirView, float samplePdf, out ivec2 hitTexelPos) {
+vec3 ssgiEvalF(vec3 viewPos, GBufferData gData, vec3 sampleDirView, out ivec2 hitTexelPos) {
     hitTexelPos = ivec2(65535);
     vec3 result = vec3(0.0);;
 
@@ -144,7 +144,7 @@ vec3 ssgiEval(vec3 viewPos, GBufferData gData, vec3 sampleDirView, float sampleP
         vec3 hitRadiance = texture(usam_temp2, sstResult.hitScreenPos.xy).rgb;
         float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
         vec3 f = brdf * hitRadiance;
-        result = f / samplePdf;
+        result = f;
         hitTexelPos = ivec2(sstResult.hitScreenPos.xy * uval_mainImageSize);
     }
 

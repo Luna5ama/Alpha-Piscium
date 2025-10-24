@@ -46,8 +46,8 @@ void main() {
 //                samplePdf = 1.0 / (2.0 * PI);
                 ivec2 hitTexelPos;
 
-                vec3 initalSample = ssgiEval(viewPos, gData, sampleDirView, samplePdf, hitTexelPos) * samplePdf;
-                float pHatXInitial = length(initalSample); // Get f back
+                vec3 initalSample = ssgiEvalF(viewPos, gData, sampleDirView, hitTexelPos);
+                float pHatXInitial = length(initalSample);
 
                 float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 1)).x);
                 {
@@ -80,7 +80,7 @@ void main() {
                     float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
 //                    float prevSamplePdf = 1.0 / (2.0 * PI);
                     ivec2 newHitTexelPos;
-                    vec3 prevSample = ssgiEval(viewPos, gData, prevSampleDirView, prevSamplePdf, newHitTexelPos) * prevSamplePdf;
+                    vec3 prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, newHitTexelPos);
                         float prevPHatY = length(prevSample);
                         restir_updateReservoirWY(prevReservoir, prevPHatY);
                         float prevWi = prevPHatY * prevReservoir.wY * float(prevReservoir.m);
