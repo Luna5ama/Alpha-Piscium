@@ -14,7 +14,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp2;
 
 float edgeReductionFactor(vec2 screenPos) {
@@ -165,7 +165,7 @@ void main() {
             //            vec3 refractColor = texture(usam_main, refractCoord).rgb;
 
             float MDotV = dot(microNormal, viewDir);
-            imageStore(uimg_temp1, texelPos, vec4(refractColor, MDotV));
+            imageStore(uimg_temp3, texelPos, vec4(refractColor, MDotV));
 
             SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.05);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);

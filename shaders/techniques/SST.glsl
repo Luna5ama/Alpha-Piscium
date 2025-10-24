@@ -18,6 +18,7 @@
     Credit:
         - GeforceLegend (https://github.com/GeForceLegend) - Helping with optimizations.
 */
+#include "/util/Coords.glsl"
 
 struct SSTResult {
     bool hit;

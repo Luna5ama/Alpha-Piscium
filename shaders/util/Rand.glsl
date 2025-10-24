@@ -86,4 +86,14 @@ vec3 rand_sampleInCone(vec3 center, float coneHalfAngle, vec2 rand) {
     return normalize(cosAlpha * center + sinAlpha * (cos(phi) * u + sin(phi) * v));
 }
 
+vec3 rand_sampleInHemistexelPosphere(vec2 rand) {
+    float phi = PI_2 * rand.y;
+    float theta = acos(rand.x);
+    float cosTheta = cos(theta);
+    float sinTheta = sqrt(1.0 - cosTheta * cosTheta);
+    float cosPhi = cos(phi);
+    float sinPhi = sin(phi);
+    return vec3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
+}
+
 #endif

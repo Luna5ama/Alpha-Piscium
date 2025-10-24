@@ -75,7 +75,7 @@ const int shadowcolor6Format = RGB10_A2; // Water normal
 
 const bool colortex0Clear = false;
 
-const bool colortex1Clear = true;
+const bool colortex1Clear = false;
 const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const bool colortex2Clear = true;
 const vec4 colortex2ClearColor = vec4(0.0, 0.0, 0.0, 0.0);

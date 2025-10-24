@@ -57,7 +57,7 @@ void main() {
             float pdfRatio = 1.0;
             bsdf_SphericalCapBoundedWithPDFRatio(noiseV, localViewDir, vec2(material.roughness), pdfRatio);
 
-            vec4 sstData1 = texelFetch(usam_temp1, texelPos, 0);
+            vec4 sstData1 = texelFetch(usam_temp3, texelPos, 0);
             vec4 sstData2 = texelFetch(usam_temp2, texelPos, 0);
             vec3 refractColor = sstData1.xyz;
             vec3 reflectColor = sstData2.xyz;

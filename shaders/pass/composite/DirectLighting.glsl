@@ -20,6 +20,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
 layout(rgba16f) uniform restrict image2D uimg_csrgba16f;
+layout(rgba16f) uniform restrict image2D uimg_temp2;
 layout(rg32ui) uniform restrict uimage2D uimg_packedZN;
 layout(r32ui) uniform writeonly uimage2D uimg_geometryNormal;
 
@@ -69,8 +70,8 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
     directDiffuseOut /= material.albedo;
 
     ssgiOut += emissiveV;
-    ssgiOut += combinedLighting.diffuseLambertian * 4.0;
-    ssgiOut += combinedLighting.sss * 4.0;
+    ssgiOut += combinedLighting.diffuseLambertian;
+//    ssgiOut += combinedLighting.sss * 4.0;
 }
 
 void main() {
@@ -102,6 +103,7 @@ void main() {
 
                 uvec2 radianceData = imageLoad(uimg_packedZN, radianceTexelPos).xy;
                 vec4 ssgiOut = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
+                ssgiOut = vec4(0.0);
 
                 vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
                 vec3 directDiffuseOut = vec3(0.0);
@@ -137,6 +139,7 @@ void main() {
 
                 imageStore(uimg_csrgba16f, csrgba16f_temp2_texelToTexel(texelPos), vec4(directDiffuseOut, 0.0));
                 imageStore(uimg_main, texelPos, mainOut);
+                imageStore(uimg_temp2, texelPos, mainOut);
                 return;
             }
         }
