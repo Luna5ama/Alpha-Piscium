@@ -48,12 +48,15 @@ float waveHeight(vec3 wavePos, bool base) {
 
     if (base) {
         #ifdef DISTANT_HORIZONS
-        wave += amp * sampleNoise((waveTexCoord + curl + waveTime * 0.31) * vec2(0.1, 0.06)) * 2.0;
+        wave += amp * sampleNoise((waveTexCoord + curl + waveTime * 0.31) * vec2(0.1, 0.06)) * 2.0; // 0.8
         #endif
-        wave += amp * sampleNoise((waveTexCoord + curl + waveTime * 0.29) * vec2(0.5, 0.8));
+        wave += amp * sampleNoise((waveTexCoord + curl + waveTime * 0.29) * vec2(0.5, 0.8)); // 1.2
     }
 
-    amp *= -0.38;
+    // base [0.0, 1.2]
+
+    // detail [-0.8349056, 0.0]
+    amp *= -0.38; // -0.152
     waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord * 2.23);
     curl = MAT2_GOLDEN_ANGLE * (curl * 1.85);
     {
@@ -64,15 +67,15 @@ float waveHeight(vec3 wavePos, bool base) {
         curl += textureLod(usam_waveHFCurl, curlCoord2, 0.0).rg * 0.021;
     }
 
-    wave += amp * sampleNoise((waveTexCoord + curl - waveTime * 0.86) * vec2(-0.85, 0.52));
+    wave += amp * sampleNoise((waveTexCoord + curl - waveTime * 0.86) * vec2(-0.85, 0.52)); // -0.152
 
-    amp *= 2.08;
+    amp *= 2.08; // -0.31616
     waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord * 1.03 - waveTime * 2.17);
     curl = MAT2_GOLDEN_ANGLE * (curl * 1.65);
 
-    wave -= amp * pow2(sampleNoise((waveTexCoord + curl) * vec2(-0.13, -0.36))) * 2.0;
+    wave += amp * (sampleNoise((waveTexCoord + curl) * vec2(-0.13, -0.36))) * 2.0; // -0.78432
 
-    amp *= 0.16;
+    amp *= 0.16; // -0.0505856
     waveTexCoord = MAT2_GOLDEN_ANGLE * (waveTexCoord * 2.02 - waveTime * 2.48);
     curl = MAT2_GOLDEN_ANGLE * (curl * 1.25);
 
@@ -86,7 +89,7 @@ float waveHeight(vec3 wavePos, bool base) {
         curl += textureLod(usam_waveHFCurl, curlCoord2, 0.0).rg * 0.038;
     }
 
-    wave += amp * sampleNoise((waveTexCoord + curl) * vec2(-0.57, -0.89) + waveTime * vec2(1.6, -5.8));
+    wave += amp * sampleNoise((waveTexCoord + curl) * vec2(-0.57, -0.89) + waveTime * vec2(1.6, -5.8)); // -0.8349056
 
     return wave;
 }
