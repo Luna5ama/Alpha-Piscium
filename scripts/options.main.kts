@@ -1275,23 +1275,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                toggle("SETTING_WATER_PARALLEX", true) {
+                toggle("SETTING_WATER_PARALLAX", true) {
                     lang {
                         name = "Water Parallax"
                     }
                 }
-                slider("SETTING_WATER_PARALLEX_STRENGTH", 1.0, 0.0..2.0 step 0.05) {
+                slider("SETTING_WATER_PARALLAX_STRENGTH", 1.0, 0.0..4.0 step 0.5) {
                     lang {
                         name = "Water Parallax Strength"
                     }
                 }
-                slider("SETTING_WATER_PARALLEX_STEPS", 16, powerOfTwoRangeAndHalf(2..6)) {
+                slider("SETTING_WATER_PARALLAX_LINEAR_STEPS", 8, powerOfTwoRangeAndHalf(2..5)) {
                     lang {
-                        name = "Water Parallax Steps"
+                        name = "Water Parallax Linear Steps"
+                    }
+                }
+                slider("SETTING_WATER_PARALLAX_SECANT_STEPS", 2, 1..8) {
+                    lang {
+                        name = "Water Parallax Secant Steps"
                     }
                 }
                 empty()
-                slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..2.0 step 0.05) {
+                slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..4.0 step 0.5) {
                     lang {
                         name = "Water Normal Scale"
                     }

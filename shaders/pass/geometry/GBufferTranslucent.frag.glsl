@@ -144,12 +144,13 @@ GBufferData processOutput() {
         vec2 avgNoise = subgroupAdd(vec2(noiseIGN, 1.0));
         bool detail = maxLen * 0.2 > (avgNoise.x / avgNoise.y);
 
-        #ifdef SETTING_WATER_PARALLEX
-        const uint MAX_STEPS = uint(SETTING_WATER_PARALLEX_STEPS);
-        const float PARALLEX_STRENGTH = float(SETTING_WATER_PARALLEX_STRENGTH);
+        #ifdef SETTING_WATER_PARALLAX
+        const uint PARALLAX_LINEAR_STEPS = uint(SETTING_WATER_PARALLAX_LINEAR_STEPS);
+        const uint PARALLAX_SECANT_STEPS = uint(SETTING_WATER_PARALLAX_SECANT_STEPS);
+        const float PARALLAX_STRENGTH = float(SETTING_WATER_PARALLAX_STRENGTH) * 2.0;
 
         vec3 rayVector = scenePos / abs(scenePos.y); // y = +-1 now
-        rayVector.xz *= WAVE_POS_BASE * PARALLEX_STRENGTH;
+        rayVector.xz *= WAVE_POS_BASE * PARALLAX_STRENGTH;
         float rayVectorLength = length(rayVector);
 
         vec3 rayDir = rayVector / rayVectorLength;
@@ -157,11 +158,11 @@ GBufferData processOutput() {
         const float WAVE_Y_OFFSET = 0.0;
         const float MAX_WAVE_HEIGHT = 0.65;
         float rayLength = rayVectorLength * MAX_WAVE_HEIGHT;
-        float rayStepLength = rayLength / float(MAX_STEPS);
+        float rayStepLength = rayLength / float(PARALLAX_LINEAR_STEPS);
 
         vec2 prevXY = vec2(0.0);
 
-        for (uint i = 0u; i < MAX_STEPS; i++) {
+        for (uint i = 0u; i < PARALLAX_LINEAR_STEPS; i++) {
             float fi = float(i) * rayStepLength;
             vec3 sampleDelta = rayDir * fi;
 
@@ -175,8 +176,7 @@ GBufferData processOutput() {
                 vec2 upper = vec2(fi, sampleHeight);
                 vec2 lower = prevXY;
                 float viewSlope = rayDir.y;
-                float bestDepth = upper.y;
-                for (uint j = 0u; j < 4; j++) {
+                for (uint j = 0u; j < PARALLAX_SECANT_STEPS; j++) {
                     float lineSlope = (upper.y - lower.y) / (upper.x - lower.x);
                     float lineIntercept = upper.y - lineSlope * upper.x;
 
@@ -195,7 +195,7 @@ GBufferData processOutput() {
                     } else {
                         lower = vec2(interceptPoint, sampleHeight);
                     }
-                    bestDepth = sampleHeight;
+                    fi = interceptPoint;
                 }
 
                 waveWorldPos = samplePos;
