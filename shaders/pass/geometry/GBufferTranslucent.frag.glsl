@@ -33,7 +33,7 @@ flat in uint frag_midBlock;
 in vec3 frag_offsetToCenter;
 
 vec3 viewPos = vec3(0.0);
-float fuckO = 0.0;
+float zOffset = 0.0;
 
 /* RENDERTARGETS:8,9,11 */
 layout(location = 0) out uvec4 rt_gbufferData1;
@@ -156,7 +156,10 @@ GBufferData processOutput() {
 
         const float WAVE_Y_OFFSET = 0.0;
         const float MAX_WAVE_HEIGHT = 0.65;
-        float rayStepLength = (rayVectorLength * MAX_WAVE_HEIGHT) / float(MAX_STEPS);
+        float rayLength = rayVectorLength * MAX_WAVE_HEIGHT;
+        float rayStepLength = rayLength / float(MAX_STEPS);
+
+        vec2 prevXY = vec2(0.0);
 
         for (uint i = 0u; i < MAX_STEPS; i++) {
             float fi = float(i) * rayStepLength;
@@ -167,11 +170,40 @@ GBufferData processOutput() {
             float sampleHeight = waveHeight(samplePos, false);
             float currHeight = WAVE_Y_OFFSET + sampleDelta.y;
 
+
             if (currHeight < sampleHeight) {
+                vec2 upper = vec2(fi, sampleHeight);
+                vec2 lower = prevXY;
+                float viewSlope = rayDir.y;
+                float bestDepth = upper.y;
+                for (uint j = 0u; j < 4; j++) {
+                    float lineSlope = (upper.y - lower.y) / (upper.x - lower.x);
+                    float lineIntercept = upper.y - lineSlope * upper.x;
+
+                    float dem = viewSlope - lineSlope;
+                    float interceptPoint = lineIntercept / dem;
+
+                    vec3 posOffset = interceptPoint * rayDir;
+                    posOffset.y = 0.0;
+                    float intDepth = viewSlope * interceptPoint;
+
+                    samplePos = waveWorldPos + posOffset;
+                    float sampleHeight = waveHeight(samplePos, false);
+
+                    if (sampleHeight < intDepth) {
+                        upper = vec2(interceptPoint, sampleHeight);
+                    } else {
+                        lower = vec2(interceptPoint, sampleHeight);
+                    }
+                    bestDepth = sampleHeight;
+                }
+
                 waveWorldPos = samplePos;
-                fuckO = fi;
+                zOffset = fi;
                 break;
             }
+
+            prevXY = vec2(fi, sampleHeight);
         }
         #endif
 
@@ -288,7 +320,7 @@ void main() {
     }
 
     float offsetViewZ = frag_viewZ;
-    offsetViewZ -= fuckO;
+    offsetViewZ -= zOffset;
     imageAtomicMin(uimg_csr32f, nearDepthTexelPos, floatBitsToInt(-offsetViewZ));
     vec4 midBlockDecoded = unpackUnorm4x8(frag_midBlock);
     if (!isWater) {
