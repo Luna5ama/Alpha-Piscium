@@ -53,8 +53,9 @@ void main() {
         float translucentStartViewZ = -texelFetch(usam_csr32f, translucentNearDepthTexelPos, 0).r;
 
         float startViewZ = max(translucentStartViewZ, waterStartViewZ);
+        float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
-        if (startViewZ > -65536.0) {
+        if (startViewZ > -65536.0 && startViewZ > solidViewZ) {
             GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);

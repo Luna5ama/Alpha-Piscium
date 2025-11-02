@@ -37,7 +37,10 @@ void main() {
         //            float startViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         float startViewZ = max(translucentStartViewZ, waterStartViewZ);
 
-        if (startViewZ > -65536.0) {
+
+        float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+
+        if (startViewZ > -65536.0 && startViewZ > solidViewZ) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
             vec3 startViewPos = coords_toViewCoord(screenPos, startViewZ, global_camProjInverse);
 
