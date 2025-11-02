@@ -1,3 +1,9 @@
+/*
+    References:
+        [GIL23] Risser, Eric et.al. "Faster Relief Mapping Using the Secant Method". 2011.
+            https://doi.org/10.1080/2151237X.2007.10129244
+*/
+
 #extension GL_KHR_shader_subgroup_vote : enable
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
@@ -139,30 +145,32 @@ GBufferData processOutput() {
         bool detail = maxLen * 0.2 > (avgNoise.x / avgNoise.y);
 
         #ifdef SETTING_WATER_PARALLEX
-        if (detail) {
-            const uint MAX_STEPS = uint(SETTING_WATER_PARALLEX_STEPS);
-            const float PARALLEX_STRENGTH = float(SETTING_WATER_PARALLEX_STRENGTH);
+        const uint MAX_STEPS = uint(SETTING_WATER_PARALLEX_STEPS);
+        const float PARALLEX_STRENGTH = float(SETTING_WATER_PARALLEX_STRENGTH);
 
-            vec3 rayDir = scenePos / abs(scenePos.y);
-            rayDir.xz *= WAVE_POS_BASE * PARALLEX_STRENGTH;
-            const float WAVE_Y_OFFSET = -0.05;
-            const float MAX_WAVE_HEIGHT = 0.65;
-            float rayStepLength = MAX_WAVE_HEIGHT / float(MAX_STEPS);
+        vec3 rayVector = scenePos / abs(scenePos.y); // y = +-1 now
+        rayVector.xz *= WAVE_POS_BASE * PARALLEX_STRENGTH;
+        float rayVectorLength = length(rayVector);
 
-            for (uint i = 0u; i < MAX_STEPS; i++) {
-                float fi = float(i) + 0.5;
-                vec3 sampleDelta = rayDir * fi * rayStepLength;
+        vec3 rayDir = rayVector / rayVectorLength;
 
-                vec3 samplePos = waveWorldPos + sampleDelta;
-                samplePos.y = waveWorldPos.y;
-                float sampleHeight = waveHeight(samplePos, false);
+        const float WAVE_Y_OFFSET = 0.0;
+        const float MAX_WAVE_HEIGHT = 0.65;
+        float rayStepLength = (rayVectorLength * MAX_WAVE_HEIGHT) / float(MAX_STEPS);
 
-                float currHeight = WAVE_Y_OFFSET + sampleDelta.y;
-                if (currHeight < sampleHeight) {
-                    waveWorldPos = samplePos;
-                    fuckO = (fi * rayStepLength + -0.5 * MAX_WAVE_HEIGHT) * 0.5 * PARALLEX_STRENGTH;
-                    break;
-                }
+        for (uint i = 0u; i < MAX_STEPS; i++) {
+            float fi = float(i) * rayStepLength;
+            vec3 sampleDelta = rayDir * fi;
+
+            vec3 samplePos = waveWorldPos + sampleDelta;
+            samplePos.y = waveWorldPos.y;
+            float sampleHeight = waveHeight(samplePos, false);
+            float currHeight = WAVE_Y_OFFSET + sampleDelta.y;
+
+            if (currHeight < sampleHeight) {
+                waveWorldPos = samplePos;
+                fuckO = fi;
+                break;
             }
         }
         #endif
