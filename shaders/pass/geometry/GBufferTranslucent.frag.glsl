@@ -155,8 +155,8 @@ GBufferData processOutput() {
 
         vec3 rayDir = rayVector / rayVectorLength;
 
-        const float WAVE_Y_OFFSET = 0.0;
-        const float MAX_WAVE_HEIGHT = 0.65;
+        const float WAVE_Y_OFFSET = 0.5;
+        const float MAX_WAVE_HEIGHT = 0.7;
         float rayLength = rayVectorLength * MAX_WAVE_HEIGHT;
         float rayStepLength = rayLength / float(PARALLAX_LINEAR_STEPS);
 
@@ -185,10 +185,14 @@ GBufferData processOutput() {
 
                     vec3 posOffset = interceptPoint * rayDir;
                     posOffset.y = 0.0;
-                    float intDepth = viewSlope * interceptPoint;
+                    float intDepth = WAVE_Y_OFFSET + viewSlope * interceptPoint;
 
                     samplePos = waveWorldPos + posOffset;
                     float sampleHeight = waveHeight(samplePos, false);
+
+                    if (abs(sampleHeight - intDepth) < 0.01) {
+                        break;
+                    }
 
                     if (sampleHeight < intDepth) {
                         upper = vec2(interceptPoint, sampleHeight);
