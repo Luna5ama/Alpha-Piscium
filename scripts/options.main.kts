@@ -472,6 +472,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Emissive Strength"
                     }
                 }
+                slider("SETTING_PARTICLE_EMISSIVE_STRENGTH", 0.2, 0.0..1.0 step 0.1) {
+                    lang {
+                        name = "Particle Emissive Multiplier"
+                    }
+                }
+                slider("SETTING_ENTITY_EMISSIVE_STRENGTH", 0.2, 0.0..1.0 step 0.1) {
+                    lang {
+                        name = "Entity Emissive Multiplier"
+                    }
+                }
                 empty()
                 slider("SETTING_EMISSIVE_PBR_VALUE_CURVE", 0.9, 0.1..4.0 step 0.05) {
                     lang {
@@ -498,12 +508,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_EMISSIVE_ARMOR_GLINT_CURVE", 1.3, 0.1..2.0 step 0.1) {
                     lang {
                         name = "Emissive Armor Glint Curve"
-                    }
-                }
-                empty()
-                toggle("SETTING_EMISSIVE_PARTICLE", true) {
-                    lang {
-                        name = "Emissive Particle"
                     }
                 }
             }

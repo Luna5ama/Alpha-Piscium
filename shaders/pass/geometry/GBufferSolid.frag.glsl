@@ -63,7 +63,7 @@ void processAlbedo() {
     albedo *= vec4(sample2.rgb, sample1.a);
     #endif
 
-    #ifdef GBUFFER_PASS_ENTITY_COLOR
+    #ifdef GBUFFER_PASS_ENTITY
     albedo.rgb = mix(albedo.rgb, entityColor.rgb, entityColor.a);
     #endif
 
@@ -142,14 +142,19 @@ void processData1() {
     gData.materialID = 65533;
     #endif
 
+    #ifdef GBUFFER_PASS_ENTITY
+    gData.pbrSpecular.a *= SETTING_ENTITY_EMISSIVE_STRENGTH;
+    #endif
+
     #ifdef GBUFFER_PASS_PARTICLE
     gData.materialID = 65533u;
-    #ifdef SETTING_EMISSIVE_PARTICLE
-    if (textureQueryLevels(gtexture) == 1) {
-        float particleEmissive = pow2(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_idt(albedo.rgb)));
-        gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + particleEmissive);
+    if (SETTING_PARTICLE_EMISSIVE_STRENGTH > 0.0) {
+        if (textureQueryLevels(gtexture) == 1) {
+            float particleEmissive = pow2(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_idt(albedo.rgb)));
+            particleEmissive *= SETTING_PARTICLE_EMISSIVE_STRENGTH;
+            gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + particleEmissive);
+        }
     }
-    #endif
     #endif
 
     gData.lmCoord = dither_u8(gData.lmCoord, ditherNoise);
