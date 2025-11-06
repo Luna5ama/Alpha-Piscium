@@ -3,7 +3,7 @@ import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-val excluded = setOf("_", "data", "scripts", ".*\\.zip").map { it.toRegex() }
+val included = setOf("shaders", "licenses", "LICENSE", "README.md")
 val commitTag = Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD")).inputStream.bufferedReader().readText().trim()
 
 val currDir = File("")
@@ -17,9 +17,7 @@ ZipOutputStream(File(rootDir, "${rootDir.name.replace("-", " ")} $commitTag.zip"
         .filter { file ->
             val baseDirName = file.relativeTo(rootDir).path.substringBefore(File.separator)
             if (baseDirName.startsWith('.')) return@filter false
-            if (excluded.any { it.matches(baseDirName) }) return@filter false
-
-            return@filter true
+            baseDirName in included
         }
         .forEach { file ->
             val relativePath = file.relativeTo(rootDir).invariantSeparatorsPath
