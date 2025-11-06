@@ -6,6 +6,8 @@
         [INT17] Intel Corporation. "Outdoor Light Scattering Sample". 2017.
             Apache License 2.0. Copyright (c) 2017 Intel Corporation.
             https://github.com/GameTechDev/OutdoorLightScattering
+        [WDT22] Wo De Tian (oh my god). "一个简单的体积云多重散射近似方法" (A Simple Multiple Scattering Approximation for Volumetric Clouds). 2022.
+            https://zhuanlan.zhihu.com/p/457997155
 
         You can find full license texts in /licenses
 */
@@ -199,6 +201,14 @@ ScatteringResult raymarchWaterVolume(
         endLightRayLength
     );
 
+    vec3 inSctrIntMS = volumetrics_intergrateScatteringLerpLightOpticalDepth(
+        WATER_SCATTERING,
+        WATER_EXTINCTION,
+        sqrt(totalRayLength + 4.0), // Make the "water body size" grow slower, also make it starts from 2
+        startLightRayLength,
+        endLightRayLength
+    );
+
     vec3 totalInSctr = vec3(0.0);
 
     float shadowSample = atmosphere_sample_shadow(shadowStart, shadowEnd, jitter);
@@ -207,20 +217,29 @@ ScatteringResult raymarchWaterVolume(
     float atmHeight = atmosphere_height(atmosphere, midPointWorldHeight);
     const vec3 UP_VECTOR = vec3(0.0, 1.0, 0.0);
 
+    // [EPI20] and [WDT22]
+    vec3 vMs = inSctrIntMS / (1.0 - inSctrIntMS) * UNIFORM_PHASE;
+
     {
         float cosZenith = dot(UP_VECTOR, uval_sunDirWorld);
         vec3 atmT = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenith, atmHeight);
-        float sunT1 = phaseV * mix(1.0, shadowSample, shadowIsSun);
+        float shadow = mix(1.0, shadowSample, shadowIsSun);
+        float sunT1 = phaseV * shadow;
         vec3 sunT3 = atmT * SUN_ILLUMINANCE;
-        totalInSctr += inSctrInt * sunT1 * sunT3;
+        vec3 irradiance = sunT1 + vMs; // direct (affected by shadow and phase) + multiple (ignores shadow and use uniform phase)
+        irradiance *= sunT3; // apply sun irradiance to both direct and multiple
+        totalInSctr += inSctrInt * irradiance;
     }
 
     {
         float cosZenith = dot(UP_VECTOR, uval_moonDirWorld);
         vec3 atmT = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenith, atmHeight);
-        float moonT1 = phaseV * mix(shadowSample, 1.0, shadowIsSun);
+        float shadow = mix(1.0, shadowSample, 1.0 - shadowIsSun);
+        float moonT1 = phaseV * shadow;
         vec3 moonT3 = atmT * MOON_ILLUMINANCE;
-        totalInSctr += inSctrInt * moonT1 * moonT3;
+        vec3 irradiance = moonT1 + vMs; // direct (affected by shadow and phase) + multiple (ignores shadow and use uniform phase)
+        irradiance *= moonT3; // apply sun irradiance to both direct and multiple
+        totalInSctr += inSctrInt * irradiance;
     }
 
     vec3 totalTransmittance = exp(-WATER_EXTINCTION * totalRayLength);
