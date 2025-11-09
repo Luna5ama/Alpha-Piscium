@@ -252,6 +252,26 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
     vec3 totalOpticalDepth = computeOpticalDepth(atmosphere, totalDensity);
     result = exp(-totalOpticalDepth);
     #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
+    float rayEndHeight = length(params.rayEnd);
+    const float HEIGHT_EPS = 0.01;
+
+    const vec3 GROUND_ALBEDO_BASE = vec3(ivec3(SETTING_ATM_GROUND_ALBEDO_R, SETTING_ATM_GROUND_ALBEDO_G, SETTING_ATM_GROUND_ALBEDO_B)) / 255.0;
+    vec3 groundAlbedo = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, GROUND_ALBEDO_BASE);
+
+    if (abs(rayEndHeight - atmosphere.bottom) < HEIGHT_EPS) {
+        vec3 upVector = params.rayEnd / rayEndHeight;
+        float cosLightZenith = dot(upVector, lightParams.lightDir);
+        float clampedGroundHeight = max(atmosphere.bottom + HEIGHT_EPS, rayEndHeight);
+        vec3 tLightToGround = atmospherics_air_lut_sampleTransmittance(atmosphere, cosLightZenith, clampedGroundHeight);
+        float tEarth = raySphereIntersectNearest(params.rayEnd, lightParams.lightDir, earthCenter, atmosphere.bottom - HEIGHT_EPS);
+        float earthShadow = float(tEarth < 0.0);
+        float NDotL = saturate(dot(upVector, lightParams.lightDir));
+        float groundLightTerm1 = earthShadow * NDotL * RCP_PI;
+        vec3 groundLightTerm3 = tLightToGround * tSampleToOrigin * groundAlbedo;
+        vec3 groundLighting = groundLightTerm1 * groundLightTerm3;
+        totalInSctr += groundLighting;
+    }
+
     result.inScattering = totalInSctr;
     result.multiSctrAs1 = totalMultiSctrAs1;
     #else

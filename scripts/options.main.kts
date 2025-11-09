@@ -1061,6 +1061,22 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
+                slider("SETTING_ATM_GROUND_ALBEDO_R", 45, 0..255) {
+                    lang {
+                        name = "Ground Albedo Red"
+                    }
+                }
+                slider("SETTING_ATM_GROUND_ALBEDO_G", 89, 0..255) {
+                    lang {
+                        name = "Ground Albedo Green"
+                    }
+                }
+                slider("SETTING_ATM_GROUND_ALBEDO_B", 82, 0..255) {
+                    lang {
+                        name = "Ground Albedo Blue"
+                    }
+                }
+                empty()
                 empty()
                 empty()
                 slider("SETTING_SKYVIEW_RES", 256, powerOfTwoRange(7..10)) {
