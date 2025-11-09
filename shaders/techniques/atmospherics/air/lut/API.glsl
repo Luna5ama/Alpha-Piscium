@@ -26,7 +26,7 @@ vec3 atmospherics_air_lut_sampleTransmittance(AtmosphereParameters atmosphere, f
 }
 
 vec3 atmospherics_air_lut_sampleMultiSctr(AtmosphereParameters atmosphere, float cosLightZenith, float sampleAltitude) {
-    vec2 uv = saturate(vec2(cosLightZenith * 0.5 + 0.5, sampleAltitude / (atmosphere.top - atmosphere.bottom)));
+    vec2 uv = vec2(saturate(cosLightZenith * 0.5 + 0.5), linearStep(atmosphere.bottom, atmosphere.top, sampleAltitude));
     uv = _atmospherics_air_lut_fromUnitToSubUvs(uv, vec2(MULTI_SCTR_LUT_SIZE));
     // Hacky twilight multiple scattering fix
     return texture(usam_multiSctrLUT, uv).rgb * pow6(linearStep(-0.2, 0.0, cosLightZenith));
