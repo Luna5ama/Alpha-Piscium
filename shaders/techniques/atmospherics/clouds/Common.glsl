@@ -16,6 +16,8 @@
             https://github.com/qiutang98/flower
         [QIU23] QiuTang98. "实时体积云渲染的光照细节". 2023
             https://qiutang98.github.io/post/%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93%E5%BC%80%E5%8F%91/%E5%AE%9E%E6%97%B6%E4%BD%93%E7%A7%AF%E4%BA%91%E6%B8%B2%E6%9F%93/
+        [WDT22] Wo De Tian (oh my god). "一个简单的体积云多重散射近似方法" (A Simple Multiple Scattering Approximation for Volumetric Clouds). 2022.
+            https://zhuanlan.zhihu.com/p/457997155
 
         You can find full license texts in /licenses
 */
@@ -126,7 +128,7 @@ void clouds_computeLighting(
     CloudRaymarchLayerParam layerParam,
     CloudRaymarchStepState stepState,
     float sampleDensity,
-    vec3 lightTransmittance,
+    vec3 lightOpticalDepth,
     inout CloudRaymarchAccumState accumState
 ) {
     float cosLightZenith = dot(stepState.upVector, renderParams.lightDir);
@@ -136,33 +138,36 @@ void clouds_computeLighting(
     vec3 sampleExtinction = layerParam.medium.extinction * sampleDensity;
     vec3 sampleOpticalDepth = sampleExtinction * stepState.rayStep.w;
     // See [SCH17]
-    vec3 sampleTransmittance = max(exp(-sampleOpticalDepth), exp(-sampleOpticalDepth * 0.25) * 0.7);
+    vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
     vec3 sampleLightIrradiance = renderParams.lightIrradiance;
-    sampleLightIrradiance *= tLightToSample * lightTransmittance;
+    sampleLightIrradiance *= tLightToSample * exp(-lightOpticalDepth);
     vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
-    sampleAmbientIrradiance *= max(accumState.totalTransmittance, sampleTransmittance);
+
+    vec3 ambLightOpticalDepth = lightOpticalDepth;
+    ambLightOpticalDepth += -log(accumState.totalTransmittance);
+    ambLightOpticalDepth += sampleOpticalDepth;
+    ambLightOpticalDepth /= 3.0;
+    sampleAmbientIrradiance *= exp(-ambLightOpticalDepth);
 
     vec4 multSctrFalloffs = vec4(1.0);
 
     vec3 sampleTotalInSctr = vec3(0.0);
 
-    // See [HIL16] and [QIU25]
-    for (uint i = 0; i < SETTING_CLOUDS_MS_ORDER; i++) {
-        vec3 sampleScatteringMS = sampleScattering * multSctrFalloffs.x;
-        vec3 sampleExtinctionMS = sampleExtinction * multSctrFalloffs.y;
-        vec3 samplePhaseMS = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, multSctrFalloffs.z);
-        vec3 sampleAmbientIrradianceMS = sampleAmbientIrradiance * multSctrFalloffs.w;
+    vec3 sampleInSctr = sampleLightIrradiance * layerParam.medium.phase;
+    sampleInSctr += sampleAmbientIrradiance;
+    sampleInSctr *= sampleScattering;
+    const float D = 0.5;
+    vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
+    vec3 sampleInSctrMS = sampleLightIrradiance;
+    sampleInSctrMS += sampleAmbientIrradiance;
+    sampleInSctrMS *= UNIFORM_PHASE;
+    sampleInSctrMS *= (fMS / (1.0 - fMS));
 
-        vec3 sampleInSctr = sampleLightIrradiance * samplePhaseMS;
-        sampleInSctr += sampleAmbientIrradianceMS;
-        sampleInSctr *= sampleScatteringMS;
-        // See slide 28 at http://www.frostbite.com/2015/08/physically-based-unified-volumetric-rendering-in-frostbite/
-        vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinctionMS;
+    sampleInSctr += sampleInSctrMS;
 
-        sampleTotalInSctr += sampleInSctrInt;
-        multSctrFalloffs *= _CLOUDS_MS_FALLOFFS;
-    }
+    vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
+    sampleTotalInSctr += sampleInSctrInt;
 
     accumState.totalInSctr += sampleTotalInSctr * accumState.totalTransmittance;
     accumState.totalTransmittance *= sampleTransmittance;

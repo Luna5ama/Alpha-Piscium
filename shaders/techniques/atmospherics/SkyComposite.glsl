@@ -170,7 +170,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
                         layerParam,
                         stepState,
                         sampleDensity,
-                        vec3(1.0),
+                        vec3(0.0),
                         ciAccum
                     );
                 };
