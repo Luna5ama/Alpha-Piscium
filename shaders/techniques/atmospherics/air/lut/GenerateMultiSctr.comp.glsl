@@ -64,6 +64,7 @@ void main() {
         lightParams.miePhase = isotopicPhase;
 
         MultiScatteringResult result = raymarchMultiScattering(atmosphere, params, lightParams, randV.z);
+
         vec3 inSctr = result.inScattering * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
         vec3 multiSctrAs1 = result.multiSctrAs1 * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
 
