@@ -1174,12 +1174,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         6 value "4.0 x"
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 64, powerOfTwoRange(2..8)) {
+                slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 16, powerOfTwoRangeAndHalf(2..6)) {
                     lang {
                         name = "Max Accumulation"
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_SHARPENING", 0.25, 0.0..1.0 step 0.05) {
+                slider("SETTING_CLOUDS_LOW_SHARPENING", 0.4, 0.0..1.0 step 0.05) {
                     lang {
                         name = "Sharpening"
                     }

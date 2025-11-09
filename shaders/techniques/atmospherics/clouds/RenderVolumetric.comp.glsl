@@ -111,7 +111,7 @@ void render(ivec2 texelPosDownScale) {
         cuFlag &= uint(cuOrigin2RayStart >= 0.0);
 
         if (bool(cuFlag)) {
-            #define CLOUDS_CU_DENSITY (72.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (128.0 * SETTING_CLOUDS_CU_DENSITY)
 
             const float CLOUDS_CU_MAX_RAY_LENGTH = 20.0;
             float cuRayLen = mainRayParams.rayDir.y < 0.0 ? cuRayLenBot : cuRayLenTop;
@@ -172,7 +172,6 @@ void render(ivec2 texelPosDownScale) {
                     }
                     lightRayTotalDensity *= CLOUDS_CU_DENSITY;
                     vec3 lightRayOpticalDepth = cuMedium.extinction * lightRayTotalDensity;
-                    vec3 lightRayTransmittance = exp(-lightRayOpticalDepth);
 
                     clouds_computeLighting(
                         atmosphere,
@@ -180,7 +179,7 @@ void render(ivec2 texelPosDownScale) {
                         layerParam,
                         stepState,
                         sampleDensity,
-                        lightRayTransmittance,
+                        lightRayOpticalDepth,
                         cuAccum
                     );
                 }
