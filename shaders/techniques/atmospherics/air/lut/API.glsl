@@ -25,11 +25,12 @@ vec3 atmospherics_air_lut_sampleTransmittance(AtmosphereParameters atmosphere, f
     return texture(usam_transmittanceLUT, tLUTUV).rgb;
 }
 
+#define MULTI_SCTR_LUT_QUANTIZATION_MUL 32.0
+
 vec3 atmospherics_air_lut_sampleMultiSctr(AtmosphereParameters atmosphere, float cosLightZenith, float sampleAltitude) {
     vec2 uv = vec2(saturate(cosLightZenith * 0.5 + 0.5), linearStep(atmosphere.bottom, atmosphere.top, sampleAltitude));
     uv = _atmospherics_air_lut_fromUnitToSubUvs(uv, vec2(MULTI_SCTR_LUT_SIZE));
-    // Hacky twilight multiple scattering fix
-    return texture(usam_multiSctrLUT, uv).rgb * pow6(linearStep(-0.2, 0.0, cosLightZenith));
+    return texture(usam_multiSctrLUT, uv).rgb / MULTI_SCTR_LUT_QUANTIZATION_MUL;
 }
 
 vec3 _atmospherics_air_lut_sampleSkyViewSlice(vec2 sliceUV, float sliceIndex) {

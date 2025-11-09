@@ -10,6 +10,7 @@
 
 #include "Common.glsl"
 #include "/util/Rand.glsl"
+#include "/util/NoiseTex.glsl"
 
 #define SAMPLE_COUNT 64
 
@@ -40,7 +41,8 @@ void main() {
     float viewHeight = atmosphere.bottom + saturate(texCoord.y + PLANET_RADIUS_OFFSET) * (atmosphere.top - atmosphere.bottom - PLANET_RADIUS_OFFSET);
 
     {
-        vec3 randV = rand_r2Seq3(gl_LocalInvocationIndex + SAMPLE_COUNT * frameCounter);
+        vec3 randV = rand_r2Seq3(frameCounter);
+        randV = fract(randV + noisetex_blueNoise3D(ivec3(texelPos, int(gl_LocalInvocationIndex))).xyz);
         float randA = randV.x;
         float randB = randV.y;
         float theta = 2.0 * PI * randA;
@@ -83,10 +85,10 @@ void main() {
         if (subgroupElect()) {
             vec3 r = multiSctrAs1Sum;
             vec3 sumOfAllMultiSctrEventsContribution = 1.0 / (1.0 - r);
-            vec3 currResult = inSctrSum * sumOfAllMultiSctrEventsContribution;
+            vec3 currResult = inSctrSum * sumOfAllMultiSctrEventsContribution * MULTI_SCTR_LUT_QUANTIZATION_MUL;
 
             vec4 prevData = imageLoad(uimg_multiSctrLUT, texelPos);
-            imageStore(uimg_multiSctrLUT, texelPos, temporalUpdate(prevData, currResult, 64.0));
+            imageStore(uimg_multiSctrLUT, texelPos, temporalUpdate(prevData, currResult, 64.0, texelPos));
         }
     }
 }
