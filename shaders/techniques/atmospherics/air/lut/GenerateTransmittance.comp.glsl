@@ -38,5 +38,5 @@ void main() {
     vec3 transmittance = raymarchTransmittance(atmosphere, params, jitter);
 
     vec4 prevData = imageLoad(uimg_transmittanceLUT, texelPos);
-    imageStore(uimg_transmittanceLUT, texelPos, temporalUpdate(prevData, transmittance, 32.0));
+    imageStore(uimg_transmittanceLUT, texelPos, temporalUpdate(prevData, transmittance, 32.0, texelPos));
 }

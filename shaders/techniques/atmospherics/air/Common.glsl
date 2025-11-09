@@ -23,6 +23,8 @@
 #include "../Common.glsl"
 #include "Constants.glsl"
 #include "/util/Math.glsl"
+#include "/util/Rand.glsl"
+#include "/util/Dither.glsl"
 #include "/util/PhaseFunc.glsl"
 
 // Calculate the air density ratio at a given height(km) relative to sea level
@@ -140,10 +142,11 @@ vec4 getOutermostScreenPixelCoords() {
     return vec4(-1.0, -1.0, 1.0, 1.0) + vec4(1.0, 1.0, -1.0, -1.0) / uval_mainImageSizeI.xyxy;
 }
 
-vec4 temporalUpdate(vec4 prevData, vec3 currData, float maxFrames) {
+vec4 temporalUpdate(vec4 prevData, vec3 currData, float maxFrames, ivec2 texelPos) {
     vec4 newResult = vec4(0.0);
-    newResult.a = min(prevData.a * global_historyResetFactor + 1.0, maxFrames);
+    newResult.a = min(prevData.a + 1.0, maxFrames);
     newResult.rgb = mix(prevData.rgb, currData, 1.0 / newResult.a);
+    newResult.rgb = dither_fp16(newResult.rgb, rand_stbnVec1(texelPos, frameCounter));
     return newResult;
 }
 
