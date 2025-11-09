@@ -145,6 +145,8 @@ option.SETTING_ATM_ALT_SCALE=Altitude Scale
 option.SETTING_ATM_ALT_SCALE.comment=Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on.
 option.SETTING_ATM_D_SCALE=Distance Scale
 option.SETTING_ATM_D_SCALE.comment=Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on.
+option.SETTING_EPIPOLAR_SLICES=Epipolar Slices
+option.SETTING_SLICE_SAMPLES=Slice Samples
 option.SETTING_ATM_MIE_TURBIDITY=Mie Turbidity
 prefix.SETTING_ATM_MIE_TURBIDITY=2^
 option.SETTING_ATM_MIE_TIME=Time of Day Mie Turbidity
@@ -169,8 +171,6 @@ option.SETTING_ATM_MIE_ABS_MUL=Mie Absorption Multiplier
 option.SETTING_ATM_RAY_SCT_MUL=Rayleigh Scattering Multiplier
 option.SETTING_ATM_OZO_ABS_MUL=Ozone Absorption Multiplier
 option.SETTING_SKYVIEW_RES=Sky View Resolution
-option.SETTING_EPIPOLAR_SLICES=Epipolar Slices
-option.SETTING_SLICE_SAMPLES=Slice Samples
 option.SETTING_DEPTH_BREAK_CORRECTION=Depth Break Correction
 option.SETTING_SKY_SAMPLES=Sky Samples
 option.SETTING_LIGHT_SHAFT_SAMPLES=Light Shaft Samples
