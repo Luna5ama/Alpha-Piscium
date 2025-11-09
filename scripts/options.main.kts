@@ -955,6 +955,18 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             }
             empty()
             empty()
+            slider("SETTING_EPIPOLAR_SLICES", 1024, listOf(256, 512, 1024, 2048)) {
+                lang {
+                    name = "Epipolar Slices"
+                }
+            }
+            slider("SETTING_SLICE_SAMPLES", 512, listOf(128, 256, 512, 1024)) {
+                lang {
+                    name = "Slice Samples"
+                }
+            }
+            empty()
+            empty()
             screen("AIR", 2) {
                 lang {
                     name = "Air"
@@ -1054,16 +1066,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_SKYVIEW_RES", 256, powerOfTwoRange(7..10)) {
                     lang {
                         name = "Sky View Resolution"
-                    }
-                }
-                slider("SETTING_EPIPOLAR_SLICES", 1024, listOf(256, 512, 1024, 2048)) {
-                    lang {
-                        name = "Epipolar Slices"
-                    }
-                }
-                slider("SETTING_SLICE_SAMPLES", 512, listOf(128, 256, 512, 1024)) {
-                    lang {
-                        name = "Slice Samples"
                     }
                 }
                 toggle("SETTING_DEPTH_BREAK_CORRECTION", true) {
