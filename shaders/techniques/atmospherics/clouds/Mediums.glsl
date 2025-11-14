@@ -45,7 +45,8 @@ vec3 _clouds_samplePhaseLUT(float cosTheta, float type) {
     float u = saturate((a0 + a1 * x1 + a2 * x2) * pow(x1, b));
     float v = (type + 0.5) / 3.0;
     // It was encoded from AP0
-    return colors2_constants_idt(colors_LogLuv32ToSRGB(texture(usam_cloudPhases, vec2(u, v))));
+    vec4 rgbm = texture(usam_cloudPhases, vec2(u, v));
+    return colors2_constants_idt(rgbm.rgb * rgbm.a);
 }
 
 vec3 _clouds_cirrusLUTPhase(float cosTheta) {

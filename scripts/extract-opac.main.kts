@@ -1,5 +1,8 @@
 import java.awt.image.BufferedImage
+import java.nio.ByteOrder
+import java.nio.channels.FileChannel
 import java.nio.file.Path
+import java.nio.file.StandardOpenOption
 import javax.imageio.ImageIO
 import kotlin.io.path.*
 import kotlin.math.*
@@ -376,11 +379,6 @@ fun cubicBSplineInterpolate(Xs: DoubleArray, Ys: DoubleArray, xPos: Double): Dou
     return y0 * b0 + y1 * b1 + y2 * b2 + y3 * b3
 }
 
-val phaseLUTWidth = 256
-val outputImagePath = Path("../shaders/textures/opac_cloud_phases.png")
-val outputImage = BufferedImage(phaseLUTWidth, angAndPhaseCols.size, BufferedImage.TYPE_INT_ARGB)
-val outputDataArray = IntArray(4)
-
 fun inversePolynomial(
     y: Double,
     initialGuess: Double = 0.0,
@@ -423,31 +421,78 @@ fun inversePolynomial(
 
 var maxError = Double.MIN_VALUE
 
-angAndPhaseCols.forEachIndexed { index, anglesAndPhase ->
-    val (angles, phaseRGB) = anglesAndPhase
-    repeat(phaseLUTWidth) { px ->
-        val px01 = px.toDouble() / (phaseLUTWidth - 1)
-        var theta = when(px01) {
-            0.0 -> 0.0
-            1.0 -> PI
-            else -> inversePolynomial(px01, 1e-10)
-        }
-        val thetaDeg = Math.toDegrees(theta)
-        val rgbValue = (0..<3).map { rgbIndex ->
-            cubicBSplineInterpolate(angles, phaseRGB[rgbIndex], thetaDeg)
-        }.toDoubleArray()
-        val logluv32Value = sRGBToLogLuv(rgbValue)
-        val rgbValueBack = logLuv32TosRGB(logluv32Value)
-        maxError = max(maxError, (rgbValue zip rgbValueBack).maxOf {
-            abs(it.first - it.second) / it.first
-        })
-        outputDataArray.indices.forEach { i ->
-            outputDataArray[i] = (logluv32Value[i] * 255.0).toInt().coerceIn(0, 255)
-        }
-        outputImage.raster.setPixel(px, index, outputDataArray)
-    }
+fun Double.toHalf() = java.lang.Float.floatToFloat16(this.toFloat())
+fun Short.halfToDouble() = java.lang.Float.float16ToFloat(this).toDouble()
+
+fun RGBToRGBM(rgb: DoubleArray, m: Double): ShortArray {
+    val maxV = rgb.max()
+    val d = maxV / m
+    return shortArrayOf(
+        (rgb[0] / d).toHalf(),
+        (rgb[1] / d).toHalf(),
+        (rgb[2] / d).toHalf(),
+        (d).toHalf()
+    )
 }
 
-ImageIO.write(outputImage, "png", outputImagePath.toFile())
+fun RGBMToRGB(rgbm: ShortArray): DoubleArray {
+    val rgbmDouble = doubleArrayOf(
+        rgbm[0].halfToDouble(),
+        rgbm[1].halfToDouble(),
+        rgbm[2].halfToDouble(),
+        rgbm[3].halfToDouble()
+    )
+
+    val d = rgbmDouble[3]
+    return doubleArrayOf(
+        rgbmDouble[0] * d,
+        rgbmDouble[1] * d,
+        rgbmDouble[2] * d
+    )
+}
+
+
+
+val phaseLUTWidth = 256
+val phaseLUTHeight = angAndPhaseCols.size
+val outputSize = phaseLUTWidth.toLong() * phaseLUTHeight.toLong() * 2L * 4L // RGBA16F
+val outputImagePath = Path("../shaders/textures/opac_cloud_phases.bin")
+println("$phaseLUTWidth x $phaseLUTHeight -> ${outputSize / (1024 * 1024)} MB")
+
+FileChannel.open(
+    outputImagePath,
+    StandardOpenOption.CREATE,
+    StandardOpenOption.READ,
+    StandardOpenOption.WRITE,
+    StandardOpenOption.TRUNCATE_EXISTING
+).use { outputChannel ->
+    val mapped = outputChannel.map(FileChannel.MapMode.READ_WRITE, 0L, outputSize)
+        .order(ByteOrder.nativeOrder())
+    angAndPhaseCols.forEachIndexed { index, anglesAndPhase ->
+        val (angles, phaseRGB) = anglesAndPhase
+        val maxVal = phaseRGB.maxOf { it.max() }
+        val mDiv = sqrt(maxVal)
+        repeat(phaseLUTWidth) { px ->
+            val px01 = px.toDouble() / (phaseLUTWidth - 1)
+            var theta = when(px01) {
+                0.0 -> 0.0
+                1.0 -> PI
+                else -> inversePolynomial(px01, 1e-10)
+            }
+            val thetaDeg = Math.toDegrees(theta)
+            val rgbValue = (0..<3).map { rgbIndex ->
+                cubicBSplineInterpolate(angles, phaseRGB[rgbIndex], thetaDeg)
+            }.toDoubleArray()
+            val logluv32Value = RGBToRGBM(rgbValue, mDiv)
+            val rgbValueBack = RGBMToRGB(logluv32Value)
+            maxError = max(maxError, (rgbValue zip rgbValueBack).maxOf {
+                abs(it.first - it.second) / it.first
+            })
+            logluv32Value.forEach {
+                mapped.putShort(it)
+            }
+        }
+    }
+}
 
 println("Max error: $maxError")
