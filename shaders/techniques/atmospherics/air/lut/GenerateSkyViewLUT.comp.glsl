@@ -170,7 +170,7 @@ void main() {
         float sunZenithCosAngle = dot(upVector, uval_sunDirWorld);
         float sunZenithSinAngle = sqrt(saturate(1.0 - pow2(sunZenithCosAngle)));
         vec3 sunDir = normalize(vec3(sunZenithSinAngle, sunZenithCosAngle, 0.0));
-        lightParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, sunDir, rayDir);
+        lightParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE, sunDir, rayDir);
     }
 
     float groundFactor = exp2(-4.0 * (viewHeight - atmosphere.bottom));

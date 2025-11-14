@@ -145,7 +145,7 @@ ScatteringResult raymarchScreenViewAtmosphere(ivec2 texelPos, float startZ, floa
     RaymarchParameters params = raymarchParameters_init();
     params.rayStart = atmosphere_viewToAtm(atmosphere, startViewPos);
     params.steps = steps;
-    LightParameters sunParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, uval_sunDirWorld, rayDir);
+    LightParameters sunParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE , uval_sunDirWorld, rayDir);
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParam, moonParams, multiSctrFactor);
 

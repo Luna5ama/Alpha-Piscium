@@ -33,7 +33,7 @@ ScatteringResult computeSingleScattering(AtmosphereParameters atmosphere, vec3 r
     params.rayStart.y = max(params.rayStart.y, atmosphere.bottom + 1.0);
     params.steps = SETTING_SKY_SAMPLES;
 
-    LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, uval_sunDirWorld, rayDir);
+    LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParams, moonParams, 1.0);
 

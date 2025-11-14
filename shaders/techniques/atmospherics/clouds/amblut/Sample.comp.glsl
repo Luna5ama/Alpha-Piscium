@@ -31,7 +31,7 @@ void main() {
     params.rayStart = vec3(0.0, lutHeight, 0.0);
     params.steps = 64u;
 
-    LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE * PI, uval_sunDirWorld, rayDir);
+    LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
     LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParams, moonParams, 1.0);
 
@@ -39,6 +39,38 @@ void main() {
     const vec3 earthCenter = vec3(0.0);
     if (setupRayEnd(atmosphere, params, rayDir)) {
         result = raymarchSky(atmosphere, params, scatteringParams);
+
+        const vec3 GROUND_ALBEDO_BASE = vec3(ivec3(SETTING_ATM_GROUND_ALBEDO_R, SETTING_ATM_GROUND_ALBEDO_G, SETTING_ATM_GROUND_ALBEDO_B)) / 255.0;
+        vec3 groundAlbedo = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, GROUND_ALBEDO_BASE);
+
+        const float HEIGHT_EPS = 0.01;
+        float rayEndHeight = length(params.rayEnd);
+        if (abs(rayEndHeight - atmosphere.bottom) < HEIGHT_EPS) {
+            vec3 upVector = params.rayEnd / rayEndHeight;
+            float clampedGroundHeight = max(atmosphere.bottom + HEIGHT_EPS, rayEndHeight);
+            {
+                float cosLightZenith = dot(upVector, uval_sunDirWorld);
+                vec3 tLightToGround = atmospherics_air_lut_sampleTransmittance(atmosphere, cosLightZenith, clampedGroundHeight);
+                float tEarth = raySphereIntersectNearest(params.rayEnd, uval_sunDirWorld, earthCenter, atmosphere.bottom - HEIGHT_EPS);
+                float earthShadow = float(tEarth < 0.0);
+                float NDotL = saturate(dot(upVector, uval_sunDirWorld));
+                float groundLightTerm1 = earthShadow * NDotL * RCP_PI;
+                vec3 groundLightTerm3 = tLightToGround * result.transmittance * groundAlbedo;
+                vec3 groundLighting = groundLightTerm1 * groundLightTerm3;
+                result.inScattering += groundLighting * SUN_ILLUMINANCE;
+            }
+            {
+                float cosLightZenith = dot(upVector, uval_moonDirWorld);
+                vec3 tLightToGround = atmospherics_air_lut_sampleTransmittance(atmosphere, cosLightZenith, clampedGroundHeight);
+                float tEarth = raySphereIntersectNearest(params.rayEnd, uval_moonDirWorld, earthCenter, atmosphere.bottom - HEIGHT_EPS);
+                float earthShadow = float(tEarth < 0.0);
+                float NDotL = saturate(dot(upVector, uval_moonDirWorld));
+                float groundLightTerm1 = earthShadow * NDotL * RCP_PI;
+                vec3 groundLightTerm3 = tLightToGround * result.transmittance * groundAlbedo;
+                vec3 groundLighting = groundLightTerm1 * groundLightTerm3;
+                result.inScattering += groundLighting * (MOON_ILLUMINANCE);
+            }
+        }
     }
 
     ssbo_ambLUTWorkingBuffer.rayDir[gl_GlobalInvocationID.x] = vec2(phi, theta);

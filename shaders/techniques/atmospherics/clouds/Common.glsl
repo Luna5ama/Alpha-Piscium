@@ -144,11 +144,14 @@ void clouds_computeLighting(
     sampleLightIrradiance *= tLightToSample * exp(-lightOpticalDepth);
     vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
 
-    vec3 ambLightOpticalDepth = lightOpticalDepth;
+    vec3 ambLightOpticalDepth = 0.5 * lightOpticalDepth;
     ambLightOpticalDepth += -log(accumState.totalTransmittance);
     ambLightOpticalDepth += sampleOpticalDepth;
-    ambLightOpticalDepth /= 3.0;
-    sampleAmbientIrradiance *= exp(-ambLightOpticalDepth);
+    ambLightOpticalDepth /= 2.5;
+    // See [SCH17]
+    vec3 ambientTransmittance = max(exp(-ambLightOpticalDepth), exp(-ambLightOpticalDepth * 0.25) * 0.7);
+
+    sampleAmbientIrradiance *= ambientTransmittance;
 
     vec4 multSctrFalloffs = vec4(1.0);
 
@@ -157,12 +160,13 @@ void clouds_computeLighting(
     vec3 sampleInSctr = sampleLightIrradiance * layerParam.medium.phase;
     sampleInSctr += sampleAmbientIrradiance;
     sampleInSctr *= sampleScattering;
-    const float D = 0.5;
+    const float D = 0.72;
     vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
+    fMS = mix(fMS, fMS * 0.999, smoothstep(0.99, 1.0, fMS));
     vec3 sampleInSctrMS = sampleLightIrradiance;
     sampleInSctrMS += sampleAmbientIrradiance;
-    sampleInSctrMS *= UNIFORM_PHASE;
-    sampleInSctrMS *= (fMS / (1.0 - fMS));
+    sampleInSctrMS *= phasefunc_Rayleigh(renderParams.cosLightTheta);
+    sampleInSctrMS *= fMS / (1.0 - fMS);
 
     sampleInSctr += sampleInSctrMS;
 

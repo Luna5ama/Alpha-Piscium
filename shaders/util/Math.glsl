@@ -1,3 +1,10 @@
+/*
+    References:
+        [WHY23] Whyte, Killian. "Soft Clamp Function". 2023.
+            https://math.stackexchange.com/questions/4726955/trying-to-find-a-soft-clamp-function-a-bit-differenct-characterstics-from-smo
+
+        You can find full license texts in /licenses
+*/
 #ifndef INCLUDE_util_Math_glsl
 #define INCLUDE_util_Math_glsl a
 #include "/Base.glsl"
@@ -146,6 +153,13 @@ float raySphereIntersectNearest(vec3 r0, vec3 rd, vec3 s0, float sR) {
         return max(0.0, sol0);
     }
     return max(0.0, min(sol0, sol1));
+}
+
+// [WHY23]
+float softMin(float x, float maxV) {
+    float phiX = x - maxV / 2.0;
+    float phi = maxV / (1.0 + exp((-4.0 * phiX) / maxV));
+    return min(x, phi);
 }
 
 #endif

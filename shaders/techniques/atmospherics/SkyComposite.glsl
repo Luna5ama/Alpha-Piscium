@@ -78,7 +78,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
     sunLightFactor *= smoothstep(0.76965, 0.75965, sunAngleWarped);
     sunLightFactor *= step(0.5, sunLightFactor);
     vec3 lightDir = mix(uval_moonDirWorld, uval_sunDirWorld, sunLightFactor);
-    vec3 lightIlluminance = mix(MOON_ILLUMINANCE, SUN_ILLUMINANCE * PI, sunLightFactor);
+    vec3 lightIlluminance = mix(MOON_ILLUMINANCE, SUN_ILLUMINANCE, sunLightFactor);
     CloudRenderParams renderParams = cloudRenderParams_init(mainRayParams, lightDir, lightIlluminance);
 
     vec2 jitters = rand_stbnVec2(texelPos, frameCounter);

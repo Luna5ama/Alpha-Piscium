@@ -1174,28 +1174,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         6 value "4.0 x"
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 16, powerOfTwoRangeAndHalf(2..6)) {
+                slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 32, powerOfTwoRangeAndHalf(2..7)) {
                     lang {
                         name = "Max Accumulation"
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_SHARPENING", 0.4, 0.0..1.0 step 0.05) {
+                slider("SETTING_CLOUDS_LOW_CONFIDENCE_CURVE", 4.0, 1.0..8.0 step 0.5) {
                     lang {
-                        name = "Sharpening"
+                        name = "Confidence Curve"
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.5, 0.0..1.0 step 0.05) {
+                slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.25, 0.0..1.0 step 0.05) {
                     lang {
                         name = "Variance Clipping"
                     }
                 }
                 empty()
-                slider("SETTING_CLOUDS_LOW_STEP_MIN", 24, 4..64 step 4) {
+                slider("SETTING_CLOUDS_LOW_STEP_MIN", 24, 16..128 step 8) {
                     lang {
                         name = "Ray Marching Min Step"
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_STEP_MAX", 64, 16..128 step 4) {
+                slider("SETTING_CLOUDS_LOW_STEP_MAX", 72, 32..256 step 8) {
                     lang {
                         name = "Ray Marching Max Step"
                     }
@@ -1212,7 +1212,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         suffix = " km"
                     }
                 }
-                slider("SETTING_CLOUDS_CU_THICKNESS", 1.5, 0.0..4.0 step 0.1) {
+                slider("SETTING_CLOUDS_CU_THICKNESS", 2.0, 0.0..4.0 step 0.1) {
                     lang {
                         name = "Cumulus Thickness"
                         suffix = " km"
@@ -1224,7 +1224,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         suffix = " x"
                     }
                 }
-                slider("SETTING_CLOUDS_CU_COVERAGE", 0.25, 0.0..1.0 step 0.05) {
+                slider("SETTING_CLOUDS_CU_COVERAGE", 0.3, 0.0..1.0 step 0.05) {
                     lang {
                         name = "Cumulus Coverage"
                     }
@@ -1683,13 +1683,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Average Luminance AE Time"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 40, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 30, 1..255) {
                     lang {
                         name = "Average Luminance Minimum Target"
                         comment = "Target average luminance value for dark scene such as caves, indoors, and nighttime."
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 70, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 60, 1..255) {
                     lang {
                         name = "Average Luminance Maximum Target"
                         comment = "Target average luminance value for bright scene such as daytime outdoors."

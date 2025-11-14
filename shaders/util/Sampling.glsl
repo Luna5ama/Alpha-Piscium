@@ -61,7 +61,7 @@ vec4 sampling_gaussianWeights(float t, float sigma) {
 }
 
 vec4 _sampling_sincn(vec4 x) {
-    return mix(vec4(1.0), sin(PI * x) / (PI * x), greaterThan(abs(x), vec4(0.001)));
+    return mix(vec4(1.0), sin(PI * x) / (PI * x), greaterThan(abs(x), vec4(0.00001)));
 }
 
 vec4 _sampling_lanczoc2(vec4 x) {
@@ -72,6 +72,16 @@ vec4 _sampling_lanczoc2(vec4 x) {
 vec4 sampling_lanczoc2Weights(float t) {
     vec4 x = vec4(t) + vec4(1.0, 0.0, -1.0, -2.0);
     return _sampling_lanczoc2(x);
+}
+
+vec4 _sampling_lanczoc22(vec4 x) {
+    return _sampling_sincn(x) * _sampling_sincn(0.5 * x);
+}
+
+vec4 sampling_lanczoc2Weights(float t, float w) {
+    vec4 x = vec4(t) + (vec4(1.0, 0.0, -1.0, -2.0) + 0.5) * w - 0.5;
+//    x = clamp(x, -2.0 / w, 2.0 / w);
+    return _sampling_lanczoc22(x);
 }
 
 #if DERIVATIVE_AVAILABLE

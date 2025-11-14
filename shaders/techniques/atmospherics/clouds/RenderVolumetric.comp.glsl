@@ -18,6 +18,24 @@ layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
 
 const float TRANSMITTANCE_EPSILON = 0.01;
 
+float EvalIGN(vec2 uv)
+{
+    uint frame = uint(frameCounter);
+
+    //frame += WellonsHash2(WeylHash(uvec2(uv)/4u)) % 4u;
+
+    if((frame & 2u) != 0u) uv = vec2(-uv.y, uv.x);
+    if((frame & 1u) != 0u) uv.x = -uv.x;
+
+    //return fract(52.9829189 * fract(dot(uv, vec2(0.06711056, 0.00583715))) + float(frame)*0.41421356);
+    //return fract(52.9829189 * fract(dot(uv, vec2(0.06711056, 0.00583715))));
+    //return fract(IGN(uv)+float(frame)*0.41421356*1.0);
+
+    // http://extremelearning.com.au/unreasonable-effectiveness-of-quasirandom-sequences/#dither
+    return fract(uv.x*0.7548776662 + uv.y*0.56984029 + float(frame)*0.41421356*1.0);
+}
+
+
 void render(ivec2 texelPosDownScale) {
     vec2 texelPosF = clouds_ss_upscaledTexelCenter(texelPosDownScale);
     float viewZ = -65536.0;
@@ -87,7 +105,7 @@ void render(ivec2 texelPosDownScale) {
     sunLightFactor *= smoothstep(0.76965, 0.75965, sunAngleWarped);
     sunLightFactor *= step(0.5, sunLightFactor);
     vec3 lightDir = mix(uval_moonDirWorld, uval_sunDirWorld, sunLightFactor);
-    vec3 lightIlluminance = mix(MOON_ILLUMINANCE, SUN_ILLUMINANCE * PI, sunLightFactor);
+    vec3 lightIlluminance = mix(MOON_ILLUMINANCE, SUN_ILLUMINANCE, sunLightFactor);
     CloudRenderParams renderParams = cloudRenderParams_init(mainRayParams, lightDir, lightIlluminance);
     CloudRaymarchAccumState cuAccum = clouds_raymarchAccumState_init();
 
@@ -105,18 +123,18 @@ void render(ivec2 texelPosDownScale) {
         float cuRayLenTop = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMaxHeight);
 
         bool inLayer = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5;
-        float cuOrigin2RayStart = inLayer ? 0.0 : min(cuRayLenBot, cuRayLenTop);
+        float cuOrigin2RayStart = inLayer ? 0.0 : (cuHeightDiff < 0.0 ? cuRayLenTop : cuRayLenBot);
 
         uint cuFlag = uint(sign(cuHeightDiff) == sign(mainRayParams.rayDir.y)) | uint(inLayer);
         cuFlag &= uint(cuOrigin2RayStart >= 0.0);
 
         if (bool(cuFlag)) {
-            #define CLOUDS_CU_DENSITY (128.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (256.0 * SETTING_CLOUDS_CU_DENSITY)
 
-            const float CLOUDS_CU_MAX_RAY_LENGTH = 20.0;
+            const float CLOUDS_CU_MAX_RAY_LENGTH = 50.0;
             float cuRayLen = mainRayParams.rayDir.y < 0.0 ? cuRayLenBot : cuRayLenTop;
             cuRayLen -= cuOrigin2RayStart;
-            cuRayLen = cuRayLen <= 0.0 ? 20.0 : cuRayLen;
+            cuRayLen = cuRayLen <= 0.0 ? CLOUDS_CU_MAX_RAY_LENGTH : cuRayLen;
             cuRayLen = min(cuRayLen, CLOUDS_CU_MAX_RAY_LENGTH);
             float cuRaySteps = cuRayLen / CLOUDS_CU_MAX_RAY_LENGTH * float(SETTING_CLOUDS_LOW_STEP_MAX);
             cuRaySteps = max(cuRaySteps, SETTING_CLOUDS_LOW_STEP_MIN);
@@ -136,6 +154,11 @@ void render(ivec2 texelPosDownScale) {
 
             uint cuRayStepsI = uint(cuRaySteps);
 
+            vec2 lightRayJitters = rand_stbnVec2(texelPosDownScale + ivec2(6, 9), frameCounter);
+            vec3 lightRayDir = renderParams.lightDir;
+            // Scale cone radius by 4 to simulate subsurface scattering
+            lightRayDir = rand_sampleInCone(lightRayDir, SUN_ANGULAR_RADIUS * 4.0, lightRayJitters);
+
             for (uint stepIndex = 0; stepIndex < cuRayStepsI; ++stepIndex) {
                 if (stepState.position.w > cuRayLen) break;
 
@@ -151,7 +174,7 @@ void render(ivec2 texelPosDownScale) {
                     float lightRayTotalDensity = 0.0;
                     {
                         float lightRayLen = SETTING_CLOUDS_CU_THICKNESS * 1.0;
-                        vec3 lightRayTotalDelta = renderParams.lightDir * lightRayLen;
+                        vec3 lightRayTotalDelta = lightRayDir * lightRayLen;
                         for (uint lightStepIndex = 0; lightStepIndex < CLOUDS_CU_LIGHT_RAYMARCH_STEP; ++lightStepIndex) {
                             // Use x^2 curve to distribute more samples near the starting point
                             float indexF = float(lightStepIndex);
@@ -162,7 +185,7 @@ void render(ivec2 texelPosDownScale) {
                             if (lightSampleHeight > cuMaxHeight) break;
                             float lightHeightFraction = linearStep(cuMinHeight, cuMaxHeight, lightSampleHeight);
                             float lightSampleDensity = 0.0;
-                            if (clouds_cu_density(lightRaySamplePos, lightHeightFraction, false, lightSampleDensity)) {
+                            if (clouds_cu_density(lightRaySamplePos, lightHeightFraction, true, lightSampleDensity)) {
                                 // (x + c)^2 - (x - c)^2 = 4xc
                                 float x = (indexF + 0.5) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
                                 float lightRayStepLength = 4.0 * x * C * lightRayLen;
@@ -190,13 +213,11 @@ void render(ivec2 texelPosDownScale) {
 
                 clouds_raymarchStepState_update(stepState, float(stepIndex) + jitters.x);
             }
-
-            float aboveFlag = float(cuHeightDiff < 0.0);
         }
     }
 
     CloudSSHistoryData historyData = clouds_ss_historyData_init();
-    historyData.inScattering = cuAccum.totalInSctr;
+    historyData.inScattering = clamp(cuAccum.totalInSctr, 0.0, FP16_MAX);
     historyData.transmittance = cuAccum.totalTransmittance;
     historyData.hLen = 1.0;
     uvec4 packedOutput = uvec4(0u);

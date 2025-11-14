@@ -93,10 +93,11 @@ float atmosphere_heightNoClamping(AtmosphereParameters atmosphere, vec3 worldPos
 }
 
 vec3 atmosphere_viewToAtmNoClamping(AtmosphereParameters atmosphere, vec3 viewPos) {
+    // TODO: higher precision
     vec3 feetPlayer = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
     vec3 world = feetPlayer + cameraPosition;
     float height = atmosphere_heightNoClamping(atmosphere, world);
-    return vec3(feetPlayer.x, 0.0, feetPlayer.z) * (1.0 / float(SETTING_ATM_D_SCALE)) + vec3(0.0, height, 0.0);
+    return vec3(world.x, 0.0, world.z) * (1.0 / float(SETTING_ATM_D_SCALE)) + vec3(0.0, height, 0.0);
 }
 
 void unpackEpipolarData(uvec4 epipolarData, out ScatteringResult sctrResult, out float viewZ) {
