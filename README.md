@@ -1,6 +1,7 @@
 # Alpha Piscium
 Experimental Minecraft shaderpack. ~~(aka. graphics tech demo)~~
 
+Official Website link: https://alphapiscium.org/ \
 Discord server link: https://discord.gg/E2Uq2MmHgq
 
 <img width="2560" height="1441" alt="2025-09-26_03 40 46" src="https://github.com/user-attachments/assets/58c281ec-120e-4376-a0e7-8bb1cde38f27" />
