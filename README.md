@@ -1,5 +1,5 @@
 # Alpha Piscium
-Experimental Minecraft shaderpack. ~~(aka. graphics tech demo)~~
+High-performance realistic Minecraft shaderpack featuring SSVBIL, volumetric clouds, atmospheric scattering, and stunning visual effects.
 
 Official Website link: https://alphapiscium.org/ \
 Discord server link: https://discord.gg/E2Uq2MmHgq
