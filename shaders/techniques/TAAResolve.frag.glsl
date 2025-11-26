@@ -41,10 +41,28 @@ vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST){
     return color;
 }
 
-void updateMoments(vec3 colorSRGB, inout vec3 sum, inout vec3 sqSum) {
-    vec3 color = colors_SRGBToYCoCg(colorSRGB);
-    sum += color;
-    sqSum += color * color;
+struct ColorAABB {
+    vec3 minVal;
+    vec3 maxVal;
+    vec3 moment1;
+    vec3 moment2;
+};
+
+ColorAABB initAABB(vec3 colorYCoCg) {
+    ColorAABB box;
+    box.minVal = colorYCoCg;
+    box.maxVal = colorYCoCg;
+    box.moment1 = colorYCoCg;
+    box.moment2 = colorYCoCg * colorYCoCg;
+    return box;
+}
+
+void updateAABB(vec3 colorSRGB, inout ColorAABB box) {
+    vec3 colorYCoCg = colors_SRGBToYCoCg(colorSRGB);
+    box.minVal = min(box.minVal, colorYCoCg);
+    box.maxVal = max(box.maxVal, colorYCoCg);
+    box.moment1 += colorYCoCg;
+    box.moment2 += colorYCoCg * colorYCoCg;
 }
 
 void main() {
@@ -72,82 +90,82 @@ void main() {
     float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
     float pixelSpeed = length(pixelPosDiff);
 
-    #ifndef SETTING_SCREENSHOT_MODE
-    vec3 curr3x3Avg = vec3(0.0);
-    vec3 curr3x3SqAvg = vec3(0.0);
-    updateMoments(currColor, curr3x3Avg, curr3x3SqAvg);
-    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(-1, 0)).rgb, curr3x3Avg, curr3x3SqAvg);
-    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(1, 0)).rgb, curr3x3Avg, curr3x3SqAvg);
-    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(0, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
-    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(0, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
-    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(-1, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
-    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(1, -1)).rgb, curr3x3Avg, curr3x3SqAvg);
-    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(-1, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
-    updateMoments(textureOffset(usam_main, frag_texCoord, ivec2(1, 1)).rgb, curr3x3Avg, curr3x3SqAvg);
-    curr3x3Avg /= 9.0;
-    curr3x3SqAvg /= 9.0;
+    float lastFrameAccum = texture(usam_taaLast, frag_texCoord).a;
+    float newFrameAccum = lastFrameAccum + 1.0;
 
-    // Ellipsoid intersection clipping by Marty
-    const float clippingEps = FLT_MIN;
-    vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
-    vec3 stddev = sqrt(max(curr3x3SqAvg - curr3x3Avg * curr3x3Avg, clippingEps));
-    vec3 delta = prevColorYCoCg - curr3x3Avg;
-    delta /= max(1.0, length(delta / stddev));
-    prevColorYCoCg = curr3x3Avg + delta;
+    float speedSum = 1.0;
+    speedSum += cameraSpeedDiff * 4.0;
+    speedSum += cameraSpeed * 0.125;
+    speedSum += pixelSpeed * 0.25;
 
-    prevColor = colors_YCoCgToSRGB(prevColorYCoCg);
-    #endif
-
-    float lastMixWeight = texture(usam_taaLast, frag_texCoord).a;
-
-    float mixWeight = 0.95;
-    mixWeight = mix(lastMixWeight, mixWeight, 0.5);
-
+    float extraReset = 1.0;
     #ifdef SETTING_SCREENSHOT_MODE
-    float mixDecrease = 1.0;
-    mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 114514.0));
-    mixDecrease *= (1.0 - saturate(cameraSpeed * 114514.0));
-    mixDecrease *= (1.0 - saturate(pixelSpeed * 114.0));
+    extraReset *= (1.0 - saturate(cameraSpeedDiff * 114514.0));
+    extraReset *= (1.0 - saturate(cameraSpeed * 114514.0));
+    extraReset *= (1.0 - saturate(pixelSpeed * 114.0));
     #ifdef SETTING_SCREENSHOT_MODE_SKIP_INITIAL
-    mixDecrease *= float(frameCounter > 60);
+    extraReset *= float(frameCounter > 60);
     #endif
-    #else
-    float mixDecrease = 1.0;
-    mixDecrease *= (1.0 - saturate(cameraSpeedDiff * 4.0));
-    mixDecrease *= (1.0 - saturate(cameraSpeed * 0.02));
-    mixDecrease *= (1.0 - saturate(pixelSpeed * 0.01));
-    mixDecrease = max(mixDecrease, 0.75);
     #endif
 
-    mixDecrease *= global_historyResetFactor;
-    mixWeight = mixWeight * mixDecrease;
+    {
+        vec3 currColorYCoCg = colors_SRGBToYCoCg(currColor);
+        ColorAABB box = initAABB(currColorYCoCg);
+        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(-1, 0)).rgb, box);
+        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(1, 0)).rgb, box);
+        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(0, -1)).rgb, box);
+        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(0, 1)).rgb, box);
+        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(-1, -1)).rgb, box);
+        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(1, -1)).rgb, box);
+        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(-1, 1)).rgb, box);
+        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(1, 1)).rgb, box);
 
-    float finalMixWeight = mixWeight;
-    finalMixWeight *= (1.0 - min(cameraSpeedDiff * 1.0, 0.5));
+        vec3 mean = box.moment1 / 9.0;
+        vec3 mean2 = box.moment2 / 9.0;
+        vec3 variance = mean2 - mean * mean;
+        vec3 stddev = sqrt(abs(variance));
 
+        vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
+        vec3 varianceAABBMin = mean - stddev * 1.0;
+        vec3 varianceAABBMax = mean + stddev * 1.0;
+
+        const float clippingEps = FLT_MIN;
+        vec3 delta = prevColorYCoCg - mean;
+        delta /= max(1.0, length(delta / stddev));
+
+        vec3 prevColorYCoCgEllipsoid = mean + delta;
+        vec3 prevColorYCoCgAABBClamped = clamp(prevColorYCoCg, box.minVal, box.maxVal);
+
+        float clampWeight = exp2(-speedSum);
+        vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgAABBClamped, clampWeight);
+
+        prevColor = colors_YCoCgToSRGB(prevColorYCoCgClamped);
+    }
+
+    float frameReset = exp2(-log2(speedSum));
+    newFrameAccum *= frameReset;
     #ifdef SETTING_SCREENSHOT_MODE
-    finalMixWeight = clamp(finalMixWeight, 0.0, 0.99);
+    float MIN_ACCUM_FRAMES = 1.0;
+    float MAX_ACCUM_FRAMES = 100.0;
     #else
-    finalMixWeight = clamp(finalMixWeight, 0.5, 0.99);
+    float MIN_ACCUM_FRAMES = 2.0;
+    float MAX_ACCUM_FRAMES = 100.0;
+    if (gData.isHand) {
+        MAX_ACCUM_FRAMES *= 0.1;
+    }
     #endif
 
-    #ifdef SETTING_SCREENSHOT_MODE
-    mixWeight = mix(lastMixWeight + 0.005, mixWeight, 0.05);
-    #else
-    mixWeight = mix(lastMixWeight + 0.01, mixWeight, 0.05);
-    #endif
+    newFrameAccum = clamp(newFrameAccum, MIN_ACCUM_FRAMES, MAX_ACCUM_FRAMES);
 
-    #ifndef SETTING_SCREENSHOT_MODE
-    mixWeight = saturate(mixWeight - float(gData.isHand) * 0.2);
-    #endif
-
+    float finalCurrWeight = 1.0 / newFrameAccum;
     #ifndef SETTING_TAA
-    finalMixWeight = 0.0;
+    finalCurrWeight = 1.0;
     #endif
 
-    rt_out.rgb = mix(currColor, prevColor, finalMixWeight);
+    rt_out.rgb = mix(prevColor, currColor, finalCurrWeight);
     rt_out.a = 1.0;
-    rt_taaLast = vec4(rt_out.rgb, mixWeight);
+
+    rt_taaLast = vec4(rt_out.rgb, newFrameAccum);
 
     float ditherNoise = rand_IGN(intTexCoord, frameCounter);
     rt_taaLast.rgb = dither_fp16(rt_taaLast.rgb, ditherNoise);
