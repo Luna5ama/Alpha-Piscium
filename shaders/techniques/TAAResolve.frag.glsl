@@ -137,9 +137,14 @@ void main() {
         vec3 prevColorYCoCgAABBClamped = clamp(prevColorYCoCg, box.minVal, box.maxVal);
 
         float clampWeight = exp2(-speedSum);
+        clampWeight *= extraReset;
         vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgAABBClamped, clampWeight);
 
+        #ifdef SETTING_SCREENSHOT_MODE
+        prevColor = colors_YCoCgToSRGB(mix(prevColorYCoCgClamped, prevColorYCoCg, extraReset));
+        #else
         prevColor = colors_YCoCgToSRGB(prevColorYCoCgClamped);
+        #endif
     }
 
     float frameReset = exp2(-log2(speedSum));
