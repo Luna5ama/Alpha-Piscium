@@ -46,11 +46,11 @@ void main() {
                 vec3 prevSample = vec3(0.0);
 
                 if (restir_isReservoirValid(temporalReservoir)) {
-                    vec3 prevSampleDirView = temporalReservoir.Y;
+                    vec3 prevSampleDirView = temporalReservoir.Y.xyz;
 //                    float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
                     float prevSamplePdf = 1.0 / (2.0 * PI);
-                    ivec2 newHitTexelPos;
-                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, newHitTexelPos);
+                    float prevHitDistance;
+                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, prevHitDistance);
                     prevPHat = length(prevSample);
                 } else  {
                     temporalReservoir.m = 0u;
@@ -64,9 +64,9 @@ void main() {
                     vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
                     vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
                     float samplePdf = sampleDirTangentAndPdf.w;
-                    ivec2 hitTexelPos;
+                    float hitDistance;
 
-                    vec3 initalSample = ssgiEvalF(viewPos, gData, sampleDirView, hitTexelPos);
+                    vec3 initalSample = ssgiEvalF(viewPos, gData, sampleDirView, hitDistance);
                     float newPHat = length(initalSample);
                     float newWi = newPHat / samplePdf;
 
@@ -74,7 +74,7 @@ void main() {
 
                     float reservoirPHat = prevPHat;
                     vec3 finalSample = prevSample;
-                    if (restir_updateReservoir(temporalReservoir, wSum, sampleDirView, newWi, 1u, reservoirRand1)) {
+                    if (restir_updateReservoir(temporalReservoir, wSum, vec4(sampleDirView, hitDistance), newWi, 1u, reservoirRand1)) {
                         reservoirPHat = newPHat;
                         finalSample = initalSample;
                     }
