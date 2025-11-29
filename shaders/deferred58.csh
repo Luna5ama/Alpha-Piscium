@@ -46,12 +46,9 @@ void main() {
                 vec3 prevSample = vec3(0.0);
 
                 if (restir_isReservoirValid(temporalReservoir)) {
-                    ivec2 prevHitTexelPos = ivec2(temporalReservoir.Y);
-                    float prevHitViewZ = texelFetch(usam_gbufferViewZ, prevHitTexelPos, 0).x;
-                    vec2 prevHitScreenPos = coords_texelToUV(prevHitTexelPos, uval_mainImageSizeRcp);
-                    vec3 prevHitViewPos = coords_toViewCoord(prevHitScreenPos, prevHitViewZ, global_camProjInverse);
-                    vec3 prevSampleDirView = normalize(prevHitViewPos - viewPos);
-                    float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
+                    vec3 prevSampleDirView = temporalReservoir.Y;
+//                    float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
+                    float prevSamplePdf = 1.0 / (2.0 * PI);
                     ivec2 newHitTexelPos;
                     prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, newHitTexelPos);
                     prevPHat = length(prevSample);
@@ -62,8 +59,9 @@ void main() {
                 wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
 
                 {
-                    vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 0)).xy);
-                    vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
+                    vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 12312745u)).zw);
+//                    vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
+                    vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
                     vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
                     float samplePdf = sampleDirTangentAndPdf.w;
                     ivec2 hitTexelPos;
@@ -72,17 +70,17 @@ void main() {
                     float newPHat = length(initalSample);
                     float newWi = newPHat / samplePdf;
 
-                    float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 1)).x);
+                    float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 547679546u)).w);
 
                     float reservoirPHat = prevPHat;
                     vec3 finalSample = prevSample;
-                    if (restir_updateReservoir(temporalReservoir, wSum, hitTexelPos, newWi, 1u, reservoirRand1)) {
+                    if (restir_updateReservoir(temporalReservoir, wSum, sampleDirView, newWi, 1u, reservoirRand1)) {
                         reservoirPHat = newPHat;
                         finalSample = initalSample;
                     }
                     float avgWSum = wSum / float(temporalReservoir.m);
                     temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
-                    temporalReservoir.m = clamp(temporalReservoir.m, 0u, 32u);
+                    temporalReservoir.m = clamp(temporalReservoir.m, 0u, 20u);
                     ssgiOut = vec4(finalSample * temporalReservoir.avgWY, 1.0);
                 }
 

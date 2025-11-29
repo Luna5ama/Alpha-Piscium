@@ -8,24 +8,26 @@
 #include "/techniques/SST.glsl"
 
 #define USE_REFERENCE 0
-#define SKIP_FRAMES 32
-#define MAX_FRAMES 8
+#define SKIP_FRAMES 16
+#define MAX_FRAMES 1024
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 
 layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
 
 struct ReSTIRReservoir {
-    uvec2 Y;// sample hit texel position
+    vec3 Y;// sample hit texel position
     float avgWY;// average unbiased contribution weight
 //    float wSum; // weight sum of all processed samples
     uint m;
+    float valid;
     ivec2 texelPos;
 };
 
 ReSTIRReservoir restir_initReservoir(ivec2 texelPos) {
     ReSTIRReservoir reservoir;
-    reservoir.Y = uvec2(65535u);
+    reservoir.Y = vec3(0.0);
     reservoir.avgWY = 0.0;
+    reservoir.valid = 0.0;
     //    reservoir.wSum = 0.0;
     reservoir.m = 0u;
     reservoir.texelPos = texelPos;
@@ -42,7 +44,9 @@ ReSTIRReservoir restir_initReservoir(ivec2 texelPos) {
 //}
 
 bool restir_isReservoirValid(ReSTIRReservoir reservoir) {
-    return reservoir.Y != uvec2(65535u);
+//    return reservoir.Y != uvec2(65535u);
+//    return reservoir.valid > 0.0;
+    return reservoir.m > 0u;
 }
 
 const float EPSILON = 0.0000001;
@@ -69,12 +73,13 @@ const float EPSILON = 0.0000001;
 //
 //    return false;
 //}
-bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, ivec2 X, float wi, uint m, float rand) {
+bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, vec3 X, float wi, uint m, float rand) {
     wSum += wi;
     reservoir.m += m;
     bool updateCond = rand < wi / wSum;
     if (updateCond) {
-        reservoir.Y = uvec2(X);
+        reservoir.Y = X;
+        reservoir.valid = 1.0;
     }
 
     return updateCond;
@@ -94,13 +99,15 @@ ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
     //    reservoir.Y.x = bitfieldExtract(data1.x, 0, 12);
     //    reservoir.Y.y = bitfieldExtract(data1.x, 12, 12);
     //    reservoir.m = bitfieldExtract(data1.x, 24, 8);
-    reservoir.Y = unpackUInt2x16(data1.x);
+//    reservoir.Y = unpackUInt2x16(data1.x);
+    reservoir.Y = nzpacking_unpackNormalOct32(data1.x);
 
     //    reservoir.pY = uintBitsToFloat(data1.y);
 
     reservoir.m = data1.y;
     reservoir.avgWY = uintBitsToFloat(data1.z);
 //    reservoir.wSum = uintBitsToFloat(data1.w);
+    reservoir.valid = uintBitsToFloat(data1.w);
     reservoir.texelPos = texelPos;
     return reservoir;
 }
@@ -117,12 +124,14 @@ void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIn
     //    data1.x = bitfieldInsert(data1.x, reservoir.Y.x, 0, 12);
     //    data1.x = bitfieldInsert(data1.x, reservoir.Y.y, 12, 12);
     //    data1.x = bitfieldInsert(data1.x, min(reservoir.m, 255u), 24, 8);
-    data1.x = packUInt2x16(reservoir.Y);
+//    data1.x = packUInt2x16(reservoir.Y);
+    data1.x = nzpacking_packNormalOct32(reservoir.Y);
 
     //    data1.y = floatBitsToUint(reservoir.pY);
     data1.y = reservoir.m;
     data1.z = floatBitsToUint(reservoir.avgWY);
 //    data1.w = floatBitsToUint(reservoir.wSum);
+    data1.w = floatBitsToUint(reservoir.valid);
     imageStore(uimg_csrgba32ui, storeTexelPos, data1);
 }
 
@@ -133,7 +142,7 @@ vec3 ssgiEvalF(vec3 viewPos, GBufferData gData, vec3 sampleDirView, out ivec2 hi
     SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.01);
 
     if (sstResult.hit) {
-        vec3 hitRadiance = texture(usam_temp2, sstResult.hitScreenPos.xy).rgb;
+        vec3 hitRadiance = texelFetch(usam_temp2, ivec2(sstResult.hitScreenPos.xy * uval_mainImageSize), 0).rgb;
         float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
         vec3 f = brdf * hitRadiance;
         result = f;
@@ -172,7 +181,7 @@ vec3 ssgiRef(ivec2 texelPos) {
     float samplePdf = sampleDirTangentAndPdf.w;
 
     if (sstResult.hit) {
-        vec3 hitRadiance = texture(usam_temp2, sstResult.hitScreenPos.xy).rgb;
+        vec3 hitRadiance = texelFetch(usam_temp2, ivec2(sstResult.hitScreenPos.xy * uval_mainImageSize), 0).rgb;
         float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
         vec3 f = brdf * hitRadiance;
         result = f / samplePdf;

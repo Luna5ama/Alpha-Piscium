@@ -17,6 +17,7 @@ void main() {
 }
 #else
 void main() {
+    return;
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     sst_init();
 
@@ -38,7 +39,7 @@ void main() {
                 ReSTIRReservoir originalReservoir = restir_loadReservoir(texelPos, 0);
                 ReSTIRReservoir spatialReservoir = originalReservoir;
 
-                const uint reuseCount = 2u;
+                const uint reuseCount = 0u;
                 const float REUSE_RADIUS = 16.0;
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
@@ -165,14 +166,14 @@ void main() {
                         float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
                         float neighborRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2u + i)).x);
 
-                        restir_updateReservoir(
-                            spatialReservoir,
-                            spatialWSum,
-                            neighborHitTexelPos,
-                            neighborWi,
-                            neighborReservoir.m,
-                            neighborRand
-                        );
+//                        restir_updateReservoir(
+//                            spatialReservoir,
+//                            spatialWSum,
+//                            neighborHitTexelPos,
+//                            neighborWi,
+//                            neighborReservoir.m,
+//                            neighborRand
+//                        );
                     }
                 }
 
