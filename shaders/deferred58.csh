@@ -61,7 +61,6 @@ void main() {
                     ivec2 prevHitTexelPos = ivec2(prevHitScreenPos.xy * uval_mainImageSize);
                     vec3 prevHitRadiance = texelFetch(usam_temp2, prevHitTexelPos, 0).rgb;
                     float brdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
-                    vec3 f = brdf * prevHitRadiance;
                     prevSample = vec4(prevHitRadiance, brdf);
 
                     GBufferData prevGData = gbufferData_init();
@@ -104,7 +103,7 @@ void main() {
                     float samplePdf = brdf;
 
                     float newPHat = length(initalSample);
-                    float newWi = newPHat / samplePdf;
+                    float newWi = samplePdf <= 0.0 ? 0.0 : newPHat / samplePdf;
 
                     float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 547679546u)).w);
 
