@@ -71,7 +71,7 @@ void main() {
                 } else {
                     temporalReservoir.m = 0u;
                 }
-                if (temporalReservoir.age > MAX_AGE) {
+                if (temporalReservoir.age >= MAX_AGE) {
                     temporalReservoir.m = 0u;
                 }
 
@@ -94,13 +94,14 @@ void main() {
                     float prevSpatialWi = max(prevSpatialReservoir.avgWY * prevSpatialPHat * float(prevSpatialReservoir.m), 0.0);
                     float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 456546u)).w);
 
-                    if (restir_isReservoirValid(prevSpatialReservoir)) {
+                    if (restir_isReservoirValid(prevSpatialReservoir) && prevSpatialReservoir.age < MAX_AGE) {
                         if (restir_updateReservoir(
                             temporalReservoir,
                             wSum,
                             prevSpatialReservoir.Y,
                             prevSpatialWi,
                             prevSpatialReservoir.m,
+                            prevSpatialReservoir.age,
                             reservoirRand2
                         )) {
                             prevPHat = prevSpatialPHat;
@@ -142,7 +143,7 @@ void main() {
                     float reservoirPHat = prevPHat;
                     vec4 finalSample = prevSample;
                     vec3 hitNormal = prevHitNormal;
-                    if (restir_updateReservoir(temporalReservoir, wSum, vec4(sampleDirView, hitDistance), newWi, 1u, reservoirRand1)) {
+                    if (restir_updateReservoir(temporalReservoir, wSum, vec4(sampleDirView, hitDistance), newWi, 1u, 0u, reservoirRand1)) {
                         reservoirPHat = newPHat;
                         finalSample = vec4(hitRadiance, f);
 

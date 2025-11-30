@@ -238,6 +238,7 @@ void main() {
                             vec4(neighborSampleDirView, neighborSampleHitDistance),
                             neighborWi,
                             neighborReservoir.m,
+                            neighborReservoir.age,
                             neighborRand
                         )) {
                             selectedSampleF = vec4(neighborSample, neighborPHat);

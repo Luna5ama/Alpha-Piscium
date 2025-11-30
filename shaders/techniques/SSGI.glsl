@@ -138,13 +138,13 @@ const float EPSILON = 0.0000001;
 //
 //    return false;
 //}
-bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, vec4 X, float wi, uint m, float rand) {
+bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, vec4 X, float wi, uint m, uint age, float rand) {
     wSum += wi;
     reservoir.m += m;
     bool updateCond = rand < wi / wSum;
     if (updateCond) {
         reservoir.Y = X;
-        reservoir.age = 0u;
+        reservoir.age = age;
     }
 
     return updateCond;
