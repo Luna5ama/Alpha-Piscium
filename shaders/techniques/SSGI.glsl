@@ -14,7 +14,8 @@
 #define MC_SPP 3
 #define SPATIAL_REUSE_SAMPLES 6
 #define SPATIAL_REUSE_RADIUS 64
-#define SPATIAL_VISIBILITY_TRACE 1
+#define SPATIAL_REUSE_VISIBILITY_TRACE 1
+#define SPATIAL_REUSE_FEEDBACK 10
 
 layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
 

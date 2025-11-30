@@ -39,8 +39,6 @@ void main() {
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
                 temporalReservoir = restir_loadReservoir(texelPos, 0);
-//                if (temporalReservoir.m < 20u)
-//                    temporalReservoir = restir_loadReservoir(texelPos, 1);
 
                 const uint MAX_AGE = 100u;
 
@@ -79,6 +77,40 @@ void main() {
 
                 float prevPHat = length(prevSample.xyz * prevSample.w);
                 wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
+
+                if (temporalReservoir.m < SPATIAL_REUSE_FEEDBACK) {
+                    ReSTIRReservoir prevSpatialReservoir =  restir_loadReservoir(texelPos, 1);
+
+                    vec3 prevSpatialSampleDirView = prevSpatialReservoir.Y.xyz;
+                    float prevSpatialHitDistance = prevSpatialReservoir.Y.w;
+
+                    vec3 prevSpatialHitViewPos = viewPos + prevSpatialSampleDirView * prevSpatialHitDistance;
+                    vec3 prevSpatialHitScreenPos = coords_viewToScreen(prevSpatialHitViewPos, global_camProj);
+                    ivec2 prevSpatialHitTexelPos = ivec2(prevSpatialHitScreenPos.xy * uval_mainImageSize);
+                    vec3 prevSpatialHitRadiance = texelFetch(usam_temp2, prevSpatialHitTexelPos, 0).rgb;
+                    float brdf = saturate(dot(gData.normal, prevSpatialSampleDirView)) / PI;
+                    float prevSpatialPHat = length(prevSpatialHitRadiance * brdf);
+
+                    float prevSpatialWi = max(prevSpatialReservoir.avgWY * prevSpatialPHat * float(prevSpatialReservoir.m), 0.0);
+                    float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 456546u)).w);
+
+                    if (restir_isReservoirValid(prevSpatialReservoir)) {
+                        if (restir_updateReservoir(
+                            temporalReservoir,
+                            wSum,
+                            prevSpatialReservoir.Y,
+                            prevSpatialWi,
+                            prevSpatialReservoir.m,
+                            reservoirRand2
+                        )) {
+                            prevPHat = prevSpatialPHat;
+                            prevSample = vec4(prevSpatialHitRadiance, brdf);
+                            GBufferData prevSpatialHitGData = gbufferData_init();
+                            gbufferData1_unpack(texelFetch(usam_gbufferData1, prevSpatialHitTexelPos, 0), prevSpatialHitGData);
+                            prevHitNormal = prevSpatialHitGData.normal;
+                        }
+                    }
+                }
 
                 {
 //                    vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 12312745u)).zw);

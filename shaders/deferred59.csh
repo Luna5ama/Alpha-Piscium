@@ -79,7 +79,9 @@ void main() {
                     vec2 offset = rot * radius;
 
                     vec2 sampleTexelPosF = texelPosF + offset;
-                    sampleTexelPosF = clamp(sampleTexelPosF, vec2(0.0), uval_mainImageSizeI - 1.0);
+                    if (clamp(sampleTexelPosF, vec2(0.0), uval_mainImageSizeI - 1.0) != sampleTexelPosF) {
+                        continue;
+                    }
                     ivec2 sampleTexelPos = ivec2(sampleTexelPosF);
 
 //                    GBufferData sampleGData = gbufferData_init();
@@ -243,13 +245,14 @@ void main() {
                     }
                 }
 
-                const uint SPATIAL_REUSE_MAX_M = 128u;
+                const uint SPATIAL_REUSE_MAX_M = 4u;
 
 
 
 
                 vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
-                #if SPATIAL_VISIBILITY_TRACE
+                ReSTIRReservoir resultReservoir = originalReservoir;
+                #if SPATIAL_REUSE_VISIBILITY_TRACE
                 if (any(notEqual(selectedSampleF, originalSample))) {
                     SSTResult sstResult = sst_trace(viewPos, spatialReservoir.Y.xyz, 0.01);
 
@@ -267,19 +270,20 @@ void main() {
                         if (dot(hitDiff, hitDiff) < 0.5) {
                             float avgWSum = spatialWSum / float(spatialReservoir.m);
                             spatialReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
-                            spatialReservoir.m = clamp(spatialReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
                             ssgiOut = vec4(selectedSampleF.xyz * spatialReservoir.avgWY, 1.0);
+                            resultReservoir = spatialReservoir;
                         }
                     }
                 }
                 #else
                 float avgWSum = spatialWSum / float(spatialReservoir.m);
                 spatialReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
-                spatialReservoir.m = clamp(spatialReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
                 ssgiOut = vec4(selectedSampleF.xyz * spatialReservoir.avgWY, 1.0);
+                resultReservoir = spatialReservoir;
                 #endif
+                resultReservoir.m = clamp(resultReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
 
-//                restir_storeReservoir(texelPos, spatialReservoir, 1);
+                restir_storeReservoir(texelPos, resultReservoir, 1);
 
                 imageStore(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
             }

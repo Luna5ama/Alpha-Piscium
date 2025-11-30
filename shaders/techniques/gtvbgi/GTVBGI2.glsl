@@ -422,7 +422,7 @@ vec3 gtvbgi(ivec2 texelPos1x1) {
     vec3 result = vec3(0.0, 0.0, 0.0);
     if (centerViewZ != -65536.0) {
         uniGTVBGI(viewPos, centerViewNormal, result);
-        result *= 0.2;
+        result *= 1.0;
     }
 
     return result;

@@ -481,9 +481,9 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     printString((_r, _e, _u, _s, _e, _space));
     printString((_v, _i, _s, _i, _b, _i, _l, _i, _t, _y, _space));
     printString((_t, _r, _a, _c, _e, _colon, _space));
-    #if SPATIAL_VISIBILITY_TRACE == 0
+    #if SPATIAL_REUSE_VISIBILITY_TRACE == 0
     printString((_n, _o, _n, _e));
-    #elif SPATIAL_VISIBILITY_TRACE == 1
+    #elif SPATIAL_REUSE_VISIBILITY_TRACE == 1
     printString((_c, _o, _m, _b, _i, _n, _e, _d));
     #else
     printString((_f, _u, _l, _l));
@@ -502,6 +502,12 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     printInt(SPATIAL_REUSE_RADIUS);
     printLine();
 
+    printString((_S, _p, _a, _t, _i, _a, _l, _space));
+    printString((_r, _e, _u, _s, _e, _space));
+    printString((_f, _e, _e, _d, _b, _a, _c, _k, _colon, _space));
+    printInt(SPATIAL_REUSE_FEEDBACK);
+    printLine();
+
 
     #elif USE_REFERENCE == 1
     printString((_M, _o, _n, _t, _e, _space, _C, _a, _r, _l, _o));
@@ -512,11 +518,15 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
     printLine();
     printLine();
+    printLine();
+
+
     #elif USE_REFERENCE == 2
     printString((_V, _B, _G, _I));
     printLine();
     printString((_S, _t, _e, _p, _space, _c, _o, _u, _n, _t, _colon, _space));
     printInt(SSVBIL_SAMPLE_STEPS222);
+    printLine();
     printLine();
     printLine();
     printLine();
