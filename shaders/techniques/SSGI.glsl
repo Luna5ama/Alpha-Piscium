@@ -7,12 +7,41 @@
 #include "/util/Material.glsl"
 #include "/techniques/SST.glsl"
 
-#define USE_REFERENCE 1
+#define USE_REFERENCE 0
 #define SKIP_FRAMES 16
-#define MAX_FRAMES 4
+#define MAX_FRAMES 1024
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 
 layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
+
+struct InitialSampleData {
+    vec4 directionAndLength;
+    vec3 hitRadiance;
+};
+
+InitialSampleData initialSampleData_init() {
+    InitialSampleData data;
+    data.directionAndLength = vec4(0.0);
+    data.hitRadiance = vec3(0.0);
+    return data;
+}
+
+uvec4 initialSampleData_pack(InitialSampleData data) {
+    uvec4 packedData;
+    packedData.x = nzpacking_packNormalOct32(data.directionAndLength.xyz);
+    packedData.y = floatBitsToUint(data.directionAndLength.w);
+    packedData.zw = packHalf4x16(vec4(data.hitRadiance, 0.0));
+    return packedData;
+}
+
+InitialSampleData initialSampleData_unpack(uvec4 packedData) {
+    InitialSampleData data;
+    data.directionAndLength.xyz = nzpacking_unpackNormalOct32(packedData.x);
+    data.directionAndLength.w = uintBitsToFloat(packedData.y);
+    vec4 hitRadianceAndPadding = unpackHalf4x16(packedData.zw);
+    data.hitRadiance = hitRadianceAndPadding.rgb;
+    return data;
+}
 
 struct ReSTIRReservoir {
     vec4 Y;// direction and length
@@ -137,6 +166,27 @@ void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIn
 //    data1.w = floatBitsToUint(reservoir.wSum);
     data1.w = floatBitsToUint(reservoir.Y.w);
     imageStore(uimg_csrgba32ui, storeTexelPos, data1);
+}
+
+vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
+    vec4 result = vec4(0.0);
+
+    SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.01);
+
+    if (sstResult.hit) {
+        vec2 hitTexelPosF = floor(sstResult.hitScreenPos.xy * uval_mainImageSize);
+        vec2 hitTexelCenter = hitTexelPosF + 0.5;
+        vec2 roundedHitScreenPos = hitTexelCenter * uval_mainImageSizeRcp;
+        float hitViewZ = coords_reversedZToViewZ(sstResult.hitScreenPos.z, near);
+        vec3 hitViewPos = coords_toViewCoord(roundedHitScreenPos, hitViewZ, global_camProjInverse);
+        result.w = length(hitViewPos - viewPos);
+
+        vec3 hitRadiance = texelFetch(usam_temp2, ivec2(hitTexelPosF), 0).rgb;
+        result.xyz = hitRadiance;
+
+    }
+
+    return result;
 }
 
 vec3 ssgiEvalF(vec3 viewPos, GBufferData gData, vec3 sampleDirView, out float hitDistance) {

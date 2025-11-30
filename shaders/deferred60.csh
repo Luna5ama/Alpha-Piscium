@@ -1,6 +1,7 @@
 #version 460 compatibility
 
 #include "/techniques/SSGI.glsl"
+#include "/techniques/gtvbgi/GTVBGI2.glsl"
 #include "/util/GBufferData.glsl"
 #include "/techniques/textile/CSRGBA32UI.glsl"
 #include "/util/Material.glsl"
@@ -24,7 +25,9 @@ void main() {
 
                 vec3 result;
                 ssgiOut.a += 1.0;
-                #if USE_REFERENCE
+                #if USE_REFERENCE == 2
+                result = gtvbgi(texelPos);
+                #elif USE_REFERENCE == 1
 
                 result = ssgiRef(texelPos);
                 #else

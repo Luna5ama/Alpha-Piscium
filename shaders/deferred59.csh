@@ -5,6 +5,7 @@
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Hash.glsl"
+#include "/util/Mat2.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -65,11 +66,17 @@ void main() {
 
 
                 vec4 selectedSampleF = originalSample;
+
+                vec2 noise2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
+                float angle = noise2.x * PI_2;
+                vec2 rot = vec2(cos(angle), sin(angle));
+                float rSteps = 1.0 / float(reuseCount);
+
                 for (uint i = 0u; i < reuseCount; ++i) {
-                    ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(i) * vec2(128, 128));
-                    float r = rand_stbnVec1(stbnPos, RANDOM_FRAME);
-                    vec2 dir = rand_stbnUnitVec211(stbnPos, RANDOM_FRAME);
-                    vec2 offset = sqrt(r) * dir * REUSE_RADIUS;
+                    rot *= MAT2_GOLDEN_ANGLE;
+                    float radius = sqrt((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
+                    vec2 offset = rot * radius;
+
                     vec2 sampleTexelPosF = texelPosF + offset;
                     sampleTexelPosF = clamp(sampleTexelPosF, vec2(0.0), uval_mainImageSizeI - 1.0);
                     ivec2 sampleTexelPos = ivec2(sampleTexelPosF);
@@ -206,12 +213,12 @@ void main() {
                         jacobian = clamp(jacobian, 0.0, maxJacobian);
 
 //                        float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
-//                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) * jacobian, 0.0);
+                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) * jacobian, 0.0);
 
 //                        if (jacobian <= 0.0) {
 //                            neighborReservoir.m = 0u;
 //                        }
-                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) , 0.0);
+//                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) , 0.0);
 
 //                        if (neighborPHat <= 0.0) {
 //                            neighborReservoir.m = 0u;
