@@ -9,7 +9,7 @@
 
 #define USE_REFERENCE 0
 #define SKIP_FRAMES 16
-#define MAX_FRAMES 128
+#define MAX_FRAMES 4096
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 
 layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
@@ -19,6 +19,7 @@ struct ReSTIRReservoir {
     float avgWY;// average unbiased contribution weight
 //    float wSum; // weight sum of all processed samples
     uint m;
+    uint age;
     ivec2 texelPos;
 };
 
@@ -28,6 +29,7 @@ ReSTIRReservoir restir_initReservoir(ivec2 texelPos) {
     reservoir.avgWY = 0.0;
     //    reservoir.wSum = 0.0;
     reservoir.m = 0u;
+    reservoir.age = 0u;
     reservoir.texelPos = texelPos;
     return reservoir;
 }
@@ -75,6 +77,7 @@ bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, v
     bool updateCond = rand < wi / wSum;
     if (updateCond) {
         reservoir.Y = X;
+        reservoir.age = 0u;
     }
 
     return updateCond;
@@ -99,7 +102,10 @@ ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
 
     //    reservoir.pY = uintBitsToFloat(data1.y);
 
-    reservoir.m = data1.y;
+    uvec2 temp = unpackUInt2x16(data1.y);
+    reservoir.m = temp.x;
+    reservoir.age = temp.y;
+
     reservoir.avgWY = uintBitsToFloat(data1.z);
 //    reservoir.wSum = uintBitsToFloat(data1.w);
     reservoir.Y.w = uintBitsToFloat(data1.w);
@@ -123,7 +129,10 @@ void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIn
     data1.x = nzpacking_packNormalOct32(reservoir.Y.xyz);
 
     //    data1.y = floatBitsToUint(reservoir.pY);
-    data1.y = reservoir.m;
+//    data1.y = reservoir.m;
+
+    data1.y = packUInt2x16(uvec2(reservoir.m, reservoir.age));
+
     data1.z = floatBitsToUint(reservoir.avgWY);
 //    data1.w = floatBitsToUint(reservoir.wSum);
     data1.w = floatBitsToUint(reservoir.Y.w);

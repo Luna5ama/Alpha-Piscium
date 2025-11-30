@@ -39,7 +39,9 @@ void main() {
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
                 temporalReservoir = restir_loadReservoir(texelPos, 0);
-//                temporalReservoir = restir_loadReservoir(texelPos, 1);
+//                if (temporalReservoir.m < 20u)r
+
+                const uint MAX_AGE = 100u;
 
                 float wSum = 0.0;
                 float prevPHat = 0.0;
@@ -47,19 +49,24 @@ void main() {
 
                 if (restir_isReservoirValid(temporalReservoir)) {
                     vec3 prevSampleDirView = temporalReservoir.Y.xyz;
-//                    float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
-                    float prevSamplePdf = 1.0 / (2.0 * PI);
+                    float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
+//                    float prevSamplePdf = 1.0 / (2.0 * PI);
                     float prevHitDistance;
                     prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, prevHitDistance);
                     prevPHat = length(prevSample);
-                } else  {
+                } else {
+                    temporalReservoir.m = 0u;
+                }
+                if (temporalReservoir.age > MAX_AGE) {
                     temporalReservoir.m = 0u;
                 }
 
                 wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
 
                 {
-                    vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 12312745u)).zw);
+                                        vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 12312745u)).zw);
+//                    ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(RANDOM_FRAME / 64) * vec2(128.0));
+//                    vec2 rand2 = rand_stbnVec2(stbnPos, RANDOM_FRAME);
 //                    vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
                     vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
                     vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
@@ -82,6 +89,8 @@ void main() {
                     temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
                     temporalReservoir.m = clamp(temporalReservoir.m, 0u, 20u);
                     ssgiOut = vec4(finalSample * temporalReservoir.avgWY, 1.0);
+
+                    temporalReservoir.age++;
                 }
 
                 restir_storeReservoir(texelPos, temporalReservoir, 0);
