@@ -30,10 +30,11 @@ void main() {
                 vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
                 vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
-                GBufferData gData = gbufferData_init();
-                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
-                Material material = material_decode(gData);
+//                GBufferData gData = gbufferData_init();
+//                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+//                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+
+                SpatialSampleData gData = spatialSampleData_unpack(imageLoad(uimg_csrgba32ui, csrgba32ui_temp3_texelToTexel(texelPos)));
 
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
@@ -55,7 +56,8 @@ void main() {
 
                     float samplePdf = saturate(dot(gData.normal, sampleDirView)) / PI;
 //                    float samplePdf = 1.0 / (2.0 * PI);
-                    vec3 hitRadiance = texelFetch(usam_temp2, hitTexelPos, 0).rgb;
+//                    vec3 hitRadiance = texelFetch(usam_temp2, hitTexelPos, 0).rgb;
+                    vec3 hitRadiance = gData.hitRadiance;
 
                     float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
                     vec3 f = brdf * hitRadiance;
@@ -81,18 +83,20 @@ void main() {
                     sampleTexelPosF = clamp(sampleTexelPosF, vec2(0.0), uval_mainImageSizeI - 1.0);
                     ivec2 sampleTexelPos = ivec2(sampleTexelPosF);
 
-                    GBufferData sampleGData = gbufferData_init();
-                    gbufferData1_unpack(texelFetch(usam_gbufferData1, sampleTexelPos, 0), sampleGData);
+//                    GBufferData sampleGData = gbufferData_init();
+//                    gbufferData1_unpack(texelFetch(usam_gbufferData1, sampleTexelPos, 0), sampleGData);
 
+                    SpatialSampleData neighborData = spatialSampleData_unpack(imageLoad(uimg_csrgba32ui, csrgba32ui_temp3_texelToTexel(sampleTexelPos)));
+
+                    if (dot(gData.geomNormal, neighborData.geomNormal) < 0.99) {
+                        continue;
+                    }
                     float neighborViewZ = texelFetch(usam_gbufferViewZ, sampleTexelPos, 0).x;
+                    ReSTIRReservoir neighborReservoir = restir_loadReservoir(sampleTexelPos, 0);
                     vec2 neighborScreenPos = sampleTexelPosF * uval_mainImageSizeRcp;
                     vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_camProjInverse);
 
-                    if (dot(gData.geomNormal, sampleGData.geomNormal) < 0.99) {
-                        continue;
-                    }
 
-                    ReSTIRReservoir neighborReservoir = restir_loadReservoir(sampleTexelPos, 0);
 
                     if (restir_isReservoirValid(neighborReservoir)) {
 //                        ivec2 neighborHitTexelPos = ivec2(neighborReservoir.Y);
@@ -123,7 +127,7 @@ void main() {
                         vec3 neighborHitScreenPos = coords_viewToScreen(neighborHitViewPos, global_camProj);
                         ivec2 neighborHitTexelPos = ivec2(neighborHitScreenPos.xy * uval_mainImageSize);
 //
-                        vec3 hitRadiance = texelFetch(usam_temp2, neighborHitTexelPos, 0).rgb;
+                        vec3 hitRadiance = neighborData.hitRadiance;
                         float brdf = saturate(dot(gData.normal, neighborSampleDirView)) / PI;
                         vec3 f = brdf * hitRadiance;
                         vec3 neighborSample = f;
@@ -194,13 +198,13 @@ void main() {
                         offsetB = normalize(offsetB);
                         offsetA = normalize(offsetA);
                         float cosA = dot(gData.normal, offsetA);
-                        float cosB = dot(sampleGData.normal, offsetB);
+                        float cosB = dot(neighborData.normal, offsetB);
 
-                        GBufferData hitGData = gbufferData_init();
-                        gbufferData1_unpack(texelFetch(usam_gbufferData1, neighborHitTexelPos, 0), hitGData);
+//                        GBufferData hitGData = gbufferData_init();
+//                        gbufferData1_unpack(texelFetch(usam_gbufferData1, neighborHitTexelPos, 0), hitGData);
 
-                        float cosPhiA = -dot(offsetA, hitGData.normal);
-                        float cosPhiB = -dot(offsetB, hitGData.normal);
+                        float cosPhiA = -dot(offsetA, neighborData.hitNormal);
+                        float cosPhiB = -dot(offsetB, neighborData.hitNormal);
                         if (cosB <= 0.0 || cosPhiB <= 0.0) {
                             continue;
                         }

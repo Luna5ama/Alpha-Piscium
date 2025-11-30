@@ -45,8 +45,8 @@ void main() {
                 const uint MAX_AGE = 100u;
 
                 float wSum = 0.0;
-                float prevPHat = 0.0;
-                vec3 prevSample = vec3(0.0);
+                vec4 prevSample = vec4(0.0);
+                vec3 prevHitNormal = vec3(0.0);
 
                 if (restir_isReservoirValid(temporalReservoir)) {
                     vec3 prevSampleDirView = temporalReservoir.Y.xyz;
@@ -62,8 +62,11 @@ void main() {
                     vec3 prevHitRadiance = texelFetch(usam_temp2, prevHitTexelPos, 0).rgb;
                     float brdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
                     vec3 f = brdf * prevHitRadiance;
-                    prevSample = f;
-                    prevPHat = length(f);
+                    prevSample = vec4(prevHitRadiance, f);
+
+                    GBufferData prevGData = gbufferData_init();
+                    gbufferData1_unpack(texelFetch(usam_gbufferData1, prevHitTexelPos, 0), prevGData);
+                    prevHitNormal = prevGData.normal;
 
 //                    float prevHitDistance;
 //                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, prevHitDistance);
@@ -75,6 +78,7 @@ void main() {
                     temporalReservoir.m = 0u;
                 }
 
+                float prevPHat = length(prevSample.xyz * prevSample.w);
                 wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
 
                 {
@@ -105,15 +109,30 @@ void main() {
                     float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 547679546u)).w);
 
                     float reservoirPHat = prevPHat;
-                    vec3 finalSample = prevSample;
+                    vec4 finalSample = prevSample;
+                    vec3 hitNormal = prevHitNormal;
                     if (restir_updateReservoir(temporalReservoir, wSum, vec4(sampleDirView, hitDistance), newWi, 1u, reservoirRand1)) {
                         reservoirPHat = newPHat;
-                        finalSample = initalSample;
+                        finalSample = vec4(hitRadiance, f);
+
+                        vec3 hitViewPos = viewPos + sampleDirView * hitDistance;
+                        vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
+                        ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
+                        GBufferData hitGData = gbufferData_init();
+                        gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
+                        hitNormal = hitGData.normal;
                     }
                     float avgWSum = wSum / float(temporalReservoir.m);
                     temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
                     temporalReservoir.m = clamp(temporalReservoir.m, 0u, 20u);
-                    ssgiOut = vec4(finalSample * temporalReservoir.avgWY, 1.0);
+                    ssgiOut = vec4(finalSample.xyz * finalSample.w * temporalReservoir.avgWY, 1.0);
+
+                    SpatialSampleData spatialSample = spatialSampleData_init();
+                    spatialSample.hitRadiance = finalSample.xyz;
+                    spatialSample.geomNormal = gData.geomNormal;
+                    spatialSample.normal = gData.normal;
+                    spatialSample.hitNormal = hitNormal;
+                    imageStore(uimg_csrgba32ui, csrgba32ui_temp3_texelToTexel(texelPos), spatialSampleData_pack(spatialSample));
 
                     temporalReservoir.age++;
                 }

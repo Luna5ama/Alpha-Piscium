@@ -7,7 +7,7 @@
         You can find full license texts in /licenses
 */
 
-#define SSVBIL_SAMPLE_STEPS SETTING_VBGI_STEPS
+#define SSVBIL_SAMPLE_STEPS SSVBIL_SAMPLE_STEPS222
 #define SSVBIL_SAMPLE_SLICES SETTING_VBGI_SLICES
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 
@@ -19,6 +19,7 @@
 #include "/util/FastMathLib.glsl"
 #include "/util/Math.glsl"
 #include "/util/Hash.glsl"
+#include "Common.glsl"
 
 
 
@@ -47,6 +48,10 @@ float radiusToLodStep(float y) {
     const float a0 = 0.0396467304144;
     const float a1 = 0.0590825497733;
     const float a2 = -0.939977972788;
+    #elif SSVBIL_SAMPLE_STEPS == 48
+    const float a0 = 0.0264701344291;
+    const float a1 = 0.0383770338223;
+    const float a2 = -0.882202260084;
     #elif SSVBIL_SAMPLE_STEPS == 64
     const float a0 = 0.0199939489785;
     const float a1 = 0.0279244889461;

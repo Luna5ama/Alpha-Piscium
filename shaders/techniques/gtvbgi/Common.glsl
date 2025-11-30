@@ -1,5 +1,7 @@
 #include "/Base.glsl"
 
+#define SSVBIL_SAMPLE_STEPS222 48
+
 uint vbgi_downSampleInputMortonIndex() {
     return uint(frameCounter) & 3u;
 }

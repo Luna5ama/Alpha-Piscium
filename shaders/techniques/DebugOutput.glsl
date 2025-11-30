@@ -10,6 +10,8 @@
 #include "/techniques/svgf/Common.glsl"
 #include "/techniques/rtwsm/RTWSM.glsl"
 #include "/techniques/atmospherics/clouds/ss/Common.glsl"
+#include "/techniques/SSGI.glsl"
+#include "/techniques/gtvbgi/Common.glsl"
 
 uniform sampler2D usam_debug;
 
@@ -468,6 +470,30 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #ifdef SETTING_DEBUG_DEDICATED
     outputColor = expGamma(texelFetch(usam_debug, ivec2((vec2(texelPos) + 0.5) / SETTING_DEBUG_SCALE), 0));
     #endif
+
+    beginText(texelPos >> ivec2(1), ivec2(4, (uval_mainImageSizeI.y >> 1) - 4));
+    printString((_M, _e, _t, _h, _o, _d, _colon, _space));
+    #if USE_REFERENCE == 0
+    printString((_R, _e, _S, _T, _I, _R));
+    #elif USE_REFERENCE == 1
+    printString((_M, _o, _n, _t, _e, _space, _C, _a, _r, _l, _o, _space, _opprn));
+    printInt(MC_SPP);
+    printString((_space, _s, _p, _p, _clprn));
+    #elif USE_REFERENCE == 2
+    printString((_V, _B, _G, _I, _space, _opprn));
+    printInt(SSVBIL_SAMPLE_STEPS222);
+    printString((_space, _s, _t, _e, _p, _s, _clprn));
+    #endif
+    printLine();
+
+    printString((_M, _a, _x, _space, _F, _r, _a, _m, _e, _s, _colon, _space));
+    printInt(MAX_FRAMES);
+    printLine();
+
+    int fCount = clamp(RANDOM_FRAME, 0, MAX_FRAMES);
+    printString((_C, _u, _r, _r, _e, _n, _t, _space, _F, _r, _a, _m, _e, _colon, _space));
+    printInt(fCount);
+    printLine();
 
 //    beginText(texelPos >> ivec2(2), ivec2(0, uval_mainImageSizeI.y >> 2));
 //    printFloat(global_turbidity);

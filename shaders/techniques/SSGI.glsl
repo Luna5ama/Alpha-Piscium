@@ -9,8 +9,9 @@
 
 #define USE_REFERENCE 0
 #define SKIP_FRAMES 16
-#define MAX_FRAMES 1024
+#define MAX_FRAMES 4
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
+#define MC_SPP 2
 
 layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
 
@@ -38,6 +39,39 @@ InitialSampleData initialSampleData_unpack(uvec4 packedData) {
     InitialSampleData data;
     data.directionAndLength.xyz = nzpacking_unpackNormalOct32(packedData.x);
     data.directionAndLength.w = uintBitsToFloat(packedData.y);
+    vec4 hitRadianceAndPadding = unpackHalf4x16(packedData.zw);
+    data.hitRadiance = hitRadianceAndPadding.rgb;
+    return data;
+}
+
+struct SpatialSampleData {
+    vec3 geomNormal;
+    vec3 normal;
+    vec3 hitNormal;
+    vec3 hitRadiance;
+};
+
+SpatialSampleData spatialSampleData_init() {
+    SpatialSampleData data;
+    data.geomNormal = vec3(0.0);
+    data.normal = vec3(0.0);
+    data.hitNormal = vec3(0.0);
+    data.hitRadiance = vec3(0.0);
+    return data;
+}
+
+uvec4 spatialSampleData_pack(SpatialSampleData data) {
+    uvec4 packedData;
+    nzpacking_packNormalOct16(packedData.x, data.geomNormal, data.hitNormal);
+    packedData.y = nzpacking_packNormalOct32(data.normal);
+    packedData.zw = packHalf4x16(vec4(data.hitRadiance, 0.0));
+    return packedData;
+}
+
+SpatialSampleData spatialSampleData_unpack(uvec4 packedData) {
+    SpatialSampleData data;
+    nzpacking_unpackNormalOct16(packedData.x, data.geomNormal, data.hitNormal);
+    data.normal = nzpacking_unpackNormalOct32(packedData.y);
     vec4 hitRadianceAndPadding = unpackHalf4x16(packedData.zw);
     data.hitRadiance = hitRadianceAndPadding.rgb;
     return data;
@@ -212,10 +246,8 @@ vec3 ssgiEvalF(vec3 viewPos, GBufferData gData, vec3 sampleDirView, out float hi
     return result;
 }
 
-#define SSP 1u
-
-vec3 ssgiRef(ivec2 texelPos) {
-    uint finalIndex = RANDOM_FRAME;
+vec3 ssgiRef(ivec2 texelPos, uint finalIndex) {
+//    uint finalIndex = RANDOM_FRAME;
     vec3 result = vec3(0.0);
     GBufferData gData = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
