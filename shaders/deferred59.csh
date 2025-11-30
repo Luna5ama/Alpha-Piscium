@@ -12,7 +12,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_temp3;
 
-#if USE_REFERENCE
+#if USE_REFERENCE || !SPATIAL_REUSE
 void main() {
 
 }
@@ -112,8 +112,8 @@ void main() {
                         neighborSampleHitDistance = length(hitDiff);
                         neighborSampleDirView = hitDiff / neighborSampleHitDistance;
 
-//                        float neighborSamplePdf = saturate(dot(gData.normal, neighborSampleDirView)) / PI;
-                        float neighborSamplePdf = 1.0 / (2.0 * PI);
+                        float neighborSamplePdf = saturate(dot(gData.normal, neighborSampleDirView)) / PI;
+//                        float neighborSamplePdf = 1.0 / (2.0 * PI);
 
 //                        float newHitDistance;
 //                        vec3 neighborSample = ssgiEvalF(viewPos, gData, neighborSampleDirView, newHitDistance);

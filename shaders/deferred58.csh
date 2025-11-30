@@ -129,8 +129,7 @@ void main() {
 
 
                     float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
-                    vec3 f = brdf * hitRadiance;
-                    vec3 initalSample = f;
+                    vec3 initalSample = brdf * hitRadiance;
 
 //                    float samplePdf = saturate(dot(gData.normal, sampleDirView)) / PI;
                     float samplePdf = brdf;
@@ -145,7 +144,7 @@ void main() {
                     vec3 hitNormal = prevHitNormal;
                     if (restir_updateReservoir(temporalReservoir, wSum, vec4(sampleDirView, hitDistance), newWi, 1u, 0u, reservoirRand1)) {
                         reservoirPHat = newPHat;
-                        finalSample = vec4(hitRadiance, f);
+                        finalSample = vec4(hitRadiance, brdf);
 
                         vec3 hitViewPos = viewPos + sampleDirView * hitDistance;
                         vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
