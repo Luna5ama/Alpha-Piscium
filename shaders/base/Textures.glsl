@@ -185,6 +185,7 @@ uniform sampler3D usam_whiteNoise3D;
 uniform sampler3D usam_stbnVec1;
 uniform sampler3D usam_stbnUnitVec2;
 uniform sampler3D usam_stbnVec2;
+uniform sampler3D usam_stbnUnitVec3Cosine;
 uniform sampler2D usam_starmap;
 uniform sampler2D usam_constellations;
 uniform sampler2D usam_cirrus;

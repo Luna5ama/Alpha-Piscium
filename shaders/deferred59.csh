@@ -74,8 +74,8 @@ void main() {
 
                 for (uint i = 0u; i < reuseCount; ++i) {
                     rot *= MAT2_GOLDEN_ANGLE;
-                    float radius = sqrt((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
-//                    float radius = ((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
+//                    float radius = sqrt((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
+                    float radius = ((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
                     vec2 offset = rot * radius;
 
                     vec2 sampleTexelPosF = texelPosF + offset;

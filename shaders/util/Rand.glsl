@@ -34,6 +34,10 @@ vec2 rand_stbnUnitVec211(ivec2 texelPos, uint frame) {
     return normalize(texelFetch(usam_stbnUnitVec2, ivec3(texelPos, frame) & ivec3(127, 127, 63), 0).xy * 2.0 - 1.0);
 }
 
+vec3 rand_stbnUnitVec3Cosine(ivec2 texelPos, uint frame) {
+    return normalize(texelFetch(usam_stbnUnitVec3Cosine, ivec3(texelPos, frame) & ivec3(127, 127, 63), 0).xyz * 2.0 - 1.0);
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 // Interleaved Gradient Noise
 // See [JIM17] and [WOL22]

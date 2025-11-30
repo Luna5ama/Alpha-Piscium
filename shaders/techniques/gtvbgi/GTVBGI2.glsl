@@ -359,7 +359,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
         if (frontDistSq < RADIUS_SQ.y) {
             float frontDiffRcpLen = fastRcpSqrtNR0(frontDistSq);
             float frontDist = frontDistSq * frontDiffRcpLen;
-            float thickness = max(SETTING_VBGI_THICKNESS * frontDist, 0.25);
+            float thickness = max(SETTING_VBGI_THICKNESS * frontDist, SETTING_VBGI_THICKNESS);
             vec3 backDiff = coords_toViewCoord(sampleUV, sampleViewZ - thickness, global_camProjInverse) - viewPos;
 
             float backDiffRcpLen = fastRcpSqrtNR0(dot(backDiff, backDiff));
@@ -422,7 +422,7 @@ vec3 gtvbgi(ivec2 texelPos1x1) {
     vec3 result = vec3(0.0, 0.0, 0.0);
     if (centerViewZ != -65536.0) {
         uniGTVBGI(viewPos, centerViewNormal, result);
-        result *= 0.4;
+        result *= 0.2;
     }
 
     return result;

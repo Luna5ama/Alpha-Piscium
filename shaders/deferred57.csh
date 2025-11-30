@@ -33,10 +33,16 @@ void main() {
                 gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
                 Material material = material_decode(gData);
 
-                uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
-                vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 12312745u)).zw);
-                vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
-                vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
+//                uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
+////                vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 12312745u)).zw);
+//                vec2 rand2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
+//                vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
+//                vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
+
+                ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(RANDOM_FRAME / 64u) * vec2(128, 128));
+                vec3 sampleDirTangent = rand_stbnUnitVec3Cosine(stbnPos, RANDOM_FRAME);
+                vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
+
                 vec4 ssgiOut = vec4(0.0);
 //                sharedData[gl_LocalInvocationIndex] = sampleDirView;
                 vec4 resultStuff = ssgiEvalF2(viewPos, sampleDirView);

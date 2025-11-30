@@ -7,7 +7,7 @@
 #include "/util/Material.glsl"
 #include "/techniques/SST.glsl"
 
-#define USE_REFERENCE 2
+#define USE_REFERENCE 0
 #define SKIP_FRAMES 16
 #define MAX_FRAMES 256
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
