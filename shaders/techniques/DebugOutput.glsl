@@ -475,14 +475,51 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     printString((_M, _e, _t, _h, _o, _d, _colon, _space));
     #if USE_REFERENCE == 0
     printString((_R, _e, _S, _T, _I, _R));
+    printLine();
+
+    printString((_S, _p, _a, _t, _i, _a, _l, _space));
+    printString((_r, _e, _u, _s, _e, _space));
+    printString((_v, _i, _s, _i, _b, _i, _l, _i, _t, _y, _space));
+    printString((_t, _r, _a, _c, _e, _colon, _space));
+    #if SPATIAL_VISIBILITY_TRACE == 0
+    printString((_n, _o, _n, _e));
+    #elif SPATIAL_VISIBILITY_TRACE == 1
+    printString((_c, _o, _m, _b, _i, _n, _e, _d));
+    #else
+    printString((_f, _u, _l, _l));
+    #endif
+    printLine();
+
+    printString((_S, _p, _a, _t, _i, _a, _l, _space));
+    printString((_r, _e, _u, _s, _e, _space));
+    printString((_s, _a, _m, _p, _l, _e, _s, _colon, _space));
+    printInt(SPATIAL_REUSE_SAMPLES);
+    printLine();
+
+    printString((_S, _p, _a, _t, _i, _a, _l, _space));
+    printString((_r, _e, _u, _s, _e, _space));
+    printString((_r, _a, _d, _i, _u, _s, _colon, _space));
+    printInt(SPATIAL_REUSE_RADIUS);
+    printLine();
+
+
     #elif USE_REFERENCE == 1
-    printString((_M, _o, _n, _t, _e, _space, _C, _a, _r, _l, _o, _space, _opprn));
+    printString((_M, _o, _n, _t, _e, _space, _C, _a, _r, _l, _o));
+    printLine();
+
+    printString((_S, _P, _P, _colon, _space));
     printInt(MC_SPP);
-    printString((_space, _s, _p, _p, _clprn));
+    printLine();
+    printLine();
+    printLine();
     #elif USE_REFERENCE == 2
-    printString((_V, _B, _G, _I, _space, _opprn));
+    printString((_V, _B, _G, _I));
+    printLine();
+    printString((_S, _t, _e, _p, _space, _c, _o, _u, _n, _t, _colon, _space));
     printInt(SSVBIL_SAMPLE_STEPS222);
-    printString((_space, _s, _t, _e, _p, _s, _clprn));
+    printLine();
+    printLine();
+    printLine();
     #endif
     printLine();
 

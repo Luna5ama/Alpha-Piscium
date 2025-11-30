@@ -40,8 +40,8 @@ void main() {
                 ReSTIRReservoir originalReservoir = restir_loadReservoir(texelPos, 0);
                 ReSTIRReservoir spatialReservoir = originalReservoir;
 
-                const uint reuseCount = 6u;
-                const float REUSE_RADIUS = 64.0;
+                const uint reuseCount = uint(SPATIAL_REUSE_SAMPLES);
+                const float REUSE_RADIUS = float(SPATIAL_REUSE_RADIUS);
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
                 float pHatMe = 0.0;
@@ -249,7 +249,7 @@ void main() {
 
 
                 vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
-                #if SPATIAL_VISIBLITY_TRACE
+                #if SPATIAL_VISIBILITY_TRACE
                 if (any(notEqual(selectedSampleF, originalSample))) {
                     SSTResult sstResult = sst_trace(viewPos, spatialReservoir.Y.xyz, 0.01);
 
@@ -264,7 +264,7 @@ void main() {
 
                         vec3 hitDiff = actualHitViewPos - expectHitViewPos;
 
-                        if (dot(hitDiff, hitDiff) < 0.1) {
+                        if (dot(hitDiff, hitDiff) < 0.5) {
                             float avgWSum = spatialWSum / float(spatialReservoir.m);
                             spatialReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
                             spatialReservoir.m = clamp(spatialReservoir.m, 0u, SPATIAL_REUSE_MAX_M);

@@ -7,12 +7,14 @@
 #include "/util/Material.glsl"
 #include "/techniques/SST.glsl"
 
-#define USE_REFERENCE 0
+#define USE_REFERENCE 2
 #define SKIP_FRAMES 16
-#define MAX_FRAMES 5555
+#define MAX_FRAMES 256
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 #define MC_SPP 3
-#define SPATIAL_VISIBLITY_TRACE 1
+#define SPATIAL_REUSE_SAMPLES 6
+#define SPATIAL_REUSE_RADIUS 64
+#define SPATIAL_VISIBILITY_TRACE 1
 
 layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
 
