@@ -23,7 +23,6 @@ void main() {
     sst_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec4 ssgiOut = vec4(0.0);
         if (RANDOM_FRAME < MAX_FRAMES){
             if (RANDOM_FRAME >= 0) {
                 float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
@@ -45,7 +44,6 @@ void main() {
                 const float REUSE_RADIUS = 32.0;
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
-                vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
                 float pHatMe = 0.0;
                 vec4 originalSample = vec4(0.0);
                 {
@@ -248,36 +246,41 @@ void main() {
                 const uint SPATIAL_REUSE_MAX_M = 128u;
 
 
+
+
+                vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
+                #define SPATIAL_VISIBLITY_TRACE 1
+                #if SPATIAL_VISIBLITY_TRACE
+                if (any(notEqual(selectedSampleF, originalSample))) {
+                    SSTResult sstResult = sst_trace(viewPos, spatialReservoir.Y.xyz, 0.01);
+
+                    if (sstResult.hit) {
+                        vec2 actualHitTexelPosF = floor(sstResult.hitScreenPos.xy * uval_mainImageSize);
+                        vec2 actualHitTexelCenter = actualHitTexelPosF + 0.5;
+                        vec2 acutualRoundedHitScreenPos = actualHitTexelCenter * uval_mainImageSizeRcp;
+                        float actualHitViewZ = coords_reversedZToViewZ(sstResult.hitScreenPos.z, near);
+                        vec3 actualHitViewPos = coords_toViewCoord(acutualRoundedHitScreenPos, actualHitViewZ, global_camProjInverse);
+
+                        vec3 expectHitViewPos = viewPos + spatialReservoir.Y.xyz * spatialReservoir.Y.w;
+
+                        vec3 hitDiff = actualHitViewPos - expectHitViewPos;
+
+                        if (dot(hitDiff, hitDiff) < 0.1) {
+                            float avgWSum = spatialWSum / float(spatialReservoir.m);
+                            spatialReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
+                            spatialReservoir.m = clamp(spatialReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
+                            ssgiOut = vec4(selectedSampleF.xyz * spatialReservoir.avgWY, 1.0);
+                        }
+                    }
+                }
+                #else
                 float avgWSum = spatialWSum / float(spatialReservoir.m);
                 spatialReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
                 spatialReservoir.m = clamp(spatialReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
                 ssgiOut = vec4(selectedSampleF.xyz * spatialReservoir.avgWY, 1.0);
+                #endif
 
-
-//                ReSTIRReservoir resultReservoir = originalReservoir;
-//                if (any(notEqual(selectedSampleF, originalSample))) {
-////                    ivec2 neighborHitTexelPos = ivec2(spatialReservoir.Y);
-////                    float neighborHitViewZ = texelFetch(usam_gbufferViewZ, neighborHitTexelPos, 0).x;
-////                    vec2 neighborHitScreenPos = coords_texelToUV(neighborHitTexelPos, uval_mainImageSizeRcp);
-////                    vec3 neighborHitViewPos = coords_toViewCoord(neighborHitScreenPos, neighborHitViewZ, global_camProjInverse);
-////                    vec3 neighborSampleDirView = normalize(neighborHitViewPos - viewPos);
-////                    float neighborSamplePdf = saturate(dot(gData.normal, neighborSampleDirView)) / PI;
-////                    float newHitDistance;
-////                    vec3 neighborSample = ssgiEvalF(viewPos, gData, neighborSampleDirView, newHitDistance);
-////                    float neighborPHat = length(neighborSample);
-////
-////                    if (neighborPHat > 0.0) {
-////                        resultReservoir = spatialReservoir;
-////                        float m = resultReservoir.m <= 0u ? 0.0 : 1.0 / float(resultReservoir.m); // spatial reuse weight
-////                        resultReservoir.m = clamp(resultReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
-////                        float mWeight = 1.0 / neighborPHat * m;
-////                        float W = spatialWSum * mWeight;
-////                        resultReservoir.avgWY = clamp(W, 0.0, 10.0);
-////                        ssgiOut = vec4(neighborSample * resultReservoir.avgWY, 1.0);
-////                    }
-//                }
-
-                restir_storeReservoir(texelPos, spatialReservoir, 1);
+//                restir_storeReservoir(texelPos, spatialReservoir, 1);
 
                 imageStore(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
             }
