@@ -41,8 +41,8 @@ void main() {
                 ReSTIRReservoir originalReservoir = restir_loadReservoir(texelPos, 0);
                 ReSTIRReservoir spatialReservoir = originalReservoir;
 
-                const uint reuseCount = 4u;
-                const float REUSE_RADIUS = 16.0;
+                const uint reuseCount = 6u;
+                const float REUSE_RADIUS = 32.0;
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
                 vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
@@ -76,7 +76,8 @@ void main() {
 
                 for (uint i = 0u; i < reuseCount; ++i) {
                     rot *= MAT2_GOLDEN_ANGLE;
-                    float radius = sqrt((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
+//                    float radius = sqrt((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
+                    float radius = ((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
                     vec2 offset = rot * radius;
 
                     vec2 sampleTexelPosF = texelPosF + offset;

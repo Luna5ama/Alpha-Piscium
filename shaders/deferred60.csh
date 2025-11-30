@@ -22,26 +22,24 @@ void main() {
             vec4 ssgiOut = vec4(0.0);
             if (RANDOM_FRAME >= 0) {
 
-                vec4 result = vec4(0.0);
+                vec3 result = vec3(0.0);
 
                 #if USE_REFERENCE == 2
-                result.xyz = gtvbgi(texelPos);
-                result.w = 1.0;
+                result = gtvbgi(texelPos);
                 #elif USE_REFERENCE == 1
                 const uint SPP = MC_SPP;
                 uint baseRand = RANDOM_FRAME * SPP;
                 for (uint i = 0u; i < SPP; ++i) {
-                    result.xyz += ssgiRef(texelPos, baseRand + i);
-                    result.w++;
+                    result += ssgiRef(texelPos, baseRand + i);
                 }
+                result /= float(SPP);
                 #else
-                result.xyz = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)).rgb);
-                result.w = 1.0;
+                result = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)).rgb);
                 #endif
 
                 ssgiOut = imageLoad(uimg_temp1, texelPos);
-                ssgiOut.a += result.w;
-                ssgiOut.rgb = mix(ssgiOut.rgb, result.xyz, 1.0 / ssgiOut.a);
+                ssgiOut.a += 1.0;
+                ssgiOut.rgb = mix(ssgiOut.rgb, result, 1.0 / ssgiOut.a);
             }
             imageStore(uimg_temp1, texelPos, ssgiOut);
         } else {

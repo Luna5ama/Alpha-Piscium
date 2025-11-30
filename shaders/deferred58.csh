@@ -62,7 +62,7 @@ void main() {
                     vec3 prevHitRadiance = texelFetch(usam_temp2, prevHitTexelPos, 0).rgb;
                     float brdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
                     vec3 f = brdf * prevHitRadiance;
-                    prevSample = vec4(prevHitRadiance, f);
+                    prevSample = vec4(prevHitRadiance, brdf);
 
                     GBufferData prevGData = gbufferData_init();
                     gbufferData1_unpack(texelFetch(usam_gbufferData1, prevHitTexelPos, 0), prevGData);
