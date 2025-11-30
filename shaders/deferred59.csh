@@ -41,7 +41,7 @@ void main() {
                 ReSTIRReservoir spatialReservoir = originalReservoir;
 
                 const uint reuseCount = 6u;
-                const float REUSE_RADIUS = 32.0;
+                const float REUSE_RADIUS = 64.0;
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
                 float pHatMe = 0.0;
@@ -74,8 +74,8 @@ void main() {
 
                 for (uint i = 0u; i < reuseCount; ++i) {
                     rot *= MAT2_GOLDEN_ANGLE;
-//                    float radius = sqrt((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
-                    float radius = ((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
+                    float radius = sqrt((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
+//                    float radius = ((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
                     vec2 offset = rot * radius;
 
                     vec2 sampleTexelPosF = texelPosF + offset;
@@ -249,7 +249,6 @@ void main() {
 
 
                 vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
-                #define SPATIAL_VISIBLITY_TRACE 1
                 #if SPATIAL_VISIBLITY_TRACE
                 if (any(notEqual(selectedSampleF, originalSample))) {
                     SSTResult sstResult = sst_trace(viewPos, spatialReservoir.Y.xyz, 0.01);

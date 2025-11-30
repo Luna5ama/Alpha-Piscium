@@ -9,9 +9,10 @@
 
 #define USE_REFERENCE 0
 #define SKIP_FRAMES 16
-#define MAX_FRAMES 256
+#define MAX_FRAMES 5555
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
-#define MC_SPP 2
+#define MC_SPP 3
+#define SPATIAL_VISIBLITY_TRACE 1
 
 layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
 
