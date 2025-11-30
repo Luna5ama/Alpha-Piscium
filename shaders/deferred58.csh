@@ -39,7 +39,8 @@ void main() {
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
                 temporalReservoir = restir_loadReservoir(texelPos, 0);
-//                if (temporalReservoir.m < 20u)r
+//                if (temporalReservoir.m < 20u)
+//                    temporalReservoir = restir_loadReservoir(texelPos, 1);
 
                 const uint MAX_AGE = 100u;
 

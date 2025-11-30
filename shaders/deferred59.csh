@@ -106,16 +106,16 @@ void main() {
 //                        float newHitDistance;
 //                        vec3 neighborSample = ssgiEvalF(viewPos, gData, neighborSampleDirView, newHitDistance);
 //                        float neighborPHat = length(neighborSample);
-////                        if (neighborPHat <= 0.0){
-////                            continue;
-////                        }
+//                        if (neighborPHat <= 0.0){
+//                            continue;
+//                        }
 //                        vec3 newHitViewPos = viewPos + neighborSampleDirView * newHitDistance;
 //                        neighborHitViewPos = newHitViewPos;
 //                           neighborSampleHitDistance = newHitDistance;
-
+//
                         vec3 neighborHitScreenPos = coords_viewToScreen(neighborHitViewPos, global_camProj);
                         ivec2 neighborHitTexelPos = ivec2(neighborHitScreenPos.xy * uval_mainImageSize);
-
+//
                         vec3 hitRadiance = texelFetch(usam_temp2, neighborHitTexelPos, 0).rgb;
                         float brdf = saturate(dot(gData.normal, neighborSampleDirView)) / PI;
                         vec3 f = brdf * hitRadiance;
@@ -123,7 +123,7 @@ void main() {
                         float neighborPHat = length(neighborSample);
 
 
-//                        if (distance(newHitViewPos, neighborHitViewPos) > 0.1) {
+//                        if (distance(newHitViewPos, neighborHitViewPos) > 0.01) {
 //                            neighborPHat = 0.0;
 //                        }
 
@@ -206,12 +206,12 @@ void main() {
                         jacobian = clamp(jacobian, 0.0, maxJacobian);
 
 //                        float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
-                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) * jacobian, 0.0);
+//                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) * jacobian, 0.0);
 
 //                        if (jacobian <= 0.0) {
 //                            neighborReservoir.m = 0u;
 //                        }
-//                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) , 0.0);
+                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) , 0.0);
 
 //                        if (neighborPHat <= 0.0) {
 //                            neighborReservoir.m = 0u;
@@ -265,7 +265,7 @@ void main() {
 ////                    }
 //                }
 
-//                restir_storeReservoir(texelPos, spatialReservoir, 1);
+                restir_storeReservoir(texelPos, spatialReservoir, 1);
 
                 imageStore(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
             }
