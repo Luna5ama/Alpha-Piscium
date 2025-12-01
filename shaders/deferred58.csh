@@ -122,7 +122,30 @@ void main() {
 //                    float hitDistance = ssgiData.w;
 //                    vec3 initalSample = ssgiData.xyz;
 
-                    InitialSampleData initialSample = initialSampleData_unpack(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
+
+//                    InitialSampleData initialSample = initialSampleData_init();
+//                    {
+//                        uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
+//                        vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 12312745u)).zw);
+//                        //                vec2 rand2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
+//                        //                vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
+//                        vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
+//                        vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
+//
+//                        //                ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(RANDOM_FRAME / 64u) * vec2(128, 128));
+//                        //                vec3 sampleDirTangent = rand_stbnUnitVec3Cosine(stbnPos, RANDOM_FRAME);
+//                        //                vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
+//
+//                        vec4 ssgiOut = vec4(0.0);
+//                        //                sharedData[gl_LocalInvocationIndex] = sampleDirView;
+//                        vec4 resultStuff = ssgiEvalF2(viewPos, sampleDirView);
+//
+//                        initialSample.hitRadiance = resultStuff.xyz;
+//                        initialSample.directionAndLength.xyz = sampleDirView;
+//                        initialSample.directionAndLength.w = resultStuff.w;
+//                    }
+
+                    InitialSampleData initialSample = initialSampleData_unpack(imageLoad(uimg_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos)));
                     vec3 hitRadiance = initialSample.hitRadiance;
                     vec3 sampleDirView = initialSample.directionAndLength.xyz;
                     float hitDistance = initialSample.directionAndLength.w;
@@ -132,7 +155,8 @@ void main() {
                     vec3 initalSample = brdf * hitRadiance;
 
 //                    float samplePdf = saturate(dot(gData.normal, sampleDirView)) / PI;
-                    float samplePdf = brdf;
+//                    float samplePdf = brdf;
+                    float samplePdf = 1.0 / (2.0 * PI);
 
                     float newPHat = length(initalSample);
                     float newWi = samplePdf <= 0.0 ? 0.0 : newPHat / samplePdf;
