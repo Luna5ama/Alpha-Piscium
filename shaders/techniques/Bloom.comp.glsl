@@ -298,6 +298,9 @@ vec4 bloom_mainOutput(ivec2 texelPos) {
     result *= 0.6;
     #endif
     result *= SETTING_BLOOM_INTENSITY;
+    if (isEyeInWater == 1) {
+        result *= SETTING_BLOOM_UNDERWATER_BOOST;
+    }
     return result;
 }
 #endif

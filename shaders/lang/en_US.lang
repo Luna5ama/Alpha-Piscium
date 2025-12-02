@@ -296,6 +296,7 @@ option.SETTING_BLOOM=Bloom Enabled
 option.SETTING_BLOOM_INTENSITY=Bloom Intensity
 option.SETTING_BLOOM_RADIUS=Bloom Radius
 option.SETTING_BLOOM_PASS=Bloom Pass Count
+option.SETTING_BLOOM_UNDERWATER_BOOST=Bloom Underwater Boost
 option.SETTING_PURKINJE_EFFECT=Purkinje Effect Enabled
 option.SETTING_PURKINJE_EFFECT_MIN_LUM=Minimum Luminance
 option.SETTING_PURKINJE_EFFECT_MIN_LUM.comment=Luminance below this value will become colorless

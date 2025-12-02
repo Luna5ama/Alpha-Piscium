@@ -1587,7 +1587,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Bloom Enabled"
                     }
                 }
-                slider("SETTING_BLOOM_INTENSITY", 1.0, 0.1..5.0 step 0.1) {
+                slider("SETTING_BLOOM_INTENSITY", 1.0, 0.5..10.0 step 0.5) {
                     lang {
                         name = "Bloom Intensity"
                     }
@@ -1600,6 +1600,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 slider("SETTING_BLOOM_PASS", 8, 1..10) {
                     lang {
                         name = "Bloom Pass Count"
+                    }
+                }
+                empty()
+                slider("SETTING_BLOOM_UNDERWATER_BOOST", 10, 1..20 step 1) {
+                    lang {
+                        name = "Bloom Underwater Boost"
                     }
                 }
             }
