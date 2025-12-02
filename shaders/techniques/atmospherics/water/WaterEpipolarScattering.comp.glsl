@@ -113,25 +113,39 @@ float compT(vec3 startLength, vec3 shadowPos) {
     return sqrt(distance(shadowPos.xy, startLength.xy) / startLength.z);
 }
 
-float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitter) {
+float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitter, float segmentLen, float lightRayLen1, float lightRayLen2) {
     vec3 startLength = shared_sliceShadowScreenStartLength;
     float startT = compT(startLength, startShadowPos);
     float endT = compT(startLength, endShadowPos);
     endShadowPos = startShadowPos + (endShadowPos - startShadowPos) / max(endT, 1.0);
     endT = saturate(endT);
-    const uint SHADOW_STEPS = 128u;
+    const uint SHADOW_STEPS = 64u;
     vec2 startTAndDepth = vec2(startT, startShadowPos.z);
-    vec2 stepT = vec2(endT - startT, endShadowPos.z - startShadowPos.z) / float(SHADOW_STEPS);
+    vec2 stepT = vec2(endT - startT, endShadowPos.z - startShadowPos.z);
+    float rcpSteps = rcp(float(SHADOW_STEPS));
     float shadowSum = 0.0;
+
+    float sigmaT = (max3(WATER_SCATTERING) + max3(WATER_EXTINCTION)) * 0.5;
+    float S = segmentLen;
+    float L1 = lightRayLen1;
+    float L2 = lightRayLen2;
+    float k = sigmaT * (1.0 + (L2 - L1) / S);
+    float a = exp(-k * S);
+
     for (uint i = 0u; i < SHADOW_STEPS; ++i) {
         float fi = float(i) + jitter;
+        fi *= rcpSteps;
+        fi = (-log(1.0 - fi * (1.0 - a)) / k) / S;
+
         vec2 sampleTAndDepth = saturate(startTAndDepth + fi * stepT);
         float indexF = sampleTAndDepth.x * float(SHADOW_SAMPLE_COUNT - 1);
+
         uint index = uint(indexF);
         float shadowTerm = float(shared_sliceShadowSamples[index] > sampleTAndDepth.y);
         shadowSum += shadowTerm;
     }
-    return shadowSum / float(SHADOW_STEPS);
+    shadowSum /= float(SHADOW_STEPS);
+    return shadowSum;
 }
 
 const vec3 ORIGIN_VIEW = vec3(0.0);
@@ -211,7 +225,7 @@ ScatteringResult raymarchWaterVolume(
 
     vec3 totalInSctr = vec3(0.0);
 
-    float shadowSample = atmosphere_sample_shadow(shadowStart, shadowEnd, jitter);
+    float shadowSample = atmosphere_sample_shadow(shadowStart, shadowEnd, jitter, totalRayLength, startLightRayLength, endLightRayLength);
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
     float midPointWorldHeight = (startWorldHeight + endWorldHeight) * 0.5;
     float atmHeight = atmosphere_height(atmosphere, midPointWorldHeight);
