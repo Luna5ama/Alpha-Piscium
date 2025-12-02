@@ -130,12 +130,13 @@ float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jit
     float L1 = lightRayLen1;
     float L2 = lightRayLen2;
     float k = sigmaT * (1.0 + (L2 - L1) / S);
-    float a = exp(-k * S);
+    float a = 1.0 - exp(-k * S);
+    float kS = -rcp(k * S);
 
     for (uint i = 0u; i < SHADOW_STEPS; ++i) {
         float fi = float(i) + jitter;
         fi *= rcpSteps;
-        fi = (-log(1.0 - fi * (1.0 - a)) / k) / S;
+        fi = log(1.0 - fi * a) * kS;
 
         vec2 sampleTAndDepth = saturate(startTAndDepth + fi * stepT);
         float indexF = sampleTAndDepth.x * float(SHADOW_SAMPLE_COUNT - 1);
