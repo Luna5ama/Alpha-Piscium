@@ -232,7 +232,7 @@ GBufferData processOutput() {
 }
 
 float calculateRayBoxIntersection(vec3 p, vec3 d, vec3 halfSize) {
-    const float LARGE = 114514.0;
+    const float LARGE = FLT_MAX;
     const float UPPER_BOUND = 3.4641016151; // Max diagonal length of a 2x2x2 box
     const float EPS = 1e-6;
     float tExit = LARGE;
@@ -307,7 +307,7 @@ void main() {
     }
 
     float offsetViewZ = frag_viewZ;
-    offsetViewZ -= zOffset;
+    offsetViewZ -= clamp(zOffset, -16.0, 16.0);
     imageAtomicMin(uimg_csr32f, nearDepthTexelPos, floatBitsToInt(-offsetViewZ));
     vec4 midBlockDecoded = unpackUnorm4x8(frag_midBlock);
     if (!isWater) {

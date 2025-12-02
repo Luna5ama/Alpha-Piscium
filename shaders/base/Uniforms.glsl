@@ -85,4 +85,8 @@ uniform int dhRenderDistance;
 uniform mat4 dhProjection;
 uniform mat4 dhProjectionInverse;
 uniform mat4 dhPreviousProjection;
+
+float farPlane = max(dhFarPlane, far);
+#else
+float farPlane = far;
 #endif
