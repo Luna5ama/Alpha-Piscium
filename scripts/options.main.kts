@@ -1326,6 +1326,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang {
                     name = "Water Volume"
                 }
+                slider("SETTING_WATER_SCATTERING_REFRACTION_APPROX", true) {
+                    lang {
+                        name = "Water Refraction Approximation"
+                    }
+                }
+                slider("SETTING_WATER_SCATTERING_REFRACTION_APPROX_CONTRAST", 7, 0..12) {
+                    lang {
+                        name = "Water Refraction Approximation Contrast"
+                    }
+                }
+                empty()
                 slider("SETTING_WATER_SCATTERING_R", 14, 0..100) {
                     lang {
                         name = "Scattering Coefficient Red"

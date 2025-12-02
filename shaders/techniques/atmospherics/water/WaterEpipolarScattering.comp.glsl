@@ -52,7 +52,7 @@ vec2 _processShadowSampleUV(vec2 sampleShadowUV, ivec2 randCoord) {
 shared vec4 shared_sliceShadowScreenStartEnd;
 shared vec3 shared_sliceShadowScreenStartLength;
 #define SHADOW_SAMPLE_COUNT (WORK_GROUP_SIZE * SETTING_WATER_SHADOW_SAMPLE_POOL_SIZE)
-shared float shared_sliceShadowSamples[SHADOW_SAMPLE_COUNT];
+shared vec2 shared_sliceShadowSamples[SHADOW_SAMPLE_COUNT];
 
 
 void loadSharedShadowSample(uint index) {
@@ -67,8 +67,24 @@ void loadSharedShadowSample(uint index) {
     float shadowSampleDepth = texture(shadowtex1, sampleShadowUV).r;
     vec2 ndcCoord = sampleShadowUV * 2.0 - 1.0;
     float edgeCoord = max(abs(ndcCoord.x), abs(ndcCoord.y));
-    shadowSampleDepth = mix(shadowSampleDepth, 1.0, linearStep(1.0 - SHADOW_MAP_SIZE.y * 16, 1.0, edgeCoord));
-    shared_sliceShadowSamples[index] = shadowSampleDepth;
+    float edgeBlend = linearStep(1.0 - SHADOW_MAP_SIZE.y * 16, 1.0, edgeCoord);
+    shadowSampleDepth = mix(shadowSampleDepth, 1.0, edgeBlend);
+
+    vec2 sampleData = vec2(1.0);
+    sampleData.x = shadowSampleDepth;
+
+    #ifdef SETTING_WATER_SCATTERING_REFRACTION_APPROX
+    {
+        const float STRENGTH_POWER = ldexp(1.0, SETTING_WATER_SCATTERING_REFRACTION_APPROX_CONTRAST);
+        vec3 waterNormal = texture(usam_shadow_waterNormal, sampleShadowUV.xy).xyz;
+        waterNormal = mix(waterNormal, vec3(0.0, 1.0, 0.0), edgeBlend);
+        waterNormal = normalize(waterNormal * 2.0 - 1.0);
+        float refractBoost = pow(pow2(dot(waterNormal, vec3(0.0, 1.0, 0.0))), STRENGTH_POWER);
+        sampleData.y = refractBoost;
+    }
+    #endif
+
+    shared_sliceShadowSamples[index] = sampleData;
 }
 
 void screenViewRaymarch_init(vec2 screenPos) {
@@ -113,7 +129,7 @@ float compT(vec3 startLength, vec3 shadowPos) {
     return saturate(distance(shadowPos.xy, startLength.xy) / startLength.z);
 }
 
-float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitter, float segmentLen, float lightRayLen1, float lightRayLen2) {
+vec2 atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitter, float segmentLen, float lightRayLen1, float lightRayLen2) {
     vec3 startLength = shared_sliceShadowScreenStartLength;
     float startT = compT(startLength, startShadowPos);
     float endT = compT(startLength, endShadowPos);
@@ -122,7 +138,7 @@ float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jit
     vec2 startTAndDepth = vec2(startT, startShadowPos.z);
     vec2 stepT = vec2(endT - startT, endShadowPos.z - startShadowPos.z);
     float rcpSteps = rcp(float(SHADOW_STEPS));
-    float shadowSum = 0.0;
+    vec2 shadowSum = vec2(0.0);
 
     float sigmaT = (max3(WATER_SCATTERING) + max3(WATER_EXTINCTION)) * 0.5;
     float S = segmentLen;
@@ -141,8 +157,10 @@ float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jit
         float indexF = sqrt(sampleTAndDepth.x) * float(SHADOW_SAMPLE_COUNT - 1);
 
         uint index = uint(indexF);
-        float shadowTerm = float(shared_sliceShadowSamples[index] > sampleTAndDepth.y);
-        shadowSum += shadowTerm;
+        vec2 sampleData = shared_sliceShadowSamples[index];
+        float shadowTerm = float(sampleData.x > sampleTAndDepth.y);
+        shadowSum.x += shadowTerm;
+        shadowSum.y += sampleData.y;
     }
     shadowSum /= float(SHADOW_STEPS);
     return shadowSum;
@@ -225,7 +243,7 @@ ScatteringResult raymarchWaterVolume(
 
     vec3 totalInSctr = vec3(0.0);
 
-    float shadowSample = atmosphere_sample_shadow(shadowStart, shadowEnd, jitter, totalRayLength, startLightRayLength, endLightRayLength);
+    vec2 shadowSample = atmosphere_sample_shadow(shadowStart, shadowEnd, jitter, totalRayLength, startLightRayLength, endLightRayLength);
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
     float midPointWorldHeight = (startWorldHeight + endWorldHeight) * 0.5;
     float atmHeight = atmosphere_height(atmosphere, midPointWorldHeight);
@@ -237,10 +255,13 @@ ScatteringResult raymarchWaterVolume(
     {
         float cosZenith = dot(UP_VECTOR, uval_sunDirWorld);
         vec3 atmT = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenith, atmHeight);
-        float shadow = mix(1.0, shadowSample, shadowIsSun);
-        float sunT1 = phaseV * shadow;
+        vec2 shadow = mix(vec2(1.0), shadowSample, shadowIsSun);
+        float shadowDirect = shadow.x * pow2(shadow.y);
+        // TODO: better multiple scattering shadowing
+        float shadowMS = (shadow.x * 0.5 + 0.5) * shadow.y;
+        float sunT1 = phaseV * shadowDirect;
         vec3 sunT3 = atmT * SUN_ILLUMINANCE;
-        vec3 irradiance = sunT1 + vMs; // direct (affected by shadow and phase) + multiple (ignores shadow and use uniform phase)
+        vec3 irradiance = sunT1 + vMs * shadowMS; // direct (affected by shadow and phase) + multiple (ignores shadow and use uniform phase)
         irradiance *= sunT3; // apply sun irradiance to both direct and multiple
         totalInSctr += inSctrInt * irradiance;
     }
@@ -248,10 +269,12 @@ ScatteringResult raymarchWaterVolume(
     {
         float cosZenith = dot(UP_VECTOR, uval_moonDirWorld);
         vec3 atmT = atmospherics_air_lut_sampleTransmittance(atmosphere, cosZenith, atmHeight);
-        float shadow = mix(1.0, shadowSample, 1.0 - shadowIsSun);
-        float moonT1 = phaseV * shadow;
+        vec2 shadow = mix(vec2(1.0), shadowSample, 1.0 - shadowIsSun);
+        float shadowDirect = shadow.x * pow2(shadow.y);
+        float shadowMS = (shadow.x * 0.5 + 0.5) * shadow.y;
+        float moonT1 = phaseV * shadowDirect;
         vec3 moonT3 = atmT * MOON_ILLUMINANCE;
-        vec3 irradiance = moonT1 + vMs; // direct (affected by shadow and phase) + multiple (ignores shadow and use uniform phase)
+        vec3 irradiance = moonT1 + vMs * shadowMS; // direct (affected by shadow and phase) + multiple (ignores shadow and use uniform phase)
         irradiance *= moonT3; // apply sun irradiance to both direct and multiple
         totalInSctr += inSctrInt * irradiance;
     }
