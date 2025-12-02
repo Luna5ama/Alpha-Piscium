@@ -51,7 +51,7 @@ vec2 _processShadowSampleUV(vec2 sampleShadowUV, ivec2 randCoord) {
 }
 shared vec4 shared_sliceShadowScreenStartEnd;
 shared vec3 shared_sliceShadowScreenStartLength;
-#define SHADOW_SAMPLE_COUNT (WORK_GROUP_SIZE * 8)
+#define SHADOW_SAMPLE_COUNT (WORK_GROUP_SIZE * SETTING_WATER_SHADOW_SAMPLE_POOL_SIZE)
 shared float shared_sliceShadowSamples[SHADOW_SAMPLE_COUNT];
 
 
@@ -110,7 +110,7 @@ void screenViewRaymarch_init(vec2 screenPos) {
 }
 
 float compT(vec3 startLength, vec3 shadowPos) {
-    return sqrt(distance(shadowPos.xy, startLength.xy) / startLength.z);
+    return saturate(distance(shadowPos.xy, startLength.xy) / startLength.z);
 }
 
 float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitter, float segmentLen, float lightRayLen1, float lightRayLen2) {
@@ -118,8 +118,7 @@ float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jit
     float startT = compT(startLength, startShadowPos);
     float endT = compT(startLength, endShadowPos);
     endShadowPos = startShadowPos + (endShadowPos - startShadowPos) / max(endT, 1.0);
-    endT = saturate(endT);
-    const uint SHADOW_STEPS = 64u;
+    const uint SHADOW_STEPS = SETTING_WATER_SHADOW_SAMPLE;
     vec2 startTAndDepth = vec2(startT, startShadowPos.z);
     vec2 stepT = vec2(endT - startT, endShadowPos.z - startShadowPos.z);
     float rcpSteps = rcp(float(SHADOW_STEPS));
@@ -139,7 +138,7 @@ float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jit
         fi = log(1.0 - fi * a) * kS;
 
         vec2 sampleTAndDepth = saturate(startTAndDepth + fi * stepT);
-        float indexF = sampleTAndDepth.x * float(SHADOW_SAMPLE_COUNT - 1);
+        float indexF = sqrt(sampleTAndDepth.x) * float(SHADOW_SAMPLE_COUNT - 1);
 
         uint index = uint(indexF);
         float shadowTerm = float(shared_sliceShadowSamples[index] > sampleTAndDepth.y);

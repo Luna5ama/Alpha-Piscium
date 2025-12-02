@@ -1280,20 +1280,24 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             }
             empty()
             empty()
-            screen("WATER", 1) {
+            screen("WATER_SURFACE", 1) {
                 lang {
-                    name = "Water"
+                    name = "Water Surface"
                 }
-                empty()
                 toggle("SETTING_WATER_REFRACT_APPROX", true) {
                     lang {
                         name = "Water Refraction Approximation"
                     }
                 }
-                empty()
                 toggle("SETTING_WATER_CAUSTICS", false) {
                     lang {
                         name = "Water Caustics"
+                    }
+                }
+                empty()
+                slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..4.0 step 0.5) {
+                    lang {
+                        name = "Water Normal Scale"
                     }
                 }
                 empty()
@@ -1317,13 +1321,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Water Parallax Secant Steps"
                     }
                 }
-                empty()
-                slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..4.0 step 0.5) {
-                    lang {
-                        name = "Water Normal Scale"
-                    }
+            }
+            screen("WATER_VOLUME", 1) {
+                lang {
+                    name = "Water Volume"
                 }
-                empty()
                 slider("SETTING_WATER_SCATTERING_R", 14, 0..100) {
                     lang {
                         name = "Scattering Coefficient Red"
@@ -1371,6 +1373,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     lang {
                         name = "Absorption Coefficient Multiplier"
                         prefix = "2^"
+                    }
+                }
+                empty()
+                slider("SETTING_WATER_SHADOW_SAMPLE", 64, powerOfTwoRangeAndHalf(4..8)) {
+                    lang {
+                        name = "Shadow Samples"
+                    }
+                }
+                slider("SETTING_WATER_SHADOW_SAMPLE_POOL_SIZE", 8, 2..16 step 2) {
+                    lang {
+                        name = "Shadow Sample Pool Size"
                     }
                 }
             }
