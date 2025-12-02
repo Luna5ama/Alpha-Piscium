@@ -1,6 +1,7 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
 
+#include "/util/Coords.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/textile/CSRG32F.glsl"
@@ -11,6 +12,9 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rg32f) uniform writeonly image2D uimg_csrg32f;
 
 shared vec4 shared_dilateData[16];
+
+shared vec3 shared_shadowAABBMin[16];
+shared vec3 shared_shadowAABBMax[16];
 
 const float EPS = 0.2;
 
@@ -24,7 +28,54 @@ const float EPS = 0.2;
 // inscattering: 3x16f
 // transmittance: 3x10u
 
+
+void shadowAABB1(vec3 shadowViewPosMin, vec3 shadowViewPosMax) {
+    vec3 min1 = subgroupMin(shadowViewPosMin);
+    vec3 max1 = subgroupMax(shadowViewPosMax);
+
+    if (subgroupElect()) {
+        shared_shadowAABBMin[gl_SubgroupID] = min1;
+        shared_shadowAABBMax[gl_SubgroupID] = max1;
+    }
+}
+
+void shadowAABB2() {
+    if (gl_SubgroupID == 0 && gl_SubgroupInvocationID < gl_NumSubgroups) {
+        vec3 min2 = shared_shadowAABBMin[gl_SubgroupInvocationID];
+        vec3 max2 = shared_shadowAABBMax[gl_SubgroupInvocationID];
+
+        vec3 min3 = subgroupMin(min2);
+        vec3 max3 = subgroupMax(max2);
+
+        if (subgroupElect()) {
+            ivec3 min4 = ivec3(floor(min3 / 16.0)) * 16;
+            ivec3 max4 = ivec3(ceil(max3 / 16.0)) * 16;
+            atomicMin(global_shadowAABBMinNew.x, min4.x);
+            atomicMin(global_shadowAABBMinNew.y, min4.y);
+            atomicMin(global_shadowAABBMinNew.z, min4.z);
+            atomicMax(global_shadowAABBMaxNew.x, max4.x);
+            atomicMax(global_shadowAABBMaxNew.y, max4.y);
+            atomicMax(global_shadowAABBMaxNew.z, max4.z);
+        }
+    }
+}
+
+void updateShadowAABB(vec2 screenPos, float viewZ, inout vec3 shadowViewPosMin, inout vec3 shadowViewPosMax) {
+    if (viewZ > -FLT_MAX) {
+        vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+        vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
+        vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
+        shadowViewPosMin = min(shadowViewPosMin, shadowViewPos.xyz);
+        shadowViewPosMax = max(shadowViewPosMax, shadowViewPos.xyz);
+    }
+}
+
 void main() {
+    if (gl_LocalInvocationIndex < 16) {
+        shared_shadowAABBMax[gl_LocalInvocationIndex] = vec3(0.0);
+        shared_shadowAABBMin[gl_LocalInvocationIndex] = vec3(0.0);
+    }
+
     vec2 layer1 = vec2(-FLT_MAX);
     vec2 layer2 = vec2(-FLT_MAX);
     vec2 layer3 = vec2(-FLT_MAX);
@@ -80,10 +131,23 @@ void main() {
     bvec4 dilateCond = equal(result, vec4(-FLT_MAX));
     result = mix(result, shared_dilateData[0], dilateCond);
 
+    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+
+    vec3 shadowViewPosMin = vec3(0.0);
+    vec3 shadowViewPosMax = vec3(0.0);
+
+    updateShadowAABB(screenPos, result.x, shadowViewPosMin, shadowViewPosMax);
+    updateShadowAABB(screenPos, result.z, shadowViewPosMin, shadowViewPosMax);
+    updateShadowAABB(screenPos, layer3.y, shadowViewPosMin, shadowViewPosMax);
+    shadowAABB1(shadowViewPosMin, shadowViewPosMax);
+
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         result = abs(result) * (vec2(bvec2(any(dilateCond.xy), any(dilateCond.zw))) * 2.0 - 1.0).xxyy;
         imageStore(uimg_csrg32f, csrg32f_tile1_texelToTexel(texelPos), result.xyxy);
         imageStore(uimg_csrg32f, csrg32f_tile2_texelToTexel(texelPos), result.zwzw);
         imageStore(uimg_csrg32f, csrg32f_tile3_texelToTexel(texelPos), layer3.xyxy);
     }
+
+    barrier();
+    shadowAABB2();
 }
