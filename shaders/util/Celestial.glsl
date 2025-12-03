@@ -19,7 +19,7 @@
 #define SUN_ANGULAR_RADIUS atan(SUN_RADIUS / SUN_DISTANCE)
 #define SUN_SOLID_ANGLE (2.0 * PI * (1.0 - sqrt(pow2(SUN_DISTANCE) - pow2(SUN_RADIUS)) / SUN_DISTANCE))
 
-#define SUN_LUMINANCE colors2_constants_idt(blackBody_evalRadiance_AP0(SUN_TEMPERATURE))
+#define SUN_LUMINANCE colors2_constants_toWorkSpace(blackBody_evalRadiance_AP0(SUN_TEMPERATURE))
 #define SUN_ILLUMINANCE (SUN_LUMINANCE * SUN_SOLID_ANGLE)
 
 #define MOON_RADIUS (1737.4 * SETTING_MOON_RADIUS)// in km

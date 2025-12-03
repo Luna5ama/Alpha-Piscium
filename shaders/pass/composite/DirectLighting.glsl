@@ -91,7 +91,7 @@ void main() {
                 gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), lighting_gData);
                 Material material = material_decode(lighting_gData);
                 vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
-                vec3 glintColor = colors2_material_idt(glintColorData.rgb) * glintColorData.a;
+                vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb) * glintColorData.a;
                 glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
                 glintColor *= exp2(SETTING_EMISSIVE_STRENGTH + SETTING_EMISSIVE_ARMOR_GLINT_MULT);
                 material.emissive += glintColor + material.albedo * glintColor * 4.0;
@@ -109,7 +109,7 @@ void main() {
                     mainOut = vec4(material.albedo * 0.01, 2.0);
                 } else {
                     doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
-                    float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_idt(lighting_gData.albedo));
+                    float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(lighting_gData.albedo));
                     float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
                     mainOut.a += emissiveFlag * albedoLuma * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
                     float albedoLumaWeight = pow(1.0 - pow(1.0 - albedoLuma, 16.0), 4.0);

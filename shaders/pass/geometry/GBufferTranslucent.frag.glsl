@@ -138,59 +138,62 @@ GBufferData processOutput() {
         float NDotV = dot(geomViewNormal, viewDir);
 
         #ifdef SETTING_WATER_PARALLAX
-        const uint PARALLAX_LINEAR_STEPS = uint(SETTING_WATER_PARALLAX_LINEAR_STEPS);
-        const uint PARALLAX_SECANT_STEPS = uint(SETTING_WATER_PARALLAX_SECANT_STEPS);
-        const float PARALLAX_STRENGTH = float(SETTING_WATER_PARALLAX_STRENGTH) / 0.8349056;
+        // Only apply water parallax to upward facing water surfaces
+        if (dot(geomViewNormal, uval_upDirView) >= 0.0) {
+            const uint PARALLAX_LINEAR_STEPS = uint(SETTING_WATER_PARALLAX_LINEAR_STEPS);
+            const uint PARALLAX_SECANT_STEPS = uint(SETTING_WATER_PARALLAX_SECANT_STEPS);
+            const float PARALLAX_STRENGTH = float(SETTING_WATER_PARALLAX_STRENGTH) / 0.8349056;
 
-        vec3 rayVector = scenePos / abs(scenePos.y); // y = +-1 now
-        float rayVectorLength = length(rayVector);
-        vec3 rayDir = rayVector / rayVectorLength;
+            vec3 rayVector = scenePos / abs(scenePos.y);// y = +-1 now
+            float rayVectorLength = length(rayVector);
+            vec3 rayDir = rayVector / rayVectorLength;
 
-        const float MAX_WAVE_HEIGHT = -rcp(0.8349056);
+            const float MAX_WAVE_HEIGHT = -rcp(0.8349056);
 
-        vec2 prevXY = vec2(0.0, 1.0);
+            vec2 prevXY = vec2(0.0, 1.0);
 
-        for (uint i = 0u; i < PARALLAX_LINEAR_STEPS; i++) {
-            float fi = float(i) / float(PARALLAX_LINEAR_STEPS - 1);
-            fi = 1.0 - pow3(1.0 - fi);
-            fi *= rayVectorLength;
-            vec3 sampleDelta = rayDir * fi;
+            for (uint i = 0u; i < PARALLAX_LINEAR_STEPS; i++) {
+                float fi = float(i) / float(PARALLAX_LINEAR_STEPS - 1);
+                fi = 1.0 - pow3(1.0 - fi);
+                fi *= rayVectorLength;
+                vec3 sampleDelta = rayDir * fi;
 
-            vec3 samplePos = waveWorldPos + sampleDelta * WAVE_POS_BASE * PARALLAX_STRENGTH;
-            samplePos.y = waveWorldPos.y;
-            float sampleHeight = saturate(waveHeight(samplePos, false) * MAX_WAVE_HEIGHT);
-            float currHeight = 1.0 + sampleDelta.y;
+                vec3 samplePos = waveWorldPos + sampleDelta * WAVE_POS_BASE * PARALLAX_STRENGTH;
+                samplePos.y = waveWorldPos.y;
+                float sampleHeight = saturate(waveHeight(samplePos, false) * MAX_WAVE_HEIGHT);
+                float currHeight = 1.0 + sampleDelta.y;
 
 
-            if (currHeight <= sampleHeight) {
-                vec2 xy1 = prevXY;
-                vec2 xy2 = vec2(fi, currHeight - sampleHeight);
-                float viewSlope = rayDir.y;
-                vec2 secantBound = vec2(prevXY.x, fi);
-                for (uint j = 0u; j < 2; j++) {
-                    float x3 = xy2.x - xy2.y * (xy2.x - xy1.x) / (xy2.y - xy1.y);
-                    fi = x3;
+                if (currHeight <= sampleHeight) {
+                    vec2 xy1 = prevXY;
+                    vec2 xy2 = vec2(fi, currHeight - sampleHeight);
+                    float viewSlope = rayDir.y;
+                    vec2 secantBound = vec2(prevXY.x, fi);
+                    for (uint j = 0u; j < 2; j++) {
+                        float x3 = xy2.x - xy2.y * (xy2.x - xy1.x) / (xy2.y - xy1.y);
+                        fi = x3;
 
-                    vec3 sampleDelta = rayDir * x3;
-                    float intDepth = 1.0 + sampleDelta.y;
+                        vec3 sampleDelta = rayDir * x3;
+                        float intDepth = 1.0 + sampleDelta.y;
 
-                    samplePos = waveWorldPos;
-                    samplePos.xz += sampleDelta.xz * (WAVE_POS_BASE * PARALLAX_STRENGTH);
-                    float sampleHeight = saturate(waveHeight(samplePos, false) * MAX_WAVE_HEIGHT);
-                    float depthDiff = intDepth - sampleHeight;
+                        samplePos = waveWorldPos;
+                        samplePos.xz += sampleDelta.xz * (WAVE_POS_BASE * PARALLAX_STRENGTH);
+                        float sampleHeight = saturate(waveHeight(samplePos, false) * MAX_WAVE_HEIGHT);
+                        float depthDiff = intDepth - sampleHeight;
 
-                    if (depthDiff < 0.01) break;
+                        if (depthDiff < 0.01) break;
 
-                    xy1 = xy2;
-                    xy2 = vec2(x3, depthDiff);
+                        xy1 = xy2;
+                        xy2 = vec2(x3, depthDiff);
+                    }
+
+                    waveWorldPos = samplePos;
+                    zOffset = fi * PARALLAX_STRENGTH + 0.4 / rayDir.y;
+                    break;
                 }
 
-                waveWorldPos = samplePos;
-                zOffset = fi * PARALLAX_STRENGTH + 0.4 / rayDir.y;
-                break;
+                prevXY = vec2(fi, currHeight - sampleHeight);
             }
-
-            prevXY = vec2(fi, currHeight - sampleHeight);
         }
         #endif
 
@@ -272,7 +275,7 @@ void main() {
     bool isWater = frag_materialID == 3u;
 
     float alpha = inputAlbedo.a;
-    vec3 materialColor = colors2_material_idt(inputAlbedo.rgb);
+    vec3 materialColor = colors2_material_toWorkSpace(inputAlbedo.rgb);
 
     vec3 t = materialColor;
     float lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);

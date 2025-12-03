@@ -8,24 +8,24 @@
 #include "/util/PhaseFunc.glsl"
 
 // Stratus (continental)
-const vec3 CLOUDS_ST_SCATTERING = colors2_constants_idt(vec3(0.23777277562949245, 0.23987629843161026, 0.2551375513806795));
-const vec3 CLOUDS_ST_EXTINCTION = colors2_constants_idt(vec3(0.23777304241545993, 0.2398763953030018, 0.25513757827543126));
-const vec3 CLOUDS_ST_ASYM = colors2_constants_idt(vec3(0.8629828250733059, 0.8727334366957631, 0.9334765415706695));
-const vec3 CLOUDS_ST_E = colors2_constants_idt(vec3(1091938.4155551041, 3341273.320789842, 5.699703416476822e12));
+const vec3 CLOUDS_ST_SCATTERING = colors2_constants_toWorkSpace(vec3(0.23777277562949245, 0.23987629843161026, 0.2551375513806795));
+const vec3 CLOUDS_ST_EXTINCTION = colors2_constants_toWorkSpace(vec3(0.23777304241545993, 0.2398763953030018, 0.25513757827543126));
+const vec3 CLOUDS_ST_ASYM = colors2_constants_toWorkSpace(vec3(0.8629828250733059, 0.8727334366957631, 0.9334765415706695));
+const vec3 CLOUDS_ST_E = colors2_constants_toWorkSpace(vec3(1091938.4155551041, 3341273.320789842, 5.699703416476822e12));
 const float CLOUDS_ST_R_EFF = 7.33;
 
 // Cumulus (cont., clean)
-const vec3 CLOUDS_CU_SCATTERING = colors2_constants_idt(vec3(0.18067349140471628, 0.18215551958414714, 0.19358579492341665));
-const vec3 CLOUDS_CU_EXTINCTION = colors2_constants_idt(vec3(0.18067367051236774, 0.18215559145291857, 0.19358580629452912));
-const vec3 CLOUDS_CU_ASYM = colors2_constants_idt(vec3(0.8615159687912013, 0.8732937077048064, 0.9375708300315341));
-const vec3 CLOUDS_CU_E = colors2_constants_idt(vec3(935502.5670106385, 3581719.839469918, 4.094123822571251E13));
+const vec3 CLOUDS_CU_SCATTERING = colors2_constants_toWorkSpace(vec3(0.18067349140471628, 0.18215551958414714, 0.19358579492341665));
+const vec3 CLOUDS_CU_EXTINCTION = colors2_constants_toWorkSpace(vec3(0.18067367051236774, 0.18215559145291857, 0.19358580629452912));
+const vec3 CLOUDS_CU_ASYM = colors2_constants_toWorkSpace(vec3(0.8615159687912013, 0.8732937077048064, 0.9375708300315341));
+const vec3 CLOUDS_CU_E = colors2_constants_toWorkSpace(vec3(935502.5670106385, 3581719.839469918, 4.094123822571251E13));
 const float CLOUDS_CU_R_EFF = 5.77;
 
 // Cirrus 1: -25° C
-const vec3 CLOUDS_CI_SCATTERING = colors2_constants_idt(vec3(6.17017026101243, 6.239057230606717, 6.667813761472693));
-const vec3 CLOUDS_CI_EXTINCTION = colors2_constants_idt(vec3(6.170170260942012, 6.239057230606713, 6.667813761472693));
-const vec3 CLOUDS_CI_ASYM = colors2_constants_idt(vec3(0.7816707299139416, 0.7895764808723628, 0.8408420552232578));
-const vec3 CLOUDS_CI_E = colors2_constants_idt(vec3(4714.18358593152, 6665.142983584232, 143262.2082694281));
+const vec3 CLOUDS_CI_SCATTERING = colors2_constants_toWorkSpace(vec3(6.17017026101243, 6.239057230606717, 6.667813761472693));
+const vec3 CLOUDS_CI_EXTINCTION = colors2_constants_toWorkSpace(vec3(6.170170260942012, 6.239057230606713, 6.667813761472693));
+const vec3 CLOUDS_CI_ASYM = colors2_constants_toWorkSpace(vec3(0.7816707299139416, 0.7895764808723628, 0.8408420552232578));
+const vec3 CLOUDS_CI_E = colors2_constants_toWorkSpace(vec3(4714.18358593152, 6665.142983584232, 143262.2082694281));
 const float CLOUDS_CI_R_EFF = 91.7;
 
 struct CloudParticpatingMedium {
@@ -46,7 +46,7 @@ vec3 _clouds_samplePhaseLUT(float cosTheta, float type) {
     float v = (type + 0.5) / 3.0;
     // It was encoded from AP0
     vec4 rgbm = texture(usam_cloudPhases, vec2(u, v));
-    return colors2_constants_idt(rgbm.rgb * rgbm.a);
+    return colors2_constants_toWorkSpace(rgbm.rgb * rgbm.a);
 }
 
 vec3 _clouds_cirrusLUTPhase(float cosTheta) {

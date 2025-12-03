@@ -16,8 +16,8 @@
 #define COLORS2_OUTPUT_COLORSPACE COLORS2_COLORSPACES_SRGB
 #define COLORS2_OUTPUT_TF COLORS2_TF_SRGB
 
-#define colors2_material_idt(x) colors2_colorspaces_convert(COLORS2_MATERIAL_COLORSPACE, COLORS2_WORKING_COLORSPACE, colors2_eotf(COLORS2_MATERIAL_TF, x))
+#define colors2_material_toWorkSpace(x) colors2_colorspaces_convert(COLORS2_MATERIAL_COLORSPACE, COLORS2_WORKING_COLORSPACE, colors2_eotf(COLORS2_MATERIAL_TF, x))
 
-#define colors2_constants_idt(x) colors2_colorspaces_convert(COLORS2_CONSTANTS_COLORSPACE, COLORS2_WORKING_COLORSPACE, x)
+#define colors2_constants_toWorkSpace(x) colors2_colorspaces_convert(COLORS2_CONSTANTS_COLORSPACE, COLORS2_WORKING_COLORSPACE, x)
 
 #endif
