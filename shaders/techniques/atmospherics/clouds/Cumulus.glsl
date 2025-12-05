@@ -111,7 +111,7 @@ float detailNoiseW(vec3 pos) {
 }
 
 vec3 detailCurlNoise(vec3 pos) {
-    return texture(usam_cumulusCurl, pos * 0.1).xyz * 4.0;
+    return texture(usam_cumulusCurl, pos * 0.1).xyz * 1.0;
 }
 
 bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float densityOut) {
