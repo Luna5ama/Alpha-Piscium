@@ -44,8 +44,8 @@ vec3 ffxcas_pass(ivec2 texelPos) {
     float b02 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, c02);
     float b12 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, c12);
     float b22 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, c22);
-    float minBrightness = min3(min4(b00, b10, b20, b01), min4(b11, b21, b02, b12), b22);
-    float maxBrightness = max3(max4(b00, b10, b20, b01), max4(b11, b21, b02, b12), b22);
+    float minBrightness = mmin3(min4(b00, b10, b20, b01), min4(b11, b21, b02, b12), b22);
+    float maxBrightness = mmax3(max4(b00, b10, b20, b01), max4(b11, b21, b02, b12), b22);
     float contrast = maxBrightness - minBrightness;
     float sharpnessScale = 1.0 / (1.0 + contrast * 10.0);
     float sharpenFactor = clamp(FFXCAS_SHARPENESS * sharpnessScale, 0.0, 1.0);

@@ -140,7 +140,7 @@ vec2 atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitt
     float rcpSteps = rcp(float(SHADOW_STEPS));
     vec2 shadowSum = vec2(0.0);
 
-    float sigmaT = (max3(WATER_SCATTERING) + max3(WATER_EXTINCTION)) * 0.5;
+    float sigmaT = (mmax3(WATER_SCATTERING) + mmax3(WATER_EXTINCTION)) * 0.5;
     float S = segmentLen;
     float L1 = lightRayLen1;
     float L2 = lightRayLen2;

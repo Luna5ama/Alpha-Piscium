@@ -243,11 +243,11 @@ float calculateRayBoxIntersection(vec3 p, vec3 d, vec3 halfSize) {
     uvec3 notZeroCond = uvec3(greaterThan(abs(d), vec3(EPS)));
     vec3 t1 = (halfSize - p) / d;
     t1 = mix(vec3(LARGE), t1, bvec3(notZeroCond & uvec3(greaterThan(t1, vec3(0.0)))));
-    tExit = min(tExit, min3(t1));
+    tExit = min(tExit, mmin3(t1));
 
     vec3 t2 = (-halfSize - p) / d;
     t2 = mix(vec3(LARGE), t2, bvec3(notZeroCond & uvec3(greaterThan(t2, vec3(0.0)))));
-    tExit = min(tExit, min3(t2));
+    tExit = min(tExit, mmin3(t2));
 
     return tExit < UPPER_BOUND ? tExit : 0.0;
 }
