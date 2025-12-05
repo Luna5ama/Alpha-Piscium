@@ -257,6 +257,8 @@ class OptionBuilder<T>(
 }
 
 class Scope : OptionFactory() {
+    var screenDepth = 0
+
     private lateinit var _mainScreen: ScreenBuilder
     private val _screens = mutableSetOf<ScreenBuilder>()
     private val _sliders = mutableSetOf<String>()
@@ -279,8 +281,10 @@ class Scope : OptionFactory() {
 
     fun mainScreen(columns: Int, block: ScreenBuilder.() -> Unit) {
         check(!::_mainScreen.isInitialized) { "Main screen already exists" }
-        _mainScreen = ScreenBuilder(this, "", columns)
+        _mainScreen = ScreenBuilder(this, "", columns, 0)
+        screenDepth++
         _mainScreen.apply(block)
+        screenDepth--
     }
 
     fun build(baseShadersProperties: File): Output {
@@ -293,13 +297,16 @@ class Scope : OptionFactory() {
         _screens.forEach { screen ->
             screen.build(output)
         }
+        val maxDepth = _screens.maxOf { it.depth }
+        println("Max screen depth: $maxDepth")
         _options.forEach { option ->
             option.build(output)
         }
         return output
     }
 
-    class ScreenBuilder(override val scope: Scope, val _name: String, private val columns: Int) : OptionFactory() {
+    class ScreenBuilder(override val scope: Scope, val _name: String, private val columns: Int, val depth: Int) : OptionFactory() {
+
         init {
             check(!_name.contains(' ')) { "Screen name cannot contain space" }
         }
@@ -314,6 +321,7 @@ class Scope : OptionFactory() {
         }
 
         fun build(output: Output) {
+            println("${_name}: depth=$depth, columns=$columns, items=${items.size}")
             langBuilder.build(output)
             output.writeShadersProperties {
                 appendLine("screen$ref.columns=$columns")
@@ -329,9 +337,11 @@ class Scope : OptionFactory() {
         }
 
         fun screen(name: String, columns: Int, block: ScreenBuilder.() -> Unit) {
-            val screen = ScreenBuilder(scope, name, columns)
+            val screen = ScreenBuilder(scope, name, columns, scope.screenDepth)
             scope._addScreen(screen)
+            scope.screenDepth++
             screen.apply(block)
+            scope.screenDepth--
             val screenItem = ScreenItem("[$name]")
             items.add(screenItem)
         }
