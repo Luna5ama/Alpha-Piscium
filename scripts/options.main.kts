@@ -1341,7 +1341,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "Water Refraction Approximation"
                     }
                 }
-                slider("SETTING_WATER_SCATTERING_REFRACTION_APPROX_CONTRAST", 7, 0..12) {
+                slider("SETTING_WATER_SCATTERING_REFRACTION_APPROX_CONTRAST", 5, 0..12) {
                     lang {
                         name = "Water Refraction Approximation Contrast"
                     }

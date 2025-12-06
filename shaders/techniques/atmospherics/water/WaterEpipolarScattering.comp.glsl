@@ -114,14 +114,9 @@ void screenViewRaymarch_init(vec2 screenPos) {
 
     barrier();
 
-    loadSharedShadowSample(gl_LocalInvocationIndex);
-    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE);
-    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 2);
-    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 3);
-    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 4);
-    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 5);
-    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 6);
-    loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * 7);
+    for (uint i = 0u; i < SETTING_WATER_SHADOW_SAMPLE_POOL_SIZE; ++i) {
+        loadSharedShadowSample(gl_LocalInvocationIndex + WORK_GROUP_SIZE * i);
+    }
     barrier();
 }
 
