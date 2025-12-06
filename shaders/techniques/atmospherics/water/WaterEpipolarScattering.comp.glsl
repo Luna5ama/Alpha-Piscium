@@ -76,9 +76,9 @@ void loadSharedShadowSample(uint index) {
     #ifdef SETTING_WATER_SCATTERING_REFRACTION_APPROX
     {
         const float STRENGTH_POWER = ldexp(1.0, SETTING_WATER_SCATTERING_REFRACTION_APPROX_CONTRAST);
-        vec3 waterNormal = texture(usam_shadow_waterNormal, sampleShadowUV.xy).xyz;
+        vec3 waterNormal = texture(usam_shadow_waterNormal, sampleShadowUV.xy).xyz * 2.0 - 1.0;
         waterNormal = mix(waterNormal, vec3(0.0, 1.0, 0.0), edgeBlend);
-        waterNormal = normalize(waterNormal * 2.0 - 1.0);
+        waterNormal = normalize(waterNormal);
         float refractBoost = pow(pow2(dot(waterNormal, vec3(0.0, 1.0, 0.0))), STRENGTH_POWER);
         sampleData.y = refractBoost;
     }
