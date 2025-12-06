@@ -1980,6 +1980,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Show Constellations"
                 }
             }
+            slider("SETTING_TIME_SPEED_HISTORY_RESET_THRESHOLD", 1000, 100..10000 step 500) {
+                lang {
+                    name = "Time Speed History Reset Threshold"
+                    comment = "Higher value means temporal accmulation will be less sensitive to sudden time speed changes."
+                }
+            }
         }
         empty()
         empty()
