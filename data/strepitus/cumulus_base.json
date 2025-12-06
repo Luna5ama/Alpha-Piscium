@@ -1,0 +1,62 @@
+{
+    "main_parameters": {
+        "width": 1024,
+        "height": 1024,
+        "slices": 1
+    },
+    "noise_layers": [
+        {
+            "enabled": true,
+            "composite_mode": "Add",
+            "dimension_type": "2D",
+            "base_seed": "18D19C8",
+            "base_frequency": 16,
+            "base_amplitude": "0.68750",
+            "fbm_parameters": {
+                "octaves": 8,
+                "persistence": "0.5",
+                "lacunarity": "2.0",
+                "per_octave_seed": true
+            },
+            "specific_parameters": {
+                "type": "dev.luna5ama.strepitus.params.NoiseSpecificParameters.Worley",
+                "distance_function": "Euclidean",
+                "smooth_worley": {
+                    "flip": false,
+                    "mix_weight": "1",
+                    "smoothness": "0.50000",
+                    "rand_power": "1.5000",
+                    "min_bound": "0.0",
+                    "max_bound": "1.0",
+                    "step_function_type": "SmoothStep"
+                },
+                "regular_worley": {
+                    "f1_flip": false,
+                    "f2_flip": false,
+                    "f1_mix_weight": "0.0",
+                    "f2_mix_weight": "-1",
+                    "rand_power": "3.0000",
+                    "min_bound": "0.0",
+                    "max_bound": "1.0",
+                    "step_function_type": "SmoothStep"
+                }
+            }
+        }
+    ],
+    "output_parameters": {
+        "format": "R8_UNORM",
+        "normalize": false,
+        "min_val": "0.0",
+        "max_val": "1.0",
+        "flip": false,
+        "dither": true
+    },
+    "viewer_parameters": {
+        "color_mode": "RGB",
+        "tilling": false,
+        "center_x": "-54.52",
+        "center_y": "307.3",
+        "slice": "0.0",
+        "zoom": "-0.8172"
+    }
+}

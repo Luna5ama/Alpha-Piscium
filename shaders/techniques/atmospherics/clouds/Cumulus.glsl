@@ -88,16 +88,17 @@ float worleyNoise(vec2 x, uint seed) {
 }
 
 float coverageNoise(vec2 pos) {
+        float higherOctave = texture(usam_cumulusBase, pos / 312.0).x;
     float amp = 1.0;
     float freq = 0.35;
     float sum = 0.0;
-    for (uint i = 0u; i < 4u; i++) {
+    for (uint i = 0u; i < 1u; i++) {
         float n = worleyNoise(pos * freq, 0x1919810u + i * 0x114514u);
         sum += n * amp;
         amp *= 0.5;
         freq *= 2.0;
     }
-    return sum;
+    return sum + higherOctave * 0.75;
 }
 
 float detailNoiseB(vec3 pos) {
@@ -107,7 +108,7 @@ float detailNoiseB(vec3 pos) {
 
 float detailNoiseW(vec3 pos) {
     pos.y *= 1.4;
-    return texture(usam_cumulusDetail1, pos * 0.6).x;
+    return texture(usam_cumulusDetail1, pos * 0.5).x;
 }
 
 vec3 detailCurlNoise(vec3 pos) {
@@ -145,6 +146,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
     densityOut *= saturate(1.0 - exp2(-BOTTOM_CURVE_FACTOR * heightFraction));
 
     const float CU_BASE_DENSITY_THRESHOLD = 0.02;
+//    return densityOut > CU_BASE_DENSITY_THRESHOLD;
 
     if (densityOut > CU_BASE_DENSITY_THRESHOLD) {
         #if !defined(SETTING_SCREENSHOT_MODE) && defined(SETTING_CLOUDS_CU_WIND)
