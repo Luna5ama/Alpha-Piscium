@@ -3,7 +3,7 @@ import java.util.zip.Deflater
 import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 
-val included = setOf("shaders", "licenses", "LICENSE", "README.md")
+val included = setOf("changelogs", "shaders", "licenses", "LICENSE", "README.md")
 val commitTag = Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD")).inputStream.bufferedReader().readText().trim()
 
 val currDir = File("")
