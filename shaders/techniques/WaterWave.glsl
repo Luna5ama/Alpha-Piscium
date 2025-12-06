@@ -5,7 +5,7 @@
 #include "/util/noise/GradientNoise.glsl"
 #include "/util/Sampling.glsl"
 
-float fuck(float x) {
+float oscillate(float x) {
     return cos(1.1 * x + 0.5) * 0.95 + sin(1.6 * x + 1.5) * 0.43 + cos(3.7 * x + 2.2) * 0.15;
 }
 
@@ -35,7 +35,7 @@ float waveHeight(vec3 wavePos, bool base) {
 
     {
         vec2 curlCoord = waveTexCoordOgCurl * 0.11;
-        float ff = fuck(timeV * 4.5 + 6.9);
+        float ff = oscillate(timeV * 4.5 + 6.9);
         curlCoord += ff * CURL_DIR * 0.0018;
         curlCoord += waveTime * 0.11;
         curl = textureLod(usam_waveHFCurl, curlCoord, 0.0).rg * 0.061;

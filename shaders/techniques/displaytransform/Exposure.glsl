@@ -47,7 +47,7 @@ const float HIGHLIGHT_LUMA_THRESHOLD = SETTING_EXPOSURE_H_LUM / 255.0;
 
 void _displaytransform_exposure_update(bool valid, inout vec4 color) {
     if (valid) {
-        float lumimance = colors2_colorspaces_luma(COLORS2_OUTPUT_COLORSPACE, saturate(color.rgb));// WTF Photoshop
+        float lumimance = colors2_colorspaces_luma(COLORS2_OUTPUT_COLORSPACE, saturate(color.rgb));
         uint not0Flag = uint(any(greaterThan(color.rgb, vec3(0.0))));
 
         float pixelNoise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
