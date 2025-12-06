@@ -139,7 +139,10 @@ GBufferData processOutput() {
 
         #ifdef SETTING_WATER_PARALLAX
         // Only apply water parallax to upward facing water surfaces
-        if (dot(geomViewNormal, uval_upDirView) >= 0.0) {
+
+        const float UP_DIR_COS_EPSILON = 0.001;
+
+        if (dot(geomViewNormal, uval_upDirView) > UP_DIR_COS_EPSILON) {
             const uint PARALLAX_LINEAR_STEPS = uint(SETTING_WATER_PARALLAX_LINEAR_STEPS);
             const uint PARALLAX_SECANT_STEPS = uint(SETTING_WATER_PARALLAX_SECANT_STEPS);
             const float PARALLAX_STRENGTH = float(SETTING_WATER_PARALLAX_STRENGTH) / 0.8349056;
