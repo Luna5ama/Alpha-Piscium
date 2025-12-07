@@ -88,7 +88,7 @@ float worleyNoise(vec2 x, uint seed) {
 }
 
 float coverageNoise(vec2 pos) {
-        float higherOctave = texture(usam_cumulusBase, pos / 312.0).x;
+    float higherOctave = texture(usam_cumulusBase, pos / 32.0).x;
     float amp = 1.0;
     float freq = 0.35;
     float sum = 0.0;
