@@ -62,7 +62,7 @@ void main() {
             vec4 prevResult = imageLoad(uimg_cloudsAmbLUT, texelPos3D);
             vec4 newResult;
             prevResult.a *= global_historyResetFactor;
-            newResult.a = min(prevResult.a + 1.0, 64.0);
+            newResult.a = min(prevResult.a + 1.0, 16.0);
             newResult.rgb = mix(prevResult.rgb, currResult, 1.0 / newResult.a);
 
             imageStore(uimg_cloudsAmbLUT, texelPos3D, newResult);

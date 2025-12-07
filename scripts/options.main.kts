@@ -444,8 +444,8 @@ fun powerOfTwoRange(range: IntRange): List<Int> {
 }
 
 fun powerOfTwoRangeAndHalf(range: IntRange): List<Int> {
-    return range.flatMap {
-        if (it <= 1) {
+    return range.flatMapIndexed { index, it ->
+        if (it <= 1 || index == 0) {
             listOf(1 shl it)
         } else {
             listOf((1 shl (it - 1)) + (1 shl (it - 2)), 1 shl it)
@@ -1980,7 +1980,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "Show Constellations"
                 }
             }
-            slider("SETTING_TIME_SPEED_HISTORY_RESET_THRESHOLD", 1000, 100..10000 step 500) {
+            slider("SETTING_TIME_SPEED_HISTORY_RESET_THRESHOLD", 32, powerOfTwoRangeAndHalf(2..10)) {
                 lang {
                     name = "Time Speed History Reset Threshold"
                     comment = "Higher value means temporal accmulation will be less sensitive to sudden time speed changes."
