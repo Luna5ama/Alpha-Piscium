@@ -143,5 +143,54 @@ vec4 sampling_textureRepeat(sampler2D t, vec2 uv, float tsize, float v) {
     return mix(cola, colb, smoothstep(0.2, 0.8, f - 0.1 * sum4(cola - colb)));
 }
 
+// From https://github.com/GameTechDev/TAA and https://www.iryoku.com/downloads/Filmic-SMAA-v8.pptx
+vec4 sampling_catmullBicubic5Tap(sampler2D texSampler, vec2 texelPos, float sharpness, vec2 texRcpSize){
+    vec2 t = fract(texelPos - 0.5);
+    vec2 centerUV = (floor(texelPos - 0.5) + vec2(0.5f, 0.5f)) * texRcpSize;
+
+    // 5-tap bicubic sampling (for Hermite/Carmull-Rom filter) -- (approximate from original 16->9-tap bilinear fetching)
+    vec2 f = t;
+    vec2 f2 = t * t;
+    vec2 f3 = t * t * t;
+
+    float s = sharpness;
+    vec2 w0 = -s * f3 + 2.0 * s * f2 - s * f;
+    vec2 w1 = (2.0 - s) * f3 + (s - 3.0) * f2 + 1.0;
+    vec2 w2 = (s - 2.0) * f3 + (3 - 2.0 * s) * f2 + s * f;
+    vec2 w3 = s * f3 - s * f2;
+
+    vec2 w12 = w1 + w2;
+
+    vec2 tc12 = centerUV + (w2 / w12) * texRcpSize;
+    vec2 tc0 = centerUV - 1.0f * texRcpSize;
+    vec2 tc3 = centerUV + 2.0f * texRcpSize;
+
+    vec4 c1 = vec4(texture(texSampler, vec2(tc12.x, tc0.y)));
+    vec4 c2 = vec4(texture(texSampler, vec2(tc0.x, tc12.y)));
+    vec4 c3 = vec4(texture(texSampler, vec2(tc12.x, tc12.y)));
+    vec4 c4 = vec4(texture(texSampler, vec2(tc3.x, tc12.y)));
+    vec4 c5 = vec4(texture(texSampler, vec2(tc12.x, tc3.y)));
+
+    float weight1 = w12.x * w0.y;
+    float weight2 = w0.x * w12.y;
+    float weight3 = w12.x * w12.y;
+    float weight4 = w3.x * w12.y;
+    float weight5 = w12.x * w3.y;
+
+    vec4 color = weight1 * c1;
+    color += weight2 * c2;
+    color += weight3 * c3;
+    color += weight4 * c4;
+    color += weight5 * c5;
+
+    return color * rcp(weight1 + weight2 + weight3 + weight4 + weight5);
+}
+
+vec4 sampling_catmullBicubic5Tap(sampler2D texSampler, vec2 uv, float sharpness){
+    vec2 texSize = vec2(textureSize(texSampler, 0));
+    vec2 texelPos = uv * texSize;
+    vec2 texRcpSize = rcp(texSize);
+    return sampling_catmullBicubic5Tap(texSampler, texelPos, sharpness, texRcpSize);
+}
 
 #endif

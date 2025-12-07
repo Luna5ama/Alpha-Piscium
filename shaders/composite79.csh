@@ -18,7 +18,9 @@ vec3 ffxcas_load(ivec2 texelPos) {
 void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
-        outputColor.rgb = ffxcas_pass(texelPos);
+        if (FFXCAS_SHARPENESS > 0.0) {
+            outputColor.rgb = ffxcas_pass(texelPos);
+        }
         #if SETTING_DEBUG_OUTPUT == 3
         debugOutput(texelPos, outputColor);
         #endif
