@@ -2,6 +2,21 @@
 #include "/util/Colors.glsl"
 #include "/util/Colors2.glsl"
 
+/*
+    Diffuse Color : 48 bits (1)
+    Diffuse fast color: 48 bits (1)
+    Diffuse Moment2: 16 bits (1)
+
+    Specular Color: 48 bits (2)
+    Specular fast color: 48 bits (2)
+    Specular Moment2: 16 bits (2)
+
+    History Length: 8 bits (2)
+    Fast history Length: 8 bits (2)
+
+    Shadow: 16 bits (2)
+*/
+
 void svgf_pack(out uvec4 packedData, vec3 color, vec3 fastColor, vec2 moments, float hLen) {
     color = clamp(color, 0.0, FP16_MAX);
     fastColor = clamp(fastColor, 0.0, FP16_MAX);
