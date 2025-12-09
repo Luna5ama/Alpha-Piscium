@@ -70,9 +70,9 @@ const mat3 _colors2_colorspaces_mat_SRGB_to_SRGB = mat3(
     0.0, 0.0, 1.0
 );
 const mat3 _colors2_colorspaces_mat_SRGB_to_REC709 = mat3(
-    1.0001051528, 0.0, 6.64814e-05,
-    -8.33722e-05, 1.0000437956, -5.5407e-06,
-    -2.41064e-05, 0.0, 0.9999655172
+    1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0
 );
 const mat3 _colors2_colorspaces_mat_SRGB_to_REC2020 = mat3(
     0.6274413721, 0.3292974595, 0.0433514584,
@@ -107,9 +107,9 @@ const mat3 _colors2_colorspaces_mat_REC709_to_CIE_XYZ = mat3(
     0.0193308187, 0.1191947798, 0.9505321522
 );
 const mat3 _colors2_colorspaces_mat_REC709_to_SRGB = mat3(
-    0.9998865981, 0.0, -4.33154e-05,
-    0.0001050308, 0.9999965246, -2.4064e-06,
-    2.44857e-05, 1.19195e-05, 1.0000380325
+    1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0
 );
 const mat3 _colors2_colorspaces_mat_REC709_to_REC709 = mat3(
     1.0, 0.0, 0.0,
