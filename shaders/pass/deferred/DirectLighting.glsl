@@ -5,7 +5,6 @@
 #include "/techniques/atmospherics/air/Constants.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/gtvbgi/Common.glsl"
-#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Colors2.glsl"
@@ -19,9 +18,9 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
-layout(rgba16f) uniform restrict image2D uimg_csrgba16f;
-layout(rg32ui) uniform restrict uimage2D uimg_packedZN;
-layout(r32ui) uniform writeonly uimage2D uimg_geometryNormal;
+layout(rgba16f) uniform restrict image2D uimg_rgba16f;
+layout(rg32ui) uniform restrict uimage2D uimg_rg32ui;
+layout(r32ui) uniform writeonly uimage2D uimg_r32ui;
 
 ivec2 texelPos;
 
@@ -41,7 +40,7 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
     const vec3 earthCenter = vec3(0.0, 0.0, 0.0);
     vec3 V = normalize(-viewPos);
 
-    vec3 shadow = texelFetch(usam_temp3, texelPos, 0).rgb;
+    vec3 shadow = transient_shadow_fetch(texelPos).rgb;
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
 
     float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
@@ -100,7 +99,7 @@ void main() {
                 ivec2 texelPos2x2 = texelPos >> 1;
                 ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
 
-                uvec2 radianceData = imageLoad(uimg_packedZN, radianceTexelPos).xy;
+                uvec2 radianceData = transient_packedZN_load(radianceTexelPos).xy;
                 vec4 ssgiOut = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
 
                 vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
@@ -122,20 +121,20 @@ void main() {
                 ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
 
                 uint packedGeometryNormal = packSnorm3x10(lighting_gData.geomNormal);
-                imageStore(uimg_geometryNormal, texelPos, uvec4(packedGeometryNormal));
+                transient_geometryNormal_store(texelPos, uvec4(packedGeometryNormal));
 
                 uvec4 packedZNOut = uvec4(0u);
                 nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
-                imageStore(uimg_packedZN, texelPos + ivec2(0, uval_mainImageSizeI.y), packedZNOut);
+                transient_packedZN_store(texelPos + ivec2(0, uval_mainImageSizeI.y), packedZNOut);
 
                 uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
                 ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
                 if (bool(ssgiOutWriteFlag)) {
-                    imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
-                    imageStore(uimg_packedZN, radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
+                    transient_packedZN_store(texelPos2x2, packedZNOut);
+                    transient_packedZN_store(radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
                 }
 
-                imageStore(uimg_csrgba16f, csrgba16f_temp2_texelToTexel(texelPos), vec4(directDiffuseOut, 0.0));
+                transient_directDiffusePassThrough_store(texelPos, vec4(directDiffuseOut, 0.0));
                 imageStore(uimg_main, texelPos, mainOut);
                 return;
             }
@@ -146,14 +145,14 @@ void main() {
 
             uvec4 packedZNOut = uvec4(0u);
             packedZNOut.y = floatBitsToUint(-65536.0);
-            imageStore(uimg_packedZN, texelPos + ivec2(0, uval_mainImageSizeI.y), packedZNOut);
+            transient_packedZN_store(texelPos + ivec2(0, uval_mainImageSizeI.y), packedZNOut);
 
             uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
             ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
             if (bool(ssgiOutWriteFlag)) {
-                imageStore(uimg_packedZN, texelPos2x2, packedZNOut);
+                transient_packedZN_store(texelPos2x2, packedZNOut);
             }
-            imageStore(uimg_csrgba16f, csrgba16f_temp2_texelToTexel(texelPos), vec4(directDiffuseOut, 0.0));
+            transient_directDiffusePassThrough_store(texelPos, vec4(directDiffuseOut, 0.0));
         }
     }
 }

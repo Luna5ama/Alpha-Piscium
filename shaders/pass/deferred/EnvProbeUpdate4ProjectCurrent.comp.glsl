@@ -42,7 +42,7 @@ bool envProbe_update(ivec2 sliceTexelPos, ivec2 sliceID, inout EnvProbeData outp
     vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
 
-    uvec2 radianceData = texelFetch(usam_packedZN, texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).xy;
+    uvec2 radianceData = transient_packedZN_fetch(texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y)).xy;
     vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
 
     outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : radiance.rgb;

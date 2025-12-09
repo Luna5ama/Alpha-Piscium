@@ -6,7 +6,6 @@
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/atmospherics/LocalComposite.glsl"
-#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/util/FullScreenComp.glsl"
@@ -57,8 +56,8 @@ void main() {
             float pdfRatio = 1.0;
             bsdf_SphericalCapBoundedWithPDFRatio(noiseV, localViewDir, vec2(material.roughness), pdfRatio);
 
-            vec4 sstData1 = texelFetch(usam_temp1, texelPos, 0);
-            vec4 sstData2 = texelFetch(usam_temp2, texelPos, 0);
+            vec4 sstData1 = transient_translucentRefraction_fetch(texelPos);
+            vec4 sstData2 = transient_translucentReflection_fetch(texelPos);
             vec3 refractColor = sstData1.xyz;
             vec3 reflectColor = sstData2.xyz;
 

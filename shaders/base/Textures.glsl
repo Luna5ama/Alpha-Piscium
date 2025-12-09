@@ -160,11 +160,15 @@ uniform sampler2D usam_shadow_waterMask;
 uniform sampler2D usam_shadow_waterNormal;
 
 // --------------------------------------------------- Custom Images ---------------------------------------------------
-uniform usampler2D usam_csrgba32ui;
-uniform sampler2D usam_csrgba16f;
 uniform sampler2D usam_cfrgba16f;
 uniform sampler2D usam_csr32f;
 uniform sampler2D usam_csrg32f;
+
+uniform usampler2D usam_rgba32ui;
+uniform sampler2D usam_rgba16f;
+uniform sampler2D usam_rgba8;
+uniform usampler2D usam_rg32ui;
+uniform usampler2D usam_r32ui;
 
 uniform sampler2D usam_rtwsm_imap;
 uniform sampler2D usam_transmittanceLUT;

@@ -22,7 +22,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 uniform sampler2D dhDepthTex0;
 #endif
 
-layout(rgba16f) uniform restrict image2D uimg_temp3;
+layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 layout(rgba16f) uniform restrict image2D uimg_translucentColor;
 
@@ -203,7 +203,7 @@ void main() {
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             vec4 outputColor = compShadow(texelPos, viewZ);
             outputColor = clamp(outputColor, 0.0, FP16_MAX);
-            imageStore(uimg_temp3, texelPos, outputColor);
+            transient_shadow_store(texelPos, outputColor);
 
             rtwsm_backward(texelPos, viewZ, gData);
         }

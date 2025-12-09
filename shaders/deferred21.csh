@@ -5,7 +5,6 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #include "/techniques/svgf/Update.glsl"
-#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Colors2.glsl"
 #include "/util/Rand.glsl"
@@ -17,9 +16,9 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
-layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
-layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
-layout(rgba8) uniform writeonly image2D uimg_temp5;
+layout(rgba32ui) uniform writeonly uimage2D uimg_rgba32ui;
+layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
+layout(rgba8) uniform writeonly image2D uimg_rgba8;
 
 shared vec4 shared_moments[2][12][12];
 
@@ -32,8 +31,7 @@ void loadSharedData(uint index) {
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
 
-
-        uvec4 packedData = texelFetch(usam_csrgba32ui, csrgba32ui_temp3_texelToTexel(texelPos), 0);
+        uvec4 packedData = transient_giReprojected_fetch(texelPos);
         vec3 prevColor;
         vec3 prevFastColor;
         vec2 prevMoments;
@@ -41,7 +39,7 @@ void loadSharedData(uint index) {
         svgf_unpack(packedData, prevColor, prevFastColor, prevMoments, prevHLen);
 
 
-        vec3 directColor = texelFetch(usam_csrgba16f, csrgba16f_temp2_texelToTexel(srcXY), 0).xyz;
+        vec3 directColor = transient_directDiffusePassThrough_fetch(srcXY).xyz;
         vec3 inputColor = prevFastColor + directColor;
 
         inputColor = colors_SRGBToYCoCg(inputColor);
@@ -90,8 +88,8 @@ inout vec3 colorSum, inout float weightSum
     vec2 gatherUV2Y = gatherUV * vec2(1.0, 0.5);
 
     vec4 bilateralWeights = vec4(1.0);
-    uvec4 prevNs = textureGather(usam_packedZN, gatherUV2Y, 0);
-    vec4 prevZs = uintBitsToFloat(textureGather(usam_packedZN, gatherUV2Y, 1));
+    uvec4 prevNs = transient_packedZN_gather(gatherUV2Y, 0);
+    vec4 prevZs = uintBitsToFloat(transient_packedZN_gather(gatherUV2Y, 1));
     float a = 0.0001 * max(abs(centerPos.z), 0.1);
     bilateralWeights.x *= computeGeometryWeight(centerPos, centerNormal, prevZs.x, prevNs.x, uval_mainImageSizeRcp * vec2(-1.0, 1.0) + originScreenPos, a);
     bilateralWeights.y *= computeGeometryWeight(centerPos, centerNormal, prevZs.y, prevNs.y, uval_mainImageSizeRcp * vec2(1.0, 1.0) + originScreenPos, a);
@@ -101,8 +99,8 @@ inout vec3 colorSum, inout float weightSum
     vec4 interpoWeights = baseWeights * bilateralWeights;
     weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
 
-    uvec4 packedColorData1 = textureGather(usam_tempRG32UI, gatherUV, 0);
-    uvec4 packedCOlorData2 = textureGather(usam_tempRG32UI, gatherUV, 1);
+    uvec4 packedColorData1 = transient_ssgiOut_gather(gatherUV, 0);
+    uvec4 packedCOlorData2 = transient_ssgiOut_gather(gatherUV, 1);
     vec4 colorData11 = unpackHalf4x16(packedColorData1.xy);
     vec4 colorData12 = unpackHalf4x16(packedColorData1.zw);
 
@@ -170,7 +168,7 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec3 currColor = vec3(0.0);
 
-        float viewZ = uintBitsToFloat(texelFetch(usam_packedZN, texelPos + ivec2(0, uval_mainImageSizeI.y), 0).g);
+        float viewZ = uintBitsToFloat(transient_packedZN_fetch(texelPos + ivec2(0, uval_mainImageSizeI.y)).g);
 
         if (viewZ != -65536.0) {
             vec2 texelPos2x2F = vec2(texelPos) * 0.5;
@@ -181,7 +179,7 @@ void main() {
             GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
-            imageStore(uimg_temp5, texelPos, vec4(gData.albedo, 0.0));
+            transient_solidAlbedo_store(texelPos, vec4(gData.albedo, 0.0));
 
             vec3 colorSum = vec3(0.0);
             float weightSum = 0.0;
@@ -210,7 +208,7 @@ void main() {
             }
         }
 
-        vec3 directColor = texelFetch(usam_csrgba16f, csrgba16f_temp2_texelToTexel(texelPos), 0).xyz;
+        vec3 directColor = transient_directDiffusePassThrough_fetch(texelPos).xyz;
         vec3 currTotalColor = currColor;
         currTotalColor += directColor;
 
@@ -238,7 +236,7 @@ void main() {
             giLum = moment2.a;
         }
 
-        uvec4 packedData = texelFetch(usam_csrgba32ui, csrgba32ui_temp3_texelToTexel(texelPos), 0);
+        uvec4 packedData = transient_giReprojected_fetch(texelPos);
         vec3 prevColor;
         vec3 prevFastColor;
         vec2 prevMoments;
@@ -292,13 +290,13 @@ void main() {
 
             vec4 filterInput = vec4(newColor, variance);
             filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
-            imageStore(uimg_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), filterInput);
+            transient_atrous1_store(texelPos, filterInput);
         }
 
         {
             uvec4 packedOutData = uvec4(0u);
             svgf_pack(packedOutData, newColor, newFastColor, newMoments, newHLen);
-            imageStore(uimg_csrgba32ui, gi_diffuseHistory_texelToTexel(texelPos), packedOutData);
+            history_gi_store(texelPos, packedOutData);
         }
     }
 }

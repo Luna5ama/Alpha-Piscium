@@ -10,7 +10,7 @@
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba32ui) uniform restrict writeonly uimage2D uimg_csrgba32ui;
+layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 
 struct Vec4PackedData {
     vec4 transmittanceHLen;
@@ -63,13 +63,13 @@ Vec4PackedData vec4PackData_clamp(Vec4PackedData data, Vec4PackedData minVal, Ve
 Vec4PackedData loadCurrData(ivec2 texelPosD) {
     texelPosD = clamp(texelPosD, ivec2(0), renderSize - 1);
     CloudSSHistoryData historyData = clouds_ss_historyData_init();
-    clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, csrgba32ui_temp1_texelToTexel(texelPosD), 0), historyData);
+    clouds_ss_historyData_unpack(transient_lowCloudRender_fetch(texelPosD), historyData);
     return vec4PackedData_fromHistoryData(historyData);
 }
 
 Vec4PackedData loadPrevData(ivec2 texelPos) {
     CloudSSHistoryData historyData = clouds_ss_historyData_init();
-    clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), 0), historyData);
+    clouds_ss_historyData_unpack(history_lowCloud_fetch(texelPos), historyData);
     return vec4PackedData_fromHistoryData(historyData);
 }
 
@@ -235,9 +235,9 @@ void main() {
 
             uvec4 packedOutput = uvec4(0u);
             clouds_ss_historyData_pack(packedOutput, newHistoryData);
-            imageStore(uimg_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), packedOutput);
+            transient_lowCloudAccumulated_store(texelPos, packedOutput);
         }
     } else {
-        imageStore(uimg_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), uvec4(0u));
+        transient_lowCloudAccumulated_store(texelPos, uvec4(0u));
     }
 }

@@ -16,7 +16,7 @@ const vec2 workGroupsRender = vec2(0.5, 0.5);
 #define SSVBIL_SAMPLE_SLICES SETTING_VBGI_SLICES
 #include "/techniques/gtvbgi/GTVBGI.glsl"
 
-layout(rg32ui) uniform writeonly uimage2D uimg_tempRG32UI;
+layout(rg32ui) uniform writeonly uimage2D uimg_rg32ui;
 layout(rgba16f) uniform writeonly image2D uimg_debug;
 
 void main() {
@@ -35,7 +35,7 @@ void main() {
             ssvbilData = gtvbgi(texelPos1x1);
         }
 
-        imageStore(uimg_tempRG32UI, texelPos2x2, uvec4(packHalf4x16(vec4(ssvbilData, 0.0)), 0u, 0u));
+        transient_ssgiOut_store(texelPos2x2, uvec4(packHalf4x16(vec4(ssvbilData, 0.0)), 0u, 0u));
         #ifdef SETTING_DEBUG_DEDICATED
         imageStore(uimg_debug, texelPos2x2, vec4(ssvbilData, 1.0));
         #endif

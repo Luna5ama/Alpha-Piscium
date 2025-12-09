@@ -1,13 +1,12 @@
 #version 460 compatibility
 
-#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_main;
-layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
+layout(rgba16f) uniform writeonly image2D uimg_transient_dofInput;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
@@ -23,6 +22,6 @@ void main() {
 
         viewZ = max(startViewZ, viewZ);
         outputColor.a = abs(viewZ);
-        imageStore(uimg_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), outputColor);
+        transient_dofInput_store(texelPos, outputColor);
     }
 }

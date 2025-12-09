@@ -3,7 +3,6 @@
 
 #include "/util/Colors.glsl"
 #include "/util/Rand.glsl"
-#include "/techniques/textile/CSRGBA32UI.glsl"
 
 #if SETTING_CLOUDS_LOW_UPSCALE_FACTOR == 0
 #define UPSCALE_FACTOR 1.0

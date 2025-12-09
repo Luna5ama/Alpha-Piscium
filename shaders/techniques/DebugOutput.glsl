@@ -199,7 +199,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #endif
 
     #if SETTING_DEBUG_DENOISER != 0
-    uvec4 svgfData = texelFetch(usam_csrgba32ui, texelPos, 0);
+//    uvec4 svgfData = texelFetch(usam_csrgba32ui, texelPos, 0);
     vec3 svgfColor;
     vec3 svgfFastColor;
     vec2 svgfMoments;
@@ -222,7 +222,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 
     #if SETTING_DEBUG_GI_INPUTS != 0
     if (all(lessThan(texelPos, global_mipmapSizesI[1]))) {
-        uvec2 radianceData = texelFetch(usam_packedZN, texelPos+ ivec2(0, global_mipmapSizesI[1].y), 0).xy;
+        uvec2 radianceData = transient_packedZN_fetch(texelPos+ ivec2(0, global_mipmapSizesI[1].y)).xy;
         vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
 
         #if SETTING_DEBUG_GI_INPUTS == 1
@@ -236,7 +236,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 
         float prevZ;
         vec3 prevN;
-        nzpacking_unpack(texelFetch(usam_packedZN, texelPos, 0).xy, prevN, prevZ);
+        nzpacking_unpack(transient_packedZN_fetch(texelPos).xy, prevN, prevZ);
         #if SETTING_DEBUG_GI_INPUTS == 4
         outputColor.rgb = vec3(prevN * 0.5 + 0.5);
         #elif SETTING_DEBUG_GI_INPUTS == 5
@@ -245,11 +245,11 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     }
     #endif
     #if SETTING_DEBUG_GI_INPUTS == 6
-    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        uint packedGeometryNormal = texelFetch(usam_geometryNormal, texelPos, 0).r;
-        vec3 geometryNormal = unpackSnorm3x10(packedGeometryNormal);
-        outputColor.rgb = vec3(geometryNormal * 0.5 + 0.5);
-    }
+//    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+//        uint packedGeometryNormal = texelFetch(usam_geometryNormal, texelPos, 0).r;
+//        vec3 geometryNormal = unpackSnorm3x10(packedGeometryNormal);
+//        outputColor.rgb = vec3(geometryNormal * 0.5 + 0.5);
+//    }
     #endif
 
     vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
@@ -360,7 +360,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #if SETTING_DEBUG_CLOUDS_SS
     {
         CloudSSHistoryData historyData = clouds_ss_historyData_init();
-        clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), 0), historyData);
+//#        clouds_ss_historyData_unpack(history_lowCloud_fetch(texelPos), historyData);
         #if SETTING_DEBUG_CLOUDS_SS == 1
         outputColor.rgb = expGamma(historyData.inScattering);
         #elif SETTING_DEBUG_CLOUDS_SS == 2

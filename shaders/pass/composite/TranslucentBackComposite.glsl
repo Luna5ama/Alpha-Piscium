@@ -6,7 +6,6 @@
 
 #include "/techniques/atmospherics/LocalComposite.glsl"
 #include "/techniques/textile/CSR32F.glsl"
-#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
@@ -18,13 +17,13 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_main;
-layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
+layout(rgba8) uniform writeonly image2D uimg_rgba8;
 
 void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
 
-        vec3 albedo = colors2_material_toWorkSpace(texelFetch(usam_temp5, texelPos, 0).rgb);
+        vec3 albedo = colors2_material_toWorkSpace(transient_solidAlbedo_fetch(texelPos).rgb);
         vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
         if (any(greaterThan(glintColorData.xyz, vec3(0.0)))) {
             vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb);
@@ -33,7 +32,7 @@ void main() {
             albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
         }
 
-        vec3 giRadiance = texelFetch(usam_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), 0).rgb;
+        vec3 giRadiance = transient_atrous1_fetch(texelPos).rgb;
         outputColor.rgb += giRadiance.rgb * albedo;
         ScatteringResult sctrResult = atmospherics_localComposite(0, texelPos);
         outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);

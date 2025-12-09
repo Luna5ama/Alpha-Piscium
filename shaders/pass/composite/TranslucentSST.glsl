@@ -14,8 +14,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
-layout(rgba16f) uniform restrict writeonly image2D uimg_temp2;
+layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 
 float edgeReductionFactor(vec2 screenPos) {
     const float SQUIRCLE_M = 4.0;
@@ -165,7 +164,7 @@ void main() {
             //            vec3 refractColor = texture(usam_main, refractCoord).rgb;
 
             float MDotV = dot(microNormal, viewDir);
-            imageStore(uimg_temp1, texelPos, vec4(refractColor, MDotV));
+            transient_translucentRefraction_store(texelPos, vec4(refractColor, MDotV));
 
             SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.05);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
@@ -194,7 +193,7 @@ void main() {
             }
 
             float NDotL = dot(gData.normal, reflectDir);
-            imageStore(uimg_temp2, texelPos, vec4(reflectColor, NDotL));
+            transient_translucentReflection_store(texelPos, vec4(reflectColor, NDotL));
         }
     }
 }

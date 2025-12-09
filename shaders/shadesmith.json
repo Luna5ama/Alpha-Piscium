@@ -1,0 +1,21 @@
+{
+    "formats": {
+        "transient_shadow": "RGBA16F",
+        "transient_directDiffusePassThrough": "RGBA16F",
+        "transient_translucentReflection": "RGBA16F",
+        "transient_translucentRefraction": "RGBA16F",
+        "transient_lowCloudRender": "RGBA32UI",
+        "transient_giReprojected": "RGBA32UI",
+        "transient_lowCloudAccumulated": "RGBA32UI",
+        "transient_packedZN": "RG32UI",
+        "transient_solidAlbedo": "RGBA8",
+        "transient_bloom": "RGBA16F",
+        "history_gi": "RGBA32UI",
+        "history_lowCloud": "RGBA32UI",
+        "transient_atrous1": "RGBA16F",
+        "transient_atrous2": "RGBA16F",
+        "transient_ssgiOut": "RG32UI",
+        "transient_geometryNormal": "R32UI",
+        "transient_dofInput": "RGBA16F"
+    }
+}
