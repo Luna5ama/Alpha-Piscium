@@ -5,9 +5,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 #include "/techniques/textile/CSRGBA16F.glsl"
 #include "/util/FullScreenComp.glsl"
-#if SETTING_DEBUG_OUTPUT == 3
 #include "/techniques/DebugOutput.glsl"
-#endif
 
 layout(rgba16f) restrict uniform writeonly image2D uimg_csrgba16f;
 
