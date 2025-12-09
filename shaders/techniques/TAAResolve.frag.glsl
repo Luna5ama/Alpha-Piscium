@@ -93,7 +93,7 @@ void main() {
     float lastFrameAccum = texture(usam_taaLast, frag_texCoord).a;
     float newFrameAccum = lastFrameAccum + 1.0;
 
-    float speedSum = 1.0;
+    float speedSum = 0.0;
     speedSum += cameraSpeedDiff * 4.0;
     speedSum += cameraSpeed * 0.125;
     speedSum += pixelSpeed * 0.25;
