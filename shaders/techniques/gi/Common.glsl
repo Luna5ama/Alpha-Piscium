@@ -4,7 +4,6 @@
 #include "/util/BitPacking.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Colors2.glsl"
-#include "/techniques/textile/CSRGBA32UI.glsl"
 
 /*
     Diffuse Color : 48 bits         (1) (1)

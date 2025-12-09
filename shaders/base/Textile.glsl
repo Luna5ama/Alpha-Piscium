@@ -127,6 +127,32 @@ vec2 _textile_uvToGatherUV(vec2 uv, vec2 tileOffsetF, vec2 tileSizeF, vec2 textu
 #define transient_bloom_fetch(x) texelFetch(usam_rgba16f, _RGBA16F_0_TEXEL_TO_TEXEL(x), 0)
 #define transient_bloom_load(x) imageLoad(uimg_rgba16f, _RGBA16F_0_TEXEL_TO_TEXEL(x))
 #define transient_bloom_store(x, v) imageStore(uimg_rgba16f, _RGBA16F_0_TEXEL_TO_TEXEL(x), v)
+#define _RGB10_A2_0_OFFSET ivec2(uval_mainImageSizeI.x * 0, uval_mainImageSizeI.y * 0)
+#define _RGB10_A2_0_OFFSET_F vec2(uval_mainImageSizeI.x * 0, uval_mainImageSize.y * 0)
+#define _RGB10_A2_0_SIZE uval_mainImageSizeI
+#define _RGB10_A2_0_SIZE_F uval_mainImageSize
+#define _RGB10_A2_0_SIZE_RCP uval_mainImageSizeRcp
+#define _RGB10_A2_0_TEXEL_TO_TEXEL(texelPos) _textile_texelToTexel(texelPos, _RGB10_A2_0_OFFSET, _RGB10_A2_0_SIZE)
+#define _RGB10_A2_0_UV_TO_UV(uv) _textile_uvToUV(uv, _RGB10_A2_0_OFFSET_F, _RGB10_A2_0_SIZE_F, _RGB10_A2_0_SIZE_RCP)
+#define _RGB10_A2_0_UV_TO_GATHER_UV(uv) _textile_uvToGatherUV(uv, _RGB10_A2_0_OFFSET_F, _RGB10_A2_0_SIZE_F, _RGB10_A2_0_SIZE_RCP)
+#define _RGB10_A2_1_OFFSET ivec2(uval_mainImageSizeI.x * 0, uval_mainImageSizeI.y * 1)
+#define _RGB10_A2_1_OFFSET_F vec2(uval_mainImageSizeI.x * 0, uval_mainImageSize.y * 1)
+#define _RGB10_A2_1_SIZE uval_mainImageSizeI
+#define _RGB10_A2_1_SIZE_F uval_mainImageSize
+#define _RGB10_A2_1_SIZE_RCP uval_mainImageSizeRcp
+#define _RGB10_A2_1_TEXEL_TO_TEXEL(texelPos) _textile_texelToTexel(texelPos, _RGB10_A2_1_OFFSET, _RGB10_A2_1_SIZE)
+#define _RGB10_A2_1_UV_TO_UV(uv) _textile_uvToUV(uv, _RGB10_A2_1_OFFSET_F, _RGB10_A2_1_SIZE_F, _RGB10_A2_1_SIZE_RCP)
+#define _RGB10_A2_1_UV_TO_GATHER_UV(uv) _textile_uvToGatherUV(uv, _RGB10_A2_1_OFFSET_F, _RGB10_A2_1_SIZE_F, _RGB10_A2_1_SIZE_RCP)
+#define history_geomWorldNormal_sample(x) texture(usam_rgb10_a2, _RGB10_A2_0_UV_TO_UV(x))
+#define history_geomWorldNormal_gather(x, c) textureGather(usam_rgb10_a2, _RGB10_A2_0_UV_TO_GATHER_UV(x), c)
+#define history_geomWorldNormal_fetch(x) texelFetch(usam_rgb10_a2, _RGB10_A2_0_TEXEL_TO_TEXEL(x), 0)
+#define history_geomWorldNormal_load(x) imageLoad(uimg_rgb10_a2, _RGB10_A2_0_TEXEL_TO_TEXEL(x))
+#define history_geomWorldNormal_store(x, v) imageStore(uimg_rgb10_a2, _RGB10_A2_0_TEXEL_TO_TEXEL(x), v)
+#define history_worldNormal_sample(x) texture(usam_rgb10_a2, _RGB10_A2_1_UV_TO_UV(x))
+#define history_worldNormal_gather(x, c) textureGather(usam_rgb10_a2, _RGB10_A2_1_UV_TO_GATHER_UV(x), c)
+#define history_worldNormal_fetch(x) texelFetch(usam_rgb10_a2, _RGB10_A2_1_TEXEL_TO_TEXEL(x), 0)
+#define history_worldNormal_load(x) imageLoad(uimg_rgb10_a2, _RGB10_A2_1_TEXEL_TO_TEXEL(x))
+#define history_worldNormal_store(x, v) imageStore(uimg_rgb10_a2, _RGB10_A2_1_TEXEL_TO_TEXEL(x), v)
 #define _RGBA8_0_OFFSET ivec2(uval_mainImageSizeI.x * 0, uval_mainImageSizeI.y * 0)
 #define _RGBA8_0_OFFSET_F vec2(uval_mainImageSizeI.x * 0, uval_mainImageSize.y * 0)
 #define _RGBA8_0_SIZE uval_mainImageSizeI
@@ -179,3 +205,16 @@ vec2 _textile_uvToGatherUV(vec2 uv, vec2 tileOffsetF, vec2 tileSizeF, vec2 textu
 #define transient_geometryNormal_fetch(x) texelFetch(usam_r32ui, _R32UI_0_TEXEL_TO_TEXEL(x), 0)
 #define transient_geometryNormal_load(x) imageLoad(uimg_r32ui, _R32UI_0_TEXEL_TO_TEXEL(x))
 #define transient_geometryNormal_store(x, v) imageStore(uimg_r32ui, _R32UI_0_TEXEL_TO_TEXEL(x), v)
+#define _R32F_0_OFFSET ivec2(uval_mainImageSizeI.x * 0, uval_mainImageSizeI.y * 0)
+#define _R32F_0_OFFSET_F vec2(uval_mainImageSizeI.x * 0, uval_mainImageSize.y * 0)
+#define _R32F_0_SIZE uval_mainImageSizeI
+#define _R32F_0_SIZE_F uval_mainImageSize
+#define _R32F_0_SIZE_RCP uval_mainImageSizeRcp
+#define _R32F_0_TEXEL_TO_TEXEL(texelPos) _textile_texelToTexel(texelPos, _R32F_0_OFFSET, _R32F_0_SIZE)
+#define _R32F_0_UV_TO_UV(uv) _textile_uvToUV(uv, _R32F_0_OFFSET_F, _R32F_0_SIZE_F, _R32F_0_SIZE_RCP)
+#define _R32F_0_UV_TO_GATHER_UV(uv) _textile_uvToGatherUV(uv, _R32F_0_OFFSET_F, _R32F_0_SIZE_F, _R32F_0_SIZE_RCP)
+#define history_viewZ_sample(x) texture(usam_r32f, _R32F_0_UV_TO_UV(x))
+#define history_viewZ_gather(x, c) textureGather(usam_r32f, _R32F_0_UV_TO_GATHER_UV(x), c)
+#define history_viewZ_fetch(x) texelFetch(usam_r32f, _R32F_0_TEXEL_TO_TEXEL(x), 0)
+#define history_viewZ_load(x) imageLoad(uimg_r32f, _R32F_0_TEXEL_TO_TEXEL(x))
+#define history_viewZ_store(x, v) imageStore(uimg_r32f, _R32F_0_TEXEL_TO_TEXEL(x), v)

@@ -166,9 +166,11 @@ uniform sampler2D usam_csrg32f;
 
 uniform usampler2D usam_rgba32ui;
 uniform sampler2D usam_rgba16f;
+uniform sampler2D usam_rgb10_a2;
 uniform sampler2D usam_rgba8;
 uniform usampler2D usam_rg32ui;
 uniform usampler2D usam_r32ui;
+uniform sampler2D usam_r32f;
 
 uniform sampler2D usam_rtwsm_imap;
 uniform sampler2D usam_transmittanceLUT;
