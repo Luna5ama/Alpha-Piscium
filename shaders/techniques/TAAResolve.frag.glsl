@@ -103,8 +103,8 @@ void main() {
     extraReset *= (1.0 - saturate(cameraSpeedDiff * 114514.0));
     extraReset *= (1.0 - saturate(cameraSpeed * 114514.0));
     extraReset *= (1.0 - saturate(pixelSpeed * 114.0));
-    #ifdef SETTING_SCREENSHOT_MODE_SKIP_INITIAL
-    extraReset *= float(frameCounter > 60);
+    #if SETTING_SCREENSHOT_MODE_SKIP_INITIAL
+    extraReset *= float(frameCounter > SETTING_SCREENSHOT_MODE_SKIP_INITIAL);
     #endif
     #endif
 
