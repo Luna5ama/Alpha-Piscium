@@ -83,7 +83,7 @@ Material material_decode(GBufferData gData) {
     material.hardCodedIOR = 1.0;
     #endif
 
-    vec3 bitangent = cross(gData.normal, gData.geomTangent) * float(gData.bitangentSign);
+    vec3 bitangent = cross(gData.geomTangent, gData.normal) * float(gData.bitangentSign);
     material.tbn = mat3(gData.geomTangent, bitangent, gData.normal);
     material.tbnInv = inverse(material.tbn);
 

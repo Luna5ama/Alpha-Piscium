@@ -73,13 +73,13 @@ GBufferData processOutput() {
     tangentVecData = yData.w < tangentVecData.w ? yData : tangentVecData;
     tangentVecData = zData.w < tangentVecData.w ? zData : tangentVecData;
     vec3 geomViewTangent = coords_dir_worldToView(tangentVecData.xyz);
-    vec3 geomViewBitangent = normalize(cross(geomViewNormal, geomViewTangent));
+    vec3 geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal));
     float bitangentSignF = 1.0;
     #else
     float bitangentSignF = frag_viewTangent.w < 0.0 ? -1.0 : 1.0;
     vec3 geomViewNormal = normalize(frag_viewNormal);
     vec3 geomViewTangent = normalize(frag_viewTangent.xyz);
-    vec3 geomViewBitangent = normalize(cross(geomViewNormal, geomViewTangent) * bitangentSignF);
+    vec3 geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal) * bitangentSignF);
     #endif
 
     GBufferData gData = gbufferData_init();

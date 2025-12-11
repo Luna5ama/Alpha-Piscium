@@ -99,7 +99,7 @@ void processData1() {
     float bitangentSignF = frag_viewTangent.w < 0.0 ? -1.0 : 1.0;
     vec3 geomViewNormal = normalize(frag_viewNormal);
     vec3 geomViewTangent = normalize(frag_viewTangent.xyz);
-    vec3 geomViewBitangent = normalize(cross(geomViewNormal, geomViewTangent) * bitangentSignF);
+    vec3 geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal) * bitangentSignF);
 
     gData.normal = geomViewNormal;
     gData.geomNormal = geomViewNormal;
