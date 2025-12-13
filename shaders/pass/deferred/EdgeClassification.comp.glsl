@@ -6,7 +6,6 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba8) uniform writeonly restrict image2D uimg_rgba8;
-layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 
 // Shared memory with padding for 3x3 tap
 // Each work group is 16x16, need +2 padding on each side for 3x3 taps
@@ -114,7 +113,7 @@ void main() {
 
         weightSum = pow2(weightSum / 8.0);
 
-        transient_edgeMask_store(texelPos, vec4(weightSum));
+        transient_edgeMaskTemp_store(texelPos, vec4(weightSum));
     }
 }
 

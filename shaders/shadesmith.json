@@ -20,6 +20,7 @@
         "history_viewZ": "R32F",
         "history_geomWorldNormal": "RGB10_A2",
         "history_worldNormal": "RGB10_A2",
+        "transient_edgeMaskTemp": "RGBA8",
         "transient_edgeMask": "RGBA8"
     }
 }
