@@ -19,6 +19,7 @@
         "transient_dofInput": "RGBA16F",
         "history_viewZ": "R32F",
         "history_geomWorldNormal": "RGB10_A2",
-        "history_worldNormal": "RGB10_A2"
+        "history_worldNormal": "RGB10_A2",
+        "transient_edgeMask": "RGBA8"
     }
 }

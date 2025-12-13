@@ -226,6 +226,14 @@ vec3 coords_dir_worldToView(vec3 dirWorld) {
     return normalize((mat3(gbufferModelView) * dirWorld));
 }
 
+vec3 coords_pos_viewToWorld(vec3 posView, mat4 viewMatInverse) {
+    return (gbufferModelViewInverse * vec4(posView, 1.0)).xyz;
+}
+
+vec3 coords_pos_worldToView(vec3 posWorld, mat4 viewMat) {
+    return (gbufferModelView * vec4(posWorld, 1.0)).xyz;
+}
+
 vec3 coords_viewToScreen(vec3 viewPos, mat4 proj) {
     vec4 clipPos = proj * vec4(viewPos, 1.0);
     vec3 ndcPos = clipPos.xyz / clipPos.w;

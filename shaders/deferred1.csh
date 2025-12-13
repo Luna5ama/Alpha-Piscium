@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/deferred/GIDenoiser1Reproject.comp.glsl"
+#include "/pass/deferred/EdgeClassification.comp.glsl"
