@@ -5,6 +5,7 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #include "/techniques/svgf/Update.glsl"
+#include "/techniques/gi/Common.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Colors2.glsl"
 #include "/util/Rand.glsl"
@@ -202,10 +203,10 @@ void main() {
                 colorSum, weightSum
             );
 
-            if (weightSum > 0.01) {
-                colorSum /= weightSum;
-                currColor += colorSum;
-            }
+//            if (weightSum > 0.01) {
+//                colorSum /= weightSum;
+//                currColor += colorSum;
+//            }
         }
 
         vec3 directColor = transient_directDiffusePassThrough_fetch(texelPos).xyz;
@@ -262,10 +263,10 @@ void main() {
         vec3 prevColorClamped = colors_YCoCgToSRGB(prevColorYCoCgClamped);
 
         float moment2Correction = pow2(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevColorClamped)) - pow2(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevColor));
-        prevMoments.y += moment2Correction;
-        prevMoments.y = max(prevMoments.y, 0.0);
+//        prevMoments.y += moment2Correction;
+//        prevMoments.y = max(prevMoments.y, 0.0);
 
-        prevColor = prevColorClamped;
+//        prevColor = prevColorClamped;
 
         vec3 newColor;
         vec3 newFastColor;
@@ -276,6 +277,24 @@ void main() {
             prevColor, prevFastColor, prevMoments, prevHLen,
             newColor, newFastColor, newMoments, newHLen
         );
+
+        GIHistoryData historyData = gi_historyData_init();
+
+        historyData.diffuseColor = currTotalColor;
+
+
+//        historyData.diffuseFastColor = newFastColor;
+//        historyData.diffuseMoment2 = newMoments.y;
+//        historyData.historyLength = newHLen;
+//        historyData.edgeMask = transient_edgeMask_fetch(texelPos).r;
+
+        {
+            history_gi1_store(texelPos, gi_historyData_pack1(historyData));
+            history_gi2_store(texelPos, gi_historyData_pack2(historyData));
+            history_gi3_store(texelPos, gi_historyData_pack3(historyData));
+            history_gi4_store(texelPos, gi_historyData_pack4(historyData));
+            history_gi5_store(texelPos, gi_historyData_pack5(historyData));
+        }
 
 //        vec3 meanSRGB = colors_YCoCgToSRGB(mean);
 //        imageStore(uimg_temp3, texelPos, vec4(exp2(-max(directLum / giLum, 0.0))));

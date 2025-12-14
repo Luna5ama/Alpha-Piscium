@@ -1,4 +1,4 @@
 #version 460 compatibility
 
-#include "/pass/deferred/EdgeDilation.comp.glsl"
+#include "/pass/deferred/GIDenoiser2EdgeDilation.comp.glsl"
 
