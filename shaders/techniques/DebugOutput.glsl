@@ -332,13 +332,13 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #ifdef SETTING_DEBUG_SKY_VIEW_LUT
     for (int i = 0; i < SKYVIEW_LUT_LAYERS; i++) {
         if (inViewPort(ivec4(i * 256, 0, 256, 256), debugTexCoord)) {
-        outputColor.rgb = expGamma(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 0.0 + float(i * 3)) / 8.0);
+        outputColor.rgb = expGamma(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 0.0 + float(i * 3)));
         }
         if (inViewPort(ivec4(i * 256, 256, 256, 256), debugTexCoord)) {
-            outputColor.rgb = expGamma(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 1.0 + float(i * 3)) / 8.0);
+            outputColor.rgb = expGamma(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 1.0 + float(i * 3)));
         }
         if (inViewPort(ivec4(i * 256, 512, 256, 256), debugTexCoord)) {
-            outputColor.rgb = gammaCorrect(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 2.0 + float(i * 3)) / 256.0);
+            outputColor.rgb = gammaCorrect(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 2.0 + float(i * 3)));
         }
     }
     #endif

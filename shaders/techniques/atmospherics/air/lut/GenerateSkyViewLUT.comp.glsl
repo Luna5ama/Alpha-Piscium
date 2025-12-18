@@ -161,32 +161,35 @@ void main() {
 
     vec3 upVector = params.rayStart / viewHeight;
     LightParameters lightParam;
+    float lightZenithCosAngle;
     if (bool(isMoonI)) {
         float moonZenithCosAngle = dot(upVector, uval_moonDirWorld);
         float moonZenithSinAngle = sqrt(saturate(1.0 - pow2(moonZenithCosAngle)));
         vec3 moonDir = normalize(vec3(moonZenithSinAngle, moonZenithCosAngle, 0.0));
-        lightParam = lightParameters_init(atmosphere, MOON_ILLUMINANCE, moonDir, rayDir);
+        lightParam = lightParameters_init(atmosphere, vec3(1.0), moonDir, rayDir);
+        lightZenithCosAngle = moonZenithCosAngle;
     } else {
         float sunZenithCosAngle = dot(upVector, uval_sunDirWorld);
         float sunZenithSinAngle = sqrt(saturate(1.0 - pow2(sunZenithCosAngle)));
         vec3 sunDir = normalize(vec3(sunZenithSinAngle, sunZenithCosAngle, 0.0));
-        lightParam = lightParameters_init(atmosphere, SUN_ILLUMINANCE, sunDir, rayDir);
+        lightParam = lightParameters_init(atmosphere, vec3(1.0), sunDir, rayDir);
+        lightZenithCosAngle = sunZenithCosAngle;
     }
 
     float groundFactor = exp2(-4.0 * (viewHeight - atmosphere.bottom));
-    float bottomOffset = groundFactor * 10.0;
+    float bottomOffset = groundFactor * 100.0;
 
     if (workGroupZI == 0) {
         if (setupRayEndC(atmosphere, params, rayDir, bottomOffset)) {
             params.rayStart = params.rayStart + rayDir * (shadowDistance / SETTING_ATM_D_SCALE);
-            result = raymarchSkySingle(atmosphere, params, lightParam, bottomOffset);
+            result = raymarchSkySingle(atmosphere, params, lightParam, bottomOffset * saturate(lightZenithCosAngle));
         }
     } else {
         vec2 layerBound = LAYER_BOUNDS[layerIndex - 1] + atmosphere.bottom;
         layerBound = min(layerBound, vec2(atmosphere.top));
 
         if (setupRayEndLayered(atmosphere, params, rayDir, layerBound, bottomOffset)) {
-            result = raymarchSkySingle(atmosphere, params, lightParam, bottomOffset);
+            result = raymarchSkySingle(atmosphere, params, lightParam, bottomOffset * saturate(lightZenithCosAngle));
         }
     }
 

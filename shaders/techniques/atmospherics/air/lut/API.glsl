@@ -37,6 +37,7 @@ vec3 _atmospherics_air_lut_sampleSkyViewSlice(vec2 sliceUV, float sliceIndex) {
     vec3 sampleUV = vec3(sliceUV, (sliceIndex + 0.5) / SKYVIEW_LUT_DEPTH);
     return texture(usam_skyViewLUT, sampleUV).rgb;
 }
+#include "/util/Celestial.glsl"
 
 ScatteringResult _atmospherics_air_lut_sampleSkyView(
     AtmosphereParameters atmosphere,
@@ -70,8 +71,8 @@ ScatteringResult _atmospherics_air_lut_sampleSkyView(
     float tSlice = sunSlice + 2;
 
     ScatteringResult result = scatteringResult_init();
-    result.inScattering = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, sunSlice);
-    result.inScattering += _atmospherics_air_lut_sampleSkyViewSlice(moonSliceUV, moonSlice);
+    result.inScattering = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, sunSlice) * SUN_ILLUMINANCE;
+    result.inScattering += _atmospherics_air_lut_sampleSkyViewSlice(moonSliceUV, moonSlice) * MOON_ILLUMINANCE;
     result.transmittance = _atmospherics_air_lut_sampleSkyViewSlice(sunSliceUV, tSlice);
     return result;
 }
