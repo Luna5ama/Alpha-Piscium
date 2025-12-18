@@ -75,6 +75,7 @@ void main() {
                 float prevPHat = length(prevSample.xyz * prevSample.w);
                 wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
 
+                #if SPATIAL_REUSE_FEEDBACK
                 if (temporalReservoir.m < SPATIAL_REUSE_FEEDBACK) {
                     ReSTIRReservoir prevSpatialReservoir =  restir_loadReservoir(texelPos, 1);
 
@@ -109,6 +110,7 @@ void main() {
                         }
                     }
                 }
+                #endif
                 if (temporalReservoir.age >= MAX_AGE) {
                     temporalReservoir = restir_initReservoir(texelPos);
                 }

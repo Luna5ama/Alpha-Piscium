@@ -40,8 +40,8 @@ void main() {
                 ReSTIRReservoir originalReservoir = restir_loadReservoir(texelPos, 0);
                 ReSTIRReservoir spatialReservoir = originalReservoir;
 
-                const uint reuseCount = uint(SPATIAL_REUSE_SAMPLES);
-                const float REUSE_RADIUS = mix(SPATIAL_REUSE_RADIUS, 0.0, linearStep(0.0, 128.0, float(RANDOM_FRAME)));
+                const uint reuseCount = uint(mix(float(SPATIAL_REUSE_SAMPLES), 1.0, linearStep(0.0, 128.0, float(RANDOM_FRAME))));
+                const float REUSE_RADIUS = float(SPATIAL_REUSE_RADIUS);
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
                 float pHatMe = 0.0;
@@ -250,14 +250,17 @@ void main() {
                     }
                 }
 
-                const uint SPATIAL_REUSE_MAX_M = 4u;
+                const uint SPATIAL_REUSE_MAX_M = 1u;
 
 
 
 
                 vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
-                ReSTIRReservoir resultReservoir = originalReservoir;
+                ReSTIRReservoir resultReservoir = spatialReservoir;
                 #if SPATIAL_REUSE_VISIBILITY_TRACE
+                float avgWSum = spatialWSum / float(spatialReservoir.m);
+                resultReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
+                ssgiOut = vec4(selectedSampleF.xyz * resultReservoir.avgWY, 1.0);
                 if (any(notEqual(selectedSampleF, originalSample))) {
                     SSTResult sstResult = sst_trace(viewPos, spatialReservoir.Y.xyz, 0.01);
 
@@ -272,12 +275,13 @@ void main() {
 
                         vec3 hitDiff = actualHitViewPos - expectHitViewPos;
 
-                        if (dot(hitDiff, hitDiff) < 0.5) {
-                            float avgWSum = spatialWSum / float(spatialReservoir.m);
-                            spatialReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
-                            ssgiOut = vec4(selectedSampleF.xyz * spatialReservoir.avgWY, 1.0);
-                            resultReservoir = spatialReservoir;
+                        if (dot(hitDiff, hitDiff) > 0.5) {
+                            ssgiOut.rgb *= 0.0;
+                            resultReservoir = restir_initReservoir(texelPos);
                         }
+                    } else {
+                        ssgiOut.rgb *= 0.0;
+                        resultReservoir = restir_initReservoir(texelPos);
                     }
                 }
                 #else
