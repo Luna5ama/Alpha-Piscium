@@ -71,9 +71,6 @@ void main() {
                 } else {
                     temporalReservoir.m = 0u;
                 }
-                if (temporalReservoir.age >= MAX_AGE) {
-                    temporalReservoir.m = 0u;
-                }
 
                 float prevPHat = length(prevSample.xyz * prevSample.w);
                 wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
@@ -94,7 +91,7 @@ void main() {
                     float prevSpatialWi = max(prevSpatialReservoir.avgWY * prevSpatialPHat * float(prevSpatialReservoir.m), 0.0);
                     float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 456546u)).w);
 
-                    if (restir_isReservoirValid(prevSpatialReservoir) && prevSpatialReservoir.age < MAX_AGE) {
+                    if (restir_isReservoirValid(prevSpatialReservoir)) {
                         if (restir_updateReservoir(
                             temporalReservoir,
                             wSum,
@@ -111,6 +108,9 @@ void main() {
                             prevHitNormal = prevSpatialHitGData.normal;
                         }
                     }
+                }
+                if (temporalReservoir.age >= MAX_AGE) {
+                    temporalReservoir = restir_initReservoir(texelPos);
                 }
 
                 {

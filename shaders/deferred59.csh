@@ -41,7 +41,7 @@ void main() {
                 ReSTIRReservoir spatialReservoir = originalReservoir;
 
                 const uint reuseCount = uint(SPATIAL_REUSE_SAMPLES);
-                const float REUSE_RADIUS = float(SPATIAL_REUSE_RADIUS);
+                const float REUSE_RADIUS = mix(SPATIAL_REUSE_RADIUS, 0.0, linearStep(0.0, 128.0, float(RANDOM_FRAME)));
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
                 float pHatMe = 0.0;
@@ -83,6 +83,10 @@ void main() {
                         continue;
                     }
                     ivec2 sampleTexelPos = ivec2(sampleTexelPosF);
+
+                    if (sampleTexelPos == texelPos) {
+                        continue;
+                    }
 
 //                    GBufferData sampleGData = gbufferData_init();
 //                    gbufferData1_unpack(texelFetch(usam_gbufferData1, sampleTexelPos, 0), sampleGData);
