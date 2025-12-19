@@ -11,7 +11,7 @@ layout(rgba8) uniform writeonly restrict image2D uimg_rgba8;
 // Each work group is 16x16, need +2 padding on each side for 3x3 taps
 shared uvec3 shared_data[18][18];
 
-const float BASE_GEOM_DEPTH_WEIGHT = exp2(-13.0);
+const float BASE_GEOM_DEPTH_WEIGHT = exp2(-16.0);
 const float BASE_NORMAL_WEIGHT_DECAY = 4.0;
 const float BASE_NORMAL_WEIGHT = 8.0;
 
@@ -75,6 +75,9 @@ void main() {
         float planeWeight = rcp(exp2(SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT)) * max(abs(centerData.viewZ), 0.1);
         float normalWeightDistanceFactor = BASE_NORMAL_WEIGHT_DECAY / (BASE_NORMAL_WEIGHT_DECAY + pow2(centerData.viewZ));
 
+        float glazingAngleFactor = sqrt(saturate(dot(centerData.geomNormal, normalize(centerViewPos))));
+        float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor)) * pow2(centerData.viewZ);
+
         float weightSum = 0.0;
 
         for (int dy = -1; dy <= 1; dy++) {
@@ -96,17 +99,14 @@ void main() {
                 vec3 posDiff = centerWorldPos - sampleWorldPos;
                 float planeDist1 = abs(dot(posDiff, centerData.geomNormal));
                 float planeDist2 = abs(dot(posDiff, sampleData.geomNormal));
-                float maxPlaneDist = pow2(max(planeDist1, planeDist2));
+                float maxPlaneDist = max(planeDist1, planeDist2);
 
-                float geomDepthWeight = step(maxPlaneDist, BASE_GEOM_DEPTH_WEIGHT * abs(centerData.viewZ));
+                float geomDepthWeight = step(maxPlaneDist, geomDepthThreshold);
 
                 float geomNormalDot = saturate(dot(centerData.geomNormal, sampleData.geomNormal));
                 float geomNormalWeight = pow2(geomNormalDot);
 
-                float normalDot = saturate(dot(centerData.normal, sampleData.normal));
-                float normalWeight = pow(normalDot, BASE_NORMAL_WEIGHT * normalWeightDistanceFactor);
-
-                float weight = geomDepthWeight * geomNormalWeight * normalWeight;
+                float weight = geomDepthWeight * geomNormalWeight;
                 weightSum += weight;
             }
         }
