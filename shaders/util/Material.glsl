@@ -18,6 +18,8 @@ struct Material {
     float hardCodedIOR;
     mat3 tbn;
     mat3 tbnInv;
+    mat3 geomTbn;
+    mat3 geomTbnInv;
 };
 
 #ifdef MATERIAL_TRANSLUCENT
@@ -83,9 +85,14 @@ Material material_decode(GBufferData gData) {
     material.hardCodedIOR = 1.0;
     #endif
 
-    vec3 bitangent = cross(gData.geomTangent, gData.normal) * float(gData.bitangentSign);
-    material.tbn = mat3(gData.geomTangent, bitangent, gData.normal);
+    vec3 newTangent = normalize(gData.geomTangent - gData.normal * dot(gData.normal, gData.geomTangent));
+    vec3 newBitangent = cross(newTangent, gData.normal) * float(gData.bitangentSign);
+    material.tbn = mat3(newTangent, newBitangent, gData.normal);
     material.tbnInv = inverse(material.tbn);
+
+    vec3 geomBitangent = cross(gData.geomTangent, gData.geomNormal) * float(gData.bitangentSign);
+    material.geomTbn = mat3(gData.geomTangent, geomBitangent, gData.geomNormal);
+    material.geomTbnInv = inverse(material.geomTbn);
 
     return material;
 }
