@@ -31,7 +31,6 @@ struct GIHistoryData {
     float specularMoment2;
 
     float historyLength;
-    float fastHistoryLength;
     float edgeMask;
 
     float shadow;

@@ -12,7 +12,6 @@
         "transient_bloom": "RGBA16F",
         "history_gi": "RGBA32UI",
         "history_lowCloud": "RGBA32UI",
-        "transient_ssgiOut": "RG32UI",
         "transient_geometryNormal": "R32UI",
         "transient_dofInput": "RGBA16F",
         "history_viewZ": "R32F",
@@ -30,6 +29,7 @@
         "transient_gi3Reprojected": "RGBA16F",
         "transient_gi4Reprojected": "RGBA16F",
         "transient_gi5Reprojected": "RGBA8",
-        "transient_giRadianceInput": "RGBA16F"
+        "transient_giRadianceInput": "RGBA16F",
+        "transient_ssgiOut": "RGBA16F"
     }
 }
