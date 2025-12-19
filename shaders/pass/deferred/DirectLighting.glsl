@@ -100,7 +100,7 @@ void main() {
                 ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
 
                 uvec2 radianceData = transient_packedZN_load(radianceTexelPos).xy;
-                vec4 ssgiOut = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
+                vec4 ssgiOut = vec4(0.0);
 
                 vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
                 vec3 directDiffuseOut = vec3(0.0);
@@ -154,6 +154,7 @@ void main() {
                 transient_packedZN_store(texelPos2x2, packedZNOut);
             }
             transient_directDiffusePassThrough_store(texelPos, vec4(directDiffuseOut, 0.0));
+            transient_giRadianceInput_store(texelPos, vec4(0.0));
         }
     }
 }

@@ -271,6 +271,7 @@ vec3 ssgiRef(ivec2 texelPos, uint finalIndex) {
 
     if (viewZ > -65536.0){
         vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
+//        vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
         vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
         vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
         vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
@@ -280,7 +281,15 @@ vec3 ssgiRef(ivec2 texelPos, uint finalIndex) {
 
         if (sstResult.hit) {
             //        vec3 hitRadiance = texelFetch(usam_temp2, ivec2(sstResult.hitScreenPos.xy * uval_mainImageSize), 0).rgb;
-            vec3 hitRadiance = transient_giRadianceInput_fetch(ivec2(sstResult.hitScreenPos.xy * uval_mainImageSize)).rgb;
+            ivec2 hitTexelPos = ivec2(sstResult.hitScreenPos.xy * uval_mainImageSize);
+            vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
+            GBufferData hitGData = gbufferData_init();
+            gbufferData1_unpack_world(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
+
+            float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
+
+            hitRadiance *= hitCosTheta;
+
             float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
             vec3 f = brdf * hitRadiance;
             result = f / samplePdf;
