@@ -157,8 +157,8 @@ void main() {
                     vec3 initalSample = brdf * hitRadiance;
 
 //                    float samplePdf = saturate(dot(gData.normal, sampleDirView)) / PI;
-//                    float samplePdf = brdf;
-                    float samplePdf = 1.0 / (2.0 * PI);
+                    float samplePdf = brdf;
+//                    float samplePdf = 1.0 / (2.0 * PI);
 
                     float newPHat = length(initalSample);
                     float newWi = samplePdf <= 0.0 ? 0.0 : newPHat / samplePdf;
