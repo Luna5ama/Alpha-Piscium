@@ -1,6 +1,7 @@
 #include "/techniques/gi/Common.glsl"
 #include "/techniques/gi/Reproject.glsl"
 #include "/util/GBufferData.glsl"
+#include "/util/Sampling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -22,8 +23,6 @@ void main() {
         GIHistoryData historyData = gi_historyData_init();
 
         vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
-        vec4 currScenePos = gbufferModelViewInverse * vec4(currViewPos, 1.0);
-        vec4 curr2PrevScenePos = coord_sceneCurrToPrev(currScenePos, gData.isHand);
         vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
         vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
         uint clipFlag = uint(curr2PrevClipPos.z > 0.0);
@@ -40,7 +39,6 @@ void main() {
                 vec2 centerPixel = curr2PrevTexelPos - 0.5;
                 ivec2 gatherTexelPos = ivec2(centerPixel);
                 vec2 gatherScreenPos = coords_texelToUV(gatherTexelPos, uval_mainImageSizeRcp);
-                vec2 pixelPosFract = fract(curr2PrevTexelPos - 0.5);
 
                 float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
                 float prevEdgeMask = min4(history_gi5_gather(gatherScreenPos, 1));
@@ -49,7 +47,7 @@ void main() {
                 vec4 geomViewNormalXs = history_geomViewNormal_gather(gatherScreenPos, 0) * 2.0 - 1.0;
                 vec4 geomViewNormalYs = history_geomViewNormal_gather(gatherScreenPos, 1) * 2.0 - 1.0;
                 vec4 geomViewNormalZs = history_geomViewNormal_gather(gatherScreenPos, 2) * 2.0 - 1.0;
-                
+
                 vec4 viewNormalXs = history_viewNormal_gather(gatherScreenPos, 0) * 2.0 - 1.0;
                 vec4 viewNormalYs = history_viewNormal_gather(gatherScreenPos, 1) * 2.0 - 1.0;
                 vec4 viewNormalZs = history_viewNormal_gather(gatherScreenPos, 2) * 2.0 - 1.0;
@@ -76,7 +74,7 @@ void main() {
                 float planeDistance4 = gi_planeDistance(currViewPos, currViewGeomNormal, prevViewPos4, geomViewNormal4);
 
                 float glazingAngleFactor = sqrt(saturate(dot(currViewGeomNormal, normalize(currViewPos))));
-                float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor)) * pow2(currViewZ);
+                float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor) * 0.9) * pow2(currViewZ);
 
                 float geomViewNormalDot1 = dot(currViewGeomNormal, geomViewNormal1);
                 float geomViewNormalDot2 = dot(currViewGeomNormal, geomViewNormal2);
@@ -94,10 +92,47 @@ void main() {
                 if (bool(edgeFlag)) {
 
                 } else {
-                    gi_historyData_unpack1(historyData, history_gi1_sample(curr2PrevScreen));
-                    gi_historyData_unpack2(historyData, history_gi2_sample(curr2PrevScreen));
-                    gi_historyData_unpack3(historyData, history_gi3_sample(curr2PrevScreen));
-                    gi_historyData_unpack4(historyData, history_gi4_sample(curr2PrevScreen));
+                    CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(curr2PrevTexelPos, 0.5, uval_mainImageSizeRcp);
+                    vec4 giData1 = sampling_catmullBicubic5Tap_sum(
+                        history_gi1_sample(tapData.uv1AndWeight.xy),
+                        history_gi1_sample(tapData.uv2AndWeight.xy),
+                        history_gi1_sample(tapData.uv3AndWeight.xy),
+                        history_gi1_sample(tapData.uv4AndWeight.xy),
+                        history_gi1_sample(tapData.uv5AndWeight.xy),
+                        tapData
+                    );
+                    gi_historyData_unpack1(historyData, giData1);
+
+                    vec4 giData2 = sampling_catmullBicubic5Tap_sum(
+                        history_gi2_sample(tapData.uv1AndWeight.xy),
+                        history_gi2_sample(tapData.uv2AndWeight.xy),
+                        history_gi2_sample(tapData.uv3AndWeight.xy),
+                        history_gi2_sample(tapData.uv4AndWeight.xy),
+                        history_gi2_sample(tapData.uv5AndWeight.xy),
+                        tapData
+                    );
+                    gi_historyData_unpack2(historyData, giData2);
+
+                    vec4 giData3 = sampling_catmullBicubic5Tap_sum(
+                        history_gi3_sample(tapData.uv1AndWeight.xy),
+                        history_gi3_sample(tapData.uv2AndWeight.xy),
+                        history_gi3_sample(tapData.uv3AndWeight.xy),
+                        history_gi3_sample(tapData.uv4AndWeight.xy),
+                        history_gi3_sample(tapData.uv5AndWeight.xy),
+                        tapData
+                    );
+                    gi_historyData_unpack3(historyData, giData3);
+
+                    vec4 giData4 = sampling_catmullBicubic5Tap_sum(
+                        history_gi4_sample(tapData.uv1AndWeight.xy),
+                        history_gi4_sample(tapData.uv2AndWeight.xy),
+                        history_gi4_sample(tapData.uv3AndWeight.xy),
+                        history_gi4_sample(tapData.uv4AndWeight.xy),
+                        history_gi4_sample(tapData.uv5AndWeight.xy),
+                        tapData
+                    );
+                    gi_historyData_unpack4(historyData, giData4);
+
                     gi_historyData_unpack5(historyData, history_gi5_sample(curr2PrevScreen));
                 }
             }

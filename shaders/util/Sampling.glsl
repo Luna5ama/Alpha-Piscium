@@ -186,6 +186,63 @@ vec4 sampling_catmullBicubic5Tap(sampler2D texSampler, vec2 texelPos, float shar
     return color * rcp(weight1 + weight2 + weight3 + weight4 + weight5);
 }
 
+struct CatmullBicubic5TapData {
+    vec3 uv1AndWeight;
+    vec3 uv2AndWeight;
+    vec3 uv3AndWeight;
+    vec3 uv4AndWeight;
+    vec3 uv5AndWeight;
+};
+
+// From https://github.com/GameTechDev/TAA and https://www.iryoku.com/downloads/Filmic-SMAA-v8.pptx
+CatmullBicubic5TapData sampling_catmullBicubic5Tap_init(vec2 texelPos, float sharpness, vec2 texRcpSize){
+    vec2 t = fract(texelPos - 0.5);
+    vec2 centerUV = (floor(texelPos - 0.5) + 0.5) * texRcpSize;
+
+    // 5-tap bicubic sampling (for Hermite/Carmull-Rom filter) -- (approximate from original 16->9-tap bilinear fetching)
+    vec2 f = t;
+    vec2 f2 = t * t;
+    vec2 f3 = t * t * t;
+
+    float s = sharpness;
+    vec2 w0 = -s * f3 + 2.0 * s * f2 - s * f;
+    vec2 w1 = (2.0 - s) * f3 + (s - 3.0) * f2 + 1.0;
+    vec2 w2 = (s - 2.0) * f3 + (3 - 2.0 * s) * f2 + s * f;
+    vec2 w3 = s * f3 - s * f2;
+
+    vec2 w12 = w1 + w2;
+
+    vec2 tc12 = centerUV + (w2 / w12) * texRcpSize;
+    vec2 tc0 = centerUV - 1.0f * texRcpSize;
+    vec2 tc3 = centerUV + 2.0f * texRcpSize;
+
+    float weight1 = w12.x * w0.y;
+    float weight2 = w0.x * w12.y;
+    float weight3 = w12.x * w12.y;
+    float weight4 = w3.x * w12.y;
+    float weight5 = w12.x * w3.y;
+
+    float weightSum = weight1 + weight2 + weight3 + weight4 + weight5;
+    float weightSumRcp = rcp(weightSum);
+
+    CatmullBicubic5TapData params;
+    params.uv1AndWeight = vec3(vec2(tc12.x, tc0.y), weight1 * weightSumRcp);
+    params.uv2AndWeight = vec3(vec2(tc0.x, tc12.y), weight2 * weightSumRcp);
+    params.uv3AndWeight = vec3(vec2(tc12.x, tc12.y), weight3 * weightSumRcp);
+    params.uv4AndWeight = vec3(vec2(tc3.x, tc12.y), weight4 * weightSumRcp);
+    params.uv5AndWeight = vec3(vec2(tc12.x, tc3.y), weight5 * weightSumRcp);
+    return params;
+}
+
+vec4 sampling_catmullBicubic5Tap_sum(vec4 c1, vec4 c2, vec4 c3, vec4 c4, vec4 c5, CatmullBicubic5TapData params){
+    vec4 color = params.uv1AndWeight.z * c1;
+    color += params.uv2AndWeight.z * c2;
+    color += params.uv3AndWeight.z * c3;
+    color += params.uv4AndWeight.z * c4;
+    color += params.uv5AndWeight.z * c5;
+    return color;
+}
+
 vec4 sampling_catmullBicubic5Tap(sampler2D texSampler, vec2 uv, float sharpness){
     vec2 texSize = vec2(textureSize(texSampler, 0));
     vec2 texelPos = uv * texSize;
