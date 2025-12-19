@@ -22,6 +22,9 @@ void main() {
         gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
         gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
+        float currEdgeMask = transient_edgeMask_fetch(texelPos).r;
+        historyData.edgeMask = currEdgeMask;
+
         const float HISTORY_LENGTH = 64.0;
         const float HISTORY_LENGTH_1 = HISTORY_LENGTH - 1.0;
         float historyLength = historyData.historyLength * HISTORY_LENGTH_1;
@@ -31,6 +34,8 @@ void main() {
         float alpha = 1.0 / historyLength;
         historyData.diffuseColor = mix(historyData.diffuseColor, newDiffuse.rgb, alpha);
         historyData.historyLength = saturate(historyLength / HISTORY_LENGTH_1);
+
+        imageStore(uimg_temp1, texelPos, gi_historyData_pack1(historyData));
 
         history_gi1_store(texelPos, gi_historyData_pack1(historyData));
         history_gi2_store(texelPos, gi_historyData_pack2(historyData));

@@ -47,15 +47,18 @@ void main() {
 
                 vec3 curr2PrevView = curr2PrevViewPos.xyz;
 
-                gi_historyData_unpack1(historyData, history_gi1_sample(curr2PrevScreen));
-                gi_historyData_unpack2(historyData, history_gi2_sample(curr2PrevScreen));
-                gi_historyData_unpack3(historyData, history_gi3_sample(curr2PrevScreen));
-                gi_historyData_unpack4(historyData, history_gi4_sample(curr2PrevScreen));
-                gi_historyData_unpack5(historyData, history_gi5_sample(curr2PrevScreen));
+                float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
+                float prevEdgeMask = min4(history_gi5_gather(curr2PrevScreen, 1));
+
+                if (currEdgeFactor + prevEdgeMask > 1.99) {
+                    gi_historyData_unpack1(historyData, history_gi1_sample(curr2PrevScreen));
+                    gi_historyData_unpack2(historyData, history_gi2_sample(curr2PrevScreen));
+                    gi_historyData_unpack3(historyData, history_gi3_sample(curr2PrevScreen));
+                    gi_historyData_unpack4(historyData, history_gi4_sample(curr2PrevScreen));
+                    gi_historyData_unpack5(historyData, history_gi5_sample(curr2PrevScreen));
+                }
             }
         }
-
-        imageStore(uimg_temp1, texelPos, gi_historyData_pack1(historyData));
 
         transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
         transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
