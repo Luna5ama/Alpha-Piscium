@@ -309,7 +309,7 @@ void main() {
 
             vec4 filterInput = vec4(newColor, variance);
             filterInput = dither_fp16(filterInput, rand_IGN(texelPos, frameCounter));
-            transient_atrous1_store(texelPos, filterInput);
+//            transient_atrous1_store(texelPos, filterInput);
         }
 
         {

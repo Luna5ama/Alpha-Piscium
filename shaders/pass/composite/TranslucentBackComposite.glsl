@@ -32,8 +32,8 @@ void main() {
             albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
         }
 
-        vec3 giRadiance = transient_atrous1_fetch(texelPos).rgb;
-        outputColor.rgb += giRadiance.rgb * albedo;
+//        vec3 giRadiance = transient_atrous1_fetch(texelPos).rgb;
+//        outputColor.rgb += giRadiance.rgb * albedo;
         ScatteringResult sctrResult = atmospherics_localComposite(0, texelPos);
         outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
 

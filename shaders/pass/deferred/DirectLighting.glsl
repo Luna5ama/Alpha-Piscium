@@ -68,8 +68,8 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
     directDiffuseOut /= material.albedo;
 
     ssgiOut += emissiveV;
-    ssgiOut += combinedLighting.diffuseLambertian * 4.0;
-    ssgiOut += combinedLighting.sss * 4.0;
+    ssgiOut += combinedLighting.diffuseLambertian;
+//    ssgiOut += combinedLighting.sss * 4.0;
 }
 
 void main() {
@@ -136,6 +136,7 @@ void main() {
 
                 transient_directDiffusePassThrough_store(texelPos, vec4(directDiffuseOut, 0.0));
                 imageStore(uimg_main, texelPos, mainOut);
+                transient_giRadianceInput_store(texelPos, ssgiOut);
                 return;
             }
         }

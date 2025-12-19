@@ -34,6 +34,10 @@ vec2 rand_stbnUnitVec211(ivec2 texelPos, uint frame) {
     return normalize(texelFetch(usam_stbnUnitVec2, ivec3(texelPos, frame) & ivec3(127, 127, 63), 0).xy * 2.0 - 1.0);
 }
 
+vec3 rand_stbnUnitVec3Cosine(ivec2 texelPos, uint frame) {
+    return normalize(texelFetch(usam_stbnUnitVec3Cosine, ivec3(texelPos, frame) & ivec3(127, 127, 63), 0).xyz * 2.0 - 1.0);
+}
+
 // --------------------------------------------------------------------------------------------------------------------
 // Interleaved Gradient Noise
 // See [JIM17] and [WOL22]
@@ -84,6 +88,32 @@ vec3 rand_sampleInCone(vec3 center, float coneHalfAngle, vec2 rand) {
 
     // Final direction
     return normalize(cosAlpha * center + sinAlpha * (cos(phi) * u + sin(phi) * v));
+}
+
+vec4 rand_sampleInHemisphere(vec2 rand) {
+    float phi = PI_2 * rand.y;
+    float theta = acos(rand.x);
+    float cosTheta = cos(theta);
+    float sinTheta = sin(theta);
+    float cosPhi = cos(phi);
+    float sinPhi = sin(phi);
+
+    vec3 dir = vec3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
+    float pdf = 1.0 / (2.0 * PI);
+    return vec4(dir, pdf);
+}
+
+vec4 rand_sampleInCosineWeightedHemisphere(vec2 rand) {
+    float phi = PI_2 * rand.y;
+    float theta = acos(sqrt(rand.x));
+    float cosTheta = cos(theta);
+    float sinTheta = sin(theta);
+    float cosPhi = cos(phi);
+    float sinPhi = sin(phi);
+
+    vec3 dir = vec3(sinTheta * cosPhi, sinTheta * sinPhi, cosTheta);
+    float pdf = saturate(cosTheta) / PI;
+    return vec4(dir, pdf);
 }
 
 #endif
