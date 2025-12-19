@@ -1,3 +1,4 @@
+#include "/techniques/gi/Common.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Math.glsl"
 #include "/util/GBufferData.glsl"
@@ -96,12 +97,9 @@ void main() {
                 vec3 sampleWorldPos = coords_pos_viewToWorld(sampleViewPos, gbufferModelViewInverse);
 
                 // Calculate plane distance (geometry weight)
-                vec3 posDiff = centerWorldPos - sampleWorldPos;
-                float planeDist1 = abs(dot(posDiff, centerData.geomNormal));
-                float planeDist2 = abs(dot(posDiff, sampleData.geomNormal));
-                float maxPlaneDist = max(planeDist1, planeDist2);
+                float planeDistance = gi_planeDistance(centerWorldPos, centerData.geomNormal, sampleWorldPos, sampleData.geomNormal);
 
-                float geomDepthWeight = step(maxPlaneDist, geomDepthThreshold);
+                float geomDepthWeight = step(planeDistance, geomDepthThreshold);
 
                 float geomNormalDot = saturate(dot(centerData.geomNormal, sampleData.geomNormal));
                 float geomNormalWeight = pow2(geomNormalDot);

@@ -97,5 +97,12 @@ vec4 gi_historyData_pack5(GIHistoryData data) {
     return vec4(data.historyLength, data.edgeMask, 0.0, 0.0);
 }
 
+float gi_planeDistance(vec3 pos1, vec3 normal1, vec3 pos2, vec3 normal2) {
+    vec3 posDiff = pos1 - pos2;
+    float planeDist1 = abs(dot(posDiff, normal2));
+    float planeDist2 = abs(dot(posDiff, normal1));
+    float maxPlaneDist = max(planeDist1, planeDist2);
+    return maxPlaneDist;
+}
 
 #endif

@@ -49,7 +49,7 @@ void main() {
 
                 uvec4 temp32UIOut = uvec4(0u);
                 svgf_pack(temp32UIOut, prevDiffuse, prevFastDiffuse, prevMoments, prevHLen);
-                transient_giReprojected_store(texelPos1x1, temp32UIOut);
+//                transient_giReprojected_store(texelPos1x1, temp32UIOut);
 
                 uvec4 packedZNOut = uvec4(0u);
                 nzpacking_pack(packedZNOut.xy, gData.normal, viewZ);
@@ -77,7 +77,7 @@ void main() {
         }
 
         uvec4 temp32UIOut = uvec4(0u);
-        transient_giReprojected_store(texelPos1x1, temp32UIOut);
+//        transient_giReprojected_store(texelPos1x1, temp32UIOut);
 
         uvec4 packedZNOut = uvec4(0u);
         packedZNOut.y = floatBitsToUint(-65536.0);

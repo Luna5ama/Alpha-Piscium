@@ -134,7 +134,6 @@ void main() {
                     transient_packedZN_store(radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
                 }
 
-                transient_directDiffusePassThrough_store(texelPos, vec4(directDiffuseOut, 0.0));
                 imageStore(uimg_main, texelPos, mainOut);
                 transient_giRadianceInput_store(texelPos, ssgiOut);
                 return;
@@ -153,7 +152,6 @@ void main() {
             if (bool(ssgiOutWriteFlag)) {
                 transient_packedZN_store(texelPos2x2, packedZNOut);
             }
-            transient_directDiffusePassThrough_store(texelPos, vec4(directDiffuseOut, 0.0));
             transient_giRadianceInput_store(texelPos, vec4(0.0));
         }
     }

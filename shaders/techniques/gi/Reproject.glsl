@@ -46,15 +46,15 @@ vec4 computeBilateralWeights(vec2 gatherTexelPos) {
     vec2 screenPos = gatherTexelPos * uval_mainImageSizeRcp;
     vec4 result = vec4(1.0);
 
-    vec3 prevWorldNormal1 = history_worldNormal_fetch(ivec2(gatherTexelPos + vec2(-0.5, 0.5))).xyz * 2.0 - 1.0;
-    vec3 prevWorldNormal2 = history_worldNormal_fetch(ivec2(gatherTexelPos + vec2(0.5, 0.5))).xyz * 2.0 - 1.0;
-    vec3 prevWorldNormal3 = history_worldNormal_fetch(ivec2(gatherTexelPos + vec2(0.5, -0.5))).xyz * 2.0 - 1.0;
-    vec3 prevWorldNormal4 = history_worldNormal_fetch(ivec2(gatherTexelPos + vec2(-0.5, -0.5))).xyz * 2.0 - 1.0;
+    vec3 prevWorldNormal1 = history_viewNormal_fetch(ivec2(gatherTexelPos + vec2(-0.5, 0.5))).xyz * 2.0 - 1.0;
+    vec3 prevWorldNormal2 = history_viewNormal_fetch(ivec2(gatherTexelPos + vec2(0.5, 0.5))).xyz * 2.0 - 1.0;
+    vec3 prevWorldNormal3 = history_viewNormal_fetch(ivec2(gatherTexelPos + vec2(0.5, -0.5))).xyz * 2.0 - 1.0;
+    vec3 prevWorldNormal4 = history_viewNormal_fetch(ivec2(gatherTexelPos + vec2(-0.5, -0.5))).xyz * 2.0 - 1.0;
     
-    vec3 prevGeomWorldNormal1 = history_geomWorldNormal_fetch(ivec2(gatherTexelPos + vec2(-0.5, 0.5))).xyz * 2.0 - 1.0;
-    vec3 prevGeomWorldNormal2 = history_geomWorldNormal_fetch(ivec2(gatherTexelPos + vec2(0.5, 0.5))).xyz * 2.0 - 1.0;
-    vec3 prevGeomWorldNormal3 = history_geomWorldNormal_fetch(ivec2(gatherTexelPos + vec2(0.5, -0.5))).xyz * 2.0 - 1.0;
-    vec3 prevGeomWorldNormal4 = history_geomWorldNormal_fetch(ivec2(gatherTexelPos + vec2(-0.5, -0.5))).xyz * 2.0 - 1.0;
+    vec3 prevGeomWorldNormal1 = history_geomViewNormal_fetch(ivec2(gatherTexelPos + vec2(-0.5, 0.5))).xyz * 2.0 - 1.0;
+    vec3 prevGeomWorldNormal2 = history_geomViewNormal_fetch(ivec2(gatherTexelPos + vec2(0.5, 0.5))).xyz * 2.0 - 1.0;
+    vec3 prevGeomWorldNormal3 = history_geomViewNormal_fetch(ivec2(gatherTexelPos + vec2(0.5, -0.5))).xyz * 2.0 - 1.0;
+    vec3 prevGeomWorldNormal4 = history_geomViewNormal_fetch(ivec2(gatherTexelPos + vec2(-0.5, -0.5))).xyz * 2.0 - 1.0;
 
     vec4 prevViewZs = history_viewZ_gather(screenPos, 1);
 

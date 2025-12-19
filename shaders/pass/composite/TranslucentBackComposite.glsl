@@ -23,14 +23,14 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
 
-        vec3 albedo = colors2_material_toWorkSpace(transient_solidAlbedo_fetch(texelPos).rgb);
-        vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
-        if (any(greaterThan(glintColorData.xyz, vec3(0.0)))) {
-            vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb);
-            glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
-            float baseColorLuma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedo.rgb);
-            albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
-        }
+//        vec3 albedo = colors2_material_toWorkSpace(transient_solidAlbedo_fetch(texelPos).rgb);
+//        vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
+//        if (any(greaterThan(glintColorData.xyz, vec3(0.0)))) {
+//            vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb);
+//            glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
+//            float baseColorLuma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedo.rgb);
+//            albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
+//        }
 
 //        vec3 giRadiance = transient_atrous1_fetch(texelPos).rgb;
 //        outputColor.rgb += giRadiance.rgb * albedo;
