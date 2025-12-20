@@ -5,6 +5,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
+layout(rgb10_a2) uniform writeonly image2D uimg_rgb10_a2;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
@@ -21,5 +22,8 @@ void main() {
         transient_gi3Reprojected_store(texelPos, gi_historyData_pack3(historyData));
         transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(historyData));
         transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
+
+        transient_geomViewNormal_store(texelPos, vec4(gData.geomNormal * 0.5 + 0.5, 0.0));
+//        transient_viewNormal_store(texelPos, vec4(gData.normal * 0.5 + 0.5, 0.0));
     }
 }

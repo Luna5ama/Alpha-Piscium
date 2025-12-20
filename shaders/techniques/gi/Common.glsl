@@ -30,6 +30,7 @@ struct GIHistoryData {
     float specularMoment2;
 
     float historyLength;
+    float realHistoryLength;
     float edgeMask;
     float glazingAngleFactor;
 
@@ -74,8 +75,9 @@ void gi_historyData_unpack4(inout GIHistoryData data, vec4 packedData) {
 
 void gi_historyData_unpack5(inout GIHistoryData data, vec4 packedData) {
     data.historyLength = packedData.x;
-    data.edgeMask = packedData.y;
-    data.glazingAngleFactor = packedData.z;
+    data.realHistoryLength = packedData.y;
+    data.edgeMask = packedData.z;
+    data.glazingAngleFactor = packedData.w;
 }
 
 vec4 gi_historyData_pack1(GIHistoryData data) {
@@ -95,7 +97,7 @@ vec4 gi_historyData_pack4(GIHistoryData data) {
 }
 
 vec4 gi_historyData_pack5(GIHistoryData data) {
-    return vec4(data.historyLength, data.edgeMask, data.glazingAngleFactor, 0.0);
+    return vec4(data.historyLength, data.realHistoryLength, data.edgeMask, data.glazingAngleFactor);
 }
 
 float gi_planeDistance(vec3 pos1, vec3 normal1, vec3 pos2, vec3 normal2) {
@@ -105,5 +107,8 @@ float gi_planeDistance(vec3 pos1, vec3 normal1, vec3 pos2, vec3 normal2) {
     float maxPlaneDist = max(planeDist1, planeDist2);
     return maxPlaneDist;
 }
+const float HISTORY_LENGTH = 64.0;
+const float REAL_HISTORY_LENGTH = 255.0;
+const float FAST_HISTORY_LENGTH = 8.0;
 
 #endif

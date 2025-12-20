@@ -12,6 +12,7 @@
         "transient_geometryNormal": "R32UI",
         "transient_dofInput": "RGBA16F",
         "history_viewZ": "R32F",
+        "transient_geomViewNormal": "RGB10_A2",
         "history_geomViewNormal": "RGB10_A2",
         "history_viewNormal": "RGB10_A2",
         "transient_edgeMaskTemp": "RGBA8",
@@ -26,6 +27,10 @@
         "transient_gi3Reprojected": "RGBA16F",
         "transient_gi4Reprojected": "RGBA16F",
         "transient_gi5Reprojected": "RGBA8",
+        "transient_gi_blurDiff1": "RGBA16F",
+        "transient_gi_blurSpec1": "RGBA16F",
+        "transient_gi_blurDiff2": "RGBA16F",
+        "transient_gi_blurSpec2": "RGBA16F",
         "transient_giRadianceInput": "RGBA16F",
         "transient_ssgiOut": "RGBA16F"
     }

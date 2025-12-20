@@ -50,7 +50,7 @@ GIHistoryData gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             vec2 pixelPosFract = fract(centerPixel);
 
             float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
-            float prevEdgeMask = min4(history_gi5_gather(gatherScreenPos, 1));
+            float prevEdgeMask = min4(history_gi5_gather(gatherScreenPos, 2));
 
             vec4 viewZs = history_viewZ_gatherTexel(gatherTexelPos, 0);
             vec4 geomViewNormalXs = history_geomViewNormal_gatherTexel(gatherTexelPos, 0) * 2.0 - 1.0;
