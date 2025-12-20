@@ -10,7 +10,7 @@
 #define SKIP_FRAMES 16
 #define MAX_FRAMES 4096
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
-#define MC_SPP 4
+#define MC_SPP 1
 #define SPATIAL_REUSE 1
 #define SPATIAL_REUSE_SAMPLES 6
 #define SPATIAL_REUSE_RADIUS 64

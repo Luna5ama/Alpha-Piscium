@@ -15,7 +15,6 @@
     Specular Moment2: 16 bits       (3)
 
     History Length: 8 bits          (5)
-    Fast history Length: 8 bits     (5)
     ~ Edge Mask: 8 bits             (5)
 
     Shadow: 16 bits                 (2)
