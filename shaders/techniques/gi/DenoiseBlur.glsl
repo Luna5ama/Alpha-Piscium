@@ -10,6 +10,7 @@
 #include "Common.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Mat2.glsl"
+
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 
 struct GeomData {
@@ -48,31 +49,34 @@ vec2 _gi_mirrorUV(vec2 uv) {
 }
 
 float gaussianKernel(float x) {
-    return exp(-1.0 * pow2(x));
+    return exp(-0.69 * pow2(x));
 }
 float normalWeight(vec3 norA, vec3 norB, float factor) {
     return pow(saturate(dot(norA, norB)), factor);
 }
 
-float planeDistanceWeight(vec3 posA, vec3 normalA, vec3 posB, vec3 normalB) {
+float planeDistanceWeight(vec3 posA, vec3 normalA, vec3 posB, vec3 normalB, float factor) {
     float planeDistance = gi_planeDistance(posA, normalA, posB, normalB);
-    return exp2(-256.0 * pow2(planeDistance));
+    return exp2(factor * pow2(planeDistance));
 }
 
-void gi_blur(ivec2 texelPos, vec2 baseKernelRadius, float historyLength, vec2 blurJitter) {
-    float accumFactor = 1.0 / (1.0 + historyLength);
-
-    float kernelRadius = baseKernelRadius.x;
-    kernelRadius *= sqrt(accumFactor);
-    kernelRadius = max(kernelRadius, baseKernelRadius.y);
-
-    float invAccumFactor = 1.0 - accumFactor;
-    float baseColorWeight = invAccumFactor * -8192.0;
-    float baseGeomNormalWeight = invAccumFactor * 64.0;
-    float baseNormalWeight = invAccumFactor * 4.0;
-
+void gi_blur(ivec2 texelPos, vec3 baseKernelRadius, float historyLength, vec2 blurJitter) {
     vec4 centerDiff = _gi_readDiff(texelPos);
     vec4 centerSpec = _gi_readSpec(texelPos);
+
+
+    float accumFactor = sqrt(1.0 / (1.0 + historyLength));
+
+    float kernelRadius = baseKernelRadius.x;
+    kernelRadius *= accumFactor;
+    kernelRadius *= centerDiff.w;
+    kernelRadius = clamp(kernelRadius, baseKernelRadius.y, baseKernelRadius.z);
+
+    float invAccumFactor = saturate(1.0 - accumFactor);
+    float baseColorWeight = pow2(invAccumFactor) * -0.1;
+    float baseGeomNormalWeight = invAccumFactor * 8.0;
+    float baseNormalWeight = invAccumFactor * 4.0;
+    float basePlaneDistWeight = invAccumFactor * -1024.0;
 
     vec4 diffResult = centerDiff;
     vec4 specResult = centerSpec;
@@ -117,14 +121,15 @@ void gi_blur(ivec2 texelPos, vec2 baseKernelRadius, float historyLength, vec2 bl
             centerGeomData.viewPos,
             centerGeomData.geomNormal,
             geomData.viewPos,
-            geomData.geomNormal
+            geomData.geomNormal,
+            basePlaneDistWeight
         );
         edgeWeight *= normalWeight(centerGeomData.normal, geomData.normal, baseNormalWeight);
         edgeWeight *= sqrt(lastEdgeWeight);
         lastEdgeWeight = edgeWeight;
         edgeWeight = smoothstep(0.0, 1.0, edgeWeight);
 
-        vec3 colorDiff = pow2(centerDiff.rgb - diffSample.rgb);
+        vec3 colorDiff = abs(centerDiff.rgb - diffSample.rgb);
         float lumaDiff = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colorDiff);
         float colorWeight = exp2(baseColorWeight * lumaDiff);
 
@@ -154,7 +159,8 @@ void gi_blur(ivec2 texelPos, vec2 baseKernelRadius, float historyLength, vec2 bl
     float stddev = sqrt(variance);
 
     #if GI_DENOISE_PASS == 1
-    imageStore(uimg_temp3, texelPos, vec4(variance * 8000.0));
+    diffResult.w = max(log2(1.0 + safeDiv(stddev, centerLuma)), 0.0);
+    imageStore(uimg_temp3, texelPos, vec4(diffResult.w));
     transient_gi_blurDiff2_store(texelPos, diffResult);
     transient_gi_blurSpec2_store(texelPos, specResult);
     #elif GI_DENOISE_PASS == 2
