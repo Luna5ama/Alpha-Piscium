@@ -36,7 +36,7 @@ void main() {
         float currEdgeMask = transient_edgeMask_fetch(texelPos).r;
         historyData.edgeMask = currEdgeMask;
 
-        const float HISTORY_LENGTH = 64.0;
+        const float HISTORY_LENGTH = 32.0;
         const float HISTORY_LENGTH_1 = HISTORY_LENGTH - 1.0;
         float historyLength = historyData.historyLength * HISTORY_LENGTH_1;
         historyLength = clamp(historyLength + 1.0, 1.0, HISTORY_LENGTH);

@@ -76,7 +76,7 @@ void main() {
         float planeWeight = rcp(exp2(SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT)) * max(abs(centerData.viewZ), 0.1);
         float normalWeightDistanceFactor = BASE_NORMAL_WEIGHT_DECAY / (BASE_NORMAL_WEIGHT_DECAY + pow2(centerData.viewZ));
 
-        float glazingAngleFactor = sqrt(saturate(dot(centerData.geomNormal, normalize(centerViewPos))));
+        float glazingAngleFactor = sqrt(saturate(dot(centerData.geomNormal, -normalize(centerViewPos))));
         float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor)) * pow2(centerData.viewZ);
 
         float weightSum = 0.0;
@@ -109,7 +109,7 @@ void main() {
             }
         }
 
-        weightSum = pow2(weightSum / 8.0);
+        weightSum /= 8.0;
 
         transient_edgeMaskTemp_store(texelPos, vec4(weightSum));
     }

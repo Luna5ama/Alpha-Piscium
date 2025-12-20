@@ -32,6 +32,7 @@ struct GIHistoryData {
 
     float historyLength;
     float edgeMask;
+    float glazingAngleFactor;
 
     float shadow;
 };
@@ -75,6 +76,7 @@ void gi_historyData_unpack4(inout GIHistoryData data, vec4 packedData) {
 void gi_historyData_unpack5(inout GIHistoryData data, vec4 packedData) {
     data.historyLength = packedData.x;
     data.edgeMask = packedData.y;
+    data.glazingAngleFactor = packedData.z;
 }
 
 vec4 gi_historyData_pack1(GIHistoryData data) {
@@ -94,7 +96,7 @@ vec4 gi_historyData_pack4(GIHistoryData data) {
 }
 
 vec4 gi_historyData_pack5(GIHistoryData data) {
-    return vec4(data.historyLength, data.edgeMask, 0.0, 0.0);
+    return vec4(data.historyLength, data.edgeMask, data.glazingAngleFactor, 0.0);
 }
 
 float gi_planeDistance(vec3 pos1, vec3 normal1, vec3 pos2, vec3 normal2) {

@@ -38,15 +38,21 @@ void main() {
         vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
         uint clipFlag = uint(curr2PrevClipPos.z > 0.0);
         clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
-            if (bool(clipFlag)) {
+        vec3 currWorldNormal = gData.normal;
+        vec3 currWorldGeomNormal = gData.geomNormal;
+        vec3 currViewGeomNormal = coords_dir_worldToView(currWorldGeomNormal);
+
+        float glazingCosTheta = saturate(dot(currViewGeomNormal, -normalize(currViewPos.xyz)));
+        float glazingAngleFactor = sqrt(glazingCosTheta);
+        float glazingAngleFactorHistory = pow3(1.0 - glazingCosTheta);
+
+        if (bool(clipFlag)) {
             vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
             vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
             curr2PrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
 
             if (all(equal(curr2PrevScreen, saturate(curr2PrevScreen)))) {
                 vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
-                vec3 currWorldNormal = gData.normal;
-                vec3 currWorldGeomNormal = gData.geomNormal;
 
                 vec3 curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
                 vec3 curr2PrevViewGeomNormal = coords_dir_worldToViewPrev(currWorldGeomNormal);
@@ -85,13 +91,12 @@ void main() {
                 vec3 geomViewNormal3 = normalize(vec3(geomViewNormalXs.z, geomViewNormalYs.z, geomViewNormalZs.z));
                 vec3 geomViewNormal4 = normalize(vec3(geomViewNormalXs.w, geomViewNormalYs.w, geomViewNormalZs.w));
 
-                float planeDistance1 = gi_planeDistance(currViewPos, curr2PrevViewGeomNormal, prevViewPos1, geomViewNormal1);
-                float planeDistance2 = gi_planeDistance(currViewPos, curr2PrevViewGeomNormal, prevViewPos2, geomViewNormal2);
-                float planeDistance3 = gi_planeDistance(currViewPos, curr2PrevViewGeomNormal, prevViewPos3, geomViewNormal3);
-                float planeDistance4 = gi_planeDistance(currViewPos, curr2PrevViewGeomNormal, prevViewPos4, geomViewNormal4);
+                float planeDistance1 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos1, geomViewNormal1);
+                float planeDistance2 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos2, geomViewNormal2);
+                float planeDistance3 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos3, geomViewNormal3);
+                float planeDistance4 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos4, geomViewNormal4);
 
-                float glazingAngleFactor = sqrt(saturate(dot(curr2PrevViewGeomNormal, normalize(currViewPos))));
-                float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor)) * pow2(currViewZ);
+                float planeDistanceThreshold = exp2(mix(-6.0, -10.0, glazingAngleFactor)) * max(0.5, pow2(currViewZ));
 
                 float geomViewNormalDot1 = dot(curr2PrevViewGeomNormal, geomViewNormal1);
                 float geomViewNormalDot2 = dot(curr2PrevViewGeomNormal, geomViewNormal2);
@@ -105,14 +110,14 @@ void main() {
                 uint edgeFlag = 0u;
                 edgeFlag |= uint(totalEdgeFactor < 0.99);
                 edgeFlag |= uint(any(lessThan(geomViewNormalDots, vec4(0.5))));
-                edgeFlag |= uint(any(greaterThan(planeDistances, vec4(geomDepthThreshold))));
+                edgeFlag |= uint(any(greaterThan(planeDistances, vec4(planeDistanceThreshold))));
 
                 if (bool(edgeFlag)) {
                     vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
-                    float geomDepthBaseWeight = mix(-32.0, -1.0, totalEdgeFactor);
-                    vec4 geomDepthWegiths = exp2(geomDepthBaseWeight * pow2(planeDistances));
-                    geomDepthWegiths *= saturate(step(planeDistances, vec4(geomDepthThreshold)) + totalEdgeFactor);
-                    vec4 combinedWeights = geomNormalWeights * geomDepthWegiths;
+                    float geomDepthBaseWeight = mix(16.0, 2.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
+                    vec4 geomDepthWegiths = exp2(-geomDepthBaseWeight * pow2(planeDistances));
+                    geomDepthWegiths = saturate(step(planeDistances, vec4(planeDistanceThreshold)));
+                    vec4 edgeWeights = geomNormalWeights * geomDepthWegiths;
 
                     vec2 bilinearWeights2 = pixelPosFract;
                     vec4 blinearWeights4;
@@ -121,18 +126,19 @@ void main() {
                     blinearWeights4.xy *= bilinearWeights2.yy;
                     blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
-                    combinedWeights *= blinearWeights4;
-                    float weightSum = combinedWeights.x + combinedWeights.y + combinedWeights.z + combinedWeights.w;
+                    vec4 finalWeights = edgeWeights * blinearWeights4;
+                    float weightSum = dot(finalWeights, vec4(1.0));
+                    float maxEdgeWeight = max4(edgeWeights);
 
-                    if (weightSum > 0.1) {
-                        combinedWeights *= 1.0 / weightSum;
+                    if (weightSum > 0.01) {
+                        finalWeights *= 1.0 / weightSum;
 
                         vec4 giData1 = bileratralSum(
                             history_gi1_gatherTexel(gatherTexelPos, 0),
                             history_gi1_gatherTexel(gatherTexelPos, 1),
                             history_gi1_gatherTexel(gatherTexelPos, 2),
                             history_gi1_gatherTexel(gatherTexelPos, 3),
-                            combinedWeights
+                            finalWeights
                         );
                         gi_historyData_unpack1(historyData, giData1);
 
@@ -141,7 +147,7 @@ void main() {
                             history_gi2_gatherTexel(gatherTexelPos, 1),
                             history_gi2_gatherTexel(gatherTexelPos, 2),
                             history_gi2_gatherTexel(gatherTexelPos, 3),
-                            combinedWeights
+                            finalWeights
                         );
                         gi_historyData_unpack2(historyData, giData2);
 
@@ -150,7 +156,7 @@ void main() {
                             history_gi3_gatherTexel(gatherTexelPos, 1),
                             history_gi3_gatherTexel(gatherTexelPos, 2),
                             history_gi3_gatherTexel(gatherTexelPos, 3),
-                            combinedWeights
+                            finalWeights
                         );
                         gi_historyData_unpack3(historyData, giData3);
 
@@ -159,7 +165,7 @@ void main() {
                             history_gi4_gatherTexel(gatherTexelPos, 1),
                             history_gi4_gatherTexel(gatherTexelPos, 2),
                             history_gi4_gatherTexel(gatherTexelPos, 3),
-                            combinedWeights
+                            finalWeights
                         );
                         gi_historyData_unpack4(historyData, giData4);
 
@@ -168,10 +174,10 @@ void main() {
                             history_gi5_gatherTexel(gatherTexelPos, 1),
                             history_gi5_gatherTexel(gatherTexelPos, 2),
                             history_gi5_gatherTexel(gatherTexelPos, 3),
-                            combinedWeights
+                            finalWeights
                         );
                         gi_historyData_unpack5(historyData, giData5);
-                        historyData.historyLength *= pow(weightSum, 1.0 / 16.0);
+                        historyData.historyLength *= sqrt(weightSum);
                     }
                 } else {
                     CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(curr2PrevTexelPos, 0.5, uval_mainImageSizeRcp);
@@ -215,10 +221,15 @@ void main() {
                     );
                     gi_historyData_unpack4(historyData, giData4);
 
-                    gi_historyData_unpack5(historyData, history_gi5_sample(curr2PrevScreen));
+                    gi_historyData_unpack5(historyData, saturate(history_gi5_sample(curr2PrevScreen)));
                 }
+
+                float antiStretching = pow6(1.0 - saturate(historyData.glazingAngleFactor - glazingAngleFactorHistory));
+                historyData.historyLength *= antiStretching;
             }
         }
+
+        historyData.glazingAngleFactor = glazingAngleFactorHistory;
 
         transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
         transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
