@@ -24,6 +24,6 @@ void main() {
         transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
 
         transient_geomViewNormal_store(texelPos, vec4(gData.geomNormal * 0.5 + 0.5, 0.0));
-//        transient_viewNormal_store(texelPos, vec4(gData.normal * 0.5 + 0.5, 0.0));
+        transient_viewNormal_store(texelPos, vec4(gData.normal * 0.5 + 0.5, 0.0));
     }
 }

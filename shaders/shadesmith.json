@@ -13,6 +13,7 @@
         "transient_dofInput": "RGBA16F",
         "history_viewZ": "R32F",
         "transient_geomViewNormal": "RGB10_A2",
+        "transient_viewNormal": "RGB10_A2",
         "history_geomViewNormal": "RGB10_A2",
         "history_viewNormal": "RGB10_A2",
         "transient_edgeMaskTemp": "RGBA8",

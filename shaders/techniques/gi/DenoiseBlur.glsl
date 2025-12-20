@@ -13,6 +13,7 @@
 
 struct GeomData {
     vec3 geomNormal;
+    vec3 normal;
     vec3 viewPos;
 };
 
@@ -21,6 +22,7 @@ GeomData _gi_readGeomData(ivec2 texelPos, vec2 screenPos) {
     float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
     geomData.viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     geomData.geomNormal = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
+    geomData.normal = normalize(transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
     return geomData;
 }
 
@@ -48,8 +50,12 @@ float gaussianKernel(float x) {
     return exp(-1.0 * pow2(x));
 }
 
-float normalWeight(vec3 posA, vec3 posB) {
-    return pow(saturate(dot(posA, posB)), 16.0);
+float geomNormalWeight(vec3 norA, vec3 norB) {
+    return pow8(saturate(dot(norA, norB)));
+}
+
+float normalWeight(vec3 norA, vec3 norB) {
+    return pow2(saturate(dot(norA, norB)));
 }
 
 float planeDistanceWeight(vec3 posA, vec3 normalA, vec3 posB, vec3 normalB) {
@@ -90,13 +96,14 @@ void gi_blur(ivec2 texelPos, float kernelRadius, vec2 blurJitter) {
         vec4 diffSample = _gi_readDiff(sampleTexelPos);
         vec4 specSample = _gi_readSpec(sampleTexelPos);
 
-        weight *= normalWeight(centerGeomData.geomNormal, geomData.geomNormal);
+        weight *= geomNormalWeight(centerGeomData.geomNormal, geomData.geomNormal);
         weight *= planeDistanceWeight(
             centerGeomData.viewPos,
             centerGeomData.geomNormal,
             geomData.viewPos,
             geomData.geomNormal
         );
+        weight *= normalWeight(centerGeomData.normal, geomData.normal);
 
         diffResult += diffSample * weight;
         specResult += specSample * weight;
