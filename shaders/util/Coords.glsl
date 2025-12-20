@@ -226,6 +226,14 @@ vec3 coords_dir_worldToView(vec3 dirWorld) {
     return normalize((mat3(gbufferModelView) * dirWorld));
 }
 
+vec3 coords_dir_viewToWorldPrev(vec3 dirView) {
+    return normalize((mat3(gbufferPrevModelViewInverse) * dirView));
+}
+
+vec3 coords_dir_worldToViewPrev(vec3 dirWorld) {
+    return normalize((mat3(gbufferPrevModelView) * dirWorld));
+}
+
 vec3 coords_pos_viewToWorld(vec3 posView, mat4 viewMatInverse) {
     return (gbufferModelViewInverse * vec4(posView, 1.0)).xyz;
 }

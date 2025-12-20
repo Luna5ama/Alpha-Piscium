@@ -11,13 +11,22 @@ layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 
+vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
+    return vec4(
+        dot(xs, weights),
+        dot(ys, weights),
+        dot(zs, weights),
+        dot(ws, weights)
+    );
+}
+
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
         float currViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         GBufferData gData = gbufferData_init();
-        gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+        gbufferData1_unpack_world(texelFetch(usam_gbufferData1, texelPos, 0), gData);
         gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
 
         GIHistoryData historyData = gi_historyData_init();
@@ -27,30 +36,35 @@ void main() {
         vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
         uint clipFlag = uint(curr2PrevClipPos.z > 0.0);
         clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
-        if (bool(clipFlag)) {
+            if (bool(clipFlag)) {
             vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
             vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
 
             if (all(equal(curr2PrevScreen, saturate(curr2PrevScreen)))) {
                 vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
-                vec3 currViewNormal = gData.normal;
-                vec3 currViewGeomNormal = gData.geomNormal;
+                vec3 currWorldNormal = gData.normal;
+                vec3 currWorldGeomNormal = gData.geomNormal;
+
+                vec3 curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
+                vec3 curr2PrevViewGeomNormal = coords_dir_worldToViewPrev(currWorldGeomNormal);
 
                 vec2 centerPixel = curr2PrevTexelPos - 0.5;
-                ivec2 gatherTexelPos = ivec2(centerPixel);
-                vec2 gatherScreenPos = coords_texelToUV(gatherTexelPos, uval_mainImageSizeRcp);
+                vec2 gatherOrigin = floor(centerPixel);
+                vec2 gatherTexelPos = gatherOrigin + 1.0;
+                vec2 gatherScreenPos = gatherTexelPos * uval_mainImageSizeRcp;
+                vec2 pixelPosFract = fract(centerPixel);
 
                 float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
                 float prevEdgeMask = min4(history_gi5_gather(gatherScreenPos, 1));
 
-                vec4 viewZs = history_viewZ_gather(gatherScreenPos, 0);
-                vec4 geomViewNormalXs = history_geomViewNormal_gather(gatherScreenPos, 0) * 2.0 - 1.0;
-                vec4 geomViewNormalYs = history_geomViewNormal_gather(gatherScreenPos, 1) * 2.0 - 1.0;
-                vec4 geomViewNormalZs = history_geomViewNormal_gather(gatherScreenPos, 2) * 2.0 - 1.0;
+                vec4 viewZs = history_viewZ_gatherTexel(gatherTexelPos, 0);
+                vec4 geomViewNormalXs = history_geomViewNormal_gatherTexel(gatherTexelPos, 0) * 2.0 - 1.0;
+                vec4 geomViewNormalYs = history_geomViewNormal_gatherTexel(gatherTexelPos, 1) * 2.0 - 1.0;
+                vec4 geomViewNormalZs = history_geomViewNormal_gatherTexel(gatherTexelPos, 2) * 2.0 - 1.0;
 
-                vec4 viewNormalXs = history_viewNormal_gather(gatherScreenPos, 0) * 2.0 - 1.0;
-                vec4 viewNormalYs = history_viewNormal_gather(gatherScreenPos, 1) * 2.0 - 1.0;
-                vec4 viewNormalZs = history_viewNormal_gather(gatherScreenPos, 2) * 2.0 - 1.0;
+                vec4 viewNormalXs = history_viewNormal_gatherTexel(gatherTexelPos, 0) * 2.0 - 1.0;
+                vec4 viewNormalYs = history_viewNormal_gatherTexel(gatherTexelPos, 1) * 2.0 - 1.0;
+                vec4 viewNormalZs = history_viewNormal_gatherTexel(gatherTexelPos, 2) * 2.0 - 1.0;
 
                 vec2 halfTexel = 0.5 * uval_mainImageSizeRcp;
                 vec2 gatherScreenPos1 = gatherScreenPos + halfTexel * vec2(-1.0, 1.0);
@@ -68,29 +82,91 @@ void main() {
                 vec3 geomViewNormal3 = normalize(vec3(geomViewNormalXs.z, geomViewNormalYs.z, geomViewNormalZs.z));
                 vec3 geomViewNormal4 = normalize(vec3(geomViewNormalXs.w, geomViewNormalYs.w, geomViewNormalZs.w));
 
-                float planeDistance1 = gi_planeDistance(currViewPos, currViewGeomNormal, prevViewPos1, geomViewNormal1);
-                float planeDistance2 = gi_planeDistance(currViewPos, currViewGeomNormal, prevViewPos2, geomViewNormal2);
-                float planeDistance3 = gi_planeDistance(currViewPos, currViewGeomNormal, prevViewPos3, geomViewNormal3);
-                float planeDistance4 = gi_planeDistance(currViewPos, currViewGeomNormal, prevViewPos4, geomViewNormal4);
+                float planeDistance1 = gi_planeDistance(currViewPos, curr2PrevViewGeomNormal, prevViewPos1, geomViewNormal1);
+                float planeDistance2 = gi_planeDistance(currViewPos, curr2PrevViewGeomNormal, prevViewPos2, geomViewNormal2);
+                float planeDistance3 = gi_planeDistance(currViewPos, curr2PrevViewGeomNormal, prevViewPos3, geomViewNormal3);
+                float planeDistance4 = gi_planeDistance(currViewPos, curr2PrevViewGeomNormal, prevViewPos4, geomViewNormal4);
 
-                float glazingAngleFactor = sqrt(saturate(dot(currViewGeomNormal, normalize(currViewPos))));
-                float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor) * 0.9) * pow2(currViewZ);
+                float glazingAngleFactor = sqrt(saturate(dot(curr2PrevViewGeomNormal, normalize(currViewPos))));
+                float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor) * 0.5) * pow2(currViewZ);
 
-                float geomViewNormalDot1 = dot(currViewGeomNormal, geomViewNormal1);
-                float geomViewNormalDot2 = dot(currViewGeomNormal, geomViewNormal2);
-                float geomViewNormalDot3 = dot(currViewGeomNormal, geomViewNormal3);
-                float geomViewNormalDot4 = dot(currViewGeomNormal, geomViewNormal4);
+                float geomViewNormalDot1 = dot(curr2PrevViewGeomNormal, geomViewNormal1);
+                float geomViewNormalDot2 = dot(curr2PrevViewGeomNormal, geomViewNormal2);
+                float geomViewNormalDot3 = dot(curr2PrevViewGeomNormal, geomViewNormal3);
+                float geomViewNormalDot4 = dot(curr2PrevViewGeomNormal, geomViewNormal4);
 
                 vec4 geomViewNormalDots = vec4(geomViewNormalDot1, geomViewNormalDot2, geomViewNormalDot3, geomViewNormalDot4);
                 vec4 planeDistances = vec4(planeDistance1, planeDistance2, planeDistance3, planeDistance4);
 
                 uint edgeFlag = 0u;
                 edgeFlag |= uint((currEdgeFactor + prevEdgeMask) < 1.99);
-                edgeFlag |= uint(any(lessThan(geomViewNormalDots, vec4(0.999))));
+                edgeFlag |= uint(any(lessThan(geomViewNormalDots, vec4(0.5))));
                 edgeFlag |= uint(any(greaterThan(planeDistances, vec4(geomDepthThreshold))));
 
                 if (bool(edgeFlag)) {
+                    vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
+                    vec4 geomDepthWegiths = exp2(-1.0 * pow2(planeDistances));
+                    vec4 combinedWeights = geomNormalWeights * geomDepthWegiths;
 
+                    vec2 bilinearWeights2 = pixelPosFract;
+                    vec4 blinearWeights4;
+                    blinearWeights4.yz = bilinearWeights2.xx;
+                    blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
+                    blinearWeights4.xy *= bilinearWeights2.yy;
+                    blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
+
+                    combinedWeights *= blinearWeights4;
+                    float weightSum = combinedWeights.x + combinedWeights.y + combinedWeights.z + combinedWeights.w;
+
+                    if (weightSum > 0.001) {
+                        combinedWeights *= 1.0 / weightSum;
+
+                        vec4 giData1 = bileratralSum(
+                            history_gi1_gatherTexel(gatherTexelPos, 0),
+                            history_gi1_gatherTexel(gatherTexelPos, 1),
+                            history_gi1_gatherTexel(gatherTexelPos, 2),
+                            history_gi1_gatherTexel(gatherTexelPos, 3),
+                            combinedWeights
+                        );
+                        gi_historyData_unpack1(historyData, giData1);
+
+                        vec4 giData2 = bileratralSum(
+                            history_gi2_gatherTexel(gatherTexelPos, 0),
+                            history_gi2_gatherTexel(gatherTexelPos, 1),
+                            history_gi2_gatherTexel(gatherTexelPos, 2),
+                            history_gi2_gatherTexel(gatherTexelPos, 3),
+                            combinedWeights
+                        );
+                        gi_historyData_unpack2(historyData, giData2);
+
+                        vec4 giData3 = bileratralSum(
+                            history_gi3_gatherTexel(gatherTexelPos, 0),
+                            history_gi3_gatherTexel(gatherTexelPos, 1),
+                            history_gi3_gatherTexel(gatherTexelPos, 2),
+                            history_gi3_gatherTexel(gatherTexelPos, 3),
+                            combinedWeights
+                        );
+                        gi_historyData_unpack3(historyData, giData3);
+
+                        vec4 giData4 = bileratralSum(
+                            history_gi4_gatherTexel(gatherTexelPos, 0),
+                            history_gi4_gatherTexel(gatherTexelPos, 1),
+                            history_gi4_gatherTexel(gatherTexelPos, 2),
+                            history_gi4_gatherTexel(gatherTexelPos, 3),
+                            combinedWeights
+                        );
+                        gi_historyData_unpack4(historyData, giData4);
+
+                        vec4 giData5 = bileratralSum(
+                            history_gi5_gatherTexel(gatherTexelPos, 0),
+                            history_gi5_gatherTexel(gatherTexelPos, 1),
+                            history_gi5_gatherTexel(gatherTexelPos, 2),
+                            history_gi5_gatherTexel(gatherTexelPos, 3),
+                            combinedWeights
+                        );
+                        gi_historyData_unpack5(historyData, giData5);
+                        historyData.historyLength *= sqrt(weightSum);
+                    }
                 } else {
                     CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(curr2PrevTexelPos, 0.5, uval_mainImageSizeRcp);
                     vec4 giData1 = sampling_catmullBicubic5Tap_sum(
