@@ -160,6 +160,10 @@ vec4 pow8(vec4 x) {
     return x4 * x4;
 }
 
+float safeDiv(float a, float b) {
+    return b <= 0.0 ? 0.0 : a / b;
+}
+
 float lengthSq(float x) { return x * x; }
 float lengthSq(vec2 x) { return dot(x, x); }
 float lengthSq(vec3 x) { return dot(x, x); }

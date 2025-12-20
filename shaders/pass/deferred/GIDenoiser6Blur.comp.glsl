@@ -15,11 +15,8 @@ void main() {
         GIHistoryData historyData = gi_historyData_init();
         gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
-        float kernelRadius = 32.0;
-        float accumReduction = 1.0 / (1.0 + historyData.realHistoryLength * HISTORY_LENGTH);
-        accumReduction = sqrt(accumReduction);
-        kernelRadius *= accumReduction;
+        const vec2 baseKernelRadius = vec2(32.0, 2.0);
         vec2 noise2 = rand_stbnVec2(texelPos, frameCounter);
-        gi_blur(texelPos, kernelRadius, noise2);
+        gi_blur(texelPos, baseKernelRadius, historyData.realHistoryLength * REAL_HISTORY_LENGTH, noise2);
     }
 }

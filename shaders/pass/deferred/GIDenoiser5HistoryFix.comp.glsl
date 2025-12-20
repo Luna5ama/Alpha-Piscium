@@ -62,8 +62,10 @@ void main() {
         specMoment1 /= 25.0;
         specMoment2 /= 25.0;
 
+        #if ENABLE_DENOISER
         historyData.diffuseColor = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2);
         historyData.specularColor = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2);
+        #endif
 
         transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
         transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
