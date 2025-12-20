@@ -104,6 +104,7 @@ void main() {
             -global_shadowAABBMax.z - 512.0, -global_shadowAABBMin.z + 16.0
         );
         global_shadowProjInverse = inverse(global_shadowProj);
+        global_prevTaaJitter = global_taaJitter;
         global_taaJitter = jitter;
         mat4 taaMat = taaJitterMat(jitter);
         global_taaJitterMat = taaMat;

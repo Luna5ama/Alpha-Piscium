@@ -44,6 +44,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     mat4 global_shadowView;
     mat4 global_shadowViewInverse;
     vec3 global_prevCameraDelta;
+    vec2 global_prevTaaJitter;
     vec2 global_taaJitter;
     CameraData global_cameraData;
     vec2 global_mipmapSizes[16];

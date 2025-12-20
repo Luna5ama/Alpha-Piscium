@@ -23,13 +23,15 @@ vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
         float currViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
         GBufferData gData = gbufferData_init();
         gbufferData1_unpack_world(texelFetch(usam_gbufferData1, texelPos, 0), gData);
         gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
 
         GIHistoryData historyData = gi_historyData_init();
+
+        vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+        screenPos -= global_taaJitter * uval_mainImageSizeRcp;
 
         vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
         vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
@@ -39,6 +41,7 @@ void main() {
             if (bool(clipFlag)) {
             vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
             vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
+            curr2PrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
 
             if (all(equal(curr2PrevScreen, saturate(curr2PrevScreen)))) {
                 vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
@@ -88,7 +91,7 @@ void main() {
                 float planeDistance4 = gi_planeDistance(currViewPos, curr2PrevViewGeomNormal, prevViewPos4, geomViewNormal4);
 
                 float glazingAngleFactor = sqrt(saturate(dot(curr2PrevViewGeomNormal, normalize(currViewPos))));
-                float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor) * 0.5) * pow2(currViewZ);
+                float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor)) * pow2(currViewZ);
 
                 float geomViewNormalDot1 = dot(curr2PrevViewGeomNormal, geomViewNormal1);
                 float geomViewNormalDot2 = dot(curr2PrevViewGeomNormal, geomViewNormal2);
@@ -97,15 +100,18 @@ void main() {
 
                 vec4 geomViewNormalDots = vec4(geomViewNormalDot1, geomViewNormalDot2, geomViewNormalDot3, geomViewNormalDot4);
                 vec4 planeDistances = vec4(planeDistance1, planeDistance2, planeDistance3, planeDistance4);
+                float totalEdgeFactor = (currEdgeFactor + prevEdgeMask) * 0.5;
 
                 uint edgeFlag = 0u;
-                edgeFlag |= uint((currEdgeFactor + prevEdgeMask) < 1.99);
+                edgeFlag |= uint(totalEdgeFactor < 0.99);
                 edgeFlag |= uint(any(lessThan(geomViewNormalDots, vec4(0.5))));
                 edgeFlag |= uint(any(greaterThan(planeDistances, vec4(geomDepthThreshold))));
 
                 if (bool(edgeFlag)) {
                     vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
-                    vec4 geomDepthWegiths = exp2(-1.0 * pow2(planeDistances));
+                    float geomDepthBaseWeight = mix(-32.0, -1.0, totalEdgeFactor);
+                    vec4 geomDepthWegiths = exp2(geomDepthBaseWeight * pow2(planeDistances));
+                    geomDepthWegiths *= saturate(step(planeDistances, vec4(geomDepthThreshold)) + totalEdgeFactor);
                     vec4 combinedWeights = geomNormalWeights * geomDepthWegiths;
 
                     vec2 bilinearWeights2 = pixelPosFract;
@@ -118,7 +124,7 @@ void main() {
                     combinedWeights *= blinearWeights4;
                     float weightSum = combinedWeights.x + combinedWeights.y + combinedWeights.z + combinedWeights.w;
 
-                    if (weightSum > 0.001) {
+                    if (weightSum > 0.1) {
                         combinedWeights *= 1.0 / weightSum;
 
                         vec4 giData1 = bileratralSum(
@@ -165,7 +171,7 @@ void main() {
                             combinedWeights
                         );
                         gi_historyData_unpack5(historyData, giData5);
-                        historyData.historyLength *= sqrt(weightSum);
+                        historyData.historyLength *= pow(weightSum, 1.0 / 16.0);
                     }
                 } else {
                     CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(curr2PrevTexelPos, 0.5, uval_mainImageSizeRcp);
