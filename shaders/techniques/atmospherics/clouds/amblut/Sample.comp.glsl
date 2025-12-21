@@ -68,7 +68,7 @@ void main() {
                 float groundLightTerm1 = earthShadow * NDotL * RCP_PI;
                 vec3 groundLightTerm3 = tLightToGround * result.transmittance * groundAlbedo;
                 vec3 groundLighting = groundLightTerm1 * groundLightTerm3;
-                result.inScattering += groundLighting * (MOON_ILLUMINANCE);
+                result.inScattering += groundLighting * MOON_ILLUMINANCE;
             }
         }
     }

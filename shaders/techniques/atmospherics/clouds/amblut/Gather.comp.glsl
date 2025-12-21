@@ -43,8 +43,7 @@ void main() {
     vec3 inSctr = ssbo_ambLUTWorkingBuffer.inSctr[gl_LocalInvocationIndex];
 
     float cosLightTheta = dot(viewDir, rayDir);
-    vec3 phase = clouds_amblut_phase(cosLightTheta, layerIndex);
-    phase = mix(phase, vec3(phasefunc_Rayleigh(cosLightTheta)), SETTING_CLOUDS_AMB_UNI_PHASE_RATIO);
+    float phase =  phasefunc_CornetteShanks(cosLightTheta, -0.5);
 
     vec3 phasedInSctr = inSctr * phase * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
     vec3 subgroupSum1 = subgroupAdd(phasedInSctr);

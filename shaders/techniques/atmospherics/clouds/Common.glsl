@@ -144,10 +144,10 @@ void clouds_computeLighting(
     sampleLightIrradiance *= tLightToSample * exp(-lightOpticalDepth);
     vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
 
-    vec3 ambLightOpticalDepth = 0.5 * lightOpticalDepth;
+    vec3 ambLightOpticalDepth = lightOpticalDepth;
     ambLightOpticalDepth += -log(accumState.totalTransmittance);
     ambLightOpticalDepth += sampleOpticalDepth;
-    ambLightOpticalDepth /= 2.5;
+    ambLightOpticalDepth /= 3.0;
     // See [SCH17]
     vec3 ambientTransmittance = max(exp(-ambLightOpticalDepth), exp(-ambLightOpticalDepth * 0.25) * 0.7);
 
