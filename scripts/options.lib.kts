@@ -1,9 +1,6 @@
 import java.io.File
 import java.math.BigDecimal
-import java.util.Locale
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.plus
+import java.util.*
 
 class FloatProgression(val start: Double, val endInclusive: Double, val step: Double) : Iterable<Double> {
     override fun iterator(): Iterator<Double> = object : Iterator<Double> {
@@ -106,6 +103,13 @@ abstract class OptionFactory {
         return constToggle(name, value, range, block)
     }
 
+    fun text(name: String, key: String, value: String = "", comment: String = "", block: TextOptionBuilder.() -> Unit = {}): ScreenItem {
+        val screenItem = ScreenItem(name)
+        scope._addOption(TextOptionBuilder(name, key, value, comment).apply(block))
+        handleOption(screenItem)
+        return screenItem
+    }
+
     fun toggle(name: String, value: Boolean, block: OptionBuilder<Boolean>.() -> Unit = {}): ScreenItem {
         val screenItem = ScreenItem(name)
         scope._addOption(OptionBuilder(name, value, false, emptyList()).apply(block))
@@ -161,7 +165,7 @@ abstract class OptionFactory {
 }
 
 
-class OptionBuilder<T>(
+open class OptionBuilder<T>(
     val name: String,
     private val value: T,
     private val const: Boolean,
@@ -258,6 +262,23 @@ class OptionBuilder<T>(
     }
 }
 
+class TextOptionBuilder(name: String, key: String, value: String, comment: String) :
+    OptionBuilder<Int>(name, 0, false, 0..0) {
+    fun valueLang(locale: Locale, key: String, value: String = "", comment: String = "") {
+        lang(locale) {
+            name = key
+            0 value value
+            if (comment.isNotEmpty()) {
+                this.comment = comment
+            }
+        }
+    }
+
+    init {
+        valueLang(Locale.US, key, value, comment)
+    }
+}
+
 class Scope : OptionFactory() {
     var screenDepth = 0
 
@@ -307,8 +328,8 @@ class Scope : OptionFactory() {
         return output
     }
 
-    class ScreenBuilder(override val scope: Scope, val _name: String, private val columns: Int, val depth: Int) : OptionFactory() {
-
+    class ScreenBuilder(override val scope: Scope, val _name: String, private val columns: Int, val depth: Int) :
+        OptionFactory() {
         init {
             check(!_name.contains(' ')) { "Screen name cannot contain space" }
         }
@@ -349,6 +370,14 @@ class Scope : OptionFactory() {
             scope.screenDepth--
             val screenItem = ScreenItem("[$name]")
             items.add(screenItem)
+        }
+
+        fun row(block: () -> Unit) {
+            block()
+            val roundedUp = ((items.size + columns - 1) / columns) * columns
+            while (items.size < roundedUp) {
+                empty()
+            }
         }
 
         fun empty() {

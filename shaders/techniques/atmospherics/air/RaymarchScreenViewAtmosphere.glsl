@@ -18,7 +18,7 @@ vec2 _processShadowSampleUV(vec2 sampleShadowUV, ivec2 randCoord) {
     float rv = rand_stbnVec1(randCoord, 0);
     vec2 dir = rand_stbnUnitVec211(randCoord, 0);
     float sqrtJitterR = sqrt(rv);
-    float r = ldexp(sqrtJitterR, -12 + SETTING_LIGHT_SHAFT_SOFTNESS);
+    float r = ldexp(sqrtJitterR, -12 + SETTING_WATER_LIGHT_SHAFT_SOFTNESS);
     vec2 result = sampleShadowUV;
     result += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
     result = rtwsm_warpTexCoord(usam_rtwsm_imap, result);
