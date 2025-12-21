@@ -22,7 +22,7 @@ int clouds_amblut_currLayerIndex() {
 
 const float _CLOUDS_AMBLUT_HEIGHTS[] = float[](
     1.0, // Stratus
-    SETTING_CLOUDS_CU_HEIGHT, // Cumulus
+    SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS * 0.5, // Cumulus
     4.0, // Altocumulus
     SETTING_CLOUDS_CI_HEIGHT, // Cirrus/Cirrocumulus
     10.0, // Cirrostratus
