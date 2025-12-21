@@ -161,6 +161,10 @@ void processData1() {
 }
 
 void main() {
+    if ((1.0 - gl_FragCoord.z) > MC_HAND_DEPTH) {
+        discard;
+        return;
+    }
     #ifdef DISTANT_HORIZONS
     #ifndef GBUFFER_PASS_DH
     vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp;

@@ -19,7 +19,7 @@ void main() {
         gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
         gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
-        const vec3 baseKernelRadius = vec3(32.0, 0.25, 32.0);
+        const vec4 baseKernelRadius = vec4(64.0, 1.0, 0.25, 64.0);
 //        const vec3 baseKernelRadius = vec3(32.0, 32.0, 32.0);
         vec2 noise2 = rand_stbnVec2(texelPos, frameCounter);
         gi_blur(texelPos, baseKernelRadius, historyData, noise2);

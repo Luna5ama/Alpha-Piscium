@@ -138,7 +138,7 @@ void main() {
 
         float clampWeight = exp2(-speedSum);
         clampWeight *= extraReset;
-        vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgAABBClamped, clampWeight);
+        vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgAABBClamped, 1.0);
 
         #ifdef SETTING_SCREENSHOT_MODE
         prevColor = colors_YCoCgToSRGB(mix(prevColorYCoCgClamped, prevColorYCoCg, extraReset));

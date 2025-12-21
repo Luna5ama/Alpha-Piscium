@@ -66,8 +66,8 @@ void main() {
         float len = historyData.realHistoryLength * REAL_HISTORY_LENGTH;
         float decayFactor = linearStep(FAST_HISTORY_LENGTH * 2.0, 1.0, historyData.realHistoryLength * REAL_HISTORY_LENGTH);
         float clampingThreshold = mix(2.0, 16.0, pow2(decayFactor));
-        historyData.diffuseColor = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2, clampingThreshold);
-        historyData.specularColor = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2, clampingThreshold);
+//        historyData.diffuseColor = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2, clampingThreshold);
+//        historyData.specularColor = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2, clampingThreshold);
         #endif
 
         transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
@@ -76,8 +76,8 @@ void main() {
         transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(historyData));
         transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
 
-        vec4 diffInput = vec4(historyData.diffuseColor, 1.0);
-        vec4 specInput = vec4(historyData.specularColor, 1.0);
+        vec4 diffInput = vec4(historyData.diffuseColor, 0.0);
+        vec4 specInput = vec4(historyData.specularColor, 0.0);
         imageStore(uimg_temp3, texelPos, diffInput);
 
         transient_gi_blurDiff1_store(texelPos, diffInput);

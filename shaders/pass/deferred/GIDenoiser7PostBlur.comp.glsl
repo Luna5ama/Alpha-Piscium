@@ -20,7 +20,7 @@ void main() {
         gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
         // TODO: post blur radius
-        const vec3 baseKernelRadius = vec3(4.0, 0.125, 32.0);
+        const vec4 baseKernelRadius = vec4(8.0, 16.0, 0.125, 64.0);
 //        const vec3 baseKernelRadius = vec3(32.0, 32.0, 32.0);
         vec2 noise2 = rand_stbnVec2(texelPos + ivec2(5, 7), frameCounter);
         gi_blur(texelPos, baseKernelRadius, historyData, noise2);

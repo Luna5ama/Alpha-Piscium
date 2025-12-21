@@ -10,7 +10,7 @@
 #define SKIP_FRAMES 16
 #define MAX_FRAMES 4096
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
-#define MC_SPP 1
+#define MC_SPP 16
 #define SPATIAL_REUSE 1
 #define SPATIAL_REUSE_SAMPLES 6
 #define SPATIAL_REUSE_RADIUS 64
@@ -276,7 +276,7 @@ vec4 ssgiRef(ivec2 texelPos, uint finalIndex) {
         vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
         vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
-        SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.05);
+        SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.01);
         float samplePdf = sampleDirTangentAndPdf.w;
 
         if (sstResult.hit) {

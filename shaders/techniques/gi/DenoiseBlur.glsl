@@ -60,7 +60,7 @@ float planeDistanceWeight(vec3 posA, vec3 normalA, vec3 posB, vec3 normalB, floa
     return exp2(factor * pow2(planeDistance));
 }
 
-void gi_blur(ivec2 texelPos, vec3 baseKernelRadius, GIHistoryData historyData, vec2 blurJitter) {
+void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, vec2 blurJitter) {
     vec4 centerDiff = _gi_readDiff(texelPos);
     vec4 centerSpec = _gi_readSpec(texelPos);
 
@@ -71,8 +71,19 @@ void gi_blur(ivec2 texelPos, vec3 baseKernelRadius, GIHistoryData historyData, v
 
     float kernelRadius = baseKernelRadius.x;
     kernelRadius *= sqrt(accumFactor);
-    kernelRadius *= centerDiff.w;
-    kernelRadius = clamp(kernelRadius, baseKernelRadius.y, baseKernelRadius.z);
+
+    float varianceFactor = 0.0;
+
+    for (int dy = -1; dy <= 1; ++dy) {
+        for (int dx = -1; dx <= 1; ++dx) {
+            varianceFactor += _gi_readDiff(texelPos + ivec2(dx, dy)).w;
+        }
+    }
+
+    varianceFactor /= 9.0;
+
+    kernelRadius *= 1.0 + varianceFactor * baseKernelRadius.y;
+    kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
     float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
     float baseColorWeight = pow2(invAccumFactor) * -1.0;
@@ -102,7 +113,7 @@ void gi_blur(ivec2 texelPos, vec3 baseKernelRadius, GIHistoryData historyData, v
 
     #if ENABLE_DENOISER
     for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
-        dir *= GOLDEN_ANGLE;
+        dir *= MAT2_GOLDEN_ANGLE;
         float baseRadius = sqrt((float(i) + blurJitter.y) * rcpSamples);
         vec2 offset = dir * (baseRadius * kernelRadius);
         vec2 sampleTexelPosF = centerTexelPos + offset;
@@ -166,8 +177,8 @@ void gi_blur(ivec2 texelPos, vec3 baseKernelRadius, GIHistoryData historyData, v
     float stddev = sqrt(variance);
 
     #if GI_DENOISE_PASS == 1
-    diffResult.w = max(log2(1.0 + safeDiv(stddev, centerLuma)), 0.0);
-//    imageStore(uimg_temp3, texelPos, vec4(diffResult.w));
+    diffResult.w = pow(safeDiv(variance, centerLuma) * 256.0, 1.0 / 8.0);
+    imageStore(uimg_temp3, texelPos, vec4(diffResult.w));
     transient_gi_blurDiff2_store(texelPos, diffResult);
     transient_gi_blurSpec2_store(texelPos, specResult);
     #elif GI_DENOISE_PASS == 2
