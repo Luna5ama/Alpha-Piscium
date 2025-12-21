@@ -134,7 +134,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
 
         {
             ScatteringResult layerResult = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyViewLutParams, 2.0);
-            bool above = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
+            bool above = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS * 0.5;
             compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, above);
         }
 

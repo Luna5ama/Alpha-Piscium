@@ -1,21 +1,21 @@
 @file:Import("options.lib.kts")
 
 import java.io.File
-import java.util.Locale
+import java.util.*
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
 import kotlin.math.pow
 
 options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
     mainScreen(2) {
-        screen("TERRAIN", 2) {
+        screen(2) {
             lang {
                 name = "Terrain"
             }
             lang(Locale.SIMPLIFIED_CHINESE) {
                 name = "地形"
             }
-            screen("BLOCKLIGHT", 1) {
+            screen(1) {
                 lang {
                     name = "Block Lighting"
                 }
@@ -23,27 +23,27 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "方块光照"
                 }
                 slider("SETTING_FIRE_TEMPERATURE", 1400, 100..5000 step 100) {
-                lang {
-                    name = "Fire Temperature"
-                    comment =
-                        "Controls the color temperature of fire in Kelvin. Default: 1400 K (based on real fire). Higher values produce whiter/bluer light."
+                    lang {
+                        name = "Fire Temperature"
+                        comment =
+                            "Controls the color temperature of fire in Kelvin. Default: 1400 K (based on real fire). Higher values produce whiter/bluer light."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "火焰温度"
+                        comment = "控制火焰的色温（开尔文）。默认值：1400 K（基于真实火焰）。数值越高，光线越白/越蓝。"
+                    }
                 }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "火焰温度"
-                    comment = "控制火焰的色温（开尔文）。默认值：1400 K（基于真实火焰）。数值越高，光线越白/越蓝。"
-                }
-            }
                 slider("SETTING_LAVA_TEMPERATURE", 1300, 100..5000 step 100) {
-                lang {
-                    name = "Lava Temperature"
-                    comment =
-                        "Controls the color temperature of lava in Kelvin. Default: 1300 K (based on real lava). Higher values produce whiter/bluer light."
+                    lang {
+                        name = "Lava Temperature"
+                        comment =
+                            "Controls the color temperature of lava in Kelvin. Default: 1300 K (based on real lava). Higher values produce whiter/bluer light."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "岩浆温度"
+                        comment = "控制岩浆的色温（开尔文）。默认值：1300 K（基于真实岩浆）。数值越高，光线越白/越蓝。"
+                    }
                 }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "岩浆温度"
-                    comment = "控制岩浆的色温（开尔文）。默认值：1300 K（基于真实岩浆）。数值越高，光线越白/越蓝。"
-                }
-            }
                 slider("SETTING_EMISSIVE_STRENGTH", 4.0, 0.0..8.0 step 0.25) {
                     lang {
                         name = "Emissive Brightness"
@@ -133,7 +133,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("NORMAL_MAPPING", 1) {
+            screen(1) {
                 lang {
                     name = "Normal Mapping"
                 }
@@ -165,7 +165,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("SPECULAR_MAPPING", 1) {
+            screen(1) {
                 lang {
                     name = "Specular Mapping"
                 }
@@ -262,7 +262,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "半透明方块最大粗糙度"
                         prefix = "2^-"
-                        comment = "半透明方块（如玻璃）可呈现的最粗糙程度。数值越高，允许更磨砂的玻璃效果。实际值计算为 2^-x。"
+                        comment =
+                            "半透明方块（如玻璃）可呈现的最粗糙程度。数值越高，允许更磨砂的玻璃效果。实际值计算为 2^-x。"
                     }
                 }
                 empty()
@@ -278,7 +279,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("SSS", 1) {
+            screen(1) {
                 lang {
                     name = "Subsurface Scattering"
                 }
@@ -354,7 +355,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             }
             empty()
             empty()
-            screen("SHADOW", 2) {
+            screen(2) {
                 lang {
                     name = "Shadows"
                 }
@@ -395,7 +396,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 empty()
                 empty()
-                screen("RTWSM", 1) {
+                screen(1) {
                     lang {
                         name = "RTWSM"
                         comment =
@@ -535,7 +536,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
-                screen("PCSS", 1) {
+                screen(1) {
                     lang {
                         name = "Soft Shadows"
                         comment = "Realistic soft shadow edges based on distance from the shadow caster using PCSS"
@@ -587,7 +588,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("VBGI", 1) {
+            screen(1) {
                 lang {
                     name = "VBGI"
                     comment = "Advanced screen space technique that creates realistic indirect lighting"
@@ -765,7 +766,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("DENOISER", 1) {
+            screen(1) {
                 lang {
                     name = "Denoiser"
                 }
@@ -940,7 +941,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("VOLUMETRICS", 2) {
+        screen(2) {
             lang {
                 name = "Volumetrics"
             }
@@ -974,46 +975,46 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "值为 1 表示 1 个方块=1 千米，值为 10 表示 10 个方块=1 千米，依此类推。"
                     }
                 }
-                screen("MORE_GLOBAL_VOLUMETRICS", 1) {
+                screen(1) {
                     lang {
                         name = "More Global Settings"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "更多全局设置"
                     }
-                        slider("SETTING_ATM_GROUND_ALBEDO_R", 45, 0..255) {
-                            lang {
-                                name = "Ground Color - Red"
-                                comment =
-                                    "Red component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
-                            }
-                            lang(Locale.SIMPLIFIED_CHINESE) {
-                                name = "地面颜色 - 红"
-                                comment = "从地面反射到大气中的光线的红色分量。影响地平线和整体颜色。"
-                            }
+                    slider("SETTING_ATM_GROUND_ALBEDO_R", 45, 0..255) {
+                        lang {
+                            name = "Ground Color - Red"
+                            comment =
+                                "Red component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
                         }
-                        slider("SETTING_ATM_GROUND_ALBEDO_G", 89, 0..255) {
-                            lang {
-                                name = "Ground Color - Green"
-                                comment =
-                                    "Green component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
-                            }
-                            lang(Locale.SIMPLIFIED_CHINESE) {
-                                name = "地面颜色 - 绿"
-                                comment = "从地面反射到大气中的光线的绿色分量。影响地平线和整体颜色。"
-                            }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "地面颜色 - 红"
+                            comment = "从地面反射到大气中的光线的红色分量。影响地平线和整体颜色。"
                         }
-                        slider("SETTING_ATM_GROUND_ALBEDO_B", 82, 0..255) {
-                            lang {
-                                name = "Ground Color - Blue"
-                                comment =
-                                    "Blue component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
-                            }
-                            lang(Locale.SIMPLIFIED_CHINESE) {
-                                name = "地面颜色 - 蓝"
-                                comment = "从地面反射到大气中的光线的蓝色分量。影响地平线和整体颜色。"
-                            }
+                    }
+                    slider("SETTING_ATM_GROUND_ALBEDO_G", 89, 0..255) {
+                        lang {
+                            name = "Ground Color - Green"
+                            comment =
+                                "Green component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
                         }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "地面颜色 - 绿"
+                            comment = "从地面反射到大气中的光线的绿色分量。影响地平线和整体颜色。"
+                        }
+                    }
+                    slider("SETTING_ATM_GROUND_ALBEDO_B", 82, 0..255) {
+                        lang {
+                            name = "Ground Color - Blue"
+                            comment =
+                                "Blue component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "地面颜色 - 蓝"
+                            comment = "从地面反射到大气中的光线的蓝色分量。影响地平线和整体颜色。"
+                        }
+                    }
                 }
             }
             row {
@@ -1050,7 +1051,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             row {
-                screen("MIE_COEFF", 1) {
+                screen(1) {
                     lang {
                         name = "Mie Coefficients"
                         comment = "Controls propeties of Haze & Fog"
@@ -1205,7 +1206,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
-                screen("RAY_COEFF", 1) {
+                screen(1) {
                     lang {
                         name = "Rayleigh Coefficients"
                     }
@@ -1235,7 +1236,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
-                screen("AIR", 1) {
+                screen(1) {
                     lang {
                         name = "More Air Settings"
                     }
@@ -1317,7 +1318,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             row {
-                screen("WATER_SURFACE", 1) {
+                screen(1) {
                     lang {
                         name = "Water Surface"
                     }
@@ -1404,7 +1405,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
-                screen("WATER_VOLUME", 1) {
+                screen(1) {
                     lang {
                         name = "Water Volume"
                     }
@@ -1580,7 +1581,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             row {
-                screen("CLOUDS_LIGHTING", 1) {
+                screen(1) {
                     lang {
                         name = "Cloud Lighting"
                     }
@@ -1606,32 +1607,27 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
             row {
+                text("LOW_CLOUDS", "Low Clouds") {
+                    valueLang(Locale.SIMPLIFIED_CHINESE, "低云")
+                }
+            }
+            row {
                 toggle("SETTING_CLOUDS_CU", true) {
                     lang {
-                        name = "Low Clouds"
+                        name = "Enable Low Clouds"
                         comment = "Toggles puffy, volumetric clouds at lower altitudes."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用积云"
+                        name = "启用低云"
                         comment = "开关低空的蓬松体积云。"
                     }
                 }
-                screen("LOW_CLOUDS_RENDERING", 1) {
+                screen(1) {
                     lang {
-                        name = "Low Clouds Rendering"
+                        name = "Rendering Settings"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "低云渲染"
-                    }
-                    toggle("SETTING_CLOUDS_CU", true) {
-                        lang {
-                            name = "Cumulus Clouds"
-                            comment = "Toggles puffy, volumetric clouds at lower altitudes."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "启用积云"
-                            comment = "开关低空的蓬松体积云。"
-                        }
+                        name = "渲染设置"
                     }
                     toggle("SETTING_CLOUDS_LOW_UPSCALE_FACTOR", 2, 0..6) {
                         lang {
@@ -1669,7 +1665,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             comment = "混合以获得平滑云的帧数。数值越高，云越平滑，但在快速移动时可能导致重影。"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_CONFIDENCE_CURVE", 2.0, 1.0..8.0 step 0.5) {
+                    slider("SETTING_CLOUDS_LOW_CONFIDENCE_CURVE", 4.0, 1.0..8.0 step 0.5) {
                         lang {
                             name = "Confidence Curve"
                             comment =
@@ -1716,14 +1712,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
-                screen("LOW_CLOUDS_MODELING", 1) {
+                screen(1) {
                     lang {
-                        name = "Low Clouds Modeling"
+                        name = "Modeling Settings"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "低云建模"
+                        name = "建模设置"
                     }
-                    slider("SETTING_CLOUDS_CU_HEIGHT", 2.0, 0.0..8.0 step 0.1) {
+                    slider("SETTING_CLOUDS_CU_HEIGHT", 1.0, 0.0..8.0 step 0.1) {
                         lang {
                             name = "Cloud Altitude"
                             suffix = " km"
@@ -1803,25 +1799,138 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
+                screen(1) {
+                    lang {
+                        name = "Modeling Advanced Settings"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "建模高级设置"
+                    }
+                    slider("SETTING_CLOUDS_LOW_CONE_FACTOR", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Cone Factor"
+                            comment =
+                                "Controls the how pointed the cloud structures are. Higher values create sharper clouds."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "锥体因子"
+                            comment = "控制云顶尖锐程度。数值越高，云越尖锐。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_TOP_CURVE_FACTOR", 48, powerOfTwoRangeAndHalf(4..10)) {
+                        lang {
+                            name = "Top Curve Factor"
+                            comment =
+                                "Controls the shape curve of cloud tops. Higher values creates more angular top."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "云顶曲线因子"
+                            comment = "控制云顶的形状曲线。数值越高，云顶越有棱角。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_BOTTOM_CURVE_FACTOR", 128, powerOfTwoRangeAndHalf(4..10)) {
+                        lang {
+                            name = "Bottom Curve Factor"
+                            comment =
+                                "Controls the shape curve of cloud bottoms. Higher values creates more angular bottoms."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "云底曲线因子"
+                            comment = "控制云底的形状曲线。数值越高，云底越有棱角。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_CLOUDS_LOW_BASE_FREQ", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Base Noise Frequency"
+                            comment = "Controls the scale of base cloud size. Higher values create smaller clouds."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "基础噪声频率"
+                            comment = "控制云的基础大小比例。数值越高，云越小。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_CURL_FREQ", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Curl Noise Frequency"
+                            comment =
+                                "Controls the scale of turbulent curl patterns in clouds. Higher values create finer curls."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "卷曲噪声频率"
+                            comment = "控制云中湍流卷曲图案的比例。数值越高，卷曲越细。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_BILLOWY_FREQ", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Billowy Noise Frequency"
+                            comment =
+                                "Control the scale of billowy formations in clouds. Higher values create smaller billows."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "蓬松噪声频率"
+                            comment = "控制云中蓬松结构的比例。数值越高，蓬松结构越小。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_BILLOWY_CURL_STR", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Billowy Curl Strength"
+                            comment =
+                                "Modulates billowy formations with curl noise. Higher values create more turbulent billows."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "蓬松卷曲强度"
+                            comment = "用卷曲噪声调制蓬松结构。数值越高，蓬松结构越多湍流。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_WISPS_FREQ", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Wisps Noise Frequency"
+                            comment =
+                                "Controls the scale of wispy details in clouds. Higher values create more and finer wisps."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "丝缕噪声频率"
+                            comment = "控制云中丝缕细节的比例。数值越高，丝缕越细越密集。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_WISPS_CURL_STR", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Wisps Curl Strength"
+                            comment =
+                                "Modulates wispy details with curl noise. Higher values create more dynamic wisps."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "丝缕卷曲强度"
+                            comment = "用卷曲噪声调制丝缕细节。数值越高，丝缕越动态。"
+                        }
+                    }
+                }
+            }
+
+            row {
+                text("HIGH_CLOUDS", "High Clouds") {
+                    valueLang(Locale.SIMPLIFIED_CHINESE, "高云")
+                }
             }
             row {
                 toggle("SETTING_CLOUDS_CI", true) {
                     lang {
-                        name = "High Clouds"
+                        name = "Enable High Clouds"
                         comment =
                             "Toggles wispy, high-altitude ice crystal clouds that add atmosphere to the sky."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用卷云"
+                        name = "启用高云"
                         comment = "开关丝缕状的高空冰晶云，为天空增添大气感。"
                     }
                 }
-                screen("HIGH_CLOUDS", 1) {
+                screen(1) {
                     lang {
-                        name = "High Clouds"
+                        name = "Settings"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高云"
+                        name = "设置"
                     }
                     slider("SETTING_CLOUDS_CI_HEIGHT", 9.0, 6.0..14.0 step 0.1) {
                         lang {
@@ -1871,19 +1980,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("OUTER_SPACE", 2) {
+        screen(2) {
             lang {
                 name = "Outer Space"
             }
             lang(Locale.SIMPLIFIED_CHINESE) {
                 name = "外太空"
             }
-            screen("SUN_MOON", 1) {
+            screen(1) {
                 lang {
                     name = "Sun & Moon"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "太阳与月亮"
+                    name = "太阳和月亮"
                 }
                 slider("SETTING_SUN_RADIUS", 1.0, (-7..10).map { 2.0.pow(it) }) {
                     lang {
@@ -1944,7 +2053,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "太阳温度"
-                        comment = "阳光的色温（开尔文）。数值越低 = 越暖/越红（日落），数值越高 = 越冷/越蓝（正午）。默认：5700 K。"
+                        comment =
+                            "阳光的色温（开尔文）。数值越低 = 越暖/越红（日落），数值越高 = 越冷/越蓝（正午）。默认：5700 K。"
                         suffix = " K"
                     }
                 }
@@ -2019,7 +2129,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("STARS", 1) {
+            screen(1) {
                 lang {
                     name = "Stars"
                 }
@@ -2061,14 +2171,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("POSTFX", 2) {
+        screen(2) {
             lang {
                 name = "Post Processing"
             }
             lang(Locale.SIMPLIFIED_CHINESE) {
                 name = "后处理"
             }
-            screen("DOF", 1) {
+            screen(1) {
                 lang {
                     name = "Depth of Field"
                 }
@@ -2214,7 +2324,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("BLOOM", 1) {
+            screen(1) {
                 lang {
                     name = "Bloom"
                 }
@@ -2278,7 +2388,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("PURKINJE_EFFECT", 1) {
+            screen(1) {
                 lang {
                     name = "Purkinje Effect (Night Vision)"
                 }
@@ -2360,7 +2470,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("EXPOSURE", 1) {
+            screen(1) {
                 lang {
                     name = "Exposure"
                 }
@@ -2576,7 +2686,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("TONE_MAPPING", 1) {
+            screen(1) {
                 lang {
                     name = "Tone Mapping & Color Grading"
                 }
@@ -2729,7 +2839,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("AA", 1) {
+            screen(1) {
                 lang {
                     name = "Anti-Aliasing"
                 }
@@ -2771,7 +2881,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("COLOR_MANAGEMENT", 1) {
+        screen(1) {
             lang {
                 name = "Color Management"
                 comment = "Advanced color space settings. Only change if you know what you're doing!"
@@ -2945,7 +3055,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("MISC", 2) {
+        screen(2) {
             lang {
                 name = "Miscellaneous"
             }
@@ -2998,7 +3108,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
         }
         empty()
         empty()
-        screen("SPONSORS", 4) {
+        screen(4) {
             lang {
                 name = "Sponsors"
             }
@@ -3034,7 +3144,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("DEBUG", 3) {
+        screen(3) {
             lang {
                 name = "Debug"
             }
