@@ -1,6 +1,7 @@
 #version 460 compatibility
 
 #include "/techniques/SSGI.glsl"
+#include "/techniques/gi/Common.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
@@ -17,16 +18,18 @@ void main() {
     sst_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec3 result = vec3(0.0);
+        vec4 result = vec4(0.0);
 
         const uint SPP = MC_SPP;
         uint baseRand = RANDOM_FRAME * SPP;
         for (uint i = 0u; i < SPP; ++i) {
-            result += ssgiRef(texelPos, baseRand + i);
+            vec4 tempResult = ssgiRef(texelPos, baseRand + i);
+            tempResult.a = min(tempResult.a, MAX_HIT_DISTANCE);
+            result += tempResult;
         }
         result /= float(SPP);
 
 //        imageStore(uimg_temp1, texelPos, vec4(result, 1.0));
-        transient_ssgiOut_store(texelPos, vec4(result, 1.0));
+        transient_ssgiOut_store(texelPos, result);
     }
 }

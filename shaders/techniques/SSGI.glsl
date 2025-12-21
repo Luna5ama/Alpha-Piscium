@@ -250,9 +250,9 @@ vec3 ssgiEvalF(vec3 viewPos, GBufferData gData, vec3 sampleDirView, out float hi
     return result;
 }*/
 
-vec3 ssgiRef(ivec2 texelPos, uint finalIndex) {
+vec4 ssgiRef(ivec2 texelPos, uint finalIndex) {
 //    uint finalIndex = RANDOM_FRAME;
-    vec3 result = vec3(0.0);
+    vec4 result = vec4(0.0, 0.0, 0.0, FLT_MAX);
     GBufferData gData = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
     gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
@@ -276,12 +276,16 @@ vec3 ssgiRef(ivec2 texelPos, uint finalIndex) {
         vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
         vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
-        SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.01);
+        SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.05);
         float samplePdf = sampleDirTangentAndPdf.w;
 
         if (sstResult.hit) {
             //        vec3 hitRadiance = texelFetch(usam_temp2, ivec2(sstResult.hitScreenPos.xy * uval_mainImageSize), 0).rgb;
-            ivec2 hitTexelPos = ivec2(sstResult.hitScreenPos.xy * uval_mainImageSize);
+            vec2 hitTexelPosF = floor(sstResult.hitScreenPos.xy * uval_mainImageSize);
+            ivec2 hitTexelPos = ivec2(hitTexelPosF);
+            vec2 hitTexelCenter = hitTexelPosF + 0.5;
+            vec2 roundedHitScreenPos = hitTexelCenter * uval_mainImageSizeRcp;
+
             vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
             GBufferData hitGData = gbufferData_init();
             gbufferData1_unpack_world(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
@@ -292,7 +296,11 @@ vec3 ssgiRef(ivec2 texelPos, uint finalIndex) {
 
             float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
             vec3 f = brdf * hitRadiance;
-            result = f / samplePdf;
+            result.rgb = f / samplePdf;
+
+            float hitViewZ = coords_reversedZToViewZ(sstResult.hitScreenPos.z, near);
+            vec3 hitViewPos = coords_toViewCoord(roundedHitScreenPos, hitViewZ, global_camProjInverse);
+            result.w = length(hitViewPos - viewPos);
         }
     }
 

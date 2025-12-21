@@ -60,23 +60,26 @@ float planeDistanceWeight(vec3 posA, vec3 normalA, vec3 posB, vec3 normalB, floa
     return exp2(factor * pow2(planeDistance));
 }
 
-void gi_blur(ivec2 texelPos, vec3 baseKernelRadius, float historyLength, vec2 blurJitter) {
+void gi_blur(ivec2 texelPos, vec3 baseKernelRadius, GIHistoryData historyData, vec2 blurJitter) {
     vec4 centerDiff = _gi_readDiff(texelPos);
     vec4 centerSpec = _gi_readSpec(texelPos);
 
+    float historyLength = historyData.historyLength * REAL_HISTORY_LENGTH;
+    float accumFactor = (1.0 / (1.0 + historyLength));
 
-    float accumFactor = sqrt(1.0 / (1.0 + historyLength));
+    float hitDistFactor = smoothstep(0.5, 64.0, historyData.diffuseHitDistance);
 
     float kernelRadius = baseKernelRadius.x;
-    kernelRadius *= accumFactor;
+    kernelRadius *= sqrt(accumFactor);
     kernelRadius *= centerDiff.w;
     kernelRadius = clamp(kernelRadius, baseKernelRadius.y, baseKernelRadius.z);
 
-    float invAccumFactor = saturate(1.0 - accumFactor);
-    float baseColorWeight = pow2(invAccumFactor) * -0.1;
+    float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
+    float baseColorWeight = pow2(invAccumFactor) * -1.0;
     float baseGeomNormalWeight = invAccumFactor * 8.0;
     float baseNormalWeight = invAccumFactor * 4.0;
-    float basePlaneDistWeight = invAccumFactor * -1024.0;
+    float basePlaneDistWeight = invAccumFactor * -512.0;
+    kernelRadius *= pow(hitDistFactor, invAccumFactor * 2.0);
 
     vec4 diffResult = centerDiff;
     vec4 specResult = centerSpec;
@@ -125,15 +128,19 @@ void gi_blur(ivec2 texelPos, vec3 baseKernelRadius, float historyLength, vec2 bl
             basePlaneDistWeight
         );
         edgeWeight *= normalWeight(centerGeomData.normal, geomData.normal, baseNormalWeight);
-        edgeWeight *= sqrt(lastEdgeWeight);
-        lastEdgeWeight = edgeWeight;
-        edgeWeight = smoothstep(0.0, 1.0, edgeWeight);
+
 
         vec3 colorDiff = abs(centerDiff.rgb - diffSample.rgb);
         float lumaDiff = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colorDiff);
         float colorWeight = exp2(baseColorWeight * lumaDiff);
 
-        float totalWeight = kernelWeight * edgeWeight * colorWeight;
+        edgeWeight *= colorWeight;
+        edgeWeight *= sqrt(lastEdgeWeight);
+        lastEdgeWeight = edgeWeight;
+        edgeWeight = smoothstep(0.0, 1.0, edgeWeight);
+
+
+        float totalWeight = kernelWeight * edgeWeight;
 
         float sampleLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, diffSample.rgb);
         moment1 += sampleLuma * edgeWeight;
@@ -160,7 +167,7 @@ void gi_blur(ivec2 texelPos, vec3 baseKernelRadius, float historyLength, vec2 bl
 
     #if GI_DENOISE_PASS == 1
     diffResult.w = max(log2(1.0 + safeDiv(stddev, centerLuma)), 0.0);
-    imageStore(uimg_temp3, texelPos, vec4(diffResult.w));
+//    imageStore(uimg_temp3, texelPos, vec4(diffResult.w));
     transient_gi_blurDiff2_store(texelPos, diffResult);
     transient_gi_blurSpec2_store(texelPos, specResult);
     #elif GI_DENOISE_PASS == 2

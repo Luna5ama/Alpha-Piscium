@@ -98,6 +98,8 @@ GIHistoryData gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             edgeFlag |= uint(any(lessThan(geomViewNormalDots, vec4(0.5))));
             edgeFlag |= uint(any(greaterThan(planeDistances, vec4(planeDistanceThreshold))));
 
+            float historyResetFactor = 1.0;
+
             if (bool(edgeFlag)) {
                 vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
                 float geomDepthBaseWeight = mix(16.0, 2.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
@@ -163,7 +165,7 @@ GIHistoryData gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
                         finalWeights
                     );
                     gi_historyData_unpack5(historyData, giData5);
-                    historyData.historyLength *= sqrt(weightSum);
+                    historyResetFactor *= sqrt(weightSum);
                 }
             } else {
                 CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(curr2PrevTexelPos, 0.5, uval_mainImageSizeRcp);
@@ -211,7 +213,10 @@ GIHistoryData gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             }
 
             float antiStretching = pow6(1.0 - saturate(historyData.glazingAngleFactor - glazingAngleFactorHistory));
-            historyData.historyLength *= antiStretching;
+            historyResetFactor *= antiStretching;
+
+            historyData.historyLength *= historyResetFactor;
+            historyData.realHistoryLength *= sqrt(historyResetFactor);
         }
     }
 

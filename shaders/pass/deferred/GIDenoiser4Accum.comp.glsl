@@ -40,6 +40,7 @@ void main() {
         float fastAlpha = 1.0 / min(historyLength, FAST_HISTORY_LENGTH);
         historyData.diffuseFastColor = mix(historyData.diffuseFastColor, newDiffuse.rgb, fastAlpha);
         historyData.specularFastColor = mix(historyData.specularFastColor, vec3(0.0), fastAlpha);
+        historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newDiffuse.a, fastAlpha);
 
         transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
         transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
