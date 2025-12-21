@@ -70,9 +70,9 @@ float worleyNoise(vec2 x, uint seed) {
             vec2 cellCenter = hashValF.xy + vec2(idOffset);
 
             float cellDistance = distance(centerOffset, cellCenter);
-            float regularV = pow3(hashValF.z) * smoothstep(0.0, 1.0, 1.0 - cellDistance);
+            float regularV = pow2(hashValF.z) * smoothstep(0.0, 1.0, 1.0 - cellDistance);
             
-            const float w = 0.5;
+            const float w = 0.35;
             float h = hashValF.z * smoothstep(-1.0, 1.0, (m - cellDistance) / w);
             m = mix(m, cellDistance, h) - h * (1.0 - h) * w / (1.0 + 3.0 * w);
 
@@ -116,8 +116,6 @@ vec3 detailCurlNoise(vec3 pos) {
 }
 
 bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float densityOut) {
-    const float CUMULUS_FACTOR = SETTING_CLOUDS_CU_WEIGHT;
-
     vec2 baseCoveragePos = rayPos.xz;
 
     float baseCoverage = coverageNoise(baseCoveragePos);
@@ -186,7 +184,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
         densityOut *= smoothstep(minDetailDensity, minDetailDensity + edgeDesnityRange, densityOut);
 
         // Make cloud top more dense
-        densityOut *= 1.0 + heightFraction * 10.0;
+        densityOut *= 1.0 + heightFraction * 16.0;
         // Add some shapes to the bottom, using multipcation because subtraction only affect sides
         densityOut *= bottomDetail;
 

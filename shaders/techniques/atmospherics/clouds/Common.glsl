@@ -115,13 +115,6 @@ void clouds_raymarchStepState_update(inout CloudRaymarchStepState state, float s
     state.upVector = state.position.xyz / state.height;
 }
 
-const vec4 _CLOUDS_MS_FALLOFFS = vec4(
-    SETTING_CLOUDS_MS_FALLOFF_SCTTERING,
-    SETTING_CLOUDS_MS_FALLOFF_EXTINCTION,
-    SETTING_CLOUDS_MS_FALLOFF_PHASE,
-    SETTING_CLOUDS_MS_FALLOFF_AMB
-);
-
 void clouds_computeLighting(
     AtmosphereParameters atmosphere,
     CloudRenderParams renderParams,
@@ -160,7 +153,7 @@ void clouds_computeLighting(
     vec3 sampleInSctr = sampleLightIrradiance * layerParam.medium.phase;
     sampleInSctr += sampleAmbientIrradiance;
     sampleInSctr *= sampleScattering;
-    const float D = 0.72;
+    const float D = SETTING_CLOUDS_MS_RADIUS;
     vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
     fMS = mix(fMS, fMS * 0.999, smoothstep(0.99, 1.0, fMS));
     vec3 sampleInSctrMS = sampleLightIrradiance;

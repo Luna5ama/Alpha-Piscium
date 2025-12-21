@@ -129,7 +129,7 @@ void render(ivec2 texelPosDownScale) {
         cuFlag &= uint(cuOrigin2RayStart >= 0.0);
 
         if (bool(cuFlag)) {
-            #define CLOUDS_CU_DENSITY (256.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (192.0 * SETTING_CLOUDS_CU_DENSITY)
 
             const float CLOUDS_CU_MAX_RAY_LENGTH = 50.0;
             float cuRayLen = mainRayParams.rayDir.y < 0.0 ? cuRayLenBot : cuRayLenTop;

@@ -714,11 +714,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 slider("SETTING_VGBI_ENV_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
                     lang {
-                        name = "Environment Light Intensity"
+                        name = "Environment Probe Light Intensity"
                         comment = "Brightness of indirect light from the environment probe."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "环境探针强度"
+                        name = "环境探针光强度"
                         comment = "来自环境探针的间接光亮度。"
                     }
                 }
@@ -1302,56 +1302,20 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "云照明"
                 }
-                slider("SETTING_CLOUDS_MS_ORDER", 4, 1..10) {
+                slider("SETTING_CLOUDS_MS_RADIUS", 0.7, 0.0..1.0 step 0.05) {
                     lang {
-                        name = "Multi-Scattering Order"
+                        name = "Multi-Scattering Radius"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "多重散射阶数"
+                        name = "多重散射半径"
                     }
                 }
-                slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.55, 0.0..1.0 step 0.05) {
+                slider("SETTING_CLOUDS_AMB_BACKSCATTER_FACTOR", 0.5, 0.0..1.0 step 0.05) {
                     lang {
-                        name = "Multi-Scattering Scattering Falloff"
+                        name = "Ambient Backscatter Phase Factor"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "多重散射散射衰减"
-                    }
-                }
-                slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.6, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Multi-Scattering Extinction Falloff"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "多重散射消光衰减"
-                    }
-                }
-                slider("SETTING_CLOUDS_MS_FALLOFF_PHASE", 0.6, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Multi-Scattering Phase Falloff"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "多重散射相位衰减"
-                    }
-                }
-                slider("SETTING_CLOUDS_MS_FALLOFF_AMB", 0.1, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Multi-Scattering Ambient Irradiance Falloff"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "多重散射环境辐照度衰减"
-                    }
-                }
-                empty()
-                slider("SETTING_CLOUDS_AMB_UNI_PHASE_RATIO", 0.5, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Ambient Irradiance Uniform Phase Ratio"
-                        comment =
-                            "How evenly ambient light spreads in clouds. Higher values create more uniform, diffused ambient lighting."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "环境辐照度均匀相位比"
-                        comment = "环境光在云中扩散的均匀程度。数值越高，创造更均匀、更扩散的环境照明。"
+                        name = "环境后向散射相位因子"
                     }
                 }
             }
@@ -1372,7 +1336,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "开关低空的蓬松体积云。"
                     }
                 }
-                toggle("SETTING_CLOUDS_LOW_UPSCALE_FACTOR", 4, 0..6) {
+                toggle("SETTING_CLOUDS_LOW_UPSCALE_FACTOR", 2, 0..6) {
                     lang {
                         name = "Upscale Factor"
                         comment =
@@ -1397,7 +1361,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         6 value "4.0 倍"
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 32, powerOfTwoRangeAndHalf(2..7)) {
+                slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 48, powerOfTwoRangeAndHalf(2..7)) {
                     lang {
                         name = "Max Accumulation"
                         comment =
@@ -1408,7 +1372,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "混合以获得平滑云的帧数。数值越高，云越平滑，但在快速移动时可能导致重影。"
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_CONFIDENCE_CURVE", 4.0, 1.0..8.0 step 0.5) {
+                slider("SETTING_CLOUDS_LOW_CONFIDENCE_CURVE", 2.0, 1.0..8.0 step 0.5) {
                     lang {
                         name = "Confidence Curve"
                         comment =
@@ -1419,7 +1383,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "云随时间变锐利的速度。数值越高，变锐利越快，但初始时可能显示更多噪点。"
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.25, 0.0..1.0 step 0.05) {
+                slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.15, 0.0..1.0 step 0.05) {
                     lang {
                         name = "Variance Clipping"
                         comment =
@@ -1431,7 +1395,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_CLOUDS_LOW_STEP_MIN", 24, 16..128 step 8) {
+                slider("SETTING_CLOUDS_LOW_STEP_MIN", 48, 16..128 step 8) {
                     lang {
                         name = "Ray Marching Min Step"
                         comment =
@@ -1442,7 +1406,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "穿过云的最小采样数。此值通常用于正上方的云。数值越高，细节越好，但会降低性能。"
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_STEP_MAX", 72, 32..256 step 8) {
+                slider("SETTING_CLOUDS_LOW_STEP_MAX", 128, 32..256 step 8) {
                     lang {
                         name = "Ray Marching Max Step"
                         comment =
@@ -1454,14 +1418,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                slider("SETTING_CLOUDS_CU_WEIGHT", 0.75, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Cumulus Weight"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "积云权重"
-                    }
-                }
                 slider("SETTING_CLOUDS_CU_HEIGHT", 2.0, 0.0..8.0 step 0.1) {
                     lang {
                         name = "Cloud Altitude"
@@ -1500,7 +1456,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "云的厚度和不透明度。数值越高，云越浓密、看起来越坚实。"
                     }
                 }
-                slider("SETTING_CLOUDS_CU_COVERAGE", 0.3, 0.0..1.0 step 0.05) {
+                slider("SETTING_CLOUDS_CU_COVERAGE", 0.4, 0.0..1.0 step 0.05) {
                     lang {
                         name = "Coverage"
                         comment =
