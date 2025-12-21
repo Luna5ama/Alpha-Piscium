@@ -151,7 +151,7 @@ GBufferData processOutput() {
             float rayVectorLength = length(rayVector);
             vec3 rayDir = rayVector / rayVectorLength;
 
-            const float MAX_WAVE_HEIGHT = -rcp(0.8349056);
+            const float MAX_WAVE_HEIGHT = -rcp(0.83);
 
             vec2 prevXY = vec2(0.0, 1.0);
 
@@ -191,7 +191,7 @@ GBufferData processOutput() {
                     }
 
                     waveWorldPos = samplePos;
-                    zOffset = fi * PARALLAX_STRENGTH + 0.4 / rayDir.y;
+                    zOffset = fi * PARALLAX_STRENGTH * 0.5 + 0.4 / rayDir.y;
                     break;
                 }
 
