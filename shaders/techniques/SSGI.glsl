@@ -183,7 +183,7 @@ vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
         gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
 
         float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
-//        hitRadiance *= hitCosTheta;
+        hitRadiance *= hitCosTheta;
 
         result.xyz = hitRadiance;
     }

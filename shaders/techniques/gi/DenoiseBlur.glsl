@@ -69,7 +69,6 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
 
     float hitDistFactor = linearStep(0.0, 4.0, historyData.diffuseHitDistance);
-    hitDistFactor =1.0;
     #if GI_DENOISE_PASS == 1
     hitDistFactor = pow(hitDistFactor, invAccumFactor * 1.0);
     #else
@@ -97,9 +96,9 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     float hitDistColorWeightHistoryDecay = historyData.realHistoryLength * 0.5 + 0.001;
     float hitDistColorWeightFactor = saturate(hitDistColorWeightHistoryDecay / (hitDistColorWeightHistoryDecay + historyData.diffuseHitDistance));
     #if GI_DENOISE_PASS == 1
-    float baseColorWeight = -mix(16.0, 1024.0, hitDistColorWeightFactor);
+    float baseColorWeight = -mix(16.0, 512.0, hitDistColorWeightFactor);
     #else GI_DENOISE_PASS == 2
-    float baseColorWeight = -mix(4.0, 256.0, hitDistColorWeightFactor);
+    float baseColorWeight = -mix(4.0, 128.0, hitDistColorWeightFactor);
     #endif
 
     baseColorWeight *= pow2(invAccumFactor);
@@ -120,7 +119,7 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     vec2 centerTexelPos = vec2(texelPos) + vec2(0.5);
     float weightSum = 1.0;
     float edgeWeightSum = 0.0;
-    float lastEdgeWeight = 1.0;
+//    float lastEdgeWeight = 1.0;
 
     float centerLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerDiff.rgb);
     float moment1 = centerLuma;
@@ -140,7 +139,6 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
         float kernelWeight = gaussianKernel(baseRadius, sigma);
         if (saturate(sampleUV) != sampleUV) {
             sampleUV = _gi_mirrorUV(sampleUV);
-            kernelWeight = 1.0;
         }
         ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
 
@@ -159,14 +157,13 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
         );
         edgeWeight *= normalWeight(centerGeomData.normal, geomData.normal, baseNormalWeight);
 
+//        edgeWeight *= sqrt(lastEdgeWeight);
+//        lastEdgeWeight = edgeWeight;
 
         vec3 colorDiff = abs(centerDiff.rgb - diffSample.rgb);
         float lumaDiff = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colorDiff);
         float colorWeight = exp2(baseColorWeight * lumaDiff);
-
         edgeWeight *= colorWeight;
-        edgeWeight *= sqrt(lastEdgeWeight);
-        lastEdgeWeight = edgeWeight;
         edgeWeight = smoothstep(0.0, 1.0, edgeWeight);
 
 
@@ -188,7 +185,6 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     specResult *= rcpWeightSum;
 
     float rcpEdgeWeightSum = 1.0 / (edgeWeightSum + 1.0);
-
     moment1 *= rcpEdgeWeightSum;
     moment2 *= rcpEdgeWeightSum;
 
@@ -196,7 +192,7 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     float stddev = sqrt(variance);
 
     #if GI_DENOISE_PASS == 1
-    diffResult.w = pow(safeDiv(variance, centerLuma) * 64.0, 1.0 / 2.0);
+    diffResult.w = pow(safeDiv(variance, centerLuma) * 8.0, 1.0 / 2.0);
     transient_gi_blurDiff2_store(texelPos, diffResult);
     transient_gi_blurSpec2_store(texelPos, specResult);
     #elif GI_DENOISE_PASS == 2

@@ -4,6 +4,7 @@
 #include "/util/Dither.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Sampling.glsl"
+#include "/techniques/gi/Common.glsl"
 
 
 in vec2 frag_texCoord;
