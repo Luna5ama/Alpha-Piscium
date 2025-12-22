@@ -1,6 +1,6 @@
 /*
 const int colortex0Format = RGBA16F; // Main 1
-const int colortex1Format = RGBA32F; // Temp1
+const int colortex1Format = RGBA16F; // Temp1
 const int colortex2Format = RGBA16F; // Temp2
 const int colortex3Format = RGBA16F; // Temp3
 const int colortex4Format = RGBA16F; // Temp4
@@ -75,7 +75,7 @@ const int shadowcolor6Format = RGB10_A2; // Water normal
 
 const bool colortex0Clear = false;
 
-const bool colortex1Clear = false;
+const bool colortex1Clear = true;
 const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const bool colortex2Clear = true;
 const vec4 colortex2ClearColor = vec4(0.0, 0.0, 0.0, 0.0);

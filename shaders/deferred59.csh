@@ -20,7 +20,6 @@ void main() {
 }
 #else
 void main() {
-    return;
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     sst_init();
 
@@ -42,7 +41,8 @@ void main() {
                 ReSTIRReservoir originalReservoir = restir_loadReservoir(texelPos, 0);
                 ReSTIRReservoir spatialReservoir = originalReservoir;
 
-                const uint reuseCount = uint(mix(float(SPATIAL_REUSE_SAMPLES), 1.0, linearStep(0.0, 128.0, float(RANDOM_FRAME))));
+//                const uint reuseCount = uint(mix(float(SPATIAL_REUSE_SAMPLES), 1.0, linearStep(0.0, 128.0, float(RANDOM_FRAME))));
+                const uint reuseCount = uint(SPATIAL_REUSE_SAMPLES);
                 const float REUSE_RADIUS = float(SPATIAL_REUSE_RADIUS);
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 

@@ -145,7 +145,7 @@ ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
     if (swapIndex == 0) {
         data1 = history_restir_reservoir1_load(texelPos);
     } else {
-        data1 = history_restir_reservoir1_load(texelPos);
+        data1 = history_restir_reservoir2_load(texelPos);
     }
 
     ReSTIRReservoir reservoir;
@@ -228,13 +228,14 @@ vec3 ssgiEvalF(vec3 viewPos, GBufferData gData, vec3 sampleDirView, out float hi
 
     if (sstResult.hit) {
         vec2 hitTexelPosF = floor(sstResult.hitScreenPos.xy * uval_mainImageSize);
+        ivec2 hitTexelPos = ivec2(hitTexelPosF);
         vec2 hitTexelCenter = hitTexelPosF + 0.5;
         vec2 roundedHitScreenPos = hitTexelCenter * uval_mainImageSizeRcp;
         float hitViewZ = coords_reversedZToViewZ(sstResult.hitScreenPos.z, near);
         vec3 hitViewPos = coords_toViewCoord(roundedHitScreenPos, hitViewZ, global_camProjInverse);
         hitDistance = length(hitViewPos - viewPos);
 
-        vec3 hitRadiance = texelFetch(usam_temp2, ivec2(hitTexelPosF), 0).rgb;
+        vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
         float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
         vec3 f = brdf * hitRadiance;
         result = f;

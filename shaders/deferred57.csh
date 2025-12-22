@@ -36,8 +36,8 @@ void main() {
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
                 vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 12312745u)).zw);
 //                vec2 rand2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
-//                vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
-                vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
+                vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
+//                vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
                 vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
 
 //                ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(RANDOM_FRAME / 64u) * vec2(128, 128));
@@ -51,10 +51,6 @@ void main() {
                 initialSample.directionAndLength.xyz = sampleDirView;
                 initialSample.directionAndLength.w = resultStuff.w;
                 transient_restir_initialSample_store(texelPos, initialSampleData_pack(initialSample));
-            } else {
-                ReSTIRReservoir newReservoir = restir_initReservoir(texelPos);
-                restir_storeReservoir(texelPos, newReservoir, 0);
-                restir_storeReservoir(texelPos, newReservoir, 1);
             }
         }
     }

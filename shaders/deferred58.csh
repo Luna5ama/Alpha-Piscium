@@ -49,21 +49,20 @@ void main() {
                 if (restir_isReservoirValid(temporalReservoir)) {
                     vec3 prevSampleDirView = temporalReservoir.Y.xyz;
 
-
-                    //                    float prevSamplePdf = 1.0 / (2.0 * PI);
-                    float prevSamplePdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
-
                     float prevHitDistance = temporalReservoir.Y.w;
-                    vec3 prevHitViewPos = viewPos + prevSampleDirView * prevHitDistance;
-                    vec3 prevHitScreenPos = coords_viewToScreen(prevHitViewPos, global_camProj);
-                    ivec2 prevHitTexelPos = ivec2(prevHitScreenPos.xy * uval_mainImageSize);
-                    vec3 prevHitRadiance = texelFetch(usam_temp2, prevHitTexelPos, 0).rgb;
-                    float brdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
-                    prevSample = vec4(prevHitRadiance, brdf);
+                    if (prevHitDistance > 0.0){
+                        vec3 prevHitViewPos = viewPos + prevSampleDirView * prevHitDistance;
+                        vec3 prevHitScreenPos = coords_viewToScreen(prevHitViewPos, global_camProj);
+                        ivec2 prevHitTexelPos = ivec2(prevHitScreenPos.xy * uval_mainImageSize);
 
-                    GBufferData prevGData = gbufferData_init();
-                    gbufferData1_unpack(texelFetch(usam_gbufferData1, prevHitTexelPos, 0), prevGData);
-                    prevHitNormal = prevGData.normal;
+                        vec3 prevHitRadiance = transient_giRadianceInput_fetch(prevHitTexelPos).rgb;
+                        float brdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
+                        prevSample = vec4(prevHitRadiance, brdf);
+
+                        GBufferData prevGData = gbufferData_init();
+                        gbufferData1_unpack(texelFetch(usam_gbufferData1, prevHitTexelPos, 0), prevGData);
+                        prevHitNormal = prevGData.normal;
+                    }
 
 //                    float prevHitDistance;
 //                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, prevHitDistance);
@@ -75,42 +74,42 @@ void main() {
                 float prevPHat = length(prevSample.xyz * prevSample.w);
                 wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
 
-//                #if SPATIAL_REUSE_FEEDBACK
-//                if (temporalReservoir.m < SPATIAL_REUSE_FEEDBACK) {
-//                    ReSTIRReservoir prevSpatialReservoir =  restir_loadReservoir(texelPos, 1);
-//
-//                    vec3 prevSpatialSampleDirView = prevSpatialReservoir.Y.xyz;
-//                    float prevSpatialHitDistance = prevSpatialReservoir.Y.w;
-//
-//                    vec3 prevSpatialHitViewPos = viewPos + prevSpatialSampleDirView * prevSpatialHitDistance;
-//                    vec3 prevSpatialHitScreenPos = coords_viewToScreen(prevSpatialHitViewPos, global_camProj);
-//                    ivec2 prevSpatialHitTexelPos = ivec2(prevSpatialHitScreenPos.xy * uval_mainImageSize);
-//                    vec3 prevSpatialHitRadiance = texelFetch(usam_temp2, prevSpatialHitTexelPos, 0).rgb;
-//                    float brdf = saturate(dot(gData.normal, prevSpatialSampleDirView)) / PI;
-//                    float prevSpatialPHat = length(prevSpatialHitRadiance * brdf);
-//
-//                    float prevSpatialWi = max(prevSpatialReservoir.avgWY * prevSpatialPHat * float(prevSpatialReservoir.m), 0.0);
-//                    float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 456546u)).w);
-//
-//                    if (restir_isReservoirValid(prevSpatialReservoir)) {
-//                        if (restir_updateReservoir(
-//                            temporalReservoir,
-//                            wSum,
-//                            prevSpatialReservoir.Y,
-//                            prevSpatialWi,
-//                            prevSpatialReservoir.m,
-//                            prevSpatialReservoir.age,
-//                            reservoirRand2
-//                        )) {
-//                            prevPHat = prevSpatialPHat;
-//                            prevSample = vec4(prevSpatialHitRadiance, brdf);
-//                            GBufferData prevSpatialHitGData = gbufferData_init();
-//                            gbufferData1_unpack(texelFetch(usam_gbufferData1, prevSpatialHitTexelPos, 0), prevSpatialHitGData);
-//                            prevHitNormal = prevSpatialHitGData.normal;
-//                        }
-//                    }
-//                }
-//                #endif
+                #if SPATIAL_REUSE_FEEDBACK
+                if (temporalReservoir.m < SPATIAL_REUSE_FEEDBACK) {
+                    ReSTIRReservoir prevSpatialReservoir =  restir_loadReservoir(texelPos, 1);
+
+                    vec3 prevSpatialSampleDirView = prevSpatialReservoir.Y.xyz;
+                    float prevSpatialHitDistance = prevSpatialReservoir.Y.w;
+
+                    vec3 prevSpatialHitViewPos = viewPos + prevSpatialSampleDirView * prevSpatialHitDistance;
+                    vec3 prevSpatialHitScreenPos = coords_viewToScreen(prevSpatialHitViewPos, global_camProj);
+                    ivec2 prevSpatialHitTexelPos = ivec2(prevSpatialHitScreenPos.xy * uval_mainImageSize);
+                    vec3 prevSpatialHitRadiance = transient_giRadianceInput_fetch(prevSpatialHitTexelPos).rgb;
+                    float brdf = saturate(dot(gData.normal, prevSpatialSampleDirView)) / PI;
+                    float prevSpatialPHat = length(prevSpatialHitRadiance * brdf);
+
+                    float prevSpatialWi = max(prevSpatialReservoir.avgWY * prevSpatialPHat * float(prevSpatialReservoir.m), 0.0);
+                    float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 456546u)).w);
+
+                    if (restir_isReservoirValid(prevSpatialReservoir)) {
+                        if (restir_updateReservoir(
+                            temporalReservoir,
+                            wSum,
+                            prevSpatialReservoir.Y,
+                            prevSpatialWi,
+                            prevSpatialReservoir.m,
+                            prevSpatialReservoir.age,
+                            reservoirRand2
+                        )) {
+                            prevPHat = prevSpatialPHat;
+                            prevSample = vec4(prevSpatialHitRadiance, brdf);
+                            GBufferData prevSpatialHitGData = gbufferData_init();
+                            gbufferData1_unpack(texelFetch(usam_gbufferData1, prevSpatialHitTexelPos, 0), prevSpatialHitGData);
+                            prevHitNormal = prevSpatialHitGData.normal;
+                        }
+                    }
+                }
+                #endif
                 if (temporalReservoir.age >= MAX_AGE) {
                     temporalReservoir = restir_initReservoir(texelPos);
                 }
@@ -157,8 +156,8 @@ void main() {
                     vec3 initalSample = brdf * hitRadiance;
 
 //                    float samplePdf = saturate(dot(gData.normal, sampleDirView)) / PI;
-//                    float samplePdf = brdf;
-                    float samplePdf = 1.0 / (2.0 * PI);
+                    float samplePdf = brdf;
+//                    float samplePdf = 1.0 / (2.0 * PI);
 
                     float newPHat = length(initalSample);
                     float newWi = samplePdf <= 0.0 ? 0.0 : newPHat / samplePdf;

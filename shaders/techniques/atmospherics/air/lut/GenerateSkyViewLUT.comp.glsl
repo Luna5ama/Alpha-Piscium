@@ -132,7 +132,7 @@ const vec2[3] LAYER_BOUNDS = {
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-    vec2 screenPos = (texelPos + rand_stbnVec2(texelPos, frameCounter)) / SKYVIEW_LUT_SIZE_F;
+    vec2 screenPos = (texelPos + 0.5) / SKYVIEW_LUT_SIZE_F;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
