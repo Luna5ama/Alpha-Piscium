@@ -38,8 +38,10 @@ void main() {
         historyData.specularColor = specResult.rgb;
 
 //        imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
-        imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
-        imageStore(uimg_temp2, texelPos, gi_historyData_pack1(historyData));
+        if (RANDOM_FRAME < MAX_FRAMES){
+            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
+            imageStore(uimg_temp2, texelPos, gi_historyData_pack1(historyData));
+        }
 
         history_gi1_store(texelPos, gi_historyData_pack1(historyData));
         history_gi2_store(texelPos, gi_historyData_pack2(historyData));

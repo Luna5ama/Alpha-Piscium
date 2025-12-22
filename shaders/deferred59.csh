@@ -252,8 +252,6 @@ void main() {
                     }
                 }
 
-                const uint SPATIAL_REUSE_MAX_M = 128u;
-
                 // TODO: SSGIOUT
 //                vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
                 vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
@@ -291,7 +289,8 @@ void main() {
                 ssgiOut = vec4(selectedSampleF.xyz * spatialReservoir.avgWY, spatialReservoir.Y.w);
                 resultReservoir = spatialReservoir;
                 #endif
-//                resultReservoir.m = clamp(resultReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
+                const uint SPATIAL_REUSE_MAX_M = 1u;
+                resultReservoir.m = clamp(resultReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
 
                 restir_storeReservoir(texelPos, resultReservoir, 1);
 

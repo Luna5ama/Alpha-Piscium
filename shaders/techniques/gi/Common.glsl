@@ -7,8 +7,8 @@
 #include "/util/NZPacking.glsl"
 
 #define USE_REFERENCE 0
-#define SKIP_FRAMES 16
-#define MAX_FRAMES 4096
+#define SKIP_FRAMES 4
+#define MAX_FRAMES 11111
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 #define MC_SPP 16
 #define SPATIAL_REUSE 1
