@@ -11,8 +11,6 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 #include "/techniques/SSGI.glsl"
 
-shared vec3 sharedData[128];
-
 #if USE_REFERENCE
 void main() {
 
@@ -47,7 +45,6 @@ void main() {
 //                vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
 
                 vec4 ssgiOut = vec4(0.0);
-//                sharedData[gl_LocalInvocationIndex] = sampleDirView;
                 vec4 resultStuff = ssgiEvalF2(viewPos, sampleDirView);
 
                 InitialSampleData initialSample = initialSampleData_init();

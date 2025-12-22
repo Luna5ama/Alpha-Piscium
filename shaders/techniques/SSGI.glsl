@@ -193,7 +193,7 @@ void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIn
 }
 
 vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
-    vec4 result = vec4(0.0);
+    vec4 result = vec4(0.0, 0.0, 0.0, -1.0);
 
     SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.01);
 
@@ -205,9 +205,15 @@ vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
         vec3 hitViewPos = coords_toViewCoord(roundedHitScreenPos, hitViewZ, global_camProjInverse);
         result.w = length(hitViewPos - viewPos);
 
-        vec3 hitRadiance = texelFetch(usam_temp2, ivec2(hitTexelPosF), 0).rgb;
-        result.xyz = hitRadiance;
+        vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
+        GBufferData hitGData = gbufferData_init();
+        gbufferData1_unpack_world(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
 
+        float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
+
+        hitRadiance *= hitCosTheta;
+
+        result.xyz = hitRadiance;
     }
 
     return result;
