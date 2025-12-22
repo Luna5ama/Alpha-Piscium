@@ -9,6 +9,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_temp3;
+layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 #include "/techniques/SSGI.glsl"
 
@@ -23,7 +24,7 @@ void main() {
     sst_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec4 ssgiOut = vec4(0.0);
+        vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
         if (RANDOM_FRAME < MAX_FRAMES){
             if (RANDOM_FRAME >= 0) {
                 ReSTIRReservoir temporalReservoir = restir_initReservoir(texelPos);
@@ -183,7 +184,7 @@ void main() {
                     float avgWSum = wSum / float(temporalReservoir.m);
                     temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
                     temporalReservoir.m = clamp(temporalReservoir.m, 0u, 20u);
-                    ssgiOut = vec4(finalSample.xyz * finalSample.w * temporalReservoir.avgWY, 1.0);
+                    ssgiOut = vec4(finalSample.xyz * finalSample.w * temporalReservoir.avgWY, temporalReservoir.Y.w);
 
                     SpatialSampleData spatialSample = spatialSampleData_init();
                     spatialSample.hitRadiance = finalSample.xyz;
@@ -198,8 +199,7 @@ void main() {
                 restir_storeReservoir(texelPos, temporalReservoir, 0);
             }
         }
-        // TODO: SSGIOUT
-//        imageStore(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
+        transient_ssgiOut_store(texelPos, ssgiOut);
     }
 }
 #endif

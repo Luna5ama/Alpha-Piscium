@@ -199,6 +199,7 @@ vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
 
     if (sstResult.hit) {
         vec2 hitTexelPosF = floor(sstResult.hitScreenPos.xy * uval_mainImageSize);
+        ivec2 hitTexelPos = ivec2(hitTexelPosF);
         vec2 hitTexelCenter = hitTexelPosF + 0.5;
         vec2 roundedHitScreenPos = hitTexelCenter * uval_mainImageSizeRcp;
         float hitViewZ = coords_reversedZToViewZ(sstResult.hitScreenPos.z, near);
