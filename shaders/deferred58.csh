@@ -40,8 +40,6 @@ void main() {
 
                 temporalReservoir = restir_loadReservoir(texelPos, 0);
 
-                const uint MAX_AGE = 100u;
-
                 float wSum = 0.0;
                 vec4 prevSample = vec4(0.0);
                 vec3 prevHitNormal = vec3(0.0);
@@ -110,7 +108,12 @@ void main() {
                     }
                 }
                 #endif
-                if (temporalReservoir.age >= MAX_AGE) {
+
+                const float RESET_START = 64.0;
+                const float RESET_END = 256.0;
+                float resetThreshold = linearStep(RESET_START, RESET_END, float(temporalReservoir.age));
+                float resetRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 123679546u)).w);
+                if (resetRand < resetThreshold) {
                     temporalReservoir = restir_initReservoir(texelPos);
                 }
 
