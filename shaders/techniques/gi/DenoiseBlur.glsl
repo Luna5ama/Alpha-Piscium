@@ -48,8 +48,8 @@ vec2 _gi_mirrorUV(vec2 uv) {
     return 1.0 - abs(1.0 - (fract(uv * 0.5) * 2.0));
 }
 
-float gaussianKernel(float x) {
-    return exp(-0.69 * pow2(x));
+float gaussianKernel(float x, float sigma) {
+    return exp(-sigma * pow2(x));
 }
 float normalWeight(vec3 norA, vec3 norB, float factor) {
     return pow(saturate(dot(norA, norB)), factor);
@@ -64,30 +64,36 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     vec4 centerDiff = _gi_readDiff(texelPos);
     vec4 centerSpec = _gi_readSpec(texelPos);
 
-    float historyLength = historyData.historyLength * REAL_HISTORY_LENGTH;
+    float historyLength = historyData.realHistoryLength * REAL_HISTORY_LENGTH;
     float accumFactor = (1.0 / (1.0 + historyLength));
     float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
 
     float hitDistFactor = linearStep(0.0, 4.0, historyData.diffuseHitDistance);
+    #if GI_DENOISE_PASS == 1
     hitDistFactor = pow(hitDistFactor, invAccumFactor * 1.0);
+    #else
+    hitDistFactor = pow(hitDistFactor, invAccumFactor * 0.5);
+    #endif
 
     float kernelRadius = baseKernelRadius.x;
     kernelRadius *= sqrt(accumFactor);
 
     float varianceFactor = 0.0;
 
-    for (int dy = -1; dy <= 1; ++dy) {
-        for (int dx = -1; dx <= 1; ++dx) {
+    // TODO: optimize with shared memory
+    for (int dy = -2; dy <= 2; ++dy) {
+        for (int dx = -2; dx <= 2; ++dx) {
             varianceFactor += _gi_readDiff(texelPos + ivec2(dx, dy)).w;
         }
     }
 
-    varianceFactor /= 9.0;
+    varianceFactor /= 25.0;
 
     kernelRadius *= 1.0 + varianceFactor * baseKernelRadius.y;
     kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
-    float baseColorWeight = pow2(invAccumFactor) * -1.0;
+    float aa = historyData.realHistoryLength + 0.001;
+    float baseColorWeight = pow2(invAccumFactor) * -(256.0 * (aa / (aa + historyData.diffuseHitDistance)));
     float baseGeomNormalWeight = invAccumFactor * 8.0;
     float baseNormalWeight = invAccumFactor * 4.0;
     float basePlaneDistWeight = invAccumFactor * -512.0;
@@ -112,6 +118,9 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     float moment1 = centerLuma;
     float moment2 = pow2(centerLuma);
 
+    float sigma = 0.69;
+    sigma += mix(kernelRadius * 2.0, 0.0, saturate(hitDistFactor));
+
     #if ENABLE_DENOISER
     for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
         dir *= MAT2_GOLDEN_ANGLE;
@@ -119,7 +128,7 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
         vec2 offset = dir * (baseRadius * kernelRadius);
         vec2 sampleTexelPosF = centerTexelPos + offset;
         vec2 sampleUV = sampleTexelPosF * uval_mainImageSizeRcp;
-        float kernelWeight = gaussianKernel(baseRadius);
+        float kernelWeight = gaussianKernel(baseRadius, sigma);
         if (saturate(sampleUV) != sampleUV) {
             sampleUV = _gi_mirrorUV(sampleUV);
             kernelWeight = 1.0;
@@ -178,11 +187,11 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     float stddev = sqrt(variance);
 
     #if GI_DENOISE_PASS == 1
-    diffResult.w = pow(safeDiv(variance, centerLuma) * 256.0, 1.0 / 8.0);
-    imageStore(uimg_temp4, texelPos, vec4(hitDistFactor));
+    diffResult.w = pow(safeDiv(variance, centerLuma) * 64.0, 1.0 / 2.0);
     transient_gi_blurDiff2_store(texelPos, diffResult);
     transient_gi_blurSpec2_store(texelPos, specResult);
     #elif GI_DENOISE_PASS == 2
+    imageStore(uimg_temp4, texelPos, vec4(varianceFactor));
     transient_gi_blurDiff1_store(texelPos, diffResult);
     transient_gi_blurSpec1_store(texelPos, specResult);
     #endif
