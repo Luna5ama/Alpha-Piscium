@@ -205,18 +205,16 @@ vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
         float hitViewZ = coords_reversedZToViewZ(sstResult.hitScreenPos.z, near);
         vec3 hitViewPos = coords_toViewCoord(roundedHitScreenPos, hitViewZ, global_camProjInverse);
         float hitDistance = length(hitViewPos - viewPos);
-        if (hitDistance > 0.0) {
-            result.w = length(hitViewPos - viewPos);
+        result.w = length(hitViewPos - viewPos);
 
-            vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
-            GBufferData hitGData = gbufferData_init();
-            gbufferData1_unpack_world(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
+        vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
+        GBufferData hitGData = gbufferData_init();
+        gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
 
-            float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
+        float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
+        hitRadiance *= hitCosTheta;
 
-            hitRadiance *= hitCosTheta;
-
-            result.xyz = hitRadiance; }
+        result.xyz = hitRadiance;
     }
 
     return result;
@@ -283,7 +281,7 @@ vec4 ssgiRef(ivec2 texelPos, uint finalIndex) {
 
             vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
             GBufferData hitGData = gbufferData_init();
-            gbufferData1_unpack_world(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
+            gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
 
             float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
 
