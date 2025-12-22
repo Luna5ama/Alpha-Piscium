@@ -19,15 +19,20 @@ void main() {
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 result = vec4(0.0);
+        float hitDistSum = 0.0;
 
         const uint SPP = MC_SPP;
         uint baseRand = RANDOM_FRAME * SPP;
         for (uint i = 0u; i < SPP; ++i) {
             vec4 tempResult = ssgiRef(texelPos, baseRand + i);
-            tempResult.a = min(tempResult.a, MAX_HIT_DISTANCE);
-            result += tempResult;
+            result.rgb += tempResult.rgb;
+            if (tempResult.a >= 0.0) {
+                result.a += min(tempResult.a, 16.0);
+                hitDistSum += 1.0;
+            }
         }
-        result /= float(SPP);
+        result.rgb /= float(SPP);
+        result.a = hitDistSum <= 0.0 ? -1.0 : clamp(result.a / hitDistSum, 0.0, 16.0);
 
 //        imageStore(uimg_temp1, texelPos, vec4(result, 1.0));
         transient_ssgiOut_store(texelPos, result);

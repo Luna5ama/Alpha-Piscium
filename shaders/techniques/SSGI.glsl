@@ -252,7 +252,7 @@ vec3 ssgiEvalF(vec3 viewPos, GBufferData gData, vec3 sampleDirView, out float hi
 
 vec4 ssgiRef(ivec2 texelPos, uint finalIndex) {
 //    uint finalIndex = RANDOM_FRAME;
-    vec4 result = vec4(0.0, 0.0, 0.0, FLT_MAX);
+    vec4 result = vec4(0.0, 0.0, 0.0, -1.0);
     GBufferData gData = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
     gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);

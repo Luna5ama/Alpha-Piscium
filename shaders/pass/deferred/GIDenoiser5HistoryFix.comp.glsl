@@ -78,7 +78,7 @@ void main() {
 
         vec4 diffInput = vec4(historyData.diffuseColor, 0.0);
         vec4 specInput = vec4(historyData.specularColor, 0.0);
-        imageStore(uimg_temp3, texelPos, diffInput);
+        imageStore(uimg_temp3, texelPos, vec4(historyData.diffuseFastColor, 0.0));
 
         transient_gi_blurDiff1_store(texelPos, diffInput);
         transient_gi_blurSpec1_store(texelPos, specInput);

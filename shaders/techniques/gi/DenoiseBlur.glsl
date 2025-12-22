@@ -11,7 +11,7 @@
 #include "/util/Coords.glsl"
 #include "/util/Mat2.glsl"
 
-layout(rgba16f) uniform writeonly image2D uimg_temp3;
+layout(rgba16f) uniform writeonly image2D uimg_temp4;
 
 struct GeomData {
     vec3 geomNormal;
@@ -66,8 +66,10 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
 
     float historyLength = historyData.historyLength * REAL_HISTORY_LENGTH;
     float accumFactor = (1.0 / (1.0 + historyLength));
+    float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
 
-    float hitDistFactor = smoothstep(0.5, 64.0, historyData.diffuseHitDistance);
+    float hitDistFactor = linearStep(0.0, 4.0, historyData.diffuseHitDistance);
+    hitDistFactor = pow(hitDistFactor, invAccumFactor * 1.0);
 
     float kernelRadius = baseKernelRadius.x;
     kernelRadius *= sqrt(accumFactor);
@@ -85,12 +87,11 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     kernelRadius *= 1.0 + varianceFactor * baseKernelRadius.y;
     kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
-    float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
     float baseColorWeight = pow2(invAccumFactor) * -1.0;
     float baseGeomNormalWeight = invAccumFactor * 8.0;
     float baseNormalWeight = invAccumFactor * 4.0;
     float basePlaneDistWeight = invAccumFactor * -512.0;
-    kernelRadius *= pow(hitDistFactor, invAccumFactor * 2.0);
+    kernelRadius *= hitDistFactor;
 
     vec4 diffResult = centerDiff;
     vec4 specResult = centerSpec;
@@ -178,7 +179,7 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
 
     #if GI_DENOISE_PASS == 1
     diffResult.w = pow(safeDiv(variance, centerLuma) * 256.0, 1.0 / 8.0);
-    imageStore(uimg_temp3, texelPos, vec4(diffResult.w));
+    imageStore(uimg_temp4, texelPos, vec4(hitDistFactor));
     transient_gi_blurDiff2_store(texelPos, diffResult);
     transient_gi_blurSpec2_store(texelPos, specResult);
     #elif GI_DENOISE_PASS == 2

@@ -4,6 +4,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
+layout(rgba16f) uniform writeonly image2D uimg_temp4;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 
@@ -40,7 +41,10 @@ void main() {
         float fastAlpha = 1.0 / min(historyLength, FAST_HISTORY_LENGTH);
         historyData.diffuseFastColor = mix(historyData.diffuseFastColor, newDiffuse.rgb, fastAlpha);
         historyData.specularFastColor = mix(historyData.specularFastColor, vec3(0.0), fastAlpha);
-        historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newDiffuse.a, fastAlpha);
+        if (newDiffuse.a >= 0.0) {
+            historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newDiffuse.a, fastAlpha);
+        }
+        imageStore(uimg_temp4, texelPos, vec4(historyData.diffuseHitDistance));
 
         transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
         transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
