@@ -182,8 +182,9 @@ vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
         GBufferData hitGData = gbufferData_init();
         gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
 
+        // TODO: handle emitter cosine
         float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
-        hitRadiance *= hitCosTheta;
+//        hitRadiance *= hitCosTheta;
 
         result.xyz = hitRadiance;
     }

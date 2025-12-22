@@ -12,7 +12,7 @@ vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
     );
 }
 
-GIHistoryData gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
+void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
     GIHistoryData historyData = gi_historyData_init();
 
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
@@ -222,5 +222,9 @@ GIHistoryData gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
     historyData.glazingAngleFactor = glazingAngleFactorHistory;
 
-    return historyData;
+    transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
+    transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
+    transient_gi3Reprojected_store(texelPos, gi_historyData_pack3(historyData));
+    transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(historyData));
+    transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
 }

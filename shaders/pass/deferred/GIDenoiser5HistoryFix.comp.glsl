@@ -66,8 +66,24 @@ void main() {
         float len = historyData.realHistoryLength * REAL_HISTORY_LENGTH;
         float decayFactor = linearStep(FAST_HISTORY_LENGTH * 2.0, 1.0, historyData.realHistoryLength * REAL_HISTORY_LENGTH);
         float clampingThreshold = mix(2.0, 16.0, pow2(decayFactor));
-        historyData.diffuseColor = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2, clampingThreshold);
-        historyData.specularColor = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2, clampingThreshold);
+
+        vec3 diffClamped = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2, clampingThreshold);
+        vec3 diffDiff = abs(diffClamped - historyData.diffuseColor);
+        float diffDiffLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, diffDiff);
+        float diffMeanLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors_YCoCgToSRGB(diffMoment1));
+
+        vec3 specClamped = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2, clampingThreshold);
+        vec3 specDiff = abs(specClamped - historyData.specularColor);
+        float specDiffLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, specDiff);
+        float specMeanLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors_YCoCgToSRGB(specMoment1));
+
+        float resetFactor = exp2(-(diffDiffLuma + specDiffLuma) * 64.0);
+        historyData.historyLength *= resetFactor;
+        historyData.realHistoryLength *= sqrt(resetFactor);
+        imageStore(uimg_temp3, texelPos, vec4(resetFactor));
+
+        historyData.diffuseColor = diffClamped;
+        historyData.specularColor = specClamped;
         #endif
 
         transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
@@ -78,7 +94,7 @@ void main() {
 
         vec4 diffInput = vec4(historyData.diffuseColor, 0.0);
         vec4 specInput = vec4(historyData.specularColor, 0.0);
-        imageStore(uimg_temp3, texelPos, diffInput);
+//        imageStore(uimg_temp3, texelPos, diffInput);
 
         transient_gi_blurDiff1_store(texelPos, diffInput);
         transient_gi_blurSpec1_store(texelPos, specInput);
