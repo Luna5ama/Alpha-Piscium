@@ -7,35 +7,6 @@
 #include "/techniques/SST.glsl"
 #include "/techniques/gi/Common.glsl"
 
-struct InitialSampleData {
-    vec4 directionAndLength;
-    vec3 hitRadiance;
-};
-
-InitialSampleData initialSampleData_init() {
-    InitialSampleData data;
-    data.directionAndLength = vec4(0.0, 0.0, 0.0, -1.0);
-    data.hitRadiance = vec3(0.0);
-    return data;
-}
-
-uvec4 initialSampleData_pack(InitialSampleData data) {
-    uvec4 packedData;
-    packedData.x = nzpacking_packNormalOct32(data.directionAndLength.xyz);
-    packedData.y = floatBitsToUint(data.directionAndLength.w);
-    packedData.zw = packHalf4x16(vec4(data.hitRadiance, 0.0));
-    return packedData;
-}
-
-InitialSampleData initialSampleData_unpack(uvec4 packedData) {
-    InitialSampleData data;
-    data.directionAndLength.xyz = nzpacking_unpackNormalOct32(packedData.x);
-    data.directionAndLength.w = uintBitsToFloat(packedData.y);
-    vec4 hitRadianceAndPadding = unpackHalf4x16(packedData.zw);
-    data.hitRadiance = hitRadianceAndPadding.rgb;
-    return data;
-}
-
 struct SpatialSampleData {
     vec3 geomNormal;
     vec3 normal;

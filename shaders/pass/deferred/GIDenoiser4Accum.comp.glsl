@@ -28,11 +28,11 @@ void main() {
 
             const float HISTORY_LENGTH_1 = HISTORY_LENGTH - 1.0;
             float historyLength = historyData.historyLength * HISTORY_LENGTH_1;
-//            historyLength += 1.0;
+            historyLength += 1.0;
             historyLength = clamp(historyLength, 1.0, HISTORY_LENGTH);
 
             float realHistoryLength = historyData.realHistoryLength * REAL_HISTORY_LENGTH;
-//            realHistoryLength += 1.0;
+            realHistoryLength += 1.0;
             historyData.realHistoryLength = saturate(realHistoryLength / REAL_HISTORY_LENGTH);
 
             // Accumulate
@@ -44,8 +44,13 @@ void main() {
             float fastAlpha = 1.0 / min(historyLength, FAST_HISTORY_LENGTH);
             historyData.diffuseFastColor = mix(historyData.diffuseFastColor, newDiffuse.rgb, fastAlpha);
             historyData.specularFastColor = mix(historyData.specularFastColor, vec3(0.0), fastAlpha);
-            if (newDiffuse.a >= 0.0) {
-                historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newDiffuse.a, fastAlpha);
+
+            InitialSampleData initialSample = initialSampleData_unpack(transient_restir_initialSample_fetch(texelPos));
+            float newHitDistance = initialSample.directionAndLength.w;
+
+            if (newHitDistance >= 0.0) {
+                newHitDistance = min(newHitDistance, MAX_HIT_DISTANCE);
+                historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, fastAlpha);
             }
             imageStore(uimg_temp4, texelPos, vec4(historyData.diffuseHitDistance));
         }

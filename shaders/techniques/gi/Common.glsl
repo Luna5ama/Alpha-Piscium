@@ -4,6 +4,7 @@
 #include "/util/BitPacking.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Colors2.glsl"
+#include "/util/NZPacking.glsl"
 
 #define USE_REFERENCE 0
 #define SKIP_FRAMES 16
@@ -120,10 +121,39 @@ float gi_planeDistance(vec3 pos1, vec3 normal1, vec3 pos2, vec3 normal2) {
     float maxPlaneDist = max(planeDist1, planeDist2);
     return maxPlaneDist;
 }
+
+struct InitialSampleData {
+    vec4 directionAndLength;
+    vec3 hitRadiance;
+};
+
+InitialSampleData initialSampleData_init() {
+    InitialSampleData data;
+    data.directionAndLength = vec4(0.0, 0.0, 0.0, -1.0);
+    data.hitRadiance = vec3(0.0);
+    return data;
+}
+
+uvec4 initialSampleData_pack(InitialSampleData data) {
+    uvec4 packedData;
+    packedData.x = nzpacking_packNormalOct32(data.directionAndLength.xyz);
+    packedData.y = floatBitsToUint(data.directionAndLength.w);
+    packedData.zw = packHalf4x16(vec4(data.hitRadiance, 0.0));
+    return packedData;
+}
+
+InitialSampleData initialSampleData_unpack(uvec4 packedData) {
+    InitialSampleData data;
+    data.directionAndLength.xyz = nzpacking_unpackNormalOct32(packedData.x);
+    data.directionAndLength.w = uintBitsToFloat(packedData.y);
+    vec4 hitRadianceAndPadding = unpackHalf4x16(packedData.zw);
+    data.hitRadiance = hitRadianceAndPadding.rgb;
+    return data;
+}
 const float HISTORY_LENGTH = 64.0;
 const float REAL_HISTORY_LENGTH = 255.0;
 const float FAST_HISTORY_LENGTH = 8.0;
 
-#define ENABLE_DENOISER 0
+#define ENABLE_DENOISER 1
 
 #endif
