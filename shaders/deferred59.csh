@@ -20,7 +20,7 @@ void main() {
 }
 #else
 void main() {
-//    return;
+    return;
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     sst_init();
 

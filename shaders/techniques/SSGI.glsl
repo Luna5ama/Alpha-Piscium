@@ -14,7 +14,7 @@ struct InitialSampleData {
 
 InitialSampleData initialSampleData_init() {
     InitialSampleData data;
-    data.directionAndLength = vec4(0.0);
+    data.directionAndLength = vec4(0.0, 0.0, 0.0, -1.0);
     data.hitRadiance = vec3(0.0);
     return data;
 }
@@ -80,7 +80,7 @@ struct ReSTIRReservoir {
 
 ReSTIRReservoir restir_initReservoir(ivec2 texelPos) {
     ReSTIRReservoir reservoir;
-    reservoir.Y = vec4(0.0);
+    reservoir.Y = vec4(0.0, 0.0, 0.0, -1.0);
     reservoir.avgWY = 0.0;
     //    reservoir.wSum = 0.0;
     reservoir.m = 0u;
@@ -143,9 +143,9 @@ ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
     ivec2 sampleTexelPos = texelPos;
     uvec4 data1;
     if (swapIndex == 0) {
-        data1 = transient_restir_reservoir1_load(texelPos);
+        data1 = history_restir_reservoir1_load(texelPos);
     } else {
-        data1 = transient_restir_reservoir1_load(texelPos);
+        data1 = history_restir_reservoir1_load(texelPos);
     }
 
     ReSTIRReservoir reservoir;
@@ -186,9 +186,9 @@ void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIn
 //    data1.w = floatBitsToUint(reservoir.wSum);
     data1.w = floatBitsToUint(reservoir.Y.w);
     if (swapIndex == 0) {
-        transient_restir_reservoir1_store(texelPos, data1);
+        history_restir_reservoir1_store(texelPos, data1);
     } else {
-        transient_restir_reservoir2_store(texelPos, data1);
+        history_restir_reservoir2_store(texelPos, data1);
     }
 }
 
@@ -204,17 +204,19 @@ vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
         vec2 roundedHitScreenPos = hitTexelCenter * uval_mainImageSizeRcp;
         float hitViewZ = coords_reversedZToViewZ(sstResult.hitScreenPos.z, near);
         vec3 hitViewPos = coords_toViewCoord(roundedHitScreenPos, hitViewZ, global_camProjInverse);
-        result.w = length(hitViewPos - viewPos);
+        float hitDistance = length(hitViewPos - viewPos);
+        if (hitDistance > 0.0) {
+            result.w = length(hitViewPos - viewPos);
 
-        vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
-        GBufferData hitGData = gbufferData_init();
-        gbufferData1_unpack_world(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
+            vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
+            GBufferData hitGData = gbufferData_init();
+            gbufferData1_unpack_world(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
 
-        float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
+            float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
 
-        hitRadiance *= hitCosTheta;
+            hitRadiance *= hitCosTheta;
 
-        result.xyz = hitRadiance;
+            result.xyz = hitRadiance; }
     }
 
     return result;

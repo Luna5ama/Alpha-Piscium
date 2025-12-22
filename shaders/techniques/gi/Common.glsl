@@ -10,11 +10,11 @@
 #define MAX_FRAMES 4096
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 #define MC_SPP 16
-#define SPATIAL_REUSE 1
+#define SPATIAL_REUSE 0
 #define SPATIAL_REUSE_SAMPLES 6
 #define SPATIAL_REUSE_RADIUS 64
 #define SPATIAL_REUSE_VISIBILITY_TRACE 1
-#define SPATIAL_REUSE_FEEDBACK 16
+#define SPATIAL_REUSE_FEEDBACK 0
 
 /*
     Diffuse Color : 48 bits         (1)
