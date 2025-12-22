@@ -1,6 +1,5 @@
 #version 460 compatibility
 
-#include "/techniques/SSGI.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
@@ -10,6 +9,8 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_temp3;
+layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
+#include "/techniques/SSGI.glsl"
 
 #if USE_REFERENCE
 void main() {
@@ -147,7 +148,7 @@ void main() {
 //                        initialSample.directionAndLength.w = resultStuff.w;
 //                    }
 
-                    InitialSampleData initialSample = initialSampleData_unpack(imageLoad(uimg_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos)));
+                    InitialSampleData initialSample = initialSampleData_unpack(transient_restir_initialSample_load(texelPos));
                     vec3 hitRadiance = initialSample.hitRadiance;
                     vec3 sampleDirView = initialSample.directionAndLength.xyz;
                     float hitDistance = initialSample.directionAndLength.w;
@@ -189,7 +190,7 @@ void main() {
                     spatialSample.geomNormal = gData.geomNormal;
                     spatialSample.normal = gData.normal;
                     spatialSample.hitNormal = hitNormal;
-                    imageStore(uimg_csrgba32ui, csrgba32ui_temp3_texelToTexel(texelPos), spatialSampleData_pack(spatialSample));
+                    transient_restir_spatialInput_store(texelPos, spatialSampleData_pack(spatialSample));
 
                     temporalReservoir.age++;
                 }
@@ -197,7 +198,8 @@ void main() {
                 restir_storeReservoir(texelPos, temporalReservoir, 0);
             }
         }
-        imageStore(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
+        // TODO: SSGIOUT
+//        imageStore(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
     }
 }
 #endif

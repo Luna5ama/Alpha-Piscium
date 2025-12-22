@@ -5,19 +5,7 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/techniques/SST.glsl"
-
-#define USE_REFERENCE 0
-#define SKIP_FRAMES 16
-#define MAX_FRAMES 4096
-#define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
-#define MC_SPP 16
-#define SPATIAL_REUSE 1
-#define SPATIAL_REUSE_SAMPLES 6
-#define SPATIAL_REUSE_RADIUS 64
-#define SPATIAL_REUSE_VISIBILITY_TRACE 1
-#define SPATIAL_REUSE_FEEDBACK 16
-
-layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
+#include "/techniques/gi/Common.glsl"
 
 struct InitialSampleData {
     vec4 directionAndLength;
@@ -153,12 +141,12 @@ bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, v
 ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
     texelPos = clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1);
     ivec2 sampleTexelPos = texelPos;
+    uvec4 data1;
     if (swapIndex == 0) {
-        sampleTexelPos = csrgba32ui_restir1_texelToTexel(texelPos);
+        data1 = transient_restir_reservoir1_load(texelPos);
     } else {
-        sampleTexelPos = csrgba32ui_restir2_texelToTexel(texelPos);
+        data1 = transient_restir_reservoir1_load(texelPos);
     }
-    uvec4 data1 = imageLoad(uimg_csrgba32ui, sampleTexelPos);
 
     ReSTIRReservoir reservoir;
     //    reservoir.Y.x = bitfieldExtract(data1.x, 0, 12);
@@ -182,12 +170,6 @@ ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
 
 void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIndex) {
     texelPos = clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1);
-    ivec2 storeTexelPos = texelPos;
-    if (swapIndex == 0) {
-        storeTexelPos = csrgba32ui_restir1_texelToTexel(texelPos);
-    } else {
-        storeTexelPos = csrgba32ui_restir2_texelToTexel(texelPos);
-    }
     uvec4 data1 = uvec4(0u);
     //    data1.x = bitfieldInsert(data1.x, reservoir.Y.x, 0, 12);
     //    data1.x = bitfieldInsert(data1.x, reservoir.Y.y, 12, 12);
@@ -203,7 +185,11 @@ void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIn
     data1.z = floatBitsToUint(reservoir.avgWY);
 //    data1.w = floatBitsToUint(reservoir.wSum);
     data1.w = floatBitsToUint(reservoir.Y.w);
-    imageStore(uimg_csrgba32ui, storeTexelPos, data1);
+    if (swapIndex == 0) {
+        transient_restir_reservoir1_store(texelPos, data1);
+    } else {
+        transient_restir_reservoir2_store(texelPos, data1);
+    }
 }
 
 vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {

@@ -1,6 +1,5 @@
 #version 460 compatibility
 
-#include "/techniques/SSGI.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
@@ -8,6 +7,9 @@
 
 layout(local_size_x = 16, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
+
+layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
+#include "/techniques/SSGI.glsl"
 
 shared vec3 sharedData[128];
 
@@ -52,7 +54,7 @@ void main() {
                 initialSample.hitRadiance = resultStuff.xyz;
                 initialSample.directionAndLength.xyz = sampleDirView;
                 initialSample.directionAndLength.w = resultStuff.w;
-                imageStore(uimg_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), initialSampleData_pack(initialSample));
+                transient_restir_initialSample_store(texelPos, initialSampleData_pack(initialSample));
             } else {
                 ReSTIRReservoir newReservoir = restir_initReservoir(texelPos);
                 restir_storeReservoir(texelPos, newReservoir, 0);

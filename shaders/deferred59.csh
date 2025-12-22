@@ -1,6 +1,5 @@
 #version 460 compatibility
 
-#include "/techniques/SSGI.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
@@ -11,6 +10,8 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_temp3;
+layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
+#include "/techniques/SSGI.glsl"
 
 #if USE_REFERENCE || !SPATIAL_REUSE
 void main() {
@@ -33,7 +34,7 @@ void main() {
 //                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
 //                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
 
-                SpatialSampleData gData = spatialSampleData_unpack(imageLoad(uimg_csrgba32ui, csrgba32ui_temp3_texelToTexel(texelPos)));
+                SpatialSampleData gData = spatialSampleData_unpack(transient_restir_spatialInput_load(texelPos));
 
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
@@ -91,7 +92,7 @@ void main() {
 //                    GBufferData sampleGData = gbufferData_init();
 //                    gbufferData1_unpack(texelFetch(usam_gbufferData1, sampleTexelPos, 0), sampleGData);
 
-                    SpatialSampleData neighborData = spatialSampleData_unpack(imageLoad(uimg_csrgba32ui, csrgba32ui_temp3_texelToTexel(sampleTexelPos)));
+                    SpatialSampleData neighborData = spatialSampleData_unpack(transient_restir_spatialInput_load(sampleTexelPos));
 
                     if (dot(gData.geomNormal, neighborData.geomNormal) < 0.99) {
                         continue;
@@ -252,7 +253,9 @@ void main() {
 
                 const uint SPATIAL_REUSE_MAX_M = 128u;
 
-                vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
+                // TODO: SSGIOUT
+//                vec4 ssgiOut = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
+                vec4 ssgiOut = vec4(0.0);
                 ReSTIRReservoir resultReservoir = spatialReservoir;
                 #if SPATIAL_REUSE_VISIBILITY_TRACE
                 float avgWSum = spatialWSum / float(spatialReservoir.m);
@@ -291,7 +294,8 @@ void main() {
 
                 restir_storeReservoir(texelPos, resultReservoir, 1);
 
-                imageStore(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
+                // TODO: SSGI out
+//                imageStore(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos), floatBitsToUint(ssgiOut));
             }
         }
     }

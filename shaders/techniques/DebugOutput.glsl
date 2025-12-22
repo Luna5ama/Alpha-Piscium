@@ -10,7 +10,7 @@
 #include "/techniques/svgf/Common.glsl"
 #include "/techniques/rtwsm/RTWSM.glsl"
 #include "/techniques/atmospherics/clouds/ss/Common.glsl"
-#include "/techniques/SSGI.glsl"
+#include "/techniques/gi/Common.glsl"
 #include "/techniques/gtvbgi/Common.glsl"
 
 uniform sampler2D usam_debug;
