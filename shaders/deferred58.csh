@@ -157,8 +157,8 @@ void main() {
                     vec3 initalSample = brdf * hitRadiance;
 
 //                    float samplePdf = saturate(dot(gData.normal, sampleDirView)) / PI;
-                    float samplePdf = brdf;
-//                    float samplePdf = 1.0 / (2.0 * PI);
+//                    float samplePdf = brdf;
+                    float samplePdf = 1.0 / (2.0 * PI);
 
                     float newPHat = length(initalSample);
                     float newWi = samplePdf <= 0.0 ? 0.0 : newPHat / samplePdf;
@@ -182,7 +182,7 @@ void main() {
                     float avgWSum = wSum / float(temporalReservoir.m);
                     temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
                     temporalReservoir.m = clamp(temporalReservoir.m, 0u, 20u);
-                    ssgiOut = vec4(hitRadiance, temporalReservoir.Y.w);
+                    ssgiOut = vec4(finalSample.xyz * finalSample.w * temporalReservoir.avgWY, temporalReservoir.Y.w);
 
                     SpatialSampleData spatialSample = spatialSampleData_init();
                     spatialSample.hitRadiance = finalSample.xyz;
