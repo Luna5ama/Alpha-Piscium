@@ -6,7 +6,7 @@
 #include "/util/Material.glsl"
 #include "/techniques/SST.glsl"
 
-#define USE_REFERENCE 1
+#define USE_REFERENCE 0
 #define SKIP_FRAMES 16
 #define MAX_FRAMES 4096
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
@@ -17,7 +17,7 @@
 #define SPATIAL_REUSE_VISIBILITY_TRACE 1
 #define SPATIAL_REUSE_FEEDBACK 16
 
-/*layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
+layout(rgba32ui) uniform uimage2D uimg_csrgba32ui;
 
 struct InitialSampleData {
     vec4 directionAndLength;
@@ -248,7 +248,7 @@ vec3 ssgiEvalF(vec3 viewPos, GBufferData gData, vec3 sampleDirView, out float hi
     }
 
     return result;
-}*/
+}
 
 vec4 ssgiRef(ivec2 texelPos, uint finalIndex) {
 //    uint finalIndex = RANDOM_FRAME;
