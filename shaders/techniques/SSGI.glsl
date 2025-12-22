@@ -257,7 +257,7 @@ vec4 ssgiRef(ivec2 texelPos, uint finalIndex) {
 
             float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
 
-            hitRadiance *= hitCosTheta;
+//            hitRadiance *= hitCosTheta;
 
             float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
             vec3 f = brdf * hitRadiance;

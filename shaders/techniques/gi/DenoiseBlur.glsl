@@ -69,6 +69,7 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
 
     float hitDistFactor = linearStep(0.0, 4.0, historyData.diffuseHitDistance);
+    hitDistFactor =1.0;
     #if GI_DENOISE_PASS == 1
     hitDistFactor = pow(hitDistFactor, invAccumFactor * 1.0);
     #else
@@ -90,14 +91,21 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     varianceFactor /= 25.0;
 
     kernelRadius *= 1.0 + varianceFactor * baseKernelRadius.y;
+    kernelRadius *= hitDistFactor;
     kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
-    float aa = historyData.realHistoryLength + 0.001;
-    float baseColorWeight = pow2(invAccumFactor) * -(256.0 * (aa / (aa + historyData.diffuseHitDistance)));
+    float hitDistColorWeightHistoryDecay = historyData.realHistoryLength * 0.5 + 0.001;
+    float hitDistColorWeightFactor = saturate(hitDistColorWeightHistoryDecay / (hitDistColorWeightHistoryDecay + historyData.diffuseHitDistance));
+    #if GI_DENOISE_PASS == 1
+    float baseColorWeight = -mix(16.0, 1024.0, hitDistColorWeightFactor);
+    #else GI_DENOISE_PASS == 2
+    float baseColorWeight = -mix(4.0, 256.0, hitDistColorWeightFactor);
+    #endif
+
+    baseColorWeight *= pow2(invAccumFactor);
     float baseGeomNormalWeight = invAccumFactor * 8.0;
     float baseNormalWeight = invAccumFactor * 4.0;
     float basePlaneDistWeight = invAccumFactor * -512.0;
-    kernelRadius *= hitDistFactor;
 
     vec4 diffResult = centerDiff;
     vec4 specResult = centerSpec;
@@ -119,12 +127,13 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     float moment2 = pow2(centerLuma);
 
     float sigma = 0.69;
-    sigma += mix(kernelRadius * 2.0, 0.0, saturate(hitDistFactor));
+    sigma += kernelRadius * 4.0 * pow2(1.0 - saturate(hitDistFactor));
 
     #if ENABLE_DENOISER
     for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
         dir *= MAT2_GOLDEN_ANGLE;
         float baseRadius = sqrt((float(i) + blurJitter.y) * rcpSamples);
+//        float baseRadius = ((float(i) + blurJitter.y) * rcpSamples);
         vec2 offset = dir * (baseRadius * kernelRadius);
         vec2 sampleTexelPosF = centerTexelPos + offset;
         vec2 sampleUV = sampleTexelPosF * uval_mainImageSizeRcp;

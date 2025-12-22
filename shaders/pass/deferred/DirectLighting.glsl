@@ -68,7 +68,7 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
     directDiffuseOut /= material.albedo;
 
     ssgiOut += emissiveV;
-    ssgiOut += combinedLighting.diffuseLambertian;
+//    ssgiOut += combinedLighting.diffuseLambertian;
 //    ssgiOut += combinedLighting.sss * 4.0;
 }
 

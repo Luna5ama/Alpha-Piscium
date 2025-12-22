@@ -19,6 +19,8 @@ void main() {
         gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
         gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
+        historyData.diffuseHitDistance = MAX_HIT_DISTANCE;
+
         // TODO: optimize with shared memory
         for (int dy = -2; dy <= 2; ++dy) {
             for (int dx = -2; dx <= 2; ++dx) {
@@ -30,11 +32,13 @@ void main() {
                 gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(neighborPos));
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(neighborPos));
 
-                historyData.diffuseHitDistance = min(historyData.diffuseHitDistance, neighborHistoryData.diffuseHitDistance);
+                if (neighborHistoryData.diffuseHitDistance > 0.0){
+                    historyData.diffuseHitDistance = min(historyData.diffuseHitDistance, neighborHistoryData.diffuseHitDistance);
+                }
             }
         }
 
-        const vec4 baseKernelRadius = vec4(64.0, 1.0, 0.5, 64.0);
+        const vec4 baseKernelRadius = vec4(32.0, 1.0, 2.0, 32.0);
 //        const vec3 baseKernelRadius = vec3(32.0, 32.0, 32.0);
         vec2 noise2 = rand_stbnVec2(texelPos, frameCounter);
         gi_blur(texelPos, baseKernelRadius, historyData, noise2);
