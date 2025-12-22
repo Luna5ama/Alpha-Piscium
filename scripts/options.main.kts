@@ -1,21 +1,21 @@
 @file:Import("options.lib.kts")
 
 import java.io.File
-import java.util.Locale
+import java.util.*
 import kotlin.io.path.Path
 import kotlin.io.path.readLines
 import kotlin.math.pow
 
 options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
     mainScreen(2) {
-        screen("TERRAIN", 2) {
+        screen(2) {
             lang {
                 name = "Terrain"
             }
             lang(Locale.SIMPLIFIED_CHINESE) {
                 name = "地形"
             }
-            screen("BLOCKLIGHT", 1) {
+            screen(1) {
                 lang {
                     name = "Block Lighting"
                 }
@@ -23,27 +23,27 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     name = "方块光照"
                 }
                 slider("SETTING_FIRE_TEMPERATURE", 1400, 100..5000 step 100) {
-                lang {
-                    name = "Fire Temperature"
-                    comment =
-                        "Controls the color temperature of fire in Kelvin. Default: 1400 K (based on real fire). Higher values produce whiter/bluer light."
+                    lang {
+                        name = "Fire Temperature"
+                        comment =
+                            "Controls the color temperature of fire in Kelvin. Default: 1400 K (based on real fire). Higher values produce whiter/bluer light."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "火焰温度"
+                        comment = "控制火焰的色温（开尔文）。默认值：1400 K（基于真实火焰）。数值越高，光线越白/越蓝。"
+                    }
                 }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "火焰温度"
-                    comment = "控制火焰的色温（开尔文）。默认值：1400 K（基于真实火焰）。数值越高，光线越白/越蓝。"
-                }
-            }
                 slider("SETTING_LAVA_TEMPERATURE", 1300, 100..5000 step 100) {
-                lang {
-                    name = "Lava Temperature"
-                    comment =
-                        "Controls the color temperature of lava in Kelvin. Default: 1300 K (based on real lava). Higher values produce whiter/bluer light."
+                    lang {
+                        name = "Lava Temperature"
+                        comment =
+                            "Controls the color temperature of lava in Kelvin. Default: 1300 K (based on real lava). Higher values produce whiter/bluer light."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "岩浆温度"
+                        comment = "控制岩浆的色温（开尔文）。默认值：1300 K（基于真实岩浆）。数值越高，光线越白/越蓝。"
+                    }
                 }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "岩浆温度"
-                    comment = "控制岩浆的色温（开尔文）。默认值：1300 K（基于真实岩浆）。数值越高，光线越白/越蓝。"
-                }
-            }
                 slider("SETTING_EMISSIVE_STRENGTH", 4.0, 0.0..8.0 step 0.25) {
                     lang {
                         name = "Emissive Brightness"
@@ -133,7 +133,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("NORMAL_MAPPING", 1) {
+            screen(1) {
                 lang {
                     name = "Normal Mapping"
                 }
@@ -142,7 +142,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 toggle("SETTING_NORMAL_MAPPING", true) {
                     lang {
-                        name = "Enable Normal Mapping"
+                        name = "Normal Mapping"
                         comment =
                             "Enables surface detail from normal maps, adding depth and texture to blocks without additional geometry."
                     }
@@ -165,7 +165,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("SPECULAR_MAPPING", 1) {
+            screen(1) {
                 lang {
                     name = "Specular Mapping"
                 }
@@ -262,7 +262,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "半透明方块最大粗糙度"
                         prefix = "2^-"
-                        comment = "半透明方块（如玻璃）可呈现的最粗糙程度。数值越高，允许更磨砂的玻璃效果。实际值计算为 2^-x。"
+                        comment =
+                            "半透明方块（如玻璃）可呈现的最粗糙程度。数值越高，允许更磨砂的玻璃效果。实际值计算为 2^-x。"
                     }
                 }
                 empty()
@@ -278,7 +279,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("SSS", 1) {
+            screen(1) {
                 lang {
                     name = "Subsurface Scattering"
                 }
@@ -354,7 +355,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             }
             empty()
             empty()
-            screen("SHADOW", 2) {
+            screen(2) {
                 lang {
                     name = "Shadows"
                 }
@@ -395,7 +396,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 empty()
                 empty()
-                screen("RTWSM", 1) {
+                screen(1) {
                     lang {
                         name = "RTWSM"
                         comment =
@@ -535,7 +536,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
-                screen("PCSS", 1) {
+                screen(1) {
                     lang {
                         name = "Soft Shadows"
                         comment = "Realistic soft shadow edges based on distance from the shadow caster using PCSS"
@@ -587,7 +588,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("VBGI", 1) {
+            screen(1) {
                 lang {
                     name = "VBGI"
                     comment = "Advanced screen space technique that creates realistic indirect lighting"
@@ -714,11 +715,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 slider("SETTING_VGBI_ENV_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
                     lang {
-                        name = "Environment Light Intensity"
+                        name = "Environment Probe Light Intensity"
                         comment = "Brightness of indirect light from the environment probe."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "环境探针强度"
+                        name = "环境探针光强度"
                         comment = "来自环境探针的间接光亮度。"
                     }
                 }
@@ -765,7 +766,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("DENOISER", 1) {
+            screen(1) {
                 lang {
                     name = "Denoiser"
                 }
@@ -940,67 +941,117 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("VOLUMETRICS", 2) {
+        screen(2) {
             lang {
                 name = "Volumetrics"
             }
             lang(Locale.SIMPLIFIED_CHINESE) {
                 name = "体积效果"
             }
-            slider("SETTING_ATM_ALT_SCALE", 1000, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
-                lang {
-                    name = "Altitude Scale"
-                    comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "大气高度比例"
-                    comment = "值为 1 表示 1 个方块=1 千米，值为 10 表示 10 个方块=1 千米，依此类推。"
+
+            row {
+                text("GLOBAL_SCALING", "Global Settings") {
+                    valueLang(Locale.SIMPLIFIED_CHINESE, "全局设置")
                 }
             }
-            slider("SETTING_ATM_D_SCALE", 1000, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
-                lang {
-                    name = "Distance Scale"
-                    comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
+            row {
+                slider("SETTING_ATM_ALT_SCALE", 1000, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
+                    lang {
+                        name = "Altitude Scale"
+                        comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "大气高度比例"
+                        comment = "值为 1 表示 1 个方块=1 千米，值为 10 表示 10 个方块=1 千米，依此类推。"
+                    }
                 }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "大气距离比例"
-                    comment = "值为 1 表示 1 个方块=1 千米，值为 10 表示 10 个方块=1 千米，依此类推。"
+                slider("SETTING_ATM_D_SCALE", 1000, listOf(1, 10, 100).flatMap { 1 * it..10 * it step it } + 1000) {
+                    lang {
+                        name = "Distance Scale"
+                        comment = "Value of 1 means 1 block = 1 km, value of 10 means 10 blocks = 1 km, and so on."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "大气距离比例"
+                        comment = "值为 1 表示 1 个方块=1 千米，值为 10 表示 10 个方块=1 千米，依此类推。"
+                    }
+                }
+                screen(1) {
+                    lang {
+                        name = "More Global Settings"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "更多全局设置"
+                    }
+                    slider("SETTING_ATM_GROUND_ALBEDO_R", 45, 0..255) {
+                        lang {
+                            name = "Ground Color - Red"
+                            comment =
+                                "Red component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "地面颜色 - 红"
+                            comment = "从地面反射到大气中的光线的红色分量。影响地平线和整体颜色。"
+                        }
+                    }
+                    slider("SETTING_ATM_GROUND_ALBEDO_G", 89, 0..255) {
+                        lang {
+                            name = "Ground Color - Green"
+                            comment =
+                                "Green component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "地面颜色 - 绿"
+                            comment = "从地面反射到大气中的光线的绿色分量。影响地平线和整体颜色。"
+                        }
+                    }
+                    slider("SETTING_ATM_GROUND_ALBEDO_B", 82, 0..255) {
+                        lang {
+                            name = "Ground Color - Blue"
+                            comment =
+                                "Blue component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "地面颜色 - 蓝"
+                            comment = "从地面反射到大气中的光线的蓝色分量。影响地平线和整体颜色。"
+                        }
+                    }
                 }
             }
-            empty()
-            empty()
-            slider("SETTING_EPIPOLAR_SLICES", 1024, listOf(256, 512, 1024, 2048)) {
-                lang {
-                    name = "Epipolar Slices"
-                    comment =
-                        "Number of epipolar slices used in volumetric lighting. Higher value increases quality but also decreases performance."
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "对极（Epipolar）切片数"
-                    comment = "体积光照中使用的对极切（Epipolar）片数。数值越高，质量越好，但也会降低性能。"
+            row {
+                empty()
+            }
+
+            row {
+                text("AIR", "Air, Water") {
+                    valueLang(Locale.SIMPLIFIED_CHINESE, "空气、水")
                 }
             }
-            slider("SETTING_SLICE_SAMPLES", 512, listOf(128, 256, 512, 1024)) {
-                lang {
-                    name = "Slice Samples"
-                    comment =
-                        "Number of samples per epipolar slice used in volumetric lighting. Higher value increases quality but also decreases performance."
+            row {
+                slider("SETTING_EPIPOLAR_SLICES", 1024, listOf(256, 512, 1024, 2048)) {
+                    lang {
+                        name = "Epipolar Slices"
+                        comment =
+                            "Number of epipolar slices used in volumetric lighting. Higher value increases quality but also decreases performance."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "对极（Epipolar）切片数"
+                        comment = "体积光照中使用的对极切（Epipolar）片数。数值越高，质量越好，但也会降低性能。"
+                    }
                 }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "对极（Epipolar）切片采样数"
-                    comment = "体积光照中每个对极（Epipolar）切片使用的采样数。数值越高，质量越好，但也会降低性能。"
+                slider("SETTING_SLICE_SAMPLES", 512, listOf(128, 256, 512, 1024)) {
+                    lang {
+                        name = "Slice Samples"
+                        comment =
+                            "Number of samples per epipolar slice used in volumetric lighting. Higher value increases quality but also decreases performance."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "对极（Epipolar）切片采样数"
+                        comment = "体积光照中每个对极（Epipolar）切片使用的采样数。数值越高，质量越好，但也会降低性能。"
+                    }
                 }
             }
-            empty()
-            empty()
-            screen("AIR", 2) {
-                lang {
-                    name = "Air"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "空气"
-                }
-                screen("MIE_COEFF", 1) {
+            row {
+                screen(1) {
                     lang {
                         name = "Mie Coefficients"
                         comment = "Controls propeties of Haze & Fog"
@@ -1155,7 +1206,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
-                screen("RAY_COEFF", 1) {
+                screen(1) {
                     lang {
                         name = "Rayleigh Coefficients"
                     }
@@ -1185,684 +1236,763 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
-                slider("SETTING_ATM_GROUND_ALBEDO_R", 45, 0..255) {
+                screen(1) {
                     lang {
-                        name = "Ground Color - Red"
-                        comment =
-                            "Red component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
+                        name = "More Air Settings"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "地面颜色 - 红"
-                        comment = "从地面反射到大气中的光线的红色分量。影响地平线和整体颜色。"
+                        name = "更多空气设置"
                     }
-                }
-                slider("SETTING_ATM_GROUND_ALBEDO_G", 89, 0..255) {
-                    lang {
-                        name = "Ground Color - Green"
-                        comment =
-                            "Green component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
+                    slider("SETTING_SKYVIEW_RES", 256, powerOfTwoRange(7..10)) {
+                        lang {
+                            name = "Sky View Resolution"
+                            comment =
+                                "Resolution of sky calculations. Higher values improve sky color accuracy but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "天空视图分辨率"
+                            comment = "天空计算的分辨率。数值越高，天空颜色精度越高，但会降低性能。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "地面颜色 - 绿"
-                        comment = "从地面反射到大气中的光线的绿色分量。影响地平线和整体颜色。"
+                    toggle("SETTING_DEPTH_BREAK_CORRECTION", true) {
+                        lang {
+                            name = "Depth Break Correction"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "深度断裂校正"
+                        }
                     }
-                }
-                slider("SETTING_ATM_GROUND_ALBEDO_B", 82, 0..255) {
-                    lang {
-                        name = "Ground Color - Blue"
-                        comment =
-                            "Blue component of light reflected from the ground into the atmosphere. Affects horizon and overall color."
+                    empty()
+                    slider("SETTING_SKY_SAMPLES", 32, 16..64 step 8) {
+                        lang {
+                            name = "Sky Samples"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "天空采样步进数"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "地面颜色 - 蓝"
-                        comment = "从地面反射到大气中的光线的蓝色分量。影响地平线和整体颜色。"
+                    slider("SETTING_LIGHT_SHAFT_SAMPLES", 12, 4..32 step 4) {
+                        lang {
+                            name = "Light Shaft Samples"
+                            comment =
+                                "Samples for volumetric light shafts (god rays). Higher values create smoother, more detailed rays but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "体积光采样步进数"
+                            comment = "体积光束（丁达尔效应）的采样数。数值越高，光线越平滑、越细致，但会降低性能。"
+                        }
                     }
-                }
-                empty()
-                empty()
-                empty()
-                slider("SETTING_SKYVIEW_RES", 256, powerOfTwoRange(7..10)) {
-                    lang {
-                        name = "Sky View Resolution"
-                        comment =
-                            "Resolution of sky calculations. Higher values improve sky color accuracy but reduce performance."
+                    slider("SETTING_LIGHT_SHAFT_SHADOW_SAMPLES", 8, 1..16 step 1) {
+                        lang {
+                            name = "Light Shaft Shadow Samples"
+                            comment =
+                                "Shadow samples in god rays. Higher values improve shadow accuracy in light shafts but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "体积光阴影采样数"
+                            comment = "体积光渲染中的阴影采样数。数值越高，光束中的阴影精度越高，但会降低性能。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "天空视图分辨率"
-                        comment = "天空计算的分辨率。数值越高，天空颜色精度越高，但会降低性能。"
+                    slider("SETTING_LIGHT_SHAFT_DEPTH_BREAK_CORRECTION_SAMPLES", 32, 8..64 step 8) {
+                        lang {
+                            name = "Light Shaft Depth Break Correction Samples"
+                            comment =
+                                "Shadow samples used in depth break correction. Higher values improve shadow accuracy in light shafts but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "体积光深度断裂校正采样数"
+                            comment = "深度断裂校正中使用的阴影采样数。数值越高，光束中的阴影精度越高，但会降低性能。"
+                        }
                     }
-                }
-                toggle("SETTING_DEPTH_BREAK_CORRECTION", true) {
-                    lang {
-                        name = "Depth Break Correction"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "深度断裂校正"
-                    }
-                }
-                empty()
-                empty()
-                slider("SETTING_SKY_SAMPLES", 32, 16..64 step 8) {
-                    lang {
-                        name = "Sky Samples"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "天空采样步进数"
-                    }
-                }
-                slider("SETTING_LIGHT_SHAFT_SAMPLES", 12, 4..32 step 4) {
-                    lang {
-                        name = "Light Shaft Samples"
-                        comment =
-                            "Samples for volumetric light shafts (god rays). Higher values create smoother, more detailed rays but reduce performance."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "体积光采样步进数"
-                        comment = "体积光束（丁达尔效应）的采样数。数值越高，光线越平滑、越细致，但会降低性能。"
-                    }
-                }
-                slider("SETTING_LIGHT_SHAFT_SHADOW_SAMPLES", 8, 1..16 step 1) {
-                    lang {
-                        name = "Light Shaft Shadow Samples"
-                        comment =
-                            "Shadow samples in god rays. Higher values improve shadow accuracy in light shafts but reduce performance."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "体积光阴影采样数"
-                        comment = "体积光渲染中的阴影采样数。数值越高，光束中的阴影精度越高，但会降低性能。"
-                    }
-                }
-                slider("SETTING_LIGHT_SHAFT_DEPTH_BREAK_CORRECTION_SAMPLES", 32, 8..64 step 8) {
-                    lang {
-                        name = "Light Shaft Depth Break Correction Samples"
-                        comment =
-                            "Shadow samples used in depth break correction. Higher values improve shadow accuracy in light shafts but reduce performance."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "体积光深度断裂校正采样数"
-                        comment = "深度断裂校正中使用的阴影采样数。数值越高，光束中的阴影精度越高，但会降低性能。"
-                    }
-                }
-                slider("SETTING_LIGHT_SHAFT_SOFTNESS", 5, 0..10 step 1) {
-                    lang {
-                        name = "Light Shaft Softness"
-                        comment =
-                            "How soft and diffused the light shafts appear. Higher values create more diffused, rays."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "体积光柔和度"
-                        comment = "光束的柔和和扩散程度。数值越高，创造更扩散的光线。"
+                    slider("SETTING_LIGHT_SHAFT_SOFTNESS", 5, 0..10 step 1) {
+                        lang {
+                            name = "Light Shaft Softness"
+                            comment =
+                                "How soft and diffused the light shafts appear. Higher values create more diffused, rays."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "体积光柔和度"
+                            comment = "光束的柔和和扩散程度。数值越高，创造更扩散的光线。"
+                        }
                     }
                 }
             }
-            screen("CLOUDS_LIGHTING", 1) {
-                lang {
-                    name = "Cloud Lighting"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "云照明"
-                }
-                slider("SETTING_CLOUDS_MS_ORDER", 4, 1..10) {
+            row {
+                screen(1) {
                     lang {
-                        name = "Multi-Scattering Order"
+                        name = "Water Surface"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "多重散射阶数"
+                        name = "水面"
+                    }
+                    toggle("SETTING_WATER_REFRACT_APPROX", true) {
+                        lang {
+                            name = "Approximate Refraction"
+                            comment =
+                                "Approximated refraction direction that works better with screen space refraction."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "折射近似"
+                            comment = "使用近似的折射方向，更适合屏幕空间折射。"
+                        }
+                    }
+                    toggle("SETTING_WATER_CAUSTICS", false) {
+                        lang {
+                            name = "Water Caustics"
+                            comment =
+                                "Shows light patterns on surfaces beneath water, like you see at the bottom of pools."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "启用水焦散"
+                            comment = "显示水下表面上的光斑图案，就像您在泳池底部看到的那样。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..4.0 step 0.5) {
+                        lang {
+                            name = "Water Normal Intensity"
+                            comment =
+                                "Intensity of water surface waves and ripples. Higher values create choppier water."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "水法线强度"
+                            comment = "水面波浪和涟漪的强度。数值越高，水越波涛汹涌。"
+                        }
+                    }
+                    empty()
+                    toggle("SETTING_WATER_PARALLAX", true) {
+                        lang {
+                            name = "Water Parallax"
+                            comment =
+                                "Creates realistic depth in water waves, making them appear 3D instead of flat."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "启用水视差"
+                            comment = "给水波添加立体感，使它们看起来是3D而不是平面的。"
+                        }
+                    }
+                    slider("SETTING_WATER_PARALLAX_STRENGTH", 1.0, 0.0..4.0 step 0.5) {
+                        lang {
+                            name = "Water Parallax Strength"
+                            comment =
+                                "How deep and three-dimensional water waves appear. Higher values create more pronounced depth."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "水视差强度"
+                            comment = "水波的深度和三维感。数值越高，深度越明显。"
+                        }
+                    }
+                    slider("SETTING_WATER_PARALLAX_LINEAR_STEPS", 8, powerOfTwoRangeAndHalf(2..5)) {
+                        lang {
+                            name = "Water Parallax Linear Sample Steps"
+                            comment =
+                                "Samples for wave depth effect. Higher values reduce visual breaks between waves but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "水视差线性采样步数"
+                            comment = "波浪深度效果的采样数。数值越高，波浪间的视觉断裂越少，但会降低性能。"
+                        }
+                    }
+                    slider("SETTING_WATER_PARALLAX_SECANT_STEPS", 2, 1..8) {
+                        lang {
+                            name = "Water Parallax Secant Sample Steps"
+                            comment =
+                                "Additional refinement passes for wave depth. Higher values create smoother waves but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "水视差割线采样步数"
+                            comment = "波浪深度的额外细化。数值越高，波浪越平滑，但会降低性能。"
+                        }
                     }
                 }
-                slider("SETTING_CLOUDS_MS_FALLOFF_SCTTERING", 0.55, 0.0..1.0 step 0.05) {
+                screen(1) {
                     lang {
-                        name = "Multi-Scattering Scattering Falloff"
+                        name = "Water Volume"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "多重散射散射衰减"
+                        name = "水体积渲染"
                     }
-                }
-                slider("SETTING_CLOUDS_MS_FALLOFF_EXTINCTION", 0.6, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Multi-Scattering Extinction Falloff"
+                    slider("SETTING_WATER_SCATTERING_REFRACTION_APPROX", true) {
+                        lang {
+                            name = "Approximate Refraction Light Shafts"
+                            comment = "Approximate under water light shafts causes by water waves"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "模拟折射光束"
+                            comment = "模拟由水面波动引起的水下光束"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "多重散射消光衰减"
+                    slider("SETTING_WATER_SCATTERING_REFRACTION_APPROX_CONTRAST", 5, 0..12) {
+                        lang {
+                            name = "Refraction Light Shaft Contrast"
+                            comment = "Sharpness of underwater light rays created by surface waves. "
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "折射光束对比度"
+                            comment = "由水面波浪创造的水下光线的锐度。"
+                        }
                     }
-                }
-                slider("SETTING_CLOUDS_MS_FALLOFF_PHASE", 0.6, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Multi-Scattering Phase Falloff"
+                    empty()
+                    slider("SETTING_WATER_SCATTERING_R", 14, 0..100) {
+                        lang {
+                            name = "Scattering Coefficient - Red"
+                            suffix = " %"
+                            comment =
+                                "How much red light bounces in water. Lower values create more blue-tinted water."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "散射系数 - 红"
+                            suffix = " %"
+                            comment = "红光在水中反弹的程度。数值越低，水越偏蓝。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "多重散射相位衰减"
+                    slider("SETTING_WATER_SCATTERING_G", 22, 0..100) {
+                        lang {
+                            name = "Scattering Coefficient - Green"
+                            suffix = " %"
+                            comment = "How much green light bounces in water. Affects overall water color tone."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "散射系数 - 绿"
+                            suffix = " %"
+                            comment = "绿光在水中反弹的程度。影响整体水色色调。"
+                        }
                     }
-                }
-                slider("SETTING_CLOUDS_MS_FALLOFF_AMB", 0.1, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Multi-Scattering Ambient Irradiance Falloff"
+                    slider("SETTING_WATER_SCATTERING_B", 38, 0..100) {
+                        lang {
+                            name = "Scattering Coefficient - Blue"
+                            suffix = " %"
+                            comment = "How much blue light bounces in water. Higher values create bluer water."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "散射系数 - 蓝"
+                            suffix = " %"
+                            comment = "蓝光在水中反弹的程度。数值越高，水越蓝。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "多重散射环境辐照度衰减"
+                    slider("SETTING_WATER_SCATTERING_MULTIPLIER", -8.75, -15.0..-5.0 step 0.25) {
+                        lang {
+                            name = "Scattering Coefficient Multiplier"
+                            prefix = "2^"
+                            comment =
+                                "Global multiplier for how much light bounces in water. Higher values brighten underwater scenes. (Multiplier: 2^x)"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "散射系数倍数"
+                            prefix = "2^"
+                            comment = "光在水中反弹程度的全局倍数。数值越高，水下场景越明亮。（倍数：2^x）"
+                        }
                     }
-                }
-                empty()
-                slider("SETTING_CLOUDS_AMB_UNI_PHASE_RATIO", 0.5, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Ambient Irradiance Uniform Phase Ratio"
-                        comment =
-                            "How evenly ambient light spreads in clouds. Higher values create more uniform, diffused ambient lighting."
+                    empty()
+                    slider("SETTING_WATER_ABSORPTION_R", 100, 0..100) {
+                        lang {
+                            name = "Absorption Coefficient - Red"
+                            suffix = " %"
+                            comment =
+                                "How quickly red light fades underwater. Higher values remove red faster, creating bluer water."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "吸收系数 - 红"
+                            suffix = " %"
+                            comment = "红光在水下消失的速度。数值越高，红色消失越快，水越蓝。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "环境辐照度均匀相位比"
-                        comment = "环境光在云中扩散的均匀程度。数值越高，创造更均匀、更扩散的环境照明。"
+                    slider("SETTING_WATER_ABSORPTION_G", 40, 0..100) {
+                        lang {
+                            name = "Absorption Coefficient - Green"
+                            suffix = " %"
+                            comment =
+                                "How quickly green light fades underwater. Affects visibility distance and water color."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "吸收系数 - 绿"
+                            suffix = " %"
+                            comment = "绿光在水下消失的速度。影响可见距离和水色。"
+                        }
+                    }
+                    slider("SETTING_WATER_ABSORPTION_B", 24, 0..100) {
+                        lang {
+                            name = "Absorption Coefficient - Blue"
+                            suffix = " %"
+                            comment =
+                                "How quickly blue light fades underwater. Lower values maintain blue color in deeper water."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "吸收系数 - 蓝"
+                            suffix = " %"
+                            comment = "蓝光在水下消失的速度。数值越低，更深的水中保持蓝色。"
+                        }
+                    }
+                    slider("SETTING_WATER_ABSORPTION_MULTIPLIER", -9.25, -15.0..-5.0 step 0.25) {
+                        lang {
+                            name = "Absorption Coefficient Multiplier"
+                            prefix = "2^"
+                            comment =
+                                "Global multiplier for water absorption. Higher values create murkier water with less visibility. (Multiplier: 2^x)"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "吸收系数倍数"
+                            prefix = "2^"
+                            comment = "水吸收的全局倍数。数值越高，水越浑浊，可见度越低。（倍数：2^x）"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_WATER_LIGHT_SHAFT_SOFTNESS", 7, 0..10 step 1) {
+                        lang {
+                            name = "Light Shaft Softness"
+                            comment =
+                                "How soft and diffused the light shafts appear. Higher values create more diffused, rays."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "体积光柔和度"
+                            comment = "光束的柔和和扩散程度。数值越高，创造更扩散的光线。"
+                        }
+                    }
+                    slider("SETTING_WATER_SHADOW_SAMPLE", 64, powerOfTwoRangeAndHalf(4..8)) {
+                        lang {
+                            name = "Shadow Samples"
+                            comment =
+                                "Samples for shadows visible underwater. Higher values improve shadow smoothness but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "阴影采样数"
+                            comment = "水下可见阴影的采样数。数值越高，阴影越平滑，但会降低性能。"
+                        }
+                    }
+                    slider("SETTING_WATER_SHADOW_SAMPLE_POOL_SIZE", 8, 2..16 step 2) {
+                        lang {
+                            name = "Shadow Sample Pool Size"
+                            comment = "Higher values increase shadowing quality but also decrease performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "阴影采样池大小"
+                            comment = "数值越高，阴影质量越高，但也会降低性能。"
+                        }
                     }
                 }
             }
-            screen("LOW_CLOUDS", 1) {
-                lang {
-                    name = "Low Altitude Clouds"
+            row {
+                empty()
+            }
+
+            row {
+                text("CLOUDS", "Clouds") {
+                    valueLang(Locale.SIMPLIFIED_CHINESE, "云")
                 }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "低空云"
+            }
+            row {
+                screen(1) {
+                    lang {
+                        name = "Cloud Lighting"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "云照明"
+                    }
+                    slider("SETTING_CLOUDS_MS_RADIUS", 0.7, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Multi-Scattering Radius"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "多重散射半径"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_AMB_BACKSCATTER_FACTOR", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Ambient Backscatter Phase Factor"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "环境后向散射相位因子"
+                        }
+                    }
                 }
+            }
+            row {
+                text("LOW_CLOUDS", "Low Clouds") {
+                    valueLang(Locale.SIMPLIFIED_CHINESE, "低云")
+                }
+            }
+            row {
                 toggle("SETTING_CLOUDS_CU", true) {
                     lang {
-                        name = "Enable Cumulus Clouds"
+                        name = "Enable Low Clouds"
                         comment = "Toggles puffy, volumetric clouds at lower altitudes."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用积云"
+                        name = "启用低云"
                         comment = "开关低空的蓬松体积云。"
                     }
                 }
-                toggle("SETTING_CLOUDS_LOW_UPSCALE_FACTOR", 4, 0..6) {
+                screen(1) {
                     lang {
-                        name = "Upscale Factor"
-                        comment =
-                            "Renders clouds at lower resolution then upscales. Higher values improve performance but may reduce detail."
-                        0 value "1.0 x"
-                        1 value "1.5 x"
-                        2 value "2.0 x"
-                        3 value "2.5 x"
-                        4 value "3.0 x"
-                        5 value "3.5 x"
-                        6 value "4.0 x"
+                        name = "Rendering Settings"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "升采样因子"
-                        comment = "以较低分辨率渲染云然后升采样。数值越高，性能越好，但可能减少细节。"
-                        0 value "1.0 倍"
-                        1 value "1.5 倍"
-                        2 value "2.0 倍"
-                        3 value "2.5 倍"
-                        4 value "3.0 倍"
-                        5 value "3.5 倍"
-                        6 value "4.0 倍"
+                        name = "渲染设置"
+                    }
+                    toggle("SETTING_CLOUDS_LOW_UPSCALE_FACTOR", 2, 0..6) {
+                        lang {
+                            name = "Upscale Factor"
+                            comment =
+                                "Renders clouds at lower resolution then upscales. Higher values improve performance but may reduce detail."
+                            0 value "1.0 x"
+                            1 value "1.5 x"
+                            2 value "2.0 x"
+                            3 value "2.5 x"
+                            4 value "3.0 x"
+                            5 value "3.5 x"
+                            6 value "4.0 x"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "升采样因子"
+                            comment = "以较低分辨率渲染云然后升采样。数值越高，性能越好，但可能减少细节。"
+                            0 value "1.0 倍"
+                            1 value "1.5 倍"
+                            2 value "2.0 倍"
+                            3 value "2.5 倍"
+                            4 value "3.0 倍"
+                            5 value "3.5 倍"
+                            6 value "4.0 倍"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 48, powerOfTwoRangeAndHalf(2..7)) {
+                        lang {
+                            name = "Max Accumulation"
+                            comment =
+                                "Frames blended for smooth clouds. Higher values create smoother clouds but may cause ghosting during fast movement."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "最大累积帧数"
+                            comment = "混合以获得平滑云的帧数。数值越高，云越平滑，但在快速移动时可能导致重影。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_CONFIDENCE_CURVE", 4.0, 1.0..8.0 step 0.5) {
+                        lang {
+                            name = "Confidence Curve"
+                            comment =
+                                "How quickly clouds sharpen over time. Higher values sharpen faster but may show more noise initially."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "置信度曲线"
+                            comment = "云随时间变锐利的速度。数值越高，变锐利越快，但初始时可能显示更多噪点。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.15, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Variance Clipping"
+                            comment =
+                                "Prevents cloud trails during movement. Higher values reduce ghosting but may increase flickering."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "方差裁剪"
+                            comment = "防止移动时的云拖尾。数值越高，重影越少，但可能增加闪烁。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_CLOUDS_LOW_STEP_MIN", 48, 16..128 step 8) {
+                        lang {
+                            name = "Ray Marching Min Step"
+                            comment =
+                                "Minimum samples through clouds. This value is typically used in clouds directly on top. Higher values improve detail but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "光线步进最小步数"
+                            comment = "穿过云的最小采样数。此值通常用于正上方的云。数值越高，细节越好，但会降低性能。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_LOW_STEP_MAX", 128, 32..256 step 8) {
+                        lang {
+                            name = "Ray Marching Max Step"
+                            comment =
+                                "Maximum samples through thick clouds.  This value is typically used in clouds near horizon. Higher values improve quality of dense clouds but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "光线步进最大步数"
+                            comment =
+                                "穿过厚云的最大采样数。此值通常用于地平线附近的云。数值越高，密集云的质量越好，但会降低性能。"
+                        }
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 32, powerOfTwoRangeAndHalf(2..7)) {
+                screen(1) {
                     lang {
-                        name = "Max Accumulation"
-                        comment =
-                            "Frames blended for smooth clouds. Higher values create smoother clouds but may cause ghosting during fast movement."
+                        name = "Modeling Settings"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "最大累积帧数"
-                        comment = "混合以获得平滑云的帧数。数值越高，云越平滑，但在快速移动时可能导致重影。"
+                        name = "建模设置"
+                    }
+                    slider("SETTING_CLOUDS_CU_HEIGHT", 1.0, 0.0..8.0 step 0.1) {
+                        lang {
+                            name = "Cloud Altitude"
+                            suffix = " km"
+                            comment = "Altitude where cumulus clouds begin to form."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "云高度"
+                            suffix = " 千米"
+                            comment = "积云开始形成的高度。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_THICKNESS", 2.0, 0.0..4.0 step 0.1) {
+                        lang {
+                            name = "Cloud Layer Thickness"
+                            suffix = " km"
+                            comment =
+                                "Vertical thickness of the cloud layer. Thicker clouds are more dramatic and puffy."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "云层厚度"
+                            suffix = " 千米"
+                            comment = "云层的垂直厚度。更厚的云更具戏剧性和蓬松感。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_DENSITY", 1.0, 0.0..4.0 step 0.05) {
+                        lang {
+                            name = "Cloud Density"
+                            suffix = " x"
+                            comment =
+                                "How thick and opaque clouds appear. Higher values create denser, more solid-looking clouds."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "云浓度"
+                            suffix = " 倍"
+                            comment = "云的厚度和不透明度。数值越高，云越浓密、看起来越坚实。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.4, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Coverage"
+                            comment =
+                                "How much of the sky is covered by clouds. 0 = clear sky, 1 = completely overcast."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "云层覆盖率"
+                            comment = "云覆盖天空的程度。0 = 晴空，1 = 完全阴天。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_PHASE_RATIO", 0.9, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Cumulus Phase Ratio"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "积云相位函数比例"
+                        }
+                    }
+                    empty()
+                    toggle("SETTING_CLOUDS_CU_WIND", true) {
+                        lang {
+                            name = "Cloud Movement"
+                            comment = "Allows clouds to drift across the sky over time."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "启用云运动"
+                            comment = "允许云随时间飘过天空。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_WIND_SPEED", 0.0, -4.0..4.0 step 0.25) {
+                        lang {
+                            name = "Wind Speed"
+                            comment =
+                                "Speed of cloud movement. Negative values move clouds in the opposite direction."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "风速"
+                            comment = "云移动的速度。负值使云向相反方向移动。"
+                        }
                     }
                 }
-                slider("SETTING_CLOUDS_LOW_CONFIDENCE_CURVE", 4.0, 1.0..8.0 step 0.5) {
+                screen(1) {
                     lang {
-                        name = "Confidence Curve"
-                        comment =
-                            "How quickly clouds sharpen over time. Higher values sharpen faster but may show more noise initially."
+                        name = "Modeling Advanced Settings"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "置信度曲线"
-                        comment = "云随时间变锐利的速度。数值越高，变锐利越快，但初始时可能显示更多噪点。"
+                        name = "建模高级设置"
                     }
-                }
-                slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.25, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Variance Clipping"
-                        comment =
-                            "Prevents cloud trails during movement. Higher values reduce ghosting but may increase flickering."
+                    slider("SETTING_CLOUDS_LOW_CONE_FACTOR", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Cone Factor"
+                            comment =
+                                "Controls the how pointed the cloud structures are. Higher values create sharper clouds."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "锥体因子"
+                            comment = "控制云顶尖锐程度。数值越高，云越尖锐。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "方差裁剪"
-                        comment = "防止移动时的云拖尾。数值越高，重影越少，但可能增加闪烁。"
+                    slider("SETTING_CLOUDS_LOW_TOP_CURVE_FACTOR", 48, powerOfTwoRangeAndHalf(4..10)) {
+                        lang {
+                            name = "Top Curve Factor"
+                            comment =
+                                "Controls the shape curve of cloud tops. Higher values creates more angular top."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "云顶曲线因子"
+                            comment = "控制云顶的形状曲线。数值越高，云顶越有棱角。"
+                        }
                     }
-                }
-                empty()
-                slider("SETTING_CLOUDS_LOW_STEP_MIN", 24, 16..128 step 8) {
-                    lang {
-                        name = "Ray Marching Min Step"
-                        comment =
-                            "Minimum samples through clouds. This value is typically used in clouds directly on top. Higher values improve detail but reduce performance."
+                    slider("SETTING_CLOUDS_LOW_BOTTOM_CURVE_FACTOR", 128, powerOfTwoRangeAndHalf(4..10)) {
+                        lang {
+                            name = "Bottom Curve Factor"
+                            comment =
+                                "Controls the shape curve of cloud bottoms. Higher values creates more angular bottoms."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "云底曲线因子"
+                            comment = "控制云底的形状曲线。数值越高，云底越有棱角。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "光线步进最小步数"
-                        comment = "穿过云的最小采样数。此值通常用于正上方的云。数值越高，细节越好，但会降低性能。"
+                    empty()
+                    slider("SETTING_CLOUDS_LOW_BASE_FREQ", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Base Noise Frequency"
+                            comment = "Controls the scale of base cloud size. Higher values create smaller clouds."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "基础噪声频率"
+                            comment = "控制云的基础大小比例。数值越高，云越小。"
+                        }
                     }
-                }
-                slider("SETTING_CLOUDS_LOW_STEP_MAX", 72, 32..256 step 8) {
-                    lang {
-                        name = "Ray Marching Max Step"
-                        comment =
-                            "Maximum samples through thick clouds.  This value is typically used in clouds near horizon. Higher values improve quality of dense clouds but reduce performance."
+                    slider("SETTING_CLOUDS_LOW_CURL_FREQ", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Curl Noise Frequency"
+                            comment =
+                                "Controls the scale of turbulent curl patterns in clouds. Higher values create finer curls."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "卷曲噪声频率"
+                            comment = "控制云中湍流卷曲图案的比例。数值越高，卷曲越细。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "光线步进最大步数"
-                        comment = "穿过厚云的最大采样数。此值通常用于地平线附近的云。数值越高，密集云的质量越好，但会降低性能。"
+                    slider("SETTING_CLOUDS_LOW_BILLOWY_FREQ", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Billowy Noise Frequency"
+                            comment =
+                                "Control the scale of billowy formations in clouds. Higher values create smaller billows."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "蓬松噪声频率"
+                            comment = "控制云中蓬松结构的比例。数值越高，蓬松结构越小。"
+                        }
                     }
-                }
-                empty()
-                slider("SETTING_CLOUDS_CU_WEIGHT", 0.75, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Cumulus Weight"
+                    slider("SETTING_CLOUDS_LOW_BILLOWY_CURL_STR", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Billowy Curl Strength"
+                            comment =
+                                "Modulates billowy formations with curl noise. Higher values create more turbulent billows."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "蓬松卷曲强度"
+                            comment = "用卷曲噪声调制蓬松结构。数值越高，蓬松结构越多湍流。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "积云权重"
+                    slider("SETTING_CLOUDS_LOW_WISPS_FREQ", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Wisps Noise Frequency"
+                            comment =
+                                "Controls the scale of wispy details in clouds. Higher values create more and finer wisps."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "丝缕噪声频率"
+                            comment = "控制云中丝缕细节的比例。数值越高，丝缕越细越密集。"
+                        }
                     }
-                }
-                slider("SETTING_CLOUDS_CU_HEIGHT", 2.0, 0.0..8.0 step 0.1) {
-                    lang {
-                        name = "Cloud Altitude"
-                        suffix = " km"
-                        comment = "Altitude where cumulus clouds begin to form."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "云高度"
-                        suffix = " 千米"
-                        comment = "积云开始形成的高度。"
-                    }
-                }
-                slider("SETTING_CLOUDS_CU_THICKNESS", 2.0, 0.0..4.0 step 0.1) {
-                    lang {
-                        name = "Cloud Layer Thickness"
-                        suffix = " km"
-                        comment =
-                            "Vertical thickness of the cloud layer. Thicker clouds are more dramatic and puffy."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "云层厚度"
-                        suffix = " 千米"
-                        comment = "云层的垂直厚度。更厚的云更具戏剧性和蓬松感。"
-                    }
-                }
-                slider("SETTING_CLOUDS_CU_DENSITY", 1.0, 0.0..4.0 step 0.05) {
-                    lang {
-                        name = "Cloud Density"
-                        suffix = " x"
-                        comment =
-                            "How thick and opaque clouds appear. Higher values create denser, more solid-looking clouds."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "云浓度"
-                        suffix = " 倍"
-                        comment = "云的厚度和不透明度。数值越高，云越浓密、看起来越坚实。"
-                    }
-                }
-                slider("SETTING_CLOUDS_CU_COVERAGE", 0.3, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Coverage"
-                        comment =
-                            "How much of the sky is covered by clouds. 0 = clear sky, 1 = completely overcast."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "云层覆盖率"
-                        comment = "云覆盖天空的程度。0 = 晴空，1 = 完全阴天。"
-                    }
-                }
-                slider("SETTING_CLOUDS_CU_PHASE_RATIO", 0.9, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Cumulus Phase Ratio"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "积云相位函数比例"
-                    }
-                }
-                empty()
-                toggle("SETTING_CLOUDS_CU_WIND", true) {
-                    lang {
-                        name = "Enable Cloud Movement"
-                        comment = "Allows clouds to drift across the sky over time."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用云运动"
-                        comment = "允许云随时间飘过天空。"
-                    }
-                }
-                slider("SETTING_CLOUDS_CU_WIND_SPEED", 0.0, -4.0..4.0 step 0.25) {
-                    lang {
-                        name = "Wind Speed"
-                        comment =
-                            "Speed of cloud movement. Negative values move clouds in the opposite direction."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "风速"
-                        comment = "云移动的速度。负值使云向相反方向移动。"
+                    slider("SETTING_CLOUDS_LOW_WISPS_CURL_STR", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Wisps Curl Strength"
+                            comment =
+                                "Modulates wispy details with curl noise. Higher values create more dynamic wisps."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "丝缕卷曲强度"
+                            comment = "用卷曲噪声调制丝缕细节。数值越高，丝缕越动态。"
+                        }
                     }
                 }
             }
-            screen("HIGH_CLOUDS", 1) {
-                lang {
-                    name = "High Altitude Clouds"
+
+            row {
+                text("HIGH_CLOUDS", "High Clouds") {
+                    valueLang(Locale.SIMPLIFIED_CHINESE, "高云")
                 }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "高空云"
-                }
+            }
+            row {
                 toggle("SETTING_CLOUDS_CI", true) {
                     lang {
-                        name = "Enable Cirrus Clouds"
+                        name = "Enable High Clouds"
                         comment =
                             "Toggles wispy, high-altitude ice crystal clouds that add atmosphere to the sky."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用卷云"
+                        name = "启用高云"
                         comment = "开关丝缕状的高空冰晶云，为天空增添大气感。"
                     }
                 }
-                slider("SETTING_CLOUDS_CI_HEIGHT", 9.0, 6.0..14.0 step 0.1) {
+                screen(1) {
                     lang {
-                        name = "Cloud Altitude"
-                        suffix = " km"
-                        comment =
-                            "Altitude of cirrus clouds. Higher altitudes create thinner, more delicate wisps."
+                        name = "Settings"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "云高度"
-                        suffix = " 千米"
-                        comment = "卷云的高度。高度越高，创造更薄、更精致的丝缕。"
+                        name = "设置"
                     }
-                }
-                slider("SETTING_CLOUDS_CI_DENSITY", 1.0, 0.0..4.0 step 0.05) {
-                    lang {
-                        name = "Cloud Density"
-                        suffix = " x"
-                        comment =
-                            "How visible and opaque the cirrus clouds are. Higher values create more prominent wisps."
+                    slider("SETTING_CLOUDS_CI_HEIGHT", 9.0, 6.0..14.0 step 0.1) {
+                        lang {
+                            name = "Cloud Altitude"
+                            suffix = " km"
+                            comment =
+                                "Altitude of cirrus clouds. Higher altitudes create thinner, more delicate wisps."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "云高度"
+                            suffix = " 千米"
+                            comment = "卷云的高度。高度越高，创造更薄、更精致的丝缕。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "云浓度"
-                        suffix = " 倍"
-                        comment = "卷云的可见度和不透明度。数值越高，丝缕越显著。"
+                    slider("SETTING_CLOUDS_CI_DENSITY", 1.0, 0.0..4.0 step 0.05) {
+                        lang {
+                            name = "Cloud Density"
+                            suffix = " x"
+                            comment =
+                                "How visible and opaque the cirrus clouds are. Higher values create more prominent wisps."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "云浓度"
+                            suffix = " 倍"
+                            comment = "卷云的可见度和不透明度。数值越高，丝缕越显著。"
+                        }
                     }
-                }
-                slider("SETTING_CLOUDS_CI_COVERAGE", 0.4, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Coverage"
-                        comment =
-                            "How much of the high sky is covered by cirrus clouds. 0 = clear, 1 = fully covered."
+                    slider("SETTING_CLOUDS_CI_COVERAGE", 0.4, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Coverage"
+                            comment =
+                                "How much of the high sky is covered by cirrus clouds. 0 = clear, 1 = fully covered."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "云层覆盖率"
+                            comment = "卷云覆盖高空的程度。0 = 晴朗，1 = 完全覆盖。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "云层覆盖率"
-                        comment = "卷云覆盖高空的程度。0 = 晴朗，1 = 完全覆盖。"
-                    }
-                }
-                slider("SETTING_CLOUDS_CI_PHASE_RATIO", 0.6, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Cirrus Phase Ratio"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "卷云相位函数比例"
-                    }
-                }
-            }
-            empty()
-            empty()
-            screen("WATER_SURFACE", 1) {
-                lang {
-                    name = "Water Surface"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "水面"
-                }
-                toggle("SETTING_WATER_REFRACT_APPROX", true) {
-                    lang {
-                        name = "Approximate Refraction"
-                        comment =
-                            "Approximated refraction direction that works better with screen space refraction."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "折射近似"
-                        comment = "使用近似的折射方向，更适合屏幕空间折射。"
-                    }
-                }
-                toggle("SETTING_WATER_CAUSTICS", false) {
-                    lang {
-                        name = "Enable Water Caustics"
-                        comment =
-                            "Shows light patterns on surfaces beneath water, like you see at the bottom of pools."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用水焦散"
-                        comment = "显示水下表面上的光斑图案，就像您在泳池底部看到的那样。"
-                    }
-                }
-                empty()
-                slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..4.0 step 0.5) {
-                    lang {
-                        name = "Water Normal Intensity"
-                        comment =
-                            "Intensity of water surface waves and ripples. Higher values create choppier water."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "水法线强度"
-                        comment = "水面波浪和涟漪的强度。数值越高，水越波涛汹涌。"
-                    }
-                }
-                empty()
-                toggle("SETTING_WATER_PARALLAX", true) {
-                    lang {
-                        name = "Enable Water Parallax"
-                        comment =
-                            "Creates realistic depth in water waves, making them appear 3D instead of flat."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用水视差"
-                        comment = "给水波添加立体感，使它们看起来是3D而不是平面的。"
-                    }
-                }
-                slider("SETTING_WATER_PARALLAX_STRENGTH", 1.0, 0.0..4.0 step 0.5) {
-                    lang {
-                        name = "Water Parallax Strength"
-                        comment =
-                            "How deep and three-dimensional water waves appear. Higher values create more pronounced depth."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "水视差强度"
-                        comment = "水波的深度和三维感。数值越高，深度越明显。"
-                    }
-                }
-                slider("SETTING_WATER_PARALLAX_LINEAR_STEPS", 8, powerOfTwoRangeAndHalf(2..5)) {
-                    lang {
-                        name = "Water Parallax Linear Sample Steps"
-                        comment =
-                            "Samples for wave depth effect. Higher values reduce visual breaks between waves but reduce performance."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "水视差线性采样步数"
-                        comment = "波浪深度效果的采样数。数值越高，波浪间的视觉断裂越少，但会降低性能。"
-                    }
-                }
-                slider("SETTING_WATER_PARALLAX_SECANT_STEPS", 2, 1..8) {
-                    lang {
-                        name = "Water Parallax Secant Sample Steps"
-                        comment =
-                            "Additional refinement passes for wave depth. Higher values create smoother waves but reduce performance."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "水视差割线采样步数"
-                        comment = "波浪深度的额外细化。数值越高，波浪越平滑，但会降低性能。"
-                    }
-                }
-            }
-            screen("WATER_VOLUME", 1) {
-                lang {
-                    name = "Water Volume"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "水体积渲染"
-                }
-                slider("SETTING_WATER_SCATTERING_REFRACTION_APPROX", true) {
-                    lang {
-                        name = "Approximate Refraction Light Shafts"
-                        comment = "Approximate under water light shafts causes by water waves"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "模拟折射光束"
-                        comment = "模拟由水面波动引起的水下光束"
-                    }
-                }
-                slider("SETTING_WATER_SCATTERING_REFRACTION_APPROX_CONTRAST", 5, 0..12) {
-                    lang {
-                        name = "Refraction Light Shaft Contrast"
-                        comment = "Sharpness of underwater light rays created by surface waves. "
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "折射光束对比度"
-                        comment = "由水面波浪创造的水下光线的锐度。"
-                    }
-                }
-                empty()
-                slider("SETTING_WATER_SCATTERING_R", 14, 0..100) {
-                    lang {
-                        name = "Scattering Coefficient - Red"
-                        suffix = " %"
-                        comment =
-                            "How much red light bounces in water. Lower values create more blue-tinted water."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "散射系数 - 红"
-                        suffix = " %"
-                        comment = "红光在水中反弹的程度。数值越低，水越偏蓝。"
-                    }
-                }
-                slider("SETTING_WATER_SCATTERING_G", 22, 0..100) {
-                    lang {
-                        name = "Scattering Coefficient - Green"
-                        suffix = " %"
-                        comment = "How much green light bounces in water. Affects overall water color tone."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "散射系数 - 绿"
-                        suffix = " %"
-                        comment = "绿光在水中反弹的程度。影响整体水色色调。"
-                    }
-                }
-                slider("SETTING_WATER_SCATTERING_B", 38, 0..100) {
-                    lang {
-                        name = "Scattering Coefficient - Blue"
-                        suffix = " %"
-                        comment = "How much blue light bounces in water. Higher values create bluer water."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "散射系数 - 蓝"
-                        suffix = " %"
-                        comment = "蓝光在水中反弹的程度。数值越高，水越蓝。"
-                    }
-                }
-                slider("SETTING_WATER_SCATTERING_MULTIPLIER", -8.75, -15.0..-5.0 step 0.25) {
-                    lang {
-                        name = "Scattering Coefficient Multiplier"
-                        prefix = "2^"
-                        comment =
-                            "Global multiplier for how much light bounces in water. Higher values brighten underwater scenes. (Multiplier: 2^x)"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "散射系数倍数"
-                        prefix = "2^"
-                        comment = "光在水中反弹程度的全局倍数。数值越高，水下场景越明亮。（倍数：2^x）"
-                    }
-                }
-                empty()
-                slider("SETTING_WATER_ABSORPTION_R", 100, 0..100) {
-                    lang {
-                        name = "Absorption Coefficient - Red"
-                        suffix = " %"
-                        comment =
-                            "How quickly red light fades underwater. Higher values remove red faster, creating bluer water."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "吸收系数 - 红"
-                        suffix = " %"
-                        comment = "红光在水下消失的速度。数值越高，红色消失越快，水越蓝。"
-                    }
-                }
-                slider("SETTING_WATER_ABSORPTION_G", 40, 0..100) {
-                    lang {
-                        name = "Absorption Coefficient - Green"
-                        suffix = " %"
-                        comment =
-                            "How quickly green light fades underwater. Affects visibility distance and water color."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "吸收系数 - 绿"
-                        suffix = " %"
-                        comment = "绿光在水下消失的速度。影响可见距离和水色。"
-                    }
-                }
-                slider("SETTING_WATER_ABSORPTION_B", 24, 0..100) {
-                    lang {
-                        name = "Absorption Coefficient - Blue"
-                        suffix = " %"
-                        comment =
-                            "How quickly blue light fades underwater. Lower values maintain blue color in deeper water."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "吸收系数 - 蓝"
-                        suffix = " %"
-                        comment = "蓝光在水下消失的速度。数值越低，更深的水中保持蓝色。"
-                    }
-                }
-                slider("SETTING_WATER_ABSORPTION_MULTIPLIER", -9.25, -15.0..-5.0 step 0.25) {
-                    lang {
-                        name = "Absorption Coefficient Multiplier"
-                        prefix = "2^"
-                        comment =
-                            "Global multiplier for water absorption. Higher values create murkier water with less visibility. (Multiplier: 2^x)"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "吸收系数倍数"
-                        prefix = "2^"
-                        comment = "水吸收的全局倍数。数值越高，水越浑浊，可见度越低。（倍数：2^x）"
-                    }
-                }
-                empty()
-                slider("SETTING_WATER_SHADOW_SAMPLE", 64, powerOfTwoRangeAndHalf(4..8)) {
-                    lang {
-                        name = "Shadow Samples"
-                        comment =
-                            "Samples for shadows visible underwater. Higher values improve shadow smoothness but reduce performance."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "阴影采样数"
-                        comment = "水下可见阴影的采样数。数值越高，阴影越平滑，但会降低性能。"
-                    }
-                }
-                slider("SETTING_WATER_SHADOW_SAMPLE_POOL_SIZE", 8, 2..16 step 2) {
-                    lang {
-                        name = "Shadow Sample Pool Size"
-                        comment = "Higher values increase shadowing quality but also decrease performance."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "阴影采样池大小"
-                        comment = "数值越高，阴影质量越高，但也会降低性能。"
+                    slider("SETTING_CLOUDS_CI_PHASE_RATIO", 0.6, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Cirrus Phase Ratio"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "卷云相位函数比例"
+                        }
                     }
                 }
             }
         }
-        screen("OUTER_SPACE", 2) {
+        screen(2) {
             lang {
                 name = "Outer Space"
             }
             lang(Locale.SIMPLIFIED_CHINESE) {
                 name = "外太空"
             }
-            screen("SUN_MOON", 1) {
+            screen(1) {
                 lang {
                     name = "Sun & Moon"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "太阳与月亮"
+                    name = "太阳和月亮"
                 }
                 slider("SETTING_SUN_RADIUS", 1.0, (-7..10).map { 2.0.pow(it) }) {
                     lang {
@@ -1923,7 +2053,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "太阳温度"
-                        comment = "阳光的色温（开尔文）。数值越低 = 越暖/越红（日落），数值越高 = 越冷/越蓝（正午）。默认：5700 K。"
+                        comment =
+                            "阳光的色温（开尔文）。数值越低 = 越暖/越红（日落），数值越高 = 越冷/越蓝（正午）。默认：5700 K。"
                         suffix = " K"
                     }
                 }
@@ -1998,7 +2129,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("STARS", 1) {
+            screen(1) {
                 lang {
                     name = "Stars"
                 }
@@ -2040,14 +2171,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("POSTFX", 2) {
+        screen(2) {
             lang {
                 name = "Post Processing"
             }
             lang(Locale.SIMPLIFIED_CHINESE) {
                 name = "后处理"
             }
-            screen("DOF", 1) {
+            screen(1) {
                 lang {
                     name = "Depth of Field"
                 }
@@ -2056,7 +2187,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 toggle("SETTING_DOF", false) {
                     lang {
-                        name = "Enable Depth of Field"
+                        name = "Depth of Field"
                         comment =
                             "Blurs distant or nearby objects like a camera lens, focusing attention on what you're looking at."
                     }
@@ -2193,7 +2324,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("BLOOM", 1) {
+            screen(1) {
                 lang {
                     name = "Bloom"
                 }
@@ -2202,7 +2333,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 toggle("SETTING_BLOOM", true) {
                     lang {
-                        name = "Enable Bloom"
+                        name = "Bloom"
                         comment =
                             "Makes bright areas glow and bleed into surrounding pixels, like light overexposing a camera."
                     }
@@ -2257,7 +2388,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("PURKINJE_EFFECT", 1) {
+            screen(1) {
                 lang {
                     name = "Purkinje Effect (Night Vision)"
                 }
@@ -2266,7 +2397,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 toggle("SETTING_PURKINJE_EFFECT", true) {
                     lang {
-                        name = "Enable Purkinje Effect"
+                        name = "Purkinje Effect"
                         comment =
                             "Simulates how human eyes lose color vision in darkness, creating a more realistic night experience."
                     }
@@ -2339,7 +2470,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("EXPOSURE", 1) {
+            screen(1) {
                 lang {
                     name = "Exposure"
                 }
@@ -2555,7 +2686,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("TONE_MAPPING", 1) {
+            screen(1) {
                 lang {
                     name = "Tone Mapping & Color Grading"
                 }
@@ -2708,7 +2839,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
             }
-            screen("AA", 1) {
+            screen(1) {
                 lang {
                     name = "Anti-Aliasing"
                 }
@@ -2717,7 +2848,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 toggle("SETTING_TAA", true) {
                     lang {
-                        name = "Enable Temporal Anti-Aliasing"
+                        name = "Temporal Anti-Aliasing"
                         comment =
                             "Smooths jagged edges by blending multiple frames. Highly recommended for clean image quality."
                     }
@@ -2728,7 +2859,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 toggle("SETTING_TAA_JITTER", true) {
                     lang {
-                        name = "Enable Sub-Pixel Jittering"
+                        name = "Sub-Pixel Jittering"
                         comment =
                             "Slightly shifts the camera each frame for better TAA quality. Required for TAA to work effectively."
                     }
@@ -2750,7 +2881,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("COLOR_MANAGEMENT", 1) {
+        screen(1) {
             lang {
                 name = "Color Management"
                 comment = "Advanced color space settings. Only change if you know what you're doing!"
@@ -2924,7 +3055,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("MISC", 2) {
+        screen(2) {
             lang {
                 name = "Miscellaneous"
             }
@@ -2977,7 +3108,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
         }
         empty()
         empty()
-        screen("SPONSORS", 4) {
+        screen(4) {
             lang {
                 name = "Sponsors"
             }
@@ -3013,7 +3144,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
             }
         }
-        screen("DEBUG", 3) {
+        screen(3) {
             lang {
                 name = "Debug"
             }

@@ -101,10 +101,10 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
 
         #ifdef SETTING_CLOUDS_CU
         {
-            float cuHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
-            float cuMinHeight = cuHeight - SETTING_CLOUDS_CU_THICKNESS * 0.5;
-            float cuMaxHeight = cuHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
-            float cuHeightDiff = cuHeight - mainRayParams.rayStartHeight;
+            float cuMinHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
+            float cuMaxHeight = cuMinHeight + SETTING_CLOUDS_CU_THICKNESS;
+            float cuMidHeight = cuMinHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
+            float cuHeightDiff = cuMidHeight - mainRayParams.rayStartHeight;
 
             float cuRayLenBot = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMinHeight);
             float cuRayLenTop = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMaxHeight);
@@ -134,7 +134,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
 
         {
             ScatteringResult layerResult = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyViewLutParams, 2.0);
-            bool above = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
+            bool above = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS * 0.5;
             compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, above);
         }
 

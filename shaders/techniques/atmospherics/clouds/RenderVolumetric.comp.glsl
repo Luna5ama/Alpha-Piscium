@@ -114,10 +114,10 @@ void render(ivec2 texelPosDownScale) {
     vec2 ambLutUV = cloods_amblut_uv(viewDir, jitters);
 
     {
-        float cuHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
-        float cuMinHeight = cuHeight - SETTING_CLOUDS_CU_THICKNESS * 0.5;
-        float cuMaxHeight = cuHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
-        float cuHeightDiff = cuHeight - mainRayParams.rayStartHeight;
+        float cuMinHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
+        float cuMaxHeight = cuMinHeight + SETTING_CLOUDS_CU_THICKNESS;
+        float cuMidHeight = cuMinHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
+        float cuHeightDiff = cuMidHeight - mainRayParams.rayStartHeight;
 
         float cuRayLenBot = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMinHeight);
         float cuRayLenTop = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMaxHeight);
@@ -129,7 +129,7 @@ void render(ivec2 texelPosDownScale) {
         cuFlag &= uint(cuOrigin2RayStart >= 0.0);
 
         if (bool(cuFlag)) {
-            #define CLOUDS_CU_DENSITY (256.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (192.0 * SETTING_CLOUDS_CU_DENSITY)
 
             const float CLOUDS_CU_MAX_RAY_LENGTH = 50.0;
             float cuRayLen = mainRayParams.rayDir.y < 0.0 ? cuRayLenBot : cuRayLenTop;

@@ -18,6 +18,16 @@ Discord server link: https://discord.gg/E2Uq2MmHgq
 - Real-time **Volumetric Clouds**
     - [*Nubis*](https://drive.google.com/file/d/0B-D275g6LH7LOE1RcVFERGpkS28/view?resourcekey=0-P04mYcVQ1lDPdn7FDunEIw)
 
+## Installation
+1. Download the Alpha Piscium shaders for Minecraft from the file section above.
+2. Install Iris (You can download Iris on https://www.irisshaders.dev/download)
+3. Open the Minecraft launcher, and choose the Iris profile you just created with the version you're playing
+4. Launch Minecraft.
+5. Go to "Options", then "Video Settings", and select "Shader Packs". Next, click on "Open Shader Pack Folder" to access the shaderpacks folder.
+6. Move the downloaded ZIP file into this folder (.minecraft\shaderpacks).
+7. In game, choose the newly installed pack from the shaders list. (If you select a shader pack using Iris, its filename will turn yellow.)
+8. Click "Done" or "Apply" and all new features have been loaded.
+
 ## FAQ
 - No lighting in the night: Please use a PBR resource packs. For vanilla style, SPBR is recommended. Otherwise, Patrix.
 - Can't load shaderpack: Please use Iris with version 1.7+.

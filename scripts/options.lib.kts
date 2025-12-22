@@ -1,9 +1,6 @@
 import java.io.File
 import java.math.BigDecimal
-import java.util.Locale
-import kotlin.collections.component1
-import kotlin.collections.component2
-import kotlin.plus
+import java.util.*
 
 class FloatProgression(val start: Double, val endInclusive: Double, val step: Double) : Iterable<Double> {
     override fun iterator(): Iterator<Double> = object : Iterator<Double> {
@@ -106,6 +103,13 @@ abstract class OptionFactory {
         return constToggle(name, value, range, block)
     }
 
+    fun text(name: String, key: String, value: String = "", comment: String = "", block: TextOptionBuilder.() -> Unit = {}): ScreenItem {
+        val screenItem = ScreenItem(name)
+        scope._addOption(TextOptionBuilder(name, key, value, comment).apply(block))
+        handleOption(screenItem)
+        return screenItem
+    }
+
     fun toggle(name: String, value: Boolean, block: OptionBuilder<Boolean>.() -> Unit = {}): ScreenItem {
         val screenItem = ScreenItem(name)
         scope._addOption(OptionBuilder(name, value, false, emptyList()).apply(block))
@@ -161,7 +165,7 @@ abstract class OptionFactory {
 }
 
 
-class OptionBuilder<T>(
+open class OptionBuilder<T>(
     val name: String,
     private val value: T,
     private val const: Boolean,
@@ -258,6 +262,23 @@ class OptionBuilder<T>(
     }
 }
 
+class TextOptionBuilder(name: String, key: String, value: String, comment: String) :
+    OptionBuilder<Int>(name, 0, false, 0..0) {
+    fun valueLang(locale: Locale, key: String, value: String = "", comment: String = "") {
+        lang(locale) {
+            name = key
+            0 value value
+            if (comment.isNotEmpty()) {
+                this.comment = comment
+            }
+        }
+    }
+
+    init {
+        valueLang(Locale.US, key, value, comment)
+    }
+}
+
 class Scope : OptionFactory() {
     var screenDepth = 0
 
@@ -270,6 +291,7 @@ class Scope : OptionFactory() {
         get() = this
 
     internal fun _addScreen(screen: ScreenBuilder) {
+        screen._name = "SCREEN_${_screens.size}"
         check(_screens.add(screen)) { "Screen ${screen._name} already exists" }
     }
 
@@ -283,7 +305,8 @@ class Scope : OptionFactory() {
 
     fun mainScreen(columns: Int, block: ScreenBuilder.() -> Unit) {
         check(!::_mainScreen.isInitialized) { "Main screen already exists" }
-        _mainScreen = ScreenBuilder(this, "", columns, 0)
+        _mainScreen = ScreenBuilder(this, columns, 0)
+        _mainScreen._name = ""
         screenDepth++
         _mainScreen.apply(block)
         screenDepth--
@@ -307,24 +330,35 @@ class Scope : OptionFactory() {
         return output
     }
 
-    class ScreenBuilder(override val scope: Scope, val _name: String, private val columns: Int, val depth: Int) : OptionFactory() {
+    class ScreenBuilder(override val scope: Scope, private val columns: Int, val depth: Int) :
+        OptionFactory() {
 
-        init {
-            check(!_name.contains(' ')) { "Screen name cannot contain space" }
-        }
+        lateinit var _name : String
 
         private val langBuilders = mutableMapOf<Locale, LangBuilder>()
         private val options = mutableSetOf<OptionBuilder<*>>()
-        private val ref = if (_name.isEmpty()) "" else ".${this@ScreenBuilder._name}"
+        private val ref get() = if (_name.isEmpty()) "" else ".${this@ScreenBuilder._name}"
         private val items = mutableListOf<ScreenItem>()
+
+        var displayName: String? = null
+            get() {
+                if (_name == "") {
+                    return "Main Screen"
+                }
+                return field
+            }
 
         fun lang(locale: Locale = Locale.US, block: LangBuilder.() -> Unit) {
             check(_name.isNotEmpty()) { "Main screen cannot have lang" }
-            langBuilders.getOrPut(locale) { LangBuilder(ref, locale) }.block()
+            val langBuilder = langBuilders.getOrPut(locale) { LangBuilder(ref, locale) }
+            langBuilder.block()
+            if (locale == Locale.US) {
+                displayName = langBuilder.name
+            }
         }
 
         fun build(output: Output) {
-            println("${_name}: depth=$depth, columns=$columns, items=${items.size}")
+            println("${displayName}: depth=$depth, columns=$columns, items=${items.size}")
             langBuilders.forEach { (_, builder) ->
                 builder.build(output)
             }
@@ -341,14 +375,22 @@ class Scope : OptionFactory() {
             items.add(item)
         }
 
-        fun screen(name: String, columns: Int, block: ScreenBuilder.() -> Unit) {
-            val screen = ScreenBuilder(scope, name, columns, scope.screenDepth)
+        fun screen(columns: Int, block: ScreenBuilder.() -> Unit) {
+            val screen = ScreenBuilder(scope, columns, scope.screenDepth)
             scope._addScreen(screen)
             scope.screenDepth++
             screen.apply(block)
             scope.screenDepth--
-            val screenItem = ScreenItem("[$name]")
+            val screenItem = ScreenItem("[${screen._name}]")
             items.add(screenItem)
+        }
+
+        fun row(block: () -> Unit) {
+            block()
+            val roundedUp = ((items.size + columns - 1) / columns) * columns
+            while (items.size < roundedUp) {
+                empty()
+            }
         }
 
         fun empty() {

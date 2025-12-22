@@ -13,6 +13,13 @@
 #include "/util/noise/ValueNoise.glsl"
 #include "/util/noise/GradientNoise.glsl"
 
+const float _LOW_BASE_FREQ = exp2(SETTING_CLOUDS_LOW_BASE_FREQ);
+const float _LOW_CURL_FREQ = exp2(SETTING_CLOUDS_LOW_CURL_FREQ);
+const float _LOW_BILLOWY_FREQ = exp2(SETTING_CLOUDS_LOW_BILLOWY_FREQ);
+const float _LOW_BILLOWY_CURL_STR = exp2(SETTING_CLOUDS_LOW_BILLOWY_CURL_STR);
+const float _LOW_WISPS_FREQ = exp2(SETTING_CLOUDS_LOW_WISPS_FREQ);
+const float _LOW_WISPS_CURL_STR = exp2(SETTING_CLOUDS_LOW_WISPS_CURL_STR);
+
 float _clouds_cu_heightCurve1(vec4 xs, float c, float d) {
     // https://www.desmos.com/calculator/2c5574fcdc
     const float a0 = -0.00990250069855;
@@ -70,9 +77,9 @@ float worleyNoise(vec2 x, uint seed) {
             vec2 cellCenter = hashValF.xy + vec2(idOffset);
 
             float cellDistance = distance(centerOffset, cellCenter);
-            float regularV = pow3(hashValF.z) * smoothstep(0.0, 1.0, 1.0 - cellDistance);
+            float regularV = pow2(hashValF.z) * smoothstep(0.0, 1.0, 1.0 - cellDistance);
             
-            const float w = 0.5;
+            const float w = 0.35;
             float h = hashValF.z * smoothstep(-1.0, 1.0, (m - cellDistance) / w);
             m = mix(m, cellDistance, h) - h * (1.0 - h) * w / (1.0 + 3.0 * w);
 
@@ -88,6 +95,7 @@ float worleyNoise(vec2 x, uint seed) {
 }
 
 float coverageNoise(vec2 pos) {
+    pos *= _LOW_BASE_FREQ;
     float higherOctave = texture(usam_cumulusBase, pos / 32.0).x;
     float amp = 1.0;
     float freq = 0.35;
@@ -102,22 +110,24 @@ float coverageNoise(vec2 pos) {
 }
 
 float detailNoiseB(vec3 pos) {
-    pos.y *= 1.2;
-    return saturate(0.98 - texture(usam_cumulusDetail1, pos * 0.3).x);
+    pos *= 0.3;
+    pos *= _LOW_BILLOWY_FREQ;
+    return saturate(0.98 - texture(usam_cumulusDetail1, pos).x);
 }
 
 float detailNoiseW(vec3 pos) {
-    pos.y *= 1.4;
-    return texture(usam_cumulusDetail1, pos * 0.5).x;
+    pos *= 0.5;
+    pos *= _LOW_WISPS_FREQ;
+    return texture(usam_cumulusDetail1, pos).x;
 }
 
 vec3 detailCurlNoise(vec3 pos) {
-    return texture(usam_cumulusCurl, pos * 0.1).xyz * 1.0;
+    pos *= 0.3;
+    pos *= _LOW_CURL_FREQ;
+    return texture(usam_cumulusCurl, pos).xyz * 1.0;
 }
 
 bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float densityOut) {
-    const float CUMULUS_FACTOR = SETTING_CLOUDS_CU_WEIGHT;
-
     vec2 baseCoveragePos = rayPos.xz;
 
     float baseCoverage = coverageNoise(baseCoveragePos);
@@ -135,12 +145,12 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
     vec4 xs = vec4(x1, x2, x3, x4);
 
     // TODO: expose these as settings
-    const float CONE_FACTOR = 0.5;
-    const float CONE_TOP_FACTOR = 6.0;
-    const float TOP_CURVE_FACTOR = 50.0;
-    const float BOTTOM_CURVE_FACTOR = 100.0;
+    const float CONE_FACTOR = mix(5.0, 0.1, SETTING_CLOUDS_LOW_CONE_FACTOR);
+    const float CONE_TOP_FACTOR = mix(4.0, 10.0, SETTING_CLOUDS_LOW_CONE_FACTOR);
+    const float TOP_CURVE_FACTOR = float(SETTING_CLOUDS_LOW_TOP_CURVE_FACTOR);
+    const float BOTTOM_CURVE_FACTOR = float(SETTING_CLOUDS_LOW_BOTTOM_CURVE_FACTOR);
 
-    densityOut *= 1.5 - pow(heightFraction, rcp(CONE_FACTOR));
+    densityOut *= 1.5 - pow(heightFraction, CONE_FACTOR);
     densityOut *= exp2(-(heightFraction) * CONE_TOP_FACTOR);
     densityOut *= saturate(1.0 - exp2(TOP_CURVE_FACTOR * (heightFraction - 1.0)));
     densityOut *= saturate(1.0 - exp2(-BOTTOM_CURVE_FACTOR * heightFraction));
@@ -160,7 +170,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
         vec3 detailCurl = detailCurlNoise(curlPos);
         detailCurl *= 0.1 + 0.1 * pow2(heightFraction);
 
-        float detail1Billowy = detailNoiseB(rayPos + detailCurl * 0.6);
+        float detail1Billowy = detailNoiseB(rayPos + detailCurl * 0.6 * _LOW_BILLOWY_CURL_STR);
 
         detail1Billowy = pow2(detail1Billowy);
         bottomDetail = 1.0 - detail1Billowy * smoothstep(0.1, 0.0, heightFraction) * 2.0;
@@ -169,7 +179,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
         detail1Billowy *= COVERAGE_SQRT;
         densityOut = linearStep(saturate(detail1Billowy), 1.0, densityOut);
 
-        float detail1Wisp = detailNoiseW(rayPos + detailCurl * 2.3);
+        float detail1Wisp = detailNoiseW(rayPos + detailCurl * 2.3 * _LOW_WISPS_CURL_STR);
 
         detail1Wisp = pow2(detail1Wisp);
         detail1Wisp *= COVERAGE_SQRT;
@@ -186,7 +196,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
         densityOut *= smoothstep(minDetailDensity, minDetailDensity + edgeDesnityRange, densityOut);
 
         // Make cloud top more dense
-        densityOut *= 1.0 + heightFraction * 10.0;
+        densityOut *= 1.0 + heightFraction * 16.0;
         // Add some shapes to the bottom, using multipcation because subtraction only affect sides
         densityOut *= bottomDetail;
 
