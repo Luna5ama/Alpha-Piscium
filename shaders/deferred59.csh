@@ -292,7 +292,7 @@ void main() {
                 const uint SPATIAL_REUSE_MAX_M = 1u;
                 resultReservoir.m = clamp(resultReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
 
-                restir_storeReservoir(texelPos, resultReservoir, 1);
+                restir_storeReservoir(texelPos, originalReservoir, 1);
 
                 transient_ssgiOut_store(texelPos, ssgiOut);
             }

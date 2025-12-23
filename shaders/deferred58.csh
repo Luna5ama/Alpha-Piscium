@@ -84,9 +84,12 @@ void main() {
                     ivec2 prevTexelPos = ivec2(selectedTexelPos);
                     imageStore(uimg_temp3, texelPos, vec4(reprojInfo.bilateralWeights));
 
-                    ReSTIRReservoir prevTemporalReservoir = restir_loadReservoir(prevTexelPos, 0);
+                    ReSTIRReservoir prevTemporalReservoir = restir_loadReservoir(prevTexelPos, 1);
                     if (restir_isReservoirValid(prevTemporalReservoir)) {
                         vec3 prevSampleDirView = prevTemporalReservoir.Y.xyz;
+                        prevSampleDirView = coords_dir_viewToWorldPrev(prevSampleDirView);
+                        prevSampleDirView = coords_dir_worldToView(prevSampleDirView);
+                        prevTemporalReservoir.Y.xyz = prevSampleDirView;
 
                         float prevHitDistance = prevTemporalReservoir.Y.w;
                         if (prevHitDistance > 0.0){
@@ -116,42 +119,42 @@ void main() {
             float prevPHat = length(prevSample.xyz * prevSample.w);
             wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
 
-            #if SPATIAL_REUSE_FEEDBACK
-            if (temporalReservoir.m < SPATIAL_REUSE_FEEDBACK) {
-                ReSTIRReservoir prevSpatialReservoir =  restir_loadReservoir(texelPos, 1);
-
-                vec3 prevSpatialSampleDirView = prevSpatialReservoir.Y.xyz;
-                float prevSpatialHitDistance = prevSpatialReservoir.Y.w;
-
-                vec3 prevSpatialHitViewPos = viewPos + prevSpatialSampleDirView * prevSpatialHitDistance;
-                vec3 prevSpatialHitScreenPos = coords_viewToScreen(prevSpatialHitViewPos, global_camProj);
-                ivec2 prevSpatialHitTexelPos = ivec2(prevSpatialHitScreenPos.xy * uval_mainImageSize);
-                vec3 prevSpatialHitRadiance = transient_giRadianceInput_fetch(prevSpatialHitTexelPos).rgb;
-                float brdf = saturate(dot(gData.normal, prevSpatialSampleDirView)) / PI;
-                float prevSpatialPHat = length(prevSpatialHitRadiance * brdf);
-
-                float prevSpatialWi = max(prevSpatialReservoir.avgWY * prevSpatialPHat * float(prevSpatialReservoir.m), 0.0);
-                float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 456546u)).w);
-
-                if (restir_isReservoirValid(prevSpatialReservoir)) {
-                    if (restir_updateReservoir(
-                        temporalReservoir,
-                        wSum,
-                        prevSpatialReservoir.Y,
-                        prevSpatialWi,
-                        prevSpatialReservoir.m,
-                        prevSpatialReservoir.age,
-                        reservoirRand2
-                    )) {
-                        prevPHat = prevSpatialPHat;
-                        prevSample = vec4(prevSpatialHitRadiance, brdf);
-                        GBufferData prevSpatialHitGData = gbufferData_init();
-                        gbufferData1_unpack(texelFetch(usam_gbufferData1, prevSpatialHitTexelPos, 0), prevSpatialHitGData);
-                        prevHitNormal = prevSpatialHitGData.normal;
-                    }
-                }
-            }
-            #endif
+//            #if SPATIAL_REUSE_FEEDBACK
+//            if (temporalReservoir.m < SPATIAL_REUSE_FEEDBACK) {
+//                ReSTIRReservoir prevSpatialReservoir =  restir_loadReservoir(texelPos, 1);
+//
+//                vec3 prevSpatialSampleDirView = prevSpatialReservoir.Y.xyz;
+//                float prevSpatialHitDistance = prevSpatialReservoir.Y.w;
+//
+//                vec3 prevSpatialHitViewPos = viewPos + prevSpatialSampleDirView * prevSpatialHitDistance;
+//                vec3 prevSpatialHitScreenPos = coords_viewToScreen(prevSpatialHitViewPos, global_camProj);
+//                ivec2 prevSpatialHitTexelPos = ivec2(prevSpatialHitScreenPos.xy * uval_mainImageSize);
+//                vec3 prevSpatialHitRadiance = transient_giRadianceInput_fetch(prevSpatialHitTexelPos).rgb;
+//                float brdf = saturate(dot(gData.normal, prevSpatialSampleDirView)) / PI;
+//                float prevSpatialPHat = length(prevSpatialHitRadiance * brdf);
+//
+//                float prevSpatialWi = max(prevSpatialReservoir.avgWY * prevSpatialPHat * float(prevSpatialReservoir.m), 0.0);
+//                float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 456546u)).w);
+//
+//                if (restir_isReservoirValid(prevSpatialReservoir)) {
+//                    if (restir_updateReservoir(
+//                        temporalReservoir,
+//                        wSum,
+//                        prevSpatialReservoir.Y,
+//                        prevSpatialWi,
+//                        prevSpatialReservoir.m,
+//                        prevSpatialReservoir.age,
+//                        reservoirRand2
+//                    )) {
+//                        prevPHat = prevSpatialPHat;
+//                        prevSample = vec4(prevSpatialHitRadiance, brdf);
+//                        GBufferData prevSpatialHitGData = gbufferData_init();
+//                        gbufferData1_unpack(texelFetch(usam_gbufferData1, prevSpatialHitTexelPos, 0), prevSpatialHitGData);
+//                        prevHitNormal = prevSpatialHitGData.normal;
+//                    }
+//                }
+//            }
+//            #endif
 
             const float RESET_START = 64.0;
             const float RESET_END = 256.0;
