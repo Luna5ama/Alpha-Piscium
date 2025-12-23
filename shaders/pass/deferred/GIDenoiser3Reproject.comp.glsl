@@ -4,6 +4,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 layout(rgb10_a2) uniform writeonly image2D uimg_rgb10_a2;
+layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 #include "/techniques/gi/Reproject.glsl"
 
 void main() {

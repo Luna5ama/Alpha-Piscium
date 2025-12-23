@@ -123,7 +123,7 @@ vec2 coords_equirectanglarForwardHorizonBoost(vec3 direction) {
 
 vec3 coords_equirectanglarBackwardHorizonBoost(vec2 uv) {
     // Map UV back to angles
-    float phi = uv.x * 2.0 * PI - PI; // Longitude
+    float phi = uv.x * 2.0 * PI - PI;// Longitude
     float theta = uv.y * 2.0 - 1.0;
     theta = sign(theta) * pow2(theta);
     theta *= PI_HALF;
@@ -183,8 +183,8 @@ ivec2 coords_clampTexelPos(ivec2 texelPos, ivec2 imageSizeV) {
 
 const mat3 _COORDS_EQUATORIAL_TO_GALACTIC = mat3(
     -0.0548755604, 0.4941094279, -0.8676661490,
-    -0.8734370902, -0.4448296300,  -0.1980763734,
-    -0.4838350155, 0.7469822445,  0.4559837762
+    -0.8734370902, -0.4448296300, -0.1980763734,
+    -0.4838350155, 0.7469822445, 0.4559837762
 );
 
 vec3 coords_equatorialToGalactic(vec3 equatorial) {
@@ -192,9 +192,9 @@ vec3 coords_equatorialToGalactic(vec3 equatorial) {
 }
 
 const mat3 _COORDS_WORLD_TO_EQUATORIAL = mat3(
-    0.0,  1.0,  0.0,   // Y+ (Up) -> X+ (RA 0h)
-    1.0,  0.0,  0.0,   // X+ (East) -> Y+ (RA 6h)
-    0.0,  0.0,  -1.0    // Z- (North) -> Z+ (Dec +90°)
+    0.0, 1.0, 0.0, // Y+ (Up) -> X+ (RA 0h)
+    1.0, 0.0, 0.0, // X+ (East) -> Y+ (RA 6h)
+    0.0, 0.0, -1.0// Z- (North) -> Z+ (Dec +90°)
 );
 
 vec3 coords_worldToEquatorial(vec3 world) {

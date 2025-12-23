@@ -14,6 +14,7 @@ vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
 
 void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
     GIHistoryData historyData = gi_historyData_init();
+    ReprojectInfo reprojInfo = reprojectInfo_init();
 
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
     screenPos -= global_taaJitter * uval_mainImageSizeRcp;
@@ -100,27 +101,32 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
             float historyResetFactor = 1.0;
 
+            vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
+            float geomDepthBaseWeight = mix(16.0, 2.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
+            vec4 geomDepthWegiths = exp2(-geomDepthBaseWeight * pow2(planeDistances));
+            geomDepthWegiths = saturate(step(planeDistances, vec4(planeDistanceThreshold)));
+            vec4 edgeWeights = geomNormalWeights * geomDepthWegiths;
+
+            vec2 bilinearWeights2 = pixelPosFract;
+            vec4 blinearWeights4;
+            blinearWeights4.yz = bilinearWeights2.xx;
+            blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
+            blinearWeights4.xy *= bilinearWeights2.yy;
+            blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
+
+            vec4 finalWeights = edgeWeights * blinearWeights4;
+            float weightSum = dot(finalWeights, vec4(1.0));
+            float rcpWeightSum = safeRcp(weightSum);
+            finalWeights *= rcpWeightSum;
+
+            reprojInfo.bilateralWeights = edgeWeights * safeRcp(max4(edgeWeights));
+            reprojInfo.curr2PrevScreenPos = curr2PrevScreen;
+            reprojInfo.edgeFlag = edgeFlag;
+
             if (bool(edgeFlag)) {
-                vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
-                float geomDepthBaseWeight = mix(16.0, 2.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
-                vec4 geomDepthWegiths = exp2(-geomDepthBaseWeight * pow2(planeDistances));
-                geomDepthWegiths = saturate(step(planeDistances, vec4(planeDistanceThreshold)));
-                vec4 edgeWeights = geomNormalWeights * geomDepthWegiths;
-
-                vec2 bilinearWeights2 = pixelPosFract;
-                vec4 blinearWeights4;
-                blinearWeights4.yz = bilinearWeights2.xx;
-                blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
-                blinearWeights4.xy *= bilinearWeights2.yy;
-                blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
-
-                vec4 finalWeights = edgeWeights * blinearWeights4;
-                float weightSum = dot(finalWeights, vec4(1.0));
-                float maxEdgeWeight = max4(edgeWeights);
-
+                bool validFlag = weightSum > 0.01;
+                historyResetFactor *= float(validFlag);
                 if (weightSum > 0.01) {
-                    finalWeights *= 1.0 / weightSum;
-
                     vec4 giData1 = bileratralSum(
                         history_gi1_gatherTexel(gatherTexelPos, 0),
                         history_gi1_gatherTexel(gatherTexelPos, 1),
@@ -217,6 +223,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
             historyData.historyLength *= historyResetFactor;
             historyData.realHistoryLength *= sqrt(historyResetFactor);
+            reprojInfo.historyResetFactor = historyResetFactor;
         }
     }
 
@@ -227,4 +234,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
     transient_gi3Reprojected_store(texelPos, gi_historyData_pack3(historyData));
     transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(historyData));
     transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
+
+    transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));
 }

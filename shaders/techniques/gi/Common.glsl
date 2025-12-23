@@ -150,6 +150,41 @@ InitialSampleData initialSampleData_unpack(uvec4 packedData) {
     data.hitRadiance = hitRadianceAndPadding.rgb;
     return data;
 }
+
+struct ReprojectInfo {
+    vec4 bilateralWeights;
+    float historyResetFactor;
+    uint edgeFlag;
+    vec2 curr2PrevScreenPos;
+};
+
+ReprojectInfo reprojectInfo_init() {
+    ReprojectInfo info;
+    info.bilateralWeights = vec4(0.0);
+    info.historyResetFactor = 0.0;
+    info.edgeFlag = 1u;
+    info.curr2PrevScreenPos = vec2(-1.0);
+    return info;
+}
+
+ReprojectInfo reprojectInfo_unpack(uvec4 packedData) {
+    ReprojectInfo info;
+    info.bilateralWeights = unpackUnorm4x8(packedData.x);
+    info.historyResetFactor = uintBitsToFloat(packedData.y);
+    info.edgeFlag = uint(info.historyResetFactor < 0.0);
+    info.historyResetFactor = abs(info.historyResetFactor);
+    info.curr2PrevScreenPos = uintBitsToFloat(packedData.zw);
+    return info;
+}
+
+uvec4 reprojectInfo_pack(ReprojectInfo info) {
+    uvec4 packedData;
+    packedData.x = packUnorm4x8(info.bilateralWeights);
+    packedData.y = floatBitsToUint(info.historyResetFactor * mix(1.0, -1.0, bool(info.edgeFlag)));
+    packedData.zw = floatBitsToUint(info.curr2PrevScreenPos);
+    return packedData;
+}
+
 const float HISTORY_LENGTH = 64.0;
 const float REAL_HISTORY_LENGTH = 255.0;
 const float FAST_HISTORY_LENGTH = 8.0;

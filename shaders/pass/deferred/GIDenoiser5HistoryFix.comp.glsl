@@ -80,7 +80,7 @@ void main() {
         float resetFactor = exp2(-(diffDiffLuma + specDiffLuma) * 64.0);
         historyData.historyLength *= resetFactor;
         historyData.realHistoryLength *= sqrt(resetFactor);
-        imageStore(uimg_temp3, texelPos, vec4(resetFactor));
+//        imageStore(uimg_temp3, texelPos, vec4(resetFactor));
 
         historyData.diffuseColor = diffClamped;
         historyData.specularColor = specClamped;
