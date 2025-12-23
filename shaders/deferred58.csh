@@ -94,7 +94,7 @@ void main() {
                             vec3 prevHitScreenPos = coords_viewToScreen(prevHitViewPos, global_camProj);
                             ivec2 prevHitTexelPos = ivec2(prevHitScreenPos.xy * uval_mainImageSize);
 
-                            vec3 prevHitRadiance = sampleIrradiance(prevHitTexelPos, -prevSampleDirView);
+                            vec3 prevHitRadiance = sampleIrradiance(texelPos, prevHitTexelPos, -prevSampleDirView);
                             float brdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
                             prevSample = vec4(prevHitRadiance, brdf);
 
@@ -130,7 +130,7 @@ void main() {
                 vec3 prevSpatialHitViewPos = viewPos + prevSpatialSampleDirView * prevSpatialHitDistance;
                 vec3 prevSpatialHitScreenPos = coords_viewToScreen(prevSpatialHitViewPos, global_camProj);
                 ivec2 prevSpatialHitTexelPos = ivec2(prevSpatialHitScreenPos.xy * uval_mainImageSize);
-                vec3 prevSpatialHitRadiance = sampleIrradiance(prevSpatialHitTexelPos, -prevSpatialSampleDirView);
+                vec3 prevSpatialHitRadiance = sampleIrradiance(texelPos, prevSpatialHitTexelPos, -prevSpatialSampleDirView);
                 float brdf = saturate(dot(gData.normal, prevSpatialSampleDirView)) / PI;
                 float prevSpatialPHat = length(prevSpatialHitRadiance * brdf);
 

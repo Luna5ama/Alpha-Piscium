@@ -129,18 +129,19 @@ uvec4 restir_reservoir_pack(ReSTIRReservoir reservoir) {
     return packedData;
 }
 
-vec3 sampleIrradiance(ivec2 texelPos, vec3 outgoingDirection) {
+vec3 sampleIrradiance(ivec2 texelPos, ivec2 hitTexelPos, vec3 outgoingDirection) {
     GBufferData hitGData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), hitGData);
+    gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
 
     float hitCosTheta = saturate(dot(hitGData.normal, outgoingDirection));
-    vec3 hitRadiance = transient_giRadianceInput1_fetch(texelPos).rgb;
-    vec3 hitEmissive = transient_giRadianceInput2_fetch(texelPos).rgb;
+    vec3 hitRadiance = transient_giRadianceInput1_fetch(hitTexelPos).rgb;
+    vec3 hitEmissive = transient_giRadianceInput2_fetch(hitTexelPos).rgb;
+    vec3 selfHitEmissive = transient_giRadianceInput2_fetch(texelPos).rgb;
 
-    return hitRadiance + hitEmissive;
+    return hitRadiance * hitCosTheta + hitEmissive * float(all(lessThan(selfHitEmissive, vec3(0.0001))));
 }
 
-vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
+vec4 ssgiEvalF2(ivec2 texelPos, vec3 viewPos, vec3 sampleDirView) {
     vec4 result = vec4(0.0, 0.0, 0.0, -1.0);
 
     SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.01);
@@ -154,13 +155,13 @@ vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
         vec3 hitViewPos = coords_toViewCoord(roundedHitScreenPos, hitViewZ, global_camProjInverse);
         float hitDistance = length(hitViewPos - viewPos);
         result.w = length(hitViewPos - viewPos);
-        result.xyz = sampleIrradiance(hitTexelPos, -sampleDirView);
+        result.xyz = sampleIrradiance(texelPos, hitTexelPos, -sampleDirView);
     }
 
     return result;
 }
 
-vec3 ssgiEvalF(vec3 viewPos, GBufferData gData, vec3 sampleDirView, out float hitDistance) {
+vec3 ssgiEvalF(ivec2 texelPos, vec3 viewPos, GBufferData gData, vec3 sampleDirView, out float hitDistance) {
     hitDistance = -1.0;
     vec3 result = vec3(0.0);
 
@@ -175,7 +176,7 @@ vec3 ssgiEvalF(vec3 viewPos, GBufferData gData, vec3 sampleDirView, out float hi
         vec3 hitViewPos = coords_toViewCoord(roundedHitScreenPos, hitViewZ, global_camProjInverse);
         hitDistance = length(hitViewPos - viewPos);
 
-        vec3 hitRadiance = sampleIrradiance(hitTexelPos, -sampleDirView);
+        vec3 hitRadiance = sampleIrradiance(texelPos, hitTexelPos, -sampleDirView);
         float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
         vec3 f = brdf * hitRadiance;
         result = f;
@@ -220,7 +221,7 @@ vec4 ssgiRef(ivec2 texelPos, uint finalIndex) {
             vec2 hitTexelCenter = hitTexelPosF + 0.5;
             vec2 roundedHitScreenPos = hitTexelCenter * uval_mainImageSizeRcp;
 
-            vec3 hitRadiance = sampleIrradiance(hitTexelPos, -sampleDirView);
+            vec3 hitRadiance = sampleIrradiance(texelPos, hitTexelPos, -sampleDirView);
 
             float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
             vec3 f = brdf * hitRadiance;

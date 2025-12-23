@@ -44,7 +44,7 @@ void main() {
 //                vec3 sampleDirTangent = rand_stbnUnitVec3Cosine(stbnPos, RANDOM_FRAME);
 //                vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
 
-                vec4 resultStuff = ssgiEvalF2(viewPos, sampleDirView);
+                vec4 resultStuff = ssgiEvalF2(texelPos, viewPos, sampleDirView);
 
                 InitialSampleData initialSample = initialSampleData_init();
                 initialSample.hitRadiance = resultStuff.xyz;
