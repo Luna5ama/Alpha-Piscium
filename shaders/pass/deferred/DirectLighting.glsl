@@ -19,6 +19,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
+layout(rgba16f) uniform restrict image2D uimg_temp3;
 
 ivec2 texelPos;
 
@@ -100,8 +101,35 @@ void main() {
                 ivec2 texelPos2x2 = texelPos >> 1;
                 ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
 
-                vec4 giOut1 = transient_giRadianceInput1_load(texelPos);
+                vec4 giOut1 = vec4(0.0);
                 vec4 giOut2 = vec4(0.0);
+
+                {
+                    vec3 moment1 = vec3(0.0);
+                    vec3 moment2 = vec3(0.0);
+
+                    for (int dy = -2; dy <= 2; ++dy) {
+                        for (int dx = -2; dx <= 2; ++dx) {
+                            if (dx == 0 && dy == 0) continue;
+                            ivec2 neighborPos = texelPos + ivec2(dx, dy);
+                            vec3 neighborData = colors_SRGBToYCoCg(transient_gi1Reprojected_load(neighborPos).rgb);
+                            moment1 += neighborData;
+                            moment2 += neighborData * neighborData;
+                        }
+                    }
+
+                    moment1 /= 24.0;
+                    moment2 /= 24.0;
+
+                    vec3 mean = moment1;
+                    vec3 variance = max(moment2 - moment1 * moment1, 0.0);
+                    vec3 stddev = sqrt(variance);
+                    vec3 aabbMin = mean - stddev * 1.0;
+                    vec3 aabbMax = mean + stddev * 1.0;
+                    vec3 giOut1Clamped = colors_SRGBToYCoCg(transient_gi1Reprojected_load(texelPos).rgb);
+                    giOut1Clamped = clamp(giOut1Clamped, aabbMin, aabbMax);
+                    giOut1.rgb = colors_YCoCgToSRGB(giOut1Clamped);
+                }
 
                 vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
                 vec3 directDiffuseOut = vec3(0.0);
@@ -111,7 +139,7 @@ void main() {
                 } else {
                     giOut1.rgb *= material.albedo;
                     doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, giOut1, giOut2);
-                    float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(lighting_gData.albedo));
+                    float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(material.albedo));
                     float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
                     mainOut.a += emissiveFlag * albedoLuma * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
                     float albedoLumaWeight = pow(1.0 - pow(1.0 - albedoLuma, 16.0), 4.0);
@@ -138,6 +166,7 @@ void main() {
                 imageStore(uimg_main, texelPos, mainOut);
                 transient_giRadianceInput1_store(texelPos, giOut1);
                 transient_giRadianceInput2_store(texelPos, giOut2);
+                imageStore(uimg_temp3, texelPos, giOut1);
                 return;
             }
         }

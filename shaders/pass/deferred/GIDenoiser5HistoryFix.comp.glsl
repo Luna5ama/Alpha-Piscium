@@ -78,10 +78,10 @@ void main() {
         float specDiffLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, specDiff);
         float specMeanLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors_YCoCgToSRGB(specMoment1));
 
-        float resetFactor = exp2(-(diffDiffLuma + specDiffLuma) * 64.0);
+        float resetFactor = exp2(-(diffDiffLuma + specDiffLuma) * 1.0);
         historyData.historyLength *= resetFactor;
         historyData.realHistoryLength *= sqrt(resetFactor);
-        imageStore(uimg_temp3, texelPos, vec4(resetFactor));
+//        imageStore(uimg_temp3, texelPos, vec4(resetFactor));
 
         historyData.diffuseColor = diffClamped;
         historyData.specularColor = specClamped;

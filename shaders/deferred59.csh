@@ -299,6 +299,7 @@ void main() {
 
                 history_restir_reservoirSpatial_store(texelPos, restir_reservoir_pack(resultReservoir));
 
+                ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
                 transient_ssgiOut_store(texelPos, ssgiOut);
             }
         }

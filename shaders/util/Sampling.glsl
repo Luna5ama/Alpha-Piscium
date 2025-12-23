@@ -80,13 +80,13 @@ vec4 _sampling_lanczoc22(vec4 x) {
 
 vec4 sampling_lanczoc2Weights(float t, float w) {
     vec4 x = vec4(t) + (vec4(1.0, 0.0, -1.0, -2.0) + 0.5) * w - 0.5;
-//    x = clamp(x, -2.0 / w, 2.0 / w);
+    //    x = clamp(x, -2.0 / w, 2.0 / w);
     return _sampling_lanczoc22(x);
 }
 
 #if DERIVATIVE_AVAILABLE
 // [QUI17]
-vec3 sampling_textureRepeatGrad(sampler2D t, vec2 uv, float v ) {
+vec3 sampling_textureRepeatGrad(sampler2D t, vec2 uv, float v) {
     float k = texture(iChannel1, 0.005 * uv).x; // cheap (cache friendly) lookup
 
     vec2 duvdx = dFdx(uv);
@@ -248,6 +248,33 @@ vec4 sampling_catmullBicubic5Tap(sampler2D texSampler, vec2 uv, float sharpness)
     vec2 texelPos = uv * texSize;
     vec2 texRcpSize = rcp(texSize);
     return sampling_catmullBicubic5Tap(texSampler, texelPos, sharpness, texRcpSize);
+}
+
+vec2 sampling_indexToGatherOffset(uint index) {
+    //   _______ _______
+    //  |       |       |
+    //  |  x(0) |  y(1) |
+    //  |_______o_______|  o gather location
+    //  |       |       |
+    //  |  w(3) |  z(2) |
+    //  |_______|_______|
+    // vec4 ofsetPosXs = vec4(-1.0, 1.0, 1.0, -1.0);
+    // 0 - 00 = -1
+    // 1 - 01 =  1
+    // 2 - 10 =  1
+    // 3 - 11 = -1
+    // 0 + 1 = 1 -> 01
+    // 1 + 1 = 2 -> 10
+    // 2 + 1 = 3 -> 11
+    // 3 + 1 = 4 -> 00
+
+    // vec4 ofsetPosYs = vec4(1.0, 1.0, -1.0, -1.0);
+    // vec2 ofsetPos = vec2(texelPosXs[index], texelPosYs[index]);
+
+    uvec2 xyBits;
+    xyBits.x = ((index + 1u) >> 1u) & 1u;
+    xyBits.y = (~(index >> 1u)) & 1u;
+    return vec2(xyBits) * 2.0 - 1.0;
 }
 
 #endif

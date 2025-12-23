@@ -37,18 +37,18 @@ void main() {
         historyData.diffuseColor = diffResult.rgb;
         historyData.specularColor = specResult.rgb;
 
-//        imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
         if (RANDOM_FRAME < MAX_FRAMES){
-            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
+            imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
+//            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
             imageStore(uimg_temp2, texelPos, gi_historyData_pack1(historyData));
         }
 
         transient_gi_diffuse_shading_store(texelPos, vec4(historyData.diffuseColor, 0.0));
 
-        history_gi1_store(texelPos, gi_historyData_pack1(historyData));
-        history_gi2_store(texelPos, gi_historyData_pack2(historyData));
-        history_gi3_store(texelPos, gi_historyData_pack3(historyData));
-        history_gi4_store(texelPos, gi_historyData_pack4(historyData));
+        history_gi1_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
+        history_gi2_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));
+        history_gi3_store(texelPos, clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX));
+        history_gi4_store(texelPos, clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX));
         history_gi5_store(texelPos, gi_historyData_pack5(historyData));
     }
 }

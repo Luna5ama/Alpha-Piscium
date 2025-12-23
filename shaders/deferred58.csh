@@ -4,6 +4,7 @@
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Hash.glsl"
+#include "/util/Sampling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -76,11 +77,9 @@ void main() {
 
                     uint selectedIndex = selectWeighted(finalWeights, hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987654u)).x));
 
-                    vec4 texelPosXs = vec4(gatherTexelPos.x) + vec4(-0.5, 0.5, 0.5, -0.5);
-                    vec4 texelPosYs = vec4(gatherTexelPos.y) + vec4(0.5, 0.5, -0.5, -0.5);
-                    vec2 selectedTexelPos = vec2(texelPosXs[selectedIndex], texelPosYs[selectedIndex]);
+                    vec2 selectedTexelPos = gatherTexelPos + sampling_indexToGatherOffset(selectedIndex) * 0.5;
                     ivec2 prevTexelPos = ivec2(selectedTexelPos);
-                    imageStore(uimg_temp3, texelPos, vec4(reprojInfo.bilateralWeights));
+//                    imageStore(uimg_temp3, texelPos, vec4(reprojInfo.bilateralWeights));
 
                     ReSTIRReservoir prevTemporalReservoir = restir_reservoir_unpack(history_restir_reservoirTemporal_load(prevTexelPos));
                     if (restir_isReservoirValid(prevTemporalReservoir)) {
@@ -245,6 +244,8 @@ void main() {
                 temporalReservoir.age++;
             }
         }
+
+        ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
         transient_ssgiOut_store(texelPos, ssgiOut);
         transient_restir_reservoirReprojected_store(texelPos, restir_reservoir_pack(temporalReservoir));
     }

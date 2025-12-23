@@ -36,9 +36,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
     if (bool(clipFlag)) {
         vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
         vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
-        curr2PrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
 
         if (all(equal(curr2PrevScreen, saturate(curr2PrevScreen)))) {
+            curr2PrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
 
             vec3 curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
@@ -114,7 +114,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             blinearWeights4.xy *= bilinearWeights2.yy;
             blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
-            vec4 finalWeights = edgeWeights * blinearWeights4;
+            bool edgeFlagBool = bool(edgeFlag);
+
+            vec4 finalWeights = mix(edgeWeights * blinearWeights4, edgeWeights, edgeFlagBool);
             float weightSum = dot(finalWeights, vec4(1.0));
             float rcpWeightSum = safeRcp(weightSum);
             finalWeights *= rcpWeightSum;
@@ -123,7 +125,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             reprojInfo.curr2PrevScreenPos = curr2PrevScreen;
             reprojInfo.edgeFlag = edgeFlag;
 
-            if (bool(edgeFlag)) {
+            if (edgeFlagBool) {
                 bool validFlag = weightSum > 0.01;
                 historyResetFactor *= float(validFlag);
                 if (weightSum > 0.001) {
@@ -229,12 +231,10 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
     historyData.glazingAngleFactor = glazingAngleFactorHistory;
 
-    transient_giRadianceInput1_store(texelPos, vec4(historyData.diffuseColor, 0.0));
-
-    transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
-    transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
-    transient_gi3Reprojected_store(texelPos, gi_historyData_pack3(historyData));
-    transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(historyData));
+    transient_gi1Reprojected_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
+    transient_gi2Reprojected_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));
+    transient_gi3Reprojected_store(texelPos, clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX));
+    transient_gi4Reprojected_store(texelPos, clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX));
     transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
 
     transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));
