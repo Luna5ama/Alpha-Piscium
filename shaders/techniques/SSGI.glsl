@@ -137,7 +137,7 @@ vec3 sampleIrradiance(ivec2 texelPos, vec3 outgoingDirection) {
     vec3 hitRadiance = transient_giRadianceInput1_fetch(texelPos).rgb;
     vec3 hitEmissive = transient_giRadianceInput2_fetch(texelPos).rgb;
 
-    return hitCosTheta * hitRadiance + hitEmissive;
+    return hitRadiance + hitEmissive;
 }
 
 vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {

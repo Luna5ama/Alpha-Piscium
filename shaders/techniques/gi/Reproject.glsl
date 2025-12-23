@@ -229,6 +229,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
     historyData.glazingAngleFactor = glazingAngleFactorHistory;
 
+    transient_giRadianceInput1_store(texelPos, vec4(historyData.diffuseColor, 0.0));
+
     transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
     transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
     transient_gi3Reprojected_store(texelPos, gi_historyData_pack3(historyData));

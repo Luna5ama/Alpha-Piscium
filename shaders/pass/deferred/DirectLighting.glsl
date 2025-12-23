@@ -19,7 +19,6 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
-layout(rg32ui) uniform restrict uimage2D uimg_rg32ui;
 
 ivec2 texelPos;
 
@@ -101,7 +100,7 @@ void main() {
                 ivec2 texelPos2x2 = texelPos >> 1;
                 ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
 
-                vec4 giOut1 = vec4(0.0);
+                vec4 giOut1 = transient_giRadianceInput1_load(texelPos);
                 vec4 giOut2 = vec4(0.0);
 
                 vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
@@ -110,6 +109,7 @@ void main() {
                     mainOut = vec4(material.albedo * 0.01, 2.0);
                     giOut1 = vec4(0.0);
                 } else {
+                    giOut1.rgb *= material.albedo;
                     doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, giOut1, giOut2);
                     float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(lighting_gData.albedo));
                     float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
