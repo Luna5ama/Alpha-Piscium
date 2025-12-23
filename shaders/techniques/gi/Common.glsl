@@ -25,6 +25,7 @@ const float FAST_HISTORY_LENGTH = 8.0;
 #define ENABLE_DENOISER_ACCUM 1
 #define ENABLE_DENOISER_FAST_CLAMP 1
 
+#define GI_MB 0.0
 /*
     Diffuse Color : 48 bits         (1)
     Diffuse fast color: 48 bits     (2)

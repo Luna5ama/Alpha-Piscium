@@ -4,7 +4,7 @@
 
 #include "/techniques/atmospherics/air/Constants.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
-#include "/techniques/gtvbgi/Common.glsl"
+#include "/techniques/gi/Common.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Colors2.glsl"
@@ -138,6 +138,7 @@ void main() {
                     giOut1 = vec4(0.0);
                 } else {
                     giOut1.rgb *= material.albedo;
+                    giOut1.rgb *= GI_MB;
                     doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, giOut1, giOut2);
                     float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(material.albedo));
                     float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
@@ -156,12 +157,12 @@ void main() {
                 nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
 //                transient_packedZN_store(texelPos + ivec2(0, uval_mainImageSizeI.y), packedZNOut);
 
-                uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
-                ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
-                if (bool(ssgiOutWriteFlag)) {
-//                    transient_packedZN_store(texelPos2x2, packedZNOut);
-//                    transient_packedZN_store(radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
-                }
+//                uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
+//                ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
+//                if (bool(ssgiOutWriteFlag)) {
+////                    transient_packedZN_store(texelPos2x2, packedZNOut);
+////                    transient_packedZN_store(radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
+//                }
 
                 imageStore(uimg_main, texelPos, mainOut);
                 transient_giRadianceInput1_store(texelPos, giOut1);
@@ -178,11 +179,11 @@ void main() {
             packedZNOut.y = floatBitsToUint(-65536.0);
 //            transient_packedZN_store(texelPos + ivec2(0, uval_mainImageSizeI.y), packedZNOut);
 
-            uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
-            ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
-            if (bool(ssgiOutWriteFlag)) {
-//                transient_packedZN_store(texelPos2x2, packedZNOut);
-            }
+//            uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
+//            ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
+//            if (bool(ssgiOutWriteFlag)) {
+////                transient_packedZN_store(texelPos2x2, packedZNOut);
+//            }
             transient_giRadianceInput1_store(texelPos, vec4(0.0));
             transient_giRadianceInput2_store(texelPos, vec4(0.0));
         }
