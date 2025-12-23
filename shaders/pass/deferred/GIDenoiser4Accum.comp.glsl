@@ -28,11 +28,15 @@ void main() {
 
             const float HISTORY_LENGTH_1 = HISTORY_LENGTH - 1.0;
             float historyLength = historyData.historyLength * HISTORY_LENGTH_1;
+            #if ENABLE_DENOISER_ACCUM
             historyLength += 1.0;
+            #endif
             historyLength = clamp(historyLength, 1.0, HISTORY_LENGTH);
 
             float realHistoryLength = historyData.realHistoryLength * REAL_HISTORY_LENGTH;
+            #if ENABLE_DENOISER_ACCUM
             realHistoryLength += 1.0;
+            #endif
             historyData.realHistoryLength = saturate(realHistoryLength / REAL_HISTORY_LENGTH);
 
             // Accumulate

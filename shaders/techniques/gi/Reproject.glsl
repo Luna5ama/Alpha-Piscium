@@ -83,7 +83,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             float planeDistance3 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos3, geomViewNormal3);
             float planeDistance4 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos4, geomViewNormal4);
 
-            float planeDistanceThreshold = exp2(mix(-6.0, -10.0, glazingAngleFactor)) * max(0.5, pow2(currViewZ));
+            float planeDistanceThreshold = exp2(mix(-8.0, -10.0, glazingAngleFactor)) * max(0.5, pow2(currViewZ));
 
             float geomViewNormalDot1 = dot(curr2PrevViewGeomNormal, geomViewNormal1);
             float geomViewNormalDot2 = dot(curr2PrevViewGeomNormal, geomViewNormal2);
@@ -102,9 +102,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             float historyResetFactor = 1.0;
 
             vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
-            float geomDepthBaseWeight = mix(16.0, 2.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
-            vec4 geomDepthWegiths = exp2(-geomDepthBaseWeight * pow2(planeDistances));
-            geomDepthWegiths = saturate(step(planeDistances, vec4(planeDistanceThreshold)));
+            float geomDepthBaseWeight = mix(32.0, 4.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
+            vec4 geomDepthWegiths = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(currViewZ), 0.1)));
+            geomDepthWegiths *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
             vec4 edgeWeights = geomNormalWeights * geomDepthWegiths;
 
             vec2 bilinearWeights2 = pixelPosFract;
@@ -126,7 +126,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             if (bool(edgeFlag)) {
                 bool validFlag = weightSum > 0.01;
                 historyResetFactor *= float(validFlag);
-                if (weightSum > 0.01) {
+                if (weightSum > 0.001) {
                     vec4 giData1 = bileratralSum(
                         history_gi1_gatherTexel(gatherTexelPos, 0),
                         history_gi1_gatherTexel(gatherTexelPos, 1),

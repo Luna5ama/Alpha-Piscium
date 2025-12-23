@@ -190,5 +190,6 @@ const float REAL_HISTORY_LENGTH = 255.0;
 const float FAST_HISTORY_LENGTH = 8.0;
 
 #define ENABLE_DENOISER 1
+#define ENABLE_DENOISER_ACCUM 1
 
 #endif
