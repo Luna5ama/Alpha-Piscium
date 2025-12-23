@@ -9,6 +9,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
+layout(rgba16f) uniform writeonly image2D uimg_temp1;
 layout(rgba16f) uniform restrict image2D uimg_temp3;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
@@ -20,6 +21,21 @@ void main() {
 }
 #else
 uint selectWeighted(vec4 weights, float rand) {
+//    float currWeight = weights.x;
+//    uint selectedIndex = 0u;
+//    if (weights.y > currWeight) {
+//        currWeight = weights.y;
+//        selectedIndex = 1u;
+//    }
+//    if (weights.z > currWeight) {
+//        currWeight = weights.z;
+//        selectedIndex = 2u;
+//    }
+//    if (weights.w > currWeight) {
+//        currWeight = weights.w;
+//        selectedIndex = 3u;
+//    }
+//    return selectedIndex;
     vec4 prefixSum;
     prefixSum.x = weights.x;
     prefixSum.y = prefixSum.x + weights.y;
@@ -40,6 +56,7 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
         ReSTIRReservoir temporalReservoir = restir_initReservoir(texelPos);
+        float uhh = 0.0;
         if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0){
             float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
@@ -73,43 +90,52 @@ void main() {
                     blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
                     blinearWeights4.xy *= bilinearWeights2.yy;
                     blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
+//                    vec4 finalWeights = blinearWeights4;
                     vec4 finalWeights = blinearWeights4 * reprojInfo.bilateralWeights;
+//                    finalWeights = vec4(0.0, 0.0, 0.0, 1.0);
 
-                    uint selectedIndex = selectWeighted(finalWeights, hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987654u)).x));
+                    float rand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987654u)).x);
+//                    float rand = rand_stbnVec1(texelPos, RANDOM_FRAME);
+                    uint selectedIndex = selectWeighted(finalWeights, rand);
 
                     vec2 selectedTexelPos = gatherTexelPos + sampling_indexToGatherOffset(selectedIndex) * 0.5;
                     ivec2 prevTexelPos = ivec2(selectedTexelPos);
 //                    imageStore(uimg_temp3, texelPos, vec4(reprojInfo.bilateralWeights));
 
                     ReSTIRReservoir prevTemporalReservoir = restir_reservoir_unpack(history_restir_reservoirTemporal_load(prevTexelPos));
-                    if (restir_isReservoirValid(prevTemporalReservoir)) {
-                        vec3 prevSampleDirView = prevTemporalReservoir.Y.xyz;
-                        prevSampleDirView = coords_dir_viewToWorldPrev(prevSampleDirView);
-                        prevSampleDirView = coords_dir_worldToView(prevSampleDirView);
-                        prevTemporalReservoir.Y.xyz = prevSampleDirView;
+                    if (restir_isReservoirValid(prevTemporalReservoir) && prevTemporalReservoir.Y.w > 0.0) {
+                        uhh = 1.0;
+                        vec2 prevScreenPos = coords_texelToUV(prevTexelPos, uval_mainImageSizeRcp);
+                        float prevViewZ = history_viewZ_fetch(prevTexelPos).x;
+                        vec3 prevViewPos = coords_toViewCoord(prevScreenPos, prevViewZ, global_prevCamProjInverse);
+                        vec3 prevHitViewPos = prevViewPos + prevTemporalReservoir.Y.xyz * prevTemporalReservoir.Y.w;
+                        vec3 prevHitScenePos = coords_pos_viewToWorld(prevHitViewPos, gbufferPrevModelViewInverse);
+                        vec3 prev2CurrHitScenePos = coord_scenePrevToCurr(prevHitScenePos);
+//                        vec3 prev2CurrHitViewPos = coords_pos_worldToView(prev2CurrHitScenePos, gbufferModelView);
+                        vec3 prev2CurrHitViewPos = coords_pos_worldToView(prev2CurrHitScenePos, gbufferModelView);
+                        vec3 hitDiff = prev2CurrHitViewPos - viewPos;
+                        float hitDistance = length(hitDiff);
 
-                        float prevHitDistance = prevTemporalReservoir.Y.w;
-                        if (prevHitDistance > 0.0){
-                            vec3 prevHitViewPos = viewPos + prevSampleDirView * prevHitDistance;
-                            vec3 prevHitScreenPos = coords_viewToScreen(prevHitViewPos, global_camProj);
-                            ivec2 prevHitTexelPos = ivec2(prevHitScreenPos.xy * uval_mainImageSize);
+                        prevTemporalReservoir.Y.xyz = hitDiff / hitDistance;
+                        prevTemporalReservoir.Y.w = hitDistance;
 
-                            vec3 prevHitRadiance = sampleIrradiance(texelPos, prevHitTexelPos, -prevSampleDirView);
-                            float brdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
-                            prevSample = vec4(prevHitRadiance, brdf);
+                        vec3 prevHitScreenPos = coords_viewToScreen(prev2CurrHitViewPos, global_camProj);
+                        ivec2 prevHitTexelPos = ivec2(prevHitScreenPos.xy * uval_mainImageSize);
+
+                        vec3 prevHitRadiance = sampleIrradiance(texelPos, prevHitTexelPos, -prevTemporalReservoir.Y.xyz);
+                        float brdf = saturate(dot(gData.normal, prevTemporalReservoir.Y.xyz)) / PI;
+                        prevSample = vec4(prevHitRadiance, brdf);
 
 
-                            // TODO: retrace for temporal resampling
-                            //                    float prevHitDistance;
-                            //                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, prevHitDistance);
-                            //                    prevPHat = length(prevSample);
-                            GBufferData prevGData = gbufferData_init();
-                            gbufferData1_unpack(texelFetch(usam_gbufferData1, prevHitTexelPos, 0), prevGData);
-                            prevHitNormal = prevGData.normal;
-                        }
-
-                        temporalReservoir = prevTemporalReservoir;
+                        // TODO: retrace for temporal resampling
+                        //                    float prevHitDistance;
+                        //                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, prevHitDistance);
+                        //                    prevPHat = length(prevSample);
+                        GBufferData prevGData = gbufferData_init();
+                        gbufferData1_unpack(texelFetch(usam_gbufferData1, prevHitTexelPos, 0), prevGData);
+                        prevHitNormal = prevGData.normal;
                     }
+                    temporalReservoir = prevTemporalReservoir;
                 }
             }
 
@@ -245,6 +271,7 @@ void main() {
             }
         }
 
+        imageStore(uimg_temp1, texelPos, vec4(uhh));
         ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
         transient_ssgiOut_store(texelPos, ssgiOut);
         transient_restir_reservoirReprojected_store(texelPos, restir_reservoir_pack(temporalReservoir));

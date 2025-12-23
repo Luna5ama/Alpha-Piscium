@@ -8,22 +8,22 @@
 
 #define USE_REFERENCE 0
 #define SKIP_FRAMES 4
-#define MAX_FRAMES 22222
+#define MAX_FRAMES 0x7fffffff
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 #define MC_SPP 16
-#define SPATIAL_REUSE 1
-#define SPATIAL_REUSE_SAMPLES 6
+#define SPATIAL_REUSE 0
+#define SPATIAL_REUSE_SAMPLES 0
 #define SPATIAL_REUSE_RADIUS 64
 #define SPATIAL_REUSE_VISIBILITY_TRACE 1
-#define SPATIAL_REUSE_FEEDBACK 16
+#define SPATIAL_REUSE_FEEDBACK 0
 
 const float HISTORY_LENGTH = 64.0;
 const float REAL_HISTORY_LENGTH = 255.0;
 const float FAST_HISTORY_LENGTH = 8.0;
 
-#define ENABLE_DENOISER 1
-#define ENABLE_DENOISER_ACCUM 1
-#define ENABLE_DENOISER_FAST_CLAMP 1
+#define ENABLE_DENOISER 0
+#define ENABLE_DENOISER_ACCUM 0
+#define ENABLE_DENOISER_FAST_CLAMP 0
 
 #define GI_MB 0.0
 /*
@@ -163,7 +163,6 @@ InitialSampleData initialSampleData_unpack(uvec4 packedData) {
 struct ReprojectInfo {
     vec4 bilateralWeights;
     float historyResetFactor;
-    uint edgeFlag;
     vec2 curr2PrevScreenPos;
 };
 
@@ -171,26 +170,23 @@ ReprojectInfo reprojectInfo_init() {
     ReprojectInfo info;
     info.bilateralWeights = vec4(0.0);
     info.historyResetFactor = 0.0;
-    info.edgeFlag = 1u;
     info.curr2PrevScreenPos = vec2(-1.0);
     return info;
 }
 
 ReprojectInfo reprojectInfo_unpack(uvec4 packedData) {
     ReprojectInfo info;
-    info.bilateralWeights = unpackUnorm4x8(packedData.x);
-    info.historyResetFactor = uintBitsToFloat(packedData.y);
-    info.edgeFlag = uint(info.historyResetFactor < 0.0);
-    info.historyResetFactor = abs(info.historyResetFactor);
-    info.curr2PrevScreenPos = uintBitsToFloat(packedData.zw);
+    info.bilateralWeights = unpackUnorm4x16(packedData.xy);
+    info.historyResetFactor = uintBitsToFloat(packedData.z);
+    info.curr2PrevScreenPos = unpackUnorm2x16(packedData.w);
     return info;
 }
 
 uvec4 reprojectInfo_pack(ReprojectInfo info) {
     uvec4 packedData;
-    packedData.x = packUnorm4x8(info.bilateralWeights);
-    packedData.y = floatBitsToUint(info.historyResetFactor * mix(1.0, -1.0, bool(info.edgeFlag)));
-    packedData.zw = floatBitsToUint(info.curr2PrevScreenPos);
+    packedData.xy = packUnorm4x16(info.bilateralWeights);
+    packedData.z = floatBitsToUint(info.historyResetFactor);
+    packedData.w = packUnorm2x16(info.curr2PrevScreenPos);
     return packedData;
 }
 

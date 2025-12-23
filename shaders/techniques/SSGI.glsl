@@ -144,7 +144,7 @@ vec3 sampleIrradiance(ivec2 texelPos, ivec2 hitTexelPos, vec3 outgoingDirection)
 vec4 ssgiEvalF2(ivec2 texelPos, vec3 viewPos, vec3 sampleDirView) {
     vec4 result = vec4(0.0, 0.0, 0.0, -1.0);
 
-    SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.01);
+    SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.1);
 
     if (sstResult.hit) {
         vec2 hitTexelPosF = floor(sstResult.hitScreenPos.xy * uval_mainImageSize);

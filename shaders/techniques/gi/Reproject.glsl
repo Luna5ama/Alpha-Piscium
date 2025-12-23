@@ -123,7 +123,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
             reprojInfo.bilateralWeights = edgeWeights * safeRcp(max4(edgeWeights));
             reprojInfo.curr2PrevScreenPos = curr2PrevScreen;
-            reprojInfo.edgeFlag = edgeFlag;
+//            reprojInfo.edgeFlag = edgeFlag;
 
             if (edgeFlagBool) {
                 bool validFlag = weightSum > 0.01;

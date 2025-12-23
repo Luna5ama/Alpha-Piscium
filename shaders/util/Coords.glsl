@@ -70,6 +70,12 @@ vec4 coord_scenePrevToCurr(vec4 scenePrev) {
     return sceneCurr;
 }
 
+vec3 coord_scenePrevToCurr(vec3 scenePrev) {
+    vec3 sceneCurr = scenePrev;
+    sceneCurr.xyz -= uval_cameraDelta;
+    return sceneCurr;
+}
+
 vec4 coord_viewCurrToPrev(vec4 currViewPos, bool isHand) {
     vec4 currScenePos = gbufferModelViewInverse * currViewPos;
     vec4 prevViewCoord;
