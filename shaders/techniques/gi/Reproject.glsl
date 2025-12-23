@@ -31,7 +31,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
     float glazingCosTheta = saturate(dot(currViewGeomNormal, -normalize(currViewPos.xyz)));
     float glazingAngleFactor = sqrt(glazingCosTheta);
-    float glazingAngleFactorHistory = pow3(1.0 - glazingCosTheta);
+    float glazingAngleFactorHistory = pow4(1.0 - glazingCosTheta);
 
     if (bool(clipFlag)) {
         vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
@@ -83,7 +83,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             float planeDistance3 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos3, geomViewNormal3);
             float planeDistance4 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos4, geomViewNormal4);
 
-            float planeDistanceThreshold = exp2(mix(-8.0, -10.0, glazingAngleFactor)) * max(0.5, pow2(currViewZ));
+            float planeDistanceThreshold = exp2(mix(-8.0, -10.0, glazingAngleFactor)) * max(4.0, pow2(currViewZ));
 
             float geomViewNormalDot1 = dot(curr2PrevViewGeomNormal, geomViewNormal1);
             float geomViewNormalDot2 = dot(curr2PrevViewGeomNormal, geomViewNormal2);
@@ -103,7 +103,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
             vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
             float geomDepthBaseWeight = mix(32.0, 4.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
-            vec4 geomDepthWegiths = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(currViewZ), 0.1)));
+            vec4 geomDepthWegiths = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(currViewZ), 2.0)));
             geomDepthWegiths *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
             vec4 edgeWeights = geomNormalWeights * geomDepthWegiths;
 
@@ -116,7 +116,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
             bool edgeFlagBool = bool(edgeFlag);
 
-            vec4 finalWeights = mix(edgeWeights * blinearWeights4, edgeWeights, edgeFlagBool);
+            vec4 finalWeights = edgeWeights * sqrt(blinearWeights4);
             float weightSum = dot(finalWeights, vec4(1.0));
             float rcpWeightSum = safeRcp(weightSum);
             finalWeights *= rcpWeightSum;
@@ -220,7 +220,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
                 gi_historyData_unpack5(historyData, saturate(history_gi5_sample(curr2PrevScreen)));
             }
 
-            float antiStretching = pow6(1.0 - saturate(historyData.glazingAngleFactor - glazingAngleFactorHistory));
+            float antiStretching = smoothstep(0.2, 0.0, historyData.glazingAngleFactor - glazingAngleFactorHistory);
             historyResetFactor *= antiStretching;
 
             historyData.historyLength *= historyResetFactor;
