@@ -59,7 +59,7 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
     LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
 
     mainOut += 0.00001 * material.albedo;
-    mainOut += emissiveV;
+    mainOut += emissiveV * RCP_PI;
     mainOut += combinedLighting.diffuse;
     mainOut += combinedLighting.specular;
     mainOut += combinedLighting.sss;
