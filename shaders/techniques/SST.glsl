@@ -75,7 +75,10 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
     vec3 originScreen = originNDC;
     originScreen.xy = originScreen.xy * 0.5 + 0.5;// Not applying this to Z because we are using Reverse Z
 
-    vec4 rayDirTempClip = global_camProj * vec4(originView + rayDirView, 1.0);
+    float maxViewT = 1.0;
+    maxViewT = rayDirView.z > 0.0 ? min((-nearPlane - originView.z) / rayDirView.z, maxViewT) : maxViewT;
+
+    vec4 rayDirTempClip = global_camProj * vec4(originView + rayDirView * maxViewT, 1.0);
     vec3 rayDirTempNDC = rayDirTempClip.xyz / rayDirTempClip.w;
     vec3 rayDirTempScreen = rayDirTempNDC;
     rayDirTempScreen.xy = rayDirTempScreen.xy * 0.5 + 0.5;

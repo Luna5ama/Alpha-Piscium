@@ -87,6 +87,8 @@ uniform mat4 dhProjectionInverse;
 uniform mat4 dhPreviousProjection;
 
 float farPlane = max(dhFarPlane, far);
+float nearPlane = min(dhNearPlane, near);
 #else
 float farPlane = far;
+float nearPlane = near;
 #endif
