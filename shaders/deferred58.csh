@@ -228,7 +228,7 @@ void main() {
                 }
                 float avgWSum = wSum / float(temporalReservoir.m);
                 temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
-                temporalReservoir.m = clamp(temporalReservoir.m, 0u, 20u);
+                temporalReservoir.m = clamp(temporalReservoir.m, 0u, 32u);
                 ssgiOut = vec4(finalSample.xyz * finalSample.w * temporalReservoir.avgWY, temporalReservoir.Y.w);
 
                 SpatialSampleData spatialSample = spatialSampleData_init();

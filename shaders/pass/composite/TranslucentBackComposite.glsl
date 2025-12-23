@@ -10,6 +10,7 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Coords.glsl"
+#include "/util/Colors2.glsl"
 #include "/util/Fresnel.glsl"
 #include "/util/BSDF.glsl"
 
@@ -23,7 +24,9 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
 
-//        vec3 albedo = colors2_material_toWorkSpace(transient_solidAlbedo_fetch(texelPos).rgb);
+
+        vec3 albedo = transient_solidAlbedo_fetch(texelPos).rgb;
+        albedo = colors2_material_toWorkSpace(albedo);
 //        vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
 //        if (any(greaterThan(glintColorData.xyz, vec3(0.0)))) {
 //            vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb);
@@ -32,8 +35,10 @@ void main() {
 //            albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
 //        }
 
-//        vec3 giRadiance = transient_atrous1_fetch(texelPos).rgb;
-//        outputColor.rgb += giRadiance.rgb * albedo;
+        vec3 giRadiance = transient_gi_diffuse_shading_fetch(texelPos).rgb;
+        outputColor.rgb += giRadiance.rgb * albedo;
+
+
         ScatteringResult sctrResult = atmospherics_localComposite(0, texelPos);
         outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);
 

@@ -5,7 +5,6 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
-layout(rgba16f) uniform writeonly image2D uimg_temp4;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 
@@ -56,7 +55,6 @@ void main() {
                 newHitDistance = min(newHitDistance, MAX_HIT_DISTANCE);
                 historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, fastAlpha);
             }
-            imageStore(uimg_temp4, texelPos, vec4(historyData.diffuseHitDistance));
         }
 
         transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));

@@ -133,7 +133,9 @@ ScatteringResult raymarchScreenViewAtmosphere(ivec2 texelPos, float startZ, floa
     vec3 endViewPos = coords_toViewCoord(screenPos, max(endZ, -shadowDistance), global_camProjInverse);
 
     ivec2 texePos2x2 = texelPos >> 1;
-    float lmCoordSky = abs(unpackHalf2x16(transient_packedZN_fetch(texePos2x2 + ivec2(0, global_mipmapSizesI[1].y)).y).y);
+//    TODO: Fixed lightmap coordinate-based multi-scattering factor
+//    float lmCoordSky = abs(unpackHalf2x16(transient_packedZN_fetch(texePos2x2 + ivec2(0, global_mipmapSizesI[1].y)).y).y);
+    float lmCoordSky = 1.0;
     float multiSctrFactor = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y)));
 
     mat3 vectorView2World = mat3(gbufferModelViewInverse);

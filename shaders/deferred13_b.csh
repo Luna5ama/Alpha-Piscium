@@ -1,3 +1,4 @@
 #version 460 compatibility
 
-#include "/pass/deferred/ShadowSample.comp.glsl"
+#define PASS 2
+#include "/pass/deferred/EnvProbeUpdate2ReprojectDilate.comp.glsl"

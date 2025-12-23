@@ -5,7 +5,6 @@
         "transient_translucentRefraction": "RGBA16F",
         "transient_lowCloudRender": "RGBA32UI",
         "transient_lowCloudAccumulated": "RGBA32UI",
-        "transient_packedZN": "RG32UI",
         "transient_bloom": "RGBA16F",
         "history_gi": "RGBA32UI",
         "history_lowCloud": "RGBA32UI",
@@ -18,6 +17,7 @@
         "history_viewNormal": "RGB10_A2",
         "transient_edgeMaskTemp": "RGBA8",
         "transient_edgeMask": "RGBA8",
+        "transient_solidAlbedo": "RGBA8",
         "history_gi1": "RGBA16F",
         "history_gi2": "RGBA16F",
         "history_gi3": "RGBA16F",
@@ -39,6 +39,7 @@
         "transient_restir_reservoirReprojected": "RGBA32UI",
         "transient_restir_spatialInput": "RGBA32UI",
         "transient_restir_initialSample": "RGBA32UI",
-        "transient_gi_diffuse_reprojInfo": "RGBA32UI"
+        "transient_gi_diffuse_reprojInfo": "RGBA32UI",
+        "transient_gi_diffuse_shading": "RGBA16F"
     }
 }

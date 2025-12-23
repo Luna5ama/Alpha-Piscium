@@ -223,28 +223,29 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #endif
 
     #if SETTING_DEBUG_GI_INPUTS != 0
-    if (all(lessThan(texelPos, global_mipmapSizesI[1]))) {
-        uvec2 radianceData = transient_packedZN_fetch(texelPos+ ivec2(0, global_mipmapSizesI[1].y)).xy;
-        vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
-
-        #if SETTING_DEBUG_GI_INPUTS == 1
-        outputColor.rgb = radiance.rgb * 4.0;
-        #elif SETTING_DEBUG_GI_INPUTS == 2
-        outputColor.rgb = vec3(abs(radiance.a));
-        #elif SETTING_DEBUG_GI_INPUTS == 3
-        outputColor.rgb = vec3(saturate(sign(radiance.a)));
-        #endif
-
-
-        float prevZ;
-        vec3 prevN;
-        nzpacking_unpack(transient_packedZN_fetch(texelPos).xy, prevN, prevZ);
-        #if SETTING_DEBUG_GI_INPUTS == 4
-        outputColor.rgb = vec3(prevN * 0.5 + 0.5);
-        #elif SETTING_DEBUG_GI_INPUTS == 5
-        outputColor.rgb = displayViewZ(prevZ);
-        #endif
-    }
+    // TODO: Update for new GI system
+//    if (all(lessThan(texelPos, global_mipmapSizesI[1]))) {
+//        uvec2 radianceData = transient_packedZN_fetch(texelPos+ ivec2(0, global_mipmapSizesI[1].y)).xy;
+//        vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
+//
+//        #if SETTING_DEBUG_GI_INPUTS == 1
+//        outputColor.rgb = radiance.rgb * 4.0;
+//        #elif SETTING_DEBUG_GI_INPUTS == 2
+//        outputColor.rgb = vec3(abs(radiance.a));
+//        #elif SETTING_DEBUG_GI_INPUTS == 3
+//        outputColor.rgb = vec3(saturate(sign(radiance.a)));
+//        #endif
+//
+//
+//        float prevZ;
+//        vec3 prevN;
+//        nzpacking_unpack(transient_packedZN_fetch(texelPos).xy, prevN, prevZ);
+//        #if SETTING_DEBUG_GI_INPUTS == 4
+//        outputColor.rgb = vec3(prevN * 0.5 + 0.5);
+//        #elif SETTING_DEBUG_GI_INPUTS == 5
+//        outputColor.rgb = displayViewZ(prevZ);
+//        #endif
+//    }
     #endif
     #if SETTING_DEBUG_GI_INPUTS == 6
 //    if (all(lessThan(texelPos, uval_mainImageSizeI))) {

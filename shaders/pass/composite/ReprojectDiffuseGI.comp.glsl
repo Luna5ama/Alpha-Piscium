@@ -57,7 +57,7 @@ void main() {
                 uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
                 ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
                 if (bool(ssgiOutWriteFlag)) {
-                    transient_packedZN_store(texelPos2x2, packedZNOut);
+//                    transient_packedZN_store(texelPos2x2, packedZNOut);
 
                     {
                         vec4 ssgiOut = vec4(0.0);
@@ -69,7 +69,7 @@ void main() {
                         uvec4 tempRG32UIOut = uvec4(0u);
                         tempRG32UIOut.x = packHalf2x16(ssgiOut.rg);
                         tempRG32UIOut.y = packHalf2x16(ssgiOut.ba);
-                        transient_packedZN_store(texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), tempRG32UIOut);
+//                        transient_packedZN_store(texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), tempRG32UIOut);
                     }
                 }
                 return;
@@ -85,9 +85,9 @@ void main() {
         uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
         ssgiOutWriteFlag &= uint(all(lessThan(texelPos2x2, global_mipmapSizesI[1])));
         if (bool(ssgiOutWriteFlag)) {
-            transient_packedZN_store(texelPos2x2, packedZNOut);
+//            transient_packedZN_store(texelPos2x2, packedZNOut);
             uvec4 tempRG32UIOut = uvec4(0u);
-            transient_packedZN_store(texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), tempRG32UIOut);
+//            transient_packedZN_store(texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), tempRG32UIOut);
         }
     }
 }

@@ -11,8 +11,6 @@
 #include "/util/Coords.glsl"
 #include "/util/Mat2.glsl"
 
-layout(rgba16f) uniform writeonly image2D uimg_temp4;
-
 struct GeomData {
     vec3 geomNormal;
     vec3 normal;
@@ -196,7 +194,6 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, v
     transient_gi_blurDiff2_store(texelPos, diffResult);
     transient_gi_blurSpec2_store(texelPos, specResult);
     #elif GI_DENOISE_PASS == 2
-    imageStore(uimg_temp4, texelPos, vec4(varianceFactor));
     transient_gi_blurDiff1_store(texelPos, diffResult);
     transient_gi_blurSpec1_store(texelPos, specResult);
     #endif
