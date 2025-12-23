@@ -109,58 +109,24 @@ bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, v
     return updateCond;
 }
 
-ReSTIRReservoir restir_loadReservoir(ivec2 texelPos, int swapIndex) {
-    texelPos = clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1);
-    ivec2 sampleTexelPos = texelPos;
-    uvec4 data1;
-    if (swapIndex == 0) {
-        data1 = history_restir_reservoir1_load(texelPos);
-    } else {
-        data1 = history_restir_reservoir2_load(texelPos);
-    }
-
+ReSTIRReservoir restir_reservoir_unpack(uvec4 packedData) {
     ReSTIRReservoir reservoir;
-    //    reservoir.Y.x = bitfieldExtract(data1.x, 0, 12);
-    //    reservoir.Y.y = bitfieldExtract(data1.x, 12, 12);
-    //    reservoir.m = bitfieldExtract(data1.x, 24, 8);
-//    reservoir.Y = unpackUInt2x16(data1.x);
-    reservoir.Y.xyz = nzpacking_unpackNormalOct32(data1.x);
-
-    //    reservoir.pY = uintBitsToFloat(data1.y);
-
-    uvec2 temp = unpackUInt2x16(data1.y);
+    reservoir.Y.xyz = nzpacking_unpackNormalOct32(packedData.x);
+    uvec2 temp = unpackUInt2x16(packedData.y);
     reservoir.m = temp.x;
     reservoir.age = temp.y;
-
-    reservoir.avgWY = uintBitsToFloat(data1.z);
-//    reservoir.wSum = uintBitsToFloat(data1.w);
-    reservoir.Y.w = uintBitsToFloat(data1.w);
-    reservoir.texelPos = texelPos;
+    reservoir.avgWY = uintBitsToFloat(packedData.z);
+    reservoir.Y.w = uintBitsToFloat(packedData.w);
     return reservoir;
 }
 
-void restir_storeReservoir(ivec2 texelPos, ReSTIRReservoir reservoir, int swapIndex) {
-    texelPos = clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1);
-    uvec4 data1 = uvec4(0u);
-    //    data1.x = bitfieldInsert(data1.x, reservoir.Y.x, 0, 12);
-    //    data1.x = bitfieldInsert(data1.x, reservoir.Y.y, 12, 12);
-    //    data1.x = bitfieldInsert(data1.x, min(reservoir.m, 255u), 24, 8);
-//    data1.x = packUInt2x16(reservoir.Y);
-    data1.x = nzpacking_packNormalOct32(reservoir.Y.xyz);
-
-    //    data1.y = floatBitsToUint(reservoir.pY);
-//    data1.y = reservoir.m;
-
-    data1.y = packUInt2x16(uvec2(reservoir.m, reservoir.age));
-
-    data1.z = floatBitsToUint(reservoir.avgWY);
-//    data1.w = floatBitsToUint(reservoir.wSum);
-    data1.w = floatBitsToUint(reservoir.Y.w);
-    if (swapIndex == 0) {
-        history_restir_reservoir1_store(texelPos, data1);
-    } else {
-        history_restir_reservoir2_store(texelPos, data1);
-    }
+uvec4 restir_reservoir_pack(ReSTIRReservoir reservoir) {
+    uvec4 packedData = uvec4(0u);
+    packedData.x = nzpacking_packNormalOct32(reservoir.Y.xyz);
+    packedData.y = packUInt2x16(uvec2(reservoir.m, reservoir.age));
+    packedData.z = floatBitsToUint(reservoir.avgWY);
+    packedData.w = floatBitsToUint(reservoir.Y.w);
+    return packedData;
 }
 
 vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {

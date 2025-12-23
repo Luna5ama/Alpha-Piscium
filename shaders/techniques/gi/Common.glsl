@@ -17,6 +17,14 @@
 #define SPATIAL_REUSE_VISIBILITY_TRACE 1
 #define SPATIAL_REUSE_FEEDBACK 16
 
+const float HISTORY_LENGTH = 64.0;
+const float REAL_HISTORY_LENGTH = 255.0;
+const float FAST_HISTORY_LENGTH = 8.0;
+
+#define ENABLE_DENOISER 1
+#define ENABLE_DENOISER_ACCUM 1
+#define ENABLE_DENOISER_FAST_CLAMP 1
+
 /*
     Diffuse Color : 48 bits         (1)
     Diffuse fast color: 48 bits     (2)
@@ -184,12 +192,5 @@ uvec4 reprojectInfo_pack(ReprojectInfo info) {
     packedData.zw = floatBitsToUint(info.curr2PrevScreenPos);
     return packedData;
 }
-
-const float HISTORY_LENGTH = 64.0;
-const float REAL_HISTORY_LENGTH = 255.0;
-const float FAST_HISTORY_LENGTH = 8.0;
-
-#define ENABLE_DENOISER 1
-#define ENABLE_DENOISER_ACCUM 1
 
 #endif

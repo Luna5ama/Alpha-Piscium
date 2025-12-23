@@ -63,6 +63,7 @@ void main() {
         specMoment2 /= 25.0;
 
         #if ENABLE_DENOISER
+        #if ENABLE_DENOISER_FAST_CLAMP
         float len = historyData.realHistoryLength * REAL_HISTORY_LENGTH;
         float decayFactor = linearStep(FAST_HISTORY_LENGTH * 2.0, 1.0, historyData.realHistoryLength * REAL_HISTORY_LENGTH);
         float clampingThreshold = mix(2.0, 16.0, pow2(decayFactor));
@@ -80,10 +81,11 @@ void main() {
         float resetFactor = exp2(-(diffDiffLuma + specDiffLuma) * 64.0);
         historyData.historyLength *= resetFactor;
         historyData.realHistoryLength *= sqrt(resetFactor);
-//        imageStore(uimg_temp3, texelPos, vec4(resetFactor));
+        imageStore(uimg_temp3, texelPos, vec4(resetFactor));
 
         historyData.diffuseColor = diffClamped;
         historyData.specularColor = specClamped;
+        #endif
         #endif
 
         transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));

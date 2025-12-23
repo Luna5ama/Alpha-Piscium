@@ -34,8 +34,9 @@
         "transient_gi_blurSpec2": "RGBA16F",
         "transient_giRadianceInput": "RGBA16F",
         "transient_ssgiOut": "RGBA16F",
-        "history_restir_reservoir1": "RGBA32UI",
-        "history_restir_reservoir2": "RGBA32UI",
+        "history_restir_reservoirTemporal": "RGBA32UI",
+        "history_restir_reservoirSpatial": "RGBA32UI",
+        "transient_restir_reservoirReprojected": "RGBA32UI",
         "transient_restir_spatialInput": "RGBA32UI",
         "transient_restir_initialSample": "RGBA32UI",
         "transient_gi_diffuse_reprojInfo": "RGBA32UI"
