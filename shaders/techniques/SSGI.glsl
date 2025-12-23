@@ -129,6 +129,17 @@ uvec4 restir_reservoir_pack(ReSTIRReservoir reservoir) {
     return packedData;
 }
 
+vec3 sampleIrradiance(ivec2 texelPos, vec3 outgoingDirection) {
+    GBufferData hitGData = gbufferData_init();
+    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), hitGData);
+
+    float hitCosTheta = saturate(dot(hitGData.normal, outgoingDirection));
+    vec3 hitRadiance = transient_giRadianceInput1_fetch(texelPos).rgb;
+    vec3 hitEmissive = transient_giRadianceInput2_fetch(texelPos).rgb;
+
+    return hitCosTheta * hitRadiance + hitEmissive;
+}
+
 vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
     vec4 result = vec4(0.0, 0.0, 0.0, -1.0);
 
@@ -143,16 +154,7 @@ vec4 ssgiEvalF2(vec3 viewPos, vec3 sampleDirView) {
         vec3 hitViewPos = coords_toViewCoord(roundedHitScreenPos, hitViewZ, global_camProjInverse);
         float hitDistance = length(hitViewPos - viewPos);
         result.w = length(hitViewPos - viewPos);
-
-        vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
-        GBufferData hitGData = gbufferData_init();
-        gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
-
-        // TODO: handle emitter cosine
-        float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
-//        hitRadiance *= hitCosTheta;
-
-        result.xyz = hitRadiance;
+        result.xyz = sampleIrradiance(hitTexelPos, -sampleDirView);
     }
 
     return result;
@@ -173,7 +175,7 @@ vec3 ssgiEvalF(vec3 viewPos, GBufferData gData, vec3 sampleDirView, out float hi
         vec3 hitViewPos = coords_toViewCoord(roundedHitScreenPos, hitViewZ, global_camProjInverse);
         hitDistance = length(hitViewPos - viewPos);
 
-        vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
+        vec3 hitRadiance = sampleIrradiance(hitTexelPos, -sampleDirView);
         float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
         vec3 f = brdf * hitRadiance;
         result = f;
@@ -218,13 +220,7 @@ vec4 ssgiRef(ivec2 texelPos, uint finalIndex) {
             vec2 hitTexelCenter = hitTexelPosF + 0.5;
             vec2 roundedHitScreenPos = hitTexelCenter * uval_mainImageSizeRcp;
 
-            vec3 hitRadiance = transient_giRadianceInput_fetch(hitTexelPos).rgb;
-            GBufferData hitGData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
-
-            float hitCosTheta = saturate(dot(hitGData.normal, -sampleDirView));
-
-            hitRadiance *= hitCosTheta;
+            vec3 hitRadiance = sampleIrradiance(hitTexelPos, -sampleDirView);
 
             float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
             vec3 f = brdf * hitRadiance;

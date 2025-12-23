@@ -95,7 +95,7 @@ void main() {
                             vec3 prevHitScreenPos = coords_viewToScreen(prevHitViewPos, global_camProj);
                             ivec2 prevHitTexelPos = ivec2(prevHitScreenPos.xy * uval_mainImageSize);
 
-                            vec3 prevHitRadiance = transient_giRadianceInput_fetch(prevHitTexelPos).rgb;
+                            vec3 prevHitRadiance = sampleIrradiance(prevHitTexelPos, -prevSampleDirView);
                             float brdf = saturate(dot(gData.normal, prevSampleDirView)) / PI;
                             prevSample = vec4(prevHitRadiance, brdf);
 
@@ -122,12 +122,16 @@ void main() {
                 ReSTIRReservoir prevSpatialReservoir = restir_reservoir_unpack(history_restir_reservoirSpatial_load(texelPos));
 
                 vec3 prevSpatialSampleDirView = prevSpatialReservoir.Y.xyz;
+                prevSpatialSampleDirView = coords_dir_viewToWorldPrev(prevSpatialSampleDirView);
+                prevSpatialSampleDirView = coords_dir_worldToView(prevSpatialSampleDirView);
+                prevSpatialReservoir.Y.xyz = prevSpatialSampleDirView;
+
                 float prevSpatialHitDistance = prevSpatialReservoir.Y.w;
 
                 vec3 prevSpatialHitViewPos = viewPos + prevSpatialSampleDirView * prevSpatialHitDistance;
                 vec3 prevSpatialHitScreenPos = coords_viewToScreen(prevSpatialHitViewPos, global_camProj);
                 ivec2 prevSpatialHitTexelPos = ivec2(prevSpatialHitScreenPos.xy * uval_mainImageSize);
-                vec3 prevSpatialHitRadiance = transient_giRadianceInput_fetch(prevSpatialHitTexelPos).rgb;
+                vec3 prevSpatialHitRadiance = sampleIrradiance(prevSpatialHitTexelPos, -prevSpatialSampleDirView);
                 float brdf = saturate(dot(gData.normal, prevSpatialSampleDirView)) / PI;
                 float prevSpatialPHat = length(prevSpatialHitRadiance * brdf);
 

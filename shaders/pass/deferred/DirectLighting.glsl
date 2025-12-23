@@ -20,11 +20,10 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform writeonly image2D uimg_main;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rg32ui) uniform restrict uimage2D uimg_rg32ui;
-layout(r32ui) uniform writeonly uimage2D uimg_r32ui;
 
 ivec2 texelPos;
 
-void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffuseOut, inout vec3 mainOut, inout vec3 ssgiOut) {
+void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffuseOut, inout vec3 mainOut, inout vec4 giOut1, inout vec4 giOut2) {
     vec3 emissiveV = material.emissive;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
@@ -69,9 +68,10 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
     directDiffuseOut += combinedLighting.sss;
     directDiffuseOut /= material.albedo;
 
-    ssgiOut += emissiveV;
-//    ssgiOut += combinedLighting.diffuseLambertian;
-//    ssgiOut += combinedLighting.sss * 4.0;
+    giOut1.rgb += combinedLighting.diffuseLambertian;
+    giOut1.rgb += combinedLighting.sss;
+
+    giOut2.rgb += emissiveV;
 }
 
 void main() {
@@ -101,15 +101,16 @@ void main() {
                 ivec2 texelPos2x2 = texelPos >> 1;
                 ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
 
-//                uvec2 radianceData = transient_packedZN_load(radianceTexelPos).xy;
-                vec4 ssgiOut = vec4(0.0);
+                vec4 giOut1 = vec4(0.0);
+                vec4 giOut2 = vec4(0.0);
 
                 vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
                 vec3 directDiffuseOut = vec3(0.0);
                 if (lighting_gData.materialID == 65534u) {
                     mainOut = vec4(material.albedo * 0.01, 2.0);
+                    giOut1 = vec4(0.0);
                 } else {
-                    doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, ssgiOut.rgb);
+                    doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, giOut1, giOut2);
                     float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(lighting_gData.albedo));
                     float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
                     mainOut.a += emissiveFlag * albedoLuma * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
@@ -120,10 +121,8 @@ void main() {
                 }
 
                 mainOut.rgb = clamp(mainOut.rgb, 0.0, FP16_MAX);
-                ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
-
-                uint packedGeometryNormal = packSnorm3x10(lighting_gData.geomNormal);
-                transient_geometryNormal_store(texelPos, uvec4(packedGeometryNormal));
+                giOut1.rgb = clamp(giOut1.rgb, 0.0, FP16_MAX);
+                giOut2.rgb = clamp(giOut2.rgb, 0.0, FP16_MAX);
 
                 uvec4 packedZNOut = uvec4(0u);
                 nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
@@ -137,7 +136,8 @@ void main() {
                 }
 
                 imageStore(uimg_main, texelPos, mainOut);
-                transient_giRadianceInput_store(texelPos, ssgiOut);
+                transient_giRadianceInput1_store(texelPos, giOut1);
+                transient_giRadianceInput2_store(texelPos, giOut2);
                 return;
             }
         }
@@ -154,7 +154,8 @@ void main() {
             if (bool(ssgiOutWriteFlag)) {
 //                transient_packedZN_store(texelPos2x2, packedZNOut);
             }
-            transient_giRadianceInput_store(texelPos, vec4(0.0));
+            transient_giRadianceInput1_store(texelPos, vec4(0.0));
+            transient_giRadianceInput2_store(texelPos, vec4(0.0));
         }
     }
 }
