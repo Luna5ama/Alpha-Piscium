@@ -38,12 +38,12 @@ void main() {
         historyData.specularColor = specResult.rgb;
 
         if (RANDOM_FRAME < MAX_FRAMES){
-            imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
+//            imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
 //            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
             imageStore(uimg_temp2, texelPos, gi_historyData_pack1(historyData));
+            transient_gi_diffuse_shading_store(texelPos, vec4(historyData.diffuseColor, 0.0));
         }
 
-        transient_gi_diffuse_shading_store(texelPos, vec4(historyData.diffuseColor, 0.0));
 
         history_gi1_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
         history_gi2_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));
