@@ -1,6 +1,5 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
-#define HIZ_SUBGROUP_CHECK a
 
 #include "/techniques/atmospherics/air/Constants.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
@@ -11,7 +10,7 @@
 #include "/util/BitPacking.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/Morton.glsl"
-#include "/techniques/HiZ.glsl"
+#include "/techniques/HiZCheck.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -85,76 +84,75 @@ void main() {
         ivec2 texelPos2x2 = texelPos >> 1;
         vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
 
-        if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
-            float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-            if (viewZ != -65536.0) {
-                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), lighting_gData);
-                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), lighting_gData);
-                Material material = material_decode(lighting_gData);
-                vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
-                vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb) * glintColorData.a;
-                glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
-                glintColor *= exp2(SETTING_EMISSIVE_STRENGTH + SETTING_EMISSIVE_ARMOR_GLINT_MULT);
-                material.emissive += glintColor + material.albedo * glintColor * 4.0;
+        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
+        if (viewZ > -65536.0) {
+            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), lighting_gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), lighting_gData);
+            Material material = material_decode(lighting_gData);
+            vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
+            vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb) * glintColorData.a;
+            glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
+            glintColor *= exp2(SETTING_EMISSIVE_STRENGTH + SETTING_EMISSIVE_ARMOR_GLINT_MULT);
+            material.emissive += glintColor + material.albedo * glintColor * 4.0;
 
-                vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-                ivec2 texelPos2x2 = texelPos >> 1;
-                ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
+            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+            ivec2 texelPos2x2 = texelPos >> 1;
+            ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
 
-                vec4 giOut1 = vec4(0.0);
-                vec4 giOut2 = vec4(0.0);
+            vec4 giOut1 = vec4(0.0);
+            vec4 giOut2 = vec4(0.0);
 
-                {
-                    vec3 moment1 = vec3(0.0);
-                    vec3 moment2 = vec3(0.0);
+            {
+                vec3 moment1 = vec3(0.0);
+                vec3 moment2 = vec3(0.0);
 
-                    for (int dy = -2; dy <= 2; ++dy) {
-                        for (int dx = -2; dx <= 2; ++dx) {
-                            if (dx == 0 && dy == 0) continue;
-                            ivec2 neighborPos = texelPos + ivec2(dx, dy);
-                            vec3 neighborData = colors_SRGBToYCoCg(transient_gi1Reprojected_load(neighborPos).rgb);
-                            moment1 += neighborData;
-                            moment2 += neighborData * neighborData;
-                        }
+                for (int dy = -2; dy <= 2; ++dy) {
+                    for (int dx = -2; dx <= 2; ++dx) {
+                        if (dx == 0 && dy == 0) continue;
+                        ivec2 neighborPos = texelPos + ivec2(dx, dy);
+                        vec3 neighborData = colors_SRGBToYCoCg(transient_gi1Reprojected_load(neighborPos).rgb);
+                        moment1 += neighborData;
+                        moment2 += neighborData * neighborData;
                     }
-
-                    moment1 /= 24.0;
-                    moment2 /= 24.0;
-
-                    vec3 mean = moment1;
-                    vec3 variance = max(moment2 - moment1 * moment1, 0.0);
-                    vec3 stddev = sqrt(variance);
-                    vec3 aabbMin = mean - stddev * 1.0;
-                    vec3 aabbMax = mean + stddev * 1.0;
-                    vec3 giOut1Clamped = colors_SRGBToYCoCg(transient_gi1Reprojected_load(texelPos).rgb);
-                    giOut1Clamped = clamp(giOut1Clamped, aabbMin, aabbMax);
-                    giOut1.rgb = colors_YCoCgToSRGB(giOut1Clamped);
                 }
 
-                vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
-                vec3 directDiffuseOut = vec3(0.0);
-                if (lighting_gData.materialID == 65534u) {
-                    mainOut = vec4(material.albedo * 0.01, 2.0);
-                    giOut1 = vec4(0.0);
-                } else {
-                    giOut1.rgb *= material.albedo;
-                    giOut1.rgb *= GI_MB;
-                    doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, giOut1, giOut2);
-                    float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(material.albedo));
-                    float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
-                    mainOut.a += emissiveFlag * albedoLuma * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
-                    float albedoLumaWeight = pow(1.0 - pow(1.0 - albedoLuma, 16.0), 4.0);
-                    albedoLumaWeight += pow(albedoLuma, 16.0);
-                    mainOut.a *= albedoLumaWeight;
-                    mainOut.a *= mix(1.0, -1.0, emissiveFlag);
-                }
+                moment1 /= 24.0;
+                moment2 /= 24.0;
 
-                mainOut.rgb = clamp(mainOut.rgb, 0.0, FP16_MAX);
-                giOut1.rgb = clamp(giOut1.rgb, 0.0, FP16_MAX);
-                giOut2.rgb = clamp(giOut2.rgb, 0.0, FP16_MAX);
+                vec3 mean = moment1;
+                vec3 variance = max(moment2 - moment1 * moment1, 0.0);
+                vec3 stddev = sqrt(variance);
+                vec3 aabbMin = mean - stddev * 1.0;
+                vec3 aabbMax = mean + stddev * 1.0;
+                vec3 giOut1Clamped = colors_SRGBToYCoCg(transient_gi1Reprojected_load(texelPos).rgb);
+                giOut1Clamped = clamp(giOut1Clamped, aabbMin, aabbMax);
+                giOut1.rgb = colors_YCoCgToSRGB(giOut1Clamped);
+            }
 
-                uvec4 packedZNOut = uvec4(0u);
-                nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
+            vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
+            vec3 directDiffuseOut = vec3(0.0);
+            if (lighting_gData.materialID == 65534u) {
+                mainOut = vec4(material.albedo * 0.01, 2.0);
+                giOut1 = vec4(0.0);
+            } else {
+                giOut1.rgb *= material.albedo;
+                giOut1.rgb *= GI_MB;
+                doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, giOut1, giOut2);
+                float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(material.albedo));
+                float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
+                mainOut.a += emissiveFlag * albedoLuma * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
+                float albedoLumaWeight = pow(1.0 - pow(1.0 - albedoLuma, 16.0), 4.0);
+                albedoLumaWeight += pow(albedoLuma, 16.0);
+                mainOut.a *= albedoLumaWeight;
+                mainOut.a *= mix(1.0, -1.0, emissiveFlag);
+            }
+
+            mainOut.rgb = clamp(mainOut.rgb, 0.0, FP16_MAX);
+            giOut1.rgb = clamp(giOut1.rgb, 0.0, FP16_MAX);
+            giOut2.rgb = clamp(giOut2.rgb, 0.0, FP16_MAX);
+
+            uvec4 packedZNOut = uvec4(0u);
+            nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
 //                transient_packedZN_store(texelPos + ivec2(0, uval_mainImageSizeI.y), packedZNOut);
 
 //                uint ssgiOutWriteFlag = uint(vbgi_selectDownSampleInput(threadIdx));
@@ -164,12 +162,11 @@ void main() {
 ////                    transient_packedZN_store(radianceTexelPos, uvec4(packHalf2x16(ssgiOut.rg), packHalf2x16(ssgiOut.ba), 0u, 0u));
 //                }
 
-                imageStore(uimg_main, texelPos, mainOut);
-                transient_giRadianceInput1_store(texelPos, giOut1);
-                transient_giRadianceInput2_store(texelPos, giOut2);
-                imageStore(uimg_temp3, texelPos, giOut1);
-                return;
-            }
+            imageStore(uimg_main, texelPos, mainOut);
+            transient_giRadianceInput1_store(texelPos, giOut1);
+            transient_giRadianceInput2_store(texelPos, giOut2);
+            imageStore(uimg_temp3, texelPos, giOut1);
+            return;
         }
 
         {

@@ -3,7 +3,6 @@
 #extension GL_KHR_shader_subgroup_vote : enable
 #extension GL_KHR_shader_subgroup_clustered : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
-#define HIZ_SUBGROUP_CHECK a
 #define GLOBAL_DATA_MODIFIER \
 
 #include "/techniques/atmospherics/water/Constants.glsl"
@@ -13,7 +12,7 @@
 #include "/util/Hash.glsl"
 #include "/util/Rand.glsl"
 #include "/util/GBufferData.glsl"
-#include "/techniques/HiZ.glsl"
+#include "/techniques/HiZCheck.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -192,13 +191,9 @@ void main() {
     texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        float viewZ = -65536.0;
+        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
 
-        if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
-            viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-        }
-
-        if (viewZ != -65536.0) {
+        if (viewZ > -65536.0) {
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             vec4 outputColor = compShadow(texelPos, viewZ);

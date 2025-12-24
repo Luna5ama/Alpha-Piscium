@@ -1,11 +1,10 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
-#define HIZ_SUBGROUP_CHECK a
 
 #include "Common.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Sampling.glsl"
-#include "/techniques/HiZ.glsl"
+#include "/techniques/HiZCheck.glsl"
 
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
