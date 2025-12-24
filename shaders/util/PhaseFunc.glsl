@@ -1,3 +1,5 @@
+#ifndef INCLUDE_util_PhaseFunc_glsl
+#define INCLUDE_util_PhaseFunc_glsl a
 /*
     References:
         [DRA03] Draine, B.T. "Scattering by Interstellar Dust Grains. I. Optical and Ultraviolet"
@@ -12,8 +14,6 @@
 
         You can find full license texts in /licenses
 */
-#ifndef INCLUDE_util_PhaseFunc_glsl
-#define INCLUDE_util_PhaseFunc_glsl a
 
 #include "Math.glsl"
 

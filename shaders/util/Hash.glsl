@@ -1,3 +1,5 @@
+#ifndef INCLUDE_util_Hash_glsl
+#define INCLUDE_util_Hash_glsl a
 /*
     References:
         [QUI17] Quilez, Inigo. "Integer Hash Functions". 2017.
@@ -11,8 +13,6 @@
         You can find full license texts in /licenses
 */
 
-#ifndef INCLUDE_util_Hash_glsl
-#define INCLUDE_util_Hash_glsl a
 
 // --------------------------------------------------- Intenal Utils ---------------------------------------------------
 uint _hash_sum(uvec2 v) {

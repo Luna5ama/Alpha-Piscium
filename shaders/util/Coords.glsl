@@ -1,9 +1,9 @@
+#ifndef INCLUDE_util_Coords_glsl
+#define INCLUDE_util_Coords_glsl a
 /*
     References:
         [WRE18] Wrensch, Benjamin. "Reverse Z Cheatsheet". IOLITE Development Blog. 2023.
 */
-#ifndef INCLUDE_util_Coords_glsl
-#define INCLUDE_util_Coords_glsl a
 #include "Math.glsl"
 #include "Mat3.glsl"
 

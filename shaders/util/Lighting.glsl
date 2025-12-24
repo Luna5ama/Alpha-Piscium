@@ -1,3 +1,5 @@
+#ifndef INCLUDE_util_Lighting_glsl
+#define INCLUDE_util_Lighting_glsl a
 /*
     References:
         [BEL25] Belmu. Noble.
@@ -9,8 +11,6 @@
     Credits:
         Jessie - Skylight falloff function (https://github.com/Jessie-LC)
 */
-#ifndef INCLUDE_util_Lighting_glsl
-#define INCLUDE_util_Lighting_glsl a
 
 float lighting_skyLightFalloff(float lmCoordSky) {
     return lmCoordSky * exp2(8.0 * (lmCoordSky - 1.0));

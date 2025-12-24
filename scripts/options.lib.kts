@@ -252,7 +252,7 @@ open class OptionBuilder<T>(
                 } else {
                     append("#define $name $value")
                 }
-                range.joinTo(this, " ", " //[", "]")
+                range.joinTo(this, " ", "//[", "]")
                 appendLine()
             }
         }

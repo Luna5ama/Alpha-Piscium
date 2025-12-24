@@ -1,3 +1,5 @@
+#ifndef INCLUDE_clouds_Common_glsl
+#define INCLUDE_clouds_Common_glsl a
 /*
     References:
         [HIL16] Hillaire, Sébastien. "Physically Based Sky, Atmosphere and Cloud Rendering in Frostbite".
@@ -21,8 +23,6 @@
 
         You can find full license texts in /licenses
 */
-#ifndef INCLUDE_clouds_Common_glsl
-#define INCLUDE_clouds_Common_glsl a
 
 #include "Mediums.glsl"
 #include "/techniques/atmospherics/air/Constants.glsl"

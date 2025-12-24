@@ -1,3 +1,5 @@
+#ifndef INCLUDE_util_Sampling_glsl
+#define INCLUDE_util_Sampling_glsl a
 /*
     References:
         [QUI15] Quilez, Inigo. "Texture Repetition". 2015.
@@ -8,8 +10,6 @@
 
         You can find full license texts in /licenses
 */
-#ifndef INCLUDE_util_Sampling_glsl
-#define INCLUDE_util_Sampling_glsl a
 
 #include "Hash.glsl"
 #include "Math.glsl"

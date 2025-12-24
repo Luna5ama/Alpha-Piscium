@@ -1,3 +1,5 @@
+#ifndef INCLUDE_util_Rand_glsl
+#define INCLUDE_util_Rand_glsl a
 /*
     References:
         [GIL23] Gilcher, Pascal. "A Better R2 Sequence". 2023.
@@ -13,8 +15,6 @@
         You can find full license texts in /licenses
 */
 
-#ifndef INCLUDE_util_Rand_glsl
-#define INCLUDE_util_Rand_glsl a
 
 #include "/Base.glsl"
 

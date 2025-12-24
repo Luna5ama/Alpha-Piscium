@@ -1,3 +1,5 @@
+#ifndef INCLUDE_util_noise_GradientNoise_glsl
+#define INCLUDE_util_noise_GradientNoise_glsl a
 /*
     References:
         [QUI13a] Quilez, Inigo. "Noise - gradient - 2D". 2013.
@@ -18,8 +20,6 @@
         You can find full license texts in /licenses
 */
 
-#ifndef INCLUDE_util_noise_GradientNoise_glsl
-#define INCLUDE_util_noise_GradientNoise_glsl a
 
 #include "_Common.glsl"
 #include "/util/AxisAngle.glsl"

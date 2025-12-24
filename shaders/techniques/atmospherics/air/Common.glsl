@@ -1,3 +1,5 @@
+#ifndef INCLUDE_atmosphere_Common_glsl
+#define INCLUDE_atmosphere_Common_glsl a
 /*
     References:
         [BRU08] Bruneton, Eric. "Precomputed Atmospheric Scattering". EGSR 2008. 2008.
@@ -17,8 +19,6 @@
 
         You can find full license texts in /licenses
 */
-#ifndef INCLUDE_atmosphere_Common_glsl
-#define INCLUDE_atmosphere_Common_glsl a
 
 #include "../Common.glsl"
 #include "Constants.glsl"

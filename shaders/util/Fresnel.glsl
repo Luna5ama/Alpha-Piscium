@@ -1,3 +1,5 @@
+#ifndef INCLUDE_util_Fresnel_glsl
+#define INCLUDE_util_Fresnel_glsl a
 /*
     References:
         [ARN08] Arnott, W.P. "Fresnel equations". 2008.
@@ -20,8 +22,6 @@
     Credits:
         Jessie - providing beam ratio equation for transmission (https://github.com/Jessie-LC)
 */
-#ifndef INCLUDE_util_Fresnel_glsl
-#define INCLUDE_util_Fresnel_glsl a
 
 #include "Material.glsl"
 
