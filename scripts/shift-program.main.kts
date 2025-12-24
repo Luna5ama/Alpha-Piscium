@@ -29,8 +29,8 @@ import java.security.MessageDigest
 import kotlin.io.path.*
 import kotlin.system.exitProcess
 
-if (args.size !in 3..4) {
-    println("Usage: shift-program.main.kts <prefix> <center> <delta> <path (../shaders)>")
+if (args.size !in 3..5) {
+    println("Usage: shift-program.main.kts <prefix> <center> <delta> <world path from shaders (.)> <shaders path (../shaders)>")
     exitProcess(1)
 }
 
@@ -39,19 +39,23 @@ val validPrefixes = setOf("setup", "begin", "shadowcomp", "prepare", "deferred",
 check(prefix in validPrefixes) { "Invalid prefix: $prefix, must be one of $validPrefixes" }
 
 val center = args[1].toInt()
-check(center in 1..99) { "Center must be in range 1..99" }
+check(center in 0..99) { "Center must be in range 0..99" }
 val delta = args[2].toInt()
 check(delta != 0) { "Delta must be non-zero" }
 
-val shadersDirStr = args.getOrElse(3) { "../shaders" }
+val shadersDirStr = args.getOrElse(4) { "../shaders" }
 val shadersDir = Path(shadersDirStr)
 
-val entries = shadersDir.listDirectoryEntries("$prefix*").asSequence()
+val worldStr = args.getOrElse(3) { "." }
+val worldDir = shadersDir.resolve(worldStr).normalize()
+
+val entries = worldDir.listDirectoryEntries("$prefix*").asSequence()
     .map {
         val justName = it.nameWithoutExtension
         var underscoreIndex = justName.indexOf('_')
         if (underscoreIndex == -1) underscoreIndex = justName.length
-        justName.substring(prefix.length, underscoreIndex).toInt() to it
+        val index = if (prefix.length == underscoreIndex) 0 else justName.substring(prefix.length, underscoreIndex).toInt()
+        index to it
     }
     .groupBy({ it.first }, { it.second })
 
@@ -73,15 +77,19 @@ for (i in movingSrc.indices) {
     }
     val newDst = movingDst[i]
     if (newDst != src) {
-        check(newDst in 1..99) { "shift too big" }
+        check(newDst in 0..99) { "shift too big" }
         toMove.add(src to newDst)
     }
 }
 
+fun indexToString(index: Int): String {
+    return if (index == 0) "" else index.toString()
+}
+
 toMove.reverse()
 println("Pending renames:")
-toMove.forEach {
-    println("$prefix${it.first} -> $prefix${it.second}")
+toMove.forEachIndexed { i, it ->
+    println("$i: $prefix${indexToString(it.first)} -> $prefix${indexToString(it.second)}")
 }
 
 println("This can break your code, make sure to commit all changes before proceeding. Type 'Y' to continue:")
@@ -110,8 +118,8 @@ val hashes = toMove.asSequence()
     .toMap()
 
 val moved = toMove.flatMap { (oldIndex, newIndex) ->
-    val oldIndexStr = oldIndex.toString()
-    val newIndexStr = newIndex.toString()
+    val oldIndexStr = indexToString(oldIndex)
+    val newIndexStr = indexToString(newIndex)
     entries[oldIndex]!!.map { oldPath ->
         val startIndex = prefix.length
         val endIndex = startIndex + oldIndexStr.length
@@ -166,6 +174,7 @@ val updated = moved.asSequence()
     .toList()
 
 ProcessBuilder(listOf("git", "add") + updated)
+    .directory(worldDir.toFile())
     .inheritIO()
     .start()
     .waitFor()
