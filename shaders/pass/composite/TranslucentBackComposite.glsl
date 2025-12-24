@@ -23,20 +23,22 @@ layout(rgba8) uniform writeonly image2D uimg_rgba8;
 void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
+        float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
+        if (solidViewZ > -65536.0) {
+            vec3 albedo = transient_solidAlbedo_fetch(texelPos).rgb;
+            albedo = colors2_material_toWorkSpace(albedo);
+            vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
+            if (any(greaterThan(glintColorData.xyz, vec3(0.0)))) {
+                vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb);
+                glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
+                float baseColorLuma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedo.rgb);
+                albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
+            }
 
-        vec3 albedo = transient_solidAlbedo_fetch(texelPos).rgb;
-        albedo = colors2_material_toWorkSpace(albedo);
-//        vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
-//        if (any(greaterThan(glintColorData.xyz, vec3(0.0)))) {
-//            vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb);
-//            glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
-//            float baseColorLuma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedo.rgb);
-//            albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
-//        }
-
-        vec3 giRadiance = transient_gi_diffuse_shading_fetch(texelPos).rgb;
-        outputColor.rgb += giRadiance.rgb * albedo;
+            vec3 giRadiance = transient_gi_diffuse_shading_fetch(texelPos).rgb;
+            outputColor.rgb += giRadiance.rgb * albedo;
+        }
 
 
         ScatteringResult sctrResult = atmospherics_localComposite(0, texelPos);
@@ -57,7 +59,6 @@ void main() {
         float translucentStartViewZ = -texelFetch(usam_csr32f, translucentNearDepthTexelPos, 0).r;
 
         float startViewZ = max(translucentStartViewZ, waterStartViewZ);
-        float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
         if (startViewZ > -65536.0 && startViewZ > solidViewZ) {
             GBufferData gData = gbufferData_init();
