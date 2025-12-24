@@ -1,4 +1,7 @@
+#extension GL_KHR_shader_subgroup_ballot : enable
+
 #include "/techniques/gi/Common.glsl"
+#include "/techniques/HiZCheck.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -22,33 +25,36 @@ vec3 interpolateTurbo(float x) {
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec4 diffResult = transient_gi_blurDiff1_fetch(texelPos);
-        vec4 specResult = transient_gi_blurSpec1_fetch(texelPos);
-        // TODO: stablization
+        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
+        if (viewZ > -65536.0) {
+            vec4 diffResult = transient_gi_blurDiff1_fetch(texelPos);
+            vec4 specResult = transient_gi_blurSpec1_fetch(texelPos);
+            // TODO: stablization
 
-        GIHistoryData historyData = gi_historyData_init();
+            GIHistoryData historyData = gi_historyData_init();
 
-        gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
-        gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
-        gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
-        gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
-        gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
+            gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
+            gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
+            gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
+            gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
+            gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
-        historyData.diffuseColor = diffResult.rgb;
-        historyData.specularColor = specResult.rgb;
+            historyData.diffuseColor = diffResult.rgb;
+            historyData.specularColor = specResult.rgb;
 
-        if (RANDOM_FRAME < MAX_FRAMES){
-//            imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
-//            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
-            imageStore(uimg_temp2, texelPos, gi_historyData_pack1(historyData));
-            transient_gi_diffuse_shading_store(texelPos, vec4(historyData.diffuseColor, 0.0));
+            if (RANDOM_FRAME < MAX_FRAMES){
+                imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
+                //            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
+                imageStore(uimg_temp2, texelPos, gi_historyData_pack1(historyData));
+                transient_gi_diffuse_shading_store(texelPos, vec4(historyData.diffuseColor, 0.0));
+            }
+
+
+            history_gi1_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
+            history_gi2_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));
+            history_gi3_store(texelPos, clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX));
+            history_gi4_store(texelPos, clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX));
+            history_gi5_store(texelPos, gi_historyData_pack5(historyData));
         }
-
-
-        history_gi1_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
-        history_gi2_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));
-        history_gi3_store(texelPos, clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX));
-        history_gi4_store(texelPos, clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX));
-        history_gi5_store(texelPos, gi_historyData_pack5(historyData));
     }
 }

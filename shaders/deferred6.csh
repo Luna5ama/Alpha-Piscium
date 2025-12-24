@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/deferred/HiZMaxCopyLevel0.csh"
+#include "/pass/deferred/GIDenoiser1EdgeClassification.comp.glsl"

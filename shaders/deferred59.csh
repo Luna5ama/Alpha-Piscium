@@ -1,10 +1,12 @@
 #version 460 compatibility
+#extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Hash.glsl"
 #include "/util/Mat2.glsl"
+#include "/techniques/HiZCheck.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -32,9 +34,9 @@ void main() {
     sst_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        if (RANDOM_FRAME < MAX_FRAMES){
-            if (RANDOM_FRAME >= 0) {
-                float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
+        if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0){
+            float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
+            if (viewZ > -65536.0) {
                 vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
                 vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
@@ -236,8 +238,8 @@ void main() {
                         }
                         jacobian = clamp(jacobian, 0.0, maxJacobian);
 
-                                                float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
-//                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) * jacobian, 0.0);
+                        float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
+                        //                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) * jacobian, 0.0);
 
                         //                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) , 0.0);
 

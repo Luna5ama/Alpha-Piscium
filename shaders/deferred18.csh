@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/deferred/EnvProbeUpdate4ProjectCurrent.comp.glsl"
+#include "/pass/deferred/EnvProbeUpdate3ReprojectGather.comp.glsl"

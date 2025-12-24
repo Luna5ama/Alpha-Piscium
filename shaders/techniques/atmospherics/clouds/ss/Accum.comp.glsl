@@ -1,4 +1,3 @@
-#extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "Common.glsl"

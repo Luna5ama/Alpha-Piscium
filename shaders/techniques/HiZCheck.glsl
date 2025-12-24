@@ -1,5 +1,8 @@
 #ifndef INCLUDE_techniques_HiZCheck_glsl
 #define INCLUDE_techniques_HiZCheck_glsl a
+/* Required extensions:
+#extension GL_KHR_shader_subgroup_ballot : enable
+*/
 
 #include "HiZ.glsl"
 

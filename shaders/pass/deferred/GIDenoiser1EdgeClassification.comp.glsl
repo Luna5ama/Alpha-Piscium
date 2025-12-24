@@ -111,7 +111,6 @@ void main() {
 
         weightSum /= 8.0;
 
-//        imageStore(uimg_temp1, texelPos, vec4(weightSum));
         transient_edgeMaskTemp_store(texelPos, vec4(weightSum));
     }
 }
