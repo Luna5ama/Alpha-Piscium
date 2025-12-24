@@ -30,6 +30,7 @@ void main() {
         outputColor.rgb = mix(outputColor.rgb, vec3(1.0, 0.0, 1.0), alpha * 0.25);
         #endif
 
+        #if SETTING_DEBUG_OUTPUT
         beginText(texelPos >> ivec2(1), ivec2(4, (uval_mainImageSizeI.y >> 1) - 4));
         printLine();
         printLine();
@@ -107,6 +108,7 @@ void main() {
         printLine();
 
         endText(outputColor.rgb);
+        #endif
 
         imageStore(uimg_temp1, texelPos, outputColor);
     }
