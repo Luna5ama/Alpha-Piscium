@@ -31,5 +31,7 @@ void main() {
 
         transient_geomViewNormal_store(texelPos, vec4(geomNormal * 0.5 + 0.5, 0.0));
         transient_viewNormal_store(texelPos, vec4(normal * 0.5 + 0.5, 0.0));
+        transient_lowCloudRender_store(texelPos, uvec4(0u));
+        transient_lowCloudAccumulated_store(texelPos, uvec4(0u));
     }
 }
