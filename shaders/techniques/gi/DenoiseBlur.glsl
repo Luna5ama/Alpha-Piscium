@@ -58,7 +58,33 @@ float planeDistanceWeight(vec3 posA, vec3 normalA, vec3 posB, vec3 normalB, floa
     return exp2(factor * pow2(planeDistance));
 }
 
-void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, GIHistoryData historyData, vec2 blurJitter) {
+void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, vec2 blurJitter) {
+    GIHistoryData historyData = gi_historyData_init();
+    gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
+    gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
+    gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
+    gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
+    gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
+
+    historyData.diffuseHitDistance = MAX_HIT_DISTANCE;
+
+    // TODO: optimize with shared memory
+    for (int dy = -2; dy <= 2; ++dy) {
+        for (int dx = -2; dx <= 2; ++dx) {
+            ivec2 neighborPos = texelPos + ivec2(dx, dy);
+            GIHistoryData neighborHistoryData = gi_historyData_init();
+            gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(neighborPos));
+            gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(neighborPos));
+            gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(neighborPos));
+            gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(neighborPos));
+            gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(neighborPos));
+
+            if (neighborHistoryData.diffuseHitDistance > 0.0){
+                historyData.diffuseHitDistance = min(historyData.diffuseHitDistance, neighborHistoryData.diffuseHitDistance);
+            }
+        }
+    }
+
     vec2 centerScreenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
     GeomData centerGeomData = _gi_readGeomData(texelPos, centerScreenPos);
 
