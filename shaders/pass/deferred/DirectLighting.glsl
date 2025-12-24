@@ -68,8 +68,8 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
     directDiffuseOut += combinedLighting.sss;
     directDiffuseOut /= material.albedo;
 
-    giOut1.rgb += combinedLighting.diffuseLambertian * 2.0; // idk this needed to match reference
-    giOut1.rgb += combinedLighting.sss;
+    giOut1.rgb += combinedLighting.diffuseLambertian * 4.0; // idk this needed to match reference
+    giOut1.rgb += combinedLighting.sss * 4.;
 
     giOut2.rgb += emissiveV;
 }
