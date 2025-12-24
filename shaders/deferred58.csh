@@ -15,11 +15,6 @@ layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 #include "/techniques/SSGI.glsl"
 
-#if USE_REFERENCE
-void main() {
-
-}
-#else
 uint selectWeighted(vec4 weights, float rand) {
 //    float currWeight = weights.x;
 //    uint selectedIndex = 0u;
@@ -265,6 +260,9 @@ void main() {
                 temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
                 temporalReservoir.m = clamp(temporalReservoir.m, 0u, 16u);
                 ssgiOut = vec4(finalSample.xyz * finalSample.w * temporalReservoir.avgWY, temporalReservoir.Y.w);
+                #if USE_REFERENCE
+                ssgiOut = vec4(initalSample / samplePdf, hitDistance);
+                #endif
 
                 SpatialSampleData spatialSample = spatialSampleData_init();
                 spatialSample.hitRadiance = finalSample.xyz;
@@ -283,4 +281,3 @@ void main() {
         transient_restir_reservoirReprojected_store(texelPos, restir_reservoir_pack(temporalReservoir));
     }
 }
-#endif

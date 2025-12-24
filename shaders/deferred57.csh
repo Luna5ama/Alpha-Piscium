@@ -11,11 +11,6 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 #include "/techniques/SSGI.glsl"
 
-#if USE_REFERENCE
-void main() {
-
-}
-#else
 void main() {
 
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
@@ -55,4 +50,3 @@ void main() {
         }
     }
 }
-#endif

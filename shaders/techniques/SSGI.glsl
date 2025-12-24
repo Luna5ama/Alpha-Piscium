@@ -133,12 +133,12 @@ vec3 sampleIrradiance(ivec2 texelPos, ivec2 hitTexelPos, vec3 outgoingDirection)
     GBufferData hitGData = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
 
-    float hitCosTheta = saturate(dot(hitGData.normal, outgoingDirection));
+    float hitCosTheta = saturate(dot(hitGData.geomNormal, outgoingDirection));
     vec3 hitRadiance = transient_giRadianceInput1_fetch(hitTexelPos).rgb;
     vec3 hitEmissive = transient_giRadianceInput2_fetch(hitTexelPos).rgb;
     vec3 selfHitEmissive = transient_giRadianceInput2_fetch(texelPos).rgb;
 
-    return hitRadiance * hitCosTheta + hitEmissive * float(all(lessThan(selfHitEmissive, vec3(0.0001))));
+    return hitRadiance * float(hitCosTheta > 0.0) + hitEmissive * float(all(lessThan(selfHitEmissive, vec3(0.0001))));
 }
 
 vec4 ssgiEvalF2(ivec2 texelPos, vec3 viewPos, vec3 sampleDirView) {
