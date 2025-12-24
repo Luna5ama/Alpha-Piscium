@@ -79,6 +79,13 @@ void main() {
 
                 if (reprojInfo.historyResetFactor > 0.0) {
                     vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
+//                    {
+//                        vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(viewPos, 1.0), gData.isHand);
+//                        vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
+//                        vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
+//                        vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
+//                        curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
+//                    }
                     vec2 centerPixel = curr2PrevTexelPos - 0.5;
                     vec2 gatherOrigin = floor(centerPixel);
                     vec2 gatherTexelPos = gatherOrigin + 1.0;
@@ -111,7 +118,6 @@ void main() {
                         vec3 prevHitViewPos = prevViewPos + prevTemporalReservoir.Y.xyz * prevTemporalReservoir.Y.w;
                         vec3 prevHitScenePos = coords_pos_viewToWorld(prevHitViewPos, gbufferPrevModelViewInverse);
                         vec3 prev2CurrHitScenePos = coord_scenePrevToCurr(prevHitScenePos);
-//                        vec3 prev2CurrHitViewPos = coords_pos_worldToView(prev2CurrHitScenePos, gbufferModelView);
                         vec3 prev2CurrHitViewPos = coords_pos_worldToView(prev2CurrHitScenePos, gbufferModelView);
                         vec3 hitDiff = prev2CurrHitViewPos - viewPos;
                         float hitDistance = length(hitDiff);
@@ -257,7 +263,7 @@ void main() {
                 }
                 float avgWSum = wSum / float(temporalReservoir.m);
                 temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
-                temporalReservoir.m = clamp(temporalReservoir.m, 0u, 32u);
+                temporalReservoir.m = clamp(temporalReservoir.m, 0u, 16u);
                 ssgiOut = vec4(finalSample.xyz * finalSample.w * temporalReservoir.avgWY, temporalReservoir.Y.w);
 
                 SpatialSampleData spatialSample = spatialSampleData_init();

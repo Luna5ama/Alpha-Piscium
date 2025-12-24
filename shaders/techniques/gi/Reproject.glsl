@@ -15,9 +15,12 @@ vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
 void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
     GIHistoryData historyData = gi_historyData_init();
     ReprojectInfo reprojInfo = reprojectInfo_init();
-
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-    screenPos -= global_taaJitter * uval_mainImageSizeRcp;
+    float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
+
+    if (currEdgeFactor < 0.9) {
+        screenPos -= global_taaJitter * uval_mainImageSizeRcp;
+    }
 
     vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
     vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
@@ -30,7 +33,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
     vec3 currWorldNormal = coords_dir_viewToWorld(currViewNormal);
 
     float glazingCosTheta = saturate(dot(currViewGeomNormal, -normalize(currViewPos.xyz)));
-    float glazingAngleFactor = sqrt(glazingCosTheta);
+    float glazingAngleFactor = glazingCosTheta;
     float glazingAngleFactorHistory = pow4(1.0 - glazingCosTheta);
 
     if (bool(clipFlag)) {
@@ -38,7 +41,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
         vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
 
         if (all(equal(curr2PrevScreen, saturate(curr2PrevScreen)))) {
-            curr2PrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
+            if (currEdgeFactor < 0.9) {
+                curr2PrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
+            }
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
 
             vec3 curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
@@ -50,7 +55,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             vec2 gatherScreenPos = gatherTexelPos * uval_mainImageSizeRcp;
             vec2 pixelPosFract = fract(centerPixel);
 
-            float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
             float prevEdgeMask = min4(history_gi5_gather(gatherScreenPos, 2));
 
             vec4 viewZs = history_viewZ_gatherTexel(gatherTexelPos, 0);
@@ -126,7 +130,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 //            reprojInfo.edgeFlag = edgeFlag;
 
             if (edgeFlagBool) {
-                bool validFlag = weightSum > 0.01;
+                bool validFlag = weightSum > 0.001;
                 historyResetFactor *= float(validFlag);
                 if (weightSum > 0.001) {
                     vec4 giData1 = bileratralSum(

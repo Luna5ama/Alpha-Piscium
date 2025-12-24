@@ -241,11 +241,11 @@ vec3 coords_dir_worldToViewPrev(vec3 dirWorld) {
 }
 
 vec3 coords_pos_viewToWorld(vec3 posView, mat4 viewMatInverse) {
-    return (gbufferModelViewInverse * vec4(posView, 1.0)).xyz;
+    return (viewMatInverse * vec4(posView, 1.0)).xyz;
 }
 
 vec3 coords_pos_worldToView(vec3 posWorld, mat4 viewMat) {
-    return (gbufferModelView * vec4(posWorld, 1.0)).xyz;
+    return (viewMat * vec4(posWorld, 1.0)).xyz;
 }
 
 vec3 coords_viewToScreen(vec3 viewPos, mat4 proj) {

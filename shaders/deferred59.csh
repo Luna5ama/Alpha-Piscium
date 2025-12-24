@@ -228,19 +228,19 @@ void main() {
 
                         float maxJacobian = 10.0;
                         float jacobian = RA2 * cosPhiB <= 0.0 ? 0.0 : (RB2 * cosPhiA) / (RA2 * cosPhiB);
+                        if (neighborPHat <= 0.0) {
+                            neighborReservoir.m = 0u;
+                        }
+                        if (jacobian <= 0.0) {
+                            neighborReservoir.m = 0u;
+                        }
                         jacobian = clamp(jacobian, 0.0, maxJacobian);
 
-                        //                        float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
-                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) * jacobian, 0.0);
+                                                float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
+//                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) * jacobian, 0.0);
 
-                        //                        if (jacobian <= 0.0) {
-                        //                            neighborReservoir.m = 0u;
-                        //                        }
                         //                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) , 0.0);
 
-                        //                        if (neighborPHat <= 0.0) {
-                        //                            neighborReservoir.m = 0u;
-                        //                        }
 
 
                         float neighborRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2u + i)).x);

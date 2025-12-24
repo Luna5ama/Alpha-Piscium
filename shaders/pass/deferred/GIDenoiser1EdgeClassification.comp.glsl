@@ -6,6 +6,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
+layout(rgba16f) uniform writeonly restrict image2D uimg_temp1;
 layout(rgba8) uniform writeonly restrict image2D uimg_rgba8;
 
 // Shared memory with padding for 3x3 tap
@@ -74,10 +75,9 @@ void main() {
         vec3 centerWorldPos = coords_pos_viewToWorld(centerViewPos, gbufferModelViewInverse);
 
         float planeWeight = rcp(exp2(SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT)) * max(abs(centerData.viewZ), 0.1);
-        float normalWeightDistanceFactor = BASE_NORMAL_WEIGHT_DECAY / (BASE_NORMAL_WEIGHT_DECAY + pow2(centerData.viewZ));
 
-        float glazingAngleFactor = sqrt(saturate(dot(centerData.geomNormal, -normalize(centerViewPos))));
-        float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor)) * pow2(centerData.viewZ);
+        float glazingAngleFactor = saturate(dot(centerData.geomNormal, -normalize(centerWorldPos)));
+        float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor)) * max(4.0, pow2(centerData.viewZ));
 
         float weightSum = 0.0;
 
@@ -99,7 +99,7 @@ void main() {
                 // Calculate plane distance (geometry weight)
                 float planeDistance = gi_planeDistance(centerWorldPos, centerData.geomNormal, sampleWorldPos, sampleData.geomNormal);
 
-                float geomDepthWeight = step(planeDistance, geomDepthThreshold);
+                float geomDepthWeight = float(planeDistance < geomDepthThreshold);
 
                 float geomNormalDot = saturate(dot(centerData.geomNormal, sampleData.geomNormal));
                 float geomNormalWeight = pow2(geomNormalDot);
@@ -111,6 +111,7 @@ void main() {
 
         weightSum /= 8.0;
 
+//        imageStore(uimg_temp1, texelPos, vec4(weightSum));
         transient_edgeMaskTemp_store(texelPos, vec4(weightSum));
     }
 }

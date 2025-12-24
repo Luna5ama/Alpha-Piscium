@@ -11,21 +11,21 @@
 #define MAX_FRAMES 0x7fffffff
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 #define MC_SPP 16
-#define SPATIAL_REUSE 0
-#define SPATIAL_REUSE_SAMPLES 0
+#define SPATIAL_REUSE 1
+#define SPATIAL_REUSE_SAMPLES 6
 #define SPATIAL_REUSE_RADIUS 64
 #define SPATIAL_REUSE_VISIBILITY_TRACE 1
-#define SPATIAL_REUSE_FEEDBACK 0
+#define SPATIAL_REUSE_FEEDBACK 16
 
 const float HISTORY_LENGTH = 64.0;
 const float REAL_HISTORY_LENGTH = 255.0;
 const float FAST_HISTORY_LENGTH = 8.0;
 
-#define ENABLE_DENOISER 0
-#define ENABLE_DENOISER_ACCUM 0
-#define ENABLE_DENOISER_FAST_CLAMP 0
+#define ENABLE_DENOISER 1
+#define ENABLE_DENOISER_ACCUM 1
+#define ENABLE_DENOISER_FAST_CLAMP 1
 
-#define GI_MB 0.0
+#define GI_MB 1.0
 /*
     Diffuse Color : 48 bits         (1)
     Diffuse fast color: 48 bits     (2)
