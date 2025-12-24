@@ -56,6 +56,6 @@ void main() {
         vec3 rayDir = coords_octDecode01(texCoord);
 
         ScatteringResult result = computeSingleScattering(atmosphere, rayDir);
-        imageStore(uimg_skyLUT, pixelPos, vec4(result.inScattering, 1.0));
+//        imageStore(uimg_skyLUT, pixelPos, vec4(result.inScattering, 1.0));
     }
 }
