@@ -112,7 +112,7 @@ void main() {
                     for (int ix = 0; ix < 4; ++ix) {
                         ivec2 offset = ivec2(ix, iy) - 2;
                         Vec4PackedData sampleData = loadPrevData(gatherTexelPos + offset);
-                        float weight = weightX[ix] * weightY[iy];
+                        float weight = weightX[ix] * weightY[iy] * float(sampleData.transmittanceHLen.w > 0.0);
                         weightSum += weight;
                         prevAvgData = vec4PackedData_add(prevAvgData, vec4PackedData_mul(sampleData, weight));
                     }
@@ -143,7 +143,6 @@ void main() {
                 vec4 weightY = sampling_lanczoc2Weights(pixelPosFract.y, kernelBias);
                 vec4 momentWeightX = sampling_gaussianWeights(pixelPosFract.x, 1.0);
                 vec4 momentWeightY = sampling_gaussianWeights(pixelPosFract.y, 1.0);
-                float maxWeight = 0.0;
                 float totalMomentWeight = 0.0;
                 float weightSum = 0.0;
 
@@ -158,25 +157,26 @@ void main() {
                     for (int ix = 0; ix < 4; ++ix) {
                         ivec2 offset = ivec2(ix, iy) - 2;
                         Vec4PackedData sampleData = loadCurrData(gatherTexelPos + offset);
-                        float weight = weightX[ix] * weightY[iy];
-                        weightSum += weight;
-                        maxWeight = max(maxWeight, weight);
-                        currAvgData = vec4PackedData_add(currAvgData, vec4PackedData_mul(sampleData, weight));
+                        if (sampleData.transmittanceHLen.w > 0.0) {
+                            float weight = weightX[ix] * weightY[iy];
+                            weightSum += weight;
+                            currAvgData = vec4PackedData_add(currAvgData, vec4PackedData_mul(sampleData, weight));
 
-                        vec3 inSctrYCoCg = colors_SRGBToYCoCg(sampleData.inScattering);
-                        vec3 transmittanceYCoCg = colors_SRGBToYCoCg(sampleData.transmittanceHLen.rgb);
-                        float momentWeight = momentWeightX[ix] * momentWeightY[iy];
+                            vec3 inSctrYCoCg = colors_SRGBToYCoCg(sampleData.inScattering);
+                            vec3 transmittanceYCoCg = colors_SRGBToYCoCg(sampleData.transmittanceHLen.rgb);
+                            float momentWeight = momentWeightX[ix] * momentWeightY[iy];
 
-                        inSctrMax = max(inSctrMax, sampleData.inScattering);
-                        inSctrMin = min(inSctrMin, sampleData.inScattering);
-                        transmittanceMax = max(transmittanceMax, sampleData.transmittanceHLen.rgb);
-                        transmittanceMin = min(transmittanceMin, sampleData.transmittanceHLen.rgb);
+                            inSctrMax = max(inSctrMax, sampleData.inScattering);
+                            inSctrMin = min(inSctrMin, sampleData.inScattering);
+                            transmittanceMax = max(transmittanceMax, sampleData.transmittanceHLen.rgb);
+                            transmittanceMin = min(transmittanceMin, sampleData.transmittanceHLen.rgb);
 
-                        inSctrMoment1 += inSctrYCoCg * momentWeight;
-                        inSctrMoment2 += inSctrYCoCg * inSctrYCoCg * momentWeight;
-                        transmittanceMoment1 += transmittanceYCoCg * momentWeight;
-                        transmittanceMoment2 += transmittanceYCoCg * transmittanceYCoCg * momentWeight;
-                        totalMomentWeight += momentWeight;
+                            inSctrMoment1 += inSctrYCoCg * momentWeight;
+                            inSctrMoment2 += inSctrYCoCg * inSctrYCoCg * momentWeight;
+                            transmittanceMoment1 += transmittanceYCoCg * momentWeight;
+                            transmittanceMoment2 += transmittanceYCoCg * transmittanceYCoCg * momentWeight;
+                            totalMomentWeight += momentWeight;
+                        }
                     }
                 }
                 if (weightSum > 0.001){
@@ -228,7 +228,7 @@ void main() {
             newData.transmittanceHLen.xyz = mix(newData.transmittanceHLen.xyz, currAvgData.transmittanceHLen.xyz, alpha);
 
             CloudSSHistoryData newHistoryData = vec4PackedData_toHistoryData(newData);
-            newHistoryData.inScattering = max(newHistoryData.inScattering, vec3(0.0));
+            newHistoryData.inScattering = clamp(newHistoryData.inScattering, 0.0, FP16_MAX);
             newHistoryData.transmittance = saturate(newHistoryData.transmittance);
 
             uvec4 packedOutput = uvec4(0u);
