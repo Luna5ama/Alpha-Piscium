@@ -6,7 +6,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.readLines
 import kotlin.math.pow
 
-options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
+options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "base/TextOptions.glsl") {
     mainScreen(2) {
         screen(2) {
             lang {
