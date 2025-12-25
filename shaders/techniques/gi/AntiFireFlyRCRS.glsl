@@ -51,6 +51,7 @@ void updateMinMaxDiffSpec(ivec2 samplePos, inout vec2 minMaxLumDiff, inout ivec4
 }
 
 void antiFireFlyRCRS(ivec2 texelPos) {
+    #if ENABLE_DENOISER_ANTI_FIREFLY
     // Load shared tiles (two calls to cover 324 entries with 256 threads)
     loadSharedDataRCRS(gl_LocalInvocationIndex);
     loadSharedDataRCRS(gl_LocalInvocationIndex + 256u);
@@ -77,23 +78,31 @@ void antiFireFlyRCRS(ivec2 texelPos) {
 
         vec4 centerDiff = shared_diff[localPos.y][localPos.x];
         float centerDiffLum = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerDiff.rgb);
-//        if (centerDiffLum < minMaxLumDiff.x) {
-//            centerDiff = shared_diff[minMaxPosDiff.y][minMaxPosDiff.x];
-//        }
-//        if (centerDiffLum > minMaxLumDiff.y) {
-//            centerDiff = shared_diff[minMaxPosDiff.w][minMaxPosDiff.z];
-//        }
+        if (centerDiffLum < minMaxLumDiff.x) {
+            centerDiff = shared_diff[minMaxPosDiff.y][minMaxPosDiff.x];
+        }
+        if (centerDiffLum > minMaxLumDiff.y) {
+            centerDiff = shared_diff[minMaxPosDiff.w][minMaxPosDiff.z];
+        }
 
         vec4 centerSpec = shared_spec[localPos.y][localPos.x];
         float centerSpecLum = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerSpec.rgb);
-//        if (centerSpecLum < minMaxLumSpec.x) {
-//            centerSpec = shared_spec[minMaxPosSpec.y][minMaxPosSpec.x];
-//        }
-//        if (centerSpecLum > minMaxLumSpec.y) {
-//            centerSpec = shared_spec[minMaxPosSpec.w][minMaxPosSpec.z];
-//        }
+        if (centerSpecLum < minMaxLumSpec.x) {
+            centerSpec = shared_spec[minMaxPosSpec.y][minMaxPosSpec.x];
+        }
+        if (centerSpecLum > minMaxLumSpec.y) {
+            centerSpec = shared_spec[minMaxPosSpec.w][minMaxPosSpec.z];
+        }
 
         transient_gi_blurDiff2_store(texelPos, centerDiff);
         transient_gi_blurSpec2_store(texelPos, centerSpec);
     }
+    #else
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        vec4 diff = transient_gi_blurDiff1_fetch(texelPos);
+        vec4 spec = transient_gi_blurSpec1_fetch(texelPos);
+        transient_gi_blurDiff2_store(texelPos, diff);
+        transient_gi_blurSpec2_store(texelPos, spec);
+    }
+    #endif
 }
