@@ -28,17 +28,17 @@ GeomData _gi_readGeomData(ivec2 texelPos, vec2 screenPos) {
 
 vec4 _gi_readDiff(ivec2 texelPos) {
     #if GI_DENOISE_PASS == 1
-    return transient_gi_blurDiff1_fetch(texelPos);
-    #elif GI_DENOISE_PASS == 2
     return transient_gi_blurDiff2_fetch(texelPos);
+    #elif GI_DENOISE_PASS == 2
+    return transient_gi_blurDiff1_fetch(texelPos);
     #endif
 }
 
 vec4 _gi_readSpec(ivec2 texelPos) {
     #if GI_DENOISE_PASS == 1
-    return transient_gi_blurSpec1_fetch(texelPos);
-    #elif GI_DENOISE_PASS == 2
     return transient_gi_blurSpec2_fetch(texelPos);
+    #elif GI_DENOISE_PASS == 2
+    return transient_gi_blurSpec1_fetch(texelPos);
     #endif
 }
 
@@ -218,11 +218,11 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, vec2 blurJitter) {
 
         #if GI_DENOISE_PASS == 1
         diffResult.w = pow(safeDiv(variance, centerLuma) * 8.0, 1.0 / 2.0);
-        transient_gi_blurDiff2_store(texelPos, diffResult);
-        transient_gi_blurSpec2_store(texelPos, specResult);
-        #elif GI_DENOISE_PASS == 2
         transient_gi_blurDiff1_store(texelPos, diffResult);
         transient_gi_blurSpec1_store(texelPos, specResult);
+        #elif GI_DENOISE_PASS == 2
+        transient_gi_blurDiff2_store(texelPos, diffResult);
+        transient_gi_blurSpec2_store(texelPos, specResult);
         #endif
     }
 }

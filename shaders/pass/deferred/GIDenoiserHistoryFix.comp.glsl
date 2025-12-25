@@ -67,7 +67,6 @@ void main() {
             specMoment1 /= 25.0;
             specMoment2 /= 25.0;
 
-            #if ENABLE_DENOISER
             #if ENABLE_DENOISER_FAST_CLAMP
             float len = historyData.realHistoryLength * REAL_HISTORY_LENGTH;
             float decayFactor = linearStep(FAST_HISTORY_LENGTH * 2.0, 1.0, historyData.realHistoryLength * REAL_HISTORY_LENGTH);
@@ -91,7 +90,6 @@ void main() {
             historyData.diffuseColor = diffClamped;
             historyData.specularColor = specClamped;
             #endif
-            #endif
 
             transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
             transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
@@ -101,7 +99,6 @@ void main() {
 
             vec4 diffInput = vec4(historyData.diffuseColor, 0.0);
             vec4 specInput = vec4(historyData.specularColor, 0.0);
-            //        imageStore(uimg_temp3, texelPos, diffInput);
 
             transient_gi_blurDiff1_store(texelPos, diffInput);
             transient_gi_blurSpec1_store(texelPos, specInput);

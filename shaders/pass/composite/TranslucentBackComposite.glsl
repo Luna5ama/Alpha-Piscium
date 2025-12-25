@@ -36,7 +36,7 @@ void main() {
                 albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
             }
 
-            vec3 giRadiance = transient_gi_diffuse_shading_fetch(texelPos).rgb;
+            vec3 giRadiance = history_gi_diffuse_shading_fetch(texelPos).rgb;
             outputColor.rgb += giRadiance.rgb * albedo;
         }
 

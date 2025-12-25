@@ -27,8 +27,8 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
         if (viewZ > -65536.0) {
-            vec4 diffResult = transient_gi_blurDiff1_fetch(texelPos);
-            vec4 specResult = transient_gi_blurSpec1_fetch(texelPos);
+            vec4 diffResult = transient_gi_blurDiff2_fetch(texelPos);
+            vec4 specResult = transient_gi_blurSpec2_fetch(texelPos);
             // TODO: stablization
 
             GIHistoryData historyData = gi_historyData_init();
@@ -46,9 +46,8 @@ void main() {
                 imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
                 //            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
                 imageStore(uimg_temp2, texelPos, gi_historyData_pack1(historyData));
-                transient_gi_diffuse_shading_store(texelPos, vec4(historyData.diffuseColor, 0.0));
+                history_gi_diffuse_shading_store(texelPos, vec4(historyData.diffuseColor, 0.0));
             }
-
 
             history_gi1_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
             history_gi2_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));

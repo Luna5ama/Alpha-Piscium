@@ -8,7 +8,7 @@
 
 #define USE_REFERENCE 0
 #define SKIP_FRAMES 4
-#define MAX_FRAMES 0x7fffffff
+#define MAX_FRAMES 256
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 #define MC_SPP 16
 #define SPATIAL_REUSE 1

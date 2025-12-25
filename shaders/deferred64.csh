@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/deferred/GIDenoiser4Accum.comp.glsl"
+#include "/pass/deferred/GIDenoiserHistoryFix.comp.glsl"
