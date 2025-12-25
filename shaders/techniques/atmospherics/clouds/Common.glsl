@@ -152,16 +152,19 @@ void clouds_computeLighting(
 
     vec3 sampleInSctr = sampleLightIrradiance * layerParam.medium.phase;
     sampleInSctr += sampleAmbientIrradiance;
-    sampleInSctr *= sampleScattering;
-    const float D = SETTING_CLOUDS_MS_RADIUS;
-    vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
-    fMS = mix(fMS, fMS * 0.999, smoothstep(0.99, 1.0, fMS));
-    vec3 sampleInSctrMS = sampleLightIrradiance;
-    sampleInSctrMS += sampleAmbientIrradiance;
-    sampleInSctrMS *= phasefunc_Rayleigh(renderParams.cosLightTheta);
-    sampleInSctrMS *= fMS / (1.0 - fMS);
 
-    sampleInSctr += sampleInSctrMS;
+    const float D = 0.35;
+    vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
+    fMS = mix(fMS, fMS * 0.99, smoothstep(0.99, 1.0, fMS));
+    vec3 sampleMSIrradiance = sampleLightIrradiance;
+    sampleMSIrradiance += sampleAmbientIrradiance;
+    sampleMSIrradiance *= UNIFORM_PHASE;
+    sampleMSIrradiance *= fMS / (1.0 - fMS);
+    sampleInSctr += sampleMSIrradiance;
+
+    sampleInSctr *= sampleScattering;
+
+    sampleInSctr += sampleMSIrradiance;
 
     vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
     sampleTotalInSctr += sampleInSctrInt;
