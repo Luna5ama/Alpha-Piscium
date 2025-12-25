@@ -3,6 +3,7 @@
 
 #include "Common.glsl"
 
+/*const*/
 #define _CSRGBA32UI_TEXTURE_SIZE (uval_mainImageSizeI * ivec2(2, 3))
 #define _CSRGBA32UI_TEXTURE_SIZE_F (uval_mainImageSize * vec2(2.0, 3.0))
 #define _CSRGBA32UI_TEXTURE_SIZE_RCP rcp(_CSRGBA32UI_TEXTURE_SIZE_F)
@@ -94,4 +95,5 @@ ivec2 csrgba32ui_temp4_texelToTexel(ivec2 texelPos) {
     );
 }
 
+/*const*/
 #endif

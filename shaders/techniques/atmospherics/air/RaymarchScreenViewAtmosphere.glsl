@@ -117,7 +117,9 @@ float atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos) {
 }
 #endif
 
+/*const*/
 #define ATMOSPHERE_RAYMARCHING_AERIAL_PERSPECTIVE a
+/*const*/
 #include "Raymarching.glsl"
 
 const vec3 ORIGIN_VIEW = vec3(0.0);

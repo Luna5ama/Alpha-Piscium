@@ -38,6 +38,7 @@ ScatteringResult raymarchAerialPerspective(
     float stepJitter
 );
 
+/*const*/
 #ifdef ATMOSPHERE_RAYMARCHING_TRANSMITTANCE
 #define ATMOSPHERE_RAYMARCHING_FUNC_TYPE 0
 #include "RaymarchingFunc.glsl"
@@ -67,3 +68,4 @@ ScatteringResult raymarchAerialPerspective(
 #include "RaymarchingFunc.glsl"
 #undef ATMOSPHERE_RAYMARCHING_FUNC_TYPE
 #endif
+/*const*/

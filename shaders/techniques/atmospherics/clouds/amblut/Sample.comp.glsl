@@ -1,6 +1,8 @@
 #include "Common.glsl"
 
+/*const*/
 #define ATMOSPHERE_RAYMARCHING_SKY a
+/*const*/
 #include "/techniques/atmospherics/air/Raymarching.glsl"
 
 #include "/util/Celestial.glsl"

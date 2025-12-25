@@ -3,6 +3,7 @@
 
 #include "Common.glsl"
 
+/*const*/
 #define _CSRG32F_TEXTURE_SIZE (uval_mainImageSizeI * ivec2(1, 3))
 #define _CSRG32F_TEXTURE_SIZE_F (uval_mainImageSize * vec2(1.0, 3.0))
 #define _CSRG32F_TEXTURE_SIZE_RCP rcp(_CSRG32F_TEXTURE_SIZE_F)
@@ -74,4 +75,5 @@ vec2 csrg32f_tile3_uvToUV(vec2 uv) {
     );
 }
 
+/*const*/
 #endif

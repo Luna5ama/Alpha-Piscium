@@ -15,7 +15,9 @@ layout(local_size_x = 8, local_size_y = 16) in;
 
 const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 8);
 
+/*const*/
 #define ATMOSPHERE_RAYMARCHING_SKY_SINGLE a
+/*const*/
 #include "../Raymarching.glsl"
 
 layout(rgba16f) restrict uniform writeonly image3D uimg_skyViewLUT;
