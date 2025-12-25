@@ -1,4 +1,3 @@
-/*const*/
 #define usam_main colortex0
 #define uimg_main colorimg0
 
@@ -58,7 +57,6 @@
 
 #define usam_shadow_waterNormal shadowcolor6
 #define uimg_shadow_waterNormal shadowcolorimg6
-/*const*/
 
 // ------------------------------------------------- Colortex Samplers -------------------------------------------------
 uniform sampler2D usam_main;
