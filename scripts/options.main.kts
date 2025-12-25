@@ -1872,7 +1872,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             comment = "控制云中蓬松结构的比例。数值越高，蓬松结构越小。"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_BILLOWY_CURL_STR", 0.5, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_LOW_BILLOWY_CURL_STR", 0.0, -4.0..4.0 step 0.1) {
                         lang {
                             name = "Billowy Curl Strength"
                             comment =
@@ -1894,7 +1894,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                             comment = "控制云中丝缕细节的比例。数值越高，丝缕越细越密集。"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_WISPS_CURL_STR", 0.5, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_LOW_WISPS_CURL_STR", 0.0, -4.0..4.0 step 0.1) {
                         lang {
                             name = "Wisps Curl Strength"
                             comment =
