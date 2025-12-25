@@ -1,13 +1,13 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/techniques/HiZCheck.glsl"
+#include "/util/GBufferData.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
-layout(rgb10_a2) uniform writeonly image2D uimg_rgb10_a2;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 #include "/techniques/gi/Reproject.glsl"
 
@@ -29,8 +29,6 @@ void main() {
             normal = gData.normal;
         }
 
-        transient_geomViewNormal_store(texelPos, vec4(geomNormal * 0.5 + 0.5, 0.0));
-        transient_viewNormal_store(texelPos, vec4(normal * 0.5 + 0.5, 0.0));
         transient_lowCloudRender_store(texelPos, uvec4(0u));
         transient_lowCloudAccumulated_store(texelPos, uvec4(0u));
     }
