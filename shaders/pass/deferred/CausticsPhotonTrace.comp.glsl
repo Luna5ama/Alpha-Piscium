@@ -13,7 +13,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const ivec3 workGroups = ivec3(SHADOW_MAP_SIZE_D16, SHADOW_MAP_SIZE_D16, 1);
 
-layout(r32i) uniform iimage2D uimg_causticsPhoton;
+layout(r32i) uniform iimage2D uimg_r32f;
 
 shared mat4 shared_camProj;
 shared mat4 shared_shadowNDCToShadowView;
@@ -213,9 +213,7 @@ void main() {
                         ivec2 camTexelPos = ivec2(camTexelPosF);
 
                         if (all(greaterThanEqual(camTexelPos, ivec2(0))) && all(lessThan(camTexelPos, uval_mainImageSizeI))) {
-                            ivec2 readPos = camTexelPos;
-                            readPos.y += uval_mainImageSizeI.y;
-                            float camAreaSize = texelFetch(usam_causticsPhoton, readPos, 0).r;
+                            float camAreaSize = transient_screenPixelSize_fetch(camTexelPos).r;
 
                             float area = texture(usam_shadow_pixelArea, screenPosWarped).r / camAreaSize;
                             int areaQuantitized = int(area * (256.0 * 16.0));
@@ -225,10 +223,10 @@ void main() {
                             uvec4 pballot = subgroupPartitionNV(p);
                             int sumAreaQ = subgroupPartitionedAddNV(areaQuantitized, pballot);
                             if (subgroupBallotFindLSB(pballot) == gl_SubgroupInvocationID) {
-                                imageAtomicAdd(uimg_causticsPhoton, camTexelPos, sumAreaQ);
+                                transient_caustics_input_atomicAdd(camTexelPos, sumAreaQ);
                             }
                             #else
-                            imageAtomicAdd(uimg_causticsPhoton, camTexelPos, areaQuantitized);
+                            transient_caustics_input_atomicAdd(camTexelPos, areaQuantitized);
                             #endif
                         }
                     }

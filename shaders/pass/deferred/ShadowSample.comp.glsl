@@ -163,9 +163,7 @@ vec3 calcShadow(Material material) {
             max(63.0 - worldHeight, 0.0) * rcpShadowY;
         }
         #ifdef SETTING_WATER_CAUSTICS
-        ivec2 readPos = texelPos;
-        readPos.y += uval_mainImageSizeI.y;
-        float causticsV = texelFetch(usam_causticsPhoton, readPos, 0).r;
+        float causticsV = transient_caustics_final_fetch(texelPos).r;
         shadow *= mix(1.0, causticsV, exp2(-waterDepth * 0.05));
         #endif
         shadow *= exp(-waterDepth * WATER_EXTINCTION);
