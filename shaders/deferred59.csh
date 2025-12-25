@@ -228,7 +228,7 @@ void main() {
                             neighborPHat = 0.0;
                         }
 
-                        float maxJacobian = 10.0;
+                        float maxJacobian = 100.0;
                         float jacobian = RA2 * cosPhiB <= 0.0 ? 0.0 : (RB2 * cosPhiA) / (RA2 * cosPhiB);
                         if (neighborPHat <= 0.0) {
                             neighborReservoir.m = 0u;

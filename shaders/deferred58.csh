@@ -53,6 +53,7 @@ void main() {
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
                 float wSum = 0.0;
+                float wMul = 1.0;
                 vec4 prevSample = vec4(0.0);
                 vec3 prevHitNormal = vec3(0.0);
 
@@ -98,6 +99,7 @@ void main() {
                             vec2 prevScreenPos = coords_texelToUV(prevTexelPos, uval_mainImageSizeRcp);
                             float prevViewZ = history_viewZ_fetch(prevTexelPos).x;
                             vec3 prevViewPos = coords_toViewCoord(prevScreenPos, prevViewZ, global_prevCamProjInverse);
+
                             vec3 prevHitViewPos = prevViewPos + prevTemporalReservoir.Y.xyz * prevTemporalReservoir.Y.w;
                             vec3 prevHitScenePos = coords_pos_viewToWorld(prevHitViewPos, gbufferPrevModelViewInverse);
                             vec3 prev2CurrHitScenePos = coord_scenePrevToCurr(prevHitScenePos);
@@ -115,6 +117,61 @@ void main() {
                             float brdf = saturate(dot(gData.normal, prevTemporalReservoir.Y.xyz)) / PI;
                             prevSample = vec4(prevHitRadiance, brdf);
 
+                            {
+                                vec3 prevScenePos = coords_pos_viewToWorld(prevViewPos, gbufferPrevModelViewInverse);
+                                vec3 prev2CurrScenePos = coord_scenePrevToCurr(prevScenePos);
+                                vec3 prev2CurrViewPos = coords_pos_worldToView(prev2CurrScenePos, gbufferModelView);
+
+                                vec3 prevPrevHitScreenPos = coords_viewToScreen(prevHitViewPos, global_prevCamProj);
+                                ivec2 neighborHitTexelPos = ivec2(prevPrevHitScreenPos.xy * uval_mainImageSize);
+
+                                vec3 prevViewNormal = normalize(history_viewNormal_fetch(prevTexelPos).xyz * 2.0 - 1.0);
+                                vec3 prevWorldNormal = coords_dir_viewToWorldPrev(prevViewNormal);
+                                vec3 prev2CurrViewNormal = coords_dir_worldToView(prevWorldNormal);
+
+                                vec3 prevHitViewNormal = normalize(history_viewNormal_fetch(neighborHitTexelPos).xyz * 2.0 - 1.0);
+                                vec3 prevHitWorldNormal = coords_dir_viewToWorldPrev(prevHitViewNormal);
+                                vec3 prev2CurrHitNormal = coords_dir_worldToView(prevHitWorldNormal);
+
+                                vec3 offsetB = prev2CurrHitViewPos - prev2CurrViewPos;
+                                vec3 offsetA = prev2CurrHitViewPos - viewPos;
+
+                                if (dot(gData.normal, offsetA) <= 0.0) {
+                                    wMul = 0.0;
+                                }
+
+                                float RB2 = dot(offsetB, offsetB);
+                                float RA2 = dot(offsetA, offsetA);
+                                offsetB = normalize(offsetB);
+                                offsetA = normalize(offsetA);
+                                float cosA = dot(gData.normal, offsetA);
+                                float cosB = dot(prev2CurrViewNormal, offsetB);
+
+                                //                        GBufferData hitGData = gbufferData_init();
+                                //                        gbufferData1_unpack(texelFetch(usam_gbufferData1, neighborHitTexelPos, 0), hitGData);
+
+                                float cosPhiA = -dot(offsetA, prevHitWorldNormal);
+                                float cosPhiB = -dot(offsetB, prevHitWorldNormal);
+                                if (cosB <= 0.0 || cosPhiB <= 0.0) {
+                                    prevTemporalReservoir = restir_initReservoir(texelPos);
+                                }
+                                if (cosA <= 0.0 || cosPhiA <= 0.0 || RA2 <= 0.0 || RB2 <= 0.0) {
+                                    wMul = 0.0;
+                                }
+
+                                float maxJacobian = 100.0;
+                                float jacobian = RA2 * cosPhiB <= 0.0 ? 0.0 : (RB2 * cosPhiA) / (RA2 * cosPhiB);
+                                if (wMul <= 0.0) {
+                                    prevTemporalReservoir.m = 0u;
+                                }
+                                if (jacobian <= 0.0) {
+                                    prevTemporalReservoir.m = 0u;
+                                }
+                                jacobian = clamp(jacobian, 0.0, maxJacobian);
+
+                                wMul *= jacobian;
+                            }
+
 
                             // TODO: retrace for temporal resampling
                             //                    float prevHitDistance;
@@ -128,7 +185,7 @@ void main() {
                     }
                 }
 
-                float prevPHat = length(prevSample.xyz * prevSample.w);
+                float prevPHat = length(prevSample.xyz * prevSample.w) * wMul;
                 wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
 
                 #if SPATIAL_REUSE_FEEDBACK
