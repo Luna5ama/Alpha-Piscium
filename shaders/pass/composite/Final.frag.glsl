@@ -1,3 +1,5 @@
+#include "/base/Configs.glsl"
+#include "/base/TextOptions.glsl"
 #include "/techniques/textile/CSRGBA16F.glsl"
 #include "/util/Dither.glsl"
 #include "/util/Rand.glsl"
