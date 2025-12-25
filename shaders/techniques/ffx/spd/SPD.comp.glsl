@@ -25,10 +25,11 @@
 // #define SPD_OP <0, 1, 2> - Downsample operation: 0 for min, 1 for max, 2 for average
 //
 // and following functions:
-SPD_DATA_TYPE spd_loadInput(ivec2 texelPos);
-SPD_DATA_TYPE spd_loadOutput(ivec2 texelPos, uint level);
-void spd_storeOutput(ivec2 texelPos, uint level, SPD_DATA_TYPE value);
+SPD_DATA_TYPE spd_loadInput(ivec2 texelPos, uint slice);
+SPD_DATA_TYPE spd_loadOutput(ivec2 texelPos, uint level, uint slice);
+void spd_storeOutput(ivec2 texelPos, uint level, uint slice, SPD_DATA_TYPE value);
 uint spd_mipCount();
+void spd_init();
 
 
 // --------------------------------------------------- Adaptor stuff ---------------------------------------------------
@@ -52,15 +53,15 @@ void SpdResetAtomicCounter(uint slice) {
 shared SPD_DATA_TYPE shared_intermediate[16][16];
 
 vec4 SpdLoadSourceImage(ivec2 tex, uint slice) {
-    return SPD_DATA_CAST_TO_4(spd_loadInput(tex));
+    return SPD_DATA_CAST_TO_4(spd_loadInput(tex, slice));
 }
 
 vec4 SpdLoad(ivec2 tex, uint slice) {
-    return SPD_DATA_CAST_TO_4(spd_loadOutput(tex, 6));
+    return SPD_DATA_CAST_TO_4(spd_loadOutput(tex, 6, slice));
 }
 
 void SpdStore(FfxInt32x2 pix, vec4 outValue, uint mip, uint slice) {
-    spd_storeOutput(pix, mip + 1, SPD_DATA_CAST_FROM_4(outValue));
+    spd_storeOutput(pix, mip + 1, slice, SPD_DATA_CAST_FROM_4(outValue));
 }
 
 vec4 SpdLoadIntermediate(uint x, uint y) {
@@ -87,10 +88,11 @@ vec4 SpdReduce4(vec4 v0, vec4 v1, vec4 v2, vec4 v3) {
 layout(local_size_x = 16, local_size_y = 16) in;
 
 void main() {
+    spd_init();
     uint totalNumWorkGroups = gl_NumWorkGroups.x * gl_NumWorkGroups.y;
     #if SPD_HALF
-    SpdDownsampleH(gl_WorkGroupID.xy, gl_LocalInvocationIndex, spd_mipCount(), totalNumWorkGroups, 1);
+    SpdDownsampleH(gl_WorkGroupID.xy, gl_LocalInvocationIndex, spd_mipCount(), totalNumWorkGroups, gl_WorkGroupID.z);
     #else
-    SpdDownsample(gl_WorkGroupID.xy, gl_LocalInvocationIndex, spd_mipCount(), totalNumWorkGroups, 1);
+    SpdDownsample(gl_WorkGroupID.xy, gl_LocalInvocationIndex, spd_mipCount(), totalNumWorkGroups, gl_WorkGroupID.z);
     #endif
 }

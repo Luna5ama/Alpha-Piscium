@@ -178,7 +178,9 @@ void main() {
         }
 
         global_dispatchSize1 = uvec4(0u, 1u, 1u, 0u);
-        global_dispatchSize2 = uvec4(0u, 1u, 1u, 0u);
+
+        global_dispatchSize2 = uvec4(uvec2((uval_mainImageSizeI + 15) / 16 / 4), 3u, 0u);
+
         global_dispatchSize3 = uvec4(0u, 1u, 1u, 0u);
         global_dispatchSize4 = uvec4(0u, 1u, 1u, 0u);
         for (uint i = 0u; i < 16u; i++) {
