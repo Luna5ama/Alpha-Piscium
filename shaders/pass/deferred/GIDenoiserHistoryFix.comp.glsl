@@ -61,6 +61,9 @@ void main() {
                 }
             }
 
+            transient_geomNormalMip_fetch(texelPos);
+            transient_gi_diffMip_fetch(texelPos);
+            transient_gi_specMip_fetch(texelPos);
 
             diffMoment1 /= 25.0;
             diffMoment2 /= 25.0;

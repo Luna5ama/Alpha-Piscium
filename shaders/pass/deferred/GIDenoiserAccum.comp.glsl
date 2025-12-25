@@ -9,11 +9,15 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
+layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        transient_gi_diffMip_store(texelPos, vec4(0.0));
+        transient_gi_specMip_store(texelPos, vec4(0.0));
+        transient_geomNormalMip_store(texelPos, vec4(0.0));
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
         if (viewZ > -65536.0) {
             vec4 newDiffuse = transient_ssgiOut_fetch(texelPos);
