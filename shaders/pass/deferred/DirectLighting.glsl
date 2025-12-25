@@ -164,7 +164,7 @@ void main() {
             imageStore(uimg_main, texelPos, mainOut);
             transient_giRadianceInput1_store(texelPos, giOut1);
             transient_giRadianceInput2_store(texelPos, giOut2);
-            imageStore(uimg_temp3, texelPos, giOut1);
+//            imageStore(uimg_temp3, texelPos, giOut1);
             return;
         }
 

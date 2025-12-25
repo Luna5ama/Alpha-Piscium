@@ -23,8 +23,16 @@ void loadSharedDataRCRS(uint index) {
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 1;
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
 
-        vec4 d = transient_gi_blurDiff1_fetch(srcXY);
-        vec4 s = transient_gi_blurSpec1_fetch(srcXY);
+        GIHistoryData historyData = gi_historyData_init();
+
+        gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(srcXY));
+        gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(srcXY));
+        gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(srcXY));
+        gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(srcXY));
+        gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(srcXY));
+
+        vec4 d = vec4(historyData.diffuseFastColor, 0.0);
+        vec4 s = vec4(historyData.specularFastColor, 0.0);
 
         shared_diff[sharedXY.y][sharedXY.x] = d;
         shared_spec[sharedXY.y][sharedXY.x] = s;
@@ -76,7 +84,8 @@ void antiFireFlyRCRS(ivec2 texelPos) {
         updateMinMaxDiffSpec(localPos + ivec2(0, 1), minMaxLumDiff, minMaxPosDiff, minMaxLumSpec, minMaxPosSpec);
         updateMinMaxDiffSpec(localPos + ivec2(1, 1), minMaxLumDiff, minMaxPosDiff, minMaxLumSpec, minMaxPosSpec);
 
-        vec4 centerDiff = shared_diff[localPos.y][localPos.x];
+        vec4 centerDiff = transient_gi_blurDiff1_fetch(texelPos);
+        vec4 centerSpec = transient_gi_blurSpec1_fetch(texelPos);
         float centerDiffLum = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerDiff.rgb);
         if (centerDiffLum < minMaxLumDiff.x) {
             centerDiff = shared_diff[minMaxPosDiff.y][minMaxPosDiff.x];
@@ -85,7 +94,6 @@ void antiFireFlyRCRS(ivec2 texelPos) {
             centerDiff = shared_diff[minMaxPosDiff.w][minMaxPosDiff.z];
         }
 
-        vec4 centerSpec = shared_spec[localPos.y][localPos.x];
         float centerSpecLum = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerSpec.rgb);
         if (centerSpecLum < minMaxLumSpec.x) {
             centerSpec = shared_spec[minMaxPosSpec.y][minMaxPosSpec.x];

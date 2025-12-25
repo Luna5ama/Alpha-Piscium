@@ -188,7 +188,7 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, vec2 blurJitter) {
             vec3 colorDiff = abs(centerDiff.rgb - diffSample.rgb);
             float lumaDiff = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colorDiff);
             float colorWeight = exp2(baseColorWeight * lumaDiff);
-            //        edgeWeight *= colorWeight;
+//                    edgeWeight *= colorWeight;
             edgeWeight = smoothstep(0.0, 1.0, edgeWeight);
 
 
