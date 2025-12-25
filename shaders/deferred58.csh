@@ -110,76 +110,84 @@ void main() {
                             prevTemporalReservoir.Y.xyz = hitDiff / hitDistance;
                             prevTemporalReservoir.Y.w = hitDistance;
 
+                            vec4 prev2CurrHitClipPos = global_camProj * vec4(prev2CurrHitViewPos, 1.0);
+                            uint clipFlag = uint(prev2CurrHitClipPos.z > 0.0);
+                            clipFlag &= uint(all(lessThan(abs(prev2CurrHitClipPos.xy), prev2CurrHitClipPos.ww)));
                             vec3 prevHitScreenPos = coords_viewToScreen(prev2CurrHitViewPos, global_camProj);
+                            clipFlag &= int(saturate(prevHitScreenPos) == prevHitScreenPos);
                             ivec2 prevHitTexelPos = ivec2(prevHitScreenPos.xy * uval_mainImageSize);
 
-                            vec3 prevHitRadiance = sampleIrradiance(texelPos, prevHitTexelPos, -prevTemporalReservoir.Y.xyz);
-                            float brdf = saturate(dot(gData.normal, prevTemporalReservoir.Y.xyz)) / PI;
-                            prevSample = vec4(prevHitRadiance, brdf);
+                            if (bool(clipFlag)) {
+                                vec3 prevHitRadiance = sampleIrradiance(texelPos, prevHitTexelPos, -prevTemporalReservoir.Y.xyz);
+                                float brdf = saturate(dot(gData.normal, prevTemporalReservoir.Y.xyz)) / PI;
+                                prevSample = vec4(prevHitRadiance, brdf);
 
-                            {
-                                vec3 prevScenePos = coords_pos_viewToWorld(prevViewPos, gbufferPrevModelViewInverse);
-                                vec3 prev2CurrScenePos = coord_scenePrevToCurr(prevScenePos);
-                                vec3 prev2CurrViewPos = coords_pos_worldToView(prev2CurrScenePos, gbufferModelView);
+                                {
+                                    vec3 prevScenePos = coords_pos_viewToWorld(prevViewPos, gbufferPrevModelViewInverse);
+                                    vec3 prev2CurrScenePos = coord_scenePrevToCurr(prevScenePos);
+                                    vec3 prev2CurrViewPos = coords_pos_worldToView(prev2CurrScenePos, gbufferModelView);
 
-                                vec3 prevPrevHitScreenPos = coords_viewToScreen(prevHitViewPos, global_prevCamProj);
-                                ivec2 neighborHitTexelPos = ivec2(prevPrevHitScreenPos.xy * uval_mainImageSize);
+                                    vec3 prevPrevHitScreenPos = coords_viewToScreen(prevHitViewPos, global_prevCamProj);
+                                    ivec2 neighborHitTexelPos = ivec2(prevPrevHitScreenPos.xy * uval_mainImageSize);
 
-                                vec3 prevViewNormal = normalize(history_viewNormal_fetch(prevTexelPos).xyz * 2.0 - 1.0);
-                                vec3 prevWorldNormal = coords_dir_viewToWorldPrev(prevViewNormal);
-                                vec3 prev2CurrViewNormal = coords_dir_worldToView(prevWorldNormal);
+                                    vec3 prevViewNormal = normalize(history_viewNormal_fetch(prevTexelPos).xyz * 2.0 - 1.0);
+                                    vec3 prevWorldNormal = coords_dir_viewToWorldPrev(prevViewNormal);
+                                    vec3 prev2CurrViewNormal = coords_dir_worldToView(prevWorldNormal);
 
-                                vec3 prevHitViewNormal = normalize(history_viewNormal_fetch(neighborHitTexelPos).xyz * 2.0 - 1.0);
-                                vec3 prevHitWorldNormal = coords_dir_viewToWorldPrev(prevHitViewNormal);
-                                vec3 prev2CurrHitNormal = coords_dir_worldToView(prevHitWorldNormal);
+                                    vec3 prevHitViewNormal = normalize(history_viewNormal_fetch(neighborHitTexelPos).xyz * 2.0 - 1.0);
+                                    vec3 prevHitWorldNormal = coords_dir_viewToWorldPrev(prevHitViewNormal);
+                                    vec3 prev2CurrHitNormal = coords_dir_worldToView(prevHitWorldNormal);
 
-                                vec3 offsetB = prev2CurrHitViewPos - prev2CurrViewPos;
-                                vec3 offsetA = prev2CurrHitViewPos - viewPos;
+                                    vec3 offsetB = prev2CurrHitViewPos - prev2CurrViewPos;
+                                    vec3 offsetA = prev2CurrHitViewPos - viewPos;
 
-                                if (dot(gData.normal, offsetA) <= 0.0) {
-                                    wMul = 0.0;
+                                    if (dot(gData.normal, offsetA) <= 0.0) {
+                                        wMul = 0.0;
+                                    }
+
+                                    float RB2 = dot(offsetB, offsetB);
+                                    float RA2 = dot(offsetA, offsetA);
+                                    offsetB = normalize(offsetB);
+                                    offsetA = normalize(offsetA);
+                                    float cosA = dot(gData.normal, offsetA);
+                                    float cosB = dot(prev2CurrViewNormal, offsetB);
+
+                                    //                        GBufferData hitGData = gbufferData_init();
+                                    //                        gbufferData1_unpack(texelFetch(usam_gbufferData1, neighborHitTexelPos, 0), hitGData);
+
+                                    float cosPhiA = -dot(offsetA, prevHitWorldNormal);
+                                    float cosPhiB = -dot(offsetB, prevHitWorldNormal);
+                                    if (cosB <= 0.0 || cosPhiB <= 0.0) {
+                                        prevTemporalReservoir = restir_initReservoir(texelPos);
+                                    }
+                                    if (cosA <= 0.0 || cosPhiA <= 0.0 || RA2 <= 0.0 || RB2 <= 0.0) {
+                                        wMul = 0.0;
+                                    }
+
+                                    float maxJacobian = 100.0;
+                                    float jacobian = RA2 * cosPhiB <= 0.0 ? 0.0 : (RB2 * cosPhiA) / (RA2 * cosPhiB);
+                                    if (wMul <= 0.0) {
+                                        prevTemporalReservoir.m = 0u;
+                                    }
+                                    if (jacobian <= 0.0) {
+                                        prevTemporalReservoir.m = 0u;
+                                    }
+                                    jacobian = clamp(jacobian, 0.0, maxJacobian);
+
+                                    wMul *= jacobian;
                                 }
 
-                                float RB2 = dot(offsetB, offsetB);
-                                float RA2 = dot(offsetA, offsetA);
-                                offsetB = normalize(offsetB);
-                                offsetA = normalize(offsetA);
-                                float cosA = dot(gData.normal, offsetA);
-                                float cosB = dot(prev2CurrViewNormal, offsetB);
 
-                                //                        GBufferData hitGData = gbufferData_init();
-                                //                        gbufferData1_unpack(texelFetch(usam_gbufferData1, neighborHitTexelPos, 0), hitGData);
-
-                                float cosPhiA = -dot(offsetA, prevHitWorldNormal);
-                                float cosPhiB = -dot(offsetB, prevHitWorldNormal);
-                                if (cosB <= 0.0 || cosPhiB <= 0.0) {
-                                    prevTemporalReservoir = restir_initReservoir(texelPos);
-                                }
-                                if (cosA <= 0.0 || cosPhiA <= 0.0 || RA2 <= 0.0 || RB2 <= 0.0) {
-                                    wMul = 0.0;
-                                }
-
-                                float maxJacobian = 100.0;
-                                float jacobian = RA2 * cosPhiB <= 0.0 ? 0.0 : (RB2 * cosPhiA) / (RA2 * cosPhiB);
-                                if (wMul <= 0.0) {
-                                    prevTemporalReservoir.m = 0u;
-                                }
-                                if (jacobian <= 0.0) {
-                                    prevTemporalReservoir.m = 0u;
-                                }
-                                jacobian = clamp(jacobian, 0.0, maxJacobian);
-
-                                wMul *= jacobian;
+                                // TODO: retrace for temporal resampling
+                                //                    float prevHitDistance;
+                                //                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, prevHitDistance);
+                                //                    prevPHat = length(prevSample);
+                                GBufferData prevGData = gbufferData_init();
+                                gbufferData1_unpack(texelFetch(usam_gbufferData1, prevHitTexelPos, 0), prevGData);
+                                prevHitNormal = prevGData.normal;
+                            } else {
+                                prevTemporalReservoir = restir_initReservoir(texelPos);
                             }
-
-
-                            // TODO: retrace for temporal resampling
-                            //                    float prevHitDistance;
-                            //                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, prevHitDistance);
-                            //                    prevPHat = length(prevSample);
-                            GBufferData prevGData = gbufferData_init();
-                            gbufferData1_unpack(texelFetch(usam_gbufferData1, prevHitTexelPos, 0), prevGData);
-                            prevHitNormal = prevGData.normal;
                         }
                         temporalReservoir = prevTemporalReservoir;
                     }
