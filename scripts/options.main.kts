@@ -587,182 +587,58 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         }
                     }
                 }
+
             }
             screen(1) {
                 lang {
-                    name = "VBGI"
-                    comment = "Advanced screen space technique that creates realistic indirect lighting"
+                    name = "ReSTIR SSGI"
                 }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "可见性位掩码全局光照（VBGI）"
-                    comment = "创建真实间接照明的高级屏幕空间技术"
-                }
-                slider("SETTING_VBGI_STEPS", 32, listOf(8, 12, 16, 24, 32, 64, 96, 128)) {
+                toggle("SETTING_GI_USE_REFERENCE", false) {
                     lang {
-                        name = "Step Samples"
+                        name = "Monte Carlo Reference"
+                    }
+                }
+                toggle("SPATIAL_REUSE", true) {
+                    lang {
+                        name = "Spatial Reuse"
+                        comment = "Reuses GI samples from nearby pixels to improve performance."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "空间重用"
+                        comment = "重用来自附近像素的GI样本以提高性能。"
+                    }
+                }
+                slider("SETTING_GI_SPATIAL_REUSE_COUNT", 6, 1..16) {
+                    lang {
+                        name = "Spatial Reuse Sample Count"
+                        comment = "Number of nearby pixels to reuse GI samples from."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "空间重用采样数"
+                        comment = "重用GI样本的附近像素数量。"
+                    }
+                }
+                slider("SETTING_GI_SPATIAL_REUSE_RADIUS", 64, powerOfTwoRangeAndHalf(1..8)) {
+                    lang {
+                        name = "Spatial Reuse Radius"
+                        comment = "Radius to search for nearby GI samples to reuse."
+                        suffix = " pixels"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "空间重用半径"
+                        comment = "搜索以重用附近GI样本的半径。"
+                        suffix = " 像素"
+                    }
+                }
+                slider("SETTING_GI_SPATIAL_REUSE_FEEDBACK", 16, listOf(0) + powerOfTwoRangeAndHalf(0..6)) {
+                    lang {
+                        name = "Spatial Reuse Feedback Threshold"
                         comment =
-                            "Number of samples for GI sampling. Lower values may cause light leaks, higher values improve quality but reduce performance."
+                            "Reuse previous frame's spatially reused samples when the number of samples is below this threshold."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "步进采样数"
-                        comment = "全局光照采样的采样数。数值越低可能导致漏光，数值越高质量越好但会降低性能。"
-                    }
-                }
-                slider("SETTING_VBGI_FALLBACK_SAMPLES", 8, powerOfTwoRange(1..5)) {
-                    lang {
-                        name = "Fallback Samples"
-                        comment =
-                            "Number of samples used to sample environment and sky probe. Higher value increases quality but also decreases performance."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "全景探针采样数"
-                        comment = "用于采样环境和天空探针的采样数。数值越高质量越好但也会降低性能。"
-                    }
-                }
-                empty()
-                slider("SETTING_VBGI_RADIUS", 64, (0..8).map { 1 shl it }) {
-                    lang {
-                        name = "Sample Radius"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "采样半径"
-                    }
-                }
-                slider("SETTING_VBGI_MAX_RADIUS", 128, (0..8).map { 1 shl it }) {
-                    lang {
-                        name = "Max Sample Radius"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "最大采样半径"
-                    }
-                }
-                slider("SETTING_VBGI_THICKNESS", 0.25, 0.1..1.0 step 0.01) {
-                    lang {
-                        name = "Thickness"
-                        comment =
-                            "Assumed thickness of surfaces for shadow calculations. Higher values create stronger shadowing and less light leaking."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "厚度"
-                        comment = "用于阴影计算的假定表面厚度。数值越高，阴影越强，漏光越少。"
-                    }
-                }
-                empty()
-                toggle("SETTING_VBGI_PROBE_HQ_OCC", true) {
-                    lang {
-                        name = "High Quality Probe Lighting Occlusion"
-                        comment =
-                            "Performs additional shadow checks for environment lighting, improving shadow accuracy but reducing performance slightly."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高质量探针光照遮挡"
-                        comment = "对环境照明执行额外的阴影检查，提高阴影精度但会略微降低性能。"
-                    }
-                }
-                slider("SETTING_VBGI_PROBE_DIR_MATCH_WEIGHT", 1, -10..10) {
-                    lang {
-                        name = "Environment Probe Direction Matching Strictness"
-                        comment =
-                            "Higher values reduce incorrect lighting by requiring better direction alignment, preventing light from wrong angles."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "探针方向匹配权重"
-                        comment = "数值越高，通过要求更好的方向对齐来减少错误的照明，防止来自错误角度的光线。"
-                    }
-                }
-                slider("SETTING_VBGI_PROBE_FADE_START_DIST", 16, 0..32 step 4) {
-                    lang {
-                        name = "Environment Probe Fade Start"
-                        comment = "Distance in blocks where environment probe lighting begins to fade out."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "环境探针淡出开始距离"
-                        comment = "环境探针照明开始淡出的距离（方块数）。"
-                    }
-                }
-                slider("SETTING_VBGI_PROBE_FADE_END_DIST", 32, 0..64 step 4) {
-                    lang {
-                        name = "Environment Probe Fade End"
-                        comment = "Distance in blocks where environment probe lighting is completely faded out."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "环境探针淡出结束距离"
-                        comment = "环境探针照明完全淡出的距离（方块数）。"
-                    }
-                }
-                empty()
-                toggle("SETTING_VBGI_MC_SKYLIGHT_ATTENUATION", true) {
-                    lang {
-                        name = "Vanilla Skylight Attenuation"
-                        comment =
-                            "Uses Minecraft's built-in skylight values to reduce sky lighting in enclosed spaces."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "原版天空光衰减"
-                        comment = "使用Minecraft内置的天空光值来减少封闭空间中的天空照明。"
-                    }
-                }
-                empty()
-                slider("SETTING_VBGI_SKYLIGHT_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
-                    lang {
-                        name = "Sky Light Intensity"
-                        comment = "Brightness of light coming from the sky."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "天空光强度"
-                        comment = "来自天空的光线亮度。"
-                    }
-                }
-                slider("SETTING_VGBI_ENV_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
-                    lang {
-                        name = "Environment Probe Light Intensity"
-                        comment = "Brightness of indirect light from the environment probe."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "环境探针光强度"
-                        comment = "来自环境探针的间接光亮度。"
-                    }
-                }
-                slider("SETTING_VGBI_IB_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
-                    lang {
-                        name = "Indirect Bounce Intensity"
-                        comment = "Brightness of light that bounces off surfaces to illuminate other areas."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "间接光强度"
-                        comment = "从表面反弹照亮其他区域的光线亮度。"
-                    }
-                }
-                empty()
-                slider("SETTING_VBGI_DGI_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
-                    lang {
-                        name = "Diffuse Bounce Intensity"
-                        comment = "Intensity of indirect lighting on matte (non-reflective) surfaces."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "漫反射强度"
-                        comment = "哑光（非反射）表面上间接照明的强度。"
-                    }
-                }
-                slider("SETTING_VBGI_SGI_STRENGTH", 1.0, 0.0..4.0 step 0.05) {
-                    lang {
-                        name = "Reflective Bounce Intensity"
-                        comment = "Intensity of indirect lighting in reflections and specular highlights."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光反射强度"
-                        comment = "反射和高光中间接照明的强度。"
-                    }
-                }
-                slider("SETTING_VBGI_GI_MB", 1.0, 0.0..2.0 step 0.01) {
-                    lang {
-                        name = "Multi-Bounce Multiplier"
-                        comment =
-                            "Simulates light bouncing multiple times. Higher values brighten scenes by allowing more light bounces."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "全局光照多次反弹"
-                        comment = "模拟光线多次反弹。数值越高，通过允许更多光线反弹使场景更明亮。"
+                        name = "空间重用反馈阈值"
+                        comment = "当样本数量低于此阈值时，重用上一帧的空间重用样本。"
                     }
                 }
             }
@@ -775,168 +651,66 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 toggle("SETTING_DENOISER", true) {
                     lang {
-                        name = "Denoiser"
-                        comment =
-                            "Smooths out grainy artifacts in lighting, especially noticeable in dark areas or with global illumination."
+                        name = "Enable Denoiser"
+                        comment = "Applies a denoising filter to the GI results to reduce noise."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "降噪"
-                        comment = "平滑照明中的颗粒感伪影，在黑暗区域或全局光照中尤其明显。"
-                    }
-                }
-                slider("SETTING_DENOISER_REPROJ_NORMAL_EDGE_WEIGHT", 1.0, 0.0..16.0 step 0.1) {
-                    lang {
-                        name = "Reprojection Normal Edge Weight"
-                        comment =
-                            "How strictly to preserve surface detail at camera movement. Higher values keep sharper edges but may show more noise."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "重投影法线边缘权重"
-                        comment = "在镜头移动时保留表面细节的严格程度。数值越高，边缘越锐利，但可能显示更多噪点。"
-                    }
-                }
-                slider("SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT", 9.0, 0.0..16.0 step 0.1) {
-                    lang {
-                        name = "Reprojection Geometry Edge Weight"
-                        comment =
-                            "How strictly to preserve geometry shape near object edges at camera movement. Higher values keep sharper edges but may show more noise."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "重投影几何边缘权重"
-                        comment = "在镜头移动时保留物体边缘的严格程度。数值越高，边缘越锐利，但可能显示更多噪点。"
+                        name = "启用降噪器"
+                        comment = "对GI结果应用降噪滤镜以减少噪点。"
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_MAX_ACCUM", 256, (2..10).map { 1 shl it }) {
+                toggle("SETTING_DENOISER_ACCUM", true) {
                     lang {
-                        name = "Max Accumulation"
-                        comment =
-                            "Maximum frames to accumulate. Higher values create smoother results but may cause ghosting during movement or scene changes."
+                        name = "Temporal Accumulation"
+                        comment = "Accumulates GI results over multiple frames to improve quality."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "最大累积帧数"
-                        comment = "累积的最大帧数。数值越高，结果越平滑，但在移动和场景变化时可能导致拖影。"
+                        name = "时间累积"
+                        comment = "在多帧中累积GI结果以提高质量。"
                     }
                 }
-                slider("SETTING_DENOISER_ACCUM_DECAY", 1.0, 0.5..2.0 step 0.01) {
+                slider("SETTING_DENOISER_HISTORY_LENGTH", 64, powerOfTwoRangeAndHalf(2..8)) {
                     lang {
-                        name = "Accumulation Decay"
-                        comment =
-                            "Current mix rate decay factor for temporal accumulation. Larger value means faster decay."
+                        name = "Temporal History Length"
+                        comment = "Number of frames to accumulate for temporal denoising."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "累积衰减"
-                        comment = "时间累积的当前混合率衰减因子。数值越大，衰减越快。"
+                        name = "累积历史长度"
+                        comment = "用于时间降噪的累积帧数。"
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_MAX_FAST_ACCUM", 16, 1..32 step 1) {
+                toggle("SETTING_DENOISER_FAST_HISTORY_CLAMPING", true) {
                     lang {
-                        name = "Max Fast History Accumulation"
+                        name = "Fast History Clamping"
+                        comment = "Clamps to fast history to reduce ghosting artifacts."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "最大快速历史累积帧数"
+                        name = "快速历史夹紧"
+                        comment = "夹紧到快速历史以减少重影伪影。"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_CLAMPING_THRESHOLD", 2.0, 1.0..4.0 step 0.1) {
+                slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 8, powerOfTwoRangeAndHalf(2..8)) {
                     lang {
-                        name = "Fast History Clamping Threshold"
+                        name = "Temporal Fast History Length"
                         comment =
-                            "Prevents ghosting during movement and light update. Higher values reduce trails but may show more flickering."
+                            "Number of frames to accumulate for the fast history that is used to keep the results responsive to changes."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "快速历史钳制阈值"
-                        comment = "防止移动和光线更新期间的重影。数值越高，拖影越少，但可能显示更多闪烁。"
+                        name = "快速累积历史长度"
+                        comment = "用于累积快速历史的帧数，用于快速响应变化。"
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_VARIANCE_BOOST_ADD_FACTOR", 10, 0..64) {
+                toggle("SETTING_DENOISER_ANTI_FIREFLY", true) {
                     lang {
-                        name = "Initial Noise Smoothing"
-                        comment =
-                            "Extra smoothing applied when first entering an area. Higher values smooth faster. (Actual value: 2^-x)"
+                        name = "Firefly Suppression"
+                        comment = "Reduces bright noise artifacts (fireflies) in the GI results."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "初始噪点平滑"
-                        comment = "首次进入区域时应用的额外平滑。数值越高，平滑越快。（实际值：2^-x）"
-                    }
-                }
-                slider("SETTING_DENOISER_VARIANCE_BOOST_MULTIPLY", 2.5, 1.0..4.0 step 0.1) {
-                    lang {
-                        name = "Initial Smoothing Multiplier"
-                        comment =
-                            "Multiplier for extra smoothing when first entering an area. Higher values smooth more aggressively."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "初始平滑倍数"
-                        comment = "首次进入区域时额外平滑的倍数。数值越高，平滑越激进。"
-                    }
-                }
-                slider("SETTING_DENOISER_VARIANCE_BOOST_FRAMES", 16, (0..6).map { 1 shl it }) {
-                    lang {
-                        name = "Initial Smoothing Duration"
-                        comment = "How many frames to apply extra smoothing when first entering an area."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "初始平滑持续时间"
-                        comment = "首次进入区域时应用额外平滑的帧数。"
-                    }
-                }
-                slider("SETTING_DENOISER_VARIANCE_BOOST_DECAY", 2, 1..16 step 1) {
-                    lang {
-                        name = "Initial Smoothing Fade Speed"
-                        comment =
-                            "How quickly the initial extra smoothing fades away. Higher values fade faster."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "初始平滑淡出速度"
-                        comment = "初始额外平滑淡出的速度。数值越高，淡出越快。"
-                    }
-                }
-                empty()
-                slider("SETTING_DENOISER_MIN_VARIANCE_FACTOR", 25, 0..64) {
-                    lang {
-                        name = "Minimum Variance Factor"
-                        comment =
-                            "Minimum amount of smoothing always applied. Lower values create smoother but potentially blurrier results. (Used as: max(variance, 2^-x))"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "最小方差因子"
-                        comment = "始终应用的最小平滑量。数值越低，结果越平滑，但可能更模糊。（使用方式：max(variance, 2^-x)）"
-                    }
-                }
-                empty()
-                slider("SETTING_DENOISER_FILTER_NORMAL_WEIGHT", 128, (0..10).map { 1 shl it }) {
-                    lang {
-                        name = "Filter Normal Weight"
-                        comment =
-                            "How much to preserve detail at surface angle changes. Higher values keep sharper edges between different surfaces."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "过滤法线严格度"
-                        comment = "在表面角度变化处保留细节的程度。数值越高，不同表面之间的边缘越锐利。"
-                    }
-                }
-                slider("SETTING_DENOISER_FILTER_DEPTH_WEIGHT", 64, (0..10).map { 1 shl it }) {
-                    lang {
-                        name = "Filter Depth Weight"
-                        comment =
-                            "How much to preserve detail at depth changes. Higher values keep sharper edges between near and far objects."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "过滤深度严格度"
-                        comment = "在深度变化处保留细节的程度。数值越高，近处和远处物体之间的边缘越锐利。"
-                    }
-                }
-                slider("SETTING_DENOISER_FILTER_COLOR_WEIGHT", 56, 0..128) {
-                    lang {
-                        name = "Filter Luminance Weight"
-                        comment =
-                            "How much to preserve detail at luminance change. Lower values smooth more but may blur shadow edges."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "过滤亮度严格度"
-                        comment = "在亮度变化处保留细节的程度。数值越低，平滑越多，但可能模糊阴影边缘。"
+                        name = "亮点抑制"
+                        comment = "减少GI结果中的高亮噪点。"
                     }
                 }
             }

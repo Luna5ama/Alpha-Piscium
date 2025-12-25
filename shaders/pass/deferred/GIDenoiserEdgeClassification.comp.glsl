@@ -74,7 +74,7 @@ void main() {
         vec3 centerViewPos = coords_toViewCoord(centerScreenPos, centerData.viewZ, global_camProjInverse);
         vec3 centerWorldPos = coords_pos_viewToWorld(centerViewPos, gbufferModelViewInverse);
 
-        float planeWeight = rcp(exp2(SETTING_DENOISER_REPROJ_GEOMETRY_EDGE_WEIGHT)) * max(abs(centerData.viewZ), 0.1);
+        float planeWeight = rcp(exp2(9.0)) * max(abs(centerData.viewZ), 0.1);
 
         float glazingAngleFactor = saturate(dot(centerData.geomNormal, -normalize(centerWorldPos)));
         float geomDepthThreshold = exp2(mix(-10.0, -16.0, glazingAngleFactor)) * max(4.0, pow2(centerData.viewZ));
