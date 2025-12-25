@@ -1,4 +1,4 @@
-#define GLOBAL_DATA_MODIFIER writeonly
+#define GLOBAL_DATA_MODIFIER writeonly buffer
 #include "/util/Math.glsl"
 
 layout(local_size_x = 1) in;

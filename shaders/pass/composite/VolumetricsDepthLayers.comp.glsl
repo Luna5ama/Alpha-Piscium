@@ -1,7 +1,7 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
 
-#define GLOBAL_DATA_MODIFIER \
+#define GLOBAL_DATA_MODIFIER buffer
 
 #include "/util/Coords.glsl"
 #include "/util/FullScreenComp.glsl"

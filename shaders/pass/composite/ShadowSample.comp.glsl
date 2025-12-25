@@ -4,7 +4,7 @@
 #extension GL_KHR_shader_subgroup_clustered : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
 #define HIZ_SUBGROUP_CHECK a
-#define GLOBAL_DATA_MODIFIER \
+#define GLOBAL_DATA_MODIFIER buffer
 
 #include "/techniques/atmospherics/water/Constants.glsl"
 #include "/util/Celestial.glsl"
