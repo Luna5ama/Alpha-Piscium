@@ -1,5 +1,6 @@
 #include "/Base.glsl"
 
+/*const*/
 #ifndef CLEAR_OFFSET1
 #define CLEAR_OFFSET1 ivec2(0)
 #endif
@@ -54,3 +55,4 @@ void main() {
         #endif
     }
 }
+/*const*/
