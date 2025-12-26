@@ -1,3 +1,4 @@
+#include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/util/BitPacking.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Hash.glsl"
@@ -141,6 +142,12 @@ vec3 sampleIrradiance(ivec2 texelPos, ivec2 hitTexelPos, vec3 outgoingDirection)
     return hitRadiance * float(hitCosTheta > 0.0) + hitEmissive * float(all(lessThan(selfHitEmissive, vec3(0.0001))));
 }
 
+vec3 sampleIrradianceMiss(vec3 worldDirection) {
+    AtmosphereParameters atmosphere = getAtmosphereParameters();
+    SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, worldDirection);
+    return atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+}
+
 vec4 ssgiEvalF2(ivec2 texelPos, vec3 viewPos, vec3 sampleDirView) {
     vec4 result = vec4(0.0, 0.0, 0.0, -1.0);
 
@@ -156,6 +163,9 @@ vec4 ssgiEvalF2(ivec2 texelPos, vec3 viewPos, vec3 sampleDirView) {
         float hitDistance = length(hitViewPos - viewPos);
         result.w = length(hitViewPos - viewPos);
         result.xyz = sampleIrradiance(texelPos, hitTexelPos, -sampleDirView);
+    } else {
+        vec3 worldDir = coords_dir_viewToWorld(sampleDirView);
+        result.xyz = sampleIrradianceMiss(worldDir);
     }
 
     return result;
@@ -214,6 +224,7 @@ vec4 ssgiRef(ivec2 texelPos, uint finalIndex) {
         SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.01);
         float samplePdf = sampleDirTangentAndPdf.w;
 
+
         if (sstResult.hit) {
             //        vec3 hitRadiance = texelFetch(usam_temp2, ivec2(sstResult.hitScreenPos.xy * uval_mainImageSize), 0).rgb;
             vec2 hitTexelPosF = floor(sstResult.hitScreenPos.xy * uval_mainImageSize);
@@ -222,15 +233,17 @@ vec4 ssgiRef(ivec2 texelPos, uint finalIndex) {
             vec2 roundedHitScreenPos = hitTexelCenter * uval_mainImageSizeRcp;
 
             vec3 hitRadiance = sampleIrradiance(texelPos, hitTexelPos, -sampleDirView);
-
-            float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
-            vec3 f = brdf * hitRadiance;
-            result.rgb = f / samplePdf;
+            result.rgb = hitRadiance;
 
             float hitViewZ = coords_reversedZToViewZ(sstResult.hitScreenPos.z, near);
             vec3 hitViewPos = coords_toViewCoord(roundedHitScreenPos, hitViewZ, global_camProjInverse);
             result.w = length(hitViewPos - viewPos);
+        } else {
+            vec3 worldDir = coords_dir_viewToWorld(sampleDirView);
+            result.rgb = sampleIrradianceMiss(worldDir);
         }
+        float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
+        result.rgb = brdf * result.rgb / samplePdf;
     }
 
     return result;
