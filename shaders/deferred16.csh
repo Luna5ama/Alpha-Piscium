@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/composite/DirectLighting.glsl"
+#include "/pass/deferred/CausticsPhotonTrace.comp.glsl"

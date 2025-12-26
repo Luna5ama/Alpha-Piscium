@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/deferred/CausticsPhotonTrace.comp.glsl"
+#include "/pass/deferred/GIDenoiserReproject.comp.glsl"

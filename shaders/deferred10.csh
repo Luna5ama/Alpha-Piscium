@@ -1,3 +1,4 @@
 #version 460 compatibility
 
-#include "/pass/deferred/CausticsFilter.comp.glsl"
+#define PASS 1
+#include "/pass/deferred/EnvProbeUpdate2ReprojectDilate.comp.glsl"

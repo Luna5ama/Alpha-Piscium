@@ -104,6 +104,7 @@ void main() {
             -global_shadowAABBMax.z - 512.0, -global_shadowAABBMin.z + 16.0
         );
         global_shadowProjInverse = inverse(global_shadowProj);
+        global_prevTaaJitter = global_taaJitter;
         global_taaJitter = jitter;
         mat4 taaMat = taaJitterMat(jitter);
         global_taaJitterMat = taaMat;
@@ -177,7 +178,9 @@ void main() {
         }
 
         global_dispatchSize1 = uvec4(0u, 1u, 1u, 0u);
-        global_dispatchSize2 = uvec4(0u, 1u, 1u, 0u);
+
+        global_dispatchSize2 = uvec4(uvec2((uval_mainImageSizeI + 63) / 64), 3u, 0u);
+
         global_dispatchSize3 = uvec4(0u, 1u, 1u, 0u);
         global_dispatchSize4 = uvec4(0u, 1u, 1u, 0u);
         for (uint i = 0u; i < 16u; i++) {

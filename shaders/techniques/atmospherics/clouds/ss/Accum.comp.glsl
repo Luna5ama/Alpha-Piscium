@@ -1,16 +1,14 @@
-#extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
-#define HIZ_SUBGROUP_CHECK a
 
 #include "Common.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Sampling.glsl"
-#include "/techniques/HiZ.glsl"
+#include "/techniques/HiZCheck.glsl"
 
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba32ui) uniform restrict writeonly uimage2D uimg_csrgba32ui;
+layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 
 struct Vec4PackedData {
     vec4 transmittanceHLen;
@@ -63,13 +61,13 @@ Vec4PackedData vec4PackData_clamp(Vec4PackedData data, Vec4PackedData minVal, Ve
 Vec4PackedData loadCurrData(ivec2 texelPosD) {
     texelPosD = clamp(texelPosD, ivec2(0), renderSize - 1);
     CloudSSHistoryData historyData = clouds_ss_historyData_init();
-    clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, csrgba32ui_temp1_texelToTexel(texelPosD), 0), historyData);
+    clouds_ss_historyData_unpack(transient_lowCloudRender_fetch(texelPosD), historyData);
     return vec4PackedData_fromHistoryData(historyData);
 }
 
 Vec4PackedData loadPrevData(ivec2 texelPos) {
     CloudSSHistoryData historyData = clouds_ss_historyData_init();
-    clouds_ss_historyData_unpack(texelFetch(usam_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), 0), historyData);
+    clouds_ss_historyData_unpack(history_lowCloud_fetch(texelPos), historyData);
     return vec4PackedData_fromHistoryData(historyData);
 }
 
@@ -145,7 +143,6 @@ void main() {
                 vec4 weightY = sampling_lanczoc2Weights(pixelPosFract.y, kernelBias);
                 vec4 momentWeightX = sampling_gaussianWeights(pixelPosFract.x, 1.0);
                 vec4 momentWeightY = sampling_gaussianWeights(pixelPosFract.y, 1.0);
-                float maxWeight = 0.0;
                 float totalMomentWeight = 0.0;
                 float weightSum = 0.0;
 
@@ -162,7 +159,6 @@ void main() {
                         Vec4PackedData sampleData = loadCurrData(gatherTexelPos + offset);
                         float weight = weightX[ix] * weightY[iy];
                         weightSum += weight;
-                        maxWeight = max(maxWeight, weight);
                         currAvgData = vec4PackedData_add(currAvgData, vec4PackedData_mul(sampleData, weight));
 
                         vec3 inSctrYCoCg = colors_SRGBToYCoCg(sampleData.inScattering);
@@ -230,14 +226,14 @@ void main() {
             newData.transmittanceHLen.xyz = mix(newData.transmittanceHLen.xyz, currAvgData.transmittanceHLen.xyz, alpha);
 
             CloudSSHistoryData newHistoryData = vec4PackedData_toHistoryData(newData);
-            newHistoryData.inScattering = max(newHistoryData.inScattering, vec3(0.0));
+            newHistoryData.inScattering = clamp(newHistoryData.inScattering, 0.0, FP16_MAX);
             newHistoryData.transmittance = saturate(newHistoryData.transmittance);
 
             uvec4 packedOutput = uvec4(0u);
             clouds_ss_historyData_pack(packedOutput, newHistoryData);
-            imageStore(uimg_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), packedOutput);
+            transient_lowCloudAccumulated_store(texelPos, packedOutput);
         }
     } else {
-        imageStore(uimg_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), uvec4(0u));
+        transient_lowCloudAccumulated_store(texelPos, uvec4(0u));
     }
 }

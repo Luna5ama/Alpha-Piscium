@@ -6,7 +6,6 @@
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/atmospherics/LocalComposite.glsl"
-#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/util/FullScreenComp.glsl"
@@ -19,10 +18,12 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp4;
 layout(rgba16f) uniform restrict image2D uimg_main;
 
 void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        imageStore(uimg_temp4, texelPos, vec4(0.0));
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
 
         ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
@@ -57,8 +58,8 @@ void main() {
             float pdfRatio = 1.0;
             bsdf_SphericalCapBoundedWithPDFRatio(noiseV, localViewDir, vec2(material.roughness), pdfRatio);
 
-            vec4 sstData1 = texelFetch(usam_temp1, texelPos, 0);
-            vec4 sstData2 = texelFetch(usam_temp2, texelPos, 0);
+            vec4 sstData1 = transient_translucentRefraction_fetch(texelPos);
+            vec4 sstData2 = transient_translucentReflection_fetch(texelPos);
             vec3 refractColor = sstData1.xyz;
             vec3 reflectColor = sstData2.xyz;
 

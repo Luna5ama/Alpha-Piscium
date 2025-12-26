@@ -3,6 +3,8 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Dither.glsl"
 #include "/util/Rand.glsl"
+#include "/util/Sampling.glsl"
+#include "/techniques/gi/Common.glsl"
 
 
 in vec2 frag_texCoord;
@@ -79,8 +81,7 @@ void main() {
     vec2 prevScreenPos = prevClipPos.xy * 0.5 + 0.5;
 
     vec3 currColor = texture(usam_main, frag_texCoord).rgb;
-
-    vec4 prevResult = BicubicSampling5(usam_taaLast, prevScreenPos * uval_mainImageSize);
+    vec4 prevResult = sampling_catmullBicubic5Tap(usam_taaLast, prevScreenPos * uval_mainImageSize, 0.5, uval_mainImageSizeRcp);
     vec3 prevColor = saturate(prevResult.rgb);
 
     vec2 pixelPosDiff = (frag_texCoord - prevScreenPos) * textureSize(usam_main, 0).xy;
@@ -93,7 +94,7 @@ void main() {
     float lastFrameAccum = texture(usam_taaLast, frag_texCoord).a;
     float newFrameAccum = lastFrameAccum + 1.0;
 
-    float speedSum = 1.0;
+    float speedSum = 0.0;
     speedSum += cameraSpeedDiff * 4.0;
     speedSum += cameraSpeed * 0.125;
     speedSum += pixelSpeed * 0.25;
@@ -147,7 +148,7 @@ void main() {
         #endif
     }
 
-    float frameReset = exp2(-log2(speedSum));
+    float frameReset = exp2(-0.25 * log2(1.0 + speedSum));
     newFrameAccum *= frameReset;
     #ifdef SETTING_SCREENSHOT_MODE
     float MIN_ACCUM_FRAMES = 1.0;

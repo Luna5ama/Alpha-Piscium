@@ -3,7 +3,6 @@
 #define GLOBAL_DATA_MODIFIER \
 
 #include "/techniques/atmospherics/LocalComposite.glsl"
-#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/Colors2.glsl"
 

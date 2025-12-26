@@ -46,14 +46,18 @@ const float SHADOW_LUMA_THRESHOLD = SETTING_EXPOSURE_S_LUM / 255.0;
 const float HIGHLIGHT_LUMA_THRESHOLD = SETTING_EXPOSURE_H_LUM / 255.0;
 
 void _displaytransform_exposure_update(bool valid, inout vec4 color) {
+    float groupNoise = rand_stbnVec1(ivec2(gl_WorkGroupID.xy), frameCounter);
     if (valid) {
+        ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+        float emissiveWeightMul = ldexp(1.0, SETTING_EXPOSURE_EMISSIVE_WEIGHTING);
+        float pixelWeight = color.a * pow(emissiveWeightMul, transient_solidAlbedo_fetch(texelPos).a);
+
         float lumimance = colors2_colorspaces_luma(COLORS2_OUTPUT_COLORSPACE, saturate(color.rgb));
         uint not0Flag = uint(any(greaterThan(color.rgb, vec3(0.0))));
 
-        float pixelNoise = rand_stbnVec1(ivec2(gl_GlobalInvocationID.xy), frameCounter);
         if (bool(not0Flag)) {
             uint binIndex = clamp(uint(lumimance * 256.0), 0u, 255u);
-            atomicAdd(shared_avgLumHistogram[binIndex], uint(color.a + pixelNoise));
+            atomicAdd(shared_avgLumHistogram[binIndex], uint(saturate(pixelWeight) * 16777216.0));
         }
 
         {
@@ -62,9 +66,9 @@ void _displaytransform_exposure_update(bool valid, inout vec4 color) {
             uint shadowFlag = not0Flag;
             shadowFlag &= uint(lumimance <= SHADOW_LUMA_THRESHOLD);
 
-            float highlightV = float(highlightFlag) * color.a;
-            float shadowV = float(shadowFlag) * color.a;
-            float totalV = float(not0Flag) * color.a;
+            float highlightV = float(highlightFlag) * pixelWeight;
+            float shadowV = float(shadowFlag) * pixelWeight;
+            float totalV = float(not0Flag) * pixelWeight;
 
             vec3 sumV = vec3(highlightV, shadowV, totalV);
             vec3 sum = subgroupAdd(sumV);
@@ -85,18 +89,18 @@ void _displaytransform_exposure_update(bool valid, inout vec4 color) {
         if (gl_SubgroupID == 0 && gl_SubgroupInvocationID < gl_NumSubgroups) {
             vec3 partialSum = shared_sum[gl_SubgroupInvocationID];
             vec3 sum = subgroupAdd(partialSum);
-            if (subgroupElect()) {
-                float noise = rand_stbnVec1(ivec2(gl_WorkGroupID.xy), frameCounter);
-                atomicAdd(global_aeData.highlightCount, uint(sum.x + noise));
-                atomicAdd(global_aeData.shadowCount, uint(sum.y + noise));
-                atomicAdd(global_aeData.weightSum, uint(sum.z + noise));
+            if (subgroupElect()) {;
+                atomicAdd(global_aeData.highlightCount, uint(sum.x + groupNoise));
+                atomicAdd(global_aeData.shadowCount, uint(sum.y + groupNoise));
+                atomicAdd(global_aeData.weightSum, uint(sum.z + groupNoise));
             }
         }
     }
 
     uint avgLumV = shared_avgLumHistogram[gl_LocalInvocationIndex];
     if (avgLumV > 0u) {
-        atomicAdd(global_aeData.avgLumHistogram[gl_LocalInvocationIndex], avgLumV);
+        uint jitter = uint((groupNoise - 0.5) * 16777216.0);
+        atomicAdd(global_aeData.avgLumHistogram[gl_LocalInvocationIndex], (avgLumV + jitter) / 16777216u);
     }
     #ifdef SETTING_DEBUG_AE
     uint lumV = shared_lumHistogram[gl_LocalInvocationIndex];

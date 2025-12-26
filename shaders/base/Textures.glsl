@@ -3,7 +3,7 @@ const int colortex0Format = RGBA16F; // Main 1
 const int colortex1Format = RGBA16F; // Temp1
 const int colortex2Format = RGBA16F; // Temp2
 const int colortex3Format = RGBA16F; // Temp3
-const int colortex4Format = RGBA8; // Temp4
+const int colortex4Format = RGBA16F; // Temp4
 const int colortex5Format = RGBA8; // Temp5
 const int colortex6Format = RGBA8; // Temp6
 const int colortex7Format = R32UI; // Geometry Normal
@@ -75,11 +75,11 @@ const int shadowcolor6Format = RGB10_A2; // Water normal
 
 const bool colortex0Clear = false;
 
-const bool colortex1Clear = true;
+const bool colortex1Clear = false;
 const vec4 colortex1ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
-const bool colortex2Clear = true;
+const bool colortex2Clear = false;
 const vec4 colortex2ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
-const bool colortex3Clear = true;
+const bool colortex3Clear = false;
 const vec4 colortex3ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const bool colortex4Clear = true;
 const vec4 colortex4ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -160,11 +160,15 @@ uniform sampler2D usam_shadow_waterMask;
 uniform sampler2D usam_shadow_waterNormal;
 
 // --------------------------------------------------- Custom Images ---------------------------------------------------
-uniform usampler2D usam_csrgba32ui;
-uniform sampler2D usam_csrgba16f;
 uniform sampler2D usam_cfrgba16f;
 uniform sampler2D usam_csr32f;
 uniform sampler2D usam_csrg32f;
+
+uniform usampler2D usam_rgba32ui;
+uniform sampler2D usam_rgba16f;
+uniform sampler2D usam_rgb10_a2;
+uniform sampler2D usam_rgba8;
+uniform sampler2D usam_r32f;
 
 uniform sampler2D usam_rtwsm_imap;
 uniform sampler2D usam_transmittanceLUT;
@@ -174,7 +178,6 @@ uniform sampler3D usam_skyViewLUT;
 uniform usampler2D usam_epipolarData;
 uniform sampler3D usam_cloudsAmbLUT;
 uniform usampler2D usam_envProbe;
-uniform sampler2D usam_causticsPhoton;
 
 // -------------------------------------------------- Custom Textures --------------------------------------------------
 uniform sampler2D noisetex;
@@ -185,6 +188,7 @@ uniform sampler3D usam_whiteNoise3D;
 uniform sampler3D usam_stbnVec1;
 uniform sampler3D usam_stbnUnitVec2;
 uniform sampler3D usam_stbnVec2;
+uniform sampler3D usam_stbnUnitVec3Cosine;
 uniform sampler2D usam_starmap;
 uniform sampler2D usam_constellations;
 uniform sampler2D usam_cirrus;

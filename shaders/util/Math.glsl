@@ -122,6 +122,52 @@ vec4 pow6(vec4 x) {
     return x2 * x2 * x2;
 }
 
+float pow7(float x) {
+    float x2 = x * x;
+    return x2 * x2 * x2 * x;
+}
+vec2 pow7(vec2 x) {
+    vec2 x2 = x * x;
+    return x2 * x2 * x2 * x;
+}
+vec3 pow7(vec3 x) {
+    vec3 x2 = x * x;
+    return x2 * x2 * x2 * x;
+}
+vec4 pow7(vec4 x) {
+    vec4 x2 = x * x;
+    return x2 * x2 * x2 * x;
+}
+
+float pow8(float x) {
+    float x2 = x * x;
+    float x4 = x2 * x2;
+    return x4 * x4;
+}
+vec2 pow8(vec2 x) {
+    vec2 x2 = x * x;
+    vec2 x4 = x2 * x2;
+    return x4 * x4;
+}
+vec3 pow8(vec3 x) {
+    vec3 x2 = x * x;
+    vec3 x4 = x2 * x2;
+    return x4 * x4;
+}
+vec4 pow8(vec4 x) {
+    vec4 x2 = x * x;
+    vec4 x4 = x2 * x2;
+    return x4 * x4;
+}
+
+float safeDiv(float a, float b) {
+    return b <= 0.0 ? 0.0 : a / b;
+}
+
+float safeRcp(float x) {
+    return x <= 0.0 ? 0.0 : 1.0 / x;
+}
+
 float lengthSq(float x) { return x * x; }
 float lengthSq(vec2 x) { return dot(x, x); }
 float lengthSq(vec3 x) { return dot(x, x); }

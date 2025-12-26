@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/composite/DOFFocus.comp.glsl"
+#include "/techniques/atmospherics/clouds/ss/Accum.comp.glsl"

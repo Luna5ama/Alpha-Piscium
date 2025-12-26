@@ -10,9 +10,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 #include "/util/Colors2.glsl"
 #include "/util/Coords.glsl"
-#if SETTING_DEBUG_OUTPUT == 1 || SETTING_DEBUG_OUTPUT == 2
 #include "/techniques/DebugOutput.glsl"
-#endif
 #include "/techniques/displaytransform/DisplayTransform.glsl"
 #include "/util/FullScreenComp.glsl"
 

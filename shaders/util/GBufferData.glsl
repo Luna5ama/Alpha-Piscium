@@ -60,14 +60,21 @@ void gbufferData1_pack(out uvec4 packedData, GBufferData gData) {
     packedData.a |= (gData.materialID & 0xFFFFu) << 16;
 }
 
-void gbufferData1_unpack(uvec4 packedData, inout GBufferData gData) {
+void gbufferData1_unpack_world(uvec4 packedData, inout GBufferData gData) {
     nzpacking_unpackNormalOct16(packedData.r, gData.geomNormal, gData.geomTangent);
-    gData.geomNormal = coords_dir_worldToView(gData.geomNormal);
-    gData.geomTangent = coords_dir_worldToView(gData.geomTangent);
+    gData.geomNormal = gData.geomNormal;
+    gData.geomTangent = gData.geomTangent;
     gData.pbrSpecular = unpackUnorm4x8(packedData.g);
-    gData.normal = coords_dir_worldToView(nzpacking_unpackNormalOct32(packedData.b));
+    gData.normal = nzpacking_unpackNormalOct32(packedData.b);
     gData.lmCoord = unpackUnorm4x8(packedData.a).xy;
     gData.materialID = (packedData.a >> 16) & 0xFFFFu;
+}
+
+void gbufferData1_unpack(uvec4 packedData, inout GBufferData gData) {
+    gbufferData1_unpack_world(packedData, gData);
+    gData.geomNormal = coords_dir_worldToView(gData.geomNormal);
+    gData.geomTangent = coords_dir_worldToView(gData.geomTangent);
+    gData.normal = coords_dir_worldToView(gData.normal);
 }
 
 void gbufferData2_pack(out uvec4 packedData, GBufferData gData) {

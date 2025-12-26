@@ -50,9 +50,9 @@ vec4 computeBilateralWeights(vec2 gatherTexelPos) {
     vec2 gatherUV = nzpacking_fullResGatherUV(gatherTexelPos);
     vec4 result = vec4(1.0);
 
-    uvec4 prevViewNormals = textureGather(usam_packedZN, gatherUV, 0);
-    uvec4 prevViewGeomNormals = textureGather(usam_geometryNormal, screenPos, 0);
-    vec4 prevViewZs = uintBitsToFloat(textureGather(usam_packedZN, gatherUV, 1));
+    uvec4 prevViewNormals = transient_packedZN_gather(gatherUV, 0);
+    uvec4 prevViewGeomNormals = transient_geometryNormal_gather(screenPos, 0);
+    vec4 prevViewZs = uintBitsToFloat(transient_packedZN_gather(gatherUV, 1));
 
     float geometryPlaneWeight = BASE_GEOM_WEIGHT_RCP * max(abs(reproject_curr2PrevView.z), 0.1);
     float geometryNormalWeight = mix(BASE_GEOM_WEIGHT, BASE_NORMAL_WEIGHT, reproject_isHand);
@@ -86,8 +86,6 @@ void bilateralSample(
 vec2 gatherTexelPos, vec4 baseWeights,
 inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout float prevHLen, inout float weightSum
 ) {
-    vec2 gatherUV1 = gi_diffuseHistory_texelToGatherUV(gatherTexelPos);
-
     vec4 bilateralWeights = computeBilateralWeights(gatherTexelPos);
     float bilateralWeightSum = bilateralWeights.x + bilateralWeights.y + bilateralWeights.z + bilateralWeights.w;
 
@@ -96,7 +94,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
         weightSum += interpoWeights.x + interpoWeights.y + interpoWeights.z + interpoWeights.w;
 
         {
-            uvec4 prevColorData = textureGather(usam_csrgba32ui, gatherUV1, 0);
+            uvec4 prevColorData = history_gi_gather(gatherTexelPos, 0);
             vec2 temp1 = unpackHalf2x16(prevColorData.x);
             vec2 temp2 = unpackHalf2x16(prevColorData.y);
             vec2 temp3 = unpackHalf2x16(prevColorData.z);
@@ -109,7 +107,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
         }
 
         {
-            uvec4 prevColorData = textureGather(usam_csrgba32ui, gatherUV1, 1);
+            uvec4 prevColorData = history_gi_gather(gatherTexelPos, 1);
             vec2 temp1 = unpackHalf2x16(prevColorData.x);
             vec2 temp2 = unpackHalf2x16(prevColorData.y);
             vec2 temp3 = unpackHalf2x16(prevColorData.z);
@@ -122,7 +120,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
         }
 
         {
-            uvec4 prevData = textureGather(usam_csrgba32ui, gatherUV1, 2);
+            uvec4 prevData = history_gi_gather(gatherTexelPos, 2);
             vec2 temp1 = unpackHalf2x16(prevData.x);
             vec2 temp2 = unpackHalf2x16(prevData.y);
             vec2 temp3 = unpackHalf2x16(prevData.z);
@@ -135,7 +133,7 @@ inout vec3 prevColor, inout vec3 prevFastColor, inout vec2 prevMoments, inout fl
         }
 
         {
-            uvec4 prevData = textureGather(usam_csrgba32ui, gatherUV1, 3);
+            uvec4 prevData = history_gi_gather(gatherTexelPos, 3);
             vec2 temp1 = unpackHalf2x16(prevData.x);
             vec2 temp2 = unpackHalf2x16(prevData.y);
             vec2 temp3 = unpackHalf2x16(prevData.z);

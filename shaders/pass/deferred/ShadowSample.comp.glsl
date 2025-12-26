@@ -3,7 +3,6 @@
 #extension GL_KHR_shader_subgroup_vote : enable
 #extension GL_KHR_shader_subgroup_clustered : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
-#define HIZ_SUBGROUP_CHECK a
 #define GLOBAL_DATA_MODIFIER \
 
 #include "/techniques/atmospherics/water/Constants.glsl"
@@ -13,7 +12,7 @@
 #include "/util/Hash.glsl"
 #include "/util/Rand.glsl"
 #include "/util/GBufferData.glsl"
-#include "/techniques/HiZ.glsl"
+#include "/techniques/HiZCheck.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -22,7 +21,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 uniform sampler2D dhDepthTex0;
 #endif
 
-layout(rgba16f) uniform restrict image2D uimg_temp3;
+layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32i) uniform iimage2D uimg_rtwsm_imap;
 layout(rgba16f) uniform restrict image2D uimg_translucentColor;
 
@@ -164,9 +163,7 @@ vec3 calcShadow(Material material) {
             max(63.0 - worldHeight, 0.0) * rcpShadowY;
         }
         #ifdef SETTING_WATER_CAUSTICS
-        ivec2 readPos = texelPos;
-        readPos.y += uval_mainImageSizeI.y;
-        float causticsV = texelFetch(usam_causticsPhoton, readPos, 0).r;
+        float causticsV = transient_caustics_final_fetch(texelPos).r;
         shadow *= mix(1.0, causticsV, exp2(-waterDepth * 0.05));
         #endif
         shadow *= exp(-waterDepth * WATER_EXTINCTION);
@@ -192,18 +189,14 @@ void main() {
     texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        float viewZ = -65536.0;
+        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
 
-        if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
-            viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-        }
-
-        if (viewZ != -65536.0) {
+        if (viewZ > -65536.0) {
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             vec4 outputColor = compShadow(texelPos, viewZ);
             outputColor = clamp(outputColor, 0.0, FP16_MAX);
-            imageStore(uimg_temp3, texelPos, outputColor);
+            transient_shadow_store(texelPos, outputColor);
 
             rtwsm_backward(texelPos, viewZ, gData);
         }

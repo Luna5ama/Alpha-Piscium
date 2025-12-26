@@ -341,7 +341,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
 
         float sampleViewZ;
         vec3 sampleViewNormal;
-        nzpacking_unpack(texelFetch(usam_packedZN, sampleTexelPos, 0).xy, sampleViewNormal, sampleViewZ);
+        nzpacking_unpack(transient_packedZN_fetch(sampleTexelPos).xy, sampleViewNormal, sampleViewZ);
 
         vec3 samplePosVS = coords_toViewCoord(sampleUV, sampleViewZ, global_camProjInverse);
         vec3 frontDiff = samplePosVS - viewPos;
@@ -380,7 +380,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
                 uint visBits0 = occBits0 & (~occBits);
 
                 if (visBits0 != 0u) {
-                    uvec2 radianceData = texelFetch(usam_packedZN, sampleTexelPos + ivec2(0, global_mipmapSizesI[1].y), 0).xy;
+                    uvec2 radianceData = transient_packedZN_fetch(sampleTexelPos + ivec2(0, global_mipmapSizesI[1].y)).xy;
                     vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
                     float emissive = saturate(sign(radiance.a));
                     float emitterCos = mix(saturate(dot(sampleViewNormal, -thisToSample)), 1.0, emissive);
@@ -421,7 +421,7 @@ void uniGTVBGI(vec3 viewPos, vec3 viewNormal, inout vec3 result) {
 
         float skyLightingBase = SETTING_VBGI_SKYLIGHT_STRENGTH;
         #ifdef SETTING_VBGI_MC_SKYLIGHT_ATTENUATION
-        float lmCoordSky = abs(unpackHalf2x16(texelFetch(usam_packedZN, vbgi_texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y), 0).y).y);
+        float lmCoordSky = abs(unpackHalf2x16(transient_packedZN_fetch(vbgi_texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y)).y).y);
         lmCoordSky = mix(1.0, lmCoordSky, pow2(1.0 - linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y))));
         skyLightingBase *= lighting_skyLightFalloff(lmCoordSky);
         #endif
@@ -552,7 +552,7 @@ vec3 gtvbgi(ivec2 texelPos1x1) {
 
     float centerViewZ;
     vec3 centerViewNormal;
-    nzpacking_unpack(texelFetch(usam_packedZN, vbgi_texelPos1x1 + ivec2(0, uval_mainImageSizeI.y), 0).xy, centerViewNormal, centerViewZ);
+    nzpacking_unpack(transient_packedZN_fetch(vbgi_texelPos1x1 + ivec2(0, uval_mainImageSizeI.y)).xy, centerViewNormal, centerViewZ);
 
     vec3 result = vec3(0.0, 0.0, 0.0);
     if (centerViewZ != -65536.0) {

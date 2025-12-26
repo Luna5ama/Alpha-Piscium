@@ -1,4 +1,3 @@
 #version 460 compatibility
 
-#define ATROUS_PASS 3
-#include "/techniques/svgf/Atrous.glsl"
+#include "/pass/deferred/EnvProbeUpdate4ProjectCurrent.comp.glsl"

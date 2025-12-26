@@ -1,3 +1,4 @@
 #version 460 compatibility
 
-#include "/pass/deferred/HiZMin.csh"
+#include "/pass/deferred/GIDenoiserEdgeDilation.comp.glsl"
+

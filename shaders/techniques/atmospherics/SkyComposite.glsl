@@ -10,7 +10,7 @@
 #include "/util/Celestial.glsl"
 #include "/util/Math.glsl"
 
-layout(rgba32ui) uniform restrict writeonly uimage2D uimg_csrgba32ui;
+layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 
 const float DENSITY_EPSILON = 0.0001;
 
@@ -89,8 +89,8 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
     vec3 rayDir = normalize(mat3(gbufferModelViewInverse) * rayEndView);
     SkyViewLutParams skyViewLutParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, rayDir);
     #ifdef SETTING_CLOUDS_CU
-    uvec4 packedData = texelFetch(usam_csrgba32ui, csrgba32ui_temp2_texelToTexel(texelPos), 0);
-    imageStore(uimg_csrgba32ui, clouds_ss_history_texelToTexel(texelPos), packedData);
+    uvec4 packedData = transient_lowCloudAccumulated_fetch(texelPos);
+    history_lowCloud_store(texelPos, packedData);
     #endif
 
     if (viewZ == -65536.0) {

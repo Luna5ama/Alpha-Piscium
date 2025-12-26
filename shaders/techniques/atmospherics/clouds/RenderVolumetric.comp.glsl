@@ -14,7 +14,7 @@ const vec2 workGroupsRender = vec2(RENDER_MULTIPLIER, RENDER_MULTIPLIER);
 
 shared bool shared_worldGroupCheck;
 
-layout(rgba32ui) uniform writeonly uimage2D uimg_csrgba32ui;
+layout(rgba32ui) uniform writeonly uimage2D uimg_rgba32ui;
 
 const float TRANSMITTANCE_EPSILON = 0.01;
 
@@ -222,7 +222,7 @@ void render(ivec2 texelPosDownScale) {
     historyData.hLen = 1.0;
     uvec4 packedOutput = uvec4(0u);
     clouds_ss_historyData_pack(packedOutput, historyData);
-    imageStore(uimg_csrgba32ui, csrgba32ui_temp1_texelToTexel(texelPosDownScale), packedOutput);
+    transient_lowCloudRender_store(texelPosDownScale, packedOutput);
 }
 
 void main() {

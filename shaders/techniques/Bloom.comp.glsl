@@ -5,7 +5,6 @@
 */
 #include "/Base.glsl"
 #include "/util/Colors.glsl"
-#include "/techniques/textile/CSRGBA16F.glsl"
 
 const float BASE_BLOOM_INTENSITY = 0.01;
 
@@ -65,23 +64,23 @@ vec4 _bloom_imageSample(vec2 uv) {
 }
 #else
 vec4 _bloom_imageSample(vec2 uv) {
-    return texture(usam_csrgba16f, csrgba16f_temp3_uvToUV(uv));
+    return texture(usam_temp4, uv);
 }
 #endif
 
-layout(rgba16f) uniform writeonly image2D uimg_csrgba16f;
+layout(rgba16f) uniform writeonly image2D uimg_temp4;
 vec4 _bloom_imageLoad(ivec2 coord) {
     return vec4(0.0);
 }
 void _bloom_imageStore(ivec2 coord, vec4 data) {
-    imageStore(uimg_csrgba16f, csrgba16f_temp3_texelToTexel(coord), data);
+    imageStore(uimg_temp4, coord, data);
 }
 
 
 #elif BLOOM_UP_SAMPLE
 
 vec4 _bloom_imageSample(vec2 uv) {
-    return texture(usam_csrgba16f, csrgba16f_temp3_uvToUV(uv));
+    return texture(usam_temp4, uv);
 }
 #if BLOOM_PASS == 1
 vec4 _bloom_imageLoad(ivec2 coord) {
@@ -91,12 +90,12 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
     imageStore(uimg_main, coord, data);
 }
 #else
-layout(rgba16f) uniform restrict image2D uimg_csrgba16f;
+layout(rgba16f) uniform restrict image2D uimg_temp4;
 vec4 _bloom_imageLoad(ivec2 coord) {
-    return imageLoad(uimg_csrgba16f, csrgba16f_temp3_texelToTexel(coord));
+    return imageLoad(uimg_temp4, coord);
 }
 void _bloom_imageStore(ivec2 coord, vec4 data) {
-    imageStore(uimg_csrgba16f, csrgba16f_temp3_texelToTexel(coord), data);
+    imageStore(uimg_temp4, coord, data);
 }
 #endif
 

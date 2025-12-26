@@ -56,5 +56,12 @@ vec4 unpackHalf4x16(uvec2 v) {
     return vec4(unpackHalf2x16(v.x), unpackHalf2x16(v.y));
 }
 
+uvec2 packUnorm4x16(vec4 v) {
+    return uvec2(packUnorm2x16(v.xy), packUnorm2x16(v.zw));
+}
+
+vec4 unpackUnorm4x16(uvec2 v) {
+    return vec4(unpackUnorm2x16(v.x), unpackUnorm2x16(v.y));
+}
 
 #endif

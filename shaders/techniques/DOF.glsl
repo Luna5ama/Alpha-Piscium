@@ -1,4 +1,3 @@
-#include "/techniques/textile/CSRGBA16F.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Math.glsl"
 
@@ -35,7 +34,7 @@ float _dof_intersectCoc(vec2 p, float radius) {
 #endif
 
 vec4 _dof_sampleTap(vec2 centerTexelPos, vec2 sampleTexelPos, float centerCoc, float centerViewZ) {
-    vec4 sampleData = texture(usam_csrgba16f, csrgba16f_temp1_texelToUV(sampleTexelPos));
+    vec4 sampleData = transient_dofInput_fetch(ivec2(sampleTexelPos));
     vec3 sampleColor = sampleData.rgb;
     float sampleViewZ = sampleData.a;
     float sampleCoc = _dof_computeCoC(sampleViewZ);
@@ -68,7 +67,7 @@ const int SAMPLE_JITTER_GRID = HEXGONAL_SPIRAL_COUNT(SAMPLE_JITTER_GRID_LAYER);
 vec3 dof_sample(ivec2 texelPos) {
     vec2 centerTexelPos = vec2(texelPos) + 0.5;
 
-    vec4 centerData = texelFetch(usam_csrgba16f, csrgba16f_temp1_texelToTexel(texelPos), 0);
+    vec4 centerData = transient_dofInput_fetch(texelPos);
     vec3 centerColor = centerData.rgb;
     float centerViewZ = centerData.a;
     float centerCoc = _dof_computeCoC(centerViewZ);
