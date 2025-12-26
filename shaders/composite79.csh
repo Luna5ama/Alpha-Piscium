@@ -132,12 +132,8 @@ void main() {
 
         printLine();
 
-        printString((_H, _i, _s, _t, _o, _r, _y, _space, _F, _i, _x, _space, _M, _i, _p, _s, _colon, _space));;
-        printInt(DENOISER_HISTORY_FIX_MIPS);
-        printLine();
-
-        printString((_H, _i, _s, _t, _o, _r, _y, _space, _F, _i, _x, _space, _K, _e, _r, _n, _e, _l, _space, _R, _a, _d, _i, _u, _s, _colon, _space));;
-        printInt(DENOISER_HISTORY_FIX_KERNEL_RADIUS);
+        printString((_D, _e, _n, _o, _i, _s, _e, _r, _space, _H, _i, _s, _t, _o, _r, _y, _space, _F, _i, _x, _space, _colon, _space));
+        printBool(DENOISER_HISTORY_FIX == 1);
         printLine();
 
         endText(outputColor.rgb);

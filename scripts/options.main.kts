@@ -703,7 +703,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     }
                 }
                 empty()
-                toggle("SETTING_DENOISER_ANTI_FIREFLY", true) {
+                toggle("SETTING_DENOISER_ANTI_FIREFLY", false) {
                     lang {
                         name = "Firefly Suppression"
                         comment = "Reduces bright noise artifacts (fireflies) in the GI results."
@@ -711,6 +711,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "亮点抑制"
                         comment = "减少GI结果中的高亮噪点。"
+                    }
+                }
+                toggle("SETTING_DENOISER_HISTORY_FIX", true) {
+                    lang {
+                        name = "Disocclusion Fix"
+                        comment = "Fix heavy noise in disoccluded areas when the camera moves."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "遮挡消失修正"
+                        comment = "修正摄像机移动时遮挡消失区域的严重噪点。"
                     }
                 }
             }

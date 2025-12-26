@@ -49,8 +49,11 @@ const float FAST_HISTORY_LENGTH = float(SETTING_DENOISER_FAST_HISTORY_LENGTH);
 #else
 #define ENABLE_DENOISER_ANTI_FIREFLY 0
 #endif
-#define DENOISER_HISTORY_FIX_MIPS 6
-#define DENOISER_HISTORY_FIX_KERNEL_RADIUS 0
+#ifdef SETTING_DENOISER_HISTORY_FIX
+#define DENOISER_HISTORY_FIX 1
+#else
+#define DENOISER_HISTORY_FIX 0
+#endif
 
 #define GI_MB 1.0
 /*
@@ -215,6 +218,10 @@ uvec4 reprojectInfo_pack(ReprojectInfo info) {
     packedData.z = floatBitsToUint(info.historyResetFactor);
     packedData.w = packUnorm2x16(info.curr2PrevScreenPos);
     return packedData;
+}
+
+vec2 _gi_mirrorUV(vec2 uv) {
+    return 1.0 - abs(1.0 - (fract(uv * 0.5) * 2.0));
 }
 
 #endif

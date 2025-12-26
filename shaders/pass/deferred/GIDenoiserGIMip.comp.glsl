@@ -15,7 +15,7 @@ layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 vec4 spd_loadInput(ivec2 texelPos, uint slice) {
     vec4 result = vec4(0.0);
     if (gl_WorkGroupID.z == 0) {
-        result.xyz = transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
+        result.xyz = transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
     } else {
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
 

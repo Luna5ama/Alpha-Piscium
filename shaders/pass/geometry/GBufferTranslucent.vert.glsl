@@ -41,6 +41,6 @@ void main() {
     #endif
 
     vec3 offsetToCenter = at_midBlock.xyz / 64.0;
-    frag_midBlock = packUnorm4x8(vec4(saturate(abs(offsetToCenter) / 2.0), at_midBlock.w / 15.0));
+//    frag_midBlock = packUnorm4x8(vec4(saturate(abs(offsetToCenter) / 2.0), at_midBlock.w / 15.0));
     frag_offsetToCenter = offsetToCenter;
 }

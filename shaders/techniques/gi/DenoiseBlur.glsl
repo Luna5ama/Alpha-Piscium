@@ -42,10 +42,6 @@ vec4 _gi_readSpec(ivec2 texelPos) {
     #endif
 }
 
-vec2 _gi_mirrorUV(vec2 uv) {
-    return 1.0 - abs(1.0 - (fract(uv * 0.5) * 2.0));
-}
-
 float gaussianKernel(float x, float sigma) {
     return exp(-sigma * pow2(x));
 }
