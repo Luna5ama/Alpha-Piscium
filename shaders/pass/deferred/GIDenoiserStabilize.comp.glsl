@@ -44,7 +44,7 @@ void main() {
             historyData.specularColor = specResult.rgb;
 
             if (RANDOM_FRAME < MAX_FRAMES){
-                imageStore(uimg_temp3, texelPos, vec4(interpolateTurbo(saturate(transient_gi_blurDiff1_fetch(texelPos).w)), 0.0));
+//                imageStore(uimg_temp3, texelPos, vec4(interpolateTurbo(saturate(transient_gi_blurDiff1_fetch(texelPos).w)), 0.0));
 //                imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
                 //            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
                 imageStore(uimg_temp2, texelPos, gi_historyData_pack1(historyData));

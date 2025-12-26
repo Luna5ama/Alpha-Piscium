@@ -56,7 +56,7 @@ void spd_storeOutput(ivec2 texelPos, uint level, uint slice, vec4 value) {
 }
 
 uint spd_mipCount() {
-    return 4u;
+    return 6u;
 }
 void spd_init() {
     if (gl_LocalInvocationIndex < 16u) {

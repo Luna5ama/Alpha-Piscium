@@ -130,6 +130,16 @@ void main() {
         printBool(ENABLE_DENOISER_ANTI_FIREFLY == 1);
         printLine();
 
+        printLine();
+
+        printString((_H, _i, _s, _t, _o, _r, _y, _space, _F, _i, _x, _space, _M, _i, _p, _s, _colon, _space));;
+        printInt(DENOISER_HISTORY_FIX_MIPS);
+        printLine();
+
+        printString((_H, _i, _s, _t, _o, _r, _y, _space, _F, _i, _x, _space, _K, _e, _r, _n, _e, _l, _space, _R, _a, _d, _i, _u, _s, _colon, _space));;
+        printInt(DENOISER_HISTORY_FIX_KERNEL_RADIUS);
+        printLine();
+
         endText(outputColor.rgb);
         #endif
 
