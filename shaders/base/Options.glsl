@@ -349,6 +349,9 @@ const float sunPathRotation = -20.0; //[-90.0 -89.0 -88.0 -87.0 -86.0 -85.0 -84.
 //#define SETTING_DEBUG_AE
 #ifdef SETTING_DEBUG_AE
 #endif
+//#define SETTING_DEBUG_GI_TEXT
+#ifdef SETTING_DEBUG_GI_TEXT
+#endif
 //#define SETTING_DEBUG_NOISE_GEN
 #ifdef SETTING_DEBUG_NOISE_GEN
 #endif

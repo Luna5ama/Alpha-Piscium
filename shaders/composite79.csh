@@ -31,6 +31,7 @@ void main() {
         #endif
 
         #if SETTING_DEBUG_OUTPUT
+        #ifdef SETTING_DEBUG_GI_TEXT
         beginText(texelPos >> ivec2(1), ivec2(4, (uval_mainImageSizeI.y >> 1) - 4));
         printLine();
         printLine();
@@ -137,6 +138,7 @@ void main() {
         printLine();
 
         endText(outputColor.rgb);
+        #endif
         #endif
 
         imageStore(uimg_temp1, texelPos, outputColor);
