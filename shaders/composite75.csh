@@ -3,7 +3,7 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
-#define GLOBAL_DATA_MODIFIER \
+#define GLOBAL_DATA_MODIFIER buffer
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -19,12 +19,11 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 
+/*const*/
 #define BLOOM_UP_SAMPLE 1
 #define BLOOM_PASS 1
 #define BLOOM_NON_STANDALONE a
-#if SETTING_DEBUG_TEMP_TEX == 3
-#define BLOOM_NO_SAMPLER a
-#endif
+/*const*/
 #include "/techniques/Bloom.comp.glsl"
 
 void main() {

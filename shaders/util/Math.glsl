@@ -1,3 +1,5 @@
+#ifndef INCLUDE_util_Math_glsl
+#define INCLUDE_util_Math_glsl a
 /*
     References:
         [WHY23] Whyte, Killian. "Soft Clamp Function". 2023.
@@ -5,8 +7,6 @@
 
         You can find full license texts in /licenses
 */
-#ifndef INCLUDE_util_Math_glsl
-#define INCLUDE_util_Math_glsl a
 #include "/Base.glsl"
 
 #define PI 3.14159265358979323846

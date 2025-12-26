@@ -1,4 +1,4 @@
-#define GLOBAL_DATA_MODIFIER \
+#define GLOBAL_DATA_MODIFIER buffer
 
 #extension GL_KHR_shader_subgroup_ballot : enable
 

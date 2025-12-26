@@ -1,3 +1,5 @@
+#ifndef INCLUDE_util_BSDF_glsl
+#define INCLUDE_util_BSDF_glsl a
 /*
     References:
         [GIL23] Gilcher, Pascal. "Better GGX VNDF Sampler". Shadertoy. 2023.
@@ -13,8 +15,6 @@
 
         You can find full license texts in /licenses)
 */
-#ifndef INCLUDE_util_BSDF_glsl
-#define INCLUDE_util_BSDF_glsl a
 #include "Fresnel.glsl"
 #include "Material.glsl"
 #include "Math.glsl"

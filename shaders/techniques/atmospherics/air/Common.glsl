@@ -1,3 +1,5 @@
+#ifndef INCLUDE_atmosphere_Common_glsl
+#define INCLUDE_atmosphere_Common_glsl a
 /*
     References:
         [BRU08] Bruneton, Eric. "Precomputed Atmospheric Scattering". EGSR 2008. 2008.
@@ -17,8 +19,6 @@
 
         You can find full license texts in /licenses
 */
-#ifndef INCLUDE_atmosphere_Common_glsl
-#define INCLUDE_atmosphere_Common_glsl a
 
 #include "../Common.glsl"
 #include "Constants.glsl"
@@ -150,5 +150,6 @@ vec4 temporalUpdate(vec4 prevData, vec3 currData, float maxFrames, ivec2 texelPo
     newResult.rgb = dither_fp16(newResult.rgb, rand_stbnVec1(texelPos, frameCounter));
     return newResult;
 }
+const vec3 GROUND_ALBEDO_BASE = vec3(ivec3(SETTING_ATM_GROUND_ALBEDO_R, SETTING_ATM_GROUND_ALBEDO_G, SETTING_ATM_GROUND_ALBEDO_B)) / 255.0;
 
 #endif

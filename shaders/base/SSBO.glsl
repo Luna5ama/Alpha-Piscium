@@ -1,5 +1,5 @@
 #ifndef GLOBAL_DATA_MODIFIER
-#define GLOBAL_DATA_MODIFIER restrict readonly
+#define GLOBAL_DATA_MODIFIER restrict readonly buffer
 
 #endif
 
@@ -24,7 +24,7 @@ struct CameraData {
 
 mat4 gbufferPrevModelView = gbufferPreviousModelView;
 
-layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
+layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uvec4 global_dispatchSize1;
     uvec4 global_dispatchSize2;
     uvec4 global_dispatchSize3;
@@ -71,7 +71,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER buffer GlobalData {
     uint global_atomicCounters[16];
 };
 
-layout(std430, binding = 1) GLOBAL_DATA_MODIFIER buffer IndirectComputeData {
+layout(std430, binding = 1) GLOBAL_DATA_MODIFIER IndirectComputeData {
     uint indirectComputeData[];
 };
 

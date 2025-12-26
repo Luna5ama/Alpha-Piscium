@@ -1,3 +1,5 @@
+#ifndef INCLUDE_util_noise_ValueNoise_glsl
+#define INCLUDE_util_noise_ValueNoise_glsl a
 /*
     References:
         [QUI08] Quilez, Inigo. "Value Noise Derivatives". 2008.
@@ -18,8 +20,6 @@
         You can find full license texts in /licenses
 */
 
-#ifndef INCLUDE_util_noise_ValueNoise_glsl
-#define INCLUDE_util_noise_ValueNoise_glsl a
 
 #include "_Common.glsl"
 

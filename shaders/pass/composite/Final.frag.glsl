@@ -1,9 +1,7 @@
+#include "/base/Configs.glsl"
+#include "/base/TextOptions.glsl"
 #include "/util/Dither.glsl"
 #include "/util/Rand.glsl"
-
-#if SETTING_DEBUG_OUTPUT == 3
-#include "/techniques/DebugOutput.glsl"
-#endif
 
 layout(location = 0) out vec4 rt_out;
 

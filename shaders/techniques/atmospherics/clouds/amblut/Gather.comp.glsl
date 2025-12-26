@@ -4,7 +4,9 @@
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
 
+/*const*/
 #define ATMOSPHERE_RAYMARCHING_SKY a
+/*const*/
 #include "/techniques/atmospherics/air/Raymarching.glsl"
 
 layout(local_size_x = 32, local_size_y = 32) in;

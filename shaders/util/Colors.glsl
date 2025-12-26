@@ -1,3 +1,5 @@
+#ifndef INCLUDE_util_Colors_glsl
+#define INCLUDE_util_Colors_glsl a
 /*
     References:
         [ERI07] Ericson, Christer. "Converting RGB to LogLuv in a fragment shader". 2007.
@@ -19,8 +21,6 @@
             https://en.wikipedia.org/wiki/SRGB
 
 */
-#ifndef INCLUDE_util_Colors_glsl
-#define INCLUDE_util_Colors_glsl a
 #include "/Base.glsl"
 #include "Math.glsl"
 #include "Colors2.glsl"

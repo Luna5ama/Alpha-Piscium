@@ -687,4 +687,3 @@ value.SETTING_DEBUG_CLOUDS_SS.4=HLen
 option.SETTING_DEBUG_STARMAP=Star Map
 option.SETTING_DEBUG_AE=Auto Exposure
 option.SETTING_DEBUG_GI_TEXT=GI Text
-option.SETTING_DEBUG_NOISE_GEN=Noise Generation

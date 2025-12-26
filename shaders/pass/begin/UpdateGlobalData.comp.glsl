@@ -1,4 +1,4 @@
-#define GLOBAL_DATA_MODIFIER \
+#define GLOBAL_DATA_MODIFIER buffer
 
 #include "/techniques/gtvbgi/Common.glsl"
 #include "/util/Colors.glsl"

@@ -228,8 +228,12 @@ open class OptionBuilder<T>(
         }
     }
 
+    open fun Scope.Output.writeOptionImpl(block: Appendable.() -> Unit) {
+        this.writeOption(block)
+    }
+
     fun build(output: Scope.Output) {
-        output.writeOption {
+        output.writeOptionImpl {
             if (value is Boolean) {
                 if (const) {
                     appendLine("const bool $name = $value;")
@@ -252,7 +256,7 @@ open class OptionBuilder<T>(
                 } else {
                     append("#define $name $value")
                 }
-                range.joinTo(this, " ", " //[", "]")
+                range.joinTo(this, " ", "//[", "]")
                 appendLine()
             }
         }
@@ -272,6 +276,10 @@ class TextOptionBuilder(name: String, key: String, value: String, comment: Strin
                 this.comment = comment
             }
         }
+    }
+
+    override fun Scope.Output.writeOptionImpl(block: Appendable.() -> Unit) {
+        this.writeTextOption(block)
     }
 
     init {
@@ -436,6 +444,7 @@ class Scope : OptionFactory() {
 
     class Output(baseShadersProperties: File) {
         private val _options = StringBuilder()
+        private val _textOptions = StringBuilder()
         private val _lang = mutableMapOf<Locale, StringBuilder>()
         private val _shadersProperties = StringBuilder()
 
@@ -451,6 +460,10 @@ class Scope : OptionFactory() {
             _options.block()
         }
 
+        fun writeTextOption(block: Appendable.() -> Unit) {
+            _textOptions.block()
+        }
+
         fun writeLang(locale: Locale, block: Appendable.() -> Unit) {
             _lang.getOrPut(locale) {
                 StringBuilder().apply {
@@ -463,10 +476,11 @@ class Scope : OptionFactory() {
             _shadersProperties.block()
         }
 
-        fun writeOutput(optionGlslFile: File, shaderRoot: File) {
+        fun writeOutput(optionGlslFile: File, textOptionGlslFile: File, shaderRoot: File) {
             val langDir = File(shaderRoot, "lang")
             langDir.mkdirs()
             optionGlslFile.writeText(_options.toString())
+            textOptionGlslFile.writeText(_textOptions.toString())
             _lang.forEach { (language, content) ->
                 File(langDir, "${language}.lang").writeText(content.toString())
             }
@@ -481,9 +495,9 @@ class Scope : OptionFactory() {
     }
 }
 
-fun options(baseShadersProperties: File, shaderRootDir: File, optionGlslPath: String, block: Scope.() -> Unit) {
+fun options(baseShadersProperties: File, shaderRootDir: File, optionGlslPath: String, textOptionGlslPath: String, block: Scope.() -> Unit) {
     val absoluteFile = shaderRootDir.absoluteFile
-    Scope().apply(block).build(baseShadersProperties).writeOutput(File(absoluteFile, optionGlslPath), absoluteFile)
+    Scope().apply(block).build(baseShadersProperties).writeOutput(File(absoluteFile, optionGlslPath), File(absoluteFile, textOptionGlslPath), absoluteFile)
 }
 
 fun powerOfTwoRange(range: IntRange): List<Int> {

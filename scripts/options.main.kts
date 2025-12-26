@@ -6,7 +6,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.readLines
 import kotlin.math.pow
 
-options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
+options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "base/TextOptions.glsl") {
     mainScreen(2) {
         screen(2) {
             lang {
@@ -2898,36 +2898,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             lang {
                 name = "Sponsors"
             }
-            toggle("SPONSOR_TITLE1", 0, 0..0) {
-                lang {
-                    name = "Special"
-                    0 value ""
-                }
+            row {
+                text("SPONSOR_TITLE1", "Special")
+                text("SPONSOR_TITLE2", "Thanks")
+                text("SPONSOR_TITLE3", "To")
             }
-            toggle("SPONSOR_TITLE2", 0, 0..0) {
-                lang {
-                    name = "Thanks"
-                    0 value ""
-                }
+            row {
+                empty()
             }
-            toggle("SPONSOR_TITLE3", 0, 0..0) {
-                lang {
-                    name = "To"
-                    0 value ""
-                }
-            }
-            empty()
-            empty()
-            empty()
-            empty()
-            empty()
             Path("sponsors.txt").readLines().forEachIndexed { i, sname ->
-                toggle("SPONSOR_$i", 0, 0..0) {
-                    lang {
-                        name = sname
-                        0 value ""
-                    }
-                }
+                text("SPONSOR_$i", sname)
             }
         }
         screen(3) {
@@ -3123,11 +3103,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
             toggle("SETTING_DEBUG_GI_TEXT", false) {
                 lang {
                     name = "GI Text"
-                }
-            }
-            toggle("SETTING_DEBUG_NOISE_GEN", false) {
-                lang {
-                    name = "Noise Generation"
                 }
             }
         }

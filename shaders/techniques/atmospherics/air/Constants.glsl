@@ -1,3 +1,5 @@
+#ifndef INCLUDE_atmosphere_Constants_glsl
+#define INCLUDE_atmosphere_Constants_glsl a
 /*
     References:
         [EPI20] Epic Games, Inc. "Unreal Engine Sky Atmosphere Rendering Technique". 2020.
@@ -18,8 +20,6 @@
     Credits:
         Jessie - Helping with Mie coefficients (https://github.com/Jessie-LC)
 */
-#ifndef INCLUDE_atmosphere_Constants_glsl
-#define INCLUDE_atmosphere_Constants_glsl a
 
 #include "/util/Colors2.glsl"
 

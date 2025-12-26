@@ -1,3 +1,5 @@
+#ifndef INCLUDE_atmosphere_lut_API_glsl
+#define INCLUDE_atmosphere_lut_API_glsl a
 /*
     References:
         [EPI20] Epic Games, Inc. "Unreal Engine Sky Atmosphere Rendering Technique". 2020.
@@ -9,8 +11,6 @@
 
         You can find full license texts in /licenses
 */
-#ifndef INCLUDE_atmosphere_lut_API_glsl
-#define INCLUDE_atmosphere_lut_API_glsl a
 
 #include "Common.glsl"
 

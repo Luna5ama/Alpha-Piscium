@@ -17,7 +17,6 @@ const int shadowMapResolution = 3072;
 const int shadowMapResolution = 4096;
 #endif
 
-#include "/base/Configs.glsl"
 #include "/base/Uniforms.glsl"
 #include "/base/CustomUniforms.glsl"
 #include "/base/SSBO.glsl"

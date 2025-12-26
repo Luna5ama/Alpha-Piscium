@@ -17,7 +17,9 @@
 layout(local_size_x = SAMPLE_COUNT) in;
 const ivec3 workGroups = ivec3(32, 32, 1);
 
+/*const*/
 #define ATMOSPHERE_RAYMARCHING_MULTI_SCTR a
+/*const*/
 #include "../Raymarching.glsl"
 
 layout(rgba16f) restrict uniform image2D uimg_multiSctrLUT;

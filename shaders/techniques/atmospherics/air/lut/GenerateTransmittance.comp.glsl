@@ -15,7 +15,9 @@ const ivec3 workGroups = ivec3(2, 64, 1);
 
 layout(local_size_x = 128) in;
 
+/*const*/
 #define ATMOSPHERE_RAYMARCHING_TRANSMITTANCE a
+/*const*/
 #include "../Raymarching.glsl"
 
 void main() {

@@ -8,6 +8,7 @@
 
 const float BASE_BLOOM_INTENSITY = 0.01;
 
+/*const*/
 #define BLOOM_USE_KARIS_AVERAGE 1
 
 #if BLOOM_DOWN_SAMPLE
@@ -99,9 +100,6 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
 }
 #endif
 
-#endif
-
-#ifndef BLOOM_NO_SAMPLER
 #endif
 
 #define BIT_MASK(x) ((1 << (x)) - 1)
@@ -314,3 +312,4 @@ void main() {
     }
 }
 #endif
+/*const*/

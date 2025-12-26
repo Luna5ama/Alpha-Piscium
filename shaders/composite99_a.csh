@@ -1,6 +1,6 @@
 #version 460 compatibility
 
-#define GLOBAL_DATA_MODIFIER restrict
+#define GLOBAL_DATA_MODIFIER restrict buffer
 #include "/Base.glsl"
 
 #ifdef SETTING_DEBUG_AE
