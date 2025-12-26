@@ -450,7 +450,8 @@ option.SETTING_EXPOSURE_MANUAL_EV_FINE.comment=Precise brightness adjustment. Ad
 option.SETTING_EXPOSURE_MIN_EV=Auto Exposure Min EV
 option.SETTING_EXPOSURE_MAX_EV=Auto Exposure Max EV
 option.SETTING_EXPOSURE_EMISSIVE_WEIGHTING=Emissive Weighting
-option.SETTING_EXPOSURE_EMISSIVE_WEIGHTING.comment=Extra weighting for emissive block pixels.
+option.SETTING_EXPOSURE_EMISSIVE_WEIGHTING.comment=Weighting multiplier for emissive block pixels. Lower value = less influence. Higher value = more influence.
+prefix.SETTING_EXPOSURE_EMISSIVE_WEIGHTING=2^
 option.SETTING_EXPOSURE_CENTER_WEIGHTING=Center Focus Priority
 option.SETTING_EXPOSURE_CENTER_WEIGHTING.comment=How much the center of the screen influences exposure. Higher = adjusts more to what you're looking at directly.
 option.SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE=Center Focus Sharpness
@@ -685,4 +686,5 @@ value.SETTING_DEBUG_CLOUDS_SS.3=View Z
 value.SETTING_DEBUG_CLOUDS_SS.4=HLen
 option.SETTING_DEBUG_STARMAP=Star Map
 option.SETTING_DEBUG_AE=Auto Exposure
+option.SETTING_DEBUG_GI_TEXT=GI Text
 option.SETTING_DEBUG_NOISE_GEN=Noise Generation

@@ -14,19 +14,19 @@ void main() {
         vec3 viewNormal = vec3(0.0, 1.0, 0.0);
         vec3 geomViewNomral = vec3(0.0, 1.0, 0.0);
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-        vec3 albedo = vec3(0.0);
+        vec4 albedoAndEmissive = vec4(0.0);
         if (viewZ > -65536.0) {
             GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             viewNormal = gData.normal;
             geomViewNomral = gData.geomNormal;
-            albedo = gData.albedo;
+            albedoAndEmissive = vec4(gData.albedo, gData.pbrSpecular.a);
         }
 
         history_viewZ_store(texelPos, vec4(viewZ));
         history_geomViewNormal_store(texelPos, vec4(geomViewNomral * 0.5 + 0.5, 0.0));
         history_viewNormal_store(texelPos, vec4(viewNormal * 0.5 + 0.5, 0.0));
-        transient_solidAlbedo_store(texelPos, vec4(albedo, 1.0));
+        transient_solidAlbedo_store(texelPos, albedoAndEmissive);
     }
 }

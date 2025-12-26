@@ -2190,7 +2190,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "模拟人眼在黑暗中失去色觉的方式，创造更真实的夜晚体验。"
                     }
                 }
-                slider("SETTING_PURKINJE_EFFECT_MIN_LUM", -8.0, -10.0..1.0 step 0.1) {
+                slider("SETTING_PURKINJE_EFFECT_MIN_LUM", -10.0, -10.0..1.0 step 0.5) {
                     lang {
                         name = "Minimum Luminance"
                         prefix = "10^"
@@ -2205,7 +2205,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "低于此亮度，颜色褪为单色。数值越低 = 颜色在更暗的光线中消失。"
                     }
                 }
-                slider("SETTING_PURKINJE_EFFECT_MAX_LUM", 0.0, -10.0..1.0 step 0.1) {
+                slider("SETTING_PURKINJE_EFFECT_MAX_LUM", -2.0, -10.0..1.0 step 0.5) {
                     lang {
                         name = "Maximum Luminance"
                         prefix = "10^"
@@ -2310,14 +2310,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         name = "自动曝光最大值"
                     }
                 }
-                slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", 0.1, 0.0..4.0 step 0.1) {
+                slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", -4, -10..10) {
                     lang {
                         name = "Emissive Weighting"
-                        comment = "Extra weighting for emissive block pixels."
+                        comment = "Weighting multiplier for emissive block pixels. Lower value = less influence. Higher value = more influence."
+                        prefix = "2^"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "自发光权重"
-                        comment = "自发光方块像素的额外权重。"
+                        comment = "自发光方块像素的权重乘数。数值越低 = 影响越小。"
+                        prefix = "2^"
                     }
                 }
                 slider("SETTING_EXPOSURE_CENTER_WEIGHTING", 4.0, 0.0..8.0 step 0.1) {
@@ -2376,7 +2378,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                         comment = "黑暗环境（洞穴、夜晚）的目标亮度。数值越高，暗场景越亮。"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 60, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 90, 1..255) {
                     lang {
                         name = "Bright Scene Target Brightness"
                         comment =
@@ -2389,7 +2391,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl") {
                 }
                 slider(
                     "SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE",
-                    0.5,
+                    0.1,
                     (0.01..1.0 step 0.01) + (1.1..4.0 step 0.1)
                 ) {
                     lang {

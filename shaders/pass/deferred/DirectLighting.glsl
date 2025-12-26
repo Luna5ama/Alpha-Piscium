@@ -139,11 +139,10 @@ void main() {
                 doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, giOut1, giOut2);
                 float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(material.albedo));
                 float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
-                mainOut.a += emissiveFlag * albedoLuma * SETTING_EXPOSURE_EMISSIVE_WEIGHTING;
-                float albedoLumaWeight = pow(1.0 - pow(1.0 - albedoLuma, 16.0), 4.0);
-                albedoLumaWeight += pow(albedoLuma, 16.0);
-                mainOut.a *= albedoLumaWeight;
-                mainOut.a *= mix(1.0, -1.0, emissiveFlag);
+//                float albedoLumaWeight = pow(1.0 - pow(1.0 - albedoLuma, 16.0), 4.0);
+//                albedoLumaWeight += pow(albedoLuma, 16.0);
+//                mainOut.a *= albedoLumaWeight;
+//                mainOut.a *= mix(1.0, -1.0, emissiveFlag);
             }
 
             mainOut.rgb = clamp(mainOut.rgb, 0.0, FP16_MAX);
