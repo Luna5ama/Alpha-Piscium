@@ -165,7 +165,7 @@ vec4 ssgiEvalF2(ivec2 texelPos, vec3 viewPos, vec3 sampleDirView) {
         result.xyz = sampleIrradiance(texelPos, hitTexelPos, -sampleDirView);
     } else {
         vec3 worldDir = coords_dir_viewToWorld(sampleDirView);
-        result.xyz = sampleIrradianceMiss(worldDir);
+        result.xyz = sampleIrradianceMiss(worldDir) * PI; // IDK why but this is needed to match reference
     }
 
     return result;
