@@ -120,7 +120,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
             bool edgeFlagBool = bool(edgeFlag);
 
-            vec4 finalWeights = edgeWeights * sqrt(blinearWeights4);
+            vec4 finalWeights = edgeWeights * blinearWeights4;
             float weightSum = dot(finalWeights, vec4(1.0));
             float rcpWeightSum = safeRcp(weightSum);
             finalWeights *= rcpWeightSum;

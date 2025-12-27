@@ -145,7 +145,7 @@ vec3 sampleIrradiance(ivec2 texelPos, ivec2 hitTexelPos, vec3 outgoingDirection)
 vec3 sampleIrradianceMiss(vec3 worldDirection) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, worldDirection);
-    return atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+    return atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering * PI; // IDK why but this is needed to match reference
 }
 
 vec4 ssgiEvalF2(ivec2 texelPos, vec3 viewPos, vec3 sampleDirView) {
@@ -165,7 +165,7 @@ vec4 ssgiEvalF2(ivec2 texelPos, vec3 viewPos, vec3 sampleDirView) {
         result.xyz = sampleIrradiance(texelPos, hitTexelPos, -sampleDirView);
     } else {
         vec3 worldDir = coords_dir_viewToWorld(sampleDirView);
-        result.xyz = sampleIrradianceMiss(worldDir) * PI; // IDK why but this is needed to match reference
+        result.xyz = sampleIrradianceMiss(worldDir);
     }
 
     return result;

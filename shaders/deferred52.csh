@@ -20,6 +20,7 @@ layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        imageStore(uimg_temp3, texelPos, texelFetch(usam_temp1, texelPos, 0));
         if (RANDOM_FRAME < MAX_FRAMES){
             if (RANDOM_FRAME >= 0) {
                 uvec4 reprojectedData = transient_restir_reservoirReprojected_load(texelPos);
@@ -34,6 +35,7 @@ void main() {
     sst_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        imageStore(uimg_temp3, texelPos, texelFetch(usam_temp1, texelPos, 0));
         if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0){
             float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
             if (viewZ > -65536.0) {

@@ -52,7 +52,6 @@ void main() {
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
                 float wSum = 0.0;
-                float wMul = 1.0;
                 vec4 prevSample = vec4(0.0);
                 vec3 prevHitNormal = vec3(0.0);
 
@@ -94,7 +93,6 @@ void main() {
 
                         ReSTIRReservoir prevTemporalReservoir = restir_reservoir_unpack(history_restir_reservoirTemporal_load(prevTexelPos));
                         if (restir_isReservoirValid(prevTemporalReservoir)) {
-                            float brdf = saturate(dot(gData.normal, prevTemporalReservoir.Y.xyz)) / PI;
                             if (prevTemporalReservoir.Y.w > 0.0) {
                                 vec2 prevScreenPos = coords_texelToUV(prevTexelPos, uval_mainImageSizeRcp);
                                 float prevViewZ = history_viewZ_fetch(prevTexelPos).x;
@@ -109,6 +107,8 @@ void main() {
 
                                 prevTemporalReservoir.Y.xyz = hitDiff / hitDistance;
                                 prevTemporalReservoir.Y.w = hitDistance;
+
+                                float brdf = saturate(dot(gData.normal, prevTemporalReservoir.Y.xyz)) / PI;
 
                                 vec4 prev2CurrHitClipPos = global_camProj * vec4(prev2CurrHitViewPos, 1.0);
                                 uint clipFlag = uint(prev2CurrHitClipPos.z > 0.0);
@@ -189,9 +189,13 @@ void main() {
                                 }
                             } else {
                                 vec3 prevSampleDirWorld = coords_dir_viewToWorldPrev(prevTemporalReservoir.Y.xyz);
+                                vec3 currSampleDirView = coords_dir_worldToView(prevSampleDirWorld);
+                                prevTemporalReservoir.Y.xyz = currSampleDirView;
+                                float brdfMiss = saturate(dot(gData.normal, currSampleDirView)) / PI;
                                 vec3 prevHitRadiance = sampleIrradianceMiss(prevSampleDirWorld);
-                                prevSample = vec4(prevHitRadiance, brdf);
+                                prevSample = vec4(prevHitRadiance, brdfMiss);
                             }
+                            prevSample = imageLoad(uimg_temp3, prevTexelPos);
                         }
                         temporalReservoir = prevTemporalReservoir;
                     }
@@ -327,6 +331,7 @@ void main() {
                     spatialSample.normal = gData.normal;
                     spatialSample.hitNormal = hitNormal;
                     transient_restir_spatialInput_store(texelPos, spatialSampleData_pack(spatialSample));
+                    imageStore(uimg_temp1, texelPos, vec4(finalSample));
 
                     temporalReservoir.age++;
                 }
