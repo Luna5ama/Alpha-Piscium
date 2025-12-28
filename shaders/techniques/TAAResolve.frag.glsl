@@ -117,20 +117,16 @@ void main() {
     vec3 currFrontVec = coords_dir_viewToWorld(vec3(0.0, 0.0, -1.0));
     float frontVecDiff = dot(prevFrontVec, currFrontVec);
 
-    float extraReset = 1.0;
+    float extraReset = global_taaResetFactor;
+    extraReset *= (1.0 - saturate(pixelSpeed * 1.0));
 
     #ifdef SETTING_SCREENSHOT_MODE
-    extraReset *= float(cameraSpeedDiff < 0.00001);
-    extraReset *= float(cameraSpeed < 0.0001);
-    extraReset *= float(pixelSpeed < 0.0001);
-    extraReset *= float(frontVecDiff > 0.99999);
     #if SETTING_SCREENSHOT_MODE_SKIP_INITIAL
     extraReset *= float(frameCounter > SETTING_SCREENSHOT_MODE_SKIP_INITIAL);
     #endif
     #else
     extraReset *= (1.0 - saturate(cameraSpeedDiff * 64.0));
     extraReset *= (1.0 - saturate(cameraSpeed * 1.0));
-    extraReset *= (1.0 - saturate(pixelSpeed * 1.0));
     #endif
 
     {

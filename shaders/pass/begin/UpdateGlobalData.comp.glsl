@@ -1,6 +1,7 @@
 #define GLOBAL_DATA_MODIFIER buffer
 
 #include "/techniques/gtvbgi/Common.glsl"
+#include "/util/Coords.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Mat4.glsl"
 #include "/util/Math.glsl"
@@ -193,6 +194,21 @@ void main() {
         float newResetFactor = exp2(-float(worldTimeDiff) * ldexp(1.0, SETTING_TIME_CHANGE_SENSITIVITY));
         global_historyResetFactor = mix(min(newResetFactor, global_historyResetFactor), newResetFactor, 0.1);
         global_lastWorldTime = worldTime;
+
+        float taaResetFactor = 1.0;
+        #ifdef SETTING_SCREENSHOT_MODE
+        vec3 cameraDelta = uval_cameraDelta;
+        float cameraSpeed = length(cameraDelta);
+        float prevCameraSpeed = length(global_prevCameraDelta);
+        float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
+        vec3 prevFrontVec = coords_dir_viewToWorldPrev(vec3(0.0, 0.0, -1.0));
+        vec3 currFrontVec = coords_dir_viewToWorld(vec3(0.0, 0.0, -1.0));
+        float frontVecDiff = dot(prevFrontVec, currFrontVec);
+        taaResetFactor *= float(cameraSpeedDiff < 0.00001);
+        taaResetFactor *= float(cameraSpeed < 0.0001);
+        taaResetFactor *= float(frontVecDiff > 0.99999);
+        #endif
+        global_taaResetFactor = mix(global_taaResetFactor, taaResetFactor, 0.1);
 
         #ifdef SETTING_DOF_MANUAL_FOCUS
         global_focusDistance = SETTING_DOF_FOCUS_DISTANCE_COARSE + SETTING_DOF_FOCUS_DISTANCE_FINE;
