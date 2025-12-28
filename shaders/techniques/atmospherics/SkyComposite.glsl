@@ -88,12 +88,12 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
     vec3 rayEndView = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec3 rayDir = normalize(mat3(gbufferModelViewInverse) * rayEndView);
     SkyViewLutParams skyViewLutParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, rayDir);
-    #ifdef SETTING_CLOUDS_CU
-    uvec4 packedData = transient_lowCloudAccumulated_fetch(texelPos);
-    history_lowCloud_store(texelPos, packedData);
-    #endif
 
     if (viewZ == -65536.0) {
+        #ifdef SETTING_CLOUDS_CU
+        uvec4 packedData = transient_lowCloudAccumulated_fetch(texelPos);
+        history_lowCloud_store(texelPos, packedData);
+        #endif
         {
             ScatteringResult layerResult = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyViewLutParams, 1.0);
             compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, true);
@@ -190,6 +190,11 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
             bool above = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CI_HEIGHT;
             compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, above);
         }
+    } else {
+        CloudSSHistoryData newHistoryData = clouds_ss_historyData_init();
+        uvec4 packedData = uvec4(0u);
+        clouds_ss_historyData_pack(packedData, newHistoryData);
+        history_lowCloud_store(texelPos, packedData);
     }
 
     return compositeResult;

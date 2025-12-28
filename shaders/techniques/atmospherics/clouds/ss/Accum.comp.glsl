@@ -233,7 +233,5 @@ void main() {
             clouds_ss_historyData_pack(packedOutput, newHistoryData);
             transient_lowCloudAccumulated_store(texelPos, packedOutput);
         }
-    } else {
-        transient_lowCloudAccumulated_store(texelPos, uvec4(0u));
     }
 }
