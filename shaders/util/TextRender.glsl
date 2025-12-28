@@ -44,8 +44,8 @@
 --------------------------------------------------------------------------------
 */
 
-#ifndef UTILITY_TEXTRENDERING_INCLUDED
-#define UTILITY_TEXTRENDERING_INCLUDED a
+#ifndef INCLUDE_util_TextRender_glsl
+#define INCLUDE_util_TextRender_glsl a
 
 // Characters
 
@@ -327,4 +327,4 @@ void printLine() {
 	++text.charPos.y;
 }
 
-#endif // UTILITY_TEXTRENDERING_INCLUDED
+#endif // INCLUDE_util_TextRender_glsl
