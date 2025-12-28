@@ -35,7 +35,7 @@ void main() {
                 historyData.edgeMask = currEdgeMask;
 
                 const float HISTORY_LENGTH_1 = HISTORY_LENGTH - 1.0;
-                float historyLength = historyData.historyLength * HISTORY_LENGTH_1;
+                float historyLength = historyData.historyLength * HISTORY_LENGTH_1 * global_historyResetFactor;
                 #if ENABLE_DENOISER_ACCUM
 
                 historyLength += 1.0;
@@ -44,7 +44,7 @@ void main() {
                 #endif
                 historyLength = clamp(historyLength, 1.0, HISTORY_LENGTH);
 
-                float realHistoryLength = historyData.realHistoryLength * REAL_HISTORY_LENGTH;
+                float realHistoryLength = historyData.realHistoryLength * REAL_HISTORY_LENGTH * global_historyResetFactor;
                 #if ENABLE_DENOISER_ACCUM
                 realHistoryLength += 1.0;
                 #else

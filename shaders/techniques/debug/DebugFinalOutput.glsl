@@ -144,6 +144,8 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printString((_M, _I, _X, _colon, _space));
     printFloat(global_aeData.expValues.z);
     printLine();
+    printFloat(global_historyResetFactor);
+    printLine();
     printLine();
     if (inViewPort(ivec4(0, 0, 1024, 256), debugTexCoord)) {
         uint binIndex = min(uint(debugTexCoord.x * 256.0), 255u);

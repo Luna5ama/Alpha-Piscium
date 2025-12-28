@@ -190,7 +190,8 @@ void main() {
             abs(global_lastWorldTime + 24000 - worldTime) % 24000,
             abs(worldTime + 24000 - global_lastWorldTime) % 24000
         );
-        global_historyResetFactor = exp2(-float(worldTimeDiff) / float(SETTING_TIME_SPEED_HISTORY_RESET_THRESHOLD));
+        float newResetFactor = exp2(-float(worldTimeDiff) * ldexp(1.0, SETTING_TIME_CHANGE_SENSITIVITY));
+        global_historyResetFactor = mix(min(newResetFactor, global_historyResetFactor), newResetFactor, 0.1);
         global_lastWorldTime = worldTime;
 
         #ifdef SETTING_DOF_MANUAL_FOCUS

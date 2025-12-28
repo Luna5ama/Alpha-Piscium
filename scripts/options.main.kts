@@ -2361,7 +2361,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "整体场景亮度对曝光的影响。数值越高 = 更多地调整以保持平均亮度一致。"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 4.0, 0.0..10.0 step 0.25) {
+                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 3.0, 0.0..10.0 step 0.25) {
                     lang {
                         name = "Overall Brightness Adapt Speed"
                         comment =
@@ -2905,15 +2905,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     comment = "显示连接夜空中星星的星座线。"
                 }
             }
-            slider("SETTING_TIME_SPEED_HISTORY_RESET_THRESHOLD", 32, powerOfTwoRangeAndHalf(2..10)) {
+            slider("SETTING_TIME_CHANGE_SENSITIVITY", -5, -10..0) {
                 lang {
                     name = "Time Change Sensitivity"
                     comment =
-                        "How sensitive effects are to time changes (/time set). Higher values prevent flickering when rapidly changing time."
+                        "How sensitive effects are to time changes (/time set). Higher values make temporal effects more sensitive to time changes, reducing lighting lags."
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "时间变化敏感度"
-                    comment = "效果对时间变化（/time set）的敏感程度。数值越高，在快速改变时间时防止闪烁。"
+                    comment = "效果对时间变化（/time set）的敏感程度。数值越高，时间变化对时间变化的敏感度越高，减少光照延迟。"
                 }
             }
         }

@@ -577,5 +577,5 @@ option.SETTING_SCREENSHOT_MODE_SKIP_INITIAL=截图模式预热帧数
 option.SETTING_SCREENSHOT_MODE_SKIP_INITIAL.comment=在拍摄截图之前等待的帧数，让光照和效果稳定以获得最佳质量。
 option.SETTING_CONSTELLATIONS=显示星座
 option.SETTING_CONSTELLATIONS.comment=显示连接夜空中星星的星座线。
-option.SETTING_TIME_SPEED_HISTORY_RESET_THRESHOLD=时间变化敏感度
-option.SETTING_TIME_SPEED_HISTORY_RESET_THRESHOLD.comment=效果对时间变化（/time set）的敏感程度。数值越高，在快速改变时间时防止闪烁。
+option.SETTING_TIME_CHANGE_SENSITIVITY=时间变化敏感度
+option.SETTING_TIME_CHANGE_SENSITIVITY.comment=效果对时间变化（/time set）的敏感程度。数值越高，时间变化对时间变化的敏感度越高，减少光照延迟。
