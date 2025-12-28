@@ -2126,11 +2126,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "使明亮区域发光并渗透到周围像素，就像光线使相机过曝一样。"
                     }
                 }
-                slider("SETTING_BLOOM_INTENSITY", 1.0, 0.5..10.0 step 0.5) {
+                slider("SETTING_BLOOM_INTENSITY", 0.0, -8.0..8.0 step 0.25) {
                     lang {
-                        name = "Glow Strength"
+                        name = "Bloom Intensity"
                         comment =
                             "How bright the bloom glow effect is. Higher values create more intense, dramatic glowing."
+                        prefix = "2^"
+                        suffix = " x"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "泛光强度"
@@ -2139,9 +2141,10 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 }
                 slider("SETTING_BLOOM_RADIUS", 1.0, 1.0..5.0 step 0.5) {
                     lang {
-                        name = "Glow Spread"
+                        name = "Bloom Spread"
                         comment =
                             "How far the bloom glow spreads. Higher values create wider halos but may make the whole screen hazy."
+                        suffix = " x"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "泛光半径"
@@ -2150,7 +2153,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 }
                 slider("SETTING_BLOOM_PASS", 8, 1..10) {
                     lang {
-                        name = "Blur Passes"
+                        name = "Bloom Passes"
                         comment =
                             "Processing passes for bloom. Higher values increase glow reach and smoothness but reduce performance."
                     }
@@ -2160,11 +2163,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_BLOOM_UNDERWATER_BOOST", 10, 1..20 step 1) {
+                slider("SETTING_BLOOM_UNDERWATER_BOOST", 2.0, 0.0..8.0 step 0.25) {
                     lang {
                         name = "Underwater Glow Boost"
                         comment =
                             "Extra bloom intensity when underwater, creating a dreamy, diffused underwater atmosphere."
+                        prefix = "2^"
+                        suffix = " x"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "水下泛光增强"
@@ -2302,7 +2307,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "自动曝光最小值"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 10.0, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MAX_EV", 11.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
@@ -2367,7 +2372,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "基于整体亮度的曝光适应速度。数值越低 = 调整越快。"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 30, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 31, 1..255) {
                     lang {
                         name = "Dark Scene Target Brightness"
                         comment =
@@ -2378,7 +2383,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "黑暗环境（洞穴、夜晚）的目标亮度。数值越高，暗场景越亮。"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 90, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 127, 1..255) {
                     lang {
                         name = "Bright Scene Target Brightness"
                         comment =
@@ -2391,16 +2396,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 }
                 slider(
                     "SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE",
-                    0.1,
-                    (0.01..1.0 step 0.01) + (1.1..4.0 step 0.1)
+                    -2.0,
+                    -4.0..4.0 step 0.1
                 ) {
                     lang {
-                        name = "Medium Brightness Response"
+                        name = "Medium Brightness Curve"
                         comment =
                             "Affects medium-brightness scenes (sunset/sunrise). Lower values darken these transitional lighting conditions."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "中等亮度响应"
+                        name = "中等亮度曲线"
                         comment = "影响中等亮度场景（日落/日出）。数值越低，这些过渡光照条件越暗。"
                     }
                 }
@@ -2427,7 +2432,27 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "曝光适应明亮和黑暗区域的速度。数值越低 = 调整越快。"
                     }
                 }
-                slider("SETTING_EXPOSURE_H_LUM", 197, 1..255) {
+                slider("SETTING_EXPOSURE_HS_MIN_EV_DELTA", -1.5, -4.0..0.0 step 0.1) {
+                    lang {
+                        name = "Highlight/Shadow Areas EV Delta Min"
+                        comment = "How much stops can exposure adjust downwards for highlights/shadows."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "高光/阴影区域EV最低变化"
+                        comment = "曝光可以为高光/阴影向下调整多少档位。"
+                    }
+                }
+                slider("SETTING_EXPOSURE_HS_MAX_EV_DELTA", 1.5, 0.0..4.0 step 0.1) {
+                    lang {
+                        name = "Highlight/Shadow Areas EV Delta Max"
+                        comment = "How much stops can exposure adjust upwards for highlights/shadows."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "高光/阴影区域EV最高变化"
+                        comment = "曝光可以为高光/阴影向上调整多少档位。"
+                    }
+                }
+                slider("SETTING_EXPOSURE_H_LUM", 225, 1..255) {
                     lang {
                         name = "Highlight Area Threshold"
                         comment =
@@ -2449,7 +2474,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "保持此百分比的明亮像素不过曝。数值越高，整体变暗以保留明亮细节。"
                     }
                 }
-                slider("SETTING_EXPOSURE_S_LUM", 16, 0..255) {
+                slider("SETTING_EXPOSURE_S_LUM", 33, 0..255) {
                     lang {
                         name = "Shadow Area Threshold"
                         comment =
@@ -2654,7 +2679,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "每帧稍微移动相机以获得更好的TAA质量。TAA有效工作所必需的。"
                     }
                 }
-                slider("SETTING_TAA_CAS_SHARPNESS", 1.5, 0.0..5.0 step 0.25) {
+                slider("SETTING_TAA_CAS_SHARPNESS", 0.5, 0.0..1.0 step 0.05) {
                     lang {
                         name = "Sharpening Strength"
                         comment =
@@ -2919,13 +2944,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     name = "White World"
                 }
             }
-            toggle("SETTING_DEBUG_OUTPUT", 0, 0..3) {
+            toggle("SETTING_DEBUG_OUTPUT", 0, 0..4) {
                 lang {
                     name = "Debug Output"
                     0 value "Off"
-                    1 value "Tone Mapping"
-                    2 value "TAA"
-                    3 value "Final"
+                    1 value "TAA"
+                    2 value "PostFX"
+                    3 value "Tone Mapping"
+                    4 value "Final"
                 }
             }
             slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {

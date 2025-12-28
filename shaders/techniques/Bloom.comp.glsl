@@ -5,19 +5,11 @@
 */
 #include "/Base.glsl"
 #include "/util/Colors.glsl"
-
-const float BASE_BLOOM_INTENSITY = 0.01;
+#include "/util/AgxInvertible.glsl"
 
 /*const*/
-#define BLOOM_USE_KARIS_AVERAGE 1
-
 #if BLOOM_DOWN_SAMPLE
 #define BLOOM_SCALE_DIV BLOOM_PASS
-#if BLOOM_USE_KARIS_AVERAGE
-#if BLOOM_PASS <= 2
-#define BLOOM_KARIS_AVERAGE 1
-#endif
-#endif
 
 #elif BLOOM_UP_SAMPLE
 #define BLOOM_SCALE_DIV (BLOOM_PASS - 1)
@@ -65,23 +57,22 @@ vec4 _bloom_imageSample(vec2 uv) {
 }
 #else
 vec4 _bloom_imageSample(vec2 uv) {
-    return texture(usam_temp4, uv);
+    return texture(usam_temp2, uv);
 }
 #endif
 
-layout(rgba16f) uniform writeonly image2D uimg_temp4;
+layout(rgba16f) uniform writeonly image2D uimg_temp2;
 vec4 _bloom_imageLoad(ivec2 coord) {
     return vec4(0.0);
 }
 void _bloom_imageStore(ivec2 coord, vec4 data) {
-    imageStore(uimg_temp4, coord, data);
+    imageStore(uimg_temp2, coord, data);
 }
 
 
 #elif BLOOM_UP_SAMPLE
-
 vec4 _bloom_imageSample(vec2 uv) {
-    return texture(usam_temp4, uv);
+    return texture(usam_temp2, uv);
 }
 #if BLOOM_PASS == 1
 vec4 _bloom_imageLoad(ivec2 coord) {
@@ -91,12 +82,12 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
     imageStore(uimg_main, coord, data);
 }
 #else
-layout(rgba16f) uniform restrict image2D uimg_temp4;
+layout(rgba16f) uniform restrict image2D uimg_temp2;
 vec4 _bloom_imageLoad(ivec2 coord) {
-    return imageLoad(uimg_temp4, coord);
+    return imageLoad(uimg_temp2, coord);
 }
 void _bloom_imageStore(ivec2 coord, vec4 data) {
-    imageStore(uimg_temp4, coord, data);
+    imageStore(uimg_temp2, coord, data);
 }
 #endif
 
@@ -105,43 +96,30 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
 #define BIT_MASK(x) ((1 << (x)) - 1)
 
 #if BLOOM_DOWN_SAMPLE
-ivec2 bloom_inputSize = global_mipmapSizesI[BLOOM_PASS - 1];
-ivec2 bloom_outputSize = global_mipmapSizesI[BLOOM_PASS];
-
-int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - uval_mainImageSizeI.x + BLOOM_PASS - 1;
-int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - uval_mainImageSizeI.x + BLOOM_PASS;
+ivec4 bloom_inputTile = global_mipmapTileCeilPadded[BLOOM_PASS - 1];
+ivec4 bloom_outputTile = global_mipmapTileCeilPadded[BLOOM_PASS];
 
 #elif BLOOM_UP_SAMPLE
-ivec2 bloom_inputSize = global_mipmapSizesI[BLOOM_PASS];
-ivec2 bloom_outputSize = global_mipmapSizesI[BLOOM_PASS - 1];
-
-int inputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 1, 0)].x - uval_mainImageSizeI.x + BLOOM_PASS;
-int outputOffset = global_mipmapSizePrefixes[max(BLOOM_PASS - 2, 0)].x - uval_mainImageSizeI.x + BLOOM_PASS - 1;
+ivec4 bloom_inputTile = global_mipmapTileCeilPadded[BLOOM_PASS];
+ivec4 bloom_outputTile = global_mipmapTileCeilPadded[BLOOM_PASS - 1];
 
 #endif
 
-ivec2 inputStartPixel = ivec2(inputOffset, 1);
-ivec2 inputEndPixel = inputStartPixel + bloom_inputSize;
-vec2 inputStartTexel = (vec2(inputStartPixel) + 0.0) * uval_mainImageSizeRcp;
-vec2 inputEndTexel = (vec2(inputEndPixel) - 0.0) * uval_mainImageSizeRcp;
+ivec2 inputStartTexel = bloom_inputTile.xy;
+ivec2 inputEndTexel = bloom_inputTile.xy + bloom_inputTile.zw;
+vec2 inputStartUV = (vec2(inputStartTexel) + 0.0) * uval_mainImageSizeRcp;
+vec2 inputEndUV = (vec2(inputEndTexel) - 0.0) * uval_mainImageSizeRcp;
 
 #if BLOOM_DOWN_SAMPLE
 vec4 bloom_readInputDown(ivec2 coord) {
-    vec2 readPosUV = vec2(coord + inputStartPixel) * uval_mainImageSizeRcp;
-    readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
+    vec2 readPosUV = vec2(coord + inputStartTexel) * uval_mainImageSizeRcp;
+    readPosUV = clamp(readPosUV, inputStartUV, inputEndUV);
     vec4 inputValue = _bloom_imageSample(readPosUV);
-    #if BLOOM_PASS == 1
-    float emissiveFlag = float(inputValue.a < 0.0);
-    inputValue.a = abs(inputValue.a);
-    inputValue.rgb *= mix(inputValue.a, saturate(inputValue.a * 0.5), emissiveFlag);
-    inputValue *= BASE_BLOOM_INTENSITY;
-    #endif
     return inputValue;
 }
 
 void bloom_writeOutput(ivec2 coord, vec4 data) {
-    coord.y += 1;
-    coord.x += outputOffset;
+    coord += bloom_outputTile.xy;
     _bloom_imageStore(coord, data);
 }
 // ------ Down Sample Pass ------
@@ -163,21 +141,6 @@ void writeCache(ivec2 pos, vec4 data) {
 }
 
 ivec2 groupBasePixel = ivec2(gl_WorkGroupID.xy) << 4;
-
-#if BLOOM_KARIS_AVERAGE
-void weightedSum(vec4 color, float baseWeight, inout vec4 colorSum, inout float weightSum) {
-    float weight = baseWeight;
-    weight *= colors_karisWeight(color.rgb / BASE_BLOOM_INTENSITY);
-    colorSum += color * weight;
-    weightSum += weight;
-}
-#else
-void weightedSum(vec4 color, float baseWeight, inout vec4 colorSum, inout float weightSum) {
-    float weight = baseWeight;
-    colorSum += color * weight;
-    weightSum += weight;
-}
-#endif
 
 void computeReadPos(uint index, out ivec2 writePos, out ivec2 readPos) {
     writePos = ivec2(index % 18, index / 18);
@@ -238,25 +201,27 @@ vec4 bloom_main(ivec2 texelPos) {
     vec4 m = readCache(centerPos + ivec2(2, 4));
 
     vec4 colorSum = vec4(0.0);
-    float weightSum = 0.0;
-    weightedSum((a + b + c + d) * 0.25, 0.5, colorSum, weightSum);
-    weightedSum((e + f + h + i) * 0.25, 0.125, colorSum, weightSum);
-    weightedSum((f + g + i + j) * 0.25, 0.125, colorSum, weightSum);
-    weightedSum((h + i + k + l) * 0.25, 0.125, colorSum, weightSum);
-    weightedSum((i + j + l + m) * 0.25, 0.125, colorSum, weightSum);
+    colorSum += (a + b + c + d) * 0.25 * 0.5;
+    colorSum += (e + f + h + i) * 0.25 * 0.125;
+    colorSum += (f + g + i + j) * 0.25 * 0.125;
+    colorSum += (h + i + k + l) * 0.25 * 0.125;
+    colorSum += (i + j + l + m) * 0.25 * 0.125;
 
-    return colorSum / weightSum;
+    #if BLOOM_PASS == 1
+    colorSum = saturate(colorSum);
+    colorSum.rgb = agxInvertible_inverse(colorSum.rgb);
+    #endif
+    return colorSum;
 }
 #elif BLOOM_UP_SAMPLE
 vec4 bloom_readInputUp(ivec2 coord, ivec2 offset) {
-    vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartPixel) * uval_mainImageSizeRcp;
-    readPosUV = clamp(readPosUV, inputStartTexel, inputEndTexel);
+    vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartTexel) * uval_mainImageSizeRcp;
+    readPosUV = clamp(readPosUV, inputStartUV + 0.5 * uval_mainImageSizeRcp, inputEndUV - 0.5 * uval_mainImageSizeRcp);
     return _bloom_imageSample(readPosUV);
 }
 
 void bloom_writeOutput(ivec2 coord, vec4 data) {
-    coord.y += 1;
-    coord.x += outputOffset;
+    coord += bloom_outputTile.xy;
     vec4 writeData = _bloom_imageLoad(coord);
     writeData += data;
     _bloom_imageStore(coord, writeData);
@@ -291,14 +256,12 @@ vec4 bloom_main(ivec2 texelPos) {
 }
 vec4 bloom_mainOutput(ivec2 texelPos) {
     vec4 result = bloom_main(texelPos);
-    #if !BLOOM_USE_KARIS_AVERAGE
-    result *= 0.6;
-    #endif
-    result *= SETTING_BLOOM_INTENSITY;
+    float intensity = -5.0;
+    intensity += SETTING_BLOOM_INTENSITY;
     if (isEyeInWater == 1) {
-        result *= SETTING_BLOOM_UNDERWATER_BOOST;
+        intensity += SETTING_BLOOM_UNDERWATER_BOOST;
     }
-    return result;
+    return result * exp2(intensity);
 }
 #endif
 
@@ -306,7 +269,7 @@ vec4 bloom_mainOutput(ivec2 texelPos) {
 void main() {
     bloom_init();
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-    if (all(lessThan(texelPos, bloom_outputSize))) {
+    if (all(lessThan(texelPos, bloom_outputTile.zw))) {
         vec4 result = bloom_main(texelPos);
         bloom_writeOutput(texelPos, result);
     }

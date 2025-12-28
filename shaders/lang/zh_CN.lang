@@ -459,12 +459,16 @@ option.SETTING_EXPOSURE_AVG_LUM_MIN_TARGET=暗场景目标亮度
 option.SETTING_EXPOSURE_AVG_LUM_MIN_TARGET.comment=黑暗环境（洞穴、夜晚）的目标亮度。数值越高，暗场景越亮。
 option.SETTING_EXPOSURE_AVG_LUM_MAX_TARGET=亮场景目标亮度
 option.SETTING_EXPOSURE_AVG_LUM_MAX_TARGET.comment=明亮环境（日光户外）的目标亮度。数值越高，亮场景越亮。
-option.SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE=中等亮度响应
+option.SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE=中等亮度曲线
 option.SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE.comment=影响中等亮度场景（日落/日出）。数值越低，这些过渡光照条件越暗。
 option.SETTING_EXPOSURE_HS_MIX=高光/阴影区域权重
 option.SETTING_EXPOSURE_HS_MIX.comment=最亮和最暗区域对曝光的影响。数值越高 = 防止极端的过曝/欠曝。
 option.SETTING_EXPOSURE_HS_TIME=高光/阴影区域适应速度
 option.SETTING_EXPOSURE_HS_TIME.comment=曝光适应明亮和黑暗区域的速度。数值越低 = 调整越快。
+option.SETTING_EXPOSURE_HS_MIN_EV_DELTA=高光/阴影区域EV最低变化
+option.SETTING_EXPOSURE_HS_MIN_EV_DELTA.comment=曝光可以为高光/阴影向下调整多少档位。
+option.SETTING_EXPOSURE_HS_MAX_EV_DELTA=高光/阴影区域EV最高变化
+option.SETTING_EXPOSURE_HS_MAX_EV_DELTA.comment=曝光可以为高光/阴影向上调整多少档位。
 option.SETTING_EXPOSURE_H_LUM=高光区域阈值
 option.SETTING_EXPOSURE_H_LUM.comment=被视为“高光“的亮度级别。曝光调整以防止这些区域过亮。
 option.SETTING_EXPOSURE_H_PERCENT=高光区域占比

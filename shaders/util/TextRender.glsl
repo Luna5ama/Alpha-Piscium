@@ -227,6 +227,7 @@ void printInt(int value) {
 	printUnsignedInt(uint(abs(value)));
 }
 
+// Fix by SpacEagle17
 void printFloat(float value) {
 	if (value < 0.0) printChar(_minus);
 
@@ -235,9 +236,10 @@ void printFloat(float value) {
 	} else if (isinf(value)) {
 		printString((_i, _n, _f));
 	} else {
-		float i, f = modf(abs(value), i);
+		float v = abs(value) * pow(float(text.base), float(text.fpPrecision));
+		float i, f = modf(floor(v + 0.5) / pow(float(text.base), float(text.fpPrecision)), i);
 
-		uint integralPart   = uint(i);
+		uint integralPart = uint(i);
 		uint fractionalPart = uint(f * pow(float(text.base), float(text.fpPrecision)) + 0.5);
 
 		printUnsignedInt(integralPart);

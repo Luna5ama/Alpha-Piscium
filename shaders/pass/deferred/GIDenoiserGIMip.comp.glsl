@@ -44,7 +44,7 @@ shared ivec4 shared_mipTiles[16];
 void spd_storeOutput(ivec2 texelPos, uint level, uint slice, vec4 value) {
     ivec4 mipTile = shared_mipTiles[level];
     ivec2 storePos = mipTile.xy + texelPos;
-    if (all(lessThanEqual(texelPos, mipTile.zw))) {
+    if (all(lessThan(texelPos, mipTile.zw))) {
         if (gl_WorkGroupID.z == 0) {
             transient_geomNormalMip_store(storePos, vec4(value.xyz * 0.5 + 0.5, 0.0));
         } else if (gl_WorkGroupID.z == 1) {

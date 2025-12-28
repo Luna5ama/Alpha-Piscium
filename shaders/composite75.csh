@@ -8,11 +8,12 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
+#include "/techniques/debug/DebugOutput.glsl"
+#include "/techniques/displaytransform/DisplayTransform.glsl"
 #include "/util/Colors2.glsl"
 #include "/util/Coords.glsl"
-#include "/techniques/DebugOutput.glsl"
-#include "/techniques/displaytransform/DisplayTransform.glsl"
 #include "/util/FullScreenComp.glsl"
+#include "/util/AgxInvertible.glsl"
 
 #if SETTING_DEBUG_TEMP_TEX != 6
 #endif
@@ -37,12 +38,13 @@ void main() {
 
     if (valid) {
         outputColor = imageLoad(uimg_main, texelPos);
+        outputColor.rgb = agxInvertible_inverse(outputColor.rgb);
 
         #ifdef SETTING_BLOOM
         outputColor += bloom_mainOutput(texelPos);
         #endif
 
-        #if SETTING_DEBUG_OUTPUT == 1
+        #if SETTING_DEBUG_OUTPUT == 3
         debugOutput(texelPos, outputColor);
         #endif
 
@@ -73,13 +75,6 @@ void main() {
     displaytransform_apply(valid, outputColor);
 
     if (valid) {
-        vec4 basicColor = texelFetch(usam_overlays, texelPos, 0);
-        outputColor.rgb = mix(outputColor.rgb, basicColor.rgb, basicColor.a);
-
-        #if SETTING_DEBUG_OUTPUT == 2
-        debugOutput(texelPos, outputColor);
-        #endif
-
         imageStore(uimg_main, texelPos, outputColor);
     }
 }

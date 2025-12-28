@@ -18,12 +18,11 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba16f) uniform restrict writeonly image2D uimg_temp4;
+layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(rgba16f) uniform restrict image2D uimg_main;
 
 void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        imageStore(uimg_temp4, texelPos, vec4(0.0));
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
 
         ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);

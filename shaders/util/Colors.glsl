@@ -10,6 +10,8 @@
             https://www.itu.int/rec/R-REC-BT.709
         [KAR13] Karis, Brian. "Tone mapping". Graphic Rants. 2013.
             https://graphicrants.blogspot.com/2013/12/tone-mapping.html
+        [LOT16] Lottes, Timothy. "Optimized Reversible Tonemapper for Resolve". 2016.
+            https://gpuopen.com/learn/optimized-reversible-tonemapper-for-resolve/
         [ROS18] Rosseaux, Benjamin. "Matrix-based RGB from/to YCoCg color space conversion". 2018.
             CC0 License (Public Domain).
             https://www.shadertoy.com/view/4dXGzN
@@ -186,6 +188,31 @@ vec3 colors_LogLuv32ToSRGB(in vec4 vLogLuv) {
 float colors_karisWeight(vec3 color) {
     float luma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, color.rgb);
     return 1.0 / (1.0 + luma);
+}
+
+// [LOT16]
+vec3 colors_reversibleTonemap(vec3 color) {
+    float luma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, color.rgb);
+//    color = color * rcp(luma + 1.0);
+//    color = color * rcp(mmax3(color) + 1.0);
+//    color = pow(max(color, 0.0), vec3(1.0 / 2.2));
+    color = log2(color + 1.0);
+    return color;
+}
+
+vec3 colors_reversibleTonemapWeighted(vec3 color, float weight) {
+    return color * (weight * rcp( mmax3(color) + 1.0));
+}
+
+vec3 colors_reversibleTonemapInvert(vec3 color) {
+//    color = pow(max(color, 0.0), vec3(2.2));
+    float luma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, color.rgb);
+//    color = color / (1.0 - luma);
+//    color = color / (1.0 - mmax3(color));
+    color = exp2(color) - 1.0;
+    return color;
+//    return color / (1.0 - luma);
+//    return color / (1.0 - mmax3(color));
 }
 
 #endif

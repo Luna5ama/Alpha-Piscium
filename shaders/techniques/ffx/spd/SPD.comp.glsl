@@ -22,7 +22,7 @@
 // Requirements:
 // #define SPD_CHANNELS <1, 2, 3, 4> - Number of channels to process
 // #define SPD_HALF <0, 1> - Use half precision (1) or full precision
-// #define SPD_OP <0, 1, 2> - Downsample operation: 0 for min, 1 for max, 2 for average
+// #define SPD_OP <0, 1, 2> - Downsample operation: 0 for min, 1 for max, 2 for average, 3 for sum
 //
 // and following functions:
 SPD_DATA_TYPE spd_loadInput(ivec2 texelPos, uint slice);
@@ -77,8 +77,10 @@ vec4 SpdReduce4(vec4 v0, vec4 v1, vec4 v2, vec4 v3) {
     return ffxMin(ffxMin(v0, v1), ffxMin(v2, v3));
     #elif SPD_OP == 1
     return ffxMax(ffxMax(v0, v1), ffxMax(v2, v3));
-    #else
+    #elif SPD_OP == 2
     return (v0 + v1 + v2 + v3) * 0.25;
+    #else
+    return v0 + v1 + v2 + v3;
     #endif
 }
 #endif

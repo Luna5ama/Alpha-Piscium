@@ -1,3 +1,4 @@
+#include "Common.glsl"
 #include "/util/BitPacking.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Colors2.glsl"
@@ -43,19 +44,6 @@ vec3 interpolateTurbo(float x) {
 #define DEBUG_TEX_NAME usam_geometryNormal
 #endif
 
-ivec2 _debug_texelPos = ivec2(0);
-
-bool inViewPort(ivec4 originSize, out vec2 texCoord) {
-    originSize = ivec4(vec4(originSize) * SETTING_DEBUG_SCALE);
-    ivec2 min = originSize.xy;
-    ivec2 max = originSize.xy + originSize.zw;
-    texCoord = saturate((vec2(_debug_texelPos - min) + 0.5) / vec2(originSize.zw));
-    if (all(greaterThanEqual(_debug_texelPos.xy, min)) && all(lessThan(_debug_texelPos.xy, max))) {
-        return true;
-    }
-    return false;
-}
-
 float applyExposure(float color) {
     return color * exp2(SETTING_DEBUG_EXP);
 }
@@ -72,7 +60,7 @@ vec4 applyExposure(vec4 color) {
     return color * exp2(SETTING_DEBUG_EXP);
 }
 
-#if defined(SETTING_DEBUG_GAMMA_CORRECT) && (SETTING_DEBUG_OUTPUT != 1)
+#if defined(SETTING_DEBUG_GAMMA_CORRECT) && (SETTING_DEBUG_OUTPUT == 4)
 float gammaCorrect(float color) {
     return colors_sRGB_encodeGamma(color);
 }
@@ -405,38 +393,6 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 //        outputColor.rgb *= exp2(SETTING_DEBUG_EXP);
 //        outputColor.rgb = gammaCorrect(outputColor.rgb);
 //    }
-    #endif
-
-    #ifdef SETTING_DEBUG_AE
-    printChar(_A);
-    printChar(_V);
-    printChar(_G);
-    printChar(_space);
-    printFloat(global_aeData.expValues.x);
-    printLine();
-    printChar(_H);
-    printChar(_I);
-    printChar(_S);
-    printChar(_space);
-    printFloat(global_aeData.expValues.y);
-    printLine();
-    printChar(_M);
-    printChar(_I);
-    printChar(_X);
-    printChar(_space);
-    printFloat(global_aeData.expValues.z);
-    printLine();
-    if (inViewPort(ivec4(0, 0, 1024, 256), debugTexCoord)) {
-        uint binIndex = min(uint(debugTexCoord.x * 256.0), 255u);
-        float binCount = float(global_aeData.lumHistogram[binIndex]);
-        float maxBinCount = float(global_aeData.lumHistogramMaxBinCount);
-        float percentage = binCount / maxBinCount;
-        if (debugTexCoord.y < percentage) {
-            outputColor.rgb = interpolateTurbo(percentage);
-        } else {
-            outputColor.rgb = vec3(0.25);
-        }
-    }
     #endif
 
     #ifdef SETTING_DEBUG_STARMAP

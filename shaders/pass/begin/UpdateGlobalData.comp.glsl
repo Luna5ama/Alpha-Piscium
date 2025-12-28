@@ -9,7 +9,7 @@
 #include "/util/Time.glsl"
 
 layout(local_size_x = 1) in;
-const ivec3 workGroups = ivec3(2, 1, 1);
+const ivec3 workGroups = ivec3(3, 1, 1);
 
 layout(rgba16f) uniform writeonly readonly image2D uimg_main;
 
@@ -152,7 +152,7 @@ void main() {
             }
             global_cameraData.frustumPlaneCount = pcount;
         }
-    } else {
+    } else if (gl_WorkGroupID.x == 1) {
         ivec2 mainImageSize = imageSize(uimg_main);
         for (uint i = 0; i < 16; i++) {
             ivec2 mipSize = mainImageSize >> i;
@@ -211,5 +211,37 @@ void main() {
         #else
         global_turbidity = exp2(SETTING_ATM_MIE_TURBIDITY);
         #endif
+    } else {
+        ivec4 mipTileCeil0 = ivec4(0, 0, uval_mainImageSizeI);
+        ivec4 mipTileCeil1 = ivec4(0, 0, ivec2(ceil(uval_mainImageSize / 2.0)));
+        global_mipmapTileCeil[0] = mipTileCeil0;
+        global_mipmapTileCeilPadded[0] = mipTileCeil0;
+
+        global_mipmapTileCeil[1] = mipTileCeil1;
+
+        ivec4 mipTileCeilPadded1 = mipTileCeil1;
+        mipTileCeilPadded1.xy += 1;
+        global_mipmapTileCeilPadded[1] = mipTileCeilPadded1;
+
+        for (uint i = 2u; i < 16u; i++) {
+            ivec4 mipTile = ivec4(0);
+            mipTile.zw = max(ivec2(ceil(ldexp(uval_mainImageSize, ivec2(-int(i))))), ivec2(1));
+            ivec4 mipTilePadded = mipTile;
+            ivec4 lastTile = global_mipmapTileCeil[i - 1u];
+            ivec4 lastTilePadded = global_mipmapTileCeilPadded[i - 1u];
+            if (bool(i & 1u)) {
+                mipTile.x = lastTile.x + lastTile.z;
+                mipTile.y = lastTile.y;
+                mipTilePadded.x = lastTilePadded.x + lastTilePadded.z + 1;
+                mipTilePadded.y = lastTilePadded.y;
+            } else {
+                mipTile.x = lastTile.x;
+                mipTile.y = lastTile.y + lastTile.w;
+                mipTilePadded.x = lastTilePadded.x;
+                mipTilePadded.y = lastTilePadded.y + lastTilePadded.w + 1;
+            }
+            global_mipmapTileCeil[i] = mipTile;
+            global_mipmapTileCeilPadded[i] = mipTilePadded;
+        }
     }
 }

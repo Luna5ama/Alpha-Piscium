@@ -4,11 +4,14 @@
 #endif
 
 struct AEData {
-    vec3 expValues;
+    vec4 lastScreenAvgLum;
+    vec4 screenAvgLum;
+
+    vec4 expValues;
+    vec2 hsPercents;
     uint shadowCount;
     uint highlightCount;
     uint weightSum;
-    uint avgLumHistogram[256];
 
     #ifdef SETTING_DEBUG_AE
     uint lumHistogram[256];
@@ -54,6 +57,8 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     ivec2 global_mipmapSizePrefixesPadded[16];
     ivec2 global_mipmapSizePrefixes[16];
     ivec4 global_mipmapTiles[2][16];
+    ivec4 global_mipmapTileCeil[16];
+    ivec4 global_mipmapTileCeilPadded[16];
     uvec2 global_frameMortonJitter;
     ivec3 global_shadowAABBMinPrev;
     ivec3 global_shadowAABBMaxPrev;

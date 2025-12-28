@@ -21,14 +21,12 @@
 #include "/util/Colors.glsl"
 #include "/util/Rand.glsl"
 
-shared uint shared_avgLumHistogram[256];
 shared vec3 shared_sum[16];
 #ifdef SETTING_DEBUG_AE
 shared uint shared_lumHistogram[256];
 #endif
 
 void _displaytransform_exposure_init() {
-    shared_avgLumHistogram[gl_LocalInvocationIndex] = 0u;
     #ifdef SETTING_DEBUG_AE
     shared_lumHistogram[gl_LocalInvocationIndex] = 0u;
     #endif
@@ -54,11 +52,6 @@ void _displaytransform_exposure_update(bool valid, inout vec4 color) {
 
         float lumimance = colors2_colorspaces_luma(COLORS2_OUTPUT_COLORSPACE, saturate(color.rgb));
         uint not0Flag = uint(any(greaterThan(color.rgb, vec3(0.0))));
-
-        if (bool(not0Flag)) {
-            uint binIndex = clamp(uint(lumimance * 256.0), 0u, 255u);
-            atomicAdd(shared_avgLumHistogram[binIndex], uint(saturate(pixelWeight) * 16777216.0));
-        }
 
         {
             uint highlightFlag = not0Flag;
@@ -97,11 +90,6 @@ void _displaytransform_exposure_update(bool valid, inout vec4 color) {
         }
     }
 
-    uint avgLumV = shared_avgLumHistogram[gl_LocalInvocationIndex];
-    if (avgLumV > 0u) {
-        uint jitter = uint((groupNoise - 0.5) * 16777216.0);
-        atomicAdd(global_aeData.avgLumHistogram[gl_LocalInvocationIndex], (avgLumV + jitter) / 16777216u);
-    }
     #ifdef SETTING_DEBUG_AE
     uint lumV = shared_lumHistogram[gl_LocalInvocationIndex];
     if (lumV > 0u) {
