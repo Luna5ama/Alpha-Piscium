@@ -3,6 +3,7 @@
 @file:Repository("https://repo.maven.apache.org/maven2/")
 @file:DependsOn("com.squareup.okhttp3:okhttp:4.12.0")
 @file:DependsOn("org.json:json:20231013")
+@file:OptIn(ExperimentalPathApi::class)
 
 import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
@@ -12,9 +13,24 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.nio.file.Files
+import java.nio.file.Path
 import java.nio.file.StandardCopyOption
 import java.util.Properties
+import java.util.zip.Deflater
+import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
+import kotlin.io.path.ExperimentalPathApi
+import kotlin.io.path.Path
+import kotlin.io.path.absolute
+import kotlin.io.path.extension
+import kotlin.io.path.inputStream
+import kotlin.io.path.invariantSeparatorsPathString
+import kotlin.io.path.isDirectory
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
+import kotlin.io.path.outputStream
+import kotlin.io.path.relativeTo
+import kotlin.io.path.walk
 import kotlin.system.exitProcess
 
 // Check if version argument is provided
@@ -25,6 +41,7 @@ if (args.isEmpty()) {
 }
 
 val version = args[0]
+val isBeta = version.contains("beta", true)
 val rootDir = File("").absoluteFile.parentFile
 val changelogFile = File(rootDir, "changelogs/$version.md")
 
@@ -68,55 +85,85 @@ val client = OkHttpClient()
 println("=== Starting Release Process for v$version ===\n")
 
 // Step 1: Create zip file (inline version of make-zip.main.kts)
-println("Step 1: Creating zip file...")
-
-// Get the current git hash first
-val gitHashProcess = ProcessBuilder("git", "rev-parse", "--short", "HEAD")
-    .directory(rootDir)
-    .redirectOutput(ProcessBuilder.Redirect.PIPE)
-    .start()
-
-val gitHash = gitHashProcess.inputStream.bufferedReader().readText().trim()
-val gitHashExitCode = gitHashProcess.waitFor()
-
-if (gitHashExitCode != 0) {
-    println("Error: Failed to get git hash")
-    exitProcess(1)
-}
-
-// Create the zip file
-val included = setOf("changelogs", "shaders", "licenses", "LICENSE", "README.md")
-val gitHashZipName = "${rootDir.name.replace("-", " ")} $gitHash.zip"
-val gitHashZip = File(rootDir, gitHashZipName)
-
-println("Creating: $gitHashZipName")
-
-ZipOutputStream(gitHashZip.outputStream(), Charsets.UTF_8).use { zipOut ->
-    zipOut.setLevel(java.util.zip.Deflater.DEFAULT_COMPRESSION)
-    zipOut.setMethod(ZipOutputStream.DEFLATED)
-
-    rootDir.walk().asSequence()
-        .filter { it != rootDir }
-        .filter { file ->
-            val baseDirName = file.relativeTo(rootDir).path.substringBefore(File.separator)
-            if (baseDirName.startsWith('.')) return@filter false
-            baseDirName in included
+val gitHashZip = run {
+    println("Step 1: Creating zip file...")
+    // Create the zip file
+    val config = Properties().apply {
+        runCatching {
+            Path("config.properties").inputStream().use {
+                load(it)
+            }
         }
-        .forEach { file ->
-            val relativePath = file.relativeTo(rootDir).invariantSeparatorsPath
-            if (file.isDirectory) {
-                if (file.listFiles()?.isNotEmpty() == true) {
-                    zipOut.putNextEntry(java.util.zip.ZipEntry("$relativePath/"))
+    }
+
+    val currDirPath = Path("").absolute()
+    val projectRootPath = currDirPath.parent
+    val shadesmithJarPath = currDirPath.resolve("shadesmith-0.0.1-SNAPSHOT-fatjar-optimized.jar")
+    val shadersPath = projectRootPath.resolve("shaders")
+
+    val shdesmithOutputPathStr = config.getOrDefault("SHADESMITH_OUTPUT", "./shadesmitth").toString()
+    val shadesmithOutputPath = Path(shdesmithOutputPathStr).normalize().absolute()
+    val java = System.getProperty("java.home")
+
+    val shadesmithRun = ProcessBuilder()
+        .command(
+            "$java/bin/java",
+            "-jar",
+            shadesmithJarPath.toString(),
+            shadersPath.toString(),
+            shadesmithOutputPath.resolve("shaders").toString()
+        )
+        .inheritIO()
+        .start()
+
+    val included = setOf("changelogs", "licenses", "shaders/lang", "shaders/textures", "LICENSE", "README.md")
+    val branchName =
+        Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD")).inputStream.bufferedReader()
+            .readText().trim()
+    val commitTag =
+        Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD")).inputStream.bufferedReader().readText()
+            .trim()
+    val zipFileName = "${projectRootPath.name.replace("-", " ")} $branchName $commitTag.zip"
+    val zipFilePath = projectRootPath.resolve("builds").resolve(zipFileName)
+
+    println("Creating $zipFileName")
+
+    ZipOutputStream(zipFilePath.outputStream(), Charsets.UTF_8).use { zipOut ->
+        zipOut.setLevel(Deflater.DEFAULT_COMPRESSION)
+        zipOut.setMethod(ZipOutputStream.DEFLATED)
+
+        fun addStuff(rootDir: Path, sequence: Sequence<Path>) {
+            sequence
+                .filter { it != rootDir }
+                .forEach { file ->
+                    val relativePath = file.relativeTo(rootDir).invariantSeparatorsPathString
+                    if (file.isDirectory()) {
+                        if (file.listDirectoryEntries().isNotEmpty()) {
+                            zipOut.putNextEntry(ZipEntry("$relativePath/"))
+                            zipOut.closeEntry()
+                        }
+                        return@forEach
+                    }
+                    zipOut.putNextEntry(ZipEntry(relativePath))
+                    file.inputStream().use { input ->
+                        input.copyTo(zipOut)
+                    }
                     zipOut.closeEntry()
                 }
-                return@forEach
-            }
-            zipOut.putNextEntry(java.util.zip.ZipEntry(relativePath))
-            file.inputStream().use { input ->
-                input.copyTo(zipOut)
-            }
-            zipOut.closeEntry()
         }
+
+        addStuff(projectRootPath, projectRootPath.walk().filter { file ->
+            if (file.extension == "properties") return@filter true
+            val baseDirName = file.relativeTo(projectRootPath).invariantSeparatorsPathString
+            if (baseDirName.startsWith('.')) return@filter false
+            included.any {
+                baseDirName.startsWith(it)
+            }
+        })
+        shadesmithRun.waitFor()
+        addStuff(shadesmithOutputPath, shadesmithOutputPath.walk())
+        zipFilePath.toFile()
+    }
 }
 
 println("Zip file created successfully")
@@ -128,9 +175,59 @@ val versionZip = File(rootDir, versionZipName)
 Files.move(gitHashZip.toPath(), versionZip.toPath(), StandardCopyOption.REPLACE_EXISTING)
 println("Renamed to: $versionZipName")
 
-// Step 3: Create GitHub Release
-println("\nStep 3: Creating GitHub release...")
+// Step 3: Create and push git tag
+println("\nStep 3: Creating and pushing git tag...")
 val githubReleaseTag = "v$version"
+val targetBranch = if (isBeta) "dev" else "main"
+
+// Get current branch
+val currentBranch = Runtime.getRuntime()
+    .exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD"))
+    .inputStream.bufferedReader().readText().trim()
+
+println("Current branch: $currentBranch")
+println("Target branch for tag: $targetBranch")
+
+// Checkout target branch if needed
+if (currentBranch != targetBranch) {
+    println("Checking out $targetBranch branch...")
+    val checkoutProcess = Runtime.getRuntime().exec(arrayOf("git", "checkout", targetBranch))
+    checkoutProcess.waitFor()
+    if (checkoutProcess.exitValue() != 0) {
+        println("Error: Failed to checkout $targetBranch branch")
+        exitProcess(1)
+    }
+}
+
+// Create the tag
+println("Creating tag $githubReleaseTag on $targetBranch branch...")
+val createTagProcess = Runtime.getRuntime().exec(arrayOf("git", "tag", "-a", githubReleaseTag, "-m", "Alpha Piscium v$version"))
+createTagProcess.waitFor()
+if (createTagProcess.exitValue() != 0) {
+    println("Error: Failed to create tag")
+    exitProcess(1)
+}
+
+// Push the tag
+println("Pushing tag to remote...")
+val pushTagProcess = Runtime.getRuntime().exec(arrayOf("git", "push", "origin", githubReleaseTag))
+pushTagProcess.waitFor()
+if (pushTagProcess.exitValue() != 0) {
+    println("Error: Failed to push tag")
+    exitProcess(1)
+}
+
+println("Tag $githubReleaseTag created and pushed successfully")
+
+// Checkout back to original branch if needed
+if (currentBranch != targetBranch) {
+    println("Checking out back to $currentBranch branch...")
+    val checkoutBackProcess = Runtime.getRuntime().exec(arrayOf("git", "checkout", currentBranch))
+    checkoutBackProcess.waitFor()
+}
+
+// Step 4: Create GitHub Release
+println("\nStep 4: Creating GitHub release...")
 val githubReleaseName = "Alpha Piscium v$version"
 
 // Create the release
@@ -139,7 +236,8 @@ val createReleaseJson = JSONObject().apply {
     put("name", githubReleaseName)
     put("body", changelogContent)
     put("draft", false)
-    put("prerelease", false)
+    put("prerelease", isBeta)
+    put("target_commitish", targetBranch)
 }
 
 val createReleaseRequest = Request.Builder()
@@ -188,8 +286,8 @@ val spaceVersionZip = File(rootDir, spaceVersionZipName)
 Files.move(versionZip.toPath(), spaceVersionZip.toPath(), StandardCopyOption.REPLACE_EXISTING)
 println("Renamed to: $spaceVersionZipName")
 
-// Step 4: Create Modrinth Release
-println("\nStep 4: Creating Modrinth release...")
+// Step 5: Create Modrinth Release
+println("\nStep 5: Creating Modrinth release...")
 
 // Get project ID first
 val projectSlug = "alpha-piscium"
@@ -235,7 +333,7 @@ val modrinthVersionData = JSONObject().apply {
     put("version_number", version)
     put("version_title", "Alpha Piscium v$version")
     put("changelog", changelogContent)
-    put("version_type", "release")
+    put("version_type", if (isBeta) "beta" else "release")
     put("loaders", JSONArray(listOf("iris")))
     put("game_versions", JSONArray(supportedVersions))
     put("dependencies", JSONArray())
@@ -269,7 +367,7 @@ val modrinthReleaseUrl = "https://modrinth.com/shader/alpha-piscium/version/$ver
 
 println("Modrinth version created: $modrinthReleaseUrl")
 
-// Step 5: Print Discord announcement
+// Step 6: Print Discord announcement
 println("\n" + "=".repeat(60))
 println("DISCORD ANNOUNCEMENT")
 println("=".repeat(60))
