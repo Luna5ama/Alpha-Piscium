@@ -4,10 +4,11 @@
             https://www.iryoku.com/next-generation-post-processing-in-call-of-duty-advanced-warfare/
 */
 #include "/Base.glsl"
-#include "/util/Colors.glsl"
-#include "/util/AgxInvertible.glsl"
 
 /*const*/
+#if BLOOM_PASS == 1
+#include "/util/AgxInvertible.glsl"
+#endif
 #if BLOOM_DOWN_SAMPLE
 #define BLOOM_SCALE_DIV BLOOM_PASS
 
