@@ -127,10 +127,11 @@ void main() {
     #if SETTING_SCREENSHOT_MODE_SKIP_INITIAL
     extraReset *= float(frameCounter > SETTING_SCREENSHOT_MODE_SKIP_INITIAL);
     #endif
+    #else
     extraReset *= (1.0 - saturate(cameraSpeedDiff * 64.0));
     extraReset *= (1.0 - saturate(cameraSpeed * 1.0));
     extraReset *= (1.0 - saturate(pixelSpeed * 1.0));
-    #else
+    #endif
 
     {
         vec3 currColorYCoCg = colors_SRGBToYCoCg(currColor);
