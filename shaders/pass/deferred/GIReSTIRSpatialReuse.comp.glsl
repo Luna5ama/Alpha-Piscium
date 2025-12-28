@@ -54,8 +54,11 @@ void main() {
                 ReSTIRReservoir spatialReservoir = restir_reservoir_unpack(reprojectedData);
                 history_restir_reservoirTemporal_store(texelPos, reprojectedData);
 
-                //                const uint reuseCount = uint(mix(float(SPATIAL_REUSE_SAMPLES), 1.0, linearStep(0.0, 128.0, float(RANDOM_FRAME))));
-                const uint reuseCount = uint(SPATIAL_REUSE_SAMPLES);
+                GIHistoryData historyData = gi_historyData_init();
+                gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
+
+                const uint reuseCount = uint(mix(float(SPATIAL_REUSE_SAMPLES), 1.0, sqrt(linearStep(0.0, 0.5, historyData.realHistoryLength))));
+//                const uint reuseCount = uint(SPATIAL_REUSE_SAMPLES);
                 const float REUSE_RADIUS = float(SPATIAL_REUSE_RADIUS);
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 

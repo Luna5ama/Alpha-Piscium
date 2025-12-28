@@ -206,7 +206,10 @@ void main() {
                 wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
 
                 #if SPATIAL_REUSE_FEEDBACK
-                if (temporalReservoir.m < SPATIAL_REUSE_FEEDBACK) {
+                GIHistoryData historyData = gi_historyData_init();
+                gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
+                const float FEEDBACK_THRESHOLD = float(SPATIAL_REUSE_FEEDBACK) / 255.0;
+                if (historyData.realHistoryLength < FEEDBACK_THRESHOLD) {
                     ReSTIRReservoir prevSpatialReservoir = restir_reservoir_unpack(history_restir_reservoirSpatial_load(texelPos));
                     prevSpatialReservoir.m = uint(float(prevSpatialReservoir.m) * global_historyResetFactor);
 

@@ -109,9 +109,9 @@ void main() {
     float newFrameAccum = lastFrameAccum + 1.0;
 
     float speedSum = 0.0;
-    speedSum += cameraSpeedDiff * 16.0;
-    speedSum += cameraSpeed * 0.2;
-    speedSum += pixelSpeed * 0.2;
+    speedSum += sqrt(cameraSpeedDiff) * 8.0;
+    speedSum += sqrt(cameraSpeed) * 0.1;
+    speedSum += sqrt(pixelSpeed) * 0.1;
 
     vec3 prevFrontVec = coords_dir_viewToWorldPrev(vec3(0.0, 0.0, -1.0));
     vec3 currFrontVec = coords_dir_viewToWorld(vec3(0.0, 0.0, -1.0));
@@ -189,7 +189,7 @@ void main() {
 
     const float FRAME_RESET_FACTOR = 1.0;
     float frameReset = FRAME_RESET_FACTOR * (FRAME_RESET_FACTOR + speedSum);
-//    newFrameAccum *= frameReset;
+    newFrameAccum *= frameReset;
     #ifdef SETTING_SCREENSHOT_MODE
     float MIN_ACCUM_FRAMES = 1.0;
     float MAX_ACCUM_FRAMES = 1024.0;
