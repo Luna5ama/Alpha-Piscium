@@ -17,7 +17,7 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         transient_gi_diffMip_store(texelPos, vec4(0.0));
         transient_gi_specMip_store(texelPos, vec4(0.0));
-        transient_geomNormalMip_store(texelPos, vec4(0.0));
+        transient_viewNormalMip_store(texelPos, vec4(0.0));
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
         if (viewZ > -65536.0) {
             vec4 newDiffuse = transient_ssgiOut_fetch(texelPos);

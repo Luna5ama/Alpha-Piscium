@@ -44,7 +44,7 @@
         "history_gi_diffuse_shading": "RGBA16F",
         "transient_screenPixelSize": "R32F",
         "transient_caustics_input": "R32F",
-        "transient_geomNormalMip": "RGB10_A2",
+        "transient_viewNormalMip": "RGB10_A2",
         "transient_mainMipTemp": "RGBA32UI",
         "transient_caustics_remapped": "R32F",
         "transient_caustics_final": "R32F"
