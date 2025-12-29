@@ -90,7 +90,6 @@ uniform sampler2D usam_r32f;
 uniform sampler2D usam_rtwsm_imap;
 uniform sampler2D usam_transmittanceLUT;
 uniform sampler2D usam_multiSctrLUT;
-uniform sampler2D usam_skyLUT;
 uniform sampler3D usam_skyViewLUT;
 uniform usampler2D usam_epipolarData;
 uniform sampler3D usam_cloudsAmbLUT;

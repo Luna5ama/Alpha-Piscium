@@ -45,18 +45,12 @@ const vec4 colortex5ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const bool colortex6Clear = true;
 const vec4 colortex6ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 
-const bool colortex7Clear = false;
 const bool colortex8Clear = false;
 const bool colortex9Clear = false;
 const bool colortex10Clear = false;
 
 const bool colortex11Clear = false;
 const bool colortex12Clear = false;
-
-const bool colortex13Clear = false;
-const bool colortex14Clear = false;
-
-const bool colortex15Clear = false;
 
 const bool shadowcolor0Clear = true;
 const vec4 shadowcolor0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);

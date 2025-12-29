@@ -22,30 +22,27 @@ bool envProbe_update(ivec2 sliceTexelPos, ivec2 sliceID, inout EnvProbeData outp
 
     vec2 ndcPos = clipPos.xy / clipPos.w;
     vec2 screenPos = ndcPos * 0.5 + 0.5;
-    ivec2 texelPos2x2 = ivec2(screenPos * global_mipmapSizes[1]);
-    uint edgeFlag = uint(any(lessThanEqual(texelPos2x2, ivec2(1))));
-    edgeFlag |= uint(any(greaterThanEqual(texelPos2x2, global_mipmapSizesI[1] - 2)));
+    ivec2 texelPos = ivec2(screenPos * uval_mainImageSize);
+    uint edgeFlag = uint(any(lessThanEqual(texelPos, ivec2(1))));
+    edgeFlag |= uint(any(greaterThanEqual(texelPos, uval_mainImageSizeI - 2)));
     if (bool(edgeFlag)) {
         return false;
     }
 
-    ivec2 texelPos1x1 = texelPos2x2 << 1;
-
     GBufferData gData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos1x1, 0), gData);
-    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos1x1, 0), gData);
+    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
     if (gData.isHand) {
         return false;
     }
 
-    float viewZ = texelFetch(usam_gbufferViewZ, texelPos1x1, 0).r;
+    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
     vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
 
-//    TODO: Fixed Env Probe Radiance Fetching
-//    uvec2 radianceData = transient_packedZN_fetch(texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y)).xy;
-//    vec4 radiance = vec4(unpackHalf2x16(radianceData.x), unpackHalf2x16(radianceData.y));
     vec4 radiance = vec4(0.0);
+    radiance.rgb += transient_giRadianceInput1_fetch(texelPos).rgb;
+    radiance.rgb += transient_giRadianceInput2_fetch(texelPos).rgb;
 
     outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : radiance.rgb;
     outputData.normal = mat3(gbufferModelViewInverse) * gData.normal;
