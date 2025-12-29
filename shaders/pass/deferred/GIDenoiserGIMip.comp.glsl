@@ -16,7 +16,7 @@ vec4 spd_loadInput(ivec2 texelPos, uint slice) {
     texelPos = clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1);
     vec4 result = vec4(0.0);
     if (gl_WorkGroupID.z == 0) {
-        result.xyz = transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
+        result.xyz = transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
     } else {
         GIHistoryData historyData = gi_historyData_init();
 
@@ -41,7 +41,7 @@ void spd_storeOutput(ivec2 texelPos, uint level, uint slice, vec4 value) {
     ivec2 storePos = mipTile.xy + texelPos;
     if (all(lessThan(texelPos, mipTile.zw))) {
         if (gl_WorkGroupID.z == 0) {
-            transient_viewNormalMip_store(storePos, vec4(value.xyz * 0.5 + 0.5, 0.0));
+            transient_geomNormalMip_store(storePos, vec4(value.xyz * 0.5 + 0.5, 0.0));
         } else if (gl_WorkGroupID.z == 1) {
             transient_gi_diffMip_store(storePos, value);
         } else if (gl_WorkGroupID.z == 2) {

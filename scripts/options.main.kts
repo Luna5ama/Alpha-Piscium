@@ -737,6 +737,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "修正摄像机移动时遮挡消失区域的严重噪点。"
                     }
                 }
+                slider("SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT", 5, 0..10) {
+                    lang {
+                        name = "Disocclusion Fix Normal Weight"
+                        comment =
+                            "Weight of normal similarity when performing disocclusion fix. Higher values make the fix more sensitive to normal changes and reduces excessive blur."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "遮挡消失修正法线权重"
+                        comment = "修正遮挡消失时法线相似度的权重。数值越高，修正对法线变化越敏感，并减少过度模糊。"
+                    }
+                }
+                slider("SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT", 5, 0..10) {
+                    lang {
+                        name = "Disocclusion Fix Depth Weight"
+                        comment =
+                            "Weight of depth similarity when performing disocclusion fix. Higher values make the fix more sensitive to depth changes and reduces excessive blur."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "遮挡消失修正深度权重"
+                        comment = "修正遮挡消失时深度相似度的权重。数值越高，修正对深度变化越敏感，并减少过度模糊。"
+                    }
+                }
             }
         }
         screen(2) {

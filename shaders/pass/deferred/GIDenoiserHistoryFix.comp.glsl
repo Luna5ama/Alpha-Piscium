@@ -88,15 +88,15 @@ void main() {
                 vec2 localLuma = vec2(0.0);
 
                 #if DENOISER_HISTORY_FIX
-                vec3 geomNormal0 = normalize(transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
+                vec3 geomNormal0 = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
                 float viweZ0 = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
 
                 vec4 diffWeightedSum = vec4(0.0);
                 vec4 specWeightedSum = vec4(0.0);
                 float weightSum = 0.0;
 
-                const float baseReductionFactor = ldexp(1.0, -8);
-                float baseDepthWeight = max(2.0, abs(viweZ0)) * ldexp(1.0, -4);
+                const float baseReductionFactor = ldexp(1.0, -12);
+                float baseDepthWeight = max(2.0, abs(viweZ0)) * ldexp(1.0, -8 + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT);
                 #endif
 
                 for (int mip = 6; mip >= 1; mip--) {
@@ -120,19 +120,21 @@ void main() {
                     vec2 hiZMaxReadPos = mipTileMax.xy + ivec2(texelPosMip);
                     float hiZMin = texelFetch(usam_hiz, ivec2(hiZMinReadPos), 0).r;
                     float hiZMax = texelFetch(usam_hiz, ivec2(hiZMaxReadPos), 0).r;
-                    vec3 geomNormalMipRaw = transient_viewNormalMip_sample(screenPosMipTile).xyz;
+
+                    vec3 geomNormalMipRaw = transient_geomNormalMip_sample(screenPosMipTile).xyz;
                     geomNormalMipRaw = geomNormalMipRaw * 2.0 - 1.0;
                     vec3 geomNormalMip = normalize(geomNormalMipRaw);
-
                     float geomNormalLengthSq = saturate(lengthSq(geomNormalMipRaw));
                     float geomNormalDot = dot(geomNormal0, geomNormalMipRaw * inversesqrt(geomNormalLengthSq));
                     float geomNormalWeight = geomNormalLengthSq * pow2(saturate(geomNormalDot));
-                    geomNormalWeight = pow(geomNormalWeight, ldexp(1.0, mip));
-                    float reductionFactor = baseReductionFactor / (baseReductionFactor + weightSum);
+                    geomNormalWeight = pow(geomNormalWeight, ldexp(0.1, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT));
+
                     hiZMax = coords_reversedZToViewZ(hiZMax, nearPlane);
                     hiZMin = coords_reversedZToViewZ(hiZMin, nearPlane);
                     float maxZWeight = baseDepthWeight / (baseDepthWeight + abs(hiZMax - viweZ0));
                     float minZWeight = baseDepthWeight / (baseDepthWeight + abs(hiZMin - viweZ0));
+
+                    float reductionFactor = baseReductionFactor / (baseReductionFactor + weightSum);
 
                     float sampleWeight = 1.0;
                     sampleWeight *= geomNormalWeight;
@@ -173,6 +175,10 @@ void main() {
 
                 diffWeightedSum = max(diffWeightedSum, vec4(0.0));
                 specWeightedSum = max(specWeightedSum, vec4(0.0));
+
+                #if SETTING_DEBUG_OUTPUT
+//                imageStore(uimg_temp3, texelPos, diffWeightedSum);
+                #endif
 
                 historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
                 historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
@@ -240,8 +246,6 @@ void main() {
 
                 vec4 diffInput = vec4(historyData.diffuseColor, denoiserBlurVariance.x);
                 vec4 specInput = vec4(historyData.specularColor, denoiserBlurVariance.y);
-
-//                imageStore(uimg_temp3, texelPos, denoiserBlurVariance.xxxx);
 
                 transient_gi_blurDiff2_store(texelPos, diffInput);
                 transient_gi_blurSpec2_store(texelPos, specInput);

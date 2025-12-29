@@ -212,9 +212,11 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, vec2 blurJitter) {
         transient_gi_blurDiff1_store(texelPos, diffResult);
         transient_gi_blurSpec1_store(texelPos, specResult);
         #elif GI_DENOISE_PASS == 2
-        if (RANDOM_FRAME < MAX_FRAMES){
-            imageStore(uimg_temp3, texelPos, vec4(kernelRadius / baseKernelRadius.w));
-        }
+        #if SETTING_DEBUG_OUTPUT
+//        if (RANDOM_FRAME < MAX_FRAMES){
+//            imageStore(uimg_temp3, texelPos, vec4(kernelRadius / baseKernelRadius.w));
+//        }
+        #endif
         transient_gi_blurDiff2_store(texelPos, diffResult);
         transient_gi_blurSpec2_store(texelPos, specResult);
         #endif
