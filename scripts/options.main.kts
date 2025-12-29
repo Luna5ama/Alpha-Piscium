@@ -617,11 +617,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 lang {
                     name = "ReSTIR SSGI"
                 }
-                toggle("SETTING_GI_USE_REFERENCE", false) {
+                slider("SETTING_GI_SST_THICKNESS", 0.05, 0.01..0.5 step 0.01) {
                     lang {
-                        name = "Monte Carlo Reference"
+                        name = "Screen Space Tracing Thickness"
+                        comment = "Assumed thickness for screen space tracing."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "屏幕空间追踪厚度"
+                        comment = "屏幕空间追踪的假定厚度。"
                     }
                 }
+                empty()
                 toggle("SPATIAL_REUSE", true) {
                     lang {
                         name = "Spatial Reuse"
@@ -663,6 +669,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "空间重用反馈阈值"
                         comment = "当样本数量低于此阈值时，重用上一帧的空间重用样本。"
+                    }
+                }
+                empty()
+                toggle("SETTING_GI_USE_REFERENCE", false) {
+                    lang {
+                        name = "Monte Carlo Reference"
                     }
                 }
             }

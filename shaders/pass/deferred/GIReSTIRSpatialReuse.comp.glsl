@@ -274,7 +274,7 @@ void main() {
                 resultReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
                 ssgiOut = vec4(selectedSampleF.xyz * resultReservoir.avgWY, resultReservoir.Y.w);
                 if (any(notEqual(selectedSampleF, originalSample))) {
-                    SSTResult sstResult = sst_trace(viewPos, spatialReservoir.Y.xyz, 0.5);
+                    SSTResult sstResult = sst_trace(viewPos, spatialReservoir.Y.xyz, SETTING_GI_SST_THICKNESS);
 
                     if (sstResult.hit) {
                         vec2 actualHitTexelPosF = floor(sstResult.hitScreenPos.xy * uval_mainImageSize);

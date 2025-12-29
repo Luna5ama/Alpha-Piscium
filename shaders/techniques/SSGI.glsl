@@ -151,7 +151,7 @@ vec3 sampleIrradianceMiss(vec3 worldDirection) {
 vec4 ssgiEvalF2(ivec2 texelPos, vec3 viewPos, vec3 sampleDirView) {
     vec4 result = vec4(0.0, 0.0, 0.0, -1.0);
 
-    SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.5);
+    SSTResult sstResult = sst_trace(viewPos, sampleDirView, SETTING_GI_SST_THICKNESS);
 
     if (sstResult.hit) {
         vec2 hitTexelPosF = floor(sstResult.hitScreenPos.xy * uval_mainImageSize);
@@ -175,7 +175,7 @@ vec3 ssgiEvalF(ivec2 texelPos, vec3 viewPos, GBufferData gData, vec3 sampleDirVi
     hitDistance = -1.0;
     vec3 result = vec3(0.0);
 
-    SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.5);
+    SSTResult sstResult = sst_trace(viewPos, sampleDirView, SETTING_GI_SST_THICKNESS);
 
     if (sstResult.hit) {
         vec2 hitTexelPosF = floor(sstResult.hitScreenPos.xy * uval_mainImageSize);
@@ -221,7 +221,7 @@ vec4 ssgiRef(ivec2 texelPos, uint finalIndex) {
         vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
         vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
-        SSTResult sstResult = sst_trace(viewPos, sampleDirView, 0.5);
+        SSTResult sstResult = sst_trace(viewPos, sampleDirView, SETTING_GI_SST_THICKNESS);
         float samplePdf = sampleDirTangentAndPdf.w;
 
 
