@@ -73,18 +73,23 @@ void main() {
         const float MAX_EXP = SETTING_EXPOSURE_MAX_EV;
         const float FRAME_TIME_60FPS_SECS = 1.0 / 60.0;
 
+        const int INIT_FRAMES = 32;
+        float initFadeFactor = linearStep(1.0, float(INIT_FRAMES), float(min(frameCounter, INIT_FRAMES)));
+
         const float MIN_LUM_TARGET = SETTING_EXPOSURE_AVG_LUM_MIN_TARGET / 255.0;
         const float MAX_LUM_TARGET = SETTING_EXPOSURE_AVG_LUM_MAX_TARGET / 255.0;
         float expCurveValue = pow(linearStep(MIN_EXP, MAX_EXP, expLast.z), exp2(SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE));
         float lumTarget = mix(MAX_LUM_TARGET, MIN_LUM_TARGET, expCurveValue);
         expNew.x = log2(lumTarget / averageLuminance);
-        expNew.x = (1.0 / (1.0 + exp(pow3(-0.5 * expNew.x)))) * 4.0 - 2.0;
+        float avgDelta = 2.0;
+        expNew.x = (1.0 / (1.0 + exp(pow3(-0.5 * expNew.x)))) * avgDelta * 2.0 - avgDelta;
 
         // Keep top SETTING_EXPOSURE_TOP_PERCENT % of pixels in the top bin
         vec2 hsPercents = vec2(SETTING_EXPOSURE_H_PERCENT, SETTING_EXPOSURE_S_PERCENT) * (totalWeight * 0.01);
         global_aeData.hsPercents = vec2(highlightCount, shadowCount) / totalWeight;
 
         vec2 timeFactor = exp2(-vec2(SETTING_EXPOSURE_AVG_LUM_TIME, SETTING_EXPOSURE_HS_TIME) + log2(min(frameTime / FRAME_TIME_60FPS_SECS, 1.0)));
+        timeFactor = pow(timeFactor, vec2(max(1e-16, initFadeFactor)));
 
         // x: shadow, y: highlight
         vec2 hsExps = log2(vec2(shadowCount, hsPercents.x) / vec2(hsPercents.y, highlightCount));
@@ -100,10 +105,11 @@ void main() {
         expNew.xy = mix(expLast.xy, expNew.xy, timeFactor.xy);
         expNew.x = clamp(expNew.x, MIN_EXP, MAX_EXP);
 
-        const float AE_TOTAL_WEIGHT = SETTING_EXPOSURE_AVG_LUM_MIX + SETTING_EXPOSURE_HS_MIX;
-        expNew.z = expNew.x * SETTING_EXPOSURE_AVG_LUM_MIX;
-        expNew.z += expNew.y * SETTING_EXPOSURE_HS_MIX;
-        expNew.z /= AE_TOTAL_WEIGHT;
+        float avgLumMix = SETTING_EXPOSURE_AVG_LUM_MIX + 1e-16;
+        float hsMix = SETTING_EXPOSURE_HS_MIX * initFadeFactor + 1e-16;
+        expNew.z = expNew.x * avgLumMix;
+        expNew.z += expNew.y * hsMix;
+        expNew.z /= (avgLumMix + hsMix);
         expNew.z = mix(expLast.z, expNew.z, (timeFactor.x + timeFactor.y) / 2.0);
 
         global_aeData.expValues = expNew;
