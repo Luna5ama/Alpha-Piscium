@@ -3,6 +3,8 @@
 #include "/techniques/gi/Common.glsl"
 #include "/util/GBufferData.glsl"
 #include "/techniques/HiZCheck.glsl"
+#include "/util/Rand.glsl"
+#include "/util/Dither.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -69,6 +71,12 @@ void main() {
                     newHitDistance = min(newHitDistance, MAX_HIT_DISTANCE);
                     historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, fastAlpha);
                 }
+
+                float ditherNoise = rand_stbnVec1(texelPos, frameCounter);
+                historyData.diffuseColor = dither_fp16(historyData.diffuseColor, ditherNoise);
+                historyData.specularColor = dither_fp16(historyData.specularColor, ditherNoise);
+                historyData.diffuseFastColor = dither_fp16(historyData.diffuseFastColor, ditherNoise);
+                historyData.specularFastColor = dither_fp16(historyData.specularFastColor, ditherNoise);
             }
 
             transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));

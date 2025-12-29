@@ -215,14 +215,16 @@ void main() {
                     specMoment2 /= 25.0;
 
                     vec3 diffClamped = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2, clampingThreshold);
-                    diffClamped = mix(historyData.diffuseColor, diffClamped, historyFixMix);
                     vec3 diffDiff = abs(diffClamped - historyData.diffuseColor);
                     float diffDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffDiff);
+                    diffClamped = mix(historyData.diffuseColor, diffClamped, historyFixMix);
+                    historyData.diffuseColor = diffClamped;
 
                     vec3 specClamped = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2, clampingThreshold);
-                    specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
                     vec3 specDiff = abs(specClamped - historyData.specularColor);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
+                    specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
+                    historyData.specularColor = specClamped;
 
                     vec2 diffLuma2 = vec2(diffDiffLuma, specDiffLuma);
                     denoiserBlurVariance += diffLuma2 * localLumaRcp;
@@ -232,9 +234,6 @@ void main() {
                     float resetFactor = resetFactor2.x * resetFactor2.y;
                     historyData.historyLength *= resetFactor;
                     historyData.realHistoryLength *= sqrt(resetFactor);
-
-                    historyData.diffuseColor = diffClamped;
-                    historyData.specularColor = specClamped;
                 }
                 #endif
 

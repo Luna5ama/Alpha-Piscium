@@ -20,7 +20,7 @@ void main() {
             // Y: variance heuristic radius scale
             // Z: min radius
             // W: max radius
-            const vec4 baseKernelRadius = vec4(32.0, 16.0, 2.0, 32.0);
+            const vec4 baseKernelRadius = vec4(32.0, 16.0, 4.0, 32.0);
             vec2 noise2 = rand_stbnVec2(texelPos, frameCounter);
             gi_blur(texelPos, baseKernelRadius, noise2);
         }
