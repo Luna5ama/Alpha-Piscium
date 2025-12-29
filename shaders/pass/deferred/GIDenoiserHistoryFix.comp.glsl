@@ -114,8 +114,8 @@ void main() {
                     vec4 mipSpec = transient_gi_specMip_sample(screenPosMipTile);
 
                     #if DENOISER_HISTORY_FIX
-                    ivec4 mipTileMin = global_mipmapTiles[1][mip];
-                    ivec4 mipTileMax = global_mipmapTiles[0][mip];
+                    ivec4 mipTileMin = global_hizTiles[1][mip];
+                    ivec4 mipTileMax = global_hizTiles[0][mip];
                     vec2 hiZMinReadPos = mipTileMin.xy + ivec2(texelPosMip);
                     vec2 hiZMaxReadPos = mipTileMax.xy + ivec2(texelPosMip);
                     float hiZMin = texelFetch(usam_hiz, ivec2(hiZMinReadPos), 0).r;

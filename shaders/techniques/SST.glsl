@@ -63,8 +63,8 @@ void sst_init() {
             shared_maxMipLevel = maxMip;
         }
         uint mipLevel = min(gl_LocalInvocationIndex, maxMip);
-        ivec4 mipTileMin = global_mipmapTiles[0][mipLevel];
-        ivec4 mipTileMax = global_mipmapTiles[1][mipLevel];
+        ivec4 mipTileMin = global_hizTiles[0][mipLevel];
+        ivec4 mipTileMax = global_hizTiles[1][mipLevel];
         shared_mipmapTilesOffsets[mipLevel] = ivec4(mipTileMin.xy, mipTileMax.xy);
 
         int mipLevelI = int(mipLevel);

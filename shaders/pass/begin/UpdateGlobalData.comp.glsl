@@ -160,18 +160,9 @@ void main() {
             if (i == 0) {
                 global_mipmapSizePrefixesPadded[i] = mipSize + 1;
                 global_mipmapSizePrefixes[i] = mipSize;
-                ivec4 mipTile1 = ivec4(ivec2(0), mipSize);
-                global_mipmapTiles[0][i] = mipTile1;
-                global_mipmapTiles[1][i] = mipTile1;
             } else {
                 global_mipmapSizePrefixesPadded[i] = global_mipmapSizePrefixesPadded[i - 1] + mipSize + 1;
                 global_mipmapSizePrefixes[i] = global_mipmapSizePrefixes[i - 1] + mipSize;
-                ivec2 mipTileOffset = ivec2(global_mipmapSizePrefixesPadded[i - 1].x - (mainImageSize.x + 1), mainImageSize.y + 1);
-                ivec4 mipTile1 = ivec4(mipTileOffset, mipSize);
-                ivec4 mipTile2 = mipTile1;
-                mipTile2.y += global_mipmapSizesI[1].y + 1;
-                global_mipmapTiles[0][i] = mipTile1;
-                global_mipmapTiles[1][i] = mipTile2;
             }
         }
 
@@ -230,6 +221,8 @@ void main() {
         ivec4 mipTileCeil1 = ivec4(0, 0, ivec2(ceil(uval_mainImageSize / 2.0)));
         global_mipmapTileCeil[0] = mipTileCeil0;
         global_mipmapTileCeilPadded[0] = mipTileCeil0;
+        global_hizTiles[0][0] = mipTileCeil0;
+        global_hizTiles[1][0] = mipTileCeil0;
 
         global_mipmapTileCeil[1] = mipTileCeil1;
 
@@ -256,6 +249,18 @@ void main() {
             }
             global_mipmapTileCeil[i] = mipTile;
             global_mipmapTileCeilPadded[i] = mipTilePadded;
+        }
+
+        for (uint i = 1u; i < 16u; i++) {
+            ivec4 mipTile = global_mipmapTileCeil[i];
+            ivec4 mipTile1 = mipTile;
+            mipTile1.y += uval_mainImageSizeI.y;
+            global_hizTiles[0][i] = mipTile1;
+
+            ivec4 mipTile2 = mipTile1;
+            mipTile2.xy = uval_mainImageSizeI - mipTile2.xy - mipTile2.zw;
+            mipTile2.y += uval_mainImageSizeI.y * 2;
+            global_hizTiles[1][i] = mipTile2;
         }
     }
 }

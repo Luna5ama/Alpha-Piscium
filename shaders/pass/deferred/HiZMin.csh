@@ -15,26 +15,14 @@ float spd_loadInput(ivec2 texelPos, uint slice) {
     return revZ;
 }
 float spd_loadOutput(ivec2 texelPos, uint level, uint slice) {
-    ivec4 mipTile = global_mipmapTiles[1][level];
+    ivec4 mipTile = global_hizTiles[1][level];
     ivec2 readPos = mipTile.xy + clamp(texelPos, ivec2(0), mipTile.zw - 1);
     return imageLoad(uimg_hiz, readPos).r;
 }
 void spd_storeOutput(ivec2 texelPos, uint level, uint slice, float value) {
-    ivec4 mipTile = global_mipmapTiles[1][level];
+    ivec4 mipTile = global_hizTiles[1][level];
     ivec2 storePos = mipTile.xy + texelPos;
-    ivec2 offsetTexelPos = texelPos + 1;
-    if (all(lessThanEqual(offsetTexelPos, mipTile.zw))) {
-        if (offsetTexelPos.x == mipTile.z) {
-            imageStore(uimg_hiz, storePos + ivec2(1, 0), vec4(value));
-        }
-        if (offsetTexelPos.y == mipTile.w) {
-            imageStore(uimg_hiz, storePos + ivec2(0, 1), vec4(value));
-        }
-        if (all(equal(offsetTexelPos, mipTile.zw))) {
-            imageStore(uimg_hiz, storePos + ivec2(1, 1), vec4(value));
-        }
-    }
-    if (all(lessThanEqual(texelPos, mipTile.zw))) {
+    if (all(lessThan(texelPos, mipTile.zw))) {
         imageStore(uimg_hiz, storePos, vec4(value));
     }
 }
