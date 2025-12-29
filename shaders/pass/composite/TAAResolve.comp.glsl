@@ -81,6 +81,7 @@ void main() {
             tapData
         );
         prevColor = saturate(prevResult.rgb);
+        lastFrameAccum = prevResult.a;
     }
     float newFrameAccum = lastFrameAccum + 1.0;
 
