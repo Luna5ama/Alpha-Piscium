@@ -243,8 +243,8 @@ void main() {
 
 //                imageStore(uimg_temp3, texelPos, denoiserBlurVariance.xxxx);
 
-                transient_gi_blurDiff1_store(texelPos, diffInput);
-                transient_gi_blurSpec1_store(texelPos, specInput);
+                transient_gi_blurDiff2_store(texelPos, diffInput);
+                transient_gi_blurSpec2_store(texelPos, specInput);
             }
         }
     }

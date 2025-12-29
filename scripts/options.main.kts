@@ -727,16 +727,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                toggle("SETTING_DENOISER_ANTI_FIREFLY", false) {
-                    lang {
-                        name = "Firefly Suppression"
-                        comment = "Reduces bright noise artifacts (fireflies) in the GI results."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "亮点抑制"
-                        comment = "减少GI结果中的高亮噪点。"
-                    }
-                }
                 toggle("SETTING_DENOISER_HISTORY_FIX", true) {
                     lang {
                         name = "Disocclusion Fix"
