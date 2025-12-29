@@ -12,6 +12,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
+layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform restrict image2D uimg_temp3;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
@@ -61,13 +62,6 @@ void main() {
 
                     if (reprojInfo.historyResetFactor > 0.0) {
                         vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
-                        //                    {
-                        //                        vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(viewPos, 1.0), gData.isHand);
-                        //                        vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
-                        //                        vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
-                        //                        vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
-                        //                        curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
-                        //                    }
                         vec2 centerPixel = curr2PrevTexelPos - 0.5;
                         vec2 gatherOrigin = floor(centerPixel);
                         vec2 gatherTexelPos = gatherOrigin + 1.0;
@@ -92,7 +86,7 @@ void main() {
                         //                    imageStore(uimg_temp3, texelPos, vec4(reprojInfo.bilateralWeights));
 
                         ReSTIRReservoir prevTemporalReservoir = restir_reservoir_unpack(history_restir_reservoirTemporal_load(prevTexelPos));
-                        prevTemporalReservoir.m = uint(float(prevTemporalReservoir.m) * global_historyResetFactor * reprojInfo.historyResetFactor);
+                        prevTemporalReservoir.m = uint(ceil(float(prevTemporalReservoir.m) * global_historyResetFactor * reprojInfo.historyResetFactor));
                         if (restir_isReservoirValid(prevTemporalReservoir)) {
                             if (prevTemporalReservoir.Y.w > 0.0) {
                                 vec2 prevScreenPos = coords_texelToUV(prevTexelPos, uval_mainImageSizeRcp);
