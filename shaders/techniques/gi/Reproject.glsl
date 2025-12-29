@@ -87,7 +87,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             float planeDistance3 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos3, geomViewNormal3);
             float planeDistance4 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos4, geomViewNormal4);
 
-            float planeDistanceThreshold = exp2(mix(-8.0, -10.0, glazingAngleFactor)) * max(4.0, pow2(currViewZ));
+            float planeDistanceThreshold = exp2(mix(-8.0, -10.0, glazingAngleFactor)) * max(8.0, pow2(currViewZ));
 
             float geomViewNormalDot1 = dot(curr2PrevViewGeomNormal, geomViewNormal1);
             float geomViewNormalDot2 = dot(curr2PrevViewGeomNormal, geomViewNormal2);
