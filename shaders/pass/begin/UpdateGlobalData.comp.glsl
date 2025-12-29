@@ -1,6 +1,5 @@
 #define GLOBAL_DATA_MODIFIER buffer
 
-#include "/techniques/gtvbgi/Common.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Mat4.glsl"
@@ -109,8 +108,6 @@ void main() {
         global_taaJitter = jitter;
         mat4 taaMat = taaJitterMat(jitter);
         global_taaJitterMat = taaMat;
-
-        global_frameMortonJitter = morton_8bDecode(vbgi_downSampleInputMortonIndex());
 
         global_prevCamProj = global_camProj;
         global_prevCamProjInverse = global_camProjInverse;

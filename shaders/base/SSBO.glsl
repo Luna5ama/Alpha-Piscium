@@ -59,7 +59,6 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     ivec4 global_mipmapTiles[2][16];
     ivec4 global_mipmapTileCeil[16];
     ivec4 global_mipmapTileCeilPadded[16];
-    uvec2 global_frameMortonJitter;
     ivec3 global_shadowAABBMinPrev;
     ivec3 global_shadowAABBMaxPrev;
     ivec3 global_shadowAABBMin;

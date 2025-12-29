@@ -8,11 +8,9 @@
 #include "/techniques/EnvProbe.glsl"
 #include "/techniques/atmospherics/air/Common.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
-#include "/techniques/svgf/Common.glsl"
 #include "/techniques/rtwsm/RTWSM.glsl"
 #include "/techniques/atmospherics/clouds/ss/Common.glsl"
 #include "/techniques/gi/Common.glsl"
-#include "/techniques/gtvbgi/Common.glsl"
 
 uniform sampler2D usam_debug;
 
@@ -188,27 +186,27 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     outputColor.rgb = vec3(float(gData.isHand));
     #endif
 
-    #if SETTING_DEBUG_DENOISER != 0
-//    uvec4 svgfData = texelFetch(usam_csrgba32ui, texelPos, 0);
-    vec3 svgfColor;
-    vec3 svgfFastColor;
-    vec2 svgfMoments;
-    float svgfHLen;
-    svgf_unpack(svgfData, svgfColor, svgfFastColor, svgfMoments, svgfHLen);
-    #if SETTING_DEBUG_DENOISER == 1
-    outputColor.rgb = expGamma(svgfColor);
-    #elif SETTING_DEBUG_DENOISER == 2
-    outputColor.rgb = expGamma(svgfFastColor);
-    #elif SETTING_DEBUG_DENOISER == 3
-    outputColor.rgb = interpolateTurbo(1.0 - (svgfHLen - 2.0) / (SETTING_DENOISER_MAX_ACCUM - 2.0));
-    #elif SETTING_DEBUG_DENOISER == 4
-    outputColor.rgb = svgfMoments.xxx;
-    #elif SETTING_DEBUG_DENOISER == 5
-    outputColor.rgb = svgfMoments.yyy;
-    #elif SETTING_DEBUG_DENOISER == 6
-    outputColor.rgb = vec3(max(svgfMoments.g - svgfMoments.r * svgfMoments.r, 0.0));
-    #endif
-    #endif
+//    #if SETTING_DEBUG_DENOISER != 0
+////    uvec4 svgfData = texelFetch(usam_csrgba32ui, texelPos, 0);
+//    vec3 svgfColor;
+//    vec3 svgfFastColor;
+//    vec2 svgfMoments;
+//    float svgfHLen;
+//    svgf_unpack(svgfData, svgfColor, svgfFastColor, svgfMoments, svgfHLen);
+//    #if SETTING_DEBUG_DENOISER == 1
+//    outputColor.rgb = expGamma(svgfColor);
+//    #elif SETTING_DEBUG_DENOISER == 2
+//    outputColor.rgb = expGamma(svgfFastColor);
+//    #elif SETTING_DEBUG_DENOISER == 3
+//    outputColor.rgb = interpolateTurbo(1.0 - (svgfHLen - 2.0) / (SETTING_DENOISER_MAX_ACCUM - 2.0));
+//    #elif SETTING_DEBUG_DENOISER == 4
+//    outputColor.rgb = svgfMoments.xxx;
+//    #elif SETTING_DEBUG_DENOISER == 5
+//    outputColor.rgb = svgfMoments.yyy;
+//    #elif SETTING_DEBUG_DENOISER == 6
+//    outputColor.rgb = vec3(max(svgfMoments.g - svgfMoments.r * svgfMoments.r, 0.0));
+//    #endif
+//    #endif
 
     #if SETTING_DEBUG_GI_INPUTS != 0
     // TODO: Update for new GI system

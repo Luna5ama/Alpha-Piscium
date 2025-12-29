@@ -20,9 +20,6 @@
 #define usam_overlays colortex6
 #define uimg_overlays colorimg6
 
-#define usam_geometryNormal colortex7
-#define uimg_geometryNormal colorimg7
-
 #define usam_gbufferData1 colortex8
 #define uimg_gbufferData1 colorimg8
 
@@ -37,15 +34,6 @@
 
 #define usam_translucentData colortex12
 #define uimg_translucentData colorimg12
-
-#define usam_tempRG32UI colortex13
-#define uimg_tempRG32UI colorimg13
-
-#define usam_packedZN colortex14
-#define uimg_packedZN colorimg14
-
-#define usam_taaLast colortex15
-#define uimg_taaLast colorimg15
 
 #define usam_shadow_unwarpedUV shadowcolor3
 #define uimg_shadow_unwarpedUV shadowcolorimg3
@@ -74,9 +62,6 @@ uniform usampler2D usam_gbufferData2;
 uniform sampler2D usam_gbufferViewZ;
 uniform sampler2D usam_translucentColor;
 uniform sampler2D usam_translucentData;
-uniform usampler2D usam_tempRG32UI;
-uniform usampler2D usam_packedZN;
-uniform sampler2D usam_taaLast;
 
 // -------------------------------------------------- Shadow Samplers --------------------------------------------------
 uniform sampler2D shadowtex0;

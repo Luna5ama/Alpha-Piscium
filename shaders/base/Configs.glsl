@@ -15,15 +15,11 @@ const int colortex3Format = RGBA16F; // Temp3
 const int colortex4Format = RGBA8; // Temp4
 const int colortex5Format = RGBA8; // Temp5
 const int colortex6Format = RGBA8; // Temp6
-const int colortex7Format = R32UI; // Geometry Normal
 const int colortex8Format = RGBA32UI; // GBuffer Data 32UI
 const int colortex9Format = R32UI; // GBuffer Data 8UN
 const int colortex10Format = R32F; // GBuffer ViewZ
-const int colortexdFormat = RGB10_A2; // Translucent Color
+const int colortex11Format = RGB10_A2; // Translucent Color
 const int colortex12Format = RGBA16F; // Translucent Data
-const int colortex13Format = RG32UI; // tempR32UI
-const int colortex14Format = RG32UI; // packedZN
-const int colortex15Format = RGBA16F; // TAA Last
 
 const int shadowcolor0Format = R16F; // Depth offset
 const int shadowcolor1Format = RGBA8_SNORM; // Normal
