@@ -15,346 +15,370 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
             lang(Locale.SIMPLIFIED_CHINESE) {
                 name = "地形"
             }
-            screen(1) {
-                lang {
-                    name = "Block Lighting"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "方块光照"
-                }
-                slider("SETTING_FIRE_TEMPERATURE", 1400, 100..5000 step 100) {
+            row {
+                screen(1) {
                     lang {
-                        name = "Fire Temperature"
-                        comment =
-                            "Controls the color temperature of fire in Kelvin. Default: 1400 K (based on real fire). Higher values produce whiter/bluer light."
+                        name = "Block Lighting"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "火焰温度"
-                        comment = "控制火焰的色温（开尔文）。默认值：1400 K（基于真实火焰）。数值越高，光线越白/越蓝。"
+                        name = "方块光照"
+                    }
+                    slider("SETTING_FIRE_TEMPERATURE", 1400, 100..5000 step 100) {
+                        lang {
+                            name = "Fire Temperature"
+                            comment =
+                                "Controls the color temperature of fire in Kelvin. Default: 1400 K (based on real fire). Higher values produce whiter/bluer light."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "火焰温度"
+                            comment = "控制火焰的色温（开尔文）。默认值：1400 K（基于真实火焰）。数值越高，光线越白/越蓝。"
+                        }
+                    }
+                    slider("SETTING_LAVA_TEMPERATURE", 1300, 100..5000 step 100) {
+                        lang {
+                            name = "Lava Temperature"
+                            comment =
+                                "Controls the color temperature of lava in Kelvin. Default: 1300 K (based on real lava). Higher values produce whiter/bluer light."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "岩浆温度"
+                            comment = "控制岩浆的色温（开尔文）。默认值：1300 K（基于真实岩浆）。数值越高，光线越白/越蓝。"
+                        }
+                    }
+                    slider("SETTING_EMISSIVE_STRENGTH", 4.0, 0.0..8.0 step 0.25) {
+                        lang {
+                            name = "Emissive Brightness"
+                            comment = "Global brightness multiplier for all light-emitting materials and blocks."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "自发光亮度"
+                            comment = "所有发光材质和方块的全局亮度倍数。"
+                        }
+                    }
+                    slider("SETTING_PARTICLE_EMISSIVE_STRENGTH", 0.0, 0.0..1.0 step 0.1) {
+                        lang {
+                            name = "Particle Emissive Intensity"
+                            comment = "Brightness multiplier for glowing particles like torches and fires."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "粒子自发光强度"
+                            comment = "发光粒子（如火把和火焰）的亮度倍数。"
+                        }
+                    }
+                    slider("SETTING_ENTITY_EMISSIVE_STRENGTH", 0.2, 0.0..1.0 step 0.1) {
+                        lang {
+                            name = "Entity Emissive Intensity"
+                            comment = "Brightness multiplier for glowing entities."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "实体自发光强度"
+                            comment = "实体发光的亮度倍数。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_EMISSIVE_PBR_VALUE_CURVE", 0.9, 0.1..4.0 step 0.05) {
+                        lang {
+                            name = "PBR Resource Pack Emissive Contrast"
+                            comment =
+                                "Adjusts contrast of emissive values from PBR resource packs. Higher values create stronger differences between bright and dim areas."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "PBR资源包自发光对比度"
+                            comment = "调整PBR资源包自发光值的对比度。数值越高，明暗区域的差异越大。"
+                        }
+                    }
+                    slider("SETTING_EMISSIVE_ALBEDO_COLOR_CURVE", 2.0, 0.1..4.0 step 0.05) {
+                        lang {
+                            name = "Emissive Color Saturation"
+                            comment =
+                                "Controls color intensity of emissive materials. Higher values produce more vibrant, saturated colors."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "自发光颜色饱和度"
+                            comment = "控制自发光材质的颜色强度。数值越高，颜色越鲜艳饱和。"
+                        }
+                    }
+                    slider("SETTING_EMISSIVE_ALBEDO_LUM_CURVE", 0.5, 0.0..4.0 step 0.05) {
+                        lang {
+                            name = "Color Texture-Based Emission Strength"
+                            comment =
+                                "Controls how much the base texture brightness affects emission. Higher values make brighter textures glow more intensely."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "基于颜色纹理的发光强度"
+                            comment = "控制基础纹理亮度对发光的影响程度。数值越高，较亮的纹理发光越强烈。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_EMISSIVE_ARMOR_GLINT_MULT", -10, -20..0 step 1) {
+                        lang {
+                            name = "Enchanted Armor Glow"
+                            prefix = "2^"
+                            comment = "Brightness of the enchanted armor glint effect. The actual multiplier is 2^x."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "附魔盔甲光效"
+                            prefix = "2^"
+                            comment = "附魔盔甲光效的亮度。实际倍数为 2^x。"
+                        }
+                    }
+                    slider("SETTING_EMISSIVE_ARMOR_GLINT_CURVE", 1.3, 0.1..2.0 step 0.1) {
+                        lang {
+                            name = "Enchanted Armor Glow Contrast"
+                            comment =
+                                "Adjusts contrast of enchanted armor glint. Higher values make the brightest parts more prominent."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "附魔盔甲光效对比度"
+                            comment = "调整附魔盔甲光效的对比度。数值越高，最亮的部分越突出。"
+                        }
                     }
                 }
-                slider("SETTING_LAVA_TEMPERATURE", 1300, 100..5000 step 100) {
-                    lang {
-                        name = "Lava Temperature"
-                        comment =
-                            "Controls the color temperature of lava in Kelvin. Default: 1300 K (based on real lava). Higher values produce whiter/bluer light."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "岩浆温度"
-                        comment = "控制岩浆的色温（开尔文）。默认值：1300 K（基于真实岩浆）。数值越高，光线越白/越蓝。"
-                    }
-                }
-                slider("SETTING_EMISSIVE_STRENGTH", 4.0, 0.0..8.0 step 0.25) {
-                    lang {
-                        name = "Emissive Brightness"
-                        comment = "Global brightness multiplier for all light-emitting materials and blocks."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "自发光亮度"
-                        comment = "所有发光材质和方块的全局亮度倍数。"
-                    }
-                }
-                slider("SETTING_PARTICLE_EMISSIVE_STRENGTH", 0.0, 0.0..1.0 step 0.1) {
-                    lang {
-                        name = "Particle Emissive Intensity"
-                        comment = "Brightness multiplier for glowing particles like torches and fires."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "粒子自发光强度"
-                        comment = "发光粒子（如火把和火焰）的亮度倍数。"
-                    }
-                }
-                slider("SETTING_ENTITY_EMISSIVE_STRENGTH", 0.2, 0.0..1.0 step 0.1) {
-                    lang {
-                        name = "Entity Emissive Intensity"
-                        comment = "Brightness multiplier for glowing entities."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "实体自发光强度"
-                        comment = "实体发光的亮度倍数。"
-                    }
-                }
-                empty()
-                slider("SETTING_EMISSIVE_PBR_VALUE_CURVE", 0.9, 0.1..4.0 step 0.05) {
-                    lang {
-                        name = "PBR Resource Pack Emissive Contrast"
-                        comment =
-                            "Adjusts contrast of emissive values from PBR resource packs. Higher values create stronger differences between bright and dim areas."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "PBR资源包自发光对比度"
-                        comment = "调整PBR资源包自发光值的对比度。数值越高，明暗区域的差异越大。"
-                    }
-                }
-                slider("SETTING_EMISSIVE_ALBEDO_COLOR_CURVE", 2.0, 0.1..4.0 step 0.05) {
-                    lang {
-                        name = "Emissive Color Saturation"
-                        comment =
-                            "Controls color intensity of emissive materials. Higher values produce more vibrant, saturated colors."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "自发光颜色饱和度"
-                        comment = "控制自发光材质的颜色强度。数值越高，颜色越鲜艳饱和。"
-                    }
-                }
-                slider("SETTING_EMISSIVE_ALBEDO_LUM_CURVE", 0.5, 0.0..4.0 step 0.05) {
-                    lang {
-                        name = "Color Texture-Based Emission Strength"
-                        comment =
-                            "Controls how much the base texture brightness affects emission. Higher values make brighter textures glow more intensely."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "基于颜色纹理的发光强度"
-                        comment = "控制基础纹理亮度对发光的影响程度。数值越高，较亮的纹理发光越强烈。"
-                    }
-                }
-                empty()
-                slider("SETTING_EMISSIVE_ARMOR_GLINT_MULT", -10, -20..0 step 1) {
-                    lang {
-                        name = "Enchanted Armor Glow"
-                        prefix = "2^"
-                        comment = "Brightness of the enchanted armor glint effect. The actual multiplier is 2^x."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "附魔盔甲光效"
-                        prefix = "2^"
-                        comment = "附魔盔甲光效的亮度。实际倍数为 2^x。"
-                    }
-                }
-                slider("SETTING_EMISSIVE_ARMOR_GLINT_CURVE", 1.3, 0.1..2.0 step 0.1) {
-                    lang {
-                        name = "Enchanted Armor Glow Contrast"
-                        comment =
-                            "Adjusts contrast of enchanted armor glint. Higher values make the brightest parts more prominent."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "附魔盔甲光效对比度"
-                        comment = "调整附魔盔甲光效的对比度。数值越高，最亮的部分越突出。"
-                    }
-                }
-            }
-            screen(1) {
-                lang {
-                    name = "Normal Mapping"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "法线贴图"
-                }
-                toggle("SETTING_NORMAL_MAPPING", true) {
+                screen(1) {
                     lang {
                         name = "Normal Mapping"
-                        comment =
-                            "Enables surface detail from normal maps, adding depth and texture to blocks without additional geometry."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用法线贴图"
-                        comment = "启用法线贴图的表面细节，在不增加几何体的情况下为方块增加深度和纹理。"
+                        name = "法线贴图"
+                    }
+                    toggle("SETTING_NORMAL_MAPPING", true) {
+                        lang {
+                            name = "Normal Mapping"
+                            comment =
+                                "Enables surface detail from normal maps, adding depth and texture to blocks without additional geometry."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "启用法线贴图"
+                            comment = "启用法线贴图的表面细节，在不增加几何体的情况下为方块增加深度和纹理。"
+                        }
+                    }
+                    slider("SETTING_NORMAL_MAPPING_STRENGTH", 0.0, -5.0..5.0 step 0.5) {
+                        lang {
+                            name = "Normal Mapping Strength"
+                            prefix = "2^"
+                            comment =
+                                "Controls the intensity of surface detail effects. Higher values increase depth perception. The actual strength is 2^x."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "法线贴图强度"
+                            prefix = "2^"
+                            comment = "控制表面细节效果的强度。数值越高，深度感越强。实际强度为 2^x。"
+                        }
                     }
                 }
-                slider("SETTING_NORMAL_MAPPING_STRENGTH", 0.0, -5.0..5.0 step 0.5) {
+                screen(1) {
                     lang {
-                        name = "Normal Mapping Strength"
-                        prefix = "2^"
-                        comment =
-                            "Controls the intensity of surface detail effects. Higher values increase depth perception. The actual strength is 2^x."
+                        name = "Specular Mapping"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "法线贴图强度"
-                        prefix = "2^"
-                        comment = "控制表面细节效果的强度。数值越高，深度感越强。实际强度为 2^x。"
+                        name = "高光贴图"
+                    }
+                    slider("SETTING_MINIMUM_F0", 12, 4..32) {
+                        lang {
+                            name = "Minimum Reflectivity (F0)"
+                            prefix = "2^-"
+                            comment =
+                                "Sets the reflectivity (F0) lower bound for all materials. Higher values make surfaces more reflective overall. The actual value is calculated as 2^-x."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "最小反射率 (F0)"
+                            prefix = "2^-"
+                            comment = "设置所有材质的反射率（F0）下限。数值越高，表面整体反射性越强。实际值计算为 2^-x。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_SOLID_MINIMUM_ROUGHNESS", 6, 4..16) {
+                        lang {
+                            name = "Minimum Solid Roughness"
+                            prefix = "2^-"
+                            comment =
+                                "The smoothest (most mirror-like) that solid blocks can appear. Higher values allow sharper reflections. The actual value is calculated as 2^-x."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "固体最小粗糙度"
+                            prefix = "2^-"
+                            comment = "固体方块可呈现的最光滑（最镜面）程度。数值越高，允许更锐利的反射。实际值计算为 2^-x。"
+                        }
+                    }
+                    slider("SETTING_SOLID_MAXIMUM_ROUGHNESS", 5, 2..16) {
+                        lang {
+                            name = "Maximum Solid Roughness"
+                            prefix = "1-2^-"
+                            comment =
+                                "The roughest (most diffuse) that solid blocks can appear. Higher values allow more matte surfaces. The actual value is calculated as 1-2^-x."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "固体最大粗糙度"
+                            prefix = "1-2^-"
+                            comment =
+                                "固体方块可呈现的最粗糙（最漫反射）程度。数值越高，允许更哑光的表面。实际值计算为 1-2^-x。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_WATER_ROUGHNESS", 9.0, 4.0..12.0 step 0.5) {
+                        lang {
+                            name = "Water Surface Roughness"
+                            prefix = "2^-"
+                            comment =
+                                "Controls how smooth and reflective water appears. Lower values create calmer, more mirror-like water. The actual value is calculated as 2^-x."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "水面粗糙度"
+                            prefix = "2^-"
+                            comment = "控制水面的光滑和反射程度。数值越小，水面越平静、越像镜面。实际值计算为 2^-x。"
+                        }
+                    }
+                    slider("SETTING_TRANSLUCENT_ROUGHNESS_REDUCTION", 1.0, 0.0..8.0 step 0.5) {
+                        lang {
+                            name = "Translucent Roughness Reduction"
+                            prefix = "2^-"
+                            comment =
+                                "Makes translucent blocks (such as glass) smoother than their resource pack values. Higher values create more mirror-like appearances. The actual value is calculated as 2^-x."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "半透明方块粗糙度降低"
+                            prefix = "2^-"
+                            comment = "使半透明方块（如玻璃）比资源包设定值更光滑。数值越高，越像镜面。实际值计算为 2^-x。"
+                        }
+                    }
+                    slider("SETTING_TRANSLUCENT_MINIMUM_ROUGHNESS", 10.0, 4.0..16.0 step 0.5) {
+                        lang {
+                            name = "Translucent Minimum Roughness"
+                            prefix = "2^-"
+                            comment =
+                                "The smoothest that translucent blocks (such as glass) can appear. Higher values allow sharper reflections on translucent. The actual value is calculated as 2^-x."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "半透明方块最小粗糙度"
+                            prefix = "2^-"
+                            comment =
+                                "半透明方块（如玻璃）可呈现的最光滑程度。数值越高，允许更锐利的反射。实际值计算为 2^-x。"
+                        }
+                    }
+                    slider("SETTING_TRANSLUCENT_MAXIMUM_ROUGHNESS", 5.0, 1.0..16.0 step 0.5) {
+                        lang {
+                            name = "Translucent Maximum Roughness"
+                            prefix = "2^-"
+                            comment =
+                                "The roughest that translucent blocks (such as glass) can appear. Higher values allow more frosted glass effects. The actual value is calculated as 2^-x."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "半透明方块最大粗糙度"
+                            prefix = "2^-"
+                            comment =
+                                "半透明方块（如玻璃）可呈现的最粗糙程度。数值越高，允许更磨砂的玻璃效果。实际值计算为 2^-x。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_MAXIMUM_SPECULAR_LUMINANCE", 65536, powerOfTwoRange(8..24)) {
+                        lang {
+                            name = "Maximum Specular Luminance"
+                            comment =
+                                "Limits how bright reflections and highlights can be (in 1000 cd/m²). Prevents overly intense glare from very smooth surfaces."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "最大高光亮度"
+                            comment = "限制反射和高光的最大亮度（单位：1000 cd/m²）。防止非常光滑表面产生过强的眩光。"
+                        }
+                    }
+                }
+                screen(1) {
+                    lang {
+                        name = "Subsurface Scattering"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "次表面散射"
+                    }
+                    slider("SETTING_SSS_STRENGTH", 1.2, 0.0..5.0 step 0.1) {
+                        lang {
+                            name = "Strength"
+                            comment =
+                                "Overall intensity of light passing through semi-transparent materials like leaves, creating a soft glow effect."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "强度"
+                            comment = "光线穿过半透明材质（如树叶）的整体强度，产生柔和的发光效果。"
+                        }
+                    }
+                    slider("SETTING_SSS_HIGHLIGHT", 0.8, 0.0..1.0 step 0.01) {
+                        lang {
+                            name = "Sheen"
+                            comment =
+                                "Intensity of the soft sheen highlight on materials with subsurface scattering, like leaves in sunlight."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "高光"
+                            comment = "具有次表面散射的材质（如阳光下的树叶）上柔和光泽高光的强度。"
+                        }
+                    }
+                    slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
+                        lang {
+                            name = "Scatter Factor"
+                            comment =
+                                "How much light scatters inside semi-transparent materials. Lower values create a stronger glow-through effect."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "散射因子"
+                            comment = "光线在半透明材质内散射的程度。数值越低，透光效果越强。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.3, 0.0..4.0 step 0.1) {
+                        lang {
+                            name = "Glow Spread"
+                            comment =
+                                "How far the glow effect spreads across the surface. Higher values create a more diffused, softer appearance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "漫反射范围"
+                            comment = "发光效果在表面上扩散的距离。数值越高，外观越扩散、越柔和。"
+                        }
+                    }
+                    slider("SETTING_SSS_DEPTH_RANGE", 0.6, 0.0..4.0 step 0.1) {
+                        lang {
+                            name = "Material Thickness"
+                            comment =
+                                "How deep light penetrates into the material. Higher values simulate thicker, more translucent materials."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "深度范围"
+                            comment = "光线渗透材质的深度。数值越高，模拟更厚、更半透明的材质。"
+                        }
+                    }
+                    slider("SETTING_SSS_MAX_DEPTH_RANGE", 0.9, 0.0..4.0 step 0.1) {
+                        lang {
+                            name = "Maximum Thickness"
+                            comment =
+                                "Upper limit for how thick materials can appear for light penetration calculations."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "最大深度范围"
+                            comment = "光线渗透计算中材质厚度的上限。"
+                        }
+                    }
+                }
+                screen(1) {
+                    lang {
+                        name = "Other Material Settings"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "其他材质设置"
+                    }
+                    slider("SETTING_TRANSLUCENT_ABSORPTION_SATURATION", 1.0, 0.0..4.0 step 0.5) {
+                        lang {
+                            name = "Translucent Absorption Saturation"
+                            comment = "Controls translucent block color absorption saturation. Higher values create more vivid color tinting."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "半透明吸收饱和度"
+                            comment = "控制半透明方块颜色吸收饱和度。数值越高，染色颜色越鲜艳。"
+                        }
                     }
                 }
             }
-            screen(1) {
-                lang {
-                    name = "Specular Mapping"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "高光贴图"
-                }
-                slider("SETTING_MINIMUM_F0", 12, 4..32) {
-                    lang {
-                        name = "Minimum Reflectivity (F0)"
-                        prefix = "2^-"
-                        comment =
-                            "Sets the reflectivity (F0) lower bound for all materials. Higher values make surfaces more reflective overall. The actual value is calculated as 2^-x."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "最小反射率 (F0)"
-                        prefix = "2^-"
-                        comment = "设置所有材质的反射率（F0）下限。数值越高，表面整体反射性越强。实际值计算为 2^-x。"
-                    }
-                }
+            row {
                 empty()
-                slider("SETTING_SOLID_MINIMUM_ROUGHNESS", 6, 4..16) {
-                    lang {
-                        name = "Minimum Solid Roughness"
-                        prefix = "2^-"
-                        comment =
-                            "The smoothest (most mirror-like) that solid blocks can appear. Higher values allow sharper reflections. The actual value is calculated as 2^-x."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "固体最小粗糙度"
-                        prefix = "2^-"
-                        comment = "固体方块可呈现的最光滑（最镜面）程度。数值越高，允许更锐利的反射。实际值计算为 2^-x。"
-                    }
-                }
-                slider("SETTING_SOLID_MAXIMUM_ROUGHNESS", 5, 2..16) {
-                    lang {
-                        name = "Maximum Solid Roughness"
-                        prefix = "1-2^-"
-                        comment =
-                            "The roughest (most diffuse) that solid blocks can appear. Higher values allow more matte surfaces. The actual value is calculated as 1-2^-x."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "固体最大粗糙度"
-                        prefix = "1-2^-"
-                        comment = "固体方块可呈现的最粗糙（最漫反射）程度。数值越高，允许更哑光的表面。实际值计算为 1-2^-x。"
-                    }
-                }
-                empty()
-                slider("SETTING_WATER_ROUGHNESS", 9.0, 4.0..12.0 step 0.5) {
-                    lang {
-                        name = "Water Surface Roughness"
-                        prefix = "2^-"
-                        comment =
-                            "Controls how smooth and reflective water appears. Lower values create calmer, more mirror-like water. The actual value is calculated as 2^-x."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "水面粗糙度"
-                        prefix = "2^-"
-                        comment = "控制水面的光滑和反射程度。数值越小，水面越平静、越像镜面。实际值计算为 2^-x。"
-                    }
-                }
-                slider("SETTING_TRANSLUCENT_ROUGHNESS_REDUCTION", 1.0, 0.0..8.0 step 0.5) {
-                    lang {
-                        name = "Translucent Roughness Reduction"
-                        prefix = "2^-"
-                        comment =
-                            "Makes translucent blocks (such as glass) smoother than their resource pack values. Higher values create more mirror-like appearances. The actual value is calculated as 2^-x."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "半透明方块粗糙度降低"
-                        prefix = "2^-"
-                        comment = "使半透明方块（如玻璃）比资源包设定值更光滑。数值越高，越像镜面。实际值计算为 2^-x。"
-                    }
-                }
-                slider("SETTING_TRANSLUCENT_MINIMUM_ROUGHNESS", 10.0, 4.0..16.0 step 0.5) {
-                    lang {
-                        name = "Translucent Minimum Roughness"
-                        prefix = "2^-"
-                        comment =
-                            "The smoothest that translucent blocks (such as glass) can appear. Higher values allow sharper reflections on translucent. The actual value is calculated as 2^-x."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "半透明方块最小粗糙度"
-                        prefix = "2^-"
-                        comment = "半透明方块（如玻璃）可呈现的最光滑程度。数值越高，允许更锐利的反射。实际值计算为 2^-x。"
-                    }
-                }
-                slider("SETTING_TRANSLUCENT_MAXIMUM_ROUGHNESS", 5.0, 1.0..16.0 step 0.5) {
-                    lang {
-                        name = "Translucent Maximum Roughness"
-                        prefix = "2^-"
-                        comment =
-                            "The roughest that translucent blocks (such as glass) can appear. Higher values allow more frosted glass effects. The actual value is calculated as 2^-x."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "半透明方块最大粗糙度"
-                        prefix = "2^-"
-                        comment =
-                            "半透明方块（如玻璃）可呈现的最粗糙程度。数值越高，允许更磨砂的玻璃效果。实际值计算为 2^-x。"
-                    }
-                }
-                empty()
-                slider("SETTING_MAXIMUM_SPECULAR_LUMINANCE", 65536, powerOfTwoRange(8..24)) {
-                    lang {
-                        name = "Maximum Specular Luminance"
-                        comment =
-                            "Limits how bright reflections and highlights can be (in 1000 cd/m²). Prevents overly intense glare from very smooth surfaces."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "最大高光亮度"
-                        comment = "限制反射和高光的最大亮度（单位：1000 cd/m²）。防止非常光滑表面产生过强的眩光。"
-                    }
-                }
             }
-            screen(1) {
-                lang {
-                    name = "Subsurface Scattering"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "次表面散射"
-                }
-                slider("SETTING_SSS_STRENGTH", 1.2, 0.0..5.0 step 0.1) {
-                    lang {
-                        name = "Strength"
-                        comment =
-                            "Overall intensity of light passing through semi-transparent materials like leaves, creating a soft glow effect."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "强度"
-                        comment = "光线穿过半透明材质（如树叶）的整体强度，产生柔和的发光效果。"
-                    }
-                }
-                slider("SETTING_SSS_HIGHLIGHT", 0.8, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Sheen"
-                        comment =
-                            "Intensity of the soft sheen highlight on materials with subsurface scattering, like leaves in sunlight."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光"
-                        comment = "具有次表面散射的材质（如阳光下的树叶）上柔和光泽高光的强度。"
-                    }
-                }
-                slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
-                    lang {
-                        name = "Scatter Factor"
-                        comment =
-                            "How much light scatters inside semi-transparent materials. Lower values create a stronger glow-through effect."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "散射因子"
-                        comment = "光线在半透明材质内散射的程度。数值越低，透光效果越强。"
-                    }
-                }
-                empty()
-                slider("SETTING_SSS_DIFFUSE_RANGE", 0.3, 0.0..4.0 step 0.1) {
-                    lang {
-                        name = "Glow Spread"
-                        comment =
-                            "How far the glow effect spreads across the surface. Higher values create a more diffused, softer appearance."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "漫反射范围"
-                        comment = "发光效果在表面上扩散的距离。数值越高，外观越扩散、越柔和。"
-                    }
-                }
-                slider("SETTING_SSS_DEPTH_RANGE", 0.6, 0.0..4.0 step 0.1) {
-                    lang {
-                        name = "Material Thickness"
-                        comment =
-                            "How deep light penetrates into the material. Higher values simulate thicker, more translucent materials."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "深度范围"
-                        comment = "光线渗透材质的深度。数值越高，模拟更厚、更半透明的材质。"
-                    }
-                }
-                slider("SETTING_SSS_MAX_DEPTH_RANGE", 0.9, 0.0..4.0 step 0.1) {
-                    lang {
-                        name = "Maximum Thickness"
-                        comment = "Upper limit for how thick materials can appear for light penetration calculations."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "最大深度范围"
-                        comment = "光线渗透计算中材质厚度的上限。"
-                    }
-                }
-            }
-            empty()
-            empty()
             screen(2) {
                 lang {
                     name = "Shadows"
@@ -2318,7 +2342,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", -4, -10..10) {
                     lang {
                         name = "Emissive Weighting"
-                        comment = "Weighting multiplier for emissive block pixels. Lower value = less influence. Higher value = more influence."
+                        comment =
+                            "Weighting multiplier for emissive block pixels. Lower value = less influence. Higher value = more influence."
                         prefix = "2^"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
@@ -2913,7 +2938,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "时间变化敏感度"
-                    comment = "效果对时间变化（/time set）的敏感程度。数值越高，时间变化对时间变化的敏感度越高，减少光照延迟。"
+                    comment =
+                        "效果对时间变化（/time set）的敏感程度。数值越高，时间变化对时间变化的敏感度越高，减少光照延迟。"
                 }
             }
         }

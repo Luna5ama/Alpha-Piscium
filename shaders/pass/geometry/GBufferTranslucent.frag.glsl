@@ -289,7 +289,7 @@ void main() {
     }
     t = pow(t, vec3(1.0 / 2.2));
     lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);
-    float sat = isWater ? 0.2 : 1.0;
+    float sat = isWater ? 0.2 : SETTING_TRANSLUCENT_ABSORPTION_SATURATION;
     t = lumaT + sat * (t - lumaT);
     t = pow(t, vec3(2.2));
 
