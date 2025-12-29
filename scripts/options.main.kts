@@ -3131,6 +3131,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     name = "GI Text"
                 }
             }
+            toggle("SETTING_DEBUG_SST", false) {
+                lang {
+                    name = "SST"
+                }
+            }
+            toggle("SETTING_DEBUG_SST_STEPS", false) {
+                lang {
+                    name = "SST Steps"
+                }
+            }
         }
     }
 }
