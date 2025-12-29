@@ -6,9 +6,6 @@
 #include "/Base.glsl"
 
 /*const*/
-#if BLOOM_PASS == 1
-#include "/util/AgxInvertible.glsl"
-#endif
 #if BLOOM_DOWN_SAMPLE
 #define BLOOM_SCALE_DIV BLOOM_PASS
 
@@ -208,10 +205,6 @@ vec4 bloom_main(ivec2 texelPos) {
     colorSum += (h + i + k + l) * 0.25 * 0.125;
     colorSum += (i + j + l + m) * 0.25 * 0.125;
 
-    #if BLOOM_PASS == 1
-    colorSum = saturate(colorSum);
-    colorSum.rgb = agxInvertible_inverse(colorSum.rgb);
-    #endif
     return colorSum;
 }
 #elif BLOOM_UP_SAMPLE
@@ -257,7 +250,7 @@ vec4 bloom_main(ivec2 texelPos) {
 }
 vec4 bloom_mainOutput(ivec2 texelPos) {
     vec4 result = bloom_main(texelPos);
-    float intensity = -5.5;
+    float intensity = -6.0;
     intensity += SETTING_BLOOM_INTENSITY;
     if (isEyeInWater == 1) {
         intensity += SETTING_BLOOM_UNDERWATER_BOOST;

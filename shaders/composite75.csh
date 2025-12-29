@@ -38,7 +38,6 @@ void main() {
 
     if (valid) {
         outputColor = imageLoad(uimg_main, texelPos);
-        outputColor.rgb = agxInvertible_inverse(outputColor.rgb);
 
         #ifdef SETTING_BLOOM
         outputColor += bloom_mainOutput(texelPos);

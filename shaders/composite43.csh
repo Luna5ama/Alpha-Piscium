@@ -19,6 +19,7 @@ void rcas_storeOutput(ivec2 texelPos, vec4 color) {
         debugOutput(texelPos, color);
         #endif
         color.a = 1.0;
+        color.rgb = agxInvertible_inverse(color.rgb);
         imageStore(uimg_main, texelPos, color);
     }
 }
