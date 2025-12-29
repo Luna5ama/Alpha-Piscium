@@ -11,7 +11,6 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba16f) uniform restrict image2D uimg_temp3;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 #include "/techniques/SSGI.glsl"
@@ -20,7 +19,8 @@ layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        imageStore(uimg_temp3, texelPos, texelFetch(usam_temp1, texelPos, 0));
+        vec4 prevSample = transient_restir_prevSampleTemp_load(texelPos);
+        history_restir_prevSample_store(texelPos, prevSample);
         if (RANDOM_FRAME < MAX_FRAMES){
             if (RANDOM_FRAME >= 0) {
                 uvec4 reprojectedData = transient_restir_reservoirReprojected_load(texelPos);
@@ -35,7 +35,8 @@ void main() {
     sst_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        imageStore(uimg_temp3, texelPos, texelFetch(usam_temp1, texelPos, 0));
+        vec4 prevSample = transient_restir_prevSampleTemp_load(texelPos);
+        history_restir_prevSample_store(texelPos, prevSample);
         if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0){
             float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
             if (viewZ > -65536.0) {

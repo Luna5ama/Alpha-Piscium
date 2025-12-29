@@ -11,9 +11,6 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba16f) uniform writeonly image2D uimg_temp1;
-layout(rgba16f) uniform writeonly image2D uimg_temp2;
-layout(rgba16f) uniform restrict image2D uimg_temp3;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 #include "/techniques/SSGI.glsl"
@@ -83,7 +80,6 @@ void main() {
 
                         vec2 selectedTexelPos = gatherTexelPos + sampling_indexToGatherOffset(selectedIndex) * 0.5;
                         ivec2 prevTexelPos = ivec2(selectedTexelPos);
-                        //                    imageStore(uimg_temp3, texelPos, vec4(reprojInfo.bilateralWeights));
 
                         ReSTIRReservoir prevTemporalReservoir = restir_reservoir_unpack(history_restir_reservoirTemporal_load(prevTexelPos));
                         prevTemporalReservoir.m = uint(ceil(float(prevTemporalReservoir.m) * global_historyResetFactor * reprojInfo.historyResetFactor));
@@ -190,7 +186,7 @@ void main() {
                                 vec3 prevHitRadiance = sampleIrradianceMiss(prevSampleDirWorld);
                                 prevSample = vec4(prevHitRadiance, brdfMiss);
                             }
-                            prevSample = imageLoad(uimg_temp3, prevTexelPos);
+                            prevSample = history_restir_prevSample_load(prevTexelPos);
                         }
                         temporalReservoir = prevTemporalReservoir;
                     }
@@ -330,7 +326,7 @@ void main() {
                     spatialSample.normal = gData.normal;
                     spatialSample.hitNormal = hitNormal;
                     transient_restir_spatialInput_store(texelPos, spatialSampleData_pack(spatialSample));
-                    imageStore(uimg_temp1, texelPos, vec4(finalSample));
+                    transient_restir_prevSampleTemp_store(texelPos, vec4(finalSample));
 
                     temporalReservoir.age++;
                 }
