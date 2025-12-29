@@ -16,9 +16,11 @@ void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
-            // TODO: post blur radius
-            const vec4 baseKernelRadius = vec4(32.0, 32.0, 1.0, 32.0);
-            //        const vec3 baseKernelRadius = vec3(32.0, 32.0, 32.0);
+            // X: history length radius scale
+            // Y: variance heuristic radius scale
+            // Z: min radius
+            // W: max radius
+            const vec4 baseKernelRadius = vec4(8.0, 64.0, 1.0, 32.0);
             vec2 noise2 = rand_stbnVec2(texelPos + ivec2(5, 7), frameCounter);
             gi_blur(texelPos, baseKernelRadius, noise2);
         }

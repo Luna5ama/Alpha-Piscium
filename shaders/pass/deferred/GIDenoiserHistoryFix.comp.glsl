@@ -158,7 +158,7 @@ void main() {
                 vec2 localLumaRcp = safeRcp(localLuma);
                 transient_gi_localLuma_store(texelPos, vec4(localLuma, 0.0, 0.0));
 
-                imageStore(uimg_temp3, texelPos, localLuma.xxxx);
+//                imageStore(uimg_temp3, texelPos, localLuma.xxxx);
                 #if DENOISER_HISTORY_FIX
                 float baseMipWeight = max((baseReductionFactor / (baseReductionFactor + weightSum)) * 1e-8, 1e-16);
                 diffWeightedSum += vec4(historyData.diffuseColor * baseMipWeight, 0.0);
@@ -177,6 +177,8 @@ void main() {
                 historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
                 historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
                 #endif
+
+                vec2 denoiserBlurVariance = vec2(0.0);
 
                 #if ENABLE_DENOISER_FAST_CLAMP
                 {
@@ -216,8 +218,11 @@ void main() {
                     vec3 specDiff = abs(specClamped - historyData.specularColor);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
 
+                    vec2 diffLuma2 = vec2(diffDiffLuma, specDiffLuma);
+                    denoiserBlurVariance += diffLuma2 * localLumaRcp;
+
                     vec2 localLumaClamped = max(localLuma, 1e-16);
-                    vec2 resetFactor2 = localLumaClamped * safeRcp(localLumaClamped + vec2(diffDiffLuma, specDiffLuma));
+                    vec2 resetFactor2 = localLumaClamped * safeRcp(localLumaClamped + diffLuma2);
                     float resetFactor = resetFactor2.x * resetFactor2.y;
                     historyData.historyLength *= resetFactor;
                     historyData.realHistoryLength *= sqrt(resetFactor);
@@ -233,8 +238,10 @@ void main() {
                 transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(historyData));
                 transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
 
-                vec4 diffInput = vec4(historyData.diffuseColor, 0.0);
-                vec4 specInput = vec4(historyData.specularColor, 0.0);
+                vec4 diffInput = vec4(historyData.diffuseColor, denoiserBlurVariance.x);
+                vec4 specInput = vec4(historyData.specularColor, denoiserBlurVariance.y);
+
+//                imageStore(uimg_temp3, texelPos, denoiserBlurVariance.xxxx);
 
                 transient_gi_blurDiff1_store(texelPos, diffInput);
                 transient_gi_blurSpec1_store(texelPos, specInput);

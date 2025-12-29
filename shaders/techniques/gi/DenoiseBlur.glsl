@@ -11,6 +11,8 @@
 #include "/util/Coords.glsl"
 #include "/util/Mat2.glsl"
 
+layout(rgba16f) uniform writeonly image2D uimg_temp3;
+
 struct GeomData {
     vec3 geomNormal;
     vec3 normal;
@@ -140,7 +142,6 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, vec2 blurJitter) {
         vec2 centerTexelPos = vec2(texelPos) + vec2(0.5);
         float weightSum = 1.0;
         float edgeWeightSum = 0.0;
-        //    float lastEdgeWeight = 1.0;
 
         float centerLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerDiff.rgb);
         float moment1 = centerLuma;
@@ -178,17 +179,8 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, vec2 blurJitter) {
             );
             edgeWeight *= normalWeight(centerGeomData.normal, geomData.normal, baseNormalWeight);
 
-            //        edgeWeight *= sqrt(lastEdgeWeight);
-            //        lastEdgeWeight = edgeWeight;
 
-            vec3 colorDiff = abs(centerDiff.rgb - diffSample.rgb);
-            float lumaDiff = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colorDiff);
-            float colorWeight = exp2(baseColorWeight * lumaDiff);
-//                    edgeWeight *= colorWeight;
-            edgeWeight = smoothstep(0.0, 1.0, edgeWeight);
-
-
-            float totalWeight = kernelWeight * edgeWeight;
+            float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight);
 
             float sampleLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, diffSample.rgb);
             moment1 += sampleLuma * edgeWeight;
@@ -213,10 +205,16 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, vec2 blurJitter) {
         float stddev = sqrt(variance);
 
         #if GI_DENOISE_PASS == 1
-        diffResult.w = pow(safeDiv(variance, centerLuma) * 8.0, 1.0 / 2.0);
+        vec4 localLumaData = transient_gi_localLuma_fetch(texelPos);
+        float newVarianceFactor = varianceFactor + pow2(stddev * safeRcp(localLumaData.x + localLumaData.y));
+        diffResult.w = newVarianceFactor;
+
         transient_gi_blurDiff1_store(texelPos, diffResult);
         transient_gi_blurSpec1_store(texelPos, specResult);
         #elif GI_DENOISE_PASS == 2
+        if (RANDOM_FRAME < MAX_FRAMES){
+            imageStore(uimg_temp3, texelPos, vec4(kernelRadius / baseKernelRadius.w));
+        }
         transient_gi_blurDiff2_store(texelPos, diffResult);
         transient_gi_blurSpec2_store(texelPos, specResult);
         #endif
