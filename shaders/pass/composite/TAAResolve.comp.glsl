@@ -58,26 +58,30 @@ void main() {
     vec3 currColor = sampling_catmullBicubic5Tap(usam_main, unjitterTexelPos, 0.5, uval_mainImageSizeRcp).rgb;
     currColor = saturate(currColor);
 
-    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-    vec3 currViewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-    vec4 prevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
-    vec4 prevClipPos = global_prevCamProj * prevViewPos;
-    prevClipPos /= prevClipPos.w;
-    vec2 prevScreenPos = prevClipPos.xy * 0.5 + 0.5;
-    vec2 prevTexelPos = prevScreenPos * uval_mainImageSize;
+    float currViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
+    vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
+    vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
+    uint clipFlag = uint(curr2PrevClipPos.z > 0.0);
+    clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
+    curr2PrevClipPos /= curr2PrevClipPos.w;
+    vec2 prevScreenPos = curr2PrevClipPos.xy * 0.5 + 0.5;
 
-    CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(prevTexelPos, 0.5, uval_mainImageSizeRcp);
-    vec4 prevResult = sampling_catmullBicubic5Tap_sum(
-        history_taa_sample(tapData.uv1AndWeight.xy),
-        history_taa_sample(tapData.uv2AndWeight.xy),
-        history_taa_sample(tapData.uv3AndWeight.xy),
-        history_taa_sample(tapData.uv4AndWeight.xy),
-        history_taa_sample(tapData.uv5AndWeight.xy),
-        tapData
-    );
-    vec3 prevColor = saturate(prevResult.rgb);
-
-    float lastFrameAccum = prevResult.a;
+    float lastFrameAccum = 0.0;
+    vec3 prevColor = vec3(0.0);
+    if (bool(clipFlag)) {
+        vec2 prevTexelPos = prevScreenPos * uval_mainImageSize;
+        CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(prevTexelPos, 0.5, uval_mainImageSizeRcp);
+        vec4 prevResult = sampling_catmullBicubic5Tap_sum(
+            history_taa_sample(tapData.uv1AndWeight.xy),
+            history_taa_sample(tapData.uv2AndWeight.xy),
+            history_taa_sample(tapData.uv3AndWeight.xy),
+            history_taa_sample(tapData.uv4AndWeight.xy),
+            history_taa_sample(tapData.uv5AndWeight.xy),
+            tapData
+        );
+        prevColor = saturate(prevResult.rgb);
+    }
     float newFrameAccum = lastFrameAccum + 1.0;
 
     vec2 pixelPosDiff = (screenPos - prevScreenPos) * uval_mainImageSize;
