@@ -214,6 +214,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         }
     }
 
+    #if 0 // TODO: better linear search fix
     #ifndef SETTING_DEBUG_SST
     if (!result.hit && currT > 0.01) {
         level = 0;
@@ -232,6 +233,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
             vec2 texelPos = saturate(screenPos.xy) * mainImageSizeParams.xy;
             vec2 cellIdx = texelPos;
             ivec2 readPos = ivec2(cellIdx);
+            readPos = min(readPos, uval_mainImageSizeI);
             float cellMinZ = texelFetch(usam_hiz, readPos, 0).r;
 
             if (cellMinZ > screenPos.z) {
@@ -255,6 +257,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
 //            }
         }
     }
+    #endif
     #endif
 
     return result;
