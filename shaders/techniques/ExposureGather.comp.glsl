@@ -89,8 +89,8 @@ void main() {
         // x: shadow, y: highlight
         vec2 hsExps = log2(vec2(shadowCount, hsPercents.x) / vec2(hsPercents.y, highlightCount));
         float k = (SETTING_EXPOSURE_HS_TIME + 1.0) * 0.05;
-        expNew.w = sqrtTanhSoftLimit(hsExps.y, k);
-        expNew.w = max(expNew.w, sqrtTanhSoftLimit(hsExps.x, k));
+        expNew.w = sqrtTanhSoftLimit(min(hsExps.y, 0.0), k);
+        expNew.w = max(expNew.w, sqrtTanhSoftLimit(max(hsExps.x, 0.0), k));
         expNew.w = clamp(expNew.w, SETTING_EXPOSURE_HS_MIN_EV_DELTA, SETTING_EXPOSURE_HS_MAX_EV_DELTA);
         expNew.w = mix(expLast.w, expNew.w, timeFactor.y);
 

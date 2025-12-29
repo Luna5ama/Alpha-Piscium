@@ -168,11 +168,10 @@ void main() {
         vec3 prevColorYCoCgEllipsoid = clamp(mean + delta, box.minVal, box.maxVal);
         prevColorYCoCgEllipsoid = clamp(prevColorYCoCgEllipsoid, varianceAABBMin, varianceAABBMax);
 
-        #ifndef SETTING_SCREENSHOT_MODE
-        clampWeight *= extraReset * 0.5 + 0.5;
-        #else
+        #ifdef SETTING_SCREENSHOT_MODE
         clampWeight *= extraReset;
         #endif
+        clampWeight = pow3(clampWeight);
 
         vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampWeight));
         prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampWeight));
