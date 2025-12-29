@@ -58,22 +58,25 @@ vec4 _bloom_imageSample(vec2 uv) {
 }
 #else
 vec4 _bloom_imageSample(vec2 uv) {
-    return texture(usam_temp2, uv);
+//    return texture(usam_temp2, uv);
+    return transient_bloom_sample(uv);
 }
 #endif
 
-layout(rgba16f) uniform writeonly image2D uimg_temp2;
+layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 vec4 _bloom_imageLoad(ivec2 coord) {
     return vec4(0.0);
 }
 void _bloom_imageStore(ivec2 coord, vec4 data) {
-    imageStore(uimg_temp2, coord, data);
+//    imageStore(uimg_temp2, coord, data);
+    transient_bloom_store(coord, data);
 }
 
 
 #elif BLOOM_UP_SAMPLE
 vec4 _bloom_imageSample(vec2 uv) {
-    return texture(usam_temp2, uv);
+//    return texture(usam_temp2, uv);
+    return transient_bloom_sample(uv);
 }
 #if BLOOM_PASS == 1
 vec4 _bloom_imageLoad(ivec2 coord) {
@@ -83,12 +86,14 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
     imageStore(uimg_main, coord, data);
 }
 #else
-layout(rgba16f) uniform restrict image2D uimg_temp2;
+layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 vec4 _bloom_imageLoad(ivec2 coord) {
-    return imageLoad(uimg_temp2, coord);
+//    return imageLoad(uimg_temp2, coord);
+    return transient_bloom_load(coord);
 }
 void _bloom_imageStore(ivec2 coord, vec4 data) {
-    imageStore(uimg_temp2, coord, data);
+//    imageStore(uimg_temp2, coord, data);
+    transient_bloom_store(coord, data);
 }
 #endif
 
