@@ -20,7 +20,7 @@ vec4 spd_loadInput(ivec2 texelPos, uint slice) {
         float weight = 1.0;
         float emissive = transient_solidAlbedo_fetch(texelPos).a;
         weight *= pow(exp2(SETTING_EXPOSURE_EMISSIVE_WEIGHTING), emissive);
-        vec3 color = texelFetch(usam_temp1, texelPos, 0).rgb;
+        vec3 color = transient_taaOutput_fetch(texelPos).rgb;
         result = vec4(color * weight, weight);
     }
     return result;

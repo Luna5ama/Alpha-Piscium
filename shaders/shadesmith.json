@@ -51,6 +51,8 @@
         "transient_mainMipTemp": "RGBA32UI",
         "transient_caustics_remapped": "R32F",
         "transient_caustics_final": "R32F",
-        "transient_bloom": "RGBA16F"
+        "transient_bloom": "RGBA16F",
+        "history_taa": "RGBA16F",
+        "transient_taaOutput": "RGBA16F"
     }
 }

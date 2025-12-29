@@ -7,42 +7,11 @@
 #include "/techniques/gi/Common.glsl"
 #include "/util/AgxInvertible.glsl"
 
+layout(local_size_x = 16, local_size_y = 16) in;
+const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-in vec2 frag_texCoord;
-
-/* RENDERTARGETS:1,15 */
-layout(location = 0) out vec4 rt_out;
-layout(location = 1) out vec4 rt_taaLast;
-
-// from https://github.com/GameTechDev/TAA
-vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryST){
-    const vec2 rcpResolution = uval_mainImageSizeRcp;
-    const vec2 fractional = fract(inHistoryST - 0.5);
-    const vec2 uv = (floor(inHistoryST - 0.5) + vec2(0.5f, 0.5f)) * rcpResolution;
-
-    // 5-tap bicubic sampling (for Hermite/Carmull-Rom filter) -- (approximate from original 16->9-tap bilinear fetching)
-    const vec2 t = vec2(fractional);
-    const vec2 t2 = vec2(fractional * fractional);
-    const vec2 t3 = vec2(fractional * fractional * fractional);
-    const float s = float(0.5);
-    const vec2 w0 = -s * t3 + float(2.f) * s * t2 - s * t;
-    const vec2 w1 = (float(2.f) - s) * t3 + (s - float(3.f)) * t2 + float(1.f);
-    const vec2 w2 = (s - float(2.f)) * t3 + (3 - float(2.f) * s) * t2 + s * t;
-    const vec2 w3 = s * t3 - s * t2;
-    const vec2 s0 = w1 + w2;
-    const vec2 f0 = w2 / (w1 + w2);
-    const vec2 m0 = uv + f0 * rcpResolution;
-    const vec2 tc0 = uv - 1.f * rcpResolution;
-    const vec2 tc3 = uv + 2.f * rcpResolution;
-
-    const vec4 A = vec4(texture(samplerV, vec2(m0.x, tc0.y)));
-    const vec4 B = vec4(texture(samplerV, vec2(tc0.x, m0.y)));
-    const vec4 C = vec4(texture(samplerV, vec2(m0.x, m0.y)));
-    const vec4 D = vec4(texture(samplerV, vec2(tc3.x, m0.y)));
-    const vec4 E = vec4(texture(samplerV, vec2(m0.x, tc3.y)));
-    const vec4 color = (float(0.5f) * (A + B) * w0.x + A * s0.x + float(0.5f) * (A + B) * w3.x) * w0.y + (B * w0.x + C * s0.x + D * w3.x) * s0.y + (float(0.5f) * (B + E) * w0.x + E * s0.x + float(0.5f) * (D + E) * w3.x) * w3.y;
-    return color;
-}
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
+layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 
 struct ColorAABB {
     vec3 minVal;
@@ -78,40 +47,50 @@ float kernelWeight(vec2 centerPos, vec2 samplePos, float param) {
 }
 
 void main() {
-    ivec2 intTexCoord = ivec2(gl_FragCoord.xy);
+    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+    vec2 texelCenter = vec2(texelPos) + vec2(0.5);
+    vec2 screenPos = texelCenter * uval_mainImageSizeRcp;
 
     GBufferData gData = gbufferData_init();
-    gbufferData2_unpack(texelFetch(usam_gbufferData2, intTexCoord, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
 
-    float viewZ = texelFetch(usam_gbufferViewZ, intTexCoord, 0).r;
-    vec3 currViewPos = coords_toViewCoord(frag_texCoord, viewZ, global_camProjInverse);
+    vec2 unjitterTexelPos = texelCenter + global_taaJitter;
+    vec3 currColor = sampling_catmullBicubic5Tap(usam_main, unjitterTexelPos, 0.5, uval_mainImageSizeRcp).rgb;
+    currColor = saturate(currColor);
+
+    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    vec3 currViewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec4 prevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
     vec4 prevClipPos = global_prevCamProj * prevViewPos;
     prevClipPos /= prevClipPos.w;
     vec2 prevScreenPos = prevClipPos.xy * 0.5 + 0.5;
+    vec2 prevTexelPos = prevScreenPos * uval_mainImageSize;
 
-    vec2 unjitterCoord = frag_texCoord + global_taaJitter * uval_mainImageSizeRcp;
-
-    vec3 currColor = sampling_catmullBicubic5Tap(usam_main, unjitterCoord * uval_mainImageSize, 0.5, uval_mainImageSizeRcp).rgb;
-    currColor = saturate(currColor);
-
-    vec4 prevResult = sampling_catmullBicubic5Tap(usam_taaLast, prevScreenPos * uval_mainImageSize, 0.5, uval_mainImageSizeRcp);
+    CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(prevTexelPos, 0.5, uval_mainImageSizeRcp);
+    vec4 prevResult = sampling_catmullBicubic5Tap_sum(
+        history_taa_sample(tapData.uv1AndWeight.xy),
+        history_taa_sample(tapData.uv2AndWeight.xy),
+        history_taa_sample(tapData.uv3AndWeight.xy),
+        history_taa_sample(tapData.uv4AndWeight.xy),
+        history_taa_sample(tapData.uv5AndWeight.xy),
+        tapData
+    );
     vec3 prevColor = saturate(prevResult.rgb);
 
-    vec2 pixelPosDiff = (frag_texCoord - prevScreenPos) * uval_mainImageSize;
+    float lastFrameAccum = prevResult.a;
+    float newFrameAccum = lastFrameAccum + 1.0;
+
+    vec2 pixelPosDiff = (screenPos - prevScreenPos) * uval_mainImageSize;
     vec3 cameraDelta = uval_cameraDelta;
     float cameraSpeed = length(cameraDelta);
     float prevCameraSpeed = length(global_prevCameraDelta);
     float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
     float pixelSpeed = length(pixelPosDiff);
 
-    float lastFrameAccum = texture(usam_taaLast, frag_texCoord).a;
-    float newFrameAccum = lastFrameAccum + 1.0;
-
     float speedSum = 0.0;
     speedSum += sqrt(cameraSpeedDiff) * 8.0;
-    speedSum += sqrt(cameraSpeed) * 0.1;
-    speedSum += sqrt(pixelSpeed) * 0.1;
+    speedSum += sqrt(cameraSpeed) * 0.05;
+    speedSum += sqrt(pixelSpeed) * 0.2;
 
     vec3 prevFrontVec = coords_dir_viewToWorldPrev(vec3(0.0, 0.0, -1.0));
     vec3 currFrontVec = coords_dir_viewToWorld(vec3(0.0, 0.0, -1.0));
@@ -131,22 +110,20 @@ void main() {
 
     {
         vec3 currColorYCoCg = colors_SRGBToYCoCg(currColor);
-        vec2 unjitterTexelPos = unjitterCoord * uval_mainImageSize;
-        vec2 texelPos = frag_texCoord * uval_mainImageSize;
         float clampWeight = exp2(-speedSum);
-        float param = (1.0 - clampWeight) * -2.0;
+        float param = pow2(saturate(1.0 - clampWeight)) * -2.0;
 
         ColorAABB box = initAABB(currColorYCoCg, kernelWeight(texelPos, unjitterTexelPos, param));
 
-        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(-1, 0)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(-1.0, 0.0), param), box);
-        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(1, 0)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(1.0, 0.0), param), box);
-        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(0, -1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(0.0, -1.0), param), box);
-        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(0, 1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(0.0, 1.0), param), box);
+        updateAABB(textureOffset(usam_main, screenPos, ivec2(-1, 0)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(-1.0, 0.0), param), box);
+        updateAABB(textureOffset(usam_main, screenPos, ivec2(1, 0)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(1.0, 0.0), param), box);
+        updateAABB(textureOffset(usam_main, screenPos, ivec2(0, -1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(0.0, -1.0), param), box);
+        updateAABB(textureOffset(usam_main, screenPos, ivec2(0, 1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(0.0, 1.0), param), box);
 
-        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(-1, -1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(-1.0, -1.0), param), box);
-        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(1, -1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(1.0, -1.0), param), box);
-        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(-1, 1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(-1.0, 1.0), param), box);
-        updateAABB(textureOffset(usam_main, frag_texCoord, ivec2(1, 1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(1.0, 1.0), param), box);
+        updateAABB(textureOffset(usam_main, screenPos, ivec2(-1, -1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(-1.0, -1.0), param), box);
+        updateAABB(textureOffset(usam_main, screenPos, ivec2(1, -1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(1.0, -1.0), param), box);
+        updateAABB(textureOffset(usam_main, screenPos, ivec2(-1, 1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(-1.0, 1.0), param), box);
+        updateAABB(textureOffset(usam_main, screenPos, ivec2(1, 1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(1.0, 1.0), param), box);
 
         vec3 mean = box.moment1 / box.weightSum;
         vec3 mean2 = box.moment2 / box.weightSum;
@@ -183,8 +160,8 @@ void main() {
         #endif
     }
 
-    const float FRAME_RESET_FACTOR = 1.0;
-    float frameReset = FRAME_RESET_FACTOR * (FRAME_RESET_FACTOR + speedSum);
+    const float FRAME_RESET_FACTOR = 4.0;
+    float frameReset = FRAME_RESET_FACTOR / (FRAME_RESET_FACTOR + speedSum);
     newFrameAccum *= frameReset;
     #ifdef SETTING_SCREENSHOT_MODE
     float MIN_ACCUM_FRAMES = 1.0;
@@ -193,7 +170,7 @@ void main() {
     float MIN_ACCUM_FRAMES = 2.0;
     float MAX_ACCUM_FRAMES = 100.0;
     if (gData.isHand) {
-        MAX_ACCUM_FRAMES *= 0.1;
+        MAX_ACCUM_FRAMES *= 0.5;
     }
     #endif
 
@@ -205,12 +182,9 @@ void main() {
     #endif
 
     vec3 finalColor = mix(prevColor, currColor, finalCurrWeight);
+    vec4 outputData = vec4(finalColor, newFrameAccum);
 
-    rt_out.rgb = saturate(finalColor);
-    rt_out.a = 1.0;
-
-    rt_taaLast = vec4(finalColor, newFrameAccum);
-
-    float ditherNoise = rand_IGN(intTexCoord, frameCounter);
-    rt_taaLast.rgb = dither_fp16(rt_taaLast.rgb, ditherNoise);
+    float ditherNoise = rand_stbnVec1(texelPos, frameCounter + 3);
+    outputData = dither_fp16(outputData, ditherNoise);
+    transient_taaOutput_store(texelPos, outputData);
 }
