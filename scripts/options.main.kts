@@ -2299,7 +2299,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_MIN_EV", -4.0, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MIN_EV", -3.5, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Min EV"
                     }
@@ -2307,7 +2307,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "自动曝光最小值"
                     }
                 }
-                slider("SETTING_EXPOSURE_MAX_EV", 11.0, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MAX_EV", 9.5, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Max EV"
                     }
