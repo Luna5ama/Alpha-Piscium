@@ -20,12 +20,10 @@ vec4 spd_loadInput(ivec2 texelPos, uint slice) {
     } else {
         GIHistoryData historyData = gi_historyData_init();
 
-        if (gl_WorkGroupID.z == 1){
-            gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
-            result = vec4(historyData.diffuseColor, historyData.diffuseHitDistance);
+        if (gl_WorkGroupID.z == 1) {
+            result = transient_gi1Reprojected_fetch(texelPos);
         } else {
-            gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
-            result = vec4(historyData.specularColor, historyData.specularHitDistance);
+            result = transient_gi3Reprojected_fetch(texelPos);
         }
     }
 

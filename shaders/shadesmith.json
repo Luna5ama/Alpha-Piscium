@@ -21,6 +21,7 @@
         "history_gi3": "RGBA16F",
         "history_gi4": "RGBA16F",
         "history_gi5": "RGBA8",
+        "transient_gi_localLuma": "RGBA16F",
         "transient_gi1Reprojected": "RGBA16F",
         "transient_gi2Reprojected": "RGBA16F",
         "transient_gi3Reprojected": "RGBA16F",

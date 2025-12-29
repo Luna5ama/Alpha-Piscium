@@ -165,7 +165,11 @@ float safeDiv(float a, float b) {
 }
 
 float safeRcp(float x) {
-    return x <= 0.0 ? 0.0 : 1.0 / x;
+    return x <= 0.0 ? 0.0 : rcp(x);
+}
+
+vec2 safeRcp(vec2 x) {
+    return mix(vec2(0.0), rcp(x), greaterThan(x, vec2(0.0)));
 }
 
 float lengthSq(float x) { return x * x; }

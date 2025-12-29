@@ -177,7 +177,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
                         finalWeights
                     );
                     gi_historyData_unpack5(historyData, giData5);
-                    historyResetFactor *= sqrt(weightSum);
                 }
             } else {
                 CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(curr2PrevTexelPos, 0.5, uval_mainImageSizeRcp);

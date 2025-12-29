@@ -314,7 +314,7 @@ void main() {
                     }
                     float avgWSum = wSum / float(temporalReservoir.m);
                     temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
-                    temporalReservoir.m = clamp(temporalReservoir.m, 0u, 16u);
+                        temporalReservoir.m = clamp(temporalReservoir.m, 0u, 16u);
                     ssgiOut = vec4(finalSample.xyz * finalSample.w * temporalReservoir.avgWY, temporalReservoir.Y.w);
                     #if USE_REFERENCE
                     ssgiOut = vec4(initalSample / samplePdf, hitDistance);
