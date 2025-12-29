@@ -13,10 +13,6 @@ shared uint shared_maxBinCount[16];
 #endif
 
 // https://www.desmos.com/calculator/zsvpbvwdhl
-float logQuadSoftLimit(float x, float k) {
-    return sign(x) * log2(1.0 + abs(x) + pow2(x)) * k;
-}
-
 float sqrtTanhSoftLimit(float x, float k) {
     return x * tanh(k * sqrt(abs(x)));
 }
@@ -82,6 +78,7 @@ void main() {
         float expCurveValue = pow(linearStep(MIN_EXP, MAX_EXP, expLast.z), exp2(SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE));
         float lumTarget = mix(MAX_LUM_TARGET, MIN_LUM_TARGET, expCurveValue);
         expNew.x = log2(lumTarget / averageLuminance);
+        expNew.x = (1.0 / (1.0 + exp(-expNew.x))) * 2.0 - 1.0;
 
         // Keep top SETTING_EXPOSURE_TOP_PERCENT % of pixels in the top bin
         vec2 hsPercents = vec2(SETTING_EXPOSURE_H_PERCENT, SETTING_EXPOSURE_S_PERCENT) * (totalWeight * 0.01);
