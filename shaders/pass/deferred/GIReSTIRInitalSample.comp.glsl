@@ -43,11 +43,16 @@ void main() {
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
-                uvec3 workGroupUniformRandKey = uvec3(gl_WorkGroupID.xy, gl_SubgroupID);
-//                uvec3 pixelRandKey = uvec3(texelPos, 1919810u);
+                uvec3 workGroupUniformRandKey = uvec3(gl_WorkGroupID.xy, 114514);
+                uvec3 subgroupUniformRandKey = uvec3(gl_WorkGroupID.xy, gl_SubgroupID);
+                uvec3 pixelRandKey = uvec3(texelPos, 1919810u);
+                #if SETTING_GI_COHERENCE_OPTIMIZATION == 0
+                uvec3 finalRandKey = pixelRandKey;
+                #elif SETTING_GI_COHERENCE_OPTIMIZATION == 1
+                uvec3 finalRandKey = subgroupUniformRandKey;
+                #elif SETTING_GI_COHERENCE_OPTIMIZATION == 2
                 uvec3 finalRandKey = workGroupUniformRandKey;
-
-//                uvec3 finalRandKey = mix(workGroupUniformRandKey, pixelRandKey, bvec3(historyData.realHistoryLength < 4.0 / 255.0));
+                #endif
 
                 vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(finalRandKey, RANDOM_FRAME)).zw);
                 //                vec2 rand2 = rand_stbnVec2(texelPos, RANDOM_FRAME);

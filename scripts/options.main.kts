@@ -677,6 +677,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "Monte Carlo Reference"
                     }
                 }
+                toggle("SETTING_GI_COHERENCE_OPTIMIZATION", 0, 0..2) {
+                    lang {
+                        name = "Coherence Optimization"
+                        comment = "Improves performance sharing random sample along threads. But introduces ugly blocky noises."
+                        0 value "Off"
+                        1 value "Low"
+                        2 value "High"
+                    }
+                }
             }
             screen(1) {
                 lang {
