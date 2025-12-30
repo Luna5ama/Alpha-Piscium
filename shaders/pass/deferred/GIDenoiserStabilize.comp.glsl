@@ -49,7 +49,7 @@ void main() {
                 //            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
 //                imageStore(uimg_temp2, texelPos, gi_historyData_pack2(historyData));
                 #if SETTING_DEBUG_OUTPUT
-                imageStore(uimg_temp3, texelPos, vec4(historyData.diffuseColor, 0.0));
+//                imageStore(uimg_temp3, texelPos, vec4(historyData.diffuseColor, 0.0));
                 imageStore(uimg_temp2, texelPos, vec4(interpolateTurbo(historyData.realHistoryLength), 1.0));
                 #endif
                 history_gi_diffuse_shading_store(texelPos, vec4(historyData.diffuseColor, 0.0));

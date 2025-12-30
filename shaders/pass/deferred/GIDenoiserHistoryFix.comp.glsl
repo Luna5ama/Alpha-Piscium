@@ -105,37 +105,33 @@ void main() {
 
                 vec2 texelPos0 = vec2(texelPos) + 0.5;
 
-                vec2 localLuma = vec2(0.0);
-
                 #if DENOISER_HISTORY_FIX
-                vec3 geomNormal0 = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
-                float viweZ0 = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
+                if (historyFixMix < 1.0) {
+                    vec3 geomNormal0 = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
+                    float viweZ0 = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
 
-                vec4 diffWeightedSum = vec4(0.0);
-                vec4 specWeightedSum = vec4(0.0);
-                float weightSum = 0.0;
+                    vec4 diffWeightedSum = vec4(0.0);
+                    vec4 specWeightedSum = vec4(0.0);
+                    float weightSum = 0.0;
 
-                const float baseReductionFactor = ldexp(1.0, -12);
-                float edgeWeightRelax = 1.0 - sqrt(historyFixMix);
-                float baseDepthWeight = max(1.0 + edgeWeightRelax * 2.0, abs(viweZ0)) * ldexp(1.0, -8 + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT);
-                #endif
+                    const float baseReductionFactor = ldexp(1.0, -12);
+                    float edgeWeightRelax = 1.0 - sqrt(historyFixMix);
+                    float baseDepthWeight = max(1.0 + edgeWeightRelax * 2.0, abs(viweZ0)) * ldexp(1.0, -8 + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT);
 
-                for (int mip = 6; mip >= 1; mip--) {
-                    ivec2 stbnPos = ivec2(texelPos0 + rand_r2Seq2(mip) * 128.0);
-                    vec2 stbnRand = rand_stbnVec2(stbnPos, RANDOM_FRAME);
-                    vec2 texelPosMip = ldexp(texelPos0, ivec2(-mip)) + stbnRand - 0.5;
+                    for (int mip = 6; mip >= 1; mip--) {
+                        ivec2 stbnPos = ivec2(texelPos0 + rand_r2Seq2(mip) * 128.0);
+                        vec2 stbnRand = rand_stbnVec2(stbnPos, RANDOM_FRAME);
+                        vec2 texelPosMip = ldexp(texelPos0, ivec2(-mip)) + stbnRand - 0.5;
 
-                    ivec4 giMipTile = global_mipmapTileCeil[mip];
+                        ivec4 giMipTile = global_mipmapTileCeil[mip];
 
-                    vec2 texelPosMipTile = clamp(texelPosMip, vec2(1.5), vec2(giMipTile.zw) - vec2(1.5));
-                    texelPosMipTile += vec2(giMipTile.xy);
-                    vec2 screenPosMipTile = texelPosMipTile * uval_mainImageSizeRcp;
+                        vec2 texelPosMipTile = clamp(texelPosMip, vec2(1.5), vec2(giMipTile.zw) - vec2(1.5));
+                        texelPosMipTile += vec2(giMipTile.xy);
+                        vec2 screenPosMipTile = texelPosMipTile * uval_mainImageSizeRcp;
 
-                    vec4 mipDiff = transient_gi_diffMip_sample(screenPosMipTile);
-                    vec4 mipSpec = transient_gi_specMip_sample(screenPosMipTile);
+                        vec4 mipDiff = transient_gi_diffMip_sample(screenPosMipTile);
+                        vec4 mipSpec = transient_gi_specMip_sample(screenPosMipTile);
 
-                    #if DENOISER_HISTORY_FIX
-                    if (historyFixMix < 1.0) {
                         ivec4 hizTile = global_hizTiles[mip];
                         vec2 hiZReadPos = hizTile.xy + ivec2(texelPosMip);
                         vec2 hiZVal = texelFetch(usam_hiz, ivec2(hiZReadPos), 0).rg;
@@ -167,45 +163,30 @@ void main() {
                         specWeightedSum += mipSpec * sampleWeight;
                         weightSum += sampleWeight;
                     }
-                    #endif
 
-                    float mipWeight = ldexp(1.0, mip - 1);
-                    float diffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, mipDiff.rgb);
-                    float specLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, mipSpec.rgb);
-                    localLuma += vec2(diffLuma, specLuma) * mipWeight;
+                    float baseMipWeight = max((baseReductionFactor / (baseReductionFactor + weightSum)) * 1e-8, 1e-16);
+                    diffWeightedSum += vec4(historyData.diffuseColor * baseMipWeight, 0.0);
+                    specWeightedSum += vec4(historyData.specularColor * baseMipWeight, 0.0);
+                    weightSum += baseMipWeight;
+
+                    float rcpWeightSum = 1.0 / weightSum;
+                    diffWeightedSum *= rcpWeightSum;
+                    specWeightedSum *= rcpWeightSum;
+
+                    diffWeightedSum = max(diffWeightedSum, vec4(0.0));
+                    specWeightedSum = max(specWeightedSum, vec4(0.0));
+
+                    historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
+                    historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
                 }
-
-//                float rcpMipWeightSum = rcp(1.0 + 2.0 + 4.0 + 8.0 + 16.0 + 32.0);
-//                float rcpMipWeightSum = rcp(63.0);
-                float rcpMipWeightSum = 0.0158730159;
-                localLuma *= rcpMipWeightSum;
-                vec2 localLumaRcp = safeRcp(localLuma);
-                transient_gi_localLuma_store(texelPos, vec4(localLuma, 0.0, 0.0));
-
-//                imageStore(uimg_temp3, texelPos, localLuma.xxxx);
-                #if DENOISER_HISTORY_FIX
-                float baseMipWeight = max((baseReductionFactor / (baseReductionFactor + weightSum)) * 1e-8, 1e-16);
-                diffWeightedSum += vec4(historyData.diffuseColor * baseMipWeight, 0.0);
-                specWeightedSum += vec4(historyData.specularColor * baseMipWeight, 0.0);
-                weightSum += baseMipWeight;
-
-                float rcpWeightSum = 1.0 / weightSum;
-                diffWeightedSum *= rcpWeightSum;
-                specWeightedSum *= rcpWeightSum;
-
-                diffWeightedSum = max(diffWeightedSum, vec4(0.0));
-                specWeightedSum = max(specWeightedSum, vec4(0.0));
-
-                #if SETTING_DEBUG_OUTPUT
-//                imageStore(uimg_temp3, texelPos, diffWeightedSum);
-                #endif
-
-                historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
-                historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
                 #endif
 
                 vec2 denoiserBlurVariance = vec2(0.0);
                 vec2 filteredHitDitances = vec2(MAX_HIT_DISTANCE);
+
+                float expMul = exp2(global_aeData.expValues.z);
+                vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
+                vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
 
                 #if ENABLE_DENOISER_FAST_CLAMP
                 {
@@ -240,16 +221,14 @@ void main() {
                     specMoment1 /= 25.0;
                     specMoment2 /= 25.0;
 
-                    float expMul = exp2(global_aeData.expValues.z);
-
                     vec3 diffClamped = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2, clampingThreshold);
-                    vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - colors_reversibleTonemap(historyData.diffuseColor * expMul));
+                    vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - diffOutputSim);
                     float diffDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffDiff);
                     diffClamped = mix(historyData.diffuseColor, diffClamped, historyFixMix);
                     historyData.diffuseColor = diffClamped;
 
                     vec3 specClamped = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2, clampingThreshold);
-                    vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - colors_reversibleTonemap(historyData.specularColor * expMul));
+                    vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
                     specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
                     historyData.specularColor = specClamped;
@@ -257,7 +236,6 @@ void main() {
                     vec2 diffLuma2 = sqrt(vec2(diffDiffLuma, specDiffLuma));
                     denoiserBlurVariance += diffLuma2;
 
-                    vec2 localLumaClamped = max(localLuma, 1e-16);
                     vec2 resetFactor2 = linearStep(1.0, 0.0, diffLuma2);
                     float resetFactor = resetFactor2.x * resetFactor2.y;
                     historyData.historyLength *= resetFactor;
@@ -279,6 +257,7 @@ void main() {
                 #endif
 
                 transient_gi_filteredHitDistances_store(texelPos, vec4(filteredHitDitances, 0.0, 0.0));
+                transient_gi_denoiseVariance1_store(texelPos, vec4(denoiserBlurVariance, 0.0, 0.0));
 
                 transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
                 transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
@@ -286,8 +265,8 @@ void main() {
                 transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(historyData));
                 transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
 
-                vec4 diffInput = vec4(historyData.diffuseColor, denoiserBlurVariance.x);
-                vec4 specInput = vec4(historyData.specularColor, denoiserBlurVariance.y);
+                vec4 diffInput = vec4(historyData.diffuseColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffOutputSim));
+                vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));
 
                 transient_gi_blurDiff2_store(texelPos, diffInput);
                 transient_gi_blurSpec2_store(texelPos, specInput);

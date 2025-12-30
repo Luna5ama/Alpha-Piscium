@@ -25,7 +25,7 @@ uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 4u;
 
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
-shared float shared_varianceData[20][20];
+shared vec2 shared_varianceData[20][20];
 
 struct GeomData {
     vec3 geomNormal;
@@ -63,9 +63,13 @@ void loadSharedVarianceData(uint index) {
         uvec2 sharedXY = uvec2(index % 20u, index / 20u);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
+        #if GI_DENOISE_PASS == 1
+        vec4 varianceInput = transient_gi_denoiseVariance1_fetch(srcXY);
+        #elif GI_DENOISE_PASS == 2
+        vec4 varianceInput = transient_gi_denoiseVariance2_fetch(srcXY);
+        #endif
 
-        float variance = _gi_readDiff(srcXY).w;
-        shared_varianceData[sharedXY.y][sharedXY.x] = variance;
+        shared_varianceData[sharedXY.y][sharedXY.x] = varianceInput.xy;
     }
 }
 
@@ -120,20 +124,20 @@ void main() {
             float kernelRadius = baseKernelRadius.x;
             kernelRadius *= pow(accumFactor, 0.25);
 
-            float varianceFactor = 0.0;
+            vec2 filteredInputVariance = vec2(0.0);
 
             // Optimized variance calculation using shared memory
             ivec2 localPos = ivec2(gl_LocalInvocationID.xy) + 2; // +2 for padding
             for (int dy = -2; dy <= 2; ++dy) {
                 for (int dx = -2; dx <= 2; ++dx) {
                     ivec2 samplePos = localPos + ivec2(dx, dy);
-                    varianceFactor += shared_varianceData[samplePos.y][samplePos.x];
+                    filteredInputVariance += shared_varianceData[samplePos.y][samplePos.x];
                 }
             }
 
-            varianceFactor /= 25.0;
+            filteredInputVariance /= 25.0;
 
-            kernelRadius *= 1.0 + varianceFactor * baseKernelRadius.y;
+            kernelRadius *= 1.0 + filteredInputVariance.x * baseKernelRadius.y;
             kernelRadius *= hitDistFactor;
             kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
@@ -159,7 +163,6 @@ void main() {
 
             vec2 centerTexelPos = vec2(texelPos) + vec2(0.5);
             float weightSum = 1.0;
-            float extraVarianceFactor = 0.0;
             float edgeWeightSum = 0.0;
 
             float centerLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerDiff.rgb);
@@ -200,10 +203,9 @@ void main() {
 
                 float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight);
 
-                float sampleLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, diffSample.rgb);
+                float sampleLuma = diffSample.a;
                 moment1 += sampleLuma * edgeWeight;
                 moment2 += pow2(sampleLuma) * edgeWeight;
-                extraVarianceFactor += diffSample.w * edgeWeight;
 
                 diffResult += diffSample * totalWeight;
                 weightSum += totalWeight;
@@ -218,28 +220,30 @@ void main() {
             float rcpEdgeWeightSum = 1.0 / (edgeWeightSum + 1.0);
             moment1 *= rcpEdgeWeightSum;
             moment2 *= rcpEdgeWeightSum;
-            extraVarianceFactor *= rcpEdgeWeightSum;
 
             float variance = max(0.0, moment2 - pow2(moment1));
             float stddev = sqrt(variance);
 
             float ditherNoise = rand_stbnVec1(texelPos, frameCounter + GI_DENOISE_PASS);
-            diffResult.rgb = dither_fp16(diffResult.rgb, ditherNoise);
-            specResult.rgb = dither_fp16(specResult.rgb, ditherNoise);
+            diffResult = dither_fp16(diffResult, ditherNoise);
+            specResult = dither_fp16(specResult, ditherNoise);
+
+            vec2 newVariance = filteredInputVariance + vec2(variance, 0.0);
+            #if GI_DENOISE_PASS == 1
+            transient_gi_denoiseVariance2_store(texelPos, vec4(newVariance, 0.0, 0.0));
+            #elif GI_DENOISE_PASS == 2
+            transient_gi_denoiseVariance1_store(texelPos, vec4(newVariance, 0.0, 0.0));
+            #endif
 
             #if GI_DENOISE_PASS == 1
-            vec4 localLumaData = transient_gi_localLuma_fetch(texelPos);
-            float newVarianceFactor = stddev * safeRcp(localLumaData.x + localLumaData.y);
-            diffResult.w = varianceFactor + extraVarianceFactor + newVarianceFactor;
-
             transient_gi_blurDiff1_store(texelPos, diffResult);
             transient_gi_blurSpec1_store(texelPos, specResult);
             #elif GI_DENOISE_PASS == 2
-            #if SETTING_DEBUG_OUTPUT
             if (RANDOM_FRAME < MAX_FRAMES){
-                //            imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
-//                imageStore(uimg_temp3, texelPos, vec4(varianceFactor));
+                //                imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
+                imageStore(uimg_temp3, texelPos, variance.xxxx);
             }
+            #if SETTING_DEBUG_OUTPUT
             #endif
             transient_gi_blurDiff2_store(texelPos, diffResult);
             transient_gi_blurSpec2_store(texelPos, specResult);
