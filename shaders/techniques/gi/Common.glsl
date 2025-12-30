@@ -101,9 +101,10 @@ GIHistoryData gi_historyData_init()  {
     data.specularHitDistance = MAX_HIT_DISTANCE;
 
     data.historyLength = 0.0;
+    data.realHistoryLength = 0.0;
     data.edgeMask = 0.0;
-
     data.shadow = 0.0;
+    data.glazingAngleFactor = 0.0;
     return data;
 }
 

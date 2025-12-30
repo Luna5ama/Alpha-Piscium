@@ -238,7 +238,7 @@ void main() {
             #if SETTING_DEBUG_OUTPUT
             if (RANDOM_FRAME < MAX_FRAMES){
                 //            imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
-                imageStore(uimg_temp3, texelPos, vec4(varianceFactor));
+//                imageStore(uimg_temp3, texelPos, vec4(varianceFactor));
             }
             #endif
             transient_gi_blurDiff2_store(texelPos, diffResult);

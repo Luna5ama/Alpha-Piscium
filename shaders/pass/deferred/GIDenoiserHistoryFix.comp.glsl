@@ -77,10 +77,8 @@ void loadSharedDataMoments(uint index) {
 
 void main() {
     if (hiz_groupGroundCheck(gl_WorkGroupID.xy, 4)) {
-        #if ENABLE_DENOISER_FAST_CLAMP
         loadSharedDataMoments(gl_LocalInvocationIndex);
         loadSharedDataMoments(gl_LocalInvocationIndex + 256u);
-        #endif
 
         ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
@@ -230,6 +228,7 @@ void main() {
                             specMoment1 += neighborSpecYCoCg;
                             specMoment2 += neighborSpecYCoCg * neighborSpecYCoCg;
                             vec2 neighborHitDistances = vec2(diffData.w, specData.w);
+                            neighborHitDistances = mix(vec2(MAX_HIT_DISTANCE), neighborHitDistances, greaterThan(neighborHitDistances, vec2(0.0)));
                             filteredHitDitances = min(filteredHitDitances, neighborHitDistances);
                         }
                     }
@@ -271,6 +270,7 @@ void main() {
                         for (int dx = -2; dx <= 2; ++dx) {
                             ivec2 samplePos = localPos + ivec2(dx, dy);
                             vec2 neighborHitDistances = shared_hitDistances[samplePos.y][samplePos.x];
+                            neighborHitDistances = mix(vec2(MAX_HIT_DISTANCE), neighborHitDistances, greaterThan(neighborHitDistances, vec2(0.0)));
                             filteredHitDitances = min(filteredHitDitances, neighborHitDistances);
                         }
                     }
