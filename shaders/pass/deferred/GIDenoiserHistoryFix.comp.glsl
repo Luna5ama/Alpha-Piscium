@@ -101,7 +101,7 @@ void main() {
 
                 float historyLengthInt = historyData.historyLength * TOTAL_HISTORY_LENGTH;
                 // 0.0 = Full fix, 1.0 = No fix
-                float historyFixMix = linearStep(1.0, 16.0, historyLengthInt);
+                float historyFixMix = 1.0 - pow2(linearStep(4.0, 1.0, historyLengthInt));
 
                 vec2 texelPos0 = vec2(texelPos) + 0.5;
 
@@ -116,7 +116,7 @@ void main() {
 
                     const float baseReductionFactor = ldexp(1.0, -12);
                     float edgeWeightRelax = 1.0 - sqrt(historyFixMix);
-                    float baseDepthWeight = max(1.0 + edgeWeightRelax * 2.0, abs(viweZ0)) * ldexp(1.0, -8 + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT);
+                    float baseDepthWeight = max(1.5 + edgeWeightRelax * 2.0, abs(viweZ0)) * ldexp(1.0, -8 + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT);
 
                     for (int mip = 6; mip >= 1; mip--) {
                         ivec2 stbnPos = ivec2(texelPos0 + rand_r2Seq2(mip) * 128.0);
@@ -224,19 +224,21 @@ void main() {
                     vec3 diffClamped = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2, clampingThreshold);
                     vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - diffOutputSim);
                     float diffDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffDiff);
+                    diffDiffLuma *= sqrt(colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, colors_reversibleTonemap(historyData.diffuseFastColor * expMul)));
                     diffClamped = mix(historyData.diffuseColor, diffClamped, historyFixMix);
                     historyData.diffuseColor = diffClamped;
 
                     vec3 specClamped = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2, clampingThreshold);
                     vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
+                    specDiffLuma *= sqrt(colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, colors_reversibleTonemap(historyData.specularFastColor * expMul)));
                     specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
                     historyData.specularColor = specClamped;
 
-                    vec2 diffLuma2 = sqrt(vec2(diffDiffLuma, specDiffLuma));
-                    denoiserBlurVariance += diffLuma2;
+                    vec2 diffLuma2 = vec2(diffDiffLuma, specDiffLuma);
+                    denoiserBlurVariance += sqrt(vec2(diffDiffLuma, specDiffLuma));
 
-                    vec2 resetFactor2 = linearStep(1.0, 0.0, diffLuma2);
+                    vec2 resetFactor2 = pow2(saturate(1.0 - diffLuma2));
                     float resetFactor = resetFactor2.x * resetFactor2.y;
                     historyData.historyLength *= resetFactor;
                 }
@@ -264,7 +266,6 @@ void main() {
                 transient_gi3Reprojected_store(texelPos, gi_historyData_pack3(historyData));
                 transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(historyData));
                 transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
-
                 vec4 diffInput = vec4(historyData.diffuseColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffOutputSim));
                 vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));
 

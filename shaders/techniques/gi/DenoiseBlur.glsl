@@ -19,6 +19,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
+layout(rgba8) uniform writeonly image2D uimg_rgba8;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 
 uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 4u;
@@ -165,12 +166,13 @@ void main() {
             float weightSum = 1.0;
             float edgeWeightSum = 0.0;
 
-            float centerLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerDiff.rgb);
+            float centerLuma = diffResult.w;
             float moment1 = centerLuma;
             float moment2 = pow2(centerLuma);
 
             float sigma = 0.69;
             sigma += kernelRadius * 2.0 * pow2(1.0 - saturate(hitDistFactor));
+            sigma *= 1.0 - filteredInputVariance.x;
 
             #if ENABLE_DENOISER
             for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
@@ -222,7 +224,6 @@ void main() {
             moment2 *= rcpEdgeWeightSum;
 
             float variance = max(0.0, moment2 - pow2(moment1));
-            float stddev = sqrt(variance);
 
             float ditherNoise = rand_stbnVec1(texelPos, frameCounter + GI_DENOISE_PASS);
             diffResult = dither_fp16(diffResult, ditherNoise);
@@ -236,15 +237,16 @@ void main() {
             #endif
 
             #if GI_DENOISE_PASS == 1
+            #if SETTING_DEBUG_OUTPUT
+            if (RANDOM_FRAME < MAX_FRAMES){
+                // imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
+                float stddev = sqrt(variance);
+                imageStore(uimg_temp3, texelPos, filteredInputVariance.xxxx);
+            }
+            #endif
             transient_gi_blurDiff1_store(texelPos, diffResult);
             transient_gi_blurSpec1_store(texelPos, specResult);
             #elif GI_DENOISE_PASS == 2
-            if (RANDOM_FRAME < MAX_FRAMES){
-                //                imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
-                imageStore(uimg_temp3, texelPos, variance.xxxx);
-            }
-            #if SETTING_DEBUG_OUTPUT
-            #endif
             transient_gi_blurDiff2_store(texelPos, diffResult);
             transient_gi_blurSpec2_store(texelPos, specResult);
             #endif
