@@ -227,7 +227,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             historyResetFactor *= antiStretching;
 
             historyData.historyLength *= historyResetFactor;
-            historyData.realHistoryLength *= sqrt(historyResetFactor);
             reprojInfo.historyResetFactor = historyResetFactor;
         }
     }

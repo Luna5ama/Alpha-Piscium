@@ -1,9 +1,11 @@
+#extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Hash.glsl"
+#include "/util/Morton.glsl"
 #include "/techniques/HiZCheck.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -14,8 +16,13 @@ layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 #include "/techniques/SSGI.glsl"
 
 void main() {
-    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     sst_init();
+
+    uvec2 workGroupOrigin = gl_WorkGroupID.xy << 4;
+    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uvec2 mortonPos = morton_8bDecode(threadIdx);
+    uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
+    ivec2 texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec3 geomNormal = vec3(0.0);
@@ -33,8 +40,16 @@ void main() {
             Material material = material_decode(gData);
 
             if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0) {
-                uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
-                vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 12312745u)).zw);
+                GIHistoryData historyData = gi_historyData_init();
+                gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
+
+                uvec3 workGroupUniformRandKey = uvec3(gl_WorkGroupID.xy, 1919810u);
+                uvec3 finalRandKey = workGroupUniformRandKey;
+
+//                uvec3 pixelRandKey = uvec3(texelPos, 1919810u);
+//                uvec3 finalRandKey = mix(workGroupUniformRandKey, pixelRandKey, bvec3(historyData.realHistoryLength < 4.0 / 255.0));
+
+                vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(finalRandKey, RANDOM_FRAME)).zw);
                 //                vec2 rand2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
                 vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
                 //                vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);

@@ -99,9 +99,9 @@ void main() {
                 vec3 specMoment1 = vec3(0.0);
                 vec3 specMoment2 = vec3(0.0);
 
-                float historyLengthInt = historyData.historyLength * HISTORY_LENGTH;
+                float historyLengthInt = historyData.historyLength * TOTAL_HISTORY_LENGTH;
                 // 0.0 = Full fix, 1.0 = No fix
-                float historyFixMix = 1.0 - pow2(linearStep(4.0, 1.0, historyLengthInt));
+                float historyFixMix = linearStep(1.0, 16.0, historyLengthInt);
 
                 vec2 texelPos0 = vec2(texelPos) + 0.5;
 
@@ -208,8 +208,8 @@ void main() {
 
                 #if ENABLE_DENOISER_FAST_CLAMP
                 {
-                    float len = historyData.realHistoryLength * REAL_HISTORY_LENGTH;
-                    float decayFactor = linearStep(FAST_HISTORY_LENGTH * 2.0, 1.0, historyData.realHistoryLength * REAL_HISTORY_LENGTH);
+                    float totalLen = historyData.historyLength * TOTAL_HISTORY_LENGTH;
+                    float decayFactor = linearStep(FAST_HISTORY_LENGTH * 2.0, 1.0, totalLen);
                     float clampingThreshold = mix(2.0, 16.0, pow2(decayFactor));
 
                     barrier();
@@ -260,7 +260,6 @@ void main() {
                     vec2 resetFactor2 = linearStep(1.0, 0.0, diffLuma2);
                     float resetFactor = resetFactor2.x * resetFactor2.y;
                     historyData.historyLength *= resetFactor;
-                    historyData.realHistoryLength *= sqrt(resetFactor);
                 }
                 #else
                 {

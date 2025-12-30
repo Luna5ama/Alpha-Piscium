@@ -105,8 +105,8 @@ void main() {
             vec4 centerDiff = _gi_readDiff(texelPos);
             vec4 centerSpec = _gi_readSpec(texelPos);
 
-            float historyLength = historyData.realHistoryLength * REAL_HISTORY_LENGTH;
-            float sqrtRealHistoryLength = sqrt(historyData.realHistoryLength);
+            float historyLength = historyData.historyLength * TOTAL_HISTORY_LENGTH;
+            float sqrtRealHistoryLength = sqrt(historyData.historyLength);
             float accumFactor = (1.0 / (1.0 + historyLength));
             float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
 
@@ -137,15 +137,15 @@ void main() {
             kernelRadius *= hitDistFactor;
             kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
-            float hitDistColorWeightHistoryDecay = historyData.realHistoryLength * 0.5 + 0.001;
-            float hitDistColorWeightFactor = saturate(hitDistColorWeightHistoryDecay / (hitDistColorWeightHistoryDecay + localMinHitDistance.x));
-            #if GI_DENOISE_PASS == 1
-            float baseColorWeight = -mix(16.0, 512.0, hitDistColorWeightFactor);
-            #else GI_DENOISE_PASS == 2
-            float baseColorWeight = -mix(4.0, 128.0, hitDistColorWeightFactor);
-            #endif
-
-            baseColorWeight *= pow2(invAccumFactor);
+//            float hitDistColorWeightHistoryDecay = historyData.realHistoryLength * 0.5 + 0.001;
+//            float hitDistColorWeightFactor = saturate(hitDistColorWeightHistoryDecay / (hitDistColorWeightHistoryDecay + localMinHitDistance.x));
+//            #if GI_DENOISE_PASS == 1
+//            float baseColorWeight = -mix(16.0, 512.0, hitDistColorWeightFactor);
+//            #else GI_DENOISE_PASS == 2
+//            float baseColorWeight = -mix(4.0, 128.0, hitDistColorWeightFactor);
+//            #endif
+//
+//            baseColorWeight *= pow2(invAccumFactor);
             float baseGeomNormalWeight = invAccumFactor * 8.0;
             float baseNormalWeight = invAccumFactor * 4.0;
             float basePlaneDistWeight = invAccumFactor * -512.0;
