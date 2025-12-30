@@ -44,8 +44,7 @@ SSTResult sst_initResult() {
 }
 
 float intersectCellBoundary(vec3 invD, vec2 cellIdOffset, vec2 cond2, vec2 cellId, vec2 invCellCount) {
-    vec2 cellMin = trunc(cellId);
-    vec2 a = cellMin * invD.xy + cellIdOffset;
+    vec2 a = cellId * invD.xy + cellIdOffset;
     vec2 t = a * invCellCount + cond2;
 
     float tEdge = min(t.x, t.y);
@@ -142,7 +141,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         vec4 cellCountData = shared_cellCounts[0];
         vec2 cellCount = cellCountData.xy;
         vec2 invCellCount = cellCountData.zw;
-        vec2 cellIdx = (currScreenPos.xy + crossStep) * cellCount;
+        vec2 cellIdx = trunc((currScreenPos.xy + crossStep) * cellCount);
         currT = max(intersectCellBoundary(invD, cellIdOffset, vec0Fix, cellIdx, invCellCount), currT);
     }
 
@@ -159,8 +158,8 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         vec2 cellCount = cellCountData.xy;
         vec2 invCellCount = cellCountData.zw;
         vec2 oldCellIdx = currScreenPos.xy * cellCount;
-
         ivec2 oldCellIdxI = ivec2(oldCellIdx);
+        oldCellIdx = vec2(oldCellIdxI);
         float cellMinZ = texelFetch(usam_hiz, mipTileOffsets.xy + oldCellIdxI, 0).r;
 
         // float linearCurr = coords_reversedZToViewZ(currScreenPos.z, near);
@@ -170,8 +169,6 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         // diff >= thickness ...
         // simplyfied to:
         float maxZThicknessFactor = min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * maxThicknessFactor;
-        //        float minZThicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : maxZThicknessFactor;
-        float minZThicknessFactor = level * 1145141919810.0 + maxZThicknessFactor; // Use FMA instead of ALU
         level--;
         float cellMaxZ = texelFetch(usam_hiz, mipTileOffsets.zw + oldCellIdxI, 0).r;
 
@@ -184,8 +181,8 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
             #endif
             #endif
 
-            float depthT = cellMaxZ * invD.z + negRayEndZ;
             if (cellMaxZ < currScreenPos.z || cellMaxZ > maxZThicknessFactor) {
+                float depthT = cellMaxZ * invD.z + negRayEndZ;
                 if (depthT > currT && any(notEqual(oldCellIdxI, ivec2((pRayStart.xy + pRayVector.xy * depthT) * cellCount)))) {
                     float newT = intersectCellBoundary(invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
                     currT = min(newT, depthT);
