@@ -116,7 +116,8 @@ void main() {
                 float weightSum = 0.0;
 
                 const float baseReductionFactor = ldexp(1.0, -12);
-                float baseDepthWeight = max(2.0, abs(viweZ0)) * ldexp(1.0, -8 + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT);
+                float edgeWeightRelax = 1.0 - sqrt(historyFixMix);
+                float baseDepthWeight = max(1.0 + edgeWeightRelax * 2.0, abs(viweZ0)) * ldexp(1.0, -8 + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT);
                 #endif
 
                 for (int mip = 6; mip >= 1; mip--) {
@@ -147,7 +148,7 @@ void main() {
                         float geomNormalLengthSq = saturate(lengthSq(geomNormalMipRaw));
                         float geomNormalDot = dot(geomNormal0, geomNormalMipRaw * inversesqrt(geomNormalLengthSq));
                         float geomNormalWeight = geomNormalLengthSq * pow2(saturate(geomNormalDot));
-                        geomNormalWeight = pow(geomNormalWeight, ldexp(0.1, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT));
+                        geomNormalWeight = pow(geomNormalWeight, ldexp(0.1 + edgeWeightRelax * 0.5, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT));
 
                         hiZMax = coords_reversedZToViewZ(hiZMax, nearPlane);
                         hiZMin = coords_reversedZToViewZ(hiZMin, nearPlane);
