@@ -43,6 +43,7 @@ if (args.isEmpty()) {
 val version = args[0]
 val isBeta = version.contains("beta", true)
 val rootDir = File("").absoluteFile.parentFile
+val buildDir = File(rootDir, "builds")
 val changelogFile = File(rootDir, "changelogs/$version.md")
 
 // Validate changelog exists
@@ -171,7 +172,7 @@ println("Zip file created successfully")
 // Step 2: Rename to version format
 println("\nStep 2: Renaming to version format...")
 val versionZipName = "Alpha-Piscium_v$version.zip"
-val versionZip = File(rootDir, versionZipName)
+val versionZip = File(buildDir, versionZipName)
 Files.move(gitHashZip.toPath(), versionZip.toPath(), StandardCopyOption.REPLACE_EXISTING)
 println("Renamed to: $versionZipName")
 
@@ -282,7 +283,7 @@ if (!assetUploadResponse.isSuccessful) {
 // Rename back to version with spaces
 println("Renaming back to original format with spaces...")
 val spaceVersionZipName = "Alpha Piscium v$version.zip"
-val spaceVersionZip = File(rootDir, spaceVersionZipName)
+val spaceVersionZip = File(buildDir, spaceVersionZipName)
 Files.move(versionZip.toPath(), spaceVersionZip.toPath(), StandardCopyOption.REPLACE_EXISTING)
 println("Renamed to: $spaceVersionZipName")
 
