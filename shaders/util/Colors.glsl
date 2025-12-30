@@ -192,27 +192,17 @@ float colors_karisWeight(vec3 color) {
 
 // [LOT16]
 vec3 colors_reversibleTonemap(vec3 color) {
-    float luma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, color.rgb);
-//    color = color * rcp(luma + 1.0);
-//    color = color * rcp(mmax3(color) + 1.0);
-//    color = pow(max(color, 0.0), vec3(1.0 / 2.2));
-    color = log2(color + 1.0);
+    color = color * rcp(mmax3(color) + 1.0);
     return color;
 }
 
 vec3 colors_reversibleTonemapWeighted(vec3 color, float weight) {
-    return color * (weight * rcp( mmax3(color) + 1.0));
+    return color * (weight * rcp(mmax3(color) + 1.0));
 }
 
 vec3 colors_reversibleTonemapInvert(vec3 color) {
-//    color = pow(max(color, 0.0), vec3(2.2));
-    float luma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, color.rgb);
-//    color = color / (1.0 - luma);
-//    color = color / (1.0 - mmax3(color));
-    color = exp2(color) - 1.0;
+    color = color / (1.0 - mmax3(color));
     return color;
-//    return color / (1.0 - luma);
-//    return color / (1.0 - mmax3(color));
 }
 
 #endif

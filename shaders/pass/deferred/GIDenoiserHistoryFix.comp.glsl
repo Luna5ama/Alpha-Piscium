@@ -4,7 +4,6 @@
 #include "/techniques/HiZCheck.glsl"
 #include "/util/Colors.glsl"
 #include "/util/GBufferData.glsl"
-#include "/util/AgxInvertible.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Sampling.glsl"
 
@@ -100,7 +99,9 @@ void main() {
                 vec3 specMoment1 = vec3(0.0);
                 vec3 specMoment2 = vec3(0.0);
 
-                float historyFixMix = 1.0;
+                float historyLengthInt = historyData.historyLength * HISTORY_LENGTH;
+                // 0.0 = Full fix, 1.0 = No fix
+                float historyFixMix = 1.0 - pow2(linearStep(4.0, 1.0, historyLengthInt));
 
                 vec2 texelPos0 = vec2(texelPos) + 0.5;
 
@@ -133,36 +134,38 @@ void main() {
                     vec4 mipSpec = transient_gi_specMip_sample(screenPosMipTile);
 
                     #if DENOISER_HISTORY_FIX
-                    ivec4 hizTile = global_hizTiles[mip];
-                    vec2 hiZReadPos = hizTile.xy + ivec2(texelPosMip);
-                    vec2 hiZVal = texelFetch(usam_hiz, ivec2(hiZReadPos), 0).rg;
-                    float hiZMin = hiZVal.x;
-                    float hiZMax = hiZVal.y;
+                    if (historyFixMix < 1.0) {
+                        ivec4 hizTile = global_hizTiles[mip];
+                        vec2 hiZReadPos = hizTile.xy + ivec2(texelPosMip);
+                        vec2 hiZVal = texelFetch(usam_hiz, ivec2(hiZReadPos), 0).rg;
+                        float hiZMin = hiZVal.x;
+                        float hiZMax = hiZVal.y;
 
-                    vec3 geomNormalMipRaw = transient_geomNormalMip_sample(screenPosMipTile).xyz;
-                    geomNormalMipRaw = geomNormalMipRaw * 2.0 - 1.0;
-                    vec3 geomNormalMip = normalize(geomNormalMipRaw);
-                    float geomNormalLengthSq = saturate(lengthSq(geomNormalMipRaw));
-                    float geomNormalDot = dot(geomNormal0, geomNormalMipRaw * inversesqrt(geomNormalLengthSq));
-                    float geomNormalWeight = geomNormalLengthSq * pow2(saturate(geomNormalDot));
-                    geomNormalWeight = pow(geomNormalWeight, ldexp(0.1, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT));
+                        vec3 geomNormalMipRaw = transient_geomNormalMip_sample(screenPosMipTile).xyz;
+                        geomNormalMipRaw = geomNormalMipRaw * 2.0 - 1.0;
+                        vec3 geomNormalMip = normalize(geomNormalMipRaw);
+                        float geomNormalLengthSq = saturate(lengthSq(geomNormalMipRaw));
+                        float geomNormalDot = dot(geomNormal0, geomNormalMipRaw * inversesqrt(geomNormalLengthSq));
+                        float geomNormalWeight = geomNormalLengthSq * pow2(saturate(geomNormalDot));
+                        geomNormalWeight = pow(geomNormalWeight, ldexp(0.1, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT));
 
-                    hiZMax = coords_reversedZToViewZ(hiZMax, nearPlane);
-                    hiZMin = coords_reversedZToViewZ(hiZMin, nearPlane);
-                    float maxZWeight = baseDepthWeight / (baseDepthWeight + abs(hiZMax - viweZ0));
-                    float minZWeight = baseDepthWeight / (baseDepthWeight + abs(hiZMin - viweZ0));
+                        hiZMax = coords_reversedZToViewZ(hiZMax, nearPlane);
+                        hiZMin = coords_reversedZToViewZ(hiZMin, nearPlane);
+                        float maxZWeight = baseDepthWeight / (baseDepthWeight + abs(hiZMax - viweZ0));
+                        float minZWeight = baseDepthWeight / (baseDepthWeight + abs(hiZMin - viweZ0));
 
-                    float reductionFactor = baseReductionFactor / (baseReductionFactor + weightSum);
+                        float reductionFactor = baseReductionFactor / (baseReductionFactor + weightSum);
 
-                    float sampleWeight = 1.0;
-                    sampleWeight *= geomNormalWeight;
-                    sampleWeight *= maxZWeight;
-                    sampleWeight *= minZWeight;
-                    sampleWeight *= reductionFactor;
+                        float sampleWeight = 1.0;
+                        sampleWeight *= geomNormalWeight;
+                        sampleWeight *= maxZWeight;
+                        sampleWeight *= minZWeight;
+                        sampleWeight *= reductionFactor;
 
-                    diffWeightedSum += mipDiff * sampleWeight;
-                    specWeightedSum += mipSpec * sampleWeight;
-                    weightSum += sampleWeight;
+                        diffWeightedSum += mipDiff * sampleWeight;
+                        specWeightedSum += mipSpec * sampleWeight;
+                        weightSum += sampleWeight;
+                    }
                     #endif
 
                     float mipWeight = ldexp(1.0, mip - 1);
@@ -185,8 +188,6 @@ void main() {
                 specWeightedSum += vec4(historyData.specularColor * baseMipWeight, 0.0);
                 weightSum += baseMipWeight;
 
-                float historyLengthInt = historyData.historyLength * HISTORY_LENGTH;
-                historyFixMix = 1.0 - pow2(linearStep(4.0, 1.0, historyLengthInt));
                 float rcpWeightSum = 1.0 / weightSum;
                 diffWeightedSum *= rcpWeightSum;
                 specWeightedSum *= rcpWeightSum;
@@ -241,14 +242,14 @@ void main() {
                     float expMul = exp2(global_aeData.expValues.z);
 
                     vec3 diffClamped = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2, clampingThreshold);
-                    vec3 diffDiff = abs(agxInvertible_forward(diffClamped) - agxInvertible_forward(historyData.diffuseColor));
-                    float diffDiffLuma = colors2_colorspaces_luma(SETTING_OUTPUT_COLOR_SPACE, diffDiff);
+                    vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - colors_reversibleTonemap(historyData.diffuseColor * expMul));
+                    float diffDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffDiff);
                     diffClamped = mix(historyData.diffuseColor, diffClamped, historyFixMix);
                     historyData.diffuseColor = diffClamped;
 
                     vec3 specClamped = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2, clampingThreshold);
-                    vec3 specDiff = abs(agxInvertible_forward(specClamped) - agxInvertible_forward(historyData.specularColor));
-                    float specDiffLuma = colors2_colorspaces_luma(SETTING_OUTPUT_COLOR_SPACE, specDiff);
+                    vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - colors_reversibleTonemap(historyData.specularColor * expMul));
+                    float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
                     specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
                     historyData.specularColor = specClamped;
 
@@ -256,7 +257,7 @@ void main() {
                     denoiserBlurVariance += diffLuma2;
 
                     vec2 localLumaClamped = max(localLuma, 1e-16);
-                    vec2 resetFactor2 = pow2(linearStep(1.0, 0.0, diffLuma2));
+                    vec2 resetFactor2 = linearStep(1.0, 0.0, diffLuma2);
                     float resetFactor = resetFactor2.x * resetFactor2.y;
                     historyData.historyLength *= resetFactor;
                     historyData.realHistoryLength *= sqrt(resetFactor);
