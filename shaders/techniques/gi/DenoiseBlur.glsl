@@ -66,24 +66,7 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, vec2 blurJitter) {
     gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
     gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
-    historyData.diffuseHitDistance = MAX_HIT_DISTANCE;
-
-    // TODO: optimize with shared memory
-    for (int dy = -2; dy <= 2; ++dy) {
-        for (int dx = -2; dx <= 2; ++dx) {
-            ivec2 neighborPos = texelPos + ivec2(dx, dy);
-            GIHistoryData neighborHistoryData = gi_historyData_init();
-            gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(neighborPos));
-            gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(neighborPos));
-            gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(neighborPos));
-            gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(neighborPos));
-            gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(neighborPos));
-
-            if (neighborHistoryData.diffuseHitDistance > 0.0){
-                historyData.diffuseHitDistance = min(historyData.diffuseHitDistance, neighborHistoryData.diffuseHitDistance);
-            }
-        }
-    }
+    vec2 localMinHitDistance = transient_gi_filteredHitDistances_fetch(texelPos).xy;
 
     vec2 centerScreenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
     GeomData centerGeomData = _gi_readGeomData(texelPos, centerScreenPos);
@@ -97,7 +80,7 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, vec2 blurJitter) {
         float accumFactor = (1.0 / (1.0 + historyLength));
         float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
 
-        float hitDistFactor = linearStep(0.0, 4.0, historyData.diffuseHitDistance);
+        float hitDistFactor = linearStep(0.0, 4.0, localMinHitDistance.x);
         #if GI_DENOISE_PASS == 1
         hitDistFactor = pow(hitDistFactor, sqrtRealHistoryLength * 2.0);
         #else
@@ -123,7 +106,7 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, vec2 blurJitter) {
         kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
         float hitDistColorWeightHistoryDecay = historyData.realHistoryLength * 0.5 + 0.001;
-        float hitDistColorWeightFactor = saturate(hitDistColorWeightHistoryDecay / (hitDistColorWeightHistoryDecay + historyData.diffuseHitDistance));
+        float hitDistColorWeightFactor = saturate(hitDistColorWeightHistoryDecay / (hitDistColorWeightHistoryDecay + localMinHitDistance.x));
         #if GI_DENOISE_PASS == 1
         float baseColorWeight = -mix(16.0, 512.0, hitDistColorWeightFactor);
         #else GI_DENOISE_PASS == 2
@@ -214,18 +197,19 @@ void gi_blur(ivec2 texelPos, vec4 baseKernelRadius, vec2 blurJitter) {
         specResult.rgb = dither_fp16(specResult.rgb, ditherNoise);
 
         #if GI_DENOISE_PASS == 1
-        #if SETTING_DEBUG_OUTPUT
-        if (RANDOM_FRAME < MAX_FRAMES){
-            imageStore(uimg_temp3, texelPos, vec4(kernelRadius / baseKernelRadius.w));
-        }
-        #endif
         vec4 localLumaData = transient_gi_localLuma_fetch(texelPos);
-        float newVarianceFactor = varianceFactor + extraVarianceFactor + pow2(stddev * safeRcp(localLumaData.x + localLumaData.y));
-        diffResult.w = newVarianceFactor;
+        float newVarianceFactor = stddev * safeRcp(localLumaData.x + localLumaData.y);
+        diffResult.w = varianceFactor + extraVarianceFactor + newVarianceFactor;
 
         transient_gi_blurDiff1_store(texelPos, diffResult);
         transient_gi_blurSpec1_store(texelPos, specResult);
         #elif GI_DENOISE_PASS == 2
+        #if SETTING_DEBUG_OUTPUT
+        if (RANDOM_FRAME < MAX_FRAMES){
+//            imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
+            imageStore(uimg_temp3, texelPos, vec4(varianceFactor));
+        }
+        #endif
         transient_gi_blurDiff2_store(texelPos, diffResult);
         transient_gi_blurSpec2_store(texelPos, specResult);
         #endif

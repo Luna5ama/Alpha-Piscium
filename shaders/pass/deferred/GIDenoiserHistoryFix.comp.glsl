@@ -15,12 +15,13 @@ layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 
+
+uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 4u;
+
 #if ENABLE_DENOISER_FAST_CLAMP
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
 shared uvec4 shared_YCoCgData[20][20];
-
-uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 4u;
 
 void loadSharedDataMoments(uint index) {
     if (index < 400u) { // 20 * 20 = 400
@@ -28,14 +29,17 @@ void loadSharedDataMoments(uint index) {
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
 
-        vec3 neighborDiff = transient_gi2Reprojected_fetch(srcXY).xyz;
-        vec3 neighborSpec = transient_gi4Reprojected_fetch(srcXY).xyz;
+        vec4 diffData = transient_gi2Reprojected_fetch(srcXY);
+        vec4 specData = transient_gi4Reprojected_fetch(srcXY);
+
+        vec3 neighborDiff = diffData.xyz;
+        vec3 neighborSpec = specData.xyz;
         vec3 neighborDiffYCoCg = colors_SRGBToYCoCg(neighborDiff);
         vec3 neighborSpecYCoCg = colors_SRGBToYCoCg(neighborSpec);
 
         uvec4 packedData;
-        packedData.xy = packHalf4x16(vec4(neighborDiffYCoCg, 0.0));
-        packedData.zw = packHalf4x16(vec4(neighborSpecYCoCg, 0.0));
+        packedData.xy = packHalf4x16(vec4(neighborDiffYCoCg, diffData.w));
+        packedData.zw = packHalf4x16(vec4(neighborSpecYCoCg, specData.w));
         shared_YCoCgData[sharedXY.y][sharedXY.x] = packedData;
     }
 }
@@ -52,6 +56,22 @@ vec3 _clampColor(vec3 colorRGB, vec3 fastColorRGB, vec3 moment1YCoCG, vec3 momen
     aabbMax = max(aabbMax, fastColorYCoCG);
     colorYCoCG = clamp(colorYCoCG, aabbMin, aabbMax);
     return colors_YCoCgToSRGB(colorYCoCG);
+}
+#else
+shared vec2 shared_hitDistances[20][20];
+
+void loadSharedDataMoments(uint index) {
+    if (index < 400u) { // 20 * 20 = 400
+        uvec2 sharedXY = uvec2(index % 20u, index / 20u);
+        ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
+        srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
+
+        vec4 diffData = transient_gi2Reprojected_fetch(srcXY);
+        vec4 specData = transient_gi4Reprojected_fetch(srcXY);
+
+        vec2 hitDistances = vec2(diffData.w, specData.w);
+        shared_hitDistances[sharedXY.y][sharedXY.x] = hitDistances;
+    }
 }
 #endif
 
@@ -185,6 +205,7 @@ void main() {
                 #endif
 
                 vec2 denoiserBlurVariance = vec2(0.0);
+                vec2 filteredHitDitances = vec2(MAX_HIT_DISTANCE);
 
                 #if ENABLE_DENOISER_FAST_CLAMP
                 {
@@ -199,13 +220,17 @@ void main() {
                         for (int dx = -2; dx <= 2; ++dx) {
                             ivec2 samplePos = localPos + ivec2(dx, dy);
                             uvec4 packedData = shared_YCoCgData[samplePos.y][samplePos.x];
-                            vec3 neighborDiffYCoCg = unpackHalf4x16(packedData.xy).xyz;
-                            vec3 neighborSpecYCoCg = unpackHalf4x16(packedData.zw).xyz;
+                            vec4 diffData = unpackHalf4x16(packedData.xy);
+                            vec4 specData = unpackHalf4x16(packedData.zw);
+                            vec3 neighborDiffYCoCg = diffData.xyz;
+                            vec3 neighborSpecYCoCg = specData.xyz;
 
                             diffMoment1 += neighborDiffYCoCg;
                             diffMoment2 += neighborDiffYCoCg * neighborDiffYCoCg;
                             specMoment1 += neighborSpecYCoCg;
                             specMoment2 += neighborSpecYCoCg * neighborSpecYCoCg;
+                            vec2 neighborHitDistances = vec2(diffData.w, specData.w);
+                            filteredHitDitances = min(filteredHitDitances, neighborHitDistances);
                         }
                     }
 
@@ -237,7 +262,22 @@ void main() {
                     historyData.historyLength *= resetFactor;
                     historyData.realHistoryLength *= sqrt(resetFactor);
                 }
+                #else
+                {
+                    barrier();
+                    ivec2 localPos = ivec2(gl_LocalInvocationID.xy) + 2; // +2 for padding
+                    // 5x5 neighborhood using shared memory
+                    for (int dy = -2; dy <= 2; ++dy) {
+                        for (int dx = -2; dx <= 2; ++dx) {
+                            ivec2 samplePos = localPos + ivec2(dx, dy);
+                            vec2 neighborHitDistances = shared_hitDistances[samplePos.y][samplePos.x];
+                            filteredHitDitances = min(filteredHitDitances, neighborHitDistances);
+                        }
+                    }
+                }
                 #endif
+
+                transient_gi_filteredHitDistances_store(texelPos, vec4(filteredHitDitances, 0.0, 0.0));
 
                 transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
                 transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
