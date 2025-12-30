@@ -213,7 +213,7 @@ void main() {
                 // Fixed weight is better because it fades in egdes with darker color to avoid firefly
 //                float mixWeight = 1.0 / 32.0;
                 float realHistoryLength = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH;
-                float mixWeight = 1.0 / clamp(max(8.0, realHistoryLength) * speedFactor, 1.0, 64.0);
+                float mixWeight = 1.0 / clamp(max(16.0, realHistoryLength) * speedFactor, 1.0, 64.0);
 
                 // Blend current and clamped history
                 vec3 finalDiff = mix(clampedHistoryDiff, currDiff.rgb, mixWeight);

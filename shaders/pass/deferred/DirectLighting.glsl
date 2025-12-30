@@ -101,32 +101,7 @@ void main() {
             vec4 giOut1 = vec4(0.0);
             vec4 giOut2 = vec4(0.0);
 
-            {
-                vec3 moment1 = vec3(0.0);
-                vec3 moment2 = vec3(0.0);
-
-                for (int dy = -2; dy <= 2; ++dy) {
-                    for (int dx = -2; dx <= 2; ++dx) {
-                        if (dx == 0 && dy == 0) continue;
-                        ivec2 neighborPos = texelPos + ivec2(dx, dy);
-                        vec3 neighborData = colors_SRGBToYCoCg(transient_gi1Reprojected_load(neighborPos).rgb);
-                        moment1 += neighborData;
-                        moment2 += neighborData * neighborData;
-                    }
-                }
-
-                moment1 /= 24.0;
-                moment2 /= 24.0;
-
-                vec3 mean = moment1;
-                vec3 variance = max(moment2 - moment1 * moment1, 0.0);
-                vec3 stddev = sqrt(variance);
-                vec3 aabbMin = mean - stddev * 1.0;
-                vec3 aabbMax = mean + stddev * 1.0;
-                vec3 giOut1Clamped = colors_SRGBToYCoCg(transient_gi1Reprojected_load(texelPos).rgb);
-                giOut1Clamped = clamp(giOut1Clamped, aabbMin, aabbMax);
-                giOut1.rgb = colors_YCoCgToSRGB(giOut1Clamped);
-            }
+            giOut1.rgb = transient_gi1Reprojected_load(texelPos).rgb;
 
             vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
             vec3 directDiffuseOut = vec3(0.0);
