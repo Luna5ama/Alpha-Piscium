@@ -13,17 +13,19 @@ layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 
 vec4 spd_loadInput(ivec2 texelPos, uint slice) {
-    texelPos = clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1);
     vec4 result = vec4(0.0);
-    if (gl_WorkGroupID.z == 0) {
-        result.xyz = transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
-    } else {
-        GIHistoryData historyData = gi_historyData_init();
-
-        if (gl_WorkGroupID.z == 1) {
-            result = transient_gi1Reprojected_fetch(texelPos);
+    texelPos = clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1);
+    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    if (viewZ > -65536.0) {
+        if (gl_WorkGroupID.z == 0) {
+            result.xyz = transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
         } else {
-            result = transient_gi3Reprojected_fetch(texelPos);
+            GIHistoryData historyData = gi_historyData_init();
+            if (gl_WorkGroupID.z == 1) {
+                result = transient_gi1Reprojected_fetch(texelPos);
+            } else {
+                result = transient_gi3Reprojected_fetch(texelPos);
+            }
         }
     }
 
