@@ -127,6 +127,18 @@ void main() {
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
+                vec2 pixelPosDiff = (screenPos - prevScreenPos) * uval_mainImageSize;
+                vec3 cameraDelta = uval_cameraDelta;
+                float cameraSpeed = length(cameraDelta);
+                float prevCameraSpeed = length(global_prevCameraDelta);
+                float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
+                float pixelSpeed = length(pixelPosDiff);
+                float speedSum = 0.0;
+                speedSum += sqrt(cameraSpeedDiff) * 2.0;
+                speedSum += sqrt(cameraSpeed) * 0.01;
+                speedSum += sqrt(pixelSpeed) * 0.02;
+                float speedFactor = exp2(-speedSum);
+
                 // Read current frame data from shared memory
                 uvec2 localXY = uvec2(gl_LocalInvocationID.xy) + 1u;
                 vec4 currDiff = shared_diffData[localXY.y][localXY.x];
@@ -154,7 +166,7 @@ void main() {
                 vec3 diffStddev = sqrt(abs(diffVariance));
 
                 // 0.0 = more clamp, 1.0 = less clamp
-                float clampWeight = sqrt(historyData.historyLength) * float(clipFlag);
+                float clampWeight = sqrt(historyData.historyLength) * float(clipFlag) * pow2(speedFactor);
                 float diffHistoryClampRange = mix(1.0, 4.0, clampWeight);
                 vec3 diffAABBMin = diffMean - diffStddev * diffHistoryClampRange;
                 vec3 diffAABBMax = diffMean + diffStddev * diffHistoryClampRange;
@@ -201,7 +213,7 @@ void main() {
                 // Fixed weight is better because it fades in egdes with darker color to avoid firefly
 //                float mixWeight = 1.0 / 32.0;
                 float realHistoryLength = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH;
-                float mixWeight = 1.0 / clamp(realHistoryLength, 8.0, 64.0);
+                float mixWeight = 1.0 / clamp(max(8.0, realHistoryLength) * speedFactor, 1.0, 64.0);
 
                 // Blend current and clamped history
                 vec3 finalDiff = mix(clampedHistoryDiff, currDiff.rgb, mixWeight);
