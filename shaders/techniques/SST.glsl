@@ -119,10 +119,10 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
     int level = START_LEVEL;
     float currT = 0.0;
     #ifdef SST_DEBUG_PASS
-//    const uvec2 DEBUG_COORD = uvec2(1250, 720);
-//    const uvec2 DEBUG_COORD = uvec2(1500, 1000);
+    //    const uvec2 DEBUG_COORD = uvec2(1250, 720);
+    //    const uvec2 DEBUG_COORD = uvec2(1500, 1000);
     const uvec2 DEBUG_COORD = uvec2(970, 760);
-//    const uvec2 DEBUG_COORD = uvec2(0, 0);
+    //    const uvec2 DEBUG_COORD = uvec2(0, 0);
     #endif
     const uint HI_Z_STEPS = 128;
 
@@ -170,37 +170,29 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         // diff >= thickness ...
         // simplyfied to:
         float maxZThicknessFactor = min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * maxThicknessFactor;
-//        float minZThicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : maxZThicknessFactor;
+        //        float minZThicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : maxZThicknessFactor;
         float minZThicknessFactor = level * 1145141919810.0 + maxZThicknessFactor; // Use FMA instead of ALU
         level--;
         float cellMaxZ = texelFetch(usam_hiz, mipTileOffsets.zw + oldCellIdxI, 0).r;
 
         if (isBackwardRay) {
-            float linearCurr = coords_reversedZToViewZ(currScreenPos.z, near);
-            float linearMinZ = coords_reversedZToViewZ(cellMinZ, near);
-            float linearMaxZ = coords_reversedZToViewZ(cellMaxZ, near);
             #ifdef SST_DEBUG_PASS
+            #ifdef SETTING_DEBUG_SST_STEPS
             if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
-                ssbo_testBuffer[i + 2048] = vec4(currT, linearCurr, linearMinZ, linearMaxZ);
+                ssbo_testBuffer[i + 2048] = vec4(currT, currScreenPos.z, cellMinZ, cellMaxZ);
             }
             #endif
-
-            float diff = abs(linearMaxZ - linearCurr);
-            float ttt = maxThickness * abs(linearCurr) * 1.0; // 0.763644076
-            float ttt2 = level > STOP_LEVEL ? 1145141919810.0 : ttt;
-            float thickness = level > STOP_LEVEL ? -1145141919810.0 : maxThickness * abs(linearCurr);
+            #endif
 
             float depthT = cellMaxZ * invD.z + negRayEndZ;
-            if (linearMaxZ > linearCurr && linearMaxZ < (linearCurr + ttt)) {
-
-            } else {
+            if (cellMaxZ < currScreenPos.z || cellMaxZ > maxZThicknessFactor) {
                 if (depthT > currT && any(notEqual(oldCellIdxI, ivec2((pRayStart.xy + pRayVector.xy * depthT) * cellCount)))) {
                     float newT = intersectCellBoundary(invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
                     currT = min(newT, depthT);
                     level += 2;
                     level = min(level, maxMip);
                 } else {
-                    if (linearCurr < (linearMinZ)) {
+                    if (currScreenPos.z <= cellMinZ) {
                         currT = max(currT, depthT);
                     } else {
                         currT = intersectCellBoundary(invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
@@ -217,7 +209,9 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
                 level += 2;
                 level = min(level, maxMip);
             } else {
-                if (minZThicknessFactor >= cellMinZ && maxZThicknessFactor >= cellMaxZ) {
+                // Seems unneeded?
+                // if (minZThicknessFactor >= cellMinZ && maxZThicknessFactor >= cellMaxZ) {
+                if (maxZThicknessFactor >= cellMaxZ) {
                     currT = max(depthT, currT);
                 } else {
                     currT = intersectCellBoundary(invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
@@ -231,7 +225,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         #ifdef SETTING_DEBUG_SST_STEPS
         if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
             ssbo_testBuffer[i] = vec4(currScreenPos.xy, 0.0, float(level));
-//            ssbo_testBuffer[i + 2048] = vec4(float(level), 0.0, 0.0, 0.0);
+            //            ssbo_testBuffer[i + 2048] = vec4(float(level), 0.0, 0.0, 0.0);
             atomicMax(global_atomicCounters[15], i);
         }
         #endif
@@ -280,10 +274,10 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
                 }
             }
 
-//            if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
-//                testBuffer[i + HI_Z_STEPS] = vec4(screenPos.xy, floor(cellIdx));
-//                testBuffer[i + 2048 + HI_Z_STEPS] = vec4(float(level), 0.0, 0.0, 0.0);
-//            }
+            //            if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
+            //                testBuffer[i + HI_Z_STEPS] = vec4(screenPos.xy, floor(cellIdx));
+            //                testBuffer[i + 2048 + HI_Z_STEPS] = vec4(float(level), 0.0, 0.0, 0.0);
+            //            }
         }
     }
     #endif
