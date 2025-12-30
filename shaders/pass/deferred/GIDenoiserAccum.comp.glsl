@@ -55,6 +55,7 @@ void main() {
                 float alpha = 1.0 / min(historyLength, HISTORY_LENGTH);
                 historyData.diffuseColor = mix(historyData.diffuseColor, newDiffuse.rgb, alpha);
                 historyData.specularColor = mix(historyData.specularColor, vec3(0.0), alpha);// TODO: specular input
+                historyData.specularColor = vec3(0.0);
 
                 float fastAlpha = 1.0 / min(historyLength, FAST_HISTORY_LENGTH);
                 historyData.diffuseFastColor = mix(historyData.diffuseFastColor, newDiffuse.rgb, fastAlpha);

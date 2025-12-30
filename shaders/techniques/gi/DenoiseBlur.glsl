@@ -249,6 +249,20 @@ void main() {
             #elif GI_DENOISE_PASS == 2
             transient_gi_blurDiff2_store(texelPos, diffResult);
             transient_gi_blurSpec2_store(texelPos, specResult);
+
+            gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
+            gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
+            gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
+            gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
+
+            historyData.diffuseColor = diffResult.rgb;
+            historyData.specularColor = specResult.rgb;
+
+            history_gi1_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
+            history_gi2_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));
+            history_gi3_store(texelPos, clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX));
+            history_gi4_store(texelPos, clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX));
+            history_gi5_store(texelPos, gi_historyData_pack5(historyData));
             #endif
         }
     }

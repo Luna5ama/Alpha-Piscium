@@ -2975,6 +2975,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         "效果对时间变化（/time set）的敏感程度。数值越高，时间变化对时间变化的敏感度越高，减少光照延迟。"
                 }
             }
+            repeat(69) {
+                row {
+                    empty()
+                }
+            }
+            row {
+                text("COOKIE", "Free", "Cookie")
+                text("MILK", "Free", "Milk")
+            }
         }
         empty()
         empty()

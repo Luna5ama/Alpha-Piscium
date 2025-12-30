@@ -2,6 +2,10 @@
 
 #include "/techniques/gi/Common.glsl"
 #include "/techniques/HiZCheck.glsl"
+#include "/util/GBufferData.glsl"
+#include "/util/Colors.glsl"
+#include "/util/AgxInvertible.glsl"
+#include "/util/Sampling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -23,43 +27,204 @@ vec3 interpolateTurbo(float x) {
     return turboCurve[int(x)] + (turboCurve[min(255, int(x) + 1)] - turboCurve[int(x)]) * fract(x);
 }
 
+uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 4u;
+
+// Shared memory with padding for 3x3 tap (-1 to +1)
+// Each work group is 16x16, need +1 padding on each side for 3x3 taps
+shared vec4 shared_diffData[18][18];
+shared vec4 shared_specData[18][18];
+
+void loadSharedData(uint index) {
+    if (index < 324u) { // 18 * 18 = 324
+        uvec2 sharedXY = uvec2(index % 18u, index / 18u);
+        ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 1;
+        srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
+
+        vec4 diffData = transient_gi_blurDiff2_fetch(srcXY);
+        vec4 specData = transient_gi_blurSpec2_fetch(srcXY);
+
+        shared_diffData[sharedXY.y][sharedXY.x] = diffData;
+        shared_specData[sharedXY.y][sharedXY.x] = specData;
+    }
+}
+
+struct ColorAABB {
+    vec3 minVal;
+    vec3 maxVal;
+    vec3 moment1;
+    vec3 moment2;
+};
+
+ColorAABB initAABB(vec3 colorYCoCg) {
+    ColorAABB box;
+    box.minVal = colorYCoCg;
+    box.maxVal = colorYCoCg;
+    box.moment1 = colorYCoCg;
+    box.moment2 = colorYCoCg * colorYCoCg;
+    return box;
+}
+
+void updateAABB(vec3 colorYCoCg, inout ColorAABB box) {
+    box.minVal = min(box.minVal, colorYCoCg);
+    box.maxVal = max(box.maxVal, colorYCoCg);
+    box.moment1 += colorYCoCg;
+    box.moment2 += colorYCoCg * colorYCoCg;
+}
+
 void main() {
-    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
-        if (viewZ > -65536.0) {
-            vec4 diffResult = transient_gi_blurDiff2_fetch(texelPos);
-            vec4 specResult = transient_gi_blurSpec2_fetch(texelPos);
-            // TODO: stablization
+    if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
+        // Load shared memory for 3x3 neighborhood (18x18 = 324 elements)
+        loadSharedData(gl_LocalInvocationIndex);
+        loadSharedData(gl_LocalInvocationIndex + 256u);
 
-            GIHistoryData historyData = gi_historyData_init();
+        barrier();
 
-            gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
-            gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
-            gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
-            gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
-            gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
+        ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+        if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+            float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
+            if (viewZ > -65536.0) {
 
-            historyData.diffuseColor = diffResult.rgb;
-            historyData.specularColor = specResult.rgb;
+                vec2 texelCenter = vec2(texelPos) + vec2(0.5);
+                vec2 screenPos = texelCenter * uval_mainImageSizeRcp;
+                GBufferData gData = gbufferData_init();
+                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+                float currViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+                vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
+                vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
+                vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
+                uint clipFlag = uint(curr2PrevClipPos.z > 0.0);
+                clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
+                curr2PrevClipPos /= curr2PrevClipPos.w;
+                vec2 prevScreenPos = curr2PrevClipPos.xy * 0.5 + 0.5;
 
-            if (RANDOM_FRAME < MAX_FRAMES){
-//                imageStore(uimg_temp3, texelPos, vec4(interpolateTurbo(saturate(transient_gi_blurDiff1_fetch(texelPos).w)), 0.0));
-//                imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
-                //            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
-//                imageStore(uimg_temp2, texelPos, gi_historyData_pack2(historyData));
+                // Read history data
+                vec4 historyDiff = vec4(0.0);
+                vec4 historySpec = vec4(0.0);
+
+                // Not using this because it fades in dark lines
+//                if (bool(clipFlag)) {
+                    vec2 prevTexelPos = prevScreenPos * uval_mainImageSize;
+                    CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(prevTexelPos, 0.5, uval_mainImageSizeRcp);
+                    historyDiff = sampling_catmullBicubic5Tap_sum(
+                        history_gi_stabilizationDiff_sample(tapData.uv1AndWeight.xy),
+                        history_gi_stabilizationDiff_sample(tapData.uv2AndWeight.xy),
+                        history_gi_stabilizationDiff_sample(tapData.uv3AndWeight.xy),
+                        history_gi_stabilizationDiff_sample(tapData.uv4AndWeight.xy),
+                        history_gi_stabilizationDiff_sample(tapData.uv5AndWeight.xy),
+                        tapData
+                    );
+                    historySpec = sampling_catmullBicubic5Tap_sum(
+                        history_gi_stabilizationSpec_sample(tapData.uv1AndWeight.xy),
+                        history_gi_stabilizationSpec_sample(tapData.uv2AndWeight.xy),
+                        history_gi_stabilizationSpec_sample(tapData.uv3AndWeight.xy),
+                        history_gi_stabilizationSpec_sample(tapData.uv4AndWeight.xy),
+                        history_gi_stabilizationSpec_sample(tapData.uv5AndWeight.xy),
+                        tapData
+                    );
+//                }
+
+                // Read history length
+                GIHistoryData historyData = gi_historyData_init();
+                gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
+
+                // Read current frame data from shared memory
+                uvec2 localXY = uvec2(gl_LocalInvocationID.xy) + 1u;
+                vec4 currDiff = shared_diffData[localXY.y][localXY.x];
+                vec4 currSpec = shared_specData[localXY.y][localXY.x];
+
+                // Build variance AABB for diffuse using 3x3 neighborhood
+                vec3 currDiffYCoCg = colors_SRGBToYCoCg(currDiff.rgb);
+                ColorAABB diffAABB = initAABB(currDiffYCoCg);
+
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dx = -1; dx <= 1; dx++) {
+                        if (dx != 0 || dy != 0) {
+                            ivec2 sampleXY = ivec2(localXY) + ivec2(dx, dy);
+                            vec4 neighborDiff = shared_diffData[sampleXY.y][sampleXY.x];
+                            vec3 neighborDiffYCoCg = colors_SRGBToYCoCg(neighborDiff.rgb);
+                            updateAABB(neighborDiffYCoCg, diffAABB);
+                        }
+                    }
+                }
+
+                // Calculate variance AABB for diffuse
+                vec3 diffMean = diffAABB.moment1 / 9.0;
+                vec3 diffMean2 = diffAABB.moment2 / 9.0;
+                vec3 diffVariance = diffMean2 - diffMean * diffMean;
+                vec3 diffStddev = sqrt(abs(diffVariance));
+
+                // 0.0 = more clamp, 1.0 = less clamp
+                float clampWeight = sqrt(historyData.historyLength) * float(clipFlag);
+                float diffHistoryClampRange = mix(1.0, 4.0, clampWeight);
+                vec3 diffAABBMin = diffMean - diffStddev * diffHistoryClampRange;
+                vec3 diffAABBMax = diffMean + diffStddev * diffHistoryClampRange;
+                diffAABBMin = min(diffAABBMin, currDiffYCoCg);
+                diffAABBMax = max(diffAABBMax, currDiffYCoCg);
+
+                // Clamp history diffuse
+                vec3 historyDiffYCoCg = colors_SRGBToYCoCg(historyDiff.rgb);
+                vec3 clampedHistoryDiffYCoCg = clamp(historyDiffYCoCg, diffAABBMin, diffAABBMax);
+                vec3 clampedHistoryDiff = colors_YCoCgToSRGB(clampedHistoryDiffYCoCg);
+
+                // Build variance AABB for specular using 3x3 neighborhood
+                vec3 currSpecYCoCg = colors_SRGBToYCoCg(currSpec.rgb);
+                ColorAABB specAABB = initAABB(currSpecYCoCg);
+
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dx = -1; dx <= 1; dx++) {
+                        if (dx != 0 || dy != 0) {
+                            ivec2 sampleXY = ivec2(localXY) + ivec2(dx, dy);
+                            vec4 neighborSpec = shared_specData[sampleXY.y][sampleXY.x];
+                            vec3 neighborSpecYCoCg = colors_SRGBToYCoCg(neighborSpec.rgb);
+                            updateAABB(neighborSpecYCoCg, specAABB);
+                        }
+                    }
+                }
+
+                // Calculate variance AABB for specular
+                vec3 specMean = specAABB.moment1 / 9.0;
+                vec3 specMean2 = specAABB.moment2 / 9.0;
+                vec3 specVariance = specMean2 - specMean * specMean;
+                vec3 specStddev = sqrt(abs(specVariance));
+
+                float specHistoryClampRange = mix(1.0, 2.0, clampWeight);
+                vec3 specAABBMin = specMean - specStddev * specHistoryClampRange;
+                vec3 specAABBMax = specMean + specStddev * specHistoryClampRange;
+                specAABBMin = min(specAABBMin, currDiffYCoCg);
+                specAABBMax = max(specAABBMax, currDiffYCoCg);
+
+                // Clamp history specular
+                vec3 historySpecYCoCg = colors_SRGBToYCoCg(historySpec.rgb);
+                vec3 clampedHistorySpecYCoCg = clamp(historySpecYCoCg, specAABBMin, specAABBMax);
+                vec3 clampedHistorySpec = colors_YCoCgToSRGB(clampedHistorySpecYCoCg);
+
+                // Fixed weight is better because it fades in egdes with darker color to avoid firefly
+//                float mixWeight = 1.0 / 32.0;
+                float realHistoryLength = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH;
+                float mixWeight = 1.0 / clamp(realHistoryLength, 8.0, 64.0);
+
+                // Blend current and clamped history
+                vec3 finalDiff = mix(clampedHistoryDiff, currDiff.rgb, mixWeight);
+                vec3 finalSpec = mix(clampedHistorySpec, currSpec.rgb, mixWeight);
+
+
+                // Write outputs
+                transient_gi_diffShadingOutput_store(texelPos, vec4(finalDiff, currDiff.a));
+                transient_gi_specShadingOutput_store(texelPos, vec4(finalSpec, currSpec.a));
+
                 #if SETTING_DEBUG_OUTPUT
-//                imageStore(uimg_temp3, texelPos, vec4(historyData.diffuseColor, 0.0));
-                imageStore(uimg_temp2, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
-                #endif
-                history_gi_diffuse_shading_store(texelPos, vec4(historyData.diffuseColor, 0.0));
-            }
+                if (RANDOM_FRAME < MAX_FRAMES){
+                    //                imageStore(uimg_temp3, texelPos, vec4(interpolateTurbo(saturate(transient_gi_blurDiff1_fetch(texelPos).w)), 0.0));
+                    //                imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
+                    //            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
+                    //                imageStore(uimg_temp2, texelPos, gi_historyData_pack2(historyData));
 
-            history_gi1_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
-            history_gi2_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));
-            history_gi3_store(texelPos, clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX));
-            history_gi4_store(texelPos, clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX));
-            history_gi5_store(texelPos, gi_historyData_pack5(historyData));
+                                    imageStore(uimg_temp3, texelPos, vec4(finalDiff, 0.0));
+                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.realHistoryLength), 1.0));
+                    imageStore(uimg_temp2, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
+                }
+                #endif
+            }
         }
     }
 }

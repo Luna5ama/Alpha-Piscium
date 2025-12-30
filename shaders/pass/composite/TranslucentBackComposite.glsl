@@ -19,6 +19,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_main;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
+layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 
 void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
@@ -36,8 +37,12 @@ void main() {
                 albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
             }
 
-            vec3 giRadiance = history_gi_diffuse_shading_fetch(texelPos).rgb;
-            outputColor.rgb += giRadiance.rgb * albedo;
+            // TODO: spec gi
+            vec4 giDiff = transient_gi_diffShadingOutput_fetch(texelPos);
+            vec4 giSpec = transient_gi_specShadingOutput_fetch(texelPos);
+            history_gi_stabilizationDiff_store(texelPos, giDiff);
+            history_gi_stabilizationSpec_store(texelPos, giSpec);
+            outputColor.rgb += giDiff.rgb * albedo;
         }
 
 

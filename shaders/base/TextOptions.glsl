@@ -3,6 +3,8 @@
 #define CLOUDS 0//[0]
 #define LOW_CLOUDS 0//[0]
 #define HIGH_CLOUDS 0//[0]
+#define COOKIE 0//[0]
+#define MILK 0//[0]
 #define SPONSOR_TITLE1 0//[0]
 #define SPONSOR_TITLE2 0//[0]
 #define SPONSOR_TITLE3 0//[0]
