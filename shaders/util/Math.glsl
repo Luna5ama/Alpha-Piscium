@@ -40,13 +40,13 @@ float mmax3(float x, float y, float z) { return max(max(x, y), z); }
 float max2(float x, float y) { return max(x, y); }
 float max2(vec2 v) { return max(v.x, v.y); }
 float mmax3(vec3 v) { return max(max(v.x, v.y), v.z); }
-float max4(float x, float y, float z, float w) { return max(max(x, y), max(z, w)); }
+float max4(float x, float y, float z, float w) { return max(x, max(y, max(z, w))); }
 float max4(vec4 v) { return max(max(v.x, v.y), max(v.z, v.w)); }
 
 float min2(float x, float y) { return min(x, y); }
 float min2(vec2 v) { return min(v.x, v.y); }
 float mmin3(vec3 v) { return min(min(v.x, v.y), v.z); }
-float min4(float x, float y, float z, float w) { return min(min(x, y), min(z, w)); }
+float min4(float x, float y, float z, float w) { return min(x, min(y, min(z, w))); }
 float min4(vec4 v) { return min(min(v.x, v.y), min(v.z, v.w)); }
 
 float sum2(float x, float y) { return x + y; }

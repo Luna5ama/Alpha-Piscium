@@ -114,12 +114,11 @@ void main() {
                     vec4 mipSpec = transient_gi_specMip_sample(screenPosMipTile);
 
                     #if DENOISER_HISTORY_FIX
-                    ivec4 mipTileMin = global_hizTiles[1][mip];
-                    ivec4 mipTileMax = global_hizTiles[0][mip];
-                    vec2 hiZMinReadPos = mipTileMin.xy + ivec2(texelPosMip);
-                    vec2 hiZMaxReadPos = mipTileMax.xy + ivec2(texelPosMip);
-                    float hiZMin = texelFetch(usam_hiz, ivec2(hiZMinReadPos), 0).r;
-                    float hiZMax = texelFetch(usam_hiz, ivec2(hiZMaxReadPos), 0).r;
+                    ivec4 hizTile = global_hizTiles[mip];
+                    vec2 hiZReadPos = hizTile.xy + ivec2(texelPosMip);
+                    vec2 hiZVal = texelFetch(usam_hiz, ivec2(hiZReadPos), 0).rg;
+                    float hiZMin = hiZVal.x;
+                    float hiZMax = hiZVal.y;
 
                     vec3 geomNormalMipRaw = transient_geomNormalMip_sample(screenPosMipTile).xyz;
                     geomNormalMipRaw = geomNormalMipRaw * 2.0 - 1.0;

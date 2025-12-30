@@ -7,8 +7,9 @@
 #define SPD_DATA_CAST_TO_4(x) vec4(x, 0.0, 0.0, 0.0)
 #define SPD_DATA_CAST_FROM_4(v) v.x
 #elif SPD_CHANNELS == 2
+#define SPD_DATA_TYPE vec2
 #define SPD_DATA_CAST_TO_4(x) vec4(x, 0.0, 0.0)
-#define SPD_DATA_TYPE_FROM_4(v) v.xy
+#define SPD_DATA_CAST_FROM_4(v) v.xy
 #elif SPD_CHANNELS == 3
 #define SPD_DATA_TYPE vec3
 #define SPD_DATA_CAST_TO_4(x) vec4(x, 0.0)
@@ -22,7 +23,7 @@
 // Requirements:
 // #define SPD_CHANNELS <1, 2, 3, 4> - Number of channels to process
 // #define SPD_HALF <0, 1> - Use half precision (1) or full precision
-// #define SPD_OP <0, 1, 2> - Downsample operation: 0 for min, 1 for max, 2 for average, 3 for sum
+// #define SPD_OP <0, 1, 2> - Downsample operation: 0 for min, 1 for max, 2 for average, 3 for sum, or leave undefined for custom
 //
 // and following functions:
 SPD_DATA_TYPE spd_loadInput(ivec2 texelPos, uint slice);
@@ -30,6 +31,21 @@ SPD_DATA_TYPE spd_loadOutput(ivec2 texelPos, uint level, uint slice);
 void spd_storeOutput(ivec2 texelPos, uint level, uint slice, SPD_DATA_TYPE value);
 uint spd_mipCount();
 void spd_init();
+vec4 spd_reduce4(vec4 v0, vec4 v1, vec4 v2, vec4 v3);
+
+#ifdef SPD_OP
+vec4 spd_reduce4(vec4 v0, vec4 v1, vec4 v2, vec4 v3) {
+    #if SPD_OP == 0
+    return ffxMin(ffxMin(v0, v1), ffxMin(v2, v3));
+    #elif SPD_OP == 1
+    return ffxMax(ffxMax(v0, v1), ffxMax(v2, v3));
+    #elif SPD_OP == 2
+    return (v0 + v1 + v2 + v3) * 0.25;
+    #else
+    return v0 + v1 + v2 + v3;
+    #endif
+}
+#endif
 
 
 // --------------------------------------------------- Adaptor stuff ---------------------------------------------------
@@ -73,15 +89,7 @@ void SpdStoreIntermediate(uint x, uint y, vec4 value) {
 }
 
 vec4 SpdReduce4(vec4 v0, vec4 v1, vec4 v2, vec4 v3) {
-    #if SPD_OP == 0
-    return ffxMin(ffxMin(v0, v1), ffxMin(v2, v3));
-    #elif SPD_OP == 1
-    return ffxMax(ffxMax(v0, v1), ffxMax(v2, v3));
-    #elif SPD_OP == 2
-    return (v0 + v1 + v2 + v3) * 0.25;
-    #else
-    return v0 + v1 + v2 + v3;
-    #endif
+    return spd_reduce4(v0, v1, v2, v3);
 }
 #endif
 

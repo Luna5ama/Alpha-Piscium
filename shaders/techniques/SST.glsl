@@ -51,7 +51,7 @@ float intersectCellBoundary(vec3 invD, vec2 cellIdOffset, vec2 cond2, vec2 cellI
     return tEdge;
 }
 
-shared ivec4 shared_mipmapTilesOffsets[16];
+shared ivec2 shared_mipmapTilesOffsets[16];
 shared uint shared_maxMipLevel;
 shared vec4 shared_cellCounts[16];
 
@@ -62,9 +62,7 @@ void sst_init() {
             shared_maxMipLevel = maxMip;
         }
         uint mipLevel = min(gl_LocalInvocationIndex, maxMip);
-        ivec4 mipTileMin = global_hizTiles[0][mipLevel];
-        ivec4 mipTileMax = global_hizTiles[1][mipLevel];
-        shared_mipmapTilesOffsets[mipLevel] = ivec4(mipTileMin.xy, mipTileMax.xy);
+        shared_mipmapTilesOffsets[mipLevel] = global_hizTiles[mipLevel].xy;
 
         int mipLevelI = int(mipLevel);
         vec4 mainImageSizeParams = vec4(uval_mainImageSize, uval_mainImageSizeRcp);
@@ -151,7 +149,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
 
     for (uint i = 0; i < HI_Z_STEPS; i++) {
         vec4 cellCountData = shared_cellCounts[level];
-        ivec4 mipTileOffsets = shared_mipmapTilesOffsets[level];
+        ivec2 mipTileOffsets = shared_mipmapTilesOffsets[level];
         vec3 currScreenPos = pRayStart + pRayVector * currT;
         result.lastMissScreenPos = currScreenPos;
 
@@ -160,7 +158,9 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         vec2 oldCellIdx = currScreenPos.xy * cellCount;
         ivec2 oldCellIdxI = ivec2(oldCellIdx);
         oldCellIdx = vec2(oldCellIdxI);
-        float cellMinZ = texelFetch(usam_hiz, mipTileOffsets.xy + oldCellIdxI, 0).r;
+        vec2 cellZ = texelFetch(usam_hiz, mipTileOffsets.xy + oldCellIdxI, 0).rg;
+        float cellMinZ = cellZ.x;
+        float cellMaxZ = cellZ.y;
 
         // float linearCurr = coords_reversedZToViewZ(currScreenPos.z, near);
         // float linearDepth = coords_reversedZToViewZ(cellMinZ, near);
@@ -170,7 +170,6 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
         // simplyfied to:
         float maxZThicknessFactor = min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * maxThicknessFactor;
         level--;
-        float cellMaxZ = texelFetch(usam_hiz, mipTileOffsets.zw + oldCellIdxI, 0).r;
 
         if (isBackwardRay) {
             #ifdef SST_DEBUG_PASS

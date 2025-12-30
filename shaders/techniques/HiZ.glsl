@@ -5,19 +5,19 @@
 #include "/util/Math.glsl"
 
 float hiz_closest_load(ivec2 texelPos, int level) {
-    ivec4 mipTile = global_hizTiles[0][level];
+    ivec4 mipTile = global_hizTiles[level];
     ivec2 readPos = mipTile.xy + clamp(texelPos, ivec2(0), mipTile.zw - 1);
     return texelFetch(usam_hiz, readPos, 0).r;
 }
 
 float hiz_closest_sample(vec2 texelPos, int level) {
-    vec4 mipTile = vec4(global_hizTiles[0][level]);
+    vec4 mipTile = vec4(global_hizTiles[level]);
     vec2 readPos = mipTile.xy + clamp(texelPos, vec2(0.5), mipTile.zw - 0.5);
     return texture(usam_hiz, readPos / vec2(textureSize(usam_hiz, 0))).r;
 }
 
 vec4 hiz_closest_gather(vec2 texelPos, int level) {
-    vec4 mipTile = vec4(global_hizTiles[0][level]);
+    vec4 mipTile = vec4(global_hizTiles[level]);
     vec2 readPos = mipTile.xy + clamp(texelPos, vec2(1.0), mipTile.zw - 1.0);
     return textureGather(usam_hiz, readPos / vec2(textureSize(usam_hiz, 0)), 0);
 }
@@ -35,21 +35,21 @@ bool hiz_groupGroundCheck4x4(vec2 groupOrigin, int level) {
 }
 
 float hiz_furthest_load(ivec2 texelPos, int level) {
-    ivec4 mipTile = global_hizTiles[1][level];
+    ivec4 mipTile = global_hizTiles[level];
     ivec2 readPos = mipTile.xy + clamp(texelPos, ivec2(0), mipTile.zw - 1);
-    return texelFetch(usam_hiz, readPos, 0).r;
+    return texelFetch(usam_hiz, readPos, 0).g;
 }
 
 float hiz_furthest_sample(vec2 texelPos, int level) {
-    vec4 mipTile = vec4(global_hizTiles[1][level]);
+    vec4 mipTile = vec4(global_hizTiles[level]);
     vec2 readPos = mipTile.xy + clamp(texelPos, vec2(0.5), mipTile.zw - 0.5);
     return texture(usam_hiz, readPos / vec2(textureSize(usam_hiz, 0))).g;
 }
 
 vec4 hiz_furthest_gather(vec2 texelPos, int level) {
-    vec4 mipTile = vec4(global_hizTiles[1][level]);
+    vec4 mipTile = vec4(global_hizTiles[level]);
     vec2 readPos = mipTile.xy + clamp(texelPos, vec2(1.0), mipTile.zw - 1.0);
-    return textureGather(usam_hiz, readPos / vec2(textureSize(usam_hiz, 0)), 0);
+    return textureGather(usam_hiz, readPos / vec2(textureSize(usam_hiz, 0)), 1);
 }
 
 bool hiz_groupSkyCheck(uvec2 groupOrigin, int level) {
