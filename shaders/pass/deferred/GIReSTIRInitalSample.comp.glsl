@@ -19,7 +19,7 @@ void main() {
     sst_init();
 
     uvec2 workGroupOrigin = gl_WorkGroupID.xy << 4;
-    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uint threadIdx = gl_SubgroupID + gl_SubgroupInvocationID * gl_NumSubgroups;
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     ivec2 texelPos = ivec2(mortonGlobalPosU);
@@ -43,10 +43,10 @@ void main() {
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
-                uvec3 workGroupUniformRandKey = uvec3(gl_WorkGroupID.xy, 1919810u);
+                uvec3 workGroupUniformRandKey = uvec3(gl_WorkGroupID.xy, gl_SubgroupID);
+//                uvec3 pixelRandKey = uvec3(texelPos, 1919810u);
                 uvec3 finalRandKey = workGroupUniformRandKey;
 
-//                uvec3 pixelRandKey = uvec3(texelPos, 1919810u);
 //                uvec3 finalRandKey = mix(workGroupUniformRandKey, pixelRandKey, bvec3(historyData.realHistoryLength < 4.0 / 255.0));
 
                 vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(finalRandKey, RANDOM_FRAME)).zw);
