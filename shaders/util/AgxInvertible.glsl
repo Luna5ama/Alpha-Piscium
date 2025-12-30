@@ -21,20 +21,21 @@ vec3 _agxInvertible_agxCurveFoward(vec3 x) {
 }
 
 vec3 _agxInvertible_agxCurveInverse(vec3 targetY) {
-    const uint ITERATIONS = 4u;
-    const float INIT_EPS = 0.25;
-    const float ESP_DECAY = 0.15;
+    vec3 x1 = targetY;
+    vec3 x2 = pow2(x1);
+    vec3 x3 = x2 * x1;
+    vec3 x4 = x2 * x2;
 
-    vec3 x = targetY;
-    float eps = INIT_EPS;
+    const float a_4 = -2.5435474976243095;
+    const float a_3 = 6.837765628186323;
+    const float a_2 = -5.17352088182104;
+    const float a_1 = -0.11824735062463992;
+    const float a_0 = 0.9995933226846184;
+    const float c_1 = 0.049516644712887005;
+    const float c_0 = 0.5577179034720833;
 
-    for (uint i = 0u; i < ITERATIONS; ++i) {
-        vec3 y = _agxInvertible_agxCurveFoward(x);
-        vec3 dy = (_agxInvertible_agxCurveFoward(x + eps) - y) / eps;
-        x -= (y - targetY) / dy;
-        eps *= ESP_DECAY;
-    }
-    return x;
+    vec3 polys = a_4 * x4 + a_3 * x3 + a_2 * x2 + a_1 * x1 + a_0;
+    return log2(rcp(polys) - 1.0) * c_1 + c_0;
 }
 const mat3 agx_mat = mat3(
     0.842479062253094, 0.0423282422610123, 0.0423756549057051,
