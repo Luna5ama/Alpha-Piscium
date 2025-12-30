@@ -125,9 +125,10 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     text.fpPrecision = 4;
 
     #ifdef DEBUG_TEX_NAME
-    if (all(lessThan(texelPos, textureSize(DEBUG_TEX_NAME, 0)))) {
-
-        outputColor = texelFetch(DEBUG_TEX_NAME, texelPos, 0);
+    ivec2 scaledTextureSize = ivec2(vec2(textureSize(DEBUG_TEX_NAME, 0)) * SETTING_DEBUG_SCALE);
+    if (all(lessThan(texelPos, scaledTextureSize))) {
+        ivec2 scaledTexelPos = ivec2((vec2(texelPos) + 0.5) / SETTING_DEBUG_SCALE);
+        outputColor = texelFetch(DEBUG_TEX_NAME, scaledTexelPos, 0);
         outputColor *= exp2(SETTING_DEBUG_EXP);
 
         #ifdef SETTING_DEBUG_NEGATE

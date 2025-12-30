@@ -4,6 +4,7 @@
 #include "/techniques/HiZCheck.glsl"
 #include "/util/Colors.glsl"
 #include "/util/GBufferData.glsl"
+#include "/util/AgxInvertible.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Sampling.glsl"
 
@@ -213,23 +214,25 @@ void main() {
                     specMoment1 /= 25.0;
                     specMoment2 /= 25.0;
 
+                    float expMul = exp2(global_aeData.expValues.z);
+
                     vec3 diffClamped = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2, clampingThreshold);
-                    vec3 diffDiff = abs(diffClamped - historyData.diffuseColor);
-                    float diffDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffDiff);
+                    vec3 diffDiff = abs(agxInvertible_forward(diffClamped) - agxInvertible_forward(historyData.diffuseColor));
+                    float diffDiffLuma = colors2_colorspaces_luma(SETTING_OUTPUT_COLOR_SPACE, diffDiff);
                     diffClamped = mix(historyData.diffuseColor, diffClamped, historyFixMix);
                     historyData.diffuseColor = diffClamped;
 
                     vec3 specClamped = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2, clampingThreshold);
-                    vec3 specDiff = abs(specClamped - historyData.specularColor);
-                    float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
+                    vec3 specDiff = abs(agxInvertible_forward(specClamped) - agxInvertible_forward(historyData.specularColor));
+                    float specDiffLuma = colors2_colorspaces_luma(SETTING_OUTPUT_COLOR_SPACE, specDiff);
                     specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
                     historyData.specularColor = specClamped;
 
-                    vec2 diffLuma2 = vec2(diffDiffLuma, specDiffLuma);
-                    denoiserBlurVariance += diffLuma2 * localLumaRcp;
+                    vec2 diffLuma2 = sqrt(vec2(diffDiffLuma, specDiffLuma));
+                    denoiserBlurVariance += diffLuma2;
 
                     vec2 localLumaClamped = max(localLuma, 1e-16);
-                    vec2 resetFactor2 = localLumaClamped * safeRcp(localLumaClamped + diffLuma2);
+                    vec2 resetFactor2 = pow2(linearStep(1.0, 0.0, diffLuma2));
                     float resetFactor = resetFactor2.x * resetFactor2.y;
                     historyData.historyLength *= resetFactor;
                     historyData.realHistoryLength *= sqrt(resetFactor);
