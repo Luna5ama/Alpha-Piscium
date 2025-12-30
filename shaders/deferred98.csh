@@ -1,5 +1,6 @@
 #version 460 compatibility
 
+#define SST_DEBUG_PASS a
 #include "/techniques/SST.glsl"
 #include "/util/Coords.glsl"
 #include "/util/GBufferData.glsl"

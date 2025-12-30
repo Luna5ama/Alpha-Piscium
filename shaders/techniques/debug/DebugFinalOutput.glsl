@@ -1,6 +1,12 @@
 #include "Common.glsl"
 #include "/util/TextRender.glsl"
 
+#ifdef SETTING_DEBUG_SST_STEPS
+layout(std430, binding = 3) buffer TestBuffer {
+    vec4 ssbo_testBuffer[];
+};
+#endif
+
 void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     _debug_texelPos = texelPos;
     vec2 debugTexCoord;
@@ -157,6 +163,30 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
         } else {
             outputColor.rgb = vec3(0.25);
         }
+    }
+    #endif
+
+    #ifdef SETTING_DEBUG_SST_STEPS
+    {
+        text.fpPrecision = 8;
+
+        printString((_S, _S, _T, _space, _S, _T, _E, _P, _S, _colon, _space));
+        uint count = global_atomicCounters[15];
+        printUnsignedInt(count);
+        printLine();
+        //    printVec4(ssbo_testBuffer[count + 1 + 2048]);
+        uint last = max(count - 10, 0);
+        for (uint i = last; i <= count; i++) {
+            printUnsignedInt(i);
+            printString((_space, _space));
+            printVec4(ssbo_testBuffer[i + 2048]);
+            printString((_space, _space));
+            printFloat(ssbo_testBuffer[i].w);
+            printLine();
+        }
+        //    printVec4(ssbo_testBuffer[26 + 2048]);
+
+        text.fpPrecision = DEFAULT_FP_PRECISION;
     }
     #endif
 

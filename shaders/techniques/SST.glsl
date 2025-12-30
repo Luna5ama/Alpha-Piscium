@@ -18,14 +18,14 @@
     Credit:
         - GeforceLegend (https://github.com/GeForceLegend) - Helping with optimizations.
 */
+#ifdef SST_DEBUG_PASS
 #define GLOBAL_DATA_MODIFIER buffer
-
-#include "/util/Coords.glsl"
-#ifdef SETTING_DEBUG_SST_STEPS
 layout(std430, binding = 3) buffer TestBuffer {
     vec4 ssbo_testBuffer[];
 };
 #endif
+
+#include "/util/Coords.glsl"
 
 struct SSTResult {
     bool hit;
@@ -118,10 +118,10 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
 
     int level = START_LEVEL;
     float currT = 0.0;
-    #ifdef SETTING_DEBUG_SST
+    #ifdef SST_DEBUG_PASS
 //    const uvec2 DEBUG_COORD = uvec2(1250, 720);
-    const uvec2 DEBUG_COORD = uvec2(1450, 1000);
-//    const uvec2 DEBUG_COORD = uvec2(940, 550);
+//    const uvec2 DEBUG_COORD = uvec2(1500, 1000);
+    const uvec2 DEBUG_COORD = uvec2(970, 760);
 //    const uvec2 DEBUG_COORD = uvec2(0, 0);
     #endif
     const uint HI_Z_STEPS = 128;
@@ -173,16 +173,43 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
 //        float minZThicknessFactor = level > STOP_LEVEL ? 1145141919810.0 : maxZThicknessFactor;
         float minZThicknessFactor = level * 1145141919810.0 + maxZThicknessFactor; // Use FMA instead of ALU
         level--;
+        float cellMaxZ = texelFetch(usam_hiz, mipTileOffsets.zw + oldCellIdxI, 0).r;
 
         if (isBackwardRay) {
-            if (any(lessThanEqual(vec2(cellMinZ, minZThicknessFactor), vec2(currScreenPos.z, cellMinZ)))) {
-                float newT = intersectCellBoundary(invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
-                currT = newT;
-                level += 2;
-                level = min(level, maxMip);
+            float linearCurr = coords_reversedZToViewZ(currScreenPos.z, near);
+            float linearMinZ = coords_reversedZToViewZ(cellMinZ, near);
+            float linearMaxZ = coords_reversedZToViewZ(cellMaxZ, near);
+            #ifdef SST_DEBUG_PASS
+            if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
+                ssbo_testBuffer[i + 2048] = vec4(currT, linearCurr, linearMinZ, linearMaxZ);
+            }
+            #endif
+
+            float diff = abs(linearMaxZ - linearCurr);
+            float ttt = maxThickness * abs(linearCurr) * 1.0; // 0.763644076
+            float ttt2 = level > STOP_LEVEL ? 1145141919810.0 : ttt;
+            float thickness = level > STOP_LEVEL ? -1145141919810.0 : maxThickness * abs(linearCurr);
+
+            float depthT = cellMaxZ * invD.z + negRayEndZ;
+            if (linearMaxZ > linearCurr && linearMaxZ < (linearCurr + ttt)) {
+
+            } else {
+                if (depthT > currT && any(notEqual(oldCellIdxI, ivec2((pRayStart.xy + pRayVector.xy * depthT) * cellCount)))) {
+                    float newT = intersectCellBoundary(invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
+                    currT = min(newT, depthT);
+                    level += 2;
+                    level = min(level, maxMip);
+                } else {
+                    if (linearCurr < (linearMinZ)) {
+                        currT = max(currT, depthT);
+                    } else {
+                        currT = intersectCellBoundary(invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
+                        level += 2;
+                        level = min(level, maxMip);
+                    }
+                }
             }
         } else {
-            float cellMaxZ = texelFetch(usam_hiz, mipTileOffsets.zw + oldCellIdxI, 0).r;
             float depthT = cellMinZ * invD.z + negRayEndZ;
             if (depthT > currT && any(notEqual(oldCellIdxI, ivec2((pRayStart.xy + pRayVector.xy * depthT) * cellCount)))) {
                 float newT = intersectCellBoundary(invD, cellIdOffset, vec0Fix, oldCellIdx, invCellCount);
@@ -200,12 +227,14 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
             }
         }
 
+        #ifdef SST_DEBUG_PASS
         #ifdef SETTING_DEBUG_SST_STEPS
         if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
-            ssbo_testBuffer[i] = vec4(currScreenPos.xy, floor(oldCellIdx));
-            ssbo_testBuffer[i + 2048] = vec4(float(level), 0.0, 0.0, 0.0);
+            ssbo_testBuffer[i] = vec4(currScreenPos.xy, 0.0, float(level));
+//            ssbo_testBuffer[i + 2048] = vec4(float(level), 0.0, 0.0, 0.0);
             atomicMax(global_atomicCounters[15], i);
         }
+        #endif
         #endif
         if (currT >= 1.0 || level < STOP_LEVEL) {
             result.hit = level < STOP_LEVEL;
