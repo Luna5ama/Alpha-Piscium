@@ -83,29 +83,29 @@ void main() {
 
         for (int dy = -1; dy <= 1; dy++) {
             for (int dx = -1; dx <= 1; dx++) {
-                if (dx == 0 && dy == 0) continue;
+                if (dx != 0 || dy != 0) {
+                    ivec2 sampleLocalPos = localPos + ivec2(dx, dy);
 
-                ivec2 sampleLocalPos = localPos + ivec2(dx, dy);
+                    // Load sample data
+                    SampleData sampleData = loadSampleData(sampleLocalPos);
 
-                // Load sample data
-                SampleData sampleData = loadSampleData(sampleLocalPos);
+                    // Convert to view space positions
+                    ivec2 sampleGlobalPos = texelPos + ivec2(dx, dy);
+                    vec2 sampleScreenPos = coords_texelToUV(sampleGlobalPos, uval_mainImageSizeRcp);
+                    vec3 sampleViewPos = coords_toViewCoord(sampleScreenPos, sampleData.viewZ, global_camProjInverse);
+                    vec3 sampleWorldPos = coords_pos_viewToWorld(sampleViewPos, gbufferModelViewInverse);
 
-                // Convert to view space positions
-                ivec2 sampleGlobalPos = texelPos + ivec2(dx, dy);
-                vec2 sampleScreenPos = coords_texelToUV(sampleGlobalPos, uval_mainImageSizeRcp);
-                vec3 sampleViewPos = coords_toViewCoord(sampleScreenPos, sampleData.viewZ, global_camProjInverse);
-                vec3 sampleWorldPos = coords_pos_viewToWorld(sampleViewPos, gbufferModelViewInverse);
+                    // Calculate plane distance (geometry weight)
+                    float planeDistance = gi_planeDistance(centerWorldPos, centerData.geomNormal, sampleWorldPos, sampleData.geomNormal);
 
-                // Calculate plane distance (geometry weight)
-                float planeDistance = gi_planeDistance(centerWorldPos, centerData.geomNormal, sampleWorldPos, sampleData.geomNormal);
+                    float geomDepthWeight = float(planeDistance < geomDepthThreshold);
 
-                float geomDepthWeight = float(planeDistance < geomDepthThreshold);
+                    float geomNormalDot = saturate(dot(centerData.geomNormal, sampleData.geomNormal));
+                    float geomNormalWeight = pow2(geomNormalDot);
 
-                float geomNormalDot = saturate(dot(centerData.geomNormal, sampleData.geomNormal));
-                float geomNormalWeight = pow2(geomNormalDot);
-
-                float weight = geomDepthWeight * geomNormalWeight;
-                weightSum += weight;
+                    float weight = geomDepthWeight * geomNormalWeight;
+                    weightSum += weight;
+                }
             }
         }
 

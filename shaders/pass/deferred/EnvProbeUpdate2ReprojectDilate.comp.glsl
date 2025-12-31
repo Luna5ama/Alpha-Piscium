@@ -41,16 +41,15 @@ void main() {
 
     for (int y = -2; y <= 2; y++) {
         for (int x = -2; x <= 2; x++) {
-            if (x == 0 && y == 0) {
-                continue;
+            if (x != 0 || y != 0) {
+                ivec2 offset = ivec2(x, y);
+                const float K = 0.1;
+                vec2 weightXY = rcp(vec2(abs(offset) + 1));
+                float weight = weightXY.x * weightXY.y;
+                ivec2 localPos = ivec2(gl_LocalInvocationID.xy) + offset + 2;
+                vec4 data = shared_scenePos[localPos.y][localPos.x];
+                sum += data * weight;
             }
-            ivec2 offset = ivec2(x, y);
-            const float K = 0.1;
-            vec2 weightXY = rcp(vec2(abs(offset) + 1));
-            float weight = weightXY.x * weightXY.y;
-            ivec2 localPos = ivec2(gl_LocalInvocationID.xy) + offset + 2;
-            vec4 data = shared_scenePos[localPos.y][localPos.x];
-            sum += data * weight;
         }
     }
     ivec2 centerLocalPos = ivec2(gl_LocalInvocationID.xy) + 2;
