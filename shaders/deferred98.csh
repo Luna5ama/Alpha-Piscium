@@ -1,9 +1,13 @@
 #version 460 compatibility
 
+#extension GL_KHR_shader_subgroup_basic : enable
+
 #define SST_DEBUG_PASS a
 #include "/techniques/SST.glsl"
 #include "/util/Coords.glsl"
 #include "/util/GBufferData.glsl"
+#include "/util/Morton.glsl"
+#include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -12,7 +16,15 @@ layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 
 void main() {
     sst_init();
-    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+
+    uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
+    uvec2 workGroupOrigin = swizzledWGPos << 4u;
+    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uvec2 mortonPos = morton_8bDecode(threadIdx);
+    uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
+    ivec2 texelPos = ivec2(mortonGlobalPosU);
+
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         GBufferData gData = gbufferData_init();
         gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);

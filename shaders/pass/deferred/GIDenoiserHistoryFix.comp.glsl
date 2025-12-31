@@ -6,6 +6,7 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Sampling.glsl"
+#include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -14,15 +15,12 @@ layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 
-
-uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 4u;
-
 #if ENABLE_DENOISER_FAST_CLAMP
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
 shared uvec4 shared_YCoCgData[20][20];
 
-void loadSharedDataMoments(uint index) {
+void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
     if (index < 400u) { // 20 * 20 = 400
         uvec2 sharedXY = uvec2(index % 20u, index / 20u);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
@@ -59,7 +57,7 @@ vec3 _clampColor(vec3 colorRGB, vec3 fastColorRGB, vec3 moment1YCoCG, vec3 momen
 #else
 shared vec2 shared_hitDistances[20][20];
 
-void loadSharedDataMoments(uint index) {
+void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
     if (index < 400u) { // 20 * 20 = 400
         uvec2 sharedXY = uvec2(index % 20u, index / 20u);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
@@ -75,13 +73,21 @@ void loadSharedDataMoments(uint index) {
 #endif
 
 void main() {
-    if (hiz_groupGroundCheck(gl_WorkGroupID.xy, 4)) {
-        loadSharedDataMoments(gl_LocalInvocationIndex);
-        loadSharedDataMoments(gl_LocalInvocationIndex + 256u);
+    uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
+    uvec2 workGroupOrigin = swizzledWGPos << 4u;
+    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uvec2 mortonPos = morton_8bDecode(threadIdx);
+    uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
+    ivec2 texelPos = ivec2(mortonGlobalPosU);
+
+    if (hiz_groupGroundCheck(swizzledWGPos, 4)) {
+        loadSharedDataMoments(workGroupOrigin, gl_LocalInvocationIndex);
+        loadSharedDataMoments(workGroupOrigin, gl_LocalInvocationIndex + 256u);
 
         ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-            float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
+            float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
             if (viewZ > -65536.0) {
                 GIHistoryData historyData = gi_historyData_init();
 

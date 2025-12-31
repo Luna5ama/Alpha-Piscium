@@ -14,6 +14,7 @@
 #include "/util/Mat2.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Dither.glsl"
+#include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -21,8 +22,6 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
-
-uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 4u;
 
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
@@ -59,7 +58,7 @@ vec4 _gi_readSpec(ivec2 texelPos) {
     #endif
 }
 
-void loadSharedVarianceData(uint index) {
+void loadSharedVarianceData(uvec2 groupOriginTexelPos, uint index) {
     if (index < 400u) { // 20 * 20 = 400
         uvec2 sharedXY = uvec2(index % 20u, index / 20u);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
@@ -87,12 +86,19 @@ float planeDistanceWeight(vec3 posA, vec3 normalA, vec3 posB, vec3 normalB, floa
 }
 
 void main() {
-    if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
-        // Load shared memory for variance filtering (20x20 = 400 elements)
-        loadSharedVarianceData(gl_LocalInvocationIndex);
-        loadSharedVarianceData(gl_LocalInvocationIndex + 256u);
+    uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
+    uvec2 workGroupOrigin = swizzledWGPos << 4u;
+    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uvec2 mortonPos = morton_8bDecode(threadIdx);
+    uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
+    ivec2 texelPos = ivec2(mortonGlobalPosU);
 
-        ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+    if (hiz_groupGroundCheckSubgroup(swizzledWGPos, 4)) {
+        // Load shared memory for variance filtering (20x20 = 400 elements)
+        loadSharedVarianceData(workGroupOrigin, gl_LocalInvocationIndex);
+        loadSharedVarianceData(workGroupOrigin, gl_LocalInvocationIndex + 256u);
+
         vec4 baseKernelRadius = GI_DENOISE_BLUR_RADIUS;
         vec2 blurJitter = rand_stbnVec2(texelPos + GI_DENOISE_RAND_NOISE_OFFSET, frameCounter);
 
