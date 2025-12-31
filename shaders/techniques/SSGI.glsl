@@ -12,7 +12,7 @@ struct SpatialSampleData {
     vec3 geomNormal;
     vec3 normal;
     vec3 hitNormal;
-    vec3 hitRadiance;
+    vec4 sampleValue;
 };
 
 SpatialSampleData spatialSampleData_init() {
@@ -20,7 +20,7 @@ SpatialSampleData spatialSampleData_init() {
     data.geomNormal = vec3(0.0);
     data.normal = vec3(0.0);
     data.hitNormal = vec3(0.0);
-    data.hitRadiance = vec3(0.0);
+    data.sampleValue = vec4(0.0);
     return data;
 }
 
@@ -28,7 +28,7 @@ uvec4 spatialSampleData_pack(SpatialSampleData data) {
     uvec4 packedData;
     nzpacking_packNormalOct16(packedData.x, data.geomNormal, data.hitNormal);
     packedData.y = nzpacking_packNormalOct32(data.normal);
-    packedData.zw = packHalf4x16(vec4(data.hitRadiance, 0.0));
+    packedData.zw = packHalf4x16(data.sampleValue);
     return packedData;
 }
 
@@ -36,8 +36,7 @@ SpatialSampleData spatialSampleData_unpack(uvec4 packedData) {
     SpatialSampleData data;
     nzpacking_unpackNormalOct16(packedData.x, data.geomNormal, data.hitNormal);
     data.normal = nzpacking_unpackNormalOct32(packedData.y);
-    vec4 hitRadianceAndPadding = unpackHalf4x16(packedData.zw);
-    data.hitRadiance = hitRadianceAndPadding.rgb;
+    data.sampleValue = unpackHalf4x16(packedData.zw);
     return data;
 }
 

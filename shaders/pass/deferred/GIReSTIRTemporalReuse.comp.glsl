@@ -85,7 +85,12 @@ void main() {
                         ReSTIRReservoir prevTemporalReservoir = restir_reservoir_unpack(history_restir_reservoirTemporal_load(prevTexelPos));
                         prevTemporalReservoir.m = uint(ceil(float(prevTemporalReservoir.m) * global_historyResetFactor * reprojInfo.historyResetFactor));
                         if (restir_isReservoirValid(prevTemporalReservoir)) {
+                            vec3 prevHitNormalData = history_restir_prevHitNormal_fetch(prevTexelPos).xyz;
                             prevSample = history_restir_prevSample_load(prevTexelPos);
+                            prevHitNormal = normalize(prevHitNormalData * 2.0 - 1.0);
+                            prevHitNormal = coords_dir_viewToWorldPrev(prevHitNormal);
+                            prevHitNormal = coords_dir_worldToView(prevHitNormal);
+
                             if (prevTemporalReservoir.Y.w > 0.0) {
                                 vec2 prevScreenPos = coords_texelToUV(prevTexelPos, uval_mainImageSizeRcp);
                                 float prevViewZ = history_viewZ_fetch(prevTexelPos).x;
@@ -117,10 +122,6 @@ void main() {
                                     {
                                         vec3 prevHitScreenPos = coords_viewToScreen(prevHitViewPos, global_prevCamProj);
                                         ivec2 prevHitTexelPos = ivec2(prevHitScreenPos.xy * uval_mainImageSize);
-                                        // Get hit point normal from current frame GBuffer at hit location
-                                        GBufferData prevHitGData = gbufferData_init();
-                                        gbufferData1_unpack(texelFetch(usam_gbufferData1, prevCurrHitTexelPos, 0), prevHitGData);
-                                        vec3 hitViewNormal = normalize(history_viewZ_fetch(prevHitTexelPos).xyz * 2.0 - 1.0);
 
                                         // Original path: from the temporal neighbor pixel (where the sample came from) to hit point
                                         // prev2CurrNeighborViewPos is the neighbor's position transformed to current frame coordinates
@@ -147,8 +148,8 @@ void main() {
                                         float threshold = RA2 * 1e-4; // 1% relative distance threshold
                                         if (pixelDist2 > threshold) {
                                             // Cosine at hit point for original and shifted paths
-                                            float cosPhiB = -dot(dirB, hitViewNormal);
-                                            float cosPhiA = -dot(dirA, hitViewNormal);
+                                            float cosPhiB = -dot(dirB, prevHitNormal);
+                                            float cosPhiA = -dot(dirA, prevHitNormal);
 
                                             // Compute Jacobian: |J| = (r_B^2 * cos(phi_A)) / (r_A^2 * cos(phi_B))
                                             // Only apply if both cosines are positive (valid geometry)
@@ -160,7 +161,7 @@ void main() {
                                             }
 
                                             // Clamp Jacobian to avoid fireflies
-                                            const float maxJacobian = 4.0;
+                                            const float maxJacobian = 16.0;
                                             jacobian = min(jacobian, maxJacobian);
                                         }
 
@@ -178,9 +179,6 @@ void main() {
                                     //                    float prevHitDistance;
                                     //                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, prevHitDistance);
                                     //                    prevPHat = length(prevSample);
-                                    GBufferData prevGData = gbufferData_init();
-                                    gbufferData1_unpack(texelFetch(usam_gbufferData1, prevCurrHitTexelPos, 0), prevGData);
-                                    prevHitNormal = prevGData.normal;
                                 } else {
                                     prevTemporalReservoir = restir_initReservoir(texelPos);
                                 }
@@ -325,12 +323,11 @@ void main() {
                     #endif
 
                     SpatialSampleData spatialSample = spatialSampleData_init();
-                    spatialSample.hitRadiance = finalSample.xyz;
+                    spatialSample.sampleValue = finalSample;
                     spatialSample.geomNormal = gData.geomNormal;
                     spatialSample.normal = gData.normal;
                     spatialSample.hitNormal = hitNormal;
                     transient_restir_spatialInput_store(texelPos, spatialSampleData_pack(spatialSample));
-                    transient_restir_prevSampleTemp_store(texelPos, vec4(finalSample));
 
                     temporalReservoir.age++;
                 }

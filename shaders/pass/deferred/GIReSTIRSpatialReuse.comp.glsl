@@ -14,19 +14,20 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
+layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 #include "/techniques/SSGI.glsl"
 
 #if USE_REFERENCE || !SPATIAL_REUSE
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec4 prevSample = transient_restir_prevSampleTemp_load(texelPos);
-        history_restir_prevSample_store(texelPos, prevSample);
-        if (RANDOM_FRAME < MAX_FRAMES){
-            if (RANDOM_FRAME >= 0) {
-                uvec4 reprojectedData = transient_restir_reservoirReprojected_load(texelPos);
-                history_restir_reservoirTemporal_store(texelPos, reprojectedData);
-            }
+        SpatialSampleData sampleData = spatialSampleData_unpack(transient_restir_spatialInput_load(texelPos));
+        history_restir_prevSample_store(texelPos, sampleData.sampleValue);
+        history_restir_prevHitNormal_store(texelPos, vec4(sampleData.hitNormal * 0.5 + 0.5, 0.0));
+
+        if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0) {
+            uvec4 reprojectedData = transient_restir_reservoirReprojected_load(texelPos);
+            history_restir_reservoirTemporal_store(texelPos, reprojectedData);
         }
     }
 }
@@ -43,8 +44,9 @@ void main() {
     sst_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec4 prevSample = transient_restir_prevSampleTemp_load(texelPos);
-        history_restir_prevSample_store(texelPos, prevSample);
+        SpatialSampleData sampleData = spatialSampleData_unpack(transient_restir_spatialInput_load(texelPos));
+        history_restir_prevSample_store(texelPos, sampleData.sampleValue);
+        history_restir_prevHitNormal_store(texelPos, vec4(sampleData.hitNormal * 0.5 + 0.5, 0.0));
         if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0){
             float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
             if (viewZ > -65536.0) {
@@ -55,7 +57,7 @@ void main() {
                 //                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
                 //                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
 
-                SpatialSampleData gData = spatialSampleData_unpack(transient_restir_spatialInput_load(texelPos));
+                SpatialSampleData centerSampleData = spatialSampleData_unpack(transient_restir_spatialInput_load(texelPos));
 
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
@@ -82,12 +84,9 @@ void main() {
                     vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
                     ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
 
-                    float samplePdf = saturate(dot(gData.normal, sampleDirView)) / PI;
-                    //                    float samplePdf = 1.0 / (2.0 * PI);
-                    //                    vec3 hitRadiance = texelFetch(usam_temp2, hitTexelPos, 0).rgb;
-                    vec3 hitRadiance = gData.hitRadiance;
+                    vec3 hitRadiance = centerSampleData.sampleValue.xyz;
 
-                    float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
+                    float brdf = centerSampleData.sampleValue.w;
                     vec3 f = brdf * hitRadiance;
                     pHatMe = length(f);
                     originalSample = vec4(f, pHatMe);
@@ -123,7 +122,7 @@ void main() {
 
                     SpatialSampleData neighborData = spatialSampleData_unpack(transient_restir_spatialInput_load(sampleTexelPos));
 
-                    if (dot(gData.geomNormal, neighborData.geomNormal) < 0.99) {
+                    if (dot(centerSampleData.geomNormal, neighborData.geomNormal) < 0.99) {
                         continue;
                     }
                     float neighborViewZ = texelFetch(usam_gbufferViewZ, sampleTexelPos, 0).x;
@@ -144,7 +143,7 @@ void main() {
                         neighborSampleHitDistance = length(hitDiff);
                         neighborSampleDirView = hitDiff / neighborSampleHitDistance;
 
-                        float neighborSamplePdf = saturate(dot(gData.normal, neighborSampleDirView)) / PI;
+                        float neighborSamplePdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
                         //                        float neighborSamplePdf = 1.0 / (2.0 * PI);
 
                         //                        float newHitDistance;
@@ -160,8 +159,8 @@ void main() {
                         vec3 neighborHitScreenPos = coords_viewToScreen(neighborHitViewPos, global_camProj);
                         ivec2 neighborHitTexelPos = ivec2(neighborHitScreenPos.xy * uval_mainImageSize);
                         //
-                        vec3 hitRadiance = neighborData.hitRadiance;
-                        float brdf = saturate(dot(gData.normal, neighborSampleDirView)) / PI;
+                        vec3 hitRadiance = neighborData.sampleValue.xyz;
+                        float brdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
                         vec3 f = brdf * hitRadiance;
                         vec3 neighborSample = f;
                         float neighborPHat = length(neighborSample);
@@ -172,7 +171,7 @@ void main() {
                         //                        }
 
                         //                            vec3 hitRadiance = texture(usam_temp2, neighborHitScreenPos.xy).rgb;
-                        //                            float brdf = saturate(dot(gData.normal, neighborSampleDirView)) / PI;
+                        //                            float brdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
                         //                            vec3 f = brdf * hitRadiance;
                         //                            float neighborPHat = length(f);
 
@@ -222,7 +221,7 @@ void main() {
                         vec3 offsetB = neighborHitViewPos - neighborViewPos;
                         vec3 offsetA = neighborHitViewPos - viewPos;
 
-                        if (dot(gData.normal, offsetA) <= 0.0) {
+                        if (dot(centerSampleData.normal, offsetA) <= 0.0) {
                             neighborPHat = 0.0;
                         }
 
@@ -230,7 +229,7 @@ void main() {
                         float RA2 = dot(offsetA, offsetA);
                         offsetB = normalize(offsetB);
                         offsetA = normalize(offsetA);
-                        float cosA = dot(gData.normal, offsetA);
+                        float cosA = dot(centerSampleData.normal, offsetA);
                         float cosB = dot(neighborData.normal, offsetB);
 
                         //                        GBufferData hitGData = gbufferData_init();
