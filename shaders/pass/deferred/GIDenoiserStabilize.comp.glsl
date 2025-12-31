@@ -139,9 +139,9 @@ void main() {
                 float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
                 float pixelSpeed = length(pixelPosDiff);
                 float speedSum = 0.0;
-                speedSum += sqrt(cameraSpeedDiff) * 2.0;
-                speedSum += sqrt(cameraSpeed) * 0.01;
-                speedSum += sqrt(pixelSpeed) * 0.02;
+                speedSum += sqrt(cameraSpeedDiff) * 4.0;
+                speedSum += sqrt(cameraSpeed) * 0.02;
+                speedSum += sqrt(pixelSpeed) * 0.05;
                 float speedFactor = exp2(-speedSum);
 
                 // Read current frame data from shared memory
@@ -217,8 +217,8 @@ void main() {
 
                 // Fixed weight is better because it fades in egdes with darker color to avoid firefly
 //                float mixWeight = 1.0 / 32.0;
-                float realHistoryLength = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH;
-                float mixWeight = 1.0 / clamp(max(16.0, realHistoryLength) * speedFactor, 1.0, 64.0);
+                float realHistoryLength = historyData.historyLength * TOTAL_HISTORY_LENGTH;
+                float mixWeight = 1.0 / clamp(max(4.0, realHistoryLength) * speedFactor, 1.0, 64.0);
 
                 // Blend current and clamped history
                 vec3 finalDiff = mix(clampedHistoryDiff, currDiff.rgb, mixWeight);

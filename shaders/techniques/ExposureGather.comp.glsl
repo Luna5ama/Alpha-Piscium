@@ -78,7 +78,7 @@ void main() {
 
         const float MIN_LUM_TARGET = SETTING_EXPOSURE_AVG_LUM_MIN_TARGET / 255.0;
         const float MAX_LUM_TARGET = SETTING_EXPOSURE_AVG_LUM_MAX_TARGET / 255.0;
-        float expCurveValue = pow(linearStep(MIN_EXP, MAX_EXP, expLast.z), exp2(SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE));
+        float expCurveValue = pow(pow2(linearStep(MIN_EXP, MAX_EXP, expLast.z)), exp2(SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE));
         float lumTarget = mix(MAX_LUM_TARGET, MIN_LUM_TARGET, expCurveValue);
         expNew.x = log2(lumTarget / averageLuminance);
         float avgDelta = 2.0;

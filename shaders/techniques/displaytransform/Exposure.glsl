@@ -47,8 +47,14 @@ void _displaytransform_exposure_update(bool valid, inout vec4 color) {
     float groupNoise = rand_stbnVec1(ivec2(gl_WorkGroupID.xy), frameCounter);
     if (valid) {
         ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-        float emissiveWeightMul = ldexp(1.0, SETTING_EXPOSURE_EMISSIVE_WEIGHTING);
-        float pixelWeight = color.a * pow(emissiveWeightMul, transient_solidAlbedo_fetch(texelPos).a);
+
+        const float BASE_VIEWZ_WEIGHT = exp2(SETTING_EXPOSURE_DISTANCE_WEIGHTING);
+        float emissive = transient_solidAlbedo_fetch(texelPos).a;
+        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+
+        float pixelWeight = 1.0;
+        pixelWeight *= pow(exp2(SETTING_EXPOSURE_EMISSIVE_WEIGHTING), emissive);
+        pixelWeight *= BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + abs(viewZ));
 
         float lumimance = colors2_colorspaces_luma(COLORS2_OUTPUT_COLORSPACE, saturate(color.rgb));
         uint not0Flag = uint(any(greaterThan(color.rgb, vec3(0.0))));

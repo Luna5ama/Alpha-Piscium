@@ -116,7 +116,7 @@ void main() {
     {
         vec3 currColorYCoCg = colors_SRGBToYCoCg(currColor);
         float clampWeight = exp2(-speedSum);
-        float param = pow2(saturate(1.0 - clampWeight)) * -2.0;
+        float param = pow2(saturate(1.0 - clampWeight)) * -1.0;
 
         ColorAABB box = initAABB(currColorYCoCg, kernelWeight(texelPos, unjitterTexelPos, param));
 
@@ -165,9 +165,6 @@ void main() {
         #endif
     }
 
-    const float FRAME_RESET_FACTOR = 4.0;
-    float frameReset = FRAME_RESET_FACTOR / (FRAME_RESET_FACTOR + speedSum);
-    newFrameAccum *= frameReset;
     #ifdef SETTING_SCREENSHOT_MODE
     float MIN_ACCUM_FRAMES = 1.0;
     float MAX_ACCUM_FRAMES = 1024.0;

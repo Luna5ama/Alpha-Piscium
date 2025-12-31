@@ -2372,17 +2372,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "自动曝光最大值"
                     }
                 }
-                slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", -4, -10..10) {
+                slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", -3.0, -5.0..5.0 step 0.5) {
                     lang {
                         name = "Emissive Weighting"
                         comment =
                             "Weighting multiplier for emissive block pixels. Lower value = less influence. Higher value = more influence."
-                        prefix = "2^"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "自发光权重"
                         comment = "自发光方块像素的权重乘数。数值越低 = 影响越小。"
-                        prefix = "2^"
+                    }
+                }
+                slider("SETTING_EXPOSURE_DISTANCE_WEIGHTING", -3.5, -5.0..5.0 step 0.5) {
+                    lang {
+                        name = "Distance Weighting"
+                        comment =
+                            "How much distance from the player influences exposure. Higher = adjusts more to close scene."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "距离权重"
+                        comment = "玩家距离对曝光的影响程度。数值越高 = 更多地调整到近处的物体。"
                     }
                 }
                 slider("SETTING_EXPOSURE_CENTER_WEIGHTING", 4.0, 0.0..8.0 step 0.1) {
@@ -2430,7 +2439,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "基于整体亮度的曝光适应速度。数值越低 = 调整越快。"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 31, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 40, 1..255) {
                     lang {
                         name = "Dark Scene Target Brightness"
                         comment =
@@ -2441,7 +2450,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "黑暗环境（洞穴、夜晚）的目标亮度。数值越高，暗场景越亮。"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 127, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 140, 1..255) {
                     lang {
                         name = "Bright Scene Target Brightness"
                         comment =

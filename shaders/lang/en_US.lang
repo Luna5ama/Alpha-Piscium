@@ -468,7 +468,8 @@ option.SETTING_EXPOSURE_MIN_EV=Auto Exposure Min EV
 option.SETTING_EXPOSURE_MAX_EV=Auto Exposure Max EV
 option.SETTING_EXPOSURE_EMISSIVE_WEIGHTING=Emissive Weighting
 option.SETTING_EXPOSURE_EMISSIVE_WEIGHTING.comment=Weighting multiplier for emissive block pixels. Lower value = less influence. Higher value = more influence.
-prefix.SETTING_EXPOSURE_EMISSIVE_WEIGHTING=2^
+option.SETTING_EXPOSURE_DISTANCE_WEIGHTING=Distance Weighting
+option.SETTING_EXPOSURE_DISTANCE_WEIGHTING.comment=How much distance from the player influences exposure. Higher = adjusts more to close scene.
 option.SETTING_EXPOSURE_CENTER_WEIGHTING=Center Focus Priority
 option.SETTING_EXPOSURE_CENTER_WEIGHTING.comment=How much the center of the screen influences exposure. Higher = adjusts more to what you're looking at directly.
 option.SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE=Center Focus Sharpness
