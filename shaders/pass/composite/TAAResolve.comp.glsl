@@ -166,6 +166,7 @@ void main() {
     }
 
     #ifdef SETTING_SCREENSHOT_MODE
+    newFrameAccum *= extraReset;
     float MIN_ACCUM_FRAMES = 1.0;
     float MAX_ACCUM_FRAMES = 1024.0;
     #else
