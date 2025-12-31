@@ -43,19 +43,19 @@ vec3 interpolateTurbo(float x) {
 #endif
 
 float applyExposure(float color) {
-    return color * exp2(SETTING_DEBUG_EXP);
+    return color * exp2(float(SETTING_DEBUG_EV_COARSE) + SETTING_DEBUG_EV_FINE);
 }
 
 vec2 applyExposure(vec2 color) {
-    return color * exp2(SETTING_DEBUG_EXP);
+    return color * exp2(float(SETTING_DEBUG_EV_COARSE) + SETTING_DEBUG_EV_FINE);
 }
 
 vec3 applyExposure(vec3 color) {
-    return color * exp2(SETTING_DEBUG_EXP);
+    return color * exp2(float(SETTING_DEBUG_EV_COARSE) + SETTING_DEBUG_EV_FINE);
 }
 
 vec4 applyExposure(vec4 color) {
-    return color * exp2(SETTING_DEBUG_EXP);
+    return color * exp2(float(SETTING_DEBUG_EV_COARSE) + SETTING_DEBUG_EV_FINE);
 }
 
 #if defined(SETTING_DEBUG_GAMMA_CORRECT) && (SETTING_DEBUG_OUTPUT == 4)
@@ -129,7 +129,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     if (all(lessThan(texelPos, scaledTextureSize))) {
         ivec2 scaledTexelPos = ivec2((vec2(texelPos) + 0.5) / SETTING_DEBUG_SCALE);
         outputColor = texelFetch(DEBUG_TEX_NAME, scaledTexelPos, 0);
-        outputColor *= exp2(SETTING_DEBUG_EXP);
+        outputColor = applyExposure(outputColor);
 
         #ifdef SETTING_DEBUG_NEGATE
         outputColor = -outputColor;
@@ -297,7 +297,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         vec2 sampleTexCoord = debugTexCoord;
         sampleTexCoord.y = mix(1.0 / EPIPOLAR_DATA_Y_SIZE, 1.0, sampleTexCoord.y);
         unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
-        outputColor.rgb = gammaCorrect(sampleResult.inScattering * exp2(SETTING_DEBUG_EXP));
+        outputColor.rgb = expGamma(sampleResult.inScattering);
     }
 //    if (inViewPort(ivec4(256, 32 + 256, whRatio * 256, 256), debugTexCoord)) {
 //        ScatteringResult sampleResult;
@@ -366,8 +366,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
         bool envProbeIsSky = envProbe_isSky(envProbeData);
         outputColor.rgb = envProbeIsSky ? vec3(0.0) : envProbeData.radiance;
-        outputColor.rgb *= exp2(SETTING_DEBUG_EXP);
-        outputColor.rgb = gammaCorrect(outputColor.rgb);
+        outputColor.rgb = expGamma(outputColor.rgb);
     }
 //    if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {
 //        ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);

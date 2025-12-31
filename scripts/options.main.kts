@@ -3041,11 +3041,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     name = "Gamma Correct"
                 }
             }
-            slider("SETTING_DEBUG_EXP", 0.0, -10.0..10.0 step 0.1) {
-                lang {
-                    name = "Exposure"
-                }
-            }
             toggle("SETTING_DEBUG_NEGATE", false) {
                 lang {
                     name = "Negate"
@@ -3056,9 +3051,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     name = "Alpha"
                 }
             }
-            toggle("SETTING_DEBUG_DEDICATED", false) {
+            slider("SETTING_DEBUG_EV_COARSE", 0, -16..16) {
                 lang {
-                    name = "Dedicated Debug"
+                    name = "EV Coarse"
+                }
+            }
+            slider("SETTING_DEBUG_EV_FINE", 0.0, -1.0..1.0 step 0.01) {
+                lang {
+                    name = "EV Fine"
                 }
             }
             empty()
