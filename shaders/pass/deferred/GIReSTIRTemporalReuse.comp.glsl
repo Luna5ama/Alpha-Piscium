@@ -58,7 +58,8 @@ void main() {
                     uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_load(texelPos);
                     ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
 
-                    if (reprojInfo.historyResetFactor > 0.0) {
+                    float resetRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987123654u)).x);
+                    if (reprojInfo.historyResetFactor > resetRand) {
                         vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
                         vec2 centerPixel = curr2PrevTexelPos - 0.5;
                         vec2 gatherOrigin = floor(centerPixel);

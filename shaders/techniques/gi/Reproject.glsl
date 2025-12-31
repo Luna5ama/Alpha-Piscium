@@ -123,11 +123,14 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
             reprojInfo.bilateralWeights = edgeWeights * safeRcp(max4(edgeWeights));
             reprojInfo.curr2PrevScreenPos = curr2PrevScreen;
-//            reprojInfo.edgeFlag = edgeFlag;
 
             if (edgeFlagBool) {
                 bool validFlag = weightSum > 0.001;
                 historyResetFactor *= float(validFlag);
+                // Only applying this to reprojInfo (which is used in ReSTIR temporal reuse)
+                // Because killing denoiser history causes flickering bs
+                // sqrt so we make it less aggressive
+                reprojInfo.historyResetFactor *= sqrt(weightSum);
                 if (weightSum > 0.001) {
                     vec4 giData1 = bileratralSum(
                         history_gi1_gatherTexel(gatherTexelPos, 0),
@@ -223,7 +226,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             historyResetFactor *= antiStretching;
 
             historyData.historyLength *= historyResetFactor;
-            reprojInfo.historyResetFactor = historyResetFactor;
+            reprojInfo.historyResetFactor *= historyResetFactor;
         }
     }
 
