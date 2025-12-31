@@ -18,9 +18,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
     float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
 
-    if (currEdgeFactor < 0.9) {
-        screenPos -= global_taaJitter * uval_mainImageSizeRcp;
-    }
+    screenPos -= global_taaJitter * uval_mainImageSizeRcp;
 
     vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
     vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
@@ -41,9 +39,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
         vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
 
         if (all(equal(curr2PrevScreen, saturate(curr2PrevScreen)))) {
-            if (currEdgeFactor < 0.9) {
-                curr2PrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
-            }
+            curr2PrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
 
             vec3 curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);

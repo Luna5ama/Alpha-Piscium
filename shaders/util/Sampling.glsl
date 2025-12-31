@@ -156,7 +156,7 @@ vec4 sampling_catmullBicubic5Tap(sampler2D texSampler, vec2 texelPos, float shar
     float s = sharpness;
     vec2 w0 = -s * f3 + 2.0 * s * f2 - s * f;
     vec2 w1 = (2.0 - s) * f3 + (s - 3.0) * f2 + 1.0;
-    vec2 w2 = (s - 2.0) * f3 + (3 - 2.0 * s) * f2 + s * f;
+    vec2 w2 = (s - 2.0) * f3 + (3.0 - 2.0 * s) * f2 + s * f;
     vec2 w3 = s * f3 - s * f2;
 
     vec2 w12 = w1 + w2;
@@ -207,7 +207,7 @@ CatmullBicubic5TapData sampling_catmullBicubic5Tap_init(vec2 texelPos, float sha
     float s = sharpness;
     vec2 w0 = -s * f3 + 2.0 * s * f2 - s * f;
     vec2 w1 = (2.0 - s) * f3 + (s - 3.0) * f2 + 1.0;
-    vec2 w2 = (s - 2.0) * f3 + (3 - 2.0 * s) * f2 + s * f;
+    vec2 w2 = (s - 2.0) * f3 + (3.0 - 2.0 * s) * f2 + s * f;
     vec2 w3 = s * f3 - s * f2;
 
     vec2 w12 = w1 + w2;
