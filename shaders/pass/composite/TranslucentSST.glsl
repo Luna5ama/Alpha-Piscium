@@ -138,7 +138,7 @@ void main() {
             nv = pow3(nv) + 0.5;
             AtmosphereParameters atmosphere = getAtmosphereParameters();
 
-            SSTResult refractResult = sst_trace(startViewPos, refractDir, 0.01);
+            SSTResult refractResult = sst_trace(startViewPos, refractDir, 0.005);
             vec3 refractColor = vec3(0.0);
 
             if (isEyeInWater == 1) {
@@ -166,7 +166,7 @@ void main() {
             float MDotV = dot(microNormal, viewDir);
             transient_translucentRefraction_store(texelPos, vec4(refractColor, MDotV));
 
-            SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.05);
+            SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.005);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
             reflectDirWorld = rand_sampleInCone(reflectDirWorld, 0.005, noiseV);
             vec2 envSliceUV = vec2(-1.0);
@@ -182,13 +182,20 @@ void main() {
             }
             if (reflectResult.hit) {
                 vec2 sampleCoord = saturate(reflectResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp));
+                vec3 hitGeomNormal = transient_geomViewNormal_sample(sampleCoord).rgb;
+                vec3 hitColor = BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb;
+                float mixFactor = edgeReductionFactor(reflectResult.hitScreenPos.xy);
+                hitGeomNormal = normalize(hitGeomNormal * 2.0 - 1.0);
+                float hitDot = dot(-reflectDir, hitGeomNormal);
+                mixFactor *= float(hitDot > 0.0);
+
                 if (isEyeInWater == 1) {
                     float reflectDepth = texture(usam_gbufferViewZ, sampleCoord).r;
                     if (reflectDepth > -far) {
-                        reflectColor = mix(reflectColor, BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb, edgeReductionFactor(reflectResult.hitScreenPos.xy));
+                        reflectColor = mix(reflectColor, hitColor, mixFactor);
                     }
                 } else {
-                    reflectColor = mix(reflectColor, BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb, edgeReductionFactor(reflectResult.hitScreenPos.xy));
+                    reflectColor = mix(reflectColor, hitColor, mixFactor);
                 }
             }
 
