@@ -6,6 +6,7 @@
 #include "/util/Colors.glsl"
 #include "/util/AgxInvertible.glsl"
 #include "/util/Sampling.glsl"
+#include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -27,14 +28,12 @@ vec3 interpolateTurbo(float x) {
     return turboCurve[int(x)] + (turboCurve[min(255, int(x) + 1)] - turboCurve[int(x)]) * fract(x);
 }
 
-uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 4u;
-
 // Shared memory with padding for 3x3 tap (-1 to +1)
 // Each work group is 16x16, need +1 padding on each side for 3x3 taps
 shared vec4 shared_diffData[18][18];
 shared vec4 shared_specData[18][18];
 
-void loadSharedData(uint index) {
+void loadSharedData(uvec2 groupOriginTexelPos, uint index) {
     if (index < 324u) { // 18 * 18 = 324
         uvec2 sharedXY = uvec2(index % 18u, index / 18u);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 1;
@@ -72,18 +71,24 @@ void updateAABB(vec3 colorYCoCg, inout ColorAABB box) {
 }
 
 void main() {
-    if (hiz_groupGroundCheckSubgroup(gl_WorkGroupID.xy, 4)) {
+    uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
+    uvec2 workGroupOrigin = swizzledWGPos << 4u;
+    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uvec2 mortonPos = morton_8bDecode(threadIdx);
+    uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
+    ivec2 texelPos = ivec2(mortonGlobalPosU);
+
+    if (hiz_groupGroundCheckSubgroup(swizzledWGPos, 4)) {
         // Load shared memory for 3x3 neighborhood (18x18 = 324 elements)
-        loadSharedData(gl_LocalInvocationIndex);
-        loadSharedData(gl_LocalInvocationIndex + 256u);
+        loadSharedData(workGroupOrigin, gl_LocalInvocationIndex);
+        loadSharedData(workGroupOrigin, gl_LocalInvocationIndex + 256u);
 
         barrier();
 
-        ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-            float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
+            float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
             if (viewZ > -65536.0) {
-
                 vec2 texelCenter = vec2(texelPos) + vec2(0.5);
                 vec2 screenPos = texelCenter * uval_mainImageSizeRcp;
                 GBufferData gData = gbufferData_init();
@@ -140,7 +145,7 @@ void main() {
                 float speedFactor = exp2(-speedSum);
 
                 // Read current frame data from shared memory
-                uvec2 localXY = uvec2(gl_LocalInvocationID.xy) + 1u;
+                uvec2 localXY = uvec2(mortonPos) + 1u;
                 vec4 currDiff = shared_diffData[localXY.y][localXY.x];
                 vec4 currSpec = shared_specData[localXY.y][localXY.x];
 

@@ -134,7 +134,7 @@ void main() {
             vec2 filteredInputVariance = vec2(0.0);
 
             // Optimized variance calculation using shared memory
-            ivec2 localPos = ivec2(gl_LocalInvocationID.xy) + 2; // +2 for padding
+            ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
             for (int dy = -2; dy <= 2; ++dy) {
                 for (int dx = -2; dx <= 2; ++dx) {
                     ivec2 samplePos = localPos + ivec2(dx, dy);

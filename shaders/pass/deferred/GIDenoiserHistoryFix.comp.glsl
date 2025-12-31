@@ -85,7 +85,6 @@ void main() {
         loadSharedDataMoments(workGroupOrigin, gl_LocalInvocationIndex);
         loadSharedDataMoments(workGroupOrigin, gl_LocalInvocationIndex + 256u);
 
-        ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
             float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
             if (viewZ > -65536.0) {
@@ -201,7 +200,7 @@ void main() {
                     float clampingThreshold = mix(2.0, 16.0, pow2(decayFactor));
 
                     barrier();
-                    ivec2 localPos = ivec2(gl_LocalInvocationID.xy) + 2; // +2 for padding
+                    ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
                     // 5x5 neighborhood using shared memory
                     for (int dy = -2; dy <= 2; ++dy) {
                         for (int dx = -2; dx <= 2; ++dx) {
@@ -251,7 +250,7 @@ void main() {
                 #else
                 {
                     barrier();
-                    ivec2 localPos = ivec2(gl_LocalInvocationID.xy) + 2; // +2 for padding
+                    ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
                     // 5x5 neighborhood using shared memory
                     for (int dy = -2; dy <= 2; ++dy) {
                         for (int dx = -2; dx <= 2; ++dx) {
