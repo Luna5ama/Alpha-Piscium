@@ -17,17 +17,34 @@ layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 #include "/techniques/SSGI.glsl"
 
 uint selectWeighted(vec4 weights, float rand) {
-    vec4 prefixSum;
-    prefixSum.x = weights.x;
-    prefixSum.y = prefixSum.x + weights.y;
-    prefixSum.z = prefixSum.y + weights.z;
-    prefixSum.w = prefixSum.z + weights.w;
+    // Select max weight instead
+    float maxWeight = weights.x;
+    uint selectedIndex = 0u;
+    if (weights.y > maxWeight) {
+        maxWeight = weights.y;
+        selectedIndex = 1u;
+    }
+    if (weights.z > maxWeight) {
+        maxWeight = weights.z;
+        selectedIndex = 2u;
+    }
+    if (weights.w > maxWeight) {
+        maxWeight = weights.w;
+        selectedIndex = 3u;
+    }
+    return selectedIndex;
 
-    float total = prefixSum.w;
-    float threshold = rand * total;
-
-    vec4 cmp = step(prefixSum, vec4(threshold));
-    return uint(dot(cmp, vec4(1.0)));
+//    vec4 prefixSum;
+//    prefixSum.x = weights.x;
+//    prefixSum.y = prefixSum.x + weights.y;
+//    prefixSum.z = prefixSum.y + weights.z;
+//    prefixSum.w = prefixSum.z + weights.w;
+//
+//    float total = prefixSum.w;
+//    float threshold = rand * total;
+//
+//    vec4 cmp = step(prefixSum, vec4(threshold));
+//    return uint(dot(cmp, vec4(1.0)));
 }
 
 void main() {
@@ -162,7 +179,7 @@ void main() {
                                             }
 
                                             // Clamp Jacobian to avoid fireflies
-                                            const float maxJacobian = 16.0;
+                                            const float maxJacobian = 2.0;
                                             jacobian = min(jacobian, maxJacobian);
                                         }
 

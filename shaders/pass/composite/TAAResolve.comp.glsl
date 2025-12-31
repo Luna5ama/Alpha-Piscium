@@ -93,8 +93,8 @@ void main() {
     float pixelSpeed = length(pixelPosDiff);
 
     float speedSum = 0.0;
-    speedSum += sqrt(cameraSpeedDiff) * 8.0;
-    speedSum += sqrt(cameraSpeed) * 0.05;
+    speedSum += sqrt(cameraSpeedDiff) * 16.0;
+    speedSum += sqrt(cameraSpeed) * 0.1;
     speedSum += sqrt(pixelSpeed) * 0.2;
 
     vec3 prevFrontVec = coords_dir_viewToWorldPrev(vec3(0.0, 0.0, -1.0));

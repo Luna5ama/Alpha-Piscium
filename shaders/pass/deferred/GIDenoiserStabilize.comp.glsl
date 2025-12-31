@@ -216,6 +216,7 @@ void main() {
                 vec3 clampedHistorySpec = colors_YCoCgToSRGB(clampedHistorySpecYCoCg);
 
                 // Fixed weight is better because it fades in egdes with darker color to avoid firefly
+                // nvm too much blur
 //                float mixWeight = 1.0 / 32.0;
                 float realHistoryLength = historyData.historyLength * TOTAL_HISTORY_LENGTH;
                 float mixWeight = 1.0 / clamp(max(4.0, realHistoryLength) * speedFactor, 1.0, 64.0);
