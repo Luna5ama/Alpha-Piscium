@@ -80,8 +80,11 @@ void loadSharedVarianceData(uvec2 groupOriginTexelPos, uint index) {
 float gaussianKernel(float x, float sigma) {
     return exp(-sigma * pow2(x));
 }
-float normalWeight(vec3 norA, vec3 norB, float factor) {
-    return pow(saturate(dot(norA, norB)), factor);
+
+float normalWeight(GeomData a, GeomData b, float factor) {
+    float geomNormalDot = saturate(dot(a.geomNormal, b.geomNormal));
+    float normalDot = saturate(dot(a.normal, b.normal));
+    return pow(pow4(geomNormalDot) * normalDot, factor);
 }
 
 float planeDistanceWeight(vec3 posA, vec3 normalA, vec3 posB, vec3 normalB, float factor) {
@@ -99,6 +102,8 @@ void main() {
     ivec2 texelPos = ivec2(mortonGlobalPosU);
 
     if (hiz_groupGroundCheckSubgroup(swizzledWGPos, 4)) {
+        vec2 centerScreenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+        GeomData centerGeomData = _gi_readGeomData(texelPos, centerScreenPos);
         // Load shared memory for variance filtering (20x20 = 400 elements)
         loadSharedVarianceData(workGroupOrigin, gl_LocalInvocationIndex);
         loadSharedVarianceData(workGroupOrigin, gl_LocalInvocationIndex + 256u);
@@ -106,19 +111,27 @@ void main() {
         vec4 baseKernelRadius = GI_DENOISE_BLUR_RADIUS;
         vec2 blurJitter = rand_stbnVec2(texelPos + GI_DENOISE_RAND_NOISE_OFFSET, frameCounter);
 
-        vec2 centerScreenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-        GeomData centerGeomData = _gi_readGeomData(texelPos, centerScreenPos);
-
         barrier();
 
         if (centerGeomData.viewPos.z > -65536.0) {
             GIHistoryData historyData = gi_historyData_init();
             gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
-
             vec2 localMinHitDistance = transient_gi_filteredHitDistances_fetch(texelPos).xy;
-
             vec4 centerDiff = _gi_readDiff(texelPos);
             vec4 centerSpec = _gi_readSpec(texelPos);
+
+            vec4 filteredInputVariance = vec4(0.0);
+
+            // Optimized variance calculation using shared memory
+            ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
+            for (int dy = -2; dy <= 2; ++dy) {
+                for (int dx = -2; dx <= 2; ++dx) {
+                    ivec2 samplePos = localPos + ivec2(dx, dy);
+                    filteredInputVariance += shared_varianceData[samplePos.y][samplePos.x];
+                }
+            }
+
+            filteredInputVariance /= 25.0;
 
             float historyLength = historyData.historyLength * TOTAL_HISTORY_LENGTH;
             float sqrtRealHistoryLength = sqrt(historyData.historyLength);
@@ -135,19 +148,6 @@ void main() {
             float kernelRadius = baseKernelRadius.x;
             kernelRadius *= pow(accumFactor, 0.25);
 
-            vec4 filteredInputVariance = vec4(0.0);
-
-            // Optimized variance calculation using shared memory
-            ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
-            for (int dy = -2; dy <= 2; ++dy) {
-                for (int dx = -2; dx <= 2; ++dx) {
-                    ivec2 samplePos = localPos + ivec2(dx, dy);
-                    filteredInputVariance += shared_varianceData[samplePos.y][samplePos.x];
-                }
-            }
-
-            filteredInputVariance /= 25.0;
-
             kernelRadius *= 1.0 + filteredInputVariance.x * baseKernelRadius.y;
             kernelRadius *= hitDistFactor;
             kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
@@ -161,7 +161,6 @@ void main() {
 //            #endif
 //
 //            baseColorWeight *= pow2(invAccumFactor);
-            float baseGeomNormalWeight = invAccumFactor * 8.0;
             float baseNormalWeight = invAccumFactor * 4.0;
             float basePlaneDistWeight = invAccumFactor * -512.0;
 
@@ -198,11 +197,10 @@ void main() {
                 }
                 ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
 
-                GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
                 vec4 diffSample = _gi_readDiff(sampleTexelPos);
+                GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
                 float edgeWeight = 1.0;
-                edgeWeight *= normalWeight(centerGeomData.geomNormal, geomData.geomNormal, baseGeomNormalWeight);
                 edgeWeight *= planeDistanceWeight(
                     centerGeomData.viewPos,
                     centerGeomData.geomNormal,
@@ -210,7 +208,7 @@ void main() {
                     geomData.geomNormal,
                     basePlaneDistWeight
                 );
-                edgeWeight *= normalWeight(centerGeomData.normal, geomData.normal, baseNormalWeight);
+                edgeWeight *= normalWeight(centerGeomData, geomData, baseNormalWeight);
 
 
                 float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight);
