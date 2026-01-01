@@ -25,6 +25,89 @@ vec4 sampling_bSplineWeights(float t) {
     );
 }
 
+// Optimized 4-tap B-Spline bicubic sampling using bilinear filtering
+// Reduces 16 texture fetches to 4 by leveraging hardware bilinear interpolation
+vec4 sampling_bSplineBicubic4Tap(sampler2D texSampler, vec2 texelPos, vec2 texRcpSize) {
+    vec2 f = fract(texelPos - 0.5);
+    vec2 f2 = f * f;
+    vec2 f3 = f2 * f;
+
+    // Compute the B-Spline weights (optimized: w2 computed from sum constraint)
+    vec2 w0 = f2 - 0.5 * (f3 + f);
+    vec2 w1 = 1.5 * f3 - 2.5 * f2 + 1.0;
+    vec2 w3 = 0.5 * (f3 - f2);
+    vec2 w2 = 1.0 - w0 - w1 - w3;
+
+    // Combine weights for bilinear filtering
+    vec2 s0 = w0 + w1;
+    vec2 s1 = w2 + w3;
+
+    // Compute texture coordinates that leverage bilinear filtering
+    vec2 centerUV = (floor(texelPos - 0.5) + 0.5) * texRcpSize;
+    vec2 t0 = centerUV + (w1 / s0 - 1.0) * texRcpSize;
+    vec2 t1 = centerUV + (w3 / s1 + 1.0) * texRcpSize;
+
+    // 4 bilinear samples instead of 16 point samples
+    return (texture(texSampler, vec2(t0.x, t0.y)) * s0.x
+         +  texture(texSampler, vec2(t1.x, t0.y)) * s1.x) * s0.y
+         + (texture(texSampler, vec2(t0.x, t1.y)) * s0.x
+         +  texture(texSampler, vec2(t1.x, t1.y)) * s1.x) * s1.y;
+}
+
+// Convenience wrapper that takes UV coordinates
+vec4 sampling_bSplineBicubic4Tap(sampler2D texSampler, vec2 uv) {
+    vec2 texSize = vec2(textureSize(texSampler, 0));
+    vec2 texelPos = uv * texSize;
+    vec2 texRcpSize = rcp(texSize);
+    return sampling_bSplineBicubic4Tap(texSampler, texelPos, texRcpSize);
+}
+
+struct BSplineBicubic4TapData {
+    vec2 uv00;
+    vec2 uv10;
+    vec2 uv01;
+    vec2 uv11;
+    vec2 weight0;
+    vec2 weight1;
+};
+
+// Initialize B-Spline sampling parameters for reuse across multiple textures
+BSplineBicubic4TapData sampling_bSplineBicubic4Tap_init(vec2 texelPos, vec2 texRcpSize) {
+    vec2 f = fract(texelPos - 0.5);
+    vec2 f2 = f * f;
+    vec2 f3 = f2 * f;
+
+    // Compute the B-Spline weights
+    vec2 w0 = f2 - 0.5 * (f3 + f);
+    vec2 w1 = 1.5 * f3 - 2.5 * f2 + 1.0;
+    vec2 w3 = 0.5 * (f3 - f2);
+    vec2 w2 = 1.0 - w0 - w1 - w3;
+
+    // Combine weights for bilinear filtering
+    vec2 s0 = w0 + w1;
+    vec2 s1 = w2 + w3;
+
+    // Compute texture coordinates
+    vec2 centerUV = (floor(texelPos - 0.5) + 0.5) * texRcpSize;
+    vec2 t0 = centerUV + (w1 / s0 - 1.0) * texRcpSize;
+    vec2 t1 = centerUV + (w3 / s1 + 1.0) * texRcpSize;
+
+    BSplineBicubic4TapData params;
+    params.uv00 = vec2(t0.x, t0.y);
+    params.uv10 = vec2(t1.x, t0.y);
+    params.uv01 = vec2(t0.x, t1.y);
+    params.uv11 = vec2(t1.x, t1.y);
+    params.weight0 = s0;
+    params.weight1 = s1;
+    return params;
+}
+
+// Sum pre-fetched samples with B-Spline weights
+vec4 sampling_bSplineBicubic4Tap_sum(vec4 c00, vec4 c10, vec4 c01, vec4 c11, BSplineBicubic4TapData params) {
+    return (c00 * params.weight0.x + c10 * params.weight1.x) * params.weight0.y
+         + (c01 * params.weight0.x + c11 * params.weight1.x) * params.weight1.y;
+}
+
 vec4 sampling_catmullRomWeights(float t) {
     float t2 = t * t;
     float t3 = t2 * t;

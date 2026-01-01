@@ -243,7 +243,9 @@ void main() {
 
                     vec2 resetFactor2 = smoothstep(0.5, 0.0, diffLuma2);
                     float resetFactor = resetFactor2.x * resetFactor2.y;
-                    historyData.historyLength *= pow(resetFactor, historyData.historyLength * 2.0);
+                    resetFactor = pow(resetFactor, historyData.historyLength);
+                    historyData.historyLength *= pow2(resetFactor);
+                    historyData.realHistoryLength *= resetFactor;
                 }
                 #else
                 {
