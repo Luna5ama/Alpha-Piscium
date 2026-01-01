@@ -5,7 +5,6 @@
         "transient_translucentRefraction": "RGBA16F",
         "transient_lowCloudRender": "RGBA32UI",
         "transient_lowCloudAccumulated": "RGBA32UI",
-        "history_gi": "RGBA32UI",
         "history_lowCloud": "RGBA32UI",
         "transient_dofInput": "RGBA16F",
         "history_viewZ": "R32F",

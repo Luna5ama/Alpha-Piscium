@@ -27,4 +27,28 @@ uvec2 morton_32bDecode(uint code) {
     return result;
 }
 
+uint morton_8bEncode(uvec2 coords) {
+    uvec2 x = coords & 0x0Fu;
+    x = (x | (x << 2)) & 0x33u;
+    x = (x | (x << 1)) & 0x55u;
+    return x.x | (x.y << 1);
+}
+
+uint morton_16bEncode(uvec2 coords) {
+    uvec2 x = coords & 0xFFu;
+    x = (x | (x << 4)) & 0x0F0Fu;
+    x = (x | (x << 2)) & 0x3333u;
+    x = (x | (x << 1)) & 0x5555u;
+    return x.x | (x.y << 1);
+}
+
+uint morton_32bEncode(uvec2 coords) {
+    uvec2 x = coords & 0xFFFFu;
+    x = (x | (x << 8)) & 0x00FF00FFu;
+    x = (x | (x << 4)) & 0x0F0F0F0Fu;
+    x = (x | (x << 2)) & 0x33333333u;
+    x = (x | (x << 1)) & 0x55555555u;
+    return x.x | (x.y << 1);
+}
+
 #endif

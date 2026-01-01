@@ -251,7 +251,17 @@ vec3 coords_pos_worldToView(vec3 posWorld, mat4 viewMat) {
 vec3 coords_viewToScreen(vec3 viewPos, mat4 proj) {
     vec4 clipPos = proj * vec4(viewPos, 1.0);
     vec3 ndcPos = clipPos.xyz / clipPos.w;
-    return ndcPos * 0.5 + 0.5;
+    vec3 screenPos = ndcPos;
+    screenPos.xy = screenPos.xy * 0.5 + 0.5; // Reverse-Z
+    return screenPos;
+}
+
+vec3 coords_screenToView(vec3 screenPos, mat4 projInv) {
+    vec3 ndcPos = screenPos;
+    ndcPos.xy = ndcPos.xy * 2.0 - 1.0; // Reverse-Z
+    vec4 viewPos = projInv * vec4(ndcPos, 1.0);
+    viewPos.xyz /= viewPos.w;
+    return viewPos.xyz;
 }
 
 #endif

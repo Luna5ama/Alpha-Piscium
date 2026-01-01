@@ -238,7 +238,7 @@ void main() {
                     //                imageStore(uimg_temp2, texelPos, gi_historyData_pack2(historyData));
 
 //                                    imageStore(uimg_temp3, texelPos, vec4(finalDiff, 0.0));
-                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.realHistoryLength), 1.0));
+//                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.realHistoryLength), 1.0));
                     imageStore(uimg_temp2, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
                 }
                 #endif
