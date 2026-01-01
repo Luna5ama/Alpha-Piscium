@@ -200,7 +200,7 @@ struct ReprojectInfo {
 ReprojectInfo reprojectInfo_init() {
     ReprojectInfo info;
     info.bilateralWeights = vec4(0.0);
-    info.historyResetFactor = 1.0;
+    info.historyResetFactor = 0.0;
     info.curr2PrevScreenPos = vec2(-1.0);
     return info;
 }

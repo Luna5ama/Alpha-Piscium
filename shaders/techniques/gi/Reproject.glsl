@@ -129,7 +129,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
                 historyResetFactor *= float(validFlag);
                 // Only applying this to reprojInfo (which is used in ReSTIR temporal reuse)
                 // Because killing denoiser history causes flickering bs
-                reprojInfo.historyResetFactor *= weightSum;
+                reprojInfo.historyResetFactor = weightSum;
                 if (weightSum > 0.001) {
                     vec4 giData1 = bileratralSum(
                         history_gi1_gatherTexel(gatherTexelPos, 0),
@@ -225,7 +225,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
             historyResetFactor *= antiStretching;
 
             historyData.historyLength *= historyResetFactor;
-            reprojInfo.historyResetFactor *= historyResetFactor;
+            reprojInfo.historyResetFactor = historyResetFactor;
         }
     }
 
