@@ -748,6 +748,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
+                slider("SETTING_DENOISER_FIREFLY_SUPPRESSION", 2, 0..5) {
+                    lang {
+                        name = "Firefly Suppression Strength"
+                        comment = "Reduces sudden bright spots in the GI results. Higher values increase suppression but can introduce lighting lags."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "亮点抑制强度"
+                        comment = "减少GI结果中的突然出现的亮点。数值越高，抑制效果越强，但可能会增加光照延迟。"
+                    }
+                }
                 toggle("SETTING_DENOISER_HISTORY_FIX", true) {
                     lang {
                         name = "Disocclusion Fix"

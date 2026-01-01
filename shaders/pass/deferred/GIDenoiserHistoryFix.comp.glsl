@@ -229,23 +229,23 @@ void main() {
                     vec3 diffClamped = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2, clampingThreshold);
                     vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - diffOutputSim);
                     float diffDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffDiff);
-                    diffDiffLuma *= sqrt(colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, colors_reversibleTonemap(historyData.diffuseFastColor * expMul)));
+                    diffDiffLuma *= colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, colors_reversibleTonemap(historyData.diffuseFastColor * expMul));
                     diffClamped = mix(historyData.diffuseColor, diffClamped, historyFixMix);
                     historyData.diffuseColor = diffClamped;
 
                     vec3 specClamped = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2, clampingThreshold);
                     vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
-                    specDiffLuma *= sqrt(colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, colors_reversibleTonemap(historyData.specularFastColor * expMul)));
+                    specDiffLuma *= colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, colors_reversibleTonemap(historyData.specularFastColor * expMul));
                     specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
                     historyData.specularColor = specClamped;
 
                     vec2 diffLuma2 = vec2(diffDiffLuma, specDiffLuma);
                     denoiserBlurVariance += sqrt(vec2(diffDiffLuma, specDiffLuma));
 
-                    vec2 resetFactor2 = pow2(saturate(1.0 - diffLuma2));
+                    vec2 resetFactor2 = saturate(1.0 - diffLuma2);
                     float resetFactor = resetFactor2.x * resetFactor2.y;
-                    historyData.historyLength *= resetFactor;
+                    historyData.historyLength *= sqrt(resetFactor);
                 }
                 #else
                 {

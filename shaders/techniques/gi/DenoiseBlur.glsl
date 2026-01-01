@@ -247,7 +247,7 @@ void main() {
             if (RANDOM_FRAME < MAX_FRAMES){
                 // imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
                 float stddev = sqrt(variance);
-                imageStore(uimg_temp3, texelPos, filteredInputVariance.xxxx);
+//                imageStore(uimg_temp3, texelPos, filteredInputVariance.xxxx);
             }
             #endif
             transient_gi_blurDiff1_store(texelPos, diffResult);
