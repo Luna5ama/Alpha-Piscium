@@ -264,13 +264,14 @@ void main() {
                 #endif
 
                 transient_gi_filteredHitDistances_store(texelPos, vec4(filteredHitDitances, 0.0, 0.0));
-                transient_gi_denoiseVariance1_store(texelPos, vec4(denoiserBlurVariance, 0.0, 0.0));
+                vec4 packedData5 = gi_historyData_pack5(historyData);
+                transient_gi_denoiseVariance1_store(texelPos, vec4(denoiserBlurVariance, packedData5.xy));
 
                 transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
                 transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
                 transient_gi3Reprojected_store(texelPos, gi_historyData_pack3(historyData));
                 transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(historyData));
-                transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
+                transient_gi5Reprojected_store(texelPos, packedData5);
                 vec4 diffInput = vec4(historyData.diffuseColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffOutputSim));
                 vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));
 

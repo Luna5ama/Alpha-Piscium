@@ -25,7 +25,7 @@ layout(rgba16f) uniform writeonly image2D uimg_temp3;
 
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
-shared vec2 shared_varianceData[20][20];
+shared vec4 shared_varianceData[20][20];
 
 struct GeomData {
     vec3 geomNormal;
@@ -69,7 +69,11 @@ void loadSharedVarianceData(uvec2 groupOriginTexelPos, uint index) {
         vec4 varianceInput = transient_gi_denoiseVariance2_fetch(srcXY);
         #endif
 
-        shared_varianceData[sharedXY.y][sharedXY.x] = varianceInput.xy;
+        // x: diffuse variance
+        // y: specular variance
+        // z: history length
+        // w: real history length
+        shared_varianceData[sharedXY.y][sharedXY.x] = varianceInput;
     }
 }
 
@@ -131,7 +135,7 @@ void main() {
             float kernelRadius = baseKernelRadius.x;
             kernelRadius *= pow(accumFactor, 0.25);
 
-            vec2 filteredInputVariance = vec2(0.0);
+            vec4 filteredInputVariance = vec4(0.0);
 
             // Optimized variance calculation using shared memory
             ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
@@ -235,11 +239,12 @@ void main() {
             diffResult = dither_fp16(diffResult, ditherNoise);
             specResult = dither_fp16(specResult, ditherNoise);
 
-            vec2 newVariance = filteredInputVariance + vec2(variance, 0.0);
+            vec4 newVariance = filteredInputVariance + vec4(variance, 0.0, 0.0, 0.0);
             #if GI_DENOISE_PASS == 1
-            transient_gi_denoiseVariance2_store(texelPos, vec4(newVariance, 0.0, 0.0));
+            transient_gi_denoiseVariance2_store(texelPos, newVariance);
             #elif GI_DENOISE_PASS == 2
-            transient_gi_denoiseVariance1_store(texelPos, vec4(newVariance, 0.0, 0.0));
+            // Not used after this pass so skip
+            // transient_gi_denoiseVariance1_store(texelPos, newVariance);
             #endif
 
             #if GI_DENOISE_PASS == 1
@@ -264,11 +269,14 @@ void main() {
             historyData.diffuseColor = diffResult.rgb;
             historyData.specularColor = specResult.rgb;
 
+            vec4 packedData5 = gi_historyData_pack5(historyData);
+            packedData5.xy = newVariance.zw;
+
             history_gi1_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
             history_gi2_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));
             history_gi3_store(texelPos, clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX));
             history_gi4_store(texelPos, clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX));
-            history_gi5_store(texelPos, gi_historyData_pack5(historyData));
+            history_gi5_store(texelPos, packedData5);
             #endif
         }
     }
