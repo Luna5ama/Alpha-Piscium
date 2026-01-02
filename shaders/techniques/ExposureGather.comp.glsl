@@ -81,8 +81,8 @@ void main() {
         float expCurveValue = pow(pow2(linearStep(MIN_EXP, MAX_EXP, expLast.z)), exp2(SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE));
         float lumTarget = mix(MAX_LUM_TARGET, MIN_LUM_TARGET, expCurveValue);
         expNew.x = log2(lumTarget / averageLuminance);
-        float avgDelta = 2.0;
-        expNew.x = (1.0 / (1.0 + exp(pow3(-0.5 * expNew.x)))) * avgDelta * 2.0 - avgDelta;
+        float avgDelta = mix(4.0, 2.0, initFadeFactor);
+        expNew.x = (1.0 / (1.0 + exp(-0.5 * expNew.x))) * avgDelta * 2.0 - avgDelta;
 
         // Keep top SETTING_EXPOSURE_TOP_PERCENT % of pixels in the top bin
         vec2 hsPercents = vec2(SETTING_EXPOSURE_H_PERCENT, SETTING_EXPOSURE_S_PERCENT) * (totalWeight * 0.01);
