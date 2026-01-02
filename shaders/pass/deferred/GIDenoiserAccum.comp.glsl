@@ -63,10 +63,12 @@ void main() {
 
                 #if SETTING_DENOISER_FIREFLY_SUPPRESSION
                 // Idea from Belmu to limit firefly based on luma difference
-                float expMul = exp2(global_aeData.expValues.z);
-                float threshold = ldexp(1.0, -SETTING_DENOISER_FIREFLY_SUPPRESSION);
-                newWeights.x = computeOutputLumaDiffWeight(historyData.diffuseColor, newDiffuse.rgb, expMul, threshold);
-                newWeights.y = computeOutputLumaDiffWeight(historyData.specularColor, newSpecular.rgb, expMul, threshold);
+                if (historyData.realHistoryLength > 0.0) {
+                    float expMul = exp2(global_aeData.expValues.z);
+                    float threshold = ldexp(1.0, -SETTING_DENOISER_FIREFLY_SUPPRESSION);
+                    newWeights.x = computeOutputLumaDiffWeight(historyData.diffuseColor, newDiffuse.rgb, expMul, threshold);
+                    newWeights.y = computeOutputLumaDiffWeight(historyData.specularColor, newSpecular.rgb, expMul, threshold);
+                }
                 #endif
                 #endif
 
