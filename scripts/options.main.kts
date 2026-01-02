@@ -367,7 +367,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     slider("SETTING_TRANSLUCENT_ABSORPTION_SATURATION", 1.0, 0.0..4.0 step 0.5) {
                         lang {
                             name = "Translucent Absorption Saturation"
-                            comment = "Controls translucent block color absorption saturation. Higher values create more vivid color tinting."
+                            comment =
+                                "Controls translucent block color absorption saturation. Higher values create more vivid color tinting."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "半透明吸收饱和度"
@@ -680,7 +681,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 toggle("SETTING_GI_COHERENCE_OPTIMIZATION", 0, 0..2) {
                     lang {
                         name = "Coherence Optimization"
-                        comment = "Improves performance sharing random sample along threads. But introduces ugly blocky noises."
+                        comment =
+                            "Improves performance sharing random sample along threads. But introduces ugly blocky noises."
                         0 value "Off"
                         1 value "Low"
                         2 value "High"
@@ -751,7 +753,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 slider("SETTING_DENOISER_FIREFLY_SUPPRESSION", 2, 0..5) {
                     lang {
                         name = "Firefly Suppression Strength"
-                        comment = "Reduces sudden bright spots in the GI results. Higher values increase suppression but can introduce lighting lags."
+                        comment =
+                            "Reduces sudden bright spots in the GI results. Higher values increase suppression but can introduce lighting lags."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "亮点抑制强度"
@@ -2756,10 +2759,40 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "每帧稍微移动相机以获得更好的TAA质量。TAA有效工作所必需的。"
                     }
                 }
-                toggle("SETTING_TAA_HISTORY_FILTER", 2, 0..4) {
+                toggle("SETTING_TAA_CURR_FILTER", 2, 0..2) {
                     lang {
-                        name = "TAA History Filter"
-                        comment = "Type of filter used to filter history frame image for TAA."
+                        name = "TAA Current Frame Filter"
+                        comment =
+                            """Type of filter used to filter current frame image for TAA.
+B-Spline: Good at smoothing out aliasing but can be a bit blurry.
+Catmull-Rom: Sharper but may causes ringing or halo.
+Lanczos2: Sharp as Catmull-Rom but less ringing or halo. Slightly more performance intensive."""
+                        0 value "B-Spline"
+                        1 value "Catmull-Rom"
+                        2 value "Lanczos2"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "TAA当前帧滤镜"
+                        comment =
+                            """用于过滤TAA当前帧图像的滤镜类型。
+B-Spline：适合平滑锯齿，但可能有点模糊。
+Catmull-Rom：更锐利，但可能会引起振铃或光晕。
+Lanczos2：与Catmull-Rom一样锐利，但振铃或光晕较少。性能开销略高。"""
+                        0 value "B-Spline"
+                        1 value "Catmull-Rom"
+                        2 value "Lanczos2"
+                    }
+                }
+                toggle("SETTING_TAA_HISTORY_FILTER", 2, 1..4) {
+                    lang {
+                        name = "TAA History Frame Filter"
+                        comment =
+                            """Type of filter used to filter TAA history frame image.
+Bilinear: Fast but blurry.
+Catmull-Rom 5 Tap: Balanced sharpness and performance. May cause minor ringing.
+Catmull-Rom 9 Tap: Sharper but more performance intensive. Less ringing than 5 Tap.
+Catmull-Rom Full: Same quality as 9 Tap but more performance intensive.
+Lanczos2: Sharp as Catmull-Rom but less ringing or halo. Most performance intensive."""
                         0 value "Bilinear"
                         1 value "Catmull-Rom 5 Tap"
                         2 value "Catmull-Rom 9 Tap"
@@ -2767,8 +2800,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         4 value "Lanczos2"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "TAA历史滤镜"
-                        comment = "用于过滤TAA历史帧图像的滤镜类型。"
+                        name = "TAA历史帧滤镜"
+                        comment =
+                            """用于过滤TAA历史帧图像的滤镜类型。
+双线性：快速但模糊。
+Catmull-Rom 5采样：平衡的清晰度和性能。可能会引起轻微的振铃。
+Catmull-Rom 9采样：更清晰但性能开销更大。比5采样振铃更少。
+Catmull-Rom 全采样：与9采样相同的质量，但性能开销更大。
+Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销最大。"""
                         0 value "双线性"
                         1 value "Catmull-Rom 5采样"
                         2 value "Catmull-Rom 9采样"

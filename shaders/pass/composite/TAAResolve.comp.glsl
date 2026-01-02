@@ -13,6 +13,10 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 
+// Shared memory with padding for 4x4 tap (-2 to +2)
+// Each work group is 16x16, need +2 padding on each side for Lanczos2 4x4 taps
+shared vec3 shared_colorData[20][20];
+
 struct ColorAABB {
     vec3 minVal;
     vec3 maxVal;
@@ -46,20 +50,34 @@ float kernelWeight(vec2 centerPos, vec2 samplePos, float param) {
     return exp(param * dist2);
 }
 
+void loadSharedColorData(uvec2 groupOriginTexelPos, uint index) {
+    if (index < 400u) { // 20 * 20 = 400
+        uvec2 sharedXY = uvec2(index % 20u, index / 20u);
+        ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
+        srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
+        vec3 colorData = texelFetch(usam_main, srcXY, 0).rgb;
+        shared_colorData[sharedXY.y][sharedXY.x] = colorData;
+    }
+}
+
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     vec2 texelCenter = vec2(texelPos) + vec2(0.5);
     vec2 screenPos = texelCenter * uval_mainImageSizeRcp;
 
-    GBufferData gData = gbufferData_init();
-    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+    // Calculate work group origin for shared memory loading
+    uvec2 workGroupOrigin = gl_WorkGroupID.xy << 4u; // * 16
+
+    // Load shared memory cooperatively (20x20 = 400 elements, 16x16 = 256 threads)
+    loadSharedColorData(workGroupOrigin, gl_LocalInvocationIndex);
+    loadSharedColorData(workGroupOrigin, gl_LocalInvocationIndex + 256u);
 
     vec2 unjitterTexelPos = texelCenter + global_taaJitter;
     vec2 unjitterScreenPos = screenPos + global_taaJitter * uval_mainImageSizeRcp;
-    vec3 currColor = sampling_catmullBicubic5Tap(usam_main, texelCenter, 0.5, uval_mainImageSizeRcp).rgb;
-    currColor = saturate(currColor);
 
     float currViewZ = textureLod(usam_gbufferViewZ, unjitterScreenPos, 0.0).r;
+    GBufferData gData = gbufferData_init();
+    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
     vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
     vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
     vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
@@ -151,14 +169,44 @@ void main() {
     float extraReset = global_taaResetFactor;
     extraReset *= (1.0 - saturate(pixelSpeed * 1.0));
 
-    #ifdef SETTING_SCREENSHOT_MODE
-    #if SETTING_SCREENSHOT_MODE_SKIP_INITIAL
-    extraReset *= float(frameCounter > SETTING_SCREENSHOT_MODE_SKIP_INITIAL);
-    #endif
-    #else
-    extraReset *= (1.0 - saturate(cameraSpeedDiff * 64.0));
-    extraReset *= (1.0 - saturate(cameraSpeed * 1.0));
-    #endif
+    barrier();
+
+    // Sample currColor using Lanczos2 from shared memory
+    vec3 currColor;
+    {
+        vec2 centerPixel = unjitterTexelPos - 0.5;
+        vec2 centerPixelOrigin = floor(centerPixel);
+        vec2 pixelPosFract = centerPixel - centerPixelOrigin;
+
+        #if SETTING_TAA_CURR_FILTER == 0
+        vec4 weightX = sampling_bSplineWeights(pixelPosFract.x);
+        vec4 weightY = sampling_bSplineWeights(pixelPosFract.y);
+        #elif SETTING_TAA_CURR_FILTER == 1
+        vec4 weightX = sampling_catmullRomWeights(pixelPosFract.x);
+        vec4 weightY = sampling_catmullRomWeights(pixelPosFract.y);
+        #elif SETTING_TAA_CURR_FILTER == 2
+        vec4 weightX = sampling_lanczoc2Weights(pixelPosFract.x);
+        vec4 weightY = sampling_lanczoc2Weights(pixelPosFract.y);
+        #endif
+
+        ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
+        ivec2 localOrigin = gatherTexelPos - ivec2(workGroupOrigin);
+
+        vec3 colorResult = vec3(0.0);
+        float weightSum = 0.0;
+        for (int iy = 0; iy < 4; ++iy) {
+            for (int ix = 0; ix < 4; ++ix) {
+                ivec2 offset = ivec2(ix, iy) - 2;
+                ivec2 localPos = localOrigin + offset + 2; // +2 for padding
+                vec3 sampleColor = shared_colorData[localPos.y][localPos.x];
+                float weight = weightX[ix] * weightY[iy];
+                weightSum += weight;
+                colorResult += sampleColor * weight;
+            }
+        }
+        currColor = colorResult / weightSum;
+    }
+    currColor = saturate(currColor);
 
     {
         vec3 currColorYCoCg = colors_SRGBToYCoCg(currColor);

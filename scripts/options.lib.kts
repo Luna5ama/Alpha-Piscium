@@ -206,7 +206,7 @@ open class OptionBuilder<T>(
         fun build(output: Scope.Output) {
             output.writeLang(locale) {
                 if (name.isNotEmpty()) appendLine("option.$optionName=$name")
-                if (comment.isNotEmpty()) appendLine("option.$optionName.comment=$comment")
+                if (comment.isNotEmpty()) appendLine("option.$optionName.comment=${comment.replace("\n", "\\n")}")
                 if (prefix.isNotEmpty()) {
                     append("prefix.$optionName=")
                     if (prefix.startsWith(" ")) {
