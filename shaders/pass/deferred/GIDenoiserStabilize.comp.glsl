@@ -109,7 +109,7 @@ void main() {
                 // Not using this because it fades in dark lines
 //                if (bool(clipFlag)) {
                     vec2 prevTexelPos = prevScreenPos * uval_mainImageSize;
-                    CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(prevTexelPos, 0.5, uval_mainImageSizeRcp);
+                    CatmullRomBicubic5TapData tapData = sampling_catmullRomBicubic5Tap_init(prevTexelPos, 0.5, uval_mainImageSizeRcp);
                     historyDiff = sampling_catmullBicubic5Tap_sum(
                         history_gi_stabilizationDiff_sample(tapData.uv1AndWeight.xy),
                         history_gi_stabilizationDiff_sample(tapData.uv2AndWeight.xy),

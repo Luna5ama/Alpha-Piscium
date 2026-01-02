@@ -177,7 +177,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
                     gi_historyData_unpack5(historyData, giData5);
                 }
             } else {
-                CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(curr2PrevTexelPos, 0.5, uval_mainImageSizeRcp);
+                CatmullRomBicubic5TapData tapData = sampling_catmullRomBicubic5Tap_init(curr2PrevTexelPos, 0.5, uval_mainImageSizeRcp);
                 vec4 giData1 = sampling_catmullBicubic5Tap_sum(
                     history_gi1_sample(tapData.uv1AndWeight.xy),
                     history_gi1_sample(tapData.uv2AndWeight.xy),

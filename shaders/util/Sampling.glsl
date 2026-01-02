@@ -7,6 +7,10 @@
         [QUI17] Quilez, Inigo. "Texture Repetition V". 2017.
             MIT License. Copyright (c) 2017 Inigo Quilez
             https://www.shadertoy.com/view/Xtl3zf
+        [DJO12] Djonov, Phill. "Bicubic Filtering in Fewer Taps". 2012.
+            https://vec3.net/posts/bicubic-filtering-in-fewer-taps
+        [MJP19] MJP. "An HLSL function for sampling a 2D texture with Catmull-Rom filtering, using 9 texture samples instead of 16". 2019.
+            https://gist.github.com/TheRealMJP/c83b8c0f46b63f3a88a5986f4fa982b1
 
         You can find full license texts in /licenses
 */
@@ -23,89 +27,6 @@ vec4 sampling_bSplineWeights(float t) {
         (1.0 + 3.0 * t + 3.0 * t2 - 3.0 * t3) / 6.0,
         t3 / 6.0
     );
-}
-
-// Optimized 4-tap B-Spline bicubic sampling using bilinear filtering
-// Reduces 16 texture fetches to 4 by leveraging hardware bilinear interpolation
-vec4 sampling_bSplineBicubic4Tap(sampler2D texSampler, vec2 texelPos, vec2 texRcpSize) {
-    vec2 f = fract(texelPos - 0.5);
-    vec2 f2 = f * f;
-    vec2 f3 = f2 * f;
-
-    // Compute the B-Spline weights (optimized: w2 computed from sum constraint)
-    vec2 w0 = f2 - 0.5 * (f3 + f);
-    vec2 w1 = 1.5 * f3 - 2.5 * f2 + 1.0;
-    vec2 w3 = 0.5 * (f3 - f2);
-    vec2 w2 = 1.0 - w0 - w1 - w3;
-
-    // Combine weights for bilinear filtering
-    vec2 s0 = w0 + w1;
-    vec2 s1 = w2 + w3;
-
-    // Compute texture coordinates that leverage bilinear filtering
-    vec2 centerUV = (floor(texelPos - 0.5) + 0.5) * texRcpSize;
-    vec2 t0 = centerUV + (w1 / s0 - 1.0) * texRcpSize;
-    vec2 t1 = centerUV + (w3 / s1 + 1.0) * texRcpSize;
-
-    // 4 bilinear samples instead of 16 point samples
-    return (texture(texSampler, vec2(t0.x, t0.y)) * s0.x
-         +  texture(texSampler, vec2(t1.x, t0.y)) * s1.x) * s0.y
-         + (texture(texSampler, vec2(t0.x, t1.y)) * s0.x
-         +  texture(texSampler, vec2(t1.x, t1.y)) * s1.x) * s1.y;
-}
-
-// Convenience wrapper that takes UV coordinates
-vec4 sampling_bSplineBicubic4Tap(sampler2D texSampler, vec2 uv) {
-    vec2 texSize = vec2(textureSize(texSampler, 0));
-    vec2 texelPos = uv * texSize;
-    vec2 texRcpSize = rcp(texSize);
-    return sampling_bSplineBicubic4Tap(texSampler, texelPos, texRcpSize);
-}
-
-struct BSplineBicubic4TapData {
-    vec2 uv00;
-    vec2 uv10;
-    vec2 uv01;
-    vec2 uv11;
-    vec2 weight0;
-    vec2 weight1;
-};
-
-// Initialize B-Spline sampling parameters for reuse across multiple textures
-BSplineBicubic4TapData sampling_bSplineBicubic4Tap_init(vec2 texelPos, vec2 texRcpSize) {
-    vec2 f = fract(texelPos - 0.5);
-    vec2 f2 = f * f;
-    vec2 f3 = f2 * f;
-
-    // Compute the B-Spline weights
-    vec2 w0 = f2 - 0.5 * (f3 + f);
-    vec2 w1 = 1.5 * f3 - 2.5 * f2 + 1.0;
-    vec2 w3 = 0.5 * (f3 - f2);
-    vec2 w2 = 1.0 - w0 - w1 - w3;
-
-    // Combine weights for bilinear filtering
-    vec2 s0 = w0 + w1;
-    vec2 s1 = w2 + w3;
-
-    // Compute texture coordinates
-    vec2 centerUV = (floor(texelPos - 0.5) + 0.5) * texRcpSize;
-    vec2 t0 = centerUV + (w1 / s0 - 1.0) * texRcpSize;
-    vec2 t1 = centerUV + (w3 / s1 + 1.0) * texRcpSize;
-
-    BSplineBicubic4TapData params;
-    params.uv00 = vec2(t0.x, t0.y);
-    params.uv10 = vec2(t1.x, t0.y);
-    params.uv01 = vec2(t0.x, t1.y);
-    params.uv11 = vec2(t1.x, t1.y);
-    params.weight0 = s0;
-    params.weight1 = s1;
-    return params;
-}
-
-// Sum pre-fetched samples with B-Spline weights
-vec4 sampling_bSplineBicubic4Tap_sum(vec4 c00, vec4 c10, vec4 c01, vec4 c11, BSplineBicubic4TapData params) {
-    return (c00 * params.weight0.x + c10 * params.weight1.x) * params.weight0.y
-         + (c01 * params.weight0.x + c11 * params.weight1.x) * params.weight1.y;
 }
 
 vec4 sampling_catmullRomWeights(float t) {
@@ -269,7 +190,7 @@ vec4 sampling_catmullBicubic5Tap(sampler2D texSampler, vec2 texelPos, float shar
     return color * rcp(weight1 + weight2 + weight3 + weight4 + weight5);
 }
 
-struct CatmullBicubic5TapData {
+struct CatmullRomBicubic5TapData {
     vec3 uv1AndWeight;
     vec3 uv2AndWeight;
     vec3 uv3AndWeight;
@@ -278,7 +199,7 @@ struct CatmullBicubic5TapData {
 };
 
 // From https://github.com/GameTechDev/TAA and https://www.iryoku.com/downloads/Filmic-SMAA-v8.pptx
-CatmullBicubic5TapData sampling_catmullBicubic5Tap_init(vec2 texelPos, float sharpness, vec2 texRcpSize){
+CatmullRomBicubic5TapData sampling_catmullRomBicubic5Tap_init(vec2 texelPos, float sharpness, vec2 texRcpSize){
     vec2 t = fract(texelPos - 0.5);
     vec2 centerUV = (floor(texelPos - 0.5) + 0.5) * texRcpSize;
 
@@ -308,7 +229,7 @@ CatmullBicubic5TapData sampling_catmullBicubic5Tap_init(vec2 texelPos, float sha
     float weightSum = weight1 + weight2 + weight3 + weight4 + weight5;
     float weightSumRcp = rcp(weightSum);
 
-    CatmullBicubic5TapData params;
+    CatmullRomBicubic5TapData params;
     params.uv1AndWeight = vec3(vec2(tc12.x, tc0.y), weight1 * weightSumRcp);
     params.uv2AndWeight = vec3(vec2(tc0.x, tc12.y), weight2 * weightSumRcp);
     params.uv3AndWeight = vec3(vec2(tc12.x, tc12.y), weight3 * weightSumRcp);
@@ -317,7 +238,7 @@ CatmullBicubic5TapData sampling_catmullBicubic5Tap_init(vec2 texelPos, float sha
     return params;
 }
 
-vec4 sampling_catmullBicubic5Tap_sum(vec4 c1, vec4 c2, vec4 c3, vec4 c4, vec4 c5, CatmullBicubic5TapData params){
+vec4 sampling_catmullBicubic5Tap_sum(vec4 c1, vec4 c2, vec4 c3, vec4 c4, vec4 c5, CatmullRomBicubic5TapData params){
     vec4 color = params.uv1AndWeight.z * c1;
     color += params.uv2AndWeight.z * c2;
     color += params.uv3AndWeight.z * c3;
@@ -332,6 +253,93 @@ vec4 sampling_catmullBicubic5Tap(sampler2D texSampler, vec2 uv, float sharpness)
     vec2 texRcpSize = rcp(texSize);
     return sampling_catmullBicubic5Tap(texSampler, texelPos, sharpness, texRcpSize);
 }
+
+
+// [DJO12]
+// Optimized 4-tap B-Spline bicubic sampling using bilinear filtering
+// Reduces 16 texture fetches to 4 by leveraging hardware bilinear interpolation
+vec4 sampling_bSplineBicubic4Tap(sampler2D texSampler, vec2 texelPos, vec2 texRcpSize) {
+    vec2 f = fract(texelPos - 0.5);
+    vec2 f2 = f * f;
+    vec2 f3 = f2 * f;
+
+    // Compute the B-Spline weights (optimized: w2 computed from sum constraint)
+    vec2 w0 = f2 - 0.5 * (f3 + f);
+    vec2 w1 = 1.5 * f3 - 2.5 * f2 + 1.0;
+    vec2 w3 = 0.5 * (f3 - f2);
+    vec2 w2 = 1.0 - w0 - w1 - w3;
+
+    // Combine weights for bilinear filtering
+    vec2 s0 = w0 + w1;
+    vec2 s1 = w2 + w3;
+
+    // Compute texture coordinates that leverage bilinear filtering
+    vec2 centerUV = (floor(texelPos - 0.5) + 0.5) * texRcpSize;
+    vec2 t0 = centerUV + (w1 / s0 - 1.0) * texRcpSize;
+    vec2 t1 = centerUV + (w3 / s1 + 1.0) * texRcpSize;
+
+    // 4 bilinear samples instead of 16 point samples
+    return (texture(texSampler, vec2(t0.x, t0.y)) * s0.x
+    +  texture(texSampler, vec2(t1.x, t0.y)) * s1.x) * s0.y
+    + (texture(texSampler, vec2(t0.x, t1.y)) * s0.x
+    +  texture(texSampler, vec2(t1.x, t1.y)) * s1.x) * s1.y;
+}
+
+// Convenience wrapper that takes UV coordinates
+vec4 sampling_bSplineBicubic4Tap(sampler2D texSampler, vec2 uv) {
+    vec2 texSize = vec2(textureSize(texSampler, 0));
+    vec2 texelPos = uv * texSize;
+    vec2 texRcpSize = rcp(texSize);
+    return sampling_bSplineBicubic4Tap(texSampler, texelPos, texRcpSize);
+}
+
+struct BSplineBicubic4TapData {
+    vec2 uv00;
+    vec2 uv10;
+    vec2 uv01;
+    vec2 uv11;
+    vec2 weight0;
+    vec2 weight1;
+};
+
+// Initialize B-Spline sampling parameters for reuse across multiple textures
+BSplineBicubic4TapData sampling_bSplineBicubic4Tap_init(vec2 texelPos, vec2 texRcpSize) {
+    vec2 f = fract(texelPos - 0.5);
+    vec2 f2 = f * f;
+    vec2 f3 = f2 * f;
+
+    // Compute the B-Spline weights
+    vec2 w0 = f2 - 0.5 * (f3 + f);
+    vec2 w1 = 1.5 * f3 - 2.5 * f2 + 1.0;
+    vec2 w3 = 0.5 * (f3 - f2);
+    vec2 w2 = 1.0 - w0 - w1 - w3;
+
+    // Combine weights for bilinear filtering
+    vec2 s0 = w0 + w1;
+    vec2 s1 = w2 + w3;
+
+    // Compute texture coordinates
+    vec2 centerUV = (floor(texelPos - 0.5) + 0.5) * texRcpSize;
+    vec2 t0 = centerUV + (w1 / s0 - 1.0) * texRcpSize;
+    vec2 t1 = centerUV + (w3 / s1 + 1.0) * texRcpSize;
+
+    BSplineBicubic4TapData params;
+    params.uv00 = vec2(t0.x, t0.y);
+    params.uv10 = vec2(t1.x, t0.y);
+    params.uv01 = vec2(t0.x, t1.y);
+    params.uv11 = vec2(t1.x, t1.y);
+    params.weight0 = s0;
+    params.weight1 = s1;
+    return params;
+}
+
+// Sum pre-fetched samples with B-Spline weights
+vec4 sampling_bSplineBicubic4Tap_sum(vec4 c00, vec4 c10, vec4 c01, vec4 c11, BSplineBicubic4TapData params) {
+    return (c00 * params.weight0.x + c10 * params.weight1.x) * params.weight0.y
+    + (c01 * params.weight0.x + c11 * params.weight1.x) * params.weight1.y;
+}
+
+
 
 vec2 sampling_indexToGatherOffset(uint index) {
     //   _______ _______
@@ -358,6 +366,135 @@ vec2 sampling_indexToGatherOffset(uint index) {
     xyBits.x = ((index + 1u) >> 1u) & 1u;
     xyBits.y = (~(index >> 1u)) & 1u;
     return vec2(xyBits) * 2.0 - 1.0;
+}
+
+// [MJP19] - 9-tap Catmull-Rom bicubic sampling
+// More efficient than 16-tap full sampling while maintaining higher quality
+// See: http://vec3.ca/bicubic-filtering-in-fewer-taps/ for details
+// Uses bilinear filtering to evaluate 9 taps with only 9 texture fetches
+vec4 sampling_catmullRomBicubic9Tap(sampler2D texSampler, vec2 texelPos, vec2 texRcpSize) {
+    // Sample position and starting texel
+    vec2 samplePos = texelPos;
+    vec2 texPos1 = floor(samplePos - 0.5) + 0.5;
+
+    // Fractional offset from starting texel
+    vec2 f = samplePos - texPos1;
+
+    // Catmull-Rom weights for each axis
+    vec2 w0 = f * (-0.5 + f * (1.0 - 0.5 * f));
+    vec2 w1 = 1.0 + f * f * (-2.5 + 1.5 * f);
+    vec2 w2 = f * (0.5 + f * (2.0 - 1.5 * f));
+    vec2 w3 = f * f * (-0.5 + 0.5 * f);
+
+    // Combine w1 and w2 for bilinear filtering optimization
+    vec2 w12 = w1 + w2;
+    vec2 offset12 = w2 / w12;
+
+    // Compute UV coordinates (in texture space)
+    vec2 texPos0 = (texPos1 - 1.0) * texRcpSize;
+    vec2 texPos3 = (texPos1 + 2.0) * texRcpSize;
+    vec2 texPos12 = (texPos1 + offset12) * texRcpSize;
+
+    // 9 texture samples with bilinear filtering
+    vec4 result = vec4(0.0);
+    result += texture(texSampler, vec2(texPos0.x, texPos0.y)) * w0.x * w0.y;
+    result += texture(texSampler, vec2(texPos12.x, texPos0.y)) * w12.x * w0.y;
+    result += texture(texSampler, vec2(texPos3.x, texPos0.y)) * w3.x * w0.y;
+
+    result += texture(texSampler, vec2(texPos0.x, texPos12.y)) * w0.x * w12.y;
+    result += texture(texSampler, vec2(texPos12.x, texPos12.y)) * w12.x * w12.y;
+    result += texture(texSampler, vec2(texPos3.x, texPos12.y)) * w3.x * w12.y;
+
+    result += texture(texSampler, vec2(texPos0.x, texPos3.y)) * w0.x * w3.y;
+    result += texture(texSampler, vec2(texPos12.x, texPos3.y)) * w12.x * w3.y;
+    result += texture(texSampler, vec2(texPos3.x, texPos3.y)) * w3.x * w3.y;
+
+    return result;
+}
+
+// Convenience wrapper that takes UV coordinates (0..1 range)
+vec4 sampling_catmullRomBicubic9Tap(sampler2D texSampler, vec2 uv) {
+    vec2 texSize = vec2(textureSize(texSampler, 0));
+    vec2 texelPos = uv * texSize;
+    vec2 texRcpSize = rcp(texSize);
+    return sampling_catmullRomBicubic9Tap(texSampler, texelPos, texRcpSize);
+}
+
+// Data structure for 9-tap sampling initialization (for reuse across multiple textures)
+struct CatmullRomBicubic9TapData {
+    vec2 uv00;
+    vec2 uv12_0;
+    vec2 uv30;
+    vec2 uv01_2;
+    vec2 uv12_12;
+    vec2 uv31_2;
+    vec2 uv03;
+    vec2 uv12_3;
+    vec2 uv33;
+    vec2 weight0;
+    vec2 weight12;
+    vec2 weight3;
+};
+
+// Initialize 9-tap Catmull-Rom sampling parameters for reuse across multiple textures
+CatmullRomBicubic9TapData sampling_catmullRomBicubic9Tap_init(vec2 texelPos, vec2 texRcpSize) {
+    // Sample position and starting texel
+    vec2 samplePos = texelPos;
+    vec2 texPos1 = floor(samplePos - 0.5) + 0.5;
+
+    // Fractional offset from starting texel
+    vec2 f = samplePos - texPos1;
+
+    // Catmull-Rom weights for each axis
+    vec2 w0 = f * (-0.5 + f * (1.0 - 0.5 * f));
+    vec2 w1 = 1.0 + f * f * (-2.5 + 1.5 * f);
+    vec2 w2 = f * (0.5 + f * (2.0 - 1.5 * f));
+    vec2 w3 = f * f * (-0.5 + 0.5 * f);
+
+    // Combine w1 and w2 for bilinear filtering optimization
+    vec2 w12 = w1 + w2;
+    vec2 offset12 = w2 / w12;
+
+    // Compute UV coordinates (in texture space)
+    vec2 texPos0 = (texPos1 - 1.0) * texRcpSize;
+    vec2 texPos3 = (texPos1 + 2.0) * texRcpSize;
+    vec2 texPos12 = (texPos1 + offset12) * texRcpSize;
+
+    CatmullRomBicubic9TapData params;
+    params.uv00 = vec2(texPos0.x, texPos0.y);
+    params.uv12_0 = vec2(texPos12.x, texPos0.y);
+    params.uv30 = vec2(texPos3.x, texPos0.y);
+    params.uv01_2 = vec2(texPos0.x, texPos12.y);
+    params.uv12_12 = vec2(texPos12.x, texPos12.y);
+    params.uv31_2 = vec2(texPos3.x, texPos12.y);
+    params.uv03 = vec2(texPos0.x, texPos3.y);
+    params.uv12_3 = vec2(texPos12.x, texPos3.y);
+    params.uv33 = vec2(texPos3.x, texPos3.y);
+    params.weight0 = w0;
+    params.weight12 = w12;
+    params.weight3 = w3;
+    return params;
+}
+
+// Sum pre-fetched 9 samples with Catmull-Rom weights
+vec4 sampling_catmullRomBicubic9Tap_sum(vec4 c00, vec4 c12_0, vec4 c30,
+                                        vec4 c01_2, vec4 c12_12, vec4 c31_2,
+                                        vec4 c03, vec4 c12_3, vec4 c33,
+                                        CatmullRomBicubic9TapData params) {
+    vec4 result = vec4(0.0);
+    result += c00 * params.weight0.x * params.weight0.y;
+    result += c12_0 * params.weight12.x * params.weight0.y;
+    result += c30 * params.weight3.x * params.weight0.y;
+
+    result += c01_2 * params.weight0.x * params.weight12.y;
+    result += c12_12 * params.weight12.x * params.weight12.y;
+    result += c31_2 * params.weight3.x * params.weight12.y;
+
+    result += c03 * params.weight0.x * params.weight3.y;
+    result += c12_3 * params.weight12.x * params.weight3.y;
+    result += c33 * params.weight3.x * params.weight3.y;
+
+    return result;
 }
 
 #endif

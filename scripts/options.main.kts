@@ -2460,7 +2460,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "黑暗环境（洞穴、夜晚）的目标亮度。数值越高，暗场景越亮。"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 140, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 132, 1..255) {
                     lang {
                         name = "Bright Scene Target Brightness"
                         comment =
@@ -2736,7 +2736,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 }
                 toggle("SETTING_TAA", true) {
                     lang {
-                        name = "Temporal Anti-Aliasing"
+                        name = "Temporal Anti-Aliasing (TAA)"
                         comment =
                             "Smooths jagged edges by blending multiple frames. Highly recommended for clean image quality."
                     }
@@ -2754,6 +2754,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "时间抖动"
                         comment = "每帧稍微移动相机以获得更好的TAA质量。TAA有效工作所必需的。"
+                    }
+                }
+                toggle("SETTING_TAA_HISTORY_FILTER", 2, 0..4) {
+                    lang {
+                        name = "TAA History Filter"
+                        comment = "Type of filter used to filter history frame image for TAA."
+                        0 value "Bilinear"
+                        1 value "Catmull-Rom 5 Tap"
+                        2 value "Catmull-Rom 9 Tap"
+                        3 value "Catmull-Rom Full"
+                        4 value "Lanczos2"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "TAA历史滤镜"
+                        comment = "用于过滤TAA历史帧图像的滤镜类型。"
+                        0 value "双线性"
+                        1 value "Catmull-Rom 5采样"
+                        2 value "Catmull-Rom 9采样"
+                        3 value "Catmull-Rom 全采样"
+                        4 value "Lanczos2"
                     }
                 }
                 slider("SETTING_TAA_CAS_SHARPNESS", 0.5, 0.0..1.0 step 0.05) {
@@ -3226,6 +3246,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
             toggle("SETTING_DEBUG_SST_STEPS", false) {
                 lang {
                     name = "SST Steps"
+                }
+            }
+            toggle("SETTING_DEBUG_TAA", false) {
+                lang {
+                    name = "TAA"
                 }
             }
         }

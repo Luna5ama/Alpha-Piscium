@@ -55,10 +55,11 @@ void main() {
     gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
 
     vec2 unjitterTexelPos = texelCenter + global_taaJitter;
-    vec3 currColor = sampling_catmullBicubic5Tap(usam_main, unjitterTexelPos, 0.5, uval_mainImageSizeRcp).rgb;
+    vec2 unjitterScreenPos = screenPos + global_taaJitter * uval_mainImageSizeRcp;
+    vec3 currColor = sampling_catmullBicubic5Tap(usam_main, texelCenter, 0.5, uval_mainImageSizeRcp).rgb;
     currColor = saturate(currColor);
 
-    float currViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    float currViewZ = textureLod(usam_gbufferViewZ, unjitterScreenPos, 0.0).r;
     vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
     vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
     vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
@@ -71,15 +72,61 @@ void main() {
     vec3 prevColor = vec3(0.0);
     if (bool(clipFlag)) {
         vec2 prevTexelPos = prevScreenPos * uval_mainImageSize;
-        CatmullBicubic5TapData tapData = sampling_catmullBicubic5Tap_init(prevTexelPos, 0.5, uval_mainImageSizeRcp);
-        vec4 prevResult = sampling_catmullBicubic5Tap_sum(
-            history_taa_sample(tapData.uv1AndWeight.xy),
-            history_taa_sample(tapData.uv2AndWeight.xy),
-            history_taa_sample(tapData.uv3AndWeight.xy),
-            history_taa_sample(tapData.uv4AndWeight.xy),
-            history_taa_sample(tapData.uv5AndWeight.xy),
-            tapData
-        );
+        vec4 prevResult = vec4(0.0);
+        {
+            #if SETTING_TAA_HISTORY_FILTER == 0
+            prevResult = history_taa_sample(prevScreenPos);
+            #elif SETTING_TAA_HISTORY_FILTER == 1
+            CatmullRomBicubic5TapData tapData5 = sampling_catmullRomBicubic5Tap_init(prevTexelPos, 0.5, uval_mainImageSizeRcp);
+            prevResult = sampling_catmullBicubic5Tap_sum(
+                history_taa_sample(tapData5.uv1AndWeight.xy),
+                history_taa_sample(tapData5.uv2AndWeight.xy),
+                history_taa_sample(tapData5.uv3AndWeight.xy),
+                history_taa_sample(tapData5.uv4AndWeight.xy),
+                history_taa_sample(tapData5.uv5AndWeight.xy),
+                tapData5
+            );
+            #elif SETTING_TAA_HISTORY_FILTER == 2
+            CatmullRomBicubic9TapData tapData9 = sampling_catmullRomBicubic9Tap_init(prevTexelPos, uval_mainImageSizeRcp);
+            prevResult = sampling_catmullRomBicubic9Tap_sum(
+                history_taa_sample(tapData9.uv00),
+                history_taa_sample(tapData9.uv12_0),
+                history_taa_sample(tapData9.uv30),
+                history_taa_sample(tapData9.uv01_2),
+                history_taa_sample(tapData9.uv12_12),
+                history_taa_sample(tapData9.uv31_2),
+                history_taa_sample(tapData9.uv03),
+                history_taa_sample(tapData9.uv12_3),
+                history_taa_sample(tapData9.uv33),
+                tapData9
+            );
+            #else
+            vec2 centerPixel = prevTexelPos - 0.5;
+            vec2 centerPixelOrigin = floor(centerPixel);
+            vec2 pixelPosFract = centerPixel - centerPixelOrigin;
+
+            #if SETTING_TAA_HISTORY_FILTER == 3
+            vec4 weightX = sampling_catmullRomWeights(pixelPosFract.x);
+            vec4 weightY = sampling_catmullRomWeights(pixelPosFract.y);
+            #elif SETTING_TAA_HISTORY_FILTER == 4
+            vec4 weightX = sampling_lanczoc2Weights(pixelPosFract.x);
+            vec4 weightY = sampling_lanczoc2Weights(pixelPosFract.y);
+            #endif
+
+            ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
+            float weightSum = 0.0;
+            for (int iy = 0; iy < 4; ++iy) {
+                for (int ix = 0; ix < 4; ++ix) {
+                    ivec2 offset = ivec2(ix, iy) - 2;
+                    vec4 sampleData = history_taa_fetch(gatherTexelPos + offset);
+                    float weight = weightX[ix] * weightY[iy];
+                    weightSum += weight;
+                    prevResult += sampleData * weight;
+                }
+            }
+            prevResult /= weightSum;
+            #endif
+        }
         prevColor = saturate(prevResult.rgb);
         lastFrameAccum = prevResult.a;
     }
