@@ -30,39 +30,38 @@ void main() {
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
 
-    uvec2 clusterId = uvec2(swizzledWGPos >> 1); // 32x32 cluster = 4x4 work groups
-    uint numClusterX = (uval_mainImageSizeI.x + 31) >> 5; // 32x32 cluster
-    uint clusterIdx = clusterId.y * numClusterX + clusterId.x;
+    uvec2 binId = uvec2(swizzledWGPos >> 1); // 32x32 bin = 4x4 work groups
+    uint numBinX = (uval_mainImageSizeI.x + 31) >> 5; // 32x32 bin
+    uint binIdx = binId.y * numBinX + binId.x;
 
-    // Calculate cluster origin in pixels
-    uvec2 clusterOrigin = clusterId << 5u; // clusterId * 32
+    // Calculate bin origin in pixels
+    uvec2 binOrigin = binId << 5u; // binId * 32
 
-    // Local position within cluster (relative to cluster origin)
-    uvec2 clusterLocalPos = mortonGlobalPosU - clusterOrigin;
+    // Local position within bin (relative to bin origin)
+    uvec2 binLocalPos = mortonGlobalPosU - binOrigin;
 
-    // For edge clusters, we need to use linear indexing since the cluster is not full 32x32
-    // Calculate the actual cluster size (clamped to screen bounds)
-    uvec2 clusterEnd = min(clusterOrigin + 32u, uvec2(uval_mainImageSizeI));
-    uvec2 clusterSize = clusterEnd - clusterOrigin;
+    // For edge bins, we need to use linear indexing since the bin is not full 32x32
+    // Calculate the actual bin size (clamped to screen bounds)
+    uvec2 binEnd = min(binOrigin + 32u, uvec2(uval_mainImageSizeI));
+    uvec2 binSize = binEnd - binOrigin;
 
-    uint clusterLocalIndex;
-    if (clusterSize == uvec2(32u)) {
-        // Full cluster: use Morton encoding
-        clusterLocalIndex = morton_16bEncode(clusterLocalPos);
+    uint binLocalIndex;
+    if (binSize == uvec2(32u)) {
+        // Full bin: use Morton encoding
+        binLocalIndex = morton_16bEncode(binLocalPos);
     } else {
-        // Edge cluster: use linear indexing
-        clusterLocalIndex = clusterLocalPos.y * clusterSize.x + clusterLocalPos.x;
+        // Edge bin: use linear indexing
+        binLocalIndex = binLocalPos.y * binSize.x + binLocalPos.x;
     }
 
-
-    uint clusterReadBaseIndex = clusterIdx * 1024;
-    uint clusterIndicesReadBaseIndex = clusterIdx * 1024;
-    uint indexReadIndex = clusterIndicesReadBaseIndex + clusterLocalIndex;
+    uint binReadBaseIndex = binIdx * 1024;
+    uint binIndicesReadBaseIndex = binIdx * 1024;
+    uint indexReadIndex = binIndicesReadBaseIndex + binLocalIndex;
     uint rayIndex = ssbo_rayDataIndices[indexReadIndex];
 
     if (rayIndex < 0xFFFFFFFFu){
-        uint actualRayIndex = bitfieldExtract(rayIndex, 0, 12);
-        uvec4 packedData = ssbo_rayData[clusterReadBaseIndex + actualRayIndex];
+        uint actualRayIndex = sst2_decodeBinLocalIndex(rayIndex);
+        uvec4 packedData = ssbo_rayData[binReadBaseIndex + actualRayIndex];
         SSTRay sstRay = sstray_unpack(packedData);
         ivec2 texelPos = sstRay.pRayOriginTexelPos;
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;

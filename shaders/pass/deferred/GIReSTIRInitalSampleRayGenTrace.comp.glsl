@@ -37,11 +37,11 @@ void main() {
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     ivec2 texelPos = ivec2(mortonGlobalPosU);
 
-    uvec2 clusterId = swizzledWGPos >> 1u;
-    uint numClusterX = (uval_mainImageSizeI.x + 31) >> 5; // 32x32 cluster
-    uint clusterIdx = clusterId.y * numClusterX + clusterId.x;
-    ivec2 clusterLocalPos = texelPos & 31; // 32x32 cluster
-    uint clusterLocalIndex = convertClusterLocalIndex(clusterLocalPos);
+    uvec2 binId = swizzledWGPos >> 1u;
+    uint numBinX = (uval_mainImageSizeI.x + 31) >> 5; // 32x32 bin
+    uint binIdx = binId.y * numBinX + binId.x;
+    ivec2 binLocalPos = texelPos & 31; // 32x32 bin
+    uint binLocalIndex = sst2_encodeBinLocalIndex(binLocalPos);
 
     uint rayIndex = 0xFFFFFFFFu;
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
@@ -81,11 +81,10 @@ void main() {
                 if (sstRay.currT > 0.0) {
                     // TODO: cleanup
                     uvec4 packedData = sstray_pack(sstRay);
-                    uint clusterWriteBaseIndex = clusterIdx * 1024;
-                    uint writeIndex = clusterWriteBaseIndex + clusterLocalIndex;
+                    uint binWriteBaseIndex = binIdx * 1024;
+                    uint writeIndex = binWriteBaseIndex + binLocalIndex;
                     ssbo_rayData[writeIndex] = packedData;
-                    uvec2 angleIndex = convertAngleIndex(sstRay);
-                    rayIndex = encodeRayIndex(clusterLocalIndex, angleIndex);
+                    rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
                 } else {
                     restir_InitialSampleData sampleData = restir_initialSample_handleRayResult(sstRay);
                     transient_restir_initialSample_store(texelPos, restir_initialSampleData_pack(sampleData));
@@ -102,7 +101,7 @@ void main() {
             transient_viewNormal_store(texelPos, vec4(0.0));
         }
     }
-    uint clusterIndicesWriteBaseIndex = clusterIdx * 1024;
-    uint indexWriteIndex = clusterIndicesWriteBaseIndex + clusterLocalIndex;
+    uint binIndicesWriteBaseIndex = binIdx * 1024;
+    uint indexWriteIndex = binIndicesWriteBaseIndex + binLocalIndex;
     ssbo_rayDataIndices[indexWriteIndex] = rayIndex;
 }
