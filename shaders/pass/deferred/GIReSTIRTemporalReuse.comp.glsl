@@ -54,7 +54,7 @@ void main() {
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
-        ReSTIRReservoir temporalReservoir = restir_initReservoir(texelPos);
+        ReSTIRReservoir temporalReservoir = restir_initReservoir();
         if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0) {
             float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
             if (viewZ > -65536.0) {
@@ -195,7 +195,7 @@ void main() {
                                         //                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, prevHitDistance);
                                         //                    prevPHat = length(prevSample);
                                     } else {
-                                        prevTemporalReservoir = restir_initReservoir(texelPos);
+                                        prevTemporalReservoir = restir_initReservoir();
                                     }
                                 } else {
                                     vec3 prevSampleDirWorld = coords_dir_viewToWorldPrev(prevTemporalReservoir.Y.xyz);
@@ -262,7 +262,7 @@ void main() {
                 float resetThreshold = linearStep(RESET_START, RESET_END, float(temporalReservoir.age));
                 float resetRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 123679546u)).w);
                 if (resetRand < resetThreshold) {
-                    temporalReservoir = restir_initReservoir(texelPos);
+                    temporalReservoir = restir_initReservoir();
                 }
 
                 {

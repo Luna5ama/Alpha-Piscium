@@ -58,16 +58,14 @@ struct ReSTIRReservoir {
     float avgWY;// average unbiased contribution weight
     uint m;
     uint age;
-    ivec2 texelPos;
 };
 
-ReSTIRReservoir restir_initReservoir(ivec2 texelPos) {
+ReSTIRReservoir restir_initReservoir() {
     ReSTIRReservoir reservoir;
     reservoir.Y = vec4(0.0, 0.0, 0.0, -1.0);
     reservoir.avgWY = 0.0;
     reservoir.m = 0u;
     reservoir.age = 0u;
-    reservoir.texelPos = texelPos;
     return reservoir;
 }
 
