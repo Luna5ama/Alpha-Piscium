@@ -181,7 +181,7 @@ void main() {
     float groundFactor = exp2(-4.0 * (viewHeight - atmosphere.bottom));
     float bottomOffset = groundFactor * 100.0;
 
-    if (workGroupZI == 0) {
+    if (layerIndex == 0) {
         if (setupRayEndC(atmosphere, params, rayDir, bottomOffset)) {
             params.rayStart = params.rayStart + rayDir * (shadowDistance / SETTING_ATM_D_SCALE);
             result = raymarchSkySingle(atmosphere, params, lightParam, bottomOffset * saturate(lightZenithCosAngle));
