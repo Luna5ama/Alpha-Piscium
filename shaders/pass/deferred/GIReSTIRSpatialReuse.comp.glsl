@@ -80,10 +80,10 @@ void main() {
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
-                #if SETTING_GI_COHERENCE_OPTIMIZATION
-                const uint reuseCount = uint(SPATIAL_REUSE_SAMPLES);
-                #else
+                #ifdef SETTING_GI_SPATIAL_REUSE_COUNT_DYNAMIC
                 const uint reuseCount = uint(mix(float(SPATIAL_REUSE_SAMPLES), 1.0, sqrt(linearStep(0.0, 0.5, historyData.realHistoryLength))));
+                #else
+                const uint reuseCount = uint(SPATIAL_REUSE_SAMPLES);
                 #endif
                 const float REUSE_RADIUS = float(SPATIAL_REUSE_RADIUS);
                 vec2 texelPosF = vec2(texelPos) + vec2(0.5);
