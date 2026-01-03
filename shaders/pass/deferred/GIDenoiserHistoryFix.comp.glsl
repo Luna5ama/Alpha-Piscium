@@ -43,13 +43,12 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
     }
 }
 
-vec3 _clampColor(vec3 colorRGB, vec3 fastColorRGB, vec3 moment1YCoCG, vec3 moment2YCoCG, float clampingThreshold) {
+vec3 _clampColor(vec3 colorRGB, vec3 fastColorYCoCG, vec3 moment1YCoCG, vec3 moment2YCoCG, float clampingThreshold) {
     vec3 mean = moment1YCoCG;
     vec3 variance = max(moment2YCoCG - moment1YCoCG * moment1YCoCG, 0.0);
     vec3 stddev = sqrt(variance);
     vec3 aabbMin = mean - stddev * clampingThreshold;
     vec3 aabbMax = mean + stddev * clampingThreshold;
-    vec3 fastColorYCoCG = colors_SRGBToYCoCg(fastColorRGB);
     vec3 colorYCoCG = colors_SRGBToYCoCg(colorRGB);
     aabbMin = min(aabbMin, fastColorYCoCG);
     aabbMax = max(aabbMax, fastColorYCoCG);
@@ -69,6 +68,7 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
         vec4 specData = transient_gi4Reprojected_fetch(srcXY);
 
         vec2 hitDistances = vec2(diffData.w, specData.w);
+        hitDistances = mix(vec2(MAX_HIT_DISTANCE), hitDistances, greaterThan(hitDistances, vec2(0.0)));
         shared_hitDistances[sharedXY.y][sharedXY.x] = hitDistances;
     }
 }
@@ -88,32 +88,21 @@ void main() {
         loadSharedDataMoments(workGroupOrigin, gl_LocalInvocationIndex + 256u);
 
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-            float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
+            float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
             if (viewZ > -65536.0) {
+                // No need to load fast colors here because they are already in the shared memory
                 GIHistoryData historyData = gi_historyData_init();
-
-                vec4 giData1 = transient_gi1Reprojected_fetch(texelPos);
-                vec4 giData2 = transient_gi3Reprojected_fetch(texelPos);
-
                 gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
-                gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
                 gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
-                gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
-
-                vec3 diffMoment1 = vec3(0.0);
-                vec3 diffMoment2 = vec3(0.0);
-                vec3 specMoment1 = vec3(0.0);
-                vec3 specMoment2 = vec3(0.0);
 
                 float historyLengthInt = historyData.historyLength * TOTAL_HISTORY_LENGTH;
                 // 0.0 = Full fix, 1.0 = No fix
                 float historyFixMix = 1.0 - pow2(linearStep(4.0, 1.0, historyLengthInt));
 
-                vec2 texelPos0 = vec2(texelPos) + 0.5;
-
                 #if DENOISER_HISTORY_FIX
                 if (historyFixMix < 1.0) {
+                    vec2 texelPos0 = vec2(texelPos) + 0.5;
                     vec3 geomNormal0 = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
                     float viweZ0 = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
 
@@ -188,20 +177,15 @@ void main() {
                 }
                 #endif
 
-                vec2 denoiserBlurVariance = vec2(0.0);
+                barrier();
                 vec2 filteredHitDitances = vec2(MAX_HIT_DISTANCE);
-
-                float expMul = exp2(global_aeData.expValues.z);
-                vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
-                vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
-
                 #if ENABLE_DENOISER_FAST_CLAMP
                 {
-                    float totalLen = historyData.historyLength * TOTAL_HISTORY_LENGTH;
-                    float decayFactor = linearStep(FAST_HISTORY_LENGTH * 2.0, 1.0, totalLen);
-                    float clampingThreshold = mix(2.0, 16.0, pow2(decayFactor));
+                    vec3 diffMoment1 = vec3(0.0);
+                    vec3 diffMoment2 = vec3(0.0);
+                    vec3 specMoment1 = vec3(0.0);
+                    vec3 specMoment2 = vec3(0.0);
 
-                    barrier();
                     ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
                     // 5x5 neighborhood using shared memory
                     for (int dy = -2; dy <= 2; ++dy) {
@@ -218,7 +202,6 @@ void main() {
                             specMoment1 += neighborSpecYCoCg;
                             specMoment2 += neighborSpecYCoCg * neighborSpecYCoCg;
                             vec2 neighborHitDistances = vec2(diffData.w, specData.w);
-                            neighborHitDistances = mix(vec2(MAX_HIT_DISTANCE), neighborHitDistances, greaterThan(neighborHitDistances, vec2(0.0)));
                             filteredHitDitances = min(filteredHitDitances, neighborHitDistances);
                         }
                     }
@@ -228,20 +211,38 @@ void main() {
                     specMoment1 /= 25.0;
                     specMoment2 /= 25.0;
 
-                    vec3 diffClamped = _clampColor(historyData.diffuseColor, historyData.diffuseFastColor, diffMoment1, diffMoment2, clampingThreshold);
+                    float totalLen = historyData.historyLength * TOTAL_HISTORY_LENGTH;
+                    float decayFactor = linearStep(FAST_HISTORY_LENGTH * 2.0, 1.0, totalLen);
+                    float clampingThreshold = mix(2.0, 16.0, pow2(decayFactor));
+
+                    float expMul = exp2(global_aeData.expValues.z);
+
+                    uvec4 centerData = shared_YCoCgData[localPos.y][localPos.x];
+                    vec4 centerDiffData = unpackHalf4x16(centerData.xy);
+                    vec4 centerSpecData = unpackHalf4x16(centerData.zw);
+
+                    vec3 diffClamped = _clampColor(historyData.diffuseColor, centerDiffData.xyz, diffMoment1, diffMoment2, clampingThreshold);
+                    vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
                     vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - diffOutputSim);
                     float diffDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffDiff);
                     diffClamped = mix(historyData.diffuseColor, diffClamped, historyFixMix);
                     historyData.diffuseColor = diffClamped;
+                    vec4 diffInput = vec4(historyData.diffuseColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffOutputSim));
+                    transient_gi_blurDiff2_store(texelPos, diffInput);
 
-                    vec3 specClamped = _clampColor(historyData.specularColor, historyData.specularFastColor, specMoment1, specMoment2, clampingThreshold);
+                    vec3 specClamped = _clampColor(historyData.specularColor, centerSpecData.xyz, specMoment1, specMoment2, clampingThreshold);
+                    vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
                     vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
                     specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
                     historyData.specularColor = specClamped;
+                    vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));
+                    transient_gi_blurSpec2_store(texelPos, specInput);
 
                     vec2 diffLuma2 = vec2(diffDiffLuma, specDiffLuma);
-                    denoiserBlurVariance += sqrt(vec2(diffDiffLuma, specDiffLuma));
+
+                    vec2 denoiserBlurVariance = sqrt(vec2(diffDiffLuma, specDiffLuma));
+                    transient_gi_denoiseVariance1_store(texelPos, vec4(denoiserBlurVariance, 0.0, 0.0));
 
                     vec2 resetFactor2 = smoothstep(0.5, 0.0, diffLuma2);
                     float resetFactor = resetFactor2.x * resetFactor2.y;
@@ -251,7 +252,6 @@ void main() {
                 }
                 #else
                 {
-                    barrier();
                     ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
                     // 5x5 neighborhood using shared memory
                     for (int dy = -2; dy <= 2; ++dy) {
@@ -262,6 +262,14 @@ void main() {
                             filteredHitDitances = min(filteredHitDitances, neighborHitDistances);
                         }
                     }
+                    float expMul = exp2(global_aeData.expValues.z);
+                    vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
+                    vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
+                    vec4 diffInput = vec4(historyData.diffuseColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffOutputSim));
+                    transient_gi_blurDiff2_store(texelPos, diffInput);
+                    vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));
+                    transient_gi_blurSpec2_store(texelPos, specInput);
+                    transient_gi_denoiseVariance1_store(texelPos, vec4(0.0));
                 }
                 #endif
 
@@ -269,29 +277,10 @@ void main() {
                 transient_gi_hitDistanceFactors_store(texelPos, vec4(hitDitanceFactors, 0.0, 0.0));
 
                 float ditherNoise = rand_stbnVec1(texelPos + ivec2(6, 9), frameCounter + 2);
-                vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);
-                packedData1 = dither_fp16(packedData1, ditherNoise);
-                vec4 packedData2 = clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX);
-                packedData2 = dither_fp16(packedData2, ditherNoise);
-                vec4 packedData3 = clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX);
-                packedData3 = dither_fp16(packedData3, ditherNoise);
-                vec4 packedData4 = clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX);
-                packedData4 = dither_fp16(packedData4, ditherNoise);
                 vec4 packedData5 = gi_historyData_pack5(historyData);
                 packedData5 = dither_u8(packedData5, ditherNoise);
 
-                transient_gi1Reprojected_store(texelPos, packedData1);
-                transient_gi2Reprojected_store(texelPos, packedData2);
-                transient_gi3Reprojected_store(texelPos, packedData3);
-                transient_gi4Reprojected_store(texelPos, packedData4);
                 transient_gi5Reprojected_store(texelPos, packedData5);
-                transient_gi_denoiseVariance1_store(texelPos, vec4(denoiserBlurVariance, 0.0, 0.0));
-
-                vec4 diffInput = vec4(historyData.diffuseColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffOutputSim));
-                vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));
-
-                transient_gi_blurDiff2_store(texelPos, diffInput);
-                transient_gi_blurSpec2_store(texelPos, specInput);
             }
         }
     }
