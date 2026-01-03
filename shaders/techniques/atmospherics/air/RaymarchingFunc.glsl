@@ -60,12 +60,8 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
     vec3 rayStepDelta = (params.rayEnd - params.rayStart) * rcpSteps;
     float rayStepLength = length(rayStepDelta);
 
-    #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 0
     vec3 totalDensity = vec3(0.0);
-    #else
-
     vec3 totalInSctr = vec3(0.0);
-    vec3 tSampleToOrigin = vec3(1.0);
     #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
     vec3 totalMultiSctrAs1 = vec3(0.0);
     #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
@@ -94,9 +90,6 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
 
     vec3 multiSctrLuminanceMoon = atmospherics_air_lut_sampleMultiSctr(atmosphere, cosZenithMoon, sampleHeightMid);
     multiSctrLuminanceMoon *= scatteringParams.multiSctrFactor * scatteringParams.moonParams.irradiance;
-
-    #endif
-
     #endif
 
     for (uint stepIndex = 0u; stepIndex < params.steps; stepIndex++) {
@@ -125,9 +118,12 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
         vec3 sampleTotalInSctr = sampleRayleighInSctr + sampleMieInSctr;
         #endif
 
+        vec3 tSampleToOrigin = exp(-computeOpticalDepth(atmosphere, totalDensity));
+        totalDensity += sampleDensity * rayStepLength;
+
         #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 0
         {
-            totalDensity += sampleDensity * rayStepLength;
+
         }
         #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
         {
@@ -241,17 +237,14 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
             totalInSctr += tSampleToOrigin * sampleInSctrInt;
         }
         #endif
-
-        #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE != 0
-        tSampleToOrigin *= sampleTransmittance;
-        #endif
     }
 
     ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE result;
+    vec3 totalOpticalDepth = computeOpticalDepth(atmosphere, totalDensity);
+    vec3 tSampleToOrigin = exp(-totalOpticalDepth);
 
     #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 0
-    vec3 totalOpticalDepth = computeOpticalDepth(atmosphere, totalDensity);
-    result = exp(-totalOpticalDepth);
+    result = tSampleToOrigin;
     #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
 
     vec3 groundAlbedo = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, GROUND_ALBEDO_BASE);

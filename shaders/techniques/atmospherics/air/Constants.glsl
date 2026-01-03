@@ -67,7 +67,6 @@
 
 #endif
 
-#define MULTI_SCTR_LUT_SIZE 32
 #define PLANET_RADIUS_OFFSET 0.01
 
 // Every length is in KM!!!
@@ -145,10 +144,5 @@ AtmosphereParameters getAtmosphereParameters() {
 
     return atmosphere;
 }
-
-#define TRANSMITTANCE_TEXTURE_WIDTH 256
-#define TRANSMITTANCE_TEXTURE_HEIGHT 64
-const vec2 TRANSMITTANCE_TEXTURE_SIZE = vec2(TRANSMITTANCE_TEXTURE_WIDTH, TRANSMITTANCE_TEXTURE_HEIGHT);
-const vec2 TRANSMITTANCE_TEXEL_SIZE = 1.0 / TRANSMITTANCE_TEXTURE_SIZE;
 
 #endif
