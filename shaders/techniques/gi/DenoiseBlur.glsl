@@ -25,7 +25,7 @@ layout(rgba16f) uniform writeonly image2D uimg_temp3;
 
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
-shared vec4 shared_varianceData[20][20];
+shared vec2 shared_varianceData[20][20];
 
 struct GeomData {
     vec3 geomNormal;
@@ -58,22 +58,24 @@ vec4 _gi_readSpec(ivec2 texelPos) {
     #endif
 }
 
+vec4 _gi_readVariance(ivec2 texelPos) {
+    #if GI_DENOISE_PASS == 1
+    return transient_gi_denoiseVariance1_fetch(texelPos);
+    #elif GI_DENOISE_PASS == 2
+    return transient_gi_denoiseVariance2_fetch(texelPos);
+    #endif
+}
+
 void loadSharedVarianceData(uvec2 groupOriginTexelPos, uint index) {
     if (index < 400u) { // 20 * 20 = 400
         uvec2 sharedXY = uvec2(index % 20u, index / 20u);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
-        #if GI_DENOISE_PASS == 1
-        vec4 varianceInput = transient_gi_denoiseVariance1_fetch(srcXY);
-        #elif GI_DENOISE_PASS == 2
-        vec4 varianceInput = transient_gi_denoiseVariance2_fetch(srcXY);
-        #endif
-
         // x: diffuse variance
         // y: specular variance
         // z: history length
         // w: real history length
-        shared_varianceData[sharedXY.y][sharedXY.x] = varianceInput;
+        shared_varianceData[sharedXY.y][sharedXY.x] = _gi_readVariance(srcXY).xy;
     }
 }
 
@@ -116,11 +118,11 @@ void main() {
         if (centerGeomData.viewPos.z > -65536.0) {
             GIHistoryData historyData = gi_historyData_init();
             gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
-            vec2 localMinHitDistance = transient_gi_filteredHitDistances_fetch(texelPos).xy;
+            vec2 hitDistanceFactors = transient_gi_hitDistanceFactors_fetch(texelPos).xy;
             vec4 centerDiff = _gi_readDiff(texelPos);
             vec4 centerSpec = _gi_readSpec(texelPos);
 
-            vec4 filteredInputVariance = vec4(0.0);
+            vec2 filteredInputVariance = vec2(0.0);
 
             // Optimized variance calculation using shared memory
             ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
@@ -138,7 +140,7 @@ void main() {
             float accumFactor = (1.0 / (1.0 + historyLength));
             float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
 
-            float hitDistFactor = linearStep(0.0, 4.0, localMinHitDistance.x);
+            float hitDistFactor = hitDistanceFactors.x;
             #if GI_DENOISE_PASS == 1
             hitDistFactor = pow(hitDistFactor, sqrtRealHistoryLength * 2.0);
             #else
@@ -179,8 +181,10 @@ void main() {
             float moment1 = centerLuma;
             float moment2 = pow2(centerLuma);
 
+            vec2 newHistoryLength = _gi_readVariance(texelPos).zw;
+
             float sigma = 0.69;
-            sigma += kernelRadius * 2.0 * pow2(1.0 - saturate(hitDistFactor));
+            sigma += kernelRadius * 2.0 * (1.0 - saturate(hitDistFactor));
             sigma *= 1.0 - filteredInputVariance.x;
 
             #if ENABLE_DENOISER
@@ -199,6 +203,7 @@ void main() {
 
                 vec4 diffSample = _gi_readDiff(sampleTexelPos);
                 GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
+                vec2 sampleHLengths = _gi_readVariance(sampleTexelPos).zw;
 
                 float edgeWeight = 1.0;
                 edgeWeight *= planeDistanceWeight(
@@ -216,6 +221,8 @@ void main() {
                 float sampleLuma = diffSample.a;
                 moment1 += sampleLuma * edgeWeight;
                 moment2 += pow2(sampleLuma) * edgeWeight;
+                newHistoryLength += sampleHLengths * edgeWeight;
+
 
                 diffResult += diffSample * totalWeight;
                 weightSum += totalWeight;
@@ -230,6 +237,7 @@ void main() {
             float rcpEdgeWeightSum = 1.0 / (edgeWeightSum + 1.0);
             moment1 *= rcpEdgeWeightSum;
             moment2 *= rcpEdgeWeightSum;
+            newHistoryLength *= rcpEdgeWeightSum;
 
             float variance = max(0.0, moment2 - pow2(moment1));
 
@@ -237,7 +245,7 @@ void main() {
             diffResult = dither_fp16(diffResult, ditherNoise);
             specResult = dither_fp16(specResult, ditherNoise);
 
-            vec4 newVariance = filteredInputVariance + vec4(variance, 0.0, 0.0, 0.0);
+            vec4 newVariance = vec4(filteredInputVariance + vec2(variance), newHistoryLength);
             #if GI_DENOISE_PASS == 1
             transient_gi_denoiseVariance2_store(texelPos, newVariance);
             #elif GI_DENOISE_PASS == 2
@@ -250,7 +258,7 @@ void main() {
             if (RANDOM_FRAME < MAX_FRAMES){
                 // imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
                 float stddev = sqrt(variance);
-//                imageStore(uimg_temp3, texelPos, filteredInputVariance.xxxx);
+                imageStore(uimg_temp3, texelPos, sigma.xxxx);
             }
             #endif
             transient_gi_blurDiff1_store(texelPos, diffResult);
@@ -268,7 +276,7 @@ void main() {
             historyData.specularColor = specResult.rgb;
 
             vec4 packedData5 = gi_historyData_pack5(historyData);
-            packedData5.xy = newVariance.zw;
+            packedData5.xy = newHistoryLength;
 
             history_gi1_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
             history_gi2_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));

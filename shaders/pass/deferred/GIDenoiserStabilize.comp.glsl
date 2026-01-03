@@ -219,7 +219,7 @@ void main() {
                 // nvm too much blur
 //                float mixWeight = 1.0 / 32.0;
                 float realHistoryLength = historyData.historyLength * TOTAL_HISTORY_LENGTH;
-                float mixWeight = 1.0 / clamp(max(4.0, realHistoryLength) * speedFactor, 1.0, 64.0);
+                float mixWeight = 1.0 / clamp(max(4.0, realHistoryLength) * speedFactor * pow2(global_historyResetFactor), 1.0, 64.0);
 
                 // Blend current and clamped history
                 vec3 finalDiff = mix(clampedHistoryDiff, currDiff.rgb, mixWeight);

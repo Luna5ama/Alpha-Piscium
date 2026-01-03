@@ -180,7 +180,8 @@ void main() {
             abs(worldTime + 24000 - global_lastWorldTime) % 24000
         );
         float newResetFactor = exp2(-float(worldTimeDiff) * ldexp(1.0, SETTING_TIME_CHANGE_SENSITIVITY));
-        global_historyResetFactor = mix(min(newResetFactor, global_historyResetFactor), newResetFactor, 0.1);
+        newResetFactor = min(mix(global_historyResetFactor, newResetFactor, 0.1), newResetFactor);
+        global_historyResetFactor = newResetFactor;
         global_lastWorldTime = worldTime;
 
         vec3 cameraDelta = uval_cameraDelta;
@@ -219,6 +220,7 @@ void main() {
         const float DECAY = 0.1;
         taaResetFactor.y *= DECAY * rcp(DECAY + sqrt(cameraSpeed));
         taaResetFactor.x += log2(sqrt(cameraSpeed + abs(cameraSpeedDiff) * 2.0) + 1.0);
+        taaResetFactor.z *= newResetFactor;
 
         vec4 finalTaaResetFactor = mix(global_taaResetFactor, taaResetFactor, 0.25);
         finalTaaResetFactor.yz = min(finalTaaResetFactor.yz, taaResetFactor.yz);

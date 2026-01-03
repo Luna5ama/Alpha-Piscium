@@ -61,7 +61,6 @@ const float shadowDistance = 192.0;//[64.0 128.0 192.0 256.0 384.0 512.0]
 //#define SETTING_GI_USE_REFERENCE
 #ifdef SETTING_GI_USE_REFERENCE
 #endif
-#define SETTING_GI_COHERENCE_OPTIMIZATION 0//[0 1 2]
 #define SETTING_DENOISER
 #ifdef SETTING_DENOISER
 #endif

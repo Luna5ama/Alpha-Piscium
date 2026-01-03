@@ -265,7 +265,8 @@ void main() {
                 }
                 #endif
 
-                transient_gi_filteredHitDistances_store(texelPos, vec4(filteredHitDitances, 0.0, 0.0));
+                vec2 hitDitanceFactors = 1.0 - pow(smoothstep(4.0, 0.0, filteredHitDitances), vec2(8.0));
+                transient_gi_hitDistanceFactors_store(texelPos, vec4(hitDitanceFactors, 0.0, 0.0));
 
                 float ditherNoise = rand_stbnVec1(texelPos + ivec2(6, 9), frameCounter + 2);
                 vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);

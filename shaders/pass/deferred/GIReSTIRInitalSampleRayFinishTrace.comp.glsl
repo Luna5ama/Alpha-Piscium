@@ -77,7 +77,7 @@ void main() {
         restir_InitialSampleData sampleData = restir_initialSample_handleRayResult(sstRay);
         transient_restir_initialSample_store(texelPos, restir_initialSampleData_pack(sampleData));
         #if SETTING_DEBUG_OUTPUT
-        imageStore(uimg_temp1, texelPos, vec4(sampleData.hitRadiance, 0.0));
+//        imageStore(uimg_temp1, texelPos, vec4(sampleData.hitRadiance, 0.0));
         #endif
     }
 }

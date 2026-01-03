@@ -46,7 +46,7 @@
         "transient_restir_spatialInput": "RGBA32UI",
         "transient_restir_initialSample": "RGBA32UI",
         "transient_gi_diffuse_reprojInfo": "RGBA32UI",
-        "transient_gi_filteredHitDistances": "RGBA16F",
+        "transient_gi_hitDistanceFactors": "RGBA8",
         "transient_gi_denoiseVariance1": "RGBA8",
         "transient_gi_denoiseVariance2": "RGBA8",
         "transient_screenPixelSize": "R32F",
