@@ -209,14 +209,19 @@ void main() {
         stationary *= float(cameraSpeed < 0.0001);
         stationary *= float(frontVecDiff > 0.99999);
 
+        float startOrEndMoveF = float(startOrEndMove);
+        float startOrEndRotateF = float(startOrEndRotate);
+        float startOrEndMoveRotateF = float(startOrEndMove | startOrEndRotate);
+
         #ifdef SETTING_SCREENSHOT_MODE
         taaResetFactor.w *= 1.0 - stationary;
-        taaResetFactor.yz *= 1.0 - float(startOrEndMove);
-        taaResetFactor.yz *= 1.0 - float(startOrEndRotate);
+        taaResetFactor.yz *= 1.0 - startOrEndMoveRotateF;
         taaResetFactor.z *= float(frameCounter > SETTING_SCREENSHOT_MODE_SKIP_INITIAL);
         #endif
-        taaResetFactor.y *= 1.0 - float(startOrEndMove);
-        taaResetFactor.z *= 1.0 - float(startOrEndMove) * 0.5;
+        taaResetFactor.y *= 1.0 - startOrEndRotateF;
+        taaResetFactor.y *= 1.0 - startOrEndMoveF;
+        taaResetFactor.z *= 1.0 - startOrEndRotateF * 0.25;
+        taaResetFactor.z *= 1.0 - startOrEndMoveF * 0.5;
         const float DECAY = 0.1;
         taaResetFactor.y *= DECAY * rcp(DECAY + sqrt(cameraSpeed));
         taaResetFactor.x += log2(sqrt(cameraSpeed + abs(cameraSpeedDiff) * 2.0) + 1.0);
