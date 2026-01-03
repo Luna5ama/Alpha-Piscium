@@ -13,5 +13,6 @@ void main() {
     global_shadowAABBMinNew = ivec3(INT32_MAX);
     global_shadowAABBMaxNew = ivec3(INT32_MIN);
     global_historyResetFactor = 1.0;
-    global_taaResetFactor = 1.0;
+    global_motionFactor = vec4(1.0);
+    global_taaResetFactor = vec4(1.0);
 }

@@ -190,5 +190,10 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     }
     #endif
 
+    #ifdef SETTING_DEBUG_TAA
+    printString((_T, _A, _A, _space, _R, _e, _s, _e, _t, _space, _F, _a, _c, _t, _o, _r, _colon, _space));
+    printVec4(global_taaResetFactor);
+    #endif
+
     endText(outputColor.rgb);
 }

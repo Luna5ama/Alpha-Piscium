@@ -183,8 +183,6 @@ void main() {
         global_historyResetFactor = mix(min(newResetFactor, global_historyResetFactor), newResetFactor, 0.1);
         global_lastWorldTime = worldTime;
 
-        float taaResetFactor = 1.0;
-        #ifdef SETTING_SCREENSHOT_MODE
         vec3 cameraDelta = uval_cameraDelta;
         float cameraSpeed = length(cameraDelta);
         float prevCameraSpeed = length(global_prevCameraDelta);
@@ -192,11 +190,41 @@ void main() {
         vec3 prevFrontVec = coords_dir_viewToWorldPrev(vec3(0.0, 0.0, -1.0));
         vec3 currFrontVec = coords_dir_viewToWorld(vec3(0.0, 0.0, -1.0));
         float frontVecDiff = dot(prevFrontVec, currFrontVec);
-        taaResetFactor *= float(cameraSpeedDiff < 0.00001);
-        taaResetFactor *= float(cameraSpeed < 0.0001);
-        taaResetFactor *= float(frontVecDiff > 0.99999);
+        vec4 lastMotionFactor = global_motionFactor;
+        float angleVecDiff = abs(lastMotionFactor.z - frontVecDiff);
+
+        vec4 taaResetFactor = vec4(1.0, 1.0, 1.0, 1.0);
+        const float SPEED_EPS = 1e-16;
+        uint startOrEndMove = uint(cameraSpeedDiff > SPEED_EPS);
+        startOrEndMove &= uint(cameraSpeed < SPEED_EPS) | uint(prevCameraSpeed < SPEED_EPS);
+
+        const float ANGLE_EPS = 1e-16;
+        const float REV_ANGLE_EPS = 0.99999;
+        uint startOrEndRotate = uint(angleVecDiff > ANGLE_EPS);
+        startOrEndRotate &= uint(frontVecDiff >= REV_ANGLE_EPS) | uint(lastMotionFactor.z >= REV_ANGLE_EPS);
+
+        float stationary = 1.0;
+        stationary *= float(cameraSpeedDiff < 0.00001);
+        stationary *= float(cameraSpeed < 0.0001);
+        stationary *= float(frontVecDiff > 0.99999);
+
+        #ifdef SETTING_SCREENSHOT_MODE
+        taaResetFactor.w *= 1.0 - stationary;
+        taaResetFactor.yz *= 1.0 - float(startOrEndMove);
+        taaResetFactor.yz *= 1.0 - float(startOrEndRotate);
+        taaResetFactor.z *= float(frameCounter > SETTING_SCREENSHOT_MODE_SKIP_INITIAL);
         #endif
-        global_taaResetFactor = mix(global_taaResetFactor, taaResetFactor, 0.1);
+        taaResetFactor.y *= 1.0 - float(startOrEndMove);
+        taaResetFactor.z *= 1.0 - float(startOrEndMove) * 0.5;
+        const float DECAY = 0.1;
+        taaResetFactor.y *= DECAY * rcp(DECAY + sqrt(cameraSpeed));
+        taaResetFactor.x += log2(sqrt(cameraSpeed + abs(cameraSpeedDiff) * 2.0) + 1.0);
+
+        vec4 finalTaaResetFactor = mix(global_taaResetFactor, taaResetFactor, 0.25);
+        finalTaaResetFactor.yz = min(finalTaaResetFactor.yz, taaResetFactor.yz);
+        finalTaaResetFactor.xw = max(finalTaaResetFactor.xw, taaResetFactor.xw);
+        global_taaResetFactor = finalTaaResetFactor;
+        global_motionFactor = vec4(cameraSpeed, cameraSpeedDiff, frontVecDiff, 0.0);
 
         #ifdef SETTING_DOF_MANUAL_FOCUS
         global_focusDistance = SETTING_DOF_FOCUS_DISTANCE_COARSE + SETTING_DOF_FOCUS_DISTANCE_FINE;

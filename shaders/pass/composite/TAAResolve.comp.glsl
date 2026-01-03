@@ -37,8 +37,8 @@ ColorAABB initAABB(vec3 colorYCoCg, float weight) {
 
 void updateAABB(vec3 colorSRGB, float weight, inout ColorAABB box) {
     vec3 colorYCoCg = colors_SRGBToYCoCg(colorSRGB);
-    box.minVal = mix(box.minVal, min(box.minVal, colorYCoCg), weight);
-    box.maxVal = mix(box.maxVal, max(box.maxVal, colorYCoCg), weight);
+    box.minVal = min(box.minVal, colorYCoCg);
+    box.maxVal = max(box.maxVal, colorYCoCg);
     box.moment1 += colorYCoCg * weight;
     box.moment2 += colorYCoCg * colorYCoCg * weight;
     box.weightSum += weight;
@@ -162,13 +162,6 @@ void main() {
     speedSum += sqrt(cameraSpeed) * 0.1;
     speedSum += sqrt(pixelSpeed) * 0.2;
 
-    vec3 prevFrontVec = coords_dir_viewToWorldPrev(vec3(0.0, 0.0, -1.0));
-    vec3 currFrontVec = coords_dir_viewToWorld(vec3(0.0, 0.0, -1.0));
-    float frontVecDiff = dot(prevFrontVec, currFrontVec);
-
-    float extraReset = global_taaResetFactor;
-    extraReset *= (1.0 - saturate(pixelSpeed * 1.0));
-
     barrier();
 
     // Sample currColor using Lanczos2 from shared memory
@@ -208,22 +201,26 @@ void main() {
     }
     currColor = saturate(currColor);
 
+    vec4 taaResetFactor = global_taaResetFactor;
+    newFrameAccum *= taaResetFactor.z;
+
     {
         vec3 currColorYCoCg = colors_SRGBToYCoCg(currColor);
-        float clampWeight = exp2(-speedSum);
-        float param = pow2(saturate(1.0 - clampWeight)) * -1.0;
+        float kernelParam = -taaResetFactor.x;
+        ColorAABB box = initAABB(currColorYCoCg, kernelWeight(unjitterTexelPos, texelPos, kernelParam));
 
-        ColorAABB box = initAABB(currColorYCoCg, kernelWeight(texelPos, unjitterTexelPos, param));
+        ivec2 localTexelPos = texelPos - ivec2(workGroupOrigin) + 2; // +2 for padding
 
-        updateAABB(textureOffset(usam_main, screenPos, ivec2(-1, 0)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(-1.0, 0.0), param), box);
-        updateAABB(textureOffset(usam_main, screenPos, ivec2(1, 0)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(1.0, 0.0), param), box);
-        updateAABB(textureOffset(usam_main, screenPos, ivec2(0, -1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(0.0, -1.0), param), box);
-        updateAABB(textureOffset(usam_main, screenPos, ivec2(0, 1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(0.0, 1.0), param), box);
+        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x - 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(-1.0, -1.0), kernelParam), box);
+        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x], kernelWeight(unjitterTexelPos, texelPos + ivec2(0.0, -1.0), kernelParam), box);
+        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x + 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(1.0, -1.0), kernelParam), box);
 
-        updateAABB(textureOffset(usam_main, screenPos, ivec2(-1, -1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(-1.0, -1.0), param), box);
-        updateAABB(textureOffset(usam_main, screenPos, ivec2(1, -1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(1.0, -1.0), param), box);
-        updateAABB(textureOffset(usam_main, screenPos, ivec2(-1, 1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(-1.0, 1.0), param), box);
-        updateAABB(textureOffset(usam_main, screenPos, ivec2(1, 1)).rgb, kernelWeight(texelPos, unjitterTexelPos + ivec2(1.0, 1.0), param), box);
+        updateAABB(shared_colorData[localTexelPos.y][localTexelPos.x - 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(-1.0, 0.0), kernelParam), box);
+        updateAABB(shared_colorData[localTexelPos.y][localTexelPos.x + 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(1.0, 0.0), kernelParam), box);
+
+        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x - 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(-1.0, 1.0), kernelParam), box);
+        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x], kernelWeight(unjitterTexelPos, texelPos + ivec2(0.0, 1.0), kernelParam), box);
+        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x + 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(1.0, 1.0), kernelParam), box);
 
         vec3 mean = box.moment1 / box.weightSum;
         vec3 mean2 = box.moment2 / box.weightSum;
@@ -245,27 +242,19 @@ void main() {
         vec3 prevColorYCoCgEllipsoid = clamp(mean + delta, box.minVal, box.maxVal);
         prevColorYCoCgEllipsoid = clamp(prevColorYCoCgEllipsoid, varianceAABBMin, varianceAABBMax);
 
-        #ifdef SETTING_SCREENSHOT_MODE
-        clampWeight *= extraReset;
-        #endif
-        clampWeight = pow3(clampWeight);
+        float clampMethod = taaResetFactor.y;
 
-        vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampWeight));
-        prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampWeight));
+        vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampMethod));
+        prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampMethod));
 
-        #ifdef SETTING_SCREENSHOT_MODE
-        prevColor = colors_YCoCgToSRGB(mix(prevColorYCoCgClamped, prevColorYCoCg, extraReset));
-        #else
-        prevColor = colors_YCoCgToSRGB(prevColorYCoCgClamped);
-        #endif
+        prevColor = mix(prevColor, colors_YCoCgToSRGB(prevColorYCoCgClamped), taaResetFactor.w);
     }
 
     #ifdef SETTING_SCREENSHOT_MODE
-    newFrameAccum *= extraReset;
     float MIN_ACCUM_FRAMES = 1.0;
     float MAX_ACCUM_FRAMES = 1024.0;
     #else
-    float MIN_ACCUM_FRAMES = 2.0;
+    float MIN_ACCUM_FRAMES = 1.0;
     float MAX_ACCUM_FRAMES = 100.0;
     if (gData.isHand) {
         MAX_ACCUM_FRAMES *= 0.5;
