@@ -301,7 +301,7 @@ void main() {
                         temporalReservoir.m = clamp(temporalReservoir.m, 0u, 16u);
                     ssgiOut = vec4(finalSample.xyz * finalSample.w * temporalReservoir.avgWY, temporalReservoir.Y.w);
                     #if USE_REFERENCE
-                    ssgiOut = vec4(initalSample / samplePdf, hitDistance);
+                    ssgiOut = vec4(initalSample * safeRcp(samplePdf), hitDistance);
                     #endif
 
                     SpatialSampleData spatialSample = spatialSampleData_init();
