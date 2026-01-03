@@ -17,7 +17,7 @@
 
         You can find full license texts in /licenses
 
-    Credits:
+    Other Credits:
         Jessie - Helping with Mie coefficients (https://github.com/Jessie-LC)
 */
 

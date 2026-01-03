@@ -15,7 +15,7 @@
             jpg's blog.
             https://www.jpgrenier.org/ssr.html
 
-    Credit:
+    Other Credits:
         - GeforceLegend (https://github.com/GeForceLegend) - Helping with optimizations.
 */
 #ifdef SST_DEBUG_PASS

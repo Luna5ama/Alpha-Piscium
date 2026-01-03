@@ -19,7 +19,7 @@
 
         You can find full license texts in /licenses
 
-    Credits:
+    Other Credits:
         Jessie - providing beam ratio equation for transmission (https://github.com/Jessie-LC)
 */
 

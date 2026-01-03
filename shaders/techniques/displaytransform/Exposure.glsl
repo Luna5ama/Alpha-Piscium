@@ -11,7 +11,7 @@
 
         You can find full license texts in /licenses
 
-    Credits:
+    Other Credits:
         - GeforceLegend - Optimized AgX curve function (https://github.com/GeForceLegend)
 */
 

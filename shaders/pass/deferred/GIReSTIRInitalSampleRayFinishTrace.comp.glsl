@@ -1,3 +1,18 @@
+/*
+    References:
+        [WYM23] Wyman, Chris, et al. "A Gentle Introduction to ReSTIR". SIGGRAPH 2023.
+            https://intro-to-restir.cwyman.org/
+        [ANA23] Anagnostou, Kostas. "A Gentler Introduction to ReSTIR". Interplay of Light. 2023.
+            https://interplayoflight.wordpress.com/2023/12/17/a-gentler-introduction-to-restir/
+        [ALE22] Alegruz. "Screen-Space-ReSTIR-GI". GitHub. 2022.
+            https://github.com/Alegruz/Screen-Space-ReSTIR-GI
+            BSD 3-Clause License. Copyright (c) 2022, Alegruz.
+
+        You can find full license texts in /licenses
+
+    Other Credits:
+        - Belmu (https://github.com/BelmuTM) - Advice on ReSTIR.
+*/
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/techniques/SST2.glsl"

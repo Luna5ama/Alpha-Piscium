@@ -8,7 +8,7 @@
 
         You can find full license texts in /licenses
 
-    Credits:
+    Other Credits:
         Jessie - Skylight falloff function (https://github.com/Jessie-LC)
 */
 

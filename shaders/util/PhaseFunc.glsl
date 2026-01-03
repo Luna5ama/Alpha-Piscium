@@ -9,7 +9,7 @@
             SIGGRAPH 2023. 2023.
             https://research.nvidia.com/labs/rtr/approximate-mie/publications/approximate-mie.pdf
 
-     Credits:
+     Other Credits:
         Jessie - Bi-Lambertian plate and Klein-Nishina phase functions
 
         You can find full license texts in /licenses
