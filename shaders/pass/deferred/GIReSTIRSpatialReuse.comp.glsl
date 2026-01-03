@@ -15,7 +15,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
-#include "/techniques/SSGI.glsl"
+#include "/techniques/gi/Reservoir.glsl"
 
 #if USE_REFERENCE || !SPATIAL_REUSE
 void main() {
@@ -52,10 +52,6 @@ void main() {
             if (viewZ > -65536.0) {
                 vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
                 vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-
-                //                GBufferData gData = gbufferData_init();
-                //                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-                //                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
 
                 SpatialSampleData centerSampleData = spatialSampleData_unpack(transient_restir_spatialInput_load(texelPos));
 
@@ -117,9 +113,6 @@ void main() {
                         continue;
                     }
 
-                    //                    GBufferData sampleGData = gbufferData_init();
-                    //                    gbufferData1_unpack(texelFetch(usam_gbufferData1, sampleTexelPos, 0), sampleGData);
-
                     SpatialSampleData neighborData = spatialSampleData_unpack(transient_restir_spatialInput_load(sampleTexelPos));
 
                     if (dot(centerSampleData.geomNormal, neighborData.geomNormal) < 0.99) {
@@ -131,11 +124,6 @@ void main() {
                     vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_camProjInverse);
 
                     if (restir_isReservoirValid(neighborReservoir)) {
-                        //                        ivec2 neighborHitTexelPos = ivec2(neighborReservoir.Y);
-                        //                        float neighborHitViewZ = texelFetch(usam_gbufferViewZ, neighborHitTexelPos, 0).x;
-                        //                        vec2 neighborHitScreenPos = coords_texelToUV(neighborHitTexelPos, uval_mainImageSizeRcp);
-                        //                        vec3 neighborHitViewPos = coords_toViewCoord(neighborHitScreenPos, neighborHitViewZ, global_camProjInverse);
-
                         vec3 neighborSampleDirView = neighborReservoir.Y.xyz;
                         float neighborSampleHitDistance = neighborReservoir.Y.w;
                         vec3 neighborHitViewPos = neighborViewPos + neighborSampleDirView * neighborReservoir.Y.w;
@@ -144,18 +132,6 @@ void main() {
                         neighborSampleDirView = hitDiff / neighborSampleHitDistance;
 
                         float neighborSamplePdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
-                        //                        float neighborSamplePdf = 1.0 / (2.0 * PI);
-
-                        //                        float newHitDistance;
-                        //                        vec3 neighborSample = ssgiEvalF(viewPos, gData, neighborSampleDirView, newHitDistance);
-                        //                        float neighborPHat = length(neighborSample);
-                        //                        if (neighborPHat <= 0.0){
-                        //                            continue;
-                        //                        }
-                        //                        vec3 newHitViewPos = viewPos + neighborSampleDirView * newHitDistance;
-                        //                        neighborHitViewPos = newHitViewPos;
-                        //                           neighborSampleHitDistance = newHitDistance;
-                        //
                         vec3 neighborHitScreenPos = coords_viewToScreen(neighborHitViewPos, global_camProj);
                         ivec2 neighborHitTexelPos = ivec2(neighborHitScreenPos.xy * uval_mainImageSize);
                         //
@@ -164,58 +140,6 @@ void main() {
                         vec3 f = brdf * hitRadiance;
                         vec3 neighborSample = f;
                         float neighborPHat = length(neighborSample);
-
-
-                        //                        if (distance(newHitViewPos, neighborHitViewPos) > 0.01) {
-                        //                            neighborPHat = 0.0;
-                        //                        }
-
-                        //                            vec3 hitRadiance = texture(usam_temp2, neighborHitScreenPos.xy).rgb;
-                        //                            float brdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
-                        //                            vec3 f = brdf * hitRadiance;
-                        //                            float neighborPHat = length(f);
-
-
-                        //                    // Calculate target function.
-                        //                    float3 offsetB = neighborReservoir.position - neighborReservoir.creationPoint;
-                        //                    float3 offsetA = neighborReservoir.position - worldPosition;
-                        //                    float pNewTN = evalTargetFunction(neighborReservoir.radiance, worldNormal, worldPosition, neighborReservoir.position, evalContext);
-                        //                    // Discard back-face.
-                        //                    if (dot(worldNormal, offsetA) <= 0.f)
-                        //                    {
-                        //                        pNewTN = 0.f;
-                        //                    }
-                        //
-                        //                    float RB2 = dot(offsetB, offsetB);
-                        //                    float RA2 = dot(offsetA, offsetA);
-                        //                    offsetB = normalize(offsetB);
-                        //                    offsetA = normalize(offsetA);
-                        //                    float cosA = dot(worldNormal, offsetA);
-                        //                    float cosB = dot(neighborReservoir.creationNormal, offsetB);
-                        //                    float cosPhiA = -dot(offsetA, neighborReservoir.normal);
-                        //                    float cosPhiB = -dot(offsetB, neighborReservoir.normal);
-                        //                    if (cosB <= 0.f || cosPhiB <= 0.f)
-                        //                    {
-                        //                        continue;
-                        //                    }
-                        //                    if (cosA <= 0.f || cosPhiA <= 0.f || RA2 <= 0.f || RB2 <= 0.f)
-                        //                    {
-                        //                        pNewTN = 0.f;
-                        //                    }
-                        //
-                        //                    bool isVisible = evalSegmentVisibility(computeRayOrigin(worldPosition, worldNormal), neighborReservoir.position);
-                        //                    if (!isVisible)
-                        //                    {
-                        //                        pNewTN = 0.f;
-                        //                    }
-                        //                        // Calculate Jacobian determinant and weight.
-                        //                        const float maxJacobian = enableJacobianClamping ? jacobianClampThreshold : largeFloat;
-                        //                        float jacobian = RA2 * cosPhiB <= 0.f ? 0.f : clamp(RB2 * cosPhiA / (RA2 * cosPhiB), 0.f, maxJacobian);
-                        //                        float wiTN = clamp(neighborReservoir.avgWeight * pNewTN * neighborReservoir.M * jacobian, 0.f, largeFloat);
-                        //
-                        //                        // Conditionally update spatial reservoir.
-                        //                        bool isUpdated = updateReservoir(wiTN, neighborReservoir, sg, wSumS, spatialReservoir);
-                        //                        if (isUpdated) reuseID = nReuse;
 
 
                         vec3 offsetB = neighborHitViewPos - neighborViewPos;
@@ -231,9 +155,6 @@ void main() {
                         offsetA = normalize(offsetA);
                         float cosA = dot(centerSampleData.normal, offsetA);
                         float cosB = dot(neighborData.normal, offsetB);
-
-                        //                        GBufferData hitGData = gbufferData_init();
-                        //                        gbufferData1_unpack(texelFetch(usam_gbufferData1, neighborHitTexelPos, 0), hitGData);
 
                         float cosPhiA = -dot(offsetA, neighborData.hitNormal);
                         float cosPhiB = -dot(offsetB, neighborData.hitNormal);
@@ -255,11 +176,6 @@ void main() {
                         jacobian = clamp(jacobian, 0.0, maxJacobian);
 
                         float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
-                        //                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) * jacobian, 0.0);
-
-                        //                        float neighborWi = max(neighborReservoir.avgWY * neighborPHat * float(neighborReservoir.m) , 0.0);
-
-
 
                         float neighborRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2u + i)).x);
 

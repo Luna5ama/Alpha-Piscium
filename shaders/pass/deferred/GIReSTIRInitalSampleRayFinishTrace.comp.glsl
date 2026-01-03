@@ -1,7 +1,7 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/techniques/SST2.glsl"
-#include "/techniques/restir/InitialSample.glsl"
+#include "/techniques/gi/InitialSample.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"

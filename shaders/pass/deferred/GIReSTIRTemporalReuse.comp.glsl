@@ -14,7 +14,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
-#include "/techniques/SSGI.glsl"
+#include "/techniques/gi/Reservoir.glsl"
 
 int selectWeighted(vec4 bilinearWeights, vec4 bilateralWeights, float rand) {
     vec4 combinedWeights = bilinearWeights * bilateralWeights;
@@ -120,8 +120,6 @@ void main() {
                                     ivec2 prevCurrHitTexelPos = ivec2(prev2CurrHitScreenPos.xy * uval_mainImageSize);
 
                                     if (bool(clipFlag)) {
-                                        vec3 prevHitRadiance = sampleIrradiance(texelPos, prevCurrHitTexelPos, -prevTemporalReservoir.Y.xyz);
-
                                         // Jacobian correction for reconnection shift
                                         {
                                             vec3 prevHitScreenPos = coords_viewToScreen(prevHitViewPos, global_prevCamProj);
@@ -191,7 +189,6 @@ void main() {
                                     vec3 currSampleDirView = coords_dir_worldToView(prevSampleDirWorld);
                                     prevTemporalReservoir.Y.xyz = currSampleDirView;
                                     float brdfMiss = saturate(dot(gData.normal, currSampleDirView)) / PI;
-                                    vec3 prevHitRadiance = sampleIrradianceMiss(prevSampleDirWorld);
                                 }
                             }
                             temporalReservoir = prevTemporalReservoir; }
@@ -201,6 +198,7 @@ void main() {
                 float prevPHat = length(prevSample.xyz * prevSample.w);
                 wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
 
+                // TODO: jacobian and reprojection check
                 #if SPATIAL_REUSE_FEEDBACK
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
@@ -255,37 +253,6 @@ void main() {
                 }
 
                 {
-                    //                    vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 12312745u)).zw);
-                    //                    vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
-                    //                    float samplePdf = sampleDirTangentAndPdf.w;
-                    //                    vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
-                    //                    vec4 ssgiData = uintBitsToFloat(imageLoad(uimg_csrgba32ui, csrgba32ui_temp4_texelToTexel(texelPos)));
-                    //                    float hitDistance = ssgiData.w;
-                    //                    vec3 initalSample = ssgiData.xyz;
-
-
-                    //                    InitialSampleData initialSample = initialSampleData_init();
-                    //                    {
-                    //                        uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
-                    //                        vec2 rand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 12312745u)).zw);
-                    //                        //                vec2 rand2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
-                    //                        //                vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
-                    //                        vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
-                    //                        vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
-                    //
-                    //                        //                ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(RANDOM_FRAME / 64u) * vec2(128, 128));
-                    //                        //                vec3 sampleDirTangent = rand_stbnUnitVec3Cosine(stbnPos, RANDOM_FRAME);
-                    //                        //                vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
-                    //
-                    //                        vec4 ssgiOut = vec4(0.0);
-                    //                        //                sharedData[gl_LocalInvocationIndex] = sampleDirView;
-                    //                        vec4 resultStuff = ssgiEvalF2(viewPos, sampleDirView);
-                    //
-                    //                        initialSample.hitRadiance = resultStuff.xyz;
-                    //                        initialSample.directionAndLength.xyz = sampleDirView;
-                    //                        initialSample.directionAndLength.w = resultStuff.w;
-                    //                    }
-
                     InitialSampleData initialSample = initialSampleData_unpack(transient_restir_initialSample_load(texelPos));
                     vec3 hitRadiance = initialSample.hitRadiance;
                     vec3 sampleDirView = initialSample.directionAndLength.xyz;
@@ -295,9 +262,7 @@ void main() {
                     float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
                     vec3 initalSample = brdf * hitRadiance;
 
-                    //                    float samplePdf = saturate(dot(gData.normal, sampleDirView)) / PI;
                     float samplePdf = brdf;
-                    //                    float samplePdf = 1.0 / (2.0 * PI);
 
                     float newPHat = length(initalSample);
                     float newWi = samplePdf <= 0.0 ? 0.0 : newPHat / samplePdf;

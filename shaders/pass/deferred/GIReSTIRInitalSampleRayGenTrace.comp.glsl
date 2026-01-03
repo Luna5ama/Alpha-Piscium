@@ -3,7 +3,7 @@
 
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/SST2.glsl"
-#include "/techniques/restir/InitialSample.glsl"
+#include "/techniques/gi/InitialSample.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
