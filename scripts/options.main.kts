@@ -649,7 +649,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "重用GI样本的附近像素数量。"
                     }
                 }
-                toggle("SETTING_GI_SPATIAL_REUSE_COUNT_DYNAMIC", true) {
+                toggle("SETTING_GI_SPATIAL_REUSE_COUNT_DYNAMIC", false) {
                     lang {
                         name = "Dynamic Spatial Reuse Sample Count"
                         comment = "Decreases spatial reuse sample count to reduce biases for accumulated result."
