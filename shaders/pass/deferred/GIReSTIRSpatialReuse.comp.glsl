@@ -47,7 +47,9 @@ void main() {
         SpatialSampleData sampleData = spatialSampleData_unpack(transient_restir_spatialInput_load(texelPos));
         history_restir_prevSample_store(texelPos, sampleData.sampleValue);
         history_restir_prevHitNormal_store(texelPos, vec4(sampleData.hitNormal * 0.5 + 0.5, 0.0));
+        #if SETTING_DEBUG_OUTPUT
         if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0){
+        #endif
             float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
             if (viewZ > -65536.0) {
                 vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
@@ -236,7 +238,9 @@ void main() {
                 ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
                 transient_ssgiOut_store(texelPos, ssgiOut);
             }
+        #if SETTING_DEBUG_OUTPUT
         }
+        #endif
     }
 }
 #endif

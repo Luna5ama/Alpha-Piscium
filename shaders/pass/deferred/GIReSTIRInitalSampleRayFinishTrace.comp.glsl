@@ -54,14 +54,13 @@ void main() {
         binLocalIndex = binLocalPos.y * binSize.x + binLocalPos.x;
     }
 
-    uint binReadBaseIndex = binIdx * 1024;
-    uint binIndicesReadBaseIndex = binIdx * 1024;
-    uint indexReadIndex = binIndicesReadBaseIndex + binLocalIndex;
-    uint rayIndex = ssbo_rayDataIndices[indexReadIndex];
+    uint binBaseIndex = binIdx * 1024;
+    uint dataIndex = binBaseIndex + binLocalIndex;
+    uint rayIndex = ssbo_rayDataIndices[dataIndex];
 
     if (rayIndex < 0xFFFFFFFFu){
         uint actualRayIndex = sst2_decodeBinLocalIndex(rayIndex);
-        uvec4 packedData = ssbo_rayData[binReadBaseIndex + actualRayIndex];
+        uvec4 packedData = ssbo_rayData[binBaseIndex + actualRayIndex];
         SSTRay sstRay = sstray_unpack(packedData);
         ivec2 texelPos = sstRay.pRayOriginTexelPos;
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
@@ -69,15 +68,11 @@ void main() {
         sst_trace(sstRay, 104);
 
         // If ray still didn't finish, force it to be a miss
-        // This ensures all deferred rays produce output (matching RayGenTrace immediate finish behavior)
         if (sstRay.currT >= 0.0) {
-            sstRay.currT = -1.0; // Sky miss
+            sstRay.currT = -1.0;
         }
 
         restir_InitialSampleData sampleData = restir_initialSample_handleRayResult(sstRay);
         transient_restir_initialSample_store(texelPos, restir_initialSampleData_pack(sampleData));
-        #if SETTING_DEBUG_OUTPUT
-//        imageStore(uimg_temp1, texelPos, vec4(sampleData.hitRadiance, 0.0));
-        #endif
     }
 }

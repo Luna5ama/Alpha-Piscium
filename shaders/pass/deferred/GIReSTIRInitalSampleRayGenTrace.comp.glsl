@@ -42,6 +42,8 @@ void main() {
     uint binIdx = binId.y * numBinX + binId.x;
     ivec2 binLocalPos = texelPos & 31; // 32x32 bin
     uint binLocalIndex = sst2_encodeBinLocalIndex(binLocalPos);
+    uint binWriteBaseIndex = binIdx * 1024;
+    uint dataIndex = binWriteBaseIndex + binLocalIndex;
 
     uint rayIndex = 0xFFFFFFFFu;
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
@@ -58,50 +60,34 @@ void main() {
             transient_viewNormal_store(texelPos, vec4(gData.normal * 0.5 + 0.5, 0.0));
             Material material = material_decode(gData);
 
-            #ifdef SETTING_DEBUG_GI_TEXT
-            if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0) {
-            #endif
-                uvec4 randKey = uvec4(texelPos, 1919810u, RANDOM_FRAME);
-//                uvec4 randKey = uvec4(texelPos, 1919810u, 1314u);
+            uvec4 randKey = uvec4(texelPos, 1919810u, RANDOM_FRAME);
 
-                vec2 rand2 = hash_uintToFloat(hash_44_q3(randKey).zw);
-                // vec2 rand2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
+            vec2 rand2 = hash_uintToFloat(hash_44_q3(randKey).zw);
+            // vec2 rand2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
 
-                // vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
-                vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
-                vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
+            // vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
+            vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
+            vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
 
-                // ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(RANDOM_FRAME / 64u) * vec2(128, 128));
-                // vec3 sampleDirTangent = rand_stbnUnitVec3Cosine(stbnPos, RANDOM_FRAME);
-                // vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
+            // ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(RANDOM_FRAME / 64u) * vec2(128, 128));
+            // vec3 sampleDirTangent = rand_stbnUnitVec3Cosine(stbnPos, RANDOM_FRAME);
+            // vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
 
-                SSTRay sstRay = sstray_setup(texelPos, viewPos, sampleDirView);
-                sst_trace(sstRay, 24);
+            SSTRay sstRay = sstray_setup(texelPos, viewPos, sampleDirView);
+            sst_trace(sstRay, 24);
 
-                if (sstRay.currT > 0.0) {
-                    // TODO: cleanup
-                    uvec4 packedData = sstray_pack(sstRay);
-                    uint binWriteBaseIndex = binIdx * 1024;
-                    uint writeIndex = binWriteBaseIndex + binLocalIndex;
-                    ssbo_rayData[writeIndex] = packedData;
-                    rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
-                } else {
-                    restir_InitialSampleData sampleData = restir_initialSample_handleRayResult(sstRay);
-                    transient_restir_initialSample_store(texelPos, restir_initialSampleData_pack(sampleData));
-                    #if SETTING_DEBUG_OUTPUT
-//                    imageStore(uimg_temp1, texelPos, vec4(sampleData.hitRadiance, 0.0));
-                    #endif
-                }
-            #ifdef SETTING_DEBUG_GI_TEXT
+            if (sstRay.currT > 0.0) {
+                uvec4 packedData = sstray_pack(sstRay);
+                ssbo_rayData[dataIndex] = packedData;
+                rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
+            } else {
+                restir_InitialSampleData sampleData = restir_initialSample_handleRayResult(sstRay);
+                transient_restir_initialSample_store(texelPos, restir_initialSampleData_pack(sampleData));
             }
-            #endif
-
         } else {
             transient_geomViewNormal_store(texelPos, vec4(0.0));
             transient_viewNormal_store(texelPos, vec4(0.0));
         }
     }
-    uint binIndicesWriteBaseIndex = binIdx * 1024;
-    uint indexWriteIndex = binIndicesWriteBaseIndex + binLocalIndex;
-    ssbo_rayDataIndices[indexWriteIndex] = rayIndex;
+    ssbo_rayDataIndices[dataIndex] = rayIndex;
 }

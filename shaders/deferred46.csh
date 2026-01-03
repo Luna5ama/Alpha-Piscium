@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/deferred/GIReSTIRInitalSampleRaySort.comp.glsl"
+#include "/techniques/gi/RaySort.comp.glsl"
