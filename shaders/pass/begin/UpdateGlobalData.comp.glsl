@@ -187,16 +187,17 @@ void main() {
         vec3 cameraDelta = uval_cameraDelta;
         float cameraSpeed = length(cameraDelta);
         float prevCameraSpeed = length(global_prevCameraDelta);
-        float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
+        float cameraSpeedDiff = cameraSpeed - prevCameraSpeed;
+        float cameraSpeedDiffAbc = abs(cameraSpeed - prevCameraSpeed);
         vec3 prevFrontVec = coords_dir_viewToWorldPrev(vec3(0.0, 0.0, -1.0));
         vec3 currFrontVec = coords_dir_viewToWorld(vec3(0.0, 0.0, -1.0));
         float frontVecDiff = dot(prevFrontVec, currFrontVec);
         vec4 lastMotionFactor = global_motionFactor;
         float angleVecDiff = abs(lastMotionFactor.z - frontVecDiff);
 
-        vec4 taaResetFactor = vec4(1.0, 1.0, 1.0, 1.0);
+        vec4 taaResetFactor = vec4(0.5, 1.0, 1.0, 1.0);
         const float SPEED_EPS = 1e-16;
-        uint startOrEndMove = uint(cameraSpeedDiff > SPEED_EPS);
+        uint startOrEndMove = uint(cameraSpeedDiffAbc > SPEED_EPS);
         startOrEndMove &= uint(cameraSpeed < SPEED_EPS) | uint(prevCameraSpeed < SPEED_EPS);
 
         const float ANGLE_EPS = 1e-16;
@@ -205,7 +206,7 @@ void main() {
         startOrEndRotate &= uint(frontVecDiff >= REV_ANGLE_EPS) | uint(lastMotionFactor.z >= REV_ANGLE_EPS);
 
         float stationary = 1.0;
-        stationary *= float(cameraSpeedDiff < 0.00001);
+        stationary *= float(cameraSpeedDiffAbc < 0.00001);
         stationary *= float(cameraSpeed < 0.0001);
         stationary *= float(frontVecDiff > 0.99999);
 
@@ -218,13 +219,12 @@ void main() {
         taaResetFactor.yz *= 1.0 - startOrEndMoveRotateF;
         taaResetFactor.z *= float(frameCounter > SETTING_SCREENSHOT_MODE_SKIP_INITIAL);
         #endif
-        taaResetFactor.y *= 1.0 - startOrEndRotateF;
-        taaResetFactor.y *= 1.0 - startOrEndMoveF;
-        taaResetFactor.z *= 1.0 - startOrEndRotateF * 0.25;
-        taaResetFactor.z *= 1.0 - startOrEndMoveF * 0.5;
+        taaResetFactor.y *= 1.0 - startOrEndMoveF * 0.5;
+        taaResetFactor.z *= 1.0 - startOrEndMoveF * 0.25;
         const float DECAY = 0.1;
-        taaResetFactor.y *= DECAY * rcp(DECAY + sqrt(cameraSpeed));
-        taaResetFactor.x += log2(sqrt(cameraSpeed + abs(cameraSpeedDiff) * 2.0) + 1.0);
+        float log2Speed = log2(cameraSpeed + 1.0);
+        taaResetFactor.y *= DECAY * rcp(DECAY + log2Speed + pow3(max(-16.0 * cameraSpeedDiff, 0.0)));
+        taaResetFactor.x += log2(log2Speed + abs(cameraSpeedDiff) * 2.0 + 1.0) * 2.0;
         taaResetFactor.z *= newResetFactor;
 
         vec4 finalTaaResetFactor = mix(global_taaResetFactor, taaResetFactor, 0.25);

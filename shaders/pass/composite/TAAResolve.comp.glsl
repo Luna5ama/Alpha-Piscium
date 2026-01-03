@@ -255,7 +255,7 @@ void main() {
     float MAX_ACCUM_FRAMES = 1024.0;
     #else
     float MIN_ACCUM_FRAMES = 1.0;
-    float MAX_ACCUM_FRAMES = 100.0;
+    float MAX_ACCUM_FRAMES = 64.0;
     if (gData.isHand) {
         MAX_ACCUM_FRAMES *= 0.5;
     }
