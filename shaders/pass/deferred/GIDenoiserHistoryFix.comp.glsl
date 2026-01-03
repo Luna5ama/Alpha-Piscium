@@ -7,6 +7,8 @@
 #include "/util/Rand.glsl"
 #include "/util/Sampling.glsl"
 #include "/util/ThreadGroupTiling.glsl"
+#include "/util/Rand.glsl"
+#include "/util/Dither.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -264,14 +266,26 @@ void main() {
                 #endif
 
                 transient_gi_filteredHitDistances_store(texelPos, vec4(filteredHitDitances, 0.0, 0.0));
+
+                float ditherNoise = rand_stbnVec1(texelPos + ivec2(6, 9), frameCounter + 2);
+                vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);
+                packedData1 = dither_fp16(packedData1, ditherNoise);
+                vec4 packedData2 = clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX);
+                packedData2 = dither_fp16(packedData2, ditherNoise);
+                vec4 packedData3 = clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX);
+                packedData3 = dither_fp16(packedData3, ditherNoise);
+                vec4 packedData4 = clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX);
+                packedData4 = dither_fp16(packedData4, ditherNoise);
                 vec4 packedData5 = gi_historyData_pack5(historyData);
+                packedData5 = dither_u8(packedData5, ditherNoise);
+
+                transient_gi1Reprojected_store(texelPos, packedData1);
+                transient_gi2Reprojected_store(texelPos, packedData2);
+                transient_gi3Reprojected_store(texelPos, packedData3);
+                transient_gi4Reprojected_store(texelPos, packedData4);
+                transient_gi5Reprojected_store(texelPos, packedData5);
                 transient_gi_denoiseVariance1_store(texelPos, vec4(denoiserBlurVariance, packedData5.xy));
 
-                transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
-                transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
-                transient_gi3Reprojected_store(texelPos, gi_historyData_pack3(historyData));
-                transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(historyData));
-                transient_gi5Reprojected_store(texelPos, packedData5);
                 vec4 diffInput = vec4(historyData.diffuseColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffOutputSim));
                 vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));
 

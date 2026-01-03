@@ -1,7 +1,8 @@
 #include "Common.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Sampling.glsl"
-
+#include "/util/Rand.glsl"
+#include "/util/Dither.glsl"
 
 vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
     return vec4(
@@ -231,11 +232,24 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
     historyData.glazingAngleFactor = glazingAngleFactorHistory;
 
-    transient_gi1Reprojected_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
-    transient_gi2Reprojected_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));
-    transient_gi3Reprojected_store(texelPos, clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX));
-    transient_gi4Reprojected_store(texelPos, clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX));
-    transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
+
+    float ditherNoise = rand_stbnVec1(texelPos + ivec2(6, 9), frameCounter);
+    vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);
+    packedData1 = dither_fp16(packedData1, ditherNoise);
+    vec4 packedData2 = clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX);
+    packedData2 = dither_fp16(packedData2, ditherNoise);
+    vec4 packedData3 = clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX);
+    packedData3 = dither_fp16(packedData3, ditherNoise);
+    vec4 packedData4 = clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX);
+    packedData4 = dither_fp16(packedData4, ditherNoise);
+    vec4 packedData5 = gi_historyData_pack5(historyData);
+    packedData5 = dither_u8(packedData5, ditherNoise);
+
+    transient_gi1Reprojected_store(texelPos, packedData1);
+    transient_gi2Reprojected_store(texelPos, packedData2);
+    transient_gi3Reprojected_store(texelPos, packedData3);
+    transient_gi4Reprojected_store(texelPos, packedData4);
+    transient_gi5Reprojected_store(texelPos, packedData5);
 
     transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));
 }

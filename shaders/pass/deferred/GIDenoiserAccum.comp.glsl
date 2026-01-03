@@ -103,19 +103,26 @@ void main() {
                 realHistoryLength = clamp(realHistoryLength, 1.0, TOTAL_HISTORY_LENGTH);
                 historyData.historyLength = saturate(historyLength / TOTAL_HISTORY_LENGTH);
                 historyData.realHistoryLength = saturate(realHistoryLength / TOTAL_HISTORY_LENGTH);
-
-                float ditherNoise = rand_stbnVec1(texelPos, frameCounter);
-                historyData.diffuseColor = dither_fp16(historyData.diffuseColor, ditherNoise);
-                historyData.specularColor = dither_fp16(historyData.specularColor, ditherNoise);
-                historyData.diffuseFastColor = dither_fp16(historyData.diffuseFastColor, ditherNoise);
-                historyData.specularFastColor = dither_fp16(historyData.specularFastColor, ditherNoise);
             }
 
-            transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(historyData));
-            transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(historyData));
-            transient_gi3Reprojected_store(texelPos, gi_historyData_pack3(historyData));
-            transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(historyData));
-            transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(historyData));
+
+            float ditherNoise = rand_stbnVec1(texelPos + ivec2(6, 9), frameCounter + 1);
+            vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);
+            packedData1 = dither_fp16(packedData1, ditherNoise);
+            vec4 packedData2 = clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX);
+            packedData2 = dither_fp16(packedData2, ditherNoise);
+            vec4 packedData3 = clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX);
+            packedData3 = dither_fp16(packedData3, ditherNoise);
+            vec4 packedData4 = clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX);
+            packedData4 = dither_fp16(packedData4, ditherNoise);
+            vec4 packedData5 = gi_historyData_pack5(historyData);
+            packedData5 = dither_u8(packedData5, ditherNoise);
+
+            transient_gi1Reprojected_store(texelPos, packedData1);
+            transient_gi2Reprojected_store(texelPos, packedData2);
+            transient_gi3Reprojected_store(texelPos, packedData3);
+            transient_gi4Reprojected_store(texelPos, packedData4);
+            transient_gi5Reprojected_store(texelPos, packedData5);
         }
     }
 }
