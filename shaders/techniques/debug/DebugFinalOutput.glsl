@@ -25,19 +25,6 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
 
     printString((_S, _p, _a, _t, _i, _a, _l, _space));
-    printString((_r, _e, _u, _s, _e, _space));
-    printString((_v, _i, _s, _i, _b, _i, _l, _i, _t, _y, _space));
-    printString((_t, _r, _a, _c, _e, _colon, _space));
-    #if SPATIAL_REUSE_VISIBILITY_TRACE == 0
-    printString((_n, _o, _n, _e));
-    #elif SPATIAL_REUSE_VISIBILITY_TRACE == 1
-    printString((_c, _o, _m, _b, _i, _n, _e, _d));
-    #else
-    printString((_f, _u, _l, _l));
-    #endif
-    printLine();
-
-    printString((_S, _p, _a, _t, _i, _a, _l, _space));
     printString((_r, _e, _u, _s, _e, _colon, _space));
     printBool(SPATIAL_REUSE == 1);
     printLine();

@@ -629,7 +629,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                toggle("SPATIAL_REUSE", true) {
+                toggle("SETTING_GI_SPATIAL_REUSE", true) {
                     lang {
                         name = "Spatial Reuse"
                         comment = "Reuses GI samples from nearby pixels to improve performance."

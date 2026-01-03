@@ -177,6 +177,12 @@ float lengthSq(vec2 x) { return dot(x, x); }
 float lengthSq(vec3 x) { return dot(x, x); }
 float lengthSq(vec4 x) { return dot(x, x); }
 
+vec4 normalizeAndLength(vec3 v) {
+    float lenSq = lengthSq(v);
+    float lenInvSq = inversesqrt(lenSq);
+    return vec4(v * lenInvSq, lenSq * lenInvSq);
+}
+
 // - r0: ray origin
 // - rd: normalized ray direction
 // - s0: sphere center

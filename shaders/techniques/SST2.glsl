@@ -100,34 +100,12 @@ void sstray_recoverOrigin(inout SSTRay ray, float viewZ) {
     ray.pRayStart = vec3(screenPosXY, coords_viewZToReversedZ(viewZ, nearPlane));
 }
 
-SSTRay sstray_setup(ivec2 texelPos, vec3 originView, vec3 rayDirView){
-    vec4 originClip = global_camProj * vec4(originView, 1.0);
-    vec3 originNDC = originClip.xyz / originClip.w;
-    vec3 originScreen = originNDC;
-    originScreen.xy = originScreen.xy * 0.5 + 0.5;// Not applying this to Z because we are using Reverse Z
-
-    float maxViewT = 1.0;
-    maxViewT = rayDirView.z > 0.0 ? min((-nearPlane - originView.z) / rayDirView.z, maxViewT) : maxViewT;
-
-    vec4 rayDirTempClip = global_camProj * vec4(originView + rayDirView * maxViewT, 1.0);
-    vec3 rayDirTempNDC = rayDirTempClip.xyz / rayDirTempClip.w;
-    vec3 rayDirTempScreen = rayDirTempNDC;
-    rayDirTempScreen.xy = rayDirTempScreen.xy * 0.5 + 0.5;
-
-    vec3 rayDirScreen = normalize(rayDirTempScreen - originScreen);
-    vec3 rcpRayDirScreen = rcp(rayDirScreen);
-
-    float maxT = 10000.0;
-    maxT = rayDirScreen.z != 0.0f ? min((float(rayDirScreen.z > 0.0f) - originScreen.z) * rcpRayDirScreen.z, maxT) : maxT;
-    maxT = rayDirScreen.x != 0.0f ? min((float(rayDirScreen.x > 0.0f) - originScreen.x) * rcpRayDirScreen.x, maxT) : maxT;
-    maxT = rayDirScreen.y != 0.0f ? min((float(rayDirScreen.y > 0.0f) - originScreen.y) * rcpRayDirScreen.y, maxT) : maxT;
-
+SSTRay sstray_setup(ivec2 texelPos, vec3 rayOrigin, vec3 rayDir, float rayLen){
     SSTRay ray = sstray_init();
     ray.pRayOriginTexelPos = texelPos;
-//    originScreen.xy = coords_texelToUV(ray.pRayOriginTexelPos, uval_mainImageSizeRcp);
-    ray.pRayStart = originScreen;
-    ray.pRayDir = rayDirScreen;
-    ray.pRayVecLen = maxT;
+    ray.pRayStart = rayOrigin;
+    ray.pRayDir = rayDir;
+    ray.pRayVecLen = rayLen;
     // Initial cell boundary crossing
     {
         vec3 pRayStart = ray.pRayStart;
@@ -154,6 +132,31 @@ SSTRay sstray_setup(ivec2 texelPos, vec3 originView, vec3 rayDirView){
         ray.currT = max(min(tVals.x, tVals.y), 0.0);
     }
     return ray;
+}
+
+SSTRay sstray_setup(ivec2 texelPos, vec3 originView, vec3 rayDirView){
+    vec4 originClip = global_camProj * vec4(originView, 1.0);
+    vec3 originNDC = originClip.xyz / originClip.w;
+    vec3 originScreen = originNDC;
+    originScreen.xy = originScreen.xy * 0.5 + 0.5;// Not applying this to Z because we are using Reverse Z
+
+    float maxViewT = 1.0;
+    maxViewT = rayDirView.z > 0.0 ? min((-nearPlane - originView.z) / rayDirView.z, maxViewT) : maxViewT;
+
+    vec4 rayDirTempClip = global_camProj * vec4(originView + rayDirView * maxViewT, 1.0);
+    vec3 rayDirTempNDC = rayDirTempClip.xyz / rayDirTempClip.w;
+    vec3 rayDirTempScreen = rayDirTempNDC;
+    rayDirTempScreen.xy = rayDirTempScreen.xy * 0.5 + 0.5;
+
+    vec3 rayDirScreen = normalize(rayDirTempScreen - originScreen);
+    vec3 rcpRayDirScreen = rcp(rayDirScreen);
+
+    float maxT = 10000.0;
+    maxT = rayDirScreen.z != 0.0f ? min((float(rayDirScreen.z > 0.0f) - originScreen.z) * rcpRayDirScreen.z, maxT) : maxT;
+    maxT = rayDirScreen.x != 0.0f ? min((float(rayDirScreen.x > 0.0f) - originScreen.x) * rcpRayDirScreen.x, maxT) : maxT;
+    maxT = rayDirScreen.y != 0.0f ? min((float(rayDirScreen.y > 0.0f) - originScreen.y) * rcpRayDirScreen.y, maxT) : maxT;
+
+    return sstray_setup(texelPos, originScreen, rayDirScreen, maxT);
 }
 
 struct SSTResult {

@@ -19,7 +19,6 @@
 #include "/util/Math.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
-#include "/techniques/SST.glsl"
 #include "/techniques/gi/Common.glsl"
 
 struct SpatialSampleData {

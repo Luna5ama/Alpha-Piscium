@@ -51,7 +51,6 @@ int selectWeighted(vec4 bilinearWeights, vec4 bilateralWeights, float rand) {
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-    sst_init();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);

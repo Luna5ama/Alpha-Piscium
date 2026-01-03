@@ -1,3 +1,3 @@
 #version 460 compatibility
 
-#include "/pass/deferred/GIDenoiserGIMip.comp.glsl"
+#include "/pass/deferred/GIReSTIRSpatialReuseTrace.comp.glsl"
