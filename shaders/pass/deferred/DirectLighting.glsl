@@ -57,7 +57,7 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
     LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
 
     mainOut += 0.00001 * material.albedo;
-    mainOut += emissiveV * RCP_PI;
+    mainOut += emissiveV;
     mainOut += combinedLighting.diffuse;
     mainOut += combinedLighting.specular;
     mainOut += combinedLighting.sss;
@@ -109,7 +109,7 @@ void main() {
                 mainOut = vec4(material.albedo * 0.01, 2.0);
                 giOut1 = vec4(0.0);
             } else {
-                giOut1.rgb *= material.albedo;
+                giOut1.rgb *= min(material.albedo, 0.95);
                 giOut1.rgb *= GI_MB;
                 doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, giOut1, giOut2);
                 float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(material.albedo));

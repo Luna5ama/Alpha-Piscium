@@ -45,7 +45,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "控制岩浆的色温（开尔文）。默认值：1300 K（基于真实岩浆）。数值越高，光线越白/越蓝。"
                         }
                     }
-                    slider("SETTING_EMISSIVE_STRENGTH", 4.0, 0.0..8.0 step 0.25) {
+                    slider("SETTING_EMISSIVE_STRENGTH", 2.0, 0.0..8.0 step 0.25) {
                         lang {
                             name = "Emissive Brightness"
                             comment = "Global brightness multiplier for all light-emitting materials and blocks."
@@ -98,11 +98,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "控制自发光材质的颜色强度。数值越高，颜色越鲜艳饱和。"
                         }
                     }
-                    slider("SETTING_EMISSIVE_ALBEDO_LUM_CURVE", 0.5, 0.0..4.0 step 0.05) {
+                    slider("SETTING_EMISSIVE_ALBEDO_LUM_CURVE", 0.0, -4.0..4.0 step 0.1) {
                         lang {
                             name = "Color Texture-Based Emission Strength"
                             comment =
-                                "Controls how much the base texture brightness affects emission. Higher values make brighter textures glow more intensely."
+                                "Controls how much the base texture brightness affects emission. Higher values make brighter textures glow more intensely. This is recommand for packs that have \"binary\" emissive values."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "基于颜色纹理的发光强度"
@@ -740,7 +740,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FIREFLY_SUPPRESSION", 2, 0..5) {
+                slider("SETTING_DENOISER_FIREFLY_SUPPRESSION", 3, 0..10) {
                     lang {
                         name = "Firefly Suppression Strength"
                         comment =
