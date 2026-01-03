@@ -21,8 +21,6 @@
 #include "/techniques/gi/InitialSample.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
-#include "/util/Rand.glsl"
-#include "/util/Hash.glsl"
 #include "/util/Morton.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
@@ -38,7 +36,7 @@ layout(std430, binding = 5) buffer RayDataIndices {
 };
 
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
-layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
+layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 
 void main() {
@@ -74,21 +72,9 @@ void main() {
             transient_geomViewNormal_store(texelPos, vec4(gData.geomNormal * 0.5 + 0.5, 0.0));
             transient_viewNormal_store(texelPos, vec4(gData.normal * 0.5 + 0.5, 0.0));
             Material material = material_decode(gData);
+            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, material.tbn);
 
-            uvec4 randKey = uvec4(texelPos, 1919810u, RANDOM_FRAME);
-
-            vec2 rand2 = hash_uintToFloat(hash_44_q3(randKey).zw);
-            // vec2 rand2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
-
-            // vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
-            vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
-            vec3 sampleDirView = normalize(material.tbn * sampleDirTangentAndPdf.xyz);
-
-            // ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(RANDOM_FRAME / 64u) * vec2(128, 128));
-            // vec3 sampleDirTangent = rand_stbnUnitVec3Cosine(stbnPos, RANDOM_FRAME);
-            // vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
-
-            SSTRay sstRay = sstray_setup(texelPos, viewPos, sampleDirView);
+            SSTRay sstRay = sstray_setup(texelPos, viewPos, rayDirView);
             sst_trace(sstRay, 24);
 
             if (sstRay.currT > 0.0) {
@@ -96,8 +82,8 @@ void main() {
                 ssbo_rayData[dataIndex] = packedData;
                 rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
             } else {
-                restir_InitialSampleData sampleData = restir_initialSample_handleRayResult(sstRay);
-                transient_restir_initialSample_store(texelPos, restir_initialSampleData_pack(sampleData));
+                float hitDistance = restir_initialSample_handleRayResult(sstRay);
+                transient_gi_initialSampleHitDistance_store(texelPos, vec4(hitDistance));
             }
         } else {
             transient_geomViewNormal_store(texelPos, vec4(0.0));

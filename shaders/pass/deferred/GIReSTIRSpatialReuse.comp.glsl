@@ -48,11 +48,6 @@ void main() {
         SpatialSampleData sampleData = spatialSampleData_unpack(transient_restir_spatialInput_load(texelPos));
         history_restir_prevSample_store(texelPos, sampleData.sampleValue);
         history_restir_prevHitNormal_store(texelPos, vec4(sampleData.hitNormal * 0.5 + 0.5, 0.0));
-
-        if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0) {
-            uvec4 reprojectedData = transient_restir_reservoirReprojected_load(texelPos);
-            history_restir_reservoirTemporal_store(texelPos, reprojectedData);
-        }
     }
 }
 #else
@@ -91,9 +86,13 @@ void main() {
 
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
-                uvec4 reprojectedData = transient_restir_reservoirReprojected_load(texelPos);
+                uvec4 reprojectedData;
+                if (bool(frameCounter & 1)) {
+                    reprojectedData = history_restir_reservoirTemporal1_load(texelPos);
+                } else {
+                    reprojectedData = history_restir_reservoirTemporal2_load(texelPos);
+                }
                 ReSTIRReservoir spatialReservoir = restir_reservoir_unpack(reprojectedData);
-                history_restir_reservoirTemporal_store(texelPos, reprojectedData);
 
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
@@ -153,7 +152,13 @@ void main() {
                         continue;
                     }
                     float neighborViewZ = texelFetch(usam_gbufferViewZ, sampleTexelPos, 0).x;
-                    ReSTIRReservoir neighborReservoir = restir_reservoir_unpack(transient_restir_reservoirReprojected_load(sampleTexelPos));
+                    uvec4 neighborReservoirData;
+                    if (bool(frameCounter & 1)) {
+                        neighborReservoirData = history_restir_reservoirTemporal1_load(sampleTexelPos);
+                    } else {
+                        neighborReservoirData = history_restir_reservoirTemporal2_load(sampleTexelPos);
+                    }
+                    ReSTIRReservoir neighborReservoir = restir_reservoir_unpack(neighborReservoirData);
                     vec2 neighborScreenPos = sampleTexelPosF * uval_mainImageSizeRcp;
                     vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_camProjInverse);
 

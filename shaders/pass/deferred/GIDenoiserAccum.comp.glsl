@@ -89,9 +89,7 @@ void main() {
                 historyData.diffuseFastColor = mix(historyData.diffuseFastColor, newDiffuse.rgb, alpha.z);
                 historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, alpha.w);// TODO: specular input
 
-                InitialSampleData initialSample = initialSampleData_unpack(transient_restir_initialSample_fetch(texelPos));
-                float newHitDistance = initialSample.directionAndLength.w;
-
+                float newHitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
                 float regularFastAlpha = rcpAccumHistoryLength.y;
 
                 if (newHitDistance >= 0.0) {

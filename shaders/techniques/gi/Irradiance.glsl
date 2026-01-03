@@ -1,6 +1,7 @@
 #ifndef INCLUDE_techniques_restir_Irradiance_glsl
 #define INCLUDE_techniques_restir_Irradiance_glsl a
 
+#include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/util/GBufferData.glsl"
 
 vec3 restir_irradiance_sampleIrradianceMiss(vec3 worldDirection) {

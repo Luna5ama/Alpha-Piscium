@@ -15,6 +15,8 @@
 */
 #extension GL_KHR_shader_subgroup_ballot : enable
 
+#include "/techniques/gi/Reservoir.glsl"
+#include "/techniques/gi/InitialSample.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
@@ -28,7 +30,6 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
-#include "/techniques/gi/Reservoir.glsl"
 
 int selectWeighted(vec4 bilinearWeights, vec4 bilateralWeights, float rand) {
     vec4 combinedWeights = bilinearWeights * bilateralWeights;
@@ -64,7 +65,6 @@ void main() {
                 GBufferData gData = gbufferData_init();
                 gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
                 gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
-                Material material = material_decode(gData);
 
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
@@ -99,7 +99,14 @@ void main() {
                             vec2 selectedTexelPos = gatherTexelPos + sampling_indexToGatherOffset(selectedIndex) * 0.5;
                             ivec2 prevTexelPos = ivec2(selectedTexelPos);
 
-                            ReSTIRReservoir prevTemporalReservoir = restir_reservoir_unpack(history_restir_reservoirTemporal_load(prevTexelPos));
+                            uvec4 prevTemporalReservoirData;
+                            if (bool(frameCounter & 1)) {
+                                prevTemporalReservoirData = history_restir_reservoirTemporal2_load(prevTexelPos);
+                            } else {
+                                prevTemporalReservoirData = history_restir_reservoirTemporal1_load(prevTexelPos);
+                            }
+
+                            ReSTIRReservoir prevTemporalReservoir = restir_reservoir_unpack(prevTemporalReservoirData);
                             prevTemporalReservoir.m = uint(ceil(float(prevTemporalReservoir.m) * global_historyResetFactor * reprojInfo.historyResetFactor));
                             if (restir_isReservoirValid(prevTemporalReservoir)) {
                                 vec3 prevHitNormalData = history_restir_prevHitNormal_fetch(prevTexelPos).xyz;
@@ -266,11 +273,11 @@ void main() {
                 }
 
                 {
-                    InitialSampleData initialSample = initialSampleData_unpack(transient_restir_initialSample_load(texelPos));
+                    Material material = material_decode(gData);
+                    float hitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
+                    restir_InitialSampleData initialSample = restir_initalSample_restoreData(texelPos, viewZ, material.tbn, hitDistance);
                     vec3 hitRadiance = initialSample.hitRadiance;
                     vec3 sampleDirView = initialSample.directionAndLength.xyz;
-                    float hitDistance = initialSample.directionAndLength.w;
-
 
                     float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
                     vec3 initalSample = brdf * hitRadiance;
@@ -317,6 +324,11 @@ void main() {
         }
         ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
         transient_ssgiOut_store(texelPos, ssgiOut);
-        transient_restir_reservoirReprojected_store(texelPos, restir_reservoir_pack(temporalReservoir));
+        uvec4 packedReservoir = restir_reservoir_pack(temporalReservoir);
+        if (bool(frameCounter & 1)) {
+            history_restir_reservoirTemporal1_store(texelPos, packedReservoir);
+        } else {
+            history_restir_reservoirTemporal2_store(texelPos, packedReservoir);
+        }
     }
 }
