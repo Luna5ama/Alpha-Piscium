@@ -285,7 +285,7 @@ void main() {
                 transient_gi3Reprojected_store(texelPos, packedData3);
                 transient_gi4Reprojected_store(texelPos, packedData4);
                 transient_gi5Reprojected_store(texelPos, packedData5);
-                transient_gi_denoiseVariance1_store(texelPos, vec4(denoiserBlurVariance, packedData5.xy));
+                transient_gi_denoiseVariance1_store(texelPos, vec4(denoiserBlurVariance, 0.0, 0.0));
 
                 vec4 diffInput = vec4(historyData.diffuseColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffOutputSim));
                 vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));

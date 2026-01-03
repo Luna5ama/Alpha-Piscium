@@ -58,11 +58,11 @@ vec4 _gi_readSpec(ivec2 texelPos) {
     #endif
 }
 
-vec4 _gi_readVariance(ivec2 texelPos) {
+vec2 _gi_readVariance(ivec2 texelPos) {
     #if GI_DENOISE_PASS == 1
-    return transient_gi_denoiseVariance1_fetch(texelPos);
+    return transient_gi_denoiseVariance1_fetch(texelPos).xy;
     #elif GI_DENOISE_PASS == 2
-    return transient_gi_denoiseVariance2_fetch(texelPos);
+    return transient_gi_denoiseVariance2_fetch(texelPos).xy;
     #endif
 }
 
@@ -75,7 +75,7 @@ void loadSharedVarianceData(uvec2 groupOriginTexelPos, uint index) {
         // y: specular variance
         // z: history length
         // w: real history length
-        shared_varianceData[sharedXY.y][sharedXY.x] = _gi_readVariance(srcXY).xy;
+        shared_varianceData[sharedXY.y][sharedXY.x] = _gi_readVariance(srcXY);
     }
 }
 
@@ -181,8 +181,6 @@ void main() {
             float moment1 = centerLuma;
             float moment2 = pow2(centerLuma);
 
-            vec2 newHistoryLength = _gi_readVariance(texelPos).zw;
-
             float sigma = 0.69;
             sigma += kernelRadius * 2.0 * (1.0 - saturate(hitDistFactor));
             sigma *= 1.0 - filteredInputVariance.x;
@@ -203,7 +201,6 @@ void main() {
 
                 vec4 diffSample = _gi_readDiff(sampleTexelPos);
                 GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
-                vec2 sampleHLengths = _gi_readVariance(sampleTexelPos).zw;
 
                 float edgeWeight = 1.0;
                 edgeWeight *= planeDistanceWeight(
@@ -216,17 +213,15 @@ void main() {
                 edgeWeight *= normalWeight(centerGeomData, geomData, baseNormalWeight);
 
 
-                float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight);
-
                 float sampleLuma = diffSample.a;
                 moment1 += sampleLuma * edgeWeight;
                 moment2 += pow2(sampleLuma) * edgeWeight;
-                newHistoryLength += sampleHLengths * edgeWeight;
+                edgeWeightSum += edgeWeight;
 
+                float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight);
 
                 diffResult += diffSample * totalWeight;
                 weightSum += totalWeight;
-                edgeWeightSum += edgeWeight;
             }
             #endif
 
@@ -237,15 +232,12 @@ void main() {
             float rcpEdgeWeightSum = 1.0 / (edgeWeightSum + 1.0);
             moment1 *= rcpEdgeWeightSum;
             moment2 *= rcpEdgeWeightSum;
-            newHistoryLength *= rcpEdgeWeightSum;
 
             float variance = max(0.0, moment2 - pow2(moment1));
 
             float ditherNoise = rand_stbnVec1(texelPos, frameCounter + GI_DENOISE_PASS);
-            diffResult = dither_fp16(diffResult, ditherNoise);
-            specResult = dither_fp16(specResult, ditherNoise);
 
-            vec4 newVariance = vec4(filteredInputVariance + vec2(variance), newHistoryLength);
+            vec4 newVariance = vec4(filteredInputVariance + vec2(variance), 0.0, 0.0);
             #if GI_DENOISE_PASS == 1
             transient_gi_denoiseVariance2_store(texelPos, newVariance);
             #elif GI_DENOISE_PASS == 2
@@ -261,11 +253,11 @@ void main() {
                 imageStore(uimg_temp3, texelPos, sigma.xxxx);
             }
             #endif
-            transient_gi_blurDiff1_store(texelPos, diffResult);
-            transient_gi_blurSpec1_store(texelPos, specResult);
+            transient_gi_blurDiff1_store(texelPos, dither_fp16(diffResult, ditherNoise));
+            transient_gi_blurSpec1_store(texelPos, dither_fp16(specResult, ditherNoise));
             #elif GI_DENOISE_PASS == 2
-            transient_gi_blurDiff2_store(texelPos, diffResult);
-            transient_gi_blurSpec2_store(texelPos, specResult);
+            transient_gi_blurDiff2_store(texelPos, dither_fp16(diffResult, ditherNoise));
+            transient_gi_blurSpec2_store(texelPos, dither_fp16(specResult, ditherNoise));
 
             gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
             gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
@@ -275,13 +267,21 @@ void main() {
             historyData.diffuseColor = diffResult.rgb;
             historyData.specularColor = specResult.rgb;
 
+            vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);
+            packedData1 = dither_fp16(packedData1, ditherNoise);
+            vec4 packedData2 = clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX);
+            packedData2 = dither_fp16(packedData2, ditherNoise);
+            vec4 packedData3 = clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX);
+            packedData3 = dither_fp16(packedData3, ditherNoise);
+            vec4 packedData4 = clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX);
+            packedData4 = dither_fp16(packedData4, ditherNoise);
             vec4 packedData5 = gi_historyData_pack5(historyData);
-            packedData5.xy = newHistoryLength;
+            packedData5 = dither_u8(packedData5, ditherNoise);
 
-            history_gi1_store(texelPos, clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX));
-            history_gi2_store(texelPos, clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX));
-            history_gi3_store(texelPos, clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX));
-            history_gi4_store(texelPos, clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX));
+            history_gi1_store(texelPos, packedData1);
+            history_gi2_store(texelPos, packedData2);
+            history_gi3_store(texelPos, packedData3);
+            history_gi4_store(texelPos, packedData4);
             history_gi5_store(texelPos, packedData5);
             #endif
         }
