@@ -43,6 +43,9 @@ void main() {
             history_gi_stabilizationDiff_store(texelPos, giDiff);
             history_gi_stabilizationSpec_store(texelPos, giSpec);
             outputColor.rgb += giDiff.rgb * albedo;
+        } else {
+            history_gi_stabilizationDiff_store(texelPos, vec4(0.0));
+            history_gi_stabilizationSpec_store(texelPos, vec4(0.0));
         }
 
 
