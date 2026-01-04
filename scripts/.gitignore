@@ -1,3 +1,5 @@
 tokens.properties
 shadesmitth/
 config.properties
+*.aot
+*.aotconf
