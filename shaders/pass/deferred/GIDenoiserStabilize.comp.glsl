@@ -90,7 +90,7 @@ void main() {
         barrier();
 
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-            viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
+            viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
             if (viewZ > -65536.0) {
                 vec2 texelCenter = vec2(texelPos) + vec2(0.5);
                 vec2 screenPos = texelCenter * uval_mainImageSizeRcp;
