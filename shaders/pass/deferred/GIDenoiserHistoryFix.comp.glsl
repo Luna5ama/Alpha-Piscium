@@ -94,7 +94,7 @@ void main() {
                 gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
-                float historyLengthInt = historyData.historyLength * TOTAL_HISTORY_LENGTH;
+                float historyLengthInt = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH;
                 // 0.0 = Full fix, 1.0 = No fix
                 float historyFixMix = 1.0 - pow4(linearStep(4.0, 1.0, historyLengthInt));
 
@@ -242,8 +242,8 @@ void main() {
 
                     vec2 resetFactor2 = smoothstep(0.5, 0.0, diffLuma2);
                     float resetFactor = resetFactor2.x * resetFactor2.y;
-                    resetFactor = pow(resetFactor, historyData.historyLength);
-                    historyData.historyLength *= pow2(resetFactor);
+                    resetFactor = pow(resetFactor, historyData.historyLength)  *0.9 + 0.1;
+                    historyData.historyLength *= resetFactor;
                     historyData.realHistoryLength *= resetFactor;
                 }
                 #else
