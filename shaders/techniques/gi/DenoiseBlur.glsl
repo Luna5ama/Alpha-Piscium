@@ -175,11 +175,13 @@ void main() {
 
             vec2 centerTexelPos = vec2(texelPos) + vec2(0.5);
             float weightSum = 1.0;
-            float edgeWeightSum = 0.0;
 
+            #if GI_DENOISE_PASS == 1
+            float edgeWeightSum = 0.0;
             float centerLuma = diffResult.w;
             float moment1 = centerLuma;
             float moment2 = pow2(centerLuma);
+            #endif
 
             float sigma = 0.69;
             sigma += kernelRadius * 2.0 * (1.0 - saturate(hitDistFactor));
@@ -213,10 +215,12 @@ void main() {
                 edgeWeight *= normalWeight(centerGeomData, geomData, baseNormalWeight);
 
 
+                #if GI_DENOISE_PASS == 1
                 float sampleLuma = diffSample.a;
                 moment1 += sampleLuma * edgeWeight;
                 moment2 += pow2(sampleLuma) * edgeWeight;
                 edgeWeightSum += edgeWeight;
+                #endif
 
                 float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight);
 
@@ -229,23 +233,17 @@ void main() {
             diffResult *= rcpWeightSum;
             specResult *= rcpWeightSum;
 
+            float ditherNoise = rand_stbnVec1(texelPos, frameCounter + GI_DENOISE_PASS);
+
+            #if GI_DENOISE_PASS == 1
             float rcpEdgeWeightSum = 1.0 / (edgeWeightSum + 1.0);
             moment1 *= rcpEdgeWeightSum;
             moment2 *= rcpEdgeWeightSum;
-
             float variance = max(0.0, moment2 - pow2(moment1));
-
-            float ditherNoise = rand_stbnVec1(texelPos, frameCounter + GI_DENOISE_PASS);
-
             vec4 newVariance = vec4(filteredInputVariance + vec2(variance), 0.0, 0.0);
-            #if GI_DENOISE_PASS == 1
             transient_gi_denoiseVariance2_store(texelPos, newVariance);
-            #elif GI_DENOISE_PASS == 2
-            // Not used after this pass so skip
-            // transient_gi_denoiseVariance1_store(texelPos, newVariance);
-            #endif
 
-            #if GI_DENOISE_PASS == 1
+
             #if SETTING_DEBUG_OUTPUT
             if (RANDOM_FRAME < MAX_FRAMES){
                 // imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
