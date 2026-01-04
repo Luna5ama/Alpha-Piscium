@@ -150,18 +150,6 @@ void main() {
     }
     float newFrameAccum = lastFrameAccum + 1.0;
 
-    vec2 pixelPosDiff = (screenPos - prevScreenPos) * uval_mainImageSize;
-    vec3 cameraDelta = uval_cameraDelta;
-    float cameraSpeed = length(cameraDelta);
-    float prevCameraSpeed = length(global_prevCameraDelta);
-    float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
-    float pixelSpeed = length(pixelPosDiff);
-
-    float speedSum = 0.0;
-    speedSum += sqrt(cameraSpeedDiff) * 16.0;
-    speedSum += sqrt(cameraSpeed) * 0.1;
-    speedSum += sqrt(pixelSpeed) * 0.2;
-
     barrier();
 
     // Sample currColor using Lanczos2 from shared memory

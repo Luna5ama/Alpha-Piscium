@@ -109,8 +109,7 @@ void main() {
                 vec4 historyDiff = vec4(0.0);
                 vec4 historySpec = vec4(0.0);
 
-                // Not using this because it fades in dark lines
-//                if (bool(clipFlag)) {
+                if (bool(clipFlag)) {
                     vec2 prevTexelPos = prevScreenPos * uval_mainImageSize;
                     CatmullRomBicubic5TapData tapData = sampling_catmullRomBicubic5Tap_init(prevTexelPos, 0.5, uval_mainImageSizeRcp);
                     historyDiff = sampling_catmullBicubic5Tap_sum(
@@ -129,23 +128,11 @@ void main() {
                         history_gi_stabilizationSpec_sample(tapData.uv5AndWeight.xy),
                         tapData
                     );
-//                }
+                }
 
                 // Read history length
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
-
-                vec2 pixelPosDiff = (screenPos - prevScreenPos) * uval_mainImageSize;
-                vec3 cameraDelta = uval_cameraDelta;
-                float cameraSpeed = length(cameraDelta);
-                float prevCameraSpeed = length(global_prevCameraDelta);
-                float cameraSpeedDiff = abs(cameraSpeed - prevCameraSpeed);
-                float pixelSpeed = length(pixelPosDiff);
-                float speedSum = 0.0;
-                speedSum += sqrt(cameraSpeedDiff) * 4.0;
-                speedSum += sqrt(cameraSpeed) * 0.02;
-                speedSum += sqrt(pixelSpeed) * 0.05;
-                float speedFactor = exp2(-speedSum);
 
                 // Read current frame data from shared memory
                 uvec2 localXY = uvec2(mortonPos) + 1u;
@@ -167,6 +154,8 @@ void main() {
                     }
                 }
 
+                vec4 taaResetFactor = global_taaResetFactor;
+
                 // Calculate variance AABB for diffuse
                 vec3 diffMean = diffAABB.moment1 / 9.0;
                 vec3 diffMean2 = diffAABB.moment2 / 9.0;
@@ -174,7 +163,7 @@ void main() {
                 vec3 diffStddev = sqrt(abs(diffVariance));
 
                 // 0.0 = more clamp, 1.0 = less clamp
-                float clampWeight = sqrt(historyData.historyLength) * float(clipFlag) * pow2(speedFactor);
+                float clampWeight = sqrt(global_taaResetFactor.y);
                 float diffHistoryClampRange = mix(1.0, 4.0, clampWeight);
                 vec3 diffAABBMin = diffMean - diffStddev * diffHistoryClampRange;
                 vec3 diffAABBMax = diffMean + diffStddev * diffHistoryClampRange;
@@ -220,9 +209,11 @@ void main() {
 
                 // Fixed weight is better because it fades in egdes with darker color to avoid firefly
                 // nvm too much blur
-//                float mixWeight = 1.0 / 32.0;
-                float realHistoryLength = historyData.historyLength * TOTAL_HISTORY_LENGTH;
-                float mixWeight = 1.0 / clamp(max(4.0, realHistoryLength) * speedFactor * pow2(global_historyResetFactor), 1.0, 64.0);
+                float historyLen = historyData.historyLength * TOTAL_HISTORY_LENGTH;
+                historyLen = max(historyLen, float(SETTING_DENOISER_STABILIZATION_MIN_ACCUM));
+                historyLen *= taaResetFactor.z * pow2(global_historyResetFactor);
+                historyLen = clamp(historyLen, 1.0, float(SETTING_DENOISER_STABILIZATION_MAX_ACCUM));
+                float mixWeight = 1.0 / historyLen;
 
                 // Blend current and clamped history
                 vec3 finalDiff = mix(clampedHistoryDiff, currDiff.rgb, mixWeight);
