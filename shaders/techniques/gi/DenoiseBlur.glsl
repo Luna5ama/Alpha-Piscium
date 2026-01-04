@@ -154,26 +154,12 @@ void main() {
             kernelRadius *= hitDistFactor;
             kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
-//            float hitDistColorWeightHistoryDecay = historyData.realHistoryLength * 0.5 + 0.001;
-//            float hitDistColorWeightFactor = saturate(hitDistColorWeightHistoryDecay / (hitDistColorWeightHistoryDecay + localMinHitDistance.x));
-//            #if GI_DENOISE_PASS == 1
-//            float baseColorWeight = -mix(16.0, 512.0, hitDistColorWeightFactor);
-//            #else GI_DENOISE_PASS == 2
-//            float baseColorWeight = -mix(4.0, 128.0, hitDistColorWeightFactor);
-//            #endif
-//
-//            baseColorWeight *= pow2(invAccumFactor);
             float baseNormalWeight = invAccumFactor * 4.0;
             float basePlaneDistWeight = invAccumFactor * -512.0;
 
             vec4 diffResult = centerDiff;
             vec4 specResult = centerSpec;
 
-            float angle = blurJitter.x * PI_2;
-            vec2 dir = vec2(cos(angle), sin(angle));
-            float rcpSamples = 1.0 / float(GI_DENOISE_SAMPLES);
-
-            vec2 centerTexelPos = vec2(texelPos) + vec2(0.5);
             float weightSum = 1.0;
 
             #if GI_DENOISE_PASS == 1
@@ -187,18 +173,29 @@ void main() {
             sigma += kernelRadius * 2.0 * (1.0 - saturate(hitDistFactor));
             sigma *= 1.0 - filteredInputVariance.x;
 
+            // Stretch kernel based on view angle and normal
+            vec2 stretchFactor = vec2(1.0);
+            vec3 V = normalize(-centerGeomData.viewPos);
+            float NoV = abs(dot(centerGeomData.geomNormal, V));
+            stretchFactor = mix(1.0 - abs(centerGeomData.geomNormal.xy), stretchFactor, NoV);
+
+            vec2 kernelRadius2 = kernelRadius * stretchFactor;
+
+            float angle = blurJitter.x * PI_2;
+            vec2 dir = vec2(cos(angle), sin(angle));
+            float rcpSamples = 1.0 / float(GI_DENOISE_SAMPLES);
+
             #ifdef SETTING_DENOISER_SPATIAL
             for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
                 dir *= MAT2_GOLDEN_ANGLE;
                 float baseRadius = sqrt((float(i) + blurJitter.y) * rcpSamples);
-                //        float baseRadius = ((float(i) + blurJitter.y) * rcpSamples);
-                vec2 offset = dir * (baseRadius * kernelRadius);
-                vec2 sampleTexelPosF = centerTexelPos + offset;
-                vec2 sampleUV = sampleTexelPosF * uval_mainImageSizeRcp;
-                float kernelWeight = gaussianKernel(baseRadius, sigma);
+                vec2 offsetTexel = dir * (baseRadius * kernelRadius2);
+                vec2 offsetUV = offsetTexel * uval_mainImageSizeRcp;
+                vec2 sampleUV = centerScreenPos + offsetUV;
                 if (saturate(sampleUV) != sampleUV) {
                     sampleUV = _gi_mirrorUV(sampleUV);
                 }
+                float kernelWeight = gaussianKernel(baseRadius, sigma);
                 ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
 
                 vec4 diffSample = _gi_readDiff(sampleTexelPos);
@@ -248,7 +245,7 @@ void main() {
             if (RANDOM_FRAME < MAX_FRAMES){
                 // imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
                 float stddev = sqrt(variance);
-                imageStore(uimg_temp3, texelPos, sigma.xxxx);
+//                imageStore(uimg_temp3, texelPos, sigma.xxxx);
             }
             #endif
             transient_gi_blurDiff1_store(texelPos, dither_fp16(diffResult, ditherNoise));
@@ -275,6 +272,8 @@ void main() {
             packedData4 = dither_fp16(packedData4, ditherNoise);
             vec4 packedData5 = gi_historyData_pack5(historyData);
             packedData5 = dither_u8(packedData5, ditherNoise);
+
+            imageStore(uimg_temp3, texelPos, vec4(stretchFactor, 0.0, 0.0));
 
             history_gi1_store(texelPos, packedData1);
             history_gi2_store(texelPos, packedData2);
