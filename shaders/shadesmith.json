@@ -57,7 +57,10 @@
         "transient_gi_initialSampleHitDistance": "R32F",
         "transient_bloom": "RGBA16F",
         "history_taa": "RGBA16F",
-        "transient_taaOutput": "RGBA16F"
+        "transient_taaOutput": "RGBA16F",
+        "transient_translucentZLayer1": "RG32UI",
+        "transient_translucentZLayer2": "RG32UI",
+        "transient_translucentZLayer3": "RG32UI"
     },
     "fixed": {
         "persistent_multiSctrLUT": {

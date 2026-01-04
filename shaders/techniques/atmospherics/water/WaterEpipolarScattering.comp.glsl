@@ -334,9 +334,7 @@ void main() {
             ivec2 texelPosI = ivec2(texelPos);
             float noiseV = rand_stbnVec1(ivec2(gl_GlobalInvocationID.x, sliceSampleIndex), frameCounter);
 
-            ivec2 readScreenTexelPos = texelPosI;
-            readScreenTexelPos.y += int(uval_mainImageSizeIY);
-            vec2 layerViewZ = -abs(texelFetch(usam_csrg32f, readScreenTexelPos, 0).rg);
+            vec2 layerViewZ = -abs(uintBitsToFloat(transient_translucentZLayer2_fetch(texelPosI).xy));
             ScatteringResult result = scatteringResult_init();
 
             if (layerViewZ.x > -FLT_MAX) {

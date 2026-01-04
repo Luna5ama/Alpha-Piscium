@@ -11,7 +11,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rg32f) uniform writeonly image2D uimg_csrg32f;
+layout(rg32ui) uniform writeonly uimage2D uimg_rg32ui;
 
 shared vec4 shared_dilateData[16];
 
@@ -145,9 +145,11 @@ void main() {
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         result = abs(result) * (vec2(bvec2(any(dilateCond.xy), any(dilateCond.zw))) * 2.0 - 1.0).xxyy;
-        imageStore(uimg_csrg32f, csrg32f_tile1_texelToTexel(texelPos), result.xyxy);
-        imageStore(uimg_csrg32f, csrg32f_tile2_texelToTexel(texelPos), result.zwzw);
-        imageStore(uimg_csrg32f, csrg32f_tile3_texelToTexel(texelPos), layer3.xyxy);
+        uvec4 resultU = floatBitsToUint(result);
+        uvec2 layer3U = floatBitsToUint(layer3);
+        transient_translucentZLayer1_store(texelPos, resultU.xyxy);
+        transient_translucentZLayer2_store(texelPos, resultU.zwzw);
+        transient_translucentZLayer3_store(texelPos, layer3U.xyxy);
     }
 
     barrier();

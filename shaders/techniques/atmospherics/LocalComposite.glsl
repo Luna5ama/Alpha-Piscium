@@ -13,9 +13,14 @@
 #include "air/UnwarpEpipolar.glsl"
 
 ScatteringResult atmospherics_localComposite(int layerIndex, ivec2 texelPos) {
-    ivec2 viewZTexelPos = texelPos;
-    viewZTexelPos.y += layerIndex * uval_mainImageSizeIY;
-    vec2 layerViewZ = texelFetch(usam_csrg32f, viewZTexelPos, 0).xy;
+    vec2 layerViewZ;
+    if (layerIndex == 0) {
+        layerViewZ = uintBitsToFloat(transient_translucentZLayer1_fetch(texelPos).xy);
+    } else if (layerIndex == 1) {
+        layerViewZ = uintBitsToFloat(transient_translucentZLayer2_fetch(texelPos).xy);
+    } else {
+        layerViewZ = uintBitsToFloat(transient_translucentZLayer3_fetch(texelPos).xy);
+    }
     vec2 screenPos = (vec2(texelPos)) * uval_mainImageSizeRcp;
 
     ScatteringResult compositeResult = scatteringResult_init();

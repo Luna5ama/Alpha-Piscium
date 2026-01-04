@@ -181,10 +181,20 @@ out ScatteringResult result
         uvec2 viewZTexelPosYs = bitfieldExtract(viewZData, 16, 16);
         ivec2 viewZTexelPos1 = ivec2(uvec2(viewZTexelPosXs.x, viewZTexelPosYs.x));
         ivec2 viewZTexelPos2 = ivec2(uvec2(viewZTexelPosXs.y, viewZTexelPosYs.y));
-        viewZTexelPos1.y += layerIndex * uval_mainImageSizeIY;
-        viewZTexelPos2.y += layerIndex * uval_mainImageSizeIY;
-        vec2 viewZ1 = -abs(texelFetch(usam_csrg32f, viewZTexelPos1, 0).rg);
-        vec2 viewZ2 = -abs(texelFetch(usam_csrg32f, viewZTexelPos2, 0).rg);
+        vec2 viewZ1;
+        vec2 viewZ2;
+        if (layerIndex == 0) {
+            viewZ1 = uintBitsToFloat(transient_translucentZLayer1_fetch(viewZTexelPos1).xy);
+            viewZ1 = uintBitsToFloat(transient_translucentZLayer1_fetch(viewZTexelPos2).xy);
+        } else if (layerIndex == 1) {
+            viewZ1 = uintBitsToFloat(transient_translucentZLayer2_fetch(viewZTexelPos1).xy);
+            viewZ2 = uintBitsToFloat(transient_translucentZLayer2_fetch(viewZTexelPos2).xy);
+        } else {
+            viewZ1 = uintBitsToFloat(transient_translucentZLayer3_fetch(viewZTexelPos1).xy);
+            viewZ2 = uintBitsToFloat(transient_translucentZLayer3_fetch(viewZTexelPos2).xy);
+        }
+        viewZ1 = -abs(viewZ1);
+        viewZ2 = -abs(viewZ2);
 
         vec2 startZs = viewZData1 == 0xFFFFFFFFu ? vec2(65536.0) : vec2(viewZ1.x, viewZ2.x);
         vec2 endZs = viewZData2 == 0xFFFFFFFFu ? vec2(65536.0) : vec2(viewZ1.y, viewZ2.y);

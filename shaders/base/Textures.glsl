@@ -78,9 +78,9 @@ uniform sampler2D usam_shadow_waterNormal;
 
 // --------------------------------------------------- Custom Images ---------------------------------------------------
 uniform sampler2D usam_csr32f;
-uniform sampler2D usam_csrg32f;
 
 uniform usampler2D usam_rgba32ui;
+uniform usampler2D usam_rg32ui;
 uniform sampler2D usam_rgba16f;
 uniform sampler2D usam_rgb10_a2;
 uniform sampler2D usam_rgba8;

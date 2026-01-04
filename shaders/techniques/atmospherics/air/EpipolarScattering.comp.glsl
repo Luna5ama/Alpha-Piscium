@@ -63,9 +63,15 @@ void main() {
 
             for (int layerIndex = 0; layerIndex < 2; layerIndex++) {
                 int actualIndex = layerIndex * 2;
-                ivec2 readScreenTexelPos = texelPosI;
-                readScreenTexelPos.y += actualIndex * int(uval_mainImageSizeIY);
-                vec2 layerViewZ = -abs(texelFetch(usam_csrg32f, readScreenTexelPos, 0).rg);
+                vec2 layerViewZ;
+                if (actualIndex == 0) {
+                    layerViewZ = uintBitsToFloat(transient_translucentZLayer1_fetch(texelPosI).xy);
+                } else if (actualIndex == 1) {
+                    layerViewZ = uintBitsToFloat(transient_translucentZLayer2_fetch(texelPosI).xy);
+                } else {
+                    layerViewZ = uintBitsToFloat(transient_translucentZLayer3_fetch(texelPosI).xy);
+                }
+                layerViewZ = -abs(layerViewZ);
                 ScatteringResult result = scatteringResult_init();
 
                 if (layerViewZ.x > -FLT_MAX) {
