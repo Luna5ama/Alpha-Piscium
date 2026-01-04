@@ -106,15 +106,3 @@ uvec4 restir_reservoir_pack(ReSTIRReservoir reservoir) {
     packedData.w = floatBitsToUint(reservoir.Y.w);
     return packedData;
 }
-
-vec3 sampleIrradiance(ivec2 texelPos, ivec2 hitTexelPos, vec3 outgoingDirection) {
-    GBufferData hitGData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
-
-    float hitCosTheta = saturate(dot(hitGData.geomNormal, outgoingDirection));
-    vec3 hitRadiance = transient_giRadianceInput1_fetch(hitTexelPos).rgb;
-    vec3 hitEmissive = transient_giRadianceInput2_fetch(hitTexelPos).rgb;
-    vec3 selfHitEmissive = transient_giRadianceInput2_fetch(texelPos).rgb;
-
-    return hitRadiance * float(hitCosTheta > 0.0) + hitEmissive * float(all(lessThan(selfHitEmissive, vec3(0.0001))));
-}

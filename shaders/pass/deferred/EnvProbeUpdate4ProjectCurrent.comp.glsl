@@ -1,4 +1,5 @@
 #include "/techniques/EnvProbe.glsl"
+#include "/util/Colors.glsl"
 #include "/util/Morton.glsl"
 
 layout(local_size_x = 128) in;
@@ -39,10 +40,11 @@ bool envProbe_update(ivec2 sliceTexelPos, ivec2 sliceID, inout EnvProbeData outp
     float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
     vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
+    uvec4 hitRadianceData = transient_giRadianceInputs_fetch(texelPos);
 
     vec4 radiance = vec4(0.0);
-    radiance.rgb += transient_giRadianceInput1_fetch(texelPos).rgb;
-    radiance.rgb += transient_giRadianceInput2_fetch(texelPos).rgb;
+    radiance.rgb += colors_FP16LuvToWorkingColor(hitRadianceData.x);
+    radiance.rgb += colors_FP16LuvToWorkingColor(hitRadianceData.y);
 
     outputData.radiance = viewZ == -65536.0 ? vec3(0.0) : radiance.rgb;
     outputData.normal = mat3(gbufferModelViewInverse) * gData.normal;

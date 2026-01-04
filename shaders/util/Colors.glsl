@@ -10,6 +10,8 @@
             https://www.itu.int/rec/R-REC-BT.709
         [KAR13] Karis, Brian. "Tone mapping". Graphic Rants. 2013.
             https://graphicrants.blogspot.com/2013/12/tone-mapping.html
+        [LAR98] Wikipedia. "The LogLuv Encoding for Full Gamut, High Dynamic Range Images". 1998.
+            http://www.anyhere.com/gward/papers/jgtpap1.pdf
         [LOT16] Lottes, Timothy. "Optimized Reversible Tonemapper for Resolve". 2016.
             https://gpuopen.com/learn/optimized-reversible-tonemapper-for-resolve/
         [ROS18] Rosseaux, Benjamin. "Matrix-based RGB from/to YCoCg color space conversion". 2018.
@@ -21,6 +23,8 @@
             https://en.wikipedia.org/wiki/Rec._709
         [WIK25c] Wikipedia. "sRGB". 2025.
             https://en.wikipedia.org/wiki/SRGB
+        [WIK26a] Wikipedia. "CIELUV". 2026.
+            https://en.wikipedia.org/wiki/CIELUV
 
 */
 #include "/Base.glsl"
@@ -180,6 +184,43 @@ vec3 colors_LogLuv32ToSRGB(in vec4 vLogLuv) {
     Xp_Y_XYZp.x = vLogLuv.x * Xp_Y_XYZp.z;
     vec3 vRGB = _COLORS_LOGLUV32_INVERSE_M * Xp_Y_XYZp;
     return max(vRGB, 0);
+}
+
+// [LAR98], [WIK26a]
+// vec2(4.0, 9.0) * 410.0 / 255.0, 410 is the magic number to scale uv to fit in 0-255 range, see [LAR98]
+const vec2 _COLORS_UV_MUL = vec2(6.4313725490, 14.4705882353);
+const vec3 _COLORS_UV_DIV = vec3(1.0, 15.0, 3.0);
+const float _COLORS_UV_INV_MUL = 0.6219512195; // 1.0 / 410.0 * 255.0
+const vec2 _COLORS_UV_Z_MUL = vec2(-3.0, -20.0);
+
+uint colors_CIEXYZToFP16Luv(vec3 xyz) {
+    float uvDiv = safeRcp(dot(xyz, _COLORS_UV_DIV));
+    vec2 uv = xyz.xy * uvDiv * _COLORS_UV_MUL;
+    uv = clamp(uv, vec2(0.0), vec2(255.0));
+    uint result = packHalf2x16(vec2(0.0, xyz.y)) & 0xFFFF0000u;
+    result = bitfieldInsert(result, packUnorm4x8(vec4(uv, 0.0, 0.0)), 0, 16);
+    return result;
+}
+
+vec3 colors_FP16LuvToCIEXYZ(uint luv) {
+    vec2 uv = unpackUnorm4x8(luv).xy * _COLORS_UV_INV_MUL;
+    float Y = unpackHalf2x16(luv).y;
+    float rcp4VTimeY = safeRcp(uv.y * 4.0) * Y;
+    vec3 xyz;
+    xyz.x = 9.0 * uv.x * rcp4VTimeY;
+    xyz.y = Y;
+    xyz.z = (12.0 + dot(_COLORS_UV_Z_MUL, uv)) * rcp4VTimeY;
+    return xyz;
+}
+
+uint colors_workingColorToFP16Luv(vec3 color) {
+    vec3 xyz = colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_COLORSPACES_CIE_XYZ, color);
+    return colors_CIEXYZToFP16Luv(xyz);
+}
+
+vec3 colors_FP16LuvToWorkingColor(uint luv) {
+    vec3 xyz = colors_FP16LuvToCIEXYZ(luv);
+    return colors2_colorspaces_convert(COLORS2_COLORSPACES_CIE_XYZ, COLORS2_WORKING_COLORSPACE, xyz);
 }
 
 

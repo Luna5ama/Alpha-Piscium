@@ -217,6 +217,7 @@ void main() {
 
                 float prevPHat = length(prevSample.xyz * prevSample.w);
                 wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
+                Material material = material_decode(gData);
 
                 // TODO: jacobian and reprojection check
                 #if SPATIAL_REUSE_FEEDBACK
@@ -237,7 +238,7 @@ void main() {
                     vec3 prevSpatialHitViewPos = viewPos + prevSpatialSampleDirView * prevSpatialHitDistance;
                     vec3 prevSpatialHitScreenPos = coords_viewToScreen(prevSpatialHitViewPos, global_camProj);
                     ivec2 prevSpatialHitTexelPos = ivec2(prevSpatialHitScreenPos.xy * uval_mainImageSize);
-                    vec3 prevSpatialHitRadiance = sampleIrradiance(texelPos, prevSpatialHitTexelPos, -prevSpatialSampleDirView);
+                    vec3 prevSpatialHitRadiance = restir_irradiance_sampleIrradiance(texelPos, material, prevSpatialHitTexelPos, -prevSpatialSampleDirView);
                     float brdf = saturate(dot(gData.normal, prevSpatialSampleDirView)) / PI;
                     float prevSpatialPHat = length(prevSpatialHitRadiance * brdf);
 
@@ -273,7 +274,6 @@ void main() {
                 }
 
                 {
-                    Material material = material_decode(gData);
                     float hitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
                     restir_InitialSampleData initialSample = restir_initalSample_restoreData(texelPos, viewZ, material, hitDistance);
                     vec3 hitRadiance = initialSample.hitRadiance;

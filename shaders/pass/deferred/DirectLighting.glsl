@@ -18,6 +18,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform writeonly image2D uimg_main;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba16f) uniform restrict image2D uimg_temp3;
+layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
 
 ivec2 texelPos;
 
@@ -124,8 +125,10 @@ void main() {
             nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
 
             imageStore(uimg_main, texelPos, mainOut);
-            transient_giRadianceInput1_store(texelPos, giOut1);
-            transient_giRadianceInput2_store(texelPos, giOut2);
+            uvec4 giRadianceInput = uvec4(0u);
+            giRadianceInput.x = colors_workingColorToFP16Luv(giOut1.rgb);
+            giRadianceInput.y = colors_workingColorToFP16Luv(giOut2.rgb);
+            transient_giRadianceInputs_store(texelPos, giRadianceInput);
             return;
         }
 
@@ -134,8 +137,7 @@ void main() {
 
             uvec4 packedZNOut = uvec4(0u);
             packedZNOut.y = floatBitsToUint(-65536.0);
-            transient_giRadianceInput1_store(texelPos, vec4(0.0));
-            transient_giRadianceInput2_store(texelPos, vec4(0.0));
+            transient_giRadianceInputs_store(texelPos, uvec4(0u));
         }
     }
 }
