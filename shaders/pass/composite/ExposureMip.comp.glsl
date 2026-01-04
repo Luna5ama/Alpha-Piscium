@@ -17,14 +17,8 @@ shared ivec2 shared_mipTile6;
 vec4 spd_loadInput(ivec2 texelPos, uint slice) {
     vec4 result = vec4(0.0);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        const float BASE_VIEWZ_WEIGHT = exp2(SETTING_EXPOSURE_DISTANCE_WEIGHTING);
-        float emissive = transient_solidAlbedo_fetch(texelPos).a;
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-
-        float weight = 1.0;
-        weight *= pow(exp2(SETTING_EXPOSURE_EMISSIVE_WEIGHTING), emissive);
-        weight *= sqrt(BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + log2(1.0 + abs(viewZ))));
-
+        vec4 weightData = transient_exposureWeights_fetch(texelPos);
+        float weight = weightData.x * weightData.y;
         vec3 color = transient_taaOutput_fetch(texelPos).rgb;
         result = vec4(color * weight, weight);
     }

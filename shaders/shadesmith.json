@@ -59,7 +59,8 @@
         "transient_taaOutput": "RGBA16F",
         "transient_translucentZLayer1": "RG32UI",
         "transient_translucentZLayer2": "RG32UI",
-        "transient_translucentZLayer3": "RG32UI"
+        "transient_translucentZLayer3": "RG32UI",
+        "transient_exposureWeights": "RGBA8"
     },
     "fixed": {
         "persistent_multiSctrLUT": {

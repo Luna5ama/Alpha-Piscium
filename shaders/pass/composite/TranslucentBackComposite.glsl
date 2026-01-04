@@ -25,10 +25,16 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
         float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        vec4 exposureWeights = vec4(1.0);
+
+        const float BASE_VIEWZ_WEIGHT = exp2(SETTING_EXPOSURE_DISTANCE_WEIGHTING);
+        exposureWeights.x *= sqrt(BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + log2(1.0 + abs(solidViewZ))));
 
         if (solidViewZ > -65536.0) {
-            vec3 albedo = transient_solidAlbedo_fetch(texelPos).rgb;
-            albedo = colors2_material_toWorkSpace(albedo);
+            vec4 albedoData = transient_solidAlbedo_fetch(texelPos);
+            float emissive = albedoData.a;
+            exposureWeights.y *= pow(exp2(SETTING_EXPOSURE_EMISSIVE_WEIGHTING), emissive);
+            vec3 albedo = colors2_material_toWorkSpace(albedoData.rgb);
             vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
             if (any(greaterThan(glintColorData.xyz, vec3(0.0)))) {
                 vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb);
@@ -48,6 +54,7 @@ void main() {
             history_gi_stabilizationSpec_store(texelPos, vec4(0.0));
         }
 
+        transient_exposureWeights_store(texelPos, exposureWeights);
 
         ScatteringResult sctrResult = atmospherics_localComposite(0, texelPos);
         outputColor.rgb = scatteringResult_apply(sctrResult, outputColor.rgb);

@@ -2,6 +2,7 @@
 
 #include "/techniques/atmospherics/air/Constants.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/HiZCheck.glsl"
 #include "/techniques/gi/Common.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/util/Celestial.glsl"
@@ -9,7 +10,7 @@
 #include "/util/BitPacking.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/Morton.glsl"
-#include "/techniques/HiZCheck.glsl"
+#include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -74,7 +75,9 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
 }
 
 void main() {
-    uvec2 workGroupOrigin = gl_WorkGroupID.xy << 4;
+    uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
+    uvec2 workGroupOrigin = swizzledWGPos << 4u;
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
@@ -84,7 +87,7 @@ void main() {
         ivec2 texelPos2x2 = texelPos >> 1;
         vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
 
-        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
+        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
         if (viewZ > -65536.0) {
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), lighting_gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), lighting_gData);

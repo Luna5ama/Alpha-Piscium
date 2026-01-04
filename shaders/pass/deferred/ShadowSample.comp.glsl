@@ -6,13 +6,13 @@
 #define GLOBAL_DATA_MODIFIER buffer
 
 #include "/techniques/atmospherics/water/Constants.glsl"
+#include "/techniques/HiZCheck.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Material.glsl"
-#include "/util/Morton.glsl"
 #include "/util/Hash.glsl"
 #include "/util/Rand.glsl"
 #include "/util/GBufferData.glsl"
-#include "/techniques/HiZCheck.glsl"
+#include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -182,14 +182,16 @@ vec4 compShadow(ivec2 texelPos, float viewZ) {
 }
 
 void main() {
-    uvec2 workGroupOrigin = gl_WorkGroupID.xy << 4;
+    uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
+    uvec2 workGroupOrigin = swizzledWGPos << 4u;
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
+        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
 
         if (viewZ > -65536.0) {
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
