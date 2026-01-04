@@ -38,6 +38,7 @@ layout(std430, binding = 5) buffer RayDataIndices {
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
+layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 
 void main() {
     sst_init(SETTING_GI_SST_THICKNESS);
@@ -70,8 +71,14 @@ void main() {
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             Material material = material_decode(gData);
-            transient_geomViewNormal_store(texelPos, vec4(gData.geomNormal * 0.5 + 0.5, 0.0));
-            transient_viewNormal_store(texelPos, vec4(gData.normal * 0.5 + 0.5, 0.0));
+            vec4 albedoAndEmissive = vec4(gData.albedo, gData.pbrSpecular.a);
+            vec4 geomNormalData = vec4(gData.geomNormal * 0.5 + 0.5, 0.0);
+            vec4 viewNormalData = vec4(gData.normal * 0.5 + 0.5, 0.0);
+            transient_solidAlbedo_store(texelPos, albedoAndEmissive);
+            transient_geomViewNormal_store(texelPos, geomNormalData);
+            transient_viewNormal_store(texelPos, viewNormalData);
+            history_geomViewNormal_store(texelPos, geomNormalData);
+            history_viewNormal_store(texelPos, viewNormalData);
             vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, material.tbn);
 
             SSTRay sstRay = sstray_setup(texelPos, viewPos, rayDirView);
@@ -88,6 +95,9 @@ void main() {
         } else {
             transient_geomViewNormal_store(texelPos, vec4(0.0));
             transient_viewNormal_store(texelPos, vec4(0.0));
+            history_geomViewNormal_store(texelPos, vec4(0.0));
+            history_viewNormal_store(texelPos, vec4(0.0));
+            transient_solidAlbedo_store(texelPos, vec4(0.0));
         }
     }
     ssbo_rayDataIndices[dataIndex] = rayIndex;
