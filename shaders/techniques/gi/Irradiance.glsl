@@ -2,7 +2,7 @@
 #define INCLUDE_techniques_restir_Irradiance_glsl a
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
-#include "/util/GBufferData.glsl"
+#include "/util/Material.glsl"
 
 vec3 restir_irradiance_sampleIrradianceMiss(vec3 worldDirection) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
@@ -10,16 +10,17 @@ vec3 restir_irradiance_sampleIrradianceMiss(vec3 worldDirection) {
     return atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
 }
 
-vec3 restir_irradiance_sampleIrradiance(ivec2 texelPos, ivec2 hitTexelPos, vec3 outgoingDirection) {
-    GBufferData hitGData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
+vec3 restir_irradiance_sampleIrradiance(ivec2 texelPos, Material selfMaterial, ivec2 hitTexelPos, vec3 outgoingDirection) {
+    vec4 hitGeomNormalData = transient_geomViewNormal_fetch(hitTexelPos);
+    vec4 hitRadianceData = transient_giRadianceInput1_fetch(hitTexelPos);
+    vec4 hitEmissiveData = transient_giRadianceInput2_fetch(hitTexelPos);
 
-    float hitCosTheta = saturate(dot(hitGData.geomNormal, outgoingDirection));
-    vec3 hitRadiance = transient_giRadianceInput1_fetch(hitTexelPos).rgb;
-    vec3 hitEmissive = transient_giRadianceInput2_fetch(hitTexelPos).rgb;
-    vec3 selfHitEmissive = transient_giRadianceInput2_fetch(texelPos).rgb;
+    vec3 hitGeomNormal = normalize(hitGeomNormalData.xyz * 2.0 - 1.0);
+    vec3 hitRadiance = hitRadianceData.rgb;
+    vec3 hitEmissive = hitEmissiveData.rgb;
+    float hitCosTheta = saturate(dot(hitGeomNormal, outgoingDirection));
 
-    return hitRadiance * float(hitCosTheta > 0.0) + hitEmissive * float(all(lessThan(selfHitEmissive, vec3(0.0001))));
+    return hitRadiance * float(hitCosTheta > 0.0) + hitEmissive * float(all(lessThan(selfMaterial.emissive, vec3(0.0001))));
 }
 
 #endif

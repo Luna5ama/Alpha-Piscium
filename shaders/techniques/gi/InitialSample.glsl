@@ -29,9 +29,9 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, mat3 tbn) {
     return sampleDirView;
 }
 
-restir_InitialSampleData restir_initalSample_restoreData(ivec2 texelPos, float viewZ, mat3 tbn, float hitDistance) {
+restir_InitialSampleData restir_initalSample_restoreData(ivec2 texelPos, float viewZ, Material selfMaterial, float hitDistance) {
     restir_InitialSampleData initialSampleData;
-    vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, tbn);
+    vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, selfMaterial.tbn);
     initialSampleData.directionAndLength.xyz = rayDirView;
     initialSampleData.directionAndLength.w = hitDistance;
 
@@ -50,7 +50,7 @@ restir_InitialSampleData restir_initalSample_restoreData(ivec2 texelPos, float v
         ivec2 hitTexelPos = ivec2(hitTexelPosF);
         vec2 hitTexelCenter = hitTexelPosF + 0.5;
         vec2 hitScreenPos = hitTexelCenter * uval_mainImageSizeRcp;
-        initialSampleData.hitRadiance = restir_irradiance_sampleIrradiance(texelPos, hitTexelPos, -rayDirView);
+        initialSampleData.hitRadiance = restir_irradiance_sampleIrradiance(texelPos, selfMaterial, hitTexelPos, -rayDirView);
     }
 
     return initialSampleData;

@@ -69,9 +69,9 @@ void main() {
             GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            Material material = material_decode(gData);
             transient_geomViewNormal_store(texelPos, vec4(gData.geomNormal * 0.5 + 0.5, 0.0));
             transient_viewNormal_store(texelPos, vec4(gData.normal * 0.5 + 0.5, 0.0));
-            Material material = material_decode(gData);
             vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, material.tbn);
 
             SSTRay sstRay = sstray_setup(texelPos, viewPos, rayDirView);
