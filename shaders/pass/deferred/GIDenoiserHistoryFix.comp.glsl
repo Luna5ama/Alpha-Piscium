@@ -111,8 +111,6 @@ void main() {
                     float weightSum = 0.0;
 
                     const float baseReductionFactor = ldexp(1.0, -12);
-                    float edgeWeightRelax = 1.0 - sqrt(historyFixMix);
-                    float baseDepthWeight = max(1.5 + edgeWeightRelax * 2.0, abs(viweZ0)) * ldexp(1.0, -8 + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT);
 
                     for (int mip = 6; mip >= 1; mip--) {
                         ivec2 stbnPos = ivec2(texelPos0 + rand_r2Seq2(mip) * 128.0);
@@ -130,22 +128,22 @@ void main() {
 
                         ivec4 hizTile = global_hizTiles[mip];
                         vec2 hiZReadPos = hizTile.xy + ivec2(texelPosMip);
-                        vec2 hiZVal = texelFetch(usam_hiz, ivec2(hiZReadPos), 0).rg;
-                        float hiZMin = hiZVal.x;
-                        float hiZMax = hiZVal.y;
+                        vec4 hiZData = texelFetch(usam_hiz, ivec2(hiZReadPos), 0);
+                        vec4 geomNormalMipRaw = transient_geomNormalMip_sample(screenPosMipTile);
 
-                        vec3 geomNormalMipRaw = transient_geomNormalMip_sample(screenPosMipTile).xyz;
-                        geomNormalMipRaw = geomNormalMipRaw * 2.0 - 1.0;
-                        vec3 geomNormalMip = normalize(geomNormalMipRaw);
-                        float geomNormalLengthSq = saturate(lengthSq(geomNormalMipRaw));
-                        float geomNormalDot = dot(geomNormal0, geomNormalMipRaw * inversesqrt(geomNormalLengthSq));
+                        float geomNormalBaseWeight = ldexp(0.0005 + 0.0095 * historyFixMix, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT);
+                        float zBaseWeight = max(2.0, abs(viweZ0)) * ldexp(256.0 * (1.0 - historyFixMix), -(mip + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT));
+
+                        vec3 geomNormalMip = geomNormalMipRaw.xyz * 2.0 - 1.0;
+                        float geomNormalLengthSq = saturate(lengthSq(geomNormalMip));
+                        float geomNormalDot = dot(geomNormal0, geomNormalMip * inversesqrt(geomNormalLengthSq));
                         float geomNormalWeight = geomNormalLengthSq * pow2(saturate(geomNormalDot));
-                        geomNormalWeight = pow(geomNormalWeight, ldexp(0.1 + edgeWeightRelax * 0.5, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT));
+                        geomNormalWeight = pow(geomNormalWeight, geomNormalBaseWeight);
 
-                        hiZMax = coords_reversedZToViewZ(hiZMax, nearPlane);
-                        hiZMin = coords_reversedZToViewZ(hiZMin, nearPlane);
-                        float maxZWeight = baseDepthWeight / (baseDepthWeight + abs(hiZMax - viweZ0));
-                        float minZWeight = baseDepthWeight / (baseDepthWeight + abs(hiZMin - viweZ0));
+                        float hiZMin = coords_reversedZToViewZ(hiZData.x, nearPlane);
+                        float hiZMax = coords_reversedZToViewZ(hiZData.y, nearPlane);
+                        float maxZWeight = zBaseWeight / (zBaseWeight + abs(hiZMax - viweZ0));
+                        float minZWeight = zBaseWeight / (zBaseWeight + abs(hiZMin - viweZ0));
 
                         float reductionFactor = baseReductionFactor / (baseReductionFactor + weightSum);
 
