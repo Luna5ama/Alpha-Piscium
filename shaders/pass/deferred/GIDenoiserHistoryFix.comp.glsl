@@ -26,8 +26,6 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
     if (index < 400u) { // 20 * 20 = 400
         uvec2 sharedXY = uvec2(index % 20u, index / 20u);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
-        srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
-
         vec4 diffData = transient_gi2Reprojected_fetch(srcXY);
         vec4 specData = transient_gi4Reprojected_fetch(srcXY);
 
@@ -98,7 +96,7 @@ void main() {
 
                 float historyLengthInt = historyData.historyLength * TOTAL_HISTORY_LENGTH;
                 // 0.0 = Full fix, 1.0 = No fix
-                float historyFixMix = 1.0 - pow4(linearStep(3.0, 1.0, historyLengthInt));
+                float historyFixMix = 1.0 - pow4(linearStep(4.0, 1.0, historyLengthInt));
 
                 #if DENOISER_HISTORY_FIX
                 if (historyFixMix < 1.0) {
@@ -131,8 +129,8 @@ void main() {
                         vec4 hiZData = texelFetch(usam_hiz, ivec2(hiZReadPos), 0);
                         vec4 geomNormalMipRaw = transient_geomNormalMip_sample(screenPosMipTile);
 
-                        float geomNormalBaseWeight = ldexp(0.002 + 0.008 * historyFixMix, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT);
-                        float zBaseWeight = max(2.0, abs(viweZ0)) * ldexp(128.0 * (1.0 - historyFixMix), -(mip + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT));
+                        float geomNormalBaseWeight = ldexp(0.01 + 0.09 * historyFixMix, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT);
+                        float zBaseWeight = max(2.0, abs(viweZ0)) * ldexp(32.0 + 128.0 * (1.0 - historyFixMix), -(mip + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT));
 
                         vec3 geomNormalMip = geomNormalMipRaw.xyz * 2.0 - 1.0;
                         float geomNormalLengthSq = saturate(lengthSq(geomNormalMip));

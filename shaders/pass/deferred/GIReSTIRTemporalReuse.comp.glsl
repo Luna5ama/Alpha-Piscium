@@ -68,7 +68,6 @@ void main() {
 
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
-                float wSum = 0.0;
                 vec4 prevSample = vec4(0.0);
                 vec3 prevHitNormal = vec3(0.0);
 
@@ -175,7 +174,7 @@ void main() {
 
                                                 // Compute Jacobian: |J| = (r_B^2 * cos(phi_A)) / (r_A^2 * cos(phi_B))
                                                 // Only apply if both cosines are positive (valid geometry)
-                                                if (cosPhiA > 0.0 && cosPhiB > 0.0 && RA2 > 0.0) {
+                                                if (cosPhiA > 0.0 && cosPhiB > 5e-2 && RA2 > 0.0) {
                                                     jacobian = (RB2 * cosPhiA) / (RA2 * cosPhiB);
                                                 } else if (cosPhiA <= 0.0) {
                                                     // Hit point is backfacing from current pixel - invalid
@@ -183,7 +182,7 @@ void main() {
                                                 }
 
                                                 // Clamp Jacobian to avoid fireflies
-                                                const float maxJacobian = 2.0;
+                                                const float maxJacobian = 16.0;
                                                 jacobian = min(jacobian, maxJacobian);
                                             }
 
@@ -216,7 +215,7 @@ void main() {
                 }
 
                 float prevPHat = length(prevSample.xyz * prevSample.w);
-                wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
+                float wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
                 Material material = material_decode(gData);
 
                 // TODO: jacobian and reprojection check
