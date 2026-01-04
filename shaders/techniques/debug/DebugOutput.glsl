@@ -285,10 +285,10 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         outputColor.rgb = vec3(uintBitsToFloat(texture(usam_epipolarData, vec2(debugTexCoord.x, EPIPOLAR_SLICE_END_POINTS_V)).ba), 0.0);
     }
     if (inViewPort(ivec4(0, 32, 256, 64), debugTexCoord)) {
-        outputColor.rgb = gammaCorrect(texture(usam_transmittanceLUT, debugTexCoord).rgb);
+        outputColor.rgb = gammaCorrect(persistent_transmittanceLUT_sample(debugTexCoord).rgb);
     }
     if (inViewPort(ivec4(0, 32 + 64 + 256, 256, 256), debugTexCoord)) {
-        outputColor.rgb = gammaCorrect(texture(usam_multiSctrLUT, debugTexCoord).rgb);
+        outputColor.rgb = gammaCorrect(persistent_multiSctrLUT_sample(debugTexCoord).rgb);
     }
     float whRatio = float(SETTING_EPIPOLAR_SLICES) / float(SETTING_SLICE_SAMPLES);
     if (inViewPort(ivec4(256, 32, whRatio * 512, 768), debugTexCoord)) {

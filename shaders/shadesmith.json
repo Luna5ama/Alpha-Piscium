@@ -1,5 +1,5 @@
 {
-    "formats": {
+    "screen": {
         "transient_shadow": "RGBA16F",
         "transient_translucentReflection": "RGBA16F",
         "transient_translucentRefraction": "RGBA16F",
@@ -58,5 +58,17 @@
         "transient_bloom": "RGBA16F",
         "history_taa": "RGBA16F",
         "transient_taaOutput": "RGBA16F"
+    },
+    "fixed": {
+        "persistent_multiSctrLUT": {
+            "format": "RGBA16F",
+            "width": 32,
+            "height": 32
+        },
+        "persistent_transmittanceLUT": {
+            "format": "RGBA16F",
+            "width": 256,
+            "height": 64
+        }
     }
 }

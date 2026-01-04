@@ -10,7 +10,7 @@
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
 
-layout(rgba16f) uniform restrict image2D uimg_transmittanceLUT;
+layout(rgba16f) uniform restrict image2D uimg_frgba16f;
 const ivec3 workGroups = ivec3(2, 64, 1);
 
 layout(local_size_x = 128) in;
@@ -39,6 +39,6 @@ void main() {
     float jitter = rand_stbnVec1(texelPos, frameCounter);
     vec3 transmittance = raymarchTransmittance(atmosphere, params, jitter);
 
-    vec4 prevData = imageLoad(uimg_transmittanceLUT, texelPos);
-    imageStore(uimg_transmittanceLUT, texelPos, temporalUpdate(prevData, transmittance, 32.0, texelPos));
+    vec4 prevData = persistent_transmittanceLUT_load(texelPos);
+    persistent_transmittanceLUT_store(texelPos, temporalUpdate(prevData, transmittance, 32.0, texelPos));
 }

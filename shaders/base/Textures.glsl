@@ -87,9 +87,9 @@ uniform sampler2D usam_rgb10_a2;
 uniform sampler2D usam_rgba8;
 uniform sampler2D usam_r32f;
 
+uniform sampler2D usam_frgba16f;
+
 uniform sampler2D usam_rtwsm_imap;
-uniform sampler2D usam_transmittanceLUT;
-uniform sampler2D usam_multiSctrLUT;
 uniform sampler3D usam_skyViewLUT;
 uniform usampler2D usam_epipolarData;
 uniform sampler3D usam_cloudsAmbLUT;

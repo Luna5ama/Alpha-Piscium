@@ -22,7 +22,7 @@ const ivec3 workGroups = ivec3(32, 32, 1);
 /*const*/
 #include "../Raymarching.glsl"
 
-layout(rgba16f) restrict uniform image2D uimg_multiSctrLUT;
+layout(rgba16f) restrict uniform image2D uimg_frgba16f;
 
 shared vec3 shared_inSctrSum[4];
 shared vec3 shared_multiSctrAs1Sum[4];
@@ -90,8 +90,8 @@ void main() {
             vec3 sumOfAllMultiSctrEventsContribution = 1.0 / (1.0 - r);
             vec3 currResult = inSctrSum * sumOfAllMultiSctrEventsContribution * MULTI_SCTR_LUT_QUANTIZATION_MUL;
 
-            vec4 prevData = imageLoad(uimg_multiSctrLUT, texelPos);
-            imageStore(uimg_multiSctrLUT, texelPos, temporalUpdate(prevData, currResult, 64.0, texelPos));
+            vec4 prevData = persistent_multiSctrLUT_load(texelPos);
+            persistent_multiSctrLUT_store(texelPos, temporalUpdate(prevData, currResult, 64.0, texelPos));
         }
     }
 }
