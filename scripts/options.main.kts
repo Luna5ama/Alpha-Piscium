@@ -696,14 +696,34 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "降噪器"
                 }
-                toggle("SETTING_DENOISER", true) {
+                toggle("SETTING_DENOISER_SPATIAL", true) {
                     lang {
-                        name = "Enable Denoiser"
-                        comment = "Applies a denoising filter to the GI results to reduce noise."
+                        name = "Denoiser Spatial Filter"
+                        comment = "Applies a spatial denoising filter to the GI results to reduce noise."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用降噪器"
-                        comment = "对GI结果应用降噪滤镜以减少噪点。"
+                        name = "空间降噪"
+                        comment = "对GI结果应用空间降噪滤镜以减少噪点。"
+                    }
+                }
+                slider("SETTING_DENOISER_SPATIAL_SAMPLES", 8, 1..16) {
+                    lang {
+                        name = "Spatial Denoiser Sample Count"
+                        comment = "Number of samples used in main spatial denoising pass."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "空间降噪采样数"
+                        comment = "第一轮空间降噪的采样数。"
+                    }
+                }
+                slider("SETTING_DENOISER_SPATIAL_SAMPLES_POST", 4, 1..16) {
+                    lang {
+                        name = "Post Spatial Denoiser Sample Count"
+                        comment = "Number of samples used for post spatial denoising pass."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "后空间降噪采样数"
+                        comment = "用于第二轮空间降噪的采样数。"
                     }
                 }
                 empty()

@@ -187,7 +187,7 @@ void main() {
             sigma += kernelRadius * 2.0 * (1.0 - saturate(hitDistFactor));
             sigma *= 1.0 - filteredInputVariance.x;
 
-            #if ENABLE_DENOISER
+            #ifdef SETTING_DENOISER_SPATIAL
             for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
                 dir *= MAT2_GOLDEN_ANGLE;
                 float baseRadius = sqrt((float(i) + blurJitter.y) * rcpSamples);

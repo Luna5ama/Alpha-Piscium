@@ -1,7 +1,9 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
+#include "/Base.glsl"
+
 #define GI_DENOISE_PASS 2
-#define GI_DENOISE_SAMPLES 8
+#define GI_DENOISE_SAMPLES SETTING_DENOISER_SPATIAL_SAMPLES_POST
 // X: history length radius scale
 // Y: variance heuristic radius scale
 // Z: min radius
