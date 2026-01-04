@@ -12,7 +12,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const ivec3 workGroups = ivec3(16, 16, 6);
 
-layout(rgba16f) uniform image2D uimg_cfrgba16f;
+layout(rgba16f) uniform image2D uimg_frgba16f;
 
 shared vec4 shared_scenePos[20][20];
 
@@ -27,7 +27,7 @@ void loadSharedData(uint index) {
         globalPos = clamp(globalPos, ivec2(0), ENV_PROBE_SIZEI - 1);
         globalPos += sliceID * ENV_PROBE_SIZEI;
         globalPos.x += READ_OFFSET;
-        shared_scenePos[localPos.y][localPos.x] = imageLoad(uimg_cfrgba16f, globalPos);
+        shared_scenePos[localPos.y][localPos.x] = persistent_envProbeTemp_load(globalPos);
     }
 }
 
@@ -59,5 +59,5 @@ void main() {
     ivec2 centerGlobalPos = ivec2(gl_GlobalInvocationID.xy);
     centerGlobalPos += sliceID * ENV_PROBE_SIZEI;
     centerGlobalPos.x += WRITE_OFFSET;
-    imageStore(uimg_cfrgba16f, centerGlobalPos, sum);
+    persistent_envProbeTemp_store(centerGlobalPos, sum);
 }

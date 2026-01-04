@@ -77,7 +77,6 @@ uniform sampler2D usam_shadow_waterMask;
 uniform sampler2D usam_shadow_waterNormal;
 
 // --------------------------------------------------- Custom Images ---------------------------------------------------
-uniform sampler2D usam_cfrgba16f;
 uniform sampler2D usam_csr32f;
 uniform sampler2D usam_csrg32f;
 

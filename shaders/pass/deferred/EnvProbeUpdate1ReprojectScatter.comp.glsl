@@ -4,7 +4,7 @@
 layout(local_size_x = 128) in;
 const ivec3 workGroups = ivec3(512, 2, 3);
 
-layout(rgba16f) uniform restrict writeonly image2D uimg_cfrgba16f;
+layout(rgba16f) uniform restrict writeonly image2D uimg_frgba16f;
 
 bool envProbe_reproject(ivec4 inputCubeMapPos, inout EnvProbeData envProbeData, out ivec4 outputCubeMapPos) {
     if (all(equal(envProbeData.scenePos, vec3(0.0)))) {
@@ -45,6 +45,6 @@ void main() {
     ivec4 outputCubeMapPos = inputCubeMapPos;
     if (envProbe_reproject(inputCubeMapPos, outputData, outputCubeMapPos)) {
         ivec2 outputPos = outputCubeMapPos.xy + outputCubeMapPos.zw * ENV_PROBE_SIZEI;
-        imageStore(uimg_cfrgba16f, outputPos, vec4(outputData.scenePos, 1.0));
+        persistent_envProbeTemp_store(outputPos, vec4(outputData.scenePos, 1.0));
     }
 }

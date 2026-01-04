@@ -11,7 +11,7 @@ void main() {
     ivec2 sliceID = ivec2(gl_GlobalInvocationID.yz);
     ivec2 inputPos = sliceTexelPos + sliceID * ENV_PROBE_SIZEI;
 
-    vec4 currData = texelFetch(usam_cfrgba16f, inputPos, 0);
+    vec4 currData = persistent_envProbeTemp_fetch(inputPos);
     float worldDistance = currData.w == 0.0 ? 65536.0 : length(currData.xyz);
 
     vec2 centerCurrSliceUV = coords_texelToUV(sliceTexelPos, ENV_PROBE_RCP);

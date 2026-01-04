@@ -69,6 +69,11 @@
             "format": "RGBA16F",
             "width": 256,
             "height": 64
+        },
+        "persistent_envProbeTemp": {
+            "format": "RGBA16F",
+            "width": 1024,
+            "height": 768
         }
     }
 }
