@@ -2396,7 +2396,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "自发光方块像素的权重乘数。数值越低 = 影响越小。"
                     }
                 }
-                slider("SETTING_EXPOSURE_DISTANCE_WEIGHTING", -3.5, -5.0..5.0 step 0.5) {
+                slider("SETTING_EXPOSURE_DISTANCE_WEIGHTING", 0.5, 0.0..5.0 step 0.5) {
                     lang {
                         name = "Distance Weighting"
                         comment =

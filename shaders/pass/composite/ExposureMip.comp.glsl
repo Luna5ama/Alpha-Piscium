@@ -23,7 +23,7 @@ vec4 spd_loadInput(ivec2 texelPos, uint slice) {
 
         float weight = 1.0;
         weight *= pow(exp2(SETTING_EXPOSURE_EMISSIVE_WEIGHTING), emissive);
-        weight *= BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + abs(viewZ));
+        weight *= sqrt(BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + log2(1.0 + abs(viewZ))));
 
         vec3 color = transient_taaOutput_fetch(texelPos).rgb;
         result = vec4(color * weight, weight);
