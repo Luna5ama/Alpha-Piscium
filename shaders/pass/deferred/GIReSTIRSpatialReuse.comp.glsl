@@ -244,12 +244,17 @@ void main() {
                     #if SETTING_DEBUG_OUTPUT
                     vvv = vec4(0.0, 1.0, 0.0, 0.0);
                     #endif
-                    vec3 expectHitViewPos = viewPos + spatialReservoir.Y.xyz * spatialReservoir.Y.w;
-                    vec3 rayOrigin = coords_viewToScreen(viewPos, global_camProj);
-                    vec3 rayEnd = coords_viewToScreen(expectHitViewPos, global_camProj);
-                    vec4 rayDirLen = normalizeAndLength(rayEnd - rayOrigin);
 
-                    SSTRay sstRay = sstray_setup(texelPos, rayOrigin, rayDirLen.xyz, rayDirLen.w);
+                    SSTRay sstRay;
+                    if (spatialReservoir.Y.w > 0.0) {
+                        vec3 expectHitViewPos = viewPos + spatialReservoir.Y.xyz * spatialReservoir.Y.w;
+                        vec3 rayOrigin = coords_viewToScreen(viewPos, global_camProj);
+                        vec3 rayEnd = coords_viewToScreen(expectHitViewPos, global_camProj);
+                        vec4 rayDirLen = normalizeAndLength(rayEnd - rayOrigin);
+                        sstRay = sstray_setup(texelPos, rayOrigin, rayDirLen.xyz, rayDirLen.w);
+                    } else {
+                        sstRay = sstray_setup(texelPos, viewPos, spatialReservoir.Y.xyz);
+                    }
                     uvec4 packedData = sstray_pack(sstRay);
                     ssbo_rayData[dataIndex] = packedData;
                     rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
