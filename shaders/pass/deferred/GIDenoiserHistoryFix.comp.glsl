@@ -174,6 +174,7 @@ void main() {
                 #endif
 
                 barrier();
+                float ditherNoise = rand_stbnVec1(texelPos + ivec2(6, 9), frameCounter + 2);
                 vec2 filteredHitDitances = vec2(MAX_HIT_DISTANCE);
                 #if ENABLE_DENOISER_FAST_CLAMP
                 {
@@ -224,6 +225,7 @@ void main() {
                     diffClamped = mix(historyData.diffuseColor, diffClamped, historyFixMix);
                     historyData.diffuseColor = diffClamped;
                     vec4 diffInput = vec4(historyData.diffuseColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffOutputSim));
+                    diffInput = dither_fp16(diffInput, ditherNoise);
                     transient_gi_blurDiff2_store(texelPos, diffInput);
 
                     vec3 specClamped = _clampColor(historyData.specularColor, centerSpecData.xyz, specMoment1, specMoment2, clampingThreshold);
@@ -233,6 +235,7 @@ void main() {
                     specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
                     historyData.specularColor = specClamped;
                     vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));
+                    specInput = dither_fp16(specInput, ditherNoise);
                     transient_gi_blurSpec2_store(texelPos, specInput);
 
                     vec2 diffLuma2 = vec2(diffDiffLuma, specDiffLuma);
@@ -272,7 +275,6 @@ void main() {
                 vec2 hitDitanceFactors = 1.0 - pow(smoothstep(4.0, 0.0, filteredHitDitances), vec2(8.0));
                 transient_gi_hitDistanceFactors_store(texelPos, vec4(hitDitanceFactors, 0.0, 0.0));
 
-                float ditherNoise = rand_stbnVec1(texelPos + ivec2(6, 9), frameCounter + 2);
                 vec4 packedData5 = gi_historyData_pack5(historyData);
                 packedData5 = dither_u8(packedData5, ditherNoise);
 
