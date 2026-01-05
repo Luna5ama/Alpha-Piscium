@@ -246,8 +246,8 @@ void main() {
 
             #if SETTING_DEBUG_OUTPUT
             if (RANDOM_FRAME < MAX_FRAMES){
-                // imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
-                float stddev = sqrt(variance);
+//                 imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
+                imageStore(uimg_temp3, texelPos, hitDistanceFactors.xxxx    );
 //                imageStore(uimg_temp3, texelPos, sigma.xxxx);
             }
             #endif
@@ -275,8 +275,6 @@ void main() {
             packedData4 = dither_fp16(packedData4, ditherNoise);
             vec4 packedData5 = gi_historyData_pack5(historyData);
             packedData5 = dither_u8(packedData5, ditherNoise);
-
-            imageStore(uimg_temp3, texelPos, vec4(stretchFactor, 0.0, 0.0));
 
             history_gi1_store(texelPos, packedData1);
             history_gi2_store(texelPos, packedData2);
