@@ -47,7 +47,7 @@ vec2 dUVdy = dFdy(frag_texCoord);
 #endif
 
 ivec2 texelPos = ivec2(gl_FragCoord.xy);
-float ditherNoise = rand_stbnVec1(texelPos, frameCounter);
+float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 4u), frameCounter);
 
 vec4 albedo;
 float viewZ;

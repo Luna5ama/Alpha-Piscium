@@ -233,7 +233,7 @@ void main() {
             diffResult *= rcpWeightSum;
             specResult *= rcpWeightSum;
 
-            float ditherNoise = rand_stbnVec1(texelPos, frameCounter + GI_DENOISE_PASS);
+            float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 5u + GI_DENOISE_PASS), frameCounter);
             diffResult = dither_fp16(diffResult, ditherNoise);
             specResult = dither_fp16(specResult, ditherNoise);
 

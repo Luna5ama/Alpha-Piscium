@@ -147,7 +147,7 @@ void main() {
                 historyData.historyLength = max(historyData.historyLength, maxHistoryLengths.x);
                 historyData.realHistoryLength = max(historyData.realHistoryLength, maxHistoryLengths.y);
 
-                float ditherNoise = rand_stbnVec1(texelPos + ivec2(6, 9), frameCounter + 1);
+                float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 1u), frameCounter);
                 vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);
                 packedData1 = dither_fp16(packedData1, ditherNoise);
                 vec4 packedData2 = clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX);

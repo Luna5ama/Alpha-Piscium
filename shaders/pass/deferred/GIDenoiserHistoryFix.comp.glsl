@@ -174,7 +174,7 @@ void main() {
                 #endif
 
                 barrier();
-                float ditherNoise = rand_stbnVec1(texelPos + ivec2(6, 9), frameCounter + 2);
+                float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 2u), frameCounter);
                 vec2 filteredHitDitances = vec2(MAX_HIT_DISTANCE);
                 #if ENABLE_DENOISER_FAST_CLAMP
                 {

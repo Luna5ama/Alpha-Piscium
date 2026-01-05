@@ -72,6 +72,10 @@ vec3 rand_r2Seq3(uint idx) {
     return 1.0 - fract(a * idx - 0.5);
 }
 
+ivec2 rand_newStbnPos(ivec2 basePos, uint i) {
+    return basePos + ivec2(rand_r2Seq2(i) * 128);
+}
+
 vec3 rand_sampleInCone(vec3 center, float coneHalfAngle, vec2 rand) {
     // Random azimuth angle
     float phi = PI_2 * rand.x;

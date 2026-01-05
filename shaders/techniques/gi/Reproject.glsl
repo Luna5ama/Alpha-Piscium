@@ -233,7 +233,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
     historyData.glazingAngleFactor = glazingAngleFactorHistory;
 
 
-    float ditherNoise = rand_stbnVec1(texelPos + ivec2(6, 9), frameCounter);
+    float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 8u), frameCounter);
     vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);
     packedData1 = dither_fp16(packedData1, ditherNoise);
     vec4 packedData2 = clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX);

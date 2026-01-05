@@ -6,6 +6,8 @@
 #include "/util/Colors.glsl"
 #include "/util/AgxInvertible.glsl"
 #include "/util/Sampling.glsl"
+#include "/util/Rand.glsl"
+#include "/util/Dither.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -218,6 +220,9 @@ void main() {
                 vec3 finalDiff = mix(clampedHistoryDiff, currDiff.rgb, mixWeight);
                 vec3 finalSpec = mix(clampedHistorySpec, currSpec.rgb, mixWeight);
 
+                float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 3u), frameCounter);
+                finalDiff = dither_fp16(finalDiff, ditherNoise);
+                finalSpec = dither_fp16(finalSpec, ditherNoise);
 
                 // Write outputs
                 transient_gi_diffShadingOutput_store(texelPos, vec4(finalDiff, currDiff.a));

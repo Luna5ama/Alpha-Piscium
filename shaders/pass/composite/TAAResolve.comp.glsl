@@ -259,7 +259,7 @@ void main() {
     vec3 finalColor = mix(prevColor, currColor, finalCurrWeight);
     vec4 outputData = vec4(finalColor, newFrameAccum);
 
-    float ditherNoise = rand_stbnVec1(texelPos, frameCounter + 3);
+    float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 0u), frameCounter);
     outputData = dither_fp16(outputData, ditherNoise);
     transient_taaOutput_store(texelPos, outputData);
 }
