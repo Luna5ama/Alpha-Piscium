@@ -628,6 +628,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "屏幕空间追踪的假定厚度。"
                     }
                 }
+                slider("SETTING_GI_PROBE_FADE_START", 4, powerOfTwoRange(2..8)) {
+                    lang {
+                        name = "Environment Probe Fade Start"
+                        comment = "Distance in blocks where environment probe lighting begins to fade out."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "环境探针淡出开始距离"
+                        comment = "环境探针照明开始淡出的距离（方块数）。"
+                    }
+                }
+                slider("SETTING_GI_PROBE_FADE_END", 32, powerOfTwoRange(2..8)) {
+                    lang {
+                        name = "Environment Probe Fade End"
+                        comment = "Distance in blocks where environment probe lighting is completely faded out."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "环境探针淡出结束距离"
+                        comment = "环境探针照明完全淡出的距离（方块数）。"
+                    }
+                }
                 empty()
                 toggle("SETTING_GI_SPATIAL_REUSE", true) {
                     lang {
@@ -814,16 +834,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_STABILIZATION_MIN_ACCUM", 8, powerOfTwoRangeAndHalf(1..5)) {
-                    lang {
-                        name = "Stabilization Minimum Accumulated Frames"
-                        comment = "Minimum accumulated frames that is used for calculating blend weight. Smaller values increase responsiveness but may introduce flickering."
-                    }
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "降噪稳定最小累积帧数"
-                    comment = "用于计算混合权重的最小累积帧数。数值越小，响应性越强，但可能会引入闪烁。"
-                }
                 slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 64, powerOfTwoRangeAndHalf(2..8)) {
                     lang {
                         name = "Stabilization Maximum Accumulated Frames"

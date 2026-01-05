@@ -2,13 +2,34 @@
 #define INCLUDE_techniques_restir_Irradiance_glsl a
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/EnvProbe.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Material.glsl"
 
-vec3 restir_irradiance_sampleIrradianceMiss(vec3 worldDirection) {
+// xyz: radiance
+// w: hit distance (or -1.0 for sky)
+vec3 restir_irradiance_sampleIrradianceMiss(vec3 rayOriginScene, vec3 worldDirection) {
+    vec2 envSliceUV = vec2(-1.0);
+    vec2 envSliceID = vec2(-1.0);
+    coords_cubeMapForward(worldDirection, envSliceUV, envSliceID);
+    ivec2 envTexel = ivec2((envSliceUV + envSliceID) * ENV_PROBE_SIZE);
+    EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
+
+    float envProbeDistance = distance(envData.scenePos, rayOriginScene);
+
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, worldDirection);
-    return atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+    vec3 skyIrradiance = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+
+    vec3 result = vec3(0.0);
+    if (envProbe_isSky(envData)) {
+        result.rgb = skyIrradiance;
+    } else {
+        float skyMixWeight = linearStep(SETTING_GI_PROBE_FADE_START, SETTING_GI_PROBE_FADE_END, length(rayOriginScene));
+        result.rgb = mix(envData.radiance.rgb, skyIrradiance, skyMixWeight);
+    }
+
+    return result;
 }
 
 vec3 restir_irradiance_sampleIrradiance(ivec2 texelPos, Material selfMaterial, ivec2 hitTexelPos, vec3 outgoingDirection) {
