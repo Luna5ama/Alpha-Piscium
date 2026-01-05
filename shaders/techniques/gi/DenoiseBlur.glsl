@@ -234,6 +234,8 @@ void main() {
             specResult *= rcpWeightSum;
 
             float ditherNoise = rand_stbnVec1(texelPos, frameCounter + GI_DENOISE_PASS);
+            diffResult = dither_fp16(diffResult, ditherNoise);
+            specResult = dither_fp16(specResult, ditherNoise);
 
             #if GI_DENOISE_PASS == 1
             float rcpEdgeWeightSum = 1.0 / (edgeWeightSum + 1.0);
@@ -251,11 +253,11 @@ void main() {
 //                imageStore(uimg_temp3, texelPos, sigma.xxxx);
             }
             #endif
-            transient_gi_blurDiff1_store(texelPos, dither_fp16(diffResult, ditherNoise));
-            transient_gi_blurSpec1_store(texelPos, dither_fp16(specResult, ditherNoise));
+            transient_gi_blurDiff1_store(texelPos, diffResult);
+            transient_gi_blurSpec1_store(texelPos, specResult);
             #elif GI_DENOISE_PASS == 2
-            transient_gi_blurDiff2_store(texelPos, dither_fp16(diffResult, ditherNoise));
-            transient_gi_blurSpec2_store(texelPos, dither_fp16(specResult, ditherNoise));
+            transient_gi_blurDiff2_store(texelPos, diffResult);
+            transient_gi_blurSpec2_store(texelPos, specResult);
 
             gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
             gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
