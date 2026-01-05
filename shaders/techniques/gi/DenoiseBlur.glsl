@@ -142,17 +142,19 @@ void main() {
 
             float hitDistFactor = hitDistanceFactors.x;
             #if GI_DENOISE_PASS == 1
-            hitDistFactor = pow(hitDistFactor, sqrtRealHistoryLength * 2.0);
+            hitDistFactor = saturate(pow(hitDistFactor, sqrtRealHistoryLength * 4.0));
             #else
-            hitDistFactor = pow(hitDistFactor, sqrtRealHistoryLength * 1.0);
+            hitDistFactor = saturate(pow(hitDistFactor, sqrtRealHistoryLength * 2.0));
             #endif
 
             float kernelRadius = baseKernelRadius.x;
-            kernelRadius *= pow(accumFactor, 0.25);
+            kernelRadius *= pow(accumFactor, 0.5);
 
             kernelRadius *= 1.0 + filteredInputVariance.x * baseKernelRadius.y;
             kernelRadius *= hitDistFactor;
             kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
+
+            float baseColorWeight = hitDistFactor;
 
             float baseNormalWeight = invAccumFactor * 4.0;
             float basePlaneDistWeight = invAccumFactor * -512.0;
@@ -161,10 +163,10 @@ void main() {
             vec4 specResult = centerSpec;
 
             float weightSum = 1.0;
+            float centerLuma = diffResult.w;
 
             #if GI_DENOISE_PASS == 1
             float edgeWeightSum = 0.0;
-            float centerLuma = diffResult.w;
             float moment1 = centerLuma;
             float moment2 = pow2(centerLuma);
             #endif
@@ -200,7 +202,6 @@ void main() {
 
                 vec4 diffSample = _gi_readDiff(sampleTexelPos);
                 GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
-
                 float edgeWeight = 1.0;
                 edgeWeight *= planeDistanceWeight(
                     centerGeomData.viewPos,
@@ -211,15 +212,17 @@ void main() {
                 );
                 edgeWeight *= normalWeight(centerGeomData, geomData, baseNormalWeight);
 
-
-                #if GI_DENOISE_PASS == 1
                 float sampleLuma = diffSample.a;
+                float lumaDiff = pow2(centerLuma - sampleLuma);
+                float colorWeight = smoothstep(baseColorWeight, 0.0, lumaDiff);
+                #if GI_DENOISE_PASS == 1
                 moment1 += sampleLuma * edgeWeight;
                 moment2 += pow2(sampleLuma) * edgeWeight;
                 edgeWeightSum += edgeWeight;
                 #endif
 
-                float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight);
+
+                float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight) * colorWeight;
 
                 diffResult += diffSample * totalWeight;
                 weightSum += totalWeight;

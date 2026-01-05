@@ -96,7 +96,7 @@ void main() {
 
                 float historyLengthInt = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH;
                 // 0.0 = Full fix, 1.0 = No fix
-                float historyFixMix = 1.0 - pow4(linearStep(4.0, 1.0, historyLengthInt));
+                float historyFixMix = pow2(linearStep(1.0, 4.0, historyLengthInt));
 
                 #if DENOISER_HISTORY_FIX
                 if (historyFixMix < 1.0) {
