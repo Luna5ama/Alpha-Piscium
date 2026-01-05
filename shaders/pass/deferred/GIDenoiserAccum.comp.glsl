@@ -74,20 +74,6 @@ void main() {
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
                 barrier();
 
-                // 3x3 max kernel on history lengths
-                vec2 maxHistoryLengths = vec2(0.0);
-                ivec2 localPos = ivec2(mortonPos) + 1; // +1 for padding
-                for (int dy = -1; dy <= 1; ++dy) {
-                    for (int dx = -1; dx <= 1; ++dx) {
-                        ivec2 samplePos = localPos + ivec2(dx, dy);
-                        vec2 neighborHistoryLengths = shared_historyLengths[samplePos.y][samplePos.x];
-                        maxHistoryLengths = max(maxHistoryLengths, neighborHistoryLengths);
-                    }
-                }
-
-                historyData.historyLength = maxHistoryLengths.x;
-                historyData.realHistoryLength = maxHistoryLengths.y;
-
                 if (RANDOM_FRAME >= 0 && RANDOM_FRAME < MAX_FRAMES) {
                     float currEdgeMask = transient_edgeMask_fetch(texelPos).r;
                     historyData.edgeMask = currEdgeMask;
@@ -146,6 +132,20 @@ void main() {
                     historyData.historyLength = saturate(historyLength / TOTAL_HISTORY_LENGTH);
                     historyData.realHistoryLength = saturate(realHistoryLength / TOTAL_HISTORY_LENGTH);
                 }
+
+                // 3x3 max kernel on history lengths
+                vec2 maxHistoryLengths = vec2(0.0);
+                ivec2 localPos = ivec2(mortonPos) + 1; // +1 for padding
+                for (int dy = -1; dy <= 1; ++dy) {
+                    for (int dx = -1; dx <= 1; ++dx) {
+                        ivec2 samplePos = localPos + ivec2(dx, dy);
+                        vec2 neighborHistoryLengths = shared_historyLengths[samplePos.y][samplePos.x];
+                        maxHistoryLengths = max(maxHistoryLengths, neighborHistoryLengths);
+                    }
+                }
+
+                historyData.historyLength = max(historyData.historyLength, maxHistoryLengths.x);
+                historyData.realHistoryLength = max(historyData.realHistoryLength, maxHistoryLengths.y);
 
                 float ditherNoise = rand_stbnVec1(texelPos + ivec2(6, 9), frameCounter + 1);
                 vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);

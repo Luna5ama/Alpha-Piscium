@@ -151,10 +151,10 @@ void main() {
             kernelRadius *= pow(accumFactor, 0.5);
 
             kernelRadius *= 1.0 + filteredInputVariance.x * baseKernelRadius.y;
-            kernelRadius *= hitDistFactor;
+            kernelRadius *= hitDistFactor + 0.1;
             kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
-            float baseColorWeight = hitDistFactor;
+            float baseColorWeight = hitDistFactor * 0.5 + 0.5;
 
             float baseNormalWeight = invAccumFactor * 4.0;
             float basePlaneDistWeight = invAccumFactor * -512.0;
@@ -222,7 +222,7 @@ void main() {
                 #endif
 
 
-                float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight) * colorWeight;
+                float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight);
 
                 diffResult += diffSample * totalWeight;
                 weightSum += totalWeight;
