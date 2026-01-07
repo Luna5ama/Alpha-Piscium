@@ -1,4 +1,5 @@
 #version 460 compatibility
+#define FRAG 1
 
 #define GBUFFER_PASS_TEXTURED a
 #define GBUFFER_PASS_ARMOR_GLINT a

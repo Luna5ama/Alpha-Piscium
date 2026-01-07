@@ -1,4 +1,5 @@
 #version 460 compatibility
+#define COMP 1
 
 #include "/util/Coords.glsl"
 layout(std430, binding = 3) buffer TestBuffer {

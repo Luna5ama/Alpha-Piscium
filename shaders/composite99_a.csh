@@ -1,4 +1,5 @@
 #version 460 compatibility
+#define COMP 1
 
 #define GLOBAL_DATA_MODIFIER restrict buffer
 #include "/Base.glsl"

@@ -1,4 +1,5 @@
 #version 460 compatibility
+#define COMP 1
 
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"

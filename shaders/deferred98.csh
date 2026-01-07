@@ -1,4 +1,5 @@
 #version 460 compatibility
+#define COMP 1
 
 #extension GL_KHR_shader_subgroup_basic : enable
 
