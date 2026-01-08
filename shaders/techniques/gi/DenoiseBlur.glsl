@@ -154,7 +154,7 @@ void main() {
             kernelRadius *= hitDistFactor + 0.1;
             kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
-            float baseColorWeight = hitDistFactor * 0.5 + 0.5;
+            //            float baseColorWeight = hitDistFactor * 0.5 + 0.5;
 
             float baseNormalWeight = invAccumFactor * 4.0;
             float basePlaneDistWeight = invAccumFactor * -512.0;
@@ -213,8 +213,8 @@ void main() {
                 edgeWeight *= normalWeight(centerGeomData, geomData, baseNormalWeight);
 
                 float sampleLuma = diffSample.a;
-                float lumaDiff = pow2(centerLuma - sampleLuma);
-                float colorWeight = smoothstep(baseColorWeight, 0.0, lumaDiff);
+                // float lumaDiff = pow2(centerLuma - sampleLuma);
+                // float colorWeight = smoothstep(baseColorWeight, 0.0, lumaDiff);
                 #if GI_DENOISE_PASS == 1
                 moment1 += sampleLuma * edgeWeight;
                 moment2 += pow2(sampleLuma) * edgeWeight;
@@ -248,9 +248,9 @@ void main() {
 
             #if SETTING_DEBUG_OUTPUT
             if (RANDOM_FRAME < MAX_FRAMES){
-//                 imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
-                imageStore(uimg_temp3, texelPos, hitDistanceFactors.xxxx    );
-//                imageStore(uimg_temp3, texelPos, sigma.xxxx);
+                // imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
+                imageStore(uimg_temp3, texelPos, hitDistanceFactors.xxxx);
+                // imageStore(uimg_temp3, texelPos, sigma.xxxx);
             }
             #endif
             transient_gi_blurDiff1_store(texelPos, diffResult);
