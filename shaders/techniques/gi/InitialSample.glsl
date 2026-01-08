@@ -41,7 +41,7 @@ restir_InitialSampleData restir_initalSample_restoreData(ivec2 texelPos, float v
         // Miss
         vec3 rayOriginScene = coords_pos_viewToWorld(rayOriginView, gbufferModelViewInverse);
         vec3 rayWorldDir = coords_dir_viewToWorld(rayDirView);
-        initialSampleData.hitRadiance = restir_irradiance_sampleIrradianceMiss(rayOriginScene, rayWorldDir);
+        initialSampleData.hitRadiance = restir_irradiance_sampleIrradianceMiss(texelPos, rayOriginScene, rayWorldDir);
     } else {
         vec3 rayEndView = rayOriginView + rayDirView * hitDistance;
         vec3 rayEndScreen = coords_viewToScreen(rayEndView, global_camProj);

@@ -8,7 +8,7 @@
 
 // xyz: radiance
 // w: hit distance (or -1.0 for sky)
-vec3 restir_irradiance_sampleIrradianceMiss(vec3 rayOriginScene, vec3 worldDirection) {
+vec3 restir_irradiance_sampleIrradianceMiss(ivec2 texelPos, vec3 rayOriginScene, vec3 worldDirection) {
     vec2 envSliceUV = vec2(-1.0);
     vec2 envSliceID = vec2(-1.0);
     coords_cubeMapForward(worldDirection, envSliceUV, envSliceID);
@@ -20,6 +20,11 @@ vec3 restir_irradiance_sampleIrradianceMiss(vec3 rayOriginScene, vec3 worldDirec
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, worldDirection);
     vec3 skyIrradiance = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+    #ifdef SETTING_GI_MC_SKYLIGHT_ATTENUATION
+    float lmCoordSky = transient_lmCoord_fetch(texelPos).y;
+    float skyLightFactor = max(lmCoordSky, linearStep(0.0, 240.0, float(eyeBrightnessSmooth.y)));
+    skyIrradiance *= skyLightFactor;
+    #endif
 
     vec3 result = vec3(0.0);
     if (envProbe_isSky(envData)) {

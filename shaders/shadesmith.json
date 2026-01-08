@@ -1,5 +1,6 @@
 {
     "screen": {
+        "transient_lmCoord": "RGBA8",
         "transient_shadow": "RGBA16F",
         "transient_translucentReflection": "RGBA16F",
         "transient_translucentRefraction": "RGBA16F",

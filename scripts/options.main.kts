@@ -618,7 +618,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 lang {
                     name = "ReSTIR SSGI"
                 }
-                slider("SETTING_GI_SST_THICKNESS", 0.05, 0.01..0.5 step 0.01) {
+                slider("SETTING_GI_SST_THICKNESS", 0.1, 0.01..0.5 step 0.01) {
                     lang {
                         name = "Screen Space Tracing Thickness"
                         comment = "Assumed thickness for screen space tracing."
@@ -648,6 +648,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "环境探针照明完全淡出的距离（方块数）。"
                     }
                 }
+                toggle("SETTING_GI_MC_SKYLIGHT_ATTENUATION", true) {
+                lang {
+                    name = "Vanilla Skylight Attenuation"
+                    comment =
+                        "Uses Minecraft's built-in skylight values to reduce sky lighting in enclosed spaces."
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "原版天空光衰减"
+                    comment = "使用Minecraft内置的天空光值来减少封闭空间中的天空照明。"
+                }
+            }
                 empty()
                 toggle("SETTING_GI_SPATIAL_REUSE", true) {
                     lang {
@@ -700,12 +711,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "空间重用反馈阈值"
                         comment = "当样本数量低于此阈值时，重用上一帧的空间重用样本。"
-                    }
-                }
-                empty()
-                toggle("SETTING_GI_USE_REFERENCE", false) {
-                    lang {
-                        name = "Monte Carlo Reference"
                     }
                 }
             }
@@ -3342,6 +3347,11 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
             toggle("SETTING_DEBUG_TAA", false) {
                 lang {
                     name = "TAA"
+                }
+            }
+            toggle("SETTING_GI_USE_REFERENCE", false) {
+                lang {
+                    name = "Monte Carlo Reference"
                 }
             }
         }

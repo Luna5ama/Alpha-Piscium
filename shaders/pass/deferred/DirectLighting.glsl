@@ -19,6 +19,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform writeonly image2D uimg_main;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba16f) uniform restrict image2D uimg_temp3;
+layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
 
 ivec2 texelPos;
@@ -68,8 +69,8 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
     directDiffuseOut += combinedLighting.sss;
     directDiffuseOut /= material.albedo;
 
-    giOut1.rgb += combinedLighting.diffuseLambertian * 4.0; // idk this needed to match reference
-    giOut1.rgb += combinedLighting.sss * 4.;
+    giOut1.rgb += combinedLighting.diffuseLambertian;
+    giOut1.rgb += combinedLighting.sss;
 
     giOut2.rgb += emissiveV;
 }
@@ -91,6 +92,7 @@ void main() {
         if (viewZ > -65536.0) {
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), lighting_gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), lighting_gData);
+            transient_lmCoord_store(texelPos, vec4(lighting_gData.lmCoord, 0.0, 0.0));
             Material material = material_decode(lighting_gData);
             vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
             vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb) * glintColorData.a;
@@ -141,6 +143,7 @@ void main() {
             uvec4 packedZNOut = uvec4(0u);
             packedZNOut.y = floatBitsToUint(-65536.0);
             transient_giRadianceInputs_store(texelPos, uvec4(0u));
+            transient_lmCoord_store(texelPos, vec4(0.0));
         }
     }
 }

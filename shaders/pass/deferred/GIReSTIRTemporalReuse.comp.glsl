@@ -60,7 +60,6 @@ void main() {
     ivec2 texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
         ReSTIRReservoir temporalReservoir = restir_initReservoir();
         if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0) {
             float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
@@ -310,9 +309,10 @@ void main() {
                     float avgWSum = wSum / float(temporalReservoir.m);
                     temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
                     temporalReservoir.m = clamp(temporalReservoir.m, 0u, 16u);
-                    ssgiOut = vec4(finalSample.xyz * finalSample.w * temporalReservoir.avgWY, temporalReservoir.Y.w);
                     #if USE_REFERENCE
-                    ssgiOut = vec4(initalSample * safeRcp(samplePdf), hitDistance);
+                    vec4 ssgiOut = vec4(initalSample * safeRcp(samplePdf), hitDistance);
+                    ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
+                    transient_ssgiOut_store(texelPos, ssgiOut);
                     #endif
 
                     SpatialSampleData spatialSample = spatialSampleData_init();
@@ -326,8 +326,6 @@ void main() {
                 }
             }
         }
-        ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
-        transient_ssgiOut_store(texelPos, ssgiOut);
         uvec4 packedReservoir = restir_reservoir_pack(temporalReservoir);
         if (bool(frameCounter & 1)) {
             history_restir_reservoirTemporal1_store(texelPos, packedReservoir);
