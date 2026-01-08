@@ -12,7 +12,7 @@ layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec4 outputColor = imageLoad(uimg_main, texelPos);
+        vec4 outputColor = texelFetch(usam_main, texelPos, 0);
         float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
 
         ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);

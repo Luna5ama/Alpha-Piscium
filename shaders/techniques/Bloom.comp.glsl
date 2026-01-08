@@ -82,7 +82,7 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
 #else
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 vec4 _bloom_imageLoad(ivec2 coord) {
-    return transient_bloom_load(coord);
+    return transient_bloom_fetch(coord);
 }
 void _bloom_imageStore(ivec2 coord, vec4 data) {
     transient_bloom_store(coord, data);

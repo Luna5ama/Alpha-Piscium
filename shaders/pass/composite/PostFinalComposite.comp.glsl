@@ -36,7 +36,7 @@ void main() {
     vec4 outputColor = vec4(0.0);
 
     if (valid) {
-        outputColor = imageLoad(uimg_main, texelPos);
+        outputColor = texelFetch(usam_main, texelPos, 0);
 
         #ifdef SETTING_BLOOM
         outputColor += bloom_mainOutput(texelPos);

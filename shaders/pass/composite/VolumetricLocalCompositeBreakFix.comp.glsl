@@ -24,7 +24,7 @@ void main() {
             noiseV
         );
 
-        vec4 outputColor = imageLoad(uimg_main, texelPos);
+        vec4 outputColor = texelFetch(usam_main, texelPos, 0);
         outputColor.rgb *= sctrResult.transmittance;
         outputColor.rgb += sctrResult.inScattering;
         imageStore(uimg_main, texelPos, outputColor);

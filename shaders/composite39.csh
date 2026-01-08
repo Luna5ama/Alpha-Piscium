@@ -15,7 +15,7 @@ layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec4 outputColor = imageLoad(uimg_main, texelPos);
+        vec4 outputColor = texelFetch(usam_main, texelPos, 0);
         #ifdef SETTING_DOF
         outputColor.rgb = dof_sample(texelPos);
         #endif

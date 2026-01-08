@@ -29,7 +29,7 @@ void main() {
         const uint MAX_ITER = 1024u;
         uint count = global_atomicCounters[15];
 
-        vec3 finalColor = imageLoad(uimg_temp5, texelPos).rgb;
+        vec3 finalColor = texelFetch(uimg_temp5, texelPos, 0).rgb;
 
         for (uint i = 0u; i < MAX_ITER; ++i) {
             if (i >= count) {

@@ -28,7 +28,7 @@ void main() {
         vec4 mainOut = celestial_render(texelPos, temp6Out);
 
         #ifdef SETTING_CONSTELLATIONS
-        vec4 prevTemp6Value = imageLoad(uimg_overlays, texelPos);
+        vec4 prevTemp6Value = texelFetch(usam_overlays, texelPos, 0);
         temp6Out.rgb += temp6Out.rgb;
         temp6Out.a += temp6Out.a;
         imageStore(uimg_overlays, texelPos, temp6Out);

@@ -72,7 +72,7 @@ void main() {
                 vec3 prevHitNormal = vec3(0.0);
 
                 {
-                    uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_load(texelPos);
+                    uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_fetch(texelPos);
                     ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
 
                     float resetRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987123654u)).x);
@@ -100,16 +100,16 @@ void main() {
 
                             uvec4 prevTemporalReservoirData;
                             if (bool(frameCounter & 1)) {
-                                prevTemporalReservoirData = history_restir_reservoirTemporal2_load(prevTexelPos);
+                                prevTemporalReservoirData = history_restir_reservoirTemporal2_fetch(prevTexelPos);
                             } else {
-                                prevTemporalReservoirData = history_restir_reservoirTemporal1_load(prevTexelPos);
+                                prevTemporalReservoirData = history_restir_reservoirTemporal1_fetch(prevTexelPos);
                             }
 
                             ReSTIRReservoir prevTemporalReservoir = restir_reservoir_unpack(prevTemporalReservoirData);
                             prevTemporalReservoir.m = uint(ceil(float(prevTemporalReservoir.m) * global_historyResetFactor * reprojInfo.historyResetFactor));
                             if (restir_isReservoirValid(prevTemporalReservoir)) {
                                 vec3 prevHitNormalData = history_restir_prevHitNormal_fetch(prevTexelPos).xyz;
-                                prevSample = history_restir_prevSample_load(prevTexelPos);
+                                prevSample = history_restir_prevSample_fetch(prevTexelPos);
                                 prevHitNormal = normalize(prevHitNormalData * 2.0 - 1.0);
                                 prevHitNormal = coords_dir_viewToWorldPrev(prevHitNormal);
                                 prevHitNormal = coords_dir_worldToView(prevHitNormal);
@@ -224,7 +224,7 @@ void main() {
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
                 const float FEEDBACK_THRESHOLD = float(SPATIAL_REUSE_FEEDBACK) / 255.0;
                 if (historyData.realHistoryLength < FEEDBACK_THRESHOLD) {
-                    ReSTIRReservoir prevSpatialReservoir = restir_reservoir_unpack(history_restir_reservoirSpatial_load(texelPos));
+                    ReSTIRReservoir prevSpatialReservoir = restir_reservoir_unpack(history_restir_reservoirSpatial_fetch(texelPos));
                     prevSpatialReservoir.m = uint(float(prevSpatialReservoir.m) * global_historyResetFactor);
 
                     vec3 prevSpatialSampleDirView = prevSpatialReservoir.Y.xyz;

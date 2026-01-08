@@ -45,7 +45,7 @@ layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        SpatialSampleData sampleData = spatialSampleData_unpack(transient_restir_spatialInput_load(texelPos));
+        SpatialSampleData sampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
         history_restir_prevSample_store(texelPos, sampleData.sampleValue);
         history_restir_prevHitNormal_store(texelPos, vec4(sampleData.hitNormal * 0.5 + 0.5, 0.0));
     }
@@ -71,7 +71,7 @@ void main() {
     uint rayIndex = 0xFFFFFFFFu;
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        SpatialSampleData sampleData = spatialSampleData_unpack(transient_restir_spatialInput_load(texelPos));
+        SpatialSampleData sampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
         history_restir_prevSample_store(texelPos, sampleData.sampleValue);
         history_restir_prevHitNormal_store(texelPos, vec4(sampleData.hitNormal * 0.5 + 0.5, 0.0));
         #if SETTING_DEBUG_OUTPUT
@@ -82,15 +82,15 @@ void main() {
                 vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
                 vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
-                SpatialSampleData centerSampleData = spatialSampleData_unpack(transient_restir_spatialInput_load(texelPos));
+                SpatialSampleData centerSampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
 
                 uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
                 uvec4 reprojectedData;
                 if (bool(frameCounter & 1)) {
-                    reprojectedData = history_restir_reservoirTemporal1_load(texelPos);
+                    reprojectedData = history_restir_reservoirTemporal1_fetch(texelPos);
                 } else {
-                    reprojectedData = history_restir_reservoirTemporal2_load(texelPos);
+                    reprojectedData = history_restir_reservoirTemporal2_fetch(texelPos);
                 }
                 ReSTIRReservoir spatialReservoir = restir_reservoir_unpack(reprojectedData);
 
@@ -146,7 +146,7 @@ void main() {
                         continue;
                     }
 
-                    SpatialSampleData neighborData = spatialSampleData_unpack(transient_restir_spatialInput_load(sampleTexelPos));
+                    SpatialSampleData neighborData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(sampleTexelPos));
 
                     if (dot(centerSampleData.geomNormal, neighborData.geomNormal) < 0.99) {
                         continue;
@@ -154,9 +154,9 @@ void main() {
                     float neighborViewZ = texelFetch(usam_gbufferViewZ, sampleTexelPos, 0).x;
                     uvec4 neighborReservoirData;
                     if (bool(frameCounter & 1)) {
-                        neighborReservoirData = history_restir_reservoirTemporal1_load(sampleTexelPos);
+                        neighborReservoirData = history_restir_reservoirTemporal1_fetch(sampleTexelPos);
                     } else {
-                        neighborReservoirData = history_restir_reservoirTemporal2_load(sampleTexelPos);
+                        neighborReservoirData = history_restir_reservoirTemporal2_fetch(sampleTexelPos);
                     }
                     ReSTIRReservoir neighborReservoir = restir_reservoir_unpack(neighborReservoirData);
                     vec2 neighborScreenPos = sampleTexelPosF * uval_mainImageSizeRcp;

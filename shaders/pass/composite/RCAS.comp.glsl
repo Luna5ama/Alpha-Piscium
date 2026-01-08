@@ -8,7 +8,7 @@ layout(rgba16f) uniform restrict writeonly image2D uimg_main;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 
 vec4 rcas_loadInput(ivec2 texelPos) {
-    vec4 data = transient_taaOutput_load(texelPos);
+    vec4 data = transient_taaOutput_fetch(texelPos);
     history_taa_store(texelPos, data);
     return data;
 }

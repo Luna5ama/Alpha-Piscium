@@ -40,7 +40,7 @@ void main() {
     ivec2 imgSizei = ivec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
     vec2 imgSize = vec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
     uint sliceIndex = gl_WorkGroupID.x;
-    vec4 sliceEndPoints = uintBitsToFloat(imageLoad(uimg_epipolarData, ivec2(sliceIndex, 0)));
+    vec4 sliceEndPoints = uintBitsToFloat(texelFetch(usam_epipolarData, ivec2(sliceIndex, 0), 0));
 
     uint cond = uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
 
