@@ -85,8 +85,9 @@ void main() {
     #if SETTING_DEBUG_OUTPUT == 4
     debugOutput(texelPos, outputColor);
     #endif
-
+    #if SETTING_DEBUG_OUTPUT
     debugFinalOutput(texelPos, outputColor);
+    #endif
 
     if (valid) {
         imageStore(uimg_main, texelPos, outputColor);

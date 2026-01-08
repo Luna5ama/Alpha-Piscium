@@ -51,13 +51,19 @@ int selectWeighted(vec4 bilinearWeights, vec4 bilateralWeights, float rand) {
 }
 
 void main() {
-    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+    uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
+    uvec2 workGroupOrigin = swizzledWGPos << 4u;
+    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uvec2 mortonPos = morton_8bDecode(threadIdx);
+    uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
+    ivec2 texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
         ReSTIRReservoir temporalReservoir = restir_initReservoir();
         if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0) {
-            float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(gl_WorkGroupID.xy, 4, texelPos);
+            float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
             if (viewZ > -65536.0) {
                 vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
                 vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
@@ -298,13 +304,12 @@ void main() {
                         vec3 hitViewPos = viewPos + sampleDirView * hitDistance;
                         vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
                         ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
-                        GBufferData hitGData = gbufferData_init();
-                        gbufferData1_unpack(texelFetch(usam_gbufferData1, hitTexelPos, 0), hitGData);
-                        hitNormal = hitGData.normal;
+                        vec4 hitNormalData = transient_viewNormal_fetch(hitTexelPos);
+                        hitNormal = normalize(hitNormalData.xyz * 2.0 - 1.0);
                     }
                     float avgWSum = wSum / float(temporalReservoir.m);
                     temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
-                        temporalReservoir.m = clamp(temporalReservoir.m, 0u, 16u);
+                    temporalReservoir.m = clamp(temporalReservoir.m, 0u, 16u);
                     ssgiOut = vec4(finalSample.xyz * finalSample.w * temporalReservoir.avgWY, temporalReservoir.Y.w);
                     #if USE_REFERENCE
                     ssgiOut = vec4(initalSample * safeRcp(samplePdf), hitDistance);
