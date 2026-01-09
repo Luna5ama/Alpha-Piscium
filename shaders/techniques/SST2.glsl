@@ -231,29 +231,30 @@ void sst_trace(inout SSTRay ray, uint hiZSteps) {
 
         // Precompute intersection constants for this mip level
         vec2 cellIdInvD = invDxy * invCellCount;
-        vec2 cellIdOffsetPlusFix = fma(cellIdOffsetBase, invCellCount, vec0Fix);
 
         // Position calculation using FMA
         vec3 currScreenPos = fma(pRayVector, vec3(currT), pRayStart);
 
         // Compute cell index
         vec2 currPosScaled = currScreenPos.xy * cellCount;
-        vec2 oldCellIdx = floor(currPosScaled);
+        ivec2 oldCellIdx = ivec2(currPosScaled);
 
-        vec2 cellZ = texelFetch(usam_hiz, shared_mipmapTilesOffsets[currLevel] + ivec2(oldCellIdx), 0).rg;
+        vec2 cellZ = texelFetch(usam_hiz, shared_mipmapTilesOffsets[currLevel] + oldCellIdx, 0).rg;
+        currLevel--;
 
         float maxZThicknessFactor = min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * maxThicknessFactor;
+
+        // Precompute cell boundary T
+        vec2 cellIdOffsetPlusFix = fma(cellIdOffsetBase, invCellCount, vec0Fix);
+        vec2 tVals = fma(vec2(oldCellIdx), cellIdInvD, cellIdOffsetPlusFix);
+        float cellBoundaryT = min(tVals.x, tVals.y);
 
         // Select depth based on ray direction
         float cellDepth = isBackwardRay ? cellZ.y : cellZ.x;
         float depthT = fma(cellDepth, invDz, negRayStartZxInvDz);
 
-        // Precompute cell boundary T
-        vec2 tVals = fma(oldCellIdx, cellIdInvD, cellIdOffsetPlusFix);
-        float cellBoundaryT = min(tVals.x, tVals.y);
-
         // Check if depthT crosses cell boundary
-        vec2 depthCellIdx = floor(fma(pRayVector.xy, vec2(depthT), pRayStart.xy) * cellCount);
+        ivec2 depthCellIdx = ivec2(fma(pRayVector.xy, vec2(depthT), pRayStart.xy) * cellCount);
         bool crossesCell = depthT > currT && any(notEqual(oldCellIdx, depthCellIdx));
 
         #ifdef SST_DEBUG_PASS
@@ -265,8 +266,6 @@ void sst_trace(inout SSTRay ray, uint hiZSteps) {
         }
         #endif
         #endif
-
-        currLevel--;
 
         if (isBackwardRay) {
             bool missedCell = cellZ.y < currScreenPos.z || cellZ.y > maxZThicknessFactor;

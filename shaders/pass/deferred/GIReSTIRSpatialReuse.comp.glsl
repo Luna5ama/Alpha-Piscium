@@ -255,9 +255,25 @@ void main() {
                     } else {
                         sstRay = sstray_setup(texelPos, viewPos, spatialReservoir.Y.xyz);
                     }
-                    uvec4 packedData = sstray_pack(sstRay);
-                    ssbo_rayData[dataIndex] = packedData;
-                    rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
+                    sst_trace(sstRay, 4);
+                    if (sstRay.currT > 0.0) {
+                        uvec4 packedData = sstray_pack(sstRay);
+                        ssbo_rayData[dataIndex] = packedData;
+                        rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
+                    } else {
+                        bool discardSptialReuse = true;
+                        if (sstRay.currT < -0.99) {
+                            discardSptialReuse = false;
+                        }
+
+                        if (discardSptialReuse) {
+                            resultReservoir = restir_initReservoir();
+                            ssgiOut = vec4(0.0);
+                            #if SETTING_DEBUG_OUTPUT
+                            imageStore(uimg_temp5, texelPos, vec4(0.0, 0.0, 1.0, 0.0));
+                            #endif
+                        }
+                    }
                 }
                 #if SETTING_DEBUG_OUTPUT
                 imageStore(uimg_temp5, texelPos, vvv);

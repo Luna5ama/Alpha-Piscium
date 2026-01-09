@@ -1,6 +1,6 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
-#define RAY_STEPS 128
+#define RAY_STEPS 124
 
 #include "/techniques/gi/FinishTrace.comp.glsl"
 #include "/techniques/gi/InitialSample.glsl"
