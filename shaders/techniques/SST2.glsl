@@ -199,7 +199,7 @@ void sst_trace(inout SSTRay ray, uint hiZSteps) {
     vec3 pRayVector = ray.pRayDir * ray.pRayVecLen;
 
     float maxThicknessFactor = shared_thicknessFactor;
-    const float NEAR_Z_THICKNESS_CLAMP = 0.05;
+    float nearZThicknessClamp = 0.05 * maxThicknessFactor;
 
     #ifdef SST_DEBUG_PASS
     const uvec2 DEBUG_COORD = uvec2(970, 760);
@@ -225,79 +225,72 @@ void sst_trace(inout SSTRay ray, uint hiZSteps) {
     int currLevel = ray.currLevel;
 
     for (uint i = 0u; i < hiZSteps; i++) {
+        ivec2 cellOffset = shared_mipmapTilesOffsets[currLevel];
         vec4 cellCountData = shared_cellCounts[currLevel];
         vec2 cellCount = cellCountData.xy;
         vec2 invCellCount = cellCountData.zw;
 
-        // Precompute intersection constants for this mip level
-        vec2 cellIdInvD = invDxy * invCellCount;
-
         // Position calculation using FMA
-        vec3 currScreenPos = fma(pRayVector, vec3(currT), pRayStart);
+        vec2 currScreenPosXY = fma(pRayVector.xy, vec2(currT), pRayStart.xy);
 
         // Compute cell index
-        vec2 currPosScaled = currScreenPos.xy * cellCount;
+        vec2 currPosScaled = currScreenPosXY * cellCount;
         ivec2 oldCellIdx = ivec2(currPosScaled);
 
-        vec2 cellZ = texelFetch(usam_hiz, shared_mipmapTilesOffsets[currLevel] + oldCellIdx, 0).rg;
-        currLevel--;
-
-        float maxZThicknessFactor = min(NEAR_Z_THICKNESS_CLAMP, currScreenPos.z) * maxThicknessFactor;
+        vec2 cellZ = texelFetch(usam_hiz, cellOffset + oldCellIdx, 0).rg;
+        currLevel++;
 
         // Precompute cell boundary T
-        vec2 cellIdOffsetPlusFix = fma(cellIdOffsetBase, invCellCount, vec0Fix);
-        vec2 tVals = fma(vec2(oldCellIdx), cellIdInvD, cellIdOffsetPlusFix);
+        vec2 boundaryPlanes = fma(vec2(oldCellIdx), invDxy, cellIdOffsetBase);
+        vec2 tVals = fma(boundaryPlanes, invCellCount, vec0Fix);
         float cellBoundaryT = min(tVals.x, tVals.y);
 
         // Select depth based on ray direction
         float cellDepth = isBackwardRay ? cellZ.y : cellZ.x;
         float depthT = fma(cellDepth, invDz, negRayStartZxInvDz);
+        // Separate Z position calculation and move it after texture fetch to hide latency
+        float currScreenPosZ = fma(pRayVector.z, currT, pRayStart.z);
 
         // Check if depthT crosses cell boundary
-        ivec2 depthCellIdx = ivec2(fma(pRayVector.xy, vec2(depthT), pRayStart.xy) * cellCount);
-        bool crossesCell = depthT > currT && any(notEqual(oldCellIdx, depthCellIdx));
+        bool crossesCell = depthT > cellBoundaryT;
+
+        float maxZThicknessFactor = min(nearZThicknessClamp, currScreenPosZ * maxThicknessFactor);
 
         #ifdef SST_DEBUG_PASS
         #ifdef SETTING_DEBUG_SST_STEPS
         if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
-            ssbo_testBuffer[i + 2048] = vec4(currT, currScreenPos.z, cellZ.x, cellZ.y);
-            ssbo_testBuffer[i] = vec4(currScreenPos.xy, 0.0, float(currLevel));
+            ssbo_testBuffer[i + 2048] = vec4(currT, currScreenPosZ, cellZ.x, cellZ.y);
+            ssbo_testBuffer[i] = vec4(currScreenPosXY, 0.0, float(currLevel + 1));
             atomicMax(global_atomicCounters[15], i);
         }
         #endif
         #endif
 
         if (isBackwardRay) {
-            bool missedCell = cellZ.y < currScreenPos.z || cellZ.y > maxZThicknessFactor;
+            bool missedCell = cellZ.y >= currScreenPosZ && cellZ.y <= maxZThicknessFactor;
             if (missedCell) {
-                if (crossesCell) {
-                    currT = min(cellBoundaryT, depthT);
-                    currLevel += 2;
-                } else if (currScreenPos.z <= cellZ.x) {
-                    currT = max(currT, depthT);
-                } else {
-                    currT = cellBoundaryT;
-                    currLevel += 2;
-                }
-            }
-        } else {
-            if (crossesCell) {
-                currT = min(cellBoundaryT, depthT);
-                currLevel += 2;
-            } else if (maxZThicknessFactor >= cellZ.y) {
+                currLevel -= 2;
+            } else if (!crossesCell && currScreenPosZ <= cellZ.x) {
                 currT = max(depthT, currT);
+                currLevel -= 2;
             } else {
                 currT = cellBoundaryT;
-                currLevel += 2;
+            }
+        } else {
+            if (!crossesCell && maxZThicknessFactor >= cellZ.y) {
+                currT = max(depthT, currT);
+                currLevel -= 2;
+            } else {
+                currT = cellBoundaryT;
             }
         }
-
-        currLevel = min(currLevel, maxMip);
 
         if (currT >= 1.0 || currLevel < STOP_LEVEL) {
             currT = -currT;
             break;
         }
+
+        currLevel = min(currLevel, maxMip);
     }
 
     ray.currT = currT;
