@@ -2976,7 +2976,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 }
             }
             empty()
-            toggle("SETTING_DRT_WORKING_COLOR_SPACE", 7, 0..7) {
+            toggle("SETTING_DRT_WORKING_COLOR_SPACE", 1, 0..7) {
                 lang {
                     name = "Tone Mapping Color Space"
                     comment =
