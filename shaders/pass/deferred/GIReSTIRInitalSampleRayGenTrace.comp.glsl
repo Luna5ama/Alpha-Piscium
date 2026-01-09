@@ -79,7 +79,7 @@ void main() {
             transient_viewNormal_store(texelPos, viewNormalData);
             history_geomViewNormal_store(texelPos, geomNormalData);
             history_viewNormal_store(texelPos, viewNormalData);
-            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, material.tbn);
+            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, material.tbn);
 
             SSTRay sstRay = sstray_setup(texelPos, viewPos, rayDirView);
             sst_trace(sstRay, 24);

@@ -12,7 +12,7 @@ struct restir_InitialSampleData {
     vec3 hitRadiance;
 };
 
-vec3 restir_initialSample_generateRayDir(ivec2 texelPos, mat3 tbn) {
+vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, mat3 tbn) {
     uvec4 randKey = uvec4(texelPos, 1919810u, RANDOM_FRAME);
 
     vec2 rand2 = hash_uintToFloat(hash_44_q3(randKey).zw);
@@ -26,12 +26,16 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, mat3 tbn) {
     // vec3 sampleDirTangent = rand_stbnUnitVec3Cosine(stbnPos, RANDOM_FRAME);
     // vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
 
+    if (dot(sampleDirView, geomNormal) < 0.0) {
+        sampleDirView = reflect(sampleDirView, geomNormal);
+    }
+
     return sampleDirView;
 }
 
-restir_InitialSampleData restir_initalSample_restoreData(ivec2 texelPos, float viewZ, Material selfMaterial, float hitDistance) {
+restir_InitialSampleData restir_initalSample_restoreData(ivec2 texelPos, float viewZ, vec3 geomNormal, Material selfMaterial, float hitDistance) {
     restir_InitialSampleData initialSampleData;
-    vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, selfMaterial.tbn);
+    vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, geomNormal, selfMaterial.tbn);
     initialSampleData.directionAndLength.xyz = rayDirView;
     initialSampleData.directionAndLength.w = hitDistance;
     vec2 rayOriginScreenXY = coords_texelToUV(texelPos, uval_mainImageSizeRcp);

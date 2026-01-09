@@ -279,7 +279,7 @@ void main() {
 
                 {
                     float hitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
-                    restir_InitialSampleData initialSample = restir_initalSample_restoreData(texelPos, viewZ, material, hitDistance);
+                    restir_InitialSampleData initialSample = restir_initalSample_restoreData(texelPos, viewZ, gData.geomNormal, material, hitDistance);
                     vec3 hitRadiance = initialSample.hitRadiance;
                     vec3 sampleDirView = initialSample.directionAndLength.xyz;
 

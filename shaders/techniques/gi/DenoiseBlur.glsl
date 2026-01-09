@@ -156,7 +156,7 @@ void main() {
 
             //            float baseColorWeight = hitDistFactor * 0.5 + 0.5;
 
-            float baseNormalWeight = invAccumFactor * 4.0;
+            float baseNormalWeight = invAccumFactor * 16.0;
             float basePlaneDistWeight = invAccumFactor * -512.0;
 
             vec4 diffResult = centerDiff;

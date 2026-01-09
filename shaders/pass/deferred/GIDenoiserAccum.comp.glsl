@@ -122,7 +122,7 @@ void main() {
                     float newHitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
                     float regularFastAlpha = rcpAccumHistoryLength.y;
 
-                    if (newHitDistance > 0.01) {
+                    if (newHitDistance >= 0.0) {
                         newHitDistance = min(newHitDistance, MAX_HIT_DISTANCE);
                         historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, regularFastAlpha);
                     }
