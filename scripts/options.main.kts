@@ -45,7 +45,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "控制岩浆的色温（开尔文）。默认值：1300 K（基于真实岩浆）。数值越高，光线越白/越蓝。"
                         }
                     }
-                    slider("SETTING_EMISSIVE_STRENGTH", 2.0, 0.0..8.0 step 0.25) {
+                    slider("SETTING_EMISSIVE_STRENGTH", 4.0, 0.0..16.0 step 0.5) {
                         lang {
                             name = "Emissive Brightness"
                             comment = "Global brightness multiplier for all light-emitting materials and blocks."
