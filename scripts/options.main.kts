@@ -397,7 +397,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "数值越高，阴影越锐利、越细致，但会降低性能。"
                     }
                 }
-                constSlider("shadowDistance", 192.0, listOf(64.0, 128.0, 192.0, 256.0, 384.0, 512.0)) {
+                constSlider("shadowDistance", 512.0, listOf(64.0, 128.0, 192.0, 256.0, 384.0, 512.0)) {
                     lang {
                         name = "Shadow Render Distance"
                         comment = "How far from the player shadows map are rendered."
@@ -2641,7 +2641,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "色调映射和调色"
                 }
-                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 13.5, 4.0..32.0 step 0.5) {
+                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 15.0, 4.0..32.0 step 0.5) {
                     lang {
                         name = "Dynamic Range"
                         comment =
@@ -2741,7 +2741,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_POWER_R", 1.0, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_R", 1.05, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Red Contrast"
                         comment =
@@ -2752,7 +2752,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "调整红色通道的对比度。数值越高，红色对比度越大，使红色更具戏剧性。"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_POWER_G", 1.0, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_G", 1.05, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Green Contrast"
                         comment =
@@ -2763,7 +2763,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "调整绿色通道的对比度。数值越高，绿色对比度越大。"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_POWER_B", 1.0, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_B", 1.05, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Blue Contrast"
                         comment =
@@ -2775,7 +2775,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_SATURATION", 1.1, 0.0..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SATURATION", 1.25, 0.0..2.0 step 0.01) {
                     lang {
                         name = "Color Saturation"
                         comment =
@@ -2976,7 +2976,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 }
             }
             empty()
-            toggle("SETTING_DRT_WORKING_COLOR_SPACE", 3, 0..7) {
+            toggle("SETTING_DRT_WORKING_COLOR_SPACE", 7, 0..7) {
                 lang {
                     name = "Tone Mapping Color Space"
                     comment =

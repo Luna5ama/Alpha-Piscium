@@ -174,7 +174,7 @@ void main() {
             coords_cubeMapForward(reflectDirWorld, envSliceUV, envSliceID);
             ivec2 envTexel = ivec2((envSliceUV + envSliceID) * ENV_PROBE_SIZE);
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
-            vec3 reflectColor = envData.radiance.rgb * RCP_PI;
+            vec3 reflectColor = envData.radiance.rgb;
             if (envProbe_isSky(envData) && reflectDirWorld.y > 0.0) {
                 AtmosphereParameters atmosphere = getAtmosphereParameters();
                 SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, reflectDirWorld);

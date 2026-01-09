@@ -250,7 +250,7 @@ vec4 bloom_main(ivec2 texelPos) {
 }
 vec4 bloom_mainOutput(ivec2 texelPos) {
     vec4 result = bloom_main(texelPos);
-    float intensity = -5.0;
+    float intensity = -5.5;
     intensity += SETTING_BLOOM_INTENSITY;
     if (isEyeInWater == 1) {
         intensity += SETTING_BLOOM_UNDERWATER_BOOST;
