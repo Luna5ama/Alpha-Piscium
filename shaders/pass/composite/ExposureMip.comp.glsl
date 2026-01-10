@@ -19,7 +19,7 @@ vec4 spd_loadInput(ivec2 texelPos, uint slice) {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 weightData = transient_exposureWeights_fetch(texelPos);
         float weight = weightData.x * weightData.y;
-        vec3 color = transient_taaOutput_fetch(texelPos).rgb;
+        vec3 color = texelFetch(usam_main, texelPos, 0).rgb;
         result = vec4(color * weight, weight);
     }
     return result;

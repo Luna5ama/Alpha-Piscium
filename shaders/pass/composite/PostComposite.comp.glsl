@@ -8,14 +8,10 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 #include "/techniques/debug/DebugOutput.glsl"
 #include "/techniques/displaytransform/DisplayTransform.glsl"
-#include "/techniques/debug/DebugFinalOutput.glsl"
 #include "/util/Colors2.glsl"
 #include "/util/Coords.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/AgxInvertible.glsl"
-
-#if SETTING_DEBUG_TEMP_TEX != 6
-#endif
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 
@@ -70,24 +66,7 @@ void main() {
         outputColor.a = abs(outputColor.a);
     }
 
-    vec4 basicColor = texelFetch(usam_overlays, texelPos, 0);
-
     displaytransform_apply(valid, outputColor);
-
-    outputColor.rgb = mix(outputColor.rgb, basicColor.rgb, basicColor.a);
-
-    #ifdef SETTING_DOF_SHOW_FOCUS_PLANE
-    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-    float alpha = float(viewZ < -global_focusDistance);
-    outputColor.rgb = mix(outputColor.rgb, vec3(1.0, 0.0, 1.0), alpha * 0.25);
-    #endif
-
-    #if SETTING_DEBUG_OUTPUT == 4
-    debugOutput(texelPos, outputColor);
-    #endif
-    #if SETTING_DEBUG_OUTPUT
-    debugFinalOutput(texelPos, outputColor);
-    #endif
 
     if (valid) {
         imageStore(uimg_main, texelPos, outputColor);
