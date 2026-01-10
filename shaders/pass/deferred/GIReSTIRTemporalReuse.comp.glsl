@@ -224,10 +224,10 @@ void main() {
                 Material material = material_decode(gData);
 
                 // TODO: jacobian and reprojection check
-                #if SPATIAL_REUSE_FEEDBACK
+                #if SETTING_GI_SPATIAL_REUSE_FEEDBACK
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
-                const float FEEDBACK_THRESHOLD = float(SPATIAL_REUSE_FEEDBACK) / 255.0;
+                const float FEEDBACK_THRESHOLD = float(SETTING_GI_SPATIAL_REUSE_FEEDBACK) / 255.0;
                 if (historyData.realHistoryLength < FEEDBACK_THRESHOLD) {
                     ReSTIRReservoir prevSpatialReservoir = restir_reservoir_unpack(history_restir_reservoirSpatial_fetch(texelPos));
                     prevSpatialReservoir.m = uint(float(prevSpatialReservoir.m) * global_historyResetFactor);

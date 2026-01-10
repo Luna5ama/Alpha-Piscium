@@ -17,7 +17,7 @@ layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 
-#if ENABLE_DENOISER_FAST_CLAMP
+#ifdef SETTING_DENOISER_FAST_HISTORY_CLAMPING
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
 shared uvec4 shared_YCoCgData[20][20];
@@ -98,7 +98,7 @@ void main() {
                 // 0.0 = Full fix, 1.0 = No fix
                 float historyFixMix = pow2(linearStep(1.0, 4.0, historyLengthInt));
 
-                #if DENOISER_HISTORY_FIX
+                #ifdef SETTING_DENOISER_HISTORY_FIX
                 if (historyFixMix < 1.0) {
                     vec2 texelPos0 = vec2(texelPos) + 0.5;
                     vec3 geomNormal0 = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
@@ -176,7 +176,7 @@ void main() {
                 barrier();
                 float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 2u), frameCounter);
                 vec2 filteredHitDitances = vec2(MAX_HIT_DISTANCE);
-                #if ENABLE_DENOISER_FAST_CLAMP
+                #ifdef SETTING_DENOISER_FAST_HISTORY_CLAMPING
                 {
                     vec3 diffMoment1 = vec3(0.0);
                     vec3 diffMoment2 = vec3(0.0);

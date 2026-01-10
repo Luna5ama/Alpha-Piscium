@@ -84,7 +84,7 @@ void main() {
                     // y: specular
                     vec2 newWeights = vec2(1.0);
 
-                    #if ENABLE_DENOISER_ACCUM
+                    #ifdef SETTING_DENOISER_ACCUM
 
                     historyLength = historyData.historyLength * TOTAL_HISTORY_LENGTH * global_historyResetFactor;
                     historyLength += 1.0;

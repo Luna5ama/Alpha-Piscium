@@ -10,7 +10,6 @@
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/rtwsm/RTWSM.glsl"
 #include "/techniques/atmospherics/clouds/ss/Common.glsl"
-#include "/techniques/gi/Common.glsl"
 
 uniform sampler2D usam_debug;
 

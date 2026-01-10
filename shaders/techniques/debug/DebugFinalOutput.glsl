@@ -1,5 +1,6 @@
 #include "Common.glsl"
 #include "/util/TextRender.glsl"
+#include "/techniques/gi/Common.glsl"
 
 #ifdef SETTING_DEBUG_SST_STEPS
 layout(std430, binding = 3) buffer TestBuffer {
@@ -26,25 +27,29 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
 
     printString((_S, _p, _a, _t, _i, _a, _l, _space));
     printString((_r, _e, _u, _s, _e, _colon, _space));
-    printBool(SPATIAL_REUSE == 1);
+    #ifdef SETTING_GI_SPATIAL_REUSE
+    printBool(true);
+    #else
+    printBool(false);
+    #endif
     printLine();
 
     printString((_S, _p, _a, _t, _i, _a, _l, _space));
     printString((_r, _e, _u, _s, _e, _space));
     printString((_s, _a, _m, _p, _l, _e, _s, _colon, _space));
-    printInt(SPATIAL_REUSE_SAMPLES);
+    printInt(SETTING_GI_SPATIAL_REUSE_COUNT);
     printLine();
 
     printString((_S, _p, _a, _t, _i, _a, _l, _space));
     printString((_r, _e, _u, _s, _e, _space));
     printString((_r, _a, _d, _i, _u, _s, _colon, _space));
-    printInt(SPATIAL_REUSE_RADIUS);
+    printInt(SETTING_GI_SPATIAL_REUSE_RADIUS);
     printLine();
 
     printString((_S, _p, _a, _t, _i, _a, _l, _space));
     printString((_r, _e, _u, _s, _e, _space));
     printString((_f, _e, _e, _d, _b, _a, _c, _k, _colon, _space));
-    printInt(SPATIAL_REUSE_FEEDBACK);
+    printInt(SETTING_GI_SPATIAL_REUSE_FEEDBACK);
     printLine();
 
 
@@ -84,25 +89,41 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
 
     printString((_D, _e, _n, _o, _i, _s, _e, _r, _space, _colon, _space));
-    printBool(ENABLE_DENOISER == 1);
+    #ifdef SETTING_DENOISER_SPATIAL
+    printBool(true);
+    #else
+    printBool(false);
+    #endif
     printLine();
 
     printString((_D, _e, _n, _o, _i, _s, _e, _r, _space, _A, _c, _c, _u, _m, _space, _colon, _space));
-    printBool(ENABLE_DENOISER_ACCUM == 1);
+    #ifdef SETTING_DENOISER_ACCUM
+    printInt(SETTING_DENOISER_HISTORY_LENGTH);
+    #else
+    printInt(0);
+    #endif
     printLine();
 
     printString((_D, _e, _n, _o, _i, _s, _e, _r, _space, _F, _a, _s, _t, _space, _C, _l, _a, _m, _p, _space, _colon, _space));
-    printBool(ENABLE_DENOISER_FAST_CLAMP == 1);
+    #ifdef SETTING_DENOISER_FAST_HISTORY_CLAMPING
+    printInt(SETTING_DENOISER_FAST_HISTORY_LENGTH);
+    #else
+    printInt(0);
+    #endif
     printLine();
 
     printString((_D, _e, _n, _o, _i, _s, _e, _r, _space, _A, _n, _t, _i, _space, _F, _i, _r, _e, _f, _l, _y, _space, _colon, _space));
-    printBool(ENABLE_DENOISER_ANTI_FIREFLY == 1);
+    printInt(SETTING_DENOISER_FIREFLY_SUPPRESSION);
     printLine();
 
     printLine();
 
     printString((_D, _e, _n, _o, _i, _s, _e, _r, _space, _H, _i, _s, _t, _o, _r, _y, _space, _F, _i, _x, _space, _colon, _space));
-    printBool(DENOISER_HISTORY_FIX == 1);
+    #ifdef SETTING_DENOISER_HISTORY_FIX
+    printBool(true);
+    #else
+    printBool(false);
+    #endif
     printLine();
     #endif
 
