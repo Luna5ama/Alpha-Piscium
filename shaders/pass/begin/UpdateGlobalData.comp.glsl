@@ -253,7 +253,7 @@ void main() {
         global_motionFactor = vec4(cameraSpeed, cameraSpeedDiff, frontVecDiff, 0.0);
 
         #ifdef SETTING_DOF_MANUAL_FOCUS
-        global_focusDistance = SETTING_DOF_FOCUS_DISTANCE_COARSE + SETTING_DOF_FOCUS_DISTANCE_FINE;
+        global_focusDistance = SETTING_DOF_FOCUS_DISTANCE_COARSE_COARSE + SETTING_DOF_FOCUS_DISTANCE_COARSE + SETTING_DOF_FOCUS_DISTANCE_FINE;
         #endif
 
         #ifdef SETTING_ATM_MIE_TIME

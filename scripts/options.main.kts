@@ -2187,6 +2187,19 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "手动设置对焦距离，而不是自动对焦到您正在看的东西。"
                     }
                 }
+                slider("SETTING_DOF_FOCUS_DISTANCE_COARSE_COARSE", 0, 0..10000 step 100) {
+                    lang {
+                        name = "Focus Distance (Coarse x100)"
+                        suffix = " m"
+                        comment =
+                            "Rough focus distance adjustment in meters. Only works with Manual Focus enabled."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "对焦距离（粗调 x100）"
+                        suffix = " 米"
+                        comment = "以米为单位的粗略对焦距离调整。仅在启用手动对焦时有效。"
+                    }
+                }
                 slider("SETTING_DOF_FOCUS_DISTANCE_COARSE", 10, 1..100) {
                     lang {
                         name = "Focus Distance (Coarse)"
