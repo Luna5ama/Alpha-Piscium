@@ -130,6 +130,9 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     #ifdef SETTING_DEBUG_AE
     printString((_A, _u, _t, _o, _space, _E, _x, _p, _o, _s, _u, _r, _e));
     printLine();
+    printString((_D, _y, _n, _a, _m, _i, _c, _space, _R, _a, _n, _g, _e, _colon, _space));
+    printFloat(SETTING_TONE_MAPPING_DYNAMIC_RANGE);
+    printLine();
     printString((_A, _v, _g, _space, _C, _o, _l, _o, _r, _colon, _space));
     printVec3(global_aeData.screenAvgLum.xyz);
     printLine();
