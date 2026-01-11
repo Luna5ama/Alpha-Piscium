@@ -22,6 +22,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
+layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
@@ -116,6 +117,9 @@ void main() {
         barrier();
 
         if (centerGeomData.viewPos.z > -65536.0) {
+            history_geomViewNormal_store(texelPos, vec4(centerGeomData.geomNormal * 0.5 + 0.5, 0.0));
+            history_viewNormal_store(texelPos, vec4(centerGeomData.normal * 0.5 + 0.5, 0.0));
+
             GIHistoryData historyData = gi_historyData_init();
             gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
             vec2 hitDistanceFactors = transient_gi_hitDistanceFactors_fetch(texelPos).xy;
@@ -249,7 +253,7 @@ void main() {
             #if SETTING_DEBUG_OUTPUT
             if (RANDOM_FRAME < MAX_FRAMES){
                 // imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
-                imageStore(uimg_temp3, texelPos, hitDistanceFactors.xxxx);
+//                imageStore(uimg_temp3, texelPos, hitDistanceFactors.xxxx);
                 // imageStore(uimg_temp3, texelPos, sigma.xxxx);
             }
             #endif
@@ -284,6 +288,11 @@ void main() {
             history_gi4_store(texelPos, packedData4);
             history_gi5_store(texelPos, packedData5);
             #endif
+
+            return;
         }
     }
+
+    history_geomViewNormal_store(texelPos, vec4(0.0));
+    history_viewNormal_store(texelPos, vec4(0.0));
 }

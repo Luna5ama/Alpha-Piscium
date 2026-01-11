@@ -77,8 +77,6 @@ void main() {
             transient_solidAlbedo_store(texelPos, albedoAndEmissive);
             transient_geomViewNormal_store(texelPos, geomNormalData);
             transient_viewNormal_store(texelPos, viewNormalData);
-            history_geomViewNormal_store(texelPos, geomNormalData);
-            history_viewNormal_store(texelPos, viewNormalData);
             vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, material.tbn);
 
             SSTRay sstRay = sstray_setup(texelPos, viewPos, rayDirView);
@@ -95,8 +93,6 @@ void main() {
         } else {
             transient_geomViewNormal_store(texelPos, vec4(0.0));
             transient_viewNormal_store(texelPos, vec4(0.0));
-            history_geomViewNormal_store(texelPos, vec4(0.0));
-            history_viewNormal_store(texelPos, vec4(0.0));
             transient_solidAlbedo_store(texelPos, vec4(0.0));
         }
     }

@@ -762,7 +762,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "在多帧中累积GI结果以提高质量。"
                     }
                 }
-                slider("SETTING_DENOISER_HISTORY_LENGTH", 64, powerOfTwoRangeAndHalf(2..8)) {
+                slider("SETTING_DENOISER_HISTORY_LENGTH", 256, powerOfTwoRangeAndHalf(2..8)) {
                     lang {
                         name = "Temporal History Length"
                         comment = "Number of frames to accumulate for temporal denoising."
@@ -783,7 +783,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "夹紧到快速历史以减少重影伪影。"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 8, powerOfTwoRangeAndHalf(2..8)) {
+                slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 32, powerOfTwoRangeAndHalf(2..8)) {
                     lang {
                         name = "Temporal Fast History Length"
                         comment =
@@ -795,7 +795,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FIREFLY_SUPPRESSION", 3, 0..10) {
+                slider("SETTING_DENOISER_FIREFLY_SUPPRESSION", 5, 0..10) {
                     lang {
                         name = "Firefly Suppression Strength"
                         comment =
@@ -839,7 +839,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 64, powerOfTwoRangeAndHalf(2..8)) {
+                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 256, powerOfTwoRangeAndHalf(2..8)) {
                     lang {
                         name = "Stabilization Maximum Accumulated Frames"
                         comment =
