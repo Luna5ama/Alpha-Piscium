@@ -75,7 +75,19 @@ void main() {
     vec2 unjitterTexelPos = texelCenter + global_taaJitter;
     vec2 unjitterScreenPos = screenPos + global_taaJitter * uval_mainImageSizeRcp;
 
-    float currViewZ = textureLod(usam_gbufferViewZ, unjitterScreenPos, 0.0).r;
+    // Looks like this is fast enough without shared memory
+    float currViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    ivec2 offsetNeg = max(ivec2(-1, -1) + texelPos, ivec2(0)) - texelPos;
+    ivec2 offsetPos = min(ivec2(1, 1) + texelPos, uval_mainImageSizeI - 1) - texelPos;
+    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetNeg.x, 0), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetPos.x, 0), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(0, offsetNeg.y), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(0, offsetPos.y), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetNeg.x, offsetNeg.y), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetPos.x, offsetNeg.y), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetNeg.x, offsetPos.y), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetPos.x, offsetPos.y), 0).r, currViewZ);
+
     GBufferData gData = gbufferData_init();
     gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
     vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
@@ -152,7 +164,6 @@ void main() {
 
     barrier();
 
-    // Sample currColor using Lanczos2 from shared memory
     vec3 currColor;
     {
         vec2 centerPixel = unjitterTexelPos - 0.5;
@@ -216,8 +227,10 @@ void main() {
         vec3 stddev = sqrt(abs(variance));
 
         vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
-        vec3 varianceAABBMin = mean - stddev * 1.0;
-        vec3 varianceAABBMax = mean + stddev * 1.0;
+
+        const float varianceAABBSize = 1.0;
+        vec3 varianceAABBMin = mean - stddev * varianceAABBSize;
+        vec3 varianceAABBMax = mean + stddev * varianceAABBSize;
         varianceAABBMin = clamp(varianceAABBMin, box.minVal, currColorYCoCg);
         varianceAABBMax = clamp(varianceAABBMax, currColorYCoCg, box.maxVal);
 
