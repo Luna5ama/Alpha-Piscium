@@ -2426,7 +2426,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_EXPOSURE_MIN_EV", -4.0, -32.0..32.0 step 0.5) {
+                slider("SETTING_EXPOSURE_MIN_EV", -3.0, -32.0..32.0 step 0.5) {
                     lang {
                         name = "Auto Exposure Min EV"
                     }
@@ -2520,7 +2520,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "黑暗环境（洞穴、夜晚）的目标亮度。数值越高，暗场景越亮。"
                     }
                 }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 132, 1..255) {
+                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 140, 1..255) {
                     lang {
                         name = "Bright Scene Target Brightness"
                         comment =

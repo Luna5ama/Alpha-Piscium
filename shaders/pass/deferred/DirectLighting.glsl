@@ -24,7 +24,7 @@ layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
 
 ivec2 texelPos;
 
-void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffuseOut, inout vec3 mainOut, inout vec4 giOut1, inout vec4 giOut2) {
+void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 mainOut, inout vec4 giOut1, inout vec4 giOut2) {
     vec3 emissiveV = material.emissive;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
@@ -64,10 +64,6 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 directDiffus
     mainOut += combinedLighting.diffuse;
     mainOut += combinedLighting.specular;
     mainOut += combinedLighting.sss;
-
-    directDiffuseOut += combinedLighting.diffuse;
-    directDiffuseOut += combinedLighting.sss;
-    directDiffuseOut /= material.albedo;
 
     giOut1.rgb += combinedLighting.diffuseLambertian;
     giOut1.rgb += combinedLighting.sss;
@@ -110,14 +106,13 @@ void main() {
             giOut1.rgb = transient_gi1Reprojected_fetch(texelPos).rgb;
 
             vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
-            vec3 directDiffuseOut = vec3(0.0);
             if (lighting_gData.materialID == 65534u) {
                 mainOut = vec4(material.albedo * 0.01, 2.0);
                 giOut1 = vec4(0.0);
             } else {
                 giOut1.rgb *= min(material.albedo, 0.95);
                 giOut1.rgb *= GI_MB;
-                doLighting(material, viewPos, lighting_gData.normal, directDiffuseOut, mainOut.rgb, giOut1, giOut2);
+                doLighting(material, viewPos, lighting_gData.normal, mainOut.rgb, giOut1, giOut2);
                 float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(material.albedo));
                 float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
             }
@@ -138,8 +133,6 @@ void main() {
         }
 
         {
-            vec3 directDiffuseOut = vec3(0.0);
-
             uvec4 packedZNOut = uvec4(0u);
             packedZNOut.y = floatBitsToUint(-65536.0);
             transient_giRadianceInputs_store(texelPos, uvec4(0u));

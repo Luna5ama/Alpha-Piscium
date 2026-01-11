@@ -37,7 +37,7 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 V, vec3 L
     LightingResult result;
 
     float diffuseBaseF = 1.0 - material.metallic;
-    vec3 diffuseBaseVec3 = diffuseBaseF * (irradiance.rgb * (vec3(1.0) - fresnel) * material.albedo);
+    vec3 diffuseBaseVec3 = diffuseBaseF * (irradiance.rgb * (1.0 - fresnel) * material.albedo);
 
     result.diffuse = diffuseBaseVec3 * bsdf_diffuseHammon(material, NDotL, NDotV, LDotH, LDotV);
     result.diffuseLambertian = diffuseBaseVec3 * (RCP_PI * saturate(NDotL));
@@ -47,7 +47,7 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 V, vec3 L
 
     float phase = phasefunc_BiLambertianPlate(-LDotV, 0.3);
     float sssV = material.sss * phase * SETTING_SSS_STRENGTH;
-    result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb;
+    result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb * RCP_PI;
 
     result.specular = irradiance.rgb * fresnel * bsdf_ggx(material, NDotL, NDotV, NDotH);
     result.specular = min(result.specular, SETTING_MAXIMUM_SPECULAR_LUMINANCE);

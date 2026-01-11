@@ -7,9 +7,9 @@
             MIT License. Copyright (c) 2023 Pascal Gilcher.
         [HAM17] Hammon, Earl, Jr. "PBR Diffuse Lighting for GGX+Smith Microsurfaces". GDC 2017. 2017.
             https://ubm-twvideo01.s3.amazonaws.com/o1/vault/gdc2017/Presentations/Hammon_Earl_PBR_Diffuse_Lighting.pdf
-        [HOF13] Hoffman, Naty. "Crafting Physically Motivated Shading Models for Game Development".
-            SIGGRAPH 2010 Course: Physically Based Shading Models in Film and Game Production. 2010.
-            https://michael-hofmann.net/2013/04/30/a-practical-model-for-anisotropic-brdfs/
+        [HOF10] Hoffman, Naty. "Background: Physics and Math of Shading".
+            SIGGRAPH 2012 Course: Practical Physically Based Shading in Film and Game Production. 2010.
+            https://blog.selfshadow.com/publications/s2012-shading-course/hoffman/s2012_pbs_physics_math_notes.pdf
         [KAR10] Karis, Brian. "Specular BRDF Reference". Graphic Rants. 2013.
             https://graphicrants.blogspot.com/2013/08/specular-brdf-reference.html
 
@@ -24,7 +24,7 @@ vec3 bsdf_diffuseHammon(Material material, float NDotL, float NDotV, float NDotH
     if (NDotL <= 0.0) return vec3(0.0);
     float facing = saturate(0.5 * LDotV + 0.5);
 
-    // Jessie modification for energy conservation
+    // Jessie's modification for energy conservation
     float fresnelNL = fresnel_dielectricDielectric_transmittance(max(NDotL, 1e-2), vec3(AIR_IOR), vec3(fresnel_f0ToIor(material.f0))).x;
     float fresnelNV = fresnel_dielectricDielectric_transmittance(max(NDotV, 1e-2), vec3(AIR_IOR), vec3(fresnel_f0ToIor(material.f0))).x;
     float energyConservationFactor = 1.0 - (4.0 * sqrt(material.f0) + 5.0 * material.f0 * material.f0) * rcp(9.0);
@@ -33,7 +33,7 @@ vec3 bsdf_diffuseHammon(Material material, float NDotL, float NDotV, float NDotH
     float singleRough = facing * (0.9 - 0.4 * facing) * (0.5 + NDotH) / NDotH;
     float single = mix(singleSmooth, singleRough, material.roughness) * RCP_PI;
     float multi = 0.1159 * material.roughness;
-    return NDotL * (singleRough + material.albedo * multi);
+    return NDotL * (single + material.albedo * multi);
 }
 
 // [KAR13]
@@ -54,7 +54,7 @@ float bsdf_ggx(Material material, float NDotL, float NDotV, float NDotH) {
     float k = material.roughness * 0.5;
     float v = rcp(_bsdf_g_Smith_Schlick_denom(NDotL, k) * _bsdf_g_Smith_Schlick_denom(saturate(NDotV), k));
 
-    return NDotL * d * v;
+    return NDotL * d * v * 0.25;
 }
 
 // [GIL23]
