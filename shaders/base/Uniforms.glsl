@@ -30,9 +30,6 @@ uniform vec3 upPosition;                        // direction up
 uniform vec3 cameraPosition;                    // camera position in world space
 uniform vec3 previousCameraPosition;            // last frame cameraPosition
 
-uniform vec3 cameraPositionFract;
-uniform ivec3 cameraPositionInt;
-
 uniform mat4 gbufferModelView;                  // modelview matrix after setting up the camera transformations
 uniform mat4 gbufferModelViewInverse;           // inverse gbufferModelView
 uniform mat4 gbufferPreviousModelView;          // last frame gbufferModelView
@@ -77,6 +74,10 @@ uniform float alphaTestRef;                     // alpha test reference value, t
 // 1.19+
 uniform float darknessFactor;                   // strength of the darkness effect (0.0-1.0)
 uniform float darknessLightFactor;              // lightmap variations caused by the darkness effect (0.0-1.0)
+
+// Iris
+uniform vec3 cameraPositionFract;
+uniform ivec3 cameraPositionInt;
 
 #ifdef DISTANT_HORIZONS
 uniform float dhNearPlane;

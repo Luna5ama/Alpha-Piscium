@@ -219,12 +219,12 @@ void main() {
         taaResetFactor.yz *= 1.0 - startOrEndMoveRotateF;
         taaResetFactor.z *= float(frameCounter > SETTING_SCREENSHOT_MODE_SKIP_INITIAL);
         #endif
-        taaResetFactor.y *= 1.0 - startOrEndMoveF * 0.5;
-        taaResetFactor.z *= 1.0 - startOrEndMoveF * 0.25;
+        taaResetFactor.y *= 1.0 - startOrEndMoveF * 0.75;
+        taaResetFactor.y *= 1.0 - pow((saturate(0.999999 - frontVecDiff)), 0.25);
         const float DECAY = 0.1;
         float log2Speed = log2(cameraSpeed + 1.0);
         taaResetFactor.y *= DECAY * rcp(DECAY + log2Speed + pow3(max(-16.0 * cameraSpeedDiff, 0.0)));
-        taaResetFactor.x += log2(log2Speed + abs(cameraSpeedDiff) * 2.0 + 1.0) * 2.0;
+        taaResetFactor.x += sqrt(log2Speed + abs(cameraSpeedDiff) * 2.0) * 1.0;
         taaResetFactor.z *= newResetFactor;
 
         vec4 finalTaaResetFactor = mix(global_taaResetFactor, taaResetFactor, 0.25);
