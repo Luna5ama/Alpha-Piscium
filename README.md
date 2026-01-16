@@ -8,7 +8,7 @@ Discord server link: https://discord.gg/E2Uq2MmHgq
 
 ## Features
 -  **Real-time Global Illumination**
-    - [*Reservoir-based SpatioTemporal Importance Resampling*](https://arxiv.org/pdf/2301.11376) (ReSTIR) based Screen-Space Global Illumination
+    - [*Reservoir-based SpatioTemporal Importance Resampling*](https://research.nvidia.com/sites/default/files/pubs/2020-07_Spatiotemporal-reservoir-resampling/ReSTIR.pdf) (ReSTIR) based Screen-Space Global Illumination
     - [*ReBLUR*](https://doi.org/10.1007/978-1-4842-7185-8_49) based denoising
 - Realistic, real-time, and fast **Atmospheric Scattering**
     - [*Unreal Engine Sky Atmosphere Rendering Technique*](https://sebh.github.io/publications/egsr2020.pdf)
