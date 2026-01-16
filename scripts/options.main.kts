@@ -628,7 +628,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "屏幕空间追踪的假定厚度。"
                     }
                 }
-                slider("SETTING_GI_PROBE_FADE_START", 4, powerOfTwoRange(2..8)) {
+                slider("SETTING_GI_PROBE_FADE_START", 4, powerOfTwoRange(2..10)) {
                     lang {
                         name = "Environment Probe Fade Start"
                         comment = "Distance in blocks where environment probe lighting begins to fade out."
@@ -638,7 +638,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "环境探针照明开始淡出的距离（方块数）。"
                     }
                 }
-                slider("SETTING_GI_PROBE_FADE_END", 32, powerOfTwoRange(2..8)) {
+                slider("SETTING_GI_PROBE_FADE_END", 32, powerOfTwoRange(2..10)) {
                     lang {
                         name = "Environment Probe Fade End"
                         comment = "Distance in blocks where environment probe lighting is completely faded out."
