@@ -145,7 +145,7 @@ GBufferData processOutput() {
         if (dot(geomViewNormal, uval_upDirView) > UP_DIR_COS_EPSILON) {
             const uint PARALLAX_LINEAR_STEPS = uint(SETTING_WATER_PARALLAX_LINEAR_STEPS);
             const uint PARALLAX_SECANT_STEPS = uint(SETTING_WATER_PARALLAX_SECANT_STEPS);
-            const float PARALLAX_STRENGTH = float(SETTING_WATER_PARALLAX_STRENGTH) / 0.8349056;
+            const float PARALLAX_STRENGTH = float(SETTING_WATER_PARALLAX_STRENGTH) / 0.86;
 
             vec3 rayVector = scenePos / abs(scenePos.y);// y = +-1 now
             float rayVectorLength = length(rayVector);

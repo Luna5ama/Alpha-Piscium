@@ -1259,7 +1259,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     empty()
-                    slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..4.0 step 0.5) {
+                    slider("SETTING_WATER_NORMAL_SCALE", 1.5, 0.0..5.0 step 0.5) {
                         lang {
                             name = "Water Normal Intensity"
                             comment =
@@ -1282,7 +1282,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "给水波添加立体感，使它们看起来是3D而不是平面的。"
                         }
                     }
-                    slider("SETTING_WATER_PARALLAX_STRENGTH", 1.0, 0.0..4.0 step 0.5) {
+                    slider("SETTING_WATER_PARALLAX_STRENGTH", 1.5, 0.0..5.0 step 0.5) {
                         lang {
                             name = "Water Parallax Strength"
                             comment =
