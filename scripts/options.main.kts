@@ -2907,7 +2907,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 name = "色彩管理"
                 comment = "高级色彩空间设置。仅在您知道自己在做什么时更改！"
             }
-            toggle("SETTING_MATERIAL_COLOR_SPACE", 1, 0..7) {
+            toggle("SETTING_MATERIAL_COLOR_SPACE", 1, 0..8) {
                 lang {
                     name = "Texture Color Space"
                     comment = "Color space of your resource pack textures. sRGB is standard for most packs."
@@ -2919,18 +2919,11 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     5 value "Adobe RGB (1998)"
                     6 value "ACES2065-1"
                     7 value "ACEScg"
+                    8 value "Color McSpaceFace"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "纹理色彩空间"
                     comment = "资源包纹理的色彩空间。sRGB是大多数资源包的标准。"
-                    0 value "CIE XYZ"
-                    1 value "sRGB"
-                    2 value "Rec. 709"
-                    3 value "Rec. 2020"
-                    4 value "DCI-P3"
-                    5 value "Adobe RGB (1998)"
-                    6 value "ACES2065-1"
-                    7 value "ACEScg"
                 }
             }
             toggle("SETTING_MATERIAL_TRANSFER_FUNC", 3, 0..7) {
@@ -2951,17 +2944,12 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     name = "纹理伽马曲线"
                     comment = "纹理的伽马/传递函数。sRGB是大多数资源包的标准。"
                     0 value "线性"
-                    1 value "Rec. 601"
-                    2 value "Rec. 709"
-                    3 value "sRGB"
                     4 value "指数 2.2"
                     5 value "指数 2.4"
-                    6 value "ST 2084 (PQ)"
-                    7 value "HLG"
                 }
             }
             empty()
-            toggle("SETTING_WORKING_COLOR_SPACE", 7, 0..7) {
+            toggle("SETTING_WORKING_COLOR_SPACE", 8, 0..8) {
                 lang {
                     name = "Internal Processing Color Space"
                     comment =
@@ -2974,22 +2962,15 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     5 value "Adobe RGB (1998)"
                     6 value "ACES2065-1"
                     7 value "ACEScg"
+                    8 value "Color McSpaceFace"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "内部处理色彩空间"
                     comment = "用于光照计算的色彩空间。推荐使用ACEScg进行广色域渲染。"
-                    0 value "CIE XYZ"
-                    1 value "sRGB"
-                    2 value "Rec. 709"
-                    3 value "Rec. 2020"
-                    4 value "DCI-P3"
-                    5 value "Adobe RGB (1998)"
-                    6 value "ACES2065-1"
-                    7 value "ACEScg"
                 }
             }
             empty()
-            toggle("SETTING_DRT_WORKING_COLOR_SPACE", 1, 0..7) {
+            toggle("SETTING_DRT_WORKING_COLOR_SPACE", 1, 0..8) {
                 lang {
                     name = "Tone Mapping Color Space"
                     comment =
@@ -3002,22 +2983,15 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     5 value "Adobe RGB (1998)"
                     6 value "ACES2065-1"
                     7 value "ACEScg"
+                    8 value "Color McSpaceFace"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "色调映射色彩空间"
                     comment = "用于色调映射操作的色彩空间。Rec. 2020与AgX色调映射配合更好。"
-                    0 value "CIE XYZ"
-                    1 value "sRGB"
-                    2 value "Rec. 709"
-                    3 value "Rec. 2020"
-                    4 value "DCI-P3"
-                    5 value "Adobe RGB (1998)"
-                    6 value "ACES2065-1"
-                    7 value "ACEScg"
                 }
             }
             empty()
-            toggle("SETTING_OUTPUT_COLOR_SPACE", 1, 0..7) {
+            toggle("SETTING_OUTPUT_COLOR_SPACE", 1, 0..8) {
                 lang {
                     name = "Monitor Color Space"
                     comment =
@@ -3030,18 +3004,11 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     5 value "Adobe RGB (1998)"
                     6 value "ACES2065-1"
                     7 value "ACEScg"
+                    8 value "Color McSpaceFace"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "显示器色彩空间"
                     comment = "显示器的色彩空间。标准显示器使用sRGB，广色域显示器使用Rec. 2020或DCI-P3。"
-                    0 value "CIE XYZ"
-                    1 value "sRGB"
-                    2 value "Rec. 709"
-                    3 value "Rec. 2020"
-                    4 value "DCI-P3"
-                    5 value "Adobe RGB (1998)"
-                    6 value "ACES2065-1"
-                    7 value "ACEScg"
                 }
             }
             toggle("SETTING_OUTPUT_TRANSFER_FUNC", 3, 0..7) {
@@ -3062,13 +3029,8 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     name = "显示器伽马曲线"
                     comment = "显示器的伽马/传递函数。大多数显示器使用sRGB，HDR显示器使用ST 2084 (PQ)。"
                     0 value "线性"
-                    1 value "Rec. 601"
-                    2 value "Rec. 709"
-                    3 value "sRGB"
                     4 value "指数 2.2"
                     5 value "指数 2.4"
-                    6 value "ST 2084 (PQ)"
-                    7 value "HLG"
                 }
             }
         }
