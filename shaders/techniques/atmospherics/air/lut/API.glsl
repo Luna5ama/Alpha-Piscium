@@ -25,17 +25,15 @@ vec3 atmospherics_air_lut_sampleTransmittance(AtmosphereParameters atmosphere, f
     return persistent_transmittanceLUT_sample(tLUTUV).rgb;
 }
 
-#define MULTI_SCTR_LUT_QUANTIZATION_MUL 32.0
-
 vec3 atmospherics_air_lut_sampleMultiSctr(AtmosphereParameters atmosphere, float cosLightZenith, float sampleAltitude) {
     vec2 uv = vec2(saturate(cosLightZenith * 0.5 + 0.5), linearStep(atmosphere.bottom, atmosphere.top, sampleAltitude));
     uv = _atmospherics_air_lut_fromUnitToSubUvs(uv, vec2(MULTI_SCTR_LUT_SIZE));
-    return persistent_multiSctrLUT_sample(uv).rgb / MULTI_SCTR_LUT_QUANTIZATION_MUL;
+    return persistent_multiSctrLUT_sample(uv).rgb / LUT_QUANTIZATION_MUL;
 }
 
 vec3 _atmospherics_air_lut_sampleSkyViewSlice(vec2 sliceUV, float sliceIndex) {
     vec3 sampleUV = vec3(sliceUV, (sliceIndex + 0.5) / SKYVIEW_LUT_DEPTH);
-    return texture(usam_skyViewLUT, sampleUV).rgb;
+    return texture(usam_skyViewLUT, sampleUV).rgb / LUT_QUANTIZATION_MUL;
 }
 #include "/util/Celestial.glsl"
 

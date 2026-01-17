@@ -196,8 +196,8 @@ void main() {
     }
 
     float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 5u), frameCounter);
-    result.inScattering = dither_fp16(result.inScattering, ditherNoise);
-    result.transmittance = dither_fp16(result.transmittance, ditherNoise);
+    result.inScattering = dither_fp16(result.inScattering * LUT_QUANTIZATION_MUL, ditherNoise);
+    result.transmittance = dither_fp16(result.transmittance * LUT_QUANTIZATION_MUL, ditherNoise);
     ivec3 writePos = ivec3(texelPos, layerIndex * 3);
     writePos.z += isMoonI;
     imageStore(uimg_skyViewLUT, writePos, vec4(result.inScattering, 0.0));
