@@ -618,6 +618,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 lang {
                     name = "ReSTIR SSGI"
                 }
+                slider("SETTING_GI_INITIAL_SST_STEPS", 128, powerOfTwoAndHalfRange(4..8)) {
+                    lang {
+                        name = "Initial Sampling Screen Space Tracing Steps"
+                        comment = "Higher values improve quality but reduce performance."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "初始采样屏幕空间追踪步数"
+                        comment = "数值越高，质量越好，但会降低性能。"
+                    }
+                }
+                slider("SETTING_GI_VALIDATE_SST_STEPS", 64, powerOfTwoAndHalfRange(2..8)) {
+                    lang {
+                        name = "Validation Sampling Screen Space Tracing Steps"
+                        comment = "Higher values improve quality but reduce performance. These rays are less important thus it is fine to keep this at a lower value."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "验证采样屏幕空间追踪步数"
+                        comment = "数值越高，质量越好，但会降低性能。这些光线不太重要，因此保持较低数值是可以的。"
+                    }
+                }
                 slider("SETTING_GI_SST_THICKNESS", 0.1, 0.01..0.5 step 0.01) {
                     lang {
                         name = "Screen Space Tracing Thickness"
@@ -690,7 +710,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "减少空间重用采样数以降低累积结果的偏差。"
                     }
                 }
-                slider("SETTING_GI_SPATIAL_REUSE_RADIUS", 64, powerOfTwoRangeAndHalf(1..8)) {
+                slider("SETTING_GI_SPATIAL_REUSE_RADIUS", 64, powerOfTwoAndHalfRange(4..8)) {
                     lang {
                         name = "Spatial Reuse Radius"
                         comment = "Radius to search for nearby GI samples to reuse."
@@ -702,7 +722,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         suffix = " 像素"
                     }
                 }
-                slider("SETTING_GI_SPATIAL_REUSE_FEEDBACK", 16, listOf(0) + powerOfTwoRangeAndHalf(0..6)) {
+                slider("SETTING_GI_SPATIAL_REUSE_FEEDBACK", 16, listOf(0) + powerOfTwoAndHalfRange(0..6)) {
                     lang {
                         name = "Spatial Reuse Feedback Threshold"
                         comment =
@@ -762,7 +782,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "在多帧中累积GI结果以提高质量。"
                     }
                 }
-                slider("SETTING_DENOISER_HISTORY_LENGTH", 256, powerOfTwoRangeAndHalf(2..8)) {
+                slider("SETTING_DENOISER_HISTORY_LENGTH", 256, powerOfTwoAndHalfRange(2..8)) {
                     lang {
                         name = "Temporal History Length"
                         comment = "Number of frames to accumulate for temporal denoising."
@@ -783,7 +803,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "夹紧到快速历史以减少重影伪影。"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 32, powerOfTwoRangeAndHalf(2..8)) {
+                slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 32, powerOfTwoAndHalfRange(2..8)) {
                     lang {
                         name = "Temporal Fast History Length"
                         comment =
@@ -839,7 +859,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 64, powerOfTwoRangeAndHalf(2..8)) {
+                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 64, powerOfTwoAndHalfRange(2..8)) {
                     lang {
                         name = "Stabilization Maximum Accumulated Frames"
                         comment =
@@ -1293,7 +1313,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "水波的深度和三维感。数值越高，深度越明显。"
                         }
                     }
-                    slider("SETTING_WATER_PARALLAX_LINEAR_STEPS", 8, powerOfTwoRangeAndHalf(2..5)) {
+                    slider("SETTING_WATER_PARALLAX_LINEAR_STEPS", 8, powerOfTwoAndHalfRange(2..5)) {
                         lang {
                             name = "Water Parallax Linear Sample Steps"
                             comment =
@@ -1459,7 +1479,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "光束的柔和和扩散程度。数值越高，创造更扩散的光线。"
                         }
                     }
-                    slider("SETTING_WATER_SHADOW_SAMPLE", 64, powerOfTwoRangeAndHalf(4..8)) {
+                    slider("SETTING_WATER_SHADOW_SAMPLE", 64, powerOfTwoAndHalfRange(4..8)) {
                         lang {
                             name = "Shadow Samples"
                             comment =
@@ -1565,7 +1585,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             6 value "4.0 倍"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 48, powerOfTwoRangeAndHalf(2..7)) {
+                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 48, powerOfTwoAndHalfRange(2..7)) {
                         lang {
                             name = "Max Accumulation"
                             comment =
@@ -1728,7 +1748,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "控制云顶尖锐程度。数值越高，云越尖锐。"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_TOP_CURVE_FACTOR", 48, powerOfTwoRangeAndHalf(4..10)) {
+                    slider("SETTING_CLOUDS_LOW_TOP_CURVE_FACTOR", 48, powerOfTwoAndHalfRange(4..10)) {
                         lang {
                             name = "Top Curve Factor"
                             comment =
@@ -1739,7 +1759,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "控制云顶的形状曲线。数值越高，云顶越有棱角。"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_BOTTOM_CURVE_FACTOR", 128, powerOfTwoRangeAndHalf(4..10)) {
+                    slider("SETTING_CLOUDS_LOW_BOTTOM_CURVE_FACTOR", 128, powerOfTwoAndHalfRange(4..10)) {
                         lang {
                             name = "Bottom Curve Factor"
                             comment =
