@@ -839,7 +839,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 256, powerOfTwoRangeAndHalf(2..8)) {
+                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 64, powerOfTwoRangeAndHalf(2..8)) {
                     lang {
                         name = "Stabilization Maximum Accumulated Frames"
                         comment =
