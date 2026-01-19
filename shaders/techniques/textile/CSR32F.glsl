@@ -4,8 +4,8 @@
 #include "Common.glsl"
 
 /*const*/
-#define _CSR32F_TEXTURE_SIZE (uval_mainImageSizeI * ivec2(2, 3))
-#define _CSR32F_TEXTURE_SIZE_F (uval_mainImageSize * vec2(2.0, 3.0))
+#define _CSR32F_TEXTURE_SIZE (uval_mainImageSizeI * ivec2(2, 2))
+#define _CSR32F_TEXTURE_SIZE_F (uval_mainImageSize * vec2(2.0, 2.0))
 #define _CSR32F_TEXTURE_SIZE_RCP rcp(_CSR32F_TEXTURE_SIZE_F)
 
 #define _CSR32F_TILE1_OFFSET ivec2(0)
@@ -93,50 +93,6 @@ vec2 csr32f_tile4_uvToUV(vec2 uv) {
         uv,
         _CSR32F_TILE4_OFFSET_F,
         _CSR32F_TILE4_SIZE_F,
-        _CSR32F_TEXTURE_SIZE_RCP
-    );
-}
-
-#define _CSR32F_TILE5_OFFSET ivec2(0, uval_mainImageSizeI.y * 2)
-#define _CSR32F_TILE5_OFFSET_F vec2(0.0, uval_mainImageSize.y * 2.0)
-#define _CSR32F_TILE5_SIZE uval_mainImageSizeI
-#define _CSR32F_TILE5_SIZE_F uval_mainImageSize
-
-ivec2 csr32f_tile5_texelToTexel(ivec2 texelPos) {
-    return textile_texelToTexel(
-        texelPos,
-        _CSR32F_TILE5_OFFSET,
-        _CSR32F_TILE5_SIZE
-    );
-}
-
-vec2 csr32f_tile5_uvToUV(vec2 uv) {
-    return textile_uvToUV(
-        uv,
-        _CSR32F_TILE5_OFFSET_F,
-        _CSR32F_TILE5_SIZE_F,
-        _CSR32F_TEXTURE_SIZE_RCP
-    );
-}
-
-#define _CSR32F_TILE6_OFFSET ivec2(uval_mainImageSizeI.x, uval_mainImageSizeI.y * 2)
-#define _CSR32F_TILE6_OFFSET_F vec2(uval_mainImageSize.x, uval_mainImageSize.y * 2.0)
-#define _CSR32F_TILE6_SIZE uval_mainImageSizeI
-#define _CSR32F_TILE6_SIZE_F uval_mainImageSize
-
-ivec2 csr32f_tile6_texelToTexel(ivec2 texelPos) {
-    return textile_texelToTexel(
-        texelPos,
-        _CSR32F_TILE6_OFFSET,
-        _CSR32F_TILE6_SIZE
-    );
-}
-
-vec2 csr32f_tile6_uvToUV(vec2 uv) {
-    return textile_uvToUV(
-        uv,
-        _CSR32F_TILE6_OFFSET_F,
-        _CSR32F_TILE6_SIZE_F,
         _CSR32F_TEXTURE_SIZE_RCP
     );
 }

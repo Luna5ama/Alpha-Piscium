@@ -145,7 +145,7 @@ GBufferData processOutput() {
         if (dot(geomViewNormal, uval_upDirView) > UP_DIR_COS_EPSILON) {
             const uint PARALLAX_LINEAR_STEPS = uint(SETTING_WATER_PARALLAX_LINEAR_STEPS);
             const uint PARALLAX_SECANT_STEPS = uint(SETTING_WATER_PARALLAX_SECANT_STEPS);
-            const float PARALLAX_STRENGTH = float(SETTING_WATER_PARALLAX_STRENGTH) / 0.86;
+            const float PARALLAX_STRENGTH = float(SETTING_WATER_PARALLAX_STRENGTH) / 0.83;
 
             vec3 rayVector = scenePos / abs(scenePos.y);// y = +-1 now
             float rayVectorLength = length(rayVector);
@@ -323,10 +323,6 @@ void main() {
         offsetViewZ -= max(calculateRayBoxIntersection(p, rayDir, halfSize), 0.1);
     }
     imageAtomicMax(uimg_csr32f, farDepthTexelPos, floatBitsToInt(-offsetViewZ));
-
-    if (isWater) {
-        imageAtomicMax(uimg_csr32f, csr32f_tile5_texelToTexel(texelPos), int(packUnorm4x8(inputAlbedo)));
-    }
 
     gbufferData1_pack(rt_gbufferData1, lighting_gData);
     gbufferData2_pack(rt_gbufferData2, lighting_gData);
