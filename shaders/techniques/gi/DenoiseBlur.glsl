@@ -141,7 +141,7 @@ void main() {
 
             float historyLength = historyData.historyLength * TOTAL_HISTORY_LENGTH;
             float sqrtRealHistoryLength = sqrt(historyData.historyLength);
-            float accumFactor = (1.0 / (1.0 + historyLength));
+            float accumFactor = rcp(1.0 + pow2(0.2 * historyLength));
             float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
 
             float hitDistFactor = hitDistanceFactors.x;
@@ -152,15 +152,13 @@ void main() {
             #endif
 
             float kernelRadius = baseKernelRadius.x;
-            kernelRadius *= pow(accumFactor, 0.5);
+            kernelRadius *= accumFactor;
 
             kernelRadius *= 1.0 + filteredInputVariance.x * baseKernelRadius.y;
             kernelRadius *= hitDistFactor + 0.1;
             kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
-            //            float baseColorWeight = hitDistFactor * 0.5 + 0.5;
-
-            float baseNormalWeight = invAccumFactor * 16.0;
+            float baseNormalWeight = invAccumFactor * 256.0;
             float basePlaneDistWeight = invAccumFactor * -512.0;
 
             vec4 diffResult = centerDiff;

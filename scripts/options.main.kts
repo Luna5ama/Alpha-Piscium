@@ -741,7 +741,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "第一轮空间降噪的采样数。"
                     }
                 }
-                slider("SETTING_DENOISER_SPATIAL_SAMPLES_POST", 4, 1..16) {
+                slider("SETTING_DENOISER_SPATIAL_SAMPLES_POST", 8, 1..16) {
                     lang {
                         name = "Post Spatial Denoiser Sample Count"
                         comment = "Number of samples used for post spatial denoising pass."

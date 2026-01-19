@@ -221,11 +221,11 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
                 gi_historyData_unpack5(historyData, saturate(history_gi5_sample(curr2PrevScreen)));
             }
-
-            float antiStretching = smoothstep(0.2, 0.0, historyData.glazingAngleFactor - glazingAngleFactorHistory);
+            float antiStretching = pow2(linearStep(0.2, 0.0, historyData.glazingAngleFactor - glazingAngleFactorHistory));
             historyResetFactor *= antiStretching;
 
             historyData.historyLength *= historyResetFactor;
+            historyData.realHistoryLength *= antiStretching;
             reprojInfo.historyResetFactor = historyResetFactor;
         }
     }

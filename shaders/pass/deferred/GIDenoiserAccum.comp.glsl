@@ -111,7 +111,7 @@ void main() {
                     // y: regular, specular
                     // z: fast, diffuse
                     // w: fast, specular
-                    vec4 alpha = vec4(newWeights.xy, sqrt(newWeights.xy)) * rcpAccumHistoryLength.xxyy;
+                    vec4 alpha = vec4(newWeights.xy, pow(newWeights.xy, vec2(0.1))) * rcpAccumHistoryLength.xxyy;
 
                     historyData.diffuseColor = mix(historyData.diffuseColor, newDiffuse.rgb, alpha.x);
                     historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, alpha.y);

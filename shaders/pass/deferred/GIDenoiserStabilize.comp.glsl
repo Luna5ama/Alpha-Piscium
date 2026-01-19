@@ -212,8 +212,8 @@ void main() {
                 // Fixed weight is better because it fades in egdes with darker color to avoid firefly
                 // nvm too much blur
                 float historyLen = historyData.historyLength * TOTAL_HISTORY_LENGTH;
-                historyLen = clamp(historyLen, 1.0, float(SETTING_DENOISER_STABILIZATION_MAX_ACCUM));
                 historyLen *= taaResetFactor.z * pow2(global_historyResetFactor);
+                historyLen = clamp(historyLen, 1.0, float(SETTING_DENOISER_STABILIZATION_MAX_ACCUM));
                 float mixWeight = 1.0 / historyLen;
 
                 // Blend current and clamped history

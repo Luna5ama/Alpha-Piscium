@@ -76,7 +76,10 @@ void main() {
                 vec4 prevSample = vec4(0.0);
                 vec3 prevHitNormal = vec3(0.0);
 
-                {
+                uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_fetch(texelPos);
+                ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
+                float ageResetRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987123654u)).x);
+                if (reprojInfo.historyResetFactor > ageResetRand) {
                     ivec2 prevTexelPos = ivec2(-1);
 
                     vec3 currViewPos = viewPos;
@@ -119,31 +122,25 @@ void main() {
                     }
 
                     if (prevTexelPos == ivec2(-1)) {
-                        uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_fetch(texelPos);
-                        ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
+                        vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
+                        vec2 centerPixel = curr2PrevTexelPos - 0.5;
+                        vec2 gatherOrigin = floor(centerPixel);
+                        vec2 gatherTexelPos = gatherOrigin + 1.0;
+                        vec2 pixelPosFract = fract(centerPixel);
 
-                        float resetRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987123654u)).x);
-                        if (reprojInfo.historyResetFactor > resetRand) {
-                            vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
-                            vec2 centerPixel = curr2PrevTexelPos - 0.5;
-                            vec2 gatherOrigin = floor(centerPixel);
-                            vec2 gatherTexelPos = gatherOrigin + 1.0;
-                            vec2 pixelPosFract = fract(centerPixel);
+                        vec2 bilinearWeights2 = pixelPosFract;
+                        vec4 blinearWeights4;
+                        blinearWeights4.yz = bilinearWeights2.xx;
+                        blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
+                        blinearWeights4.xy *= bilinearWeights2.yy;
+                        blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
-                            vec2 bilinearWeights2 = pixelPosFract;
-                            vec4 blinearWeights4;
-                            blinearWeights4.yz = bilinearWeights2.xx;
-                            blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
-                            blinearWeights4.xy *= bilinearWeights2.yy;
-                            blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
+                        float rand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987654u)).x);
+                        int selectedIndex = selectWeighted(blinearWeights4, reprojInfo.bilateralWeights, rand);
 
-                            float rand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987654u)).x);
-                            int selectedIndex = selectWeighted(blinearWeights4, reprojInfo.bilateralWeights, rand);
-
-                            if (selectedIndex >= 0){
-                                vec2 selectedTexelPos = gatherTexelPos + sampling_indexToGatherOffset(selectedIndex) * 0.5;
-                                prevTexelPos = ivec2(selectedTexelPos);
-                            }
+                        if (selectedIndex >= 0){
+                            vec2 selectedTexelPos = gatherTexelPos + sampling_indexToGatherOffset(selectedIndex) * 0.5;
+                            prevTexelPos = ivec2(selectedTexelPos);
                         }
                     }
 
@@ -314,12 +311,14 @@ void main() {
                 }
                 #endif
 
-                const float RESET_START = 64.0;
-                const float RESET_END = 256.0;
-                float resetThreshold = linearStep(RESET_START, RESET_END, float(temporalReservoir.age));
-                float resetRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 123679546u)).w);
-                if (resetRand < resetThreshold) {
-                    temporalReservoir = restir_initReservoir();
+                {
+                    const float RESET_START = 64.0;
+                    const float RESET_END = 256.0;
+                    float resetThreshold = linearStep(RESET_START, RESET_END, float(temporalReservoir.age));
+                    float ageResetRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 123679546u)).w);
+                    if (ageResetRand < resetThreshold) {
+                        temporalReservoir = restir_initReservoir();
+                    }
                 }
 
                 {
