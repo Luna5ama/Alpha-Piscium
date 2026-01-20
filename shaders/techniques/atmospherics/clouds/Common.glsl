@@ -153,7 +153,7 @@ void clouds_computeLighting(
     vec3 sampleInSctr = sampleLightIrradiance * layerParam.medium.phase;
     sampleInSctr += sampleAmbientIrradiance;
 
-    const float D = 0.35;
+    const float D = SETTING_CLOUDS_MS_RADIUS;
     vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
     fMS = mix(fMS, fMS * 0.99, smoothstep(0.99, 1.0, fMS));
     vec3 sampleMSIrradiance = sampleLightIrradiance;
