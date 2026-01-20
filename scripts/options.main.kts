@@ -431,18 +431,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "RTWSM"
                         comment = "直线纹理扭曲阴影贴图（RTWSM）设置。一种根据场景和视角自适应分配更多阴影细节的高级技术。"
                     }
-                    slider("SETTING_RTWSM_IMAP_SIZE", 256, listOf(256, 512, 1024)) {
-                        lang {
-                            name = "Importance Map Resolution"
-                            comment =
-                                "Resolution for analyzing where shadows need more detail. Higher values improve accuracy but reduce performance."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "重要性图分辨率"
-                            comment = "用于分析阴影需要更多细节的位置的分辨率。数值越高，精度越高，但会降低性能。"
-                        }
-                    }
-                    empty()
                     toggle("SETTING_RTWSM_F", true) {
                         lang {
                             name = "Forward Importance Analysis"
@@ -570,23 +558,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "软阴影"
                         comment = "使用PCSS根据与阴影投射者的距离产生真实的柔和阴影边缘"
                     }
-                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 2, listOf(1, 2, 4, 8, 16)) {
+                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 2, powerOfTwoAndHalfRange(0..4)) {
                         lang {
                             name = "Blocker Search Count"
                             comment =
-                                "Number of samples used to determine shadow softness. Higher values improve quality but reduce performance."
+                                "Number of samples used to determine shadow softness. Higher values improve blur radius accuracy but reduce performance."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "遮挡物搜索采样数"
                             comment = "用于确定阴影柔和度的采样数。数值越高，质量越好，但会降低性能。"
                         }
                     }
-                    slider("SETTING_PCSS_BLOCKER_SEARCH_LOD", 4, 0..8) {
+                    slider("SETTING_PCSS_SAMPLE_COUNT", 8, powerOfTwoAndHalfRange(0..6)) {
                         lang {
-                            name = "Blocker Search LOD"
+                            name = "PCSS Sample Count"
+                            comment =
+                                "Number of samples used for PCSS shadow filtering. Higher values improve quality but reduce performance."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "遮挡物搜索LOD"
+                            name = "PCSS采样数"
+                            comment = "用于PCSS阴影过滤的采样数。数值越高，质量越好，但会降低性能。"
                         }
                     }
                     empty()
@@ -1267,7 +1258,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "使用近似的折射方向，更适合屏幕空间折射。"
                         }
                     }
-                    toggle("SETTING_WATER_CAUSTICS", false) {
+                    toggle("SETTING_WATER_CAUSTICS", true) {
                         lang {
                             name = "Water Caustics"
                             comment =

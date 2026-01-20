@@ -46,7 +46,7 @@ vec2 _processShadowSampleUV(vec2 sampleShadowUV, ivec2 randCoord) {
     float r = ldexp(sqrtJitterR, -12 + SETTING_LIGHT_SHAFT_SOFTNESS);
     vec2 result = sampleShadowUV;
     result += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
-    result = rtwsm_warpTexCoord(usam_rtwsm_imap, result);
+    result = rtwsm_warpTexCoord(result);
     return result;
 }
 shared vec4 shared_sliceShadowScreenStartEnd;
@@ -164,7 +164,7 @@ vec2 atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitt
 const vec3 ORIGIN_VIEW = vec3(0.0);
 
 float waterSurfaceDistance(vec3 shadowUVPos) {
-    shadowUVPos.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, shadowUVPos.xy);
+    shadowUVPos.xy = rtwsm_warpTexCoord(shadowUVPos.xy);
     vec2 ndcCoord = shadowUVPos.xy * 2.0 - 1.0;
     float edgeCoord = max(abs(ndcCoord.x), abs(ndcCoord.y));
     if (edgeCoord > 1.0 - SHADOW_MAP_SIZE.y * 16) {

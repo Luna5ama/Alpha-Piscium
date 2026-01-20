@@ -78,6 +78,31 @@
             "format": "RGBA16F",
             "width": 1024,
             "height": 768
+        },
+        "persistent_rtwsm_importance2D": {
+            "format": "R32F",
+            "width": 256,
+            "height": 256
+        },
+        "persistent_rtwsm_importance1D": {
+            "format": "R32F",
+            "width": 256,
+            "height": 2
+        },
+        "persistent_rtwsm_warp": {
+            "format": "R32F",
+            "width": 256,
+            "height": 2
+        },
+        "persistent_rtwsm_texelSize": {
+            "format": "R32F",
+            "width": 256,
+            "height": 2
+        },
+        "persistent_rtwsm_warpTexelSize": {
+            "format": "RGBA16",
+            "width": 256,
+            "height": 256
         }
     }
 }

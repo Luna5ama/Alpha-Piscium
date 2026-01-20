@@ -94,7 +94,7 @@ void main() {
 
                 vec3 sampleTexCoord = shadowPos.xyz / shadowPos.w;
                 sampleTexCoord = sampleTexCoord * 0.5 + 0.5;
-                sampleTexCoord.xy = rtwsm_warpTexCoord(usam_rtwsm_imap, sampleTexCoord.xy);
+                sampleTexCoord.xy = rtwsm_warpTexCoord( sampleTexCoord.xy);
                 float shadowV = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
                 vec3 V = normalize(-startViewPos);
 

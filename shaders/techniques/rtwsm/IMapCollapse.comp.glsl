@@ -4,13 +4,13 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
 layout(local_size_x = IMAP_SIZE_D2, local_size_y = 1, local_size_z = 1) in;
-const ivec3 workGroups = ivec3(SETTING_RTWSM_IMAP_SIZE, 2, 1);
+const ivec3 workGroups = ivec3(RTWSM_IMAP_SIZE, 2, 1);
 
-layout(r32f) uniform restrict image2D uimg_rtwsm_imap;
+layout(r32f) uniform restrict image2D uimg_fr32f;
 
 shared float shared_reduceBuffer[IMAP_SIZE_D32];
 
-const vec2 TEXEL_SIZE = 1.0 / vec2(SETTING_RTWSM_IMAP_SIZE);
+const vec2 TEXEL_SIZE = 1.0 / vec2(RTWSM_IMAP_SIZE);
 
 void main() {
     if (gl_LocalInvocationID.x < IMAP_SIZE_D32) {
@@ -26,7 +26,7 @@ void main() {
     vec2 coordDelta = vec2(1.0, 0.0) * f + vec2(0.0, 1.0) * (f ^ 1);
 
     {
-        float tValue = imageLoad(uimg_rtwsm_imap, coordI).r;
+        float tValue = persistent_rtwsm_importance2D_load(coordI).r;
         float subgroupMax = subgroupMax(tValue);
         if (subgroupElect()) {
             shared_reduceBuffer[gl_SubgroupID] = subgroupMax;
@@ -52,7 +52,6 @@ void main() {
 
     if (gl_LocalInvocationID.x == 0) {
         ivec2 outputPos = ivec2(gl_WorkGroupID.xy);
-        outputPos.y += IMAP1D_X_Y;
-        imageStore(uimg_rtwsm_imap, outputPos, vec4(shared_reduceBuffer[0], 0.0, 0.0, 0.0));
+        persistent_rtwsm_importance1D_store(outputPos, vec4(shared_reduceBuffer[0], 0.0, 0.0, 0.0));
     }
 }

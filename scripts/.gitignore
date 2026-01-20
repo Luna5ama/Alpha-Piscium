@@ -2,4 +2,4 @@ tokens.properties
 shadesmitth/
 config.properties
 *.aot
-*.aotconf
+shadesmith-aot.ps1

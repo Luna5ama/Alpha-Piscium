@@ -10,6 +10,7 @@
 ivec2 texelPos;
 #include "/util/Colors2.glsl"
 #include "/util/Dither.glsl"
+#include "/util/Translucent.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/WaterWave.glsl"
@@ -280,27 +281,9 @@ void main() {
     float alpha = inputAlbedo.a;
     vec3 materialColor = colors2_material_toWorkSpace(inputAlbedo.rgb);
 
-    vec3 t = materialColor;
-    float lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);
-    t *= saturate(0.3 / lumaT);
-
-    if (isWater) {
-        t.g *= 2.5;
-    }
-    t = pow(t, vec3(1.0 / 2.2));
-    lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);
-    float sat = isWater ? 0.2 : SETTING_TRANSLUCENT_ABSORPTION_SATURATION;
-    t = lumaT + sat * (t - lumaT);
-    t = pow(t, vec3(2.2));
-
-    float tv = isWater ? 0.5 : 1.0;
-
-    vec3 tAbsorption = -log(t) * (alpha * sqrt(alpha)) * tv;
-    tAbsorption = max(tAbsorption, 0.0);
-    vec3 tTransmittance = exp(-tAbsorption);
-    lighting_gData.albedo = tTransmittance;
-
-    rt_translucentColor = isWater ? vec4(1.0) : vec4(tTransmittance, 0.0);
+    vec3 transmittance = translucent_albedoToTransmittance(materialColor, alpha, isWater);
+    lighting_gData.albedo = transmittance;
+    rt_translucentColor = isWater ? vec4(1.0) : vec4(transmittance, 0.0);
 
     ivec2 farDepthTexelPos = texelPos;
     ivec2 nearDepthTexelPos = texelPos;
