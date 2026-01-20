@@ -144,20 +144,20 @@ vec3 calcShadow(Material material) {
             sampleTexCoord.xy += ssRange * baseOffset * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
             sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
 
-            float sampleShadowDepthOffset = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0).x;
-            sampleTexCoord.z -= abs(sampleShadowDepthOffset);
+            vec4 sampleShadowDepthOffset4 = textureGather(shadowcolor0, sampleTexCoord.xy, 0);
+            sampleTexCoord.z -= sum4(abs(sampleShadowDepthOffset4)) * 0.25;
 
             float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
-            vec3 samepleShadow = vec3(shadowSampleSolid);
+            vec3 sampleShadow = vec3(shadowSampleSolid);
 
-            if (shadowSampleSolid > 0.0 && sampleShadowDepthOffset < 0.0) {
+            if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
                 vec4 shadowDepthAll = textureGather(shadowtex0, sampleTexCoord.xy, 0);
                 bvec4 shadowSampleCompareAll = greaterThan(vec4(sampleTexCoord.z), shadowDepthAll);
                 if (any(shadowSampleCompareAll)) {
                     vec4 waterMask4 = textureGather(usam_shadow_waterMask, sampleTexCoord.xy, 0);
                     float waterMaskSum = sum4(waterMask4);
                     vec3 sampleColor = rtwsm_sampleShadowColor(shadowcolor2, sampleTexCoord.xy, 0.0).rgb;
-                    if (waterMaskSum > 3.5) {
+                    if (waterMaskSum > 0.1) {
                         vec4 translucentDistance = saturate(sampleTexCoord.z - shadowDepthAll);
                         float translucentDistanceMasked = dot(translucentDistance, waterMask4) / waterMaskSum;
                         float waterDepth = max(rtwsm_linearDepthOffset(translucentDistanceMasked), 0.0);
@@ -168,11 +168,11 @@ vec3 calcShadow(Material material) {
                         sampleColor *= mix(1.0, caustics, pow2(linearStep(0.0, 4.0, waterDepth)));
                     }
 
-                    samepleShadow *= sampleColor;
+                    sampleShadow *= sampleColor;
                 }
             }
 
-            shadowSum += samepleShadow;
+            shadowSum += sampleShadow;
         }
     } else {
         vec2 causticsTexelPos = texelPosCenter + dir * jitterR * causticsSampleRadius;
@@ -187,20 +187,20 @@ vec3 calcShadow(Material material) {
             sampleTexCoord.xy += ssRange * baseOffset * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
             sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
 
-            float sampleShadowDepthOffset = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0).x;
-            sampleTexCoord.z -= abs(sampleShadowDepthOffset);
+            vec4 sampleShadowDepthOffset4 = textureGather(shadowcolor0, sampleTexCoord.xy, 0);
+            sampleTexCoord.z -= sum4(abs(sampleShadowDepthOffset4)) * 0.25;
 
             float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
             vec3 sampleShadow = vec3(shadowSampleSolid);
 
-            if (shadowSampleSolid > 0.0 && sampleShadowDepthOffset < 0.0) {
+            if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
                 vec4 shadowDepthAll = textureGather(shadowtex0, sampleTexCoord.xy, 0);
                 bvec4 shadowSampleCompareAll = greaterThan(vec4(sampleTexCoord.z), shadowDepthAll);
                 if (any(shadowSampleCompareAll)) {
                     vec4 waterMask4 = textureGather(usam_shadow_waterMask, sampleTexCoord.xy, 0);
                     float waterMaskSum = sum4(waterMask4);
                     vec3 sampleColor = rtwsm_sampleShadowColor(shadowcolor2, sampleTexCoord.xy, 0.0).rgb;
-                    if (waterMaskSum > 3.5) {
+                    if (waterMaskSum > 0.1) {
                         vec4 translucentDistance = saturate(sampleTexCoord.z - shadowDepthAll);
                         float translucentDistanceMasked = dot(translucentDistance, waterMask4) / waterMaskSum;
                         float waterDepth = max(rtwsm_linearDepthOffset(translucentDistanceMasked), 0.0);
@@ -225,24 +225,23 @@ vec3 calcShadow(Material material) {
         sampleTexCoord.xy += ssRange * baseOffset * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
         sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
 
-        float sampleShadowDepthOffset = rtwsm_sampleShadowColor(shadowcolor0, sampleTexCoord.xy, 0.0).x;
-        sampleTexCoord.z -= abs(sampleShadowDepthOffset);
+        vec4 sampleShadowDepthOffset4 = textureGather(shadowcolor0, sampleTexCoord.xy, 0);
+        sampleTexCoord.z -= sum4(abs(sampleShadowDepthOffset4)) * 0.25;
 
         float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
         vec3 sampleShadow = vec3(shadowSampleSolid);
 
-        if (shadowSampleSolid > 0.0 && sampleShadowDepthOffset < 0.0) {
+        if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
             vec4 shadowDepthAll = textureGather(shadowtex0, sampleTexCoord.xy, 0);
             bvec4 shadowSampleCompareAll = greaterThan(vec4(sampleTexCoord.z), shadowDepthAll);
             if (any(shadowSampleCompareAll)) {
                 vec4 waterMask4 = textureGather(usam_shadow_waterMask, sampleTexCoord.xy, 0);
                 float waterMaskSum = sum4(waterMask4);
                 vec3 sampleColor = rtwsm_sampleShadowColor(shadowcolor2, sampleTexCoord.xy, 0.0).rgb;
-                if (waterMaskSum > 3.5) {
+                if (waterMaskSum > 0.1) {
                     vec4 translucentDistance = saturate(sampleTexCoord.z - shadowDepthAll);
                     float translucentDistanceMasked = dot(translucentDistance, waterMask4) / waterMaskSum;
                     float waterDepth = max(rtwsm_linearDepthOffset(translucentDistanceMasked), 0.0);
-
                     sampleColor *= exp(-waterDepth * WATER_EXTINCTION);
                 }
                 sampleShadow *= sampleColor;
