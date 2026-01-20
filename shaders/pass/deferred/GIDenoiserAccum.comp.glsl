@@ -144,8 +144,9 @@ void main() {
                     }
                 }
 
-                historyData.historyLength = max(historyData.historyLength, maxHistoryLengths.x);
-                historyData.realHistoryLength = max(historyData.realHistoryLength, maxHistoryLengths.y);
+                float maxMixWeight = linearStep(1.0, 4.0, historyData.realHistoryLength * TOTAL_HISTORY_LENGTH);
+                historyData.historyLength = mix(historyData.historyLength, max(historyData.historyLength, maxHistoryLengths.x), maxMixWeight);
+                historyData.realHistoryLength = mix(historyData.realHistoryLength, max(historyData.realHistoryLength, maxHistoryLengths.y), maxMixWeight);
                 #if SETTING_DEBUG_OUTPUT
                 imageStore(uimg_temp3, texelPos, gi_historyData_pack1(historyData));
                 #endif
