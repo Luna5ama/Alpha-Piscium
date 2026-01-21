@@ -41,20 +41,23 @@ vec2 texel2Screen(ivec2 texelPos) {
     return (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
 }
 
-float shared_bilinearSampleVec2(float shared_data[RTWSM_IMAP_SIZE], float coord) {
+void shared_bilinearSampleParam(float coord, out int texelPos1, out int texelPos2, out float bilinearWeight) {
     float texelPos = coord * float(RTWSM_IMAP_SIZE) - 0.5;
-    int texelPos1 = int(texelPos);
-    float bilinearWeight = texelPos - float(texelPos1);
-    int texelPos2 = texelPos1 + 1;
+    texelPos1 = int(texelPos);
+    bilinearWeight = texelPos - float(texelPos1);
+    texelPos2 = texelPos1 + 1;
     texelPos1 = max(texelPos1, 0);
     texelPos2 = min(texelPos2, RTWSM_IMAP_SIZE - 1);
-    return mix(shared_data[texelPos1], shared_data[texelPos2], bilinearWeight);
 }
 
 vec2 rtwsm_warpTexCoord_shared(vec2 uv) {
     vec2 result = uv;
-    result.x += shared_bilinearSampleVec2(shared_warpTexelX, uv.x);
-    result.y += shared_bilinearSampleVec2(shared_warpTexelY, uv.y);
+    int texelPos1, texelPos2;
+    float bilinearWeight;
+    shared_bilinearSampleParam(uv.x, texelPos1, texelPos2, bilinearWeight);
+    result.x += mix(shared_warpTexelX[texelPos1], shared_warpTexelX[texelPos2], bilinearWeight);
+    shared_bilinearSampleParam(uv.y, texelPos1, texelPos2, bilinearWeight);
+    result.y += mix(shared_warpTexelY[texelPos1], shared_warpTexelY[texelPos2], bilinearWeight);
     return result;
 }
 
