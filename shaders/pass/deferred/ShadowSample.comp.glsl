@@ -32,10 +32,6 @@ layout(rgba16f) uniform restrict image2D uimg_translucentColor;
 shared float shared_warpTexelX[RTWSM_IMAP_SIZE];
 shared float shared_warpTexelY[RTWSM_IMAP_SIZE];
 
-vec2 texel2Screen(ivec2 texelPos) {
-    return (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
-}
-
 void shared_bilinearSampleParam(float coord, out int texelPos1, out int texelPos2, out float bilinearWeight) {
     float texelPos = coord * float(RTWSM_IMAP_SIZE) - 0.5;
     texelPos1 = int(texelPos);
@@ -122,6 +118,7 @@ vec3 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
 
     const float ssRangeMul = 0.5;
     ssRange *= ssRangeMul;
+    vec2 ssRange2 = ssRange * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
 
     float jitterR = rand_stbnVec1(texelPos, frameCounter);
     vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);
@@ -129,107 +126,26 @@ vec3 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
     const uint SAMPLE_COUNT = SETTING_PCSS_SAMPLE_COUNT;
     float rcpSamples = 1.0 / float(SAMPLE_COUNT);
 
-    vec3 shadowSum = vec3(0.0);
+    f16vec3 shadowSum = f16vec3(0.0);
     #ifdef SETTING_WATER_CAUSTICS
     vec2 texelPosCenter = vec2(texelPos) + 0.5;
     float causticsSampleRadius = 32.0 / max(abs(viewPos.z), 0.1);
+    #endif
 
-    if (isEyeInWater == 1) {
-        for (uint i = 0; i < SAMPLE_COUNT; i++) {
-            dir *= MAT2_GOLDEN_ANGLE;
-            float baseRadius = sqrt((float(i) + jitterR) * rcpSamples);
-            vec2 baseOffset = dir * baseRadius;
-            vec3 sampleTexCoord = shadowScreenPos;
-
-            sampleTexCoord.xy += ssRange * baseOffset * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
-            sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
-
-            vec4 sampleShadowDepthOffset4 = textureGather(shadowcolor0, sampleTexCoord.xy, 0);
-            sampleTexCoord.z -= max4(abs(sampleShadowDepthOffset4));
-
-            float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
-            vec3 sampleShadow = vec3(shadowSampleSolid);
-
-            if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
-                vec4 shadowDepthAll = textureGather(shadowtex0, sampleTexCoord.xy, 0);
-                bvec4 shadowSampleCompareAll = greaterThan(vec4(sampleTexCoord.z), shadowDepthAll);
-                if (any(shadowSampleCompareAll)) {
-                    vec4 waterMask4 = textureGather(usam_shadow_waterMask, sampleTexCoord.xy, 0);
-                    float waterMaskSum = sum4(waterMask4);
-                    vec3 sampleColor = rtwsm_sampleShadowColor(shadowcolor2, sampleTexCoord.xy, 0.0).rgb;
-                    if (waterMaskSum > 0.1) {
-                        vec4 translucentDistance = saturate(sampleTexCoord.z - shadowDepthAll);
-                        float translucentDistanceMasked = dot(translucentDistance, waterMask4) / waterMaskSum;
-                        float waterDepth = max(rtwsm_linearDepthOffset(translucentDistanceMasked), 0.0);
-
-                        sampleColor *= exp(-waterDepth * WATER_EXTINCTION);
-                        vec2 causticsTexelPos = texelPosCenter + baseOffset * causticsSampleRadius;
-                        float caustics = transient_caustics_final_sample(causticsTexelPos * uval_mainImageSizeRcp).r;
-                        sampleColor *= mix(1.0, caustics, pow2(linearStep(0.0, 4.0, waterDepth)));
-                    }
-
-                    sampleShadow *= sampleColor;
-                }
-            }
-
-            shadowSum += sampleShadow;
-        }
-    } else {
-        vec2 causticsTexelPos = texelPosCenter + dir * jitterR * causticsSampleRadius;
-        float caustics = transient_caustics_final_sample(causticsTexelPos * uval_mainImageSizeRcp).r;
-
-        for (uint i = 0; i < SAMPLE_COUNT; i++) {
-            dir *= MAT2_GOLDEN_ANGLE;
-            float baseRadius = sqrt((float(i) + jitterR) * rcpSamples);
-            vec2 baseOffset = dir * baseRadius;
-            vec3 sampleTexCoord = shadowScreenPos;
-
-            sampleTexCoord.xy += ssRange * baseOffset * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
-            sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
-
-            vec4 sampleShadowDepthOffset4 = textureGather(shadowcolor0, sampleTexCoord.xy, 0);
-            sampleTexCoord.z -= sum4(abs(sampleShadowDepthOffset4)) * 0.25;
-
-            float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
-            vec3 sampleShadow = vec3(shadowSampleSolid);
-
-            if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
-                vec4 shadowDepthAll = textureGather(shadowtex0, sampleTexCoord.xy, 0);
-                bvec4 shadowSampleCompareAll = greaterThan(vec4(sampleTexCoord.z), shadowDepthAll);
-                if (any(shadowSampleCompareAll)) {
-                    vec4 waterMask4 = textureGather(usam_shadow_waterMask, sampleTexCoord.xy, 0);
-                    float waterMaskSum = sum4(waterMask4);
-                    vec3 sampleColor = rtwsm_sampleShadowColor(shadowcolor2, sampleTexCoord.xy, 0.0).rgb;
-                    if (waterMaskSum > 0.1) {
-                        vec4 translucentDistance = saturate(sampleTexCoord.z - shadowDepthAll);
-                        float translucentDistanceMasked = dot(translucentDistance, waterMask4) / waterMaskSum;
-                        float waterDepth = max(rtwsm_linearDepthOffset(translucentDistanceMasked), 0.0);
-
-                        sampleColor *= exp(-waterDepth * WATER_EXTINCTION);
-                        sampleColor *= mix(1.0, caustics, pow2(linearStep(0.0, 4.0, waterDepth)));
-                    }
-                    sampleShadow *= sampleColor;
-                }
-            }
-
-            shadowSum += sampleShadow;
-        }
-    }
-    #else
     for (uint i = 0; i < SAMPLE_COUNT; i++) {
         dir *= MAT2_GOLDEN_ANGLE;
         float baseRadius = sqrt((float(i) + jitterR) * rcpSamples);
         vec2 baseOffset = dir * baseRadius;
         vec3 sampleTexCoord = shadowScreenPos;
 
-        sampleTexCoord.xy += ssRange * baseOffset * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
+        sampleTexCoord.xy += ssRange2 * baseOffset;
         sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
 
         vec4 sampleShadowDepthOffset4 = textureGather(shadowcolor0, sampleTexCoord.xy, 0);
-        sampleTexCoord.z -= sum4(abs(sampleShadowDepthOffset4)) * 0.25;
+        sampleTexCoord.z -= max4(abs(sampleShadowDepthOffset4));
 
         float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
-        vec3 sampleShadow = vec3(shadowSampleSolid);
+        f16vec3 sampleShadow = f16vec3(shadowSampleSolid);
 
         if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
             vec4 shadowDepthAll = textureGather(shadowtex0, sampleTexCoord.xy, 0);
@@ -237,24 +153,32 @@ vec3 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
             if (any(shadowSampleCompareAll)) {
                 vec4 waterMask4 = textureGather(usam_shadow_waterMask, sampleTexCoord.xy, 0);
                 float waterMaskSum = sum4(waterMask4);
-                vec3 sampleColor = rtwsm_sampleShadowColor(shadowcolor2, sampleTexCoord.xy, 0.0).rgb;
+                f16vec3 sampleColor = f16vec3(textureLod(shadowcolor2, sampleTexCoord.xy, 0.0).rgb);
                 if (waterMaskSum > 0.1) {
                     vec4 translucentDistance = saturate(sampleTexCoord.z - shadowDepthAll);
                     float translucentDistanceMasked = dot(translucentDistance, waterMask4) / waterMaskSum;
                     float waterDepth = max(rtwsm_linearDepthOffset(translucentDistanceMasked), 0.0);
-                    sampleColor *= exp(-waterDepth * WATER_EXTINCTION);
+                    sampleColor *= f16vec3(exp(-waterDepth * WATER_EXTINCTION));
+
+                    #ifdef SETTING_WATER_CAUSTICS
+                    vec2 causticsTexelPos = texelPosCenter + baseOffset * causticsSampleRadius;
+                    float caustics = transient_caustics_final_sample(causticsTexelPos * uval_mainImageSizeRcp).r;
+                    sampleColor *= float16_t(mix(1.0, caustics, pow2(linearStep(0.0, 4.0, waterDepth))));
+                    #endif
                 }
+
                 sampleShadow *= sampleColor;
             }
         }
+
         shadowSum += sampleShadow;
     }
-    #endif
 
-    shadowSum *= rcpSamples;
+    vec3 shadowSumFP32 = vec3(shadowSum);
+    shadowSumFP32 *= rcpSamples;
 
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
-    return mix(vec3(shadowSum), vec3(1.0), shadowRangeBlend);
+    return mix(vec3(shadowSumFP32), vec3(1.0), shadowRangeBlend);
 }
 
 void main() {
