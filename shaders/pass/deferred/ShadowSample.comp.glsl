@@ -32,11 +32,6 @@ layout(rgba16f) uniform restrict image2D uimg_translucentColor;
 shared float shared_warpTexelX[RTWSM_IMAP_SIZE];
 shared float shared_warpTexelY[RTWSM_IMAP_SIZE];
 
-ivec2 texelPos = ivec2(0);
-GBufferData gData = gbufferData_init();
-vec3 viewPos = vec3(0.0);
-vec3 viewDir = vec3(0.0);
-
 vec2 texel2Screen(ivec2 texelPos) {
     return (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
 }
@@ -61,11 +56,10 @@ vec2 rtwsm_warpTexCoord_shared(vec2 uv) {
     return result;
 }
 
-float searchBlocker(vec3 shadowTexCoord) {
+float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord) {
     #define BLOCKER_SEARCH_N SETTING_PCSS_BLOCKER_SEARCH_COUNT
 
     vec2 blockerSearchRange = 0.1 * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
-    uint idxB = frameCounter * BLOCKER_SEARCH_N + (hash_31_q3(floatBitsToUint(viewPos.xyz)) & 1023u);
 
     float blockerDepthSum = 0.0;
     float validCount = 0.0;
@@ -86,7 +80,6 @@ float searchBlocker(vec3 shadowTexCoord) {
         vec4 isBlocker4 = vec4(greaterThan(vec4(sampleTexCoord.z), depthGather));
         validCount += dot(vec4(1.0), isBlocker4);
         blockerDepthSum += dot(vec4(depthGather), isBlocker4);
-        idxB++;
     }
 
     blockerDepthSum /= max(validCount, 1.0);
@@ -95,7 +88,11 @@ float searchBlocker(vec3 shadowTexCoord) {
     return abs(rtwsm_linearDepth(blockerDepthSum) - rtwsm_linearDepth(shadowTexCoord.z));
 }
 
-vec3 calcShadow(Material material) {
+vec3 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
+    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+    Material material = material_decode(gData);
+    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+
     float sssFactor = material.sss;
     uint skipFlag = uint(dot(gData.normal, uval_upDirView) < -0.99);
     skipFlag &= uint(sssFactor < 0.001);
@@ -112,7 +109,7 @@ vec3 calcShadow(Material material) {
     vec4 shadowClipPos = global_shadowProjPrev * shadowViewPos;
     vec3 shadowNDCPos = shadowClipPos.xyz / shadowClipPos.w;
     vec3 shadowScreenPos = shadowNDCPos * 0.5 + 0.5;
-    float blockerDistance = searchBlocker(shadowScreenPos);
+    float blockerDistance = searchBlocker(texelPos, shadowScreenPos);
 
     float ssRange = 0.0;
     #if SETTING_PCSS_BPF > 0
@@ -260,14 +257,6 @@ vec3 calcShadow(Material material) {
     return mix(vec3(shadowSum), vec3(1.0), shadowRangeBlend);
 }
 
-vec4 compShadow(ivec2 texelPos, float viewZ) {
-    vec2 screenPos = texel2Screen(texelPos);
-    Material material = material_decode(gData);
-    viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-    viewDir = normalize(-viewPos);
-    return vec4(calcShadow(material), 1.0);
-}
-
 void main() {
     uint localThreadIdx = gl_LocalInvocationIndex;
     shared_warpTexelX[localThreadIdx] = persistent_rtwsm_warp_fetch(ivec2(localThreadIdx, 0)).r;
@@ -280,17 +269,19 @@ void main() {
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
-    texelPos = ivec2(mortonGlobalPosU);
+    ivec2 texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
 
         if (viewZ > -65536.0) {
+            GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             rtwsm_backward(texelPos, viewZ, gData);
-            vec4 outputColor = compShadow(texelPos, viewZ);
-            outputColor = clamp(outputColor, 0.0, FP16_MAX);
+            vec3 shadowValue = compShadow(texelPos, viewZ, gData);
+            shadowValue = clamp(shadowValue, 0.0, FP16_MAX);
+            vec4 outputColor = vec4(shadowValue, 1.0);
             transient_shadow_store(texelPos, outputColor);
         }
     }
