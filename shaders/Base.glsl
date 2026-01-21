@@ -22,5 +22,6 @@ const int shadowMapResolution = 4096;
 #include "/base/SSBO.glsl"
 #include "/base/Textures.glsl"
 #include "/base/Textile.glsl"
+#include "/base/Compat.glsl"
 
 #endif
