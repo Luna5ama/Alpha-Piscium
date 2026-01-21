@@ -67,7 +67,7 @@ CloudRaymarchLayerParam clouds_raymarchLayerParam_init(
     vec2 layerRange,
     float origin2RayOffset,
     float rayLength,
-    float rayRcpStepCount
+    uint stepCount
 ) {
     CloudRaymarchLayerParam param;
     param.medium = medium;
@@ -75,7 +75,7 @@ CloudRaymarchLayerParam clouds_raymarchLayerParam_init(
     param.layerRange = layerRange;
     param.rayStart = mainRayParam.rayStart + mainRayParam.rayDir * origin2RayOffset;
     param.rayEnd = param.rayStart + mainRayParam.rayDir * rayLength;
-    param.rayStep = vec4(param.rayEnd - param.rayStart, rayLength) * rayRcpStepCount;
+    param.rayStep = vec4(param.rayEnd - param.rayStart, rayLength) * rcp(float(stepCount + 1u));
     return param;
 }
 

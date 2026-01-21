@@ -158,7 +158,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
                     vec2(ciMinHeight, ciMaxHeight),
                     ciOrigin2RayOffset,
                     1.0,
-                    1.0
+                    0u
                 );
                 CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam);
                 float sampleDensity = clouds_ci_density(stepState.position.xyz);
