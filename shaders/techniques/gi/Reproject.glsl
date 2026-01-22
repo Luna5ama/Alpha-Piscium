@@ -38,10 +38,12 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
     if (bool(clipFlag)) {
         vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
         vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
+        vec2 curr2PrevScreenClamped = saturate(curr2PrevScreen);
 
-        if (all(equal(curr2PrevScreen, saturate(curr2PrevScreen)))) {
+        if (all(lessThan(abs(curr2PrevScreen - curr2PrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
             curr2PrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
+            curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
 
             vec3 curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
             vec3 curr2PrevViewGeomNormal = coords_dir_worldToViewPrev(currWorldGeomNormal);
@@ -221,11 +223,11 @@ void gi_reproject(ivec2 texelPos, float currViewZ, GBufferData gData) {
 
                 gi_historyData_unpack5(historyData, saturate(history_gi5_sample(curr2PrevScreen)));
             }
-
-            float antiStretching = smoothstep(0.2, 0.0, historyData.glazingAngleFactor - glazingAngleFactorHistory);
+            float antiStretching = pow2(linearStep(0.2, 0.0, historyData.glazingAngleFactor - glazingAngleFactorHistory));
             historyResetFactor *= antiStretching;
 
             historyData.historyLength *= historyResetFactor;
+            historyData.realHistoryLength *= antiStretching;
             reprojInfo.historyResetFactor = historyResetFactor;
         }
     }

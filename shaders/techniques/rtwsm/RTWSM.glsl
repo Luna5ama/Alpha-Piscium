@@ -3,100 +3,34 @@
 
 #include "/util/Math.glsl"
 
-#if SETTING_RTWSM_IMAP_SIZE == 256
+#define RTWSM_IMAP_SIZE 256
 
 #define IMAP_SIZE_D2 128
 #define IMAP_SIZE_D16 16
 #define IMAP_SIZE_D32 8
 #define IMAP_SIZE_D128 2
 
-#define IMAP_SIZE_Y 262
-#define IMAP2D_V_RANGE (256.0 / 262.0)
-#define IMAP2D_V_CLAMP (255.5 / 262.0)
+#define IMAP1D_X_V (0.5 / 2.0)
+#define IMAP1D_Y_V (1.5 / 2.0)
 
-#define IMAP1D_X_Y 256
-#define IMAP1D_X_V (256.5 / 262.0)
-#define IMAP1D_Y_Y 257
-#define IMAP1D_Y_V (257.5 / 262.0)
+#define WARP_X_V (0.5 / 2.0)
+#define WARP_Y_V (1.5 / 2.0)
 
-#define WARP_X_Y 258
-#define WARP_X_V (258.5 / 262.0)
-#define WARP_Y_Y 259
-#define WARP_Y_V (259.5 / 262.0)
+#define TEXELSIZE_X_V (0.5 / 2.0)
+#define TEXELSIZE_Y_V (1.5 / 2.0)
 
-#define TEXELSIZE_X_Y 260
-#define TEXELSIZE_X_V (260.5 / 262.0)
-#define TEXELSIZE_Y_Y 261
-#define TEXELSIZE_Y_V (261.5 / 262.0)
-
-#elif SETTING_RTWSM_IMAP_SIZE == 512
-
-#define IMAP_SIZE_D2 256
-#define IMAP_SIZE_D16 32
-#define IMAP_SIZE_D32 16
-#define IMAP_SIZE_D128 4
-
-#define IMAP_SIZE_Y 518
-#define IMAP2D_V_RANGE (512.0 / 518.0)
-#define IMAP2D_V_CLAMP (511.5 / 518.0)
-
-#define IMAP1D_X_Y 512
-#define IMAP1D_X_V (512.5 / 518.0)
-#define IMAP1D_Y_Y 513
-#define IMAP1D_Y_V (513.5 / 518.0)
-
-#define WARP_X_Y 514
-#define WARP_X_V (514.5 / 518.0)
-#define WARP_Y_Y 515
-#define WARP_Y_V (515.5 / 518.0)
-
-#define TEXELSIZE_X_Y 516
-#define TEXELSIZE_X_V (516.5 / 518.0)
-#define TEXELSIZE_Y_Y 517
-#define TEXELSIZE_Y_V (517.5 / 518.0)
-
-#elif SETTING_RTWSM_IMAP_SIZE == 1024
-
-#define IMAP_SIZE_D2 512
-#define IMAP_SIZE_D16 64
-#define IMAP_SIZE_D32 32
-#define IMAP_SIZE_D128 8
-
-#define IMAP_SIZE_Y 1030
-
-#define IMAP2D_V_RANGE (1024.0 / 1030.0)
-#define IMAP2D_V_CLAMP (1023.5 / 1030.0)
-
-#define IMAP1D_X_Y 1024
-#define IMAP1D_X_V (1024.5 / 1030.0)
-#define IMAP1D_Y_Y 1025
-#define IMAP1D_Y_V (1025.5 / 1030.0)
-
-#define WARP_X_Y 1026
-#define WARP_X_V (1026.5 / 1030.0)
-#define WARP_Y_Y 1027
-#define WARP_Y_V (1027.5 / 1030.0)
-
-#define TEXELSIZE_X_Y 1028
-#define TEXELSIZE_X_V (1028.5 / 1030.0)
-#define TEXELSIZE_Y_Y 1029
-#define TEXELSIZE_Y_V (1029.5 / 1030.0)
-
-#endif
-
-vec2 rtwsm_warpTexCoord(sampler2D warpingMap, vec2 uv) {
+vec2 rtwsm_warpTexCoord(vec2 uv) {
     vec2 result = uv;
-    result.x += texture(warpingMap, vec2(uv.x, WARP_X_V)).r;
-    result.y += texture(warpingMap, vec2(uv.y, WARP_Y_V)).r;
+    vec4 warpTexelSize = persistent_rtwsm_warpTexelSize_sample(uv);
+    result.xy += warpTexelSize.xy * 2.0 - 1.0;
     return result;
 }
 
-vec2 rtwsm_warpTexCoordTexelSize(sampler2D warpingMap, vec2 uv, out vec2 texelSize) {
+vec2 rtwsm_warpTexCoordTexelSize(vec2 uv, out vec2 texelSize) {
     vec2 result = uv;
-    result.x += texture(warpingMap, vec2(uv.x, WARP_X_V)).r;
-    result.y += texture(warpingMap, vec2(uv.y, WARP_Y_V)).r;
-    texelSize.x = texture(warpingMap, vec2(uv.x, TEXELSIZE_X_V)).r;
-    texelSize.y = texture(warpingMap, vec2(uv.y, TEXELSIZE_Y_V)).r;
+    vec4 warpTexelSize = persistent_rtwsm_warpTexelSize_sample(uv);
+    result.xy += warpTexelSize.xy * 2.0 - 1.0;
+    texelSize = warpTexelSize.zw;
     return result;
 }
 
@@ -122,5 +56,15 @@ float rtwsm_linearDepth(float d) {
 
 float rtwsm_linearDepthInverse(float depth) {
     return linearStep(-global_shadowAABBMaxPrev.z - 512.0, -global_shadowAABBMinPrev.z + 16.0, depth);
+}
+
+float rtwsm_linearDepthOffset(float zOffset) {
+    float range = (-global_shadowAABBMinPrev.z + 16.0) - (-global_shadowAABBMaxPrev.z - 512.0);
+    return zOffset * range;
+}
+
+float rtwsm_linearDepthOffsetInverse(float zOffset) {
+    float range = (-global_shadowAABBMinPrev.z + 16.0) - (-global_shadowAABBMaxPrev.z - 512.0);
+    return zOffset / range;
 }
 #endif

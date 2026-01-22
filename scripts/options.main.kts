@@ -431,18 +431,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "RTWSM"
                         comment = "直线纹理扭曲阴影贴图（RTWSM）设置。一种根据场景和视角自适应分配更多阴影细节的高级技术。"
                     }
-                    slider("SETTING_RTWSM_IMAP_SIZE", 256, listOf(256, 512, 1024)) {
-                        lang {
-                            name = "Importance Map Resolution"
-                            comment =
-                                "Resolution for analyzing where shadows need more detail. Higher values improve accuracy but reduce performance."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "重要性图分辨率"
-                            comment = "用于分析阴影需要更多细节的位置的分辨率。数值越高，精度越高，但会降低性能。"
-                        }
-                    }
-                    empty()
                     toggle("SETTING_RTWSM_F", true) {
                         lang {
                             name = "Forward Importance Analysis"
@@ -570,23 +558,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "软阴影"
                         comment = "使用PCSS根据与阴影投射者的距离产生真实的柔和阴影边缘"
                     }
-                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 2, listOf(1, 2, 4, 8, 16)) {
+                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 2, powerOfTwoAndHalfRange(0..4)) {
                         lang {
                             name = "Blocker Search Count"
                             comment =
-                                "Number of samples used to determine shadow softness. Higher values improve quality but reduce performance."
+                                "Number of samples used to determine shadow softness. Higher values improve blur radius accuracy but reduce performance."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "遮挡物搜索采样数"
                             comment = "用于确定阴影柔和度的采样数。数值越高，质量越好，但会降低性能。"
                         }
                     }
-                    slider("SETTING_PCSS_BLOCKER_SEARCH_LOD", 4, 0..8) {
+                    slider("SETTING_PCSS_SAMPLE_COUNT", 8, powerOfTwoAndHalfRange(0..6)) {
                         lang {
-                            name = "Blocker Search LOD"
+                            name = "PCSS Sample Count"
+                            comment =
+                                "Number of samples used for PCSS shadow filtering. Higher values improve quality but reduce performance."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "遮挡物搜索LOD"
+                            name = "PCSS采样数"
+                            comment = "用于PCSS阴影过滤的采样数。数值越高，质量越好，但会降低性能。"
                         }
                     }
                     empty()
@@ -618,6 +609,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 lang {
                     name = "ReSTIR SSGI"
                 }
+                slider("SETTING_GI_INITIAL_SST_STEPS", 128, powerOfTwoAndHalfRange(4..8)) {
+                    lang {
+                        name = "Initial Sampling Screen Space Tracing Steps"
+                        comment = "Higher values improve quality but reduce performance."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "初始采样屏幕空间追踪步数"
+                        comment = "数值越高，质量越好，但会降低性能。"
+                    }
+                }
+                slider("SETTING_GI_VALIDATE_SST_STEPS", 64, powerOfTwoAndHalfRange(2..8)) {
+                    lang {
+                        name = "Validation Sampling Screen Space Tracing Steps"
+                        comment = "Higher values improve quality but reduce performance. These rays are less important thus it is fine to keep this at a lower value."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "验证采样屏幕空间追踪步数"
+                        comment = "数值越高，质量越好，但会降低性能。这些光线不太重要，因此保持较低数值是可以的。"
+                    }
+                }
                 slider("SETTING_GI_SST_THICKNESS", 0.1, 0.01..0.5 step 0.01) {
                     lang {
                         name = "Screen Space Tracing Thickness"
@@ -628,7 +639,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "屏幕空间追踪的假定厚度。"
                     }
                 }
-                slider("SETTING_GI_PROBE_FADE_START", 4, powerOfTwoRange(2..8)) {
+                slider("SETTING_GI_PROBE_FADE_START", 4, powerOfTwoRange(2..10)) {
                     lang {
                         name = "Environment Probe Fade Start"
                         comment = "Distance in blocks where environment probe lighting begins to fade out."
@@ -638,7 +649,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "环境探针照明开始淡出的距离（方块数）。"
                     }
                 }
-                slider("SETTING_GI_PROBE_FADE_END", 32, powerOfTwoRange(2..8)) {
+                slider("SETTING_GI_PROBE_FADE_END", 32, powerOfTwoRange(2..10)) {
                     lang {
                         name = "Environment Probe Fade End"
                         comment = "Distance in blocks where environment probe lighting is completely faded out."
@@ -690,7 +701,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "减少空间重用采样数以降低累积结果的偏差。"
                     }
                 }
-                slider("SETTING_GI_SPATIAL_REUSE_RADIUS", 64, powerOfTwoRangeAndHalf(1..8)) {
+                slider("SETTING_GI_SPATIAL_REUSE_RADIUS", 64, powerOfTwoAndHalfRange(4..8)) {
                     lang {
                         name = "Spatial Reuse Radius"
                         comment = "Radius to search for nearby GI samples to reuse."
@@ -702,7 +713,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         suffix = " 像素"
                     }
                 }
-                slider("SETTING_GI_SPATIAL_REUSE_FEEDBACK", 16, listOf(0) + powerOfTwoRangeAndHalf(0..6)) {
+                slider("SETTING_GI_SPATIAL_REUSE_FEEDBACK", 16, listOf(0) + powerOfTwoAndHalfRange(0..6)) {
                     lang {
                         name = "Spatial Reuse Feedback Threshold"
                         comment =
@@ -741,7 +752,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "第一轮空间降噪的采样数。"
                     }
                 }
-                slider("SETTING_DENOISER_SPATIAL_SAMPLES_POST", 4, 1..16) {
+                slider("SETTING_DENOISER_SPATIAL_SAMPLES_POST", 8, 1..16) {
                     lang {
                         name = "Post Spatial Denoiser Sample Count"
                         comment = "Number of samples used for post spatial denoising pass."
@@ -762,7 +773,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "在多帧中累积GI结果以提高质量。"
                     }
                 }
-                slider("SETTING_DENOISER_HISTORY_LENGTH", 256, powerOfTwoRangeAndHalf(2..8)) {
+                slider("SETTING_DENOISER_HISTORY_LENGTH", 256, powerOfTwoAndHalfRange(2..8)) {
                     lang {
                         name = "Temporal History Length"
                         comment = "Number of frames to accumulate for temporal denoising."
@@ -783,7 +794,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "夹紧到快速历史以减少重影伪影。"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 32, powerOfTwoRangeAndHalf(2..8)) {
+                slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 32, powerOfTwoAndHalfRange(2..8)) {
                     lang {
                         name = "Temporal Fast History Length"
                         comment =
@@ -839,7 +850,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 256, powerOfTwoRangeAndHalf(2..8)) {
+                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 64, powerOfTwoAndHalfRange(2..8)) {
                     lang {
                         name = "Stabilization Maximum Accumulated Frames"
                         comment =
@@ -1247,7 +1258,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "使用近似的折射方向，更适合屏幕空间折射。"
                         }
                     }
-                    toggle("SETTING_WATER_CAUSTICS", false) {
+                    toggle("SETTING_WATER_CAUSTICS", true) {
                         lang {
                             name = "Water Caustics"
                             comment =
@@ -1259,7 +1270,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     empty()
-                    slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..4.0 step 0.5) {
+                    slider("SETTING_WATER_NORMAL_SCALE", 1.5, 0.0..5.0 step 0.5) {
                         lang {
                             name = "Water Normal Intensity"
                             comment =
@@ -1282,7 +1293,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "给水波添加立体感，使它们看起来是3D而不是平面的。"
                         }
                     }
-                    slider("SETTING_WATER_PARALLAX_STRENGTH", 1.0, 0.0..4.0 step 0.5) {
+                    slider("SETTING_WATER_PARALLAX_STRENGTH", 1.5, 0.0..5.0 step 0.5) {
                         lang {
                             name = "Water Parallax Strength"
                             comment =
@@ -1293,7 +1304,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "水波的深度和三维感。数值越高，深度越明显。"
                         }
                     }
-                    slider("SETTING_WATER_PARALLAX_LINEAR_STEPS", 8, powerOfTwoRangeAndHalf(2..5)) {
+                    slider("SETTING_WATER_PARALLAX_LINEAR_STEPS", 8, powerOfTwoAndHalfRange(2..5)) {
                         lang {
                             name = "Water Parallax Linear Sample Steps"
                             comment =
@@ -1459,7 +1470,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "光束的柔和和扩散程度。数值越高，创造更扩散的光线。"
                         }
                     }
-                    slider("SETTING_WATER_SHADOW_SAMPLE", 64, powerOfTwoRangeAndHalf(4..8)) {
+                    slider("SETTING_WATER_SHADOW_SAMPLE", 64, powerOfTwoAndHalfRange(4..8)) {
                         lang {
                             name = "Shadow Samples"
                             comment =
@@ -1499,7 +1510,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "云照明"
                     }
-                    slider("SETTING_CLOUDS_MS_RADIUS", 0.7, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_RADIUS", 0.35, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Multi-Scattering Radius"
                         }
@@ -1565,7 +1576,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             6 value "4.0 倍"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 48, powerOfTwoRangeAndHalf(2..7)) {
+                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 48, powerOfTwoAndHalfRange(2..7)) {
                         lang {
                             name = "Max Accumulation"
                             comment =
@@ -1728,7 +1739,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "控制云顶尖锐程度。数值越高，云越尖锐。"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_TOP_CURVE_FACTOR", 48, powerOfTwoRangeAndHalf(4..10)) {
+                    slider("SETTING_CLOUDS_LOW_TOP_CURVE_FACTOR", 48, powerOfTwoAndHalfRange(4..10)) {
                         lang {
                             name = "Top Curve Factor"
                             comment =
@@ -1739,7 +1750,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "控制云顶的形状曲线。数值越高，云顶越有棱角。"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_BOTTOM_CURVE_FACTOR", 128, powerOfTwoRangeAndHalf(4..10)) {
+                    slider("SETTING_CLOUDS_LOW_BOTTOM_CURVE_FACTOR", 128, powerOfTwoAndHalfRange(4..10)) {
                         lang {
                             name = "Bottom Curve Factor"
                             comment =
@@ -2907,7 +2918,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 name = "色彩管理"
                 comment = "高级色彩空间设置。仅在您知道自己在做什么时更改！"
             }
-            toggle("SETTING_MATERIAL_COLOR_SPACE", 1, 0..7) {
+            toggle("SETTING_MATERIAL_COLOR_SPACE", 1, 0..8) {
                 lang {
                     name = "Texture Color Space"
                     comment = "Color space of your resource pack textures. sRGB is standard for most packs."
@@ -2919,18 +2930,11 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     5 value "Adobe RGB (1998)"
                     6 value "ACES2065-1"
                     7 value "ACEScg"
+                    8 value "Color McSpaceFace"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "纹理色彩空间"
                     comment = "资源包纹理的色彩空间。sRGB是大多数资源包的标准。"
-                    0 value "CIE XYZ"
-                    1 value "sRGB"
-                    2 value "Rec. 709"
-                    3 value "Rec. 2020"
-                    4 value "DCI-P3"
-                    5 value "Adobe RGB (1998)"
-                    6 value "ACES2065-1"
-                    7 value "ACEScg"
                 }
             }
             toggle("SETTING_MATERIAL_TRANSFER_FUNC", 3, 0..7) {
@@ -2951,17 +2955,12 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     name = "纹理伽马曲线"
                     comment = "纹理的伽马/传递函数。sRGB是大多数资源包的标准。"
                     0 value "线性"
-                    1 value "Rec. 601"
-                    2 value "Rec. 709"
-                    3 value "sRGB"
                     4 value "指数 2.2"
                     5 value "指数 2.4"
-                    6 value "ST 2084 (PQ)"
-                    7 value "HLG"
                 }
             }
             empty()
-            toggle("SETTING_WORKING_COLOR_SPACE", 7, 0..7) {
+            toggle("SETTING_WORKING_COLOR_SPACE", 8, 0..8) {
                 lang {
                     name = "Internal Processing Color Space"
                     comment =
@@ -2974,22 +2973,15 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     5 value "Adobe RGB (1998)"
                     6 value "ACES2065-1"
                     7 value "ACEScg"
+                    8 value "Color McSpaceFace"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "内部处理色彩空间"
                     comment = "用于光照计算的色彩空间。推荐使用ACEScg进行广色域渲染。"
-                    0 value "CIE XYZ"
-                    1 value "sRGB"
-                    2 value "Rec. 709"
-                    3 value "Rec. 2020"
-                    4 value "DCI-P3"
-                    5 value "Adobe RGB (1998)"
-                    6 value "ACES2065-1"
-                    7 value "ACEScg"
                 }
             }
             empty()
-            toggle("SETTING_DRT_WORKING_COLOR_SPACE", 1, 0..7) {
+            toggle("SETTING_DRT_WORKING_COLOR_SPACE", 1, 0..8) {
                 lang {
                     name = "Tone Mapping Color Space"
                     comment =
@@ -3002,22 +2994,15 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     5 value "Adobe RGB (1998)"
                     6 value "ACES2065-1"
                     7 value "ACEScg"
+                    8 value "Color McSpaceFace"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "色调映射色彩空间"
                     comment = "用于色调映射操作的色彩空间。Rec. 2020与AgX色调映射配合更好。"
-                    0 value "CIE XYZ"
-                    1 value "sRGB"
-                    2 value "Rec. 709"
-                    3 value "Rec. 2020"
-                    4 value "DCI-P3"
-                    5 value "Adobe RGB (1998)"
-                    6 value "ACES2065-1"
-                    7 value "ACEScg"
                 }
             }
             empty()
-            toggle("SETTING_OUTPUT_COLOR_SPACE", 1, 0..7) {
+            toggle("SETTING_OUTPUT_COLOR_SPACE", 1, 0..8) {
                 lang {
                     name = "Monitor Color Space"
                     comment =
@@ -3030,18 +3015,11 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     5 value "Adobe RGB (1998)"
                     6 value "ACES2065-1"
                     7 value "ACEScg"
+                    8 value "Color McSpaceFace"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "显示器色彩空间"
                     comment = "显示器的色彩空间。标准显示器使用sRGB，广色域显示器使用Rec. 2020或DCI-P3。"
-                    0 value "CIE XYZ"
-                    1 value "sRGB"
-                    2 value "Rec. 709"
-                    3 value "Rec. 2020"
-                    4 value "DCI-P3"
-                    5 value "Adobe RGB (1998)"
-                    6 value "ACES2065-1"
-                    7 value "ACEScg"
                 }
             }
             toggle("SETTING_OUTPUT_TRANSFER_FUNC", 3, 0..7) {
@@ -3062,13 +3040,8 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     name = "显示器伽马曲线"
                     comment = "显示器的伽马/传递函数。大多数显示器使用sRGB，HDR显示器使用ST 2084 (PQ)。"
                     0 value "线性"
-                    1 value "Rec. 601"
-                    2 value "Rec. 709"
-                    3 value "sRGB"
                     4 value "指数 2.2"
                     5 value "指数 2.4"
-                    6 value "ST 2084 (PQ)"
-                    7 value "HLG"
                 }
             }
         }

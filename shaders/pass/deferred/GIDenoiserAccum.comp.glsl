@@ -111,7 +111,7 @@ void main() {
                     // y: regular, specular
                     // z: fast, diffuse
                     // w: fast, specular
-                    vec4 alpha = vec4(newWeights.xy, sqrt(newWeights.xy)) * rcpAccumHistoryLength.xxyy;
+                    vec4 alpha = vec4(newWeights.xy, pow(newWeights.xy, vec2(0.1))) * rcpAccumHistoryLength.xxyy;
 
                     historyData.diffuseColor = mix(historyData.diffuseColor, newDiffuse.rgb, alpha.x);
                     historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, alpha.y);
@@ -144,8 +144,9 @@ void main() {
                     }
                 }
 
-                historyData.historyLength = max(historyData.historyLength, maxHistoryLengths.x);
-                historyData.realHistoryLength = max(historyData.realHistoryLength, maxHistoryLengths.y);
+                float maxMixWeight = linearStep(1.0, 4.0, historyData.realHistoryLength * TOTAL_HISTORY_LENGTH);
+                historyData.historyLength = mix(historyData.historyLength, max(historyData.historyLength, maxHistoryLengths.x), maxMixWeight);
+                historyData.realHistoryLength = mix(historyData.realHistoryLength, max(historyData.realHistoryLength, maxHistoryLengths.y), maxMixWeight);
                 #if SETTING_DEBUG_OUTPUT
                 imageStore(uimg_temp3, texelPos, gi_historyData_pack1(historyData));
                 #endif

@@ -8,6 +8,7 @@
 #define COLORS2_COLORSPACES_ADOBE_RGB_1998 5
 #define COLORS2_COLORSPACES_ACES_AP0 6
 #define COLORS2_COLORSPACES_ACES_AP1 7
+#define COLORS2_COLORSPACES_COLOR_MCSPACEFACE 8
 
 #define _colors2_colorspaces_convert(a, b, x) colors2_colorspaces_ ## a ## _to_ ## b ##(x)
 #define colors2_colorspaces_convert(a, b, x) _colors2_colorspaces_convert(a, b, x)
@@ -57,6 +58,11 @@ const mat3 _colors2_colorspaces_mat_CIE_XYZ_to_ACES_AP1 = mat3(
     -0.6636628587, 1.6153315917, 0.0167563477,
     0.0117218943, -0.008284442, 0.9883948585
 );
+const mat3 _colors2_colorspaces_mat_CIE_XYZ_to_COLOR_MCSPACEFACE = mat3(
+    1.8036169276, -0.4552904521, -0.2378028419,
+    -0.8777214976, 1.7861935367, 0.044102742,
+    -0.0076302897, 0.0213060993, 0.9055290952
+);
 
 // ----------------------------------------------------- From SRGB -----------------------------------------------------
 const mat3 _colors2_colorspaces_mat_SRGB_to_CIE_XYZ = mat3(
@@ -98,6 +104,11 @@ const mat3 _colors2_colorspaces_mat_SRGB_to_ACES_AP1 = mat3(
     0.6131324224, 0.3395380158, 0.047416696,
     0.0701243808, 0.9163940113, 0.013451524,
     0.0205876575, 0.1095745716, 0.869785404
+);
+const mat3 _colors2_colorspaces_mat_SRGB_to_COLOR_MCSPACEFACE = mat3(
+    0.6424391956, 0.2910124185, 0.066641612,
+    0.01862347, 0.9688787528, 0.0124565459,
+    0.0188551746, 0.1204306855, 0.8606615207
 );
 
 // ---------------------------------------------------- From REC709 ----------------------------------------------------
@@ -141,6 +152,11 @@ const mat3 _colors2_colorspaces_mat_REC709_to_ACES_AP1 = mat3(
     0.0701937225, 0.9163538791, 0.0134523985,
     0.0206155929, 0.1095697729, 0.8698146342
 );
+const mat3 _colors2_colorspaces_mat_REC709_to_COLOR_MCSPACEFACE = mat3(
+    0.6423975126, 0.290999674, 0.0666028135,
+    0.0187025778, 0.968836322, 0.0124611002,
+    0.0188839772, 0.1204254114, 0.8606906114
+);
 
 // --------------------------------------------------- From REC2020 ---------------------------------------------------
 const mat3 _colors2_colorspaces_mat_REC2020_to_CIE_XYZ = mat3(
@@ -182,6 +198,11 @@ const mat3 _colors2_colorspaces_mat_REC2020_to_ACES_AP1 = mat3(
     0.9748949779, 0.0195991086, 0.0055059134,
     0.0021795628, 0.9955354689, 0.0022849683,
     0.0047972397, 0.0245320166, 0.9706707437
+);
+const mat3 _colors2_colorspaces_mat_REC2020_to_COLOR_MCSPACEFACE = mat3(
+    1.02924225, -0.0545245427, 0.0252822927,
+    -0.08983974, 1.0853508417, 0.0044888983,
+    0.0007354405, 0.0387656211, 0.9604989385
 );
 
 // ---------------------------------------------------- From DCI_P3 ----------------------------------------------------
@@ -225,6 +246,11 @@ const mat3 _colors2_colorspaces_mat_DCI_P3_to_ACES_AP1 = mat3(
     0.0429788175, 0.9461757697, 0.0108454127,
     0.0036155455, 0.0430194671, 0.9533649873
 );
+const mat3 _colors2_colorspaces_mat_DCI_P3_to_COLOR_MCSPACEFACE = mat3(
+    0.7303069694, 0.1994789445, 0.0702140861,
+    -0.0187831594, 1.0091068134, 0.009676346,
+    0.0013253512, 0.0553550597, 0.9433195891
+);
 
 // ------------------------------------------------ From ADOBE_RGB_1998 ------------------------------------------------
 const mat3 _colors2_colorspaces_mat_ADOBE_RGB_1998_to_CIE_XYZ = mat3(
@@ -266,6 +292,11 @@ const mat3 _colors2_colorspaces_mat_ADOBE_RGB_1998_to_ACES_AP1 = mat3(
     0.857331761, 0.0932620958, 0.0494155164,
     0.0981471377, 0.8878074297, 0.0140266997,
     0.0288267153, 0.0640182469, 0.9071571651
+);
+const mat3 _colors2_colorspaces_mat_ADOBE_RGB_1998_to_COLOR_MCSPACEFACE = mat3(
+    0.8983045668, 0.0322422724, 0.0694645249,
+    0.0261430701, 0.9608432342, 0.0129923579,
+    0.0264051721, 0.0759552419, 0.897641378
 );
 
 // --------------------------------------------------- From ACES_AP0 ---------------------------------------------------
@@ -309,6 +340,11 @@ const mat3 _colors2_colorspaces_mat_ACES_AP0_to_ACES_AP1 = mat3(
     -0.0765537733, 1.1762296998, -0.0996759265,
     0.0083161484, -0.0060324498, 0.9977163014
 );
+const mat3 _colors2_colorspaces_mat_ACES_AP0_to_COLOR_MCSPACEFACE = mat3(
+    1.5384451464, -0.3392907066, -0.19915444,
+    -0.2208933788, 1.3068226981, -0.0859293193,
+    0.0010885009, 0.0122289218, 0.9866825774
+);
 
 // --------------------------------------------------- From ACES_AP1 ---------------------------------------------------
 const mat3 _colors2_colorspaces_mat_ACES_AP1_to_CIE_XYZ = mat3(
@@ -351,6 +387,58 @@ const mat3 _colors2_colorspaces_mat_ACES_AP1_to_ACES_AP1 = mat3(
     0.0, 1.0, 0.0,
     0.0, 0.0, 1.0
 );
+const mat3 _colors2_colorspaces_mat_ACES_AP1_to_COLOR_MCSPACEFACE = mat3(
+    1.0558172503, -0.0760536019, 0.0202363516,
+    -0.0946074079, 1.0920168543, 0.0025905536,
+    -0.0041475025, 0.0146375846, 0.9895099179
+);
+
+// ---------------------------------------------- From COLOR_MCSPACEFACE ----------------------------------------------
+const mat3 _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_CIE_XYZ = mat3(
+    0.6326705035, 0.1593748231, 0.1583847254,
+    0.3109383344, 0.6385030652, 0.0505586004,
+    -0.0019849432, -0.0136803265, 1.1044717614
+);
+const mat3 _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_SRGB = mat3(
+    1.5732175875, -0.4582177853, -0.1151565195,
+    -0.0298175917, 1.0427085222, -0.0127917816,
+    -0.0302889016, -0.1358492065, 1.1662125458
+);
+const mat3 _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_REC709 = mat3(
+    1.5733946999, -0.4582756388, -0.1151190611,
+    -0.0299830237, 1.0427599524, -0.0127769286,
+    -0.0303259165, -0.1358452479, 1.1661711645
+);
+const mat3 _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_REC2020 = mat3(
+    0.975967555, 0.0499553701, -0.0259229251,
+    0.0808021347, 0.9256507776, -0.0064529123,
+    -0.004008449, -0.0373974036, 1.0414058526
+);
+const mat3 _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_DCI_P3 = mat3(
+    1.3626775245, -0.2639569859, -0.0987205386,
+    0.0253970497, 0.9866137758, -0.0120108255,
+    -0.0034048709, -0.0575247555, 1.0609296265
+);
+const mat3 _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_ADOBE_RGB_1998 = mat3(
+    1.1166338266, -0.030670652, -0.0859627369,
+    -0.0299799561, 1.0427620595, -0.0127707659,
+    -0.0303137568, -0.0873306478, 1.1176372892
+);
+const mat3 _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_ACES_AP0 = mat3(
+    0.6748538843, 0.1737961892, 0.1513499266,
+    0.1139293384, 0.7939320393, 0.0921386223,
+    -0.0021565314, -0.0100317066, 1.012188238
+);
+const mat3 _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_ACES_AP1 = mat3(
+    0.9530274476, 0.0666372627, -0.0196647103,
+    0.0825594145, 0.9215416099, -0.0041010244,
+    0.0027733055, -0.0133528374, 1.010579532
+);
+const mat3 _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_COLOR_MCSPACEFACE = mat3(
+    1.0, 0.0, 0.0,
+    0.0, 1.0, 0.0,
+    0.0, 0.0, 1.0
+);
 
 
 // -------------------------------------------------- Luma Functions --------------------------------------------------
@@ -374,6 +462,9 @@ const mat3 _colors2_colorspaces_mat_ACES_AP1_to_ACES_AP1 = mat3(
 
 #define colors2_colorspaces_ACES_AP1_luma(x) dot(x, _colors2_colorspaces_mat_ACES_AP1_to_CIE_XYZ[1])
 #define colors2_colorspaces_7_luma(x) colors2_colorspaces_ACES_AP1_luma(x)
+
+#define colors2_colorspaces_COLOR_MCSPACEFACE_luma(x) dot(x, _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_CIE_XYZ[1])
+#define colors2_colorspaces_8_luma(x) colors2_colorspaces_COLOR_MCSPACEFACE_luma(x)
 
 
 // ------------------------------------------------- Adapter Functions -------------------------------------------------
@@ -402,6 +493,9 @@ const mat3 _colors2_colorspaces_mat_ACES_AP1_to_ACES_AP1 = mat3(
 #define colors2_colorspaces_CIE_XYZ_to_ACES_AP1(x) (x * _colors2_colorspaces_mat_CIE_XYZ_to_ACES_AP1)
 #define colors2_colorspaces_0_to_7(x) colors2_colorspaces_CIE_XYZ_to_ACES_AP1(x)
 
+#define colors2_colorspaces_CIE_XYZ_to_COLOR_MCSPACEFACE(x) (x * _colors2_colorspaces_mat_CIE_XYZ_to_COLOR_MCSPACEFACE)
+#define colors2_colorspaces_0_to_8(x) colors2_colorspaces_CIE_XYZ_to_COLOR_MCSPACEFACE(x)
+
 
 // ----------------------------------------------------- From SRGB -----------------------------------------------------
 #define colors2_colorspaces_SRGB_to_CIE_XYZ(x) (x * _colors2_colorspaces_mat_SRGB_to_CIE_XYZ)
@@ -427,6 +521,9 @@ const mat3 _colors2_colorspaces_mat_ACES_AP1_to_ACES_AP1 = mat3(
 
 #define colors2_colorspaces_SRGB_to_ACES_AP1(x) (x * _colors2_colorspaces_mat_SRGB_to_ACES_AP1)
 #define colors2_colorspaces_1_to_7(x) colors2_colorspaces_SRGB_to_ACES_AP1(x)
+
+#define colors2_colorspaces_SRGB_to_COLOR_MCSPACEFACE(x) (x * _colors2_colorspaces_mat_SRGB_to_COLOR_MCSPACEFACE)
+#define colors2_colorspaces_1_to_8(x) colors2_colorspaces_SRGB_to_COLOR_MCSPACEFACE(x)
 
 
 // ---------------------------------------------------- From REC709 ----------------------------------------------------
@@ -454,6 +551,9 @@ const mat3 _colors2_colorspaces_mat_ACES_AP1_to_ACES_AP1 = mat3(
 #define colors2_colorspaces_REC709_to_ACES_AP1(x) (x * _colors2_colorspaces_mat_REC709_to_ACES_AP1)
 #define colors2_colorspaces_2_to_7(x) colors2_colorspaces_REC709_to_ACES_AP1(x)
 
+#define colors2_colorspaces_REC709_to_COLOR_MCSPACEFACE(x) (x * _colors2_colorspaces_mat_REC709_to_COLOR_MCSPACEFACE)
+#define colors2_colorspaces_2_to_8(x) colors2_colorspaces_REC709_to_COLOR_MCSPACEFACE(x)
+
 
 // --------------------------------------------------- From REC2020 ---------------------------------------------------
 #define colors2_colorspaces_REC2020_to_CIE_XYZ(x) (x * _colors2_colorspaces_mat_REC2020_to_CIE_XYZ)
@@ -479,6 +579,9 @@ const mat3 _colors2_colorspaces_mat_ACES_AP1_to_ACES_AP1 = mat3(
 
 #define colors2_colorspaces_REC2020_to_ACES_AP1(x) (x * _colors2_colorspaces_mat_REC2020_to_ACES_AP1)
 #define colors2_colorspaces_3_to_7(x) colors2_colorspaces_REC2020_to_ACES_AP1(x)
+
+#define colors2_colorspaces_REC2020_to_COLOR_MCSPACEFACE(x) (x * _colors2_colorspaces_mat_REC2020_to_COLOR_MCSPACEFACE)
+#define colors2_colorspaces_3_to_8(x) colors2_colorspaces_REC2020_to_COLOR_MCSPACEFACE(x)
 
 
 // ---------------------------------------------------- From DCI_P3 ----------------------------------------------------
@@ -506,6 +609,9 @@ const mat3 _colors2_colorspaces_mat_ACES_AP1_to_ACES_AP1 = mat3(
 #define colors2_colorspaces_DCI_P3_to_ACES_AP1(x) (x * _colors2_colorspaces_mat_DCI_P3_to_ACES_AP1)
 #define colors2_colorspaces_4_to_7(x) colors2_colorspaces_DCI_P3_to_ACES_AP1(x)
 
+#define colors2_colorspaces_DCI_P3_to_COLOR_MCSPACEFACE(x) (x * _colors2_colorspaces_mat_DCI_P3_to_COLOR_MCSPACEFACE)
+#define colors2_colorspaces_4_to_8(x) colors2_colorspaces_DCI_P3_to_COLOR_MCSPACEFACE(x)
+
 
 // ------------------------------------------------ From ADOBE_RGB_1998 ------------------------------------------------
 #define colors2_colorspaces_ADOBE_RGB_1998_to_CIE_XYZ(x) (x * _colors2_colorspaces_mat_ADOBE_RGB_1998_to_CIE_XYZ)
@@ -531,6 +637,9 @@ const mat3 _colors2_colorspaces_mat_ACES_AP1_to_ACES_AP1 = mat3(
 
 #define colors2_colorspaces_ADOBE_RGB_1998_to_ACES_AP1(x) (x * _colors2_colorspaces_mat_ADOBE_RGB_1998_to_ACES_AP1)
 #define colors2_colorspaces_5_to_7(x) colors2_colorspaces_ADOBE_RGB_1998_to_ACES_AP1(x)
+
+#define colors2_colorspaces_ADOBE_RGB_1998_to_COLOR_MCSPACEFACE(x) (x * _colors2_colorspaces_mat_ADOBE_RGB_1998_to_COLOR_MCSPACEFACE)
+#define colors2_colorspaces_5_to_8(x) colors2_colorspaces_ADOBE_RGB_1998_to_COLOR_MCSPACEFACE(x)
 
 
 // --------------------------------------------------- From ACES_AP0 ---------------------------------------------------
@@ -558,6 +667,9 @@ const mat3 _colors2_colorspaces_mat_ACES_AP1_to_ACES_AP1 = mat3(
 #define colors2_colorspaces_ACES_AP0_to_ACES_AP1(x) (x * _colors2_colorspaces_mat_ACES_AP0_to_ACES_AP1)
 #define colors2_colorspaces_6_to_7(x) colors2_colorspaces_ACES_AP0_to_ACES_AP1(x)
 
+#define colors2_colorspaces_ACES_AP0_to_COLOR_MCSPACEFACE(x) (x * _colors2_colorspaces_mat_ACES_AP0_to_COLOR_MCSPACEFACE)
+#define colors2_colorspaces_6_to_8(x) colors2_colorspaces_ACES_AP0_to_COLOR_MCSPACEFACE(x)
+
 
 // --------------------------------------------------- From ACES_AP1 ---------------------------------------------------
 #define colors2_colorspaces_ACES_AP1_to_CIE_XYZ(x) (x * _colors2_colorspaces_mat_ACES_AP1_to_CIE_XYZ)
@@ -583,4 +695,37 @@ const mat3 _colors2_colorspaces_mat_ACES_AP1_to_ACES_AP1 = mat3(
 
 #define colors2_colorspaces_ACES_AP1_to_ACES_AP1(x) (x * _colors2_colorspaces_mat_ACES_AP1_to_ACES_AP1)
 #define colors2_colorspaces_7_to_7(x) colors2_colorspaces_ACES_AP1_to_ACES_AP1(x)
+
+#define colors2_colorspaces_ACES_AP1_to_COLOR_MCSPACEFACE(x) (x * _colors2_colorspaces_mat_ACES_AP1_to_COLOR_MCSPACEFACE)
+#define colors2_colorspaces_7_to_8(x) colors2_colorspaces_ACES_AP1_to_COLOR_MCSPACEFACE(x)
+
+
+// ---------------------------------------------- From COLOR_MCSPACEFACE ----------------------------------------------
+#define colors2_colorspaces_COLOR_MCSPACEFACE_to_CIE_XYZ(x) (x * _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_CIE_XYZ)
+#define colors2_colorspaces_8_to_0(x) colors2_colorspaces_COLOR_MCSPACEFACE_to_CIE_XYZ(x)
+
+#define colors2_colorspaces_COLOR_MCSPACEFACE_to_SRGB(x) (x * _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_SRGB)
+#define colors2_colorspaces_8_to_1(x) colors2_colorspaces_COLOR_MCSPACEFACE_to_SRGB(x)
+
+#define colors2_colorspaces_COLOR_MCSPACEFACE_to_REC709(x) (x * _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_REC709)
+#define colors2_colorspaces_8_to_2(x) colors2_colorspaces_COLOR_MCSPACEFACE_to_REC709(x)
+
+#define colors2_colorspaces_COLOR_MCSPACEFACE_to_REC2020(x) (x * _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_REC2020)
+#define colors2_colorspaces_8_to_3(x) colors2_colorspaces_COLOR_MCSPACEFACE_to_REC2020(x)
+
+#define colors2_colorspaces_COLOR_MCSPACEFACE_to_DCI_P3(x) (x * _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_DCI_P3)
+#define colors2_colorspaces_8_to_4(x) colors2_colorspaces_COLOR_MCSPACEFACE_to_DCI_P3(x)
+
+#define colors2_colorspaces_COLOR_MCSPACEFACE_to_ADOBE_RGB_1998(x) (x * _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_ADOBE_RGB_1998)
+#define colors2_colorspaces_8_to_5(x) colors2_colorspaces_COLOR_MCSPACEFACE_to_ADOBE_RGB_1998(x)
+
+#define colors2_colorspaces_COLOR_MCSPACEFACE_to_ACES_AP0(x) (x * _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_ACES_AP0)
+#define colors2_colorspaces_8_to_6(x) colors2_colorspaces_COLOR_MCSPACEFACE_to_ACES_AP0(x)
+
+#define colors2_colorspaces_COLOR_MCSPACEFACE_to_ACES_AP1(x) (x * _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_ACES_AP1)
+#define colors2_colorspaces_8_to_7(x) colors2_colorspaces_COLOR_MCSPACEFACE_to_ACES_AP1(x)
+
+#define colors2_colorspaces_COLOR_MCSPACEFACE_to_COLOR_MCSPACEFACE(x) (x * _colors2_colorspaces_mat_COLOR_MCSPACEFACE_to_COLOR_MCSPACEFACE)
+#define colors2_colorspaces_8_to_8(x) colors2_colorspaces_COLOR_MCSPACEFACE_to_COLOR_MCSPACEFACE(x)
+
 

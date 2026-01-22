@@ -214,7 +214,7 @@ void main() {
                 float historyLen = historyData.historyLength * TOTAL_HISTORY_LENGTH;
                 historyLen *= taaResetFactor.z * pow2(global_historyResetFactor);
                 historyLen = clamp(historyLen, 1.0, float(SETTING_DENOISER_STABILIZATION_MAX_ACCUM));
-                float mixWeight = 1.0 / 1.0;
+                float mixWeight = 1.0 / historyLen;
 
                 // Blend current and clamped history
                 vec3 finalDiff = mix(clampedHistoryDiff, currDiff.rgb, mixWeight);
@@ -230,14 +230,14 @@ void main() {
 
                 #if SETTING_DEBUG_OUTPUT
                 if (RANDOM_FRAME < MAX_FRAMES){
-                    //                imageStore(uimg_temp3, texelPos, vec4(interpolateTurbo(saturate(transient_gi_blurDiff1_fetch(texelPos).w)), 0.0));
-                    //                imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
-                    //            imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
-                    //                imageStore(uimg_temp2, texelPos, gi_historyData_pack2(historyData));
-
-//                                    imageStore(uimg_temp3, texelPos, vec4(finalDiff, 0.0));
-                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.realHistoryLength), 1.0));
-                    imageStore(uimg_temp2, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
+//                    imageStore(uimg_temp3, texelPos, vec4(interpolateTurbo(saturate(transient_gi_blurDiff1_fetch(texelPos).w)), 0.0));
+//                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
+//                    imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
+//                    imageStore(uimg_temp2, texelPos, gi_historyData_pack2(historyData));
+//
+//                    imageStore(uimg_temp3, texelPos, vec4(finalDiff, 0.0));
+//                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.realHistoryLength), 1.0));
+//                    imageStore(uimg_temp2, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
                 }
                 #endif
             }

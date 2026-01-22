@@ -109,9 +109,9 @@ void render(ivec2 texelPosDownScale) {
     CloudRenderParams renderParams = cloudRenderParams_init(mainRayParams, lightDir, lightIlluminance);
     CloudRaymarchAccumState cuAccum = clouds_raymarchAccumState_init();
 
-    vec2 jitters = rand_stbnVec2(texelPosDownScale, frameCounter);
+    vec2 ambLutJitterRand = rand_stbnVec2(rand_newStbnPos(texelPosDownScale, 1), frameCounter);
     vec3 viewDir = mainRayParams.rayDir;
-    vec2 ambLutUV = cloods_amblut_uv(viewDir, jitters);
+    vec2 ambLutUV = cloods_amblut_uv(viewDir, ambLutJitterRand);
 
     {
         float cuMinHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
@@ -138,6 +138,7 @@ void render(ivec2 texelPosDownScale) {
             cuRayLen = min(cuRayLen, CLOUDS_CU_MAX_RAY_LENGTH);
             float cuRaySteps = cuRayLen / CLOUDS_CU_MAX_RAY_LENGTH * float(SETTING_CLOUDS_LOW_STEP_MAX);
             cuRaySteps = max(cuRaySteps, SETTING_CLOUDS_LOW_STEP_MIN);
+            uint cuRayStepsI = uint(cuRaySteps);
 
             vec3 ambientIrradiance = clouds_amblut_sample(ambLutUV, CLOUDS_AMBLUT_LAYER_CUMULUS);
             CloudParticpatingMedium cuMedium = clouds_cu_medium(renderParams.cosLightTheta);
@@ -148,16 +149,17 @@ void render(ivec2 texelPosDownScale) {
                 vec2(cuMinHeight, cuMaxHeight),
                 cuOrigin2RayStart,
                 cuRayLen,
-                rcp(cuRaySteps)
+                cuRayStepsI
             );
             CloudRaymarchStepState stepState = clouds_raymarchStepState_init(layerParam);
 
-            uint cuRayStepsI = uint(cuRaySteps);
-
-            vec2 lightRayJitters = rand_stbnVec2(texelPosDownScale + ivec2(6, 9), frameCounter);
+            vec2 lightRayDirJitterRand = rand_stbnVec2(rand_newStbnPos(texelPosDownScale, 2), frameCounter);
             vec3 lightRayDir = renderParams.lightDir;
             // Scale cone radius by 4 to simulate subsurface scattering
-            lightRayDir = rand_sampleInCone(lightRayDir, SUN_ANGULAR_RADIUS * 4.0, lightRayJitters);
+            lightRayDir = rand_sampleInCone(lightRayDir, SUN_ANGULAR_RADIUS * 4.0, lightRayDirJitterRand);
+
+            float mainRayJitterRand = rand_stbnVec1(rand_newStbnPos(texelPosDownScale, 1), frameCounter);
+            float lightRayJitterRand = rand_stbnVec1(rand_newStbnPos(texelPosDownScale, 2), frameCounter);
 
             for (uint stepIndex = 0; stepIndex < cuRayStepsI; ++stepIndex) {
                 if (stepState.position.w > cuRayLen) break;
@@ -178,7 +180,7 @@ void render(ivec2 texelPosDownScale) {
                         for (uint lightStepIndex = 0; lightStepIndex < CLOUDS_CU_LIGHT_RAYMARCH_STEP; ++lightStepIndex) {
                             // Use x^2 curve to distribute more samples near the starting point
                             float indexF = float(lightStepIndex);
-                            float x = (indexF + jitters.y) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
+                            float x = (indexF + lightRayJitterRand) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
                             vec3 lightRaySamplePos = stepState.position.xyz + lightRayTotalDelta * pow2(x);
 
                             float lightSampleHeight = length(lightRaySamplePos);
@@ -211,7 +213,7 @@ void render(ivec2 texelPosDownScale) {
                     break;
                 }
 
-                clouds_raymarchStepState_update(stepState, float(stepIndex) + jitters.x);
+                clouds_raymarchStepState_update(stepState, float(stepIndex) + mainRayJitterRand);
             }
         }
     }

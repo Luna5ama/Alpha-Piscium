@@ -3,17 +3,39 @@ import numpy as np
 
 sorted(colour.RGB_COLOURSPACES)
 
+def getColorSpace(csname):
+    if csname == 'Color McSpaceFace':
+        d65 = [0.31272, 0.32903]
+        r = [0.671893,  0.330215]
+        g = [0.203233,  0.814212]
+        b = [0.120590,  0.038494]
+        return colour.RGB_Colourspace(
+            name='Custom',
+            primaries=np.array([r, g, b]),
+            whitepoint=np.array(d65),
+            whitepoint_name='D65',
+            matrix_RGB_to_XYZ=None,
+            matrix_XYZ_to_RGB=None,
+            cctf_encoding=None,
+            cctf_decoding=None
+        )
+
+    try:
+        return colour.RGB_COLOURSPACES[csname]
+    except KeyError:
+        raise ValueError(f"Color space '{csname}' not found in colour-science library.")
+
 def cmat(a, b):
     if a == b:
         return np.identity(3)
     elif (a == "CIE XYZ"):
-        mat = colour.RGB_COLOURSPACES[b].matrix_XYZ_to_RGB
+        mat = getColorSpace(b).matrix_XYZ_to_RGB
     elif (b == "CIE XYZ"):
-        mat = colour.RGB_COLOURSPACES[a].matrix_RGB_to_XYZ
+        mat = getColorSpace(a).matrix_RGB_to_XYZ
     else:
         mat = colour.matrix_RGB_to_RGB(
-            colour.RGB_COLOURSPACES[a],
-            colour.RGB_COLOURSPACES[b],
+            getColorSpace(a),
+            getColorSpace(b),
             'Bradford'
         )
 
@@ -27,7 +49,8 @@ my_color_spaces = [
     "DCI-P3",
     "Adobe RGB (1998)",
     "ACES2065-1",
-    "ACEScg"
+    "ACEScg",
+    "Color McSpaceFace"
 ]
 
 color_space_code_name = {
@@ -38,7 +61,8 @@ color_space_code_name = {
     "DCI-P3": "DCI_P3",
     "Adobe RGB (1998)": "ADOBE_RGB_1998",
     "ACES2065-1": "ACES_AP0",
-    "ACEScg": "ACES_AP1"
+    "ACEScg": "ACES_AP1",
+    "Color McSpaceFace": "COLOR_MCSPACEFACE"
 }
 
 package_name = "colors2_colorspaces"

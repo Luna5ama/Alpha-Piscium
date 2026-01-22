@@ -2,29 +2,20 @@
 
 #include "RTWSM.glsl"
 
-layout(local_size_x = SETTING_RTWSM_IMAP_SIZE, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = RTWSM_IMAP_SIZE, local_size_y = 1, local_size_z = 1) in;
 const ivec3 workGroups = ivec3(1, 2, 1);
 
-layout(r32f) uniform restrict image2D uimg_rtwsm_imap;
+layout(r32f) uniform restrict image2D uimg_fr32f;
 
-shared float shared_buffer[SETTING_RTWSM_IMAP_SIZE];
+shared float shared_buffer[RTWSM_IMAP_SIZE];
 
-#if SETTING_RTWSM_IMAP_SIZE == 256
 #define RADIUS 2
 #define SAMPLES 5
-#elif SETTING_RTWSM_IMAP_SIZE == 512
-#define RADIUS 4
-#define SAMPLES 9
-#elif SETTING_RTWSM_IMAP_SIZE == 1024
-#define RADIUS 8
-#define SAMPLES 17
-#endif
 
 void main() {
     ivec2 ti = ivec2(gl_GlobalInvocationID.xy);
     ivec2 dataPos = ti;
-    dataPos.y += IMAP1D_X_Y;
-    shared_buffer[gl_LocalInvocationID.x] = imageLoad(uimg_rtwsm_imap, dataPos).r;
+    shared_buffer[gl_LocalInvocationID.x] = persistent_rtwsm_importance1D_load(dataPos).r;
 
     barrier();
 
@@ -48,6 +39,6 @@ void main() {
             value += shared_buffer[pos];
         }
         value /= float(SAMPLES);
-        imageStore(uimg_rtwsm_imap, dataPos, vec4(value));
+        persistent_rtwsm_importance1D_store(dataPos, vec4(value));
     }
 }

@@ -88,7 +88,7 @@ void main() {
         if (subgroupElect()) {
             vec3 r = multiSctrAs1Sum;
             vec3 sumOfAllMultiSctrEventsContribution = 1.0 / (1.0 - r);
-            vec3 currResult = inSctrSum * sumOfAllMultiSctrEventsContribution * MULTI_SCTR_LUT_QUANTIZATION_MUL;
+            vec3 currResult = inSctrSum * sumOfAllMultiSctrEventsContribution * LUT_QUANTIZATION_MUL;
 
             vec4 prevData = persistent_multiSctrLUT_load(texelPos);
             persistent_multiSctrLUT_store(texelPos, temporalUpdate(prevData, currResult, 64.0, texelPos));

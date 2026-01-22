@@ -504,7 +504,7 @@ fun powerOfTwoRange(range: IntRange): List<Int> {
     return range.map { 1 shl it }
 }
 
-fun powerOfTwoRangeAndHalf(range: IntRange): List<Int> {
+fun powerOfTwoAndHalfRange(range: IntRange): List<Int> {
     return range.flatMapIndexed { index, it ->
         if (it <= 1 || index == 0) {
             listOf(1 shl it)

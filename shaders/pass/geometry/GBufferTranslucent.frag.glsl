@@ -10,6 +10,7 @@
 ivec2 texelPos;
 #include "/util/Colors2.glsl"
 #include "/util/Dither.glsl"
+#include "/util/Translucent.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/WaterWave.glsl"
@@ -145,7 +146,7 @@ GBufferData processOutput() {
         if (dot(geomViewNormal, uval_upDirView) > UP_DIR_COS_EPSILON) {
             const uint PARALLAX_LINEAR_STEPS = uint(SETTING_WATER_PARALLAX_LINEAR_STEPS);
             const uint PARALLAX_SECANT_STEPS = uint(SETTING_WATER_PARALLAX_SECANT_STEPS);
-            const float PARALLAX_STRENGTH = float(SETTING_WATER_PARALLAX_STRENGTH) / 0.8349056;
+            const float PARALLAX_STRENGTH = float(SETTING_WATER_PARALLAX_STRENGTH) / 0.83;
 
             vec3 rayVector = scenePos / abs(scenePos.y);// y = +-1 now
             float rayVectorLength = length(rayVector);
@@ -280,27 +281,9 @@ void main() {
     float alpha = inputAlbedo.a;
     vec3 materialColor = colors2_material_toWorkSpace(inputAlbedo.rgb);
 
-    vec3 t = materialColor;
-    float lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);
-    t *= saturate(0.3 / lumaT);
-
-    if (isWater) {
-        t.g *= 2.5;
-    }
-    t = pow(t, vec3(1.0 / 2.2));
-    lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);
-    float sat = isWater ? 0.2 : SETTING_TRANSLUCENT_ABSORPTION_SATURATION;
-    t = lumaT + sat * (t - lumaT);
-    t = pow(t, vec3(2.2));
-
-    float tv = isWater ? 0.5 : 1.0;
-
-    vec3 tAbsorption = -log(t) * (alpha * sqrt(alpha)) * tv;
-    tAbsorption = max(tAbsorption, 0.0);
-    vec3 tTransmittance = exp(-tAbsorption);
-    lighting_gData.albedo = tTransmittance;
-
-    rt_translucentColor = isWater ? vec4(1.0) : vec4(tTransmittance, 0.0);
+    vec3 transmittance = translucent_albedoToTransmittance(materialColor, alpha, isWater);
+    lighting_gData.albedo = transmittance;
+    rt_translucentColor = isWater ? vec4(1.0) : vec4(transmittance, 0.0);
 
     ivec2 farDepthTexelPos = texelPos;
     ivec2 nearDepthTexelPos = texelPos;
@@ -323,10 +306,6 @@ void main() {
         offsetViewZ -= max(calculateRayBoxIntersection(p, rayDir, halfSize), 0.1);
     }
     imageAtomicMax(uimg_csr32f, farDepthTexelPos, floatBitsToInt(-offsetViewZ));
-
-    if (isWater) {
-        imageAtomicMax(uimg_csr32f, csr32f_tile5_texelToTexel(texelPos), int(packUnorm4x8(inputAlbedo)));
-    }
 
     gbufferData1_pack(rt_gbufferData1, lighting_gData);
     gbufferData2_pack(rt_gbufferData2, lighting_gData);

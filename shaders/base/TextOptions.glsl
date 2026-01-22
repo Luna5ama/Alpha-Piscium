@@ -18,8 +18,3 @@
 #define SPONSOR_7 0//[0]
 #define SPONSOR_8 0//[0]
 #define SPONSOR_9 0//[0]
-#define SPONSOR_10 0//[0]
-#define SPONSOR_11 0//[0]
-#define SPONSOR_12 0//[0]
-#define SPONSOR_13 0//[0]
-#define SPONSOR_14 0//[0]

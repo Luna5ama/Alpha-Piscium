@@ -13,7 +13,7 @@
 #include "/util/Morton.glsl"
 
 // Required resources
-// layout(r32i) uniform iimage2D uimg_rtwsm_imap;
+// layout(r32i) uniform iimage2D uimg_fr32f;
 
 shared vec3 shared_shadowAABBMin[16];
 shared vec3 shared_shadowAABBMax[16];
@@ -81,7 +81,7 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
 
     // Shadow Edge function
     #if SETTING_RTWSM_B_SE > 0.0
-    vec2 shadowScreenPosWarped = rtwsm_warpTexCoord(usam_rtwsm_imap, shadowScreenPos);
+    vec2 shadowScreenPosWarped = rtwsm_warpTexCoord(shadowScreenPos);
 
     float center = rtwsm_linearDepth(texture(shadowtex0, shadowScreenPosWarped).x);
     float maxDiff = 0.0;
@@ -103,7 +103,7 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
         return;
     }
 
-    uvec2 shadowPos = uvec2(shadowScreenPos.xy * SETTING_RTWSM_IMAP_SIZE);
+    uvec2 shadowPos = uvec2(shadowScreenPos.xy * RTWSM_IMAP_SIZE);
 
     importance = max(importance, uval_rtwsmMin.y);
 
@@ -115,7 +115,7 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
 
 void writeOutput(uint p, float v) {
     if (p == 0xFFFFFFFFu) return;
-    imageAtomicMax(uimg_rtwsm_imap, ivec2(p & 0xFFFFu, p >> 16), floatBitsToInt(v));
+    persistent_rtwsm_importance2D_atomicMax(ivec2(p & 0xFFFFu, p >> 16), floatBitsToInt(v));
 }
 
 void backwardOutput(uint p, float v) {

@@ -172,20 +172,22 @@ void main() {
 
                     float jitterStep = rand_stbnVec1(texelPosWarped, frameCounter);
                     bool isBackwardRay = pRayVector.z < 0.0;
-                    const float maxThickness = 0.5;
-                    float maxThicknessFactor = rcp(1.0 - maxThickness); // 1.0 / (1.0 - maxThickness)
+                    {
+                        const float maxThickness = 0.5;
+                        float maxThicknessFactor = rcp(1.0 - maxThickness); // 1.0 / (1.0 - maxThickness)
 
-                    for (uint step = 0u; step < SST_STEP; ++step) {
-                        float stepF = float(step) - jitterStep;
-                        currT = saturate(stepF * dt);
-                        vec3 currScreen = pRayStart + pRayVector * currT;
-                        vec2 currTexelF = currScreen.xy * uval_mainImageSize;
-                        float depth = hiz_closest_sample(currTexelF / 16, 4);
-                        depth = isBackwardRay ? min(depth, pRayStart.z) : max(depth, pRayStart.z);
+                        for (uint step = 0u; step < SST_STEP; ++step) {
+                            float stepF = float(step) - jitterStep;
+                            currT = saturate(stepF * dt);
+                            vec3 currScreen = pRayStart + pRayVector * currT;
+                            vec2 currTexelF = currScreen.xy * uval_mainImageSize;
+                            float depth = hiz_closest_sample(currTexelF / 16, 4);
+                            depth = isBackwardRay ? min(depth, pRayStart.z) : max(depth, pRayStart.z);
 
-                        float thicknessFactor = currScreen.z * maxThicknessFactor;
-                        if (currScreen.z < depth && thicknessFactor > depth) {
-                            break;
+                            float thicknessFactor = currScreen.z * maxThicknessFactor;
+                            if (currScreen.z < depth && thicknessFactor > depth) {
+                                break;
+                            }
                         }
                     }
 
@@ -213,21 +215,30 @@ void main() {
                         ivec2 camTexelPos = ivec2(camTexelPosF);
 
                         if (all(greaterThanEqual(camTexelPos, ivec2(0))) && all(lessThan(camTexelPos, uval_mainImageSizeI))) {
-                            float camAreaSize = transient_screenPixelSize_fetch(camTexelPos).r;
+                            float finalDepth = hiz_closest_sample(camTexelPosF, 0);
+                            float currEdgeFactor = smoothstep(0.9, 1.0, min4(transient_edgeMask_gather(camScreenPos.xy, 0)));
 
-                            float area = texture(usam_shadow_pixelArea, screenPosWarped).r / camAreaSize;
-                            int areaQuantitized = int(area * (256.0 * 16.0));
+                            float maxThickness = 0.01 + currEdgeFactor * 0.5;
+                            float maxThicknessFactor = rcp(1.0 - maxThickness); // 1.0 / (1.0 - maxThickness)
+                            float thicknessFactor = camScreenPos.z * maxThicknessFactor;
 
-                            #if defined(MC_GL_VENDOR_NVIDIA)
-                            uint p = bitfieldInsert(camTexelPos.x, camTexelPos.y, 16, 16);
-                            uvec4 pballot = subgroupPartitionNV(p);
-                            int sumAreaQ = subgroupPartitionedAddNV(areaQuantitized, pballot);
-                            if (subgroupBallotFindLSB(pballot) == gl_SubgroupInvocationID) {
-                                transient_caustics_input_atomicAdd(camTexelPos, sumAreaQ);
+                            if (currEdgeFactor >= 0.5 || camScreenPos.z < finalDepth && thicknessFactor > finalDepth) {
+                                float camAreaSize = transient_screenPixelSize_fetch(camTexelPos).r;
+
+                                float area = texture(usam_shadow_pixelArea, screenPosWarped).r / camAreaSize;
+                                int areaQuantitized = int(area * (256.0 * 16.0));
+
+                                #if defined(MC_GL_VENDOR_NVIDIA)
+                                uint p = bitfieldInsert(camTexelPos.x, camTexelPos.y, 16, 16);
+                                uvec4 pballot = subgroupPartitionNV(p);
+                                int sumAreaQ = subgroupPartitionedAddNV(areaQuantitized, pballot);
+                                if (subgroupBallotFindLSB(pballot) == gl_SubgroupInvocationID) {
+                                    transient_caustics_input_atomicAdd(camTexelPos, sumAreaQ);
+                                }
+                                #else
+                                transient_caustics_input_atomicAdd(camTexelPos, areaQuantitized);
+                                #endif
                             }
-                            #else
-                            transient_caustics_input_atomicAdd(camTexelPos, areaQuantitized);
-                            #endif
                         }
                     }
                 }

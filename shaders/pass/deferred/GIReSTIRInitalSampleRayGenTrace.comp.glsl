@@ -80,7 +80,11 @@ void main() {
             vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, material.tbn);
 
             SSTRay sstRay = sstray_setup(texelPos, viewPos, rayDirView);
+            #if SETTING_GI_INITIAL_SST_STEPS < 64
+            sst_trace(sstRay, SETTING_GI_INITIAL_SST_STEPS);
+            #else
             sst_trace(sstRay, 24);
+            #endif
 
             if (sstRay.currT > 0.0) {
                 uvec4 packedData = sstray_pack(sstRay);

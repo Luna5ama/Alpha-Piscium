@@ -2,10 +2,10 @@
 
 #include "RTWSM.glsl"
 
-layout(local_size_x = SETTING_RTWSM_IMAP_SIZE, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = RTWSM_IMAP_SIZE, local_size_y = 1, local_size_z = 1) in;
 const ivec3 workGroups = ivec3(1, 2, 1);
 
-layout(r32f) uniform restrict image2D uimg_rtwsm_imap;
+layout(r32f) uniform restrict image2D uimg_fr32f;
 
 shared float shared_prefixBuffer[IMAP_SIZE_D16];
 
@@ -15,8 +15,7 @@ void main() {
 
     ivec2 ti = ivec2(gl_GlobalInvocationID.xy);
     ivec2 inputPos = ti;
-    inputPos.y += IMAP1D_X_Y;
-    float tValue = imageLoad(uimg_rtwsm_imap, inputPos).r;
+    float tValue = persistent_rtwsm_importance1D_load(inputPos).r;
     float prefix = subgroupInclusiveAdd(tValue);
     if (gl_SubgroupInvocationID == gl_SubgroupSize - 1) {
         shared_prefixBuffer[gl_SubgroupID] = prefix;
@@ -43,10 +42,8 @@ void main() {
     float texelSize = tValue / max(total, 1.0);
 
     ivec2 warpOutputPos = ti;
-    warpOutputPos.y += WARP_X_Y;
-    imageStore(uimg_rtwsm_imap, warpOutputPos, vec4(warp));
+    persistent_rtwsm_warp_store(warpOutputPos, vec4(warp));
 
     ivec2 texelSizeOutputPos = ti;
-    texelSizeOutputPos.y += TEXELSIZE_X_Y;
-    imageStore(uimg_rtwsm_imap, texelSizeOutputPos, vec4(texelSize));
+    persistent_rtwsm_texelSize_store(texelSizeOutputPos, vec4(texelSize));
 }
