@@ -129,7 +129,6 @@ option.SETTING_RTWSM_B_D=Backward Distance Function
 option.SETTING_RTWSM_B_D.comment=Reduces weight based on distance. Larger setting value means slower decay.
 option.SETTING_RTWSM_B_P=Backward Perpendicular Function
 option.SETTING_RTWSM_B_P.comment=Adds extra weight to surface perpendicular to light direction.
-option.SETTING_RTWSM_B_PP=Backward Perpendicular Function Power
 option.SETTING_RTWSM_B_SN=Backward Surface Normal Function
 option.SETTING_RTWSM_B_SN.comment=Adds extra weight to surface directly facing towards camera.
 option.SETTING_RTWSM_B_SE=Backward Shadow Edge Function

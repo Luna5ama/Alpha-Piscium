@@ -126,7 +126,6 @@ option.SETTING_RTWSM_B_D=反向分析距离函数
 option.SETTING_RTWSM_B_D.comment=根据距离降低权重。设置值越大，衰减越慢。
 option.SETTING_RTWSM_B_P=反向分析垂直函数
 option.SETTING_RTWSM_B_P.comment=为垂直于光线方向的表面增加额外权重。
-option.SETTING_RTWSM_B_PP=反向分析垂直函数幂
 option.SETTING_RTWSM_B_SN=反向分析表面法线函数
 option.SETTING_RTWSM_B_SN.comment=为直接面向相机的表面增加额外权重。
 option.SETTING_RTWSM_B_SE=反向分析阴影边缘函数

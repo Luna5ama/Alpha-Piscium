@@ -510,7 +510,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "根据距离降低权重。设置值越大，衰减越慢。"
                         }
                     }
-                    slider("SETTING_RTWSM_B_P", 4.0, 0.0..10.0 step 0.5) {
+                    slider("SETTING_RTWSM_B_P", 2.0, 0.0..5.0 step 0.25) {
                         lang {
                             name = "Backward Perpendicular Function"
                             comment = "Adds extra weight to surface perpendicular to light direction."
@@ -518,14 +518,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "反向分析垂直函数"
                             comment = "为垂直于光线方向的表面增加额外权重。"
-                        }
-                    }
-                    slider("SETTING_RTWSM_B_PP", 16, (0..8).map { 1 shl it }) {
-                        lang {
-                            name = "Backward Perpendicular Function Power"
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "反向分析垂直函数幂"
                         }
                     }
                     slider("SETTING_RTWSM_B_SN", 2.0, 0.0..10.0 step 0.5) {
