@@ -167,10 +167,14 @@ void main() {
                         float neighborSampleHitDistance = neighborReservoir.Y.w;
                         vec3 neighborHitViewPos = neighborViewPos + neighborSampleDirView * neighborReservoir.Y.w;
                         vec3 hitDiff = neighborHitViewPos - viewPos;
-                        neighborSampleHitDistance = length(hitDiff);
+                        float hitDist2 = dot(hitDiff, hitDiff);
+
+                        // Safety check: Avoid singularity if reuse sample is at the exact same position
+                        if (hitDist2 < 1e-6) continue;
+
+                        neighborSampleHitDistance = sqrt(hitDist2);
                         neighborSampleDirView = hitDiff / neighborSampleHitDistance;
 
-                        float neighborSamplePdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
                         vec3 neighborHitScreenPos = coords_viewToScreen(neighborHitViewPos, global_camProj);
                         ivec2 neighborHitTexelPos = ivec2(neighborHitScreenPos.xy * uval_mainImageSize);
                         //
@@ -180,16 +184,18 @@ void main() {
                         vec3 neighborSample = f;
                         float neighborPHat = length(neighborSample);
 
-
                         vec3 offsetB = neighborHitViewPos - neighborViewPos;
-                        vec3 offsetA = neighborHitViewPos - viewPos;
+                        vec3 offsetA = hitDiff;
 
                         if (dot(centerSampleData.normal, offsetA) <= 0.0) {
                             neighborPHat = 0.0;
                         }
 
                         float RB2 = dot(offsetB, offsetB);
-                        float RA2 = dot(offsetA, offsetA);
+                        float RA2 = hitDist2;
+
+                        if (RB2 < 1e-6) continue;
+
                         offsetB = normalize(offsetB);
                         offsetA = normalize(offsetA);
                         float cosA = dot(centerSampleData.normal, offsetA);

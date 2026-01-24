@@ -76,8 +76,8 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
 
     #if SETTING_RTWSM_B_P > 0.0
     float lightDot = abs(dot(gData.geomNormal, uval_shadowLightDirView));
-    lightDot = clamp(lightDot, 0.01, 0.99);
-    importance *= (sqrt(1.0 - pow2(lightDot)) / lightDot) * SETTING_RTWSM_B_P; // tan(acos(lightDot))
+    lightDot = clamp(lightDot, 0.1, 0.9);
+    importance *= 1.0 + (sqrt(1.0 - pow2(lightDot)) / lightDot) * SETTING_RTWSM_B_P; // tan(acos(lightDot))
     #endif
 
     // Shadow Edge function
