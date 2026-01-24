@@ -37,16 +37,22 @@ void main() {
     vec2 offsetTexCoord = frag_texcoord + pixelDiff.x * dFdx(frag_texcoord) + pixelDiff.y * dFdy(frag_texcoord);
     offsetTexCoord = clamp(offsetTexCoord, frag_texcoordMin, frag_texcoordMax);
     vec4 inputAlbedo = textureLod(gtexture, offsetTexCoord, 0.0) * frag_color;
-    float depthFixOffset = pixelDiff.x * dFdx(gl_FragCoord.z) + pixelDiff.y * dFdy(gl_FragCoord.z);
-    depthFixOffset = max(depthFixOffset, 0.0);
+    float dZdx = dFdxFine(gl_FragCoord.z);
+    float dZdy = dFdyFine(gl_FragCoord.z);
+    float depthFixOffset = abs(pixelDiff.x * dZdx) + abs(pixelDiff.y * dZdy);
 
     float lightDot = abs(dot(frag_normal, uval_shadowLightDirWorld));
-    lightDot = max(lightDot, 0.01);
+    lightDot = max(lightDot, 0.05);
 
-    float depthBiasFactor = sqrt(1.0 - pow2(lightDot)) / lightDot; // tan(acos(lightDot))
-    depthBiasFactor = depthBiasFactor * 2.0 + 1.0;
-    float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / min2(texelSize);
-    depthFixOffset += rtwsm_linearDepthOffsetInverse(depthBias);
+    float depthBiasSlopeFactor = sqrt(1.0 - pow2(lightDot)) / lightDot; // tan(acos(lightDot))
+    depthBiasSlopeFactor = log2(depthBiasSlopeFactor + 1.0) + 0.01;
+    float depthBiasTexelSizeFactor = SHADOW_MAP_SIZE.y * (1.0 / 256.0) / min2(texelSize);
+    float depthBias = depthBiasSlopeFactor * depthBiasTexelSizeFactor;
+    depthFixOffset += depthBias;
+
+    if (frag_materialID == 4u) {
+        depthFixOffset = 0.0;
+    }
 
     rt_normal = normalize(frag_normal);
 

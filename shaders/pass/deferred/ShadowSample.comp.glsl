@@ -148,7 +148,7 @@ vec3 calcShadow(Material material) {
             sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
 
             vec4 sampleShadowDepthOffset4 = textureGather(shadowcolor0, sampleTexCoord.xy, 0);
-            sampleTexCoord.z -= sum4(abs(sampleShadowDepthOffset4)) * 0.25;
+            sampleTexCoord.z -= max4(abs(sampleShadowDepthOffset4));
 
             float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
             vec3 sampleShadow = vec3(shadowSampleSolid);
