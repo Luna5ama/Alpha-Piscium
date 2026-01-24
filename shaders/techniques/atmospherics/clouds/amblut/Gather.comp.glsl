@@ -45,7 +45,10 @@ void main() {
     vec3 inSctr = ssbo_ambLUTWorkingBuffer.inSctr[gl_LocalInvocationIndex];
 
     float cosLightTheta = dot(viewDir, rayDir);
-    float phase =  phasefunc_CornetteShanks(cosLightTheta, -SETTING_CLOUDS_AMB_BACKSCATTER_FACTOR);
+    float phaseForward = phasefunc_CornetteShanks(cosLightTheta, 0.9);
+    float phaseBackward = phasefunc_CornetteShanks(cosLightTheta, -0.6);
+    float phase = mix(phaseForward, phaseBackward, SETTING_CLOUDS_AMB_BACKSCATTER_FACTOR);
+
 
     vec3 phasedInSctr = inSctr * phase * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
     vec3 subgroupSum1 = subgroupAdd(phasedInSctr);

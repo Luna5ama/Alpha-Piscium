@@ -121,6 +121,7 @@ void clouds_computeLighting(
     CloudRaymarchLayerParam layerParam,
     CloudRaymarchStepState stepState,
     float sampleDensity,
+    float sampleDensityLod,
     vec3 lightOpticalDepth,
     inout CloudRaymarchAccumState accumState
 ) {
@@ -134,43 +135,41 @@ void clouds_computeLighting(
     vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
     vec3 sampleLightIrradiance = renderParams.lightIrradiance;
-    sampleLightIrradiance *= tLightToSample * exp(-lightOpticalDepth);
-    vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
+    vec3 sampleLightTransmittance = exp(-lightOpticalDepth);
+    sampleLightIrradiance *= tLightToSample * sampleLightTransmittance;
 
-    vec3 ambLightOpticalDepth = lightOpticalDepth;
-    ambLightOpticalDepth += -log(accumState.totalTransmittance);
-    ambLightOpticalDepth += sampleOpticalDepth;
-    ambLightOpticalDepth /= 3.0;
+    float D = exp2(SETTING_CLOUDS_MS_RADIUS);
+
+    // TODO: Expose the density mix as setting
+    float ambLightDesnity = mix(sampleDensityLod, sampleDensity, 0.4);
+    vec3 ambLightOpticalDepth = layerParam.medium.extinction * ambLightDesnity;
+    float horizonFactor = saturate(pow3(renderParams.cosLightTheta));
+    ambLightOpticalDepth = mix(ambLightOpticalDepth, lightOpticalDepth, horizonFactor);
     // See [SCH17]
     vec3 ambientTransmittance = max(exp(-ambLightOpticalDepth), exp(-ambLightOpticalDepth * 0.25) * 0.7);
 
+    vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
     sampleAmbientIrradiance *= ambientTransmittance;
 
-    vec4 multSctrFalloffs = vec4(1.0);
+    vec3 sampleIrradiance = sampleLightIrradiance;
+    sampleIrradiance *= layerParam.medium.phase;
+    sampleIrradiance += sampleAmbientIrradiance;
 
-    vec3 sampleTotalInSctr = vec3(0.0);
-
-    vec3 sampleInSctr = sampleLightIrradiance * layerParam.medium.phase;
-    sampleInSctr += sampleAmbientIrradiance;
-
-    const float D = SETTING_CLOUDS_MS_RADIUS;
     vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
-    fMS = mix(fMS, fMS * 0.99, smoothstep(0.99, 1.0, fMS));
+    fMS = mix(fMS, fMS * 0.99, linearStep(0.9, 1.0, fMS));
     vec3 sampleMSIrradiance = sampleLightIrradiance;
-    sampleMSIrradiance += sampleAmbientIrradiance;
     sampleMSIrradiance *= UNIFORM_PHASE;
+    sampleMSIrradiance += sampleAmbientIrradiance;
     sampleMSIrradiance *= fMS / (1.0 - fMS);
-    sampleInSctr += sampleMSIrradiance;
+    sampleIrradiance += sampleMSIrradiance;
 
-    sampleInSctr *= sampleScattering;
-
-    sampleInSctr += sampleMSIrradiance;
+    vec3 sampleInSctr = sampleIrradiance * sampleScattering;
 
     vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
-    sampleTotalInSctr += sampleInSctrInt;
 
-    accumState.totalInSctr += sampleTotalInSctr * accumState.totalTransmittance;
+    accumState.totalInSctr += sampleInSctrInt * accumState.totalTransmittance;
     accumState.totalTransmittance *= sampleTransmittance;
 }
+
 
 #endif

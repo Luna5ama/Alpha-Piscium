@@ -100,10 +100,13 @@ void render(ivec2 texelPosDownScale) {
     mainRayParams.rayStartHeight = length(mainRayParams.rayStart);
     mainRayParams.rayEndHeight = length(mainRayParams.rayEnd);
 
+    float lightSelectRand = rand_stbnVec1(rand_newStbnPos(texelPosDownScale, 0), frameCounter);
+
     float sunAngleWarped = fract(sunAngle + 0.25);
     float sunLightFactor = smoothstep(0.23035, 0.24035, sunAngleWarped);
     sunLightFactor *= smoothstep(0.76965, 0.75965, sunAngleWarped);
-    sunLightFactor *= step(0.5, sunLightFactor);
+    sunLightFactor += lightSelectRand * 0.2 - 0.1;
+    sunLightFactor = step(0.5, sunLightFactor);
     vec3 lightDir = mix(uval_moonDirWorld, uval_sunDirWorld, sunLightFactor);
     vec3 lightIlluminance = mix(MOON_ILLUMINANCE, SUN_ILLUMINANCE, sunLightFactor);
     CloudRenderParams renderParams = cloudRenderParams_init(mainRayParams, lightDir, lightIlluminance);
@@ -129,7 +132,7 @@ void render(ivec2 texelPosDownScale) {
         cuFlag &= uint(cuOrigin2RayStart >= 0.0);
 
         if (bool(cuFlag)) {
-            #define CLOUDS_CU_DENSITY (192.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (256.0 * SETTING_CLOUDS_CU_DENSITY)
 
             const float CLOUDS_CU_MAX_RAY_LENGTH = 50.0;
             float cuRayLen = mainRayParams.rayDir.y < 0.0 ? cuRayLenBot : cuRayLenTop;
@@ -166,8 +169,10 @@ void render(ivec2 texelPosDownScale) {
 
                 float heightFraction = linearStep(cuMinHeight, cuMaxHeight, stepState.height);
                 float sampleDensity = 0.0;
-                if (clouds_cu_density(stepState.position.xyz, heightFraction, true, sampleDensity)) {
+                float sampleDensityLod = 0.0;
+                if (clouds_cu_density(stepState.position.xyz, heightFraction, true, sampleDensity, sampleDensityLod)) {
                     sampleDensity *= CLOUDS_CU_DENSITY;
+                    sampleDensityLod *= CLOUDS_CU_DENSITY;
 
                     #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 8
                     #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
@@ -187,7 +192,8 @@ void render(ivec2 texelPosDownScale) {
                             if (lightSampleHeight > cuMaxHeight) break;
                             float lightHeightFraction = linearStep(cuMinHeight, cuMaxHeight, lightSampleHeight);
                             float lightSampleDensity = 0.0;
-                            if (clouds_cu_density(lightRaySamplePos, lightHeightFraction, true, lightSampleDensity)) {
+                            float lightSampleDensityLod = 0.0;
+                            if (clouds_cu_density(lightRaySamplePos, lightHeightFraction, true, lightSampleDensity, lightSampleDensityLod)) {
                                 // (x + c)^2 - (x - c)^2 = 4xc
                                 float x = (indexF + 0.5) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
                                 float lightRayStepLength = 4.0 * x * C * lightRayLen;
@@ -204,6 +210,7 @@ void render(ivec2 texelPosDownScale) {
                         layerParam,
                         stepState,
                         sampleDensity,
+                        sampleDensityLod,
                         lightRayOpticalDepth,
                         cuAccum
                     );

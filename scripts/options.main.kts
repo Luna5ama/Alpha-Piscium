@@ -1502,9 +1502,10 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "云照明"
                     }
-                    slider("SETTING_CLOUDS_MS_RADIUS", 0.35, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_RADIUS", -2.5, -5.0..0.0 step 0.25) {
                         lang {
                             name = "Multi-Scattering Radius"
+                            prefix = "2^"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "多重散射半径"
@@ -1568,7 +1569,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             6 value "4.0 倍"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 48, powerOfTwoAndHalfRange(2..7)) {
+                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 16, powerOfTwoAndHalfRange(2..7)) {
                         lang {
                             name = "Max Accumulation"
                             comment =
@@ -1590,7 +1591,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "云随时间变锐利的速度。数值越高，变锐利越快，但初始时可能显示更多噪点。"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.15, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.25, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Variance Clipping"
                             comment =
@@ -1671,7 +1672,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "云的厚度和不透明度。数值越高，云越浓密、看起来越坚实。"
                         }
                     }
-                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.4, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.5, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Coverage"
                             comment =
@@ -1777,23 +1778,45 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                     slider("SETTING_CLOUDS_LOW_BILLOWY_FREQ", 0.0, -4.0..4.0 step 0.1) {
                         lang {
-                            name = "Billowy Noise Frequency"
+                            name = "Base Billowy Noise Frequency"
                             comment =
                                 "Control the scale of billowy formations in clouds. Higher values create smaller billows."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "蓬松噪声频率"
+                            name = "基础蓬松噪声频率"
                             comment = "控制云中蓬松结构的比例。数值越高，蓬松结构越小。"
                         }
                     }
                     slider("SETTING_CLOUDS_LOW_BILLOWY_CURL_STR", 0.0, -4.0..4.0 step 0.1) {
                         lang {
-                            name = "Billowy Curl Strength"
+                            name = "Base Billowy Curl Strength"
                             comment =
                                 "Modulates billowy formations with curl noise. Higher values create more turbulent billows."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "蓬松卷曲强度"
+                            name = "基础蓬松卷曲强度"
+                            comment = "用卷曲噪声调制蓬松结构。数值越高，蓬松结构越多湍流。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_HIGH_BILLOWY_FREQ", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Detail Billowy Noise Frequency"
+                            comment =
+                                "Control the scale of billowy formations in clouds. Higher values create smaller billows."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "细节蓬松噪声频率"
+                            comment = "控制云中蓬松结构的比例。数值越高，蓬松结构越小。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_HIGH_BILLOWY_CURL_STR", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Detail Billowy Curl Strength"
+                            comment =
+                                "Modulates billowy formations with curl noise. Higher values create more turbulent billows."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "细节蓬松卷曲强度"
                             comment = "用卷曲噪声调制蓬松结构。数值越高，蓬松结构越多湍流。"
                         }
                     }
