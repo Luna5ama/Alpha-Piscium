@@ -126,7 +126,8 @@ vec3 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
     const uint SAMPLE_COUNT = SETTING_PCSS_SAMPLE_COUNT;
     float rcpSamples = 1.0 / float(SAMPLE_COUNT);
 
-    f16vec3 shadowSum = f16vec3(0.0);
+    float16_t solidShadowSum = float16_t(0.0);
+    f16vec4 translucentShadowSum = f16vec4(0.0);
     #ifdef SETTING_WATER_CAUSTICS
     vec2 texelPosCenter = vec2(texelPos) + 0.5;
     float causticsSampleRadius = 32.0 / max(abs(viewPos.z), 0.1);
@@ -145,7 +146,7 @@ vec3 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         sampleTexCoord.z -= max4(abs(sampleShadowDepthOffset4));
 
         float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
-        f16vec3 sampleShadow = f16vec3(shadowSampleSolid);
+        solidShadowSum += float16_t(shadowSampleSolid);
 
         if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
             vec4 shadowDepthAll = textureGather(shadowtex0, sampleTexCoord.xy, 0);
@@ -167,18 +168,20 @@ vec3 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
                     #endif
                 }
 
-                sampleShadow *= sampleColor;
+                translucentShadowSum += f16vec4(sampleColor, 1.0);
             }
         }
-
-        shadowSum += sampleShadow;
     }
 
-    vec3 shadowSumFP32 = vec3(shadowSum);
-    shadowSumFP32 *= rcpSamples;
+    float solidShdowSumFP32 = float(solidShadowSum);
+    vec3 finalShadow = vec3(solidShdowSumFP32 * rcpSamples);
+    vec4 translucentShadowSumFP32 = vec4(translucentShadowSum);
+    if (translucentShadowSumFP32.a > 0.0) {
+        finalShadow *= translucentShadowSumFP32.rgb * rcp(translucentShadowSumFP32.a);
+    }
 
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
-    return mix(vec3(shadowSumFP32), vec3(1.0), shadowRangeBlend);
+    return mix(vec3(finalShadow), vec3(1.0), shadowRangeBlend);
 }
 
 void main() {
