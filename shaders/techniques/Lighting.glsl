@@ -24,7 +24,7 @@ LightingResult lightingResult_add(LightingResult a, LightingResult b) {
     return result;
 }
 
-LightingResult directLighting(Material material, vec4 irradiance, vec3 V, vec3 L, vec3 N) {
+LightingResult directLighting(Material material, vec3 irradiance, float surfaceDepth, vec3 V, vec3 L, vec3 N) {
     vec3 H = normalize(L + V);
     float LDotV = clamp(dot(L, V), -1.0, 1.0);
     float LDotH = clamp(dot(L, H), -1.0, 1.0);
@@ -37,19 +37,55 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 V, vec3 L
     LightingResult result;
 
     float diffuseBaseF = 1.0 - material.metallic;
-    vec3 diffuseBaseVec3 = diffuseBaseF * (irradiance.rgb * (1.0 - fresnel) * material.albedo);
+    vec3 diffuseBaseVec3 = diffuseBaseF * (irradiance * (1.0 - fresnel) * material.albedo);
 
     result.diffuse = diffuseBaseVec3 * bsdf_diffuseHammon(material, NDotL, NDotV, LDotH, LDotV);
     result.diffuseLambertian = diffuseBaseVec3 * (RCP_PI * saturate(NDotL));
 
-    float shadowPow = saturate(1.0 - irradiance.a);
-    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * SETTING_SSS_SCTR_FACTOR;
+    result.sss = vec3(0.0);
 
-    float phase = phasefunc_BiLambertianPlate(-LDotV, 0.3);
-    float sssV = material.sss * phase * SETTING_SSS_STRENGTH;
-    result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb * RCP_PI;
+    if (material.sss > 0.0) {
+        const float ABSORPTION_MULTIPLIER = 1.0;
+        const float SCATTERING_MULTIPLIER = 2.0;
+        const float DENSITY_MULTIPLIER = 128.0;
+        const float SCTR_POW = 0.7;
 
-    result.specular = irradiance.rgb * fresnel * bsdf_ggx(material, NDotL, NDotV, NDotH);
+        vec3 tCoeff = material.albedo;
+        vec3 aCorff = -log(tCoeff);
+        aCorff = max(aCorff, 0.0) * ABSORPTION_MULTIPLIER;
+
+        vec3 albedoSRGB = colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_COLORSPACES_SRGB, material.albedo);
+        vec3 sCoeff = pow(albedoSRGB, vec3(SCTR_POW)) * SCATTERING_MULTIPLIER;
+        sCoeff = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, sCoeff);
+
+        float density = material.sss * DENSITY_MULTIPLIER;
+        vec3 sampleScattering = sCoeff * density;
+        vec3 sampleExtinction = (aCorff + sCoeff) * density;
+        vec3 sampleOpticalDepth = sampleExtinction * surfaceDepth;
+        vec3 sampleTransmittance = exp(-sampleOpticalDepth);
+
+        vec3 sampleIrradiance = irradiance;
+
+        float msRadius = sqrt(surfaceDepth);
+        vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-msRadius * sampleExtinction));
+        vec3 sampleMSIrradiance = irradiance;
+        sampleMSIrradiance *= UNIFORM_PHASE;
+        sampleMSIrradiance *= fMS / (1.0 - fMS);
+        sampleIrradiance += sampleMSIrradiance;
+
+        vec3 sampleInSctr = sampleIrradiance * sampleScattering;
+        vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
+
+        // Not using Klein-Nishina because its tail too long
+        // This fakes lights from sun disk + mie haze
+        float sunMiePhase = phasefunc_CornetteShanks(-LDotV, 0.98);
+
+        float phase = phasefunc_BiLambertianPlate(-LDotV, 0.3);
+        result.sss = phase * sampleInSctrInt;
+        result.sss += sunMiePhase * irradiance * sampleTransmittance;
+    }
+
+    result.specular = irradiance * fresnel * bsdf_ggx(material, NDotL, NDotV, NDotH);
     result.specular = min(result.specular, SETTING_MAXIMUM_SPECULAR_LUMINANCE);
 
     return result;

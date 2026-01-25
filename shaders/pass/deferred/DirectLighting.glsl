@@ -40,22 +40,26 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 mainOut, ino
     const vec3 earthCenter = vec3(0.0, 0.0, 0.0);
     vec3 V = normalize(-viewPos);
 
-    vec3 shadow = transient_shadow_fetch(texelPos).rgb;
+    vec4 shadow = transient_shadow_fetch(texelPos);
+    shadow.w = max(shadow.w, 0.01);
+//    const float sssDistanceDecay = 16.0;
+//    shadow.w *= sssDistanceDecay / (sssDistanceDecay + abs(viewPos.z));
+
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
 
     float cosSunZenith = dot(uval_sunDirWorld, vec3(0.0, 1.0, 0.0));
     vec3 tSun = atmospherics_air_lut_sampleTransmittance(atmosphere, cosSunZenith, viewAltitude);
     tSun *= float(raySphereIntersectNearest(atmPos, uval_sunDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
-    vec3 sunShadow = mix(vec3(1.0), shadow, shadowIsSun);
-    vec4 sunIrradiance = vec4(SUN_ILLUMINANCE * tSun * sunShadow, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, sunShadow));
-    LightingResult sunLighting = directLighting(material, sunIrradiance, V, uval_sunDirView, N);
+    vec4 sunShadow = mix(vec4(1.0), shadow, shadowIsSun);
+    vec3 sunIrradiance = SUN_ILLUMINANCE * tSun * sunShadow.rgb;
+    LightingResult sunLighting = directLighting(material, sunIrradiance, sunShadow.a, V, uval_sunDirView, N);
 
     float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
     vec3 tMoon = atmospherics_air_lut_sampleTransmittance(atmosphere, cosMoonZenith, viewAltitude);
     tMoon *= float(raySphereIntersectNearest(atmPos, uval_moonDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
-    vec3 moonShadow = mix(shadow, vec3(1.0), shadowIsSun);
-    vec4 moonIrradiance = vec4(MOON_ILLUMINANCE * tMoon * moonShadow, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, moonShadow));
-    LightingResult moonLighting = directLighting(material, moonIrradiance, V, uval_moonDirView, N);
+    vec4 moonShadow = mix(shadow, vec4(1.0), shadowIsSun);
+    vec3 moonIrradiance = MOON_ILLUMINANCE * tMoon * moonShadow.rgb;
+    LightingResult moonLighting = directLighting(material, moonIrradiance, moonShadow.a, V, uval_moonDirView, N);
 
     LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
 
@@ -66,7 +70,7 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 mainOut, ino
     mainOut += combinedLighting.sss;
 
     giOut1.rgb += combinedLighting.diffuseLambertian;
-    giOut1.rgb += combinedLighting.sss;
+//    giOut1.rgb += combinedLighting.sss;
 
     giOut2.rgb += emissiveV;
 }

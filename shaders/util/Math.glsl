@@ -219,4 +219,8 @@ float softMin(float x, float maxV) {
     return min(x, phi);
 }
 
+float softMax(float x, float minV, float smoothness) {
+    return 0.5 * (x + minV + sqrt(pow2(x - minV) + smoothness));
+}
+
 #endif

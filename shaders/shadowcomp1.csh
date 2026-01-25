@@ -30,7 +30,7 @@ void main() {
             cameraPosWaveSpace = cameraPositionFract * WAVE_POS_BASE + cameraPosWaveSpace * 0.736;
             vec3 waveWorldPos = scenePos.xyz * WAVE_POS_BASE + cameraPosWaveSpace;
 
-            const float NORMAL_EPS = 0.05;
+            const float NORMAL_EPS = 0.2;
             const float NORMAL_WEIGHT = SETTING_WATER_NORMAL_SCALE;
             float waveHeightC = waveHeight(waveWorldPos, true);
             float waveHeightX = waveHeight(waveWorldPos + vec3(NORMAL_EPS * WAVE_POS_BASE, 0.0, 0.0), true);

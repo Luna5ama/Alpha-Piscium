@@ -550,7 +550,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "软阴影"
                         comment = "使用PCSS根据与阴影投射者的距离产生真实的柔和阴影边缘"
                     }
-                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 2, powerOfTwoAndHalfRange(0..4)) {
+                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 4, powerOfTwoAndHalfRange(2..4)) {
                         lang {
                             name = "Blocker Search Count"
                             comment =
