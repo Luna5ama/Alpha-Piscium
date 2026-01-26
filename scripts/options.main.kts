@@ -323,37 +323,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     empty()
-                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.3, 0.0..4.0 step 0.1) {
+                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.5, 0.0..4.0 step 0.1) {
                         lang {
-                            name = "Glow Spread"
+                            name = "Diffuse Range"
                             comment =
-                                "How far the glow effect spreads across the surface. Higher values create a more diffused, softer appearance."
+                                "Higher values create a more diffused, softer appearance."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "漫反射范围"
-                            comment = "发光效果在表面上扩散的距离。数值越高，外观越扩散、越柔和。"
+                            name = "扩散范围"
+                            comment = "数值越高，外观越扩散、越柔和。"
                         }
                     }
-                    slider("SETTING_SSS_DEPTH_RANGE", 0.6, 0.0..4.0 step 0.1) {
+                    slider("SETTING_SSS_DEPTH_RANGE", 0.3, 0.0..4.0 step 0.1) {
                         lang {
-                            name = "Material Thickness"
+                            name = "Depth Range"
                             comment =
                                 "How deep light penetrates into the material. Higher values simulate thicker, more translucent materials."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "深度范围"
                             comment = "光线渗透材质的深度。数值越高，模拟更厚、更半透明的材质。"
-                        }
-                    }
-                    slider("SETTING_SSS_MAX_DEPTH_RANGE", 0.9, 0.0..4.0 step 0.1) {
-                        lang {
-                            name = "Maximum Thickness"
-                            comment =
-                                "Upper limit for how thick materials can appear for light penetration calculations."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "最大深度范围"
-                            comment = "光线渗透计算中材质厚度的上限。"
                         }
                     }
                 }

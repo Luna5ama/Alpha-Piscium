@@ -82,7 +82,7 @@ float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord) {
         sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
         vec4 depthGather = textureGather(shadowtex1, sampleTexCoord.xy, 0);
         vec4 isBlocker4 = vec4(greaterThan(vec4(sampleTexCoord.z), depthGather));
-        float weight = exp2(-4.0 * baseRadius2);
+        float weight = exp2(-2.0 * baseRadius2);
         validCount += dot(vec4(1.0), isBlocker4) * weight;
         blockerDepthSum += dot(vec4(depthGather), isBlocker4) * weight;
     }
@@ -151,6 +151,8 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
     float causticsSampleRadius = 32.0 / max(abs(viewPos.z), 0.1);
     #endif
 
+    shadowScreenPos.z -= rtwsm_linearDepthOffsetInverse(jitterR * pow(sssFactor, 0.25) * SETTING_SSS_DEPTH_RANGE);
+
     for (uint i = 0; i < SAMPLE_COUNT; i++) {
         dir *= MAT2_GOLDEN_ANGLE;
         float baseRadius = sqrt((float(i) + jitterR) * rcpSamples);
@@ -164,6 +166,10 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         sampleTexCoord.z -= max4(abs(sampleShadowDepthOffset4));
 
         float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
+        if (material.sss > 0.0 && shadowSampleSolid < 1.0) {
+            vec4 pbrSpecular = texture(shadowcolor1, sampleTexCoord.xy);
+            shadowSampleSolid = pbrSpecular.b + shadowSampleSolid * (1.0 - pbrSpecular.b);
+        }
         solidShadowSum += float16_t(shadowSampleSolid);
 
         if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
@@ -203,7 +209,7 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         finalShadow *= translucentShadowSumFP32.rgb * rcp(translucentShadowSumFP32.a);
     }
 
-    float surfaceDepth = material.sss > 0.0 ? max(blockerDistance, 0.01) : 0.0;
+    float surfaceDepth = material.sss > 0.0 ? max(blockerDistance, 0.1) : 0.0;
 
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
     return mix(vec4(finalShadow, surfaceDepth), vec4(vec3(1.0), 1.0), shadowRangeBlend);

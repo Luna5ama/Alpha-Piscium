@@ -42,7 +42,7 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 mainOut, ino
 
     vec4 shadow = transient_shadow_fetch(texelPos);
 
-    const float decay = 256.0 / pow2(shadow.w);
+    const float decay = 64.0 / pow2(shadow.w);
     material.sss -= rand_stbnVec1(texelPos, frameCounter) * (1.0 - rcp(1.0 + pow2(viewPos.z / decay)));
 
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
@@ -51,15 +51,15 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 mainOut, ino
     vec3 tSun = atmospherics_air_lut_sampleTransmittance(atmosphere, cosSunZenith, viewAltitude);
     tSun *= float(raySphereIntersectNearest(atmPos, uval_sunDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
     vec4 sunShadow = mix(vec4(1.0), shadow, shadowIsSun);
-    vec3 sunIrradiance = SUN_ILLUMINANCE * tSun * sunShadow.rgb;
-    LightingResult sunLighting = directLighting(material, sunIrradiance, sunShadow.a, V, uval_sunDirView, N);
+    vec3 sunIrradiance = SUN_ILLUMINANCE * tSun;
+    LightingResult sunLighting = directLighting(lighting_gData, material, sunIrradiance, sunShadow, V, uval_sunDirView, N);
 
     float cosMoonZenith = dot(uval_moonDirWorld, vec3(0.0, 1.0, 0.0));
     vec3 tMoon = atmospherics_air_lut_sampleTransmittance(atmosphere, cosMoonZenith, viewAltitude);
     tMoon *= float(raySphereIntersectNearest(atmPos, uval_moonDirWorld, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom) < 0.0);
     vec4 moonShadow = mix(shadow, vec4(1.0), shadowIsSun);
-    vec3 moonIrradiance = MOON_ILLUMINANCE * tMoon * moonShadow.rgb;
-    LightingResult moonLighting = directLighting(material, moonIrradiance, moonShadow.a, V, uval_moonDirView, N);
+    vec3 moonIrradiance = MOON_ILLUMINANCE * tMoon;
+    LightingResult moonLighting = directLighting(lighting_gData, material, moonIrradiance, moonShadow, V, uval_moonDirView, N);
 
     LightingResult combinedLighting = lightingResult_add(sunLighting, moonLighting);
 
@@ -70,7 +70,6 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 mainOut, ino
     mainOut += combinedLighting.sss;
 
     giOut1.rgb += combinedLighting.diffuseLambertian;
-    giOut1.rgb += combinedLighting.sss;
 
     giOut2.rgb += emissiveV;
 }

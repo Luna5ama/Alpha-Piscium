@@ -22,7 +22,7 @@ const int colortex11Format = RGB10_A2; // Translucent Color
 const int colortex12Format = RGBA16F; // Translucent Data
 
 const int shadowcolor0Format = R16F; // Depth offset
-const int shadowcolor1Format = RGBA8_SNORM; // Normal
+const int shadowcolor1Format = RGBA8; // PBR Specular
 const int shadowcolor2Format = RGB10_A2; // Translucent color
 const int shadowcolor3Format = RG16; // Unwarped UV
 const int shadowcolor4Format = R32F; // Pixel area

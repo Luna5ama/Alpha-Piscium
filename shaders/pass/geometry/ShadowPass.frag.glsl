@@ -4,6 +4,7 @@
 #include "/techniques/rtwsm/RTWSM.glsl"
 
 uniform sampler2D gtexture;
+uniform sampler2D specular;
 
 in vec2 frag_unwarpedTexCoord;
 in vec2 frag_texcoord;
@@ -15,17 +16,16 @@ flat in vec2 frag_texcoordMin;
 flat in vec2 frag_texcoordMax;
 
 #ifdef SHADOW_PASS_TRANSLUCENT
-/* RENDERTARGETS:0,1,2,3,4,5 */
+/* RENDERTARGETS:0,2,3,4,5 */
 layout(location = 0) out float rt_depthOffset;
-layout(location = 1) out vec3 rt_normal;
-layout(location = 2) out vec4 rt_translucentColor;
-layout(location = 3) out vec2 rt_unwarpedUV;
-layout(location = 4) out float rt_pixelArea;
-layout(location = 5) out vec4 rt_waterMask;
+layout(location = 1) out vec4 rt_translucentColor;
+layout(location = 2) out vec2 rt_unwarpedUV;
+layout(location = 3) out float rt_pixelArea;
+layout(location = 4) out vec4 rt_waterMask;
 #else
 /* RENDERTARGETS:0,1 */
 layout(location = 0) out float rt_depthOffset;
-layout(location = 1) out vec3 rt_normal;
+layout(location = 1) out vec4 rt_specular;
 #endif
 
 void main() {
@@ -54,8 +54,6 @@ void main() {
         depthFixOffset = 0.0;
     }
 
-    rt_normal = normalize(frag_normal);
-
     #ifdef SHADOW_PASS_ALPHA_TEST
     if (inputAlbedo.a < alphaTestRef) {
         discard;
@@ -76,6 +74,9 @@ void main() {
     rt_translucentColor = isWater ? vec4(1.0) : vec4(transmittance, 0.0);
 
     depthFixOffset = -depthFixOffset;
+    #else
+    rt_specular = texture(specular, offsetTexCoord, 1.0);
+    rt_specular.b = linearStep(65.0 / 255.0, 255.0 / 255.0, rt_specular.b) * 0.6;
     #endif
 
     rt_depthOffset = depthFixOffset;

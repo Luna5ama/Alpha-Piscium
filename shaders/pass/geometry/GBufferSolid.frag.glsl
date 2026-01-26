@@ -58,7 +58,8 @@ void processAlbedo() {
     albedo = frag_colorMul;
 
     #ifdef GBUFFER_PASS_TEXTURED
-    vec4 sample1 = textureGrad(gtexture, frag_texCoord, dUVdx * 1.0, dUVdy * 1.0);
+    float alphaTestBias = 1.0 - pow2(global_taaResetFactor.y) * 0.9;
+    vec4 sample1 = textureGrad(gtexture, frag_texCoord, dUVdx * alphaTestBias, dUVdy * alphaTestBias);
     vec4 sample2 = textureGrad(gtexture, frag_texCoord, dUVdx * 0.25, dUVdy * 0.25);
     albedo *= vec4(sample2.rgb, sample1.a);
     #endif
@@ -70,7 +71,8 @@ void processAlbedo() {
     #ifdef GBUFFER_PASS_ALPHA_TEST
     float alphaTestThreshold = 0.05;
     #ifndef SETTING_SCREENSHOT_MODE
-    alphaTestThreshold += rand_stbnVec1(texelPos, 0) * 0.2;
+    float alphaLod = textureQueryLod(gtexture, frag_texCoord).y;
+    alphaTestThreshold += min(pow(rand_stbnVec1(texelPos, frameCounter), alphaLod + 1.0), 0.9) * saturate(alphaLod);
     #endif
     if (albedo.a < alphaTestThreshold) {
         discard;
