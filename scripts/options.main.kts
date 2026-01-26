@@ -289,40 +289,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "次表面散射"
                     }
-                    slider("SETTING_SSS_STRENGTH", 1.2, 0.0..5.0 step 0.1) {
-                        lang {
-                            name = "Strength"
-                            comment =
-                                "Overall intensity of light passing through semi-transparent materials like leaves, creating a soft glow effect."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "强度"
-                            comment = "光线穿过半透明材质（如树叶）的整体强度，产生柔和的发光效果。"
-                        }
-                    }
-                    slider("SETTING_SSS_HIGHLIGHT", 0.8, 0.0..1.0 step 0.01) {
-                        lang {
-                            name = "Sheen"
-                            comment =
-                                "Intensity of the soft sheen highlight on materials with subsurface scattering, like leaves in sunlight."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "高光"
-                            comment = "具有次表面散射的材质（如阳光下的树叶）上柔和光泽高光的强度。"
-                        }
-                    }
-                    slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
-                        lang {
-                            name = "Scatter Factor"
-                            comment =
-                                "How much light scatters inside semi-transparent materials. Lower values create a stronger glow-through effect."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "散射因子"
-                            comment = "光线在半透明材质内散射的程度。数值越低，透光效果越强。"
-                        }
-                    }
-                    empty()
                     slider("SETTING_SSS_DIFFUSE_RANGE", 0.8, 0.0..4.0 step 0.1) {
                         lang {
                             name = "Diffuse Range"

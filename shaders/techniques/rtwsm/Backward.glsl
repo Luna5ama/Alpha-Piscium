@@ -66,7 +66,9 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
     vec2 shadowScreenPos = shadowNDCPos.xy * 0.5 + 0.5;
 
     // Distance function
-    importance *= 1.0 / (1.0 + pow(dot(viewPos, viewPos), SETTING_RTWSM_B_D));
+    float camDistanceSq = dot(viewPos, viewPos);
+    camDistanceSq = max(4.0, camDistanceSq);
+    importance *= 1.0 / (1.0 + pow(camDistanceSq, SETTING_RTWSM_B_D));
 
     // Surface normal function
     #if SETTING_RTWSM_B_SN > 0.0

@@ -66,6 +66,8 @@ void main() {
             camDistanceSq = pow2(dot(closestPointOnRay, closestPointOnRay)) * 0.1;
         }
 
+        camDistanceSq = max(4.0, camDistanceSq);
+
         // Distance function
         importance *= 1.0 / (1.0 + pow(camDistanceSq, SETTING_RTWSM_F_D));
         importance = max(importance, uval_rtwsmMin.x);

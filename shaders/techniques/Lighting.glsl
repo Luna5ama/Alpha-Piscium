@@ -51,9 +51,8 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
     }
 
     if (material.sss > 0.0) {
-        const float ABSORPTION_MULTIPLIER = 1.0;
-        const float SCATTERING_MULTIPLIER = 2.0;
-        const float DENSITY_MULTIPLIER = 12.0;
+        const float ABSORPTION_MULTIPLIER = 12.0;
+        const float SCATTERING_MULTIPLIER = 24.0;
         const vec3 ABSO_POW = vec3(1.3, 1.5, 2.0);
         const float SCTR_POW = 0.6;
 
@@ -70,9 +69,8 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
         aCoeff = max(aCoeff, 0.0) * ABSORPTION_MULTIPLIER / sqrt(material.sss);
         sCoeff *= SCATTERING_MULTIPLIER * material.sss;
 
-        float density = DENSITY_MULTIPLIER;
-        vec3 sampleScattering = sCoeff * density;
-        vec3 sampleExtinction = (aCoeff + sCoeff) * density;
+        vec3 sampleScattering = sCoeff;
+        vec3 sampleExtinction = (aCoeff + sCoeff);
         vec3 sampleOpticalDepth = sampleExtinction * surfaceDepth;
         vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
@@ -133,12 +131,7 @@ LightingResult directLighting2(Material material, vec4 irradiance, vec3 V, vec3 
     result.diffuse = diffuseBaseVec3 * bsdf_diffuseHammon(material, NDotL, NDotV, LDotH, LDotV);
     result.diffuseLambertian = diffuseBaseVec3 * (RCP_PI * saturate(NDotL));
 
-    float shadowPow = saturate(1.0 - irradiance.a);
-    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * SETTING_SSS_SCTR_FACTOR;
-
-    float phase = phasefunc_BiLambertianPlate(-LDotV, 0.3);
-    float sssV = material.sss * phase * SETTING_SSS_STRENGTH;
-    result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb;
+    result.sss = vec3(0.0);
 
     result.specular = irradiance.rgb * fresnel * bsdf_ggx(material, NDotL, NDotV, NDotH);
     result.specular = min(result.specular, SETTING_MAXIMUM_SPECULAR_LUMINANCE);
