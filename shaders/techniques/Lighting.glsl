@@ -43,10 +43,11 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
     float surfaceDepth = shadow.w;
     vec3 albedoSRGB = colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_COLORSPACES_SRGB, material.albedo);
     if (gData.isHand) {
-        surfaceDepth = max(surfaceDepth, 0.05);
+        surfaceDepth = max(surfaceDepth, 0.2);
         if (heldItemId == 0) {
-            material.sss = 0.5;
-            albedoSRGB *= vec3(0.9, 0.7, 0.5);
+            material.sss = 0.1;
+            albedoSRGB *= vec3(0.9, 0.7, 0.6);
+            albedoSRGB = pow2(albedoSRGB);
         }
     }
 
