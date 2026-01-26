@@ -62,7 +62,7 @@ vec2 rtwsm_warpTexCoord_shared(vec2 uv) {
 float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord) {
     #define BLOCKER_SEARCH_N SETTING_PCSS_BLOCKER_SEARCH_COUNT
 
-    vec2 blockerSearchRange = 0.2 * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
+    vec2 blockerSearchRange = 0.05 * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
 
     float blockerDepthSum = 0.0;
     float validCount = 0.0;
@@ -74,15 +74,17 @@ float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord) {
 
     for (int i = 0; i < BLOCKER_SEARCH_N; i++) {
         dir *= MAT2_GOLDEN_ANGLE;
-        float baseRadius = sqrt((float(i) + jitterR) * rcpSamples);
+        float baseRadius2 = (float(i) + jitterR) * rcpSamples;
+        float baseRadius = sqrt(baseRadius2);
         vec3 sampleTexCoord = shadowTexCoord;
 
         sampleTexCoord.xy += dir * baseRadius * blockerSearchRange;
         sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
         vec4 depthGather = textureGather(shadowtex1, sampleTexCoord.xy, 0);
         vec4 isBlocker4 = vec4(greaterThan(vec4(sampleTexCoord.z), depthGather));
-        validCount += dot(vec4(1.0), isBlocker4);
-        blockerDepthSum += dot(vec4(depthGather), isBlocker4);
+        float weight = exp2(-4.0 * baseRadius2);
+        validCount += dot(vec4(1.0), isBlocker4) * weight;
+        blockerDepthSum += dot(vec4(depthGather), isBlocker4) * weight;
     }
 
     blockerDepthSum /= max(validCount, 1.0);
@@ -201,10 +203,10 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         finalShadow *= translucentShadowSumFP32.rgb * rcp(translucentShadowSumFP32.a);
     }
 
-    float surfaceDepth = blockerDistance;
+    float surfaceDepth = material.sss > 0.0 ? max(blockerDistance, 0.01) : 0.0;
 
     float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
-    return mix(vec4(finalShadow, surfaceDepth), vec4(vec3(1.0), 0.0), shadowRangeBlend);
+    return mix(vec4(finalShadow, surfaceDepth), vec4(vec3(1.0), 1.0), shadowRangeBlend);
 }
 
 void main() {

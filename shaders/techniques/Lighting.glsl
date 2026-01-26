@@ -46,27 +46,33 @@ LightingResult directLighting(Material material, vec3 irradiance, float surfaceD
 
     if (material.sss > 0.0) {
         const float ABSORPTION_MULTIPLIER = 1.0;
-        const float SCATTERING_MULTIPLIER = 2.0;
-        const float DENSITY_MULTIPLIER = 128.0;
-        const float SCTR_POW = 0.7;
-
-        vec3 tCoeff = material.albedo;
-        vec3 aCorff = -log(tCoeff);
-        aCorff = max(aCorff, 0.0) * ABSORPTION_MULTIPLIER;
+        const float SCATTERING_MULTIPLIER = 1.5;
+        const float DENSITY_MULTIPLIER = 16.0;
+        const float ABSO_POW = 1.2;
+        const float SCTR_POW = 0.6;
 
         vec3 albedoSRGB = colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_COLORSPACES_SRGB, material.albedo);
-        vec3 sCoeff = pow(albedoSRGB, vec3(SCTR_POW)) * SCATTERING_MULTIPLIER;
+
+        vec3 tCoeff = pow(albedoSRGB, vec3(ABSO_POW));
+        tCoeff = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, tCoeff);
+        vec3 aCoeff = -log(tCoeff);
+
+        vec3 sCoeff = pow(albedoSRGB, vec3(SCTR_POW));
         sCoeff = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, sCoeff);
 
-        float density = material.sss * DENSITY_MULTIPLIER;
+        float sss2 = pow2(material.sss);
+        aCoeff = max(aCoeff, 0.0) * ABSORPTION_MULTIPLIER / sss2;
+        sCoeff *= SCATTERING_MULTIPLIER * sss2;
+
+        float density = DENSITY_MULTIPLIER;
         vec3 sampleScattering = sCoeff * density;
-        vec3 sampleExtinction = (aCorff + sCoeff) * density;
+        vec3 sampleExtinction = (aCoeff + sCoeff) * density;
         vec3 sampleOpticalDepth = sampleExtinction * surfaceDepth;
         vec3 sampleTransmittance = exp(-sampleOpticalDepth);
 
         vec3 sampleIrradiance = irradiance;
 
-        float msRadius = sqrt(surfaceDepth);
+        float msRadius = sqrt(surfaceDepth) + 1.0;
         vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-msRadius * sampleExtinction));
         vec3 sampleMSIrradiance = irradiance;
         sampleMSIrradiance *= UNIFORM_PHASE;
@@ -76,13 +82,14 @@ LightingResult directLighting(Material material, vec3 irradiance, float surfaceD
         vec3 sampleInSctr = sampleIrradiance * sampleScattering;
         vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
 
-        // Not using Klein-Nishina because its tail too long
         // This fakes lights from sun disk + mie haze
-        float sunMiePhase = phasefunc_CornetteShanks(-LDotV, 0.98);
+        float sunMiePhase = phasefunc_KleinNishinaE(-LDotV, 1e5);
+        vec3 sheenTransmittance = max(exp(-sampleOpticalDepth), exp(-sampleOpticalDepth * 0.25) * 0.7);
 
+        float sssFresnel = frenel_schlick(1.0 - abs(LDotV), 0.04);
         float phase = phasefunc_BiLambertianPlate(-LDotV, 0.3);
         result.sss = phase * sampleInSctrInt;
-        result.sss += sunMiePhase * irradiance * sampleTransmittance;
+        result.sss += sunMiePhase * sheenTransmittance * irradiance * (1.0 - sssFresnel);
     }
 
     result.specular = irradiance * fresnel * bsdf_ggx(material, NDotL, NDotV, NDotH);
