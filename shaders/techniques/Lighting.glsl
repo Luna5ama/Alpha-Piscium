@@ -98,7 +98,7 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
         vec3 sheenTransmittance = max(exp(-sampleOpticalDepth), exp(-sampleOpticalDepth * 0.25) * 0.7);
         result.sss += sunMiePhase * sheenTransmittance * shadowedIrradiance * (1.0 - sssFresnel);
 
-        shadowedIrradiance *= pow4(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, shadow.rgb));
+        shadowedIrradiance *= smoothstep(0.7, 0.8, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, shadow.rgb));
         shadowedIrradiance *= float(dot(material.geomTbn[2], L) > 0.0);
     }
 

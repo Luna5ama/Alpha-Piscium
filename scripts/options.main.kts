@@ -323,7 +323,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     empty()
-                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.5, 0.0..4.0 step 0.1) {
+                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.8, 0.0..4.0 step 0.1) {
                         lang {
                             name = "Diffuse Range"
                             comment =

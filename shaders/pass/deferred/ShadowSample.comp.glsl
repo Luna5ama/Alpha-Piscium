@@ -59,10 +59,10 @@ vec2 rtwsm_warpTexCoord_shared(vec2 uv) {
     return result;
 }
 
-float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord) {
-    #define BLOCKER_SEARCH_N SETTING_PCSS_BLOCKER_SEARCH_COUNT
+float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord, float sssFactor) {
+    const uint BLOCKER_SEARCH_N = uint(SETTING_PCSS_BLOCKER_SEARCH_COUNT * (1.0 + sssFactor));
 
-    vec2 blockerSearchRange = 0.05 * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
+    vec2 blockerSearchRange = (0.05 + sssFactor * 0.2) * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
 
     float blockerDepthSum = 0.0;
     float validCount = 0.0;
@@ -72,7 +72,7 @@ float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord) {
     vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);
     float rcpSamples = 1.0 / float(BLOCKER_SEARCH_N);
 
-    for (int i = 0; i < BLOCKER_SEARCH_N; i++) {
+    for (uint i = 0u; i < BLOCKER_SEARCH_N; i++) {
         dir *= MAT2_GOLDEN_ANGLE;
         float baseRadius2 = (float(i) + jitterR) * rcpSamples;
         float baseRadius = sqrt(baseRadius2);
@@ -122,7 +122,7 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
     vec4 shadowClipPos = global_shadowProjPrev * shadowViewPos;
     vec3 shadowNDCPos = shadowClipPos.xyz / shadowClipPos.w;
     vec3 shadowScreenPos = shadowNDCPos * 0.5 + 0.5;
-    float blockerDistance = searchBlocker(texelPos, shadowScreenPos);
+    float blockerDistance = searchBlocker(texelPos, shadowScreenPos, sssFactor);
 
     float ssRange = 0.0;
     #if SETTING_PCSS_BPF > 0

@@ -76,7 +76,7 @@ void main() {
     depthFixOffset = -depthFixOffset;
     #else
     rt_specular = texture(specular, offsetTexCoord, 1.0);
-    rt_specular.b = linearStep(65.0 / 255.0, 255.0 / 255.0, rt_specular.b) * 0.6;
+    rt_specular.b = linearStep(65.0 / 255.0, 255.0 / 255.0, rt_specular.b) * 0.0;
     #endif
 
     rt_depthOffset = depthFixOffset;

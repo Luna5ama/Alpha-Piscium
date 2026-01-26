@@ -205,7 +205,8 @@ void main() {
 
     {
         vec3 currColorYCoCg = colors_SRGBToYCoCg(currColor);
-        float kernelParam = -taaResetFactor.x;
+        const float distanceFactor = 0.01;
+        float kernelParam = -taaResetFactor.x * rcp(1.0 - (currViewPos.z * distanceFactor));
         ColorAABB box = initAABB(currColorYCoCg, kernelWeight(unjitterTexelPos, texelPos, kernelParam));
 
         ivec2 localTexelPos = texelPos - ivec2(workGroupOrigin) + 2; // +2 for padding
