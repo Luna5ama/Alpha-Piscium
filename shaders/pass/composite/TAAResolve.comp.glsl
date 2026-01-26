@@ -35,12 +35,11 @@ ColorAABB initAABB(vec3 colorYCoCg, float weight) {
     return box;
 }
 
-void updateAABB(vec3 colorSRGB, float weight, inout ColorAABB box) {
-    vec3 colorYCoCg = colors_SRGBToYCoCg(colorSRGB);
-    box.minVal = min(box.minVal, colorYCoCg);
-    box.maxVal = max(box.maxVal, colorYCoCg);
-    box.moment1 += colorYCoCg * weight;
-    box.moment2 += colorYCoCg * colorYCoCg * weight;
+void updateAABB(vec3 color, float weight, inout ColorAABB box) {
+    box.minVal = min(box.minVal, color);
+    box.maxVal = max(box.maxVal, color);
+    box.moment1 += color * weight;
+    box.moment2 += color * color * weight;
     box.weightSum += weight;
 }
 
@@ -56,7 +55,7 @@ void loadSharedColorData(uvec2 groupOriginTexelPos, uint index) {
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
         vec3 colorData = texelFetch(usam_main, srcXY, 0).rgb;
-        shared_colorData[sharedXY.y][sharedXY.x] = colorData;
+        shared_colorData[sharedXY.y][sharedXY.x] = colors_RGBToYCoCg(colorData);
     }
 }
 
@@ -196,7 +195,7 @@ void main() {
                 colorResult += sampleColor * weight;
             }
         }
-        currColor = colorResult / weightSum;
+        currColor = colors_YCoCgToRGB(colorResult / weightSum);
     }
     currColor = saturate(currColor);
 
@@ -204,7 +203,7 @@ void main() {
     newFrameAccum *= taaResetFactor.z;
 
     {
-        vec3 currColorYCoCg = colors_SRGBToYCoCg(currColor);
+        vec3 currColorYCoCg = colors_RGBToYCoCg(currColor);
         const float distanceFactor = 0.01;
         float kernelParam = -taaResetFactor.x * rcp(1.0 - (currViewPos.z * distanceFactor));
         ColorAABB box = initAABB(currColorYCoCg, kernelWeight(unjitterTexelPos, texelPos, kernelParam));
@@ -227,13 +226,13 @@ void main() {
         vec3 variance = mean2 - mean * mean;
         vec3 stddev = sqrt(abs(variance));
 
-        vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
-
         const float varianceAABBSize = 1.0;
         vec3 varianceAABBMin = mean - stddev * varianceAABBSize;
         vec3 varianceAABBMax = mean + stddev * varianceAABBSize;
         varianceAABBMin = clamp(varianceAABBMin, box.minVal, currColorYCoCg);
         varianceAABBMax = clamp(varianceAABBMax, currColorYCoCg, box.maxVal);
+
+        vec3 prevColorYCoCg = colors_RGBToYCoCg(prevColor);
 
         const float clippingEps = FLT_MIN;
         vec3 delta = prevColorYCoCg - mean;
@@ -249,7 +248,7 @@ void main() {
         vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampMethod));
         prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampMethod));
 
-        prevColor = mix(prevColor, colors_YCoCgToSRGB(prevColorYCoCgClamped), taaResetFactor.w);
+        prevColor = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
     }
 
     #ifdef SETTING_SCREENSHOT_MODE
