@@ -29,16 +29,16 @@
 
 #if FFX_HALF
     #define FSR_RCAS_HX2 1
-    FfxFloat16x4 FsrRcasLoadHx2(FfxInt16x2 p)
+    FfxFloat16x4 FsrRcasLoadHx2(FfxInt16x2 p, bool center)
     { 
-        return LoadRCas_Input(p);
+        return LoadRCas_Input(p, center);
     }
     void FsrRcasInputHx2(inout FfxFloat16x2 r,inout FfxFloat16x2 g,inout FfxFloat16x2 b) {}
 #else
     #define FSR_RCAS_F 1
-    FfxFloat32x4 FsrRcasLoadF(FfxInt32x2 p)
+    FfxFloat32x4 FsrRcasLoadF(FfxInt32x2 p, bool center)
     { 
-        return LoadRCas_Input(p);
+        return LoadRCas_Input(p, center);
     }
     void FsrRcasInputF(inout FfxFloat32 r, inout FfxFloat32 g, inout FfxFloat32 b) {}
 #endif // FFX_HALF

@@ -1,13 +1,13 @@
 #include "/Base.glsl"
 
 
-vec4 rcas_loadInput(ivec2 texelPos);
+vec4 rcas_loadInput(ivec2 texelPos, bool center);
 void rcas_storeOutput(ivec2 texelPos, vec4 color);
 // Returns sharpness value in [0, 1]
 float rcas_sharpness();
 
-vec4 LoadRCas_Input(ivec2 p) {
-    return rcas_loadInput(p);
+vec4 LoadRCas_Input(ivec2 p, bool center) {
+    return rcas_loadInput(p, center);
 }
 
 void StoreRCasOutput(ivec2 p, vec4 color) {
@@ -36,5 +36,8 @@ uvec4 RCasConfig() {
 layout(local_size_x = 16, local_size_y = 16) in;
 
 void main() {
-    RCAS(uvec3(gl_LocalInvocationIndex, 0u, 0u), gl_WorkGroupID, gl_GlobalInvocationID);
+    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
+    vec3 c;
+    FsrRcasF(c.r, c.g, c.b, pos, RCasConfig());
+    StoreRCasOutput(pos, vec4(c, 1.0));
 }
