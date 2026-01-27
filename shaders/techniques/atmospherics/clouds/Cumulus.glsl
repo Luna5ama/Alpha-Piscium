@@ -166,6 +166,7 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
         rayPos += uval_cuDetailWind;
         #endif
 
+        #define DETAIL_NOISE 1
 
         vec3 curlPos = rayPos;
         curlPos.y *= 1.3;
@@ -179,7 +180,9 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
         float hc3 = _clouds_cu_heightCurveBillowy(xs);
         detail1Billowy *= hc3;
         detail1Billowy *= COVERAGE_SQRT;
+        #if DETAIL_NOISE
         densityOut = linearStep(saturate(detail1Billowy), 1.0, densityOut);
+        #endif
 
         float detail1Wisp = detailNoiseW(rayPos + detailCurl * 2.0 * _LOW_WISPS_CURL_STR);
 
@@ -188,9 +191,10 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
         float hc2 = _clouds_cu_heightCurveWisp(xs);
         detail1Wisp *= hc2;
 
+        #if DETAIL_NOISE
         densityOut = linearStep(saturate(detail1Wisp), 1.0, densityOut);
+        #endif
 
-        // TODO: add another detail layer
         float hardEdgeBlend = linearStep(0.0, 0.3, heightFraction);
         float minDetailDensity = mix(0.001, 0.02, hardEdgeBlend);
         float edgeDesnityRange = mix(0.08, 0.0015, hardEdgeBlend);
