@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/techniques/gi/RaySort.comp.glsl"
+#include "/pass/deferred/GIReSTIRInitalSampleRaySort.comp.glsl"

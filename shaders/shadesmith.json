@@ -61,7 +61,9 @@
         "transient_translucentZLayer1": "RG32UI",
         "transient_translucentZLayer2": "RG32UI",
         "transient_translucentZLayer3": "RG32UI",
-        "transient_exposureWeights": "RGBA8"
+        "transient_exposureWeights": "RGBA8",
+        "transient_initialSampleRayCount": "R32F",
+        "transient_spatialReuseRayCount": "R32F"
     },
     "fixed": {
         "persistent_multiSctrLUT": {

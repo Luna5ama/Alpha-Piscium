@@ -14,6 +14,7 @@
         - Belmu (https://github.com/BelmuTM) - Advice on ReSTIR.
 */
 #extension GL_KHR_shader_subgroup_ballot : enable
+#extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #include "/techniques/SST2.glsl"
 #include "/techniques/HiZCheck.glsl"
@@ -37,9 +38,12 @@ layout(std430, binding = 5) buffer RayDataIndices {
 };
 
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
+layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
+
+shared uint shared_rayCount[16];
 
 #if USE_REFERENCE || !defined(SETTING_GI_SPATIAL_REUSE)
 void main() {
@@ -297,5 +301,17 @@ void main() {
         #endif
     }
     ssbo_rayDataIndices[dataIndex] = rayIndex;
+    uvec4 subgroupRayCountBalllot = subgroupBallot(rayIndex < 0xFFFFFFFFu);
+    if (subgroupElect()) {
+        shared_rayCount[gl_SubgroupID] = subgroupBallotBitCount(subgroupRayCountBalllot);
+    }
+    barrier();
+    if (gl_SubgroupID == 0u) {
+        uint partialRayCount = gl_SubgroupInvocationID < gl_NumSubgroups ? shared_rayCount[gl_SubgroupInvocationID] : 0u;
+        uint totalRayCount = subgroupAdd(partialRayCount);
+        if (subgroupElect()) {
+            transient_spatialReuseRayCount_store(ivec2(swizzledWGPos), vec4(float(totalRayCount)));
+        }
+    }
 }
 #endif
