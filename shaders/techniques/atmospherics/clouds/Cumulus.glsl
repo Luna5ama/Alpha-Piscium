@@ -74,36 +74,32 @@ float worleyNoise(vec2 x, uint seed) {
             vec2 cellCenter = hashValF.xy + vec2(idOffset);
 
             float cellDistance = distance(centerOffset, cellCenter);
-            float regularV = pow2(hashValF.z) * smoothstep(0.0, 1.0, 1.0 - cellDistance);
-            
-            const float w = 0.35;
-            float h = hashValF.z * smoothstep(-1.0, 1.0, (m - cellDistance) / w);
-            m = mix(m, cellDistance, h) - h * (1.0 - h) * w / (1.0 + 3.0 * w);
+            float v = pow2(hashValF.z) * saturate(1.0 - cellDistance);
 
-            if (f1 < regularV) {
+            const float w = 0.35;
+            const float wRcp = 1.4285714286; // 1.0 / w * 0.5
+            float h = hashValF.z * saturate((m - cellDistance) * wRcp + 0.5);
+            float wh = w * h;
+            m = mix(m, cellDistance, h) - fma(wh, -h, wh) / (1.0 + 3.0 * w);
+
+            if (f1 < v) {
                 f2 = f1;
-                f1 = regularV;
-            } else if (f2 < regularV) {
-                f2 = regularV;
+                f1 = v;
+            } else if (f2 < v) {
+                f2 = v;
             }
         }
     }
+
     return saturate(1.0 - m - f2);
 }
 
 float coverageNoise(vec2 pos) {
     pos *= _LOW_BASE_FREQ;
     float higherOctave = texture(usam_cumulusBase, pos / 32.0).x;
-    float amp = 1.0;
-    float freq = 0.35;
-    float sum = 0.0;
-    for (uint i = 0u; i < 1u; i++) {
-        float n = worleyNoise(pos * freq, 0x1919810u + i * 0x114514u);
-        sum += n * amp;
-        amp *= 0.5;
-        freq *= 2.0;
-    }
-    return sum + higherOctave * 0.75;
+    const float freq = 0.35;
+    float baseNoise = worleyNoise(pos * freq, 0x1919810u);
+    return baseNoise + higherOctave * 0.75;
 }
 
 float detailNoiseB(vec3 pos, vec3 curl) {

@@ -177,6 +177,10 @@ float lengthSq(vec2 x) { return dot(x, x); }
 float lengthSq(vec3 x) { return dot(x, x); }
 float lengthSq(vec4 x) { return dot(x, x); }
 
+float distanceSq(vec2 a, vec2 b) { return lengthSq(a - b); }
+float distanceSq(vec3 a, vec3 b) { return lengthSq(a - b); }
+float distanceSq(vec4 a, vec4 b) { return lengthSq(a - b); }
+
 vec4 normalizeAndLength(vec3 v) {
     float lenSq = lengthSq(v);
     float lenInvSq = inversesqrt(lenSq);
