@@ -68,7 +68,7 @@ ZipOutputStream(zipFilePath.outputStream(), Charsets.UTF_8).use { zipOut ->
             }
     }
 
-    addStuff(projectRootPath, projectRootPath.walk().filter { file ->
+    addStuff(projectRootPath, projectRootPath.walk(PathWalkOption.FOLLOW_LINKS).filter { file ->
         if (file.extension == "properties") return@filter true
         val baseDirName = file.relativeTo(projectRootPath).invariantSeparatorsPathString
         if (baseDirName.startsWith('.')) return@filter false
