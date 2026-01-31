@@ -16,6 +16,9 @@ layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 // Shared memory with padding for 4x4 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for Lanczos2 4x4 taps
 shared vec3 shared_colorData[20][20];
+shared vec4 shared_weightsX;
+shared vec4 shared_weightsY;
+shared float shared_kernelDist2[9];
 
 struct ColorAABB {
     vec3 minVal;
@@ -35,12 +38,11 @@ ColorAABB initAABB(vec3 colorYCoCg, float weight) {
     return box;
 }
 
-void updateAABB(vec3 colorSRGB, float weight, inout ColorAABB box) {
-    vec3 colorYCoCg = colors_SRGBToYCoCg(colorSRGB);
-    box.minVal = min(box.minVal, colorYCoCg);
-    box.maxVal = max(box.maxVal, colorYCoCg);
-    box.moment1 += colorYCoCg * weight;
-    box.moment2 += colorYCoCg * colorYCoCg * weight;
+void updateAABB(vec3 color, float weight, inout ColorAABB box) {
+    box.minVal = min(box.minVal, color);
+    box.maxVal = max(box.maxVal, color);
+    box.moment1 += color * weight;
+    box.moment2 += color * color * weight;
     box.weightSum += weight;
 }
 
@@ -56,7 +58,7 @@ void loadSharedColorData(uvec2 groupOriginTexelPos, uint index) {
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
         vec3 colorData = texelFetch(usam_main, srcXY, 0).rgb;
-        shared_colorData[sharedXY.y][sharedXY.x] = colorData;
+        shared_colorData[sharedXY.y][sharedXY.x] = colors_RGBToYCoCg(colorData);
     }
 }
 
@@ -162,6 +164,27 @@ void main() {
     }
     float newFrameAccum = lastFrameAccum + 1.0;
 
+    if (gl_LocalInvocationIndex == 0u) {
+        vec2 pixelPosFract = fract(global_taaJitter);
+
+        #if SETTING_TAA_CURR_FILTER == 0
+        shared_weightsX = sampling_bSplineWeights(pixelPosFract.x);
+        shared_weightsY = sampling_bSplineWeights(pixelPosFract.y);
+        #elif SETTING_TAA_CURR_FILTER == 1
+        shared_weightsX = sampling_catmullRomWeights(pixelPosFract.x);
+        shared_weightsY = sampling_catmullRomWeights(pixelPosFract.y);
+        #elif SETTING_TAA_CURR_FILTER == 2
+        shared_weightsX = sampling_lanczoc2Weights(pixelPosFract.x);
+        shared_weightsY = sampling_lanczoc2Weights(pixelPosFract.y);
+        #endif
+
+        for (int i = 0; i < 9; ++i) {
+            vec2 offset = vec2(i % 3, i / 3) - 1.0;
+            vec2 diff = offset - 0.5 - global_taaJitter;
+            shared_kernelDist2[i] = dot(diff, diff);
+        }
+    }
+
     barrier();
 
     vec3 currColor;
@@ -170,16 +193,8 @@ void main() {
         vec2 centerPixelOrigin = floor(centerPixel);
         vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
-        #if SETTING_TAA_CURR_FILTER == 0
-        vec4 weightX = sampling_bSplineWeights(pixelPosFract.x);
-        vec4 weightY = sampling_bSplineWeights(pixelPosFract.y);
-        #elif SETTING_TAA_CURR_FILTER == 1
-        vec4 weightX = sampling_catmullRomWeights(pixelPosFract.x);
-        vec4 weightY = sampling_catmullRomWeights(pixelPosFract.y);
-        #elif SETTING_TAA_CURR_FILTER == 2
-        vec4 weightX = sampling_lanczoc2Weights(pixelPosFract.x);
-        vec4 weightY = sampling_lanczoc2Weights(pixelPosFract.y);
-        #endif
+        vec4 weightX = shared_weightsX;
+        vec4 weightY = shared_weightsY;
 
         ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
         ivec2 localOrigin = gatherTexelPos - ivec2(workGroupOrigin);
@@ -196,7 +211,7 @@ void main() {
                 colorResult += sampleColor * weight;
             }
         }
-        currColor = colorResult / weightSum;
+        currColor = colors_YCoCgToRGB(colorResult / weightSum);
     }
     currColor = saturate(currColor);
 
@@ -204,35 +219,36 @@ void main() {
     newFrameAccum *= taaResetFactor.z;
 
     {
-        vec3 currColorYCoCg = colors_SRGBToYCoCg(currColor);
-        float kernelParam = -taaResetFactor.x;
-        ColorAABB box = initAABB(currColorYCoCg, kernelWeight(unjitterTexelPos, texelPos, kernelParam));
+        vec3 currColorYCoCg = colors_RGBToYCoCg(currColor);
+        const float distanceFactor = 0.01;
+        float kernelParam = -taaResetFactor.x * rcp(1.0 - (currViewPos.z * distanceFactor));
+        ColorAABB box = initAABB(currColorYCoCg, exp(kernelParam * shared_kernelDist2[4]));
 
         ivec2 localTexelPos = texelPos - ivec2(workGroupOrigin) + 2; // +2 for padding
 
-        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x - 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(-1.0, -1.0), kernelParam), box);
-        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x], kernelWeight(unjitterTexelPos, texelPos + ivec2(0.0, -1.0), kernelParam), box);
-        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x + 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(1.0, -1.0), kernelParam), box);
+        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x - 1], exp(kernelParam * shared_kernelDist2[0]), box);
+        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x], exp(kernelParam * shared_kernelDist2[1]), box);
+        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x + 1], exp(kernelParam * shared_kernelDist2[2]), box);
 
-        updateAABB(shared_colorData[localTexelPos.y][localTexelPos.x - 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(-1.0, 0.0), kernelParam), box);
-        updateAABB(shared_colorData[localTexelPos.y][localTexelPos.x + 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(1.0, 0.0), kernelParam), box);
+        updateAABB(shared_colorData[localTexelPos.y][localTexelPos.x - 1], exp(kernelParam * shared_kernelDist2[3]), box);
+        updateAABB(shared_colorData[localTexelPos.y][localTexelPos.x + 1], exp(kernelParam * shared_kernelDist2[5]), box);
 
-        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x - 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(-1.0, 1.0), kernelParam), box);
-        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x], kernelWeight(unjitterTexelPos, texelPos + ivec2(0.0, 1.0), kernelParam), box);
-        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x + 1], kernelWeight(unjitterTexelPos, texelPos + ivec2(1.0, 1.0), kernelParam), box);
+        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x - 1], exp(kernelParam * shared_kernelDist2[6]), box);
+        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x], exp(kernelParam * shared_kernelDist2[7]), box);
+        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x + 1], exp(kernelParam * shared_kernelDist2[8]), box);
 
         vec3 mean = box.moment1 / box.weightSum;
         vec3 mean2 = box.moment2 / box.weightSum;
         vec3 variance = mean2 - mean * mean;
         vec3 stddev = sqrt(abs(variance));
 
-        vec3 prevColorYCoCg = colors_SRGBToYCoCg(prevColor);
-
         const float varianceAABBSize = 1.0;
         vec3 varianceAABBMin = mean - stddev * varianceAABBSize;
         vec3 varianceAABBMax = mean + stddev * varianceAABBSize;
         varianceAABBMin = clamp(varianceAABBMin, box.minVal, currColorYCoCg);
         varianceAABBMax = clamp(varianceAABBMax, currColorYCoCg, box.maxVal);
+
+        vec3 prevColorYCoCg = colors_RGBToYCoCg(prevColor);
 
         const float clippingEps = FLT_MIN;
         vec3 delta = prevColorYCoCg - mean;
@@ -248,7 +264,7 @@ void main() {
         vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampMethod));
         prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampMethod));
 
-        prevColor = mix(prevColor, colors_YCoCgToSRGB(prevColorYCoCgClamped), taaResetFactor.w);
+        prevColor = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
     }
 
     #ifdef SETTING_SCREENSHOT_MODE

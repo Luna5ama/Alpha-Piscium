@@ -161,8 +161,8 @@ void main() {
                         weightSum += weight;
                         currAvgData = vec4PackedData_add(currAvgData, vec4PackedData_mul(sampleData, weight));
 
-                        vec3 inSctrYCoCg = colors_SRGBToYCoCg(sampleData.inScattering);
-                        vec3 transmittanceYCoCg = colors_SRGBToYCoCg(sampleData.transmittanceHLen.rgb);
+                        vec3 inSctrYCoCg = colors_RGBToYCoCg(sampleData.inScattering);
+                        vec3 transmittanceYCoCg = colors_RGBToYCoCg(sampleData.transmittanceHLen.rgb);
                         float momentWeight = momentWeightX[ix] * momentWeightY[iy];
 
                         inSctrMax = max(inSctrMax, sampleData.inScattering);
@@ -194,8 +194,8 @@ void main() {
 
             {
 
-                vec3 prevInSctrYCoCg = colors_SRGBToYCoCg(prevAvgData.inScattering);
-                vec3 prevTransmittanceYCoCg = colors_SRGBToYCoCg(prevAvgData.transmittanceHLen.rgb);
+                vec3 prevInSctrYCoCg = colors_RGBToYCoCg(prevAvgData.inScattering);
+                vec3 prevTransmittanceYCoCg = colors_RGBToYCoCg(prevAvgData.transmittanceHLen.rgb);
 
                 float clippingWeight = SETTING_CLOUDS_LOW_VARIANCE_CLIPPING * rand_stbnVec1(texelPos, frameCounter);
 
@@ -211,8 +211,8 @@ void main() {
                 transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev / global_historyResetFactor));
                 prevTransmittanceYCoCg = mix(prevTransmittanceYCoCg, transmittanceMoment1 + transmittanceDelta, clippingWeight);
 
-                prevAvgData.inScattering = colors_YCoCgToSRGB(prevInSctrYCoCg);
-                prevAvgData.transmittanceHLen.rgb = colors_YCoCgToSRGB(prevTransmittanceYCoCg);
+                prevAvgData.inScattering = colors_YCoCgToRGB(prevInSctrYCoCg);
+                prevAvgData.transmittanceHLen.rgb = colors_YCoCgToRGB(prevTransmittanceYCoCg);
             }
 
             float currWeight = currAvgData.transmittanceHLen.w;

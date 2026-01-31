@@ -4,6 +4,7 @@
 #include "/techniques/rtwsm/RTWSM.glsl"
 
 uniform sampler2D gtexture;
+uniform sampler2D specular;
 
 in vec2 frag_unwarpedTexCoord;
 in vec2 frag_texcoord;
@@ -15,17 +16,16 @@ flat in vec2 frag_texcoordMin;
 flat in vec2 frag_texcoordMax;
 
 #ifdef SHADOW_PASS_TRANSLUCENT
-/* RENDERTARGETS:0,1,2,3,4,5 */
+/* RENDERTARGETS:0,2,3,4,5 */
 layout(location = 0) out float rt_depthOffset;
-layout(location = 1) out vec3 rt_normal;
-layout(location = 2) out vec4 rt_translucentColor;
-layout(location = 3) out vec2 rt_unwarpedUV;
-layout(location = 4) out float rt_pixelArea;
-layout(location = 5) out vec4 rt_waterMask;
+layout(location = 1) out vec4 rt_translucentColor;
+layout(location = 2) out vec2 rt_unwarpedUV;
+layout(location = 3) out float rt_pixelArea;
+layout(location = 4) out vec4 rt_waterMask;
 #else
 /* RENDERTARGETS:0,1 */
 layout(location = 0) out float rt_depthOffset;
-layout(location = 1) out vec3 rt_normal;
+layout(location = 1) out vec4 rt_specular;
 #endif
 
 void main() {
@@ -37,18 +37,22 @@ void main() {
     vec2 offsetTexCoord = frag_texcoord + pixelDiff.x * dFdx(frag_texcoord) + pixelDiff.y * dFdy(frag_texcoord);
     offsetTexCoord = clamp(offsetTexCoord, frag_texcoordMin, frag_texcoordMax);
     vec4 inputAlbedo = textureLod(gtexture, offsetTexCoord, 0.0) * frag_color;
-    float depthFixOffset = pixelDiff.x * dFdx(gl_FragCoord.z) + pixelDiff.y * dFdy(gl_FragCoord.z);
-    depthFixOffset = max(depthFixOffset, 0.0);
+    float dZdx = dFdxFine(gl_FragCoord.z);
+    float dZdy = dFdyFine(gl_FragCoord.z);
+    float depthFixOffset = abs(pixelDiff.x * dZdx) + abs(pixelDiff.y * dZdy);
 
     float lightDot = abs(dot(frag_normal, uval_shadowLightDirWorld));
-    lightDot = max(lightDot, 0.01);
+    lightDot = max(lightDot, 0.05);
 
-    float depthBiasFactor = sqrt(1.0 - pow2(lightDot)) / lightDot; // tan(acos(lightDot))
-    depthBiasFactor = depthBiasFactor * 2.0 + 1.0;
-    float depthBias = SHADOW_MAP_SIZE.y * depthBiasFactor / min2(texelSize);
-    depthFixOffset += rtwsm_linearDepthOffsetInverse(depthBias);
+    float depthBiasSlopeFactor = sqrt(1.0 - pow2(lightDot)) / lightDot; // tan(acos(lightDot))
+    depthBiasSlopeFactor = log2(depthBiasSlopeFactor + 1.0) + 0.01;
+    float depthBiasTexelSizeFactor = SHADOW_MAP_SIZE.y * (1.0 / 256.0) / min2(texelSize);
+    float depthBias = depthBiasSlopeFactor * depthBiasTexelSizeFactor;
+    depthFixOffset += depthBias;
 
-    rt_normal = normalize(frag_normal);
+    if (frag_materialID == 4u) {
+        depthFixOffset = 0.0;
+    }
 
     #ifdef SHADOW_PASS_ALPHA_TEST
     if (inputAlbedo.a < alphaTestRef) {
@@ -70,6 +74,9 @@ void main() {
     rt_translucentColor = isWater ? vec4(1.0) : vec4(transmittance, 0.0);
 
     depthFixOffset = -depthFixOffset;
+    #else
+    rt_specular = texture(specular, offsetTexCoord, 1.0);
+    rt_specular.b = linearStep(65.0 / 255.0, 255.0 / 255.0, rt_specular.b) * 0.0;
     #endif
 
     rt_depthOffset = depthFixOffset;

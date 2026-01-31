@@ -142,7 +142,7 @@ void main() {
                 vec4 currSpec = shared_specData[localXY.y][localXY.x];
 
                 // Build variance AABB for diffuse using 3x3 neighborhood
-                vec3 currDiffYCoCg = colors_SRGBToYCoCg(currDiff.rgb);
+                vec3 currDiffYCoCg = colors_RGBToYCoCg(currDiff.rgb);
                 ColorAABB diffAABB = initAABB(currDiffYCoCg);
 
                 for (int dy = -1; dy <= 1; dy++) {
@@ -150,7 +150,7 @@ void main() {
                         if (dx != 0 || dy != 0) {
                             ivec2 sampleXY = ivec2(localXY) + ivec2(dx, dy);
                             vec4 neighborDiff = shared_diffData[sampleXY.y][sampleXY.x];
-                            vec3 neighborDiffYCoCg = colors_SRGBToYCoCg(neighborDiff.rgb);
+                            vec3 neighborDiffYCoCg = colors_RGBToYCoCg(neighborDiff.rgb);
                             updateAABB(neighborDiffYCoCg, diffAABB);
                         }
                     }
@@ -173,12 +173,12 @@ void main() {
                 diffAABBMax = max(diffAABBMax, currDiffYCoCg);
 
                 // Clamp history diffuse
-                vec3 historyDiffYCoCg = colors_SRGBToYCoCg(historyDiff.rgb);
+                vec3 historyDiffYCoCg = colors_RGBToYCoCg(historyDiff.rgb);
                 vec3 clampedHistoryDiffYCoCg = clamp(historyDiffYCoCg, diffAABBMin, diffAABBMax);
-                vec3 clampedHistoryDiff = colors_YCoCgToSRGB(clampedHistoryDiffYCoCg);
+                vec3 clampedHistoryDiff = colors_YCoCgToRGB(clampedHistoryDiffYCoCg);
 
                 // Build variance AABB for specular using 3x3 neighborhood
-                vec3 currSpecYCoCg = colors_SRGBToYCoCg(currSpec.rgb);
+                vec3 currSpecYCoCg = colors_RGBToYCoCg(currSpec.rgb);
                 ColorAABB specAABB = initAABB(currSpecYCoCg);
 
                 for (int dy = -1; dy <= 1; dy++) {
@@ -186,7 +186,7 @@ void main() {
                         if (dx != 0 || dy != 0) {
                             ivec2 sampleXY = ivec2(localXY) + ivec2(dx, dy);
                             vec4 neighborSpec = shared_specData[sampleXY.y][sampleXY.x];
-                            vec3 neighborSpecYCoCg = colors_SRGBToYCoCg(neighborSpec.rgb);
+                            vec3 neighborSpecYCoCg = colors_RGBToYCoCg(neighborSpec.rgb);
                             updateAABB(neighborSpecYCoCg, specAABB);
                         }
                     }
@@ -205,9 +205,9 @@ void main() {
                 specAABBMax = max(specAABBMax, currDiffYCoCg);
 
                 // Clamp history specular
-                vec3 historySpecYCoCg = colors_SRGBToYCoCg(historySpec.rgb);
+                vec3 historySpecYCoCg = colors_RGBToYCoCg(historySpec.rgb);
                 vec3 clampedHistorySpecYCoCg = clamp(historySpecYCoCg, specAABBMin, specAABBMax);
-                vec3 clampedHistorySpec = colors_YCoCgToSRGB(clampedHistorySpecYCoCg);
+                vec3 clampedHistorySpec = colors_YCoCgToRGB(clampedHistorySpecYCoCg);
 
                 // Fixed weight is better because it fades in egdes with darker color to avoid firefly
                 // nvm too much blur

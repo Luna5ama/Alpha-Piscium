@@ -40,10 +40,6 @@ float rtwsm_sampleShadowDepth(sampler2DShadow shadowMap, vec3 coord, float lod) 
     return mix(textureLod(shadowMap, coord, lod), 1.0, linearStep(1.0 - SHADOW_MAP_SIZE.y * 16, 1.0, edgeCoord));
 }
 
-vec4 rtwsm_sampleShadowColor(sampler2D shadowColor, vec2 coord, float lod) {
-    return textureLod(shadowColor, coord, lod);
-}
-
 float rtwsm_sampleShadowDepth(sampler2D shadowMap, vec3 coord, float lod) {
     uint flag = uint(any(lessThan(coord.xy, vec2(0.0))));
     flag |= uint(any(greaterThan(coord.xy, vec2(1.0))));

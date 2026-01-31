@@ -24,7 +24,8 @@ LightingResult lightingResult_add(LightingResult a, LightingResult b) {
     return result;
 }
 
-LightingResult directLighting(Material material, vec4 irradiance, vec3 V, vec3 L, vec3 N) {
+LightingResult directLighting(GBufferData gData, Material material, vec3 irradiance, vec4 shadow, vec3 V, vec3 L, vec3 N) {
+
     vec3 H = normalize(L + V);
     float LDotV = clamp(dot(L, V), -1.0, 1.0);
     float LDotH = clamp(dot(L, H), -1.0, 1.0);
@@ -36,20 +37,77 @@ LightingResult directLighting(Material material, vec4 irradiance, vec3 V, vec3 L
 
     LightingResult result;
 
+    result.sss = vec3(0.0);
+    vec3 shadowedIrradiance = irradiance * shadow.rgb;
+
+    float surfaceDepth = shadow.w;
+    vec3 albedoSRGB = saturate(colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_COLORSPACES_SRGB, material.albedo));
+    if (gData.isHand) {
+        surfaceDepth = max(surfaceDepth, 0.2);
+        if (heldItemId == 0) {
+            material.sss = 0.1;
+            albedoSRGB *= vec3(0.9, 0.7, 0.6);
+            albedoSRGB = pow2(albedoSRGB);
+        }
+    }
+
+    if (material.sss > 0.0) {
+        const float ABSORPTION_MULTIPLIER = 12.0;
+        const float SCATTERING_MULTIPLIER = 24.0;
+        const vec3 ABSO_POW = vec3(1.3, 1.5, 2.0);
+        const float SCTR_POW = 0.6;
+
+        float luma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedoSRGB);
+        albedoSRGB *= min(0.5 / luma, 1.0); // Fk whoever put high sss on white material
+
+        vec3 tCoeff = pow(albedoSRGB, vec3(ABSO_POW));
+        tCoeff = saturate(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, tCoeff));
+        vec3 aCoeff = max(-log(tCoeff), 0.0);
+
+        vec3 sCoeff = pow(albedoSRGB, vec3(SCTR_POW));
+        sCoeff = saturate(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, sCoeff));
+
+        aCoeff = aCoeff * ABSORPTION_MULTIPLIER / sqrt(material.sss);
+        sCoeff *= SCATTERING_MULTIPLIER * material.sss;
+
+        vec3 sampleScattering = sCoeff;
+        vec3 sampleExtinction = (aCoeff + sCoeff);
+        vec3 sampleOpticalDepth = sampleExtinction * surfaceDepth;
+        vec3 sampleTransmittance = exp(-sampleOpticalDepth);
+
+        vec3 sampleIrradiance = shadowedIrradiance;
+
+        float msRadius = sqrt(surfaceDepth) + 1.0;
+        vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-msRadius * sampleExtinction));
+        vec3 sampleMSIrradiance = shadowedIrradiance;
+        sampleMSIrradiance *= UNIFORM_PHASE;
+        sampleMSIrradiance *= fMS / (1.0 - fMS);
+        sampleIrradiance += sampleMSIrradiance;
+
+        vec3 sampleInSctr = sampleIrradiance * sampleScattering;
+        vec3 sampleInSctrInt = (sampleInSctr - sampleInSctr * sampleTransmittance) / sampleExtinction;
+
+        // This fakes lights from sun disk + mie haze
+        float sunMiePhase = phasefunc_KleinNishinaE(-LDotV, 2e4);
+
+        float sssFresnel = frenel_schlick(max(abs(LDotH), 0.005), 0.04);
+        float phase = phasefunc_BiLambertianPlate(-LDotV, 0.3);
+        result.sss = phase * sampleInSctrInt;
+
+        vec3 sheenTransmittance = max(exp(-sampleOpticalDepth), exp(-sampleOpticalDepth * 0.25) * 0.7);
+        result.sss += sunMiePhase * sheenTransmittance * shadowedIrradiance * (1.0 - sssFresnel);
+
+        shadowedIrradiance *= smoothstep(0.7, 0.8, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, shadow.rgb));
+        shadowedIrradiance *= float(dot(material.geomTbn[2], L) > 0.0);
+    }
+
     float diffuseBaseF = 1.0 - material.metallic;
-    vec3 diffuseBaseVec3 = diffuseBaseF * (irradiance.rgb * (1.0 - fresnel) * material.albedo);
+    vec3 diffuseBaseVec3 = diffuseBaseF * (shadowedIrradiance * (1.0 - fresnel) * material.albedo);
 
     result.diffuse = diffuseBaseVec3 * bsdf_diffuseHammon(material, NDotL, NDotV, LDotH, LDotV);
     result.diffuseLambertian = diffuseBaseVec3 * (RCP_PI * saturate(NDotL));
 
-    float shadowPow = saturate(1.0 - irradiance.a);
-    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * SETTING_SSS_SCTR_FACTOR;
-
-    float phase = phasefunc_BiLambertianPlate(-LDotV, 0.3);
-    float sssV = material.sss * phase * SETTING_SSS_STRENGTH;
-    result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb * RCP_PI;
-
-    result.specular = irradiance.rgb * fresnel * bsdf_ggx(material, NDotL, NDotV, NDotH);
+    result.specular = shadowedIrradiance * fresnel * bsdf_ggx(material, NDotL, NDotV, NDotH);
     result.specular = min(result.specular, SETTING_MAXIMUM_SPECULAR_LUMINANCE);
 
     return result;
@@ -74,12 +132,7 @@ LightingResult directLighting2(Material material, vec4 irradiance, vec3 V, vec3 
     result.diffuse = diffuseBaseVec3 * bsdf_diffuseHammon(material, NDotL, NDotV, LDotH, LDotV);
     result.diffuseLambertian = diffuseBaseVec3 * (RCP_PI * saturate(NDotL));
 
-    float shadowPow = saturate(1.0 - irradiance.a);
-    shadowPow = (1.0 - SETTING_SSS_HIGHLIGHT * 0.5) + pow4(shadowPow) * SETTING_SSS_SCTR_FACTOR;
-
-    float phase = phasefunc_BiLambertianPlate(-LDotV, 0.3);
-    float sssV = material.sss * phase * SETTING_SSS_STRENGTH;
-    result.sss = sssV * pow(material.albedo, vec3(shadowPow)) * irradiance.rgb;
+    result.sss = vec3(0.0);
 
     result.specular = irradiance.rgb * fresnel * bsdf_ggx(material, NDotL, NDotV, NDotH);
     result.specular = min(result.specular, SETTING_MAXIMUM_SPECULAR_LUMINANCE);

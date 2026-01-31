@@ -289,71 +289,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "次表面散射"
                     }
-                    slider("SETTING_SSS_STRENGTH", 1.2, 0.0..5.0 step 0.1) {
+                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.8, 0.0..4.0 step 0.1) {
                         lang {
-                            name = "Strength"
+                            name = "Diffuse Range"
                             comment =
-                                "Overall intensity of light passing through semi-transparent materials like leaves, creating a soft glow effect."
+                                "Higher values create a more diffused, softer appearance."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "强度"
-                            comment = "光线穿过半透明材质（如树叶）的整体强度，产生柔和的发光效果。"
+                            name = "扩散范围"
+                            comment = "数值越高，外观越扩散、越柔和。"
                         }
                     }
-                    slider("SETTING_SSS_HIGHLIGHT", 0.8, 0.0..1.0 step 0.01) {
+                    slider("SETTING_SSS_DEPTH_RANGE", 0.3, 0.0..4.0 step 0.1) {
                         lang {
-                            name = "Sheen"
-                            comment =
-                                "Intensity of the soft sheen highlight on materials with subsurface scattering, like leaves in sunlight."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "高光"
-                            comment = "具有次表面散射的材质（如阳光下的树叶）上柔和光泽高光的强度。"
-                        }
-                    }
-                    slider("SETTING_SSS_SCTR_FACTOR", 4.0, 0.0..10.0 step 0.1) {
-                        lang {
-                            name = "Scatter Factor"
-                            comment =
-                                "How much light scatters inside semi-transparent materials. Lower values create a stronger glow-through effect."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "散射因子"
-                            comment = "光线在半透明材质内散射的程度。数值越低，透光效果越强。"
-                        }
-                    }
-                    empty()
-                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.3, 0.0..4.0 step 0.1) {
-                        lang {
-                            name = "Glow Spread"
-                            comment =
-                                "How far the glow effect spreads across the surface. Higher values create a more diffused, softer appearance."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "漫反射范围"
-                            comment = "发光效果在表面上扩散的距离。数值越高，外观越扩散、越柔和。"
-                        }
-                    }
-                    slider("SETTING_SSS_DEPTH_RANGE", 0.6, 0.0..4.0 step 0.1) {
-                        lang {
-                            name = "Material Thickness"
+                            name = "Depth Range"
                             comment =
                                 "How deep light penetrates into the material. Higher values simulate thicker, more translucent materials."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "深度范围"
                             comment = "光线渗透材质的深度。数值越高，模拟更厚、更半透明的材质。"
-                        }
-                    }
-                    slider("SETTING_SSS_MAX_DEPTH_RANGE", 0.9, 0.0..4.0 step 0.1) {
-                        lang {
-                            name = "Maximum Thickness"
-                            comment =
-                                "Upper limit for how thick materials can appear for light penetration calculations."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "最大深度范围"
-                            comment = "光线渗透计算中材质厚度的上限。"
                         }
                     }
                 }
@@ -510,7 +465,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "根据距离降低权重。设置值越大，衰减越慢。"
                         }
                     }
-                    slider("SETTING_RTWSM_B_P", 4.0, 0.0..10.0 step 0.5) {
+                    slider("SETTING_RTWSM_B_P", 1.0, 0.0..4.0 step 0.25) {
                         lang {
                             name = "Backward Perpendicular Function"
                             comment = "Adds extra weight to surface perpendicular to light direction."
@@ -518,14 +473,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "反向分析垂直函数"
                             comment = "为垂直于光线方向的表面增加额外权重。"
-                        }
-                    }
-                    slider("SETTING_RTWSM_B_PP", 16, (0..8).map { 1 shl it }) {
-                        lang {
-                            name = "Backward Perpendicular Function Power"
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "反向分析垂直函数幂"
                         }
                     }
                     slider("SETTING_RTWSM_B_SN", 2.0, 0.0..10.0 step 0.5) {
@@ -558,7 +505,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "软阴影"
                         comment = "使用PCSS根据与阴影投射者的距离产生真实的柔和阴影边缘"
                     }
-                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 2, powerOfTwoAndHalfRange(0..4)) {
+                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 4, powerOfTwoAndHalfRange(2..4)) {
                         lang {
                             name = "Blocker Search Count"
                             comment =
@@ -1510,9 +1457,10 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "云照明"
                     }
-                    slider("SETTING_CLOUDS_MS_RADIUS", 0.35, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_MS_RADIUS", -2.5, -5.0..0.0 step 0.25) {
                         lang {
                             name = "Multi-Scattering Radius"
+                            prefix = "2^"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "多重散射半径"
@@ -1576,7 +1524,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             6 value "4.0 倍"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 48, powerOfTwoAndHalfRange(2..7)) {
+                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 16, powerOfTwoAndHalfRange(2..7)) {
                         lang {
                             name = "Max Accumulation"
                             comment =
@@ -1598,7 +1546,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "云随时间变锐利的速度。数值越高，变锐利越快，但初始时可能显示更多噪点。"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.15, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_LOW_VARIANCE_CLIPPING", 0.25, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Variance Clipping"
                             comment =
@@ -1679,7 +1627,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "云的厚度和不透明度。数值越高，云越浓密、看起来越坚实。"
                         }
                     }
-                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.4, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_CU_COVERAGE", 0.5, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Coverage"
                             comment =
@@ -1785,23 +1733,45 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                     slider("SETTING_CLOUDS_LOW_BILLOWY_FREQ", 0.0, -4.0..4.0 step 0.1) {
                         lang {
-                            name = "Billowy Noise Frequency"
+                            name = "Base Billowy Noise Frequency"
                             comment =
                                 "Control the scale of billowy formations in clouds. Higher values create smaller billows."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "蓬松噪声频率"
+                            name = "基础蓬松噪声频率"
                             comment = "控制云中蓬松结构的比例。数值越高，蓬松结构越小。"
                         }
                     }
                     slider("SETTING_CLOUDS_LOW_BILLOWY_CURL_STR", 0.0, -4.0..4.0 step 0.1) {
                         lang {
-                            name = "Billowy Curl Strength"
+                            name = "Base Billowy Curl Strength"
                             comment =
                                 "Modulates billowy formations with curl noise. Higher values create more turbulent billows."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "蓬松卷曲强度"
+                            name = "基础蓬松卷曲强度"
+                            comment = "用卷曲噪声调制蓬松结构。数值越高，蓬松结构越多湍流。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_HIGH_BILLOWY_FREQ", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Detail Billowy Noise Frequency"
+                            comment =
+                                "Control the scale of billowy formations in clouds. Higher values create smaller billows."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "细节蓬松噪声频率"
+                            comment = "控制云中蓬松结构的比例。数值越高，蓬松结构越小。"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_HIGH_BILLOWY_CURL_STR", 0.0, -4.0..4.0 step 0.1) {
+                        lang {
+                            name = "Detail Billowy Curl Strength"
+                            comment =
+                                "Modulates billowy formations with curl noise. Higher values create more turbulent billows."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "细节蓬松卷曲强度"
                             comment = "用卷曲噪声调制蓬松结构。数值越高，蓬松结构越多湍流。"
                         }
                     }

@@ -678,7 +678,7 @@ void FsrEasuH(
 //==============================================================================================================================
 #if defined(FFX_GPU)&&defined(FSR_RCAS_F)
  // Input callback prototypes that need to be implemented by calling shader
- FfxFloat32x4 FsrRcasLoadF(FfxInt32x2 p);
+ FfxFloat32x4 FsrRcasLoadF(FfxInt32x2 p, bool center);
  void FsrRcasInputF(inout FfxFloat32 r,inout FfxFloat32 g,inout FfxFloat32 b);
 //------------------------------------------------------------------------------------------------------------------------------
  void FsrRcasF(out FfxFloat32 pixR,  // Output values, non-vector so port between RcasFilter() and RcasFilterH() is easy.
@@ -695,17 +695,17 @@ void FsrEasuH(
      //  d e f
      //    h
      FfxInt32x2   sp = FfxInt32x2(ip);
-     FfxFloat32x3 b  = FsrRcasLoadF(sp + FfxInt32x2(0, -1)).rgb;
-     FfxFloat32x3 d  = FsrRcasLoadF(sp + FfxInt32x2(-1, 0)).rgb;
+     FfxFloat32x3 b  = FsrRcasLoadF(sp + FfxInt32x2(0, -1), false).rgb;
+     FfxFloat32x3 d  = FsrRcasLoadF(sp + FfxInt32x2(-1, 0), false).rgb;
 #ifdef FSR_RCAS_PASSTHROUGH_ALPHA
-     FfxFloat32x4 ee = FsrRcasLoadF(sp);
+     FfxFloat32x4 ee = FsrRcasLoadF(sp, true);
      FfxFloat32x3 e  = ee.rgb;
      pixA            = ee.a;
 #else
-     FfxFloat32x3 e = FsrRcasLoadF(sp).rgb;
+     FfxFloat32x3 e = FsrRcasLoadF(sp, true).rgb;
 #endif
-     FfxFloat32x3 f = FsrRcasLoadF(sp + FfxInt32x2(1, 0)).rgb;
-     FfxFloat32x3 h = FsrRcasLoadF(sp + FfxInt32x2(0, 1)).rgb;
+     FfxFloat32x3 f = FsrRcasLoadF(sp + FfxInt32x2(1, 0), false).rgb;
+     FfxFloat32x3 h = FsrRcasLoadF(sp + FfxInt32x2(0, 1), false).rgb;
      // Rename (32-bit) or regroup (16-bit).
      FfxFloat32 bR = b.r;
      FfxFloat32 bG = b.g;

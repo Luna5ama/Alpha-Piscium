@@ -10,11 +10,11 @@
             "composite_mode": "Add",
             "dimension_type": "3D",
             "base_seed": "2B8D19C8",
-            "base_frequency": 1,
+            "base_frequency": 2,
             "base_amplitude": "1.0",
             "fbm_parameters": {
-                "octaves": 4,
-                "persistence": "-0.75000",
+                "octaves": 8,
+                "persistence": "-0.75",
                 "lacunarity": "2.0",
                 "per_octave_seed": true
             },
@@ -35,9 +35,9 @@
     "viewer_parameters": {
         "color_mode": "RGB",
         "tilling": false,
-        "center_x": "33.18",
-        "center_y": "-23.35",
+        "center_x": "31.30",
+        "center_y": "-22.48",
         "slice": "0.0",
-        "zoom": "4.155"
+        "zoom": "3.510"
     }
 }

@@ -15,6 +15,7 @@
 */
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
+#extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/SST2.glsl"
@@ -39,6 +40,8 @@ layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
+
+shared uint shared_rayCount[16];
 
 void main() {
     sst_init(SETTING_GI_SST_THICKNESS);
@@ -101,4 +104,16 @@ void main() {
         }
     }
     ssbo_rayDataIndices[dataIndex] = rayIndex;
+    uvec4 subgroupRayCountBalllot = subgroupBallot(rayIndex < 0xFFFFFFFFu);
+    if (subgroupElect()) {
+        shared_rayCount[gl_SubgroupID] = subgroupBallotBitCount(subgroupRayCountBalllot);
+    }
+    barrier();
+    if (gl_SubgroupID == 0u) {
+        uint partialRayCount = gl_SubgroupInvocationID < gl_NumSubgroups ? shared_rayCount[gl_SubgroupInvocationID] : 0u;
+        uint totalRayCount = subgroupAdd(partialRayCount);
+        if (subgroupElect()) {
+            transient_initialSampleRayCount_store(ivec2(swizzledWGPos), vec4(float(totalRayCount)));
+        }
+    }
 }

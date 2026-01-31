@@ -66,7 +66,9 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
     vec2 shadowScreenPos = shadowNDCPos.xy * 0.5 + 0.5;
 
     // Distance function
-    importance *= 1.0 / (1.0 + pow(dot(viewPos, viewPos), SETTING_RTWSM_B_D));
+    float camDistanceSq = dot(viewPos, viewPos);
+    camDistanceSq = max(4.0, camDistanceSq);
+    importance *= 1.0 / (1.0 + pow(camDistanceSq, SETTING_RTWSM_B_D));
 
     // Surface normal function
     #if SETTING_RTWSM_B_SN > 0.0
@@ -75,8 +77,9 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
     #endif
 
     #if SETTING_RTWSM_B_P > 0.0
-    float lightDir = dot(gData.geomNormal, uval_shadowLightDirView);
-    importance *= 1.0 + SETTING_RTWSM_B_P * pow(1.0 - lightDir * lightDir, float(SETTING_RTWSM_B_PP));
+    float lightDot = abs(dot(gData.geomNormal, uval_shadowLightDirView));
+    lightDot = clamp(lightDot, 0.1, 0.9);
+    importance *= 1.0 + (sqrt(1.0 - pow2(lightDot)) / lightDot) * SETTING_RTWSM_B_P; // tan(acos(lightDot))
     #endif
 
     // Shadow Edge function

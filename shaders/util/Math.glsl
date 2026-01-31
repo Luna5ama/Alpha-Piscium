@@ -177,6 +177,10 @@ float lengthSq(vec2 x) { return dot(x, x); }
 float lengthSq(vec3 x) { return dot(x, x); }
 float lengthSq(vec4 x) { return dot(x, x); }
 
+float distanceSq(vec2 a, vec2 b) { return lengthSq(a - b); }
+float distanceSq(vec3 a, vec3 b) { return lengthSq(a - b); }
+float distanceSq(vec4 a, vec4 b) { return lengthSq(a - b); }
+
 vec4 normalizeAndLength(vec3 v) {
     float lenSq = lengthSq(v);
     float lenInvSq = inversesqrt(lenSq);
@@ -217,6 +221,10 @@ float softMin(float x, float maxV) {
     float phiX = x - maxV / 2.0;
     float phi = maxV / (1.0 + exp((-4.0 * phiX) / maxV));
     return min(x, phi);
+}
+
+float softMax(float x, float minV, float smoothness) {
+    return 0.5 * (x + minV + sqrt(pow2(x - minV) + smoothness));
 }
 
 #endif

@@ -9,12 +9,12 @@
             "enabled": true,
             "composite_mode": "Add",
             "dimension_type": "3D",
-            "base_seed": "666",
-            "base_frequency": 3,
+            "base_seed": "1419C812",
+            "base_frequency": 8,
             "base_amplitude": "1.0",
             "fbm_parameters": {
-                "octaves": 4,
-                "persistence": "0.5",
+                "octaves": 8,
+                "persistence": "0.60000",
                 "lacunarity": "2",
                 "per_octave_seed": true
             },
@@ -24,20 +24,20 @@
                 "smooth_worley": {
                     "flip": false,
                     "mix_weight": "1.00000",
-                    "smoothness": "0.37500",
-                    "rand_power": "0.5",
-                    "min_bound": "0.7500",
-                    "max_bound": "1.2500",
+                    "smoothness": "1.00000",
+                    "rand_power": "1.0000",
+                    "min_bound": "0.0625",
+                    "max_bound": "2.0000",
                     "step_function_type": "LinearStep"
                 },
                 "regular_worley": {
                     "f1_flip": false,
                     "f2_flip": false,
-                    "f1_mix_weight": "0.50000",
-                    "f2_mix_weight": "-1.00000",
+                    "f1_mix_weight": "1.00000",
+                    "f2_mix_weight": "0.00000",
                     "rand_power": "2.0000",
                     "min_bound": "0.0000",
-                    "max_bound": "1",
+                    "max_bound": "1.0",
                     "step_function_type": "LinearStep"
                 }
             }
@@ -54,9 +54,9 @@
     "viewer_parameters": {
         "color_mode": "RGB",
         "tilling": false,
-        "center_x": "-81.83",
-        "center_y": "7.700",
+        "center_x": "13.68",
+        "center_y": "35.24",
         "slice": "0.0",
-        "zoom": "1.887"
+        "zoom": "3.156"
     }
 }

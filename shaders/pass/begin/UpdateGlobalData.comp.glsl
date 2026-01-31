@@ -231,7 +231,7 @@ void main() {
 
         float log2Speed = log2(cameraSpeed + 1.0);
 
-        const float SPEED_WEIGHT_DECAY = 0.5;
+        const float SPEED_WEIGHT_DECAY = 1.0;
         const float SPEED_WEIGHT_POW = 0.5;
         float speedWeight = 0.0;
         speedWeight += log2Speed;

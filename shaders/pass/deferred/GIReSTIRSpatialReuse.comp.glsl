@@ -14,6 +14,7 @@
         - Belmu (https://github.com/BelmuTM) - Advice on ReSTIR.
 */
 #extension GL_KHR_shader_subgroup_ballot : enable
+#extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #include "/techniques/SST2.glsl"
 #include "/techniques/HiZCheck.glsl"
@@ -37,9 +38,12 @@ layout(std430, binding = 5) buffer RayDataIndices {
 };
 
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
+layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
+
+shared uint shared_rayCount[16];
 
 #if USE_REFERENCE || !defined(SETTING_GI_SPATIAL_REUSE)
 void main() {
@@ -167,10 +171,14 @@ void main() {
                         float neighborSampleHitDistance = neighborReservoir.Y.w;
                         vec3 neighborHitViewPos = neighborViewPos + neighborSampleDirView * neighborReservoir.Y.w;
                         vec3 hitDiff = neighborHitViewPos - viewPos;
-                        neighborSampleHitDistance = length(hitDiff);
+                        float hitDist2 = dot(hitDiff, hitDiff);
+
+                        // Safety check: Avoid singularity if reuse sample is at the exact same position
+                        if (hitDist2 < 1e-6) continue;
+
+                        neighborSampleHitDistance = sqrt(hitDist2);
                         neighborSampleDirView = hitDiff / neighborSampleHitDistance;
 
-                        float neighborSamplePdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
                         vec3 neighborHitScreenPos = coords_viewToScreen(neighborHitViewPos, global_camProj);
                         ivec2 neighborHitTexelPos = ivec2(neighborHitScreenPos.xy * uval_mainImageSize);
                         //
@@ -180,16 +188,18 @@ void main() {
                         vec3 neighborSample = f;
                         float neighborPHat = length(neighborSample);
 
-
                         vec3 offsetB = neighborHitViewPos - neighborViewPos;
-                        vec3 offsetA = neighborHitViewPos - viewPos;
+                        vec3 offsetA = hitDiff;
 
                         if (dot(centerSampleData.normal, offsetA) <= 0.0) {
                             neighborPHat = 0.0;
                         }
 
                         float RB2 = dot(offsetB, offsetB);
-                        float RA2 = dot(offsetA, offsetA);
+                        float RA2 = hitDist2;
+
+                        if (RB2 < 1e-6) continue;
+
                         offsetB = normalize(offsetB);
                         offsetA = normalize(offsetA);
                         float cosA = dot(centerSampleData.normal, offsetA);
@@ -291,5 +301,17 @@ void main() {
         #endif
     }
     ssbo_rayDataIndices[dataIndex] = rayIndex;
+    uvec4 subgroupRayCountBalllot = subgroupBallot(rayIndex < 0xFFFFFFFFu);
+    if (subgroupElect()) {
+        shared_rayCount[gl_SubgroupID] = subgroupBallotBitCount(subgroupRayCountBalllot);
+    }
+    barrier();
+    if (gl_SubgroupID == 0u) {
+        uint partialRayCount = gl_SubgroupInvocationID < gl_NumSubgroups ? shared_rayCount[gl_SubgroupInvocationID] : 0u;
+        uint totalRayCount = subgroupAdd(partialRayCount);
+        if (subgroupElect()) {
+            transient_spatialReuseRayCount_store(ivec2(swizzledWGPos), vec4(float(totalRayCount)));
+        }
+    }
 }
 #endif

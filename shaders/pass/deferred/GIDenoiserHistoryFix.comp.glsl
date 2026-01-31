@@ -13,6 +13,8 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
+layout(rgba16f) uniform writeonly image2D uimg_temp1;
+layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
@@ -31,8 +33,8 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
 
         vec3 neighborDiff = diffData.xyz;
         vec3 neighborSpec = specData.xyz;
-        vec3 neighborDiffYCoCg = colors_SRGBToYCoCg(neighborDiff);
-        vec3 neighborSpecYCoCg = colors_SRGBToYCoCg(neighborSpec);
+        vec3 neighborDiffYCoCg = colors_RGBToYCoCg(neighborDiff);
+        vec3 neighborSpecYCoCg = colors_RGBToYCoCg(neighborSpec);
 
         uvec4 packedData;
         packedData.xy = packHalf4x16(vec4(neighborDiffYCoCg, diffData.w));
@@ -47,11 +49,11 @@ vec3 _clampColor(vec3 colorRGB, vec3 fastColorYCoCG, vec3 moment1YCoCG, vec3 mom
     vec3 stddev = sqrt(variance);
     vec3 aabbMin = mean - stddev * clampingThreshold;
     vec3 aabbMax = mean + stddev * clampingThreshold;
-    vec3 colorYCoCG = colors_SRGBToYCoCg(colorRGB);
+    vec3 colorYCoCG = colors_RGBToYCoCg(colorRGB);
     aabbMin = min(aabbMin, fastColorYCoCG);
     aabbMax = max(aabbMax, fastColorYCoCG);
     colorYCoCG = clamp(colorYCoCG, aabbMin, aabbMax);
-    return colors_YCoCgToSRGB(colorYCoCG);
+    return colors_YCoCgToRGB(colorYCoCG);
 }
 #else
 shared vec2 shared_hitDistances[20][20];

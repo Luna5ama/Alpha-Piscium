@@ -123,11 +123,56 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
     text.fpPrecision = 4;
 
-    #ifdef DEBUG_TEX_NAME
-    ivec2 scaledTextureSize = ivec2(vec2(textureSize(DEBUG_TEX_NAME, 0)) * SETTING_DEBUG_SCALE);
+    ivec2 scaledTextureSize = ivec2(uval_mainImageSize * SETTING_DEBUG_SCALE);
     if (all(lessThan(texelPos, scaledTextureSize))) {
         ivec2 scaledTexelPos = ivec2((vec2(texelPos) + 0.5) / SETTING_DEBUG_SCALE);
+        #ifdef DEBUG_TEX_NAME
         outputColor = texelFetch(DEBUG_TEX_NAME, scaledTexelPos, 0);
+        #endif
+
+
+        GBufferData gData = gbufferData_init();
+        gbufferData1_unpack(texelFetch(usam_gbufferData1, scaledTexelPos, 0), gData);
+        gbufferData2_unpack(texelFetch(usam_gbufferData2, scaledTexelPos, 0), gData);
+        Material material = material_decode(gData);
+
+        #if SETTING_DEBUG_GBUFFER_DATA == 1
+        outputColor.rgb = displayViewZ(texelFetch(usam_gbufferViewZ, scaledTexelPos, 0).r);
+        #elif SETTING_DEBUG_GBUFFER_DATA == 2
+        outputColor.rgb = gammaCorrect(material.albedo);
+        #elif SETTING_DEBUG_GBUFFER_DATA == 3 || SETTING_DEBUG_GBUFFER_DATA == 4
+
+        #if SETTING_DEBUG_GBUFFER_DATA == 3
+        outputColor.rgb = gData.normal;
+        #else
+        outputColor.rgb = gData.geomNormal;
+        #endif
+
+        #if SETTING_DEBUG_NORMAL_MODE == 0
+        outputColor.rgb = mat3(gbufferModelViewInverse) * outputColor.rgb;
+        #endif
+        outputColor.r = linearStep(-SETTING_DEBUG_NORMAL_X_RANGE, SETTING_DEBUG_NORMAL_X_RANGE, outputColor.r);
+        outputColor.g = linearStep(-SETTING_DEBUG_NORMAL_Y_RANGE, SETTING_DEBUG_NORMAL_Y_RANGE, outputColor.g);
+        outputColor.b = linearStep(-SETTING_DEBUG_NORMAL_Z_RANGE, SETTING_DEBUG_NORMAL_Z_RANGE, outputColor.b);
+
+        #elif SETTING_DEBUG_GBUFFER_DATA == 5
+        outputColor.rgb = vec3(material.roughness);
+        #elif SETTING_DEBUG_GBUFFER_DATA == 6
+        outputColor.rgb = vec3(material.f0);
+        #elif SETTING_DEBUG_GBUFFER_DATA == 7
+        outputColor.rgb = vec3(material.porosity);
+        #elif SETTING_DEBUG_GBUFFER_DATA == 8
+        outputColor.rgb = vec3(material.sss);
+        #elif SETTING_DEBUG_GBUFFER_DATA == 9
+        outputColor.rgb = vec3(gData.pbrSpecular.a);
+        #elif SETTING_DEBUG_GBUFFER_DATA == 10
+        outputColor.rgb = vec3(gData.lmCoord.x);
+        #elif SETTING_DEBUG_GBUFFER_DATA == 11
+        outputColor.rgb = vec3(gData.lmCoord.y);
+        #elif SETTING_DEBUG_GBUFFER_DATA == 12
+        outputColor.rgb = vec3(float(gData.isHand));
+        #endif
+
         outputColor = applyExposure(outputColor);
 
         #ifdef SETTING_DEBUG_NEGATE
@@ -142,49 +187,6 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 
         outputColor = gammaCorrect(outputColor);
     }
-    #endif
-
-    GBufferData gData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
-    Material material = material_decode(gData);
-
-    #if SETTING_DEBUG_GBUFFER_DATA == 1
-    outputColor.rgb = displayViewZ(texelFetch(usam_gbufferViewZ, texelPos, 0).r);
-    #elif SETTING_DEBUG_GBUFFER_DATA == 2
-    outputColor.rgb = gammaCorrect(material.albedo);
-    #elif SETTING_DEBUG_GBUFFER_DATA == 3 || SETTING_DEBUG_GBUFFER_DATA == 4
-
-    #if SETTING_DEBUG_GBUFFER_DATA == 3
-    outputColor.rgb = gData.normal;
-    #else
-    outputColor.rgb = gData.geomNormal;
-    #endif
-
-    #if SETTING_DEBUG_NORMAL_MODE == 0
-    outputColor.rgb = mat3(gbufferModelViewInverse) * outputColor.rgb;
-    #endif
-    outputColor.r = linearStep(-SETTING_DEBUG_NORMAL_X_RANGE, SETTING_DEBUG_NORMAL_X_RANGE, outputColor.r);
-    outputColor.g = linearStep(-SETTING_DEBUG_NORMAL_Y_RANGE, SETTING_DEBUG_NORMAL_Y_RANGE, outputColor.g);
-    outputColor.b = linearStep(-SETTING_DEBUG_NORMAL_Z_RANGE, SETTING_DEBUG_NORMAL_Z_RANGE, outputColor.b);
-
-    #elif SETTING_DEBUG_GBUFFER_DATA == 5
-    outputColor.rgb = vec3(material.roughness);
-    #elif SETTING_DEBUG_GBUFFER_DATA == 6
-    outputColor.rgb = vec3(material.f0);
-    #elif SETTING_DEBUG_GBUFFER_DATA == 7
-    outputColor.rgb = vec3(material.porosity);
-    #elif SETTING_DEBUG_GBUFFER_DATA == 8
-    outputColor.rgb = vec3(material.sss);
-    #elif SETTING_DEBUG_GBUFFER_DATA == 9
-    outputColor.rgb = vec3(gData.pbrSpecular.a);
-    #elif SETTING_DEBUG_GBUFFER_DATA == 10
-    outputColor.rgb = vec3(gData.lmCoord.x);
-    #elif SETTING_DEBUG_GBUFFER_DATA == 11
-    outputColor.rgb = vec3(gData.lmCoord.y);
-    #elif SETTING_DEBUG_GBUFFER_DATA == 12
-    outputColor.rgb = vec3(float(gData.isHand));
-    #endif
 
 //    #if SETTING_DEBUG_DENOISER != 0
 ////    uvec4 svgfData = texelFetch(usam_csrgba32ui, texelPos, 0);

@@ -124,7 +124,7 @@ const mat3 _SRGB_TO_YCOCG = mat3(
 );
 
 // [ROS18]
-vec3 colors_SRGBToYCoCg(vec3 color) {
+vec3 colors_RGBToYCoCg(vec3 color) {
     return _SRGB_TO_YCOCG * color;
 }
 
@@ -136,7 +136,7 @@ const mat3 _YCOCG_TO_SRGB = mat3(
 );
 
 // [ROS18]
-vec3 colors_YCoCgToSRGB(vec3 color) {
+vec3 colors_YCoCgToRGB(vec3 color) {
     return _YCOCG_TO_SRGB * color;
 }
 
