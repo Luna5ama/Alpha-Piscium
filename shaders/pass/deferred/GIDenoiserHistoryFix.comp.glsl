@@ -31,6 +31,11 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
         vec4 diffData = transient_gi2Reprojected_fetch(srcXY);
         vec4 specData = transient_gi4Reprojected_fetch(srcXY);
 
+        if (all(greaterThanEqual(sharedXY, uvec2(2u))) && all(lessThan(sharedXY, uvec2(18u)))) {
+            history_gi2_store(srcXY, diffData);
+            history_gi4_store(srcXY, specData);
+        }
+
         vec3 neighborDiff = diffData.xyz;
         vec3 neighborSpec = specData.xyz;
         vec3 neighborDiffYCoCg = colors_RGBToYCoCg(neighborDiff);
@@ -66,6 +71,11 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
 
         vec4 diffData = transient_gi2Reprojected_fetch(srcXY);
         vec4 specData = transient_gi4Reprojected_fetch(srcXY);
+
+        if (all(greaterThanEqual(sharedXY, uvec2(2u))) && all(lessThan(sharedXY, uvec2(18u)))) {
+            history_gi2_store(srcXY, diffData);
+            history_gi4_store(srcXY, specData);
+        }
 
         vec2 hitDistances = vec2(diffData.w, specData.w);
         hitDistances = mix(vec2(MAX_HIT_DISTANCE), hitDistances, greaterThan(hitDistances, vec2(0.0)));

@@ -289,10 +289,6 @@ void main() {
             packedData3 = clamp(packedData3, 0.0, FP16_MAX);
             history_gi3_store(texelPos, packedData3);
 
-
-            history_gi2_store(texelPos, transient_gi2Reprojected_fetch(texelPos));
-            history_gi4_store(texelPos, transient_gi4Reprojected_fetch(texelPos));
-
             // Skipping gi5 here because it seems to save a handle register
             #endif
 
