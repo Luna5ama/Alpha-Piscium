@@ -140,22 +140,20 @@ void main() {
             filteredInputVariance /= 25.0;
 
             float historyLength = historyData.historyLength * TOTAL_HISTORY_LENGTH;
-            float sqrtRealHistoryLength = sqrt(historyData.historyLength);
-            float accumFactor = rcp(1.0 + pow2(0.2 * historyLength));
+            float accumFactor = rcp(1.0 + pow2(0.1 * historyLength));
             float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
 
             float hitDistFactor = hitDistanceFactors.x;
-            #if GI_DENOISE_PASS == 1
-            hitDistFactor = saturate(pow(hitDistFactor, sqrtRealHistoryLength * 4.0));
-            #else
-            hitDistFactor = saturate(pow(hitDistFactor, sqrtRealHistoryLength * 2.0));
+            #if GI_DENOISE_PASS == 2
+            hitDistFactor = pow2(hitDistFactor);
             #endif
+            hitDistFactor = hitDistFactor * 0.9 + 0.1;
 
             float kernelRadius = baseKernelRadius.x;
             kernelRadius *= accumFactor;
 
             kernelRadius *= 1.0 + filteredInputVariance.x * baseKernelRadius.y;
-            kernelRadius *= hitDistFactor + 0.1;
+            kernelRadius *= hitDistFactor;
             kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
             float baseNormalWeight = invAccumFactor * 256.0;
@@ -225,6 +223,9 @@ void main() {
 
 
                 float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight);
+//                float lumaDiff = pow2(centerLuma - sampleLuma);
+//                float colorWeight = smoothstep(0.01, 0.0, lumaDiff);
+//                totalWeight *= colorWeight;
 
                 diffResult += diffSample * totalWeight;
                 weightSum += totalWeight;
@@ -250,8 +251,8 @@ void main() {
 
             #if SETTING_DEBUG_OUTPUT
             if (RANDOM_FRAME < MAX_FRAMES){
-                // imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
-//                imageStore(uimg_temp3, texelPos, hitDistanceFactors.xxxx);
+//                imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
+                imageStore(uimg_temp3, texelPos, hitDistanceFactors.xxxx);
                 // imageStore(uimg_temp3, texelPos, sigma.xxxx);
             }
             #endif

@@ -132,11 +132,11 @@ void main() {
                     historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, alpha.w);// TODO: specular input
 
                     float newHitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
-                    float regularFastAlpha = rcpAccumHistoryLength.y;
 
                     if (newHitDistance >= 0.0) {
+                        float alpha = rcp(min(historyLength, 16.0));
                         newHitDistance = min(newHitDistance, MAX_HIT_DISTANCE);
-                        historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, regularFastAlpha);
+                        historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, alpha);
                     }
 
                     historyLength = clamp(historyLength, 1.0, TOTAL_HISTORY_LENGTH);
@@ -146,21 +146,23 @@ void main() {
                 }
 
                 // 3x3 max kernel on history lengths
-                vec2 maxHistoryLengths = vec2(0.0);
-                float realHistorySum = 0.0;
+                vec2 hLenAverage = vec2(0.0);
+                vec2 hLenMax = vec2(0.0);
                 ivec2 localPos = ivec2(mortonPos) + 1; // +1 for padding
                 for (int dy = -1; dy <= 1; ++dy) {
                     for (int dx = -1; dx <= 1; ++dx) {
                         ivec2 samplePos = localPos + ivec2(dx, dy);
                         vec2 neighborHistoryLengths = shared_historyLengths[samplePos.y][samplePos.x];
-                        maxHistoryLengths = max(maxHistoryLengths, neighborHistoryLengths);
-                        realHistorySum += neighborHistoryLengths.y;
+                        hLenAverage += neighborHistoryLengths;
+                        hLenMax = max(hLenMax, neighborHistoryLengths);
                     }
                 }
 
-                float maxMixWeight = linearStep(1.0, 4.0, realHistorySum / 9.0 * TOTAL_HISTORY_LENGTH);
-                historyData.historyLength = mix(historyData.historyLength, max(historyData.historyLength, maxHistoryLengths.x), maxMixWeight);
-                historyData.realHistoryLength = mix(historyData.realHistoryLength, max(historyData.realHistoryLength, maxHistoryLengths.y), maxMixWeight);
+                hLenAverage -= historyData.realHistoryLength;
+                hLenAverage = saturate(hLenAverage / 8.0);
+
+                historyData.historyLength = mix(historyData.historyLength, hLenMax.x, pow2(hLenAverage.x));
+                historyData.realHistoryLength = mix(historyData.realHistoryLength, hLenMax.y, hLenAverage.y);
                 #if SETTING_DEBUG_OUTPUT
 //                imageStore(uimg_temp3, texelPos, gi_historyData_pack1(historyData));
                 #endif

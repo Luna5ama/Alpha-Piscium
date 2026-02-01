@@ -274,8 +274,11 @@ void main() {
                 }
                 #endif
 
-                vec2 hitDitanceFactors = 1.0 - pow(smoothstep(4.0, 0.0, filteredHitDitances), vec2(8.0));
-                transient_gi_hitDistanceFactors_store(texelPos, vec4(hitDitanceFactors, 0.0, 0.0));
+                // Adding 0.0001 to avoid making it 0 which can cause issues with pow
+                vec2 hitDitanceFactors = 1.00001 - pow4(smoothstep(4.0, 0.0, filteredHitDitances));
+                float remappedRealHLen = 1.0 - pow4(1.0 - historyData.realHistoryLength);
+                hitDitanceFactors = pow(hitDitanceFactors, vec2(remappedRealHLen * 2.0));
+                transient_gi_hitDistanceFactors_store(texelPos, vec4(saturate(hitDitanceFactors), 0.0, 0.0));
 
                 vec4 packedData5 = gi_historyData_pack5(historyData);
                 packedData5 = dither_u8(packedData5, ditherNoise);
