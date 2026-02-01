@@ -109,110 +109,110 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
     float sssFactor = material.sss;
     uint skipFlag = uint(dot(gData.normal, uval_upDirView) < -0.99);
     skipFlag &= uint(sssFactor < 0.001);
-    if (bool(skipFlag)) {
-        return vec4(0.0);
-    }
+    vec4 result = vec4(0.0);
+    if (!bool(skipFlag)) {
+        float cosLightTheta = abs(dot(uval_shadowLightDirView, gData.geomNormal));
 
-    float cosLightTheta = abs(dot(uval_shadowLightDirView, gData.geomNormal));
+        vec3 offsetViewPos = viewPos;
+        offsetViewPos += gData.geomNormal * mix(0.03, 0.01, pow2(cosLightTheta));
+        vec4 scenePos = gbufferModelViewInverse * vec4(offsetViewPos, 1.0);
+        vec4 shadowViewPos = global_shadowRotationMatrix * global_shadowView * scenePos;
+        vec4 shadowClipPos = global_shadowProjPrev * shadowViewPos;
+        vec3 shadowNDCPos = shadowClipPos.xyz / shadowClipPos.w;
+        vec3 shadowScreenPos = shadowNDCPos * 0.5 + 0.5;
+        float blockerDistance = searchBlocker(texelPos, shadowScreenPos, sssFactor);
 
-    vec3 offsetViewPos = viewPos;
-    offsetViewPos += gData.geomNormal * mix(0.03, 0.01, pow2(cosLightTheta));
-    vec4 scenePos = gbufferModelViewInverse * vec4(offsetViewPos, 1.0);
-    vec4 shadowViewPos = global_shadowRotationMatrix * global_shadowView * scenePos;
-    vec4 shadowClipPos = global_shadowProjPrev * shadowViewPos;
-    vec3 shadowNDCPos = shadowClipPos.xyz / shadowClipPos.w;
-    vec3 shadowScreenPos = shadowNDCPos * 0.5 + 0.5;
-    float blockerDistance = searchBlocker(texelPos, shadowScreenPos, sssFactor);
+        float ssRange = 0.0;
+        #if SETTING_PCSS_BPF > 0
+        ssRange += exp2(SETTING_PCSS_BPF - 10.0);
+        ssRange = mix(ssRange, ssRange + 0.05, gData.isHand);
+        #endif
+        float clampedBlockerDistance = softMax(blockerDistance, 0.5, 8.0);
+        ssRange += SUN_ANGULAR_RADIUS * 2.0 * SETTING_PCSS_VPF * clampedBlockerDistance;
+        ssRange = saturate(ssRange);
+        ssRange += sssFactor * SETTING_SSS_DIFFUSE_RANGE;
 
-    float ssRange = 0.0;
-    #if SETTING_PCSS_BPF > 0
-    ssRange += exp2(SETTING_PCSS_BPF - 10.0);
-    ssRange = mix(ssRange, ssRange + 0.05, gData.isHand);
-    #endif
-    float clampedBlockerDistance = softMax(blockerDistance, 0.5, 8.0);
-    ssRange += SUN_ANGULAR_RADIUS * 2.0 * SETTING_PCSS_VPF * clampedBlockerDistance;
-    ssRange = saturate(ssRange);
-    ssRange += sssFactor * SETTING_SSS_DIFFUSE_RANGE;
+        const float ssRangeMul = 0.5;
+        ssRange *= ssRangeMul;
+        vec2 ssRange2 = ssRange * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
 
-    const float ssRangeMul = 0.5;
-    ssRange *= ssRangeMul;
-    vec2 ssRange2 = ssRange * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
+        float jitterR = rand_stbnVec1(texelPos, frameCounter);
+        vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);
 
-    float jitterR = rand_stbnVec1(texelPos, frameCounter);
-    vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);
+        const uint SAMPLE_COUNT = SETTING_PCSS_SAMPLE_COUNT;
+        float rcpSamples = 1.0 / float(SAMPLE_COUNT);
 
-    const uint SAMPLE_COUNT = SETTING_PCSS_SAMPLE_COUNT;
-    float rcpSamples = 1.0 / float(SAMPLE_COUNT);
+        float16_t solidShadowSum = float16_t(0.0);
+        f16vec4 translucentShadowSum = f16vec4(0.0);
+        #ifdef SETTING_WATER_CAUSTICS
+        vec2 texelPosCenter = vec2(texelPos) + 0.5;
+        float causticsSampleRadius = 32.0 / max(abs(viewPos.z), 0.1);
+        #endif
 
-    float16_t solidShadowSum = float16_t(0.0);
-    f16vec4 translucentShadowSum = f16vec4(0.0);
-    #ifdef SETTING_WATER_CAUSTICS
-    vec2 texelPosCenter = vec2(texelPos) + 0.5;
-    float causticsSampleRadius = 32.0 / max(abs(viewPos.z), 0.1);
-    #endif
+        shadowScreenPos.z -= rtwsm_linearDepthOffsetInverse(jitterR * pow(sssFactor, 0.25) * SETTING_SSS_DEPTH_RANGE);
 
-    shadowScreenPos.z -= rtwsm_linearDepthOffsetInverse(jitterR * pow(sssFactor, 0.25) * SETTING_SSS_DEPTH_RANGE);
+        for (uint i = 0; i < SAMPLE_COUNT; i++) {
+            dir *= MAT2_GOLDEN_ANGLE;
+            float baseRadius = sqrt((float(i) + jitterR) * rcpSamples);
+            vec2 baseOffset = dir * baseRadius;
+            vec3 sampleTexCoord = shadowScreenPos;
 
-    for (uint i = 0; i < SAMPLE_COUNT; i++) {
-        dir *= MAT2_GOLDEN_ANGLE;
-        float baseRadius = sqrt((float(i) + jitterR) * rcpSamples);
-        vec2 baseOffset = dir * baseRadius;
-        vec3 sampleTexCoord = shadowScreenPos;
+            sampleTexCoord.xy += ssRange2 * baseOffset;
+            sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
 
-        sampleTexCoord.xy += ssRange2 * baseOffset;
-        sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
+            vec4 sampleShadowDepthOffset4 = textureGather(shadowcolor0, sampleTexCoord.xy, 0);
+            sampleTexCoord.z -= max4(abs(sampleShadowDepthOffset4));
 
-        vec4 sampleShadowDepthOffset4 = textureGather(shadowcolor0, sampleTexCoord.xy, 0);
-        sampleTexCoord.z -= max4(abs(sampleShadowDepthOffset4));
+            float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
+            if (material.sss > 0.0 && shadowSampleSolid < 1.0) {
+                vec4 pbrSpecular = texture(shadowcolor1, sampleTexCoord.xy);
+                shadowSampleSolid = pbrSpecular.b + shadowSampleSolid * (1.0 - pbrSpecular.b);
+            }
+            solidShadowSum += float16_t(shadowSampleSolid);
 
-        float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
-        if (material.sss > 0.0 && shadowSampleSolid < 1.0) {
-            vec4 pbrSpecular = texture(shadowcolor1, sampleTexCoord.xy);
-            shadowSampleSolid = pbrSpecular.b + shadowSampleSolid * (1.0 - pbrSpecular.b);
-        }
-        solidShadowSum += float16_t(shadowSampleSolid);
+            if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
+                vec4 shadowDepthAll = textureGather(shadowtex0, sampleTexCoord.xy, 0);
+                bvec4 shadowSampleCompareAll = greaterThan(vec4(sampleTexCoord.z), shadowDepthAll);
+                if (any(shadowSampleCompareAll)) {
+                    vec4 waterMask4 = textureGather(usam_shadow_waterMask, sampleTexCoord.xy, 0);
+                    float waterMaskSum = sum4(waterMask4);
+                    f16vec3 sampleColor = f16vec3(textureLod(shadowcolor2, sampleTexCoord.xy, 0.0).rgb);
+                    if (waterMaskSum > 0.1) {
+                        vec4 translucentDistance = saturate(sampleTexCoord.z - shadowDepthAll);
+                        float translucentDistanceMasked = dot(translucentDistance, waterMask4) / waterMaskSum;
+                        float waterDepth = max(rtwsm_linearDepthOffset(translucentDistanceMasked), 0.0);
+                        sampleColor *= f16vec3(exp(-waterDepth * WATER_EXTINCTION));
 
-        if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
-            vec4 shadowDepthAll = textureGather(shadowtex0, sampleTexCoord.xy, 0);
-            bvec4 shadowSampleCompareAll = greaterThan(vec4(sampleTexCoord.z), shadowDepthAll);
-            if (any(shadowSampleCompareAll)) {
-                vec4 waterMask4 = textureGather(usam_shadow_waterMask, sampleTexCoord.xy, 0);
-                float waterMaskSum = sum4(waterMask4);
-                f16vec3 sampleColor = f16vec3(textureLod(shadowcolor2, sampleTexCoord.xy, 0.0).rgb);
-                if (waterMaskSum > 0.1) {
-                    vec4 translucentDistance = saturate(sampleTexCoord.z - shadowDepthAll);
-                    float translucentDistanceMasked = dot(translucentDistance, waterMask4) / waterMaskSum;
-                    float waterDepth = max(rtwsm_linearDepthOffset(translucentDistanceMasked), 0.0);
-                    sampleColor *= f16vec3(exp(-waterDepth * WATER_EXTINCTION));
+                        #ifdef SETTING_WATER_CAUSTICS
+                        vec2 causticsTexelPos = texelPosCenter + baseOffset * causticsSampleRadius;
+                        float caustics = transient_caustics_final_sample(causticsTexelPos * uval_mainImageSizeRcp).r;
+                        sampleColor *= float16_t(mix(1.0, caustics, pow2(linearStep(0.0, 4.0, waterDepth))));
+                        #endif
+                    }
 
-                    #ifdef SETTING_WATER_CAUSTICS
-                    vec2 causticsTexelPos = texelPosCenter + baseOffset * causticsSampleRadius;
-                    float caustics = transient_caustics_final_sample(causticsTexelPos * uval_mainImageSizeRcp).r;
-                    sampleColor *= float16_t(mix(1.0, caustics, pow2(linearStep(0.0, 4.0, waterDepth))));
-                    #endif
+                    translucentShadowSum += f16vec4(sampleColor, 1.0);
                 }
-
-                translucentShadowSum += f16vec4(sampleColor, 1.0);
             }
         }
+
+        float solidShdowSumFP32 = float(solidShadowSum);
+
+        float solidShadow = solidShdowSumFP32 * rcpSamples;
+        float w = rcp(blockerDistance * 0.5 + 0.0001) + 1.0;
+        solidShadow = 1.0 - pow2(1.0 - shadowHarden(solidShadow, w));
+
+        vec3 finalShadow = vec3(solidShadow);
+        vec4 translucentShadowSumFP32 = vec4(translucentShadowSum);
+        if (translucentShadowSumFP32.a > 0.0) {
+            finalShadow *= translucentShadowSumFP32.rgb * rcp(translucentShadowSumFP32.a);
+        }
+
+        float surfaceDepth = material.sss > 0.0 ? max(blockerDistance, 0.1) : 0.0;
+
+        float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
+        result = mix(vec4(finalShadow, surfaceDepth), vec4(vec3(1.0), 1.0), shadowRangeBlend);
     }
-
-    float solidShdowSumFP32 = float(solidShadowSum);
-
-    float solidShadow = solidShdowSumFP32 * rcpSamples;
-    float w = rcp(blockerDistance * 0.5 + 0.0001) + 1.0;
-    solidShadow = 1.0 - pow2(1.0 - shadowHarden(solidShadow, w));
-
-    vec3 finalShadow = vec3(solidShadow);
-    vec4 translucentShadowSumFP32 = vec4(translucentShadowSum);
-    if (translucentShadowSumFP32.a > 0.0) {
-        finalShadow *= translucentShadowSumFP32.rgb * rcp(translucentShadowSumFP32.a);
-    }
-
-    float surfaceDepth = material.sss > 0.0 ? max(blockerDistance, 0.1) : 0.0;
-
-    float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
-    return mix(vec4(finalShadow, surfaceDepth), vec4(vec3(1.0), 1.0), shadowRangeBlend);
+    return result;
 }
 
 void main() {

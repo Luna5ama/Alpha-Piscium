@@ -74,16 +74,20 @@ vec3 fresnel_dielectricDielectric_transmittance(float cosThetaI, vec3 n1, vec3 n
     vec3 sinThetaT = (n1 / n2) * sinThetaI;
     vec3 cosThetaT = sqrt(saturate(1.0 - pow2(sinThetaT)));
 
-    if (any(greaterThan(abs(sinThetaT), vec3(1.0)))) return vec3(1.0);
 
-    vec3 numerator = 2.0 * n1 * cosThetaI;
+    vec3 result = vec3(1.0);
+    if (any(lessThan(sinThetaT, vec3(1.0)))) {
+        vec3 numerator = 2.0 * n1 * cosThetaI;
 
-    vec3 Ts = abs(numerator / (n1 * cosThetaI + n2 * cosThetaT));
-    vec3 Tp = abs(numerator / (n1 * cosThetaT + n2 * cosThetaI));
+        vec3 Ts = abs(numerator / (n1 * cosThetaI + n2 * cosThetaT));
+        vec3 Tp = abs(numerator / (n1 * cosThetaT + n2 * cosThetaI));
 
-    vec3 beamRatio = abs((n2 * cosThetaT) / (n1 * cosThetaI));
+        vec3 beamRatio = abs((n2 * cosThetaT) / (n1 * cosThetaI));
 
-    return saturate(beamRatio * (Ts * Ts + Tp * Tp) * 0.5);
+        result = saturate(beamRatio * (Ts * Ts + Tp * Tp) * 0.5);
+    }
+
+    return result;
 }
 
 // [BEL25a]
@@ -92,16 +96,19 @@ float fresnel_dielectricDielectric_transmittance(float cosThetaI, float n1, floa
     float sinThetaT = (n1 / n2) * sinThetaI;
     float cosThetaT = sqrt(saturate(1.0 - pow2(sinThetaT)));
 
-    if (sinThetaT > 1.0) return 1.0;
+    float result = 1.0;
+    if (sinThetaT < 1.0) {
+        float numerator = 2.0 * n1 * cosThetaI;
 
-    float numerator = 2.0 * n1 * cosThetaI;
+        float Ts = abs(numerator / (n1 * cosThetaI + n2 * cosThetaT));
+        float Tp = abs(numerator / (n1 * cosThetaT + n2 * cosThetaI));
 
-    float Ts = abs(numerator / (n1 * cosThetaI + n2 * cosThetaT));
-    float Tp = abs(numerator / (n1 * cosThetaT + n2 * cosThetaI));
+        float beamRatio = abs((n2 * cosThetaT) / (n1 * cosThetaI));
 
-    float beamRatio = abs((n2 * cosThetaT) / (n1 * cosThetaI));
+        result = saturate(beamRatio * (Ts * Ts + Tp * Tp) * 0.5);
+    }
 
-    return saturate(beamRatio * (Ts * Ts + Tp * Tp) * 0.5);
+    return result;
 }
 
 // [BEL25a]

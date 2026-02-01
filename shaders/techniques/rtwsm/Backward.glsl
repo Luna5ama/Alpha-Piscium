@@ -100,25 +100,23 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
     importance *= 1.0 + SETTING_RTWSM_B_SE * linearStep(0.5, 2.0, maxDiff) * 100.0;
     #endif
 
-    if (any(greaterThanEqual(abs(shadowClipPos.xy), vec2(1.0)))) {
-        p = 0xFFFFFFFFu;
-        v = 0u;
-        return;
+    p = 0xFFFFFFFFu;
+    v = 0u;
+
+    if (!any(greaterThanEqual(abs(shadowClipPos.xy), vec2(1.0)))) {
+        uvec2 shadowPos = uvec2(shadowScreenPos.xy * RTWSM_IMAP_SIZE);
+
+        importance = max(importance, uval_rtwsmMin.y);
+
+        p = shadowPos.y << 16 | shadowPos.x;
+        v = importance;
     }
-
-    uvec2 shadowPos = uvec2(shadowScreenPos.xy * RTWSM_IMAP_SIZE);
-
-    importance = max(importance, uval_rtwsmMin.y);
-
-    p = shadowPos.y << 16 | shadowPos.x;
-    v = importance;
-
-    return;
 }
 
 void writeOutput(uint p, float v) {
-    if (p == 0xFFFFFFFFu) return;
-    persistent_rtwsm_importance2D_atomicMax(ivec2(p & 0xFFFFu, p >> 16), floatBitsToInt(v));
+    if (p != 0xFFFFFFFFu) {
+        persistent_rtwsm_importance2D_atomicMax(ivec2(p & 0xFFFFu, p >> 16), floatBitsToInt(v));
+    }
 }
 
 void backwardOutput(uint p, float v) {
