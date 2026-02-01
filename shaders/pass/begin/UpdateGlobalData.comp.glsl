@@ -172,6 +172,7 @@ void main() {
 
         global_dispatchSize3 = uvec4(0u, 1u, 1u, 0u);
         global_dispatchSize4 = uvec4(0u, 1u, 1u, 0u);
+        global_dispatchSize5 = uvec4(0u, 1u, 1u, 0u);
         for (uint i = 0u; i < 16u; i++) {
             global_atomicCounters[i] = 0u;
         }

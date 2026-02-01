@@ -32,6 +32,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uvec4 global_dispatchSize2;
     uvec4 global_dispatchSize3;
     uvec4 global_dispatchSize4;
+    uvec4 global_dispatchSize5;
     mat4 gbufferPrevModelViewInverse;
     mat4 global_shadowRotationMatrix;
     mat4 global_shadowRotationMatrixInverse;

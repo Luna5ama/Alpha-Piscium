@@ -1,3 +1,4 @@
+#define GLOBAL_DATA_MODIFIER buffer
 #include "/util/Math.glsl"
 
 // Supa cool sorting from Bob
@@ -11,7 +12,8 @@ const vec2 workGroupsRender = vec2(0.5, 0.5);
 
 shared uint temp[2][1024];
 
-bool checkBinRayCount(uvec2 binIdx);
+bool checkBinRayCount(uvec2 binIdx, out uint rayCountOut);
+uint incrementCounter(uint binGroupCount);
 
 void main() {
     uint clusterIdx = gl_WorkGroupID.x + gl_WorkGroupID.y * gl_NumWorkGroups.x;
@@ -19,7 +21,8 @@ void main() {
     uint totalClusters = numClusters.x * numClusters.y;
 
     uvec2 binId = uvec2(clusterIdx % numClusters.x, clusterIdx / numClusters.x);
-    if (checkBinRayCount(binId)) {
+    uint rayCount;
+    if (checkBinRayCount(binId, rayCount)) {
         if (clusterIdx < totalClusters) {
             uint clusterIndexBase = clusterIdx * 1024u + gl_LocalInvocationIndex;
             uvec4 blockIdx = uvec4(0, 256u, 512u, 768u) + gl_LocalInvocationIndex;
@@ -118,6 +121,16 @@ void main() {
             ssbo_rayDataIndices[clusterIndexBase + 256u] = temp[readBuf][blockIdx.y];
             ssbo_rayDataIndices[clusterIndexBase + 512u] = temp[readBuf][blockIdx.z];
             ssbo_rayDataIndices[clusterIndexBase + 768u] = temp[readBuf][blockIdx.w];
+
+            if (gl_LocalInvocationIndex == 0u) {
+                uint binGroupCount = (rayCount + 255u) / 256u;
+                uint writeBase = incrementCounter(binGroupCount);
+                for (uint i = 0u; i < binGroupCount; ++i) {
+                    uint bits = bitfieldInsert(0u, i, 0, 2);
+                    bits = bitfieldInsert(bits, clusterIdx, 2, 30);
+                    indirectComputeData[writeBase + i] = bits;
+                }
+            }
         }
     }
 }
