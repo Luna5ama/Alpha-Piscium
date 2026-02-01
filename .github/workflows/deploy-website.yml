@@ -1,0 +1,47 @@
+name: Deploy Website
+
+on:
+  workflow_dispatch:
+  release:
+    types: [published]
+
+jobs:
+  deploy:
+    # Trigger on manual dispatch OR on release if it is NOT a prerelease (stable)
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    environment: Page Deploy
+
+    steps:
+      - name: Checkout Website Repo
+        uses: actions/checkout@v4
+        with:
+          repository: Echonolix/alphapiscium.org
+          token: ${{ secrets.WEBSITE_REPO_TOKEN }}
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Cache Bun dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.bun/install/cache
+          key: ${{ runner.os }}-bun-${{ hashFiles('**/bun.lockb') }}
+          restore-keys: |
+            ${{ runner.os }}-bun-
+
+      - name: Install Dependencies
+        run: bun i
+
+      - name: Build Website
+        run: bun run build
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: alpha-piscium-landing
+          directory: build # Standard build output. Adjust if your build output is different (e.g., 'build', 'public').
