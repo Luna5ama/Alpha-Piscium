@@ -160,6 +160,35 @@ vec4 pow8(vec4 x) {
     return x4 * x4;
 }
 
+#ifndef NO_HALF
+float16_t pow2(float16_t x) { return x * x; }
+f16vec2 pow2(f16vec2 x) { return x * x; }
+f16vec3 pow2(f16vec3 x) { return x * x; }
+f16vec4 pow2(f16vec4 x) { return x * x; }
+
+float16_t pow3(float16_t x) { return x * x * x; }
+f16vec2 pow3(f16vec2 x) { return x * x * x; }
+f16vec3 pow3(f16vec3 x) { return x * x * x; }
+f16vec4 pow3(f16vec4 x) { return x * x * x; }
+
+float16_t pow4(float16_t x) {
+    float16_t x2 = x * x;
+    return x2 * x2;
+}
+f16vec2 pow4(f16vec2 x) {
+    f16vec2 x2 = x * x;
+    return x2 * x2;
+}
+f16vec3 pow4(f16vec3 x) {
+    f16vec3 x2 = x * x;
+    return x2 * x2;
+}
+f16vec4 pow4(f16vec4 x) {
+    f16vec4 x2 = x * x;
+    return x2 * x2;
+}
+#endif
+
 float safeDiv(float a, float b) {
     return b <= 0.0 ? 0.0 : a / b;
 }

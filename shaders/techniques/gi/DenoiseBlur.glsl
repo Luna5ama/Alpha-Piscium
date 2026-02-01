@@ -19,9 +19,9 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
-layout(rgba8) uniform writeonly image2D uimg_rgba8;
-layout(rgba16f) uniform writeonly image2D uimg_temp3;
+layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
+layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 
 // Shared memory with padding for 5x5 tap (-2 to +2)
@@ -38,8 +38,8 @@ GeomData _gi_readGeomData(ivec2 texelPos, vec2 screenPos) {
     GeomData geomData;
     float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
     geomData.viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-    geomData.geomNormal = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
-    geomData.normal = normalize(transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
+    geomData.geomNormal = transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
+    geomData.normal = transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
     return geomData;
 }
 
@@ -120,12 +120,7 @@ void main() {
             history_geomViewNormal_store(texelPos, vec4(centerGeomData.geomNormal * 0.5 + 0.5, 0.0));
             history_viewNormal_store(texelPos, vec4(centerGeomData.normal * 0.5 + 0.5, 0.0));
 
-            GIHistoryData historyData = gi_historyData_init();
-            gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
             vec2 hitDistanceFactors = transient_gi_hitDistanceFactors_fetch(texelPos).xy;
-            vec4 centerDiff = _gi_readDiff(texelPos);
-            vec4 centerSpec = _gi_readSpec(texelPos);
-
             vec2 filteredInputVariance = vec2(0.0);
 
             // Optimized variance calculation using shared memory
@@ -139,7 +134,8 @@ void main() {
 
             filteredInputVariance /= 25.0;
 
-            float historyLength = historyData.historyLength * TOTAL_HISTORY_LENGTH;
+            // Just load it again later to save registers
+            float historyLength = transient_gi5Reprojected_fetch(texelPos).x * TOTAL_HISTORY_LENGTH;
             float accumFactor = rcp(1.0 + pow2(0.1 * historyLength));
             float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
 
@@ -156,24 +152,26 @@ void main() {
             kernelRadius *= hitDistFactor;
             kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
 
-            float baseNormalWeight = invAccumFactor * 256.0;
-            float basePlaneDistWeight = invAccumFactor * -512.0;
+            vec4 centerDiff = _gi_readDiff(texelPos);
+            vec4 centerSpec = _gi_readSpec(texelPos);
+            f16vec4 diffResultFP16 = f16vec4(centerDiff);
+            f16vec4 specResultFP16 = f16vec4(centerSpec);
 
-            vec4 diffResult = centerDiff;
-            vec4 specResult = centerSpec;
-
-            float weightSum = 1.0;
-            float centerLuma = diffResult.w;
+            float16_t weightSumFP16 = float16_t(1.0);
+            float16_t centerLuma = diffResultFP16.w;
 
             #if GI_DENOISE_PASS == 1
-            float edgeWeightSum = 0.0;
-            float moment1 = centerLuma;
-            float moment2 = pow2(centerLuma);
+            float16_t edgeWeightSumFP16 = float16_t(0.0);
+            float16_t moment1FP16 = centerLuma;
+            float16_t moment2FP16 = centerLuma * centerLuma;
             #endif
 
-            float sigma = 0.69;
-            sigma += kernelRadius * 2.0 * (1.0 - saturate(hitDistFactor));
-            sigma *= 1.0 - filteredInputVariance.x;
+            float sigmaFP32 = 0.69;
+            sigmaFP32 += kernelRadius * 2.0 * (1.0 - saturate(hitDistFactor));
+            sigmaFP32 *= 1.0 - filteredInputVariance.x;
+
+            float16_t sigma = float16_t(-sigmaFP32);
+            float16_t jitterR = float16_t(blurJitter.y);
 
             // Stretch kernel based on view angle and normal
             vec2 stretchFactor = vec2(1.0);
@@ -181,55 +179,71 @@ void main() {
             float NoV = abs(dot(centerGeomData.geomNormal, V));
             stretchFactor = mix(1.0 - abs(centerGeomData.geomNormal.xy), stretchFactor, NoV);
 
-            vec2 kernelRadius2 = kernelRadius * stretchFactor;
+            f16vec2 kernelRadius2 = f16vec2(kernelRadius * stretchFactor);
 
             float angle = blurJitter.x * PI_2;
-            vec2 dir = vec2(cos(angle), sin(angle));
-            float rcpSamples = 1.0 / float(GI_DENOISE_SAMPLES);
+            f16vec2 dir = f16vec2(cos(angle), sin(angle));
+            float16_t rcpSamples = float16_t(1.0 / float(GI_DENOISE_SAMPLES));
 
             #ifdef SETTING_DENOISER_SPATIAL
             for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
-                dir *= MAT2_GOLDEN_ANGLE;
-                float baseRadius = sqrt((float(i) + blurJitter.y) * rcpSamples);
-                vec2 offsetTexel = dir * (baseRadius * kernelRadius2);
-                vec2 offsetUV = offsetTexel * uval_mainImageSizeRcp;
+                f16vec2 tempDir = dir;
+                dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
+                dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
+                float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples);
+                f16vec2 offsetTexel = dir * (baseRadius * kernelRadius2);
+                vec2 offsetUV = vec2(offsetTexel) * uval_mainImageSizeRcp;
                 vec2 sampleUV = centerScreenPos + offsetUV;
                 if (saturate(sampleUV) != sampleUV) {
                     sampleUV = _gi_mirrorUV(sampleUV);
                 }
-                float kernelWeight = gaussianKernel(baseRadius, sigma);
+                float16_t kernelWeight = exp2(sigma * pow2(baseRadius));
                 ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
 
-                vec4 diffSample = _gi_readDiff(sampleTexelPos);
                 GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
-                float edgeWeight = 1.0;
-                edgeWeight *= planeDistanceWeight(
+
+                // Cheap enough to just recompute it to save 1 extra register
+                float baseNormalWeight = invAccumFactor * 256.0;
+                float basePlaneDistWeight = invAccumFactor * -512.0;
+                float edgeWeightFP32 = normalWeight(centerGeomData, geomData, baseNormalWeight);
+                edgeWeightFP32 *= planeDistanceWeight(
                     centerGeomData.viewPos,
                     centerGeomData.geomNormal,
                     geomData.viewPos,
                     geomData.geomNormal,
                     basePlaneDistWeight
                 );
-                edgeWeight *= normalWeight(centerGeomData, geomData, baseNormalWeight);
 
-                float sampleLuma = diffSample.a;
+                float16_t edgeWeight = float16_t(edgeWeightFP32);
+
+                f16vec4 diffSample = f16vec4(_gi_readDiff(sampleTexelPos));
+                float16_t sampleLuma = diffSample.a;
                 // float lumaDiff = pow2(centerLuma - sampleLuma);
                 // float colorWeight = smoothstep(baseColorWeight, 0.0, lumaDiff);
                 #if GI_DENOISE_PASS == 1
-                moment1 += sampleLuma * edgeWeight;
-                moment2 += pow2(sampleLuma) * edgeWeight;
-                edgeWeightSum += edgeWeight;
+                moment1FP16 += sampleLuma * edgeWeight;
+                moment2FP16 += pow2(sampleLuma) * edgeWeight;
+                edgeWeightSumFP16 += edgeWeight;
                 #endif
 
 
-                float totalWeight = kernelWeight * smoothstep(0.0, 1.0, edgeWeight);
-//                float lumaDiff = pow2(centerLuma - sampleLuma);
-//                float colorWeight = smoothstep(0.01, 0.0, lumaDiff);
-//                totalWeight *= colorWeight;
+                float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
+                //                float lumaDiff = pow2(centerLuma - sampleLuma);
+                //                float colorWeight = smoothstep(0.01, 0.0, lumaDiff);
+                //                totalWeight *= colorWeight;
 
-                diffResult += diffSample * totalWeight;
-                weightSum += totalWeight;
+                diffResultFP16 += diffSample * totalWeight;
+                weightSumFP16 += totalWeight;
             }
+            #endif
+
+            vec4 diffResult = vec4(diffResultFP16);
+            vec4 specResult = vec4(specResultFP16);
+            float weightSum = float(weightSumFP16);
+            #if GI_DENOISE_PASS == 1
+            float edgeWeightSum = float(edgeWeightSumFP16);
+            float moment1 = float(moment1FP16);
+            float moment2 = float(moment2FP16);
             #endif
 
             float rcpWeightSum = 1.0 / weightSum;
@@ -251,7 +265,7 @@ void main() {
 
             #if SETTING_DEBUG_OUTPUT
             if (RANDOM_FRAME < MAX_FRAMES){
-//                imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
+                //                imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
                 imageStore(uimg_temp3, texelPos, hitDistanceFactors.xxxx);
                 // imageStore(uimg_temp3, texelPos, sigma.xxxx);
             }
@@ -262,6 +276,8 @@ void main() {
             transient_gi_blurDiff2_store(texelPos, diffResult);
             transient_gi_blurSpec2_store(texelPos, specResult);
 
+            GIHistoryData historyData = gi_historyData_init();
+            gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
             gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
             gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
             gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));

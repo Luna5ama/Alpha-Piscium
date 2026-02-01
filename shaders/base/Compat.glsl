@@ -5,7 +5,7 @@
 #extension GL_NV_gpu_shader5 : enable
 #else
 // No half-precision floating point support
-#define NO_HALF
+#define NO_HALF a
 
 #define hf
 #define float16_t float
