@@ -204,7 +204,7 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     #ifdef SETTING_DEBUG_TAA
     printString((_T, _A, _A, _colon, _space));
     printLine();
-    vec4 motionFactor = global_motionFactor; // x: speed, y: speed diff, z: angle dot, w: unseed
+    vec4 motionFactor = global_motionFactor; // x: speed, y: speed diff, z: angle dot, w: speed factor
     vec4 resetFactor = global_taaResetFactor; // x: clamp strictness, y: clamp method, z: history reset, w: clamp mix
     printString((_S, _p, _e, _e, _d, _colon, _space));
     printFloat(motionFactor.x);
@@ -214,6 +214,9 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
     printString((_A, _n, _g, _l, _e, _space, _D, _o, _t, _colon, _space));
     printFloat(motionFactor.z);
+    printLine();
+    printString((_S, _p, _e, _e, _d, _space, _F, _a, _c, _t, _o, _r, _colon, _space));
+    printFloat(motionFactor.w);
     printLine();
     printLine();
     printString((_C, _l, _a, _m, _p, _space, _S, _t, _r, _i, _c, _t, _n, _e, _s, _s, _colon, _space));
@@ -227,6 +230,12 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
     printString((_C, _l, _a, _m, _p, _space, _M, _i, _x, _colon, _space));
     printFloat(resetFactor.w);
+    printLine();
+    printString((_M, _a, _x, _space, _A, _c, _c, _u, _m, _space, _F, _r, _a, _m, _e, _s, _colon, _space));
+    printFloat(mix(2.0, 128.0, pow3(global_motionFactor.w)));
+    printLine();
+    printString((_C, _a, _s, _space, _S, _h, _a, _r, _p, _n, _e, _s, _s, _colon, _space));
+    printFloat(mix(1.0, SETTING_TAA_CAS_SHARPNESS, global_motionFactor.w));
     printLine();
     #endif
 

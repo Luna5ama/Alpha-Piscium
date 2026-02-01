@@ -70,7 +70,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     float global_focusDistance;
     int global_lastWorldTime;
     float global_historyResetFactor;
-    vec4 global_motionFactor; // x: speed, y: speed diff, z: angle dot, w: unseed
+    vec4 global_motionFactor; // x: speed, y: speed diff, z: angle dot, w: speed factor
     vec4 global_taaResetFactor; // x: clamp strictness, y: clamp method, z: history reset, w: clamp mix
     float global_turbidity;
     AEData global_aeData;

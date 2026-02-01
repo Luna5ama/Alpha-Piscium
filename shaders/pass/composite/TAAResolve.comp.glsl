@@ -264,7 +264,7 @@ void main() {
         vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampMethod));
         prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampMethod));
 
-        prevColor = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
+        prevColor = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), 1.0);
     }
 
     #ifdef SETTING_SCREENSHOT_MODE
@@ -272,7 +272,7 @@ void main() {
     float MAX_ACCUM_FRAMES = 1024.0;
     #else
     float MIN_ACCUM_FRAMES = 1.0;
-    float MAX_ACCUM_FRAMES = 64.0;
+    float MAX_ACCUM_FRAMES = mix(2.0, 128.0, pow3(global_motionFactor.w));
     if (gData.isHand) {
         MAX_ACCUM_FRAMES *= 0.5;
     }

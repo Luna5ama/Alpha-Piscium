@@ -27,5 +27,5 @@ void rcas_storeOutput(ivec2 texelPos, vec4 color) {
 }
 
 float rcas_sharpness() {
-    return SETTING_TAA_CAS_SHARPNESS;
+    return mix(1.0, SETTING_TAA_CAS_SHARPNESS, global_motionFactor.w);
 }

@@ -42,7 +42,7 @@ void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 mainOut, ino
 
     vec4 shadow = transient_shadow_fetch(texelPos);
 
-    const float decay = 64.0 / pow2(shadow.w);
+    const float decay = 128.0 / pow2(shadow.w);
     material.sss -= rand_stbnVec1(texelPos, frameCounter) * (1.0 - rcp(1.0 + pow2(viewPos.z / decay)));
 
     float shadowIsSun = float(all(equal(sunPosition, shadowLightPosition)));
