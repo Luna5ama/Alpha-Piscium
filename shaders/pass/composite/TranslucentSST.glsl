@@ -161,8 +161,6 @@ void main() {
                 refractColor = BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb;
             }
 
-            //            vec3 refractColor = texture(usam_main, refractCoord).rgb;
-
             float MDotV = dot(microNormal, viewDir);
             transient_translucentRefraction_store(texelPos, vec4(refractColor, MDotV));
 

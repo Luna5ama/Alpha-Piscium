@@ -70,8 +70,7 @@ void main() {
 
     float alpha = inputAlbedo.a;
     vec3 materialColor = colors2_material_toWorkSpace(inputAlbedo.rgb);
-    vec3 transmittance = translucent_albedoToTransmittance(materialColor, alpha, isWater);
-    rt_translucentColor = isWater ? vec4(1.0) : vec4(transmittance, 0.0);
+    rt_translucentColor = translucent_albedoToTransmittance(materialColor, alpha, frag_materialID);
 
     depthFixOffset = -depthFixOffset;
     #else

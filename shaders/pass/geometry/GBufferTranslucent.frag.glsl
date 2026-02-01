@@ -281,9 +281,9 @@ void main() {
     float alpha = inputAlbedo.a;
     vec3 materialColor = colors2_material_toWorkSpace(inputAlbedo.rgb);
 
-    vec3 transmittance = translucent_albedoToTransmittance(materialColor, alpha, isWater);
-    lighting_gData.albedo = transmittance;
-    rt_translucentColor = isWater ? vec4(1.0) : vec4(transmittance, 0.0);
+    vec4 transmittanceV = translucent_albedoToTransmittance(materialColor, alpha, frag_materialID);
+    lighting_gData.albedo = transmittanceV.rgb;
+    rt_translucentColor = transmittanceV;
 
     ivec2 farDepthTexelPos = texelPos;
     ivec2 nearDepthTexelPos = texelPos;
