@@ -78,227 +78,219 @@ void main() {
         SpatialSampleData sampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
         history_restir_prevSample_store(texelPos, sampleData.sampleValue);
         history_restir_prevHitNormal_store(texelPos, vec4(sampleData.hitNormal * 0.5 + 0.5, 0.0));
-        #if SETTING_DEBUG_OUTPUT
-        if (RANDOM_FRAME < MAX_FRAMES && RANDOM_FRAME >= 0){
+        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
+        if (viewZ > -65536.0) {
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+
+            SpatialSampleData centerSampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
+
+            uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
+
+            uvec4 reprojectedData;
+            if (bool(frameCounter & 1)) {
+                reprojectedData = history_restir_reservoirTemporal1_fetch(texelPos);
+            } else {
+                reprojectedData = history_restir_reservoirTemporal2_fetch(texelPos);
+            }
+            ReSTIRReservoir spatialReservoir = restir_reservoir_unpack(reprojectedData);
+
+            #ifdef SETTING_GI_SPATIAL_REUSE_COUNT_DYNAMIC
+            const uint reuseCount = uint(mix(float(SETTING_GI_SPATIAL_REUSE_COUNT), 1.0, sqrt(linearStep(0.0, 0.5, transient_gi5Reprojected_fetch(texelPos).y))));
+            #else
+            const uint reuseCount = uint(SETTING_GI_SPATIAL_REUSE_COUNT);
             #endif
-            float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
-            if (viewZ > -65536.0) {
-                vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-                vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+            const float REUSE_RADIUS = float(SETTING_GI_SPATIAL_REUSE_RADIUS);
+            vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
-                SpatialSampleData centerSampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
+            float pHatMe = 0.0;
+            vec4 originalSample = vec4(0.0);
+            {
+                vec3 sampleDirView = spatialReservoir.Y.xyz;
+                vec3 hitViewPos = viewPos + sampleDirView * spatialReservoir.Y.w;
+                vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
+                ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
 
-                uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
+                vec3 hitRadiance = centerSampleData.sampleValue.xyz;
 
-                uvec4 reprojectedData;
+                float brdf = centerSampleData.sampleValue.w;
+                vec3 f = brdf * hitRadiance;
+                pHatMe = length(f);
+                originalSample = vec4(f, pHatMe);
+            }
+            float spatialWSum = max(spatialReservoir.avgWY, 0.0) * pHatMe * float(spatialReservoir.m);
+
+
+            vec4 selectedSampleF = originalSample;
+
+            vec2 noise2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
+            float16_t jitterR = float16_t(noise2.y);
+            float angle = noise2.x * PI_2;
+            f16vec2 dir = f16vec2(cos(angle), sin(angle));
+            float16_t rcpSamples = float16_t(1.0 / float(reuseCount));
+
+            for (uint i = 0u; i < reuseCount; ++i) {
+                f16vec2 tempDir = dir;
+                dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
+                dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
+                float16_t baseRadius = ((float16_t(i) + jitterR) * rcpSamples) * float16_t(REUSE_RADIUS);
+                f16vec2 offset = dir * baseRadius;
+
+                vec2 sampleTexelPosF = texelPosF + vec2(offset);
+                if (clamp(sampleTexelPosF, vec2(0.0), uval_mainImageSizeI - 1.0) != sampleTexelPosF) {
+                    continue;
+                }
+                ivec2 sampleTexelPos = ivec2(sampleTexelPosF);
+
+                if (sampleTexelPos == texelPos) {
+                    continue;
+                }
+
+                SpatialSampleData neighborData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(sampleTexelPos));
+
+                if (dot(centerSampleData.geomNormal, neighborData.geomNormal) < 0.99) {
+                    continue;
+                }
+                float neighborViewZ = texelFetch(usam_gbufferViewZ, sampleTexelPos, 0).x;
+                uvec4 neighborReservoirData;
                 if (bool(frameCounter & 1)) {
-                    reprojectedData = history_restir_reservoirTemporal1_fetch(texelPos);
+                    neighborReservoirData = history_restir_reservoirTemporal1_fetch(sampleTexelPos);
                 } else {
-                    reprojectedData = history_restir_reservoirTemporal2_fetch(texelPos);
+                    neighborReservoirData = history_restir_reservoirTemporal2_fetch(sampleTexelPos);
                 }
-                ReSTIRReservoir spatialReservoir = restir_reservoir_unpack(reprojectedData);
+                ReSTIRReservoir neighborReservoir = restir_reservoir_unpack(neighborReservoirData);
+                vec2 neighborScreenPos = sampleTexelPosF * uval_mainImageSizeRcp;
+                vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_camProjInverse);
 
-                GIHistoryData historyData = gi_historyData_init();
-                gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
+                if (restir_isReservoirValid(neighborReservoir)) {
+                    vec3 neighborSampleDirView = neighborReservoir.Y.xyz;
+                    float neighborSampleHitDistance = neighborReservoir.Y.w;
+                    vec3 neighborHitViewPos = neighborViewPos + neighborSampleDirView * neighborReservoir.Y.w;
+                    vec3 hitDiff = neighborHitViewPos - viewPos;
+                    float hitDist2 = dot(hitDiff, hitDiff);
 
-                #ifdef SETTING_GI_SPATIAL_REUSE_COUNT_DYNAMIC
-                const uint reuseCount = uint(mix(float(SETTING_GI_SPATIAL_REUSE_COUNT), 1.0, sqrt(linearStep(0.0, 0.5, historyData.realHistoryLength))));
-                #else
-                const uint reuseCount = uint(SETTING_GI_SPATIAL_REUSE_COUNT);
-                #endif
-                const float REUSE_RADIUS = float(SETTING_GI_SPATIAL_REUSE_RADIUS);
-                vec2 texelPosF = vec2(texelPos) + vec2(0.5);
+                    // Safety check: Avoid singularity if reuse sample is at the exact same position
+                    if (hitDist2 < 1e-6) continue;
 
-                float pHatMe = 0.0;
-                vec4 originalSample = vec4(0.0);
-                {
-                    vec3 sampleDirView = spatialReservoir.Y.xyz;
-                    vec3 hitViewPos = viewPos + sampleDirView * spatialReservoir.Y.w;
-                    vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
-                    ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
+                    neighborSampleHitDistance = sqrt(hitDist2);
+                    neighborSampleDirView = hitDiff / neighborSampleHitDistance;
 
-                    vec3 hitRadiance = centerSampleData.sampleValue.xyz;
-
-                    float brdf = centerSampleData.sampleValue.w;
+                    vec3 neighborHitScreenPos = coords_viewToScreen(neighborHitViewPos, global_camProj);
+                    ivec2 neighborHitTexelPos = ivec2(neighborHitScreenPos.xy * uval_mainImageSize);
+                    //
+                    vec3 hitRadiance = neighborData.sampleValue.xyz;
+                    float brdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
                     vec3 f = brdf * hitRadiance;
-                    pHatMe = length(f);
-                    originalSample = vec4(f, pHatMe);
-                }
-                float spatialWSum = max(spatialReservoir.avgWY, 0.0) * pHatMe * float(spatialReservoir.m);
+                    vec3 neighborSample = f;
+                    float neighborPHat = length(neighborSample);
 
+                    vec3 offsetB = neighborHitViewPos - neighborViewPos;
+                    vec3 offsetA = hitDiff;
 
-                vec4 selectedSampleF = originalSample;
+                    if (dot(centerSampleData.normal, offsetA) <= 0.0) {
+                        neighborPHat = 0.0;
+                    }
 
-                vec2 noise2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
-                float angle = noise2.x * PI_2;
-                vec2 rot = vec2(cos(angle), sin(angle));
-                float rSteps = 1.0 / float(reuseCount);
+                    float RB2 = dot(offsetB, offsetB);
+                    float RA2 = hitDist2;
 
-                for (uint i = 0u; i < reuseCount; ++i) {
-                    rot *= MAT2_GOLDEN_ANGLE;
-                    //                    float radius = sqrt((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
-                    float radius = ((float(i) + noise2.y) * rSteps) * REUSE_RADIUS;
-                    vec2 offset = rot * radius;
+                    if (RB2 < 1e-6) continue;
 
-                    vec2 sampleTexelPosF = texelPosF + offset;
-                    if (clamp(sampleTexelPosF, vec2(0.0), uval_mainImageSizeI - 1.0) != sampleTexelPosF) {
+                    offsetB = normalize(offsetB);
+                    offsetA = normalize(offsetA);
+                    float cosA = dot(centerSampleData.normal, offsetA);
+                    float cosB = dot(neighborData.normal, offsetB);
+
+                    float cosPhiA = -dot(offsetA, neighborData.hitNormal);
+                    float cosPhiB = -dot(offsetB, neighborData.hitNormal);
+                    if (cosB <= 0.0 || cosPhiB <= 0.0) {
                         continue;
                     }
-                    ivec2 sampleTexelPos = ivec2(sampleTexelPosF);
-
-                    if (sampleTexelPos == texelPos) {
-                        continue;
+                    if (cosA <= 0.0 || cosPhiA <= 0.0 || RA2 <= 0.0 || RB2 <= 0.0) {
+                        neighborPHat = 0.0;
                     }
 
-                    SpatialSampleData neighborData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(sampleTexelPos));
-
-                    if (dot(centerSampleData.geomNormal, neighborData.geomNormal) < 0.99) {
-                        continue;
+                    float maxJacobian = 100.0;
+                    float jacobian = RA2 * cosPhiB <= 0.0 ? 0.0 : (RB2 * cosPhiA) / (RA2 * cosPhiB);
+                    if (neighborPHat <= 0.0) {
+                        neighborReservoir.m = 0u;
                     }
-                    float neighborViewZ = texelFetch(usam_gbufferViewZ, sampleTexelPos, 0).x;
-                    uvec4 neighborReservoirData;
-                    if (bool(frameCounter & 1)) {
-                        neighborReservoirData = history_restir_reservoirTemporal1_fetch(sampleTexelPos);
-                    } else {
-                        neighborReservoirData = history_restir_reservoirTemporal2_fetch(sampleTexelPos);
+                    if (jacobian <= 0.0) {
+                        neighborReservoir.m = 0u;
                     }
-                    ReSTIRReservoir neighborReservoir = restir_reservoir_unpack(neighborReservoirData);
-                    vec2 neighborScreenPos = sampleTexelPosF * uval_mainImageSizeRcp;
-                    vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_camProjInverse);
+                    jacobian = clamp(jacobian, 0.0, maxJacobian);
 
-                    if (restir_isReservoirValid(neighborReservoir)) {
-                        vec3 neighborSampleDirView = neighborReservoir.Y.xyz;
-                        float neighborSampleHitDistance = neighborReservoir.Y.w;
-                        vec3 neighborHitViewPos = neighborViewPos + neighborSampleDirView * neighborReservoir.Y.w;
-                        vec3 hitDiff = neighborHitViewPos - viewPos;
-                        float hitDist2 = dot(hitDiff, hitDiff);
+                    float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
 
-                        // Safety check: Avoid singularity if reuse sample is at the exact same position
-                        if (hitDist2 < 1e-6) continue;
+                    float neighborRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2u + i)).x);
 
-                        neighborSampleHitDistance = sqrt(hitDist2);
-                        neighborSampleDirView = hitDiff / neighborSampleHitDistance;
-
-                        vec3 neighborHitScreenPos = coords_viewToScreen(neighborHitViewPos, global_camProj);
-                        ivec2 neighborHitTexelPos = ivec2(neighborHitScreenPos.xy * uval_mainImageSize);
-                        //
-                        vec3 hitRadiance = neighborData.sampleValue.xyz;
-                        float brdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
-                        vec3 f = brdf * hitRadiance;
-                        vec3 neighborSample = f;
-                        float neighborPHat = length(neighborSample);
-
-                        vec3 offsetB = neighborHitViewPos - neighborViewPos;
-                        vec3 offsetA = hitDiff;
-
-                        if (dot(centerSampleData.normal, offsetA) <= 0.0) {
-                            neighborPHat = 0.0;
-                        }
-
-                        float RB2 = dot(offsetB, offsetB);
-                        float RA2 = hitDist2;
-
-                        if (RB2 < 1e-6) continue;
-
-                        offsetB = normalize(offsetB);
-                        offsetA = normalize(offsetA);
-                        float cosA = dot(centerSampleData.normal, offsetA);
-                        float cosB = dot(neighborData.normal, offsetB);
-
-                        float cosPhiA = -dot(offsetA, neighborData.hitNormal);
-                        float cosPhiB = -dot(offsetB, neighborData.hitNormal);
-                        if (cosB <= 0.0 || cosPhiB <= 0.0) {
-                            continue;
-                        }
-                        if (cosA <= 0.0 || cosPhiA <= 0.0 || RA2 <= 0.0 || RB2 <= 0.0) {
-                            neighborPHat = 0.0;
-                        }
-
-                        float maxJacobian = 100.0;
-                        float jacobian = RA2 * cosPhiB <= 0.0 ? 0.0 : (RB2 * cosPhiA) / (RA2 * cosPhiB);
-                        if (neighborPHat <= 0.0) {
-                            neighborReservoir.m = 0u;
-                        }
-                        if (jacobian <= 0.0) {
-                            neighborReservoir.m = 0u;
-                        }
-                        jacobian = clamp(jacobian, 0.0, maxJacobian);
-
-                        float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
-
-                        float neighborRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2u + i)).x);
-
-                        if (restir_updateReservoir(
-                            spatialReservoir,
-                            spatialWSum,
-                            vec4(neighborSampleDirView, neighborSampleHitDistance),
-                            neighborWi,
-                            neighborReservoir.m,
-                            neighborReservoir.age,
-                            neighborRand
-                        )) {
-                            selectedSampleF = vec4(neighborSample, neighborPHat);
-                        }
+                    if (restir_updateReservoir(
+                        spatialReservoir,
+                        spatialWSum,
+                        vec4(neighborSampleDirView, neighborSampleHitDistance),
+                        neighborWi,
+                        neighborReservoir.m,
+                        neighborRand
+                    )) {
+                        selectedSampleF = vec4(neighborSample, neighborPHat);
                     }
                 }
+            }
 
-                vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
-                ReSTIRReservoir resultReservoir = spatialReservoir;
-                float avgWSum = spatialWSum / float(spatialReservoir.m);
-                resultReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
-                ssgiOut = vec4(selectedSampleF.xyz * resultReservoir.avgWY, resultReservoir.Y.w);
+            vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
+            ReSTIRReservoir resultReservoir = spatialReservoir;
+            float avgWSum = spatialWSum / float(spatialReservoir.m);
+            resultReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
+            ssgiOut = vec4(selectedSampleF.xyz * resultReservoir.avgWY, resultReservoir.Y.w);
+            #if SETTING_DEBUG_OUTPUT
+            vec4 vvv = vec4(0.0);
+            #endif
+            if (any(notEqual(selectedSampleF, originalSample))) {
                 #if SETTING_DEBUG_OUTPUT
-                vec4 vvv = vec4(0.0);
-                #endif
-                if (any(notEqual(selectedSampleF, originalSample))) {
-                    #if SETTING_DEBUG_OUTPUT
-                    vvv = vec4(0.0, 1.0, 0.0, 0.0);
-                    #endif
-
-                    SSTRay sstRay;
-                    if (spatialReservoir.Y.w > 0.0) {
-                        vec3 expectHitViewPos = viewPos + spatialReservoir.Y.xyz * spatialReservoir.Y.w;
-                        vec3 rayOrigin = coords_viewToScreen(viewPos, global_camProj);
-                        vec3 rayEnd = coords_viewToScreen(expectHitViewPos, global_camProj);
-                        vec4 rayDirLen = normalizeAndLength(rayEnd - rayOrigin);
-                        sstRay = sstray_setup(texelPos, rayOrigin, rayDirLen.xyz, rayDirLen.w);
-                    } else {
-                        sstRay = sstray_setup(texelPos, viewPos, spatialReservoir.Y.xyz);
-                    }
-                    sst_trace(sstRay, 4);
-                    if (sstRay.currT > 0.0) {
-                        uvec4 packedData = sstray_pack(sstRay);
-                        ssbo_rayData[dataIndex] = packedData;
-                        rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
-                    } else {
-                        bool discardSptialReuse = true;
-                        if (sstRay.currT < -0.99) {
-                            discardSptialReuse = false;
-                        }
-
-                        if (discardSptialReuse) {
-                            resultReservoir = restir_initReservoir();
-                            ssgiOut = vec4(0.0);
-                            #if SETTING_DEBUG_OUTPUT
-                            imageStore(uimg_temp5, texelPos, vec4(0.0, 0.0, 1.0, 0.0));
-                            #endif
-                        }
-                    }
-                }
-                #if SETTING_DEBUG_OUTPUT
-                imageStore(uimg_temp5, texelPos, vvv);
+                vvv = vec4(0.0, 1.0, 0.0, 0.0);
                 #endif
 
-                const uint SPATIAL_REUSE_MAX_M = 1u;
-                resultReservoir.m = clamp(resultReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
-                history_restir_reservoirSpatial_store(texelPos, restir_reservoir_pack(resultReservoir));
+                SSTRay sstRay;
+                if (spatialReservoir.Y.w > 0.0) {
+                    vec3 expectHitViewPos = viewPos + spatialReservoir.Y.xyz * spatialReservoir.Y.w;
+                    vec3 rayOrigin = coords_viewToScreen(viewPos, global_camProj);
+                    vec3 rayEnd = coords_viewToScreen(expectHitViewPos, global_camProj);
+                    vec4 rayDirLen = normalizeAndLength(rayEnd - rayOrigin);
+                    sstRay = sstray_setup(texelPos, rayOrigin, rayDirLen.xyz, rayDirLen.w);
+                } else {
+                    sstRay = sstray_setup(texelPos, viewPos, spatialReservoir.Y.xyz);
+                }
+                sst_trace(sstRay, 4);
+                if (sstRay.currT > 0.0) {
+                    uvec4 packedData = sstray_pack(sstRay);
+                    ssbo_rayData[dataIndex] = packedData;
+                    rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
+                } else {
+                    bool discardSptialReuse = true;
+                    if (sstRay.currT < -0.99) {
+                        discardSptialReuse = false;
+                    }
 
-                ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
-                transient_ssgiOut_store(texelPos, ssgiOut);
+                    if (discardSptialReuse) {
+                        resultReservoir = restir_initReservoir();
+                        ssgiOut = vec4(0.0);
+                        #if SETTING_DEBUG_OUTPUT
+                        imageStore(uimg_temp5, texelPos, vec4(0.0, 0.0, 1.0, 0.0));
+                        #endif
+                    }
+                }
             }
             #if SETTING_DEBUG_OUTPUT
+            imageStore(uimg_temp5, texelPos, vvv);
+            #endif
+
+            const uint SPATIAL_REUSE_MAX_M = 1u;
+            resultReservoir.m = clamp(resultReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
+            history_restir_reservoirSpatial_store(texelPos, restir_reservoir_pack(resultReservoir));
+
+            ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
+            transient_ssgiOut_store(texelPos, ssgiOut);
         }
-        #endif
     }
     ssbo_rayDataIndices[dataIndex] = rayIndex;
     uvec4 subgroupRayCountBalllot = subgroupBallot(rayIndex < 0xFFFFFFFFu);
