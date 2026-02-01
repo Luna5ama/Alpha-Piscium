@@ -133,6 +133,7 @@ void main() {
             }
 
             filteredInputVariance /= 25.0;
+            f16vec2 filteredInputVarianceFP16 = f16vec2(filteredInputVariance);
 
             // Just load it again later to save registers
             float historyLength = transient_gi5Reprojected_fetch(texelPos).x * TOTAL_HISTORY_LENGTH;
@@ -255,11 +256,13 @@ void main() {
             specResult = dither_fp16(specResult, ditherNoise);
 
             #if GI_DENOISE_PASS == 1
+            transient_gi_blurDiff1_store(texelPos, diffResult);
+            transient_gi_blurSpec1_store(texelPos, specResult);
             float rcpEdgeWeightSum = 1.0 / (edgeWeightSum + 1.0);
             moment1 *= rcpEdgeWeightSum;
             moment2 *= rcpEdgeWeightSum;
             float variance = max(0.0, moment2 - pow2(moment1));
-            vec4 newVariance = vec4(filteredInputVariance + vec2(variance), 0.0, 0.0);
+            vec4 newVariance = vec4(vec2(filteredInputVarianceFP16) + vec2(variance), 0.0, 0.0);
             transient_gi_denoiseVariance2_store(texelPos, newVariance);
 
 
@@ -270,38 +273,27 @@ void main() {
                 // imageStore(uimg_temp3, texelPos, sigma.xxxx);
             }
             #endif
-            transient_gi_blurDiff1_store(texelPos, diffResult);
-            transient_gi_blurSpec1_store(texelPos, specResult);
             #elif GI_DENOISE_PASS == 2
             transient_gi_blurDiff2_store(texelPos, diffResult);
             transient_gi_blurSpec2_store(texelPos, specResult);
 
-            GIHistoryData historyData = gi_historyData_init();
-            gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
-            gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));
-            gi_historyData_unpack2(historyData, transient_gi2Reprojected_fetch(texelPos));
-            gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
-            gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
-
-            historyData.diffuseColor = diffResult.rgb;
-            historyData.specularColor = specResult.rgb;
-
-            vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);
+            vec4 packedData1 = transient_gi1Reprojected_fetch(texelPos);
+            packedData1.rgb = diffResult.rgb;
             packedData1 = dither_fp16(packedData1, ditherNoise);
-            vec4 packedData2 = clamp(gi_historyData_pack2(historyData), 0.0, FP16_MAX);
-            packedData2 = dither_fp16(packedData2, ditherNoise);
-            vec4 packedData3 = clamp(gi_historyData_pack3(historyData), 0.0, FP16_MAX);
-            packedData3 = dither_fp16(packedData3, ditherNoise);
-            vec4 packedData4 = clamp(gi_historyData_pack4(historyData), 0.0, FP16_MAX);
-            packedData4 = dither_fp16(packedData4, ditherNoise);
-            vec4 packedData5 = gi_historyData_pack5(historyData);
-            packedData5 = dither_u8(packedData5, ditherNoise);
-
+            packedData1 = clamp(packedData1, 0.0, FP16_MAX);
             history_gi1_store(texelPos, packedData1);
-            history_gi2_store(texelPos, packedData2);
+
+            vec4 packedData3 = transient_gi3Reprojected_fetch(texelPos);
+            packedData3.rgb = specResult.rgb;
+            packedData3 = dither_fp16(packedData3, ditherNoise);
+            packedData3 = clamp(packedData3, 0.0, FP16_MAX);
             history_gi3_store(texelPos, packedData3);
-            history_gi4_store(texelPos, packedData4);
-            history_gi5_store(texelPos, packedData5);
+
+
+            history_gi2_store(texelPos, transient_gi2Reprojected_fetch(texelPos));
+            history_gi4_store(texelPos, transient_gi4Reprojected_fetch(texelPos));
+
+            // Skipping gi5 here because it seems to save a handle register
             #endif
 
             return;
