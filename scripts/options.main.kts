@@ -3022,48 +3022,65 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
             lang(Locale.SIMPLIFIED_CHINESE) {
                 name = "杂项"
             }
-            toggle("SETTING_SCREENSHOT_MODE", false) {
-                lang {
-                    name = "Screenshot Mode"
-                    comment =
-                        "Disables animations and temporal clamping for cleaner, higher-quality screenshots."
+            row {
+                toggle("SETTING_SCREENSHOT_MODE", false) {
+                    lang {
+                        name = "Screenshot Mode"
+                        comment =
+                            "Disables animations and temporal clamping for cleaner, higher-quality screenshots."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "截图模式"
+                        comment = "禁用动画和时间钳制以获得更干净、更高质量的截图。"
+                    }
                 }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "截图模式"
-                    comment = "禁用动画和时间钳制以获得更干净、更高质量的截图。"
+                slider("SETTING_SCREENSHOT_MODE_SKIP_INITIAL", 60, 10..200 step 10) {
+                    lang {
+                        name = "Screenshot Mode Warmup Frames"
+                        comment =
+                            "Frames to wait before taking screenshot, allowing lighting and effects to stabilize for best quality."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "截图模式预热帧数"
+                        comment = "在拍摄截图之前等待的帧数，让光照和效果稳定以获得最佳质量。"
+                    }
+                }
+                toggle("SETTING_CONSTELLATIONS", false) {
+                    lang {
+                        name = "Show Star Constellations"
+                        comment = "Displays constellation lines connecting stars in the night sky."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "显示星座"
+                        comment = "显示连接夜空中星星的星座线。"
+                    }
+                }
+                slider("SETTING_TIME_CHANGE_SENSITIVITY", -5, -10..0) {
+                    lang {
+                        name = "Time Change Sensitivity"
+                        comment =
+                            "How sensitive effects are to time changes (/time set). Higher values make temporal effects more sensitive to time changes, reducing lighting lags."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "时间变化敏感度"
+                        comment =
+                            "效果对时间变化（/time set）的敏感程度。数值越高，时间变化对时间变化的敏感度越高，减少光照延迟。"
+                    }
                 }
             }
-            slider("SETTING_SCREENSHOT_MODE_SKIP_INITIAL", 60, 10..200 step 10) {
-                lang {
-                    name = "Screenshot Mode Warmup Frames"
-                    comment =
-                        "Frames to wait before taking screenshot, allowing lighting and effects to stabilize for best quality."
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "截图模式预热帧数"
-                    comment = "在拍摄截图之前等待的帧数，让光照和效果稳定以获得最佳质量。"
-                }
+            row {
+                empty()
             }
-            toggle("SETTING_CONSTELLATIONS", false) {
-                lang {
-                    name = "Show Star Constellations"
-                    comment = "Displays constellation lines connecting stars in the night sky."
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "显示星座"
-                    comment = "显示连接夜空中星星的星座线。"
-                }
-            }
-            slider("SETTING_TIME_CHANGE_SENSITIVITY", -5, -10..0) {
-                lang {
-                    name = "Time Change Sensitivity"
-                    comment =
-                        "How sensitive effects are to time changes (/time set). Higher values make temporal effects more sensitive to time changes, reducing lighting lags."
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "时间变化敏感度"
-                    comment =
-                        "效果对时间变化（/time set）的敏感程度。数值越高，时间变化对时间变化的敏感度越高，减少光照延迟。"
+            row {
+                toggle("SETTING_ASSUME_NVIDIA_GPU", false) {
+                    lang {
+                        name = "Assume NVIDIA GPU"
+                        comment = "Forces enable NVIDIA-specific optimizations on non-NVIDIA hardware or workaround on weird driver."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "假设NVIDIA GPU"
+                        comment = "强制在非NVIDIA硬件上启用NVIDIA特定的优化，或在奇怪的驱动程序上进行变通。"
+                    }
                 }
             }
             repeat(69) {

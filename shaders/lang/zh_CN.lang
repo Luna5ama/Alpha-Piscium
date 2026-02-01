@@ -574,3 +574,5 @@ option.SETTING_CONSTELLATIONS=显示星座
 option.SETTING_CONSTELLATIONS.comment=显示连接夜空中星星的星座线。
 option.SETTING_TIME_CHANGE_SENSITIVITY=时间变化敏感度
 option.SETTING_TIME_CHANGE_SENSITIVITY.comment=效果对时间变化（/time set）的敏感程度。数值越高，时间变化对时间变化的敏感度越高，减少光照延迟。
+option.SETTING_ASSUME_NVIDIA_GPU=假设NVIDIA GPU
+option.SETTING_ASSUME_NVIDIA_GPU.comment=强制在非NVIDIA硬件上启用NVIDIA特定的优化，或在奇怪的驱动程序上进行变通。

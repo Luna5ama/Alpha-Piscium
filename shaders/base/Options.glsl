@@ -289,6 +289,9 @@ const float sunPathRotation = -20.0;//[-90.0 -89.0 -88.0 -87.0 -86.0 -85.0 -84.0
 #ifdef SETTING_CONSTELLATIONS
 #endif
 #define SETTING_TIME_CHANGE_SENSITIVITY -5//[-10 -9 -8 -7 -6 -5 -4 -3 -2 -1 0]
+//#define SETTING_ASSUME_NVIDIA_GPU
+#ifdef SETTING_ASSUME_NVIDIA_GPU
+#endif
 //#define SETTING_DEBUG_WHITE_WORLD
 #ifdef SETTING_DEBUG_WHITE_WORLD
 #endif

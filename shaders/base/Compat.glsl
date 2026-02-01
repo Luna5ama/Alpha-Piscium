@@ -1,7 +1,7 @@
 // By sixthsurge
 #if defined MC_GL_AMD_gpu_shader_half_float
 #extension GL_AMD_gpu_shader_half_float : enable
-#elif defined MC_GL_NV_gpu_shader5
+#elif defined MC_GL_NV_gpu_shader5 || defined SETTING_ASSUME_NVIDIA_GPU
 #extension GL_NV_gpu_shader5 : enable
 #else
 // No half-precision floating point support
