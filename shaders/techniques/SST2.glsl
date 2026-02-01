@@ -199,7 +199,7 @@ void sst_trace(inout SSTRay ray, uint hiZSteps) {
     vec3 pRayVector = ray.pRayDir * ray.pRayVecLen;
 
     float maxThicknessFactor = shared_thicknessFactor;
-    float nearZThicknessClamp = 0.05 * maxThicknessFactor;
+    const float nearZThicknessClamp = 0.05;
 
     #ifdef SST_DEBUG_PASS
     const uvec2 DEBUG_COORD = uvec2(970, 760);
@@ -254,7 +254,7 @@ void sst_trace(inout SSTRay ray, uint hiZSteps) {
         // Check if depthT crosses cell boundary
         bool crossesCell = depthT > cellBoundaryT;
 
-        float maxZThicknessFactor = min(nearZThicknessClamp, currScreenPosZ * maxThicknessFactor);
+        float maxZThicknessFactor = min(nearZThicknessClamp, currScreenPosZ) * maxThicknessFactor;
 
         #ifdef SST_DEBUG_PASS
         #ifdef SETTING_DEBUG_SST_STEPS
