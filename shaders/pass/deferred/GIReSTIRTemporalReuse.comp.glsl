@@ -50,6 +50,9 @@ int selectWeighted(vec4 bilinearWeights, vec4 bilateralWeights, float rand) {
     return mix(-1, selectedIndex, selectedWeight > 0.96);
 }
 
+shared mat3 shared_prevViewToCurrView;
+shared mat4 shared_prevViewToCurrViewPos;
+
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
@@ -58,6 +61,16 @@ void main() {
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     ivec2 texelPos = ivec2(mortonGlobalPosU);
+
+    if (threadIdx == 0u) {
+        // Precompute prevViewToCurrView matrix for the workgroup
+        shared_prevViewToCurrView = mat3(gbufferModelView) * mat3(gbufferPrevModelViewInverse);
+
+        mat4 prevToCurrWorld = mat4(1.0);
+        prevToCurrWorld[3].xyz = -uval_cameraDelta;
+        shared_prevViewToCurrViewPos = gbufferModelView * prevToCurrWorld * gbufferPrevModelViewInverse;
+    }
+    barrier();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         ReSTIRReservoir temporalReservoir = restir_initReservoir();
@@ -110,16 +123,12 @@ void main() {
                     vec4 prevNormalData = history_viewNormal_fetch(curr2PrevTexelPos);
                     vec4 prevViewZData = history_viewZ_fetch(curr2PrevTexelPos);
 
-                    // Combined prev-view -> world -> curr-view transform (single normalize instead of 2x2)
-                    mat3 prevViewToCurrView = mat3(gbufferModelView) * mat3(gbufferPrevModelViewInverse);
-                    vec3 prevGeomNormal = normalize(prevViewToCurrView * (prevGeomNormalData.xyz * 2.0 - 1.0));
-                    vec3 prevNormal = normalize(prevViewToCurrView * (prevNormalData.xyz * 2.0 - 1.0));
+                    vec3 prevGeomNormal = normalize(shared_prevViewToCurrView * (prevGeomNormalData.xyz * 2.0 - 1.0));
+                    vec3 prevNormal = normalize(shared_prevViewToCurrView * (prevNormalData.xyz * 2.0 - 1.0));
 
                     float prevViewZ = prevViewZData.x;
                     vec3 prevViewPos = coords_toViewCoord(curr2PrevScreen, prevViewZ, global_prevCamProjInverse);
-                    vec3 prevScenePos = coords_pos_viewToWorld(prevViewPos, gbufferPrevModelViewInverse);
-                    vec3 prev2CurrScenePos = coord_scenePrevToCurr(prevScenePos);
-                    vec3 prev2CurrViewPos = coords_pos_worldToView(prev2CurrScenePos, gbufferModelView);
+                    vec3 prev2CurrViewPos = (shared_prevViewToCurrViewPos * vec4(prevViewPos, 1.0)).xyz;
 
                     float geomNormalDot = dot(gGeomNormal, prevGeomNormal);
                     float normalDot = dot(gNormal, prevNormal);
@@ -169,9 +178,7 @@ void main() {
                     if (restir_isReservoirValid(prevTemporalReservoir)) {
                         vec3 prevHitNormalData = history_restir_prevHitNormal_fetch(prevTexelPos).xyz;
                         prevSample = history_restir_prevSample_fetch(prevTexelPos);
-                        // Combined prev-view -> world -> curr-view transform
-                        mat3 prevViewToCurrView = mat3(gbufferModelView) * mat3(gbufferPrevModelViewInverse);
-                        prevHitNormal = normalize(prevViewToCurrView * (prevHitNormalData * 2.0 - 1.0));
+                        prevHitNormal = normalize(shared_prevViewToCurrView * (prevHitNormalData * 2.0 - 1.0));
 
                         if (prevTemporalReservoir.Y.w > 0.0) {
                             vec2 prevScreenPos = coords_texelToUV(prevTexelPos, uval_mainImageSizeRcp);
@@ -179,9 +186,7 @@ void main() {
                             vec3 prevViewPos = coords_toViewCoord(prevScreenPos, prevViewZ, global_prevCamProjInverse);
 
                             vec3 prevHitViewPos = prevViewPos + prevTemporalReservoir.Y.xyz * prevTemporalReservoir.Y.w;
-                            vec3 prevHitScenePos = coords_pos_viewToWorld(prevHitViewPos, gbufferPrevModelViewInverse);
-                            vec3 prev2CurrHitScenePos = coord_scenePrevToCurr(prevHitScenePos);
-                            vec3 prev2CurrHitViewPos = coords_pos_worldToView(prev2CurrHitScenePos, gbufferModelView);
+                            vec3 prev2CurrHitViewPos = (shared_prevViewToCurrViewPos * vec4(prevHitViewPos, 1.0)).xyz;
                             vec3 hitDiff = prev2CurrHitViewPos - viewPos;
                             float hitDistance = length(hitDiff);
 
@@ -200,9 +205,7 @@ void main() {
                                 {
                                     // Original path: from the temporal neighbor pixel (where the sample came from) to hit point
                                     // prev2CurrNeighborViewPos is the neighbor's position transformed to current frame coordinates
-                                    vec3 prevNeighborScenePos = coords_pos_viewToWorld(prevViewPos, gbufferPrevModelViewInverse);
-                                    vec3 prev2CurrNeighborScenePos = coord_scenePrevToCurr(prevNeighborScenePos);
-                                    vec3 prev2CurrNeighborViewPos = coords_pos_worldToView(prev2CurrNeighborScenePos, gbufferModelView);
+                                    vec3 prev2CurrNeighborViewPos = (shared_prevViewToCurrViewPos * vec4(prevViewPos, 1.0)).xyz;
 
                                     // Vector from current pixel to hit point (shifted path) - this is the new path
                                     // Reuse hitDiff as offsetA and hitDistance for RA2
@@ -257,9 +260,7 @@ void main() {
                                 prevTemporalReservoir = restir_initReservoir();
                             }
                         } else {
-                            // Combined prev-view -> world -> curr-view transform
-                            mat3 prevViewToCurrView = mat3(gbufferModelView) * mat3(gbufferPrevModelViewInverse);
-                            vec3 currSampleDirView = normalize(prevViewToCurrView * prevTemporalReservoir.Y.xyz);
+                            vec3 currSampleDirView = normalize(shared_prevViewToCurrView * prevTemporalReservoir.Y.xyz);
                             prevTemporalReservoir.Y.xyz = currSampleDirView;
                         }
                     }
@@ -285,9 +286,7 @@ void main() {
                 ReSTIRReservoir prevSpatialReservoir = restir_reservoir_unpack(history_restir_reservoirSpatial_fetch(texelPos));
                 prevSpatialReservoir.m = uint(float(prevSpatialReservoir.m) * global_historyResetFactor);
 
-                // Combined prev-view -> world -> curr-view transform
-                mat3 prevViewToCurrView = mat3(gbufferModelView) * mat3(gbufferPrevModelViewInverse);
-                vec3 prevSpatialSampleDirView = normalize(prevViewToCurrView * prevSpatialReservoir.Y.xyz);
+                vec3 prevSpatialSampleDirView = normalize(shared_prevViewToCurrView * prevSpatialReservoir.Y.xyz);
                 prevSpatialReservoir.Y.xyz = prevSpatialSampleDirView;
 
                 float prevSpatialHitDistance = prevSpatialReservoir.Y.w;
