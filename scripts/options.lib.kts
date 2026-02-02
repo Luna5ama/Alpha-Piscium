@@ -1,6 +1,35 @@
 import java.io.File
 import java.math.BigDecimal
 import java.util.*
+import kotlin.text.appendLine
+
+enum class ColorCode(val code: String) {
+    Black("0"),
+    DarkBlue("1"),
+    DarkGreen("2"),
+    DarkAqua("3"),
+    DarkRed("4"),
+    DarkPurple("5"),
+    Gold("6"),
+    Gray("7"),
+    DarkGray("8"),
+    Blue("9"),
+    Green("a"),
+    Aqua("b"),
+    Red("c"),
+    LightPurple("d"),
+    Yellow("e"),
+    White("f"),
+}
+
+enum class Profile(val color: ColorCode) {
+    Low(ColorCode.Red),
+    Medium(ColorCode.Yellow),
+    High(ColorCode.Green),
+    Ultra(ColorCode.Gold),
+    Extreme(ColorCode.LightPurple),
+    Insane(ColorCode.DarkPurple),
+}
 
 class FloatProgression(val start: Double, val endInclusive: Double, val step: Double) : Iterable<Double> {
     override fun iterator(): Iterator<Double> = object : Iterator<Double> {
@@ -41,6 +70,7 @@ class ScreenItem(val name: String) {
     companion object {
         val EMPTY = ScreenItem("<empty>")
         val WILDCARD = ScreenItem("*")
+        val PROFILE = ScreenItem("<profile>")
     }
 }
 
@@ -103,7 +133,13 @@ abstract class OptionFactory {
         return constToggle(name, value, range, block)
     }
 
-    fun text(name: String, key: String, value: String = "", comment: String = "", block: TextOptionBuilder.() -> Unit = {}): ScreenItem {
+    fun text(
+        name: String,
+        key: String,
+        value: String = "",
+        comment: String = "",
+        block: TextOptionBuilder.() -> Unit = {}
+    ): ScreenItem {
         val screenItem = ScreenItem(name)
         scope._addOption(TextOptionBuilder(name, key, value, comment).apply(block))
         handleOption(screenItem)
@@ -171,13 +207,22 @@ open class OptionBuilder<T>(
     private val const: Boolean,
     private val range: Iterable<T>
 ) {
+    private val profileValues = EnumMap<Profile, T>(Profile::class.java)
     private val langBuilders = mutableMapOf<Locale, LangBuilder<T>>()
 
-    fun lang(locale: Locale = Locale.US, block: LangBuilder<T>.() -> Unit) {
-        langBuilders.getOrPut(locale) { LangBuilder(name, locale) }.block()
+    protected open fun newLangBuilder(locale: Locale): LangBuilder<T> {
+        return LangBuilder(name, locale)
     }
 
-    class LangBuilder<T>(private val optionName: String, private val locale: Locale) {
+    infix fun Profile.preset(value: T) {
+        profileValues[this] = value
+    }
+
+    fun lang(locale: Locale = Locale.US, block: LangBuilder<T>.() -> Unit) {
+        langBuilders.getOrPut(locale) { newLangBuilder(locale) }.block()
+    }
+
+    open class LangBuilder<T>(val optionName: String, val locale: Locale) {
         var name = ""
             set(value) {
                 check(value.isNotEmpty()) { "Name cannot be empty" }; field = value
@@ -197,13 +242,13 @@ open class OptionBuilder<T>(
                 check(value.isNotEmpty()) { "Suffix cannot be empty" }; field = value
             }
 
-        private val valueLabel = mutableMapOf<T, String>()
+        val valueLabel = mutableMapOf<T, String>()
 
         infix fun T.value(label: String) {
             valueLabel[this] = label
         }
 
-        fun build(output: Scope.Output) {
+        open fun build(output: Scope.Output) {
             output.writeLang(locale) {
                 if (name.isNotEmpty()) appendLine("option.$optionName=$name")
                 if (comment.isNotEmpty()) appendLine("option.$optionName.comment=${comment.replace("\n", "\\n")}")
@@ -262,6 +307,36 @@ open class OptionBuilder<T>(
         }
         langBuilders.forEach { (_, builder) ->
             builder.build(output)
+        }
+        profileValues.forEach { (profile, value) ->
+            if (value is Boolean) {
+                val prefix = if (value) "" else "!"
+                output.writeProfile(profile, "${prefix}${name}")
+            } else {
+                output.writeProfile(profile, "${name}=$value")
+            }
+        }
+    }
+}
+
+class ProfileBuilder : OptionBuilder<Profile>("", Profile.Low, false, Profile.entries) {
+    override fun newLangBuilder(locale: Locale): OptionBuilder.LangBuilder<Profile> {
+        println("OK")
+        return LangBuilder(locale)
+    }
+
+    override fun Scope.Output.writeOptionImpl(block: Appendable.() -> Unit) {
+        // No-op
+    }
+
+    class LangBuilder(locale: Locale) : OptionBuilder.LangBuilder<Profile>("", locale) {
+        override fun build(output: Scope.Output) {
+            output.writeLang(locale) {
+                if (comment.isNotEmpty()) appendLine("profile.comment=${comment.replace("\n", "\\n")}")
+                valueLabel.forEach { (value, label) ->
+                    appendLine("profile.$value=$label")
+                }
+            }
         }
     }
 }
@@ -341,7 +416,7 @@ class Scope : OptionFactory() {
     class ScreenBuilder(override val scope: Scope, private val columns: Int, val depth: Int) :
         OptionFactory() {
 
-        lateinit var _name : String
+        lateinit var _name: String
 
         private val langBuilders = mutableMapOf<Locale, LangBuilder>()
         private val options = mutableSetOf<OptionBuilder<*>>()
@@ -373,7 +448,7 @@ class Scope : OptionFactory() {
             output.writeShadersProperties {
                 appendLine("screen$ref.columns=$columns")
                 append("screen$ref=")
-                val items = if (_name.isEmpty()) (items + ScreenItem.WILDCARD) else items
+                val items = items
                 items.joinTo(this, " ")
                 appendLine()
             }
@@ -393,6 +468,12 @@ class Scope : OptionFactory() {
             items.add(screenItem)
         }
 
+        fun emptyRow() {
+            row {
+                empty()
+            }
+        }
+
         fun row(block: () -> Unit) {
             block()
             val roundedUp = ((items.size + columns - 1) / columns) * columns
@@ -403,6 +484,11 @@ class Scope : OptionFactory() {
 
         fun empty() {
             items.add(ScreenItem.EMPTY)
+        }
+
+        fun profile(block: ProfileBuilder.() -> Unit) {
+            scope._addOption(ProfileBuilder().apply(block))
+            items.add(ScreenItem.PROFILE)
         }
 
         override fun handleOption(item: ScreenItem) {
@@ -447,8 +533,20 @@ class Scope : OptionFactory() {
         private val _textOptions = StringBuilder()
         private val _lang = mutableMapOf<Locale, StringBuilder>()
         private val _shadersProperties = StringBuilder()
+        private val _profiles = EnumMap<Profile, MutableList<String>>(Profile::class.java)
 
         init {
+            val usLang = _lang.getOrPut(Locale.US) { StringBuilder()}
+            Profile.entries.forEach {
+                val list = mutableListOf<String>()
+                if (it.ordinal > 0) {
+                    list.add("profile.${Profile.entries[it.ordinal - 1]}")
+                }
+                _profiles[it] = list
+
+                usLang.appendLine("profile.${it.name}=§${it.color.code}${it.name}")
+            }
+
             _options.appendLine("// $NOTICE")
             _shadersProperties.appendLine("# $NOTICE")
             _shadersProperties.appendLine(baseShadersProperties.readText())
@@ -476,7 +574,19 @@ class Scope : OptionFactory() {
             _shadersProperties.block()
         }
 
+        fun writeProfile(profile: Profile, value: String) {
+            _profiles[profile]!!.add(value)
+        }
+
         fun writeOutput(optionGlslFile: File, textOptionGlslFile: File, shaderRoot: File) {
+            writeShadersProperties {
+                appendLine()
+                _profiles.forEach { (profile, options) ->
+                    append("profile.${profile.name}=")
+                    options.joinTo(this, " ")
+                    appendLine()
+                }
+            }
             val langDir = File(shaderRoot, "lang")
             langDir.mkdirs()
             optionGlslFile.writeText(_options.toString())
@@ -495,9 +605,16 @@ class Scope : OptionFactory() {
     }
 }
 
-fun options(baseShadersProperties: File, shaderRootDir: File, optionGlslPath: String, textOptionGlslPath: String, block: Scope.() -> Unit) {
+fun options(
+    baseShadersProperties: File,
+    shaderRootDir: File,
+    optionGlslPath: String,
+    textOptionGlslPath: String,
+    block: Scope.() -> Unit
+) {
     val absoluteFile = shaderRootDir.absoluteFile
-    Scope().apply(block).build(baseShadersProperties).writeOutput(File(absoluteFile, optionGlslPath), File(absoluteFile, textOptionGlslPath), absoluteFile)
+    Scope().apply(block).build(baseShadersProperties)
+        .writeOutput(File(absoluteFile, optionGlslPath), File(absoluteFile, textOptionGlslPath), absoluteFile)
 }
 
 fun powerOfTwoRange(range: IntRange): List<Int> {

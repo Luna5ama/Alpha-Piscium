@@ -37,6 +37,7 @@ screen.SCREEN_32=抗锯齿
 screen.SCREEN_33=色彩管理
 screen.SCREEN_33.comment=高级色彩空间设置。仅在您知道自己在做什么时更改！
 screen.SCREEN_34=杂项
+profile.comment=§c§lLow§r: 丐中丐画质, §c§l不推荐§r。\n§e§lMedium§r: 基础性能模式。\n§a§lHigh§r: 画质与性能的平衡。\n§6§lUltra§r: §6§l真正的§r外屏七体验，就是它了。\n§d§lExtreme§r: 更好的体验，只需要§o亿点点§r代价.\n§5§lInsane§r: 《显 卡 危 机》 §kxyz69420§r.
 option.SETTING_FIRE_TEMPERATURE=火焰温度
 option.SETTING_FIRE_TEMPERATURE.comment=控制火焰的色温（开尔文）。默认值：1400 K（基于真实火焰）。数值越高，光线越白/越蓝。
 option.SETTING_LAVA_TEMPERATURE=岩浆温度

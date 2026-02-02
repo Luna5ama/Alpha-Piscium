@@ -3,11 +3,83 @@
 import java.io.File
 import java.util.*
 import kotlin.io.path.Path
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.readLines
 import kotlin.math.pow
 
 options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "base/TextOptions.glsl") {
     mainScreen(2) {
+        row {
+            data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int) : Comparable<Version> {
+                override fun compareTo(other: Version): Int {
+                    var cmp = major.compareTo(other.major)
+                    if (cmp != 0) return cmp
+                    cmp = minor.compareTo(other.minor)
+                    if (cmp != 0) return cmp
+                    cmp = patch.compareTo(other.patch)
+                    if (cmp != 0) return cmp
+                    return beta.compareTo(other.beta)
+                }
+
+                override fun toString(): String {
+                    return if (beta == Int.MAX_VALUE) {
+                        "$major.$minor.$patch"
+                    } else {
+                        "$major.$minor.$patch-Beta$beta"
+                    }
+                }
+            }
+            val delimiter = """\d+\.\d+\.\d+((?:-beta\d+)?)""".toRegex(RegexOption.IGNORE_CASE)
+            fun parseVersion(str: String): Version {
+                val splitStr = str.split('.', '-')
+                val major = splitStr[0].toInt()
+                val minor = splitStr[1].toInt()
+                val patch = splitStr[2].toInt()
+                val beta = if (splitStr.size > 3) splitStr[3].lowercase().removePrefix("beta").toInt() else Int.MAX_VALUE
+                return Version(major, minor, patch, beta)
+            }
+            val changelogPath = Path("../changelogs")
+            val lastestVersion = changelogPath.listDirectoryEntries("*.md").asSequence()
+                .map { it.nameWithoutExtension }
+                .map { parseVersion(it) }
+                .max()
+                .toString()
+            toggle("TITLE_VERSION", Profile.Ultra.ordinal, Profile.entries.indices) {
+                Profile.entries.forEach {
+                    it preset it.ordinal
+                }
+                lang {
+                    name = "Alpha Piscium by Luna"
+                    Profile.entries.forEach {
+                        it.ordinal value "§${it.color.code}$lastestVersion"
+                    }
+                }
+            }
+            profile {
+                lang {
+                    comment = """
+                        §c§lLow§r: Potato mode, §c§lnot recommented§r.
+                        §e§lMedium§r: Baseline performance mode.
+                        §a§lHigh§r: Balanced quality and performance.
+                        §6§lUltra§r: The §6§ltrue§r Alpha Piscium experience as it should be.
+                        §d§lExtreme§r: Even better experience at §osome§r cost.
+                        §5§lInsane§r: "Can it run Crysis?" §kxyz69420§r.
+                    """.trimIndent()
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    comment = """
+                        §c§lLow§r: 丐中丐画质, §c§l不推荐§r。
+                        §e§lMedium§r: 基础性能模式。
+                        §a§lHigh§r: 画质与性能的平衡。
+                        §6§lUltra§r: §6§l真正的§r外屏七体验，就是它了。
+                        §d§lExtreme§r: 更好的体验，只需要§o亿点点§r代价.
+                        §5§lInsane§r: 《显 卡 危 机》 §kxyz69420§r.
+                    """.trimIndent()
+                }
+            }
+        }
+        emptyRow()
         screen(2) {
             lang {
                 name = "Terrain"
@@ -343,6 +415,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     name = "阴影"
                 }
                 slider("SETTING_SHADOW_MAP_RESOLUTION", 2048, listOf(1024, 2048, 3072, 4096)) {
+                    Profile.Low preset 1024
+                    Profile.Medium preset 2048
+                    Profile.High preset 2048
+                    Profile.Ultra preset 2048
+                    Profile.Extreme preset 3072
+                    Profile.Insane preset 4096
+
                     lang {
                         name = "Shadow Map Resolution"
                         comment = "Higher values produce sharper, more detailed shadows but reduce performance."
@@ -364,6 +443,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         512.0 value "32 chunks"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
+                        Profile.Low preset 192.0
+                        Profile.Medium preset 256.0
+                        Profile.High preset 384.0
+                        Profile.Ultra preset 512.0
+                        Profile.Extreme preset 512.0
+                        Profile.Insane preset 512.0
+
                         name = "阴影渲染距离"
                         comment = "距离玩家多远的阴影贴图会被渲染。"
                         64.0 value "4 区块"
@@ -505,7 +591,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "软阴影"
                         comment = "使用PCSS根据与阴影投射者的距离产生真实的柔和阴影边缘"
                     }
-                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 4, powerOfTwoAndHalfRange(2..4)) {
+                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 6, powerOfTwoAndHalfRange(2..4)) {
+                        Profile.Low preset 4
+                        Profile.Medium preset 4
+                        Profile.High preset 4
+                        Profile.Ultra preset 6
+                        Profile.Extreme preset 8
+                        Profile.Insane preset 16
+
                         lang {
                             name = "Blocker Search Count"
                             comment =
@@ -516,7 +609,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "用于确定阴影柔和度的采样数。数值越高，质量越好，但会降低性能。"
                         }
                     }
-                    slider("SETTING_PCSS_SAMPLE_COUNT", 8, powerOfTwoAndHalfRange(0..6)) {
+                    slider("SETTING_PCSS_SAMPLE_COUNT", 12, powerOfTwoAndHalfRange(0..6)) {
+                        Profile.Low preset 4
+                        Profile.Medium preset 6
+                        Profile.High preset 8
+                        Profile.Ultra preset 12
+                        Profile.Extreme preset 16
+                        Profile.Insane preset 32
+
                         lang {
                             name = "PCSS Sample Count"
                             comment =
@@ -557,6 +657,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     name = "ReSTIR SSGI"
                 }
                 slider("SETTING_GI_INITIAL_SST_STEPS", 128, powerOfTwoAndHalfRange(4..8)) {
+                    Profile.Low preset 48
+                    Profile.Medium preset 64
+                    Profile.High preset 96
+                    Profile.Ultra preset 128
+                    Profile.Extreme preset 192
+                    Profile.Insane preset 256
+
                     lang {
                         name = "Initial Sampling Screen Space Tracing Steps"
                         comment = "Higher values improve quality but reduce performance."
@@ -567,6 +674,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 slider("SETTING_GI_VALIDATE_SST_STEPS", 64, powerOfTwoAndHalfRange(2..8)) {
+                    Profile.Low preset 24
+                    Profile.Medium preset 32
+                    Profile.High preset 48
+                    Profile.Ultra preset 64
+                    Profile.Extreme preset 96
+                    Profile.Insane preset 128
+
                     lang {
                         name = "Validation Sampling Screen Space Tracing Steps"
                         comment = "Higher values improve quality but reduce performance. These rays are less important thus it is fine to keep this at a lower value."
@@ -629,6 +743,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 slider("SETTING_GI_SPATIAL_REUSE_COUNT", 6, 1..16) {
+                    Profile.Low preset 4
+                    Profile.Medium preset 5
+                    Profile.High preset 6
+                    Profile.Ultra preset 6
+                    Profile.Extreme preset 6
+                    Profile.Insane preset 8
+
                     lang {
                         name = "Spatial Reuse Sample Count"
                         comment = "Number of nearby pixels to reuse GI samples from."
@@ -649,6 +770,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 slider("SETTING_GI_SPATIAL_REUSE_RADIUS", 64, powerOfTwoAndHalfRange(4..8)) {
+                    Profile.Low preset 24
+                    Profile.Medium preset 32
+                    Profile.High preset 48
+                    Profile.Ultra preset 64
+                    Profile.Extreme preset 64
+                    Profile.Insane preset 64
                     lang {
                         name = "Spatial Reuse Radius"
                         comment = "Radius to search for nearby GI samples to reuse."
@@ -690,6 +817,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 slider("SETTING_DENOISER_SPATIAL_SAMPLES", 8, 1..16) {
+                    Profile.Low preset 4
+                    Profile.Medium preset 6
+                    Profile.High preset 8
                     lang {
                         name = "Spatial Denoiser Sample Count"
                         comment = "Number of samples used in main spatial denoising pass."
@@ -700,6 +830,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 slider("SETTING_DENOISER_SPATIAL_SAMPLES_POST", 8, 1..16) {
+                    Profile.Low preset 4
+                    Profile.Medium preset 6
+                    Profile.High preset 8
                     lang {
                         name = "Post Spatial Denoiser Sample Count"
                         comment = "Number of samples used for post spatial denoising pass."
@@ -742,6 +875,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 32, powerOfTwoAndHalfRange(2..8)) {
+                    Profile.Low preset 64
+                    Profile.Medium preset 48
+                    Profile.High preset 32
                     lang {
                         name = "Temporal Fast History Length"
                         comment =
@@ -897,6 +1033,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
             }
             row {
                 slider("SETTING_EPIPOLAR_SLICES", 1024, listOf(256, 512, 1024, 2048)) {
+                    Profile.Low preset 256
+                    Profile.Medium preset 512
+                    Profile.High preset 1024
+                    Profile.Ultra preset 1024
+                    Profile.Extreme preset 2048
+                    Profile.Insane preset 2048
+
                     lang {
                         name = "Epipolar Slices"
                         comment =
@@ -908,6 +1051,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 slider("SETTING_SLICE_SAMPLES", 512, listOf(128, 256, 512, 1024)) {
+                    Profile.Low preset 128
+                    Profile.Medium preset 256
+                    Profile.High preset 512
+                    Profile.Ultra preset 512
+                    Profile.Extreme preset 1024
+                    Profile.Insane preset 1024
+
                     lang {
                         name = "Slice Samples"
                         comment =
@@ -1500,6 +1650,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "渲染设置"
                     }
                     toggle("SETTING_CLOUDS_LOW_UPSCALE_FACTOR", 2, 0..6) {
+                        Profile.Low preset 6
+                        Profile.Medium preset 4
+                        Profile.High preset 3
+                        Profile.Ultra preset 2
+                        Profile.Extreme preset 1
+                        Profile.Insane preset 0
+
                         lang {
                             name = "Upscale Factor"
                             comment =
@@ -1525,6 +1682,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 16, powerOfTwoAndHalfRange(2..7)) {
+                        Profile.Low preset 48
+                        Profile.Medium preset 32
+                        Profile.High preset 24
+                        Profile.Ultra preset 16
+                        Profile.Extreme preset 12
+                        Profile.Insane preset 8
                         lang {
                             name = "Max Accumulation"
                             comment =
@@ -1559,6 +1722,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                     empty()
                     slider("SETTING_CLOUDS_LOW_STEP_MIN", 48, 16..128 step 8) {
+                        Profile.Low preset 24
+                        Profile.Medium preset 24
+                        Profile.High preset 32
+                        Profile.Ultra preset 48
+                        Profile.Extreme preset 64
+                        Profile.Insane preset 128
                         lang {
                             name = "Ray Marching Min Step"
                             comment =
@@ -1570,6 +1739,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     slider("SETTING_CLOUDS_LOW_STEP_MAX", 128, 32..256 step 8) {
+                        Profile.Low preset 64
+                        Profile.Medium preset 64
+                        Profile.High preset 96
+                        Profile.Ultra preset 128
+                        Profile.Extreme preset 192
+                        Profile.Insane preset 256
                         lang {
                             name = "Ray Marching Max Step"
                             comment =
