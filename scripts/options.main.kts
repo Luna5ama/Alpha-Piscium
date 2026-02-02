@@ -8,43 +8,46 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.readLines
 import kotlin.math.pow
 
+val versionStr = args.getOrElse(0) {
+    data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int) : Comparable<Version> {
+        override fun compareTo(other: Version): Int {
+            var cmp = major.compareTo(other.major)
+            if (cmp != 0) return cmp
+            cmp = minor.compareTo(other.minor)
+            if (cmp != 0) return cmp
+            cmp = patch.compareTo(other.patch)
+            if (cmp != 0) return cmp
+            return beta.compareTo(other.beta)
+        }
+
+        override fun toString(): String {
+            return if (beta == Int.MAX_VALUE) {
+                "$major.$minor.$patch"
+            } else {
+                "$major.$minor.$patch-Beta$beta"
+            }
+        }
+    }
+    val delimiter = """\d+\.\d+\.\d+((?:-beta\d+)?)""".toRegex(RegexOption.IGNORE_CASE)
+    fun parseVersion(str: String): Version {
+        val splitStr = str.split('.', '-')
+        val major = splitStr[0].toInt()
+        val minor = splitStr[1].toInt()
+        val patch = splitStr[2].toInt()
+        val beta = if (splitStr.size > 3) splitStr[3].lowercase().removePrefix("beta").toInt() else Int.MAX_VALUE
+        return Version(major, minor, patch, beta)
+    }
+    val changelogPath = Path("../changelogs")
+    val lastestVersion = changelogPath.listDirectoryEntries("*.md").asSequence()
+        .map { it.nameWithoutExtension }
+        .map { parseVersion(it) }
+        .max()
+        .toString()
+}
+
 options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "base/TextOptions.glsl") {
     mainScreen(2) {
         row {
-            data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int) : Comparable<Version> {
-                override fun compareTo(other: Version): Int {
-                    var cmp = major.compareTo(other.major)
-                    if (cmp != 0) return cmp
-                    cmp = minor.compareTo(other.minor)
-                    if (cmp != 0) return cmp
-                    cmp = patch.compareTo(other.patch)
-                    if (cmp != 0) return cmp
-                    return beta.compareTo(other.beta)
-                }
-
-                override fun toString(): String {
-                    return if (beta == Int.MAX_VALUE) {
-                        "$major.$minor.$patch"
-                    } else {
-                        "$major.$minor.$patch-Beta$beta"
-                    }
-                }
-            }
-            val delimiter = """\d+\.\d+\.\d+((?:-beta\d+)?)""".toRegex(RegexOption.IGNORE_CASE)
-            fun parseVersion(str: String): Version {
-                val splitStr = str.split('.', '-')
-                val major = splitStr[0].toInt()
-                val minor = splitStr[1].toInt()
-                val patch = splitStr[2].toInt()
-                val beta = if (splitStr.size > 3) splitStr[3].lowercase().removePrefix("beta").toInt() else Int.MAX_VALUE
-                return Version(major, minor, patch, beta)
-            }
-            val changelogPath = Path("../changelogs")
-            val lastestVersion = changelogPath.listDirectoryEntries("*.md").asSequence()
-                .map { it.nameWithoutExtension }
-                .map { parseVersion(it) }
-                .max()
-                .toString()
             toggle("TITLE_VERSION", Profile.Ultra.ordinal, Profile.entries.indices) {
                 Profile.entries.forEach {
                     it preset it.ordinal
@@ -52,7 +55,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 lang {
                     name = "Alpha Piscium by Luna"
                     Profile.entries.forEach {
-                        it.ordinal value "§${it.color.code}$lastestVersion"
+                        it.ordinal value "§${it.color.code}$versionStr"
                     }
                 }
             }
