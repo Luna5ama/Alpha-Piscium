@@ -109,6 +109,10 @@ void main() {
         mat4 taaMat = taaJitterMat(jitter);
         global_taaJitterMat = taaMat;
 
+        global_sceneToShadowNDC = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView;
+        global_shadowViewToShadowNDC = global_shadowProjPrev * global_shadowRotationMatrix;
+        global_shadowNDCToScene = inverse(global_sceneToShadowNDC);
+
         global_prevCamProj = global_camProj;
         global_prevCamProjInverse = global_camProjInverse;
         global_camProj = mat4_infRevZFromRegular(gbufferProjection, near);

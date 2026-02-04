@@ -6,39 +6,36 @@ layout(r32i) uniform iimage2D uimg_fr32f;
 in vec2 mc_Entity;
 
 out uint vert_survived;
-out vec2 vert_unwarpedTexCoord;
 out vec2 vert_texcoord;
 out vec4 vert_color;
-out vec3 vert_normal;
-out vec3 vert_scenePos;
-out uint vert_materialID;
+out vec2 vert_screenPos;
+out uint vert_worldNormalMaterialID;
 
 void main() {
     vert_texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     vert_color = gl_Color;
-    vert_normal = normalize(mat3(global_shadowViewInverse) * (gl_NormalMatrix * gl_Normal.xyz));
-    vert_materialID = uint(int(mc_Entity.x)) & 0xFFFFu;
+
+    vec3 worldNormal = normalize(mat3(shadowModelViewInverse) * (gl_NormalMatrix * gl_Normal.xyz));
+    vec2 worldNormalOct = coords_octEncode11(worldNormal);
+    uint materialID = uint(int(mc_Entity.x));
+    vert_worldNormalMaterialID = packSnorm4x8(vec4(worldNormalOct, 0.0, 0.0));
+    vert_worldNormalMaterialID = bitfieldInsert(vert_worldNormalMaterialID, materialID, 16, 16);
 
     vec4 shadowClipPos = ftransform();
     vec4 shadowViewPos = shadowProjectionInverse * shadowClipPos;
     vec4 scenePos = shadowModelViewInverse * shadowViewPos;
-    vert_scenePos = scenePos.xyz / scenePos.w;
-    shadowViewPos = global_shadowRotationMatrix * shadowViewPos;
-    shadowClipPos = global_shadowProjPrev * shadowViewPos;
-    gl_Position = shadowClipPos;
-    gl_Position /= gl_Position.w;
-
-    vec2 vPosTS = gl_Position.xy * 0.5 + 0.5;
-    vert_unwarpedTexCoord = vPosTS;
-    vPosTS = rtwsm_warpTexCoord(vPosTS);
-
-    gl_Position.xy = vPosTS * 2.0 - 1.0;
+    vec4 shadowNDCPos = global_sceneToShadowNDC * scenePos;
+    gl_Position = shadowNDCPos;
+    vec2 shadowScreenPos = shadowNDCPos.xy * 0.5 + 0.5;
+    vert_screenPos = shadowScreenPos;
+    shadowScreenPos = rtwsm_warpTexCoord(shadowScreenPos);
+    gl_Position.xy = shadowScreenPos * 2.0 - 1.0;
 
     shadowViewPos /= shadowViewPos.w;
     vec4 camViewPos = gbufferModelView * scenePos;
     camViewPos /= camViewPos.w;
 
-    uint survived = uint(all(lessThan(abs(shadowClipPos.xy), shadowClipPos.ww)));
+    uint survived = uint(all(lessThan(abs(shadowNDCPos.xyz), shadowClipPos.www)));
     vert_survived = survived;
 
     survived &= uint((gl_VertexID & 3) == 0);
@@ -53,9 +50,9 @@ void main() {
 
         float camDistanceSq = dot(camViewPos.xyz, camViewPos.xyz);
 
-        if (isEyeInWater == 1 && vert_materialID == 3u) {
+        if (isEyeInWater == 1 && materialID == 3u) {
             const float RIOR = AIR_IOR / WATER_IOR;
-            vec3 refractDir = refract(-uval_shadowLightDirWorld, normalize(vert_normal), RIOR);
+            vec3 refractDir = refract(-uval_shadowLightDirWorld, normalize(worldNormal), RIOR);
 
             // Calculate closest distance from refracted ray to origin (0,0,0)
             // Ray: P = camViewPos + t * refractDir

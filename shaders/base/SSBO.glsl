@@ -46,6 +46,9 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     mat4 global_shadowProjInverse;
     mat4 global_shadowView;
     mat4 global_shadowViewInverse;
+    mat4 global_sceneToShadowNDC;
+    mat4 global_shadowViewToShadowNDC;
+    mat4 global_shadowNDCToScene;
     vec3 global_prevCameraDelta;
     vec2 global_prevTaaJitter;
     vec2 global_taaJitter;
