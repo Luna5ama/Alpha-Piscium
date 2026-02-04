@@ -22,22 +22,13 @@ void main() {
     ivec2 texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
-        vec3 geomNormal = vec3(0.0);
-        vec3 normal = vec3(0.0);
-
-        if (viewZ > -65536.0) {
-            GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
-
-            gi_reproject(texelPos, viewZ, gData);
-
-            geomNormal = gData.geomNormal;
-            normal = gData.normal;
-        }
-
         transient_lowCloudRender_store(texelPos, uvec4(0u));
         transient_lowCloudAccumulated_store(texelPos, uvec4(0u));
+
+        float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
+
+        if (viewZ > -65536.0) {
+            gi_reproject(texelPos, viewZ);
+        }
     }
 }
