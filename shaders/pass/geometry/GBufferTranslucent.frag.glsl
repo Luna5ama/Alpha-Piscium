@@ -21,10 +21,14 @@ uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
-in vec4 frag_viewTangent;
+#ifdef SETTING_TBN_PACKING
+flat in uint frag_worldTN;
+#else
+in vec3 frag_worldTangent;
+in vec3 frag_worldNormal;// 11 + 11 + 10 = 32 bits
+#endif
 
 in vec4 frag_colorMul;
-in vec3 frag_viewNormal;
 in vec2 frag_texCoord;
 in vec2 frag_lmCoord;
 flat in uint frag_materialID;
@@ -58,10 +62,18 @@ vec4 processAlbedo() {
 }
 
 GBufferData processOutput() {
-    #ifdef GBUFFER_PASS_DH
-    vec3 geomViewNormal = normalize(frag_viewNormal);
-    vec3 geomWorldNormal = coords_dir_viewToWorld(geomViewNormal);
+    float bitangentSignF = float(bitfieldExtract(frag_materialID, 30, 1)) * 2.0 - 1.0;
 
+    vec3 geomWorldNormal;
+    vec3 geomWorldTangent;
+    #ifdef SETTING_TBN_PACKING
+    nzpacking_unpackNormalOct16(frag_worldTN, geomWorldNormal, geomWorldTangent);
+    #else
+    geomWorldNormal = frag_worldNormal;
+    geomWorldTangent = frag_worldTangent;
+    #endif
+
+    #ifdef GBUFFER_PASS_DH
     const vec3 X_VECTOR = vec3(1.0, 0.0, 0.0);
     const vec3 Y_VECTOR = vec3(0.0, 1.0, 0.0);
     const vec3 Z_VECTOR = vec3(0.0, 0.0, 1.0);
@@ -77,9 +89,8 @@ GBufferData processOutput() {
     vec3 geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal));
     float bitangentSignF = 1.0;
     #else
-    float bitangentSignF = frag_viewTangent.w < 0.0 ? -1.0 : 1.0;
-    vec3 geomViewNormal = normalize(frag_viewNormal);
-    vec3 geomViewTangent = normalize(frag_viewTangent.xyz);
+    vec3 geomViewNormal = coords_dir_worldToView(geomWorldNormal);
+    vec3 geomViewTangent = coords_dir_worldToView(geomWorldTangent);
     vec3 geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal) * bitangentSignF);
     #endif
 
