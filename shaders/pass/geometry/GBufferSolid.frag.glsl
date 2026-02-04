@@ -9,10 +9,14 @@ uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
 
-in vec4 frag_viewTangent;
+#ifdef SETTING_TBN_PACKING
+flat in uint frag_worldTN;
+#else
+in vec3 frag_worldTangent;
+in vec3 frag_worldNormal;// 11 + 11 + 10 = 32 bits
+#endif
 
 in vec4 frag_colorMul;// 8 x 4 = 32 bits
-in vec3 frag_viewNormal;// 11 + 11 + 10 = 32 bits
 in vec2 frag_texCoord;// 16 x 2 = 32 bits
 in vec2 frag_lmCoord;// 8 x 2 = 16 bits
 flat in uint frag_materialID;// 16 x 1 = 16 bits
@@ -102,9 +106,19 @@ void processData2() {
 }
 
 void processData1() {
-    float bitangentSignF = frag_viewTangent.w < 0.0 ? -1.0 : 1.0;
-    vec3 geomViewNormal = normalize(frag_viewNormal);
-    vec3 geomViewTangent = normalize(frag_viewTangent.xyz);
+    float bitangentSignF = float(bitfieldExtract(frag_materialID, 30, 1)) * 2.0 - 1.0;
+
+    vec3 geomWorldNormal;
+    vec3 geomWorldTangent;
+    #ifdef SETTING_TBN_PACKING
+    nzpacking_unpackNormalOct16(frag_worldTN, geomWorldNormal, geomWorldTangent);
+    #else
+    geomWorldNormal = frag_worldNormal;
+    geomWorldTangent = frag_worldTangent;
+    #endif
+
+    vec3 geomViewNormal = coords_dir_worldToView(geomWorldNormal);
+    vec3 geomViewTangent = coords_dir_worldToView(geomWorldTangent);
     vec3 geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal) * bitangentSignF);
 
     gData.normal = geomViewNormal;
@@ -125,7 +139,7 @@ void processData1() {
 
     gData.pbrSpecular = specularSample;
     gData.lmCoord.y *= normalSample.b;
-    gData.materialID = frag_materialID;
+    gData.materialID = frag_materialID & 0xFFFFu;
 
     float emissiveS = specularSample.a;
     emissiveS *= float(specularSample.a < 1.0);

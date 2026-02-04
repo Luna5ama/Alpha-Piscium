@@ -240,6 +240,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "控制表面细节效果的强度。数值越高，深度感越强。实际强度为 2^x。"
                         }
                     }
+                    empty()
+                    toggle("SETTING_TBN_PACKING", true) {
+                        lang {
+                            name = "TBN Packing"
+                            comment = "Optimize terrain rendering by packing normal and tangent vertex attribute into tighter. Disable this if you have mod that adds smooth surface normal."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "TBN打包"
+                            comment = "通过将法线和切线顶点属性打包得更紧凑来优化地形渲染。如果您有添加平滑表面法线的模组，请禁用此选项。"
+                        }
+                    }
                 }
                 screen(1) {
                     lang {
