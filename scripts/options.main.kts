@@ -2989,6 +2989,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 toggle("SETTING_TAA_CURR_FILTER", 2, 0..2) {
+                    Profile.Low preset 1
+                    Profile.Medium preset 1
+                    Profile.Ultra preset 2
+                    Profile.Extreme preset 2
+                    Profile.Insane preset 2
+
                     lang {
                         name = "TAA Current Frame Filter"
                         comment =
@@ -3013,6 +3019,12 @@ Lanczos2：与Catmull-Rom一样锐利，但振铃或光晕较少。性能开销�
                     }
                 }
                 toggle("SETTING_TAA_HISTORY_FILTER", 4, 1..4) {
+                    Profile.Low preset 1
+                    Profile.Medium preset 2
+                    Profile.Ultra preset 4
+                    Profile.Extreme preset 4
+                    Profile.Insane preset 4
+
                     lang {
                         name = "TAA History Frame Filter"
                         comment =

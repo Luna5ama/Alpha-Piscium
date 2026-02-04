@@ -74,6 +74,29 @@ void main() {
     loadSharedColorData(workGroupOrigin, gl_LocalInvocationIndex);
     loadSharedColorData(workGroupOrigin, gl_LocalInvocationIndex + 256u);
 
+    if (gl_LocalInvocationIndex == 0u) {
+        vec2 pixelPosFract = fract(global_taaJitter);
+
+        #if SETTING_TAA_CURR_FILTER == 0
+        shared_weightsX = sampling_bSplineWeights(pixelPosFract.x);
+        shared_weightsY = sampling_bSplineWeights(pixelPosFract.y);
+        #elif SETTING_TAA_CURR_FILTER == 1
+        shared_weightsX = sampling_catmullRomWeights(pixelPosFract.x);
+        shared_weightsY = sampling_catmullRomWeights(pixelPosFract.y);
+        #elif SETTING_TAA_CURR_FILTER == 2
+        shared_weightsX = sampling_lanczoc2Weights(pixelPosFract.x);
+        shared_weightsY = sampling_lanczoc2Weights(pixelPosFract.y);
+        #endif
+
+        for (int i = 0; i < 9; ++i) {
+            vec2 offset = vec2(i % 3, i / 3) - 1.0;
+            vec2 diff = offset - 0.5 - global_taaJitter;
+            shared_kernelDist2[i] = dot(diff, diff);
+        }
+    }
+
+    barrier();
+
     vec2 unjitterTexelPos = texelCenter + global_taaJitter;
     vec2 unjitterScreenPos = screenPos + global_taaJitter * uval_mainImageSizeRcp;
 
@@ -163,29 +186,6 @@ void main() {
         lastFrameAccum = prevResult.a;
     }
     float newFrameAccum = lastFrameAccum + 1.0;
-
-    if (gl_LocalInvocationIndex == 0u) {
-        vec2 pixelPosFract = fract(global_taaJitter);
-
-        #if SETTING_TAA_CURR_FILTER == 0
-        shared_weightsX = sampling_bSplineWeights(pixelPosFract.x);
-        shared_weightsY = sampling_bSplineWeights(pixelPosFract.y);
-        #elif SETTING_TAA_CURR_FILTER == 1
-        shared_weightsX = sampling_catmullRomWeights(pixelPosFract.x);
-        shared_weightsY = sampling_catmullRomWeights(pixelPosFract.y);
-        #elif SETTING_TAA_CURR_FILTER == 2
-        shared_weightsX = sampling_lanczoc2Weights(pixelPosFract.x);
-        shared_weightsY = sampling_lanczoc2Weights(pixelPosFract.y);
-        #endif
-
-        for (int i = 0; i < 9; ++i) {
-            vec2 offset = vec2(i % 3, i / 3) - 1.0;
-            vec2 diff = offset - 0.5 - global_taaJitter;
-            shared_kernelDist2[i] = dot(diff, diff);
-        }
-    }
-
-    barrier();
 
     vec3 currColor;
     {
