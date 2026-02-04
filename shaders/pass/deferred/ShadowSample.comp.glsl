@@ -32,6 +32,7 @@ uniform sampler2D dhDepthTex0;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32i) uniform iimage2D uimg_fr32f;
 layout(rgba16f) uniform restrict image2D uimg_translucentColor;
+layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 
 #include "/techniques/rtwsm/Backward.glsl"
 
@@ -226,6 +227,9 @@ void main() {
     ivec2 texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        transient_lowCloudRender_store(texelPos, uvec4(0u));
+        transient_lowCloudAccumulated_store(texelPos, uvec4(0u));
+
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
 
         if (viewZ > -65536.0) {
