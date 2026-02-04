@@ -31,9 +31,8 @@ layout(location = 2) out vec2 rt_unwarpedUV;
 layout(location = 3) out float rt_pixelArea;
 layout(location = 4) out vec4 rt_waterMask;
 #else
-/* RENDERTARGETS:0,1 */
+/* RENDERTARGETS:0 */
 layout(location = 0) out float rt_depthOffset;
-layout(location = 1) out vec4 rt_specular;
 #endif
 
 void main() {
@@ -116,8 +115,6 @@ void main() {
     rt_translucentColor = translucent_albedoToTransmittance(materialColor, alpha, materialID);
 
     depthFixOffset = -depthFixOffset;
-    #else
-    rt_specular.b = 0.0;
     #endif
 
     rt_depthOffset = depthFixOffset;

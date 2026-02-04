@@ -164,10 +164,6 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
             sampleTexCoord.z -= max4(abs(sampleShadowDepthOffset4));
 
             float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
-            if (material.sss > 0.0 && shadowSampleSolid < 1.0) {
-                vec4 pbrSpecular = texture(shadowcolor1, sampleTexCoord.xy);
-                shadowSampleSolid = pbrSpecular.b + shadowSampleSolid * (1.0 - pbrSpecular.b);
-            }
             solidShadowSum += float16_t(shadowSampleSolid);
 
             if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
