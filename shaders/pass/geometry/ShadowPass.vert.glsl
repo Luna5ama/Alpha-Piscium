@@ -5,15 +5,25 @@ layout(r32i) uniform iimage2D uimg_fr32f;
 
 in vec2 mc_Entity;
 
-out uint vert_survived;
+#if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
 out vec2 vert_texcoord;
+#if defined(SHADOW_PASS_TRANSLUCENT)
 out vec4 vert_color;
+#endif
+#endif
+
 out vec2 vert_screenPos;
 out uint vert_worldNormalMaterialID;
 
+out uint vert_survived;
+
 void main() {
+    #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
     vert_texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+    #if defined(SHADOW_PASS_TRANSLUCENT)
     vert_color = gl_Color;
+    #endif
+    #endif
 
     vec3 worldNormal = normalize(mat3(shadowModelViewInverse) * (gl_NormalMatrix * gl_Normal.xyz));
     vec2 worldNormalOct = coords_octEncode11(worldNormal);

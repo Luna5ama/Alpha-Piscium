@@ -10,11 +10,18 @@
 uniform sampler2D gtexture;
 uniform sampler2D specular;
 
+#if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
 in vec2 frag_texcoord;
+#if defined(SHADOW_PASS_TRANSLUCENT)
 in vec4 frag_color;
+#endif
+#endif
 in vec2 frag_screenPos;
 flat in uint frag_worldNormalMaterialID;
+
+#if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
 flat in uvec2 frag_texcoordMinMax;
+#endif
 
 #ifdef SHADOW_PASS_TRANSLUCENT
 /* RENDERTARGETS:0,2,3,4,5 */
@@ -41,11 +48,6 @@ void main() {
     vec2 warppedUV = rtwsm_warpTexCoordTexelSize(shadowScreenPos.xy, texelSize);
     vec2 pixelDiff = (fragUV - warppedUV) * SHADOW_MAP_SIZE.x;
 
-    vec2 offsetTexCoord = frag_texcoord + pixelDiff.x * dFdx(frag_texcoord) + pixelDiff.y * dFdy(frag_texcoord);
-    vec2 texcoordMin = unpackSnorm2x16(frag_texcoordMinMax.x);
-    vec2 texcoordMax = unpackSnorm2x16(frag_texcoordMinMax.y);
-    offsetTexCoord = clamp(offsetTexCoord, texcoordMin, texcoordMax);
-    vec4 inputAlbedo = textureLod(gtexture, offsetTexCoord, 0.0) * frag_color;
     float dZdx = dFdxFine(gl_FragCoord.z);
     float dZdy = dFdyFine(gl_FragCoord.z);
     float depthFixOffset = abs(pixelDiff.x * dZdx) + abs(pixelDiff.y * dZdy);
@@ -63,6 +65,19 @@ void main() {
         depthFixOffset = 0.0;
     }
 
+    vec4 inputAlbedo = vec4(1.0);
+
+    #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
+    vec2 offsetTexCoord = frag_texcoord + pixelDiff.x * dFdx(frag_texcoord) + pixelDiff.y * dFdy(frag_texcoord);
+    vec2 texcoordMin = unpackSnorm2x16(frag_texcoordMinMax.x);
+    vec2 texcoordMax = unpackSnorm2x16(frag_texcoordMinMax.y);
+    offsetTexCoord = clamp(offsetTexCoord, texcoordMin, texcoordMax);
+    inputAlbedo = texture(gtexture, offsetTexCoord);
+    #if defined(SHADOW_PASS_TRANSLUCENT)
+    inputAlbedo.rgb *= frag_color.rgb;
+    #endif
+    #endif
+
     #ifdef SHADOW_PASS_ALPHA_TEST
     if (inputAlbedo.a < alphaTestRef) {
         discard;
@@ -72,10 +87,10 @@ void main() {
     #ifdef SHADOW_PASS_TRANSLUCENT
     bool isWater = materialID == 3u;
 
-    vec4 matv1;
-    vec4 matv2;
-    vec4 matv3;
-    vec4 matv4;
+    vec4 matv1 = vec4(0.0);
+    vec4 matv2 = vec4(0.0);
+    vec4 matv3 = vec4(0.0);
+    vec4 matv4 = vec4(0.0);
     if (subgroupElect()) {
         mat4 tempMat = global_shadowNDCToScene;
         matv1 = tempMat[0];
@@ -102,8 +117,7 @@ void main() {
 
     depthFixOffset = -depthFixOffset;
     #else
-    rt_specular = texture(specular, offsetTexCoord, 1.0);
-    rt_specular.b = linearStep(65.0 / 255.0, 255.0 / 255.0, rt_specular.b) * 0.0;
+    rt_specular.b = 0.0;
     #endif
 
     rt_depthOffset = depthFixOffset;
