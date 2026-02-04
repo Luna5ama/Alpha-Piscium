@@ -52,7 +52,7 @@ void main() {
     float depthFixOffset = abs(pixelDiff.x * dZdx) + abs(pixelDiff.y * dZdy);
 
     float lightDot = abs(dot(worldNormal, uval_shadowLightDirWorld));
-    lightDot = max(lightDot, 0.05);
+    lightDot = clamp(lightDot, 0.05, 0.8);
 
     float depthBiasSlopeFactor = sqrt(1.0 - pow2(lightDot)) / lightDot; // tan(acos(lightDot))
     depthBiasSlopeFactor = log2(depthBiasSlopeFactor + 1.0) + 0.01;

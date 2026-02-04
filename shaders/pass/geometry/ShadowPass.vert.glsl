@@ -36,27 +36,25 @@ void main() {
     vec4 scenePos = shadowModelViewInverse * shadowViewPos;
     vec4 shadowNDCPos = global_sceneToShadowNDC * scenePos;
     gl_Position = shadowNDCPos;
-    vec2 shadowScreenPos = shadowNDCPos.xy * 0.5 + 0.5;
-    vert_screenPos = shadowScreenPos;
-    shadowScreenPos = rtwsm_warpTexCoord(shadowScreenPos);
-    gl_Position.xy = shadowScreenPos * 2.0 - 1.0;
+    vec2 shadowScreenPosUnwarpped = shadowNDCPos.xy * 0.5 + 0.5;
+    vert_screenPos = shadowScreenPosUnwarpped;
+    vec2 texelSize;
+    gl_Position.xy = rtwsm_warpTexCoordTexelSize(shadowScreenPosUnwarpped, texelSize) * 2.0 - 1.0;
 
     shadowViewPos /= shadowViewPos.w;
     vec4 camViewPos = gbufferModelView * scenePos;
     camViewPos /= camViewPos.w;
 
-    uint survived = uint(all(lessThan(abs(shadowNDCPos.xyz), shadowClipPos.www)));
+    uint survived = uint(all(lessThan(abs(shadowNDCPos.xyz), shadowNDCPos.www)));
     vert_survived = survived;
 
     survived &= uint((gl_VertexID & 3) == 0);
 
     #ifdef SETTING_RTWSM_F
     if (bool(survived)){
-        vec2 shadowNdcPos = shadowClipPos.xy / shadowClipPos.w;
-        vec2 shadowScreenPos = shadowNdcPos * 0.5 + 0.5;
-        ivec2 importanceTexelPos = ivec2(shadowScreenPos * vec2(RTWSM_IMAP_SIZE));
+        ivec2 importanceTexelPos = ivec2(shadowScreenPosUnwarpped * vec2(RTWSM_IMAP_SIZE));
 
-        float importance = SETTING_RTWSM_F_BASE;
+        float importance = SETTING_RTWSM_F_BASE * 16.0;
 
         float camDistanceSq = dot(camViewPos.xyz, camViewPos.xyz);
 
