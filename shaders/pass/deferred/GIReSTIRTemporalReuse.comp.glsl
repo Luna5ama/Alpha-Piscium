@@ -277,49 +277,6 @@ void main() {
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             Material material = material_decode(gData);
 
-            // TODO: jacobian and reprojection check
-            #if SETTING_GI_SPATIAL_REUSE_FEEDBACK
-            GIHistoryData historyData = gi_historyData_init();
-            gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
-            const float FEEDBACK_THRESHOLD = float(SETTING_GI_SPATIAL_REUSE_FEEDBACK) / 255.0;
-            if (historyData.realHistoryLength < FEEDBACK_THRESHOLD) {
-                ReSTIRReservoir prevSpatialReservoir = restir_reservoir_unpack(history_restir_reservoirSpatial_fetch(texelPos));
-                prevSpatialReservoir.m = uint(float(prevSpatialReservoir.m) * global_historyResetFactor);
-
-                vec3 prevSpatialSampleDirView = normalize(shared_prevViewToCurrView * prevSpatialReservoir.Y.xyz);
-                prevSpatialReservoir.Y.xyz = prevSpatialSampleDirView;
-
-                float prevSpatialHitDistance = prevSpatialReservoir.Y.w;
-
-                vec3 prevSpatialHitViewPos = viewPos + prevSpatialSampleDirView * prevSpatialHitDistance;
-                vec3 prevSpatialHitScreenPos = coords_viewToScreen(prevSpatialHitViewPos, global_camProj);
-                ivec2 prevSpatialHitTexelPos = ivec2(prevSpatialHitScreenPos.xy * uval_mainImageSize);
-                vec3 prevSpatialHitRadiance = restir_irradiance_sampleIrradiance(texelPos, material, prevSpatialHitTexelPos, -prevSpatialSampleDirView);
-                float brdf = saturate(dot(gData.normal, prevSpatialSampleDirView)) / PI;
-                float prevSpatialPHat = length(prevSpatialHitRadiance * brdf);
-
-                float prevSpatialWi = max(prevSpatialReservoir.avgWY * prevSpatialPHat * float(prevSpatialReservoir.m), 0.0);
-                float reservoirRand2 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 456546u)).w);
-
-                if (restir_isReservoirValid(prevSpatialReservoir)) {
-                    if (restir_updateReservoir(
-                        temporalReservoir,
-                        wSum,
-                        prevSpatialReservoir.Y,
-                        prevSpatialWi,
-                        prevSpatialReservoir.m,
-                        reservoirRand2
-                    )) {
-                        prevPHat = prevSpatialPHat;
-                        prevSample = vec4(prevSpatialHitRadiance, brdf);
-                        GBufferData prevSpatialHitGData = gbufferData_init();
-                        gbufferData1_unpack(texelFetch(usam_gbufferData1, prevSpatialHitTexelPos, 0), prevSpatialHitGData);
-                        prevHitNormal = prevSpatialHitGData.normal;
-                    }
-                }
-            }
-            #endif
-
             {
                 float hitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
                 restir_InitialSampleData initialSample = restir_initalSample_restoreData(texelPos, viewZ, gData.geomNormal, material, hitDistance);
@@ -351,7 +308,7 @@ void main() {
                 }
                 float avgWSum = wSum / float(temporalReservoir.m);
                 temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
-                temporalReservoir.m = clamp(temporalReservoir.m, 0u, 16u);
+                temporalReservoir.m = clamp(temporalReservoir.m, 0u, 8u);
                 #if USE_REFERENCE
                 vec4 ssgiOut = vec4(initalSample * safeRcp(samplePdf), hitDistance);
                 ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);

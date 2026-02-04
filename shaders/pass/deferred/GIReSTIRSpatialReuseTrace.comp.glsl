@@ -19,7 +19,6 @@ void handleRayResult(SSTRay sstRay) {
     }
 
     if (discardSptialReuse) {
-        history_restir_reservoirSpatial_store(texelPos, restir_reservoir_pack(restir_initReservoir()));
         transient_ssgiOut_store(texelPos, vec4(0.0));
         #if SETTING_DEBUG_OUTPUT
         imageStore(uimg_temp5, texelPos, vec4(0.0, 0.0, 1.0, 0.0));

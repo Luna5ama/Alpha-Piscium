@@ -284,10 +284,6 @@ void main() {
             imageStore(uimg_temp5, texelPos, vvv);
             #endif
 
-            const uint SPATIAL_REUSE_MAX_M = 1u;
-            resultReservoir.m = clamp(resultReservoir.m, 0u, SPATIAL_REUSE_MAX_M);
-            history_restir_reservoirSpatial_store(texelPos, restir_reservoir_pack(resultReservoir));
-
             ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
             transient_ssgiOut_store(texelPos, ssgiOut);
         }

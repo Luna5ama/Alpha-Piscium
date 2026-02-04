@@ -801,17 +801,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         suffix = " 像素"
                     }
                 }
-                slider("SETTING_GI_SPATIAL_REUSE_FEEDBACK", 16, listOf(0) + powerOfTwoAndHalfRange(0..6)) {
-                    lang {
-                        name = "Spatial Reuse Feedback Threshold"
-                        comment =
-                            "Reuse previous frame's spatially reused samples when the number of samples is below this threshold."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "空间重用反馈阈值"
-                        comment = "当样本数量低于此阈值时，重用上一帧的空间重用样本。"
-                    }
-                }
             }
             screen(1) {
                 lang {

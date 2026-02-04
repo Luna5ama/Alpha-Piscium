@@ -42,7 +42,6 @@
         "history_restir_reservoirTemporal2": "RGBA32UI",
         "history_restir_prevSample": "RGBA16F",
         "history_restir_prevHitNormal": "RGB10_A2",
-        "history_restir_reservoirSpatial": "RGBA32UI",
         "transient_restir_spatialInput": "RGBA32UI",
         "transient_gi_diffuse_reprojInfo": "RGBA32UI",
         "transient_gi_hitDistanceFactors": "RGBA8",
