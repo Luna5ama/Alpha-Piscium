@@ -61,7 +61,7 @@ vec2 rtwsm_warpTexCoord_shared(vec2 uv) {
 }
 
 float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord, float sssFactor) {
-    const uint BLOCKER_SEARCH_N = uint(SETTING_PCSS_BLOCKER_SEARCH_COUNT * (1.0 + sssFactor));
+    uint BLOCKER_SEARCH_N = uint(mix(float(SETTING_PCSS_BLOCKER_SEARCH_COUNT), float(SETTING_SSS_SAMPLE_COUNT), float(sssFactor > 0.0)));
 
     vec2 blockerSearchRange = (0.05 + sssFactor * 0.2) * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
 

@@ -28,6 +28,7 @@ val versionStr = args.getOrElse(0) {
             }
         }
     }
+
     val delimiter = """\d+\.\d+\.\d+((?:-beta\d+)?)""".toRegex(RegexOption.IGNORE_CASE)
     fun parseVersion(str: String): Version {
         val splitStr = str.split('.', '-')
@@ -37,6 +38,7 @@ val versionStr = args.getOrElse(0) {
         val beta = if (splitStr.size > 3) splitStr[3].lowercase().removePrefix("beta").toInt() else Int.MAX_VALUE
         return Version(major, minor, patch, beta)
     }
+
     val changelogPath = Path("../changelogs")
     changelogPath.listDirectoryEntries("*.md").asSequence()
         .map { it.nameWithoutExtension }
@@ -244,11 +246,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     toggle("SETTING_TBN_PACKING", true) {
                         lang {
                             name = "TBN Packing"
-                            comment = "Optimize terrain rendering by packing normal and tangent vertex attribute into tighter. Disable this if you have mod that adds smooth surface normal."
+                            comment =
+                                "Optimize terrain rendering by packing normal and tangent vertex attribute into tighter. Disable this if you have mod that adds smooth surface normal."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "TBN打包"
-                            comment = "通过将法线和切线顶点属性打包得更紧凑来优化地形渲染。如果您有添加平滑表面法线的模组，请禁用此选项。"
+                            comment =
+                                "通过将法线和切线顶点属性打包得更紧凑来优化地形渲染。如果您有添加平滑表面法线的模组，请禁用此选项。"
                         }
                     }
                 }
@@ -374,6 +378,24 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "次表面散射"
+                    }
+                    slider("SETTING_SSS_SAMPLE_COUNT", 6, powerOfTwoAndHalfRange(1..4)) {
+                        Profile.Low preset 2
+                        Profile.Medium preset 3
+                        Profile.High preset 4
+                        Profile.Ultra preset 6
+                        Profile.Extreme preset 8
+                        Profile.Insane preset 12
+
+                        lang {
+                            name = "SSS Sample Count"
+                            comment =
+                                "Number of samples used for subsurface scattering. Higher values improve quality but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "次表面散射采样数"
+                            comment = "用于次表面散射的采样数。数值越高，质量越好，但会降低性能。"
+                        }
                     }
                     slider("SETTING_SSS_DIFFUSE_RANGE", 0.8, 0.0..4.0 step 0.1) {
                         lang {
@@ -605,13 +627,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         name = "软阴影"
                         comment = "使用PCSS根据与阴影投射者的距离产生真实的柔和阴影边缘"
                     }
-                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 6, powerOfTwoAndHalfRange(2..4)) {
-                        Profile.Low preset 4
-                        Profile.Medium preset 4
-                        Profile.High preset 4
-                        Profile.Ultra preset 6
-                        Profile.Extreme preset 8
-                        Profile.Insane preset 16
+                    slider("SETTING_PCSS_BLOCKER_SEARCH_COUNT", 4, powerOfTwoAndHalfRange(0..4)) {
+                        Profile.Low preset 1
+                        Profile.Medium preset 2
+                        Profile.High preset 3
+                        Profile.Ultra preset 4
+                        Profile.Extreme preset 6
+                        Profile.Insane preset 8
 
                         lang {
                             name = "Blocker Search Count"
@@ -623,13 +645,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "用于确定阴影柔和度的采样数。数值越高，质量越好，但会降低性能。"
                         }
                     }
-                    slider("SETTING_PCSS_SAMPLE_COUNT", 12, powerOfTwoAndHalfRange(0..6)) {
-                        Profile.Low preset 4
-                        Profile.Medium preset 6
-                        Profile.High preset 8
-                        Profile.Ultra preset 12
-                        Profile.Extreme preset 16
-                        Profile.Insane preset 32
+                    slider("SETTING_PCSS_SAMPLE_COUNT", 8, powerOfTwoAndHalfRange(1..6)) {
+                        Profile.Low preset 2
+                        Profile.Medium preset 4
+                        Profile.High preset 6
+                        Profile.Ultra preset 8
+                        Profile.Extreme preset 12
+                        Profile.Insane preset 16
 
                         lang {
                             name = "PCSS Sample Count"
@@ -697,7 +719,8 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
 
                     lang {
                         name = "Validation Sampling Screen Space Tracing Steps"
-                        comment = "Higher values improve quality but reduce performance. These rays are less important thus it is fine to keep this at a lower value."
+                        comment =
+                            "Higher values improve quality but reduce performance. These rays are less important thus it is fine to keep this at a lower value."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "验证采样屏幕空间追踪步数"
@@ -735,16 +758,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 toggle("SETTING_GI_MC_SKYLIGHT_ATTENUATION", true) {
-                lang {
-                    name = "Vanilla Skylight Attenuation"
-                    comment =
-                        "Uses Minecraft's built-in skylight values to reduce sky lighting in enclosed spaces."
+                    lang {
+                        name = "Vanilla Skylight Attenuation"
+                        comment =
+                            "Uses Minecraft's built-in skylight values to reduce sky lighting in enclosed spaces."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "原版天空光衰减"
+                        comment = "使用Minecraft内置的天空光值来减少封闭空间中的天空照明。"
+                    }
                 }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "原版天空光衰减"
-                    comment = "使用Minecraft内置的天空光值来减少封闭空间中的天空照明。"
-                }
-            }
                 empty()
                 toggle("SETTING_GI_SPATIAL_REUSE", true) {
                     lang {
@@ -3265,7 +3288,8 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 toggle("SETTING_ASSUME_NVIDIA_GPU", false) {
                     lang {
                         name = "Assume NVIDIA GPU"
-                        comment = "Forces enable NVIDIA-specific optimizations on non-NVIDIA hardware or workaround on weird driver."
+                        comment =
+                            "Forces enable NVIDIA-specific optimizations on non-NVIDIA hardware or workaround on weird driver."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "假设NVIDIA GPU"
