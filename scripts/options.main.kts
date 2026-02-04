@@ -38,7 +38,7 @@ val versionStr = args.getOrElse(0) {
         return Version(major, minor, patch, beta)
     }
     val changelogPath = Path("../changelogs")
-    val lastestVersion = changelogPath.listDirectoryEntries("*.md").asSequence()
+    changelogPath.listDirectoryEntries("*.md").asSequence()
         .map { it.nameWithoutExtension }
         .map { parseVersion(it) }
         .max()
