@@ -2836,7 +2836,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "色调映射和调色"
                 }
-                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 15.0, 4.0..32.0 step 0.5) {
+                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 16.5, 4.0..32.0 step 0.5) {
                     lang {
                         name = "Dynamic Range"
                         comment =
@@ -2902,7 +2902,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_SLOPE_R", 1.0, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_R", 1.05, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Red Gain"
                         comment =
@@ -2913,7 +2913,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "乘以红色通道强度。低于1.0减少红色，高于1.0增加中间色调的红色。"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_SLOPE_G", 1.0, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_G", 1.05, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Green Gain"
                         comment =
@@ -2924,7 +2924,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "乘以绿色通道强度。低于1.0减少绿色，高于1.0增加中间色调的绿色。"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_SLOPE_B", 1.0, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SLOPE_B", 1.05, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Blue Gain"
                         comment =
@@ -2936,7 +2936,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_POWER_R", 1.05, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_R", 1.1, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Red Contrast"
                         comment =
@@ -2947,7 +2947,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "调整红色通道的对比度。数值越高，红色对比度越大，使红色更具戏剧性。"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_POWER_G", 1.05, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_G", 1.1, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Green Contrast"
                         comment =
@@ -2958,7 +2958,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "调整绿色通道的对比度。数值越高，绿色对比度越大。"
                     }
                 }
-                slider("SETTING_TONE_MAPPING_POWER_B", 1.05, 0.1..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_POWER_B", 1.1, 0.1..2.0 step 0.01) {
                     lang {
                         name = "Blue Contrast"
                         comment =
@@ -2970,7 +2970,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_TONE_MAPPING_SATURATION", 1.25, 0.0..2.0 step 0.01) {
+                slider("SETTING_TONE_MAPPING_SATURATION", 1.3, 0.0..2.0 step 0.01) {
                     lang {
                         name = "Color Saturation"
                         comment =
