@@ -33,8 +33,7 @@ vec3 interpolateTurbo(float x) {
 
 // Shared memory with padding for 3x3 tap (-1 to +1)
 // Each work group is 16x16, need +1 padding on each side for 3x3 taps
-shared vec4 shared_diffData[18][18];
-shared vec4 shared_specData[18][18];
+shared uvec4 shared_diffSpecData[18][18];
 
 void loadSharedData(uvec2 groupOriginTexelPos, uint index) {
     if (index < 324u) { // 18 * 18 = 324
@@ -45,9 +44,17 @@ void loadSharedData(uvec2 groupOriginTexelPos, uint index) {
         vec4 diffData = transient_gi_blurDiff2_fetch(srcXY);
         vec4 specData = transient_gi_blurSpec2_fetch(srcXY);
 
-        shared_diffData[sharedXY.y][sharedXY.x] = diffData;
-        shared_specData[sharedXY.y][sharedXY.x] = specData;
+        uvec4 packedData;
+        packedData.xy = packHalf4x16(diffData);
+        packedData.zw = packHalf4x16(specData);
+        shared_diffSpecData[sharedXY.y][sharedXY.x] = packedData;
     }
+}
+
+void fetchSharedData(ivec2 localXY, out vec4 diffData, out vec4 specData) {
+    uvec4 packedData = shared_diffSpecData[localXY.y][localXY.x];
+    diffData = unpackHalf4x16(packedData.xy);
+    specData = unpackHalf4x16(packedData.zw);
 }
 
 struct ColorAABB {
@@ -141,18 +148,23 @@ void main() {
 
                 // Read current frame data from shared memory
                 uvec2 localXY = uvec2(mortonPos) + 1u;
-                vec4 currDiff = shared_diffData[localXY.y][localXY.x];
-                vec4 currSpec = shared_specData[localXY.y][localXY.x];
+                vec4 currDiff;
+                vec4 currSpec;
+                fetchSharedData(ivec2(localXY), currDiff, currSpec);
 
                 // Build variance AABB for diffuse using 3x3 neighborhood
                 vec3 currDiffYCoCg = colors_RGBToYCoCg(currDiff.rgb);
                 ColorAABB diffAABB = initAABB(currDiffYCoCg);
+                vec3 currSpecYCoCg = colors_RGBToYCoCg(currSpec.rgb);
+                ColorAABB specAABB = initAABB(currSpecYCoCg);
 
                 for (int dy = -1; dy <= 1; dy++) {
                     for (int dx = -1; dx <= 1; dx++) {
                         if (dx != 0 || dy != 0) {
                             ivec2 sampleXY = ivec2(localXY) + ivec2(dx, dy);
-                            vec4 neighborDiff = shared_diffData[sampleXY.y][sampleXY.x];
+                            vec4 neighborDiff;
+                            vec4 neighborSpec;
+                            fetchSharedData(sampleXY, neighborDiff, neighborSpec);
                             vec3 neighborDiffYCoCg = colors_RGBToYCoCg(neighborDiff.rgb);
                             updateAABB(neighborDiffYCoCg, diffAABB);
                         }
@@ -180,32 +192,15 @@ void main() {
                 vec3 clampedHistoryDiffYCoCg = clamp(historyDiffYCoCg, diffAABBMin, diffAABBMax);
                 vec3 clampedHistoryDiff = colors_YCoCgToRGB(clampedHistoryDiffYCoCg);
 
-                // Build variance AABB for specular using 3x3 neighborhood
-                vec3 currSpecYCoCg = colors_RGBToYCoCg(currSpec.rgb);
-                ColorAABB specAABB = initAABB(currSpecYCoCg);
-
-                for (int dy = -1; dy <= 1; dy++) {
-                    for (int dx = -1; dx <= 1; dx++) {
-                        if (dx != 0 || dy != 0) {
-                            ivec2 sampleXY = ivec2(localXY) + ivec2(dx, dy);
-                            vec4 neighborSpec = shared_specData[sampleXY.y][sampleXY.x];
-                            vec3 neighborSpecYCoCg = colors_RGBToYCoCg(neighborSpec.rgb);
-                            updateAABB(neighborSpecYCoCg, specAABB);
-                        }
-                    }
-                }
-
-                // Calculate variance AABB for specular
                 vec3 specMean = specAABB.moment1 / 9.0;
                 vec3 specMean2 = specAABB.moment2 / 9.0;
                 vec3 specVariance = specMean2 - specMean * specMean;
                 vec3 specStddev = sqrt(abs(specVariance));
-
-                float specHistoryClampRange = mix(1.0, 2.0, clampWeight);
+                float specHistoryClampRange = mix(1.0, 4.0, clampWeight);
                 vec3 specAABBMin = specMean - specStddev * specHistoryClampRange;
                 vec3 specAABBMax = specMean + specStddev * specHistoryClampRange;
-                specAABBMin = min(specAABBMin, currDiffYCoCg);
-                specAABBMax = max(specAABBMax, currDiffYCoCg);
+                specAABBMin = min(specAABBMin, currSpecYCoCg);
+                specAABBMax = max(specAABBMax, currSpecYCoCg);
 
                 // Clamp history specular
                 vec3 historySpecYCoCg = colors_RGBToYCoCg(historySpec.rgb);
