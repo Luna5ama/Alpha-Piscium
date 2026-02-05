@@ -50,14 +50,15 @@ void shadowAABB2() {
 }
 
 void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out float v) {
-    vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * uval_mainImageSizeRcp;
+    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+    vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
+
     float importance = SETTING_RTWSM_B_BASE;
-    if (dot(viewPos, viewPos) > shadowDistance * shadowDistance) {
+    if (lengthSq(scenePos.xz) > pow2(shadowDistance)) {
         viewPos = vec3(0.0);
         importance = 0.0;
     }
-    vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
     vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
     shadowAABB1(shadowViewPos.xyz);
 
