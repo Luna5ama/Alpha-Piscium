@@ -13,7 +13,7 @@ uniform sampler2D specular;
 #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
 in vec2 frag_texcoord;
 #if defined(SHADOW_PASS_TRANSLUCENT)
-in vec4 frag_color;
+in vec3 frag_color;
 #endif
 #endif
 in vec2 frag_screenPos;
@@ -72,15 +72,14 @@ void main() {
     vec2 texcoordMax = unpackSnorm2x16(frag_texcoordMinMax.y);
     offsetTexCoord = clamp(offsetTexCoord, texcoordMin, texcoordMax);
     inputAlbedo = texture(gtexture, offsetTexCoord);
-    #if defined(SHADOW_PASS_TRANSLUCENT)
-    inputAlbedo.rgb *= frag_color.rgb;
+    #ifdef SHADOW_PASS_TRANSLUCENT
+    inputAlbedo.rgb *= frag_color;
     #endif
-    #endif
-
     #ifdef SHADOW_PASS_ALPHA_TEST
     if (inputAlbedo.a < alphaTestRef) {
         discard;
     }
+    #endif
     #endif
 
     #ifdef SHADOW_PASS_TRANSLUCENT

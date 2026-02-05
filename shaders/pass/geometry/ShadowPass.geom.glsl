@@ -1,10 +1,12 @@
+#include "/Base.glsl"
+
 layout(triangles) in;
 layout(triangle_strip, max_vertices = 3) out;
 
 #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
 in vec2 vert_texcoord[];
 #if defined(SHADOW_PASS_TRANSLUCENT)
-in vec4 vert_color[];
+in vec3 vert_color[];
 #endif
 #endif
 
@@ -16,7 +18,7 @@ in uint vert_survived[];
 #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
 out vec2 frag_texcoord;
 #if defined(SHADOW_PASS_TRANSLUCENT)
-out vec4 frag_color;
+out vec3 frag_color;
 #endif
 #endif
 
@@ -30,6 +32,17 @@ out uvec2 frag_texcoordMinMax;
 
 void main() {
     uint survived = vert_survived[0] & vert_survived[1] & vert_survived[2];
+    vec4 screenBoundF = vec4(
+        min(gl_in[0].gl_Position.xy, min(gl_in[1].gl_Position.xy, gl_in[2].gl_Position.xy)),
+        max(gl_in[0].gl_Position.xy, max(gl_in[1].gl_Position.xy, gl_in[2].gl_Position.xy))
+    );
+    screenBoundF = screenBoundF * 0.5 + 0.5;
+    screenBoundF *= float(SETTING_SHADOW_MAP_RESOLUTION);
+    uvec4 screenBound = uvec4(floor(screenBoundF.xy), ceil(screenBoundF.zw));
+    survived = survived & uint(!any(equal(round(screenBoundF.xy), round(screenBoundF.zw))));
+    survived = survived & uint(all(greaterThan(screenBound.xy, uvec2(2u))));
+    survived = survived & uint(all(lessThan(screenBound.zw, uvec2(SETTING_SHADOW_MAP_RESOLUTION - 2u))));
+
     if (bool(survived)) {
         #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
         vec2 texcoordMin = vec2(1.0);

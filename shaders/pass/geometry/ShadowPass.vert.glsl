@@ -8,7 +8,7 @@ in vec2 mc_Entity;
 #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
 out vec2 vert_texcoord;
 #if defined(SHADOW_PASS_TRANSLUCENT)
-out vec4 vert_color;
+out vec3 vert_color;
 #endif
 #endif
 
@@ -21,7 +21,7 @@ void main() {
     #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
     vert_texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
     #if defined(SHADOW_PASS_TRANSLUCENT)
-    vert_color = gl_Color;
+    vert_color = gl_Color.rgb;
     #endif
     #endif
 
