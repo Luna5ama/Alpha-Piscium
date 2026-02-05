@@ -24,33 +24,13 @@ void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
     uvec2 workGroupOrigin = swizzledWGPos << 4u;
-    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
-    uvec2 mortonPos = morton_8bDecode(threadIdx);
-    uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
 
-    uvec2 binId = uvec2(swizzledWGPos >> 1); // 32x32 bin = 4x4 work groups
+    uvec2 binId = swizzledWGPos >> 1; // 32x32 bin = 4x4 work groups
     uint numBinX = (uval_mainImageSizeI.x + 31) >> 5; // 32x32 bin
     uint binIdx = binId.y * numBinX + binId.x;
 
-    // Calculate bin origin in pixels
-    uvec2 binOrigin = binId << 5u; // binId * 32
-
-    // Local position within bin (relative to bin origin)
-    uvec2 binLocalPos = mortonGlobalPosU - binOrigin;
-
-    // For edge bins, we need to use linear indexing since the bin is not full 32x32
-    // Calculate the actual bin size (clamped to screen bounds)
-    uvec2 binEnd = min(binOrigin + 32u, uvec2(uval_mainImageSizeI));
-    uvec2 binSize = binEnd - binOrigin;
-
-    uint binLocalIndex;
-    if (binSize == uvec2(32u)) {
-        // Full bin: use Morton encoding
-        binLocalIndex = morton_16bEncode(binLocalPos);
-    } else {
-        // Edge bin: use linear indexing
-        binLocalIndex = binLocalPos.y * binSize.x + binLocalPos.x;
-    }
+    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uint binLocalIndex = threadIdx + morton_8bEncode(swizzledWGPos & 1u) * 256;
 
     uint binBaseIndex = binIdx * 1024;
     uint dataIndex = binBaseIndex + binLocalIndex;

@@ -299,11 +299,10 @@ void sst_trace(inout SSTRay ray, uint hiZSteps) {
 
 uvec2 _sst2_convertAngleIndex(SSTRay ray) {
     float rayAngle1 = atan(ray.pRayDir.y, ray.pRayDir.x); // -PI to PI
-//    float rayAngle2 = asin(ray.pRayDir.z) * PI; // -PI/2 to PI/2, scaled to -PI to PI
-    float rayAngle2 = ray.pRayDir.z * PI; // -PI to PI, doesn't seem to lose much accuracy and saves XU
+    float rayAngle2 = asin(ray.pRayDir.z) * PI; // -PI/2 to PI/2, scaled to -PI to PI
 
     vec2 angleNormF = linearStep(-PI, PI, vec2(rayAngle1, rayAngle2)); // 0.0 to 1.0
-    uvec2 angleNormU = uvec2(angleNormF * 255.0 + 0.5); // 0 to 255
+    uvec2 angleNormU = uvec2(angleNormF * 63.0 + 0.5); // 0 to 255
     return angleNormU;
 }
 
@@ -314,8 +313,7 @@ uint sst2_encodeBinLocalIndex(ivec2 binLocalPos) {
 uint _sst2_encodeRayIndexBits(uint binLocalPos, uvec2 angleIndex) {
     uint finalIndex = 0u;
     finalIndex = bitfieldInsert(finalIndex, binLocalPos, 0, 10); // 10 bits (0-1023)
-    finalIndex = bitfieldInsert(finalIndex, angleIndex.x, 16, 8); // 8 bits (0-255)
-    finalIndex = bitfieldInsert(finalIndex, angleIndex.y, 24, 8); // 8 bits (0-255)
+    finalIndex = bitfieldInsert(finalIndex, morton_16bEncode(angleIndex.yx), 10, 22);
     return finalIndex;
 }
 
