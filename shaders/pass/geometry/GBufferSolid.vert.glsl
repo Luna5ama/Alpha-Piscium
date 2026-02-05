@@ -16,17 +16,14 @@ out vec3 frag_worldTangent;
 out vec3 frag_worldNormal;// 11 + 11 + 10 = 32 bits
 #endif
 
-out vec4 frag_colorMul; // 8 x 4 = 32 bits
+out vec3 frag_colorMul; // 8 x 4 = 32 bits
 out vec2 frag_texCoord; // 16 x 2 = 32 bits
 out vec2 frag_lmCoord; // 8 x 2 = 16 bits
 out uint frag_materialID; // 16 x 1 = 16 bits
 out float frag_emissiveOverride;
 
-out float frag_viewZ;
-
 void main() {
     gl_Position = global_taaJitterMat * ftransform();
-    frag_viewZ = -gl_Position.w;
 
     vec3 viewNormal = gl_NormalMatrix * normalize(gl_Normal.xyz);
     vec3 viewTangent = gl_NormalMatrix * normalize(at_tangent.xyz);
@@ -43,7 +40,7 @@ void main() {
     frag_lmCoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     frag_lmCoord.x = linearStep(0.0625, 0.96875, frag_lmCoord.x);
     frag_lmCoord.y = linearStep(0.125, 0.73438, frag_lmCoord.y);
-    frag_colorMul = gl_Color;
+    frag_colorMul = gl_Color.rgb;
     #ifdef GBUFFER_PASS_DH
     frag_emissiveOverride = 0.0;
     if (dhMaterialId == DH_BLOCK_LAVA) {

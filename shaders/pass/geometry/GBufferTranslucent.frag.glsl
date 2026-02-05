@@ -32,11 +32,11 @@ in vec4 frag_colorMul;
 in vec2 frag_texCoord;
 in vec2 frag_lmCoord;
 flat in uint frag_materialID;
-in float frag_viewZ;
 
 flat in uint frag_midBlock;
 in vec3 frag_offsetToCenter;
 
+float frag_viewZ = -rcp(gl_FragCoord.w);
 uint materialID = 0u;
 vec3 viewPos = vec3(0.0);
 float zOffset = 0.0;

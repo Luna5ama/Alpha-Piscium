@@ -16,13 +16,11 @@ in vec3 frag_worldTangent;
 in vec3 frag_worldNormal;// 11 + 11 + 10 = 32 bits
 #endif
 
-in vec4 frag_colorMul;// 8 x 4 = 32 bits
+in vec3 frag_colorMul;// 8 x 4 = 32 bits
 in vec2 frag_texCoord;// 16 x 2 = 32 bits
 in vec2 frag_lmCoord;// 8 x 2 = 16 bits
 flat in uint frag_materialID;// 16 x 1 = 16 bits
 flat in float frag_emissiveOverride;
-
-in float frag_viewZ;// 32 bits
 
 #ifndef GBUFFER_PASS_ALPHA_TEST
 layout(early_fragment_tests) in;
@@ -53,13 +51,14 @@ vec2 dUVdy = dFdy(frag_texCoord);
 ivec2 texelPos = ivec2(gl_FragCoord.xy);
 float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 4u), frameCounter);
 
+float frag_viewZ = -rcp(gl_FragCoord.w);
 vec4 albedo;
 float viewZ;
 
 GBufferData gData = gbufferData_init();
 
 void processAlbedo() {
-    albedo = frag_colorMul;
+    albedo = vec4(frag_colorMul, 1.0);
 
     #ifdef GBUFFER_PASS_TEXTURED
     float alphaTestBias = 1.0 - global_taaResetFactor.y * 0.75;

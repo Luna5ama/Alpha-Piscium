@@ -19,13 +19,11 @@ out vec4 frag_colorMul;
 out vec2 frag_texCoord;
 out vec2 frag_lmCoord;
 out uint frag_materialID;
-out float frag_viewZ;
 out uint frag_midBlock;
 out vec3 frag_offsetToCenter;
 
 void main() {
     gl_Position = global_taaJitterMat * ftransform();
-    frag_viewZ = -gl_Position.w;
 
     vec3 viewNormal = gl_NormalMatrix * normalize(gl_Normal.xyz);
     vec3 viewTangent = gl_NormalMatrix * normalize(at_tangent.xyz);
