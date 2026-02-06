@@ -57,7 +57,8 @@ Material material_decode(GBufferData gData) {
     float emissivePBR = pow(gData.pbrSpecular.a, SETTING_EMISSIVE_PBR_VALUE_CURVE);
     vec4 emissiveAlbedoCurve = vec4(vec3(SETTING_EMISSIVE_ALBEDO_COLOR_CURVE), SETTING_EMISSIVE_ALBEDO_LUM_CURVE);
     float albedoLuma = colors2_colorspaces_luma(COLORS2_MATERIAL_COLORSPACE, gData.albedo);
-    vec4 emissiveAlbedo = pow(vec4(material.albedo, albedoLuma), emissiveAlbedoCurve);
+    vec4 emissiveAlbedo = pow(vec4(gData.albedo, albedoLuma), emissiveAlbedoCurve);
+    emissiveAlbedo.rgb = colors2_material_toWorkSpace(emissiveAlbedo.rgb);
 
     float MATERIAL_LAVA_LUMINANCE = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_constants_toWorkSpace(blackBody_evalRadiance_AP0(SETTING_LAVA_TEMPERATURE)));
     float MATERIAL_FIRE_LUMINANCE = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_constants_toWorkSpace(blackBody_evalRadiance_AP0(SETTING_FIRE_TEMPERATURE)));
