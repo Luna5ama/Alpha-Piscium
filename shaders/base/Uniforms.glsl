@@ -79,7 +79,7 @@ uniform float darknessLightFactor;              // lightmap variations caused by
 uniform vec3 cameraPositionFract;
 uniform ivec3 cameraPositionInt;
 
-#ifdef DISTANT_HORIZONS
+#if defined(DISTANT_HORIZONS)
 uniform float dhNearPlane;
 uniform float dhFarPlane;
 uniform int dhRenderDistance;
@@ -89,6 +89,20 @@ uniform mat4 dhPreviousProjection;
 
 float farPlane = max(dhFarPlane, far);
 float nearPlane = min(dhNearPlane, near);
+#elif defined(VOXY)
+uniform int vxRenderDistance;
+uniform mat4 vxViewProj;
+uniform mat4 vxViewProjInv;
+uniform mat4 vxViewProjPrev;
+uniform mat4 vxModelView;
+uniform mat4 vxModelViewInv;
+uniform mat4 vxModelViewPrev;
+uniform mat4 vxProj;
+uniform mat4 vxProjInv;
+uniform mat4 vxProjPrev;
+
+float farPlane = max(far, float(vxRenderDistance * 16));
+float nearPlane = near;
 #else
 float farPlane = far;
 float nearPlane = near;

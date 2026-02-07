@@ -1,0 +1,12 @@
+{
+	"version": 1,
+	"uniforms": [
+		"uval_taaJitter"
+	],
+	"samplers": {},
+	"opaqueDrawBuffers": [0],
+	"translucentDrawBuffers": [0],
+	"opaquePatchData": "void voxy_emitFragment(VoxyFragmentParameters parameters) {discard;}",
+	"translucentPatchData": "void voxy_emitFragment(VoxyFragmentParameters parameters) {discard;}",
+	"taaOffset": "{return uval_taaJitter;}"
+}
