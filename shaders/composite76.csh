@@ -1,5 +1,8 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/ExposureMip.comp.glsl"
-
+/*const*/
+#define BLOOM_UP_SAMPLE 1
+#define BLOOM_PASS 9
+/*const*/
+#include "/techniques/Bloom.comp.glsl"
