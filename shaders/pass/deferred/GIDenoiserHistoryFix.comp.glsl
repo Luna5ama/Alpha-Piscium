@@ -98,7 +98,7 @@ void main() {
         loadSharedDataMoments(workGroupOrigin, gl_LocalInvocationIndex + 256u);
 
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-            float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
+            float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
             if (viewZ > -65536.0) {
                 // No need to load fast colors here because they are already in the shared memory
                 GIHistoryData historyData = gi_historyData_init();
@@ -114,7 +114,7 @@ void main() {
                 if (historyFixMix < 1.0) {
                     vec2 texelPos0 = vec2(texelPos) + 0.5;
                     vec3 geomNormal0 = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
-                    float viweZ0 = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
+                    float viweZ0 = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
 
                     vec4 diffWeightedSum = vec4(0.0);
                     vec4 specWeightedSum = vec4(0.0);

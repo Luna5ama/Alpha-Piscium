@@ -151,7 +151,7 @@ void main() {
                 if (dot(centerSampleData.geomNormal, neighborData.geomNormal) < 0.99) {
                     continue;
                 }
-                float neighborViewZ = texelFetch(usam_gbufferViewZ, sampleTexelPos, 0).x;
+                float neighborViewZ = texelFetch(usam_gbufferSolidViewZ, sampleTexelPos, 0).x;
                 uvec4 neighborReservoirData;
                 if (bool(frameCounter & 1)) {
                     neighborReservoirData = history_restir_reservoirTemporal1_fetch(sampleTexelPos);

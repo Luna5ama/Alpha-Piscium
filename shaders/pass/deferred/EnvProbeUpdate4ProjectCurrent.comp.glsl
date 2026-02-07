@@ -31,13 +31,13 @@ bool envProbe_update(ivec2 sliceTexelPos, ivec2 sliceID, inout EnvProbeData outp
     }
 
     GBufferData gData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+    gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
     if (gData.isHand) {
         return false;
     }
 
-    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
     vec3 realViewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec4 realScenePos = gbufferModelViewInverse * vec4(realViewPos, 1.0);
     uvec4 hitRadianceData = transient_giRadianceInputs_fetch(texelPos);

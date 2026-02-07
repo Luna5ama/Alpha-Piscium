@@ -24,7 +24,7 @@ layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
-        float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        float solidViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
         vec4 exposureWeights = vec4(1.0);
 
         const float BASE_VIEWZ_WEIGHT = exp2(SETTING_EXPOSURE_DISTANCE_WEIGHTING);
@@ -77,8 +77,8 @@ void main() {
 
         if (startViewZ > -65536.0 && startViewZ > solidViewZ) {
             GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
             vec3 translucentTransmittance = texelFetch(usam_translucentColor, texelPos, 0).rgb;
             outputColor.rgb *= mix(translucentTransmittance / gData.albedo, vec3(0.0), lessThan(gData.albedo, vec3(0.001)));
         }

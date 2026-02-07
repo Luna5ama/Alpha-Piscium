@@ -21,7 +21,7 @@ float hiz_groupGroundCheckSubgroupLoadViewZ(uvec2 groupOrigin, int level, ivec2 
     }
     float viewZ = -65536.0;
     if (subgroupBroadcastFirst(subgroupCheck)) {
-        viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
     }
     return viewZ;
 }

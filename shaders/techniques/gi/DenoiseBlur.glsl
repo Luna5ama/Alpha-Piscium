@@ -36,7 +36,7 @@ struct GeomData {
 
 GeomData _gi_readGeomData(ivec2 texelPos, vec2 screenPos) {
     GeomData geomData;
-    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
     geomData.viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     geomData.geomNormal = transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
     geomData.normal = transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0;

@@ -81,20 +81,20 @@ void main() {
 
             // GBuffer packing opt: Only unpack what's needed for Reprojection
             // GBufferData gData = gbufferData_init();
-            // gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            // gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            // gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            // gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
 
             vec3 gGeomNormal;
             vec3 gNormal;
             bool gIsHand;
             {
-                uvec4 data1 = texelFetch(usam_gbufferData1, texelPos, 0);
+                uvec4 data1 = texelFetch(usam_gbufferSolidData1, texelPos, 0);
                 vec3 gGeomTangent;
                 nzpacking_unpackNormalOct16(data1.r, gGeomNormal, gGeomTangent);
                 gGeomNormal = coords_dir_worldToView(gGeomNormal);
                 gNormal = coords_dir_worldToView(nzpacking_unpackNormalOct32(data1.b));
 
-                uvec4 data2 = texelFetch(usam_gbufferData2, texelPos, 0);
+                uvec4 data2 = texelFetch(usam_gbufferSolidData2, texelPos, 0);
                 gIsHand = bool(bitfieldExtract(data2.r, 24, 1));
             }
 
@@ -273,8 +273,8 @@ void main() {
 
             // Re-fetch and fully unpack for material decoding (needed for Spatial / Initial) using fresh registers
             GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
             Material material = material_decode(gData);
 
             {

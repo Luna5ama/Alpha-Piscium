@@ -71,8 +71,8 @@ void main() {
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
             GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
             Material material = material_decode(gData);
             vec4 albedoAndEmissive = vec4(gData.albedo, gData.pbrSpecular.a);
             vec4 geomNormalData = vec4(gData.geomNormal * 0.5 + 0.5, 0.0);

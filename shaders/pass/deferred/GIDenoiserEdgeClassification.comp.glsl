@@ -26,11 +26,11 @@ void loadSharedData(uint index) {
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
 
         // Load viewZ
-        float viewZ = texelFetch(usam_gbufferViewZ, srcXY, 0).r;
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, srcXY, 0).r;
 
         // Load geometry normal
         GBufferData gData = gbufferData_init();
-        gbufferData1_unpack_world(texelFetch(usam_gbufferData1, srcXY, 0), gData);
+        gbufferData1_unpack_world(texelFetch(usam_gbufferSolidData1, srcXY, 0), gData);
 
         uvec3 packedData = uvec3(0u);
         packedData.x = floatBitsToUint(viewZ);

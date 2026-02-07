@@ -234,8 +234,8 @@ void main() {
 
         if (viewZ > -65536.0) {
             GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
             rtwsm_backward(texelPos, viewZ, gData);
             vec4 shadowValue = compShadow(texelPos, viewZ, gData);
             shadowValue = clamp(shadowValue, 0.0, FP16_MAX);

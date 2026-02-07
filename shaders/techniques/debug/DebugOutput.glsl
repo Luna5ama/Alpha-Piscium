@@ -132,12 +132,12 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 
 
         GBufferData gData = gbufferData_init();
-        gbufferData1_unpack(texelFetch(usam_gbufferData1, scaledTexelPos, 0), gData);
-        gbufferData2_unpack(texelFetch(usam_gbufferData2, scaledTexelPos, 0), gData);
+        gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, scaledTexelPos, 0), gData);
+        gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, scaledTexelPos, 0), gData);
         Material material = material_decode(gData);
 
         #if SETTING_DEBUG_GBUFFER_DATA == 1
-        outputColor.rgb = displayViewZ(texelFetch(usam_gbufferViewZ, scaledTexelPos, 0).r);
+        outputColor.rgb = displayViewZ(texelFetch(usam_gbufferSolidViewZ, scaledTexelPos, 0).r);
         #elif SETTING_DEBUG_GBUFFER_DATA == 2
         outputColor.rgb = gammaCorrect(material.albedo);
         #elif SETTING_DEBUG_GBUFFER_DATA == 3 || SETTING_DEBUG_GBUFFER_DATA == 4

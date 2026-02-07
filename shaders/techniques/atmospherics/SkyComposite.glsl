@@ -15,7 +15,7 @@ layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 const float DENSITY_EPSILON = 0.0001;
 
 ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
-    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
     vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * uval_mainImageSizeRcp;
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 

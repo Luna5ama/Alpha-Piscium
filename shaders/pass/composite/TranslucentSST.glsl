@@ -81,8 +81,8 @@ void main() {
             vec3 startViewPos = coords_toViewCoord(screenPos, startViewZ, global_camProjInverse);
 
             GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
 
             Material material = material_decode(gData);
             bool isWater = gData.materialID == 3u;
@@ -148,13 +148,13 @@ void main() {
                     refractColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
                     if (refractResult.hit) {
                         vec2 refractCoord = refractResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp);
-                        float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
+                        float refractDepth = texture(usam_gbufferSolidViewZ, refractCoord).r;
                         refractColor = mix(refractColor, BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb, edgeReductionFactor2(refractResult.hitScreenPos.xy));
                     }
                 }
             } else {
                 vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp)) : screenPos;
-                float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
+                float refractDepth = texture(usam_gbufferSolidViewZ, refractCoord).r;
                 if (refractDepth > startViewZ) {
                     refractCoord = screenPos;
                 }
@@ -188,7 +188,7 @@ void main() {
                 mixFactor *= float(hitDot > 0.0);
 
                 if (isEyeInWater == 1) {
-                    float reflectDepth = texture(usam_gbufferViewZ, sampleCoord).r;
+                    float reflectDepth = texture(usam_gbufferSolidViewZ, sampleCoord).r;
                     if (reflectDepth > -far) {
                         reflectColor = mix(reflectColor, hitColor, mixFactor);
                     }
