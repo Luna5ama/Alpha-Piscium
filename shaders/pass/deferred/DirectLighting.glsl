@@ -89,8 +89,8 @@ void main() {
 
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
         if (viewZ > -65536.0) {
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), lighting_gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), lighting_gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), lighting_gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), lighting_gData);
             transient_lmCoord_store(texelPos, vec4(lighting_gData.lmCoord, 0.0, 0.0));
             Material material = material_decode(lighting_gData);
             vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);

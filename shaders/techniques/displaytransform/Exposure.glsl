@@ -50,7 +50,7 @@ void _displaytransform_exposure_update(bool valid, inout vec4 color) {
 
         const float BASE_VIEWZ_WEIGHT = exp2(SETTING_EXPOSURE_DISTANCE_WEIGHTING);
         float emissive = transient_solidAlbedo_fetch(texelPos).a;
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
 
         float pixelWeight = 1.0;
         pixelWeight *= pow(exp2(SETTING_EXPOSURE_EMISSIVE_WEIGHTING), emissive);

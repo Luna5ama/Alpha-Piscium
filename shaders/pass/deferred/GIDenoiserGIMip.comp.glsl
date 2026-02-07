@@ -15,7 +15,7 @@ layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 vec4 spd_loadInput(ivec2 texelPos, uint slice) {
     vec4 result = vec4(0.0);
     texelPos = clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1);
-    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
     if (viewZ > -65536.0) {
         if (gl_WorkGroupID.z == 0) {
             result.xyz = transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0;

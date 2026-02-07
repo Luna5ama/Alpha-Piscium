@@ -27,9 +27,9 @@ void main() {
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         GBufferData gData = gbufferData_init();
-        gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-        gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+        gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
         vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
         vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
         vec3 viewDir = normalize(-viewPos);

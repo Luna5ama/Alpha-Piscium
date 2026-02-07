@@ -99,13 +99,13 @@ void main() {
         barrier();
 
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-            viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+            viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
             if (viewZ > -65536.0) {
                 vec2 texelCenter = vec2(texelPos) + vec2(0.5);
                 vec2 screenPos = texelCenter * uval_mainImageSizeRcp;
                 GBufferData gData = gbufferData_init();
-                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
-                float currViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+                gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
+                float currViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
                 vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
                 vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
                 vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;

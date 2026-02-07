@@ -13,7 +13,7 @@ void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
 
         ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
         ivec2 translucentNearDepthTexelPos = csr32f_tile3_texelToTexel(texelPos);

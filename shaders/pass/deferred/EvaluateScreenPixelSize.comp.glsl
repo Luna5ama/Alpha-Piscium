@@ -8,7 +8,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 
 vec3 sampleViewPos(ivec2 sampleTexelPos) {
-    float sampleViewZ = texelFetch(usam_gbufferViewZ, sampleTexelPos, 0).r;
+    float sampleViewZ = texelFetch(usam_gbufferSolidViewZ, sampleTexelPos, 0).r;
     vec2 sampleScreenPos = coords_texelToUV(sampleTexelPos, uval_mainImageSizeRcp);
     return coords_toViewCoord(sampleScreenPos, sampleViewZ, global_camProjInverse);
 }

@@ -15,11 +15,12 @@ const int colortex3Format = RGBA16F; // Temp3
 const int colortex4Format = RGBA8; // Temp4
 const int colortex5Format = RGBA8; // Temp5
 const int colortex6Format = RGBA8; // Temp6
-const int colortex8Format = RGBA32UI; // GBuffer Data 32UI
-const int colortex9Format = R32UI; // GBuffer Data 8UN
-const int colortex10Format = R32F; // GBuffer ViewZ
-const int colortex11Format = RGB10_A2; // Translucent Color
-const int colortex12Format = RGBA16F; // Translucent Data
+const int colortex8Format = RGBA32UI; // GBuffer Solid Data 32UI
+const int colortex9Format = R32UI; // GBuffer Solid Data 8UN
+const int colortex10Format = R32F; // GBuffer Solid ViewZ
+const int colortex11Format = RGBA32UI; // GBuffer Translucent Data 32UI
+const int colortex12Format = R32UI; // GBuffer Translucent Data 8UN
+const int colortex13Format = RGB10_A2; // Translucent Color
 
 const int shadowcolor0Format = R16F; // Depth offset
 const int shadowcolor2Format = RGB10_A2; // Translucent color
@@ -50,6 +51,7 @@ const bool colortex10Clear = false;
 
 const bool colortex11Clear = false;
 const bool colortex12Clear = false;
+const bool colortex13Clear = false;
 
 const bool shadowcolor0Clear = true;
 const vec4 shadowcolor0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);

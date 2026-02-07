@@ -16,7 +16,7 @@ vec4 spd_reduce4(vec4 v0, vec4 v1, vec4 v2, vec4 v3) {
     return result;
 }
 vec2 spd_loadInput(ivec2 texelPos, uint slice) {
-    float viewZ = texelFetch(usam_gbufferViewZ, clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1), 0).r;
+    float viewZ = texelFetch(usam_gbufferSolidViewZ, clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1), 0).r;
     float revZ = coords_viewZToReversedZ(viewZ, near);
     if (all(lessThan(texelPos, uval_mainImageSizeI))){
         imageStore(uimg_hiz, texelPos, vec4(revZ));

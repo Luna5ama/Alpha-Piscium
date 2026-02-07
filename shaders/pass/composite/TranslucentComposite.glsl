@@ -34,19 +34,19 @@ void main() {
         float waterStartViewZ = -texelFetch(usam_csr32f, waterNearDepthTexelPos, 0).r;
         float translucentStartViewZ = -texelFetch(usam_csr32f, translucentNearDepthTexelPos, 0).r;
         //            float endViewZ = -texelFetch(usam_csr32f, farDepthTexelPos, 0).r;
-        //            float startViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        //            float startViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
         float startViewZ = max(translucentStartViewZ, waterStartViewZ);
 
 
-        float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        float solidViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
 
         if (startViewZ > -65536.0 && startViewZ > solidViewZ) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
             vec3 startViewPos = coords_toViewCoord(screenPos, startViewZ, global_camProjInverse);
 
             GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
 
             Material material = material_decode(gData);
 
