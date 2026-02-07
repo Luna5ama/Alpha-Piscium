@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/techniques/atmospherics/air/EpipolarScattering.comp.glsl"
+#include "/pass/composite/EpipolarScatteringAir.comp.glsl"
