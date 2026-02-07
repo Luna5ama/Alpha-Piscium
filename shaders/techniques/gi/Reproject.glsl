@@ -90,7 +90,7 @@ void computeEdgeWeights(
 void gi_reproject(ivec2 texelPos, float currViewZ) {
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
 
-    screenPos -= global_taaJitter * uval_mainImageSizeRcp;
+    screenPos -= uval_taaJitter * uval_mainImageSizeRcp;
     GBufferData gData = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
     gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);

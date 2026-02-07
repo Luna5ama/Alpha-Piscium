@@ -147,13 +147,13 @@ void main() {
                     SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, refractDirWorld);
                     refractColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
                     if (refractResult.hit) {
-                        vec2 refractCoord = refractResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp);
+                        vec2 refractCoord = refractResult.hitScreenPos.xy + (uval_taaJitter * uval_mainImageSizeRcp);
                         float refractDepth = texture(usam_gbufferSolidViewZ, refractCoord).r;
                         refractColor = mix(refractColor, BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb, edgeReductionFactor2(refractResult.hitScreenPos.xy));
                     }
                 }
             } else {
-                vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp)) : screenPos;
+                vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (uval_taaJitter * uval_mainImageSizeRcp)) : screenPos;
                 float refractDepth = texture(usam_gbufferSolidViewZ, refractCoord).r;
                 if (refractDepth > startViewZ) {
                     refractCoord = screenPos;
@@ -179,7 +179,7 @@ void main() {
                 reflectColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
             }
             if (reflectResult.hit) {
-                vec2 sampleCoord = saturate(reflectResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp));
+                vec2 sampleCoord = saturate(reflectResult.hitScreenPos.xy + (uval_taaJitter * uval_mainImageSizeRcp));
                 vec3 hitGeomNormal = transient_geomViewNormal_sample(sampleCoord).rgb;
                 vec3 hitColor = BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb;
                 float mixFactor = edgeReductionFactor(reflectResult.hitScreenPos.xy);

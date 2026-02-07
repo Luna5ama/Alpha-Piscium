@@ -75,7 +75,7 @@ void main() {
     loadSharedColorData(workGroupOrigin, gl_LocalInvocationIndex + 256u);
 
     if (gl_LocalInvocationIndex == 0u) {
-        vec2 pixelPosFract = fract(global_taaJitter);
+        vec2 pixelPosFract = fract(uval_taaJitter);
 
         #if SETTING_TAA_CURR_FILTER == 0
         shared_weightsX = sampling_bSplineWeights(pixelPosFract.x);
@@ -90,15 +90,15 @@ void main() {
 
         for (int i = 0; i < 9; ++i) {
             vec2 offset = vec2(i % 3, i / 3) - 1.0;
-            vec2 diff = offset - 0.5 - global_taaJitter;
+            vec2 diff = offset - 0.5 - uval_taaJitter;
             shared_kernelDist2[i] = dot(diff, diff);
         }
     }
 
     barrier();
 
-    vec2 unjitterTexelPos = texelCenter + global_taaJitter;
-    vec2 unjitterScreenPos = screenPos + global_taaJitter * uval_mainImageSizeRcp;
+    vec2 unjitterTexelPos = texelCenter + uval_taaJitter;
+    vec2 unjitterScreenPos = screenPos + uval_taaJitter * uval_mainImageSizeRcp;
 
     // Looks like this is fast enough without shared memory
     float currViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
