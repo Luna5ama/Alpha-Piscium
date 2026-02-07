@@ -50,14 +50,6 @@ mat4 shadowDeRotateMatrix() {
     );
 }
 
-vec2 taaJitter() {
-    #ifdef SETTING_TAA_JITTER
-    return rand_r2Seq2(frameCounter) - 0.5;
-    #else
-    return vec2(0.0);
-    #endif
-}
-
 mat4 taaJitterMat(vec2 baseJitter) {
     vec2 jitter = baseJitter * 2.0 * (1.0 / imageSize(uimg_main));
     return mat4(
@@ -93,7 +85,6 @@ void main() {
 
         vec3 cameraDelta = uval_cameraDelta;
 
-        vec2 jitter = taaJitter();
         global_shadowRotationMatrix = shadowDeRotateMatrix();
         global_shadowRotationMatrixInverse = inverse(global_shadowRotationMatrix);
         global_shadowProjPrev = global_shadowProj;
@@ -104,9 +95,8 @@ void main() {
             -global_shadowAABBMax.z - 512.0, -global_shadowAABBMin.z + 16.0
         );
         global_shadowProjInverse = inverse(global_shadowProj);
-        global_prevTaaJitter = global_taaJitter;
-        global_taaJitter = jitter;
-        mat4 taaMat = taaJitterMat(jitter);
+        global_prevTaaJitter = uval_taaJitter;
+        mat4 taaMat = taaJitterMat(uval_taaJitter);
         global_taaJitterMat = taaMat;
 
         global_sceneToShadowNDC = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView;

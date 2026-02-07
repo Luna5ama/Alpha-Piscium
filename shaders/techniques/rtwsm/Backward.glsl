@@ -163,7 +163,7 @@ void rtwsm_backward(ivec2 texelPos, float viewZ, GBufferData gData) {
         importance(texelPos, viewZ, gData, p, v);
         backwardOutput(p, v);
         #else
-        vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * uval_mainImageSizeRcp;
+        vec2 screenPos = (vec2(texelPos) + 0.5 - uval_taaJitter) * uval_mainImageSizeRcp;
         vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
         vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
         vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;

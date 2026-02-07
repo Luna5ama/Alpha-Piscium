@@ -76,7 +76,7 @@ vec4 BicubicSampling5(sampler2D samplerV, vec2 inHistoryUV, vec2 resolution) {
 }
 
 vec4 celestial_render(ivec2 texelPos, inout vec4 temp6Out) {
-    vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * uval_mainImageSizeRcp;
+    vec2 screenPos = (vec2(texelPos) + 0.5 - uval_taaJitter) * uval_mainImageSizeRcp;
     vec3 viewCoord = coords_toViewCoord(screenPos, -far, global_camProjInverse);
 
     vec3 viewDir = normalize(viewCoord);
