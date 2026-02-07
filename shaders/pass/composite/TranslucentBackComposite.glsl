@@ -77,8 +77,8 @@ void main() {
 
         if (startViewZ > -65536.0 && startViewZ > solidViewZ) {
             GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferTranslucentData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferTranslucentData2, texelPos, 0), gData);
             vec3 translucentTransmittance = texelFetch(usam_translucentColor, texelPos, 0).rgb;
             outputColor.rgb *= mix(translucentTransmittance / gData.albedo, vec3(0.0), lessThan(gData.albedo, vec3(0.001)));
         }

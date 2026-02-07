@@ -41,7 +41,7 @@ uint materialID = 0u;
 vec3 viewPos = vec3(0.0);
 float zOffset = 0.0;
 
-/* RENDERTARGETS:8,9,13 */
+/* RENDERTARGETS:11,12,13 */
 layout(location = 0) out uvec4 rt_gbufferSolidData1;
 layout(location = 1) out uvec4 rt_gbufferSolidData2;
 layout(location = 2) out vec4 rt_translucentColor;

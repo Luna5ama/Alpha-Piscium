@@ -30,6 +30,12 @@
 #define usam_gbufferSolidViewZ colortex10
 #define uimg_gbufferSolidViewZ colorimg10
 
+#define usam_gbufferTranslucentData1 colortex11
+#define uimg_gbufferTranslucentData1 colorimg11
+
+#define usam_gbufferTranslucentData2 colortex12
+#define uimg_gbufferTranslucentData2 colorimg12
+
 #define usam_translucentColor colortex13
 #define uimg_translucentColor colorimg13
 
@@ -58,6 +64,8 @@ uniform sampler2D usam_overlays;
 uniform usampler2D usam_gbufferSolidData1;
 uniform usampler2D usam_gbufferSolidData2;
 uniform sampler2D usam_gbufferSolidViewZ;
+uniform usampler2D usam_gbufferTranslucentData1;
+uniform usampler2D usam_gbufferTranslucentData2;
 uniform sampler2D usam_translucentColor;
 
 // -------------------------------------------------- Shadow Samplers --------------------------------------------------
