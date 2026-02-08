@@ -108,11 +108,7 @@ vec4 expGamma(vec4 color) {
 }
 
 vec3 displayViewZ(float viewZ) {
-    #ifdef DISTANT_HORIZONS
-    float viewZRemapped = linearStep(-near, -dhFarPlane, viewZ);
-    #else
-    float viewZRemapped = linearStep(-near, -far, viewZ);
-    #endif
+    float viewZRemapped = linearStep(nearPlane, farPlane, -viewZ);
     return interpolateTurbo(sqrt(viewZRemapped));
 }
 
