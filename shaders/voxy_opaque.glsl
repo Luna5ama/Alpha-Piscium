@@ -12,10 +12,8 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
     uint packedUV = packUnorm2x16(parameters.uv);
 
     // G: Color (3x8 unorm) + Face (3 bits in alpha slot)
-    // Note: parameters.face is uint 0-5 typically.
-    // We map 0-255 to 0-1 for packUnorm.
-    // face -> float(face)/255.0
-    uint packedColorFace = packUnorm4x8(vec4(base_color, float(parameters.face) / 255.0));
+    uint packedColorFace = packUnorm4x8(vec4(base_color, 0.0));
+    packedColorFace = bitfieldInsert(packedColorFace, parameters.face, 24, 3);
 
     // B: Lightmap (2x8 unorm) + MaterialID (16 bits)
     uint lmx = uint(clamp(parameters.lightMap.x, 0.0, 1.0) * 255.0);
@@ -24,6 +22,7 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
     uint matID = parameters.customId & 0xFFFFu;
     uint packedLMMat = lmPacked | (matID << 16);
 
+    // A: ViewZ (float as uint)
     float viewZ = -rcp(gl_FragCoord.w);
 
     rt_gbufferData = uvec4(packedUV, packedColorFace, packedLMMat, floatBitsToUint(viewZ));

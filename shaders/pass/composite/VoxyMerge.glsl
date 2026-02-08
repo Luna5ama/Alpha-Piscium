@@ -23,19 +23,18 @@ void voxy_merge() {
         vec2 uv = unpackUnorm2x16(voxyData.x);
         vec4 colorFace = unpackUnorm4x8(voxyData.y);
         vec3 albedo = colorFace.rgb;
-        uint face = uint(colorFace.a * 255.0 + 0.5);
+        uint face = bitfieldExtract(voxyData.y, 24, 3);
         uint lmMat = voxyData.z;
         vec2 lmCoord = vec2(lmMat & 0xFFu, (lmMat >> 8) & 0xFFu) / 255.0;
         uint matID = (lmMat >> 16) & 0xFFFFu;
 
-        // Simple Normal (Placeholder)
-        vec3 N = vec3(0,1,0);
-        // Ideally reconstruct using cross product of dFdx/dFdy of ViewPos derived from ViewZ neighbors
+        vec3 geomViewNormal = vec3(uint((face>>1)==2), uint((face>>1)==0), uint((face>>1)==1)) * (float(int(face)&1)*2-1);
+        geomViewNormal = coords_dir_worldToView(geomViewNormal);
 
         GBufferData gData = gbufferData_init();
         gData.albedo = albedo;
-        gData.normal = N;
-        gData.geomNormal = N;
+        gData.normal = geomViewNormal;
+        gData.geomNormal = geomViewNormal;
         gData.lmCoord = lmCoord;
         gData.materialID = matID;
 
