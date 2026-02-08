@@ -118,7 +118,6 @@ uint voxel_brickMorton(ivec3 brickCoord) {
     return morton3D_12bEncode(uvec3(brickCoord));
     #else
     // Grid=32: coords 0..31 (5-bit), Grid=64: coords 0..63 (6-bit)
-    // morton3D_30bEncode is correct for values < 256 (bug in step 2 only affects bits 8-9)
     return morton3D_30bEncode(uvec3(brickCoord));
     #endif
 }
@@ -157,4 +156,3 @@ uint brickDistBucket(ivec3 brickRelCoord, vec3 cameraInBrick) {
 }
 
 #endif // INCLUDE_techniques_Voxelization_glsl
-
