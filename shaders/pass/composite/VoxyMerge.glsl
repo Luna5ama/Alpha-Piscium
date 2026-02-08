@@ -39,7 +39,10 @@ void voxy_merge() {
         gData.lmCoord = lmCoord;
         gData.materialID = matID;
 
-        uvec4 d1; uvec4 d2; gbufferData1_pack(d1, gData); gbufferData2_pack(d2, gData);
+        uvec4 d1;
+        uvec4 d2;
+        gbufferData1_pack(d1, gData);
+        gbufferData2_pack(d2, gData);
         imageStore(uimg_gbufferSolidData1, texelPos, d1);
         imageStore(uimg_gbufferSolidData2, texelPos, uvec4(d2.r, 0, 0, 0));
     }

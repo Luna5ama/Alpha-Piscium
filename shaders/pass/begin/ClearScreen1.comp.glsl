@@ -9,7 +9,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #define CLEAR_IMAGE3 uimg_gbufferSolidViewZ
 #define CLEAR_IMAGE4 uimg_gbufferTranslucentData1
 #define CLEAR_IMAGE5 uimg_gbufferTranslucentData2
-#define CLEAR_IMAGE6 uimg_translucentColor
+#define CLEAR_IMAGE6 uimg_gbufferTranslucentViewZ
 #define CLEAR_IMAGE7 uimg_gbufferVoxySolidData
 #define CLEAR_IMAGE8 uimg_gbufferVoxyTranslucentData
 
@@ -18,7 +18,7 @@ layout(rgba8) uniform writeonly image2D CLEAR_IMAGE2;
 layout(r32f) uniform writeonly image2D CLEAR_IMAGE3;
 layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE4;
 layout(rgba8) uniform writeonly image2D CLEAR_IMAGE5;
-layout(rgba16f) uniform writeonly image2D CLEAR_IMAGE6;
+layout(r32f) uniform writeonly image2D CLEAR_IMAGE6;
 layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE7;
 layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE8;
 
@@ -28,7 +28,7 @@ layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE8;
 #define CLEAR_COLOR3 vec4(-65536.0)
 #define CLEAR_COLOR4 uvec4(0u)
 #define CLEAR_COLOR5 vec4(0.0)
-#define CLEAR_COLOR6 vec4(1.0, 1.0, 1.0, 0.0)
+#define CLEAR_COLOR6 vec4(-65536.0)
 #define CLEAR_COLOR7 uvec4(0u)
 #define CLEAR_COLOR8 uvec4(0u)
 /*const*/

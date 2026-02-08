@@ -1,7 +1,7 @@
 #define SKIP_UNIFORMS a
 #include "/Base.glsl"
 
-layout(location = 0) out uvec4 image16;
+layout(location = 0) out uvec4 rt_gbufferData;
 
 void voxy_emitFragment(VoxyFragmentParameters parameters) {
     vec3 base_color = parameters.sampledColour.rgb * parameters.tinting.rgb;
@@ -22,12 +22,8 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
     uint matID = parameters.customId & 0xFFFFu;
     uint packedLMMat = lmPacked | (matID << 16);
 
-    // Calculate ViewZ
-    vec2 screenUV = gl_FragCoord.xy / vec2(viewWidth, viewHeight);
-    vec4 ndc = vec4(screenUV * 2.0 - 1.0, gl_FragCoord.z * 2.0 - 1.0, 1.0);
-    vec4 viewP = gbufferProjectionInverse * ndc;
-    float viewZ = viewP.z / viewP.w;
+    float viewZ = -rcp(gl_FragCoord.w);
 
-    image16 = uvec4(packedUV, packedColorFace, packedLMMat, floatBitsToUint(viewZ));
+    rt_gbufferData = uvec4(packedUV, packedColorFace, packedLMMat, floatBitsToUint(viewZ));
 }
 

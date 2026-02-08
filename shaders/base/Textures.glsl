@@ -36,8 +36,11 @@
 #define usam_gbufferTranslucentData2 colortex12
 #define uimg_gbufferTranslucentData2 colorimg12
 
-#define usam_translucentColor colortex13
-#define uimg_translucentColor colorimg13
+#define usam_gbufferTranslucentViewZ colortex13
+#define uimg_gbufferTranslucentViewZ colorimg13
+
+#define usam_translucentColor colortex14
+#define uimg_translucentColor colorimg14
 
 #define usam_gbufferVoxySolidData colortex16
 #define uimg_gbufferVoxySolidData colorimg16

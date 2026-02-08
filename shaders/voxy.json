@@ -14,7 +14,7 @@
         "gbufferProjectionInverse"
     ],
 	"opaqueDrawBuffers": [16],
-	"translucentDrawBuffers": [18, 17],
+	"translucentDrawBuffers": [17, 18],
     "blending": {
         "-1": "off",
         "1": "SRC_ALPHA SRC_COLOR ONE ONE"
