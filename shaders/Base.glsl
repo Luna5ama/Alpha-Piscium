@@ -17,6 +17,14 @@ const int shadowMapResolution = 3072;
 const int shadowMapResolution = 4096;
 #endif
 
+#if SETTING_VOXEL_GRID_SIZE == 64
+const float voxelDistance = 512.0;
+#elif SETTING_VOXEL_GRID_SIZE == 32
+const float voxelDistance = 256.0;
+#elif SETTING_VOXEL_GRID_SIZE == 16
+const float voxelDistance = 128.0;
+#endif
+
 const vec2 SHADOW_MAP_SIZE = vec2(float(shadowMapResolution), 1.0 / float(shadowMapResolution));
 
 #include "/base/Uniforms.glsl"

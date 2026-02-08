@@ -25,6 +25,7 @@
 // subgroupElect() thread per subgroup → 2 atomicOrs per brick into rootMaskLo/Hi.
 
 #extension GL_KHR_shader_subgroup_arithmetic : enable
+#extension GL_KHR_shader_subgroup_basic : enable
 
 #define VOXEL_BRICK_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_MATERIAL_VEC4 a

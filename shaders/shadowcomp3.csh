@@ -2,4 +2,3 @@
 #define COMP 1
 
 #include "/pass/shadow/VoxelTreePropagator.comp.glsl"
-
