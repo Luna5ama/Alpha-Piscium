@@ -1,4 +1,6 @@
 #define SKIP_UNIFORMS a
+#define DISABLE_FP16 a
+#include "/util/Math.glsl"
 #include "/util/Colors2.glsl"
 #include "/util/Translucent.glsl"
 

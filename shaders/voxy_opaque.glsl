@@ -1,7 +1,9 @@
 #define SKIP_UNIFORMS a
-#include "/Base.glsl"
+#define DISABLE_FP16 a
+#include "/util/Math.glsl"
 
 layout(location = 0) out uvec4 rt_gbufferData;
+layout(location = 1) out vec4 rt_test;
 
 void voxy_emitFragment(VoxyFragmentParameters parameters) {
     vec3 base_color = parameters.sampledColour.rgb * parameters.tinting.rgb;
@@ -25,5 +27,6 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
     float viewZ = -rcp(gl_FragCoord.w);
 
     rt_gbufferData = uvec4(packedUV, packedColorFace, packedLMMat, floatBitsToUint(viewZ));
+    rt_test = gl_FragCoord;
 }
 
