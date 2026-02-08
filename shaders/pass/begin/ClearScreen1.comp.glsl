@@ -10,8 +10,8 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #define CLEAR_IMAGE4 uimg_gbufferTranslucentData1
 #define CLEAR_IMAGE5 uimg_gbufferTranslucentData2
 #define CLEAR_IMAGE6 uimg_translucentColor
-#define CLEAR_IMAGE7 uimg_voxyData
-#define CLEAR_IMAGE8 uimg_voxyData2
+#define CLEAR_IMAGE7 uimg_gbufferVoxySolidData
+#define CLEAR_IMAGE8 uimg_gbufferVoxyTranslucentData
 
 layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE1;
 layout(rgba8) uniform writeonly image2D CLEAR_IMAGE2;

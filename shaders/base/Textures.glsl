@@ -39,14 +39,14 @@
 #define usam_translucentColor colortex13
 #define uimg_translucentColor colorimg13
 
-#define usam_voxyData colortex16
-#define uimg_voxyData colorimg16
+#define usam_gbufferVoxySolidData colortex16
+#define uimg_gbufferVoxySolidData colorimg16
 
-#define usam_voxyData2 colortex17
-#define uimg_voxyData2 colorimg17
+#define usam_gbufferVoxyTranslucentData colortex17
+#define uimg_gbufferVoxyTranslucentData colorimg17
 
-#define usam_voxyTranslucent colortex18
-#define uimg_voxyTranslucent colorimg18
+#define usam_voxyTranslucentColor colortex18
+#define uimg_voxyTranslucentColor colorimg18
 
 // ------------------------------------------------- Shadowcolor Names -------------------------------------------------
 #define usam_shadow_unwarpedUV shadowcolor3
@@ -78,9 +78,9 @@ uniform usampler2D usam_gbufferTranslucentData1;
 uniform usampler2D usam_gbufferTranslucentData2;
 uniform sampler2D usam_translucentColor;
 
-uniform usampler2D usam_voxyData;
-uniform usampler2D usam_voxyData2;
-uniform sampler2D usam_voxyTranslucent;
+uniform usampler2D usam_gbufferVoxySolidData;
+uniform usampler2D usam_gbufferVoxyTranslucentData;
+uniform sampler2D usam_voxyTranslucentColor;
 
 // -------------------------------------------------- Shadow Samplers --------------------------------------------------
 uniform sampler2D shadowtex0;

@@ -2,7 +2,7 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Coords.glsl"
 
-layout(rgba32ui) uniform restrict readonly uimage2D uimg_voxyData;
+layout(rgba32ui) uniform restrict readonly uimage2D uimg_gbufferVoxySolidData;
 layout(rgba32ui) uniform restrict uimage2D uimg_gbufferSolidData1;
 layout(r32ui) uniform restrict uimage2D uimg_gbufferSolidData2;
 layout(r32f) uniform restrict image2D uimg_gbufferSolidViewZ;
@@ -11,7 +11,7 @@ void voxy_merge() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (any(greaterThanEqual(texelPos, uval_mainImageSizeI))) return;
 
-    uvec4 voxyData = imageLoad(uimg_voxyData, texelPos);
+    uvec4 voxyData = imageLoad(uimg_gbufferVoxySolidData, texelPos);
     if (voxyData.w == 0u && voxyData.x == 0u) return;
 
     float voxyZ = uintBitsToFloat(voxyData.w);
