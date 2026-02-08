@@ -40,7 +40,6 @@ class ProgramScope internal constructor() {
         fun pass(shaderPath: String, block: PassScope.() -> Unit = {}) {
             PassScope("$pass${index++}", shaderPath).apply(block).build()
         }
-
         @ProgramDsl
         inner class PassScope(private val passName: String, private val shaderPath: String) {
             private var cond: String? = null
@@ -134,10 +133,21 @@ programs {
         pass("/pass/setup/ClearRGB10A2.glsl")
         pass("/pass/setup/ClearRGBA8.glsl")
         pass("/pass/setup/ClearR32F.glsl")
+        pass("/pass/setup/ClearVoxelFaceTexcoords.comp.glsl")
     }
 
     ProgramType.SHADOWCOMP {
         pass("/pass/shadowcomp/EvaluateShadowWaterNormal.glsl")
+        pass("/pass/shadow/VoxelTreeBuilder.comp.glsl")
+        pass("/pass/shadow/VoxelTreePropagator.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE < 64")
+        }
+        pass("/pass/shadow/VoxelTreePropagatorLower.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE == 64")
+        }
+        pass("/pass/shadow/VoxelTreePropagatorUpper.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE == 64")
+        }
     }
 
     ProgramType.BEGIN {
@@ -159,10 +169,26 @@ programs {
         pass(
             "/techniques/atmospherics/clouds/amblut/Gather.comp.glsl",
             "/pass/begin/ClearEnvProbe.comp.glsl",
-            "/pass/begin/InitThreadGroupTilling.glsl"
+            "/pass/begin/InitThreadGroupTilling.glsl",
+            "/pass/begin/ClearVoxelData.comp.glsl"
         )
         pass("/pass/begin/ClearScreen3.comp.glsl") {
             cond("defined(VOXY)")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_Clear.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_Remap.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_PrefixSum.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_Assign.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocator.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE == 16")
         }
     }
 
@@ -270,6 +296,9 @@ programs {
         }
         pass("/pass/composite/DOFPrepare.comp.glsl") {
             cond("defined(SETTING_DOF)")
+        }
+        pass("/pass/composite/VoxelDebug.comp.glsl") {
+            cond("defined(SETTING_DEBUG_VOXEL_TRACE)")
         }
         pass("/pass/composite/TAAPrepare.comp.glsl")
         pass("/pass/composite/TAAResolve.comp.glsl")
