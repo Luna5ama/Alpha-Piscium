@@ -269,7 +269,7 @@ void main() {
             #if SETTING_DEBUG_OUTPUT
             if (RANDOM_FRAME < MAX_FRAMES){
                 //                imageStore(uimg_temp3, texelPos, vec4(linearStep(baseKernelRadius.z, baseKernelRadius.w, kernelRadius)));
-                imageStore(uimg_temp3, texelPos, hitDistanceFactors.xxxx);
+//                imageStore(uimg_temp3, texelPos, hitDistanceFactors.xxxx);
                 // imageStore(uimg_temp3, texelPos, sigma.xxxx);
             }
             #endif

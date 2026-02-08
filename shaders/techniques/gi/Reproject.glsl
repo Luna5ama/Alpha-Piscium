@@ -345,11 +345,11 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     }
 
     if (!valid) {
-        transient_gi1Reprojected_store(texelPos, uvec4(0u));
-        transient_gi2Reprojected_store(texelPos, uvec4(0u));
-        transient_gi3Reprojected_store(texelPos, uvec4(0u));
-        transient_gi4Reprojected_store(texelPos, uvec4(0u));
-        transient_gi5Reprojected_store(texelPos, uvec4(0u));
+        transient_gi1Reprojected_store(texelPos, vec4(0.0));
+        transient_gi2Reprojected_store(texelPos, vec4(0.0, 0.0, 0.0, MAX_HIT_DISTANCE));
+        transient_gi3Reprojected_store(texelPos, vec4(0.0));
+        transient_gi4Reprojected_store(texelPos, vec4(0.0, 0.0, 0.0, MAX_HIT_DISTANCE));
+        transient_gi5Reprojected_store(texelPos, vec4(0.0));
 
         ReprojectInfo reprojInfo = reprojectInfo_init();
         transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));

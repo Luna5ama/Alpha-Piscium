@@ -29,6 +29,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
+layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 
 int selectWeighted(vec4 bilinearWeights, vec4 bilateralWeights, float rand) {
@@ -283,6 +284,17 @@ void main() {
                 vec3 hitRadiance = initialSample.hitRadiance;
                 vec3 sampleDirView = initialSample.directionAndLength.xyz;
 
+                vec3 hitViewPos = viewPos + sampleDirView * hitDistance;
+                vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
+                ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
+                vec4 hitGeomNormalData = transient_geomViewNormal_fetch(hitTexelPos);
+                vec3 hitGeomNormal = normalize(hitGeomNormalData.xyz * 2.0 - 1.0);
+                float geomNormalDot = dot(hitGeomNormal, gData.geomNormal);
+
+                if (geomNormalDot > 0.99) {
+                    transient_gi_initialSampleHitDistance_store(texelPos, vec4(-1.0));
+                }
+
                 float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
                 vec3 initalSample = brdf * hitRadiance;
 
@@ -300,9 +312,6 @@ void main() {
                     reservoirPHat = newPHat;
                     finalSample = vec4(hitRadiance, brdf);
 
-                    vec3 hitViewPos = viewPos + sampleDirView * hitDistance;
-                    vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
-                    ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
                     vec4 hitNormalData = transient_viewNormal_fetch(hitTexelPos);
                     hitNormal = normalize(hitNormalData.xyz * 2.0 - 1.0);
                 }
