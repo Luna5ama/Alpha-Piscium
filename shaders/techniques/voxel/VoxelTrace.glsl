@@ -114,7 +114,9 @@ void voxel_initShared() {
         _voxel_spreadLUT[i] = _voxel_spreadBits(i);
     }
 
-    if (gl_LocalInvocationIndex < 6u) {
+    if (gl_LocalInvocationIndex == 0u) {
+        _voxel_levelSizeMask[0] = ivec2(0);
+    } else if (gl_LocalInvocationIndex < 6u) {
         int cellShift = (int(gl_LocalInvocationIndex) - 1) << 1;
         int sizeMask = -(1 << cellShift);
         // Store absolute cell size (1 << cellShift) in the Y component
@@ -303,7 +305,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
         // Write back state for resumption if still active (not done)
         if (ray.level != 0) {
             ray.lastT = lastT;
-            ray.lastAxis = (lastMask.x > 0.5) ? 0 : ((lastMask.y > 0.5) ? 1 : 2);
+            ray.lastAxis = (lastMask.x != 0) ? 0 : ((lastMask.y != 0) ? 1 : 2);
             ray.level = level;
             ray.fullMorton = fullMorton;
         }
@@ -315,12 +317,11 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
     result.hitPos = vec3(0.0);
     result.normal = vec3(0.0, 1.0, 0.0);
     #if VOXEL_TRACE_DEBUG_COUNTERS
-    result.debugCounters = debugCounters
+    result.debugCounters = debugCounters;
     #endif
     return result;
 }
 
 #endif // INCLUDE_techniques_VoxelTrace_glsl
-
 
 
