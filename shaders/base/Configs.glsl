@@ -22,6 +22,10 @@ const int colortex11Format = RGBA32UI; // GBuffer Translucent Data 32UI
 const int colortex12Format = R32UI; // GBuffer Translucent Data 8UN
 const int colortex13Format = RGB10_A2; // Translucent Color
 
+const int colortex16Format = RGBA32UI; // Voxy Data (UV, Color, Face, Lightmap, ID) - Replaces 16 & 17 requirement with a single large buffer or split if needed
+const int colortex17Format = RGBA32UI; // Voxy Translucent Data
+const int colortex18Format = RGB10_A2; // Voxy Translucent Color
+
 const int shadowcolor0Format = R16F; // Depth offset
 const int shadowcolor2Format = RGB10_A2; // Translucent color
 const int shadowcolor3Format = RG16; // Unwarped UV
@@ -52,6 +56,11 @@ const bool colortex10Clear = false;
 const bool colortex11Clear = false;
 const bool colortex12Clear = false;
 const bool colortex13Clear = false;
+
+const bool colortex16Clear = false;
+const bool colortex17Clear = false;
+const bool colortex18Clear = true;
+const vec4 colortex18ClearColor = vec4(1.0, 1.0, 1.0, 0.0);
 
 const bool shadowcolor0Clear = true;
 const vec4 shadowcolor0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);

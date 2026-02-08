@@ -1,3 +1,4 @@
+#ifndef SKIP_UNIFORMS
 // By sixthsurge
 #if defined MC_GL_AMD_gpu_shader_half_float
 #extension GL_AMD_gpu_shader_half_float : enable
@@ -15,4 +16,5 @@
 #define f16mat2 mat2
 #define f16mat3 mat3
 #define f16mat4 mat4
+#endif
 #endif

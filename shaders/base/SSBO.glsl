@@ -25,8 +25,6 @@ struct CameraData {
     vec4 frustumPlanes[6];
 };
 
-mat4 gbufferPrevModelView = gbufferPreviousModelView;
-
 layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uvec4 global_dispatchSize1;
     uvec4 global_dispatchSize2;
@@ -82,5 +80,3 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
 layout(std430, binding = 1) GLOBAL_DATA_MODIFIER IndirectComputeData {
     uint indirectComputeData[];
 };
-
-const vec2 SHADOW_MAP_SIZE = vec2(float(shadowMapResolution), 1.0 / float(shadowMapResolution));

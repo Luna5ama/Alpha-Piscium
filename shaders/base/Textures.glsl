@@ -39,6 +39,15 @@
 #define usam_translucentColor colortex13
 #define uimg_translucentColor colorimg13
 
+#define usam_voxyData colortex16
+#define uimg_voxyData colorimg16
+
+#define usam_voxyData2 colortex17
+#define uimg_voxyData2 colorimg17
+
+#define usam_voxyTranslucent colortex18
+#define uimg_voxyTranslucent colorimg18
+
 // ------------------------------------------------- Shadowcolor Names -------------------------------------------------
 #define usam_shadow_unwarpedUV shadowcolor3
 #define uimg_shadow_unwarpedUV shadowcolorimg3
@@ -53,6 +62,7 @@
 #define uimg_shadow_waterNormal shadowcolorimg6
 /*const*/
 
+#ifndef SKIP_UNIFORMS
 // ------------------------------------------------- Colortex Samplers -------------------------------------------------
 uniform sampler2D usam_main;
 uniform sampler2D usam_temp1;
@@ -67,6 +77,10 @@ uniform sampler2D usam_gbufferSolidViewZ;
 uniform usampler2D usam_gbufferTranslucentData1;
 uniform usampler2D usam_gbufferTranslucentData2;
 uniform sampler2D usam_translucentColor;
+
+uniform usampler2D usam_voxyData;
+uniform usampler2D usam_voxyData2;
+uniform sampler2D usam_voxyTranslucent;
 
 // -------------------------------------------------- Shadow Samplers --------------------------------------------------
 uniform sampler2D shadowtex0;
@@ -123,3 +137,4 @@ uniform sampler2D usam_cumulusBase;
 uniform sampler2D usam_blockAtlasColor;
 uniform sampler2D usam_blockAtlasNormal;
 uniform sampler2D usam_blockAtlasSpecular;
+#endif
