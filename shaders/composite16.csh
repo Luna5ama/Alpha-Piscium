@@ -1,4 +1,5 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/CausticsPhotonTrace.comp.glsl"
+#define PASS 1
+#include "/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl"

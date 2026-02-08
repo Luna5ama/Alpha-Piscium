@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/CausticsFilter.comp.glsl"
+#include "/pass/composite/CausticsPhotonTrace.comp.glsl"
