@@ -10,8 +10,6 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #define CLEAR_IMAGE4 uimg_gbufferTranslucentData1
 #define CLEAR_IMAGE5 uimg_gbufferTranslucentData2
 #define CLEAR_IMAGE6 uimg_gbufferTranslucentViewZ
-#define CLEAR_IMAGE7 uimg_gbufferVoxySolidData
-#define CLEAR_IMAGE8 uimg_gbufferVoxyTranslucentData
 
 layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE1;
 layout(rgba8) uniform writeonly image2D CLEAR_IMAGE2;
@@ -19,8 +17,6 @@ layout(r32f) uniform writeonly image2D CLEAR_IMAGE3;
 layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE4;
 layout(rgba8) uniform writeonly image2D CLEAR_IMAGE5;
 layout(r32f) uniform writeonly image2D CLEAR_IMAGE6;
-layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE7;
-layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE8;
 
 #define CLEAR_IMAGE_SIZE ivec2(uval_mainImageSizeI)
 #define CLEAR_COLOR1 uvec4(0u)
@@ -29,8 +25,17 @@ layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE8;
 #define CLEAR_COLOR4 uvec4(0u)
 #define CLEAR_COLOR5 vec4(0.0)
 #define CLEAR_COLOR6 vec4(-65536.0)
+/*const*/
+
+#ifdef VOXY
+#define CLEAR_IMAGE7 uimg_gbufferVoxySolidData
+#define CLEAR_IMAGE8 uimg_gbufferVoxyTranslucentData
+
+layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE7;
+layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE8;
+
 #define CLEAR_COLOR7 uvec4(0u)
 #define CLEAR_COLOR8 uvec4(0u)
-/*const*/
+#endif
 
 #include "/techniques/Clear.comp.glsl"

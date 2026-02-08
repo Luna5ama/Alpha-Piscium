@@ -33,5 +33,4 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
     float viewZ = -rcp(gl_FragCoord.w);
 
     rt_gbufferData = uvec4(packedUV, packedColorFace, packedLMMat, floatBitsToUint(viewZ));
-    rt_test = gl_FragCoord;
 }

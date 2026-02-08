@@ -2,12 +2,15 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Coords.glsl"
 
+layout(local_size_x = 16, local_size_y = 16) in;
+const vec2 workGroupsRender = vec2(1.0, 1.0);
+
 layout(rgba32ui) uniform restrict readonly uimage2D uimg_gbufferVoxySolidData;
 layout(rgba32ui) uniform restrict uimage2D uimg_gbufferSolidData1;
 layout(r32ui) uniform restrict uimage2D uimg_gbufferSolidData2;
 layout(r32f) uniform restrict image2D uimg_gbufferSolidViewZ;
 
-void voxy_merge() {
+void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (any(greaterThanEqual(texelPos, uval_mainImageSizeI))) return;
 
