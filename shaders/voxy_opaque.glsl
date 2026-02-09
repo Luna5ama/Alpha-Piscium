@@ -5,14 +5,14 @@
 layout(location = 0) out uvec4 rt_gbufferData;
 
 void voxy_emitFragment(VoxyFragmentParameters parameters) {
-    vec3 color = parameters.sampledColour.rgb * parameters.tinting.rgb;
+    vec4 color = parameters.sampledColour * parameters.tinting;
     uint materialID = parameters.customId & 0xFFFFu;
 
     // R: UV (2x16 unorm)
     uint packedUV = packUnorm2x16(parameters.uv);
 
     // G: Color (3x8 unorm) + Face (3 bits in alpha slot)
-    uint packedColorFace = packUnorm4x8(vec4(color, 0.0));
+    uint packedColorFace = packUnorm4x8(vec4(color.rgb, 0.0));
     packedColorFace = bitfieldInsert(packedColorFace, parameters.face, 24, 3);
 
     // B: Lightmap (2x8 unorm) + MaterialID (16 bits)
