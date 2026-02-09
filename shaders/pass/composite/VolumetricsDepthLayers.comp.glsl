@@ -63,9 +63,10 @@ void shadowAABB2() {
 }
 
 void updateShadowAABB(vec2 screenPos, float viewZ, inout vec3 shadowViewPosMin, inout vec3 shadowViewPosMax) {
-    if (viewZ < 0.0 && viewZ > -farPlane) {
-        vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-        vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
+    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+    vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
+    float realShadowRange = min(shadowDistance, far / 3.0);
+    if (lengthSq(scenePos.xz) <= pow2(realShadowRange)) {
         vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
         shadowViewPosMin = min(shadowViewPosMin, shadowViewPos.xyz);
         shadowViewPosMax = max(shadowViewPosMax, shadowViewPos.xyz);

@@ -206,7 +206,8 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
 
         float surfaceDepth = material.sss > 0.0 ? max(blockerDistance, 0.1) : 0.0;
 
-        float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
+        float realShadowRange = min(shadowDistance, far / 3.0);
+        float shadowRangeBlend = linearStep(realShadowRange - 8.0, realShadowRange, length(scenePos.xz));
         result = mix(vec4(finalShadow, surfaceDepth), vec4(vec3(1.0), 1.0), shadowRangeBlend);
     }
     return result;
@@ -236,7 +237,9 @@ void main() {
             GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
+            #ifdef SETTING_RTWSM_B
             rtwsm_backward(texelPos, viewZ, gData);
+            #endif
             vec4 shadowValue = compShadow(texelPos, viewZ, gData);
             shadowValue = clamp(shadowValue, 0.0, FP16_MAX);
             transient_shadow_store(texelPos, shadowValue);
