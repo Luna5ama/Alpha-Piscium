@@ -206,7 +206,7 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
 
         float surfaceDepth = material.sss > 0.0 ? max(blockerDistance, 0.1) : 0.0;
 
-        float realShadowRange = min(shadowDistance, far / 3.0);
+        float realShadowRange = min(shadowDistance, far);
         float shadowRangeBlend = linearStep(realShadowRange - 8.0, realShadowRange, length(scenePos.xz));
         result = mix(vec4(finalShadow, surfaceDepth), vec4(vec3(1.0), 1.0), shadowRangeBlend);
     }
