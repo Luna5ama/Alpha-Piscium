@@ -58,7 +58,7 @@ void main() {
 
         float camDistanceSq = dot(camViewPos.xyz, camViewPos.xyz);
 
-        if (isEyeInWater == 1 && materialID == 3u) {
+        if (isEyeInWater == 1 && materialID == MATERIAL_ID_WATER) {
             const float RIOR = AIR_IOR / WATER_IOR;
             vec3 refractDir = refract(-uval_shadowLightDirWorld, normalize(worldNormal), RIOR);
 

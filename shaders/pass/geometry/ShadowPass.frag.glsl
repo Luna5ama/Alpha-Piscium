@@ -4,6 +4,8 @@
 #include "/util/Coords.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Rand.glsl"
+#include "/util/HardcodedPBR.glsl"
+#include "/util/MaterialIDConst.glsl"
 #include "/util/Translucent.glsl"
 #include "/techniques/rtwsm/RTWSM.glsl"
 
@@ -37,6 +39,8 @@ layout(location = 0) out float rt_depthOffset;
 
 void main() {
     uint materialID = bitfieldExtract(frag_worldNormalMaterialID, 16, 16);
+    HardcodedPBR hardcoded = hardcodedpbr_decode(materialID);
+
     vec2 worldNormalOct = unpackSnorm4x8(frag_worldNormalMaterialID).xy;
     vec3 worldNormal = coords_octDecode11(worldNormalOct);
 
@@ -60,7 +64,7 @@ void main() {
     float depthBias = depthBiasSlopeFactor * depthBiasTexelSizeFactor;
     depthFixOffset += depthBias;
 
-    if (materialID == 4u) {
+    if (hardcoded.isSmallFoliage) {
         depthFixOffset = 0.0;
     }
 
@@ -83,7 +87,7 @@ void main() {
     #endif
 
     #ifdef SHADOW_PASS_TRANSLUCENT
-    bool isWater = materialID == 3u;
+    bool isWater = materialID == MATERIAL_ID_WATER;
 
     vec4 matv1 = vec4(0.0);
     vec4 matv2 = vec4(0.0);

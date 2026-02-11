@@ -2,9 +2,10 @@
 #define INCLUDE_util_Translucent_glsl a
 
 #include "/util/Colors2.glsl"
+#include "/util/MaterialIDConst.glsl"
 
 vec4 translucent_albedoToTransmittance(vec3 materialColor, float alpha, uint materialID) {
-    if (materialID == 3u) {
+    if (materialID == MATERIAL_ID_WATER) {
         return vec4(1.0);
     }
     vec3 t = materialColor;

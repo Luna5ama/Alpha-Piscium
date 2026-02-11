@@ -2,6 +2,16 @@
 #define INCLUDE_util_BitPacking_glsl a
 #include "/Base.glsl"
 
+uint packU4(float v) { return uint(clamp(v, 0.0, 1.0) * 15.0); }
+float unpackU4(uint v) { return clamp(float(v) / 15.0, 0.0, 1.0); }
+uint packS4(float v) { return packU4(v * 0.5 + 0.5); }
+float unpackS4(uint v) { return unpackU4(v) * 2.0 - 1.0; }
+
+uint packU8(float v) { return uint(clamp(v, 0.0, 1.0) * 255.0); }
+float unpackU8(uint v) { return clamp(float(v) / 255.0, 0.0, 1.0); }
+uint packS8(float v) { return packU8(v * 0.5 + 0.5); }
+float unpackS8(uint v) { return unpackU8(v) * 2.0 - 1.0; }
+
 uint packU10(float v) { return uint(clamp(v, 0.0, 1.0) * 1023.0); }
 float unpackU10(uint v) { return clamp(float(v) / 1023.0, 0.0, 1.0); }
 uint packS10(float v) { return packU10(v * 0.5 + 0.5); }

@@ -93,6 +93,25 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 name = "地形"
             }
             row {
+                row {
+                    toggle("SETTING_PBR_MATERIAL", 1, 0..2) {
+                        lang {
+                            name = "PBR Materials"
+                            comment =
+                                "Enables Physically Based Rendering features like normal mapping, specular reflections, and subsurface scattering on blocks. Requires compatible resource packs."
+                            0 value "Built-in"
+                            1 value "LabPBR (Auto)"
+                            2 value "LabPBR (Force)"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "PBR材质"
+                            comment = "启用方块的基于物理的渲染功能，如法线贴图、高光反射和次表面散射。需要兼容的资源包。"
+                            0 value "内置"
+                            1 value "LabPBR（自动）"
+                            2 value "LabPBR（强制）"
+                        }
+                    }
+                }
                 screen(1) {
                     lang {
                         name = "Block Lighting"
