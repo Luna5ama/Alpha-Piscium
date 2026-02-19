@@ -6,6 +6,8 @@
 #include "GBufferData.glsl"
 #include "Math.glsl"
 #include "Rand.glsl"
+#include "HardcodedPBR.glsl"
+#include "MaterialIDConst.glsl"
 
 struct Material {
     vec3 albedo; // Working space
@@ -37,16 +39,35 @@ const float _MATERIAL_MAXIMUM_ROUGHNESS = 1.0 - exp2(-SETTING_SOLID_MAXIMUM_ROUG
 
 Material material_decode(GBufferData gData) {
     Material material;
+    HardcodedPBR hardcoded = hardcodedpbr_decode(gData.materialID);
+    bool isWater = gData.materialID == MATERIAL_ID_WATER;
 
     material.albedo = colors2_material_toWorkSpace(gData.albedo);
+    vec4 emissiveAlbedoCurve = vec4(vec3(SETTING_EMISSIVE_ALBEDO_COLOR_CURVE), SETTING_EMISSIVE_ALBEDO_LUM_CURVE);
+    float albedoLuma = colors2_colorspaces_luma(COLORS2_MATERIAL_COLORSPACE, gData.albedo);
 
-    material.roughness = 1.0 - gData.pbrSpecular.r;
-    material.roughness *= material.roughness;
-    material.roughness *= _MATERIAL_ROUGHNESS_MULTIPLIER;
-    material.roughness = mix(_MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS, smoothstep(_MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS, material.roughness));
-    #ifdef MATERIAL_TRANSLUCENT
-    material.roughness = gData.materialID == 3u ? _MATERIAL_WATER_ROUGHNESS : material.roughness;
+    #if defined(MC_TEXTURE_FORMAT_LAB_PBR) && SETTING_PBR_MATERIAL == 1 || SETTING_PBR_MATERIAL == 2
+    float roughness = 1.0 - gData.pbrSpecular.r;
+
+    float emissivePBR = gData.pbrSpecular.a;
+    emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
+    #else
+    float roughness = hardcoded.roughness;
+    float emissivePBR = hardcoded.emissive;
+    emissiveAlbedoCurve.a += 2.0;
+    albedoLuma = smoothstep(0.0, 1.0, albedoLuma);
     #endif
+
+    roughness = pow2(roughness);
+    roughness *= _MATERIAL_ROUGHNESS_MULTIPLIER;
+
+    #ifdef MATERIAL_TRANSLUCENT
+    roughness = isWater ? _MATERIAL_WATER_ROUGHNESS : roughness;
+    #endif
+
+    emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
+
+    material.roughness = roughness;
     material.f0 = gData.pbrSpecular.g;
 
     #if SETTING_MINIMUM_F0_FACTOR > 0
@@ -54,18 +75,10 @@ Material material_decode(GBufferData gData) {
     #endif
     material.metallic = float(material.f0 >= (229.5 / 255.0));
 
-    float emissivePBR = pow(gData.pbrSpecular.a, SETTING_EMISSIVE_PBR_VALUE_CURVE);
-    vec4 emissiveAlbedoCurve = vec4(vec3(SETTING_EMISSIVE_ALBEDO_COLOR_CURVE), SETTING_EMISSIVE_ALBEDO_LUM_CURVE);
-    float albedoLuma = colors2_colorspaces_luma(COLORS2_MATERIAL_COLORSPACE, gData.albedo);
     vec4 emissiveAlbedo = pow(vec4(gData.albedo, albedoLuma), emissiveAlbedoCurve);
     emissiveAlbedo.rgb = colors2_material_toWorkSpace(emissiveAlbedo.rgb);
 
-    float MATERIAL_LAVA_LUMINANCE = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_constants_toWorkSpace(blackBody_evalRadiance_AP0(SETTING_LAVA_TEMPERATURE)));
-    float MATERIAL_FIRE_LUMINANCE = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_constants_toWorkSpace(blackBody_evalRadiance_AP0(SETTING_FIRE_TEMPERATURE)));
-
     float emissiveValue = emissivePBR * 0.5;
-    emissiveValue = gData.materialID == 1u ? MATERIAL_LAVA_LUMINANCE : emissiveValue;
-    emissiveValue = gData.materialID == 2u ? MATERIAL_FIRE_LUMINANCE : emissiveValue;
     emissiveValue *= exp2(SETTING_EMISSIVE_STRENGTH);
 
     material.emissive = emissiveValue * emissiveAlbedo.a * emissiveAlbedo.rgb;
@@ -81,9 +94,9 @@ Material material_decode(GBufferData gData) {
     material.sss = sqrt(material.sss);
 
     #ifdef MATERIAL_TRANSLUCENT
-    material.hardCodedIOR = gData.materialID == 3u ? 1.3333 : 1.5;
+    material.hardCodedIOR = isWater ? 1.3333 : hardcoded.ior;
     #else
-    material.hardCodedIOR = 1.0;
+    material.hardCodedIOR = hardcoded.ior;
     #endif
 
     vec3 newTangent = normalize(gData.geomTangent - gData.normal * dot(gData.normal, gData.geomTangent));

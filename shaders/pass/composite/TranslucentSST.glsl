@@ -8,6 +8,7 @@
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
+#include "/util/MaterialIDConst.glsl"
 #include "/util/Fresnel.glsl"
 #include "/util/BSDF.glsl"
 
@@ -85,7 +86,7 @@ void main() {
             gbufferData2_unpack(texelFetch(usam_gbufferTranslucentData2, texelPos, 0), gData);
 
             Material material = material_decode(gData);
-            bool isWater = gData.materialID == 3u;
+            bool isWater = gData.materialID == MATERIAL_ID_WATER;
 
             vec3 viewDir = normalize(-startViewPos);
 

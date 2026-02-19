@@ -11,6 +11,8 @@ ivec2 texelPos;
 #include "/util/Colors2.glsl"
 #include "/util/Dither.glsl"
 #include "/util/Translucent.glsl"
+#include "/util/HardcodedPBR.glsl"
+#include "/util/MaterialIDConst.glsl"
 #include "/techniques/Lighting.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 #include "/techniques/WaterWave.glsl"
@@ -38,6 +40,7 @@ in vec3 frag_offsetToCenter;
 
 float frag_viewZ = -rcp(gl_FragCoord.w);
 uint materialID = 0u;
+bool isWater = false;
 vec3 viewPos = vec3(0.0);
 float zOffset = 0.0;
 
@@ -48,7 +51,7 @@ layout(location = 2) out vec4 rt_translucentColor;
 
 vec4 processAlbedo() {
     vec4 albedo = frag_colorMul;
-    if (materialID != 3u) {
+    if (!isWater) {
         #ifdef SETTING_SCREENSHOT_MODE
         albedo *= textureLod(gtexture, frag_texCoord, 0.0);
         #else
@@ -138,7 +141,7 @@ GBufferData processOutput() {
     mat3 tbn = mat3(geomViewTangent, geomViewBitangent, geomViewNormal);
     vec3 tangentNormal;
 
-    if (materialID == 3u) {
+    if (isWater) {
         vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
 
         vec3 cameraPosWaveSpace = vec3(cameraPositionInt >> 5) + ldexp(vec3(cameraPositionInt & ivec3(31)), ivec3(-5));
@@ -271,6 +274,7 @@ float calculateRayBoxIntersection(vec3 p, vec3 d, vec3 halfSize) {
 void main() {
     texelPos = ivec2(gl_FragCoord.xy);
     materialID = bitfieldExtract(frag_materialID, 0, 16);
+    isWater = materialID == MATERIAL_ID_WATER;
 
     vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp;
     viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
@@ -288,8 +292,6 @@ void main() {
     }
 
     lighting_gData = processOutput();
-
-    bool isWater = materialID == 3u;
 
     float alpha = inputAlbedo.a;
     vec3 materialColor = colors2_material_toWorkSpace(inputAlbedo.rgb);

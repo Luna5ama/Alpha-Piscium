@@ -137,7 +137,5 @@ uniform sampler3D usam_cumulusDetail2;
 uniform sampler3D usam_cumulusCurl;
 uniform sampler2D usam_cumulusBase;
 
-uniform sampler2D usam_blockAtlasColor;
-uniform sampler2D usam_blockAtlasNormal;
-uniform sampler2D usam_blockAtlasSpecular;
+uniform usampler1D usam_pbrLUT0;
 #endif
