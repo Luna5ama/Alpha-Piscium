@@ -124,8 +124,8 @@ void main() {
 
         // 3. Tangent/Bitangent Reconstruction
         // Geometric Normal from Face
-        vec3 geomViewNormal = vec3(float((face>>1)==2), float((face>>1)==0), float((face>>1)==1)) * (float(int(face)&1)*2.0-1.0);
-        geomViewNormal = coords_dir_worldToView(geomViewNormal);
+        vec3 gemoWorldNormal = normalize( vec3(uint((face>>1)==2), uint((face>>1)==0), uint((face>>1)==1)) * (float(int(face)&1)*2-1));
+        vec3 geomViewNormal = coords_dir_worldToView(gemoWorldNormal);
 
         vec3 tangent = vec3(1.0, 0.0, 0.0);
         vec3 bitangent = vec3(0.0, 1.0, 0.0);
@@ -190,53 +190,19 @@ void main() {
              dUVdy = vec2(0.0, 1.0/256.0);
         }
 
-        // 4. Sample Textures
-        // Need to convert UVs if atlas logic requires it?
-        // UVs from Voxy are likely 0..1 in the specific sprite?
-        // Wait, Voxy usually outputs Atlas UVs directly.
-        // "uv (2x16 unorm)" suggests full atlas UV.
-
-        vec4 normalSample = textureGrad(usam_blockAtlasNormal, uvCenter, dUVdx, dUVdy);
-        vec4 specularSample = textureGrad(usam_blockAtlasSpecular, uvCenter, dUVdx, dUVdy);
-
-        // 5. Normal Mapping
-        vec3 finalNormal = geomViewNormal;
-
-        // From GBufferSolid:
-        // tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
-        // tangentNormal.z = sqrt...
-        // normal = tbn * tangentNormal
-
-        vec3 tangentNormal;
-        tangentNormal.xy = normalSample.rg * 2.0 - 1.0;
-        tangentNormal.z = sqrt(saturate(1.0 - dot(tangentNormal.xy, tangentNormal.xy)));
-        // Strength?
-        // tangentNormal.xy *= exp2(SETTING_NORMAL_MAPPING_STRENGTH); // If defined
-        tangentNormal = normalize(tangentNormal);
-        mat3 tbn = mat3(tangent, bitangent, geomViewNormal);
-        finalNormal = normalize(tbn * tangentNormal);
-
         // 6. Packing
         GBufferData gData = gbufferData_init();
         gData.albedo = albedo;
-        gData.normal = finalNormal;
+        gData.normal = geomViewNormal;
         gData.geomNormal = geomViewNormal;
         gData.geomTangent = tangent;
         // Bitangent sign?
-        gData.bitangentSign = (dot(cross(tangent, finalNormal), bitangent) > 0.0) ? 1 : -1;
+        gData.bitangentSign = (dot(cross(tangent, geomViewNormal), bitangent) > 0.0) ? 1 : -1;
 
-        gData.lmCoord = lmCoord;
-        if (normalSample.b > 0.0) gData.lmCoord.y *= normalSample.b; // Nmap occlusion?
+        gData.lmCoord = vec2(0.0, 1.0);
 
         gData.materialID = matID;
-        gData.pbrSpecular = specularSample;
-        // Specular emission logic from GBufferSolid:
-        // float emissiveS = specularSample.a;
-        // emissiveS *= float(specularSample.a < 1.0);
-        // gData.pbrSpecular.a = emissiveS;
-
-        // Fix specular A if needed (emissive)
-        if (specularSample.a >= 1.0) gData.pbrSpecular.a = 0.0; // Or whatever logic
+        gData.pbrSpecular = vec4(0.0);
 
         uvec4 d1;
         uvec4 d2;
