@@ -122,11 +122,26 @@ void render(ivec2 texelPosDownScale) {
         float cuMidHeight = cuMinHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
         float cuHeightDiff = cuMidHeight - mainRayParams.rayStartHeight;
 
-        float cuRayLenBot = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMinHeight);
-        float cuRayLenTop = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMaxHeight);
+        float cuOrigin2RayBot = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMinHeight);
+        float cuOrigin2RayTop = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMaxHeight);
 
         bool inLayer = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5;
-        float cuOrigin2RayStart = inLayer ? 0.0 : (cuHeightDiff < 0.0 ? cuRayLenTop : cuRayLenBot);
+        float cuOrigin2RayStart = inLayer ? 0.0 : (cuHeightDiff < 0.0 ? cuOrigin2RayTop : cuOrigin2RayBot);
+
+        vec3 cuRayStartOffset = mainRayParams.rayStart + mainRayParams.rayDir * (cuOrigin2RayStart + 0.1);
+        float cuRayLenBot = raySphereIntersectNearest(cuRayStartOffset, mainRayParams.rayDir, earthCenter, cuMinHeight);
+        float cuRayLenTop = raySphereIntersectNearest(cuRayStartOffset, mainRayParams.rayDir, earthCenter, cuMaxHeight);
+        float cuRayLen = cuRayLenBot;
+        if (cuRayLenTop > 0.0) {
+            if (cuRayLenBot > 0.0) {
+                cuRayLen = min(cuRayLenTop, cuRayLenBot);
+            } else {
+                cuRayLen = cuRayLenTop;
+            }
+        }
+        const float CLOUDS_CU_MAX_RAY_LENGTH = 50.0;
+        cuRayLen = cuRayLen <= 0.0 ? CLOUDS_CU_MAX_RAY_LENGTH : cuRayLen;
+        cuRayLen += 0.1;
 
         uint cuFlag = uint(sign(cuHeightDiff) == sign(mainRayParams.rayDir.y)) | uint(inLayer);
         cuFlag &= uint(cuOrigin2RayStart >= 0.0);
@@ -134,10 +149,6 @@ void render(ivec2 texelPosDownScale) {
         if (bool(cuFlag)) {
             #define CLOUDS_CU_DENSITY (256.0 * SETTING_CLOUDS_CU_DENSITY)
 
-            const float CLOUDS_CU_MAX_RAY_LENGTH = 50.0;
-            float cuRayLen = mainRayParams.rayDir.y < 0.0 ? cuRayLenBot : cuRayLenTop;
-            cuRayLen -= cuOrigin2RayStart;
-            cuRayLen = cuRayLen <= 0.0 ? CLOUDS_CU_MAX_RAY_LENGTH : cuRayLen;
             cuRayLen = min(cuRayLen, CLOUDS_CU_MAX_RAY_LENGTH);
             float cuRaySteps = cuRayLen / CLOUDS_CU_MAX_RAY_LENGTH * float(SETTING_CLOUDS_LOW_STEP_MAX);
             cuRaySteps = max(cuRaySteps, SETTING_CLOUDS_LOW_STEP_MIN);

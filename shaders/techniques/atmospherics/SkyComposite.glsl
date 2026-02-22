@@ -107,7 +107,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
                 float cuRayLenTop = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMaxHeight);
 
                 bool inLayer = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5;
-                float cuOrigin2RayStart = inLayer ? 0.0 : min(cuRayLenBot, cuRayLenTop);
+                float cuOrigin2RayStart = inLayer ? 0.0 : (cuHeightDiff < 0.0 ? cuRayLenTop : cuRayLenBot);
 
                 uint cuFlag = uint(sign(cuHeightDiff) == sign(mainRayParams.rayDir.y)) | uint(inLayer);
                 cuFlag &= uint(cuOrigin2RayStart >= 0.0);
