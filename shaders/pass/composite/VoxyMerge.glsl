@@ -203,6 +203,8 @@ void main() {
 
         gData.materialID = matID;
         gData.pbrSpecular = vec4(0.0);
+        gData.isHand = false;
+        gData.forceBuiltInPBR = true;
 
         uvec4 d1;
         uvec4 d2;

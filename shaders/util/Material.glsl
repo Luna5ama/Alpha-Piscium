@@ -47,16 +47,24 @@ Material material_decode(GBufferData gData) {
     float albedoLuma = colors2_colorspaces_luma(COLORS2_MATERIAL_COLORSPACE, gData.albedo);
 
     #if defined(MC_TEXTURE_FORMAT_LAB_PBR) && SETTING_PBR_MATERIAL == 1 || SETTING_PBR_MATERIAL == 2
-    float roughness = 1.0 - gData.pbrSpecular.r;
-
-    float emissivePBR = gData.pbrSpecular.a;
-    emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
+    bool useBuiltInPBR = gData.forceBuiltInPBR;
     #else
-    float roughness = hardcoded.roughness;
-    float emissivePBR = hardcoded.emissive;
-    emissiveAlbedoCurve.a += 2.0;
-    albedoLuma = smoothstep(0.0, 1.0, albedoLuma);
+    bool useBuiltInPBR = true;
     #endif
+
+    float roughness;
+    float emissivePBR;
+
+    if (useBuiltInPBR) {
+        roughness = hardcoded.roughness;
+        emissivePBR = hardcoded.emissive;
+        emissiveAlbedoCurve.a += 1.0;
+        albedoLuma = smoothstep(0.0, 1.0, albedoLuma);
+    } else {
+        roughness = 1.0 - gData.pbrSpecular.r;
+        emissivePBR = gData.pbrSpecular.a;
+        emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
+    }
 
     roughness = pow2(roughness);
     roughness *= _MATERIAL_ROUGHNESS_MULTIPLIER;
