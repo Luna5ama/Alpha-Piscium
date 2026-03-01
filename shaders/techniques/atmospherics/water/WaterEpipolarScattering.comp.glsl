@@ -180,18 +180,6 @@ float waterSurfaceDistance(vec3 shadowUVPos) {
     return abs(rtwsm_linearDepth(shadowUVPos.z) - rtwsm_linearDepth(sampleDepth));
 }
 
-// https://www.desmos.com/calculator/tbl4g5bvlc
-float waterPhase(float cosTheta) {
-    const float wKn = 0.99;
-    const float gE = 20000.0;
-    const float gCS = -0.6;
-    return mix(
-        phasefunc_CornetteShanks(cosTheta, gCS),
-        phasefunc_KleinNishinaE(cosTheta, gE),
-        wKn
-    );
-}
-
 ScatteringResult raymarchWaterVolume(
     vec3 rayStart,
     vec3 rayEnd,
@@ -218,7 +206,7 @@ ScatteringResult raymarchWaterVolume(
     float totalRayLength = length(rayDiff);
     vec3 rayDir = rayDiff / totalRayLength;
     float phaseCosTheta = dot(rayDir, uval_shadowLightDirWorld);
-    float phaseV = waterPhase(phaseCosTheta);
+    float phaseV = phase_water(phaseCosTheta);
 
     vec3 inSctrInt = volumetrics_intergrateScatteringLerpLightOpticalDepth(
         WATER_SCATTERING,
