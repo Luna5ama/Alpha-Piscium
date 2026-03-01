@@ -264,7 +264,7 @@ void main() {
         vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampMethod));
         prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampMethod));
 
-        prevColor = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), 1.0);
+        prevColor = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
     }
 
     #ifdef SETTING_SCREENSHOT_MODE
