@@ -5,6 +5,12 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipOutputStream
 import kotlin.io.path.*
 
+var versionArg = args.getOrNull(0)
+val version =if (versionArg == null) {
+    ""
+} else {
+    " v$versionArg"
+}
 
 val config = Properties().apply {
     runCatching {
@@ -37,11 +43,12 @@ val shadesmithRun = ProcessBuilder()
 val included = setOf("changelogs", "licenses", "shaders/lang", "shaders/textures", "LICENSE", "README.md")
 val branchName =
     Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD")).inputStream.bufferedReader()
-        .readText().trim()
+        .readText().trim().takeIf { it != "main" && it != "dev" }
 val commitTag =
     Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD")).inputStream.bufferedReader().readText()
         .trim()
-val zipFileName = "${projectRootPath.name.replace("-", " ")} $branchName $commitTag.zip"
+val suffix = listOfNotNull(version, commitTag, branchName).joinToString("-")
+val zipFileName = "${projectRootPath.name.replace("-", " ")}$suffix.zip"
 val zipFilePath = projectRootPath.resolve("builds").resolve(zipFileName)
 
 ZipOutputStream(zipFilePath.outputStream(), Charsets.UTF_8).use { zipOut ->
