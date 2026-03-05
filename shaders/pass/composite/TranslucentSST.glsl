@@ -107,38 +107,44 @@ void main() {
             nv = pow3(nv) + 0.5;
             AtmosphereParameters atmosphere = getAtmosphereParameters();
 
-            SSTRay refractRay = sstray_setup(texelPos, startViewPos + offsetDir * min(1.0, startViewPos.z - solidViewZ), refractDir);
+            vec3 refractStartPosView = startViewPos + offsetDir * min(1.0, startViewPos.z - solidViewZ);
+            SSTRay refractRay = sstray_setup(texelPos, refractStartPosView, refractDir);
             sst_trace(refractRay, 128u);
             vec3 refractColor = vec3(0.0);
 
             bool refractHit = refractRay.currT < 0.0 && refractRay.currT > -1.0;
-            vec3 refractHitScreen = refractRay.pRayStart + refractRay.pRayDir * (refractRay.pRayVecLen * abs(refractRay.currT));
+            vec3 refractHitScreen3D = refractRay.pRayStart + refractRay.pRayDir * (refractRay.pRayVecLen * abs(refractRay.currT));
+            vec2 refractHitScreen2D = refractHitScreen3D.xy + (global_taaJitter * uval_mainImageSizeRcp);
             if (isEyeInWater == 1) {
                 vec3 refractDirWorld = coords_dir_viewToWorld(refractDir);
                 if (refractDirWorld.y > 0.0) {
                     SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, refractDirWorld);
                     refractColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
                     if (refractHit) {
-                        vec2 refractCoord = refractHitScreen.xy + (global_taaJitter * uval_mainImageSizeRcp);
+                        vec2 refractCoord = refractHitScreen2D;
                         float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
-                        refractColor = mix(refractColor, sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb, sst_edgeReductionFactor(refractHitScreen.xy, 2.0, vec2(0.0), vec2(1.5)));
+                        vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
+                        refractColor = mix(refractColor, hitColor, sst_edgeReductionFactor(refractCoord.xy, 2.0, vec2(0.0), vec2(1.5)));
                     }
                 }
             } else {
-                vec3 refractHitScreenFallback = refractHit ? refractHitScreen: vec3(screenPos, 0.0);
-                vec2 refractCoord = refractHit ? (refractHitScreenFallback.xy + (global_taaJitter * uval_mainImageSizeRcp)) : screenPos;
+                vec3 refractHitScreenFallback = coords_viewToScreen(refractStartPosView, global_camProj);
+                vec2 refractCoord = refractHit ? refractHitScreen2D : refractHitScreenFallback.xy;
                 float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
                 if (refractDepth > startViewZ) {
                     refractCoord = screenPos;
                 }
-                refractColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
+                vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
+                refractColor = hitColor.rgb;
             }
 
-            float MDotV = dot(microNormal, viewDir);
+            float MDotV = saturate(abs(dot(microNormal, viewDir)));
+            // Not physically correct, but normal mapping can mess up fresnel, causing random blackout at edges.
+            MDotV = max(MDotV, abs(dot(gData.geomNormal, viewDir)) * 0.5);
 
             // Exit refraction Fresnel - only for non-water translucents viewed from air (double-refract path)
             if (isEyeInWater != 1 && !isWater) {
-                float exitCosThetaI = abs(dot(offsetDir, gData.geomNormal));
+                float exitCosThetaI = saturate(abs(dot(offsetDir, gData.geomNormal)));
                 float exitFresnelTransmittance = fresnel_dielectricDielectric_transmittance(exitCosThetaI, material.hardCodedIOR, AIR_IOR);
                 refractColor *= exitFresnelTransmittance;
             }
@@ -155,10 +161,11 @@ void main() {
             ivec2 envTexel = ivec2((envSliceUV + envSliceID) * ENV_PROBE_SIZE);
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
             vec3 reflectColor = envData.radiance.rgb;
-            if (envProbe_isSky(envData) && reflectDirWorld.y > 0.0) {
+            if (envProbe_isSky(envData) && (!isWater || reflectDirWorld.y > 0.0)) {
                 AtmosphereParameters atmosphere = getAtmosphereParameters();
                 SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, reflectDirWorld);
                 reflectColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+                reflectColor *= linearStep(-1.0, 0.0, reflectDirWorld.y);
             }
             if (reflectRay.currT < 0.0 && reflectRay.currT > -1.0) {
                 vec3 reflectHitScreen = reflectRay.pRayStart + reflectRay.pRayDir * (reflectRay.pRayVecLen * abs(reflectRay.currT));
