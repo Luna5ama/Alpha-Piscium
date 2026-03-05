@@ -133,7 +133,7 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         ssRange = saturate(ssRange);
         ssRange += sssFactor * SETTING_SSS_DIFFUSE_RANGE;
 
-        const float ssRangeMul = 0.5;
+        const float ssRangeMul = 0.25;
         ssRange *= ssRangeMul;
         vec2 ssRange2 = ssRange * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
 

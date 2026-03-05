@@ -697,13 +697,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "用于确定阴影柔和度的采样数。数值越高，质量越好，但会降低性能。"
                         }
                     }
-                    slider("SETTING_PCSS_SAMPLE_COUNT", 8, powerOfTwoAndHalfRange(1..6)) {
-                        Profile.Low preset 2
-                        Profile.Medium preset 4
-                        Profile.High preset 6
-                        Profile.Ultra preset 8
-                        Profile.Extreme preset 12
-                        Profile.Insane preset 16
+                    slider("SETTING_PCSS_SAMPLE_COUNT", 8, powerOfTwoAndHalfRange(2..6)) {
+                        Profile.Low preset 4
+                        Profile.Medium preset 8
+                        Profile.High preset 12
+                        Profile.Ultra preset 16
+                        Profile.Extreme preset 24
+                        Profile.Insane preset 32
 
                         lang {
                             name = "PCSS Sample Count"
