@@ -293,10 +293,7 @@ void main() {
 
     lighting_gData = processOutput();
 
-    float alpha = inputAlbedo.a;
-    vec3 materialColor = colors2_material_toWorkSpace(inputAlbedo.rgb);
-
-    vec4 transmittanceV = translucent_albedoToTransmittance(materialColor, alpha, materialID);
+    vec4 transmittanceV = translucent_albedoToTransmittance(inputAlbedo, materialID);
     lighting_gData.albedo = transmittanceV.rgb;
     rt_translucentColor = transmittanceV;
 

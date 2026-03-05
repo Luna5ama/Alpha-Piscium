@@ -446,7 +446,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "其他材质设置"
                     }
-                    slider("SETTING_TRANSLUCENT_ABSORPTION_SATURATION", 1.0, 0.0..4.0 step 0.5) {
+                    slider("SETTING_TRANSLUCENT_ABSORPTION_SATURATION", 1.0, 0.0..4.0 step 0.25) {
                         lang {
                             name = "Translucent Absorption Saturation"
                             comment =
@@ -455,6 +455,39 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "半透明吸收饱和度"
                             comment = "控制半透明方块颜色吸收饱和度。数值越高，染色颜色越鲜艳。"
+                        }
+                    }
+                    slider("SETTING_TRANSLUCENT_ABSORPTION_GAMMA", 1.0, 0.0..4.0 step 0.25) {
+                        lang {
+                            name = "Translucent Absorption Gamma"
+                            comment =
+                                "A power curve applied on translucent blocks' absorption color. Higher values create more contrasted color tinting."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "半透明吸收伽马"
+                            comment = "应用于半透明方块吸收颜色的幂曲线。数值越高，染色颜色对比度越高。"
+                        }
+                    }
+                    slider("SETTING_TRANSLUCENT_ABSORPTION_ALPHA_CURVE", 1.5, 0.0..4.0 step 0.25) {
+                        lang {
+                            name = "Translucent Absorption Alpha Curve"
+                            comment =
+                                "A power curve applied on translucent blocks' alpha (translucency) channel. Higher values create more contrasted traslucency."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "半透明吸收Alpha曲线"
+                            comment = "应用于半透明方块Alpha（半透明度）通道的幂曲线。数值越高，半透明度对比度越高。"
+                        }
+                    }
+                    slider("SETTING_TRANSLUCENT_ABSORPTION_MULTIPLIER", 1.0, 0.0..4.0 step 0.25) {
+                        lang {
+                            name = "Translucent Absorption Multiplier"
+                            comment =
+                                "Global multiplier for color absorption on translucent blocks. Higher values create stronger color tinting."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "半透明吸收倍数"
+                            comment = "半透明方块颜色吸收的全局倍数。数值越高，染色效果越强烈。"
                         }
                     }
                 }

@@ -113,9 +113,7 @@ void main() {
     float waterMask = float(isWater);
     rt_waterMask = vec4(waterMask);
 
-    float alpha = inputAlbedo.a;
-    vec3 materialColor = colors2_material_toWorkSpace(inputAlbedo.rgb);
-    rt_translucentColor = translucent_albedoToTransmittance(materialColor, alpha, materialID);
+    rt_translucentColor = translucent_albedoToTransmittance(inputAlbedo, materialID);
 
     depthFixOffset = -depthFixOffset;
     #endif
