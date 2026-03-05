@@ -1,5 +1,4 @@
 #define MATERIAL_TRANSLUCENT a
-#define SST_DEBUG_PASS a
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/EnvProbe.glsl"
@@ -40,6 +39,8 @@ void main() {
 
         float startViewZ = max(translucentStartViewZ, waterStartViewZ);
 
+        float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+
         if (startViewZ > -65536.0) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
             vec3 startViewPos = coords_toViewCoord(screenPos, startViewZ, global_camProjInverse);
@@ -72,10 +73,14 @@ void main() {
                 cosThetaSign = -1.0;
             }
             vec3 refIncidentDir = -viewDir;
+            vec3 offsetDir = vec3(0.0);
             vec3 refractDir;
 
-            if (isEyeInWater == 1 || !isWater) {
+            if (isEyeInWater == 1) {
                 refractDir = refract(refIncidentDir, microNormal, rior);
+            } else if (!isWater)  {
+                offsetDir = refract(refIncidentDir, microNormal, rior);
+                refractDir = refract(offsetDir, gData.geomNormal, rcp(rior));
             } else {
                 #ifdef SETTING_WATER_REFRACT_APPROX
                 refractDir = refract(refIncidentDir, (gData.geomNormal - gData.normal), rior);
@@ -102,28 +107,26 @@ void main() {
             nv = pow3(nv) + 0.5;
             AtmosphereParameters atmosphere = getAtmosphereParameters();
 
-            SSTRay refractRay = sstray_setup(texelPos, startViewPos, refractDir);
+            SSTRay refractRay = sstray_setup(texelPos, startViewPos + offsetDir * min(1.0, startViewPos.z - solidViewZ), refractDir);
             sst_trace(refractRay, 128u);
             vec3 refractColor = vec3(0.0);
 
+            bool refractHit = refractRay.currT < 0.0 && refractRay.currT > -1.0;
+            vec3 refractHitScreen = refractRay.pRayStart + refractRay.pRayDir * (refractRay.pRayVecLen * abs(refractRay.currT));
             if (isEyeInWater == 1) {
                 vec3 refractDirWorld = coords_dir_viewToWorld(refractDir);
                 if (refractDirWorld.y > 0.0) {
                     SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, refractDirWorld);
                     refractColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
-                    if (refractRay.currT < 0.0 && refractRay.currT > -1.0) {
-                        vec3 refractHitScreen = refractRay.pRayStart + refractRay.pRayDir * (refractRay.pRayVecLen * abs(refractRay.currT));
+                    if (refractHit) {
                         vec2 refractCoord = refractHitScreen.xy + (global_taaJitter * uval_mainImageSizeRcp);
                         float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
                         refractColor = mix(refractColor, sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb, sst_edgeReductionFactor(refractHitScreen.xy, 2.0, vec2(0.0), vec2(1.5)));
                     }
                 }
             } else {
-                bool refractHit = refractRay.currT < 0.0 && refractRay.currT > -1.0;
-                vec3 refractHitScreen = refractHit
-                    ? refractRay.pRayStart + refractRay.pRayDir * (refractRay.pRayVecLen * abs(refractRay.currT))
-                    : vec3(screenPos, 0.0);
-                vec2 refractCoord = refractHit ? (refractHitScreen.xy + (global_taaJitter * uval_mainImageSizeRcp)) : screenPos;
+                vec3 refractHitScreenFallback = refractHit ? refractHitScreen: vec3(screenPos, 0.0);
+                vec2 refractCoord = refractHit ? (refractHitScreenFallback.xy + (global_taaJitter * uval_mainImageSizeRcp)) : screenPos;
                 float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
                 if (refractDepth > startViewZ) {
                     refractCoord = screenPos;
@@ -132,6 +135,14 @@ void main() {
             }
 
             float MDotV = dot(microNormal, viewDir);
+
+            // Exit refraction Fresnel - only for non-water translucents viewed from air (double-refract path)
+            if (isEyeInWater != 1 && !isWater) {
+                float exitCosThetaI = abs(dot(offsetDir, gData.geomNormal));
+                float exitFresnelTransmittance = fresnel_dielectricDielectric_transmittance(exitCosThetaI, material.hardCodedIOR, AIR_IOR);
+                refractColor *= exitFresnelTransmittance;
+            }
+
             transient_translucentRefraction_store(texelPos, vec4(refractColor, MDotV));
 
             SSTRay reflectRay = sstray_setup(texelPos, startViewPos, reflectDir);
