@@ -76,7 +76,7 @@ void main() {
 
             vec3 translucentColor = vec3(0.0);
             translucentColor += fresnelTransmittance * gData.albedo * refractColor;
-            translucentColor += reflectance * reflectColor;
+//            translucentColor += reflectance * reflectColor;
 
             // TODO: Cleanup
             {

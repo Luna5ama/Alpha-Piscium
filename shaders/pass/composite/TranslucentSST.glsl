@@ -4,7 +4,7 @@
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/EnvProbe.glsl"
 #include "/techniques/textile/CSR32F.glsl"
-#include "/techniques/SST.glsl"
+#include "/techniques/SST2.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
@@ -64,7 +64,7 @@ vec4 BicubicSampling56(sampler2D samplerV, vec2 inHistoryUV, vec2 resolution) {
 }
 
 void main() {
-    sst_init();
+    sst_init(0.005);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
@@ -140,7 +140,8 @@ void main() {
             nv = pow3(nv) + 0.5;
             AtmosphereParameters atmosphere = getAtmosphereParameters();
 
-            SSTResult refractResult = sst_trace(startViewPos, refractDir, 0.005);
+            SSTRay refractRay = sstray_setup(texelPos, startViewPos, refractDir);
+            sst_trace(refractRay, 128u);
             vec3 refractColor = vec3(0.0);
 
             if (isEyeInWater == 1) {
@@ -148,14 +149,19 @@ void main() {
                 if (refractDirWorld.y > 0.0) {
                     SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, refractDirWorld);
                     refractColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
-                    if (refractResult.hit) {
-                        vec2 refractCoord = refractResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp);
+                    if (refractRay.currT < 0.0 && refractRay.currT > -1.0) {
+                        vec3 refractHitScreen = refractRay.pRayStart + refractRay.pRayDir * (refractRay.pRayVecLen * abs(refractRay.currT));
+                        vec2 refractCoord = refractHitScreen.xy + (global_taaJitter * uval_mainImageSizeRcp);
                         float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
-                        refractColor = mix(refractColor, BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb, edgeReductionFactor2(refractResult.hitScreenPos.xy));
+                        refractColor = mix(refractColor, BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb, edgeReductionFactor2(refractHitScreen.xy));
                     }
                 }
             } else {
-                vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp)) : screenPos;
+                bool refractHit = refractRay.currT < 0.0 && refractRay.currT > -1.0;
+                vec3 refractHitScreen = refractHit
+                    ? refractRay.pRayStart + refractRay.pRayDir * (refractRay.pRayVecLen * abs(refractRay.currT))
+                    : vec3(screenPos, 0.0);
+                vec2 refractCoord = refractHit ? (refractHitScreen.xy + (global_taaJitter * uval_mainImageSizeRcp)) : screenPos;
                 float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
                 if (refractDepth > startViewZ) {
                     refractCoord = screenPos;
@@ -166,7 +172,8 @@ void main() {
             float MDotV = dot(microNormal, viewDir);
             transient_translucentRefraction_store(texelPos, vec4(refractColor, MDotV));
 
-            SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.005);
+            SSTRay reflectRay = sstray_setup(texelPos, startViewPos, reflectDir);
+            sst_trace(reflectRay, 128u);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
             reflectDirWorld = rand_sampleInCone(reflectDirWorld, 0.005, noiseV);
             vec2 envSliceUV = vec2(-1.0);
@@ -180,11 +187,12 @@ void main() {
                 SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, reflectDirWorld);
                 reflectColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
             }
-            if (reflectResult.hit) {
-                vec2 sampleCoord = saturate(reflectResult.hitScreenPos.xy + (global_taaJitter * uval_mainImageSizeRcp));
+            if (reflectRay.currT < 0.0 && reflectRay.currT > -1.0) {
+                vec3 reflectHitScreen = reflectRay.pRayStart + reflectRay.pRayDir * (reflectRay.pRayVecLen * abs(reflectRay.currT));
+                vec2 sampleCoord = saturate(reflectHitScreen.xy + (global_taaJitter * uval_mainImageSizeRcp));
                 vec3 hitGeomNormal = transient_geomViewNormal_sample(sampleCoord).rgb;
                 vec3 hitColor = BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb;
-                float mixFactor = edgeReductionFactor(reflectResult.hitScreenPos.xy);
+                float mixFactor = edgeReductionFactor(reflectHitScreen.xy);
                 hitGeomNormal = normalize(hitGeomNormal * 2.0 - 1.0);
                 float hitDot = dot(-reflectDir, hitGeomNormal);
                 float reflectDepth = texture(usam_gbufferViewZ, sampleCoord).r;
