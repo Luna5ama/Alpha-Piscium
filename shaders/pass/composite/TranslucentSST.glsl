@@ -186,11 +186,12 @@ void main() {
                 float mixFactor = edgeReductionFactor(reflectResult.hitScreenPos.xy);
                 hitGeomNormal = normalize(hitGeomNormal * 2.0 - 1.0);
                 float hitDot = dot(-reflectDir, hitGeomNormal);
-                mixFactor *= float(hitDot > 0.0);
+                float reflectDepth = texture(usam_gbufferViewZ, sampleCoord).r;
+                bool skyReflected = reflectDepth < -far;
+                mixFactor *= saturate(float(hitDot > 0.0) + float(skyReflected));
 
                 if (isEyeInWater == 1) {
-                    float reflectDepth = texture(usam_gbufferViewZ, sampleCoord).r;
-                    if (reflectDepth > -far) {
+                    if (!skyReflected) {
                         reflectColor = mix(reflectColor, hitColor, mixFactor);
                     }
                 } else {
