@@ -82,6 +82,7 @@ Material material_decode(GBufferData gData) {
     emissiveValue *= exp2(SETTING_EMISSIVE_STRENGTH);
 
     material.emissive = emissiveValue * emissiveAlbedo.a * emissiveAlbedo.rgb;
+    material.emissive = ldexp(material.emissive, ivec3(hardcoded.emissiveMultiplier));
 
     const float _64o255 = 64.0 / 255.0;
     const float _65o255 = 65.0 / 255.0;
