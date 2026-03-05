@@ -118,7 +118,7 @@ SSTResult sst_trace(vec3 originView, vec3 rayDirView, float maxThickness) {
     #ifdef SST_DEBUG_PASS
     //    const uvec2 DEBUG_COORD = uvec2(1250, 720);
     //    const uvec2 DEBUG_COORD = uvec2(1500, 1000);
-    const uvec2 DEBUG_COORD = uvec2(970, 760);
+    const uvec2 DEBUG_COORD = uvec2(960, 540);
     //    const uvec2 DEBUG_COORD = uvec2(0, 0);
     #endif
     const uint HI_Z_STEPS = 128;

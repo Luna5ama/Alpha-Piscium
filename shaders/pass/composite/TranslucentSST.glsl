@@ -1,4 +1,5 @@
 #define MATERIAL_TRANSLUCENT a
+#define SST_DEBUG_PASS a
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/EnvProbe.glsl"

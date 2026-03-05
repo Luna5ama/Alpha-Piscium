@@ -3,7 +3,7 @@
 
 #extension GL_KHR_shader_subgroup_basic : enable
 
-#define SST_DEBUG_PASS a
+//#define SST_DEBUG_PASS a
 #include "/techniques/SST.glsl"
 #include "/util/Coords.glsl"
 #include "/util/GBufferData.glsl"
