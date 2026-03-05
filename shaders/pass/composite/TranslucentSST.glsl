@@ -12,55 +12,17 @@
 #include "/util/MaterialIDConst.glsl"
 #include "/util/Fresnel.glsl"
 #include "/util/BSDF.glsl"
+#include "/util/Sampling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 
-float edgeReductionFactor(vec2 screenPos) {
-    const float SQUIRCLE_M = 4.0;
-    vec2 ndcPos = screenPos * 2.0 - 1.0;
-    vec2 squircle = pow(smoothstep(0.5, 0.95, abs(ndcPos)), vec2(SQUIRCLE_M));
+float sst_edgeReductionFactor(vec2 screenPos, float squirclePow, vec2 edgeStart, vec2 edgeEnd) {
+    vec2 ndcPos = abs(screenPos * 2.0 - 1.0);
+    vec2 squircle = pow(smoothstep(edgeStart, edgeEnd, ndcPos), vec2(squirclePow));
     return saturate(1.0 - (squircle.x + squircle.y));
-}
-
-float edgeReductionFactor2(vec2 screenPos) {
-    const float SQUIRCLE_M = 2.0;
-    vec2 ndcPos = screenPos * 2.0 - 1.0;
-    vec2 squircle = pow(saturate(1.5 * abs(ndcPos)), vec2(SQUIRCLE_M));
-    return saturate(1.0 - (squircle.x + squircle.y));
-}
-
-// from https://github.com/GameTechDev/TAA
-vec4 BicubicSampling56(sampler2D samplerV, vec2 inHistoryUV, vec2 resolution) {
-    vec2 inHistoryST = inHistoryUV * resolution;
-    const vec2 rcpResolution = rcp(resolution);
-    const vec2 fractional = fract(inHistoryST - 0.5);
-    const vec2 uv = (floor(inHistoryST - 0.5) + vec2(0.5f, 0.5f)) * rcpResolution;
-
-    // 5-tap bicubic sampling (for Hermite/Carmull-Rom filter) -- (approximate from original 16->9-tap bilinear fetching)
-    const vec2 t = vec2(fractional);
-    const vec2 t2 = vec2(fractional * fractional);
-    const vec2 t3 = vec2(fractional * fractional * fractional);
-    const float s = float(0.0);
-    const vec2 w0 = -s * t3 + float(2.f) * s * t2 - s * t;
-    const vec2 w1 = (float(2.f) - s) * t3 + (s - float(3.f)) * t2 + float(1.f);
-    const vec2 w2 = (s - float(2.f)) * t3 + (3 - float(2.f) * s) * t2 + s * t;
-    const vec2 w3 = s * t3 - s * t2;
-    const vec2 s0 = w1 + w2;
-    const vec2 f0 = w2 / (w1 + w2);
-    const vec2 m0 = uv + f0 * rcpResolution;
-    const vec2 tc0 = uv - 1.f * rcpResolution;
-    const vec2 tc3 = uv + 2.f * rcpResolution;
-
-    const vec4 A = vec4(texture(samplerV, vec2(m0.x, tc0.y)));
-    const vec4 B = vec4(texture(samplerV, vec2(tc0.x, m0.y)));
-    const vec4 C = vec4(texture(samplerV, vec2(m0.x, m0.y)));
-    const vec4 D = vec4(texture(samplerV, vec2(tc3.x, m0.y)));
-    const vec4 E = vec4(texture(samplerV, vec2(m0.x, tc3.y)));
-    const vec4 color = (float(0.5f) * (A + B) * w0.x + A * s0.x + float(0.5f) * (A + B) * w3.x) * w0.y + (B * w0.x + C * s0.x + D * w3.x) * s0.y + (float(0.5f) * (B + E) * w0.x + E * s0.x + float(0.5f) * (D + E) * w3.x) * w3.y;
-    return color;
 }
 
 void main() {
@@ -153,7 +115,7 @@ void main() {
                         vec3 refractHitScreen = refractRay.pRayStart + refractRay.pRayDir * (refractRay.pRayVecLen * abs(refractRay.currT));
                         vec2 refractCoord = refractHitScreen.xy + (global_taaJitter * uval_mainImageSizeRcp);
                         float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
-                        refractColor = mix(refractColor, BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb, edgeReductionFactor2(refractHitScreen.xy));
+                        refractColor = mix(refractColor, sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb, sst_edgeReductionFactor(refractHitScreen.xy, 2.0, vec2(0.0), vec2(1.5)));
                     }
                 }
             } else {
@@ -166,7 +128,7 @@ void main() {
                 if (refractDepth > startViewZ) {
                     refractCoord = screenPos;
                 }
-                refractColor = BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb;
+                refractColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
             }
 
             float MDotV = dot(microNormal, viewDir);
@@ -191,8 +153,8 @@ void main() {
                 vec3 reflectHitScreen = reflectRay.pRayStart + reflectRay.pRayDir * (reflectRay.pRayVecLen * abs(reflectRay.currT));
                 vec2 sampleCoord = saturate(reflectHitScreen.xy + (global_taaJitter * uval_mainImageSizeRcp));
                 vec3 hitGeomNormal = transient_geomViewNormal_sample(sampleCoord).rgb;
-                vec3 hitColor = BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb;
-                float mixFactor = edgeReductionFactor(reflectHitScreen.xy);
+                vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, sampleCoord * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
+                float mixFactor = sst_edgeReductionFactor(reflectHitScreen.xy, 4.0, vec2(0.5), vec2(0.95));
                 hitGeomNormal = normalize(hitGeomNormal * 2.0 - 1.0);
                 float hitDot = dot(-reflectDir, hitGeomNormal);
                 float reflectDepth = texture(usam_gbufferViewZ, sampleCoord).r;
