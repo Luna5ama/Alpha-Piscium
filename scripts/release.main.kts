@@ -561,7 +561,7 @@ if (7 !in skippedSteps) {
     println(githubReleaseUrl)
     println(modrinthReleaseUrl)
     println(curseForgeReleaseUrl)
-    println("@everyone")
+    println("@[release]")
     println()
     println("=".repeat(60))
     println("\n✅ Release process completed successfully!")
