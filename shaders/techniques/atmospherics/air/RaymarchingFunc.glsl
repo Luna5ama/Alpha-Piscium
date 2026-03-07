@@ -38,7 +38,8 @@ float bottomOffset
 #define ATMOSPHERE_RAYMARCHING_FUNC_PARAMS \
 AtmosphereParameters atmosphere, \
 RaymarchParameters params, \
-ScatteringParameters scatteringParams
+ScatteringParameters scatteringParams, \
+float bottomOffset
 
 #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
 #define ATMOSPHERE_RAYMARCHING_FUNC_NAME raymarchAerialPerspective
@@ -169,11 +170,12 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
 
             vec3 sampleInSctr = vec3(0.0);
 
+            vec3 offsetCenter = earthCenter + PLANET_RADIUS_OFFSET * upVector;
             {
                 #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
                 float shadowTerm = mix(1.0, shadowSample, shadowIsSun);
                 #else
-                float tEarth = raySphereIntersectNearest(samplePos, scatteringParams.sunParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom);
+                float tEarth = raySphereIntersectNearest(samplePos, scatteringParams.sunParams.lightDir, offsetCenter, atmosphere.bottom - bottomOffset);
                 float shadowTerm = float(tEarth < 0.0);
                 #endif
 
@@ -205,7 +207,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
                 #if ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 4
                 float shadowTerm = mix(shadowSample, 1.0, shadowIsSun);
                 #else
-                float tEarth = raySphereIntersectNearest(samplePos, scatteringParams.moonParams.lightDir, earthCenter + PLANET_RADIUS_OFFSET * upVector, atmosphere.bottom);
+                float tEarth = raySphereIntersectNearest(samplePos, scatteringParams.moonParams.lightDir, offsetCenter, atmosphere.bottom -  bottomOffset);
                 float shadowTerm = float(tEarth < 0.0);
                 #endif
 

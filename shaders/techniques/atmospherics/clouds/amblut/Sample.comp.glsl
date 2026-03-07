@@ -40,7 +40,7 @@ void main() {
     ScatteringResult result = scatteringResult_init();
     const vec3 earthCenter = vec3(0.0);
     if (setupRayEnd(atmosphere, params, rayDir)) {
-        result = raymarchSky(atmosphere, params, scatteringParams);
+        result = raymarchSky(atmosphere, params, scatteringParams, 0.0);
 
         const vec3 GROUND_ALBEDO_BASE = vec3(ivec3(SETTING_ATM_GROUND_ALBEDO_R, SETTING_ATM_GROUND_ALBEDO_G, SETTING_ATM_GROUND_ALBEDO_B)) / 255.0;
         vec3 groundAlbedo = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, GROUND_ALBEDO_BASE);

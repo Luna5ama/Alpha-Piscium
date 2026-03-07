@@ -11,18 +11,20 @@
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
 
-layout(local_size_x = 8, local_size_y = 16) in;
+layout(local_size_x = 16, local_size_y = 16) in;
 
-const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 8);
+const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 4);
 
 /*const*/
-#define ATMOSPHERE_RAYMARCHING_SKY_SINGLE a
+#define ATMOSPHERE_RAYMARCHING_SKY a
 /*const*/
 #include "../Raymarching.glsl"
 
 layout(rgba16f) restrict uniform writeonly image3D uimg_skyViewLUT;
 
-bool setupRayEndC(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir, float bottomOffset) {
+const float BOTTOM_OFFSET = 8.0;
+
+bool setupRayEndC(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir) {
     const vec3 earthCenter = vec3(0.0);
     float rayStartHeight = length(params.rayStart);
 
@@ -37,7 +39,7 @@ bool setupRayEndC(AtmosphereParameters atmosphere, inout RaymarchParameters para
         params.rayStart += rayDir * tTop + upOffset;
     }
 
-    float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom - bottomOffset);
+    float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom - BOTTOM_OFFSET);
     float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
     float rayLen = 0.0;
 
@@ -58,7 +60,7 @@ bool setupRayEndC(AtmosphereParameters atmosphere, inout RaymarchParameters para
     return true;
 }
 
-bool setupRayEndLayered(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir, vec2 layerBound, float bottomOffset) {
+bool setupRayEndLayered(AtmosphereParameters atmosphere, inout RaymarchParameters params, vec3 rayDir, vec2 layerBound) {
     const vec3 earthCenter = vec3(0.0);
     float rayStartHeight = length(params.rayStart);
 
@@ -72,7 +74,7 @@ bool setupRayEndLayered(AtmosphereParameters atmosphere, inout RaymarchParameter
         params.rayStart += rayDir * tLayerTop + upOffset;
     } else if (rayStartHeight < layerBound.x) {
         float tLayerBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, layerBound.x);
-        float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom - bottomOffset);
+        float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom - BOTTOM_OFFSET);
         if (tBottom >= 0.0 || tLayerBottom < 0.0) {
             return false;
         }
@@ -81,7 +83,7 @@ bool setupRayEndLayered(AtmosphereParameters atmosphere, inout RaymarchParameter
         params.rayStart += rayDir * tLayerBottom + upOffset;
     }
 
-    float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom - bottomOffset);
+    float tBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.bottom - BOTTOM_OFFSET);
     float tTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, atmosphere.top);
 
     float rayLen = 0.0;
@@ -98,7 +100,7 @@ bool setupRayEndLayered(AtmosphereParameters atmosphere, inout RaymarchParameter
         }
     }
 
-    float tLayerBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, layerBound.x - bottomOffset);
+    float tLayerBottom = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, layerBound.x);
     float tLayerTop = raySphereIntersectNearest(params.rayStart, rayDir, earthCenter, layerBound.y);
 
     uint inLayer = uint(rayStartHeight > layerBound.x - 0.001) & uint(rayStartHeight < layerBound.y);
@@ -141,68 +143,43 @@ void main() {
     vec3 rayStart = atmosphere_viewToAtm(atmosphere, vec3(0.0));
     float viewHeight = length(rayStart);
 
-    float viewZenithCosAngle, lightViewCosAngle;
-    _atmospherics_air_lut_uvToSkyViewLutParams(atmosphere, viewZenithCosAngle, lightViewCosAngle, viewHeight, screenPos);
-
-    float viewZenithSinAngle = sqrt(saturate(1.0 - pow2(viewZenithCosAngle)));
-    float lightViewSinAngle = sqrt(saturate(1.0 - pow2(lightViewCosAngle)));
-    vec3 rayDir = vec3(
-        viewZenithSinAngle * lightViewCosAngle,
-        viewZenithCosAngle,
-        viewZenithSinAngle * lightViewSinAngle
-    );
+    // Decode UV -> lat/lon -> world-space ray direction
+    float lat, lon;
+    _atmospherics_air_lut_uvToSkyViewLonLat(screenPos, lat, lon);
+    vec3 rayDir;
+    _atmospherics_air_lut_skyViewLonLatToRayDir(lat, lon, rayDir);
 
     RaymarchParameters params = raymarchParameters_init();
     params.rayStart = rayStart;
     params.steps = SETTING_SKY_SAMPLES;
 
+    int layerIndex = int(gl_WorkGroupID.z);
+
+    LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE, uval_sunDirWorld, rayDir);
+    LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, rayDir);
+    ScatteringParameters scatteringParams = scatteringParameters_init(sunParams, moonParams, 1.0);
+
     ScatteringResult result = scatteringResult_init();
-    int workGroupZI = int(gl_WorkGroupID.z);
-    int layerIndex = workGroupZI >> 1;
-    int isMoonI = workGroupZI & 1;
-
-    vec3 upVector = params.rayStart / viewHeight;
-    LightParameters lightParam;
-    float lightZenithCosAngle;
-    if (bool(isMoonI)) {
-        float moonZenithCosAngle = dot(upVector, uval_moonDirWorld);
-        float moonZenithSinAngle = sqrt(saturate(1.0 - pow2(moonZenithCosAngle)));
-        vec3 moonDir = normalize(vec3(moonZenithSinAngle, moonZenithCosAngle, 0.0));
-        lightParam = lightParameters_init(atmosphere, vec3(1.0), moonDir, rayDir);
-        lightZenithCosAngle = moonZenithCosAngle;
-    } else {
-        float sunZenithCosAngle = dot(upVector, uval_sunDirWorld);
-        float sunZenithSinAngle = sqrt(saturate(1.0 - pow2(sunZenithCosAngle)));
-        vec3 sunDir = normalize(vec3(sunZenithSinAngle, sunZenithCosAngle, 0.0));
-        lightParam = lightParameters_init(atmosphere, vec3(1.0), sunDir, rayDir);
-        lightZenithCosAngle = sunZenithCosAngle;
-    }
-
-    float groundFactor = exp2(-4.0 * (viewHeight - atmosphere.bottom));
-    float bottomOffset = groundFactor * 100.0;
 
     if (layerIndex == 0) {
-        if (setupRayEndC(atmosphere, params, rayDir, bottomOffset)) {
+        if (setupRayEndC(atmosphere, params, rayDir)) {
             params.rayStart = params.rayStart + rayDir * (shadowDistance / SETTING_ATM_D_SCALE);
-            result = raymarchSkySingle(atmosphere, params, lightParam, bottomOffset * saturate(lightZenithCosAngle));
+            result = raymarchSky(atmosphere, params, scatteringParams, BOTTOM_OFFSET);
         }
     } else {
         vec2 layerBound = LAYER_BOUNDS[layerIndex - 1] + atmosphere.bottom;
         layerBound = min(layerBound, vec2(atmosphere.top));
 
-        if (setupRayEndLayered(atmosphere, params, rayDir, layerBound, bottomOffset)) {
-            result = raymarchSkySingle(atmosphere, params, lightParam, bottomOffset * saturate(lightZenithCosAngle));
+        if (setupRayEndLayered(atmosphere, params, rayDir, layerBound)) {
+            result = raymarchSky(atmosphere, params, scatteringParams, BOTTOM_OFFSET);
         }
     }
 
-    float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 5u), frameCounter);
-    result.inScattering = dither_fp16(result.inScattering * LUT_QUANTIZATION_MUL, ditherNoise);
-    result.transmittance = dither_fp16(result.transmittance * LUT_QUANTIZATION_MUL, ditherNoise);
-    ivec3 writePos = ivec3(texelPos, layerIndex * 3);
-    writePos.z += isMoonI;
+    result.inScattering = result.inScattering;
+    result.transmittance = result.transmittance;
+
+    ivec3 writePos = ivec3(texelPos, layerIndex * 2);
     imageStore(uimg_skyViewLUT, writePos, vec4(result.inScattering, 0.0));
-    if (isMoonI == 0) {
-        writePos.z += 2;
-        imageStore(uimg_skyViewLUT, writePos, vec4(result.transmittance, 0.0));
-    }
+    writePos.z += 1;
+    imageStore(uimg_skyViewLUT, writePos, vec4(result.transmittance, 0.0));
 }
