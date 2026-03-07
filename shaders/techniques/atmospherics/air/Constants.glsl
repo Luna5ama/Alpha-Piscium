@@ -93,7 +93,7 @@ struct AtmosphereParameters {
 vec3 atmosphere_mieCoefficientsPreetham(float turbidity) {
     const vec3 a0 = vec3(-0.00767542206226, -0.00822772032997, -0.0121707541321);
     const vec3 a1 = vec3(0.00771550875198, 0.00827069152678, 0.0122343187466);
-    return colors2_constants_toWorkSpace(a0 + a1 * turbidity);
+    return max(colors2_constants_toWorkSpace(a0 + a1 * turbidity), 0.0);
 }
 
 AtmosphereParameters getAtmosphereParameters() {
