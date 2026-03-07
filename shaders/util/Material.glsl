@@ -51,11 +51,24 @@ Material material_decode(GBufferData gData) {
 
     float emissivePBR = gData.pbrSpecular.a;
     emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
+
+    const float _64o255 = 64.0 / 255.0;
+    const float _65o255 = 65.0 / 255.0;
+    float step64 = step(_65o255, gData.pbrSpecular.b);
+    material.porosity = linearStep(0.0, _64o255, gData.pbrSpecular.b);
+    material.porosity *= 1.0 - step64;
+
+    material.sss = linearStep(_65o255, 1.0, gData.pbrSpecular.b);
+    material.sss *= step64;
+    material.sss = sqrt(material.sss);
     #else
     float roughness = hardcoded.roughness;
     float emissivePBR = hardcoded.emissive;
-    emissiveAlbedoCurve.a += 2.0;
+    emissiveAlbedoCurve.a += 1.0;
     albedoLuma = smoothstep(0.0, 1.0, albedoLuma);
+
+    material.porosity = 0.0;
+    material.sss = hardcoded.sss;
     #endif
 
     roughness = pow2(roughness);
@@ -83,16 +96,6 @@ Material material_decode(GBufferData gData) {
 
     material.emissive = emissiveValue * emissiveAlbedo.a * emissiveAlbedo.rgb;
     material.emissive = ldexp(material.emissive, ivec3(hardcoded.emissiveMultiplier));
-
-    const float _64o255 = 64.0 / 255.0;
-    const float _65o255 = 65.0 / 255.0;
-    float step64 = step(_65o255, gData.pbrSpecular.b);
-    material.porosity = linearStep(0.0, _64o255, gData.pbrSpecular.b);
-    material.porosity *= 1.0 - step64;
-
-    material.sss = linearStep(_65o255, 1.0, gData.pbrSpecular.b);
-    material.sss *= step64;
-    material.sss = sqrt(material.sss);
 
     #ifdef MATERIAL_TRANSLUCENT
     material.hardCodedIOR = isWater ? 1.3333 : hardcoded.ior;
