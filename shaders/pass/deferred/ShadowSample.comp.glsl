@@ -63,7 +63,7 @@ vec2 rtwsm_warpTexCoord_shared(vec2 uv) {
 float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord, float sssFactor) {
     uint BLOCKER_SEARCH_N = uint(mix(float(SETTING_PCSS_BLOCKER_SEARCH_COUNT), float(SETTING_SSS_SAMPLE_COUNT), float(sssFactor > 0.0)));
 
-    vec2 blockerSearchRange = (0.05 + sssFactor * 0.2) * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
+    vec2 blockerSearchRange = (0.05 + sssFactor * 0.2) * vec2(global_shadowProj[0][0], global_shadowProj[1][1]);
 
     float blockerDepthSum = 0.0;
     float validCount = 0.0;
@@ -118,7 +118,7 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         offsetViewPos += gData.geomNormal * mix(0.03, 0.01, pow2(cosLightTheta));
         vec4 scenePos = gbufferModelViewInverse * vec4(offsetViewPos, 1.0);
         vec4 shadowViewPos = global_shadowRotationMatrix * global_shadowView * scenePos;
-        vec4 shadowClipPos = global_shadowProjPrev * shadowViewPos;
+        vec4 shadowClipPos = global_shadowProj * shadowViewPos;
         vec3 shadowNDCPos = shadowClipPos.xyz / shadowClipPos.w;
         vec3 shadowScreenPos = shadowNDCPos * 0.5 + 0.5;
         float blockerDistance = searchBlocker(texelPos, shadowScreenPos, sssFactor);
@@ -129,13 +129,14 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         ssRange = mix(ssRange, ssRange + 0.05, gData.isHand);
         #endif
         float clampedBlockerDistance = softMax(blockerDistance, 0.5, 8.0);
+        clampedBlockerDistance = 0.0;
         ssRange += SUN_ANGULAR_RADIUS * 2.0 * SETTING_PCSS_VPF * clampedBlockerDistance;
         ssRange = saturate(ssRange);
         ssRange += sssFactor * SETTING_SSS_DIFFUSE_RANGE;
 
         const float ssRangeMul = 0.25;
         ssRange *= ssRangeMul;
-        vec2 ssRange2 = ssRange * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
+        vec2 ssRange2 = ssRange * vec2(global_shadowProj[0][0], global_shadowProj[1][1]);
 
         float jitterR = rand_stbnVec1(texelPos, frameCounter);
         vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);

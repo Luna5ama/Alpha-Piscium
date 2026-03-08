@@ -28,7 +28,7 @@ void initSharedData() {
             shared_camProj = global_camProj;
             shared_frustumPlaneCount = global_cameraData.frustumPlaneCount;
 
-            shared_shadowNDCToShadowView = global_shadowRotationMatrixInverse * global_shadowProjInversePrev;
+            shared_shadowNDCToShadowView = global_shadowRotationMatrixInverse * global_shadowProjInverse;
             shared_shadowViewToScene = global_shadowViewInverse;
         }
     }

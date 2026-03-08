@@ -22,7 +22,7 @@ void main() {
             vec3 shadowScreenPos = vec3(screenPos, shadowDepth);
 
             vec3 shadowNDCPos = shadowScreenPos * 2.0 - 1.0;
-            vec4 shadowViewPos = global_shadowProjInversePrev * vec4(shadowNDCPos, 1.0);
+            vec4 shadowViewPos = global_shadowProjInverse * vec4(shadowNDCPos, 1.0);
             shadowViewPos /= shadowViewPos.w;
             vec4 scenePos = global_shadowViewInverse * global_shadowRotationMatrixInverse * shadowViewPos;
 

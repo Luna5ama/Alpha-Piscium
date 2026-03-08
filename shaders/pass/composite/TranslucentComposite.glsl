@@ -91,7 +91,7 @@ void main() {
                 vec3 upVector = atmPos / viewAltitude;
                 const vec3 earthCenter = vec3(0.0, 0.0, 0.0);
 
-                vec4 shadowPos = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * vec4(feetPlayerPos, 1.0);
+                vec4 shadowPos = global_shadowProj * global_shadowRotationMatrix * global_shadowView * vec4(feetPlayerPos, 1.0);
 
                 vec3 sampleTexCoord = shadowPos.xyz / shadowPos.w;
                 sampleTexCoord = sampleTexCoord * 0.5 + 0.5;

@@ -60,7 +60,7 @@ void main() {
 
     float depthBiasSlopeFactor = sqrt(1.0 - pow2(lightDot)) / lightDot; // tan(acos(lightDot))
     depthBiasSlopeFactor = log2(depthBiasSlopeFactor + 1.0) + 0.01;
-    float depthBiasTexelSizeFactor = SHADOW_MAP_SIZE.y * (1.0 / 256.0) / min2(texelSize);
+    float depthBiasTexelSizeFactor = SHADOW_MAP_SIZE.y * (1.0 / 128.0) / min2(texelSize);
     float depthBias = depthBiasSlopeFactor * depthBiasTexelSizeFactor;
     depthFixOffset += depthBias;
 
