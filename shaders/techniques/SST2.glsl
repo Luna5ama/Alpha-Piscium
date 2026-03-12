@@ -22,7 +22,7 @@
 */
 #ifdef SST_DEBUG_PASS
 #define GLOBAL_DATA_MODIFIER buffer
-layout(std430, binding = 3) buffer TestBuffer {
+layout(std430, binding = 11) buffer TestBuffer {
     vec4 ssbo_testBuffer[];
 };
 #endif

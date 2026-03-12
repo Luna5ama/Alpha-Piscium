@@ -2,7 +2,7 @@
 
 // Supa cool sorting from Bob
 // Optimized by Claude Opus 4.5 xD
-layout(std430, binding = 5) buffer RayDataIndices {
+layout(std430, binding = 6) buffer RayDataIndices {
     uint ssbo_rayDataIndices[];
 };
 

@@ -29,11 +29,11 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(std430, binding = 4) buffer RayData {
+layout(std430, binding = 5) buffer RayData {
     uvec4 ssbo_rayData[];
 };
 
-layout(std430, binding = 5) buffer RayDataIndices {
+layout(std430, binding = 6) buffer RayDataIndices {
     uint ssbo_rayDataIndices[];
 };
 
