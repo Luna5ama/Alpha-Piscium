@@ -138,15 +138,16 @@ if (1 !in skippedSteps) {
 
         val shdesmithOutputPathStr = config.getOrDefault("SHADESMITH_OUTPUT", "./shadesmitth").toString()
         val shadesmithOutputPath = Path(shdesmithOutputPathStr).normalize().absolute()
-        val java = System.getProperty("java.home")
+        val shadesmithShadersPath = shadesmithOutputPath.resolve("shaders")
 
+        val java = System.getProperty("java.home")
         val shadesmithRun = ProcessBuilder()
             .command(
                 "$java/bin/java",
                 "-jar",
                 shadesmithJarPath.toString(),
                 shadersPath.toString(),
-                shadesmithOutputPath.resolve("shaders").toString()
+                shadesmithShadersPath.toString()
             )
             .inheritIO()
             .start()
@@ -154,14 +155,13 @@ if (1 !in skippedSteps) {
         val included = setOf("changelogs", "licenses", "shaders/lang", "shaders/textures", "LICENSE", "README.md")
         val branchName =
             Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD")).inputStream.bufferedReader()
-                .readText().trim()
+                .readText().trim().takeIf { it != "main" && it != "dev" }
         val commitTag =
             Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD")).inputStream.bufferedReader().readText()
                 .trim()
-        val zipFileName = "${projectRootPath.name.replace("-", " ")} $branchName $commitTag.zip"
+        val suffix = listOfNotNull(version, commitTag, branchName).joinToString("-")
+        val zipFileName = "${projectRootPath.name.replace("-", " ")}$suffix.zip"
         val zipFilePath = projectRootPath.resolve("builds").resolve(zipFileName)
-
-        println("Creating $zipFileName")
 
         ZipOutputStream(zipFilePath.outputStream(), Charsets.UTF_8).use { zipOut ->
             zipOut.setLevel(Deflater.DEFAULT_COMPRESSION)
@@ -188,7 +188,6 @@ if (1 !in skippedSteps) {
             }
 
             addStuff(projectRootPath, projectRootPath.walk(PathWalkOption.FOLLOW_LINKS).filter { file ->
-                if (file.extension == "properties") return@filter true
                 val baseDirName = file.relativeTo(projectRootPath).invariantSeparatorsPathString
                 if (baseDirName.startsWith('.')) return@filter false
                 included.any {
@@ -196,7 +195,7 @@ if (1 !in skippedSteps) {
                 }
             })
             shadesmithRun.waitFor()
-            addStuff(shadesmithOutputPath, shadesmithOutputPath.walk(PathWalkOption.FOLLOW_LINKS))
+            addStuff(shadesmithOutputPath, shadesmithShadersPath.walk())
             zipFilePath.toFile()
         }
     }

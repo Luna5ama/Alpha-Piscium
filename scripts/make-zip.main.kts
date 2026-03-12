@@ -27,15 +27,16 @@ val shadersPath = projectRootPath.resolve("shaders")
 
 val shdesmithOutputPathStr = config.getOrDefault("SHADESMITH_OUTPUT", "./shadesmitth").toString()
 val shadesmithOutputPath = Path(shdesmithOutputPathStr).normalize().absolute()
-val java = System.getProperty("java.home")
+val shadesmithShadersPath = shadesmithOutputPath.resolve("shaders")
 
+val java = System.getProperty("java.home")
 val shadesmithRun = ProcessBuilder()
     .command(
         "$java/bin/java",
         "-jar",
         shadesmithJarPath.toString(),
         shadersPath.toString(),
-        shadesmithOutputPath.resolve("shaders").toString()
+        shadesmithShadersPath.toString()
     )
     .inheritIO()
     .start()
@@ -76,7 +77,6 @@ ZipOutputStream(zipFilePath.outputStream(), Charsets.UTF_8).use { zipOut ->
     }
 
     addStuff(projectRootPath, projectRootPath.walk(PathWalkOption.FOLLOW_LINKS).filter { file ->
-        if (file.extension == "properties") return@filter true
         val baseDirName = file.relativeTo(projectRootPath).invariantSeparatorsPathString
         if (baseDirName.startsWith('.')) return@filter false
         included.any {
@@ -84,5 +84,5 @@ ZipOutputStream(zipFilePath.outputStream(), Charsets.UTF_8).use { zipOut ->
         }
     })
     shadesmithRun.waitFor()
-    addStuff(shadesmithOutputPath, shadesmithOutputPath.walk())
+    addStuff(shadesmithOutputPath, shadesmithShadersPath.walk())
 }
