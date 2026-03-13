@@ -241,6 +241,7 @@ void main() {
             vec4 shadowValue = compShadow(texelPos, viewZ, gData);
             vec4 bendShadow = transient_bendShadow_fetch(texelPos);
             shadowValue.rgb = min(shadowValue.rgb, vec3(bendShadow.r));
+            shadowValue.rgb = bendShadow.rrr;
             shadowValue = clamp(shadowValue, 0.0, FP16_MAX);
             transient_shadow_store(texelPos, shadowValue);
         }

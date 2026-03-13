@@ -44,16 +44,12 @@ struct DispatchParameters {
 
 float GetScreenDepth(ivec2 texel) {
     if (any(lessThan(texel, ivec2(0))) || any(greaterThanEqual(texel, uval_mainImageSizeI))) {
-        return 0.0; // Far plane (usually 1.0 or 0.0 depending on setup, standard is 1.0 for far?)
-        // Wait, Minecraft default projection: Near=0.05, Far=???. Standard GL: -1 to 1 NDC. Depth 0..1.
-        // If usam_gbufferViewZ is -65536 (sky), we should return far depth.
+        return 0.0;
     }
     float viewZ = texelFetch(usam_gbufferViewZ, texel, 0).r;
-    if (viewZ <= -65536.0) return 1.0; // Far
+    if (viewZ <= -65536.0) return 0.0; // Far
 
-    // Project viewZ to screen depth [0,1]
-    vec4 clip = global_camProj * vec4(0.0, 0.0, viewZ, 1.0);
-    return (clip.z / clip.w) * 0.5 + 0.5;
+    return coords_viewZToReversedZ(viewZ, nearPlane);
 }
 
 void ComputeWavefrontExtents(DispatchParameters params, ivec3 groupID, uint laneID, out vec2 outDeltaXY, out vec2 outPixelXY, out float outPixelDistance, out bool outMajorAxisX) {
@@ -288,8 +284,8 @@ void main() {
         uintBitsToFloat(indirectComputeData[BEND_SSS_PARAMS_BASE + 3u])
     );
     params.WaveOffset = ivec2(woX, woY);
-    params.FarDepthValue = 1.0;
-    params.NearDepthValue = 0.0; // Assuming standard 0-1 depth
+    params.FarDepthValue = 0.0;
+    params.NearDepthValue = 1.0; // Reversed Z
     params.InvDepthTextureSize = 1.0 / uval_mainImageSize;
 
     WriteScreenSpaceShadow(params, groupID, gl_LocalInvocationIndex);
