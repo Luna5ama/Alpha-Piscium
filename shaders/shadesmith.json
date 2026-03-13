@@ -15,6 +15,7 @@
         "history_viewNormal": "RGB10_A2",
         "transient_edgeMaskTemp": "RGBA8",
         "transient_edgeMask": "RGBA8",
+        "transient_bendShadow": "RGBA8",
         "transient_solidAlbedo": "RGBA8",
         "history_gi1": "RGBA16F",
         "history_gi2": "RGBA16F",

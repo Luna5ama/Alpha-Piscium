@@ -239,6 +239,8 @@ void main() {
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             rtwsm_backward(texelPos, viewZ, gData);
             vec4 shadowValue = compShadow(texelPos, viewZ, gData);
+            vec4 bendShadow = transient_bendShadow_fetch(texelPos);
+            shadowValue.rgb = min(shadowValue.rgb, vec3(bendShadow.r));
             shadowValue = clamp(shadowValue, 0.0, FP16_MAX);
             transient_shadow_store(texelPos, shadowValue);
         }
