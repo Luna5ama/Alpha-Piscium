@@ -91,7 +91,6 @@ uniform sampler2D usam_frgba16;
 
 uniform sampler3D usam_skyViewLUT;
 uniform usampler2D usam_epipolarData;
-uniform sampler3D usam_cloudsAmbLUT;
 uniform usampler2D usam_envProbe;
 
 // -------------------------------------------------- Custom Textures --------------------------------------------------

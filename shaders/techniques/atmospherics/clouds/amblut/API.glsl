@@ -24,8 +24,17 @@ vec2 cloods_amblut_uv(vec3 viewDir, vec2 jitter) {
     return uv;
 }
 
+vec2 clouds_amblut_tileUV(vec2 uv, float layer) {
+    float layerIndex = clamp(floor(layer), 0.0, _CLOUDS_AMBLUT_SIZE_LAYERS - 1.0);
+    return vec2(uv.x, (uv.y + layerIndex) * _CLOUDS_AMBLUT_SIZE_LAYERS_RCP);
+}
+
+vec4 clouds_amblut_sampleRaw(vec2 uv, float layer) {
+    return persistent_cloudsAmbLUT_sample(clouds_amblut_tileUV(uv, layer));
+}
+
 vec3 clouds_amblut_sample(vec2 uv, float layer) {
-    return texture(usam_cloudsAmbLUT, vec3(uv, layer * _CLOUDS_AMBLUT_SIZE_LAYERS_RCP)).rgb;
+    return clouds_amblut_sampleRaw(uv, layer).rgb;
 }
 
 #endif
