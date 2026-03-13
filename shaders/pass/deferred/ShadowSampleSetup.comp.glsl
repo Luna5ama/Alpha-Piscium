@@ -31,7 +31,7 @@ void main() {
 
     vec4 lightCoordInternal;
     lightCoordInternal.x = ((lightClip.x / xy_light_w) * 0.5 + 0.5) * uval_mainImageSize.x;
-    lightCoordInternal.y = ((lightClip.y / xy_light_w) * -0.5 + 0.5) * uval_mainImageSize.y;
+    lightCoordInternal.y = ((lightClip.y / xy_light_w) * 0.5 + 0.5) * uval_mainImageSize.y;
     lightCoordInternal.z = lightClip.w == 0.0 ? 0.0 : (lightClip.z / lightClip.w);
     lightCoordInternal.w = lightClip.w > 0.0 ? 1.0 : -1.0;
 
