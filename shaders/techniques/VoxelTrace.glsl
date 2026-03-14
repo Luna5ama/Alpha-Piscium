@@ -3,8 +3,8 @@
 //
 // Tree structure (see Voxelization.glsl):
 //   Top level  : 16×16×16 flat brick grid  (each cell = 16 blocks/axis)
-//   Level 1    : root uvec2 per brick       (64-bit mask of 4³ sub-regions)
-//   Level 2    : 64 leaf uvec2  per brick   (64-bit mask of 4³ blocks per sub-region)
+//   Level 1    : root uint64_t per brick      (64-bit mask of 4^3 sub-regions)
+//   Level 2    : 64 leaf uint64_t per brick   (64-bit mask of 4^3 blocks per sub-region)
 //
 // Algorithm (adapted from "A guide to fast voxel ray tracing using sparse 64-trees"):
 //   Block-level DDA with two skip accelerators:
@@ -33,11 +33,9 @@ struct VoxelHit {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-// Test bit [0..63] packed as lo (x) + hi (y) uvec2.
-bool _voxel_testBit64(uvec2 mask, uint idx) {
-    return idx < 32u
-        ? ((mask.x >>  idx)        & 1u) != 0u
-        : ((mask.y >> (idx - 32u)) & 1u) != 0u;
+// Test bit [0..63] in a uint64_t mask.
+bool _voxel_testBit64(uint64_t mask, uint idx) {
+    return ((mask >> idx) & uint64_t(1)) != uint64_t(0);
 }
 
 // Compute the number of DDA steps from blockPos to the exit face of a cell.
@@ -169,7 +167,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         ivec3 blockInBrick = blockPos & ivec3(15);
         ivec3 srCoord      = blockInBrick >> 2;
         uint  srMorton     = morton3D_6bEncode(uvec3(srCoord));
-        uvec2 rootMask     = voxel_tree[voxel_treeRootIndex(allocID)];
+        uint64_t rootMask     = voxel_tree[voxel_treeRootIndex(allocID)];
 
         if (!_voxel_testBit64(rootMask, srMorton)) {
             ivec3 srMin = brickRel * 16 + srCoord * 4;
@@ -182,7 +180,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         // ---- Level 2 : leaf block bitmask check ----
         ivec3 blockInSr     = blockInBrick & ivec3(3);
         uint  blockSrMorton = morton3D_6bEncode(uvec3(blockInSr));
-        uvec2 leafMask      = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
+        uint64_t leafMask      = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
 
         if (_voxel_testBit64(leafMask, blockSrMorton)) {
             uint blockMorton  = voxel_blockMorton(blockInBrick);

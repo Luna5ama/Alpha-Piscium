@@ -16,3 +16,9 @@
 #define f16mat3 mat3
 #define f16mat4 mat4
 #endif
+
+#if defined MC_GL_AMD_gpu_shader_int64
+#extension GL_AMD_gpu_shader_int64 : enable
+#else
+#extension GL_ARB_gpu_shader_int64 : enable
+#endif

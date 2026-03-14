@@ -47,13 +47,13 @@ layout(std430, binding = 4) VOXEL_MATERIAL_DATA_MODIFIER VoxelMaterialData {
 
 // ---------------------------------------------------------------------------
 // SSBO 8 – 64-Tree Data
-//   Per brick: 1 root uvec2 + 64 leaf uvec2  (65 uvec2 total)
+//   Per brick: 1 root uint64_t + 64 leaf uint64_t (65 uint64_t total)
 //   Root bit j = 1  if sub-region j (4^3) contains any non-empty block
 //   Leaf j  bit k = 1  if block k within sub-region j is non-empty
 //   Indexed by voxel_treeRootIndex / voxel_treeLeafIndex helpers below
 // ---------------------------------------------------------------------------
 layout(std430, binding = 8) VOXEL_TREE_DATA_MODIFIER VoxelTreeData {
-    uvec2 voxel_tree[];       // 512 * 65 = 33,280 uvec2 entries
+    uint64_t voxel_tree[];       // 512 * 65 = 33,280 uint64_t entries
 };
 
 // ---------------------------------------------------------------------------
