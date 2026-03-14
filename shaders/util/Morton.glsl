@@ -52,6 +52,51 @@ uint morton_32bEncode(uvec2 coords) {
 }
 
 // Adapted from https://github.com/liamdon/fast-morton
+uint morton3D_6bEncode(uvec3 coords) {
+    uvec3 x = coords & 0x03u;
+    x = (x | (x << 2u)) & 0x09u;
+    return x.x | (x.y << 1u) | (x.z << 2u);
+}
+
+uvec3 morton3D_6bDecode(uint x) {
+    uvec3 coords = uvec3(x, x >> 1u, x >> 2u);
+    coords &= 0x09u;
+    coords = (coords | (coords >> 2u)) & 0x03u;
+    return coords;
+}
+
+uint morton3D_12bEncode(uvec3 coords) {
+    uvec3 x = coords & 0x0Fu;
+    x = (x | (x << 4u)) & 0xC3u;
+    x = (x | (x << 2u)) & 0x249u;
+    return x.x | (x.y << 1u) | (x.z << 2u);
+}
+
+uvec3 morton3D_12bDecode(uint x) {
+    uvec3 coords = uvec3(x, x >> 1u, x >> 2u);
+    coords &= 0x249u;
+    coords = (coords | (coords >> 2u)) & 0xC3u;
+    coords = (coords | (coords >> 4u)) & 0x0Fu;
+    return coords;
+}
+
+uint morton3D_24bEncode(uvec3 coords) {
+    uvec3 x = coords & 0xFFu;
+    x = (x | (x << 8u)) & 0x00F00Fu;
+    x = (x | (x << 4u)) & 0x0C30C3u;
+    x = (x | (x << 2u)) & 0x249249u;
+    return x.x | (x.y << 1u) | (x.z << 2u);
+}
+
+uvec3 morton3D_24bDecode(uint x) {
+    uvec3 coords = uvec3(x, x >> 1u, x >> 2u);
+    coords &= 0x249249u;
+    coords = (coords | (coords >> 2u)) & 0x0C30C3u;
+    coords = (coords | (coords >> 4u)) & 0x00F00Fu;
+    coords = (coords | (coords >> 8u)) & 0x0000FFu;
+    return coords;
+}
+
 uint morton3D_30bEncode(uvec3 coords) {
     uvec3 x = coords;
     x &= 0x000003FFu;
