@@ -1,9 +1,13 @@
 #include "/techniques/rtwsm/RTWSM.glsl"
 #include "/util/Fresnel.glsl"
+#define VOXEL_BRICK_DATA_MODIFIER buffer
+#define VOXEL_MATERIAL_DATA_MODIFIER buffer
+#include "/techniques/Voxelization.glsl"
 
 layout(r32i) uniform iimage2D uimg_fr32f;
 
 in vec2 mc_Entity;
+in vec4 at_midBlock;
 
 #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
 out vec2 vert_texcoord;
@@ -49,6 +53,52 @@ void main() {
     vert_survived = survived;
 
     survived &= uint((gl_VertexID & 3) == 0);
+
+    // -------------------------------------------------------------------
+    // Voxelization: mark brick occupancy and write material data.
+    // Only runs once per quad (gl_VertexID & 3 == 0) to reduce atomics.
+    // Skipped for translucent geometry (water handled separately later).
+    // -------------------------------------------------------------------
+    #ifndef SHADOW_PASS_TRANSLUCENT
+    if ((gl_VertexID & 3) == 0 && materialID != MATERIAL_ID_WATER) {
+        // Absolute integer block position of the center of this block.
+        // scenePos is camera-relative; add camera's integer + fractional parts.
+        ivec3 blockWorldPos = ivec3(floor(scenePos.xyz + cameraPositionFract + at_midBlock.xyz / 64.0))
+                              + cameraPositionInt;
+
+        // Brick grid coordinate centered on the camera's brick
+        ivec3 cameraBrickCoord = cameraPositionInt >> 4;
+        ivec3 brickWorldCoord  = blockWorldPos >> 4;
+        ivec3 brickRelCoord    = brickWorldCoord - cameraBrickCoord + ivec3(VOXEL_GRID_SIZE / 2);
+
+        if (all(greaterThanEqual(brickRelCoord, ivec3(0))) &&
+            all(lessThan(brickRelCoord, ivec3(VOXEL_GRID_SIZE)))) {
+
+            uint brickMorton = voxel_brickMorton(brickRelCoord);
+
+            // Mark brick occupied for this frame
+            atomicOr(voxel_brickOccupancy[brickMorton], 1u);
+
+            // Write material ID if the brick already has a valid alloc ID
+            // (assigned by last frame's VoxelAllocator begin pass)
+            uint allocID = voxel_brickAllocID[brickMorton];
+            if (allocID != VOXEL_UNALLOCATED) {
+                ivec3 blockInBrick = blockWorldPos & ivec3(VOXEL_BRICK_SIZE - 1);
+                uint blockMorton   = voxel_blockMorton(blockInBrick);
+                uint matIdx        = voxel_materialIndex(allocID, blockMorton);
+                // Only write a non-zero material ID; 0 means "no entity mapping".
+                // atomicMax ensures a real ID beats the cleared-to-0 state.
+                if (materialID != 0u) {
+                    atomicMax(voxel_materials[matIdx], materialID);
+                } else {
+                    // Block exists but has no material ID mapping: write a
+                    // placeholder (1) so the tree knows the voxel is solid.
+                    atomicMax(voxel_materials[matIdx], 1u);
+                }
+            }
+        }
+    }
+    #endif
 
     #ifdef SETTING_RTWSM_F
     if (bool(survived)){
