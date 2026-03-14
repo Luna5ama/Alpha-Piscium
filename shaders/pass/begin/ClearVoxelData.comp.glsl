@@ -3,7 +3,7 @@
 //
 // Dispatch: 8192 workgroups × 256 threads = 2,097,152 threads.
 // Each thread clears one voxel_materials entry; threads < 33280 also clear
-// their voxel_tree entry (512 bricks × 65 uvec2 = 33,280 total).
+// their voxel_tree entry (512 bricks x 65 uint64_t = 33,280 total).
 
 #define VOXEL_MATERIAL_DATA_MODIFIER buffer
 #define VOXEL_TREE_DATA_MODIFIER buffer
@@ -19,9 +19,9 @@ void main() {
     // Clear material slot (one per thread, covers full SSBO 4)
     voxel_materials[i] = 0u;
 
-    // Clear tree slot for the first 33280 threads (SSBO 8 = 512*65 uvec2)
+    // Clear tree slot for the first 33280 threads (SSBO 8 = 512*65 uint64_t)
     if (i < uint(VOXEL_POOL_SIZE * 65)) {
-        voxel_tree[i] = uvec2(0u);
+        voxel_tree[i] = uint64_t(0);
     }
 }
 
