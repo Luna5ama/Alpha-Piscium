@@ -33,7 +33,7 @@
 layout(local_size_x = 1024) in;
 const ivec3 workGroups = ivec3(1, 1, 1); // single workgroup: 1024 threads × 4 bricks = 4096
 
-#define NUM_DIST_BUCKETS 137  // Chebyshev distances 0..136 blocks
+#define NUM_DIST_BUCKETS 512  // Chebyshev distances 0..2048 blocks
 #define BRICKS_PER_THREAD 4   // 4096 / 1024
 
 shared ivec3 s_brickDelta;
@@ -47,7 +47,7 @@ uint brickDistBucket(ivec3 brickRelCoord, vec3 cameraInBrick) {
     vec3 brickCenter = vec3((brickRelCoord - gridCenter) * VOXEL_BRICK_SIZE)
                        + vec3(float(VOXEL_BRICK_SIZE) * 0.5);
     vec3 delta = abs(brickCenter - cameraInBrick);
-    uint dist  = uint(max(max(delta.x, delta.y), delta.z)); // floor via truncation
+    uint dist  = uint(max(max(delta.x, delta.y), delta.z) / 4); // floor via truncation
     return min(dist, uint(NUM_DIST_BUCKETS - 1));
 }
 
