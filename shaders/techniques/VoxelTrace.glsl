@@ -33,6 +33,19 @@ struct VoxelHit {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
+// 24-bit 3D Morton encode for coords in [0,255] (no initial mask needed).
+// Produces a packed code where:
+//   bits [0:11]  = 12-bit Morton of (coords & 15)      = blockMorton
+//   bits [12:23] = 12-bit Morton of (coords >> 4)       = brickMorton
+//   bits [0:5]   = 6-bit Morton of (coords & 3)         = blockSrMorton
+//   bits [6:11]  = 6-bit Morton of ((coords >> 2) & 3)  = srMorton
+uint _voxel_morton24b(uvec3 x) {
+    x = (x | (x << 8u)) & 0x00F00Fu;
+    x = (x | (x << 4u)) & 0x0C30C3u;
+    x = (x | (x << 2u)) & 0x249249u;
+    return x.x + x.y * 2u + x.z * 4u;
+}
+
 // Test bit [0..63] in a uint64_t mask.
 bool _voxel_testBit64(uint64_t mask, uint idx) {
     return ((mask >> idx) & uint64_t(1)) != uint64_t(0);
@@ -146,11 +159,20 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         // to a large uint, any component >= 256 has bits above bit 7.
         if (uint(blockPos.x | blockPos.y | blockPos.z) > 255u) break;
 
-        // ---- Level 0 : brick allocation check ----
-        ivec3 brickRel    = blockPos >> 4;
-        uint  brickMorton = voxel_brickMorton(brickRel);
-        uint  allocID     = voxel_brickAllocID[brickMorton];
+        // ---- Single 24-bit Morton encode of blockPos ----
+        // Produces a combined code encoding both brick and block positions:
+        //   [12:23] = brickMorton,  [0:11] = blockMorton
+        //   [6:11]  = srMorton,     [0:5]  = blockSrMorton
+        uint fullMorton     = _voxel_morton24b(uvec3(blockPos));
+        uint brickMorton    = fullMorton >> 12u;
+        uint allocID        = voxel_brickAllocID[brickMorton];
 
+        // Extract remaining indices while allocID loads (ALU || LSU ILP)
+        uint blockMorton    = fullMorton & 0xFFFu;
+        uint srMorton       = bitfieldExtract(fullMorton, 6, 6);
+        uint blockSrMorton  = fullMorton & 63u;
+
+        // ---- Level 0 : brick allocation check ----
         if (allocID == VOXEL_UNALLOCATED) {
             ivec3 cellMin = blockPos & ivec3(-16);
             vec3  tExit   = fma(vec3(cellMin), invDir, exitTBias16);
@@ -160,15 +182,12 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             continue;
         }
 
-        // ---- Compute block Morton code once; derive sub-region and leaf indices ----
-        ivec3 blockInBrick = blockPos & ivec3(15);
-        uint  blockMorton  = voxel_blockMorton(blockInBrick);
-        // Top 6 bits = sub-region Morton; bottom 6 bits = block-in-sub-region Morton
-        uint  srMorton     = blockMorton >> 6u;
-        uint  blockSrMorton = blockMorton & 63u;
+        // Precompute material index (IMAD on FMAHeavy pipe, overlaps tree loads)
+        uint matIdx = voxel_materialIndex(allocID, blockMorton);
 
-        // ---- Level 1 : sub-region bitmask check ----
+        // ---- Level 1+2 : load root and leaf masks eagerly (LSU pipelining) ----
         uint64_t rootMask = voxel_tree[voxel_treeRootIndex(allocID)];
+        uint64_t leafMask = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
 
         if (!_voxel_testBit64(rootMask, srMorton)) {
             ivec3 cellMin = blockPos & ivec3(-4);
@@ -179,11 +198,9 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             continue;
         }
 
-        // ---- Level 2 : leaf block bitmask check ----
-        uint64_t leafMask = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
-
+        // ---- Level 2 : leaf block bitmask check (leafMask already loaded) ----
         if (_voxel_testBit64(leafMask, blockSrMorton)) {
-            uint material     = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
+            uint material     = voxel_materials[matIdx];
             result.hit        = true;
             result.materialID = material;
             result.hitPos     = fma(worldRayDir, vec3(lastT), worldRayOrigin);
