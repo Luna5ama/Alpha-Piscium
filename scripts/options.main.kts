@@ -4177,6 +4177,11 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     name = "TAA"
                 }
             }
+            toggle("SETTING_DEBUG_VOXEL_TRACE", false) {
+                lang {
+                    name = "Voxel Trace Debug"
+                }
+            }
             toggle("SETTING_GI_USE_REFERENCE", false) {
                 lang {
                     name = "Monte Carlo Reference"
