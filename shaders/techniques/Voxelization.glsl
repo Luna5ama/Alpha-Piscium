@@ -62,12 +62,12 @@ layout(std430, binding = 8) VOXEL_TREE_DATA_MODIFIER VoxelTreeData {
 
 // Morton code (0..4095) for a brick at grid coordinate brickCoord (0..15/axis)
 uint voxel_brickMorton(ivec3 brickCoord) {
-    return morton3D_encode(uvec3(brickCoord));
+    return morton3D_30bEncode(uvec3(brickCoord));
 }
 
 // Morton code (0..4095) for a block at local position blockInBrick (0..15/axis)
 uint voxel_blockMorton(ivec3 blockInBrick) {
-    return morton3D_encode(uvec3(blockInBrick));
+    return morton3D_30bEncode(uvec3(blockInBrick));
 }
 
 // Flat index into voxel_materials[]

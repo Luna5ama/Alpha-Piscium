@@ -79,11 +79,11 @@ void main() {
     for (uint k = 0u; k < uint(BRICKS_PER_THREAD); k++) {
         uint i = tid * uint(BRICKS_PER_THREAD) + k;
         if (voxel_brickOccupancy[i] == 1u) {
-            ivec3 oldRel = ivec3(morton3D_decode(i));
+            ivec3 oldRel = ivec3(morton3D_30bDecode(i));
             ivec3 newRel = oldRel - brickDelta;
             if (all(greaterThanEqual(newRel, ivec3(0))) &&
             all(lessThan(newRel, ivec3(VOXEL_GRID_SIZE)))) {
-                uint newMorton = morton3D_encode(uvec3(newRel));
+                uint newMorton = morton3D_30bEncode(uvec3(newRel));
                 shared_remappedOccupancy[newMorton] = 1u;
             }
         }
@@ -101,7 +101,7 @@ void main() {
     for (uint k = 0u; k < uint(BRICKS_PER_THREAD); k++) {
         uint i = tid * uint(BRICKS_PER_THREAD) + k;
         if (shared_remappedOccupancy[i] == 1u) {
-            ivec3 brickRelCoord = ivec3(morton3D_decode(i));
+            ivec3 brickRelCoord = ivec3(morton3D_30bDecode(i));
             uint  dist = brickDistBucket(brickRelCoord, cameraInBrick);
             atomicAdd(shared_bucketCount[dist], 1u);
         }
@@ -125,7 +125,7 @@ void main() {
     for (uint k = 0u; k < uint(BRICKS_PER_THREAD); k++) {
         uint i = tid * uint(BRICKS_PER_THREAD) + k;
         if (shared_remappedOccupancy[i] == 1u) {
-            ivec3 brickRelCoord = ivec3(morton3D_decode(i));
+            ivec3 brickRelCoord = ivec3(morton3D_30bDecode(i));
             uint  dist = brickDistBucket(brickRelCoord, cameraInBrick);
 
             uint allocID = atomicAdd(shared_bucketCount[dist], 1u);

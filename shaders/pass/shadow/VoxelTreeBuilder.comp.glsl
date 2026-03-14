@@ -25,7 +25,7 @@ void main() {
     if (allocID == VOXEL_UNALLOCATED) return;
 
     // Decode sub-region Morton to 3D coordinate within the 4^3 sub-region grid
-    uvec3 srCoord = morton3D_decode(subRegion); // 0..3 per axis
+    uvec3 srCoord = morton3D_30bDecode(subRegion); // 0..3 per axis
 
     // Build the 64-bit leaf mask for this sub-region
     uint leafLow  = 0u;
@@ -34,10 +34,10 @@ void main() {
 
     for (uint blockInSr = 0u; blockInSr < 64u; blockInSr++) {
         // 3D coord of this block within the sub-region (0..3 per axis)
-        uvec3 bInSrCoord = morton3D_decode(blockInSr);
+        uvec3 bInSrCoord = morton3D_30bDecode(blockInSr);
         // Full block coord in brick (0..15 per axis)
         uvec3 blockCoord = srCoord * 4u + bInSrCoord;
-        uint  blockMorton = morton3D_encode(blockCoord);
+        uint  blockMorton = morton3D_30bEncode(blockCoord);
 
         uint material = voxel_materials[allocID * 4096u + blockMorton];
         if (material != 0u) {

@@ -168,7 +168,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         // ---- Level 1 : sub-region bitmask check ----
         ivec3 blockInBrick = blockPos & ivec3(15);
         ivec3 srCoord      = blockInBrick >> 2;
-        uint  srMorton     = morton3D_encode(uvec3(srCoord));
+        uint  srMorton     = morton3D_30bEncode(uvec3(srCoord));
         uvec2 rootMask     = voxel_tree[voxel_treeRootIndex(allocID)];
 
         if (!_voxel_testBit64(rootMask, srMorton)) {
@@ -181,7 +181,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
 
         // ---- Level 2 : leaf block bitmask check ----
         ivec3 blockInSr     = blockInBrick & ivec3(3);
-        uint  blockSrMorton = morton3D_encode(uvec3(blockInSr));
+        uint  blockSrMorton = morton3D_30bEncode(uvec3(blockInSr));
         uvec2 leafMask      = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
 
         if (_voxel_testBit64(leafMask, blockSrMorton)) {

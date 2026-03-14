@@ -51,39 +51,25 @@ uint morton_32bEncode(uvec2 coords) {
     return x.x | (x.y << 1);
 }
 
-// --- 3D Morton (10 bits per axis, max coord 1023) ---
-// Adapted from https://www.forceflow.be/2013/10/07/morton-encodingdecoding-through-lookup-tables/
-
-uint morton3D_splitBy3(uint x) {
-    x &= 0x3ffu;
-    x = (x | (x << 16u)) & 0x030000ffu;
-    x = (x | (x <<  8u)) & 0x0300f00fu;
-    x = (x | (x <<  4u)) & 0x030c30c3u;
+// Adapted from https://github.com/liamdon/fast-morton
+uint morton3D_30bEncode(uvec3 coords) {
+    uvec3 x = coords;
+    x &= 0x000003FFu;
+    x = (x | (x << 16u)) & 0x000003FFu;
+    x = (x | (x <<  8u)) & 0x0300F00Fu;
+    x = (x | (x <<  4u)) & 0x030C30C3u;
     x = (x | (x <<  2u)) & 0x09249249u;
-    return x;
+    return x.x | (x.y << 1u) | (x.z << 2u);
 }
 
-uint morton3D_encode(uvec3 coords) {
-    return morton3D_splitBy3(coords.x) |
-           (morton3D_splitBy3(coords.y) << 1u) |
-           (morton3D_splitBy3(coords.z) << 2u);
-}
-
-uint morton3D_compactBy3(uint x) {
-    x &= 0x09249249u;
-    x = (x | (x >>  2u)) & 0x030c30c3u;
-    x = (x | (x >>  4u)) & 0x0300f00fu;
-    x = (x | (x >>  8u)) & 0x030000ffu;
-    x = (x | (x >> 16u)) & 0x3ffu;
-    return x;
-}
-
-uvec3 morton3D_decode(uint code) {
-    return uvec3(
-        morton3D_compactBy3(code),
-        morton3D_compactBy3(code >> 1u),
-        morton3D_compactBy3(code >> 2u)
-    );
+uvec3 morton3D_30bDecode(uint x) {
+    uvec3 coords = uvec3(x, x >> 1u, x >> 2u);
+    coords &= 0x09249249u;
+    coords = (coords | (coords >>  2u)) & 0x030C30C3u;
+    coords = (coords | (coords >>  4u)) & 0x0300F00Fu;
+    coords = (coords | (coords >>  8u)) & 0x030000FFu;
+    coords = (coords | (coords >> 16u)) & 0x000003FFu;
+    return coords;
 }
 
 #endif
