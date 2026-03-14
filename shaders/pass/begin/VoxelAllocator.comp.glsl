@@ -36,18 +36,17 @@ const ivec3 workGroups = ivec3(1, 1, 1); // single workgroup: 1024 threads × 4 
 #define NUM_DIST_BUCKETS 512  // Chebyshev distances 0..2048 blocks
 #define BRICKS_PER_THREAD 4   // 4096 / 1024
 
-shared ivec3 s_brickDelta;
-shared uint  s_remappedOccupancy[4096]; // 16 KB – remapped occupancy in new coord space
-shared uint  s_bucketCount[NUM_DIST_BUCKETS];
+shared ivec3 shared_brickDelta;
+shared uint  shared_remappedOccupancy[4096]; // 16 KB – remapped occupancy in new coord space
+shared uint  shared_bucketCount[NUM_DIST_BUCKETS];
 
 // Compute the Chebyshev distance bucket (in whole blocks) from the camera to
 // the centre of the brick at relative grid coordinate brickRelCoord.
 uint brickDistBucket(ivec3 brickRelCoord, vec3 cameraInBrick) {
     const ivec3 gridCenter = ivec3(VOXEL_GRID_SIZE / 2);
-    vec3 brickCenter = vec3((brickRelCoord - gridCenter) * VOXEL_BRICK_SIZE)
-                       + vec3(float(VOXEL_BRICK_SIZE) * 0.5);
+    vec3 brickCenter = vec3((brickRelCoord - gridCenter) * VOXEL_BRICK_SIZE) + vec3(float(VOXEL_BRICK_SIZE) * 0.5);
     vec3 delta = abs(brickCenter - cameraInBrick);
-    uint dist  = uint(max(max(delta.x, delta.y), delta.z) / 4); // floor via truncation
+    uint dist = uint(max(max(delta.x, delta.y), delta.z) / 4); // floor via truncation
     return min(dist, uint(NUM_DIST_BUCKETS - 1));
 }
 
@@ -58,20 +57,20 @@ void main() {
     if (tid == 0u) {
         ivec3 currentCameraBrick = cameraPositionInt >> 4;
         ivec3 prevCameraBrick = previousCameraPositionInt >> 4;
-        s_brickDelta = currentCameraBrick - prevCameraBrick;
+        shared_brickDelta = currentCameraBrick - prevCameraBrick;
     }
 
     // Init shared occupancy and bucket counters.
     for (uint k = 0u; k < uint(BRICKS_PER_THREAD); k++) {
-        s_remappedOccupancy[tid * uint(BRICKS_PER_THREAD) + k] = 0u;
+        shared_remappedOccupancy[tid * uint(BRICKS_PER_THREAD) + k] = 0u;
     }
     if (tid < uint(NUM_DIST_BUCKETS)) {
-        s_bucketCount[tid] = 0u;
+        shared_bucketCount[tid] = 0u;
     }
     barrier();
     memoryBarrierShared();
 
-    ivec3 brickDelta = s_brickDelta;
+    ivec3 brickDelta = shared_brickDelta;
 
     // ---- Phase 1: Remap occupancy old → new coordinate space, clear SSBO ----
     // Occupancy at old Morton index i was relative to the previous camera brick.
@@ -83,9 +82,9 @@ void main() {
             ivec3 oldRel = ivec3(morton3D_decode(i));
             ivec3 newRel = oldRel - brickDelta;
             if (all(greaterThanEqual(newRel, ivec3(0))) &&
-                all(lessThan(newRel, ivec3(VOXEL_GRID_SIZE)))) {
+            all(lessThan(newRel, ivec3(VOXEL_GRID_SIZE)))) {
                 uint newMorton = morton3D_encode(uvec3(newRel));
-                s_remappedOccupancy[newMorton] = 1u;
+                shared_remappedOccupancy[newMorton] = 1u;
             }
         }
         // Clear SSBO occupancy so the shadow pass writes fresh marks this frame.
@@ -96,15 +95,15 @@ void main() {
 
     // Camera's sub-brick position in blocks (0..~15.999 per axis).
     vec3 cameraInBrick = vec3(cameraPositionInt & ivec3(VOXEL_BRICK_SIZE - 1))
-                         + cameraPositionFract;
+    + cameraPositionFract;
 
     // ---- Phase 2: Count remapped occupied bricks per distance bucket ----
     for (uint k = 0u; k < uint(BRICKS_PER_THREAD); k++) {
         uint i = tid * uint(BRICKS_PER_THREAD) + k;
-        if (s_remappedOccupancy[i] == 1u) {
+        if (shared_remappedOccupancy[i] == 1u) {
             ivec3 brickRelCoord = ivec3(morton3D_decode(i));
-            uint  dist          = brickDistBucket(brickRelCoord, cameraInBrick);
-            atomicAdd(s_bucketCount[dist], 1u);
+            uint  dist = brickDistBucket(brickRelCoord, cameraInBrick);
+            atomicAdd(shared_bucketCount[dist], 1u);
         }
     }
     barrier();
@@ -114,9 +113,9 @@ void main() {
     if (tid == 0u) {
         uint running = 0u;
         for (uint b = 0u; b < uint(NUM_DIST_BUCKETS); b++) {
-            uint cnt         = s_bucketCount[b];
-            s_bucketCount[b] = running;
-            running         += cnt;
+            uint cnt = shared_bucketCount[b];
+            shared_bucketCount[b] = running;
+            running += cnt;
         }
     }
     barrier();
@@ -125,11 +124,11 @@ void main() {
     // ---- Phase 4: Assign alloc IDs closest-first ----
     for (uint k = 0u; k < uint(BRICKS_PER_THREAD); k++) {
         uint i = tid * uint(BRICKS_PER_THREAD) + k;
-        if (s_remappedOccupancy[i] == 1u) {
+        if (shared_remappedOccupancy[i] == 1u) {
             ivec3 brickRelCoord = ivec3(morton3D_decode(i));
-            uint  dist          = brickDistBucket(brickRelCoord, cameraInBrick);
+            uint  dist = brickDistBucket(brickRelCoord, cameraInBrick);
 
-            uint allocID = atomicAdd(s_bucketCount[dist], 1u);
+            uint allocID = atomicAdd(shared_bucketCount[dist], 1u);
             voxel_brickAllocID[i] = (allocID < uint(VOXEL_POOL_SIZE)) ? allocID : VOXEL_UNALLOCATED;
         } else {
             voxel_brickAllocID[i] = VOXEL_UNALLOCATED;
