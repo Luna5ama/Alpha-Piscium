@@ -142,8 +142,9 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
 
     // Main DDA loop
     for (int i = 0; i < maxSteps; i++) {
-        // Unsigned bounds check: negative wraps to large uint, caught in one test
-        if (any(greaterThanEqual(uvec3(blockPos), uvec3(GRID_BLOCKS)))) break;
+        // Unsigned bounds check via OR-reduction: any negative component wraps
+        // to a large uint, any component >= 256 has bits above bit 7.
+        if (uint(blockPos.x | blockPos.y | blockPos.z) > 255u) break;
 
         // ---- Level 0 : brick allocation check ----
         ivec3 brickRel    = blockPos >> 4;
@@ -159,11 +160,15 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             continue;
         }
 
+        // ---- Compute block Morton code once; derive sub-region and leaf indices ----
+        ivec3 blockInBrick = blockPos & ivec3(15);
+        uint  blockMorton  = voxel_blockMorton(blockInBrick);
+        // Top 6 bits = sub-region Morton; bottom 6 bits = block-in-sub-region Morton
+        uint  srMorton     = blockMorton >> 6u;
+        uint  blockSrMorton = blockMorton & 63u;
+
         // ---- Level 1 : sub-region bitmask check ----
-        ivec3    blockInBrick = blockPos & ivec3(15);
-        ivec3    srCoord      = blockInBrick >> 2;
-        uint     srMorton     = morton3D_6bEncode(uvec3(srCoord));
-        uint64_t rootMask     = voxel_tree[voxel_treeRootIndex(allocID)];
+        uint64_t rootMask = voxel_tree[voxel_treeRootIndex(allocID)];
 
         if (!_voxel_testBit64(rootMask, srMorton)) {
             ivec3 cellMin = blockPos & ivec3(-4);
@@ -175,12 +180,9 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         }
 
         // ---- Level 2 : leaf block bitmask check ----
-        ivec3    blockInSr     = blockInBrick & ivec3(3);
-        uint     blockSrMorton = morton3D_6bEncode(uvec3(blockInSr));
-        uint64_t leafMask      = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
+        uint64_t leafMask = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
 
         if (_voxel_testBit64(leafMask, blockSrMorton)) {
-            uint blockMorton  = voxel_blockMorton(blockInBrick);
             uint material     = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
             result.hit        = true;
             result.materialID = material;
