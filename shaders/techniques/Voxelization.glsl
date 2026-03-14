@@ -27,12 +27,13 @@ const uint VOXEL_UNALLOCATED = 0xFFFFFFFFu;
 // SSBO 3 – Brick Metadata
 //   [0   .. 4095] : occupancy flags (0=empty, 1=occupied this frame)
 //   [4096 .. 8191] : allocation IDs (<512=valid, 0xFFFFFFFF=unallocated)
-//   [8192]        : allocation counter (next free slot)
+//   [8192]        : allocation counter (next free slot, legacy)
+//   [8193..8195]  : previous camera brick position (for cross-frame remapping)
 // ---------------------------------------------------------------------------
 layout(std430, binding = 3) VOXEL_BRICK_DATA_MODIFIER VoxelBrickData {
+    uint voxel_brickAllocCounter;
     uint voxel_brickOccupancy[4096];
     uint voxel_brickAllocID[4096];
-    uint voxel_brickAllocCounter;
 };
 
 // ---------------------------------------------------------------------------

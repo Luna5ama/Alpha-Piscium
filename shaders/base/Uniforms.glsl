@@ -76,6 +76,8 @@ uniform float darknessFactor;                   // strength of the darkness effe
 uniform float darknessLightFactor;              // lightmap variations caused by the darkness effect (0.0-1.0)
 
 // Iris
+uniform vec3 previousCameraPositionFract;
+uniform ivec3 previousCameraPositionInt;
 uniform vec3 cameraPositionFract;
 uniform ivec3 cameraPositionInt;
 
