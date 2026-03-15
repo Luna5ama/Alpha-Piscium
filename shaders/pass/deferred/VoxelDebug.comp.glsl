@@ -55,6 +55,8 @@ vec4 materialIdToColor(uint id) {
 }
 
 void main() {
+    voxel_initShared();
+
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (any(greaterThanEqual(texelPos, uval_mainImageSizeI))) return;
 

@@ -1,12 +1,15 @@
 // 64-Tree Builder – runs after the shadow pass (shadowcomp2).
 //
-// Builds a 2-level 64-bit bitmask tree for each allocated brick:
-//   Level 0 (root, 1 uint64_t): bit j = 1 if 4^3 sub-region j has any solid block.
-//   Level 1 (leaves, 64 uint64_t): leaf j bit k = 1 if block k in sub-region j is solid.
+// Builds the bottom 2 levels of the dense 64-tree for each allocated brick:
+//   Level 1 (leaf, 64 uvec2 per brick): bit k = 1 if block k in sub-region is solid.
+//   Level 2 (brick root, 1 uvec2 per brick): bit j = 1 if sub-region j has any solid block.
 //
-// Dispatch: one workgroup per brick slot in the grid (VOXEL_GRID_BRICKS total).
+// Tree nodes are written to the dense layout (indexed by brickMorton, not allocID).
+// Material data is still read via allocID (sparse pool).
+//
+// Dispatch: one workgroup per brick in the VOXEL_GRID_SIZE^3 grid.
 // Threads per workgroup: 64 (one per 4^3 sub-region within the brick).
-// SSBO 8 must have been cleared to 0 before this pass (done in begin5_c).
+// SSBO 8 must have been cleared to 0 before this pass (done in begin5_a).
 
 #define VOXEL_BRICK_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
@@ -27,7 +30,7 @@ shared uint rootMaskLo;
 shared uint rootMaskHi;
 
 void main() {
-    uint brickMorton = uint(gl_WorkGroupID.x);   // 0..4095
+    uint brickMorton = uint(gl_WorkGroupID.x);   // 0..VOXEL_GRID_BRICKS-1
     uint subRegion   = uint(gl_LocalInvocationID.x); // 0..63
 
     if (gl_LocalInvocationIndex == 0u) {
@@ -65,8 +68,9 @@ void main() {
         }
     }
 
-    // Write leaf node (each sub-region is handled by exactly one thread – no race)
-    uint leafIdx = voxel_treeLeafIndex(allocID, subRegion);
+    // Write leaf node to dense tree layout: Level 1
+    // Index = VOXEL_TREE_OFFSET_L1 + brickMorton * 64 + subRegion
+    uint leafIdx = uint(VOXEL_TREE_OFFSET_L1) + brickMorton * 64u + subRegion;
     voxel_tree[leafIdx] = uvec2(leafLow, leafHigh);
 
     // Set the corresponding bit in the shared root mask (32-bit atomics only).
@@ -80,10 +84,10 @@ void main() {
 
     barrier();
 
-    // Single writer per brick for the root node to avoid 64-bit atomics.
+    // Single writer per brick for the Level 2 (brick root) node.
+    // Index = VOXEL_TREE_OFFSET_L2 + brickMorton
     if (gl_LocalInvocationIndex == 0u) {
-        uint rootIdx = voxel_treeRootIndex(allocID);
+        uint rootIdx = uint(VOXEL_TREE_OFFSET_L2) + brickMorton;
         voxel_tree[rootIdx] = uvec2(rootMaskLo, rootMaskHi);
     }
 }
-
