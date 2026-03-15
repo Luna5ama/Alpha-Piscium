@@ -1,4 +1,4 @@
-@file:Import("./options.lib.kts")
+@file:Import("options.lib.kts")
 
 import java.io.File
 import java.util.*
@@ -9,7 +9,7 @@ import kotlin.io.path.readLines
 import kotlin.math.pow
 
 val versionStr = args.getOrElse(0) {
-    data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int, val hotfix: Int) : Comparable<Version> {
+    data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int) : Comparable<Version> {
         override fun compareTo(other: Version): Int {
             var cmp = major.compareTo(other.major)
             if (cmp != 0) return cmp
@@ -17,17 +17,14 @@ val versionStr = args.getOrElse(0) {
             if (cmp != 0) return cmp
             cmp = patch.compareTo(other.patch)
             if (cmp != 0) return cmp
-            cmp = beta.compareTo(other.beta)
-            if (cmp != 0) return cmp
-            cmp = hotfix.compareTo(other.hotfix)
-            return cmp
+            return beta.compareTo(other.beta)
         }
 
         override fun toString(): String {
-            return when {
-                hotfix != 0 -> "$major.$minor.$patch-Hotfix$hotfix"
-                beta != Int.MAX_VALUE -> "$major.$minor.$patch-Beta$beta"
-                else -> "$major.$minor.$patch"
+            return if (beta == Int.MAX_VALUE) {
+                "$major.$minor.$patch"
+            } else {
+                "$major.$minor.$patch-Beta$beta"
             }
         }
     }
@@ -38,19 +35,8 @@ val versionStr = args.getOrElse(0) {
         val major = splitStr[0].toInt()
         val minor = splitStr[1].toInt()
         val patch = splitStr[2].toInt()
-        var beta = Int.MAX_VALUE
-        var hotfix = 0
-        if (splitStr.size > 3) {
-            val suffix = splitStr[3].lowercase()
-            if (suffix.startsWith("beta")) {
-                beta = suffix.removePrefix("beta").toInt()
-            } else if (suffix.startsWith("hotfix")) {
-                hotfix = suffix.removePrefix("hotfix").toInt()
-            } else {
-                error("Unrecognized version suffix: $suffix")
-            }
-        }
-        return Version(major, minor, patch, beta, hotfix)
+        val beta = if (splitStr.size > 3) splitStr[3].lowercase().removePrefix("beta").toInt() else Int.MAX_VALUE
+        return Version(major, minor, patch, beta)
     }
 
     val changelogPath = Path("../changelogs")
@@ -83,7 +69,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         §a§lHigh§r: Balanced quality and performance.
                         §6§lUltra§r: The §6§ltrue§r Alpha Piscium experience as it should be.
                         §d§lExtreme§r: Even better experience at §osome§r cost.
-                        §5§lInsane§r: "Can it run Crysis?" §kxyz42069§r.
+                        §5§lInsane§r: "Can it run Crysis?" §kxyz69420§r.
                     """.trimIndent()
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
@@ -93,7 +79,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         §a§lHigh§r: 画质与性能的平衡。
                         §6§lUltra§r: §6§l真正的§r外屏七体验，就是它了。
                         §d§lExtreme§r: 更好的体验，只需要§o亿点点§r代价.
-                        §5§lInsane§r: 《显 卡 危 机》 §kxyz1145141919810§r.
+                        §5§lInsane§r: 《显 卡 危 机》 §kxyz69420§r.
                     """.trimIndent()
                 }
             }
@@ -441,7 +427,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "用于次表面散射的采样数。数值越高，质量越好，但会降低性能。"
                         }
                     }
-                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.3, 0.0..2.0 step 0.1) {
+                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.8, 0.0..4.0 step 0.1) {
                         lang {
                             name = "Diffuse Range"
                             comment =
@@ -452,7 +438,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "数值越高，外观越扩散、越柔和。"
                         }
                     }
-                    slider("SETTING_SSS_DEPTH_RANGE", 0.3, 0.0..2.0 step 0.1) {
+                    slider("SETTING_SSS_DEPTH_RANGE", 0.3, 0.0..4.0 step 0.1) {
                         lang {
                             name = "Depth Range"
                             comment =
@@ -846,17 +832,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_GI_TEMPORAL_REUSE_LIMIT", 24, powerOfTwoAndHalfRange(1..6)) {
-                    lang {
-                        name = "Temporal Reuse Limit"
-                        comment = "Limits how many previous frames can be reused for GI temporal accumulation. Higher values improve quality but increase lighting latency."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "时间重用限制"
-                        comment = "限制GI时间累积可以重用多少前一帧。数值越高，质量越好，但会增加光照延迟。"
-                    }
-                }
-                empty()
                 toggle("SETTING_GI_SPATIAL_REUSE", true) {
                     lang {
                         name = "Spatial Reuse"
@@ -867,13 +842,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "重用来自附近像素的GI样本以提高性能。"
                     }
                 }
-                slider("SETTING_GI_SPATIAL_REUSE_COUNT", 7, 7..28 step 7) {
-                    Profile.Low preset 7
-                    Profile.Medium preset 7
-                    Profile.High preset 7
-                    Profile.Ultra preset 7
-                    Profile.Extreme preset 14
-                    Profile.Insane preset 14
+                slider("SETTING_GI_SPATIAL_REUSE_COUNT", 6, 1..16) {
+                    Profile.Low preset 4
+                    Profile.Medium preset 5
+                    Profile.High preset 6
+                    Profile.Ultra preset 6
+                    Profile.Extreme preset 6
+                    Profile.Insane preset 8
 
                     lang {
                         name = "Spatial Reuse Sample Count"
@@ -884,15 +859,32 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "重用GI样本的附近像素数量。"
                     }
                 }
-                empty()
-                toggle("SETTING_GI_DECORRELATE", false) {
+                toggle("SETTING_GI_SPATIAL_REUSE_COUNT_DYNAMIC", false) {
                     lang {
-                        name = "ReSITR Duplication Map Decorrelation"
-                        comment = "May reduce fireflies and other artifacts but can impact performance."
+                        name = "Dynamic Spatial Reuse Sample Count"
+                        comment = "Decreases spatial reuse sample count to reduce biases for accumulated result."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "ReSITR重复图去相关"
-                        comment = "可能会减少火点和其他伪影，但可能会影响性能。"
+                        name = "动态空间重用采样数"
+                        comment = "减少空间重用采样数以降低累积结果的偏差。"
+                    }
+                }
+                slider("SETTING_GI_SPATIAL_REUSE_RADIUS", 64, powerOfTwoAndHalfRange(4..8)) {
+                    Profile.Low preset 24
+                    Profile.Medium preset 32
+                    Profile.High preset 48
+                    Profile.Ultra preset 64
+                    Profile.Extreme preset 64
+                    Profile.Insane preset 64
+                    lang {
+                        name = "Spatial Reuse Radius"
+                        comment = "Radius to search for nearby GI samples to reuse."
+                        suffix = " pixels"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "空间重用半径"
+                        comment = "搜索以重用附近GI样本的半径。"
+                        suffix = " 像素"
                     }
                 }
             }
@@ -950,7 +942,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "在多帧中累积GI结果以提高质量。"
                     }
                 }
-                slider("SETTING_DENOISER_HISTORY_LENGTH", 64, powerOfTwoAndHalfRange(2..8)) {
+                slider("SETTING_DENOISER_HISTORY_LENGTH", 256, powerOfTwoAndHalfRange(2..8)) {
                     lang {
                         name = "Temporal History Length"
                         comment = "Number of frames to accumulate for temporal denoising."
@@ -971,7 +963,10 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "夹紧到快速历史以减少重影伪影。"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 16, powerOfTwoAndHalfRange(2..8)) {
+                slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 32, powerOfTwoAndHalfRange(2..8)) {
+                    Profile.Low preset 64
+                    Profile.Medium preset 48
+                    Profile.High preset 32
                     lang {
                         name = "Temporal Fast History Length"
                         comment =
@@ -983,25 +978,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FLICKER_SUPPRESSION", 3, 0..10) {
+                slider("SETTING_DENOISER_FIREFLY_SUPPRESSION", 5, 0..10) {
                     lang {
-                        name = "Flicker Suppression Strength"
+                        name = "Firefly Suppression Strength"
                         comment =
-                            "Reduces GI flickering. Higher values increase suppression but can introduce lighting lags."
+                            "Reduces sudden bright spots in the GI results. Higher values increase suppression but can introduce lighting lags."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "闪烁抑制强度"
-                        comment = "减少GI闪烁。数值越高，抑制越强，但可能会引入光照延迟。"
-                    }
-                }
-                toggle("SETTING_DENOISER_ANTI_FIREFLY", true) {
-                    lang {
-                        name = "RCRS Firefly Suppression"
-                        comment = "Reduces bright noise artifacts (fireflies) in the GI results using Robust Contrast-based Range Shrinkage."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "RCRS亮点抑制"
-                        comment = "使用对比度范围收缩减少GI结果中的高亮噪点。"
+                        name = "亮点抑制强度"
+                        comment = "减少GI结果中的突然出现的亮点。数值越高，抑制效果越强，但可能会增加光照延迟。"
                     }
                 }
                 toggle("SETTING_DENOISER_HISTORY_FIX", true) {
@@ -1034,6 +1019,18 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "遮挡消失修正深度权重"
                         comment = "修正遮挡消失时深度相似度的权重。数值越高，修正对深度变化越敏感，并减少过度模糊。"
+                    }
+                }
+                empty()
+                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 64, powerOfTwoAndHalfRange(2..8)) {
+                    lang {
+                        name = "Stabilization Maximum Accumulated Frames"
+                        comment =
+                            "Maximum accumulated frames that is used for calculating blend weight. Smaller values increase responsiveness but may introduce flickering."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "降噪稳定最大累积帧数"
+                        comment = "用于计算混合权重的最大累积帧数。数值越小，响应性越强，但可能会引入闪烁。"
                     }
                 }
             }
@@ -1459,29 +1456,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     empty()
-                    slider("SETTING_WATER_WAVE_FREQUENCY", 0.0, -2.5..2.5 step 0.1) {
-                        lang {
-                            name = "Water Wave Frequency"
-                            comment =
-                                "Frequency of water surface waves. Higher values create more waves and choppier water."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "水波频率"
-                            comment = "水面波浪的频率。数值越高，水越波涛汹涌。"
-                        }
-                    }
-                    slider("SETTING_WATER_WAVE_SPEED", 1.0, 0.0..4.0 step 0.1) {
-                        lang {
-                            name = "Water Wave Speed"
-                            comment =
-                                "Speed of water surface waves. Higher values create faster moving waves."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "水波速度"
-                            comment = "水面波浪的速度。数值越高，波浪移动越快。"
-                        }
-                    }
-                    slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..5.0 step 0.5) {
+                    slider("SETTING_WATER_NORMAL_SCALE", 1.5, 0.0..5.0 step 0.5) {
                         lang {
                             name = "Water Normal Intensity"
                             comment =
@@ -1504,7 +1479,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "给水波添加立体感，使它们看起来是3D而不是平面的。"
                         }
                     }
-                    slider("SETTING_WATER_PARALLAX_STRENGTH", 1.0, 0.0..5.0 step 0.5) {
+                    slider("SETTING_WATER_PARALLAX_STRENGTH", 1.5, 0.0..5.0 step 0.5) {
                         lang {
                             name = "Water Parallax Strength"
                             comment =
@@ -1603,7 +1578,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "蓝光在水中反弹的程度。数值越高，水越蓝。"
                         }
                     }
-                    slider("SETTING_WATER_SCATTERING_MULTIPLIER", -9.0, -15.0..-5.0 step 0.25) {
+                    slider("SETTING_WATER_SCATTERING_MULTIPLIER", -8.75, -15.0..-5.0 step 0.25) {
                         lang {
                             name = "Scattering Coefficient Multiplier"
                             prefix = "2^"
@@ -1656,7 +1631,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "蓝光在水下消失的速度。数值越低，更深的水中保持蓝色。"
                         }
                     }
-                    slider("SETTING_WATER_ABSORPTION_MULTIPLIER", -9.0, -15.0..-5.0 step 0.25) {
+                    slider("SETTING_WATER_ABSORPTION_MULTIPLIER", -9.25, -15.0..-5.0 step 0.25) {
                         lang {
                             name = "Absorption Coefficient Multiplier"
                             prefix = "2^"
@@ -2586,40 +2561,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "水下时的额外泛光强度，创造梦幻般扩散的水下氛围。"
                     }
                 }
-                empty()
-                slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION", 3, 0..4) {
-                    lang {
-                        name = "Highlight Compression"
-                        comment = "Reduces bloom intensity for extremely bright areas to prevent overwhelming glare. Higher values increase compression intensity."
-                        0 value "Off"
-                        1 value "Low"
-                        2 value "Medium"
-                        3 value "High"
-                        4 value "Hard Clipping"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光压缩"
-                        comment = "减少极亮区域的泛光强度以防止过度眩光。数值越高，压缩强度越大。"
-                        0 value "关闭"
-                        1 value "低"
-                        2 value "中"
-                        3 value "高"
-                    }
-                }
-                slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE", 0, 0..1) {
-                    lang {
-                        name = "Highlight Compression Mode"
-                        comment = "Determines how highlight compression is applied. RGB mode compresses saturation, while Luma mode preserves saturation."
-                        0 value "RGB"
-                        1 value "Luma"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光压缩模式"
-                        comment = "确定高光压缩的应用方式。RGB模式压缩饱和度，而亮度模式保持饱和度。"
-                        0 value "RGB"
-                        1 value "亮度"
-                    }
-                }
             }
             screen(1) {
                 lang {
@@ -3369,16 +3310,6 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         comment = "禁用动画和时间钳制以获得更干净、更高质量的截图。"
                     }
                 }
-                toggle("SETTING_VIDEO_RENDER_MODE", false) {
-                    lang {
-                        name = "Video Render Mode"
-                        comment = "Adjusts some temporal accumulated effects for rendering video in mods like Flashback."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "视频渲染模式"
-                        comment = "调整一些时间累积效果以在Flashback等模组中渲染视频。"
-                    }
-                }
                 slider("SETTING_SCREENSHOT_MODE_SKIP_INITIAL", 60, 10..200 step 10) {
                     lang {
                         name = "Screenshot Mode Warmup Frames"
@@ -3390,11 +3321,6 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         comment = "在拍摄截图之前等待的帧数，让光照和效果稳定以获得最佳质量。"
                     }
                 }
-            }
-            row {
-                empty()
-            }
-           row {
                 toggle("SETTING_CONSTELLATIONS", false) {
                     lang {
                         name = "Show Star Constellations"
@@ -3466,233 +3392,251 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
             lang {
                 name = "Debug"
             }
-            toggle("SETTING_DEBUG_WHITE_WORLD", false) {
-                lang {
-                    name = "White World"
+            row {
+                toggle("SETTING_DEBUG_WHITE_WORLD", false) {
+                    lang {
+                        name = "White World"
+                    }
+                }
+                toggle("SETTING_DEBUG_OUTPUT", 0, 0..4) {
+                    lang {
+                        name = "Debug Output"
+                        0 value "Off"
+                        1 value "TAA"
+                        2 value "PostFX"
+                        3 value "Tone Mapping"
+                        4 value "Final"
+                    }
+                }
+                toggle("SETTING_DEBUG_TEXT_OUTPUT", false) {
+                    lang {
+                        name = "Debug Text Output"
+                    }
+                }
+                slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {
+                    lang {
+                        name = "Debug Scale"
+                    }
+                }
+                toggle("SETTING_DEBUG_GAMMA_CORRECT", true) {
+                    lang {
+                        name = "Gamma Correct"
+                    }
+                }
+                toggle("SETTING_DEBUG_NEGATE", false) {
+                    lang {
+                        name = "Negate"
+                    }
+                }
+                toggle("SETTING_DEBUG_ALPHA", false) {
+                    lang {
+                        name = "Alpha"
+                    }
+                }
+                slider("SETTING_DEBUG_EV_COARSE", 0, -16..16) {
+                    lang {
+                        name = "EV Coarse"
+                    }
+                }
+                slider("SETTING_DEBUG_EV_FINE", 0.0, -1.0..1.0 step 0.01) {
+                    lang {
+                        name = "EV Fine"
+                    }
                 }
             }
-            toggle("SETTING_DEBUG_OUTPUT", 0, 0..4) {
-                lang {
-                    name = "Debug Output"
-                    0 value "Off"
-                    1 value "TAA"
-                    2 value "PostFX"
-                    3 value "Tone Mapping"
-                    4 value "Final"
+            row {
+                empty()
+            }
+            row {
+                toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..6) {
+                    lang {
+                        name = "Temp Tex"
+                        0 value "Off"
+                        1 value "temp1"
+                        2 value "temp2"
+                        3 value "temp3"
+                        4 value "temp4"
+                        5 value "temp5"
+                        6 value "temp6"
+                    }
+                }
+                toggle("SETTING_DEBUG_GBUFFER_DATA", 0, 0..12) {
+                    lang {
+                        name = "GBuffer Data"
+                        0 value "Off"
+                        1 value "View Z"
+                        2 value "Albedo"
+                        3 value "Normal"
+                        4 value "Geometry Normal"
+                        5 value "Roughness"
+                        6 value "F0"
+                        7 value "Porosity"
+                        8 value "SSS"
+                        9 value "Emissive"
+                        10 value "Light Map Block"
+                        11 value "Light Map Sky"
+                        12 value "isHand"
+                    }
+                }
+                toggle("SETTING_DEBUG_NORMAL_MODE", 0, 0..1) {
+                    lang {
+                        name = "Normal Mode"
+                        0 value "World"
+                        1 value "View"
+                    }
+                }
+                slider("SETTING_DEBUG_NORMAL_X_RANGE", 1.0, 0.0..1.0 step 0.1) {
+                    lang {
+                        name = "Normal X Range"
+                    }
+                }
+                slider("SETTING_DEBUG_NORMAL_Y_RANGE", 1.0, 0.0..1.0 step 0.1) {
+                    lang {
+                        name = "Normal Y Range"
+                    }
+                }
+                slider("SETTING_DEBUG_NORMAL_Z_RANGE", 1.0, 0.0..1.0 step 0.1) {
+                    lang {
+                        name = "Normal Z Range"
+                    }
                 }
             }
-            toggle("SETTING_DEBUG_TEXT_OUTPUT", false) {
-                lang {
-                    name = "Debug Text Output"
+            row {
+                empty()
+            }
+            row {
+                toggle("SETTING_DEBUG_DENOISER", 0, 0..6) {
+                    lang {
+                        name = "Denoiser"
+                        0 value "Off"
+                        1 value "Color"
+                        2 value "Fast Color"
+                        3 value "HLen"
+                        4 value "Moment"
+                        5 value "Moment²"
+                        6 value "Variance"
+                    }
+                }
+                toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..6) {
+                    lang {
+                        name = "GI Inputs"
+                        0 value "Off"
+                        1 value "Radiance"
+                        2 value "Light Map Sky"
+                        3 value "Emissive"
+                        4 value "Normal"
+                        5 value "View Z"
+                        6 value "Geometry Normal"
+                    }
+                }
+                toggle("SETTING_DEBUG_ENV_PROBE", false) {
+                    lang {
+                        name = "Env Probe"
+                    }
+                }
+                toggle("SETTING_DEBUG_RTWSM", false) {
+                    lang {
+                        name = "RTWSM"
+                    }
                 }
             }
-            slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {
-                lang {
-                    name = "Debug Scale"
+            row {
+                empty()
+            }
+            row {
+                toggle("SETTING_DEBUG_ATMOSPHERE", false) {
+                    lang {
+                        name = "Atmosphere"
+                    }
+                }
+                toggle("SETTING_DEBUG_SKY_VIEW_LUT", false) {
+                    lang {
+                        name = "Sky View LUT"
+                    }
+                }
+                toggle("SETTING_DEBUG_EPIPOLAR_LINES", false) {
+                    lang {
+                        name = "Epipolar Lines"
+                    }
+                }
+                toggle("SETTING_DEBUG_CLOUDS_AMBLUT", false) {
+                    lang {
+                        name = "Clouds Amb. LUT"
+                    }
+                }
+                toggle("SETTING_DEBUG_CLOUDS_SS", 0, 0..4) {
+                    lang {
+                        name = "Clouds Upscaling"
+                        0 value "Off"
+                        1 value "Scattering"
+                        2 value "Transmittance"
+                        3 value "View Z"
+                        4 value "HLen"
+                    }
                 }
             }
-            toggle("SETTING_DEBUG_GAMMA_CORRECT", true) {
-                lang {
-                    name = "Gamma Correct"
+            row {
+                empty()
+            }
+            row {
+                toggle("SETTING_DEBUG_STARMAP", false) {
+                    lang {
+                        name = "Star Map"
+                    }
+                }
+                toggle("SETTING_DEBUG_AE", false) {
+                    lang {
+                        name = "Auto Exposure"
+                    }
+                }
+                toggle("SETTING_DEBUG_GI_TEXT", false) {
+                    lang {
+                        name = "GI Text"
+                    }
+                }
+                toggle("SETTING_DEBUG_SST", false) {
+                    lang {
+                        name = "SST"
+                    }
+                }
+                toggle("SETTING_DEBUG_SST_STEPS", false) {
+                    lang {
+                        name = "SST Steps"
+                    }
+                }
+                toggle("SETTING_DEBUG_TAA", false) {
+                    lang {
+                        name = "TAA"
+                    }
+                }
+                toggle("SETTING_GI_USE_REFERENCE", false) {
+                    lang {
+                        name = "Monte Carlo Reference"
+                    }
                 }
             }
-            toggle("SETTING_DEBUG_NEGATE", false) {
-                lang {
-                    name = "Negate"
-                }
+            row {
+                empty()
             }
-            toggle("SETTING_DEBUG_ALPHA", false) {
-                lang {
-                    name = "Alpha"
+            row {
+                toggle("SETTING_DEBUG_VOXEL_TRACE", false) {
+                    lang {
+                        name = "Voxel Trace Debug"
+                    }
                 }
-            }
-            slider("SETTING_DEBUG_EV_COARSE", 0, -16..16) {
-                lang {
-                    name = "EV Coarse"
+                toggle("SETTING_DEBUG_VOXEL_MODE", 0, 0..3) {
+                    lang {
+                        name = "Voxel Debug Mode"
+                        0 value "Primary"
+                        1 value "Mirror"
+                        2 value "Uniform"
+                        3 value "Cosine"
+                    }
                 }
-            }
-            slider("SETTING_DEBUG_EV_FINE", 0.0, -1.0..1.0 step 0.01) {
-                lang {
-                    name = "EV Fine"
-                }
-            }
-            empty()
-            empty()
-            empty()
-            toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..6) {
-                lang {
-                    name = "Temp Tex"
-                    0 value "Off"
-                    1 value "temp1"
-                    2 value "temp2"
-                    3 value "temp3"
-                    4 value "temp4"
-                    5 value "temp5"
-                    6 value "temp6"
-                }
-            }
-            toggle("SETTING_DEBUG_GBUFFER_DATA", 0, 0..12) {
-                lang {
-                    name = "GBuffer Data"
-                    0 value "Off"
-                    1 value "View Z"
-                    2 value "Albedo"
-                    3 value "Normal"
-                    4 value "Geometry Normal"
-                    5 value "Roughness"
-                    6 value "F0"
-                    7 value "Porosity"
-                    8 value "SSS"
-                    9 value "Emissive"
-                    10 value "Light Map Block"
-                    11 value "Light Map Sky"
-                    12 value "isHand"
-                }
-            }
-            toggle("SETTING_DEBUG_NORMAL_MODE", 0, 0..1) {
-                lang {
-                    name = "Normal Mode"
-                    0 value "World"
-                    1 value "View"
-                }
-            }
-            slider("SETTING_DEBUG_NORMAL_X_RANGE", 1.0, 0.0..1.0 step 0.1) {
-                lang {
-                    name = "Normal X Range"
-                }
-            }
-            slider("SETTING_DEBUG_NORMAL_Y_RANGE", 1.0, 0.0..1.0 step 0.1) {
-                lang {
-                    name = "Normal Y Range"
-                }
-            }
-            slider("SETTING_DEBUG_NORMAL_Z_RANGE", 1.0, 0.0..1.0 step 0.1) {
-                lang {
-                    name = "Normal Z Range"
-                }
-            }
-            empty()
-            empty()
-            empty()
-            toggle("SETTING_DEBUG_DENOISER", 0, 0..6) {
-                lang {
-                    name = "Denoiser"
-                    0 value "Off"
-                    1 value "Color"
-                    2 value "Fast Color"
-                    3 value "HLen"
-                    4 value "Moment"
-                    5 value "Moment²"
-                    6 value "Variance"
-                }
-            }
-            toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..6) {
-                lang {
-                    name = "GI Inputs"
-                    0 value "Off"
-                    1 value "Radiance"
-                    2 value "Light Map Sky"
-                    3 value "Emissive"
-                    4 value "Normal"
-                    5 value "View Z"
-                    6 value "Geometry Normal"
-                }
-            }
-            toggle("SETTING_DEBUG_ENV_PROBE", false) {
-                lang {
-                    name = "Env Probe"
-                }
-            }
-            toggle("SETTING_DEBUG_RTWSM", false) {
-                lang {
-                    name = "RTWSM"
-                }
-            }
-            empty()
-            empty()
-            empty()
-            empty()
-            empty()
-            toggle("SETTING_DEBUG_ATMOSPHERE", false) {
-                lang {
-                    name = "Atmosphere"
-                }
-            }
-            toggle("SETTING_DEBUG_SKY_VIEW_LUT", false) {
-                lang {
-                    name = "Sky View LUT"
-                }
-            }
-            toggle("SETTING_DEBUG_EPIPOLAR_LINES", false) {
-                lang {
-                    name = "Epipolar Lines"
-                }
-            }
-            toggle("SETTING_DEBUG_CLOUDS_AMBLUT", false) {
-                lang {
-                    name = "Clouds Amb. LUT"
-                }
-            }
-            toggle("SETTING_DEBUG_CLOUDS_SS", 0, 0..4) {
-                lang {
-                    name = "Clouds Upscaling"
-                    0 value "Off"
-                    1 value "Scattering"
-                    2 value "Transmittance"
-                    3 value "View Z"
-                    4 value "HLen"
-                }
-            }
-            empty()
-            empty()
-            empty()
-            empty()
-            toggle("SETTING_DEBUG_STARMAP", false) {
-                lang {
-                    name = "Star Map"
-                }
-            }
-            toggle("SETTING_DEBUG_AE", false) {
-                lang {
-                    name = "Auto Exposure"
-                }
-            }
-            toggle("SETTING_DEBUG_GI_TEXT", false) {
-                lang {
-                    name = "GI Text"
-                }
-            }
-            toggle("SETTING_DEBUG_SST", false) {
-                lang {
-                    name = "SST"
-                }
-            }
-            toggle("SETTING_DEBUG_SST_STEPS", false) {
-                lang {
-                    name = "SST Steps"
-                }
-            }
-            toggle("SETTING_DEBUG_TAA", false) {
-                lang {
-                    name = "TAA"
-                }
-            }
-            toggle("SETTING_DEBUG_VOXEL_TRACE", false) {
-                lang {
-                    name = "Voxel Trace Debug"
-                }
-            }
-            toggle("SETTING_DEBUG_VOXEL_MODE", 0, 0..2) {
-                lang {
-                    name = "Voxel Debug Mode"
-                    0 value "Primary Ray"
-                    1 value "Hemisphere"
-                    2 value "Mirror"
-                }
-            }
-            toggle("SETTING_GI_USE_REFERENCE", false) {
-                lang {
-                    name = "Monte Carlo Reference"
+                toggle("SETTING_DEBUG_VOXEL_BRICKS", false) {
+                    lang {
+                        name = "Voxel Brick Counter"
+                    }
                 }
             }
         }
