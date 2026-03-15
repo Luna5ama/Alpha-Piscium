@@ -118,14 +118,10 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
 
     vec3  invDir      = 1.0 / worldRayDir;
     ivec3 stepDirI    = ivec3(sign(worldRayDir));
-    vec3  stepDir     = vec3(stepDirI);
-    vec3  negStepDir  = -stepDir;
-
-    ivec3 stepDirPos    = max(stepDirI, 0);
-    vec3  exitSelectPos = vec3(stepDirPos);
+    vec3  exitSelectPos = vec3(max(stepDirI, 0));
 
     // ---- Clip ray to grid AABB ----
-    vec3  tOrig  = -posGrid * invDir;          // reused for L2+ exit calc
+    vec3  tOrig  = -posGrid * invDir;          // dies after tMaxBias init
     vec3  t1g    = fma(vec3(float(GRID_BLOCKS)), invDir, tOrig);
     vec3  tMinG  = min(tOrig, t1g);
     vec3  tMaxG  = max(tOrig, t1g);
@@ -149,7 +145,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     float lastT    = tCurrent;
     int   lastAxis = -1;
 
-    vec3  posGridBiased = fma(stepDir, vec3(1e-3), posGrid);
+    vec3  posGridBiased = fma(vec3(stepDirI), vec3(1e-3), posGrid);
 
     if (tEnter > 0.0) {
         if (tEnter == tMinG.x) lastAxis = 0;
@@ -192,7 +188,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 result.hit        = true;
                 result.hitPos     = fma(worldRayDir, vec3(lastT), worldRayOrigin);
                 result.normal     = vec3(0.0);
-                if (lastAxis != -1) result.normal[lastAxis] = negStepDir[lastAxis];
+                if (lastAxis != -1) result.normal[lastAxis] = float(-stepDirI[lastAxis]);
                 result.materialID = material;
                 return result;
             }
@@ -223,7 +219,6 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                     blockPos.z += stepDirI.z; tMax.z += tDelta.z;
                     spreadPos.z = _voxel_spreadBits(uint(blockPos.z));
                 }
-                fullMorton = spreadPos.x + (spreadPos.y << 1) + (spreadPos.z << 2);
             } else {
                 // Level 2+: skip the child cell
                 #if VOXEL_TRACE_DEBUG_COUNTERS
@@ -231,8 +226,9 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 #endif
                 int cellShift = 2 * (level - 1);
 
-                // Exit = cell boundary in step direction, converted to ray t via cached tOrig
-                vec3 tExit = fma(vec3((blockPos >> cellShift) << cellShift) + ldexp(exitSelectPos, ivec3(cellShift)), invDir, tOrig);
+                // Exit boundary in step direction; uses tMaxBias (= exitSelectPos*invDir + tOrig)
+                // so tOrig need not persist in the loop: boundary - exitSelectPos compensates.
+                vec3 tExit = fma(vec3((blockPos >> cellShift) << cellShift) + ldexp(exitSelectPos, ivec3(cellShift)) - exitSelectPos, invDir, tMaxBias);
 
                 if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
                     lastT = tExit.x; lastAxis = 0;
@@ -253,8 +249,8 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                     _voxel_spreadBits(uint(blockPos.y)),
                     _voxel_spreadBits(uint(blockPos.z))
                 );
-                fullMorton = spreadPos.x + (spreadPos.y << 1) + (spreadPos.z << 2);
             }
+            fullMorton = spreadPos.x + (spreadPos.y << 1) + (spreadPos.z << 2);
 
             // ---- Ascend: O(1) level recomputation via findMSB ----
             // The highest differing bit between old and new Morton codes
