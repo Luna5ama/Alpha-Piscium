@@ -69,47 +69,26 @@ bool _voxel_testBit64(uint64_t mask, uint idx) {
 // in the ray direction before floor(), preventing cell-boundary rounding from
 // corrupting tMax.
 void _voxel_skipCell(
-    ivec3 cellMin, vec3 tExit, ivec3 exitBlockBias,
-    vec3 worldRayDir, vec3 posGridBiased, vec3 invDir, vec3 tMaxBias, vec3 negStepDir,
-    inout ivec3 blockPos, inout vec3 tMax,
-    inout float lastT, inout vec3 lastNorm
+vec3 tExit,
+vec3 worldRayDir, vec3 posGridBiased, vec3 invDir, vec3 tMaxBias, vec3 negStepDir,
+inout ivec3 blockPos, inout vec3 tMax,
+inout float lastT, inout vec3 lastNorm
 ) {
     if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
-        lastT      = tExit.x;
-        lastNorm   = vec3(negStepDir.x, 0.0, 0.0);
-        blockPos.x = cellMin.x + exitBlockBias.x;
-        // Compute only the 2 needed non-exit components (skip exit-axis FMA)
-        float fy   = floor(fma(worldRayDir.y, lastT, posGridBiased.y));
-        float fz   = floor(fma(worldRayDir.z, lastT, posGridBiased.z));
-        blockPos.y = int(fy);
-        blockPos.z = int(fz);
-        // Reuse floor'd floats directly for tMax (avoids 2 I2F conversions)
-        tMax = vec3(fma(float(blockPos.x), invDir.x, tMaxBias.x),
-                    fma(fy, invDir.y, tMaxBias.y),
-                    fma(fz, invDir.z, tMaxBias.z));
+        lastT    = tExit.x;
+        lastNorm = vec3(negStepDir.x, 0.0, 0.0);
     } else if (tExit.y <= tExit.z) {
-        lastT      = tExit.y;
-        lastNorm   = vec3(0.0, negStepDir.y, 0.0);
-        blockPos.y = cellMin.y + exitBlockBias.y;
-        float fx   = floor(fma(worldRayDir.x, lastT, posGridBiased.x));
-        float fz   = floor(fma(worldRayDir.z, lastT, posGridBiased.z));
-        blockPos.x = int(fx);
-        blockPos.z = int(fz);
-        tMax = vec3(fma(fx, invDir.x, tMaxBias.x),
-                    fma(float(blockPos.y), invDir.y, tMaxBias.y),
-                    fma(fz, invDir.z, tMaxBias.z));
+        lastT    = tExit.y;
+        lastNorm = vec3(0.0, negStepDir.y, 0.0);
     } else {
-        lastT      = tExit.z;
-        lastNorm   = vec3(0.0, 0.0, negStepDir.z);
-        blockPos.z = cellMin.z + exitBlockBias.z;
-        float fx   = floor(fma(worldRayDir.x, lastT, posGridBiased.x));
-        float fy   = floor(fma(worldRayDir.y, lastT, posGridBiased.y));
-        blockPos.x = int(fx);
-        blockPos.y = int(fy);
-        tMax = vec3(fma(fx, invDir.x, tMaxBias.x),
-                    fma(fy, invDir.y, tMaxBias.y),
-                    fma(float(blockPos.z), invDir.z, tMaxBias.z));
+        lastT    = tExit.z;
+        lastNorm = vec3(0.0, 0.0, negStepDir.z);
     }
+
+    vec3 exitPos = fma(worldRayDir, vec3(lastT), posGridBiased);
+    blockPos     = ivec3(floor(exitPos));
+
+    tMax = fma(vec3(blockPos), invDir, tMaxBias);
 }
 
 // ---------------------------------------------------------------------------
@@ -164,12 +143,6 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     vec3  exitTBias16 = fma(exitSelectPos, 16.0 * invDir, t0g);
     vec3  exitTBias4  = fma(exitSelectPos, 4.0  * invDir, t0g);
 
-    // exitBlockBiasN[i]: new blockPos on exit axis = cellMin + exitBlockBias
-    //   dir > 0 → cellSize (first block of next cell)
-    //   dir < 0 → -1       (last block of previous cell)
-    ivec3 exitBlockBias16 = stepDirPos * 17 - 1;
-    ivec3 exitBlockBias4  = stepDirPos * 5  - 1;
-
     // DDA initialisation
     float tCurrent = max(tEnter, 0.0) + EPS;
     vec3  startPos = fma(worldRayDir, vec3(tCurrent), posGrid);
@@ -219,9 +192,8 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         if (allocID == VOXEL_UNALLOCATED) {
             ivec3 cellMin = blockPos & ivec3(-16);
             vec3  tExit   = fma(vec3(cellMin), invDir, exitTBias16);
-            _voxel_skipCell(cellMin, tExit, exitBlockBias16,
-                            worldRayDir, posGridBiased, invDir, tMaxBias, negStepDir,
-                            blockPos, tMax, lastT, lastNorm);
+            _voxel_skipCell(tExit, worldRayDir, posGridBiased, invDir, tMaxBias, negStepDir,
+                blockPos, tMax, lastT, lastNorm);
             continue;
         }
 
@@ -236,9 +208,8 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         if (!_voxel_testBit64(rootMask, srMorton)) {
             ivec3 cellMin = blockPos & ivec3(-4);
             vec3  tExit   = fma(vec3(cellMin), invDir, exitTBias4);
-            _voxel_skipCell(cellMin, tExit, exitBlockBias4,
-                            worldRayDir, posGridBiased, invDir, tMaxBias, negStepDir,
-                            blockPos, tMax, lastT, lastNorm);
+            _voxel_skipCell(tExit, worldRayDir, posGridBiased, invDir, tMaxBias, negStepDir,
+                blockPos, tMax, lastT, lastNorm);
             continue;
         }
 
