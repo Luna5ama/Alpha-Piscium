@@ -29,6 +29,8 @@
 //
 // Grid centre = ivec3(VOXEL_GRID_SIZE/2).
 // Max Chebyshev: Grid=16 ~136 blocks, Grid=32 ~264 blocks, Grid=64 ~520 blocks.
+#extension GL_KHR_shader_subgroup_arithmetic : enable
+#extension GL_KHR_shader_subgroup_basic : enable
 
 #define VOXEL_BRICK_DATA_MODIFIER buffer
 #include "/techniques/voxel/Voxelization.glsl"
@@ -115,18 +117,34 @@ void main() {
     }
     barrier();
 
-    // ---- Phase 3: Prefix sum (thread 0) ----
-    if (tid == 0u) {
-        uint running = 0u;
-        for (uint b = 0u; b < uint(NUM_DIST_BUCKETS); b++) {
-            uint cnt = shared_bucketCount[b];
-            shared_bucketCount[b] = running;
-            running += cnt;
+    // ---- Phase 3: Parallel Prefix Sum (Hillis-Steele) ----
+    // Inclusive scan
+    for (uint stride = 1u; stride < uint(NUM_DIST_BUCKETS); stride <<= 1) {
+        barrier();
+        uint temp = 0u;
+        if (tid < uint(NUM_DIST_BUCKETS) && tid >= stride) {
+            temp = shared_bucketCount[tid - stride];
+        }
+        barrier();
+        if (tid < uint(NUM_DIST_BUCKETS) && tid >= stride) {
+            shared_bucketCount[tid] += temp;
         }
     }
     barrier();
 
+    // Convert Inclusive to Exclusive Scan
+    uint inclusive = 0u;
+    if (tid < uint(NUM_DIST_BUCKETS)) {
+        if (tid > 0u) inclusive = shared_bucketCount[tid - 1];
+    }
+    barrier();
+    if (tid < uint(NUM_DIST_BUCKETS)) {
+        shared_bucketCount[tid] = inclusive;
+    }
+    barrier();
+
     // ---- Phase 4: Assign alloc IDs closest-first ----
+    uint threadAllocCount = 0u;
     for (uint k = 0u; k < uint(BRICKS_PER_THREAD); k++) {
         uint i = tid * uint(BRICKS_PER_THREAD) + k;
         if (voxel_brickAllocID[i] == 1u) {
@@ -136,13 +154,18 @@ void main() {
             uint allocID = atomicAdd(shared_bucketCount[dist], 1u);
             if (allocID < uint(VOXEL_POOL_SIZE)) {
                 voxel_brickAllocID[i] = allocID;
-                atomicAdd(shared_allocatedCount, 1u);
+                threadAllocCount++;
             } else {
                 voxel_brickAllocID[i] = VOXEL_UNALLOCATED;
             }
         } else {
             voxel_brickAllocID[i] = VOXEL_UNALLOCATED;
         }
+    }
+
+    uint sgCount = subgroupAdd(threadAllocCount);
+    if (subgroupElect()) {
+        atomicAdd(shared_allocatedCount, sgCount);
     }
     barrier();
 
@@ -151,4 +174,3 @@ void main() {
         voxel_brickAllocCounter = shared_allocatedCount;
     }
 }
-
