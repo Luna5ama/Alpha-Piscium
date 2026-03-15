@@ -52,6 +52,15 @@ uint morton_32bEncode(uvec2 coords) {
 }
 
 // Adapted from https://github.com/liamdon/fast-morton
+// Encode functions use multiply instead of shift+OR for bit-spreading:
+// since bit groups never overlap, (x | (x << N)) == x * (1 + 2^N).
+// Integer multiply routes to the FMAHeavy pipe, relieving the ALU pipe.
+uint morton3D_6bEncodeFMAHeavy(uvec3 coords) {
+    uvec3 x = coords & 0x03u;
+    x = (x * 5u) & 0x09u;         // x*(1+2^2) == x|(x<<2), pairs isolated
+    return x.x + x.y * 2u + x.z * 4u;
+}
+
 uint morton3D_6bEncode(uvec3 coords) {
     uvec3 x = coords & 0x03u;
     x = (x | (x << 2u)) & 0x09u;
@@ -63,6 +72,13 @@ uvec3 morton3D_6bDecode(uint x) {
     coords &= 0x09u;
     coords = (coords | (coords >> 2u)) & 0x03u;
     return coords;
+}
+
+uint morton3D_12bEncodeFMAHeavy(uvec3 coords) {
+    uvec3 x = coords & 0x0Fu;
+    x = (x * 17u) & 0xC3u;        // x*(1+2^4) == x|(x<<4), nibbles isolated
+    x = (x *  5u) & 0x249u;       // x*(1+2^2) == x|(x<<2), pairs isolated
+    return x.x + x.y * 2u + x.z * 4u;
 }
 
 uint morton3D_12bEncode(uvec3 coords) {
@@ -78,6 +94,14 @@ uvec3 morton3D_12bDecode(uint x) {
     coords = (coords | (coords >> 2u)) & 0xC3u;
     coords = (coords | (coords >> 4u)) & 0x0Fu;
     return coords;
+}
+
+uint morton3D_24bEncodeFMAHeavy(uvec3 coords) {
+    uvec3 x = coords & 0xFFu;
+    x = (x * 257u) & 0x00F00Fu;   // x*(1+2^8) == x|(x<<8) when x<256
+    x = (x *  17u) & 0x0C30C3u;   // x*(1+2^4) == x|(x<<4), nibbles isolated
+    x = (x *   5u) & 0x249249u;   // x*(1+2^2) == x|(x<<2), pairs isolated
+    return x.x + x.y * 2u + x.z * 4u;
 }
 
 uint morton3D_24bEncode(uvec3 coords) {
