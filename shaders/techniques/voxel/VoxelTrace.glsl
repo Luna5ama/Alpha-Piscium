@@ -152,7 +152,6 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
 
     ivec3 blockPos = ivec3(floor(startPos));
     vec3  tMax     = fma(vec3(blockPos), invDir, tMaxBias);
-    vec3  tDelta   = abs(invDir);
 
     float lastT    = tCurrent;
     int   lastAxis = -1;
@@ -160,9 +159,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     vec3  posGridBiased = fma(vec3(stepDirI), vec3(1e-3), posGrid);
 
     if (tEnter > 0.0) {
-        if (tEnter == tMinG.x) lastAxis = 0;
-        else if (tEnter == tMinG.y) lastAxis = 1;
-        else lastAxis = 2;
+        lastAxis = (tMinG.x >= tMinG.y && tMinG.x >= tMinG.z) ? 0 : (tMinG.y >= tMinG.z ? 1 : 2);
     }
 
     // ---- Spread-position for incremental Morton at level 1 ----
@@ -217,15 +214,15 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 #endif
                 if (tMax.x < tMax.y && tMax.x < tMax.z) {
                     lastT = tMax.x; lastAxis = 0;
-                    blockPos.x += stepDirI.x; tMax.x += tDelta.x;
+                    blockPos.x += stepDirI.x; tMax.x = fma(float(blockPos.x), invDir.x, tMaxBias.x);
                     spreadPos.x = _voxel_spreadLUT[uint(blockPos.x)];
                 } else if (tMax.y < tMax.z) {
                     lastT = tMax.y; lastAxis = 1;
-                    blockPos.y += stepDirI.y; tMax.y += tDelta.y;
+                    blockPos.y += stepDirI.y; tMax.y = fma(float(blockPos.y), invDir.y, tMaxBias.y);
                     spreadPos.y = _voxel_spreadLUT[uint(blockPos.y)];
                 } else {
                     lastT = tMax.z; lastAxis = 2;
-                    blockPos.z += stepDirI.z; tMax.z += tDelta.z;
+                    blockPos.z += stepDirI.z; tMax.z = fma(float(blockPos.z), invDir.z, tMaxBias.z);
                     spreadPos.z = _voxel_spreadLUT[uint(blockPos.z)];
                 }
             } else {
