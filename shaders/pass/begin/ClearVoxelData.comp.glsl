@@ -11,14 +11,24 @@
 
 layout(local_size_x = 256) in;
 // VOXEL_POOL_SIZE * 4096 / 256 = VOXEL_POOL_SIZE * 16 workgroups
-#if VOXEL_POOL_SIZE == 2048
-const ivec3 workGroups = ivec3(32768, 1, 1);
-#elif VOXEL_POOL_SIZE == 1024
-const ivec3 workGroups = ivec3(16384, 1, 1);
-#elif VOXEL_POOL_SIZE == 256
+#if SETTING_VOXEL_POOL_SIZE == 256
 const ivec3 workGroups = ivec3(4096, 1, 1);
-#else
+#elif SETTING_VOXEL_POOL_SIZE == 512
 const ivec3 workGroups = ivec3(8192, 1, 1);
+#elif SETTING_VOXEL_POOL_SIZE == 1024
+const ivec3 workGroups = ivec3(16384, 1, 1);
+#elif SETTING_VOXEL_POOL_SIZE == 2048
+const ivec3 workGroups = ivec3(32768, 1, 1);
+#elif SETTING_VOXEL_POOL_SIZE == 4096
+const ivec3 workGroups = ivec3(65536, 1, 1);
+#elif SETTING_VOXEL_POOL_SIZE == 8192
+const ivec3 workGroups = ivec3(131072, 1, 1);
+#elif SETTING_VOXEL_POOL_SIZE == 16384
+const ivec3 workGroups = ivec3(262144, 1, 1);
+#elif SETTING_VOXEL_POOL_SIZE == 32768
+const ivec3 workGroups = ivec3(524288, 1, 1);
+#elif SETTING_VOXEL_POOL_SIZE == 65536
+const ivec3 workGroups = ivec3(1048576, 1, 1);
 #endif
 
 void main() {

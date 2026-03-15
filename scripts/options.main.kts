@@ -1048,24 +1048,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         64 value "64（1024格）"
                     }
                 }
-                slider("SETTING_VOXEL_POOL_SIZE", 512, listOf(256, 512, 1024, 2048)) {
+                slider("SETTING_VOXEL_POOL_SIZE", 1024, powerOfTwoRange(8..16)) {
                     lang {
                         name = "Voxel Pool Size"
-                        comment =
-                            "Maximum number of simultaneously allocated bricks. Higher values allow more bricks to be active at once, improving voxel coverage in dense scenes. Material data cost: 256 = 4 MB, 512 = 8 MB, 1024 = 16 MB, 2048 = 32 MB."
-                        256 value "256"
-                        512 value "512"
-                        1024 value "1024"
-                        2048 value "2048"
+                        comment = "Maximum number of simultaneously allocated bricks. Higher values allow more bricks to be active at once, improving voxel coverage in dense/larger scenes. Every 256 bricks consume around 4 MB of VRAM."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "体素池大小"
                         comment =
-                            "同时分配的砖块最大数量。更高的值允许同时激活更多砖块，在密集场景中提升体素覆盖范围。材质数据占用：256 = 4 MB，512 = 8 MB，1024 = 16 MB，2048 = 32 MB。"
-                        256 value "256"
-                        512 value "512"
-                        1024 value "1024"
-                        2048 value "2048"
+                            "同时分配的砖块最大数量。更高的值允许同时激活更多砖块，在密集/大型场景中提升体素覆盖范围。每256块砖大约消耗4 MB显存。"
                     }
                 }
             }

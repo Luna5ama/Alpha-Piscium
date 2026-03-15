@@ -213,11 +213,7 @@ value.SETTING_VOXEL_GRID_SIZE.16=16 (256 blocks)
 value.SETTING_VOXEL_GRID_SIZE.32=32 (512 blocks)
 value.SETTING_VOXEL_GRID_SIZE.64=64 (1024 blocks)
 option.SETTING_VOXEL_POOL_SIZE=Voxel Pool Size
-option.SETTING_VOXEL_POOL_SIZE.comment=Maximum number of simultaneously allocated bricks. Higher values allow more bricks to be active at once, improving voxel coverage in dense scenes. Material data cost: 256 = 4 MB, 512 = 8 MB, 1024 = 16 MB, 2048 = 32 MB.
-value.SETTING_VOXEL_POOL_SIZE.256=256
-value.SETTING_VOXEL_POOL_SIZE.512=512
-value.SETTING_VOXEL_POOL_SIZE.1024=1024
-value.SETTING_VOXEL_POOL_SIZE.2048=2048
+option.SETTING_VOXEL_POOL_SIZE.comment=Maximum number of simultaneously allocated bricks. Higher values allow more bricks to be active at once, improving voxel coverage in dense/larger scenes. Every 256 bricks consume around 4 MB of VRAM.
 option.GLOBAL_SCALING=Global Settings
 value.GLOBAL_SCALING.0=
 option.SETTING_ATM_ALT_SCALE=Altitude Scale
