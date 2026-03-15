@@ -85,10 +85,13 @@ inout float lastT, inout vec3 lastNorm
         lastNorm = vec3(0.0, 0.0, negStepDir.z);
     }
 
-    vec3 exitPos = fma(worldRayDir, vec3(lastT), posGridBiased);
-    blockPos     = ivec3(floor(exitPos));
-
-    tMax = fma(vec3(blockPos), invDir, tMaxBias);
+    vec3 exitPos  = fma(worldRayDir, vec3(lastT), posGridBiased);
+    vec3 floorPos = floor(exitPos);
+    blockPos      = ivec3(floorPos);
+    // Reuse floor'd float directly — avoids 3 I2F (SFU) from vec3(blockPos).
+    // floor(x) is integer-valued, so float(int(floor(x))) == floor(x) exactly
+    // for block positions in [0, 255].
+    tMax = fma(floorPos, invDir, tMaxBias);
 }
 
 // ---------------------------------------------------------------------------
@@ -180,11 +183,6 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         uint brickMorton    = fullMorton >> 12u;
         uint allocID        = voxel_brickAllocID[brickMorton];
 
-        // Extract remaining indices while allocID loads (ALU || LSU ILP)
-        uint blockMorton    = fullMorton & 0xFFFu;
-        uint srMorton       = bitfieldExtract(fullMorton, 6, 6);
-        uint blockSrMorton  = fullMorton & 63u;
-
         // ---- Level 0 : brick allocation check ----
         #if VOXEL_TRACE_DEBUG_COUNTERS
         result.debugCounters.x++;
@@ -197,9 +195,12 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             continue;
         }
 
-        // ---- Level 1+2 : load root and leaf masks eagerly (LSU pipelining) ----
+        // Deferred Morton extracts: only computed when brick is allocated.
+        // Saves 3 ALU ops (AND, BFE, AND) on the hot brick-skip path.
+        uint srMorton       = bitfieldExtract(fullMorton, 6, 6);
+
+        // ---- Level 1 : root mask check ----
         uint64_t rootMask = voxel_tree[voxel_treeRootIndex(allocID)];
-        uint64_t leafMask = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
 
         // y: reached root check (brick was allocated)
         #if VOXEL_TRACE_DEBUG_COUNTERS
@@ -213,13 +214,15 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             continue;
         }
 
-        // ---- Level 2 : leaf block bitmask check (leafMask already loaded) ----
+        // ---- Level 2 : leaf block bitmask check ----
+        uint64_t leafMask   = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
+        uint blockSrMorton  = fullMorton & 63u;
         // z: reached leaf check (sub-region was non-empty)
         #if VOXEL_TRACE_DEBUG_COUNTERS
         result.debugCounters.z++;
         #endif
         if (_voxel_testBit64(leafMask, blockSrMorton)) {
-            // Precompute material index (IMAD on FMAHeavy pipe, overlaps tree loads)
+            uint blockMorton = fullMorton & 0xFFFu;
             uint matIdx = voxel_materialIndex(allocID, blockMorton);
             uint material     = voxel_materials[matIdx];
             result.hit        = true;
