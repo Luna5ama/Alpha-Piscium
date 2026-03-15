@@ -230,10 +230,9 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 result.debugCounters.z++;
                 #endif
                 int cellShift = 2 * (level - 1);
-                float cellSize = float(1 << cellShift);
 
                 // Exit = cell boundary in step direction, converted to ray t via cached tOrig
-                vec3 tExit = fma(vec3((blockPos >> cellShift) << cellShift) + exitSelectPos * cellSize, invDir, tOrig);
+                vec3 tExit = fma(vec3((blockPos >> cellShift) << cellShift) + ldexp(exitSelectPos, ivec3(cellShift)), invDir, tOrig);
 
                 if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
                     lastT = tExit.x; lastAxis = 0;
@@ -262,7 +261,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             // tells us which tree level boundary was crossed.
             uint mortonDiff = oldFullMorton ^ fullMorton;
             if (mortonDiff != 0u) {
-                level = max(level, min(int(findMSB(mortonDiff) / 6u) + 1, VOXEL_TREE_TOP_LEVEL));
+                level = clamp(int(findMSB(mortonDiff) / 6u) + 1, level, VOXEL_TREE_TOP_LEVEL);
             }
         }
     }
