@@ -7,7 +7,7 @@
 
 #define VOXEL_MATERIAL_DATA_MODIFIER buffer
 #define VOXEL_TREE_DATA_MODIFIER buffer
-#include "/techniques/Voxelization.glsl"
+#include "/techniques/voxel/Voxelization.glsl"
 
 layout(local_size_x = 256) in;
 // 512 * 4096 / 256 = 8192 workgroups

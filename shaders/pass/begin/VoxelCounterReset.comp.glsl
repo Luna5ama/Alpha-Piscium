@@ -3,7 +3,7 @@
 // VoxelAllocator to guarantee the counter is zero before any atomicAdd.
 
 #define VOXEL_BRICK_DATA_MODIFIER buffer
-#include "/techniques/Voxelization.glsl"
+#include "/techniques/voxel/Voxelization.glsl"
 
 layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(1, 1, 1);

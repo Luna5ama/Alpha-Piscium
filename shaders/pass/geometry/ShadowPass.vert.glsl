@@ -2,7 +2,7 @@
 #include "/util/Fresnel.glsl"
 #define VOXEL_BRICK_DATA_MODIFIER buffer
 #define VOXEL_MATERIAL_DATA_MODIFIER buffer
-#include "/techniques/Voxelization.glsl"
+#include "/techniques/voxel/Voxelization.glsl"
 
 layout(r32i) uniform iimage2D uimg_fr32f;
 

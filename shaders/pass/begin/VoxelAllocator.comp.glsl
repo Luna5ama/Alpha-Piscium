@@ -28,7 +28,7 @@
 // Max Chebyshev in a 16^3 grid = 136 blocks.  → 137 buckets (0..136).
 
 #define VOXEL_BRICK_DATA_MODIFIER buffer
-#include "/techniques/Voxelization.glsl"
+#include "/techniques/voxel/Voxelization.glsl"
 
 layout(local_size_x = 1024) in;
 const ivec3 workGroups = ivec3(1, 1, 1); // single workgroup: 1024 threads × 4 bricks = 4096
