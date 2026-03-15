@@ -62,6 +62,9 @@ uint _voxel_spreadBits(uint x) {
 }
 #endif
 
+shared uint _voxel_levelOffsets[6];
+shared uint _voxel_spreadLUT[VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE];
+
 bool _voxel_testBit64(uvec2 mask, uint idx) {
     uint part = (idx < 32u) ? mask.x : mask.y;
     return ((part >> (idx & 31u)) & 1u) != 0u;
@@ -69,17 +72,15 @@ bool _voxel_testBit64(uvec2 mask, uint idx) {
 
 uvec3 _voxel_spreadPos(ivec3 blockPos) {
     return uvec3(
-        _voxel_spreadBits(uint(blockPos.x)),
-        _voxel_spreadBits(uint(blockPos.y)),
-        _voxel_spreadBits(uint(blockPos.z))
+        _voxel_spreadLUT[uint(blockPos.x)],
+        _voxel_spreadLUT[uint(blockPos.y)],
+        _voxel_spreadLUT[uint(blockPos.z)]
     );
 }
 
 uint _voxel_packSpreadPos(uvec3 spreadPos) {
-    return spreadPos.x + (spreadPos.y << 1u) + (spreadPos.z << 2u);
+    return spreadPos.x | (spreadPos.y << 1u) | (spreadPos.z << 2u);
 }
-
-shared uint _voxel_levelOffsets[6];
 
 void voxel_initShared() {
     if (gl_LocalInvocationIndex == 0u) {
@@ -94,6 +95,13 @@ void voxel_initShared() {
         _voxel_levelOffsets[5] = 0u;
         #endif
     }
+
+    uint localSize = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
+    uint lutSize   = uint(VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE);
+    for (uint i = gl_LocalInvocationIndex; i < lutSize; i += localSize) {
+        _voxel_spreadLUT[i] = _voxel_spreadBits(i);
+    }
+
     barrier();
 }
 
@@ -210,15 +218,15 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 if (tMax.x < tMax.y && tMax.x < tMax.z) {
                     lastT = tMax.x; lastAxis = 0;
                     blockPos.x += stepDirI.x; tMax.x += tDelta.x;
-                    spreadPos.x = _voxel_spreadBits(uint(blockPos.x));
+                    spreadPos.x = _voxel_spreadLUT[uint(blockPos.x)];
                 } else if (tMax.y < tMax.z) {
                     lastT = tMax.y; lastAxis = 1;
                     blockPos.y += stepDirI.y; tMax.y += tDelta.y;
-                    spreadPos.y = _voxel_spreadBits(uint(blockPos.y));
+                    spreadPos.y = _voxel_spreadLUT[uint(blockPos.y)];
                 } else {
                     lastT = tMax.z; lastAxis = 2;
                     blockPos.z += stepDirI.z; tMax.z += tDelta.z;
-                    spreadPos.z = _voxel_spreadBits(uint(blockPos.z));
+                    spreadPos.z = _voxel_spreadLUT[uint(blockPos.z)];
                 }
             } else {
                 // Level 2+: skip the child cell
