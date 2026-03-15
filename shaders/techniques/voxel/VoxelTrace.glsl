@@ -129,11 +129,11 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     worldRayDir = mix(worldRayDir, vec3(1e-7), lessThan(abs(worldRayDir), vec3(1e-7)));
 
     vec3  invDir      = 1.0 / worldRayDir;
+    vec3  tDelta      = abs(invDir);
     ivec3 stepDirI    = ivec3(sign(worldRayDir));
-    vec3  exitSelectPos = vec3(max(stepDirI, 0));
 
     // ---- Clip ray to grid AABB ----
-    vec3  tOrig  = -posGrid * invDir;          // dies after tMaxBias init
+    vec3  tOrig  = -posGrid * invDir;
     vec3  t1g    = fma(vec3(float(GRID_BLOCKS)), invDir, tOrig);
     vec3  tMinG  = min(tOrig, t1g);
     vec3  tMaxG  = max(tOrig, t1g);
@@ -143,7 +143,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     if (tEnter > tExitG || tExitG <= 0.0) return result;
 
     // ---- Precompute DDA biases ----
-    vec3  tMaxBias     = fma(exitSelectPos, invDir, tOrig);
+    vec3  tMaxBias     = fma(vec3(greaterThan(stepDirI, ivec3(0))), invDir, tOrig);
 
     // Optim: Precompute mask for hierarchy skipping (dir > 0 ? -1 : 0)
     ivec3 boundOffsetMask = ivec3(greaterThan(stepDirI, ivec3(0))) * ivec3(-1);
@@ -208,8 +208,6 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             #endif
         } else {
             // ---- Empty child — skip to exit of child cell ----
-            uint oldFullMorton = fullMorton;
-
             if (level == 1) {
                 // Level 1: child is a single block → standard 1-block DDA step
                 #if VOXEL_TRACE_DEBUG_COUNTERS
@@ -219,19 +217,19 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                     lastT = tMax.x;
                     lastAxis = 0;
                     blockPos.x += stepDirI.x;
-                    tMax.x = fma(float(blockPos.x), invDir.x, tMaxBias.x);
+                    tMax.x += tDelta.x;
                     spreadPos.x = _voxel_spreadLUT[uint(blockPos.x)];
                 } else if (tMax.y < tMax.z) {
                     lastT = tMax.y;
                     lastAxis = 1;
                     blockPos.y += stepDirI.y;
-                    tMax.y = fma(float(blockPos.y), invDir.y, tMaxBias.y);
+                    tMax.y += tDelta.y;
                     spreadPos.y = _voxel_spreadLUT[uint(blockPos.y)];
                 } else {
                     lastT = tMax.z;
                     lastAxis = 2;
                     blockPos.z += stepDirI.z;
-                    tMax.z = fma(float(blockPos.z), invDir.z, tMaxBias.z);
+                    tMax.z += tDelta.z;
                     spreadPos.z = _voxel_spreadLUT[uint(blockPos.z)];
                 }
             } else {
@@ -269,6 +267,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 // Full Morton recompute after large jump
                 spreadPos = _voxel_spreadPos(blockPos);
             }
+            uint oldFullMorton = fullMorton;
             fullMorton = _voxel_packSpreadPos(spreadPos);
 
             // ---- Ascend: O(1) level recomputation via findMSB ----
