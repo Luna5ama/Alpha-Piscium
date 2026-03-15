@@ -63,7 +63,8 @@ bool _voxel_testBit64(uint64_t mask, uint idx) {
 
 // Advance the DDA past a cell using precomputed exit-plane intersections.
 // tExit and exitBlockBias are computed at the call site from per-ray biases.
-// tMax is uniformly recomputed from blockPos via FMA for all three axes.
+// tMax is recomputed via FMA for all three axes, reusing the floor'd float
+// values for the two non-exit axes to avoid redundant int→float conversion.
 // posGridBiased = posGrid + stepDir * 1e-3: pre-biased to nudge non-exit axes
 // in the ray direction before floor(), preventing cell-boundary rounding from
 // corrupting tMax.
@@ -73,31 +74,42 @@ void _voxel_skipCell(
     inout ivec3 blockPos, inout vec3 tMax,
     inout float lastT, inout vec3 lastNorm
 ) {
-    vec3 exitPos;
     if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
         lastT      = tExit.x;
         lastNorm   = vec3(negStepDir.x, 0.0, 0.0);
         blockPos.x = cellMin.x + exitBlockBias.x;
-        exitPos    = fma(worldRayDir, vec3(lastT), posGridBiased);
-        blockPos.y = int(floor(exitPos.y));
-        blockPos.z = int(floor(exitPos.z));
+        // Compute only the 2 needed non-exit components (skip exit-axis FMA)
+        float fy   = floor(fma(worldRayDir.y, lastT, posGridBiased.y));
+        float fz   = floor(fma(worldRayDir.z, lastT, posGridBiased.z));
+        blockPos.y = int(fy);
+        blockPos.z = int(fz);
+        // Reuse floor'd floats directly for tMax (avoids 2 I2F conversions)
+        tMax = vec3(fma(float(blockPos.x), invDir.x, tMaxBias.x),
+                    fma(fy, invDir.y, tMaxBias.y),
+                    fma(fz, invDir.z, tMaxBias.z));
     } else if (tExit.y <= tExit.z) {
         lastT      = tExit.y;
         lastNorm   = vec3(0.0, negStepDir.y, 0.0);
         blockPos.y = cellMin.y + exitBlockBias.y;
-        exitPos    = fma(worldRayDir, vec3(lastT), posGridBiased);
-        blockPos.x = int(floor(exitPos.x));
-        blockPos.z = int(floor(exitPos.z));
+        float fx   = floor(fma(worldRayDir.x, lastT, posGridBiased.x));
+        float fz   = floor(fma(worldRayDir.z, lastT, posGridBiased.z));
+        blockPos.x = int(fx);
+        blockPos.z = int(fz);
+        tMax = vec3(fma(fx, invDir.x, tMaxBias.x),
+                    fma(float(blockPos.y), invDir.y, tMaxBias.y),
+                    fma(fz, invDir.z, tMaxBias.z));
     } else {
         lastT      = tExit.z;
         lastNorm   = vec3(0.0, 0.0, negStepDir.z);
         blockPos.z = cellMin.z + exitBlockBias.z;
-        exitPos    = fma(worldRayDir, vec3(lastT), posGridBiased);
-        blockPos.x = int(floor(exitPos.x));
-        blockPos.y = int(floor(exitPos.y));
+        float fx   = floor(fma(worldRayDir.x, lastT, posGridBiased.x));
+        float fy   = floor(fma(worldRayDir.y, lastT, posGridBiased.y));
+        blockPos.x = int(fx);
+        blockPos.y = int(fy);
+        tMax = vec3(fma(fx, invDir.x, tMaxBias.x),
+                    fma(fy, invDir.y, tMaxBias.y),
+                    fma(float(blockPos.z), invDir.z, tMaxBias.z));
     }
-    // Uniform tMax recomputation: tMax = blockPos * invDir + tMaxBias
-    tMax = fma(vec3(blockPos), invDir, tMaxBias);
 }
 
 // ---------------------------------------------------------------------------
