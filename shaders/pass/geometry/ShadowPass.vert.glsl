@@ -59,7 +59,7 @@ void main() {
     // Only runs once per quad (gl_VertexID & 3 == 0) to reduce atomics.
     // Skipped for translucent geometry (water handled separately later).
     // -------------------------------------------------------------------
-    #ifndef SHADOW_PASS_TRANSLUCENT
+    #ifdef SHADOW_PASS_VOXELIZE
     if ((gl_VertexID & 3) == 0 && materialID != MATERIAL_ID_WATER) {
         // Absolute integer block position of the center of this block.
         // scenePos is camera-relative; add camera's integer + fractional parts.
