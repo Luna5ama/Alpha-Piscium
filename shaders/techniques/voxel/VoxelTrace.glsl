@@ -125,17 +125,17 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     vec3  exitSelectPos = vec3(stepDirPos);
 
     // ---- Clip ray to grid AABB ----
-    vec3  t0g    = -posGrid * invDir;
-    vec3  t1g    = fma(vec3(float(GRID_BLOCKS)), invDir, t0g);
-    vec3  tMinG  = min(t0g, t1g);
-    vec3  tMaxG  = max(t0g, t1g);
+    vec3  tOrig  = -posGrid * invDir;          // reused for L2+ exit calc
+    vec3  t1g    = fma(vec3(float(GRID_BLOCKS)), invDir, tOrig);
+    vec3  tMinG  = min(tOrig, t1g);
+    vec3  tMaxG  = max(tOrig, t1g);
     float tEnter = max(max(tMinG.x, tMinG.y), tMinG.z);
     float tExitG = min(min(tMaxG.x, tMaxG.y), tMaxG.z);
 
     if (tEnter > tExitG || tExitG <= 0.0) return result;
 
     // ---- Precompute DDA biases ----
-    vec3  tMaxBias     = fma(exitSelectPos, invDir, t0g);
+    vec3  tMaxBias     = fma(exitSelectPos, invDir, tOrig);
 
     // ---- DDA initialisation ----
     float tCurrent = max(tEnter, 0.0) + EPS;
@@ -177,18 +177,17 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         #endif
 
         // Load node mask at current level
-        uint nodeIdx  = _voxel_levelOffsets[level] + (fullMorton >> (6u * uint(level)));
-        uvec2 mask    = voxel_tree[nodeIdx];
-        uint childIdx = (fullMorton >> (6u * uint(level - 1))) & 63u;
+        uint levelShift = 6u * uint(level);
+        uint nodeIdx    = _voxel_levelOffsets[level] + (fullMorton >> levelShift);
+        uvec2 mask      = voxel_tree[nodeIdx];
+        uint childIdx   = (fullMorton >> (levelShift - 6u)) & 63u;
 
         if (_voxel_testBit64(mask, childIdx)) {
             // ---- Non-empty child ----
             if (level == 1) {
                 // Leaf level: individual block is solid → HIT
-                uint brickMorton = fullMorton >> 12u;
-                uint allocID     = voxel_brickAllocID[brickMorton];
-                uint blockMorton = fullMorton & 0xFFFu;
-                uint material    = voxel_materials[allocID * 4096u + blockMorton];
+                uint allocID  = voxel_brickAllocID[fullMorton >> 12u];
+                uint material = voxel_materials[(allocID << 12u) | (fullMorton & 0xFFFu)];
 
                 result.hit        = true;
                 result.hitPos     = fma(worldRayDir, vec3(lastT), worldRayOrigin);
@@ -230,11 +229,11 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 #if VOXEL_TRACE_DEBUG_COUNTERS
                 result.debugCounters.z++;
                 #endif
-                int cellShift  = 2 * (level - 1);        // log2 of cell side length per axis
-                ivec3 cellMin  = (blockPos >> cellShift) << cellShift;
+                int cellShift = 2 * (level - 1);
+                float cellSize = float(1 << cellShift);
 
-                // Simplified exit calculation: tExit = (boundary - posGrid) * invDir
-                vec3 tExit = (vec3(cellMin) + vec3(exitSelectPos) * float(1 << cellShift) - posGrid) * invDir;
+                // Exit = cell boundary in step direction, converted to ray t via cached tOrig
+                vec3 tExit = fma(vec3((blockPos >> cellShift) << cellShift) + exitSelectPos * cellSize, invDir, tOrig);
 
                 if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
                     lastT = tExit.x; lastAxis = 0;
@@ -250,19 +249,20 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 tMax          = fma(floorPos, invDir, tMaxBias);
 
                 // Full Morton recompute after large jump
-                spreadPos.x = _voxel_spreadBits(uint(blockPos.x));
-                spreadPos.y = _voxel_spreadBits(uint(blockPos.y));
-                spreadPos.z = _voxel_spreadBits(uint(blockPos.z));
-                fullMorton  = spreadPos.x + (spreadPos.y << 1) + (spreadPos.z << 2);
+                spreadPos = uvec3(
+                    _voxel_spreadBits(uint(blockPos.x)),
+                    _voxel_spreadBits(uint(blockPos.y)),
+                    _voxel_spreadBits(uint(blockPos.z))
+                );
+                fullMorton = spreadPos.x + (spreadPos.y << 1) + (spreadPos.z << 2);
             }
 
-            // ---- Ascend: find the correct level after the step/skip ----
-            // If the node coordinate at the current level changed, the ray has
-            // exited this parent cell and we must ascend.
-            while (level < VOXEL_TREE_TOP_LEVEL) {
-                uint shift = 6u * uint(level);
-                if ((oldFullMorton >> shift) == (fullMorton >> shift)) break;
-                level++;
+            // ---- Ascend: O(1) level recomputation via findMSB ----
+            // The highest differing bit between old and new Morton codes
+            // tells us which tree level boundary was crossed.
+            uint mortonDiff = oldFullMorton ^ fullMorton;
+            if (mortonDiff != 0u) {
+                level = max(level, min(int(findMSB(mortonDiff) / 6u) + 1, VOXEL_TREE_TOP_LEVEL));
             }
         }
     }

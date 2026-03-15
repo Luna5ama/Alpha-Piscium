@@ -57,6 +57,8 @@ vec4 materialIdToColor(uint id) {
 void main() {
     voxel_initShared();
 
+    voxel_initShared();
+
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (any(greaterThanEqual(texelPos, uval_mainImageSizeI))) return;
 
@@ -114,7 +116,7 @@ void main() {
     vec3 incidentWorldDir = normalize((gbufferModelViewInverse * vec4(vf2.xyz, 0.0)).xyz);
     worldDir = reflect(incidentWorldDir, worldNormal);
     #else
-    uvec4 rh = hash_44_q3(uvec4(uvec2(texelPos), uint(frameCounter), 0x9E3779B9u));
+    uvec4 rh = hash_44_q3(uvec4(uvec2(texelPos), uint(1144u), 0x9E3779B9u));
     vec2  r2 = hash_uintToFloat(rh.xy);
 
     #if SETTING_DEBUG_VOXEL_MODE == 2
