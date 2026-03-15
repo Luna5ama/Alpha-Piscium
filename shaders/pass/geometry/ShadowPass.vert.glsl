@@ -77,7 +77,7 @@ void main() {
             uint brickMorton = voxel_brickMorton(brickRelCoord);
 
             // Mark brick occupied for this frame
-            atomicOr(voxel_brickOccupancy[brickMorton], 1u);
+            voxel_brickOccupancy[brickMorton] = 1u;
 
             // Write material ID if the brick already has a valid alloc ID
             // (assigned by last frame's VoxelAllocator begin pass)
