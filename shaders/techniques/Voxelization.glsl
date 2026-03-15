@@ -53,7 +53,7 @@ layout(std430, binding = 4) VOXEL_MATERIAL_DATA_MODIFIER VoxelMaterialData {
 //   Indexed by voxel_treeRootIndex / voxel_treeLeafIndex helpers below
 // ---------------------------------------------------------------------------
 layout(std430, binding = 8) VOXEL_TREE_DATA_MODIFIER VoxelTreeData {
-    uint64_t voxel_tree[];       // 512 * 65 = 33,280 uint64_t entries
+    uvec2 voxel_tree[];       // 512 * 65 = 33,280 uint64_t entries
 };
 
 // ---------------------------------------------------------------------------
