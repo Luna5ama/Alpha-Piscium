@@ -13,6 +13,7 @@
 //   2 – Mirror reflection ray from the gbuffer solid surface normal
 
 #include "/Base.glsl"
+layout(local_size_x = 16, local_size_y = 16) in;
 
 // All voxel SSBOs are read-only in this pass.
 #define VOXEL_BRICK_DATA_MODIFIER    restrict readonly buffer
@@ -29,7 +30,6 @@ layout(rgba8) restrict uniform image2D uimg_overlays;
 layout(rgba16f) restrict writeonly uniform image2D uimg_temp1;
 layout(rgba16f) restrict uniform image2D uimg_temp3;
 
-layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 // ---------------------------------------------------------------------------
@@ -76,7 +76,9 @@ void main() {
 
     VoxelHit hit = voxel_traceRay(worldOrigin, worldDir, 256);
     imageStore(uimg_overlays, texelPos, materialIdToColor(hit.materialID));
+    #if VOXEL_TRACE_DEBUG_COUNTERS
     imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
+    #endif
 
     #else
     // ------------------------------------------------------------------
@@ -114,7 +116,7 @@ void main() {
     vec3 incidentWorldDir = normalize((gbufferModelViewInverse * vec4(vf2.xyz, 0.0)).xyz);
     worldDir = reflect(incidentWorldDir, worldNormal);
     #else
-    uvec4 rh = hash_44_q3(uvec4(uvec2(texelPos), uint(frameCounter), 0x9E3779B9u));
+    uvec4 rh = hash_44_q3(uvec4(uvec2(texelPos), uint(1144u), 0x9E3779B9u));
     vec2  r2 = hash_uintToFloat(rh.xy);
 
     #if SETTING_DEBUG_VOXEL_MODE == 2
@@ -141,6 +143,7 @@ void main() {
 
     VoxelHit hit = voxel_traceRay(worldOrigin, worldDir, 256);
     imageStore(uimg_overlays, texelPos, materialIdToColor(hit.materialID));
+    #if VOXEL_TRACE_DEBUG_COUNTERS
     imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
     vec3 ao = hit.materialID == 0u ? vec3(1.0) : vec3(0.0);
     vec4 prev = imageLoad(uimg_temp3, texelPos);
@@ -148,6 +151,7 @@ void main() {
     float alpha = 1.0 / newF;
     ao = mix(prev.rgb, ao, alpha);
     imageStore(uimg_temp3, texelPos, vec4(ao, newF));
+    #endif
     #endif
 }
 
