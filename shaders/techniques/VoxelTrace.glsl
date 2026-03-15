@@ -66,26 +66,32 @@ void _voxel_skipCell(
     inout ivec3 blockPos, inout vec3 tMax,
     inout float lastT, inout vec3 lastNorm
 ) {
+    // Bias non-exit axes slightly in the ray direction before floor().
+    // At cell boundaries, float precision can round floor() to the PREVIOUS
+    // cell, corrupting tMax (puts it in the past) and triggering a cascading
+    // oscillation where each skip fixes one axis but breaks another.
+    vec3 exitPosBias = -negStepDir * 1e-3;
+
     vec3 exitPos;
     if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
         lastT      = tExit.x;
         lastNorm   = vec3(negStepDir.x, 0.0, 0.0);
         blockPos.x = cellMin.x + exitBlockBias.x;
-        exitPos    = fma(worldRayDir, vec3(lastT), posGrid);
+        exitPos    = fma(worldRayDir, vec3(lastT), posGrid) + exitPosBias;
         blockPos.y = int(floor(exitPos.y));
         blockPos.z = int(floor(exitPos.z));
     } else if (tExit.y <= tExit.z) {
         lastT      = tExit.y;
         lastNorm   = vec3(0.0, negStepDir.y, 0.0);
         blockPos.y = cellMin.y + exitBlockBias.y;
-        exitPos    = fma(worldRayDir, vec3(lastT), posGrid);
+        exitPos    = fma(worldRayDir, vec3(lastT), posGrid) + exitPosBias;
         blockPos.x = int(floor(exitPos.x));
         blockPos.z = int(floor(exitPos.z));
     } else {
         lastT      = tExit.z;
         lastNorm   = vec3(0.0, 0.0, negStepDir.z);
         blockPos.z = cellMin.z + exitBlockBias.z;
-        exitPos    = fma(worldRayDir, vec3(lastT), posGrid);
+        exitPos    = fma(worldRayDir, vec3(lastT), posGrid) + exitPosBias;
         blockPos.x = int(floor(exitPos.x));
         blockPos.y = int(floor(exitPos.y));
     }
