@@ -166,7 +166,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     // ---- Main hierarchical traversal loop ----
     for (int i = 0; i < maxSteps; i++) {
         // Bounds check
-        if (uint(blockPos.x | blockPos.y | blockPos.z) > uint(GRID_BLOCKS - 1)) break;
+        if (uint(blockPos.x | blockPos.y | blockPos.z) >= uint(GRID_BLOCKS)) break;
 
         #if VOXEL_TRACE_DEBUG_COUNTERS
         result.debugCounters.x++;
