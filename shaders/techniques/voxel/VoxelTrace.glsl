@@ -51,10 +51,6 @@ uint _voxel_spreadBits(uint x) {
     x = (x *   5u) & 0x249249u;
     return x;
 }
-uint _voxel_mortonFull(uvec3 x) {
-    uvec3 s = uvec3(_voxel_spreadBits(x.x), _voxel_spreadBits(x.y), _voxel_spreadBits(x.z));
-    return s.x + s.y * 2u + s.z * 4u;
-}
 #else
 uint _voxel_spreadBits(uint x) {
     x &= 0x000003FFu;
@@ -64,15 +60,23 @@ uint _voxel_spreadBits(uint x) {
     x = (x | (x <<  2u)) & 0x09249249u;
     return x;
 }
-uint _voxel_mortonFull(uvec3 x) {
-    uvec3 s = uvec3(_voxel_spreadBits(x.x), _voxel_spreadBits(x.y), _voxel_spreadBits(x.z));
-    return s.x + s.y * 2u + s.z * 4u;
-}
 #endif
 
 bool _voxel_testBit64(uvec2 mask, uint idx) {
     uint part = (idx < 32u) ? mask.x : mask.y;
     return ((part >> (idx & 31u)) & 1u) != 0u;
+}
+
+uvec3 _voxel_spreadPos(ivec3 blockPos) {
+    return uvec3(
+        _voxel_spreadBits(uint(blockPos.x)),
+        _voxel_spreadBits(uint(blockPos.y)),
+        _voxel_spreadBits(uint(blockPos.z))
+    );
+}
+
+uint _voxel_packSpreadPos(uvec3 spreadPos) {
+    return spreadPos.x + (spreadPos.y << 1u) + (spreadPos.z << 2u);
 }
 
 shared uint _voxel_levelOffsets[6];
@@ -154,12 +158,8 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     }
 
     // ---- Spread-position for incremental Morton at level 1 ----
-    uvec3 spreadPos = uvec3(
-        _voxel_spreadBits(uint(blockPos.x)),
-        _voxel_spreadBits(uint(blockPos.y)),
-        _voxel_spreadBits(uint(blockPos.z))
-    );
-    uint fullMorton = spreadPos.x + (spreadPos.y << 1) + (spreadPos.z << 2);
+    uvec3 spreadPos = _voxel_spreadPos(blockPos);
+    uint fullMorton = _voxel_packSpreadPos(spreadPos);
 
     int level = VOXEL_TREE_TOP_LEVEL;
 
@@ -173,10 +173,11 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         #endif
 
         // Load node mask at current level
-        uint levelShift = 6u * uint(level);
-        uint nodeIdx    = _voxel_levelOffsets[level] + (fullMorton >> levelShift);
-        uvec2 mask      = voxel_tree[nodeIdx];
-        uint childIdx   = (fullMorton >> (levelShift - 6u)) & 63u;
+        uint childShift   = 6u * uint(level - 1);
+        uint mortonPrefix = fullMorton >> childShift;
+        uint nodeIdx      = _voxel_levelOffsets[level] + (mortonPrefix >> 6u);
+        uvec2 mask        = voxel_tree[nodeIdx];
+        uint childIdx     = mortonPrefix & 63u;
 
         if (_voxel_testBit64(mask, childIdx)) {
             // ---- Non-empty child ----
@@ -238,19 +239,13 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                     lastT = tExit.z; lastAxis = 2;
                 }
 
-                vec3 exitPos  = fma(worldRayDir, vec3(lastT), posGridBiased);
-                vec3 floorPos = floor(exitPos);
-                blockPos      = ivec3(floorPos);
-                tMax          = fma(floorPos, invDir, tMaxBias);
+                blockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
+                tMax     = fma(vec3(blockPos), invDir, tMaxBias);
 
                 // Full Morton recompute after large jump
-                spreadPos = uvec3(
-                    _voxel_spreadBits(uint(blockPos.x)),
-                    _voxel_spreadBits(uint(blockPos.y)),
-                    _voxel_spreadBits(uint(blockPos.z))
-                );
+                spreadPos = _voxel_spreadPos(blockPos);
             }
-            fullMorton = spreadPos.x + (spreadPos.y << 1) + (spreadPos.z << 2);
+            fullMorton = _voxel_packSpreadPos(spreadPos);
 
             // ---- Ascend: O(1) level recomputation via findMSB ----
             // The highest differing bit between old and new Morton codes
