@@ -18,6 +18,7 @@
 #define VOXEL_BRICK_DATA_MODIFIER    restrict readonly buffer
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_TREE_DATA_MODIFIER     restrict readonly buffer
+#define VOXEL_TRACE_DEBUG_COUNTERS   1
 #include "/techniques/VoxelTrace.glsl"
 
 #include "/util/GBufferData.glsl"
