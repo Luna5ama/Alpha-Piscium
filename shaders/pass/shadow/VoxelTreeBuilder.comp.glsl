@@ -61,7 +61,7 @@ void main() {
 
     // Write leaf node (each sub-region is handled by exactly one thread – no race)
     uint leafIdx = voxel_treeLeafIndex(allocID, subRegion);
-    voxel_tree[leafIdx] = uint64_t(leafLow) | (uint64_t(leafHigh) << 32ul);
+    voxel_tree[leafIdx] = uvec2(leafLow, leafHigh);
 
     // Set the corresponding bit in the shared root mask (32-bit atomics only).
     if (subRegionNonEmpty) {
@@ -77,7 +77,7 @@ void main() {
     // Single writer per brick for the root node to avoid 64-bit atomics.
     if (gl_LocalInvocationIndex == 0u) {
         uint rootIdx = voxel_treeRootIndex(allocID);
-        voxel_tree[rootIdx] = uint64_t(rootMaskLo) | (uint64_t(rootMaskHi) << 32ul);
+        voxel_tree[rootIdx] = uvec2(rootMaskLo, rootMaskHi);
     }
 }
 

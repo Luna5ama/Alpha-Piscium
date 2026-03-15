@@ -72,9 +72,8 @@ uint _voxel_morton24b(uvec3 x) {
 
 // Test bit [0..63] in a uint64_t mask.
 // Optimized: uses unpackUint2x32 and 32-bit shifts to avoid slow 64-bit emulation.
-bool _voxel_testBit64(uint64_t mask, uint idx) {
-    uvec2 v = unpackUint2x32(mask);
-    uint part = (idx >= 32u) ? v.y : v.x;
+bool _voxel_testBit64(uvec2 mask, uint idx) {
+    uint part = (idx >= 32u) ? mask.y : mask.x;
     return ((part >> (idx & 31u)) & 1u) != 0u;
 }
 
@@ -199,8 +198,8 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     uint lastBrickMorton = 0xFFFFFFFFu;
     uint lastSrMorton    = 0xFFFFFFFFu;
     uint cachedAllocID   = VOXEL_UNALLOCATED;
-    uint64_t cachedRootMask = 0;
-    uint64_t cachedLeafMask = 0;
+    uvec2 cachedRootMask = uvec2(0u);
+    uvec2 cachedLeafMask = uvec2(0u);
 
     // Main DDA loop
     for (int i = 0; i < maxSteps; i++) {

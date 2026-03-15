@@ -21,7 +21,7 @@ void main() {
 
     // Clear tree slot for the first 33280 threads (SSBO 8 = 512*65 uint64_t)
     if (i < uint(VOXEL_POOL_SIZE * 65)) {
-        voxel_tree[i] = uint64_t(0);
+        voxel_tree[i] = uvec2(0u);
     }
 }
 
