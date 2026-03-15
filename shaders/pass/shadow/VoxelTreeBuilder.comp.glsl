@@ -11,7 +11,7 @@
 #define VOXEL_BRICK_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_TREE_DATA_MODIFIER buffer
-#include "/techniques/Voxelization.glsl"
+#include "/techniques/voxel/Voxelization.glsl"
 
 layout(local_size_x = 64) in;
 // One workgroup per brick in the 16^3 grid (4096 bricks total)
