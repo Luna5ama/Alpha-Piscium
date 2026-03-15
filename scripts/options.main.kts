@@ -3381,229 +3381,245 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
             lang {
                 name = "Debug"
             }
-            toggle("SETTING_DEBUG_WHITE_WORLD", false) {
-                lang {
-                    name = "White World"
+            row {
+                toggle("SETTING_DEBUG_WHITE_WORLD", false) {
+                    lang {
+                        name = "White World"
+                    }
+                }
+                toggle("SETTING_DEBUG_OUTPUT", 0, 0..4) {
+                    lang {
+                        name = "Debug Output"
+                        0 value "Off"
+                        1 value "TAA"
+                        2 value "PostFX"
+                        3 value "Tone Mapping"
+                        4 value "Final"
+                    }
+                }
+                slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {
+                    lang {
+                        name = "Debug Scale"
+                    }
+                }
+                toggle("SETTING_DEBUG_GAMMA_CORRECT", true) {
+                    lang {
+                        name = "Gamma Correct"
+                    }
+                }
+                toggle("SETTING_DEBUG_NEGATE", false) {
+                    lang {
+                        name = "Negate"
+                    }
+                }
+                toggle("SETTING_DEBUG_ALPHA", false) {
+                    lang {
+                        name = "Alpha"
+                    }
+                }
+                slider("SETTING_DEBUG_EV_COARSE", 0, -16..16) {
+                    lang {
+                        name = "EV Coarse"
+                    }
+                }
+                slider("SETTING_DEBUG_EV_FINE", 0.0, -1.0..1.0 step 0.01) {
+                    lang {
+                        name = "EV Fine"
+                    }
                 }
             }
-            toggle("SETTING_DEBUG_OUTPUT", 0, 0..4) {
-                lang {
-                    name = "Debug Output"
-                    0 value "Off"
-                    1 value "TAA"
-                    2 value "PostFX"
-                    3 value "Tone Mapping"
-                    4 value "Final"
+            row {
+                empty()
+            }
+            row {
+                toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..6) {
+                    lang {
+                        name = "Temp Tex"
+                        0 value "Off"
+                        1 value "temp1"
+                        2 value "temp2"
+                        3 value "temp3"
+                        4 value "temp4"
+                        5 value "temp5"
+                        6 value "temp6"
+                    }
+                }
+                toggle("SETTING_DEBUG_GBUFFER_DATA", 0, 0..12) {
+                    lang {
+                        name = "GBuffer Data"
+                        0 value "Off"
+                        1 value "View Z"
+                        2 value "Albedo"
+                        3 value "Normal"
+                        4 value "Geometry Normal"
+                        5 value "Roughness"
+                        6 value "F0"
+                        7 value "Porosity"
+                        8 value "SSS"
+                        9 value "Emissive"
+                        10 value "Light Map Block"
+                        11 value "Light Map Sky"
+                        12 value "isHand"
+                    }
+                }
+                toggle("SETTING_DEBUG_NORMAL_MODE", 0, 0..1) {
+                    lang {
+                        name = "Normal Mode"
+                        0 value "World"
+                        1 value "View"
+                    }
+                }
+                slider("SETTING_DEBUG_NORMAL_X_RANGE", 1.0, 0.0..1.0 step 0.1) {
+                    lang {
+                        name = "Normal X Range"
+                    }
+                }
+                slider("SETTING_DEBUG_NORMAL_Y_RANGE", 1.0, 0.0..1.0 step 0.1) {
+                    lang {
+                        name = "Normal Y Range"
+                    }
+                }
+                slider("SETTING_DEBUG_NORMAL_Z_RANGE", 1.0, 0.0..1.0 step 0.1) {
+                    lang {
+                        name = "Normal Z Range"
+                    }
                 }
             }
-            slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {
-                lang {
-                    name = "Debug Scale"
+            row {
+                empty()
+            }
+            row {
+                toggle("SETTING_DEBUG_DENOISER", 0, 0..6) {
+                    lang {
+                        name = "Denoiser"
+                        0 value "Off"
+                        1 value "Color"
+                        2 value "Fast Color"
+                        3 value "HLen"
+                        4 value "Moment"
+                        5 value "Moment²"
+                        6 value "Variance"
+                    }
+                }
+                toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..6) {
+                    lang {
+                        name = "GI Inputs"
+                        0 value "Off"
+                        1 value "Radiance"
+                        2 value "Light Map Sky"
+                        3 value "Emissive"
+                        4 value "Normal"
+                        5 value "View Z"
+                        6 value "Geometry Normal"
+                    }
+                }
+                toggle("SETTING_DEBUG_ENV_PROBE", false) {
+                    lang {
+                        name = "Env Probe"
+                    }
+                }
+                toggle("SETTING_DEBUG_RTWSM", false) {
+                    lang {
+                        name = "RTWSM"
+                    }
                 }
             }
-            toggle("SETTING_DEBUG_GAMMA_CORRECT", true) {
-                lang {
-                    name = "Gamma Correct"
+            row {
+                empty()
+            }
+            row {
+                toggle("SETTING_DEBUG_ATMOSPHERE", false) {
+                    lang {
+                        name = "Atmosphere"
+                    }
+                }
+                toggle("SETTING_DEBUG_SKY_VIEW_LUT", false) {
+                    lang {
+                        name = "Sky View LUT"
+                    }
+                }
+                toggle("SETTING_DEBUG_EPIPOLAR_LINES", false) {
+                    lang {
+                        name = "Epipolar Lines"
+                    }
+                }
+                toggle("SETTING_DEBUG_CLOUDS_AMBLUT", false) {
+                    lang {
+                        name = "Clouds Amb. LUT"
+                    }
+                }
+                toggle("SETTING_DEBUG_CLOUDS_SS", 0, 0..4) {
+                    lang {
+                        name = "Clouds Upscaling"
+                        0 value "Off"
+                        1 value "Scattering"
+                        2 value "Transmittance"
+                        3 value "View Z"
+                        4 value "HLen"
+                    }
                 }
             }
-            toggle("SETTING_DEBUG_NEGATE", false) {
-                lang {
-                    name = "Negate"
+            row {
+                empty()
+            }
+            row {
+                toggle("SETTING_DEBUG_STARMAP", false) {
+                    lang {
+                        name = "Star Map"
+                    }
+                }
+                toggle("SETTING_DEBUG_AE", false) {
+                    lang {
+                        name = "Auto Exposure"
+                    }
+                }
+                toggle("SETTING_DEBUG_GI_TEXT", false) {
+                    lang {
+                        name = "GI Text"
+                    }
+                }
+                toggle("SETTING_DEBUG_SST", false) {
+                    lang {
+                        name = "SST"
+                    }
+                }
+                toggle("SETTING_DEBUG_SST_STEPS", false) {
+                    lang {
+                        name = "SST Steps"
+                    }
+                }
+                toggle("SETTING_DEBUG_TAA", false) {
+                    lang {
+                        name = "TAA"
+                    }
+                }
+                toggle("SETTING_GI_USE_REFERENCE", false) {
+                    lang {
+                        name = "Monte Carlo Reference"
+                    }
                 }
             }
-            toggle("SETTING_DEBUG_ALPHA", false) {
-                lang {
-                    name = "Alpha"
-                }
+            row {
+                empty()
             }
-            slider("SETTING_DEBUG_EV_COARSE", 0, -16..16) {
-                lang {
-                    name = "EV Coarse"
+            row {
+                toggle("SETTING_DEBUG_VOXEL_TRACE", false) {
+                    lang {
+                        name = "Voxel Trace Debug"
+                    }
                 }
-            }
-            slider("SETTING_DEBUG_EV_FINE", 0.0, -1.0..1.0 step 0.01) {
-                lang {
-                    name = "EV Fine"
+                toggle("SETTING_DEBUG_VOXEL_MODE", 0, 0..2) {
+                    lang {
+                        name = "Voxel Debug Mode"
+                        0 value "Primary Ray"
+                        1 value "Hemisphere"
+                        2 value "Mirror"
+                    }
                 }
-            }
-            empty()
-            empty()
-            empty()
-            empty()
-            toggle("SETTING_DEBUG_TEMP_TEX", 0, 0..6) {
-                lang {
-                    name = "Temp Tex"
-                    0 value "Off"
-                    1 value "temp1"
-                    2 value "temp2"
-                    3 value "temp3"
-                    4 value "temp4"
-                    5 value "temp5"
-                    6 value "temp6"
-                }
-            }
-            toggle("SETTING_DEBUG_GBUFFER_DATA", 0, 0..12) {
-                lang {
-                    name = "GBuffer Data"
-                    0 value "Off"
-                    1 value "View Z"
-                    2 value "Albedo"
-                    3 value "Normal"
-                    4 value "Geometry Normal"
-                    5 value "Roughness"
-                    6 value "F0"
-                    7 value "Porosity"
-                    8 value "SSS"
-                    9 value "Emissive"
-                    10 value "Light Map Block"
-                    11 value "Light Map Sky"
-                    12 value "isHand"
-                }
-            }
-            toggle("SETTING_DEBUG_NORMAL_MODE", 0, 0..1) {
-                lang {
-                    name = "Normal Mode"
-                    0 value "World"
-                    1 value "View"
-                }
-            }
-            slider("SETTING_DEBUG_NORMAL_X_RANGE", 1.0, 0.0..1.0 step 0.1) {
-                lang {
-                    name = "Normal X Range"
-                }
-            }
-            slider("SETTING_DEBUG_NORMAL_Y_RANGE", 1.0, 0.0..1.0 step 0.1) {
-                lang {
-                    name = "Normal Y Range"
-                }
-            }
-            slider("SETTING_DEBUG_NORMAL_Z_RANGE", 1.0, 0.0..1.0 step 0.1) {
-                lang {
-                    name = "Normal Z Range"
-                }
-            }
-            empty()
-            empty()
-            empty()
-            toggle("SETTING_DEBUG_DENOISER", 0, 0..6) {
-                lang {
-                    name = "Denoiser"
-                    0 value "Off"
-                    1 value "Color"
-                    2 value "Fast Color"
-                    3 value "HLen"
-                    4 value "Moment"
-                    5 value "Moment²"
-                    6 value "Variance"
-                }
-            }
-            toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..6) {
-                lang {
-                    name = "GI Inputs"
-                    0 value "Off"
-                    1 value "Radiance"
-                    2 value "Light Map Sky"
-                    3 value "Emissive"
-                    4 value "Normal"
-                    5 value "View Z"
-                    6 value "Geometry Normal"
-                }
-            }
-            toggle("SETTING_DEBUG_ENV_PROBE", false) {
-                lang {
-                    name = "Env Probe"
-                }
-            }
-            toggle("SETTING_DEBUG_RTWSM", false) {
-                lang {
-                    name = "RTWSM"
-                }
-            }
-            empty()
-            empty()
-            empty()
-            empty()
-            empty()
-            toggle("SETTING_DEBUG_ATMOSPHERE", false) {
-                lang {
-                    name = "Atmosphere"
-                }
-            }
-            toggle("SETTING_DEBUG_SKY_VIEW_LUT", false) {
-                lang {
-                    name = "Sky View LUT"
-                }
-            }
-            toggle("SETTING_DEBUG_EPIPOLAR_LINES", false) {
-                lang {
-                    name = "Epipolar Lines"
-                }
-            }
-            toggle("SETTING_DEBUG_CLOUDS_AMBLUT", false) {
-                lang {
-                    name = "Clouds Amb. LUT"
-                }
-            }
-            toggle("SETTING_DEBUG_CLOUDS_SS", 0, 0..4) {
-                lang {
-                    name = "Clouds Upscaling"
-                    0 value "Off"
-                    1 value "Scattering"
-                    2 value "Transmittance"
-                    3 value "View Z"
-                    4 value "HLen"
-                }
-            }
-            empty()
-            empty()
-            empty()
-            empty()
-            toggle("SETTING_DEBUG_STARMAP", false) {
-                lang {
-                    name = "Star Map"
-                }
-            }
-            toggle("SETTING_DEBUG_AE", false) {
-                lang {
-                    name = "Auto Exposure"
-                }
-            }
-            toggle("SETTING_DEBUG_GI_TEXT", false) {
-                lang {
-                    name = "GI Text"
-                }
-            }
-            toggle("SETTING_DEBUG_SST", false) {
-                lang {
-                    name = "SST"
-                }
-            }
-            toggle("SETTING_DEBUG_SST_STEPS", false) {
-                lang {
-                    name = "SST Steps"
-                }
-            }
-            toggle("SETTING_DEBUG_TAA", false) {
-                lang {
-                    name = "TAA"
-                }
-            }
-            toggle("SETTING_DEBUG_VOXEL_TRACE", false) {
-                lang {
-                    name = "Voxel Trace Debug"
-                }
-            }
-            toggle("SETTING_DEBUG_VOXEL_MODE", 0, 0..2) {
-                lang {
-                    name = "Voxel Debug Mode"
-                    0 value "Primary Ray"
-                    1 value "Hemisphere"
-                    2 value "Mirror"
-                }
-            }
-            toggle("SETTING_GI_USE_REFERENCE", false) {
-                lang {
-                    name = "Monte Carlo Reference"
+                toggle("SETTING_DEBUG_VOXEL_BRICKS", false) {
+                    lang {
+                        name = "Voxel Brick Counter"
+                    }
                 }
             }
         }

@@ -39,6 +39,7 @@ const ivec3 workGroups = ivec3(1, 1, 1); // single workgroup: 1024 threads × 4 
 shared ivec3 shared_brickDelta;
 shared uint  shared_remappedOccupancy[4096]; // 16 KB – remapped occupancy in new coord space
 shared uint  shared_bucketCount[NUM_DIST_BUCKETS];
+shared uint  shared_allocatedCount; // tracks number of allocated bricks
 
 // Compute the Chebyshev distance bucket (in whole blocks) from the camera to
 // the centre of the brick at relative grid coordinate brickRelCoord.
@@ -58,6 +59,7 @@ void main() {
         ivec3 currentCameraBrick = cameraPositionInt >> 4;
         ivec3 prevCameraBrick = previousCameraPositionInt >> 4;
         shared_brickDelta = currentCameraBrick - prevCameraBrick;
+        shared_allocatedCount = 0u;
     }
 
     // Init shared occupancy and bucket counters.
@@ -68,7 +70,6 @@ void main() {
         shared_bucketCount[tid] = 0u;
     }
     barrier();
-    memoryBarrierShared();
 
     ivec3 brickDelta = shared_brickDelta;
 
@@ -91,7 +92,6 @@ void main() {
         voxel_brickOccupancy[i] = 0u;
     }
     barrier();
-    memoryBarrierShared();
 
     // Camera's sub-brick position in blocks (0..~15.999 per axis).
     vec3 cameraInBrick = vec3(cameraPositionInt & ivec3(VOXEL_BRICK_SIZE - 1))
@@ -107,7 +107,6 @@ void main() {
         }
     }
     barrier();
-    memoryBarrierShared();
 
     // ---- Phase 3: Prefix sum (thread 0) ----
     if (tid == 0u) {
@@ -119,7 +118,6 @@ void main() {
         }
     }
     barrier();
-    memoryBarrierShared();
 
     // ---- Phase 4: Assign alloc IDs closest-first ----
     for (uint k = 0u; k < uint(BRICKS_PER_THREAD); k++) {
@@ -129,10 +127,21 @@ void main() {
             uint  dist = brickDistBucket(brickRelCoord, cameraInBrick);
 
             uint allocID = atomicAdd(shared_bucketCount[dist], 1u);
-            voxel_brickAllocID[i] = (allocID < uint(VOXEL_POOL_SIZE)) ? allocID : VOXEL_UNALLOCATED;
+            if (allocID < uint(VOXEL_POOL_SIZE)) {
+                voxel_brickAllocID[i] = allocID;
+                atomicAdd(shared_allocatedCount, 1u);
+            } else {
+                voxel_brickAllocID[i] = VOXEL_UNALLOCATED;
+            }
         } else {
             voxel_brickAllocID[i] = VOXEL_UNALLOCATED;
         }
+    }
+    barrier();
+
+    // Store the final allocated count to global atomic counter
+    if (tid == 0u) {
+        voxel_brickAllocCounter = shared_allocatedCount;
     }
 }
 

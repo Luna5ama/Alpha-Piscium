@@ -1,6 +1,7 @@
 #include "Common.glsl"
 #include "/util/TextRender.glsl"
 #include "/techniques/gi/Common.glsl"
+#include "/techniques/voxel/Voxelization.glsl"
 
 #ifdef SETTING_DEBUG_SST_STEPS
 layout(std430, binding = 11) buffer TestBuffer {
@@ -124,6 +125,17 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     #else
     printBool(false);
     #endif
+    printLine();
+    #endif
+
+    #ifdef SETTING_DEBUG_VOXEL_BRICKS
+    printString((_V, _o, _x, _e, _l, _space, _B, _r, _i, _c, _k, _s));
+    printLine();
+    printString((_A, _l, _l, _o, _c, _a, _t, _e, _d, _colon, _space));
+    printUnsignedInt(voxel_brickAllocCounter);
+    printString((_space, _minus, _space));
+    printInt(VOXEL_POOL_SIZE);
+    printLine();
     printLine();
     #endif
 
