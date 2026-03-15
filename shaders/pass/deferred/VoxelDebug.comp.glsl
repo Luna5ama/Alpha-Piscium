@@ -27,6 +27,7 @@
 
 layout(rgba8) restrict uniform image2D uimg_overlays;
 layout(rgba16f) restrict writeonly uniform image2D uimg_temp1;
+layout(rgba16f) restrict uniform image2D uimg_temp3;
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -102,21 +103,7 @@ void main() {
 
     #if SETTING_DEBUG_VOXEL_MODE == 1
     // ------------------------------------------------------------------
-    // Mode 1: Uniform hemisphere sample above the surface normal.
-    // ------------------------------------------------------------------
-    uvec4 rh = hash_44_q3(uvec4(uvec2(texelPos), uint(114u), 0x9E3779B9u));
-    vec2  r2 = hash_uintToFloat(rh.xy);
-    vec4  s = rand_sampleInHemisphere(r2);
-
-    // Build orthonormal basis (Gram-Schmidt from world normal).
-    vec3 up = abs(worldNormal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
-    vec3 T = normalize(cross(up, worldNormal));
-    vec3 B = cross(worldNormal, T);
-    worldDir = normalize(T * s.x + B * s.y + worldNormal * s.z);
-
-    #else // SETTING_DEBUG_VOXEL_MODE == 2
-    // ------------------------------------------------------------------
-    // Mode 2: Perfect mirror reflection of the primary view ray.
+    // Mode 1: Perfect mirror reflection of the primary view ray.
     // ------------------------------------------------------------------
     vec2 uv2 = (vec2(texelPos) + 0.5) / vec2(uval_mainImageSizeI);
     vec2 ndc2 = uv2 * 2.0 - 1.0;
@@ -124,6 +111,27 @@ void main() {
     vf2.xyz /= vf2.w;
     vec3 incidentWorldDir = normalize((gbufferModelViewInverse * vec4(vf2.xyz, 0.0)).xyz);
     worldDir = reflect(incidentWorldDir, worldNormal);
+    #else
+    uvec4 rh = hash_44_q3(uvec4(uvec2(texelPos), uint(frameCounter), 0x9E3779B9u));
+    vec2  r2 = hash_uintToFloat(rh.xy);
+
+    #if SETTING_DEBUG_VOXEL_MODE == 2
+    // ------------------------------------------------------------------
+    // Mode 2: Uniform hemisphere sample above the surface normal.
+    // ------------------------------------------------------------------
+    vec4  s = rand_sampleInHemisphere(r2);
+    #else // SETTING_DEBUG_VOXEL_MODE == 3
+    // ------------------------------------------------------------------
+    // Mode 3: Cosine-weighted hemisphere sample above the surface normal.
+    // ------------------------------------------------------------------
+    vec4  s = rand_sampleInCosineWeightedHemisphere(r2);
+    #endif
+
+    // Build orthonormal basis (Gram-Schmidt from world normal).
+    vec3 up = abs(worldNormal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+    vec3 T = normalize(cross(up, worldNormal));
+    vec3 B = cross(worldNormal, T);
+    worldDir = normalize(T * s.x + B * s.y + worldNormal * s.z);
     #endif
 
     // Offset origin slightly along normal to avoid self-intersection.
@@ -132,6 +140,12 @@ void main() {
     VoxelHit hit = voxel_traceRay(worldOrigin, worldDir, 256);
     imageStore(uimg_overlays, texelPos, materialIdToColor(hit.materialID));
     imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
+    vec3 ao = hit.materialID == 0u ? vec3(1.0) : vec3(0.0);
+    vec4 prev = imageLoad(uimg_temp3, texelPos);
+    float newF = clamp(prev.a * global_taaResetFactor.z + 1.0, 1.0, 64.0);
+    float alpha = 1.0 / newF;
+    ao = mix(prev.rgb, ao, alpha);
+    imageStore(uimg_temp3, texelPos, vec4(ao, newF));
     #endif
 }
 
