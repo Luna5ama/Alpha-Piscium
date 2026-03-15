@@ -166,7 +166,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     uvec3 spreadPos = _voxel_spreadPos(blockPos);
     uint fullMorton = _voxel_packSpreadPos(spreadPos);
 
-    int level = VOXEL_TREE_TOP_LEVEL;
+    int level = 1;
 
     // ---- Main hierarchical traversal loop ----
     for (int i = 0; i < maxSteps; i++) {
