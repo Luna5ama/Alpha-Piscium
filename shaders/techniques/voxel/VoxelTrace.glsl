@@ -71,34 +71,10 @@ uint _voxel_mortonFull(uvec3 x) {
 #endif
 
 bool _voxel_testBit64(uvec2 mask, uint idx) {
-    uint part = (idx >= 32u) ? mask.y : mask.x;
+    uint part = (idx < 32u) ? mask.x : mask.y;
     return ((part >> (idx & 31u)) & 1u) != 0u;
 }
 
-// Skip the DDA past a cell.  Finds the nearest exit plane among the three
-// axes, advances blockPos to the new block, and recomputes tMax.
-void _voxel_skipCell(
-    vec3 tExit,
-    vec3 worldRayDir, vec3 posGridBiased, vec3 invDir, vec3 tMaxBias,
-    inout ivec3 blockPos, inout vec3 tMax,
-    inout float lastT, inout int lastAxis
-) {
-    if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
-        lastT = tExit.x; lastAxis = 0;
-    } else if (tExit.y <= tExit.z) {
-        lastT = tExit.y; lastAxis = 1;
-    } else {
-        lastT = tExit.z; lastAxis = 2;
-    }
-    vec3 exitPos  = fma(worldRayDir, vec3(lastT), posGridBiased);
-    vec3 floorPos = floor(exitPos);
-    blockPos      = ivec3(floorPos);
-    tMax          = fma(floorPos, invDir, tMaxBias);
-}
-
-// ---------------------------------------------------------------------------
-// Shared memory for tree level offsets (avoids const array driver issues)
-// ---------------------------------------------------------------------------
 shared uint _voxel_levelOffsets[6];
 
 void voxel_initShared() {
@@ -257,12 +233,21 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 int cellShift  = 2 * (level - 1);        // log2 of cell side length per axis
                 ivec3 cellMin  = (blockPos >> cellShift) << cellShift;
 
-                vec3 exitTBiasN;
-                exitTBiasN = fma(exitSelectPos, ldexp(invDir, ivec3(cellShift)), t0g);
+                // Simplified exit calculation: tExit = (boundary - posGrid) * invDir
+                vec3 tExit = (vec3(cellMin) + vec3(exitSelectPos) * float(1 << cellShift) - posGrid) * invDir;
 
-                vec3 tExit = fma(vec3(cellMin), invDir, exitTBiasN);
-                _voxel_skipCell(tExit, worldRayDir, posGridBiased, invDir, tMaxBias,
-                    blockPos, tMax, lastT, lastAxis);
+                if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
+                    lastT = tExit.x; lastAxis = 0;
+                } else if (tExit.y <= tExit.z) {
+                    lastT = tExit.y; lastAxis = 1;
+                } else {
+                    lastT = tExit.z; lastAxis = 2;
+                }
+
+                vec3 exitPos  = fma(worldRayDir, vec3(lastT), posGridBiased);
+                vec3 floorPos = floor(exitPos);
+                blockPos      = ivec3(floorPos);
+                tMax          = fma(floorPos, invDir, tMaxBias);
 
                 // Full Morton recompute after large jump
                 spreadPos.x = _voxel_spreadBits(uint(blockPos.x));
