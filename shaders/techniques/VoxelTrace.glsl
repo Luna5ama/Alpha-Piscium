@@ -200,9 +200,6 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             continue;
         }
 
-        // Precompute material index (IMAD on FMAHeavy pipe, overlaps tree loads)
-        uint matIdx = voxel_materialIndex(allocID, blockMorton);
-
         // ---- Level 1+2 : load root and leaf masks eagerly (LSU pipelining) ----
         uint64_t rootMask = voxel_tree[voxel_treeRootIndex(allocID)];
         uint64_t leafMask = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
@@ -226,11 +223,13 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         result.debugCounters.z++;
         #endif
         if (_voxel_testBit64(leafMask, blockSrMorton)) {
+            // Precompute material index (IMAD on FMAHeavy pipe, overlaps tree loads)
+            uint matIdx = voxel_materialIndex(allocID, blockMorton);
             uint material     = voxel_materials[matIdx];
             result.hit        = true;
-            result.materialID = material;
             result.hitPos     = fma(worldRayDir, vec3(lastT), worldRayOrigin);
             result.normal     = lastNorm;
+            result.materialID = material;
             return result;
         }
 
