@@ -27,6 +27,10 @@ struct VoxelHit {
     uint  materialID;   // material written by the shadow pass; 0 = miss
     vec3  hitPos;       // world-space entry point of the hit block
     vec3  normal;       // outward face normal of the hit surface
+
+    // Debug counters (x=before-unalloc-skip, y=before-root-skip,
+    //                 z=before-leaf-skip,   w=after-leaf-miss/DDA-step)
+    ivec4 debugCounters;
 };
 
 // ---------------------------------------------------------------------------
@@ -92,10 +96,11 @@ void _voxel_skipCell(
 // ---------------------------------------------------------------------------
 VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     VoxelHit result;
-    result.hit        = false;
-    result.materialID = 0u;
-    result.hitPos     = vec3(0.0);
-    result.normal     = vec3(0.0, 1.0, 0.0);
+    result.hit            = false;
+    result.materialID     = 0u;
+    result.hitPos         = vec3(0.0);
+    result.normal         = vec3(0.0, 1.0, 0.0);
+    result.debugCounters  = ivec4(0);
 
     const int   GRID_BLOCKS = VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE; // 256
     const float EPS         = 1e-4;
@@ -173,6 +178,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         uint blockSrMorton  = fullMorton & 63u;
 
         // ---- Level 0 : brick allocation check ----
+        result.debugCounters.x++;
         if (allocID == VOXEL_UNALLOCATED) {
             ivec3 cellMin = blockPos & ivec3(-16);
             vec3  tExit   = fma(vec3(cellMin), invDir, exitTBias16);
@@ -189,6 +195,8 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         uint64_t rootMask = voxel_tree[voxel_treeRootIndex(allocID)];
         uint64_t leafMask = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
 
+        // y: reached root check (brick was allocated)
+        result.debugCounters.y++;
         if (!_voxel_testBit64(rootMask, srMorton)) {
             ivec3 cellMin = blockPos & ivec3(-4);
             vec3  tExit   = fma(vec3(cellMin), invDir, exitTBias4);
@@ -199,6 +207,8 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         }
 
         // ---- Level 2 : leaf block bitmask check (leafMask already loaded) ----
+        // z: reached leaf check (sub-region was non-empty)
+        result.debugCounters.z++;
         if (_voxel_testBit64(leafMask, blockSrMorton)) {
             uint material     = voxel_materials[matIdx];
             result.hit        = true;
@@ -209,6 +219,8 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         }
 
         // ---- Standard one-block DDA step ----
+        // w: leaf was empty, advancing one block
+        result.debugCounters.w++;
         if (tMax.x < tMax.y && tMax.x < tMax.z) {
             lastT = tMax.x; lastNorm = vec3(negStepDir.x, 0.0, 0.0);
             blockPos.x += stepDirI.x; tMax.x += tDelta.x;

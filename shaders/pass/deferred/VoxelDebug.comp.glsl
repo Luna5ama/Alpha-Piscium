@@ -25,6 +25,7 @@
 #include "/util/Rand.glsl"
 
 layout(rgba8) restrict uniform image2D uimg_overlays;
+layout(rgba16f) restrict writeonly uniform image2D uimg_temp1;
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -71,6 +72,7 @@ void main() {
 
     VoxelHit hit = voxel_traceRay(worldOrigin, worldDir, 256);
     imageStore(uimg_overlays, texelPos, materialIdToColor(hit.materialID));
+    imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
 
     #else
     // ------------------------------------------------------------------
@@ -128,6 +130,7 @@ void main() {
 
     VoxelHit hit = voxel_traceRay(worldOrigin, worldDir, 256);
     imageStore(uimg_overlays, texelPos, materialIdToColor(hit.materialID));
+    imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
     #endif
 }
 
