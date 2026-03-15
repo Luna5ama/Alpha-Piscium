@@ -145,6 +145,9 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     // ---- Precompute DDA biases ----
     vec3  tMaxBias     = fma(exitSelectPos, invDir, tOrig);
 
+    // Optim: Precompute mask for hierarchy skipping (dir > 0 ? -1 : 0)
+    ivec3 boundOffsetMask = ivec3(greaterThan(stepDirI, ivec3(0))) * ivec3(-1);
+
     // ---- DDA initialisation ----
     float tCurrent = max(tEnter, 0.0) + EPS;
     vec3  startPos = fma(worldRayDir, vec3(tCurrent), posGrid);
@@ -230,11 +233,18 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 #if VOXEL_TRACE_DEBUG_COUNTERS
                 result.debugCounters.z++;
                 #endif
-                int cellShift = 2 * (level - 1);
 
-                // Exit boundary in step direction; uses tMaxBias (= exitSelectPos*invDir + tOrig)
-                // so tOrig need not persist in the loop: boundary - exitSelectPos compensates.
-                vec3 tExit = fma(vec3((blockPos >> cellShift) << cellShift) + ldexp(exitSelectPos, ivec3(cellShift)) - exitSelectPos, invDir, tMaxBias);
+                int cellShift  = 2 * (level - 1);
+                int sizeMinus1 = (1 << cellShift) - 1;
+                int sizeMask   = ~sizeMinus1;
+
+                // Determine target integer coordinate (exit boundary of current cell)
+                // If dir > 0, target = origin + size - 1
+                // If dir < 0, target = origin
+                // (using precomputed boundOffsetMask to branchlessly add size-1 or 0)
+                ivec3 target = (blockPos & ivec3(sizeMask)) + (ivec3(sizeMinus1) & boundOffsetMask);
+
+                vec3 tExit = fma(vec3(target), invDir, tMaxBias);
 
                 if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
                     lastT = tExit.x; lastAxis = 0;
