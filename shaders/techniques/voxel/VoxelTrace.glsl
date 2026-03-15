@@ -266,8 +266,9 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             // The highest differing bit between old and new Morton codes
             // tells us which tree level boundary was crossed.
             uint mortonDiff = oldFullMorton ^ fullMorton;
-            if (mortonDiff != 0u) {
-                level = clamp(int(findMSB(mortonDiff) / 6u) + 1, level, VOXEL_TREE_TOP_LEVEL);
+            // Optim: skip level re-calc for small steps within same L2 node (diff < 64)
+            if (mortonDiff >= 64u) {
+                level = clamp(((findMSB(mortonDiff) * 43) >> 8) + 1, level, VOXEL_TREE_TOP_LEVEL);
             }
         }
     }
