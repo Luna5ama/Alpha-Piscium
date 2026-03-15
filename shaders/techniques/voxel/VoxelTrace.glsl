@@ -79,7 +79,7 @@ uvec3 _voxel_spreadPos(ivec3 blockPos) {
 }
 
 uint _voxel_packSpreadPos(uvec3 spreadPos) {
-    return spreadPos.x | (spreadPos.y << 1u) | (spreadPos.z << 2u);
+    return spreadPos.x + (spreadPos.y << 1u) + (spreadPos.z << 2u);
 }
 
 void voxel_initShared() {
@@ -192,7 +192,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             if (level == 1) {
                 // Leaf level: individual block is solid → HIT
                 uint allocID  = voxel_brickAllocID[fullMorton >> 12u];
-                uint material = voxel_materials[(allocID << 12u) | (fullMorton & 0xFFFu)];
+                uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
 
                 result.hit        = true;
                 result.hitPos     = fma(worldRayDir, vec3(lastT), worldRayOrigin);
@@ -216,16 +216,22 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 result.debugCounters.w++;
                 #endif
                 if (tMax.x < tMax.y && tMax.x < tMax.z) {
-                    lastT = tMax.x; lastAxis = 0;
-                    blockPos.x += stepDirI.x; tMax.x = fma(float(blockPos.x), invDir.x, tMaxBias.x);
+                    lastT = tMax.x;
+                    lastAxis = 0;
+                    blockPos.x += stepDirI.x;
+                    tMax.x = fma(float(blockPos.x), invDir.x, tMaxBias.x);
                     spreadPos.x = _voxel_spreadLUT[uint(blockPos.x)];
                 } else if (tMax.y < tMax.z) {
-                    lastT = tMax.y; lastAxis = 1;
-                    blockPos.y += stepDirI.y; tMax.y = fma(float(blockPos.y), invDir.y, tMaxBias.y);
+                    lastT = tMax.y;
+                    lastAxis = 1;
+                    blockPos.y += stepDirI.y;
+                    tMax.y = fma(float(blockPos.y), invDir.y, tMaxBias.y);
                     spreadPos.y = _voxel_spreadLUT[uint(blockPos.y)];
                 } else {
-                    lastT = tMax.z; lastAxis = 2;
-                    blockPos.z += stepDirI.z; tMax.z = fma(float(blockPos.z), invDir.z, tMaxBias.z);
+                    lastT = tMax.z;
+                    lastAxis = 2;
+                    blockPos.z += stepDirI.z;
+                    tMax.z = fma(float(blockPos.z), invDir.z, tMaxBias.z);
                     spreadPos.z = _voxel_spreadLUT[uint(blockPos.z)];
                 }
             } else {
@@ -247,11 +253,14 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 vec3 tExit = fma(vec3(target), invDir, tMaxBias);
 
                 if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
-                    lastT = tExit.x; lastAxis = 0;
+                    lastT = tExit.x;
+                    lastAxis = 0;
                 } else if (tExit.y <= tExit.z) {
-                    lastT = tExit.y; lastAxis = 1;
+                    lastT = tExit.y;
+                    lastAxis = 1;
                 } else {
-                    lastT = tExit.z; lastAxis = 2;
+                    lastT = tExit.z;
+                    lastAxis = 2;
                 }
 
                 blockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
