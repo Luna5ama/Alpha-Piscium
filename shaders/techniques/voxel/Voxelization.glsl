@@ -11,6 +11,7 @@ const int VOXEL_BRICK_SIZE   = 16;     // blocks per brick side (fixed)
 #define VOXEL_POOL_SIZE   SETTING_VOXEL_POOL_SIZE  // max simultaneously allocated bricks
 #define VOXEL_GRID_BRICKS (VOXEL_GRID_SIZE * VOXEL_GRID_SIZE * VOXEL_GRID_SIZE)
 const uint VOXEL_UNALLOCATED = 0xFFFFFFFFu;
+#define NUM_DIST_BUCKETS 1024  // Chebyshev distance buckets (units of 4 blocks), covers all grid sizes
 
 // ---------------------------------------------------------------------------
 // SSBO modifiers (define before including to override)
@@ -30,11 +31,13 @@ const uint VOXEL_UNALLOCATED = 0xFFFFFFFFu;
 //   [0]                          : allocation count
 //   [1   .. VOXEL_GRID_BRICKS]   : occupancy flags (0=empty, 1=occupied this frame)
 //   [VOXEL_GRID_BRICKS+1 .. 2*VOXEL_GRID_BRICKS] : allocation IDs (<POOL=valid, 0xFFFFFFFF=unallocated)
+//   [2*VOXEL_GRID_BRICKS+1 .. 2*VOXEL_GRID_BRICKS+NUM_DIST_BUCKETS] : per-bucket counts (allocator inter-pass)
 // ---------------------------------------------------------------------------
 layout(std430, binding = 3) VOXEL_BRICK_DATA_MODIFIER VoxelBrickData {
     uint voxel_brickAllocCounter;
     uint voxel_brickOccupancy[VOXEL_GRID_BRICKS];
     uint voxel_brickAllocID[VOXEL_GRID_BRICKS];
+    uint voxel_bucketCounts[NUM_DIST_BUCKETS];
 };
 
 // ---------------------------------------------------------------------------
@@ -90,6 +93,17 @@ uint voxel_treeRootIndex(uint brickAllocID) {
 // Index of leaf node for sub-region subRegion (0..63) of a brick
 uint voxel_treeLeafIndex(uint brickAllocID, uint subRegion) {
     return brickAllocID * 65u + 1u + subRegion;
+}
+
+// Compute the Chebyshev distance bucket (in units of 4 blocks) from the camera to
+// the centre of the brick at relative grid coordinate brickRelCoord.
+// cameraInBrick: camera position in blocks within its own brick (0..~15.999 per axis).
+uint brickDistBucket(ivec3 brickRelCoord, vec3 cameraInBrick) {
+    const ivec3 gridCenter = ivec3(VOXEL_GRID_SIZE / 2);
+    vec3 brickCenter = vec3((brickRelCoord - gridCenter) * VOXEL_BRICK_SIZE) + vec3(float(VOXEL_BRICK_SIZE) * 0.5);
+    vec3 delta = abs(brickCenter - cameraInBrick);
+    uint dist = uint(max(max(delta.x, delta.y), delta.z) / 4.0); // floor via truncation
+    return min(dist, uint(NUM_DIST_BUCKETS - 1));
 }
 
 #endif // INCLUDE_techniques_Voxelization_glsl

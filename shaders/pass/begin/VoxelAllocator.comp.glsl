@@ -39,21 +39,13 @@ layout(local_size_x = 1024) in;
 const ivec3 workGroups = ivec3(1, 1, 1); // single workgroup: 1024 threads
 
 #define BRICKS_PER_THREAD (VOXEL_GRID_SIZE * VOXEL_GRID_SIZE * VOXEL_GRID_SIZE / 1024)
-#define NUM_DIST_BUCKETS 512  // Chebyshev distance buckets (units of 4 blocks), covers all grid sizes
+// NUM_DIST_BUCKETS and brickDistBucket() are defined in Voxelization.glsl
 
 shared ivec3 shared_brickDelta;
 shared uint  shared_bucketCount[NUM_DIST_BUCKETS];
+shared uint  shared_prefixBuffer[32]; // max 32 subgroups for 1024 threads (min sg size = 32)
 shared uint  shared_allocatedCount;
 
-// Compute the Chebyshev distance bucket (in units of 4 blocks) from the camera to
-// the centre of the brick at relative grid coordinate brickRelCoord.
-uint brickDistBucket(ivec3 brickRelCoord, vec3 cameraInBrick) {
-    const ivec3 gridCenter = ivec3(VOXEL_GRID_SIZE / 2);
-    vec3 brickCenter = vec3((brickRelCoord - gridCenter) * VOXEL_BRICK_SIZE) + vec3(float(VOXEL_BRICK_SIZE) * 0.5);
-    vec3 delta = abs(brickCenter - cameraInBrick);
-    uint dist = uint(max(max(delta.x, delta.y), delta.z) / 4); // floor via truncation
-    return min(dist, uint(NUM_DIST_BUCKETS - 1));
-}
 
 void main() {
     uint tid = gl_LocalInvocationID.x;
@@ -117,30 +109,30 @@ void main() {
     }
     barrier();
 
-    // ---- Phase 3: Parallel Prefix Sum (Hillis-Steele) ----
-    // Inclusive scan
-    for (uint stride = 1u; stride < uint(NUM_DIST_BUCKETS); stride <<= 1) {
-        barrier();
-        uint temp = 0u;
-        if (tid < uint(NUM_DIST_BUCKETS) && tid >= stride) {
-            temp = shared_bucketCount[tid - stride];
-        }
-        barrier();
-        if (tid < uint(NUM_DIST_BUCKETS) && tid >= stride) {
-            shared_bucketCount[tid] += temp;
-        }
+    // ---- Phase 3: Subgroup-based Prefix Sum (2-level, GetWarp.comp.glsl pattern) ----
+    // Converts shared_bucketCount[] from per-bucket counts to exclusive prefix sums.
+    uint tValue = shared_bucketCount[tid];
+
+    // Level 1: inclusive prefix within each subgroup
+    uint prefix = subgroupInclusiveAdd(tValue);
+    if (gl_SubgroupInvocationID == gl_SubgroupSize - 1) {
+        shared_prefixBuffer[gl_SubgroupID] = prefix;
     }
     barrier();
 
-    // Convert Inclusive to Exclusive Scan
-    uint inclusive = 0u;
-    if (tid < uint(NUM_DIST_BUCKETS)) {
-        if (tid > 0u) inclusive = shared_bucketCount[tid - 1];
+    // Level 2: all threads load their subgroup's total; subgroup 0 scans them
+    uint tValue2 = shared_prefixBuffer[gl_LocalInvocationID.x];
+    barrier();
+    if (gl_SubgroupID == 0) {
+        uint prefix2 = subgroupInclusiveAdd(tValue2);
+        shared_prefixBuffer[gl_LocalInvocationID.x] = prefix2;
     }
     barrier();
-    if (tid < uint(NUM_DIST_BUCKETS)) {
-        shared_bucketCount[tid] = inclusive;
-    }
+
+    // Combine: add inclusive sum of all previous subgroups, then subtract own
+    // value to convert from inclusive to exclusive prefix
+    prefix += (gl_SubgroupID == 0) ? 0u : shared_prefixBuffer[gl_SubgroupID - 1];
+    shared_bucketCount[tid] = prefix - tValue;
     barrier();
 
     // ---- Phase 4: Assign alloc IDs closest-first ----
