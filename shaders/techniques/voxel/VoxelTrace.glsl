@@ -160,12 +160,6 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
 
     // ---- Precompute DDA biases ----
     vec3  tMaxBias     = fma(exitSelectPos, invDir, t0g);
-    vec3  exitTBias4   = fma(exitSelectPos,   4.0 * invDir, t0g);
-    vec3  exitTBias16  = fma(exitSelectPos,  16.0 * invDir, t0g);
-    vec3  exitTBias64  = fma(exitSelectPos,  64.0 * invDir, t0g);
-    #if VOXEL_TREE_TOP_LEVEL == 5
-    vec3  exitTBias256 = fma(exitSelectPos, 256.0 * invDir, t0g);
-    #endif
 
     // ---- DDA initialisation ----
     float tCurrent = max(tEnter, 0.0) + EPS;
@@ -264,14 +258,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 ivec3 cellMin  = (blockPos >> cellShift) << cellShift;
 
                 vec3 exitTBiasN;
-                if (level == 2) exitTBiasN = exitTBias4;
-                else if (level == 3) exitTBiasN = exitTBias16;
-                #if VOXEL_TREE_TOP_LEVEL == 5
-                else if (level == 4) exitTBiasN = exitTBias64;
-                else exitTBiasN = exitTBias256;
-                #else
-                else exitTBiasN = exitTBias64;
-                #endif
+                exitTBiasN = fma(exitSelectPos, ldexp(invDir, ivec3(cellShift)), t0g);
 
                 vec3 tExit = fma(vec3(cellMin), invDir, exitTBiasN);
                 _voxel_skipCell(tExit, worldRayDir, posGridBiased, invDir, tMaxBias,
