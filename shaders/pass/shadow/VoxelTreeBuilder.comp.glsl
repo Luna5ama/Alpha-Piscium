@@ -4,7 +4,7 @@
 //   Level 0 (root, 1 uint64_t): bit j = 1 if 4^3 sub-region j has any solid block.
 //   Level 1 (leaves, 64 uint64_t): leaf j bit k = 1 if block k in sub-region j is solid.
 //
-// Dispatch: one workgroup per brick slot in the grid (4096 total).
+// Dispatch: one workgroup per brick slot in the grid (VOXEL_GRID_BRICKS total).
 // Threads per workgroup: 64 (one per 4^3 sub-region within the brick).
 // SSBO 8 must have been cleared to 0 before this pass (done in begin5_c).
 
@@ -14,8 +14,14 @@
 #include "/techniques/voxel/Voxelization.glsl"
 
 layout(local_size_x = 64) in;
-// One workgroup per brick in the 16^3 grid (4096 bricks total)
+// One workgroup per brick in the VOXEL_GRID_SIZE^3 grid
+#if VOXEL_GRID_SIZE == 64
+const ivec3 workGroups = ivec3(262144, 1, 1);
+#elif VOXEL_GRID_SIZE == 32
+const ivec3 workGroups = ivec3(32768, 1, 1);
+#else
 const ivec3 workGroups = ivec3(4096, 1, 1);
+#endif
 
 shared uint rootMaskLo;
 shared uint rootMaskHi;

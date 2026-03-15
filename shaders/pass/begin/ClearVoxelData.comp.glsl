@@ -1,17 +1,25 @@
 // Clears SSBO 4 (voxel material data) and SSBO 8 (64-tree data) every frame,
 // so the shadow pass and tree builder start from a clean slate.
 //
-// Dispatch: 8192 workgroups × 256 threads = 2,097,152 threads.
-// Each thread clears one voxel_materials entry; threads < 33280 also clear
-// their voxel_tree entry (512 bricks x 65 uint64_t = 33,280 total).
+// Dispatch: (VOXEL_POOL_SIZE * 16) workgroups × 256 threads = VOXEL_POOL_SIZE * 4096 threads.
+// Each thread clears one voxel_materials entry; threads < VOXEL_POOL_SIZE*65 also clear
+// their voxel_tree entry (VOXEL_POOL_SIZE bricks x 65 uint64_t total).
 
 #define VOXEL_MATERIAL_DATA_MODIFIER buffer
 #define VOXEL_TREE_DATA_MODIFIER buffer
 #include "/techniques/voxel/Voxelization.glsl"
 
 layout(local_size_x = 256) in;
-// 512 * 4096 / 256 = 8192 workgroups
+// VOXEL_POOL_SIZE * 4096 / 256 = VOXEL_POOL_SIZE * 16 workgroups
+#if VOXEL_POOL_SIZE == 2048
+const ivec3 workGroups = ivec3(32768, 1, 1);
+#elif VOXEL_POOL_SIZE == 1024
+const ivec3 workGroups = ivec3(16384, 1, 1);
+#elif VOXEL_POOL_SIZE == 256
+const ivec3 workGroups = ivec3(4096, 1, 1);
+#else
 const ivec3 workGroups = ivec3(8192, 1, 1);
+#endif
 
 void main() {
     uint i = gl_GlobalInvocationID.x;

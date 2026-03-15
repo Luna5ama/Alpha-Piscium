@@ -1023,6 +1023,52 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
             }
+            screen(1) {
+                lang {
+                    name = "Voxel"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "体素"
+                }
+                slider("SETTING_VOXEL_GRID_SIZE", 16, listOf(16, 32, 64)) {
+                    lang {
+                        name = "Voxel Grid Size"
+                        comment =
+                            "Number of bricks per grid side. Larger values extend voxel coverage further from the camera at a significant VRAM and performance cost. 16 = 4K bricks (256 blocks range), 32 = 32K bricks (512 blocks range), 64 = 262K bricks (1024 blocks range)."
+                        16 value "16 (256 blocks)"
+                        32 value "32 (512 blocks)"
+                        64 value "64 (1024 blocks)"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "体素网格大小"
+                        comment =
+                            "每侧网格的砖块数量。更大的值将体素覆盖范围延伸至距摄像机更远处，但会显著增加显存占用和性能开销。16 = 4K砖块（256格范围），32 = 32K砖块（512格范围），64 = 262K砖块（1024格范围）。"
+                        16 value "16（256格）"
+                        32 value "32（512格）"
+                        64 value "64（1024格）"
+                    }
+                }
+                slider("SETTING_VOXEL_POOL_SIZE", 512, listOf(256, 512, 1024, 2048)) {
+                    lang {
+                        name = "Voxel Pool Size"
+                        comment =
+                            "Maximum number of simultaneously allocated bricks. Higher values allow more bricks to be active at once, improving voxel coverage in dense scenes. Material data cost: 256 = 4 MB, 512 = 8 MB, 1024 = 16 MB, 2048 = 32 MB."
+                        256 value "256"
+                        512 value "512"
+                        1024 value "1024"
+                        2048 value "2048"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "体素池大小"
+                        comment =
+                            "同时分配的砖块最大数量。更高的值允许同时激活更多砖块，在密集场景中提升体素覆盖范围。材质数据占用：256 = 4 MB，512 = 8 MB，1024 = 16 MB，2048 = 32 MB。"
+                        256 value "256"
+                        512 value "512"
+                        1024 value "1024"
+                        2048 value "2048"
+                    }
+                }
+            }
         }
         screen(2) {
             lang {

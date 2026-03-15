@@ -5,9 +5,11 @@
 // ---------------------------------------------------------------------------
 // Constants
 // ---------------------------------------------------------------------------
-const int VOXEL_BRICK_SIZE   = 16;     // blocks per brick side
-const int VOXEL_GRID_SIZE    = 16;     // bricks per grid side (16^3 = 4096)
-const int VOXEL_POOL_SIZE    = 512;    // max simultaneously allocated bricks
+const int VOXEL_BRICK_SIZE   = 16;     // blocks per brick side (fixed)
+// VOXEL_GRID_SIZE and VOXEL_POOL_SIZE come from Options.glsl (via Base.glsl -> Morton.glsl)
+#define VOXEL_GRID_SIZE   SETTING_VOXEL_GRID_SIZE  // bricks per grid side (16/32/64)
+#define VOXEL_POOL_SIZE   SETTING_VOXEL_POOL_SIZE  // max simultaneously allocated bricks
+#define VOXEL_GRID_BRICKS (VOXEL_GRID_SIZE * VOXEL_GRID_SIZE * VOXEL_GRID_SIZE)
 const uint VOXEL_UNALLOCATED = 0xFFFFFFFFu;
 
 // ---------------------------------------------------------------------------
@@ -25,14 +27,14 @@ const uint VOXEL_UNALLOCATED = 0xFFFFFFFFu;
 
 // ---------------------------------------------------------------------------
 // SSBO 3 – Brick Metadata
-//   [0]        : allocation count
-//   [1   .. 4096] : occupancy flags (0=empty, 1=occupied this frame)
-//   [4097 .. 8192] : allocation IDs (<512=valid, 0xFFFFFFFF=unallocated)
+//   [0]                          : allocation count
+//   [1   .. VOXEL_GRID_BRICKS]   : occupancy flags (0=empty, 1=occupied this frame)
+//   [VOXEL_GRID_BRICKS+1 .. 2*VOXEL_GRID_BRICKS] : allocation IDs (<POOL=valid, 0xFFFFFFFF=unallocated)
 // ---------------------------------------------------------------------------
 layout(std430, binding = 3) VOXEL_BRICK_DATA_MODIFIER VoxelBrickData {
     uint voxel_brickAllocCounter;
-    uint voxel_brickOccupancy[4096];
-    uint voxel_brickAllocID[4096];
+    uint voxel_brickOccupancy[VOXEL_GRID_BRICKS];
+    uint voxel_brickAllocID[VOXEL_GRID_BRICKS];
 };
 
 // ---------------------------------------------------------------------------
@@ -41,7 +43,7 @@ layout(std430, binding = 3) VOXEL_BRICK_DATA_MODIFIER VoxelBrickData {
 //   Value: 16-bit material ID cast to uint; 0 = empty
 // ---------------------------------------------------------------------------
 layout(std430, binding = 4) VOXEL_MATERIAL_DATA_MODIFIER VoxelMaterialData {
-    uint voxel_materials[];   // 512 * 4096 = 2,097,152 entries
+    uint voxel_materials[];   // VOXEL_POOL_SIZE * 4096 entries
 };
 
 // ---------------------------------------------------------------------------
@@ -52,16 +54,22 @@ layout(std430, binding = 4) VOXEL_MATERIAL_DATA_MODIFIER VoxelMaterialData {
 //   Indexed by voxel_treeRootIndex / voxel_treeLeafIndex helpers below
 // ---------------------------------------------------------------------------
 layout(std430, binding = 8) VOXEL_TREE_DATA_MODIFIER VoxelTreeData {
-    uvec2 voxel_tree[];       // 512 * 65 = 33,280 uint64_t entries
+    uvec2 voxel_tree[];       // VOXEL_POOL_SIZE * 65 uvec2 entries
 };
 
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
 
-// Morton code (0..4095) for a brick at grid coordinate brickCoord (0..15/axis)
+// Morton code for a brick at grid coordinate brickCoord (0..VOXEL_GRID_SIZE-1 per axis)
 uint voxel_brickMorton(ivec3 brickCoord) {
+    #if VOXEL_GRID_SIZE == 16
     return morton3D_12bEncode(uvec3(brickCoord));
+    #else
+    // Grid=32: coords 0..31 (5-bit), Grid=64: coords 0..63 (6-bit)
+    // morton3D_30bEncode is correct for values < 256 (bug in step 2 only affects bits 8-9)
+    return morton3D_30bEncode(uvec3(brickCoord));
+    #endif
 }
 
 // Morton code (0..4095) for a block at local position blockInBrick (0..15/axis)
