@@ -169,6 +169,12 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         lastNorm      = negStepDir * vec3(entered);
     }
 
+    uint lastBrickMorton = 0xFFFFFFFFu;
+    uint lastSrMorton    = 0xFFFFFFFFu;
+    uint cachedAllocID   = VOXEL_UNALLOCATED;
+    uint64_t cachedRootMask = 0;
+    uint64_t cachedLeafMask = 0;
+
     // Main DDA loop
     for (int i = 0; i < maxSteps; i++) {
         // Unsigned bounds check via OR-reduction: any negative component wraps
@@ -179,15 +185,23 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         // Produces a combined code encoding both brick and block positions:
         //   [12:23] = brickMorton,  [0:11] = blockMorton
         //   [6:11]  = srMorton,     [0:5]  = blockSrMorton
-        uint fullMorton     = _voxel_morton24b(uvec3(blockPos));
-        uint brickMorton    = fullMorton >> 12u;
-        uint allocID        = voxel_brickAllocID[brickMorton];
+        uint fullMorton  = _voxel_morton24b(uvec3(blockPos));
+        uint brickMorton = fullMorton >> 12u;
+
+        if (brickMorton != lastBrickMorton) {
+            cachedAllocID   = voxel_brickAllocID[brickMorton];
+            lastBrickMorton = brickMorton;
+            lastSrMorton    = 0xFFFFFFFFu;
+            if (cachedAllocID != VOXEL_UNALLOCATED) {
+                cachedRootMask = voxel_tree[voxel_treeRootIndex(cachedAllocID)];
+            }
+        }
 
         // ---- Level 0 : brick allocation check ----
         #if VOXEL_TRACE_DEBUG_COUNTERS
         result.debugCounters.x++;
         #endif
-        if (allocID == VOXEL_UNALLOCATED) {
+        if (cachedAllocID == VOXEL_UNALLOCATED) {
             ivec3 cellMin = blockPos & ivec3(-16);
             vec3  tExit   = fma(vec3(cellMin), invDir, exitTBias16);
             _voxel_skipCell(tExit, worldRayDir, posGridBiased, invDir, tMaxBias, negStepDir,
@@ -197,16 +211,14 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
 
         // Deferred Morton extracts: only computed when brick is allocated.
         // Saves 3 ALU ops (AND, BFE, AND) on the hot brick-skip path.
-        uint srMorton       = bitfieldExtract(fullMorton, 6, 6);
+        uint srMorton = bitfieldExtract(fullMorton, 6, 6);
 
         // ---- Level 1 : root mask check ----
-        uint64_t rootMask = voxel_tree[voxel_treeRootIndex(allocID)];
-
         // y: reached root check (brick was allocated)
         #if VOXEL_TRACE_DEBUG_COUNTERS
         result.debugCounters.y++;
         #endif
-        if (!_voxel_testBit64(rootMask, srMorton)) {
+        if (!_voxel_testBit64(cachedRootMask, srMorton)) {
             ivec3 cellMin = blockPos & ivec3(-4);
             vec3  tExit   = fma(vec3(cellMin), invDir, exitTBias4);
             _voxel_skipCell(tExit, worldRayDir, posGridBiased, invDir, tMaxBias, negStepDir,
@@ -215,15 +227,18 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         }
 
         // ---- Level 2 : leaf block bitmask check ----
-        uint64_t leafMask   = voxel_tree[voxel_treeLeafIndex(allocID, srMorton)];
-        uint blockSrMorton  = fullMorton & 63u;
+        if (srMorton != lastSrMorton) {
+            cachedLeafMask = voxel_tree[voxel_treeLeafIndex(cachedAllocID, srMorton)];
+            lastSrMorton   = srMorton;
+        }
+        uint blockSrMorton = fullMorton & 63u;
         // z: reached leaf check (sub-region was non-empty)
         #if VOXEL_TRACE_DEBUG_COUNTERS
         result.debugCounters.z++;
         #endif
-        if (_voxel_testBit64(leafMask, blockSrMorton)) {
+        if (_voxel_testBit64(cachedLeafMask, blockSrMorton)) {
             uint blockMorton = fullMorton & 0xFFFu;
-            uint matIdx = voxel_materialIndex(allocID, blockMorton);
+            uint matIdx = voxel_materialIndex(cachedAllocID, blockMorton);
             uint material     = voxel_materials[matIdx];
             result.hit        = true;
             result.hitPos     = fma(worldRayDir, vec3(lastT), worldRayOrigin);
