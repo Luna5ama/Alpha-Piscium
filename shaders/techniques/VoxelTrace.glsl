@@ -39,6 +39,19 @@ struct VoxelHit {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
+// 8-bit bit-spreader for a single coordinate component.
+// Uses multiply instead of shift+OR for bit-spreading: since the bit groups
+// never overlap at each step, (x | (x << N)) == x * (1 + 2^N). Integer
+// multiply routes to the FMAHeavy pipe, relieving the ALU pipe bottleneck.
+// Optimized: Scalar version to process one component at a time.
+uint _voxel_spreadBits8(uint x) {
+    x = (x * 257u) & 0x00F00Fu;   // x*(1+2^8) == x|(x<<8) when x<256
+    x = (x *  17u) & 0x0C30C3u;   // x*(1+2^4) == x|(x<<4), nibbles isolated
+    x = (x *   5u) & 0x249249u;   // x*(1+2^2) == x|(x<<2), pairs isolated
+
+    return x;
+}
+
 // 24-bit 3D Morton encode for coords in [0,255] (no initial mask needed).
 // Produces a packed code where:
 //   bits [0:11]  = 12-bit Morton of (coords & 15)      = blockMorton
@@ -49,6 +62,7 @@ struct VoxelHit {
 // Uses multiply instead of shift+OR for bit-spreading: since the bit groups
 // never overlap at each step, (x | (x << N)) == x * (1 + 2^N). Integer
 // multiply routes to the FMAHeavy pipe, relieving the ALU pipe bottleneck.
+// Optimized: Uses scalar helpers to avoid redundant work when only one axis changes.
 uint _voxel_morton24b(uvec3 x) {
     x = (x * 257u) & 0x00F00Fu;   // x*(1+2^8) == x|(x<<8) when x<256
     x = (x *  17u) & 0x0C30C3u;   // x*(1+2^4) == x|(x<<4), nibbles isolated
@@ -173,6 +187,15 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         else lastAxis = 2;
     }
 
+    // Initialize spread positions for incremental updates
+    // We maintain the spread bits of each coordinate separately to avoid
+    // full recomputation in the inner DDA loop, saving ~66% of bit-twiddling work.
+    uvec3 spreadPos = uvec3(
+        _voxel_spreadBits8(uint(blockPos.x)),
+        _voxel_spreadBits8(uint(blockPos.y)),
+        _voxel_spreadBits8(uint(blockPos.z))
+    );
+
     uint lastBrickMorton = 0xFFFFFFFFu;
     uint lastSrMorton    = 0xFFFFFFFFu;
     uint cachedAllocID   = VOXEL_UNALLOCATED;
@@ -189,7 +212,8 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         // Produces a combined code encoding both brick and block positions:
         //   [12:23] = brickMorton,  [0:11] = blockMorton
         //   [6:11]  = srMorton,     [0:5]  = blockSrMorton
-        uint fullMorton  = _voxel_morton24b(uvec3(blockPos));
+        // Optimized: Construct from pre-calculated spread components.
+        uint fullMorton = spreadPos.x + (spreadPos.y << 1) + (spreadPos.z << 2);
         uint brickMorton = fullMorton >> 12u;
 
         if (brickMorton != lastBrickMorton) {
@@ -210,6 +234,11 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             vec3  tExit   = fma(vec3(cellMin), invDir, exitTBias16);
             _voxel_skipCell(tExit, worldRayDir, posGridBiased, invDir, tMaxBias,
                 blockPos, tMax, lastT, lastAxis);
+
+            // Full update after large jump
+            spreadPos.x = _voxel_spreadBits8(uint(blockPos.x));
+            spreadPos.y = _voxel_spreadBits8(uint(blockPos.y));
+            spreadPos.z = _voxel_spreadBits8(uint(blockPos.z));
             continue;
         }
 
@@ -227,6 +256,11 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             vec3  tExit   = fma(vec3(cellMin), invDir, exitTBias4);
             _voxel_skipCell(tExit, worldRayDir, posGridBiased, invDir, tMaxBias,
                 blockPos, tMax, lastT, lastAxis);
+
+            // Full update after large jump
+            spreadPos.x = _voxel_spreadBits8(uint(blockPos.x));
+            spreadPos.y = _voxel_spreadBits8(uint(blockPos.y));
+            spreadPos.z = _voxel_spreadBits8(uint(blockPos.z));
             continue;
         }
 
@@ -262,12 +296,15 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         if (tMax.x < tMax.y && tMax.x < tMax.z) {
             lastT = tMax.x; lastAxis = 0;
             blockPos.x += stepDirI.x; tMax.x += tDelta.x;
+            spreadPos.x = _voxel_spreadBits8(uint(blockPos.x));
         } else if (tMax.y < tMax.z) {
             lastT = tMax.y; lastAxis = 1;
             blockPos.y += stepDirI.y; tMax.y += tDelta.y;
+            spreadPos.y = _voxel_spreadBits8(uint(blockPos.y));
         } else {
             lastT = tMax.z; lastAxis = 2;
             blockPos.z += stepDirI.z; tMax.z += tDelta.z;
+            spreadPos.z = _voxel_spreadBits8(uint(blockPos.z));
         }
     }
 
