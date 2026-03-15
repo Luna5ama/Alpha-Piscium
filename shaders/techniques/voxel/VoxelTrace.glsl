@@ -17,7 +17,7 @@
 #ifndef INCLUDE_techniques_VoxelTrace_glsl
 #define INCLUDE_techniques_VoxelTrace_glsl
 
-#include "/techniques/Voxelization.glsl"
+#include "/techniques/voxel/Voxelization.glsl"
 
 // ---------------------------------------------------------------------------
 // Result type
