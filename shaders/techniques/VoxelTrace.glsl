@@ -113,6 +113,12 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     ivec3 cameraBrick = cameraPositionInt >> 4;
     vec3  gridOriginF = vec3((cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4);
     vec3  posGrid     = worldRayOrigin - gridOriginF;
+
+    // Clamp near-zero direction components to avoid Inf/NaN in DDA.
+    // When dir ≈ 0 on an axis, 1/dir → Inf, and 0*Inf → NaN poisons tMax,
+    // causing the DDA to pick that axis every step with stepDirI=0 → stuck.
+    worldRayDir = mix(worldRayDir, vec3(1e-7), lessThan(abs(worldRayDir), vec3(1e-7)));
+
     vec3  invDir      = 1.0 / worldRayDir;
     ivec3 stepDirI    = ivec3(sign(worldRayDir));
     vec3  stepDir     = vec3(stepDirI);
