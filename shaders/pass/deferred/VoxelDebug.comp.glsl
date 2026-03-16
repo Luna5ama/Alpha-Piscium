@@ -74,7 +74,8 @@ void main() {
     vec3 worldDir = normalize((gbufferModelViewInverse * vec4(viewFar.xyz, 0.0)).xyz);
     vec3 worldOrigin = vec3(cameraPositionInt) + cameraPositionFract;
 
-    VoxelHit hit = voxel_traceRay(worldOrigin, worldDir, 256);
+    VoxelRay voxelRay = voxelray_setup(worldOrigin, worldDir, 0u);
+    VoxelHit hit = voxel_traceRay(voxelRay, 256);
     imageStore(uimg_overlays, texelPos, materialIdToColor(hit.materialID));
     #if VOXEL_TRACE_DEBUG_COUNTERS
     imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
@@ -141,7 +142,8 @@ void main() {
     // Offset origin slightly along normal to avoid self-intersection.
     vec3 worldOrigin = worldPos + worldNormal * 1.0;
 
-    VoxelHit hit = voxel_traceRay(worldOrigin, worldDir, 256);
+    VoxelRay voxelRay = voxelray_setup(worldOrigin, worldDir, 0u);
+    VoxelHit hit = voxel_traceRay(voxelRay, 256);
     imageStore(uimg_overlays, texelPos, materialIdToColor(hit.materialID));
     #if VOXEL_TRACE_DEBUG_COUNTERS
     imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
