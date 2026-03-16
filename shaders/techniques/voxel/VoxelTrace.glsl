@@ -207,8 +207,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
 
                 result.hit        = true;
                 result.hitPos     = fma(worldRayDir, vec3(lastT), worldRayOrigin);
-                result.normal     = vec3(0.0);
-                if (lastAxis != -1) result.normal[lastAxis] = -stepDirF[lastAxis];
+                result.normal     = vec3(equal(ivec3(lastAxis), ivec3(0, 1, 2))) * (-stepDirF);
                 result.materialID = material;
                 return result;
             }
@@ -227,9 +226,7 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             int cellShift  = (level - 1) << 1;
             int sizeMask   = -(1 << cellShift);
 
-            // Optim: Fast integer target calculation
             ivec3 target = (blockPos & sizeMask) + ((~sizeMask) & boundOffsetMask);
-
             vec3 tExit = fma(vec3(target), invDir, tMaxBias);
 
             // Optim: decouple data dependency for T vs Axis
@@ -251,7 +248,9 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             // Optim: skip level re-calc for local steps (diff < 64) to keep thread coherency
             if (mortonDiff >= 64u) {
                 // Approximate level: (MSB / 6) + 1
-                level = clamp(((findMSB(mortonDiff) * 43) >> 8) + 1, level, VOXEL_TREE_TOP_LEVEL);
+                // Optim: min instead of clamp (lower bound implicit by logic)
+                int newLevel = ((findMSB(mortonDiff) * 43) >> 8) + 1;
+                level = min(newLevel, VOXEL_TREE_TOP_LEVEL);
             }
         }
     }
