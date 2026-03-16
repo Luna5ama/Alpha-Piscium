@@ -214,23 +214,23 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 result.debugCounters.w++;
                 #endif
                 if (tMax.x < tMax.y && tMax.x < tMax.z) {
-                    lastT = tMax.x;
                     lastAxis = 0;
                     blockPos.x += stepDirI.x;
-                    tMax.x += tDelta.x;
                     spreadPos.x = _voxel_spreadLUT[uint(blockPos.x)];
+                    lastT = tMax.x;
+                    tMax.x += tDelta.x;
                 } else if (tMax.y < tMax.z) {
-                    lastT = tMax.y;
                     lastAxis = 1;
                     blockPos.y += stepDirI.y;
-                    tMax.y += tDelta.y;
                     spreadPos.y = _voxel_spreadLUT[uint(blockPos.y)];
+                    lastT = tMax.y;
+                    tMax.y += tDelta.y;
                 } else {
-                    lastT = tMax.z;
                     lastAxis = 2;
                     blockPos.z += stepDirI.z;
-                    tMax.z += tDelta.z;
                     spreadPos.z = _voxel_spreadLUT[uint(blockPos.z)];
+                    lastT = tMax.z;
+                    tMax.z += tDelta.z;
                 }
             } else {
                 // Level 2+: skip the child cell
@@ -251,14 +251,14 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                 vec3 tExit = fma(vec3(target), invDir, tMaxBias);
 
                 if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
-                    lastT = tExit.x;
                     lastAxis = 0;
+                    lastT = tExit.x;
                 } else if (tExit.y <= tExit.z) {
-                    lastT = tExit.y;
                     lastAxis = 1;
+                    lastT = tExit.y;
                 } else {
-                    lastT = tExit.z;
                     lastAxis = 2;
+                    lastT = tExit.z;
                 }
 
                 blockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
