@@ -141,4 +141,31 @@ uvec3 morton3D_30bDecode(uint x) {
     return coords;
 }
 
+// ---------------------------------------------------------------------------
+// 2-D Hilbert curve
+// ---------------------------------------------------------------------------
+// Maps a pos in [0, 2^order)² to a Hilbert index in [0, 4^order).
+// Use order=11 for a 22-bit index (2048×2048 grid), order=12 for 24 bits.
+//
+// Overflow check (order=12): max s=2048, s*s=4,194,304, 3*s*s=12,582,912,
+// max d = 4096*4096-1 = 16,777,215 = 0xFFFFFF — fits in 32-bit uint.
+uint hilbert2D_encode(uvec2 pos, uint order) {
+    uint d = 0u;
+    uint n = (1u << order) - 1u;
+    for (uint s = 1u << (order - 1u); s > 0u; s >>= 1u) {
+        uint rx = (pos.x & s) > 0u ? 1u : 0u;
+        uint ry = (pos.y & s) > 0u ? 1u : 0u;
+        d += s * s * ((3u * rx) ^ ry);
+        // Rotate quadrant into canonical orientation
+        if (ry == 0u) {
+            if (rx == 1u) {
+                pos = n - pos.yx;   // reflect + swap
+            } else {
+                pos = pos.yx;       // swap only
+            }
+        }
+    }
+    return d;
+}
+
 #endif
