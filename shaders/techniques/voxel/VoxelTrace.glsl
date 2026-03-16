@@ -147,10 +147,11 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
         // ---- Load node mask at current level ----
         // nodeCoord = blockPos >> (2*level) gives the 3D index of the node.
         // Z component is offset by the per-level Z constant (from shared memory).
-        ivec3 nodeCoord   = blockPos >> (2 * level);
+        int   shift       = 2 * level;
+        ivec3 nodeCoord   = blockPos >> shift;
         uvec2 mask        = voxel_treeLoad(ivec3(nodeCoord.xy, nodeCoord.z + _voxel_levelZOffsets[level]));
-        // Child index: linear XYZ order (cz*16 + cy*4 + cx)
-        ivec3 childLocal  = (blockPos >> (2 * (level - 1))) & ivec3(3);
+        // Child index: packed (cz<<4)|(cy<<2)|cx  where (cx,cy,cz) = (blockPos >> (shift-2)) & 3
+        ivec3 childLocal  = (blockPos >> (shift - 2)) & ivec3(3);
         uint  childIdx    = uint(childLocal.z * 16 + childLocal.y * 4 + childLocal.x);
 
         if (_voxel_testBit64(mask, childIdx)) {
@@ -182,7 +183,9 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             ivec3 oldBlockPos = blockPos;
 
             if (level == 1) {
-                // Level 1: child is a single block → standard 1-block DDA step
+                // Level 1: child is a single block → standard 1-block DDA step.
+                // After a 1-block step combined diff is always 1 (<4), so level stays
+                // at 1 — no ascent needed.
                 #if VOXEL_TRACE_DEBUG_COUNTERS
                 result.debugCounters.w++;
                 #endif
@@ -203,12 +206,13 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
                     tMax.z += tDelta.z;
                 }
             } else {
-                // Level 2+: skip the child cell
+                // Level 2+: skip the entire child cell, then ascend to the correct level.
                 #if VOXEL_TRACE_DEBUG_COUNTERS
                 result.debugCounters.z++;
                 #endif
 
-                int cellShift  = 2 * (level - 1);
+                // cellShift = 2*(level-1) = shift-2  (reuse precomputed shift)
+                int cellShift  = shift - 2;
                 int sizeMinus1 = (1 << cellShift) - 1;
                 int sizeMask   = ~sizeMinus1;
 
