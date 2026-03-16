@@ -9,20 +9,25 @@
 //
 // Dispatch: one workgroup per 4 bricks in the VOXEL_GRID_SIZE^3 grid.
 // Threads per workgroup: 256 (64 per brick × 4 bricks, one thread per sub-region).
-// SSBO 8 must have been cleared to 0 before this pass (done in begin5_a).
+//
+// This pass owns L1 and L2 for every brick — no pre-clearing of SSBO 8 needed:
+//   Allocated bricks  → L1 and L2 are computed and written.
+//   Unallocated bricks → L1 sub-region slot is zeroed; L2 is written as 0
+//                        (rootMaskLo/Hi stay 0 since no atomics fire).
+// Upper levels (L3–L5) are always written unconditionally by the propagator passes,
+// so they are self-clearing when all children below them are zero.
 //
 // Block Morton contiguity: within sub-region S, blockMorton = S*64 + blockInSr.
 // All 64 blocks are contiguous in voxel_materials[], so we read 4 at a time as uvec4.
 // Base index (allocID*4096 + subRegion*64) is always divisible by 4.
 //
 // Root mask accumulation uses parallel reduction (subgroupOr) instead of atomicOr.
-// Two subgroups per brick → results stored in tempMaskLo/Hi[gl_SubgroupID] →
-// thread 0 of each brick ORs the pair together.
+// subgroupElect() thread per subgroup → 2 atomicOrs per brick into rootMaskLo/Hi.
 
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #define VOXEL_BRICK_DATA_MODIFIER restrict readonly buffer
-#define VOXEL_MATERIAL_VEC4
+#define VOXEL_MATERIAL_VEC4 a
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_TREE_DATA_MODIFIER buffer
 #include "/techniques/voxel/Voxelization.glsl"
@@ -102,12 +107,16 @@ void main() {
             atomicOr(rootMaskLo[groupBrick], reducedLo);
             atomicOr(rootMaskHi[groupBrick], reducedHi);
         }
+    } else {
+        // Unallocated brick — zero out this sub-region's L1 leaf slot
+        voxel_tree[uint(VOXEL_TREE_OFFSET_L1) + brickMorton * 64u + subRegion] = uvec2(0u);
     }
 
     barrier();
 
-    // Write final tree node (brick root, Level 2)
-    if (subRegion == 0u && allocID != VOXEL_UNALLOCATED) {
+    // Always write L2 (computed mask for allocated bricks; 0 for unallocated
+    // since rootMaskLo/Hi was initialized to 0 and no atomics fired).
+    if (subRegion == 0u) {
         uint rootIdx = uint(VOXEL_TREE_OFFSET_L2) + brickMorton;
         voxel_tree[rootIdx] = uvec2(rootMaskLo[groupBrick], rootMaskHi[groupBrick]);
     }
