@@ -7,87 +7,117 @@
 // Tree nodes are written to the dense layout (indexed by brickMorton, not allocID).
 // Material data is still read via allocID (sparse pool).
 //
-// Dispatch: one workgroup per brick in the VOXEL_GRID_SIZE^3 grid.
-// Threads per workgroup: 64 (one per 4^3 sub-region within the brick).
-// SSBO 8 must have been cleared to 0 before this pass (done in begin5_a).
+// Dispatch: one workgroup per 4 bricks in the VOXEL_GRID_SIZE^3 grid.
+// Threads per workgroup: 256 (64 per brick × 4 bricks, one thread per sub-region).
+//
+// This pass owns L1 and L2 for every brick — no pre-clearing of SSBO 8 needed:
+//   Allocated bricks  → L1 and L2 are computed and written.
+//   Unallocated bricks → L1 sub-region slot is zeroed; L2 is written as 0
+//                        (rootMaskLo/Hi stay 0 since no atomics fire).
+// Upper levels (L3–L5) are always written unconditionally by the propagator passes,
+// so they are self-clearing when all children below them are zero.
+//
+// Block Morton contiguity: within sub-region S, blockMorton = S*64 + blockInSr.
+// All 64 blocks are contiguous in voxel_materials[], so we read 4 at a time as uvec4.
+// Base index (allocID*4096 + subRegion*64) is always divisible by 4.
+//
+// Root mask accumulation uses parallel reduction (subgroupOr) instead of atomicOr.
+// subgroupElect() thread per subgroup → 2 atomicOrs per brick into rootMaskLo/Hi.
+
+#extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #define VOXEL_BRICK_DATA_MODIFIER restrict readonly buffer
+#define VOXEL_MATERIAL_VEC4 a
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_TREE_DATA_MODIFIER buffer
 #include "/techniques/voxel/Voxelization.glsl"
 
-layout(local_size_x = 64) in;
-// One workgroup per brick in the VOXEL_GRID_SIZE^3 grid
+layout(local_size_x = 256) in;
+// One workgroup per 4 bricks in the VOXEL_GRID_SIZE^3 grid
 #if VOXEL_GRID_SIZE == 64
-const ivec3 workGroups = ivec3(262144, 1, 1);
+const ivec3 workGroups = ivec3(65536, 1, 1);
 #elif VOXEL_GRID_SIZE == 32
-const ivec3 workGroups = ivec3(32768, 1, 1);
+const ivec3 workGroups = ivec3(8192, 1, 1);
 #else
-const ivec3 workGroups = ivec3(4096, 1, 1);
+const ivec3 workGroups = ivec3(1024, 1, 1);
 #endif
 
-shared uint rootMaskLo;
-shared uint rootMaskHi;
+shared uint rootMaskLo[4];
+shared uint rootMaskHi[4];
 
 void main() {
-    uint brickMorton = uint(gl_WorkGroupID.x);   // 0..VOXEL_GRID_BRICKS-1
-    uint subRegion   = uint(gl_LocalInvocationID.x); // 0..63
+    uint localID    = gl_LocalInvocationID.x;
+    uint groupBrick = localID >> 6u;        // 0..3 – which of the 4 bricks in this workgroup
+    uint subRegion  = localID & 63u;        // 0..63 – sub-region index within the brick
+    uint brickMorton = gl_WorkGroupID.x * 4u + groupBrick;
 
-    if (gl_LocalInvocationIndex == 0u) {
-        rootMaskLo = 0u;
-        rootMaskHi = 0u;
+    if (subRegion == 0u) {
+        rootMaskLo[groupBrick] = 0u;
+        rootMaskHi[groupBrick] = 0u;
     }
     barrier();
 
     uint allocID = voxel_brickAllocID[brickMorton];
-    if (allocID == VOXEL_UNALLOCATED) return;
 
-    // Decode sub-region Morton to 3D coordinate within the 4^3 sub-region grid
-    uvec3 srCoord = morton3D_30bDecode(subRegion); // 0..3 per axis
+    if (allocID != VOXEL_UNALLOCATED) {
+        // Within this sub-region, blockMorton = subRegion * 64 + blockInSr.
+        // All 64 entries are contiguous, so read 4-at-a-time as uvec4.
+        uint baseIdx = allocID * 1024u + subRegion * 16u;
 
-    // Build the 64-bit leaf mask for this sub-region
-    uint leafLow  = 0u;
-    uint leafHigh = 0u;
-    bool subRegionNonEmpty = false;
+        uint leafLow  = 0u;
+        uint leafHigh = 0u;
 
-    for (uint blockInSr = 0u; blockInSr < 64u; blockInSr++) {
-        // 3D coord of this block within the sub-region (0..3 per axis)
-        uvec3 bInSrCoord = morton3D_30bDecode(blockInSr);
-        // Full block coord in brick (0..15 per axis)
-        uvec3 blockCoord = srCoord * 4u + bInSrCoord;
-        uint  blockMorton = morton3D_30bEncode(blockCoord);
+        // First 8 uvec4 reads → 32 blocks → leafLow (bits 0..31)
+        for (uint i = 0u; i < 8u; i++) {
+            uvec4 mats = voxel_materials_v4[baseIdx + i];
+            uvec4 bits4 = uvec4(notEqual(mats, uvec4(0u))) << uvec4(0u, 1u, 2u, 3u);
+            uint bits = bits4.x + bits4.y + bits4.z + bits4.w;
+            leafLow |= bits << (i * 4u);
+        }
 
-        uint material = voxel_materials[allocID * 4096u + blockMorton];
-        if (material != 0u) {
-            subRegionNonEmpty = true;
-            if (blockInSr < 32u) {
-                leafLow  |= (1u << blockInSr);
+        // Next 8 uvec4 reads → 32 blocks → leafHigh (bits 0..31)
+        for (uint i = 0u; i < 8u; i++) {
+            uvec4 mats = voxel_materials_v4[baseIdx + 8u + i];
+            uvec4 bits4 = uvec4(notEqual(mats, uvec4(0u))) << uvec4(0u, 1u, 2u, 3u);
+            uint bits = bits4.x + bits4.y + bits4.z + bits4.w;
+            leafHigh |= bits << (i * 4u);
+        }
+
+        // Write Level-1 leaf node
+        uint leafIdx = uint(VOXEL_TREE_OFFSET_L1) + brickMorton * 64u + subRegion;
+        voxel_tree[leafIdx] = uvec2(leafLow, leafHigh);
+
+        // Parallel reduction: compute bit(s) this thread contributes to the root mask
+        bool subRegionNonEmpty = (leafLow | leafHigh) != 0u;
+        uint bitLo = 0u, bitHi = 0u;
+        if (subRegionNonEmpty) {
+            if (subRegion < 32u) {
+                bitLo = 1u << subRegion;
             } else {
-                leafHigh |= (1u << (blockInSr - 32u));
+                bitHi = 1u << (subRegion - 32u);
             }
         }
-    }
 
-    // Write leaf node to dense tree layout: Level 1
-    // Index = VOXEL_TREE_OFFSET_L1 + brickMorton * 64 + subRegion
-    uint leafIdx = uint(VOXEL_TREE_OFFSET_L1) + brickMorton * 64u + subRegion;
-    voxel_tree[leafIdx] = uvec2(leafLow, leafHigh);
+        // Reduce within subgroup using subgroupOr
+        uint reducedLo = subgroupOr(bitLo);
+        uint reducedHi = subgroupOr(bitHi);
 
-    // Set the corresponding bit in the shared root mask (32-bit atomics only).
-    if (subRegionNonEmpty) {
-        if (subRegion < 32u) {
-            atomicOr(rootMaskLo, 1u << subRegion);
-        } else {
-            atomicOr(rootMaskHi, 1u << (subRegion - 32u));
+        // One thread per subgroup writes result to temporary shared storage
+        if (subgroupElect()) {
+            atomicOr(rootMaskLo[groupBrick], reducedLo);
+            atomicOr(rootMaskHi[groupBrick], reducedHi);
         }
+    } else {
+        // Unallocated brick — zero out this sub-region's L1 leaf slot
+        voxel_tree[uint(VOXEL_TREE_OFFSET_L1) + brickMorton * 64u + subRegion] = uvec2(0u);
     }
 
     barrier();
 
-    // Single writer per brick for the Level 2 (brick root) node.
-    // Index = VOXEL_TREE_OFFSET_L2 + brickMorton
-    if (gl_LocalInvocationIndex == 0u) {
+    // Always write L2 (computed mask for allocated bricks; 0 for unallocated
+    // since rootMaskLo/Hi was initialized to 0 and no atomics fired).
+    if (subRegion == 0u) {
         uint rootIdx = uint(VOXEL_TREE_OFFSET_L2) + brickMorton;
-        voxel_tree[rootIdx] = uvec2(rootMaskLo, rootMaskHi);
+        voxel_tree[rootIdx] = uvec2(rootMaskLo[groupBrick], rootMaskHi[groupBrick]);
     }
 }
