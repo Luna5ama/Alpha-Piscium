@@ -57,8 +57,6 @@ vec4 materialIdToColor(uint id) {
 void main() {
     voxel_initShared();
 
-    voxel_initShared();
-
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (any(greaterThanEqual(texelPos, uval_mainImageSizeI))) return;
 
@@ -78,7 +76,9 @@ void main() {
 
     VoxelHit hit = voxel_traceRay(worldOrigin, worldDir, 256);
     imageStore(uimg_overlays, texelPos, materialIdToColor(hit.materialID));
+    #if VOXEL_TRACE_DEBUG_COUNTERS
     imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
+    #endif
 
     #else
     // ------------------------------------------------------------------
@@ -143,6 +143,7 @@ void main() {
 
     VoxelHit hit = voxel_traceRay(worldOrigin, worldDir, 256);
     imageStore(uimg_overlays, texelPos, materialIdToColor(hit.materialID));
+    #if VOXEL_TRACE_DEBUG_COUNTERS
     imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
     vec3 ao = hit.materialID == 0u ? vec3(1.0) : vec3(0.0);
     vec4 prev = imageLoad(uimg_temp3, texelPos);
@@ -150,6 +151,7 @@ void main() {
     float alpha = 1.0 / newF;
     ao = mix(prev.rgb, ao, alpha);
     imageStore(uimg_temp3, texelPos, vec4(ao, newF));
+    #endif
     #endif
 }
 

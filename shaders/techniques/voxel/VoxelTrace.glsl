@@ -129,7 +129,6 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     worldRayDir = mix(worldRayDir, vec3(1e-7), lessThan(abs(worldRayDir), vec3(1e-7)));
 
     vec3  invDir      = 1.0 / worldRayDir;
-    vec3  tDelta      = abs(invDir);
     ivec3 stepDirI    = ivec3(sign(worldRayDir));
 
     // ---- Clip ray to grid AABB ----
@@ -208,65 +207,36 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             #endif
         } else {
             // ---- Empty child — skip to exit of child cell ----
-            if (level == 1) {
-                // Level 1: child is a single block → standard 1-block DDA step
-                #if VOXEL_TRACE_DEBUG_COUNTERS
-                result.debugCounters.w++;
-                #endif
-                if (tMax.x < tMax.y && tMax.x < tMax.z) {
-                    lastAxis = 0;
-                    blockPos.x += stepDirI.x;
-                    spreadPos.x = _voxel_spreadLUT[uint(blockPos.x)];
-                    lastT = tMax.x;
-                    tMax.x += tDelta.x;
-                } else if (tMax.y < tMax.z) {
-                    lastAxis = 1;
-                    blockPos.y += stepDirI.y;
-                    spreadPos.y = _voxel_spreadLUT[uint(blockPos.y)];
-                    lastT = tMax.y;
-                    tMax.y += tDelta.y;
-                } else {
-                    lastAxis = 2;
-                    blockPos.z += stepDirI.z;
-                    spreadPos.z = _voxel_spreadLUT[uint(blockPos.z)];
-                    lastT = tMax.z;
-                    tMax.z += tDelta.z;
-                }
+            #if VOXEL_TRACE_DEBUG_COUNTERS
+            if (level == 1) result.debugCounters.w++;
+            else result.debugCounters.z++;
+            #endif
+
+            int cellShift  = 2 * (level - 1);
+            int sizeMinus1 = (1 << cellShift) - 1;
+            int sizeMask   = ~sizeMinus1;
+
+            // Determine target integer coordinate (exit boundary of current cell)
+            // Level 1: sizeMinus1=0, sizeMask=~0 → target = blockPos (single block)
+            // Level 2+: target = cell-aligned origin + (size-1 if dir > 0, else 0)
+            ivec3 target = (blockPos & ivec3(sizeMask)) + (ivec3(sizeMinus1) & boundOffsetMask);
+
+            vec3 tExit = fma(vec3(target), invDir, tMaxBias);
+
+            if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
+                lastAxis = 0;
+                lastT = tExit.x;
+            } else if (tExit.y <= tExit.z) {
+                lastAxis = 1;
+                lastT = tExit.y;
             } else {
-                // Level 2+: skip the child cell
-                #if VOXEL_TRACE_DEBUG_COUNTERS
-                result.debugCounters.z++;
-                #endif
-
-                int cellShift  = 2 * (level - 1);
-                int sizeMinus1 = (1 << cellShift) - 1;
-                int sizeMask   = ~sizeMinus1;
-
-                // Determine target integer coordinate (exit boundary of current cell)
-                // If dir > 0, target = origin + size - 1
-                // If dir < 0, target = origin
-                // (using precomputed boundOffsetMask to branchlessly add size-1 or 0)
-                ivec3 target = (blockPos & ivec3(sizeMask)) + (ivec3(sizeMinus1) & boundOffsetMask);
-
-                vec3 tExit = fma(vec3(target), invDir, tMaxBias);
-
-                if (tExit.x <= tExit.y && tExit.x <= tExit.z) {
-                    lastAxis = 0;
-                    lastT = tExit.x;
-                } else if (tExit.y <= tExit.z) {
-                    lastAxis = 1;
-                    lastT = tExit.y;
-                } else {
-                    lastAxis = 2;
-                    lastT = tExit.z;
-                }
-
-                blockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
-                tMax     = fma(vec3(blockPos), invDir, tMaxBias);
-
-                // Full Morton recompute after large jump
-                spreadPos = _voxel_spreadPos(blockPos);
+                lastAxis = 2;
+                lastT = tExit.z;
             }
+
+            blockPos  = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
+            tMax      = fma(vec3(blockPos), invDir, tMaxBias);
+            spreadPos = _voxel_spreadPos(blockPos);
             uint oldFullMorton = fullMorton;
             fullMorton = _voxel_packSpreadPos(spreadPos);
 
