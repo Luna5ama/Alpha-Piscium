@@ -153,7 +153,6 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     startPos       = clamp(startPos, vec3(EPS), vec3(float(GRID_BLOCKS) - EPS));
 
     ivec3 blockPos = ivec3(floor(startPos));
-    vec3  tMax     = fma(vec3(blockPos), invDir, tMaxBias);
 
     float lastT    = tCurrent;
     int   lastAxis = -1;
@@ -235,7 +234,6 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             }
 
             blockPos  = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
-            tMax      = fma(vec3(blockPos), invDir, tMaxBias);
             spreadPos = _voxel_spreadPos(blockPos);
             uint oldFullMorton = fullMorton;
             fullMorton = _voxel_packSpreadPos(spreadPos);
