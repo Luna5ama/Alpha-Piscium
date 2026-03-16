@@ -18,7 +18,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 // All voxel SSBOs are read-only in this pass.
 #define VOXEL_BRICK_DATA_MODIFIER    restrict readonly buffer
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
-#define VOXEL_TREE_DATA_MODIFIER     restrict readonly buffer
+// VOXEL_TREE_IMG_QUALIFIER defaults to restrict readonly (defined in Voxelization.glsl)
 #define VOXEL_TRACE_DEBUG_COUNTERS   1
 #include "/techniques/voxel/VoxelTrace.glsl"
 
