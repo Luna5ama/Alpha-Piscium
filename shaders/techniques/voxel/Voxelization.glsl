@@ -44,10 +44,21 @@ layout(std430, binding = 3) VOXEL_BRICK_DATA_MODIFIER VoxelBrickData {
 // SSBO 4 – Voxel Material Data
 //   Indexed by (brickAllocID * 4096 + blockMorton)
 //   Value: 16-bit material ID cast to uint; 0 = empty
+//
+//   VOXEL_MATERIAL_VEC4: define before including to get a uvec4 view instead.
+//   Within a sub-region, blockMorton = subRegion * 64 + blockInSr, so all 64
+//   entries are contiguous — safe to read 4-at-a-time as uvec4.
+//   Base index (allocID * 4096 + subRegion * 64) is always divisible by 4.
 // ---------------------------------------------------------------------------
+#ifdef VOXEL_MATERIAL_VEC4
+layout(std430, binding = 4) VOXEL_MATERIAL_DATA_MODIFIER VoxelMaterialData {
+    uvec4 voxel_materials_v4[];   // VOXEL_POOL_SIZE * 1024 uvec4 entries
+};
+#else
 layout(std430, binding = 4) VOXEL_MATERIAL_DATA_MODIFIER VoxelMaterialData {
     uint voxel_materials[];   // VOXEL_POOL_SIZE * 4096 entries
 };
+#endif
 
 // ---------------------------------------------------------------------------
 // Dense 64-Tree Layout
