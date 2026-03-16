@@ -145,13 +145,9 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
     if (tEnter > tExitG || tExitG <= 0.0) return result;
 
     // ---- Precompute DDA biases ----
-    // Optim: Use mix/step for cleaner bias generation (map to CMOV/min/max)
-    // rayStepBias: 1.0 if dir > 0, 0.0 if dir < 0
+    ivec3 boundOffsetMask = (-stepDirI) >> 1;
     vec3  rayStepBias     = step(vec3(0.0), worldRayDir);
-    // boundOffsetMask: -1 (all 1s) if dir > 0, 0 if dir < 0
-    ivec3 boundOffsetMask = ivec3(rayStepBias) * ivec3(-1);
-
-    vec3  tMaxBias = fma(rayStepBias, invDir, tOrig);
+    vec3  tMaxBias        = fma(rayStepBias, invDir, tOrig);
 
     // ---- DDA initialisation ----
     float tCurrent = max(tEnter, 0.0) + EPS;
@@ -207,7 +203,13 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
 
                 result.hit        = true;
                 result.hitPos     = fma(worldRayDir, vec3(lastT), worldRayOrigin);
-                result.normal     = vec3(equal(ivec3(lastAxis), ivec3(0, 1, 2))) * (-stepDirF);
+
+                // Optim: Explicit branch for normal reduces register pressure compared to vec construction
+                result.normal = vec3(0.0);
+                if (lastAxis == 0) result.normal.x = -stepDirF.x;
+                else if (lastAxis == 1) result.normal.y = -stepDirF.y;
+                else result.normal.z = -stepDirF.z;
+
                 result.materialID = material;
                 return result;
             }
