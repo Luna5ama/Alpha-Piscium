@@ -14,6 +14,12 @@
 // Block Morton contiguity: within sub-region S, blockMorton = S*64 + blockInSr.
 // All 64 blocks are contiguous in voxel_materials[], so we read 4 at a time as uvec4.
 // Base index (allocID*4096 + subRegion*64) is always divisible by 4.
+//
+// Root mask accumulation uses parallel reduction (subgroupOr) instead of atomicOr.
+// Two subgroups per brick → results stored in tempMaskLo/Hi[gl_SubgroupID] →
+// thread 0 of each brick ORs the pair together.
+
+#extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #define VOXEL_BRICK_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_MATERIAL_VEC4
@@ -51,8 +57,6 @@ void main() {
     if (allocID != VOXEL_UNALLOCATED) {
         // Within this sub-region, blockMorton = subRegion * 64 + blockInSr.
         // All 64 entries are contiguous, so read 4-at-a-time as uvec4.
-        // uvec4 base index = (allocID * 4096 + subRegion * 64) / 4
-        //                  =  allocID * 1024 + subRegion * 16
         uint baseIdx = allocID * 1024u + subRegion * 16u;
 
         uint leafLow  = 0u;
@@ -78,20 +82,31 @@ void main() {
         uint leafIdx = uint(VOXEL_TREE_OFFSET_L1) + brickMorton * 64u + subRegion;
         voxel_tree[leafIdx] = uvec2(leafLow, leafHigh);
 
-        // Accumulate into the brick root mask
+        // Parallel reduction: compute bit(s) this thread contributes to the root mask
         bool subRegionNonEmpty = (leafLow | leafHigh) != 0u;
+        uint bitLo = 0u, bitHi = 0u;
         if (subRegionNonEmpty) {
             if (subRegion < 32u) {
-                atomicOr(rootMaskLo[groupBrick], 1u << subRegion);
+                bitLo = 1u << subRegion;
             } else {
-                atomicOr(rootMaskHi[groupBrick], 1u << (subRegion - 32u));
+                bitHi = 1u << (subRegion - 32u);
             }
+        }
+
+        // Reduce within subgroup using subgroupOr
+        uint reducedLo = subgroupOr(bitLo);
+        uint reducedHi = subgroupOr(bitHi);
+
+        // One thread per subgroup writes result to temporary shared storage
+        if (subgroupElect()) {
+            atomicOr(rootMaskLo[groupBrick], reducedLo);
+            atomicOr(rootMaskHi[groupBrick], reducedHi);
         }
     }
 
     barrier();
 
-    // Single writer per brick: write the Level-2 brick root node
+    // Write final tree node (brick root, Level 2)
     if (subRegion == 0u && allocID != VOXEL_UNALLOCATED) {
         uint rootIdx = uint(VOXEL_TREE_OFFSET_L2) + brickMorton;
         voxel_tree[rootIdx] = uvec2(rootMaskLo[groupBrick], rootMaskHi[groupBrick]);
