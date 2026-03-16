@@ -63,6 +63,7 @@ uint _voxel_spreadBits(uint x) {
 #endif
 
 shared uint _voxel_levelOffsets[6];
+shared ivec2 _voxel_levelSizeMask[6];
 shared uint _voxel_spreadLUT[VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE];
 
 bool _voxel_testBit64(uvec2 mask, uint idx) {
@@ -100,6 +101,12 @@ void voxel_initShared() {
     uint lutSize   = uint(VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE);
     for (uint i = gl_LocalInvocationIndex; i < lutSize; i += localSize) {
         _voxel_spreadLUT[i] = _voxel_spreadBits(i);
+    }
+
+    if (gl_LocalInvocationIndex < 6u) {
+        int cellShift  = (int(gl_LocalInvocationIndex) - 1) << 1;
+        int sizeMask   = -(1 << cellShift);
+        _voxel_levelSizeMask[gl_LocalInvocationIndex] = ivec2(sizeMask, ~sizeMask);
     }
 
     barrier();
@@ -225,10 +232,9 @@ VoxelHit voxel_traceRay(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps) {
             else result.debugCounters.z++;
             #endif
 
-            int cellShift  = (level - 1) << 1;
-            int sizeMask   = -(1 << cellShift);
+            ivec2 sizeMask = _voxel_levelSizeMask[level];
 
-            ivec3 target = (blockPos & sizeMask) + ((~sizeMask) & boundOffsetMask);
+            ivec3 target = (blockPos & sizeMask.x) + (sizeMask.y & boundOffsetMask);
             vec3 tExit = fma(vec3(target), invDir, tMaxBias);
 
             // Optim: decouple data dependency for T vs Axis
