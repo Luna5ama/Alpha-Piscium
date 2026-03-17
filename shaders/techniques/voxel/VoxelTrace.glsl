@@ -171,8 +171,8 @@ VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData
     // Entry axis (only meaningful when ray started outside the grid)
     ray.lastAxis = -1;
     if (tEnter > 0.0) {
-        ray.lastAxis = (tMinG.x >= tMinG.y && tMinG.x >= tMinG.z) ? 0
-                     : (tMinG.y >= tMinG.z                        ? 1 : 2);
+//        ray.lastAxis = (tMinG.x >= tMinG.y && tMinG.x >= tMinG.z) ? 0
+//                     : (tMinG.y >= tMinG.z                        ? 1 : 2);
     }
 
     // Encode initial block position as fullMorton via shared spread LUT
@@ -214,7 +214,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
         // ---- Seed DDA state from ray ----
         float lastT = ray.lastT;
-        int   lastAxis = ray.lastAxis;
+        vec3 lastMask = vec3(0.0);
+        if (ray.lastAxis == 0) lastMask.x = 1.0;
+        else if (ray.lastAxis == 1) lastMask.y = 1.0;
+        else if (ray.lastAxis == 2) lastMask.z = 1.0;
         int   level = ray.level;
         uint  fullMorton = ray.fullMorton;
 
@@ -259,9 +262,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     result.materialID = material;
 
                     result.normal = vec3(0.0);
-                    if (lastAxis == 0) result.normal.x = -stepDirF.x;
-                    else if (lastAxis == 1) result.normal.y = -stepDirF.y;
-                    else result.normal.z = -stepDirF.z;
+                    ivec3 iMask = ivec3(lastMask);
+                    iMask.y &= ~iMask.x;             // Resolve ties (corner hits) to X
+                    iMask.z &= ~(iMask.x | iMask.y); // Resolve ties to Y over Z
+                    result.normal = -stepDirF * vec3(iMask);
 
                     ray.level = 0;
 
@@ -288,7 +292,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                 vec3 tExit = fma(vec3(target), invDir, tOrig);
                 lastT = min(min(tExit.x, tExit.y), tExit.z);
 
-                lastAxis = (tExit.x == lastT) ? 0 : ((tExit.y == lastT) ? 1 : 2);
+                lastMask = step(tExit.xyz, min(tExit.yzx, tExit.zxy));
 
                 blockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
                 uvec3 spreadPos = _voxel_spreadPos(blockPos);
@@ -297,17 +301,15 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
                 // Ascend: O(1) level recomputation via findMSB
                 uint mortonDiff = oldFullMorton ^ fullMorton;
-                if (mortonDiff >= 64u) {
-                    int newLevel = ((findMSB(mortonDiff) * 43) >> 8) + 1;
-                    level = min(newLevel, VOXEL_TREE_TOP_LEVEL);
-                }
+                int newLevel = ((findMSB(mortonDiff) * 43) >> 8) + 1;
+                level = min(newLevel, VOXEL_TREE_TOP_LEVEL);
             }
         }
 
         // Write back state for resumption if still active (not done)
         if (ray.level != 0) {
             ray.lastT = lastT;
-            ray.lastAxis = lastAxis;
+            ray.lastAxis = (lastMask.x > 0.5) ? 0 : ((lastMask.y > 0.5) ? 1 : 2);
             ray.level = level;
             ray.fullMorton = fullMorton;
         }
