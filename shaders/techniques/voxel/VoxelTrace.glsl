@@ -186,135 +186,143 @@ VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData
 // Primary trace function (stateful)
 // ---------------------------------------------------------------------------
 VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
+    #if VOXEL_TRACE_DEBUG_COUNTERS
+    ivec4 debugCounters = ivec4(0);
+    #endif
+
+    // Early-out: ray missed grid or is already complete
+    if (ray.level != 0) {
+        const int GRID_BLOCKS = VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE;
+
+        vec3 worldRayOrigin = ray.worldRayOrigin;
+        vec3 worldRayDir = ray.worldRayDir;
+
+        // ---- Coordinate frame: grid-local block space [0, GRID_BLOCKS) ----
+        ivec3 cameraBrick = cameraPositionInt >> 4;
+        vec3  gridOriginF = vec3((cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4);
+        vec3  posGrid = worldRayOrigin - gridOriginF;
+
+        vec3  invDir = 1.0 / worldRayDir;
+        vec3  stepDirF = sign(worldRayDir);
+        ivec3 stepDirI = ivec3(stepDirF);
+
+        // ---- Precompute DDA biases ----
+        ivec3 boundOffsetMask = (-stepDirI) >> 1;
+        vec3  rayStepBias = step(vec3(0.0), worldRayDir);
+        vec3  tOrig = -posGrid * invDir;
+        vec3  tMaxBias = fma(rayStepBias, invDir, tOrig);
+        vec3  posGridBiased = fma(stepDirF, vec3(1e-3), posGrid);
+
+        // ---- Seed DDA state from ray ----
+        float lastT = ray.lastT;
+        int   lastAxis = ray.lastAxis;
+        int   level = ray.level;
+        uint  fullMorton = ray.fullMorton;
+
+        // Derive blockPos from the authoritative fullMorton (avoids clamp/bias ambiguity)
+        ivec3 blockPos = ivec3(morton3D_30bDecode(fullMorton));
+
+        // ---- Main hierarchical traversal loop ----
+        for (int i = 0; i < maxSteps; i++) {
+            // Bounds check — also serves as grid-exit detection
+            if (uint(blockPos.x | blockPos.y | blockPos.z) >= uint(GRID_BLOCKS)) {
+                ray.level = 0;
+                break;
+            }
+
+            #if VOXEL_TRACE_DEBUG_COUNTERS
+            debugCounters.x++;
+            #endif
+
+            // Load node mask at current level
+            uint childShift = 6u * uint(level - 1);
+            uint mortonPrefix = fullMorton >> childShift;
+            uint nodeIdx = _voxel_levelOffsets[level] + (mortonPrefix >> 6u);
+            uvec2 mask = voxel_tree[nodeIdx];
+            uint  childIdx = mortonPrefix & 63u;
+
+            // Branchless bit check
+            uint maskPart = mask[childIdx >> 5u];
+            bool isHit = ((maskPart >> (childIdx & 31u)) & 1u) != 0u;
+
+            if (isHit) {
+                // ---- Non-empty child ----
+                if (level == 1) {
+                    // Leaf level: individual block is solid → HIT
+                    uint allocID = voxel_brickAllocID[fullMorton >> 12u];
+                    uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
+
+
+                    VoxelHit result;
+
+                    result.hit = true;
+                    result.hitPos = fma(worldRayDir, vec3(lastT), worldRayOrigin);
+                    result.materialID = material;
+
+                    result.normal = vec3(0.0);
+                    if (lastAxis == 0) result.normal.x = -stepDirF.x;
+                    else if (lastAxis == 1) result.normal.y = -stepDirF.y;
+                    else result.normal.z = -stepDirF.z;
+
+                    ray.level = 0;
+
+                    #if VOXEL_TRACE_DEBUG_COUNTERS
+                    result.debugCounters = debugCounters;
+                    #endif
+                    return result;
+                }
+                // Descend into child
+                level--;
+                #if VOXEL_TRACE_DEBUG_COUNTERS
+                debugCounters.y++;
+                #endif
+            } else {
+                // ---- Empty child — skip to exit of child cell ----
+                #if VOXEL_TRACE_DEBUG_COUNTERS
+                if (level == 1) debugCounters.w++;
+                else debugCounters.z++;
+                #endif
+
+                ivec2 sizeMask = _voxel_levelSizeMask[level];
+                ivec3 target = (blockPos & sizeMask.x) + (sizeMask.y & boundOffsetMask);
+                vec3  tExit = fma(vec3(target), invDir, tMaxBias);
+
+                // Decouple data dependency for T vs Axis
+                lastT = min(min(tExit.x, tExit.y), tExit.z);
+
+                lastAxis = (tExit.x == lastT) ? 0 : ((tExit.y == lastT) ? 1 : 2);
+
+                blockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
+                uvec3 spreadPos = _voxel_spreadPos(blockPos);
+                uint  oldFullMorton = fullMorton;
+                fullMorton = _voxel_packSpreadPos(spreadPos);
+
+                // Ascend: O(1) level recomputation via findMSB
+                uint mortonDiff = oldFullMorton ^ fullMorton;
+                if (mortonDiff >= 64u) {
+                    int newLevel = ((findMSB(mortonDiff) * 43) >> 8) + 1;
+                    level = min(newLevel, VOXEL_TREE_TOP_LEVEL);
+                }
+            }
+        }
+
+        // Write back state for resumption if still active (not done)
+        if (ray.level != 0) {
+            ray.lastT = lastT;
+            ray.lastAxis = lastAxis;
+            ray.level = level;
+            ray.fullMorton = fullMorton;
+        }
+    }
+
     VoxelHit result;
     result.hit        = false;
     result.materialID = 0u;
     result.hitPos     = vec3(0.0);
     result.normal     = vec3(0.0, 1.0, 0.0);
     #if VOXEL_TRACE_DEBUG_COUNTERS
-    result.debugCounters = ivec4(0);
+    result.debugCounters = debugCounters
     #endif
-
-    // Early-out: ray missed grid or is already complete
-    if (ray.level == 0) return result;
-
-    const int GRID_BLOCKS = VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE;
-
-    vec3 worldRayOrigin = ray.worldRayOrigin;
-    vec3 worldRayDir    = ray.worldRayDir;
-
-    // ---- Coordinate frame: grid-local block space [0, GRID_BLOCKS) ----
-    ivec3 cameraBrick = cameraPositionInt >> 4;
-    vec3  gridOriginF = vec3((cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4);
-    vec3  posGrid     = worldRayOrigin - gridOriginF;
-
-    vec3  invDir   = 1.0 / worldRayDir;
-    vec3  stepDirF = sign(worldRayDir);
-    ivec3 stepDirI = ivec3(stepDirF);
-
-    // ---- Precompute DDA biases ----
-    ivec3 boundOffsetMask = (-stepDirI) >> 1;
-    vec3  rayStepBias     = step(vec3(0.0), worldRayDir);
-    vec3  tOrig           = -posGrid * invDir;
-    vec3  tMaxBias        = fma(rayStepBias, invDir, tOrig);
-    vec3  posGridBiased   = fma(stepDirF, vec3(1e-3), posGrid);
-
-    // ---- Seed DDA state from ray ----
-    float lastT      = ray.lastT;
-    int   lastAxis   = ray.lastAxis;
-    int   level      = ray.level;
-    uint  fullMorton = ray.fullMorton;
-
-    // Derive blockPos from the authoritative fullMorton (avoids clamp/bias ambiguity)
-    ivec3 blockPos = ivec3(morton3D_30bDecode(fullMorton));
-
-    // ---- Main hierarchical traversal loop ----
-    for (int i = 0; i < maxSteps; i++) {
-        // Bounds check — also serves as grid-exit detection
-        if (uint(blockPos.x | blockPos.y | blockPos.z) >= uint(GRID_BLOCKS)) {
-            ray.level = 0;
-            break;
-        }
-
-        #if VOXEL_TRACE_DEBUG_COUNTERS
-        result.debugCounters.x++;
-        #endif
-
-        // Load node mask at current level
-        uint childShift   = 6u * uint(level - 1);
-        uint mortonPrefix = fullMorton >> childShift;
-        uint nodeIdx      = _voxel_levelOffsets[level] + (mortonPrefix >> 6u);
-        uvec2 mask        = voxel_tree[nodeIdx];
-        uint  childIdx    = mortonPrefix & 63u;
-
-        // Branchless bit check
-        uint maskPart = (childIdx < 32u) ? mask.x : mask.y;
-        bool isHit    = ((maskPart >> (childIdx & 31u)) & 1u) != 0u;
-
-        if (isHit) {
-            // ---- Non-empty child ----
-            if (level == 1) {
-                // Leaf level: individual block is solid → HIT
-                uint allocID  = voxel_brickAllocID[fullMorton >> 12u];
-                uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
-
-                result.hit        = true;
-                result.hitPos     = fma(worldRayDir, vec3(lastT), worldRayOrigin);
-                result.materialID = material;
-
-                result.normal = vec3(0.0);
-                if      (lastAxis == 0) result.normal.x = -stepDirF.x;
-                else if (lastAxis == 1) result.normal.y = -stepDirF.y;
-                else                    result.normal.z = -stepDirF.z;
-
-                ray.level = 0;
-                return result;
-            }
-            // Descend into child
-            level--;
-            #if VOXEL_TRACE_DEBUG_COUNTERS
-            result.debugCounters.y++;
-            #endif
-        } else {
-            // ---- Empty child — skip to exit of child cell ----
-            #if VOXEL_TRACE_DEBUG_COUNTERS
-            if (level == 1) result.debugCounters.w++;
-            else            result.debugCounters.z++;
-            #endif
-
-            ivec2 sizeMask = _voxel_levelSizeMask[level];
-            ivec3 target    = (blockPos & sizeMask.x) + (sizeMask.y & boundOffsetMask);
-            vec3  tExit     = fma(vec3(target), invDir, tMaxBias);
-
-            // Decouple data dependency for T vs Axis
-            lastT = min(min(tExit.x, tExit.y), tExit.z);
-
-            if      (tExit.x == lastT) lastAxis = 0;
-            else if (tExit.y == lastT) lastAxis = 1;
-            else                       lastAxis = 2;
-
-            blockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
-            uvec3 spreadPos    = _voxel_spreadPos(blockPos);
-            uint  oldFullMorton = fullMorton;
-            fullMorton          = _voxel_packSpreadPos(spreadPos);
-
-            // Ascend: O(1) level recomputation via findMSB
-            uint mortonDiff = oldFullMorton ^ fullMorton;
-            if (mortonDiff >= 64u) {
-                int newLevel = ((findMSB(mortonDiff) * 43) >> 8) + 1;
-                level = min(newLevel, VOXEL_TREE_TOP_LEVEL);
-            }
-        }
-    }
-
-    // Write back state for resumption if still active (not done)
-    if (ray.level != 0) {
-        ray.lastT      = lastT;
-        ray.lastAxis   = lastAxis;
-        ray.level      = level;
-        ray.fullMorton = fullMorton;
-    }
-
     return result;
 }
 

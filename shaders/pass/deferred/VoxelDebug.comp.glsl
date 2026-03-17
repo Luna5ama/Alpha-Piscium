@@ -19,7 +19,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 #define VOXEL_BRICK_DATA_MODIFIER    restrict readonly buffer
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_TREE_DATA_MODIFIER     restrict readonly buffer
-#define VOXEL_TRACE_DEBUG_COUNTERS   1
+#define VOXEL_TRACE_DEBUG_COUNTERS   0
 #include "/techniques/voxel/VoxelTrace.glsl"
 
 #include "/util/GBufferData.glsl"
