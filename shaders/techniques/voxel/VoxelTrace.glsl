@@ -204,13 +204,11 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
         vec3  posGrid = worldRayOrigin - gridOriginF;
 
         vec3  invDir = 1.0 / worldRayDir;
-        vec3  stepDirF = sign(worldRayDir);
-        ivec3 stepDirI = ivec3(stepDirF);
 
         // ---- Precompute DDA biases ----
-        ivec3 boundOffsetMask = (-stepDirI) >> 1;
+        ivec3 boundOffsetMask = ~(floatBitsToInt(worldRayDir) >> 31);;
         vec3  tOrig           = -posGrid * invDir;
-        vec3  posGridBiased   = fma(stepDirF, vec3(1e-3), posGrid);
+        vec3  posGridBiased   = fma(sign(worldRayDir), vec3(1e-3), posGrid);
 
         // ---- Seed DDA state from ray ----
         float lastT = ray.lastT;
@@ -264,7 +262,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     ivec3 iMask = lastMask;
                     iMask.y &= ~iMask.x;             // Resolve ties (corner hits) to X
                     iMask.z &= ~(iMask.x | iMask.y); // Resolve ties to Y over Z
-                    result.normal = -stepDirF * vec3(iMask);
+                    result.normal = -sign(worldRayDir) * vec3(iMask);
 
                     ray.level = 0;
 

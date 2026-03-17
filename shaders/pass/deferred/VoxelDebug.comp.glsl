@@ -5,7 +5,7 @@
 // The OverlayComposite pass later alpha-blends this over the main image.
 //
 // Enabled via SETTING_DEBUG_VOXEL_TRACE (see options.main.kts / Options.glsl).
-// Entry point: deferred26.csh
+// Entry point: deferred69.csh
 //
 // Three ray modes, selected by SETTING_DEBUG_VOXEL_MODE:
 //   0 – Primary camera ray (default)
@@ -100,9 +100,8 @@ void main() {
     vec3 worldPos = scenePos + vec3(cameraPositionInt) + cameraPositionFract;
 
     // Unpack world-space geometry normal.
-    GBufferData gData = gbufferData_init();
-    gbufferData1_unpack_world(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-    vec3 worldNormal = gData.geomNormal;
+    vec3 viewNormal = transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
+    vec3 worldNormal = coords_dir_viewToWorld(viewNormal);
 
     vec3 worldDir;
 
@@ -145,15 +144,15 @@ void main() {
     VoxelRay voxelRay = voxelray_setup(worldOrigin, worldDir, 0u);
     VoxelHit hit = voxel_traceRay(voxelRay, 256);
     imageStore(uimg_overlays, texelPos, materialIdToColor(hit.materialID));
-    #if VOXEL_TRACE_DEBUG_COUNTERS
-    imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
-    vec3 ao = hit.materialID == 0u ? vec3(1.0) : vec3(0.0);
-    vec4 prev = imageLoad(uimg_temp3, texelPos);
-    float newF = clamp(prev.a * global_taaResetFactor.z + 1.0, 1.0, 64.0);
-    float alpha = 1.0 / newF;
-    ao = mix(prev.rgb, ao, alpha);
-    imageStore(uimg_temp3, texelPos, vec4(ao, newF));
-    #endif
+//    #if VOXEL_TRACE_DEBUG_COUNTERS
+//    imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
+//    vec3 ao = hit.materialID == 0u ? vec3(1.0) : vec3(0.0);
+//    vec4 prev = imageLoad(uimg_temp3, texelPos);
+//    float newF = clamp(prev.a * global_taaResetFactor.z + 1.0, 1.0, 64.0);
+//    float alpha = 1.0 / newF;
+//    ao = mix(prev.rgb, ao, alpha);
+//    imageStore(uimg_temp3, texelPos, vec4(ao, newF));
+//    #endif
     #endif
 }
 
