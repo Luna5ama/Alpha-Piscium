@@ -214,10 +214,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
         // ---- Seed DDA state from ray ----
         float lastT = ray.lastT;
-        vec3 lastMask = vec3(0.0);
-        if (ray.lastAxis == 0) lastMask.x = 1.0;
-        else if (ray.lastAxis == 1) lastMask.y = 1.0;
-        else if (ray.lastAxis == 2) lastMask.z = 1.0;
+        ivec3 lastMask = ivec3(0.0);
+        if (ray.lastAxis == 0) lastMask.x = 1;
+        else if (ray.lastAxis == 1) lastMask.y = 1;
+        else if (ray.lastAxis == 2) lastMask.z = 1;
         int   level = ray.level;
         uint  fullMorton = ray.fullMorton;
 
@@ -254,7 +254,6 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     uint allocID = voxel_brickAllocID[fullMorton >> 12u];
                     uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
 
-
                     VoxelHit result;
 
                     result.hit = true;
@@ -262,7 +261,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     result.materialID = material;
 
                     result.normal = vec3(0.0);
-                    ivec3 iMask = ivec3(lastMask);
+                    ivec3 iMask = lastMask;
                     iMask.y &= ~iMask.x;             // Resolve ties (corner hits) to X
                     iMask.z &= ~(iMask.x | iMask.y); // Resolve ties to Y over Z
                     result.normal = -stepDirF * vec3(iMask);
@@ -292,7 +291,8 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                 vec3 tExit = fma(vec3(target), invDir, tOrig);
                 lastT = min(min(tExit.x, tExit.y), tExit.z);
 
-                lastMask = step(tExit.xyz, min(tExit.yzx, tExit.zxy));
+                // Reuse lastT to identify exit axis (saves 3 MIN vs step+min)
+                lastMask = ivec3(lessThanEqual(tExit, vec3(lastT)));
 
                 blockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
                 uvec3 spreadPos = _voxel_spreadPos(blockPos);
