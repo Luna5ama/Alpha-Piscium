@@ -245,7 +245,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
             // Branchless bit check
             uint maskPart = mask[childIdx >> 5u];
-            bool isHit = ((maskPart >> (childIdx & 31u)) & 1u) != 0u;
+            bool isHit = bool((maskPart >> (childIdx & 31u)) & 1u);
 
             if (isHit) {
                 // ---- Non-empty child ----
