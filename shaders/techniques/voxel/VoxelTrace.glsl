@@ -118,7 +118,8 @@ void voxel_initShared() {
     if (gl_LocalInvocationIndex < 6u) {
         int cellShift = (int(gl_LocalInvocationIndex) - 1) << 1;
         int sizeMask = -(1 << cellShift);
-        _voxel_levelSizeMask[gl_LocalInvocationIndex] = ivec2(sizeMask, ~sizeMask);
+        // Store absolute cell size (1 << cellShift) in the Y component
+        _voxel_levelSizeMask[gl_LocalInvocationIndex] = ivec2(sizeMask, 1 << cellShift);
     }
 
     barrier();
@@ -208,10 +209,8 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
         // ---- Precompute DDA biases ----
         ivec3 boundOffsetMask = (-stepDirI) >> 1;
-        vec3  rayStepBias = step(vec3(0.0), worldRayDir);
-        vec3  tOrig = -posGrid * invDir;
-        vec3  tMaxBias = fma(rayStepBias, invDir, tOrig);
-        vec3  posGridBiased = fma(stepDirF, vec3(1e-3), posGrid);
+        vec3  tOrig           = -posGrid * invDir;
+        vec3  posGridBiased   = fma(stepDirF, vec3(1e-3), posGrid);
 
         // ---- Seed DDA state from ray ----
         float lastT = ray.lastT;
@@ -285,9 +284,8 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
                 ivec2 sizeMask = _voxel_levelSizeMask[level];
                 ivec3 target = (blockPos & sizeMask.x) + (sizeMask.y & boundOffsetMask);
-                vec3  tExit = fma(vec3(target), invDir, tMaxBias);
 
-                // Decouple data dependency for T vs Axis
+                vec3 tExit = fma(vec3(target), invDir, tOrig);
                 lastT = min(min(tExit.x, tExit.y), tExit.z);
 
                 lastAxis = (tExit.x == lastT) ? 0 : ((tExit.y == lastT) ? 1 : 2);
