@@ -167,7 +167,11 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
             float shadowSampleSolid = rtwsm_sampleShadowDepth(shadowtex1HW, sampleTexCoord, 0.0);
             solidShadowSum += float16_t(shadowSampleSolid);
 
-            if (shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))) {
+            // shadowSampleSolid > 0.0 && any(lessThan(sampleShadowDepthOffset4, vec4(0.0)))
+            bool cond = bool(or4(floatBitsToUint(sampleShadowDepthOffset4)) >> 31u);
+            cond = cond && bool(floatBitsToUint(shadowSampleSolid));
+
+            if (cond) {
                 vec4 shadowDepthAll = textureGather(shadowtex0, sampleTexCoord.xy, 0);
                 bvec4 shadowSampleCompareAll = greaterThan(vec4(sampleTexCoord.z), shadowDepthAll);
                 if (any(shadowSampleCompareAll)) {
