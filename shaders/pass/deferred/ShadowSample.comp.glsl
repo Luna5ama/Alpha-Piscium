@@ -129,7 +129,6 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         ssRange = mix(ssRange, ssRange + 0.05, gData.isHand);
         #endif
         float clampedBlockerDistance = softMax(blockerDistance, 0.5, 8.0);
-        clampedBlockerDistance = 0.0;
         ssRange += SUN_ANGULAR_RADIUS * 2.0 * SETTING_PCSS_VPF * clampedBlockerDistance;
         ssRange = saturate(ssRange);
         ssRange += sssFactor * SETTING_SSS_DIFFUSE_RANGE;
