@@ -232,8 +232,8 @@ void main() {
 //                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
 //                    imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
 
-                    gi_historyData_unpack2(historyData, history_gi2_fetch(texelPos));
-                    imageStore(uimg_temp2, texelPos, gi_historyData_pack2(historyData));
+//                    gi_historyData_unpack2(historyData, history_gi2_fetch(texelPos));
+//                    imageStore(uimg_temp2, texelPos, gi_historyData_pack2(historyData));
 //
 //                    imageStore(uimg_temp3, texelPos, vec4(finalDiff, 0.0));
 //                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.realHistoryLength), 1.0));

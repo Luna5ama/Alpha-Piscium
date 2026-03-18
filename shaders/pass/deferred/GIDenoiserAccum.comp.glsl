@@ -75,6 +75,12 @@ void main() {
             float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
             if (viewZ > -65536.0) {
                 vec4 newDiffuse = transient_ssgiOut_fetch(texelPos);
+                #if SETTING_DEBUG_OUTPUT
+                if (RANDOM_FRAME < MAX_FRAMES) {
+                    imageStore(uimg_temp2, texelPos, newDiffuse);
+                }
+                #endif
+
                 vec4 newSpecular = vec4(0.0); // TODO: specular input
 
                 GIHistoryData historyData = gi_historyData_init();
