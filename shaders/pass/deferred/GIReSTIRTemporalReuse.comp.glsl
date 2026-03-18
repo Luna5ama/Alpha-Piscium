@@ -20,7 +20,6 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
-#include "/util/Hash.glsl"
 #include "/util/Sampling.glsl"
 #include "/techniques/HiZCheck.glsl"
 #include "/util/ThreadGroupTiling.glsl"
@@ -106,7 +105,7 @@ void main() {
 
             uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_fetch(texelPos);
             ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
-            float ageResetRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987123654u)).x);
+            float ageResetRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
             if (reprojInfo.historyResetFactor > ageResetRand) {
                 ivec2 prevTexelPos = ivec2(-1);
 
@@ -157,7 +156,7 @@ void main() {
                     blinearWeights4.xy *= bilinearWeights2.yy;
                     blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
-                    float rand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987654u)).x);
+                    float rand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 2u), RANDOM_FRAME);
                     int selectedIndex = selectWeighted(blinearWeights4, reprojInfo.bilateralWeights, rand);
 
                     if (selectedIndex >= 0){
@@ -303,7 +302,7 @@ void main() {
                 float newPHat = length(initalSample);
                 float newWi = samplePdf <= 0.0 ? 0.0 : newPHat / samplePdf;
 
-                float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 547679546u)).w);
+                float reservoirRand1 = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 3u), RANDOM_FRAME);
 
                 float reservoirPHat = prevPHat;
                 vec4 finalSample = prevSample;

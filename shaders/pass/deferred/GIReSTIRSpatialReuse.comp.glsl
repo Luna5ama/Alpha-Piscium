@@ -22,7 +22,6 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
-#include "/util/Hash.glsl"
 #include "/util/Mat2.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
@@ -222,7 +221,7 @@ void main() {
 
                     float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
 
-                    float neighborRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 2u + i)).x);
+                    float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 4u + i), RANDOM_FRAME);
 
                     if (restir_updateReservoir(
                         spatialReservoir,
