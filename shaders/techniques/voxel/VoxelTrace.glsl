@@ -41,10 +41,9 @@
 // ---------------------------------------------------------------------------
 struct VoxelHit {
     bool  hit;
-    uint  materialID;   // material written by the shadow pass; 0 = miss
-    vec3  hitPos;       // world-space entry point of the hit block
-    vec3  normal;       // outward face normal of the hit surface
-
+    uint materialID;   // material written by the shadow pass; 0 = miss
+    vec3 hitPos;       // world-space entry point of the hit block
+    vec3 normal;       // outward face normal of the hit surface
 #if VOXEL_TRACE_DEBUG_COUNTERS
     ivec4 debugCounters;
 #endif
@@ -64,10 +63,10 @@ uint _voxel_spreadBits(uint x) {
 #else
 uint _voxel_spreadBits(uint x) {
     x &= 0x000003FFu;
-    x = (x | (x << 16u)) & 0x030000FFu;
-    x = (x | (x << 8u)) & 0x0300F00Fu;
-    x = (x | (x << 4u)) & 0x030C30C3u;
-    x = (x | (x << 2u)) & 0x09249249u;
+    x = (x * 0x00010001u) & 0xFF0000FFu;
+    x = (x * 0x00000101u) & 0x0F00F00Fu;
+    x = (x * 0x00000011u) & 0xC30C30C3u;
+    x = (x * 0x00000005u) & 0x49249249u;
     return x;
 }
 #endif
@@ -135,9 +134,9 @@ void voxel_initShared() {
 VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData) {
     VoxelRay ray = voxelray_init();
     ray.worldRayOrigin = worldRayOrigin;
-    ray.callbackData   = callbackData;
+    ray.callbackData = callbackData;
 
-    const int   GRID_BLOCKS = VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE;
+    const int GRID_BLOCKS = VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE;
     const float EPS = 1e-4;
 
     // Sanitize direction — avoid zero components
@@ -145,16 +144,16 @@ VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData
     ray.worldRayDir = worldRayDir;
 
     ivec3 cameraBrick = cameraPositionInt >> 4;
-    vec3  gridOriginF = vec3((cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4);
-    vec3  posGrid     = worldRayOrigin - gridOriginF;
+    vec3 gridOriginF = vec3((cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4);
+    vec3 posGrid = worldRayOrigin - gridOriginF;
 
-    vec3  invDir   = 1.0 / worldRayDir;
-    vec3  tOrig    = -posGrid * invDir;
-    vec3  t1g      = fma(vec3(float(GRID_BLOCKS)), invDir, tOrig);
-    vec3  tMinG    = min(tOrig, t1g);
-    vec3  tMaxG    = max(tOrig, t1g);
-    float tEnter   = max(max(tMinG.x, tMinG.y), tMinG.z);
-    float tExitG   = min(min(tMaxG.x, tMaxG.y), tMaxG.z);
+    vec3 invDir = 1.0 / worldRayDir;
+    vec3 tOrig = -posGrid * invDir;
+    vec3 t1g = fma(vec3(float(GRID_BLOCKS)), invDir, tOrig);
+    vec3 tMinG = min(tOrig, t1g);
+    vec3 tMaxG = max(tOrig, t1g);
+    float tEnter = max(max(tMinG.x, tMinG.y), tMinG.z);
+    float tExitG = min(min(tMaxG.x, tMaxG.y), tMaxG.z);
 
     if (tEnter > tExitG || tExitG <= 0.0) {
         // Miss — level stays 0
@@ -162,7 +161,7 @@ VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData
     }
 
     float tCurrent = max(tEnter, 0.0) + EPS;
-    vec3  startPos = fma(worldRayDir, vec3(tCurrent), posGrid);
+    vec3 startPos = fma(worldRayDir, vec3(tCurrent), posGrid);
     startPos = clamp(startPos, vec3(EPS), vec3(float(GRID_BLOCKS) - EPS));
     ivec3 blockPos = ivec3(floor(startPos));
 
@@ -171,14 +170,13 @@ VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData
     // Entry axis (only meaningful when ray started outside the grid)
     ray.lastAxis = -1;
     if (tEnter > 0.0) {
-//        ray.lastAxis = (tMinG.x >= tMinG.y && tMinG.x >= tMinG.z) ? 0
-//                     : (tMinG.y >= tMinG.z                        ? 1 : 2);
+        ray.lastAxis = (tMinG.x >= tMinG.y && tMinG.x >= tMinG.z) ? 0 : (tMinG.y >= tMinG.z ? 1 : 2);
     }
 
     // Encode initial block position as fullMorton via shared spread LUT
     uvec3 spreadPos = _voxel_spreadPos(blockPos);
-    ray.fullMorton  = _voxel_packSpreadPos(spreadPos);
-    ray.level       = 1;
+    ray.fullMorton = _voxel_packSpreadPos(spreadPos);
+    ray.level = 1;
 
     return ray;
 }
@@ -200,24 +198,22 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
         // ---- Coordinate frame: grid-local block space [0, GRID_BLOCKS) ----
         ivec3 cameraBrick = cameraPositionInt >> 4;
-        vec3  gridOriginF = vec3((cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4);
-        vec3  posGrid = worldRayOrigin - gridOriginF;
+        vec3 gridOriginF = vec3((cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4);
+        vec3 posGrid = worldRayOrigin - gridOriginF;
 
-        vec3  invDir = 1.0 / worldRayDir;
+        vec3 invDir = 1.0 / worldRayDir;
 
         // ---- Precompute DDA biases ----
         ivec3 boundOffsetMask = ~(floatBitsToInt(worldRayDir) >> 31);;
-        vec3  tOrig           = -posGrid * invDir;
-        vec3  posGridBiased   = fma(sign(worldRayDir), vec3(1e-3), posGrid);
+        vec3 tOrig = -posGrid * invDir;
+        vec3 posGridBiased = fma(sign(worldRayDir), vec3(1e-3), posGrid);
 
         // ---- Seed DDA state from ray ----
         float lastT = ray.lastT;
         ivec3 lastMask = ivec3(0.0);
-        if (ray.lastAxis == 0) lastMask.x = 1;
-        else if (ray.lastAxis == 1) lastMask.y = 1;
-        else if (ray.lastAxis == 2) lastMask.z = 1;
-        int   level = ray.level;
-        uint  fullMorton = ray.fullMorton;
+        lastMask = ivec3(equal(ray.lastAxis, ivec3(0, 1, 2)));
+        int level = ray.level;
+        uint fullMorton = ray.fullMorton;
 
         // Derive blockPos from the authoritative fullMorton (avoids clamp/bias ambiguity)
         ivec3 blockPos = ivec3(morton3D_30bDecode(fullMorton));
@@ -239,7 +235,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
             uint mortonPrefix = fullMorton >> childShift;
             uint nodeIdx = _voxel_levelOffsets[level] + (mortonPrefix >> 6u);
             uvec2 mask = voxel_tree[nodeIdx];
-            uint  childIdx = mortonPrefix & 63u;
+            uint childIdx = mortonPrefix & 63u;
 
             // Branchless bit check
             uint maskPart = mask[childIdx >> 5u];
@@ -294,7 +290,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
                 blockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
                 uvec3 spreadPos = _voxel_spreadPos(blockPos);
-                uint  oldFullMorton = fullMorton;
+                uint oldFullMorton = fullMorton;
                 fullMorton = _voxel_packSpreadPos(spreadPos);
 
                 // Ascend: O(1) level recomputation via findMSB
@@ -314,10 +310,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
     }
 
     VoxelHit result;
-    result.hit        = false;
+    result.hit = false;
     result.materialID = 0u;
-    result.hitPos     = vec3(0.0);
-    result.normal     = vec3(0.0, 1.0, 0.0);
+    result.hitPos = vec3(0.0);
+    result.normal = vec3(0.0, 1.0, 0.0);
     #if VOXEL_TRACE_DEBUG_COUNTERS
     result.debugCounters = debugCounters
     #endif
