@@ -45,9 +45,10 @@ void main() {
     #endif
 
     #ifdef GBUFFER_PASS_DH
-    frag_materialID = 65533u;
     if (dhMaterialId == DH_BLOCK_WATER) {
         frag_materialID = MATERIAL_ID_WATER;
+    } else {
+        frag_materialID = 24u;
     }
     #else
     frag_materialID = uint(int(mc_Entity.x)) & 0xFFFFu;

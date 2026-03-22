@@ -158,7 +158,7 @@ void processData1() {
     #endif
 
     #ifdef GBUFFER_PASS_DH
-    gData.materialID = 65533;
+    gData.materialID = 0u;
     #endif
 
     #ifdef GBUFFER_PASS_ENTITY
