@@ -63,12 +63,15 @@ void shadowAABB2() {
 }
 
 void updateShadowAABB(vec2 screenPos, float viewZ, inout vec3 shadowViewPosMin, inout vec3 shadowViewPosMax) {
-    if (viewZ < 0.0 && viewZ > -farPlane) {
+    if (viewZ < 0.0 && viewZ > -vanillaFarPlane) {
         vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
         vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
-        vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
-        shadowViewPosMin = min(shadowViewPosMin, shadowViewPos.xyz);
-        shadowViewPosMax = max(shadowViewPosMax, shadowViewPos.xyz);
+        float distanceSqXZ = lengthSq(scenePos.xz);
+        if (distanceSqXZ < pow2(vanillaFarPlane)) {
+            vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
+            shadowViewPosMin = min(shadowViewPosMin, shadowViewPos.xyz);
+            shadowViewPosMax = max(shadowViewPosMax, shadowViewPos.xyz);
+        }
     }
 }
 
@@ -78,11 +81,11 @@ void main() {
         shared_shadowAABBMin[gl_LocalInvocationIndex] = vec3(0.0);
     }
 
+    float solid = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
     vec2 layer1 = vec2(-FLT_MAX);
     vec2 layer2 = vec2(-FLT_MAX);
     vec2 layer3 = vec2(-FLT_MAX);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        float solid = texelFetch(colortex10, texelPos, 0).r;
         float nearWaterOg = -texelFetch(usam_csr32f, csr32f_tile1_texelToTexel(texelPos), 0).r;
         float nearTranslucentOg = -texelFetch(usam_csr32f, csr32f_tile3_texelToTexel(texelPos), 0).r;
         float farWaterOg = -texelFetch(usam_csr32f, csr32f_tile2_texelToTexel(texelPos), 0).r;
@@ -130,18 +133,20 @@ void main() {
     }
     barrier();
 
-    bvec4 dilateCond = equal(result, vec4(-FLT_MAX));
-    result = mix(result, shared_dilateData[0], dilateCond);
-
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
 
     vec3 shadowViewPosMin = vec3(0.0);
     vec3 shadowViewPosMax = vec3(0.0);
 
+    updateShadowAABB(screenPos, solid, shadowViewPosMin, shadowViewPosMax);
     updateShadowAABB(screenPos, result.x, shadowViewPosMin, shadowViewPosMax);
     updateShadowAABB(screenPos, result.z, shadowViewPosMin, shadowViewPosMax);
-    updateShadowAABB(screenPos, layer3.y, shadowViewPosMin, shadowViewPosMax);
+    updateShadowAABB(screenPos, result.z, shadowViewPosMin, shadowViewPosMax);
+    updateShadowAABB(screenPos, result.w, shadowViewPosMin, shadowViewPosMax);
     shadowAABB1(shadowViewPosMin, shadowViewPosMax);
+
+    bvec4 dilateCond = equal(result, vec4(-FLT_MAX));
+    result = mix(result, shared_dilateData[0], dilateCond);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         result = abs(result) * (vec2(bvec2(any(dilateCond.xy), any(dilateCond.zw))) * 2.0 - 1.0).xxyy;
