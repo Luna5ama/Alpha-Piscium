@@ -1,6 +1,7 @@
 #include "/util/Coords.glsl"
 #include "/util/Math.glsl"
 #include "/util/NZPacking.glsl"
+#include "/util/MaterialIDConst.glsl"
 
 #ifndef GBUFFER_PASS_DH
 in vec2 mc_Entity;
@@ -46,7 +47,7 @@ void main() {
     #ifdef GBUFFER_PASS_DH
     frag_materialID = 65533u;
     if (dhMaterialId == DH_BLOCK_WATER) {
-        frag_materialID = 3u;
+        frag_materialID = MATERIAL_ID_WATER;
     }
     #else
     frag_materialID = uint(int(mc_Entity.x)) & 0xFFFFu;
