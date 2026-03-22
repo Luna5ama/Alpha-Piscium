@@ -74,13 +74,16 @@ void loadSharedShadowSample(uint index) {
     sampleData.x = shadowSampleDepth;
 
     #ifdef SETTING_WATER_SCATTERING_REFRACTION_APPROX
-    {
+    float waterMask = texture(usam_shadow_waterMask, sampleShadowUV.xy).r;
+    if (waterMask > 0.0) {
         const float STRENGTH_POWER = ldexp(1.0, SETTING_WATER_SCATTERING_REFRACTION_APPROX_CONTRAST);
         vec3 waterNormal = texture(usam_shadow_waterNormal, sampleShadowUV.xy).xyz * 2.0 - 1.0;
-        waterNormal = mix(waterNormal, vec3(0.0, 1.0, 0.0), edgeBlend);
         waterNormal = normalize(waterNormal);
-        float refractBoost = pow(pow2(dot(waterNormal, vec3(0.0, 1.0, 0.0))), STRENGTH_POWER);
-        sampleData.y = refractBoost;
+        float refractBoost = pow(saturate(pow2(dot(waterNormal, vec3(0.0, 1.0, 0.0)))), STRENGTH_POWER);
+        sampleData.y = mix(refractBoost, 1.0, edgeBlend);
+        if (shadowSampleDepth >= 1.0) {
+            sampleData.y = 1.0;
+        }
     }
     #endif
 
@@ -153,7 +156,7 @@ vec2 atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitt
 
         uint index = uint(indexF);
         vec2 sampleData = shared_sliceShadowSamples[index];
-        float shadowTerm = float(sampleData.x > sampleTAndDepth.y);
+        float shadowTerm = float(sampleData.x >= sampleTAndDepth.y);
         shadowSum.x += shadowTerm;
         shadowSum.y += sampleData.y;
     }
