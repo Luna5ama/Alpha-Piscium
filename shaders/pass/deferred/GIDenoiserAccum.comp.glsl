@@ -187,6 +187,12 @@ void main() {
                 transient_gi3Reprojected_store(texelPos, packedData3);
                 transient_gi4Reprojected_store(texelPos, packedData4);
                 transient_gi5Reprojected_store(texelPos, packedData5);
+
+                #if SETTING_DEBUG_OUTPUT
+                if (RANDOM_FRAME < MAX_FRAMES){
+                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
+                }
+                #endif
             }
         }
     }
