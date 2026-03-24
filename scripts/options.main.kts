@@ -964,9 +964,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 16, powerOfTwoAndHalfRange(2..8)) {
-                    Profile.Low preset 64
-                    Profile.Medium preset 48
-                    Profile.High preset 32
                     lang {
                         name = "Temporal Fast History Length"
                         comment =
