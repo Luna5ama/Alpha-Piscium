@@ -821,7 +821,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                toggle("SETTING_GI_TEMPORAL_REUSE_LIMIT", 24, powerOfTwoAndHalfRange(1..6)) {
+                slider("SETTING_GI_TEMPORAL_REUSE_LIMIT", 24, powerOfTwoAndHalfRange(1..6)) {
                     lang {
                         name = "Temporal Reuse Limit"
                         comment = "Limits how many previous frames can be reused for GI temporal accumulation. Higher values improve quality but increase lighting latency."
