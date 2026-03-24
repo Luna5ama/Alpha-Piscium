@@ -169,9 +169,6 @@ void main() {
 
                 historyData.historyLength = mix(historyData.historyLength, hLenMax.x, pow2(hLenAverage.x));
                 historyData.realHistoryLength = mix(historyData.realHistoryLength, hLenMax.y, hLenAverage.y);
-                #if SETTING_DEBUG_OUTPUT
-//                imageStore(uimg_temp3, texelPos, gi_historyData_pack1(historyData));
-                #endif
 
                 float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 1u), frameCounter);
                 vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);

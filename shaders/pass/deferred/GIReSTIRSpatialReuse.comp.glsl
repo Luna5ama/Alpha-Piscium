@@ -117,7 +117,7 @@ void main() {
                 pHatMe = length(f);
                 originalSample = vec4(f, pHatMe);
             }
-            float spatialWSum = max(spatialReservoir.avgWY, 0.0) * pHatMe * float(spatialReservoir.m);
+            float spatialWSum = max(spatialReservoir.avgWY, 0.0) * pHatMe * spatialReservoir.m;
 
 
             vec4 selectedSampleF = originalSample;
@@ -212,14 +212,14 @@ void main() {
                     float maxJacobian = 100.0;
                     float jacobian = RA2 * cosPhiB <= 0.0 ? 0.0 : (RB2 * cosPhiA) / (RA2 * cosPhiB);
                     if (neighborPHat <= 0.0) {
-                        neighborReservoir.m = 0u;
+                        neighborReservoir.m = 0.0;
                     }
                     if (jacobian <= 0.0) {
-                        neighborReservoir.m = 0u;
+                        neighborReservoir.m = 0.0;
                     }
                     jacobian = clamp(jacobian, 0.0, maxJacobian);
 
-                    float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * float(neighborReservoir.m) * jacobian;
+                    float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * neighborReservoir.m * jacobian;
 
                     float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 4u + i), RANDOM_FRAME);
 
@@ -238,7 +238,7 @@ void main() {
 
             vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
             ReSTIRReservoir resultReservoir = spatialReservoir;
-            float avgWSum = spatialWSum / float(spatialReservoir.m);
+            float avgWSum = spatialWSum / spatialReservoir.m;
             resultReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
             ssgiOut = vec4(selectedSampleF.xyz * resultReservoir.avgWY, resultReservoir.Y.w);
             #if SETTING_DEBUG_OUTPUT
