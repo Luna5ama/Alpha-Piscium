@@ -109,11 +109,11 @@ void main() {
                     realHistoryLength = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH * global_historyResetFactor;
                     realHistoryLength += 1.0;
 
-                    #if SETTING_DENOISER_FIREFLY_SUPPRESSION
+                    #if SETTING_DENOISER_FLICKER_SUPPRESSION
                     // Idea from Belmu to limit firefly based on luma difference
                     if (historyData.realHistoryLength > 0.0) {
                         float expMul = exp2(global_aeData.expValues.z);
-                        float threshold = ldexp(1.0, -SETTING_DENOISER_FIREFLY_SUPPRESSION);
+                        float threshold = ldexp(1.0, -SETTING_DENOISER_FLICKER_SUPPRESSION);
                         newWeights.x = computeOutputLumaDiffWeight(historyData.diffuseColor, newDiffuse.rgb, expMul, threshold);
                         newWeights.y = computeOutputLumaDiffWeight(historyData.specularColor, newSpecular.rgb, expMul, threshold);
                     }
@@ -182,9 +182,14 @@ void main() {
                 vec4 packedData5 = gi_historyData_pack5(historyData);
                 packedData5 = dither_u8(packedData5, ditherNoise);
 
+                #ifdef SETTING_DENOISER_ANTI_FIREFLY
+                transient_gi1AntiFireFlyInput_store(texelPos, packedData1);
+                transient_gi3AntiFireFlyInput_store(texelPos, packedData3);
+                #else
                 transient_gi1Reprojected_store(texelPos, packedData1);
-                transient_gi2Reprojected_store(texelPos, packedData2);
                 transient_gi3Reprojected_store(texelPos, packedData3);
+                #endif
+                transient_gi2Reprojected_store(texelPos, packedData2);
                 transient_gi4Reprojected_store(texelPos, packedData4);
                 transient_gi5Reprojected_store(texelPos, packedData5);
 

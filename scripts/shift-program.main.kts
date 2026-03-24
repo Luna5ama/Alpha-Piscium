@@ -29,24 +29,27 @@ import java.security.MessageDigest
 import kotlin.io.path.*
 import kotlin.system.exitProcess
 
-if (args.size !in 3..5) {
-    println("Usage: shift-program.main.kts <prefix> <center> <delta> <world path from shaders (.)> <shaders path (../shaders)>")
+val autoConfirm = args.firstOrNull() == "--yes"
+val effectiveArgs = if (autoConfirm) args.drop(1).toTypedArray() else args
+
+if (effectiveArgs.size !in 3..5) {
+    println("Usage: shift-program.main.kts [--yes] <prefix> <center> <delta> <world path from shaders (.)> <shaders path (../shaders)>")
     exitProcess(1)
 }
 
-val prefix = args[0]
+val prefix = effectiveArgs[0]
 val validPrefixes = setOf("setup", "begin", "shadowcomp", "prepare", "deferred", "composite")
 check(prefix in validPrefixes) { "Invalid prefix: $prefix, must be one of $validPrefixes" }
 
-val center = args[1].toInt()
+val center = effectiveArgs[1].toInt()
 check(center in 0..99) { "Center must be in range 0..99" }
-val delta = args[2].toInt()
+val delta = effectiveArgs[2].toInt()
 check(delta != 0) { "Delta must be non-zero" }
 
-val shadersDirStr = args.getOrElse(4) { "../shaders" }
+val shadersDirStr = effectiveArgs.getOrElse(4) { "../shaders" }
 val shadersDir = Path(shadersDirStr)
 
-val worldStr = args.getOrElse(3) { "." }
+val worldStr = effectiveArgs.getOrElse(3) { "." }
 val worldDir = shadersDir.resolve(worldStr).normalize()
 
 val entries = worldDir.listDirectoryEntries("$prefix*").asSequence()
@@ -92,11 +95,13 @@ toMove.forEachIndexed { i, it ->
     println("$i: $prefix${indexToString(it.first)} -> $prefix${indexToString(it.second)}")
 }
 
-println("This can break your code, make sure to commit all changes before proceeding. Type 'Y' to continue:")
-val confirmation = readLine().toString().lowercase()
-if (confirmation != "y" && confirmation != "yes") {
-    println("Aborting")
-    exitProcess(0)
+if (!autoConfirm) {
+    println("This can break your code, make sure to commit all changes before proceeding. Type 'Y' to continue:")
+    val confirmation = readLine().toString().lowercase()
+    if (confirmation != "y" && confirmation != "yes") {
+        println("Aborting")
+        exitProcess(0)
+    }
 }
 
 fun hash(path: Path): ByteArray {

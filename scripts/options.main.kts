@@ -975,15 +975,25 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FIREFLY_SUPPRESSION", 1, 0..10) {
+                slider("SETTING_DENOISER_FLICKER_SUPPRESSION", 1, 0..10) {
                     lang {
-                        name = "Firefly Suppression Strength"
+                        name = "Flicker Suppression Strength"
                         comment =
-                            "Reduces sudden bright spots in the GI results. Higher values increase suppression but can introduce lighting lags."
+                            "Reduces GI flickering. Higher values increase suppression but can introduce lighting lags."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "亮点抑制强度"
-                        comment = "减少GI结果中的突然出现的亮点。数值越高，抑制效果越强，但可能会增加光照延迟。"
+                        name = "闪烁抑制强度"
+                        comment = "减少GI闪烁。数值越高，抑制越强，但可能会引入光照延迟。"
+                    }
+                }
+                toggle("SETTING_DENOISER_ANTI_FIREFLY", true) {
+                    lang {
+                        name = "RCRS Firefly Suppression"
+                        comment = "Reduces bright noise artifacts (fireflies) in the GI results using Robust Contrast-based Range Shrinkage."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "RCRS亮点抑制"
+                        comment = "使用对比度范围收缩减少GI结果中的高亮噪点。"
                     }
                 }
                 toggle("SETTING_DENOISER_HISTORY_FIX", true) {
@@ -1019,7 +1029,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 16, powerOfTwoAndHalfRange(2..8)) {
+                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 16, powerOfTwoAndHalfRange(0..8)) {
                     lang {
                         name = "Stabilization Maximum Accumulated Frames"
                         comment =
