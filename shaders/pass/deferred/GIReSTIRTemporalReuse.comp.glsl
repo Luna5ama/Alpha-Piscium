@@ -20,7 +20,6 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
-#include "/util/Hash.glsl"
 #include "/util/Sampling.glsl"
 #include "/techniques/HiZCheck.glsl"
 #include "/util/ThreadGroupTiling.glsl"
@@ -32,24 +31,6 @@ layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 
-int selectWeighted(vec4 bilinearWeights, vec4 bilateralWeights, float rand) {
-    vec4 combinedWeights = bilinearWeights * bilateralWeights;
-
-    vec4 prefixSum;
-    prefixSum.x = combinedWeights.x;
-    prefixSum.y = prefixSum.x + combinedWeights.y;
-    prefixSum.z = prefixSum.y + combinedWeights.z;
-    prefixSum.w = prefixSum.z + combinedWeights.w;
-
-    float total = prefixSum.w;
-    float threshold = rand * total;
-
-    vec4 cmp = step(prefixSum, vec4(threshold));
-    int selectedIndex = int(sum4(cmp));
-    vec4 bilateralWeightMasked = mix(vec4(0.0), bilateralWeights, equal(ivec4(selectedIndex), ivec4(0, 1, 2, 3)));
-    float selectedWeight = sum4(bilateralWeightMasked);
-    return mix(-1, selectedIndex, selectedWeight > 0.96);
-}
 
 shared mat3 shared_prevViewToCurrView;
 shared mat4 shared_prevViewToCurrViewPos;
@@ -103,174 +84,113 @@ void main() {
 
             vec4 prevSample = vec4(0.0);
             vec3 prevHitNormal = vec3(0.0);
+            float prevPHat = 0.0;
+            float wSum = 0.0;
 
             uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_fetch(texelPos);
             ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
-            float ageResetRand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987123654u)).x);
+            float ageResetRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
             if (reprojInfo.historyResetFactor > ageResetRand) {
-                ivec2 prevTexelPos = ivec2(-1);
+                vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
+                vec2 centerPixel = curr2PrevTexelPos - 0.5;
+                vec2 gatherOrigin = floor(centerPixel);
+                vec2 gatherTexelPos = gatherOrigin + 1.0;
+                vec2 pixelPosFract = fract(centerPixel);
 
-                vec3 currViewPos = viewPos;
-                vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gIsHand);
-                vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
-                uint clipFlag = uint(curr2PrevClipPos.z > 0.0);
-                clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
-                if (bool(clipFlag)) {
-                    vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
-                    vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
-                    ivec2 curr2PrevTexelPos = ivec2(curr2PrevScreen * uval_mainImageSize);
+                vec4 bilinearWeights;
+                bilinearWeights.yz = pixelPosFract.xx;
+                bilinearWeights.xw = 1.0 - pixelPosFract.xx;
+                bilinearWeights.xy *= pixelPosFract.yy;
+                bilinearWeights.zw *= 1.0 - pixelPosFract.yy;
 
-                    vec4 prevGeomNormalData = history_geomViewNormal_fetch(curr2PrevTexelPos);
-                    vec4 prevNormalData = history_viewNormal_fetch(curr2PrevTexelPos);
-                    vec4 prevViewZData = history_viewZ_fetch(curr2PrevTexelPos);
+                for (int i = 0; i < 4; i++) {
+                    float combinedWeight = bilinearWeights[i] * reprojInfo.bilateralWeights[i] * global_historyResetFactor;
+                    if (combinedWeight <= 0.0) continue;
 
-                    vec3 prevGeomNormal = normalize(shared_prevViewToCurrView * (prevGeomNormalData.xyz * 2.0 - 1.0));
-                    vec3 prevNormal = normalize(shared_prevViewToCurrView * (prevNormalData.xyz * 2.0 - 1.0));
+                    ivec2 neighborTexelPos = ivec2(gatherTexelPos + sampling_indexToGatherOffset(uint(i)) * 0.5);
 
-                    float prevViewZ = prevViewZData.x;
-                    vec3 prevViewPos = coords_toViewCoord(curr2PrevScreen, prevViewZ, global_prevCamProjInverse);
-                    vec3 prev2CurrViewPos = (shared_prevViewToCurrViewPos * vec4(prevViewPos, 1.0)).xyz;
-
-                    float geomNormalDot = dot(gGeomNormal, prevGeomNormal);
-                    float normalDot = dot(gNormal, prevNormal);
-                    float planeDistance = gi_planeDistance(viewPos, gGeomNormal, prev2CurrViewPos, prevGeomNormal);
-
-                    // geomNormal: 0.998629534755 ~= 5 degrees
-                    // normal: 0.992546151641 ~= 7 degrees
-                    float zThreshold = max(abs(viewZ), 1.0) * 0.01; // 1% of depth
-                    if (geomNormalDot > 0.998629534755 && normalDot > 0.992546151641 && planeDistance < zThreshold) {
-                        prevTexelPos = curr2PrevTexelPos;
-                    }
-                }
-
-                if (prevTexelPos == ivec2(-1)) {
-                    vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
-                    vec2 centerPixel = curr2PrevTexelPos - 0.5;
-                    vec2 gatherOrigin = floor(centerPixel);
-                    vec2 gatherTexelPos = gatherOrigin + 1.0;
-                    vec2 pixelPosFract = fract(centerPixel);
-
-                    vec2 bilinearWeights2 = pixelPosFract;
-                    vec4 blinearWeights4;
-                    blinearWeights4.yz = bilinearWeights2.xx;
-                    blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
-                    blinearWeights4.xy *= bilinearWeights2.yy;
-                    blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
-
-                    float rand = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 987654u)).x);
-                    int selectedIndex = selectWeighted(blinearWeights4, reprojInfo.bilateralWeights, rand);
-
-                    if (selectedIndex >= 0){
-                        vec2 selectedTexelPos = gatherTexelPos + sampling_indexToGatherOffset(selectedIndex) * 0.5;
-                        prevTexelPos = ivec2(selectedTexelPos);
-                    }
-                }
-
-                if (prevTexelPos != ivec2(-1)) {
                     uvec4 prevTemporalReservoirData;
                     if (bool(frameCounter & 1)) {
-                        prevTemporalReservoirData = history_restir_reservoirTemporal2_fetch(prevTexelPos);
+                        prevTemporalReservoirData = history_restir_reservoirTemporal2_fetch(neighborTexelPos);
                     } else {
-                        prevTemporalReservoirData = history_restir_reservoirTemporal1_fetch(prevTexelPos);
+                        prevTemporalReservoirData = history_restir_reservoirTemporal1_fetch(neighborTexelPos);
                     }
 
-                    ReSTIRReservoir prevTemporalReservoir = restir_reservoir_unpack(prevTemporalReservoirData);
-                    prevTemporalReservoir.m = uint(ceil(float(prevTemporalReservoir.m) * global_historyResetFactor));
-                    if (restir_isReservoirValid(prevTemporalReservoir)) {
-                        vec3 prevHitNormalData = history_restir_prevHitNormal_fetch(prevTexelPos).xyz;
-                        prevSample = history_restir_prevSample_fetch(prevTexelPos);
-                        prevHitNormal = normalize(shared_prevViewToCurrView * (prevHitNormalData * 2.0 - 1.0));
+                    ReSTIRReservoir neighborReservoir = restir_reservoir_unpack(prevTemporalReservoirData);
+                    if (!restir_isReservoirValid(neighborReservoir)) continue;
 
-                        if (prevTemporalReservoir.Y.w > 0.0) {
-                            vec2 prevScreenPos = coords_texelToUV(prevTexelPos, uval_mainImageSizeRcp);
-                            float prevViewZ = history_viewZ_fetch(prevTexelPos).x;
-                            vec3 prevViewPos = coords_toViewCoord(prevScreenPos, prevViewZ, global_prevCamProjInverse);
+                    vec3 neighborHitNormalRaw = history_restir_prevHitNormal_fetch(neighborTexelPos).xyz;
+                    vec4 neighborSample = history_restir_prevSample_fetch(neighborTexelPos);
+                    vec3 neighborHitNormal = normalize(shared_prevViewToCurrView * (neighborHitNormalRaw * 2.0 - 1.0));
 
-                            vec3 prevHitViewPos = prevViewPos + prevTemporalReservoir.Y.xyz * prevTemporalReservoir.Y.w;
-                            vec3 prev2CurrHitViewPos = (shared_prevViewToCurrViewPos * vec4(prevHitViewPos, 1.0)).xyz;
-                            vec3 hitDiff = prev2CurrHitViewPos - viewPos;
-                            float hitDistance = length(hitDiff);
+                    if (neighborReservoir.Y.w > 0.0) {
+                        vec2 neighborScreenPos = coords_texelToUV(neighborTexelPos, uval_mainImageSizeRcp);
+                        float neighborViewZ = history_viewZ_fetch(neighborTexelPos).x;
+                        vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_prevCamProjInverse);
 
-                            prevTemporalReservoir.Y.xyz = hitDiff / hitDistance;
-                            prevTemporalReservoir.Y.w = hitDistance;
+                        vec3 neighborHitViewPos = neighborViewPos + neighborReservoir.Y.xyz * neighborReservoir.Y.w;
+                        vec3 prev2CurrHitViewPos = (shared_prevViewToCurrViewPos * vec4(neighborHitViewPos, 1.0)).xyz;
+                        vec3 hitDiff = prev2CurrHitViewPos - viewPos;
+                        float hitDistance = length(hitDiff);
 
-                            vec4 prev2CurrHitClipPos = global_camProj * vec4(prev2CurrHitViewPos, 1.0);
-                            uint clipFlag = uint(prev2CurrHitClipPos.z > 0.0);
-                            clipFlag &= uint(all(lessThan(abs(prev2CurrHitClipPos.xy), prev2CurrHitClipPos.ww)));
-                            // Reuse clip pos for screen conversion instead of calling coords_viewToScreen
-                            vec3 prev2CurrHitScreenPos = vec3(prev2CurrHitClipPos.xy / prev2CurrHitClipPos.w * 0.5 + 0.5, prev2CurrHitClipPos.z / prev2CurrHitClipPos.w);
-                            clipFlag &= uint(saturate(prev2CurrHitScreenPos) == prev2CurrHitScreenPos);
+                        neighborReservoir.Y.xyz = hitDiff / hitDistance;
+                        neighborReservoir.Y.w = hitDistance;
 
-                            if (bool(clipFlag)) {
-                                // Jacobian correction for reconnection shift
-                                {
-                                    // Original path: from the temporal neighbor pixel (where the sample came from) to hit point
-                                    // prev2CurrNeighborViewPos is the neighbor's position transformed to current frame coordinates
-                                    vec3 prev2CurrNeighborViewPos = (shared_prevViewToCurrViewPos * vec4(prevViewPos, 1.0)).xyz;
+                        vec4 prev2CurrHitClipPos = global_camProj * vec4(prev2CurrHitViewPos, 1.0);
+                        uint clipFlag = uint(prev2CurrHitClipPos.z > 0.0);
+                        clipFlag &= uint(all(lessThan(abs(prev2CurrHitClipPos.xy), prev2CurrHitClipPos.ww)));
+                        // Reuse clip pos for screen conversion instead of calling coords_viewToScreen
+                        vec3 prev2CurrHitScreenPos = vec3(prev2CurrHitClipPos.xy / prev2CurrHitClipPos.w * 0.5 + 0.5, prev2CurrHitClipPos.z / prev2CurrHitClipPos.w);
+                        clipFlag &= uint(saturate(prev2CurrHitScreenPos) == prev2CurrHitScreenPos);
 
-                                    // Vector from current pixel to hit point (shifted path) - this is the new path
-                                    // Reuse hitDiff as offsetA and hitDistance for RA2
-                                    float RA2 = hitDistance * hitDistance;
-                                    vec3 dirA = prevTemporalReservoir.Y.xyz; // Already normalized hitDiff/hitDistance
+                        if (!bool(clipFlag)) continue;
 
-                                    vec3 offsetB = prev2CurrHitViewPos - prev2CurrNeighborViewPos;
-                                    float RB2 = dot(offsetB, offsetB);
-                                    vec3 dirB = offsetB * inversesqrt(max(RB2, 1e-12));
+                        // Jacobian correction for reconnection shift
+                        {
+                            vec3 prev2CurrNeighborViewPos = (shared_prevViewToCurrViewPos * vec4(neighborViewPos, 1.0)).xyz;
 
-                                    // Check if neighbor is essentially the same pixel (skip Jacobian when stationary)
-                                    vec3 pixelDiff = prev2CurrNeighborViewPos - viewPos;
-                                    float pixelDist2 = dot(pixelDiff, pixelDiff);
+                            float RA2 = hitDistance * hitDistance;
+                            vec3 dirA = neighborReservoir.Y.xyz;
 
-                                    float jacobian = 1.0;
-                                    // Only apply Jacobian if the neighbor pixel is sufficiently different from current pixel
-                                    // Use relative threshold based on hit distance
-                                    float threshold = RA2 * 1e-4; // 1% relative distance threshold
-                                    if (pixelDist2 > threshold) {
-                                        // Cosine at hit point for original and shifted paths
-                                        float cosPhiB = -dot(dirB, prevHitNormal);
-                                        float cosPhiA = -dot(dirA, prevHitNormal);
+                            vec3 offsetB = prev2CurrHitViewPos - prev2CurrNeighborViewPos;
+                            float RB2 = dot(offsetB, offsetB);
+                            vec3 dirB = offsetB * inversesqrt(max(RB2, 1e-12));
 
-                                        // Compute Jacobian: |J| = (r_B^2 * cos(phi_A)) / (r_A^2 * cos(phi_B))
-                                        // Only apply if both cosines are positive (valid geometry)
-                                        if (cosPhiA > 0.0 && cosPhiB > 5e-2) {
-                                            jacobian = (RB2 * cosPhiA) / (RA2 * cosPhiB);
-                                        } else if (cosPhiA <= 0.0) {
-                                            // Hit point is backfacing from current pixel - invalid
-                                            jacobian = 0.0;
-                                        }
+                            vec3 pixelDiff = prev2CurrNeighborViewPos - viewPos;
+                            float pixelDist2 = dot(pixelDiff, pixelDiff);
 
-                                        // Clamp Jacobian to avoid fireflies
-                                        jacobian = min(jacobian, 16.0);
-                                    }
+                            float jacobian = 1.0;
+                            float cosPhiB = -dot(dirB, neighborHitNormal);
+                            float cosPhiA = -dot(dirA, neighborHitNormal);
 
-                                    // Invalidate if current surface is backfacing to the ray
-                                    if (dot(gNormal, dirA) <= 0.0) {
-                                        jacobian = 0.0;
-                                    }
-
-                                    // Apply Jacobian to reservoir weight
-                                    prevTemporalReservoir.avgWY *= jacobian;
-                                }
-
-
-                                // TODO: retrace for temporal resampling
-                                //                    float prevHitDistance;
-                                //                    prevSample = ssgiEvalF(viewPos, gData, prevSampleDirView, prevHitDistance);
-                                //                    prevPHat = length(prevSample);
-                            } else {
-                                prevTemporalReservoir = restir_initReservoir();
+                            if (cosPhiA > 0.0 && cosPhiB > 5e-2) {
+                                jacobian = (RB2 * cosPhiA) / (RA2 * cosPhiB);
+                            } else if (cosPhiA <= 0.0) {
+                                jacobian = 0.0;
                             }
-                        } else {
-                            vec3 currSampleDirView = normalize(shared_prevViewToCurrView * prevTemporalReservoir.Y.xyz);
-                            prevTemporalReservoir.Y.xyz = currSampleDirView;
+                            jacobian = min(jacobian, 256.0);
+
+                            if (dot(gNormal, dirA) <= 0.0) {
+                                jacobian = 0.0;
+                            }
+
+                            neighborReservoir.avgWY *= jacobian;
                         }
+                    } else {
+                        neighborReservoir.Y.xyz = normalize(shared_prevViewToCurrView * neighborReservoir.Y.xyz);
                     }
-                    temporalReservoir = prevTemporalReservoir;
+
+                    float neighborPHat = length(neighborSample.xyz * neighborSample.w);
+                    neighborReservoir.m *= combinedWeight;
+                    float wi = max(0.0, neighborReservoir.avgWY) * neighborReservoir.m * neighborPHat;
+                    float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 2u + uint(i)), RANDOM_FRAME);
+                    if (restir_updateReservoir(temporalReservoir, wSum, neighborReservoir.Y, wi, neighborReservoir.m, neighborRand)) {
+                        prevSample = neighborSample;
+                        prevHitNormal = neighborHitNormal;
+                        prevPHat = neighborPHat;
+                    }
                 }
             }
-
-            float prevPHat = length(prevSample.xyz * prevSample.w);
-            float wSum = max(0.0, temporalReservoir.avgWY) * float(temporalReservoir.m) * prevPHat;
 
             // Re-fetch and fully unpack for material decoding (needed for Spatial / Initial) using fresh registers
             GBufferData gData = gbufferData_init();
@@ -303,21 +223,21 @@ void main() {
                 float newPHat = length(initalSample);
                 float newWi = samplePdf <= 0.0 ? 0.0 : newPHat / samplePdf;
 
-                float reservoirRand1 = hash_uintToFloat(hash_44_q3(uvec4(baseRandKey, 547679546u)).w);
+                float reservoirRand1 = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 6u), RANDOM_FRAME);
 
                 float reservoirPHat = prevPHat;
                 vec4 finalSample = prevSample;
                 vec3 hitNormal = prevHitNormal;
-                if (restir_updateReservoir(temporalReservoir, wSum, vec4(sampleDirView, hitDistance), newWi, 1u, reservoirRand1)) {
+                if (restir_updateReservoir(temporalReservoir, wSum, vec4(sampleDirView, hitDistance), newWi, 1.0, reservoirRand1)) {
                     reservoirPHat = newPHat;
                     finalSample = vec4(hitRadiance, brdf);
 
                     vec4 hitNormalData = transient_viewNormal_fetch(hitTexelPos);
                     hitNormal = normalize(hitNormalData.xyz * 2.0 - 1.0);
                 }
-                float avgWSum = wSum / float(temporalReservoir.m);
+                float avgWSum = wSum / temporalReservoir.m;
                 temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
-                temporalReservoir.m = clamp(temporalReservoir.m, 0u, 8u);
+                temporalReservoir.m = clamp(temporalReservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
                 #if USE_REFERENCE
                 vec4 ssgiOut = vec4(initalSample * safeRcp(samplePdf), hitDistance);
                 ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);

@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/deferred/GIDenoiserGIMip.comp.glsl"
+#include "/pass/deferred/GIDenoiserAntiFireFly.comp.glsl"

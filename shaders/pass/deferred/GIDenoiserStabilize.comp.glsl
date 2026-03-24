@@ -228,12 +228,13 @@ void main() {
 
                 #if SETTING_DEBUG_OUTPUT
                 if (RANDOM_FRAME < MAX_FRAMES){
+                    imageStore(uimg_temp3, texelPos, currDiff);
 //                    imageStore(uimg_temp3, texelPos, vec4(interpolateTurbo(saturate(transient_gi_blurDiff1_fetch(texelPos).w)), 0.0));
 //                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
 //                    imageStore(uimg_temp1, texelPos, vec4(historyData.diffuseHitDistance));
 
-                    gi_historyData_unpack2(historyData, history_gi2_fetch(texelPos));
-                    imageStore(uimg_temp2, texelPos, gi_historyData_pack2(historyData));
+//                    gi_historyData_unpack2(historyData, history_gi2_fetch(texelPos));
+//                    imageStore(uimg_temp2, texelPos, gi_historyData_pack2(historyData));
 //
 //                    imageStore(uimg_temp3, texelPos, vec4(finalDiff, 0.0));
 //                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.realHistoryLength), 1.0));

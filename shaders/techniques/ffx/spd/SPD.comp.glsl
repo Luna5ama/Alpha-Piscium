@@ -1,7 +1,11 @@
-#include "/Base.glsl"
-#include "../ffx_core.glsl"
-
 // -------------------------------------------------------- API --------------------------------------------------------
+// Requirements:
+// #define SPD_CHANNELS <1, 2, 3, 4> - Number of channels to process
+// #define SPD_HALF <0, 1> - Use half precision (1) or full precision
+// #define SPD_OP <0, 1, 2, 3> - Downsample operation: 0 for min, 1 for max, 2 for average, 3 for sum, or leave undefined for custom
+//
+// and following functions:
+
 #if SPD_CHANNELS == 1
 #define SPD_DATA_TYPE float
 #define SPD_DATA_CAST_TO_4(x) vec4(x, 0.0, 0.0, 0.0)
@@ -20,12 +24,6 @@
 #define SPD_DATA_CAST_FROM_4(v) v
 #endif
 
-// Requirements:
-// #define SPD_CHANNELS <1, 2, 3, 4> - Number of channels to process
-// #define SPD_HALF <0, 1> - Use half precision (1) or full precision
-// #define SPD_OP <0, 1, 2> - Downsample operation: 0 for min, 1 for max, 2 for average, 3 for sum, or leave undefined for custom
-//
-// and following functions:
 SPD_DATA_TYPE spd_loadInput(ivec2 texelPos, uint slice);
 SPD_DATA_TYPE spd_loadOutput(ivec2 texelPos, uint level, uint slice);
 void spd_storeOutput(ivec2 texelPos, uint level, uint slice, SPD_DATA_TYPE value);
@@ -47,6 +45,8 @@ vec4 spd_reduce4(vec4 v0, vec4 v1, vec4 v2, vec4 v3) {
 }
 #endif
 
+#include "/Base.glsl"
+#include "../ffx_core.glsl"
 
 // --------------------------------------------------- Adaptor stuff ---------------------------------------------------
 shared uint shared_counter;

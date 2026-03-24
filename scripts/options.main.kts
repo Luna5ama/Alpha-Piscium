@@ -821,6 +821,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
+                slider("SETTING_GI_TEMPORAL_REUSE_LIMIT", 24, powerOfTwoAndHalfRange(1..6)) {
+                    lang {
+                        name = "Temporal Reuse Limit"
+                        comment = "Limits how many previous frames can be reused for GI temporal accumulation. Higher values improve quality but increase lighting latency."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "时间重用限制"
+                        comment = "限制GI时间累积可以重用多少前一帧。数值越高，质量越好，但会增加光照延迟。"
+                    }
+                }
+                empty()
                 toggle("SETTING_GI_SPATIAL_REUSE", true) {
                     lang {
                         name = "Spatial Reuse"
@@ -931,7 +942,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "在多帧中累积GI结果以提高质量。"
                     }
                 }
-                slider("SETTING_DENOISER_HISTORY_LENGTH", 256, powerOfTwoAndHalfRange(2..8)) {
+                slider("SETTING_DENOISER_HISTORY_LENGTH", 64, powerOfTwoAndHalfRange(2..8)) {
                     lang {
                         name = "Temporal History Length"
                         comment = "Number of frames to accumulate for temporal denoising."
@@ -952,10 +963,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "夹紧到快速历史以减少重影伪影。"
                     }
                 }
-                slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 32, powerOfTwoAndHalfRange(2..8)) {
-                    Profile.Low preset 64
-                    Profile.Medium preset 48
-                    Profile.High preset 32
+                slider("SETTING_DENOISER_FAST_HISTORY_LENGTH", 16, powerOfTwoAndHalfRange(2..8)) {
                     lang {
                         name = "Temporal Fast History Length"
                         comment =
@@ -967,15 +975,25 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FIREFLY_SUPPRESSION", 5, 0..10) {
+                slider("SETTING_DENOISER_FLICKER_SUPPRESSION", 1, 0..10) {
                     lang {
-                        name = "Firefly Suppression Strength"
+                        name = "Flicker Suppression Strength"
                         comment =
-                            "Reduces sudden bright spots in the GI results. Higher values increase suppression but can introduce lighting lags."
+                            "Reduces GI flickering. Higher values increase suppression but can introduce lighting lags."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "亮点抑制强度"
-                        comment = "减少GI结果中的突然出现的亮点。数值越高，抑制效果越强，但可能会增加光照延迟。"
+                        name = "闪烁抑制强度"
+                        comment = "减少GI闪烁。数值越高，抑制越强，但可能会引入光照延迟。"
+                    }
+                }
+                toggle("SETTING_DENOISER_ANTI_FIREFLY", true) {
+                    lang {
+                        name = "RCRS Firefly Suppression"
+                        comment = "Reduces bright noise artifacts (fireflies) in the GI results using Robust Contrast-based Range Shrinkage."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "RCRS亮点抑制"
+                        comment = "使用对比度范围收缩减少GI结果中的高亮噪点。"
                     }
                 }
                 toggle("SETTING_DENOISER_HISTORY_FIX", true) {
@@ -1011,7 +1029,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 64, powerOfTwoAndHalfRange(2..8)) {
+                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 16, powerOfTwoAndHalfRange(0..8)) {
                     lang {
                         name = "Stabilization Maximum Accumulated Frames"
                         comment =

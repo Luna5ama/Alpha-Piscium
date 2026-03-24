@@ -15,40 +15,6 @@
 // Required resources
 // layout(r32i) uniform iimage2D uimg_fr32f;
 
-shared vec3 shared_shadowAABBMin[16];
-shared vec3 shared_shadowAABBMax[16];
-
-void shadowAABB1(vec3 shadowViewPos) {
-    vec3 min1 = subgroupMin(shadowViewPos);
-    vec3 max1 = subgroupMax(shadowViewPos);
-
-    if (subgroupElect()) {
-        shared_shadowAABBMin[gl_SubgroupID] = min1;
-        shared_shadowAABBMax[gl_SubgroupID] = max1;
-    }
-}
-
-void shadowAABB2() {
-    if (gl_SubgroupID == 0 && gl_SubgroupInvocationID < gl_NumSubgroups) {
-        vec3 min2 = shared_shadowAABBMin[gl_SubgroupInvocationID];
-        vec3 max2 = shared_shadowAABBMax[gl_SubgroupInvocationID];
-
-        vec3 min3 = subgroupMin(min2);
-        vec3 max3 = subgroupMax(max2);
-
-        if (subgroupElect()) {
-            ivec3 min4 = ivec3(floor(min3 / 16.0)) * 16;
-            ivec3 max4 = ivec3(ceil(max3 / 16.0)) * 16;
-            atomicMin(global_shadowAABBMinNew.x, min4.x);
-            atomicMin(global_shadowAABBMinNew.y, min4.y);
-            atomicMin(global_shadowAABBMinNew.z, min4.z);
-            atomicMax(global_shadowAABBMaxNew.x, max4.x);
-            atomicMax(global_shadowAABBMaxNew.y, max4.y);
-            atomicMax(global_shadowAABBMaxNew.z, max4.z);
-        }
-    }
-}
-
 void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out float v) {
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
@@ -60,7 +26,6 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
         importance = 0.0;
     }
     vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
-    shadowAABB1(shadowViewPos.xyz);
 
     vec4 shadowClipPos = global_shadowProjNext * shadowViewPos;
     vec3 shadowNDCPos = shadowClipPos.xyz / shadowClipPos.w;
@@ -149,13 +114,6 @@ void backwardOutput(uint p, float v) {
 }
 
 void rtwsm_backward(ivec2 texelPos, float viewZ, GBufferData gData) {
-    if (gl_LocalInvocationIndex < 16) {
-        shared_shadowAABBMax[gl_LocalInvocationIndex] = vec3(0.0);
-        shared_shadowAABBMin[gl_LocalInvocationIndex] = vec3(0.0);
-    }
-    
-    barrier();
-    
     if (!gData.isHand) {
         #ifdef SETTING_RTWSM_B
         uint p;
@@ -167,10 +125,6 @@ void rtwsm_backward(ivec2 texelPos, float viewZ, GBufferData gData) {
         vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
         vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
         vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
-        shadowAABB1(shadowViewPos.xyz);
         #endif
     }
-
-    barrier();
-    shadowAABB2();
 }

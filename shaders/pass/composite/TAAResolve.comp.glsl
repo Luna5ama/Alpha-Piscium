@@ -188,6 +188,7 @@ void main() {
     float newFrameAccum = lastFrameAccum + 1.0;
 
     vec3 currColor;
+    #ifdef SETTING_TAA
     {
         vec2 centerPixel = unjitterTexelPos - 0.5;
         vec2 centerPixelOrigin = floor(centerPixel);
@@ -213,6 +214,9 @@ void main() {
         }
         currColor = colors_YCoCgToRGB(colorResult / weightSum);
     }
+    #else
+    currColor = texelFetch(usam_main, texelPos, 0).rgb;
+    #endif
     currColor = saturate(currColor);
 
     vec4 taaResetFactor = global_taaResetFactor;

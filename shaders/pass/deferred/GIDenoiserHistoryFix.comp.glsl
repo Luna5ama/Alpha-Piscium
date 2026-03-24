@@ -141,8 +141,8 @@ void main() {
                         vec4 hiZData = texelFetch(usam_hiz, ivec2(hiZReadPos), 0);
                         vec4 geomNormalMipRaw = transient_geomNormalMip_sample(screenPosMipTile);
 
-                        float geomNormalBaseWeight = ldexp(0.01 + 0.09 * historyFixMix, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT);
-                        float zBaseWeight = max(2.0, abs(viweZ0)) * ldexp(32.0 + 128.0 * (1.0 - historyFixMix), -(mip + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT));
+                        float geomNormalBaseWeight = ldexp(0.1 + 0.5 * pow2(historyFixMix), mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT);
+                        float zBaseWeight = max(2.0, abs(viweZ0)) * ldexp(4.0 + 24.0 * pow2(1.0 - historyFixMix), -(mip + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT));
 
                         vec3 geomNormalMip = geomNormalMipRaw.xyz * 2.0 - 1.0;
                         float geomNormalLengthSq = saturate(lengthSq(geomNormalMip));

@@ -41,7 +41,15 @@ val shadesmithRun = ProcessBuilder()
     .inheritIO()
     .start()
 
-val included = setOf("changelogs", "licenses", "shaders/lang", "shaders/textures", "LICENSE", "README.md")
+val included = setOf(
+    "changelogs",
+    "licenses",
+    "shaders/lang",
+    "shaders/textures",
+    "shaders",
+    "LICENSE",
+    "README.md"
+)
 val branchName =
     Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD")).inputStream.bufferedReader()
         .readText().trim().takeIf { it != "main" && it != "dev" }
@@ -56,11 +64,14 @@ ZipOutputStream(zipFilePath.outputStream(), Charsets.UTF_8).use { zipOut ->
     zipOut.setLevel(Deflater.DEFAULT_COMPRESSION)
     zipOut.setMethod(ZipOutputStream.DEFLATED)
 
+    val added = mutableSetOf<String>()
+
     fun addStuff(rootDir: Path, sequence: Sequence<Path>) {
         sequence
             .filter { it != rootDir }
             .forEach { file ->
                 val relativePath = file.relativeTo(rootDir).invariantSeparatorsPathString
+                if (!added.add(relativePath)) return@forEach
                 if (file.isDirectory()) {
                     if (file.listDirectoryEntries().isNotEmpty()) {
                         zipOut.putNextEntry(ZipEntry("$relativePath/"))
@@ -76,13 +87,16 @@ ZipOutputStream(zipFilePath.outputStream(), Charsets.UTF_8).use { zipOut ->
             }
     }
 
-    addStuff(projectRootPath, projectRootPath.walk(PathWalkOption.FOLLOW_LINKS).filter { file ->
-        val baseDirName = file.relativeTo(projectRootPath).invariantSeparatorsPathString
-        if (baseDirName.startsWith('.')) return@filter false
-        included.any {
-            baseDirName.startsWith(it)
-        }
-    })
     shadesmithRun.waitFor()
     addStuff(shadesmithOutputPath, shadesmithShadersPath.walk())
+    addStuff(projectRootPath, projectRootPath.walk(PathWalkOption.FOLLOW_LINKS).filter { file ->
+        val baseDirName = file
+            .relativeTo(projectRootPath)
+            .invariantSeparatorsPathString
+            .substringBeforeLast('/')
+        if (baseDirName.contains('.')) return@filter false
+        baseDirName in included
+    })
 }
+
+println("Created zip file at: $zipFilePath")

@@ -35,8 +35,8 @@ vec2 rtwsm_warpTexCoordTexelSize(vec2 uv, out vec2 texelSize) {
 }
 
 float rtwsm_sampleShadowDepth(sampler2DShadow shadowMap, vec3 coord, float lod) {
-    vec2 ndcCoord = coord.xy * 2.0 - 1.0;
-    float edgeCoord = max(abs(ndcCoord.x), abs(ndcCoord.y));
+    vec3 ndcCoord = abs(coord.xyz * 2.0 - 1.0);
+    float edgeCoord = mmax3(ndcCoord.x, ndcCoord.y, ndcCoord.z);
     return mix(textureLod(shadowMap, coord, lod), 1.0, linearStep(1.0 - SHADOW_MAP_SIZE.y * 16, 1.0, edgeCoord));
 }
 
