@@ -90,7 +90,6 @@ void main() {
             uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_fetch(texelPos);
             ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
             float ageResetRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
-            ageResetRand = -1.0;
             if (reprojInfo.historyResetFactor > ageResetRand) {
                 vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
                 vec2 centerPixel = curr2PrevTexelPos - 0.5;
@@ -238,7 +237,7 @@ void main() {
                 }
                 float avgWSum = wSum / temporalReservoir.m;
                 temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
-                temporalReservoir.m = clamp(temporalReservoir.m, 0.0, 32.0);
+                temporalReservoir.m = clamp(temporalReservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
                 #if USE_REFERENCE
                 vec4 ssgiOut = vec4(initalSample * safeRcp(samplePdf), hitDistance);
                 ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
