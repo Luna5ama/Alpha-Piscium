@@ -211,7 +211,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
         // ---- Seed DDA state from ray ----
         float lastT = ray.lastT;
         ivec3 lastMask = ivec3(0.0);
-        lastMask = ivec3(equal(ray.lastAxis, ivec3(0, 1, 2)));
+        lastMask = ivec3(equal(ivec3(ray.lastAxis), ivec3(0, 1, 2)));
         int level = ray.level;
         uint fullMorton = ray.fullMorton;
 
