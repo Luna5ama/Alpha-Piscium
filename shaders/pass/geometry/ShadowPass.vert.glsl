@@ -3,11 +3,14 @@
 #define VOXEL_BRICK_DATA_MODIFIER buffer
 #define VOXEL_MATERIAL_DATA_MODIFIER buffer
 #include "/techniques/voxel/Voxelization.glsl"
+#define VOXEL_FACE_TEXCOORD_MODIFIER buffer
+#include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 
 layout(r32i) uniform iimage2D uimg_fr32f;
 
 in vec2 mc_Entity;
 in vec4 at_midBlock;
+in vec2 mc_midTexCoord;
 
 #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
 out vec2 vert_texcoord;
@@ -22,8 +25,10 @@ out uint vert_worldNormalMaterialID;
 out uint vert_survived;
 
 void main() {
+    vec2 texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+
     #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
-    vert_texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+    vert_texcoord = texcoord;
     #if defined(SHADOW_PASS_TRANSLUCENT)
     vert_color = gl_Color.rgb;
     #endif
@@ -96,6 +101,16 @@ void main() {
                     atomicMax(voxel_materials[matIdx], 1u);
                 }
             }
+        }
+
+        // Store atlas texcoord range for this material+face.
+        // Race condition is intentional (last writer wins, all writers agree).
+        if (materialID != 0u) {
+            vec2 texHalfExtent = abs(texcoord - mc_midTexCoord);
+            vec2 texMin = mc_midTexCoord - texHalfExtent;
+            vec2 texMax = mc_midTexCoord + texHalfExtent;
+            uint faceIdx = voxel_faceIndexFromNormal(worldNormal);
+            voxel_faceTexcoords[voxel_faceTexcoordIndex(materialID, faceIdx)] = vec4(texMin, texMax);
         }
     }
     #endif
