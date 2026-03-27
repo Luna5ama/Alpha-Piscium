@@ -122,7 +122,7 @@ void main() {
 
                     const float baseReductionFactor = ldexp(1.0, -12);
 
-                    for (int mip = 6; mip >= 1; mip--) {
+                    for (int mip = 6; mip >= 3; mip--) {
                         ivec2 stbnPos = ivec2(texelPos0 + rand_r2Seq2(mip) * 128.0);
                         vec2 stbnRand = rand_stbnVec2(stbnPos, RANDOM_FRAME);
                         vec2 texelPosMip = ldexp(texelPos0, ivec2(-mip)) + stbnRand - 0.5;
@@ -168,20 +168,17 @@ void main() {
                         weightSum += sampleWeight;
                     }
 
-                    float baseMipWeight = max((baseReductionFactor / (baseReductionFactor + weightSum)) * 1e-8, 1e-16);
-                    diffWeightedSum += vec4(historyData.diffuseColor * baseMipWeight, 0.0);
-                    specWeightedSum += vec4(historyData.specularColor * baseMipWeight, 0.0);
-                    weightSum += baseMipWeight;
+                    if (weightSum > 1e-16) {
+                        float rcpWeightSum = 1.0 / weightSum;
+                        diffWeightedSum *= rcpWeightSum;
+                        specWeightedSum *= rcpWeightSum;
 
-                    float rcpWeightSum = 1.0 / weightSum;
-                    diffWeightedSum *= rcpWeightSum;
-                    specWeightedSum *= rcpWeightSum;
+                        diffWeightedSum = max(diffWeightedSum, vec4(0.0));
+                        specWeightedSum = max(specWeightedSum, vec4(0.0));
 
-                    diffWeightedSum = max(diffWeightedSum, vec4(0.0));
-                    specWeightedSum = max(specWeightedSum, vec4(0.0));
-
-                    historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
-                    historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
+                        historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
+                        historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
+                    }
                 }
                 #endif
 

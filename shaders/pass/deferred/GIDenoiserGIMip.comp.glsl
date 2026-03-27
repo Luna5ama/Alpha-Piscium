@@ -49,16 +49,18 @@ vec4 spd_loadOutput(ivec2 texelPos, uint level, uint slice) {
 shared ivec4 shared_mipTiles[16];
 
 void spd_storeOutput(ivec2 texelPos, uint level, uint slice, vec4 value) {
-    ivec4 mipTile = shared_mipTiles[level];
-    ivec2 storePos = mipTile.xy + texelPos;
-    if (all(lessThan(texelPos, mipTile.zw))) {
-        value *= safeRcp(value.a);
-        if (gl_WorkGroupID.z == 0) {
-            transient_geomNormalMip_store(storePos, vec4(value.xyz * 0.5 + 0.5, 0.0));
-        } else if (gl_WorkGroupID.z == 1) {
-            transient_gi_diffMip_store(storePos, value);
-        } else if (gl_WorkGroupID.z == 2) {
-            transient_gi_specMip_store(storePos, value);
+    if (level >= 3) {
+        ivec4 mipTile = shared_mipTiles[level];
+        ivec2 storePos = mipTile.xy + texelPos;
+        if (all(lessThan(texelPos, mipTile.zw))) {
+            value *= safeRcp(value.a);
+            if (gl_WorkGroupID.z == 0) {
+                transient_geomNormalMip_store(storePos, vec4(value.xyz * 0.5 + 0.5, 0.0));
+            } else if (gl_WorkGroupID.z == 1) {
+                transient_gi_diffMip_store(storePos, value);
+            } else if (gl_WorkGroupID.z == 2) {
+                transient_gi_specMip_store(storePos, value);
+            }
         }
     }
 }
