@@ -2568,6 +2568,40 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "水下时的额外泛光强度，创造梦幻般扩散的水下氛围。"
                     }
                 }
+                empty()
+                slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION", 3, 0..4) {
+                    lang {
+                        name = "Highlight Compression"
+                        comment = "Reduces bloom intensity for extremely bright areas to prevent overwhelming glare. Higher values increase compression intensity."
+                        0 value "Off"
+                        1 value "Low"
+                        2 value "Medium"
+                        3 value "High"
+                        4 value "Hard Clipping"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "高光压缩"
+                        comment = "减少极亮区域的泛光强度以防止过度眩光。数值越高，压缩强度越大。"
+                        0 value "关闭"
+                        1 value "低"
+                        2 value "中"
+                        3 value "高"
+                    }
+                }
+                slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE", 0, 0..1) {
+                    lang {
+                        name = "Highlight Compression Mode"
+                        comment = "Determines how highlight compression is applied. RGB mode compresses saturation, while Luma mode preserves saturation."
+                        0 value "RGB"
+                        1 value "Luma"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "高光压缩模式"
+                        comment = "确定高光压缩的应用方式。RGB模式压缩饱和度，而亮度模式保持饱和度。"
+                        0 value "RGB"
+                        1 value "亮度"
+                    }
+                }
             }
             screen(1) {
                 lang {

@@ -182,7 +182,7 @@ void main() {
             prevResult /= weightSum;
             #endif
         }
-        prevColor = saturate(prevResult.rgb);
+        prevColor = max(prevResult.rgb, 0.0);
         lastFrameAccum = prevResult.a;
     }
     float newFrameAccum = lastFrameAccum + 1.0;
@@ -217,7 +217,7 @@ void main() {
     #else
     currColor = texelFetch(usam_main, texelPos, 0).rgb;
     #endif
-    currColor = saturate(currColor);
+    currColor = max(currColor, 0.0);
 
     vec4 taaResetFactor = global_taaResetFactor;
     newFrameAccum *= taaResetFactor.z;
