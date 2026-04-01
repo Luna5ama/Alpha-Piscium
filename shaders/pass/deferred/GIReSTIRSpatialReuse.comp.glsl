@@ -74,17 +74,13 @@ void main() {
     uint rayIndex = 0xFFFFFFFFu;
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        SpatialSampleData sampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
-        history_restir_prevSample_store(texelPos, sampleData.sampleValue);
-        history_restir_prevHitNormal_store(texelPos, vec4(sampleData.hitNormal * 0.5 + 0.5, 0.0));
+        SpatialSampleData centerSampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
+        history_restir_prevSample_store(texelPos, centerSampleData.sampleValue);
+        history_restir_prevHitNormal_store(texelPos, vec4(centerSampleData.hitNormal * 0.5 + 0.5, 0.0));
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
         if (viewZ > -65536.0) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-
-            SpatialSampleData centerSampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
-
-            uvec3 baseRandKey = uvec3(texelPos, RANDOM_FRAME);
 
             uvec4 reprojectedData;
             if (bool(frameCounter & 1)) {
@@ -105,13 +101,7 @@ void main() {
             float pHatMe = 0.0;
             vec4 originalSample = vec4(0.0);
             {
-                vec3 sampleDirView = spatialReservoir.Y.xyz;
-                vec3 hitViewPos = viewPos + sampleDirView * spatialReservoir.Y.w;
-                vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
-                ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
-
                 vec3 hitRadiance = centerSampleData.sampleValue.xyz;
-
                 float brdf = centerSampleData.sampleValue.w;
                 vec3 f = brdf * hitRadiance;
                 pHatMe = length(f);
@@ -162,62 +152,37 @@ void main() {
                 vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_camProjInverse);
 
                 if (restir_isReservoirValid(neighborReservoir)) {
-                    vec3 neighborSampleDirView = neighborReservoir.Y.xyz;
-                    float neighborSampleHitDistance = neighborReservoir.Y.w;
-                    vec3 neighborHitViewPos = neighborViewPos + neighborSampleDirView * neighborReservoir.Y.w;
+                    vec3 neighborHitViewPos = neighborViewPos + neighborReservoir.Y.xyz * neighborReservoir.Y.w;
                     vec3 hitDiff = neighborHitViewPos - viewPos;
                     float hitDist2 = dot(hitDiff, hitDiff);
 
                     // Safety check: Avoid singularity if reuse sample is at the exact same position
                     if (hitDist2 < 1e-6) continue;
 
-                    neighborSampleHitDistance = sqrt(hitDist2);
-                    neighborSampleDirView = hitDiff / neighborSampleHitDistance;
+                    float neighborSampleHitDistance = sqrt(hitDist2);
+                    vec3 neighborSampleDirView = hitDiff / neighborSampleHitDistance;
 
-                    vec3 neighborHitScreenPos = coords_viewToScreen(neighborHitViewPos, global_camProj);
-                    ivec2 neighborHitTexelPos = ivec2(neighborHitScreenPos.xy * uval_mainImageSize);
-                    //
                     vec3 hitRadiance = neighborData.sampleValue.xyz;
                     float brdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
-                    vec3 f = brdf * hitRadiance;
-                    vec3 neighborSample = f;
+                    vec3 neighborSample = brdf * hitRadiance;
                     float neighborPHat = length(neighborSample);
 
-                    vec3 offsetB = neighborHitViewPos - neighborViewPos;
-                    vec3 offsetA = hitDiff;
-
-                    if (dot(centerSampleData.normal, offsetA) <= 0.0) {
-                        neighborPHat = 0.0;
-                    }
-
-                    float RB2 = dot(offsetB, offsetB);
-                    float RA2 = hitDist2;
-
+                    // offsetB = neighborReservoir.Y.xyz * Y.w, which is already a scaled unit vector
+                    // RB2 = dot(offsetB, offsetB) = Y.w^2  (Y.xyz is a unit direction)
+                    float RB2 = neighborReservoir.Y.w * neighborReservoir.Y.w;
                     if (RB2 < 1e-6) continue;
 
-                    offsetB = normalize(offsetB);
-                    offsetA = normalize(offsetA);
-                    float cosA = dot(centerSampleData.normal, offsetA);
-                    float cosB = dot(neighborData.normal, offsetB);
+                    // normalize(offsetB) == neighborReservoir.Y.xyz (already unit)
+                    float cosB = dot(neighborData.normal, neighborReservoir.Y.xyz);
+                    float cosPhiB = -dot(neighborReservoir.Y.xyz, neighborData.hitNormal);
+                    if (cosB <= 0.0 || cosPhiB <= 0.0) continue;
 
-                    float cosPhiA = -dot(offsetA, neighborData.hitNormal);
-                    float cosPhiB = -dot(offsetB, neighborData.hitNormal);
-                    if (cosB <= 0.0 || cosPhiB <= 0.0) {
-                        continue;
-                    }
-                    if (cosA <= 0.0 || cosPhiA <= 0.0 || RA2 <= 0.0 || RB2 <= 0.0) {
-                        neighborPHat = 0.0;
-                    }
+                    float cosPhiA = -dot(neighborSampleDirView, neighborData.hitNormal);
+                    // cosPhiA <= 0 or neighborPHat <= 0 both zero out m, making the reservoir update a no-op
+                    if (cosPhiA <= 0.0 || neighborPHat <= 0.0) continue;
 
-                    float maxJacobian = 100.0;
-                    float jacobian = RA2 * cosPhiB <= 0.0 ? 0.0 : (RB2 * cosPhiA) / (RA2 * cosPhiB);
-                    if (neighborPHat <= 0.0) {
-                        neighborReservoir.m = 0.0;
-                    }
-                    if (jacobian <= 0.0) {
-                        neighborReservoir.m = 0.0;
-                    }
-                    jacobian = clamp(jacobian, 0.0, maxJacobian);
+                    // All denominator terms are verified positive at this point
+                    float jacobian = clamp((RB2 * cosPhiA) / (hitDist2 * cosPhiB), 0.0, 100.0);
 
                     float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * neighborReservoir.m * jacobian;
 
