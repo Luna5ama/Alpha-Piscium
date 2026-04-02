@@ -46,6 +46,13 @@ void updateAABB(vec3 color, float weight, inout ColorAABB box) {
     box.weightSum += weight;
 }
 
+vec3 clipAABB(vec3 avg, vec3 sigma, vec3 prev) {
+    vec3 dir = prev - avg;
+    vec3 ray_t = abs(dir / max(sigma, vec3(1e-7)));
+    float t_max = max(mmax3(ray_t), 1.0);
+    return avg + dir / t_max;
+}
+
 float kernelWeight(vec2 centerPos, vec2 samplePos, float param) {
     vec2 diff = abs(samplePos - centerPos);
     float dist2 = dot(diff, diff);
@@ -220,7 +227,7 @@ void main() {
     currColor = max(currColor, 0.0);
 
     vec4 taaResetFactor = global_taaResetFactor;
-    newFrameAccum *= taaResetFactor.z;
+//    newFrameAccum *= taaResetFactor.z;
 
     {
         vec3 currColorYCoCg = colors_RGBToYCoCg(currColor);
@@ -259,7 +266,11 @@ void main() {
         delta /= max(1.0, length(delta / stddev));
 
         vec3 prevColorYCoCgAABBClamped = clamp(prevColorYCoCg, box.minVal, box.maxVal);
+        prevColorYCoCgAABBClamped = clipAABB((box.maxVal + box.minVal) * 0.5, (box.maxVal - box.minVal) * 0.5 + clippingEps, prevColorYCoCgAABBClamped);
+
         vec3 prevColorYCoCgVarianceAABBClamped = clamp(prevColorYCoCgAABBClamped, varianceAABBMin, varianceAABBMax);
+        prevColorYCoCgVarianceAABBClamped = clipAABB(mean, stddev * varianceAABBSize, prevColorYCoCgVarianceAABBClamped);
+
         vec3 prevColorYCoCgEllipsoid = clamp(mean + delta, box.minVal, box.maxVal);
         prevColorYCoCgEllipsoid = clamp(prevColorYCoCgEllipsoid, varianceAABBMin, varianceAABBMax);
 
