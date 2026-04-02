@@ -36,8 +36,6 @@
         "transient_gi_specMip": "RGBA16F",
         "transient_gi_diffShadingOutput": "RGBA16F",
         "transient_gi_specShadingOutput": "RGBA16F",
-        "history_gi_stabilizationDiff": "RGBA16F",
-        "history_gi_stabilizationSpec": "RGBA16F",
         "transient_giRadianceInputs": "RG32UI",
         "transient_ssgiOut": "RGBA16F",
         "history_restir_reservoirTemporal1": "RGBA32UI",

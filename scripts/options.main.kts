@@ -975,7 +975,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FLICKER_SUPPRESSION", 1, 0..10) {
+                slider("SETTING_DENOISER_FLICKER_SUPPRESSION", 3, 0..10) {
                     lang {
                         name = "Flicker Suppression Strength"
                         comment =
@@ -1026,18 +1026,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "遮挡消失修正深度权重"
                         comment = "修正遮挡消失时深度相似度的权重。数值越高，修正对深度变化越敏感，并减少过度模糊。"
-                    }
-                }
-                empty()
-                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 16, powerOfTwoAndHalfRange(0..8)) {
-                    lang {
-                        name = "Stabilization Maximum Accumulated Frames"
-                        comment =
-                            "Maximum accumulated frames that is used for calculating blend weight. Smaller values increase responsiveness but may introduce flickering."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "降噪稳定最大累积帧数"
-                        comment = "用于计算混合权重的最大累积帧数。数值越小，响应性越强，但可能会引入闪烁。"
                     }
                 }
             }
