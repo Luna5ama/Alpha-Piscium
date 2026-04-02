@@ -59,6 +59,7 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
 
         float luma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedoSRGB);
         albedoSRGB *= min(0.5 / luma, 1.0); // Fk whoever put high sss on white material
+        albedoSRGB = clamp(albedoSRGB, 0.0, 0.9);
 
         vec3 tCoeff = pow(albedoSRGB, vec3(ABSO_POW));
         tCoeff = saturate(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, tCoeff));
