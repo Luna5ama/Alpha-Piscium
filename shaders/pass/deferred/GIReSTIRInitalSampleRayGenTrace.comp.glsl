@@ -80,7 +80,9 @@ void main() {
             transient_solidAlbedo_store(texelPos, albedoAndEmissive);
             transient_geomViewNormal_store(texelPos, geomNormalData);
             transient_viewNormal_store(texelPos, viewNormalData);
-            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, material.tbn);
+            vec3 V = normalize(-viewPos);
+            float _rayGenPdf;
+            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, V, material, _rayGenPdf);
 
             SSTRay sstRay = sstray_setup(texelPos, viewPos, rayDirView);
             #if SETTING_GI_INITIAL_SST_STEPS < 64
