@@ -23,6 +23,7 @@
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Mat2.glsl"
+#include "/util/BSDF.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -81,6 +82,8 @@ void main() {
         if (viewZ > -65536.0) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+            vec3 V = normalize(-viewPos);
+            float NDotV = saturate(dot(centerSampleData.normal, V));
 
             uvec4 reprojectedData;
             if (bool(frameCounter & 1)) {
@@ -98,12 +101,24 @@ void main() {
             const float REUSE_RADIUS = float(SETTING_GI_SPATIAL_REUSE_RADIUS);
             vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
+            GBufferData gData = gbufferData_init();
+            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            Material material = material_decode(gData);
+
             float pHatMe = 0.0;
             vec4 originalSample = vec4(0.0);
             {
                 vec3 hitRadiance = centerSampleData.sampleValue.xyz;
-                float brdf = centerSampleData.sampleValue.w;
-                vec3 f = brdf * hitRadiance;
+                vec3 winL = spatialReservoir.Y.xyz;
+                vec3 H = normalize(winL + V);
+                float NDotL = saturate(dot(centerSampleData.normal, winL));
+                float NDotH = saturate(dot(centerSampleData.normal, H));
+                float LDotH = saturate(dot(winL, H));
+                vec3 fresnel = fresnel_evalMaterial(material, LDotH);
+                float diffuseBRDF = (1.0 - material.metallic) * NDotL * RCP_PI;
+                float specularBRDF = bsdf_ggx(material, NDotL, NDotV, NDotH);
+                vec3 f = hitRadiance * ((1.0 - fresnel) * diffuseBRDF + fresnel * specularBRDF);
                 pHatMe = length(f);
                 originalSample = vec4(f, pHatMe);
             }
@@ -163,8 +178,18 @@ void main() {
                     vec3 neighborSampleDirView = hitDiff / neighborSampleHitDistance;
 
                     vec3 hitRadiance = neighborData.sampleValue.xyz;
-                    float brdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
-                    vec3 neighborSample = brdf * hitRadiance;
+
+                    vec3 H_loop = normalize(neighborSampleDirView + V);
+                    float loopNDotL = saturate(dot(centerSampleData.normal, neighborSampleDirView));
+                    float loopNDotV = saturate(dot(centerSampleData.normal, V));
+                    float loopNDotH = saturate(dot(centerSampleData.normal, H_loop));
+                    float loopLDotH = saturate(dot(neighborSampleDirView, H_loop));
+
+                    vec3 fresnel_loop = fresnel_evalMaterial(material, loopLDotH);
+                    float diffuseBRDF_loop = (1.0 - material.metallic) * loopNDotL * RCP_PI;
+                    float specularBRDF_loop = bsdf_ggx(material, loopNDotL, loopNDotV, loopNDotH);
+
+                    vec3 neighborSample = hitRadiance * ((1.0 - fresnel_loop) * diffuseBRDF_loop + fresnel_loop * specularBRDF_loop);
                     float neighborPHat = length(neighborSample);
 
                     // offsetB = neighborReservoir.Y.xyz * Y.w, which is already a scaled unit vector
@@ -202,10 +227,34 @@ void main() {
             }
 
             vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
+            vec4 ssgiSpecOut = vec4(0.0, 0.0, 0.0, -1.0);
             ReSTIRReservoir resultReservoir = spatialReservoir;
-            float avgWSum = spatialWSum / spatialReservoir.m;
-            resultReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
-            ssgiOut = vec4(selectedSampleF.xyz * resultReservoir.avgWY, resultReservoir.Y.w);
+            float avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (spatialWSum / resultReservoir.m / selectedSampleF.w);
+            resultReservoir.avgWY = avgWY;
+
+            vec3 winL_out = resultReservoir.Y.xyz;
+            float winHitDist = resultReservoir.Y.w;
+            vec3 H_out = normalize(winL_out + V);
+            float outNDotL = saturate(dot(centerSampleData.normal, winL_out));
+            float outNDotH = saturate(dot(centerSampleData.normal, H_out));
+            float outLDotH = saturate(dot(winL_out, H_out));
+
+            vec3 outFresnel = fresnel_evalMaterial(material, outLDotH);
+            float lambertianBRDF = outNDotL * RCP_PI;
+            float ggxBRDF = bsdf_ggx(material, outNDotL, NDotV, outNDotH);
+
+            vec3 diffuseWeight = (1.0 - material.metallic) * (1.0 - outFresnel) * lambertianBRDF;
+            vec3 specularWeight = outFresnel * ggxBRDF;
+            vec3 totalWeight = diffuseWeight + specularWeight;
+            float rcpTotal = safeRcp(length(totalWeight));
+
+            float diffuseRatio = length(diffuseWeight) * rcpTotal;
+            float specularRatio = 1.0 - diffuseRatio;
+
+            vec3 totalOutput = selectedSampleF.xyz * avgWY;
+            ssgiOut = vec4(totalOutput * diffuseRatio, winHitDist);
+            ssgiSpecOut = vec4(totalOutput * specularRatio, winHitDist);
+
             #if SETTING_DEBUG_OUTPUT
             vec4 vvv = vec4(0.0);
             #endif
@@ -238,6 +287,7 @@ void main() {
                     if (discardSptialReuse) {
                         resultReservoir = restir_initReservoir();
                         ssgiOut = vec4(0.0);
+                        ssgiSpecOut = vec4(0.0);
                         #if SETTING_DEBUG_OUTPUT
                         imageStore(uimg_temp5, texelPos, vec4(0.0, 0.0, 1.0, 0.0));
                         #endif
@@ -249,7 +299,9 @@ void main() {
             #endif
 
             ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
+            ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
             transient_ssgiOut_store(texelPos, ssgiOut);
+            transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
         }
     }
     ssbo_rayDataIndices[dataIndex] = rayIndex;

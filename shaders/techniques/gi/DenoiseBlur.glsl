@@ -9,6 +9,10 @@
 
 #include "Common.glsl"
 #include "/techniques/HiZCheck.glsl"
+#include "/util/GBufferData.glsl"
+#include "/util/Material.glsl"
+#include "/util/Fresnel.glsl"
+#include "/util/BSDF.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Mat2.glsl"
@@ -96,6 +100,36 @@ float planeDistanceWeight(vec3 posA, vec3 normalA, vec3 posB, vec3 normalB, floa
     return exp2(factor * pow2(planeDistance));
 }
 
+vec3 getSpecularDominantDirection(vec3 N, vec3 V, float roughness) {
+    float f = (1.0 - roughness) * (sqrt(1.0 - roughness) + roughness);
+    vec3 R = reflect(-V, N);
+    return normalize(mix(N, R, f));
+}
+
+void getSpecularKernelBasis(vec3 viewPos, vec3 N, float roughness, float worldRadius,
+                            out vec3 T, out vec3 B) {
+    vec3 V = -normalize(viewPos);
+    vec3 D = getSpecularDominantDirection(N, V, roughness);
+    vec3 R = reflect(-D, N);
+    T = normalize(cross(N, R));
+    if (length(T) < 0.001) {
+        T = normalize(cross(N, vec3(0.0, 1.0, 0.0)));
+    }
+    B = cross(R, T);
+    T *= worldRadius;
+    B *= worldRadius;
+    float NoV = abs(dot(N, V));
+    float angle = saturate(acos(NoV) / (PI * 0.5));
+    float skewFactor = mix(1.0, roughness, angle);
+    T *= skewFactor;
+}
+
+float getRoughnessWeight(float roughness0, float roughness) {
+    float norm = roughness0 * roughness0 * 0.99 + 0.01;
+    float w = abs(roughness0 - roughness) / norm;
+    return saturate(1.0 - w);
+}
+
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
@@ -161,7 +195,30 @@ void main() {
             f16vec4 specResultFP16 = f16vec4(centerSpec);
 
             float16_t weightSumFP16 = float16_t(1.0);
+            float16_t specWeightSumFP16 = float16_t(1.0);
             float16_t centerLuma = diffResultFP16.w;
+
+            // Decode center material for specular kernel shaping
+            GBufferData centerGData = gbufferData_init();
+            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), centerGData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), centerGData);
+            Material centerMaterial = material_decode(centerGData);
+            float centerRoughness = centerMaterial.roughness;
+
+            vec3 Vcenter = normalize(-centerGeomData.viewPos);
+            float NdotV_center = abs(dot(centerGeomData.normal, Vcenter));
+            vec3 centerFresnel = fresnel_evalMaterial(centerMaterial, NdotV_center);
+            float specularMix = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerFresnel) * (1.0 - centerRoughness);
+
+            vec3 specT, specB;
+            getSpecularKernelBasis(centerGeomData.viewPos, centerGeomData.normal, centerRoughness,
+                                   kernelRadius, specT, specB);
+            vec2 specTScreen = specT.xy * uval_mainImageSize;
+            vec2 specBScreen = specB.xy * uval_mainImageSize;
+            float specTLen = length(specTScreen);
+            float specBLen = length(specBScreen);
+            vec2 specTDir = specTLen > 0.001 ? normalize(specTScreen) : vec2(1.0, 0.0);
+            vec2 specBDir = specBLen > 0.001 ? normalize(specBScreen) : vec2(0.0, 1.0);
 
             #if GI_DENOISE_PASS == 1
             float16_t edgeWeightSumFP16 = float16_t(0.0);
@@ -194,7 +251,18 @@ void main() {
                 dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
                 dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
                 float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples);
-                f16vec2 offsetTexel = dir * (baseRadius * kernelRadius2);
+
+                // Diffuse offset (isotropic/stretch kernel)
+                f16vec2 diffOffsetTexel = dir * (baseRadius * kernelRadius2);
+
+                // Specular offset (GGX lobe-shaped anisotropic kernel)
+                float cosA = dot(vec2(dir), specTDir);
+                float sinA = dot(vec2(dir), specBDir);
+                f16vec2 specOffsetTexel = f16vec2(cosA * specTLen, sinA * specBLen) * baseRadius;
+
+                // Interpolate between diffuse and specular kernel shapes
+                f16vec2 offsetTexel = mix(diffOffsetTexel, specOffsetTexel, float16_t(specularMix));
+
                 vec2 offsetUV = vec2(offsetTexel) * uval_mainImageSizeRcp;
                 vec2 sampleUV = centerScreenPos + offsetUV;
                 if (saturate(sampleUV) != sampleUV) {
@@ -204,6 +272,12 @@ void main() {
                 ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
 
                 GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
+
+                // Fetch sample roughness for specular weight
+                GBufferData sampleGData = gbufferData_init();
+                gbufferData1_unpack(texelFetch(usam_gbufferData1, sampleTexelPos, 0), sampleGData);
+                gbufferData2_unpack(texelFetch(usam_gbufferData2, sampleTexelPos, 0), sampleGData);
+                float sampleRoughness = material_decode(sampleGData).roughness;
 
                 // Cheap enough to just recompute it to save 1 extra register
                 float baseNormalWeight = invAccumFactor * 256.0;
@@ -220,29 +294,31 @@ void main() {
                 float16_t edgeWeight = float16_t(edgeWeightFP32);
 
                 f16vec4 diffSample = f16vec4(_gi_readDiff(sampleTexelPos));
+                f16vec4 specSample = f16vec4(_gi_readSpec(sampleTexelPos));
                 float16_t sampleLuma = diffSample.a;
-                // float lumaDiff = pow2(centerLuma - sampleLuma);
-                // float colorWeight = smoothstep(baseColorWeight, 0.0, lumaDiff);
                 #if GI_DENOISE_PASS == 1
                 moment1FP16 += sampleLuma * edgeWeight;
                 moment2FP16 += pow2(sampleLuma) * edgeWeight;
                 edgeWeightSumFP16 += edgeWeight;
                 #endif
 
-
                 float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
-                //                float lumaDiff = pow2(centerLuma - sampleLuma);
-                //                float colorWeight = smoothstep(0.01, 0.0, lumaDiff);
-                //                totalWeight *= colorWeight;
+
+                float roughnessW = getRoughnessWeight(centerRoughness, sampleRoughness);
+                float16_t specTotalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeightFP32) * roughnessW);
 
                 diffResultFP16 += diffSample * totalWeight;
                 weightSumFP16 += totalWeight;
+
+                specResultFP16 += specSample * specTotalWeight;
+                specWeightSumFP16 += specTotalWeight;
             }
             #endif
 
             vec4 diffResult = vec4(diffResultFP16);
             vec4 specResult = vec4(specResultFP16);
             float weightSum = float(weightSumFP16);
+            float specWeightSum = float(specWeightSumFP16);
             #if GI_DENOISE_PASS == 1
             float edgeWeightSum = float(edgeWeightSumFP16);
             float moment1 = float(moment1FP16);
@@ -251,7 +327,7 @@ void main() {
 
             float rcpWeightSum = 1.0 / weightSum;
             diffResult *= rcpWeightSum;
-            specResult *= rcpWeightSum;
+            specResult *= 1.0 / specWeightSum;
 
             float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 5u + GI_DENOISE_PASS), frameCounter);
             diffResult = dither_fp16(diffResult, ditherNoise);

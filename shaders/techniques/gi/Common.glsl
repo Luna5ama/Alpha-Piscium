@@ -51,8 +51,6 @@ struct GIHistoryData {
     float realHistoryLength;
     float edgeMask;
     float glazingAngleFactor;
-
-    float shadow;
 };
 
 GIHistoryData gi_historyData_init()  {
@@ -68,14 +66,13 @@ GIHistoryData gi_historyData_init()  {
     data.historyLength = 0.0;
     data.realHistoryLength = 0.0;
     data.edgeMask = 0.0;
-    data.shadow = 0.0;
     data.glazingAngleFactor = 0.0;
     return data;
 }
 
 void gi_historyData_unpack1(inout GIHistoryData data, vec4 packedData) {
     data.diffuseColor = packedData.xyz;
-    data.shadow = packedData.w;
+    data.specularHitDistance = packedData.w;
 }
 
 void gi_historyData_unpack2(inout GIHistoryData data, vec4 packedData) {
@@ -89,7 +86,6 @@ void gi_historyData_unpack3(inout GIHistoryData data, vec4 packedData) {
 
 void gi_historyData_unpack4(inout GIHistoryData data, vec4 packedData) {
     data.specularFastColor = packedData.xyz;
-    data.specularHitDistance = packedData.w;
 }
 
 void gi_historyData_unpack5(inout GIHistoryData data, vec4 packedData) {
@@ -100,7 +96,7 @@ void gi_historyData_unpack5(inout GIHistoryData data, vec4 packedData) {
 }
 
 vec4 gi_historyData_pack1(GIHistoryData data) {
-    return vec4(data.diffuseColor, data.shadow);
+    return vec4(data.diffuseColor, data.specularHitDistance);
 }
 
 vec4 gi_historyData_pack2(GIHistoryData data) {
@@ -112,7 +108,7 @@ vec4 gi_historyData_pack3(GIHistoryData data) {
 }
 
 vec4 gi_historyData_pack4(GIHistoryData data) {
-    return vec4(data.specularFastColor, data.specularHitDistance);
+    return vec4(data.specularFastColor, 0.0);
 }
 
 vec4 gi_historyData_pack5(GIHistoryData data) {

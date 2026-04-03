@@ -23,6 +23,7 @@
 #include "/util/Sampling.glsl"
 #include "/techniques/HiZCheck.glsl"
 #include "/util/ThreadGroupTiling.glsl"
+#include "/util/BSDF.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -393,12 +394,23 @@ void main() {
                     transient_gi_initialSampleHitDistance_store(texelPos, vec4(-1.0));
                 }
 
+                vec3 V = normalize(-viewPos);
+                vec3 L = sampleDirView;
+                vec3 H = normalize(L + V);
+                float NDotL = saturate(dot(gData.normal, L));
+                float NDotV = saturate(dot(gData.normal, V));
+                float NDotH = saturate(dot(gData.normal, H));
+                float LDotH = saturate(dot(L, H));
+
+                vec3 fresnel = fresnel_evalMaterial(material, LDotH);
+                float diffuseBRDF = (1.0 - material.metallic) * NDotL * RCP_PI;
+                float specularBRDF = bsdf_ggx(material, NDotL, NDotV, NDotH);
+
+                vec3 f = hitRadiance * ((1.0 - fresnel) * diffuseBRDF + fresnel * specularBRDF);
+                float newPHat = length(f);
+
                 float brdf = saturate(dot(gData.normal, sampleDirView)) / PI;
-                vec3 initalSample = brdf * hitRadiance;
-
                 float samplePdf = brdf;
-
-                float newPHat = length(initalSample);
                 float newWi = samplePdf <= 0.0 ? 0.0 : newPHat / samplePdf;
 
                 float reservoirRand1 = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 6u), RANDOM_FRAME);
@@ -417,13 +429,38 @@ void main() {
                 temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
                 temporalReservoir.m = clamp(temporalReservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
                 #if USE_REFERENCE
+                vec3 initalSample = brdf * hitRadiance;
                 vec4 ssgiOut = vec4(initalSample * safeRcp(samplePdf), hitDistance);
                 ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
                 transient_ssgiOut_store(texelPos, ssgiOut);
+                transient_ssgiSpecOut_store(texelPos, vec4(0.0));
                 #elif !defined(SETTING_GI_SPATIAL_REUSE)
-                vec4 ssgiOut = vec4(finalSample.rgb * finalSample.a * temporalReservoir.avgWY, hitDistance);
-                ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
-                transient_ssgiOut_store(texelPos, ssgiOut);
+                vec3 winL = temporalReservoir.Y.xyz;
+                vec3 H_win = normalize(winL + V);
+                float winNDotL = saturate(dot(gData.normal, winL));
+                float winNDotH = saturate(dot(gData.normal, H_win));
+                float winLDotH = saturate(dot(winL, H_win));
+
+                vec3 winFresnel = fresnel_evalMaterial(material, winLDotH);
+                float winDiffuseBRDF = (1.0 - material.metallic) * (1.0 - winFresnel) * winNDotL * RCP_PI;
+                float winSpecularBRDF = winFresnel * bsdf_ggx(material, winNDotL, NDotV, winNDotH);
+
+                vec3 diffuseWeight = winDiffuseBRDF * vec3(1.0); // using simple ratio
+                vec3 specularWeight = vec3(winSpecularBRDF);
+                vec3 totalWeight = diffuseWeight + specularWeight;
+                float rcpTotal = safeRcp(length(totalWeight));
+
+                float diffuseRatio = length(diffuseWeight) * rcpTotal;
+                float specularRatio = 1.0 - diffuseRatio;
+
+                vec3 totalOutput = finalSample.rgb * finalSample.a * temporalReservoir.avgWY;
+                vec4 ssgiDiffOut = vec4(totalOutput * diffuseRatio, hitDistance);
+                vec4 ssgiSpecOut = vec4(totalOutput * specularRatio, hitDistance);
+                ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);
+                ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
+
+                transient_ssgiOut_store(texelPos, ssgiDiffOut);
+                transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
                 #endif
 
                 SpatialSampleData spatialSample = spatialSampleData_init();

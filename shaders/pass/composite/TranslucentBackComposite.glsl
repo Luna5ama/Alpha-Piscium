@@ -43,10 +43,27 @@ void main() {
                 albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
             }
 
-            // TODO: spec gi
+            // Full BRDF remodulation for demodulated GI
             vec4 giDiff = transient_gi_diffShadingOutput_fetch(texelPos);
             vec4 giSpec = transient_gi_specShadingOutput_fetch(texelPos);
-            outputColor.rgb += giDiff.rgb * albedo;
+
+            vec2 giScreenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            float giViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+            vec3 giViewPos = coords_toViewCoord(giScreenPos, giViewZ, global_camProjInverse);
+            vec3 giV = normalize(-giViewPos);
+
+            GBufferData gData2 = gbufferData_init();
+            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData2);
+            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData2);
+            Material giMaterial = material_decode(gData2);
+
+            float NdotV = saturate(dot(gData2.normal, giV));
+            vec3 fresnel = fresnel_evalMaterial(giMaterial, NdotV);
+
+            // Diffuse: remodulate with albedo × (1 - F) × (1 - metallic)
+            outputColor.rgb += giDiff.rgb * albedo * (1.0 - fresnel) * (1.0 - giMaterial.metallic);
+            // Specular: remodulate with fresnel
+            outputColor.rgb += giSpec.rgb * fresnel;
         }
 
         transient_exposureWeights_store(texelPos, exposureWeights);

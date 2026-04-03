@@ -5,6 +5,7 @@
 #include "/techniques/HiZCheck.glsl"
 #include "/util/AgxInvertible.glsl"
 #include "/util/Rand.glsl"
+#include "/util/Material.glsl"
 #include "/util/Dither.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
@@ -52,6 +53,18 @@ float computeOutputLumaDiffWeight(vec3 prevLinearColor, vec3 newLinearColor, flo
     return threshold / (threshold + pow2(lumaDiff));
 }
 
+const float SPEC_ACCUM_CURVE = 0.5;
+const float SPEC_ACCUM_BASE_POWER = 0.5;
+
+float getSpecMaxAccumFrames(float roughness, float NoV, float parallax) {
+    float acos01sq = saturate(1.0 - NoV); // ~ normalized acos^2
+    float a = pow(acos01sq, SPEC_ACCUM_CURVE);
+    float b = 1.001 + roughness * roughness;
+    float angularSensitivity = (b + a) / (b - a);
+    float power = SPEC_ACCUM_BASE_POWER * (1.0 + parallax * angularSensitivity);
+    return HISTORY_LENGTH * pow(roughness, power);
+}
+
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
@@ -81,7 +94,7 @@ void main() {
                 }
                 #endif
 
-                vec4 newSpecular = vec4(0.0); // TODO: specular input
+                vec4 newSpecular = transient_ssgiSpecOut_fetch(texelPos);
 
                 GIHistoryData historyData = gi_historyData_init();
 
@@ -132,10 +145,24 @@ void main() {
                     vec4 alpha = vec4(newWeights.xy, pow(newWeights.xy, vec2(0.1))) * rcpAccumHistoryLength.xxyy;
 
                     historyData.diffuseColor = mix(historyData.diffuseColor, newDiffuse.rgb, alpha.x);
-                    historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, alpha.y);
+
+                    GBufferData gData = gbufferData_init();
+                    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+                    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+                    Material material = material_decode(gData);
+                    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+                    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+                    vec3 V = normalize(-viewPos);
+                    float NoV = saturate(dot(gData.normal, V));
+                    float parallax = pow2(saturate(1.0 - material.roughness));
+
+                    float specMaxAccumFrames = getSpecMaxAccumFrames(material.roughness, NoV, parallax);
+                    float specAccumHistoryLength = min(historyLength, specMaxAccumFrames);
+                    float specAlpha = newWeights.y * rcp(specAccumHistoryLength);
+                    historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, specAlpha);
 
                     historyData.diffuseFastColor = mix(historyData.diffuseFastColor, newDiffuse.rgb, alpha.z);
-                    historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, alpha.w);// TODO: specular input
+                    historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, alpha.w);
 
                     float newHitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
 
@@ -143,6 +170,12 @@ void main() {
                         float alpha = rcp(min(historyLength, 16.0));
                         newHitDistance = min(newHitDistance, MAX_HIT_DISTANCE);
                         historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, alpha);
+                    }
+
+                    float newSpecHitDistance = newSpecular.w;
+                    if (newSpecHitDistance >= 0.0) {
+                        float alpha = rcp(min(historyLength, 16.0));
+                        historyData.specularHitDistance = mix(historyData.specularHitDistance, newSpecHitDistance, alpha);
                     }
 
                     historyLength = clamp(historyLength, 1.0, TOTAL_HISTORY_LENGTH);

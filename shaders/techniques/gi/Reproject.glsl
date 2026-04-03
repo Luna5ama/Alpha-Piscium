@@ -1,5 +1,6 @@
 #include "Common.glsl"
 #include "/util/GBufferData.glsl"
+#include "/util/Material.glsl"
 #include "/util/Sampling.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Dither.glsl"
@@ -342,6 +343,55 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 reprojInfo.curr2PrevScreenPos = curr2PrevScreen;
                 reprojInfo.historyResetFactor = historyResetFactor;
                 transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));
+
+                // Virtual-point specular reprojection (roughness-aware)
+                Material material = material_decode(gData);
+                float parallaxFactor = pow2(saturate(1.0 - material.roughness));
+                float specHitDist = transient_gi1Reprojected_fetch(texelPos).w;
+                float effectiveHitDist = specHitDist * parallaxFactor;
+
+                if (effectiveHitDist > 0.01) {
+                    vec3 viewDir = normalize(currViewPos);
+                    vec3 virtualViewPos = currViewPos + viewDir * effectiveHitDist;
+
+                    vec4 virtualPrevViewPos = coord_viewCurrToPrev(vec4(virtualViewPos, 1.0), gData.isHand);
+                    vec4 virtualPrevClipPos = global_prevCamProj * virtualPrevViewPos;
+
+                    if (virtualPrevClipPos.z > 0.0) {
+                        vec2 virtualPrevNDC = virtualPrevClipPos.xy / virtualPrevClipPos.w;
+                        vec2 virtualPrevScreen = saturate(virtualPrevNDC * 0.5 + 0.5 + global_prevTaaJitter * uval_mainImageSizeRcp);
+                        vec2 virtualPrevTexelPos = clamp(virtualPrevScreen * uval_mainImageSize, vec2(0.5), uval_mainImageSize - 0.5);
+
+                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, 0.5, uval_mainImageSizeRcp);
+
+                        float ditherNoiseV = rand_stbnVec1(rand_newStbnPos(texelPos, 9u), frameCounter);
+
+                        vec4 specData3 = sampling_catmullBicubic5Tap_sum(
+                            history_gi3_sample(vTapData.uv1AndWeight.xy),
+                            history_gi3_sample(vTapData.uv2AndWeight.xy),
+                            history_gi3_sample(vTapData.uv3AndWeight.xy),
+                            history_gi3_sample(vTapData.uv4AndWeight.xy),
+                            history_gi3_sample(vTapData.uv5AndWeight.xy),
+                            vTapData
+                        );
+                        vec4 specData4 = sampling_catmullBicubic5Tap_sum(
+                            history_gi4_sample(vTapData.uv1AndWeight.xy),
+                            history_gi4_sample(vTapData.uv2AndWeight.xy),
+                            history_gi4_sample(vTapData.uv3AndWeight.xy),
+                            history_gi4_sample(vTapData.uv4AndWeight.xy),
+                            history_gi4_sample(vTapData.uv5AndWeight.xy),
+                            vTapData
+                        );
+
+                        specData3 = clamp(specData3, 0.0, FP16_MAX);
+                        specData4 = clamp(specData4, 0.0, FP16_MAX);
+                        specData3 = dither_fp16(specData3, ditherNoiseV);
+                        specData4 = dither_fp16(specData4, ditherNoiseV);
+
+                        transient_gi3Reprojected_store(texelPos, specData3);
+                        transient_gi4Reprojected_store(texelPos, specData4);
+                    }
+                }
             }
         }
     }
