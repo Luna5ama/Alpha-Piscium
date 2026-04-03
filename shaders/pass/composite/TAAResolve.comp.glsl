@@ -10,8 +10,9 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
+layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 
 // Shared memory with padding for 4x4 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for Lanczos2 4x4 taps
@@ -279,7 +280,12 @@ void main() {
         vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampMethod));
         prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampMethod));
 
-        prevColor = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
+        vec3 prevColorNew = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
+        vec3 prevColorDiff = abs(prevColorNew - prevColor);
+        float lumaDiff = smoothstep(0.0, 0.3, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevColorDiff));
+
+        transient_lumaDiff_store(texelPos, vec4(lumaDiff, 0.0, 0.0, 0.0));
+        prevColor = prevColorNew;
     }
 
     #ifdef SETTING_SCREENSHOT_MODE
