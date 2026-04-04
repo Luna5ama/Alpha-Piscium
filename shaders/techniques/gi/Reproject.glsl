@@ -16,7 +16,7 @@ vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
     );
 }
 
-void computeEdgeWeights(
+vec4 computeEdgeWeights(
 vec2 screenPos,
 vec2 gatherTexelPos,
 vec3 currViewNormal,
@@ -109,6 +109,7 @@ out bool edgeFlag
     vec4 geomDepthWeights = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(curr2PrevViewPos.z), 2.0)));
     geomDepthWeights *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
     edgeWeights = geomNormalWeights * normalWeights * geomDepthWeights;
+    return normalWeights;
 }
 
 void gi_reproject(ivec2 texelPos, float currViewZ) {
@@ -147,7 +148,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
             bool edgeFlag;
             vec4 edgeWeights;
-            computeEdgeWeights(
+            vec4 extraNormalWeights = computeEdgeWeights(
                 screenPos,
                 gatherTexelPos,
                 currViewNormal,
@@ -366,7 +367,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 ReprojectInfo reprojInfo = reprojectInfo_init();
                 // Most edge values are very close to 1.0
                 // And we also want stricter weights for ReSTIR temporal
-                reprojInfo.bilateralWeights = pow(edgeWeights, vec4(16.0));
+                reprojInfo.bilateralWeights = pow(edgeWeights * pow(extraNormalWeights, vec4(128.0)), vec4(16.0));
                 reprojInfo.curr2PrevScreenPos = curr2PrevScreen;
                 reprojInfo.historyResetFactor = historyResetFactor;
                 transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));
@@ -392,7 +393,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
         Material material = material_decode(gData);
         // Goes to 1.0 when roughness is 0.0 and vise-versa
-        float mirrorParallaxFactor = pow(saturate(1.0 - material.roughness), 16.0);
+        float mirrorParallaxFactor = pow4(saturate(1.0 - material.roughness));
 
         vec3 viewDir = normalize(currViewPos);
         vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance;
