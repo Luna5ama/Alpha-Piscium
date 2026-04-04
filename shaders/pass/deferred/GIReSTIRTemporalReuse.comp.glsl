@@ -150,7 +150,17 @@ void main() {
                                 neighborReservoir.Y.xyz = normalize(shared_prevViewToCurrView * neighborReservoir.Y.xyz);
                             }
                             if (valid) {
-                                float neighborPHat = neighborSample.w;
+                                vec3 neighborL = neighborReservoir.Y.xyz;
+                                vec3 neighborH = normalize(neighborL + V);
+                                float neighborNDotL = saturate(dot(gData.normal, neighborL));
+                                float neighborNDotV = saturate(dot(gData.normal, V));
+                                float neighborNDotH = saturate(dot(gData.normal, neighborH));
+                                float neighborLDotH = saturate(dot(neighborL, neighborH));
+                                vec3 neighborFresnel = fresnel_evalMaterial(material, neighborLDotH);
+                                float neighborDiffBRDF = (1.0 - material.metallic) * neighborNDotL * RCP_PI;
+                                float neighborSpecBRDF = bsdf_ggx(material, neighborNDotL, neighborNDotV, neighborNDotH);
+                                vec3 neighborF = neighborSample.rgb * ((1.0 - neighborFresnel) * neighborDiffBRDF + neighborFresnel * neighborSpecBRDF);
+                                float neighborPHat = length(neighborF);
                                 neighborReservoir.m *= combinedWeight;
                                 float wi = max(0.0, neighborReservoir.avgWY) * neighborReservoir.m * neighborPHat;
                                 float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, baseRandSeed), RANDOM_FRAME);
@@ -216,7 +226,17 @@ void main() {
                                 neighborReservoir.Y.xyz = normalize(shared_prevViewToCurrView * neighborReservoir.Y.xyz);
                             }
                             if (valid) {
-                                float neighborPHat = neighborSample.w;
+                                vec3 neighborL = neighborReservoir.Y.xyz;
+                                vec3 neighborH = normalize(neighborL + V);
+                                float neighborNDotL = saturate(dot(gData.normal, neighborL));
+                                float neighborNDotV = saturate(dot(gData.normal, V));
+                                float neighborNDotH = saturate(dot(gData.normal, neighborH));
+                                float neighborLDotH = saturate(dot(neighborL, neighborH));
+                                vec3 neighborFresnel = fresnel_evalMaterial(material, neighborLDotH);
+                                float neighborDiffBRDF = (1.0 - material.metallic) * neighborNDotL * RCP_PI;
+                                float neighborSpecBRDF = bsdf_ggx(material, neighborNDotL, neighborNDotV, neighborNDotH);
+                                vec3 neighborF = neighborSample.rgb * ((1.0 - neighborFresnel) * neighborDiffBRDF + neighborFresnel * neighborSpecBRDF);
+                                float neighborPHat = length(neighborF);
                                 neighborReservoir.m *= combinedWeight;
                                 float wi = max(0.0, neighborReservoir.avgWY) * neighborReservoir.m * neighborPHat;
                                 float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, baseRandSeed + 1u), RANDOM_FRAME);
@@ -282,7 +302,17 @@ void main() {
                                 neighborReservoir.Y.xyz = normalize(shared_prevViewToCurrView * neighborReservoir.Y.xyz);
                             }
                             if (valid) {
-                                float neighborPHat = neighborSample.w;
+                                vec3 neighborL = neighborReservoir.Y.xyz;
+                                vec3 neighborH = normalize(neighborL + V);
+                                float neighborNDotL = saturate(dot(gData.normal, neighborL));
+                                float neighborNDotV = saturate(dot(gData.normal, V));
+                                float neighborNDotH = saturate(dot(gData.normal, neighborH));
+                                float neighborLDotH = saturate(dot(neighborL, neighborH));
+                                vec3 neighborFresnel = fresnel_evalMaterial(material, neighborLDotH);
+                                float neighborDiffBRDF = (1.0 - material.metallic) * neighborNDotL * RCP_PI;
+                                float neighborSpecBRDF = bsdf_ggx(material, neighborNDotL, neighborNDotV, neighborNDotH);
+                                vec3 neighborF = neighborSample.rgb * ((1.0 - neighborFresnel) * neighborDiffBRDF + neighborFresnel * neighborSpecBRDF);
+                                float neighborPHat = length(neighborF);
                                 neighborReservoir.m *= combinedWeight;
                                 float wi = max(0.0, neighborReservoir.avgWY) * neighborReservoir.m * neighborPHat;
                                 float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, baseRandSeed + 2u), RANDOM_FRAME);
@@ -348,8 +378,17 @@ void main() {
                                 neighborReservoir.Y.xyz = normalize(shared_prevViewToCurrView * neighborReservoir.Y.xyz);
                             }
                             if (valid) {
-                                vec3 nL_w = neighborReservoir.Y.xyz;
-                                float neighborPHat = neighborSample.w;
+                                vec3 neighborL = neighborReservoir.Y.xyz;
+                                vec3 neighborH = normalize(neighborL + V);
+                                float neighborNDotL = saturate(dot(gData.normal, neighborL));
+                                float neighborNDotV = saturate(dot(gData.normal, V));
+                                float neighborNDotH = saturate(dot(gData.normal, neighborH));
+                                float neighborLDotH = saturate(dot(neighborL, neighborH));
+                                vec3 neighborFresnel = fresnel_evalMaterial(material, neighborLDotH);
+                                float neighborDiffBRDF = (1.0 - material.metallic) * neighborNDotL * RCP_PI;
+                                float neighborSpecBRDF = bsdf_ggx(material, neighborNDotL, neighborNDotV, neighborNDotH);
+                                vec3 neighborF = neighborSample.rgb * ((1.0 - neighborFresnel) * neighborDiffBRDF + neighborFresnel * neighborSpecBRDF);
+                                float neighborPHat = length(neighborF);
                                 neighborReservoir.m *= combinedWeight;
                                 float wi = max(0.0, neighborReservoir.avgWY) * neighborReservoir.m * neighborPHat;
                                 float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, baseRandSeed + 3u), RANDOM_FRAME);
