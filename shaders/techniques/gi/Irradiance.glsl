@@ -27,12 +27,12 @@ vec3 restir_irradiance_sampleIrradianceMiss(ivec2 texelPos, vec3 rayOriginScene,
     #endif
 
     vec3 result = vec3(0.0);
-    if (envProbe_isSky(envData)) {
-        result.rgb = skyIrradiance;
-    } else {
-        float skyMixWeight = linearStep(SETTING_GI_PROBE_FADE_START, SETTING_GI_PROBE_FADE_END, length(rayOriginScene));
-        result.rgb = mix(envData.radiance.rgb, skyIrradiance, skyMixWeight);
-    }
+//    if (envProbe_isSky(envData)) {
+//        result.rgb = skyIrradiance;
+//    } else {
+//        float skyMixWeight = linearStep(SETTING_GI_PROBE_FADE_START, SETTING_GI_PROBE_FADE_END, length(rayOriginScene));
+//        result.rgb = mix(envData.radiance.rgb, skyIrradiance, skyMixWeight);
+//    }
 
     return result;
 }
