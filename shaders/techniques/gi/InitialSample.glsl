@@ -26,16 +26,6 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
     float a2 = roughness * roughness;
     float G1 = bsdf_smithG1(NdotV, roughness);
 
-    // Precompute bounded-cap pdf_ratio (depends only on V and roughness)
-    float a_cap = saturate(roughness);
-    float s_cap = 1.0 + length(wiTangent.xy);
-    vec3 wiStd = vec3(wiTangent.xy * roughness, wiTangent.z);
-    float t_cap = length(wiStd);
-    float a_cap2 = a_cap * a_cap;
-    float s_cap2 = s_cap * s_cap;
-    float k_cap = (1.0 - a_cap2) * s_cap2 / (s_cap2 + a_cap2 * wiTangent.z * wiTangent.z);
-    float pdf_ratio_precomp = (k_cap * wiTangent.z + t_cap) / (wiTangent.z + t_cap);
-
     // Specular bounce probability: F / (albedo*(1-F) + F)
     vec3 fresnelV = fresnel_evalMaterial(material, NdotV);
     float pSpec;
@@ -54,8 +44,7 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
     if (choiceRand < pSpec) {
         // VNDF specular sample
         vec2 xi = rand_stbnVec2(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
-        float pdf_ratio_unused;
-        vec3 wmTangent = bsdf_SphericalCapBoundedWithPDFRatio(xi, wiTangent, vec2(roughness), pdf_ratio_unused);
+        vec3 wmTangent = bsdf_VNDFSphericalCap(wiTangent, vec2(roughness), xi);
         vec3 wrTangent = reflect(-wiTangent, wmTangent);
         sampleDirView = normalize(material.tbn * wrTangent);
         if (dot(sampleDirView, geomNormal) < 0.0) {
@@ -77,17 +66,17 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
     float NDotL = max(L_tangent.z, 1e-5);
 
     // Cosine-hemisphere pdf
-    float cosine_pdf = NDotL * RCP_PI;
+    float cosinePdf = NDotL * RCP_PI;
 
     // VNDF reflection pdf for this direction
     vec3 H_tangent = normalize(L_tangent + wiTangent);
     float NdotH = max(H_tangent.z, 1e-5);
     float d = NdotH * NdotH * (a2 - 1.0) + 1.0;
     float D = a2 / (PI * d * d);
-    float vndf_pdf = G1 * D / (4.0 * NdotV * max(pdf_ratio_precomp, 1e-5));
+    float vndfPdf = G1 * D / (4.0 * NdotV);
 
     // Combined mixture pdf (balance heuristic)
-    pdf = max(pSpec * vndf_pdf + (1.0 - pSpec) * cosine_pdf, 1e-6);
+    pdf = max(pSpec * vndfPdf + (1.0 - pSpec) * cosinePdf, 1e-6);
 
     return sampleDirView;
 }

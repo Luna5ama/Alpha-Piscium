@@ -57,8 +57,7 @@ void main() {
             vec3 localViewDir = normalize(material.tbnInv * viewDir);
 
             vec2 noiseV = rand_stbnVec2(texelPos, frameCounter);
-            float pdfRatio = 1.0;
-            vec3 tangentMicroNormal = bsdf_SphericalCapBoundedWithPDFRatio(noiseV, localViewDir, vec2(material.roughness), pdfRatio);
+            vec3 tangentMicroNormal = bsdf_VNDFSphericalCap(localViewDir, vec2(material.roughness), noiseV);
             vec3 microNormal = normalize(material.tbn * tangentMicroNormal);
 
             vec2 ndcPos = abs(screenPos * 2.0 - 1.0);

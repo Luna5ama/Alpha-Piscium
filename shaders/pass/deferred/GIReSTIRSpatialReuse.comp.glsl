@@ -123,7 +123,7 @@ void main() {
                 f16vec2 tempDir = dir;
                 dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
                 dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
-                float16_t baseRadius = ((float16_t(i) + jitterR) * rcpSamples) * float16_t(REUSE_RADIUS);
+                float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples) * float16_t(REUSE_RADIUS);
                 f16vec2 offset = dir * baseRadius;
 
                 vec2 sampleTexelPosF = texelPosF + vec2(offset);
