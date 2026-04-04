@@ -156,19 +156,12 @@ void main() {
                     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
                     vec3 V = normalize(-viewPos);
                     float NoV = saturate(dot(gData.normal, V));
-                    // We can introduce a new entity - parallax
-                    //Parallax - represents angle between previous and current view
-                    //vectors for the same surface point
-                    // // Coordinates in world space
-                    //float3 movementDelta = X - ( Xprev - gCameraDelta );
-                    //// ~Sine of angle between old and new view vector in world space
-                    //float parallax = length( movementDelta ) / ( distToPoint * frameTime );
-                    float parallax = pow2(saturate(1.0 - material.roughness));
-                    parallax = .0;
+                    vec3 movementDelta = gData.isHand ? vec3(0.0) : uval_cameraDelta;
+                    float distToPoint = length(viewPos);
+                    float parallax = length(movementDelta) / max(distToPoint * frameTime, 1e-5);
 
                     float specMaxAccumFrames = getSpecMaxAccumFrames(material.roughness, NoV, parallax);
-//                    float specAccumHistoryLength = clamp(historyLength, 1.0, specMaxAccumFrames);
-                    float specAccumHistoryLength = historyLength;
+                    float specAccumHistoryLength = clamp(historyLength, 1.0, specMaxAccumFrames);
                     float specAlpha = newWeights.y * rcp(specAccumHistoryLength);
                     historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, specAlpha);
 
