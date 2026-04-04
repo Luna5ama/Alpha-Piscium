@@ -202,15 +202,18 @@ void main() {
 
             float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
 
-            vec3 specT, specB;
+            vec3 specTFP32, specBFP32;
             getSpecularKernelBasis(
                 centerGeomData.viewPos,
                 centerGeomData.normal,
                 centerGeomData.roughness,
                 worldRadius,
-                specT,
-                specB
+                specTFP32,
+                specBFP32
             );
+
+            f16vec3 specT = f16vec3(specTFP32);
+            f16vec3 specB = f16vec3(specBFP32);
 
             #if GI_DENOISE_PASS == 1
             float16_t edgeWeightSumFP16 = float16_t(0.0);
@@ -236,7 +239,7 @@ void main() {
                 dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
                 float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples);
 
-                vec3 sampleView = centerGeomData.viewPos + (specT * float(dir.x) + specB * float(dir.y)) * float(baseRadius);
+                vec3 sampleView = centerGeomData.viewPos + vec3(specT * dir.x + specB * dir.y) * float(baseRadius);
                 vec4 sampleClip = global_camProj * vec4(sampleView, 1.0);
                 vec2 sampleUV = sampleClip.xy / sampleClip.w * 0.5 + 0.5;
 
