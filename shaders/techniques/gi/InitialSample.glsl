@@ -42,24 +42,19 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
 
     float choiceRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u), RANDOM_FRAME);
 
-    vec3 sampleDirView;
+    vec3 sampleDirTangent;
+    ivec2 sampleDirRandKey = rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u);
     if (choiceRand < pSpec) {
         // VNDF specular sample
-        vec2 xi = rand_stbnVec2(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
+        vec2 xi = rand_stbnVec2(sampleDirRandKey, RANDOM_FRAME);
         vec3 wmTangent = bsdf_VNDFSphericalCapTrimmed(wiTangent, vec2(material.roughness), xi, RESTIR_VNDF_TRIM);
-        vec3 wrTangent = reflect(-wiTangent, wmTangent);
-        sampleDirView = normalize(material.tbn * wrTangent);
-        if (dot(sampleDirView, geomNormal) < 0.0) {
-            sampleDirView = reflect(sampleDirView, geomNormal);
-        }
+        sampleDirTangent = reflect(-wiTangent, wmTangent);
     } else {
         // Cosine-weighted diffuse sample around shading normal
-        vec3 sampleDirTangent = rand_stbnUnitVec3Cosine(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
-        sampleDirView = normalize(material.tbn * sampleDirTangent);
-        if (dot(sampleDirView, geomNormal) < 0.0) {
-            sampleDirView = reflect(sampleDirView, geomNormal);
-        }
+        sampleDirTangent = rand_stbnUnitVec3Cosine(sampleDirRandKey, RANDOM_FRAME);
     }
+
+    vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
 
     // Compute full MIS balance heuristic pdf for the chosen direction.
     // Both VNDF and cosine pdfs are evaluated regardless of which branch was taken.
@@ -79,6 +74,13 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
 
     // Combined mixture pdf (balance heuristic)
     pdf = max(pSpec * vndfPdf + (1.0 - pSpec) * cosinePdf, 1e-6);
+
+    // Reflect the sample direction if it's below the geometric normal.
+    // This can happen VNDF sampling or with normal mapping
+    // Putting this after pdf calculation to use the orignal pdf for "correctness"
+    if (dot(sampleDirView, geomNormal) <= 0.0) {
+        sampleDirView = reflect(sampleDirView, geomNormal);
+    }
 
     return sampleDirView;
 }
