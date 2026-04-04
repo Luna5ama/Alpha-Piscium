@@ -102,7 +102,7 @@ void computeEdgeWeights(
     edgeFlagI |= uint(any(greaterThan(planeDistances, vec4(planeDistanceThreshold))));
     edgeFlag = bool(edgeFlagI);
 
-    vec4 normalWeights = pow(pow4(geomViewNormalDots) * viewNormalDots, vec4(32.0));
+    vec4 normalWeights = pow(pow4(geomViewNormalDots) * viewNormalDots, vec4(128.0));
     float geomDepthBaseWeight = mix(32.0, 4.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
     vec4 geomDepthWeights = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(curr2PrevViewPos.z), 2.0)));
     geomDepthWeights *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
@@ -293,7 +293,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
             if (valid) {
                 ReprojectInfo reprojInfo = reprojectInfo_init();
-                reprojInfo.bilateralWeights = pow(edgeWeights, vec4(16.0)); // Most edge values are very close to 1.0
+                // Most edge values are very close to 1.0
+                // And we also want stricter weights for ReSTIR temporal
+                reprojInfo.bilateralWeights = pow(edgeWeights, vec4(16.0));
                 reprojInfo.curr2PrevScreenPos = curr2PrevScreen;
                 reprojInfo.historyResetFactor = historyResetFactor;
                 transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));

@@ -28,6 +28,7 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
+layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
@@ -121,6 +122,9 @@ void sampleTemporalNeighbor(
                 float neighborPHat = length(neighborF);
 
                 neighborReservoir.m *= combinedWeight;
+                // Reduces weight further if the target function is much diff from the hisotry footprint
+                float ratio = max(neighborPHat * safeRcp(neighborSample.w), neighborSample.w * safeRcp(neighborPHat));
+                neighborReservoir.m *= rcp(max(ratio, 1.0));
                 float wi = max(0.0, neighborReservoir.avgWY) * neighborReservoir.m * neighborPHat;
                 float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, randSeedOffset), RANDOM_FRAME);
 
@@ -173,7 +177,6 @@ void main() {
             ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
             float ageResetRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
             if (reprojInfo.historyResetFactor > ageResetRand) {
-                reprojInfo.bilateralWeights = pow(reprojInfo.bilateralWeights, vec4(1.0 / 16.0));
                 vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
                 curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
                 vec2 gatherTexelPos = floor(curr2PrevTexelPos - 0.5) + 1.0;
