@@ -109,4 +109,32 @@ vec3 bsdf_VNDFSphericalCap(
     return normalize(vec3(alpha * halfway.xy, halfway.z));
 }
 
+vec3 bsdf_VNDFSphericalCapTrimmed(
+    vec3 viewerDirection, // Direction pointing towards the viewer, oriented such that +Z corresponds to the surface normal
+    vec2 alpha, // Roughness parameter along X and Y of the distribution
+    vec2 xy, // Pair of uniformly distributed numbers in [0, 1)
+    float trimFactor
+) {
+    float yMax = clamp(1.0 - trimFactor / (1.0 + viewerDirection.z), 0.0, 1.0);
+    xy.y *= yMax;
+
+    // Transform viewer direction to the hemisphere configuration
+    viewerDirection = normalize(vec3(alpha * viewerDirection.xy, viewerDirection.z));
+
+    // Sample a reflection direction off the hemisphere
+    const float tau = 6.2831853; // 2 * pi
+    float phi = tau * xy.x;
+    float cosTheta = fma(1.0 - xy.y, 1.0 + viewerDirection.z, -viewerDirection.z);
+    float sinTheta = sqrt(clamp(1.0 - cosTheta * cosTheta, 0.0, 1.0));
+    vec3 reflected = vec3(vec2(cos(phi), sin(phi)) * sinTheta, cosTheta);
+
+    // Evaluate halfway direction
+    // This gives the normal on the hemisphere
+    vec3 halfway = reflected + viewerDirection;
+
+    // Transform the halfway direction back to hemiellispoid configuation
+    // This gives the final sampled normal
+    return normalize(vec3(alpha * halfway.xy, halfway.z));
+}
+
 #endif

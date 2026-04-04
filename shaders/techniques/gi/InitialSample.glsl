@@ -18,6 +18,8 @@ struct restir_InitialSampleData {
 // Slot 0 (RANDOM_FRAME/64u)   → choice random (stbnVec1)
 // Slot 1 (RANDOM_FRAME/64u+1) → direction random (stbnVec2 or stbnUnitVec3Cosine)
 vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V, Material material, out float pdf) {
+    const float RESTIR_VNDF_TRIM = 0.05;
+
     float roughness = material.roughness;
     vec3 wiTangent = material.tbnInv * V;
     float NdotV = max(wiTangent.z, 1e-5);
@@ -36,15 +38,16 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
         vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
         pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV / max(totalEnergy, vec3(1e-5)));
     }
-    pSpec = clamp(pSpec, 0.0, 1.0);
+    pSpec = saturate(pSpec);
 
     float choiceRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u), RANDOM_FRAME);
 
     vec3 sampleDirView;
     if (choiceRand < pSpec) {
+//        if (true) {
         // VNDF specular sample
         vec2 xi = rand_stbnVec2(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
-        vec3 wmTangent = bsdf_VNDFSphericalCap(wiTangent, vec2(roughness), xi);
+        vec3 wmTangent = bsdf_VNDFSphericalCapTrimmed(wiTangent, vec2(0.015), xi, RESTIR_VNDF_TRIM);
         vec3 wrTangent = reflect(-wiTangent, wmTangent);
         sampleDirView = normalize(material.tbn * wrTangent);
         if (dot(sampleDirView, geomNormal) < 0.0) {
@@ -62,15 +65,15 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
     // Compute full MIS balance heuristic pdf for the chosen direction.
     // Both VNDF and cosine pdfs are evaluated regardless of which branch was taken.
     // This prevents weight explosion when a cosine sample lands near the specular peak.
-    vec3 L_tangent = material.tbnInv * sampleDirView;
-    float NDotL = max(L_tangent.z, 1e-5);
+    vec3 LTangent = material.tbnInv * sampleDirView;
+    float NDotL = max(LTangent.z, 1e-5);
 
     // Cosine-hemisphere pdf
     float cosinePdf = NDotL * RCP_PI;
 
     // VNDF reflection pdf for this direction
-    vec3 H_tangent = normalize(L_tangent + wiTangent);
-    float NdotH = max(H_tangent.z, 1e-5);
+    vec3 HTangent = normalize(LTangent + wiTangent);
+    float NdotH = max(HTangent.z, 1e-5);
     float d = NdotH * NdotH * (a2 - 1.0) + 1.0;
     float D = a2 / (PI * d * d);
     float vndfPdf = G1 * D / (4.0 * NdotV);
