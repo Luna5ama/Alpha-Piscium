@@ -9,10 +9,7 @@
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
-#include "/util/Coords.glsl"
 #include "/util/Colors2.glsl"
-#include "/util/Fresnel.glsl"
-#include "/util/BSDF.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -47,23 +44,10 @@ void main() {
             vec4 giDiff = transient_gi_diffShadingOutput_fetch(texelPos);
             vec4 giSpec = transient_gi_specShadingOutput_fetch(texelPos);
 
-            vec2 giScreenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-            float giViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
-            vec3 giViewPos = coords_toViewCoord(giScreenPos, giViewZ, global_camProjInverse);
-            vec3 giV = normalize(-giViewPos);
-
-            GBufferData gData2 = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData2);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData2);
-            Material giMaterial = material_decode(gData2);
-
-            float NdotV = saturate(dot(gData2.normal, giV));
-            vec3 fresnel = fresnel_evalMaterial(giMaterial, NdotV);
-
-            // Diffuse: remodulate with albedo × (1 - F) × (1 - metallic)
-            outputColor.rgb += giDiff.rgb * albedo * (1.0 - fresnel) * (1.0 - giMaterial.metallic);
-            // Specular: remodulate with fresnel
-            outputColor.rgb += giSpec.rgb * fresnel;
+            // Diffuse buffer has (1-F)*(1-M)*cosθ/π baked in; just remodulate with albedo
+            outputColor.rgb += giDiff.rgb * albedo;
+            // Specular buffer has F*GGX baked in; already fully modulated
+            outputColor.rgb += giSpec.rgb;
         }
 
         transient_exposureWeights_store(texelPos, exposureWeights);

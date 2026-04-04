@@ -470,15 +470,13 @@ void main() {
 
                 vec3 diffuseWeight = (1.0 - material.metallic) * (1.0 - winFresnel) * vec3(winDiffBRDF);
                 vec3 specularWeight = winFresnel * winSpecBRDF;
-                vec3 totalWeight = diffuseWeight + specularWeight;
-                float rcpTotal = safeRcp(length(totalWeight));
-                float diffuseRatio = length(diffuseWeight) * rcpTotal;
-                float specularRatio = 1.0 - diffuseRatio;
+                vec3 fullBRDF = diffuseWeight + specularWeight;
+                vec3 diffRatio3 = diffuseWeight / max(fullBRDF, vec3(1e-7));
 
                 vec3 winFullBRDF = (1.0 - winFresnel) * winDiffBRDF + winFresnel * winSpecBRDF;
                 vec3 totalOutput = finalSample.rgb * winFullBRDF * temporalReservoir.avgWY;
-                vec4 ssgiDiffOut = vec4(totalOutput * diffuseRatio, winHitDist);
-                vec4 ssgiSpecOut = vec4(totalOutput * specularRatio, winHitDist);
+                vec4 ssgiDiffOut = vec4(totalOutput * diffRatio3, winHitDist);
+                vec4 ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3), winHitDist);
                 ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);
                 ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
 

@@ -245,15 +245,12 @@ void main() {
 
             vec3 diffuseWeight = (1.0 - material.metallic) * (1.0 - outFresnel) * lambertianBRDF;
             vec3 specularWeight = outFresnel * ggxBRDF;
-            vec3 totalWeight = diffuseWeight + specularWeight;
-            float rcpTotal = safeRcp(length(totalWeight));
-
-            float diffuseRatio = length(diffuseWeight) * rcpTotal;
-            float specularRatio = 1.0 - diffuseRatio;
+            vec3 fullBRDF = diffuseWeight + specularWeight;
+            vec3 diffRatio3 = diffuseWeight / max(fullBRDF, vec3(1e-7));
 
             vec3 totalOutput = selectedSampleF.xyz * avgWY;
-            ssgiOut = vec4(totalOutput * diffuseRatio, winHitDist);
-            ssgiSpecOut = vec4(totalOutput * specularRatio, winHitDist);
+            ssgiOut = vec4(totalOutput * diffRatio3, winHitDist);
+            ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3), winHitDist);
 
             #if SETTING_DEBUG_OUTPUT
             vec4 vvv = vec4(0.0);

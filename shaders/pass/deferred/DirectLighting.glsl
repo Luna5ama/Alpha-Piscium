@@ -106,15 +106,17 @@ void main() {
             vec4 giOut1 = vec4(0.0);
             vec4 giOut2 = vec4(0.0);
 
-            giOut1.rgb = transient_gi2Reprojected_fetch(texelPos).rgb;
-            giOut1.rgb += transient_gi3Reprojected_fetch(texelPos).rgb * material.metallic;
+            vec3 gi2Data = transient_gi2Reprojected_fetch(texelPos).rgb;
+            vec3 gi3Data = transient_gi3Reprojected_fetch(texelPos).rgb;
 
             vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
             if (lighting_gData.materialID == 65534u) {
                 mainOut = vec4(material.albedo * 0.01, 2.0);
                 giOut1 = vec4(0.0);
             } else {
-                giOut1.rgb *= min(material.albedo, 0.95);
+                // Diffuse multi-bounce: remodulate with albedo
+                // Specular multi-bounce: already has F baked in, only add for metals
+                giOut1.rgb = gi2Data * min(material.albedo, 0.95) + gi3Data * material.metallic;
                 giOut1.rgb *= GI_MB;
                 doLighting(material, viewPos, lighting_gData.normal, mainOut.rgb, giOut1, giOut2);
                 float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(material.albedo));
