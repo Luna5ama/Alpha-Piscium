@@ -23,6 +23,7 @@ vec3 currViewNormal,
 vec3 currViewGeomNormal,
 vec3 curr2PrevViewPos,
 float glazingAngleFactor,
+float normalBaseWeight,
 out vec4 edgeWeights,
 out bool edgeFlag
 ) {
@@ -102,11 +103,12 @@ out bool edgeFlag
     edgeFlagI |= uint(any(greaterThan(planeDistances, vec4(planeDistanceThreshold))));
     edgeFlag = bool(edgeFlagI);
 
-    vec4 normalWeights = pow(pow4(geomViewNormalDots) * viewNormalDots, vec4(128.0));
+    vec4 geomNormalWeights = pow(geomViewNormalDots, vec4(256.0));
+    vec4 normalWeights = pow(viewNormalDots, vec4(normalBaseWeight));
     float geomDepthBaseWeight = mix(32.0, 4.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
     vec4 geomDepthWeights = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(curr2PrevViewPos.z), 2.0)));
     geomDepthWeights *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
-    edgeWeights = normalWeights * geomDepthWeights;
+    edgeWeights = geomNormalWeights * normalWeights * geomDepthWeights;
 }
 
 void gi_reproject(ivec2 texelPos, float currViewZ) {
@@ -152,6 +154,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 currViewGeomNormal,
                 curr2PrevViewPos.xyz,
                 glazingAngleFactor,
+                1.0,
                 edgeWeights,
                 edgeFlag
             );
@@ -420,6 +423,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     currViewGeomNormal,
                     curr2PrevViewPos.xyz,
                     glazingAngleFactor,
+                    128.0 * mirrorParallaxFactor,
                     edgeWeights,
                     edgeFlag
                 );
