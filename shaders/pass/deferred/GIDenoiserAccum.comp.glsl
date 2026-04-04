@@ -155,16 +155,18 @@ void main() {
                     transient_specularPBRData_store(texelPos, vec4(sqrt(material.roughness), 0.0, 0.0, 0.0));
                     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
                     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-                    vec3 V = normalize(-viewPos);
-                    float NoV = saturate(dot(gData.normal, V));
-                    vec3 movementDelta = gData.isHand ? vec3(0.0) : uval_cameraDelta;
-                    float distToPoint = length(viewPos);
-                    float parallax = length(movementDelta) / max(distToPoint * frameTime, 1e-5);
-
-                    float specMaxAccumFrames = getSpecMaxAccumFrames(material.roughness, NoV, parallax);
-                    float specAccumHistoryLength = clamp(historyLength, 1.0, specMaxAccumFrames);
-                    float specAlpha = newWeights.y * rcp(specAccumHistoryLength);
-                    historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, specAlpha);
+//                    Removed fornow
+//                    vec3 V = normalize(-viewPos);
+//                    float NoV = saturate(dot(gData.normal, V));
+//                    vec3 movementDelta = gData.isHand ? vec3(0.0) : uval_cameraDelta;
+//                    float distToPoint = length(viewPos);
+//                    float parallax = length(movementDelta) / max(distToPoint * frameTime, 1e-5);
+//
+//                    float specMaxAccumFrames = getSpecMaxAccumFrames(material.roughness, NoV, parallax);
+//                    float specAccumHistoryLength = clamp(historyLength, 1.0, specMaxAccumFrames);
+//                    float specAlpha = newWeights.y * rcp(specAccumHistoryLength);
+                    float specAlpha = newWeights.y * rcp(historyLength);
+                    historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, alpha.y);
 
                     historyData.diffuseFastColor = mix(historyData.diffuseFastColor, newDiffuse.rgb, alpha.z);
                     historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, alpha.w);
