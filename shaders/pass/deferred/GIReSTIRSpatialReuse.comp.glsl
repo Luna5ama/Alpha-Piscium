@@ -1,5 +1,8 @@
 /*
     References:
+        [BIT22] Bitterli, Benedikt. "Correlations and Reuse for Fast and Accurate Physically Based Light Transport".
+            Dartmouth College Ph.D Dissertations 2022.
+            https://digitalcommons.dartmouth.edu/cgi/viewcontent.cgi?article=1080&context=dissertations
         [WYM23] Wyman, Chris, et al. "A Gentle Introduction to ReSTIR". SIGGRAPH 2023.
             https://intro-to-restir.cwyman.org/
         [ANA23] Anagnostou, Kostas. "A Gentler Introduction to ReSTIR". Interplay of Light. 2023.
@@ -166,10 +169,11 @@ void main() {
                     neighborReservoirData = history_restir_reservoirTemporal2_fetch(sampleTexelPos);
                 }
                 ReSTIRReservoir neighborReservoir = restir_reservoir_unpack(neighborReservoirData);
-                vec2 neighborScreenPos = sampleTexelPosF * uval_mainImageSizeRcp;
-                vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_camProjInverse);
 
                 if (restir_isReservoirValid(neighborReservoir)) {
+                    vec2 neighborScreenPos = sampleTexelPosF * uval_mainImageSizeRcp;
+                    vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_camProjInverse);
+
                     vec3 neighborHitViewPos = neighborViewPos + neighborReservoir.Y.xyz * neighborReservoir.Y.w;
                     vec3 hitDiff = neighborHitViewPos - viewPos;
                     float hitDist2 = dot(hitDiff, hitDiff);
