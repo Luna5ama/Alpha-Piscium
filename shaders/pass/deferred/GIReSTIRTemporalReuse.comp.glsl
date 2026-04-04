@@ -82,17 +82,17 @@ void main() {
             ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
             float ageResetRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
             if (reprojInfo.historyResetFactor > ageResetRand) {
+                reprojInfo.bilateralWeights = pow(reprojInfo.bilateralWeights, vec4(1.0 / 16.0));
                 vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
-                vec2 centerPixel = curr2PrevTexelPos - 0.5;
-                vec2 gatherOrigin = floor(centerPixel);
-                vec2 gatherTexelPos = gatherOrigin + 1.0;
-                vec2 pixelPosFract = fract(centerPixel);
-
-                vec4 bilinearWeights;
-                bilinearWeights.yz = pixelPosFract.xx;
-                bilinearWeights.xw = 1.0 - pixelPosFract.xx;
-                bilinearWeights.xy *= pixelPosFract.yy;
-                bilinearWeights.zw *= 1.0 - pixelPosFract.yy;
+                curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
+                vec2 gatherTexelPos = floor(curr2PrevTexelPos - 0.5) + 1.0;
+                vec2 pixelPosFract = fract(curr2PrevTexelPos - 0.5);
+                vec2 bilinearWeights2 = pixelPosFract;
+                vec4 bilinearWeights4;
+                bilinearWeights4.yz = bilinearWeights2.xx;
+                bilinearWeights4.xw = 1.0 - bilinearWeights2.xx;
+                bilinearWeights4.xy *= bilinearWeights2.yy;
+                bilinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
                 ivec2 iGatherTexelPos = ivec2(gatherTexelPos);
                 uint baseRandSeed = RANDOM_FRAME / 64u + 2u;
@@ -107,7 +107,7 @@ void main() {
 
                 // --- Neighbor x: top-left ---
                 {
-                    float combinedWeight = bilinearWeights.x * reprojInfo.bilateralWeights.x * reprojInfo.historyResetFactor;
+                    float combinedWeight = bilinearWeights4.x * reprojInfo.bilateralWeights.x * reprojInfo.historyResetFactor;
                     if (combinedWeight > 0.0) {
                         ivec2 neighborTexelPos = iGatherTexelPos + ivec2(-1, 0);
                         uvec4 prevTemporalReservoirData = oddFrame
@@ -173,7 +173,7 @@ void main() {
 
                 // --- Neighbor y: top-right ---
                 {
-                    float combinedWeight = bilinearWeights.y * reprojInfo.bilateralWeights.y * reprojInfo.historyResetFactor;
+                    float combinedWeight = bilinearWeights4.y * reprojInfo.bilateralWeights.y * reprojInfo.historyResetFactor;
                     if (combinedWeight > 0.0) {
                         ivec2 neighborTexelPos = iGatherTexelPos;
                         uvec4 prevTemporalReservoirData = oddFrame
@@ -239,7 +239,7 @@ void main() {
 
                 // --- Neighbor z: bottom-right ---
                 {
-                    float combinedWeight = bilinearWeights.z * reprojInfo.bilateralWeights.z * reprojInfo.historyResetFactor;
+                    float combinedWeight = bilinearWeights4.z * reprojInfo.bilateralWeights.z * reprojInfo.historyResetFactor;
                     if (combinedWeight > 0.0) {
                         ivec2 neighborTexelPos = iGatherTexelPos + ivec2(0, -1);
                         uvec4 prevTemporalReservoirData = oddFrame
@@ -305,7 +305,7 @@ void main() {
 
                 // --- Neighbor w: bottom-left ---
                 {
-                    float combinedWeight = bilinearWeights.w * reprojInfo.bilateralWeights.w * reprojInfo.historyResetFactor;
+                    float combinedWeight = bilinearWeights4.w * reprojInfo.bilateralWeights.w * reprojInfo.historyResetFactor;
                     if (combinedWeight > 0.0) {
                         ivec2 neighborTexelPos = iGatherTexelPos + ivec2(-1, -1);
                         uvec4 prevTemporalReservoirData = oddFrame

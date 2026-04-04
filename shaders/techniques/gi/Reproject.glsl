@@ -4,6 +4,8 @@
 #include "/util/Rand.glsl"
 #include "/util/Dither.glsl"
 
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
+
 vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
     return vec4(
         dot(xs, weights),
@@ -135,13 +137,13 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
             vec2 pixelPosFract = fract(curr2PrevTexelPos - 0.5);
             vec2 bilinearWeights2 = pixelPosFract;
-            vec4 blinearWeights4;
-            blinearWeights4.yz = bilinearWeights2.xx;
-            blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
-            blinearWeights4.xy *= bilinearWeights2.yy;
-            blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
+            vec4 bilinearWeights4;
+            bilinearWeights4.yz = bilinearWeights2.xx;
+            bilinearWeights4.xw = 1.0 - bilinearWeights2.xx;
+            bilinearWeights4.xy *= bilinearWeights2.yy;
+            bilinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
-            vec4 finalWeights = edgeWeights * blinearWeights4;
+            vec4 finalWeights = edgeWeights * bilinearWeights4;
             float weightSum = dot(finalWeights, vec4(1.0));
             float rcpWeightSum = safeRcp(weightSum);
             finalWeights *= rcpWeightSum;
@@ -336,7 +338,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
             if (valid) {
                 ReprojectInfo reprojInfo = reprojectInfo_init();
-                reprojInfo.bilateralWeights = pow4(edgeWeights);
+                reprojInfo.bilateralWeights = pow(edgeWeights, vec4(16.0)); // Most edge values are very close to 1.0
                 reprojInfo.curr2PrevScreenPos = curr2PrevScreen;
                 reprojInfo.historyResetFactor = historyResetFactor;
                 transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));
