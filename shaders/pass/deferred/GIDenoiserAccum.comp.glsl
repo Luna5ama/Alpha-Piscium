@@ -157,7 +157,7 @@ void main() {
                     float parallax = pow2(saturate(1.0 - material.roughness));
 
                     float specMaxAccumFrames = getSpecMaxAccumFrames(material.roughness, NoV, parallax);
-                    float specAccumHistoryLength = min(historyLength, specMaxAccumFrames);
+                    float specAccumHistoryLength = max(1.0, min(historyLength, specMaxAccumFrames));
                     float specAlpha = newWeights.y * rcp(specAccumHistoryLength);
                     historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, specAlpha);
 

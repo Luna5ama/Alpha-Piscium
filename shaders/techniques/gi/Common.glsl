@@ -23,17 +23,17 @@ const float FAST_HISTORY_LENGTH = float(SETTING_DENOISER_FAST_HISTORY_LENGTH);
 #define GI_MB 1.0
 /*
     Diffuse Color : 48 bits         (1)
+    Specular Hit Distance: 16 bits  (1)
     Diffuse fast color: 48 bits     (2)
-    Diffuse Moment2: 16 bits        (1)
+    Diffuse Hit Distance: 16 bits   (2)
 
     Specular Color: 48 bits         (3)
     Specular fast color: 48 bits    (4)
-    Specular Moment2: 16 bits       (3)
 
     History Length: 8 bits          (5)
-    ~ Edge Mask: 8 bits             (5)
-
-    Shadow: 16 bits                 (2)
+    Real History Length: 8 bits     (5)
+    Edge Mask: 8 bits               (5)
+    Glazing Angle Factor: 8 bits    (5)
 */
 
 const float MAX_HIT_DISTANCE = 64.0;
