@@ -37,6 +37,7 @@ struct GeomData {
     vec3 geomNormal;
     vec3 normal;
     vec3 viewPos;
+    float roughness;
 };
 
 GeomData _gi_readGeomData(ivec2 texelPos, vec2 screenPos) {
@@ -45,6 +46,7 @@ GeomData _gi_readGeomData(ivec2 texelPos, vec2 screenPos) {
     geomData.viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     geomData.geomNormal = transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
     geomData.normal = transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
+    geomData.roughness = pow2(transient_specularPBRData_fetch(texelPos).r);
     return geomData;
 }
 
@@ -203,16 +205,21 @@ void main() {
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), centerGData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), centerGData);
             Material centerMaterial = material_decode(centerGData);
-            float centerRoughness = centerMaterial.roughness;
 
             vec3 Vcenter = normalize(-centerGeomData.viewPos);
             float NdotV_center = abs(dot(centerGeomData.normal, Vcenter));
             vec3 centerFresnel = fresnel_evalMaterial(centerMaterial, NdotV_center);
-            float specularMix = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerFresnel) * (1.0 - centerRoughness);
+            float specularMix = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerFresnel) * (1.0 - centerGeomData.roughness);
 
             vec3 specT, specB;
-            getSpecularKernelBasis(centerGeomData.viewPos, centerGeomData.normal, centerRoughness,
-                                   kernelRadius, specT, specB);
+            getSpecularKernelBasis(
+                centerGeomData.viewPos,
+                centerGeomData.normal,
+                centerGeomData.roughness,
+                kernelRadius,
+                specT,
+                specB
+            );
             vec2 specTScreen = specT.xy * uval_mainImageSize;
             vec2 specBScreen = specB.xy * uval_mainImageSize;
             float specTLen = length(specTScreen);
@@ -273,12 +280,6 @@ void main() {
 
                 GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
-                // Fetch sample roughness for specular weight
-                GBufferData sampleGData = gbufferData_init();
-                gbufferData1_unpack(texelFetch(usam_gbufferData1, sampleTexelPos, 0), sampleGData);
-                gbufferData2_unpack(texelFetch(usam_gbufferData2, sampleTexelPos, 0), sampleGData);
-                float sampleRoughness = material_decode(sampleGData).roughness;
-
                 // Cheap enough to just recompute it to save 1 extra register
                 float baseNormalWeight = invAccumFactor * 256.0;
                 float basePlaneDistWeight = invAccumFactor * -512.0;
@@ -304,7 +305,7 @@ void main() {
 
                 float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
 
-                float roughnessW = getRoughnessWeight(centerRoughness, sampleRoughness);
+                float roughnessW = getRoughnessWeight(centerGeomData.roughness, geomData.roughness);
                 float16_t specTotalWeight = totalWeight * float16_t(roughnessW);
 
                 diffResultFP16 += diffSample * totalWeight;

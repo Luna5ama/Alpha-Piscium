@@ -152,6 +152,7 @@ void main() {
                     gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
                     gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
                     Material material = material_decode(gData);
+                    transient_specularPBRData_store(texelPos, vec4(sqrt(material.roughness), 0.0, 0.0, 0.0));
                     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
                     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
                     vec3 V = normalize(-viewPos);
