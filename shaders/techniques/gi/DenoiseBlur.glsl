@@ -201,21 +201,6 @@ void main() {
             float16_t specWeightSumFP16 = float16_t(1.0);
             float16_t centerLuma = diffResultFP16.w;
 
-            float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
-
-            vec3 specTFP32, specBFP32;
-            getSpecularKernelBasis(
-                centerGeomData.viewPos,
-                centerGeomData.normal,
-                centerGeomData.roughness,
-                worldRadius,
-                specTFP32,
-                specBFP32
-            );
-
-            f16vec3 specT = f16vec3(specTFP32);
-            f16vec3 specB = f16vec3(specBFP32);
-
             #if GI_DENOISE_PASS == 1
             float16_t edgeWeightSumFP16 = float16_t(0.0);
             float16_t moment1FP16 = centerLuma;
@@ -230,61 +215,114 @@ void main() {
             float16_t jitterR = float16_t(blurJitter.y);
 
             float angle = blurJitter.x * PI_2;
-            f16vec2 dir = f16vec2(cos(angle), sin(angle));
             float16_t rcpSamples = float16_t(1.0 / float(GI_DENOISE_SAMPLES));
+            float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
 
+            // --- Diffuse loop: screen-space kernel with view-angle stretch ---
             #ifdef SETTING_DENOISER_SPATIAL
-            for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
-                f16vec2 tempDir = dir;
-                dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
-                dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
-                float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples);
+            {
+                vec3 V = normalize(-centerGeomData.viewPos);
+                float NoV = abs(dot(centerGeomData.geomNormal, V));
+                vec2 stretchFactor = mix(1.0 - abs(centerGeomData.geomNormal.xy), vec2(1.0), NoV);
+                f16vec2 kernelRadius2 = f16vec2(kernelRadius * stretchFactor);
 
-                vec3 sampleView = centerGeomData.viewPos + vec3(specT * dir.x + specB * dir.y) * float(baseRadius);
-                vec4 sampleClip = global_camProj * vec4(sampleView, 1.0);
-                vec2 sampleUV = sampleClip.xy / sampleClip.w * 0.5 + 0.5;
+                f16vec2 dir = f16vec2(cos(angle), sin(angle));
+                for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
+                    f16vec2 tempDir = dir;
+                    dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
+                    dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
+                    float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples);
+                    f16vec2 offsetTexel = dir * (baseRadius * kernelRadius2);
+                    vec2 sampleUV = centerScreenPos + vec2(offsetTexel) * uval_mainImageSizeRcp;
+                    if (saturate(sampleUV) != sampleUV) {
+                        sampleUV = _gi_mirrorUV(sampleUV);
+                    }
+                    float16_t kernelWeight = exp2(sigma * pow2(baseRadius));
+                    ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
 
-                if (saturate(sampleUV) != sampleUV) {
-                    sampleUV = _gi_mirrorUV(sampleUV);
+                    GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
+
+                    float baseNormalWeight = invAccumFactor * 256.0;
+                    float basePlaneDistWeight = invAccumFactor * -512.0;
+                    float edgeWeightFP32 = normalWeight(centerGeomData, geomData, baseNormalWeight);
+                    edgeWeightFP32 *= planeDistanceWeight(
+                        centerGeomData.viewPos,
+                        centerGeomData.geomNormal,
+                        geomData.viewPos,
+                        geomData.geomNormal,
+                        basePlaneDistWeight
+                    );
+
+                    float16_t edgeWeight = float16_t(edgeWeightFP32);
+
+                    f16vec4 diffSample = f16vec4(_gi_readDiff(sampleTexelPos));
+                    float16_t sampleLuma = diffSample.a;
+                    #if GI_DENOISE_PASS == 1
+                    moment1FP16 += sampleLuma * edgeWeight;
+                    moment2FP16 += pow2(sampleLuma) * edgeWeight;
+                    edgeWeightSumFP16 += edgeWeight;
+                    #endif
+
+                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
+                    diffResultFP16 += diffSample * totalWeight;
+                    weightSumFP16 += totalWeight;
                 }
-                float16_t kernelWeight = exp2(sigma * pow2(baseRadius));
-                ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
+            }
+            #endif
 
-                GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
-
-                // Cheap enough to just recompute it to save 1 extra register
-                float baseNormalWeight = invAccumFactor * 256.0;
-                float basePlaneDistWeight = invAccumFactor * -512.0;
-                float edgeWeightFP32 = normalWeight(centerGeomData, geomData, baseNormalWeight);
-                edgeWeightFP32 *= planeDistanceWeight(
+            // --- Specular loop: world-space specular lobe kernel ---
+            #ifdef SETTING_DENOISER_SPATIAL
+            {
+                vec3 specTFP32, specBFP32;
+                getSpecularKernelBasis(
                     centerGeomData.viewPos,
-                    centerGeomData.geomNormal,
-                    geomData.viewPos,
-                    geomData.geomNormal,
-                    basePlaneDistWeight
+                    centerGeomData.normal,
+                    centerGeomData.roughness,
+                    worldRadius,
+                    specTFP32,
+                    specBFP32
                 );
+                f16vec3 specT = f16vec3(specTFP32);
+                f16vec3 specB = f16vec3(specBFP32);
 
-                float16_t edgeWeight = float16_t(edgeWeightFP32);
+                f16vec2 dir = f16vec2(cos(angle), sin(angle));
+                for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
+                    f16vec2 tempDir = dir;
+                    dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
+                    dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
+                    float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples);
 
-                f16vec4 diffSample = f16vec4(_gi_readDiff(sampleTexelPos));
-                f16vec4 specSample = f16vec4(_gi_readSpec(sampleTexelPos));
-                float16_t sampleLuma = diffSample.a;
-                #if GI_DENOISE_PASS == 1
-                moment1FP16 += sampleLuma * edgeWeight;
-                moment2FP16 += pow2(sampleLuma) * edgeWeight;
-                edgeWeightSumFP16 += edgeWeight;
-                #endif
+                    vec3 sampleView = centerGeomData.viewPos + vec3(specT * dir.x + specB * dir.y) * float(baseRadius);
+                    vec4 sampleClip = global_camProj * vec4(sampleView, 1.0);
+                    vec2 sampleUV = sampleClip.xy / sampleClip.w * 0.5 + 0.5;
+                    if (saturate(sampleUV) != sampleUV) {
+                        sampleUV = _gi_mirrorUV(sampleUV);
+                    }
+                    float16_t kernelWeight = exp2(sigma * pow2(baseRadius));
+                    ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
 
-                float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
+                    GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
-                float roughnessW = getRoughnessWeight(centerGeomData.roughness, geomData.roughness);
-                float16_t specTotalWeight = totalWeight * float16_t(roughnessW);
+                    float baseNormalWeight = invAccumFactor * 256.0;
+                    float basePlaneDistWeight = invAccumFactor * -512.0;
+                    float edgeWeightFP32 = normalWeight(centerGeomData, geomData, baseNormalWeight);
+                    edgeWeightFP32 *= planeDistanceWeight(
+                        centerGeomData.viewPos,
+                        centerGeomData.geomNormal,
+                        geomData.viewPos,
+                        geomData.geomNormal,
+                        basePlaneDistWeight
+                    );
 
-                diffResultFP16 += diffSample * totalWeight;
-                weightSumFP16 += totalWeight;
+                    float16_t edgeWeight = float16_t(edgeWeightFP32);
 
-                specResultFP16 += specSample * specTotalWeight;
-                specWeightSumFP16 += specTotalWeight;
+                    f16vec4 specSample = f16vec4(_gi_readSpec(sampleTexelPos));
+                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
+                    float roughnessW = getRoughnessWeight(centerGeomData.roughness, geomData.roughness);
+                    float16_t specTotalWeight = totalWeight * float16_t(roughnessW);
+                    specResultFP16 += specSample * specTotalWeight;
+                    specWeightSumFP16 += specTotalWeight;
+                }
             }
             #endif
 
