@@ -179,8 +179,8 @@ vec3 fresnel_evalMaterial(Material material, float cosTheta) {
 //        f = frenel_schlick(cosTheta, vec3(material.f0));
     } else if (material.f0 < 237.5 / 255.0) {
         uint metalIdx = clamp(uint(material.f0 * 255.0) - 230u, 0u, 7u);
-        vec3 ior = METAL_IOR[metalIdx];
-        vec3 k = METAL_K[metalIdx];
+        vec3 ior = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, METAL_IOR[metalIdx]);
+        vec3 k = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, METAL_K[metalIdx]);
         f = fresnel_dielectricConductor(cosTheta, ior, k);
     } else {
         f = frenel_schlick(cosTheta, material.albedo.rgb * 0.9 + 0.1);
