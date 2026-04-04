@@ -35,6 +35,13 @@ void computeEdgeWeights(
     geomViewNormalYs = geomViewNormalYs * 2.0 - 1.0;
     geomViewNormalZs = geomViewNormalZs * 2.0 - 1.0;
 
+    vec4 viewNormalXs = history_viewNormal_gatherTexel(gatherTexelPos, 0);
+    vec4 viewNormalYs = history_viewNormal_gatherTexel(gatherTexelPos, 1);
+    vec4 viewNormalZs = history_viewNormal_gatherTexel(gatherTexelPos, 2);
+    viewNormalXs = viewNormalXs * 2.0 - 1.0;
+    viewNormalYs = viewNormalYs * 2.0 - 1.0;
+    viewNormalZs = viewNormalZs * 2.0 - 1.0;
+
     vec3 currWorldGeomNormal = coords_dir_viewToWorld(currViewGeomNormal);
     vec3 currWorldNormal = coords_dir_viewToWorld(currViewNormal);
     vec3 curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
@@ -68,26 +75,33 @@ void computeEdgeWeights(
 
     float planeDistanceThreshold = exp2(mix(-8.0, -10.0, glazingAngleFactor)) * max(8.0, pow2(curr2PrevViewPos.z));
 
-    float geomViewNormalDot1 = dot(curr2PrevViewGeomNormal, geomViewNormal1);
-    float geomViewNormalDot2 = dot(curr2PrevViewGeomNormal, geomViewNormal2);
-    float geomViewNormalDot3 = dot(curr2PrevViewGeomNormal, geomViewNormal3);
-    float geomViewNormalDot4 = dot(curr2PrevViewGeomNormal, geomViewNormal4);
+    float geomViewNormalDot1 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal1));
+    float geomViewNormalDot2 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal2));
+    float geomViewNormalDot3 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal3));
+    float geomViewNormalDot4 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal4));
+
+    float viewNormalDot1 = saturate(dot(curr2PrevViewNormal, geomViewNormal1));
+    float viewNormalDot2 = saturate(dot(curr2PrevViewNormal, geomViewNormal2));
+    float viewNormalDot3 = saturate(dot(curr2PrevViewNormal, geomViewNormal3));
+    float viewNormalDot4 = saturate(dot(curr2PrevViewNormal, geomViewNormal4));
 
     vec4 geomViewNormalDots = vec4(geomViewNormalDot1, geomViewNormalDot2, geomViewNormalDot3, geomViewNormalDot4);
+    vec4 viewNormalDots = vec4(viewNormalDot1, viewNormalDot2, viewNormalDot3, viewNormalDot4);
     vec4 planeDistances = vec4(planeDistance1, planeDistance2, planeDistance3, planeDistance4);
     float totalEdgeFactor = (currEdgeFactor + prevEdgeMask) * 0.5;
 
     uint edgeFlagI = 0u;
     edgeFlagI |= uint(totalEdgeFactor < 0.99);
     edgeFlagI |= uint(any(lessThan(geomViewNormalDots, vec4(0.5))));
+    edgeFlagI |= uint(any(lessThan(viewNormalDots, vec4(0.5))));
     edgeFlagI |= uint(any(greaterThan(planeDistances, vec4(planeDistanceThreshold))));
     edgeFlag = bool(edgeFlagI);
 
-    vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
+    vec4 normalWeights = pow(pow4(geomViewNormalDots) * viewNormalDots, vec4(32.0));
     float geomDepthBaseWeight = mix(32.0, 4.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
     vec4 geomDepthWeights = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(curr2PrevViewPos.z), 2.0)));
     geomDepthWeights *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
-    edgeWeights = geomNormalWeights * geomDepthWeights;
+    edgeWeights = normalWeights * geomDepthWeights;
 }
 
 void gi_reproject(ivec2 texelPos, float currViewZ) {
@@ -110,7 +124,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     float glazingAngleFactor = glazingCosTheta;
     float glazingAngleFactorHistory = pow2(1.0 - glazingCosTheta);
     bool valid = false;
-    float specularHitDistance = -1.0;
+    float specularHitDistance = 0.0;
 
     if (bool(clipFlag)) {
         vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
