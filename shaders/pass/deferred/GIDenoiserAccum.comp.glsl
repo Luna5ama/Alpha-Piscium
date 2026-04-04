@@ -162,7 +162,7 @@ void main() {
                     float NoV = saturate(dot(gData.normal, V));
                     vec3 movementDelta = gData.isHand ? vec3(0.0) : uval_cameraDelta;
                     float distToPoint = length(viewPos);
-                    float parallax = length(movementDelta) * safeRcp(distToPoint * frameTime * 2.0);
+                    float parallax = length(movementDelta) * safeRcp(distToPoint * frameTime * 10.0);
                     float specAccumRecuctionFactor = specAccumReduction(material.roughness, NoV, parallax);
 
                     // x: regular, diffuse
