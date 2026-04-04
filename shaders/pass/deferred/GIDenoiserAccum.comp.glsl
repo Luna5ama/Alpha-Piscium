@@ -48,7 +48,9 @@ float computeOutputLumaDiffWeight(vec3 prevLinearColor, vec3 newLinearColor, flo
     float prevOutputSimLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, prevOutputSim);
     vec3 newInputSim = colors_reversibleTonemap(newLinearColor * expMul);
     float newInputSimLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, newInputSim);
-    float lumaDiff = newInputSimLuma - prevOutputSimLuma;
+    // Only suppress when new sample is brighter than history (firefly).
+    // Allow free dimming so corrupted bright history can recover.
+    float lumaDiff = max(0.0, newInputSimLuma - prevOutputSimLuma);
 
     return threshold / (threshold + pow2(lumaDiff));
 }
@@ -197,7 +199,7 @@ void main() {
                     }
                 }
 
-                hLenAverage -= historyData.realHistoryLength;
+                hLenAverage -= vec2(historyData.historyLength, historyData.realHistoryLength);
                 hLenAverage = saturate(hLenAverage / 8.0);
 
                 historyData.historyLength = mix(historyData.historyLength, hLenMax.x, pow2(hLenAverage.x));
