@@ -464,22 +464,22 @@ void main() {
                 vec3 winL = temporalReservoir.Y.xyz;
                 float winHitDist = temporalReservoir.Y.w;
                 vec3 H_win = normalize(winL + V);
+
                 float winNDotL = saturate(dot(gData.normal, winL));
                 float winNDotV = saturate(dot(gData.normal, V));
                 float winNDotH = saturate(dot(gData.normal, H_win));
                 float winLDotH = saturate(dot(winL, H_win));
 
                 vec3 winFresnel = fresnel_evalMaterial(material, winLDotH);
-                float winDiffBRDF = (1.0 - material.metallic) * winNDotL * RCP_PI;
+                float winDiffBRDF = winNDotL * RCP_PI;
                 float winSpecBRDF = bsdf_ggx(material, winNDotL, winNDotV, winNDotH);
 
-                vec3 diffuseWeight = (1.0 - material.metallic) * (1.0 - winFresnel) * vec3(winDiffBRDF);
+                vec3 diffuseWeight = (1.0 - material.metallic) * (1.0 - winFresnel) * winDiffBRDF;
                 vec3 specularWeight = winFresnel * winSpecBRDF;
                 vec3 fullBRDF = diffuseWeight + specularWeight;
-                vec3 diffRatio3 = diffuseWeight / max(fullBRDF, vec3(1e-7));
+                vec3 diffRatio3 = diffuseWeight * safeRcp(fullBRDF);
 
-                vec3 winFullBRDF = (1.0 - winFresnel) * winDiffBRDF + winFresnel * winSpecBRDF;
-                vec3 totalOutput = finalSample.rgb * winFullBRDF * temporalReservoir.avgWY;
+                vec3 totalOutput = finalSample.rgb * fullBRDF * temporalReservoir.avgWY;
                 vec4 ssgiDiffOut = vec4(totalOutput * diffRatio3, winHitDist);
                 vec4 ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3), winHitDist);
                 ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);

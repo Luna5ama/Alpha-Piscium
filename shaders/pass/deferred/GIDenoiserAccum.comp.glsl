@@ -93,7 +93,7 @@ void main() {
                 vec4 newSpecular = transient_ssgiSpecOut_fetch(texelPos);
                 #if SETTING_DEBUG_OUTPUT
                 if (RANDOM_FRAME < MAX_FRAMES) {
-                                        imageStore(uimg_temp2, texelPos, newDiffuse);
+                        imageStore(uimg_temp2, texelPos, newDiffuse);
 //                    imageStore(uimg_temp2, texelPos, newSpecular);
                 }
                 #endif

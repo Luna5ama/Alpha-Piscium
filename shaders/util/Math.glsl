@@ -208,6 +208,10 @@ vec2 safeRcp(vec2 x) {
     return mix(vec2(0.0), rcp(x), greaterThan(x, vec2(0.0)));
 }
 
+vec3 safeRcp(vec3 x) {
+    return mix(vec3(0.0), rcp(x), greaterThan(x, vec3(0.0)));
+}
+
 float lengthSq(float x) { return x * x; }
 float lengthSq(vec2 x) { return dot(x, x); }
 float lengthSq(vec3 x) { return dot(x, x); }

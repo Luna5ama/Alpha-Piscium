@@ -222,6 +222,7 @@ void main() {
             vec3 winL_out = resultReservoir.Y.xyz;
             float winHitDist = resultReservoir.Y.w;
             vec3 H_out = normalize(winL_out + V);
+
             float outNDotL = saturate(dot(centerSampleData.normal, winL_out));
             float outNDotH = saturate(dot(centerSampleData.normal, H_out));
             float outLDotH = saturate(dot(winL_out, H_out));
@@ -233,7 +234,7 @@ void main() {
             vec3 diffuseWeight = (1.0 - material.metallic) * (1.0 - outFresnel) * lambertianBRDF;
             vec3 specularWeight = outFresnel * ggxBRDF;
             vec3 fullBRDF = diffuseWeight + specularWeight;
-            vec3 diffRatio3 = diffuseWeight / max(fullBRDF, vec3(1e-7));
+            vec3 diffRatio3 = diffuseWeight * safeRcp(fullBRDF);
 
             vec3 totalOutput = selectedSampleF.xyz * fullBRDF * avgWY;
             ssgiOut = vec4(totalOutput * diffRatio3, winHitDist);
