@@ -135,9 +135,9 @@ void getSpecularKernelBasis(
     B *= worldRadius / skewFactor;
 }
 
-float getRoughnessWeight(float roughness0, float roughness) {
+float roughnessWeight(float roughness0, float roughness) {
     float norm = roughness0 * roughness0 * 0.99 + 0.01;
-    float w = abs(roughness0 - roughness) / norm;
+    float w = abs(roughness0 - roughness) * rcp(norm);
     return saturate(1.0 - w);
 }
 
@@ -219,16 +219,20 @@ void main() {
             sigmaFP32 += kernelRadius * 2.0 * (1.0 - saturate(hitDistFactor));
             sigmaFP32 *= 1.0 - filteredInputVariance.x;
 
-            float16_t sigma = float16_t(-sigmaFP32);
             float16_t jitterR = float16_t(blurJitter.y);
 
             float angle = blurJitter.x * PI_2;
             float16_t rcpSamples = float16_t(1.0 / float(GI_DENOISE_SAMPLES));
-            float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
+
+            GBufferData centerGData = gbufferData_init();
+            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), centerGData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), centerGData);
+            Material material = material_decode(centerGData);
 
             // --- Diffuse loop: screen-space kernel with view-angle stretch ---
             #ifdef SETTING_DENOISER_SPATIAL
-            {
+            if (material.metallic < 1.0) {
+                float16_t sigma = float16_t(-sigmaFP32);
                 vec3 V = normalize(-centerGeomData.viewPos);
                 float NoV = abs(dot(centerGeomData.geomNormal, V));
                 vec2 stretchFactor = mix(1.0 - abs(centerGeomData.geomNormal.xy), vec2(1.0), NoV);
@@ -281,6 +285,8 @@ void main() {
             // --- Specular loop: world-space specular lobe kernel ---
             #ifdef SETTING_DENOISER_SPATIAL
             {
+                float16_t sigma = float16_t(-2.0 * sigmaFP32);
+                float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y * 0.5;
                 vec3 specTFP32, specBFP32;
                 getSpecularKernelBasis(
                     centerGeomData.viewPos,
@@ -323,15 +329,14 @@ void main() {
                         geomData.geomNormal,
                         basePlaneDistWeight
                     );
+                    edgeWeightFP32 *= roughnessWeight(centerGeomData.roughness, geomData.roughness);
 
                     float16_t edgeWeight = float16_t(edgeWeightFP32);
 
                     f16vec4 specSample = f16vec4(_gi_readSpec(sampleTexelPos));
                     float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
-                    float roughnessW = getRoughnessWeight(centerGeomData.roughness, geomData.roughness);
-                    float16_t specTotalWeight = totalWeight * float16_t(roughnessW);
-                    specResultFP16 += specSample * specTotalWeight;
-                    specWeightSumFP16 += specTotalWeight;
+                    specResultFP16 += specSample * totalWeight;
+                    specWeightSumFP16 += totalWeight;
                 }
             }
             #endif

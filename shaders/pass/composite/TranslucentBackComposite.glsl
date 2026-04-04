@@ -47,7 +47,7 @@ void main() {
 
             imageStore(uimg_temp2, texelPos, giSpec);
             // Diffuse buffer has (1-F)*(1-M)*cosθ/π baked in; just remodulate with albedo
-            outputColor.rgb += giDiff.rgb * albedo;
+//            outputColor.rgb += giDiff.rgb * albedo;
             // Specular buffer has F*GGX baked in; already fully modulated
             outputColor.rgb += giSpec.rgb;
         }
