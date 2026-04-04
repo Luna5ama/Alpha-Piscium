@@ -1,3 +1,11 @@
+/*
+    References:
+        [ZHD20] Zhdan, Dmitry. "Fast Denoising With Self-Stabilizing Recurrent Blurs". GDC 2020.
+            https://www.gdcvault.com/play/1026701/Fast-Denoising-With-Self-Stabilizing
+            https://developer.download.nvidia.com/video/gputechconf/gtc/2020/presentations/s22699-fast-denoising-with-self-stabilizing-recurrent-blurs.pdf
+        [ZHD21] Zhdan, Dmitry. "ReBLUR: A Hierarchical Recurrent Denoiser". Ray Tracing Gems II. 2021.
+            https://link.springer.com/content/pdf/10.1007/978-1-4842-7185-8_49.pdf
+*/
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/techniques/gi/Common.glsl"
@@ -58,13 +66,13 @@ float computeOutputLumaDiffWeight(vec3 prevLinearColor, vec3 newLinearColor, flo
 const float SPEC_ACCUM_CURVE = 0.5;
 const float SPEC_ACCUM_BASE_POWER = 0.5;
 
-float getSpecMaxAccumFrames(float roughness, float NoV, float parallax) {
+float specAccumReduction(float roughness, float NoV, float parallax) {
     float acos01sq = saturate(1.0 - NoV); // ~ normalized acos^2
     float a = pow(acos01sq, SPEC_ACCUM_CURVE);
     float b = 1.001 + roughness * roughness;
     float angularSensitivity = (b + a) / (b - a);
     float power = SPEC_ACCUM_BASE_POWER * (1.0 + parallax * angularSensitivity);
-    return HISTORY_LENGTH * pow(roughness, power);
+    return pow(roughness, power);
 }
 
 void main() {
@@ -140,13 +148,6 @@ void main() {
                     // y: fast history length
                     vec2 accumHistoryLength = min(vec2(historyLength, realHistoryLength), vec2(HISTORY_LENGTH, FAST_HISTORY_LENGTH));
                     vec2 rcpAccumHistoryLength = rcp(accumHistoryLength);
-                    // x: regular, diffuse
-                    // y: regular, specular
-                    // z: fast, diffuse
-                    // w: fast, specular
-                    vec4 alpha = vec4(newWeights.xy, pow(newWeights.xy, vec2(0.1))) * rcpAccumHistoryLength.xxyy;
-
-                    historyData.diffuseColor = mix(historyData.diffuseColor, newDiffuse.rgb, alpha.x);
 
                     GBufferData gData = gbufferData_init();
                     gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
@@ -155,17 +156,25 @@ void main() {
                     transient_specularPBRData_store(texelPos, vec4(sqrt(material.roughness), 0.0, 0.0, 0.0));
                     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
                     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-//                    Removed fornow
-//                    vec3 V = normalize(-viewPos);
-//                    float NoV = saturate(dot(gData.normal, V));
-//                    vec3 movementDelta = gData.isHand ? vec3(0.0) : uval_cameraDelta;
-//                    float distToPoint = length(viewPos);
-//                    float parallax = length(movementDelta) / max(distToPoint * frameTime, 1e-5);
-//
-//                    float specMaxAccumFrames = getSpecMaxAccumFrames(material.roughness, NoV, parallax);
-//                    float specAccumHistoryLength = clamp(historyLength, 1.0, specMaxAccumFrames);
-//                    float specAlpha = newWeights.y * rcp(specAccumHistoryLength);
-                    historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, sqrt(alpha.y));
+
+                    // [ZHD20]
+                    vec3 V = normalize(-viewPos);
+                    float NoV = saturate(dot(gData.normal, V));
+                    vec3 movementDelta = gData.isHand ? vec3(0.0) : uval_cameraDelta;
+                    float distToPoint = length(viewPos);
+                    float parallax = length(movementDelta) * safeRcp(distToPoint * frameTime * 2.0);
+                    float specAccumRecuctionFactor = specAccumReduction(material.roughness, NoV, parallax);
+
+                    // x: regular, diffuse
+                    // y: regular, specular
+                    // z: fast, diffuse
+                    // w: fast, specular
+                    vec4 rcpAccumHistoryLength4 = rcpAccumHistoryLength.xxyy;
+                    rcpAccumHistoryLength4.yw = max(rcpAccumHistoryLength4.yw, rcp(max(vec2(HISTORY_LENGTH, FAST_HISTORY_LENGTH) * specAccumRecuctionFactor, 1.0)));
+                    vec4 alpha = vec4(newWeights.xy, pow(newWeights.xy, vec2(0.1))) * rcpAccumHistoryLength4;
+
+                    historyData.diffuseColor = mix(historyData.diffuseColor, newDiffuse.rgb, alpha.x);
+                    historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, alpha.y);
 
                     historyData.diffuseFastColor = mix(historyData.diffuseFastColor, newDiffuse.rgb, alpha.z);
                     historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, sqrt(alpha.w));
