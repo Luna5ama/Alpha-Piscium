@@ -200,32 +200,17 @@ void main() {
             float16_t specWeightSumFP16 = float16_t(1.0);
             float16_t centerLuma = diffResultFP16.w;
 
-            // Decode center material for specular kernel shaping
-            GBufferData centerGData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), centerGData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), centerGData);
-            Material centerMaterial = material_decode(centerGData);
-
-            vec3 Vcenter = normalize(-centerGeomData.viewPos);
-            float NdotV_center = abs(dot(centerGeomData.normal, Vcenter));
-            vec3 centerFresnel = fresnel_evalMaterial(centerMaterial, NdotV_center);
-            float specularMix = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, centerFresnel) * (1.0 - centerGeomData.roughness);
+            float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
 
             vec3 specT, specB;
             getSpecularKernelBasis(
                 centerGeomData.viewPos,
                 centerGeomData.normal,
                 centerGeomData.roughness,
-                kernelRadius,
+                worldRadius,
                 specT,
                 specB
             );
-            vec2 specTScreen = specT.xy * uval_mainImageSize;
-            vec2 specBScreen = specB.xy * uval_mainImageSize;
-            float specTLen = length(specTScreen);
-            float specBLen = length(specBScreen);
-            vec2 specTDir = specTLen > 0.001 ? normalize(specTScreen) : vec2(1.0, 0.0);
-            vec2 specBDir = specBLen > 0.001 ? normalize(specBScreen) : vec2(0.0, 1.0);
 
             #if GI_DENOISE_PASS == 1
             float16_t edgeWeightSumFP16 = float16_t(0.0);
@@ -240,14 +225,6 @@ void main() {
             float16_t sigma = float16_t(-sigmaFP32);
             float16_t jitterR = float16_t(blurJitter.y);
 
-            // Stretch kernel based on view angle and normal
-            vec2 stretchFactor = vec2(1.0);
-            vec3 V = normalize(-centerGeomData.viewPos);
-            float NoV = abs(dot(centerGeomData.geomNormal, V));
-            stretchFactor = mix(1.0 - abs(centerGeomData.geomNormal.xy), stretchFactor, NoV);
-
-            f16vec2 kernelRadius2 = f16vec2(kernelRadius * stretchFactor);
-
             float angle = blurJitter.x * PI_2;
             f16vec2 dir = f16vec2(cos(angle), sin(angle));
             float16_t rcpSamples = float16_t(1.0 / float(GI_DENOISE_SAMPLES));
@@ -259,19 +236,10 @@ void main() {
                 dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
                 float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples);
 
-                // Diffuse offset (isotropic/stretch kernel)
-                f16vec2 diffOffsetTexel = dir * (baseRadius * kernelRadius2);
+                vec3 sampleView = centerGeomData.viewPos + (specT * float(dir.x) + specB * float(dir.y)) * float(baseRadius);
+                vec4 sampleClip = global_camProj * vec4(sampleView, 1.0);
+                vec2 sampleUV = sampleClip.xy / sampleClip.w * 0.5 + 0.5;
 
-                // Specular offset (GGX lobe-shaped anisotropic kernel)
-                float cosA = dot(vec2(dir), specTDir);
-                float sinA = dot(vec2(dir), specBDir);
-                f16vec2 specOffsetTexel = f16vec2(cosA * specTLen, sinA * specBLen) * baseRadius;
-
-                // Interpolate between diffuse and specular kernel shapes
-                f16vec2 offsetTexel = mix(diffOffsetTexel, specOffsetTexel, float16_t(specularMix));
-
-                vec2 offsetUV = vec2(offsetTexel) * uval_mainImageSizeRcp;
-                vec2 sampleUV = centerScreenPos + offsetUV;
                 if (saturate(sampleUV) != sampleUV) {
                     sampleUV = _gi_mirrorUV(sampleUV);
                 }
