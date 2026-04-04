@@ -24,19 +24,19 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
 
     // Specular bounce probability: F / (albedo*(1-F) + F)
     vec3 fresnelV = fresnel_evalMaterial(material, NdotV);
-    float p_spec;
+    float pSpec;
     if (material.metallic > 0.5) {
-        p_spec = 1.0;
+        pSpec = 1.0;
     } else {
         vec3 fresnelT = vec3(1.0) - fresnelV;
         vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
-        p_spec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV / max(totalEnergy, vec3(1e-5)));
+        pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV / max(totalEnergy, vec3(1e-5)));
     }
-    p_spec = clamp(p_spec, 0.0, 1.0);
+    pSpec = clamp(pSpec, 0.0, 1.0);
 
     float choiceRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u), RANDOM_FRAME);
 
-    if (choiceRand < p_spec) {
+    if (choiceRand < pSpec) {
         // VNDF specular sample
         vec2 xi = rand_stbnVec2(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
         float pdf_ratio;
@@ -53,7 +53,7 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
         float D = a2 / (PI * d * d);
         float G1 = bsdf_smithG1(NdotV, roughness);
         float vndf_pdf = G1 * D / (4.0 * NdotV * max(pdf_ratio, 1e-5));
-        pdf = p_spec * max(vndf_pdf, 1e-6);
+        pdf = pSpec * max(vndf_pdf, 1e-6);
         return sampleDirView;
     } else {
         // Cosine-weighted diffuse sample around shading normal
@@ -63,7 +63,7 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
             sampleDirView = reflect(sampleDirView, geomNormal);
         }
         float NDotL = max(sampleDirTangent.z, 0.0);
-        pdf = (1.0 - p_spec) * max(NDotL * RCP_PI, 1e-6);
+        pdf = (1.0 - pSpec) * max(NDotL * RCP_PI, 1e-6);
         return sampleDirView;
     }
 }

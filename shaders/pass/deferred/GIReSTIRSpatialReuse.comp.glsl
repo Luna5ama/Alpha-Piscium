@@ -229,7 +229,8 @@ void main() {
             vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
             vec4 ssgiSpecOut = vec4(0.0, 0.0, 0.0, -1.0);
             ReSTIRReservoir resultReservoir = spatialReservoir;
-            float avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (spatialWSum / resultReservoir.m / selectedSampleF.w);
+            float avgWSum = spatialWSum / spatialReservoir.m;
+            float avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
             resultReservoir.avgWY = avgWY;
 
             vec3 winL_out = resultReservoir.Y.xyz;
@@ -249,7 +250,7 @@ void main() {
             vec3 diffRatio3 = diffuseWeight / max(fullBRDF, vec3(1e-7));
 
             vec3 totalOutput = selectedSampleF.xyz * avgWY;
-            ssgiOut = vec4(totalOutput * diffRatio3, winHitDist);
+            ssgiOut = vec4(selectedSampleF.xyz, winHitDist);
             ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3), winHitDist);
 
             #if SETTING_DEBUG_OUTPUT
