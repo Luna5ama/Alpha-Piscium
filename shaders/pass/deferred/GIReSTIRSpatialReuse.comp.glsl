@@ -250,7 +250,7 @@ void main() {
             vec3 diffRatio3 = diffuseWeight / max(fullBRDF, vec3(1e-7));
 
             vec3 totalOutput = selectedSampleF.xyz * avgWY;
-            ssgiOut = vec4(selectedSampleF.xyz, winHitDist);
+            ssgiOut = vec4(totalOutput * diffRatio3, winHitDist);
             ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3), winHitDist);
 
             #if SETTING_DEBUG_OUTPUT
