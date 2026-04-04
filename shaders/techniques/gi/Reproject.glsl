@@ -68,6 +68,11 @@ void computeEdgeWeights(
     vec3 geomViewNormal3 = normalize(vec3(geomViewNormalXs.z, geomViewNormalYs.z, geomViewNormalZs.z));
     vec3 geomViewNormal4 = normalize(vec3(geomViewNormalXs.w, geomViewNormalYs.w, geomViewNormalZs.w));
 
+    vec3 viewNormal1 = normalize(vec3(viewNormalXs.x, viewNormalYs.x, viewNormalZs.x));
+    vec3 viewNormal2 = normalize(vec3(viewNormalXs.y, viewNormalYs.y, viewNormalZs.y));
+    vec3 viewNormal3 = normalize(vec3(viewNormalXs.z, viewNormalYs.z, viewNormalZs.z));
+    vec3 viewNormal4 = normalize(vec3(viewNormalXs.w, viewNormalYs.w, viewNormalZs.w));
+
     float planeDistance1 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos1, geomViewNormal1);
     float planeDistance2 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos2, geomViewNormal2);
     float planeDistance3 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos3, geomViewNormal3);
@@ -80,10 +85,10 @@ void computeEdgeWeights(
     float geomViewNormalDot3 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal3));
     float geomViewNormalDot4 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal4));
 
-    float viewNormalDot1 = saturate(dot(curr2PrevViewNormal, geomViewNormal1));
-    float viewNormalDot2 = saturate(dot(curr2PrevViewNormal, geomViewNormal2));
-    float viewNormalDot3 = saturate(dot(curr2PrevViewNormal, geomViewNormal3));
-    float viewNormalDot4 = saturate(dot(curr2PrevViewNormal, geomViewNormal4));
+    float viewNormalDot1 = saturate(dot(curr2PrevViewNormal, viewNormal1));
+    float viewNormalDot2 = saturate(dot(curr2PrevViewNormal, viewNormal2));
+    float viewNormalDot3 = saturate(dot(curr2PrevViewNormal, viewNormal3));
+    float viewNormalDot4 = saturate(dot(curr2PrevViewNormal, viewNormal4));
 
     vec4 geomViewNormalDots = vec4(geomViewNormalDot1, geomViewNormalDot2, geomViewNormalDot3, geomViewNormalDot4);
     vec4 viewNormalDots = vec4(viewNormalDot1, viewNormalDot2, viewNormalDot3, viewNormalDot4);
