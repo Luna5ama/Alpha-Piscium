@@ -106,7 +106,7 @@ void main() {
             vec4 giOut1 = vec4(0.0);
             vec4 giOut2 = vec4(0.0);
 
-//            giOut1.rgb = transient_gi2Reprojected_fetch(texelPos).rgb;
+            giOut1.rgb = transient_gi1Reprojected_fetch(texelPos).rgb;
 
             vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
             if (lighting_gData.materialID == 65534u) {
