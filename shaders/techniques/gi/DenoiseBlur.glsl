@@ -110,21 +110,29 @@ vec3 getSpecularDominantDirection(vec3 N, vec3 V, float roughness) {
 
 void getSpecularKernelBasis(
     vec3 viewPos, vec3 N, float roughness, float worldRadius,
+    float hitDistFactor, float accumFactor,
     out vec3 T, out vec3 B
 ) {
     vec3 V = -normalize(viewPos);
     vec3 D = getSpecularDominantDirection(N, V, roughness);
-    vec3 R = reflect(-D, N);
+
+    float bentFactor = sqrt(hitDistFactor);
+    vec3 bentD = normalize(mix(N, D, bentFactor));
+
+    vec3 R = reflect(-bentD, N);
     T = normalize(cross(N, R));
     if (length(T) < 0.001) {
         T = normalize(cross(N, vec3(0.0, 1.0, 0.0)));
     }
     B = cross(R, T);
-    T *= worldRadius;
-    B *= worldRadius;
-    float angle = saturate(acos(abs(N.z)) / (PI * 0.5));
-    float skewFactor = mix(1.0, roughness, angle);
-    T *= skewFactor;
+
+    float NoD = saturate(dot(N, D));
+    float skewFactor = mix(0.25 + 0.75 * roughness, 1.0, NoD);
+    skewFactor = mix(skewFactor, 1.0, accumFactor);
+    skewFactor = mix(1.0, skewFactor, bentFactor);
+
+    T *= worldRadius * skewFactor;
+    B *= worldRadius / skewFactor;
 }
 
 float getRoughnessWeight(float roughness0, float roughness) {
@@ -279,6 +287,8 @@ void main() {
                     centerGeomData.normal,
                     centerGeomData.roughness,
                     worldRadius,
+                    hitDistFactor,
+                    accumFactor,
                     specTFP32,
                     specBFP32
                 );
