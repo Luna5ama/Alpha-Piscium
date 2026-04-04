@@ -15,6 +15,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_main;
+layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 
@@ -44,6 +45,7 @@ void main() {
             vec4 giDiff = transient_gi_diffShadingOutput_fetch(texelPos);
             vec4 giSpec = transient_gi_specShadingOutput_fetch(texelPos);
 
+            imageStore(uimg_temp2, texelPos, giSpec);
             // Diffuse buffer has (1-F)*(1-M)*cosθ/π baked in; just remodulate with albedo
             outputColor.rgb += giDiff.rgb * albedo;
             // Specular buffer has F*GGX baked in; already fully modulated

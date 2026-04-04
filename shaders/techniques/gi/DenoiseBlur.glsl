@@ -305,7 +305,7 @@ void main() {
                 float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
 
                 float roughnessW = getRoughnessWeight(centerRoughness, sampleRoughness);
-                float16_t specTotalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeightFP32) * roughnessW);
+                float16_t specTotalWeight = totalWeight * float16_t(roughnessW);
 
                 diffResultFP16 += diffSample * totalWeight;
                 weightSumFP16 += totalWeight;
@@ -325,8 +325,7 @@ void main() {
             float moment2 = float(moment2FP16);
             #endif
 
-            float rcpWeightSum = 1.0 / weightSum;
-            diffResult *= rcpWeightSum;
+            diffResult *= 1.0 / weightSum;
             specResult *= 1.0 / specWeightSum;
 
             float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 5u + GI_DENOISE_PASS), frameCounter);
@@ -366,10 +365,9 @@ void main() {
             packedData3 = dither_fp16(packedData3, ditherNoise);
             packedData3 = clamp(packedData3, 0.0, FP16_MAX);
             history_gi3_store(texelPos, packedData3);
+
             vec4 packedData5 = transient_gi5Reprojected_fetch(texelPos);
             history_gi5_store(texelPos, packedData5);
-
-            // Skipping gi5 here because it seems to save a handle register
             #endif
 
             return;

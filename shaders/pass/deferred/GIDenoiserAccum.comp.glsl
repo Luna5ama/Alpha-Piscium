@@ -90,13 +90,13 @@ void main() {
             float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
             if (viewZ > -65536.0) {
                 vec4 newDiffuse = transient_ssgiOut_fetch(texelPos);
+                vec4 newSpecular = transient_ssgiSpecOut_fetch(texelPos);
                 #if SETTING_DEBUG_OUTPUT
                 if (RANDOM_FRAME < MAX_FRAMES) {
-                    imageStore(uimg_temp2, texelPos, newDiffuse);
+                    //                    imageStore(uimg_temp2, texelPos, newDiffuse);
+//                    imageStore(uimg_temp2, texelPos, newSpecular);
                 }
                 #endif
-
-                vec4 newSpecular = transient_ssgiSpecOut_fetch(texelPos);
 
                 GIHistoryData historyData = gi_historyData_init();
 
@@ -156,10 +156,19 @@ void main() {
                     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
                     vec3 V = normalize(-viewPos);
                     float NoV = saturate(dot(gData.normal, V));
+                    // We can introduce a new entity - parallax
+                    //Parallax - represents angle between previous and current view
+                    //vectors for the same surface point
+                    // // Coordinates in world space
+                    //float3 movementDelta = X - ( Xprev - gCameraDelta );
+                    //// ~Sine of angle between old and new view vector in world space
+                    //float parallax = length( movementDelta ) / ( distToPoint * frameTime );
                     float parallax = pow2(saturate(1.0 - material.roughness));
+                    parallax = .0;
 
                     float specMaxAccumFrames = getSpecMaxAccumFrames(material.roughness, NoV, parallax);
-                    float specAccumHistoryLength = max(1.0, min(historyLength, specMaxAccumFrames));
+//                    float specAccumHistoryLength = clamp(historyLength, 1.0, specMaxAccumFrames);
+                    float specAccumHistoryLength = historyLength;
                     float specAlpha = newWeights.y * rcp(specAccumHistoryLength);
                     historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, specAlpha);
 
