@@ -108,8 +108,10 @@ vec3 getSpecularDominantDirection(vec3 N, vec3 V, float roughness) {
     return normalize(mix(N, R, f));
 }
 
-void getSpecularKernelBasis(vec3 viewPos, vec3 N, float roughness, float worldRadius,
-                            out vec3 T, out vec3 B) {
+void getSpecularKernelBasis(
+    vec3 viewPos, vec3 N, float roughness, float worldRadius,
+    out vec3 T, out vec3 B
+) {
     vec3 V = -normalize(viewPos);
     vec3 D = getSpecularDominantDirection(N, V, roughness);
     vec3 R = reflect(-D, N);
@@ -120,8 +122,7 @@ void getSpecularKernelBasis(vec3 viewPos, vec3 N, float roughness, float worldRa
     B = cross(R, T);
     T *= worldRadius;
     B *= worldRadius;
-    float NoV = abs(dot(N, V));
-    float angle = saturate(acos(NoV) / (PI * 0.5));
+    float angle = saturate(acos(abs(N.z)) / (PI * 0.5));
     float skewFactor = mix(1.0, roughness, angle);
     T *= skewFactor;
 }
