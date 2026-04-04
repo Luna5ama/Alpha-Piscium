@@ -150,16 +150,7 @@ void main() {
                                 neighborReservoir.Y.xyz = normalize(shared_prevViewToCurrView * neighborReservoir.Y.xyz);
                             }
                             if (valid) {
-                                vec3 nL_x = neighborReservoir.Y.xyz;
-                                vec3 nH_x = normalize(nL_x + V);
-                                float nNDotL_x = saturate(dot(gData.normal, nL_x));
-                                float nNDotV_x = saturate(dot(gData.normal, V));
-                                float nNDotH_x = saturate(dot(gData.normal, nH_x));
-                                float nLDotH_x = saturate(dot(nL_x, nH_x));
-                                vec3 nFresnel_x = fresnel_evalMaterial(material, nLDotH_x);
-                                float nDiff_x = (1.0 - material.metallic) * nNDotL_x * RCP_PI;
-                                float nSpec_x = bsdf_ggx(material, nNDotL_x, nNDotV_x, nNDotH_x);
-                                float neighborPHat = length(neighborSample.xyz * ((1.0 - nFresnel_x) * nDiff_x + nFresnel_x * nSpec_x));
+                                float neighborPHat = neighborSample.w;
                                 neighborReservoir.m *= combinedWeight;
                                 float wi = max(0.0, neighborReservoir.avgWY) * neighborReservoir.m * neighborPHat;
                                 float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, baseRandSeed), RANDOM_FRAME);
@@ -225,16 +216,7 @@ void main() {
                                 neighborReservoir.Y.xyz = normalize(shared_prevViewToCurrView * neighborReservoir.Y.xyz);
                             }
                             if (valid) {
-                                vec3 nL_y = neighborReservoir.Y.xyz;
-                                vec3 nH_y = normalize(nL_y + V);
-                                float nNDotL_y = saturate(dot(gData.normal, nL_y));
-                                float nNDotV_y = saturate(dot(gData.normal, V));
-                                float nNDotH_y = saturate(dot(gData.normal, nH_y));
-                                float nLDotH_y = saturate(dot(nL_y, nH_y));
-                                vec3 nFresnel_y = fresnel_evalMaterial(material, nLDotH_y);
-                                float nDiff_y = (1.0 - material.metallic) * nNDotL_y * RCP_PI;
-                                float nSpec_y = bsdf_ggx(material, nNDotL_y, nNDotV_y, nNDotH_y);
-                                float neighborPHat = length(neighborSample.xyz * ((1.0 - nFresnel_y) * nDiff_y + nFresnel_y * nSpec_y));
+                                float neighborPHat = neighborSample.w;
                                 neighborReservoir.m *= combinedWeight;
                                 float wi = max(0.0, neighborReservoir.avgWY) * neighborReservoir.m * neighborPHat;
                                 float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, baseRandSeed + 1u), RANDOM_FRAME);
@@ -300,16 +282,7 @@ void main() {
                                 neighborReservoir.Y.xyz = normalize(shared_prevViewToCurrView * neighborReservoir.Y.xyz);
                             }
                             if (valid) {
-                                vec3 nL_z = neighborReservoir.Y.xyz;
-                                vec3 nH_z = normalize(nL_z + V);
-                                float nNDotL_z = saturate(dot(gData.normal, nL_z));
-                                float nNDotV_z = saturate(dot(gData.normal, V));
-                                float nNDotH_z = saturate(dot(gData.normal, nH_z));
-                                float nLDotH_z = saturate(dot(nL_z, nH_z));
-                                vec3 nFresnel_z = fresnel_evalMaterial(material, nLDotH_z);
-                                float nDiff_z = (1.0 - material.metallic) * nNDotL_z * RCP_PI;
-                                float nSpec_z = bsdf_ggx(material, nNDotL_z, nNDotV_z, nNDotH_z);
-                                float neighborPHat = length(neighborSample.xyz * ((1.0 - nFresnel_z) * nDiff_z + nFresnel_z * nSpec_z));
+                                float neighborPHat = neighborSample.w;
                                 neighborReservoir.m *= combinedWeight;
                                 float wi = max(0.0, neighborReservoir.avgWY) * neighborReservoir.m * neighborPHat;
                                 float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, baseRandSeed + 2u), RANDOM_FRAME);
@@ -376,15 +349,7 @@ void main() {
                             }
                             if (valid) {
                                 vec3 nL_w = neighborReservoir.Y.xyz;
-                                vec3 nH_w = normalize(nL_w + V);
-                                float nNDotL_w = saturate(dot(gData.normal, nL_w));
-                                float nNDotV_w = saturate(dot(gData.normal, V));
-                                float nNDotH_w = saturate(dot(gData.normal, nH_w));
-                                float nLDotH_w = saturate(dot(nL_w, nH_w));
-                                vec3 nFresnel_w = fresnel_evalMaterial(material, nLDotH_w);
-                                float nDiff_w = (1.0 - material.metallic) * nNDotL_w * RCP_PI;
-                                float nSpec_w = bsdf_ggx(material, nNDotL_w, nNDotV_w, nNDotH_w);
-                                float neighborPHat = length(neighborSample.xyz * ((1.0 - nFresnel_w) * nDiff_w + nFresnel_w * nSpec_w));
+                                float neighborPHat = neighborSample.w;
                                 neighborReservoir.m *= combinedWeight;
                                 float wi = max(0.0, neighborReservoir.avgWY) * neighborReservoir.m * neighborPHat;
                                 float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, baseRandSeed + 3u), RANDOM_FRAME);
@@ -432,7 +397,7 @@ void main() {
                 float newPHat = length(f);
 
                 float samplePdf = initialSample.pdf;
-                float newWi = samplePdf <= 0.0 ? 0.0 : newPHat / samplePdf;
+                float newWi = safeRcp(samplePdf);
 
                 float reservoirRand1 = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 6u), RANDOM_FRAME);
 
@@ -441,7 +406,7 @@ void main() {
                 vec3 hitNormal = prevHitNormal;
                 if (restir_updateReservoir(temporalReservoir, wSum, vec4(sampleDirView, hitDistance), newWi, 1.0, reservoirRand1)) {
                     reservoirPHat = newPHat;
-                    finalSample = vec4(hitRadiance, initialSample.pdf);
+                    finalSample = vec4(hitRadiance, newPHat);
 
                     vec4 hitNormalData = transient_viewNormal_fetch(hitTexelPos);
                     hitNormal = normalize(hitNormalData.xyz * 2.0 - 1.0);
@@ -455,6 +420,7 @@ void main() {
                 ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
                 transient_ssgiOut_store(texelPos, ssgiOut);
                 transient_ssgiSpecOut_store(texelPos, vec4(0.0));
+
                 #elif !defined(SETTING_GI_SPATIAL_REUSE)
                 vec3 winL = temporalReservoir.Y.xyz;
                 float winHitDist = temporalReservoir.Y.w;

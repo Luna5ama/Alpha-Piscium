@@ -106,22 +106,8 @@ void main() {
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             Material material = material_decode(gData);
 
-            float pHatMe = 0.0;
-            vec4 originalSample = vec4(0.0);
-            {
-                vec3 hitRadiance = centerSampleData.sampleValue.xyz;
-                vec3 winL = spatialReservoir.Y.xyz;
-                vec3 H = normalize(winL + V);
-                float NDotL = saturate(dot(centerSampleData.normal, winL));
-                float NDotH = saturate(dot(centerSampleData.normal, H));
-                float LDotH = saturate(dot(winL, H));
-                vec3 fresnel = fresnel_evalMaterial(material, LDotH);
-                float diffuseBRDF = (1.0 - material.metallic) * NDotL * RCP_PI;
-                float specularBRDF = bsdf_ggx(material, NDotL, NDotV, NDotH);
-                vec3 f = hitRadiance * ((1.0 - fresnel) * diffuseBRDF + fresnel * specularBRDF);
-                pHatMe = length(f);
-                originalSample = vec4(f, pHatMe);
-            }
+            float pHatMe = centerSampleData.sampleValue.w;
+            vec4 originalSample = vec4(centerSampleData.sampleValue.xyz, pHatMe);
             float spatialWSum = max(spatialReservoir.avgWY, 0.0) * pHatMe * spatialReservoir.m;
 
 
@@ -221,7 +207,7 @@ void main() {
                         neighborReservoir.m,
                         neighborRand
                     )) {
-                        selectedSampleF = vec4(neighborSample, neighborPHat);
+                        selectedSampleF = vec4(hitRadiance, neighborPHat);
                     }
                 }
             }
@@ -230,7 +216,7 @@ void main() {
             vec4 ssgiSpecOut = vec4(0.0, 0.0, 0.0, -1.0);
             ReSTIRReservoir resultReservoir = spatialReservoir;
             float avgWSum = spatialWSum / spatialReservoir.m;
-            float avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
+            float avgWY = avgWSum * safeRcp(selectedSampleF.w);
             resultReservoir.avgWY = avgWY;
 
             vec3 winL_out = resultReservoir.Y.xyz;
@@ -249,7 +235,7 @@ void main() {
             vec3 fullBRDF = diffuseWeight + specularWeight;
             vec3 diffRatio3 = diffuseWeight / max(fullBRDF, vec3(1e-7));
 
-            vec3 totalOutput = selectedSampleF.xyz * avgWY;
+            vec3 totalOutput = selectedSampleF.xyz * fullBRDF * avgWY;
             ssgiOut = vec4(totalOutput * diffRatio3, winHitDist);
             ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3), winHitDist);
 
