@@ -123,8 +123,9 @@ void sampleTemporalNeighbor(
 
                 neighborReservoir.m *= combinedWeight;
                 // Reduces weight further if the target function is much diff from the hisotry footprint
+                // Using rcp sqrt instead of rcp to reduce the impact
                 float ratio = max(neighborPHat * safeRcp(neighborSample.w), neighborSample.w * safeRcp(neighborPHat));
-                neighborReservoir.m *= rcp(max(ratio, 1.0));
+                neighborReservoir.m *= inversesqrt(max(ratio, 1.0));
                 float wi = max(0.0, neighborReservoir.avgWY) * neighborReservoir.m * neighborPHat;
                 float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, randSeedOffset), RANDOM_FRAME);
 
