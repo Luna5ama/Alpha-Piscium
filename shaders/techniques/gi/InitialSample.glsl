@@ -44,10 +44,9 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
 
     vec3 sampleDirView;
     if (choiceRand < pSpec) {
-//        if (true) {
         // VNDF specular sample
         vec2 xi = rand_stbnVec2(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
-        vec3 wmTangent = bsdf_VNDFSphericalCapTrimmed(wiTangent, vec2(0.015), xi, RESTIR_VNDF_TRIM);
+        vec3 wmTangent = bsdf_VNDFSphericalCapTrimmed(wiTangent, vec2(material.roughness), xi, RESTIR_VNDF_TRIM);
         vec3 wrTangent = reflect(-wiTangent, wmTangent);
         sampleDirView = normalize(material.tbn * wrTangent);
         if (dot(sampleDirView, geomNormal) < 0.0) {

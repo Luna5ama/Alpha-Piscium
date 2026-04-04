@@ -45,7 +45,6 @@ void main() {
             vec4 giDiff = transient_gi_diffShadingOutput_fetch(texelPos);
             vec4 giSpec = transient_gi_specShadingOutput_fetch(texelPos);
 
-            imageStore(uimg_temp2, texelPos, giSpec);
             // Diffuse buffer has (1-F)*(1-M)*cosθ/π baked in; just remodulate with albedo
             outputColor.rgb += giDiff.rgb * albedo;
             // Specular buffer has F*GGX baked in; already fully modulated
