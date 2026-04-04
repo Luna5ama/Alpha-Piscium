@@ -110,6 +110,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     float glazingAngleFactor = glazingCosTheta;
     float glazingAngleFactorHistory = pow2(1.0 - glazingCosTheta);
     bool valid = false;
+    float specularHitDistance = -1.0;
 
     if (bool(clipFlag)) {
         vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
@@ -198,6 +199,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         finalWeights
                     );
                     packedData1 = clamp(packedData1, 0.0, FP16_MAX);
+                    specularHitDistance = packedData1.w;
                     packedData1 = dither_fp16(packedData1, ditherNoise);
                     transient_gi1Reprojected_store(texelPos, packedData1);
 
@@ -251,6 +253,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     tapData
                 );
                 packedData1 = clamp(packedData1, 0.0, FP16_MAX);
+                specularHitDistance = packedData1.w;
                 packedData1 = dither_fp16(packedData1, ditherNoise);
                 transient_gi1Reprojected_store(texelPos, packedData1);
 
@@ -280,8 +283,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     }
 
     if (!valid) {
-        transient_gi1Reprojected_store(texelPos, vec4(0.0, 0.0, 0.0, DIFF_MAX_HIT_DISTANCE));
-        transient_gi2Reprojected_store(texelPos, vec4(0.0, 0.0, 0.0, DIFF_MAX_HIT_DISTANCE));
+        transient_gi1Reprojected_store(texelPos, vec4(0.0, 0.0, 0.0, 16.0));
+        transient_gi2Reprojected_store(texelPos, vec4(0.0, 0.0, 0.0, 16.0));
         transient_gi5Reprojected_store(texelPos, vec4(0.0));
 
         ReprojectInfo reprojInfo = reprojectInfo_init();
@@ -293,32 +296,27 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     // Virtual-point specular reprojection (roughness-aware)
     Material material = material_decode(gData);
     float parallaxFactor = pow2(saturate(1.0 - material.roughness));
-    // Fetch spec hit dist from history if possible, else use 0.0
-    // Actually we can just use the current frame's initial guess or previous frame's specular hit distance.
-    // Since we need to read gi3 from previous frame but we can't reliably do it before reprojection without a separate pass,
-    // we use the un-reprojected spec Hit dist, wait... we don't have that here.
-    // Let's use the current frame's reprojected gi1.w as a fallback, or we can sample previous gi3.
-    // In previous code:
-    // float specHitDist = transient_gi1Reprojected_fetch(texelPos).w; -> wait, gi1 is diffuse! Oh earlier I changed it to gi3. But gi3 is not yet reprojected!
-    // So let's sample history_gi3!
-    float specHitDist = history_gi3_sample(screenPos).w;
-    float effectiveHitDist = specHitDist * parallaxFactor;
+    float effectiveHitDist = specularHitDistance * parallaxFactor;
 
-    if (effectiveHitDist > 0.01) {
+//    if (effectiveHitDist > 0.01) {
+        if (true) {
         vec3 viewDir = normalize(currViewPos);
         vec3 virtualViewPos = currViewPos + viewDir * effectiveHitDist;
 
         vec4 virtualPrevViewPos = coord_viewCurrToPrev(vec4(virtualViewPos, 1.0), gData.isHand);
         vec4 virtualPrevClipPos = global_prevCamProj * virtualPrevViewPos;
+        uint clipFlag = uint(curr2PrevClipPos.z > 0.0);
+        clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
 
-        if (virtualPrevClipPos.z > 0.0) {
+        if (bool(clipFlag)) {
             vec2 virtualPrevNDC = virtualPrevClipPos.xy / virtualPrevClipPos.w;
-            vec2 virtualPrevScreen = saturate(virtualPrevNDC * 0.5 + 0.5);
+            vec2 virtualPrevScreen = virtualPrevNDC * 0.5 + 0.5;
             vec2 virtualPrevScreenClamped = saturate(virtualPrevScreen);
 
             if (all(lessThan(abs(virtualPrevScreen - virtualPrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
                 virtualPrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
-                vec2 virtualPrevTexelPos = clamp(virtualPrevScreen * uval_mainImageSize, vec2(0.5), uval_mainImageSize - 0.5);
+                vec2 virtualPrevTexelPos = virtualPrevScreen * uval_mainImageSize;
+                virtualPrevTexelPos = clamp(virtualPrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
 
                 vec2 gatherTexelPos = floor(virtualPrevTexelPos - 0.5) + 1.0;
 
@@ -329,7 +327,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     gatherTexelPos,
                     currViewNormal,
                     currViewGeomNormal,
-                    virtualPrevViewPos.xyz,
+                    curr2PrevViewPos.xyz,
                     glazingAngleFactor,
                     edgeWeights,
                     edgeFlag
@@ -469,8 +467,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 transient_gi4Reprojected_store(texelPos, dither_fp16(clamp(specData4, 0.0, FP16_MAX), ditherNoiseV));
             }
         } else {
-            transient_gi3Reprojected_store(texelPos, vec4(0.0, 0.0, 0.0, SPEC_MAX_HIT_DISTANCE));
-            transient_gi4Reprojected_store(texelPos, vec4(0.0, 0.0, 0.0, SPEC_MAX_HIT_DISTANCE));
+            transient_gi3Reprojected_store(texelPos, vec4(0.0));
+            transient_gi4Reprojected_store(texelPos, vec4(0.0));
         }
     }
 }

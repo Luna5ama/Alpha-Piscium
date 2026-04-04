@@ -173,10 +173,9 @@ void main() {
 
                     float newHitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
                     if (newHitDistance >= 0.0) {
-                        float alpha = rcp(min(historyLength, 16.0));
-                        historyData.specularHitDistance = mix(historyData.specularHitDistance, newHitDistance, alpha);
-                        newHitDistance = min(newHitDistance, DIFF_MAX_HIT_DISTANCE);
-                        historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, alpha);
+                        float hitDistanceAlpha = rcp(min(historyLength, 16.0));
+                        historyData.specularHitDistance = mix(historyData.specularHitDistance, newHitDistance, hitDistanceAlpha);
+                        historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, hitDistanceAlpha);
                     }
 
                     historyLength = clamp(historyLength, 1.0, TOTAL_HISTORY_LENGTH);
