@@ -177,7 +177,7 @@ void main() {
                     historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, alpha.y);
 
                     historyData.diffuseFastColor = mix(historyData.diffuseFastColor, newDiffuse.rgb, alpha.z);
-                    historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, sqrt(alpha.w));
+                    historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, alpha.w);
 
                     float newHitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
                     if (newHitDistance >= 0.0) {
