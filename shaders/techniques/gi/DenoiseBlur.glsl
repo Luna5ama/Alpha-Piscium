@@ -285,8 +285,8 @@ void main() {
             // --- Specular loop: world-space specular lobe kernel ---
             #ifdef SETTING_DENOISER_SPATIAL
             {
-                float16_t sigma = float16_t(-2.0 * sigmaFP32);
-                float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y * 0.5;
+                float16_t sigma = float16_t(-sigmaFP32);
+                float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
                 vec3 specTFP32, specBFP32;
                 getSpecularKernelBasis(
                     centerGeomData.viewPos,
