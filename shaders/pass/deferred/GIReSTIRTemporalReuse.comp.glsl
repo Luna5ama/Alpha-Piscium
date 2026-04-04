@@ -436,7 +436,7 @@ void main() {
                 float newPHat = length(f);
 
                 float samplePdf = initialSample.pdf;
-                float newWi = safeRcp(samplePdf);
+                float newWi = newPHat * safeRcp(samplePdf);
 
                 float reservoirRand1 = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 6u), RANDOM_FRAME);
 
