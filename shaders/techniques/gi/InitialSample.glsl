@@ -56,30 +56,30 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 V
 
     vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
 
-    // Compute full MIS balance heuristic pdf for the chosen direction.
-    // Both VNDF and cosine pdfs are evaluated regardless of which branch was taken.
-    // This prevents weight explosion when a cosine sample lands near the specular peak.
-    vec3 LTangent = material.tbnInv * sampleDirView;
-    float NDotL = max(LTangent.z, 1e-5);
-
-    // Cosine-hemisphere pdf
-    float cosinePdf = NDotL * RCP_PI;
-
-    // VNDF reflection pdf for this direction
-    vec3 HTangent = normalize(LTangent + wiTangent);
-    float NdotH = max(HTangent.z, 1e-5);
-    float d = NdotH * NdotH * (a2 - 1.0) + 1.0;
-    float D = a2 / (PI * d * d);
-    float vndfPdf = G1 * D / (4.0 * NdotV);
-
-    // Combined mixture pdf (balance heuristic)
-    pdf = max(pSpec * vndfPdf + (1.0 - pSpec) * cosinePdf, 1e-6);
 
     // Reflect the sample direction if it's below the geometric normal.
     // This can happen VNDF sampling or with normal mapping
-    // Putting this after pdf calculation to use the orignal pdf for "correctness"
-    if (dot(sampleDirView, geomNormal) <= 0.0) {
-        sampleDirView = reflect(sampleDirView, geomNormal);
+    // NVM just discard the sample instead
+    pdf = 0.0;
+    if (dot(sampleDirView, geomNormal) > 0.0) {
+        // Compute full MIS balance heuristic pdf for the chosen direction.
+        // Both VNDF and cosine pdfs are evaluated regardless of which branch was taken.
+        // This prevents weight explosion when a cosine sample lands near the specular peak.
+        vec3 LTangent = sampleDirTangent;
+        float NDotL = max(LTangent.z, 1e-5);
+
+        // Cosine-hemisphere pdf
+        float cosinePdf = NDotL * RCP_PI;
+
+        // VNDF reflection pdf for this direction
+        vec3 HTangent = normalize(LTangent + wiTangent);
+        float NdotH = max(HTangent.z, 1e-5);
+        float d = NdotH * NdotH * (a2 - 1.0) + 1.0;
+        float D = a2 / (PI * d * d);
+        float vndfPdf = G1 * D / (4.0 * NdotV);
+
+        // Combined mixture pdf (balance heuristic)
+        pdf = max(pSpec * vndfPdf + (1.0 - pSpec) * cosinePdf, 1e-6);
     }
 
     return sampleDirView;

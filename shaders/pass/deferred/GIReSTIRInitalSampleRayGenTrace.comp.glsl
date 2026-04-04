@@ -81,23 +81,25 @@ void main() {
             transient_geomViewNormal_store(texelPos, geomNormalData);
             transient_viewNormal_store(texelPos, viewNormalData);
             vec3 V = normalize(-viewPos);
-            float _rayGenPdf;
-            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, V, material, _rayGenPdf);
+            float rayGenPdf;
+            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, V, material, rayGenPdf);
 
-            SSTRay sstRay = sstray_setup(texelPos, viewPos, rayDirView);
-            #if SETTING_GI_INITIAL_SST_STEPS < 64
-            sst_trace(sstRay, SETTING_GI_INITIAL_SST_STEPS);
-            #else
-            sst_trace(sstRay, 24);
-            #endif
+            if (rayGenPdf > 0.0) {
+                SSTRay sstRay = sstray_setup(texelPos, viewPos, rayDirView);
+                #if SETTING_GI_INITIAL_SST_STEPS < 64
+                sst_trace(sstRay, SETTING_GI_INITIAL_SST_STEPS);
+                #else
+                sst_trace(sstRay, 24);
+                #endif
 
-            if (sstRay.currT > 0.0) {
-                uvec4 packedData = sstray_pack(sstRay);
-                ssbo_rayData[dataIndex] = packedData;
-                rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
-            } else {
-                float hitDistance = restir_initialSample_handleRayResult(sstRay);
-                transient_gi_initialSampleHitDistance_store(texelPos, vec4(hitDistance));
+                if (sstRay.currT > 0.0) {
+                    uvec4 packedData = sstray_pack(sstRay);
+                    ssbo_rayData[dataIndex] = packedData;
+                    rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
+                } else {
+                    float hitDistance = restir_initialSample_handleRayResult(sstRay);
+                    transient_gi_initialSampleHitDistance_store(texelPos, vec4(hitDistance));
+                }
             }
         } else {
             transient_geomViewNormal_store(texelPos, vec4(0.0));
