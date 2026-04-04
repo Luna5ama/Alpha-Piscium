@@ -172,7 +172,7 @@ void main() {
 
                     if (newHitDistance >= 0.0) {
                         float alpha = rcp(min(historyLength, 16.0));
-                        newHitDistance = min(newHitDistance, MAX_HIT_DISTANCE);
+                        newHitDistance = min(newHitDistance, DIFF_MAX_HIT_DISTANCE);
                         historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, alpha);
                     }
 
