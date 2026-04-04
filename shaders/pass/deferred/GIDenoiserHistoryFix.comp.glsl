@@ -219,7 +219,6 @@ void main() {
 
                     float totalLen = historyData.historyLength * TOTAL_HISTORY_LENGTH;
                     float decayFactor = linearStep(FAST_HISTORY_LENGTH * 2.0, 1.0, totalLen);
-                    float clampingThreshold = mix(2.0, 4.0, pow2(decayFactor));
 
                     float expMul = exp2(global_aeData.expValues.z);
 
@@ -227,6 +226,7 @@ void main() {
                     vec4 centerDiffData = unpackHalf4x16(centerData.xy);
                     vec4 centerSpecData = unpackHalf4x16(centerData.zw);
 
+                    float clampingThreshold = mix(2.0, 4.0, pow2(decayFactor));
                     vec3 diffClamped = _clampColor(historyData.diffuseColor, centerDiffData.xyz, diffMoment1, diffMoment2, clampingThreshold);
                     vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
                     vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - diffOutputSim);
@@ -237,7 +237,7 @@ void main() {
                     diffInput = dither_fp16(diffInput, ditherNoise);
                     transient_gi_blurDiff2_store(texelPos, diffInput);
 
-                    vec3 specClamped = _clampColor(historyData.specularColor, centerSpecData.xyz, specMoment1, specMoment2, clampingThreshold);
+                    vec3 specClamped = _clampColor(historyData.specularColor, centerSpecData.xyz, specMoment1, specMoment2, clampingThreshold * 0.5);
                     vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
                     vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);

@@ -165,11 +165,10 @@ void main() {
 //                    float specMaxAccumFrames = getSpecMaxAccumFrames(material.roughness, NoV, parallax);
 //                    float specAccumHistoryLength = clamp(historyLength, 1.0, specMaxAccumFrames);
 //                    float specAlpha = newWeights.y * rcp(specAccumHistoryLength);
-                    float specAlpha = newWeights.y * rcp(historyLength);
-                    historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, alpha.y);
+                    historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, sqrt(alpha.y));
 
                     historyData.diffuseFastColor = mix(historyData.diffuseFastColor, newDiffuse.rgb, alpha.z);
-                    historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, alpha.w);
+                    historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, sqrt(alpha.w));
 
                     float newHitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
                     if (newHitDistance >= 0.0) {
