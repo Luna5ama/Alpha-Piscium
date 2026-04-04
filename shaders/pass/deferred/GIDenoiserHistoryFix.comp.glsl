@@ -177,7 +177,7 @@ void main() {
                         specWeightedSum = max(specWeightedSum, vec4(0.0));
 
                         historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
-                        historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
+                        // historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
                     }
                 }
                 #endif
