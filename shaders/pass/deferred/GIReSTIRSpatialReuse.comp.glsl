@@ -98,13 +98,30 @@ void main() {
             #else
             const uint reuseCount = uint(SETTING_GI_SPATIAL_REUSE_COUNT);
             #endif
-            const float REUSE_RADIUS = float(SETTING_GI_SPATIAL_REUSE_RADIUS);
             vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
             GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             Material material = material_decode(gData);
+
+            // Compute specular bounce probability to modulate kernel size
+            vec3 fresnelV = fresnel_evalMaterial(material, NDotV);
+            float pSpec;
+            if (material.metallic > 0.5) {
+                pSpec = 1.0;
+            } else {
+                vec3 fresnelT = vec3(1.0) - fresnelV;
+                vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
+                pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV / max(totalEnergy, vec3(1e-5)));
+            }
+            pSpec = saturate(pSpec);
+            // Shrink kernel for specular surfaces: pSpec=1 + low roughness = small kernel
+            // Keep kernel large for diffuse surfaces: pSpec=0 or high roughness = large kernel
+            float kernelModulator = mix(1.0, material.roughness, pSpec);
+            float reuseRadiusFP32 = float(SETTING_GI_SPATIAL_REUSE_RADIUS) * kernelModulator;
+            reuseRadiusFP32 = max(reuseRadiusFP32, 2.0);
+            float16_t reuseRadius = float16_t(reuseRadiusFP32);
 
             float pHatMe = centerSampleData.sampleValue.w;
             vec4 originalSample = vec4(centerSampleData.sampleValue.xyz, pHatMe);
@@ -123,7 +140,7 @@ void main() {
                 f16vec2 tempDir = dir;
                 dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
                 dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
-                float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples) * float16_t(REUSE_RADIUS);
+                float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples) * reuseRadius;
                 f16vec2 offset = dir * baseRadius;
 
                 vec2 sampleTexelPosF = texelPosF + vec2(offset);
