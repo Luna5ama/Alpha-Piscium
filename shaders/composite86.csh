@@ -1,4 +1,5 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/ExposureGather.comp.glsl"
+#include "/pass/composite/ExposureMip.comp.glsl"
+

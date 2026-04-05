@@ -3,6 +3,6 @@
 
 /*const*/
 #define BLOOM_DOWN_SAMPLE 1
-#define BLOOM_PASS 10
+#define BLOOM_PASS 9
 /*const*/
 #include "/techniques/Bloom.comp.glsl"
