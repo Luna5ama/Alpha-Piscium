@@ -297,6 +297,7 @@ void main() {
                     transient_gi5Reprojected_store(texelPos, packedData5);
 
                     #ifdef SETTING_DENOISER_SPATIAL
+                    vec2 filteredHitDitances = vec2(DIFF_MAX_HIT_DISTANCE);
                     ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
                     // 5x5 neighborhood using shared memory
                     for (int dy = -2; dy <= 2; ++dy) {
