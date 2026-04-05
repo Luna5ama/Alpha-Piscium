@@ -220,30 +220,29 @@ void main() {
                     if (cosPhiA <= 0.0 || neighborPHat <= 0.0) continue;
 
                     // All denominator terms are verified positive at this point
-                    float jacobian = clamp((RB2 * cosPhiA) / (hitDist2 * cosPhiB), 0.0, 100.0);
+                    float jacobian = clamp((RB2 * cosPhiA) / (hitDist2 * cosPhiB), 0.0, 256.0);
 
                     float pcRiY = neighborPHat * jacobian; // p̂_c(ri.y): center target for neighbor's sample
                     float piRiY = neighborData.sampleValue.w; // p̂_i(ri.y): neighbor's stored target
 
                     // Pairwise MIS weight mi [BIT22 Algo.8 line 5]
                     float MiPiRiY = neighborReservoir.m * piRiY;
-                    float mi = MiPiRiY / max(MiPiRiY + rcMDivK * pcRiY, 1e-10);
+                    float mi = MiPiRiY * safeRcp(MiPiRiY + rcMDivK * pcRiY);
 
                     // Accumulate mc: need pi(rc.y) = center sample evaluated at neighbor domain [BIT22 Algo.8 line 6]
                     {
                         vec3 cHitDiff = centerHitViewPos - neighborViewPos;
                         float cHitDist2 = dot(cHitDiff, cHitDiff);
                         if (cHitDist2 >= 1e-6 && RB2_canon >= 1e-6 && cosPhiB_canon > 0.0) {
-                            float cHitDist = sqrt(cHitDist2);
-                            vec3 cDirAtNbr = cHitDiff / cHitDist;
+                            vec3 cDirAtNbr = cHitDiff / inversesqrt(cHitDist2);
                             float cCosPhiA = -dot(cDirAtNbr, centerSampleData.hitNormal);
                             if (cCosPhiA > 0.0) {
-                                float jacCn = clamp((RB2_canon * cCosPhiA) / (cHitDist2 * cosPhiB_canon), 0.0, 100.0);
+                                float jacCn = clamp((RB2_canon * cCosPhiA) / (cHitDist2 * cosPhiB_canon), 0.0, 256.0);
                                 // Evaluate BRDF at neighbor for center's sample direction (center material as approx)
                                 vec3 VNeighbor = -normalize(neighborViewPos);
                                 float piRcY = evalTargetFunction(originalSample.xyz, neighborData.normal, cDirAtNbr, VNeighbor, material) * jacCn;
                                 float MiPiRcY = neighborReservoir.m * piRcY;
-                                mc += 1.0 - MiPiRcY / max(MiPiRcY + rcMDivK * pHatMe, 1e-10);
+                                mc += 1.0 - MiPiRcY * safeRcp(MiPiRcY + rcMDivK * pHatMe);
                             } else {
                                 mc += 1.0; // center hit is behind hit surface from neighbor's POV
                             }

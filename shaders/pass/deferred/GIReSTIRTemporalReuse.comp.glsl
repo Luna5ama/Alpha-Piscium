@@ -130,23 +130,22 @@ void sampleTemporalNeighbor(
 
                 // Pairwise MIS weight mi for this neighbor [BIT22 Algo.8 line 5]
                 float MiPiRiY = scaledM * piRiY;
-                float mi = MiPiRiY / max(MiPiRiY + rcMDivK * pcRiY, 1e-10);
+                float mi = MiPiRiY * safeRcp(MiPiRiY + rcMDivK * pcRiY);
 
                 // Accumulate mc: evaluate pi(rc.y) at neighbor domain [BIT22 Algo.8 line 6]
                 {
                     vec3 cHitDiff = canonicalHitViewPos - prev2CurrNeighborViewPos;
                     float cHitDist2 = dot(cHitDiff, cHitDiff);
                     if (cHitDist2 >= 1e-6 && RB2_canon >= 1e-6 && cosPhiB_canon > 0.0) {
-                        float cHitDist = sqrt(cHitDist2);
-                        vec3 cDirAtNbr = cHitDiff / cHitDist;
+                        vec3 cDirAtNbr = cHitDiff * inversesqrt(cHitDist2);
                         float cCosPhiA = -dot(cDirAtNbr, canonicalHitNormal);
                         if (cCosPhiA > 0.0) {
-                            float jacCn = clamp((RB2_canon * cCosPhiA) / (cHitDist2 * cosPhiB_canon), 0.0, 100.0);
+                            float jacCn = clamp((RB2_canon * cCosPhiA) / (cHitDist2 * cosPhiB_canon), 0.0, 256.0);
                             // Approximate neighbor surface normal as gData.normal (bilinear taps are sub-pixel offsets)
                             vec3 VNeighbor = normalize(-prev2CurrNeighborViewPos);
                             float piRcY = evalTargetFunction(canonicalHitRadiance, gData.normal, cDirAtNbr, VNeighbor, material) * jacCn;
                             float MiPiRcY = scaledM * piRcY;
-                            mc += 1.0 - MiPiRcY / max(MiPiRcY + rcMDivK * pHatCanonical, 1e-10);
+                            mc += 1.0 - MiPiRcY * safeRcp(MiPiRcY + rcMDivK * pHatCanonical);
                         } else {
                             mc += 1.0; // canonical hit is behind hit surface from neighbor's POV
                         }
