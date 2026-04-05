@@ -226,9 +226,14 @@ void main() {
 
                     float expMul = exp2(global_aeData.expValues.z);
 
-                    uvec4 centerData = shared_YCoCgData[localPos.y][localPos.x];
-                    vec4 centerDiffData = unpackHalf4x16(centerData.xy);
-                    vec4 centerSpecData = unpackHalf4x16(centerData.zw);
+                    #if SETTING_DEBUG_OUTPUT
+                    if (RANDOM_FRAME < MAX_FRAMES) {
+                        uvec4 centerData = shared_YCoCgData[localPos.y][localPos.x];
+                        vec4 centerDiffData = unpackHalf4x16(centerData.xy);
+                        vec4 centerSpecData = unpackHalf4x16(centerData.zw);
+                        imageStore(uimg_temp2, texelPos, vec4(colors_YCoCgToRGB(centerDiffData.rgb), 0.0));
+                    }
+                    #endif
 
                     vec3 diffClamped = _clampColor(historyData.diffuseColor, diffMoment1, diffMoment2, clampingThreshold);
                     vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
