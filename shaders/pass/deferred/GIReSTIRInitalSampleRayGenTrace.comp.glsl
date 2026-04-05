@@ -82,7 +82,7 @@ void main() {
             transient_viewNormal_store(texelPos, viewNormalData);
             vec3 V = normalize(-viewPos);
             float rayGenPdf;
-            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, V, material, rayGenPdf);
+            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, gData.normal, V, material, rayGenPdf);
 
             if (rayGenPdf > 0.0) {
                 SSTRay sstRay = sstray_setup(texelPos, viewPos, rayDirView);
