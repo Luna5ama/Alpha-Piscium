@@ -87,20 +87,20 @@ void main() {
 
         global_shadowRotationMatrix = shadowDeRotateMatrix();
         global_shadowRotationMatrixInverse = inverse(global_shadowRotationMatrix);
-        global_shadowProjPrev = global_shadowProj;
-        global_shadowProjInversePrev = global_shadowProjInverse;
-        global_shadowProj = mat4_createOrthographicMatrix(
+        global_shadowProj = global_shadowProjNext;
+        global_shadowProjInverse = global_shadowProjNextInverse;
+        global_shadowProjNext = mat4_createOrthographicMatrix(
             global_shadowAABBMin.x - 16.0, global_shadowAABBMax.x + 16.0,
             global_shadowAABBMin.y - 16.0, global_shadowAABBMax.y + 16.0,
             -global_shadowAABBMax.z - 512.0, -global_shadowAABBMin.z + 16.0
         );
-        global_shadowProjInverse = inverse(global_shadowProj);
+        global_shadowProjNextInverse = inverse(global_shadowProjNext);
         global_prevTaaJitter = uval_taaJitter;
         mat4 taaMat = taaJitterMat(uval_taaJitter);
         global_taaJitterMat = taaMat;
 
-        global_sceneToShadowNDC = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView;
-        global_shadowViewToShadowNDC = global_shadowProjPrev * global_shadowRotationMatrix;
+        global_sceneToShadowNDC = global_shadowProj * global_shadowRotationMatrix * global_shadowView;
+        global_shadowViewToShadowNDC = global_shadowProj * global_shadowRotationMatrix;
         global_shadowNDCToScene = inverse(global_sceneToShadowNDC);
 
         global_prevCamProj = global_camProj;

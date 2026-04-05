@@ -25,7 +25,7 @@ void main() {
         #if SETTING_DEBUG_OUTPUT == 4
         debugOutput(texelPos, outputColor);
         #endif
-        #if SETTING_DEBUG_OUTPUT
+        #ifdef SETTING_DEBUG_TEXT_OUTPUT
         debugFinalOutput(texelPos, outputColor);
         #endif
 

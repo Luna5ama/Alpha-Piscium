@@ -26,8 +26,10 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
         viewPos = vec3(0.0);
         importance = 0.0;
     }
+    vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
+    shadowAABB1(shadowViewPos.xyz);
 
-    vec4 shadowClipPos = global_shadowProj * shadowViewPos;
+    vec4 shadowClipPos = global_shadowProjNext * shadowViewPos;
     vec3 shadowNDCPos = shadowClipPos.xyz / shadowClipPos.w;
     vec2 shadowScreenPos = shadowNDCPos.xy * 0.5 + 0.5;
 

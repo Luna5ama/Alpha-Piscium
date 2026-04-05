@@ -8,11 +8,7 @@ layout(rgba16f) uniform restrict writeonly image2D uimg_main;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 
 vec4 rcas_loadInput(ivec2 texelPos, bool center) {
-    vec4 data = transient_taaOutput_fetch(texelPos);
-    if (center) {
-        history_taa_store(texelPos, data);
-    }
-    return data;
+    return transient_fxaaOutput_fetch(texelPos);
 }
 
 void rcas_storeOutput(ivec2 texelPos, vec4 color) {

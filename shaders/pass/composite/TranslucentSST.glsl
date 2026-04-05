@@ -3,7 +3,7 @@
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/EnvProbe.glsl"
 #include "/techniques/textile/CSR32F.glsl"
-#include "/techniques/SST.glsl"
+#include "/techniques/SST2.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
@@ -11,59 +11,21 @@
 #include "/util/MaterialIDConst.glsl"
 #include "/util/Fresnel.glsl"
 #include "/util/BSDF.glsl"
+#include "/util/Sampling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 
-float edgeReductionFactor(vec2 screenPos) {
-    const float SQUIRCLE_M = 4.0;
-    vec2 ndcPos = screenPos * 2.0 - 1.0;
-    vec2 squircle = pow(smoothstep(0.5, 0.95, abs(ndcPos)), vec2(SQUIRCLE_M));
+float sst_edgeReductionFactor(vec2 screenPos, float squirclePow, vec2 edgeStart, vec2 edgeEnd) {
+    vec2 ndcPos = abs(screenPos * 2.0 - 1.0);
+    vec2 squircle = pow(smoothstep(edgeStart, edgeEnd, ndcPos), vec2(squirclePow));
     return saturate(1.0 - (squircle.x + squircle.y));
-}
-
-float edgeReductionFactor2(vec2 screenPos) {
-    const float SQUIRCLE_M = 2.0;
-    vec2 ndcPos = screenPos * 2.0 - 1.0;
-    vec2 squircle = pow(saturate(1.5 * abs(ndcPos)), vec2(SQUIRCLE_M));
-    return saturate(1.0 - (squircle.x + squircle.y));
-}
-
-// from https://github.com/GameTechDev/TAA
-vec4 BicubicSampling56(sampler2D samplerV, vec2 inHistoryUV, vec2 resolution) {
-    vec2 inHistoryST = inHistoryUV * resolution;
-    const vec2 rcpResolution = rcp(resolution);
-    const vec2 fractional = fract(inHistoryST - 0.5);
-    const vec2 uv = (floor(inHistoryST - 0.5) + vec2(0.5f, 0.5f)) * rcpResolution;
-
-    // 5-tap bicubic sampling (for Hermite/Carmull-Rom filter) -- (approximate from original 16->9-tap bilinear fetching)
-    const vec2 t = vec2(fractional);
-    const vec2 t2 = vec2(fractional * fractional);
-    const vec2 t3 = vec2(fractional * fractional * fractional);
-    const float s = float(0.0);
-    const vec2 w0 = -s * t3 + float(2.f) * s * t2 - s * t;
-    const vec2 w1 = (float(2.f) - s) * t3 + (s - float(3.f)) * t2 + float(1.f);
-    const vec2 w2 = (s - float(2.f)) * t3 + (3 - float(2.f) * s) * t2 + s * t;
-    const vec2 w3 = s * t3 - s * t2;
-    const vec2 s0 = w1 + w2;
-    const vec2 f0 = w2 / (w1 + w2);
-    const vec2 m0 = uv + f0 * rcpResolution;
-    const vec2 tc0 = uv - 1.f * rcpResolution;
-    const vec2 tc3 = uv + 2.f * rcpResolution;
-
-    const vec4 A = vec4(texture(samplerV, vec2(m0.x, tc0.y)));
-    const vec4 B = vec4(texture(samplerV, vec2(tc0.x, m0.y)));
-    const vec4 C = vec4(texture(samplerV, vec2(m0.x, m0.y)));
-    const vec4 D = vec4(texture(samplerV, vec2(tc3.x, m0.y)));
-    const vec4 E = vec4(texture(samplerV, vec2(m0.x, tc3.y)));
-    const vec4 color = (float(0.5f) * (A + B) * w0.x + A * s0.x + float(0.5f) * (A + B) * w3.x) * w0.y + (B * w0.x + C * s0.x + D * w3.x) * s0.y + (float(0.5f) * (B + E) * w0.x + E * s0.x + float(0.5f) * (D + E) * w3.x) * w3.y;
-    return color;
 }
 
 void main() {
-    sst_init();
+    sst_init(0.005);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
@@ -76,6 +38,8 @@ void main() {
         float translucentStartViewZ = -texelFetch(usam_csr32f, translucentNearDepthTexelPos, 0).r;
 
         float startViewZ = max(translucentStartViewZ, waterStartViewZ);
+
+        float solidViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
 
         if (startViewZ > -65536.0) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
@@ -109,10 +73,14 @@ void main() {
                 cosThetaSign = -1.0;
             }
             vec3 refIncidentDir = -viewDir;
+            vec3 offsetDir = vec3(0.0);
             vec3 refractDir;
 
-            if (isEyeInWater == 1 || !isWater) {
+            if (isEyeInWater == 1) {
                 refractDir = refract(refIncidentDir, microNormal, rior);
+            } else if (!isWater)  {
+                offsetDir = refract(refIncidentDir, microNormal, rior);
+                refractDir = refract(offsetDir, gData.geomNormal, rcp(rior));
             } else {
                 #ifdef SETTING_WATER_REFRACT_APPROX
                 refractDir = refract(refIncidentDir, (gData.geomNormal - gData.normal), rior);
@@ -139,33 +107,52 @@ void main() {
             nv = pow3(nv) + 0.5;
             AtmosphereParameters atmosphere = getAtmosphereParameters();
 
-            SSTResult refractResult = sst_trace(startViewPos, refractDir, 0.005);
+            vec3 refractStartPosView = startViewPos + offsetDir * min(1.0, startViewPos.z - solidViewZ);
+            SSTRay refractRay = sstray_setup(texelPos, refractStartPosView, refractDir);
+            sst_trace(refractRay, 128u);
             vec3 refractColor = vec3(0.0);
 
+            bool refractHit = refractRay.currT < 0.0 && refractRay.currT > -1.0;
+            vec3 refractHitScreen3D = refractRay.pRayStart + refractRay.pRayDir * (refractRay.pRayVecLen * abs(refractRay.currT));
+            vec2 refractHitScreen2D = refractHitScreen3D.xy + (uval_taaJitter * uval_mainImageSizeRcp);
             if (isEyeInWater == 1) {
                 vec3 refractDirWorld = coords_dir_viewToWorld(refractDir);
                 if (refractDirWorld.y > 0.0) {
                     SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, refractDirWorld);
                     refractColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
-                    if (refractResult.hit) {
-                        vec2 refractCoord = refractResult.hitScreenPos.xy + (uval_taaJitter * uval_mainImageSizeRcp);
+                    if (refractHit) {
+                        vec2 refractCoord = refractHitScreen2D;
                         float refractDepth = texture(usam_gbufferSolidViewZ, refractCoord).r;
-                        refractColor = mix(refractColor, BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb, edgeReductionFactor2(refractResult.hitScreenPos.xy));
+                        vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
+                        refractColor = mix(refractColor, hitColor, sst_edgeReductionFactor(refractCoord.xy, 2.0, vec2(0.0), vec2(1.5)));
                     }
                 }
             } else {
-                vec2 refractCoord = refractResult.hit ? (refractResult.hitScreenPos.xy + (uval_taaJitter * uval_mainImageSizeRcp)) : screenPos;
+                vec3 refractHitScreenFallback = coords_viewToScreen(refractStartPosView, global_camProj);
+                vec2 refractCoord = refractHit ? refractHitScreen2D : refractHitScreenFallback.xy;
                 float refractDepth = texture(usam_gbufferSolidViewZ, refractCoord).r;
                 if (refractDepth > startViewZ) {
                     refractCoord = screenPos;
                 }
-                refractColor = BicubicSampling56(usam_main, saturate(refractCoord), uval_mainImageSize).rgb;
+                vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
+                refractColor = hitColor.rgb;
             }
 
-            float MDotV = dot(microNormal, viewDir);
+            float MDotV = saturate(abs(dot(microNormal, viewDir)));
+            // Not physically correct, but normal mapping can mess up fresnel, causing random blackout at edges.
+            MDotV = max(MDotV, abs(dot(gData.geomNormal, viewDir)) * 0.5);
+
+            // Exit refraction Fresnel - only for non-water translucents viewed from air (double-refract path)
+            if (isEyeInWater != 1 && !isWater) {
+                float exitCosThetaI = saturate(abs(dot(offsetDir, gData.geomNormal)));
+                float exitFresnelTransmittance = fresnel_dielectricDielectric_transmittance(exitCosThetaI, material.hardCodedIOR, AIR_IOR);
+                refractColor *= exitFresnelTransmittance;
+            }
+
             transient_translucentRefraction_store(texelPos, vec4(refractColor, MDotV));
 
-            SSTResult reflectResult = sst_trace(startViewPos, reflectDir, 0.005);
+            SSTRay reflectRay = sstray_setup(texelPos, startViewPos, reflectDir);
+            sst_trace(reflectRay, 128u);
             vec3 reflectDirWorld = coords_dir_viewToWorld(reflectDir);
             reflectDirWorld = rand_sampleInCone(reflectDirWorld, 0.005, noiseV);
             vec2 envSliceUV = vec2(-1.0);
@@ -174,23 +161,25 @@ void main() {
             ivec2 envTexel = ivec2((envSliceUV + envSliceID) * ENV_PROBE_SIZE);
             EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
             vec3 reflectColor = envData.radiance.rgb;
-            if (envProbe_isSky(envData) && reflectDirWorld.y > 0.0) {
+            if (envProbe_isSky(envData) && (!isWater || reflectDirWorld.y > 0.0)) {
                 AtmosphereParameters atmosphere = getAtmosphereParameters();
                 SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, reflectDirWorld);
                 reflectColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+                reflectColor *= linearStep(-1.0, 0.0, reflectDirWorld.y);
             }
-            if (reflectResult.hit) {
-                vec2 sampleCoord = saturate(reflectResult.hitScreenPos.xy + (uval_taaJitter * uval_mainImageSizeRcp));
+            if (reflectRay.currT < 0.0 && reflectRay.currT > -1.0) {
+                vec3 reflectHitScreen = reflectRay.pRayStart + reflectRay.pRayDir * (reflectRay.pRayVecLen * abs(reflectRay.currT));
+                vec2 sampleCoord = saturate(reflectHitScreen.xy + (uval_taaJitter * uval_mainImageSizeRcp));
                 vec3 hitGeomNormal = transient_geomViewNormal_sample(sampleCoord).rgb;
-                vec3 hitColor = BicubicSampling56(usam_main, sampleCoord, uval_mainImageSize).rgb;
-                float mixFactor = edgeReductionFactor(reflectResult.hitScreenPos.xy);
+                vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, sampleCoord * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
+                float mixFactor = sst_edgeReductionFactor(reflectHitScreen.xy, 4.0, vec2(0.5), vec2(0.95));
                 hitGeomNormal = normalize(hitGeomNormal * 2.0 - 1.0);
                 float hitDot = dot(-reflectDir, hitGeomNormal);
-                mixFactor *= float(hitDot > 0.0);
-
+                float reflectDepth = texture(usam_gbufferSolidViewZ, sampleCoord).r;
+                bool skyReflected = reflectDepth < -far;
+                mixFactor *= saturate(float(hitDot > 0.0) + float(skyReflected));
                 if (isEyeInWater == 1) {
-                    float reflectDepth = texture(usam_gbufferSolidViewZ, sampleCoord).r;
-                    if (reflectDepth > -far) {
+                    if (!skyReflected) {
                         reflectColor = mix(reflectColor, hitColor, mixFactor);
                     }
                 } else {

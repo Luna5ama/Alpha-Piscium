@@ -45,7 +45,7 @@ vec2 _processShadowSampleUV(vec2 sampleShadowUV, ivec2 randCoord) {
     float sqrtJitterR = sqrt(rv);
     float r = ldexp(sqrtJitterR, -12 + SETTING_LIGHT_SHAFT_SOFTNESS);
     vec2 result = sampleShadowUV;
-    result += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
+    result += r * dir * vec2(global_shadowProj[0][0], global_shadowProj[1][1]);
     result = rtwsm_warpTexCoord(result);
     return result;
 }
@@ -74,13 +74,16 @@ void loadSharedShadowSample(uint index) {
     sampleData.x = shadowSampleDepth;
 
     #ifdef SETTING_WATER_SCATTERING_REFRACTION_APPROX
-    {
+    float waterMask = texture(usam_shadow_waterMask, sampleShadowUV.xy).r;
+    if (waterMask > 0.0) {
         const float STRENGTH_POWER = ldexp(1.0, SETTING_WATER_SCATTERING_REFRACTION_APPROX_CONTRAST);
         vec3 waterNormal = texture(usam_shadow_waterNormal, sampleShadowUV.xy).xyz * 2.0 - 1.0;
-        waterNormal = mix(waterNormal, vec3(0.0, 1.0, 0.0), edgeBlend);
         waterNormal = normalize(waterNormal);
-        float refractBoost = pow(pow2(dot(waterNormal, vec3(0.0, 1.0, 0.0))), STRENGTH_POWER);
-        sampleData.y = refractBoost;
+        float refractBoost = pow(saturate(pow2(dot(waterNormal, vec3(0.0, 1.0, 0.0)))), STRENGTH_POWER);
+        sampleData.y = mix(refractBoost, 1.0, edgeBlend);
+        if (shadowSampleDepth >= 1.0) {
+            sampleData.y = 1.0;
+        }
     }
     #endif
 
@@ -100,8 +103,8 @@ void screenViewRaymarch_init(vec2 screenPos) {
         vec4 sliceShadowStartScene = gbufferModelViewInverse * vec4(sliceShadowStartView, 1.0);
         vec4 sliceShadowEndScene = gbufferModelViewInverse * vec4(sliceShadowEndView, 1.0);
 
-        vec4 sliceShadowStartShadowClip = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * sliceShadowStartScene;
-        vec4 sliceShadowEndShadowClip = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * sliceShadowEndScene;
+        vec4 sliceShadowStartShadowClip = global_shadowProj * global_shadowRotationMatrix * global_shadowView * sliceShadowStartScene;
+        vec4 sliceShadowEndShadowClip = global_shadowProj * global_shadowRotationMatrix * global_shadowView * sliceShadowEndScene;
 
         vec2 sliceShadowStartShadowScreen = sliceShadowStartShadowClip.xy / sliceShadowStartShadowClip.w;
         sliceShadowStartShadowScreen = sliceShadowStartShadowScreen * 0.5 + 0.5;
@@ -153,7 +156,7 @@ vec2 atmosphere_sample_shadow(vec3 startShadowPos, vec3 endShadowPos, float jitt
 
         uint index = uint(indexF);
         vec2 sampleData = shared_sliceShadowSamples[index];
-        float shadowTerm = float(sampleData.x > sampleTAndDepth.y);
+        float shadowTerm = float(sampleData.x >= sampleTAndDepth.y);
         shadowSum.x += shadowTerm;
         shadowSum.y += sampleData.y;
     }
@@ -178,18 +181,6 @@ float waterSurfaceDistance(vec3 shadowUVPos) {
         return -1.0;
     }
     return abs(rtwsm_linearDepth(shadowUVPos.z) - rtwsm_linearDepth(sampleDepth));
-}
-
-// https://www.desmos.com/calculator/tbl4g5bvlc
-float waterPhase(float cosTheta) {
-    const float wKn = 0.99;
-    const float gE = 20000.0;
-    const float gCS = -0.6;
-    return mix(
-        phasefunc_CornetteShanks(cosTheta, gCS),
-        phasefunc_KleinNishinaE(cosTheta, gE),
-        wKn
-    );
 }
 
 ScatteringResult raymarchWaterVolume(
@@ -218,7 +209,7 @@ ScatteringResult raymarchWaterVolume(
     float totalRayLength = length(rayDiff);
     vec3 rayDir = rayDiff / totalRayLength;
     float phaseCosTheta = dot(rayDir, uval_shadowLightDirWorld);
-    float phaseV = waterPhase(phaseCosTheta);
+    float phaseV = phase_water(phaseCosTheta);
 
     vec3 inSctrInt = volumetrics_intergrateScatteringLerpLightOpticalDepth(
         WATER_SCATTERING,
@@ -298,8 +289,8 @@ ScatteringResult raymarchScreenViewWater(ivec2 texelPos, float startZ, float end
     vec4 originScene = gbufferModelViewInverse * vec4(startViewPos, 1.0);
     vec4 endScene = gbufferModelViewInverse * vec4(endViewPos, 1.0);
 
-    vec4 originShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * originScene;
-    vec4 endShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * endScene;
+    vec4 originShadowCS = global_shadowProj * global_shadowRotationMatrix * global_shadowView * originScene;
+    vec4 endShadowCS = global_shadowProj * global_shadowRotationMatrix * global_shadowView * endScene;
 
     vec3 startShadow = originShadowCS.xyz / originShadowCS.w;
     startShadow = startShadow * 0.5 + 0.5;

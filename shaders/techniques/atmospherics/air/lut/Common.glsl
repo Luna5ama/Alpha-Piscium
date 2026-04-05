@@ -25,10 +25,10 @@ const vec2 TRANSMITTANCE_TEXEL_SIZE = 1.0 / TRANSMITTANCE_TEXTURE_SIZE;
 
 #define MULTI_SCTR_LUT_SIZE 32
 
-#define SKYVIEW_LUT_WIDTH (SETTING_SKYVIEW_RES / 2)
+#define SKYVIEW_LUT_WIDTH SETTING_SKYVIEW_RES
 #define SKYVIEW_LUT_HEIGHT SETTING_SKYVIEW_RES
 #define SKYVIEW_LUT_LAYERS 4
-#define SKYVIEW_LUT_DEPTH 12
+#define SKYVIEW_LUT_DEPTH 8
 #define SKYVIEW_LUT_SIZE ivec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
 #define SKYVIEW_LUT_SIZE_F vec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT)
 
@@ -88,71 +88,39 @@ void _atmospherics_air_lut_uvToLutTransmittanceParams(AtmosphereParameters atmos
     cosZenith = clamp(cosZenith, -1.0, 1.0);
 }
 
-void _atmospherics_air_lut_uvToSkyViewLutParams(
-    AtmosphereParameters atmosphere,
-    out float viewZenithCosAngle,
-    out float lightViewCosAngle,
-    in float viewHeight,
-    in vec2 uv
-) {
-    uv.y = 1.0 - uv.y;
-    uv = vec2(_atmospherics_air_lut_fromSubUvsToUnit(uv.x, SKYVIEW_LUT_WIDTH), _atmospherics_air_lut_fromSubUvsToUnit(uv.y, SKYVIEW_LUT_HEIGHT));
-
-    float vHorizon = sqrt(pow2(viewHeight) - pow2(atmosphere.bottom));
-    float cosBeta = vHorizon / viewHeight;  // GroundToHorizonCos
-    float beta = acos(cosBeta);
-    float zenithHorizonAngle = PI - beta;
-
-    if (uv.y < 0.5) {
-        float coord = 2.0 * uv.y;
-        coord = 1.0 - coord;
-        coord *= coord; // Non linear sky view LUT
-        coord = 1.0 - coord;
-        viewZenithCosAngle = cos(zenithHorizonAngle * coord);
-    } else {
-        float coord = uv.y * 2.0 - 1.0;
-        coord *= coord; // Non linear sky view LUT
-        viewZenithCosAngle = cos(zenithHorizonAngle + beta * coord);
-    }
-
-    float coord = uv.x;
-    coord *= coord;
-    lightViewCosAngle = -(coord * 2.0 - 1.0);
+// uv in [0, 1] -> lat in [-PI_HALF, PI_HALF], lon in [0, 1]
+void _atmospherics_air_lut_uvToSkyViewLonLat(vec2 uv, out float lat, out float lon) {
+    uv = _atmospherics_air_lut_fromSubUvsToUnit(uv, vec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT));
+    float v = uv.y;
+    float s = sign(v - 0.5);
+    float t = (2.0 * abs(v - 0.5));
+    lat = s * (t * t) * PI_HALF;
+    lon = uv.x;
 }
 
-void _atmospherics_air_lut_skyViewLutParamsToUv(
-    in AtmosphereParameters atmosphere,
-    in bool intersectGround,
-    in float viewZenithCosAngle,
-    in float lightViewCosAngle,
-    in float viewHeight,
-    out vec2 uv
-) {
-    float Vhorizon = sqrt(viewHeight * viewHeight - atmosphere.bottom * atmosphere.bottom);
-    float CosBeta = Vhorizon / viewHeight;  // GroundToHorizonCos
-    float Beta = acos(CosBeta);
-    float ZenithHorizonAngle = PI - Beta;
+// lat in [-PI_HALF, PI_HALF], lon in [0, 1] -> uv in [0, 1]
+void _atmospherics_air_lut_skyViewLonLatToUv(float lat, float lon, out vec2 uv) {
+    float v = 0.5 + 0.5 * sign(lat) * sqrt(abs(lat) / PI_HALF);
+    uv = _atmospherics_air_lut_fromUnitToSubUvs(vec2(lon, v), vec2(SKYVIEW_LUT_WIDTH, SKYVIEW_LUT_HEIGHT));
+}
 
-    if (!intersectGround) {
-        float coord = acos(viewZenithCosAngle) / ZenithHorizonAngle;
-        coord = 1.0 - coord;
-        coord = sqrt(saturate(coord));    // Non linear sky view LUT
-        coord = 1.0 - coord;
-        uv.y = coord * 0.5;
-    } else {
-        float coord = (acos(viewZenithCosAngle) - ZenithHorizonAngle) / Beta;
-        coord = sqrt(saturate(coord));    // Non linear sky view LUT
-        uv.y = coord * 0.5 + 0.5;
-    }
+// lat in [-PI_HALF, PI_HALF], lon in [0, 1] -> rayDir (world space, Y-up)
+void _atmospherics_air_lut_skyViewLonLatToRayDir(float lat, float lon, out vec3 rayDir) {
+    // lon=0.5 -> Z- (north), seam at lon=0/1 -> Z+ (south)
+    // lon=0.75 -> X+ (east), lon=0.25 -> X- (west)
+    // Inverse of atan(x, -z): x = sin(angle), z = -cos(angle)
+    float angle = (lon - 0.5) * PI_2;
+    float cosLat = cos(lat);
+    rayDir = vec3(sin(angle) * cosLat, sin(lat), -cos(angle) * cosLat);
+}
 
-    {
-        float coord = -lightViewCosAngle * 0.5 + 0.5;
-        coord = sqrt(coord);
-        uv.x = coord;
-    }
-
-    uv = vec2(_atmospherics_air_lut_fromUnitToSubUvs(uv.x, SKYVIEW_LUT_WIDTH), _atmospherics_air_lut_fromUnitToSubUvs(uv.y, SKYVIEW_LUT_HEIGHT));
-    uv.y = 1.0 - uv.y;
+// rayDir (world space, Y-up) -> lat in [-PI_HALF, PI_HALF], lon in [0, 1]
+void _atmospherics_air_lut_rayDirToSkyViewLonLat(vec3 rayDir, out float lat, out float lon) {
+    lat = asin(clamp(rayDir.y, -1.0, 1.0));
+    // atan(x, -z) maps (-π, π] to lon in (0, 1], with seam at Z+ (south)
+    // Z- (north, MC yaw=180) -> lon=0.5, Z+ (south, yaw=0) -> seam at 0/1
+    // X+ (east, yaw=-90) -> lon=0.75, X- (west, yaw=90) -> lon=0.25
+    lon = atan(rayDir.x, -rayDir.z) * RCP_PI_2 + 0.5;
 }
 
 #endif

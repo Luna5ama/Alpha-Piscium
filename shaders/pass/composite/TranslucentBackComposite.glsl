@@ -46,12 +46,7 @@ void main() {
             // TODO: spec gi
             vec4 giDiff = transient_gi_diffShadingOutput_fetch(texelPos);
             vec4 giSpec = transient_gi_specShadingOutput_fetch(texelPos);
-            history_gi_stabilizationDiff_store(texelPos, giDiff);
-            history_gi_stabilizationSpec_store(texelPos, giSpec);
             outputColor.rgb += giDiff.rgb * albedo;
-        } else {
-            history_gi_stabilizationDiff_store(texelPos, vec4(0.0));
-            history_gi_stabilizationSpec_store(texelPos, vec4(0.0));
         }
 
         transient_exposureWeights_store(texelPos, exposureWeights);

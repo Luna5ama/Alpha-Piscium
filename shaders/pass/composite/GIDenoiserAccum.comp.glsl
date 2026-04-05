@@ -75,6 +75,12 @@ void main() {
             float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
             if (viewZ > -65536.0) {
                 vec4 newDiffuse = transient_ssgiOut_fetch(texelPos);
+                #if SETTING_DEBUG_OUTPUT
+                if (RANDOM_FRAME < MAX_FRAMES) {
+                    imageStore(uimg_temp2, texelPos, newDiffuse);
+                }
+                #endif
+
                 vec4 newSpecular = vec4(0.0); // TODO: specular input
 
                 GIHistoryData historyData = gi_historyData_init();
@@ -103,11 +109,11 @@ void main() {
                     realHistoryLength = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH * global_historyResetFactor;
                     realHistoryLength += 1.0;
 
-                    #if SETTING_DENOISER_FIREFLY_SUPPRESSION
+                    #if SETTING_DENOISER_FLICKER_SUPPRESSION
                     // Idea from Belmu to limit firefly based on luma difference
                     if (historyData.realHistoryLength > 0.0) {
                         float expMul = exp2(global_aeData.expValues.z);
-                        float threshold = ldexp(1.0, -SETTING_DENOISER_FIREFLY_SUPPRESSION);
+                        float threshold = ldexp(1.0, -SETTING_DENOISER_FLICKER_SUPPRESSION);
                         newWeights.x = computeOutputLumaDiffWeight(historyData.diffuseColor, newDiffuse.rgb, expMul, threshold);
                         newWeights.y = computeOutputLumaDiffWeight(historyData.specularColor, newSpecular.rgb, expMul, threshold);
                     }
@@ -163,9 +169,6 @@ void main() {
 
                 historyData.historyLength = mix(historyData.historyLength, hLenMax.x, pow2(hLenAverage.x));
                 historyData.realHistoryLength = mix(historyData.realHistoryLength, hLenMax.y, hLenAverage.y);
-                #if SETTING_DEBUG_OUTPUT
-//                imageStore(uimg_temp3, texelPos, gi_historyData_pack1(historyData));
-                #endif
 
                 float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 1u), frameCounter);
                 vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);
@@ -179,11 +182,22 @@ void main() {
                 vec4 packedData5 = gi_historyData_pack5(historyData);
                 packedData5 = dither_u8(packedData5, ditherNoise);
 
+                #ifdef SETTING_DENOISER_ANTI_FIREFLY
+                transient_gi1AntiFireFlyInput_store(texelPos, packedData1);
+                transient_gi3AntiFireFlyInput_store(texelPos, packedData3);
+                #else
                 transient_gi1Reprojected_store(texelPos, packedData1);
-                transient_gi2Reprojected_store(texelPos, packedData2);
                 transient_gi3Reprojected_store(texelPos, packedData3);
+                #endif
+                transient_gi2Reprojected_store(texelPos, packedData2);
                 transient_gi4Reprojected_store(texelPos, packedData4);
                 transient_gi5Reprojected_store(texelPos, packedData5);
+
+                #if SETTING_DEBUG_OUTPUT
+                if (RANDOM_FRAME < MAX_FRAMES){
+                    imageStore(uimg_temp1, texelPos, vec4(interpolateTurbo(historyData.historyLength), 1.0));
+                }
+                #endif
             }
         }
     }

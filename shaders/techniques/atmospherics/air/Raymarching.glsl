@@ -26,7 +26,8 @@ ScatteringResult raymarchSkySingle(
 ScatteringResult raymarchSky(
     AtmosphereParameters atmosphere,
     RaymarchParameters params,
-    ScatteringParameters scatteringParams
+    ScatteringParameters scatteringParams,
+    float bottomOffset
 );
 
 ScatteringResult raymarchAerialPerspective(

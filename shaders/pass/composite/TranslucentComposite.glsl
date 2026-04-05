@@ -72,7 +72,8 @@ void main() {
             float g1 = bsdf_smithG1(NDotV, material.roughness);
             float g2 = bsdf_smithG2(NDotV, NDotL, material.roughness);
 
-            float reflectance = max(fresnelReflectance * pdfRatio * (g2 / g1), 0.0);
+            // Clampped to fix insane fireflies at glass edges.
+            float reflectance = fresnelReflectance * saturate(pdfRatio * (g2 / g1));
 
             vec3 translucentColor = vec3(0.0);
             translucentColor += fresnelTransmittance * gData.albedo * refractColor;
@@ -90,7 +91,7 @@ void main() {
                 vec3 upVector = atmPos / viewAltitude;
                 const vec3 earthCenter = vec3(0.0, 0.0, 0.0);
 
-                vec4 shadowPos = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * vec4(feetPlayerPos, 1.0);
+                vec4 shadowPos = global_shadowProj * global_shadowRotationMatrix * global_shadowView * vec4(feetPlayerPos, 1.0);
 
                 vec3 sampleTexCoord = shadowPos.xyz / shadowPos.w;
                 sampleTexCoord = sampleTexCoord * 0.5 + 0.5;

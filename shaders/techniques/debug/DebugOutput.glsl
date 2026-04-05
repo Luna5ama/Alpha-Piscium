@@ -8,6 +8,7 @@
 #include "/techniques/EnvProbe.glsl"
 #include "/techniques/atmospherics/air/Common.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/atmospherics/clouds/amblut/API.glsl"
 #include "/techniques/rtwsm/RTWSM.glsl"
 #include "/techniques/atmospherics/clouds/ss/Common.glsl"
 
@@ -325,13 +326,10 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #ifdef SETTING_DEBUG_SKY_VIEW_LUT
     for (int i = 0; i < SKYVIEW_LUT_LAYERS; i++) {
         if (inViewPort(ivec4(i * 256, 0, 256, 256), debugTexCoord)) {
-        outputColor.rgb = expGamma(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 0.0 + float(i * 3)));
+            outputColor.rgb = expGamma(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, float(i * 2)));
         }
         if (inViewPort(ivec4(i * 256, 256, 256, 256), debugTexCoord)) {
-            outputColor.rgb = expGamma(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 1.0 + float(i * 3)));
-        }
-        if (inViewPort(ivec4(i * 256, 512, 256, 256), debugTexCoord)) {
-            outputColor.rgb = gammaCorrect(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, 2.0 + float(i * 3)));
+            outputColor.rgb = gammaCorrect(_atmospherics_air_lut_sampleSkyViewSlice(debugTexCoord, float(i * 2 + 1)));
         }
     }
     #endif
@@ -340,12 +338,12 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #define CLOUDS_AMB_LUT_SIZE 128
     for (int i = 0; i < 6; i++) {
         if (inViewPort(ivec4(0, CLOUDS_AMB_LUT_SIZE * i, CLOUDS_AMB_LUT_SIZE, CLOUDS_AMB_LUT_SIZE), debugTexCoord)) {
-            vec3 lutCoord = vec3(debugTexCoord, (float(i) + 0.5) / 6.0);
-            outputColor.rgb = gammaCorrect(applyExposure(texture(usam_cloudsAmbLUT, lutCoord).rgb));
+            vec4 sampleResult = clouds_amblut_sampleRaw(debugTexCoord, float(i) + 0.5);
+            outputColor.rgb = gammaCorrect(applyExposure(sampleResult.rgb));
         }
         if (inViewPort(ivec4(CLOUDS_AMB_LUT_SIZE, CLOUDS_AMB_LUT_SIZE * i, CLOUDS_AMB_LUT_SIZE, CLOUDS_AMB_LUT_SIZE), debugTexCoord)) {
-            vec3 lutCoord = vec3(debugTexCoord, (float(i) + 0.5) / 6.0);
-            outputColor.rgb = interpolateTurbo(texture(usam_cloudsAmbLUT, lutCoord).a);
+            vec4 sampleResult = clouds_amblut_sampleRaw(debugTexCoord, float(i) + 0.5);
+            outputColor.rgb = interpolateTurbo(sampleResult.a);
         }
     }
     #endif

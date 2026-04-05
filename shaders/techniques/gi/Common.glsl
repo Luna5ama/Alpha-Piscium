@@ -143,17 +143,17 @@ ReprojectInfo reprojectInfo_init() {
 
 ReprojectInfo reprojectInfo_unpack(uvec4 packedData) {
     ReprojectInfo info;
-    info.bilateralWeights = unpackUnorm4x16(packedData.xy);
-    info.historyResetFactor = uintBitsToFloat(packedData.z);
-    info.curr2PrevScreenPos = unpackUnorm2x16(packedData.w);
+    info.curr2PrevScreenPos = uintBitsToFloat(packedData.xy);
+    info.bilateralWeights = unpackUnorm4x8(packedData.z);
+    info.historyResetFactor = uintBitsToFloat(packedData.w);
     return info;
 }
 
 uvec4 reprojectInfo_pack(ReprojectInfo info) {
     uvec4 packedData;
-    packedData.xy = packUnorm4x16(info.bilateralWeights);
-    packedData.z = floatBitsToUint(info.historyResetFactor);
-    packedData.w = packUnorm2x16(info.curr2PrevScreenPos);
+    packedData.xy = floatBitsToUint(info.curr2PrevScreenPos);
+    packedData.z = packUnorm4x8(info.bilateralWeights);
+    packedData.w = floatBitsToUint(info.historyResetFactor);
     return packedData;
 }
 

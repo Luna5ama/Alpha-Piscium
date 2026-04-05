@@ -38,10 +38,10 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     mat4 global_camProjInverse;
     mat4 global_prevCamProj;
     mat4 global_prevCamProjInverse;
-    mat4 global_shadowProjPrev;
-    mat4 global_shadowProjInversePrev;
     mat4 global_shadowProj;
     mat4 global_shadowProjInverse;
+    mat4 global_shadowProjNext;
+    mat4 global_shadowProjNextInverse;
     mat4 global_shadowView;
     mat4 global_shadowViewInverse;
     mat4 global_sceneToShadowNDC;

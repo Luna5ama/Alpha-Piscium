@@ -20,7 +20,7 @@ vec2 _processShadowSampleUV(vec2 sampleShadowUV, ivec2 randCoord) {
     float sqrtJitterR = sqrt(rv);
     float r = ldexp(sqrtJitterR, -12 + SETTING_WATER_LIGHT_SHAFT_SOFTNESS);
     vec2 result = sampleShadowUV;
-    result += r * dir * vec2(global_shadowProjPrev[0][0], global_shadowProjPrev[1][1]);
+    result += r * dir * vec2(global_shadowProj[0][0], global_shadowProj[1][1]);
     result = rtwsm_warpTexCoord(result);
     return result;
 }
@@ -61,8 +61,8 @@ void screenViewRaymarch_init(vec2 screenPos) {
         vec4 sliceShadowStartScene = gbufferModelViewInverse * vec4(sliceShadowStartView, 1.0);
         vec4 sliceShadowEndScene = gbufferModelViewInverse * vec4(sliceShadowEndView, 1.0);
 
-        vec4 sliceShadowStartShadowClip = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * sliceShadowStartScene;
-        vec4 sliceShadowEndShadowClip = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * sliceShadowEndScene;
+        vec4 sliceShadowStartShadowClip = global_shadowProj * global_shadowRotationMatrix * global_shadowView * sliceShadowStartScene;
+        vec4 sliceShadowEndShadowClip = global_shadowProj * global_shadowRotationMatrix * global_shadowView * sliceShadowEndScene;
 
         vec2 sliceShadowStartShadowScreen = sliceShadowStartShadowClip.xy / sliceShadowStartShadowClip.w;
         sliceShadowStartShadowScreen = sliceShadowStartShadowScreen * 0.5 + 0.5;
@@ -153,8 +153,8 @@ ScatteringResult raymarchScreenViewAtmosphere(ivec2 texelPos, float startZ, floa
     vec4 originScene = gbufferModelViewInverse * vec4(startViewPos, 1.0);
     vec4 endScene = gbufferModelViewInverse * vec4(endViewPos, 1.0);
 
-    vec4 originShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * originScene;
-    vec4 endShadowCS = global_shadowProjPrev * global_shadowRotationMatrix * global_shadowView * endScene;
+    vec4 originShadowCS = global_shadowProj * global_shadowRotationMatrix * global_shadowView * originScene;
+    vec4 endShadowCS = global_shadowProj * global_shadowRotationMatrix * global_shadowView * endScene;
 
     vec3 startShadow = originShadowCS.xyz / originShadowCS.w;
     startShadow = startShadow * 0.5 + 0.5;

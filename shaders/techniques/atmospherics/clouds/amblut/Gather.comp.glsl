@@ -12,9 +12,9 @@
 layout(local_size_x = 32, local_size_y = 32) in;
 const ivec3 workGroups = ivec3(AMBIENT_IRRADIANCE_LUT_SIZE, AMBIENT_IRRADIANCE_LUT_SIZE, 1);
 
-shared vec3 shared_inSctrSum[16];
+layout(rgba16f) uniform restrict image2D uimg_frgba16f;
 
-layout(rgba16f) uniform restrict image3D uimg_cloudsAmbLUT;
+shared vec3 shared_inSctrSum[16];
 
 void main() {
     int layerIndex = clouds_amblut_currLayerIndex();
@@ -23,10 +23,10 @@ void main() {
     clearFlag &= uint(gl_WorkGroupID.x < AMBIENT_IRRADIANCE_LUT_LAYERS);
     clearFlag &= uint(gl_WorkGroupID.y == 0u);
     if (bool(clearFlag)) {
-        ivec3 texelPos3D = ivec3(uvec3(gl_LocalInvocationID.xy, gl_WorkGroupID.x));
-        vec4 result = imageLoad(uimg_cloudsAmbLUT, texelPos3D);
+        ivec2 texelPos = ivec2(gl_LocalInvocationID.xy) + ivec2(0, int(gl_WorkGroupID.x) * AMBIENT_IRRADIANCE_LUT_SIZE);
+        vec4 result = persistent_cloudsAmbLUT_load(texelPos);
         result.a *= global_historyResetFactor;
-        imageStore(uimg_cloudsAmbLUT, texelPos3D, result);
+        persistent_cloudsAmbLUT_store(texelPos, result);
     }
 
     vec2 jitter = rand_r2Seq2(gl_LocalInvocationIndex + gl_WorkGroupSize.x * frameCounter);
@@ -62,14 +62,14 @@ void main() {
         subgroupSum2 = subgroupAdd(subgroupSum2);
         if (subgroupElect()) {
             vec3 currResult = subgroupSum2;
-            ivec3 texelPos3D = ivec3(texelPos, layerIndex);
-            vec4 prevResult = imageLoad(uimg_cloudsAmbLUT, texelPos3D);
+            ivec2 tileTexelPos = texelPos + ivec2(0, layerIndex * AMBIENT_IRRADIANCE_LUT_SIZE);
+            vec4 prevResult = persistent_cloudsAmbLUT_load(tileTexelPos);
             vec4 newResult;
             prevResult.a *= global_historyResetFactor;
             newResult.a = min(prevResult.a + 1.0, 16.0);
             newResult.rgb = mix(prevResult.rgb, currResult, 1.0 / newResult.a);
 
-            imageStore(uimg_cloudsAmbLUT, texelPos3D, newResult);
+            persistent_cloudsAmbLUT_store(tileTexelPos, newResult);
         }
     }
 }

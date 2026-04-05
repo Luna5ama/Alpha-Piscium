@@ -2,10 +2,11 @@
 #define INCLUDE_util_PhaseFunc_glsl a
 /*
     References:
-        [DRA03] Draine, B.T. "Scattering by Interstellar Dust Grains. I. Optical and Ultraviolet"
+        [FOU99] G. Fournier, M. Jonasz. “Computer-based underwater imaging analysis”.irborne and In-water Underwater Imaging. 1999.
+        [DRA03] Draine, B.T. "Scattering by Interstellar Dust Grains. I. Optical and Ultraviolet".
             The Astrophysical Journal. 2003.
             https://doi.org/10.1086/379118
-        [JEN23] Jendersie, Johannes. d'Eon, Eugene. "An Approximate Mie Scattering Function for Fog and Cloud Rendering"
+        [JEN23] Jendersie, Johannes. d'Eon, Eugene. "An Approximate Mie Scattering Function for Fog and Cloud Rendering".
             SIGGRAPH 2023. 2023.
             https://research.nvidia.com/labs/rtr/approximate-mie/publications/approximate-mie.pdf
 
@@ -108,6 +109,34 @@ vec3 phasefunc_KleinNishina(float cosTheta, vec3 g) {
     }
 
     return phasefunc_KleinNishinaE(cosTheta, e);
+}
+
+float phase_fournierForand(float cosTheta, float n, float mu) {
+    // float u = sqrt(2.0 * (1.0 - x)); // 2 * sin(theta / 2)
+    float u2 = 2.0 * (1.0 - cosTheta); // u^2
+    float d = u2 / (3.0 * pow2(n - 1.0));
+    float v = (3.0 - mu) / 2.0;
+    float dPowV = pow(d, v);
+    float oneSubD = 1.0 - d;
+    float oneSubDPowV = 1.0 - dPowV;
+    float vTimesOneSubD = v * oneSubD;
+    float term1 = rcp(4.0 * PI * pow2(oneSubD) * dPowV);
+    float term2 = vTimesOneSubD - oneSubDPowV;
+    const float epsilon = 1e-7;
+    float u2Safe = max(u2, epsilon);
+    float term3 = (4.0 / u2Safe) * (d * oneSubDPowV - vTimesOneSubD);
+    return term1 * (term2 + term3);
+}
+
+// https://www.desmos.com/calculator/tbl4g5bvlc
+float phase_water(float cosTheta) {
+    const float n = 1.096;
+    const float mu = 3.65;
+    const float g = 0.72;
+    const float w = 0.998;
+    float phaseHG = phasefunc_HenyeyGreenstein(cosTheta, g);
+    float phaseFournierForand = phase_fournierForand(cosTheta, n, mu);
+    return mix(phaseHG, phaseFournierForand, w);
 }
 
 #endif

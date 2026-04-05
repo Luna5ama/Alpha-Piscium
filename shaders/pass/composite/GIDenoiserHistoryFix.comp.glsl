@@ -122,7 +122,7 @@ void main() {
 
                     const float baseReductionFactor = ldexp(1.0, -12);
 
-                    for (int mip = 6; mip >= 1; mip--) {
+                    for (int mip = 6; mip >= 3; mip--) {
                         ivec2 stbnPos = ivec2(texelPos0 + rand_r2Seq2(mip) * 128.0);
                         vec2 stbnRand = rand_stbnVec2(stbnPos, RANDOM_FRAME);
                         vec2 texelPosMip = ldexp(texelPos0, ivec2(-mip)) + stbnRand - 0.5;
@@ -141,8 +141,8 @@ void main() {
                         vec4 hiZData = texelFetch(usam_hiz, ivec2(hiZReadPos), 0);
                         vec4 geomNormalMipRaw = transient_geomNormalMip_sample(screenPosMipTile);
 
-                        float geomNormalBaseWeight = ldexp(0.01 + 0.09 * historyFixMix, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT);
-                        float zBaseWeight = max(2.0, abs(viweZ0)) * ldexp(32.0 + 128.0 * (1.0 - historyFixMix), -(mip + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT));
+                        float geomNormalBaseWeight = ldexp(0.1 + 0.5 * pow2(historyFixMix), mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT);
+                        float zBaseWeight = max(2.0, abs(viweZ0)) * ldexp(4.0 + 24.0 * pow2(1.0 - historyFixMix), -(mip + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT));
 
                         vec3 geomNormalMip = geomNormalMipRaw.xyz * 2.0 - 1.0;
                         float geomNormalLengthSq = saturate(lengthSq(geomNormalMip));
@@ -168,20 +168,17 @@ void main() {
                         weightSum += sampleWeight;
                     }
 
-                    float baseMipWeight = max((baseReductionFactor / (baseReductionFactor + weightSum)) * 1e-8, 1e-16);
-                    diffWeightedSum += vec4(historyData.diffuseColor * baseMipWeight, 0.0);
-                    specWeightedSum += vec4(historyData.specularColor * baseMipWeight, 0.0);
-                    weightSum += baseMipWeight;
+                    if (weightSum > 1e-16) {
+                        float rcpWeightSum = 1.0 / weightSum;
+                        diffWeightedSum *= rcpWeightSum;
+                        specWeightedSum *= rcpWeightSum;
 
-                    float rcpWeightSum = 1.0 / weightSum;
-                    diffWeightedSum *= rcpWeightSum;
-                    specWeightedSum *= rcpWeightSum;
+                        diffWeightedSum = max(diffWeightedSum, vec4(0.0));
+                        specWeightedSum = max(specWeightedSum, vec4(0.0));
 
-                    diffWeightedSum = max(diffWeightedSum, vec4(0.0));
-                    specWeightedSum = max(specWeightedSum, vec4(0.0));
-
-                    historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
-                    historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
+                        historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
+                        historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
+                    }
                 }
                 #endif
 

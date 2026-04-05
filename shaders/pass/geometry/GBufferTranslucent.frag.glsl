@@ -77,6 +77,9 @@ GBufferData processOutput() {
     geomWorldTangent = frag_worldTangent;
     #endif
 
+    vec3 geomViewNormal = coords_dir_worldToView(geomWorldNormal);
+    vec3 geomViewTangent = coords_dir_worldToView(geomWorldTangent);
+
     #ifdef GBUFFER_PASS_DH
     const vec3 X_VECTOR = vec3(1.0, 0.0, 0.0);
     const vec3 Y_VECTOR = vec3(0.0, 1.0, 0.0);
@@ -89,12 +92,9 @@ GBufferData processOutput() {
     vec4 tangentVecData = xData;
     tangentVecData = yData.w < tangentVecData.w ? yData : tangentVecData;
     tangentVecData = zData.w < tangentVecData.w ? zData : tangentVecData;
-    vec3 geomViewTangent = coords_dir_worldToView(tangentVecData.xyz);
     vec3 geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal));
-    float bitangentSignF = 1.0;
+    bitangentSignF = 1.0;
     #else
-    vec3 geomViewNormal = coords_dir_worldToView(geomWorldNormal);
-    vec3 geomViewTangent = coords_dir_worldToView(geomWorldTangent);
     vec3 geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal) * bitangentSignF);
     #endif
 
@@ -293,10 +293,7 @@ void main() {
 
     lighting_gData = processOutput();
 
-    float alpha = inputAlbedo.a;
-    vec3 materialColor = colors2_material_toWorkSpace(inputAlbedo.rgb);
-
-    vec4 transmittanceV = translucent_albedoToTransmittance(materialColor, alpha, materialID);
+    vec4 transmittanceV = translucent_albedoToTransmittance(inputAlbedo, materialID);
     lighting_gData.albedo = transmittanceV.rgb;
     rt_translucentColor = transmittanceV;
 

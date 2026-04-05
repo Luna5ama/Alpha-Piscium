@@ -81,6 +81,9 @@ uniform vec3 cameraPositionFract;
 uniform ivec3 cameraPositionInt;
 #endif
 
+float vanillaFarPlane = far;
+float vanillaNearPlane = near;
+
 #if defined(DISTANT_HORIZONS)
 uniform float dhNearPlane;
 uniform float dhFarPlane;

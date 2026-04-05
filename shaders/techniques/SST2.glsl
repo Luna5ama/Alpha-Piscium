@@ -22,7 +22,7 @@
 */
 #ifdef SST_DEBUG_PASS
 #define GLOBAL_DATA_MODIFIER buffer
-layout(std430, binding = 3) buffer TestBuffer {
+layout(std430, binding = 11) buffer TestBuffer {
     vec4 ssbo_testBuffer[];
 };
 #endif
@@ -202,7 +202,7 @@ void sst_trace(inout SSTRay ray, uint hiZSteps) {
     const float nearZThicknessClamp = 0.05;
 
     #ifdef SST_DEBUG_PASS
-    const uvec2 DEBUG_COORD = uvec2(970, 760);
+    const uvec2 DEBUG_COORD = uvec2(960, 540);
     #endif
 
     vec3 invD = rcp(pRayVector);

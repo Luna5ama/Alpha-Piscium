@@ -3,7 +3,7 @@
 #include "/techniques/gi/Common.glsl"
 
 #ifdef SETTING_DEBUG_SST_STEPS
-layout(std430, binding = 3) buffer TestBuffer {
+layout(std430, binding = 11) buffer TestBuffer {
     vec4 ssbo_testBuffer[];
 };
 #endif
@@ -113,7 +113,7 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
 
     printString((_D, _e, _n, _o, _i, _s, _e, _r, _space, _A, _n, _t, _i, _space, _F, _i, _r, _e, _f, _l, _y, _space, _colon, _space));
-    printInt(SETTING_DENOISER_FIREFLY_SUPPRESSION);
+    printInt(SETTING_DENOISER_FLICKER_SUPPRESSION);
     printLine();
 
     printLine();
