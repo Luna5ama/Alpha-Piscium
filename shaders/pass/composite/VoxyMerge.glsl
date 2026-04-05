@@ -43,7 +43,7 @@ void main() {
 
     // Merge if voxy is closer (viewZ is negative distance, so larger is closer)
     if (voxyZ > solidZ) {
-//        imageStore(uimg_gbufferSolidViewZ, texelPos, vec4(voxyZ));
+        imageStore(uimg_gbufferSolidViewZ, texelPos, vec4(voxyZ));
 
         // Unpack Center Data
         vec2 uvCenter = unpackUnorm2x16(voxyCenter.x);
@@ -210,7 +210,7 @@ void main() {
         uvec4 d2;
         gbufferData1_pack(d1, gData);
         gbufferData2_pack(d2, gData);
-//        imageStore(uimg_gbufferSolidData1, texelPos, d1);
-//        imageStore(uimg_gbufferSolidData2, texelPos, uvec4(d2.r, 0, 0, 0));
+        imageStore(uimg_gbufferSolidData1, texelPos, d1);
+        imageStore(uimg_gbufferSolidData2, texelPos, d2);
     }
 }
