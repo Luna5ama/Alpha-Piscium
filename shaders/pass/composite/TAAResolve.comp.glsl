@@ -228,7 +228,7 @@ void main() {
     currColor = max(currColor, 0.0);
 
     vec4 taaResetFactor = global_taaResetFactor;
-//    newFrameAccum *= taaResetFactor.z;
+    newFrameAccum *= taaResetFactor.z;
 
     {
         vec3 currColorYCoCg = colors_RGBToYCoCg(currColor);
