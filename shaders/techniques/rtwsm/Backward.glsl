@@ -19,7 +19,6 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
-    vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
 
     float importance = SETTING_RTWSM_B_BASE;
     if (lengthSq(scenePos.xz) > pow2(shadowDistance)) {
@@ -27,7 +26,6 @@ void importance(ivec2 texelPos, float viewZ, GBufferData gData, out uint p, out 
         importance = 0.0;
     }
     vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
-    shadowAABB1(shadowViewPos.xyz);
 
     vec4 shadowClipPos = global_shadowProjNext * shadowViewPos;
     vec3 shadowNDCPos = shadowClipPos.xyz / shadowClipPos.w;
