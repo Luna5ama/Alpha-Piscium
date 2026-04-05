@@ -48,6 +48,21 @@ layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 
 shared uint shared_rayCount[16];
 
+// Evaluate combined diffuse + specular BRDF
+vec3 evalBRDF(vec3 normal, vec3 lightDir, vec3 viewDir, Material material) {
+    vec3 H = normalize(lightDir + viewDir);
+    float NdotL = saturate(dot(normal, lightDir));
+    float NdotV = saturate(dot(normal, viewDir));
+    float NdotH = saturate(dot(normal, H));
+    float LdotH = saturate(dot(lightDir, H));
+
+    vec3 fresnel = fresnel_evalMaterial(material, LdotH);
+    float diffuseBRDF = (1.0 - material.metallic) * NdotL * RCP_PI;
+    float specularBRDF = bsdf_ggx(material, NdotL, NdotV, NdotH);
+
+    return ((1.0 - fresnel) * diffuseBRDF + fresnel * specularBRDF);
+}
+
 #if USE_REFERENCE || !defined(SETTING_GI_SPATIAL_REUSE)
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
@@ -128,8 +143,20 @@ void main() {
 
             float pHatMe = centerSampleData.sampleValue.w;
             vec4 originalSample = vec4(centerSampleData.sampleValue.xyz, pHatMe);
-            float spatialWSum = max(spatialReservoir.avgWY, 0.0) * pHatMe * spatialReservoir.m;
+            float rcAvgWY = max(spatialReservoir.avgWY, 0.0);
+            float rcM = spatialReservoir.m;
+            float rcMDivK = rcM / max(float(reuseCount), 1.0); // rc.M / k [BIT22 Algo.8]
 
+            // Pairwise MIS state [BIT22 Algo.8]
+            float spatialWSum = 0.0;
+            float mc = 1.0; // Canonical MIS weight accumulator, starts at 1 [line 3]
+            uint numValidNeighbors = 0u;
+            vec4 rcY = spatialReservoir.Y; // Canonical sample before loop updates it
+
+            // Precompute for pi(rc.y) Jacobian evaluation
+            vec3 centerHitViewPos = viewPos + rcY.xyz * rcY.w;
+            float cosPhiB_canon = -dot(rcY.xyz, centerSampleData.hitNormal);
+            float RB2_canon = rcY.w * rcY.w;
 
             vec4 selectedSampleF = originalSample;
 
@@ -185,18 +212,8 @@ void main() {
                     vec3 neighborSampleDirView = hitDiff / neighborSampleHitDistance;
 
                     vec3 hitRadiance = neighborData.sampleValue.xyz;
-
-                    vec3 H_loop = normalize(neighborSampleDirView + V);
-                    float loopNDotL = saturate(dot(centerSampleData.normal, neighborSampleDirView));
-                    float loopNDotV = saturate(dot(centerSampleData.normal, V));
-                    float loopNDotH = saturate(dot(centerSampleData.normal, H_loop));
-                    float loopLDotH = saturate(dot(neighborSampleDirView, H_loop));
-
-                    vec3 fresnel_loop = fresnel_evalMaterial(material, loopLDotH);
-                    float diffuseBRDF_loop = (1.0 - material.metallic) * loopNDotL * RCP_PI;
-                    float specularBRDF_loop = bsdf_ggx(material, loopNDotL, loopNDotV, loopNDotH);
-
-                    vec3 neighborSample = hitRadiance * ((1.0 - fresnel_loop) * diffuseBRDF_loop + fresnel_loop * specularBRDF_loop);
+                    vec3 brdfLoopValue = evalBRDF(centerSampleData.normal, neighborSampleDirView, V, material);
+                    vec3 neighborSample = hitRadiance * brdfLoopValue;
                     float neighborPHat = length(neighborSample);
 
                     // offsetB = neighborReservoir.Y.xyz * Y.w, which is already a scaled unit vector
@@ -216,8 +233,39 @@ void main() {
                     // All denominator terms are verified positive at this point
                     float jacobian = clamp((RB2 * cosPhiA) / (hitDist2 * cosPhiB), 0.0, 100.0);
 
-                    float neighborWi = max(neighborReservoir.avgWY, 0.0) * neighborPHat * neighborReservoir.m * jacobian;
+                    float pcRiY = neighborPHat * jacobian; // p̂_c(ri.y): center target for neighbor's sample
+                    float piRiY = neighborData.sampleValue.w; // p̂_i(ri.y): neighbor's stored target
 
+                    // Pairwise MIS weight mi [BIT22 Algo.8 line 5]
+                    float MiPiRiY = neighborReservoir.m * piRiY;
+                    float mi = MiPiRiY / max(MiPiRiY + rcMDivK * pcRiY, 1e-10);
+
+                    // Accumulate mc: need pi(rc.y) = center sample evaluated at neighbor domain [BIT22 Algo.8 line 6]
+                    {
+                        vec3 cHitDiff = centerHitViewPos - neighborViewPos;
+                        float cHitDist2 = dot(cHitDiff, cHitDiff);
+                        if (cHitDist2 >= 1e-6 && RB2_canon >= 1e-6 && cosPhiB_canon > 0.0) {
+                            float cHitDist = sqrt(cHitDist2);
+                            vec3 cDirAtNbr = cHitDiff / cHitDist;
+                            float cCosPhiA = -dot(cDirAtNbr, centerSampleData.hitNormal);
+                            if (cCosPhiA > 0.0) {
+                                float jacCn = clamp((RB2_canon * cCosPhiA) / (cHitDist2 * cosPhiB_canon), 0.0, 100.0);
+                                // Evaluate BRDF at neighbor for center's sample direction (center material as approx)
+                                vec3 VNeighbor = -normalize(neighborViewPos);
+                                vec3 cBrdfValue = evalBRDF(neighborData.normal, cDirAtNbr, VNeighbor, material);
+                                float piRcY = length(originalSample.xyz * cBrdfValue) * jacCn;
+                                float MiPiRcY = neighborReservoir.m * piRcY;
+                                mc += 1.0 - MiPiRcY / max(MiPiRcY + rcMDivK * pHatMe, 1e-10);
+                            } else {
+                                mc += 1.0; // center hit is behind hit surface from neighbor's POV
+                            }
+                        } else {
+                            mc += 1.0; // geometry degenerate, treat pi(rc.y) = 0
+                        }
+                    }
+
+                    numValidNeighbors++;
+                    float neighborWi = pcRiY * max(neighborReservoir.avgWY, 0.0) * mi;
                     float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 4u + i), RANDOM_FRAME);
 
                     if (restir_updateReservoir(
@@ -233,11 +281,25 @@ void main() {
                 }
             }
 
+            // Canonical update [BIT22 Algo.8 line 8]: s.update(rc.y, p̂_c(rc.y) * rc.W(rc.y) * mc)
+            float canonicalWi = pHatMe * rcAvgWY * mc;
+            float canonicalRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 4u + reuseCount), RANDOM_FRAME);
+            if (restir_updateReservoir(
+                spatialReservoir,
+                spatialWSum,
+                rcY,
+                canonicalWi,
+                0.0, // M already counted in spatialReservoir.m = rcM
+                canonicalRand
+            )) {
+                selectedSampleF = originalSample;
+            }
+
             vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
             vec4 ssgiSpecOut = vec4(0.0, 0.0, 0.0, -1.0);
             ReSTIRReservoir resultReservoir = spatialReservoir;
-            float avgWSum = spatialWSum / spatialReservoir.m;
-            float avgWY = avgWSum * safeRcp(selectedSampleF.w);
+            // Pairwise MIS final weight [BIT22 Algo.8 line 10]: W = 1/p̂ * 1/(1+k) * wsum
+            float avgWY = spatialWSum * safeRcp(selectedSampleF.w) * safeRcp(float(numValidNeighbors + 1u));
             resultReservoir.avgWY = avgWY;
 
             vec3 winL_out = resultReservoir.Y.xyz;
