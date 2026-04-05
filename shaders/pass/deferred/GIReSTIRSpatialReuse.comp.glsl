@@ -26,7 +26,6 @@
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Mat2.glsl"
-#include "/util/BSDF.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -47,23 +46,6 @@ layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 
 shared uint shared_rayCount[16];
-
-// Evaluate combined diffuse + specular BRDF then calculate the target function (pHat)
-float evalTargetFunction(vec3 irradiance, vec3 normal, vec3 lightDir, vec3 viewDir, Material material) {
-    vec3 H = normalize(lightDir + viewDir);
-    float NdotL = saturate(dot(normal, lightDir));
-    float NdotV = saturate(dot(normal, viewDir));
-    float NdotH = saturate(dot(normal, H));
-    float LdotH = saturate(dot(lightDir, H));
-
-    vec3 fresnel = fresnel_evalMaterial(material, LdotH);
-    float diffuseBRDF = (1.0 - material.metallic) * NdotL * RCP_PI;
-    float specularBRDF = bsdf_ggx(material, NdotL, NdotV, NdotH);
-
-    vec3 brdf = ((1.0 - fresnel) * diffuseBRDF + fresnel * specularBRDF);
-    vec3 radiance = irradiance * brdf;
-    return length(radiance);
-}
 
 #if USE_REFERENCE || !defined(SETTING_GI_SPATIAL_REUSE)
 void main() {
