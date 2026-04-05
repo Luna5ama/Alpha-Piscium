@@ -99,7 +99,7 @@ Material material_decode(GBufferData gData) {
     #endif
     material.metallic = float(material.f0 >= (229.5 / 255.0));
 
-    vec4 emissiveAlbedo = pow(vec4(gData.albedo, albedoLuma), emissiveAlbedoCurve);
+    vec4 emissiveAlbedo = pow(max(vec4(gData.albedo, albedoLuma), 1e-8), emissiveAlbedoCurve);
     emissiveAlbedo.rgb = colors2_material_toWorkSpace(emissiveAlbedo.rgb);
 
     float emissiveValue = emissivePBR * 0.5;
