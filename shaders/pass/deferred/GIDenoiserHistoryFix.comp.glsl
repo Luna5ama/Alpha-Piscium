@@ -253,7 +253,7 @@ void main() {
                     transient_gi_diffShadingOutput_store(texelPos, vec4(historyData.diffuseColor, 0.0));
                     vec4 packedData1 = gi_historyData_pack1(historyData);
                     packedData1 = dither_fp16(packedData1, ditherNoise);
-                    transient_gi1Reprojected_store(texelPos, packedData1);
+                    history_gi1_store(texelPos, packedData1);
                     #endif
 
                     vec3 specClamped = _clampColor(historyData.specularColor, centerSpecData.xyz, specMoment1, specMoment2, clampingThreshold * 0.5);
@@ -271,7 +271,7 @@ void main() {
                     transient_gi_specShadingOutput_store(texelPos, vec4(historyData.specularColor, 0.0));
                     vec4 packedData3 = gi_historyData_pack1(historyData);
                     packedData3 = dither_fp16(packedData3, ditherNoise);
-                    transient_gi3Reprojected_store(texelPos, packedData3);
+                    history_gi3_store(texelPos, packedData3);
                     #endif
 
                     #ifdef SETTING_DENOISER_SPATIAL
@@ -288,13 +288,21 @@ void main() {
 
                     vec4 packedData5 = gi_historyData_pack5(historyData);
                     packedData5 = dither_u8(packedData5, ditherNoise);
+                    #ifdef SETTING_DENOISER_SPATIAL
                     transient_gi5Reprojected_store(texelPos, packedData5);
+                    #else
+                    history_gi5_store(texelPos, packedData5);
+                    #endif
                 }
                 #else
                 {
                     vec4 packedData5 = gi_historyData_pack5(historyData);
                     packedData5 = dither_u8(packedData5, ditherNoise);
+                    #ifdef SETTING_DENOISER_SPATIAL
                     transient_gi5Reprojected_store(texelPos, packedData5);
+                    #else
+                    history_gi5_store(texelPos, packedData5);
+                    #endif
 
                     #ifdef SETTING_DENOISER_SPATIAL
                     vec2 filteredHitDitances = vec2(DIFF_MAX_HIT_DISTANCE);
@@ -326,12 +334,12 @@ void main() {
                     transient_gi_diffShadingOutput_store(texelPos, vec4(historyData.diffuseColor, 0.0));
                     vec4 packedData1 = gi_historyData_pack1(historyData);
                     packedData1 = dither_fp16(packedData1, ditherNoise);
-                    transient_gi1Reprojected_store(texelPos, packedData1);
+                    history_gi1_store(texelPos, packedData1);
 
                     transient_gi_specShadingOutput_store(texelPos, vec4(historyData.specularColor, 0.0));
                     vec4 packedData3 = gi_historyData_pack1(historyData);
                     packedData3 = dither_fp16(packedData3, ditherNoise);
-                    transient_gi3Reprojected_store(texelPos, packedData3);
+                    history_gi3_store(texelPos, packedData3);
                     #endif
                 }
                 #endif
