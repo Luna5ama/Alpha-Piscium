@@ -48,8 +48,8 @@ layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 
 shared uint shared_rayCount[16];
 
-// Evaluate combined diffuse + specular BRDF
-vec3 evalBRDF(vec3 normal, vec3 lightDir, vec3 viewDir, Material material) {
+// Evaluate combined diffuse + specular BRDF then calculate the target function (pHat)
+float evalTargetFunction(vec3 irradiance, vec3 normal, vec3 lightDir, vec3 viewDir, Material material) {
     vec3 H = normalize(lightDir + viewDir);
     float NdotL = saturate(dot(normal, lightDir));
     float NdotV = saturate(dot(normal, viewDir));
@@ -60,7 +60,9 @@ vec3 evalBRDF(vec3 normal, vec3 lightDir, vec3 viewDir, Material material) {
     float diffuseBRDF = (1.0 - material.metallic) * NdotL * RCP_PI;
     float specularBRDF = bsdf_ggx(material, NdotL, NdotV, NdotH);
 
-    return ((1.0 - fresnel) * diffuseBRDF + fresnel * specularBRDF);
+    vec3 brdf = ((1.0 - fresnel) * diffuseBRDF + fresnel * specularBRDF);
+    vec3 radiance = irradiance * brdf;
+    return length(radiance);
 }
 
 #if USE_REFERENCE || !defined(SETTING_GI_SPATIAL_REUSE)
@@ -136,9 +138,9 @@ void main() {
             pSpec = saturate(pSpec);
             // Shrink kernel for specular surfaces: pSpec=1 + low roughness = small kernel
             // Keep kernel large for diffuse surfaces: pSpec=0 or high roughness = large kernel
-            float kernelModulator = mix(1.0, material.roughness, pSpec);
+            float kernelModulator = mix(1.0, sqrt(material.roughness), pSpec);
             float reuseRadiusFP32 = float(SETTING_GI_SPATIAL_REUSE_RADIUS) * kernelModulator;
-            reuseRadiusFP32 = max(reuseRadiusFP32, 2.0);
+            reuseRadiusFP32 = max(reuseRadiusFP32, 4.0);
             float16_t reuseRadius = float16_t(reuseRadiusFP32);
 
             float pHatMe = centerSampleData.sampleValue.w;
@@ -212,9 +214,7 @@ void main() {
                     vec3 neighborSampleDirView = hitDiff / neighborSampleHitDistance;
 
                     vec3 hitRadiance = neighborData.sampleValue.xyz;
-                    vec3 brdfLoopValue = evalBRDF(centerSampleData.normal, neighborSampleDirView, V, material);
-                    vec3 neighborSample = hitRadiance * brdfLoopValue;
-                    float neighborPHat = length(neighborSample);
+                    float neighborPHat = evalTargetFunction(hitRadiance, centerSampleData.normal, neighborSampleDirView, V, material);
 
                     // offsetB = neighborReservoir.Y.xyz * Y.w, which is already a scaled unit vector
                     // RB2 = dot(offsetB, offsetB) = Y.w^2  (Y.xyz is a unit direction)
@@ -252,8 +252,7 @@ void main() {
                                 float jacCn = clamp((RB2_canon * cCosPhiA) / (cHitDist2 * cosPhiB_canon), 0.0, 100.0);
                                 // Evaluate BRDF at neighbor for center's sample direction (center material as approx)
                                 vec3 VNeighbor = -normalize(neighborViewPos);
-                                vec3 cBrdfValue = evalBRDF(neighborData.normal, cDirAtNbr, VNeighbor, material);
-                                float piRcY = length(originalSample.xyz * cBrdfValue) * jacCn;
+                                float piRcY = evalTargetFunction(originalSample.xyz, neighborData.normal, cDirAtNbr, VNeighbor, material) * jacCn;
                                 float MiPiRcY = neighborReservoir.m * piRcY;
                                 mc += 1.0 - MiPiRcY / max(MiPiRcY + rcMDivK * pHatMe, 1e-10);
                             } else {
