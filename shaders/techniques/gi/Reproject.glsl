@@ -293,23 +293,11 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 vec4 packData14 = history_gi1_sample(tapData.uv4AndWeight.xy);
                 vec4 packData15 = history_gi1_sample(tapData.uv5AndWeight.xy);
 
-                vec4 packData21 = history_gi2_sample(tapData.uv1AndWeight.xy);
-                vec4 packData22 = history_gi2_sample(tapData.uv2AndWeight.xy);
-                vec4 packData23 = history_gi2_sample(tapData.uv3AndWeight.xy);
-                vec4 packData24 = history_gi2_sample(tapData.uv4AndWeight.xy);
-                vec4 packData25 = history_gi2_sample(tapData.uv5AndWeight.xy);
-
                 vec4 packData31 = history_gi3_sample(tapData.uv1AndWeight.xy);
                 vec4 packData32 = history_gi3_sample(tapData.uv2AndWeight.xy);
                 vec4 packData33 = history_gi3_sample(tapData.uv3AndWeight.xy);
                 vec4 packData34 = history_gi3_sample(tapData.uv4AndWeight.xy);
                 vec4 packData35 = history_gi3_sample(tapData.uv5AndWeight.xy);
-
-                vec4 packData41 = history_gi4_sample(tapData.uv1AndWeight.xy);
-                vec4 packData42 = history_gi4_sample(tapData.uv2AndWeight.xy);
-                vec4 packData43 = history_gi4_sample(tapData.uv3AndWeight.xy);
-                vec4 packData44 = history_gi4_sample(tapData.uv4AndWeight.xy);
-                vec4 packData45 = history_gi4_sample(tapData.uv5AndWeight.xy);
 
                 vec4 packedData1 = sampling_catmullBicubic5Tap_sum(
                     packData11,
@@ -324,14 +312,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 packedData1 = dither_fp16(packedData1, ditherNoise);
                 transient_gi1Reprojected_store(texelPos, packedData1);
 
-                vec4 packedData2 = sampling_catmullBicubic5Tap_sum(
-                    packData21,
-                    packData22,
-                    packData23,
-                    packData24,
-                    packData25,
-                    tapData
-                );
+                vec4 packedData2 = history_gi2_sample(curr2PrevScreen);
                 packedData2 = clamp(packedData2, 0.0, FP16_MAX);
                 packedData2 = dither_fp16(packedData2, ditherNoise);
                 transient_gi2Reprojected_store(texelPos, packedData2);
@@ -348,14 +329,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 packedData3 = dither_fp16(packedData3, ditherNoise);
                 transient_gi3Reprojected_store(texelPos, packedData3);
 
-                vec4 packedData4 = sampling_catmullBicubic5Tap_sum(
-                    packData41,
-                    packData42,
-                    packData43,
-                    packData44,
-                    packData45,
-                    tapData
-                );
+                vec4 packedData4 = history_gi4_sample(curr2PrevScreen);
                 packedData4 = clamp(packedData4, 0.0, FP16_MAX);
                 packedData4 = dither_fp16(packedData4, ditherNoise);
                 transient_gi4Reprojected_store(texelPos, packedData4);
