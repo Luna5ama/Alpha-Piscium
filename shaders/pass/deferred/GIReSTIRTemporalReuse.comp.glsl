@@ -37,12 +37,10 @@ layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 shared mat3 shared_prevViewToCurrView;
 shared vec3 shared_prevViewToCurrViewTrans;
 
-
 void sampleTemporalNeighbor(
     ivec2 texelPos,
     ivec2 neighborTexelPos,
     float combinedWeight,
-    float bilinearWeight,
     uint randSeedOffset,
     vec3 viewPos,
     vec3 V,
@@ -55,7 +53,6 @@ void sampleTemporalNeighbor(
     inout vec3 prevHitNormal,
     inout float prevPHat
 ) {
-
     if (combinedWeight > 0.0) {
         uvec4 prevTemporalReservoirData = oddFrame
         ? history_restir_reservoirTemporal2_fetch(neighborTexelPos)
@@ -192,19 +189,19 @@ void main() {
                 //   w = bottom-left  iGatherTexelPos + (-1, -1)
                 {
                     float combinedWeight = bilinearWeights4.x * reprojInfo.bilateralWeights.x * reprojInfo.historyResetFactor;
-                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, 0), combinedWeight, bilinearWeights4.x, baseRandSeed, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal, prevPHat);
+                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, 0), combinedWeight, baseRandSeed, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal, prevPHat);
                 }
                 {
                     float combinedWeight = bilinearWeights4.y * reprojInfo.bilateralWeights.y * reprojInfo.historyResetFactor;
-                    sampleTemporalNeighbor(texelPos, iGatherTexelPos, combinedWeight, bilinearWeights4.y, baseRandSeed + 1u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal, prevPHat);
+                    sampleTemporalNeighbor(texelPos, iGatherTexelPos, combinedWeight, baseRandSeed + 1u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal, prevPHat);
                 }
                 {
                     float combinedWeight = bilinearWeights4.z * reprojInfo.bilateralWeights.z * reprojInfo.historyResetFactor;
-                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(0, -1), combinedWeight, bilinearWeights4.z, baseRandSeed + 2u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal, prevPHat);
+                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(0, -1), combinedWeight, baseRandSeed + 2u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal, prevPHat);
                 }
                 {
                     float combinedWeight = bilinearWeights4.w * reprojInfo.bilateralWeights.w * reprojInfo.historyResetFactor;
-                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, -1), combinedWeight, bilinearWeights4.w, baseRandSeed + 3u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal, prevPHat);
+                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, -1), combinedWeight, baseRandSeed + 3u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal, prevPHat);
                 }
             }
 
