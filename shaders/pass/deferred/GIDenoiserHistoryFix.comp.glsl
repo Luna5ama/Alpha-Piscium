@@ -48,16 +48,19 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
     }
 }
 
-vec3 _clampColor(vec3 colorRGB, vec3 fastColorYCoCG, vec3 moment1YCoCG, vec3 moment2YCoCG, float clampingThreshold) {
+vec3 _clipAABB(vec3 avg, vec3 sigma, vec3 color) {
+    vec3 dir = color - avg;
+    vec3 rayT = abs(dir / max(sigma, vec3(1e-7)));
+    float tMax = max(mmax3(rayT), 1.0);
+    return avg + dir / tMax;
+}
+
+vec3 _clampColor(vec3 colorRGB, vec3 moment1YCoCG, vec3 moment2YCoCG, float clampingThreshold) {
     vec3 mean = moment1YCoCG;
     vec3 variance = max(moment2YCoCG - moment1YCoCG * moment1YCoCG, 0.0);
-    vec3 stddev = sqrt(variance);
-    vec3 aabbMin = mean - stddev * clampingThreshold;
-    vec3 aabbMax = mean + stddev * clampingThreshold;
+    vec3 stddev = sqrt(abs(variance)) * clampingThreshold;
     vec3 colorYCoCG = colors_RGBToYCoCg(colorRGB);
-    aabbMin = min(aabbMin, fastColorYCoCG);
-    aabbMax = max(aabbMax, fastColorYCoCG);
-    colorYCoCG = clamp(colorYCoCG, aabbMin, aabbMax);
+    colorYCoCG = _clipAABB(mean, stddev * clampingThreshold, colorYCoCG);
     return colors_YCoCgToRGB(colorYCoCG);
 }
 #else
@@ -227,7 +230,7 @@ void main() {
                     vec4 centerDiffData = unpackHalf4x16(centerData.xy);
                     vec4 centerSpecData = unpackHalf4x16(centerData.zw);
 
-                    vec3 diffClamped = _clampColor(historyData.diffuseColor, centerDiffData.xyz, diffMoment1, diffMoment2, clampingThreshold);
+                    vec3 diffClamped = _clampColor(historyData.diffuseColor, diffMoment1, diffMoment2, clampingThreshold);
                     vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
                     vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - diffOutputSim);
                     float diffDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffDiff);
@@ -237,7 +240,7 @@ void main() {
                     diffInput = dither_fp16(diffInput, ditherNoise);
                     transient_gi_blurDiff2_store(texelPos, diffInput);
 
-                    vec3 specClamped = _clampColor(historyData.specularColor, centerSpecData.xyz, specMoment1, specMoment2, clampingThreshold);
+                    vec3 specClamped = _clampColor(historyData.specularColor, specMoment1, specMoment2, clampingThreshold);
                     vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
                     vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
