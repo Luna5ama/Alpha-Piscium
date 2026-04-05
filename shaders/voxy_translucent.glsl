@@ -11,9 +11,7 @@ void voxy_emitFragment(VoxyFragmentParameters parameters) {
     vec4 color = parameters.sampledColour * parameters.tinting;
     uint materialID = parameters.customId & 0xFFFFu;
 
-    float alpha = color.a;
-    vec3 materialColor = colors2_material_toWorkSpace(color.rgb);
-    vec4 transmittanceV = translucent_albedoToTransmittance(materialColor, alpha, materialID);
+    vec4 transmittanceV = translucent_albedoToTransmittance(color, materialID);
     rt_translucentColor = transmittanceV;
 
     // R: UV (2x16 unorm)
