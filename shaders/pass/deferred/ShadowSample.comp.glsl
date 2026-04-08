@@ -107,7 +107,8 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
 
     float sssFactor = material.sss;
     uint skipFlag = uint(dot(gData.normal, uval_upDirView) < -0.99);
-    skipFlag &= uint(sssFactor < 0.001);
+    bool isSSS = sssFactor > 0.001;
+    skipFlag &= 1u - uint(isSSS);
     vec4 result = vec4(0.0);
     if (!bool(skipFlag)) {
         vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
@@ -203,9 +204,14 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         float sh = shadowHarden(solidShadow, w);
         solidShadow = sh * (2.0 - sh);
 
-        if (sssFactor < 0.001) {
-            solidShadow = min(bendShadow, solidShadow);
+        float sssAdjustedBendShadow = bendShadow;
+        if (isSSS) {
+            const float DECAY_FACTOR = 1.0;
+            float factor = DECAY_FACTOR * rcp(abs(viewPos.z) + DECAY_FACTOR);
+            sssAdjustedBendShadow = mix(sssAdjustedBendShadow, solidShadow, factor);
         }
+
+        solidShadow = min(sssAdjustedBendShadow, solidShadow);
 
         vec3 finalShadow = vec3(solidShadow);
         if (translucentShadowSum.a > float16_t(0.0)) {
