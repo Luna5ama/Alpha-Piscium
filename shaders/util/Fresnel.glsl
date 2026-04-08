@@ -4,6 +4,8 @@
     References:
         [ARN08] Arnott, W.P. "Fresnel equations". 2008.
             https://www.patarnott.com/atms749/pdf/FresnelEquations.pdf
+        [KUT21] Kutz, Peter, et al. "Novel aspects of the Adobe Standard Material". 2021.
+            https://helpx.adobe.com/content/dam/substance-3d/general-knowledge/asm/Adobe%20Standard%20Material%20-%20Technical%20Documentation%20-%20May2023.pdf
         [LAB21] shaderLABS. "LabPBR Material Standard". 2021.
             https://shaderlabs.org/wiki/LabPBR_Material_Standard
         [LAG13] Lagarde, Sébastien. "Memo on Fresnel equations". 2013.
@@ -138,55 +140,26 @@ float frenel_schlick(float cosTheta, float f0) {
     return f0 + (1.0 - f0) * pow5(1.0 - cosTheta);
 }
 
+// [KUT21]
+// f82Tint isn't the absolute fresnel value at 82 degrees like the 2019 Lazanyi
+// But rather a multiplier over the schlick fresnel at 82 degrees
+float fresnel_adobe(float cosTheta, float f0, float f82Tint) {
+    float oneMinusF0 = 1.0 - f0;
+    float b = fma(oneMinusF0, 0.462664878484, f0) * fma(f82Tint, -17.6513843536, 17.6513843536);
+    return saturate(fma(fma(fma(cosTheta, cosTheta, -cosTheta), b, oneMinusF0), pow5(1.0 - cosTheta), f0));
+}
+
+// [KUT21]
+// f82Tint isn't the absolute fresnel value at 82 degrees like the 2019 Lazanyi
+// But rather a multiplier over the schlick fresnel at 82 degrees
+vec3 fresnel_adobe(float cosTheta, vec3 f0, vec3 f82Tint) {
+    vec3 oneMinusF0 = vec3(1.0) - f0;
+    vec3 b = fma(oneMinusF0, vec3(0.462664878484), f0) * fma(f82Tint, vec3(-17.6513843536), vec3(17.6513843536));
+    return saturate(fma(fma(vec3(fma(cosTheta, cosTheta, -cosTheta)), b, oneMinusF0), vec3(pow5(1.0 - cosTheta)), f0));
+}
+
 vec3 fresnel_evalMaterial(Material material, float cosTheta) {
-    /*
-        [LAB21]
-        Metal	    Bit Value	N (R, G, B)	                K (R, G, B)
-        Iron	    230	        2.9114,  2.9497,  2.5845	3.0893, 2.9318, 2.7670
-        Gold	    231	        0.18299, 0.42108, 1.3734	3.4242, 2.3459, 1.7704
-        Aluminum	232	        1.3456,  0.96521, 0.61722	7.4746, 6.3995, 5.3031
-        Chrome	    233	        3.1071,  3.1812,  2.3230	3.3314, 3.3291, 3.1350
-        Copper	    234	        0.27105, 0.67693, 1.3164	3.6092, 2.6248, 2.2921
-        Lead	    235	        1.9100,  1.8300,  1.4400	3.5100, 3.4000, 3.1800
-        Platinum	236	        2.3757,  2.0847,  1.8453	4.2655, 3.7153, 3.1365
-        Silver	    237	        0.15943, 0.14512, 0.13547	3.9291, 3.1900, 2.3808
-    */
-    const vec3[] METAL_IOR = vec3[](
-        vec3(2.9114, 2.9497, 2.5845),
-        vec3(0.18299, 0.42108, 1.3734),
-        vec3(1.3456, 0.96521, 0.61722),
-        vec3(3.1071, 3.1812, 2.3230),
-        vec3(0.27105, 0.67693, 1.3164),
-        vec3(1.9100, 1.8300, 1.4400),
-        vec3(2.3757, 2.0847, 1.8453),
-        vec3(0.15943, 0.14512, 0.13547)
-    );
-
-    const vec3[] METAL_K = vec3[](
-        vec3(3.0893, 2.9318, 2.7670),
-        vec3(3.4242, 2.3459, 1.7704),
-        vec3(7.4746, 6.3995, 5.3031),
-        vec3(3.3314, 3.3291, 3.1350),
-        vec3(3.6092, 2.6248, 2.2921),
-        vec3(3.5100, 3.4000, 3.1800),
-        vec3(4.2655, 3.7153, 3.1365),
-        vec3(3.9291, 3.1900, 2.3808)
-    );
-
-    vec3 f = vec3(0.0);
-    if (material.f0 < 229.5 / 255.0) {
-        f = fresnel_dielectricDielectric_reflection(cosTheta, vec3(AIR_IOR), vec3(fresnel_f0ToIor(material.f0)));
-//        f = frenel_schlick(cosTheta, vec3(material.f0));
-    } else if (material.f0 < 237.5 / 255.0) {
-        uint metalIdx = clamp(uint(material.f0 * 255.0) - 230u, 0u, 7u);
-        vec3 ior = METAL_IOR[metalIdx];
-        vec3 k = METAL_K[metalIdx];
-        f = fresnel_dielectricConductor(cosTheta, ior, k);
-    } else {
-        f = frenel_schlick(cosTheta, material.albedo.rgb * 0.9 + 0.1);
-    }
-
-    return saturate(f);
+    return fresnel_adobe(cosTheta, material.f0RGB, material.f82TintRGB);
 }
 
 #endif

@@ -159,7 +159,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         #elif SETTING_DEBUG_GBUFFER_DATA == 5
         outputColor.rgb = vec3(material.roughness);
         #elif SETTING_DEBUG_GBUFFER_DATA == 6
-        outputColor.rgb = vec3(material.f0);
+        outputColor.rgb = vec3(material.f0RGB);
         #elif SETTING_DEBUG_GBUFFER_DATA == 7
         outputColor.rgb = vec3(material.porosity);
         #elif SETTING_DEBUG_GBUFFER_DATA == 8
