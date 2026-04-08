@@ -157,6 +157,5 @@ void main() {
     indirectComputeData[BEND_SSS_PARAMS_BASE + 1u] = floatBitsToUint(lightCoordInternal.y);
     indirectComputeData[BEND_SSS_PARAMS_BASE + 2u] = floatBitsToUint(lightCoordInternal.z);
     indirectComputeData[BEND_SSS_PARAMS_BASE + 3u] = floatBitsToUint(lightCoordInternal.w);
-    indirectComputeData[BEND_SSS_PARAMS_BASE + 4u] = floatBitsToUint(0.02); // Bilinear Threshold
-    indirectComputeData[BEND_SSS_PARAMS_BASE + 5u] = dispatchCount;
+    indirectComputeData[BEND_SSS_PARAMS_BASE + 4u] = dispatchCount;
 }

@@ -1,3 +1,11 @@
+/*
+    References:
+        [MCA23] Aldridge, Graham. "Screen Space Shadows". Siggraph 2023.
+            Apache License 2.0. Copyright 2023 Sony Interactive Entertainment.
+            https://www.bendstudio.com/blog/inside-bend-screen-space-shadows/
+
+        You can find full license texts in /licenses
+*/
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_vote : enable
@@ -12,6 +20,7 @@
 layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
 
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
 
 const uint BEND_SSS_PARAMS_BASE = 128u;
 
@@ -26,15 +35,49 @@ shared float DepthData[READ_COUNT * WAVE_SIZE];
 shared bool LdsEarlyOut;
 
 struct DispatchParameters {
-    float SurfaceThickness;
-    float BilinearThreshold;
-    float ShadowContrast;
-    bool IgnoreEdgePixels;
-    bool UsePrecisionOffset;
-    bool BilinearSamplingOffsetMode;
-    bool DebugOutputEdgeMask;
-    vec2 DepthBounds;
-    bool UseEarlyOut;
+	// Visual configuration:
+	// These values will require manual tuning.
+	// All shadow computation is performed in non-linear depth space (not in world space), so tuned value choices will depend on scene depth distribution (as determined by the Projection Matrix setup).
+
+	float SurfaceThickness;				// This is the assumed thickness of each pixel for shadow-casting, measured as a percentage of the difference in non-linear depth between the sample and FarDepthValue.
+										// Recommended starting value: 0.005 (0.5%)
+
+	float BilinearThreshold;			// Percentage threshold for determining if the difference between two depth values represents an edge, and should not perform interpolation.
+										// To tune this value, set 'DebugOutputEdgeMask' to true to visualize where edges are being detected.
+										// Recommended starting value: 0.02 (2%)
+
+	float ShadowContrast;				// A contrast boost is applied to the transition in/out of shadow.
+										// Recommended starting value: 2 or 4. Values >= 1 are valid.
+
+	bool IgnoreEdgePixels;				// If an edge is detected, the edge pixel will not contribute to the shadow.
+										// If a very flat surface is being lit and rendered at an grazing angles, the edge detect may incorrectly detect multiple 'edge' pixels along that flat surface.
+										// In these cases, the grazing angle of the light may subsequently produce aliasing artefacts in the shadow where these incorrect edges were detected.
+										// Setting this value to true would mean that those pixels would not cast a shadow, however it can also thin out otherwise valid shadows, especially on foliage edges.
+										// Recommended starting value: false, unless typical scenes have numerous large flat surfaces, in which case true.
+
+	bool UsePrecisionOffset;			// A small offset is applied to account for an imprecise depth buffer (recommend off)
+
+
+	bool BilinearSamplingOffsetMode;	// There are two modes to compute bilinear samples for shadow depth:
+										// true = sampling points for pixels are offset to the wavefront shared ray, shadow depths and starting depths are the same. Can project more jagged/aliased shadow lines in some cases.
+										// false = sampling points for pixels are not offset and start from pixel centers. Shadow depths are biased based on depth gradient across the current pixel bilinear sample. Has more issues in back-face / grazing areas.
+										// Both modes have subtle visual differences, which may / may not exaggerate depth buffer aliasing that gets projected in to the shadow.
+										// Evaluating the visual difference between each mode is recommended, then hard-coding the mode used to optimize the shader.
+										// Recommended starting value: false
+
+	// Debug views
+	bool DebugOutputEdgeMask;			// Use this to visualize edges, for tuning the 'BilinearThreshold' value.
+	bool DebugOutputThreadIndex;		// Debug output to visualize layout of compute threads
+	bool DebugOutputWaveIndex;			// Debug output to visualize layout of compute wavefronts, useful to sanity check the Light Coordinate is being computed correctly.
+
+	// Culling / Early out:
+	vec2 DepthBounds;					// Depth Bounds (min, max) for the on-screen volume of the light. Typically (0,1) for directional lights. Only used when 'UseEarlyOut' is true.
+
+	bool UseEarlyOut;					// Set to true to early-out when depth values are not within [DepthBounds] - otherwise DepthBounds is unused
+										// [Optionally customize the 'EarlyOutPixel()' function to perform your own early-out logic, e.g. skipping pixels that a shadow map indicates are already fully occluded]
+										// This can dramatically reduce cost when only a small portion of the pixels need a shadow term (e.g., cull out sky pixels), however it does have some overhead (~15%) in worst-case where nothing early-outs
+										// Note; Early-out is most efficient when WAVE_SIZE matches the hardware wavefront size - otherwise cross wave communication is required.
+
     vec4 LightCoordinate;
     ivec2 WaveOffset;
     float FarDepthValue;
@@ -223,22 +266,18 @@ void WriteScreenSpaceShadow(DispatchParameters params, ivec3 groupID, uint laneI
     float result = dot(shadow_value, vec4(0.25));
     result = min(hard_shadow, result);
 
-    // Material logic (Aux) from original code
-    GBufferData gData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferData1, writeTexel, 0), gData);
-    gbufferData2_unpack(texelFetch(usam_gbufferData2, writeTexel, 0), gData);
-    Material material = material_decode(gData);
-    float auxEarlyOut = float(material.sss < 0.0001);
-    float auxDispatchMask = 1.0;
+    #if SETTING_DEBUG_OUTPUT
+    imageStore(uimg_temp1, writeTexel, vec4(is_edge ? 1.0 : 0.0));
+    #endif
 
     // Store
-    imageStore(uimg_rgba8, writeTexel, vec4(result, 0.0, auxEarlyOut, auxDispatchMask));
+    transient_bendShadow_store(writeTexel, vec4(result));
 }
 
 void main() {
     uint linearGroupID = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
 
-    uint totalDispatches = indirectComputeData[BEND_SSS_PARAMS_BASE + 5u];
+    uint totalDispatches = indirectComputeData[BEND_SSS_PARAMS_BASE + 4u];
     uint dataPtr = BEND_SSS_PARAMS_BASE + 8u;
 
     bool found = false;
@@ -268,9 +307,10 @@ void main() {
     groupID.z = int(rem / wcY);
 
     DispatchParameters params;
-    params.SurfaceThickness = 0.005; // Default
-    params.BilinearThreshold = uintBitsToFloat(indirectComputeData[BEND_SSS_PARAMS_BASE + 4u]);
-    params.ShadowContrast = 4.0;
+    // params.SurfaceThickness = 0.005; // Default
+    params.SurfaceThickness = 0.01; // Works better with grass
+    params.BilinearThreshold = 0.02;
+    params.ShadowContrast = 8.0;
     params.IgnoreEdgePixels = false;
     params.UsePrecisionOffset = false;
     params.BilinearSamplingOffsetMode = false;
