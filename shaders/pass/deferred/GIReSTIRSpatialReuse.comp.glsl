@@ -102,31 +102,7 @@ void main() {
             #endif
             vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
-            GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
-            Material material = material_decode(gData);
-
-
             float reuseRadiusFP32 = float(SETTING_GI_SPATIAL_REUSE_RADIUS);
-
-            // Not using this because it is not breaking up fireflies enough
-            //
-            // // Compute specular bounce probability to modulate kernel size
-            // vec3 fresnelV = fresnel_evalMaterial(material, NDotV);
-            // float pSpec;
-            // if (material.metallic > 0.5) {
-            //     pSpec = 1.0;
-            // } else {
-            //     vec3 fresnelT = vec3(1.0) - fresnelV;
-            //     vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
-            //     pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV / max(totalEnergy, vec3(1e-5)));
-            // }
-            // pSpec = saturate(pSpec);
-            // // Shrink kernel for specular surfaces: pSpec=1 + low roughness = small kernel
-            // // Keep kernel large for diffuse surfaces: pSpec=0 or high roughness = large kernel
-            // float kernelModulator = mix(1.0, sqrt(material.roughness) * 0.9 + 0.1, pSpec);
-            // reuseRadiusFP32 = max(reuseRadiusFP32 * kernelModulator, 4.0);
 
             float16_t reuseRadius = float16_t(reuseRadiusFP32);
 
@@ -149,124 +125,130 @@ void main() {
 
             vec4 selectedSampleF = originalSample;
 
-            vec2 noise2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
-            float angle = noise2.x * PI_2;
-            f16vec2 dir = f16vec2(cos(angle), sin(angle));
-            float rcpSamplesFP32 = float16_t(1.0 / float(reuseCount));
-            float16_t rcpSamples = float16_t(rcpSamplesFP32);
-            float16_t jitterRAndRcpSamples = float16_t(noise2.y * rcpSamplesFP32);
+            {
+                GBufferData gData = gbufferData_init();
+                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+                Material material = material_decode(gData);
 
-            for (uint i = 0u; i < reuseCount; ++i) {
-                f16vec2 tempDir = dir;
-                dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
-                dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
-                float16_t baseRadius = float16_t(i) * rcpSamples + jitterRAndRcpSamples;
-                baseRadius *= reuseRadius;
-                f16vec2 offset = dir * baseRadius;
+                vec2 noise2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
+                float angle = noise2.x * PI_2;
+                f16vec2 dir = f16vec2(cos(angle), sin(angle));
+                float rcpSamplesFP32 = float16_t(1.0 / float(reuseCount));
+                float16_t rcpSamples = float16_t(rcpSamplesFP32);
+                float16_t jitterRAndRcpSamples = float16_t(noise2.y * rcpSamplesFP32);
 
-                vec2 sampleTexelPosF = texelPosF + vec2(offset);
-                if (clamp(sampleTexelPosF, vec2(0.0), uval_mainImageSizeI - 1.0) != sampleTexelPosF) {
-                    continue;
-                }
-                ivec2 sampleTexelPos = ivec2(sampleTexelPosF);
+                for (uint i = 0u; i < reuseCount; ++i) {
+                    f16vec2 tempDir = dir;
+                    dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
+                    dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
+                    float16_t baseRadius = float16_t(i) * rcpSamples + jitterRAndRcpSamples;
+                    baseRadius *= reuseRadius;
+                    f16vec2 offset = dir * baseRadius;
 
-                if (sampleTexelPos == texelPos) {
-                    continue;
-                }
+                    vec2 sampleTexelPosF = texelPosF + vec2(offset);
+                    if (clamp(sampleTexelPosF, vec2(0.0), uval_mainImageSizeI - 1.0) != sampleTexelPosF) {
+                        continue;
+                    }
+                    ivec2 sampleTexelPos = ivec2(sampleTexelPosF);
 
-                SpatialSampleData neighborData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(sampleTexelPos));
+                    if (sampleTexelPos == texelPos) {
+                        continue;
+                    }
 
-                if (dot(centerSampleData.geomNormal, neighborData.geomNormal) < 0.99) {
-                    continue;
-                }
-                float neighborViewZ = texelFetch(usam_gbufferViewZ, sampleTexelPos, 0).x;
-                uvec4 neighborReservoirData;
-                if (bool(frameCounter & 1)) {
-                    neighborReservoirData = history_restir_reservoirTemporal1_fetch(sampleTexelPos);
-                } else {
-                    neighborReservoirData = history_restir_reservoirTemporal2_fetch(sampleTexelPos);
-                }
-                ReSTIRReservoir neighborReservoir = restir_reservoir_unpack(neighborReservoirData);
+                    SpatialSampleData neighborData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(sampleTexelPos));
 
-                if (restir_isReservoirValid(neighborReservoir)) {
-                    vec2 neighborScreenPos = sampleTexelPosF * uval_mainImageSizeRcp;
-                    vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_camProjInverse);
+                    if (dot(centerSampleData.geomNormal, neighborData.geomNormal) < 0.99) {
+                        continue;
+                    }
+                    float neighborViewZ = texelFetch(usam_gbufferViewZ, sampleTexelPos, 0).x;
+                    uvec4 neighborReservoirData;
+                    if (bool(frameCounter & 1)) {
+                        neighborReservoirData = history_restir_reservoirTemporal1_fetch(sampleTexelPos);
+                    } else {
+                        neighborReservoirData = history_restir_reservoirTemporal2_fetch(sampleTexelPos);
+                    }
+                    ReSTIRReservoir neighborReservoir = restir_reservoir_unpack(neighborReservoirData);
 
-                    vec3 neighborHitViewPos = neighborViewPos + neighborReservoir.Y.xyz * neighborReservoir.Y.w;
-                    vec3 hitDiff = neighborHitViewPos - viewPos;
-                    float hitDist2 = dot(hitDiff, hitDiff);
+                    if (restir_isReservoirValid(neighborReservoir)) {
+                        vec2 neighborScreenPos = sampleTexelPosF * uval_mainImageSizeRcp;
+                        vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_camProjInverse);
 
-                    // Safety check: Avoid singularity if reuse sample is at the exact same position
-                    if (hitDist2 < 1e-6) continue;
+                        vec3 neighborHitViewPos = neighborViewPos + neighborReservoir.Y.xyz * neighborReservoir.Y.w;
+                        vec3 hitDiff = neighborHitViewPos - viewPos;
+                        float hitDist2 = dot(hitDiff, hitDiff);
 
-                    float neighborSampleHitDistance = sqrt(hitDist2);
-                    vec3 neighborSampleDirView = hitDiff / neighborSampleHitDistance;
+                        // Safety check: Avoid singularity if reuse sample is at the exact same position
+                        if (hitDist2 < 1e-6) continue;
 
-                    vec3 hitRadiance = neighborData.sampleValue.xyz;
-                    float neighborPHat = evalTargetFunction(hitRadiance, centerSampleData.normal, neighborSampleDirView, V, material);
+                        float neighborSampleHitDistance = sqrt(hitDist2);
+                        vec3 neighborSampleDirView = hitDiff / neighborSampleHitDistance;
 
-                    // offsetB = neighborReservoir.Y.xyz * Y.w, which is already a scaled unit vector
-                    // RB2 = dot(offsetB, offsetB) = Y.w^2  (Y.xyz is a unit direction)
-                    float RB2 = neighborReservoir.Y.w * neighborReservoir.Y.w;
-                    if (RB2 < 1e-6) continue;
+                        vec3 hitRadiance = neighborData.sampleValue.xyz;
+                        float neighborPHat = evalTargetFunction(hitRadiance, centerSampleData.normal, neighborSampleDirView, V, material);
 
-                    // normalize(offsetB) == neighborReservoir.Y.xyz (already unit)
-                    float cosB = dot(neighborData.normal, neighborReservoir.Y.xyz);
-                    float cosPhiB = -dot(neighborReservoir.Y.xyz, neighborData.hitNormal);
-                    if (cosB <= 0.0 || cosPhiB <= 0.0) continue;
+                        // offsetB = neighborReservoir.Y.xyz * Y.w, which is already a scaled unit vector
+                        // RB2 = dot(offsetB, offsetB) = Y.w^2  (Y.xyz is a unit direction)
+                        float RB2 = neighborReservoir.Y.w * neighborReservoir.Y.w;
+                        if (RB2 < 1e-6) continue;
 
-                    float cosPhiA = -dot(neighborSampleDirView, neighborData.hitNormal);
-                    // cosPhiA <= 0 or neighborPHat <= 0 both zero out m, making the reservoir update a no-op
-                    if (cosPhiA <= 0.0 || neighborPHat <= 0.0) continue;
+                        // normalize(offsetB) == neighborReservoir.Y.xyz (already unit)
+                        float cosB = dot(neighborData.normal, neighborReservoir.Y.xyz);
+                        float cosPhiB = -dot(neighborReservoir.Y.xyz, neighborData.hitNormal);
+                        if (cosB <= 0.0 || cosPhiB <= 0.0) continue;
 
-                    // All denominator terms are verified positive at this point
-                    float jacobian = clamp((RB2 * cosPhiA) / (hitDist2 * cosPhiB), 0.0, 256.0);
+                        float cosPhiA = -dot(neighborSampleDirView, neighborData.hitNormal);
+                        // cosPhiA <= 0 or neighborPHat <= 0 both zero out m, making the reservoir update a no-op
+                        if (cosPhiA <= 0.0 || neighborPHat <= 0.0) continue;
 
-                    float pcRiY = neighborPHat * jacobian; // p̂_c(ri.y): center target for neighbor's sample
-                    float piRiY = neighborData.sampleValue.w; // p̂_i(ri.y): neighbor's stored target
+                        // All denominator terms are verified positive at this point
+                        float jacobian = clamp((RB2 * cosPhiA) / (hitDist2 * cosPhiB), 0.0, 256.0);
 
-                    // Pairwise MIS weight mi [BIT22 Algo.8 line 5]
-                    float MiPiRiY = neighborReservoir.m * piRiY;
-                    float mi = MiPiRiY * safeRcp(MiPiRiY + rcMDivK * pcRiY);
+                        float pcRiY = neighborPHat * jacobian; // p̂_c(ri.y): center target for neighbor's sample
+                        float piRiY = neighborData.sampleValue.w; // p̂_i(ri.y): neighbor's stored target
 
-                    // Accumulate mc: need pi(rc.y) = center sample evaluated at neighbor domain [BIT22 Algo.8 line 6]
-                    {
-                        vec3 cHitDiff = centerHitViewPos - neighborViewPos;
-                        float cHitDist2 = dot(cHitDiff, cHitDiff);
-                        if (cHitDist2 >= 1e-6 && RB2_canon >= 1e-6 && cosPhiB_canon > 0.0) {
-                            vec3 cDirAtNbr = cHitDiff / inversesqrt(cHitDist2);
-                            float cCosPhiA = -dot(cDirAtNbr, centerSampleData.hitNormal);
-                            if (cCosPhiA > 0.0) {
-                                float jacCn = clamp((RB2_canon * cCosPhiA) / (cHitDist2 * cosPhiB_canon), 0.0, 256.0);
-                                // Evaluate BRDF at neighbor for center's sample direction (center material as approx)
-                                vec3 VNeighbor = -normalize(neighborViewPos);
-                                float piRcY = evalTargetFunction(originalSample.xyz, neighborData.normal, cDirAtNbr, VNeighbor, material) * jacCn;
-                                float MiPiRcY = neighborReservoir.m * piRcY;
-                                mc += 1.0 - MiPiRcY * safeRcp(MiPiRcY + rcMDivK * pHatMe);
+                        // Pairwise MIS weight mi [BIT22 Algo.8 line 5]
+                        float MiPiRiY = neighborReservoir.m * piRiY;
+                        float mi = MiPiRiY * safeRcp(MiPiRiY + rcMDivK * pcRiY);
+
+                        // Accumulate mc: need pi(rc.y) = center sample evaluated at neighbor domain [BIT22 Algo.8 line 6]
+                        {
+                            vec3 cHitDiff = centerHitViewPos - neighborViewPos;
+                            float cHitDist2 = dot(cHitDiff, cHitDiff);
+                            if (cHitDist2 >= 1e-6 && RB2_canon >= 1e-6 && cosPhiB_canon > 0.0) {
+                                vec3 cDirAtNbr = cHitDiff / inversesqrt(cHitDist2);
+                                float cCosPhiA = -dot(cDirAtNbr, centerSampleData.hitNormal);
+                                if (cCosPhiA > 0.0) {
+                                    float jacCn = clamp((RB2_canon * cCosPhiA) / (cHitDist2 * cosPhiB_canon), 0.0, 256.0);
+                                    // Evaluate BRDF at neighbor for center's sample direction (center material as approx)
+                                    vec3 VNeighbor = -normalize(neighborViewPos);
+                                    float piRcY = evalTargetFunction(originalSample.xyz, neighborData.normal, cDirAtNbr, VNeighbor, material) * jacCn;
+                                    float MiPiRcY = neighborReservoir.m * piRcY;
+                                    mc += 1.0 - MiPiRcY * safeRcp(MiPiRcY + rcMDivK * pHatMe);
+                                } else {
+                                    mc += 1.0; // center hit is behind hit surface from neighbor's POV
+                                }
                             } else {
-                                mc += 1.0; // center hit is behind hit surface from neighbor's POV
+                                mc += 1.0; // geometry degenerate, treat pi(rc.y) = 0
                             }
-                        } else {
-                            mc += 1.0; // geometry degenerate, treat pi(rc.y) = 0
+                        }
+
+                        numValidNeighbors++;
+                        float neighborWi = pcRiY * max(neighborReservoir.avgWY, 0.0) * mi;
+                        float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 4u + i), RANDOM_FRAME);
+
+                        if (restir_updateReservoir(
+                            spatialReservoir,
+                            spatialWSum,
+                            vec4(neighborSampleDirView, neighborSampleHitDistance),
+                            neighborWi,
+                            neighborReservoir.m,
+                            neighborRand
+                        )) {
+                            selectedSampleF = vec4(hitRadiance, neighborPHat);
                         }
                     }
-
-                    numValidNeighbors++;
-                    float neighborWi = pcRiY * max(neighborReservoir.avgWY, 0.0) * mi;
-                    float neighborRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 4u + i), RANDOM_FRAME);
-
-                    if (restir_updateReservoir(
-                        spatialReservoir,
-                        spatialWSum,
-                        vec4(neighborSampleDirView, neighborSampleHitDistance),
-                        neighborWi,
-                        neighborReservoir.m,
-                        neighborRand
-                    )) {
-                        selectedSampleF = vec4(hitRadiance, neighborPHat);
-                    }
-                }
-            }
+                } }
 
             // Canonical update [BIT22 Algo.8 line 8]: s.update(rc.y, p̂_c(rc.y) * rc.W(rc.y) * mc)
             float canonicalWi = pHatMe * rcAvgWY * mc;
@@ -297,6 +279,10 @@ void main() {
             float outNDotH = saturate(dot(centerSampleData.normal, H_out));
             float outLDotH = saturate(dot(winL_out, H_out));
 
+            GBufferData gData = gbufferData_init();
+            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            Material material = material_decode(gData);
             vec3 outFresnel = fresnel_evalMaterial(material, outLDotH);
             float lambertianBRDF = outNDotL * RCP_PI;
             float ggxBRDF = bsdf_ggx(material, outNDotL, NDotV, outNDotH);

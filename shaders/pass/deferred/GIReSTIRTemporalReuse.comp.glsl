@@ -60,9 +60,7 @@ void sampleTemporalNeighbor(
         ReSTIRReservoir neighborReservoir = restir_reservoir_unpack(prevTemporalReservoirData);
         if (restir_isReservoirValid(neighborReservoir)) {
 
-            vec3 neighborHitNormalRaw = history_restir_prevHitNormal_fetch(neighborTexelPos).xyz;
-            vec4 neighborSample = history_restir_prevSample_fetch(neighborTexelPos);
-            vec3 neighborHitNormal = normalize(shared_prevViewToCurrView * (neighborHitNormalRaw * 2.0 - 1.0));
+            vec3 neighborHitNormal = vec3(0.0);
 
             bool valid = true;
             if (neighborReservoir.Y.w > 0.0) {
@@ -85,6 +83,8 @@ void sampleTemporalNeighbor(
                 if (!bool(clipFlag)) {
                     valid = false;
                 } else {
+                    vec3 neighborHitNormalRaw = history_restir_prevHitNormal_fetch(neighborTexelPos).xyz;
+                    neighborHitNormal = normalize(shared_prevViewToCurrView * (neighborHitNormalRaw * 2.0 - 1.0));
                     vec3 prev2CurrNeighborViewPos = shared_prevViewToCurrView * neighborViewPos + shared_prevViewToCurrViewTrans;
                     float RA2 = hitDistance * hitDistance;
                     vec3 dirA = neighborReservoir.Y.xyz;
@@ -106,8 +106,8 @@ void sampleTemporalNeighbor(
             }
 
             if (valid) {
-                vec3 neighborL = neighborReservoir.Y.xyz;
-                float neighborPHat = evalTargetFunction(neighborSample.rgb, gData.normal, neighborL, V, material);
+                vec4 neighborSample = history_restir_prevSample_fetch(neighborTexelPos);
+                float neighborPHat = evalTargetFunction(neighborSample.rgb, gData.normal, neighborReservoir.Y.xyz, V, material);
 
                 neighborReservoir.m *= combinedWeight;
                 // Reduces weight further if the target function is much diff from the hisotry footprint
@@ -152,11 +152,6 @@ void main() {
 
             vec3 V = normalize(-viewPos);
 
-            GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
-            Material material = material_decode(gData);
-
             vec4 prevSample = vec4(0.0);
             vec3 prevHitNormal = vec3(0.0);
             float prevPHat = 0.0;
@@ -180,6 +175,11 @@ void main() {
                 ivec2 iGatherTexelPos = ivec2(gatherTexelPos);
                 uint baseRandSeed = RANDOM_FRAME / 64u + 2u;
                 bool oddFrame = bool(frameCounter & 1);
+
+                GBufferData gData = gbufferData_init();
+                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+                Material material = material_decode(gData);
 
                 // 4-tap bilinear temporal gather
                 // Layout (gather order matches bilinearWeights xyzw):
@@ -207,6 +207,12 @@ void main() {
 
 
             {
+                // Refetch here to save register
+                GBufferData gData = gbufferData_init();
+                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
+                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+                Material material = material_decode(gData);
+
                 float hitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
                 restir_InitialSampleData initialSample = restir_initalSample_restoreData(texelPos, viewZ, gData.geomNormal, gData.normal, material, hitDistance);
                 vec3 hitRadiance = initialSample.hitRadiance;
