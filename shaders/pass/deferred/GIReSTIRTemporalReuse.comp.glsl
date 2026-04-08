@@ -67,12 +67,14 @@ void sampleTemporalNeighbor(
                 vec2 neighborScreenPos = coords_texelToUV(neighborTexelPos, uval_mainImageSizeRcp);
                 float neighborViewZ = history_viewZ_fetch(neighborTexelPos).x;
                 vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_prevCamProjInverse);
-                vec3 neighborHitViewPos = neighborViewPos + neighborReservoir.Y.xyz * neighborReservoir.Y.w;
-                vec3 prev2CurrHitViewPos = shared_prevViewToCurrView * neighborHitViewPos + shared_prevViewToCurrViewTrans;
+                // Save original offset in prev-view space for Jacobian before Y overwrite
+                vec3 origOffsetPrevView = neighborReservoir.Y.xyz * neighborReservoir.Y.w;
+                vec3 prev2CurrHitViewPos = shared_prevViewToCurrView * (neighborViewPos + origOffsetPrevView) + shared_prevViewToCurrViewTrans;
                 vec3 hitDiff = prev2CurrHitViewPos - viewPos;
-                float hitDistance = length(hitDiff);
-                neighborReservoir.Y.xyz = hitDiff / hitDistance;
-                neighborReservoir.Y.w = hitDistance;
+                float hitDist2 = dot(hitDiff, hitDiff);
+                float rcpHitDist = inversesqrt(hitDist2);
+                neighborReservoir.Y.xyz = hitDiff * rcpHitDist;
+                neighborReservoir.Y.w = hitDist2 * rcpHitDist;
 
                 vec4 prev2CurrHitClipPos = global_camProj * vec4(prev2CurrHitViewPos, 1.0);
                 uint clipFlag = uint(prev2CurrHitClipPos.z > 0.0);
@@ -85,10 +87,9 @@ void sampleTemporalNeighbor(
                 } else {
                     vec3 neighborHitNormalRaw = history_restir_prevHitNormal_fetch(neighborTexelPos).xyz;
                     neighborHitNormal = normalize(shared_prevViewToCurrView * (neighborHitNormalRaw * 2.0 - 1.0));
-                    vec3 prev2CurrNeighborViewPos = shared_prevViewToCurrView * neighborViewPos + shared_prevViewToCurrViewTrans;
-                    float RA2 = hitDistance * hitDistance;
+                    // offsetB in current view = M * origOffset (translation cancels in subtraction)
+                    vec3 offsetB = shared_prevViewToCurrView * origOffsetPrevView;
                     vec3 dirA = neighborReservoir.Y.xyz;
-                    vec3 offsetB = prev2CurrHitViewPos - prev2CurrNeighborViewPos;
                     float RB2 = dot(offsetB, offsetB);
                     vec3 dirB = offsetB * inversesqrt(max(RB2, 1e-12));
                     float cosPhiA = -dot(dirA, neighborHitNormal);
@@ -97,7 +98,7 @@ void sampleTemporalNeighbor(
                     if (cosPhiA <= 0.0 || dot(gData.normal, dirA) <= 0.0) {
                         jacobian = 0.0;
                     } else if (cosPhiB > 5e-2) {
-                        jacobian = min((RB2 * cosPhiA) / (RA2 * cosPhiB), 256.0);
+                        jacobian = min((RB2 * cosPhiA) / (hitDist2 * cosPhiB), 256.0);
                     }
                     neighborReservoir.avgWY *= jacobian;
                 }
@@ -262,8 +263,7 @@ void main() {
                 temporalReservoir.avgWY = reservoirPHat <= 0.0 ? 0.0 : (avgWSum / reservoirPHat);
                 temporalReservoir.m = clamp(temporalReservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
                 #if USE_REFERENCE
-                vec3 refF = hitRadiance * ((1.0 - fresnel) * diffuseBRDF + fresnel * specularBRDF);
-                vec4 ssgiOut = vec4(refF * safeRcp(samplePdf), hitDistance);
+                vec4 ssgiOut = vec4(f * safeRcp(samplePdf), hitDistance);
                 ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
                 transient_ssgiOut_store(texelPos, ssgiOut);
                 transient_ssgiSpecOut_store(texelPos, vec4(0.0));

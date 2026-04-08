@@ -181,8 +181,9 @@ void main() {
                         // Safety check: Avoid singularity if reuse sample is at the exact same position
                         if (hitDist2 < 1e-6) continue;
 
-                        float neighborSampleHitDistance = sqrt(hitDist2);
-                        vec3 neighborSampleDirView = hitDiff / neighborSampleHitDistance;
+                        float rcpHitDist = inversesqrt(hitDist2);
+                        float neighborSampleHitDistance = hitDist2 * rcpHitDist;
+                        vec3 neighborSampleDirView = hitDiff * rcpHitDist;
 
                         vec3 hitRadiance = neighborData.sampleValue.xyz;
                         float neighborPHat = evalTargetFunction(hitRadiance, centerSampleData.normal, neighborSampleDirView, V, material);
@@ -216,7 +217,7 @@ void main() {
                             vec3 cHitDiff = centerHitViewPos - neighborViewPos;
                             float cHitDist2 = dot(cHitDiff, cHitDiff);
                             if (cHitDist2 >= 1e-6 && RB2_canon >= 1e-6 && cosPhiB_canon > 0.0) {
-                                vec3 cDirAtNbr = cHitDiff / inversesqrt(cHitDist2);
+                                vec3 cDirAtNbr = cHitDiff * inversesqrt(cHitDist2);
                                 float cCosPhiA = -dot(cDirAtNbr, centerSampleData.hitNormal);
                                 if (cCosPhiA > 0.0) {
                                     float jacCn = clamp((RB2_canon * cCosPhiA) / (cHitDist2 * cosPhiB_canon), 0.0, 256.0);
