@@ -82,7 +82,7 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 n
         }
 
         // Combined mixture pdf (balance heuristic)
-        pdf = max(pSpec * vndfPdf + (1.0 - pSpec) * cosinePdf, 1e-6);
+        pdf = pSpec * vndfPdf + (1.0 - pSpec) * cosinePdf;
     }
 
     return sampleDirView;

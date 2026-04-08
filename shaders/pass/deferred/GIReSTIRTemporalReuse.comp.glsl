@@ -227,19 +227,7 @@ void main() {
                     transient_gi_initialSampleHitDistance_store(texelPos, vec4(-1.0));
                 }
 
-                vec3 L = sampleDirView;
-                vec3 H = normalize(L + V);
-                float NDotL = saturate(dot(gData.normal, L));
-                float NDotV = saturate(dot(gData.normal, V));
-                float NDotH = saturate(dot(gData.normal, H));
-                float LDotH = saturate(dot(L, H));
-
-                vec3 fresnel = fresnel_evalMaterial(material, LDotH);
-                float diffuseBRDF = material.dielectric * NDotL * RCP_PI;
-                float specularBRDF = bsdf_ggx(material, NDotL, NDotV, NDotH);
-
-                vec3 f = hitRadiance * ((1.0 - fresnel) * diffuseBRDF + fresnel * specularBRDF);
-                float newPHat = length(f);
+                float newPHat = evalTargetFunction(hitRadiance, gData.normal, sampleDirView, V, material);
 
                 float samplePdf = initialSample.pdf;
                 float newWi = newPHat * safeRcp(samplePdf);
@@ -262,7 +250,7 @@ void main() {
                 spatialSample.hitNormal = hitNormal;
                 transient_restir_spatialInput_store(texelPos, spatialSampleData_pack(spatialSample));
 
-                float avgWSum = wSum / temporalReservoir.m;
+                float avgWSum = wSum * safeRcp(temporalReservoir.m);
                 temporalReservoir.avgWY = avgWSum * safeRcp(finalSample.w);
                 temporalReservoir.m = clamp(temporalReservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
 

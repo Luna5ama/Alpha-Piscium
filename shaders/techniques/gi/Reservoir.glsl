@@ -105,17 +105,21 @@ uvec4 restir_reservoir_pack(ReSTIRReservoir reservoir) {
 
 // Evaluate combined diffuse + specular BRDF then calculate the target function (pHat)
 float evalTargetFunction(vec3 irradiance, vec3 normal, vec3 lightDir, vec3 viewDir, Material material) {
-    vec3 H = normalize(lightDir + viewDir);
     float NdotL = saturate(dot(normal, lightDir));
-    float NdotV = saturate(dot(normal, viewDir));
-    float NdotH = saturate(dot(normal, H));
-    float LdotH = saturate(dot(lightDir, H));
+    float result = 0.0;
+    if (NdotL > 0.0) {
+        vec3 H = normalize(lightDir + viewDir);
+        float NdotV = saturate(dot(normal, viewDir));
+        float NdotH = saturate(dot(normal, H));
+        float LdotH = saturate(dot(lightDir, H));
 
-    float fresnel = fresnel_adobe(LdotH, material.f0, material.f82);
-    float diffuseBRDF = material.dielectric * NdotL * RCP_PI;
-    float specularBRDF = bsdf_ggx(material, NdotL, NdotV, NdotH);
+        float fresnel = fresnel_adobe(LdotH, material.f0, material.f82);
+        float diffuseBRDF = material.dielectric * NdotL * RCP_PI;
+        float specularBRDF = bsdf_ggx(material, NdotL, NdotV, NdotH);
 
-    float brdf = mix(diffuseBRDF, specularBRDF, fresnel);
-    vec3 radiance = irradiance * brdf;
-    return length(radiance);
+        float brdf = mix(diffuseBRDF, specularBRDF, fresnel);
+        vec3 radiance = irradiance * brdf;
+        result = length(radiance);
+    }
+    return result;
 }

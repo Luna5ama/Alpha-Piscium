@@ -203,7 +203,6 @@ void main() {
             Material material = material_decode(centerGData);
 
             // --- Diffuse loop: screen-space kernel with view-angle stretch ---
-            #ifdef SETTING_DENOISER_SPATIAL
             if (material.dielectric > 0.0) {
                 float kernelRadius = baseKernelRadius.x;
                 kernelRadius *= accumFactor;
@@ -315,10 +314,8 @@ void main() {
                 history_gi1_store(texelPos, packedData1);
                 #endif
             }
-            #endif
 
             // --- Specular loop: world-space specular lobe kernel ---
-            #ifdef SETTING_DENOISER_SPATIAL
             {
                 float kernelRadius = baseKernelRadius.x;
                 kernelRadius *= accumFactor;
@@ -432,7 +429,6 @@ void main() {
                     #endif
                 }
             }
-            #endif
 
             #if GI_DENOISE_PASS == 1
             vec4 newVariance = vec4(vec2(filteredInputVarianceFP16), 0.0, 0.0);

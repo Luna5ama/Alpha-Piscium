@@ -277,7 +277,7 @@ void main() {
                     transient_gi_blurSpec2_store(texelPos, specInput);
                     #else
                     transient_gi_specShadingOutput_store(texelPos, vec4(historyData.specularColor, 0.0));
-                    vec4 packedData3 = gi_historyData_pack1(historyData);
+                    vec4 packedData3 = gi_historyData_pack3(historyData);
                     packedData3 = dither_fp16(packedData3, ditherNoise);
                     history_gi3_store(texelPos, packedData3);
                     #endif
@@ -345,7 +345,7 @@ void main() {
                     history_gi1_store(texelPos, packedData1);
 
                     transient_gi_specShadingOutput_store(texelPos, vec4(historyData.specularColor, 0.0));
-                    vec4 packedData3 = gi_historyData_pack1(historyData);
+                    vec4 packedData3 = gi_historyData_pack3(historyData);
                     packedData3 = dither_fp16(packedData3, ditherNoise);
                     history_gi3_store(texelPos, packedData3);
                     #endif
