@@ -15,15 +15,16 @@ vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
     );
 }
 
-void computeEdgeWeights(
-    vec2 screenPos,
-    vec2 gatherTexelPos,
-    vec3 currViewNormal,
-    vec3 currViewGeomNormal,
-    vec3 curr2PrevViewPos,
-    float glazingAngleFactor,
-    out vec4 edgeWeights,
-    out bool edgeFlag
+vec4 computeEdgeWeights(
+vec2 screenPos,
+vec2 gatherTexelPos,
+vec3 currViewNormal,
+vec3 currViewGeomNormal,
+vec3 curr2PrevViewPos,
+float glazingAngleFactor,
+float normalBaseWeight,
+out vec4 edgeWeights,
+out bool edgeFlag
 ) {
 
     vec4 viewZs = history_viewZ_gatherTexel(gatherTexelPos, 0);
@@ -33,6 +34,13 @@ void computeEdgeWeights(
     geomViewNormalXs = geomViewNormalXs * 2.0 - 1.0;
     geomViewNormalYs = geomViewNormalYs * 2.0 - 1.0;
     geomViewNormalZs = geomViewNormalZs * 2.0 - 1.0;
+
+    vec4 viewNormalXs = history_viewNormal_gatherTexel(gatherTexelPos, 0);
+    vec4 viewNormalYs = history_viewNormal_gatherTexel(gatherTexelPos, 1);
+    vec4 viewNormalZs = history_viewNormal_gatherTexel(gatherTexelPos, 2);
+    viewNormalXs = viewNormalXs * 2.0 - 1.0;
+    viewNormalYs = viewNormalYs * 2.0 - 1.0;
+    viewNormalZs = viewNormalZs * 2.0 - 1.0;
 
     vec3 currWorldGeomNormal = coords_dir_viewToWorld(currViewGeomNormal);
     vec3 currWorldNormal = coords_dir_viewToWorld(currViewNormal);
@@ -60,6 +68,11 @@ void computeEdgeWeights(
     vec3 geomViewNormal3 = normalize(vec3(geomViewNormalXs.z, geomViewNormalYs.z, geomViewNormalZs.z));
     vec3 geomViewNormal4 = normalize(vec3(geomViewNormalXs.w, geomViewNormalYs.w, geomViewNormalZs.w));
 
+    vec3 viewNormal1 = normalize(vec3(viewNormalXs.x, viewNormalYs.x, viewNormalZs.x));
+    vec3 viewNormal2 = normalize(vec3(viewNormalXs.y, viewNormalYs.y, viewNormalZs.y));
+    vec3 viewNormal3 = normalize(vec3(viewNormalXs.z, viewNormalYs.z, viewNormalZs.z));
+    vec3 viewNormal4 = normalize(vec3(viewNormalXs.w, viewNormalYs.w, viewNormalZs.w));
+
     float planeDistance1 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos1, geomViewNormal1);
     float planeDistance2 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos2, geomViewNormal2);
     float planeDistance3 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos3, geomViewNormal3);
@@ -67,26 +80,35 @@ void computeEdgeWeights(
 
     float planeDistanceThreshold = exp2(mix(-8.0, -10.0, glazingAngleFactor)) * max(8.0, pow2(curr2PrevViewPos.z));
 
-    float geomViewNormalDot1 = dot(curr2PrevViewGeomNormal, geomViewNormal1);
-    float geomViewNormalDot2 = dot(curr2PrevViewGeomNormal, geomViewNormal2);
-    float geomViewNormalDot3 = dot(curr2PrevViewGeomNormal, geomViewNormal3);
-    float geomViewNormalDot4 = dot(curr2PrevViewGeomNormal, geomViewNormal4);
+    float geomViewNormalDot1 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal1));
+    float geomViewNormalDot2 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal2));
+    float geomViewNormalDot3 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal3));
+    float geomViewNormalDot4 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal4));
+
+    float viewNormalDot1 = saturate(dot(curr2PrevViewNormal, viewNormal1));
+    float viewNormalDot2 = saturate(dot(curr2PrevViewNormal, viewNormal2));
+    float viewNormalDot3 = saturate(dot(curr2PrevViewNormal, viewNormal3));
+    float viewNormalDot4 = saturate(dot(curr2PrevViewNormal, viewNormal4));
 
     vec4 geomViewNormalDots = vec4(geomViewNormalDot1, geomViewNormalDot2, geomViewNormalDot3, geomViewNormalDot4);
+    vec4 viewNormalDots = vec4(viewNormalDot1, viewNormalDot2, viewNormalDot3, viewNormalDot4);
     vec4 planeDistances = vec4(planeDistance1, planeDistance2, planeDistance3, planeDistance4);
     float totalEdgeFactor = (currEdgeFactor + prevEdgeMask) * 0.5;
 
     uint edgeFlagI = 0u;
     edgeFlagI |= uint(totalEdgeFactor < 0.99);
     edgeFlagI |= uint(any(lessThan(geomViewNormalDots, vec4(0.5))));
+    edgeFlagI |= uint(any(lessThan(viewNormalDots, vec4(0.5))));
     edgeFlagI |= uint(any(greaterThan(planeDistances, vec4(planeDistanceThreshold))));
     edgeFlag = bool(edgeFlagI);
 
-    vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
+    vec4 geomNormalWeights = pow(geomViewNormalDots, vec4(256.0));
+    vec4 normalWeights = pow(viewNormalDots, vec4(normalBaseWeight));
     float geomDepthBaseWeight = mix(32.0, 4.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
     vec4 geomDepthWeights = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(curr2PrevViewPos.z), 2.0)));
     geomDepthWeights *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
-    edgeWeights = geomNormalWeights * geomDepthWeights;
+    edgeWeights = geomNormalWeights * normalWeights * geomDepthWeights;
+    return normalWeights;
 }
 
 void gi_reproject(ivec2 texelPos, float currViewZ) {
@@ -124,13 +146,14 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
             bool edgeFlag;
             vec4 edgeWeights;
-            computeEdgeWeights(
+            vec4 extraNormalWeights = computeEdgeWeights(
                 screenPos,
                 gatherTexelPos,
                 currViewNormal,
                 currViewGeomNormal,
                 curr2PrevViewPos.xyz,
                 glazingAngleFactor,
+                1.0,
                 edgeWeights,
                 edgeFlag
             );
@@ -312,7 +335,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
             if (valid) {
                 ReprojectInfo reprojInfo = reprojectInfo_init();
-                reprojInfo.bilateralWeights = pow(edgeWeights, vec4(16.0)); // Most edge values are very close to 1.0
+                // Most edge values are very close to 1.0
+                // And we also want stricter weights for ReSTIR temporal
+                reprojInfo.bilateralWeights = pow(edgeWeights * pow(extraNormalWeights, vec4(128.0)), vec4(16.0));
                 reprojInfo.curr2PrevScreenPos = curr2PrevScreen;
                 reprojInfo.historyResetFactor = historyResetFactor;
                 transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));

@@ -183,13 +183,13 @@ void sst_init(float thicknessScale) {
             shared_thicknessFactor = rcp(1.0 - thicknessScale);
         }
         uint mipLevel = min(gl_LocalInvocationIndex, maxMip);
-        shared_mipmapTilesOffsets[mipLevel] = global_hizTiles[mipLevel].xy;
+        shared_mipmapTilesOffsets[gl_LocalInvocationIndex] = global_hizTiles[mipLevel].xy;
 
         int mipLevelI = int(mipLevel);
         vec4 mainImageSizeParams = vec4(uval_mainImageSize, uval_mainImageSizeRcp);
         vec2 cellCount = ldexp(mainImageSizeParams.xy, ivec2(-mipLevelI));
         vec2 invCellCount = ldexp(mainImageSizeParams.zw, ivec2(mipLevelI));
-        shared_cellCounts[mipLevel] = vec4(cellCount, invCellCount);
+        shared_cellCounts[gl_LocalInvocationIndex] = vec4(cellCount, invCellCount);
     }
     barrier();
 }
@@ -234,11 +234,12 @@ void sst_trace(inout SSTRay ray, uint hiZSteps) {
         vec2 currScreenPosXY = fma(pRayVector.xy, vec2(currT), pRayStart.xy);
 
         // Compute cell index
-        vec2 currPosScaled = currScreenPosXY * cellCount;
-        ivec2 oldCellIdx = ivec2(currPosScaled);
+        ivec2 oldCellIdx = ivec2(currScreenPosXY * cellCount);
 
         vec2 cellZ = texelFetch(usam_hiz, cellOffset + oldCellIdx, 0).rg;
         currLevel++;
+        // Separate Z position calculation and move it after texture fetch to hide latency
+        float currScreenPosZ = fma(pRayVector.z, currT, pRayStart.z);
 
         // Precompute cell boundary T
         vec2 boundaryPlanes = fma(vec2(oldCellIdx), invDxy, cellIdOffsetBase);
@@ -248,42 +249,34 @@ void sst_trace(inout SSTRay ray, uint hiZSteps) {
         // Select depth based on ray direction
         float cellDepth = isBackwardRay ? cellZ.y : cellZ.x;
         float depthT = fma(cellDepth, invDz, negRayStartZxInvDz);
-        // Separate Z position calculation and move it after texture fetch to hide latency
-        float currScreenPosZ = fma(pRayVector.z, currT, pRayStart.z);
 
+        float hitT = max(depthT, currT);
         // Check if depthT crosses cell boundary
-        bool crossesCell = depthT > cellBoundaryT;
-
+        uint notCrossesCell = floatBitsToUint(depthT - cellBoundaryT);
         float maxZThicknessFactor = min(nearZThicknessClamp, currScreenPosZ) * maxThicknessFactor;
 
         #ifdef SST_DEBUG_PASS
         #ifdef SETTING_DEBUG_SST_STEPS
         if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
             ssbo_testBuffer[i + 2048] = vec4(currT, currScreenPosZ, cellZ.x, cellZ.y);
-            ssbo_testBuffer[i] = vec4(currScreenPosXY, 0.0, float(currLevel + 1));
+            ssbo_testBuffer[i] = vec4(currScreenPosXY, 0.0, float(currLevel + 2));
             atomicMax(global_atomicCounters[15], i);
         }
         #endif
         #endif
 
+        uint descend;
+        uint missedCell = floatBitsToUint(cellZ.y - maxZThicknessFactor);
         if (isBackwardRay) {
-            bool missedCell = cellZ.y >= currScreenPosZ && cellZ.y <= maxZThicknessFactor;
-            if (missedCell) {
-                currLevel -= 2;
-            } else if (!crossesCell && currScreenPosZ <= cellZ.x) {
-                currT = max(depthT, currT);
-                currLevel -= 2;
-            } else {
-                currT = cellBoundaryT;
-            }
+            missedCell = missedCell & floatBitsToUint(currScreenPosZ - cellZ.y);
+            hitT = mix(hitT, currT, float(missedCell >> 31u));
+            uint hitCell = notCrossesCell & floatBitsToUint(currScreenPosZ - cellZ.x);
+            descend = (missedCell | hitCell);
         } else {
-            if (!crossesCell && maxZThicknessFactor >= cellZ.y) {
-                currT = max(depthT, currT);
-                currLevel -= 2;
-            } else {
-                currT = cellBoundaryT;
-            }
+            descend = missedCell & notCrossesCell;
         }
+        currT = mix(cellBoundaryT, hitT, float(descend >> 31u));
+        currLevel -= int(descend >> 30u);
 
         if (currT >= 1.0 || currLevel < STOP_LEVEL) {
             currT = -currT;

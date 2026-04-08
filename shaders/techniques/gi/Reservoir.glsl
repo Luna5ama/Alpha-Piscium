@@ -41,7 +41,7 @@ uvec4 spatialSampleData_pack(SpatialSampleData data) {
     uvec4 packedData;
     nzpacking_packNormalOct16(packedData.x, data.geomNormal, data.hitNormal);
     packedData.y = nzpacking_packNormalOct32(data.normal);
-    packedData.zw = packHalf4x16(data.sampleValue);
+    packedData.zw = packHalf4x16(clamp(data.sampleValue, 0.0, FP16_MAX));
     return packedData;
 }
 
