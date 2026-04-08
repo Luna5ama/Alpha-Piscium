@@ -197,20 +197,25 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
             }
         }
 
+        float bendShadow = transient_bendShadow_fetch(texelPos).r;
         float solidShadow = float(solidShadowSum) * rcpSamples;
         float w = rcp(fma(blockerDistance, 0.5, 0.0001)) + 1.0;
         float sh = shadowHarden(solidShadow, w);
         solidShadow = sh * (2.0 - sh);
+
+        if (sssFactor < 0.001) {
+            solidShadow = min(bendShadow, solidShadow);
+        }
 
         vec3 finalShadow = vec3(solidShadow);
         if (translucentShadowSum.a > float16_t(0.0)) {
             finalShadow *= vec3(translucentShadowSum.rgb) * rcp(float(translucentShadowSum.a));
         }
 
-        float surfaceDepth = material.sss > 0.0 ? max(blockerDistance, 0.1) : 0.0;
-        float shadowRangeBlend = linearStep(shadowDistance - 8.0, shadowDistance, length(scenePos.xz));
+        float surfaceDepth = sssFactor > 0.0 ? max(blockerDistance, 0.1) : 0.0;
+        float shadowRangeBlend = smoothstep(shadowDistance - 16.0, shadowDistance - 8.0, length(scenePos.xz));
 
-        result = mix(vec4(finalShadow, surfaceDepth), vec4(1.0), shadowRangeBlend);
+        result = mix(vec4(finalShadow, surfaceDepth), vec4(bendShadow.rrr, 1.0), shadowRangeBlend);
     }
     return result;
 }
@@ -241,8 +246,6 @@ void main() {
             rtwsm_backward(texelPos, viewZ, gData);
 
             vec4 shadowValue = compShadow(texelPos, viewZ, gData);
-            vec4 bendShadow = transient_bendShadow_fetch(texelPos);
-            shadowValue.rgb = min(shadowValue.rgb, vec3(bendShadow.r));
             shadowValue = clamp(shadowValue, 0.0, FP16_MAX);
             transient_shadow_store(texelPos, shadowValue);
         }

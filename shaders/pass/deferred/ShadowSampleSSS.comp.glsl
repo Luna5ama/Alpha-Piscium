@@ -227,7 +227,17 @@ void WriteScreenSpaceShadow(DispatchParameters params, ivec3 groupID, uint laneI
         return;
     }
 
+    GBufferData gData = gbufferData_init();
+    gbufferData1_unpack(texelFetch(usam_gbufferData1, writeTexel, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferData2, writeTexel, 0), gData);
+    Material material = material_decode(gData);
+    float sssFactor = material.sss;
     float start_depth = sampling_depth[0];
+    start_depth = coords_reversedZToViewZ(start_depth, nearPlane);
+    float jitterR = rand_stbnVec1(writeTexel, frameCounter);
+    start_depth += jitterR * pow(sssFactor, 0.25) * SETTING_SSS_DEPTH_RANGE;
+    start_depth = coords_viewZToReversedZ(start_depth, nearPlane);
+
     if (params.UsePrecisionOffset) start_depth = mix(start_depth, params.FarDepthValue, -1.0 / 65535.0);
 
     start_depth = (start_depth - params.LightCoordinate.z) / sample_distance[0];
