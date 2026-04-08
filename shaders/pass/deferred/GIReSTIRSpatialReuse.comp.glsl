@@ -98,16 +98,8 @@ void main() {
             const float REUSE_RADIUS = float(SETTING_GI_SPATIAL_REUSE_RADIUS);
             vec2 texelPosF = vec2(texelPos) + vec2(0.5);
 
-            float pHatMe = 0.0;
-            vec4 originalSample = vec4(0.0);
-            {
-                vec3 hitRadiance = centerSampleData.sampleValue.xyz;
-                float brdf = centerSampleData.sampleValue.w;
-                vec3 f = brdf * hitRadiance;
-                pHatMe = length(f);
-                originalSample = vec4(f, pHatMe);
-            }
-            float spatialWSum = max(spatialReservoir.avgWY, 0.0) * pHatMe * spatialReservoir.m;
+            vec4 originalSample = centerSampleData.sampleValue;
+            float spatialWSum = max(spatialReservoir.avgWY, 0.0) * originalSample.w * spatialReservoir.m;
 
 
             vec4 selectedSampleF = originalSample;
@@ -164,8 +156,7 @@ void main() {
 
                     vec3 hitRadiance = neighborData.sampleValue.xyz;
                     float brdf = saturate(dot(centerSampleData.normal, neighborSampleDirView)) / PI;
-                    vec3 neighborSample = brdf * hitRadiance;
-                    float neighborPHat = length(neighborSample);
+                    float neighborPHat = length(hitRadiance) * brdf;
 
                     // offsetB = neighborReservoir.Y.xyz * Y.w, which is already a scaled unit vector
                     // RB2 = dot(offsetB, offsetB) = Y.w^2  (Y.xyz is a unit direction)
@@ -196,16 +187,23 @@ void main() {
                         neighborReservoir.m,
                         neighborRand
                     )) {
-                        selectedSampleF = vec4(neighborSample, neighborPHat);
+                        selectedSampleF = vec4(hitRadiance, neighborPHat);
                     }
                 }
             }
 
-            vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
             ReSTIRReservoir resultReservoir = spatialReservoir;
             float avgWSum = spatialWSum / spatialReservoir.m;
-            resultReservoir.avgWY = selectedSampleF.w <= 0.0 ? 0.0 : (avgWSum / selectedSampleF.w);
-            ssgiOut = vec4(selectedSampleF.xyz * resultReservoir.avgWY, resultReservoir.Y.w);
+            resultReservoir.avgWY = avgWSum * safeRcp(selectedSampleF.w);
+
+            vec3 winL = resultReservoir.Y.xyz;
+            float winHitDist = resultReservoir.Y.w;
+
+            float winNDotL = saturate(dot(centerSampleData.normal, winL));
+            float winDiffBRDF = winNDotL * RCP_PI;
+
+            vec4 ssgiOut = vec4(selectedSampleF.rgb * winDiffBRDF * resultReservoir.avgWY, winHitDist);
+
             #if SETTING_DEBUG_OUTPUT
             vec4 vvv = vec4(0.0);
             #endif
