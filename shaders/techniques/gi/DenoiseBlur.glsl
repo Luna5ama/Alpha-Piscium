@@ -23,6 +23,7 @@ layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
+layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
@@ -107,6 +108,7 @@ void main() {
     if (hiz_groupGroundCheckSubgroup(swizzledWGPos, 4)) {
         vec2 centerScreenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
         GeomData centerGeomData = _gi_readGeomData(texelPos, centerScreenPos);
+        history_viewZ_store(texelPos, vec4(centerGeomData.viewPos.z));
         // Load shared memory for variance filtering (20x20 = 400 elements)
         loadSharedVarianceData(workGroupOrigin, gl_LocalInvocationIndex);
         loadSharedVarianceData(workGroupOrigin, gl_LocalInvocationIndex + 256u);
@@ -274,8 +276,8 @@ void main() {
             }
             #endif
             #elif GI_DENOISE_PASS == 2
-            transient_gi_blurDiff2_store(texelPos, diffResult);
-            transient_gi_blurSpec2_store(texelPos, specResult);
+            transient_gi_diffShadingOutput_store(texelPos, diffResult);
+            transient_gi_specShadingOutput_store(texelPos, specResult);
 
             vec4 packedData1 = transient_gi1Reprojected_fetch(texelPos);
             packedData1.rgb = diffResult.rgb;
@@ -288,6 +290,8 @@ void main() {
             packedData3 = dither_fp16(packedData3, ditherNoise);
             packedData3 = clamp(packedData3, 0.0, FP16_MAX);
             history_gi3_store(texelPos, packedData3);
+            vec4 packedData5 = transient_gi5Reprojected_fetch(texelPos);
+            history_gi5_store(texelPos, packedData5);
 
             // Skipping gi5 here because it seems to save a handle register
             #endif

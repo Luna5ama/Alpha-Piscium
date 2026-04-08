@@ -56,6 +56,13 @@ float sum3(vec3 v) { return v.x + v.y + v.z; }
 float sum4(float x, float y, float z, float w) { return x + y + z + w; }
 float sum4(vec4 v) { return v.x + v.y + v.z + v.w; }
 
+uint or2(uint x, uint y) { return x | y; }
+uint or2(uvec2 v) { return v.x | v.y; }
+uint or3(uint x, uint y, uint z) { return x | y | z; }
+uint or3(uvec3 v) { return v.x | v.y | v.z; }
+uint or4(uint x, uint y, uint z, uint w) { return x | y | z | w; }
+uint or4(uvec4 v) { return v.x | v.y | v.z | v.w; }
+
 float linearStep(float edge0, float edge1, float x) { return saturate((x - edge0) / (edge1 - edge0)); }
 vec2 linearStep(float edge0, float edge1, vec2 x) { return saturate((x - edge0) / (edge1 - edge0)); }
 vec3 linearStep(float edge0, float edge1, vec3 x) { return saturate((x - edge0) / (edge1 - edge0)); }

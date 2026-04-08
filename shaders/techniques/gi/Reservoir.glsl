@@ -56,24 +56,24 @@ SpatialSampleData spatialSampleData_unpack(uvec4 packedData) {
 struct ReSTIRReservoir {
     vec4 Y;// direction and length
     float avgWY;// average unbiased contribution weight
-    uint m;
+    float m;
 };
 
 ReSTIRReservoir restir_initReservoir() {
     ReSTIRReservoir reservoir;
     reservoir.Y = vec4(0.0, 0.0, 0.0, -1.0);
     reservoir.avgWY = 0.0;
-    reservoir.m = 0u;
+    reservoir.m = 0.0;
     return reservoir;
 }
 
 bool restir_isReservoirValid(ReSTIRReservoir reservoir) {
-    return reservoir.m > 0u;
+    return reservoir.m > 0.0;
 }
 
 const float EPSILON = 0.0000001;
 
-bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, vec4 X, float wi, uint m, float rand) {
+bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, vec4 X, float wi, float m, float rand) {
     wSum += wi;
     reservoir.m += m;
     bool updateCond = rand < wi / wSum;
@@ -87,8 +87,7 @@ bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, v
 ReSTIRReservoir restir_reservoir_unpack(uvec4 packedData) {
     ReSTIRReservoir reservoir;
     reservoir.Y.xyz = nzpacking_unpackNormalOct32(packedData.x);
-    uvec2 temp = unpackUInt2x16(packedData.y);
-    reservoir.m = temp.x;
+    reservoir.m = uintBitsToFloat(packedData.y);
     reservoir.avgWY = uintBitsToFloat(packedData.z);
     reservoir.Y.w = uintBitsToFloat(packedData.w);
     return reservoir;
@@ -97,7 +96,7 @@ ReSTIRReservoir restir_reservoir_unpack(uvec4 packedData) {
 uvec4 restir_reservoir_pack(ReSTIRReservoir reservoir) {
     uvec4 packedData = uvec4(0u);
     packedData.x = nzpacking_packNormalOct32(reservoir.Y.xyz);
-    packedData.y = packUInt2x16(uvec2(reservoir.m, 0u));
+    packedData.y = floatBitsToUint(reservoir.m);
     packedData.z = floatBitsToUint(reservoir.avgWY);
     packedData.w = floatBitsToUint(reservoir.Y.w);
     return packedData;

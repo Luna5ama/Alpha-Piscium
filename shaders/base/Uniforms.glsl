@@ -79,6 +79,9 @@ uniform float darknessLightFactor;              // lightmap variations caused by
 uniform vec3 cameraPositionFract;
 uniform ivec3 cameraPositionInt;
 
+float vanillaFarPlane = far;
+float vanillaNearPlane = near;
+
 #ifdef DISTANT_HORIZONS
 uniform float dhNearPlane;
 uniform float dhFarPlane;

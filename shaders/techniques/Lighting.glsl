@@ -59,6 +59,7 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
 
         float luma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedoSRGB);
         albedoSRGB *= min(0.5 / luma, 1.0); // Fk whoever put high sss on white material
+        albedoSRGB = clamp(albedoSRGB, 0.0, 0.9);
 
         vec3 tCoeff = pow(albedoSRGB, vec3(ABSO_POW));
         tCoeff = saturate(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, tCoeff));
@@ -101,7 +102,7 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
         shadowedIrradiance *= float(dot(material.geomTbn[2], L) > 0.0);
     }
 
-    float diffuseBaseF = 1.0 - material.metallic;
+    float diffuseBaseF = material.dielectric;
     vec3 diffuseBaseVec3 = diffuseBaseF * (shadowedIrradiance * (1.0 - fresnel) * material.albedo);
 
     result.diffuse = diffuseBaseVec3 * bsdf_diffuseHammon(material, NDotL, NDotV, LDotH, LDotV);
@@ -126,7 +127,7 @@ LightingResult directLighting2(Material material, vec4 irradiance, vec3 V, vec3 
 
     LightingResult result;
 
-    float diffuseBaseF = 1.0 - material.metallic;
+    float diffuseBaseF = material.dielectric;
     vec3 diffuseBaseVec3 = diffuseBaseF * (irradiance.rgb * (vec3(1.0) - fresnel) * material.albedo);
 
     result.diffuse = diffuseBaseVec3 * bsdf_diffuseHammon(material, NDotL, NDotV, LDotH, LDotV);

@@ -1,88 +1,35 @@
-import java.nio.file.Path
-import java.util.*
-import java.util.zip.Deflater
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
-import kotlin.io.path.*
+@file:Import("make-zip.kts")
+
+import kotlin.io.path.Path
+import kotlin.io.path.absolute
+import kotlin.io.path.name
 
 var versionArg = args.getOrNull(0)
-val version =if (versionArg == null) {
+val noCommitHash = "--no-commit-hash" in args
+val version = if (versionArg == null) {
     ""
 } else {
     " v$versionArg"
 }
 
-val config = Properties().apply {
-    runCatching {
-        Path("config.properties").inputStream().use {
-            load(it)
-        }
-    }
-}
-
 val currDirPath = Path("").absolute()
 val projectRootPath = currDirPath.parent
-val shadesmithJarPath = currDirPath.resolve("shadesmith-0.0.1-SNAPSHOT-fatjar-optimized.jar")
-val shadersPath = projectRootPath.resolve("shaders")
 
-val shdesmithOutputPathStr = config.getOrDefault("SHADESMITH_OUTPUT", "./shadesmitth").toString()
-val shadesmithOutputPath = Path(shdesmithOutputPathStr).normalize().absolute()
-val shadesmithShadersPath = shadesmithOutputPath.resolve("shaders")
-
-val java = System.getProperty("java.home")
-val shadesmithRun = ProcessBuilder()
-    .command(
-        "$java/bin/java",
-        "-jar",
-        shadesmithJarPath.toString(),
-        shadersPath.toString(),
-        shadesmithShadersPath.toString()
-    )
-    .inheritIO()
-    .start()
-
-val included = setOf("changelogs", "licenses", "shaders/lang", "shaders/textures", "LICENSE", "README.md")
 val branchName =
     Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD")).inputStream.bufferedReader()
         .readText().trim().takeIf { it != "main" && it != "dev" }
 val commitTag =
     Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD")).inputStream.bufferedReader().readText()
         .trim()
-val suffix = listOfNotNull(version, commitTag, branchName).joinToString("-")
-val zipFileName = "${projectRootPath.name.replace("-", " ")}$suffix.zip"
+val suffix = if (noCommitHash) {
+    listOf(version)
+} else {
+    listOfNotNull(version, commitTag, branchName)
+}
+val suffixStr = suffix.joinToString("-")
+val zipFileName = "${projectRootPath.name.replace("-", " ")}$suffixStr.zip"
 val zipFilePath = projectRootPath.resolve("builds").resolve(zipFileName)
 
-ZipOutputStream(zipFilePath.outputStream(), Charsets.UTF_8).use { zipOut ->
-    zipOut.setLevel(Deflater.DEFAULT_COMPRESSION)
-    zipOut.setMethod(ZipOutputStream.DEFLATED)
+makeZip(zipFilePath)
 
-    fun addStuff(rootDir: Path, sequence: Sequence<Path>) {
-        sequence
-            .filter { it != rootDir }
-            .forEach { file ->
-                val relativePath = file.relativeTo(rootDir).invariantSeparatorsPathString
-                if (file.isDirectory()) {
-                    if (file.listDirectoryEntries().isNotEmpty()) {
-                        zipOut.putNextEntry(ZipEntry("$relativePath/"))
-                        zipOut.closeEntry()
-                    }
-                    return@forEach
-                }
-                zipOut.putNextEntry(ZipEntry(relativePath))
-                file.inputStream().use { input ->
-                    input.copyTo(zipOut)
-                }
-                zipOut.closeEntry()
-            }
-    }
-
-    addStuff(projectRootPath, projectRootPath.walk(PathWalkOption.FOLLOW_LINKS).filter { file ->
-        val baseDirName = file.relativeTo(projectRootPath).invariantSeparatorsPathString
-        if (baseDirName.startsWith('.')) return@filter false
-        included.any {
-            baseDirName.startsWith(it)
-        }
-    })
-    shadesmithRun.waitFor()
-    addStuff(shadesmithOutputPath, shadesmithShadersPath.walk())
-}
+println("Created zip file at: $zipFilePath")

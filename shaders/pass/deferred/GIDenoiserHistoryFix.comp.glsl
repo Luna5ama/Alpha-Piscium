@@ -48,16 +48,19 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
     }
 }
 
-vec3 _clampColor(vec3 colorRGB, vec3 fastColorYCoCG, vec3 moment1YCoCG, vec3 moment2YCoCG, float clampingThreshold) {
+vec3 _clipAABB(vec3 avg, vec3 sigma, vec3 color) {
+    vec3 dir = color - avg;
+    vec3 rayT = abs(dir / max(sigma, vec3(1e-7)));
+    float tMax = max(mmax3(rayT), 1.0);
+    return avg + dir / tMax;
+}
+
+vec3 _clampColor(vec3 colorRGB, vec3 moment1YCoCG, vec3 moment2YCoCG, float clampingThreshold) {
     vec3 mean = moment1YCoCG;
     vec3 variance = max(moment2YCoCG - moment1YCoCG * moment1YCoCG, 0.0);
-    vec3 stddev = sqrt(variance);
-    vec3 aabbMin = mean - stddev * clampingThreshold;
-    vec3 aabbMax = mean + stddev * clampingThreshold;
+    vec3 stddev = sqrt(abs(variance)) * clampingThreshold;
     vec3 colorYCoCG = colors_RGBToYCoCg(colorRGB);
-    aabbMin = min(aabbMin, fastColorYCoCG);
-    aabbMax = max(aabbMax, fastColorYCoCG);
-    colorYCoCG = clamp(colorYCoCG, aabbMin, aabbMax);
+    colorYCoCG = _clipAABB(mean, stddev * clampingThreshold, colorYCoCG);
     return colors_YCoCgToRGB(colorYCoCG);
 }
 #else
@@ -122,7 +125,7 @@ void main() {
 
                     const float baseReductionFactor = ldexp(1.0, -12);
 
-                    for (int mip = 6; mip >= 1; mip--) {
+                    for (int mip = 6; mip >= 3; mip--) {
                         ivec2 stbnPos = ivec2(texelPos0 + rand_r2Seq2(mip) * 128.0);
                         vec2 stbnRand = rand_stbnVec2(stbnPos, RANDOM_FRAME);
                         vec2 texelPosMip = ldexp(texelPos0, ivec2(-mip)) + stbnRand - 0.5;
@@ -141,8 +144,8 @@ void main() {
                         vec4 hiZData = texelFetch(usam_hiz, ivec2(hiZReadPos), 0);
                         vec4 geomNormalMipRaw = transient_geomNormalMip_sample(screenPosMipTile);
 
-                        float geomNormalBaseWeight = ldexp(0.01 + 0.09 * historyFixMix, mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT);
-                        float zBaseWeight = max(2.0, abs(viweZ0)) * ldexp(32.0 + 128.0 * (1.0 - historyFixMix), -(mip + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT));
+                        float geomNormalBaseWeight = ldexp(0.1 + 0.5 * pow2(historyFixMix), mip + SETTING_DENOISER_HISTORY_FIX_NORMAL_WEIGHT);
+                        float zBaseWeight = max(2.0, abs(viweZ0)) * ldexp(4.0 + 24.0 * pow2(1.0 - historyFixMix), -(mip + SETTING_DENOISER_HISTORY_FIX_DEPTH_WEIGHT));
 
                         vec3 geomNormalMip = geomNormalMipRaw.xyz * 2.0 - 1.0;
                         float geomNormalLengthSq = saturate(lengthSq(geomNormalMip));
@@ -168,20 +171,17 @@ void main() {
                         weightSum += sampleWeight;
                     }
 
-                    float baseMipWeight = max((baseReductionFactor / (baseReductionFactor + weightSum)) * 1e-8, 1e-16);
-                    diffWeightedSum += vec4(historyData.diffuseColor * baseMipWeight, 0.0);
-                    specWeightedSum += vec4(historyData.specularColor * baseMipWeight, 0.0);
-                    weightSum += baseMipWeight;
+                    if (weightSum > 1e-16) {
+                        float rcpWeightSum = 1.0 / weightSum;
+                        diffWeightedSum *= rcpWeightSum;
+                        specWeightedSum *= rcpWeightSum;
 
-                    float rcpWeightSum = 1.0 / weightSum;
-                    diffWeightedSum *= rcpWeightSum;
-                    specWeightedSum *= rcpWeightSum;
+                        diffWeightedSum = max(diffWeightedSum, vec4(0.0));
+                        specWeightedSum = max(specWeightedSum, vec4(0.0));
 
-                    diffWeightedSum = max(diffWeightedSum, vec4(0.0));
-                    specWeightedSum = max(specWeightedSum, vec4(0.0));
-
-                    historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
-                    historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
+                        historyData.diffuseColor = mix(diffWeightedSum.rgb, historyData.diffuseColor, historyFixMix);
+                        historyData.specularColor = mix(specWeightedSum.rgb, historyData.specularColor, historyFixMix);
+                    }
                 }
                 #endif
 
@@ -226,11 +226,16 @@ void main() {
 
                     float expMul = exp2(global_aeData.expValues.z);
 
-                    uvec4 centerData = shared_YCoCgData[localPos.y][localPos.x];
-                    vec4 centerDiffData = unpackHalf4x16(centerData.xy);
-                    vec4 centerSpecData = unpackHalf4x16(centerData.zw);
+                    #if SETTING_DEBUG_OUTPUT
+                    if (RANDOM_FRAME < MAX_FRAMES) {
+                        uvec4 centerData = shared_YCoCgData[localPos.y][localPos.x];
+                        vec4 centerDiffData = unpackHalf4x16(centerData.xy);
+                        vec4 centerSpecData = unpackHalf4x16(centerData.zw);
+                        imageStore(uimg_temp2, texelPos, vec4(colors_YCoCgToRGB(centerDiffData.rgb), 0.0));
+                    }
+                    #endif
 
-                    vec3 diffClamped = _clampColor(historyData.diffuseColor, centerDiffData.xyz, diffMoment1, diffMoment2, clampingThreshold);
+                    vec3 diffClamped = _clampColor(historyData.diffuseColor, diffMoment1, diffMoment2, clampingThreshold);
                     vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
                     vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - diffOutputSim);
                     float diffDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffDiff);
@@ -240,7 +245,7 @@ void main() {
                     diffInput = dither_fp16(diffInput, ditherNoise);
                     transient_gi_blurDiff2_store(texelPos, diffInput);
 
-                    vec3 specClamped = _clampColor(historyData.specularColor, centerSpecData.xyz, specMoment1, specMoment2, clampingThreshold);
+                    vec3 specClamped = _clampColor(historyData.specularColor, specMoment1, specMoment2, clampingThreshold);
                     vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
                     vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);

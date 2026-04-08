@@ -4,6 +4,8 @@
 #include "/util/Rand.glsl"
 #include "/util/Dither.glsl"
 
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
+
 vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
     return vec4(
         dot(xs, weights),
@@ -82,9 +84,9 @@ void computeEdgeWeights(
 
     vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
     float geomDepthBaseWeight = mix(32.0, 4.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
-    vec4 geomDepthWegiths = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(curr2PrevViewPos.z), 2.0)));
-    geomDepthWegiths *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
-    edgeWeights = geomNormalWeights * geomDepthWegiths;
+    vec4 geomDepthWeights = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(curr2PrevViewPos.z), 2.0)));
+    geomDepthWeights *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
+    edgeWeights = geomNormalWeights * geomDepthWeights;
 }
 
 void gi_reproject(ivec2 texelPos, float currViewZ) {
@@ -105,7 +107,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
     float glazingCosTheta = saturate(dot(currViewGeomNormal, -normalize(currViewPos.xyz)));
     float glazingAngleFactor = glazingCosTheta;
-    float glazingAngleFactorHistory = pow4(1.0 - glazingCosTheta);
+    float glazingAngleFactorHistory = pow2(1.0 - glazingCosTheta);
     bool valid = false;
 
     if (bool(clipFlag)) {
@@ -135,13 +137,13 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
             vec2 pixelPosFract = fract(curr2PrevTexelPos - 0.5);
             vec2 bilinearWeights2 = pixelPosFract;
-            vec4 blinearWeights4;
-            blinearWeights4.yz = bilinearWeights2.xx;
-            blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
-            blinearWeights4.xy *= bilinearWeights2.yy;
-            blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
+            vec4 bilinearWeights4;
+            bilinearWeights4.yz = bilinearWeights2.xx;
+            bilinearWeights4.xw = 1.0 - bilinearWeights2.xx;
+            bilinearWeights4.xy *= bilinearWeights2.yy;
+            bilinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
-            vec4 finalWeights = edgeWeights * blinearWeights4;
+            vec4 finalWeights = edgeWeights * bilinearWeights4;
             float weightSum = dot(finalWeights, vec4(1.0));
             float rcpWeightSum = safeRcp(weightSum);
             finalWeights *= rcpWeightSum;
@@ -167,7 +169,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         data5W,
                         finalWeights
                     );
-                    float antiStretching = pow2(linearStep(0.2, 0.0, packedData5.w - glazingAngleFactorHistory));
+                    float antiStretching = pow2(linearStep(0.2, 0.0, pow2(packedData5.w) - pow2(glazingAngleFactorHistory)));
                     historyResetFactor *= antiStretching;
                     packedData5.x *= historyResetFactor;
                     packedData5.y *= antiStretching;
@@ -246,7 +248,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
             } else {
                 vec4 packedData5 = history_gi5_sample(curr2PrevScreen);
 
-                float antiStretching = pow2(linearStep(0.2, 0.0, packedData5.w - glazingAngleFactorHistory));
+                float antiStretching = pow2(linearStep(0.2, 0.0, pow2(packedData5.w) - pow2(glazingAngleFactorHistory)));
                 historyResetFactor *= antiStretching;
 
                 packedData5.x *= historyResetFactor;
@@ -265,23 +267,11 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 vec4 packData14 = history_gi1_sample(tapData.uv4AndWeight.xy);
                 vec4 packData15 = history_gi1_sample(tapData.uv5AndWeight.xy);
 
-                vec4 packData21 = history_gi2_sample(tapData.uv1AndWeight.xy);
-                vec4 packData22 = history_gi2_sample(tapData.uv2AndWeight.xy);
-                vec4 packData23 = history_gi2_sample(tapData.uv3AndWeight.xy);
-                vec4 packData24 = history_gi2_sample(tapData.uv4AndWeight.xy);
-                vec4 packData25 = history_gi2_sample(tapData.uv5AndWeight.xy);
-
                 vec4 packData31 = history_gi3_sample(tapData.uv1AndWeight.xy);
                 vec4 packData32 = history_gi3_sample(tapData.uv2AndWeight.xy);
                 vec4 packData33 = history_gi3_sample(tapData.uv3AndWeight.xy);
                 vec4 packData34 = history_gi3_sample(tapData.uv4AndWeight.xy);
                 vec4 packData35 = history_gi3_sample(tapData.uv5AndWeight.xy);
-
-                vec4 packData41 = history_gi4_sample(tapData.uv1AndWeight.xy);
-                vec4 packData42 = history_gi4_sample(tapData.uv2AndWeight.xy);
-                vec4 packData43 = history_gi4_sample(tapData.uv3AndWeight.xy);
-                vec4 packData44 = history_gi4_sample(tapData.uv4AndWeight.xy);
-                vec4 packData45 = history_gi4_sample(tapData.uv5AndWeight.xy);
 
                 vec4 packedData1 = sampling_catmullBicubic5Tap_sum(
                     packData11,
@@ -295,14 +285,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 packedData1 = dither_fp16(packedData1, ditherNoise);
                 transient_gi1Reprojected_store(texelPos, packedData1);
 
-                vec4 packedData2 = sampling_catmullBicubic5Tap_sum(
-                    packData21,
-                    packData22,
-                    packData23,
-                    packData24,
-                    packData25,
-                    tapData
-                );
+                vec4 packedData2 = history_gi2_sample(curr2PrevScreen);
                 packedData2 = clamp(packedData2, 0.0, FP16_MAX);
                 packedData2 = dither_fp16(packedData2, ditherNoise);
                 transient_gi2Reprojected_store(texelPos, packedData2);
@@ -319,14 +302,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 packedData3 = dither_fp16(packedData3, ditherNoise);
                 transient_gi3Reprojected_store(texelPos, packedData3);
 
-                vec4 packedData4 = sampling_catmullBicubic5Tap_sum(
-                    packData41,
-                    packData42,
-                    packData43,
-                    packData44,
-                    packData45,
-                    tapData
-                );
+                vec4 packedData4 = history_gi4_sample(curr2PrevScreen);
                 packedData4 = clamp(packedData4, 0.0, FP16_MAX);
                 packedData4 = dither_fp16(packedData4, ditherNoise);
                 transient_gi4Reprojected_store(texelPos, packedData4);
@@ -336,7 +312,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
             if (valid) {
                 ReprojectInfo reprojInfo = reprojectInfo_init();
-                reprojInfo.bilateralWeights = pow4(edgeWeights);
+                reprojInfo.bilateralWeights = pow(edgeWeights, vec4(16.0)); // Most edge values are very close to 1.0
                 reprojInfo.curr2PrevScreenPos = curr2PrevScreen;
                 reprojInfo.historyResetFactor = historyResetFactor;
                 transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));

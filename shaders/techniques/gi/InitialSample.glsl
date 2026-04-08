@@ -13,18 +13,8 @@ struct restir_InitialSampleData {
 };
 
 vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, mat3 tbn) {
-    uvec4 randKey = uvec4(texelPos, 1919810u, RANDOM_FRAME);
-
-    vec2 rand2 = hash_uintToFloat(hash_44_q3(randKey).zw);
-    // vec2 rand2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
-
-    // vec4 sampleDirTangentAndPdf = rand_sampleInHemisphere(rand2);
-    vec4 sampleDirTangentAndPdf = rand_sampleInCosineWeightedHemisphere(rand2);
-    vec3 sampleDirView = normalize(tbn * sampleDirTangentAndPdf.xyz);
-
-    // ivec2 stbnPos = texelPos + ivec2(rand_r2Seq2(RANDOM_FRAME / 64u) * vec2(128, 128));
-    // vec3 sampleDirTangent = rand_stbnUnitVec3Cosine(stbnPos, RANDOM_FRAME);
-    // vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
+    vec3 sampleDirTangent = rand_stbnUnitVec3Cosine(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u), RANDOM_FRAME);
+    vec3 sampleDirView = normalize(tbn * sampleDirTangent);
 
     if (dot(sampleDirView, geomNormal) < 0.0) {
         sampleDirView = reflect(sampleDirView, geomNormal);

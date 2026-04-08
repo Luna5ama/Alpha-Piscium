@@ -10,8 +10,9 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
+layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 
 // Shared memory with padding for 4x4 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for Lanczos2 4x4 taps
@@ -44,6 +45,13 @@ void updateAABB(vec3 color, float weight, inout ColorAABB box) {
     box.moment1 += color * weight;
     box.moment2 += color * color * weight;
     box.weightSum += weight;
+}
+
+vec3 clipAABB(vec3 avg, vec3 sigma, vec3 prev) {
+    vec3 dir = prev - avg;
+    vec3 ray_t = abs(dir / max(sigma, vec3(1e-7)));
+    float t_max = max(mmax3(ray_t), 1.0);
+    return avg + dir / t_max;
 }
 
 float kernelWeight(vec2 centerPos, vec2 samplePos, float param) {
@@ -182,12 +190,13 @@ void main() {
             prevResult /= weightSum;
             #endif
         }
-        prevColor = saturate(prevResult.rgb);
+        prevColor = max(prevResult.rgb, 0.0);
         lastFrameAccum = prevResult.a;
     }
     float newFrameAccum = lastFrameAccum + 1.0;
 
     vec3 currColor;
+    #ifdef SETTING_TAA
     {
         vec2 centerPixel = unjitterTexelPos - 0.5;
         vec2 centerPixelOrigin = floor(centerPixel);
@@ -213,7 +222,10 @@ void main() {
         }
         currColor = colors_YCoCgToRGB(colorResult / weightSum);
     }
-    currColor = saturate(currColor);
+    #else
+    currColor = texelFetch(usam_main, texelPos, 0).rgb;
+    #endif
+    currColor = max(currColor, 0.0);
 
     vec4 taaResetFactor = global_taaResetFactor;
     newFrameAccum *= taaResetFactor.z;
@@ -255,7 +267,11 @@ void main() {
         delta /= max(1.0, length(delta / stddev));
 
         vec3 prevColorYCoCgAABBClamped = clamp(prevColorYCoCg, box.minVal, box.maxVal);
+        prevColorYCoCgAABBClamped = clipAABB((box.maxVal + box.minVal) * 0.5, (box.maxVal - box.minVal) * 0.5 + clippingEps, prevColorYCoCgAABBClamped);
+
         vec3 prevColorYCoCgVarianceAABBClamped = clamp(prevColorYCoCgAABBClamped, varianceAABBMin, varianceAABBMax);
+        prevColorYCoCgVarianceAABBClamped = clipAABB(mean, stddev * varianceAABBSize, prevColorYCoCgVarianceAABBClamped);
+
         vec3 prevColorYCoCgEllipsoid = clamp(mean + delta, box.minVal, box.maxVal);
         prevColorYCoCgEllipsoid = clamp(prevColorYCoCgEllipsoid, varianceAABBMin, varianceAABBMax);
 
@@ -264,7 +280,12 @@ void main() {
         vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampMethod));
         prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampMethod));
 
-        prevColor = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
+        vec3 prevColorNew = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
+        vec3 prevColorDiff = abs(prevColorNew - prevColor);
+        float lumaDiff = smoothstep(0.0, 0.3, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevColorDiff));
+
+        transient_lumaDiff_store(texelPos, vec4(lumaDiff, 0.0, 0.0, 0.0));
+        prevColor = prevColorNew;
     }
 
     #ifdef SETTING_SCREENSHOT_MODE
