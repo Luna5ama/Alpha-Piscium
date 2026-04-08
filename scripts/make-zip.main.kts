@@ -26,7 +26,7 @@ val suffix = if (noCommitHash) {
 } else {
     listOfNotNull(version, commitTag, branchName)
 }
-val suffixStr = suffix.joinToString(" ")
+val suffixStr = suffix.joinToString("-")
 val zipFileName = "${projectRootPath.name.replace("-", " ")}$suffixStr.zip"
 val zipFilePath = projectRootPath.resolve("builds").resolve(zipFileName)
 

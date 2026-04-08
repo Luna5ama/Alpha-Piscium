@@ -15,7 +15,6 @@ vec3 restir_irradiance_sampleIrradianceMiss(ivec2 texelPos, vec3 rayOriginScene,
     ivec2 envTexel = ivec2((envSliceUV + envSliceID) * ENV_PROBE_SIZE);
     EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
 
-    float envProbeDistance = distance(envData.scenePos, rayOriginScene);
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, worldDirection);
@@ -30,7 +29,8 @@ vec3 restir_irradiance_sampleIrradianceMiss(ivec2 texelPos, vec3 rayOriginScene,
     if (envProbe_isSky(envData)) {
         result.rgb = skyIrradiance;
     } else {
-        float skyMixWeight = linearStep(SETTING_GI_PROBE_FADE_START, SETTING_GI_PROBE_FADE_END, length(rayOriginScene));
+        float envProbeDistance = distance(envData.scenePos, rayOriginScene);
+        float skyMixWeight = linearStep(SETTING_GI_PROBE_FADE_START, SETTING_GI_PROBE_FADE_END, envProbeDistance);
         result.rgb = mix(envData.radiance.rgb, skyIrradiance, skyMixWeight);
     }
 
