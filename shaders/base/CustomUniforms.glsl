@@ -29,6 +29,7 @@ uniform int uval_mainImageSizeIY;
 uniform vec3 uval_cameraDelta;
 
 uniform vec2 uval_taaJitter;
+uniform vec2 uval_prevTaaJitter;
 uniform vec2 uval_taaJitterUV;
 #endif
 

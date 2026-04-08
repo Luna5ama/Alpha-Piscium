@@ -48,7 +48,6 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     mat4 global_shadowViewToShadowNDC;
     mat4 global_shadowNDCToScene;
     vec3 global_prevCameraDelta;
-    vec2 global_prevTaaJitter;
     CameraData global_cameraData;
     vec2 global_mipmapSizes[16];
     vec2 global_mipmapSizesRcp[16];
