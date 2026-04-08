@@ -25,7 +25,7 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 n
 
     // Specular bounce probability: F / (albedo*(1-F) + F)
     float pSpec = 1.0;
-    if (material.metallic < 1.0) {
+    if (material.dielectric > 0.0) {
         float NdotV = saturate(wiTangent.z);
         vec3 fresnelV = saturate(fresnel_evalMaterial(material, NdotV));
         vec3 fresnelT = vec3(1.0) - fresnelV;

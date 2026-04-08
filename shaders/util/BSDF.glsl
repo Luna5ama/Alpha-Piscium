@@ -26,8 +26,8 @@ vec3 bsdf_diffuseHammon(Material material, float NDotL, float NDotV, float NDotH
         float facing = saturate(0.5 * LDotV + 0.5);
 
         // Jessie's modification for energy conservation
-        float fresnelNL = fresnel_dielectricDielectric_transmittance(max(NDotL, 1e-2), vec3(AIR_IOR), vec3(fresnel_f0ToIor(material.f0))).x;
-        float fresnelNV = fresnel_dielectricDielectric_transmittance(max(NDotV, 1e-2), vec3(AIR_IOR), vec3(fresnel_f0ToIor(material.f0))).x;
+        float fresnelNL = fresnel_dielectricDielectric_transmittance(max(NDotL, 1e-2), AIR_IOR, fresnel_f0ToIor(material.f0));
+        float fresnelNV = fresnel_dielectricDielectric_transmittance(max(NDotV, 1e-2), AIR_IOR, fresnel_f0ToIor(material.f0));
         float energyConservationFactor = 1.0 - (4.0 * sqrt(material.f0) + 5.0 * material.f0 * material.f0) * rcp(9.0);
         float singleSmooth = (fresnelNL * fresnelNV) / energyConservationFactor;
 

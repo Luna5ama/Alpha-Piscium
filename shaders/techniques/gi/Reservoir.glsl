@@ -111,11 +111,11 @@ float evalTargetFunction(vec3 irradiance, vec3 normal, vec3 lightDir, vec3 viewD
     float NdotH = saturate(dot(normal, H));
     float LdotH = saturate(dot(lightDir, H));
 
-    vec3 fresnel = fresnel_evalMaterial(material, LdotH);
-    float diffuseBRDF = (1.0 - material.metallic) * NdotL * RCP_PI;
+    float fresnel = fresnel_adobe(LdotH, material.f0, material.f82);
+    float diffuseBRDF = material.dielectric * NdotL * RCP_PI;
     float specularBRDF = bsdf_ggx(material, NdotL, NdotV, NdotH);
 
-    vec3 brdf = ((1.0 - fresnel) * diffuseBRDF + fresnel * specularBRDF);
+    float brdf = mix(diffuseBRDF, specularBRDF, fresnel);
     vec3 radiance = irradiance * brdf;
     return length(radiance);
 }

@@ -204,7 +204,7 @@ void main() {
 
             // --- Diffuse loop: screen-space kernel with view-angle stretch ---
             #ifdef SETTING_DENOISER_SPATIAL
-            if (material.metallic < 1.0) {
+            if (material.dielectric > 0.0) {
                 float kernelRadius = baseKernelRadius.x;
                 kernelRadius *= accumFactor;
                 kernelRadius *= 1.0 + filteredInputVariance.x * baseKernelRadius.y;

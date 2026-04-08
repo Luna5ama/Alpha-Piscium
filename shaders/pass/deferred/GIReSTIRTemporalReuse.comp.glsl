@@ -235,7 +235,7 @@ void main() {
                 float LDotH = saturate(dot(L, H));
 
                 vec3 fresnel = fresnel_evalMaterial(material, LDotH);
-                float diffuseBRDF = (1.0 - material.metallic) * NDotL * RCP_PI;
+                float diffuseBRDF = material.dielectric * NDotL * RCP_PI;
                 float specularBRDF = bsdf_ggx(material, NDotL, NDotV, NDotH);
 
                 vec3 f = hitRadiance * ((1.0 - fresnel) * diffuseBRDF + fresnel * specularBRDF);
@@ -286,7 +286,7 @@ void main() {
                 float winDiffBRDF = winNDotL * RCP_PI;
                 float winSpecBRDF = bsdf_ggx(material, winNDotL, winNDotV, winNDotH);
 
-                vec3 diffuseWeight = (1.0 - material.metallic) * (1.0 - winFresnel) * winDiffBRDF;
+                vec3 diffuseWeight = material.dielectric * (1.0 - winFresnel) * winDiffBRDF;
                 vec3 specularWeight = winFresnel * winSpecBRDF;
                 vec3 fullBRDF = diffuseWeight + specularWeight;
                 vec3 diffRatio3 = diffuseWeight * safeRcp(fullBRDF);

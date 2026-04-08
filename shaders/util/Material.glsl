@@ -12,8 +12,11 @@
 struct Material {
     vec3 albedo; // Working space
     float roughness;
+    vec3 f0RGB;
+    vec3 f82RGB;
     float f0;
-    float metallic;
+    float f82;
+    float dielectric;
     vec3 emissive;
     float porosity;
     float sss;
@@ -84,12 +87,22 @@ Material material_decode(GBufferData gData) {
     roughness = mix(0.01, 1.0, roughness);
     #endif
     material.roughness = roughness;
-    material.f0 = gData.pbrSpecular.g;
 
-    #if SETTING_MINIMUM_F0_FACTOR > 0
-    material.f0 = max(material.f0, _MATERIAL_F0_EPSILON);
-    #endif
-    material.metallic = float(material.f0 >= (229.5 / 255.0));
+    bool dielectric = gData.pbrSpecular.g < (229.5 / 255.0);
+    material.dielectric = float(dielectric);
+    if (dielectric) {
+        material.f0RGB = vec3(gData.pbrSpecular.g);
+        material.f82RGB = vec3(1.0);
+        material.f82 = 1.0;
+    } else {
+        material.f0RGB = material.albedo;
+        vec4 f82Data = texelFetch(usam_f82, int(gData.pbrSpecular.g * 255.0), 0);
+        material.f82RGB = mix(f82Data.aaa, vec3(1.0), f82Data.rgb);
+        material.f82 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f82RGB);
+    }
+    material.f0 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f0RGB);
+    material.f0RGB = max(material.f0RGB, _MATERIAL_F0_EPSILON);
+
 
     vec4 emissiveAlbedo = pow(max(vec4(gData.albedo, albedoLuma), 1e-8), emissiveAlbedoCurve);
     emissiveAlbedo.rgb = colors2_material_toWorkSpace(emissiveAlbedo.rgb);

@@ -289,7 +289,7 @@ void main() {
             float NDotV = saturate(dot(centerSampleData.normal, V));
             float ggxBRDF = bsdf_ggx(material, outNDotL, NDotV, outNDotH);
 
-            vec3 diffuseWeight = (1.0 - material.metallic) * (1.0 - outFresnel) * lambertianBRDF;
+            vec3 diffuseWeight = material.dielectric * (1.0 - outFresnel) * lambertianBRDF;
             vec3 specularWeight = outFresnel * ggxBRDF;
             vec3 fullBRDF = diffuseWeight + specularWeight;
             vec3 diffRatio3 = diffuseWeight * safeRcp(fullBRDF);
