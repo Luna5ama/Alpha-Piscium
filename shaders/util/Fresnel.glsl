@@ -141,20 +141,25 @@ float frenel_schlick(float cosTheta, float f0) {
 }
 
 // [KUT21]
-float fresnel_adobe(float cosTheta, float f0, float f82) {
+// f82Tint isn't the absolute fresnel value at 82 degrees like the 2019 Lazanyi
+// But rather a multiplier over the schlick fresnel at 82 degrees
+float fresnel_adobe(float cosTheta, float f0, float f82Tint) {
     float oneMinusF0 = 1.0 - f0;
-    float b = fma(oneMinusF0, 0.462664878484, f0) * fma(f82, -17.6513843536, 17.6513843536);
+    float b = fma(oneMinusF0, 0.462664878484, f0) * fma(f82Tint, -17.6513843536, 17.6513843536);
     return saturate(fma(fma(fma(cosTheta, cosTheta, -cosTheta), b, oneMinusF0), pow5(1.0 - cosTheta), f0));
 }
 
-vec3 fresnel_adobe(float cosTheta, vec3 f0, vec3 f82) {
+// [KUT21]
+// f82Tint isn't the absolute fresnel value at 82 degrees like the 2019 Lazanyi
+// But rather a multiplier over the schlick fresnel at 82 degrees
+vec3 fresnel_adobe(float cosTheta, vec3 f0, vec3 f82Tint) {
     vec3 oneMinusF0 = vec3(1.0) - f0;
-    vec3 b = fma(oneMinusF0, vec3(0.462664878484), f0) * fma(f82, vec3(-17.6513843536), vec3(17.6513843536));
+    vec3 b = fma(oneMinusF0, vec3(0.462664878484), f0) * fma(f82Tint, vec3(-17.6513843536), vec3(17.6513843536));
     return saturate(fma(fma(vec3(fma(cosTheta, cosTheta, -cosTheta)), b, oneMinusF0), vec3(pow5(1.0 - cosTheta)), f0));
 }
 
 vec3 fresnel_evalMaterial(Material material, float cosTheta) {
-    return fresnel_adobe(cosTheta, material.f0RGB, material.f82RGB);
+    return fresnel_adobe(cosTheta, material.f0RGB, material.f82TintRGB);
 }
 
 #endif

@@ -13,9 +13,9 @@ struct Material {
     vec3 albedo; // Working space
     float roughness;
     vec3 f0RGB;
-    vec3 f82RGB;
+    vec3 f82TintRGB;
     float f0;
-    float f82;
+    float f82Tint;
     float dielectric;
     vec3 emissive;
     float porosity;
@@ -92,13 +92,13 @@ Material material_decode(GBufferData gData) {
     material.dielectric = float(dielectric);
     if (dielectric) {
         material.f0RGB = vec3(gData.pbrSpecular.g);
-        material.f82RGB = vec3(1.0);
-        material.f82 = 1.0;
+        material.f82TintRGB = vec3(1.0);
+        material.f82Tint = 1.0;
     } else {
         material.f0RGB = material.albedo;
         vec4 f82Data = texelFetch(usam_f82, int(gData.pbrSpecular.g * 255.0), 0);
-        material.f82RGB = mix(f82Data.aaa, vec3(1.0), f82Data.rgb);
-        material.f82 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f82RGB);
+        material.f82TintRGB = mix(f82Data.aaa, vec3(1.0), f82Data.rgb);
+        material.f82Tint = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f82TintRGB);
     }
     material.f0 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f0RGB);
     material.f0RGB = max(material.f0RGB, _MATERIAL_F0_EPSILON);

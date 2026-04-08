@@ -37,7 +37,7 @@ Path("../shaders/textures/f82.bin").outputStream().buffered().use { out ->
     labpbrTable.asSequence()
         .map {
             if (it == "Pb") {
-                listOf(0.612066, 0.629024, 0.663700)
+                listOf(0.782120281401, 0.7329555564, 0.791557189307)
             } else {
                 f82Table[it]!!
             }
