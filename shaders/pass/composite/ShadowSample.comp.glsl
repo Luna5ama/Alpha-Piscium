@@ -107,7 +107,8 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
 
     float sssFactor = material.sss;
     uint skipFlag = uint(dot(gData.normal, uval_upDirView) < -0.99);
-    skipFlag &= uint(sssFactor < 0.001);
+    bool isSSS = sssFactor > 0.001;
+    skipFlag &= 1u - uint(isSSS);
     vec4 result = vec4(0.0);
     if (!bool(skipFlag)) {
         vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
@@ -197,22 +198,32 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
             }
         }
 
+        float bendShadow = transient_bendShadow_fetch(texelPos).r;
         float solidShadow = float(solidShadowSum) * rcpSamples;
         float w = rcp(fma(blockerDistance, 0.5, 0.0001)) + 1.0;
         float sh = shadowHarden(solidShadow, w);
         solidShadow = sh * (2.0 - sh);
+
+        float sssAdjustedBendShadow = bendShadow;
+        if (isSSS) {
+            const float DECAY_FACTOR = 1.0;
+            float factor = DECAY_FACTOR * rcp(abs(viewPos.z) + DECAY_FACTOR);
+            sssAdjustedBendShadow = mix(sssAdjustedBendShadow, solidShadow, factor);
+        }
+
+        solidShadow = min(sssAdjustedBendShadow, solidShadow);
 
         vec3 finalShadow = vec3(solidShadow);
         if (translucentShadowSum.a > float16_t(0.0)) {
             finalShadow *= vec3(translucentShadowSum.rgb) * rcp(float(translucentShadowSum.a));
         }
 
-        float surfaceDepth = material.sss > 0.0 ? max(blockerDistance, 0.1) : 0.0;
+        float surfaceDepth = sssFactor > 0.0 ? max(blockerDistance, 0.1) : 0.0;
 
         float realShadowRange = min(shadowDistance, far);
-        float shadowRangeBlend = linearStep(realShadowRange - 8.0, realShadowRange, length(scenePos.xz));
+        float shadowRangeBlend = smoothstep(realShadowRange - 16.0, realShadowRange - 8.0, length(scenePos.xz));
 
-        result = mix(vec4(finalShadow, surfaceDepth), vec4(1.0), shadowRangeBlend);
+        result = mix(vec4(finalShadow, surfaceDepth), vec4(bendShadow.rrr, 1.0), shadowRangeBlend);
     }
     return result;
 }
@@ -243,7 +254,8 @@ void main() {
             #ifdef SETTING_RTWSM_B
             rtwsm_backward(texelPos, viewZ, gData);
             #endif
-            vec4 shadowValue = clamp(compShadow(texelPos, viewZ, gData), 0.0, FP16_MAX);
+            vec4 shadowValue = compShadow(texelPos, viewZ, gData);
+            shadowValue = clamp(shadowValue, 0.0, FP16_MAX);
             transient_shadow_store(texelPos, shadowValue);
         }
     }

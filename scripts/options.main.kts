@@ -416,7 +416,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "用于次表面散射的采样数。数值越高，质量越好，但会降低性能。"
                         }
                     }
-                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.8, 0.0..4.0 step 0.1) {
+                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.5, 0.0..2.0 step 0.1) {
                         lang {
                             name = "Diffuse Range"
                             comment =
@@ -427,7 +427,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "数值越高，外观越扩散、越柔和。"
                         }
                     }
-                    slider("SETTING_SSS_DEPTH_RANGE", 0.3, 0.0..4.0 step 0.1) {
+                    slider("SETTING_SSS_DEPTH_RANGE", 0.3, 0.0..2.0 step 0.1) {
                         lang {
                             name = "Depth Range"
                             comment =
