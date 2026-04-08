@@ -19,7 +19,7 @@ void handleRayResult(SSTRay sstRay) {
     }
 
     if (discardSptialReuse) {
-        transient_ssgiOut_store(texelPos, vec4(0.0));
+        transient_ssgiDiffOut_store(texelPos, vec4(0.0));
         #if SETTING_DEBUG_OUTPUT
         imageStore(uimg_temp5, texelPos, vec4(0.0, 0.0, 1.0, 0.0));
         #endif

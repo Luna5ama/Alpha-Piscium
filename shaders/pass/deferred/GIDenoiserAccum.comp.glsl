@@ -97,7 +97,7 @@ void main() {
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
             float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).x;
             if (viewZ > -65536.0) {
-                vec4 newDiffuse = transient_ssgiOut_fetch(texelPos);
+                vec4 newDiffuse = transient_ssgiDiffOut_fetch(texelPos);
                 vec4 newSpecular = transient_ssgiSpecOut_fetch(texelPos);
                 #if SETTING_DEBUG_OUTPUT
                 if (RANDOM_FRAME < MAX_FRAMES) {

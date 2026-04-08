@@ -85,7 +85,6 @@ void main() {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
             vec3 V = normalize(-viewPos);
-            float NDotV = saturate(dot(centerSampleData.normal, V));
 
             uvec4 reprojectedData;
             if (bool(frameCounter & 1)) {
@@ -106,8 +105,7 @@ void main() {
 
             float16_t reuseRadius = float16_t(reuseRadiusFP32);
 
-            float pHatMe = centerSampleData.sampleValue.w;
-            vec4 originalSample = vec4(centerSampleData.sampleValue.xyz, pHatMe);
+            vec4 originalSample = centerSampleData.sampleValue;
             float rcAvgWY = max(spatialReservoir.avgWY, 0.0);
             float rcM = spatialReservoir.m;
             float rcMDivK = rcM / max(float(reuseCount), 1.0); // rc.M / k [BIT22 Algo.8]
@@ -225,7 +223,7 @@ void main() {
                                     vec3 VNeighbor = -normalize(neighborViewPos);
                                     float piRcY = evalTargetFunction(originalSample.xyz, neighborData.normal, cDirAtNbr, VNeighbor, material) * jacCn;
                                     float MiPiRcY = neighborReservoir.m * piRcY;
-                                    mc += 1.0 - MiPiRcY * safeRcp(MiPiRcY + rcMDivK * pHatMe);
+                                    mc += 1.0 - MiPiRcY * safeRcp(MiPiRcY + rcMDivK * originalSample.w);
                                 } else {
                                     mc += 1.0; // center hit is behind hit surface from neighbor's POV
                                 }
@@ -249,10 +247,11 @@ void main() {
                             selectedSampleF = vec4(hitRadiance, neighborPHat);
                         }
                     }
-                } }
+                }
+            }
 
             // Canonical update [BIT22 Algo.8 line 8]: s.update(rc.y, p̂_c(rc.y) * rc.W(rc.y) * mc)
-            float canonicalWi = pHatMe * rcAvgWY * mc;
+            float canonicalWi = originalSample.w * rcAvgWY * mc;
             float canonicalRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 4u + reuseCount), RANDOM_FRAME);
             if (restir_updateReservoir(
                 spatialReservoir,
@@ -265,7 +264,7 @@ void main() {
                 selectedSampleF = originalSample;
             }
 
-            vec4 ssgiOut = vec4(0.0, 0.0, 0.0, -1.0);
+            vec4 ssgiDiffOut = vec4(0.0, 0.0, 0.0, -1.0);
             vec4 ssgiSpecOut = vec4(0.0, 0.0, 0.0, -1.0);
             ReSTIRReservoir resultReservoir = spatialReservoir;
             // Pairwise MIS final weight [BIT22 Algo.8 line 10]: W = 1/p̂ * 1/(1+k) * wsum
@@ -276,16 +275,18 @@ void main() {
             float winHitDist = resultReservoir.Y.w;
             vec3 H_out = normalize(winL_out + V);
 
-            float outNDotL = saturate(dot(centerSampleData.normal, winL_out));
-            float outNDotH = saturate(dot(centerSampleData.normal, H_out));
-            float outLDotH = saturate(dot(winL_out, H_out));
-
             GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
             Material material = material_decode(gData);
+
+            float outNDotL = saturate(dot(gData.normal, winL_out));
+            float outNDotH = saturate(dot(gData.normal, H_out));
+            float outLDotH = saturate(dot(winL_out, H_out));
+
             vec3 outFresnel = fresnel_evalMaterial(material, outLDotH);
             float lambertianBRDF = outNDotL * RCP_PI;
+            float NDotV = saturate(dot(centerSampleData.normal, V));
             float ggxBRDF = bsdf_ggx(material, outNDotL, NDotV, outNDotH);
 
             vec3 diffuseWeight = (1.0 - material.metallic) * (1.0 - outFresnel) * lambertianBRDF;
@@ -294,7 +295,7 @@ void main() {
             vec3 diffRatio3 = diffuseWeight * safeRcp(fullBRDF);
 
             vec3 totalOutput = selectedSampleF.xyz * fullBRDF * avgWY;
-            ssgiOut = vec4(totalOutput * diffRatio3, winHitDist);
+            ssgiDiffOut = vec4(totalOutput * diffRatio3, winHitDist);
             ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3), winHitDist);
 
             #if SETTING_DEBUG_OUTPUT
@@ -328,7 +329,7 @@ void main() {
 
                     if (discardSptialReuse) {
                         resultReservoir = restir_initReservoir();
-                        ssgiOut = vec4(0.0);
+                        ssgiDiffOut = vec4(0.0);
                         ssgiSpecOut = vec4(0.0);
                         #if SETTING_DEBUG_OUTPUT
                         imageStore(uimg_temp5, texelPos, vec4(0.0, 0.0, 1.0, 0.0));
@@ -340,9 +341,9 @@ void main() {
             imageStore(uimg_temp5, texelPos, vvv);
             #endif
 
-            ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
+            ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);
             ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
-            transient_ssgiOut_store(texelPos, ssgiOut);
+            transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);
             transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
         }
     }

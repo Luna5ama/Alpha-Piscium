@@ -50,7 +50,7 @@ void sampleTemporalNeighbor(
     inout ReSTIRReservoir reservoir,
     inout float wSum,
     inout vec4 prevSample,
-    inout vec3 prevHitNormal
+    inout f16vec3 prevHitNormal
 ) {
     if (combinedWeight > 0.0) {
         uvec4 prevTemporalReservoirData = oddFrame
@@ -119,7 +119,7 @@ void sampleTemporalNeighbor(
 
                 if (restir_updateReservoir(reservoir, wSum, neighborReservoir.Y, wi, neighborReservoir.m, neighborRand)) {
                     prevSample = vec4(neighborSample.xyz, neighborPHat);
-                    prevHitNormal = neighborHitNormal;
+                    prevHitNormal = f16vec3(neighborHitNormal);
                 }
             }
         }
@@ -152,7 +152,7 @@ void main() {
             vec3 V = normalize(-viewPos);
 
             vec4 prevSample = vec4(0.0);
-            vec3 prevHitNormal = vec3(0.0);
+            f16vec3 prevHitNormal = f16vec3(0.0);
             float wSum = 0.0;
 
             uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_fetch(texelPos);
@@ -246,21 +246,30 @@ void main() {
 
                 float reservoirRand1 = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 6u), RANDOM_FRAME);
 
-                vec4 finalSample = prevSample;
-                vec3 hitNormal = prevHitNormal;
+                vec4 finalSample = vec4(prevSample);
+                vec3 hitNormal = normalize(vec3(prevHitNormal));
                 if (restir_updateReservoir(temporalReservoir, wSum, vec4(sampleDirView, hitDistance), newWi, 1.0, reservoirRand1)) {
                     finalSample = vec4(hitRadiance, newPHat);
 
                     vec4 hitNormalData = transient_viewNormal_fetch(hitTexelPos);
                     hitNormal = normalize(hitNormalData.xyz * 2.0 - 1.0);
                 }
+
+                SpatialSampleData spatialSample = spatialSampleData_init();
+                spatialSample.sampleValue = finalSample;
+                spatialSample.geomNormal = gData.geomNormal;
+                spatialSample.normal = gData.normal;
+                spatialSample.hitNormal = hitNormal;
+                transient_restir_spatialInput_store(texelPos, spatialSampleData_pack(spatialSample));
+
                 float avgWSum = wSum / temporalReservoir.m;
                 temporalReservoir.avgWY = avgWSum * safeRcp(finalSample.w);
                 temporalReservoir.m = clamp(temporalReservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
+
                 #if USE_REFERENCE
                 vec4 ssgiOut = vec4(f * safeRcp(samplePdf), hitDistance);
                 ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
-                transient_ssgiOut_store(texelPos, ssgiOut);
+                transient_ssgiDiffOut_store(texelPos, ssgiOut);
                 transient_ssgiSpecOut_store(texelPos, vec4(0.0));
 
                 #elif !defined(SETTING_GI_SPATIAL_REUSE)
@@ -271,7 +280,7 @@ void main() {
                 float winNDotL = saturate(dot(gData.normal, winL));
                 float winNDotV = saturate(dot(gData.normal, V));
                 float winNDotH = saturate(dot(gData.normal, H_win));
-                float winLDotH = saturate(dot(winL, H_win));
+                float winLDotH = abs(dot(winL, H_win));
 
                 vec3 winFresnel = fresnel_evalMaterial(material, winLDotH);
                 float winDiffBRDF = winNDotL * RCP_PI;
@@ -288,16 +297,9 @@ void main() {
                 ssgiDiffOut = clamp(ssgiDiffOut, 0.0, FP16_MAX);
                 ssgiSpecOut = clamp(ssgiSpecOut, 0.0, FP16_MAX);
 
-                transient_ssgiOut_store(texelPos, ssgiDiffOut);
+                transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);
                 transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
                 #endif
-
-                SpatialSampleData spatialSample = spatialSampleData_init();
-                spatialSample.sampleValue = finalSample;
-                spatialSample.geomNormal = gData.geomNormal;
-                spatialSample.normal = gData.normal;
-                spatialSample.hitNormal = hitNormal;
-                transient_restir_spatialInput_store(texelPos, spatialSampleData_pack(spatialSample));
             }
         }
         uvec4 packedReservoir = restir_reservoir_pack(temporalReservoir);

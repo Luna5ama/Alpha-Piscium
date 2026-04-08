@@ -37,7 +37,7 @@
         "transient_gi_diffShadingOutput": "RGBA16F",
         "transient_gi_specShadingOutput": "RGBA16F",
         "transient_giRadianceInputs": "RG32UI",
-        "transient_ssgiOut": "RGBA16F",
+        "transient_ssgiDiffOut": "RGBA16F",
         "transient_ssgiSpecOut": "RGBA16F",
         "history_restir_reservoirTemporal1": "RGBA32UI",
         "history_restir_reservoirTemporal2": "RGBA32UI",
