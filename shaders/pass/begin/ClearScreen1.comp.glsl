@@ -27,15 +27,4 @@ layout(r32f) uniform writeonly image2D CLEAR_IMAGE6;
 #define CLEAR_COLOR6 vec4(-65536.0)
 /*const*/
 
-#ifdef VOXY
-#define CLEAR_IMAGE7 uimg_gbufferVoxySolidData
-#define CLEAR_IMAGE8 uimg_gbufferVoxyTranslucentData
-
-layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE7;
-layout(rgba32ui) uniform writeonly uimage2D CLEAR_IMAGE8;
-
-#define CLEAR_COLOR7 uvec4(0u)
-#define CLEAR_COLOR8 uvec4(0u)
-#endif
-
 #include "/techniques/Clear.comp.glsl"
