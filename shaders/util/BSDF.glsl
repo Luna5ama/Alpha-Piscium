@@ -52,7 +52,7 @@ float bsdf_ggx(Material material, float NDotL, float NDotV, float NDotH) {
 
         // Normal Distribution Function Term [KAR13]
         // GGX (Trowbridge-Reitz)
-        float d = a2 / (PI * pow2(NDotH2 * (a2 - 1.0) + 1.0));
+        float d = a2 / max(PI * pow2(NDotH2 * (a2 - 1.0) + 1.0), 1e-16);
 
         // Visibility Function Term [HOF10]
         float k = material.roughness * 0.5;
@@ -70,10 +70,14 @@ float _bsdf_lambdaSmith(float ndotx, float alpha) {
     return (-1.0 + sqrt(alpha_sqr * (1.0 - ndotx_sqr) / ndotx_sqr + 1.0)) * 0.5;
 }
 
-// [GIL23]
 float bsdf_smithG1(float ndotv, float alpha) {
-    float lambda_v = _bsdf_lambdaSmith(ndotv, alpha);
-    return 1.0 / (1.0 + lambda_v);
+    // float lambda_v = _bsdf_lambdaSmith(ndotv, alpha);
+    // return 1.0 / (1.0 + lambda_v);
+    // Simplied version of the above
+    float alphaSq = alpha * alpha;
+    float ndotvSq = ndotv * ndotv;
+    float denom = ndotv + sqrt(ndotvSq - alphaSq * ndotvSq + alphaSq);
+    return 2.0 * ndotv / denom;
 }
 
 // [GIL23]
@@ -84,45 +88,61 @@ float bsdf_smithG2(float ndotl, float ndotv, float alpha) {
     return 1.0 / (1.0 + lambda_v + lambda_l);
 }
 
-// [GIL23]
-vec3 bsdf_SphericalCapBoundedWithPDFRatio(vec2 u, vec3 wi, vec2 alpha, out float pdf_ratio) {
-    #define mad(a,b,c) ((a)*(b)+(c))
-    // warp to the hemisphere configuration
+// Zombye
+vec3 bsdf_VNDFSphericalCap(
+    vec3 viewerDirection, // Direction pointing towards the viewer, oriented such that +Z corresponds to the surface normal
+    vec2 alpha, // Roughness parameter along X and Y of the distribution
+    vec2 xy // Pair of uniformly distributed numbers in [0, 1)
+) {
+    // Transform viewer direction to the hemisphere configuration
+    viewerDirection = normalize(vec3(alpha * viewerDirection.xy, viewerDirection.z));
 
-    //PGilcher: save the length t here for pdf ratio
-    vec3 wiStd = vec3(wi.xy * alpha, wi.z);
-    float t = length(wiStd);
-    wiStd /= t;
+    // Sample a reflection direction off the hemisphere
+    const float tau = 6.2831853; // 2 * pi
+    float phi = tau * xy.x;
+    float cosTheta = fma(1.0 - xy.y, 1.0 + viewerDirection.z, -viewerDirection.z);
+    float sinTheta = sqrt(clamp(1.0 - cosTheta * cosTheta, 0.0, 1.0));
+    vec3 reflected = vec3(vec2(cos(phi), sin(phi)) * sinTheta, cosTheta);
 
-    // sample a spherical cap in (-wi.z, 1]
-    float phi = (2.0f * u.x - 1.0f) * PI;
+    // Evaluate halfway direction
+    // This gives the normal on the hemisphere
+    vec3 halfway = reflected + viewerDirection;
 
-    float a = saturate(min( alpha.x, alpha.y)); // Eq. 6
-    float s = 1.0f + length(wi.xy); // Omit sgn for a <=1
-    float a2 = a * a;
-    float s2 = s * s;
-    float k = (1.0 - a2) * s2 / (s2 + a2 * wi.z * wi.z);
+    // Transform the halfway direction back to hemiellispoid configuation
+    // This gives the final sampled normal
+    return normalize(vec3(alpha * halfway.xy, halfway.z));
+}
 
-    float b = wiStd.z;
-    b = wi.z > 0.0 ? k * b : b;
+// Return:
+// xyz: visible normal vector
+// w: pdf
+vec3 bsdf_VNDFSphericalCapTrimmed(
+    vec3 V, // Direction pointing towards the viewer, oriented such that +Z corresponds to the surface normal
+    float alpha, // Roughness parameter along X and Y of the distribution
+    vec2 xy, // Pair of uniformly distributed numbers in [0, 1)
+    float trimFactor
+) {
+    const float EPS = 1e-5;
+    // Transform viewer direction to the hemisphere configuration
+    vec3 stretchedV = normalize(vec3(alpha * V.xy, V.z));
 
-    //PGilcher: compute ratio of unchanged pdf to actual pdf (ndf/2 cancels out)
-    //Dupuy's method is identical to this except that "k" is always 1, so
-    //we extract the differences of the PDFs (Listing 2 in the paper)
-    pdf_ratio = (k * wi.z + t) / (wi.z + t);
+    float yMax = clamp(1.0 - trimFactor / (1.0 + stretchedV.z), 0.0, 1.0);
+    xy.y *= yMax;
 
-    float z = mad((1.0f - u.y), (1.0f + b), -b);
-    float sinTheta = sqrt(clamp(1.0f - z * z, 0.0f, 1.0f));
-    float x = sinTheta * cos(phi);
-    float y = sinTheta * sin(phi);
-    vec3 c = vec3(x, y, z);
-    // compute halfway direction as standard normal
-    vec3 wmStd = c + wiStd;
-    // warp back to the ellipsoid configuration
-    vec3 wm = normalize(vec3(wmStd.xy * alpha, wmStd.z));
-    // return final normal
-    return wm;
-    #undef mad
+    // Sample a reflection direction off the hemisphere
+    const float tau = 6.2831853; // 2 * pi
+    float phi = tau * xy.x;
+    float cosTheta = fma(1.0 - xy.y, 1.0 + stretchedV.z, -stretchedV.z);
+    float sinTheta = sqrt(clamp(1.0 - cosTheta * cosTheta, 0.0, 1.0));
+    vec3 reflected = vec3(vec2(cos(phi), sin(phi)) * sinTheta, cosTheta);
+
+    // Evaluate halfway direction
+    // This gives the normal on the hemisphere
+    vec3 Hstretched = reflected + stretchedV;
+
+    // Transform the halfway direction back to hemiellispoid configuation
+    // This gives the final sampled normal
+    return normalize(vec3(alpha * Hstretched.xy, Hstretched.z));
 }
 
 #endif

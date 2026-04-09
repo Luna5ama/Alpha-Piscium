@@ -51,11 +51,6 @@ void main() {
             Material material = material_decode(gData);
 
             vec3 viewDir = normalize(-startViewPos);
-            vec3 localViewDir = normalize(material.tbnInv * viewDir);
-
-            vec2 noiseV = rand_stbnVec2(texelPos, frameCounter);
-            float pdfRatio = 1.0;
-            bsdf_SphericalCapBoundedWithPDFRatio(noiseV, localViewDir, vec2(material.roughness), pdfRatio);
 
             vec4 sstData1 = transient_translucentRefraction_fetch(texelPos);
             vec4 sstData2 = transient_translucentReflection_fetch(texelPos);
@@ -63,7 +58,7 @@ void main() {
             vec3 reflectColor = sstData2.xyz;
 
             float MDotV = sstData1.w;
-            float NDotV = dot(gData.normal, viewDir);
+            float NDotV = abs(dot(gData.normal, viewDir));
             float NDotL = sstData2.w;
 
             vec2 iors = mix(vec2(AIR_IOR, material.hardCodedIOR), vec2(material.hardCodedIOR, AIR_IOR), bvec2(isEyeInWater == 1));
@@ -73,7 +68,7 @@ void main() {
             float g2 = bsdf_smithG2(NDotV, NDotL, material.roughness);
 
             // Clampped to fix insane fireflies at glass edges.
-            float reflectance = fresnelReflectance * saturate(pdfRatio * (g2 / g1));
+            float reflectance = fresnelReflectance * max(g2 / g1, 0.0);
 
             vec3 translucentColor = vec3(0.0);
             translucentColor += fresnelTransmittance * gData.albedo * refractColor;
