@@ -6,9 +6,13 @@ import java.util.zip.ZipOutputStream
 import kotlin.io.path.*
 
 fun makeZip(zipFilePath: Path) {
+    val java = System.getProperty("java.home")
+
     val currDirPath = Path("").absolute()
     val projectRootPath = currDirPath.parent
-    val shadesmithJarPath = currDirPath.resolve("shadesmith-0.0.1-SNAPSHOT-fatjar-optimized.jar")
+    val shadesmithJarPath = currDirPath.resolve("shadesmith.jar")
+    val shadesmithAotCachePath = currDirPath.resolve("shadesmith.aot")
+
     val shadersPath = projectRootPath.resolve("shaders")
 
     val config = Properties().apply {
@@ -23,12 +27,30 @@ fun makeZip(zipFilePath: Path) {
     val shadesmithOutputPath = Path(shdesmithOutputPathStr).normalize().absolute()
     val shadesmithShadersPath = shadesmithOutputPath.resolve("shaders")
 
+    if (!shadesmithAotCachePath.exists()) {
+        println("Shadesmith AOT cache not found, running once to generate it...")
+        ProcessBuilder()
+            .command(
+                "$java/bin/java",
+                "--add-modules",
+                "jdk.internal.vm.ci",
+                "-XX:AOTCacheOutput=${shadesmithAotCachePath}",
+                "-jar",
+                shadesmithJarPath.toString(),
+                shadersPath.toString(),
+                shadesmithShadersPath.toString()
+            )
+            .inheritIO()
+            .start()
+            .waitFor()
+    }
 
-    val java = System.getProperty("java.home")
+
     val shadesmithRun = ProcessBuilder()
         .command(
             "$java/bin/java",
             "-jar",
+            "-XX:AOTCache=${shadesmithAotCachePath}",
             shadesmithJarPath.toString(),
             shadersPath.toString(),
             shadesmithShadersPath.toString()
