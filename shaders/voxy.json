@@ -1,0 +1,23 @@
+{
+	"version": 1,
+    "excludeLodsFromVanillaDepth": true,
+	"uniforms": [
+		"uval_taaJitter",
+        "uval_taaJitterUV",
+        "far",
+        "near",
+        "gbufferPreviousModelView",
+        "uval_mainImageSizeIX",
+        "uval_mainImageSizeIY",
+        "viewWidth",
+        "viewHeight",
+        "gbufferProjectionInverse"
+    ],
+	"opaqueDrawBuffers": [16],
+	"translucentDrawBuffers": [17, 18],
+    "blending": {
+        "-1": "off",
+        "1": "SRC_ALPHA SRC_COLOR ONE ONE"
+    },
+    "taaOffset": "{return uval_taaJitterUV;}"
+}

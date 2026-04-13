@@ -1,3 +1,4 @@
+#ifndef SKIP_UNIFORMS
 uniform int heldItemId;                         // held item ID (main hand), used only for items defined in "item.properties"
 uniform int heldBlockLightValue;                // held item light value (main hand)
 uniform int heldItemId2;                        // held item ID (off hand), used only for items defined in "item.properties"
@@ -78,21 +79,40 @@ uniform float darknessLightFactor;              // lightmap variations caused by
 // Iris
 uniform vec3 cameraPositionFract;
 uniform ivec3 cameraPositionInt;
+#endif
 
 float vanillaFarPlane = far;
 float vanillaNearPlane = near;
 
-#ifdef DISTANT_HORIZONS
+#if defined(DISTANT_HORIZONS)
 uniform float dhNearPlane;
 uniform float dhFarPlane;
 uniform int dhRenderDistance;
 uniform mat4 dhProjection;
 uniform mat4 dhProjectionInverse;
 uniform mat4 dhPreviousProjection;
+#elif defined(VOXY)
+uniform int vxRenderDistance;
+uniform mat4 vxViewProj;
+uniform mat4 vxViewProjInv;
+uniform mat4 vxViewProjPrev;
+uniform mat4 vxModelView;
+uniform mat4 vxModelViewInv;
+uniform mat4 vxModelViewPrev;
+uniform mat4 vxProj;
+uniform mat4 vxProjInv;
+uniform mat4 vxProjPrev;
+#endif
 
+#if defined(DISTANT_HORIZONS)
 float farPlane = max(dhFarPlane, far);
 float nearPlane = min(dhNearPlane, near);
+#elif defined(VOXY)
+float farPlane = max(far, float(vxRenderDistance * 16));
+float nearPlane = near;
 #else
 float farPlane = far;
 float nearPlane = near;
 #endif
+
+mat4 gbufferPrevModelView = gbufferPreviousModelView;

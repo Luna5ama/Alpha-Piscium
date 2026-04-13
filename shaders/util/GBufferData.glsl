@@ -34,6 +34,7 @@ struct GBufferData {
 
     vec3 albedo; // Still in its input space (Typically gamma encoded sRGB)
     bool isHand;
+    bool forceBuiltInPBR;
     int bitangentSign;
 };
 
@@ -48,6 +49,7 @@ GBufferData gbufferData_init() {
 
     gData.albedo = vec3(0.0);
     gData.isHand = false;
+    gData.forceBuiltInPBR = false;
 
     return gData;
 }
@@ -81,12 +83,14 @@ void gbufferData2_pack(out uvec4 packedData, GBufferData gData) {
     packedData.r = packUnorm4x8(vec4(gData.albedo, 0.0)) & 0x00FFFFFFu;
     packedData.r = bitfieldInsert(packedData.r, uint(gData.isHand), 24, 1);
     packedData.r = bitfieldInsert(packedData.r, uint(clamp(gData.bitangentSign, 0, 1)), 25, 1);
+    packedData.r = bitfieldInsert(packedData.r, uint(gData.forceBuiltInPBR), 26, 1);
 }
 
 void gbufferData2_unpack(uvec4 packedData, inout GBufferData gData) {
     gData.albedo = unpackUnorm4x8(packedData.r).rgb;
     gData.isHand = bool(bitfieldExtract(packedData.r, 24, 1));
     gData.bitangentSign = int(bitfieldExtract(packedData.r, 25, 1)) * 2 - 1;
+    gData.forceBuiltInPBR = bool(bitfieldExtract(packedData.r, 26, 1));
 }
 
 #endif

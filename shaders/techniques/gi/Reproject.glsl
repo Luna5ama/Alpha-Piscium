@@ -114,10 +114,10 @@ out bool edgeFlag
 void gi_reproject(ivec2 texelPos, float currViewZ) {
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
 
-    screenPos -= global_taaJitter * uval_mainImageSizeRcp;
+    screenPos -= uval_taaJitter * uval_mainImageSizeRcp;
     GBufferData gData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+    gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
 
     vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
     vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
@@ -138,7 +138,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         vec2 curr2PrevScreenClamped = saturate(curr2PrevScreen);
 
         if (all(lessThan(abs(curr2PrevScreen - curr2PrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
-            curr2PrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
+            curr2PrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
             curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
 

@@ -17,6 +17,8 @@ const int shadowMapResolution = 3072;
 const int shadowMapResolution = 4096;
 #endif
 
+const vec2 SHADOW_MAP_SIZE = vec2(float(shadowMapResolution), 1.0 / float(shadowMapResolution));
+
 #include "/base/Uniforms.glsl"
 #include "/base/CustomUniforms.glsl"
 #include "/base/SSBO.glsl"

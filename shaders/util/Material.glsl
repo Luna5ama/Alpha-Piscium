@@ -50,29 +50,40 @@ Material material_decode(GBufferData gData) {
     float albedoLuma = colors2_colorspaces_luma(COLORS2_MATERIAL_COLORSPACE, gData.albedo);
 
     #if defined(MC_TEXTURE_FORMAT_LAB_PBR) && SETTING_PBR_MATERIAL == 1 || SETTING_PBR_MATERIAL == 2
-    float roughness = 1.0 - gData.pbrSpecular.r;
-
-    float emissivePBR = gData.pbrSpecular.a;
-    emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
-
-    const float _64o255 = 64.0 / 255.0;
-    const float _65o255 = 65.0 / 255.0;
-    float step64 = step(_65o255, gData.pbrSpecular.b);
-    material.porosity = linearStep(0.0, _64o255, gData.pbrSpecular.b);
-    material.porosity *= 1.0 - step64;
-
-    material.sss = linearStep(_65o255, 1.0, gData.pbrSpecular.b);
-    material.sss *= step64;
-    material.sss = sqrt(material.sss);
+    bool useBuiltInPBR = gData.forceBuiltInPBR;
     #else
-    float roughness = hardcoded.roughness;
-    float emissivePBR = hardcoded.emissive;
-    emissiveAlbedoCurve.a += 1.0;
-    albedoLuma = smoothstep(0.0, 1.0, albedoLuma);
-
-    material.porosity = 0.0;
-    material.sss = hardcoded.sss;
+    bool useBuiltInPBR = true;
     #endif
+
+    float roughness;
+    float emissivePBR;
+
+    if (useBuiltInPBR) {
+        roughness = hardcoded.roughness;
+
+        emissivePBR = hardcoded.emissive;
+        emissiveAlbedoCurve.a += 1.0;
+        albedoLuma = smoothstep(0.0, 1.0, albedoLuma);
+
+        material.porosity = 0.0;
+
+        material.sss = hardcoded.sss;
+    } else {
+        roughness = 1.0 - gData.pbrSpecular.r;
+
+        emissivePBR = gData.pbrSpecular.a;
+        emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
+
+        const float _64o255 = 64.0 / 255.0;
+        const float _65o255 = 65.0 / 255.0;
+        float step64 = step(_65o255, gData.pbrSpecular.b);
+        material.porosity = linearStep(0.0, _64o255, gData.pbrSpecular.b);
+        material.porosity *= 1.0 - step64;
+
+        material.sss = linearStep(_65o255, 1.0, gData.pbrSpecular.b);
+        material.sss *= step64;
+        material.sss = sqrt(material.sss);
+    }
 
     roughness = pow2(roughness);
     roughness *= _MATERIAL_ROUGHNESS_MULTIPLIER;

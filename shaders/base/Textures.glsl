@@ -1,4 +1,5 @@
 /*const*/
+// -------------------------------------------------- Colortex Names --------------------------------------------------
 #define usam_main colortex0
 #define uimg_main colorimg0
 
@@ -20,21 +21,37 @@
 #define usam_overlays colortex6
 #define uimg_overlays colorimg6
 
-#define usam_gbufferData1 colortex8
-#define uimg_gbufferData1 colorimg8
+#define usam_gbufferSolidData1 colortex8
+#define uimg_gbufferSolidData1 colorimg8
 
-#define usam_gbufferData2 colortex9
-#define uimg_gbufferData2 colorimg9
+#define usam_gbufferSolidData2 colortex9
+#define uimg_gbufferSolidData2 colorimg9
 
-#define usam_gbufferViewZ colortex10
-#define uimg_gbufferViewZ colorimg10
+#define usam_gbufferSolidViewZ colortex10
+#define uimg_gbufferSolidViewZ colorimg10
 
-#define usam_translucentColor colortex11
-#define uimg_translucentColor colorimg11
+#define usam_gbufferTranslucentData1 colortex11
+#define uimg_gbufferTranslucentData1 colorimg11
 
-#define usam_translucentData colortex12
-#define uimg_translucentData colorimg12
+#define usam_gbufferTranslucentData2 colortex12
+#define uimg_gbufferTranslucentData2 colorimg12
 
+#define usam_gbufferTranslucentViewZ colortex13
+#define uimg_gbufferTranslucentViewZ colorimg13
+
+#define usam_translucentColor colortex14
+#define uimg_translucentColor colorimg14
+
+#define usam_gbufferVoxySolidData colortex16
+#define uimg_gbufferVoxySolidData colorimg16
+
+#define usam_gbufferVoxyTranslucentData colortex17
+#define uimg_gbufferVoxyTranslucentData colorimg17
+
+#define usam_voxyTranslucentColor colortex18
+#define uimg_voxyTranslucentColor colorimg18
+
+// ------------------------------------------------- Shadowcolor Names -------------------------------------------------
 #define usam_shadow_unwarpedUV shadowcolor3
 #define uimg_shadow_unwarpedUV shadowcolorimg3
 
@@ -48,6 +65,7 @@
 #define uimg_shadow_waterNormal shadowcolorimg6
 /*const*/
 
+#ifndef SKIP_UNIFORMS
 // ------------------------------------------------- Colortex Samplers -------------------------------------------------
 uniform sampler2D usam_main;
 uniform sampler2D usam_temp1;
@@ -56,12 +74,16 @@ uniform sampler2D usam_temp3;
 uniform sampler2D usam_temp4;
 uniform sampler2D usam_temp5;
 uniform sampler2D usam_overlays;
-uniform usampler2D usam_geometryNormal;
-uniform usampler2D usam_gbufferData1;
-uniform usampler2D usam_gbufferData2;
-uniform sampler2D usam_gbufferViewZ;
+uniform usampler2D usam_gbufferSolidData1;
+uniform usampler2D usam_gbufferSolidData2;
+uniform sampler2D usam_gbufferSolidViewZ;
+uniform usampler2D usam_gbufferTranslucentData1;
+uniform usampler2D usam_gbufferTranslucentData2;
 uniform sampler2D usam_translucentColor;
-uniform sampler2D usam_translucentData;
+
+uniform usampler2D usam_gbufferVoxySolidData;
+uniform usampler2D usam_gbufferVoxyTranslucentData;
+uniform sampler2D usam_voxyTranslucentColor;
 
 // -------------------------------------------------- Shadow Samplers --------------------------------------------------
 uniform sampler2D shadowtex0;
@@ -116,3 +138,4 @@ uniform sampler2D usam_cumulusBase;
 
 uniform usampler1D usam_pbrLUT0;
 uniform sampler1D usam_f82;
+#endif

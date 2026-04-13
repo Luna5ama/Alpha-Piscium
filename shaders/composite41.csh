@@ -1,5 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/FXAA.comp.glsl"
-
+#include "/pass/composite/GIReSTIRSpatialReuseRaySort.comp.glsl"
