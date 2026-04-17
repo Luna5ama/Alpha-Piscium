@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/TranslucentComposite.glsl"
+#include "/techniques/rtwsm/IMapCollapse.comp.glsl"
