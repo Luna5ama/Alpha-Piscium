@@ -290,7 +290,11 @@ void main() {
 
     #ifdef SETTING_SCREENSHOT_MODE
     float MIN_ACCUM_FRAMES = 1.0;
+    #ifdef SETTING_VIDEO_RENDER_MODE
+    float MAX_ACCUM_FRAMES = 32.0;
+    #else
     float MAX_ACCUM_FRAMES = 1024.0;
+    #endif
     #else
     float MIN_ACCUM_FRAMES = 1.0;
     float MAX_ACCUM_FRAMES = mix(2.0, 128.0, pow3(global_motionFactor.w));

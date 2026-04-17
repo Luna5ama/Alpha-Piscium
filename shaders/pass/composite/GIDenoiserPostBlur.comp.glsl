@@ -8,6 +8,10 @@
 // Y: variance heuristic radius scale
 // Z: min radius
 // W: max radius
+#ifdef SETTING_VIDEO_RENDER_MODE
+#define GI_DENOISE_BLUR_RADIUS vec4(8.0, 32.0, 2.0, 16.0)
+#else
 #define GI_DENOISE_BLUR_RADIUS vec4(16.0, 64.0, 4.0, 32.0)
+#endif
 #define GI_DENOISE_RAND_NOISE_OFFSET ivec2(5, 7)
 #include "/techniques/gi/DenoiseBlur.glsl"

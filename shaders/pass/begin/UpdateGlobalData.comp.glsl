@@ -226,8 +226,10 @@ void main() {
         #ifdef SETTING_SCREENSHOT_MODE
         taaClampMix *= 1.0 - stationary;
         taaClampMethod *= 1.0 - startOrEndMoveRotateF;
+        #ifndef SETTING_VIDEO_RENDER_MODE
         taaHistoryReset *= 1.0 - startOrEndMoveRotateF;
         taaHistoryReset *= float(frameCounter > SETTING_SCREENSHOT_MODE_SKIP_INITIAL);
+        #endif
         #endif
 
 
