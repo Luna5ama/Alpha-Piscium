@@ -38,7 +38,7 @@ import kotlin.system.exitProcess
 // Check if version argument is provided
 if (args.isEmpty()) {
     println("Usage: kotlin release.main.kts <version> [-1] [-2] ...")
-    println("Example: kotlin release.main.kts 1.7.2 -1 -2")
+    println("Example: kotlin release.main.kts 1.8.6 -1 -2")
     exitProcess(1)
 }
 
