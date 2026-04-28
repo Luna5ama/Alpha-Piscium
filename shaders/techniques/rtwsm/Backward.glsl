@@ -115,16 +115,9 @@ void backwardOutput(uint p, float v) {
 
 void rtwsm_backward(ivec2 texelPos, float viewZ, GBufferData gData) {
     if (!gData.isHand) {
-        #ifdef SETTING_RTWSM_B
         uint p;
         float v;
         importance(texelPos, viewZ, gData, p, v);
         backwardOutput(p, v);
-        #else
-        vec2 screenPos = (vec2(texelPos) + 0.5 - global_taaJitter) * uval_mainImageSizeRcp;
-        vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-        vec4 scenePos = gbufferModelViewInverse * vec4(viewPos, 1.0);
-        vec4 shadowViewPos = global_shadowRotationMatrix * shadowModelView * scenePos;
-        #endif
     }
 }

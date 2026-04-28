@@ -59,15 +59,15 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
 
         float luma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedoSRGB);
         albedoSRGB *= min(0.5 / luma, 1.0); // Fk whoever put high sss on white material
-        albedoSRGB = clamp(albedoSRGB, 0.0, 0.9);
 
         vec3 tCoeff = pow(albedoSRGB, vec3(ABSO_POW));
-        tCoeff = saturate(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, tCoeff));
+        tCoeff = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, tCoeff);
+        tCoeff = clamp(tCoeff, 0.001, 0.999);
         vec3 aCoeff = max(-log(tCoeff), 0.0);
 
         vec3 sCoeff = pow(albedoSRGB, vec3(SCTR_POW));
         sCoeff = saturate(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, sCoeff));
-
+        sCoeff = clamp(sCoeff, 0.001, 0.999);
         aCoeff = aCoeff * ABSORPTION_MULTIPLIER / sqrt(material.sss);
         sCoeff *= SCATTERING_MULTIPLIER * material.sss;
 
@@ -98,7 +98,6 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
         vec3 sheenTransmittance = max(exp(-sampleOpticalDepth), exp(-sampleOpticalDepth * 0.25) * 0.7);
         result.sss += sunMiePhase * sheenTransmittance * shadowedIrradiance * (1.0 - sssFresnel);
 
-        shadowedIrradiance *= smoothstep(0.7, 0.8, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, shadow.rgb));
         shadowedIrradiance *= float(dot(material.geomTbn[2], L) > 0.0);
     }
 

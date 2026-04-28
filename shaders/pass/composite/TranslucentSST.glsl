@@ -39,15 +39,15 @@ void main() {
 
         float startViewZ = max(translucentStartViewZ, waterStartViewZ);
 
-        float solidViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        float solidViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
 
         if (startViewZ > -65536.0) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
             vec3 startViewPos = coords_toViewCoord(screenPos, startViewZ, global_camProjInverse);
 
             GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferTranslucentData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferTranslucentData2, texelPos, 0), gData);
 
             Material material = material_decode(gData);
             bool isWater = gData.materialID == MATERIAL_ID_WATER;
@@ -113,7 +113,7 @@ void main() {
 
             bool refractHit = refractRay.currT < 0.0 && refractRay.currT > -1.0;
             vec3 refractHitScreen3D = refractRay.pRayStart + refractRay.pRayDir * (refractRay.pRayVecLen * abs(refractRay.currT));
-            vec2 refractHitScreen2D = refractHitScreen3D.xy + (global_taaJitter * uval_mainImageSizeRcp);
+            vec2 refractHitScreen2D = refractHitScreen3D.xy + (uval_taaJitter * uval_mainImageSizeRcp);
             if (isEyeInWater == 1) {
                 vec3 refractDirWorld = coords_dir_viewToWorld(refractDir);
                 if (refractDirWorld.y > 0.0) {
@@ -121,7 +121,7 @@ void main() {
                     refractColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
                     if (refractHit) {
                         vec2 refractCoord = refractHitScreen2D;
-                        float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
+                        float refractDepth = texture(usam_gbufferSolidViewZ, refractCoord).r;
                         vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
                         refractColor = mix(refractColor, hitColor, sst_edgeReductionFactor(refractCoord.xy, 2.0, vec2(0.0), vec2(1.5)));
                     }
@@ -129,7 +129,7 @@ void main() {
             } else {
                 vec3 refractHitScreenFallback = coords_viewToScreen(refractStartPosView, global_camProj);
                 vec2 refractCoord = refractHit ? refractHitScreen2D : refractHitScreenFallback.xy;
-                float refractDepth = texture(usam_gbufferViewZ, refractCoord).r;
+                float refractDepth = texture(usam_gbufferSolidViewZ, refractCoord).r;
                 if (refractDepth > startViewZ) {
                     refractCoord = screenPos;
                 }
@@ -168,16 +168,15 @@ void main() {
             }
             if (reflectRay.currT < 0.0 && reflectRay.currT > -1.0) {
                 vec3 reflectHitScreen = reflectRay.pRayStart + reflectRay.pRayDir * (reflectRay.pRayVecLen * abs(reflectRay.currT));
-                vec2 sampleCoord = saturate(reflectHitScreen.xy + (global_taaJitter * uval_mainImageSizeRcp));
+                vec2 sampleCoord = saturate(reflectHitScreen.xy + (uval_taaJitter * uval_mainImageSizeRcp));
                 vec3 hitGeomNormal = transient_geomViewNormal_sample(sampleCoord).rgb;
                 vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, sampleCoord * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
                 float mixFactor = sst_edgeReductionFactor(reflectHitScreen.xy, 4.0, vec2(0.5), vec2(0.95));
                 hitGeomNormal = normalize(hitGeomNormal * 2.0 - 1.0);
                 float hitDot = dot(-reflectDir, hitGeomNormal);
-                float reflectDepth = texture(usam_gbufferViewZ, sampleCoord).r;
+                float reflectDepth = texture(usam_gbufferSolidViewZ, sampleCoord).r;
                 bool skyReflected = reflectDepth < -far;
                 mixFactor *= saturate(float(hitDot > 0.0) + float(skyReflected));
-
                 if (isEyeInWater == 1) {
                     if (!skyReflected) {
                         reflectColor = mix(reflectColor, hitColor, mixFactor);

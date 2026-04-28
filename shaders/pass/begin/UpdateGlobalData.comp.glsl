@@ -50,14 +50,6 @@ mat4 shadowDeRotateMatrix() {
     );
 }
 
-vec2 taaJitter() {
-    #ifdef SETTING_TAA_JITTER
-    return rand_r2Seq2(frameCounter) - 0.5;
-    #else
-    return vec2(0.0);
-    #endif
-}
-
 mat4 taaJitterMat(vec2 baseJitter) {
     vec2 jitter = baseJitter * 2.0 * (1.0 / imageSize(uimg_main));
     return mat4(
@@ -93,7 +85,6 @@ void main() {
 
         vec3 cameraDelta = uval_cameraDelta;
 
-        vec2 jitter = taaJitter();
         global_shadowRotationMatrix = shadowDeRotateMatrix();
         global_shadowRotationMatrixInverse = inverse(global_shadowRotationMatrix);
         global_shadowProj = global_shadowProjNext;
@@ -104,9 +95,7 @@ void main() {
             -global_shadowAABBMax.z - 512.0, -global_shadowAABBMin.z + 16.0
         );
         global_shadowProjNextInverse = inverse(global_shadowProjNext);
-        global_prevTaaJitter = global_taaJitter;
-        global_taaJitter = jitter;
-        mat4 taaMat = taaJitterMat(jitter);
+        mat4 taaMat = taaJitterMat(uval_taaJitter);
         global_taaJitterMat = taaMat;
 
         global_sceneToShadowNDC = global_shadowProj * global_shadowRotationMatrix * global_shadowView;
@@ -237,8 +226,10 @@ void main() {
         #ifdef SETTING_SCREENSHOT_MODE
         taaClampMix *= 1.0 - stationary;
         taaClampMethod *= 1.0 - startOrEndMoveRotateF;
+        #ifndef SETTING_VIDEO_RENDER_MODE
         taaHistoryReset *= 1.0 - startOrEndMoveRotateF;
         taaHistoryReset *= float(frameCounter > SETTING_SCREENSHOT_MODE_SKIP_INITIAL);
+        #endif
         #endif
 
 

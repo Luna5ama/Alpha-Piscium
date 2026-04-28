@@ -17,7 +17,7 @@ void main() {
         outputColor.rgb = mix(outputColor.rgb, basicColor.rgb, basicColor.a);
 
         #ifdef SETTING_DOF_SHOW_FOCUS_PLANE
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
         float alpha = float(viewZ < -global_focusDistance);
         outputColor.rgb = mix(outputColor.rgb, vec3(1.0, 0.0, 1.0), alpha * 0.25);
         #endif

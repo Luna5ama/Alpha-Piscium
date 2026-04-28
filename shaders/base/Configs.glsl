@@ -15,11 +15,13 @@ const int colortex3Format = RGBA16F; // Temp3
 const int colortex4Format = RGBA8; // Temp4
 const int colortex5Format = RGBA8; // Temp5
 const int colortex6Format = RGBA8; // Temp6
-const int colortex8Format = RGBA32UI; // GBuffer Data 32UI
-const int colortex9Format = R32UI; // GBuffer Data 8UN
-const int colortex10Format = R32F; // GBuffer ViewZ
-const int colortex11Format = RGB10_A2; // Translucent Color
-const int colortex12Format = RGBA16F; // Translucent Data
+const int colortex8Format = RGBA32UI; // GBuffer Solid Data 32UI
+const int colortex9Format = R32UI; // GBuffer Solid Data 8UN
+const int colortex10Format = R32F; // GBuffer Solid ViewZ
+const int colortex11Format = RGBA32UI; // GBuffer Translucent Data 32UI
+const int colortex12Format = R32UI; // GBuffer Translucent Data 8UN
+const int colortex13Format = R32F; // GBuffer Translucent ViewZ
+const int colortex14Format = RGB10_A2; // Translucent Color
 
 const int shadowcolor0Format = R16F; // Depth offset
 const int shadowcolor2Format = RGB10_A2; // Translucent color
@@ -50,6 +52,10 @@ const bool colortex10Clear = false;
 
 const bool colortex11Clear = false;
 const bool colortex12Clear = false;
+const bool colortex13Clear = false;
+
+const bool colortex14Clear = true;
+const vec4 colortex14ClearColor = vec4(1.0, 1.0, 1.0, 0.0);
 
 const bool shadowcolor0Clear = true;
 const vec4 shadowcolor0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
@@ -63,3 +69,16 @@ const bool shadowcolor5Clear = true;
 const vec4 shadowcolor5ClearColor = vec4(0.0, 0.0, 0.0, 0.0);
 const bool shadowcolor6Clear = true;
 const vec4 shadowcolor6ClearColor = vec4(0.0, 1.0, 0.0, 0.0);
+
+#ifdef VOXY
+/*
+const int colortex16Format = RGBA32UI; // Voxy Data (UV, Color, Face, Lightmap, ID) - Replaces 16 & 17 requirement with a single large buffer or split if needed
+const int colortex17Format = RGBA32UI; // Voxy Translucent Data
+const int colortex18Format = RGB10_A2; // Voxy Translucent Color
+*/
+
+const bool colortex16Clear = false;
+const bool colortex17Clear = false;
+const bool colortex18Clear = true;
+const vec4 colortex18ClearColor = vec4(1.0, 1.0, 1.0, 0.0);
+#endif

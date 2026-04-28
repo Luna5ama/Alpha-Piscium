@@ -66,7 +66,12 @@ void main() {
             vec4 prevResult = persistent_cloudsAmbLUT_load(tileTexelPos);
             vec4 newResult;
             prevResult.a *= global_historyResetFactor;
+            #ifndef SETTING_VIDEO_RENDER_MODE
+            newResult.a = min(prevResult.a + 1.0, 2.0);
+            #else
             newResult.a = min(prevResult.a + 1.0, 16.0);
+            #endif
+
             newResult.rgb = mix(prevResult.rgb, currResult, 1.0 / newResult.a);
 
             persistent_cloudsAmbLUT_store(tileTexelPos, newResult);
