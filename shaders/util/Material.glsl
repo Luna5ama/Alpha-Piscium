@@ -95,7 +95,7 @@ Material material_decode(GBufferData gData) {
     emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
 
     #ifndef MATERIAL_TRANSLUCENT
-    roughness = mix(0.01, 1.0, roughness);
+    roughness = mix(0.001, 1.0, roughness);
     #endif
     material.roughness = roughness;
 

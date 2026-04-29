@@ -18,7 +18,7 @@ struct restir_InitialSampleData {
 // Slot 0 (RANDOM_FRAME/64u)   → choice random (stbnVec1)
 // Slot 1 (RANDOM_FRAME/64u+1) → direction random (stbnVec2 or stbnUnitVec3Cosine)
 vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 normal, vec3 V, Material material, out float pdf) {
-    const float RESTIR_VNDF_TRIM = 0.05;
+    const float RESTIR_VNDF_TRIM = 0.25;
 
     float roughness = material.roughness;
     vec3 wiTangent = normalize(material.tbnInv * V);

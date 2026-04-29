@@ -114,8 +114,12 @@ out bool edgeFlag
 
 void gi_reproject(ivec2 texelPos, float currViewZ) {
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+    float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
+    bool currEdgeFlag = currEdgeFactor < 0.99;
 
-    screenPos -= uval_taaJitter * uval_mainImageSizeRcp;
+    if (currEdgeFlag){
+        screenPos -= uval_taaJitter * uval_mainImageSizeRcp;
+    }
     GBufferData gData = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
     gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
@@ -140,7 +144,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         vec2 curr2PrevScreenClamped = saturate(curr2PrevScreen);
 
         if (all(lessThan(abs(curr2PrevScreen - curr2PrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
-            curr2PrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
+            if (currEdgeFlag){
+                curr2PrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
+            }
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
             curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
 

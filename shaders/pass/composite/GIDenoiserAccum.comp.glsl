@@ -67,6 +67,7 @@ const float SPEC_ACCUM_CURVE = 0.5;
 const float SPEC_ACCUM_BASE_POWER = 0.5;
 
 float specAccumReduction(float roughness, float NoV, float parallax) {
+    roughness = max(0.1, roughness);
     float acos01sq = saturate(1.0 - NoV); // ~ normalized acos^2
     float a = pow(acos01sq, SPEC_ACCUM_CURVE);
     float b = 1.001 + roughness * roughness;
