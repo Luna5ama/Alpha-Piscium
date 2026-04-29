@@ -144,9 +144,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         vec2 curr2PrevScreenClamped = saturate(curr2PrevScreen);
 
         if (all(lessThan(abs(curr2PrevScreen - curr2PrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
-            if (currEdgeFlag){
-                curr2PrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
-            }
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
             curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
 
@@ -373,10 +370,10 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
         Material material = material_decode(gData);
         // Goes to 1.0 when roughness is 0.0 and vise-versa
-        float mirrorParallaxFactor = pow(saturate(1.0 - material.roughness), 16.0);
+        float mirrorParallaxFactor = pow2(saturate(1.0 - material.roughness));
 
         vec3 viewDir = normalize(currViewPos);
-        vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance * mirrorParallaxFactor;
+        vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance * pow2(mirrorParallaxFactor);
 
         vec4 virtualPrevViewPos = coord_viewCurrToPrev(vec4(virtualViewPos, 1.0), gData.isHand);
         vec4 virtualPrevClipPos = global_prevCamProj * virtualPrevViewPos;
