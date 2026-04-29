@@ -125,8 +125,8 @@ void main() {
 
             {
                 GBufferData gData = gbufferData_init();
-                gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-                gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+                gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+                gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
                 Material material = material_decode(gData);
 
                 vec2 noise2 = rand_stbnVec2(texelPos, RANDOM_FRAME);
@@ -276,8 +276,8 @@ void main() {
             vec3 H_out = normalize(winL_out + V);
 
             GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
             Material material = material_decode(gData);
 
             float outNDotL = saturate(dot(gData.normal, winL_out));

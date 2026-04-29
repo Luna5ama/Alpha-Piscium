@@ -383,7 +383,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
             vec2 virtualPrevScreenClamped = saturate(virtualPrevScreen);
 
             if (all(lessThan(abs(virtualPrevScreen - virtualPrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
-                virtualPrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
+                virtualPrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
                 vec2 virtualPrevTexelPos = virtualPrevScreen * uval_mainImageSize;
                 virtualPrevTexelPos = clamp(virtualPrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
 

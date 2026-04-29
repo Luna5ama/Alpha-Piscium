@@ -150,8 +150,8 @@ void main() {
                     vec2 rcpAccumHistoryLength = rcp(accumHistoryLength);
 
                     GBufferData gData = gbufferData_init();
-                    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-                    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+                    gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+                    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
                     Material material = material_decode(gData);
                     transient_specularPBRData_store(texelPos, vec4(sqrt(material.roughness), 0.0, 0.0, 0.0));
                     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);

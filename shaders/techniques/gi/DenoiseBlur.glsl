@@ -198,8 +198,8 @@ void main() {
             float16_t rcpSamples = float16_t(1.0 / float(GI_DENOISE_SAMPLES));
 
             GBufferData centerGData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), centerGData);
-            gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), centerGData);
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), centerGData);
+            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), centerGData);
             Material material = material_decode(centerGData);
 
             // --- Diffuse loop: screen-space kernel with view-angle stretch ---
