@@ -29,26 +29,32 @@ void main() {
         exposureWeights.x *= sqrt(BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + log2(1.0 + abs(solidViewZ))));
 
         if (solidViewZ > -65536.0) {
-            vec4 albedoData = transient_solidAlbedo_fetch(texelPos);
-            float emissive = albedoData.a;
+            GBufferData gData = gbufferData_init();
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
+            Material material = material_decode(gData);
+
+            float emissive = gData.pbrSpecular.a;
             exposureWeights.y *= pow(exp2(SETTING_EXPOSURE_EMISSIVE_WEIGHTING), emissive);
-            vec3 albedo = colors2_material_toWorkSpace(albedoData.rgb);
-            vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
-            if (any(greaterThan(glintColorData.xyz, vec3(0.0)))) {
-                vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb);
-                glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
-                float baseColorLuma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedo.rgb);
-                albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
-            }
+
+
+//            WTF is this even correct?
+//            vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
+//            if (any(greaterThan(glintColorData.xyz, vec3(0.0)))) {
+//                vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb);
+//                glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
+//                float baseColorLuma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedo.rgb);
+//                albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
+//            }
 
             // Full BRDF remodulation for demodulated GI
             vec4 giDiff = transient_gi_diffShadingOutput_fetch(texelPos);
             vec4 giSpec = transient_gi_specShadingOutput_fetch(texelPos);
 
             // Diffuse buffer has (1-F)*(1-M)*cosθ/π baked in; just remodulate with albedo
-            outputColor.rgb += giDiff.rgb * albedo;
+            outputColor.rgb += giDiff.rgb * material.albedo;
             // Specular buffer has F*GGX baked in; already fully modulated
-            outputColor.rgb += giSpec.rgb;
+            outputColor.rgb += giSpec.rgb * material.f0RGB;
         }
 
         transient_exposureWeights_store(texelPos, exposureWeights);

@@ -281,7 +281,7 @@ void main() {
 
                 vec3 totalOutput = finalSample.rgb * fullBRDF * temporalReservoir.avgWY;
                 vec4 ssgiDiffOut = vec4(totalOutput * diffRatio3, winHitDist);
-                vec4 ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3), winHitDist);
+                vec4 ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3) / material.f0RGB, winHitDist);
                 ssgiDiffOut = clamp(ssgiDiffOut, 0.0, FP16_MAX);
                 ssgiSpecOut = clamp(ssgiSpecOut, 0.0, FP16_MAX);
 

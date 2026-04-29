@@ -296,7 +296,7 @@ void main() {
 
             vec3 totalOutput = selectedSampleF.xyz * fullBRDF * avgWY;
             ssgiDiffOut = vec4(totalOutput * diffRatio3, winHitDist);
-            ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3), winHitDist);
+            ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3) / material.f0RGB, winHitDist);
 
             #if SETTING_DEBUG_OUTPUT
             vec4 vvv = vec4(0.0);
