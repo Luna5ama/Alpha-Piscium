@@ -29,6 +29,9 @@ void main() {
         exposureWeights.x *= sqrt(BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + log2(1.0 + abs(solidViewZ))));
 
         if (solidViewZ > -65536.0) {
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            vec3 solidViewPos = coords_toViewCoord(screenPos, solidViewZ, global_camProjInverse);
+            vec3 V = normalize(-solidViewPos);
             GBufferData gData = gbufferData_init();
             gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
             gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
@@ -53,8 +56,11 @@ void main() {
 
             // Diffuse buffer has (1-F)*(1-M)*cosθ/π baked in; just remodulate with albedo
             outputColor.rgb += giDiff.rgb * material.albedo;
-            // Specular buffer has F*GGX baked in; already fully modulated
-            outputColor.rgb += giSpec.rgb * material.f0RGB;
+
+            float NDotV = saturate(dot(gData.normal, V));
+            vec3 specBrdf = texture(usam_specBRDFLUT, vec2(NDotV, material.roughness)).rgb;
+            vec3 specAlbedo = saturate(material.f0RGB * specBrdf.x + material.f82TintRGB * specBrdf.y + specBrdf.z);
+            outputColor.rgb += giSpec.rgb * specAlbedo;
         }
 
         transient_exposureWeights_store(texelPos, exposureWeights);

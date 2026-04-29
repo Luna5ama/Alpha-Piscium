@@ -296,7 +296,10 @@ void main() {
 
             vec3 totalOutput = selectedSampleF.xyz * fullBRDF * avgWY;
             ssgiDiffOut = vec4(totalOutput * diffRatio3, winHitDist);
-            ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3) / material.f0RGB, winHitDist);
+            ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3), winHitDist);
+            vec3 specBrdf = texture(usam_specBRDFLUT, vec2(NDotV, material.roughness)).rgb;
+            vec3 specAlbedo = saturate(material.f0RGB * specBrdf.x + material.f82TintRGB * specBrdf.y + specBrdf.z);
+            ssgiSpecOut.rgb *= safeRcp(specAlbedo);
 
             #if SETTING_DEBUG_OUTPUT
             vec4 vvv = vec4(0.0);

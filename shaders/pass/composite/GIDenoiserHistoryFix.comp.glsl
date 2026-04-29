@@ -241,7 +241,7 @@ void main() {
                         uvec4 centerData = shared_YCoCgData[localPos.y][localPos.x];
                         vec4 centerDiffData = unpackHalf4x16(centerData.xy);
                         vec4 centerSpecData = unpackHalf4x16(centerData.zw);
-                        imageStore(uimg_temp2, texelPos, vec4(colors_YCoCgToRGB(centerDiffData.rgb), 0.0));
+//                        imageStore(uimg_temp2, texelPos, vec4(colors_YCoCgToRGB(centerDiffData.rgb), 0.0));
                     }
                     #endif
 
