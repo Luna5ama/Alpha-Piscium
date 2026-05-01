@@ -137,12 +137,11 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     float glazingAngleFactorHistory = pow2(1.0 - glazingCosTheta);
     bool valid = false;
     float specularHitDistance = 0.0;
+    vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
+    vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
 
     if (bool(clipFlag)) {
-        vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
-        vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
         vec2 curr2PrevScreenClamped = saturate(curr2PrevScreen);
-
         if (all(lessThan(abs(curr2PrevScreen - curr2PrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
             if (currEdgeFlag){
                 curr2PrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
@@ -371,12 +370,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     {
         bool specValid = valid;
 
-        Material material = material_decode(gData);
-        // Goes to 1.0 when roughness is 0.0 and vise-versa
-        float mirrorParallaxFactor = pow4(saturate(1.0 - material.roughness));
-
         vec3 viewDir = normalize(currViewPos);
-        vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance * mirrorParallaxFactor;
+        vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance;
 
         vec4 virtualPrevViewPos = coord_viewCurrToPrev(vec4(virtualViewPos, 1.0), gData.isHand);
         vec4 virtualPrevClipPos = global_prevCamProj * virtualPrevViewPos;
@@ -386,6 +381,10 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         if (bool(clipFlag)) {
             vec2 virtualPrevNDC = virtualPrevClipPos.xy / virtualPrevClipPos.w;
             vec2 virtualPrevScreen = virtualPrevNDC * 0.5 + 0.5;
+            Material material = material_decode(gData);
+            // Goes to 1.0 when roughness is 0.0 and vise-versa
+            float mirrorParallaxFactor = pow8(saturate(1.0 - material.roughness));
+            virtualPrevScreen = mix(curr2PrevScreen, virtualPrevScreen, mirrorParallaxFactor);
             vec2 virtualPrevScreenClamped = saturate(virtualPrevScreen);
 
             if (all(lessThan(abs(virtualPrevScreen - virtualPrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
