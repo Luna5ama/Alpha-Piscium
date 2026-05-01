@@ -73,16 +73,16 @@ GIHistoryData gi_historyData_init()  {
 
 void gi_historyData_unpack1(inout GIHistoryData data, vec4 packedData) {
     data.diffuseColor = packedData.xyz;
-    data.specularHitDistance = packedData.w;
+    data.diffuseHitDistance = packedData.w;
 }
 
 void gi_historyData_unpack2(inout GIHistoryData data, vec4 packedData) {
     data.diffuseFastColor = packedData.xyz;
-    data.diffuseHitDistance = packedData.w;
 }
 
 void gi_historyData_unpack3(inout GIHistoryData data, vec4 packedData) {
     data.specularColor = packedData.xyz;
+    data.specularHitDistance = packedData.w;
 }
 
 void gi_historyData_unpack4(inout GIHistoryData data, vec4 packedData) {
@@ -97,15 +97,15 @@ void gi_historyData_unpack5(inout GIHistoryData data, vec4 packedData) {
 }
 
 vec4 gi_historyData_pack1(GIHistoryData data) {
-    return vec4(data.diffuseColor, data.specularHitDistance);
+    return vec4(data.diffuseColor, data.diffuseHitDistance);
 }
 
 vec4 gi_historyData_pack2(GIHistoryData data) {
-    return vec4(data.diffuseFastColor, data.diffuseHitDistance);
+    return vec4(data.diffuseFastColor, 0.0);
 }
 
 vec4 gi_historyData_pack3(GIHistoryData data) {
-    return vec4(data.specularColor, 0.0);
+    return vec4(data.specularColor, data.specularHitDistance);
 }
 
 vec4 gi_historyData_pack4(GIHistoryData data) {
@@ -156,6 +156,18 @@ uvec4 reprojectInfo_pack(ReprojectInfo info) {
 
 vec2 _gi_mirrorUV(vec2 uv) {
     return 1.0 - abs(1.0 - (fract(uv * 0.5) * 2.0));
+}
+
+float gi_roughnessWeight(float roughness0, float roughness) {
+    float norm = roughness0 * roughness0 * 0.999 + 0.001;
+    float w = abs(roughness - roughness0) * rcp(norm);
+    return saturate(1.0 - w);
+}
+
+vec4 gi_roughnessWeight(float roughness0, vec4 roughness) {
+    float norm = roughness0 * roughness0 * 0.999 + 0.001;
+    vec4 w = abs(roughness - roughness0) * rcp(norm);
+    return saturate(1.0 - w);
 }
 
 #endif

@@ -177,8 +177,6 @@ void main() {
                 uint baseRandSeed = RANDOM_FRAME / 64u + 2u;
                 float prob = rand_stbnVec1(rand_newStbnPos(texelPos, baseRandSeed), RANDOM_FRAME);
                 if (prob > smoothWeight) {
-                    imageStore(uimg_temp1, texelPos, vec4(0.0, 1.0, 0.0, 1.0));
-
                     vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
                     curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
                     vec2 gatherTexelPos = floor(curr2PrevTexelPos - 0.5) + 1.0;
@@ -215,8 +213,6 @@ void main() {
                         float combinedWeight = bilinearWeights4.w * reprojInfo.bilateralWeights.w * reprojInfo.historyResetFactor;
                         sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, -1), combinedWeight, baseRandSeed + 4u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal);
                     }
-                } else {
-                    imageStore(uimg_temp1, texelPos, vec4(1.0, 0.0, 0.0, 1.0));
                 }
             }
 

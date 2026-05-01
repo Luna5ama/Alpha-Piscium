@@ -135,12 +135,6 @@ void getSpecularKernelBasis(
     B *= worldRadius / skewFactor;
 }
 
-float roughnessWeight(float roughness0, float roughness) {
-    float norm = roughness0 * roughness0 * 0.99 + 0.01;
-    float w = abs(roughness0 - roughness) * rcp(norm);
-    return saturate(1.0 - w);
-}
-
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
@@ -153,7 +147,10 @@ void main() {
     if (hiz_groupGroundCheckSubgroup(swizzledWGPos, 4)) {
         vec2 centerScreenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
         GeomData centerGeomData = _gi_readGeomData(texelPos, centerScreenPos);
+        #if GI_DENOISE_PASS == 2
         history_viewZ_store(texelPos, vec4(centerGeomData.viewPos.z));
+        history_roughness_store(texelPos, vec4(centerGeomData.roughness, 0.0, 0.0, 0.0));
+        #endif
         // Load shared memory for variance filtering (20x20 = 400 elements)
         loadSharedVarianceData(workGroupOrigin, gl_LocalInvocationIndex);
         loadSharedVarianceData(workGroupOrigin, gl_LocalInvocationIndex + 256u);
@@ -381,7 +378,7 @@ void main() {
                         geomData.geomNormal,
                         basePlaneDistWeight
                     );
-                    edgeWeightFP32 *= roughnessWeight(centerGeomData.roughness, geomData.roughness);
+                    edgeWeightFP32 *= gi_roughnessWeight(centerGeomData.roughness, geomData.roughness);
                     float16_t edgeWeight = float16_t(edgeWeightFP32);
 
                     f16vec4 specSample = f16vec4(_gi_readSpec(sampleTexelPos));

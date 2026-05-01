@@ -67,7 +67,8 @@
         "transient_exposureWeights": "RGBA8",
         "transient_initialSampleRayCount": "R32F",
         "transient_spatialReuseRayCount": "R32F",
-        "transient_specularPBRData": "RGBA8"
+        "transient_specularPBRData": "RGBA8",
+        "history_roughness": "R32F"
     },
     "fixed": {
         "persistent_multiSctrLUT": {

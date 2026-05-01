@@ -16,14 +16,17 @@ vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
     );
 }
 
-vec4 computeEdgeWeights(
+void computeEdgeWeights(
 vec2 screenPos,
 vec2 gatherTexelPos,
+float currRoughness,
 vec3 currViewNormal,
 vec3 currViewGeomNormal,
 vec3 curr2PrevViewPos,
 float glazingAngleFactor,
 float normalBaseWeight,
+out vec4 roughnessWeights,
+out vec4 extraNormalWeights,
 out vec4 edgeWeights,
 out bool edgeFlag
 ) {
@@ -91,6 +94,9 @@ out bool edgeFlag
     float viewNormalDot3 = saturate(dot(curr2PrevViewNormal, viewNormal3));
     float viewNormalDot4 = saturate(dot(curr2PrevViewNormal, viewNormal4));
 
+    vec4 prevRoughnesses = history_roughness_gatherTexel(gatherTexelPos, 0);
+    roughnessWeights = gi_roughnessWeight(currRoughness, prevRoughnesses);
+
     vec4 geomViewNormalDots = vec4(geomViewNormalDot1, geomViewNormalDot2, geomViewNormalDot3, geomViewNormalDot4);
     vec4 viewNormalDots = vec4(viewNormalDot1, viewNormalDot2, viewNormalDot3, viewNormalDot4);
     vec4 planeDistances = vec4(planeDistance1, planeDistance2, planeDistance3, planeDistance4);
@@ -101,6 +107,7 @@ out bool edgeFlag
     edgeFlagI |= uint(any(lessThan(geomViewNormalDots, vec4(0.5))));
     edgeFlagI |= uint(any(lessThan(viewNormalDots, vec4(0.5))));
     edgeFlagI |= uint(any(greaterThan(planeDistances, vec4(planeDistanceThreshold))));
+    edgeFlagI |= uint(any(lessThan(roughnessWeights, vec4(0.9))));
     edgeFlag = bool(edgeFlagI);
 
     vec4 geomNormalWeights = pow(geomViewNormalDots, vec4(256.0));
@@ -109,7 +116,8 @@ out bool edgeFlag
     vec4 geomDepthWeights = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(curr2PrevViewPos.z), 2.0)));
     geomDepthWeights *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
     edgeWeights = geomNormalWeights * normalWeights * geomDepthWeights;
-    return normalWeights;
+
+    extraNormalWeights = normalWeights;
 }
 
 void gi_reproject(ivec2 texelPos, float currViewZ) {
@@ -131,6 +139,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
     vec3 currViewNormal = gData.normal;
     vec3 currViewGeomNormal = gData.geomNormal;
+    Material material = material_decode(gData);
+    float currRoughness = material.roughness;
 
     float glazingCosTheta = saturate(dot(currViewGeomNormal, -normalize(currViewPos.xyz)));
     float glazingAngleFactor = glazingCosTheta;
@@ -153,14 +163,20 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
             bool edgeFlag;
             vec4 edgeWeights;
-            vec4 extraNormalWeights = computeEdgeWeights(
+            vec4 extraNormalWeights;
+            vec4 roughnessWeights;
+
+            computeEdgeWeights(
                 screenPos,
                 gatherTexelPos,
+                currRoughness,
                 currViewNormal,
                 currViewGeomNormal,
                 curr2PrevViewPos.xyz,
                 glazingAngleFactor,
                 1.0,
+                roughnessWeights,
+                extraNormalWeights,
                 edgeWeights,
                 edgeFlag
             );
@@ -251,6 +267,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     packedData2 = clamp(packedData2, 0.0, FP16_MAX);
                     packedData2 = dither_fp16(packedData2, ditherNoise);
                     transient_gi2Reprojected_store(texelPos, packedData2);
+
+                    finalWeights *= roughnessWeights;
+                    finalWeights *= safeRcp(dot(finalWeights, vec4(1.0)));
 
                     vec4 packedData3 = bileratralSum(
                         data3X,
@@ -381,7 +400,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         if (bool(clipFlag)) {
             vec2 virtualPrevNDC = virtualPrevClipPos.xy / virtualPrevClipPos.w;
             vec2 virtualPrevScreen = virtualPrevNDC * 0.5 + 0.5;
-            Material material = material_decode(gData);
+            // Material material = material_decode(gData); // already decoded
             // Goes to 1.0 when roughness is 0.0 and vise-versa
             float mirrorParallaxFactor = exp2(-pow2(material.roughness * 32.0));
             virtualPrevScreen = mix(curr2PrevScreen, virtualPrevScreen, mirrorParallaxFactor);
@@ -396,17 +415,23 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
                 bool edgeFlag;
                 vec4 edgeWeights;
+                vec4 extraNormalWeights;
+                vec4 roughnessWeights;
                 computeEdgeWeights(
                     screenPos,
                     gatherTexelPos,
+                    currRoughness,
                     currViewNormal,
                     currViewGeomNormal,
                     curr2PrevViewPos.xyz,
                     glazingAngleFactor,
                     128.0 * mirrorParallaxFactor + 256.0,
+                    roughnessWeights,
+                    extraNormalWeights,
                     edgeWeights,
                     edgeFlag
                 );
+                edgeWeights *= roughnessWeights;
 
                 vec2 pixelPosFract = fract(virtualPrevTexelPos - 0.5);
                 vec2 bilinearWeights2 = pixelPosFract;
