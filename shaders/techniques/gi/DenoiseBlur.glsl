@@ -181,10 +181,11 @@ void main() {
             filteredInputVariance /= 25.0;
             f16vec2 filteredInputVarianceFP16 = f16vec2(filteredInputVariance);
 
-            // Just load it again later to save registers
-            float historyLength = transient_gi5Reprojected_fetch(texelPos).x * TOTAL_HISTORY_LENGTH;
-            float accumFactor = rcp(1.0 + pow2(0.1 * historyLength));
-            float invAccumFactor = saturate(1.0 - accumFactor); // Increases as history accumulates
+            vec4 historyData5 = transient_gi5Reprojected_fetch(texelPos);
+            float historyLength = max(historyData5.x * TOTAL_HISTORY_LENGTH, 1.0);
+            float specularHistoryLength = max(historyData5.z * TOTAL_HISTORY_LENGTH, 1.0);
+            float diffAccumFactor = rcp(1.0 + pow2(0.1 * historyLength));
+            float specAccumFactor = rcp(1.0 + pow2(0.1 * specularHistoryLength));
 
             vec2 hitDistFactor = hitDistanceFactors;
             #if GI_DENOISE_PASS == 2
@@ -204,10 +205,11 @@ void main() {
             // --- Diffuse loop: screen-space kernel with view-angle stretch ---
             if (material.dielectric > 0.0) {
                 float kernelRadius = baseKernelRadius.x;
-                kernelRadius *= accumFactor;
+                kernelRadius *= diffAccumFactor;
                 kernelRadius *= 1.0 + filteredInputVariance.x * baseKernelRadius.y;
                 kernelRadius *= hitDistFactor.x;
                 kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
+                float diffInvAccumFactor = saturate(1.0 - diffAccumFactor); // Increases as history accumulates
 
                 vec3 V = normalize(-centerGeomData.viewPos);
                 float NoV = abs(dot(centerGeomData.geomNormal, V));
@@ -246,8 +248,8 @@ void main() {
 
                     GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
-                    float baseNormalWeight = invAccumFactor * 64.0 + 32.0;
-                    float basePlaneDistWeight = invAccumFactor * -256.0 - 128.0;
+                    float baseNormalWeight = diffInvAccumFactor * 64.0 + 32.0;
+                    float basePlaneDistWeight = diffInvAccumFactor * -256.0 - 128.0;
                     float edgeWeightFP32 = normalWeight(centerGeomData, geomData, baseNormalWeight);
                     edgeWeightFP32 *= planeDistanceWeight(
                         centerGeomData.viewPos,
@@ -316,8 +318,10 @@ void main() {
 
             // --- Specular loop: world-space specular lobe kernel ---
             {
+                float specInvAccumFactor = saturate(1.0 - specAccumFactor); // Increases as history accumulates
+
                 float kernelRadius = baseKernelRadius.x;
-                kernelRadius *= accumFactor;
+                kernelRadius *= specAccumFactor;
                 kernelRadius *= 1.0 + filteredInputVariance.y * baseKernelRadius.y;
                 //kernelRadius *= hitDistFactor.y;
                 kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
@@ -329,7 +333,7 @@ void main() {
                     centerGeomData.roughness,
                     worldRadius,
                     hitDistFactor.y,
-                    accumFactor,
+                    specAccumFactor,
                     specTFP32,
                     specBFP32
                 );
@@ -370,8 +374,8 @@ void main() {
 
                     GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
-                    float baseNormalWeight = invAccumFactor * 96.0 + 48.0;
-                    float basePlaneDistWeight = invAccumFactor * -384.0 - 192.0;
+                    float baseNormalWeight = specInvAccumFactor * 96.0 + 48.0;
+                    float basePlaneDistWeight = specInvAccumFactor * -384.0 - 192.0;
                     float edgeWeightFP32 = normalWeight(centerGeomData, geomData, baseNormalWeight);
                     edgeWeightFP32 *= planeDistanceWeight(
                         centerGeomData.viewPos,

@@ -40,14 +40,14 @@ vec3 interpolateTurbo(float x) {
 
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
-shared vec2 shared_historyLengths[18][18];
+shared vec3 shared_historyLengths[18][18];
 
 void loadSharedHistoryLengths(uvec2 groupOriginTexelPos, uint index) {
     if (index < 324u) { // 18 * 18 = 324
         uvec2 sharedXY = uvec2(index % 18u, index / 18u);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 1;
         vec4 data5 = transient_gi5Reprojected_fetch(srcXY);
-        shared_historyLengths[sharedXY.y][sharedXY.x] = data5.xy;
+        shared_historyLengths[sharedXY.y][sharedXY.x] = data5.xyz;
     }
 }
 
@@ -117,18 +117,41 @@ void main() {
                 barrier();
 
                 if (RANDOM_FRAME >= 0 && RANDOM_FRAME < MAX_FRAMES) {
-                    float historyLength = 1.0;
-                    float realHistoryLength = 1.0;
+                    // x: diffuse history length
+                    // y: specular history length
+                    // z: "real" history length
+                    vec3 historyLengths = vec3(1.0);
                     // x: diffuse
                     // y: specular
                     vec2 newWeights = vec2(1.0);
 
                     #ifdef SETTING_DENOISER_ACCUM
 
-                    historyLength = historyData.historyLength * TOTAL_HISTORY_LENGTH * global_historyResetFactor;
-                    historyLength += 1.0;
-                    realHistoryLength = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH * global_historyResetFactor;
-                    realHistoryLength += 1.0;
+                    GBufferData gData = gbufferData_init();
+                    gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+                    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
+                    Material material = material_decode(gData);
+                    transient_specularPBRData_store(texelPos, vec4(sqrt(material.roughness), 0.0, 0.0, 0.0));
+
+                    // [ZHD20]
+                    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+                    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+                    vec3 V = normalize(-viewPos);
+                    float NoV = saturate(dot(gData.normal, V));
+                    vec3 movementDelta = gData.isHand ? vec3(0.0) : uval_cameraDelta;
+                    float distToPoint = length(viewPos);
+                    float parallax = sqrt(length(movementDelta)) * safeRcp(distToPoint * frameTime * 15.0);
+                    float specAccumRecuctionFactor = specAccumReduction(material.roughness, NoV, parallax);
+                    specAccumRecuctionFactor = 1.0;
+                    float maxSpecularHistoryLength = max(HISTORY_LENGTH * specAccumRecuctionFactor, 1.0);
+
+                    historyLengths = vec3(historyData.historyLength, historyData.specularHistoryLength, historyData.realHistoryLength);
+                    historyLengths *= TOTAL_HISTORY_LENGTH * global_historyResetFactor;
+                    historyLengths += 1.0;
+
+                    historyLengths = clamp(historyLengths, 1.0, TOTAL_HISTORY_LENGTH);
+                    historyLengths.y = min(historyLengths.y, maxSpecularHistoryLength);
+                    historyLengths.xy = min(historyLengths.xy, historyLengths.z);
 
                     #if SETTING_DENOISER_FLICKER_SUPPRESSION
                     // Idea from Belmu to limit firefly based on luma difference
@@ -141,35 +164,15 @@ void main() {
                     #endif
                     #endif
 
-                    // Accumulate
-                    // x: regular history length
-                    // y: fast history length
-                    vec2 accumHistoryLength = min(vec2(historyLength, realHistoryLength), vec2(HISTORY_LENGTH, FAST_HISTORY_LENGTH));
-                    vec2 rcpAccumHistoryLength = rcp(accumHistoryLength);
-
-                    GBufferData gData = gbufferData_init();
-                    gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
-                    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
-                    Material material = material_decode(gData);
-                    transient_specularPBRData_store(texelPos, vec4(sqrt(material.roughness), 0.0, 0.0, 0.0));
-                    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-                    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-
-                    // [ZHD20]
-                    vec3 V = normalize(-viewPos);
-                    float NoV = saturate(dot(gData.normal, V));
-                    vec3 movementDelta = gData.isHand ? vec3(0.0) : uval_cameraDelta;
-                    float distToPoint = length(viewPos);
-                    float parallax = sqrt(length(movementDelta)) * safeRcp(distToPoint * frameTime * 15.0);
-                    float specAccumRecuctionFactor = specAccumReduction(material.roughness, NoV, parallax);
-
                     // x: regular, diffuse
                     // y: regular, specular
                     // z: fast, diffuse
                     // w: fast, specular
-                    vec4 rcpAccumHistoryLength4 = rcpAccumHistoryLength.xxyy;
-                    rcpAccumHistoryLength4.yw = max(rcpAccumHistoryLength4.yw, rcp(max(vec2(HISTORY_LENGTH, FAST_HISTORY_LENGTH) * specAccumRecuctionFactor, 1.0)));
-                    vec4 alpha = vec4(newWeights.xy, pow(newWeights.xy, vec2(0.1))) * rcpAccumHistoryLength4;
+                    vec3 accumHistoryLength = historyLengths;
+                    accumHistoryLength.z = min(accumHistoryLength.z, SETTING_DENOISER_FAST_HISTORY_LENGTH);
+                    vec3 rcpAccumHistoryLength = rcp(accumHistoryLength);
+                    vec4 rcpAccumHistoryLength4 = rcpAccumHistoryLength.xyzz;
+                    vec4 alpha = vec4(newWeights, pow(newWeights, vec2(0.1))) * rcpAccumHistoryLength4;
 
                     historyData.diffuseColor = mix(historyData.diffuseColor, newDiffuse.rgb, alpha.x);
                     historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, alpha.y);
@@ -179,35 +182,37 @@ void main() {
 
                     float newHitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
                     if (newHitDistance >= 0.0) {
-                        float hitDistanceAlpha = rcp(min(historyLength, 16.0));
-                        historyData.specularHitDistance = mix(historyData.specularHitDistance, newHitDistance, hitDistanceAlpha);
-                        historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, hitDistanceAlpha);
+                        float diffHitDistanceAlpha = rcp(min(historyLengths.x, 16.0));
+                        float specHitDistanceAlpha = rcp(min(historyLengths.y, 16.0));
+                        historyData.specularHitDistance = mix(historyData.specularHitDistance, newHitDistance, specHitDistanceAlpha);
+                        historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, diffHitDistanceAlpha);
                     }
 
-                    historyLength = clamp(historyLength, 1.0, TOTAL_HISTORY_LENGTH);
-                    realHistoryLength = clamp(realHistoryLength, 1.0, TOTAL_HISTORY_LENGTH);
-                    historyData.historyLength = saturate(historyLength / TOTAL_HISTORY_LENGTH);
-                    historyData.realHistoryLength = saturate(realHistoryLength / TOTAL_HISTORY_LENGTH);
+                    historyLengths = saturate(historyLengths / TOTAL_HISTORY_LENGTH);
+                    historyData.historyLength = historyLengths.x;
+                    historyData.specularHistoryLength = historyLengths.y;
+                    historyData.realHistoryLength = historyLengths.z;
                 }
 
                 // 3x3 max kernel on history lengths
-                vec2 hLenAverage = vec2(0.0);
-                vec2 hLenMax = vec2(0.0);
+                vec3 hLenAverage = vec3(0.0);
+                vec3 hLenMax = vec3(0.0);
                 ivec2 localPos = ivec2(mortonPos) + 1; // +1 for padding
                 for (int dy = -1; dy <= 1; ++dy) {
                     for (int dx = -1; dx <= 1; ++dx) {
                         ivec2 samplePos = localPos + ivec2(dx, dy);
-                        vec2 neighborHistoryLengths = shared_historyLengths[samplePos.y][samplePos.x];
+                        vec3 neighborHistoryLengths = shared_historyLengths[samplePos.y][samplePos.x];
                         hLenAverage += neighborHistoryLengths;
                         hLenMax = max(hLenMax, neighborHistoryLengths);
                     }
                 }
 
-                hLenAverage -= vec2(historyData.historyLength, historyData.realHistoryLength);
+                hLenAverage -= vec3(historyData.historyLength, historyData.specularHistoryLength, historyData.realHistoryLength);
                 hLenAverage = saturate(hLenAverage / 8.0);
 
                 historyData.historyLength = mix(historyData.historyLength, hLenMax.x, pow2(hLenAverage.x));
-                historyData.realHistoryLength = mix(historyData.realHistoryLength, hLenMax.y, hLenAverage.y);
+                historyData.specularHistoryLength = mix(historyData.specularHistoryLength, hLenMax.y, pow2(hLenAverage.y));
+                historyData.realHistoryLength = mix(historyData.realHistoryLength, hLenMax.z, hLenAverage.z);
 
                 float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 1u), frameCounter);
                 vec4 packedData1 = clamp(gi_historyData_pack1(historyData), 0.0, FP16_MAX);

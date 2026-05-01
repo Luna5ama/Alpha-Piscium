@@ -232,8 +232,10 @@ void main() {
                     specMoment1 /= 25.0;
                     specMoment2 /= 25.0;
 
-                    float totalLen = historyData.historyLength * TOTAL_HISTORY_LENGTH;
-                    float decayFactor = linearStep(FAST_HISTORY_LENGTH * 2.0, 1.0, totalLen);
+                    float diffTotalLen = historyData.historyLength * TOTAL_HISTORY_LENGTH;
+                    float diffDecayFactor = linearStep(SETTING_DENOISER_FAST_HISTORY_LENGTH * 2.0, 1.0, diffTotalLen);
+                    float specTotalLen = historyData.specularHistoryLength * TOTAL_HISTORY_LENGTH;
+                    float specDecayFactor = linearStep(SETTING_DENOISER_FAST_HISTORY_LENGTH * 2.0, 1.0, specTotalLen);
 
                     float expMul = exp2(global_aeData.expValues.z);
 
@@ -246,8 +248,8 @@ void main() {
                     }
                     #endif
 
-                    float clampingThreshold = mix(2.0, 4.0, pow2(decayFactor));
-                    vec3 diffClamped = _clampColor(historyData.diffuseColor, diffMoment1, diffMoment2, clampingThreshold);
+                    float diffClampingThreshold = mix(2.0, 4.0, pow2(diffDecayFactor));
+                    vec3 diffClamped = _clampColor(historyData.diffuseColor, diffMoment1, diffMoment2, diffClampingThreshold);
                     vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
                     vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - diffOutputSim);
                     float diffDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffDiff);
@@ -265,7 +267,8 @@ void main() {
                     history_gi1_store(texelPos, packedData1);
                     #endif
 
-                    vec3 specClamped = _clampColor(historyData.specularColor, specMoment1, specMoment2, clampingThreshold);
+                    float specClampingThreshold = mix(2.0, 4.0, pow2(specDecayFactor));
+                    vec3 specClamped = _clampColor(historyData.specularColor, specMoment1, specMoment2, specClampingThreshold);
                     vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
                     vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
@@ -291,9 +294,11 @@ void main() {
                     vec2 diffLuma2 = vec2(diffDiffLuma, specDiffLuma);
                     vec2 resetFactor2 = smoothstep(0.5, 0.0, diffLuma2);
                     float resetFactor = resetFactor2.x * resetFactor2.y;
-                    resetFactor = pow(resetFactor, historyData.historyLength) * 0.9 + 0.1;
-                    historyData.historyLength *= resetFactor;
-                    historyData.realHistoryLength *= sqrt(resetFactor);
+                    float diffResetFactor = pow(resetFactor, historyData.historyLength) * 0.9 + 0.1;
+                    float specResetFactor = pow(resetFactor, historyData.specularHistoryLength) * 0.9 + 0.1;
+                    historyData.historyLength *= diffResetFactor;
+                    historyData.specularHistoryLength *= specResetFactor;
+                    historyData.realHistoryLength *= sqrt((diffResetFactor + specResetFactor) * 0.5);
 
                     vec4 packedData5 = gi_historyData_pack5(historyData);
                     packedData5 = dither_u8(packedData5, ditherNoise);

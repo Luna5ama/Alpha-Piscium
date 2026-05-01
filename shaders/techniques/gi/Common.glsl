@@ -18,7 +18,6 @@
 
 const float HISTORY_LENGTH = float(SETTING_DENOISER_HISTORY_LENGTH);
 const float TOTAL_HISTORY_LENGTH = 255.0;
-const float FAST_HISTORY_LENGTH = float(SETTING_DENOISER_FAST_HISTORY_LENGTH);
 
 #define GI_MB 1.0
 /*
@@ -32,7 +31,7 @@ const float FAST_HISTORY_LENGTH = float(SETTING_DENOISER_FAST_HISTORY_LENGTH);
 
     History Length: 8 bits          (5)
     Real History Length: 8 bits     (5)
-    Unused: 8 bits                  (5)
+    Specular History Length: 8 bits (5)
     Glazing Angle Factor: 8 bits    (5)
 */
 
@@ -50,6 +49,7 @@ struct GIHistoryData {
 
     float historyLength;
     float realHistoryLength;
+    float specularHistoryLength;
     float glazingAngleFactor;
 };
 
@@ -65,6 +65,7 @@ GIHistoryData gi_historyData_init()  {
 
     data.historyLength = 0.0;
     data.realHistoryLength = 0.0;
+    data.specularHistoryLength = 0.0;
     data.glazingAngleFactor = 0.0;
     return data;
 }
@@ -90,6 +91,7 @@ void gi_historyData_unpack4(inout GIHistoryData data, vec4 packedData) {
 void gi_historyData_unpack5(inout GIHistoryData data, vec4 packedData) {
     data.historyLength = packedData.x;
     data.realHistoryLength = packedData.y;
+    data.specularHistoryLength = packedData.z;
     data.glazingAngleFactor = packedData.w;
 }
 
@@ -110,7 +112,7 @@ vec4 gi_historyData_pack4(GIHistoryData data) {
 }
 
 vec4 gi_historyData_pack5(GIHistoryData data) {
-    return vec4(data.historyLength, data.realHistoryLength, 0.0, data.glazingAngleFactor);
+    return vec4(data.historyLength, data.realHistoryLength, data.specularHistoryLength, data.glazingAngleFactor);
 }
 
 float gi_planeDistance(vec3 pos1, vec3 normal1, vec3 pos2, vec3 normal2) {
