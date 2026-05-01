@@ -779,7 +779,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "数值越高，质量越好，但会降低性能。这些光线不太重要，因此保持较低数值是可以的。"
                     }
                 }
-                slider("SETTING_GI_SST_THICKNESS", 0.1, 0.01..0.5 step 0.01) {
+                slider("SETTING_GI_SST_THICKNESS", 0.25, 0.01..0.5 step 0.01) {
                     lang {
                         name = "Screen Space Tracing Thickness"
                         comment = "Assumed thickness for screen space tracing."
