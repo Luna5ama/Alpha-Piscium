@@ -64,7 +64,7 @@ float computeOutputLumaDiffWeight(vec3 prevLinearColor, vec3 newLinearColor, flo
 }
 
 const float SPEC_ACCUM_CURVE = 0.5;
-const float SPEC_ACCUM_BASE_POWER = 0.5;
+const float SPEC_ACCUM_BASE_POWER = 0.3;
 
 float specAccumReduction(float roughness, float NoV, float parallax) {
     roughness = max(0.1, roughness);
@@ -140,7 +140,7 @@ void main() {
                     float NoV = saturate(dot(gData.normal, V));
                     vec3 movementDelta = gData.isHand ? vec3(0.0) : uval_cameraDelta;
                     float distToPoint = length(viewPos);
-                    float parallax = sqrt(length(movementDelta)) * safeRcp(distToPoint * frameTime * 15.0);
+                    float parallax = sqrt(length(movementDelta)) * safeRcp(distToPoint * frameTime * 25.0);
                     float specAccumRecuctionFactor = specAccumReduction(material.roughness, NoV, parallax);
                     float maxSpecularHistoryLength = max(HISTORY_LENGTH * specAccumRecuctionFactor, 1.0);
 
