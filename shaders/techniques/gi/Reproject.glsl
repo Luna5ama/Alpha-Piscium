@@ -383,7 +383,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
             vec2 virtualPrevScreen = virtualPrevNDC * 0.5 + 0.5;
             Material material = material_decode(gData);
             // Goes to 1.0 when roughness is 0.0 and vise-versa
-            float mirrorParallaxFactor = pow8(saturate(1.0 - material.roughness));
+            float mirrorParallaxFactor = exp2(-pow2(material.roughness * 32.0));
             virtualPrevScreen = mix(curr2PrevScreen, virtualPrevScreen, mirrorParallaxFactor);
             vec2 virtualPrevScreenClamped = saturate(virtualPrevScreen);
 
@@ -403,7 +403,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     currViewGeomNormal,
                     curr2PrevViewPos.xyz,
                     glazingAngleFactor,
-                    128.0 * mirrorParallaxFactor + 128.0,
+                    128.0 * mirrorParallaxFactor + 256.0,
                     edgeWeights,
                     edgeFlag
                 );
