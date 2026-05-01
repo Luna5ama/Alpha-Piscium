@@ -161,8 +161,10 @@ void main() {
         barrier();
 
         if (centerGeomData.viewPos.z > -65536.0) {
+            #if GI_DENOISE_PASS == 2
             history_geomViewNormal_store(texelPos, vec4(centerGeomData.geomNormal * 0.5 + 0.5, 0.0));
             history_viewNormal_store(texelPos, vec4(centerGeomData.normal * 0.5 + 0.5, 0.0));
+            #endif
 
             vec2 hitDistanceFactors = transient_gi_hitDistanceFactors_fetch(texelPos).xy;
             vec2 filteredInputVariance = vec2(0.0);
@@ -439,6 +441,8 @@ void main() {
         }
     }
 
+    #if GI_DENOISE_PASS == 2
     history_geomViewNormal_store(texelPos, vec4(0.0));
     history_viewNormal_store(texelPos, vec4(0.0));
+    #endif
 }
