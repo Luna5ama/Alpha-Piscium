@@ -400,9 +400,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         if (bool(clipFlag)) {
             vec2 virtualPrevNDC = virtualPrevClipPos.xy / virtualPrevClipPos.w;
             vec2 virtualPrevScreen = virtualPrevNDC * 0.5 + 0.5;
-            // Material material = material_decode(gData); // already decoded
             // Goes to 1.0 when roughness is 0.0 and vise-versa
-            float mirrorParallaxFactor = exp2(-pow2(material.roughness * 32.0));
+            float mirrorParallaxFactor = exp2(-pow2(material.roughness * 48.0));
             virtualPrevScreen = mix(curr2PrevScreen, virtualPrevScreen, mirrorParallaxFactor);
             vec2 virtualPrevScreenClamped = saturate(virtualPrevScreen);
 
