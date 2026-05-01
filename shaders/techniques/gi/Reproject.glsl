@@ -54,7 +54,7 @@ out bool edgeFlag
     float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
 
     vec2 gatherScreenPos = gatherTexelPos * uval_mainImageSizeRcp;
-    float prevEdgeMask = min4(history_gi5_gather(gatherScreenPos, 2));
+    float prevEdgeMask = min4(history_edgeMask_gather(gatherScreenPos, 0));
 
     vec2 halfTexel = 0.5 * uval_mainImageSizeRcp;
     vec2 gatherScreenPos1 = gatherScreenPos + halfTexel * vec2(-1.0, 1.0);

@@ -117,9 +117,6 @@ void main() {
                 barrier();
 
                 if (RANDOM_FRAME >= 0 && RANDOM_FRAME < MAX_FRAMES) {
-                    float currEdgeMask = transient_edgeMask_fetch(texelPos).r;
-                    historyData.edgeMask = currEdgeMask;
-
                     float historyLength = 1.0;
                     float realHistoryLength = 1.0;
                     // x: diffuse

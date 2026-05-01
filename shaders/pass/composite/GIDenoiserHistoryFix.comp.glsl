@@ -95,6 +95,7 @@ void main() {
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     ivec2 texelPos = ivec2(mortonGlobalPosU);
+    history_edgeMask_store(texelPos, transient_edgeMask_fetch(texelPos));
 
     if (hiz_groupGroundCheck(swizzledWGPos, 4)) {
         loadSharedDataMoments(workGroupOrigin, gl_LocalInvocationIndex);
