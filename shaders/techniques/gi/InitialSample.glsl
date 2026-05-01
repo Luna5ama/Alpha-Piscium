@@ -32,7 +32,7 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 n
         vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
         pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV * safeRcp(totalEnergy));
         // Clamping this to avoid dead locks that causes fireflies
-        pSpec = clamp(pSpec, 0.05, 0.95);
+        pSpec = clamp(pSpec, 0.01, 0.99);
     }
 
     ivec2 sampleDirRandKey = rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u);

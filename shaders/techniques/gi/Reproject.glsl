@@ -373,10 +373,10 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
         Material material = material_decode(gData);
         // Goes to 1.0 when roughness is 0.0 and vise-versa
-        float mirrorParallaxFactor = pow2(saturate(1.0 - material.roughness));
+        float mirrorParallaxFactor = pow4(saturate(1.0 - material.roughness));
 
         vec3 viewDir = normalize(currViewPos);
-        vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance * pow2(mirrorParallaxFactor);
+        vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance * mirrorParallaxFactor;
 
         vec4 virtualPrevViewPos = coord_viewCurrToPrev(vec4(virtualViewPos, 1.0), gData.isHand);
         vec4 virtualPrevClipPos = global_prevCamProj * virtualPrevViewPos;
@@ -438,12 +438,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
                         vec4 packedData3 = bileratralSum(data3X, data3Y, data3Z, data3W, finalWeights);
                         vec4 packedData4 = bileratralSum(data4X, data4Y, data4Z, data4W, finalWeights);
-                        if (valid) {
-                            vec4 packedData3Surface = transient_gi3Reprojected_load(texelPos);
-                            packedData3 = mix(packedData3Surface, packedData3, mirrorParallaxFactor);
-                            vec4 packedData4Surface = transient_gi4Reprojected_load(texelPos);
-                            packedData4 = mix(packedData4Surface, packedData4, mirrorParallaxFactor);
-                        }
                         packedData3 = clamp(packedData3, 0.0, FP16_MAX);
                         packedData3 = dither_fp16(packedData3, ditherNoiseV);
                         transient_gi3Reprojected_store(texelPos, packedData3);
@@ -473,12 +467,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         history_gi4_sample(vTapData.uv5AndWeight.xy),
                         vTapData
                     );
-                    if (valid) {
-                        vec4 packedData3Surface = transient_gi3Reprojected_load(texelPos);
-                        specData3 = mix(packedData3Surface, specData3, mirrorParallaxFactor);
-                        vec4 packedData4Surface = transient_gi4Reprojected_load(texelPos);
-                        specData4 = mix(packedData4Surface, specData4, mirrorParallaxFactor);
-                    }
 
                     specData3 = clamp(specData3, 0.0, FP16_MAX);
                     specData4 = clamp(specData4, 0.0, FP16_MAX);

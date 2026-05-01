@@ -264,7 +264,7 @@ void main() {
                     history_gi1_store(texelPos, packedData1);
                     #endif
 
-                    vec3 specClamped = _clampColor(historyData.specularColor, specMoment1, specMoment2, clampingThreshold * 0.5);
+                    vec3 specClamped = _clampColor(historyData.specularColor, specMoment1, specMoment2, clampingThreshold);
                     vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
                     vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
