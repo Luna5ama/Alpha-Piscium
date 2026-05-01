@@ -165,54 +165,42 @@ void main() {
                 gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
                 Material material = material_decode(gData);
 
-                float pSpec = 1.0;
-                if (material.dielectric > 0.0) {
-                    float NdotV = saturate(dot(gData.normal, V));
-                    vec3 fresnelV = saturate(fresnel_evalMaterial(material, NdotV));
-                    vec3 fresnelT = vec3(1.0) - fresnelV;
-                    vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
-                    pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV * safeRcp(totalEnergy));
-                }
-                float smoothWeight = mix(pow(1.0 - material.roughness, 32.0), 0.0, pow2(1.0 - pSpec));
                 uint baseRandSeed = RANDOM_FRAME / 64u + 2u;
-                float prob = rand_stbnVec1(rand_newStbnPos(texelPos, baseRandSeed), RANDOM_FRAME);
-                if (prob > smoothWeight) {
-                    vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
-                    curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
-                    vec2 gatherTexelPos = floor(curr2PrevTexelPos - 0.5) + 1.0;
-                    vec2 pixelPosFract = fract(curr2PrevTexelPos - 0.5);
-                    vec2 bilinearWeights2 = pixelPosFract;
-                    vec4 bilinearWeights4;
-                    bilinearWeights4.yz = bilinearWeights2.xx;
-                    bilinearWeights4.xw = 1.0 - bilinearWeights2.xx;
-                    bilinearWeights4.xy *= bilinearWeights2.yy;
-                    bilinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
+                vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
+                curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
+                vec2 gatherTexelPos = floor(curr2PrevTexelPos - 0.5) + 1.0;
+                vec2 pixelPosFract = fract(curr2PrevTexelPos - 0.5);
+                vec2 bilinearWeights2 = pixelPosFract;
+                vec4 bilinearWeights4;
+                bilinearWeights4.yz = bilinearWeights2.xx;
+                bilinearWeights4.xw = 1.0 - bilinearWeights2.xx;
+                bilinearWeights4.xy *= bilinearWeights2.yy;
+                bilinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
-                    ivec2 iGatherTexelPos = ivec2(gatherTexelPos);
-                    bool oddFrame = bool(frameCounter & 1);
+                ivec2 iGatherTexelPos = ivec2(gatherTexelPos);
+                bool oddFrame = bool(frameCounter & 1);
 
-                    // 4-tap bilinear temporal gather
-                    // Layout (gather order matches bilinearWeights xyzw):
-                    //   x = top-left    iGatherTexelPos + (-1,  0)
-                    //   y = top-right   iGatherTexelPos + ( 0,  0)
-                    //   z = bottom-right iGatherTexelPos + ( 0, -1)
-                    //   w = bottom-left  iGatherTexelPos + (-1, -1)
-                    {
-                        float combinedWeight = bilinearWeights4.x * reprojInfo.bilateralWeights.x * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, 0), combinedWeight, baseRandSeed + 1u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal);
-                    }
-                    {
-                        float combinedWeight = bilinearWeights4.y * reprojInfo.bilateralWeights.y * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos, combinedWeight, baseRandSeed + 2u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal);
-                    }
-                    {
-                        float combinedWeight = bilinearWeights4.z * reprojInfo.bilateralWeights.z * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(0, -1), combinedWeight, baseRandSeed + 3u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal);
-                    }
-                    {
-                        float combinedWeight = bilinearWeights4.w * reprojInfo.bilateralWeights.w * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, -1), combinedWeight, baseRandSeed + 4u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal);
-                    }
+                // 4-tap bilinear temporal gather
+                // Layout (gather order matches bilinearWeights xyzw):
+                //   x = top-left    iGatherTexelPos + (-1,  0)
+                //   y = top-right   iGatherTexelPos + ( 0,  0)
+                //   z = bottom-right iGatherTexelPos + ( 0, -1)
+                //   w = bottom-left  iGatherTexelPos + (-1, -1)
+                {
+                    float combinedWeight = bilinearWeights4.x * reprojInfo.bilateralWeights.x * reprojInfo.historyResetFactor;
+                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, 0), combinedWeight, baseRandSeed + 1u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal);
+                }
+                {
+                    float combinedWeight = bilinearWeights4.y * reprojInfo.bilateralWeights.y * reprojInfo.historyResetFactor;
+                    sampleTemporalNeighbor(texelPos, iGatherTexelPos, combinedWeight, baseRandSeed + 2u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal);
+                }
+                {
+                    float combinedWeight = bilinearWeights4.z * reprojInfo.bilateralWeights.z * reprojInfo.historyResetFactor;
+                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(0, -1), combinedWeight, baseRandSeed + 3u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal);
+                }
+                {
+                    float combinedWeight = bilinearWeights4.w * reprojInfo.bilateralWeights.w * reprojInfo.historyResetFactor;
+                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, -1), combinedWeight, baseRandSeed + 4u, viewPos, V, gData, material, oddFrame, temporalReservoir, wSum, prevSample, prevHitNormal);
                 }
             }
 

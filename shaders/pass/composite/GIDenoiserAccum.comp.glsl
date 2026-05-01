@@ -142,7 +142,6 @@ void main() {
                     float distToPoint = length(viewPos);
                     float parallax = sqrt(length(movementDelta)) * safeRcp(distToPoint * frameTime * 15.0);
                     float specAccumRecuctionFactor = specAccumReduction(material.roughness, NoV, parallax);
-                    specAccumRecuctionFactor = 1.0;
                     float maxSpecularHistoryLength = max(HISTORY_LENGTH * specAccumRecuctionFactor, 1.0);
 
                     historyLengths = vec3(historyData.historyLength, historyData.specularHistoryLength, historyData.realHistoryLength);
