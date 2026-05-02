@@ -25,6 +25,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
@@ -206,7 +207,7 @@ void main() {
             if (material.dielectric > 0.0) {
                 float kernelRadius = baseKernelRadius.x;
                 kernelRadius *= diffAccumFactor;
-                kernelRadius *= 1.0 + filteredInputVariance.x * baseKernelRadius.y;
+                kernelRadius += filteredInputVariance.x * baseKernelRadius.y;
                 kernelRadius *= hitDistFactor.x;
                 kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
                 float diffInvAccumFactor = saturate(1.0 - diffAccumFactor); // Increases as history accumulates
@@ -217,7 +218,7 @@ void main() {
                 f16vec2 kernelRadius2 = f16vec2(kernelRadius * stretchFactor);
 
                 float sigmaFP32 = 0.69;
-                // sigmaFP32 += 1.0 - saturate(hitDistFactor.x);
+                sigmaFP32 += 1.0 - saturate(hitDistFactor.x);
                 sigmaFP32 *= 1.0 - filteredInputVariance.x;
                 float16_t sigma = float16_t(-sigmaFP32);
 
@@ -292,7 +293,7 @@ void main() {
                     moment1 *= rcpEdgeWeightSum;
                     moment2 *= rcpEdgeWeightSum;
                     float variance = max(0.0, moment2 - pow2(moment1));
-                    filteredInputVarianceFP16.x += float16_t(variance);;
+                    filteredInputVarianceFP16.x += float16_t(variance);
 
                     #elif GI_DENOISE_PASS == 2
                     transient_gi_diffShadingOutput_store(texelPos, diffResult);
@@ -322,8 +323,8 @@ void main() {
 
                 float kernelRadius = baseKernelRadius.x;
                 kernelRadius *= specAccumFactor;
-                kernelRadius *= 1.0 + filteredInputVariance.y * baseKernelRadius.y;
-                //kernelRadius *= hitDistFactor.y;
+                kernelRadius += filteredInputVariance.y * baseKernelRadius.y;
+                kernelRadius *= hitDistFactor.y;
                 kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
                 float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
                 vec3 specTFP32, specBFP32;
@@ -341,7 +342,7 @@ void main() {
                 f16vec3 specB = f16vec3(specBFP32);
 
                 float sigmaFP32 = 0.69;
-                // sigmaFP32 += 1.0 - saturate(hitDistFactor.y);
+                sigmaFP32 += 1.0 - saturate(hitDistFactor.y);
                 sigmaFP32 *= 1.0 - filteredInputVariance.y;
                 float16_t sigma = float16_t(-sigmaFP32);
 

@@ -253,7 +253,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         finalWeights
                     );
                     packedData1 = clamp(packedData1, 0.0, FP16_MAX);
-                    specularHitDistance = packedData1.w;
                     packedData1 = dither_fp16(packedData1, ditherNoise);
                     transient_gi1Reprojected_store(texelPos, packedData1);
 
@@ -290,6 +289,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         finalWeights
                     );
                     packedData4 = clamp(packedData4, 0.0, FP16_MAX);
+                    specularHitDistance = packedData4.w;
                     packedData4 = dither_fp16(packedData4, ditherNoise);
                     transient_gi4Reprojected_store(texelPos, packedData4);
 
@@ -332,7 +332,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     tapData
                 );
                 packedData1 = clamp(packedData1, 0.0, FP16_MAX);
-                specularHitDistance = packedData1.w;
                 packedData1 = dither_fp16(packedData1, ditherNoise);
                 transient_gi1Reprojected_store(texelPos, packedData1);
 
@@ -355,6 +354,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
                 vec4 packedData4 = history_gi4_sample(curr2PrevScreen);
                 packedData4 = clamp(packedData4, 0.0, FP16_MAX);
+                specularHitDistance = packedData4.w;
                 packedData4 = dither_fp16(packedData4, ditherNoise);
                 transient_gi4Reprojected_store(texelPos, packedData4);
 
@@ -390,7 +390,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         bool specValid = valid;
 
         vec3 viewDir = normalize(currViewPos);
-        vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance;
+        // Goes to 1.0 when roughness is 0.0 and vise-versa
+        float mirrorParallaxFactor = exp2(-pow2(material.roughness * 32.0));
+        vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance * mirrorParallaxFactor;
 
         vec4 virtualPrevViewPos = coord_viewCurrToPrev(vec4(virtualViewPos, 1.0), gData.isHand);
         vec4 virtualPrevClipPos = global_prevCamProj * virtualPrevViewPos;
@@ -400,9 +402,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         if (bool(clipFlag)) {
             vec2 virtualPrevNDC = virtualPrevClipPos.xy / virtualPrevClipPos.w;
             vec2 virtualPrevScreen = virtualPrevNDC * 0.5 + 0.5;
-            // Goes to 1.0 when roughness is 0.0 and vise-versa
-            float mirrorParallaxFactor = exp2(-pow2(material.roughness * 48.0));
-            virtualPrevScreen = mix(curr2PrevScreen, virtualPrevScreen, mirrorParallaxFactor);
             vec2 virtualPrevScreenClamped = saturate(virtualPrevScreen);
 
             if (all(lessThan(abs(virtualPrevScreen - virtualPrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
