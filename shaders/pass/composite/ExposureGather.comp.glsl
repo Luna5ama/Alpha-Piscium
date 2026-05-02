@@ -88,7 +88,7 @@ void main() {
         vec2 hsPercents = vec2(SETTING_EXPOSURE_H_PERCENT, SETTING_EXPOSURE_S_PERCENT) * (totalWeight * 0.01);
         global_aeData.hsPercents = vec2(highlightCount, shadowCount) / totalWeight;
 
-        vec2 timeFactor = exp2(-vec2(SETTING_EXPOSURE_AVG_LUM_TIME, SETTING_EXPOSURE_HS_TIME) + log2(min(frameTime / FRAME_TIME_60FPS_SECS, 1.0)));
+        vec2 timeFactor = exp2(-vec2(SETTING_EXPOSURE_AVG_LUM_TIME, SETTING_EXPOSURE_HS_TIME) + log2(min(frameTime / FRAME_TIME_60FPS_SECS, 60.0 / 10.0)));
         timeFactor = pow(timeFactor, vec2(max(1e-16, initFadeFactor)));
 
         // x: shadow, y: highlight
