@@ -904,6 +904,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         suffix = " 像素"
                     }
                 }
+                empty()
+                toggle("SETTING_GI_DECORRELATE", false) {
+                    lang {
+                        name = "ReSITR Duplication Map Decorrelation"
+                        comment = "May reduce fireflies and other artifacts but can impact performance."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "ReSITR重复图去相关"
+                        comment = "可能会减少火点和其他伪影，但可能会影响性能。"
+                    }
+                }
             }
             screen(1) {
                 lang {
