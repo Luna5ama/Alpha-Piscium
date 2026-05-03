@@ -120,11 +120,13 @@ float restir_initialSample_handleRayResult(SSTRay sstRay) {
     float hitDistance = -1.0;
     if (sstRay.currT > -1.0) {
         vec3 rayEndScreen = sstRay.pRayStart + sstRay.pRayDir * (sstRay.pRayVecLen * abs(sstRay.currT));
-        vec3 rayOriginView = coords_screenToView(sstRay.pRayStart, global_camProjInverse);
-        vec3 rayEndView = coords_screenToView(rayEndScreen, global_camProjInverse);
-        vec3 rayDiffView = rayEndView - rayOriginView;
-        float rayLengthView = length(rayDiffView);
-        hitDistance = rayLengthView;
+        if (all(lessThan(abs(rayEndScreen * 2.0 - 1.0), vec3(0.999)))) {
+            vec3 rayOriginView = coords_screenToView(sstRay.pRayStart, global_camProjInverse);
+            vec3 rayEndView = coords_screenToView(rayEndScreen, global_camProjInverse);
+            vec3 rayDiffView = rayEndView - rayOriginView;
+            float rayLengthView = length(rayDiffView);
+            hitDistance = rayLengthView;
+        }
     }
     return hitDistance;
 }
