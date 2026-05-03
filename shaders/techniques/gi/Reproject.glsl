@@ -267,6 +267,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     packedData2 = dither_fp16(packedData2, ditherNoise);
                     transient_gi2Reprojected_store(texelPos, packedData2);
 
+                    finalWeights *= pow(extraNormalWeights, vec4(128.0));
                     finalWeights *= roughnessWeights;
                     finalWeights *= safeRcp(dot(finalWeights, vec4(1.0)));
 
@@ -391,7 +392,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
         vec3 viewDir = normalize(currViewPos);
         // Goes to 1.0 when roughness is 0.0 and vise-versa
-        float mirrorParallaxFactor = exp2(-pow2(material.roughness * 64.0));
+        float mirrorParallaxFactor = exp2(-pow2(material.roughness * 128.0));
         vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance * mirrorParallaxFactor;
 
         vec4 virtualPrevViewPos = coord_viewCurrToPrev(vec4(virtualViewPos, 1.0), gData.isHand);
@@ -423,7 +424,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     currViewGeomNormal,
                     curr2PrevViewPos.xyz,
                     glazingAngleFactor,
-                    128.0 * mirrorParallaxFactor + 256.0,
+                    512.0 * mirrorParallaxFactor + 512.0,
                     roughnessWeights,
                     extraNormalWeights,
                     edgeWeights,
@@ -460,6 +461,12 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
                         vec4 packedData3 = bileratralSum(data3X, data3Y, data3Z, data3W, finalWeights);
                         vec4 packedData4 = bileratralSum(data4X, data4Y, data4Z, data4W, finalWeights);
+                        if (valid) {
+                            vec4 packedData3Surface = transient_gi3Reprojected_load(texelPos);
+                            packedData3 = mix(packedData3, packedData3Surface, weightSum);
+                            vec4 packedData4Surface = transient_gi4Reprojected_load(texelPos);
+                            packedData4 = mix(packedData4, packedData4Surface, weightSum);
+                        }
                         packedData3 = clamp(packedData3, 0.0, FP16_MAX);
                         packedData3 = dither_fp16(packedData3, ditherNoiseV);
                         transient_gi3Reprojected_store(texelPos, packedData3);
@@ -473,7 +480,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 } else {
                     CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, 0.5, uval_mainImageSizeRcp);
 
-                    vec4 specData3 = sampling_catmullBicubic5Tap_sum(
+                    vec4 packedData3 = sampling_catmullBicubic5Tap_sum(
                         history_gi3_sample(vTapData.uv1AndWeight.xy),
                         history_gi3_sample(vTapData.uv2AndWeight.xy),
                         history_gi3_sample(vTapData.uv3AndWeight.xy),
@@ -481,7 +488,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         history_gi3_sample(vTapData.uv5AndWeight.xy),
                         vTapData
                     );
-                    vec4 specData4 = sampling_catmullBicubic5Tap_sum(
+                    vec4 packedData4 = sampling_catmullBicubic5Tap_sum(
                         history_gi4_sample(vTapData.uv1AndWeight.xy),
                         history_gi4_sample(vTapData.uv2AndWeight.xy),
                         history_gi4_sample(vTapData.uv3AndWeight.xy),
@@ -489,14 +496,20 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         history_gi4_sample(vTapData.uv5AndWeight.xy),
                         vTapData
                     );
+                    if (valid) {
+                        vec4 packedData3Surface = transient_gi3Reprojected_load(texelPos);
+                        packedData3 = mix(packedData3, packedData3Surface, weightSum);
+                        vec4 packedData4Surface = transient_gi4Reprojected_load(texelPos);
+                        packedData4 = mix(packedData4, packedData4Surface, weightSum);
+                    }
 
-                    specData3 = clamp(specData3, 0.0, FP16_MAX);
-                    specData4 = clamp(specData4, 0.0, FP16_MAX);
-                    specData3 = dither_fp16(specData3, ditherNoiseV);
-                    specData4 = dither_fp16(specData4, ditherNoiseV);
+                    packedData3 = clamp(packedData3, 0.0, FP16_MAX);
+                    packedData4 = clamp(packedData4, 0.0, FP16_MAX);
+                    packedData3 = dither_fp16(packedData3, ditherNoiseV);
+                    packedData4 = dither_fp16(packedData4, ditherNoiseV);
 
-                    transient_gi3Reprojected_store(texelPos, specData3);
-                    transient_gi4Reprojected_store(texelPos, specData4);
+                    transient_gi3Reprojected_store(texelPos, packedData3);
+                    transient_gi4Reprojected_store(texelPos, packedData4);
 
                     specValid = true;
                 }

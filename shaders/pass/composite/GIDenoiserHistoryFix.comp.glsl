@@ -232,10 +232,8 @@ void main() {
                     specMoment1 /= 25.0;
                     specMoment2 /= 25.0;
 
-                    float diffTotalLen = historyData.historyLength * TOTAL_HISTORY_LENGTH;
-                    float diffDecayFactor = linearStep(SETTING_DENOISER_FAST_HISTORY_LENGTH * 2.0, 1.0, diffTotalLen);
-                    float specTotalLen = historyData.specularHistoryLength * TOTAL_HISTORY_LENGTH;
-                    float specDecayFactor = linearStep(SETTING_DENOISER_FAST_HISTORY_LENGTH * 2.0, 1.0, specTotalLen);
+                    float totalLen = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH;
+                    float decayFactor = linearStep(SETTING_DENOISER_FAST_HISTORY_LENGTH * 2.0, 1.0, totalLen);
 
                     float expMul = exp2(global_aeData.expValues.z);
 
@@ -248,7 +246,7 @@ void main() {
                     }
                     #endif
 
-                    float diffClampingThreshold = mix(2.0, 4.0, pow2(diffDecayFactor));
+                    float diffClampingThreshold = mix(2.0, 4.0, pow2(decayFactor));
                     vec3 diffClamped = _clampColor(historyData.diffuseColor, diffMoment1, diffMoment2, diffClampingThreshold);
                     vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
                     vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - diffOutputSim);
@@ -267,7 +265,7 @@ void main() {
                     history_gi1_store(texelPos, packedData1);
                     #endif
 
-                    float specClampingThreshold = mix(2.0, 4.0, pow2(specDecayFactor));
+                    float specClampingThreshold = mix(2.0, 4.0, pow2(decayFactor));
                     vec3 specClamped = _clampColor(historyData.specularColor, specMoment1, specMoment2, specClampingThreshold);
                     vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
                     vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);

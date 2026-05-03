@@ -249,7 +249,7 @@ void main() {
 
                     GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
-                    float baseNormalWeight = diffInvAccumFactor * 64.0 + 32.0;
+                    float baseNormalWeight = diffInvAccumFactor * 128.0 + 64.0;
                     float basePlaneDistWeight = diffInvAccumFactor * -256.0 - 128.0;
                     float edgeWeightFP32 = normalWeight(centerGeomData, geomData, baseNormalWeight);
                     edgeWeightFP32 *= planeDistanceWeight(
@@ -344,6 +344,7 @@ void main() {
                 float sigmaFP32 = 0.69;
                 sigmaFP32 += 1.0 - saturate(hitDistFactor.y);
                 sigmaFP32 *= 1.0 - filteredInputVariance.y;
+                sigmaFP32 += 0.025 * rcp(max(centerGeomData.roughness, 0.005));
                 float16_t sigma = float16_t(-sigmaFP32);
 
                 vec4 centerSpec = _gi_readSpec(texelPos);
@@ -375,8 +376,8 @@ void main() {
 
                     GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
-                    float baseNormalWeight = specInvAccumFactor * 96.0 + 48.0;
-                    float basePlaneDistWeight = specInvAccumFactor * -384.0 - 192.0;
+                    float baseNormalWeight = specInvAccumFactor * 128.0 + 256.0;
+                    float basePlaneDistWeight = specInvAccumFactor * -256.0 - 256.0;
                     float edgeWeightFP32 = normalWeight(centerGeomData, geomData, baseNormalWeight);
                     edgeWeightFP32 *= planeDistanceWeight(
                         centerGeomData.viewPos,
