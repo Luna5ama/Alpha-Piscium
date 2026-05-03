@@ -255,15 +255,16 @@ void main() {
                 temporalReservoir.avgWY = avgWSum * safeRcp(finalSample.w);
                 temporalReservoir.m = clamp(temporalReservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
 
+                #if USE_REFERENCE || !defined(SETTING_GI_SPATIAL_REUSE)
                 #if USE_REFERENCE
-                vec4 ssgiOut = vec4(f * safeRcp(samplePdf), hitDistance);
-                ssgiOut.rgb = clamp(ssgiOut.rgb, 0.0, FP16_MAX);
-                transient_ssgiDiffOut_store(texelPos, ssgiOut);
-                transient_ssgiSpecOut_store(texelPos, vec4(0.0));
-
-                #elif !defined(SETTING_GI_SPATIAL_REUSE)
+                vec3 winL = sampleDirView;
+                float winHitDist = hitDistance;
+                vec3 winR = hitRadiance * safeRcp(samplePdf);
+                #else
                 vec3 winL = temporalReservoir.Y.xyz;
                 float winHitDist = temporalReservoir.Y.w;
+                vec3 winR = finalSample.rgb * temporalReservoir.avgWY;
+                #endif
                 vec3 H_win = normalize(winL + V);
 
                 float winNDotL = saturate(dot(gData.normal, winL));
@@ -280,7 +281,7 @@ void main() {
                 vec3 fullBRDF = diffuseWeight + specularWeight;
                 vec3 diffRatio3 = diffuseWeight * safeRcp(fullBRDF);
 
-                vec3 totalOutput = finalSample.rgb * fullBRDF * temporalReservoir.avgWY;
+                vec3 totalOutput = winR * fullBRDF;
                 vec4 ssgiDiffOut = vec4(totalOutput * diffRatio3, winHitDist);
 
                 vec4 ssgiSpecOut = vec4(totalOutput * (vec3(1.0) - diffRatio3), winHitDist);
