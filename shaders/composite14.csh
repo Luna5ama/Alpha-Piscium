@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/GIDenoiserReproject.comp.glsl"
+#include "/techniques/atmospherics/clouds/ss/Accum.comp.glsl"

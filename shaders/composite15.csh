@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl"
+#include "/pass/composite/ShadowSampleSSS.comp.glsl"
