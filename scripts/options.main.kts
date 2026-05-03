@@ -8,6 +8,9 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.readLines
 import kotlin.math.pow
 
+val kotlinExec = if (System.getProperty("os.name").lowercase().contains("win")) "kotlin.bat" else "kotlin"
+ProcessBuilder(kotlinExec, "programs.main.kts").inheritIO().start().waitFor()
+
 val versionStr = args.getOrElse(0) {
     data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int, val hotfix: Int) : Comparable<Version> {
         override fun compareTo(other: Version): Int {
