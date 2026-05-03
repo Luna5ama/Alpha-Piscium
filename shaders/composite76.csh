@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/FinalGlobalDataUpdate.comp.glsl"
+#include "/techniques/rtwsm/Write2DWarp.comp.glsl"
