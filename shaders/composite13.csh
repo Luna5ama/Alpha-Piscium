@@ -1,5 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/GIDenoiserEdgeDilation.comp.glsl"
-
+#include "/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl"

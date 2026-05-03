@@ -2,7 +2,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.writeText
 
 enum class ProgramType {
-    BEGIN, SHADOWCOMP, PREPARE, DEFERRED, COMPOSITE;
+    SETUP, BEGIN, SHADOWCOMP, PREPARE, DEFERRED, COMPOSITE;
 
     override fun toString(): String {
         return name.lowercase()
@@ -49,11 +49,11 @@ class ProgramScope internal constructor() {
             }
 
             fun define(name: String, value: Any? = null) {
-                defines.add(if (value != null) "#define $name $value" else "#define a")
+                defines.add(if (value != null) "#define $name $value" else "#define $name")
             }
 
             fun constDefine(name: String, value: Any? = null) {
-                constDefines.add(if (value != null) "#define $name $value" else "#define a")
+                constDefines.add(if (value != null) "#define $name $value" else "#define $name")
             }
 
             internal fun build() {
@@ -111,6 +111,19 @@ fun programs(block: ProgramScope.() -> Unit) {
 }
 
 programs {
+    ProgramType.SETUP {
+        pass("/pass/setup/InitGlobalData.comp.glsl")
+        pass("/pass/setup/ClearRGBA32UI.glsl")
+        pass("/pass/setup/ClearRGBA16F.glsl")
+        pass("/pass/setup/ClearRGB10A2.glsl")
+        pass("/pass/setup/ClearRGBA8.glsl")
+        pass("/pass/setup/ClearR32F.glsl")
+    }
+
+    ProgramType.SHADOWCOMP {
+        pass("/pass/shadowcomp/EvaluateShadowWaterNormal.glsl")
+    }
+
     ProgramType.BEGIN {
         pass(
             "/pass/begin/UpdateGlobalData.comp.glsl",
@@ -135,5 +148,119 @@ programs {
         pass("/pass/begin/ClearScreen3.comp.glsl") {
             cond("defined(VOXY)")
         }
+    }
+
+    ProgramType.COMPOSITE {
+        pass("/pass/composite/VoxyMerge.glsl") {
+            cond("defined(VOXY)")
+        }
+        pass("/pass/composite/HiZGen.csh")
+        pass("/pass/composite/GIDenoiserEdgeClassification.comp.glsl")
+        pass("/pass/composite/GIDenoiserEdgeDilation.comp.glsl")
+        pass("/pass/composite/GIDenoiserReproject.comp.glsl")
+        pass("/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl")
+        pass("/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl") {
+            define("PASS", 1)
+        }
+        pass("/pass/composite/ShadowSampleSetup.comp.glsl")
+        pass("/pass/composite/EvaluateScreenPixelSize.comp.glsl") {
+            cond("defined(SETTING_WATER_CAUSTICS)")
+        }
+        pass("/pass/composite/CausticsPhotonTrace.comp.glsl") {
+            cond("defined(SETTING_WATER_CAUSTICS)")
+        }
+        pass("/pass/composite/CausticsRemap.comp.glsl") {
+            cond("defined(SETTING_WATER_CAUSTICS)")
+        }
+        pass("/pass/composite/CausticsFilter.comp.glsl") {
+            cond("defined(SETTING_WATER_CAUSTICS)")
+        }
+        pass("/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl") {
+            cond("defined(SETTING_CLOUDS_CU)")
+        }
+        pass("/techniques/atmospherics/clouds/ss/Accum.comp.glsl") {
+            cond("defined(SETTING_CLOUDS_CU)")
+        }
+        pass("/pass/composite/ShadowSampleSSS.comp.glsl")
+        pass("/pass/composite/SkyComposite.comp.glsl")
+        pass("/pass/composite/ShadowSample.comp.glsl")
+        pass("/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl") {
+            define("PASS", 2)
+        }
+        pass("/pass/composite/DirectLighting.glsl")
+        pass("/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl")
+        pass("/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl")
+        pass("/pass/composite/DOFFocus.comp.glsl") {
+            cond("defined(SETTING_DOF) && !defined(SETTING_DOF_MANUAL_FOCUS)")
+        }
+        pass("/pass/composite/GIReSTIRInitalSampleRayGenTrace.comp.glsl")
+        pass("/pass/composite/GIReSTIRInitalSampleRaySort.comp.glsl") {
+            cond("SETTING_GI_INITIAL_SST_STEPS >= 64")
+        }
+        pass("/pass/composite/GIReSTIRInitalSampleRayFinishTrace.comp.glsl") {
+            cond("SETTING_GI_INITIAL_SST_STEPS >= 64")
+        }
+        pass("/pass/composite/GIReSTIRTemporalReuse.comp.glsl")
+        pass("/pass/composite/GIReSTIRSpatialReuse.comp.glsl")
+        pass("/pass/composite/GIReSTIRSpatialReuseRaySort.comp.glsl")
+        pass("/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl")
+        pass("/pass/composite/GIDenoiserAccum.comp.glsl")
+        pass("/pass/composite/GIDenoiserAntiFireFly.comp.glsl") {
+            cond("defined(SETTING_DENOISER_ANTI_FIREFLY)")
+        }
+        pass("/pass/composite/GIDenoiserGIMip.comp.glsl")
+        pass("/pass/composite/GIDenoiserHistoryFix.comp.glsl")
+        pass("/pass/composite/GIDenoiserBlur.comp.glsl")
+        pass("/pass/composite/GIDenoiserPostBlur.comp.glsl")
+        pass("/pass/composite/SSTStepDebug.comp.glsl") {
+            cond("defined(SETTING_DEBUG_SST_STEPS)")
+        }
+        pass("/pass/composite/VolumetricsDepthLayers.comp.glsl")
+        pass("/pass/composite/EpipolarScatteringAir.comp.glsl")
+        pass("/pass/composite/EpipolarScatteringWater.comp.glsl")
+        pass("/pass/composite/TranslucentBackComposite.glsl")
+        pass("/pass/composite/TranslucentSST.glsl")
+        pass("/pass/composite/TranslucentComposite.glsl")
+        pass("/techniques/rtwsm/IMapCollapse.comp.glsl")
+        pass("/pass/composite/VolumetricLocalCompositeBreakFix.comp.glsl") {
+            cond("defined(SETTING_DEPTH_BREAK_CORRECTION)")
+        }
+        pass("/pass/composite/DOFPrepare.comp.glsl") {
+            cond("defined(SETTING_DOF)")
+        }
+        pass("/pass/composite/TAAPrepare.comp.glsl")
+        pass("/pass/composite/TAAResolve.comp.glsl")
+        pass("/pass/composite/FXAA.comp.glsl")
+        pass("/pass/composite/RCAS.comp.glsl")
+        for (i in 1..10) {
+            pass("/techniques/Bloom.comp.glsl") {
+                constDefine("BLOOM_DOWN_SAMPLE", 1)
+                constDefine("BLOOM_PASS", i)
+                var cond = "defined(SETTING_BLOOM)"
+                if (i > 1) {
+                    cond += " && SETTING_BLOOM_PASS > ${i - 1}"
+                }
+                cond(cond)
+            }
+        }
+        for (i in 10 downTo 2) {
+            pass("/techniques/Bloom.comp.glsl") {
+                constDefine("BLOOM_UP_SAMPLE", 1)
+                constDefine("BLOOM_PASS", i)
+                var cond = "defined(SETTING_BLOOM)"
+                if (i > 1) {
+                    cond += " && SETTING_BLOOM_PASS > ${i - 1}"
+                }
+                cond(cond)
+            }
+        }
+        pass("/pass/composite/PostComposite.comp.glsl")
+        pass("/pass/composite/ExposureMip.comp.glsl")
+        pass("/pass/composite/ExposureGather.comp.glsl")
+        pass("/pass/composite/OverlayComposite.comp.glsl")
+        pass("/techniques/rtwsm/IMapBlur.comp.glsl")
+        pass("/techniques/rtwsm/GetWarp.comp.glsl")
+        pass("/techniques/rtwsm/Write2DWarp.comp.glsl")
+        pass("/pass/composite/FinalGlobalDataUpdate.comp.glsl")
     }
 }
