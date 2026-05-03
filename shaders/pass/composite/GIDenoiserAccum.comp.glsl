@@ -180,12 +180,14 @@ void main() {
                     historyData.specularFastColor = mix(historyData.specularFastColor, newSpecular.rgb, alpha.w);
 
                     float newHitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
-                    if (newHitDistance >= 0.0) {
-                        float diffHitDistanceAlpha = rcp(min(historyLengths.x, 16.0));
-                        float specHitDistanceAlpha = rcp(min(historyLengths.y, 16.0));
-                        historyData.specularHitDistance = mix(historyData.specularHitDistance, newHitDistance, specHitDistanceAlpha);
-                        historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, diffHitDistanceAlpha);
+                    if (newHitDistance < 0.0) {
+                        newHitDistance = SPEC_MAX_HIT_DISTANCE;
                     }
+                    float diffHitDistanceAlpha = rcp(min(historyLengths.x, 16.0));
+                    float specHitDistanceAlpha = rcp(min(historyLengths.y, 16.0));
+                    newHitDistance = min(newHitDistance, SPEC_MAX_HIT_DISTANCE);
+                    historyData.specularHitDistance = mix(historyData.specularHitDistance, newHitDistance, specHitDistanceAlpha);
+                    historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, newHitDistance, diffHitDistanceAlpha);
 
                     historyLengths = saturate(historyLengths / TOTAL_HISTORY_LENGTH);
                     historyData.historyLength = historyLengths.x;

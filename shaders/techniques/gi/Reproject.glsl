@@ -391,7 +391,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
         vec3 viewDir = normalize(currViewPos);
         // Goes to 1.0 when roughness is 0.0 and vise-versa
-        float mirrorParallaxFactor = exp2(-pow2(material.roughness * 32.0));
+        float mirrorParallaxFactor = exp2(-pow2(material.roughness * 64.0));
         vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance * mirrorParallaxFactor;
 
         vec4 virtualPrevViewPos = coord_viewCurrToPrev(vec4(virtualViewPos, 1.0), gData.isHand);

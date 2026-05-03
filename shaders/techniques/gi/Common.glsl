@@ -36,7 +36,7 @@ const float TOTAL_HISTORY_LENGTH = 255.0;
 */
 
 const float DIFF_MAX_HIT_DISTANCE = 64.0;
-const float SPEC_MAX_HIT_DISTANCE = 1024.0;
+const float SPEC_MAX_HIT_DISTANCE = 256.0;
 
 struct GIHistoryData {
     vec3 diffuseColor;
