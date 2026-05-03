@@ -115,6 +115,7 @@ class ProgramScope internal constructor() {
 
 fun programs(block: ProgramScope.() -> Unit) {
     ProgramScope().apply(block).build()
+    println("Updated program list")
 }
 
 programs {
