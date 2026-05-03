@@ -19,6 +19,8 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
 
+shared vec4 sm_hitViewPos[1024];
+
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
@@ -28,32 +30,58 @@ void main() {
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     ivec2 texelPos = ivec2(mortonGlobalPosU);
 
+    bool frameCond = bool(frameCounter & 1);
+
+    ivec2 basePos = ivec2(workGroupOrigin) - ivec2(8);
+    uvec2 localId = gl_LocalInvocationID.xy;
+
+    for(int i = 0; i < 4; i++) {
+        ivec2 offset = ivec2(i % 2, i / 2) * 16;
+        ivec2 smPos = ivec2(localId) + offset;
+        ivec2 loadPos = basePos + smPos;
+
+        vec4 hitViewPos = vec4(0.0);
+        if (all(greaterThanEqual(loadPos, ivec2(0))) && all(lessThan(loadPos, uval_mainImageSizeI))) {
+            uvec4 packedRes;
+            if (frameCond) {
+                packedRes = history_restir_reservoirTemporal1_fetch(loadPos);
+            } else {
+                packedRes = history_restir_reservoirTemporal2_fetch(loadPos);
+            }
+            ReSTIRReservoir r = restir_reservoir_unpack(packedRes);
+            vec2 screenPos = coords_texelToUV(loadPos, uval_mainImageSizeRcp);
+            float viewZ = texelFetch(usam_gbufferSolidViewZ, loadPos, 0).x;
+            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+            hitViewPos = vec4(viewPos + r.Y.xyz * r.Y.w, 1.0);
+        }
+        sm_hitViewPos[smPos.y * 32 + smPos.x] = hitViewPos;
+    }
+
+    barrier();
+
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        bool frameCond = bool(frameCounter & 1);
-        ReSTIRReservoir centerReservoir = restir_reservoir_unpack(
-            frameCond ? history_restir_reservoirTemporal1_fetch(texelPos) : history_restir_reservoirTemporal2_fetch(texelPos)
-        );
-        vec2 centerScreenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-        float centerViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
-        vec3 centerViewPos = coords_toViewCoord(centerScreenPos, centerViewZ, global_camProjInverse);
-        vec3 centerHitViewPos = centerViewPos + centerReservoir.Y.xyz * centerReservoir.Y.w;
+        uvec4 centerPackedReservoir;
+        if (frameCond) {
+            centerPackedReservoir = history_restir_reservoirTemporal1_fetch(texelPos);
+        } else {
+            centerPackedReservoir = history_restir_reservoirTemporal2_fetch(texelPos);
+        }
+        ReSTIRReservoir centerReservoir = restir_reservoir_unpack(centerPackedReservoir);
+
+        ivec2 centerSmPos = ivec2(mortonPos) + ivec2(8);
+        vec3 centerHitViewPos = sm_hitViewPos[centerSmPos.y * 32 + centerSmPos.x].xyz;
 
         float dupCount = 0.0;
         const int radius = 8;
         for(int y = -radius; y <= radius; y++) {
             for(int x = -radius; x <= radius; x++) {
                 if(x == 0 && y == 0) continue;
-                ivec2 neighborPos = texelPos + ivec2(x, y);
-                if (all(greaterThanEqual(neighborPos, ivec2(0))) && all(lessThan(neighborPos, uval_mainImageSizeI))) {
-                    ReSTIRReservoir neighborReservoir = restir_reservoir_unpack(
-                        frameCond ? history_restir_reservoirTemporal1_fetch(neighborPos) : history_restir_reservoirTemporal2_fetch(neighborPos)
-                    );
-                    vec2 neighborScreenPos = coords_texelToUV(neighborPos, uval_mainImageSizeRcp);
-                    float neighborViewZ = texelFetch(usam_gbufferSolidViewZ, neighborPos, 0).x;
-                    vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_camProjInverse);
-                    vec3 neighborHitViewPos = neighborViewPos + neighborReservoir.Y.xyz * neighborReservoir.Y.w;
 
-                    vec3 diff = centerHitViewPos - neighborHitViewPos;
+                ivec2 neighborSmPos = centerSmPos + ivec2(x, y);
+                vec4 neighborInfo = sm_hitViewPos[neighborSmPos.y * 32 + neighborSmPos.x];
+
+                if (neighborInfo.w > 0.0) {
+                    vec3 diff = centerHitViewPos - neighborInfo.xyz;
                     float d = dot(diff, diff);
                     float a = pow2(0.00001);
                     float score = a * rcp(a + d);
@@ -66,13 +94,7 @@ void main() {
         float duplicationScore = dupCount / 288.0;
         duplicationScore = saturate(duplicationScore);
 
-        uvec4 packedReservoir;
-        if (frameCond) {
-            packedReservoir = history_restir_reservoirTemporal1_fetch(texelPos);
-        } else {
-            packedReservoir = history_restir_reservoirTemporal2_fetch(texelPos);
-        }
-        ReSTIRReservoir reservoir = restir_reservoir_unpack(packedReservoir);
+        ReSTIRReservoir reservoir = restir_reservoir_unpack(centerPackedReservoir);
         const float cCapDefault = float(SETTING_GI_TEMPORAL_REUSE_LIMIT);
         float cCapMin = 1.0;
         float alpha = 0.1;
@@ -82,7 +104,7 @@ void main() {
         imageStore(uimg_temp1, texelPos, vec4(duplicationScorePower));
         #endif
         reservoir.m = min(reservoir.m, expectedCCap);
-        packedReservoir = restir_reservoir_pack(reservoir);
+        uvec4 packedReservoir = restir_reservoir_pack(reservoir);
         if (frameCond) {
             history_restir_reservoirTemporal1_store(texelPos, packedReservoir);
         } else {
@@ -90,4 +112,3 @@ void main() {
         }
     }
 }
-
