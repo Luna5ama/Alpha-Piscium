@@ -9,7 +9,7 @@ import kotlin.io.path.readLines
 import kotlin.math.pow
 
 val versionStr = args.getOrElse(0) {
-    data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int) : Comparable<Version> {
+    data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int, val hotfix: Int) : Comparable<Version> {
         override fun compareTo(other: Version): Int {
             var cmp = major.compareTo(other.major)
             if (cmp != 0) return cmp
@@ -17,14 +17,17 @@ val versionStr = args.getOrElse(0) {
             if (cmp != 0) return cmp
             cmp = patch.compareTo(other.patch)
             if (cmp != 0) return cmp
-            return beta.compareTo(other.beta)
+            cmp = beta.compareTo(other.beta)
+            if (cmp != 0) return cmp
+            cmp = hotfix.compareTo(other.hotfix)
+            return cmp
         }
 
         override fun toString(): String {
-            return if (beta == Int.MAX_VALUE) {
-                "$major.$minor.$patch"
-            } else {
-                "$major.$minor.$patch-Beta$beta"
+            return when {
+                hotfix != 0 -> "$major.$minor.$patch-Hotfix$hotfix"
+                beta != Int.MAX_VALUE -> "$major.$minor.$patch-Beta$beta"
+                else -> "$major.$minor.$patch"
             }
         }
     }
@@ -35,8 +38,19 @@ val versionStr = args.getOrElse(0) {
         val major = splitStr[0].toInt()
         val minor = splitStr[1].toInt()
         val patch = splitStr[2].toInt()
-        val beta = if (splitStr.size > 3) splitStr[3].lowercase().removePrefix("beta").toInt() else Int.MAX_VALUE
-        return Version(major, minor, patch, beta)
+        var beta = Int.MAX_VALUE
+        var hotfix = 0
+        if (splitStr.size > 3) {
+            val suffix = splitStr[3].lowercase()
+            if (suffix.startsWith("beta")) {
+                beta = suffix.removePrefix("beta").toInt()
+            } else if (suffix.startsWith("hotfix")) {
+                hotfix = suffix.removePrefix("hotfix").toInt()
+            } else {
+                error("Unrecognized version suffix: $suffix")
+            }
+        }
+        return Version(major, minor, patch, beta, hotfix)
     }
 
     val changelogPath = Path("../changelogs")
