@@ -221,8 +221,12 @@ programs {
             indirect(0, 16)
         }
         pass("/pass/composite/GIDenoiserHistoryFix.comp.glsl")
-        pass("/pass/composite/GIDenoiserBlur.comp.glsl")
-        pass("/pass/composite/GIDenoiserPostBlur.comp.glsl")
+        pass("/pass/composite/GIDenoiserBlur.comp.glsl") {
+            cond("defined(SETTING_DENOISER_SPATIAL)")
+        }
+        pass("/pass/composite/GIDenoiserPostBlur.comp.glsl") {
+            cond("defined(SETTING_DENOISER_SPATIAL)")
+        }
         pass("/pass/composite/SSTStepDebug.comp.glsl") {
             cond("defined(SETTING_DEBUG_SST_STEPS)")
         }
