@@ -157,16 +157,15 @@ vec2 _gi_mirrorUV(vec2 uv) {
     return 1.0 - abs(1.0 - (fract(uv * 0.5) * 2.0));
 }
 
-float gi_roughnessWeight(float roughness0, float roughness) {
-    float norm = roughness0 * roughness0 * 0.999 + 0.001;
-    float w = abs(roughness - roughness0) * rcp(norm);
-    return saturate(1.0 - w);
+const float _ROUGHNESS_K = 2.0;
+float gi_roughnessWeight(float a, float b) {
+    float norm = a * 0.999 + 0.001;
+    return exp2(-pow2(_ROUGHNESS_K * abs(a - b) * rcp(norm)));
 }
 
-vec4 gi_roughnessWeight(float roughness0, vec4 roughness) {
-    float norm = roughness0 * roughness0 * 0.999 + 0.001;
-    vec4 w = abs(roughness - roughness0) * rcp(norm);
-    return saturate(1.0 - w);
+vec4 gi_roughnessWeight(float a, vec4 b) {
+    float norm = a * 0.999 + 0.001;
+    return exp2(-pow2(_ROUGHNESS_K * abs(a - b) * rcp(norm)));
 }
 
 #endif
