@@ -12,8 +12,11 @@
 struct Material {
     vec3 albedo; // Working space
     float roughness;
+    vec3 f0RGB;
+    vec3 f82TintRGB;
     float f0;
-    float metallic;
+    float f82Tint;
+    float dielectric;
     vec3 emissive;
     float porosity;
     float sss;
@@ -47,29 +50,40 @@ Material material_decode(GBufferData gData) {
     float albedoLuma = colors2_colorspaces_luma(COLORS2_MATERIAL_COLORSPACE, gData.albedo);
 
     #if defined(MC_TEXTURE_FORMAT_LAB_PBR) && SETTING_PBR_MATERIAL == 1 || SETTING_PBR_MATERIAL == 2
-    float roughness = 1.0 - gData.pbrSpecular.r;
-
-    float emissivePBR = gData.pbrSpecular.a;
-    emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
-
-    const float _64o255 = 64.0 / 255.0;
-    const float _65o255 = 65.0 / 255.0;
-    float step64 = step(_65o255, gData.pbrSpecular.b);
-    material.porosity = linearStep(0.0, _64o255, gData.pbrSpecular.b);
-    material.porosity *= 1.0 - step64;
-
-    material.sss = linearStep(_65o255, 1.0, gData.pbrSpecular.b);
-    material.sss *= step64;
-    material.sss = sqrt(material.sss);
+    bool useBuiltInPBR = gData.forceBuiltInPBR;
     #else
-    float roughness = hardcoded.roughness;
-    float emissivePBR = hardcoded.emissive;
-    emissiveAlbedoCurve.a += 1.0;
-    albedoLuma = smoothstep(0.0, 1.0, albedoLuma);
-
-    material.porosity = 0.0;
-    material.sss = hardcoded.sss;
+    bool useBuiltInPBR = true;
     #endif
+
+    float roughness;
+    float emissivePBR;
+
+    if (useBuiltInPBR) {
+        roughness = hardcoded.roughness;
+
+        emissivePBR = hardcoded.emissive;
+        emissiveAlbedoCurve.a += 1.0;
+        albedoLuma = smoothstep(0.0, 1.0, albedoLuma);
+
+        material.porosity = 0.0;
+
+        material.sss = hardcoded.sss;
+    } else {
+        roughness = 1.0 - gData.pbrSpecular.r;
+
+        emissivePBR = gData.pbrSpecular.a;
+        emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
+
+        const float _64o255 = 64.0 / 255.0;
+        const float _65o255 = 65.0 / 255.0;
+        float step64 = step(_65o255, gData.pbrSpecular.b);
+        material.porosity = linearStep(0.0, _64o255, gData.pbrSpecular.b);
+        material.porosity *= 1.0 - step64;
+
+        material.sss = linearStep(_65o255, 1.0, gData.pbrSpecular.b);
+        material.sss *= step64;
+        material.sss = sqrt(material.sss);
+    }
 
     roughness = pow2(roughness);
     roughness *= _MATERIAL_ROUGHNESS_MULTIPLIER;
@@ -80,15 +94,28 @@ Material material_decode(GBufferData gData) {
 
     emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
 
-    material.roughness = roughness;
-    material.f0 = gData.pbrSpecular.g;
-
-    #if SETTING_MINIMUM_F0_FACTOR > 0
-    material.f0 = max(material.f0, _MATERIAL_F0_EPSILON);
+    #ifndef MATERIAL_TRANSLUCENT
+    roughness = max(roughness, 0.001);
     #endif
-    material.metallic = float(material.f0 >= (229.5 / 255.0));
+    material.roughness = roughness;
 
-    vec4 emissiveAlbedo = pow(vec4(gData.albedo, albedoLuma), emissiveAlbedoCurve);
+    bool dielectric = gData.pbrSpecular.g < (229.5 / 255.0);
+    material.dielectric = float(dielectric);
+    if (dielectric) {
+        material.f0RGB = vec3(gData.pbrSpecular.g);
+        material.f82TintRGB = vec3(1.0);
+        material.f82Tint = 1.0;
+    } else {
+        material.f0RGB = material.albedo;
+        vec4 f82Data = texelFetch(usam_f82, int(gData.pbrSpecular.g * 255.0), 0);
+        material.f82TintRGB = mix(f82Data.aaa, vec3(1.0), f82Data.rgb);
+        material.f82Tint = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f82TintRGB);
+    }
+    material.f0 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f0RGB);
+    material.f0RGB = max(material.f0RGB, _MATERIAL_F0_EPSILON);
+
+
+    vec4 emissiveAlbedo = pow(max(vec4(gData.albedo, albedoLuma), 1e-8), emissiveAlbedoCurve);
     emissiveAlbedo.rgb = colors2_material_toWorkSpace(emissiveAlbedo.rgb);
 
     float emissiveValue = emissivePBR * 0.5;

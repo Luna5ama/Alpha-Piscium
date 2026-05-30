@@ -3,3 +3,4 @@ shadesmitth/
 config.properties
 *.aot
 shadesmith-aot.ps1
+specular_lut_*.png

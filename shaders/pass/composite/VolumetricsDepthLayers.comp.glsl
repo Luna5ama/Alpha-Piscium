@@ -81,7 +81,7 @@ void main() {
         shared_shadowAABBMin[gl_LocalInvocationIndex] = vec3(0.0);
     }
 
-    float solid = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    float solid = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
     vec2 layer1 = vec2(-FLT_MAX);
     vec2 layer2 = vec2(-FLT_MAX);
     vec2 layer3 = vec2(-FLT_MAX);

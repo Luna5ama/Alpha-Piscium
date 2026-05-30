@@ -1,3 +1,16 @@
+#ifdef DISABLE_FP16
+// No half-precision floating point support
+#define NO_HALF a
+
+#define hf
+#define float16_t float
+#define f16vec2 vec2
+#define f16vec3 vec3
+#define f16vec4 vec4
+#define f16mat2 mat2
+#define f16mat3 mat3
+#define f16mat4 mat4
+#else
 // By sixthsurge
 #if defined MC_GL_AMD_gpu_shader_half_float
 #extension GL_AMD_gpu_shader_half_float : enable
@@ -16,9 +29,4 @@
 #define f16mat3 mat3
 #define f16mat4 mat4
 #endif
-
-#if defined MC_GL_AMD_gpu_shader_int64
-#extension GL_AMD_gpu_shader_int64 : enable
-#else
-#extension GL_ARB_gpu_shader_int64 : enable
 #endif

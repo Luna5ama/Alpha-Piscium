@@ -61,12 +61,13 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
         albedoSRGB *= min(0.5 / luma, 1.0); // Fk whoever put high sss on white material
 
         vec3 tCoeff = pow(albedoSRGB, vec3(ABSO_POW));
-        tCoeff = saturate(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, tCoeff));
+        tCoeff = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, tCoeff);
+        tCoeff = clamp(tCoeff, 0.001, 0.999);
         vec3 aCoeff = max(-log(tCoeff), 0.0);
 
         vec3 sCoeff = pow(albedoSRGB, vec3(SCTR_POW));
         sCoeff = saturate(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, sCoeff));
-
+        sCoeff = clamp(sCoeff, 0.001, 0.999);
         aCoeff = aCoeff * ABSORPTION_MULTIPLIER / sqrt(material.sss);
         sCoeff *= SCATTERING_MULTIPLIER * material.sss;
 
@@ -90,18 +91,17 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
         // This fakes lights from sun disk + mie haze
         float sunMiePhase = phasefunc_KleinNishinaE(-LDotV, 2e4);
 
-        float sssFresnel = frenel_schlick(max(abs(LDotH), 0.005), 0.04);
+        float sssFresnel = fresnel_schlick(max(abs(LDotH), 0.005), 0.04);
         float phase = phasefunc_BiLambertianPlate(-LDotV, 0.3);
         result.sss = phase * sampleInSctrInt;
 
         vec3 sheenTransmittance = max(exp(-sampleOpticalDepth), exp(-sampleOpticalDepth * 0.25) * 0.7);
         result.sss += sunMiePhase * sheenTransmittance * shadowedIrradiance * (1.0 - sssFresnel);
 
-        shadowedIrradiance *= smoothstep(0.7, 0.8, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, shadow.rgb));
         shadowedIrradiance *= float(dot(material.geomTbn[2], L) > 0.0);
     }
 
-    float diffuseBaseF = 1.0 - material.metallic;
+    float diffuseBaseF = material.dielectric;
     vec3 diffuseBaseVec3 = diffuseBaseF * (shadowedIrradiance * (1.0 - fresnel) * material.albedo);
 
     result.diffuse = diffuseBaseVec3 * bsdf_diffuseHammon(material, NDotL, NDotV, LDotH, LDotV);
@@ -126,7 +126,7 @@ LightingResult directLighting2(Material material, vec4 irradiance, vec3 V, vec3 
 
     LightingResult result;
 
-    float diffuseBaseF = 1.0 - material.metallic;
+    float diffuseBaseF = material.dielectric;
     vec3 diffuseBaseVec3 = diffuseBaseF * (irradiance.rgb * (vec3(1.0) - fresnel) * material.albedo);
 
     result.diffuse = diffuseBaseVec3 * bsdf_diffuseHammon(material, NDotL, NDotV, LDotH, LDotV);

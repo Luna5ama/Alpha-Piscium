@@ -14,12 +14,10 @@
 #define TIME_EARLY_MORNING 21000.0
 
 float time_interpolate(float currTime, float startTime, float midTime, float endTime) {
-    vec4 timePoints = vec4(currTime, startTime, midTime, endTime);
-    float offset = 0.0;
-    vec4 offsetTime = timePoints + offset;
-    vec4 normalizedTime = fract(offsetTime / TIME_DAY_TOTAL);
-    return linearStep(normalizedTime.y, normalizedTime.z, normalizedTime.x) *
-    linearStep(normalizedTime.w, normalizedTime.z, normalizedTime.x);
+    float m = mod(midTime - startTime, TIME_DAY_TOTAL);
+    float e = mod(endTime - startTime, TIME_DAY_TOTAL);
+    float c = mod(currTime - startTime, TIME_DAY_TOTAL);
+    return linearStep(0.0, m, c) * linearStep(e, m, c);
 }
 
 float time_interpolate(float startTime, float midTime, float endTime) {

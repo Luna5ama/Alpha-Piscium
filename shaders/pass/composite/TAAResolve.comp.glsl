@@ -10,8 +10,9 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
+layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 
 // Shared memory with padding for 4x4 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for Lanczos2 4x4 taps
@@ -46,6 +47,13 @@ void updateAABB(vec3 color, float weight, inout ColorAABB box) {
     box.weightSum += weight;
 }
 
+vec3 clipAABB(vec3 avg, vec3 sigma, vec3 prev) {
+    vec3 dir = prev - avg;
+    vec3 ray_t = abs(dir / max(sigma, vec3(1e-7)));
+    float t_max = max(mmax3(ray_t), 1.0);
+    return avg + dir / t_max;
+}
+
 float kernelWeight(vec2 centerPos, vec2 samplePos, float param) {
     vec2 diff = abs(samplePos - centerPos);
     float dist2 = dot(diff, diff);
@@ -75,7 +83,7 @@ void main() {
     loadSharedColorData(workGroupOrigin, gl_LocalInvocationIndex + 256u);
 
     if (gl_LocalInvocationIndex == 0u) {
-        vec2 pixelPosFract = fract(global_taaJitter);
+        vec2 pixelPosFract = fract(uval_taaJitter);
 
         #if SETTING_TAA_CURR_FILTER == 0
         shared_weightsX = sampling_bSplineWeights(pixelPosFract.x);
@@ -90,31 +98,31 @@ void main() {
 
         for (int i = 0; i < 9; ++i) {
             vec2 offset = vec2(i % 3, i / 3) - 1.0;
-            vec2 diff = offset - 0.5 - global_taaJitter;
+            vec2 diff = offset - 0.5 - uval_taaJitter;
             shared_kernelDist2[i] = dot(diff, diff);
         }
     }
 
     barrier();
 
-    vec2 unjitterTexelPos = texelCenter + global_taaJitter;
-    vec2 unjitterScreenPos = screenPos + global_taaJitter * uval_mainImageSizeRcp;
+    vec2 unjitterTexelPos = texelCenter + uval_taaJitter;
+    vec2 unjitterScreenPos = screenPos + uval_taaJitter * uval_mainImageSizeRcp;
 
     // Looks like this is fast enough without shared memory
-    float currViewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    float currViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
     ivec2 offsetNeg = max(ivec2(-1, -1) + texelPos, ivec2(0)) - texelPos;
     ivec2 offsetPos = min(ivec2(1, 1) + texelPos, uval_mainImageSizeI - 1) - texelPos;
-    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetNeg.x, 0), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetPos.x, 0), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(0, offsetNeg.y), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(0, offsetPos.y), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetNeg.x, offsetNeg.y), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetPos.x, offsetNeg.y), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetNeg.x, offsetPos.y), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferViewZ, texelPos + ivec2(offsetPos.x, offsetPos.y), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetNeg.x, 0), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetPos.x, 0), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(0, offsetNeg.y), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(0, offsetPos.y), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetNeg.x, offsetNeg.y), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetPos.x, offsetNeg.y), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetNeg.x, offsetPos.y), 0).r, currViewZ);
+    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetPos.x, offsetPos.y), 0).r, currViewZ);
 
     GBufferData gData = gbufferData_init();
-    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
     vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
     vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
     vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
@@ -182,7 +190,7 @@ void main() {
             prevResult /= weightSum;
             #endif
         }
-        prevColor = saturate(prevResult.rgb);
+        prevColor = max(prevResult.rgb, 0.0);
         lastFrameAccum = prevResult.a;
     }
     float newFrameAccum = lastFrameAccum + 1.0;
@@ -217,7 +225,7 @@ void main() {
     #else
     currColor = texelFetch(usam_main, texelPos, 0).rgb;
     #endif
-    currColor = saturate(currColor);
+    currColor = max(currColor, 0.0);
 
     vec4 taaResetFactor = global_taaResetFactor;
     newFrameAccum *= taaResetFactor.z;
@@ -259,7 +267,11 @@ void main() {
         delta /= max(1.0, length(delta / stddev));
 
         vec3 prevColorYCoCgAABBClamped = clamp(prevColorYCoCg, box.minVal, box.maxVal);
+        prevColorYCoCgAABBClamped = clipAABB((box.maxVal + box.minVal) * 0.5, (box.maxVal - box.minVal) * 0.5 + clippingEps, prevColorYCoCgAABBClamped);
+
         vec3 prevColorYCoCgVarianceAABBClamped = clamp(prevColorYCoCgAABBClamped, varianceAABBMin, varianceAABBMax);
+        prevColorYCoCgVarianceAABBClamped = clipAABB(mean, stddev * varianceAABBSize, prevColorYCoCgVarianceAABBClamped);
+
         vec3 prevColorYCoCgEllipsoid = clamp(mean + delta, box.minVal, box.maxVal);
         prevColorYCoCgEllipsoid = clamp(prevColorYCoCgEllipsoid, varianceAABBMin, varianceAABBMax);
 
@@ -268,12 +280,21 @@ void main() {
         vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampMethod));
         prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampMethod));
 
-        prevColor = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
+        vec3 prevColorNew = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
+        vec3 prevColorDiff = abs(prevColorNew - prevColor);
+        float lumaDiff = smoothstep(0.0, 0.3, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevColorDiff));
+
+        transient_lumaDiff_store(texelPos, vec4(lumaDiff, 0.0, 0.0, 0.0));
+        prevColor = prevColorNew;
     }
 
     #ifdef SETTING_SCREENSHOT_MODE
     float MIN_ACCUM_FRAMES = 1.0;
+    #ifdef SETTING_VIDEO_RENDER_MODE
+    float MAX_ACCUM_FRAMES = 32.0;
+    #else
     float MAX_ACCUM_FRAMES = 1024.0;
+    #endif
     #else
     float MIN_ACCUM_FRAMES = 1.0;
     float MAX_ACCUM_FRAMES = mix(2.0, 128.0, pow3(global_motionFactor.w));

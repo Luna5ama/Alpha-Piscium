@@ -18,25 +18,24 @@
 
 const float HISTORY_LENGTH = float(SETTING_DENOISER_HISTORY_LENGTH);
 const float TOTAL_HISTORY_LENGTH = 255.0;
-const float FAST_HISTORY_LENGTH = float(SETTING_DENOISER_FAST_HISTORY_LENGTH);
 
 #define GI_MB 1.0
 /*
     Diffuse Color : 48 bits         (1)
+    Specular Hit Distance: 16 bits  (1)
     Diffuse fast color: 48 bits     (2)
-    Diffuse Moment2: 16 bits        (1)
+    Diffuse Hit Distance: 16 bits   (2)
 
     Specular Color: 48 bits         (3)
     Specular fast color: 48 bits    (4)
-    Specular Moment2: 16 bits       (3)
 
     History Length: 8 bits          (5)
-    ~ Edge Mask: 8 bits             (5)
-
-    Shadow: 16 bits                 (2)
+    Real History Length: 8 bits     (5)
+    Specular History Length: 8 bits (5)
+    Glazing Angle Factor: 8 bits    (5)
 */
 
-const float MAX_HIT_DISTANCE = 64.0;
+const float GI_MAX_HIT_DISTANCE = 256.0;
 
 struct GIHistoryData {
     vec3 diffuseColor;
@@ -49,33 +48,29 @@ struct GIHistoryData {
 
     float historyLength;
     float realHistoryLength;
-    float edgeMask;
+    float specularHistoryLength;
     float glazingAngleFactor;
-
-    float shadow;
 };
 
 GIHistoryData gi_historyData_init()  {
     GIHistoryData data;
     data.diffuseColor = vec3(0.0);
     data.diffuseFastColor = vec3(0.0);
-    data.diffuseHitDistance = MAX_HIT_DISTANCE;
+    data.diffuseHitDistance = GI_MAX_HIT_DISTANCE;
 
     data.specularColor = vec3(0.0);
     data.specularFastColor = vec3(0.0);
-    data.specularHitDistance = MAX_HIT_DISTANCE;
+    data.specularHitDistance = GI_MAX_HIT_DISTANCE;
 
     data.historyLength = 0.0;
     data.realHistoryLength = 0.0;
-    data.edgeMask = 0.0;
-    data.shadow = 0.0;
+    data.specularHistoryLength = 0.0;
     data.glazingAngleFactor = 0.0;
     return data;
 }
 
 void gi_historyData_unpack1(inout GIHistoryData data, vec4 packedData) {
     data.diffuseColor = packedData.xyz;
-    data.shadow = packedData.w;
 }
 
 void gi_historyData_unpack2(inout GIHistoryData data, vec4 packedData) {
@@ -94,13 +89,13 @@ void gi_historyData_unpack4(inout GIHistoryData data, vec4 packedData) {
 
 void gi_historyData_unpack5(inout GIHistoryData data, vec4 packedData) {
     data.historyLength = packedData.x;
-    data.realHistoryLength = packedData.y;
-    data.edgeMask = packedData.z;
+    data.specularHistoryLength = packedData.y;
+    data.realHistoryLength = packedData.z;
     data.glazingAngleFactor = packedData.w;
 }
 
 vec4 gi_historyData_pack1(GIHistoryData data) {
-    return vec4(data.diffuseColor, data.shadow);
+    return vec4(data.diffuseColor, 0.0);
 }
 
 vec4 gi_historyData_pack2(GIHistoryData data) {
@@ -116,7 +111,7 @@ vec4 gi_historyData_pack4(GIHistoryData data) {
 }
 
 vec4 gi_historyData_pack5(GIHistoryData data) {
-    return vec4(data.historyLength, data.realHistoryLength, data.edgeMask, data.glazingAngleFactor);
+    return vec4(data.historyLength, data.specularHistoryLength, data.realHistoryLength, data.glazingAngleFactor);
 }
 
 float gi_planeDistance(vec3 pos1, vec3 normal1, vec3 pos2, vec3 normal2) {
@@ -143,22 +138,33 @@ ReprojectInfo reprojectInfo_init() {
 
 ReprojectInfo reprojectInfo_unpack(uvec4 packedData) {
     ReprojectInfo info;
-    info.bilateralWeights = unpackUnorm4x16(packedData.xy);
-    info.historyResetFactor = uintBitsToFloat(packedData.z);
-    info.curr2PrevScreenPos = unpackUnorm2x16(packedData.w);
+    info.curr2PrevScreenPos = uintBitsToFloat(packedData.xy);
+    info.bilateralWeights = unpackUnorm4x8(packedData.z);
+    info.historyResetFactor = uintBitsToFloat(packedData.w);
     return info;
 }
 
 uvec4 reprojectInfo_pack(ReprojectInfo info) {
     uvec4 packedData;
-    packedData.xy = packUnorm4x16(info.bilateralWeights);
-    packedData.z = floatBitsToUint(info.historyResetFactor);
-    packedData.w = packUnorm2x16(info.curr2PrevScreenPos);
+    packedData.xy = floatBitsToUint(info.curr2PrevScreenPos);
+    packedData.z = packUnorm4x8(info.bilateralWeights);
+    packedData.w = floatBitsToUint(info.historyResetFactor);
     return packedData;
 }
 
 vec2 _gi_mirrorUV(vec2 uv) {
     return 1.0 - abs(1.0 - (fract(uv * 0.5) * 2.0));
+}
+
+const float _ROUGHNESS_K = 2.0;
+float gi_roughnessWeight(float a, float b) {
+    float norm = a * 0.999 + 0.001;
+    return exp2(-pow2(_ROUGHNESS_K * abs(a - b) * rcp(norm)));
+}
+
+vec4 gi_roughnessWeight(float a, vec4 b) {
+    float norm = a * 0.999 + 0.001;
+    return exp2(-pow2(_ROUGHNESS_K * abs(a - b) * rcp(norm)));
 }
 
 #endif

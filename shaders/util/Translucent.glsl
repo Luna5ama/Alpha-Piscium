@@ -8,6 +8,9 @@ vec4 translucent_albedoToTransmittance(vec4 inputAlbedo, uint materialID) {
     if (materialID == MATERIAL_ID_WATER) {
         return vec4(1.0);
     }
+    if (inputAlbedo.a >= 1.0) {
+        return vec4(1.0);
+    }
     vec3 t = inputAlbedo.rgb;
     float lumaT = colors2_colorspaces_luma(COLORS2_MATERIAL_COLORSPACE, t);
     t *= saturate(0.6 / lumaT); // Fix for white glasses

@@ -1,8 +1,12 @@
 #include "Common.glsl"
 #include "/util/GBufferData.glsl"
+#include "/util/Material.glsl"
+#include "/util/Fresnel.glsl"
 #include "/util/Sampling.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Dither.glsl"
+
+layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
 
 vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
     return vec4(
@@ -16,10 +20,14 @@ vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
 void computeEdgeWeights(
     vec2 screenPos,
     vec2 gatherTexelPos,
+    float currRoughness,
     vec3 currViewNormal,
     vec3 currViewGeomNormal,
     vec3 curr2PrevViewPos,
     float glazingAngleFactor,
+    float normalBaseWeight,
+    out vec4 roughnessWeights,
+    out vec4 extraNormalWeights,
     out vec4 edgeWeights,
     out bool edgeFlag
 ) {
@@ -32,6 +40,13 @@ void computeEdgeWeights(
     geomViewNormalYs = geomViewNormalYs * 2.0 - 1.0;
     geomViewNormalZs = geomViewNormalZs * 2.0 - 1.0;
 
+    vec4 viewNormalXs = history_viewNormal_gatherTexel(gatherTexelPos, 0);
+    vec4 viewNormalYs = history_viewNormal_gatherTexel(gatherTexelPos, 1);
+    vec4 viewNormalZs = history_viewNormal_gatherTexel(gatherTexelPos, 2);
+    viewNormalXs = viewNormalXs * 2.0 - 1.0;
+    viewNormalYs = viewNormalYs * 2.0 - 1.0;
+    viewNormalZs = viewNormalZs * 2.0 - 1.0;
+
     vec3 currWorldGeomNormal = coords_dir_viewToWorld(currViewGeomNormal);
     vec3 currWorldNormal = coords_dir_viewToWorld(currViewNormal);
     vec3 curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
@@ -40,7 +55,7 @@ void computeEdgeWeights(
     float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
 
     vec2 gatherScreenPos = gatherTexelPos * uval_mainImageSizeRcp;
-    float prevEdgeMask = min4(history_gi5_gather(gatherScreenPos, 2));
+    float prevEdgeMask = min4(history_edgeMask_gather(gatherScreenPos, 0));
 
     vec2 halfTexel = 0.5 * uval_mainImageSizeRcp;
     vec2 gatherScreenPos1 = gatherScreenPos + halfTexel * vec2(-1.0, 1.0);
@@ -58,6 +73,11 @@ void computeEdgeWeights(
     vec3 geomViewNormal3 = normalize(vec3(geomViewNormalXs.z, geomViewNormalYs.z, geomViewNormalZs.z));
     vec3 geomViewNormal4 = normalize(vec3(geomViewNormalXs.w, geomViewNormalYs.w, geomViewNormalZs.w));
 
+    vec3 viewNormal1 = normalize(vec3(viewNormalXs.x, viewNormalYs.x, viewNormalZs.x));
+    vec3 viewNormal2 = normalize(vec3(viewNormalXs.y, viewNormalYs.y, viewNormalZs.y));
+    vec3 viewNormal3 = normalize(vec3(viewNormalXs.z, viewNormalYs.z, viewNormalZs.z));
+    vec3 viewNormal4 = normalize(vec3(viewNormalXs.w, viewNormalYs.w, viewNormalZs.w));
+
     float planeDistance1 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos1, geomViewNormal1);
     float planeDistance2 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos2, geomViewNormal2);
     float planeDistance3 = gi_planeDistance(curr2PrevViewPos.xyz, curr2PrevViewGeomNormal, prevViewPos3, geomViewNormal3);
@@ -65,35 +85,50 @@ void computeEdgeWeights(
 
     float planeDistanceThreshold = exp2(mix(-8.0, -10.0, glazingAngleFactor)) * max(8.0, pow2(curr2PrevViewPos.z));
 
-    float geomViewNormalDot1 = dot(curr2PrevViewGeomNormal, geomViewNormal1);
-    float geomViewNormalDot2 = dot(curr2PrevViewGeomNormal, geomViewNormal2);
-    float geomViewNormalDot3 = dot(curr2PrevViewGeomNormal, geomViewNormal3);
-    float geomViewNormalDot4 = dot(curr2PrevViewGeomNormal, geomViewNormal4);
+    float geomViewNormalDot1 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal1));
+    float geomViewNormalDot2 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal2));
+    float geomViewNormalDot3 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal3));
+    float geomViewNormalDot4 = saturate(dot(curr2PrevViewGeomNormal, geomViewNormal4));
+
+    float viewNormalDot1 = saturate(dot(curr2PrevViewNormal, viewNormal1));
+    float viewNormalDot2 = saturate(dot(curr2PrevViewNormal, viewNormal2));
+    float viewNormalDot3 = saturate(dot(curr2PrevViewNormal, viewNormal3));
+    float viewNormalDot4 = saturate(dot(curr2PrevViewNormal, viewNormal4));
+
+    vec4 prevRoughnesses = history_roughness_gatherTexel(gatherTexelPos, 0);
+    roughnessWeights = gi_roughnessWeight(currRoughness, prevRoughnesses);
 
     vec4 geomViewNormalDots = vec4(geomViewNormalDot1, geomViewNormalDot2, geomViewNormalDot3, geomViewNormalDot4);
+    vec4 viewNormalDots = vec4(viewNormalDot1, viewNormalDot2, viewNormalDot3, viewNormalDot4);
     vec4 planeDistances = vec4(planeDistance1, planeDistance2, planeDistance3, planeDistance4);
     float totalEdgeFactor = (currEdgeFactor + prevEdgeMask) * 0.5;
 
     uint edgeFlagI = 0u;
     edgeFlagI |= uint(totalEdgeFactor < 0.99);
     edgeFlagI |= uint(any(lessThan(geomViewNormalDots, vec4(0.5))));
+    edgeFlagI |= uint(any(lessThan(viewNormalDots, vec4(0.5))));
     edgeFlagI |= uint(any(greaterThan(planeDistances, vec4(planeDistanceThreshold))));
+    edgeFlagI |= uint(any(lessThan(roughnessWeights, vec4(0.9))));
     edgeFlag = bool(edgeFlagI);
 
-    vec4 geomNormalWeights = pow(saturate(geomViewNormalDots), vec4(128.0));
+    vec4 geomNormalWeights = smoothstep(0.95, 1.0, geomViewNormalDots);
+    vec4 normalWeights = pow(viewNormalDots, vec4(normalBaseWeight));
     float geomDepthBaseWeight = mix(32.0, 4.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
     vec4 geomDepthWeights = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(curr2PrevViewPos.z), 2.0)));
     geomDepthWeights *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
-    edgeWeights = geomNormalWeights * geomDepthWeights;
+    edgeWeights = geomNormalWeights * normalWeights * geomDepthWeights;
+
+    extraNormalWeights = normalWeights;
 }
 
 void gi_reproject(ivec2 texelPos, float currViewZ) {
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+    float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
 
-    screenPos -= global_taaJitter * uval_mainImageSizeRcp;
+    screenPos -= uval_taaJitter * uval_mainImageSizeRcp;
     GBufferData gData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferData1, texelPos, 0), gData);
-    gbufferData2_unpack(texelFetch(usam_gbufferData2, texelPos, 0), gData);
+    gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
 
     vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
     vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
@@ -102,46 +137,55 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
     vec3 currViewNormal = gData.normal;
     vec3 currViewGeomNormal = gData.geomNormal;
+    Material material = material_decode(gData);
+    float currRoughness = material.roughness;
 
     float glazingCosTheta = saturate(dot(currViewGeomNormal, -normalize(currViewPos.xyz)));
     float glazingAngleFactor = glazingCosTheta;
     float glazingAngleFactorHistory = pow2(1.0 - glazingCosTheta);
     bool valid = false;
+    float specularHitDistance = 0.0;
+    vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
+    vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
 
     if (bool(clipFlag)) {
-        vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
-        vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
         vec2 curr2PrevScreenClamped = saturate(curr2PrevScreen);
-
         if (all(lessThan(abs(curr2PrevScreen - curr2PrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
-            curr2PrevScreen += global_prevTaaJitter * uval_mainImageSizeRcp;
+            curr2PrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
-            curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
+            curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(1.0), uval_mainImageSize - 1.0);
 
             vec2 gatherTexelPos = floor(curr2PrevTexelPos - 0.5) + 1.0;
 
             bool edgeFlag;
             vec4 edgeWeights;
+            vec4 extraNormalWeights;
+            vec4 roughnessWeights;
+
             computeEdgeWeights(
                 screenPos,
                 gatherTexelPos,
+                currRoughness,
                 currViewNormal,
                 currViewGeomNormal,
                 curr2PrevViewPos.xyz,
                 glazingAngleFactor,
+                4.0,
+                roughnessWeights,
+                extraNormalWeights,
                 edgeWeights,
                 edgeFlag
             );
 
             vec2 pixelPosFract = fract(curr2PrevTexelPos - 0.5);
             vec2 bilinearWeights2 = pixelPosFract;
-            vec4 blinearWeights4;
-            blinearWeights4.yz = bilinearWeights2.xx;
-            blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
-            blinearWeights4.xy *= bilinearWeights2.yy;
-            blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
+            vec4 bilinearWeights4;
+            bilinearWeights4.yz = bilinearWeights2.xx;
+            bilinearWeights4.xw = 1.0 - bilinearWeights2.xx;
+            bilinearWeights4.xy *= bilinearWeights2.yy;
+            bilinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
 
-            vec4 finalWeights = edgeWeights * blinearWeights4;
+            vec4 finalWeights = edgeWeights * bilinearWeights4;
             float weightSum = dot(finalWeights, vec4(1.0));
             float rcpWeightSum = safeRcp(weightSum);
             finalWeights *= rcpWeightSum;
@@ -170,7 +214,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     float antiStretching = pow2(linearStep(0.2, 0.0, pow2(packedData5.w) - pow2(glazingAngleFactorHistory)));
                     historyResetFactor *= antiStretching;
                     packedData5.x *= historyResetFactor;
-                    packedData5.y *= antiStretching;
+                    //                    packedData5.y *= antiStretching;
                     packedData5.w = glazingAngleFactorHistory;
                     packedData5 = saturate(packedData5);
                     transient_gi5Reprojected_store(texelPos, packedData5);
@@ -219,6 +263,10 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     packedData2 = dither_fp16(packedData2, ditherNoise);
                     transient_gi2Reprojected_store(texelPos, packedData2);
 
+                    finalWeights *= pow(extraNormalWeights, vec4(128.0));
+                    finalWeights *= roughnessWeights;
+                    finalWeights *= safeRcp(dot(finalWeights, vec4(1.0)));
+
                     vec4 packedData3 = bileratralSum(
                         data3X,
                         data3Y,
@@ -238,6 +286,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         finalWeights
                     );
                     packedData4 = clamp(packedData4, 0.0, FP16_MAX);
+                    specularHitDistance = packedData4.w;
                     packedData4 = dither_fp16(packedData4, ditherNoise);
                     transient_gi4Reprojected_store(texelPos, packedData4);
 
@@ -250,7 +299,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 historyResetFactor *= antiStretching;
 
                 packedData5.x *= historyResetFactor;
-                packedData5.y *= antiStretching;
+                //                packedData5.y *= antiStretching;
                 packedData5.w = glazingAngleFactorHistory;
 
                 packedData5 = saturate(packedData5);
@@ -265,23 +314,11 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 vec4 packData14 = history_gi1_sample(tapData.uv4AndWeight.xy);
                 vec4 packData15 = history_gi1_sample(tapData.uv5AndWeight.xy);
 
-                vec4 packData21 = history_gi2_sample(tapData.uv1AndWeight.xy);
-                vec4 packData22 = history_gi2_sample(tapData.uv2AndWeight.xy);
-                vec4 packData23 = history_gi2_sample(tapData.uv3AndWeight.xy);
-                vec4 packData24 = history_gi2_sample(tapData.uv4AndWeight.xy);
-                vec4 packData25 = history_gi2_sample(tapData.uv5AndWeight.xy);
-
                 vec4 packData31 = history_gi3_sample(tapData.uv1AndWeight.xy);
                 vec4 packData32 = history_gi3_sample(tapData.uv2AndWeight.xy);
                 vec4 packData33 = history_gi3_sample(tapData.uv3AndWeight.xy);
                 vec4 packData34 = history_gi3_sample(tapData.uv4AndWeight.xy);
                 vec4 packData35 = history_gi3_sample(tapData.uv5AndWeight.xy);
-
-                vec4 packData41 = history_gi4_sample(tapData.uv1AndWeight.xy);
-                vec4 packData42 = history_gi4_sample(tapData.uv2AndWeight.xy);
-                vec4 packData43 = history_gi4_sample(tapData.uv3AndWeight.xy);
-                vec4 packData44 = history_gi4_sample(tapData.uv4AndWeight.xy);
-                vec4 packData45 = history_gi4_sample(tapData.uv5AndWeight.xy);
 
                 vec4 packedData1 = sampling_catmullBicubic5Tap_sum(
                     packData11,
@@ -295,14 +332,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 packedData1 = dither_fp16(packedData1, ditherNoise);
                 transient_gi1Reprojected_store(texelPos, packedData1);
 
-                vec4 packedData2 = sampling_catmullBicubic5Tap_sum(
-                    packData21,
-                    packData22,
-                    packData23,
-                    packData24,
-                    packData25,
-                    tapData
-                );
+                vec4 packedData2 = history_gi2_sample(curr2PrevScreen);
                 packedData2 = clamp(packedData2, 0.0, FP16_MAX);
                 packedData2 = dither_fp16(packedData2, ditherNoise);
                 transient_gi2Reprojected_store(texelPos, packedData2);
@@ -319,15 +349,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 packedData3 = dither_fp16(packedData3, ditherNoise);
                 transient_gi3Reprojected_store(texelPos, packedData3);
 
-                vec4 packedData4 = sampling_catmullBicubic5Tap_sum(
-                    packData41,
-                    packData42,
-                    packData43,
-                    packData44,
-                    packData45,
-                    tapData
-                );
+                vec4 packedData4 = history_gi4_sample(curr2PrevScreen);
                 packedData4 = clamp(packedData4, 0.0, FP16_MAX);
+                specularHitDistance = packedData4.w;
                 packedData4 = dither_fp16(packedData4, ditherNoise);
                 transient_gi4Reprojected_store(texelPos, packedData4);
 
@@ -336,7 +360,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
             if (valid) {
                 ReprojectInfo reprojInfo = reprojectInfo_init();
-                reprojInfo.bilateralWeights = pow4(edgeWeights);
+                // Most edge values are very close to 1.0
+                // And we also want stricter weights for ReSTIR temporal
+                reprojInfo.bilateralWeights = edgeWeights * extraNormalWeights;
                 reprojInfo.curr2PrevScreenPos = curr2PrevScreen;
                 reprojInfo.historyResetFactor = historyResetFactor;
                 transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));
@@ -345,13 +371,158 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     }
 
     if (!valid) {
-        transient_gi1Reprojected_store(texelPos, vec4(0.0));
-        transient_gi2Reprojected_store(texelPos, vec4(0.0, 0.0, 0.0, MAX_HIT_DISTANCE));
-        transient_gi3Reprojected_store(texelPos, vec4(0.0));
-        transient_gi4Reprojected_store(texelPos, vec4(0.0, 0.0, 0.0, MAX_HIT_DISTANCE));
-        transient_gi5Reprojected_store(texelPos, vec4(0.0));
+        GIHistoryData data = gi_historyData_init();
+        transient_gi1Reprojected_store(texelPos, gi_historyData_pack1(data));
+        transient_gi2Reprojected_store(texelPos, gi_historyData_pack2(data));
+        transient_gi3Reprojected_store(texelPos, gi_historyData_pack3(data));
+        transient_gi4Reprojected_store(texelPos, gi_historyData_pack4(data));
+        transient_gi5Reprojected_store(texelPos, gi_historyData_pack5(data));
 
         ReprojectInfo reprojInfo = reprojectInfo_init();
         transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));
+    }
+
+    // Virtual-point specular reprojection
+    // Surface point is already done along with diffuse reprojection above.
+    // But we also want to try to reproject using virtual point and blend the result based on roughness
+    // This is to handle low roughness surface where the specular is more view-dependent
+    {
+        bool specValid = valid;
+
+        vec3 viewDir = normalize(currViewPos);
+        // Goes to 1.0 when roughness is 0.0 and vise-versa
+        float mirrorParallaxFactor = exp2(-pow2(material.roughness * 128.0));
+        vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance * mirrorParallaxFactor;
+
+        vec4 virtualPrevViewPos = coord_viewCurrToPrev(vec4(virtualViewPos, 1.0), gData.isHand);
+        vec4 virtualPrevClipPos = global_prevCamProj * virtualPrevViewPos;
+        uint clipFlag = uint(curr2PrevClipPos.z > 0.0);
+        clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
+
+        if (bool(clipFlag)) {
+            vec2 virtualPrevNDC = virtualPrevClipPos.xy / virtualPrevClipPos.w;
+            vec2 virtualPrevScreen = virtualPrevNDC * 0.5 + 0.5;
+            vec2 virtualPrevScreenClamped = saturate(virtualPrevScreen);
+
+            if (all(lessThan(abs(virtualPrevScreen - virtualPrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
+                virtualPrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
+                vec2 virtualPrevTexelPos = virtualPrevScreen * uval_mainImageSize;
+                virtualPrevTexelPos = clamp(virtualPrevTexelPos, vec2(1.0), uval_mainImageSize - 1.0);
+
+                vec2 gatherTexelPos = floor(virtualPrevTexelPos - 0.5) + 1.0;
+
+                bool edgeFlag;
+                vec4 edgeWeights;
+                vec4 extraNormalWeights;
+                vec4 roughnessWeights;
+                computeEdgeWeights(
+                    screenPos,
+                    gatherTexelPos,
+                    currRoughness,
+                    currViewNormal,
+                    currViewGeomNormal,
+                    curr2PrevViewPos.xyz,
+                    glazingAngleFactor,
+                    64.0 * mirrorParallaxFactor + 32.0,
+                    roughnessWeights,
+                    extraNormalWeights,
+                    edgeWeights,
+                    edgeFlag
+                );
+                edgeWeights *= roughnessWeights;
+
+                vec2 pixelPosFract = fract(virtualPrevTexelPos - 0.5);
+                vec2 bilinearWeights2 = pixelPosFract;
+                vec4 blinearWeights4;
+                blinearWeights4.yz = bilinearWeights2.xx;
+                blinearWeights4.xw = 1.0 - bilinearWeights2.xx;
+                blinearWeights4.xy *= bilinearWeights2.yy;
+                blinearWeights4.zw *= 1.0 - bilinearWeights2.yy;
+
+                vec4 finalWeights = edgeWeights * blinearWeights4;
+                float weightSum = dot(finalWeights, vec4(1.0));
+
+                if (weightSum > 0.001) {
+                    specValid = true;
+                    finalWeights *= rcp(weightSum);
+                    float pSpec = 1.0;
+                    if (material.dielectric > 0.0) {
+                        float NdotV = saturate(dot(currViewNormal, viewDir));
+                        vec3 fresnelV = saturate(fresnel_evalMaterial(material, NdotV));
+                        vec3 fresnelT = vec3(1.0) - fresnelV;
+                        vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
+                        pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV * safeRcp(totalEnergy));
+                        // Clamping this to avoid dead locks that causes fireflies
+                        pSpec = clamp(pSpec, 0.01, 0.99);
+                    }
+
+                    float choiceRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 114u), RANDOM_FRAME);
+                    if (choiceRand < pSpec) {
+                        ReprojectInfo reprojInfo = reprojectInfo_unpack(transient_gi_diffuse_reprojInfo_load(texelPos));
+                        // Most edge values are very close to 1.0
+                        // And we also want stricter weights for ReSTIR temporal
+                        reprojInfo.bilateralWeights = edgeWeights;
+                        reprojInfo.curr2PrevScreenPos = virtualPrevScreen;
+                        transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));
+                    }
+
+                    float ditherNoiseV = rand_stbnVec1(rand_newStbnPos(texelPos, 9u), frameCounter);
+
+                    if (edgeFlag) {
+                        vec4 data3X = history_gi3_gatherTexel(gatherTexelPos, 0);
+                        vec4 data3Y = history_gi3_gatherTexel(gatherTexelPos, 1);
+                        vec4 data3Z = history_gi3_gatherTexel(gatherTexelPos, 2);
+                        vec4 data3W = history_gi3_gatherTexel(gatherTexelPos, 3);
+
+                        vec4 data4X = history_gi4_gatherTexel(gatherTexelPos, 0);
+                        vec4 data4Y = history_gi4_gatherTexel(gatherTexelPos, 1);
+                        vec4 data4Z = history_gi4_gatherTexel(gatherTexelPos, 2);
+                        vec4 data4W = history_gi4_gatherTexel(gatherTexelPos, 3);
+
+                        vec4 packedData3 = bileratralSum(data3X, data3Y, data3Z, data3W, finalWeights);
+                        vec4 packedData4 = bileratralSum(data4X, data4Y, data4Z, data4W, finalWeights);
+                        packedData3 = clamp(packedData3, 0.0, FP16_MAX);
+                        packedData3 = dither_fp16(packedData3, ditherNoiseV);
+                        transient_gi3Reprojected_store(texelPos, packedData3);
+
+                        packedData4 = clamp(packedData4, 0.0, FP16_MAX);
+                        packedData4 = dither_fp16(packedData4, ditherNoiseV);
+                        transient_gi4Reprojected_store(texelPos, packedData4);
+                    } else {
+                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, 0.5, uval_mainImageSizeRcp);
+
+                        vec4 packedData3 = sampling_catmullBicubic5Tap_sum(
+                            history_gi3_sample(vTapData.uv1AndWeight.xy),
+                            history_gi3_sample(vTapData.uv2AndWeight.xy),
+                            history_gi3_sample(vTapData.uv3AndWeight.xy),
+                            history_gi3_sample(vTapData.uv4AndWeight.xy),
+                            history_gi3_sample(vTapData.uv5AndWeight.xy),
+                            vTapData
+                        );
+                        vec4 packedData4 = sampling_catmullBicubic5Tap_sum(
+                            history_gi4_sample(vTapData.uv1AndWeight.xy),
+                            history_gi4_sample(vTapData.uv2AndWeight.xy),
+                            history_gi4_sample(vTapData.uv3AndWeight.xy),
+                            history_gi4_sample(vTapData.uv4AndWeight.xy),
+                            history_gi4_sample(vTapData.uv5AndWeight.xy),
+                            vTapData
+                        );
+
+                        packedData3 = clamp(packedData3, 0.0, FP16_MAX);
+                        packedData4 = clamp(packedData4, 0.0, FP16_MAX);
+                        packedData3 = dither_fp16(packedData3, ditherNoiseV);
+                        packedData4 = dither_fp16(packedData4, ditherNoiseV);
+
+                        transient_gi3Reprojected_store(texelPos, packedData3);
+                        transient_gi4Reprojected_store(texelPos, packedData4);
+                    }
+                }
+            }
+        }
+
+        if (!specValid) {
+            transient_gi3Reprojected_store(texelPos, vec4(0.0));
+            transient_gi4Reprojected_store(texelPos, vec4(0.0));
+        }
     }
 }

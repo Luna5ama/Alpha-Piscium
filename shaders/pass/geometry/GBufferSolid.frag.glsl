@@ -29,15 +29,15 @@ layout(early_fragment_tests) in;
 #if defined(GBUFFER_PASS_NO_LIGHTING)
 /* RENDERTARGETS:6,10 */
 layout(location = 0) out vec4 rt_color;
-layout(location = 1) out float rt_gbufferViewZ;
+layout(location = 1) out float rt_gbufferSolidViewZ;
 #elif defined(GBUFFER_PASS_ARMOR_GLINT)
 /* RENDERTARGETS:4 */
 layout(location = 0) out vec4 rt_glintColor;
 #else
 /* RENDERTARGETS:8,9,10 */
-layout(location = 0) out uvec4 rt_gbufferData1;
-layout(location = 1) out uvec4 rt_gbufferData2;
-layout(location = 2) out float rt_gbufferViewZ;
+layout(location = 0) out uvec4 rt_gbufferSolidData1;
+layout(location = 1) out uvec4 rt_gbufferSolidData2;
+layout(location = 2) out float rt_gbufferSolidViewZ;
 #endif
 
 #ifdef SETTING_SCREENSHOT_MODE
@@ -197,15 +197,15 @@ void main() {
 
     #if defined(GBUFFER_PASS_NO_LIGHTING)
     rt_color = albedo;
-    rt_gbufferViewZ = viewZ;
+    rt_gbufferSolidViewZ = viewZ;
     #elif defined(GBUFFER_PASS_ARMOR_GLINT)
     rt_glintColor = dither_u8(albedo, ditherNoise);
     #else
     processData1();
     processData2();
 
-    gbufferData1_pack(rt_gbufferData1, gData);
-    gbufferData2_pack(rt_gbufferData2, gData);
-    rt_gbufferViewZ = viewZ;
+    gbufferData1_pack(rt_gbufferSolidData1, gData);
+    gbufferData2_pack(rt_gbufferSolidData2, gData);
+    rt_gbufferSolidViewZ = viewZ;
     #endif
 }

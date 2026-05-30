@@ -1,1 +1,0 @@
-println(System.getProperty("java.home"))

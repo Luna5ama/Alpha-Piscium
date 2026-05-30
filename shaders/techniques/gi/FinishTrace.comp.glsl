@@ -41,7 +41,7 @@ void main() {
         uvec4 packedData = ssbo_rayData[binBaseIndex + actualRayIndex];
         SSTRay sstRay = sstray_unpack(packedData);
         ivec2 texelPos = sstRay.pRayOriginTexelPos;
-        float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
         sstray_recoverOrigin(sstRay, viewZ);
         sst_trace(sstRay, RAY_STEPS);
         handleRayResult(sstRay);

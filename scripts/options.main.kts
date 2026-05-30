@@ -8,8 +8,11 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.readLines
 import kotlin.math.pow
 
+val kotlinExec = if (System.getProperty("os.name").lowercase().contains("win")) "kotlin.bat" else "kotlin"
+ProcessBuilder(kotlinExec, "programs.main.kts").inheritIO().start().waitFor()
+
 val versionStr = args.getOrElse(0) {
-    data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int) : Comparable<Version> {
+    data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int, val hotfix: Int) : Comparable<Version> {
         override fun compareTo(other: Version): Int {
             var cmp = major.compareTo(other.major)
             if (cmp != 0) return cmp
@@ -17,14 +20,17 @@ val versionStr = args.getOrElse(0) {
             if (cmp != 0) return cmp
             cmp = patch.compareTo(other.patch)
             if (cmp != 0) return cmp
-            return beta.compareTo(other.beta)
+            cmp = beta.compareTo(other.beta)
+            if (cmp != 0) return cmp
+            cmp = hotfix.compareTo(other.hotfix)
+            return cmp
         }
 
         override fun toString(): String {
-            return if (beta == Int.MAX_VALUE) {
-                "$major.$minor.$patch"
-            } else {
-                "$major.$minor.$patch-Beta$beta"
+            return when {
+                hotfix != 0 -> "$major.$minor.$patch-Hotfix$hotfix"
+                beta != Int.MAX_VALUE -> "$major.$minor.$patch-Beta$beta"
+                else -> "$major.$minor.$patch"
             }
         }
     }
@@ -35,8 +41,19 @@ val versionStr = args.getOrElse(0) {
         val major = splitStr[0].toInt()
         val minor = splitStr[1].toInt()
         val patch = splitStr[2].toInt()
-        val beta = if (splitStr.size > 3) splitStr[3].lowercase().removePrefix("beta").toInt() else Int.MAX_VALUE
-        return Version(major, minor, patch, beta)
+        var beta = Int.MAX_VALUE
+        var hotfix = 0
+        if (splitStr.size > 3) {
+            val suffix = splitStr[3].lowercase()
+            if (suffix.startsWith("beta")) {
+                beta = suffix.removePrefix("beta").toInt()
+            } else if (suffix.startsWith("hotfix")) {
+                hotfix = suffix.removePrefix("hotfix").toInt()
+            } else {
+                error("Unrecognized version suffix: $suffix")
+            }
+        }
+        return Version(major, minor, patch, beta, hotfix)
     }
 
     val changelogPath = Path("../changelogs")
@@ -416,7 +433,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "用于次表面散射的采样数。数值越高，质量越好，但会降低性能。"
                         }
                     }
-                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.8, 0.0..4.0 step 0.1) {
+                    slider("SETTING_SSS_DIFFUSE_RANGE", 0.3, 0.0..2.0 step 0.1) {
                         lang {
                             name = "Diffuse Range"
                             comment =
@@ -427,7 +444,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "数值越高，外观越扩散、越柔和。"
                         }
                     }
-                    slider("SETTING_SSS_DEPTH_RANGE", 0.3, 0.0..4.0 step 0.1) {
+                    slider("SETTING_SSS_DEPTH_RANGE", 0.3, 0.0..2.0 step 0.1) {
                         lang {
                             name = "Depth Range"
                             comment =
@@ -842,7 +859,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "重用来自附近像素的GI样本以提高性能。"
                     }
                 }
-                slider("SETTING_GI_SPATIAL_REUSE_COUNT", 6, 1..16) {
+                slider("SETTING_GI_SPATIAL_REUSE_COUNT", 6, 1..8) {
                     Profile.Low preset 4
                     Profile.Medium preset 5
                     Profile.High preset 6
@@ -859,32 +876,15 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "重用GI样本的附近像素数量。"
                     }
                 }
-                toggle("SETTING_GI_SPATIAL_REUSE_COUNT_DYNAMIC", false) {
+                empty()
+                toggle("SETTING_GI_DECORRELATE", false) {
                     lang {
-                        name = "Dynamic Spatial Reuse Sample Count"
-                        comment = "Decreases spatial reuse sample count to reduce biases for accumulated result."
+                        name = "ReSITR Duplication Map Decorrelation"
+                        comment = "May reduce fireflies and other artifacts but can impact performance."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "动态空间重用采样数"
-                        comment = "减少空间重用采样数以降低累积结果的偏差。"
-                    }
-                }
-                slider("SETTING_GI_SPATIAL_REUSE_RADIUS", 64, powerOfTwoAndHalfRange(4..8)) {
-                    Profile.Low preset 24
-                    Profile.Medium preset 32
-                    Profile.High preset 48
-                    Profile.Ultra preset 64
-                    Profile.Extreme preset 64
-                    Profile.Insane preset 64
-                    lang {
-                        name = "Spatial Reuse Radius"
-                        comment = "Radius to search for nearby GI samples to reuse."
-                        suffix = " pixels"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "空间重用半径"
-                        comment = "搜索以重用附近GI样本的半径。"
-                        suffix = " 像素"
+                        name = "ReSITR重复图去相关"
+                        comment = "可能会减少火点和其他伪影，但可能会影响性能。"
                     }
                 }
             }
@@ -975,7 +975,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FLICKER_SUPPRESSION", 1, 0..10) {
+                slider("SETTING_DENOISER_FLICKER_SUPPRESSION", 3, 0..10) {
                     lang {
                         name = "Flicker Suppression Strength"
                         comment =
@@ -1026,18 +1026,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "遮挡消失修正深度权重"
                         comment = "修正遮挡消失时深度相似度的权重。数值越高，修正对深度变化越敏感，并减少过度模糊。"
-                    }
-                }
-                empty()
-                slider("SETTING_DENOISER_STABILIZATION_MAX_ACCUM", 16, powerOfTwoAndHalfRange(0..8)) {
-                    lang {
-                        name = "Stabilization Maximum Accumulated Frames"
-                        comment =
-                            "Maximum accumulated frames that is used for calculating blend weight. Smaller values increase responsiveness but may introduce flickering."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "降噪稳定最大累积帧数"
-                        comment = "用于计算混合权重的最大累积帧数。数值越小，响应性越强，但可能会引入闪烁。"
                     }
                 }
             }
@@ -1622,7 +1610,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "蓝光在水中反弹的程度。数值越高，水越蓝。"
                         }
                     }
-                    slider("SETTING_WATER_SCATTERING_MULTIPLIER", -8.75, -15.0..-5.0 step 0.25) {
+                    slider("SETTING_WATER_SCATTERING_MULTIPLIER", -9.0, -15.0..-5.0 step 0.25) {
                         lang {
                             name = "Scattering Coefficient Multiplier"
                             prefix = "2^"
@@ -1675,7 +1663,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "蓝光在水下消失的速度。数值越低，更深的水中保持蓝色。"
                         }
                     }
-                    slider("SETTING_WATER_ABSORPTION_MULTIPLIER", -9.25, -15.0..-5.0 step 0.25) {
+                    slider("SETTING_WATER_ABSORPTION_MULTIPLIER", -9.0, -15.0..-5.0 step 0.25) {
                         lang {
                             name = "Absorption Coefficient Multiplier"
                             prefix = "2^"
@@ -2605,6 +2593,40 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "水下时的额外泛光强度，创造梦幻般扩散的水下氛围。"
                     }
                 }
+                empty()
+                slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION", 3, 0..4) {
+                    lang {
+                        name = "Highlight Compression"
+                        comment = "Reduces bloom intensity for extremely bright areas to prevent overwhelming glare. Higher values increase compression intensity."
+                        0 value "Off"
+                        1 value "Low"
+                        2 value "Medium"
+                        3 value "High"
+                        4 value "Hard Clipping"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "高光压缩"
+                        comment = "减少极亮区域的泛光强度以防止过度眩光。数值越高，压缩强度越大。"
+                        0 value "关闭"
+                        1 value "低"
+                        2 value "中"
+                        3 value "高"
+                    }
+                }
+                slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE", 0, 0..1) {
+                    lang {
+                        name = "Highlight Compression Mode"
+                        comment = "Determines how highlight compression is applied. RGB mode compresses saturation, while Luma mode preserves saturation."
+                        0 value "RGB"
+                        1 value "Luma"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "高光压缩模式"
+                        comment = "确定高光压缩的应用方式。RGB模式压缩饱和度，而亮度模式保持饱和度。"
+                        0 value "RGB"
+                        1 value "亮度"
+                    }
+                }
             }
             screen(1) {
                 lang {
@@ -3354,6 +3376,16 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         comment = "禁用动画和时间钳制以获得更干净、更高质量的截图。"
                     }
                 }
+                toggle("SETTING_VIDEO_RENDER_MODE", false) {
+                    lang {
+                        name = "Video Render Mode"
+                        comment = "Adjusts some temporal accumulated effects for rendering video in mods like Flashback."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "视频渲染模式"
+                        comment = "调整一些时间累积效果以在Flashback等模组中渲染视频。"
+                    }
+                }
                 slider("SETTING_SCREENSHOT_MODE_SKIP_INITIAL", 60, 10..200 step 10) {
                     lang {
                         name = "Screenshot Mode Warmup Frames"
@@ -3365,6 +3397,11 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         comment = "在拍摄截图之前等待的帧数，让光照和效果稳定以获得最佳质量。"
                     }
                 }
+            }
+            row {
+                empty()
+            }
+           row {
                 toggle("SETTING_CONSTELLATIONS", false) {
                     lang {
                         name = "Show Star Constellations"
@@ -3452,7 +3489,11 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         4 value "Final"
                     }
                 }
-                slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {
+                toggle("SETTING_DEBUG_TEXT_OUTPUT", false) {
+                lang {
+                    name = "Debug Text Output"
+                }
+            }slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {
                     lang {
                         name = "Debug Scale"
                     }

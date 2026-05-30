@@ -1,6 +1,8 @@
 import java.io.File
 import java.math.BigDecimal
 import java.util.*
+import kotlin.io.path.Path
+import kotlin.io.path.readText
 import kotlin.text.appendLine
 
 enum class ColorCode(val code: String) {
@@ -595,6 +597,7 @@ class Scope : OptionFactory() {
                 File(langDir, "${language}.lang").writeText(content.toString())
             }
             File(shaderRoot, "shaders.properties").bufferedWriter().use {
+                it.appendLine(Path("programs.shaders.properties").readText())
                 it.append(_shadersProperties)
             }
         }
