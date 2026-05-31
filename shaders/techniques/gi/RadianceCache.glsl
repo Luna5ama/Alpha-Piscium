@@ -322,22 +322,27 @@ RCLookupResult rcLookupInit() {
     return result;
 }
 
-bool rcCellWithinValidBounds(ivec3 worldCellCoord, uint level) {
-    ivec3 cellDelta = worldCellCoord - rcWorldCellCoord(cameraPosition, level);
-    ivec3 minDelta = ivec3(-int(RC_CLIP_SIZE / 2u) + 1);
-    ivec3 maxDelta = ivec3(int(RC_CLIP_SIZE / 2u));
-    return all(greaterThanEqual(cellDelta, minDelta)) && all(lessThanEqual(cellDelta, maxDelta));
-}
-
 uint rcSelectLevel(vec3 P) {
-    for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
-        ivec3 baseCell = rcWorldCellCoord(P, level);
-        if (rcCellWithinValidBounds(baseCell, level) || level + 1u == RC_CLIP_LEVELS) {
-            return level;
-        }
+    vec3 d = abs(P - cameraPositionInt);
+    float maxDistF = max(max(d.x, d.y), d.z);
+
+    // Conservative integer distance in blocks.
+    uint maxDist = uint(ceil(maxDistF));
+
+    uint safeRadius = RC_CLIP_SIZE / 2u - 1u; // 31
+
+    if (maxDist <= safeRadius) {
+        return 0u;
     }
 
-    return RC_CLIP_LEVELS - 1u;
+    // Need smallest level such that:
+    // safeRadius * 2^level >= maxDist
+    uint q = (maxDist + safeRadius - 1u) / safeRadius; // ceil(maxDist / safeRadius)
+
+    // ceil(log2(q))
+    uint level = uint(findMSB(q - 1u) + 1);
+
+    return min(level, RC_CLIP_LEVELS - 1u);
 }
 
 void rcLookupSampleFace(
