@@ -5,12 +5,13 @@
 // The OverlayComposite pass later alpha-blends this over the main image.
 //
 // Enabled via SETTING_DEBUG_VOXEL_TRACE (see options.main.kts / Options.glsl).
-// Entry point: deferred69.csh
+// Entry point: composite55.csh
 //
-// Three ray modes, selected by SETTING_DEBUG_VOXEL_MODE:
+// Four ray modes, selected by SETTING_DEBUG_VOXEL_MODE:
 //   0 – Primary camera ray (default)
-//   1 – Uniform hemisphere ray from the gbuffer solid surface normal
-//   2 – Mirror reflection ray from the gbuffer solid surface normal
+//   1 – Mirror reflection ray from the gbuffer solid surface normal
+//   2 – Uniform hemisphere ray from the gbuffer solid surface normal
+//   3 – Cosine hemisphere ray from the gbuffer solid surface normal
 
 #include "/Base.glsl"
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -155,4 +156,3 @@ void main() {
 //    #endif
     #endif
 }
-

@@ -9,6 +9,7 @@
 // Only active when SETTING_VOXEL_GRID_SIZE > 16 (begin9.csh).
 
 #extension GL_KHR_shader_subgroup_arithmetic : enable
+#extension GL_KHR_shader_subgroup_basic : enable
 
 #define VOXEL_BRICK_DATA_MODIFIER buffer
 #include "/techniques/voxel/Voxelization.glsl"
@@ -31,13 +32,14 @@ void main() {
     }
     barrier();
 
-    // Level 2: all threads load their subgroup's total; subgroup 0 scans them
-    // (matches GetWarp.comp.glsl pattern)
-    uint tValue2 = shared_prefixBuffer[gl_LocalInvocationID.x];
+    // Level 2: subgroup 0 scans the per-subgroup totals.
+    uint tValue2 = tid < gl_NumSubgroups ? shared_prefixBuffer[tid] : 0u;
     barrier();
     if (gl_SubgroupID == 0) {
         uint prefix2 = subgroupInclusiveAdd(tValue2);
-        shared_prefixBuffer[gl_LocalInvocationID.x] = prefix2;
+        if (tid < gl_NumSubgroups) {
+            shared_prefixBuffer[tid] = prefix2;
+        }
     }
     barrier();
 
@@ -50,4 +52,3 @@ void main() {
         voxel_brickAllocCounter = 0u;
     }
 }
-

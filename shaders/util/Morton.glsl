@@ -124,7 +124,7 @@ uvec3 morton3D_24bDecode(uint x) {
 uint morton3D_30bEncode(uvec3 coords) {
     uvec3 x = coords;
     x &= 0x000003FFu;
-    x = (x | (x << 16u)) & 0x000003FFu;
+    x = (x | (x << 16u)) & 0x030000FFu;
     x = (x | (x <<  8u)) & 0x0300F00Fu;
     x = (x | (x <<  4u)) & 0x030C30C3u;
     x = (x | (x <<  2u)) & 0x09249249u;
