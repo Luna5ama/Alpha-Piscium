@@ -239,6 +239,18 @@ programs {
             "/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl",
             "/pass/composite/DirectLighting.glsl"
         )
+        pass("/pass/composite/RadianceCacheClear.comp.glsl") {
+            cond("defined(SETTING_RC_ENABLE)")
+        }
+        pass("/pass/composite/RadianceCacheTouch.comp.glsl") {
+            cond("defined(SETTING_RC_ENABLE)")
+        }
+        pass("/pass/composite/RadianceCacheAllocate.comp.glsl") {
+            cond("defined(SETTING_RC_ENABLE)")
+        }
+        pass("/pass/composite/RadianceCacheReservoirUpdate.comp.glsl") {
+            cond("defined(SETTING_RC_ENABLE)")
+        }
         pass("/pass/composite/DOFFocus.comp.glsl") {
             cond("defined(SETTING_DOF) && !defined(SETTING_DOF_MANUAL_FOCUS)")
         }
