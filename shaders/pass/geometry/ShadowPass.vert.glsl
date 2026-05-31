@@ -5,6 +5,7 @@
 #include "/techniques/voxel/Voxelization.glsl"
 #define VOXEL_FACE_TEXCOORD_MODIFIER buffer
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
+#include "/util/HardcodedPBR.glsl"
 
 layout(r32i) uniform iimage2D uimg_fr32f;
 
@@ -66,39 +67,42 @@ void main() {
     // -------------------------------------------------------------------
     #ifdef SHADOW_PASS_VOXELIZE
     if ((gl_VertexID & 3) == 0 && materialID != MATERIAL_ID_WATER) {
-        // Absolute integer block position of the center of this block.
-        // scenePos is camera-relative; add camera's integer + fractional parts.
-        ivec3 blockWorldPos = ivec3(floor(scenePos.xyz + cameraPositionFract + at_midBlock.xyz / 64.0))
-                              + cameraPositionInt;
+        HardcodedPBR hardcoded = hardcodedpbr_decode(materialID);
+        if (hardcoded.isFullCube) {
+            // Absolute integer block position of the center of this block.
+            // scenePos is camera-relative; add camera's integer + fractional parts.
+            ivec3 blockWorldPos = ivec3(floor(scenePos.xyz + cameraPositionFract + at_midBlock.xyz / 64.0))
+            + cameraPositionInt;
 
-        // Brick grid coordinate centered on the camera's brick
-        ivec3 cameraBrickCoord = cameraPositionInt >> 4;
-        ivec3 brickWorldCoord  = blockWorldPos >> 4;
-        ivec3 brickRelCoord    = brickWorldCoord - cameraBrickCoord + ivec3(VOXEL_GRID_SIZE / 2);
+            // Brick grid coordinate centered on the camera's brick
+            ivec3 cameraBrickCoord = cameraPositionInt >> 4;
+            ivec3 brickWorldCoord = blockWorldPos >> 4;
+            ivec3 brickRelCoord = brickWorldCoord - cameraBrickCoord + ivec3(VOXEL_GRID_SIZE / 2);
 
-        if (all(greaterThanEqual(brickRelCoord, ivec3(0))) &&
-            all(lessThan(brickRelCoord, ivec3(VOXEL_GRID_SIZE)))) {
+            if (all(greaterThanEqual(brickRelCoord, ivec3(0))) &&
+                    all(lessThan(brickRelCoord, ivec3(VOXEL_GRID_SIZE)))) {
 
-            uint brickMorton = voxel_brickMorton(brickRelCoord);
+                uint brickMorton = voxel_brickMorton(brickRelCoord);
 
-            // Mark brick occupied for this frame
-            voxel_brickOccupancy[brickMorton] = 1u;
+                // Mark brick occupied for this frame
+                voxel_brickOccupancy[brickMorton] = 1u;
 
-            // Write material ID if the brick already has a valid alloc ID
-            // (assigned by last frame's VoxelAllocator begin pass)
-            uint allocID = voxel_brickAllocID[brickMorton];
-            if (allocID != VOXEL_UNALLOCATED) {
-                ivec3 blockInBrick = blockWorldPos & ivec3(VOXEL_BRICK_SIZE - 1);
-                uint blockMorton   = voxel_blockMorton(blockInBrick);
-                uint matIdx        = voxel_materialIndex(allocID, blockMorton);
-                // Only write a non-zero material ID; 0 means "no entity mapping".
-                // atomicMax ensures a real ID beats the cleared-to-0 state.
-                if (materialID != 0u) {
-                    atomicMax(voxel_materials[matIdx], materialID);
-                } else {
-                    // Block exists but has no material ID mapping: write a
-                    // placeholder (1) so the tree knows the voxel is solid.
-                    atomicMax(voxel_materials[matIdx], 1u);
+                // Write material ID if the brick already has a valid alloc ID
+                // (assigned by last frame's VoxelAllocator begin pass)
+                uint allocID = voxel_brickAllocID[brickMorton];
+                if (allocID != VOXEL_UNALLOCATED) {
+                    ivec3 blockInBrick = blockWorldPos & ivec3(VOXEL_BRICK_SIZE - 1);
+                    uint blockMorton = voxel_blockMorton(blockInBrick);
+                    uint matIdx = voxel_materialIndex(allocID, blockMorton);
+                    // Only write a non-zero material ID; 0 means "no entity mapping".
+                    // atomicMax ensures a real ID beats the cleared-to-0 state.
+                    if (materialID != 0u) {
+                        atomicMax(voxel_materials[matIdx], materialID);
+                    } else {
+                        // Block exists but has no material ID mapping: write a
+                        // placeholder (1) so the tree knows the voxel is solid.
+                        atomicMax(voxel_materials[matIdx], 1u);
+                    }
                 }
             }
         }
