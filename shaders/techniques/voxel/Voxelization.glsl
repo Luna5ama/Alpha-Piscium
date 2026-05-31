@@ -1,6 +1,7 @@
 #ifndef INCLUDE_techniques_Voxelization_glsl
 #define INCLUDE_techniques_Voxelization_glsl a
 #include "/util/Morton.glsl"
+#include "/util/MaterialIDConst.glsl"
 
 // ---------------------------------------------------------------------------
 // Constants
@@ -154,5 +155,28 @@ uint brickDistBucket(ivec3 brickRelCoord, vec3 cameraInBrick) {
     uint dist = uint(max(max(delta.x, delta.y), delta.z) / 4.0); // floor via truncation
     return min(dist, uint(NUM_DIST_BUCKETS - 1));
 }
+
+#ifndef VOXEL_MATERIAL_VEC4
+bool voxel_opaqueAtBlock(ivec3 worldBlockPos) {
+    ivec3 cameraBrick = cameraPositionInt >> 4;
+    ivec3 gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
+    ivec3 gridBlockPos = worldBlockPos - gridOrigin;
+    if (any(lessThan(gridBlockPos, ivec3(0))) || any(greaterThanEqual(gridBlockPos, ivec3(VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE)))) {
+        return false;
+    }
+
+    ivec3 brickCoord = gridBlockPos >> 4;
+    uint brickMorton = voxel_brickMorton(brickCoord);
+    uint allocID = voxel_brickAllocID[brickMorton];
+    if (allocID == VOXEL_UNALLOCATED) {
+        return false;
+    }
+
+    ivec3 blockInBrick = gridBlockPos & 15;
+    uint blockMorton = voxel_blockMorton(blockInBrick);
+    uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
+    return materialID != 0u && materialID != MATERIAL_ID_WATER;
+}
+#endif
 
 #endif // INCLUDE_techniques_Voxelization_glsl

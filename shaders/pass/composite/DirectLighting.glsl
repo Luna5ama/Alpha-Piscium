@@ -121,8 +121,8 @@ void main() {
                 vec3 worldPos = scenePos + cameraPosition;
                 vec3 worldNormal = coords_dir_viewToWorld(lighting_gData.normal);
                 vec3 worldGeomNormal = coords_dir_viewToWorld(lighting_gData.geomNormal);
-//                RCLookupResult rcLookup = rcLookupDiffuseGI(worldPos, worldNormal, worldGeomNormal);
-                RCLookupResult rcLookup = rcLookupDiffuseGISmooth(worldPos, worldNormal, worldGeomNormal);
+                RCLookupResult rcLookup = rcLookupDiffuseGI(worldPos, worldNormal, worldGeomNormal);
+//                RCLookupResult rcLookup = rcLookupDiffuseGISmooth(worldPos, worldNormal, worldGeomNormal);
                 bool rcHit = rcLookup.weight > 0.0;
                 if (SETTING_RC_LOOKUP_MODE == 1 && rcHit) {
                     giOut1.rgb = rcLookup.radiance;
