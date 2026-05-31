@@ -122,6 +122,7 @@ void main() {
                 vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
                 vec3 worldPos = feetPlayerPos + cameraPosition;
                 vec3 worldNormal = normalize(mat3(gbufferModelViewInverse) * lighting_gData.normal);
+                worldPos -= worldNormal * 0.1;
                 RCLookupResult rcLookup = rcLookupDiffuseGI(worldPos, worldNormal, 16.0);
                 bool rcHit = rcLookup.weight > 0.0;
                 if (SETTING_RC_LOOKUP_MODE == 1 && rcHit) {
@@ -157,7 +158,7 @@ void main() {
                 #elif SETTING_DEBUG_RC_MODE == 9
                 debugOut.rgb = fallbackGI;
                 #endif
-                imageStore(uimg_overlays, texelPos, debugOut);
+                imageStore(uimg_temp3, texelPos, debugOut);
                 #endif
             }
 
