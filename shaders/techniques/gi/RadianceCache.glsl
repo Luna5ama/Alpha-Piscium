@@ -463,7 +463,7 @@ void rcLookupSampleFaceWeighted(
     result.age = max(result.age, age);
 }
 
-RCLookupResult rcLookupDiffuseGIBilinear(vec3 P, vec3 N) {
+RCLookupResult rcLookupDiffuseGISmooth(vec3 P, vec3 N) {
     RCLookupResult result = rcLookupInit();
 
     uint level = rcSelectLevel(P);
@@ -504,10 +504,19 @@ RCLookupResult rcLookupDiffuseGIBilinear(vec3 P, vec3 N) {
     float fu = fract(u);
     float fv = fract(v);
 
-    float w00 = (1.0 - fu) * (1.0 - fv);
-    float w10 = fu * (1.0 - fv);
-    float w01 = (1.0 - fu) * fv;
-    float w11 = fu * fv;
+    // Cubic smoothstep interpolation weights:
+    //
+    //   smoothstep01(t) = t * t * (3 - 2 * t)
+    //
+    // This keeps the same 2x2 footprint as bilinear interpolation, but makes
+    // the transition C1-continuous inside each cell interval.
+    float su = fu * fu * (3.0 - 2.0 * fu);
+    float sv = fv * fv * (3.0 - 2.0 * fv);
+
+    float w00 = (1.0 - su) * (1.0 - sv);
+    float w10 = su * (1.0 - sv);
+    float w01 = (1.0 - su) * sv;
+    float w11 = su * sv;
 
     ivec3 cell00 = ownerCell;
     ivec3 cell10 = ownerCell;
@@ -544,7 +553,6 @@ RCLookupResult rcLookupDiffuseGIBilinear(vec3 P, vec3 N) {
 
     return result;
 }
-
 void rcLookupSampleFace1x1(
     inout RCLookupResult result,
     vec3 P,
