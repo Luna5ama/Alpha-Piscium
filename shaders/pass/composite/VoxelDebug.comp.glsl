@@ -87,7 +87,7 @@ void main() {
     // Modes 1 & 2: derive ray origin and direction from the gbuffer solid.
     // ------------------------------------------------------------------
 
-    float viewZ = texelFetch(usam_gbufferViewZ, texelPos, 0).r;
+    float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
     // Sky / no-geometry pixels: let the main image show through.
     if (viewZ <= -65000.0) {
         imageStore(uimg_overlays, texelPos, vec4(0.0));
