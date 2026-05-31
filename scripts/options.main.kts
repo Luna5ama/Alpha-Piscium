@@ -917,7 +917,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 }
                 empty()
                 row {
-                    slider("SETTING_RC_M_MAX", 16, powerOfTwoRange(0..6)) {
+                    slider("SETTING_RC_M_MAX", 16, powerOfTwoRange(0..8)) {
                         lang {
                             name = "Reservoir M Clamp"
                             comment = "Maximum temporal sample count per cached face."

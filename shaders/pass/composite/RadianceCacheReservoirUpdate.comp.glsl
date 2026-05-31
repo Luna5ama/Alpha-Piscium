@@ -489,7 +489,7 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
             reservoir = rcReservoirLoad(rcPreviousSide(), prevReservoirIndex);
             historyValid = rcReservoirValid(reservoir);
             if (historyValid) {
-                reservoir.m *= global_historyResetFactor;
+//                reservoir.m *= global_historyResetFactor;
                 historyAge = rcReservoirMetaAge(reservoir.meta);
                 reservoirTargetWeight = rcLuminance(reservoir.radiance);
                 historyValid = reservoir.avgWY > 0.0
@@ -506,7 +506,7 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
     float randKill = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x1145CA6Bu)));
     // 100% chance to kill reservoir at each frame on max age.
     if (randKill * 65536.0 < pow2(float(historyAge))) {
-        reservoir.m *= 0.1;
+//        reservoir.m *= 0.1;
         historyAge = 0u;
     }
 
