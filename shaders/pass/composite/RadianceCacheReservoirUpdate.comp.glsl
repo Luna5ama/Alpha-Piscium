@@ -3,54 +3,162 @@
 layout(local_size_x = 256) in;
 
 #include "/techniques/gi/RadianceCache.glsl"
+#include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
-#include "/util/Colors.glsl"
-#include "/util/Coords.glsl"
+#include "/techniques/voxel/VoxelFaceTexcoords.glsl"
+#include "/util/Colors2.glsl"
+#include "/util/Fresnel.glsl"
+#include "/util/HardcodedPBR.glsl"
+#include "/util/MaterialIDConst.glsl"
 #include "/util/Rand.glsl"
 
 const ivec3 workGroups = ivec3(5120, 1, 1);
-
-vec3 rcWorldToViewPos(vec3 worldPos) {
-    return coords_pos_worldToView(worldPos - cameraPosition, gbufferModelView);
-}
-
-vec3 rcWorldToViewDir(vec3 worldDir) {
-    return normalize(mat3(gbufferModelView) * worldDir);
-}
-
-vec3 rcSampleCurrentScreenRadiance(vec3 hitWorldPos, vec3 outgoingWorldDir, out bool valid) {
-    valid = false;
-    vec3 hitViewPos = rcWorldToViewPos(hitWorldPos);
-    vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
-    if (hitScreenPos.z < 0.0 || hitScreenPos.z > 1.0 || any(lessThan(hitScreenPos.xy, vec2(0.0))) || any(greaterThan(hitScreenPos.xy, vec2(1.0)))) {
-        return vec3(0.0);
-    }
-
-    ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
-    if (!all(greaterThanEqual(hitTexelPos, ivec2(0))) || !all(lessThan(hitTexelPos, uval_mainImageSizeI))) {
-        return vec3(0.0);
-    }
-
-    vec4 hitGeomNormalData = transient_geomViewNormal_fetch(hitTexelPos);
-    uvec4 hitRadianceData = transient_giRadianceInputs_fetch(hitTexelPos);
-    vec3 hitGeomNormal = normalize(hitGeomNormalData.xyz * 2.0 - 1.0);
-    vec3 outgoingViewDir = rcWorldToViewDir(outgoingWorldDir);
-    float hitCosTheta = saturate(dot(hitGeomNormal, outgoingViewDir));
-
-    vec3 hitRadiance = colors_FP16LuvToWorkingColor(hitRadianceData.x);
-    vec3 hitEmissive = colors_FP16LuvToWorkingColor(hitRadianceData.y);
-    // TODO: sample radiance cache instead of screen radiance
-//    vec3 result = hitRadiance * float(hitCosTheta > 0.0) + hitEmissive;
-    vec3 result = hitEmissive;
-    valid = rcLuminance(result) > 0.0;
-    return result;
-}
 
 vec3 rcHemisphereDirection(vec3 normal, vec3 localDir) {
     vec3 up = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
     vec3 T = normalize(cross(up, normal));
     vec3 B = cross(normal, T);
     return normalize(T * localDir.x + B * localDir.y + normal * localDir.z);
+}
+
+void rcTouchHit(VoxelHit hit) {
+    uint faceId = rcFaceIdFromNormal(hit.normal);
+    vec3 faceNormal = rcFaceNormal(faceId);
+    vec3 surfacePos = hit.hitPos - faceNormal * 0.02;
+    for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
+        ivec3 worldCellCoord = rcWorldCellCoord(surfacePos, level);
+        rcTouchFace(level, worldCellCoord, faceId);
+    }
+}
+
+bool rcLoadPreviousHitReservoir(
+    VoxelHit hit,
+    out RCReservoir reservoir,
+    out vec3 faceNormal
+) {
+    reservoir = rcReservoirInit();
+    uint faceId = rcFaceIdFromNormal(hit.normal);
+    faceNormal = rcFaceNormal(faceId);
+    vec3 surfacePos = hit.hitPos - faceNormal * 0.02;
+    uint level = rcSelectLevel(surfacePos);
+    ivec3 worldCellCoord = rcWorldCellCoord(surfacePos, level);
+    uint entryIndex = rcEntryIndex(level, worldCellCoord);
+    uint prevBufferIndex = rcBufferEntryIndex(rcPreviousSide(), entryIndex);
+    uvec4 prevEntry = rc_indirection[prevBufferIndex];
+    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    if (
+        prevEntry.x == RC_INVALID
+        || prevEntry.z != worldKeyHash
+        || !rcEntryMetaValid(prevEntry.w)
+        || rcEntryMetaLevel(prevEntry.w) != level
+        || !rcHasFace(prevEntry.y, faceId)
+    ) {
+        return false;
+    }
+
+    uint reservoirIndex = rcFaceReservoirIndex(prevEntry.x, prevEntry.y, faceId);
+    if (reservoirIndex >= uint(SETTING_RC_POOL_SIZE)) {
+        return false;
+    }
+
+    reservoir = rcReservoirLoad(rcPreviousSide(), reservoirIndex);
+    return rcReservoirValid(reservoir);
+}
+
+struct RCHitSurface {
+    vec3 albedo;
+    vec3 emissive;
+    ResampleMaterial material;
+    bool valid;
+};
+
+RCHitSurface rcHitSurfaceInit() {
+    RCHitSurface surface;
+    surface.albedo = vec3(0.0);
+    surface.emissive = vec3(0.0);
+    surface.material = resampleMaterial_init();
+    surface.valid = false;
+    return surface;
+}
+
+RCHitSurface rcSampleHitSurface(VoxelHit hit) {
+    RCHitSurface surface = rcHitSurfaceInit();
+    if (!hit.hit || hit.materialID == 0u || hit.materialID == MATERIAL_ID_WATER) {
+        return surface;
+    }
+
+    HardcodedPBR hardcoded = hardcodedpbr_decode(hit.materialID);
+    uint faceId = voxel_faceIndexFromNormal(hit.normal);
+    uvec2 tcData = voxel_faceTexcoords[voxel_faceTexcoordIndex(hit.materialID, faceId)];
+    vec4 tc = unpackUnorm4x16(tcData);
+    if (all(equal(tc, vec4(0.0)))) {
+        return surface;
+    }
+
+    vec2 localUV = voxel_faceLocalUV(faceId, hit.hitPos);
+    vec2 atlasUV = mix(tc.xw, tc.zy, localUV);
+    vec3 baseColor = colors2_material_toWorkSpace(texture(usam_blockAtlasColor, atlasUV).rgb);
+    if (any(isnan(baseColor))) {
+        return surface;
+    }
+
+    surface.albedo = baseColor;
+    surface.material.f0 = fresnel_iorToF0(max(hardcoded.ior, AIR_IOR));
+    surface.material.dielectric = 1.0;
+    surface.material.roughness = max(pow2(hardcoded.roughness), 0.001);
+
+    float emissiveScale = hardcoded.emissive * exp2(float(hardcoded.emissiveMultiplier));
+    surface.emissive = baseColor * emissiveScale;
+    surface.valid = true;
+    return surface;
+}
+
+vec3 rcSampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
+    valid = false;
+    RCHitSurface surface = rcSampleHitSurface(hit);
+    if (!surface.valid) {
+        return vec3(0.0);
+    }
+
+    vec3 radiance = surface.emissive;
+    valid = rcLuminance(radiance) > 0.0 && !any(isnan(radiance));
+
+    RCReservoir prevReservoir;
+    vec3 faceNormal;
+    if (!rcLoadPreviousHitReservoir(hit, prevReservoir, faceNormal)) {
+        return radiance;
+    }
+
+    vec3 incomingDir = normalize(prevReservoir.sampleDir);
+    vec3 viewDir = normalize(outgoingDir);
+    float NDotL = dot(faceNormal, incomingDir);
+    float NDotV = dot(faceNormal, viewDir);
+    if (NDotL <= 0.0 || NDotV <= 0.0) {
+        return radiance;
+    }
+
+    if (rcLuminance(prevReservoir.radiance) <= 0.0 || any(isnan(prevReservoir.radiance)) || any(isnan(incomingDir))) {
+        return radiance;
+    }
+
+    vec3 H = incomingDir + viewDir;
+    float invHLen = inversesqrt(max(dot(H, H), 1e-6));
+    float NDotH = saturate(dot(faceNormal, H * invHLen));
+    float LDotH = saturate(dot(incomingDir, H * invHLen));
+    ResampleBRDF brdf = resampleMaterial_evalBRDF(surface.material, NDotL, NDotV, NDotH, LDotH);
+    if (brdf.full <= 0.0) {
+        return radiance;
+    }
+
+    vec3 bounceFactor = surface.albedo * brdf.diffuse + vec3(brdf.specular);
+    vec3 bounceRadiance = prevReservoir.radiance * bounceFactor;
+    if (rcLuminance(bounceRadiance) <= 0.0 || any(isnan(bounceRadiance))) {
+        return radiance;
+    }
+
+    radiance += bounceRadiance;
+    valid = true;
+    return radiance;
 }
 
 RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint level, uint faceId) {
@@ -77,11 +185,16 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
     if (!hit.hit) {
         return candidate;
     }
+    rcTouchHit(hit);
 
     bool radianceValid = false;
-     vec3 radiance = rcSampleCurrentScreenRadiance(hit.hitPos, -worldDir, radianceValid);
+    vec3 radiance = rcSampleHitRadiance(hit, -worldDir, radianceValid);
     float targetWeight = rcLuminance(radiance) * cosTheta * safeRcp(localSample.w);
-    if (!radianceValid || targetWeight <= 0.0 || any(isnan(radiance)) || isnan(targetWeight)) {
+    bool candidateValid = radianceValid
+        && targetWeight > 0.0
+        && !any(isnan(radiance))
+        && !isnan(targetWeight);
+    if (!candidateValid) {
         return candidate;
     }
 

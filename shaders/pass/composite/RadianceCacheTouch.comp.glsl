@@ -35,18 +35,6 @@ bool rcVoxelOpaqueAtBlock(ivec3 worldBlockPos) {
     return materialID != 0u && materialID != MATERIAL_ID_WATER;
 }
 
-void rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
-    uint entryIndex = rcEntryIndex(level, worldCellCoord);
-    uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
-    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
-    uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
-    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        atomicOr(rc_indirection[bufferIndex].y, rcFaceBit(faceId));
-        rc_indirection[bufferIndex].w = rcPackEntryMeta(level, 0u, true);
-    } else {
-        atomicAdd(rc_keyMismatchCounter, 1u);
-    }
-}
 
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
@@ -73,21 +61,21 @@ void main() {
     }
 
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-    vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-    vec3 worldPos = feetPlayerPos + cameraPosition;
+    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse) - gData.geomNormal * 0.02;
+    vec3 scenePos = coords_pos_viewToWorld(viewPos, gbufferModelViewInverse);
+    vec3 worldPos = scenePos + cameraPosition;
     vec3 worldGeomNormal = coords_dir_viewToWorld(gData.geomNormal);
     uint faceId = rcFaceIdFromNormal(worldGeomNormal);
     ivec3 faceNormalI = rcFaceNormalI(faceId);
 
-    ivec3 ownerBlock = ivec3(floor(worldPos - rcFaceNormal(faceId) * 0.02));
+    ivec3 ownerBlock = ivec3(floor(worldPos));
     bool neighborOpen = !rcVoxelOpaqueAtBlock(ownerBlock + faceNormalI);
     if (!neighborOpen) {
         return;
     }
 
     for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
-        ivec3 worldCellCoord = rcWorldCellCoord(worldPos - rcFaceNormal(faceId) * 0.02, level);
+        ivec3 worldCellCoord = rcWorldCellCoord(worldPos, level);
         rcTouchFace(level, worldCellCoord, faceId);
     }
 }
