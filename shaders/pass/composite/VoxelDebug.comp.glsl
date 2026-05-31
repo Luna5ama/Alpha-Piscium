@@ -67,19 +67,23 @@ vec4 hitToColor(VoxelHit hit) {
     vec4 tc = voxel_faceTexcoords[voxel_faceTexcoordIndex(hit.materialID, faceIdx)];
 
     // tc == vec4(0) means uninitialised — fall back to hash colour.
-    if (tc == vec4(0.0)) return materialIdToColor(hit.materialID);
+    if (all(equal(tc, vec4(0.0)))) return materialIdToColor(hit.materialID);
 
     // Compute local face UV from the sub-block hit position.
     // Assumes 1×1×1 textured cubes; fract gives position within the block.
+    // Face normals are axis-aligned, so the face index already tells us both
+    // the major axis and the sign. Use that directly to avoid recomputing it
+    // from abs(hit.normal), and keep the per-face texture orientation correct.
     vec3 f = fract(hit.hitPos);
     vec2 localUV;
-    vec3 absNormal = abs(hit.normal);
-    if (absNormal.x >= absNormal.y && absNormal.x >= absNormal.z) {
-        localUV = vec2(f.z, f.y);
-    } else if (absNormal.y >= absNormal.z) {
-        localUV = vec2(f.x, f.z);
+    uint faceAxis = faceIdx >> 1u;
+    bool positiveFace = (faceIdx & 1u) == 0u;
+    if (faceAxis == 0u) {
+        localUV = vec2(positiveFace ? 1.0 - f.z : f.z, f.y);
+    } else if (faceAxis == 1u) {
+        localUV = vec2(f.x, positiveFace ? 1.0 - f.z : f.z);
     } else {
-        localUV = vec2(f.x, f.y);
+        localUV = vec2(positiveFace ? f.x : 1.0 - f.x, f.y);
     }
 
     vec2 atlasUV = mix(tc.xw, tc.zy, localUV);
