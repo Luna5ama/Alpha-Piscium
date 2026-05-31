@@ -117,10 +117,12 @@ void main() {
                 giOut1 = vec4(0.0);
             } else {
                 #ifdef SETTING_RC_ENABLE
-                vec3 feetPlayerPos = coords_pos_viewToWorld(viewPos - lighting_gData.geomNormal * 0.05, gbufferModelViewInverse);
-                vec3 worldPos = feetPlayerPos + cameraPosition;
+                vec3 scenePos = coords_pos_viewToWorld(viewPos - lighting_gData.geomNormal * 0.02, gbufferModelViewInverse);
+                vec3 worldPos = scenePos + cameraPosition;
                 vec3 worldNormal = coords_dir_viewToWorld(lighting_gData.normal);
-                RCLookupResult rcLookup = rcLookupDiffuseGI(worldPos, worldNormal);
+                vec3 worldGeomNormal = coords_dir_viewToWorld(lighting_gData.geomNormal);
+//                RCLookupResult rcLookup = rcLookupDiffuseGI(worldPos, worldNormal, worldGeomNormal);
+                RCLookupResult rcLookup = rcLookupDiffuseGISmooth(worldPos, worldNormal, worldGeomNormal);
                 bool rcHit = rcLookup.weight > 0.0;
                 if (SETTING_RC_LOOKUP_MODE == 1 && rcHit) {
                     giOut1.rgb = rcLookup.radiance;
@@ -141,7 +143,7 @@ void main() {
                 #elif SETTING_DEBUG_RC_MODE == 3
                 debugOut.rgb = vec3(float(bitCount(rcLookup.faceMask)) / 6.0);
                 #elif SETTING_DEBUG_RC_MODE == 4
-                debugOut.rgb = vec3(float(rcLookup.m) / float(SETTING_RC_M_MAX));
+                debugOut.rgb = vec3(rcLookup.m / float(SETTING_RC_M_MAX));
                 #elif SETTING_DEBUG_RC_MODE == 5
                 debugOut.rgb = vec3(float(rcLookup.age) / 255.0);
                 #elif SETTING_DEBUG_RC_MODE == 6
