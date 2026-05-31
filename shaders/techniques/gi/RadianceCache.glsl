@@ -78,7 +78,7 @@ struct RCLookupResult {
 };
 
 uint rcCurrentSide() {
-    return frameCounter & 1u;
+    return uint(frameCounter) & 1u;
 }
 
 uint rcPreviousSide() {
@@ -322,12 +322,27 @@ RCLookupResult rcLookupInit() {
     return result;
 }
 
-uint rcSelectLevel(float queryRadiusBlocks) {
-    if (queryRadiusBlocks < 16.0) return 0u;
-    if (queryRadiusBlocks < 32.0) return 1u;
-    if (queryRadiusBlocks < 64.0) return 2u;
-    if (queryRadiusBlocks < 128.0) return 3u;
-    return 4u;
+uint rcSelectLevel(vec3 P) {
+    vec3 d = abs(P - cameraPositionInt);
+    float maxDistF = max(max(d.x, d.y), d.z);
+
+    // Conservative integer distance in blocks.
+    uint maxDist = uint(ceil(maxDistF));
+
+    uint safeRadius = RC_CLIP_SIZE / 2u - 1u; // 31
+
+    if (maxDist <= safeRadius) {
+        return 0u;
+    }
+
+    // Need smallest level such that:
+    // safeRadius * 2^level >= maxDist
+    uint q = (maxDist + safeRadius - 1u) / safeRadius; // ceil(maxDist / safeRadius)
+
+    // ceil(log2(q))
+    uint level = uint(findMSB(q - 1u) + 1);
+
+    return min(level, RC_CLIP_LEVELS - 1u);
 }
 
 void rcLookupSampleFace(
@@ -391,12 +406,12 @@ void rcLookupSampleFace(
     result.age = max(result.age, rcReservoirMetaAge(reservoir.meta));
 }
 
-RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N, float queryRadiusBlocks) {
+RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N) {
     RCLookupResult result = rcLookupInit();
-    uint level = rcSelectLevel(queryRadiusBlocks);
+    uint level = rcSelectLevel(P);
     ivec3 baseCell = rcWorldCellCoord(P, level);
 
-    const int searchRadius = 0;
+    const int searchRadius = 1;
     for (int z = -searchRadius; z <= searchRadius; z++) {
         for (int y = -searchRadius; y <= searchRadius; y++) {
             for (int x = -searchRadius; x <= searchRadius; x++) {
@@ -412,6 +427,31 @@ RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N, float queryRadiusBlocks) {
         result.radiance /= result.weight;
     }
     return result;
+}
+
+void rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
+    uint entryIndex = rcEntryIndex(level, worldCellCoord);
+    uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
+    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
+    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
+        uvec4 entry = rc_indirection[bufferIndex];
+        uint oldFaceMask = entry.y & 0x3fu;
+        uint newFaceMask = oldFaceMask | rcFaceBit(faceId);
+        bool canGrowFaceMask = entry.x == RC_INVALID || newFaceMask == oldFaceMask;
+        if (!canGrowFaceMask) {
+            uint allocatedClassSize = rcAllocClassSize(bitCount(oldFaceMask));
+            canGrowFaceMask = bitCount(newFaceMask) <= allocatedClassSize;
+        }
+        if (!canGrowFaceMask) {
+            return;
+        }
+
+        atomicOr(rc_indirection[bufferIndex].y, rcFaceBit(faceId));
+        rc_indirection[bufferIndex].w = rcPackEntryMeta(level, 0u, true);
+    } else {
+        atomicAdd(rc_keyMismatchCounter, 1u);
+    }
 }
 
 #endif
