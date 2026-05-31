@@ -154,6 +154,72 @@ vec3 rcSampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     return radiance;
 }
 
+bool rcRevalidateHistoryReservoir(
+    ivec3 worldCellCoord,
+    uint level,
+    uint faceId,
+    inout RCReservoir reservoir,
+    out float targetWeight
+) {
+    targetWeight = 0.0;
+
+    if (!rcReservoirValid(reservoir)) {
+        return false;
+    }
+
+    vec3 sampleDir = normalize(reservoir.sampleDir);
+    if (any(isnan(sampleDir))) {
+        return false;
+    }
+
+    vec3 rayOrigin = rcFaceRayOrigin(worldCellCoord, level, faceId);
+    VoxelRay voxelRay = voxelray_setup(rayOrigin, sampleDir, 0u);
+    VoxelHit hit = voxel_traceRay(voxelRay, 128);
+
+    uint flags = rcReservoirMetaFlags(reservoir.meta);
+    bool expectSurfaceHit = (flags & RC_RES_FLAG_SURFACE_HIT) != 0u;
+    bool expectSkyMiss = (flags & RC_RES_FLAG_SKY_MISS) != 0u;
+
+    if (expectSurfaceHit) {
+        if (!hit.hit) {
+            return false;
+        }
+
+        float hitThreshold = max(float(rcVoxelSize(level)) * 0.25, 0.1);
+        if (length(hit.hitPos - reservoir.hitPos) > hitThreshold) {
+            return false;
+        }
+    } else if (expectSkyMiss) {
+        if (hit.hit) {
+            return false;
+        }
+    } else {
+        return false;
+    }
+
+    bool radianceValid = false;
+    vec3 radiance = rcSampleHitRadiance(hit, -sampleDir, radianceValid);
+    targetWeight = rcLuminance(radiance);
+    if (
+        !radianceValid
+        || targetWeight <= 0.0
+        || any(isnan(radiance))
+        || isnan(targetWeight)
+    ) {
+        return false;
+    }
+
+    reservoir.radiance = radiance;
+    if (hit.hit) {
+        reservoir.hitPos = hit.hitPos;
+        flags = RC_RES_FLAG_SURFACE_HIT;
+    } else {
+        flags = RC_RES_FLAG_SKY_MISS;
+    }
+    reservoir.meta = rcPackReservoirMeta(rcReservoirMetaAge(reservoir.meta), true, flags);
+    return true;
+}
+
 bool rcLoadRandomSpatialNeighbor(
     uint entryIndex,
     ivec3 worldCellCoord,
@@ -505,9 +571,20 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
     }
     float randKill = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x1145CA6Bu)));
     // 100% chance to kill reservoir at each frame on max age.
-    if (randKill * 65536.0 < pow2(float(historyAge))) {
+    if (historyValid && randKill * 65536.0 < pow2(float(historyAge))) {
         reservoir.m *= 0.1;
         historyAge = 0u;
+        historyValid = rcRevalidateHistoryReservoir(
+            worldCellCoord,
+            level,
+            faceId,
+            reservoir,
+            reservoirTargetWeight
+        );
+        if (!historyValid) {
+            reservoir = rcReservoirInit();
+            reservoirTargetWeight = 0.0;
+        }
     }
 
     float wSum = 0.0;
