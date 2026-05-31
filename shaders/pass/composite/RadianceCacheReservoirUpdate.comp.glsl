@@ -186,8 +186,8 @@ bool rcRevalidateHistoryReservoir(
             return false;
         }
 
-        float hitThreshold = max(float(rcVoxelSize(level)) * 0.25, 0.1);
-        if (length(hit.hitPos - reservoir.hitPos) > hitThreshold) {
+        float hitThreshold = pow2(max(ldexp(0.25, int(level)), 0.1));
+        if (distanceSq(hit.hitPos, reservoir.hitPos) > hitThreshold) {
             return false;
         }
     } else if (expectSkyMiss) {
@@ -240,7 +240,7 @@ bool rcLoadRandomSpatialNeighbor(
 
     vec3 targetCenter = rcFaceCenter(worldCellCoord, level, faceId);
     vec3 neighborCenter = rcFaceCenter(neighborCell, level, faceId);
-    float maxDistance = max(float(rcVoxelSize(level)) * SETTING_RC_SPATIAL_MAX_DIST, 1e-3);
+    float maxDistance = max(ldexp(float(SETTING_RC_SPATIAL_MAX_DIST), int(level)), 1e-3);
     if (length(neighborCenter - targetCenter) > maxDistance) {
         return false;
     }
