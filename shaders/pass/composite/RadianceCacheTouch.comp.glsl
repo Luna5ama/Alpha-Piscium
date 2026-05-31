@@ -35,18 +35,6 @@ bool rcVoxelOpaqueAtBlock(ivec3 worldBlockPos) {
     return materialID != 0u && materialID != MATERIAL_ID_WATER;
 }
 
-void rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
-    uint entryIndex = rcEntryIndex(level, worldCellCoord);
-    uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
-    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
-    uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
-    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        atomicOr(rc_indirection[bufferIndex].y, rcFaceBit(faceId));
-        rc_indirection[bufferIndex].w = rcPackEntryMeta(level, 0u, true);
-    } else {
-        atomicAdd(rc_keyMismatchCounter, 1u);
-    }
-}
 
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;

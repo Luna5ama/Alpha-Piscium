@@ -14,10 +14,6 @@ layout(local_size_x = 256) in;
 
 const ivec3 workGroups = ivec3(5120, 1, 1);
 
-vec3 rcWorldToViewDir(vec3 worldDir) {
-    return normalize(mat3(gbufferModelView) * worldDir);
-}
-
 vec3 rcHemisphereDirection(vec3 normal, vec3 localDir) {
     vec3 up = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
     vec3 T = normalize(cross(up, normal));
@@ -35,31 +31,6 @@ vec2 rcFaceLocalUV(uint faceId, vec3 hitPos) {
         return vec2(f.x, positiveFace ? 1.0 - f.z : f.z);
     }
     return vec2(positiveFace ? f.x : 1.0 - f.x, f.y);
-}
-
-void rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
-    uint entryIndex = rcEntryIndex(level, worldCellCoord);
-    uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
-    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
-    uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
-    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        uvec4 entry = rc_indirection[bufferIndex];
-        uint oldFaceMask = entry.y & 0x3fu;
-        uint newFaceMask = oldFaceMask | rcFaceBit(faceId);
-        bool canGrowFaceMask = entry.x == RC_INVALID || newFaceMask == oldFaceMask;
-        if (!canGrowFaceMask) {
-            uint allocatedClassSize = rcAllocClassSize(bitCount(oldFaceMask));
-            canGrowFaceMask = bitCount(newFaceMask) <= allocatedClassSize;
-        }
-        if (!canGrowFaceMask) {
-            return;
-        }
-
-        atomicOr(rc_indirection[bufferIndex].y, rcFaceBit(faceId));
-        rc_indirection[bufferIndex].w = rcPackEntryMeta(level, 0u, true);
-    } else {
-        atomicAdd(rc_keyMismatchCounter, 1u);
-    }
 }
 
 void rcTouchHit(VoxelHit hit) {

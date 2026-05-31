@@ -424,4 +424,29 @@ RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N) {
     return result;
 }
 
+void rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
+    uint entryIndex = rcEntryIndex(level, worldCellCoord);
+    uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
+    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
+    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
+        uvec4 entry = rc_indirection[bufferIndex];
+        uint oldFaceMask = entry.y & 0x3fu;
+        uint newFaceMask = oldFaceMask | rcFaceBit(faceId);
+        bool canGrowFaceMask = entry.x == RC_INVALID || newFaceMask == oldFaceMask;
+        if (!canGrowFaceMask) {
+            uint allocatedClassSize = rcAllocClassSize(bitCount(oldFaceMask));
+            canGrowFaceMask = bitCount(newFaceMask) <= allocatedClassSize;
+        }
+        if (!canGrowFaceMask) {
+            return;
+        }
+
+        atomicOr(rc_indirection[bufferIndex].y, rcFaceBit(faceId));
+        rc_indirection[bufferIndex].w = rcPackEntryMeta(level, 0u, true);
+    } else {
+        atomicAdd(rc_keyMismatchCounter, 1u);
+    }
+}
+
 #endif
