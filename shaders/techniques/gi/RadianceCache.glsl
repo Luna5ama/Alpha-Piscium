@@ -627,7 +627,7 @@ void rcLookupSampleFace1x1(
 RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N) {
     RCLookupResult result = rcLookupInit();
 
-    uint level = 1;
+    uint level = rcSelectLevel(P);
     float voxelSize = float(rcVoxelSize(level));
 
     uint faceId = rcDominantFaceId(N);
