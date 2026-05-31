@@ -26,6 +26,10 @@
 #define RC_RES_META_VALID 0x80000000u
 #define RC_RES_META_AGE_SHIFT 8u
 #define RC_RES_META_AGE_MASK 0x0000ff00u
+#define RC_RES_META_FLAGS_MASK 0x7fff0000u
+
+#define RC_RES_FLAG_SURFACE_HIT 0x00010000u
+#define RC_RES_FLAG_SKY_MISS 0x00020000u
 
 #ifndef RC_DATA_MODIFIER
 #define RC_DATA_MODIFIER restrict buffer
@@ -100,7 +104,9 @@ struct RCCandidate {
     vec3 radiance;
     vec3 dir;
     vec3 hitPos;
+    vec3 hitNormal;
     float targetWeight;
+    uint flags;
     bool valid;
 };
 
@@ -228,11 +234,23 @@ uint rcEntryMetaAge(uint meta) {
 uint rcPackReservoirMeta(uint age, bool valid, uint flags) {
     return (valid ? RC_RES_META_VALID : 0u)
         | ((min(age, 255u) << RC_RES_META_AGE_SHIFT) & RC_RES_META_AGE_MASK)
-        | (flags & 0x7fff0000u);
+        | (flags & RC_RES_META_FLAGS_MASK);
 }
 
 uint rcReservoirMetaAge(uint meta) {
     return (meta & RC_RES_META_AGE_MASK) >> RC_RES_META_AGE_SHIFT;
+}
+
+uint rcReservoirMetaFlags(uint meta) {
+    return meta & RC_RES_META_FLAGS_MASK;
+}
+
+bool rcReservoirIsSurfaceHit(RCReservoir reservoir) {
+    return (rcReservoirMetaFlags(reservoir.meta) & RC_RES_FLAG_SURFACE_HIT) != 0u;
+}
+
+bool rcReservoirIsSkyMiss(RCReservoir reservoir) {
+    return (rcReservoirMetaFlags(reservoir.meta) & RC_RES_FLAG_SKY_MISS) != 0u;
 }
 
 vec3 rcFaceNormal(uint faceId) {
@@ -362,7 +380,7 @@ void rcReservoirInitFromCandidate(inout RCReservoir reservoir, RCCandidate candi
         reservoir.sampleDir = candidate.dir;
         reservoir.m = 1.0;
         reservoir.hitPos = candidate.hitPos;
-        reservoir.meta = rcPackReservoirMeta(0u, true, 0u);
+        reservoir.meta = rcPackReservoirMeta(0u, true, candidate.flags);
     } else {
         reservoir = rcReservoirInit();
     }
@@ -376,6 +394,37 @@ bool rcReservoirUpdate(inout RCReservoir reservoir, inout float wSum, RCCandidat
     wSum += candidate.targetWeight;
     reservoir.m += 1.0;
     float p = candidate.targetWeight * safeRcp(wSum);
+    if (randValue < p) {
+        reservoir.radiance = candidate.radiance;
+        reservoir.sampleDir = candidate.dir;
+        reservoir.hitPos = candidate.hitPos;
+        return true;
+    }
+
+    return false;
+}
+
+bool rcReservoirUpdateWeighted(
+    inout RCReservoir reservoir,
+    inout float wSum,
+    RCCandidate candidate,
+    float updateWeight,
+    float mInc,
+    float randValue
+) {
+    if (
+        !candidate.valid
+        || candidate.targetWeight <= 0.0
+        || updateWeight <= 0.0
+        || mInc <= 0.0
+    ) {
+        return false;
+    }
+
+    wSum += updateWeight;
+    reservoir.m += mInc;
+
+    float p = updateWeight * safeRcp(wSum);
     if (randValue < p) {
         reservoir.radiance = candidate.radiance;
         reservoir.sampleDir = candidate.dir;

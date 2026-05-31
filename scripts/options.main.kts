@@ -895,7 +895,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "辐射度缓存"
                 }
-                toggle("SETTING_RC_ENABLE", false) {
+                toggle("SETTING_RC_ENABLE", true) {
                     lang {
                         name = "Surface Radiance Cache"
                         comment = "Enables the world-space surface-face radiance cache for diffuse GI."
@@ -915,94 +915,103 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "辐射度缓存面Reservoir的最大数量。"
                     }
                 }
-                slider("SETTING_RC_M_MAX", 16, powerOfTwoRange(0..6)) {
-                    lang {
-                        name = "Reservoir M Clamp"
-                        comment = "Maximum temporal sample count per cached face."
+                empty()
+                row {
+                    slider("SETTING_RC_M_MAX", 16, powerOfTwoRange(0..6)) {
+                        lang {
+                            name = "Reservoir M Clamp"
+                            comment = "Maximum temporal sample count per cached face."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "Reservoir M上限"
+                            comment = "每个缓存面的最大时间样本数。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "Reservoir M上限"
-                        comment = "每个缓存面的最大时间样本数。"
+                    toggle("SETTING_RC_SPATIAL_ENABLE", false) {
+                        lang {
+                            name = "Spatial Reuse"
+                            comment = "Enables same-face 3x3 tangent-plane spatial reuse from the previous cache side."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "空间复用"
+                            comment = "启用来自上一缓存side的同面3x3切平面空间复用。"
+                        }
                     }
-                }
-                toggle("SETTING_RC_LOOKUP_MODE", 1, 0..1) {
-                    lang {
-                        name = "Lookup Mode"
-                        0 value "Fallback"
-                        1 value "Cache"
+                    toggle("SETTING_RC_SPATIAL_USE_JACOBIAN", true) {
+                        lang {
+                            name = "Spatial Jacobian"
+                            comment = "Uses area-pdf reconnection Jacobian when evaluating spatial reuse."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "空间Jacobian"
+                            comment = "在评估空间复用时使用面积pdf重连Jacobian。"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "查询模式"
-                        0 value "回退"
-                        1 value "缓存"
+                    toggle("SETTING_RC_SPATIAL_USE_MIS", true) {
+                        lang {
+                            name = "Spatial MIS"
+                            comment =
+                                "Applies pairwise MIS between the local proposal and one shifted neighbor proposal."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "空间MIS"
+                            comment = "在本地proposal和一个shift后的邻居proposal之间应用成对MIS。"
+                        }
                     }
-                }
-                toggle("SETTING_RC_SPATIAL_ENABLE", false) {
-                    lang {
-                        name = "Spatial Reuse"
-                        comment = "Enables same-face 3x3 tangent-plane spatial reuse from the previous cache side."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "空间复用"
-                        comment = "启用来自上一缓存side的同面3x3切平面空间复用。"
-                    }
-                }
-                toggle("SETTING_RC_SPATIAL_USE_JACOBIAN", true) {
-                    lang {
-                        name = "Spatial Jacobian"
-                        comment = "Uses area-pdf reconnection Jacobian when evaluating spatial reuse."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "空间Jacobian"
-                        comment = "在评估空间复用时使用面积pdf重连Jacobian。"
-                    }
-                }
-                toggle("SETTING_RC_SPATIAL_USE_MIS", true) {
-                    lang {
-                        name = "Spatial MIS"
-                        comment = "Applies pairwise MIS between the local proposal and one shifted neighbor proposal."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "空间MIS"
-                        comment = "在本地proposal和一个shift后的邻居proposal之间应用成对MIS。"
-                    }
-                }
-                slider("SETTING_RC_SPATIAL_MAX_DIST", 1.75, 1.0..3.0 step 0.25) {
-                    lang {
-                        name = "Spatial Radius"
-                        comment = "Maximum tangent-plane neighbor distance in voxel widths for radiance-cache spatial reuse."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "空间半径"
-                        comment = "辐射度缓存空间复用允许的最大切平面邻居距离，以体素宽度计。"
+                    slider("SETTING_RC_SPATIAL_MAX_DIST", 1.75, 1.0..3.0 step 0.25) {
+                        lang {
+                            name = "Spatial Radius"
+                            comment =
+                                "Maximum tangent-plane neighbor distance in voxel widths for radiance-cache spatial reuse."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "空间半径"
+                            comment = "辐射度缓存空间复用允许的最大切平面邻居距离，以体素宽度计。"
+                        }
                     }
                 }
-                slider("SETTING_DEBUG_RC_MODE", 0, 0..9) {
-                    lang {
-                        name = "Debug Mode"
-                        0 value "Off"
-                        1 value "Clip Level"
-                        2 value "Face Mask"
-                        3 value "Face Count"
-                        4 value "Reservoir M"
-                        5 value "Age"
-                        6 value "Key Mismatch"
-                        7 value "Hit Miss"
-                        8 value "Cached GI"
-                        9 value "Fallback GI"
+                row {
+                    toggle("SETTING_RC_LOOKUP_MODE", 1, 0..1) {
+                        lang {
+                            name = "Lookup Mode"
+                            0 value "Fallback"
+                            1 value "Cache"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "查询模式"
+                            0 value "回退"
+                            1 value "缓存"
+                        }
                     }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "调试模式"
-                        0 value "关闭"
-                        1 value "Clip级别"
-                        2 value "面掩码"
-                        3 value "面数量"
-                        4 value "Reservoir M"
-                        5 value "年龄"
-                        6 value "Key不匹配"
-                        7 value "命中缺失"
-                        8 value "仅缓存GI"
-                        9 value "仅回退GI"
+                }
+                row {
+                    slider("SETTING_DEBUG_RC_MODE", 0, 0..9) {
+                        lang {
+                            name = "Debug Mode"
+                            0 value "Off"
+                            1 value "Clip Level"
+                            2 value "Face Mask"
+                            3 value "Face Count"
+                            4 value "Reservoir M"
+                            5 value "Age"
+                            6 value "Key Mismatch"
+                            7 value "Hit Miss"
+                            8 value "Cached GI"
+                            9 value "Fallback GI"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "调试模式"
+                            0 value "关闭"
+                            1 value "Clip级别"
+                            2 value "面掩码"
+                            3 value "面数量"
+                            4 value "Reservoir M"
+                            5 value "年龄"
+                            6 value "Key不匹配"
+                            7 value "命中缺失"
+                            8 value "仅缓存GI"
+                            9 value "仅回退GI"
+                        }
                     }
                 }
             }

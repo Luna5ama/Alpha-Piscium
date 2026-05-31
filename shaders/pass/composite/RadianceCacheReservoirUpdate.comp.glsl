@@ -153,12 +153,94 @@ vec3 rcSampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     return radiance;
 }
 
+bool rcLoadRandomSpatialNeighbor(
+    uint entryIndex,
+    ivec3 worldCellCoord,
+    uint level,
+    uint faceId,
+    out ivec3 neighborCell,
+    out vec3 neighborOrigin,
+    out RCReservoir neighborReservoir
+) {
+    neighborCell = worldCellCoord;
+    neighborOrigin = rcFaceRayOrigin(worldCellCoord, level, faceId);
+    neighborReservoir = rcReservoirInit();
+
+    uint neighborIndex = hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0xC2B2AE35u)) & 7u;
+    ivec2 neighborOffset = rcNeighborOffset8(neighborIndex);
+    neighborCell = worldCellCoord + rcNeighborPlaneOffset(faceId, neighborOffset.x, neighborOffset.y);
+
+    vec3 targetCenter = rcFaceCenter(worldCellCoord, level, faceId);
+    vec3 neighborCenter = rcFaceCenter(neighborCell, level, faceId);
+    float maxDistance = max(float(rcVoxelSize(level)) * SETTING_RC_SPATIAL_MAX_DIST, 1e-3);
+    if (length(neighborCenter - targetCenter) > maxDistance) {
+        return false;
+    }
+
+    if (!rcLoadFaceReservoir(rcPreviousSide(), level, neighborCell, faceId, neighborReservoir)) {
+        return false;
+    }
+    if (!rcReservoirIsSurfaceHit(neighborReservoir)) {
+        return false;
+    }
+
+    neighborOrigin = rcFaceRayOrigin(neighborCell, level, faceId);
+    return true;
+}
+
+float rcPairwiseSpatialMIS(
+    vec3 targetOrigin,
+    vec3 targetNormal,
+    vec3 neighborOrigin,
+    vec3 neighborNormal,
+    vec3 hitPos,
+    vec3 hitNormal
+) {
+    #ifndef SETTING_RC_SPATIAL_USE_MIS
+        return 1.0;
+    #else
+        float pTarget = 0.0;
+        float pNeighbor = 0.0;
+
+        #ifdef SETTING_RC_SPATIAL_USE_JACOBIAN
+            pTarget = rcAreaPdfCosineConnection(targetOrigin, targetNormal, hitPos, hitNormal);
+            pNeighbor = rcAreaPdfCosineConnection(neighborOrigin, neighborNormal, hitPos, hitNormal);
+        #else
+            vec3 targetToHit = hitPos - targetOrigin;
+            float targetDistanceSq = dot(targetToHit, targetToHit);
+            if (targetDistanceSq > 1e-6) {
+                pTarget = max(dot(targetNormal, normalize(targetToHit)), 0.0) * RCP_PI;
+            }
+
+            vec3 neighborToHit = hitPos - neighborOrigin;
+            float neighborDistanceSq = dot(neighborToHit, neighborToHit);
+            if (neighborDistanceSq > 1e-6) {
+                pNeighbor = max(dot(neighborNormal, normalize(neighborToHit)), 0.0) * RCP_PI;
+            }
+        #endif
+
+        if (pTarget <= 0.0) {
+            return 0.0;
+        }
+
+        float pSpatial = pNeighbor * 0.125;
+        float pSum = pTarget + pSpatial;
+        if (pSum <= 1e-6) {
+            return 0.0;
+        }
+
+        return pTarget * safeRcp(pSum);
+    #endif
+}
+
 RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint level, uint faceId) {
     RCCandidate candidate;
     candidate.radiance = vec3(0.0);
     candidate.dir = rcFaceNormal(faceId);
     candidate.hitPos = rcFaceCenter(worldCellCoord, level, faceId);
+    candidate.hitNormal = vec3(0.0);
     candidate.targetWeight = 0.0;
+    candidate.flags = 0u;
     candidate.valid = false;
 
     vec3 faceNormal = rcFaceNormal(faceId);
@@ -193,6 +275,10 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
     candidate.dir = worldDir;
     if (hit.hit) {
         candidate.hitPos = hit.hitPos;
+        candidate.hitNormal = hit.normal;
+        candidate.flags = RC_RES_FLAG_SURFACE_HIT;
+    } else {
+        candidate.flags = RC_RES_FLAG_SKY_MISS;
     }
     candidate.targetWeight = targetWeight;
     candidate.valid = true;
@@ -200,42 +286,46 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
 }
 
 bool rcGenerateSpatialCandidate(
-    uint entryIndex,
     ivec3 worldCellCoord,
     uint level,
     uint faceId,
-    out RCCandidate candidate
+    ivec3 neighborCell,
+    vec3 neighborOrigin,
+    RCReservoir neighborReservoir,
+    out RCCandidate candidate,
+    out float spatialReuseWeight,
+    out float spatialMInc
 ) {
     candidate.radiance = vec3(0.0);
     candidate.dir = rcFaceNormal(faceId);
     candidate.hitPos = rcFaceCenter(worldCellCoord, level, faceId);
+    candidate.hitNormal = vec3(0.0);
     candidate.targetWeight = 0.0;
+    candidate.flags = 0u;
     candidate.valid = false;
+    spatialReuseWeight = 0.0;
+    spatialMInc = 0.0;
 
     #ifndef SETTING_RC_SPATIAL_ENABLE
         return false;
     #else
         vec3 targetNormal = rcFaceNormal(faceId);
-        vec3 targetCenter = rcFaceCenter(worldCellCoord, level, faceId);
         vec3 targetOrigin = rcFaceRayOrigin(worldCellCoord, level, faceId);
-
-        uint neighborIndex = hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0xC2B2AE35u)) & 7u;
-        ivec2 neighborOffset = rcNeighborOffset8(neighborIndex);
-        ivec3 neighborCell = worldCellCoord + rcNeighborPlaneOffset(faceId, neighborOffset.x, neighborOffset.y);
-
-        vec3 neighborCenter = rcFaceCenter(neighborCell, level, faceId);
-        float maxDistance = max(float(rcVoxelSize(level)) * SETTING_RC_SPATIAL_MAX_DIST, 1e-3);
-        if (length(neighborCenter - targetCenter) > maxDistance) {
-            return false;
-        }
-
-        RCReservoir neighborReservoir;
-        if (!rcLoadFaceReservoir(rcPreviousSide(), level, neighborCell, faceId, neighborReservoir)) {
-            return false;
-        }
 
         vec3 hitPos = neighborReservoir.hitPos;
         if (any(isnan(hitPos)) || dot(hitPos, hitPos) <= 1e-6) {
+            return false;
+        }
+
+        vec3 neighborDir = normalize(neighborReservoir.sampleDir);
+        vec3 neighborToHit = hitPos - neighborOrigin;
+        float neighborHitDist = dot(neighborToHit, neighborDir);
+        if (neighborHitDist <= 0.05) {
+            return false;
+        }
+
+        vec3 expectedHitDir = normalize(neighborToHit);
+        if (dot(expectedHitDir, neighborDir) < 0.95) {
             return false;
         }
 
@@ -246,7 +336,8 @@ bool rcGenerateSpatialCandidate(
         }
 
         vec3 shiftedDir = toHit * inversesqrt(distanceSq);
-        if (dot(targetNormal, shiftedDir) <= 0.0) {
+        float targetCos = dot(targetNormal, shiftedDir);
+        if (targetCos <= 0.05) {
             return false;
         }
 
@@ -258,6 +349,9 @@ bool rcGenerateSpatialCandidate(
 
         float hitThreshold = max(float(rcVoxelSize(level)) * 0.25, 0.1);
         if (length(hit.hitPos - hitPos) > hitThreshold) {
+            return false;
+        }
+        if (dot(hit.normal, -shiftedDir) <= 0.0) {
             return false;
         }
 
@@ -273,42 +367,27 @@ bool rcGenerateSpatialCandidate(
             return false;
         }
 
-        float misWeight = 1.0;
-        #ifdef SETTING_RC_SPATIAL_USE_MIS
-            float pTarget = 0.0;
-            float pNeighbor = 0.0;
-
-            #ifdef SETTING_RC_SPATIAL_USE_JACOBIAN
-                pTarget = rcAreaPdfCosineConnection(targetOrigin, targetNormal, hit.hitPos, hit.normal);
-                pNeighbor = rcAreaPdfCosineConnection(
-                    rcFaceRayOrigin(neighborCell, level, faceId),
-                    targetNormal,
-                    hit.hitPos,
-                    hit.normal
-                );
-            #else
-                vec3 neighborToHit = hit.hitPos - rcFaceRayOrigin(neighborCell, level, faceId);
-                float neighborDistanceSq = dot(neighborToHit, neighborToHit);
-                if (neighborDistanceSq > 1e-6) {
-                    pNeighbor = max(dot(targetNormal, normalize(neighborToHit)), 0.0) * RCP_PI;
-                }
-
-                pTarget = max(dot(targetNormal, shiftedDir), 0.0) * RCP_PI;
-            #endif
-
-            float pSum = pTarget + pNeighbor;
-            if (pTarget <= 0.0 || pNeighbor <= 0.0 || pSum <= 1e-6) {
-                return false;
-            }
-
-            misWeight = pTarget * safeRcp(pSum);
-        #endif
+        float misWeight = rcPairwiseSpatialMIS(
+            targetOrigin,
+            targetNormal,
+            neighborOrigin,
+            targetNormal,
+            hit.hitPos,
+            hit.normal
+        );
+        if (misWeight <= 0.0) {
+            return false;
+        }
 
         candidate.radiance = radiance;
         candidate.dir = shiftedDir;
         candidate.hitPos = hit.hitPos;
-        candidate.targetWeight = targetWeight * misWeight;
+        candidate.hitNormal = hit.normal;
+        candidate.targetWeight = targetWeight;
+        candidate.flags = RC_RES_FLAG_SURFACE_HIT;
         candidate.valid = true;
+        spatialReuseWeight = misWeight;
+        spatialMInc = 1.0;
         return true;
     #endif
 }
@@ -361,37 +440,120 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
 
     float wSum = 0.0;
     float selectedTargetWeight = 0.0;
+    uint selectedFlags = historyValid ? rcReservoirMetaFlags(reservoir.meta) : 0u;
+    uint selectedAge = historyValid ? min(historyAge + 1u, 255u) : 0u;
+    bool selectedCandidate = false;
+    bool selectedSpatial = false;
+
+    ivec3 neighborCell = worldCellCoord;
+    vec3 neighborOrigin = rcFaceRayOrigin(worldCellCoord, level, faceId);
+    RCReservoir neighborReservoir = rcReservoirInit();
+    bool spatialNeighborValid = rcLoadRandomSpatialNeighbor(
+        entryIndex,
+        worldCellCoord,
+        level,
+        faceId,
+        neighborCell,
+        neighborOrigin,
+        neighborReservoir
+    );
+
+    float currentReuseWeight = 1.0;
+    if (
+        spatialNeighborValid
+        && candidate.valid
+        && (candidate.flags & RC_RES_FLAG_SURFACE_HIT) != 0u
+    ) {
+        vec3 targetOrigin = rcFaceRayOrigin(worldCellCoord, level, faceId);
+        vec3 targetNormal = rcFaceNormal(faceId);
+        currentReuseWeight = rcPairwiseSpatialMIS(
+            targetOrigin,
+            targetNormal,
+            neighborOrigin,
+            targetNormal,
+            candidate.hitPos,
+            candidate.hitNormal
+        );
+        if (currentReuseWeight <= 0.0) {
+            candidate.valid = false;
+            candidate.targetWeight = 0.0;
+        }
+    }
+
     if (historyValid) {
         float randValue = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x85EBCA6Bu)));
         wSum = reservoir.avgWY * reservoir.m * reservoirTargetWeight;
-        bool selectedCandidate = rcReservoirUpdate(reservoir, wSum, candidate, randValue);
+        selectedCandidate = rcReservoirUpdateWeighted(
+            reservoir,
+            wSum,
+            candidate,
+            candidate.targetWeight * currentReuseWeight,
+            1.0,
+            randValue
+        );
         selectedTargetWeight = selectedCandidate ? candidate.targetWeight : reservoirTargetWeight;
     } else {
         rcReservoirInitFromCandidate(reservoir, candidate);
         if (rcReservoirValid(reservoir)) {
-            wSum = candidate.targetWeight;
+            wSum = candidate.targetWeight * currentReuseWeight;
             selectedTargetWeight = candidate.targetWeight;
+            selectedFlags = candidate.flags;
         }
     }
 
     #ifdef SETTING_RC_SPATIAL_ENABLE
         RCCandidate spatialCandidate;
-        if (rcGenerateSpatialCandidate(entryIndex, worldCellCoord, level, faceId, spatialCandidate)) {
+        float spatialReuseWeight;
+        float spatialMInc;
+        if (spatialNeighborValid && rcGenerateSpatialCandidate(
+            worldCellCoord,
+            level,
+            faceId,
+            neighborCell,
+            neighborOrigin,
+            neighborReservoir,
+            spatialCandidate,
+            spatialReuseWeight,
+            spatialMInc
+        )) {
             float randSpatial = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x27D4EB2Du)));
-            bool selectedSpatial = rcReservoirUpdate(reservoir, wSum, spatialCandidate, randSpatial);
+            float spatialUpdateWeight = spatialCandidate.targetWeight * spatialReuseWeight;
+            selectedSpatial = rcReservoirUpdateWeighted(
+                reservoir,
+                wSum,
+                spatialCandidate,
+                spatialUpdateWeight,
+                spatialMInc,
+                randSpatial
+            );
             if (selectedSpatial) {
                 selectedTargetWeight = spatialCandidate.targetWeight;
             }
         }
     #endif
 
+    if (selectedCandidate) {
+        selectedAge = 0u;
+        selectedFlags = candidate.flags;
+    }
+    if (selectedSpatial) {
+        selectedAge = 0u;
+        selectedFlags = spatialCandidate.flags;
+    }
+
+    float unclampedM = reservoir.m;
+    float clampedM = clamp(unclampedM, 0.0, float(SETTING_RC_M_MAX));
+    if (unclampedM > clampedM && unclampedM > 0.0) {
+        wSum *= clampedM * safeRcp(unclampedM);
+    }
+    reservoir.m = clampedM;
+
     bool reservoirValid = reservoir.m > 0.0
         && selectedTargetWeight > 0.0
         && wSum > 0.0
         && !isnan(wSum);
     reservoir.avgWY = reservoirValid ? wSum * safeRcp(reservoir.m) * safeRcp(selectedTargetWeight) : 0.0;
-    reservoir.meta = rcPackReservoirMeta(historyValid ? min(historyAge + 1u, 255u) : 0u, reservoirValid, 0u);
-    reservoir.m = clamp(reservoir.m, 0.0, float(SETTING_RC_M_MAX));
+    reservoir.meta = rcPackReservoirMeta(selectedAge, reservoirValid, selectedFlags);
 
     rcReservoirStore(rcCurrentSide(), reservoirIndex, reservoir);
 }
