@@ -146,7 +146,7 @@ void main() {
             global_cameraData.frustumPlaneCount = pcount;
         }
 
-        voxel_faceTexcoords[frameCounter % VOXEL_FACE_TEXCOORD_MATERIALS] = vec4(0.0);
+        voxel_faceTexcoords[frameCounter % VOXEL_FACE_TEXCOORD_MATERIALS] = uvec2(0xFFFFFFFF);
     } else if (gl_WorkGroupID.x == 1) {
         ivec2 mainImageSize = imageSize(uimg_main);
         for (uint i = 0; i < 16; i++) {

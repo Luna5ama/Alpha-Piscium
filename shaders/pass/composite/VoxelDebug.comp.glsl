@@ -64,7 +64,8 @@ vec4 hitToColor(VoxelHit hit) {
     if (!hit.hit) return vec4(0.0);
 
     uint faceIdx = voxel_faceIndexFromNormal(hit.normal);
-    vec4 tc = voxel_faceTexcoords[voxel_faceTexcoordIndex(hit.materialID, faceIdx)];
+    uvec2 tcData = voxel_faceTexcoords[voxel_faceTexcoordIndex(hit.materialID, faceIdx)];
+    vec4 tc = unpackUnorm4x16(tcData);
 
     // tc == vec4(0) means uninitialised — fall back to hash colour.
     if (all(equal(tc, vec4(0.0)))) return materialIdToColor(hit.materialID);

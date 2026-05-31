@@ -19,15 +19,9 @@
 #define VOXEL_FACE_TEXCOORD_MODIFIER restrict readonly buffer
 #endif
 
-#ifndef VOXEL_FACE_TEXCOORD_INT
 layout(std430, binding = 9) VOXEL_FACE_TEXCOORD_MODIFIER VoxelFaceTexcoordData {
-    vec4 voxel_faceTexcoords[]; // VOXEL_FACE_TEXCOORD_COUNT entries
+    uvec2 voxel_faceTexcoords[]; // VOXEL_FACE_TEXCOORD_COUNT entries
 };
-#else
-layout(std430, binding = 9) VOXEL_FACE_TEXCOORD_MODIFIER VoxelFaceTexcoordData {
-    ivec4 voxel_faceTexcoordsI[]; // VOXEL_FACE_TEXCOORD_COUNT entries
-};
-#endif
 
 // Flat index into voxel_faceTexcoords[].
 uint voxel_faceTexcoordIndex(uint materialID, uint faceIdx) {

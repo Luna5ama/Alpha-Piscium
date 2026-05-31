@@ -4,7 +4,6 @@
 #define VOXEL_MATERIAL_DATA_MODIFIER buffer
 #include "/techniques/voxel/Voxelization.glsl"
 #define VOXEL_FACE_TEXCOORD_MODIFIER buffer
-#define VOXEL_FACE_TEXCOORD_INT a
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 
 layout(r32i) uniform iimage2D uimg_fr32f;
@@ -113,11 +112,9 @@ void main() {
             uint faceIdx = voxel_faceIndexFromNormal(worldNormal);
             uint index = voxel_faceTexcoordIndex(materialID, faceIdx);
             if (saturate(texMin) == texMin && saturate(texMax) == texMax) {
-                if (voxel_faceTexcoordsI[index] == vec4(0.0) || materialID == frameCounter % VOXEL_FACE_TEXCOORD_MATERIALS) {
-                    atomicMax(voxel_faceTexcoordsI[index].x, floatBitsToInt(texMin.x));
-                    atomicMax(voxel_faceTexcoordsI[index].y, floatBitsToInt(texMin.y));
-                    atomicMax(voxel_faceTexcoordsI[index].z, floatBitsToInt(texMax.x));
-                    atomicMax(voxel_faceTexcoordsI[index].w, floatBitsToInt(texMax.y));
+                if (voxel_faceTexcoords[index] == uvec2(0xFFFFFFFF) || materialID == frameCounter % VOXEL_FACE_TEXCOORD_MATERIALS) {
+                    atomicMin(voxel_faceTexcoords[index].x, packUnorm2x16(texMin));
+                    atomicMin(voxel_faceTexcoords[index].y, packUnorm2x16(texMax));
                 }
             }
         }

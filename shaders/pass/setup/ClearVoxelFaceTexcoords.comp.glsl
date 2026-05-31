@@ -10,6 +10,6 @@ layout(local_size_x = 256) in;
 const ivec3 workGroups = ivec3(48, 1, 1);
 
 void main() {
-    voxel_faceTexcoords[gl_GlobalInvocationID.x] = vec4(0.0);
+    voxel_faceTexcoords[gl_GlobalInvocationID.x] = uvec2(0xFFFFFFFF);
 }
 
