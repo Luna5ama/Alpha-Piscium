@@ -186,7 +186,7 @@ uint rcBufferEntryIndex(uint side, uint entryIndex) {
 }
 
 uint rcWorldKeyHash(uint level, ivec3 worldCellCoord) {
-    return hash_41_q3(uvec4(uvec3(worldCellCoord), level));
+    return hash_41_q5(uvec4(uvec3(worldCellCoord), level));
 }
 
 uint rcFaceBit(uint faceId) {
@@ -373,21 +373,18 @@ float rcLuminance(vec3 radiance) {
     return length(radiance);
 }
 
-vec3 rcReservoirEstimateRadiance(RCReservoir reservoir) {
-    if (
-        !rcReservoirValid(reservoir)
-        || reservoir.avgWY <= 0.0
-        || any(isnan(reservoir.radiance))
-        || isnan(reservoir.avgWY)
-    ) {
-        return vec3(0.0);
+vec3 rc_reservoirEstimateRadiance(RCReservoir reservoir) {
+    vec3 result = vec3(0.0);
+
+    if (rcReservoirValid(reservoir)) {
+        result = max(reservoir.radiance * reservoir.avgWY, 0.0);
     }
 
-    float correction = clamp(reservoir.avgWY, 0.0, 4.0);
-    return reservoir.radiance * correction;
+    return result;
 }
 
-void rcReservoirInitFromCandidate(inout RCReservoir reservoir, RCCandidate candidate) {
+RCReservoir rc_reservoirInitFromCandidate(RCCandidate candidate) {
+    RCReservoir reservoir;
     if (candidate.valid && candidate.targetWeight > 0.0) {
         reservoir.radiance = candidate.radiance;
         reservoir.avgWY = 1.0;
@@ -398,6 +395,7 @@ void rcReservoirInitFromCandidate(inout RCReservoir reservoir, RCCandidate candi
     } else {
         reservoir = rcReservoirInit();
     }
+    return reservoir;
 }
 
 bool rcReservoirUpdate(inout RCReservoir reservoir, inout float wSum, RCCandidate candidate, float randValue) {
@@ -591,7 +589,7 @@ void rcLookupSampleFaceWeighted(
         return;
     }
 
-    vec3 estimatedRadiance = rcReservoirEstimateRadiance(reservoir);
+    vec3 estimatedRadiance = rc_reservoirEstimateRadiance(reservoir);
     if (rcLuminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
         result.misses++;
         return;
@@ -765,7 +763,7 @@ void rcLookupSampleFace1x1(
         return;
     }
 
-    vec3 estimatedRadiance = rcReservoirEstimateRadiance(reservoir);
+    vec3 estimatedRadiance = rc_reservoirEstimateRadiance(reservoir);
     if (rcLuminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
         result.misses++;
         return;
