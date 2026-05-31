@@ -146,7 +146,7 @@ void main() {
                 #elif SETTING_DEBUG_RC_MODE == 3
                 debugOut.rgb = vec3(float(bitCount(rcLookup.faceMask)) / 6.0);
                 #elif SETTING_DEBUG_RC_MODE == 4
-                debugOut.rgb = vec3(float(rcLookup.m) / float(SETTING_RC_M_MAX));
+                debugOut.rgb = vec3(rcLookup.m / float(SETTING_RC_M_MAX));
                 #elif SETTING_DEBUG_RC_MODE == 5
                 debugOut.rgb = vec3(float(rcLookup.age) / 255.0);
                 #elif SETTING_DEBUG_RC_MODE == 6

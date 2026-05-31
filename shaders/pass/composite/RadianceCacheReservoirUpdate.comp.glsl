@@ -201,7 +201,7 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
 
     bool radianceValid = false;
     vec3 radiance = rcSampleHitRadiance(hit, -worldDir, radianceValid);
-    float targetWeight = rcLuminance(radiance) * cosTheta * safeRcp(localSample.w);
+    float targetWeight = rcLuminance(radiance) * PI;
     bool candidateValid = radianceValid
         && targetWeight > 0.0
         && !any(isnan(radiance))
@@ -251,9 +251,13 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
 
     if (historyValid) {
         float randValue = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x85EBCA6Bu)));
-        rcReservoirUpdate(reservoir, candidate, randValue);
-        uint M = rcReservoirMetaM(reservoir.meta);
-        reservoir.meta = rcPackReservoirMeta(M, min(historyAge + 1u, 255u), rcReservoirValid(reservoir), 0u);
+        float reservoirTargetWeight = rcReservoirTargetWeight(reservoir);
+        float wSum = max(0.0, reservoir.avgWY) * reservoir.m * reservoirTargetWeight;
+        bool selectedCandidate = rcReservoirUpdate(reservoir, wSum, candidate, randValue);
+        float selectedTargetWeight = selectedCandidate ? candidate.targetWeight : reservoirTargetWeight;
+        bool reservoirValid = rcReservoirValid(reservoir) && selectedTargetWeight > 0.0 && wSum > 0.0;
+        reservoir.avgWY = reservoirValid ? wSum * safeRcp(reservoir.m) * safeRcp(selectedTargetWeight) : 0.0;
+        reservoir.meta = rcPackReservoirMeta(min(historyAge + 1u, 255u), reservoirValid, 0u);
     } else {
         rcReservoirInitFromCandidate(reservoir, candidate);
     }

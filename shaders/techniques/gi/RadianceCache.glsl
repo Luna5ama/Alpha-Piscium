@@ -24,7 +24,6 @@
 #define RC_ENTRY_META_AGE_MASK 0x0000ff00u
 
 #define RC_RES_META_VALID 0x80000000u
-#define RC_RES_META_M_MASK 0x000000ffu
 #define RC_RES_META_AGE_SHIFT 8u
 #define RC_RES_META_AGE_MASK 0x0000ff00u
 
@@ -51,9 +50,9 @@ layout(std430, binding = 14) RC_DATA_MODIFIER RadianceCacheReservoirData {
 
 struct RCReservoir {
     vec3 radiance;
-    float W;
+    float avgWY;
     vec3 sampleDir;
-    float targetWeight;
+    float m;
     vec3 hitPos;
     uint meta;
 };
@@ -73,7 +72,7 @@ struct RCLookupResult {
     uint misses;
     uint levelMask;
     uint faceMask;
-    uint m;
+    float m;
     uint age;
 };
 
@@ -191,19 +190,14 @@ uint rcEntryMetaAge(uint meta) {
     return (meta & RC_ENTRY_META_AGE_MASK) >> RC_ENTRY_META_AGE_SHIFT;
 }
 
-uint rcPackReservoirMeta(uint M, uint age, bool valid, uint flags) {
+uint rcPackReservoirMeta(uint age, bool valid, uint flags) {
     return (valid ? RC_RES_META_VALID : 0u)
-        | (min(M, uint(SETTING_RC_M_MAX)) & RC_RES_META_M_MASK)
         | ((min(age, 255u) << RC_RES_META_AGE_SHIFT) & RC_RES_META_AGE_MASK)
         | (flags & 0x7fff0000u);
 }
 
 bool rcReservoirMetaValid(uint meta) {
     return (meta & RC_RES_META_VALID) != 0u;
-}
-
-uint rcReservoirMetaM(uint meta) {
-    return meta & RC_RES_META_M_MASK;
 }
 
 uint rcReservoirMetaAge(uint meta) {
@@ -241,16 +235,16 @@ vec3 rcFaceCenter(ivec3 worldCellCoord, uint level, uint faceId) {
 RCReservoir rcReservoirInit() {
     RCReservoir reservoir;
     reservoir.radiance = vec3(0.0);
-    reservoir.W = 0.0;
+    reservoir.avgWY = 0.0;
     reservoir.sampleDir = vec3(0.0, 1.0, 0.0);
-    reservoir.targetWeight = 0.0;
+    reservoir.m = 0.0;
     reservoir.hitPos = vec3(0.0);
     reservoir.meta = 0u;
     return reservoir;
 }
 
 bool rcReservoirValid(RCReservoir reservoir) {
-    return rcReservoirMetaValid(reservoir.meta) && rcReservoirMetaM(reservoir.meta) > 0u;
+    return rcReservoirMetaValid(reservoir.meta) && reservoir.m > 0.0;
 }
 
 RCReservoir rcReservoirLoad(uint side, uint reservoirIndex) {
@@ -260,9 +254,9 @@ RCReservoir rcReservoirLoad(uint side, uint reservoirIndex) {
     uvec4 r2 = rc_reservoirs[recordIndex + 2u];
     RCReservoir reservoir;
     reservoir.radiance = uintBitsToFloat(r0.xyz);
-    reservoir.W = uintBitsToFloat(r0.w);
+    reservoir.avgWY = uintBitsToFloat(r0.w);
     reservoir.sampleDir = uintBitsToFloat(r1.xyz);
-    reservoir.targetWeight = uintBitsToFloat(r1.w);
+    reservoir.m = uintBitsToFloat(r1.w);
     reservoir.hitPos = uintBitsToFloat(r2.xyz);
     reservoir.meta = r2.w;
     return reservoir;
@@ -270,8 +264,8 @@ RCReservoir rcReservoirLoad(uint side, uint reservoirIndex) {
 
 void rcReservoirStore(uint side, uint reservoirIndex, RCReservoir reservoir) {
     uint recordIndex = rcReservoirRecordIndex(side, reservoirIndex);
-    rc_reservoirs[recordIndex + 0u] = uvec4(floatBitsToUint(reservoir.radiance), floatBitsToUint(reservoir.W));
-    rc_reservoirs[recordIndex + 1u] = uvec4(floatBitsToUint(reservoir.sampleDir), floatBitsToUint(reservoir.targetWeight));
+    rc_reservoirs[recordIndex + 0u] = uvec4(floatBitsToUint(reservoir.radiance), floatBitsToUint(reservoir.avgWY));
+    rc_reservoirs[recordIndex + 1u] = uvec4(floatBitsToUint(reservoir.sampleDir), floatBitsToUint(reservoir.m));
     rc_reservoirs[recordIndex + 2u] = uvec4(floatBitsToUint(reservoir.hitPos), reservoir.meta);
 }
 
@@ -279,34 +273,39 @@ float rcLuminance(vec3 radiance) {
     return length(radiance);
 }
 
+float rcReservoirTargetWeight(RCReservoir reservoir) {
+    return rcLuminance(reservoir.radiance) * PI;
+}
+
 void rcReservoirInitFromCandidate(inout RCReservoir reservoir, RCCandidate candidate) {
     if (candidate.valid && candidate.targetWeight > 0.0) {
         reservoir.radiance = candidate.radiance;
-        reservoir.W = candidate.targetWeight;
+        reservoir.avgWY = 1.0;
         reservoir.sampleDir = candidate.dir;
-        reservoir.targetWeight = candidate.targetWeight;
+        reservoir.m = 1.0;
         reservoir.hitPos = candidate.hitPos;
-        reservoir.meta = rcPackReservoirMeta(1u, 0u, true, 0u);
+        reservoir.meta = rcPackReservoirMeta(0u, true, 0u);
     } else {
         reservoir = rcReservoirInit();
     }
 }
 
-void rcReservoirUpdate(inout RCReservoir reservoir, RCCandidate candidate, float randValue) {
+bool rcReservoirUpdate(inout RCReservoir reservoir, inout float wSum, RCCandidate candidate, float randValue) {
     if (!candidate.valid || candidate.targetWeight <= 0.0) {
-        return;
+        return false;
     }
 
-    uint M = min(rcReservoirMetaM(reservoir.meta) + 1u, uint(SETTING_RC_M_MAX));
-    reservoir.W += candidate.targetWeight;
-    float p = candidate.targetWeight / max(reservoir.W, 1e-6);
+    wSum += candidate.targetWeight;
+    reservoir.m = clamp(reservoir.m + 1.0, 1.0, float(SETTING_RC_M_MAX));
+    float p = candidate.targetWeight / max(wSum, 1e-6);
     if (randValue < p) {
         reservoir.radiance = candidate.radiance;
         reservoir.sampleDir = candidate.dir;
         reservoir.hitPos = candidate.hitPos;
-        reservoir.targetWeight = candidate.targetWeight;
+        return true;
     }
-    reservoir.meta = rcPackReservoirMeta(M, 0u, true, 0u);
+
+    return false;
 }
 
 RCLookupResult rcLookupInit() {
@@ -317,7 +316,7 @@ RCLookupResult rcLookupInit() {
     result.misses = 0u;
     result.levelMask = 0u;
     result.faceMask = 0u;
-    result.m = 0u;
+    result.m = 0.0;
     result.age = 0u;
     return result;
 }
@@ -461,7 +460,7 @@ void rcLookupSampleFaceWeighted(
     result.hits++;
     result.levelMask |= 1u << level;
     result.faceMask |= rcFaceBit(faceId);
-    result.m = max(result.m, rcReservoirMetaM(reservoir.meta));
+    result.m = max(result.m, reservoir.m);
     result.age = max(result.age, age);
 }
 
@@ -623,7 +622,7 @@ void rcLookupSampleFace1x1(
     result.hits++;
     result.levelMask |= 1u << level;
     result.faceMask |= rcFaceBit(faceId);
-    result.m = max(result.m, rcReservoirMetaM(reservoir.meta));
+    result.m = max(result.m, reservoir.m);
     result.age = max(result.age, age);
 }
 
