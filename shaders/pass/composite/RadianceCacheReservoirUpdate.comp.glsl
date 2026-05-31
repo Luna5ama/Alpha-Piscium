@@ -201,7 +201,7 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
 
     bool radianceValid = false;
     vec3 radiance = rcSampleHitRadiance(hit, -worldDir, radianceValid);
-    float targetWeight = rcLuminance(radiance) * PI;
+    float targetWeight = rcLuminance(radiance);
     bool candidateValid = radianceValid
         && targetWeight > 0.0
         && !any(isnan(radiance))
@@ -247,7 +247,7 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
             if (historyValid) {
                 reservoir.m *= global_historyResetFactor;
                 historyAge = rcReservoirMetaAge(reservoir.meta);
-                reservoirTargetWeight = rcReservoirTargetWeight(reservoir);
+                reservoirTargetWeight = rcLuminance(reservoir.radiance);
                 historyValid = reservoir.avgWY > 0.0
                     && reservoir.m > 0.0
                     && reservoirTargetWeight > 0.0

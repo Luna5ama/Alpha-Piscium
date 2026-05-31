@@ -273,10 +273,6 @@ float rcLuminance(vec3 radiance) {
     return length(radiance);
 }
 
-float rcReservoirTargetWeight(RCReservoir reservoir) {
-    return rcLuminance(reservoir.radiance) * PI;
-}
-
 void rcReservoirInitFromCandidate(inout RCReservoir reservoir, RCCandidate candidate) {
     if (candidate.valid && candidate.targetWeight > 0.0) {
         reservoir.radiance = candidate.radiance;
@@ -425,7 +421,7 @@ void rcLookupSampleFaceWeighted(
 
     vec3 faceNormal = rcFaceNormal(faceId);
 
-    float normalWeight = max(dot(N, faceNormal), 0.0);
+    float normalWeight = saturate(dot(N, faceNormal));
     if (normalWeight <= 0.0) {
         result.misses++;
         return;
@@ -450,7 +446,8 @@ void rcLookupSampleFaceWeighted(
         return;
     }
 
-    result.radiance += reservoir.radiance * w;
+    float cosTheta = saturate(dot(N, reservoir.sampleDir));
+    result.radiance += reservoir.radiance * cosTheta * w;
     result.weight += w;
 
     result.hits++;
@@ -460,13 +457,13 @@ void rcLookupSampleFaceWeighted(
     result.age = max(result.age, age);
 }
 
-RCLookupResult rcLookupDiffuseGISmooth(vec3 P, vec3 N) {
+RCLookupResult rcLookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
     RCLookupResult result = rcLookupInit();
 
     uint level = rcSelectLevel(P);
     float voxelSize = float(rcVoxelSize(level));
 
-    uint faceId = rcDominantFaceId(N);
+    uint faceId = rcDominantFaceId(geomN);
     vec3 faceNormal = rcFaceNormal(faceId);
 
     uint axis0;
@@ -618,7 +615,8 @@ void rcLookupSampleFace1x1(
         return;
     }
 
-    result.radiance += reservoir.radiance * w;
+    float cosTheta = saturate(dot(N, reservoir.sampleDir));
+    result.radiance += reservoir.radiance * cosTheta * w;
     result.weight += w;
 
     result.hits++;
@@ -628,13 +626,13 @@ void rcLookupSampleFace1x1(
     result.age = max(result.age, age);
 }
 
-RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N) {
+RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N, vec3 geomN) {
     RCLookupResult result = rcLookupInit();
 
     uint level = rcSelectLevel(P);
     float voxelSize = float(rcVoxelSize(level));
 
-    uint faceId = rcDominantFaceId(N);
+    uint faceId = rcDominantFaceId(geomN);
     vec3 faceNormal = rcFaceNormal(faceId);
 
     // Move into the owner voxel so the face owner is stable.
