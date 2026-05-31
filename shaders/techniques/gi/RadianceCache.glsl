@@ -442,11 +442,8 @@ void rcLookupSampleFaceWeighted(
     }
 
     uint age = rcReservoirMetaAge(reservoir.meta);
-    float ageWeight = exp2(-float(age) * 0.125);
 
-    // Bilinear interpolation already provides the geometric tangent-plane weight.
-    // Do not multiply by the old exp(-dist²/r²), otherwise it stops being proper bilinear filtering.
-    float w = interpWeight * normalWeight * ageWeight;
+    float w = interpWeight * normalWeight;
 
     if (w <= 0.0) {
         result.misses++;
@@ -611,11 +608,10 @@ void rcLookupSampleFace1x1(
     }
 
     uint age = rcReservoirMetaAge(reservoir.meta);
-    float ageWeight = exp2(-float(age) * 0.125);
 
     // 1x1 lookup: no bilinear and no tangent distance filter.
     // Weight only by normal compatibility and history freshness.
-    float w = normalWeight * ageWeight;
+    float w = normalWeight;
 
     if (w <= 0.0) {
         result.misses++;
