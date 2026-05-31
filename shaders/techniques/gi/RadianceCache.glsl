@@ -396,9 +396,9 @@ RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N, float queryRadiusBlocks) {
     uint level = rcSelectLevel(queryRadiusBlocks);
     ivec3 baseCell = rcWorldCellCoord(P, level);
 
-    for (int z = 0; z <= 1; z++) {
-        for (int y = 0; y <= 1; y++) {
-            for (int x = 0; x <= 1; x++) {
+    for (int z = -1; z <= 1; z++) {
+        for (int y = -1; y <= 1; y++) {
+            for (int x = -1; x <= 1; x++) {
                 ivec3 cell = baseCell + ivec3(x, y, z);
                 for (uint faceId = 0u; faceId < 6u; faceId++) {
                     rcLookupSampleFace(result, P, N, level, cell, faceId);

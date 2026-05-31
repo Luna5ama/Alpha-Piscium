@@ -81,9 +81,8 @@ void main() {
     ivec3 faceNormalI = rcFaceNormalI(faceId);
 
     ivec3 ownerBlock = ivec3(floor(worldPos - rcFaceNormal(faceId) * 0.02));
-    bool ownerSolid = rcVoxelOpaqueAtBlock(ownerBlock);
     bool neighborOpen = !rcVoxelOpaqueAtBlock(ownerBlock + faceNormalI);
-    if (!ownerSolid || !neighborOpen) {
+    if (!neighborOpen) {
         return;
     }
 
