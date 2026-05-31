@@ -7,32 +7,11 @@
 layout(local_size_x = 256) in;
 const ivec3 workGroups = ivec3(5120, 1, 1);
 
-bool rcVoxelOpaqueAtBlock(ivec3 worldBlockPos) {
-    ivec3 cameraBrick = cameraPositionInt >> 4;
-    ivec3 gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
-    ivec3 gridBlockPos = worldBlockPos - gridOrigin;
-    if (any(lessThan(gridBlockPos, ivec3(0))) || any(greaterThanEqual(gridBlockPos, ivec3(VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE)))) {
-        return false;
-    }
-
-    ivec3 brickCoord = gridBlockPos >> 4;
-    uint brickMorton = voxel_brickMorton(brickCoord);
-    uint allocID = voxel_brickAllocID[brickMorton];
-    if (allocID == VOXEL_UNALLOCATED) {
-        return false;
-    }
-
-    ivec3 blockInBrick = gridBlockPos & 15;
-    uint blockMorton = voxel_blockMorton(blockInBrick);
-    uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
-    return materialID != 0u && materialID != MATERIAL_ID_WATER;
-}
-
 bool rcCarryFaceValid(uint level, ivec3 worldCellCoord, uint faceId) {
     vec3 faceNormal = rcFaceNormal(faceId);
     ivec3 faceNormalI = ivec3(faceNormal);
     ivec3 ownerBlock = ivec3(floor(rcFaceCenter(worldCellCoord, level, faceId) - faceNormal * 0.02));
-    return rcVoxelOpaqueAtBlock(ownerBlock) && !rcVoxelOpaqueAtBlock(ownerBlock + faceNormalI);
+    return voxel_opaqueAtBlock(ownerBlock) && !voxel_opaqueAtBlock(ownerBlock + faceNormalI);
 }
 
 uint rcCarryFaceMask(uint level, ivec3 worldCellCoord, uint faceMask) {

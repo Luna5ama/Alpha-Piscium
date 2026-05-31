@@ -8,34 +8,11 @@
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/voxel/Voxelization.glsl"
 #include "/util/GBufferData.glsl"
-#include "/util/MaterialIDConst.glsl"
 #include "/util/Morton.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(0.25, 0.25);
-
-bool rcVoxelOpaqueAtBlock(ivec3 worldBlockPos) {
-    ivec3 cameraBrick = cameraPositionInt >> 4;
-    ivec3 gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
-    ivec3 gridBlockPos = worldBlockPos - gridOrigin;
-    if (any(lessThan(gridBlockPos, ivec3(0))) || any(greaterThanEqual(gridBlockPos, ivec3(VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE)))) {
-        return false;
-    }
-
-    ivec3 brickCoord = gridBlockPos >> 4;
-    uint brickMorton = voxel_brickMorton(brickCoord);
-    uint allocID = voxel_brickAllocID[brickMorton];
-    if (allocID == VOXEL_UNALLOCATED) {
-        return false;
-    }
-
-    ivec3 blockInBrick = gridBlockPos & 15;
-    uint blockMorton = voxel_blockMorton(blockInBrick);
-    uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
-    return materialID != 0u && materialID != MATERIAL_ID_WATER;
-}
-
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy) << 2;
@@ -59,7 +36,7 @@ void main() {
                 ivec3 faceNormalI = rcFaceNormalI(faceId);
 
                 ivec3 ownerBlock = ivec3(floor(worldPos));
-                bool neighborOpen = !rcVoxelOpaqueAtBlock(ownerBlock + faceNormalI);
+                bool neighborOpen = !voxel_opaqueAtBlock(ownerBlock + faceNormalI);
                 if (neighborOpen) {
 
                     for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
