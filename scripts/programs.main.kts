@@ -38,7 +38,6 @@ class ProgramScope internal constructor() {
         fun pass(shaderPath: String, block: PassScope.() -> Unit) {
             PassScope("$pass${index++}", shaderPath).apply(block).build()
         }
-
         @ProgramDsl
         inner class PassScope(private val passName: String, private val shaderPath: String) {
             private var cond: String? = null
@@ -255,6 +254,9 @@ programs {
         }
         pass("/pass/composite/DOFPrepare.comp.glsl") {
             cond("defined(SETTING_DOF)")
+        }
+        pass("/pass/composite/VoxelDebug.comp.glsl") {
+            cond("defined(SETTING_DEBUG_VOXEL_TRACE)")
         }
         pass("/pass/composite/TAAPrepare.comp.glsl")
         pass("/pass/composite/TAAResolve.comp.glsl")

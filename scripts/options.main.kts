@@ -3490,10 +3490,11 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     }
                 }
                 toggle("SETTING_DEBUG_TEXT_OUTPUT", false) {
-                lang {
-                    name = "Debug Text Output"
+                    lang {
+                        name = "Debug Text Output"
+                    }
                 }
-            }slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {
+                slider("SETTING_DEBUG_SCALE", 1.0, 0.5..2.0 step 0.1) {
                     lang {
                         name = "Debug Scale"
                     }
