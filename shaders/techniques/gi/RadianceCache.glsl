@@ -345,7 +345,209 @@ uint rcSelectLevel(vec3 P) {
     return min(level, RC_CLIP_LEVELS - 1u);
 }
 
-void rcLookupSampleFace(
+uint rcDominantFaceId(vec3 N) {
+    vec3 a = abs(N);
+
+    if (a.x >= a.y && a.x >= a.z) {
+        return N.x >= 0.0 ? RC_FACE_POS_X : RC_FACE_NEG_X;
+    }
+
+    if (a.y >= a.x && a.y >= a.z) {
+        return N.y >= 0.0 ? RC_FACE_POS_Y : RC_FACE_NEG_Y;
+    }
+
+    return N.z >= 0.0 ? RC_FACE_POS_Z : RC_FACE_NEG_Z;
+}
+
+uint rcFaceAxis(uint faceId) {
+    if (faceId == RC_FACE_POS_X || faceId == RC_FACE_NEG_X) return 0u;
+    if (faceId == RC_FACE_POS_Y || faceId == RC_FACE_NEG_Y) return 1u;
+    return 2u;
+}
+
+void rcFaceTangentAxes(uint faceId, out uint axis0, out uint axis1) {
+    uint nAxis = rcFaceAxis(faceId);
+
+    if (nAxis == 0u) {
+        axis0 = 1u; // Y
+        axis1 = 2u; // Z
+    } else if (nAxis == 1u) {
+        axis0 = 0u; // X
+        axis1 = 2u; // Z
+    } else {
+        axis0 = 0u; // X
+        axis1 = 1u; // Y
+    }
+}
+
+void rcLookupSampleFaceWeighted(
+    inout RCLookupResult result,
+    vec3 P,
+    vec3 N,
+    uint level,
+    ivec3 worldCellCoord,
+    uint faceId,
+    float interpWeight
+) {
+    if (interpWeight <= 0.0) {
+        return;
+    }
+
+    uint entryIndex = rcEntryIndex(level, worldCellCoord);
+    uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
+    uvec4 entry = rc_indirection[bufferIndex];
+
+    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+
+    if (
+    entry.x == RC_INVALID ||
+    entry.z != worldKeyHash ||
+    !rcEntryMetaValid(entry.w) ||
+    rcEntryMetaLevel(entry.w) != level ||
+    !rcHasFace(entry.y, faceId)
+    ) {
+        result.misses++;
+        return;
+    }
+
+    uint reservoirIndex = rcFaceReservoirIndex(entry.x, entry.y, faceId);
+
+    if (reservoirIndex >= uint(SETTING_RC_POOL_SIZE)) {
+        result.misses++;
+        return;
+    }
+
+    RCReservoir reservoir = rcReservoirLoad(rcCurrentSide(), reservoirIndex);
+
+    if (!rcReservoirValid(reservoir)) {
+        result.misses++;
+        return;
+    }
+
+    vec3 faceNormal = rcFaceNormal(faceId);
+
+    float normalWeight = max(dot(N, faceNormal), 0.0);
+    if (normalWeight <= 0.0) {
+        result.misses++;
+        return;
+    }
+
+    vec3 faceCenter = rcFaceCenter(worldCellCoord, level, faceId);
+
+    float voxelSize = float(rcVoxelSize(level));
+    float thickness = voxelSize * 0.25;
+
+    float side = dot(P - faceCenter, faceNormal);
+    if (side < -thickness) {
+        result.misses++;
+        return;
+    }
+
+    uint age = rcReservoirMetaAge(reservoir.meta);
+    float ageWeight = exp2(-float(age) * 0.125);
+
+    // Bilinear interpolation already provides the geometric tangent-plane weight.
+    // Do not multiply by the old exp(-dist²/r²), otherwise it stops being proper bilinear filtering.
+    float w = interpWeight * normalWeight * ageWeight;
+
+    if (w <= 0.0) {
+        result.misses++;
+        return;
+    }
+
+    result.radiance += reservoir.radiance * w;
+    result.weight += w;
+
+    result.hits++;
+    result.levelMask |= 1u << level;
+    result.faceMask |= rcFaceBit(faceId);
+    result.m = max(result.m, rcReservoirMetaM(reservoir.meta));
+    result.age = max(result.age, age);
+}
+
+RCLookupResult rcLookupDiffuseGIBilinear(vec3 P, vec3 N) {
+    RCLookupResult result = rcLookupInit();
+
+    uint level = rcSelectLevel(P);
+    float voxelSize = float(rcVoxelSize(level));
+
+    uint faceId = rcDominantFaceId(N);
+    vec3 faceNormal = rcFaceNormal(faceId);
+
+    uint axis0;
+    uint axis1;
+    rcFaceTangentAxes(faceId, axis0, axis1);
+
+    uint normalAxis = rcFaceAxis(faceId);
+
+    // Move slightly behind the queried surface so the owner cell is stable.
+    // For +Y face, this moves into the solid cell below the face.
+    // For -Y face, this moves into the solid cell above the face.
+    float surfaceEpsilon = max(voxelSize * 1e-3, 1e-3);
+    vec3 ownerP = P - faceNormal * surfaceEpsilon;
+
+    ivec3 ownerCell = rcWorldCellCoord(ownerP, level);
+
+    // Face centers lie at cell + 0.5 along tangent axes.
+    // Therefore the bilinear coordinate over face centers is:
+    //
+    //     P_t / voxelSize - 0.5
+    //
+    // The integer part selects the lower face-center cell,
+    // and the fractional part is the interpolation weight.
+    vec3 cellSpace = P / voxelSize - vec3(0.5);
+
+    float u = cellSpace[int(axis0)];
+    float v = cellSpace[int(axis1)];
+
+    int u0 = int(floor(u));
+    int v0 = int(floor(v));
+
+    float fu = fract(u);
+    float fv = fract(v);
+
+    float w00 = (1.0 - fu) * (1.0 - fv);
+    float w10 = fu * (1.0 - fv);
+    float w01 = (1.0 - fu) * fv;
+    float w11 = fu * fv;
+
+    ivec3 cell00 = ownerCell;
+    ivec3 cell10 = ownerCell;
+    ivec3 cell01 = ownerCell;
+    ivec3 cell11 = ownerCell;
+
+    cell00[int(axis0)] = u0;
+    cell00[int(axis1)] = v0;
+
+    cell10[int(axis0)] = u0 + 1;
+    cell10[int(axis1)] = v0;
+
+    cell01[int(axis0)] = u0;
+    cell01[int(axis1)] = v0 + 1;
+
+    cell11[int(axis0)] = u0 + 1;
+    cell11[int(axis1)] = v0 + 1;
+
+    // The normal-axis coordinate remains fixed from ownerCell.
+    // This is what turns the lookup from 2x2x2 into 2x2x1.
+    cell00[int(normalAxis)] = ownerCell[int(normalAxis)];
+    cell10[int(normalAxis)] = ownerCell[int(normalAxis)];
+    cell01[int(normalAxis)] = ownerCell[int(normalAxis)];
+    cell11[int(normalAxis)] = ownerCell[int(normalAxis)];
+
+    rcLookupSampleFaceWeighted(result, P, N, level, cell00, faceId, w00);
+    rcLookupSampleFaceWeighted(result, P, N, level, cell10, faceId, w10);
+    rcLookupSampleFaceWeighted(result, P, N, level, cell01, faceId, w01);
+    rcLookupSampleFaceWeighted(result, P, N, level, cell11, faceId, w11);
+
+    if (result.weight > 0.0) {
+        result.radiance /= result.weight;
+    }
+
+    return result;
+}
+
+void rcLookupSampleFace1x1(
     inout RCLookupResult result,
     vec3 P,
     vec3 N,
@@ -356,26 +558,36 @@ void rcLookupSampleFace(
     uint entryIndex = rcEntryIndex(level, worldCellCoord);
     uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
     uvec4 entry = rc_indirection[bufferIndex];
+
     uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
 
-    if (entry.x == RC_INVALID || entry.z != worldKeyHash || !rcEntryMetaValid(entry.w) || rcEntryMetaLevel(entry.w) != level || !rcHasFace(entry.y, faceId)) {
+    if (
+    entry.x == RC_INVALID ||
+    entry.z != worldKeyHash ||
+    !rcEntryMetaValid(entry.w) ||
+    rcEntryMetaLevel(entry.w) != level ||
+    !rcHasFace(entry.y, faceId)
+    ) {
         result.misses++;
         return;
     }
 
     uint reservoirIndex = rcFaceReservoirIndex(entry.x, entry.y, faceId);
+
     if (reservoirIndex >= uint(SETTING_RC_POOL_SIZE)) {
         result.misses++;
         return;
     }
 
     RCReservoir reservoir = rcReservoirLoad(rcCurrentSide(), reservoirIndex);
+
     if (!rcReservoirValid(reservoir)) {
         result.misses++;
         return;
     }
 
     vec3 faceNormal = rcFaceNormal(faceId);
+
     float normalWeight = max(dot(N, faceNormal), 0.0);
     if (normalWeight <= 0.0) {
         result.misses++;
@@ -383,49 +595,68 @@ void rcLookupSampleFace(
     }
 
     vec3 faceCenter = rcFaceCenter(worldCellCoord, level, faceId);
-    float thickness = float(rcVoxelSize(level)) * 0.25;
+
+    float voxelSize = float(rcVoxelSize(level));
+    float thickness = voxelSize * 0.25;
+
     float side = dot(P - faceCenter, faceNormal);
     if (side < -thickness) {
         result.misses++;
         return;
     }
 
-    vec3 d = P - faceCenter;
-    float dist2 = dot(d, d);
-    float radius = float(rcVoxelSize(level)) * 2.0;
-    float distanceWeight = exp(-dist2 / max(radius * radius, 1e-4));
-    float ageWeight = exp2(-float(rcReservoirMetaAge(reservoir.meta)) * 0.125);
-    float w = normalWeight * distanceWeight * ageWeight;
+    uint age = rcReservoirMetaAge(reservoir.meta);
+    float ageWeight = exp2(-float(age) * 0.125);
+
+    // 1x1 lookup: no bilinear and no tangent distance filter.
+    // Weight only by normal compatibility and history freshness.
+    float w = normalWeight * ageWeight;
+
+    if (w <= 0.0) {
+        result.misses++;
+        return;
+    }
 
     result.radiance += reservoir.radiance * w;
     result.weight += w;
+
     result.hits++;
     result.levelMask |= 1u << level;
     result.faceMask |= rcFaceBit(faceId);
     result.m = max(result.m, rcReservoirMetaM(reservoir.meta));
-    result.age = max(result.age, rcReservoirMetaAge(reservoir.meta));
+    result.age = max(result.age, age);
 }
 
 RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N) {
     RCLookupResult result = rcLookupInit();
-    uint level = rcSelectLevel(P);
-    ivec3 baseCell = rcWorldCellCoord(P, level);
 
-    const int searchRadius = 1;
-    for (int z = -searchRadius; z <= searchRadius; z++) {
-        for (int y = -searchRadius; y <= searchRadius; y++) {
-            for (int x = -searchRadius; x <= searchRadius; x++) {
-                ivec3 cell = baseCell + ivec3(x, y, z);
-                for (uint faceId = 0u; faceId < 6u; faceId++) {
-                    rcLookupSampleFace(result, P, N, level, cell, faceId);
-                }
-            }
-        }
-    }
+    uint level = rcSelectLevel(P);
+    float voxelSize = float(rcVoxelSize(level));
+
+    uint faceId = rcDominantFaceId(N);
+    vec3 faceNormal = rcFaceNormal(faceId);
+
+    // Move into the owner voxel so the face owner is stable.
+    // For +Y face, this moves slightly below the surface.
+    // For -Y face, this moves slightly above the surface.
+    float surfaceEpsilon = max(voxelSize * 1e-3, 1e-3);
+    vec3 ownerP = P - faceNormal * surfaceEpsilon;
+
+    ivec3 ownerCell = rcWorldCellCoord(ownerP, level);
+
+    rcLookupSampleFace1x1(
+        result,
+        P,
+        N,
+        level,
+        ownerCell,
+        faceId
+    );
 
     if (result.weight > 0.0) {
         result.radiance /= result.weight;
     }
+
     return result;
 }
 
