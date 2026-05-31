@@ -2,6 +2,7 @@
 #include "/util/TextRender.glsl"
 #include "/techniques/gi/Common.glsl"
 #include "/techniques/voxel/Voxelization.glsl"
+#include "/techniques/gi/RadianceCache.glsl"
 
 #ifdef SETTING_DEBUG_SST_STEPS
 layout(std430, binding = 11) buffer TestBuffer {
@@ -128,14 +129,22 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
     #endif
 
-    #ifdef SETTING_DEBUG_VOXEL_BRICKS
+    #ifdef SETTING_DEBUG_VOXEL_COUNTER
     printString((_V, _o, _x, _e, _l, _space, _B, _r, _i, _c, _k, _s));
     printLine();
+
     printString((_A, _l, _l, _o, _c, _a, _t, _e, _d, _colon, _space));
     printUnsignedInt(voxel_brickAllocCounter);
     printString((_space, _minus, _space));
     printInt(VOXEL_POOL_SIZE);
     printLine();
+
+    printString((_R, _a, _d, _i, _a, _n, _c, _e, _space, _C, _a, _c, _h, _e, _space, _E, _n, _t, _r, _i, _e, _s, _colon, _space));
+    printUnsignedInt(rc_allocationCounter);
+    printString((_space, _minus, _space));
+    printInt(SETTING_RC_POOL_SIZE);
+    printString((_space, _space, _space, _space));
+
     printLine();
     #endif
 
