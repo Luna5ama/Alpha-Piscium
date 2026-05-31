@@ -234,6 +234,73 @@ float rcPairwiseSpatialMIS(
     #endif
 }
 
+float rcPairwiseSpatialMIS_MAware(
+    vec3 targetOrigin,
+    vec3 targetNormal,
+    vec3 neighborOrigin,
+    vec3 neighborNormal,
+    vec3 hitPos,
+    vec3 hitNormal,
+    float targetM,
+    float sourceM
+) {
+    #ifndef SETTING_RC_SPATIAL_USE_MIS
+        return 1.0;
+    #else
+        float pTarget = 0.0;
+        float pNeighbor = 0.0;
+
+        #ifdef SETTING_RC_SPATIAL_USE_JACOBIAN
+            pTarget = rcAreaPdfCosineConnection(targetOrigin, targetNormal, hitPos, hitNormal);
+            pNeighbor = rcAreaPdfCosineConnection(neighborOrigin, neighborNormal, hitPos, hitNormal);
+        #else
+            vec3 targetToHit = hitPos - targetOrigin;
+            float targetDistanceSq = dot(targetToHit, targetToHit);
+            if (targetDistanceSq > 1e-6) {
+                pTarget = max(dot(targetNormal, normalize(targetToHit)), 0.0) * RCP_PI;
+            }
+
+            vec3 neighborToHit = hitPos - neighborOrigin;
+            float neighborDistanceSq = dot(neighborToHit, neighborToHit);
+            if (neighborDistanceSq > 1e-6) {
+                pNeighbor = max(dot(neighborNormal, normalize(neighborToHit)), 0.0) * RCP_PI;
+            }
+        #endif
+
+        if (pTarget <= 0.0 || pNeighbor <= 0.0) {
+            return 0.0;
+        }
+
+        float targetMass = max(targetM, 1.0);
+        float sourceMass = max(sourceM, 1.0);
+        float denom = targetMass * pTarget + sourceMass * pNeighbor;
+        if (denom <= 1e-6) {
+            return 0.0;
+        }
+
+        return targetMass * pTarget * safeRcp(denom);
+    #endif
+}
+
+float rcSpatialEffectiveSourceM(RCReservoir neighborReservoir) {
+    float m = neighborReservoir.m;
+    if (isnan(m) || m <= 0.0) {
+        return 0.0;
+    }
+
+    float maxSpatialM = min(float(SETTING_RC_M_MAX), 8.0);
+    return clamp(m, 1.0, maxSpatialM);
+}
+
+float rcSpatialSourceCorrection(RCReservoir neighborReservoir) {
+    float wy = neighborReservoir.avgWY;
+    if (isnan(wy) || wy <= 0.0) {
+        return 0.0;
+    }
+
+    return clamp(wy, 0.0, 2.0);
+}
+
 RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint level, uint faceId) {
     RCCandidate candidate;
     candidate.radiance = vec3(0.0);
@@ -293,6 +360,8 @@ bool rcGenerateSpatialCandidate(
     ivec3 neighborCell,
     vec3 neighborOrigin,
     RCReservoir neighborReservoir,
+    float targetM,
+    float sourceM,
     out RCCandidate candidate,
     out float spatialReuseWeight,
     out float spatialMInc
@@ -368,13 +437,15 @@ bool rcGenerateSpatialCandidate(
             return false;
         }
 
-        float misWeight = rcPairwiseSpatialMIS(
+        float misWeight = rcPairwiseSpatialMIS_MAware(
             targetOrigin,
             targetNormal,
             neighborOrigin,
             targetNormal,
             hit.hitPos,
-            hit.normal
+            hit.normal,
+            targetM,
+            sourceM
         );
         if (misWeight <= 0.0) {
             return false;
@@ -388,7 +459,7 @@ bool rcGenerateSpatialCandidate(
         candidate.flags = RC_RES_FLAG_SURFACE_HIT;
         candidate.valid = true;
         spatialReuseWeight = misWeight;
-        spatialMInc = 1.0;
+        spatialMInc = sourceM * misWeight;
         return true;
     #endif
 }
@@ -484,26 +555,36 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
         RCCandidate spatialCandidate;
         float spatialReuseWeight;
         float spatialMInc;
-        if (spatialNeighborValid && rcGenerateSpatialCandidate(
+        float sourceM = rcSpatialEffectiveSourceM(neighborReservoir);
+        float targetM = clamp(max(reservoir.m, 1.0), 1.0, float(SETTING_RC_M_MAX));
+        if (spatialNeighborValid && sourceM > 0.0 && SETTING_RC_SPATIAL_STRENGTH > 0.0 && rcGenerateSpatialCandidate(
             worldCellCoord,
             level,
             faceId,
             neighborCell,
             neighborOrigin,
             neighborReservoir,
+            targetM,
+            sourceM,
             spatialCandidate,
             spatialReuseWeight,
             spatialMInc
         )) {
             float randSpatial = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x27D4EB2Du)));
-            float sourceCorrection = clamp(neighborReservoir.avgWY, 0.0, 4.0);
-            float spatialUpdateWeight = spatialCandidate.targetWeight * spatialReuseWeight * sourceCorrection;
+            float sourceCorrection = rcSpatialSourceCorrection(neighborReservoir);
+            float spatialStrength = SETTING_RC_SPATIAL_STRENGTH;
+            float spatialUpdateWeight =
+                spatialCandidate.targetWeight *
+                sourceCorrection *
+                spatialMInc *
+                spatialStrength;
+            float spatialEffectiveMInc = spatialMInc * spatialStrength;
             selectedSpatial = rcReservoirUpdateWeighted(
                 reservoir,
                 wSum,
                 spatialCandidate,
                 spatialUpdateWeight,
-                spatialMInc,
+                spatialEffectiveMInc,
                 randSpatial
             );
             if (selectedSpatial) {

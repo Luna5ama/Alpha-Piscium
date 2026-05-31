@@ -969,6 +969,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "辐射度缓存空间复用允许的最大切平面邻居距离，以体素宽度计。"
                         }
                     }
+                    slider("SETTING_RC_SPATIAL_STRENGTH", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Spatial Strength"
+                            comment = "Scales the spatial reuse contribution and effective sample count."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "空间强度"
+                            comment = "缩放空间复用的贡献和有效样本数。"
+                        }
+                    }
                 }
                 row {
                     toggle("SETTING_RC_LOOKUP_MODE", 1, 0..1) {
