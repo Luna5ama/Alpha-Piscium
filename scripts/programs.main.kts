@@ -143,20 +143,6 @@ programs {
         pass("/pass/setup/ClearVoxelFaceTexcoords.comp.glsl")
     }
 
-    ProgramType.SHADOWCOMP {
-        pass("/pass/shadowcomp/EvaluateShadowWaterNormal.glsl")
-        pass("/pass/shadow/VoxelTreeBuilder.comp.glsl")
-        pass("/pass/shadow/VoxelTreePropagator.comp.glsl") {
-            cond("SETTING_VOXEL_GRID_SIZE < 64")
-        }
-        pass("/pass/shadow/VoxelTreePropagatorLower.comp.glsl") {
-            cond("SETTING_VOXEL_GRID_SIZE == 64")
-        }
-        pass("/pass/shadow/VoxelTreePropagatorUpper.comp.glsl") {
-            cond("SETTING_VOXEL_GRID_SIZE == 64")
-        }
-    }
-
     ProgramType.BEGIN {
         pass(
             "/pass/begin/UpdateGlobalData.comp.glsl",
@@ -196,6 +182,20 @@ programs {
         }
         pass("/pass/begin/VoxelAllocator.comp.glsl") {
             cond("SETTING_VOXEL_GRID_SIZE == 16")
+        }
+    }
+
+    ProgramType.PREPARE {
+        pass("/pass/shadowcomp/EvaluateShadowWaterNormal.glsl")
+        pass("/pass/shadow/VoxelTreeBuilder.comp.glsl")
+        pass("/pass/shadow/VoxelTreePropagator.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE < 64")
+        }
+        pass("/pass/shadow/VoxelTreePropagatorLower.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE == 64")
+        }
+        pass("/pass/shadow/VoxelTreePropagatorUpper.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE == 64")
         }
     }
 
