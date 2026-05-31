@@ -2,6 +2,7 @@
 
 layout(local_size_x = 256) in;
 
+#include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
@@ -113,8 +114,20 @@ RCHitSurface rcSampleHitSurface(VoxelHit hit) {
     return surface;
 }
 
+vec3 rcSampleMissRadiance(vec3 rayDir) {
+    AtmosphereParameters atmosphere = getAtmosphereParameters();
+    SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, rayDir);
+    return atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+}
+
 vec3 rcSampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     valid = false;
+    if (!hit.hit) {
+        vec3 missRadiance = rcSampleMissRadiance(normalize(-outgoingDir));
+        valid = rcLuminance(missRadiance) > 0.0 && !any(isnan(missRadiance));
+        return valid ? missRadiance : vec3(0.0);
+    }
+
     RCHitSurface surface = rcSampleHitSurface(hit);
     if (!surface.valid) {
         return vec3(0.0);
@@ -182,14 +195,13 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
     vec3 rayOrigin = rcFaceCenter(worldCellCoord, level, faceId) + faceNormal * 0.05;
     VoxelRay voxelRay = voxelray_setup(rayOrigin, worldDir, 0u);
     VoxelHit hit = voxel_traceRay(voxelRay, 128);
-    if (!hit.hit) {
-        return candidate;
+    if (hit.hit) {
+        rcTouchHit(hit);
     }
-    rcTouchHit(hit);
 
     bool radianceValid = false;
     vec3 radiance = rcSampleHitRadiance(hit, -worldDir, radianceValid);
-    float targetWeight = rcLuminance(radiance) * cosTheta * safeRcp(localSample.w);
+    float targetWeight = rcLuminance(radiance);
     bool candidateValid = radianceValid
         && targetWeight > 0.0
         && !any(isnan(radiance))
@@ -200,7 +212,9 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
 
     candidate.radiance = radiance;
     candidate.dir = worldDir;
-    candidate.hitPos = hit.hitPos;
+    if (hit.hit) {
+        candidate.hitPos = hit.hitPos;
+    }
     candidate.targetWeight = targetWeight;
     candidate.valid = true;
     return candidate;
@@ -224,22 +238,46 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
         && rcHasFace(prevEntry.y, faceId);
 
     uint historyAge = 0u;
+    float reservoirTargetWeight = 0.0;
     if (historyValid) {
         uint prevReservoirIndex = rcFaceReservoirIndex(prevEntry.x, prevEntry.y, faceId);
         if (prevReservoirIndex < uint(SETTING_RC_POOL_SIZE)) {
             reservoir = rcReservoirLoad(rcPreviousSide(), prevReservoirIndex);
             historyValid = rcReservoirValid(reservoir);
-            historyAge = rcReservoirMetaAge(reservoir.meta);
+            if (historyValid) {
+                reservoir.m *= global_historyResetFactor;
+                historyAge = rcReservoirMetaAge(reservoir.meta);
+                reservoirTargetWeight = rcLuminance(reservoir.radiance);
+                historyValid = reservoir.avgWY > 0.0
+                    && reservoir.m > 0.0
+                    && reservoirTargetWeight > 0.0
+                    && !isnan(reservoir.avgWY)
+                    && !isnan(reservoir.m)
+                    && !isnan(reservoirTargetWeight);
+            }
         } else {
             historyValid = false;
         }
     }
+    float randKill = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x1145CA6Bu)));
+    // 100% chance to kill reservoir at each frame on max age.
+    if (randKill * 65536.0 < pow2(float(historyAge))) {
+        reservoir.m *= 0.1;
+        historyAge = 0u;
+    }
 
     if (historyValid) {
         float randValue = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x85EBCA6Bu)));
-        rcReservoirUpdate(reservoir, candidate, randValue);
-        uint M = rcReservoirMetaM(reservoir.meta);
-        reservoir.meta = rcPackReservoirMeta(M, min(historyAge + 1u, 255u), rcReservoirValid(reservoir), 0u);
+        float wSum = reservoir.avgWY * reservoir.m * reservoirTargetWeight;
+        bool selectedCandidate = rcReservoirUpdate(reservoir, wSum, candidate, randValue);
+        float selectedTargetWeight = selectedCandidate ? candidate.targetWeight : reservoirTargetWeight;
+        bool reservoirValid = rcReservoirValid(reservoir)
+            && selectedTargetWeight > 0.0
+            && wSum > 0.0
+            && !isnan(wSum);
+        reservoir.avgWY = reservoirValid ? wSum * safeRcp(reservoir.m) * safeRcp(selectedTargetWeight) : 0.0;
+        reservoir.meta = rcPackReservoirMeta(min(historyAge + 1u, 255u), reservoirValid, 0u);
+        reservoir.m = clamp(reservoir.m, 0.0, float(SETTING_RC_M_MAX));
     } else {
         rcReservoirInitFromCandidate(reservoir, candidate);
     }
