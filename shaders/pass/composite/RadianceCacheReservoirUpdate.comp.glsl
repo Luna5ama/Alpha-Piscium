@@ -4,46 +4,16 @@ layout(local_size_x = 256) in;
 
 #include "/techniques/gi/RadianceCache.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
-#include "/util/Colors.glsl"
-#include "/util/Coords.glsl"
+#include "/techniques/voxel/VoxelFaceTexcoords.glsl"
+#include "/util/Colors2.glsl"
+#include "/util/HardcodedPBR.glsl"
+#include "/util/MaterialIDConst.glsl"
 #include "/util/Rand.glsl"
 
 const ivec3 workGroups = ivec3(5120, 1, 1);
 
-vec3 rcWorldToViewPos(vec3 worldPos) {
-    return coords_pos_worldToView(worldPos - cameraPosition, gbufferModelView);
-}
-
 vec3 rcWorldToViewDir(vec3 worldDir) {
     return normalize(mat3(gbufferModelView) * worldDir);
-}
-
-vec3 rcSampleCurrentScreenRadiance(vec3 hitWorldPos, vec3 outgoingWorldDir, out bool valid) {
-    valid = false;
-    vec3 hitViewPos = rcWorldToViewPos(hitWorldPos);
-    vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
-    if (hitScreenPos.z < 0.0 || hitScreenPos.z > 1.0 || any(lessThan(hitScreenPos.xy, vec2(0.0))) || any(greaterThan(hitScreenPos.xy, vec2(1.0)))) {
-        return vec3(0.0);
-    }
-
-    ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
-    if (!all(greaterThanEqual(hitTexelPos, ivec2(0))) || !all(lessThan(hitTexelPos, uval_mainImageSizeI))) {
-        return vec3(0.0);
-    }
-
-    vec4 hitGeomNormalData = transient_geomViewNormal_fetch(hitTexelPos);
-    uvec4 hitRadianceData = transient_giRadianceInputs_fetch(hitTexelPos);
-    vec3 hitGeomNormal = normalize(hitGeomNormalData.xyz * 2.0 - 1.0);
-    vec3 outgoingViewDir = rcWorldToViewDir(outgoingWorldDir);
-    float hitCosTheta = saturate(dot(hitGeomNormal, outgoingViewDir));
-
-    vec3 hitRadiance = colors_FP16LuvToWorkingColor(hitRadianceData.x);
-    vec3 hitEmissive = colors_FP16LuvToWorkingColor(hitRadianceData.y);
-    // TODO: sample radiance cache instead of screen radiance
-//    vec3 result = hitRadiance * float(hitCosTheta > 0.0) + hitEmissive;
-    vec3 result = hitEmissive;
-    valid = rcLuminance(result) > 0.0;
-    return result;
 }
 
 vec3 rcHemisphereDirection(vec3 normal, vec3 localDir) {
@@ -51,6 +21,45 @@ vec3 rcHemisphereDirection(vec3 normal, vec3 localDir) {
     vec3 T = normalize(cross(up, normal));
     vec3 B = cross(normal, T);
     return normalize(T * localDir.x + B * localDir.y + normal * localDir.z);
+}
+
+vec2 rcFaceLocalUV(uint faceId, vec3 hitPos) {
+    vec3 f = fract(hitPos);
+    uint faceAxis = faceId >> 1u;
+    bool positiveFace = (faceId & 1u) == 0u;
+    if (faceAxis == 0u) {
+        return vec2(positiveFace ? 1.0 - f.z : f.z, f.y);
+    } else if (faceAxis == 1u) {
+        return vec2(f.x, positiveFace ? 1.0 - f.z : f.z);
+    }
+    return vec2(positiveFace ? f.x : 1.0 - f.x, f.y);
+}
+
+vec3 rcSampleVoxelRadiance(VoxelHit hit, out bool valid) {
+    valid = false;
+    if (!hit.hit || hit.materialID == 0u || hit.materialID == MATERIAL_ID_WATER) {
+        return vec3(0.0);
+    }
+
+    HardcodedPBR hardcoded = hardcodedpbr_decode(hit.materialID);
+    if (hardcoded.emissive <= 0.0 && hardcoded.emissiveMultiplier <= 0) {
+        return vec3(0.0);
+    }
+
+    uint faceId = voxel_faceIndexFromNormal(hit.normal);
+    uvec2 tcData = voxel_faceTexcoords[voxel_faceTexcoordIndex(hit.materialID, faceId)];
+    vec4 tc = unpackUnorm4x16(tcData);
+    if (all(equal(tc, vec4(0.0)))) {
+        return vec3(0.0);
+    }
+
+    vec2 localUV = rcFaceLocalUV(faceId, hit.hitPos);
+    vec2 atlasUV = mix(tc.xw, tc.zy, localUV);
+    vec3 baseColor = texture(usam_blockAtlasColor, atlasUV).rgb;
+    float emissiveScale = hardcoded.emissive * exp2(float(hardcoded.emissiveMultiplier));
+    vec3 result = baseColor * emissiveScale;
+    valid = rcLuminance(result) > 0.0 && !any(isnan(result));
+    return result;
 }
 
 RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint level, uint faceId) {
@@ -79,7 +88,7 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
     }
 
     bool radianceValid = false;
-     vec3 radiance = rcSampleCurrentScreenRadiance(hit.hitPos, -worldDir, radianceValid);
+    vec3 radiance = rcSampleVoxelRadiance(hit, radianceValid);
     float targetWeight = rcLuminance(radiance) * cosTheta * safeRcp(localSample.w);
     if (!radianceValid || targetWeight <= 0.0 || any(isnan(radiance)) || isnan(targetWeight)) {
         return candidate;
