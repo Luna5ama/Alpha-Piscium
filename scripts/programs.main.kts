@@ -227,17 +227,17 @@ programs {
             define("PASS", 2)
         }
         pass("/pass/composite/DirectLighting.glsl")
-        pass("/pass/composite/RadianceCacheClear.comp.glsl") {
+            pass("/pass/composite/RadianceCacheClear.comp.glsl") {
             cond("defined(SETTING_RC_ENABLE)")
         }
-        pass("/pass/composite/RadianceCacheTouch.comp.glsl") {
+            pass("/pass/composite/RadianceCacheTouch.comp.glsl") {
             cond("defined(SETTING_RC_ENABLE)")
         }
-        pass("/pass/composite/RadianceCacheAllocate.comp.glsl") {
+            pass("/pass/composite/RadianceCacheAllocate.comp.glsl") {
             cond("defined(SETTING_RC_ENABLE)")
         }
         pass("/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl")
-        pass("/pass/composite/RadianceCacheReservoirUpdate.comp.glsl") {
+            pass("/pass/composite/RadianceCacheReservoirUpdate.comp.glsl") {
             indirect(0, 32)
             cond("defined(SETTING_RC_ENABLE)")
         }

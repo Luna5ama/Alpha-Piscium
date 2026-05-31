@@ -927,7 +927,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "每个缓存面的最大时间样本数。"
                         }
                     }
-                    toggle("SETTING_RC_SPATIAL_ENABLE", false) {
+                    toggle("SETTING_RC_SPATIAL_ENABLE", true) {
                         lang {
                             name = "Spatial Reuse"
                             comment = "Enables same-face 3x3 tangent-plane spatial reuse from the previous cache side."
