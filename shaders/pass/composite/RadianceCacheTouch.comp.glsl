@@ -3,7 +3,6 @@
 #extension GL_NV_shader_subgroup_partitioned : enable
 
 #define RC_DATA_MODIFIER restrict buffer
-#include "/Base.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/voxel/Voxelization.glsl"

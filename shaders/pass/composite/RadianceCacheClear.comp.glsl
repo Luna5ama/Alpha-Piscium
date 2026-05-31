@@ -1,5 +1,4 @@
 #define RC_DATA_MODIFIER restrict buffer
-#include "/Base.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
 #include "/techniques/voxel/Voxelization.glsl"
 #include "/util/MaterialIDConst.glsl"
@@ -34,36 +33,33 @@ void main() {
         rc_cacheMissCounter = 0u;
     }
 
-    if (idx >= RC_ENTRY_COUNT) {
-        return;
-    }
+    if (idx < RC_ENTRY_COUNT) {
+        uint currentBufferIndex = rcBufferEntryIndex(rcCurrentSide(), idx);
+        uint previousBufferIndex = rcBufferEntryIndex(rcPreviousSide(), idx);
+        uvec4 previousEntry = rc_indirection[previousBufferIndex];
+        uint level = rcEntryLevel(idx);
+        ivec3 worldCellCoord = rcWorldCellCoordFromEntryIndex(idx);
+        uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+        uint faceMask = previousEntry.y & 0x3fu;
 
-    uint currentBufferIndex = rcBufferEntryIndex(rcCurrentSide(), idx);
-    uint previousBufferIndex = rcBufferEntryIndex(rcPreviousSide(), idx);
-    uvec4 previousEntry = rc_indirection[previousBufferIndex];
-    uint level = rcEntryLevel(idx);
-    ivec3 worldCellCoord = rcWorldCellCoordFromEntryIndex(idx);
-    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
-    uint faceMask = previousEntry.y & 0x3fu;
-
-    if (
-        previousEntry.z == worldKeyHash
-        && rcEntryMetaValid(previousEntry.w)
-        && rcEntryMetaLevel(previousEntry.w) == level
-        && faceMask != 0u
-    ) {
-        uint carriedFaceMask = rcCarryFaceMask(level, worldCellCoord, faceMask);
-        if (carriedFaceMask != 0u) {
-            uint age = min(rcEntryMetaAge(previousEntry.w) + 1u, 255u);
-            rc_indirection[currentBufferIndex] = uvec4(
-                RC_INVALID,
-                carriedFaceMask,
-                worldKeyHash,
-                rcPackEntryMeta(level, age, true)
-            );
-            return;
+        if (previousEntry.z == worldKeyHash
+            && rcEntryMetaValid(previousEntry.w)
+            && rcEntryMetaLevel(previousEntry.w) == level
+            && faceMask != 0u
+        ) {
+            uint carriedFaceMask = rcCarryFaceMask(level, worldCellCoord, faceMask);
+            if (carriedFaceMask != 0u) {
+                uint age = min(rcEntryMetaAge(previousEntry.w) + 1u, 255u);
+                rc_indirection[currentBufferIndex] = uvec4(
+                    RC_INVALID,
+                    carriedFaceMask,
+                    worldKeyHash,
+                    rcPackEntryMeta(level, age, true)
+                );
+                return;
+            }
         }
-    }
 
-    rc_indirection[currentBufferIndex] = uvec4(RC_INVALID, 0u, RC_INVALID, 0u);
+        rc_indirection[currentBufferIndex] = uvec4(RC_INVALID, 0u, RC_INVALID, 0u);
+    }
 }
