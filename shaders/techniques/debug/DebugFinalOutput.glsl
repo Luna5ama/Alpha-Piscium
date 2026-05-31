@@ -138,13 +138,27 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printString((_space, _minus, _space));
     printInt(VOXEL_POOL_SIZE);
     printLine();
+    printLine();
 
-    printString((_R, _a, _d, _i, _a, _n, _c, _e, _space, _C, _a, _c, _h, _e, _space, _E, _n, _t, _r, _i, _e, _s, _colon, _space));
+    printString((_R, _a, _d, _i, _a, _n, _c, _e, _space, _C, _a, _c, _h, _e));
+    printLine();
+
+    printString((_A, _l, _l, _o, _c, _a, _t, _e, _d, _colon, _space));
     printUnsignedInt(rc_allocationCounter);
     printString((_space, _minus, _space));
     printInt(SETTING_RC_POOL_SIZE);
-    printString((_space, _space, _space, _space));
+    printLine();
 
+    printString((_R, _e, _s, _e, _r, _v, _o, _i, _r, _space, _M, _space, _c, _a, _p, _colon, _space));
+    printInt(SETTING_RC_M_MAX);
+    printLine();
+
+    printString((_S, _p, _a, _t, _i, _a, _l, _space, _r, _e, _s, _a, _m, _p, _l, _e, _s, _colon, _space));
+    #ifdef SETTING_RC_SPATIAL_ENABLE
+    printFloat(SETTING_RC_SPATIAL_STRENGTH);
+    #else
+    printString((_o, _f, _f));
+    #endif
     printLine();
     #endif
 
