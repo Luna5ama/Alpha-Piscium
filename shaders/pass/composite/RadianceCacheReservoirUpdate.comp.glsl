@@ -2,6 +2,7 @@
 
 layout(local_size_x = 256) in;
 
+#include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
@@ -113,8 +114,20 @@ RCHitSurface rcSampleHitSurface(VoxelHit hit) {
     return surface;
 }
 
+vec3 rcSampleMissRadiance(vec3 rayDir) {
+    AtmosphereParameters atmosphere = getAtmosphereParameters();
+    SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, rayDir);
+    return atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
+}
+
 vec3 rcSampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     valid = false;
+    if (!hit.hit) {
+        vec3 missRadiance = rcSampleMissRadiance(normalize(-outgoingDir));
+        valid = rcLuminance(missRadiance) > 0.0 && !any(isnan(missRadiance));
+        return valid ? missRadiance : vec3(0.0);
+    }
+
     RCHitSurface surface = rcSampleHitSurface(hit);
     if (!surface.valid) {
         return vec3(0.0);
@@ -182,10 +195,9 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
     vec3 rayOrigin = rcFaceCenter(worldCellCoord, level, faceId) + faceNormal * 0.05;
     VoxelRay voxelRay = voxelray_setup(rayOrigin, worldDir, 0u);
     VoxelHit hit = voxel_traceRay(voxelRay, 128);
-    if (!hit.hit) {
-        return candidate;
+    if (hit.hit) {
+        rcTouchHit(hit);
     }
-    rcTouchHit(hit);
 
     bool radianceValid = false;
     vec3 radiance = rcSampleHitRadiance(hit, -worldDir, radianceValid);
@@ -200,7 +212,9 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
 
     candidate.radiance = radiance;
     candidate.dir = worldDir;
-    candidate.hitPos = hit.hitPos;
+    if (hit.hit) {
+        candidate.hitPos = hit.hitPos;
+    }
     candidate.targetWeight = targetWeight;
     candidate.valid = true;
     return candidate;
