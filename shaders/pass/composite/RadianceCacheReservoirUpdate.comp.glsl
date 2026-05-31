@@ -234,7 +234,7 @@ bool rcLoadRandomSpatialNeighbor(
     neighborOrigin = rcFaceRayOrigin(worldCellCoord, level, faceId);
     neighborReservoir = rcReservoirInit();
 
-    uint neighborIndex = hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0xC2B2AE35u)) & 7u;
+    uint neighborIndex = hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0xC2B2AE35u)) & 7u;
     ivec2 neighborOffset = rcNeighborOffset8(neighborIndex);
     neighborCell = worldCellCoord + rcNeighborPlaneOffset(faceId, neighborOffset.x, neighborOffset.y);
 
@@ -570,7 +570,7 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
             historyValid = false;
         }
     }
-    float randKill = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x1145CA6Bu)));
+    float randKill = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x1145CA6Bu)));
     // 100% chance to kill reservoir at each frame on max age.
     if (historyValid && randKill * 65536.0 < pow2(float(historyAge))) {
         reservoir.m *= 0.1;
@@ -609,7 +609,7 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
     );
 
     if (historyValid) {
-        float randValue = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x85EBCA6Bu)));
+        float randValue = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x85EBCA6Bu)));
         wSum = reservoir.avgWY * reservoir.m * reservoirTargetWeight;
         selectedCandidate = rcReservoirUpdateWeighted(
             reservoir,
@@ -648,7 +648,7 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
             spatialReuseWeight,
             spatialMInc
         )) {
-            float randSpatial = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x27D4EB2Du)));
+            float randSpatial = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x27D4EB2Du)));
             float sourceCorrection = rcSpatialSourceCorrection(neighborReservoir);
             float spatialStrength = SETTING_RC_SPATIAL_STRENGTH;
             float spatialUpdateWeight =

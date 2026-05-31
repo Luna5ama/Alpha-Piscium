@@ -186,7 +186,7 @@ uint rcBufferEntryIndex(uint side, uint entryIndex) {
 }
 
 uint rcWorldKeyHash(uint level, ivec3 worldCellCoord) {
-    return hash_41_q3(uvec4(uvec3(worldCellCoord), level));
+    return hash_41_q5(uvec4(uvec3(worldCellCoord), level));
 }
 
 uint rcFaceBit(uint faceId) {
