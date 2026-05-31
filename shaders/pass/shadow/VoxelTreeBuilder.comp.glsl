@@ -31,7 +31,9 @@
 #define VOXEL_MATERIAL_VEC4 a
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_TREE_DATA_MODIFIER buffer
+#define RC_DATA_MODIFIER restrict buffer
 #include "/techniques/voxel/Voxelization.glsl"
+#include "/techniques/gi/RadianceCache.glsl"
 
 layout(local_size_x = 256) in;
 // One workgroup per 4 bricks in the VOXEL_GRID_SIZE^3 grid
@@ -45,6 +47,51 @@ const ivec3 workGroups = ivec3(1024, 1, 1);
 
 shared uint rootMaskLo[4];
 shared uint rootMaskHi[4];
+
+bool voxel_isGIOpaqueMaterial(uint materialID) {
+    return materialID != 0u && materialID != MATERIAL_ID_WATER;
+}
+
+uint voxel_loadMaterialID(uint allocID, uint blockMorton) {
+    uint packedIndex = allocID * 1024u + (blockMorton >> 2u);
+    uvec4 packedMaterialData = voxel_materials_v4[packedIndex];
+    uint lane = blockMorton & 3u;
+    if (lane == 0u) return packedMaterialData.x;
+    if (lane == 1u) return packedMaterialData.y;
+    if (lane == 2u) return packedMaterialData.z;
+    return packedMaterialData.w;
+}
+
+bool voxel_opaqueAtGridBlock(ivec3 gridBlockPos) {
+    int gridExtent = VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE;
+    if (any(lessThan(gridBlockPos, ivec3(0))) || any(greaterThanEqual(gridBlockPos, ivec3(gridExtent)))) {
+        return false;
+    }
+
+    ivec3 brickCoord = gridBlockPos >> 4;
+    uint brickMorton = voxel_brickMorton(brickCoord);
+    uint allocID = voxel_brickAllocID[brickMorton];
+    if (allocID == VOXEL_UNALLOCATED) {
+        return false;
+    }
+
+    uint blockMorton = voxel_blockMorton(gridBlockPos & 15);
+    return voxel_isGIOpaqueMaterial(voxel_loadMaterialID(allocID, blockMorton));
+}
+
+void rcMarkPendingVisibleFace(uint faceId, ivec3 worldBlockPos) {
+    vec3 ownerBlockCenter = vec3(worldBlockPos) + vec3(0.5);
+    for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
+        ivec3 worldCellCoord = rcWorldCellCoord(ownerBlockCenter, level);
+        if (!rcWorldCellInCurrentClip(level, worldCellCoord)) {
+            continue;
+        }
+
+        uint entryIndex = rcEntryIndex(level, worldCellCoord);
+        uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
+        atomicOr(rc_indirection[bufferIndex].w, rcEntryMetaPendingFaceBits(rcFaceBit(faceId)));
+    }
+}
 
 void main() {
     uint localID    = gl_LocalInvocationID.x;
@@ -87,6 +134,35 @@ void main() {
         // Write Level-1 leaf node
         uint leafIdx = uint(VOXEL_TREE_OFFSET_L1) + brickMorton * 64u + subRegion;
         voxel_tree[leafIdx] = uvec2(leafLow, leafHigh);
+
+        ivec3 cameraBrick = cameraPositionInt >> 4;
+        ivec3 gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
+        uvec3 brickCoordU = morton3D_30bDecode(brickMorton);
+        ivec3 brickBlockBase = ivec3(brickCoordU << 4u);
+
+        for (uint i = 0u; i < 16u; i++) {
+            uvec4 mats = voxel_materials_v4[baseIdx + i];
+            for (uint lane = 0u; lane < 4u; lane++) {
+                uint blockInSubRegion = i * 4u + lane;
+                uint materialID = lane == 0u ? mats.x : (lane == 1u ? mats.y : (lane == 2u ? mats.z : mats.w));
+                if (!voxel_isGIOpaqueMaterial(materialID)) {
+                    continue;
+                }
+
+                uint blockMorton = subRegion * 64u + blockInSubRegion;
+                ivec3 blockInBrick = ivec3(morton3D_12bDecode(blockMorton));
+                ivec3 gridBlockPos = brickBlockBase + blockInBrick;
+                ivec3 worldBlockPos = gridOrigin + gridBlockPos;
+
+                for (uint faceId = 0u; faceId < 6u; faceId++) {
+                    ivec3 faceNormalI = rcFaceNormalI(faceId);
+                    ivec3 neighborGridBlock = gridBlockPos + faceNormalI;
+                    if (!voxel_opaqueAtGridBlock(neighborGridBlock)) {
+                        rcMarkPendingVisibleFace(faceId, worldBlockPos);
+                    }
+                }
+            }
+        }
 
         // Parallel reduction: compute bit(s) this thread contributes to the root mask
         bool subRegionNonEmpty = (leafLow | leafHigh) != 0u;
