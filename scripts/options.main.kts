@@ -1002,9 +1002,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 }
                 empty()
                 row {
-                    slider("SETTING_RC_M_MAX", 16, powerOfTwoRange(0..8)) {
+                    slider("SETTING_RC_M_CAP", 128, powerOfTwoRange(0..8)) {
                         lang {
-                            name = "Reservoir M Clamp"
+                            name = "Reservoir M Cap"
                             comment = "Maximum temporal sample count per cached face."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
@@ -1022,39 +1022,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "启用来自上一缓存side的同面3x3切平面空间复用。"
                         }
                     }
-                    toggle("SETTING_RC_SPATIAL_USE_JACOBIAN", true) {
-                        lang {
-                            name = "Spatial Jacobian"
-                            comment = "Uses area-pdf reconnection Jacobian when evaluating spatial reuse."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "空间Jacobian"
-                            comment = "在评估空间复用时使用面积pdf重连Jacobian。"
-                        }
-                    }
-                    toggle("SETTING_RC_SPATIAL_USE_MIS", true) {
-                        lang {
-                            name = "Spatial MIS"
-                            comment =
-                                "Applies pairwise MIS between the local proposal and one shifted neighbor proposal."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "空间MIS"
-                            comment = "在本地proposal和一个shift后的邻居proposal之间应用成对MIS。"
-                        }
-                    }
-                    slider("SETTING_RC_SPATIAL_MAX_DIST", 1.75, 1.0..3.0 step 0.25) {
-                        lang {
-                            name = "Spatial Radius"
-                            comment =
-                                "Maximum tangent-plane neighbor distance in voxel widths for radiance-cache spatial reuse."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "空间半径"
-                            comment = "辐射度缓存空间复用允许的最大切平面邻居距离，以体素宽度计。"
-                        }
-                    }
-                    slider("SETTING_RC_SPATIAL_STRENGTH", 0.3, 0.0..1.0 step 0.05) {
+                    slider("SETTING_RC_SPATIAL_STRENGTH", 1.0, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Spatial Strength"
                             comment = "Scales the spatial reuse contribution and effective sample count."
@@ -1093,19 +1061,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             7 value "Hit Miss"
                             8 value "Cached GI"
                             9 value "Fallback GI"
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "调试模式"
-                            0 value "关闭"
-                            1 value "Clip级别"
-                            2 value "面掩码"
-                            3 value "面数量"
-                            4 value "Reservoir M"
-                            5 value "年龄"
-                            6 value "Key不匹配"
-                            7 value "命中缺失"
-                            8 value "仅缓存GI"
-                            9 value "仅回退GI"
+                            10 value "Spatial Reuse Neighbor Valid"
                         }
                     }
                 }

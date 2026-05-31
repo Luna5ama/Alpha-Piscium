@@ -14,15 +14,15 @@ void main() {
         return;
     }
 
-    uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), idx);
+    uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), idx);
     uvec4 entry = rc_indirection[bufferIndex];
     uint faceMask = entry.y & 0x3fu;
-    if (faceMask == 0u || entry.z == RC_INVALID || !rcEntryMetaValid(entry.w)) {
+    if (faceMask == 0u || entry.z == RC_INVALID || !rc_entryMetaValid(entry.w)) {
         return;
     }
 
     uint faceCount = bitCount(faceMask);
-    uint classSize = rcAllocClassSize(faceCount);
+    uint classSize = rc_allocClassSize(faceCount);
     uint baseIndex = atomicAdd(rc_allocationCounter, classSize);
     if (baseIndex + classSize > uint(SETTING_RC_POOL_SIZE)) {
         rc_indirection[bufferIndex].x = RC_INVALID;

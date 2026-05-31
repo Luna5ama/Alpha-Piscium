@@ -31,16 +31,18 @@ void main() {
                 vec3 scenePos = coords_pos_viewToWorld(viewPos - gData.geomNormal * 0.02, gbufferModelViewInverse);
                 vec3 worldPos = scenePos + cameraPosition;
                 vec3 worldGeomNormal = coords_dir_viewToWorld(gData.geomNormal);
-                uint faceId = rcFaceIdFromNormal(worldGeomNormal);
-                ivec3 faceNormalI = rcFaceNormalI(faceId);
+                uint faceId = rc_faceIdFromNormal(worldGeomNormal);
+                ivec3 faceNormalI = rc_faceNormalI(faceId);
 
                 ivec3 ownerBlock = ivec3(floor(worldPos));
                 bool neighborOpen = !voxel_opaqueAtBlock(ownerBlock + faceNormalI);
                 if (neighborOpen) {
 
                     for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
-                        ivec3 worldCellCoord = rcWorldCellCoord(worldPos, level);
-                        rcTouchFace(level, worldCellCoord, faceId);
+                        ivec3 worldCellCoord = rc_worldCellCoord(worldPos, level);
+                        if (rc_touchFace(level, worldCellCoord, faceId)) {
+                            rc_markScreenTouchedFace(level, worldCellCoord, faceId);
+                        }
                     }
                 }
             }
