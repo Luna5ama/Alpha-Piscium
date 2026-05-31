@@ -61,21 +61,21 @@ void main() {
     }
 
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-    vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-    vec3 worldPos = feetPlayerPos + cameraPosition;
+    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse) - gData.geomNormal * 0.02;
+    vec3 scenePos = coords_pos_viewToWorld(viewPos, gbufferModelViewInverse);
+    vec3 worldPos = scenePos + cameraPosition;
     vec3 worldGeomNormal = coords_dir_viewToWorld(gData.geomNormal);
     uint faceId = rcFaceIdFromNormal(worldGeomNormal);
     ivec3 faceNormalI = rcFaceNormalI(faceId);
 
-    ivec3 ownerBlock = ivec3(floor(worldPos - rcFaceNormal(faceId) * 0.02));
+    ivec3 ownerBlock = ivec3(floor(worldPos));
     bool neighborOpen = !rcVoxelOpaqueAtBlock(ownerBlock + faceNormalI);
     if (!neighborOpen) {
         return;
     }
 
     for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
-        ivec3 worldCellCoord = rcWorldCellCoord(worldPos - rcFaceNormal(faceId) * 0.02, level);
+        ivec3 worldCellCoord = rcWorldCellCoord(worldPos, level);
         rcTouchFace(level, worldCellCoord, faceId);
     }
 }

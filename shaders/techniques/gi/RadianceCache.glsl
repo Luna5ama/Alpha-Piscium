@@ -411,7 +411,7 @@ RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N) {
     uint level = rcSelectLevel(P);
     ivec3 baseCell = rcWorldCellCoord(P, level);
 
-    const int searchRadius = 0;
+    const int searchRadius = 1;
     for (int z = -searchRadius; z <= searchRadius; z++) {
         for (int y = -searchRadius; y <= searchRadius; y++) {
             for (int x = -searchRadius; x <= searchRadius; x++) {
