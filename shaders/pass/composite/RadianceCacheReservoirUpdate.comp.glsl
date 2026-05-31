@@ -621,7 +621,7 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
         );
         selectedTargetWeight = selectedCandidate ? candidate.targetWeight : reservoirTargetWeight;
     } else {
-        rcReservoirInitFromCandidate(reservoir, candidate);
+        reservoir = rc_reservoirInitFromCandidate(candidate);
         if (rcReservoirValid(reservoir)) {
             wSum = candidate.targetWeight;
             selectedTargetWeight = candidate.targetWeight;

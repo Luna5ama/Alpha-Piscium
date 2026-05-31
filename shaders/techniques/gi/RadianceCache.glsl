@@ -383,7 +383,8 @@ vec3 rc_reservoirEstimateRadiance(RCReservoir reservoir) {
     return result;
 }
 
-void rcReservoirInitFromCandidate(inout RCReservoir reservoir, RCCandidate candidate) {
+RCReservoir rc_reservoirInitFromCandidate(RCCandidate candidate) {
+    RCReservoir reservoir;
     if (candidate.valid && candidate.targetWeight > 0.0) {
         reservoir.radiance = candidate.radiance;
         reservoir.avgWY = 1.0;
@@ -394,6 +395,7 @@ void rcReservoirInitFromCandidate(inout RCReservoir reservoir, RCCandidate candi
     } else {
         reservoir = rcReservoirInit();
     }
+    return reservoir;
 }
 
 bool rcReservoirUpdate(inout RCReservoir reservoir, inout float wSum, RCCandidate candidate, float randValue) {
