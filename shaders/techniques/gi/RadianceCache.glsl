@@ -322,13 +322,22 @@ RCLookupResult rcLookupInit() {
     return result;
 }
 
-uint rcSelectLevel(float queryRadiusBlocks) {
-//    if (queryRadiusBlocks < 32.0) return 0u;
-//    if (queryRadiusBlocks < 64.0) return 1u;
-//    if (queryRadiusBlocks < 128.0) return 2u;
-//    if (queryRadiusBlocks < 256.0) return 3u;
-//    return 4u;
-    return clamp(uint(ceil(log2(queryRadiusBlocks)) - 5.0), 0u, RC_CLIP_LEVELS - 1u);
+bool rcCellWithinValidBounds(ivec3 worldCellCoord, uint level) {
+    ivec3 cellDelta = worldCellCoord - rcWorldCellCoord(cameraPosition, level);
+    ivec3 minDelta = ivec3(-int(RC_CLIP_SIZE / 2u) + 1);
+    ivec3 maxDelta = ivec3(int(RC_CLIP_SIZE / 2u));
+    return all(greaterThanEqual(cellDelta, minDelta)) && all(lessThanEqual(cellDelta, maxDelta));
+}
+
+uint rcSelectLevel(vec3 P) {
+    for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
+        ivec3 baseCell = rcWorldCellCoord(P, level);
+        if (rcCellWithinValidBounds(baseCell, level) || level + 1u == RC_CLIP_LEVELS) {
+            return level;
+        }
+    }
+
+    return RC_CLIP_LEVELS - 1u;
 }
 
 void rcLookupSampleFace(
@@ -392,9 +401,9 @@ void rcLookupSampleFace(
     result.age = max(result.age, rcReservoirMetaAge(reservoir.meta));
 }
 
-RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N, float queryRadiusBlocks) {
+RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N) {
     RCLookupResult result = rcLookupInit();
-    uint level = rcSelectLevel(queryRadiusBlocks);
+    uint level = rcSelectLevel(P);
     ivec3 baseCell = rcWorldCellCoord(P, level);
 
     const int searchRadius = 0;

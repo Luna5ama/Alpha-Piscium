@@ -74,14 +74,15 @@ void rcTouchHit(VoxelHit hit) {
 
 bool rcLoadPreviousHitReservoir(
     VoxelHit hit,
-    uint level,
     out RCReservoir reservoir,
     out vec3 faceNormal
 ) {
     reservoir = rcReservoirInit();
     uint faceId = rcFaceIdFromNormal(hit.normal);
     faceNormal = rcFaceNormal(faceId);
-    ivec3 worldCellCoord = rcWorldCellCoord(hit.hitPos - faceNormal * 0.02, level);
+    vec3 surfacePos = hit.hitPos - faceNormal * 0.02;
+    uint level = rcSelectLevel(surfacePos);
+    ivec3 worldCellCoord = rcWorldCellCoord(surfacePos, level);
     uint entryIndex = rcEntryIndex(level, worldCellCoord);
     uint prevBufferIndex = rcBufferEntryIndex(rcPreviousSide(), entryIndex);
     uvec4 prevEntry = rc_indirection[prevBufferIndex];
@@ -153,7 +154,7 @@ RCHitSurface rcSampleHitSurface(VoxelHit hit) {
     return surface;
 }
 
-vec3 rcSampleHitRadiance(VoxelHit hit, vec3 outgoingDir, uint level, out bool valid) {
+vec3 rcSampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     valid = false;
     RCHitSurface surface = rcSampleHitSurface(hit);
     if (!surface.valid) {
@@ -165,7 +166,7 @@ vec3 rcSampleHitRadiance(VoxelHit hit, vec3 outgoingDir, uint level, out bool va
 
     RCReservoir prevReservoir;
     vec3 faceNormal;
-    if (!rcLoadPreviousHitReservoir(hit, level, prevReservoir, faceNormal)) {
+    if (!rcLoadPreviousHitReservoir(hit, prevReservoir, faceNormal)) {
         return radiance;
     }
 
@@ -228,7 +229,7 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
     rcTouchHit(hit);
 
     bool radianceValid = false;
-    vec3 radiance = rcSampleHitRadiance(hit, -worldDir, level, radianceValid);
+    vec3 radiance = rcSampleHitRadiance(hit, -worldDir, radianceValid);
     float targetWeight = rcLuminance(radiance) * cosTheta * safeRcp(localSample.w);
     bool candidateValid = radianceValid
         && targetWeight > 0.0
