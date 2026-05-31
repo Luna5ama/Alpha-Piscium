@@ -1,81 +1,49 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 #extension GL_KHR_shader_subgroup_ballot : enable
+#extension GL_NV_shader_subgroup_partitioned : enable
 
 #define RC_DATA_MODIFIER restrict buffer
-#include "/Base.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/voxel/Voxelization.glsl"
 #include "/util/GBufferData.glsl"
-#include "/util/MaterialIDConst.glsl"
 #include "/util/Morton.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
-
-bool rcVoxelOpaqueAtBlock(ivec3 worldBlockPos) {
-    ivec3 cameraBrick = cameraPositionInt >> 4;
-    ivec3 gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
-    ivec3 gridBlockPos = worldBlockPos - gridOrigin;
-    if (any(lessThan(gridBlockPos, ivec3(0))) || any(greaterThanEqual(gridBlockPos, ivec3(VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE)))) {
-        return false;
-    }
-
-    ivec3 brickCoord = gridBlockPos >> 4;
-    uint brickMorton = voxel_brickMorton(brickCoord);
-    uint allocID = voxel_brickAllocID[brickMorton];
-    if (allocID == VOXEL_UNALLOCATED) {
-        return false;
-    }
-
-    ivec3 blockInBrick = gridBlockPos & 15;
-    uint blockMorton = voxel_blockMorton(blockInBrick);
-    uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
-    return materialID != 0u && materialID != MATERIAL_ID_WATER;
-}
-
+const vec2 workGroupsRender = vec2(0.25, 0.25);
 
 void main() {
-    uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
-    uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
-    uvec2 workGroupOrigin = swizzledWGPos << 4u;
-    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
-    uvec2 mortonPos = morton_8bDecode(threadIdx);
-    ivec2 texelPos = ivec2(workGroupOrigin + mortonPos);
+    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy) << 2;
+    texelPos += ivec2(morton_8bDecode(uint(frameCounter + morton_32bEncode(gl_GlobalInvocationID.xy)) & 15u));
 
-    if (!all(lessThan(texelPos, uval_mainImageSizeI))) {
-        return;
-    }
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
+        if (viewZ > -65536.0) {
+            GBufferData gData = gbufferData_init();
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
 
-    float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
-    if (viewZ <= -65536.0) {
-        return;
-    }
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
-    GBufferData gData = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
-    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
-    if (gData.materialID == 0u || gData.materialID == MATERIAL_ID_WATER || gData.materialID >= 65533u) {
-        return;
-    }
+            if (gData.materialID != 0u && gData.materialID != MATERIAL_ID_WATER && gData.materialID < 65533u) {
+                vec3 scenePos = coords_pos_viewToWorld(viewPos - gData.geomNormal * 0.02, gbufferModelViewInverse);
+                vec3 worldPos = scenePos + cameraPosition;
+                vec3 worldGeomNormal = coords_dir_viewToWorld(gData.geomNormal);
+                uint faceId = rcFaceIdFromNormal(worldGeomNormal);
+                ivec3 faceNormalI = rcFaceNormalI(faceId);
 
-    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse) - gData.geomNormal * 0.02;
-    vec3 scenePos = coords_pos_viewToWorld(viewPos, gbufferModelViewInverse);
-    vec3 worldPos = scenePos + cameraPosition;
-    vec3 worldGeomNormal = coords_dir_viewToWorld(gData.geomNormal);
-    uint faceId = rcFaceIdFromNormal(worldGeomNormal);
-    ivec3 faceNormalI = rcFaceNormalI(faceId);
+                ivec3 ownerBlock = ivec3(floor(worldPos));
+                bool neighborOpen = !voxel_opaqueAtBlock(ownerBlock + faceNormalI);
+                if (neighborOpen) {
 
-    ivec3 ownerBlock = ivec3(floor(worldPos));
-    bool neighborOpen = !rcVoxelOpaqueAtBlock(ownerBlock + faceNormalI);
-    if (!neighborOpen) {
-        return;
-    }
-
-    for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
-        ivec3 worldCellCoord = rcWorldCellCoord(worldPos, level);
-        rcTouchFace(level, worldCellCoord, faceId);
+                    for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
+                        ivec3 worldCellCoord = rcWorldCellCoord(worldPos, level);
+                        rcTouchFace(level, worldCellCoord, faceId);
+                    }
+                }
+            }
+        }
     }
 }

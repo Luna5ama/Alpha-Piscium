@@ -137,6 +137,10 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printInt(SETTING_RC_POOL_SIZE);
     printLine();
 
+    printString((_A, _l, _l, _o, _c, _a, _t, _i, _o, _n, _space, _O, _v, _e, _r, _f, _l, _o, _w, _colon, _space));
+    printUnsignedInt(rc_poolOverflowCounter);
+    printLine();
+
     printString((_R, _e, _s, _e, _r, _v, _o, _i, _r, _space, _M, _space, _c, _a, _p, _colon, _space));
     printInt(SETTING_RC_M_MAX);
     printLine();
