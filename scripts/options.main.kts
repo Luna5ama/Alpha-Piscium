@@ -974,6 +974,84 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
             }
             screen(1) {
                 lang {
+                    name = "Radiance Cache"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "辐射度缓存"
+                }
+                toggle("SETTING_RC_ENABLE", false) {
+                    lang {
+                        name = "Surface Radiance Cache"
+                        comment = "Enables the world-space surface-face radiance cache for diffuse GI."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "表面辐射度缓存"
+                        comment = "启用用于漫反射GI的世界空间表面面缓存。"
+                    }
+                }
+                slider("SETTING_RC_POOL_SIZE", 262144, powerOfTwoRange(16..20)) {
+                    lang {
+                        name = "Reservoir Pool Size"
+                        comment = "Maximum number of radiance-cache face reservoirs."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "Reservoir池大小"
+                        comment = "辐射度缓存面Reservoir的最大数量。"
+                    }
+                }
+                slider("SETTING_RC_M_MAX", 32, powerOfTwoRange(2..6)) {
+                    lang {
+                        name = "Reservoir M Clamp"
+                        comment = "Maximum temporal sample count per cached face."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "Reservoir M上限"
+                        comment = "每个缓存面的最大时间样本数。"
+                    }
+                }
+                toggle("SETTING_RC_LOOKUP_MODE", 1, 0..1) {
+                    lang {
+                        name = "Lookup Mode"
+                        0 value "Fallback"
+                        1 value "Cache"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "查询模式"
+                        0 value "回退"
+                        1 value "缓存"
+                    }
+                }
+                slider("SETTING_DEBUG_RC_MODE", 0, 0..9) {
+                    lang {
+                        name = "Debug Mode"
+                        0 value "Off"
+                        1 value "Clip Level"
+                        2 value "Face Mask"
+                        3 value "Face Count"
+                        4 value "Reservoir M"
+                        5 value "Age"
+                        6 value "Key Mismatch"
+                        7 value "Hit Miss"
+                        8 value "Cached GI"
+                        9 value "Fallback GI"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "调试模式"
+                        0 value "关闭"
+                        1 value "Clip级别"
+                        2 value "面掩码"
+                        3 value "面数量"
+                        4 value "Reservoir M"
+                        5 value "年龄"
+                        6 value "Key不匹配"
+                        7 value "命中缺失"
+                        8 value "仅缓存GI"
+                        9 value "仅回退GI"
+                    }
+                }
+            }
+            screen(1) {
+                lang {
                     name = "Denoiser"
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
