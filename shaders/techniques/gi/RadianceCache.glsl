@@ -89,7 +89,7 @@ uint rcVoxelSize(uint level) {
 }
 
 ivec3 rcWorldCellCoord(vec3 worldPos, uint level) {
-    return ivec3(floor(worldPos / float(rcVoxelSize(level))));
+    return ivec3(floor(ldexp(worldPos, ivec3(-int(level)))));
 }
 
 uvec3 rcClipTexel(ivec3 worldCellCoord) {
@@ -226,7 +226,7 @@ uint rcFaceIdFromNormal(vec3 normal) {
 
 vec3 rcFaceCenter(ivec3 worldCellCoord, uint level, uint faceId) {
     float voxelSize = float(rcVoxelSize(level));
-    vec3 cellMin = vec3(worldCellCoord) * voxelSize;
+    vec3 cellMin = ldexp(worldCellCoord, ivec3(level));
     vec3 center = cellMin + vec3(voxelSize * 0.5);
     center += rcFaceNormal(faceId) * (voxelSize * 0.5);
     return center;
@@ -433,8 +433,7 @@ void rcLookupSampleFaceWeighted(
 
     vec3 faceCenter = rcFaceCenter(worldCellCoord, level, faceId);
 
-    float voxelSize = float(rcVoxelSize(level));
-    float thickness = voxelSize * 0.25;
+    float thickness = ldexp(0.75, int(level));
 
     float side = dot(P - faceCenter, faceNormal);
     if (side < -thickness) {
@@ -595,8 +594,7 @@ void rcLookupSampleFace1x1(
 
     vec3 faceCenter = rcFaceCenter(worldCellCoord, level, faceId);
 
-    float voxelSize = float(rcVoxelSize(level));
-    float thickness = voxelSize * 0.25;
+    float thickness = ldexp(0.75, int(level));
 
     float side = dot(P - faceCenter, faceNormal);
     if (side < -thickness) {
@@ -629,7 +627,7 @@ void rcLookupSampleFace1x1(
 RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N) {
     RCLookupResult result = rcLookupInit();
 
-    uint level = rcSelectLevel(P);
+    uint level = 1;
     float voxelSize = float(rcVoxelSize(level));
 
     uint faceId = rcDominantFaceId(N);
