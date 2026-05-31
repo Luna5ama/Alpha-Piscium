@@ -22,6 +22,8 @@
 #define RC_ENTRY_META_LEVEL_MASK 0x00000007u
 #define RC_ENTRY_META_AGE_SHIFT 8u
 #define RC_ENTRY_META_AGE_MASK 0x0000ff00u
+#define RC_ENTRY_META_PENDING_FACE_SHIFT 16u
+#define RC_ENTRY_META_PENDING_FACE_MASK 0x003f0000u
 
 #define RC_RES_META_VALID 0x80000000u
 #define RC_RES_META_AGE_SHIFT 8u
@@ -185,6 +187,12 @@ ivec3 rcWorldCellCoordFromEntryIndex(uint entryIndex) {
     );
 }
 
+bool rcWorldCellInCurrentClip(uint level, ivec3 worldCellCoord) {
+    ivec3 cameraCell = rcWorldCellCoord(cameraPosition, level);
+    ivec3 delta = worldCellCoord - cameraCell;
+    return all(lessThanEqual(abs(delta), ivec3(31)));
+}
+
 uint rcBufferEntryIndex(uint side, uint entryIndex) {
     return side * RC_ENTRY_COUNT + entryIndex;
 }
@@ -233,6 +241,18 @@ uint rcEntryMetaLevel(uint meta) {
 
 uint rcEntryMetaAge(uint meta) {
     return (meta & RC_ENTRY_META_AGE_MASK) >> RC_ENTRY_META_AGE_SHIFT;
+}
+
+uint rcEntryMetaPendingFaceMask(uint meta) {
+    return (meta & RC_ENTRY_META_PENDING_FACE_MASK) >> RC_ENTRY_META_PENDING_FACE_SHIFT;
+}
+
+uint rcEntryMetaPendingFaceBits(uint faceMask) {
+    return (faceMask & 0x3fu) << RC_ENTRY_META_PENDING_FACE_SHIFT;
+}
+
+uint rcEntryMetaClearPendingFaces(uint meta) {
+    return meta & ~RC_ENTRY_META_PENDING_FACE_MASK;
 }
 
 uint rcPackReservoirMeta(uint age, bool valid, uint flags) {
@@ -835,7 +855,8 @@ void rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
         }
 
         atomicOr(rc_indirection[bufferIndex].y, rcFaceBit(faceId));
-        rc_indirection[bufferIndex].w = rcPackEntryMeta(level, 0u, true);
+        uint pendingFaceBits = rc_indirection[bufferIndex].w & RC_ENTRY_META_PENDING_FACE_MASK;
+        rc_indirection[bufferIndex].w = rcPackEntryMeta(level, 0u, true) | pendingFaceBits;
     } else {
         atomicAdd(rc_keyMismatchCounter, 1u);
     }
