@@ -27,7 +27,6 @@ layout(std430, binding = 9) VOXEL_FACE_TEXCOORD_MODIFIER VoxelFaceTexcoordData {
 uint voxel_faceTexcoordIndex(uint materialID, uint faceIdx) {
     return materialID * 6u + faceIdx;
 }
-
 // Map a world-space surface normal to a face index 0..5.
 // (+X=0, -X=1, +Y=2, -Y=3, +Z=4, -Z=5)
 uint voxel_faceIndexFromNormal(vec3 worldNormal) {
@@ -40,6 +39,19 @@ uint voxel_faceIndexFromNormal(vec3 worldNormal) {
         return worldNormal.z >= 0.0 ? 4u : 5u;
     }
 }
+
+vec2 voxel_faceLocalUV(uint faceIdx, vec3 hitPos) {
+    vec3 f = fract(hitPos);
+    uint faceAxis = faceIdx >> 1u;
+    bool positiveFace = (faceIdx & 1u) == 0u;
+    if (faceAxis == 0u) {
+        return vec2(positiveFace ? 1.0 - f.z : f.z, f.y);
+    } else if (faceAxis == 1u) {
+        return vec2(f.x, positiveFace ? 1.0 - f.z : f.z);
+    }
+    return vec2(positiveFace ? f.x : 1.0 - f.x, f.y);
+}
+
 
 #endif // INCLUDE_techniques_voxel_VoxelFaceTexcoords_glsl
 
