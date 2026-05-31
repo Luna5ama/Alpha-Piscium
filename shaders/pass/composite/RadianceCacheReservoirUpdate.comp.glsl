@@ -238,12 +238,22 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
         && rcHasFace(prevEntry.y, faceId);
 
     uint historyAge = 0u;
+    float reservoirTargetWeight = 0.0;
     if (historyValid) {
         uint prevReservoirIndex = rcFaceReservoirIndex(prevEntry.x, prevEntry.y, faceId);
         if (prevReservoirIndex < uint(SETTING_RC_POOL_SIZE)) {
             reservoir = rcReservoirLoad(rcPreviousSide(), prevReservoirIndex);
             historyValid = rcReservoirValid(reservoir);
-            historyAge = rcReservoirMetaAge(reservoir.meta);
+            if (historyValid) {
+                historyAge = rcReservoirMetaAge(reservoir.meta);
+                reservoirTargetWeight = rcReservoirTargetWeight(reservoir);
+                historyValid = reservoir.avgWY > 0.0
+                    && reservoir.m > 0.0
+                    && reservoirTargetWeight > 0.0
+                    && !isnan(reservoir.avgWY)
+                    && !isnan(reservoir.m)
+                    && !isnan(reservoirTargetWeight);
+            }
         } else {
             historyValid = false;
         }
@@ -251,13 +261,16 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
 
     if (historyValid) {
         float randValue = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x85EBCA6Bu)));
-        float reservoirTargetWeight = rcReservoirTargetWeight(reservoir);
-        float wSum = max(0.0, reservoir.avgWY) * reservoir.m * reservoirTargetWeight;
+        float wSum = reservoir.avgWY * reservoir.m * reservoirTargetWeight;
         bool selectedCandidate = rcReservoirUpdate(reservoir, wSum, candidate, randValue);
         float selectedTargetWeight = selectedCandidate ? candidate.targetWeight : reservoirTargetWeight;
-        bool reservoirValid = rcReservoirValid(reservoir) && selectedTargetWeight > 0.0 && wSum > 0.0;
+        bool reservoirValid = rcReservoirValid(reservoir)
+            && selectedTargetWeight > 0.0
+            && wSum > 0.0
+            && !isnan(wSum);
         reservoir.avgWY = reservoirValid ? wSum * safeRcp(reservoir.m) * safeRcp(selectedTargetWeight) : 0.0;
         reservoir.meta = rcPackReservoirMeta(min(historyAge + 1u, 255u), reservoirValid, 0u);
+        reservoir.m = clamp(reservoir.m, 0.0, float(SETTING_RC_M_MAX));
     } else {
         rcReservoirInitFromCandidate(reservoir, candidate);
     }

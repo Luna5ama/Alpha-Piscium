@@ -296,8 +296,8 @@ bool rcReservoirUpdate(inout RCReservoir reservoir, inout float wSum, RCCandidat
     }
 
     wSum += candidate.targetWeight;
-    reservoir.m = clamp(reservoir.m + 1.0, 1.0, float(SETTING_RC_M_MAX));
-    float p = candidate.targetWeight / max(wSum, 1e-6);
+    reservoir.m += 1.0;
+    float p = candidate.targetWeight * safeRcp(wSum);
     if (randValue < p) {
         reservoir.radiance = candidate.radiance;
         reservoir.sampleDir = candidate.dir;
