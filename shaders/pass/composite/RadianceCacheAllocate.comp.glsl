@@ -1,4 +1,6 @@
+#define GLOBAL_DATA_MODIFIER buffer
 #define RC_DATA_MODIFIER restrict buffer
+#include "/Base.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
 
 layout(local_size_x = 256) in;
@@ -6,6 +8,9 @@ const ivec3 workGroups = ivec3(5120, 1, 1);
 
 void main() {
     uint idx = gl_GlobalInvocationID.x;
+    if (idx == 0u) {
+        global_dispatchSize3 = uvec4((RC_ENTRY_COUNT + 127u) / 128u, 1u, 1u, 0u);
+    }
     if (idx >= RC_ENTRY_COUNT) {
         return;
     }

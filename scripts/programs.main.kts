@@ -236,10 +236,11 @@ programs {
         pass("/pass/composite/RadianceCacheAllocate.comp.glsl") {
             cond("defined(SETTING_RC_ENABLE)")
         }
+        pass("/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl")
         pass("/pass/composite/RadianceCacheReservoirUpdate.comp.glsl") {
+            indirect(0, 32)
             cond("defined(SETTING_RC_ENABLE)")
         }
-        pass("/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl")
         pass("/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl")
         pass("/pass/composite/DOFFocus.comp.glsl") {
             cond("defined(SETTING_DOF) && !defined(SETTING_DOF_MANUAL_FOCUS)")

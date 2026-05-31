@@ -1,6 +1,8 @@
 #define RC_DATA_MODIFIER restrict buffer
 
-layout(local_size_x = 256) in;
+layout(local_size_x = 128) in;
+
+// Indirect dispatch dimensions are written by RadianceCacheAllocate.
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
@@ -13,7 +15,6 @@ layout(local_size_x = 256) in;
 #include "/util/MaterialIDConst.glsl"
 #include "/util/Rand.glsl"
 
-const ivec3 workGroups = ivec3(5120, 1, 1);
 
 vec3 rcHemisphereDirection(vec3 normal, vec3 localDir) {
     vec3 up = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
