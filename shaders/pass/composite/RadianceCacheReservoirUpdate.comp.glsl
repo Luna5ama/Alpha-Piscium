@@ -21,18 +21,6 @@ vec3 rcHemisphereDirection(vec3 normal, vec3 localDir) {
     return normalize(T * localDir.x + B * localDir.y + normal * localDir.z);
 }
 
-vec2 rcFaceLocalUV(uint faceId, vec3 hitPos) {
-    vec3 f = fract(hitPos);
-    uint faceAxis = faceId >> 1u;
-    bool positiveFace = (faceId & 1u) == 0u;
-    if (faceAxis == 0u) {
-        return vec2(positiveFace ? 1.0 - f.z : f.z, f.y);
-    } else if (faceAxis == 1u) {
-        return vec2(f.x, positiveFace ? 1.0 - f.z : f.z);
-    }
-    return vec2(positiveFace ? f.x : 1.0 - f.x, f.y);
-}
-
 void rcTouchHit(VoxelHit hit) {
     uint faceId = rcFaceIdFromNormal(hit.normal);
     vec3 faceNormal = rcFaceNormal(faceId);
@@ -107,7 +95,7 @@ RCHitSurface rcSampleHitSurface(VoxelHit hit) {
         return surface;
     }
 
-    vec2 localUV = rcFaceLocalUV(faceId, hit.hitPos);
+    vec2 localUV = voxel_faceLocalUV(faceId, hit.hitPos);
     vec2 atlasUV = mix(tc.xw, tc.zy, localUV);
     vec3 baseColor = colors2_material_toWorkSpace(texture(usam_blockAtlasColor, atlasUV).rgb);
     if (any(isnan(baseColor))) {
