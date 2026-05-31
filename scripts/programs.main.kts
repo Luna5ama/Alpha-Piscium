@@ -130,6 +130,16 @@ programs {
 
     ProgramType.SHADOWCOMP {
         pass("/pass/shadowcomp/EvaluateShadowWaterNormal.glsl")
+        pass("/pass/shadow/VoxelTreeBuilder.comp.glsl")
+        pass("/pass/shadow/VoxelTreePropagator.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE < 64")
+        }
+        pass("/pass/shadow/VoxelTreePropagatorLower.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE == 64")
+        }
+        pass("/pass/shadow/VoxelTreePropagatorUpper.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE == 64")
+        }
     }
 
     ProgramType.BEGIN {
@@ -152,9 +162,27 @@ programs {
             "/techniques/atmospherics/clouds/amblut/Gather.comp.glsl",
             "/pass/begin/ClearEnvProbe.comp.glsl"
         )
-        pass("/pass/begin/InitThreadGroupTilling.glsl")
+        pass(
+            "/pass/begin/InitThreadGroupTilling.glsl",
+            "/pass/begin/ClearVoxelData.comp.glsl"
+        )
         pass("/pass/begin/ClearScreen3.comp.glsl") {
             cond("defined(VOXY)")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_Clear.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_Remap.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_PrefixSum.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_Assign.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocator.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE == 16")
         }
     }
 
