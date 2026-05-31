@@ -276,7 +276,7 @@ void rcReservoirStore(uint side, uint reservoirIndex, RCReservoir reservoir) {
 }
 
 float rcLuminance(vec3 radiance) {
-    return dot(max(radiance, vec3(0.0)), vec3(0.2126, 0.7152, 0.0722));
+    return length(radiance);
 }
 
 void rcReservoirInitFromCandidate(inout RCReservoir reservoir, RCCandidate candidate) {
@@ -396,9 +396,10 @@ RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N, float queryRadiusBlocks) {
     uint level = rcSelectLevel(queryRadiusBlocks);
     ivec3 baseCell = rcWorldCellCoord(P, level);
 
-    for (int z = -1; z <= 1; z++) {
-        for (int y = -1; y <= 1; y++) {
-            for (int x = -1; x <= 1; x++) {
+    const int searchRadius = 0;
+    for (int z = -searchRadius; z <= searchRadius; z++) {
+        for (int y = -searchRadius; y <= searchRadius; y++) {
+            for (int x = -searchRadius; x <= searchRadius; x++) {
                 ivec3 cell = baseCell + ivec3(x, y, z);
                 for (uint faceId = 0u; faceId < 6u; faceId++) {
                     rcLookupSampleFace(result, P, N, level, cell, faceId);

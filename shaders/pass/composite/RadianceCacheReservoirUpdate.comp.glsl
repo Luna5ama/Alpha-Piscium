@@ -79,8 +79,8 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
     }
 
     bool radianceValid = false;
-    vec3 radiance = rcSampleCurrentScreenRadiance(hit.hitPos, -worldDir, radianceValid);
-    float targetWeight = rcLuminance(radiance) * cosTheta / max(localSample.w, 1e-6);
+     vec3 radiance = rcSampleCurrentScreenRadiance(hit.hitPos, -worldDir, radianceValid);
+    float targetWeight = rcLuminance(radiance) * cosTheta * safeRcp(localSample.w);
     if (!radianceValid || targetWeight <= 0.0 || any(isnan(radiance)) || isnan(targetWeight)) {
         return candidate;
     }
