@@ -4317,9 +4317,9 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     3 value "Cosine"
                 }
             }
-            toggle("SETTING_DEBUG_VOXEL_BRICKS", false) {
+            toggle("SETTING_DEBUG_VOXEL_COUNTER", false) {
                 lang {
-                    name = "Voxel Brick Counter"
+                    name = "Voxel Debug Counter"
                 }
             }
             toggle("SETTING_GI_USE_REFERENCE", false) {
