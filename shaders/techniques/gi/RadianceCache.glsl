@@ -78,7 +78,7 @@ struct RCLookupResult {
 };
 
 uint rcCurrentSide() {
-    return frameCounter & 1u;
+    return uint(frameCounter) & 1u;
 }
 
 uint rcPreviousSide() {
@@ -323,11 +323,12 @@ RCLookupResult rcLookupInit() {
 }
 
 uint rcSelectLevel(float queryRadiusBlocks) {
-    if (queryRadiusBlocks < 16.0) return 0u;
-    if (queryRadiusBlocks < 32.0) return 1u;
-    if (queryRadiusBlocks < 64.0) return 2u;
-    if (queryRadiusBlocks < 128.0) return 3u;
-    return 4u;
+//    if (queryRadiusBlocks < 32.0) return 0u;
+//    if (queryRadiusBlocks < 64.0) return 1u;
+//    if (queryRadiusBlocks < 128.0) return 2u;
+//    if (queryRadiusBlocks < 256.0) return 3u;
+//    return 4u;
+    return clamp(uint(ceil(log2(queryRadiusBlocks)) - 5.0), 0u, RC_CLIP_LEVELS - 1u);
 }
 
 void rcLookupSampleFace(

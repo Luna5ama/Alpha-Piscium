@@ -122,7 +122,7 @@ void main() {
                 vec3 feetPlayerPos = coords_pos_viewToWorld(viewPos - lighting_gData.geomNormal * 0.05, gbufferModelViewInverse);
                 vec3 worldPos = feetPlayerPos + cameraPosition;
                 vec3 worldNormal = coords_dir_viewToWorld(lighting_gData.normal);
-                RCLookupResult rcLookup = rcLookupDiffuseGI(worldPos, worldNormal, length(floor(feetPlayerPos + cameraPositionFract)) * 0.5);
+                RCLookupResult rcLookup = rcLookupDiffuseGI(worldPos, worldNormal, mmax3(abs(feetPlayerPos + cameraPositionFract)));
                 bool rcHit = rcLookup.weight > 0.0;
                 if (SETTING_RC_LOOKUP_MODE == 1 && rcHit) {
                     giOut1.rgb = rcLookup.radiance;
