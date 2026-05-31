@@ -79,17 +79,17 @@ bool voxel_opaqueAtGridBlock(ivec3 gridBlockPos) {
     return voxel_isGIOpaqueMaterial(voxel_loadMaterialID(allocID, blockMorton));
 }
 
-void rcMarkPendingVisibleFace(uint faceId, ivec3 worldBlockPos) {
+void rc_markPendingVisibleFace(uint faceId, ivec3 worldBlockPos) {
     vec3 ownerBlockCenter = vec3(worldBlockPos) + vec3(0.5);
     for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
-        ivec3 worldCellCoord = rcWorldCellCoord(ownerBlockCenter, level);
-        if (!rcWorldCellInCurrentClip(level, worldCellCoord)) {
+        ivec3 worldCellCoord = rc_worldCellCoord(ownerBlockCenter, level);
+        if (!rc_worldCellInCurrentClip(level, worldCellCoord)) {
             continue;
         }
 
-        uint entryIndex = rcEntryIndex(level, worldCellCoord);
-        uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
-        atomicOr(rc_indirection[bufferIndex].w, rcEntryMetaPendingFaceBits(rcFaceBit(faceId)));
+        uint entryIndex = rc_entryIndex(level, worldCellCoord);
+        uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
+        atomicOr(rc_indirection[bufferIndex].w, rc_entryMetaPendingFaceBits(rc_faceBit(faceId)));
     }
 }
 
@@ -155,10 +155,10 @@ void main() {
                 ivec3 worldBlockPos = gridOrigin + gridBlockPos;
 
                 for (uint faceId = 0u; faceId < 6u; faceId++) {
-                    ivec3 faceNormalI = rcFaceNormalI(faceId);
+                    ivec3 faceNormalI = rc_faceNormalI(faceId);
                     ivec3 neighborGridBlock = gridBlockPos + faceNormalI;
                     if (!voxel_opaqueAtGridBlock(neighborGridBlock)) {
-                        rcMarkPendingVisibleFace(faceId, worldBlockPos);
+                        rc_markPendingVisibleFace(faceId, worldBlockPos);
                     }
                 }
             }

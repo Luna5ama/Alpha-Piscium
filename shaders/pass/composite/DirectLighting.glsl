@@ -121,8 +121,8 @@ void main() {
                 vec3 worldPos = scenePos + cameraPosition;
                 vec3 worldNormal = coords_dir_viewToWorld(lighting_gData.normal);
                 vec3 worldGeomNormal = coords_dir_viewToWorld(lighting_gData.geomNormal);
-                RCLookupResult rcLookup = rcLookupDiffuseGI(worldPos, worldNormal, worldGeomNormal);
-//                RCLookupResult rcLookup = rcLookupDiffuseGISmooth(worldPos, worldNormal, worldGeomNormal);
+                RCLookupResult rcLookup = rc_lookupDiffuseGI(worldPos, worldNormal, worldGeomNormal);
+//                RCLookupResult rcLookup = rc_lookupDiffuseGISmooth(worldPos, worldNormal, worldGeomNormal);
                 bool rcHit = rcLookup.weight > 0.0;
                 if (SETTING_RC_LOOKUP_MODE == 1 && rcHit) {
                     giOut1.rgb = rcLookup.radiance;
@@ -143,7 +143,7 @@ void main() {
                 #elif SETTING_DEBUG_RC_MODE == 3
                 debugOut.rgb = vec3(float(bitCount(rcLookup.faceMask)) / 6.0);
                 #elif SETTING_DEBUG_RC_MODE == 4
-                debugOut.rgb = vec3(rcLookup.m / float(SETTING_RC_M_MAX));
+                debugOut.rgb = vec3(rcLookup.m / float(SETTING_RC_M_CAP));
                 #elif SETTING_DEBUG_RC_MODE == 5
                 debugOut.rgb = vec3(float(rcLookup.age) / 255.0);
                 #elif SETTING_DEBUG_RC_MODE == 6
@@ -154,6 +154,8 @@ void main() {
                 debugOut.rgb = rcHit ? rcLookup.radiance : vec3(0.0);
                 #elif SETTING_DEBUG_RC_MODE == 9
                 debugOut.rgb = fallbackGI;
+                #elif SETTING_DEBUG_RC_MODE == 10
+                debugOut.rgb = vec3(rcLookup.debug);
                 #endif
                 imageStore(uimg_temp3, texelPos, debugOut);
                 #endif
