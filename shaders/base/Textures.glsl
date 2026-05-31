@@ -140,6 +140,10 @@ uniform usampler1D usam_pbrLUT0;
 uniform sampler1D usam_f82;
 uniform sampler2D usam_specBRDFLUT;
 
+uniform sampler2D usam_blockAtlasColor;
+uniform sampler2D usam_blockAtlasNormal;
+uniform sampler2D usam_blockAtlasSpecular;
+
 uniform usampler2D usam_restirReuseTex0;
 uniform usampler2D usam_restirReuseTex1;
 uniform usampler2D usam_restirReuseTex2;
