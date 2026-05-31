@@ -126,6 +126,7 @@ programs {
         pass("/pass/setup/ClearRGB10A2.glsl")
         pass("/pass/setup/ClearRGBA8.glsl")
         pass("/pass/setup/ClearR32F.glsl")
+        pass("/pass/setup/ClearVoxelFaceTexcoords.comp.glsl")
     }
 
     ProgramType.SHADOWCOMP {

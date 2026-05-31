@@ -1,5 +1,5 @@
 // Clears SSBO 4 (voxel material data) every frame so the shadow pass starts
-// from a clean slate.  The dense 64-tree (SSBO 8) is self-clearing:
+// from a clean slate. The dense 64-tree (SSBO 8) is self-clearing:
 //   L1/L2 are always written by VoxelTreeBuilder (zeroed for unallocated bricks).
 //   L3–L5 are always written by the propagator passes (zero when children are zero).
 //

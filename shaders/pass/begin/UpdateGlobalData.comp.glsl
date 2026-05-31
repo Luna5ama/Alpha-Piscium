@@ -7,6 +7,8 @@
 #include "/util/Rand.glsl"
 #include "/util/Morton.glsl"
 #include "/util/Time.glsl"
+#define VOXEL_FACE_TEXCOORD_MODIFIER buffer
+#include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 
 layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(3, 1, 1);
@@ -143,6 +145,8 @@ void main() {
             }
             global_cameraData.frustumPlaneCount = pcount;
         }
+
+        voxel_faceTexcoords[frameCounter % VOXEL_FACE_TEXCOORD_MATERIALS] = vec4(0.0);
     } else if (gl_WorkGroupID.x == 1) {
         ivec2 mainImageSize = imageSize(uimg_main);
         for (uint i = 0; i < 16; i++) {
