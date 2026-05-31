@@ -76,7 +76,7 @@ void main() {
     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
     vec3 worldPos = feetPlayerPos + cameraPosition;
-    vec3 worldGeomNormal = normalize(mat3(gbufferModelViewInverse) * gData.geomNormal);
+    vec3 worldGeomNormal = coords_dir_viewToWorld(gData.geomNormal);
     uint faceId = rcFaceIdFromNormal(worldGeomNormal);
     ivec3 faceNormalI = rcFaceNormalI(faceId);
 

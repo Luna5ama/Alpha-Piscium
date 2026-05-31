@@ -85,7 +85,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
             vec2 ambLutUV = cloods_amblut_uv(viewDir, jitters);
 
             vec3 rayEndView = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-            vec3 rayDir = normalize(mat3(gbufferModelViewInverse) * rayEndView);
+            vec3 rayDir = coords_dir_viewToWorld(rayEndView);
             SkyViewLutParams skyViewLutParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, rayDir);
             #ifdef SETTING_CLOUDS_CU
             uvec4 packedData = transient_lowCloudAccumulated_fetch(texelPos);

@@ -39,7 +39,9 @@ vec3 rcSampleCurrentScreenRadiance(vec3 hitWorldPos, vec3 outgoingWorldDir, out 
 
     vec3 hitRadiance = colors_FP16LuvToWorkingColor(hitRadianceData.x);
     vec3 hitEmissive = colors_FP16LuvToWorkingColor(hitRadianceData.y);
-    vec3 result = hitRadiance * float(hitCosTheta > 0.0) + hitEmissive;
+    // TODO: sample radiance cache instead of screen radiance
+//    vec3 result = hitRadiance * float(hitCosTheta > 0.0) + hitEmissive;
+    vec3 result = hitEmissive;
     valid = rcLuminance(result) > 0.0;
     return result;
 }

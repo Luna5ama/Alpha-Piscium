@@ -119,10 +119,10 @@ void main() {
                 giOut1 = vec4(0.0);
             } else {
                 #ifdef SETTING_RC_ENABLE
-                vec3 feetPlayerPos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
+                vec3 feetPlayerPos = coords_pos_viewToWorld(viewPos - lighting_gData.geomNormal * 0.05, gbufferModelViewInverse);
                 vec3 worldPos = feetPlayerPos + cameraPosition;
-                vec3 worldNormal = normalize(mat3(gbufferModelViewInverse) * lighting_gData.normal);
-                worldPos -= worldNormal * 0.1;
+                vec3 worldNormal = coords_dir_viewToWorld(lighting_gData.normal);
+                worldPos -= worldNormal * 0.01;
                 RCLookupResult rcLookup = rcLookupDiffuseGI(worldPos, worldNormal, 16.0);
                 bool rcHit = rcLookup.weight > 0.0;
                 if (SETTING_RC_LOOKUP_MODE == 1 && rcHit) {
