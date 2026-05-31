@@ -999,7 +999,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "辐射度缓存面Reservoir的最大数量。"
                     }
                 }
-                slider("SETTING_RC_M_MAX", 32, powerOfTwoRange(2..6)) {
+                slider("SETTING_RC_M_MAX", 16, powerOfTwoRange(0..6)) {
                     lang {
                         name = "Reservoir M Clamp"
                         comment = "Maximum temporal sample count per cached face."
