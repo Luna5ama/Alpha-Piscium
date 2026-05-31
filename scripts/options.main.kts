@@ -937,6 +937,46 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         1 value "缓存"
                     }
                 }
+                toggle("SETTING_RC_SPATIAL_ENABLE", false) {
+                    lang {
+                        name = "Spatial Reuse"
+                        comment = "Enables same-face 3x3 tangent-plane spatial reuse from the previous cache side."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "空间复用"
+                        comment = "启用来自上一缓存side的同面3x3切平面空间复用。"
+                    }
+                }
+                toggle("SETTING_RC_SPATIAL_USE_JACOBIAN", true) {
+                    lang {
+                        name = "Spatial Jacobian"
+                        comment = "Uses area-pdf reconnection Jacobian when evaluating spatial reuse."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "空间Jacobian"
+                        comment = "在评估空间复用时使用面积pdf重连Jacobian。"
+                    }
+                }
+                toggle("SETTING_RC_SPATIAL_USE_MIS", true) {
+                    lang {
+                        name = "Spatial MIS"
+                        comment = "Applies pairwise MIS between the local proposal and one shifted neighbor proposal."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "空间MIS"
+                        comment = "在本地proposal和一个shift后的邻居proposal之间应用成对MIS。"
+                    }
+                }
+                slider("SETTING_RC_SPATIAL_MAX_DIST", 1.75, 1.0..3.0 step 0.25) {
+                    lang {
+                        name = "Spatial Radius"
+                        comment = "Maximum tangent-plane neighbor distance in voxel widths for radiance-cache spatial reuse."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "空间半径"
+                        comment = "辐射度缓存空间复用允许的最大切平面邻居距离，以体素宽度计。"
+                    }
+                }
                 slider("SETTING_DEBUG_RC_MODE", 0, 0..9) {
                     lang {
                         name = "Debug Mode"
