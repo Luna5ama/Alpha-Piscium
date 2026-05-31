@@ -373,6 +373,20 @@ float rcLuminance(vec3 radiance) {
     return length(radiance);
 }
 
+vec3 rcReservoirEstimateRadiance(RCReservoir reservoir) {
+    if (
+        !rcReservoirValid(reservoir)
+        || reservoir.avgWY <= 0.0
+        || any(isnan(reservoir.radiance))
+        || isnan(reservoir.avgWY)
+    ) {
+        return vec3(0.0);
+    }
+
+    float correction = clamp(reservoir.avgWY, 0.0, 4.0);
+    return reservoir.radiance * correction;
+}
+
 void rcReservoirInitFromCandidate(inout RCReservoir reservoir, RCCandidate candidate) {
     if (candidate.valid && candidate.targetWeight > 0.0) {
         reservoir.radiance = candidate.radiance;
@@ -577,8 +591,13 @@ void rcLookupSampleFaceWeighted(
         return;
     }
 
-    float cosTheta = saturate(dot(N, reservoir.sampleDir));
-    result.radiance += reservoir.radiance * cosTheta * w;
+    vec3 estimatedRadiance = rcReservoirEstimateRadiance(reservoir);
+    if (rcLuminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
+        result.misses++;
+        return;
+    }
+
+    result.radiance += estimatedRadiance * w;
     result.weight += w;
 
     result.hits++;
@@ -746,8 +765,13 @@ void rcLookupSampleFace1x1(
         return;
     }
 
-    float cosTheta = saturate(dot(N, reservoir.sampleDir));
-    result.radiance += reservoir.radiance * cosTheta * w;
+    vec3 estimatedRadiance = rcReservoirEstimateRadiance(reservoir);
+    if (rcLuminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
+        result.misses++;
+        return;
+    }
+
+    result.radiance += estimatedRadiance * w;
     result.weight += w;
 
     result.hits++;

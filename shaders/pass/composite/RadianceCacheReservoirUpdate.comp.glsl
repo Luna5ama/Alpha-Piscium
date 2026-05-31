@@ -129,7 +129,8 @@ vec3 rcSampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
         return radiance;
     }
 
-    if (rcLuminance(prevReservoir.radiance) <= 0.0 || any(isnan(prevReservoir.radiance)) || any(isnan(incomingDir))) {
+    vec3 incomingRadiance = rcReservoirEstimateRadiance(prevReservoir);
+    if (rcLuminance(incomingRadiance) <= 0.0 || any(isnan(incomingRadiance)) || any(isnan(incomingDir))) {
         return radiance;
     }
 
@@ -143,7 +144,7 @@ vec3 rcSampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     }
 
     vec3 bounceFactor = surface.albedo * brdf.diffuse + vec3(brdf.specular);
-    vec3 bounceRadiance = prevReservoir.radiance * bounceFactor;
+    vec3 bounceRadiance = incomingRadiance * bounceFactor;
     if (rcLuminance(bounceRadiance) <= 0.0 || any(isnan(bounceRadiance))) {
         return radiance;
     }
@@ -257,7 +258,7 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
     VoxelRay voxelRay = voxelray_setup(rayOrigin, worldDir, 0u);
     VoxelHit hit = voxel_traceRay(voxelRay, 128);
     if (hit.hit) {
-        rcTouchHit(hit);
+        //rcTouchHit(hit); TODO: move to another pass?
     }
 
     bool radianceValid = false;
@@ -458,28 +459,6 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
         neighborReservoir
     );
 
-    float currentReuseWeight = 1.0;
-    if (
-        spatialNeighborValid
-        && candidate.valid
-        && (candidate.flags & RC_RES_FLAG_SURFACE_HIT) != 0u
-    ) {
-        vec3 targetOrigin = rcFaceRayOrigin(worldCellCoord, level, faceId);
-        vec3 targetNormal = rcFaceNormal(faceId);
-        currentReuseWeight = rcPairwiseSpatialMIS(
-            targetOrigin,
-            targetNormal,
-            neighborOrigin,
-            targetNormal,
-            candidate.hitPos,
-            candidate.hitNormal
-        );
-        if (currentReuseWeight <= 0.0) {
-            candidate.valid = false;
-            candidate.targetWeight = 0.0;
-        }
-    }
-
     if (historyValid) {
         float randValue = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x85EBCA6Bu)));
         wSum = reservoir.avgWY * reservoir.m * reservoirTargetWeight;
@@ -487,7 +466,7 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
             reservoir,
             wSum,
             candidate,
-            candidate.targetWeight * currentReuseWeight,
+            candidate.targetWeight,
             1.0,
             randValue
         );
@@ -495,7 +474,7 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
     } else {
         rcReservoirInitFromCandidate(reservoir, candidate);
         if (rcReservoirValid(reservoir)) {
-            wSum = candidate.targetWeight * currentReuseWeight;
+            wSum = candidate.targetWeight;
             selectedTargetWeight = candidate.targetWeight;
             selectedFlags = candidate.flags;
         }
@@ -517,7 +496,8 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
             spatialMInc
         )) {
             float randSpatial = hash_uintToFloat(hash_41_q3(uvec4(entryIndex, faceId, frameCounter, 0x27D4EB2Du)));
-            float spatialUpdateWeight = spatialCandidate.targetWeight * spatialReuseWeight;
+            float sourceCorrection = clamp(neighborReservoir.avgWY, 0.0, 4.0);
+            float spatialUpdateWeight = spatialCandidate.targetWeight * spatialReuseWeight * sourceCorrection;
             selectedSpatial = rcReservoirUpdateWeighted(
                 reservoir,
                 wSum,
@@ -536,10 +516,12 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
         selectedAge = 0u;
         selectedFlags = candidate.flags;
     }
+    #ifdef SETTING_RC_SPATIAL_ENABLE
     if (selectedSpatial) {
         selectedAge = 0u;
         selectedFlags = spatialCandidate.flags;
     }
+    #endif
 
     float unclampedM = reservoir.m;
     float clampedM = clamp(unclampedM, 0.0, float(SETTING_RC_M_MAX));
