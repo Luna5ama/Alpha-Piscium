@@ -130,7 +130,7 @@ vec3 rcSampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
         return radiance;
     }
 
-    vec3 incomingRadiance = rcReservoirEstimateRadiance(prevReservoir);
+    vec3 incomingRadiance = rc_reservoirEstimateRadiance(prevReservoir);
     if (rcLuminance(incomingRadiance) <= 0.0 || any(isnan(incomingRadiance)) || any(isnan(incomingDir))) {
         return radiance;
     }
