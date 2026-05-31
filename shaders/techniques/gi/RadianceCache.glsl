@@ -44,6 +44,10 @@ layout(std430, binding = 12) RC_DATA_MODIFIER RadianceCacheMetaData {
     uint rc_paddingCounters[11];
 };
 
+// x: reservoir base index, or RC_INVALID if no reservoir allocated for this entry
+// y: bitmask of valid faces
+// z: world key hash
+// w: meta (bit 31: valid flag, bits 0-2: level, bits 8-15: age)
 layout(std430, binding = 13) RC_DATA_MODIFIER RadianceCacheIndirectionData {
     uvec4 rc_indirection[];
 };
