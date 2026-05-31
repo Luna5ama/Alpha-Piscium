@@ -52,6 +52,41 @@ vec3 rcDecodeHistoryNormal(vec4 packedData, vec3 fallbackNormal) {
     return normalLen2 > 1e-6 ? normal * inversesqrt(normalLen2) : fallbackNormal;
 }
 
+void rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
+    uint entryIndex = rcEntryIndex(level, worldCellCoord);
+    uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
+    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
+    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
+        uvec4 entry = rc_indirection[bufferIndex];
+        uint oldFaceMask = entry.y & 0x3fu;
+        uint newFaceMask = oldFaceMask | rcFaceBit(faceId);
+        bool canGrowFaceMask = entry.x == RC_INVALID || newFaceMask == oldFaceMask;
+        if (!canGrowFaceMask) {
+            uint allocatedClassSize = rcAllocClassSize(bitCount(oldFaceMask));
+            canGrowFaceMask = bitCount(newFaceMask) <= allocatedClassSize;
+        }
+        if (!canGrowFaceMask) {
+            return;
+        }
+
+        atomicOr(rc_indirection[bufferIndex].y, rcFaceBit(faceId));
+        rc_indirection[bufferIndex].w = rcPackEntryMeta(level, 0u, true);
+    } else {
+        atomicAdd(rc_keyMismatchCounter, 1u);
+    }
+}
+
+void rcTouchHit(VoxelHit hit) {
+    uint faceId = rcFaceIdFromNormal(hit.normal);
+    vec3 faceNormal = rcFaceNormal(faceId);
+    vec3 surfacePos = hit.hitPos - faceNormal * 0.02;
+    for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
+        ivec3 worldCellCoord = rcWorldCellCoord(surfacePos, level);
+        rcTouchFace(level, worldCellCoord, faceId);
+    }
+}
+
 bool rcProjectHitToPrevFrame(
     VoxelHit hit,
     out ivec2 prevTexelPos,
@@ -205,6 +240,7 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
     if (!hit.hit) {
         return candidate;
     }
+    rcTouchHit(hit);
 
     bool radianceValid = false;
     vec3 radiance = rcSampleVoxelRadiance(hit, radianceValid);
