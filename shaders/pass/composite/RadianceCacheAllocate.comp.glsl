@@ -1,5 +1,4 @@
 #define RC_DATA_MODIFIER restrict buffer
-#include "/Base.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
 
 layout(local_size_x = 256) in;
