@@ -142,7 +142,7 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
 
     printString((_R, _e, _s, _e, _r, _v, _o, _i, _r, _space, _M, _space, _c, _a, _p, _colon, _space));
-    printInt(SETTING_RC_M_MAX);
+    printInt(SETTING_RC_M_CAP);
     printLine();
 
     printString((_S, _p, _a, _t, _i, _a, _l, _space, _r, _e, _s, _a, _m, _p, _l, _e, _s, _colon, _space));

@@ -15,34 +15,44 @@ void main() {
     }
 
     if (idx < RC_ENTRY_COUNT) {
-        uint currentBufferIndex = rcBufferEntryIndex(rcCurrentSide(), idx);
-        uint previousBufferIndex = rcBufferEntryIndex(rcPreviousSide(), idx);
+        uint currentBufferIndex = rc_bufferEntryIndex(rc_currentSide(), idx);
+        uint previousBufferIndex = rc_bufferEntryIndex(rc_previousSide(), idx);
+        uint previousFeedbackIndex = rc_feedbackRecordIndex(rc_previousSide(), idx);
         uvec4 currentEntry = rc_indirection[currentBufferIndex];
         uvec4 previousEntry = rc_indirection[previousBufferIndex];
-        uint level = rcEntryLevel(idx);
-        ivec3 worldCellCoord = rcWorldCellCoordFromEntryIndex(idx);
-        uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+        uint level = rc_entryLevel(idx);
+        ivec3 worldCellCoord = rc_worldCellCoordFromEntryIndex(idx);
+        uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
         uint previousFaceMask = previousEntry.y & 0x3fu;
-        uint pendingVisibleFaceMask = rcEntryMetaPendingFaceMask(currentEntry.w);
+        uint pendingVisibleFaceMask = rc_entryMetaPendingFaceMask(currentEntry.w);
+        uvec2 previousFeedback = rc_feedback[previousFeedbackIndex];
 
+        uint carriedFaceMask = 0u;
         if (previousEntry.z == worldKeyHash
-            && rcEntryMetaValid(previousEntry.w)
-            && rcEntryMetaLevel(previousEntry.w) == level
+            && rc_entryMetaValid(previousEntry.w)
+            && rc_entryMetaLevel(previousEntry.w) == level
             && previousFaceMask != 0u
         ) {
-            uint carriedFaceMask = previousFaceMask & pendingVisibleFaceMask;
-            if (carriedFaceMask != 0u) {
-                uint age = min(rcEntryMetaAge(previousEntry.w) + 1u, 255u);
-                rc_indirection[currentBufferIndex] = uvec4(
-                    RC_INVALID,
-                    carriedFaceMask,
-                    worldKeyHash,
-                    rcEntryMetaClearPendingFaces(rcPackEntryMeta(level, age, true))
-                );
-                return;
-            }
+            carriedFaceMask = previousFaceMask;
         }
 
-        rc_indirection[currentBufferIndex] = uvec4(RC_INVALID, 0u, RC_INVALID, rcEntryMetaClearPendingFaces(0u));
+        uint feedbackFaceMask = 0u;
+        if (previousFeedback.x == worldKeyHash) {
+            feedbackFaceMask = (previousFeedback.y >> RC_FEEDBACK_HIT_SHIFT) & RC_FEEDBACK_FACE_MASK;
+        }
+
+        uint newFaceMask = (carriedFaceMask | feedbackFaceMask) & pendingVisibleFaceMask;
+        if (newFaceMask != 0u) {
+            rc_indirection[currentBufferIndex] = uvec4(
+                RC_INVALID,
+                newFaceMask,
+                worldKeyHash,
+                rc_entryMetaClearPendingFaces(rc_packEntryMeta(level, true))
+            );
+        } else {
+            rc_indirection[currentBufferIndex] = uvec4(RC_INVALID, 0u, RC_INVALID, rc_entryMetaClearPendingFaces(0u));
+        }
+
+        rc_feedbackClearRecord(rc_currentSide(), idx);
     }
 }
