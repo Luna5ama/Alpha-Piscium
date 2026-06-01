@@ -149,7 +149,12 @@ void main() {
                     vec3 rayOrigin = coords_viewToScreen(viewPos, global_camProj);
                     vec3 rayEnd = coords_viewToScreen(expectHitViewPos, global_camProj);
                     vec4 rayDirLen = normalizeAndLength(rayEnd - rayOrigin);
-                    sstRay = sstray_setup(texelPos, rayOrigin, rayDirLen.xyz, rayDirLen.w);
+                    vec3 rcpRayDirScreen = rcp(rayDirLen.xyz);
+                    float maxT = rayDirLen.w;
+                    maxT = rayDirLen.z != 0.0f ? min((float(rayDirLen.z > 0.0f) - rayOrigin.z) * rcpRayDirScreen.z, maxT) : maxT;
+                    maxT = rayDirLen.x != 0.0f ? min((float(rayDirLen.x > 0.0f) - rayOrigin.x) * rcpRayDirScreen.x, maxT) : maxT;
+                    maxT = rayDirLen.y != 0.0f ? min((float(rayDirLen.y > 0.0f) - rayOrigin.y) * rcpRayDirScreen.y, maxT) : maxT;
+                    sstRay = sstray_setup(texelPos, rayOrigin, rayDirLen.xyz, maxT);
                 } else {
                     sstRay = sstray_setup(texelPos, viewPos, resultReservoir.Y.xyz);
                 }
@@ -160,7 +165,7 @@ void main() {
                     rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
                 } else {
                     bool discardSptialReuse = true;
-                    if (sstRay.currT < -0.99) discardSptialReuse = false;
+                    if (sstRay.currT < -0.0) discardSptialReuse = false;
 
                     if (discardSptialReuse) {
                         resultReservoir = restir_initReservoir();
