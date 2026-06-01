@@ -168,6 +168,9 @@ bool rc_revalidateHistoryReservoir(
     if (!rc_reservoirValid(reservoir)) {
         return false;
     }
+    if (rc_reservoirIsParentBootstrap(reservoir)) {
+        return false;
+    }
 
     vec3 sampleDir = normalize(reservoir.sampleDir);
     if (any(isnan(sampleDir))) {
@@ -248,11 +251,55 @@ bool rc_loadRandomSpatialNeighbor(
     if (!rc_loadFaceReservoir(rc_previousSide(), level, neighborCell, faceId, neighborReservoir)) {
         return false;
     }
+    if (rc_reservoirIsParentBootstrap(neighborReservoir)) {
+        return false;
+    }
     if (!rc_reservoirIsSurfaceHit(neighborReservoir)) {
         return false;
     }
 
     neighborOrigin = rc_faceRayOrigin(neighborCell, level, faceId);
+    return true;
+}
+
+bool rc_generateParentBootstrapCandidate(
+    uint level,
+    ivec3 worldCellCoord,
+    uint faceId,
+    out RCCandidate candidate
+) {
+    candidate.radiance = vec3(0.0);
+    candidate.dir = rc_faceNormal(faceId);
+    candidate.hitPos = rc_faceCenter(worldCellCoord, level, faceId);
+    candidate.hitNormal = rc_faceNormal(faceId);
+    candidate.targetWeight = 0.0;
+    candidate.flags = 0u;
+    candidate.valid = false;
+
+    uint parentLevel;
+    ivec3 parentCell;
+    RCReservoir parentReservoir;
+    if (!rc_loadParentFaceReservoir(level, worldCellCoord, faceId, parentLevel, parentCell, parentReservoir)) {
+        return false;
+    }
+
+    vec3 parentRadiance = rc_reservoirEstimateRadiance(parentReservoir);
+    float parentTargetWeight = rc_luminance(parentRadiance);
+    if (
+        parentTargetWeight <= 0.0
+        || isnan(parentTargetWeight)
+        || any(isnan(parentRadiance))
+    ) {
+        return false;
+    }
+
+    candidate.radiance = parentRadiance;
+    candidate.dir = rc_faceNormal(faceId);
+    candidate.hitPos = rc_faceCenter(worldCellCoord, level, faceId);
+    candidate.hitNormal = rc_faceNormal(faceId);
+    candidate.targetWeight = parentTargetWeight;
+    candidate.flags = RC_RES_FLAG_PARENT_BOOTSTRAP;
+    candidate.valid = true;
     return true;
 }
 
@@ -538,20 +585,11 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
     uint selectedFlags = historyValid ? rc_reservoirMetaFlags(reservoir.meta) : 0u;
     uint selectedAge = historyValid ? min(historyAge + 1u, 255u) : 0u;
     bool selectedCandidate = false;
+    bool selectedParentBootstrap = false;
     bool selectedSpatial = false;
-
-    ivec3 neighborCell = worldCellCoord;
-    vec3 neighborOrigin = rc_faceRayOrigin(worldCellCoord, level, faceId);
-    RCReservoir neighborReservoir = rc_reservoirInit();
-    bool spatialNeighborValid = rc_loadRandomSpatialNeighbor(
-        entryIndex,
-        worldCellCoord,
-        level,
-        faceId,
-        neighborCell,
-        neighborOrigin,
-        neighborReservoir
-    );
+    bool hadTemporalHistory = historyValid;
+    float temporalMBeforeCurrent = historyValid ? reservoir.m : 0.0;
+    bool spatialNeighborValid = false;
 
     if (historyValid) {
         float randValue = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x85EBCA6Bu)));
@@ -572,7 +610,41 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
         }
     }
 
+    bool parentBootstrapEligible =
+        !hadTemporalHistory
+        || temporalMBeforeCurrent < 2.0
+        || reservoir.m < 2.0;
+    if (parentBootstrapEligible) {
+        RCCandidate parentCandidate;
+        if (rc_generateParentBootstrapCandidate(level, worldCellCoord, faceId, parentCandidate)) {
+            float parentStrength = 0.25;
+            float parentUpdateWeight = parentCandidate.targetWeight * parentStrength;
+            float parentMInc = parentStrength;
+            float randParent = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0xA24BAED4u)));
+            selectedParentBootstrap = rc_reservoirUpdateWeighted(
+                reservoir,
+                wSum,
+                parentCandidate,
+                parentUpdateWeight,
+                parentMInc,
+                randParent
+            );
+        }
+    }
+
     #ifdef SETTING_RC_SPATIAL_ENABLE
+        ivec3 neighborCell = worldCellCoord;
+        vec3 neighborOrigin = rc_faceRayOrigin(worldCellCoord, level, faceId);
+        RCReservoir neighborReservoir = rc_reservoirInit();
+        spatialNeighborValid = rc_loadRandomSpatialNeighbor(
+            entryIndex,
+            worldCellCoord,
+            level,
+            faceId,
+            neighborCell,
+            neighborOrigin,
+            neighborReservoir
+        );
         RCCandidate spatialCandidate;
         float spatialReuseWeight;
         float spatialMInc;
@@ -617,6 +689,10 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
         selectedAge = 0u;
         selectedFlags = candidate.flags;
     }
+    if (selectedParentBootstrap) {
+        selectedAge = 0u;
+        selectedFlags = RC_RES_FLAG_PARENT_BOOTSTRAP;
+    }
     #ifdef SETTING_RC_SPATIAL_ENABLE
     if (selectedSpatial) {
         selectedAge = 0u;
@@ -634,6 +710,9 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
     float selectedTargetWeight = rc_luminance(reservoir.radiance);
     bool reservoirValid = reservoir.m > 0.0
         && wSum > 0.0
+        && selectedTargetWeight > 0.0
+        && !isnan(selectedTargetWeight)
+        && !any(isnan(reservoir.radiance))
         && !isnan(wSum);
     reservoir.avgWY = reservoirValid ? wSum * safeRcp(reservoir.m) * safeRcp(selectedTargetWeight) : 0.0;
     reservoir.meta = rc_packReservoirMeta(selectedAge, reservoirValid, selectedFlags);
