@@ -357,12 +357,16 @@ bool rc_reservoirIsParentBootstrap(RCReservoir reservoir) {
 }
 
 vec3 rc_faceNormal(uint faceId) {
-    if (faceId == RC_FACE_POS_X) return vec3(1.0, 0.0, 0.0);
-    if (faceId == RC_FACE_NEG_X) return vec3(-1.0, 0.0, 0.0);
-    if (faceId == RC_FACE_POS_Y) return vec3(0.0, 1.0, 0.0);
-    if (faceId == RC_FACE_NEG_Y) return vec3(0.0, -1.0, 0.0);
-    if (faceId == RC_FACE_POS_Z) return vec3(0.0, 0.0, 1.0);
-    return vec3(0.0, 0.0, -1.0);
+    uint axis = faceId >> 1u;
+    float signValue = 1.0 - 2.0 * float(faceId & 1u);
+
+    vec3 axisMask = vec3(
+        float(axis == 0u),
+        float(axis == 1u),
+        float(axis == 2u)
+    );
+
+    return axisMask * signValue;
 }
 
 ivec3 rc_faceNormalI(uint faceId) {
@@ -622,9 +626,7 @@ uint rc_dominantFaceId(vec3 N) {
 }
 
 uint rc_faceAxis(uint faceId) {
-    if (faceId == RC_FACE_POS_X || faceId == RC_FACE_NEG_X) return 0u;
-    if (faceId == RC_FACE_POS_Y || faceId == RC_FACE_NEG_Y) return 1u;
-    return 2u;
+    return faceId / 2u;
 }
 
 void rc_faceTangentAxes(uint faceId, out uint axis0, out uint axis1) {
