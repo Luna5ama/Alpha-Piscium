@@ -6,6 +6,7 @@
 #include "/util/NZPacking.glsl"
 #include "/util/TextRender.glsl"
 #include "/techniques/EnvProbe.glsl"
+#include "/techniques/gi/RadianceCache.glsl"
 #include "/techniques/atmospherics/air/Common.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/atmospherics/clouds/amblut/API.glsl"
@@ -119,6 +120,52 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
     printLine();
     text.fpPrecision = 4;
+
+    #ifdef SETTING_RC_ENABLE
+    ivec2 rcTexelPos = texelPos;
+    if (all(lessThan(rcTexelPos, uval_mainImageSizeI))) {
+        vec2 rcScreenPos = (vec2(rcTexelPos) + 0.5) * uval_mainImageSizeRcp;
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, rcTexelPos, 0).r;
+        vec3 viewPos = coords_toViewCoord(rcScreenPos, viewZ, global_camProjInverse);
+
+        GBufferData gData = gbufferData_init();
+        gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, rcTexelPos, 0), gData);
+        gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, rcTexelPos, 0), gData);
+        Material material = material_decode(gData);
+
+        vec3 scenePos = coords_pos_viewToWorld(viewPos - gData.geomNormal * 0.02, gbufferModelViewInverse);
+        vec3 worldPos = scenePos + cameraPosition;
+        vec3 worldNormal = coords_dir_viewToWorld(gData.normal);
+        vec3 worldGeomNormal = coords_dir_viewToWorld(gData.geomNormal);
+        RCLookupResult rcLookup = rc_lookupDiffuseGI(worldPos, worldNormal, worldGeomNormal);
+        // RCLookupResult rcLookup = rc_lookupDiffuseGISmooth(worldPos, worldNormal, worldGeomNormal);
+        bool rcHit = rcLookup.weight > 0.0;
+
+        #if SETTING_DEBUG_RC_MODE == 1
+        outputColor.rgb = vec3(float(max(findMSB(rcLookup.levelMask), 0)) / float(RC_CLIP_LEVELS - 1u));
+        #elif SETTING_DEBUG_RC_MODE == 2
+        outputColor.rgb = vec3(float(rcLookup.faceMask & 1u), float((rcLookup.faceMask >> 2u) & 1u), float((rcLookup.faceMask >> 4u) & 1u));
+        #elif SETTING_DEBUG_RC_MODE == 3
+        outputColor.rgb = vec3(float(bitCount(rcLookup.faceMask)) / 6.0);
+        #elif SETTING_DEBUG_RC_MODE == 4
+        outputColor.rgb = vec3(rcLookup.m / float(SETTING_RC_M_CAP));
+        #elif SETTING_DEBUG_RC_MODE == 5
+        outputColor.rgb = vec3(float(rcLookup.age) / 255.0);
+        #elif SETTING_DEBUG_RC_MODE == 6
+        outputColor.rgb = vec3(float(rc_keyMismatchCounter > 0u), 0.0, 0.0);
+        #elif SETTING_DEBUG_RC_MODE == 7
+        outputColor.rgb = rcHit ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+        #elif SETTING_DEBUG_RC_MODE == 8
+        outputColor.rgb = rcHit ? rcLookup.radiance : vec3(0.0);
+        #elif SETTING_DEBUG_RC_MODE == 9
+        outputColor.rgb = fallbackGI;
+        #elif SETTING_DEBUG_RC_MODE == 10
+        outputColor.rgb = vec3(rcLookup.debug);
+        #endif
+        outputColor.rgb *= exp2(global_aeData.expValues.z);
+        outputColor.a = 1.0;
+    }
+    #endif
 
     ivec2 scaledTextureSize = ivec2(uval_mainImageSize * SETTING_DEBUG_SCALE);
     if (all(lessThan(texelPos, scaledTextureSize))) {
