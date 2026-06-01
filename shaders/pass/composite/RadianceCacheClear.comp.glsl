@@ -1,4 +1,5 @@
 #define RC_DATA_MODIFIER restrict buffer
+#define GLOBAL_DATA_MODIFIER buffer
 #include "/techniques/gi/RadianceCache.glsl"
 
 layout(local_size_x = 256) in;
@@ -7,6 +8,7 @@ const ivec3 workGroups = ivec3(5120, 1, 1);
 void main() {
     uint idx = gl_GlobalInvocationID.x;
     if (idx == 0u) {
+        rc_entryCounter = 0u;
         rc_allocationCounter = 0u;
         rc_keyMismatchCounter = 0u;
         rc_poolOverflowCounter = 0u;
@@ -42,16 +44,16 @@ void main() {
         }
 
         uint newFaceMask = (carriedFaceMask | feedbackFaceMask) & pendingVisibleFaceMask;
+        uvec4 newEntry = uvec4(RC_INVALID, 0u, RC_INVALID, rc_entryMetaClearPendingFaces(0u));
         if (newFaceMask != 0u) {
-            rc_indirection[currentBufferIndex] = uvec4(
+            newEntry = uvec4(
                 RC_INVALID,
                 newFaceMask,
                 worldKeyHash,
                 rc_entryMetaClearPendingFaces(rc_packEntryMeta(level, true))
             );
-        } else {
-            rc_indirection[currentBufferIndex] = uvec4(RC_INVALID, 0u, RC_INVALID, rc_entryMetaClearPendingFaces(0u));
         }
+        rc_indirection[currentBufferIndex] = newEntry;
 
         rc_feedbackClearRecord(rc_currentSide(), idx);
     }

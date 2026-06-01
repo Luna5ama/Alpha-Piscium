@@ -37,7 +37,6 @@ void main() {
                 ivec3 ownerBlock = ivec3(floor(worldPos));
                 bool neighborOpen = !voxel_opaqueAtBlock(ownerBlock + faceNormalI);
                 if (neighborOpen) {
-
                     for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
                         ivec3 worldCellCoord = rc_worldCellCoord(worldPos, level);
                         if (rc_touchFace(level, worldCellCoord, faceId)) {
