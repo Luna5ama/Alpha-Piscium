@@ -124,7 +124,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #ifdef SETTING_RC_ENABLE
     ivec2 rcTexelPos = texelPos;
     if (all(lessThan(rcTexelPos, uval_mainImageSizeI))) {
-        vec2 rcScreenPos = (vec2(rcTexelPos) + 0.5) * uval_mainImageSizeRcp;
+        vec2 rcScreenPos = (vec2(rcTexelPos) + 0.5) * uval_mainImageSizeRcp - uval_taaJitterUV;
         float viewZ = texelFetch(usam_gbufferSolidViewZ, rcTexelPos, 0).r;
         vec3 viewPos = coords_toViewCoord(rcScreenPos, viewZ, global_camProjInverse);
 

@@ -1111,7 +1111,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "体素"
                 }
-                slider("SETTING_VOXEL_GRID_SIZE", 16, listOf(16, 32, 64)) {
+                slider("SETTING_VOXEL_GRID_SIZE", 64, listOf(16, 32, 64)) {
                     lang {
                         name = "Voxel Grid Size"
                         comment =
@@ -1129,7 +1129,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         64 value "64（1024格）"
                     }
                 }
-                slider("SETTING_VOXEL_POOL_SIZE", 1024, powerOfTwoRange(8..16)) {
+                slider("SETTING_VOXEL_POOL_SIZE", 16384, powerOfTwoRange(8..16)) {
                     lang {
                         name = "Voxel Pool Size"
                         comment = "Maximum number of simultaneously allocated bricks. Higher values allow more bricks to be active at once, improving voxel coverage in dense/larger scenes. Every 256 bricks consume around 4 MB of VRAM."
