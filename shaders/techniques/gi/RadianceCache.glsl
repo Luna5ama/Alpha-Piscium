@@ -40,15 +40,6 @@
 #define RC_DATA_MODIFIER restrict buffer
 #endif
 
-layout(std430, binding = 12) RC_DATA_MODIFIER RadianceCacheMetaData {
-    uint rc_allocationCounter;
-    uint rc_keyMismatchCounter;
-    uint rc_poolOverflowCounter;
-    uint rc_cacheHitCounter;
-    uint rc_cacheMissCounter;
-    uint rc_paddingCounters[11];
-};
-
 // x: reservoir base index, or RC_INVALID if no reservoir allocated for this entry
 // y: bitmask of valid faces
 // z: world key hash
