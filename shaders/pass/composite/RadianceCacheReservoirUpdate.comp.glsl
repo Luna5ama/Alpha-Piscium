@@ -7,6 +7,7 @@ layout(local_size_x = 128) in;
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
+#include "/techniques/voxel/SurfaceData.glsl"
 #include "/util/Colors2.glsl"
 #include "/util/Fresnel.glsl"
 #include "/util/HardcodedPBR.glsl"
@@ -48,54 +49,6 @@ bool rc_loadPreviousHitReservoir(
     return rc_loadFaceReservoir(rc_previousSide(), level, worldCellCoord, faceId, reservoir);
 }
 
-struct RCHitSurface {
-    vec3 albedo;
-    vec3 emissive;
-    ResampleMaterial material;
-    bool valid;
-};
-
-RCHitSurface rc_hitSurfaceInit() {
-    RCHitSurface surface;
-    surface.albedo = vec3(0.0);
-    surface.emissive = vec3(0.0);
-    surface.material = resampleMaterial_init();
-    surface.valid = false;
-    return surface;
-}
-
-RCHitSurface rc_sampleHitSurface(VoxelHit hit) {
-    RCHitSurface surface = rc_hitSurfaceInit();
-    if (!hit.hit || hit.materialID == 0u || hit.materialID == MATERIAL_ID_WATER) {
-        return surface;
-    }
-
-    HardcodedPBR hardcoded = hardcodedpbr_decode(hit.materialID);
-    uint faceId = voxel_faceIndexFromNormal(hit.normal);
-    uvec2 tcData = voxel_faceTexcoords[voxel_faceTexcoordIndex(hit.materialID, faceId)];
-    vec4 tc = unpackUnorm4x16(tcData);
-    if (all(equal(tc, vec4(0.0)))) {
-        return surface;
-    }
-
-    vec2 localUV = voxel_faceLocalUV(faceId, hit.hitPos);
-    vec2 atlasUV = mix(tc.xw, tc.zy, localUV);
-    vec3 baseColor = colors2_material_toWorkSpace(texture(usam_blockAtlasColor, atlasUV).rgb);
-    if (any(isnan(baseColor))) {
-        return surface;
-    }
-
-    surface.albedo = baseColor;
-    surface.material.f0 = fresnel_iorToF0(max(hardcoded.ior, AIR_IOR));
-    surface.material.dielectric = 1.0;
-    surface.material.roughness = max(pow2(hardcoded.roughness), 0.001);
-
-    float emissiveScale = hardcoded.emissive * exp2(float(hardcoded.emissiveMultiplier));
-    surface.emissive = baseColor * emissiveScale;
-    surface.valid = true;
-    return surface;
-}
-
 vec3 rc_sampleMissRadiance(vec3 rayDir) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     SkyViewLutParams skyParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, rayDir);
@@ -110,12 +63,13 @@ vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
         return valid ? missRadiance : vec3(0.0);
     }
 
-    RCHitSurface surface = rc_sampleHitSurface(hit);
+    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit);
     if (!surface.valid) {
         return vec3(0.0);
     }
+    surface.material.roughness = 1.0;
 
-    vec3 radiance = surface.emissive;
+    vec3 radiance = surface.material.emissive;
     valid = rc_luminance(radiance) > 0.0 && !any(isnan(radiance));
 
     RCReservoir prevReservoir;
@@ -141,13 +95,14 @@ vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     float invHLen = inversesqrt(max(dot(H, H), 1e-6));
     float NDotH = saturate(dot(faceNormal, H * invHLen));
     float LDotH = saturate(dot(incomingDir, H * invHLen));
-    ResampleBRDF brdf = resampleMaterial_evalBRDF(surface.material, NDotL, NDotV, NDotH, LDotH);
+    ResampleMaterial resampleMaterial = resampleMaterial_fromMaterial(surface.material);
+    ResampleBRDF brdf = resampleMaterial_evalBRDF(resampleMaterial, NDotL, NDotV, NDotH, LDotH);
     if (brdf.full <= 0.0) {
         return radiance;
     }
 
-    vec3 bounceFactor = surface.albedo * brdf.diffuse + vec3(brdf.specular);
-    vec3 bounceRadiance = incomingRadiance * bounceFactor;
+    vec3 totalBRDF = surface.material.albedo * brdf.diffuse + vec3(brdf.specular);
+    vec3 bounceRadiance = incomingRadiance * totalBRDF;
     if (rc_luminance(bounceRadiance) <= 0.0 || any(isnan(bounceRadiance))) {
         return radiance;
     }

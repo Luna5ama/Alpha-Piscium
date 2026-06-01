@@ -102,7 +102,7 @@ void main() {
     VoxelHit hit = voxel_traceRay(voxelRay, 256);
     imageStore(uimg_overlays, texelPos, hit.hit ? hitToColor(hit) : materialIdToColor(0u));
     #if VOXEL_TRACE_DEBUG_COUNTERS
-    imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
+    //imageStore(uimg_temp1, texelPos, vec4(hit.debugCounters));
     #endif
 
     #else

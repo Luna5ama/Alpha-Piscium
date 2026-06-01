@@ -179,4 +179,38 @@ bool voxel_opaqueAtBlock(ivec3 worldBlockPos) {
 }
 #endif
 
+vec3 voxel_faceNormal(uint faceId) {
+    uint axis = faceId >> 1u;
+    float signValue = 1.0 - 2.0 * float(faceId & 1u);
+
+    vec3 axisMask = vec3(
+        float(axis == 0u),
+        float(axis == 1u),
+        float(axis == 2u)
+    );
+
+    return axisMask * signValue;
+}
+
+vec3 voxel_faceTangent(uint faceId) {
+    uint axis = faceId >> 1u;
+    float signValue = 1.0 - 2.0 * float(faceId & 1u);
+
+    vec3 axisMask = vec3(
+        float(axis == 0u),
+        float(axis == 1u),
+        float(axis == 2u)
+    );
+
+    // Tangent points along the "top" edge of the face, so rotate the normal's axis by +1 mod 3
+    uint tangentAxis = (axis + 1u) % 3u;
+    vec3 tangentMask = vec3(
+        float(tangentAxis == 0u),
+        float(tangentAxis == 1u),
+        float(tangentAxis == 2u)
+    );
+
+    return tangentMask * signValue;
+}
+
 #endif // INCLUDE_techniques_Voxelization_glsl

@@ -1,6 +1,8 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
+layout(local_size_x = 16, local_size_y = 16) in;
+
 #include "/util/Material.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 #include "/techniques/SST2.glsl"
@@ -8,8 +10,8 @@
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/gi/PairwiseMISMetadata.glsl"
+#include "/techniques/voxel/VoxelTrace.glsl"
 
-layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(std430, binding = 5) buffer RayData {
@@ -38,6 +40,7 @@ ReSTIRReservoir readTemporalReservoir(ivec2 texelPos) {
 }
 
 void main() {
+    voxel_initShared();
     sst_init(SETTING_GI_SST_THICKNESS);
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
@@ -64,7 +67,7 @@ void main() {
             history_restir_prevSample_store(texelPos, centerSampleData.sampleValue);
             history_restir_prevHitNormal_store(texelPos, vec4(centerSampleData.hitNormal * 0.5 + 0.5, 0.0));
 
-            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
             vec3 V = normalize(-viewPos);
             ResampleMaterial centerMaterial = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelPos));
@@ -140,8 +143,6 @@ void main() {
             ssgiSpecOut.rgb *= rcp(specDenoiseFactor);
             ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);
             ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
-            transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);
-            transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
 
             #if SETTING_DEBUG_OUTPUT
             vec4 vvv = vec4(0.0);
@@ -151,23 +152,34 @@ void main() {
                 vvv = vec4(0.0, 1.0, 0.0, 0.0);
                 #endif
 
-                SSTRay sstRay;
-                if (resultY.w > 0.0) {
-                    vec3 expectHitViewPos = viewPos + resultY.xyz * resultY.w;
-                    vec3 rayOrigin = coords_viewToScreen(viewPos, global_camProj);
-                    vec3 rayEnd = coords_viewToScreen(expectHitViewPos, global_camProj);
-                    vec4 rayDirLen = normalizeAndLength(rayEnd - rayOrigin);
-                    sstRay = sstray_setup(texelPos, rayOrigin, rayDirLen.xyz, rayDirLen.w);
+                vec3 scenePos = coords_pos_viewToWorld(viewPos + centerSampleData.geomNormal * 0.05, gbufferModelViewInverse);
+                vec3 worldPos = scenePos + vec3(cameraPositionInt) + cameraPositionFract;
+                vec3 worldDir = coords_dir_viewToWorld(winL_out);
+                VoxelRay voxelRay = voxelray_setup(worldPos, worldDir, 0u);
+                VoxelHit hit = voxel_traceRay(voxelRay, 128);
+                vec3 expectedHitPos = worldPos + worldDir * winHitDist;
+
+                bool discardSptialReuse = false;
+                if (hit.hit) {
+                    discardSptialReuse = distanceSq(hit.hitPos, expectedHitPos) > 0.05;
                 } else {
-                    sstRay = sstray_setup(texelPos, viewPos, resultY.xyz);
+                    discardSptialReuse = resultY.w > 0.0;
                 }
-                uvec4 packedData = sstray_pack(sstRay);
-                ssbo_rayData[dataIndex] = packedData;
-                rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
+
+                if (discardSptialReuse) {
+                    spatialReservoir = restir_initReservoir();
+                    ssgiDiffOut = vec4(0.0);
+                    ssgiSpecOut = vec4(0.0);
+                    #if SETTING_DEBUG_OUTPUT
+                    vvv = vec4(1.0, 0.0, 0.0, 0.0);
+                    #endif
+                }
             }
             #if SETTING_DEBUG_OUTPUT
             imageStore(uimg_temp5, texelPos, vvv);
             #endif
+            transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);
+            transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
         }
     }
     ssbo_rayDataIndices[dataIndex] = rayIndex;

@@ -67,7 +67,7 @@ void main() {
     #ifdef SHADOW_PASS_VOXELIZE
     if ((gl_VertexID & 3) == 0 && materialID != MATERIAL_ID_WATER) {
         HardcodedPBR hardcoded = hardcodedpbr_decode(materialID);
-        if (hardcoded.isFullCube) {
+        if (hardcoded.isFullCube || hardcoded.emissive > 0.0) {
             // Absolute integer block position of the center of this block.
             // scenePos is camera-relative; add camera's integer + fractional parts.
             ivec3 blockWorldPos = ivec3(floor(scenePos.xyz + cameraPositionFract + at_midBlock.xyz / 64.0))
