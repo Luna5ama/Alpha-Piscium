@@ -1,8 +1,7 @@
 #define RC_DATA_MODIFIER restrict buffer
 
 layout(local_size_x = 128) in;
-
-// Indirect dispatch dimensions are written by RadianceCacheAllocate.
+const ivec3 workGroups = ivec3(61440, 1, 1);
 
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
@@ -727,23 +726,18 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
 void main() {
     voxel_initShared();
 
-    uint entryIndex = gl_GlobalInvocationID.x;
-    if (entryIndex >= RC_ENTRY_COUNT) {
-        return;
-    }
-
-    uint level = rc_entryLevel(entryIndex);
-    ivec3 worldCellCoord = rc_worldCellCoordFromEntryIndex(entryIndex);
-    uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
-    uvec4 entry = rc_indirection[bufferIndex];
-    if (entry.x == RC_INVALID || entry.z != rc_worldKeyHash(level, worldCellCoord) || !rc_entryMetaValid(entry.w) || rc_entryMetaLevel(entry.w) != level) {
-        return;
-    }
-
-    uint faceMask = entry.y & 0x3fu;
-    for (uint faceId = 0u; faceId < 6u; faceId++) {
-        if (rc_hasFace(faceMask, faceId)) {
-            rc_updateFace(entryIndex, entry, worldCellCoord, level, faceId);
+    uint entryIndex = gl_GlobalInvocationID.x / 6u;
+    uint faceId = gl_GlobalInvocationID.x % 6u;
+    if (entryIndex < RC_ENTRY_COUNT) {
+        uint level = rc_entryLevel(entryIndex);
+        ivec3 worldCellCoord = rc_worldCellCoordFromEntryIndex(entryIndex);
+        uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
+        uvec4 entry = rc_indirection[bufferIndex];
+        if (entry.x != RC_INVALID && entry.z == rc_worldKeyHash(level, worldCellCoord) && rc_entryMetaValid(entry.w) && rc_entryMetaLevel(entry.w) == level) {
+            uint faceMask = entry.y & 0x3fu;
+            if (rc_hasFace(faceMask, faceId)) {
+                rc_updateFace(entryIndex, entry, worldCellCoord, level, faceId);
+            }
         }
     }
 }
