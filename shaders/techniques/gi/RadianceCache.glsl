@@ -370,7 +370,16 @@ vec3 rc_faceNormal(uint faceId) {
 }
 
 ivec3 rc_faceNormalI(uint faceId) {
-    return ivec3(rc_faceNormal(faceId));
+    uint axis = faceId >> 1u;
+    int signValue = 1 - 2 * int(faceId & 1u);
+
+    ivec3 axisMask = ivec3(
+        int(axis == 0u),
+        int(axis == 1u),
+        int(axis == 2u)
+    );
+
+    return axisMask * signValue;
 }
 
 uint rc_faceIdFromNormal(vec3 normal) {
@@ -389,7 +398,10 @@ vec3 rc_faceCenter(ivec3 worldCellCoord, uint level, uint faceId) {
 }
 
 vec3 rc_faceRayOrigin(ivec3 worldCellCoord, uint level, uint faceId) {
-    return rc_faceCenter(worldCellCoord, level, faceId) + rc_faceNormal(faceId) * 0.05;
+    float halfVoxel = float(rc_voxelSize(level)) * 0.5;
+    return ldexp(worldCellCoord, ivec3(level))
+        + vec3(halfVoxel)
+        + rc_faceNormal(faceId) * (halfVoxel + 0.05);
 }
 
 ivec3 rc_neighborPlaneOffset(uint faceId, int offset0, int offset1) {

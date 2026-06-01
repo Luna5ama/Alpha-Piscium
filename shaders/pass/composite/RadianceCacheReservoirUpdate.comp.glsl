@@ -241,7 +241,7 @@ bool rc_loadRandomSpatialNeighbor(
     out RCReservoir neighborReservoir
 ) {
     neighborCell = worldCellCoord;
-    neighborOrigin = rc_faceRayOrigin(worldCellCoord, level, faceId);
+    neighborOrigin = vec3(0.0);
     neighborReservoir = rc_reservoirInit();
 
     uint neighborIndex = hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0xC2B2AE35u)) & 7u;
@@ -634,7 +634,7 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
 
     #ifdef SETTING_RC_SPATIAL_ENABLE
         ivec3 neighborCell = worldCellCoord;
-        vec3 neighborOrigin = rc_faceRayOrigin(worldCellCoord, level, faceId);
+        vec3 neighborOrigin = vec3(0.0);
         RCReservoir neighborReservoir = rc_reservoirInit();
         spatialNeighborValid = rc_loadRandomSpatialNeighbor(
             entryIndex,
