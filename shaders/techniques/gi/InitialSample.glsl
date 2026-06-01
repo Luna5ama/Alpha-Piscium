@@ -5,7 +5,7 @@
 #include "/util/BSDF.glsl"
 #include "/techniques/SST2.glsl"
 #include "/techniques/gi/Common.glsl"
-#include "/techniques/gi/RadianceCache.glsl"
+#include "/techniques/gi/RadianceCacheSample.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
@@ -57,7 +57,7 @@ restir_InitialCandidate restir_initialCandidate_load(ivec2 texelPos) {
     vec4 hitNormalData = transient_solidAlbedo_fetch(texelPos);
     candidate.radiance = radianceAndDistance.rgb;
     candidate.hitDistance = radianceAndDistance.w;
-    candidate.rayDirView = directionAndPdf.xyz;
+    candidate.rayDirView = normalize(directionAndPdf.xyz);
     candidate.pdf = directionAndPdf.w;
     candidate.hitNormalView = hitNormalData.rgb * 2.0 - 1.0;
     return candidate;
@@ -138,7 +138,8 @@ bool restir_initialSample_screenHitQuery(
     vec3 queryWorldPos = coords_pos_viewToWorld(hitViewPos - hitData.geomNormal * 0.02, gbufferModelViewInverse) + cameraPosition;
     vec3 queryWorldNormal = coords_dir_viewToWorld(hitData.normal);
     vec3 queryWorldGeomNormal = coords_dir_viewToWorld(hitData.geomNormal);
-    RCLookupResult rcLookup = rc_lookupDiffuseGI(queryWorldPos, queryWorldNormal, queryWorldGeomNormal);
+    vec3 V = coords_dir_viewToWorld(normalize(rayOriginView - hitViewPos));
+    RCLookupResult rcLookup = rc_lookupDiffuseGI(V, queryWorldPos, queryWorldNormal, queryWorldGeomNormal);
 
     candidate = restir_initialCandidate_init();
     candidate.rayDirView = rayDirView;
@@ -178,12 +179,13 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
     candidate.hitDistance = distance(hit.hitPos, rayOriginWorld);
     candidate.hitNormalView = coords_dir_worldToView(hit.normal);
 
-    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit);
+    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
     if (!surface.valid) {
         return candidate;
     }
 
-    RCLookupResult rcLookup = rc_lookupDiffuseGI(hit.hitPos, hit.normal, hit.normal);
+    vec3 V = normalize(rayOriginWorld - hit.hitPos);
+    RCLookupResult rcLookup = rc_lookupDiffuseGI(V, hit.hitPos, hit.normal, hit.normal);
     candidate.radiance = surface.material.emissive;
     if (rcLookup.weight > 0.0 && !any(isnan(rcLookup.radiance))) {
         candidate.radiance += rcLookup.radiance * surface.material.albedo;
@@ -268,7 +270,7 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 n
 
 restir_InitialSampleData restir_initalSample_restoreData(ivec2 texelPos, float viewZ, vec3 geomNormal, vec3 normal, Material selfMaterial, float hitDistance) {
     restir_InitialSampleData initialSampleData;
-    vec2 rayOriginScreenXY = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+    vec2 rayOriginScreenXY = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
     vec3 rayOriginView = coords_toViewCoord(rayOriginScreenXY, viewZ, global_camProjInverse);
     vec3 V = normalize(-rayOriginView);
 

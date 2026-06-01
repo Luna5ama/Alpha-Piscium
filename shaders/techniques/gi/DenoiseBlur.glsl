@@ -21,7 +21,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
-layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
+layout(rgba16f) uniform image2D uimg_temp3;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 
@@ -101,7 +101,7 @@ void getSpecularKernelBasis(
 
     float NoD = saturate(dot(N, D));
     float skewFactor = mix(0.25 + 0.75 * roughness, 1.0, NoD);
-    skewFactor = mix(skewFactor, 1.0, accumFactor);
+    skewFactor = mix(skewFactor, 1.0, pow2(accumFactor));
     skewFactor = mix(1.0, skewFactor, bentFactor);
 
     T *= worldRadius * skewFactor;

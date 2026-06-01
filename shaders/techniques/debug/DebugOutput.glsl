@@ -6,7 +6,7 @@
 #include "/util/NZPacking.glsl"
 #include "/util/TextRender.glsl"
 #include "/techniques/EnvProbe.glsl"
-#include "/techniques/gi/RadianceCache.glsl"
+#include "/techniques/gi/RadianceCacheSample.glsl"
 #include "/techniques/atmospherics/air/Common.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/atmospherics/clouds/amblut/API.glsl"
@@ -122,9 +122,10 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     text.fpPrecision = 4;
 
     #ifdef SETTING_RC_ENABLE
+    #if SETTING_DEBUG_RC_MODE
     ivec2 rcTexelPos = texelPos;
     if (all(lessThan(rcTexelPos, uval_mainImageSizeI))) {
-        vec2 rcScreenPos = (vec2(rcTexelPos) + 0.5) * uval_mainImageSizeRcp;
+        vec2 rcScreenPos = (vec2(rcTexelPos) + 0.5) * uval_mainImageSizeRcp - uval_taaJitterUV;
         float viewZ = texelFetch(usam_gbufferSolidViewZ, rcTexelPos, 0).r;
         vec3 viewPos = coords_toViewCoord(rcScreenPos, viewZ, global_camProjInverse);
 
@@ -137,8 +138,9 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         vec3 worldPos = scenePos + cameraPosition;
         vec3 worldNormal = coords_dir_viewToWorld(gData.normal);
         vec3 worldGeomNormal = coords_dir_viewToWorld(gData.geomNormal);
-        RCLookupResult rcLookup = rc_lookupDiffuseGI(worldPos, worldNormal, worldGeomNormal);
-        // RCLookupResult rcLookup = rc_lookupDiffuseGISmooth(worldPos, worldNormal, worldGeomNormal);
+        vec3 V = coords_dir_viewToWorld(normalize(-viewPos));
+        RCLookupResult rcLookup = rc_lookupDiffuseGI(V, worldPos, worldNormal, worldGeomNormal);
+//        RCLookupResult rcLookup = rc_lookupDiffuseGISmooth(V, worldPos, worldNormal, worldGeomNormal);
         bool rcHit = rcLookup.weight > 0.0;
 
         #if SETTING_DEBUG_RC_MODE == 1
@@ -165,6 +167,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         outputColor.rgb *= exp2(global_aeData.expValues.z);
         outputColor.a = 1.0;
     }
+    #endif
     #endif
 
     ivec2 scaledTextureSize = ivec2(uval_mainImageSize * SETTING_DEBUG_SCALE);

@@ -2,6 +2,7 @@
 #define INCLUDE_techniques_voxel_SurfaceData_glsl a
 
 #include "Voxelization.glsl"
+#include "VoxelFaceTexcoords.glsl"
 #include "VoxelTrace.glsl"
 #include "/util/Material.glsl"
 
@@ -10,7 +11,7 @@ struct voxel_SurfaceData {
     bool valid;
 };
 
-voxel_SurfaceData voxel_sampleVoxelSurface(VoxelHit hit) {
+voxel_SurfaceData voxel_sampleVoxelSurface(VoxelHit hit, float lod) {
     voxel_SurfaceData surface;
     surface.valid = false;
     surface.material = material_init();
@@ -28,8 +29,8 @@ voxel_SurfaceData voxel_sampleVoxelSurface(VoxelHit hit) {
 
     vec2 localUV = voxel_faceLocalUV(faceId, hit.hitPos);
     vec2 atlasUV = mix(tc.xw, tc.zy, localUV);
-    vec4 albedoData = texture(usam_blockAtlasColor, atlasUV);
-    vec4 speuclarData = texture(usam_blockAtlasSpecular, atlasUV);
+    vec4 albedoData = textureLod(usam_blockAtlasColor, atlasUV, lod);
+    vec4 speuclarData = textureLod(usam_blockAtlasSpecular, atlasUV, lod);
 
     float emissiveS = speuclarData.a;
     emissiveS *= float(speuclarData.a < 1.0);
