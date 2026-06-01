@@ -38,7 +38,7 @@ void main() {
         return;
     }
 
-    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
     vec3 rayOriginView = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     vec3 rayOriginWorld = coords_pos_viewToWorld(rayOriginView, gbufferModelViewInverse) + cameraPosition;
     vec3 rayWorldDir = coords_dir_viewToWorld(candidate.rayDirView);
