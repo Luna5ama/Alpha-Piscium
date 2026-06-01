@@ -17,7 +17,10 @@
 
 layout(local_size_x = 16, local_size_y = 16) in;
 
+#include "/Base.glsl"
+
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
+layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
@@ -80,30 +83,22 @@ void sampleTemporalNeighbor(
                 neighborReservoir.Y.xyz = hitDiff * rcpHitDist;
                 neighborReservoir.Y.w = hitDist2 * rcpHitDist;
 
-                vec4 prev2CurrHitClipPos = global_camProj * vec4(prev2CurrHitViewPos, 1.0);
-                uint clipFlag = uint(prev2CurrHitClipPos.z > 0.0);
-                clipFlag &= uint(all(lessThan(abs(prev2CurrHitClipPos.xyz), prev2CurrHitClipPos.www)));
-
-                if (!bool(clipFlag)) {
-                    valid = false;
-                } else {
-                    vec3 neighborHitNormalRaw = history_restir_prevHitNormal_fetch(neighborTexelPos).xyz;
-                    neighborHitNormal = normalize(shared_prevViewToCurrView * (neighborHitNormalRaw * 2.0 - 1.0));
-                    // offsetB in current view = M * origOffset (translation cancels in subtraction)
-                    vec3 offsetB = shared_prevViewToCurrView * origOffsetPrevView;
-                    vec3 dirA = neighborReservoir.Y.xyz;
-                    float RB2 = dot(offsetB, offsetB);
-                    vec3 dirB = offsetB * inversesqrt(max(RB2, 1e-12));
-                    float cosPhiA = -dot(dirA, neighborHitNormal);
-                    float cosPhiB = -dot(dirB, neighborHitNormal);
-                    float jacobian = 1.0;
-                    if (cosPhiA <= 0.0 || dot(centerNormal, dirA) <= 0.0) {
-                        jacobian = 0.0;
-                    } else if (cosPhiB > 5e-2) {
-                        jacobian = min((RB2 * cosPhiA) / (hitDist2 * cosPhiB), 256.0);
-                    }
-                    neighborReservoir.avgWY *= jacobian;
+                vec3 neighborHitNormalRaw = history_restir_prevHitNormal_fetch(neighborTexelPos).xyz;
+                neighborHitNormal = normalize(shared_prevViewToCurrView * (neighborHitNormalRaw * 2.0 - 1.0));
+                // offsetB in current view = M * origOffset (translation cancels in subtraction)
+                vec3 offsetB = shared_prevViewToCurrView * origOffsetPrevView;
+                vec3 dirA = neighborReservoir.Y.xyz;
+                float RB2 = dot(offsetB, offsetB);
+                vec3 dirB = offsetB * inversesqrt(max(RB2, 1e-12));
+                float cosPhiA = -dot(dirA, neighborHitNormal);
+                float cosPhiB = -dot(dirB, neighborHitNormal);
+                float jacobian = 1.0;
+                if (cosPhiA <= 0.0 || dot(centerNormal, dirA) <= 0.0) {
+                    jacobian = 0.0;
+                } else if (cosPhiB > 5e-2) {
+                    jacobian = min((RB2 * cosPhiA) / (hitDist2 * cosPhiB), 256.0);
                 }
+                neighborReservoir.avgWY *= jacobian;
             } else {
                 neighborReservoir.Y.xyz = normalize(shared_prevViewToCurrView * neighborReservoir.Y.xyz);
             }
@@ -180,6 +175,7 @@ void main() {
 
             ResampleMaterial resampleMaterial = resampleMaterial_fromMaterial(material);
             restir_InitialCandidate initialCandidate = restir_initialCandidate_load(texelPos);
+            initialCandidate.rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, gData.normal, V, material, initialCandidate.pdf);
             float hitDistance = initialCandidate.hitDistance;
             vec3 hitRadiance = initialCandidate.radiance;
             vec3 sampleDirView = initialCandidate.rayDirView;
