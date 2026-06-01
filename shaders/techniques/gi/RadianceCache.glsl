@@ -401,15 +401,15 @@ uint rc_faceIdFromNormal(vec3 normal) {
 }
 
 vec3 rc_faceCenter(ivec3 worldCellCoord, uint level, uint faceId) {
-    float voxelSize = float(rc_voxelSize(level));
+    float halfVoxel = ldexp(0.5, int(level));
     vec3 cellMin = ldexp(worldCellCoord, ivec3(level));
-    vec3 center = cellMin + vec3(voxelSize * 0.5);
-    center += rc_faceNormal(faceId) * (voxelSize * 0.5);
+    vec3 center = cellMin + halfVoxel;
+    center += rc_faceNormal(faceId) * halfVoxel;
     return center;
 }
 
 vec3 rc_faceRayOrigin(ivec3 worldCellCoord, uint level, uint faceId) {
-    float halfVoxel = float(rc_voxelSize(level)) * 0.5;
+    float halfVoxel = ldexp(0.5, int(level));
     return ldexp(worldCellCoord, ivec3(level))
         + vec3(halfVoxel)
         + rc_faceNormal(faceId) * (halfVoxel + 0.05);
@@ -513,8 +513,7 @@ bool rc_loadParentFaceReservoir(
 
     vec3 faceNormal = rc_faceNormal(faceId);
     vec3 faceCenter = rc_faceCenter(worldCellCoord, level, faceId);
-    float voxelSize = float(rc_voxelSize(level));
-    float epsilon = max(voxelSize * 1e-3, 1e-3);
+    float epsilon = max(ldexp(1e-3, int(level)), 1e-3);
     vec3 ownerP = faceCenter - faceNormal * epsilon;
     parentCell = rc_worldCellCoord(ownerP, parentLevel);
 
@@ -759,7 +758,6 @@ RCLookupResult rc_lookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
     RCLookupResult result = rc_lookupInit();
 
     uint level = rc_selectLevel(P);
-    float voxelSize = float(rc_voxelSize(level));
 
     uint faceId = rc_dominantFaceId(geomN);
     vec3 faceNormal = rc_faceNormal(faceId);
@@ -773,7 +771,7 @@ RCLookupResult rc_lookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
     // Move slightly behind the queried surface so the owner cell is stable.
     // For +Y face, this moves into the solid cell below the face.
     // For -Y face, this moves into the solid cell above the face.
-    float surfaceEpsilon = max(voxelSize * 1e-3, 1e-3);
+    float surfaceEpsilon = max(ldexp(1e-3, int(level)), 1e-3);
     vec3 ownerP = P - faceNormal * surfaceEpsilon;
 
     ivec3 ownerCell = rc_worldCellCoord(ownerP, level);
@@ -785,7 +783,7 @@ RCLookupResult rc_lookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
     //
     // The integer part selects the lower face-center cell,
     // and the fractional part is the interpolation weight.
-    vec3 cellSpace = P / voxelSize - vec3(0.5);
+    vec3 cellSpace = ldexp(P, ivec3(-int(level))) - vec3(0.5);
 
     float u = cellSpace[int(axis0)];
     float v = cellSpace[int(axis1)];
@@ -934,7 +932,6 @@ RCLookupResult rc_lookupDiffuseGI(vec3 P, vec3 N, vec3 geomN) {
     RCLookupResult result = rc_lookupInit();
 
     uint level = rc_selectLevel(P);
-    float voxelSize = float(rc_voxelSize(level));
 
     uint faceId = rc_dominantFaceId(geomN);
     vec3 faceNormal = rc_faceNormal(faceId);
@@ -942,7 +939,7 @@ RCLookupResult rc_lookupDiffuseGI(vec3 P, vec3 N, vec3 geomN) {
     // Move into the owner voxel so the face owner is stable.
     // For +Y face, this moves slightly below the surface.
     // For -Y face, this moves slightly above the surface.
-    float surfaceEpsilon = max(voxelSize * 1e-3, 1e-3);
+    float surfaceEpsilon = max(ldexp(1e-3, int(level)), 1e-3);
     vec3 ownerP = P - faceNormal * surfaceEpsilon;
 
     ivec3 ownerCell = rc_worldCellCoord(ownerP, level);

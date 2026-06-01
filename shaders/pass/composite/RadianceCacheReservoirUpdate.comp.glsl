@@ -448,12 +448,12 @@ bool rc_generateSpatialCandidate(
         }
 
         vec3 toHit = hitPos - targetOrigin;
-        float distanceSq = dot(toHit, toHit);
-        if (distanceSq <= 1e-6) {
+        float hitDistanceSq = dot(toHit, toHit);
+        if (hitDistanceSq <= 1e-6) {
             return false;
         }
 
-        vec3 shiftedDir = toHit * inversesqrt(distanceSq);
+        vec3 shiftedDir = toHit * inversesqrt(hitDistanceSq);
         float targetCos = dot(targetNormal, shiftedDir);
         if (targetCos <= 0.05) {
             return false;
@@ -465,8 +465,8 @@ bool rc_generateSpatialCandidate(
             return false;
         }
 
-        float hitThreshold = max(float(rc_voxelSize(level)) * 0.25, 0.1);
-        if (length(hit.hitPos - hitPos) > hitThreshold) {
+        float hitThreshold = pow2(max(ldexp(0.25, int(level)), 0.1));
+        if (distanceSq(hit.hitPos, hitPos) > hitThreshold) {
             return false;
         }
         if (dot(hit.normal, -shiftedDir) <= 0.0) {
