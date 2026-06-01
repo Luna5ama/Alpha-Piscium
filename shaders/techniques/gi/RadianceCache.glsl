@@ -384,9 +384,20 @@ ivec3 rc_faceNormalI(uint faceId) {
 
 uint rc_faceIdFromNormal(vec3 normal) {
     vec3 a = abs(normal);
-    if (a.x >= a.y && a.x >= a.z) return normal.x >= 0.0 ? RC_FACE_POS_X : RC_FACE_NEG_X;
-    if (a.y >= a.z) return normal.y >= 0.0 ? RC_FACE_POS_Y : RC_FACE_NEG_Y;
-    return normal.z >= 0.0 ? RC_FACE_POS_Z : RC_FACE_NEG_Z;
+
+    uint yWins = uint(a.y > a.x) & uint(a.y >= a.z);
+    uint zWins = uint(a.z > a.x) & uint(a.z >  a.y);
+
+    uint axis = yWins + zWins * 2u;
+
+    float axisValue =
+    normal.x * float(axis == 0u) +
+    normal.y * float(axis == 1u) +
+    normal.z * float(axis == 2u);
+
+    uint signBit = uint(axisValue < 0.0);
+
+    return axis * 2u + signBit;
 }
 
 vec3 rc_faceCenter(ivec3 worldCellCoord, uint level, uint faceId) {
