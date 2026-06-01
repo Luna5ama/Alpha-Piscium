@@ -76,7 +76,7 @@ struct RCReservoir {
     uint meta;
 };
 
-RCReservoir rcReservoirInit() {
+RCReservoir rc_reservoirInit() {
     RCReservoir reservoir;
     reservoir.radiance = vec3(0.0);
     reservoir.avgWY = 0.0;
@@ -92,16 +92,16 @@ bool _rcReservoirMetaValid(uint meta) {
 }
 
 
-bool rcReservoirValid(RCReservoir reservoir) {
+bool rc_reservoirValid(RCReservoir reservoir) {
     return _rcReservoirMetaValid(reservoir.meta) && reservoir.m > 0.0;
 }
 
-uint rcReservoirRecordIndex(uint side, uint reservoirIndex) {
+uint rc_reservoirRecordIndex(uint side, uint reservoirIndex) {
     return (side * SETTING_RC_POOL_SIZE + reservoirIndex) * RC_RESERVOIR_RECORDS;
 }
 
-RCReservoir rcReservoirLoad(uint side, uint reservoirIndex) {
-    uint recordIndex = rcReservoirRecordIndex(side, reservoirIndex);
+RCReservoir rc_reservoirLoad(uint side, uint reservoirIndex) {
+    uint recordIndex = rc_reservoirRecordIndex(side, reservoirIndex);
     uvec4 r0 = rc_reservoirs[recordIndex + 0u];
     uvec4 r1 = rc_reservoirs[recordIndex + 1u];
     uvec4 r2 = rc_reservoirs[recordIndex + 2u];
@@ -136,39 +136,39 @@ struct RCLookupResult {
     uint age;
 };
 
-uint rcCurrentSide() {
+uint rc_currentSide() {
     return uint(frameCounter) & 1u;
 }
 
-uint rcPreviousSide() {
-    return 1u - rcCurrentSide();
+uint rc_previousSide() {
+    return 1u - rc_currentSide();
 }
 
-uint rcVoxelSize(uint level) {
+uint rc_voxelSize(uint level) {
     return 1u << level;
 }
 
-ivec3 rcWorldCellCoord(vec3 worldPos, uint level) {
+ivec3 rc_worldCellCoord(vec3 worldPos, uint level) {
     return ivec3(floor(ldexp(worldPos, ivec3(-int(level)))));
 }
 
-uvec3 rcClipTexel(ivec3 worldCellCoord) {
+uvec3 rc_clipTexel(ivec3 worldCellCoord) {
     return uvec3(worldCellCoord) & uvec3(RC_CLIP_MASK);
 }
 
-uint rcEntryIndex(uint level, ivec3 worldCellCoord) {
-    uvec3 clipTexel = rcClipTexel(worldCellCoord);
+uint rc_entryIndex(uint level, ivec3 worldCellCoord) {
+    uvec3 clipTexel = rc_clipTexel(worldCellCoord);
     return level * (RC_CLIP_SIZE * RC_CLIP_SIZE * RC_CLIP_SIZE)
         + clipTexel.z * (RC_CLIP_SIZE * RC_CLIP_SIZE)
         + clipTexel.y * RC_CLIP_SIZE
         + clipTexel.x;
 }
 
-uint rcEntryLevel(uint entryIndex) {
+uint rc_entryLevel(uint entryIndex) {
     return entryIndex / (RC_CLIP_SIZE * RC_CLIP_SIZE * RC_CLIP_SIZE);
 }
 
-uvec3 rcEntryClipTexel(uint entryIndex) {
+uvec3 rc_entryClipTexel(uint entryIndex) {
     uint localIndex = entryIndex % (RC_CLIP_SIZE * RC_CLIP_SIZE * RC_CLIP_SIZE);
     return uvec3(
         localIndex & RC_CLIP_MASK,
@@ -177,7 +177,7 @@ uvec3 rcEntryClipTexel(uint entryIndex) {
     );
 }
 
-int rcNearestClipCoord(int cameraCellCoord, uint clipTexelCoord) {
+int rc_nearestClipCoord(int cameraCellCoord, uint clipTexelCoord) {
     int result = (cameraCellCoord & ~int(RC_CLIP_MASK)) | int(clipTexelCoord);
     int delta = result - cameraCellCoord;
     if (delta > int(RC_CLIP_SIZE / 2u)) result -= int(RC_CLIP_SIZE);
@@ -185,158 +185,158 @@ int rcNearestClipCoord(int cameraCellCoord, uint clipTexelCoord) {
     return result;
 }
 
-ivec3 rcWorldCellCoordFromEntryIndex(uint entryIndex) {
-    uint level = rcEntryLevel(entryIndex);
-    uvec3 clipTexel = rcEntryClipTexel(entryIndex);
-    ivec3 cameraCell = rcWorldCellCoord(cameraPosition, level);
+ivec3 rc_worldCellCoordFromEntryIndex(uint entryIndex) {
+    uint level = rc_entryLevel(entryIndex);
+    uvec3 clipTexel = rc_entryClipTexel(entryIndex);
+    ivec3 cameraCell = rc_worldCellCoord(cameraPosition, level);
     return ivec3(
-        rcNearestClipCoord(cameraCell.x, clipTexel.x),
-        rcNearestClipCoord(cameraCell.y, clipTexel.y),
-        rcNearestClipCoord(cameraCell.z, clipTexel.z)
+        rc_nearestClipCoord(cameraCell.x, clipTexel.x),
+        rc_nearestClipCoord(cameraCell.y, clipTexel.y),
+        rc_nearestClipCoord(cameraCell.z, clipTexel.z)
     );
 }
 
-bool rcWorldCellInCurrentClip(uint level, ivec3 worldCellCoord) {
-    ivec3 cameraCell = rcWorldCellCoord(cameraPosition, level);
+bool rc_worldCellInCurrentClip(uint level, ivec3 worldCellCoord) {
+    ivec3 cameraCell = rc_worldCellCoord(cameraPosition, level);
     ivec3 delta = worldCellCoord - cameraCell;
     return all(lessThanEqual(abs(delta), ivec3(31)));
 }
 
-uint rcBufferEntryIndex(uint side, uint entryIndex) {
+uint rc_bufferEntryIndex(uint side, uint entryIndex) {
     return side * RC_ENTRY_COUNT + entryIndex;
 }
 
-uint rcFeedbackRecordIndex(uint side, uint entryIndex) {
-    return rcBufferEntryIndex(side, entryIndex);
+uint rc_feedbackRecordIndex(uint side, uint entryIndex) {
+    return rc_bufferEntryIndex(side, entryIndex);
 }
 
-uint rcWorldKeyHash(uint level, ivec3 worldCellCoord) {
+uint rc_worldKeyHash(uint level, ivec3 worldCellCoord) {
     return hash_41_q5(uvec4(uvec3(worldCellCoord), level));
 }
 
-uint rcFaceBit(uint faceId) {
+uint rc_faceBit(uint faceId) {
     return 1u << faceId;
 }
 
-bool rcHasFace(uint faceMask, uint faceId) {
-    return (faceMask & rcFaceBit(faceId)) != 0u;
+bool rc_hasFace(uint faceMask, uint faceId) {
+    return (faceMask & rc_faceBit(faceId)) != 0u;
 }
 
-uint rcFaceLocalOffset(uint faceMask, uint faceId) {
-    uint faceBit = rcFaceBit(faceId);
+uint rc_faceLocalOffset(uint faceMask, uint faceId) {
+    uint faceBit = rc_faceBit(faceId);
     return bitCount(faceMask & (faceBit - 1u));
 }
 
-uint rcFaceReservoirIndex(uint baseIndex, uint faceMask, uint faceId) {
-    return baseIndex + rcFaceLocalOffset(faceMask, faceId);
+uint rc_faceReservoirIndex(uint baseIndex, uint faceMask, uint faceId) {
+    return baseIndex + rc_faceLocalOffset(faceMask, faceId);
 }
 
-uint rcAllocClassSize(uint faceCount) {
+uint rc_allocClassSize(uint faceCount) {
     if (faceCount <= 1u) return 1u;
     if (faceCount <= 2u) return 2u;
     if (faceCount <= 4u) return 4u;
     return 6u;
 }
 
-uint rcPackEntryMeta(uint level, bool valid) {
+uint rc_packEntryMeta(uint level, bool valid) {
     return (valid ? RC_ENTRY_META_VALID : 0u)
         | (level & RC_ENTRY_META_LEVEL_MASK);
 }
 
-bool rcEntryMetaValid(uint meta) {
+bool rc_entryMetaValid(uint meta) {
     return (meta & RC_ENTRY_META_VALID) != 0u;
 }
 
-uint rcEntryMetaLevel(uint meta) {
+uint rc_entryMetaLevel(uint meta) {
     return meta & RC_ENTRY_META_LEVEL_MASK;
 }
 
-uint rcEntryMetaPendingFaceMask(uint meta) {
+uint rc_entryMetaPendingFaceMask(uint meta) {
     return (meta & RC_ENTRY_META_PENDING_FACE_MASK) >> RC_ENTRY_META_PENDING_FACE_SHIFT;
 }
 
-uint rcEntryMetaPendingFaceBits(uint faceMask) {
+uint rc_entryMetaPendingFaceBits(uint faceMask) {
     return (faceMask & 0x3fu) << RC_ENTRY_META_PENDING_FACE_SHIFT;
 }
 
-uint rcEntryMetaClearPendingFaces(uint meta) {
+uint rc_entryMetaClearPendingFaces(uint meta) {
     return meta & ~RC_ENTRY_META_PENDING_FACE_MASK;
 }
 
-uint rcFeedbackScreenBits(uint faceMask) {
+uint rc_feedbackScreenBits(uint faceMask) {
     return (faceMask & RC_FEEDBACK_FACE_MASK) << RC_FEEDBACK_SCREEN_SHIFT;
 }
 
-uint rcFeedbackHitBits(uint faceMask) {
+uint rc_feedbackHitBits(uint faceMask) {
     return (faceMask & RC_FEEDBACK_FACE_MASK) << RC_FEEDBACK_HIT_SHIFT;
 }
 
-uint rcFeedbackScreenFaceMask(uint side, uint entryIndex) {
-    uint recordIndex = rcFeedbackRecordIndex(side, entryIndex);
+uint rc_feedbackScreenFaceMask(uint side, uint entryIndex) {
+    uint recordIndex = rc_feedbackRecordIndex(side, entryIndex);
     return (rc_feedback[recordIndex].y >> RC_FEEDBACK_SCREEN_SHIFT) & RC_FEEDBACK_FACE_MASK;
 }
 
-uint rcFeedbackHitFaceMask(uint side, uint entryIndex) {
-    uint recordIndex = rcFeedbackRecordIndex(side, entryIndex);
+uint rc_feedbackHitFaceMask(uint side, uint entryIndex) {
+    uint recordIndex = rc_feedbackRecordIndex(side, entryIndex);
     return (rc_feedback[recordIndex].y >> RC_FEEDBACK_HIT_SHIFT) & RC_FEEDBACK_FACE_MASK;
 }
 
-void rcFeedbackClearRecord(uint side, uint entryIndex) {
-    uint recordIndex = rcFeedbackRecordIndex(side, entryIndex);
+void rc_feedbackClearRecord(uint side, uint entryIndex) {
+    uint recordIndex = rc_feedbackRecordIndex(side, entryIndex);
     rc_feedback[recordIndex] = uvec2(RC_INVALID, 0u);
 }
 
-void rcMarkScreenTouchedFace(uint level, ivec3 worldCellCoord, uint faceId) {
-    if (!rcWorldCellInCurrentClip(level, worldCellCoord)) {
+void rc_markScreenTouchedFace(uint level, ivec3 worldCellCoord, uint faceId) {
+    if (!rc_worldCellInCurrentClip(level, worldCellCoord)) {
         return;
     }
 
-    uint entryIndex = rcEntryIndex(level, worldCellCoord);
-    uint recordIndex = rcFeedbackRecordIndex(rcCurrentSide(), entryIndex);
-    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    uint entryIndex = rc_entryIndex(level, worldCellCoord);
+    uint recordIndex = rc_feedbackRecordIndex(rc_currentSide(), entryIndex);
+    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
     uint oldKey = atomicCompSwap(rc_feedback[recordIndex].x, RC_INVALID, worldKeyHash);
     if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        atomicOr(rc_feedback[recordIndex].y, rcFeedbackScreenBits(rcFaceBit(faceId)));
+        atomicOr(rc_feedback[recordIndex].y, rc_feedbackScreenBits(rc_faceBit(faceId)));
     }
 }
 
-void rcMarkHitFeedbackFace(uint level, ivec3 worldCellCoord, uint faceId) {
-    if (!rcWorldCellInCurrentClip(level, worldCellCoord)) {
+void rc_markHitFeedbackFace(uint level, ivec3 worldCellCoord, uint faceId) {
+    if (!rc_worldCellInCurrentClip(level, worldCellCoord)) {
         return;
     }
 
-    uint entryIndex = rcEntryIndex(level, worldCellCoord);
-    uint recordIndex = rcFeedbackRecordIndex(rcCurrentSide(), entryIndex);
-    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    uint entryIndex = rc_entryIndex(level, worldCellCoord);
+    uint recordIndex = rc_feedbackRecordIndex(rc_currentSide(), entryIndex);
+    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
     uint oldKey = atomicCompSwap(rc_feedback[recordIndex].x, RC_INVALID, worldKeyHash);
     if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        atomicOr(rc_feedback[recordIndex].y, rcFeedbackHitBits(rcFaceBit(faceId)));
+        atomicOr(rc_feedback[recordIndex].y, rc_feedbackHitBits(rc_faceBit(faceId)));
     }
 }
 
-uint rcPackReservoirMeta(uint age, bool valid, uint flags) {
+uint rc_packReservoirMeta(uint age, bool valid, uint flags) {
     return (valid ? RC_RES_META_VALID : 0u)
         | ((min(age, 255u) << RC_RES_META_AGE_SHIFT) & RC_RES_META_AGE_MASK)
         | (flags & RC_RES_META_FLAGS_MASK);
 }
 
-uint rcReservoirMetaAge(uint meta) {
+uint rc_reservoirMetaAge(uint meta) {
     return (meta & RC_RES_META_AGE_MASK) >> RC_RES_META_AGE_SHIFT;
 }
 
-uint rcReservoirMetaFlags(uint meta) {
+uint rc_reservoirMetaFlags(uint meta) {
     return meta & RC_RES_META_FLAGS_MASK;
 }
 
-bool rcReservoirIsSurfaceHit(RCReservoir reservoir) {
-    return (rcReservoirMetaFlags(reservoir.meta) & RC_RES_FLAG_SURFACE_HIT) != 0u;
+bool rc_reservoirIsSurfaceHit(RCReservoir reservoir) {
+    return (rc_reservoirMetaFlags(reservoir.meta) & RC_RES_FLAG_SURFACE_HIT) != 0u;
 }
 
-bool rcReservoirIsSkyMiss(RCReservoir reservoir) {
-    return (rcReservoirMetaFlags(reservoir.meta) & RC_RES_FLAG_SKY_MISS) != 0u;
+bool rc_reservoirIsSkyMiss(RCReservoir reservoir) {
+    return (rc_reservoirMetaFlags(reservoir.meta) & RC_RES_FLAG_SKY_MISS) != 0u;
 }
 
-vec3 rcFaceNormal(uint faceId) {
+vec3 rc_faceNormal(uint faceId) {
     if (faceId == RC_FACE_POS_X) return vec3(1.0, 0.0, 0.0);
     if (faceId == RC_FACE_NEG_X) return vec3(-1.0, 0.0, 0.0);
     if (faceId == RC_FACE_POS_Y) return vec3(0.0, 1.0, 0.0);
@@ -345,30 +345,30 @@ vec3 rcFaceNormal(uint faceId) {
     return vec3(0.0, 0.0, -1.0);
 }
 
-ivec3 rcFaceNormalI(uint faceId) {
-    return ivec3(rcFaceNormal(faceId));
+ivec3 rc_faceNormalI(uint faceId) {
+    return ivec3(rc_faceNormal(faceId));
 }
 
-uint rcFaceIdFromNormal(vec3 normal) {
+uint rc_faceIdFromNormal(vec3 normal) {
     vec3 a = abs(normal);
     if (a.x >= a.y && a.x >= a.z) return normal.x >= 0.0 ? RC_FACE_POS_X : RC_FACE_NEG_X;
     if (a.y >= a.z) return normal.y >= 0.0 ? RC_FACE_POS_Y : RC_FACE_NEG_Y;
     return normal.z >= 0.0 ? RC_FACE_POS_Z : RC_FACE_NEG_Z;
 }
 
-vec3 rcFaceCenter(ivec3 worldCellCoord, uint level, uint faceId) {
-    float voxelSize = float(rcVoxelSize(level));
+vec3 rc_faceCenter(ivec3 worldCellCoord, uint level, uint faceId) {
+    float voxelSize = float(rc_voxelSize(level));
     vec3 cellMin = ldexp(worldCellCoord, ivec3(level));
     vec3 center = cellMin + vec3(voxelSize * 0.5);
-    center += rcFaceNormal(faceId) * (voxelSize * 0.5);
+    center += rc_faceNormal(faceId) * (voxelSize * 0.5);
     return center;
 }
 
-vec3 rcFaceRayOrigin(ivec3 worldCellCoord, uint level, uint faceId) {
-    return rcFaceCenter(worldCellCoord, level, faceId) + rcFaceNormal(faceId) * 0.05;
+vec3 rc_faceRayOrigin(ivec3 worldCellCoord, uint level, uint faceId) {
+    return rc_faceCenter(worldCellCoord, level, faceId) + rc_faceNormal(faceId) * 0.05;
 }
 
-ivec3 rcNeighborPlaneOffset(uint faceId, int offset0, int offset1) {
+ivec3 rc_neighborPlaneOffset(uint faceId, int offset0, int offset1) {
     if (faceId == RC_FACE_POS_X || faceId == RC_FACE_NEG_X) {
         return ivec3(0, offset0, offset1);
     }
@@ -380,7 +380,7 @@ ivec3 rcNeighborPlaneOffset(uint faceId, int offset0, int offset1) {
     return ivec3(offset0, offset1, 0);
 }
 
-ivec2 rcNeighborOffset8(uint index) {
+ivec2 rc_neighborOffset8(uint index) {
     if (index == 0u) return ivec2(-1, -1);
     if (index == 1u) return ivec2(0, -1);
     if (index == 2u) return ivec2(1, -1);
@@ -391,7 +391,7 @@ ivec2 rcNeighborOffset8(uint index) {
     return ivec2(1, 1);
 }
 
-float rcAreaPdfCosineConnection(
+float rc_areaPdfCosineConnection(
     vec3 origin,
     vec3 originNormal,
     vec3 hitPos,
@@ -414,52 +414,52 @@ float rcAreaPdfCosineConnection(
     return pdfOmega * cosHit / distanceSq;
 }
 
-bool rcLoadFaceReservoir(
+bool rc_loadFaceReservoir(
     uint side,
     uint level,
     ivec3 worldCellCoord,
     uint faceId,
     out RCReservoir reservoir
 ) {
-    reservoir = rcReservoirInit();
+    reservoir = rc_reservoirInit();
 
-    uint entryIndex = rcEntryIndex(level, worldCellCoord);
-    uint bufferIndex = rcBufferEntryIndex(side, entryIndex);
+    uint entryIndex = rc_entryIndex(level, worldCellCoord);
+    uint bufferIndex = rc_bufferEntryIndex(side, entryIndex);
     uvec4 entry = rc_indirection[bufferIndex];
-    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
     if (
         entry.x == RC_INVALID
         || entry.z != worldKeyHash
-        || !rcEntryMetaValid(entry.w)
-        || rcEntryMetaLevel(entry.w) != level
-        || !rcHasFace(entry.y, faceId)
+        || !rc_entryMetaValid(entry.w)
+        || rc_entryMetaLevel(entry.w) != level
+        || !rc_hasFace(entry.y, faceId)
     ) {
         return false;
     }
 
-    uint reservoirIndex = rcFaceReservoirIndex(entry.x, entry.y, faceId);
+    uint reservoirIndex = rc_faceReservoirIndex(entry.x, entry.y, faceId);
     if (reservoirIndex >= uint(SETTING_RC_POOL_SIZE)) {
         return false;
     }
 
-    reservoir = rcReservoirLoad(side, reservoirIndex);
-    return rcReservoirValid(reservoir);
+    reservoir = rc_reservoirLoad(side, reservoirIndex);
+    return rc_reservoirValid(reservoir);
 }
-void rcReservoirStore(uint side, uint reservoirIndex, RCReservoir reservoir) {
-    uint recordIndex = rcReservoirRecordIndex(side, reservoirIndex);
+void rc_reservoirStore(uint side, uint reservoirIndex, RCReservoir reservoir) {
+    uint recordIndex = rc_reservoirRecordIndex(side, reservoirIndex);
     rc_reservoirs[recordIndex + 0u] = uvec4(floatBitsToUint(reservoir.radiance), floatBitsToUint(reservoir.avgWY));
     rc_reservoirs[recordIndex + 1u] = uvec4(floatBitsToUint(reservoir.sampleDir), floatBitsToUint(reservoir.m));
     rc_reservoirs[recordIndex + 2u] = uvec4(floatBitsToUint(reservoir.hitPos), reservoir.meta);
 }
 
-float rcLuminance(vec3 radiance) {
+float rc_luminance(vec3 radiance) {
     return length(radiance);
 }
 
 vec3 rc_reservoirEstimateRadiance(RCReservoir reservoir) {
     vec3 result = vec3(0.0);
 
-    if (rcReservoirValid(reservoir)) {
+    if (rc_reservoirValid(reservoir)) {
         result = max(reservoir.radiance * reservoir.avgWY, 0.0);
     }
 
@@ -474,14 +474,14 @@ RCReservoir rc_reservoirInitFromCandidate(RCCandidate candidate) {
         reservoir.sampleDir = candidate.dir;
         reservoir.m = 1.0;
         reservoir.hitPos = candidate.hitPos;
-        reservoir.meta = rcPackReservoirMeta(0u, true, candidate.flags);
+        reservoir.meta = rc_packReservoirMeta(0u, true, candidate.flags);
     } else {
-        reservoir = rcReservoirInit();
+        reservoir = rc_reservoirInit();
     }
     return reservoir;
 }
 
-bool rcReservoirUpdate(inout RCReservoir reservoir, inout float wSum, RCCandidate candidate, float randValue) {
+bool rc_reservoirUpdate(inout RCReservoir reservoir, inout float wSum, RCCandidate candidate, float randValue) {
     if (!candidate.valid || candidate.targetWeight <= 0.0) {
         return false;
     }
@@ -499,7 +499,7 @@ bool rcReservoirUpdate(inout RCReservoir reservoir, inout float wSum, RCCandidat
     return false;
 }
 
-bool rcReservoirUpdateWeighted(
+bool rc_reservoirUpdateWeighted(
     inout RCReservoir reservoir,
     inout float wSum,
     RCCandidate candidate,
@@ -530,7 +530,7 @@ bool rcReservoirUpdateWeighted(
     return false;
 }
 
-RCLookupResult rcLookupInit() {
+RCLookupResult rc_lookupInit() {
     RCLookupResult result;
     result.radiance = vec3(0.0);
     result.weight = 0.0;
@@ -543,7 +543,7 @@ RCLookupResult rcLookupInit() {
     return result;
 }
 
-uint rcSelectLevel(vec3 P) {
+uint rc_selectLevel(vec3 P) {
     vec3 d = abs(P - cameraPositionInt);
     float maxDistF = max(max(d.x, d.y), d.z);
 
@@ -566,7 +566,7 @@ uint rcSelectLevel(vec3 P) {
     return min(level, RC_CLIP_LEVELS - 1u);
 }
 
-uint rcDominantFaceId(vec3 N) {
+uint rc_dominantFaceId(vec3 N) {
     vec3 a = abs(N);
 
     if (a.x >= a.y && a.x >= a.z) {
@@ -580,14 +580,14 @@ uint rcDominantFaceId(vec3 N) {
     return N.z >= 0.0 ? RC_FACE_POS_Z : RC_FACE_NEG_Z;
 }
 
-uint rcFaceAxis(uint faceId) {
+uint rc_faceAxis(uint faceId) {
     if (faceId == RC_FACE_POS_X || faceId == RC_FACE_NEG_X) return 0u;
     if (faceId == RC_FACE_POS_Y || faceId == RC_FACE_NEG_Y) return 1u;
     return 2u;
 }
 
-void rcFaceTangentAxes(uint faceId, out uint axis0, out uint axis1) {
-    uint nAxis = rcFaceAxis(faceId);
+void rc_faceTangentAxes(uint faceId, out uint axis0, out uint axis1) {
+    uint nAxis = rc_faceAxis(faceId);
 
     if (nAxis == 0u) {
         axis0 = 1u; // Y
@@ -601,7 +601,7 @@ void rcFaceTangentAxes(uint faceId, out uint axis0, out uint axis1) {
     }
 }
 
-void rcLookupSampleFaceWeighted(
+void rc_lookupSampleFaceWeighted(
     inout RCLookupResult result,
     vec3 P,
     vec3 N,
@@ -614,38 +614,38 @@ void rcLookupSampleFaceWeighted(
         return;
     }
 
-    uint entryIndex = rcEntryIndex(level, worldCellCoord);
-    uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
+    uint entryIndex = rc_entryIndex(level, worldCellCoord);
+    uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
     uvec4 entry = rc_indirection[bufferIndex];
 
-    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
 
     if (
     entry.x == RC_INVALID ||
     entry.z != worldKeyHash ||
-    !rcEntryMetaValid(entry.w) ||
-    rcEntryMetaLevel(entry.w) != level ||
-    !rcHasFace(entry.y, faceId)
+    !rc_entryMetaValid(entry.w) ||
+    rc_entryMetaLevel(entry.w) != level ||
+    !rc_hasFace(entry.y, faceId)
     ) {
         result.misses++;
         return;
     }
 
-    uint reservoirIndex = rcFaceReservoirIndex(entry.x, entry.y, faceId);
+    uint reservoirIndex = rc_faceReservoirIndex(entry.x, entry.y, faceId);
 
     if (reservoirIndex >= uint(SETTING_RC_POOL_SIZE)) {
         result.misses++;
         return;
     }
 
-    RCReservoir reservoir = rcReservoirLoad(rcCurrentSide(), reservoirIndex);
+    RCReservoir reservoir = rc_reservoirLoad(rc_currentSide(), reservoirIndex);
 
-    if (!rcReservoirValid(reservoir)) {
+    if (!rc_reservoirValid(reservoir)) {
         result.misses++;
         return;
     }
 
-    vec3 faceNormal = rcFaceNormal(faceId);
+    vec3 faceNormal = rc_faceNormal(faceId);
 
     float normalWeight = saturate(dot(N, faceNormal));
     if (normalWeight <= 0.0) {
@@ -653,7 +653,7 @@ void rcLookupSampleFaceWeighted(
         return;
     }
 
-    vec3 faceCenter = rcFaceCenter(worldCellCoord, level, faceId);
+    vec3 faceCenter = rc_faceCenter(worldCellCoord, level, faceId);
 
     float thickness = ldexp(0.75, int(level));
 
@@ -663,7 +663,7 @@ void rcLookupSampleFaceWeighted(
         return;
     }
 
-    uint age = rcReservoirMetaAge(reservoir.meta);
+    uint age = rc_reservoirMetaAge(reservoir.meta);
 
     float w = interpWeight * normalWeight;
 
@@ -673,7 +673,7 @@ void rcLookupSampleFaceWeighted(
     }
 
     vec3 estimatedRadiance = rc_reservoirEstimateRadiance(reservoir);
-    if (rcLuminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
+    if (rc_luminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
         result.misses++;
         return;
     }
@@ -683,25 +683,25 @@ void rcLookupSampleFaceWeighted(
 
     result.hits++;
     result.levelMask |= 1u << level;
-    result.faceMask |= rcFaceBit(faceId);
+    result.faceMask |= rc_faceBit(faceId);
     result.m = max(result.m, reservoir.m);
     result.age = max(result.age, age);
 }
 
-RCLookupResult rcLookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
-    RCLookupResult result = rcLookupInit();
+RCLookupResult rc_lookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
+    RCLookupResult result = rc_lookupInit();
 
-    uint level = rcSelectLevel(P);
-    float voxelSize = float(rcVoxelSize(level));
+    uint level = rc_selectLevel(P);
+    float voxelSize = float(rc_voxelSize(level));
 
-    uint faceId = rcDominantFaceId(geomN);
-    vec3 faceNormal = rcFaceNormal(faceId);
+    uint faceId = rc_dominantFaceId(geomN);
+    vec3 faceNormal = rc_faceNormal(faceId);
 
     uint axis0;
     uint axis1;
-    rcFaceTangentAxes(faceId, axis0, axis1);
+    rc_faceTangentAxes(faceId, axis0, axis1);
 
-    uint normalAxis = rcFaceAxis(faceId);
+    uint normalAxis = rc_faceAxis(faceId);
 
     // Move slightly behind the queried surface so the owner cell is stable.
     // For +Y face, this moves into the solid cell below the face.
@@ -709,7 +709,7 @@ RCLookupResult rcLookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
     float surfaceEpsilon = max(voxelSize * 1e-3, 1e-3);
     vec3 ownerP = P - faceNormal * surfaceEpsilon;
 
-    ivec3 ownerCell = rcWorldCellCoord(ownerP, level);
+    ivec3 ownerCell = rc_worldCellCoord(ownerP, level);
 
     // Face centers lie at cell + 0.5 along tangent axes.
     // Therefore the bilinear coordinate over face centers is:
@@ -767,10 +767,10 @@ RCLookupResult rcLookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
     cell01[int(normalAxis)] = ownerCell[int(normalAxis)];
     cell11[int(normalAxis)] = ownerCell[int(normalAxis)];
 
-    rcLookupSampleFaceWeighted(result, P, N, level, cell00, faceId, w00);
-    rcLookupSampleFaceWeighted(result, P, N, level, cell10, faceId, w10);
-    rcLookupSampleFaceWeighted(result, P, N, level, cell01, faceId, w01);
-    rcLookupSampleFaceWeighted(result, P, N, level, cell11, faceId, w11);
+    rc_lookupSampleFaceWeighted(result, P, N, level, cell00, faceId, w00);
+    rc_lookupSampleFaceWeighted(result, P, N, level, cell10, faceId, w10);
+    rc_lookupSampleFaceWeighted(result, P, N, level, cell01, faceId, w01);
+    rc_lookupSampleFaceWeighted(result, P, N, level, cell11, faceId, w11);
 
     if (result.weight > 0.0) {
         result.radiance /= result.weight;
@@ -778,7 +778,7 @@ RCLookupResult rcLookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
 
     return result;
 }
-void rcLookupSampleFace1x1(
+void rc_lookupSampleFace1x1(
     inout RCLookupResult result,
     vec3 P,
     vec3 N,
@@ -786,38 +786,38 @@ void rcLookupSampleFace1x1(
     ivec3 worldCellCoord,
     uint faceId
 ) {
-    uint entryIndex = rcEntryIndex(level, worldCellCoord);
-    uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
+    uint entryIndex = rc_entryIndex(level, worldCellCoord);
+    uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
     uvec4 entry = rc_indirection[bufferIndex];
 
-    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
 
     if (
     entry.x == RC_INVALID ||
     entry.z != worldKeyHash ||
-    !rcEntryMetaValid(entry.w) ||
-    rcEntryMetaLevel(entry.w) != level ||
-    !rcHasFace(entry.y, faceId)
+    !rc_entryMetaValid(entry.w) ||
+    rc_entryMetaLevel(entry.w) != level ||
+    !rc_hasFace(entry.y, faceId)
     ) {
         result.misses++;
         return;
     }
 
-    uint reservoirIndex = rcFaceReservoirIndex(entry.x, entry.y, faceId);
+    uint reservoirIndex = rc_faceReservoirIndex(entry.x, entry.y, faceId);
 
     if (reservoirIndex >= uint(SETTING_RC_POOL_SIZE)) {
         result.misses++;
         return;
     }
 
-    RCReservoir reservoir = rcReservoirLoad(rcCurrentSide(), reservoirIndex);
+    RCReservoir reservoir = rc_reservoirLoad(rc_currentSide(), reservoirIndex);
 
-    if (!rcReservoirValid(reservoir)) {
+    if (!rc_reservoirValid(reservoir)) {
         result.misses++;
         return;
     }
 
-    vec3 faceNormal = rcFaceNormal(faceId);
+    vec3 faceNormal = rc_faceNormal(faceId);
 
     float normalWeight = max(dot(N, faceNormal), 0.0);
     if (normalWeight <= 0.0) {
@@ -825,7 +825,7 @@ void rcLookupSampleFace1x1(
         return;
     }
 
-    vec3 faceCenter = rcFaceCenter(worldCellCoord, level, faceId);
+    vec3 faceCenter = rc_faceCenter(worldCellCoord, level, faceId);
 
     float thickness = ldexp(0.75, int(level));
 
@@ -835,7 +835,7 @@ void rcLookupSampleFace1x1(
         return;
     }
 
-    uint age = rcReservoirMetaAge(reservoir.meta);
+    uint age = rc_reservoirMetaAge(reservoir.meta);
 
     // 1x1 lookup: no bilinear and no tangent distance filter.
     // Weight only by normal compatibility and history freshness.
@@ -847,7 +847,7 @@ void rcLookupSampleFace1x1(
     }
 
     vec3 estimatedRadiance = rc_reservoirEstimateRadiance(reservoir);
-    if (rcLuminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
+    if (rc_luminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
         result.misses++;
         return;
     }
@@ -857,19 +857,19 @@ void rcLookupSampleFace1x1(
 
     result.hits++;
     result.levelMask |= 1u << level;
-    result.faceMask |= rcFaceBit(faceId);
+    result.faceMask |= rc_faceBit(faceId);
     result.m = max(result.m, reservoir.m);
     result.age = max(result.age, age);
 }
 
-RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N, vec3 geomN) {
-    RCLookupResult result = rcLookupInit();
+RCLookupResult rc_lookupDiffuseGI(vec3 P, vec3 N, vec3 geomN) {
+    RCLookupResult result = rc_lookupInit();
 
-    uint level = rcSelectLevel(P);
-    float voxelSize = float(rcVoxelSize(level));
+    uint level = rc_selectLevel(P);
+    float voxelSize = float(rc_voxelSize(level));
 
-    uint faceId = rcDominantFaceId(geomN);
-    vec3 faceNormal = rcFaceNormal(faceId);
+    uint faceId = rc_dominantFaceId(geomN);
+    vec3 faceNormal = rc_faceNormal(faceId);
 
     // Move into the owner voxel so the face owner is stable.
     // For +Y face, this moves slightly below the surface.
@@ -877,9 +877,9 @@ RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N, vec3 geomN) {
     float surfaceEpsilon = max(voxelSize * 1e-3, 1e-3);
     vec3 ownerP = P - faceNormal * surfaceEpsilon;
 
-    ivec3 ownerCell = rcWorldCellCoord(ownerP, level);
+    ivec3 ownerCell = rc_worldCellCoord(ownerP, level);
 
-    rcLookupSampleFace1x1(
+    rc_lookupSampleFace1x1(
         result,
         P,
         N,
@@ -895,27 +895,27 @@ RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N, vec3 geomN) {
     return result;
 }
 
-bool rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
-    uint entryIndex = rcEntryIndex(level, worldCellCoord);
-    uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
-    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+bool rc_touchFace(uint level, ivec3 worldCellCoord, uint faceId) {
+    uint entryIndex = rc_entryIndex(level, worldCellCoord);
+    uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
+    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
     uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
     if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
         uvec4 entry = rc_indirection[bufferIndex];
         uint oldFaceMask = entry.y & 0x3fu;
-        uint newFaceMask = oldFaceMask | rcFaceBit(faceId);
+        uint newFaceMask = oldFaceMask | rc_faceBit(faceId);
         bool canGrowFaceMask = entry.x == RC_INVALID || newFaceMask == oldFaceMask;
         if (!canGrowFaceMask) {
-            uint allocatedClassSize = rcAllocClassSize(bitCount(oldFaceMask));
+            uint allocatedClassSize = rc_allocClassSize(bitCount(oldFaceMask));
             canGrowFaceMask = bitCount(newFaceMask) <= allocatedClassSize;
         }
         if (!canGrowFaceMask) {
             return false;
         }
 
-        atomicOr(rc_indirection[bufferIndex].y, rcFaceBit(faceId));
+        atomicOr(rc_indirection[bufferIndex].y, rc_faceBit(faceId));
         uint pendingFaceBits = rc_indirection[bufferIndex].w & RC_ENTRY_META_PENDING_FACE_MASK;
-        rc_indirection[bufferIndex].w = rcPackEntryMeta(level, true) | pendingFaceBits;
+        rc_indirection[bufferIndex].w = rc_packEntryMeta(level, true) | pendingFaceBits;
         return true;
     } else {
         atomicAdd(rc_keyMismatchCounter, 1u);
