@@ -10,6 +10,7 @@
 #include "MaterialIDConst.glsl"
 #include "IOR.glsl"
 
+// TODO: simplified version
 struct Material {
     vec3 albedo; // Working space
     float roughness;
@@ -43,6 +44,26 @@ float material_decodeSSS(uint materialID, float resourceSSS, bool forceBuiltInPB
     }
     uint rawData = texelFetch(usam_pbrLUT0, int(materialID), 0).r;
     return unpackU4(bitfieldExtract(rawData, 0, 4));
+}
+
+Material material_init() {
+    Material material;
+    material.albedo = vec3(0.0);
+    material.roughness = 1.0;
+    material.f0RGB = vec3(0.0);
+    material.f82TintRGB = vec3(1.0);
+    material.f0 = 0.0;
+    material.f82Tint = 1.0;
+    material.dielectric = 1.0;
+    material.emissive = vec3(0.0);
+    material.porosity = 0.0;
+    material.sss = 0.0;
+    material.hardCodedIOR = 1.5;
+    material.tbn = mat3(1.0);
+    material.tbnInv = mat3(1.0);
+    material.geomTbn = mat3(1.0);
+    material.geomTbnInv = mat3(1.0);
+    return material;
 }
 
 #ifdef MATERIAL_TRANSLUCENT

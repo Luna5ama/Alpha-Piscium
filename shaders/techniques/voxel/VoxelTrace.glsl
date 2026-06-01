@@ -40,7 +40,7 @@
 // Result type
 // ---------------------------------------------------------------------------
 struct VoxelHit {
-    bool  hit;
+    bool hit;
     uint materialID;   // material written by the shadow pass; 0 = miss
     vec3 hitPos;       // world-space entry point of the hit block
     vec3 normal;       // outward face normal of the hit surface
