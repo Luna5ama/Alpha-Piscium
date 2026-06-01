@@ -23,13 +23,17 @@ vec3 rcHemisphereDirection(vec3 normal, vec3 localDir) {
     return normalize(T * localDir.x + B * localDir.y + normal * localDir.z);
 }
 
-void rcTouchHit(VoxelHit hit) {
+void rcTouchHitFeedback(VoxelHit hit) {
+    if (!hit.hit || hit.materialID == 0u || hit.materialID == MATERIAL_ID_WATER) {
+        return;
+    }
+
     uint faceId = rcFaceIdFromNormal(hit.normal);
     vec3 faceNormal = rcFaceNormal(faceId);
     vec3 surfacePos = hit.hitPos - faceNormal * 0.02;
     for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
         ivec3 worldCellCoord = rcWorldCellCoord(surfacePos, level);
-        rcTouchFace(level, worldCellCoord, faceId);
+        rcMarkHitFeedbackFace(level, worldCellCoord, faceId);
     }
 }
 
@@ -368,7 +372,7 @@ float rcSpatialSourceCorrection(RCReservoir neighborReservoir) {
     return clamp(wy, 0.0, 2.0);
 }
 
-RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint level, uint faceId) {
+RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint level, uint faceId, bool allowHitFeedback) {
     RCCandidate candidate;
     candidate.radiance = vec3(0.0);
     candidate.dir = rcFaceNormal(faceId);
@@ -537,7 +541,16 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
         return;
     }
 
-    RCCandidate candidate = rcGenerateCandidate(entryIndex, worldCellCoord, level, faceId);
+    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    uint feedbackRecordIndex = rcFeedbackRecordIndex(rcCurrentSide(), entryIndex);
+    uvec2 feedbackRecord = rc_feedback[feedbackRecordIndex];
+    uint screenTouchedFaceMask = 0u;
+    if (feedbackRecord.x == worldKeyHash && feedbackRecord.x == entry.z) {
+        screenTouchedFaceMask = (feedbackRecord.y >> RC_FEEDBACK_SCREEN_SHIFT) & RC_FEEDBACK_FACE_MASK;
+    }
+    bool allowHitFeedback = rcHasFace(screenTouchedFaceMask, faceId);
+
+    RCCandidate candidate = rcGenerateCandidate(entryIndex, worldCellCoord, level, faceId, allowHitFeedback);
     RCReservoir reservoir = rcReservoirInit();
 
     uint prevBufferIndex = rcBufferEntryIndex(rcPreviousSide(), entryIndex);

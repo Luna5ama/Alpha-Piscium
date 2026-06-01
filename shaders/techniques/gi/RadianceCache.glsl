@@ -31,6 +31,10 @@
 #define RC_RES_FLAG_SURFACE_HIT 0x00010000u
 #define RC_RES_FLAG_SKY_MISS 0x00020000u
 
+#define RC_FEEDBACK_SCREEN_SHIFT 0u
+#define RC_FEEDBACK_HIT_SHIFT 6u
+#define RC_FEEDBACK_FACE_MASK 0x3fu
+
 #ifndef RC_DATA_MODIFIER
 #define RC_DATA_MODIFIER restrict buffer
 #endif
@@ -54,6 +58,13 @@ layout(std430, binding = 13) RC_DATA_MODIFIER RadianceCacheIndirectionData {
 
 layout(std430, binding = 14) RC_DATA_MODIFIER RadianceCacheReservoirData {
     uvec4 rc_reservoirs[];
+};
+
+// x: world key hash, or RC_INVALID
+// y bits 0-5: screen touched faces
+// y bits 6-11: next-frame hit feedback faces
+layout(std430, binding = 15) RC_DATA_MODIFIER RadianceCacheFeedbackData {
+    uvec2 rc_feedback[];
 };
 
 struct RCReservoir {
@@ -195,6 +206,10 @@ uint rcBufferEntryIndex(uint side, uint entryIndex) {
     return side * RC_ENTRY_COUNT + entryIndex;
 }
 
+uint rcFeedbackRecordIndex(uint side, uint entryIndex) {
+    return rcBufferEntryIndex(side, entryIndex);
+}
+
 uint rcWorldKeyHash(uint level, ivec3 worldCellCoord) {
     return hash_41_q5(uvec4(uvec3(worldCellCoord), level));
 }
@@ -246,6 +261,57 @@ uint rcEntryMetaPendingFaceBits(uint faceMask) {
 
 uint rcEntryMetaClearPendingFaces(uint meta) {
     return meta & ~RC_ENTRY_META_PENDING_FACE_MASK;
+}
+
+uint rcFeedbackScreenBits(uint faceMask) {
+    return (faceMask & RC_FEEDBACK_FACE_MASK) << RC_FEEDBACK_SCREEN_SHIFT;
+}
+
+uint rcFeedbackHitBits(uint faceMask) {
+    return (faceMask & RC_FEEDBACK_FACE_MASK) << RC_FEEDBACK_HIT_SHIFT;
+}
+
+uint rcFeedbackScreenFaceMask(uint side, uint entryIndex) {
+    uint recordIndex = rcFeedbackRecordIndex(side, entryIndex);
+    return (rc_feedback[recordIndex].y >> RC_FEEDBACK_SCREEN_SHIFT) & RC_FEEDBACK_FACE_MASK;
+}
+
+uint rcFeedbackHitFaceMask(uint side, uint entryIndex) {
+    uint recordIndex = rcFeedbackRecordIndex(side, entryIndex);
+    return (rc_feedback[recordIndex].y >> RC_FEEDBACK_HIT_SHIFT) & RC_FEEDBACK_FACE_MASK;
+}
+
+void rcFeedbackClearRecord(uint side, uint entryIndex) {
+    uint recordIndex = rcFeedbackRecordIndex(side, entryIndex);
+    rc_feedback[recordIndex] = uvec2(RC_INVALID, 0u);
+}
+
+void rcMarkScreenTouchedFace(uint level, ivec3 worldCellCoord, uint faceId) {
+    if (!rcWorldCellInCurrentClip(level, worldCellCoord)) {
+        return;
+    }
+
+    uint entryIndex = rcEntryIndex(level, worldCellCoord);
+    uint recordIndex = rcFeedbackRecordIndex(rcCurrentSide(), entryIndex);
+    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    uint oldKey = atomicCompSwap(rc_feedback[recordIndex].x, RC_INVALID, worldKeyHash);
+    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
+        atomicOr(rc_feedback[recordIndex].y, rcFeedbackScreenBits(rcFaceBit(faceId)));
+    }
+}
+
+void rcMarkHitFeedbackFace(uint level, ivec3 worldCellCoord, uint faceId) {
+    if (!rcWorldCellInCurrentClip(level, worldCellCoord)) {
+        return;
+    }
+
+    uint entryIndex = rcEntryIndex(level, worldCellCoord);
+    uint recordIndex = rcFeedbackRecordIndex(rcCurrentSide(), entryIndex);
+    uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
+    uint oldKey = atomicCompSwap(rc_feedback[recordIndex].x, RC_INVALID, worldKeyHash);
+    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
+        atomicOr(rc_feedback[recordIndex].y, rcFeedbackHitBits(rcFaceBit(faceId)));
+    }
 }
 
 uint rcPackReservoirMeta(uint age, bool valid, uint flags) {
@@ -829,7 +895,7 @@ RCLookupResult rcLookupDiffuseGI(vec3 P, vec3 N, vec3 geomN) {
     return result;
 }
 
-void rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
+bool rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
     uint entryIndex = rcEntryIndex(level, worldCellCoord);
     uint bufferIndex = rcBufferEntryIndex(rcCurrentSide(), entryIndex);
     uint worldKeyHash = rcWorldKeyHash(level, worldCellCoord);
@@ -844,14 +910,16 @@ void rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
             canGrowFaceMask = bitCount(newFaceMask) <= allocatedClassSize;
         }
         if (!canGrowFaceMask) {
-            return;
+            return false;
         }
 
         atomicOr(rc_indirection[bufferIndex].y, rcFaceBit(faceId));
         uint pendingFaceBits = rc_indirection[bufferIndex].w & RC_ENTRY_META_PENDING_FACE_MASK;
         rc_indirection[bufferIndex].w = rcPackEntryMeta(level, true) | pendingFaceBits;
+        return true;
     } else {
         atomicAdd(rc_keyMismatchCounter, 1u);
+        return false;
     }
 }
 

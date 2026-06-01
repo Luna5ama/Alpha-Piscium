@@ -40,7 +40,9 @@ void main() {
 
                     for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
                         ivec3 worldCellCoord = rcWorldCellCoord(worldPos, level);
-                        rcTouchFace(level, worldCellCoord, faceId);
+                        if (rcTouchFace(level, worldCellCoord, faceId)) {
+                            rcMarkScreenTouchedFace(level, worldCellCoord, faceId);
+                        }
                     }
                 }
             }
