@@ -8,6 +8,7 @@ const ivec3 workGroups = ivec3(5120, 1, 1);
 void main() {
     uint idx = gl_GlobalInvocationID.x;
     if (idx == 0u) {
+        rc_entryCounter = 0u;
         rc_allocationCounter = 0u;
         rc_keyMismatchCounter = 0u;
         rc_poolOverflowCounter = 0u;

@@ -75,6 +75,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     AEData global_aeData;
     uint global_atomicCounters[16];
 
+    uint rc_entryCounter;
     uint rc_allocationCounter;
     uint rc_keyMismatchCounter;
     uint rc_poolOverflowCounter;

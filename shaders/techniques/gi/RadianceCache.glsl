@@ -40,6 +40,10 @@
 #define RC_DATA_MODIFIER restrict buffer
 #endif
 
+layout(std430, binding = 2) RC_DATA_MODIFIER RadianceCacheUpdateEntryIndexData {
+    uint rc_updateEntryIndices[];
+};
+
 // x: reservoir base index, or RC_INVALID if no reservoir allocated for this entry
 // y: bitmask of valid faces
 // z: world key hash
