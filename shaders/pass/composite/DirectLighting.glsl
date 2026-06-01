@@ -4,9 +4,6 @@
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/gi/Common.glsl"
-#ifdef SETTING_RC_ENABLE
-#include "/techniques/gi/RadianceCache.glsl"
-#endif
 #include "/techniques/Lighting.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Colors2.glsl"
@@ -24,7 +21,6 @@ layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba16f) uniform restrict image2D uimg_temp3;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
-layout(rgba8) uniform restrict image2D uimg_overlays;
 
 ivec2 texelPos;
 
@@ -110,63 +106,22 @@ void main() {
             vec4 giOut1 = vec4(0.0);
             vec4 giOut2 = vec4(0.0);
 
-            vec3 fallbackGI = transient_gi2Reprojected_fetch(texelPos).rgb;
-            giOut1.rgb = fallbackGI;
+            giOut1.rgb = transient_gi2Reprojected_fetch(texelPos).rgb;
 
             vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
             if (lighting_gData.materialID == 65534u) {
                 mainOut = vec4(material.albedo * 0.01, 2.0);
                 giOut1 = vec4(0.0);
             } else {
-                #ifdef SETTING_RC_ENABLE
-                vec3 scenePos = coords_pos_viewToWorld(viewPos - lighting_gData.geomNormal * 0.02, gbufferModelViewInverse);
-                vec3 worldPos = scenePos + cameraPosition;
-                vec3 worldNormal = coords_dir_viewToWorld(lighting_gData.normal);
-                vec3 worldGeomNormal = coords_dir_viewToWorld(lighting_gData.geomNormal);
-                RCLookupResult rcLookup = rc_lookupDiffuseGI(worldPos, worldNormal, worldGeomNormal);
-//                RCLookupResult rcLookup = rc_lookupDiffuseGISmooth(worldPos, worldNormal, worldGeomNormal);
-                bool rcHit = rcLookup.weight > 0.0;
-                if (SETTING_RC_LOOKUP_MODE == 1 && rcHit) {
-                    giOut1.rgb = rcLookup.radiance;
-                }
-                #endif
-
                 // Specular MB later
                 giOut1.rgb *= min(material.albedo, 0.95);
                 giOut1.rgb *= GI_MB;
                 doLighting(material, viewPos, lighting_gData.normal, mainOut.rgb, giOut1, giOut2);
                 float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(material.albedo));
                 float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
-
-                #ifdef SETTING_RC_ENABLE
-                vec4 debugOut = vec4(0.0, 0.0, 0.0, 1.0);
-                #if SETTING_DEBUG_RC_MODE == 1
-                debugOut.rgb = vec3(float(max(findMSB(rcLookup.levelMask), 0)) / float(RC_CLIP_LEVELS - 1u));
-                #elif SETTING_DEBUG_RC_MODE == 2
-                debugOut.rgb = vec3(float(rcLookup.faceMask & 1u), float((rcLookup.faceMask >> 2u) & 1u), float((rcLookup.faceMask >> 4u) & 1u));
-                #elif SETTING_DEBUG_RC_MODE == 3
-                debugOut.rgb = vec3(float(bitCount(rcLookup.faceMask)) / 6.0);
-                #elif SETTING_DEBUG_RC_MODE == 4
-                debugOut.rgb = vec3(rcLookup.m / float(SETTING_RC_M_CAP));
-                #elif SETTING_DEBUG_RC_MODE == 5
-                debugOut.rgb = vec3(float(rcLookup.age) / 255.0);
-                #elif SETTING_DEBUG_RC_MODE == 6
-                debugOut.rgb = vec3(float(rc_keyMismatchCounter > 0u), 0.0, 0.0);
-                #elif SETTING_DEBUG_RC_MODE == 7
-                debugOut.rgb = rcHit ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
-                #elif SETTING_DEBUG_RC_MODE == 8
-                debugOut.rgb = rcHit ? rcLookup.radiance : vec3(0.0);
-                #elif SETTING_DEBUG_RC_MODE == 9
-                debugOut.rgb = fallbackGI;
-                #elif SETTING_DEBUG_RC_MODE == 10
-                debugOut.rgb = vec3(rcLookup.debug);
-                #endif
-                imageStore(uimg_temp3, texelPos, debugOut);
-                #endif
             }
 
             mainOut.rgb = clamp(mainOut.rgb, 0.0, FP16_MAX);
-            giOut1.rgb = vec3(0.0);// TODO: DEBUG
             giOut1.rgb = clamp(giOut1.rgb, 0.0, FP16_MAX);
             giOut2.rgb = clamp(giOut2.rgb, 0.0, FP16_MAX);
 
