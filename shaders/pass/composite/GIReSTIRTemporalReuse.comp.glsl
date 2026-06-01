@@ -172,9 +172,9 @@ void main() {
             float newWi = newPHat * safeRcp(samplePdf);
 
             float denoiserHitDistance = hitDistance;
-//            if (denoiserHitDistance <= RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL) {
-//                denoiserHitDistance = -1.0;
-//            }
+            if (denoiserHitDistance <= RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL) {
+                denoiserHitDistance = -1.0;
+            }
             transient_gi_initialSampleHitDistance_store(texelPos, vec4(denoiserHitDistance));
 
             vec4 finalSample = vec4(0.0);
