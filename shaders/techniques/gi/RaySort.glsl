@@ -1,10 +1,10 @@
 #include "/util/Math.glsl"
 
-// Supa cool sorting from Bob
-// Optimized by Claude Opus 4.5 xD
-layout(std430, binding = 6) buffer RayDataIndices {
-    uint ssbo_rayDataIndices[];
-};
+//// Supa cool sorting from Bob
+//// Optimized by Claude Opus 4.5 xD
+//layout(std430, binding = 6) buffer RayDataIndices {
+//    uint ssbo_rayDataIndices[];
+//};
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(0.5, 0.5);

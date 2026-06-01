@@ -205,10 +205,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
         vec3 invDir = 1.0 / worldRayDir;
 
-        // ---- Precompute DDA biases ----
+        // ---- Precompute DDA stepping ----
         ivec3 boundOffsetMask = ~(floatBitsToInt(worldRayDir) >> 31);;
         vec3 tOrig = -posGrid * invDir;
-        vec3 posGridBiased = fma(sign(worldRayDir), vec3(1e-3), posGrid);
+        ivec3 stepDir = ivec3(sign(worldRayDir));
 
         // ---- Seed DDA state from ray ----
         float lastT = ray.lastT;
@@ -290,7 +290,13 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                 // Reuse lastT to identify exit axis (saves 3 MIN vs step+min)
                 lastMask = ivec3(lessThanEqual(tExit, vec3(lastT)));
 
-                blockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGridBiased)));
+                ivec3 cellMin = blockPos & sizeMask.x;
+                ivec3 cellMax = cellMin + sizeMask.y - 1;
+                ivec3 rayBlockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGrid)));
+                rayBlockPos = clamp(rayBlockPos, cellMin, cellMax);
+                ivec3 exitBlockPos = target + min(stepDir, ivec3(0));
+                blockPos = rayBlockPos + lastMask * (exitBlockPos - rayBlockPos);
+
                 uvec3 spreadPos = _voxel_spreadPos(blockPos);
                 uint oldFullMorton = fullMorton;
                 fullMorton = _voxel_packSpreadPos(spreadPos);
@@ -323,5 +329,3 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 }
 
 #endif // INCLUDE_techniques_VoxelTrace_glsl
-
-

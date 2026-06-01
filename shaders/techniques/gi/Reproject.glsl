@@ -444,7 +444,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         packedData4 = dither_fp16(packedData4, ditherNoiseV);
                         transient_gi4Reprojected_store(texelPos, packedData4);
                     } else {
-                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, 0.5, uval_mainImageSizeRcp);
+                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, 0.1, uval_mainImageSizeRcp);
 
                         vec4 packedData3 = sampling_catmullBicubic5Tap_sum(
                             history_gi3_sample(vTapData.uv1AndWeight.xy),
