@@ -303,6 +303,8 @@ void main() {
                     vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
                     vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);
                     float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
+                    float roughness = max(pow2(transient_specularPBRData_fetch(texelPos).r), 0.001);
+                    specDiffLuma *= roughness;
                     specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
                     historyData.specularColor = specClamped;
 
