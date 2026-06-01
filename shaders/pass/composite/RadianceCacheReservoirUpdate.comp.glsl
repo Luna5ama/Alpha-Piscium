@@ -608,6 +608,8 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
                 spatialEffectiveMInc,
                 randSpatial
             );
+        } else {
+            spatialNeighborValid = false;
         }
     #endif
 
@@ -635,6 +637,10 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
         && !isnan(wSum);
     reservoir.avgWY = reservoirValid ? wSum * safeRcp(reservoir.m) * safeRcp(selectedTargetWeight) : 0.0;
     reservoir.meta = rc_packReservoirMeta(selectedAge, reservoirValid, selectedFlags);
+
+    if (spatialNeighborValid) {
+        reservoir.meta |= 1u;
+    }
 
     rc_reservoirStore(rc_currentSide(), reservoirIndex, reservoir);
 }

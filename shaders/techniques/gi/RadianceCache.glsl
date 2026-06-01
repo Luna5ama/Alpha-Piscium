@@ -134,7 +134,22 @@ struct RCLookupResult {
     uint faceMask;
     float m;
     uint age;
+    uint debug;
 };
+
+RCLookupResult rc_lookupInit() {
+    RCLookupResult result;
+    result.radiance = vec3(0.0);
+    result.weight = 0.0;
+    result.hits = 0u;
+    result.misses = 0u;
+    result.levelMask = 0u;
+    result.faceMask = 0u;
+    result.m = 0.0;
+    result.age = 0u;
+    result.debug = 0;
+    return result;
+}
 
 uint rc_currentSide() {
     return uint(frameCounter) & 1u;
@@ -530,19 +545,6 @@ bool rc_reservoirUpdateWeighted(
     return false;
 }
 
-RCLookupResult rc_lookupInit() {
-    RCLookupResult result;
-    result.radiance = vec3(0.0);
-    result.weight = 0.0;
-    result.hits = 0u;
-    result.misses = 0u;
-    result.levelMask = 0u;
-    result.faceMask = 0u;
-    result.m = 0.0;
-    result.age = 0u;
-    return result;
-}
-
 uint rc_selectLevel(vec3 P) {
     vec3 d = abs(P - cameraPositionInt);
     float maxDistF = max(max(d.x, d.y), d.z);
@@ -686,6 +688,7 @@ void rc_lookupSampleFaceWeighted(
     result.faceMask |= rc_faceBit(faceId);
     result.m = max(result.m, reservoir.m);
     result.age = max(result.age, age);
+    result.debug = reservoir.meta & 0xFF;
 }
 
 RCLookupResult rc_lookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
@@ -860,6 +863,7 @@ void rc_lookupSampleFace1x1(
     result.faceMask |= rc_faceBit(faceId);
     result.m = max(result.m, reservoir.m);
     result.age = max(result.age, age);
+    result.debug = reservoir.meta & 0xFF;
 }
 
 RCLookupResult rc_lookupDiffuseGI(vec3 P, vec3 N, vec3 geomN) {

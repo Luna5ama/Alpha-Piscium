@@ -158,6 +158,8 @@ void main() {
                 debugOut.rgb = rcHit ? rcLookup.radiance : vec3(0.0);
                 #elif SETTING_DEBUG_RC_MODE == 9
                 debugOut.rgb = fallbackGI;
+                #elif SETTING_DEBUG_RC_MODE == 10
+                debugOut.rgb = vec3(rcLookup.debug);
                 #endif
                 imageStore(uimg_temp3, texelPos, debugOut);
                 #endif

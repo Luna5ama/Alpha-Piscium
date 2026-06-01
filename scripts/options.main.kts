@@ -976,19 +976,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             7 value "Hit Miss"
                             8 value "Cached GI"
                             9 value "Fallback GI"
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "调试模式"
-                            0 value "关闭"
-                            1 value "Clip级别"
-                            2 value "面掩码"
-                            3 value "面数量"
-                            4 value "Reservoir M"
-                            5 value "年龄"
-                            6 value "Key不匹配"
-                            7 value "命中缺失"
-                            8 value "仅缓存GI"
-                            9 value "仅回退GI"
+                            10 value "Spatial Reuse Neighbor Valid"
                         }
                     }
                 }
