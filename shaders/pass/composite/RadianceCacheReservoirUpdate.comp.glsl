@@ -253,30 +253,6 @@ bool rcLoadRandomSpatialNeighbor(
     return true;
 }
 
-float rcPairwiseSpatialMIS(
-    vec3 targetOrigin,
-    vec3 targetNormal,
-    vec3 neighborOrigin,
-    vec3 neighborNormal,
-    vec3 hitPos,
-    vec3 hitNormal
-) {
-    float pTarget = rcAreaPdfCosineConnection(targetOrigin, targetNormal, hitPos, hitNormal);
-    float pNeighbor = rcAreaPdfCosineConnection(neighborOrigin, neighborNormal, hitPos, hitNormal);
-
-    if (pTarget <= 0.0) {
-        return 0.0;
-    }
-
-    float pSpatial = pNeighbor * 0.125;
-    float pSum = pTarget + pSpatial;
-    if (pSum <= 1e-6) {
-        return 0.0;
-    }
-
-    return pTarget * safeRcp(pSum);
-}
-
 float rcPairwiseSpatialMIS_MAware(
     vec3 targetOrigin,
     vec3 targetNormal,
