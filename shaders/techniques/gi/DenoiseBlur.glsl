@@ -185,8 +185,8 @@ void main() {
             vec4 historyData5 = transient_gi5Reprojected_fetch(texelPos);
             float historyLength = max(historyData5.x * TOTAL_HISTORY_LENGTH, 1.0);
             float specularHistoryLength = max(historyData5.y * TOTAL_HISTORY_LENGTH, 1.0);
-            float diffAccumFactor = rcp(1.0 + pow2(0.05 * historyLength));
-            float specAccumFactor = rcp(1.0 + pow2(0.05 * specularHistoryLength));
+            float diffAccumFactor = rcp(1.0 + pow2(0.1 * historyLength));
+            float specAccumFactor = rcp(1.0 + pow2(0.1 * specularHistoryLength));
 
             vec2 hitDistFactor = hitDistanceFactors;
             #if GI_DENOISE_PASS == 2

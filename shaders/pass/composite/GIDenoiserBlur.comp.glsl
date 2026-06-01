@@ -11,7 +11,7 @@
 #ifdef SETTING_VIDEO_RENDER_MODE
 #define GI_DENOISE_BLUR_RADIUS vec4(16.0, 16.0, 2.0, 16.0)
 #else
-#define GI_DENOISE_BLUR_RADIUS vec4(64.0, 32.0, 8.0, 64.0)
+#define GI_DENOISE_BLUR_RADIUS vec4(32.0, 32.0, 8.0, 64.0)
 #endif
 #define GI_DENOISE_RAND_NOISE_OFFSET ivec2(0, 0)
 #include "/techniques/gi/DenoiseBlur.glsl"
