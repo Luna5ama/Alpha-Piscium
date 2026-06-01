@@ -44,16 +44,16 @@ void main() {
         }
 
         uint newFaceMask = (carriedFaceMask | feedbackFaceMask) & pendingVisibleFaceMask;
+        uvec4 newEntry = uvec4(RC_INVALID, 0u, RC_INVALID, rc_entryMetaClearPendingFaces(0u));
         if (newFaceMask != 0u) {
-            rc_indirection[currentBufferIndex] = uvec4(
+            newEntry = uvec4(
                 RC_INVALID,
                 newFaceMask,
                 worldKeyHash,
                 rc_entryMetaClearPendingFaces(rc_packEntryMeta(level, true))
             );
-        } else {
-            rc_indirection[currentBufferIndex] = uvec4(RC_INVALID, 0u, RC_INVALID, rc_entryMetaClearPendingFaces(0u));
         }
+        rc_indirection[currentBufferIndex] = newEntry;
 
         rc_feedbackClearRecord(rc_currentSide(), idx);
     }
