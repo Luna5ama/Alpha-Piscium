@@ -655,7 +655,7 @@ void rc_lookupSampleFaceWeighted(
 
     vec3 faceCenter = rc_faceCenter(worldCellCoord, level, faceId);
 
-    float thickness = ldexp(0.75, int(level));
+    float thickness = ldexp(1.0, int(level));
 
     float side = dot(P - faceCenter, faceNormal);
     if (side < -thickness) {
@@ -827,7 +827,7 @@ void rc_lookupSampleFace1x1(
 
     vec3 faceCenter = rc_faceCenter(worldCellCoord, level, faceId);
 
-    float thickness = ldexp(0.75, int(level));
+    float thickness = ldexp(2.0, int(level));
 
     float side = dot(P - faceCenter, faceNormal);
     if (side < -thickness) {
