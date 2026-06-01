@@ -177,6 +177,26 @@ bool voxel_opaqueAtBlock(ivec3 worldBlockPos) {
     uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
     return materialID != 0u && materialID != MATERIAL_ID_WATER;
 }
+uint voxel_getMaterialID(ivec3 worldBlockPos) {
+    ivec3 cameraBrick = cameraPositionInt >> 4;
+    ivec3 gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
+    ivec3 gridBlockPos = worldBlockPos - gridOrigin;
+    if (any(lessThan(gridBlockPos, ivec3(0))) || any(greaterThanEqual(gridBlockPos, ivec3(VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE)))) {
+        return 0;
+    }
+
+    ivec3 brickCoord = gridBlockPos >> 4;
+    uint brickMorton = voxel_brickMorton(brickCoord);
+    uint allocID = voxel_brickAllocID[brickMorton];
+    if (allocID == VOXEL_UNALLOCATED) {
+        return 0;
+    }
+
+    ivec3 blockInBrick = gridBlockPos & 15;
+    uint blockMorton = voxel_blockMorton(blockInBrick);
+    uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
+    return materialID;
+}
 #endif
 
 vec3 voxel_faceNormal(uint faceId) {

@@ -14,13 +14,13 @@ layout(local_size_x = 16, local_size_y = 16) in;
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-layout(std430, binding = 5) buffer RayData {
-    uvec4 ssbo_rayData[];
-};
-
-layout(std430, binding = 6) buffer RayIndexData {
-    uint ssbo_rayDataIndices[];
-};
+//layout(std430, binding = 5) buffer RayData {
+//    uvec4 ssbo_rayData[];
+//};
+//
+//layout(std430, binding = 6) buffer RayIndexData {
+//    uint ssbo_rayDataIndices[];
+//};
 
 layout(rgba16f) uniform image2D uimg_rgba16f;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
@@ -182,17 +182,17 @@ void main() {
             transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
         }
     }
-    ssbo_rayDataIndices[dataIndex] = rayIndex;
-    uvec4 subgroupRayCountBalllot = subgroupBallot(rayIndex < 0xFFFFFFFFu);
-    if (subgroupElect()) {
-        shared_rayCount[gl_SubgroupID] = subgroupBallotBitCount(subgroupRayCountBalllot);
-    }
-    barrier();
-    if (gl_SubgroupID == 0u) {
-        uint partialRayCount = gl_SubgroupInvocationID < gl_NumSubgroups ? shared_rayCount[gl_SubgroupInvocationID] : 0u;
-        uint totalRayCount = subgroupAdd(partialRayCount);
-        if (subgroupElect()) {
-            transient_spatialReuseRayCount_store(ivec2(swizzledWGPos), vec4(float(totalRayCount)));
-        }
-    }
+    //    ssbo_rayDataIndices[dataIndex] = rayIndex;
+    //    uvec4 subgroupRayCountBalllot = subgroupBallot(rayIndex < 0xFFFFFFFFu);
+    //    if (subgroupElect()) {
+    //        shared_rayCount[gl_SubgroupID] = subgroupBallotBitCount(subgroupRayCountBalllot);
+    //    }
+    //    barrier();
+    //    if (gl_SubgroupID == 0u) {
+    //        uint partialRayCount = gl_SubgroupInvocationID < gl_NumSubgroups ? shared_rayCount[gl_SubgroupInvocationID] : 0u;
+    //        uint totalRayCount = subgroupAdd(partialRayCount);
+    //        if (subgroupElect()) {
+    //            transient_spatialReuseRayCount_store(ivec2(swizzledWGPos), vec4(float(totalRayCount)));
+    //        }
+    //    }
 }

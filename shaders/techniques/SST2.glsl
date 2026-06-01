@@ -96,7 +96,7 @@ SSTRay sstray_unpack(uvec4 packedData) {
 }
 
 void sstray_recoverOrigin(inout SSTRay ray, float viewZ) {
-    vec2 screenPosXY = coords_texelToUV(ray.pRayOriginTexelPos, uval_mainImageSizeRcp);
+    vec2 screenPosXY = coords_texelToUV(ray.pRayOriginTexelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
     ray.pRayStart = vec3(screenPosXY, coords_viewZToReversedZ(viewZ, nearPlane));
 }
 

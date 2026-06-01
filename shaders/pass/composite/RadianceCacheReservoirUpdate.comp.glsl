@@ -63,11 +63,11 @@ vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
         return valid ? missRadiance : vec3(0.0);
     }
 
-    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit);
+    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 8.0);
     if (!surface.valid) {
         return vec3(0.0);
     }
-    surface.material.roughness = 1.0;
+    surface.material.roughness = max(surface.material.roughness, RC_MAX_ROUGHNESS * 0.5);
 
     vec3 radiance = surface.material.emissive;
     valid = rc_luminance(radiance) > 0.0 && !any(isnan(radiance));
@@ -158,11 +158,10 @@ bool rc_revalidateHistoryReservoir(
     bool radianceValid = false;
     vec3 radiance = rc_sampleHitRadiance(hit, -sampleDir, radianceValid);
     float newTargetWeight = rc_luminance(radiance);
-    if (
-        !radianceValid
-                    || newTargetWeight <= 0.0
+    if (!radianceValid
+        || newTargetWeight <= 0.0
         || any(isnan(radiance))
-            || isnan(newTargetWeight)
+        || isnan(newTargetWeight)
     ) {
         return false;
     }
