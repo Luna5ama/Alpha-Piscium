@@ -917,7 +917,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 }
                 empty()
                 row {
-                    slider("SETTING_RC_M_CAP", 128, powerOfTwoRange(0..8)) {
+                    slider("SETTING_RC_M_CAP", 128, powerOfTwoRange(0..10)) {
                         lang {
                             name = "Reservoir M Cap"
                             comment = "Maximum temporal sample count per cached face."
@@ -959,24 +959,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             name = "查询模式"
                             0 value "回退"
                             1 value "缓存"
-                        }
-                    }
-                }
-                row {
-                    slider("SETTING_DEBUG_RC_MODE", 0, 0..9) {
-                        lang {
-                            name = "Debug Mode"
-                            0 value "Off"
-                            1 value "Clip Level"
-                            2 value "Face Mask"
-                            3 value "Face Count"
-                            4 value "Reservoir M"
-                            5 value "Age"
-                            6 value "Key Mismatch"
-                            7 value "Hit Miss"
-                            8 value "Cached GI"
-                            9 value "Fallback GI"
-                            10 value "Spatial Reuse Neighbor Valid"
                         }
                     }
                 }
@@ -3767,6 +3749,22 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     lang {
                         name = "Voxel Debug Counter"
                     }
+                }
+                    slider("SETTING_DEBUG_RC_MODE", 0, 0..9) {
+                        lang {
+                            name = "RC Debug Mode"
+                            0 value "Off"
+                            1 value "Clip Level"
+                            2 value "Face Mask"
+                            3 value "Face Count"
+                            4 value "Reservoir M"
+                            5 value "Age"
+                            6 value "Key Mismatch"
+                            7 value "Hit Miss"
+                            8 value "Cached GI"
+                            9 value "Fallback GI"
+                            10 value "Spatial Reuse Neighbor Valid"
+                        }
                 }
             }
         }

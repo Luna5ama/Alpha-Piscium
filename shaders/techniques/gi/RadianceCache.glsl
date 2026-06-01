@@ -40,13 +40,8 @@
 #define RC_DATA_MODIFIER restrict buffer
 #endif
 
-layout(std430, binding = 12) RC_DATA_MODIFIER RadianceCacheMetaData {
-    uint rc_allocationCounter;
-    uint rc_keyMismatchCounter;
-    uint rc_poolOverflowCounter;
-    uint rc_cacheHitCounter;
-    uint rc_cacheMissCounter;
-    uint rc_paddingCounters[11];
+layout(std430, binding = 2) RC_DATA_MODIFIER RadianceCacheUpdateEntryIndexData {
+    uint rc_updateEntryIndices[];
 };
 
 // x: reservoir base index, or RC_INVALID if no reservoir allocated for this entry
@@ -357,35 +352,62 @@ bool rc_reservoirIsParentBootstrap(RCReservoir reservoir) {
 }
 
 vec3 rc_faceNormal(uint faceId) {
-    if (faceId == RC_FACE_POS_X) return vec3(1.0, 0.0, 0.0);
-    if (faceId == RC_FACE_NEG_X) return vec3(-1.0, 0.0, 0.0);
-    if (faceId == RC_FACE_POS_Y) return vec3(0.0, 1.0, 0.0);
-    if (faceId == RC_FACE_NEG_Y) return vec3(0.0, -1.0, 0.0);
-    if (faceId == RC_FACE_POS_Z) return vec3(0.0, 0.0, 1.0);
-    return vec3(0.0, 0.0, -1.0);
+    uint axis = faceId >> 1u;
+    float signValue = 1.0 - 2.0 * float(faceId & 1u);
+
+    vec3 axisMask = vec3(
+        float(axis == 0u),
+        float(axis == 1u),
+        float(axis == 2u)
+    );
+
+    return axisMask * signValue;
 }
 
 ivec3 rc_faceNormalI(uint faceId) {
-    return ivec3(rc_faceNormal(faceId));
+    uint axis = faceId >> 1u;
+    int signValue = 1 - 2 * int(faceId & 1u);
+
+    ivec3 axisMask = ivec3(
+        int(axis == 0u),
+        int(axis == 1u),
+        int(axis == 2u)
+    );
+
+    return axisMask * signValue;
 }
 
 uint rc_faceIdFromNormal(vec3 normal) {
     vec3 a = abs(normal);
-    if (a.x >= a.y && a.x >= a.z) return normal.x >= 0.0 ? RC_FACE_POS_X : RC_FACE_NEG_X;
-    if (a.y >= a.z) return normal.y >= 0.0 ? RC_FACE_POS_Y : RC_FACE_NEG_Y;
-    return normal.z >= 0.0 ? RC_FACE_POS_Z : RC_FACE_NEG_Z;
+
+    uint yWins = uint(a.y > a.x) & uint(a.y >= a.z);
+    uint zWins = uint(a.z > a.x) & uint(a.z >  a.y);
+
+    uint axis = yWins + zWins * 2u;
+
+    float axisValue =
+    normal.x * float(axis == 0u) +
+    normal.y * float(axis == 1u) +
+    normal.z * float(axis == 2u);
+
+    uint signBit = uint(axisValue < 0.0);
+
+    return axis * 2u + signBit;
 }
 
 vec3 rc_faceCenter(ivec3 worldCellCoord, uint level, uint faceId) {
-    float voxelSize = float(rc_voxelSize(level));
+    float halfVoxel = ldexp(0.5, int(level));
     vec3 cellMin = ldexp(worldCellCoord, ivec3(level));
-    vec3 center = cellMin + vec3(voxelSize * 0.5);
-    center += rc_faceNormal(faceId) * (voxelSize * 0.5);
+    vec3 center = cellMin + halfVoxel;
+    center += rc_faceNormal(faceId) * halfVoxel;
     return center;
 }
 
 vec3 rc_faceRayOrigin(ivec3 worldCellCoord, uint level, uint faceId) {
-    return rc_faceCenter(worldCellCoord, level, faceId) + rc_faceNormal(faceId) * 0.05;
+    float halfVoxel = ldexp(0.5, int(level));
+    return ldexp(worldCellCoord, ivec3(level))
+        + vec3(halfVoxel)
+        + rc_faceNormal(faceId) * (halfVoxel + 0.05);
 }
 
 ivec3 rc_neighborPlaneOffset(uint faceId, int offset0, int offset1) {
@@ -486,8 +508,7 @@ bool rc_loadParentFaceReservoir(
 
     vec3 faceNormal = rc_faceNormal(faceId);
     vec3 faceCenter = rc_faceCenter(worldCellCoord, level, faceId);
-    float voxelSize = float(rc_voxelSize(level));
-    float epsilon = max(voxelSize * 1e-3, 1e-3);
+    float epsilon = max(ldexp(1e-3, int(level)), 1e-3);
     vec3 ownerP = faceCenter - faceNormal * epsilon;
     parentCell = rc_worldCellCoord(ownerP, parentLevel);
 
@@ -622,9 +643,7 @@ uint rc_dominantFaceId(vec3 N) {
 }
 
 uint rc_faceAxis(uint faceId) {
-    if (faceId == RC_FACE_POS_X || faceId == RC_FACE_NEG_X) return 0u;
-    if (faceId == RC_FACE_POS_Y || faceId == RC_FACE_NEG_Y) return 1u;
-    return 2u;
+    return faceId / 2u;
 }
 
 void rc_faceTangentAxes(uint faceId, out uint axis0, out uint axis1) {
@@ -734,7 +753,6 @@ RCLookupResult rc_lookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
     RCLookupResult result = rc_lookupInit();
 
     uint level = rc_selectLevel(P);
-    float voxelSize = float(rc_voxelSize(level));
 
     uint faceId = rc_dominantFaceId(geomN);
     vec3 faceNormal = rc_faceNormal(faceId);
@@ -748,7 +766,7 @@ RCLookupResult rc_lookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
     // Move slightly behind the queried surface so the owner cell is stable.
     // For +Y face, this moves into the solid cell below the face.
     // For -Y face, this moves into the solid cell above the face.
-    float surfaceEpsilon = max(voxelSize * 1e-3, 1e-3);
+    float surfaceEpsilon = max(ldexp(1e-3, int(level)), 1e-3);
     vec3 ownerP = P - faceNormal * surfaceEpsilon;
 
     ivec3 ownerCell = rc_worldCellCoord(ownerP, level);
@@ -760,7 +778,7 @@ RCLookupResult rc_lookupDiffuseGISmooth(vec3 P, vec3 N, vec3 geomN) {
     //
     // The integer part selects the lower face-center cell,
     // and the fractional part is the interpolation weight.
-    vec3 cellSpace = P / voxelSize - vec3(0.5);
+    vec3 cellSpace = ldexp(P, ivec3(-int(level))) - vec3(0.5);
 
     float u = cellSpace[int(axis0)];
     float v = cellSpace[int(axis1)];
@@ -909,7 +927,6 @@ RCLookupResult rc_lookupDiffuseGI(vec3 P, vec3 N, vec3 geomN) {
     RCLookupResult result = rc_lookupInit();
 
     uint level = rc_selectLevel(P);
-    float voxelSize = float(rc_voxelSize(level));
 
     uint faceId = rc_dominantFaceId(geomN);
     vec3 faceNormal = rc_faceNormal(faceId);
@@ -917,7 +934,7 @@ RCLookupResult rc_lookupDiffuseGI(vec3 P, vec3 N, vec3 geomN) {
     // Move into the owner voxel so the face owner is stable.
     // For +Y face, this moves slightly below the surface.
     // For -Y face, this moves slightly above the surface.
-    float surfaceEpsilon = max(voxelSize * 1e-3, 1e-3);
+    float surfaceEpsilon = max(ldexp(1e-3, int(level)), 1e-3);
     vec3 ownerP = P - faceNormal * surfaceEpsilon;
 
     ivec3 ownerCell = rc_worldCellCoord(ownerP, level);
