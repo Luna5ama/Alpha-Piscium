@@ -163,11 +163,8 @@ bool rc_revalidateHistoryReservoir(
     ivec3 worldCellCoord,
     uint level,
     uint faceId,
-    inout RCReservoir reservoir,
-    out float targetWeight
+    inout RCReservoir reservoir
 ) {
-    targetWeight = 0.0;
-
     if (!rc_reservoirValid(reservoir)) {
         return false;
     }
@@ -204,15 +201,21 @@ bool rc_revalidateHistoryReservoir(
 
     bool radianceValid = false;
     vec3 radiance = rc_sampleHitRadiance(hit, -sampleDir, radianceValid);
-    targetWeight = rc_luminance(radiance);
+    float newTargetWeight = rc_luminance(radiance);
     if (
         !radianceValid
-        || targetWeight <= 0.0
+                    || newTargetWeight <= 0.0
         || any(isnan(radiance))
-        || isnan(targetWeight)
+            || isnan(newTargetWeight)
     ) {
         return false;
     }
+
+    float oldTargetWeight = rc_luminance(reservoir.radiance);
+    float num = pow2(min(newTargetWeight, oldTargetWeight));
+    float denom = pow2(max(newTargetWeight, oldTargetWeight));
+    float ratio = saturate(num * safeRcp(denom));
+    reservoir.m *= ratio;
 
     reservoir.radiance = radiance;
     if (hit.hit) {
@@ -489,7 +492,6 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
         && rc_hasFace(prevEntry.y, faceId);
 
     uint historyAge = 0u;
-    float reservoirTargetWeight = 0.0;
     if (historyValid) {
         uint prevReservoirIndex = rc_faceReservoirIndex(prevEntry.x, prevEntry.y, faceId);
         if (prevReservoirIndex < uint(SETTING_RC_POOL_SIZE)) {
@@ -498,31 +500,30 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
             if (historyValid) {
 //                reservoir.m *= global_historyResetFactor;
                 historyAge = rc_reservoirMetaAge(reservoir.meta);
-                reservoirTargetWeight = rc_luminance(reservoir.radiance);
                 historyValid = reservoir.avgWY > 0.0
                     && reservoir.m > 0.0
-                    && reservoirTargetWeight > 0.0
+                && all(greaterThan(reservoir.radiance, vec3(0.0)))
                     && !isnan(reservoir.avgWY)
                     && !isnan(reservoir.m)
-                    && !isnan(reservoirTargetWeight);
+                    && !any(isnan(reservoir.radiance));
             }
         } else {
             historyValid = false;
         }
     }
+    float wSum = 0.0;
     if (historyValid) {
+        wSum = reservoir.avgWY * rc_luminance(reservoir.radiance);
         uint validateId = gl_WorkGroupID.x + (gl_WorkGroupID.x >> 3);
         if ((validateId & 7u) == (uint(frameCounter) & 7u)) {
             historyValid = rc_revalidateHistoryReservoir(
                 worldCellCoord,
                 level,
                 faceId,
-                reservoir,
-                reservoirTargetWeight
+                reservoir
             );
             if (!historyValid) {
                 reservoir = rc_reservoirInit();
-                reservoirTargetWeight = 0.0;
             }
         } else {
             float randKill = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x1145CA6Bu)));
@@ -534,8 +535,6 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
         }
     }
 
-    float wSum = 0.0;
-    float selectedTargetWeight = 0.0;
     uint selectedFlags = historyValid ? rc_reservoirMetaFlags(reservoir.meta) : 0u;
     uint selectedAge = historyValid ? min(historyAge + 1u, 255u) : 0u;
     bool selectedCandidate = false;
@@ -556,7 +555,7 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
 
     if (historyValid) {
         float randValue = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x85EBCA6Bu)));
-        wSum = reservoir.avgWY * reservoir.m * reservoirTargetWeight;
+        wSum *= reservoir.m;
         selectedCandidate = rc_reservoirUpdateWeighted(
             reservoir,
             wSum,
@@ -565,12 +564,10 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
             1.0,
             randValue
         );
-        selectedTargetWeight = selectedCandidate ? candidate.targetWeight : reservoirTargetWeight;
     } else {
         reservoir = rc_reservoirInitFromCandidate(candidate);
         if (rc_reservoirValid(reservoir)) {
             wSum = candidate.targetWeight;
-            selectedTargetWeight = candidate.targetWeight;
             selectedFlags = candidate.flags;
         }
     }
@@ -611,9 +608,6 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
                 spatialEffectiveMInc,
                 randSpatial
             );
-            if (selectedSpatial) {
-                selectedTargetWeight = spatialCandidate.targetWeight;
-            }
         }
     #endif
 
@@ -635,8 +629,8 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
     }
     reservoir.m = clampedM;
 
+    float selectedTargetWeight = rc_luminance(reservoir.radiance);
     bool reservoirValid = reservoir.m > 0.0
-        && selectedTargetWeight > 0.0
         && wSum > 0.0
         && !isnan(wSum);
     reservoir.avgWY = reservoirValid ? wSum * safeRcp(reservoir.m) * safeRcp(selectedTargetWeight) : 0.0;
