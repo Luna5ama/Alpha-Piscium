@@ -9,6 +9,7 @@
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
+#include "/techniques/voxel/SurfaceData.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Hash.glsl"
 
@@ -92,45 +93,6 @@ vec3 restir_initialSample_sampleSky(ivec2 texelPos, vec3 worldDirection) {
     return skyRadiance;
 }
 
-struct restir_InitialVoxelSurface {
-    vec3 emissive;
-    bool valid;
-};
-
-restir_InitialVoxelSurface restir_initialSample_initVoxelSurface() {
-    restir_InitialVoxelSurface surface;
-    surface.emissive = vec3(0.0);
-    surface.valid = false;
-    return surface;
-}
-
-restir_InitialVoxelSurface restir_initialSample_sampleVoxelSurface(VoxelHit hit) {
-    restir_InitialVoxelSurface surface = restir_initialSample_initVoxelSurface();
-    if (!hit.hit || hit.materialID == 0u || hit.materialID == MATERIAL_ID_WATER) {
-        return surface;
-    }
-
-    HardcodedPBR hardcoded = hardcodedpbr_decode(hit.materialID);
-    uint faceId = voxel_faceIndexFromNormal(hit.normal);
-    uvec2 tcData = voxel_faceTexcoords[voxel_faceTexcoordIndex(hit.materialID, faceId)];
-    vec4 tc = unpackUnorm4x16(tcData);
-    if (all(equal(tc, vec4(0.0)))) {
-        return surface;
-    }
-
-    vec2 localUV = voxel_faceLocalUV(faceId, hit.hitPos);
-    vec2 atlasUV = mix(tc.xw, tc.zy, localUV);
-    vec3 baseColor = colors2_material_toWorkSpace(texture(usam_blockAtlasColor, atlasUV).rgb);
-    if (any(isnan(baseColor))) {
-        return surface;
-    }
-
-    float emissiveScale = hardcoded.emissive * exp2(float(hardcoded.emissiveMultiplier));
-    surface.emissive = baseColor * emissiveScale;
-    surface.valid = true;
-    return surface;
-}
-
 bool restir_initialSample_screenHitQuery(
     ivec2 centerTexelPos,
     vec3 centerGeomNormalView,
@@ -186,7 +148,7 @@ bool restir_initialSample_screenHitQuery(
     candidate.radiance = hitMaterial.emissive;
 
     if (rcLookup.weight > 0.0 && !any(isnan(rcLookup.radiance))) {
-        candidate.radiance += rcLookup.radiance;
+        candidate.radiance += rcLookup.radiance * hitMaterial.albedo;
     }
 
     candidate.radiance = clamp(candidate.radiance, 0.0, FP16_MAX);
@@ -216,15 +178,15 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
     candidate.hitDistance = distance(hit.hitPos, rayOriginWorld);
     candidate.hitNormalView = coords_dir_worldToView(hit.normal);
 
-    restir_InitialVoxelSurface surface = restir_initialSample_sampleVoxelSurface(hit);
+    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit);
     if (!surface.valid) {
         return candidate;
     }
 
     RCLookupResult rcLookup = rc_lookupDiffuseGI(hit.hitPos, hit.normal, hit.normal);
-    candidate.radiance = surface.emissive;
+    candidate.radiance = surface.material.emissive;
     if (rcLookup.weight > 0.0 && !any(isnan(rcLookup.radiance))) {
-        candidate.radiance += rcLookup.radiance;
+        candidate.radiance += rcLookup.radiance * surface.material.albedo;
     }
     candidate.radiance = clamp(candidate.radiance, 0.0, FP16_MAX);
     return candidate;

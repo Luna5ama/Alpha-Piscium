@@ -9,6 +9,7 @@
 #include "HardcodedPBR.glsl"
 #include "MaterialIDConst.glsl"
 
+// TODO: simplified version
 struct Material {
     vec3 albedo; // Working space
     float roughness;
@@ -26,6 +27,26 @@ struct Material {
     mat3 geomTbn;
     mat3 geomTbnInv;
 };
+
+Material material_init() {
+    Material material;
+    material.albedo = vec3(0.0);
+    material.roughness = 1.0;
+    material.f0RGB = vec3(0.0);
+    material.f82TintRGB = vec3(1.0);
+    material.f0 = 0.0;
+    material.f82Tint = 1.0;
+    material.dielectric = 1.0;
+    material.emissive = vec3(0.0);
+    material.porosity = 0.0;
+    material.sss = 0.0;
+    material.hardCodedIOR = 1.5;
+    material.tbn = mat3(1.0);
+    material.tbnInv = mat3(1.0);
+    material.geomTbn = mat3(1.0);
+    material.geomTbnInv = mat3(1.0);
+    return material;
+}
 
 #ifdef MATERIAL_TRANSLUCENT
 const float _MATERIAL_F0_EPSILON = exp2(-SETTING_MINIMUM_F0);
