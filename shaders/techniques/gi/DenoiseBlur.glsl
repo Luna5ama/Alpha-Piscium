@@ -140,10 +140,10 @@ void main() {
             float historyLength = max(historyData5.x * TOTAL_HISTORY_LENGTH, 1.0);
             float specularHistoryLength = max(historyData5.y * TOTAL_HISTORY_LENGTH, 1.0);
             float diffAccumFactor = rcp(1.0 + pow2(0.05 * historyLength));
-            float specAccumFactor = rcp(1.0 + specularHistoryLength);
+            float specAccumFactor = rcp(1.0 + pow2(0.05 * specularHistoryLength));
 
             vec2 hitDistFactor = pow2(hitDistanceFactors);
-            hitDistFactor.x = hitDistFactor.x * 0.95 + 0.05;
+            hitDistFactor = hitDistFactor * vec2(0.9, 0.95) + vec2(0.1, 0.05);
             #if GI_DENOISE_PASS == 2
             #if SETTING_DEBUG_OUTPUT
 
@@ -151,6 +151,9 @@ void main() {
 //            imageStore(uimg_temp1, texelPos, specAccumFactor.xxxx);
 //            imageStore(uimg_temp1, texelPos, hitDistFactor.xxxx);
             #endif
+            #endif
+            #if GI_DENOISE_PASS == 1
+            imageStore(uimg_temp1, texelPos, hitDistFactor.yyyy);
             #endif
 
             float16_t jitterR = float16_t(blurJitter.y);

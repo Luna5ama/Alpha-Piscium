@@ -191,7 +191,7 @@ void main() {
 
                     if (newHitDistance > 0.0) {
                         historyData.specularHitDistance = mix(historyData.specularHitDistance, min(newHitDistance, GI_MAX_HIT_DISTANCE), specHitDistanceAlpha);
-                        historyData.diffuseHitDistance = mix(historyData.diffuseHitDistance, min(newHitDistance, GI_MAX_HIT_DISTANCE), diffHitDistanceAlpha);
+                        historyData.diffuseHitDistance = pow2(mix(sqrt(historyData.diffuseHitDistance), sqrt(min(newHitDistance, 8.0)), diffHitDistanceAlpha));
                     }
 
                     historyLengths = saturate(historyLengths / TOTAL_HISTORY_LENGTH);
