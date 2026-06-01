@@ -48,18 +48,18 @@ layout(std430, binding = 2) RC_DATA_MODIFIER RadianceCacheUpdateEntryIndexData {
 // y: bitmask of valid faces
 // z: world key hash
 // w: meta (bits 0-2: level, bit 31: valid flag, bits 16-23: pending visible face mask)
-layout(std430, binding = 13) RC_DATA_MODIFIER RadianceCacheIndirectionData {
+layout(std430, binding = 10) RC_DATA_MODIFIER RadianceCacheIndirectionData {
     uvec4 rc_indirection[];
 };
 
-layout(std430, binding = 14) RC_DATA_MODIFIER RadianceCacheReservoirData {
+layout(std430, binding = 11) RC_DATA_MODIFIER RadianceCacheReservoirData {
     uvec4 rc_reservoirs[];
 };
 
 // x: world key hash, or RC_INVALID
 // y bits 0-5: screen touched faces
 // y bits 6-11: next-frame hit feedback faces
-layout(std430, binding = 15) RC_DATA_MODIFIER RadianceCacheFeedbackData {
+layout(std430, binding = 12) RC_DATA_MODIFIER RadianceCacheFeedbackData {
     uvec2 rc_feedback[];
 };
 
