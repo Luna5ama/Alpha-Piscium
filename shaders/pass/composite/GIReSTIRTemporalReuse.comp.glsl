@@ -15,6 +15,15 @@
 */
 #extension GL_KHR_shader_subgroup_ballot : enable
 
+layout(local_size_x = 16, local_size_y = 16) in;
+
+layout(rgba16f) uniform writeonly image2D uimg_temp1;
+layout(rgba16f) uniform writeonly image2D uimg_temp3;
+layout(rgba16f) uniform restrict image2D uimg_rgba16f;
+layout(r32f) uniform restrict writeonly image2D uimg_r32f;
+layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
+layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
+
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/gi/InitialSample.glsl"
 #include "/util/GBufferData.glsl"
@@ -26,14 +35,7 @@
 #include "/util/BSDF.glsl"
 #include "/techniques/gi/PairwiseMIS.glsl"
 
-layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
-
-layout(rgba16f) uniform writeonly image2D uimg_temp1;
-layout(rgba16f) uniform writeonly image2D uimg_temp3;
-layout(rgba16f) uniform restrict image2D uimg_rgba16f;
-layout(r32f) uniform restrict writeonly image2D uimg_r32f;
-layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 
 
 shared mat3 shared_prevViewToCurrView;
@@ -161,13 +163,19 @@ void main() {
             Material material = material_decode(gData);
             ResampleMaterial resampleMaterial = resampleMaterial_fromMaterial(material);
 
-            float hitDistance = transient_gi_initialSampleHitDistance_fetch(texelPos).x;
-            restir_InitialSampleData initialSample = restir_initalSample_restoreData(texelPos, viewZ, gData.geomNormal, gData.normal, material, hitDistance);
-            vec3 hitRadiance = initialSample.hitRadiance;
-            vec3 sampleDirView = initialSample.directionAndLength.xyz;
+            restir_InitialCandidate initialCandidate = restir_initialCandidate_load(texelPos);
+            float hitDistance = initialCandidate.hitDistance;
+            vec3 hitRadiance = initialCandidate.radiance;
+            vec3 sampleDirView = initialCandidate.rayDirView;
+            float samplePdf = initialCandidate.pdf;
             float newPHat = evalTargetFunction(hitRadiance, gData.normal, sampleDirView, V, resampleMaterial);
-            float samplePdf = initialSample.pdf;
             float newWi = newPHat * safeRcp(samplePdf);
+
+            float denoiserHitDistance = hitDistance;
+            if (denoiserHitDistance <= RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL) {
+                denoiserHitDistance = -1.0;
+            }
+            transient_gi_initialSampleHitDistance_store(texelPos, vec4(denoiserHitDistance));
 
             vec4 finalSample = vec4(0.0);
             vec3 finalHitNormal = vec3(0.0);
@@ -178,21 +186,7 @@ void main() {
                 wSum = newWi;
 
                 finalSample = vec4(hitRadiance, newPHat);
-
-                vec3 hitViewPos = viewPos + sampleDirView * hitDistance;
-                vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
-                ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
-
-                vec4 hitGeomNormalData = transient_geomViewNormal_fetch(hitTexelPos);
-                vec3 hitGeomNormal = normalize(hitGeomNormalData.xyz * 2.0 - 1.0);
-                float geomNormalDot = dot(hitGeomNormal, gData.geomNormal);
-
-                if (geomNormalDot > 0.99) {
-                    transient_gi_initialSampleHitDistance_store(texelPos, vec4(-1.0));
-                }
-
-                vec4 hitNormalData = transient_viewNormal_fetch(hitTexelPos);
-                finalHitNormal = normalize(hitNormalData.xyz * 2.0 - 1.0);
+                finalHitNormal = initialCandidate.hitNormalView;
             }
 
             uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_fetch(texelPos);

@@ -3,13 +3,14 @@
 #include "/Base.glsl"
 #define RAY_STEPS (SETTING_GI_VALIDATE_SST_STEPS - 4)
 
-#include "/techniques/gi/FinishTrace.comp.glsl"
-#include "/techniques/gi/InitialSample.glsl"
-#include "/techniques/gi/Reservoir.glsl"
-
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
+layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
+
+#include "/techniques/gi/FinishTrace.comp.glsl"
+#include "/techniques/gi/InitialSample.glsl"
+#include "/techniques/gi/Reservoir.glsl"
 
 void handleRayResult(SSTRay sstRay) {
     ivec2 texelPos = sstRay.pRayOriginTexelPos;
