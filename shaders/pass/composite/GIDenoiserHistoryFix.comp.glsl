@@ -141,7 +141,7 @@ void main() {
                 // 0.0 = Full fix, 1.0 = No fix
                 float historyFixMix = pow2(linearStep(1.0, 4.0, historyLengthInt));
                 #if SETTING_DEBUG_OUTPUT
-                imageStore(uimg_temp1, texelPos, 1.0 - historyFixMix.xxxx);
+                //imageStore(uimg_temp1, texelPos, 1.0 - historyFixMix.xxxx);
                 #endif
 
                 #ifdef SETTING_DENOISER_HISTORY_FIX
@@ -366,7 +366,6 @@ void main() {
                     vec2 hlen = vec2(historyData.realHistoryLength);
                     hlen.y = min(hlen.y, historyData.specularHistoryLength);
                     vec2 remappedRealHLen = 1.0 - pow4(1.0 - hlen);
-                    remappedRealHLen *= vec2(0.5, 1.0);
                     hitDitanceFactors = pow(hitDitanceFactors, remappedRealHLen);
                     transient_gi_hitDistanceFactors_store(texelPos, vec4(saturate(hitDitanceFactors), 0.0, 0.0));
 

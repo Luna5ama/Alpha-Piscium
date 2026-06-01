@@ -193,6 +193,9 @@ void main() {
             hitDistFactor = pow2(hitDistFactor);
             #endif
             hitDistFactor = hitDistFactor * vec2(0.9, 0.95) + vec2(0.1, 0.05);
+            #if GI_DENOISE_PASS == 1
+            imageStore(uimg_temp1, texelPos, hitDistFactor.xxxx);
+            #endif
 
             float16_t jitterR = float16_t(blurJitter.y);
             float angle = blurJitter.x * PI_2;
