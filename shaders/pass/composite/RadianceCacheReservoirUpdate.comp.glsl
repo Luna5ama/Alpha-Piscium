@@ -242,13 +242,6 @@ bool rcLoadRandomSpatialNeighbor(
     ivec2 neighborOffset = rcNeighborOffset8(neighborIndex);
     neighborCell = worldCellCoord + rcNeighborPlaneOffset(faceId, neighborOffset.x, neighborOffset.y);
 
-    vec3 targetCenter = rcFaceCenter(worldCellCoord, level, faceId);
-    vec3 neighborCenter = rcFaceCenter(neighborCell, level, faceId);
-    float maxDistance = max(ldexp(float(SETTING_RC_SPATIAL_MAX_DIST), int(level)), 1e-3);
-    if (length(neighborCenter - targetCenter) > maxDistance) {
-        return false;
-    }
-
     if (!rcLoadFaceReservoir(rcPreviousSide(), level, neighborCell, faceId, neighborReservoir)) {
         return false;
     }
@@ -268,41 +261,20 @@ float rcPairwiseSpatialMIS(
     vec3 hitPos,
     vec3 hitNormal
 ) {
-    #ifndef SETTING_RC_SPATIAL_USE_MIS
-        return 1.0;
-    #else
-        float pTarget = 0.0;
-        float pNeighbor = 0.0;
+    float pTarget = rcAreaPdfCosineConnection(targetOrigin, targetNormal, hitPos, hitNormal);
+    float pNeighbor = rcAreaPdfCosineConnection(neighborOrigin, neighborNormal, hitPos, hitNormal);
 
-        #ifdef SETTING_RC_SPATIAL_USE_JACOBIAN
-            pTarget = rcAreaPdfCosineConnection(targetOrigin, targetNormal, hitPos, hitNormal);
-            pNeighbor = rcAreaPdfCosineConnection(neighborOrigin, neighborNormal, hitPos, hitNormal);
-        #else
-            vec3 targetToHit = hitPos - targetOrigin;
-            float targetDistanceSq = dot(targetToHit, targetToHit);
-            if (targetDistanceSq > 1e-6) {
-                pTarget = max(dot(targetNormal, normalize(targetToHit)), 0.0) * RCP_PI;
-            }
+    if (pTarget <= 0.0) {
+        return 0.0;
+    }
 
-            vec3 neighborToHit = hitPos - neighborOrigin;
-            float neighborDistanceSq = dot(neighborToHit, neighborToHit);
-            if (neighborDistanceSq > 1e-6) {
-                pNeighbor = max(dot(neighborNormal, normalize(neighborToHit)), 0.0) * RCP_PI;
-            }
-        #endif
+    float pSpatial = pNeighbor * 0.125;
+    float pSum = pTarget + pSpatial;
+    if (pSum <= 1e-6) {
+        return 0.0;
+    }
 
-        if (pTarget <= 0.0) {
-            return 0.0;
-        }
-
-        float pSpatial = pNeighbor * 0.125;
-        float pSum = pTarget + pSpatial;
-        if (pSum <= 1e-6) {
-            return 0.0;
-        }
-
-        return pTarget * safeRcp(pSum);
-    #endif
+    return pTarget * safeRcp(pSum);
 }
 
 float rcPairwiseSpatialMIS_MAware(
@@ -315,42 +287,21 @@ float rcPairwiseSpatialMIS_MAware(
     float targetM,
     float sourceM
 ) {
-    #ifndef SETTING_RC_SPATIAL_USE_MIS
-        return 1.0;
-    #else
-        float pTarget = 0.0;
-        float pNeighbor = 0.0;
+    float pTarget = rcAreaPdfCosineConnection(targetOrigin, targetNormal, hitPos, hitNormal);
+    float pNeighbor = rcAreaPdfCosineConnection(neighborOrigin, neighborNormal, hitPos, hitNormal);
 
-        #ifdef SETTING_RC_SPATIAL_USE_JACOBIAN
-            pTarget = rcAreaPdfCosineConnection(targetOrigin, targetNormal, hitPos, hitNormal);
-            pNeighbor = rcAreaPdfCosineConnection(neighborOrigin, neighborNormal, hitPos, hitNormal);
-        #else
-            vec3 targetToHit = hitPos - targetOrigin;
-            float targetDistanceSq = dot(targetToHit, targetToHit);
-            if (targetDistanceSq > 1e-6) {
-                pTarget = max(dot(targetNormal, normalize(targetToHit)), 0.0) * RCP_PI;
-            }
+    if (pTarget <= 0.0 || pNeighbor <= 0.0) {
+        return 0.0;
+    }
 
-            vec3 neighborToHit = hitPos - neighborOrigin;
-            float neighborDistanceSq = dot(neighborToHit, neighborToHit);
-            if (neighborDistanceSq > 1e-6) {
-                pNeighbor = max(dot(neighborNormal, normalize(neighborToHit)), 0.0) * RCP_PI;
-            }
-        #endif
+    float targetMass = max(targetM, 1.0);
+    float sourceMass = max(sourceM, 1.0);
+    float denom = targetMass * pTarget + sourceMass * pNeighbor;
+    if (denom <= 1e-6) {
+        return 0.0;
+    }
 
-        if (pTarget <= 0.0 || pNeighbor <= 0.0) {
-            return 0.0;
-        }
-
-        float targetMass = max(targetM, 1.0);
-        float sourceMass = max(sourceM, 1.0);
-        float denom = targetMass * pTarget + sourceMass * pNeighbor;
-        if (denom <= 1e-6) {
-            return 0.0;
-        }
-
-        return targetMass * pTarget * safeRcp(denom);
-    #endif
+    return targetMass * pTarget * safeRcp(denom);
 }
 
 float rcSpatialEffectiveSourceM(RCReservoir neighborReservoir) {
@@ -359,7 +310,7 @@ float rcSpatialEffectiveSourceM(RCReservoir neighborReservoir) {
         return 0.0;
     }
 
-    float maxSpatialM = min(float(SETTING_RC_M_MAX), 8.0);
+    float maxSpatialM = min(float(SETTING_RC_M_CAP), 8.0);
     return clamp(m, 1.0, maxSpatialM);
 }
 
@@ -653,7 +604,7 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
         float spatialReuseWeight;
         float spatialMInc;
         float sourceM = rcSpatialEffectiveSourceM(neighborReservoir);
-        float targetM = clamp(max(reservoir.m, 1.0), 1.0, float(SETTING_RC_M_MAX));
+        float targetM = clamp(max(reservoir.m, 1.0), 1.0, float(SETTING_RC_M_CAP));
         if (spatialNeighborValid && sourceM > 0.0 && SETTING_RC_SPATIAL_STRENGTH > 0.0 && rcGenerateSpatialCandidate(
             worldCellCoord,
             level,
@@ -702,7 +653,7 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
     #endif
 
     float unclampedM = reservoir.m;
-    float clampedM = clamp(unclampedM, 0.0, float(SETTING_RC_M_MAX));
+    float clampedM = clamp(unclampedM, 0.0, float(SETTING_RC_M_CAP));
     if (unclampedM > clampedM && unclampedM > 0.0) {
         wSum *= clampedM * safeRcp(unclampedM);
     }
