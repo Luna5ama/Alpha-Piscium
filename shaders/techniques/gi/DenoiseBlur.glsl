@@ -194,7 +194,7 @@ void main() {
             #endif
             hitDistFactor = hitDistFactor * vec2(0.9, 0.95) + vec2(0.1, 0.05);
             #if GI_DENOISE_PASS == 1
-            imageStore(uimg_temp1, texelPos, hitDistFactor.xxxx);
+            imageStore(uimg_temp1, texelPos, hitDistFactor.yyyy);
             #endif
 
             float16_t jitterR = float16_t(blurJitter.y);
@@ -348,7 +348,7 @@ void main() {
                 float sigmaFP32 = 0.69;
                 sigmaFP32 += 8.0 - hitDistFactor.y * 8.0;
                 sigmaFP32 *= 1.0 - filteredInputVariance.y;
-                sigmaFP32 += 0.025 * pow(centerGeomData.roughness, -historyData5.y);
+                sigmaFP32 += 8.0 * pow(centerGeomData.roughness, -historyData5.y);
                 float16_t sigma = float16_t(-sigmaFP32);
 
                 vec4 centerSpec = _gi_readSpec(texelPos);
@@ -380,7 +380,7 @@ void main() {
 
                     GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
-                    float baseNormalWeight = specInvAccumFactor * 128.0 + 32.0;
+                    float baseNormalWeight = specInvAccumFactor * 128.0 + 64.0;
                     float basePlaneDistWeight = specInvAccumFactor * -256.0 - 256.0;
                     float edgeWeightFP32 = normalWeight(centerGeomData, geomData, baseNormalWeight);
                     edgeWeightFP32 *= planeDistanceWeight(
