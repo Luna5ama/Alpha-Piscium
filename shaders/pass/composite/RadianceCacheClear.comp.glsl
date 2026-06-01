@@ -32,12 +32,11 @@ void main() {
         ) {
             uint carriedFaceMask = previousFaceMask & pendingVisibleFaceMask;
             if (carriedFaceMask != 0u) {
-                uint age = min(rcEntryMetaAge(previousEntry.w) + 1u, 255u);
                 rc_indirection[currentBufferIndex] = uvec4(
                     RC_INVALID,
                     carriedFaceMask,
                     worldKeyHash,
-                    rcEntryMetaClearPendingFaces(rcPackEntryMeta(level, age, true))
+                    rcEntryMetaClearPendingFaces(rcPackEntryMeta(level, true))
                 );
                 return;
             }

@@ -20,8 +20,6 @@
 
 #define RC_ENTRY_META_VALID 0x80000000u
 #define RC_ENTRY_META_LEVEL_MASK 0x00000007u
-#define RC_ENTRY_META_AGE_SHIFT 8u
-#define RC_ENTRY_META_AGE_MASK 0x0000ff00u
 #define RC_ENTRY_META_PENDING_FACE_SHIFT 16u
 #define RC_ENTRY_META_PENDING_FACE_MASK 0x003f0000u
 
@@ -49,7 +47,7 @@ layout(std430, binding = 12) RC_DATA_MODIFIER RadianceCacheMetaData {
 // x: reservoir base index, or RC_INVALID if no reservoir allocated for this entry
 // y: bitmask of valid faces
 // z: world key hash
-// w: meta (bit 31: valid flag, bits 0-2: level, bits 8-15: age)
+// w: meta (bits 0-2: level, bit 31: valid flag, bits 16-23: pending visible face mask)
 layout(std430, binding = 13) RC_DATA_MODIFIER RadianceCacheIndirectionData {
     uvec4 rc_indirection[];
 };
@@ -225,10 +223,9 @@ uint rcAllocClassSize(uint faceCount) {
     return 6u;
 }
 
-uint rcPackEntryMeta(uint level, uint age, bool valid) {
+uint rcPackEntryMeta(uint level, bool valid) {
     return (valid ? RC_ENTRY_META_VALID : 0u)
-        | (level & RC_ENTRY_META_LEVEL_MASK)
-        | ((min(age, 255u) << RC_ENTRY_META_AGE_SHIFT) & RC_ENTRY_META_AGE_MASK);
+        | (level & RC_ENTRY_META_LEVEL_MASK);
 }
 
 bool rcEntryMetaValid(uint meta) {
@@ -237,10 +234,6 @@ bool rcEntryMetaValid(uint meta) {
 
 uint rcEntryMetaLevel(uint meta) {
     return meta & RC_ENTRY_META_LEVEL_MASK;
-}
-
-uint rcEntryMetaAge(uint meta) {
-    return (meta & RC_ENTRY_META_AGE_MASK) >> RC_ENTRY_META_AGE_SHIFT;
 }
 
 uint rcEntryMetaPendingFaceMask(uint meta) {
@@ -856,7 +849,7 @@ void rcTouchFace(uint level, ivec3 worldCellCoord, uint faceId) {
 
         atomicOr(rc_indirection[bufferIndex].y, rcFaceBit(faceId));
         uint pendingFaceBits = rc_indirection[bufferIndex].w & RC_ENTRY_META_PENDING_FACE_MASK;
-        rc_indirection[bufferIndex].w = rcPackEntryMeta(level, 0u, true) | pendingFaceBits;
+        rc_indirection[bufferIndex].w = rcPackEntryMeta(level, true) | pendingFaceBits;
     } else {
         atomicAdd(rc_keyMismatchCounter, 1u);
     }
