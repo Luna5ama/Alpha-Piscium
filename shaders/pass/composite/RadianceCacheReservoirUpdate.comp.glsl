@@ -2,8 +2,6 @@
 
 layout(local_size_x = 128) in;
 
-// Indirect dispatch dimensions are written by RadianceCacheAllocate.
-
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
@@ -241,7 +239,7 @@ bool rc_loadRandomSpatialNeighbor(
     out RCReservoir neighborReservoir
 ) {
     neighborCell = worldCellCoord;
-    neighborOrigin = rc_faceRayOrigin(worldCellCoord, level, faceId);
+    neighborOrigin = vec3(0.0);
     neighborReservoir = rc_reservoirInit();
 
     uint neighborIndex = hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0xC2B2AE35u)) & 7u;
@@ -448,12 +446,12 @@ bool rc_generateSpatialCandidate(
         }
 
         vec3 toHit = hitPos - targetOrigin;
-        float distanceSq = dot(toHit, toHit);
-        if (distanceSq <= 1e-6) {
+        float hitDistanceSq = dot(toHit, toHit);
+        if (hitDistanceSq <= 1e-6) {
             return false;
         }
 
-        vec3 shiftedDir = toHit * inversesqrt(distanceSq);
+        vec3 shiftedDir = toHit * inversesqrt(hitDistanceSq);
         float targetCos = dot(targetNormal, shiftedDir);
         if (targetCos <= 0.05) {
             return false;
@@ -465,8 +463,8 @@ bool rc_generateSpatialCandidate(
             return false;
         }
 
-        float hitThreshold = max(float(rc_voxelSize(level)) * 0.25, 0.1);
-        if (length(hit.hitPos - hitPos) > hitThreshold) {
+        float hitThreshold = pow2(max(ldexp(0.25, int(level)), 0.1));
+        if (distanceSq(hit.hitPos, hitPos) > hitThreshold) {
             return false;
         }
         if (dot(hit.normal, -shiftedDir) <= 0.0) {
@@ -572,13 +570,6 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
             if (!historyValid) {
                 reservoir = rc_reservoirInit();
             }
-        } else {
-            float randKill = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x1145CA6Bu)));
-            // 100% chance to kill reservoir at each frame on max age.
-            if (historyValid && randKill * 65536.0 < pow2(float(historyAge))) {
-                reservoir.m *= 0.1;
-                historyAge = 0u;
-            }
         }
     }
 
@@ -634,7 +625,7 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
 
     #ifdef SETTING_RC_SPATIAL_ENABLE
         ivec3 neighborCell = worldCellCoord;
-        vec3 neighborOrigin = rc_faceRayOrigin(worldCellCoord, level, faceId);
+        vec3 neighborOrigin = vec3(0.0);
         RCReservoir neighborReservoir = rc_reservoirInit();
         spatialNeighborValid = rc_loadRandomSpatialNeighbor(
             entryIndex,
@@ -727,23 +718,21 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
 void main() {
     voxel_initShared();
 
-    uint entryIndex = gl_GlobalInvocationID.x;
-    if (entryIndex >= RC_ENTRY_COUNT) {
-        return;
-    }
-
-    uint level = rc_entryLevel(entryIndex);
-    ivec3 worldCellCoord = rc_worldCellCoordFromEntryIndex(entryIndex);
-    uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
-    uvec4 entry = rc_indirection[bufferIndex];
-    if (entry.x == RC_INVALID || entry.z != rc_worldKeyHash(level, worldCellCoord) || !rc_entryMetaValid(entry.w) || rc_entryMetaLevel(entry.w) != level) {
-        return;
-    }
-
-    uint faceMask = entry.y & 0x3fu;
-    for (uint faceId = 0u; faceId < 6u; faceId++) {
-        if (rc_hasFace(faceMask, faceId)) {
-            rc_updateFace(entryIndex, entry, worldCellCoord, level, faceId);
+    if (gl_GlobalInvocationID.x < rc_entryCounter) {
+        uint data = rc_updateEntryIndices[gl_GlobalInvocationID.x];
+        uint entryIndex = bitfieldExtract(data, 0, 26);
+        uint faceId = bitfieldExtract(data, 26, 6);
+        if (entryIndex < RC_ENTRY_COUNT) {
+            uint level = rc_entryLevel(entryIndex);
+            ivec3 worldCellCoord = rc_worldCellCoordFromEntryIndex(entryIndex);
+            uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
+            uvec4 entry = rc_indirection[bufferIndex];
+            if (entry.x != RC_INVALID && entry.z == rc_worldKeyHash(level, worldCellCoord) && rc_entryMetaValid(entry.w) && rc_entryMetaLevel(entry.w) == level) {
+                uint faceMask = entry.y & 0x3fu;
+                if (rc_hasFace(faceMask, faceId)) {
+                    rc_updateFace(entryIndex, entry, worldCellCoord, level, faceId);
+                }
+            }
         }
     }
 }
