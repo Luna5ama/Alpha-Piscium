@@ -40,6 +40,7 @@ ReSTIRReservoir readTemporalReservoir(ivec2 texelPos) {
 }
 
 void main() {
+    voxel_initShared();
     sst_init(SETTING_GI_SST_THICKNESS);
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
@@ -65,7 +66,7 @@ void main() {
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
 
         if (viewZ > -65536.0) {
-            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) + uval_taaJitterUV;
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
             vec3 V = normalize(-viewPos);
             ResampleMaterial centerMaterial = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelPos));
@@ -145,25 +146,24 @@ void main() {
                 vvv = vec4(0.0, 1.0, 0.0, 0.0);
                 #endif
 
-                vec3 scenePos = coords_pos_viewToWorld(viewPos, gbufferModelViewInverse) ;
+                vec3 scenePos = coords_pos_viewToWorld(viewPos + centerSampleData.geomNormal * 0.05, gbufferModelViewInverse);
                 vec3 worldPos = scenePos + vec3(cameraPositionInt) + cameraPositionFract;
                 vec3 worldDir = coords_dir_viewToWorld(winL_out);
-                vec3 worldGeomNormal = coords_dir_viewToWorld(centerSampleData.geomNormal);
                 VoxelRay voxelRay = voxelray_setup(worldPos, worldDir, 0u);
                 VoxelHit hit = voxel_traceRay(voxelRay, 128);
                 vec3 expectedHitPos = worldPos + worldDir * winHitDist;
 
                 bool discardSptialReuse = false;
                 if (hit.hit) {
-                    discardSptialReuse = distanceSq(hit.hitPos, worldPos) < pow2(winHitDist);
+                    discardSptialReuse = distanceSq(hit.hitPos, expectedHitPos) > 0.05;
                 } else {
                     discardSptialReuse = resultReservoir.Y.w > 0.0;
                 }
 
                 if (discardSptialReuse) {
                     resultReservoir = restir_initReservoir();
-                    ssgiDiffOut.rgb = vec3(0.0);
-                    ssgiSpecOut.rgb = vec3(0.0);
+                    ssgiDiffOut = vec4(0.0);
+                    ssgiSpecOut = vec4(0.0);
                     #if SETTING_DEBUG_OUTPUT
                     vvv = vec4(1.0, 0.0, 0.0, 0.0);
                     #endif
