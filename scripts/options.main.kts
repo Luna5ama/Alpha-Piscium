@@ -917,9 +917,9 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 }
                 empty()
                 row {
-                    slider("SETTING_RC_M_MAX", 16, powerOfTwoRange(0..8)) {
+                    slider("SETTING_RC_M_MAX", 129, powerOfTwoRange(0..8)) {
                         lang {
-                            name = "Reservoir M Clamp"
+                            name = "Reservoir M Cao"
                             comment = "Maximum temporal sample count per cached face."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
@@ -969,7 +969,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "辐射度缓存空间复用允许的最大切平面邻居距离，以体素宽度计。"
                         }
                     }
-                    slider("SETTING_RC_SPATIAL_STRENGTH", 0.3, 0.0..1.0 step 0.05) {
+                    slider("SETTING_RC_SPATIAL_STRENGTH", 1.0, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Spatial Strength"
                             comment = "Scales the spatial reuse contribution and effective sample count."

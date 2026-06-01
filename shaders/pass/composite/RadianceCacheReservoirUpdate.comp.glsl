@@ -395,8 +395,8 @@ RCCandidate rcGenerateCandidate(uint entryIndex, ivec3 worldCellCoord, uint leve
     vec3 rayOrigin = rcFaceRayOrigin(worldCellCoord, level, faceId);
     VoxelRay voxelRay = voxelray_setup(rayOrigin, worldDir, 0u);
     VoxelHit hit = voxel_traceRay(voxelRay, 128);
-    if (hit.hit) {
-        //rcTouchHit(hit); TODO: move to another pass?
+    if (allowHitFeedback && hit.hit) {
+        rcTouchHitFeedback(hit);
     }
 
     bool radianceValid = false;
@@ -583,21 +583,27 @@ void rcUpdateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level
             historyValid = false;
         }
     }
-    float randKill = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x1145CA6Bu)));
-    // 100% chance to kill reservoir at each frame on max age.
-    if (historyValid && randKill * 65536.0 < pow2(float(historyAge))) {
-        reservoir.m *= 0.1;
-        historyAge = 0u;
-        historyValid = rcRevalidateHistoryReservoir(
-            worldCellCoord,
-            level,
-            faceId,
-            reservoir,
-            reservoirTargetWeight
-        );
-        if (!historyValid) {
-            reservoir = rcReservoirInit();
-            reservoirTargetWeight = 0.0;
+    if (historyValid) {
+        uint validateId = gl_WorkGroupID.x + (gl_WorkGroupID.x >> 3);
+        if ((validateId & 7u) == (uint(frameCounter) & 7u)) {
+            historyValid = rcRevalidateHistoryReservoir(
+                worldCellCoord,
+                level,
+                faceId,
+                reservoir,
+                reservoirTargetWeight
+            );
+            if (!historyValid) {
+                reservoir = rcReservoirInit();
+                reservoirTargetWeight = 0.0;
+            }
+        } else {
+            float randKill = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x1145CA6Bu)));
+            // 100% chance to kill reservoir at each frame on max age.
+            if (historyValid && randKill * 65536.0 < pow2(float(historyAge))) {
+                reservoir.m *= 0.1;
+                historyAge = 0u;
+            }
         }
     }
 
