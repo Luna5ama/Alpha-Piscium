@@ -59,7 +59,7 @@ layout(std430, binding = 11) RC_DATA_MODIFIER RadianceCacheReservoirData {
 // x: world key hash, or RC_INVALID
 // y bits 0-5: screen touched faces
 // y bits 6-11: next-frame hit feedback faces
-layout(std430, binding = 12) RC_DATA_MODIFIER RadianceCacheFeedbackData {
+layout(std430, binding = 5) RC_DATA_MODIFIER RadianceCacheFeedbackData {
     uvec2 rc_feedback[];
 };
 
