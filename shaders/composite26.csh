@@ -1,8 +1,8 @@
 #version 460 compatibility
 #define COMP 1
 /*const*/
-#define PASS_INDEX 2
-#define PASS_BASE_SAMPLE_INDEX 14
+#define PASS_INDEX 1
+#define PASS_BASE_SAMPLE_INDEX 7
 /*const*/
 
 #include "/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl"

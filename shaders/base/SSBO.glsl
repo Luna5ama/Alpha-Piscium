@@ -75,6 +75,14 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     float global_turbidity;
     AEData global_aeData;
     uint global_atomicCounters[16];
+
+    uint rc_entryCounter;
+    uint rc_allocationCounter;
+    uint rc_keyMismatchCounter;
+    uint rc_poolOverflowCounter;
+    uint rc_cacheHitCounter;
+    uint rc_cacheMissCounter;
+    uint rc_paddingCounters[11];
 };
 
 layout(std430, binding = 1) GLOBAL_DATA_MODIFIER IndirectComputeData {
