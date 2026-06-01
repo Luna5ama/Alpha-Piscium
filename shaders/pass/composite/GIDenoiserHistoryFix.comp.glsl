@@ -140,7 +140,7 @@ void main() {
                 // 0.0 = Full fix, 1.0 = No fix
                 float historyFixMix = pow2(linearStep(1.0, 4.0, historyLengthInt));
                 #if SETTING_DEBUG_OUTPUT
-                imageStore(uimg_temp1, texelPos, 1.0 - historyFixMix.xxxx);
+                //imageStore(uimg_temp1, texelPos, 1.0 - historyFixMix.xxxx);
                 #endif
 
                 #ifdef SETTING_DENOISER_HISTORY_FIX
@@ -251,13 +251,12 @@ void main() {
                     #ifdef SETTING_DENOISER_SPATIAL
                     // Adding 0.0001 to avoid making it 0 which can cause issues with pow
                     vec2 hitDitanceFactors;
-                    hitDitanceFactors.xy = smoothstep(4.0, 0.0, filteredHitDitances.xy);
-                    hitDitanceFactors.xy = 1.00001 - hitDitanceFactors.xy;
-                    const float factor = 0.2;
+                    hitDitanceFactors.x = smoothstep(4.0, 0.0, filteredHitDitances.x);
+                    hitDitanceFactors.y = linearStep(8.0, 0.0, filteredHitDitances.y);
                     vec2 hlen = vec2(historyData.historyLength, historyData.specularHistoryLength);
                     vec2 remappedRealHLen = 1.0 - pow4(1.0 - hlen);
-                    remappedRealHLen *= vec2(0.5, 0.5);
-                    hitDitanceFactors = pow(hitDitanceFactors, remappedRealHLen);
+                    remappedRealHLen *= vec2(1.0, 2.0);
+                    hitDitanceFactors = pow(1.00001 - hitDitanceFactors, remappedRealHLen);
                     transient_gi_hitDistanceFactors_store(texelPos, vec4(saturate(hitDitanceFactors), 0.0, 0.0));
                     #endif
 
@@ -334,13 +333,11 @@ void main() {
                     // Adding 0.0001 to avoid making it 0 which can cause issues with pow
                     vec2 hitDitanceFactors;
                     hitDitanceFactors.x = smoothstep(4.0, 0.0, filteredHitDitances.x);
-                    hitDitanceFactors.x = 1.00001 - hitDitanceFactors.x;
-                    const float factor = 0.2;
-                    hitDitanceFactors.y = smoothstep(0.0, 1.0, factor * filteredHitDitances.y * rcp(factor *filteredHitDitances.y + 1.0));
+                    hitDitanceFactors.y = linearStep(8.0, 0.0, filteredHitDitances.y);
                     vec2 hlen = vec2(historyData.historyLength, historyData.specularHistoryLength);
                     vec2 remappedRealHLen = 1.0 - pow4(1.0 - hlen);
-                    remappedRealHLen *= vec2(0.5, 0.5);
-                    hitDitanceFactors = pow(hitDitanceFactors, remappedRealHLen);
+                    remappedRealHLen *= vec2(1.0, 2.0);
+                    hitDitanceFactors = pow(1.00001 - hitDitanceFactors, remappedRealHLen);
                     transient_gi_hitDistanceFactors_store(texelPos, vec4(saturate(hitDitanceFactors), 0.0, 0.0));
 
                     vec3 diffInput = historyData.diffuseColor;
