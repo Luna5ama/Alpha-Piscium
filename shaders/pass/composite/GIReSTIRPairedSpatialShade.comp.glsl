@@ -1,6 +1,8 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
+layout(local_size_x = 16, local_size_y = 16) in;
+
 #include "/util/Material.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 #include "/techniques/SST2.glsl"
@@ -8,8 +10,8 @@
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/gi/PairwiseMIS.glsl"
+#include "/techniques/voxel/VoxelTrace.glsl"
 
-layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(std430, binding = 5) buffer RayData {
@@ -143,38 +145,28 @@ void main() {
                 vvv = vec4(0.0, 1.0, 0.0, 0.0);
                 #endif
 
-                SSTRay sstRay;
-                if (resultReservoir.Y.w > 0.0) {
-                    vec3 expectHitViewPos = viewPos + resultReservoir.Y.xyz * resultReservoir.Y.w;
-                    vec3 rayOrigin = coords_viewToScreen(viewPos, global_camProj);
-                    vec3 rayEnd = coords_viewToScreen(expectHitViewPos, global_camProj);
-                    vec4 rayDirLen = normalizeAndLength(rayEnd - rayOrigin);
-                    vec3 rcpRayDirScreen = rcp(rayDirLen.xyz);
-                    float maxT = rayDirLen.w;
-                    maxT = rayDirLen.z != 0.0f ? min((float(rayDirLen.z > 0.0f) - rayOrigin.z) * rcpRayDirScreen.z, maxT) : maxT;
-                    maxT = rayDirLen.x != 0.0f ? min((float(rayDirLen.x > 0.0f) - rayOrigin.x) * rcpRayDirScreen.x, maxT) : maxT;
-                    maxT = rayDirLen.y != 0.0f ? min((float(rayDirLen.y > 0.0f) - rayOrigin.y) * rcpRayDirScreen.y, maxT) : maxT;
-                    sstRay = sstray_setup(texelPos, rayOrigin, rayDirLen.xyz, maxT);
-                } else {
-                    sstRay = sstray_setup(texelPos, viewPos, resultReservoir.Y.xyz);
-                }
-                sst_trace(sstRay, 4);
-                if (sstRay.currT > 0.0) {
-                    uvec4 packedData = sstray_pack(sstRay);
-                    ssbo_rayData[dataIndex] = packedData;
-                    rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
-                } else {
-                    bool discardSptialReuse = true;
-                    if (sstRay.currT < -0.0) discardSptialReuse = false;
+                vec3 scenePos = coords_pos_viewToWorld(viewPos, gbufferModelViewInverse) ;
+                vec3 worldPos = scenePos + vec3(cameraPositionInt) + cameraPositionFract;
+                vec3 worldDir = coords_dir_viewToWorld(winL_out);
+                vec3 worldGeomNormal = coords_dir_viewToWorld(centerSampleData.geomNormal);
+                VoxelRay voxelRay = voxelray_setup(worldPos, worldDir, 0u);
+                VoxelHit hit = voxel_traceRay(voxelRay, 128);
+                vec3 expectedHitPos = worldPos + worldDir * winHitDist;
 
-                    if (discardSptialReuse) {
-                        resultReservoir = restir_initReservoir();
-                        ssgiDiffOut = vec4(0.0);
-                        ssgiSpecOut = vec4(0.0);
-                        #if SETTING_DEBUG_OUTPUT
-                        vvv = vec4(1.0, 0.0, 0.0, 0.0);
-                        #endif
-                    }
+                bool discardSptialReuse = false;
+                if (hit.hit) {
+                    discardSptialReuse = distanceSq(hit.hitPos, worldPos) < pow2(winHitDist);
+                } else {
+                    discardSptialReuse = resultReservoir.Y.w > 0.0;
+                }
+
+                if (discardSptialReuse) {
+                    resultReservoir = restir_initReservoir();
+                    ssgiDiffOut.rgb = vec3(0.0);
+                    ssgiSpecOut.rgb = vec3(0.0);
+                    #if SETTING_DEBUG_OUTPUT
+                    vvv = vec4(1.0, 0.0, 0.0, 0.0);
+                    #endif
                 }
             }
             #if SETTING_DEBUG_OUTPUT
