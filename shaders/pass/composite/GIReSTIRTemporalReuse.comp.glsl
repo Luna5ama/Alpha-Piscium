@@ -17,7 +17,10 @@
 
 layout(local_size_x = 16, local_size_y = 16) in;
 
+#include "/Base.glsl"
+
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
+layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
@@ -158,6 +161,7 @@ void main() {
             Material material = material_decode(gData);
 
             restir_InitialCandidate initialCandidate = restir_initialCandidate_load(texelPos);
+            initialCandidate.rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, gData.normal, V, material, initialCandidate.pdf);
             float hitDistance = initialCandidate.hitDistance;
             vec3 hitRadiance = initialCandidate.radiance;
             vec3 sampleDirView = initialCandidate.rayDirView;
@@ -188,6 +192,16 @@ void main() {
             ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
             float ageResetRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
             if (reprojInfo.historyResetFactor > ageResetRand) {
+                float pSpec = 1.0;
+                if (material.dielectric > 0.0) {
+                    float NdotV = saturate(dot(gData.normal, V));
+                    vec3 fresnelV = saturate(fresnel_evalMaterial(material, NdotV));
+                    vec3 fresnelT = vec3(1.0) - fresnelV;
+                    vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
+                    pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV * safeRcp(totalEnergy));
+                }
+                reprojInfo.historyResetFactor *= pow(material.roughness, pSpec / 4.0);
+
                 vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
                 curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
                 vec2 prevBase = curr2PrevTexelPos - 0.5;
