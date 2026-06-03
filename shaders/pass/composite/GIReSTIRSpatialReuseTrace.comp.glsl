@@ -15,7 +15,7 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 void handleRayResult(SSTRay sstRay) {
     ivec2 texelPos = sstRay.pRayOriginTexelPos;
     bool discardSptialReuse = true;
-    if (sstRay.currT < -0.0) {
+    if (sstRay.currT < -0.1) {
         discardSptialReuse = false;
     }
 

@@ -67,7 +67,9 @@ void main() {
 
         if (viewZ > -65536.0) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
+            vec2 screenPos2 = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+            vec3 viewPos2 = coords_toViewCoord(screenPos2, viewZ, global_camProjInverse);
             vec3 V = normalize(-viewPos);
             ResampleMaterial centerMaterial = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelPos));
 

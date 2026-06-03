@@ -268,7 +268,7 @@ vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 n
 
 restir_InitialSampleData restir_initalSample_restoreData(ivec2 texelPos, float viewZ, vec3 geomNormal, vec3 normal, Material selfMaterial, float hitDistance) {
     restir_InitialSampleData initialSampleData;
-    vec2 rayOriginScreenXY = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+    vec2 rayOriginScreenXY = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
     vec3 rayOriginView = coords_toViewCoord(rayOriginScreenXY, viewZ, global_camProjInverse);
     vec3 V = normalize(-rayOriginView);
 

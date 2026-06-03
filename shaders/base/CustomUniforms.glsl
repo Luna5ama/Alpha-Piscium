@@ -31,6 +31,7 @@ uniform vec3 uval_cameraDelta;
 uniform vec2 uval_taaJitter;
 uniform vec2 uval_prevTaaJitter;
 uniform vec2 uval_taaJitterUV;
+uniform vec2 uval_prevTaaJitterUV;
 uniform vec2 uval_r2Frame;
 uniform int uval_restirSpatialTileOffsetX;
 uniform int uval_restirSpatialTileOffsety;
