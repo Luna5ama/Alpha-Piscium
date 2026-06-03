@@ -123,13 +123,11 @@ void main() {
                     // y: specular
                     vec2 newWeights = vec2(1.0);
 
-                    #ifdef SETTING_DENOISER_ACCUM
-
                     GBufferData gData = gbufferData_init();
                     gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
                     gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
                     Material material = material_decode(gData);
-                    transient_specularPBRData_store(texelPos, vec4(sqrt(material.roughness), 0.0, 0.0, 0.0));
+                    transient_specularPBRData_store(texelPos, vec4(sqrt(material.roughness), material.dielectric, 0.0, 0.0));
 
                     // [ZHD20]
                     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
@@ -142,6 +140,7 @@ void main() {
                     float specAccumRecuctionFactor = specAccumReduction(material.roughness, NoV, parallax);
                     float maxSpecularHistoryLength = max(HISTORY_LENGTH * specAccumRecuctionFactor, 1.0);
 
+                    #ifdef SETTING_DENOISER_ACCUM
                     historyLengths = vec3(historyData.historyLength, historyData.specularHistoryLength, historyData.realHistoryLength);
                     historyLengths *= TOTAL_HISTORY_LENGTH * global_historyResetFactor;
                     historyLengths += 1.0;

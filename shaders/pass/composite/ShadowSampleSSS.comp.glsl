@@ -170,7 +170,7 @@ void WriteScreenSpaceShadow(DispatchParameters params, ivec3 groupID, uint laneI
 
         depth_thickness_scale[i] = abs(params.FarDepthValue - d1);
 
-        bool use_point_filter = abs(d1 - d2) > depth_thickness_scale[i] * params.BilinearThreshold;
+        bool use_point_filter = abs(d1 - d2) > depth_thickness_scale[i] * params.BilinearThreshold && transient_edgeMaskTemp_fetch(ivec2(read_xy)).r < 1.0;
         if (i == 0) is_edge = use_point_filter;
 
         sampling_depth[i] = d1;

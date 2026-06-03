@@ -118,10 +118,10 @@ uvec4 hash_pcg4d_44(uvec4 v) {
 }
 
 // ----------------------------------------------------- XXHASH32 -----------------------------------------------------
-const uint _HASH_XXHASH32_PRIME32_2 = 2246822519U;
-const uint _HASH_XXHASH32_PRIME32_3 = 3266489917U;
-const uint _HASH_XXHASH32_PRIME32_4 = 668265263U;
-const uint _HASH_XXHASH32_PRIME32_5 = 374761393U;
+const uint _HASH_XXHASH32_PRIME32_2 = 0x85EBCA77u;
+const uint _HASH_XXHASH32_PRIME32_3 = 0xC2B2AE3Du;
+const uint _HASH_XXHASH32_PRIME32_4 = 0x27D4EB2Fu;
+const uint _HASH_XXHASH32_PRIME32_5 = 0x165667B1u;
 
 uint hash_xxhash32_11(uint p) {
     uint h32 = p + _HASH_XXHASH32_PRIME32_5;
@@ -301,19 +301,19 @@ uvec4 hash_44_q3(uvec4 v) {
 
 // ---------------------------------------------------- Conversions ----------------------------------------------------
 float hash_uintToFloat(uint v) {
-    return float(v) * (1.0 / float(0xffffffffU));
+    return uintBitsToFloat(0x3f800000u | (v >> 9u)) - 1.0;
 }
 
 vec2 hash_uintToFloat(uvec2 v) {
-    return vec2(v) * (1.0 / float(0xffffffffU));
+    return uintBitsToFloat(0x3f800000u | (v >> 9u)) - 1.0;
 }
 
 vec3 hash_uintToFloat(uvec3 v) {
-    return vec3(v) * (1.0 / float(0xffffffffU));
+    return uintBitsToFloat(0x3f800000u | (v >> 9u)) - 1.0;
 }
 
 vec4 hash_uintToFloat(uvec4 v) {
-    return vec4(v) * (1.0 / float(0xffffffffU));
+    return uintBitsToFloat(0x3f800000u | (v >> 9u)) - 1.0;
 }
 
 uint hash_floatToUint(float v) {

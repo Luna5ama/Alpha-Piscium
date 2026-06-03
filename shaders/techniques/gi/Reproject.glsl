@@ -111,7 +111,7 @@ void computeEdgeWeights(
     edgeFlagI |= uint(any(lessThan(roughnessWeights, vec4(0.9))));
     edgeFlag = bool(edgeFlagI);
 
-    vec4 geomNormalWeights = smoothstep(0.95, 1.0, geomViewNormalDots);
+    vec4 geomNormalWeights = pow(geomViewNormalDots, vec4(256.0));
     vec4 normalWeights = pow(viewNormalDots, vec4(normalBaseWeight));
     float geomDepthBaseWeight = mix(32.0, 4.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
     vec4 geomDepthWeights = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(curr2PrevViewPos.z), 2.0)));
@@ -151,7 +151,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     if (bool(clipFlag)) {
         vec2 curr2PrevScreenClamped = saturate(curr2PrevScreen);
         if (all(lessThan(abs(curr2PrevScreen - curr2PrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
-            curr2PrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
             curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(1.0), uval_mainImageSize - 1.0);
 
@@ -405,7 +404,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
             vec2 virtualPrevScreenClamped = saturate(virtualPrevScreen);
 
             if (all(lessThan(abs(virtualPrevScreen - virtualPrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
-                virtualPrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
                 vec2 virtualPrevTexelPos = virtualPrevScreen * uval_mainImageSize;
                 virtualPrevTexelPos = clamp(virtualPrevTexelPos, vec2(1.0), uval_mainImageSize - 1.0);
 

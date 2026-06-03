@@ -4,6 +4,7 @@
 
 #include "/techniques/gi/Common.glsl"
 #include "/techniques/HiZCheck.glsl"
+#include "/techniques/gi/ResampleMaterial.glsl"
 
 #define SPD_CHANNELS 4
 #define SPD_OP 2
@@ -13,29 +14,30 @@ layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 
 vec4 spd_loadInput(ivec2 texelPos, uint slice) {
-    vec4 result = vec4(0.0);
+    vec4 result = vec4(0.0, 0.0, 0.0, 1.0);
     texelPos = clamp(texelPos, ivec2(0), uval_mainImageSizeI - 1);
     float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
     if (viewZ > -65536.0) {
         if (gl_WorkGroupID.z == 0) {
             result.xyz = transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
-            result.w = 1.0;
         } else {
             GIHistoryData historyData = gi_historyData_init();
             gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
 
             if (gl_WorkGroupID.z == 1) {
-                result = transient_gi1Reprojected_fetch(texelPos);
+                result.rgb = transient_gi1Reprojected_fetch(texelPos).rgb;
+                ResampleMaterial rMat = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelPos));
+                result.a *= rMat.dielectric;
             } else {
-                result = transient_gi3Reprojected_fetch(texelPos);
+                result.rgb = transient_gi3Reprojected_fetch(texelPos).rgb;
             }
 
             float historyLengthInt = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH;
             float historyFixWeight = exp2(-historyLengthInt);
 
             // Weighted sum on store to exclude accumulated history from mip
-            result.rgb *= historyFixWeight;
-            result.a = historyFixWeight;
+            result.w *= historyFixWeight;
+            result.rgb *= result.a;
         }
     }
 
