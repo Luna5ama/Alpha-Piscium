@@ -64,7 +64,7 @@ void sampleTemporalNeighbor(
 
             bool valid = true;
             if (neighborReservoir.Y.w > 0.0) {
-                vec2 neighborScreenPos = coords_texelToUV(neighborTexelPos, uval_mainImageSizeRcp);
+                vec2 neighborScreenPos = coords_texelToUV(neighborTexelPos, uval_mainImageSizeRcp) - uval_prevTaaJitterUV;
                 float neighborViewZ = history_viewZ_fetch(neighborTexelPos).x;
                 vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_prevCamProjInverse);
                 // Save original offset in prev-view space for Jacobian before Y overwrite
@@ -145,7 +145,7 @@ void main() {
         ReSTIRReservoir temporalReservoir = restir_initReservoir();
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
         if (viewZ > -65536.0) {
-            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
             vec3 V = normalize(-viewPos);

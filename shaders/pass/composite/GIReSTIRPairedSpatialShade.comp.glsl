@@ -64,7 +64,9 @@ void main() {
 
         if (viewZ > -65536.0) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            vec2 screenPos2 = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+            vec3 viewPos2 = coords_toViewCoord(screenPos2, viewZ, global_camProjInverse);
             vec3 V = normalize(-viewPos);
             ResampleMaterial centerMaterial = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelPos));
 
@@ -144,14 +146,15 @@ void main() {
                 #endif
 
                 SSTRay sstRay;
+                vec3 rayOriginViewPos = viewPos2 + centerSampleData.geomNormal * 0.01;
                 if (resultReservoir.Y.w > 0.0) {
                     vec3 expectHitViewPos = viewPos + resultReservoir.Y.xyz * resultReservoir.Y.w;
-                    vec3 rayOrigin = coords_viewToScreen(viewPos, global_camProj);
+                    vec3 rayOrigin = coords_viewToScreen(rayOriginViewPos, global_camProj);
                     vec3 rayEnd = coords_viewToScreen(expectHitViewPos, global_camProj);
                     vec4 rayDirLen = normalizeAndLength(rayEnd - rayOrigin);
                     sstRay = sstray_setup(texelPos, rayOrigin, rayDirLen.xyz, rayDirLen.w);
                 } else {
-                    sstRay = sstray_setup(texelPos, viewPos, resultReservoir.Y.xyz);
+                    sstRay = sstray_setup(texelPos, rayOriginViewPos, resultReservoir.Y.xyz);
                 }
                 sst_trace(sstRay, 4);
                 if (sstRay.currT > 0.0) {
@@ -160,7 +163,7 @@ void main() {
                     rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
                 } else {
                     bool discardSptialReuse = true;
-                    if (sstRay.currT < -0.99) discardSptialReuse = false;
+                    if (sstRay.currT < -0.1) discardSptialReuse = false;
 
                     if (discardSptialReuse) {
                         resultReservoir = restir_initReservoir();
