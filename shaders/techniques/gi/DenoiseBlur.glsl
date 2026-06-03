@@ -72,9 +72,9 @@ vec4 _gi_readSpec(ivec2 texelPos) {
 
 vec2 _gi_readVariance(ivec2 texelPos) {
     #if GI_DENOISE_PASS == 1
-    return transient_gi_denoiseVariance1_fetch(texelPos).xy;
+    return vec2(0.0);
     #elif GI_DENOISE_PASS == 2
-    return transient_gi_denoiseVariance2_fetch(texelPos).xy;
+    return transient_gi_denoiseVariance_fetch(texelPos).xy;
     #endif
 }
 
@@ -445,7 +445,7 @@ void main() {
 
             #if GI_DENOISE_PASS == 1
             vec4 newVariance = vec4(vec2(filteredInputVarianceFP16), 0.0, 0.0);
-            transient_gi_denoiseVariance2_store(texelPos, newVariance);
+            transient_gi_denoiseVariance_store(texelPos, newVariance);
             #elif GI_DENOISE_PASS == 2
             vec4 packedData5 = transient_gi5Reprojected_fetch(texelPos);
             history_gi5_store(texelPos, packedData5);

@@ -284,8 +284,6 @@ void main() {
                     float diffClampingThreshold = mix(2.0, 4.0, pow2(decayFactor));
                     vec3 diffClamped = _clampColor(historyData.diffuseColor, diffMoment1, diffMoment2, diffClampingThreshold);
                     vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
-                    vec3 diffDiff = abs(colors_reversibleTonemap(diffClamped * expMul) - diffOutputSim);
-                    float diffDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffDiff);
                     diffClamped = mix(historyData.diffuseColor, diffClamped, historyFixMix);
                     historyData.diffuseColor = diffClamped;
 
@@ -303,10 +301,6 @@ void main() {
                     float specClampingThreshold = mix(2.0, 4.0, pow2(decayFactor));
                     vec3 specClamped = _clampColor(historyData.specularColor, specMoment1, specMoment2, specClampingThreshold);
                     vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
-                    vec3 specDiff = abs(colors_reversibleTonemap(specClamped * expMul) - specOutputSim);
-                    float specDiffLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specDiff);
-                    float roughness = max(pow2(transient_specularPBRData_fetch(texelPos).r), 0.001);
-                    specDiffLuma *= roughness;
                     specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
                     historyData.specularColor = specClamped;
 
@@ -320,20 +314,6 @@ void main() {
                     packedData3 = dither_fp16(packedData3, ditherNoise);
                     history_gi3_store(texelPos, packedData3);
                     #endif
-
-                    #ifdef SETTING_DENOISER_SPATIAL
-                    vec2 denoiserBlurVariance = sqrt(vec2(diffDiffLuma, specDiffLuma));
-                    transient_gi_denoiseVariance1_store(texelPos, vec4(denoiserBlurVariance, 0.0, 0.0));
-                    #endif
-
-                    vec2 diffLuma2 = vec2(diffDiffLuma, specDiffLuma);
-                    vec2 resetFactor2 = smoothstep(0.5, 0.0, diffLuma2);
-                    float resetFactor = resetFactor2.x * resetFactor2.y;
-                    float diffResetFactor = pow(resetFactor, historyData.historyLength) * 0.9 + 0.1;
-                    float specResetFactor = pow(resetFactor, historyData.specularHistoryLength) * 0.9 + 0.1;
-                    historyData.historyLength *= diffResetFactor;
-                    historyData.specularHistoryLength *= specResetFactor;
-                    historyData.realHistoryLength *= sqrt(diffResetFactor * specResetFactor) * 0.5 + 0.5;
 
                     vec4 packedData5 = gi_historyData_pack5(historyData);
                     packedData5 = dither_u8(packedData5, ditherNoise);
@@ -384,7 +364,6 @@ void main() {
                     transient_gi_blurDiff2_store(texelPos, diffInput);
                     vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));
                     transient_gi_blurSpec2_store(texelPos, specInput);
-                    transient_gi_denoiseVariance1_store(texelPos, vec4(0.0));
                     #else
                     transient_gi_diffShadingOutput_store(texelPos, vec4(historyData.diffuseColor, 0.0));
                     vec4 packedData1 = gi_historyData_pack1(historyData);
