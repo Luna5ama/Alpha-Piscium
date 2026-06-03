@@ -158,11 +158,10 @@ bool rc_revalidateHistoryReservoir(
     bool radianceValid = false;
     vec3 radiance = rc_sampleHitRadiance(hit, -sampleDir, radianceValid);
     float newTargetWeight = rc_luminance(radiance);
-    if (
-        !radianceValid
-                    || newTargetWeight <= 0.0
+    if (!radianceValid
+        || newTargetWeight <= 0.0
         || any(isnan(radiance))
-            || isnan(newTargetWeight)
+        || isnan(newTargetWeight)
     ) {
         return false;
     }

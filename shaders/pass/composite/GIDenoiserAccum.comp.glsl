@@ -67,7 +67,7 @@ const float SPEC_ACCUM_CURVE = 0.5;
 const float SPEC_ACCUM_BASE_POWER = 0.5;
 
 float specAccumReduction(float roughness, float NoV, float parallax) {
-    roughness = max(0.1, roughness);
+    roughness = softMax(roughness, 0.0, 0.05);
     float acos01sq = saturate(1.0 - NoV); // ~ normalized acos^2
     float a = pow(acos01sq, SPEC_ACCUM_CURVE);
     float b = 1.001 + roughness * roughness;
@@ -135,10 +135,17 @@ void main() {
                     vec3 V = normalize(-viewPos);
                     float NoV = saturate(dot(gData.normal, V));
                     vec3 movementDelta = gData.isHand ? vec3(0.0) : uval_cameraDelta;
-                    float distToPoint = length(viewPos);
-                    float parallax = sqrt(length(movementDelta)) * safeRcp(distToPoint * frameTime * 50.0);
+                    float distToPoint = max(length(viewPos), 2.0);
+                    float parallax = sqrt(length(movementDelta)) * safeRcp(distToPoint * frameTime * 10.0);
+
+                    // Close hit specular probably has less ghosting, so allow it to accumulate more
+                    float specAccumReductionHitDistanceFactor = saturate(1.0 - exp2(-pow2(1.0 * historyData.specularHitDistance)));
                     float specAccumRecuctionFactor = specAccumReduction(material.roughness, NoV, parallax);
+                    specAccumRecuctionFactor = pow(specAccumRecuctionFactor, specAccumReductionHitDistanceFactor);
+
                     float maxSpecularHistoryLength = max(HISTORY_LENGTH * specAccumRecuctionFactor, 1.0);
+
+                    #ifdef SETTING_DENOISER_ACCUM
 
                     #ifdef SETTING_DENOISER_ACCUM
                     historyLengths = vec3(historyData.historyLength, historyData.specularHistoryLength, historyData.realHistoryLength);
@@ -155,7 +162,9 @@ void main() {
                         float expMul = exp2(global_aeData.expValues.z);
                         float threshold = ldexp(1.0, -SETTING_DENOISER_FLICKER_SUPPRESSION);
                         newWeights.x = computeOutputLumaDiffWeight(historyData.diffuseColor, newDiffuse.rgb, expMul, threshold);
-                        newWeights.y = computeOutputLumaDiffWeight(historyData.specularColor, newSpecular.rgb, expMul, threshold);
+                        if (historyData.specularHistoryLength > 0.0) {
+                            newWeights.y = computeOutputLumaDiffWeight(historyData.specularColor, newSpecular.rgb, expMul, threshold);
+                        }
                     }
                     #endif
                     #endif
@@ -165,7 +174,8 @@ void main() {
                     // z: fast, diffuse
                     // w: fast, specular
                     vec4 accumHistoryLength = historyLengths.xyzz;
-                    accumHistoryLength.zw = min(accumHistoryLength.zw, max(vec2(SETTING_DENOISER_FAST_HISTORY_LENGTH, SETTING_DENOISER_FAST_HISTORY_LENGTH * specAccumRecuctionFactor), 2.0));
+                    accumHistoryLength.zw = min(accumHistoryLength.zw, vec2(SETTING_DENOISER_FAST_HISTORY_LENGTH, min(SETTING_DENOISER_FAST_HISTORY_LENGTH * specAccumRecuctionFactor, historyLengths.y)));
+                    accumHistoryLength.zw = max(accumHistoryLength.zw, 1.0);
                     vec4 rcpAccumHistoryLength = rcp(accumHistoryLength);
                     vec4 alpha = vec4(newWeights, pow(newWeights, vec2(0.1))) * rcpAccumHistoryLength;
 

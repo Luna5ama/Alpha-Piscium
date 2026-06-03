@@ -122,6 +122,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     text.fpPrecision = 4;
 
     #ifdef SETTING_RC_ENABLE
+    #if SETTING_DEBUG_RC_MODE
     ivec2 rcTexelPos = texelPos;
     if (all(lessThan(rcTexelPos, uval_mainImageSizeI))) {
         vec2 rcScreenPos = (vec2(rcTexelPos) + 0.5) * uval_mainImageSizeRcp - uval_taaJitterUV;
@@ -165,6 +166,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         outputColor.rgb *= exp2(global_aeData.expValues.z);
         outputColor.a = 1.0;
     }
+    #endif
     #endif
 
     ivec2 scaledTextureSize = ivec2(uval_mainImageSize * SETTING_DEBUG_SCALE);

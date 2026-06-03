@@ -26,7 +26,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
-layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
+layout(rgba16f) uniform image2D uimg_temp3;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 
@@ -132,7 +132,7 @@ void getSpecularKernelBasis(
 
     float NoD = saturate(dot(N, D));
     float skewFactor = mix(0.25 + 0.75 * roughness, 1.0, NoD);
-    skewFactor = mix(skewFactor, 1.0, accumFactor);
+    skewFactor = mix(skewFactor, 1.0, pow2(accumFactor));
     skewFactor = mix(1.0, skewFactor, bentFactor);
 
     T *= worldRadius * skewFactor;
@@ -189,15 +189,18 @@ void main() {
             float historyLength = max(historyData5.x * TOTAL_HISTORY_LENGTH, 1.0);
             float specularHistoryLength = max(historyData5.y * TOTAL_HISTORY_LENGTH, 1.0);
             float diffAccumFactor = rcp(1.0 + pow2(0.05 * historyLength));
-            float specAccumFactor = rcp(1.0 + pow2(0.1 * specularHistoryLength));
+            float specAccumFactor = rcp(1.0 + specularHistoryLength);
 
-            vec2 hitDistFactor = hitDistanceFactors;
+            vec2 hitDistFactor = pow2(hitDistanceFactors);
+            hitDistFactor.x = hitDistFactor.x * 0.9 + 0.1;
             #if GI_DENOISE_PASS == 2
-            hitDistFactor = pow2(hitDistFactor);
-            #endif
-            hitDistFactor = hitDistFactor * vec2(0.9, 0.95) + vec2(0.1, 0.05);
-            #if GI_DENOISE_PASS == 1
+            #if SETTING_DEBUG_OUTPUT
+
+//            imageStore(uimg_temp1, texelPos, historyData5.yyyy * 1.0);
+//            imageStore(uimg_temp1, texelPos, specAccumFactor.xxxx);
             imageStore(uimg_temp1, texelPos, hitDistFactor.yyyy);
+//            imageStore(uimg_temp1, texelPos, filteredInputVariance.yyyy * 4.0);
+            #endif
             #endif
 
             float16_t jitterR = float16_t(blurJitter.y);
@@ -330,10 +333,12 @@ void main() {
 
                 float kernelRadius = baseKernelRadius.x;
                 kernelRadius *= specAccumFactor;
-                kernelRadius += filteredInputVariance.y * baseKernelRadius.y;
-                kernelRadius *= pow(centerGeomData.roughness, 0.5 * historyData5.y);
                 kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
                 kernelRadius *= hitDistFactor.y;
+                kernelRadius *= pow(centerGeomData.roughness, 0.5 * historyData5.y);
+                kernelRadius = max(kernelRadius, baseKernelRadius.z * 0.25);
+                kernelRadius += filteredInputVariance.y * baseKernelRadius.y;
+                kernelRadius = min(kernelRadius, baseKernelRadius.w);
                 float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
                 vec3 specTFP32, specBFP32;
                 getSpecularKernelBasis(

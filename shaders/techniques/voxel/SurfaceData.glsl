@@ -28,8 +28,8 @@ voxel_SurfaceData voxel_sampleVoxelSurface(VoxelHit hit) {
 
     vec2 localUV = voxel_faceLocalUV(faceId, hit.hitPos);
     vec2 atlasUV = mix(tc.xw, tc.zy, localUV);
-    vec4 albedoData = texture(usam_blockAtlasColor, atlasUV);
-    vec4 speuclarData = texture(usam_blockAtlasSpecular, atlasUV);
+    vec4 albedoData = textureLod(usam_blockAtlasColor, atlasUV, 0.0);
+    vec4 speuclarData = textureLod(usam_blockAtlasSpecular, atlasUV, 0.0);
 
     float emissiveS = speuclarData.a;
     emissiveS *= float(speuclarData.a < 1.0);

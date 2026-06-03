@@ -3245,7 +3245,7 @@ Lanczos2：与Catmull-Rom一样锐利，但振铃或光晕较少。性能开销�
                         2 value "Lanczos2"
                     }
                 }
-                toggle("SETTING_TAA_HISTORY_FILTER", 4, 1..4) {
+                toggle("SETTING_TAA_HISTORY_FILTER", 4, 0..4) {
                     Profile.Low preset 1
                     Profile.Medium preset 2
                     Profile.Ultra preset 4
