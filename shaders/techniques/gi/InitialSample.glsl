@@ -57,7 +57,7 @@ restir_InitialCandidate restir_initialCandidate_load(ivec2 texelPos) {
     vec4 hitNormalData = transient_solidAlbedo_fetch(texelPos);
     candidate.radiance = radianceAndDistance.rgb;
     candidate.hitDistance = radianceAndDistance.w;
-    candidate.rayDirView = directionAndPdf.xyz;
+    candidate.rayDirView = normalize(directionAndPdf.xyz);
     candidate.pdf = directionAndPdf.w;
     candidate.hitNormalView = hitNormalData.rgb * 2.0 - 1.0;
     return candidate;
