@@ -278,26 +278,19 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                 lastT = min(min(tExit.x, tExit.y), tExit.z);
 
                 // Reuse lastT to identify exit axis (saves 3 MIN vs step+min)
-                bool exitX = tExit.x <= lastT;
-                bool exitY = tExit.y <= lastT;
-                bool exitZ = tExit.z <= lastT;
-                lastMask = ivec3(bvec3(exitX, exitY, exitZ));
+                bvec3 exitMask = greaterThan(tExit, vec3(lastT));
+                lastMask = ivec3(!exitMask);
 
                 ivec3 cellMax = cellMin + sizeMask.y - 1;
                 ivec3 exitBlockPos = target + stepBack;
-                if (exitX) {
-                    blockPos.x = exitBlockPos.x;
-                } else {
+                blockPos = exitBlockPos;
+                if (exitMask.x) {
                     blockPos.x = clamp(int(floor(fma(worldRayDir.x, lastT, posGrid.x))), cellMin.x, cellMax.x);
                 }
-                if (exitY) {
-                    blockPos.y = exitBlockPos.y;
-                } else {
+                if (exitMask.y) {
                     blockPos.y = clamp(int(floor(fma(worldRayDir.y, lastT, posGrid.y))), cellMin.y, cellMax.y);
                 }
-                if (exitZ) {
-                    blockPos.z = exitBlockPos.z;
-                } else {
+                if (exitMask.z) {
                     blockPos.z = clamp(int(floor(fma(worldRayDir.z, lastT, posGrid.z))), cellMin.z, cellMax.z);
                 }
 
