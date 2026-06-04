@@ -4,9 +4,10 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #define RC_DATA_MODIFIER restrict buffer
-#include "/techniques/gi/RadianceCache.glsl"
 
 layout(local_size_x = 256) in;
+#include "/techniques/gi/RadianceCacheUpdate.glsl"
+
 const ivec3 workGroups = ivec3(5120, 1, 1);
 
 void main() {
@@ -69,7 +70,6 @@ void main() {
             } else {
                 rc_indirection[bufferIndex].x = reservoirBaseIndex;
 
-                uint offset = 0u;
                 for (uint i = 0; i < 6u; i++) {
                     uint faceBit = 1u << i;
                     if ((faceMask & faceBit) != 0u) {

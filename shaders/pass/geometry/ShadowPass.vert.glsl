@@ -67,28 +67,29 @@ void main() {
     #ifdef SHADOW_PASS_VOXELIZE
     if ((gl_VertexID & 3) == 0 && materialID != MATERIAL_ID_WATER) {
         HardcodedPBR hardcoded = hardcodedpbr_decode(materialID);
+        // Absolute integer block position of the center of this block.
+        // scenePos is camera-relative; add camera's integer + fractional parts.
+        ivec3 blockWorldPos = ivec3(floor(scenePos.xyz + cameraPositionFract + at_midBlock.xyz / 64.0))
+        + cameraPositionInt;
+
+        // Brick grid coordinate centered on the camera's brick
+        ivec3 cameraBrickCoord = cameraPositionInt >> 4;
+        ivec3 brickWorldCoord = blockWorldPos >> 4;
+        ivec3 brickRelCoord = brickWorldCoord - cameraBrickCoord + ivec3(VOXEL_GRID_SIZE / 2);
+
+        uint brickMorton = voxel_brickMorton(brickRelCoord);
+
+        // Write material ID if the brick already has a valid alloc ID
+        // (assigned by last frame's VoxelAllocator begin pass)
+        uint allocID = voxel_brickAllocID[brickMorton];
+
         if (hardcoded.isFullCube || hardcoded.emissive > 0.0) {
-            // Absolute integer block position of the center of this block.
-            // scenePos is camera-relative; add camera's integer + fractional parts.
-            ivec3 blockWorldPos = ivec3(floor(scenePos.xyz + cameraPositionFract + at_midBlock.xyz / 64.0))
-            + cameraPositionInt;
-
-            // Brick grid coordinate centered on the camera's brick
-            ivec3 cameraBrickCoord = cameraPositionInt >> 4;
-            ivec3 brickWorldCoord = blockWorldPos >> 4;
-            ivec3 brickRelCoord = brickWorldCoord - cameraBrickCoord + ivec3(VOXEL_GRID_SIZE / 2);
-
             if (all(greaterThanEqual(brickRelCoord, ivec3(0))) &&
                     all(lessThan(brickRelCoord, ivec3(VOXEL_GRID_SIZE)))) {
-
-                uint brickMorton = voxel_brickMorton(brickRelCoord);
 
                 // Mark brick occupied for this frame
                 voxel_brickOccupancy[brickMorton] = 1u;
 
-                // Write material ID if the brick already has a valid alloc ID
-                // (assigned by last frame's VoxelAllocator begin pass)
-                uint allocID = voxel_brickAllocID[brickMorton];
                 if (allocID != VOXEL_UNALLOCATED) {
                     ivec3 blockInBrick = blockWorldPos & ivec3(VOXEL_BRICK_SIZE - 1);
                     uint blockMorton = voxel_blockMorton(blockInBrick);
@@ -106,18 +107,25 @@ void main() {
             }
         }
 
-        // Store atlas texcoord range for this material+face.
-        // Race condition is intentional (last writer wins, all writers agree).
         if (materialID != 0u) {
-            vec2 texHalfExtent = abs(texcoord - mc_midTexCoord);
-            vec2 texMin = mc_midTexCoord - texHalfExtent;
-            vec2 texMax = mc_midTexCoord + texHalfExtent;
             uint faceIdx = voxel_faceIndexFromNormal(worldNormal);
             uint index = voxel_faceTexcoordIndex(materialID, faceIdx);
-            if (saturate(texMin) == texMin && saturate(texMax) == texMax) {
-                if (voxel_faceTexcoords[index] == uvec2(0xFFFFFFFF) || materialID == frameCounter % VOXEL_FACE_TEXCOORD_MATERIALS) {
-                    atomicMin(voxel_faceTexcoords[index].x, packUnorm2x16(texMin));
-                    atomicMin(voxel_faceTexcoords[index].y, packUnorm2x16(texMax));
+            uint keyIndex = index + VOXEL_FACE_TEXCOORD_COUNT;
+
+            if (((allocID & 31u) == (uint(frameCounter) & 31u)) || voxel_faceTexcoords[keyIndex].x == 0u) {
+                // Store atlas texcoord range for this material+face.
+                vec2 texHalfExtent = abs(texcoord - mc_midTexCoord);
+                vec2 texMin = mc_midTexCoord - texHalfExtent;
+                vec2 texMax = mc_midTexCoord + texHalfExtent;
+                vec2 spriteSize = (texMax - texMin);
+                // -2 to -10
+                float avgSpriteSize = log2(spriteSize.x + spriteSize.y);
+                uint encodedSpriteSize = clamp(int(avgSpriteSize * 2.0 + 20.0), 0, 15);
+                uint key = packU14(1.0 - texMin.y) | (packU14(1.0 - texMin.x) << 14) | (encodedSpriteSize << 28);
+
+                if (atomicMax(voxel_faceTexcoords[keyIndex].x, key) <= key) {
+                    uvec2 packedData = uvec2(packUnorm2x16(texMin), packUnorm2x16(texMax));
+                    voxel_faceTexcoords[index] = packedData;
                 }
             }
         }

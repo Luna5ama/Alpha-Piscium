@@ -7,9 +7,9 @@
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 
 layout(local_size_x = 256) in;
-const ivec3 workGroups = ivec3(48, 1, 1);
+const ivec3 workGroups = ivec3(96, 1, 1);
 
 void main() {
-    voxel_faceTexcoords[gl_GlobalInvocationID.x] = uvec2(0xFFFFFFFF);
+    voxel_faceTexcoords[gl_GlobalInvocationID.x] = uvec2(0);
 }
 
