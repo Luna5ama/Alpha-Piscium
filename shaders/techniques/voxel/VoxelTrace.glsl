@@ -34,6 +34,7 @@
 #ifndef INCLUDE_techniques_VoxelTrace_glsl
 #define INCLUDE_techniques_VoxelTrace_glsl
 
+#define VOXEL_TREE_UINT a
 #include "/techniques/voxel/VoxelRayState.glsl"
 
 // ---------------------------------------------------------------------------
@@ -84,15 +85,15 @@ uint _voxel_packBlockPos(ivec3 blockPos) {
 
 void voxel_initShared() {
     if (gl_LocalInvocationIndex == 0u) {
-        _voxel_levelOffsets[0] = 0u;
-        _voxel_levelOffsets[1] = uint(VOXEL_TREE_OFFSET_L1);
-        _voxel_levelOffsets[2] = uint(VOXEL_TREE_OFFSET_L2);
-        _voxel_levelOffsets[3] = uint(VOXEL_TREE_OFFSET_L3);
-        _voxel_levelOffsets[4] = uint(VOXEL_TREE_OFFSET_L4);
+        _voxel_levelOffsets[0] = 0u << 1u;
+        _voxel_levelOffsets[1] = uint(VOXEL_TREE_OFFSET_L1) << 1u;
+        _voxel_levelOffsets[2] = uint(VOXEL_TREE_OFFSET_L2) << 1u;
+        _voxel_levelOffsets[3] = uint(VOXEL_TREE_OFFSET_L3) << 1u;
+        _voxel_levelOffsets[4] = uint(VOXEL_TREE_OFFSET_L4) << 1u;
         #if VOXEL_TREE_TOP_LEVEL == 5
-        _voxel_levelOffsets[5] = uint(VOXEL_TREE_OFFSET_L5);
+        _voxel_levelOffsets[5] = uint(VOXEL_TREE_OFFSET_L5) << 1u;
         #else
-        _voxel_levelOffsets[5] = 0u;
+        _voxel_levelOffsets[5] = 0u << 1u;
         #endif
     }
 
@@ -222,12 +223,11 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
             // Load node mask at current level
             uint childShift = 6u * uint(level - 1);
             uint mortonPrefix = fullMorton >> childShift;
-            uint nodeIdx = _voxel_levelOffsets[level] + (mortonPrefix >> 6u);
-            uvec2 mask = voxel_tree[nodeIdx];
+            uint nodeIdx = (mortonPrefix >> 6u);
             uint childIdx = mortonPrefix & 63u;
 
             // Branchless bit check
-            uint maskPart = mask[childIdx >> 5u];
+            uint maskPart = voxel_treeScalar[_voxel_levelOffsets[level] + (nodeIdx << 1u) + (childIdx >> 5u)];
             bool isHit = bool((maskPart >> (childIdx & 31u)) & 1u);
 
             if (isHit) {
