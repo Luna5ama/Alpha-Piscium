@@ -35,6 +35,10 @@
 #include "/techniques/voxel/Voxelization.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
 
+layout(std430, binding = 8) VOXEL_TREE_DATA_MODIFIER VoxelTreeData {
+    uvec2 voxel_tree[];       // VOXEL_TREE_TOTAL uvec2 entries
+};
+
 layout(local_size_x = 256) in;
 // One workgroup per 4 bricks in the VOXEL_GRID_SIZE^3 grid
 #if VOXEL_GRID_SIZE == 64

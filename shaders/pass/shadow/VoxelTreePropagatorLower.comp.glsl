@@ -10,6 +10,10 @@
 #define VOXEL_TREE_DATA_MODIFIER buffer
 #include "/techniques/voxel/Voxelization.glsl"
 
+layout(std430, binding = 8) VOXEL_TREE_DATA_MODIFIER VoxelTreeData {
+    uvec2 voxel_tree[];       // VOXEL_TREE_TOTAL uvec2 entries
+};
+
 layout(local_size_x = 64) in;
 // One workgroup per L3 node — 16^3 = 4096 L3 nodes for a 64-brick grid
 const ivec3 workGroups = ivec3(4096, 1, 1);
