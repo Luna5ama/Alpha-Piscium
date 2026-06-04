@@ -6,6 +6,10 @@
 #define VOXEL_TREE_DATA_MODIFIER buffer
 #include "/techniques/voxel/Voxelization.glsl"
 
+layout(std430, binding = 8) VOXEL_TREE_DATA_MODIFIER VoxelTreeData {
+    uvec2 voxel_tree[];       // VOXEL_TREE_TOTAL uvec2 entries
+};
+
 layout(local_size_x = 1024) in;
 const ivec3 workGroups = ivec3(1, 1, 1);
 

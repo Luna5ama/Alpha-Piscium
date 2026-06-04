@@ -125,24 +125,6 @@ void sampleTemporalNeighbor(
     }
 }
 
-// https://graphics-programming.org/blog/ordered-dithering-is-useful-and-good
-float dither256x256(uvec2 fragCoord){
-    uint x = fragCoord.x ^ fragCoord.y;
-    uint y = fragCoord.y;
-    uint z = x << 16 | y;
-    z |= z << 12;
-    z &= 0xF0F0F0F0u;
-    z |= z >> 6;
-    z &= 0x33333333u;
-    z |= z << 3;
-    z &= 0xaaaaaaaau;
-    z  = z >> 9 | z << 6;
-    z &= 0x7fffffu;
-    return uintBitsToFloat(
-        floatBitsToUint(1.) | z
-    ) - 1.0;
-}
-
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
@@ -233,7 +215,7 @@ void main() {
 
                 bool oddFrame = bool(frameCounter & 1);
 
-                float randSelectWeight = dither256x256(uvec2(texelPos));
+                float randSelectWeight = rand_r2Seq1(frameCounter);
 
                 // 4-tap stochastic bilinear temporal gather
                 // Layout (gather order matches bilinearWeights xyzw):
