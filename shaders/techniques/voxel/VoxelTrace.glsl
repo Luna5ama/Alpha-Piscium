@@ -212,7 +212,6 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
         for (int i = 0; i < maxSteps; i++) {
             // Bounds check — also serves as grid-exit detection
             if (uint(blockPos.x | blockPos.y | blockPos.z) >= uint(GRID_BLOCKS)) {
-                ray.level = 0;
                 break;
             }
 
@@ -231,8 +230,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
             bool isHit = bool((maskPart >> (childIdx & 31u)) & 1u);
 
             if (isHit) {
+                // Descend into child
+                level--;
                 // ---- Non-empty child ----
-                if (level == 1) {
+                if (level == 0) {
                     // Leaf level: individual block is solid → HIT
                     uint allocID = voxel_brickAllocID[fullMorton >> 12u];
                     uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
@@ -246,15 +247,11 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     vec3 normalDir = -vec3(stepDir);
                     result.normal = normalDir * vec3(equal(ivec3(lastAxis), ivec3(0, 1, 2)));
 
-                    ray.level = 0;
-
                     #if VOXEL_TRACE_DEBUG_COUNTERS
                     result.debugCounters = debugCounters;
                     #endif
                     return result;
                 }
-                // Descend into child
-                level--;
                 #if VOXEL_TRACE_DEBUG_COUNTERS
                 debugCounters.y++;
                 #endif
