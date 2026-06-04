@@ -6,7 +6,7 @@
 #include "/util/NZPacking.glsl"
 #include "/util/TextRender.glsl"
 #include "/techniques/EnvProbe.glsl"
-#include "/techniques/gi/RadianceCache.glsl"
+#include "/techniques/gi/RadianceCacheSample.glsl"
 #include "/techniques/atmospherics/air/Common.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/atmospherics/clouds/amblut/API.glsl"
@@ -138,8 +138,9 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         vec3 worldPos = scenePos + cameraPosition;
         vec3 worldNormal = coords_dir_viewToWorld(gData.normal);
         vec3 worldGeomNormal = coords_dir_viewToWorld(gData.geomNormal);
-        RCLookupResult rcLookup = rc_lookupDiffuseGI(worldPos, worldNormal, worldGeomNormal);
-        // RCLookupResult rcLookup = rc_lookupDiffuseGISmooth(worldPos, worldNormal, worldGeomNormal);
+        vec3 V = coords_dir_viewToWorld(normalize(-viewPos));
+        RCLookupResult rcLookup = rc_lookupDiffuseGI(V, worldPos, worldNormal, worldGeomNormal);
+//        RCLookupResult rcLookup = rc_lookupDiffuseGISmooth(V, worldPos, worldNormal, worldGeomNormal);
         bool rcHit = rcLookup.weight > 0.0;
 
         #if SETTING_DEBUG_RC_MODE == 1

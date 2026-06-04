@@ -5,7 +5,7 @@
 #include "/util/BSDF.glsl"
 #include "/techniques/SST2.glsl"
 #include "/techniques/gi/Common.glsl"
-#include "/techniques/gi/RadianceCache.glsl"
+#include "/techniques/gi/RadianceCacheSample.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
@@ -138,7 +138,8 @@ bool restir_initialSample_screenHitQuery(
     vec3 queryWorldPos = coords_pos_viewToWorld(hitViewPos - hitData.geomNormal * 0.02, gbufferModelViewInverse) + cameraPosition;
     vec3 queryWorldNormal = coords_dir_viewToWorld(hitData.normal);
     vec3 queryWorldGeomNormal = coords_dir_viewToWorld(hitData.geomNormal);
-    RCLookupResult rcLookup = rc_lookupDiffuseGI(queryWorldPos, queryWorldNormal, queryWorldGeomNormal);
+    vec3 V = coords_dir_viewToWorld(normalize(rayOriginView - hitViewPos));
+    RCLookupResult rcLookup = rc_lookupDiffuseGI(V, queryWorldPos, queryWorldNormal, queryWorldGeomNormal);
 
     candidate = restir_initialCandidate_init();
     candidate.rayDirView = rayDirView;
@@ -178,12 +179,13 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
     candidate.hitDistance = distance(hit.hitPos, rayOriginWorld);
     candidate.hitNormalView = coords_dir_worldToView(hit.normal);
 
-    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit);
+    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
     if (!surface.valid) {
         return candidate;
     }
 
-    RCLookupResult rcLookup = rc_lookupDiffuseGI(hit.hitPos, hit.normal, hit.normal);
+    vec3 V = normalize(rayOriginWorld - hit.hitPos);
+    RCLookupResult rcLookup = rc_lookupDiffuseGI(V, hit.hitPos, hit.normal, hit.normal);
     candidate.radiance = surface.material.emissive;
     if (rcLookup.weight > 0.0 && !any(isnan(rcLookup.radiance))) {
         candidate.radiance += rcLookup.radiance * surface.material.albedo;
