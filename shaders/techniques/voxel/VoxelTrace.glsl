@@ -75,23 +75,11 @@ shared uint _voxel_levelOffsets[6];
 shared ivec2 _voxel_levelSizeMask[6];
 shared uint _voxel_spreadLUT[VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE];
 
-bool _voxel_testBit64(uvec2 mask, uint idx) {
-    uint part = (idx < 32u) ? mask.x : mask.y;
-    return ((part >> (idx & 31u)) & 1u) != 0u;
-}
-
-uvec3 _voxel_spreadPos(ivec3 blockPos) {
-    return uvec3(
-        _voxel_spreadLUT[uint(blockPos.x)],
-        _voxel_spreadLUT[uint(blockPos.y)],
-        _voxel_spreadLUT[uint(blockPos.z)]
-    );
-}
-
-uint _voxel_packSpreadPos(uvec3 spreadPos) {
-    // return spreadPos.x | (spreadPos.y << 1u) | (spreadPos.z << 2u)
+uint _voxel_packBlockPos(ivec3 blockPos) {
     // Integer add/sub is 2x faster on Nvidia GPUs
-    return spreadPos.x + (spreadPos.y << 1u) + (spreadPos.z << 2u);
+    return _voxel_spreadLUT[uint(blockPos.x)] +
+        (_voxel_spreadLUT[uint(blockPos.y)] << 1u) +
+        (_voxel_spreadLUT[uint(blockPos.z)] << 2u);
 }
 
 void voxel_initShared() {
@@ -176,8 +164,7 @@ VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData
     }
 
     // Encode initial block position as fullMorton via shared spread LUT
-    uvec3 spreadPos = _voxel_spreadPos(blockPos);
-    ray.fullMorton = _voxel_packSpreadPos(spreadPos);
+    ray.fullMorton = _voxel_packBlockPos(blockPos);
     ray.level = 1;
 
     return ray;
@@ -206,9 +193,11 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
         vec3 invDir = 1.0 / worldRayDir;
 
         // ---- Precompute DDA stepping ----
-        ivec3 boundOffsetMask = ~(floatBitsToInt(worldRayDir) >> 31);;
+        ivec3 boundOffsetMask = ~(floatBitsToInt(worldRayDir) >> 31);
         vec3 tOrig = -posGrid * invDir;
         ivec3 stepDir = ivec3(sign(worldRayDir));
+        ivec3 stepBack = min(stepDir, ivec3(0));
+        vec3 normalDir = -vec3(stepDir);
 
         // ---- Seed DDA state from ray ----
         float lastT = ray.lastT;
@@ -260,7 +249,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     ivec3 iMask = lastMask;
                     iMask.y &= ~iMask.x;             // Resolve ties (corner hits) to X
                     iMask.z &= ~(iMask.x | iMask.y); // Resolve ties to Y over Z
-                    result.normal = -sign(worldRayDir) * vec3(iMask);
+                    result.normal = normalDir * vec3(iMask);
 
                     ray.level = 0;
 
@@ -282,24 +271,38 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                 #endif
 
                 ivec2 sizeMask = _voxel_levelSizeMask[level];
-                ivec3 target = (blockPos & sizeMask.x) + (sizeMask.y & boundOffsetMask);
+                ivec3 cellMin = blockPos & sizeMask.x;
+                ivec3 target = cellMin + (sizeMask.y & boundOffsetMask);
 
                 vec3 tExit = fma(vec3(target), invDir, tOrig);
                 lastT = min(min(tExit.x, tExit.y), tExit.z);
 
                 // Reuse lastT to identify exit axis (saves 3 MIN vs step+min)
-                lastMask = ivec3(lessThanEqual(tExit, vec3(lastT)));
+                bool exitX = tExit.x <= lastT;
+                bool exitY = tExit.y <= lastT;
+                bool exitZ = tExit.z <= lastT;
+                lastMask = ivec3(bvec3(exitX, exitY, exitZ));
 
-                ivec3 cellMin = blockPos & sizeMask.x;
                 ivec3 cellMax = cellMin + sizeMask.y - 1;
-                ivec3 rayBlockPos = ivec3(floor(fma(worldRayDir, vec3(lastT), posGrid)));
-                rayBlockPos = clamp(rayBlockPos, cellMin, cellMax);
-                ivec3 exitBlockPos = target + min(stepDir, ivec3(0));
-                blockPos = rayBlockPos + lastMask * (exitBlockPos - rayBlockPos);
+                ivec3 exitBlockPos = target + stepBack;
+                if (exitX) {
+                    blockPos.x = exitBlockPos.x;
+                } else {
+                    blockPos.x = clamp(int(floor(fma(worldRayDir.x, lastT, posGrid.x))), cellMin.x, cellMax.x);
+                }
+                if (exitY) {
+                    blockPos.y = exitBlockPos.y;
+                } else {
+                    blockPos.y = clamp(int(floor(fma(worldRayDir.y, lastT, posGrid.y))), cellMin.y, cellMax.y);
+                }
+                if (exitZ) {
+                    blockPos.z = exitBlockPos.z;
+                } else {
+                    blockPos.z = clamp(int(floor(fma(worldRayDir.z, lastT, posGrid.z))), cellMin.z, cellMax.z);
+                }
 
-                uvec3 spreadPos = _voxel_spreadPos(blockPos);
                 uint oldFullMorton = fullMorton;
-                fullMorton = _voxel_packSpreadPos(spreadPos);
+                fullMorton = _voxel_packBlockPos(blockPos);
 
                 // Ascend: O(1) level recomputation via findMSB
                 uint mortonDiff = oldFullMorton ^ fullMorton;
