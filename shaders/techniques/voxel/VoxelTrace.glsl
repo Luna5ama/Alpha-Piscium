@@ -197,12 +197,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
         vec3 tOrig = -posGrid * invDir;
         ivec3 stepDir = ivec3(sign(worldRayDir));
         ivec3 stepBack = min(stepDir, ivec3(0));
-        vec3 normalDir = -vec3(stepDir);
 
         // ---- Seed DDA state from ray ----
         float lastT = ray.lastT;
-        ivec3 lastMask = ivec3(0.0);
-        lastMask = ivec3(equal(ivec3(ray.lastAxis), ivec3(0, 1, 2)));
+        int lastAxis = ray.lastAxis;
         int level = ray.level;
         uint fullMorton = ray.fullMorton;
 
@@ -245,11 +243,8 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     result.hitPos = fma(worldRayDir, vec3(lastT), worldRayOrigin);
                     result.materialID = material;
 
-                    result.normal = vec3(0.0);
-                    ivec3 iMask = lastMask;
-                    iMask.y &= ~iMask.x;             // Resolve ties (corner hits) to X
-                    iMask.z &= ~(iMask.x | iMask.y); // Resolve ties to Y over Z
-                    result.normal = normalDir * vec3(iMask);
+                    vec3 normalDir = -vec3(stepDir);
+                    result.normal = normalDir * vec3(equal(ivec3(lastAxis), ivec3(0, 1, 2)));
 
                     ray.level = 0;
 
@@ -278,20 +273,25 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                 lastT = min(min(tExit.x, tExit.y), tExit.z);
 
                 // Reuse lastT to identify exit axis (saves 3 MIN vs step+min)
-                bvec3 exitMask = greaterThan(tExit, vec3(lastT));
-                lastMask = ivec3(!exitMask);
+                bvec3 nonExitMask = greaterThan(tExit, vec3(lastT));
 
                 ivec3 cellMax = cellMin + sizeMask.y - 1;
                 ivec3 exitBlockPos = target + stepBack;
                 blockPos = exitBlockPos;
-                if (exitMask.x) {
-                    blockPos.x = clamp(int(floor(fma(worldRayDir.x, lastT, posGrid.x))), cellMin.x, cellMax.x);
-                }
-                if (exitMask.y) {
-                    blockPos.y = clamp(int(floor(fma(worldRayDir.y, lastT, posGrid.y))), cellMin.y, cellMax.y);
-                }
-                if (exitMask.z) {
+                if (nonExitMask.z) {
                     blockPos.z = clamp(int(floor(fma(worldRayDir.z, lastT, posGrid.z))), cellMin.z, cellMax.z);
+                } else {
+                    lastAxis = 2;
+                }
+                if (nonExitMask.y) {
+                    blockPos.y = clamp(int(floor(fma(worldRayDir.y, lastT, posGrid.y))), cellMin.y, cellMax.y);
+                } else {
+                    lastAxis = 1;
+                }
+                if (nonExitMask.x) {
+                    blockPos.x = clamp(int(floor(fma(worldRayDir.x, lastT, posGrid.x))), cellMin.x, cellMax.x);
+                } else {
+                    lastAxis = 0;
                 }
 
                 uint oldFullMorton = fullMorton;
@@ -307,7 +307,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
         // Write back state for resumption if still active (not done)
         if (ray.level != 0) {
             ray.lastT = lastT;
-            ray.lastAxis = (lastMask.x != 0) ? 0 : ((lastMask.y != 0) ? 1 : 2);
+            ray.lastAxis = (lastAxis >= 0 && lastAxis <= 2) ? lastAxis : 2;
             ray.level = level;
             ray.fullMorton = fullMorton;
         }
