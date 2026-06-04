@@ -34,8 +34,11 @@
 #ifndef INCLUDE_techniques_VoxelTrace_glsl
 #define INCLUDE_techniques_VoxelTrace_glsl
 
-#define VOXEL_TREE_UINT a
 #include "/techniques/voxel/VoxelRayState.glsl"
+
+layout(std430, binding = 8) restrict readonly buffer VoxelTreeData {
+    uint voxel_treeScalar[];
+};
 
 // ---------------------------------------------------------------------------
 // Result type
