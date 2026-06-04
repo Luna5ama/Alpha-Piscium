@@ -1,6 +1,7 @@
 #ifndef INCLUDE_techniques_restir_InitialSample_glsl
 #define INCLUDE_techniques_restir_InitialSample_glsl a
 
+#include "/techniques/voxel/VoxelTrace.glsl"
 #include "Irradiance.glsl"
 #include "/util/BSDF.glsl"
 #include "/techniques/SST2.glsl"
@@ -8,7 +9,6 @@
 #include "/techniques/gi/RadianceCacheSample.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
-#include "/techniques/voxel/VoxelTrace.glsl"
 #include "/techniques/voxel/SurfaceData.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Hash.glsl"
