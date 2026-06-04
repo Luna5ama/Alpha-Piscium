@@ -41,10 +41,6 @@
 
 const float RC_MAX_ROUGHNESS = 0.5;
 
-layout(std430, binding = 2) RC_DATA_MODIFIER RadianceCacheUpdateEntryIndexData {
-    uint rc_updateEntryIndices[];
-};
-
 // x: reservoir base index, or RC_INVALID if no reservoir allocated for this entry
 // y: bitmask of valid faces
 // z: world key hash
@@ -55,13 +51,6 @@ layout(std430, binding = 10) RC_DATA_MODIFIER RadianceCacheIndirectionData {
 
 layout(std430, binding = 11) RC_DATA_MODIFIER RadianceCacheReservoirData {
     uvec4 rc_reservoirs[];
-};
-
-// x: world key hash, or RC_INVALID
-// y bits 0-5: screen touched faces
-// y bits 6-11: next-frame hit feedback faces
-layout(std430, binding = 5) RC_DATA_MODIFIER RadianceCacheFeedbackData {
-    uvec2 rc_feedback[];
 };
 
 struct RCReservoir {
@@ -111,16 +100,6 @@ RCReservoir rc_reservoirLoad(uint side, uint reservoirIndex) {
     reservoir.meta = r2.w;
     return reservoir;
 }
-
-struct RCCandidate {
-    vec3 radiance;
-    vec3 dir;
-    vec3 hitPos;
-    vec3 hitNormal;
-    float targetWeight;
-    uint flags;
-    bool valid;
-};
 
 struct RCLookupResult {
     vec3 radiance;
@@ -218,10 +197,6 @@ uint rc_bufferEntryIndex(uint side, uint entryIndex) {
     return side * RC_ENTRY_COUNT + entryIndex;
 }
 
-uint rc_feedbackRecordIndex(uint side, uint entryIndex) {
-    return rc_bufferEntryIndex(side, entryIndex);
-}
-
 uint rc_worldKeyHash(uint level, ivec3 worldCellCoord) {
     return hash_41_q5(uvec4(uvec3(worldCellCoord), level));
 }
@@ -273,57 +248,6 @@ uint rc_entryMetaPendingFaceBits(uint faceMask) {
 
 uint rc_entryMetaClearPendingFaces(uint meta) {
     return meta & ~RC_ENTRY_META_PENDING_FACE_MASK;
-}
-
-uint rc_feedbackScreenBits(uint faceMask) {
-    return (faceMask & RC_FEEDBACK_FACE_MASK) << RC_FEEDBACK_SCREEN_SHIFT;
-}
-
-uint rc_feedbackHitBits(uint faceMask) {
-    return (faceMask & RC_FEEDBACK_FACE_MASK) << RC_FEEDBACK_HIT_SHIFT;
-}
-
-uint rc_feedbackScreenFaceMask(uint side, uint entryIndex) {
-    uint recordIndex = rc_feedbackRecordIndex(side, entryIndex);
-    return (rc_feedback[recordIndex].y >> RC_FEEDBACK_SCREEN_SHIFT) & RC_FEEDBACK_FACE_MASK;
-}
-
-uint rc_feedbackHitFaceMask(uint side, uint entryIndex) {
-    uint recordIndex = rc_feedbackRecordIndex(side, entryIndex);
-    return (rc_feedback[recordIndex].y >> RC_FEEDBACK_HIT_SHIFT) & RC_FEEDBACK_FACE_MASK;
-}
-
-void rc_feedbackClearRecord(uint side, uint entryIndex) {
-    uint recordIndex = rc_feedbackRecordIndex(side, entryIndex);
-    rc_feedback[recordIndex] = uvec2(RC_INVALID, 0u);
-}
-
-void rc_markScreenTouchedFace(uint level, ivec3 worldCellCoord, uint faceId) {
-    if (!rc_worldCellInCurrentClip(level, worldCellCoord)) {
-        return;
-    }
-
-    uint entryIndex = rc_entryIndex(level, worldCellCoord);
-    uint recordIndex = rc_feedbackRecordIndex(rc_currentSide(), entryIndex);
-    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
-    uint oldKey = atomicCompSwap(rc_feedback[recordIndex].x, RC_INVALID, worldKeyHash);
-    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        atomicOr(rc_feedback[recordIndex].y, rc_feedbackScreenBits(rc_faceBit(faceId)));
-    }
-}
-
-void rc_markHitFeedbackFace(uint level, ivec3 worldCellCoord, uint faceId) {
-    if (!rc_worldCellInCurrentClip(level, worldCellCoord)) {
-        return;
-    }
-
-    uint entryIndex = rc_entryIndex(level, worldCellCoord);
-    uint recordIndex = rc_feedbackRecordIndex(rc_currentSide(), entryIndex);
-    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
-    uint oldKey = atomicCompSwap(rc_feedback[recordIndex].x, RC_INVALID, worldKeyHash);
-    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        atomicOr(rc_feedback[recordIndex].y, rc_feedbackHitBits(rc_faceBit(faceId)));
-    }
 }
 
 uint rc_packReservoirMeta(uint age, bool valid, uint flags) {
@@ -506,70 +430,6 @@ vec3 rc_reservoirEstimateRadiance(RCReservoir reservoir) {
     return result;
 }
 
-RCReservoir rc_reservoirInitFromCandidate(RCCandidate candidate) {
-    RCReservoir reservoir;
-    if (candidate.valid && candidate.targetWeight > 0.0) {
-        reservoir.radiance = candidate.radiance;
-        reservoir.avgWY = 1.0;
-        reservoir.sampleDir = candidate.dir;
-        reservoir.m = 1.0;
-        reservoir.hitPos = candidate.hitPos;
-        reservoir.meta = rc_packReservoirMeta(0u, true, candidate.flags);
-    } else {
-        reservoir = rc_reservoirInit();
-    }
-    return reservoir;
-}
-
-bool rc_reservoirUpdate(inout RCReservoir reservoir, inout float wSum, RCCandidate candidate, float randValue) {
-    if (!candidate.valid || candidate.targetWeight <= 0.0) {
-        return false;
-    }
-
-    wSum += candidate.targetWeight;
-    reservoir.m += 1.0;
-    float p = candidate.targetWeight * safeRcp(wSum);
-    if (randValue < p) {
-        reservoir.radiance = candidate.radiance;
-        reservoir.sampleDir = candidate.dir;
-        reservoir.hitPos = candidate.hitPos;
-        return true;
-    }
-
-    return false;
-}
-
-bool rc_reservoirUpdateWeighted(
-    inout RCReservoir reservoir,
-    inout float wSum,
-    RCCandidate candidate,
-    float updateWeight,
-    float mInc,
-    float randValue
-) {
-    if (
-        !candidate.valid
-        || candidate.targetWeight <= 0.0
-        || updateWeight <= 0.0
-        || mInc <= 0.0
-    ) {
-        return false;
-    }
-
-    wSum += updateWeight;
-    reservoir.m += mInc;
-
-    float p = updateWeight * safeRcp(wSum);
-    if (randValue < p) {
-        reservoir.radiance = candidate.radiance;
-        reservoir.sampleDir = candidate.dir;
-        reservoir.hitPos = candidate.hitPos;
-        return true;
-    }
-
-    return false;
-}
-
 uint rc_selectLevel(vec3 P) {
     vec3 d = abs(P - cameraPositionInt);
     float maxDistF = max(max(d.x, d.y), d.z);
@@ -623,34 +483,6 @@ void rc_faceTangentAxes(uint faceId, out uint axis0, out uint axis1) {
     } else {
         axis0 = 0u; // X
         axis1 = 1u; // Y
-    }
-}
-
-bool rc_touchFace(uint level, ivec3 worldCellCoord, uint faceId) {
-    uint entryIndex = rc_entryIndex(level, worldCellCoord);
-    uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
-    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
-    uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
-    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        uvec4 entry = rc_indirection[bufferIndex];
-        uint oldFaceMask = entry.y & 0x3fu;
-        uint newFaceMask = oldFaceMask | rc_faceBit(faceId);
-        bool canGrowFaceMask = entry.x == RC_INVALID || newFaceMask == oldFaceMask;
-        if (!canGrowFaceMask) {
-            uint allocatedClassSize = rc_allocClassSize(bitCount(oldFaceMask));
-            canGrowFaceMask = bitCount(newFaceMask) <= allocatedClassSize;
-        }
-        if (!canGrowFaceMask) {
-            return false;
-        }
-
-        atomicOr(rc_indirection[bufferIndex].y, rc_faceBit(faceId));
-        uint pendingFaceBits = rc_indirection[bufferIndex].w & RC_ENTRY_META_PENDING_FACE_MASK;
-        rc_indirection[bufferIndex].w = rc_packEntryMeta(level, true) | pendingFaceBits;
-        return true;
-    } else {
-        atomicAdd(rc_keyMismatchCounter, 1u);
-        return false;
     }
 }
 

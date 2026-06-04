@@ -22,9 +22,6 @@ voxel_SurfaceData voxel_sampleVoxelSurface(VoxelHit hit, float lod) {
     uint faceId = voxel_faceIndexFromNormal(hit.normal);
     uvec2 tcData = voxel_faceTexcoords[voxel_faceTexcoordIndex(hit.materialID, faceId)];
     vec4 tc = unpackUnorm4x16(tcData);
-    if (all(equal(tc, vec4(0.0)))) {
-        return surface;
-    }
 
     vec2 localUV = voxel_faceLocalUV(faceId, hit.hitPos);
     vec2 atlasUV = mix(tc.xw, tc.zy, localUV);

@@ -3,14 +3,15 @@
 #extension GL_NV_shader_subgroup_partitioned : enable
 
 #define RC_DATA_MODIFIER restrict buffer
-#include "/techniques/gi/RadianceCache.glsl"
+
+layout(local_size_x = 16, local_size_y = 16) in;
+#include "/techniques/gi/RadianceCacheUpdate.glsl"
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/voxel/Voxelization.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Morton.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
-layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(0.25, 0.25);
 
 void main() {
