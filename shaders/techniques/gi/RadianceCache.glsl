@@ -30,7 +30,6 @@
 
 #define RC_RES_FLAG_SURFACE_HIT 0x00010000u
 #define RC_RES_FLAG_SKY_MISS 0x00020000u
-#define RC_RES_FLAG_PARENT_BOOTSTRAP 0x00040000u
 
 #define RC_FEEDBACK_SCREEN_SHIFT 0u
 #define RC_FEEDBACK_HIT_SHIFT 6u
@@ -349,10 +348,6 @@ bool rc_reservoirIsSkyMiss(RCReservoir reservoir) {
     return (rc_reservoirMetaFlags(reservoir.meta) & RC_RES_FLAG_SKY_MISS) != 0u;
 }
 
-bool rc_reservoirIsParentBootstrap(RCReservoir reservoir) {
-    return (rc_reservoirMetaFlags(reservoir.meta) & RC_RES_FLAG_PARENT_BOOTSTRAP) != 0u;
-}
-
 vec3 rc_faceNormal(uint faceId) {
     uint axis = faceId >> 1u;
     float signValue = 1.0 - 2.0 * float(faceId & 1u);
@@ -490,38 +485,6 @@ bool rc_loadFaceReservoir(
     return rc_reservoirValid(reservoir);
 }
 
-bool rc_loadParentFaceReservoir(
-    uint level,
-    ivec3 worldCellCoord,
-    uint faceId,
-    out uint parentLevel,
-    out ivec3 parentCell,
-    out RCReservoir parentReservoir
-) {
-    parentLevel = level;
-    parentCell = worldCellCoord;
-    parentReservoir = rc_reservoirInit();
-
-    if (level + 1u >= RC_CLIP_LEVELS) {
-        return false;
-    }
-
-    parentLevel = level + 1u;
-
-    vec3 faceNormal = rc_faceNormal(faceId);
-    vec3 faceCenter = rc_faceCenter(worldCellCoord, level, faceId);
-    float epsilon = max(ldexp(1e-3, int(level)), 1e-3);
-    vec3 ownerP = faceCenter - faceNormal * epsilon;
-    parentCell = rc_worldCellCoord(ownerP, parentLevel);
-
-    return rc_loadFaceReservoir(
-        rc_previousSide(),
-        parentLevel,
-        parentCell,
-        faceId,
-        parentReservoir
-    );
-}
 void rc_reservoirStore(uint side, uint reservoirIndex, RCReservoir reservoir) {
     uint recordIndex = rc_reservoirRecordIndex(side, reservoirIndex);
     rc_reservoirs[recordIndex + 0u] = uvec4(floatBitsToUint(reservoir.radiance), floatBitsToUint(reservoir.avgWY));
