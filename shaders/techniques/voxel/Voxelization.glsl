@@ -105,9 +105,15 @@ layout(std430, binding = 4) VOXEL_MATERIAL_DATA_MODIFIER VoxelMaterialData {
 //   VOXEL_TREE_TOTAL uvec2 entries laid out level-by-level (top-down).
 //   Grid=16: ~2 MB,  Grid=32: ~16 MB,  Grid=64: ~130 MB.
 // ---------------------------------------------------------------------------
+#ifdef VOXEL_TREE_UINT
+layout(std430, binding = 8) VOXEL_TREE_DATA_MODIFIER VoxelTreeData {
+    uint voxel_treeScalar[];
+};
+#else
 layout(std430, binding = 8) VOXEL_TREE_DATA_MODIFIER VoxelTreeData {
     uvec2 voxel_tree[];       // VOXEL_TREE_TOTAL uvec2 entries
 };
+#endif
 
 // ---------------------------------------------------------------------------
 // Helpers
