@@ -1,23 +1,21 @@
-#define saturate(x) clamp(x, 0.0, 1.0)
 ivec2 _textile_texelToTexel(ivec2 texelPos, ivec2 tileOffset, ivec2 tileSize) {
     return clamp(texelPos, ivec2(0), tileSize - 1) + tileOffset;
 }
 
 vec2 _textile_uvToUV(vec2 uv, vec2 tileOffsetF, vec2 tileSizeF, vec2 atlastSizeRcp) {
     vec2 textureTexelPos = clamp(uv * tileSizeF, vec2(0.5), tileSizeF - 0.5) + tileOffsetF;
-    return saturate(textureTexelPos * atlastSizeRcp);
+    return clamp(textureTexelPos * atlastSizeRcp, 0.0, 1.0);
 }
 
 vec2 _textile_uvToGatherUV(vec2 uv, vec2 tileOffsetF, vec2 tileSizeF, vec2 atlastSizeRcp) {
     vec2 textureTexelPos = clamp(uv * tileSizeF, vec2(1.0), tileSizeF - 1.0) + tileOffsetF;
-    return saturate(textureTexelPos * atlastSizeRcp);
+    return clamp(textureTexelPos * atlastSizeRcp, 0.0, 1.0);
 }
 
 vec2 _textile_texelToGatherUV(vec2 texelPos, vec2 tileOffsetF, vec2 tileSizeF, vec2 atlastSizeRcp) {
     vec2 textureTexelPos = clamp(texelPos, vec2(1.0), tileSizeF - 1.0) + tileOffsetF;
-    return saturate(textureTexelPos * atlastSizeRcp);
+    return clamp(textureTexelPos * atlastSizeRcp, 0.0, 1.0);
 }
-#undef saturate
 
 #define _shadesmith_RGBA16F_ATLAS_SIZE_I (uval_mainImageSizeI * ivec2(4, 4))
 #define _shadesmith_RGBA16F_ATLAS_SIZE (uval_mainImageSize * vec2(4, 4))
