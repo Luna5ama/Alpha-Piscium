@@ -23,9 +23,7 @@ void main() {
             shadowViewPos /= shadowViewPos.w;
             vec4 scenePos = global_shadowViewInverse * global_shadowRotationMatrixInverse * shadowViewPos;
 
-            vec3 cameraPosWaveSpace = vec3(cameraPositionInt >> 5) + ldexp(vec3(cameraPositionInt & ivec3(31)), ivec3(-5));
-            cameraPosWaveSpace = cameraPositionFract * WAVE_POS_BASE + cameraPosWaveSpace * 0.736;
-            vec3 waveWorldPos = scenePos.xyz * WAVE_POS_BASE + cameraPosWaveSpace;
+            vec3 waveWorldPos = (scenePos.xyz + cameraPosition) * WAVE_POS_BASE;
 
             const float NORMAL_EPS = 0.2;
             const float NORMAL_WEIGHT = SETTING_WATER_NORMAL_SCALE;
