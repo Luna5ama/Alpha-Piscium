@@ -125,7 +125,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
     float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
 
-    screenPos -= uval_taaJitter * uval_mainImageSizeRcp;
+    screenPos -= uval_taaJitterUV;
     GBufferData gData = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
     gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
@@ -151,6 +151,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     if (bool(clipFlag)) {
         vec2 curr2PrevScreenClamped = saturate(curr2PrevScreen);
         if (all(lessThan(abs(curr2PrevScreen - curr2PrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
+            curr2PrevScreen += uval_prevTaaJitterUV;
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
             curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(1.0), uval_mainImageSize - 1.0);
 
@@ -401,6 +402,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         if (bool(clipFlag)) {
             vec2 virtualPrevNDC = virtualPrevClipPos.xy / virtualPrevClipPos.w;
             vec2 virtualPrevScreen = virtualPrevNDC * 0.5 + 0.5;
+            virtualPrevScreen += uval_prevTaaJitterUV;
             vec2 virtualPrevScreenClamped = saturate(virtualPrevScreen);
 
             if (all(lessThan(abs(virtualPrevScreen - virtualPrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
