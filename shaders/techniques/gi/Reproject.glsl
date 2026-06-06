@@ -106,17 +106,17 @@ void computeEdgeWeights(
     uint edgeFlagI = 0u;
     edgeFlagI |= uint(totalEdgeFactor < 0.99);
     edgeFlagI |= uint(any(lessThan(geomViewNormalDots, vec4(0.5))));
-    edgeFlagI |= uint(any(lessThan(viewNormalDots, vec4(0.5))));
     edgeFlagI |= uint(any(greaterThan(planeDistances, vec4(planeDistanceThreshold))));
     edgeFlagI |= uint(any(lessThan(roughnessWeights, vec4(0.9))));
-    edgeFlag = bool(edgeFlagI);
 
     vec4 geomNormalWeights = pow(geomViewNormalDots, vec4(256.0));
     vec4 normalWeights = pow(viewNormalDots, vec4(normalBaseWeight));
+    edgeFlagI |= uint(any(lessThan(normalWeights, vec4(0.5))));
     float geomDepthBaseWeight = mix(32.0, 4.0, totalEdgeFactor) * mix(4.0, 1.0, glazingAngleFactor);
     vec4 geomDepthWeights = exp2(-geomDepthBaseWeight * (planeDistances / max(abs(curr2PrevViewPos.z), 2.0)));
     geomDepthWeights *= saturate(step(planeDistances, vec4(planeDistanceThreshold)));
     edgeWeights = geomNormalWeights * normalWeights * geomDepthWeights;
+    edgeFlag = bool(edgeFlagI);
 
     extraNormalWeights = normalWeights;
 }
@@ -385,12 +385,12 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     // Surface point is already done along with diffuse reprojection above.
     // But we also want to try to reproject using virtual point and blend the result based on roughness
     // This is to handle low roughness surface where the specular is more view-dependent
-    {
-        bool specValid = valid;
+    if (valid) {
+        bool specValid = false;
 
         vec3 viewDir = normalize(currViewPos);
         // Goes to 1.0 when roughness is 0.0 and vise-versa
-        float mirrorParallaxFactor = exp2(-pow2(material.roughness * 128.0));
+        float mirrorParallaxFactor = exp2(-pow2(material.roughness * 16.0));
         vec3 virtualViewPos = currViewPos + viewDir * specularHitDistance * mirrorParallaxFactor;
 
         vec4 virtualPrevViewPos = coord_viewCurrToPrev(vec4(virtualViewPos, 1.0), gData.isHand);
@@ -421,7 +421,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     currViewGeomNormal,
                     curr2PrevViewPos.xyz,
                     glazingAngleFactor,
-                    64.0 * mirrorParallaxFactor + 32.0,
+                    128.0 * mirrorParallaxFactor + 256.0,
                     roughnessWeights,
                     extraNormalWeights,
                     edgeWeights,
@@ -487,7 +487,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         packedData4 = dither_fp16(packedData4, ditherNoiseV);
                         transient_gi4Reprojected_store(texelPos, packedData4);
                     } else {
-                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, 0.5, uval_mainImageSizeRcp);
+                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, 0.1, uval_mainImageSizeRcp);
 
                         vec4 packedData3 = sampling_catmullBicubic5Tap_sum(
                             history_gi3_sample(vTapData.uv1AndWeight.xy),
@@ -521,6 +521,9 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         if (!specValid) {
             transient_gi3Reprojected_store(texelPos, vec4(0.0));
             transient_gi4Reprojected_store(texelPos, vec4(0.0));
+            vec4 packedData5 = transient_gi5Reprojected_load(texelPos);
+            packedData5.y = 0.0;
+            transient_gi5Reprojected_store(texelPos, packedData5);
         }
     }
 }

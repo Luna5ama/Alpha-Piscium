@@ -64,7 +64,7 @@ void sampleTemporalNeighbor(
 
             bool valid = true;
             if (neighborReservoir.Y.w > 0.0) {
-                vec2 neighborScreenPos = coords_texelToUV(neighborTexelPos, uval_mainImageSizeRcp);
+                vec2 neighborScreenPos = coords_texelToUV(neighborTexelPos, uval_mainImageSizeRcp) - uval_prevTaaJitterUV;
                 float neighborViewZ = history_viewZ_fetch(neighborTexelPos).x;
                 vec3 neighborViewPos = coords_toViewCoord(neighborScreenPos, neighborViewZ, global_prevCamProjInverse);
                 // Save original offset in prev-view space for Jacobian before Y overwrite
@@ -145,7 +145,7 @@ void main() {
         ReSTIRReservoir temporalReservoir = restir_initReservoir();
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
         if (viewZ > -65536.0) {
-            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
             vec3 V = normalize(-viewPos);
@@ -193,6 +193,16 @@ void main() {
             ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
             float ageResetRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
             if (reprojInfo.historyResetFactor > ageResetRand) {
+                float pSpec = 1.0;
+                if (material.dielectric > 0.0) {
+                    float NdotV = saturate(dot(gData.normal, V));
+                    vec3 fresnelV = saturate(fresnel_evalMaterial(material, NdotV));
+                    vec3 fresnelT = vec3(1.0) - fresnelV;
+                    vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
+                    pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV * safeRcp(totalEnergy));
+                }
+                reprojInfo.historyResetFactor *= pow(material.roughness, pSpec / 4.0);
+
                 vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
                 curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
                 vec2 prevBase = curr2PrevTexelPos - 0.5;
