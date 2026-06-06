@@ -251,11 +251,14 @@ void main() {
                     }
                     #ifdef SETTING_DENOISER_SPATIAL
                     // Adding 0.0001 to avoid making it 0 which can cause issues with pow
-                    vec2 hitDitanceFactors = 1.00001 - pow2(smoothstep(4.0, 0.0, filteredHitDitances));
+                    vec2 hitDitanceFactors;
+                    hitDitanceFactors.xy = smoothstep(4.0, 0.0, filteredHitDitances.xy);
+                    hitDitanceFactors.xy = 1.00001 - hitDitanceFactors.xy;
+                    const float factor = 0.2;
                     vec2 hlen = vec2(historyData.realHistoryLength);
-                    hlen.y = min(hlen.y, historyData.specularHistoryLength);
+                    hlen.y = (hlen.y + historyData.specularHistoryLength) * 0.5;
                     vec2 remappedRealHLen = 1.0 - pow4(1.0 - hlen);
-                    remappedRealHLen *= vec2(0.5, 1.0);
+                    remappedRealHLen *= vec2(0.5, 0.5);
                     hitDitanceFactors = pow(hitDitanceFactors, remappedRealHLen);
                     transient_gi_hitDistanceFactors_store(texelPos, vec4(saturate(hitDitanceFactors), 0.0, 0.0));
                     #endif
@@ -344,11 +347,15 @@ void main() {
                         }
                     }
                     // Adding 0.0001 to avoid making it 0 which can cause issues with pow
-                    vec2 hitDitanceFactors = 1.00001 - pow2(smoothstep(4.0, 0.0, filteredHitDitances));
+                    vec2 hitDitanceFactors;
+                    hitDitanceFactors.x = smoothstep(4.0, 0.0, filteredHitDitances.x);
+                    hitDitanceFactors.x = 1.00001 - hitDitanceFactors.x;
+                    const float factor = 0.2;
+                    hitDitanceFactors.y = smoothstep(0.0, 1.0, factor * filteredHitDitances.y * rcp(factor *filteredHitDitances.y + 1.0));
                     vec2 hlen = vec2(historyData.realHistoryLength);
-                    hlen.y = min(hlen.y, historyData.specularHistoryLength);
+                    hlen.y = (hlen.y + historyData.specularHistoryLength) * 0.5;
                     vec2 remappedRealHLen = 1.0 - pow4(1.0 - hlen);
-                    remappedRealHLen *= vec2(0.5, 1.0);
+                    remappedRealHLen *= vec2(0.5, 0.5);
                     hitDitanceFactors = pow(hitDitanceFactors, remappedRealHLen);
                     transient_gi_hitDistanceFactors_store(texelPos, vec4(saturate(hitDitanceFactors), 0.0, 0.0));
 

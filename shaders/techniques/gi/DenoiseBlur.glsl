@@ -191,11 +191,17 @@ void main() {
             float diffAccumFactor = rcp(1.0 + pow2(0.05 * historyLength));
             float specAccumFactor = rcp(1.0 + specularHistoryLength);
 
-            vec2 hitDistFactor = hitDistanceFactors;
+            vec2 hitDistFactor = pow2(hitDistanceFactors);
+            hitDistFactor.x = hitDistFactor.x * 0.9 + 0.1;
             #if GI_DENOISE_PASS == 2
-            hitDistFactor = pow2(hitDistFactor);
+            #if SETTING_DEBUG_OUTPUT
+
+//            imageStore(uimg_temp1, texelPos, historyData5.yyyy * 1.0);
+//            imageStore(uimg_temp1, texelPos, specAccumFactor.xxxx);
+            imageStore(uimg_temp1, texelPos, hitDistFactor.xxxx);
+//            imageStore(uimg_temp1, texelPos, filteredInputVariance.yyyy * 4.0);
             #endif
-            hitDistFactor = hitDistFactor * vec2(0.9, 0.95) + vec2(0.1, 0.05);
+            #endif
 
             float16_t jitterR = float16_t(blurJitter.y);
             float angle = blurJitter.x * PI_2;
