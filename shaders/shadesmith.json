@@ -70,7 +70,8 @@
         "transient_initialSampleRayCount": "R32F",
         "transient_spatialReuseRayCount": "R32F",
         "transient_specularPBRData": "RGBA8",
-        "history_roughness": "R32F"
+        "history_roughness": "R32F",
+        "history_avgViewZ": "R32F"
     },
     "fixed": {
         "persistent_multiSctrLUT": {
@@ -99,6 +100,11 @@
             "height": 256
         },
         "persistent_rtwsm_importance1D": {
+            "format": "R32F",
+            "width": 256,
+            "height": 2
+        },
+        "persistent_rtwsm_importance1DBlurred": {
             "format": "R32F",
             "width": 256,
             "height": 2

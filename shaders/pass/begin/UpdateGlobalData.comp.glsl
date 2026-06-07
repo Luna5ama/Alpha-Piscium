@@ -75,8 +75,11 @@ void main() {
         global_shadowAABBMinPrev = global_shadowAABBMin;
         global_shadowAABBMaxPrev = global_shadowAABBMax;
 
-        global_shadowAABBMin = ivec3(floor(global_shadowAABBMinHistory / 16.0)) * 16;
-        global_shadowAABBMax = ivec3(ceil(global_shadowAABBMaxHistory / 16.0)) * 16;
+        vec3 minSign = sign(global_shadowAABBMinHistory);
+        vec3 maxSign = sign(global_shadowAABBMaxHistory);
+
+        global_shadowAABBMin = ivec3(minSign * exp2(0.5 * ceil(2.0 * log2(abs(global_shadowAABBMinHistory)))));
+        global_shadowAABBMax = ivec3(maxSign * exp2(0.5 * ceil(2.0 * log2(abs(global_shadowAABBMaxHistory)))));
 
         vec4 shadowAABBMin = global_shadowRotationMatrix * shadowModelView * vec4(0.0, 0.0, 0.0, 1.0);
         vec4 shadowAABBMax = global_shadowRotationMatrix * shadowModelView * vec4(0.0, 0.0, 0.0, 1.0);

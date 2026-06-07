@@ -33,6 +33,7 @@ layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32i) uniform iimage2D uimg_fr32f;
 layout(rgba16f) uniform restrict image2D uimg_translucentColor;
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
+layout(r32f) uniform restrict image2D uimg_r32f;
 
 #include "/techniques/rtwsm/Backward.glsl"
 

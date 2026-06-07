@@ -15,7 +15,7 @@ void main() {
 
     ivec2 ti = ivec2(gl_GlobalInvocationID.xy);
     ivec2 inputPos = ti;
-    float tValue = persistent_rtwsm_importance1D_load(inputPos).r;
+    float tValue = persistent_rtwsm_importance1DBlurred_load(inputPos).r;
     float prefix = subgroupInclusiveAdd(tValue);
     if (gl_SubgroupInvocationID == gl_SubgroupSize - 1) {
         shared_prefixBuffer[gl_SubgroupID] = prefix;
