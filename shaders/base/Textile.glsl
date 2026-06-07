@@ -1,3 +1,16 @@
+#ifndef SKIP_UNIFORMS
+uniform sampler2D usam_rgba16f;
+uniform sampler2D usam_r32f;
+uniform sampler2D usam_rgb10_a2;
+uniform sampler2D usam_rgba8;
+uniform usampler2D usam_rgba32ui;
+uniform usampler2D usam_rg32ui;
+
+uniform sampler2D usam_frgba16f;
+uniform sampler2D usam_fr32f;
+uniform sampler2D usam_frgba16;
+#endif
+
 ivec2 _textile_texelToTexel(ivec2 texelPos, ivec2 tileOffset, ivec2 tileSize) {
     return clamp(texelPos, ivec2(0), tileSize - 1) + tileOffset;
 }

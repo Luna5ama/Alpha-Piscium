@@ -83,7 +83,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         §a§lHigh§r: Balanced quality and performance.
                         §6§lUltra§r: The §6§ltrue§r Alpha Piscium experience as it should be.
                         §d§lExtreme§r: Even better experience at §osome§r cost.
-                        §5§lInsane§r: "Can it run Crysis?" §kxyz69420§r.
+                        §5§lInsane§r: "Can it run Crysis?" §kxyz42069§r.
                     """.trimIndent()
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
