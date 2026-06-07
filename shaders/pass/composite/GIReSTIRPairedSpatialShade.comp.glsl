@@ -7,7 +7,7 @@
 #include "/techniques/gi/Common.glsl"
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/HiZCheck.glsl"
-#include "/techniques/gi/PairwiseMIS.glsl"
+#include "/techniques/gi/PairwiseMISMetadata.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -70,7 +70,7 @@ void main() {
 
             PairwiseMISMetadata metadata = pairwiseMISMetadata_unpack(transient_restir_pairwiseMISMetadata_fetch(texelPos));
 
-            ivec2 winTexel = metadata.selectedTexel;
+            ivec2 winTexel = texelPos + metadata.selectedTexelDelta;
             uint numValidNeighbors = metadata.numValidNeighbors;
             float mc = metadata.mc;
             float spatialWSum = metadata.spatialWSum;

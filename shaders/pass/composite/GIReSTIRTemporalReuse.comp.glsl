@@ -24,7 +24,7 @@
 #include "/techniques/HiZCheck.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 #include "/util/BSDF.glsl"
-#include "/techniques/gi/PairwiseMIS.glsl"
+#include "/techniques/gi/PairwiseMISMetadata.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -306,7 +306,7 @@ void main() {
             transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
             #endif
         }
-        PairwiseMISMetadata meta = pairwiseMISMetadata_init(texelPos);
+        PairwiseMISMetadata meta = pairwiseMISMetadata_init();
         if (!restir_isReservoirValid(temporalReservoir)) {
             temporalReservoir.Y.w = -1.0;
         }

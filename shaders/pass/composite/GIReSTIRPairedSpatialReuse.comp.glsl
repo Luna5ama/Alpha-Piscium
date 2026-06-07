@@ -15,7 +15,7 @@
 #include "/util/Rand.glsl"
 #include "/util/Mat2.glsl"
 #include "/techniques/gi/Reservoir.glsl"
-#include "/techniques/gi/PairwiseMIS.glsl"
+#include "/techniques/gi/PairwiseMISMetadata.glsl"
 
 layout(local_size_x = 128) in;
 
@@ -129,7 +129,7 @@ uint randSeed
 
         float neighborWi = srcToDstTargetPHat * max(canonAvgWYSRC, 0.0) * mi_DST;
         if (restir_updateReservoirM(metaDST.accumM, metaDST.spatialWSum, neighborWi, canonMSRC, neighborRand)) {
-            metaDST.selectedTexel = texelSRC;
+            metaDST.selectedTexelDelta = texelSRC - texelDST;
         }
     }
 }
@@ -243,7 +243,7 @@ void main() {
     vec4 canonYMe = vec4(0.0, 0.0, 0.0, -1.0);
     float canonMMe = 0.0;
     float canonAvgWYMe = 0.0;
-    PairwiseMISMetadata metaMe = pairwiseMISMetadata_init(texelMe);
+    PairwiseMISMetadata metaMe = pairwiseMISMetadata_init();
 
     if (bool(validMe)) {
         viewZMe = texelFetch(usam_gbufferSolidViewZ, texelMe, 0).x;
