@@ -8,9 +8,6 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.readLines
 import kotlin.math.pow
 
-val kotlinExec = if (System.getProperty("os.name").lowercase().contains("win")) "kotlin.bat" else "kotlin"
-ProcessBuilder(kotlinExec, "programs.main.kts").inheritIO().start().waitFor()
-
 val versionStr = args.getOrElse(0) {
     data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int, val hotfix: Int) : Comparable<Version> {
         override fun compareTo(other: Version): Int {
@@ -96,7 +93,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         §a§lHigh§r: 画质与性能的平衡。
                         §6§lUltra§r: §6§l真正的§r外屏七体验，就是它了。
                         §d§lExtreme§r: 更好的体验，只需要§o亿点点§r代价.
-                        §5§lInsane§r: 《显 卡 危 机》 §kxyz69420§r.
+                        §5§lInsane§r: 《显 卡 危 机》 §kxyz1145141919810§r.
                     """.trimIndent()
                 }
             }

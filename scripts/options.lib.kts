@@ -2,8 +2,9 @@ import java.io.File
 import java.math.BigDecimal
 import java.util.*
 import kotlin.io.path.Path
+import kotlin.io.path.listDirectoryEntries
+import kotlin.io.path.name
 import kotlin.io.path.readText
-import kotlin.text.appendLine
 
 enum class ColorCode(val code: String) {
     Black("0"),
@@ -597,7 +598,11 @@ class Scope : OptionFactory() {
                 File(langDir, "${language}.lang").writeText(content.toString())
             }
             File(shaderRoot, "shaders.properties").bufferedWriter().use {
-                it.appendLine(Path("programs.shaders.properties").readText())
+                Path(".").listDirectoryEntries("*.shaders.properties")
+                    .sortedBy { it.name }
+                    .forEach { file ->
+                        it.appendLine(file.readText())
+                    }
                 it.append(_shadersProperties)
             }
         }
@@ -615,6 +620,9 @@ fun options(
     textOptionGlslPath: String,
     block: Scope.() -> Unit
 ) {
+    val kotlinExec = if (System.getProperty("os.name").lowercase().contains("win")) "kotlin.bat" else "kotlin"
+    ProcessBuilder(kotlinExec, "programs.main.kts").inheritIO().start().waitFor()
+
     val absoluteFile = shaderRootDir.absoluteFile
     Scope().apply(block).build(baseShadersProperties)
         .writeOutput(File(absoluteFile, optionGlslPath), File(absoluteFile, textOptionGlslPath), absoluteFile)
