@@ -1,7 +1,7 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/Base.glsl"
-#define RAY_STEPS (SETTING_GI_VALIDATE_SST_STEPS - 4)
+#define RAY_STEPS SETTING_GI_VALIDATE_SST_STEPS
 
 #include "/techniques/gi/FinishTrace.comp.glsl"
 #include "/techniques/gi/InitialSample.glsl"

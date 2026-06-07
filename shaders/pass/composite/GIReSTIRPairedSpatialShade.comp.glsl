@@ -137,6 +137,10 @@ void main() {
             ssgiSpecOut = vec4(radianceWeight * outBRDF.specular, winHitDist);
             vec3 specAlbedo = resampleMaterial_specularAlbedo(centerMaterial, NDotV);
             ssgiSpecOut.rgb *= safeRcp(specAlbedo);
+            ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);
+            ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
+            transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);
+            transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
 
             #if SETTING_DEBUG_OUTPUT
             vec4 vvv = vec4(0.0);
@@ -156,32 +160,13 @@ void main() {
                 } else {
                     sstRay = sstray_setup(texelPos, viewPos, resultY.xyz);
                 }
-                sst_trace(sstRay, 4);
-                if (sstRay.currT > 0.0) {
-                    uvec4 packedData = sstray_pack(sstRay);
-                    ssbo_rayData[dataIndex] = packedData;
-                    rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
-                } else {
-                    bool discardSptialReuse = true;
-                    if (sstRay.currT < -0.99) discardSptialReuse = false;
-
-                    if (discardSptialReuse) {
-                        ssgiDiffOut = vec4(0.0);
-                        ssgiSpecOut = vec4(0.0);
-                        #if SETTING_DEBUG_OUTPUT
-                        vvv = vec4(1.0, 0.0, 0.0, 0.0);
-                        #endif
-                    }
-                }
+                uvec4 packedData = sstray_pack(sstRay);
+                ssbo_rayData[dataIndex] = packedData;
+                rayIndex = sst2_encodeRayIndexBits(binLocalIndex, sstRay);
             }
             #if SETTING_DEBUG_OUTPUT
             imageStore(uimg_temp5, texelPos, vvv);
             #endif
-
-            ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);
-            ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
-            transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);
-            transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
         }
     }
     ssbo_rayDataIndices[dataIndex] = rayIndex;
