@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/OverlayComposite.comp.glsl"
+#include "/techniques/rtwsm/IMapBlur.comp.glsl"

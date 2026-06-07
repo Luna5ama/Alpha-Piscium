@@ -164,7 +164,7 @@ programs {
             cond("defined(VOXY)")
         }
         pass("/pass/composite/HiZGen.csh")
-        pass("/pass/composite/GIDenoiserEdgeClassification.comp.glsl")
+        pass("/pass/composite/GIDenoiserEdgeClassificationAndVolumetricsDepthLayers.comp.glsl")
         pass("/pass/composite/GIDenoiserEdgeDilation.comp.glsl")
         pass("/pass/composite/GIDenoiserReproject.comp.glsl")
         pass("/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl")
@@ -243,7 +243,6 @@ programs {
         pass("/pass/composite/SSTStepDebug.comp.glsl") {
             cond("defined(SETTING_DEBUG_SST_STEPS)")
         }
-        pass("/pass/composite/VolumetricsDepthLayers.comp.glsl")
         pass("/pass/composite/EpipolarScatteringAir.comp.glsl")
         pass("/pass/composite/EpipolarScatteringWater.comp.glsl")
         pass("/pass/composite/TranslucentBackComposite.glsl")
