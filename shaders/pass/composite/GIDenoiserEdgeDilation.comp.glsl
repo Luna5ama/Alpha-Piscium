@@ -18,7 +18,7 @@ void loadSharedData(uint index) {
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 1;
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
 
-        float edgeMask = transient_edgeMaskTemp_fetch(srcXY).r;
+        float edgeMask = transient_edgeMask_fetch(srcXY).r;
         shared_edgeMask[sharedXY.y][sharedXY.x] = edgeMask;
     }
 }
@@ -48,7 +48,7 @@ void main() {
 
         edgeMaskSum /= 9.0;
 
-        transient_edgeMask_store(texelPos, vec4(edgeMaskSum));
+        transient_edgeMaskDilated_store(texelPos, vec4(edgeMaskSum));
     }
 }
 

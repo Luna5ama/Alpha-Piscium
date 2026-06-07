@@ -1,23 +1,21 @@
-#define saturate(x) clamp(x, 0.0, 1.0)
 ivec2 _textile_texelToTexel(ivec2 texelPos, ivec2 tileOffset, ivec2 tileSize) {
     return clamp(texelPos, ivec2(0), tileSize - 1) + tileOffset;
 }
 
 vec2 _textile_uvToUV(vec2 uv, vec2 tileOffsetF, vec2 tileSizeF, vec2 atlastSizeRcp) {
     vec2 textureTexelPos = clamp(uv * tileSizeF, vec2(0.5), tileSizeF - 0.5) + tileOffsetF;
-    return saturate(textureTexelPos * atlastSizeRcp);
+    return clamp(textureTexelPos * atlastSizeRcp, 0.0, 1.0);
 }
 
 vec2 _textile_uvToGatherUV(vec2 uv, vec2 tileOffsetF, vec2 tileSizeF, vec2 atlastSizeRcp) {
     vec2 textureTexelPos = clamp(uv * tileSizeF, vec2(1.0), tileSizeF - 1.0) + tileOffsetF;
-    return saturate(textureTexelPos * atlastSizeRcp);
+    return clamp(textureTexelPos * atlastSizeRcp, 0.0, 1.0);
 }
 
 vec2 _textile_texelToGatherUV(vec2 texelPos, vec2 tileOffsetF, vec2 tileSizeF, vec2 atlastSizeRcp) {
     vec2 textureTexelPos = clamp(texelPos, vec2(1.0), tileSizeF - 1.0) + tileOffsetF;
-    return saturate(textureTexelPos * atlastSizeRcp);
+    return clamp(textureTexelPos * atlastSizeRcp, 0.0, 1.0);
 }
-#undef saturate
 
 #define _shadesmith_RGBA16F_ATLAS_SIZE_I (uval_mainImageSizeI * ivec2(4, 4))
 #define _shadesmith_RGBA16F_ATLAS_SIZE (uval_mainImageSize * vec2(4, 4))
@@ -953,34 +951,34 @@ vec2 _textile_texelToGatherUV(vec2 texelPos, vec2 tileOffsetF, vec2 tileSizeF, v
 #define history_gi5_atomicXor(x, v) imageAtomicXor(uimg_rgba8, _shadesmith_RGBA8_1_TEXEL_TO_TEXEL(x), v)
 #define history_gi5_atomicExchange(x, v) imageAtomicExchange(uimg_rgba8, _shadesmith_RGBA8_1_TEXEL_TO_TEXEL(x), v)
 #define history_gi5_atomicCompSwap(x, v1, v2) imageAtomicCompSwap(uimg_rgba8, _shadesmith_RGBA8_1_TEXEL_TO_TEXEL(x), v1, v2)
-#define transient_edgeMaskTemp_sample(x) texture(usam_rgba8, _shadesmith_RGBA8_2_UV_TO_UV(x))
-#define transient_edgeMaskTemp_gather(x, c) textureGather(usam_rgba8, _shadesmith_RGBA8_2_UV_TO_GATHER_UV(x), c)
-#define transient_edgeMaskTemp_gatherTexel(x, c) textureGather(usam_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_GATHER_UV(x), c)
-#define transient_edgeMaskTemp_fetch(x) texelFetch(usam_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), 0)
-#define transient_edgeMaskTemp_load(x) imageLoad(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x))
-#define transient_edgeMaskTemp_store(x, v) imageStore(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMaskTemp_atomicAdd(x, v) imageAtomicAdd(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMaskTemp_atomicMin(x, v) imageAtomicMin(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMaskTemp_atomicMax(x, v) imageAtomicMax(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMaskTemp_atomicAnd(x, v) imageAtomicAnd(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMaskTemp_atomicOr(x, v) imageAtomicOr(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMaskTemp_atomicXor(x, v) imageAtomicXor(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMaskTemp_atomicExchange(x, v) imageAtomicExchange(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMaskTemp_atomicCompSwap(x, v1, v2) imageAtomicCompSwap(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v1, v2)
-#define transient_edgeMask_sample(x) texture(usam_rgba8, _shadesmith_RGBA8_3_UV_TO_UV(x))
-#define transient_edgeMask_gather(x, c) textureGather(usam_rgba8, _shadesmith_RGBA8_3_UV_TO_GATHER_UV(x), c)
-#define transient_edgeMask_gatherTexel(x, c) textureGather(usam_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_GATHER_UV(x), c)
-#define transient_edgeMask_fetch(x) texelFetch(usam_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), 0)
-#define transient_edgeMask_load(x) imageLoad(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x))
-#define transient_edgeMask_store(x, v) imageStore(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMask_atomicAdd(x, v) imageAtomicAdd(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMask_atomicMin(x, v) imageAtomicMin(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMask_atomicMax(x, v) imageAtomicMax(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMask_atomicAnd(x, v) imageAtomicAnd(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMask_atomicOr(x, v) imageAtomicOr(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMask_atomicXor(x, v) imageAtomicXor(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMask_atomicExchange(x, v) imageAtomicExchange(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
-#define transient_edgeMask_atomicCompSwap(x, v1, v2) imageAtomicCompSwap(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v1, v2)
+#define transient_edgeMask_sample(x) texture(usam_rgba8, _shadesmith_RGBA8_2_UV_TO_UV(x))
+#define transient_edgeMask_gather(x, c) textureGather(usam_rgba8, _shadesmith_RGBA8_2_UV_TO_GATHER_UV(x), c)
+#define transient_edgeMask_gatherTexel(x, c) textureGather(usam_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_GATHER_UV(x), c)
+#define transient_edgeMask_fetch(x) texelFetch(usam_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), 0)
+#define transient_edgeMask_load(x) imageLoad(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x))
+#define transient_edgeMask_store(x, v) imageStore(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMask_atomicAdd(x, v) imageAtomicAdd(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMask_atomicMin(x, v) imageAtomicMin(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMask_atomicMax(x, v) imageAtomicMax(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMask_atomicAnd(x, v) imageAtomicAnd(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMask_atomicOr(x, v) imageAtomicOr(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMask_atomicXor(x, v) imageAtomicXor(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMask_atomicExchange(x, v) imageAtomicExchange(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMask_atomicCompSwap(x, v1, v2) imageAtomicCompSwap(uimg_rgba8, _shadesmith_RGBA8_2_TEXEL_TO_TEXEL(x), v1, v2)
+#define transient_edgeMaskDilated_sample(x) texture(usam_rgba8, _shadesmith_RGBA8_3_UV_TO_UV(x))
+#define transient_edgeMaskDilated_gather(x, c) textureGather(usam_rgba8, _shadesmith_RGBA8_3_UV_TO_GATHER_UV(x), c)
+#define transient_edgeMaskDilated_gatherTexel(x, c) textureGather(usam_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_GATHER_UV(x), c)
+#define transient_edgeMaskDilated_fetch(x) texelFetch(usam_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), 0)
+#define transient_edgeMaskDilated_load(x) imageLoad(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x))
+#define transient_edgeMaskDilated_store(x, v) imageStore(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMaskDilated_atomicAdd(x, v) imageAtomicAdd(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMaskDilated_atomicMin(x, v) imageAtomicMin(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMaskDilated_atomicMax(x, v) imageAtomicMax(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMaskDilated_atomicAnd(x, v) imageAtomicAnd(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMaskDilated_atomicOr(x, v) imageAtomicOr(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMaskDilated_atomicXor(x, v) imageAtomicXor(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMaskDilated_atomicExchange(x, v) imageAtomicExchange(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v)
+#define transient_edgeMaskDilated_atomicCompSwap(x, v1, v2) imageAtomicCompSwap(uimg_rgba8, _shadesmith_RGBA8_3_TEXEL_TO_TEXEL(x), v1, v2)
 #define transient_gi5Reprojected_sample(x) texture(usam_rgba8, _shadesmith_RGBA8_4_UV_TO_UV(x))
 #define transient_gi5Reprojected_gather(x, c) textureGather(usam_rgba8, _shadesmith_RGBA8_4_UV_TO_GATHER_UV(x), c)
 #define transient_gi5Reprojected_gatherTexel(x, c) textureGather(usam_rgba8, _shadesmith_RGBA8_4_TEXEL_TO_GATHER_UV(x), c)

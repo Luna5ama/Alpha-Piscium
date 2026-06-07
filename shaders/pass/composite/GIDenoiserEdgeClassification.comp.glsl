@@ -111,7 +111,7 @@ void main() {
 
         weightSum /= 8.0;
 
-        transient_edgeMaskTemp_store(texelPos, vec4(weightSum));
+        transient_edgeMask_store(texelPos, vec4(weightSum));
     }
 }
 

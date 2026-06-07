@@ -52,7 +52,7 @@ void computeEdgeWeights(
     vec3 curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
     vec3 curr2PrevViewGeomNormal = coords_dir_worldToViewPrev(currWorldGeomNormal);
 
-    float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
+    float currEdgeFactor = min4(transient_edgeMask_gather(screenPos, 0));
 
     vec2 gatherScreenPos = gatherTexelPos * uval_mainImageSizeRcp;
     float prevEdgeMask = min4(history_edgeMask_gather(gatherScreenPos, 0));
@@ -123,7 +123,7 @@ void computeEdgeWeights(
 
 void gi_reproject(ivec2 texelPos, float currViewZ) {
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-    float currEdgeFactor = min4(transient_edgeMaskTemp_gather(screenPos, 0));
+    float currEdgeFactor = min4(transient_edgeMask_gather(screenPos, 0));
 
     screenPos -= uval_taaJitter * uval_mainImageSizeRcp;
     GBufferData gData = gbufferData_init();

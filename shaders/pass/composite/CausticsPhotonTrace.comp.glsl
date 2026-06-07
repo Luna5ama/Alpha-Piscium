@@ -216,7 +216,7 @@ void main() {
 
                         if (all(greaterThanEqual(camTexelPos, ivec2(0))) && all(lessThan(camTexelPos, uval_mainImageSizeI))) {
                             float finalDepth = hiz_closest_sample(camTexelPosF, 0);
-                            float currEdgeFactor = smoothstep(0.9, 1.0, min4(transient_edgeMask_gather(camScreenPos.xy, 0)));
+                            float currEdgeFactor = smoothstep(0.9, 1.0, min4(transient_edgeMaskDilated_gather(camScreenPos.xy, 0)));
 
                             float maxThickness = 0.01 + currEdgeFactor * 0.5;
                             float maxThicknessFactor = rcp(1.0 - maxThickness); // 1.0 / (1.0 - maxThickness)
