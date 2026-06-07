@@ -112,7 +112,9 @@ float dstToSrcTargetPHat,
 uint randSeed
 ) {
     if (srcToDstTargetPHat > 0.0) {
-        float neighborRand = restir_updateRand(texelDST, randSeed);
+        /*const*/
+        float neighborRand = restir_updateRand(texelDST, randSeed + PASS_BASE_SAMPLE_INDEX);
+        /*const*/
 
         float rcMDivK_DST = canonMDST * (1.0 / float(SETTING_GI_SPATIAL_REUSE_COUNT));
         float MiPiRiY = canonMSRC * sampleValueWSRC;
@@ -216,7 +218,9 @@ void main() {
 
     ivec2 tileId = ivec2(gl_GlobalInvocationID.xy) >> RESTIR_REUSE_TILE_BITS;
     ivec2 tileOrigin = tileId * RESTIR_REUSE_TILE_SIZE;
+    /*const*/
     uvec2 quadData = texelFetch(REUSETEX, localFetchPos, 0).xy;
+    /*const*/
 
     uint quadLane = gl_GlobalInvocationID.x & 3u;
     ivec2 localMe = restir_reuseUnpackLocal(quadData.x);
@@ -271,9 +275,9 @@ void main() {
 
     uint reusableMe = validMe & uint(viewZMe > -65536.0);
 
-    processQuadCandidate(1u, 3337u + uint(PASS_INDEX) * 3u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
-    processQuadCandidate(2u, 3338u + uint(PASS_INDEX) * 3u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
-    processQuadCandidate(3u, 3339u + uint(PASS_INDEX) * 3u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
+    processQuadCandidate(1u, 3337u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
+    processQuadCandidate(2u, 3338u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
+    processQuadCandidate(3u, 3339u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
 
     if (bool(validMe)) {
         transient_restir_pairwiseMISMetadata_store(texelMe, pairwiseMISMetadata_pack(metaMe));
