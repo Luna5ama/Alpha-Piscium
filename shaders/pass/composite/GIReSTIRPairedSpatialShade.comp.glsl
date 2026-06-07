@@ -74,13 +74,14 @@ void main() {
             uint numValidNeighbors = metadata.numValidNeighbors;
             float mc = metadata.mc;
             float spatialWSum = metadata.spatialWSum;
+            bool selectedNeighbor = winTexel != texelPos;
 
             ReSTIRReservoir spatialReservoir = readTemporalReservoir(texelPos);
             vec4 originalSample = spatialReservoir.Y;
             spatialReservoir.m = metadata.accumM;
 
             vec4 selectedSampleF = centerSampleData.sampleValue;
-            if (winTexel != texelPos) {
+            if (selectedNeighbor) {
                 SpatialSampleData winSample = spatialSampleData_unpack(transient_restir_spatialInput_fetch(winTexel));
                 float winViewZ = texelFetch(usam_gbufferSolidViewZ, winTexel, 0).x;
                 vec2 winScreenPos = coords_texelToUV(winTexel, uval_mainImageSizeRcp);
@@ -106,52 +107,54 @@ void main() {
                 canonicalRand
             );
 
-            if (chooseCanon || winTexel == texelPos) {
+            if (chooseCanon || !selectedNeighbor) {
                 selectedSampleF = centerSampleData.sampleValue;
             }
 
             vec4 ssgiDiffOut = vec4(0.0, 0.0, 0.0, -1.0);
             vec4 ssgiSpecOut = vec4(0.0, 0.0, 0.0, -1.0);
-            ReSTIRReservoir resultReservoir = spatialReservoir;
+            vec4 resultY = spatialReservoir.Y;
 
-            float avgWY = spatialWSum * safeRcp(selectedSampleF.w) * safeRcp(float(numValidNeighbors + 1u));
-            // resultReservoir.avgWY = avgWY;
+            float avgWY = spatialWSum * safeRcp(selectedSampleF.w) * rcp(float(numValidNeighbors + 1u));
 
-            vec3 winL_out = resultReservoir.Y.xyz;
-            float winHitDist = resultReservoir.Y.w;
-            vec3 H_out = normalize(winL_out + V);
+            vec3 winL_out = resultY.xyz;
+            float winHitDist = resultY.w;
 
-            float outNDotL = saturate(dot(centerSampleData.normal, winL_out));
-            float outNDotH = saturate(dot(centerSampleData.normal, H_out));
-            float outLDotH = saturate(dot(winL_out, H_out));
+            float rawNDotL = dot(centerSampleData.normal, winL_out);
+            float rawNDotV = dot(centerSampleData.normal, V);
+            float outLDotV = dot(winL_out, V);
+            float outInvLen = inversesqrt(max(2.0 + 2.0 * outLDotV, 1e-5));
 
-            float NDotV = saturate(dot(centerSampleData.normal, V));
+            float outNDotL = saturate(rawNDotL);
+            float outNDotH = saturate((rawNDotL + rawNDotV) * outInvLen);
+            float outLDotH = saturate((1.0 + outLDotV) * outInvLen);
+
+            float NDotV = saturate(rawNDotV);
             ResampleBRDF outBRDF = resampleMaterial_evalBRDF(centerMaterial, outNDotL, NDotV, outNDotH, outLDotH);
-            float diffRatio = outBRDF.diffuse * safeRcp(outBRDF.full);
 
-            vec3 totalOutput = selectedSampleF.xyz * outBRDF.full * avgWY;
-            ssgiDiffOut = vec4(totalOutput * diffRatio, winHitDist);
-            ssgiSpecOut = vec4(totalOutput * (1.0 - diffRatio), winHitDist);
+            vec3 radianceWeight = selectedSampleF.xyz * avgWY;
+            ssgiDiffOut = vec4(radianceWeight * outBRDF.diffuse, winHitDist);
+            ssgiSpecOut = vec4(radianceWeight * outBRDF.specular, winHitDist);
             vec3 specAlbedo = resampleMaterial_specularAlbedo(centerMaterial, NDotV);
             ssgiSpecOut.rgb *= safeRcp(specAlbedo);
 
             #if SETTING_DEBUG_OUTPUT
             vec4 vvv = vec4(0.0);
             #endif
-            if (!chooseCanon && winTexel != texelPos) {
+            if (!chooseCanon && selectedNeighbor) {
                 #if SETTING_DEBUG_OUTPUT
                 vvv = vec4(0.0, 1.0, 0.0, 0.0);
                 #endif
 
                 SSTRay sstRay;
-                if (resultReservoir.Y.w > 0.0) {
-                    vec3 expectHitViewPos = viewPos + resultReservoir.Y.xyz * resultReservoir.Y.w;
+                if (resultY.w > 0.0) {
+                    vec3 expectHitViewPos = viewPos + resultY.xyz * resultY.w;
                     vec3 rayOrigin = coords_viewToScreen(viewPos, global_camProj);
                     vec3 rayEnd = coords_viewToScreen(expectHitViewPos, global_camProj);
                     vec4 rayDirLen = normalizeAndLength(rayEnd - rayOrigin);
                     sstRay = sstray_setup(texelPos, rayOrigin, rayDirLen.xyz, rayDirLen.w);
                 } else {
-                    sstRay = sstray_setup(texelPos, viewPos, resultReservoir.Y.xyz);
+                    sstRay = sstray_setup(texelPos, viewPos, resultY.xyz);
                 }
                 sst_trace(sstRay, 4);
                 if (sstRay.currT > 0.0) {
@@ -163,7 +166,6 @@ void main() {
                     if (sstRay.currT < -0.99) discardSptialReuse = false;
 
                     if (discardSptialReuse) {
-                        resultReservoir = restir_initReservoir();
                         ssgiDiffOut = vec4(0.0);
                         ssgiSpecOut = vec4(0.0);
                         #if SETTING_DEBUG_OUTPUT

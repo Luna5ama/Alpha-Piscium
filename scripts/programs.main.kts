@@ -219,7 +219,7 @@ programs {
             pass("/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl") {
                 constDefine("PASS_INDEX", i.toString())
                 indirect(0, 48)
-                cond("defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > $i")
+                cond("defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > ${i * 3}")
             }
         }
         pass("/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl")

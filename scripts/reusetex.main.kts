@@ -6,10 +6,7 @@
 
         You can find full license texts in /licenses
 */
-@file:DependsOn("org.apache.commons:commons-rng-simple:1.6")
-
-import org.apache.commons.rng.UniformRandomProvider
-import org.apache.commons.rng.simple.RandomSource
+import java.util.SplittableRandom
 import kotlin.io.path.Path
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -17,7 +14,7 @@ import kotlin.math.sqrt
 val size = 256
 val sigma = 16.0
 
-fun IntArray.shuffle(random: UniformRandomProvider): Unit {
+fun IntArray.shuffle(random: SplittableRandom): Unit {
     for (i in lastIndex downTo 1) {
         val j = random.nextInt(i + 1)
         val copy = this[i]
@@ -26,16 +23,23 @@ fun IntArray.shuffle(random: UniformRandomProvider): Unit {
     }
 }
 
-fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
-    val pairs = Array(size) { IntArray(size) }
+fun main(baseRandom: SplittableRandom): List<List<Int>> {
+    val quads = Array(size) { IntArray(size) }
     var i = 0
-    for (y in 0..<size) {
-        for (x in 0..<size) {
-            pairs[y][x] = (i++) / 2
+    val groupSizeX = 2
+    val groupSizeY = 2
+    for (y in 0..<size step groupSizeX) {
+        for (x in 0..<size step groupSizeY) {
+            val groupID = i++
+            for (dy in 0..<groupSizeY) {
+                for (dx in 0..<groupSizeX) {
+                    quads[y + dy][x + dx] = groupID
+                }
+            }
         }
     }
 
-    val randoms = Array(size / 2) { Array(size / 2) { RandomSource.XO_SHI_RO_256_PP.create(baseRandom.nextLong()) } }
+    val randoms = Array(size / 2) { Array(size / 2) { SplittableRandom(baseRandom.nextLong()) } }
 
     fun sigmaToShuffleCount(sigma: Double): Int {
         return (0.5 * sigma.pow(2) + 1.46 * sigma.pow(-1) + 1.76 * sigma.pow(-2) + 0.656 * sigma.pow(-3) + 0.5).toInt()
@@ -50,14 +54,14 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
                 var i = 0
                 for (dy in 0..<2) {
                     for (dx in 0..<2) {
-                        permuteTemp[i++] = pairs[(dstY + dy) % size][(dstX + dx) % size]
+                        permuteTemp[i++] = quads[(dstY + dy) % size][(dstX + dx) % size]
                     }
                 }
                 permuteTemp.shuffle(randoms[y][x])
                 i = 0
                 for (dy in 0..<2) {
                     for (dx in 0..<2) {
-                        pairs[(dstY + dy) % size][(dstX + dx) % size] = permuteTemp[i++]
+                        quads[(dstY + dy) % size][(dstX + dx) % size] = permuteTemp[i++]
                     }
                 }
             }
@@ -68,72 +72,92 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
         shuffleGrid(it, it)
     }
 
-    val pairPos = Array(size * size / 2) { IntArray(5) }
+    val quadPos = Array(size * size / 4) { IntArray(9) }
     for (y in 0..<size) {
         for (x in 0..<size) {
-            val pairId = pairs[y][x]
-            val arr = pairPos[pairId]
+            val quadId = quads[y][x]
+            val arr = quadPos[quadId]
             val idx = (arr[0]++) * 2
             arr[idx + 1] = x
             arr[idx + 2] = y
         }
     }
+    require(quadPos.all { it[0] == 4 }) { "Generated reuse texture contains a malformed quad" }
 
-    val temp = pairPos.map { it.slice(1..<5) }
+    val temp = quadPos.map { it.slice(1..<9) }
     val lookup = temp.asSequence()
         .withIndex()
-        .flatMap { (i, pair) ->
-            pair.chunked(2).map { (it[0] to it[1]) to i }
+        .flatMap { (i, quad) ->
+            quad.chunked(2).map { (it[0] to it[1]) to i }
         }
         .toMap(mutableMapOf())
 
     val final = mutableListOf<List<Int>>()
     for (y in 0..<size) {
         for (x in 0..<size) {
-            val myPair = x to y
-            lookup.remove(myPair)?.let { pairId ->
-                val element = temp[pairId]
-                var otherPair = element[0] to element[1]
-                if (otherPair == myPair) {
-                    otherPair = element[2] to element[3]
+            val myQuad = x to y
+            lookup.remove(myQuad)?.let { quadId ->
+                val element = temp[quadId]
+                val coords = element.chunked(2).map { it[0] to it[1] }.toMutableList()
+                require(coords.remove(myQuad)) { "Quad lookup lost its anchor coordinate" }
+                for (coord in coords) {
+                    require(lookup.remove(coord) == quadId) { "Quad lookup contains inconsistent coordinates" }
                 }
-                lookup.remove(otherPair)
-                final.add(listOf(myPair.first, myPair.second, otherPair.first, otherPair.second))
+                val orderedCoords = listOf(myQuad) + coords
+                final.add(orderedCoords.flatMap { listOf(it.first, it.second) })
             }
         }
     }
 
+    require(final.size == size * size / 4) { "Generated ${final.size} quads, expected ${size * size / 4}" }
     return final
 }
 
-val baseRandom = RandomSource.XO_SHI_RO_256_PP.create(1145141919810L)
+val baseRandom = SplittableRandom(1145141919810L)
 val basePath = Path("../shaders/textures")
 val dists = mutableListOf<Double>()
+
+fun packCoords(x0: Int, y0: Int, x1: Int, y1: Int): Int {
+    return (x0 and 0xff) or
+        ((y0 and 0xff) shl 8) or
+        ((x1 and 0xff) shl 16) or
+        ((y1 and 0xff) shl 24)
+}
+
+fun ByteArray.writeIntLE(offset: Int, value: Int) {
+    this[offset] = (value and 0xff).toByte()
+    this[offset + 1] = ((value ushr 8) and 0xff).toByte()
+    this[offset + 2] = ((value ushr 16) and 0xff).toByte()
+    this[offset + 3] = ((value ushr 24) and 0xff).toByte()
+}
+
 repeat(8) {
     val data = main(baseRandom)
 
-    for (pairs in data) {
-        val x1 = pairs[0]
-        val y1 = pairs[1]
-        val x2 = pairs[2]
-        val y2 = pairs[3]
-        var dx = x2 - x1
-        if (dx > size / 2) dx -= size else if (dx < -size / 2) dx += size
-        var dy = y2 - y1
-        if (dy > size / 2) dy -= size else if (dy < -size / 2) dy += size
-        val distSq = dx * dx + dy * dy
-        dists += sqrt(distSq.toDouble())
+    for (quad in data) {
+        for (a in 0..<4) {
+            for (b in a + 1..<4) {
+                val x1 = quad[a * 2]
+                val y1 = quad[a * 2 + 1]
+                val x2 = quad[b * 2]
+                val y2 = quad[b * 2 + 1]
+                var dx = x2 - x1
+                if (dx > size / 2) dx -= size else if (dx < -size / 2) dx += size
+                var dy = y2 - y1
+                if (dy > size / 2) dy -= size else if (dy < -size / 2) dy += size
+                val distSq = dx * dx + dy * dy
+                dists += sqrt(distSq.toDouble())
+            }
+        }
     }
 
     val outputPath = basePath.resolve("restir_reusetex${it}.bin")
-    val outputData = ByteArray(data.size * 4)
+    val outputData = ByteArray(data.size * 8)
     for (i in data.indices) {
-        val pairData = data[i]
-        val outputBase = i * 4
-        outputData[outputBase] = (pairData[0] and 0xff).toByte()
-        outputData[outputBase + 1] = (pairData[1] and 0xff).toByte()
-        outputData[outputBase + 2] = (pairData[2] and 0xff).toByte()
-        outputData[outputBase + 3] = (pairData[3] and 0xff).toByte()
+        val quadData = data[i]
+        val outputBase = i * 8
+        outputData.writeIntLE(outputBase, packCoords(quadData[0], quadData[1], quadData[2], quadData[3]))
+        outputData.writeIntLE(outputBase + 4, packCoords(quadData[4], quadData[5], quadData[6], quadData[7]))
     }
     outputPath.toFile().writeBytes(outputData)
 }
