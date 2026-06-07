@@ -10,6 +10,7 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Colors2.glsl"
+#include "/util/SplitSumSpecular.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -59,8 +60,7 @@ void main() {
             outputColor.rgb += giDiff.rgb * material.albedo;
 
             float NDotV = saturate(dot(gData.normal, V));
-            vec3 specBrdf = texture(usam_specBRDFLUT, vec2(NDotV, material.roughness)).rgb;
-            vec3 specAlbedo = saturate(material.f0RGB * specBrdf.x + material.f82TintRGB * specBrdf.y + specBrdf.z);
+            vec3 specAlbedo = splitSumSpecularLUT(material.f0RGB, material.f82TintRGB, NDotV, material.roughness);
             outputColor.rgb += giSpec.rgb * specAlbedo;
             imageStore(uimg_temp3, texelPos, vec4(giSpec  ));
         }

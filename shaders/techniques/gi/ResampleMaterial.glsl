@@ -3,6 +3,7 @@
 
 #include "/util/Material.glsl"
 #include "/util/Math.glsl"
+#include "/util/SplitSumSpecular.glsl"
 
 struct ResampleMaterial {
     float f0;
@@ -80,8 +81,7 @@ float LDotH
 }
 
 vec3 resampleMaterial_specularAlbedo(ResampleMaterial material, float NDotV) {
-    vec3 specBrdf = texture(usam_specBRDFLUT, vec2(NDotV, material.roughness)).rgb;
-    return saturate(vec3(material.f0 * specBrdf.x + specBrdf.y + specBrdf.z));
+    return splitSumSpecularLUT(material.f0, NDotV, material.roughness);
 }
 
 #endif
