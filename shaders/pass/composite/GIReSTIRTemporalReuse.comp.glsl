@@ -29,6 +29,7 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/gi/InitialSample.glsl"
+#include "/techniques/gi/ReprojectInfo.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
@@ -36,7 +37,7 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 #include "/techniques/HiZCheck.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 #include "/util/BSDF.glsl"
-#include "/techniques/gi/PairwiseMIS.glsl"
+#include "/techniques/gi/PairwiseMISMetadata.glsl"
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
@@ -317,7 +318,7 @@ void main() {
             transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
             #endif
         }
-        PairwiseMISMetadata meta = pairwiseMISMetadata_init(texelPos);
+        PairwiseMISMetadata meta = pairwiseMISMetadata_init();
         if (!restir_isReservoirValid(temporalReservoir)) {
             temporalReservoir.Y.w = -1.0;
         }

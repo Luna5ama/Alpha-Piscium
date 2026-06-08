@@ -10,11 +10,14 @@
 
 import org.apache.commons.rng.UniformRandomProvider
 import org.apache.commons.rng.simple.RandomSource
+import java.util.stream.IntStream
 import kotlin.io.path.Path
+import kotlin.math.hypot
 import kotlin.math.pow
 import kotlin.math.sqrt
 
 val size = 256
+val threadGroupSize = 256
 val sigma = 16.0
 
 fun IntArray.shuffle(random: UniformRandomProvider): Unit {
@@ -27,11 +30,18 @@ fun IntArray.shuffle(random: UniformRandomProvider): Unit {
 }
 
 fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
-    val pairs = Array(size) { IntArray(size) }
+    val groupIDGrid = Array(size) { IntArray(size) }
     var i = 0
-    for (y in 0..<size) {
-        for (x in 0..<size) {
-            pairs[y][x] = (i++) / 2
+    val groupSizeX = 4
+    val groupSizeY = 2
+    for (y in 0..<size step groupSizeY) {
+        for (x in 0..<size step groupSizeX) {
+            val groupID = i++
+            for (dy in 0..<groupSizeY) {
+                for (dx in 0..<groupSizeX) {
+                    groupIDGrid[y + dy][x + dx] = groupID
+                }
+            }
         }
     }
 
@@ -50,14 +60,14 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
                 var i = 0
                 for (dy in 0..<2) {
                     for (dx in 0..<2) {
-                        permuteTemp[i++] = pairs[(dstY + dy) % size][(dstX + dx) % size]
+                        permuteTemp[i++] = groupIDGrid[(dstY + dy) % size][(dstX + dx) % size]
                     }
                 }
                 permuteTemp.shuffle(randoms[y][x])
                 i = 0
                 for (dy in 0..<2) {
                     for (dx in 0..<2) {
-                        pairs[(dstY + dy) % size][(dstX + dx) % size] = permuteTemp[i++]
+                        groupIDGrid[(dstY + dy) % size][(dstX + dx) % size] = permuteTemp[i++]
                     }
                 }
             }
@@ -68,72 +78,121 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
         shuffleGrid(it, it)
     }
 
-    val pairPos = Array(size * size / 2) { IntArray(5) }
+    val groupPos = Array(size * size / 8) { IntArray(17) }
     for (y in 0..<size) {
         for (x in 0..<size) {
-            val pairId = pairs[y][x]
-            val arr = pairPos[pairId]
+            val groupId = groupIDGrid[y][x]
+            val arr = groupPos[groupId]
             val idx = (arr[0]++) * 2
             arr[idx + 1] = x
             arr[idx + 2] = y
         }
     }
+    require(groupPos.all { it[0] == 8 }) { "Generated reuse texture contains a malformed group" }
 
-    val temp = pairPos.map { it.slice(1..<5) }
-    val lookup = temp.asSequence()
-        .withIndex()
-        .flatMap { (i, pair) ->
-            pair.chunked(2).map { (it[0] to it[1]) to i }
-        }
-        .toMap(mutableMapOf())
+    val groups = groupPos
+        .map { it.slice(1..<17).chunked(2).map { it[0] to it[1] } }
 
-    val final = mutableListOf<List<Int>>()
-    for (y in 0..<size) {
-        for (x in 0..<size) {
-            val myPair = x to y
-            lookup.remove(myPair)?.let { pairId ->
-                val element = temp[pairId]
-                var otherPair = element[0] to element[1]
-                if (otherPair == myPair) {
-                    otherPair = element[2] to element[3]
+    val centroids = MutableList(size * size / threadGroupSize) {
+        baseRandom.nextDouble(0.0, size.toDouble()) to baseRandom.nextDouble(0.0, size.toDouble())
+    }
+
+    val groupAssignments = IntArray(groups.size)
+
+    repeat(1024) {
+        IntStream.range(0, groups.size).parallel().forEach { groupID ->
+            val group = groups[groupID]
+            groupAssignments[groupID] = centroids.withIndex().minBy { (index, centroid) ->
+                val (cx, cy) = centroid
+                group.sumOf { (x, y) ->
+                    hypot((x + 0.5) - cx, (y + 0.5) - cy)
                 }
-                lookup.remove(otherPair)
-                final.add(listOf(myPair.first, myPair.second, otherPair.first, otherPair.second))
+            }.index
+        }
+
+        groupAssignments.withIndex().groupBy { it.value }
+            .entries
+            .parallelStream()
+            .forEach { (centroidID, assignedGroups) ->
+                val allPoints = assignedGroups.flatMap { groups[it.index] }
+                val avgX = allPoints.sumOf { it.first + 0.5 } / allPoints.size
+                val avgY = allPoints.sumOf { it.second + 0.5 } / allPoints.size
+                centroids[centroidID] = avgX to avgY
+            }
+    }
+
+    fun morton2D(localX: Int, localY: Int): Int {
+        fun spread9(v: Int): Int {
+            var x = v and 0x1FF
+            x = (x or (x shl 8)) and 0x00FF00FF
+            x = (x or (x shl 4)) and 0x0F0F0F0F
+            x = (x or (x shl 2)) and 0x33333333
+            x = (x or (x shl 1)) and 0x55555555
+            return x
+        }
+
+        val px = localX + 128
+        val py = localY + 128
+
+        require(px in 0..511)
+        require(py in 0..511)
+
+        return spread9(px) or (spread9(py) shl 1)
+    }
+
+    val comparator = compareBy<Pair<Int, Int>> { morton2D(it.first, it.second) }
+    val listComp = compareBy<List<Pair<Int, Int>>> { morton2D(it[0].first, it[0].second) }
+    val centroidComp = compareBy<Pair<Int, *>> {
+        val centroid = centroids[it.first]
+        morton2D(centroid.first.toInt(), centroid.second.toInt())
+    }
+
+    data class GroupAssignment(val groupID: Int, val centroidID: Int)
+
+    return groupAssignments.withIndex()
+        .map { GroupAssignment(it.index, it.value) }
+        .groupBy { it.centroidID }
+        .toList()
+        .sortedWith(centroidComp)
+        .flatMap { (_, assignedGroups) ->
+            assignedGroups.map {
+                groups[it.groupID].sortedWith(comparator)
+            }.sortedWith(listComp).map {
+                it.flatMap { listOf(it.first, it.second) }
+            }
+        }
+}
+
+val baseRandom = RandomSource.XO_SHI_RO_256_PP.create(69691145141919810L)
+val basePath = Path("../shaders/textures")
+val dists = mutableListOf<Double>()
+
+repeat(4) { texIndex ->
+    val data = main(baseRandom)
+
+    for (group in data) {
+        for (a in 0..<8) {
+            for (b in a + 1..<8) {
+                val x1 = group[a * 2]
+                val y1 = group[a * 2 + 1]
+                val x2 = group[b * 2]
+                val y2 = group[b * 2 + 1]
+                var dx = x2 - x1
+                if (dx > size / 2) dx -= size else if (dx < -size / 2) dx += size
+                var dy = y2 - y1
+                if (dy > size / 2) dy -= size else if (dy < -size / 2) dy += size
+                val distSq = dx * dx + dy * dy
+                dists += sqrt(distSq.toDouble())
             }
         }
     }
 
-    return final
-}
-
-val baseRandom = RandomSource.XO_SHI_RO_256_PP.create(1145141919810L)
-val basePath = Path("../shaders/textures")
-val dists = mutableListOf<Double>()
-repeat(8) {
-    val data = main(baseRandom)
-
-    for (pairs in data) {
-        val x1 = pairs[0]
-        val y1 = pairs[1]
-        val x2 = pairs[2]
-        val y2 = pairs[3]
-        var dx = x2 - x1
-        if (dx > size / 2) dx -= size else if (dx < -size / 2) dx += size
-        var dy = y2 - y1
-        if (dy > size / 2) dy -= size else if (dy < -size / 2) dy += size
-        val distSq = dx * dx + dy * dy
-        dists += sqrt(distSq.toDouble())
-    }
-
-    val outputPath = basePath.resolve("restir_reusetex${it}.bin")
-    val outputData = ByteArray(data.size * 4)
+    val outputPath = basePath.resolve("restir_reusetex${texIndex}.bin")
+    val outputData = ByteArray(data.size * 16)
     for (i in data.indices) {
-        val pairData = data[i]
-        val outputBase = i * 4
-        outputData[outputBase] = (pairData[0] and 0xff).toByte()
-        outputData[outputBase + 1] = (pairData[1] and 0xff).toByte()
-        outputData[outputBase + 2] = (pairData[2] and 0xff).toByte()
-        outputData[outputBase + 3] = (pairData[3] and 0xff).toByte()
+        val groupData = data[i]
+        val outputBase = i * 16
+        repeat(16) { outputData[outputBase + it] = groupData[it].toByte() }
     }
     outputPath.toFile().writeBytes(outputData)
 }

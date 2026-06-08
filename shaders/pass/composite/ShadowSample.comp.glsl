@@ -33,6 +33,7 @@ layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32i) uniform iimage2D uimg_fr32f;
 layout(rgba16f) uniform restrict image2D uimg_translucentColor;
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
+layout(r32f) uniform restrict image2D uimg_r32f;
 
 #include "/techniques/rtwsm/Backward.glsl"
 
@@ -52,10 +53,9 @@ vec2 rtwsm_warpTexCoord_shared(vec2 uv) {
     );
 }
 
-float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord, float sssFactor) {
-    uint BLOCKER_SEARCH_N = uint(mix(float(SETTING_PCSS_BLOCKER_SEARCH_COUNT), float(SETTING_SSS_SAMPLE_COUNT), float(sssFactor > 0.0)));
-
-    vec2 blockerSearchRange = fma(vec2(sssFactor), vec2(0.2), vec2(0.05)) * vec2(global_shadowProj[0][0], global_shadowProj[1][1]);
+float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord, float sssFactor, bool hasSSS, vec2 shadowProjScale) {
+    uint sampleCount = hasSSS ? uint(SETTING_SSS_SAMPLE_COUNT) : uint(SETTING_PCSS_BLOCKER_SEARCH_COUNT);
+    vec2 blockerSearchRange = shadowProjScale * fma(sssFactor, 0.2, 0.05);
 
     float blockerDepthSum = 0.0;
     float validCount = 0.0;
@@ -63,14 +63,14 @@ float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord, float sssFactor) {
     float jitterR = rand_stbnVec1(texelPos, frameCounter);
     vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);
 
-    float rcpSamples = 1.0 / float(BLOCKER_SEARCH_N);
+    float rcpSamples = 1.0 / float(sampleCount);
     float jitterRcpSamples = jitterR * rcpSamples;
 
     // Loop-invariant weight exponentiation calculation
     float currentWeight = exp2(-2.0 * jitterRcpSamples);
     float weightMult = exp2(-2.0 * rcpSamples);
 
-    for (uint i = 0u; i < BLOCKER_SEARCH_N; i++) {
+    for (uint i = 0u; i < sampleCount; i++) {
         dir *= MAT2_GOLDEN_ANGLE;
         float baseRadius = sqrt(fma(float(i), rcpSamples, jitterRcpSamples));
 
@@ -79,10 +79,10 @@ float searchBlocker(ivec2 texelPos, vec3 shadowTexCoord, float sssFactor) {
         sampleTexCoord.xy = rtwsm_warpTexCoord_shared(sampleTexCoord.xy);
 
         vec4 depthGather = textureGather(shadowtex1, sampleTexCoord.xy, 0);
-        vec4 isBlocker4 = vec4(greaterThan(vec4(sampleTexCoord.z), depthGather));
+        vec4 isBlocker4 = vec4(greaterThan(vec4(shadowTexCoord.z), depthGather));
 
-        validCount += dot(vec4(currentWeight), isBlocker4);
-        blockerDepthSum += dot(vec4(depthGather), isBlocker4) * currentWeight;
+        validCount += sum4(isBlocker4) * currentWeight;
+        blockerDepthSum += dot(depthGather, isBlocker4) * currentWeight;
 
         currentWeight *= weightMult;
     }
@@ -106,11 +106,11 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
     Material material = material_decode(gData);
 
     float sssFactor = material.sss;
-    uint skipFlag = uint(dot(gData.normal, uval_upDirView) < -0.99);
+    bool hasSSS = sssFactor > 0.0;
     bool isSSS = sssFactor > 0.001;
-    skipFlag &= 1u - uint(isSSS);
+    bool skip = dot(gData.normal, uval_upDirView) < -0.99 && !isSSS;
     vec4 result = vec4(0.0);
-    if (!bool(skipFlag)) {
+    if (!skip) {
         vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
         vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
@@ -123,7 +123,8 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         vec3 shadowNDCPos = shadowClipPos.xyz / shadowClipPos.w;
         vec3 shadowScreenPos = shadowNDCPos * 0.5 + 0.5;
 
-        float blockerDistance = searchBlocker(texelPos, shadowScreenPos, sssFactor);
+        vec2 shadowProjScale = vec2(global_shadowProj[0][0], global_shadowProj[1][1]);
+        float blockerDistance = searchBlocker(texelPos, shadowScreenPos, sssFactor, hasSSS, shadowProjScale);
         float ssRange = 0.0;
 
         #if SETTING_PCSS_BPF > 0
@@ -135,9 +136,7 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         ssRange = saturate(fma(SUN_ANGULAR_RADIUS * 2.0 * SETTING_PCSS_VPF, clampedBlockerDistance, ssRange));
         ssRange += sssFactor * SETTING_SSS_DIFFUSE_RANGE;
 
-        // Pre-calculated projection scaling
-        vec2 shadowProjScale = vec2(global_shadowProj[0][0], global_shadowProj[1][1]) * 0.25;
-        vec2 ssRange2 = ssRange * shadowProjScale;
+        vec2 ssRange2 = ssRange * shadowProjScale * 0.25;
 
         float jitterR = rand_stbnVec1(texelPos, frameCounter);
         vec2 dir = rand_stbnUnitVec211(texelPos, frameCounter);
@@ -154,7 +153,9 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
         float causticsSampleRadius = 32.0 / max(abs(viewPos.z), 0.1);
         #endif
 
-        shadowScreenPos.z -= rtwsm_linearDepthOffsetInverse(jitterR * pow(sssFactor, 0.25) * SETTING_SSS_DEPTH_RANGE);
+        if (hasSSS) {
+            shadowScreenPos.z -= rtwsm_linearDepthOffsetInverse(jitterR * pow(sssFactor, 0.25) * SETTING_SSS_DEPTH_RANGE);
+        }
 
         for (uint i = 0; i < SAMPLE_COUNT; i++) {
             dir *= MAT2_GOLDEN_ANGLE;
@@ -218,7 +219,7 @@ vec4 compShadow(ivec2 texelPos, float viewZ, GBufferData gData) {
             finalShadow *= vec3(translucentShadowSum.rgb) * rcp(float(translucentShadowSum.a));
         }
 
-        float surfaceDepth = sssFactor > 0.0 ? max(blockerDistance, 0.1) : 0.0;
+        float surfaceDepth = hasSSS ? max(blockerDistance, 0.1) : 0.0;
 
         float realShadowRange = min(shadowDistance, far);
         float shadowRangeBlend = smoothstep(realShadowRange - 16.0, realShadowRange - 8.0, length(scenePos.xz));

@@ -1,7 +1,7 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/Base.glsl"
-#define RAY_STEPS (SETTING_GI_VALIDATE_SST_STEPS - 4)
+#define RAY_STEPS SETTING_GI_VALIDATE_SST_STEPS
 
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
@@ -15,7 +15,7 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 void handleRayResult(SSTRay sstRay) {
     ivec2 texelPos = sstRay.pRayOriginTexelPos;
     bool discardSptialReuse = true;
-    if (sstRay.currT < -0.1) {
+    if (sstRay.currT < -0.99) {
         discardSptialReuse = false;
     }
 

@@ -39,6 +39,10 @@ void main() {
             value += shared_buffer[pos];
         }
         value /= float(SAMPLES);
-        persistent_rtwsm_importance1D_store(dataPos, vec4(value));
+        float prevValue = persistent_rtwsm_importance1DBlurred_load(dataPos).x;
+        float currValue = value;
+        float newValue = mix(currValue, max(prevValue, currValue), 0.9 * global_taaResetFactor.y);
+        newValue = exp2(round(log2(newValue) * 4.0) / 4.0);
+        persistent_rtwsm_importance1DBlurred_store(dataPos, vec4(newValue));
     }
 }

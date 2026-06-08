@@ -192,7 +192,7 @@ void main() {
             float specAccumFactor = rcp(1.0 + specularHistoryLength);
 
             vec2 hitDistFactor = pow2(hitDistanceFactors);
-            hitDistFactor.x = hitDistFactor.x * 0.9 + 0.1;
+            hitDistFactor.x = hitDistFactor.x * 0.95 + 0.05;
             #if GI_DENOISE_PASS == 2
             #if SETTING_DEBUG_OUTPUT
 

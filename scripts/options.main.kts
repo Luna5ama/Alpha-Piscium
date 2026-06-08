@@ -8,9 +8,6 @@ import kotlin.io.path.nameWithoutExtension
 import kotlin.io.path.readLines
 import kotlin.math.pow
 
-val kotlinExec = if (System.getProperty("os.name").lowercase().contains("win")) "kotlin.bat" else "kotlin"
-ProcessBuilder(kotlinExec, "programs.main.kts").inheritIO().start().waitFor()
-
 val versionStr = args.getOrElse(0) {
     data class Version(val major: Int, val minor: Int, val patch: Int, val beta: Int, val hotfix: Int) : Comparable<Version> {
         override fun compareTo(other: Version): Int {
@@ -86,7 +83,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         §a§lHigh§r: Balanced quality and performance.
                         §6§lUltra§r: The §6§ltrue§r Alpha Piscium experience as it should be.
                         §d§lExtreme§r: Even better experience at §osome§r cost.
-                        §5§lInsane§r: "Can it run Crysis?" §kxyz69420§r.
+                        §5§lInsane§r: "Can it run Crysis?" §kxyz42069§r.
                     """.trimIndent()
                 }
                 lang(Locale.SIMPLIFIED_CHINESE) {
@@ -96,7 +93,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         §a§lHigh§r: 画质与性能的平衡。
                         §6§lUltra§r: §6§l真正的§r外屏七体验，就是它了。
                         §d§lExtreme§r: 更好的体验，只需要§o亿点点§r代价.
-                        §5§lInsane§r: 《显 卡 危 机》 §kxyz69420§r.
+                        §5§lInsane§r: 《显 卡 危 机》 §kxyz1145141919810§r.
                     """.trimIndent()
                 }
             }
@@ -859,13 +856,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "重用来自附近像素的GI样本以提高性能。"
                     }
                 }
-                slider("SETTING_GI_SPATIAL_REUSE_COUNT", 6, 1..8) {
-                    Profile.Low preset 4
-                    Profile.Medium preset 5
-                    Profile.High preset 6
-                    Profile.Ultra preset 6
-                    Profile.Extreme preset 6
-                    Profile.Insane preset 8
+                slider("SETTING_GI_SPATIAL_REUSE_COUNT", 7, 7..28 step 7) {
+                    Profile.Low preset 7
+                    Profile.Medium preset 7
+                    Profile.High preset 7
+                    Profile.Ultra preset 7
+                    Profile.Extreme preset 14
+                    Profile.Insane preset 14
 
                     lang {
                         name = "Spatial Reuse Sample Count"
@@ -1563,7 +1560,29 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     empty()
-                    slider("SETTING_WATER_NORMAL_SCALE", 1.5, 0.0..5.0 step 0.5) {
+                    slider("SETTING_WATER_WAVE_FREQUENCY", 0.0, -2.5..2.5 step 0.1) {
+                        lang {
+                            name = "Water Wave Frequency"
+                            comment =
+                                "Frequency of water surface waves. Higher values create more waves and choppier water."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "水波频率"
+                            comment = "水面波浪的频率。数值越高，水越波涛汹涌。"
+                        }
+                    }
+                    slider("SETTING_WATER_WAVE_SPEED", 1.0, 0.0..4.0 step 0.1) {
+                        lang {
+                            name = "Water Wave Speed"
+                            comment =
+                                "Speed of water surface waves. Higher values create faster moving waves."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "水波速度"
+                            comment = "水面波浪的速度。数值越高，波浪移动越快。"
+                        }
+                    }
+                    slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..5.0 step 0.5) {
                         lang {
                             name = "Water Normal Intensity"
                             comment =
@@ -1586,7 +1605,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "给水波添加立体感，使它们看起来是3D而不是平面的。"
                         }
                     }
-                    slider("SETTING_WATER_PARALLAX_STRENGTH", 1.5, 0.0..5.0 step 0.5) {
+                    slider("SETTING_WATER_PARALLAX_STRENGTH", 1.0, 0.0..5.0 step 0.5) {
                         lang {
                             name = "Water Parallax Strength"
                             comment =

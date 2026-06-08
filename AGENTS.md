@@ -61,6 +61,14 @@ For rendering, GI, ReSTIR, denoising, atmosphere, and shader code:
 - keep Iris `workGroups` and `workGroupRender` values as constant literals or macros that expand to constant literals
 - use preprocessor conditionals for alternate Iris work group values; do not use math expressions such as `VOXEL_POOL_SIZE * 16` in the directive
 
+## Shader Project Structure
+
+Use `.glsl` for shared utilities or shader code without an entrypoint (`main` function).
+
+Use `frag.glsl`, `geom.glsl`, `comp.glsl`, and `vert.glsl` for shaders with an entrypoint. The `.csh`, `.fsh`, `.gsh`, and `.vsh` files exist only for Iris compatibility or requirements.
+
+`shaders/pass/` should only contain shaders with an entrypoint. Put all other shader code under `shaders/techniques/` or `shaders/util/`.
+
 ## Generated Shader Files
 
 Only run Shadesmith when `shaders/shadesmith.json` changes. Changes to `.glsl` files do not require a Shadesmith rebuild because `.csh` files include them at runtime.

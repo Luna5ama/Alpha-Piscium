@@ -1,15 +1,5 @@
-#extension GL_KHR_shader_subgroup_arithmetic : enable
-#extension GL_KHR_shader_subgroup_ballot : enable
-
-#define GLOBAL_DATA_MODIFIER buffer
-
 #include "/util/Coords.glsl"
-#include "/util/FullScreenComp.glsl"
 #include "/techniques/textile/CSR32F.glsl"
-#include "/techniques/textile/CSRG32F.glsl"
-
-layout(local_size_x = 16, local_size_y = 16) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rg32ui) uniform writeonly uimage2D uimg_rg32ui;
 
@@ -19,17 +9,6 @@ shared vec3 shared_shadowAABBMin[16];
 shared vec3 shared_shadowAABBMax[16];
 
 const float EPS = 0.5;
-
-// layer 1: air behind translucent
-// inscattering: 3x16f
-// transmittance: 3x10u
-// layer 2: water
-// inscattering: 3x16f
-// transmittance: 3x10u
-// layer 3: air in front of translucent
-// inscattering: 3x16f
-// transmittance: 3x10u
-
 
 void shadowAABB1(vec3 shadowViewPosMin, vec3 shadowViewPosMax) {
     vec3 min1 = subgroupMin(shadowViewPosMin);
@@ -75,13 +54,12 @@ void updateShadowAABB(vec2 screenPos, float viewZ, inout vec3 shadowViewPosMin, 
     }
 }
 
-void main() {
+void updateVolumetricsDepthLayers(float solid) {
     if (gl_LocalInvocationIndex < 16) {
         shared_shadowAABBMax[gl_LocalInvocationIndex] = vec3(0.0);
         shared_shadowAABBMin[gl_LocalInvocationIndex] = vec3(0.0);
     }
 
-    float solid = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
     vec2 layer1 = vec2(-FLT_MAX);
     vec2 layer2 = vec2(-FLT_MAX);
     vec2 layer3 = vec2(-FLT_MAX);
@@ -111,15 +89,6 @@ void main() {
         layer2 = layer2.x > layer2.y + EPS ? layer2 : vec2(-FLT_MAX);
     }
 
-    // Storing results:
-    // x: layer1End (solid)
-    // y: layer1Start
-    //
-    // layer2End = layer1Start
-    // z: layer2Start
-    //
-    // w: layer3End
-    // layer3Start = 0.0
     vec4 result = vec4(layer1, layer2);
     vec4 dilated = subgroupMax(result);
     if (subgroupElect()) {

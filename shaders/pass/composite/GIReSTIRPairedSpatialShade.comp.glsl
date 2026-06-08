@@ -9,7 +9,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 #include "/techniques/gi/Common.glsl"
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/HiZCheck.glsl"
-#include "/techniques/gi/PairwiseMIS.glsl"
+#include "/techniques/gi/PairwiseMISMetadata.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -67,25 +67,24 @@ void main() {
 
         if (viewZ > -65536.0) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
-            vec2 screenPos2 = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-            vec3 viewPos2 = coords_toViewCoord(screenPos2, viewZ, global_camProjInverse);
             vec3 V = normalize(-viewPos);
             ResampleMaterial centerMaterial = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelPos));
 
             PairwiseMISMetadata metadata = pairwiseMISMetadata_unpack(transient_restir_pairwiseMISMetadata_fetch(texelPos));
 
-            ivec2 winTexel = metadata.selectedTexel;
+            ivec2 winTexel = texelPos + metadata.selectedTexelDelta;
             uint numValidNeighbors = metadata.numValidNeighbors;
             float mc = metadata.mc;
             float spatialWSum = metadata.spatialWSum;
+            bool selectedNeighbor = winTexel != texelPos;
 
             ReSTIRReservoir spatialReservoir = readTemporalReservoir(texelPos);
             vec4 originalSample = spatialReservoir.Y;
             spatialReservoir.m = metadata.accumM;
 
             vec4 selectedSampleF = centerSampleData.sampleValue;
-            if (winTexel != texelPos) {
+            if (selectedNeighbor) {
                 SpatialSampleData winSample = spatialSampleData_unpack(transient_restir_spatialInput_fetch(winTexel));
                 float winViewZ = texelFetch(usam_gbufferSolidViewZ, winTexel, 0).x;
                 vec2 winScreenPos = coords_texelToUV(winTexel, uval_mainImageSizeRcp);
@@ -111,39 +110,43 @@ void main() {
                 canonicalRand
             );
 
-            if (chooseCanon || winTexel == texelPos) {
+            if (chooseCanon || !selectedNeighbor) {
                 selectedSampleF = centerSampleData.sampleValue;
             }
 
             vec4 ssgiDiffOut = vec4(0.0, 0.0, 0.0, -1.0);
             vec4 ssgiSpecOut = vec4(0.0, 0.0, 0.0, -1.0);
-            ReSTIRReservoir resultReservoir = spatialReservoir;
+            vec4 resultY = spatialReservoir.Y;
 
-            float avgWY = spatialWSum * safeRcp(selectedSampleF.w) * safeRcp(float(numValidNeighbors + 1u));
-            // resultReservoir.avgWY = avgWY;
+            float avgWY = spatialWSum * safeRcp(selectedSampleF.w) * rcp(float(numValidNeighbors + 1u));
 
-            vec3 winL_out = resultReservoir.Y.xyz;
-            float winHitDist = resultReservoir.Y.w;
-            vec3 H_out = normalize(winL_out + V);
+            vec3 winL_out = resultY.xyz;
+            float winHitDist = resultY.w;
 
-            float outNDotL = saturate(dot(centerSampleData.normal, winL_out));
-            float outNDotH = saturate(dot(centerSampleData.normal, H_out));
-            float outLDotH = saturate(dot(winL_out, H_out));
+            float rawNDotL = dot(centerSampleData.normal, winL_out);
+            float rawNDotV = dot(centerSampleData.normal, V);
+            float outLDotV = dot(winL_out, V);
+            float outInvLen = inversesqrt(max(2.0 + 2.0 * outLDotV, 1e-5));
 
-            float NDotV = saturate(dot(centerSampleData.normal, V));
+            float outNDotL = saturate(rawNDotL);
+            float outNDotH = saturate((rawNDotL + rawNDotV) * outInvLen);
+            float outLDotH = saturate((1.0 + outLDotV) * outInvLen);
+
+            float NDotV = saturate(rawNDotV);
             ResampleBRDF outBRDF = resampleMaterial_evalBRDF(centerMaterial, outNDotL, NDotV, outNDotH, outLDotH);
-            float diffRatio = outBRDF.diffuse * safeRcp(outBRDF.full);
 
-            vec3 totalOutput = selectedSampleF.xyz * outBRDF.full * avgWY;
-            ssgiDiffOut = vec4(totalOutput * diffRatio, winHitDist);
-            ssgiSpecOut = vec4(totalOutput * (1.0 - diffRatio), winHitDist);
+            vec3 radianceWeight = selectedSampleF.xyz * avgWY;
+            ssgiDiffOut = vec4(radianceWeight * outBRDF.diffuse, winHitDist);
+            ssgiSpecOut = vec4(radianceWeight * outBRDF.specular, winHitDist);
             vec3 specAlbedo = resampleMaterial_specularAlbedo(centerMaterial, NDotV);
             ssgiSpecOut.rgb *= safeRcp(specAlbedo);
+            ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);
+            ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
 
             #if SETTING_DEBUG_OUTPUT
             vec4 vvv = vec4(0.0);
             #endif
-            if (!chooseCanon && winTexel != texelPos) {
+            if (!chooseCanon && selectedNeighbor) {
                 #if SETTING_DEBUG_OUTPUT
                 vvv = vec4(0.0, 1.0, 0.0, 0.0);
                 #endif
@@ -159,11 +162,11 @@ void main() {
                 if (hit.hit) {
                     discardSptialReuse = distanceSq(hit.hitPos, expectedHitPos) > 0.05;
                 } else {
-                    discardSptialReuse = resultReservoir.Y.w > 0.0;
+                    discardSptialReuse = spatialReservoir.Y.w > 0.0;
                 }
 
                 if (discardSptialReuse) {
-                    resultReservoir = restir_initReservoir();
+                    spatialReservoir = restir_initReservoir();
                     ssgiDiffOut = vec4(0.0);
                     ssgiSpecOut = vec4(0.0);
                     #if SETTING_DEBUG_OUTPUT
@@ -174,9 +177,6 @@ void main() {
             #if SETTING_DEBUG_OUTPUT
             imageStore(uimg_temp5, texelPos, vvv);
             #endif
-
-            ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);
-            ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
             transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);
             transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
         }

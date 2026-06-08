@@ -193,7 +193,7 @@ programs {
             cond("defined(VOXY)")
         }
         pass("/pass/composite/HiZGen.csh")
-        pass("/pass/composite/GIDenoiserEdgeClassification.comp.glsl")
+        pass("/pass/composite/GIDenoiserEdgeClassificationAndVolumetricsDepthLayers.comp.glsl")
         pass("/pass/composite/GIDenoiserEdgeDilation.comp.glsl")
         pass("/pass/composite/GIDenoiserReproject.comp.glsl")
         pass("/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl")
@@ -208,9 +208,6 @@ programs {
             cond("defined(SETTING_WATER_CAUSTICS)")
         }
         pass("/pass/composite/CausticsRemap.comp.glsl") {
-            cond("defined(SETTING_WATER_CAUSTICS)")
-        }
-        pass("/pass/composite/CausticsFilter.comp.glsl") {
             cond("defined(SETTING_WATER_CAUSTICS)")
         }
         pass("/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl") {
@@ -265,11 +262,12 @@ programs {
         pass("/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl") {
             cond("defined(SETTING_GI_DECORRELATE)")
         }
-        for (i in 0..7) {
+        for (i in 0..<4) {
             pass("/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl") {
                 constDefine("PASS_INDEX", i.toString())
+                constDefine("PASS_BASE_SAMPLE_INDEX", (i * 7).toString())
                 indirect(0, 48)
-                cond("defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > $i")
+                cond("defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > ${i * 7}")
             }
         }
         pass("/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl")
@@ -290,7 +288,6 @@ programs {
         pass("/pass/composite/SSTStepDebug.comp.glsl") {
             cond("defined(SETTING_DEBUG_SST_STEPS)")
         }
-        pass("/pass/composite/VolumetricsDepthLayers.comp.glsl")
         pass("/pass/composite/EpipolarScatteringAir.comp.glsl")
         pass("/pass/composite/EpipolarScatteringWater.comp.glsl")
         pass("/pass/composite/TranslucentBackComposite.glsl")

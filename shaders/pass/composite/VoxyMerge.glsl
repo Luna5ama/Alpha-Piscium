@@ -199,9 +199,7 @@ void main() {
             #if defined(SETTING_NORMAL_MAPPING)
             if (isWater) {
                 vec3 scenePos = (gbufferModelViewInverse * vec4(viewPos, 1.0)).xyz;
-                vec3 cameraPosWaveSpace = vec3(cameraPositionInt >> 5) + ldexp(vec3(cameraPositionInt & ivec3(31)), ivec3(-5));
-                cameraPosWaveSpace = cameraPositionFract * WAVE_POS_BASE + cameraPosWaveSpace * 0.736;
-                vec3 waveWorldPos = scenePos * WAVE_POS_BASE + cameraPosWaveSpace;
+                vec3 waveWorldPos = (scenePos + cameraPosition) * WAVE_POS_BASE;
 
                 #ifdef SETTING_WATER_PARALLAX
                 const float UP_DIR_COS_EPSILON = 0.001;
@@ -253,7 +251,7 @@ void main() {
                 }
                 #endif
 
-                const float NORMAL_EPS = 0.2;
+                const float NORMAL_EPS = 0.1;
                 const float NORMAL_WEIGHT = SETTING_WATER_NORMAL_SCALE;
                 float waveHeightC = waveHeight(waveWorldPos, true);
                 float waveOffset = NORMAL_EPS * WAVE_POS_BASE;

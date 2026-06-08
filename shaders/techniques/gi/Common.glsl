@@ -122,36 +122,6 @@ float gi_planeDistance(vec3 pos1, vec3 normal1, vec3 pos2, vec3 normal2) {
     return maxPlaneDist;
 }
 
-struct ReprojectInfo {
-    vec4 bilateralWeights;
-    float historyResetFactor;
-    vec2 curr2PrevScreenPos;
-};
-
-ReprojectInfo reprojectInfo_init() {
-    ReprojectInfo info;
-    info.bilateralWeights = vec4(0.0);
-    info.historyResetFactor = 0.0;
-    info.curr2PrevScreenPos = vec2(-1.0);
-    return info;
-}
-
-ReprojectInfo reprojectInfo_unpack(uvec4 packedData) {
-    ReprojectInfo info;
-    info.curr2PrevScreenPos = uintBitsToFloat(packedData.xy);
-    info.bilateralWeights = unpackUnorm4x8(packedData.z);
-    info.historyResetFactor = uintBitsToFloat(packedData.w);
-    return info;
-}
-
-uvec4 reprojectInfo_pack(ReprojectInfo info) {
-    uvec4 packedData;
-    packedData.xy = floatBitsToUint(info.curr2PrevScreenPos);
-    packedData.z = packUnorm4x8(info.bilateralWeights);
-    packedData.w = floatBitsToUint(info.historyResetFactor);
-    return packedData;
-}
-
 vec2 _gi_mirrorUV(vec2 uv) {
     return 1.0 - abs(1.0 - (fract(uv * 0.5) * 2.0));
 }

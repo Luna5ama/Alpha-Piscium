@@ -100,17 +100,6 @@ uniform sampler2D usam_shadow_waterNormal;
 // --------------------------------------------------- Custom Images ---------------------------------------------------
 uniform sampler2D usam_csr32f;
 
-uniform usampler2D usam_rgba32ui;
-uniform usampler2D usam_rg32ui;
-uniform sampler2D usam_rgba16f;
-uniform sampler2D usam_rgb10_a2;
-uniform sampler2D usam_rgba8;
-uniform sampler2D usam_r32f;
-
-uniform sampler2D usam_frgba16f;
-uniform sampler2D usam_fr32f;
-uniform sampler2D usam_frgba16;
-
 uniform sampler3D usam_skyViewLUT;
 uniform usampler2D usam_epipolarData;
 uniform usampler2D usam_envProbe;
@@ -148,8 +137,4 @@ uniform usampler2D usam_restirReuseTex0;
 uniform usampler2D usam_restirReuseTex1;
 uniform usampler2D usam_restirReuseTex2;
 uniform usampler2D usam_restirReuseTex3;
-uniform usampler2D usam_restirReuseTex4;
-uniform usampler2D usam_restirReuseTex5;
-uniform usampler2D usam_restirReuseTex6;
-uniform usampler2D usam_restirReuseTex7;
 #endif

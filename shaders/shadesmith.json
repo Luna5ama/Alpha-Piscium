@@ -15,8 +15,8 @@
         "history_geomViewNormal": "RGB10_A2",
         "history_viewNormal": "RGB10_A2",
         "history_edgeMask": "RGBA8",
-        "transient_edgeMaskTemp": "RGBA8",
         "transient_edgeMask": "RGBA8",
+        "transient_edgeMaskDilated": "RGBA8",
         "transient_bendShadow": "RGBA8",
         "transient_solidAlbedo": "RGBA8",
         "history_gi1": "RGBA16F",
@@ -55,7 +55,6 @@
         "transient_caustics_input": "R32F",
         "transient_geomNormalMip": "RGB10_A2",
         "transient_mainMipTemp": "RGBA32UI",
-        "transient_caustics_remapped": "R32F",
         "transient_caustics_final": "R32F",
         "transient_gi_initialSampleHitDistance": "R32F",
         "transient_bloom": "RGBA16F",
@@ -68,7 +67,8 @@
         "transient_translucentZLayer3": "RG32UI",
         "transient_exposureWeights": "RGBA8",
         "transient_specularPBRData": "RGBA8",
-        "history_roughness": "R32F"
+        "history_roughness": "R32F",
+        "history_avgViewZ": "R32F"
     },
     "fixed": {
         "persistent_multiSctrLUT": {
@@ -97,6 +97,11 @@
             "height": 256
         },
         "persistent_rtwsm_importance1D": {
+            "format": "R32F",
+            "width": 256,
+            "height": 2
+        },
+        "persistent_rtwsm_importance1DBlurred": {
             "format": "R32F",
             "width": 256,
             "height": 2
