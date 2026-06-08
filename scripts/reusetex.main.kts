@@ -6,7 +6,10 @@
 
         You can find full license texts in /licenses
 */
-import java.util.SplittableRandom
+@file:DependsOn("org.apache.commons:commons-rng-simple:1.6")
+
+import org.apache.commons.rng.UniformRandomProvider
+import org.apache.commons.rng.simple.RandomSource
 import kotlin.io.path.Path
 import kotlin.math.pow
 import kotlin.math.sqrt
@@ -14,7 +17,7 @@ import kotlin.math.sqrt
 val size = 256
 val sigma = 16.0
 
-fun IntArray.shuffle(random: SplittableRandom): Unit {
+fun IntArray.shuffle(random: UniformRandomProvider): Unit {
     for (i in lastIndex downTo 1) {
         val j = random.nextInt(i + 1)
         val copy = this[i]
@@ -23,7 +26,7 @@ fun IntArray.shuffle(random: SplittableRandom): Unit {
     }
 }
 
-fun main(baseRandom: SplittableRandom): List<List<Int>> {
+fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
     val quads = Array(size) { IntArray(size) }
     var i = 0
     val groupSizeX = 2
@@ -39,7 +42,7 @@ fun main(baseRandom: SplittableRandom): List<List<Int>> {
         }
     }
 
-    val randoms = Array(size / 2) { Array(size / 2) { SplittableRandom(baseRandom.nextLong()) } }
+    val randoms = Array(size / 2) { Array(size / 2) { RandomSource.XO_SHI_RO_256_PP.create(baseRandom.nextLong()) } }
 
     fun sigmaToShuffleCount(sigma: Double): Int {
         return (0.5 * sigma.pow(2) + 1.46 * sigma.pow(-1) + 1.76 * sigma.pow(-2) + 0.656 * sigma.pow(-3) + 0.5).toInt()
@@ -113,7 +116,7 @@ fun main(baseRandom: SplittableRandom): List<List<Int>> {
     return final
 }
 
-val baseRandom = SplittableRandom(1145141919810L)
+val baseRandom = RandomSource.XO_SHI_RO_256_PP.create(1145141919810L)
 val basePath = Path("../shaders/textures")
 val dists = mutableListOf<Double>()
 
