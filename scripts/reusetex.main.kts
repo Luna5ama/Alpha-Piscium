@@ -134,7 +134,7 @@ fun ByteArray.writeIntLE(offset: Int, value: Int) {
     this[offset + 3] = ((value ushr 24) and 0xff).toByte()
 }
 
-repeat(8) {
+repeat(4) {
     val data = main(baseRandom)
 
     for (group in data) {

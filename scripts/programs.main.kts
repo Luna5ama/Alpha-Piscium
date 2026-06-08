@@ -212,7 +212,7 @@ programs {
         pass("/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl") {
             cond("defined(SETTING_GI_DECORRELATE)")
         }
-        for (i in 0..7) {
+        for (i in 0..<4) {
             pass("/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl") {
                 constDefine("PASS_INDEX", i.toString())
                 constDefine("PASS_BASE_SAMPLE_INDEX", (i * 7).toString())

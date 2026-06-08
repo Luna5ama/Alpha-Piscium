@@ -133,8 +133,4 @@ uniform usampler2D usam_restirReuseTex0;
 uniform usampler2D usam_restirReuseTex1;
 uniform usampler2D usam_restirReuseTex2;
 uniform usampler2D usam_restirReuseTex3;
-uniform usampler2D usam_restirReuseTex4;
-uniform usampler2D usam_restirReuseTex5;
-uniform usampler2D usam_restirReuseTex6;
-uniform usampler2D usam_restirReuseTex7;
 #endif
