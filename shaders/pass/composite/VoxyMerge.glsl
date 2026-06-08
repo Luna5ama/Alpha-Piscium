@@ -251,7 +251,7 @@ void main() {
                 }
                 #endif
 
-                const float NORMAL_EPS = 0.2;
+                const float NORMAL_EPS = 0.1;
                 const float NORMAL_WEIGHT = SETTING_WATER_NORMAL_SCALE;
                 float waveHeightC = waveHeight(waveWorldPos, true);
                 float waveOffset = NORMAL_EPS * WAVE_POS_BASE;

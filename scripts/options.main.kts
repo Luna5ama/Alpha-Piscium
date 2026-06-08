@@ -1448,7 +1448,29 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     empty()
-                    slider("SETTING_WATER_NORMAL_SCALE", 1.5, 0.0..5.0 step 0.5) {
+                    slider("SETTING_WATER_WAVE_FREQUENCY", 0.0, -2.5..2.5 step 0.1) {
+                        lang {
+                            name = "Water Wave Frequency"
+                            comment =
+                                "Frequency of water surface waves. Higher values create more waves and choppier water."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "水波频率"
+                            comment = "水面波浪的频率。数值越高，水越波涛汹涌。"
+                        }
+                    }
+                    slider("SETTING_WATER_WAVE_SPEED", 1.0, 0.0..4.0 step 0.1) {
+                        lang {
+                            name = "Water Wave Speed"
+                            comment =
+                                "Speed of water surface waves. Higher values create faster moving waves."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "水波速度"
+                            comment = "水面波浪的速度。数值越高，波浪移动越快。"
+                        }
+                    }
+                    slider("SETTING_WATER_NORMAL_SCALE", 1.0, 0.0..5.0 step 0.5) {
                         lang {
                             name = "Water Normal Intensity"
                             comment =
@@ -1471,7 +1493,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "给水波添加立体感，使它们看起来是3D而不是平面的。"
                         }
                     }
-                    slider("SETTING_WATER_PARALLAX_STRENGTH", 1.5, 0.0..5.0 step 0.5) {
+                    slider("SETTING_WATER_PARALLAX_STRENGTH", 1.0, 0.0..5.0 step 0.5) {
                         lang {
                             name = "Water Parallax Strength"
                             comment =

@@ -13,14 +13,14 @@ float sampleNoise(vec2 coord) {
     return textureLod(usam_waveNoise, coord * 0.175, 0.0).r;
 }
 
-const float WAVE_POS_BASE = 0.023;
+const float WAVE_POS_BASE = 0.03 * exp2(SETTING_WATER_WAVE_FREQUENCY);
 
 float waveHeight(vec3 wavePos, bool base) {
     const vec2 WAVE_DIR = vec2(0.777, -0.555);
     const vec2 CURL_DIR = vec2(-0.21, 0.15);
 
     #ifndef SETTING_SCREENSHOT_MODE
-    float timeV = frameTimeCounter;
+    float timeV = frameTimeCounter * SETTING_WATER_WAVE_SPEED;
     #else
     float timeV = 13.37;
     #endif
