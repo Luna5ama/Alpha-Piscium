@@ -1,6 +1,7 @@
 #include "Common.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
+#include "/techniques/gi/ReprojectInfo.glsl"
 #include "/util/Fresnel.glsl"
 #include "/util/Sampling.glsl"
 #include "/util/Rand.glsl"

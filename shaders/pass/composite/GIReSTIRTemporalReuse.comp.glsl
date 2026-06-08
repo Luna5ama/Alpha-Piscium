@@ -17,6 +17,7 @@
 
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/gi/InitialSample.glsl"
+#include "/techniques/gi/ReprojectInfo.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/util/Rand.glsl"
