@@ -120,21 +120,7 @@ val baseRandom = RandomSource.XO_SHI_RO_256_PP.create(69691145141919810L)
 val basePath = Path("../shaders/textures")
 val dists = mutableListOf<Double>()
 
-fun packCoords(x0: Int, y0: Int, x1: Int, y1: Int): Int {
-    return (x0 and 0xff) or
-        ((y0 and 0xff) shl 8) or
-        ((x1 and 0xff) shl 16) or
-        ((y1 and 0xff) shl 24)
-}
-
-fun ByteArray.writeIntLE(offset: Int, value: Int) {
-    this[offset] = (value and 0xff).toByte()
-    this[offset + 1] = ((value ushr 8) and 0xff).toByte()
-    this[offset + 2] = ((value ushr 16) and 0xff).toByte()
-    this[offset + 3] = ((value ushr 24) and 0xff).toByte()
-}
-
-repeat(4) {
+repeat(4) { texIndex ->
     val data = main(baseRandom)
 
     for (group in data) {
@@ -154,15 +140,12 @@ repeat(4) {
         }
     }
 
-    val outputPath = basePath.resolve("restir_reusetex${it}.bin")
+    val outputPath = basePath.resolve("restir_reusetex${texIndex}.bin")
     val outputData = ByteArray(data.size * 16)
     for (i in data.indices) {
         val groupData = data[i]
         val outputBase = i * 16
-        outputData.writeIntLE(outputBase, packCoords(groupData[0], groupData[1], groupData[2], groupData[3]))
-        outputData.writeIntLE(outputBase + 4, packCoords(groupData[4], groupData[5], groupData[6], groupData[7]))
-        outputData.writeIntLE(outputBase + 8, packCoords(groupData[8], groupData[9], groupData[10], groupData[11]))
-        outputData.writeIntLE(outputBase + 12, packCoords(groupData[12], groupData[13], groupData[14], groupData[15]))
+        repeat(16) { outputData[outputBase + it] = groupData[it].toByte() }
     }
     outputPath.toFile().writeBytes(outputData)
 }
