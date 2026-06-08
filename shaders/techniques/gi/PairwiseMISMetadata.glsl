@@ -22,16 +22,17 @@ PairwiseMISMetadata pairwiseMISMetadata_init() {
 }
 
 uint pairwiseMISMetadata_packSelectedTexelDeltaAndNumValidNeighbors(ivec2 selectedTexelDelta, uint numValidNeighbors) {
-    uint result = packS10(float(selectedTexelDelta.x) * (1.0 / 511.0));
-    result = bitfieldInsert(result, packS10(float(selectedTexelDelta.y) * (1.0 / 511.0)), 10, 10);
-    result = bitfieldInsert(result, min(numValidNeighbors, 4095u), 20, 12);
+    uint result = uint(selectedTexelDelta.x) & 0x3FFu;
+    result = bitfieldInsert(result, uint(selectedTexelDelta.y) & 0x3FFu, 10, 10);
+    // Max reuse candidates count is 4 x 7 = 28 so no need clamping
+    result = bitfieldInsert(result, numValidNeighbors, 20, 12);
     return result;
 }
 
 ivec2 pairwiseMISMetadata_unpackSelectedTexelDelta(uint packedData) {
     ivec2 result;
-    result.x = int(round(unpackS10(bitfieldExtract(packedData, 0, 10)) * 511.0));
-    result.y = int(round(unpackS10(bitfieldExtract(packedData, 10, 10)) * 511.0));
+    result.x = (int(bitfieldExtract(packedData, 0, 10)) << 22) >> 22;
+    result.y = (int(bitfieldExtract(packedData, 10, 10)) << 22) >> 22;
     return result;
 }
 
