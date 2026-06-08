@@ -158,9 +158,9 @@ programs {
         )
         pass(
             "/techniques/atmospherics/clouds/amblut/Gather.comp.glsl",
-            "/pass/begin/ClearEnvProbe.comp.glsl"
+            "/pass/begin/ClearEnvProbe.comp.glsl",
+            "/pass/begin/InitThreadGroupTilling.glsl"
         )
-        pass("/pass/begin/InitThreadGroupTilling.glsl")
         pass("/pass/begin/ClearScreen3.comp.glsl") {
             cond("defined(VOXY)")
         }
@@ -170,15 +170,21 @@ programs {
         pass("/pass/composite/VoxyMerge.glsl") {
             cond("defined(VOXY)")
         }
-        pass("/pass/composite/HiZGen.csh")
-        pass("/pass/composite/GIDenoiserEdgeClassificationAndVolumetricsDepthLayers.comp.glsl")
-        pass("/pass/composite/GIDenoiserEdgeDilation.comp.glsl")
-        pass("/pass/composite/GIDenoiserReproject.comp.glsl")
-        pass("/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl")
-        pass("/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl") {
+        pass(
+            "/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl",
+            "/pass/composite/HiZGen.csh"
+        )
+        pass(
+            "/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl",
+            "/pass/composite/GIDenoiserEdgeClassificationAndVolumetricsDepthLayers.comp.glsl"
+        ) {
             define("PASS", 1)
         }
-        pass("/pass/composite/ShadowSampleSetup.comp.glsl")
+        pass(
+            "/pass/composite/ShadowSampleSetup.comp.glsl",
+            "/pass/composite/GIDenoiserEdgeDilation.comp.glsl"
+        )
+        pass("/pass/composite/GIDenoiserReproject.comp.glsl")
         pass("/pass/composite/EvaluateScreenPixelSize.comp.glsl") {
             cond("defined(SETTING_WATER_CAUSTICS)")
         }
@@ -197,18 +203,24 @@ programs {
         pass("/pass/composite/ShadowSampleSSS.comp.glsl") {
             indirect(0, 32)
         }
-        pass("/pass/composite/SkyComposite.comp.glsl")
-        pass("/pass/composite/ShadowSample.comp.glsl")
-        pass("/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl") {
+        pass(
+            "/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl",
+            "/pass/composite/SkyComposite.comp.glsl",
+            "/pass/composite/ShadowSample.comp.glsl"
+        ){
             define("PASS", 2)
         }
-        pass("/pass/composite/DirectLighting.glsl")
-        pass("/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl")
-        pass("/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl")
+        pass(
+            "/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl",
+            "/pass/composite/DirectLighting.glsl"
+        )
         pass("/pass/composite/DOFFocus.comp.glsl") {
             cond("defined(SETTING_DOF) && !defined(SETTING_DOF_MANUAL_FOCUS)")
         }
-        pass("/pass/composite/GIReSTIRInitalSampleRayGenTrace.comp.glsl")
+        pass(
+            "/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl",
+            "/pass/composite/GIReSTIRInitalSampleRayGenTrace.comp.glsl"
+        )
         pass("/pass/composite/GIReSTIRInitalSampleRaySort.comp.glsl") {
             cond("SETTING_GI_INITIAL_SST_STEPS >= 64")
         }
@@ -286,13 +298,21 @@ programs {
                 cond(cond)
             }
         }
-        pass("/pass/composite/PostComposite.comp.glsl")
-        pass("/pass/composite/ExposureMip.comp.glsl")
-        pass("/pass/composite/ExposureGather.comp.glsl")
-        pass("/pass/composite/OverlayComposite.comp.glsl")
-        pass("/techniques/rtwsm/IMapBlur.comp.glsl")
-        pass("/techniques/rtwsm/GetWarp.comp.glsl")
-        pass("/techniques/rtwsm/Write2DWarp.comp.glsl")
-        pass("/pass/composite/FinalGlobalDataUpdate.comp.glsl")
+        pass(
+            "/techniques/rtwsm/IMapBlur.comp.glsl",
+            "/pass/composite/PostComposite.comp.glsl"
+        )
+        pass(
+            "/techniques/rtwsm/GetWarp.comp.glsl",
+            "/pass/composite/ExposureMip.comp.glsl"
+        )
+        pass(
+            "/pass/composite/ExposureGather.comp.glsl",
+            "/techniques/rtwsm/Write2DWarp.comp.glsl"
+        )
+        pass(
+            "/pass/composite/FinalGlobalDataUpdate.comp.glsl",
+            "/pass/composite/OverlayComposite.comp.glsl"
+        )
     }
 }
