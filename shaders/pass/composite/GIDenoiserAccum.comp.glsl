@@ -143,7 +143,7 @@ void main() {
                     float specAccumRecuctionFactor = specAccumReduction(material.roughness, NoV, parallax);
                     specAccumRecuctionFactor = pow(specAccumRecuctionFactor, specAccumReductionHitDistanceFactor);
 
-                    float maxSpecularHistoryLength = max(HISTORY_LENGTH * specAccumRecuctionFactor, 1.0);
+                    float maxSpecularHistoryLength = max(HISTORY_LENGTH * specAccumRecuctionFactor, SETTING_DENOISER_FAST_HISTORY_LENGTH * 0.5);
 
                     #ifdef SETTING_DENOISER_ACCUM
                     historyLengths = vec3(historyData.historyLength, historyData.specularHistoryLength, historyData.realHistoryLength);

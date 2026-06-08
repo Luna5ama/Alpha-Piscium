@@ -219,8 +219,10 @@ void main() {
                     vec3 fresnelT = vec3(1.0) - fresnelV;
                     vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
                     pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV * safeRcp(totalEnergy));
+                    // Clamping this to avoid dead locks that causes fireflies
+                    pSpec = sqrt(clamp(pSpec, 0.01, 0.99));
                 }
-                reprojInfo.historyResetFactor *= pow(material.roughness, pSpec / 4.0);
+                reprojInfo.historyResetFactor *= pow(material.roughness, pSpec * 2.0);
 
                 vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
                 curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
