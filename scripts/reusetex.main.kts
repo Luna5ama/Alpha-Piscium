@@ -116,7 +116,7 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
     return final
 }
 
-val baseRandom = RandomSource.XO_SHI_RO_256_PP.create(1145141919810L)
+val baseRandom = RandomSource.XO_SHI_RO_256_PP.create(69691145141919810L)
 val basePath = Path("../shaders/textures")
 val dists = mutableListOf<Double>()
 
