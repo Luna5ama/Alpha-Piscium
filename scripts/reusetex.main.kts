@@ -10,11 +10,14 @@
 
 import org.apache.commons.rng.UniformRandomProvider
 import org.apache.commons.rng.simple.RandomSource
+import java.util.stream.IntStream
 import kotlin.io.path.Path
+import kotlin.math.hypot
 import kotlin.math.pow
 import kotlin.math.sqrt
 
 val size = 256
+val threadGroupSize = 256
 val sigma = 16.0
 
 fun IntArray.shuffle(random: UniformRandomProvider): Unit {
@@ -27,7 +30,7 @@ fun IntArray.shuffle(random: UniformRandomProvider): Unit {
 }
 
 fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
-    val groups = Array(size) { IntArray(size) }
+    val groupIDGrid = Array(size) { IntArray(size) }
     var i = 0
     val groupSizeX = 4
     val groupSizeY = 2
@@ -36,7 +39,7 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
             val groupID = i++
             for (dy in 0..<groupSizeY) {
                 for (dx in 0..<groupSizeX) {
-                    groups[y + dy][x + dx] = groupID
+                    groupIDGrid[y + dy][x + dx] = groupID
                 }
             }
         }
@@ -57,14 +60,14 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
                 var i = 0
                 for (dy in 0..<2) {
                     for (dx in 0..<2) {
-                        permuteTemp[i++] = groups[(dstY + dy) % size][(dstX + dx) % size]
+                        permuteTemp[i++] = groupIDGrid[(dstY + dy) % size][(dstX + dx) % size]
                     }
                 }
                 permuteTemp.shuffle(randoms[y][x])
                 i = 0
                 for (dy in 0..<2) {
                     for (dx in 0..<2) {
-                        groups[(dstY + dy) % size][(dstX + dx) % size] = permuteTemp[i++]
+                        groupIDGrid[(dstY + dy) % size][(dstX + dx) % size] = permuteTemp[i++]
                     }
                 }
             }
@@ -78,7 +81,7 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
     val groupPos = Array(size * size / 8) { IntArray(17) }
     for (y in 0..<size) {
         for (x in 0..<size) {
-            val groupId = groups[y][x]
+            val groupId = groupIDGrid[y][x]
             val arr = groupPos[groupId]
             val idx = (arr[0]++) * 2
             arr[idx + 1] = x
@@ -87,33 +90,53 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
     }
     require(groupPos.all { it[0] == 8 }) { "Generated reuse texture contains a malformed group" }
 
-    val temp = groupPos.map { it.slice(1..<17) }
-    val lookup = temp.asSequence()
-        .withIndex()
-        .flatMap { (i, group) ->
-            group.chunked(2).map { (it[0] to it[1]) to i }
-        }
-        .toMap(mutableMapOf())
+    val groups = groupPos
+        .map { it.slice(1..<17).chunked(2).map { it[0] to it[1] } }
 
-    val final = mutableListOf<List<Int>>()
-    for (y in 0..<size) {
-        for (x in 0..<size) {
-            val myCoord = x to y
-            lookup.remove(myCoord)?.let { groupId ->
-                val element = temp[groupId]
-                val coords = element.chunked(2).map { it[0] to it[1] }.toMutableList()
-                require(coords.remove(myCoord)) { "Reuse group lookup lost its anchor coordinate" }
-                for (coord in coords) {
-                    require(lookup.remove(coord) == groupId) { "Reuse group lookup contains inconsistent coordinates" }
-                }
-                val orderedCoords = listOf(myCoord) + coords
-                final.add(orderedCoords.flatMap { listOf(it.first, it.second) })
-            }
-        }
+    val centroids = MutableList(size * size / threadGroupSize) {
+        baseRandom.nextDouble(0.0, size.toDouble()) to baseRandom.nextDouble(0.0, size.toDouble())
     }
 
-    require(final.size == size * size / 8) { "Generated ${final.size} groups, expected ${size * size / 8}" }
-    return final
+    val groupAssignments = IntArray(groups.size)
+
+    repeat(128) {
+        IntStream.range(0, groups.size).parallel().forEach { groupID ->
+            val group = groups[groupID]
+            groupAssignments[groupID] = centroids.withIndex().minBy { (index, centroid) ->
+                val (cx, cy) = centroid
+                group.sumOf { (x, y) ->
+                    hypot((x + 0.5) - cx, (y + 0.5) - cy)
+                }
+            }.index
+        }
+
+        groupAssignments.withIndex().groupBy { it.value }
+            .entries
+            .parallelStream()
+            .forEach { (centroidID, assignedGroups) ->
+                val allPoints = assignedGroups.flatMap { groups[it.index] }
+                val avgX = allPoints.sumOf { it.first + 0.5 } / allPoints.size
+                val avgY = allPoints.sumOf { it.second + 0.5 } / allPoints.size
+                centroids[centroidID] = avgX to avgY
+            }
+    }
+
+    val comparator = compareBy<Pair<Int, Int>> { it.second }.thenBy { it.first }
+    val listComp = compareBy<List<Pair<Int, Int>>> { it[0].second }.thenBy { it[0].first }
+
+    data class GroupAssignment(val groupID: Int, val centroidID: Int)
+
+    return groupAssignments.withIndex()
+        .map { GroupAssignment(it.index, it.value) }
+        .groupBy { it.centroidID }
+        .toList()
+        .flatMap { (_, assignedGroups) ->
+            assignedGroups.map {
+                groups[it.groupID].sortedWith(comparator)
+            }.sortedWith(listComp).map {
+                it.flatMap { listOf(it.first, it.second) }
+            }
+        }
 }
 
 val baseRandom = RandomSource.XO_SHI_RO_256_PP.create(69691145141919810L)
