@@ -10,6 +10,6 @@ void main() {
         int area = transient_caustics_input_load(texelPos).r;
         area = clamp(area, 0, 256 * 32 * 16);
         float v = float(area) / 256.0 / 16.0;
-        transient_caustics_remapped_store(texelPos, ivec4(floatBitsToInt(v)));
+        transient_caustics_final_store(texelPos, ivec4(floatBitsToInt(v)));
     }
 }

@@ -181,9 +181,6 @@ programs {
         pass("/pass/composite/CausticsRemap.comp.glsl") {
             cond("defined(SETTING_WATER_CAUSTICS)")
         }
-        pass("/pass/composite/CausticsFilter.comp.glsl") {
-            cond("defined(SETTING_WATER_CAUSTICS)")
-        }
         pass("/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl") {
             cond("defined(SETTING_CLOUDS_CU)")
         }

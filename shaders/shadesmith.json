@@ -55,7 +55,6 @@
         "transient_caustics_input": "R32F",
         "transient_geomNormalMip": "RGB10_A2",
         "transient_mainMipTemp": "RGBA32UI",
-        "transient_caustics_remapped": "R32F",
         "transient_caustics_final": "R32F",
         "transient_gi_initialSampleHitDistance": "R32F",
         "transient_bloom": "RGBA16F",
