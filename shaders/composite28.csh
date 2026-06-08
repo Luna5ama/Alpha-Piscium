@@ -2,7 +2,7 @@
 #define COMP 1
 /*const*/
 #define PASS_INDEX 1
-#define PASS_BASE_SAMPLE_INDEX 3
+#define PASS_BASE_SAMPLE_INDEX 7
 /*const*/
 
 #include "/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl"

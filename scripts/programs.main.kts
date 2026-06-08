@@ -215,9 +215,9 @@ programs {
         for (i in 0..7) {
             pass("/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl") {
                 constDefine("PASS_INDEX", i.toString())
-                constDefine("PASS_BASE_SAMPLE_INDEX", (i * 3).toString())
+                constDefine("PASS_BASE_SAMPLE_INDEX", (i * 7).toString())
                 indirect(0, 48)
-                cond("defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > ${i * 3}")
+                cond("defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > ${i * 7}")
             }
         }
         pass("/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl")

@@ -27,16 +27,16 @@ fun IntArray.shuffle(random: UniformRandomProvider): Unit {
 }
 
 fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
-    val quads = Array(size) { IntArray(size) }
+    val groups = Array(size) { IntArray(size) }
     var i = 0
-    val groupSizeX = 2
+    val groupSizeX = 4
     val groupSizeY = 2
-    for (y in 0..<size step groupSizeX) {
-        for (x in 0..<size step groupSizeY) {
+    for (y in 0..<size step groupSizeY) {
+        for (x in 0..<size step groupSizeX) {
             val groupID = i++
             for (dy in 0..<groupSizeY) {
                 for (dx in 0..<groupSizeX) {
-                    quads[y + dy][x + dx] = groupID
+                    groups[y + dy][x + dx] = groupID
                 }
             }
         }
@@ -57,14 +57,14 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
                 var i = 0
                 for (dy in 0..<2) {
                     for (dx in 0..<2) {
-                        permuteTemp[i++] = quads[(dstY + dy) % size][(dstX + dx) % size]
+                        permuteTemp[i++] = groups[(dstY + dy) % size][(dstX + dx) % size]
                     }
                 }
                 permuteTemp.shuffle(randoms[y][x])
                 i = 0
                 for (dy in 0..<2) {
                     for (dx in 0..<2) {
-                        quads[(dstY + dy) % size][(dstX + dx) % size] = permuteTemp[i++]
+                        groups[(dstY + dy) % size][(dstX + dx) % size] = permuteTemp[i++]
                     }
                 }
             }
@@ -75,44 +75,44 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
         shuffleGrid(it, it)
     }
 
-    val quadPos = Array(size * size / 4) { IntArray(9) }
+    val groupPos = Array(size * size / 8) { IntArray(17) }
     for (y in 0..<size) {
         for (x in 0..<size) {
-            val quadId = quads[y][x]
-            val arr = quadPos[quadId]
+            val groupId = groups[y][x]
+            val arr = groupPos[groupId]
             val idx = (arr[0]++) * 2
             arr[idx + 1] = x
             arr[idx + 2] = y
         }
     }
-    require(quadPos.all { it[0] == 4 }) { "Generated reuse texture contains a malformed quad" }
+    require(groupPos.all { it[0] == 8 }) { "Generated reuse texture contains a malformed group" }
 
-    val temp = quadPos.map { it.slice(1..<9) }
+    val temp = groupPos.map { it.slice(1..<17) }
     val lookup = temp.asSequence()
         .withIndex()
-        .flatMap { (i, quad) ->
-            quad.chunked(2).map { (it[0] to it[1]) to i }
+        .flatMap { (i, group) ->
+            group.chunked(2).map { (it[0] to it[1]) to i }
         }
         .toMap(mutableMapOf())
 
     val final = mutableListOf<List<Int>>()
     for (y in 0..<size) {
         for (x in 0..<size) {
-            val myQuad = x to y
-            lookup.remove(myQuad)?.let { quadId ->
-                val element = temp[quadId]
+            val myCoord = x to y
+            lookup.remove(myCoord)?.let { groupId ->
+                val element = temp[groupId]
                 val coords = element.chunked(2).map { it[0] to it[1] }.toMutableList()
-                require(coords.remove(myQuad)) { "Quad lookup lost its anchor coordinate" }
+                require(coords.remove(myCoord)) { "Reuse group lookup lost its anchor coordinate" }
                 for (coord in coords) {
-                    require(lookup.remove(coord) == quadId) { "Quad lookup contains inconsistent coordinates" }
+                    require(lookup.remove(coord) == groupId) { "Reuse group lookup contains inconsistent coordinates" }
                 }
-                val orderedCoords = listOf(myQuad) + coords
+                val orderedCoords = listOf(myCoord) + coords
                 final.add(orderedCoords.flatMap { listOf(it.first, it.second) })
             }
         }
     }
 
-    require(final.size == size * size / 4) { "Generated ${final.size} quads, expected ${size * size / 4}" }
+    require(final.size == size * size / 8) { "Generated ${final.size} groups, expected ${size * size / 8}" }
     return final
 }
 
@@ -137,13 +137,13 @@ fun ByteArray.writeIntLE(offset: Int, value: Int) {
 repeat(8) {
     val data = main(baseRandom)
 
-    for (quad in data) {
-        for (a in 0..<4) {
-            for (b in a + 1..<4) {
-                val x1 = quad[a * 2]
-                val y1 = quad[a * 2 + 1]
-                val x2 = quad[b * 2]
-                val y2 = quad[b * 2 + 1]
+    for (group in data) {
+        for (a in 0..<8) {
+            for (b in a + 1..<8) {
+                val x1 = group[a * 2]
+                val y1 = group[a * 2 + 1]
+                val x2 = group[b * 2]
+                val y2 = group[b * 2 + 1]
                 var dx = x2 - x1
                 if (dx > size / 2) dx -= size else if (dx < -size / 2) dx += size
                 var dy = y2 - y1
@@ -155,12 +155,14 @@ repeat(8) {
     }
 
     val outputPath = basePath.resolve("restir_reusetex${it}.bin")
-    val outputData = ByteArray(data.size * 8)
+    val outputData = ByteArray(data.size * 16)
     for (i in data.indices) {
-        val quadData = data[i]
-        val outputBase = i * 8
-        outputData.writeIntLE(outputBase, packCoords(quadData[0], quadData[1], quadData[2], quadData[3]))
-        outputData.writeIntLE(outputBase + 4, packCoords(quadData[4], quadData[5], quadData[6], quadData[7]))
+        val groupData = data[i]
+        val outputBase = i * 16
+        outputData.writeIntLE(outputBase, packCoords(groupData[0], groupData[1], groupData[2], groupData[3]))
+        outputData.writeIntLE(outputBase + 4, packCoords(groupData[4], groupData[5], groupData[6], groupData[7]))
+        outputData.writeIntLE(outputBase + 8, packCoords(groupData[8], groupData[9], groupData[10], groupData[11]))
+        outputData.writeIntLE(outputBase + 12, packCoords(groupData[12], groupData[13], groupData[14], groupData[15]))
     }
     outputPath.toFile().writeBytes(outputData)
 }

@@ -146,7 +146,7 @@ ivec2 restir_reuseUnpackLocal(uint packedData) {
     return ivec2(int(packedData & 255u), int((packedData >> 8u) & 255u));
 }
 
-void processQuadCandidate(
+void processGroupCandidate(
     uint shuffleMask,
     uint randSeed,
     inout PairwiseMISMetadata metaMe,
@@ -214,22 +214,31 @@ void processQuadCandidate(
 
 void main() {
     ivec2 localFetchPos = ivec2(gl_GlobalInvocationID.xy) & RESTIR_REUSE_TILE_MASK;
-    localFetchPos.x = localFetchPos.x >> 2;
+    int groupFetchX = (localFetchPos.x >> 3) << 1;
 
     ivec2 tileId = ivec2(gl_GlobalInvocationID.xy) >> RESTIR_REUSE_TILE_BITS;
     ivec2 tileOrigin = tileId * RESTIR_REUSE_TILE_SIZE;
     /*const*/
-    uvec2 quadData = texelFetch(REUSETEX, localFetchPos, 0).xy;
+    uvec2 groupData0 = texelFetch(REUSETEX, ivec2(groupFetchX, localFetchPos.y), 0).xy;
+    uvec2 groupData1 = texelFetch(REUSETEX, ivec2(groupFetchX + 1, localFetchPos.y), 0).xy;
     /*const*/
 
-    uint quadLane = gl_GlobalInvocationID.x & 3u;
-    ivec2 localMe = restir_reuseUnpackLocal(quadData.x);
-    if (quadLane != 0u) {
-        uint packedLocal = quadData.y;
-        if (quadLane == 1u) {
-            packedLocal = quadData.x >> 16u;
-        } else if (quadLane == 3u) {
-            packedLocal = quadData.y >> 16u;
+    uint groupLane = gl_GlobalInvocationID.x & 7u;
+    ivec2 localMe = restir_reuseUnpackLocal(groupData0.x);
+    if (groupLane != 0u) {
+        uint packedLocal = groupData0.y;
+        if (groupLane == 1u) {
+            packedLocal = groupData0.x >> 16u;
+        } else if (groupLane == 3u) {
+            packedLocal = groupData0.y >> 16u;
+        } else if (groupLane == 4u) {
+            packedLocal = groupData1.x;
+        } else if (groupLane == 5u) {
+            packedLocal = groupData1.x >> 16u;
+        } else if (groupLane == 6u) {
+            packedLocal = groupData1.y;
+        } else if (groupLane == 7u) {
+            packedLocal = groupData1.y >> 16u;
         }
         localMe = restir_reuseUnwrapLocal(localMe, restir_reuseUnpackLocal(packedLocal));
     }
@@ -275,9 +284,13 @@ void main() {
 
     uint reusableMe = validMe & uint(viewZMe > -65536.0);
 
-    processQuadCandidate(1u, 3337u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
-    processQuadCandidate(2u, 3338u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
-    processQuadCandidate(3u, 3339u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
+    processGroupCandidate(1u, 3337u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
+    processGroupCandidate(2u, 3338u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
+    processGroupCandidate(3u, 3339u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
+    processGroupCandidate(4u, 3340u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
+    processGroupCandidate(5u, 3341u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
+    processGroupCandidate(6u, 3342u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
+    processGroupCandidate(7u, 3343u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
 
     if (bool(validMe)) {
         transient_restir_pairwiseMISMetadata_store(texelMe, pairwiseMISMetadata_pack(metaMe));
