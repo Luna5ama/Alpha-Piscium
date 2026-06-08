@@ -99,7 +99,7 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
 
     val groupAssignments = IntArray(groups.size)
 
-    repeat(128) {
+    repeat(1024) {
         IntStream.range(0, groups.size).parallel().forEach { groupID ->
             val group = groups[groupID]
             groupAssignments[groupID] = centroids.withIndex().minBy { (index, centroid) ->
@@ -121,8 +121,31 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
             }
     }
 
-    val comparator = compareBy<Pair<Int, Int>> { it.second }.thenBy { it.first }
-    val listComp = compareBy<List<Pair<Int, Int>>> { it[0].second }.thenBy { it[0].first }
+    fun morton2D(localX: Int, localY: Int): Int {
+        fun spread9(v: Int): Int {
+            var x = v and 0x1FF
+            x = (x or (x shl 8)) and 0x00FF00FF
+            x = (x or (x shl 4)) and 0x0F0F0F0F
+            x = (x or (x shl 2)) and 0x33333333
+            x = (x or (x shl 1)) and 0x55555555
+            return x
+        }
+
+        val px = localX + 128
+        val py = localY + 128
+
+        require(px in 0..511)
+        require(py in 0..511)
+
+        return spread9(px) or (spread9(py) shl 1)
+    }
+
+    val comparator = compareBy<Pair<Int, Int>> { morton2D(it.first, it.second) }
+    val listComp = compareBy<List<Pair<Int, Int>>> { morton2D(it[0].first, it[0].second) }
+    val centroidComp = compareBy<Pair<Int, *>> {
+        val centroid = centroids[it.first]
+        morton2D(centroid.first.toInt(), centroid.second.toInt())
+    }
 
     data class GroupAssignment(val groupID: Int, val centroidID: Int)
 
@@ -130,6 +153,7 @@ fun main(baseRandom: UniformRandomProvider): List<List<Int>> {
         .map { GroupAssignment(it.index, it.value) }
         .groupBy { it.centroidID }
         .toList()
+        .sortedWith(centroidComp)
         .flatMap { (_, assignedGroups) ->
             assignedGroups.map {
                 groups[it.groupID].sortedWith(comparator)
