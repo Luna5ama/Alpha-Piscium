@@ -5,6 +5,7 @@
 #include "/util/Rand.glsl"
 #include "/util/Sampling.glsl"
 #include "/techniques/gi/Common.glsl"
+#include "/util/MaterialIDConst.glsl"
 #include "/util/AgxInvertible.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -228,6 +229,16 @@ void main() {
     currColor = max(currColor, 0.0);
 
     vec4 taaResetFactor = global_taaResetFactor;
+    float maxAccumFramesFactor = global_motionFactor.w;
+    #ifndef SETTING_SCREENSHOT_MODE
+    GBufferData gDataTranslucent = gbufferData_init();
+    gbufferData1_unpack(texelFetch(usam_gbufferTranslucentData1, texelPos, 0), gDataTranslucent);
+    if (gDataTranslucent.materialID == MATERIAL_ID_WATER) {
+        taaResetFactor.y = min(0.5, taaResetFactor.y);
+        taaResetFactor.x = max(0.5, taaResetFactor.x);
+        maxAccumFramesFactor = min(0.6, maxAccumFramesFactor);
+    }
+    #endif
     newFrameAccum *= taaResetFactor.z;
 
     {
@@ -297,7 +308,7 @@ void main() {
     #endif
     #else
     float MIN_ACCUM_FRAMES = 1.0;
-    float MAX_ACCUM_FRAMES = mix(2.0, 128.0, pow3(global_motionFactor.w));
+    float MAX_ACCUM_FRAMES = mix(2.0, 128.0, pow3(maxAccumFramesFactor));
     if (gData.isHand) {
         MAX_ACCUM_FRAMES *= 0.5;
     }
