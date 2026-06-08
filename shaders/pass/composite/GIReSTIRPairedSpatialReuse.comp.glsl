@@ -142,10 +142,6 @@ ivec2 restir_reuseUnwrapLocal(ivec2 localAnchor, ivec2 localPos) {
     return localAnchor + localD;
 }
 
-ivec2 restir_reuseUnpackLocal(uint packedData) {
-    return ivec2(int(packedData & 255u), int((packedData >> 8u) & 255u));
-}
-
 void processGroupCandidate(
     uint shuffleMask,
     uint randSeed,
@@ -213,35 +209,19 @@ void processGroupCandidate(
 }
 
 void main() {
+    uint groupLane = gl_GlobalInvocationID.x & 7u;
     ivec2 localFetchPos = ivec2(gl_GlobalInvocationID.xy) & RESTIR_REUSE_TILE_MASK;
-    int groupFetchX = (localFetchPos.x >> 3) << 1;
+    localFetchPos.x = (localFetchPos.x >> 3) << 3;
 
     ivec2 tileId = ivec2(gl_GlobalInvocationID.xy) >> RESTIR_REUSE_TILE_BITS;
     ivec2 tileOrigin = tileId * RESTIR_REUSE_TILE_SIZE;
     /*const*/
-    uvec2 groupData0 = texelFetch(REUSETEX, ivec2(groupFetchX, localFetchPos.y), 0).xy;
-    uvec2 groupData1 = texelFetch(REUSETEX, ivec2(groupFetchX + 1, localFetchPos.y), 0).xy;
+    uvec2 localAnchorData = texelFetch(REUSETEX, localFetchPos, 0).xy;
+    ivec2 localAnchor = ivec2(int(localAnchorData.x), int(localAnchorData.y));
+    localFetchPos.x += int(groupLane);
+    uvec2 localMeData = texelFetch(REUSETEX, localFetchPos, 0).xy;
+    ivec2 localMe = restir_reuseUnwrapLocal(localAnchor, ivec2(int(localMeData.x), int(localMeData.y)));
     /*const*/
-
-    uint groupLane = gl_GlobalInvocationID.x & 7u;
-    ivec2 localMe = restir_reuseUnpackLocal(groupData0.x);
-    if (groupLane != 0u) {
-        uint packedLocal = groupData0.y;
-        if (groupLane == 1u) {
-            packedLocal = groupData0.x >> 16u;
-        } else if (groupLane == 3u) {
-            packedLocal = groupData0.y >> 16u;
-        } else if (groupLane == 4u) {
-            packedLocal = groupData1.x;
-        } else if (groupLane == 5u) {
-            packedLocal = groupData1.x >> 16u;
-        } else if (groupLane == 6u) {
-            packedLocal = groupData1.y;
-        } else if (groupLane == 7u) {
-            packedLocal = groupData1.y >> 16u;
-        }
-        localMe = restir_reuseUnwrapLocal(localMe, restir_reuseUnpackLocal(packedLocal));
-    }
     localMe += uval_restirSpatialTileOffset;
 
     ivec2 texelMe = tileOrigin + localMe;
