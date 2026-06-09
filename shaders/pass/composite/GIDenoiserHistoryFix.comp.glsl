@@ -271,27 +271,15 @@ void main() {
                     float totalLen = historyData.realHistoryLength * TOTAL_HISTORY_LENGTH;
                     float decayFactor = linearStep(SETTING_DENOISER_FAST_HISTORY_LENGTH * 2.0, 1.0, totalLen);
 
-                    float expMul = exp2(global_aeData.expValues.z);
-
-                    #if SETTING_DEBUG_OUTPUT
-                    if (RANDOM_FRAME < MAX_FRAMES) {
-                        uvec4 centerData = shared_YCoCgData[localPos.y][localPos.x];
-                        vec4 centerDiffData = unpackHalf4x16(centerData.xy);
-                        vec4 centerSpecData = unpackHalf4x16(centerData.zw);
-//                        imageStore(uimg_temp2, texelPos, vec4(colors_YCoCgToRGB(centerDiffData.rgb), 0.0));
-                    }
-                    #endif
-
                     float diffClampingThreshold = mix(2.0, 4.0, pow2(decayFactor));
                     vec3 diffClamped = _clampColor(historyData.diffuseColor, diffMoment1, diffMoment2, diffClampingThreshold);
-                    vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
                     diffClamped = mix(historyData.diffuseColor, diffClamped, historyFixMix);
                     historyData.diffuseColor = diffClamped;
 
                     #ifdef SETTING_DENOISER_SPATIAL
-                    vec4 diffInput = vec4(historyData.diffuseColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffOutputSim));
+                    vec3 diffInput = vec3(historyData.diffuseColor);
                     diffInput = dither_fp16(diffInput, ditherNoise);
-                    transient_gi_blurDiff2_store(texelPos, diffInput);
+                    transient_gi_blurDiff2_store(texelPos, vec4(diffInput, 0.0));
                     #else
                     transient_gi_diffShadingOutput_store(texelPos, vec4(historyData.diffuseColor, 0.0));
                     vec4 packedData1 = gi_historyData_pack1(historyData);
@@ -301,14 +289,13 @@ void main() {
 
                     float specClampingThreshold = mix(2.0, 4.0, pow2(decayFactor));
                     vec3 specClamped = _clampColor(historyData.specularColor, specMoment1, specMoment2, specClampingThreshold);
-                    vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
                     specClamped = mix(historyData.specularColor, specClamped, historyFixMix);
                     historyData.specularColor = specClamped;
 
                     #ifdef SETTING_DENOISER_SPATIAL
-                    vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));
+                    vec3 specInput = vec3(historyData.specularColor);
                     specInput = dither_fp16(specInput, ditherNoise);
-                    transient_gi_blurSpec2_store(texelPos, specInput);
+                    transient_gi_blurSpec2_store(texelPos, vec4(specInput, 0.0));
                     #else
                     transient_gi_specShadingOutput_store(texelPos, vec4(historyData.specularColor, 0.0));
                     vec4 packedData3 = gi_historyData_pack3(historyData);
@@ -359,13 +346,12 @@ void main() {
                     hitDitanceFactors = pow(hitDitanceFactors, remappedRealHLen);
                     transient_gi_hitDistanceFactors_store(texelPos, vec4(saturate(hitDitanceFactors), 0.0, 0.0));
 
-                    float expMul = exp2(global_aeData.expValues.z);
-                    vec3 diffOutputSim = colors_reversibleTonemap(historyData.diffuseColor * expMul);
-                    vec3 specOutputSim = colors_reversibleTonemap(historyData.specularColor * expMul);
-                    vec4 diffInput = vec4(historyData.diffuseColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, diffOutputSim));
-                    transient_gi_blurDiff2_store(texelPos, diffInput);
-                    vec4 specInput = vec4(historyData.specularColor, colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, specOutputSim));
-                    transient_gi_blurSpec2_store(texelPos, specInput);
+                    vec3 diffInput = historyData.diffuseColor;
+                    specInput = dither_fp16(specInput, ditherNoise);
+                    transient_gi_blurDiff2_store(texelPos, vec4(diffInput, .00));
+                    vec3 specInput = historyData.specularColor;
+                    specInput = dither_fp16(specInput, ditherNoise);
+                    transient_gi_blurSpec2_store(texelPos, vec4(specInput, .00));
                     #else
                     transient_gi_diffShadingOutput_store(texelPos, vec4(historyData.diffuseColor, 0.0));
                     vec4 packedData1 = gi_historyData_pack1(historyData);
