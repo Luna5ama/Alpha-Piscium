@@ -107,16 +107,15 @@ void main() {
             vec4 giOut1 = vec4(0.0);
             vec4 giOut2 = vec4(0.0);
 
-            giOut1.rgb = transient_gi2Reprojected_fetch(texelPos).rgb;
             if (lighting_gData.materialID == 65534u) {
                 mainOut = vec4(material.albedo * 0.01, 2.0);
                 giOut1 = vec4(0.0);
             } else {
                 // Specular MB later
-                giOut1.rgb *= min(material.albedo, 0.95);
-                giOut1.rgb *= GI_MB;
                 doLighting(texelPos, material, viewPos, lighting_gData.normal, mainOut.rgb, giOut1, giOut2);
             }
+            giOut1.rgb += transient_gi2Reprojected_fetch(texelPos).rgb * min(material.albedo, 0.95);
+
             giOut1.rgb = clamp(giOut1.rgb, 0.0, FP16_MAX);
             giOut2.rgb = clamp(giOut2.rgb, 0.0, FP16_MAX);
 
