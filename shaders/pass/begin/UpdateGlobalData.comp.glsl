@@ -149,7 +149,10 @@ void main() {
             global_cameraData.frustumPlaneCount = pcount;
         }
 
-        voxel_faceTexcoords[frameCounter % VOXEL_FACE_TEXCOORD_MATERIALS] = uvec2(0xFFFFFFFF);
+        uint baseIndex = (frameCounter % VOXEL_FACE_TEXCOORD_MATERIALS) * 6u;
+        for (uint i = 0u; i < 6u; i++) {
+            voxel_faceTexcoords[baseIndex + i] = uvec2(0u);
+        }
     } else if (gl_WorkGroupID.x == 1) {
         ivec2 mainImageSize = imageSize(uimg_main);
         for (uint i = 0; i < 16; i++) {
