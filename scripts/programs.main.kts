@@ -272,9 +272,9 @@ programs {
             }
         } else {
             pass(
-                "/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl",
-                "/pass/composite/GIReSTIRInitalSampleRayGenTrace.comp.glsl"
-            )
+            "/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl",
+            "/pass/composite/GIReSTIRInitalSampleRayGenTrace.comp.glsl"
+        )
             pass("/pass/composite/GIReSTIRInitalSampleRaySort.comp.glsl") {
                 cond("SETTING_GI_INITIAL_SST_STEPS >= 64")
             }
