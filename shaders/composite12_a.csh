@@ -2,4 +2,4 @@
 #define COMP 1
 #define PASS 2
 
-#include "/pass/composite/SkyComposite.comp.glsl"
+#include "/pass/composite/ShadowSample.comp.glsl"
