@@ -209,11 +209,21 @@ void processGroupCandidate(
 }
 
 void main() {
-    uint groupLane = gl_GlobalInvocationID.x & 7u;
-    ivec2 localFetchPos = ivec2(gl_GlobalInvocationID.xy) & RESTIR_REUSE_TILE_MASK;
+    uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    uint tileLocalIdx = workGroupIdx & 511u;
+    uint tileIdx = workGroupIdx >> 9u;
+    uint tileRow = tileLocalIdx & 127u;
+    uint subtileIdx = tileLocalIdx >> 7u;
+    uint tileCountX = gl_NumWorkGroups.x >> 1u;
+    uvec2 tileID = uvec2(tileIdx % tileCountX, tileIdx / tileCountX);
+    uvec2 subtileOffset = uvec2(subtileIdx & 1u, subtileIdx >> 1u) << 7u;
+    uvec2 globalPos = (tileID << 8u) + subtileOffset + uvec2(gl_LocalInvocationID.x, tileRow);
+
+    uint groupLane = globalPos.x & 7u;
+    ivec2 localFetchPos = ivec2(globalPos & uvec2(RESTIR_REUSE_TILE_MASK));
     localFetchPos.x = (localFetchPos.x >> 3) << 3;
 
-    ivec2 tileId = ivec2(gl_GlobalInvocationID.xy) >> RESTIR_REUSE_TILE_BITS;
+    ivec2 tileId = ivec2(globalPos >> RESTIR_REUSE_TILE_BITS);
     ivec2 tileOrigin = tileId * RESTIR_REUSE_TILE_SIZE;
     /*const*/
     uvec2 localAnchorData = texelFetch(REUSETEX, localFetchPos, 0).xy;
