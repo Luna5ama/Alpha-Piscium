@@ -205,7 +205,6 @@ programs {
         }
         pass(
             "/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl",
-            "/pass/composite/SkyComposite.comp.glsl",
             "/pass/composite/ShadowSample.comp.glsl"
         ){
             define("PASS", 2)

@@ -11,12 +11,14 @@
 #include "/util/NZPacking.glsl"
 #include "/util/Morton.glsl"
 #include "/util/ThreadGroupTiling.glsl"
+#include "/techniques/atmospherics/SkyComposite.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 
 layout(rgba16f) uniform writeonly image2D uimg_main;
+layout(rgba8) uniform restrict image2D uimg_overlays;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba16f) uniform restrict image2D uimg_temp3;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
@@ -84,8 +86,10 @@ void main() {
     texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        ivec2 texelPos2x2 = texelPos >> 1;
         vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
+
+        ScatteringResult sctrResult = atmospherics_skyComposite(texelPos);
+        vec4 mainOut = vec4(0.0);
 
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
         if (viewZ > -65536.0) {
@@ -102,7 +106,6 @@ void main() {
             vec4 giOut1 = vec4(0.0);
             vec4 giOut2 = vec4(0.0);
 
-            vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
             if (lighting_gData.materialID == 65534u) {
                 mainOut = vec4(material.albedo * 0.01, 2.0);
                 giOut1 = vec4(0.0);
@@ -123,8 +126,20 @@ void main() {
             giRadianceInput.y = colors_workingColorToFP16Luv(giOut2.rgb);
             transient_giRadianceInputs_store(texelPos, giRadianceInput);
         } else {
+            vec4 temp6Out = texelFetch(usam_overlays, texelPos, 0);
+            mainOut = celestial_render(texelPos, temp6Out);
+
+            #ifdef SETTING_CONSTELLATIONS
+            imageStore(uimg_overlays, texelPos, temp6Out);
+            #endif
+
+            mainOut.rgb = scatteringResult_apply(sctrResult, mainOut.rgb);
+            mainOut.rgb = clamp(mainOut.rgb, 0.0, FP16_MAX);
+
             transient_giRadianceInputs_store(texelPos, uvec4(0u));
             transient_lmCoord_store(texelPos, vec4(0.0));
         }
+
+        imageStore(uimg_main, texelPos, mainOut);
     }
 }
