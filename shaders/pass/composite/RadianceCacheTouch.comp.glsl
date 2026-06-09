@@ -3,6 +3,7 @@
 #extension GL_NV_shader_subgroup_partitioned : enable
 
 #define RC_DATA_MODIFIER restrict buffer
+#define GLOBAL_DATA_MODIFIER restrict buffer
 
 layout(local_size_x = 16, local_size_y = 16) in;
 #include "/techniques/gi/RadianceCacheUpdate.glsl"
@@ -13,6 +14,34 @@ layout(local_size_x = 16, local_size_y = 16) in;
 #include "/util/ThreadGroupTiling.glsl"
 
 const vec2 workGroupsRender = vec2(0.25, 0.25);
+
+bool rc_touchFace(uint level, ivec3 worldCellCoord, uint faceId) {
+    uint entryIndex = rc_entryIndex(level, worldCellCoord);
+    uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
+    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
+    uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
+    if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
+        uvec4 entry = rc_indirection[bufferIndex];
+        uint oldFaceMask = entry.y & 0x3fu;
+        uint newFaceMask = oldFaceMask | rc_faceBit(faceId);
+        bool canGrowFaceMask = entry.x == RC_INVALID || newFaceMask == oldFaceMask;
+        if (!canGrowFaceMask) {
+            uint allocatedClassSize = rc_allocClassSize(bitCount(oldFaceMask));
+            canGrowFaceMask = bitCount(newFaceMask) <= allocatedClassSize;
+        }
+        if (!canGrowFaceMask) {
+            return false;
+        }
+
+        atomicOr(rc_indirection[bufferIndex].y, rc_faceBit(faceId));
+        uint pendingFaceBits = rc_indirection[bufferIndex].w & RC_ENTRY_META_PENDING_FACE_MASK;
+        rc_indirection[bufferIndex].w = rc_packEntryMeta(level, true) | pendingFaceBits;
+        return true;
+    } else {
+        atomicAdd(rc_keyMismatchCounter, 1u);
+        return false;
+    }
+}
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy) << 2;
