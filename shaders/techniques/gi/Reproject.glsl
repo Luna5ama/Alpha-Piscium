@@ -128,7 +128,6 @@ void computeEdgeWeights(
 
 void gi_reproject(ivec2 texelPos, float currViewZ) {
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
-    float currEdgeFactor = min4(transient_edgeMask_gather(screenPos, 0));
 
     screenPos -= uval_taaJitter * uval_mainImageSizeRcp;
     GBufferData gData = gbufferData_init();

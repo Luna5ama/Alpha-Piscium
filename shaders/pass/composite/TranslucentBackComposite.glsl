@@ -76,10 +76,8 @@ void main() {
         }
 
         ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
-        ivec2 waterFarDepthTexelPos = csr32f_tile2_texelToTexel(texelPos);
 
         ivec2 translucentNearDepthTexelPos = csr32f_tile3_texelToTexel(texelPos);
-        ivec2 translucentFarDepthTexelPos = csr32f_tile4_texelToTexel(texelPos);
 
         float waterStartViewZ = -texelFetch(usam_csr32f, waterNearDepthTexelPos, 0).r;
         float translucentStartViewZ = -texelFetch(usam_csr32f, translucentNearDepthTexelPos, 0).r;
