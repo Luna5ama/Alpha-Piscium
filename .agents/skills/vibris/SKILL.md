@@ -63,12 +63,22 @@ Available actions:
 - `capture-multi`: captures all compute dispatches in one composite-like
   program type: `prepare`, `begin`, `deferred`, or `composite`.
 
+When profiling a known hotspot such as `composite20`, prefer `capture-pass`
+for that single pass. It keeps capture, replay, and GPU Trace turnaround much
+faster than `capture-multi`. Use `capture-multi` when the target pass is not
+known yet, when you need program-wide ordering context, or when the shader
+experiment may reference resources that only appear in other passes.
+
 Examples:
 
 ```powershell
 I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\iris-control.ps1 -Action status
 
 I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\iris-control.ps1 -Action reload
+
+I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\iris-control.ps1 `
+  -Action capture-pass `
+  -Pass composite20
 
 I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\iris-control.ps1 `
   -Action capture-multi `
@@ -140,14 +150,14 @@ directory; pass `-ShaderRoot` instead.
 Use the bundled Nsight Analyzer skill through:
 
 ```text
-C:\Users\Luna5ama\.codex\skills\nsight-graphics-analyzer\scripts\nsight.py
+..\nsight-graphics-analyzer\scripts\nsight.py
 ```
 
 Do not read `BASE/GPUTRACE_REGIMES.xls` directly. It is large. Use the
 generated JSON files or the analyzer subcommands:
 
 ```powershell
-python C:\Users\Luna5ama\.codex\skills\nsight-graphics-analyzer\scripts\nsight.py `
+python ..\nsight-graphics-analyzer\scripts\nsight.py `
   gputrace-stages <trace.ngfx-gputrace> --top 20
 ```
 
@@ -256,8 +266,10 @@ Read `summary.json` first, then drill with `gputrace-stages`,
 
 1. Ensure Minecraft/Iris is running in the target scene.
 2. Use `scripts/iris-control.ps1 -Action reload` when shaderpack source changed.
-3. Use `scripts/iris-control.ps1 -Action capture-multi -Type composite` to
-   capture into a unique path under `config.json`'s `capture_path`.
+3. If profiling a known hotspot pass, use
+   `scripts/iris-control.ps1 -Action capture-pass -Pass <passName>` to capture
+   only that pass into a unique path under `config.json`'s `capture_path`.
+   Otherwise, use `scripts/iris-control.ps1 -Action capture-multi -Type composite`.
 4. Run `scripts/run-replayer.ps1 -Backend gl -Capture <captureDir>` to verify
    replay correctness.
 5. Run `scripts/capture-gputrace.ps1 -Backend gl -Capture <captureDir>` to
