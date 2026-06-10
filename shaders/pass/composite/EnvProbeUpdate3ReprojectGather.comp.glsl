@@ -6,6 +6,12 @@ const ivec3 workGroups = ivec3(512, 2, 3);
 
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_envProbe;
 
+vec3 envProbe_decodeScenePos(uvec4 packedData) {
+    vec2 temp2 = unpackHalf2x16(packedData.y);
+    vec2 temp3 = unpackHalf2x16(packedData.z);
+    return vec3(temp2.y, temp3);
+}
+
 void main() {
     ivec2 sliceTexelPos = ivec2(morton_32bDecode(gl_GlobalInvocationID.x));
     ivec2 sliceID = ivec2(gl_GlobalInvocationID.yz);
@@ -37,28 +43,36 @@ void main() {
     envProbe_initData(dataSum);
     {
         float maxDot = 0.999;
+        uvec4 bestPackedData = uvec4(0u);
+        vec3 bestScenePos = vec3(0.0);
 
         for (int yo = -1; yo <= 1; ++yo) {
             for (int xo = -1; xo <= 1; ++xo) {
                 ivec2 offset = ivec2(xo, yo);
                 ivec2 samplePos = (centerTexelPos + offset);
-                EnvProbeData sampleData = envProbe_decode(texelFetch(usam_envProbe, samplePos, 0));
+                uvec4 samplePackedData = texelFetch(usam_envProbe, samplePos, 0);
 
-                vec3 samplePrevPos = sampleData.scenePos;
+                vec3 samplePrevPos = envProbe_decodeScenePos(samplePackedData);
                 vec3 sampleCurrPos = samplePrevPos - cameraDelta;
                 vec3 sampleCurrDir = normalize(sampleCurrPos);
-                if (envProbe_isSky(sampleData)) {
+                float samplePrevDistSq = dot(samplePrevPos, samplePrevPos);
+                if (samplePrevDistSq == 0.0 || samplePrevDistSq > 4194304.0) {
                     sampleCurrPos = sampleCurrDir * 4096.0;
                 }
-                sampleData.scenePos = sampleCurrPos;
 
                 float dirDot = dot(centerCurrWorldDir, sampleCurrDir);
 
                 if (dirDot > maxDot) {
                     maxDot = dirDot;
-                    dataSum = sampleData;
+                    bestPackedData = samplePackedData;
+                    bestScenePos = sampleCurrPos;
                 }
             }
+        }
+
+        if (maxDot > 0.999) {
+            dataSum = envProbe_decode(bestPackedData);
+            dataSum.scenePos = bestScenePos;
         }
     }
 
