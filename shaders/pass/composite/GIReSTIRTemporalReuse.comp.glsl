@@ -248,26 +248,22 @@ void main() {
                 //   y = top-right    iGatherTexelPos + ( 0,  0)
                 //   z = bottom-right iGatherTexelPos + ( 0, -1)
                 //   w = bottom-left  iGatherTexelPos + (-1, -1)
+                float bilateralWeight = reprojInfo.bilateralWeights.w;
+                ivec2 offset = ivec2(-1, -1);
+
                 if (randSelectWeight < bilinearWeights4.x) {
-                    if (reprojInfo.bilateralWeights.x > 0.9) {
-                        float combinedWeight = reprojInfo.bilateralWeights.x * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, 0), combinedWeight, 3331u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal, finalHitNormalPending);
-                    }
+                    bilateralWeight = reprojInfo.bilateralWeights.x;
+                    offset = ivec2(-1, 0);
                 } else if (randSelectWeight < bilinearWeights4.x + bilinearWeights4.y) {
-                    if (reprojInfo.bilateralWeights.y > 0.9) {
-                        float combinedWeight = reprojInfo.bilateralWeights.y * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos, combinedWeight, 3332u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal, finalHitNormalPending);
-                    }
+                    bilateralWeight = reprojInfo.bilateralWeights.y;
+                    offset = ivec2(0, 0);
                 } else if (randSelectWeight < bilinearWeights4.x + bilinearWeights4.y + bilinearWeights4.z) {
-                    if (reprojInfo.bilateralWeights.z > 0.9) {
-                        float combinedWeight = reprojInfo.bilateralWeights.z * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(0, -1), combinedWeight, 3333u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal, finalHitNormalPending);
-                    }
-                } else {
-                    if (reprojInfo.bilateralWeights.w > 0.9) {
-                        float combinedWeight = reprojInfo.bilateralWeights.w * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, -1), combinedWeight, 3334u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal, finalHitNormalPending);
-                    }
+                    bilateralWeight = reprojInfo.bilateralWeights.z;
+                    offset = ivec2(0, -1);
+                }
+                if (bilateralWeight > 0.9) {
+                    float combinedWeight = bilateralWeight * reprojInfo.historyResetFactor;
+                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + offset, combinedWeight, 114514u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal, finalHitNormalPending);
                 }
             }
 
