@@ -10,6 +10,9 @@
 
 import org.apache.commons.rng.UniformRandomProvider
 import org.apache.commons.rng.simple.RandomSource
+import java.util.concurrent.Callable
+import java.util.concurrent.ForkJoinPool
+import java.util.concurrent.ForkJoinTask
 import kotlin.io.path.Path
 import kotlin.math.hypot
 import kotlin.math.pow
@@ -151,7 +154,8 @@ fun removeMember(members: IntArray, count: Int, groupID: Int) {
 
 fun assignGroupsWithMinCostFlow(
     groups: List<List<Pair<Int, Int>>>,
-    centroids: List<Pair<Double, Double>>
+    centroidX: DoubleArray,
+    centroidY: DoubleArray
 ): AssignmentResult {
     val source = 0
     val groupNodeOffset = 1
@@ -169,7 +173,8 @@ fun assignGroupsWithMinCostFlow(
     for (groupID in 0..<groupCount) {
         val group = groups[groupID]
         for (centroidID in 0..<centroidCount) {
-            val (cx, cy) = centroids[centroidID]
+            val cx = centroidX[centroidID]
+            val cy = centroidY[centroidID]
             var costDouble = 0.0
             for ((x, y) in group) {
                 costDouble += hypot((x + 0.5) - cx, (y + 0.5) - cy)
@@ -331,7 +336,8 @@ fun assignGroupsWithMinCostFlow(
 fun updateCentroidsFromAssignments(
     groups: List<List<Pair<Int, Int>>>,
     assignments: IntArray,
-    centroids: MutableList<Pair<Double, Double>>
+    centroidX: DoubleArray,
+    centroidY: DoubleArray
 ) {
     val sumX = DoubleArray(centroidCount)
     val sumY = DoubleArray(centroidCount)
@@ -346,163 +352,169 @@ fun updateCentroidsFromAssignments(
     }
     require(pointCounts.all { it == clusterPixelCapacity })
     for (centroidID in 0..<centroidCount) {
-        centroids[centroidID] = sumX[centroidID] / pointCounts[centroidID] to
-            sumY[centroidID] / pointCounts[centroidID]
+        centroidX[centroidID] = sumX[centroidID] / pointCounts[centroidID]
+        centroidY[centroidID] = sumY[centroidID] / pointCounts[centroidID]
     }
 }
 
-fun main(baseRandom: UniformRandomProvider, textureIndex: Int): List<List<Int>> {
-    val groupIDGrid = Array(size) { IntArray(size) }
-    var i = 0
-    for (y in 0..<size step groupSizeY) {
-        for (x in 0..<size step groupSizeX) {
-            val groupID = i++
-            for (dy in 0..<groupSizeY) {
-                for (dx in 0..<groupSizeX) {
-                    groupIDGrid[y + dy][x + dx] = groupID
-                }
-            }
-        }
-    }
-
+fun main(baseRandom: UniformRandomProvider, textureIndex: Int): ForkJoinTask<List<List<Int>>> {
     val randoms = Array(size / 2) { Array(size / 2) { RandomSource.XO_SHI_RO_256_PP.create(baseRandom.nextLong()) } }
 
-    fun sigmaToShuffleCount(sigma: Double): Int {
-        return (0.5 * sigma.pow(2) + 1.46 * sigma.pow(-1) + 1.76 * sigma.pow(-2) + 0.656 * sigma.pow(-3) + 0.5).toInt()
+    val centroidX = DoubleArray(centroidCount)
+    val centroidY = DoubleArray(centroidCount)
+    repeat(centroidCount) {
+        centroidX[it] = baseRandom.nextDouble(0.0, size.toDouble())
+        centroidY[it] = baseRandom.nextDouble(0.0, size.toDouble())
     }
 
-    fun shuffleGrid(offsetX: Int, offsetY: Int) {
-        for (y in 0..<size / 2) {
-            val dstY = y * 2 + offsetY
-            for (x in 0..<size / 2) {
-                val dstX = x * 2 + offsetX
-                val permuteTemp = IntArray(4)
-                var i = 0
-                for (dy in 0..<2) {
-                    for (dx in 0..<2) {
-                        permuteTemp[i++] = groupIDGrid[(dstY + dy) % size][(dstX + dx) % size]
-                    }
-                }
-                permuteTemp.shuffle(randoms[y][x])
-                i = 0
-                for (dy in 0..<2) {
-                    for (dx in 0..<2) {
-                        groupIDGrid[(dstY + dy) % size][(dstX + dx) % size] = permuteTemp[i++]
+    return ForkJoinPool.commonPool().submit(Callable {
+        val groupIDGrid = Array(size) { IntArray(size) }
+        var i = 0
+        for (y in 0..<size step groupSizeY) {
+            for (x in 0..<size step groupSizeX) {
+                val groupID = i++
+                for (dy in 0..<groupSizeY) {
+                    for (dx in 0..<groupSizeX) {
+                        groupIDGrid[y + dy][x + dx] = groupID
                     }
                 }
             }
         }
-    }
 
-    repeat(sigmaToShuffleCount(sigma)) {
-        shuffleGrid(it, it)
-    }
-
-    val groupPos = Array(groupCount) { IntArray(groupPixelCount * 2 + 1) }
-    for (y in 0..<size) {
-        for (x in 0..<size) {
-            val groupId = groupIDGrid[y][x]
-            val arr = groupPos[groupId]
-            val idx = (arr[0]++) * 2
-            arr[idx + 1] = x
-            arr[idx + 2] = y
-        }
-    }
-    require(groupPos.all { it[0] == 8 }) { "Generated reuse texture contains a malformed group" }
-
-    val groups = groupPos
-        .map { it.slice(1..<groupPixelCount * 2 + 1).chunked(2).map { it[0] to it[1] } }
-
-    val centroids = MutableList(centroidCount) {
-        baseRandom.nextDouble(0.0, size.toDouble()) to baseRandom.nextDouble(0.0, size.toDouble())
-    }
-
-    val groupAssignments = IntArray(groupCount) { -1 }
-    var finalCost = 0L
-    var iterationCount = 0
-    while (iterationCount < maxIterations) {
-        val result = try {
-            assignGroupsWithMinCostFlow(groups, centroids)
-        } catch (error: RuntimeException) {
-            throw IllegalStateException(
-                "MCF assignment failed: texture=$textureIndex iteration=${iterationCount + 1} " +
-                    "requiredFlow=$groupCount centroidCount=$centroidCount clusterGroupCapacity=$clusterGroupCapacity",
-                error
-            )
-        }
-        var changedCount = 0
-        for (groupID in 0..<groupCount) {
-            if (groupAssignments[groupID] != result.assignments[groupID]) changedCount++
-        }
-        result.assignments.copyInto(groupAssignments)
-        finalCost = result.totalCost
-        iterationCount++
-        println("texture=$textureIndex iteration=$iterationCount changed=$changedCount cost=$finalCost")
-        if (changedCount == 0) break
-        updateCentroidsFromAssignments(groups, groupAssignments, centroids)
-    }
-
-    val clusterSizes = IntArray(centroidCount)
-    for (centroidID in groupAssignments) {
-        clusterSizes[centroidID]++
-    }
-    require(clusterSizes.all { it == clusterGroupCapacity })
-    val clusterMean = clusterSizes.average()
-    val clusterStddev = sqrt(clusterSizes.sumOf { (it - clusterMean).pow(2) } / clusterSizes.size)
-    println(
-        "texture=$textureIndex iterations=$iterationCount finalCost=$finalCost " +
-            "groups min=${clusterSizes.min()} max=${clusterSizes.max()} mean=$clusterMean stddev=$clusterStddev " +
-            "pixels min=${clusterSizes.min() * groupPixelCount} max=${clusterSizes.max() * groupPixelCount}"
-    )
-
-    fun morton2D(localX: Int, localY: Int): Int {
-        fun spread9(v: Int): Int {
-            var x = v and 0x1FF
-            x = (x or (x shl 8)) and 0x00FF00FF
-            x = (x or (x shl 4)) and 0x0F0F0F0F
-            x = (x or (x shl 2)) and 0x33333333
-            x = (x or (x shl 1)) and 0x55555555
-            return x
+        fun sigmaToShuffleCount(sigma: Double): Int {
+            return (0.5 * sigma.pow(2) + 1.46 * sigma.pow(-1) + 1.76 * sigma.pow(-2) + 0.656 * sigma.pow(-3) + 0.5).toInt()
         }
 
-        val px = localX + 128
-        val py = localY + 128
-
-        require(px in 0..511)
-        require(py in 0..511)
-
-        return spread9(px) or (spread9(py) shl 1)
-    }
-
-    val comparator = compareBy<Pair<Int, Int>> { morton2D(it.first, it.second) }
-    val listComp = compareBy<List<Pair<Int, Int>>> { morton2D(it[0].first, it[0].second) }
-    val centroidComp = compareBy<Pair<Int, *>> {
-        val centroid = centroids[it.first]
-        morton2D(centroid.first.toInt(), centroid.second.toInt())
-    }
-
-    data class GroupAssignment(val groupID: Int, val centroidID: Int)
-
-    return groupAssignments.withIndex()
-        .map { GroupAssignment(it.index, it.value) }
-        .groupBy { it.centroidID }
-        .toList()
-        .sortedWith(centroidComp)
-        .flatMap { (_, assignedGroups) ->
-            assignedGroups.map {
-                groups[it.groupID].sortedWith(comparator)
-            }.sortedWith(listComp).map {
-                it.flatMap { listOf(it.first, it.second) }
+        fun shuffleGrid(offsetX: Int, offsetY: Int) {
+            for (y in 0..<size / 2) {
+                val dstY = y * 2 + offsetY
+                for (x in 0..<size / 2) {
+                    val dstX = x * 2 + offsetX
+                    val permuteTemp = IntArray(4)
+                    var i = 0
+                    for (dy in 0..<2) {
+                        for (dx in 0..<2) {
+                            permuteTemp[i++] = groupIDGrid[(dstY + dy) % size][(dstX + dx) % size]
+                        }
+                    }
+                    permuteTemp.shuffle(randoms[y][x])
+                    i = 0
+                    for (dy in 0..<2) {
+                        for (dx in 0..<2) {
+                            groupIDGrid[(dstY + dy) % size][(dstX + dx) % size] = permuteTemp[i++]
+                        }
+                    }
+                }
             }
         }
+
+        repeat(sigmaToShuffleCount(sigma)) {
+            shuffleGrid(it, it)
+        }
+
+        val groupPos = Array(groupCount) { IntArray(groupPixelCount * 2 + 1) }
+        for (y in 0..<size) {
+            for (x in 0..<size) {
+                val groupId = groupIDGrid[y][x]
+                val arr = groupPos[groupId]
+                val idx = (arr[0]++) * 2
+                arr[idx + 1] = x
+                arr[idx + 2] = y
+            }
+        }
+        require(groupPos.all { it[0] == groupPixelCount }) { "Generated reuse texture contains a malformed group" }
+
+        val groups = groupPos
+            .map { it.slice(1..<groupPixelCount * 2 + 1).chunked(2).map { it[0] to it[1] } }
+
+        var groupAssignments = IntArray(groupCount) { -1 }
+        var finalCost = 0L
+        var iterationCount = 0
+        while (iterationCount < maxIterations) {
+            val result = try {
+                assignGroupsWithMinCostFlow(groups, centroidX, centroidY)
+            } catch (error: RuntimeException) {
+                throw IllegalStateException(
+                    "MCF assignment failed: texture=$textureIndex iteration=${iterationCount + 1} " +
+                        "requiredFlow=$groupCount centroidCount=$centroidCount clusterGroupCapacity=$clusterGroupCapacity",
+                    error
+                )
+            }
+            var changedCount = 0
+            for (groupID in 0..<groupCount) {
+                if (groupAssignments[groupID] != result.assignments[groupID]) changedCount++
+            }
+            groupAssignments = result.assignments
+            finalCost = result.totalCost
+            iterationCount++
+            println("texture=$textureIndex iteration=$iterationCount changed=$changedCount cost=$finalCost")
+            if (changedCount == 0) break
+            updateCentroidsFromAssignments(groups, groupAssignments, centroidX, centroidY)
+        }
+
+        val clusterSizes = IntArray(centroidCount)
+        for (centroidID in groupAssignments) {
+            clusterSizes[centroidID]++
+        }
+        require(clusterSizes.all { it == clusterGroupCapacity })
+        val clusterMean = clusterSizes.average()
+        val clusterStddev = sqrt(clusterSizes.sumOf { (it - clusterMean).pow(2) } / clusterSizes.size)
+        println(
+            "texture=$textureIndex iterations=$iterationCount finalCost=$finalCost " +
+                "groups min=${clusterSizes.min()} max=${clusterSizes.max()} mean=$clusterMean stddev=$clusterStddev " +
+                "pixels min=${clusterSizes.min() * groupPixelCount} max=${clusterSizes.max() * groupPixelCount}"
+        )
+
+        fun morton2D(localX: Int, localY: Int): Int {
+            fun spread9(v: Int): Int {
+                var x = v and 0x1FF
+                x = (x or (x shl 8)) and 0x00FF00FF
+                x = (x or (x shl 4)) and 0x0F0F0F0F
+                x = (x or (x shl 2)) and 0x33333333
+                x = (x or (x shl 1)) and 0x55555555
+                return x
+            }
+
+            val px = localX + 128
+            val py = localY + 128
+
+            require(px in 0..511)
+            require(py in 0..511)
+
+            return spread9(px) or (spread9(py) shl 1)
+        }
+
+        val comparator = compareBy<Pair<Int, Int>> { morton2D(it.first, it.second) }
+        val listComp = compareBy<List<Pair<Int, Int>>> { morton2D(it[0].first, it[0].second) }
+        val centroidComp = compareBy<Pair<Int, *>> {
+            morton2D(centroidX[it.first].toInt(), centroidY[it.first].toInt())
+        }
+
+        data class GroupAssignment(val groupID: Int, val centroidID: Int)
+
+        return@Callable groupAssignments.asSequence().withIndex()
+            .map { GroupAssignment(it.index, it.value) }
+            .groupBy { it.centroidID }
+            .toList()
+            .sortedWith(centroidComp)
+            .flatMap { (_, assignedGroups) ->
+                assignedGroups.map {
+                    groups[it.groupID].sortedWith(comparator)
+                }.sortedWith(listComp).map {
+                    it.flatMap { listOf(it.first, it.second) }
+                }
+            }.toList()
+    })
 }
 
 val baseRandom = RandomSource.XO_SHI_RO_256_PP.create(69691145141919810L)
 val basePath = Path("../shaders/textures")
 val dists = mutableListOf<Double>()
 
-repeat(4) { texIndex ->
-    val data = main(baseRandom, texIndex)
+(0..<4).map {
+    main(baseRandom, it)
+}.forEachIndexed { texIndex, task ->
+    val data = task.get()
     require(data.size == groupCount)
     require(data.all { it.size == groupPixelCount * 2 })
 
