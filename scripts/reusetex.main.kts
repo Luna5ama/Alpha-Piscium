@@ -28,7 +28,7 @@ val groupCount = size * size / groupPixelCount
 val clusterPixelCapacity = threadGroupSize
 val clusterGroupCapacity = clusterPixelCapacity / groupPixelCount
 val centroidCount = groupCount / clusterGroupCapacity
-val maxIterations = 16
+val maxIterations = 128
 val reuseCostScale = 1000.0
 val sigma = 16.0
 
