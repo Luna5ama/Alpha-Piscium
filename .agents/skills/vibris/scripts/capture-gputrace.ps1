@@ -248,7 +248,8 @@ if ($ShaderRoot) {
 
 $argFile = New-VibrisJavaArgFile -Root $root -Backend $Backend -Jar $jar -Capture $captureDir -Frames $Frames -ShaderRoot $ShaderRoot
 
-$nsightScript = Get-VibrisConfigValue -Config $config -Name 'nsight_script' -Default 'C:\Users\Luna5ama\.codex\skills\nsight-graphics-analyzer\scripts\nsight.py'
+$nsightScript = Get-VibrisConfigValue -Config $config -Name 'nsight_script' -Default '..\nsight-graphics-analyzer\scripts\nsight.py'
+$nsightScript = Resolve-VibrisPath -Root $root -Path $nsightScript
 if (-not (Test-Path -LiteralPath $nsightScript -PathType Leaf)) {
     throw "Nsight analyzer script not found: $nsightScript"
 }
