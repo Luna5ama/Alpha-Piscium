@@ -10,15 +10,11 @@
 #include "/util/Celestial.glsl"
 #include "/util/Math.glsl"
 
-layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
+//layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 
 const float DENSITY_EPSILON = 0.0001;
 
-ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
-    float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
-    vec2 screenPos = (vec2(texelPos) + 0.5 - uval_taaJitter) * uval_mainImageSizeRcp;
-    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-
+ScatteringResult atmospherics_skyComposite(ivec2 texelPos, vec3 viewPos) {
     vec3 originView = vec3(0.0);
     vec3 endView = viewPos;
 
@@ -38,7 +34,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
 
     vec3 rayDir = viewDirWorld;
 
-    if (viewZ == -65536.0) {
+    if (viewPos.z <= -65536.0) {
         float rayLen = 0.0;
 
         // Check if ray origin is outside the atmosphere
@@ -84,7 +80,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos) {
             vec3 viewDir = mainRayParams.rayDir;
             vec2 ambLutUV = cloods_amblut_uv(viewDir, jitters);
 
-            vec3 rayEndView = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+            vec3 rayEndView = viewPos;
             vec3 rayDir = normalize(mat3(gbufferModelViewInverse) * rayEndView);
             SkyViewLutParams skyViewLutParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, rayDir);
             #ifdef SETTING_CLOUDS_CU

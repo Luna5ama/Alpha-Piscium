@@ -7,7 +7,6 @@
 #include "/util/Rand.glsl"
 #include "/util/Sampling.glsl"
 #include "/util/ThreadGroupTiling.glsl"
-#include "/util/Rand.glsl"
 #include "/util/Dither.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -347,7 +346,7 @@ void main() {
                     transient_gi_hitDistanceFactors_store(texelPos, vec4(saturate(hitDitanceFactors), 0.0, 0.0));
 
                     vec3 diffInput = historyData.diffuseColor;
-                    specInput = dither_fp16(specInput, ditherNoise);
+                    diffInput = dither_fp16(diffInput, ditherNoise);
                     transient_gi_blurDiff2_store(texelPos, vec4(diffInput, .00));
                     vec3 specInput = historyData.specularColor;
                     specInput = dither_fp16(specInput, ditherNoise);
