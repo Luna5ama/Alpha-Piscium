@@ -126,6 +126,24 @@ void sampleTemporalNeighbor(
     }
 }
 
+// https://graphics-programming.org/blog/ordered-dithering-is-useful-and-good
+float dither256x256(uvec2 fragCoord){
+    uint x = fragCoord.x ^ fragCoord.y;
+    uint y = fragCoord.y;
+    uint z = x << 16 | y;
+    z |= z << 12;
+    z &= 0xF0F0F0F0u;
+    z |= z >> 6;
+    z &= 0x33333333u;
+    z |= z << 3;
+    z &= 0xaaaaaaaau;
+    z  = z >> 9 | z << 6;
+    z &= 0x7fffffu;
+    return uintBitsToFloat(
+        floatBitsToUint(1.) | z
+    ) - 1.0;
+}
+
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
@@ -218,30 +236,32 @@ void main() {
 
                 bool oddFrame = bool(frameCounter & 1);
 
-                // 4-tap bilinear temporal gather
+                float randSelectWeight = dither256x256(uvec2(texelPos));
+
+                // 4-tap stochastic bilinear temporal gather
                 // Layout (gather order matches bilinearWeights xyzw):
-                //   x = top-left    iGatherTexelPos + (-1,  0)
-                //   y = top-right   iGatherTexelPos + ( 0,  0)
+                //   x = top-left     iGatherTexelPos + (-1,  0)
+                //   y = top-right    iGatherTexelPos + ( 0,  0)
                 //   z = bottom-right iGatherTexelPos + ( 0, -1)
                 //   w = bottom-left  iGatherTexelPos + (-1, -1)
-                if (bilinearWeights4.x > bilinearWeights4.y && bilinearWeights4.x > bilinearWeights4.z && bilinearWeights4.x > bilinearWeights4.w) {
-                    float combinedWeight = reprojInfo.bilateralWeights.x * reprojInfo.historyResetFactor;
+                if (randSelectWeight < bilinearWeights4.x) {
                     if (reprojInfo.bilateralWeights.x > 0.9) {
+                        float combinedWeight = reprojInfo.bilateralWeights.x * reprojInfo.historyResetFactor;
                         sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, 0), combinedWeight, 3331u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal);
                     }
-                } else if (bilinearWeights4.y > bilinearWeights4.z && bilinearWeights4.y > bilinearWeights4.w) {
-                    float combinedWeight = reprojInfo.bilateralWeights.y * reprojInfo.historyResetFactor;
+                } else if (randSelectWeight < bilinearWeights4.x + bilinearWeights4.y) {
                     if (reprojInfo.bilateralWeights.y > 0.9) {
+                        float combinedWeight = reprojInfo.bilateralWeights.y * reprojInfo.historyResetFactor;
                         sampleTemporalNeighbor(texelPos, iGatherTexelPos, combinedWeight, 3332u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal);
                     }
-                } else if (bilinearWeights4.z > bilinearWeights4.w) {
-                    float combinedWeight = reprojInfo.bilateralWeights.z * reprojInfo.historyResetFactor;
+                } else if (randSelectWeight < bilinearWeights4.x + bilinearWeights4.y + bilinearWeights4.z) {
                     if (reprojInfo.bilateralWeights.z > 0.9) {
+                        float combinedWeight = reprojInfo.bilateralWeights.z * reprojInfo.historyResetFactor;
                         sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(0, -1), combinedWeight, 3333u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal);
                     }
                 } else {
-                    float combinedWeight = reprojInfo.bilateralWeights.w * reprojInfo.historyResetFactor;
                     if (reprojInfo.bilateralWeights.w > 0.9) {
+                        float combinedWeight = reprojInfo.bilateralWeights.w * reprojInfo.historyResetFactor;
                         sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, -1), combinedWeight, 3334u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal);
                     }
                 }

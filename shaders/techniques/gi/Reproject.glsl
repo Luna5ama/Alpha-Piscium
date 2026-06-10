@@ -156,6 +156,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     if (bool(clipFlag)) {
         vec2 curr2PrevScreenClamped = saturate(curr2PrevScreen);
         if (all(lessThan(abs(curr2PrevScreen - curr2PrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
+            curr2PrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
             curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(1.0), uval_mainImageSize - 1.0);
 
@@ -357,6 +358,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         if (bool(clipFlag)) {
             vec2 virtualPrevNDC = virtualPrevClipPos.xy / virtualPrevClipPos.w;
             vec2 virtualPrevScreen = virtualPrevNDC * 0.5 + 0.5;
+            virtualPrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
             vec2 virtualPrevScreenClamped = saturate(virtualPrevScreen);
 
             if (all(lessThan(abs(virtualPrevScreen - virtualPrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
@@ -443,7 +445,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         packedData4 = dither_fp16(packedData4, ditherNoiseV);
                         transient_gi4Reprojected_store(texelPos, packedData4);
                     } else {
-                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, 0.1, uval_mainImageSizeRcp);
+                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, 0.5, uval_mainImageSizeRcp);
 
                         vec4 packedData3 = sampling_catmullBicubic5Tap_sum(
                             history_gi3_sample(vTapData.uv1AndWeight.xy),
@@ -453,14 +455,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                             history_gi3_sample(vTapData.uv5AndWeight.xy),
                             vTapData
                         );
-                        vec4 packedData4 = sampling_catmullBicubic5Tap_sum(
-                            history_gi4_sample(vTapData.uv1AndWeight.xy),
-                            history_gi4_sample(vTapData.uv2AndWeight.xy),
-                            history_gi4_sample(vTapData.uv3AndWeight.xy),
-                            history_gi4_sample(vTapData.uv4AndWeight.xy),
-                            history_gi4_sample(vTapData.uv5AndWeight.xy),
-                            vTapData
-                        );
+                        vec4 packedData4 = history_gi4_sample(virtualPrevScreen);
 
                         packedData3 = clamp(packedData3, 0.0, FP16_MAX);
                         packedData4 = clamp(packedData4, 0.0, FP16_MAX);
