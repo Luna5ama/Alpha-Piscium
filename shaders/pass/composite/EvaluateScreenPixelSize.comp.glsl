@@ -17,25 +17,25 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec3 centerViewPos = sampleViewPos(texelPos);
 
-        vec4 dViewPosdx = vec4(0.0);
-        if (texelPos.x < uval_mainImageSizeI.x - 1) {
-            dViewPosdx += vec4(sampleViewPos(texelPos + ivec2(1, 0)) - centerViewPos, 1.0);
-        }
-        if (texelPos.x > 0) {
-            dViewPosdx += vec4(-(sampleViewPos(texelPos + ivec2(-1, 0)) - centerViewPos), 1.0);
+        vec3 dViewPosdx;
+        if (texelPos.x > 0 && texelPos.x < uval_mainImageSizeI.x - 1) {
+            dViewPosdx = (sampleViewPos(texelPos + ivec2(1, 0)) - sampleViewPos(texelPos + ivec2(-1, 0))) * 0.5;
+        } else if (texelPos.x < uval_mainImageSizeI.x - 1) {
+            dViewPosdx = sampleViewPos(texelPos + ivec2(1, 0)) - centerViewPos;
+        } else {
+            dViewPosdx = centerViewPos - sampleViewPos(texelPos + ivec2(-1, 0));
         }
 
-        vec4 dViewPosdy = vec4(0.0);
-        if (texelPos.y < uval_mainImageSizeI.y - 1) {
-            dViewPosdy += vec4(sampleViewPos(texelPos + ivec2(0, 1)) - centerViewPos, 1.0);
+        vec3 dViewPosdy;
+        if (texelPos.y > 0 && texelPos.y < uval_mainImageSizeI.y - 1) {
+            dViewPosdy = (sampleViewPos(texelPos + ivec2(0, 1)) - sampleViewPos(texelPos + ivec2(0, -1))) * 0.5;
+        } else if (texelPos.y < uval_mainImageSizeI.y - 1) {
+            dViewPosdy = sampleViewPos(texelPos + ivec2(0, 1)) - centerViewPos;
+        } else {
+            dViewPosdy = centerViewPos - sampleViewPos(texelPos + ivec2(0, -1));
         }
-        if (texelPos.y > 0) {
-            dViewPosdy += vec4(-(sampleViewPos(texelPos + ivec2(0, -1)) - centerViewPos), 1.0);
-        }
-        dViewPosdx.xyz /= dViewPosdx.w;
-        dViewPosdy.xyz /= dViewPosdy.w;
 
-        float pixelSize = length(dViewPosdx.xyz) * length(dViewPosdy.xyz);
+        float pixelSize = length(dViewPosdx) * length(dViewPosdy);
         transient_screenPixelSize_store(texelPos, vec4(pixelSize));
         transient_caustics_input_store(texelPos, vec4(0.0));
     }
