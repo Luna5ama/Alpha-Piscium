@@ -3,6 +3,7 @@ param(
     [string]$Backend = 'gl',
     [string]$Capture = '',
     [string]$ShaderRoot = '',
+    [string[]]$ShaderPass = @(),
     [long]$Frames = -1,
     [int]$StartAfterFrames = -1,
     [int]$StartAfterSubmits = -1,
@@ -246,7 +247,7 @@ if ($ShaderRoot) {
     $ShaderRoot = Resolve-VibrisPath -Root $root -Path $ShaderRoot
 }
 
-$argFile = New-VibrisJavaArgFile -Root $root -Backend $Backend -Jar $jar -Capture $captureDir -Frames $Frames -ShaderRoot $ShaderRoot
+$argFile = New-VibrisJavaArgFile -Root $root -Backend $Backend -Jar $jar -Capture $captureDir -Frames $Frames -ShaderRoot $ShaderRoot -ShaderPass $ShaderPass
 
 $nsightScript = Get-VibrisConfigValue -Config $config -Name 'nsight_script' -Default '..\nsight-graphics-analyzer\scripts\nsight.py'
 $nsightScript = Resolve-VibrisPath -Root $root -Path $nsightScript
