@@ -29,10 +29,8 @@ void main() {
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
-        ivec2 waterFarDepthTexelPos = csr32f_tile2_texelToTexel(texelPos);
 
         ivec2 translucentNearDepthTexelPos = csr32f_tile3_texelToTexel(texelPos);
-        ivec2 translucentFarDepthTexelPos = csr32f_tile4_texelToTexel(texelPos);
 
         float waterStartViewZ = -texelFetch(usam_csr32f, waterNearDepthTexelPos, 0).r;
         float translucentStartViewZ = -texelFetch(usam_csr32f, translucentNearDepthTexelPos, 0).r;
@@ -121,7 +119,6 @@ void main() {
                     refractColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
                     if (refractHit) {
                         vec2 refractCoord = refractHitScreen2D;
-                        float refractDepth = texture(usam_gbufferSolidViewZ, refractCoord).r;
                         vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
                         refractColor = mix(refractColor, hitColor, sst_edgeReductionFactor(refractCoord.xy, 2.0, vec2(0.0), vec2(1.5)));
                     }
