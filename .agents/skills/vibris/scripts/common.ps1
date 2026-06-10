@@ -184,7 +184,8 @@ function New-VibrisJavaArgFile {
         [Parameter(Mandatory = $true)]
         [string]$Capture,
         [long]$Frames = 1,
-        [string]$ShaderRoot
+        [string]$ShaderRoot,
+        [string[]]$ShaderPass = @()
     )
 
     $tempDir = Join-Path $Root '.tmp'
@@ -199,6 +200,12 @@ function New-VibrisJavaArgFile {
     if ($ShaderRoot) {
         $lines.Add('--shader-root')
         $lines.Add($ShaderRoot)
+    }
+    foreach ($pass in $ShaderPass) {
+        if ($pass) {
+            $lines.Add('--shader-pass')
+            $lines.Add($pass)
+        }
     }
 
     [System.IO.File]::WriteAllLines($argFile, $lines, [System.Text.Encoding]::ASCII)

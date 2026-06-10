@@ -134,16 +134,28 @@ I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\run-replayer.ps1 `
   -ShaderRoot I:\code\mcshaders\Alpha-Piscium\shaders
 ```
 
+Run with replacement shader source for only one pass:
+
+```powershell
+I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\run-replayer.ps1 `
+  -Backend gl `
+  -Capture R:\vibris\composite-20260610-050000 `
+  -ShaderRoot I:\code\mcshaders\Alpha-Piscium\shaders `
+  -ShaderPass composite20
+```
+
 The replay CLI accepts:
 
 ```text
-<captureDir> [frameLimit] [--shader-path|--shader-root <path>]
+<captureDir> [frameLimit] [--shader-path|--shader-root <path>] [--shader-pass <passName>]...
 ```
 
 OpenGL replay uses the captured original OpenGL shader source unless
 `--shader-root` is supplied. Vulkan replay uses runtime patching for shader
 replacement. Do not manually copy edited shaderpack sources into the capture
-directory; pass `-ShaderRoot` instead.
+directory; pass `-ShaderRoot` instead. When using a full shaderpack root to
+test a known hotspot, also pass `-ShaderPass <passName>` so only that pass is
+replaced and the other captured passes keep their original shader sources.
 
 ## Nsight GPU Trace
 
@@ -185,6 +197,18 @@ Specific capture:
 I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\capture-gputrace.ps1 `
   -Backend gl `
   -Capture R:\vibris\composite-20260610-050000 `
+  -StartAfterFrames 3 `
+  -MaxDurationMs 3000
+```
+
+Specific replacement pass:
+
+```powershell
+I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\capture-gputrace.ps1 `
+  -Backend gl `
+  -Capture R:\vibris\composite-20260610-050000 `
+  -ShaderRoot I:\code\mcshaders\Alpha-Piscium\shaders `
+  -ShaderPass composite20 `
   -StartAfterFrames 3 `
   -MaxDurationMs 3000
 ```

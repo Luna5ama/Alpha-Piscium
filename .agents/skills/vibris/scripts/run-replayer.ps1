@@ -3,6 +3,7 @@ param(
     [string]$Backend = 'gl',
     [string]$Capture = '',
     [string]$ShaderRoot = '',
+    [string[]]$ShaderPass = @(),
     [long]$Frames = -1,
     [switch]$PrintCommand
 )
@@ -23,7 +24,7 @@ if ($ShaderRoot) {
     $ShaderRoot = Resolve-VibrisPath -Root $root -Path $ShaderRoot
 }
 
-$argFile = New-VibrisJavaArgFile -Root $root -Backend $Backend -Jar $jar -Capture $captureDir -Frames $Frames -ShaderRoot $ShaderRoot
+$argFile = New-VibrisJavaArgFile -Root $root -Backend $Backend -Jar $jar -Capture $captureDir -Frames $Frames -ShaderRoot $ShaderRoot -ShaderPass $ShaderPass
 
 if ($PrintCommand) {
     Write-Output "$java @$argFile"
