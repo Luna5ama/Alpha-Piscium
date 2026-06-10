@@ -9,14 +9,9 @@
 
 #include "Common.glsl"
 #include "/techniques/HiZCheck.glsl"
-#include "/util/GBufferData.glsl"
-#include "/util/Material.glsl"
-#include "/util/Fresnel.glsl"
-#include "/util/BSDF.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Mat2.glsl"
-#include "/util/Rand.glsl"
 #include "/util/Dither.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
@@ -64,10 +59,6 @@ vec4 _gi_readSpec(ivec2 texelPos) {
     #elif GI_DENOISE_PASS == 2
     return transient_gi_blurSpec1_fetch(texelPos);
     #endif
-}
-
-float gaussianKernel(float x, float sigma) {
-    return exp(-sigma * pow2(x));
 }
 
 float normalWeight(GeomData a, GeomData b, float factor) {
@@ -163,13 +154,8 @@ void main() {
             float angle = blurJitter.x * PI_2;
             float16_t rcpSamples = float16_t(1.0 / float(GI_DENOISE_SAMPLES));
 
-            GBufferData centerGData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), centerGData);
-            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), centerGData);
-            Material material = material_decode(centerGData);
-
             // --- Diffuse loop: screen-space kernel with view-angle stretch ---
-            if (material.dielectric > 0.0) {
+            if (centerGeomData.dielectric > 0.0) {
                 float kernelRadius = baseKernelRadius.x;
                 kernelRadius *= diffAccumFactor;
                 kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
@@ -188,7 +174,6 @@ void main() {
                 vec4 centerDiff = _gi_readDiff(texelPos);
                 f16vec4 diffSumFP16 = f16vec4(centerDiff);
                 float16_t weightSumFP16 = float16_t(1.0);
-                float16_t centerLuma = diffSumFP16.w;
 
                 f16vec2 dir = f16vec2(cos(angle), sin(angle));
                 for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
@@ -292,7 +277,6 @@ void main() {
                 vec4 centerSpec = _gi_readSpec(texelPos);
                 f16vec4 spedSumFP16 = f16vec4(centerSpec);
                 float16_t weightSumFP16 = float16_t(1.0);
-                float16_t centerLuma = spedSumFP16.w;
 
                 f16vec2 dir = f16vec2(cos(angle), sin(angle));
                 for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
@@ -358,8 +342,7 @@ void main() {
 
             #if GI_DENOISE_PASS == 1
             #elif GI_DENOISE_PASS == 2
-            vec4 packedData5 = transient_gi5Reprojected_fetch(texelPos);
-            history_gi5_store(texelPos, packedData5);
+            history_gi5_store(texelPos, historyData5);
             #endif
 
             return;

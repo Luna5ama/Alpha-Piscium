@@ -40,6 +40,10 @@ SampleData loadSampleData(ivec2 texelPos) {
     return sData;
 }
 
+float loadSampleViewZ(ivec2 texelPos) {
+    return uintBitsToFloat(shared_data[texelPos.y][texelPos.x].x);
+}
+
 void classifyGIDenoiserEdges() {
     loadSharedData(gl_LocalInvocationIndex);
     loadSharedData(gl_LocalInvocationIndex + 256);

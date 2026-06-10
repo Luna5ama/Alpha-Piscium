@@ -35,18 +35,16 @@ void main() {
         // Local position in shared memory (with +1 offset for padding)
         ivec2 localPos = ivec2(gl_LocalInvocationID.xy) + 1;
 
-        float edgeMaskSum = 0.0;
-
-        // Apply 3x3 min kernel
-        for (int dy = -1; dy <= 1; dy++) {
-            for (int dx = -1; dx <= 1; dx++) {
-                ivec2 sampleLocalPos = localPos + ivec2(dx, dy);
-                float sampleEdgeMask = shared_edgeMask[sampleLocalPos.y][sampleLocalPos.x];
-                edgeMaskSum += sampleEdgeMask;
-            }
-        }
-
-        edgeMaskSum /= 9.0;
+        float edgeMaskSum = shared_edgeMask[localPos.y - 1][localPos.x - 1];
+        edgeMaskSum += shared_edgeMask[localPos.y - 1][localPos.x];
+        edgeMaskSum += shared_edgeMask[localPos.y - 1][localPos.x + 1];
+        edgeMaskSum += shared_edgeMask[localPos.y][localPos.x - 1];
+        edgeMaskSum += shared_edgeMask[localPos.y][localPos.x];
+        edgeMaskSum += shared_edgeMask[localPos.y][localPos.x + 1];
+        edgeMaskSum += shared_edgeMask[localPos.y + 1][localPos.x - 1];
+        edgeMaskSum += shared_edgeMask[localPos.y + 1][localPos.x];
+        edgeMaskSum += shared_edgeMask[localPos.y + 1][localPos.x + 1];
+        edgeMaskSum *= 1.0 / 9.0;
 
         transient_edgeMaskDilated_store(texelPos, vec4(edgeMaskSum));
     }

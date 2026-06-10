@@ -144,49 +144,59 @@ void WriteScreenSpaceShadow(DispatchParameters params, ivec3 groupID, uint laneI
 
     ComputeWavefrontExtents(params, groupID, laneID, xy_delta, pixel_xy, pixel_distance, x_axis_major);
 
-    float sampling_depth[READ_COUNT];
-    float shadowing_depth[READ_COUNT];
-    float depth_thickness_scale[READ_COUNT];
-    float sample_distance[READ_COUNT];
-
     float direction = -params.LightCoordinate.w;
     float z_sign = params.NearDepthValue > params.FarDepthValue ? -1.0 : 1.0;
 
-    bool is_edge = false;
     bool skip_pixel = false;
     vec2 write_xy = floor(pixel_xy);
 
-    for (int i = 0; i < READ_COUNT; i++) {
-        vec2 read_xy = floor(pixel_xy);
-        float minor_axis = x_axis_major ? pixel_xy.y : pixel_xy.x;
-        float bilinear = fract(minor_axis) - 0.5;
+    vec2 readXY0 = floor(pixel_xy);
+    float minorAxis0 = x_axis_major ? pixel_xy.y : pixel_xy.x;
+    float bilinear0 = fract(minorAxis0) - 0.5;
+    int bias0 = bilinear0 > 0.0 ? 1 : -1;
+    ivec2 offsetXY0 = ivec2(x_axis_major ? 0 : bias0, x_axis_major ? bias0 : 0);
+    float samplingDepth0 = GetScreenDepth(ivec2(readXY0));
+    float d20 = GetScreenDepth(ivec2(readXY0) + offsetXY0);
+    float depthThicknessScale0 = abs(params.FarDepthValue - samplingDepth0);
+    bool usePointFilter0 = abs(samplingDepth0 - d20) > depthThicknessScale0 * params.BilinearThreshold && transient_edgeMask_fetch(ivec2(readXY0)).r < 1.0;
+    float edgeDepth0 = params.IgnoreEdgePixels ? 1e20 : samplingDepth0;
+    float shadowDepth0 = samplingDepth0 + abs(samplingDepth0 - d20) * z_sign;
+    float shadowingDepth0 = usePointFilter0 ? edgeDepth0 : shadowDepth0;
+    float sampleDistance0 = pixel_distance;
+    pixel_xy += xy_delta * direction;
 
-        // Manual bilinear gather
-        int bias = bilinear > 0.0 ? 1 : -1;
-        ivec2 offset_xy = ivec2(x_axis_major ? 0 : bias, x_axis_major ? bias : 0);
+    vec2 readXY1 = floor(pixel_xy);
+    float minorAxis1 = x_axis_major ? pixel_xy.y : pixel_xy.x;
+    float bilinear1 = fract(minorAxis1) - 0.5;
+    int bias1 = bilinear1 > 0.0 ? 1 : -1;
+    ivec2 offsetXY1 = ivec2(x_axis_major ? 0 : bias1, x_axis_major ? bias1 : 0);
+    float samplingDepth1 = GetScreenDepth(ivec2(readXY1));
+    float d21 = GetScreenDepth(ivec2(readXY1) + offsetXY1);
+    float depthThicknessScale1 = abs(params.FarDepthValue - samplingDepth1);
+    bool usePointFilter1 = abs(samplingDepth1 - d21) > depthThicknessScale1 * params.BilinearThreshold && transient_edgeMask_fetch(ivec2(readXY1)).r < 1.0;
+    float edgeDepth1 = params.IgnoreEdgePixels ? 1e20 : samplingDepth1;
+    float shadowDepth1 = samplingDepth1 + abs(samplingDepth1 - d21) * z_sign;
+    float shadowingDepth1 = usePointFilter1 ? edgeDepth1 : shadowDepth1;
+    float sampleDistance1 = pixel_distance + float(WAVE_SIZE) * direction;
+    pixel_xy += xy_delta * direction;
 
-        float d1 = GetScreenDepth(ivec2(read_xy));
-        float d2 = GetScreenDepth(ivec2(read_xy) + offset_xy);
-
-        depth_thickness_scale[i] = abs(params.FarDepthValue - d1);
-
-        bool use_point_filter = abs(d1 - d2) > depth_thickness_scale[i] * params.BilinearThreshold && transient_edgeMask_fetch(ivec2(read_xy)).r < 1.0;
-        if (i == 0) is_edge = use_point_filter;
-
-        sampling_depth[i] = d1;
-
-        float edge_depth = params.IgnoreEdgePixels ? 1e20 : d1;
-        float shadow_depth = d1 + abs(d1 - d2) * z_sign;
-        shadowing_depth[i] = use_point_filter ? edge_depth : shadow_depth;
-
-        sample_distance[i] = pixel_distance + (float(WAVE_SIZE) * float(i)) * direction;
-
-        pixel_xy += xy_delta * direction;
-    }
+    vec2 readXY2 = floor(pixel_xy);
+    float minorAxis2 = x_axis_major ? pixel_xy.y : pixel_xy.x;
+    float bilinear2 = fract(minorAxis2) - 0.5;
+    int bias2 = bilinear2 > 0.0 ? 1 : -1;
+    ivec2 offsetXY2 = ivec2(x_axis_major ? 0 : bias2, x_axis_major ? bias2 : 0);
+    float samplingDepth2 = GetScreenDepth(ivec2(readXY2));
+    float d22 = GetScreenDepth(ivec2(readXY2) + offsetXY2);
+    float depthThicknessScale2 = abs(params.FarDepthValue - samplingDepth2);
+    bool usePointFilter2 = abs(samplingDepth2 - d22) > depthThicknessScale2 * params.BilinearThreshold && transient_edgeMask_fetch(ivec2(readXY2)).r < 1.0;
+    float edgeDepth2 = params.IgnoreEdgePixels ? 1e20 : samplingDepth2;
+    float shadowDepth2 = samplingDepth2 + abs(samplingDepth2 - d22) * z_sign;
+    float shadowingDepth2 = usePointFilter2 ? edgeDepth2 : shadowDepth2;
+    float sampleDistance2 = pixel_distance + float(WAVE_SIZE * 2) * direction;
 
     // Early out logic
     if (params.UseEarlyOut) {
-        bool in_bounds = (sampling_depth[0] < params.DepthBounds.y && sampling_depth[0] > params.DepthBounds.x);
+        bool in_bounds = (samplingDepth0 < params.DepthBounds.y && samplingDepth0 > params.DepthBounds.x);
         skip_pixel = !in_bounds;
         bool wave_active = subgroupAny(!skip_pixel);
 
@@ -203,14 +213,15 @@ void WriteScreenSpaceShadow(DispatchParameters params, ivec3 groupID, uint laneI
     }
 
     // Write LDS
-    for (int i = 0; i < READ_COUNT; i++) {
-        float stored_depth = (shadowing_depth[i] - params.LightCoordinate.z) / sample_distance[i];
-        if (i != 0) {
-            stored_depth = sample_distance[i] > 0.0 ? stored_depth : 1e10;
-        }
-        uint idx = uint(i * WAVE_SIZE) + laneID;
-        DepthData[idx] = stored_depth;
-    }
+    DepthData[laneID] = (shadowingDepth0 - params.LightCoordinate.z) / sampleDistance0;
+
+    float storedDepth1 = (shadowingDepth1 - params.LightCoordinate.z) / sampleDistance1;
+    storedDepth1 = sampleDistance1 > 0.0 ? storedDepth1 : 1e10;
+    DepthData[uint(WAVE_SIZE) + laneID] = storedDepth1;
+
+    float storedDepth2 = (shadowingDepth2 - params.LightCoordinate.z) / sampleDistance2;
+    storedDepth2 = sampleDistance2 > 0.0 ? storedDepth2 : 1e10;
+    DepthData[uint(WAVE_SIZE * 2) + laneID] = storedDepth2;
 
     barrier();
 
@@ -232,7 +243,7 @@ void WriteScreenSpaceShadow(DispatchParameters params, ivec3 groupID, uint laneI
     gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, writeTexel, 0), gData);
     Material material = material_decode(gData);
     float sssFactor = material.sss;
-    float start_depth = sampling_depth[0];
+    float start_depth = samplingDepth0;
     start_depth = coords_reversedZToViewZ(start_depth, nearPlane);
     float jitterR = rand_stbnVec1(writeTexel, frameCounter);
     start_depth += jitterR * pow(sssFactor, 0.25) * SETTING_SSS_DEPTH_RANGE;
@@ -240,13 +251,13 @@ void WriteScreenSpaceShadow(DispatchParameters params, ivec3 groupID, uint laneI
 
     if (params.UsePrecisionOffset) start_depth = mix(start_depth, params.FarDepthValue, -1.0 / 65535.0);
 
-    start_depth = (start_depth - params.LightCoordinate.z) / sample_distance[0];
+    start_depth = (start_depth - params.LightCoordinate.z) / sampleDistance0;
 
     uint sample_index = laneID + 1u;
     vec4 shadow_value = vec4(1.0);
     float hard_shadow = 1.0;
 
-    float depth_scale = min(sample_distance[0] + direction, 1.0 / params.SurfaceThickness) * sample_distance[0] / max(depth_thickness_scale[0], 1e-6);
+    float depth_scale = min(sampleDistance0 + direction, 1.0 / params.SurfaceThickness) * sampleDistance0 / max(depthThicknessScale0, 1e-6);
 
     start_depth = start_depth * depth_scale - z_sign;
 

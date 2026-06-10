@@ -59,13 +59,13 @@ float evaluateTargetFunctionWithNdotL(vec3 irradiance, vec3 normal, float rawNdo
 }
 
 float evaluateShiftTargetPHat(
-    ivec2 texelDST,
     vec4 canonYSRC,
     vec3 normalDST,
     vec3 normalSRC,
     vec3 hitNormalSRC,
     vec3 sampleValueSRC,
-    vec3 viewPosDST, vec3 viewPosSRC
+    vec3 viewPosDST, vec3 viewPosSRC,
+    ResampleMaterial materialDST
 ) {
     const float EPSILON = 1e-6;
     float targetPHat = 0.0;
@@ -81,11 +81,9 @@ float evaluateShiftTargetPHat(
             if (cosPhiSRC > 0.0 && cosPhiDST > 0.0) {
                 float rawNdotLDST = dot(normalDST, dirSRCtoDST);
                 if (rawNdotLDST > 0.0) {
-                    vec4 resampleMaterialDataDST = transient_restir_resampleMaterial_fetch(texelDST);
                     float cosSRC = dot(normalSRC, canonYSRC.xyz);
                     vec3 VDST = normalize(-viewPosDST);
-                    ResampleMaterial matDST = resampleMaterial_unpack(resampleMaterialDataDST);
-                    float pHat = evaluateTargetFunctionWithNdotL(sampleValueSRC, normalDST, rawNdotLDST, dirSRCtoDST, VDST, matDST);
+                    float pHat = evaluateTargetFunctionWithNdotL(sampleValueSRC, normalDST, rawNdotLDST, dirSRCtoDST, VDST, materialDST);
                     if (pHat > 0.0) {
                         float jacobian_DST = clamp(((canonYSRC.w * canonYSRC.w) * cosPhiDST) / (dist2 * cosPhiSRC), 0.0, 256.0);
                         targetPHat = pHat * jacobian_DST;
@@ -155,6 +153,7 @@ void processGroupCandidate(
     float canonMMe,
     float canonAvgWYMe,
     vec3 viewPosMe,
+    ResampleMaterial materialMe,
     uint reusableMe
 ) {
     ivec2 texelOther = subgroupShuffleXor(texelMe, shuffleMask);
@@ -165,6 +164,10 @@ void processGroupCandidate(
     float sampleValueWOther = subgroupShuffleXor(sampleValueMe.w, shuffleMask);
     float canonMOther = subgroupShuffleXor(canonMMe, shuffleMask);
     float canonAvgWYOther = subgroupShuffleXor(canonAvgWYMe, shuffleMask);
+    ResampleMaterial materialOther;
+    materialOther.f0 = subgroupShuffleXor(materialMe.f0, shuffleMask);
+    materialOther.dielectric = subgroupShuffleXor(materialMe.dielectric, shuffleMask);
+    materialOther.roughness = subgroupShuffleXor(materialMe.roughness, shuffleMask);
 
     uint pairValid = reusableMe & reusableOther & uint(texelMe != texelOther);
     bool pairReusable = false;
@@ -180,14 +183,14 @@ void processGroupCandidate(
     float meToOtherTargetPHat = 0.0;
     if (pairReusable) {
         meToOtherTargetPHat = evaluateShiftTargetPHat(
-            texelOther,
             canonYMe,
             normalOther,
             normalMe,
             hitNormalMe,
             sampleValueMe.xyz,
             viewPosOther,
-            viewPosMe
+            viewPosMe,
+            materialOther
         );
     }
     float otherToMeTargetPHat = subgroupShuffleXor(meToOtherTargetPHat, shuffleMask);
@@ -246,19 +249,21 @@ void main() {
     vec4 canonYMe = vec4(0.0, 0.0, 0.0, -1.0);
     float canonMMe = 0.0;
     float canonAvgWYMe = 0.0;
+    ResampleMaterial materialMe = resampleMaterial_init();
     PairwiseMISMetadata metaMe = pairwiseMISMetadata_init();
 
     if (bool(validMe)) {
         viewZMe = texelFetch(usam_gbufferSolidViewZ, texelMe, 0).x;
-        uvec4 spatialSamplePackedDataMe = transient_restir_spatialInput_fetch(texelMe);
-        vec2 screenPosMe = coords_texelToUV(texelMe, uval_mainImageSizeRcp);
-        viewPosMe = coords_toViewCoord(screenPosMe, viewZMe, global_camProjInverse);
-        nzpacking_unpackNormalOct16(spatialSamplePackedDataMe.x, geomNormalMe, hitNormalMe);
-        normalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.y);
-        sampleValueMe = unpackHalf4x16(spatialSamplePackedDataMe.zw);
-        metaMe = pairwiseMISMetadata_unpack(transient_restir_pairwiseMISMetadata_fetch(texelMe));
-
         if (viewZMe > -65536.0) {
+            uvec4 spatialSamplePackedDataMe = transient_restir_spatialInput_fetch(texelMe);
+            vec2 screenPosMe = coords_texelToUV(texelMe, uval_mainImageSizeRcp);
+            viewPosMe = coords_toViewCoord(screenPosMe, viewZMe, global_camProjInverse);
+            nzpacking_unpackNormalOct16(spatialSamplePackedDataMe.x, geomNormalMe, hitNormalMe);
+            normalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.y);
+            sampleValueMe = unpackHalf4x16(spatialSamplePackedDataMe.zw);
+            materialMe = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelMe));
+            metaMe = pairwiseMISMetadata_unpack(transient_restir_pairwiseMISMetadata_fetch(texelMe));
+
             uvec4 repMe;
             if (bool(frameCounter & 1)) {
                 repMe = history_restir_reservoirTemporal1_fetch(texelMe);
@@ -274,13 +279,13 @@ void main() {
 
     uint reusableMe = validMe & uint(viewZMe > -65536.0);
 
-    processGroupCandidate(1u, 3337u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
-    processGroupCandidate(2u, 3338u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
-    processGroupCandidate(3u, 3339u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
-    processGroupCandidate(4u, 3340u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
-    processGroupCandidate(5u, 3341u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
-    processGroupCandidate(6u, 3342u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
-    processGroupCandidate(7u, 3343u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, reusableMe);
+    processGroupCandidate(1u, 3337u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, materialMe, reusableMe);
+    processGroupCandidate(2u, 3338u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, materialMe, reusableMe);
+    processGroupCandidate(3u, 3339u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, materialMe, reusableMe);
+    processGroupCandidate(4u, 3340u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, materialMe, reusableMe);
+    processGroupCandidate(5u, 3341u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, materialMe, reusableMe);
+    processGroupCandidate(6u, 3342u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, materialMe, reusableMe);
+    processGroupCandidate(7u, 3343u, metaMe, texelMe, geomNormalMe, normalMe, hitNormalMe, sampleValueMe, canonYMe, canonMMe, canonAvgWYMe, viewPosMe, materialMe, reusableMe);
 
     if (bool(validMe)) {
         transient_restir_pairwiseMISMetadata_store(texelMe, pairwiseMISMetadata_pack(metaMe));

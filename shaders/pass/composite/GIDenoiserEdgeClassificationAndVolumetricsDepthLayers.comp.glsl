@@ -13,6 +13,6 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 void main() {
     classifyGIDenoiserEdges();
 
-    float solid = loadSampleData(ivec2(gl_LocalInvocationID.xy) + 1).viewZ;
+    float solid = loadSampleViewZ(ivec2(gl_LocalInvocationID.xy) + 1);
     updateVolumetricsDepthLayers(solid);
 }
