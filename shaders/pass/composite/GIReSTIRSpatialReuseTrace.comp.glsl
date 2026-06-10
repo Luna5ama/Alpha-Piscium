@@ -13,12 +13,8 @@ layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 
 void handleRayResult(SSTRay sstRay) {
     ivec2 texelPos = sstRay.pRayOriginTexelPos;
-    bool discardSptialReuse = true;
-    if (sstRay.currT < -0.99) {
-        discardSptialReuse = false;
-    }
 
-    if (discardSptialReuse) {
+    if (!(sstRay.currT < -0.99)) {
         transient_ssgiDiffOut_store(texelPos, vec4(0.0));
         transient_ssgiSpecOut_store(texelPos, vec4(0.0));
         #if SETTING_DEBUG_OUTPUT
