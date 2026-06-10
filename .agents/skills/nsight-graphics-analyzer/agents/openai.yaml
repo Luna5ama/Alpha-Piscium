@@ -1,0 +1,8 @@
+interface:
+  display_name: "Nsight Graphics Analyzer"
+  short_description: "Capture and analyze Nsight GPU traces."
+  brand_color: "#76B900"
+  default_prompt: "Use $nsight-graphics-analyzer to capture a GPU trace and explain the frame-time bottleneck."
+
+policy:
+  allow_implicit_invocation: true
