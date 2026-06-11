@@ -6,3 +6,4 @@ stuff/
 .run/
 agent_inputs/
 .tmp/
+__pycache__/
