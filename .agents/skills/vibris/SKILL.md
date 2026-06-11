@@ -44,7 +44,7 @@ server and reads the control file from `config.json`:
 
 ```json
 {
-  "iris_control_path": "I:\\code\\Iris\\fabric\\run\\iris-capture-control.json"
+  "iris_control_path": ".minecraft\\iris-capture-control.json"
 }
 ```
 
@@ -52,7 +52,7 @@ The Minecraft client must be running before the script can reach Iris. The
 control file is normally created by the running client at:
 
 ```text
-I:\code\Iris\fabric\run\iris-capture-control.json
+.minecraft\iris-capture-control.json
 ```
 
 Available actions:
@@ -72,15 +72,15 @@ experiment may reference resources that only appear in other passes.
 Examples:
 
 ```powershell
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\iris-control.ps1 -Action status
+.agents\skills\vibris\scripts\iris-control.ps1 -Action status
 
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\iris-control.ps1 -Action reload
+.agents\skills\vibris\scripts\iris-control.ps1 -Action reload
 
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\iris-control.ps1 `
+.agents\skills\vibris\scripts\iris-control.ps1 `
   -Action capture-pass `
   -Pass composite20
 
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\iris-control.ps1 `
+.agents\skills\vibris\scripts\iris-control.ps1 `
   -Action capture-multi `
   -Type composite
 ```
@@ -97,30 +97,24 @@ Resources are captured on first reference during capture. If a replacement
 shader later references a uniform or resource that was not captured, the
 replayer should fail instead of continuing with invalid bindings.
 
-The in-game command is also available:
-
-```text
-/capturemulti <prepare|begin|deferred|composite>
-```
-
 ## Replayer Usage
 
 Run OpenGL replay with defaults from `config.json`:
 
 ```powershell
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\run-replayer.ps1 -Backend gl
+.agents\skills\vibris\scripts\run-replayer.ps1 -Backend gl
 ```
 
 Run Vulkan replay:
 
 ```powershell
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\run-replayer.ps1 -Backend vk
+.agents\skills\vibris\scripts\run-replayer.ps1 -Backend vk
 ```
 
 Run a specific capture:
 
 ```powershell
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\run-replayer.ps1 `
+.agents\skills\vibris\scripts\run-replayer.ps1 `
   -Backend gl `
   -Capture R:\vibris\composite-20260610-050000
 ```
@@ -128,19 +122,19 @@ I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\run-replayer.ps1 `
 Run with replacement shader source:
 
 ```powershell
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\run-replayer.ps1 `
+.agents\skills\vibris\scripts\run-replayer.ps1 `
   -Backend gl `
   -Capture R:\vibris\composite-20260610-050000 `
-  -ShaderRoot I:\code\mcshaders\Alpha-Piscium\shaders
+  -ShaderRoot shaders
 ```
 
 Run with replacement shader source for only one pass:
 
 ```powershell
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\run-replayer.ps1 `
+.agents\skills\vibris\scripts\run-replayer.ps1 `
   -Backend gl `
   -Capture R:\vibris\composite-20260610-050000 `
-  -ShaderRoot I:\code\mcshaders\Alpha-Piscium\shaders `
+  -ShaderRoot shaders `
   -ShaderPass composite20
 ```
 
@@ -188,13 +182,13 @@ OpenGL shaderpack runtime.
 To capture a replay under Nsight using `config.json` defaults:
 
 ```powershell
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\capture-gputrace.ps1 -Backend gl
+.agents\skills\vibris\scripts\capture-gputrace.ps1 -Backend gl
 ```
 
 Specific capture:
 
 ```powershell
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\capture-gputrace.ps1 `
+.agents\skills\vibris\scripts\capture-gputrace.ps1 `
   -Backend gl `
   -Capture R:\vibris\composite-20260610-050000 `
   -StartAfterFrames 3 `
@@ -204,10 +198,9 @@ I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\capture-gputrace.p
 Specific replacement pass:
 
 ```powershell
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\capture-gputrace.ps1 `
+.agents\skills\vibris\scripts\capture-gputrace.ps1 `
   -Backend gl `
-  -Capture R:\vibris\composite-20260610-050000 `
-  -ShaderRoot I:\code\mcshaders\Alpha-Piscium\shaders `
+  -ShaderRoot shaders `
   -ShaderPass composite20 `
   -StartAfterFrames 3 `
   -MaxDurationMs 3000
@@ -216,9 +209,8 @@ I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\capture-gputrace.p
 Fine-grained Vulkan trace:
 
 ```powershell
-I:\code\mcshaders\Alpha-Piscium\.agents\skills\vibris\scripts\capture-gputrace.ps1 `
+.agents\skills\vibris\scripts\capture-gputrace.ps1 `
   -Backend vk `
-  -Capture R:\vibris\composite-20260610-050000 `
   -MultiPassMetrics `
   -ShaderProfile
 ```
