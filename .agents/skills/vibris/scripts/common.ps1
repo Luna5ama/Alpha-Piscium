@@ -5,6 +5,17 @@ function Get-VibrisSkillRoot {
     return (Split-Path -Parent $PSScriptRoot)
 }
 
+function Get-VibrisProjectRoot {
+    $skillRoot = Get-VibrisSkillRoot
+    return (Split-Path -Parent (Split-Path -Parent (Split-Path -Parent $skillRoot)))
+}
+
+function Get-VibrisTempRoot {
+    $tempRoot = Join-Path (Join-Path (Get-VibrisProjectRoot) '.tmp') 'vibris'
+    New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
+    return (Resolve-Path -LiteralPath $tempRoot).Path
+}
+
 function Get-VibrisConfig {
     param(
         [Parameter(Mandatory = $true)]
@@ -172,10 +183,45 @@ function Resolve-VibrisReplayJar {
     return (Resolve-Path -LiteralPath $jar).Path
 }
 
-function New-VibrisJavaArgFile {
+function Get-VibrisReplayAotCachePath {
     param(
         [Parameter(Mandatory = $true)]
-        [string]$Root,
+        [string]$Jar
+    )
+
+    return (Join-Path (Get-VibrisTempRoot) (([System.IO.Path]::GetFileNameWithoutExtension($Jar)) + '.aot'))
+}
+
+function Ensure-VibrisJavaAotCache {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Java,
+        [Parameter(Mandatory = $true)]
+        [string]$AotCache,
+        [Parameter(Mandatory = $true)]
+        [string]$ArgFile,
+        [string]$Name = 'Replay'
+    )
+
+    if (Test-Path -LiteralPath $AotCache -PathType Leaf) {
+        return 0
+    }
+
+    Write-Host "$Name AOT cache not found, running once to generate it..."
+
+    $aotArgs = @(
+        '--add-modules',
+        'jdk.internal.vm.ci',
+        "-XX:AOTCacheOutput=$AotCache",
+        "@$ArgFile"
+    )
+
+    & $Java @aotArgs
+    return $LASTEXITCODE
+}
+
+function New-VibrisJavaArgFile {
+    param(
         [Parameter(Mandatory = $true)]
         [ValidateSet('gl', 'vk')]
         [string]$Backend,
@@ -184,15 +230,20 @@ function New-VibrisJavaArgFile {
         [Parameter(Mandatory = $true)]
         [string]$Capture,
         [long]$Frames = 1,
+        [string[]]$JvmArg = @(),
         [string]$ShaderRoot,
         [string[]]$ShaderPass = @()
     )
 
-    $tempDir = Join-Path $Root '.tmp'
-    New-Item -ItemType Directory -Force -Path $tempDir | Out-Null
+    $tempDir = Get-VibrisTempRoot
     $argFile = Join-Path $tempDir ("replay-$Backend.args")
 
     $lines = New-Object System.Collections.Generic.List[string]
+    foreach ($arg in $JvmArg) {
+        if ($arg) {
+            $lines.Add($arg)
+        }
+    }
     $lines.Add('-jar')
     $lines.Add($Jar)
     $lines.Add($Capture)

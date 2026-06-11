@@ -5,3 +5,4 @@ builds/
 stuff/
 .run/
 agent_inputs/
+.tmp/
