@@ -24,7 +24,17 @@ if ($ShaderRoot) {
     $ShaderRoot = Resolve-VibrisPath -Root $root -Path $ShaderRoot
 }
 
-$argFile = New-VibrisJavaArgFile -Root $root -Backend $Backend -Jar $jar -Capture $captureDir -Frames $Frames -ShaderRoot $ShaderRoot -ShaderPass $ShaderPass
+$argFile = New-VibrisJavaArgFile -Backend $Backend -Jar $jar -Capture $captureDir -Frames $Frames -ShaderRoot $ShaderRoot -ShaderPass $ShaderPass
+$aotCache = Get-VibrisReplayAotCachePath -Jar $jar
+
+if (-not $PrintCommand) {
+    $cacheExitCode = Ensure-VibrisJavaAotCache -Java $java -AotCache $aotCache -ArgFile $argFile -Name 'Replayer'
+    if ($cacheExitCode -ne 0) {
+        exit $cacheExitCode
+    }
+}
+
+$argFile = New-VibrisJavaArgFile -Backend $Backend -Jar $jar -Capture $captureDir -Frames $Frames -JvmArg @("-XX:AOTCache=$aotCache") -ShaderRoot $ShaderRoot -ShaderPass $ShaderPass
 
 if ($PrintCommand) {
     Write-Output "$java @$argFile"
