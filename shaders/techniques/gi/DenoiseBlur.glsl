@@ -90,10 +90,11 @@ void getSpecularKernelBasis(
     vec3 bentD = normalize(mix(N, D, bentFactor));
 
     vec3 R = reflect(-bentD, N);
-    T = normalize(cross(N, R));
-    if (length(T) < 0.001) {
-        T = normalize(cross(N, vec3(0.0, 1.0, 0.0)));
+    T = cross(N, R);
+    if (dot(T, T) < 0.000001) {
+        T = cross(N, vec3(0.0, 1.0, 0.0));
     }
+    T = normalize(T);
     B = cross(R, T);
 
     float NoD = saturate(dot(N, D));
@@ -170,6 +171,8 @@ void main() {
                 float sigmaFP32 = 0.69;
                 sigmaFP32 += 8.0 - hitDistFactor.x * 8.0;
                 float16_t sigma = float16_t(-sigmaFP32);
+                float baseNormalWeight = diffInvAccumFactor * 64.0 + 16.0;
+                float basePlaneDistWeight = diffInvAccumFactor * -256.0 - 128.0;
 
                 vec4 centerDiff = _gi_readDiff(texelPos);
                 f16vec4 diffSumFP16 = f16vec4(centerDiff);
@@ -180,19 +183,18 @@ void main() {
                     f16vec2 tempDir = dir;
                     dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
                     dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
-                    float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples);
+                    float16_t radialSample = (float16_t(i) + jitterR) * rcpSamples;
+                    float16_t baseRadius = sqrt(radialSample);
                     f16vec2 offsetTexel = dir * (baseRadius * kernelRadius2);
                     vec2 sampleUV = centerScreenPos + vec2(offsetTexel) * uval_mainImageSizeRcp;
                     if (saturate(sampleUV) != sampleUV) {
                         sampleUV = _gi_mirrorUV(sampleUV);
                     }
-                    float16_t kernelWeight = exp2(sigma * pow2(baseRadius));
+                    float16_t kernelWeight = exp2(sigma * radialSample);
                     ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
 
                     GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
-                    float baseNormalWeight = diffInvAccumFactor * 64.0 + 16.0;
-                    float basePlaneDistWeight = diffInvAccumFactor * -256.0 - 128.0;
                     float edgeWeightFP32 = geomData.dielectric;
                     edgeWeightFP32 *= normalWeight(centerGeomData, geomData, baseNormalWeight);
                     edgeWeightFP32 *= planeDistanceWeight(
@@ -251,7 +253,8 @@ void main() {
 
                 float kernelRadius = baseKernelRadius.x;
                 kernelRadius *= specAccumFactor;
-                kernelRadius *= pow(centerGeomData.roughness, 0.5 * historyData5.y);
+                float roughnessHistoryFactor = pow(centerGeomData.roughness, 0.5 * historyData5.y);
+                kernelRadius *= roughnessHistoryFactor;
                 kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
                 kernelRadius *= hitDistFactor.y;
                 float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
@@ -271,11 +274,13 @@ void main() {
 
                 float sigmaFP32 = 0.69;
                 sigmaFP32 += 8.0 - hitDistFactor.y * 8.0;
-                sigmaFP32 += 0.025 * pow(centerGeomData.roughness, -historyData5.y);
+                sigmaFP32 += 0.025 * rcp(pow2(roughnessHistoryFactor));
                 float16_t sigma = float16_t(-sigmaFP32);
+                float baseNormalWeight = specInvAccumFactor * 128.0 + 32.0;
+                float basePlaneDistWeight = specInvAccumFactor * -256.0 - 256.0;
 
                 vec4 centerSpec = _gi_readSpec(texelPos);
-                f16vec4 spedSumFP16 = f16vec4(centerSpec);
+                f16vec4 specSumFP16 = f16vec4(centerSpec);
                 float16_t weightSumFP16 = float16_t(1.0);
 
                 f16vec2 dir = f16vec2(cos(angle), sin(angle));
@@ -283,7 +288,8 @@ void main() {
                     f16vec2 tempDir = dir;
                     dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
                     dir.y = dot(tempDir, f16vec2(0.675490294, -0.737368878));
-                    float16_t baseRadius = sqrt((float16_t(i) + jitterR) * rcpSamples);
+                    float16_t radialSample = (float16_t(i) + jitterR) * rcpSamples;
+                    float16_t baseRadius = sqrt(radialSample);
 
                     vec3 sampleView = centerGeomData.viewPos + vec3(specT * dir.x + specB * dir.y) * float(baseRadius);
                     vec4 sampleClip = global_camProj * vec4(sampleView, 1.0);
@@ -291,13 +297,11 @@ void main() {
                     if (saturate(sampleUV) != sampleUV) {
                         sampleUV = _gi_mirrorUV(sampleUV);
                     }
-                    float16_t kernelWeight = exp2(sigma * pow2(baseRadius));
+                    float16_t kernelWeight = exp2(sigma * radialSample);
                     ivec2 sampleTexelPos = ivec2(sampleUV * uval_mainImageSize);
 
                     GeomData geomData = _gi_readGeomData(sampleTexelPos, sampleUV);
 
-                    float baseNormalWeight = specInvAccumFactor * 128.0 + 32.0;
-                    float basePlaneDistWeight = specInvAccumFactor * -256.0 - 256.0;
                     float edgeWeightFP32 = normalWeight(centerGeomData, geomData, baseNormalWeight);
                     edgeWeightFP32 *= planeDistanceWeight(
                         centerGeomData.viewPos,
@@ -312,12 +316,12 @@ void main() {
                     f16vec4 specSample = f16vec4(_gi_readSpec(sampleTexelPos));
 
                     float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
-                    spedSumFP16 += specSample * totalWeight;
+                    specSumFP16 += specSample * totalWeight;
                     weightSumFP16 += totalWeight;
                 }
 
                 {
-                    vec4 specResult = vec4(spedSumFP16);
+                    vec4 specResult = vec4(specSumFP16);
                     float weightSum = float(weightSumFP16);
 
                     specResult *= rcp(weightSum);
@@ -340,8 +344,7 @@ void main() {
                 }
             }
 
-            #if GI_DENOISE_PASS == 1
-            #elif GI_DENOISE_PASS == 2
+            #if GI_DENOISE_PASS == 2
             history_gi5_store(texelPos, historyData5);
             #endif
 
