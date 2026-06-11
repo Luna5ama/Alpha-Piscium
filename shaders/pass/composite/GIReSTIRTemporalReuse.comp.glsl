@@ -58,7 +58,8 @@ void sampleTemporalNeighbor(
     inout ReSTIRReservoir reservoir,
     inout float wSum,
     inout vec4 finalSample,
-    inout vec3 finalHitNormal
+    inout vec3 finalHitNormal,
+    inout bool finalHitNormalPending
 ) {
     if (combinedWeight > 0.0) {
         uvec4 prevTemporalReservoirData = oddFrame
@@ -117,6 +118,7 @@ void sampleTemporalNeighbor(
                 if (restir_updateReservoir(reservoir, wSum, neighborReservoir.Y, wi, neighborReservoir.m, neighborRand)) {
                     finalSample = vec4(neighborSample.xyz, neighborPHat);
                     finalHitNormal = neighborHitNormal;
+                    finalHitNormalPending = false;
                 }
             }
         }
@@ -187,6 +189,8 @@ void main() {
 
             vec4 finalSample = vec4(0.0);
             vec3 finalHitNormal = vec3(0.0);
+            ivec2 finalHitNormalTexelPos = ivec2(0);
+            bool finalHitNormalPending = false;
 
             float wSum = 0.0;
             if (samplePdf > 0.0) {
@@ -237,30 +241,31 @@ void main() {
                 //   y = top-right    iGatherTexelPos + ( 0,  0)
                 //   z = bottom-right iGatherTexelPos + ( 0, -1)
                 //   w = bottom-left  iGatherTexelPos + (-1, -1)
+                float bilateralWeight = reprojInfo.bilateralWeights.w;
+                ivec2 offset = ivec2(-1, -1);
+
                 if (randSelectWeight < bilinearWeights4.x) {
-                    if (reprojInfo.bilateralWeights.x > 0.9) {
-                        float combinedWeight = reprojInfo.bilateralWeights.x * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, 0), combinedWeight, 3331u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal);
-                    }
+                    bilateralWeight = reprojInfo.bilateralWeights.x;
+                    offset = ivec2(-1, 0);
                 } else if (randSelectWeight < bilinearWeights4.x + bilinearWeights4.y) {
-                    if (reprojInfo.bilateralWeights.y > 0.9) {
-                        float combinedWeight = reprojInfo.bilateralWeights.y * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos, combinedWeight, 3332u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal);
-                    }
+                    bilateralWeight = reprojInfo.bilateralWeights.y;
+                    offset = ivec2(0, 0);
                 } else if (randSelectWeight < bilinearWeights4.x + bilinearWeights4.y + bilinearWeights4.z) {
-                    if (reprojInfo.bilateralWeights.z > 0.9) {
-                        float combinedWeight = reprojInfo.bilateralWeights.z * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(0, -1), combinedWeight, 3333u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal);
-                    }
-                } else {
-                    if (reprojInfo.bilateralWeights.w > 0.9) {
-                        float combinedWeight = reprojInfo.bilateralWeights.w * reprojInfo.historyResetFactor;
-                        sampleTemporalNeighbor(texelPos, iGatherTexelPos + ivec2(-1, -1), combinedWeight, 3334u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal);
-                    }
+                    bilateralWeight = reprojInfo.bilateralWeights.z;
+                    offset = ivec2(0, -1);
+                }
+                if (bilateralWeight > 0.9) {
+                    float combinedWeight = bilateralWeight * reprojInfo.historyResetFactor;
+                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + offset, combinedWeight, 114514u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal, finalHitNormalPending);
                 }
             }
 
             if (restir_isReservoirValid(temporalReservoir) && finalSample.w > 0.0 && wSum > 0.0) {
+                if (finalHitNormalPending) {
+                    vec4 hitNormalData = transient_viewNormal_fetch(finalHitNormalTexelPos);
+                    finalHitNormal = normalize(hitNormalData.xyz * 2.0 - 1.0);
+                }
+
                 float avgWSum = wSum * safeRcp(temporalReservoir.m);
                 temporalReservoir.avgWY = avgWSum * safeRcp(finalSample.w);
                 temporalReservoir.m = clamp(temporalReservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));

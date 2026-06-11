@@ -25,7 +25,6 @@ LightingResult lightingResult_add(LightingResult a, LightingResult b) {
 }
 
 LightingResult directLighting(GBufferData gData, Material material, vec3 irradiance, vec4 shadow, vec3 V, vec3 L, vec3 N) {
-
     vec3 H = normalize(L + V);
     float LDotV = clamp(dot(L, V), -1.0, 1.0);
     float LDotH = clamp(dot(L, H), -1.0, 1.0);
@@ -33,11 +32,6 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
     float NDotV = clamp(dot(N, V), -1.0, 1.0);
     float NDotH = clamp(dot(N, H), -1.0, 1.0);
 
-    vec3 fresnel = fresnel_evalMaterial(material, saturate(LDotH));
-
-    LightingResult result;
-
-    result.sss = vec3(0.0);
     vec3 shadowedIrradiance = irradiance * shadow.rgb;
 
     float surfaceDepth = shadow.w;
@@ -51,6 +45,8 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
         }
     }
 
+    LightingResult result;
+    result.sss = vec3(0.0);
     if (material.sss > 0.0) {
         const float ABSORPTION_MULTIPLIER = 12.0;
         const float SCATTERING_MULTIPLIER = 24.0;
@@ -101,8 +97,9 @@ LightingResult directLighting(GBufferData gData, Material material, vec3 irradia
         shadowedIrradiance *= float(dot(material.geomTbn[2], L) > 0.0);
     }
 
-    float diffuseBaseF = material.dielectric;
-    vec3 diffuseBaseVec3 = diffuseBaseF * (shadowedIrradiance * (1.0 - fresnel) * material.albedo);
+
+    vec3 fresnel = fresnel_evalMaterial(material, saturate(LDotH));
+    vec3 diffuseBaseVec3 = material.dielectric * (shadowedIrradiance * (1.0 - fresnel) * material.albedo);
 
     result.diffuse = diffuseBaseVec3 * bsdf_diffuseHammon(material, NDotL, NDotV, LDotH, LDotV);
     result.diffuseLambertian = diffuseBaseVec3 * (RCP_PI * saturate(NDotL));

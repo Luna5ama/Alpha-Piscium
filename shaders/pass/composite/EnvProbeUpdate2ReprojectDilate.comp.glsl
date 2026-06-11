@@ -16,9 +16,7 @@ layout(rgba16f) uniform image2D uimg_frgba16f;
 
 shared vec4 shared_scenePos[20][20];
 
-ivec2 sliceID = ivec2(0);
-
-void loadSharedData(uint index) {
+void loadSharedData(uint index, ivec2 sliceID) {
     if (index < 400) {
         uvec2 localPos = uvec2(index % 20, index / 20);
         ivec2 globalPos = ivec2(gl_WorkGroupID.xy * gl_WorkGroupSize.xy);
@@ -32,9 +30,9 @@ void loadSharedData(uint index) {
 }
 
 void main() {
-    sliceID = ivec2(gl_WorkGroupID.z % 2, gl_WorkGroupID.z / 2);
-    loadSharedData(gl_LocalInvocationIndex);
-    loadSharedData(gl_LocalInvocationIndex + 256u);
+    ivec2 sliceID = ivec2(gl_WorkGroupID.z % 2, gl_WorkGroupID.z / 2);
+    loadSharedData(gl_LocalInvocationIndex, sliceID);
+    loadSharedData(gl_LocalInvocationIndex + 256u, sliceID);
     barrier();
 
     vec4 sum = vec4(0.0);
@@ -43,7 +41,6 @@ void main() {
         for (int x = -2; x <= 2; x++) {
             if (x != 0 || y != 0) {
                 ivec2 offset = ivec2(x, y);
-                const float K = 0.1;
                 vec2 weightXY = rcp(vec2(abs(offset) + 1));
                 float weight = weightXY.x * weightXY.y;
                 ivec2 localPos = ivec2(gl_LocalInvocationID.xy) + offset + 2;

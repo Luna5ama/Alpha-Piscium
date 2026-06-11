@@ -1,4 +1,6 @@
 import kotlin.io.path.Path
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.writeText
 
 enum class ProgramType {
@@ -28,15 +30,15 @@ class ProgramScope internal constructor() {
     inner class PassCollectionScope(val pass: ProgramType) {
         private var index = 1
 
-        fun pass(vararg shaderPaths: String) {
+        fun pass(vararg shaderPaths: String, block: PassScope.() -> Unit = {}) {
             val prefix = "$pass${index++}"
             shaderPaths.forEachIndexed { index, string ->
                 val suffix = if (index == 0) "" else "_${'a' + index - 1}"
-                PassScope("$prefix$suffix", string).build()
+                PassScope("$prefix$suffix", string).apply(block).build()
             }
         }
 
-        fun pass(shaderPath: String, block: PassScope.() -> Unit) {
+        fun pass(shaderPath: String, block: PassScope.() -> Unit = {}) {
             PassScope("$pass${index++}", shaderPath).apply(block).build()
         }
         @ProgramDsl
@@ -115,6 +117,11 @@ class ProgramScope internal constructor() {
 }
 
 fun programs(block: ProgramScope.() -> Unit) {
+    ProgramType.entries.flatMap {
+        shadersPath.listDirectoryEntries("$it*.csh")
+    }.forEach {
+        it.deleteIfExists()
+    }
     ProgramScope().apply(block).build()
     println("Updated program list")
 }
@@ -148,9 +155,7 @@ programs {
         )
         pass(
             "/techniques/atmospherics/clouds/amblut/Gather.comp.glsl",
-            "/pass/begin/ClearEnvProbe.comp.glsl"
-        )
-        pass(
+            "/pass/begin/ClearEnvProbe.comp.glsl",
             "/pass/begin/InitThreadGroupTilling.glsl",
             "/pass/begin/ClearVoxelData.comp.glsl"
         )
@@ -192,15 +197,21 @@ programs {
         pass("/pass/composite/VoxyMerge.glsl") {
             cond("defined(VOXY)")
         }
-        pass("/pass/composite/HiZGen.csh")
-        pass("/pass/composite/GIDenoiserEdgeClassificationAndVolumetricsDepthLayers.comp.glsl")
-        pass("/pass/composite/GIDenoiserEdgeDilation.comp.glsl")
-        pass("/pass/composite/GIDenoiserReproject.comp.glsl")
-        pass("/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl")
-        pass("/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl") {
+        pass(
+            "/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl",
+            "/pass/composite/HiZGen.csh"
+        )
+        pass(
+            "/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl",
+            "/pass/composite/GIDenoiserEdgeClassificationAndVolumetricsDepthLayers.comp.glsl"
+        ) {
             define("PASS", 1)
         }
-        pass("/pass/composite/ShadowSampleSetup.comp.glsl")
+        pass(
+            "/pass/composite/ShadowSampleSetup.comp.glsl",
+            "/pass/composite/GIDenoiserEdgeDilation.comp.glsl"
+        )
+        pass("/pass/composite/GIDenoiserReproject.comp.glsl")
         pass("/pass/composite/EvaluateScreenPixelSize.comp.glsl") {
             cond("defined(SETTING_WATER_CAUSTICS)")
         }
@@ -219,22 +230,25 @@ programs {
         pass("/pass/composite/ShadowSampleSSS.comp.glsl") {
             indirect(0, 32)
         }
-        pass("/pass/composite/SkyComposite.comp.glsl")
-        pass("/pass/composite/ShadowSample.comp.glsl")
-        pass("/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl") {
+        pass(
+            "/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl",
+            "/pass/composite/ShadowSample.comp.glsl"
+        ){
             define("PASS", 2)
         }
-        pass("/pass/composite/DirectLighting.glsl")
-            pass("/pass/composite/RadianceCacheClear.comp.glsl") {
+        pass(
+            "/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl",
+            "/pass/composite/DirectLighting.glsl"
+        )
+        pass("/pass/composite/RadianceCacheClear.comp.glsl") {
             cond("defined(SETTING_RC_ENABLE)")
         }
-            pass("/pass/composite/RadianceCacheTouch.comp.glsl") {
+        pass("/pass/composite/RadianceCacheTouch.comp.glsl") {
             cond("defined(SETTING_RC_ENABLE)")
         }
-            pass("/pass/composite/RadianceCacheAllocate.comp.glsl") {
+        pass("/pass/composite/RadianceCacheAllocate.comp.glsl") {
             cond("defined(SETTING_RC_ENABLE)")
         }
-        pass("/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl")
         pass("/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl")
         pass("/pass/composite/RadianceCacheReservoirUpdate.comp.glsl") {
             indirect(0, 32)
@@ -330,13 +344,21 @@ programs {
                 cond(cond)
             }
         }
-        pass("/pass/composite/PostComposite.comp.glsl")
-        pass("/pass/composite/ExposureMip.comp.glsl")
-        pass("/pass/composite/ExposureGather.comp.glsl")
-        pass("/pass/composite/OverlayComposite.comp.glsl")
-        pass("/techniques/rtwsm/IMapBlur.comp.glsl")
-        pass("/techniques/rtwsm/GetWarp.comp.glsl")
-        pass("/techniques/rtwsm/Write2DWarp.comp.glsl")
-        pass("/pass/composite/FinalGlobalDataUpdate.comp.glsl")
+        pass(
+            "/techniques/rtwsm/IMapBlur.comp.glsl",
+            "/pass/composite/PostComposite.comp.glsl"
+        )
+        pass(
+            "/techniques/rtwsm/GetWarp.comp.glsl",
+            "/pass/composite/ExposureMip.comp.glsl"
+        )
+        pass(
+            "/pass/composite/ExposureGather.comp.glsl",
+            "/techniques/rtwsm/Write2DWarp.comp.glsl"
+        )
+        pass(
+            "/pass/composite/FinalGlobalDataUpdate.comp.glsl",
+            "/pass/composite/OverlayComposite.comp.glsl"
+        )
     }
 }

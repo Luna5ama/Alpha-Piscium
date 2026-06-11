@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/ShadowSample.comp.glsl"
+#include "/pass/composite/RadianceCacheAllocate.comp.glsl"

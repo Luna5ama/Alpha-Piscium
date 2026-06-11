@@ -231,9 +231,8 @@ void main() {
     vec4 taaResetFactor = global_taaResetFactor;
     float maxAccumFramesFactor = global_motionFactor.w;
     #ifndef SETTING_SCREENSHOT_MODE
-    GBufferData gDataTranslucent = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferTranslucentData1, texelPos, 0), gDataTranslucent);
-    if (gDataTranslucent.materialID == MATERIAL_ID_WATER) {
+    uint translucentMaterialID = (texelFetch(usam_gbufferTranslucentData1, texelPos, 0).a >> 16) & 0xFFFFu;
+    if (translucentMaterialID == MATERIAL_ID_WATER) {
         taaResetFactor.y = min(0.5, taaResetFactor.y);
         taaResetFactor.x = max(0.5, taaResetFactor.x);
         maxAccumFramesFactor = min(0.6, maxAccumFramesFactor);

@@ -1,4 +1,5 @@
 #version 460 compatibility
 #define COMP 1
+#define PASS 2
 
-#include "/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl"
+#include "/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl"

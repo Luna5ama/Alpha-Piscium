@@ -60,11 +60,10 @@ void main() {
 
     EnvProbeData outputData;
     envProbe_initData(outputData);
-    ivec2 prevTexelPos = outputPos;
-    prevTexelPos.x += ENV_PROBE_SIZEI.x * 2;
-    EnvProbeData prevData = envProbe_decode(imageLoad(uimg_envProbe, prevTexelPos));
-
     if (envProbe_update(sliceTexelPos, sliceID, outputData)) {
+        ivec2 prevTexelPos = outputPos;
+        prevTexelPos.x += ENV_PROBE_SIZEI.x * 2;
+        EnvProbeData prevData = envProbe_decode(imageLoad(uimg_envProbe, prevTexelPos));
         if (envProbe_hasData(prevData)) {
             outputData.radiance = mix(outputData.radiance, prevData.radiance, 0.8 * global_historyResetFactor);
             outputData.normal = normalize(mix(outputData.normal, prevData.normal, 0.8 * global_historyResetFactor));
@@ -72,6 +71,9 @@ void main() {
         imageStore(uimg_envProbe, outputPos, envProbe_encode(outputData));
     } else {
         if (global_historyResetFactor > 0.1) {
+            ivec2 prevTexelPos = outputPos;
+            prevTexelPos.x += ENV_PROBE_SIZEI.x * 2;
+            EnvProbeData prevData = envProbe_decode(imageLoad(uimg_envProbe, prevTexelPos));
             outputData = prevData;
             outputData.radiance *= global_historyResetFactor;
         }

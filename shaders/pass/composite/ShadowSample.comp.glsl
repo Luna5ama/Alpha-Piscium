@@ -243,9 +243,6 @@ void main() {
     ivec2 texelPos = ivec2(workGroupOrigin + morton_8bDecode(threadIdx));
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        transient_lowCloudRender_store(texelPos, uvec4(0u));
-        transient_lowCloudAccumulated_store(texelPos, uvec4(0u));
-
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
 
         if (viewZ > -65536.0) {

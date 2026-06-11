@@ -185,7 +185,7 @@ out ScatteringResult result
         vec2 viewZ2;
         if (layerIndex == 0) {
             viewZ1 = uintBitsToFloat(transient_translucentZLayer1_fetch(viewZTexelPos1).xy);
-            viewZ1 = uintBitsToFloat(transient_translucentZLayer1_fetch(viewZTexelPos2).xy);
+            viewZ2 = uintBitsToFloat(transient_translucentZLayer1_fetch(viewZTexelPos2).xy);
         } else if (layerIndex == 1) {
             viewZ1 = uintBitsToFloat(transient_translucentZLayer2_fetch(viewZTexelPos1).xy);
             viewZ2 = uintBitsToFloat(transient_translucentZLayer2_fetch(viewZTexelPos2).xy);
