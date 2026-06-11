@@ -24,6 +24,7 @@ replays, direct Iris capture control, or Nsight GPU Trace captures of replays.
 - `scripts/iris-control.ps1`: direct Iris capture control over the local HTTP backend.
 - `scripts/run-replayer.ps1`: runs the OpenGL or Vulkan replayer.
 - `scripts/capture-gputrace.ps1`: runs a replayer under Nsight GPU Trace.
+- `<project-root>/.tmp/vibris/`: generated replay argfiles and replay AOT caches.
 
 Always prefer `config.json` for `jdk` and `capture_path`. If a command does
 not pass an explicit capture path, the scripts resolve `capture_path` as:
@@ -35,6 +36,10 @@ not pass an explicit capture path, the scripts resolve `capture_path` as:
 `replay_frames` controls the default frame count for both replayer scripts.
 Prefer running several frames rather than a single frame; this gives the
 driver and replay setup room to settle before the measured frame.
+
+Both replay scripts write generated argfiles and replay AOT caches under the
+project root at `.tmp/vibris/`, not under the skill directory. The current
+files are `replay-<backend>.args` and `replay-<backend>.aot`.
 
 ## Iris Control
 
@@ -260,7 +265,7 @@ it auto-exports the trace and writes the summary/stages/actions JSON files.
 The script creates a Java argfile and passes it to Nsight as:
 
 ```text
---args @<generated-argfile>
+--args @<project-root>/.tmp/vibris/replay-<backend>.args
 ```
 
 This is intentional. Passing `--args "-jar ..."` through the Nsight wrapper can
