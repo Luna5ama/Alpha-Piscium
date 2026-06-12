@@ -58,8 +58,7 @@ void sampleTemporalNeighbor(
     inout ReSTIRReservoir reservoir,
     inout float wSum,
     inout vec4 finalSample,
-    inout vec3 finalHitNormal,
-    inout bool finalHitNormalPending
+    inout vec3 finalHitNormal
 ) {
     if (combinedWeight > 0.0) {
         uvec4 prevTemporalReservoirData = oddFrame
@@ -118,7 +117,6 @@ void sampleTemporalNeighbor(
                 if (restir_updateReservoir(reservoir, wSum, neighborReservoir.Y, wi, neighborReservoir.m, neighborRand)) {
                     finalSample = vec4(neighborSample.xyz, neighborPHat);
                     finalHitNormal = neighborHitNormal;
-                    finalHitNormalPending = false;
                 }
             }
         }
@@ -181,16 +179,8 @@ void main() {
             float samplePdf = initialCandidate.pdf;
             ResampleMaterial resampleMaterial = resampleMaterial_fromMaterial(material);
 
-            float denoiserHitDistance = hitDistance;
-            if (denoiserHitDistance <= RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL) {
-                denoiserHitDistance = -1.0;
-            }
-            transient_gi_initialSampleHitDistance_store(texelPos, vec4(denoiserHitDistance));
-
             vec4 finalSample = vec4(0.0);
             vec3 finalHitNormal = vec3(0.0);
-            ivec2 finalHitNormalTexelPos = ivec2(0);
-            bool finalHitNormalPending = false;
 
             float wSum = 0.0;
             if (samplePdf > 0.0) {
@@ -198,22 +188,8 @@ void main() {
                 temporalReservoir.m = 1.0;
                 float newPHat = evalTargetFunction(hitRadiance, gData.normal, sampleDirView, V, resampleMaterial);
                 wSum = newPHat * rcp(samplePdf);
-
-                vec3 hitViewPos = viewPos + sampleDirView * hitDistance;
-                vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
-                ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
-
-                vec4 hitGeomNormalData = transient_geomViewNormal_fetch(hitTexelPos);
-                vec3 hitGeomNormal = normalize(hitGeomNormalData.xyz * 2.0 - 1.0);
-                float geomNormalDot = dot(hitGeomNormal, gData.geomNormal);
-
-                if (geomNormalDot > 0.99) {
-                    transient_gi_initialSampleHitDistance_store(texelPos, vec4(-1.0));
-                }
-
                 finalSample = vec4(hitRadiance, newPHat);
-                finalHitNormalTexelPos = hitTexelPos;
-                finalHitNormalPending = true;
+                finalHitNormal = initialCandidate.hitNormalView;
             }
 
             uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_fetch(texelPos);
@@ -269,16 +245,11 @@ void main() {
                 }
                 if (bilateralWeight > 0.9) {
                     float combinedWeight = bilateralWeight * reprojInfo.historyResetFactor;
-                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + offset, combinedWeight, 114514u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal, finalHitNormalPending);
+                    sampleTemporalNeighbor(texelPos, iGatherTexelPos + offset, combinedWeight, 114514u, viewPos, V, gData.normal, resampleMaterial, oddFrame, temporalReservoir, wSum, finalSample, finalHitNormal);
                 }
             }
 
             if (restir_isReservoirValid(temporalReservoir) && finalSample.w > 0.0 && wSum > 0.0) {
-                if (finalHitNormalPending) {
-                    vec4 hitNormalData = transient_viewNormal_fetch(finalHitNormalTexelPos);
-                    finalHitNormal = normalize(hitNormalData.xyz * 2.0 - 1.0);
-                }
-
                 float avgWSum = wSum * safeRcp(temporalReservoir.m);
                 temporalReservoir.avgWY = avgWSum * safeRcp(finalSample.w);
                 temporalReservoir.m = clamp(temporalReservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
