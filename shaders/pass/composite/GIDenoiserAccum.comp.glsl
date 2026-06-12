@@ -69,7 +69,7 @@ const float SPEC_ACCUM_CURVE = 0.5;
 const float SPEC_ACCUM_BASE_POWER = 0.5;
 
 float specAccumReduction(float roughness, float NoV, float parallax) {
-    roughness = softMax(roughness, 0.0, 0.05);
+    roughness = softMax(roughness, 0.1, 0.1);
     float acos01sq = saturate(1.0 - NoV); // ~ normalized acos^2
     float a = pow(acos01sq, SPEC_ACCUM_CURVE);
     float b = 1.001 + roughness * roughness;
@@ -137,7 +137,7 @@ void main() {
                     vec3 V = normalize(-viewPos);
                     float NoV = saturate(dot(gData.normal, V));
                     float movementSpeed = gData.isHand ? 0.0 : uval_cameraSpeed;
-                    float distToPoint = max(length(viewPos), 2.0);
+                    float distToPoint = max(length(viewPos), 4.0);
                     float parallax = sqrt(movementSpeed) * safeRcp(distToPoint * frameTime * 10.0);
 
                     // Close hit specular probably has less ghosting, so allow it to accumulate more

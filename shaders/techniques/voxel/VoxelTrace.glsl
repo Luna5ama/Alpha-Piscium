@@ -32,7 +32,7 @@
 // The VOXEL_*_DATA_MODIFIER defines must be set before including this file.
 
 #ifndef INCLUDE_techniques_VoxelTrace_glsl
-#define INCLUDE_techniques_VoxelTrace_glsl
+#define INCLUDE_techniques_VoxelTrace_glsl a
 
 #include "/techniques/voxel/VoxelRayState.glsl"
 

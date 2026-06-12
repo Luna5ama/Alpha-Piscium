@@ -42,19 +42,16 @@ restir_InitialCandidate restir_initialCandidate_init() {
 }
 
 void restir_initialCandidate_store(ivec2 texelPos, restir_InitialCandidate candidate) {
-    transient_ssgiDiffOut_store(texelPos, vec4(candidate.radiance, candidate.hitDistance));
-    transient_ssgiSpecOut_store(texelPos, vec4(candidate.rayDirView, candidate.pdf));
-
-    vec4 solidAlbedo = transient_solidAlbedo_fetch(texelPos);
-    solidAlbedo.rgb = candidate.hitNormalView * 0.5 + 0.5;
-    transient_solidAlbedo_store(texelPos, solidAlbedo);
+    transient_restir_initialCandidate_store(texelPos, vec4(candidate.radiance, candidate.hitDistance));
+    transient_restir_initialCandidateDirection_store(texelPos, vec4(candidate.rayDirView, candidate.pdf));
+    transient_restir_initialCandidateNormal_store(texelPos, vec4(candidate.hitNormalView * 0.5 + 0.5, 1.0));
 }
 
 restir_InitialCandidate restir_initialCandidate_load(ivec2 texelPos) {
     restir_InitialCandidate candidate = restir_initialCandidate_init();
-    vec4 radianceAndDistance = transient_ssgiDiffOut_fetch(texelPos);
-    vec4 directionAndPdf = transient_ssgiSpecOut_fetch(texelPos);
-    vec4 hitNormalData = transient_solidAlbedo_fetch(texelPos);
+    vec4 radianceAndDistance = transient_restir_initialCandidate_fetch(texelPos);
+    vec4 directionAndPdf = transient_restir_initialCandidateDirection_fetch(texelPos);
+    vec4 hitNormalData = transient_restir_initialCandidateNormal_fetch(texelPos);
     candidate.radiance = radianceAndDistance.rgb;
     candidate.hitDistance = radianceAndDistance.w;
     candidate.rayDirView = normalize(directionAndPdf.xyz);
