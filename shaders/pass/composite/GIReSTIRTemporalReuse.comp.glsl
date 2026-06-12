@@ -179,6 +179,12 @@ void main() {
             float samplePdf = initialCandidate.pdf;
             ResampleMaterial resampleMaterial = resampleMaterial_fromMaterial(material);
 
+            float denoiserHitDistance = hitDistance;
+            if (denoiserHitDistance <= RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL) {
+                denoiserHitDistance = -1.0;
+            }
+            transient_gi_initialSampleHitDistance_store(texelPos, vec4(denoiserHitDistance));
+
             vec4 finalSample = vec4(0.0);
             vec3 finalHitNormal = vec3(0.0);
 
