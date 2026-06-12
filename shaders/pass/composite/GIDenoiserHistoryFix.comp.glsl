@@ -333,7 +333,6 @@ void main() {
                         }
                     }
                     // Adding 0.0001 to avoid making it 0 which can cause issues with pow
-                    // Adding 0.0001 to avoid making it 0 which can cause issues with pow
                     vec2 hitDitanceFactors;
                     hitDitanceFactors.x = smoothstep(4.0, 0.0, filteredHitDitances.x);
                     hitDitanceFactors.x = 1.00001 - hitDitanceFactors.x;

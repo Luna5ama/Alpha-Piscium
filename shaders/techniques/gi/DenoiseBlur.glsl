@@ -141,7 +141,7 @@ void main() {
             float specAccumFactor = rcp(1.0 + specularHistoryLength);
 
             vec2 hitDistFactor = pow2(hitDistanceFactors);
-            hitDistFactor.x = hitDistFactor.x * 0.95 + 0.05;
+            hitDistFactor = hitDistFactor * 0.95 + 0.05;
             #if GI_DENOISE_PASS == 2
             #if SETTING_DEBUG_OUTPUT
 
@@ -253,9 +253,10 @@ void main() {
 
                 float kernelRadius = baseKernelRadius.x;
                 kernelRadius *= specAccumFactor;
+                float roughnessHistoryFactor = pow(centerGeomData.roughness, 0.5 * historyData5.y);
+                kernelRadius *= roughnessHistoryFactor;
                 kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
                 kernelRadius *= hitDistFactor.y;
-                kernelRadius *= pow(centerGeomData.roughness, 0.5 * historyData5.y);
                 kernelRadius = max(kernelRadius, baseKernelRadius.z * 0.25);
                 kernelRadius = min(kernelRadius, baseKernelRadius.w);
                 float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
@@ -275,9 +276,9 @@ void main() {
 
                 float sigmaFP32 = 0.69;
                 sigmaFP32 += 8.0 - hitDistFactor.y * 8.0;
-                sigmaFP32 += 8.0 * pow(centerGeomData.roughness, -historyData5.y);
+                sigmaFP32 += 0.025 * rcp(pow2(roughnessHistoryFactor));
                 float16_t sigma = float16_t(-sigmaFP32);
-                float baseNormalWeight = specInvAccumFactor * 128.0 + 64.0;
+                float baseNormalWeight = specInvAccumFactor * 128.0 + 32.0;
                 float basePlaneDistWeight = specInvAccumFactor * -256.0 - 256.0;
 
                 vec4 centerSpec = _gi_readSpec(texelPos);
