@@ -1,5 +1,5 @@
 #ifndef INCLUDE_techniques_voxel_VoxelFaceTexcoords_glsl
-#define INCLUDE_techniques_voxel_VoxelFaceTexcoords_glsl
+#define INCLUDE_techniques_voxel_VoxelFaceTexcoords_glsl a
 
 // ---------------------------------------------------------------------------
 // Per-material per-face atlas texcoord storage
