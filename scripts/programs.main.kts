@@ -1,4 +1,6 @@
 import kotlin.io.path.Path
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.writeText
 
 enum class ProgramType {
@@ -27,15 +29,15 @@ class ProgramScope internal constructor() {
     inner class PassCollectionScope(val pass: ProgramType) {
         private var index = 1
 
-        fun pass(vararg shaderPaths: String) {
+        fun pass(vararg shaderPaths: String, block: PassScope.() -> Unit = {}) {
             val prefix = "$pass${index++}"
             shaderPaths.forEachIndexed { index, string ->
                 val suffix = if (index == 0) "" else "_${'a' + index - 1}"
-                PassScope("$prefix$suffix", string).build()
+                PassScope("$prefix$suffix", string).apply(block).build()
             }
         }
 
-        fun pass(shaderPath: String, block: PassScope.() -> Unit) {
+        fun pass(shaderPath: String, block: PassScope.() -> Unit = {}) {
             PassScope("$pass${index++}", shaderPath).apply(block).build()
         }
 
@@ -115,6 +117,11 @@ class ProgramScope internal constructor() {
 }
 
 fun programs(block: ProgramScope.() -> Unit) {
+    ProgramType.entries.flatMap {
+        shadersPath.listDirectoryEntries("$it*.csh")
+    }.forEach {
+        it.deleteIfExists()
+    }
     ProgramScope().apply(block).build()
     println("Updated program list")
 }
