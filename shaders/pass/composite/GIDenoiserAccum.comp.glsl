@@ -146,8 +146,6 @@ void main() {
                     float maxSpecularHistoryLength = max(HISTORY_LENGTH * specAccumRecuctionFactor, 1.0);
 
                     #ifdef SETTING_DENOISER_ACCUM
-
-                    #ifdef SETTING_DENOISER_ACCUM
                     historyLengths = vec3(historyData.historyLength, historyData.specularHistoryLength, historyData.realHistoryLength);
                     historyLengths *= TOTAL_HISTORY_LENGTH * global_historyResetFactor;
                     historyLengths += 1.0;
