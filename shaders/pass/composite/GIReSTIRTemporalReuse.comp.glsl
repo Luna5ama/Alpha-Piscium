@@ -201,18 +201,21 @@ void main() {
             uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_fetch(texelPos);
             ReprojectInfo reprojInfo = reprojectInfo_unpack(reprojInfoData);
             float ageResetRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
+            float pSpec = 1.0;
+            if (material.dielectric > 0.0) {
+                float NdotV = saturate(dot(gData.normal, V));
+                vec3 fresnelV = saturate(fresnel_evalMaterial(material, NdotV));
+                vec3 fresnelT = vec3(1.0) - fresnelV;
+                vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
+                pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV * safeRcp(totalEnergy));
+                // Clamping this to avoid dead locks that causes fireflies
+                pSpec = sqrt(clamp(pSpec, 0.01, 0.99));
+            }
+            pSpec = pow(material.roughness, pSpec);
+            transient_diffBounceProbability_store(texelPos, vec4(pSpec));
+
             if (reprojInfo.historyResetFactor > ageResetRand) {
-                float pSpec = 1.0;
-                if (material.dielectric > 0.0) {
-                    float NdotV = saturate(dot(gData.normal, V));
-                    vec3 fresnelV = saturate(fresnel_evalMaterial(material, NdotV));
-                    vec3 fresnelT = vec3(1.0) - fresnelV;
-                    vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
-                    pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV * safeRcp(totalEnergy));
-                    // Clamping this to avoid dead locks that causes fireflies
-                    pSpec = sqrt(clamp(pSpec, 0.01, 0.99));
-                }
-                reprojInfo.historyResetFactor *= pow(material.roughness, pSpec * 2.0);
+                reprojInfo.historyResetFactor *= pow2(pSpec);
 
                 vec2 curr2PrevTexelPos = reprojInfo.curr2PrevScreenPos * uval_mainImageSize;
                 curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(0.5), uval_mainImageSize - 0.5);
