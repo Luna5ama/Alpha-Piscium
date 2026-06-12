@@ -210,8 +210,6 @@ function Ensure-VibrisJavaAotCache {
     Write-Host "$Name AOT cache not found, running once to generate it..."
 
     $aotArgs = @(
-        '--add-modules',
-        'jdk.internal.vm.ci',
         "-XX:AOTCacheOutput=$AotCache",
         "@$ArgFile"
     )

@@ -199,8 +199,21 @@ void main() {
                 float newPHat = evalTargetFunction(hitRadiance, gData.normal, sampleDirView, V, resampleMaterial);
                 wSum = newPHat * rcp(samplePdf);
 
+                vec3 hitViewPos = viewPos + sampleDirView * hitDistance;
+                vec3 hitScreenPos = coords_viewToScreen(hitViewPos, global_camProj);
+                ivec2 hitTexelPos = ivec2(hitScreenPos.xy * uval_mainImageSize);
+
+                vec4 hitGeomNormalData = transient_geomViewNormal_fetch(hitTexelPos);
+                vec3 hitGeomNormal = normalize(hitGeomNormalData.xyz * 2.0 - 1.0);
+                float geomNormalDot = dot(hitGeomNormal, gData.geomNormal);
+
+                if (geomNormalDot > 0.99) {
+                    transient_gi_initialSampleHitDistance_store(texelPos, vec4(-1.0));
+                }
+
                 finalSample = vec4(hitRadiance, newPHat);
-                finalHitNormal = initialCandidate.hitNormalView;
+                finalHitNormalTexelPos = hitTexelPos;
+                finalHitNormalPending = true;
             }
 
             uvec4 reprojInfoData = transient_gi_diffuse_reprojInfo_fetch(texelPos);
