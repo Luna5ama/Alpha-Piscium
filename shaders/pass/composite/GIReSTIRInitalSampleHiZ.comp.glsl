@@ -33,7 +33,6 @@ void main() {
     ivec2 texelPos = ivec2(workGroupOrigin + mortonPos);
 
     restir_InitialCandidate candidate = restir_initialCandidate_init();
-    float solidAlbedoAlpha = 0.0;
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
@@ -51,7 +50,6 @@ void main() {
             transient_solidAlbedo_store(texelPos, vec4(gData.albedo, gData.pbrSpecular.a));
             transient_geomViewNormal_store(texelPos, vec4(gData.geomNormal * 0.5 + 0.5, 0.0));
             transient_viewNormal_store(texelPos, vec4(gData.normal * 0.5 + 0.5, 0.0));
-            solidAlbedoAlpha = gData.pbrSpecular.a;
 
             vec3 V = normalize(-viewPos);
             float rayPdf = 0.0;
@@ -84,6 +82,5 @@ void main() {
         }
 
         restir_initialCandidate_store(texelPos, candidate);
-        transient_solidAlbedo_store(texelPos, vec4(candidate.hitNormalView * 0.5 + 0.5, solidAlbedoAlpha));
     }
 }

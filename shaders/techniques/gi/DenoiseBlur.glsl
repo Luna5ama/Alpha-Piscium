@@ -137,23 +137,25 @@ void main() {
             vec2 hitDistanceFactors = transient_gi_hitDistanceFactors_fetch(texelPos).xy;
 
             vec4 historyData5 = transient_gi5Reprojected_fetch(texelPos);
-            float historyLength = max(historyData5.x * TOTAL_HISTORY_LENGTH, 1.0);
-            float specularHistoryLength = max(historyData5.y * TOTAL_HISTORY_LENGTH, 1.0);
-            float diffAccumFactor = rcp(1.0 + pow2(0.05 * historyLength));
-            float specAccumFactor = rcp(1.0 + pow2(0.05 * specularHistoryLength));
+            float diffHistoryLength = max(historyData5.x * TOTAL_HISTORY_LENGTH, 1.0);
+            float specHistoryLength = max(historyData5.y * TOTAL_HISTORY_LENGTH, 1.0);
+            float diffAccumFactor = rcp(1.0 + pow2(0.1 * diffHistoryLength));
+            float pDiff = transient_diffBounceProbability_fetch(texelPos).x;
+            diffAccumFactor = pow(diffAccumFactor, pDiff);
+            float specAccumFactor = rcp(1.0 + specHistoryLength);
 
             vec2 hitDistFactor = pow2(hitDistanceFactors);
-            hitDistFactor = hitDistFactor * vec2(0.9, 0.95) + vec2(0.1, 0.05);
+            hitDistFactor = hitDistFactor * 0.95 + 0.05;
             #if GI_DENOISE_PASS == 2
             #if SETTING_DEBUG_OUTPUT
 
+                imageStore(uimg_temp1, texelPos, vec4(pDiff));
 //            imageStore(uimg_temp1, texelPos, historyData5.yyyy * 1.0);
 //            imageStore(uimg_temp1, texelPos, specAccumFactor.xxxx);
+//            imageStore(uimg_temp1, texelPos, diffAccumFactor.xxxx);
 //            imageStore(uimg_temp1, texelPos, hitDistFactor.xxxx);
+//                        imageStore(uimg_temp1, texelPos, historyData5.yyyy * 1.0);
             #endif
-            #endif
-            #if GI_DENOISE_PASS == 1
-            imageStore(uimg_temp1, texelPos, hitDistFactor.yyyy);
             #endif
 
             float16_t jitterR = float16_t(blurJitter.y);
@@ -177,7 +179,7 @@ void main() {
                 sigmaFP32 += 8.0 - hitDistFactor.x * 8.0;
                 float16_t sigma = float16_t(-sigmaFP32);
                 float baseNormalWeight = diffInvAccumFactor * 64.0 + 16.0;
-                float basePlaneDistWeight = diffInvAccumFactor * -256.0 - 128.0;
+                float basePlaneDistWeight = diffInvAccumFactor * -128.0 - 128.0;
 
                 vec4 centerDiff = _gi_readDiff(texelPos);
                 f16vec4 diffSumFP16 = f16vec4(centerDiff);
@@ -262,6 +264,8 @@ void main() {
                 kernelRadius *= roughnessHistoryFactor;
                 kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
                 kernelRadius *= hitDistFactor.y;
+                kernelRadius = max(kernelRadius, baseKernelRadius.z * 0.25);
+                kernelRadius = min(kernelRadius, baseKernelRadius.w);
                 float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
                 vec3 specTFP32, specBFP32;
                 getSpecularKernelBasis(
