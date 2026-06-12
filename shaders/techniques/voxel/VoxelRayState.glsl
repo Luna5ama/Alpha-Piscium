@@ -10,7 +10,7 @@
 // voxelray_setup() lives in VoxelTrace.glsl (requires shared-memory spread LUT).
 
 #ifndef INCLUDE_techniques_voxel_VoxelRayState_glsl
-#define INCLUDE_techniques_voxel_VoxelRayState_glsl
+#define INCLUDE_techniques_voxel_VoxelRayState_glsl a
 
 #include "/techniques/voxel/Voxelization.glsl"
 #include "/util/NZPacking.glsl"
