@@ -106,225 +106,228 @@ void main() {
 
     barrier();
 
-    vec2 unjitterTexelPos = texelCenter + uval_taaJitter;
-    vec2 unjitterScreenPos = screenPos + uval_taaJitter * uval_mainImageSizeRcp;
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
 
-    // Looks like this is fast enough without shared memory
-    float currViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
-    ivec2 offsetNeg = max(ivec2(-1, -1) + texelPos, ivec2(0)) - texelPos;
-    ivec2 offsetPos = min(ivec2(1, 1) + texelPos, uval_mainImageSizeI - 1) - texelPos;
-    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetNeg.x, 0), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetPos.x, 0), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(0, offsetNeg.y), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(0, offsetPos.y), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetNeg.x, offsetNeg.y), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetPos.x, offsetNeg.y), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetNeg.x, offsetPos.y), 0).r, currViewZ);
-    currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetPos.x, offsetPos.y), 0).r, currViewZ);
+        vec2 unjitterTexelPos = texelCenter + uval_taaJitter;
+        vec2 unjitterScreenPos = screenPos + uval_taaJitter * uval_mainImageSizeRcp;
 
-    GBufferData gData = gbufferData_init();
-    gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
-    vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
-    vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
-    vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
-    uint clipFlag = uint(curr2PrevClipPos.z > 0.0);
-    clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
-    curr2PrevClipPos /= curr2PrevClipPos.w;
-    vec2 prevScreenPos = curr2PrevClipPos.xy * 0.5 + 0.5;
+        // Looks like this is fast enough without shared memory
+        float currViewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
+        ivec2 offsetNeg = max(ivec2(-1, -1) + texelPos, ivec2(0)) - texelPos;
+        ivec2 offsetPos = min(ivec2(1, 1) + texelPos, uval_mainImageSizeI - 1) - texelPos;
+        currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetNeg.x, 0), 0).r, currViewZ);
+        currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetPos.x, 0), 0).r, currViewZ);
+        currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(0, offsetNeg.y), 0).r, currViewZ);
+        currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(0, offsetPos.y), 0).r, currViewZ);
+        currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetNeg.x, offsetNeg.y), 0).r, currViewZ);
+        currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetPos.x, offsetNeg.y), 0).r, currViewZ);
+        currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetNeg.x, offsetPos.y), 0).r, currViewZ);
+        currViewZ = max(texelFetch(usam_gbufferSolidViewZ, texelPos + ivec2(offsetPos.x, offsetPos.y), 0).r, currViewZ);
 
-    float lastFrameAccum = 0.0;
-    vec3 prevColor = vec3(0.0);
-    if (bool(clipFlag)) {
-        vec2 prevTexelPos = prevScreenPos * uval_mainImageSize;
-        vec4 prevResult = vec4(0.0);
+        GBufferData gData = gbufferData_init();
+        gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
+        vec3 currViewPos = coords_toViewCoord(screenPos, currViewZ, global_camProjInverse);
+        vec4 curr2PrevViewPos = coord_viewCurrToPrev(vec4(currViewPos, 1.0), gData.isHand);
+        vec4 curr2PrevClipPos = global_prevCamProj * curr2PrevViewPos;
+        uint clipFlag = uint(curr2PrevClipPos.z > 0.0);
+        clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
+        curr2PrevClipPos /= curr2PrevClipPos.w;
+        vec2 prevScreenPos = curr2PrevClipPos.xy * 0.5 + 0.5;
+
+        float lastFrameAccum = 0.0;
+        vec3 prevColor = vec3(0.0);
+        if (bool(clipFlag)) {
+            vec2 prevTexelPos = prevScreenPos * uval_mainImageSize;
+            vec4 prevResult = vec4(0.0);
+            {
+                #if SETTING_TAA_HISTORY_FILTER == 0
+                prevResult = history_taa_sample(prevScreenPos);
+                #elif SETTING_TAA_HISTORY_FILTER == 1
+                CatmullRomBicubic5TapData tapData5 = sampling_catmullRomBicubic5Tap_init(prevTexelPos, 0.5, uval_mainImageSizeRcp);
+                prevResult = sampling_catmullBicubic5Tap_sum(
+                    history_taa_sample(tapData5.uv1AndWeight.xy),
+                    history_taa_sample(tapData5.uv2AndWeight.xy),
+                    history_taa_sample(tapData5.uv3AndWeight.xy),
+                    history_taa_sample(tapData5.uv4AndWeight.xy),
+                    history_taa_sample(tapData5.uv5AndWeight.xy),
+                    tapData5
+                );
+                #elif SETTING_TAA_HISTORY_FILTER == 2
+                CatmullRomBicubic9TapData tapData9 = sampling_catmullRomBicubic9Tap_init(prevTexelPos, uval_mainImageSizeRcp);
+                prevResult = sampling_catmullRomBicubic9Tap_sum(
+                    history_taa_sample(tapData9.uv00),
+                    history_taa_sample(tapData9.uv12_0),
+                    history_taa_sample(tapData9.uv30),
+                    history_taa_sample(tapData9.uv01_2),
+                    history_taa_sample(tapData9.uv12_12),
+                    history_taa_sample(tapData9.uv31_2),
+                    history_taa_sample(tapData9.uv03),
+                    history_taa_sample(tapData9.uv12_3),
+                    history_taa_sample(tapData9.uv33),
+                    tapData9
+                );
+                #else
+                vec2 centerPixel = prevTexelPos - 0.5;
+                vec2 centerPixelOrigin = floor(centerPixel);
+                vec2 pixelPosFract = centerPixel - centerPixelOrigin;
+
+                #if SETTING_TAA_HISTORY_FILTER == 3
+                vec4 weightX = sampling_catmullRomWeights(pixelPosFract.x);
+                vec4 weightY = sampling_catmullRomWeights(pixelPosFract.y);
+                #elif SETTING_TAA_HISTORY_FILTER == 4
+                vec4 weightX = sampling_lanczoc2Weights(pixelPosFract.x);
+                vec4 weightY = sampling_lanczoc2Weights(pixelPosFract.y);
+                #endif
+
+                ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
+                float weightSum = 0.0;
+                for (int iy = 0; iy < 4; ++iy) {
+                    for (int ix = 0; ix < 4; ++ix) {
+                        ivec2 offset = ivec2(ix, iy) - 2;
+                        vec4 sampleData = history_taa_fetch(gatherTexelPos + offset);
+                        float weight = weightX[ix] * weightY[iy];
+                        weightSum += weight;
+                        prevResult += sampleData * weight;
+                    }
+                }
+                prevResult /= weightSum;
+                #endif
+            }
+            prevColor = max(prevResult.rgb, 0.0);
+            lastFrameAccum = prevResult.a;
+        }
+        float newFrameAccum = lastFrameAccum + 1.0;
+
+        vec3 currColor;
+        #ifdef SETTING_TAA
         {
-            #if SETTING_TAA_HISTORY_FILTER == 0
-            prevResult = history_taa_sample(prevScreenPos);
-            #elif SETTING_TAA_HISTORY_FILTER == 1
-            CatmullRomBicubic5TapData tapData5 = sampling_catmullRomBicubic5Tap_init(prevTexelPos, 0.5, uval_mainImageSizeRcp);
-            prevResult = sampling_catmullBicubic5Tap_sum(
-                history_taa_sample(tapData5.uv1AndWeight.xy),
-                history_taa_sample(tapData5.uv2AndWeight.xy),
-                history_taa_sample(tapData5.uv3AndWeight.xy),
-                history_taa_sample(tapData5.uv4AndWeight.xy),
-                history_taa_sample(tapData5.uv5AndWeight.xy),
-                tapData5
-            );
-            #elif SETTING_TAA_HISTORY_FILTER == 2
-            CatmullRomBicubic9TapData tapData9 = sampling_catmullRomBicubic9Tap_init(prevTexelPos, uval_mainImageSizeRcp);
-            prevResult = sampling_catmullRomBicubic9Tap_sum(
-                history_taa_sample(tapData9.uv00),
-                history_taa_sample(tapData9.uv12_0),
-                history_taa_sample(tapData9.uv30),
-                history_taa_sample(tapData9.uv01_2),
-                history_taa_sample(tapData9.uv12_12),
-                history_taa_sample(tapData9.uv31_2),
-                history_taa_sample(tapData9.uv03),
-                history_taa_sample(tapData9.uv12_3),
-                history_taa_sample(tapData9.uv33),
-                tapData9
-            );
-            #else
-            vec2 centerPixel = prevTexelPos - 0.5;
+            vec2 centerPixel = unjitterTexelPos - 0.5;
             vec2 centerPixelOrigin = floor(centerPixel);
             vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
-            #if SETTING_TAA_HISTORY_FILTER == 3
-            vec4 weightX = sampling_catmullRomWeights(pixelPosFract.x);
-            vec4 weightY = sampling_catmullRomWeights(pixelPosFract.y);
-            #elif SETTING_TAA_HISTORY_FILTER == 4
-            vec4 weightX = sampling_lanczoc2Weights(pixelPosFract.x);
-            vec4 weightY = sampling_lanczoc2Weights(pixelPosFract.y);
-            #endif
+            vec4 weightX = shared_weightsX;
+            vec4 weightY = shared_weightsY;
 
             ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
+            ivec2 localOrigin = gatherTexelPos - ivec2(workGroupOrigin);
+
+            vec3 colorResult = vec3(0.0);
             float weightSum = 0.0;
             for (int iy = 0; iy < 4; ++iy) {
                 for (int ix = 0; ix < 4; ++ix) {
                     ivec2 offset = ivec2(ix, iy) - 2;
-                    vec4 sampleData = history_taa_fetch(gatherTexelPos + offset);
+                    ivec2 localPos = localOrigin + offset + 2; // +2 for padding
+                    vec3 sampleColor = shared_colorData[localPos.y][localPos.x];
                     float weight = weightX[ix] * weightY[iy];
                     weightSum += weight;
-                    prevResult += sampleData * weight;
+                    colorResult += sampleColor * weight;
                 }
             }
-            prevResult /= weightSum;
-            #endif
+            currColor = colors_YCoCgToRGB(colorResult / weightSum);
         }
-        prevColor = max(prevResult.rgb, 0.0);
-        lastFrameAccum = prevResult.a;
-    }
-    float newFrameAccum = lastFrameAccum + 1.0;
+        #else
+        currColor = texelFetch(usam_main, texelPos, 0).rgb;
+        #endif
+        currColor = max(currColor, 0.0);
 
-    vec3 currColor;
-    #ifdef SETTING_TAA
-    {
-        vec2 centerPixel = unjitterTexelPos - 0.5;
-        vec2 centerPixelOrigin = floor(centerPixel);
-        vec2 pixelPosFract = centerPixel - centerPixelOrigin;
-
-        vec4 weightX = shared_weightsX;
-        vec4 weightY = shared_weightsY;
-
-        ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
-        ivec2 localOrigin = gatherTexelPos - ivec2(workGroupOrigin);
-
-        vec3 colorResult = vec3(0.0);
-        float weightSum = 0.0;
-        for (int iy = 0; iy < 4; ++iy) {
-            for (int ix = 0; ix < 4; ++ix) {
-                ivec2 offset = ivec2(ix, iy) - 2;
-                ivec2 localPos = localOrigin + offset + 2; // +2 for padding
-                vec3 sampleColor = shared_colorData[localPos.y][localPos.x];
-                float weight = weightX[ix] * weightY[iy];
-                weightSum += weight;
-                colorResult += sampleColor * weight;
-            }
+        vec4 taaResetFactor = global_taaResetFactor;
+        float maxAccumFramesFactor = global_motionFactor.w;
+        #ifndef SETTING_SCREENSHOT_MODE
+        GBufferData gDataTranslucent = gbufferData_init();
+        gbufferData1_unpack(texelFetch(usam_gbufferTranslucentData1, texelPos, 0), gDataTranslucent);
+        if (gDataTranslucent.materialID == MATERIAL_ID_WATER) {
+            taaResetFactor.y = min(0.5, taaResetFactor.y);
+            taaResetFactor.x = max(0.5, taaResetFactor.x);
+            maxAccumFramesFactor = min(0.6, maxAccumFramesFactor);
         }
-        currColor = colors_YCoCgToRGB(colorResult / weightSum);
+        #endif
+        newFrameAccum *= taaResetFactor.z;
+
+        {
+            vec3 currColorYCoCg = colors_RGBToYCoCg(currColor);
+            const float distanceFactor = 0.01;
+            float kernelParam = -taaResetFactor.x * rcp(1.0 - (currViewPos.z * distanceFactor));
+            ColorAABB box = initAABB(currColorYCoCg, exp(kernelParam * shared_kernelDist2[4]));
+
+            ivec2 localTexelPos = texelPos - ivec2(workGroupOrigin) + 2; // +2 for padding
+
+            updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x - 1], exp(kernelParam * shared_kernelDist2[0]), box);
+            updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x], exp(kernelParam * shared_kernelDist2[1]), box);
+            updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x + 1], exp(kernelParam * shared_kernelDist2[2]), box);
+
+            updateAABB(shared_colorData[localTexelPos.y][localTexelPos.x - 1], exp(kernelParam * shared_kernelDist2[3]), box);
+            updateAABB(shared_colorData[localTexelPos.y][localTexelPos.x + 1], exp(kernelParam * shared_kernelDist2[5]), box);
+
+            updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x - 1], exp(kernelParam * shared_kernelDist2[6]), box);
+            updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x], exp(kernelParam * shared_kernelDist2[7]), box);
+            updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x + 1], exp(kernelParam * shared_kernelDist2[8]), box);
+
+            vec3 mean = box.moment1 / box.weightSum;
+            vec3 mean2 = box.moment2 / box.weightSum;
+            vec3 variance = mean2 - mean * mean;
+            vec3 stddev = sqrt(abs(variance));
+
+            const float varianceAABBSize = 1.0;
+            vec3 varianceAABBMin = mean - stddev * varianceAABBSize;
+            vec3 varianceAABBMax = mean + stddev * varianceAABBSize;
+            varianceAABBMin = clamp(varianceAABBMin, box.minVal, currColorYCoCg);
+            varianceAABBMax = clamp(varianceAABBMax, currColorYCoCg, box.maxVal);
+
+            vec3 prevColorYCoCg = colors_RGBToYCoCg(prevColor);
+
+            const float clippingEps = FLT_MIN;
+            vec3 delta = prevColorYCoCg - mean;
+            delta /= max(1.0, length(delta / stddev));
+
+            vec3 prevColorYCoCgAABBClamped = clamp(prevColorYCoCg, box.minVal, box.maxVal);
+            prevColorYCoCgAABBClamped = clipAABB((box.maxVal + box.minVal) * 0.5, (box.maxVal - box.minVal) * 0.5 + clippingEps, prevColorYCoCgAABBClamped);
+
+            vec3 prevColorYCoCgVarianceAABBClamped = clamp(prevColorYCoCgAABBClamped, varianceAABBMin, varianceAABBMax);
+            prevColorYCoCgVarianceAABBClamped = clipAABB(mean, stddev * varianceAABBSize, prevColorYCoCgVarianceAABBClamped);
+
+            vec3 prevColorYCoCgEllipsoid = clamp(mean + delta, box.minVal, box.maxVal);
+            prevColorYCoCgEllipsoid = clamp(prevColorYCoCgEllipsoid, varianceAABBMin, varianceAABBMax);
+
+            float clampMethod = taaResetFactor.y;
+
+            vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampMethod));
+            prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampMethod));
+
+            vec3 prevColorNew = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
+            vec3 prevColorDiff = abs(prevColorNew - prevColor);
+            float lumaDiff = smoothstep(0.0, 0.3, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevColorDiff));
+
+            transient_lumaDiff_store(texelPos, vec4(lumaDiff, 0.0, 0.0, 0.0));
+            prevColor = prevColorNew;
+        }
+
+        #ifdef SETTING_SCREENSHOT_MODE
+        float MIN_ACCUM_FRAMES = 1.0;
+        #ifdef SETTING_VIDEO_RENDER_MODE
+        float MAX_ACCUM_FRAMES = 32.0;
+        #else
+        float MAX_ACCUM_FRAMES = 1024.0;
+        #endif
+        #else
+        float MIN_ACCUM_FRAMES = 1.0;
+        float MAX_ACCUM_FRAMES = mix(2.0, 128.0, pow3(maxAccumFramesFactor));
+        if (gData.isHand) {
+            MAX_ACCUM_FRAMES *= 0.5;
+        }
+        #endif
+
+        newFrameAccum = clamp(newFrameAccum, MIN_ACCUM_FRAMES, MAX_ACCUM_FRAMES);
+
+        float finalCurrWeight = 1.0 / newFrameAccum;
+        #ifndef SETTING_TAA
+        finalCurrWeight = 1.0;
+        #endif
+
+        vec3 finalColor = mix(prevColor, currColor, finalCurrWeight);
+        vec4 outputData = vec4(finalColor, newFrameAccum);
+
+        float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 0u), frameCounter);
+        outputData = dither_fp16(outputData, ditherNoise);
+        transient_taaOutput_store(texelPos, outputData);
     }
-    #else
-    currColor = texelFetch(usam_main, texelPos, 0).rgb;
-    #endif
-    currColor = max(currColor, 0.0);
-
-    vec4 taaResetFactor = global_taaResetFactor;
-    float maxAccumFramesFactor = global_motionFactor.w;
-    #ifndef SETTING_SCREENSHOT_MODE
-    GBufferData gDataTranslucent = gbufferData_init();
-    gbufferData1_unpack(texelFetch(usam_gbufferTranslucentData1, texelPos, 0), gDataTranslucent);
-    if (gDataTranslucent.materialID == MATERIAL_ID_WATER) {
-        taaResetFactor.y = min(0.5, taaResetFactor.y);
-        taaResetFactor.x = max(0.5, taaResetFactor.x);
-        maxAccumFramesFactor = min(0.6, maxAccumFramesFactor);
     }
-    #endif
-    newFrameAccum *= taaResetFactor.z;
-
-    {
-        vec3 currColorYCoCg = colors_RGBToYCoCg(currColor);
-        const float distanceFactor = 0.01;
-        float kernelParam = -taaResetFactor.x * rcp(1.0 - (currViewPos.z * distanceFactor));
-        ColorAABB box = initAABB(currColorYCoCg, exp(kernelParam * shared_kernelDist2[4]));
-
-        ivec2 localTexelPos = texelPos - ivec2(workGroupOrigin) + 2; // +2 for padding
-
-        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x - 1], exp(kernelParam * shared_kernelDist2[0]), box);
-        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x], exp(kernelParam * shared_kernelDist2[1]), box);
-        updateAABB(shared_colorData[localTexelPos.y - 1][localTexelPos.x + 1], exp(kernelParam * shared_kernelDist2[2]), box);
-
-        updateAABB(shared_colorData[localTexelPos.y][localTexelPos.x - 1], exp(kernelParam * shared_kernelDist2[3]), box);
-        updateAABB(shared_colorData[localTexelPos.y][localTexelPos.x + 1], exp(kernelParam * shared_kernelDist2[5]), box);
-
-        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x - 1], exp(kernelParam * shared_kernelDist2[6]), box);
-        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x], exp(kernelParam * shared_kernelDist2[7]), box);
-        updateAABB(shared_colorData[localTexelPos.y + 1][localTexelPos.x + 1], exp(kernelParam * shared_kernelDist2[8]), box);
-
-        vec3 mean = box.moment1 / box.weightSum;
-        vec3 mean2 = box.moment2 / box.weightSum;
-        vec3 variance = mean2 - mean * mean;
-        vec3 stddev = sqrt(abs(variance));
-
-        const float varianceAABBSize = 1.0;
-        vec3 varianceAABBMin = mean - stddev * varianceAABBSize;
-        vec3 varianceAABBMax = mean + stddev * varianceAABBSize;
-        varianceAABBMin = clamp(varianceAABBMin, box.minVal, currColorYCoCg);
-        varianceAABBMax = clamp(varianceAABBMax, currColorYCoCg, box.maxVal);
-
-        vec3 prevColorYCoCg = colors_RGBToYCoCg(prevColor);
-
-        const float clippingEps = FLT_MIN;
-        vec3 delta = prevColorYCoCg - mean;
-        delta /= max(1.0, length(delta / stddev));
-
-        vec3 prevColorYCoCgAABBClamped = clamp(prevColorYCoCg, box.minVal, box.maxVal);
-        prevColorYCoCgAABBClamped = clipAABB((box.maxVal + box.minVal) * 0.5, (box.maxVal - box.minVal) * 0.5 + clippingEps, prevColorYCoCgAABBClamped);
-
-        vec3 prevColorYCoCgVarianceAABBClamped = clamp(prevColorYCoCgAABBClamped, varianceAABBMin, varianceAABBMax);
-        prevColorYCoCgVarianceAABBClamped = clipAABB(mean, stddev * varianceAABBSize, prevColorYCoCgVarianceAABBClamped);
-
-        vec3 prevColorYCoCgEllipsoid = clamp(mean + delta, box.minVal, box.maxVal);
-        prevColorYCoCgEllipsoid = clamp(prevColorYCoCgEllipsoid, varianceAABBMin, varianceAABBMax);
-
-        float clampMethod = taaResetFactor.y;
-
-        vec3 prevColorYCoCgClamped = mix(prevColorYCoCgEllipsoid, prevColorYCoCgVarianceAABBClamped, linearStep(0.0, 0.5, clampMethod));
-        prevColorYCoCgClamped = mix(prevColorYCoCgClamped, prevColorYCoCgAABBClamped, linearStep(0.5, 1.0, clampMethod));
-
-        vec3 prevColorNew = mix(prevColor, colors_YCoCgToRGB(prevColorYCoCgClamped), taaResetFactor.w);
-        vec3 prevColorDiff = abs(prevColorNew - prevColor);
-        float lumaDiff = smoothstep(0.0, 0.3, colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, prevColorDiff));
-
-        transient_lumaDiff_store(texelPos, vec4(lumaDiff, 0.0, 0.0, 0.0));
-        prevColor = prevColorNew;
-    }
-
-    #ifdef SETTING_SCREENSHOT_MODE
-    float MIN_ACCUM_FRAMES = 1.0;
-    #ifdef SETTING_VIDEO_RENDER_MODE
-    float MAX_ACCUM_FRAMES = 32.0;
-    #else
-    float MAX_ACCUM_FRAMES = 1024.0;
-    #endif
-    #else
-    float MIN_ACCUM_FRAMES = 1.0;
-    float MAX_ACCUM_FRAMES = mix(2.0, 128.0, pow3(maxAccumFramesFactor));
-    if (gData.isHand) {
-        MAX_ACCUM_FRAMES *= 0.5;
-    }
-    #endif
-
-    newFrameAccum = clamp(newFrameAccum, MIN_ACCUM_FRAMES, MAX_ACCUM_FRAMES);
-
-    float finalCurrWeight = 1.0 / newFrameAccum;
-    #ifndef SETTING_TAA
-    finalCurrWeight = 1.0;
-    #endif
-
-    vec3 finalColor = mix(prevColor, currColor, finalCurrWeight);
-    vec4 outputData = vec4(finalColor, newFrameAccum);
-
-    float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 0u), frameCounter);
-    outputData = dither_fp16(outputData, ditherNoise);
-    transient_taaOutput_store(texelPos, outputData);
-}
