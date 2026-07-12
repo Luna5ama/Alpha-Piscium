@@ -19,16 +19,15 @@ Alpha Piscium 的阴影由 shadow raster、RTWSM warp、屏幕空间 shadow samp
 
 ## 帧内流程
 
-1. [`ClearRTWSM`](../../../shaders/pass/begin/ClearRTWSM.comp.glsl) 清理本帧 RTWSM accumulation/queue 状态。
-2. shadow wrappers 使用现有 RTWSM warp 渲染 shadow color/depth；不同几何类别复用 `ShadowPass`，并在 [`ShadowPass.vert.glsl`](../../../shaders/pass/geometry/ShadowPass.vert.glsl) 的 shadow rasterization 中执行 forward analysis。
-3. [`EvaluateShadowWaterNormal`](../../../shaders/pass/shadowcomp/EvaluateShadowWaterNormal.glsl) 计算 shadow water
-   normal。
-4. [`ShadowSampleSetup`](../../../shaders/pass/composite/ShadowSampleSetup.comp.glsl) 建立采样任务。
-5. [`ShadowSampleSSS`](../../../shaders/pass/composite/ShadowSampleSSS.comp.glsl) 从 SSBO 0 offset 32 indirect
-   dispatch，处理需要 SSS 的样本。
-6. [`ShadowSample`](../../../shaders/pass/composite/ShadowSample.comp.glsl) 完成主 shadow 过滤并顺带执行 backward analysis；[`DirectLighting`](../../../shaders/pass/composite/DirectLighting.glsl) 消费结果。
-7. 半透明/体积完成后，[`IMapCollapse`](../../../shaders/techniques/rtwsm/IMapCollapse.comp.glsl) collapse
-   当前屏幕重要性；[`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) blur，[`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl) 计算 warp，[`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl) 写回 2D warp。
+| 顺序 | Pass / 阶段 | 说明 |
+| --- | --- | --- |
+| 1 | [`ClearRTWSM`](../../../shaders/pass/begin/ClearRTWSM.comp.glsl) | 清理本帧 RTWSM accumulation/queue 状态 |
+| 2 | Shadow wrappers；[`ShadowPass.vert.glsl`](../../../shaders/pass/geometry/ShadowPass.vert.glsl) | 使用当前 RTWSM warp 渲染；在 shadow rasterization 中执行 forward analysis |
+| 3 | [`EvaluateShadowWaterNormal`](../../../shaders/pass/shadowcomp/EvaluateShadowWaterNormal.glsl) | 计算 shadow-water normals |
+| 4 | [`ShadowSampleSetup`](../../../shaders/pass/composite/ShadowSampleSetup.comp.glsl) | 建立采样任务 |
+| 5 | [`ShadowSampleSSS`](../../../shaders/pass/composite/ShadowSampleSSS.comp.glsl) | 从 SSBO 0 offset 32 indirect dispatch，处理需要 SSS 的样本 |
+| 6 | [`ShadowSample`](../../../shaders/pass/composite/ShadowSample.comp.glsl)；[`DirectLighting`](../../../shaders/pass/composite/DirectLighting.glsl) | 完成主 shadow 过滤并顺带执行 backward analysis；DirectLighting 消费结果 |
+| 7 | [`IMapCollapse`](../../../shaders/techniques/rtwsm/IMapCollapse.comp.glsl)、[`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl)、[`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl)、[`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl) | 半透明/体积完成后，collapse、blur 当前屏幕重要性，计算 warp 并写回 2D warp |
 
 ## 资源
 

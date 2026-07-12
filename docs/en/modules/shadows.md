@@ -20,16 +20,15 @@ shadow rasterization.
 
 ## Per-frame flow
 
-1. [`ClearRTWSM`](../../../shaders/pass/begin/ClearRTWSM.comp.glsl) clears per-frame RTWSM accumulation/queue state.
-2. Shadow wrappers rasterize through the current RTWSM warp using the shared `ShadowPass` for each geometry category; forward analysis is performed in [`ShadowPass.vert.glsl`](../../../shaders/pass/geometry/ShadowPass.vert.glsl) during shadow rasterization.
-3. [`EvaluateShadowWaterNormal`](../../../shaders/pass/shadowcomp/EvaluateShadowWaterNormal.glsl) evaluates shadow-water
-   normals.
-4. [`ShadowSampleSetup`](../../../shaders/pass/composite/ShadowSampleSetup.comp.glsl) creates the sampling work.
-5. [`ShadowSampleSSS`](../../../shaders/pass/composite/ShadowSampleSSS.comp.glsl) runs through indirect dispatch from
-   SSBO 0 offset 32.
-6. [`ShadowSample`](../../../shaders/pass/composite/ShadowSample.comp.glsl) performs main shadow filtering and the accompanying backward analysis; [`DirectLighting`](../../../shaders/pass/composite/DirectLighting.glsl) consumes its result.
-7. After translucency/volumetrics, [`IMapCollapse`](../../../shaders/techniques/rtwsm/IMapCollapse.comp.glsl) collapses
-   current screen importance; [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) blurs it, [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl) computes a warp, and [`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl) writes the 2D warp back.
+| Order | Pass / stage | Description |
+| --- | --- | --- |
+| 1 | [`ClearRTWSM`](../../../shaders/pass/begin/ClearRTWSM.comp.glsl) | Clears per-frame RTWSM accumulation/queue state |
+| 2 | Shadow wrappers; [`ShadowPass.vert.glsl`](../../../shaders/pass/geometry/ShadowPass.vert.glsl) | Rasterizes through the current RTWSM warp; performs forward analysis during shadow rasterization |
+| 3 | [`EvaluateShadowWaterNormal`](../../../shaders/pass/shadowcomp/EvaluateShadowWaterNormal.glsl) | Evaluates shadow-water normals |
+| 4 | [`ShadowSampleSetup`](../../../shaders/pass/composite/ShadowSampleSetup.comp.glsl) | Creates the sampling work |
+| 5 | [`ShadowSampleSSS`](../../../shaders/pass/composite/ShadowSampleSSS.comp.glsl) | Runs through indirect dispatch from SSBO 0 offset 32 |
+| 6 | [`ShadowSample`](../../../shaders/pass/composite/ShadowSample.comp.glsl); [`DirectLighting`](../../../shaders/pass/composite/DirectLighting.glsl) | Performs main shadow filtering and accompanying backward analysis; DirectLighting consumes the result |
+| 7 | [`IMapCollapse`](../../../shaders/techniques/rtwsm/IMapCollapse.comp.glsl), [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl), [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl), [`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl) | After translucency/volumetrics, collapses and blurs current screen importance, computes a warp, and writes the 2D warp back |
 
 ## Resources
 
