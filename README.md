@@ -1,4 +1,7 @@
 # Alpha Piscium
+
+Language: English | [简体中文](README.sc.md)
+
 High-quality realistic Minecraft shaderpack featuring global illumination, volumetric clouds, atmospheric scattering, and stunning visual effects.
 
 Official Website link: https://alphapiscium.org/ \
@@ -41,3 +44,18 @@ Please be advised that this codebase incorporates software components generated 
 
 ## License
 Files under the `scripts` directory are licensed under the MIT License. All other files are licensed under the GNU General Public License v3.0.
+
+## Development
+
+Alpha Piscium keeps pass entry points, reusable rendering techniques, generated bindings, and developer tooling separate. Start with the English [developer documentation](docs/en/README.md), then use the [quick start](docs/en/development/quick-start.md), [project structure](docs/en/development/project-structure.md), [workflow guide](docs/en/development/workflows.md), and [pipeline overview](docs/en/modules/pipeline.md).
+
+Project outline:
+
+- `shaders/pass/`: shader entry points with `main`.
+- `shaders/techniques/`: reusable rendering modules.
+- `shaders/util/`: shared math, sampling, material, and data helpers.
+- `shaders/base/`: common interfaces and generated option/texture bindings.
+- `scripts/`: Kotlin/PowerShell generators, packaging, and asset tools.
+- `docs/`: project-specific workflows and module maps.
+
+Ordinary `.glsl` edits need no generation step. Run the owning generator after changing the program list, options, the hand-maintained `scripts/shaders.properties`, or `shaders/shadesmith.json`; the exact commands are listed in the [quick start](docs/en/development/quick-start.md).
