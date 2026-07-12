@@ -6,6 +6,7 @@ import java.util.zip.ZipOutputStream
 import kotlin.io.path.*
 
 fun makeZip(zipFilePath: Path) {
+    zipFilePath.parent.createDirectories()
     val currDirPath = Path("").absolute()
     val projectRootPath = currDirPath.parent
     val shadesmithJarPath = currDirPath.resolve("shadesmith.jar")
@@ -50,8 +51,8 @@ fun makeZip(zipFilePath: Path) {
     val shadesmithRun = ProcessBuilder()
         .command(
             "$java/bin/java",
-            "-jar",
             "-XX:AOTCache=${shadesmithAotCachePath}",
+            "-jar",
             shadesmithJarPath.toString(),
             shadersPath.toString(),
             shadesmithShadersPath.toString()
@@ -65,9 +66,9 @@ fun makeZip(zipFilePath: Path) {
         "shaders/lang",
         "shaders/textures",
         "shaders",
-        "LICENSE",
-        "README.md"
+        "LICENSE"
     )
+    val rootReadmePattern = Regex("^README(?:\\.[^.]+)?\\.md$", RegexOption.IGNORE_CASE)
 
     ZipOutputStream(zipFilePath.outputStream(), Charsets.UTF_8).use { zipOut ->
         zipOut.setLevel(Deflater.DEFAULT_COMPRESSION)
@@ -103,8 +104,10 @@ fun makeZip(zipFilePath: Path) {
                 .relativeTo(projectRootPath)
                 .invariantSeparatorsPathString
                 .substringBeforeLast('/')
-            if (baseDirName.contains('.')) return@filter false
-            baseDirName in included
+            val isRootReadme = file.parent == projectRootPath &&
+                rootReadmePattern.matches(file.fileName.toString())
+            if (!isRootReadme && baseDirName.contains('.')) return@filter false
+            isRootReadme || baseDirName in included
         })
     }
 }

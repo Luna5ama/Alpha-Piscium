@@ -88,31 +88,38 @@ $shadesmithOutputPath = if ([System.IO.Path]::IsPathRooted($shadesmithOutputPath
 }
 $shadesmithShadersPath = Join-Path $shadesmithOutputPath 'shaders'
 
-if (-not (Test-Path -LiteralPath $shadesmithAotCachePath)) {
-    Write-Host 'Shadesmith AOT cache not found, running once to generate it...'
-    $aotArgs = @(
-        '--add-modules',
-        'jdk.internal.vm.ci',
-        "-XX:AOTCacheOutput=$shadesmithAotCachePath",
-        '-jar',
-        $shadesmithJarPath,
-        $shadersPath,
-        $shadesmithShadersPath
-    )
+$exitCode = 0
+Push-Location -LiteralPath $scriptDir
+try {
+    if (-not (Test-Path -LiteralPath $shadesmithAotCachePath)) {
+        Write-Host 'Shadesmith AOT cache not found, running once to generate it...'
+        $aotArgs = @(
+            '--add-modules',
+            'jdk.internal.vm.ci',
+            "-XX:AOTCacheOutput=$shadesmithAotCachePath",
+            '-jar',
+            $shadesmithJarPath,
+            $shadersPath,
+            $shadesmithShadersPath
+        )
 
-    & $javaExe @aotArgs
-    if ($LASTEXITCODE -ne 0) {
-        exit $LASTEXITCODE
+        & $javaExe @aotArgs
+        $exitCode = $LASTEXITCODE
     }
+
+    if ($exitCode -eq 0) {
+        $runArgs = @(
+            "-XX:AOTCache=$shadesmithAotCachePath",
+            '-jar',
+            $shadesmithJarPath,
+            $shadersPath,
+            $shadesmithShadersPath
+        )
+
+        & $javaExe @runArgs
+        $exitCode = $LASTEXITCODE
+    }
+} finally {
+    Pop-Location
 }
-
-$runArgs = @(
-    "-XX:AOTCache=$shadesmithAotCachePath",
-    '-jar',
-    $shadesmithJarPath,
-    $shadersPath,
-    $shadesmithShadersPath
-)
-
-& $javaExe @runArgs
-exit $LASTEXITCODE
+exit $exitCode
