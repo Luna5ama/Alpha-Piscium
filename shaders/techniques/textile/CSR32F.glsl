@@ -6,7 +6,7 @@
 /*const*/
 #define _CSR32F_TEXTURE_SIZE (uval_mainImageSizeI * ivec2(2, 2))
 #define _CSR32F_TEXTURE_SIZE_F (uval_mainImageSize * vec2(2.0, 2.0))
-#define _CSR32F_TEXTURE_SIZE_RCP rcp(_CSR32F_TEXTURE_SIZE_F)
+#define _CSR32F_TEXTURE_SIZE_RCP (vec2(1.0) / vec2(textureSize(usam_csr32f, 0)))
 
 #define _CSR32F_TILE1_OFFSET ivec2(0)
 #define _CSR32F_TILE1_OFFSET_F vec2(0.0)

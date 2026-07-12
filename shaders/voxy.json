@@ -1,4 +1,7 @@
 {
+	"includeSettings": "
+		#include \"/base/Options.glsl\"
+	",
 	"version": 1,
     "excludeLodsFromVanillaDepth": true,
 	"uniforms": [
@@ -16,6 +19,37 @@
     "samplers": {},
 	"opaqueDrawBuffers": [16],
 	"translucentDrawBuffers": [17, 18],
+#if SETTING_RENDER_SCALE == 0
+    "renderScale": [0.5],
+    "useViewportDims": true,
+#elif SETTING_RENDER_SCALE == 1
+    "renderScale": [0.55],
+    "useViewportDims": true,
+#elif SETTING_RENDER_SCALE == 2
+    "renderScale": [0.6],
+    "useViewportDims": true,
+#elif SETTING_RENDER_SCALE == 3
+    "renderScale": [0.65],
+    "useViewportDims": true,
+#elif SETTING_RENDER_SCALE == 4
+    "renderScale": [0.7],
+    "useViewportDims": true,
+#elif SETTING_RENDER_SCALE == 5
+    "renderScale": [0.75],
+    "useViewportDims": true,
+#elif SETTING_RENDER_SCALE == 6
+    "renderScale": [0.8],
+    "useViewportDims": true,
+#elif SETTING_RENDER_SCALE == 7
+    "renderScale": [0.85],
+    "useViewportDims": true,
+#elif SETTING_RENDER_SCALE == 8
+    "renderScale": [0.9],
+    "useViewportDims": true,
+#elif SETTING_RENDER_SCALE == 9
+    "renderScale": [0.95],
+    "useViewportDims": true,
+#endif
     "blending": {
         "-1": "off",
         "1": "SRC_ALPHA SRC_COLOR ONE ONE"

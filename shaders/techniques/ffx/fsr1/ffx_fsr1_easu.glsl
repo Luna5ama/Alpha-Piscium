@@ -1,7 +1,7 @@
 // This file is part of the FidelityFX SDK.
 //
 // Copyright (C) 2024 Advanced Micro Devices, Inc.
-// 
+//
 // Permission is hereby granted, free of charge, to any person obtaining a copy
 // of this software and associated documentation files(the "Software"), to deal
 // in the Software without restriction, including without limitation the rights
@@ -23,21 +23,21 @@
 #define GROUP_SIZE  8
 #define FSR_RCAS_DENOISE 1
 
-#include "ffx_core.h"
+#include "../ffx_core.glsl"
 
 #if FFX_HALF
 
     #define FFX_FSR_EASU_HALF 1
-    FfxFloat16x4 FsrEasuRH(FfxFloat32x2 p) { return GatherEasuRed(p); }
-    FfxFloat16x4 FsrEasuGH(FfxFloat32x2 p) { return GatherEasuGreen(p); }
-    FfxFloat16x4 FsrEasuBH(FfxFloat32x2 p) { return GatherEasuBlue(p); }
+    FfxFloat16x4 FsrEasuRH(FfxFloat32x2 p) { return FfxFloat16x4(textureGather(usam_main, p, 0)); }
+    FfxFloat16x4 FsrEasuGH(FfxFloat32x2 p) { return FfxFloat16x4(textureGather(usam_main, p, 1)); }
+    FfxFloat16x4 FsrEasuBH(FfxFloat32x2 p) { return FfxFloat16x4(textureGather(usam_main, p, 2)); }
 
 #else
 
     #define FFX_FSR_EASU_FLOAT 1
-    FfxFloat32x4 FsrEasuRF(FfxFloat32x2 p) { return GatherEasuRed(p); }
-    FfxFloat32x4 FsrEasuGF(FfxFloat32x2 p) { return GatherEasuGreen(p); }
-    FfxFloat32x4 FsrEasuBF(FfxFloat32x2 p) { return GatherEasuBlue(p); }
+    FfxFloat32x4 FsrEasuRF(FfxFloat32x2 p) { return textureGather(usam_main, p, 0); }
+    FfxFloat32x4 FsrEasuGF(FfxFloat32x2 p) { return textureGather(usam_main, p, 1); }
+    FfxFloat32x4 FsrEasuBF(FfxFloat32x2 p) { return textureGather(usam_main, p, 2); }
 
 #endif // FFX_HALF
 
@@ -45,7 +45,44 @@
     #define FSR_RCAS_PASSTHROUGH_ALPHA a
 #endif // FFX_FSR1_OPTION_RCAS_PASSTHROUGH_ALPHA
 
-#include "fsr1/ffx_fsr1.h"
+#include "ffx_fsr1.glsl"
+
+FfxUInt32x4 fsr1_easuCon0;
+FfxUInt32x4 fsr1_easuCon1;
+FfxUInt32x4 fsr1_easuCon2;
+FfxUInt32x4 fsr1_easuCon3;
+FfxFloat32x3 fsr1_easuOutput;
+
+FfxUInt32x4 Const0() { return fsr1_easuCon0; }
+FfxUInt32x4 Const1() { return fsr1_easuCon1; }
+FfxUInt32x4 Const2() { return fsr1_easuCon2; }
+FfxUInt32x4 Const3() { return fsr1_easuCon3; }
+FfxUInt32x4 EASUSample() { return FfxUInt32x4(0); }
+
+#if FFX_HALF
+void StoreEASUOutput(FfxUInt32x2 pos, FfxFloat16x3 color) {
+    fsr1_easuOutput = FfxFloat32x3(color);
+}
+#else
+void StoreEASUOutput(FfxUInt32x2 pos, FfxFloat32x3 color) {
+    fsr1_easuOutput = color;
+}
+#endif
+
+void fsr1_easuPopulateConstants() {
+    ffxFsrPopulateEasuConstants(
+        fsr1_easuCon0,
+        fsr1_easuCon1,
+        fsr1_easuCon2,
+        fsr1_easuCon3,
+        uval_mainImageSize.x,
+        uval_mainImageSize.y,
+        uval_mainImageSize.x,
+        uval_mainImageSize.y,
+        uval_viewImageSize.x,
+        uval_viewImageSize.y
+    );
+}
 
 void CurrFilter(FfxUInt32x2 pos)
 {
@@ -76,7 +113,7 @@ void CurrFilter(FfxUInt32x2 pos)
 
 #if FFX_FSR1_OPTION_SRGB_CONVERSIONS
     // Apply gamma if this is an sRGB format (auto-degamma'd on sampler read)
-    c = pow(c, FfxFloat32x3(1.f / 2.2f, 1.f / 2.2f, 1.f / 2.2f));
+    c = pow(c, FfxFloat32x3(1.0 / 2.2, 1.0 / 2.2, 1.0 / 2.2));
 #endif // FFX_FSR1_OPTION_SRGB_CONVERSIONS
 
     StoreEASUOutput(pos, c);
@@ -95,4 +132,10 @@ void EASU(FfxUInt32x3 LocalThreadId, FfxUInt32x3 WorkGroupId, FfxUInt32x3 Dtid)
     CurrFilter(gxy);
     gxy.x -= 8u;
     CurrFilter(gxy);
+}
+
+vec3 fsr1_easu(ivec2 outputTexelPos) {
+    fsr1_easuPopulateConstants();
+    CurrFilter(uvec2(outputTexelPos));
+    return fsr1_easuOutput;
 }

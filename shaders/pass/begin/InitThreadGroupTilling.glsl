@@ -1,11 +1,11 @@
-#include "/util/Morton.glsl"
+#include "/Base.glsl"
 
 layout(std430, binding = 7) writeonly buffer ThreadGroupTilingData {
     uvec2 ssbo_threadGroupTiling[];
 };
 
 layout(local_size_x = 16, local_size_y = 16) in;
-const vec2 workGroupsRender = vec2(1.0625, 0.0625);
+const vec2 workGroupsRender = vec2(RENDER_SCALE_SIXTEENTH, RENDER_SCALE_SIXTEENTH);
 
 void main() {
     uvec2 actualNumGroups = uvec2((uval_mainImageSizeI + 15) / 16);
@@ -15,10 +15,7 @@ void main() {
     // Linear work group index
     uint workGroupIdx = globalThreadIdx;
 
-    if (workGroupIdx >= actualTotalGroups) {
-        ssbo_threadGroupTiling[workGroupIdx] = uvec2(0xFFFFFFFFu, 0xFFFFFFFFu);
-        return;
-    }
+    if (workGroupIdx >= actualTotalGroups) return;
 
     // Find the smallest power of 2 that covers both dimensions
     uvec2 size = actualNumGroups;
@@ -48,15 +45,9 @@ void main() {
         currentSize >>= 1u;
 
         // Four quadrants in Z-order: (0,0), (1,0), (0,1), (1,1)
-        const uvec2 quadrantOffsets[4] = uvec2[4](
-            uvec2(0u, 0u),
-            uvec2(currentSize, 0u),
-            uvec2(0u, currentSize),
-            uvec2(currentSize, currentSize)
-        );
-
         for (int q = 0; q < 4; q++) {
-            uvec2 qStart = swizzledWGCoord + quadrantOffsets[q];
+            uvec2 quadrantOffset = uvec2(uint(q) & 1u, uint(q) >> 1u) * currentSize;
+            uvec2 qStart = swizzledWGCoord + quadrantOffset;
             uvec2 qEnd = qStart + uvec2(currentSize);
 
             // Count valid cells in this quadrant (cells within bounds)

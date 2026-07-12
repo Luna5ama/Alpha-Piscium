@@ -15,11 +15,11 @@
 
 #ifndef BLOOM_NON_STANDALONE
 #if BLOOM_SCALE_DIV == 0
-const vec2 workGroupsRender = vec2(1.0, 1.0);
+const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 #elif BLOOM_SCALE_DIV == 1
-const vec2 workGroupsRender = vec2(0.5, 0.5);
+const vec2 workGroupsRender = vec2(RENDER_SCALE_HALF, RENDER_SCALE_HALF);
 #elif BLOOM_SCALE_DIV == 2
-const vec2 workGroupsRender = vec2(0.25, 0.25);
+const vec2 workGroupsRender = vec2(RENDER_SCALE_QUARTER, RENDER_SCALE_QUARTER);
 #elif BLOOM_SCALE_DIV == 3
 const vec2 workGroupsRender = vec2(0.125, 0.125);
 #elif BLOOM_SCALE_DIV == 4
@@ -261,6 +261,9 @@ vec4 bloom_mainOutput(ivec2 texelPos) {
 
 #ifndef BLOOM_NON_STANDALONE
 void main() {
+    ivec2 workGroupOrigin = ivec2(gl_WorkGroupID.xy) << 4;
+    if (any(greaterThanEqual(workGroupOrigin, bloom_outputTile.zw))) return;
+
     bloom_init();
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, bloom_outputTile.zw))) {

@@ -10,7 +10,7 @@
 #include "/techniques/gi/PairwiseMISMetadata.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
+const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 
 layout(std430, binding = 5) buffer RayData {
     uvec4 ssbo_rayData[];
@@ -40,6 +40,7 @@ ReSTIRReservoir readTemporalReservoir(ivec2 texelPos) {
 void main() {
     sst_init(SETTING_GI_SST_THICKNESS);
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    if (!threadGroupTiling_isWorkGroupValid(workGroupIdx)) return;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
     uvec2 workGroupOrigin = swizzledWGPos << 4u;
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;

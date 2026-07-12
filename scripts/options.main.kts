@@ -3597,6 +3597,41 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     }
                 }
             }
+            screen(1) {
+                lang {
+                    name = "Upscaling & Resolution"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "升采样与分辨率"
+                }
+                toggle("SETTING_RENDER_SCALE", 10, 0..10) {
+                    lang {
+                        name = "Render Scale"
+                        comment =
+                            "Renders lighting and post-processing at a lower resolution, then upscales to the window. Lower values improve performance but reduce image detail."
+                        for (i in 0..10) {
+                            i value "${50 + i * 5}%"
+                        }
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "渲染分辨率比例"
+                        comment = "以较低分辨率渲染光照和后处理，再升采样到窗口分辨率。数值越低性能越高，但图像细节越少。"
+                        for (i in 0..10) {
+                            i value "${50 + i * 5}%"
+                        }
+                    }
+                }
+                toggle("SETTING_FSR1", false) {
+                    lang {
+                        name = "FSR1"
+                        comment = "Uses AMD FidelityFX FSR1 EASU when Render Scale is below 100%."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "FSR1"
+                        comment = "渲染分辨率低于 100% 时使用 AMD FidelityFX FSR1 EASU。"
+                    }
+                }
+            }
         }
         screen(1) {
             lang {

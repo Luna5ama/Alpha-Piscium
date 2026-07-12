@@ -6,7 +6,7 @@
 #include "/techniques/HiZCheck.glsl"
 
 layout(local_size_x = 8, local_size_y = 8) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
+const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 

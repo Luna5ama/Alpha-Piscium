@@ -267,6 +267,9 @@ void render(ivec2 texelPosDownScale) {
 }
 
 void main() {
+    ivec2 workGroupBase = ivec2(gl_WorkGroupID.xy) << 3;
+    if (any(greaterThanEqual(workGroupBase, renderSize))) return;
+
     if (gl_LocalInvocationIndex == 0) {
         vec2 groupCenter = vec2(gl_WorkGroupID.xy << 3u) + 4.0;
         vec2 hizCheckPos = groupCenter * UPSCALE_FACTOR / CHECK_MIP_FACTOR;

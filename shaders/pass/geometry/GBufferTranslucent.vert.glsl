@@ -25,6 +25,9 @@ out vec3 frag_offsetToCenter;
 
 void main() {
     gl_Position = global_taaJitterMat * ftransform();
+    #if SETTING_RENDER_SCALE < 10
+    renderScale_applyGBufferScale(gl_Position);
+    #endif
 
     vec3 viewNormal = gl_NormalMatrix * normalize(gl_Normal.xyz);
     vec3 viewTangent = gl_NormalMatrix * normalize(at_tangent.xyz);

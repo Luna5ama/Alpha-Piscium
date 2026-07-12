@@ -14,7 +14,7 @@
 #include "/util/ThreadGroupTiling.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
+const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
 layout(rgba16f) uniform writeonly image2D uimg_temp1;
@@ -23,6 +23,7 @@ shared vec4 sm_hitViewPos[1024];
 
 void main() {
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    if (!threadGroupTiling_isWorkGroupValid(workGroupIdx)) return;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
     uvec2 workGroupOrigin = swizzledWGPos << 4u;
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;

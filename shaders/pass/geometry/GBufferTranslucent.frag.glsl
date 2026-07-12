@@ -268,6 +268,13 @@ float calculateRayBoxIntersection(vec3 p, vec3 d, vec3 halfSize) {
 }
 
 void main() {
+    #if SETTING_RENDER_SCALE < 10
+    if (renderScale_isOutsideMainViewport(gl_FragCoord.xy)) {
+        discard;
+        return;
+    }
+    #endif
+
     texelPos = ivec2(gl_FragCoord.xy);
     materialID = bitfieldExtract(frag_materialID, 0, 16);
     isWater = materialID == MATERIAL_ID_WATER;

@@ -1,7 +1,7 @@
 #include "/Base.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
-const vec2 workGroupsRender = vec2(1.0, 1.0);
+const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 
 /*const*/
 #define CLEAR_IMAGE_SIZE ivec2(uval_mainImageSizeI)

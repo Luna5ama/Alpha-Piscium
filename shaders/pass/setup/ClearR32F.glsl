@@ -1,7 +1,7 @@
 #include "/techniques/EnvProbe.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
-const vec2 workGroupsRender = vec2(3.0, 3.0);
+const vec2 workGroupsRender = vec2(RENDER_SCALE_TRIPLE, RENDER_SCALE_TRIPLE);
 
 #define CLEAR_IMAGE1 uimg_r32f
 layout(r32f) uniform restrict writeonly image2D CLEAR_IMAGE1;

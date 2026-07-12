@@ -180,6 +180,13 @@ void processData1() {
 }
 
 void main() {
+    #if SETTING_RENDER_SCALE < 10
+    if (renderScale_isOutsideMainViewport(gl_FragCoord.xy)) {
+        discard;
+        return;
+    }
+    #endif
+
     #ifdef DISTANT_HORIZONS
     #ifndef GBUFFER_PASS_DH
     vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp;
