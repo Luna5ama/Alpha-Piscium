@@ -23,27 +23,22 @@
 
 ## 输入准备
 
-1. 几何阶段写入当前帧的深度、法线、粗糙度、材质与 light-map 数据。
-2. [`HiZGen`](../../../shaders/pass/composite/HiZGen.csh) 生成 Hi-Z；[
-   `GIDenoiserEdgeClassificationAndVolumetricsDepthLayers`](../../../shaders/pass/composite/GIDenoiserEdgeClassificationAndVolumetricsDepthLayers.comp.glsl)
-   运行 GI edge classification，[
-   `GIDenoiserEdgeDilation`](../../../shaders/pass/composite/GIDenoiserEdgeDilation.comp.glsl) 执行 dilation，[
-   `GIDenoiserReproject`](../../../shaders/pass/composite/GIDenoiserReproject.comp.glsl) 预先重投影 history。
-3. [`DirectLighting.glsl`](../../../shaders/pass/composite/DirectLighting.glsl) 完成直接光照；GI 使用同一 G-buffer 与
-   shadow 结果，避免重复材质解码。
+| 顺序 | 阶段 / Pass                                                                                                                                                                                                                                                                                                                                                                                             | 作用                                                        |
+|----|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
+| 1  | Geometry                                                                                                                                                                                                                                                                                                                                                                                              | 写入当前帧的深度、法线、粗糙度、材质与 light-map 数据                          |
+| 2  | [`HiZGen`](../../../shaders/pass/composite/HiZGen.csh)、[`GIDenoiserEdgeClassificationAndVolumetricsDepthLayers`](../../../shaders/pass/composite/GIDenoiserEdgeClassificationAndVolumetricsDepthLayers.comp.glsl)、[`GIDenoiserEdgeDilation`](../../../shaders/pass/composite/GIDenoiserEdgeDilation.comp.glsl)、[`GIDenoiserReproject`](../../../shaders/pass/composite/GIDenoiserReproject.comp.glsl) | 构建 Hi-Z，执行 GI edge classification/dilation，并预先重投影 history |
+| 3  | [`DirectLighting`](../../../shaders/pass/composite/DirectLighting.glsl)                                                                                                                                                                                                                                                                                                                               | 完成直接光照；GI 使用同一 G-buffer 与 shadow 结果，避免重复材质解码              |
 
 ## 环境探针
 
 probe 为离开当前屏幕的 GI 查询保存低频/历史场景信息。它与 GI 准备交错执行：
 
-1. [`EnvProbeUpdate1ReprojectScatter`](../../../shaders/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl)：重投影并
-   scatter 旧 probe。
-2. [`EnvProbeUpdate2ReprojectDilate`](../../../shaders/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl)：以
-   `PASS=1`、`PASS=2` 两次填补重投影空洞。
-3. [`EnvProbeUpdate3ReprojectGather`](../../../shaders/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl)：gather
-   有效重投影数据。
-4. [`EnvProbeUpdate4ProjectCurrent`](../../../shaders/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl)：把当前帧结果投影回
-   probe。
+| 顺序 | Pass                                                                                                           | 作用                            |
+|----|----------------------------------------------------------------------------------------------------------------|-------------------------------|
+| 1  | [`EnvProbeUpdate1ReprojectScatter`](../../../shaders/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl) | 重投影并 scatter 旧 probe          |
+| 2  | [`EnvProbeUpdate2ReprojectDilate`](../../../shaders/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl)   | 以 `PASS=1`、`PASS=2` 两次填补重投影空洞 |
+| 3  | [`EnvProbeUpdate3ReprojectGather`](../../../shaders/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl)   | Gather 有效重投影数据                |
+| 4  | [`EnvProbeUpdate4ProjectCurrent`](../../../shaders/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl)     | 把当前帧结果投影回 probe               |
 
 运行时资源是 `uimg_envProbe`（在 [`shaders/shaders.properties`](../../../shaders/shaders.properties) 中声明为 1024×768
 RGBA32UI）和 [`shaders/shadesmith.json`](../../../shaders/shadesmith.json) 中的固定 `persistent_envProbeTemp`（1024×768

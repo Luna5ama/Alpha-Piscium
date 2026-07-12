@@ -43,11 +43,11 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 
 启用 `SETTING_CLOUDS_CU` 时：
 
-| 顺序 | Pass                                                                                             | 作用                                                     |
-|----|--------------------------------------------------------------------------------------------------|--------------------------------------------------------|
-| 1  | [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) | 使用环境 LUT、大气 LUT、阴影/光照和项目 cloud noise ray march cumulus |
-| 2  | [`clouds/ss/Accum`](../../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl)          | 对低分辨率结果执行历史累积、置信度/方差处理和上采样；该阶段为 `ss/Accum`             |
-| 3  | 后续空气/局部合成                                                                                        | 读取累积后的云散射和透射率                                          |
+| 顺序 | Pass                                                                                             | 作用                                                                                                               |
+|----|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
+| 1  | [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) | 使用环境 LUT、大气 LUT、阴影/光照和项目 cloud noise ray march cumulus                                                           |
+| 2  | [`clouds/ss/Accum`](../../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl)          | 对低分辨率结果执行历史累积、置信度/方差处理和上采样；该阶段为 [`ss/Accum`](../../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl) |
+| 3  | 后续空气/局部合成                                                                                        | 读取累积后的云散射和透射率                                                                                                    |
 
 主要 screen tile 为 `transient_lowCloudRender`、`transient_lowCloudAccumulated` 和 `history_lowCloud`
 （RGBA32UI）。手写属性片段声明了自定义 cloud phase LUT、cirrus、cumulus base/detail 和 curl 纹理。高层 cirrus 由共享 sky/cloud

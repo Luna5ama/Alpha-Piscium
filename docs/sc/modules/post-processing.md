@@ -36,7 +36,7 @@ distance、focus time 和 focus-plane debug。
 | 1  | [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) | 生成 temporal input、luma difference 和辅助数据                                  |
 | 2  | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) | 使用 `history_taa`、motion/reprojection data 和当前帧输入写入 `transient_taaOutput` |
 | 3  | [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl)             | 写入 `transient_fxaaOutput`                                                |
-| 4  | `RCAS`                                                               | 执行最终空间锐化                                                                 |
+| 4  | [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl)             | 执行最终空间锐化                                                                 |
 
 四个 pass 都存在于 program list 中；setting 在 shader 内选择行为，而不是启用/禁用不同的 program number。
 

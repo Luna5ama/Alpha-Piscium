@@ -23,28 +23,23 @@ live under [`shaders/techniques/gi/`](../../../shaders/techniques/gi/) and entry
 
 ## Input preparation
 
-1. Geometry produces depth, normals, roughness, material, and light-map inputs.
-2. [`HiZGen`](../../../shaders/pass/composite/HiZGen.csh) builds Hi-Z; [
-   `GIDenoiserEdgeClassificationAndVolumetricsDepthLayers`](../../../shaders/pass/composite/GIDenoiserEdgeClassificationAndVolumetricsDepthLayers.comp.glsl)
-   runs GI edge classification, [
-   `GIDenoiserEdgeDilation`](../../../shaders/pass/composite/GIDenoiserEdgeDilation.comp.glsl) runs dilation, and [
-   `GIDenoiserReproject`](../../../shaders/pass/composite/GIDenoiserReproject.comp.glsl) reprojects history early.
-3. [`DirectLighting.glsl`](../../../shaders/pass/composite/DirectLighting.glsl) consumes the same G-buffer/shadow state
-   before GI, so material decoding is shared.
+| Order | Stage / pass                                                                                                                                                                                                                                                                                                                                                                                             | Purpose                                                                           |
+|-------|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------|
+| 1     | Geometry                                                                                                                                                                                                                                                                                                                                                                                                 | Produces depth, normals, roughness, material, and light-map inputs                |
+| 2     | [`HiZGen`](../../../shaders/pass/composite/HiZGen.csh), [`GIDenoiserEdgeClassificationAndVolumetricsDepthLayers`](../../../shaders/pass/composite/GIDenoiserEdgeClassificationAndVolumetricsDepthLayers.comp.glsl), [`GIDenoiserEdgeDilation`](../../../shaders/pass/composite/GIDenoiserEdgeDilation.comp.glsl), [`GIDenoiserReproject`](../../../shaders/pass/composite/GIDenoiserReproject.comp.glsl) | Builds Hi-Z, classifies/dilates GI edges, and reprojects history early            |
+| 3     | [`DirectLighting`](../../../shaders/pass/composite/DirectLighting.glsl)                                                                                                                                                                                                                                                                                                                                  | Consumes the same G-buffer/shadow state before GI, so material decoding is shared |
 
 ## Environment probe
 
 The probe preserves low-frequency/history scene information for GI queries that leave the current screen. Its update is
 interleaved with GI preparation:
 
-1. [`EnvProbeUpdate1ReprojectScatter`](../../../shaders/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl):
-   reprojects and scatters the old probe.
-2. [`EnvProbeUpdate2ReprojectDilate`](../../../shaders/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl): fills
-   reprojection holes twice with `PASS=1` and `PASS=2`.
-3. [`EnvProbeUpdate3ReprojectGather`](../../../shaders/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl): gathers
-   valid reprojected data.
-4. [`EnvProbeUpdate4ProjectCurrent`](../../../shaders/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl): projects
-   current-frame results back into the probe.
+| Order | Pass                                                                                                           | Purpose                                                   |
+|-------|----------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------|
+| 1     | [`EnvProbeUpdate1ReprojectScatter`](../../../shaders/pass/composite/EnvProbeUpdate1ReprojectScatter.comp.glsl) | Reprojects and scatters the old probe                     |
+| 2     | [`EnvProbeUpdate2ReprojectDilate`](../../../shaders/pass/composite/EnvProbeUpdate2ReprojectDilate.comp.glsl)   | Fills reprojection holes twice with `PASS=1` and `PASS=2` |
+| 3     | [`EnvProbeUpdate3ReprojectGather`](../../../shaders/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl)   | Gathers valid reprojected data                            |
+| 4     | [`EnvProbeUpdate4ProjectCurrent`](../../../shaders/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl)     | Projects current-frame results back into the probe        |
 
 The runtime resources are `uimg_envProbe`, declared as 1024×768 RGBA32UI in [
 `shaders/shaders.properties`](../../../shaders/shaders.properties), and the fixed 1024×768 RGBA16F

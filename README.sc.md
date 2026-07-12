@@ -54,11 +54,11 @@ Alpha Piscium 将 pass 入口、可复用渲染模块、生成绑定和开发脚
 
 项目结构大纲：
 
-- `shaders/pass/`：包含 `main` 的着色器入口。
-- `shaders/techniques/`：可复用渲染模块。
-- `shaders/util/`：共享数学、采样、材质和数据工具。
-- `shaders/base/`：公共接口及生成的设置、纹理绑定。
-- `scripts/`：Kotlin、PowerShell 生成器、打包和资源工具。
-- `docs/`：项目特定工作流与模块说明。
+- [`shaders/pass/`](shaders/pass/)：包含 `main` 的着色器入口。
+- [`shaders/techniques/`](shaders/techniques/)：可复用渲染模块。
+- [`shaders/util/`](shaders/util/)：共享数学、采样、材质和数据工具。
+- [`shaders/base/`](shaders/base/)：公共接口及生成的设置、纹理绑定。
+- [`scripts/`](scripts/)：Kotlin、PowerShell 生成器、打包和资源工具。
+- [`docs/`](docs/)：项目特定工作流与模块说明。
 
-普通 `.glsl` 改动不需要生成步骤。修改 program list、options、手写的 `scripts/shaders.properties` 或 `shaders/shadesmith.json` 后运行对应生成器，准确命令见[快速入门](docs/sc/development/quick-start.md)。
+普通 `.glsl` 改动不需要生成步骤。修改 program list、options、手写的 [`scripts/shaders.properties`](scripts/shaders.properties) 或 [`shaders/shadesmith.json`](shaders/shadesmith.json) 后运行对应生成器，准确命令见[快速入门](docs/sc/development/quick-start.md)。

@@ -51,11 +51,11 @@ Alpha Piscium keeps pass entry points, reusable rendering techniques, generated 
 
 Project outline:
 
-- `shaders/pass/`: shader entry points with `main`.
-- `shaders/techniques/`: reusable rendering modules.
-- `shaders/util/`: shared math, sampling, material, and data helpers.
-- `shaders/base/`: common interfaces and generated option/texture bindings.
-- `scripts/`: Kotlin/PowerShell generators, packaging, and asset tools.
-- `docs/`: project-specific workflows and module maps.
+- [`shaders/pass/`](shaders/pass/): shader entry points with `main`.
+- [`shaders/techniques/`](shaders/techniques/): reusable rendering modules.
+- [`shaders/util/`](shaders/util/): shared math, sampling, material, and data helpers.
+- [`shaders/base/`](shaders/base/): common interfaces and generated option/texture bindings.
+- [`scripts/`](scripts/): Kotlin/PowerShell generators, packaging, and asset tools.
+- [`docs/`](docs/): project-specific workflows and module maps.
 
-Ordinary `.glsl` edits need no generation step. Run the owning generator after changing the program list, options, the hand-maintained `scripts/shaders.properties`, or `shaders/shadesmith.json`; the exact commands are listed in the [quick start](docs/en/development/quick-start.md).
+Ordinary `.glsl` edits need no generation step. Run the owning generator after changing the program list, options, the hand-maintained [`scripts/shaders.properties`](scripts/shaders.properties), or [`shaders/shadesmith.json`](shaders/shadesmith.json); the exact commands are listed in the [quick start](docs/en/development/quick-start.md).

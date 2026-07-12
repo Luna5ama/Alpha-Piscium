@@ -19,15 +19,15 @@ Alpha Piscium 的阴影由 shadow raster、RTWSM warp、屏幕空间 shadow samp
 
 ## 帧内流程
 
-| 顺序 | Pass / 阶段 | 说明 |
-| --- | --- | --- |
-| 1 | [`ClearRTWSM`](../../../shaders/pass/begin/ClearRTWSM.comp.glsl) | 清理本帧 RTWSM accumulation/queue 状态 |
-| 2 | Shadow wrappers；[`ShadowPass.vert.glsl`](../../../shaders/pass/geometry/ShadowPass.vert.glsl) | 使用当前 RTWSM warp 渲染；在 shadow rasterization 中执行 forward analysis |
-| 3 | [`EvaluateShadowWaterNormal`](../../../shaders/pass/shadowcomp/EvaluateShadowWaterNormal.glsl) | 计算 shadow-water normals |
-| 4 | [`ShadowSampleSetup`](../../../shaders/pass/composite/ShadowSampleSetup.comp.glsl) | 建立采样任务 |
-| 5 | [`ShadowSampleSSS`](../../../shaders/pass/composite/ShadowSampleSSS.comp.glsl) | 从 SSBO 0 offset 32 indirect dispatch，处理需要 SSS 的样本 |
-| 6 | [`ShadowSample`](../../../shaders/pass/composite/ShadowSample.comp.glsl)；[`DirectLighting`](../../../shaders/pass/composite/DirectLighting.glsl) | 完成主 shadow 过滤并顺带执行 backward analysis；DirectLighting 消费结果 |
-| 7 | [`IMapCollapse`](../../../shaders/techniques/rtwsm/IMapCollapse.comp.glsl)、[`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl)、[`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl)、[`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl) | 半透明/体积完成后，collapse、blur 当前屏幕重要性，计算 warp 并写回 2D warp |
+| 顺序 | Pass / 阶段                                                                                                                                                                                                                                                                               | 说明                                                             |
+|----|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------------------------------|
+| 1  | [`ClearRTWSM`](../../../shaders/pass/begin/ClearRTWSM.comp.glsl)                                                                                                                                                                                                                        | 清理本帧 RTWSM accumulation/queue 状态                               |
+| 2  | Shadow wrappers；[`ShadowPass.vert.glsl`](../../../shaders/pass/geometry/ShadowPass.vert.glsl)                                                                                                                                                                                           | 使用当前 RTWSM warp 渲染；在 shadow rasterization 中执行 forward analysis |
+| 3  | [`EvaluateShadowWaterNormal`](../../../shaders/pass/shadowcomp/EvaluateShadowWaterNormal.glsl)                                                                                                                                                                                          | 计算 shadow-water normals                                        |
+| 4  | [`ShadowSampleSetup`](../../../shaders/pass/composite/ShadowSampleSetup.comp.glsl)                                                                                                                                                                                                      | 建立采样任务                                                         |
+| 5  | [`ShadowSampleSSS`](../../../shaders/pass/composite/ShadowSampleSSS.comp.glsl)                                                                                                                                                                                                          | 从 SSBO 0 offset 32 indirect dispatch，处理需要 SSS 的样本              |
+| 6  | [`ShadowSample`](../../../shaders/pass/composite/ShadowSample.comp.glsl)；[`DirectLighting`](../../../shaders/pass/composite/DirectLighting.glsl)                                                                                                                                        | 完成主 shadow 过滤并顺带执行 backward analysis；DirectLighting 消费结果       |
+| 7  | [`IMapCollapse`](../../../shaders/techniques/rtwsm/IMapCollapse.comp.glsl)、[`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl)、[`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl)、[`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl) | 半透明/体积完成后，collapse、blur 当前屏幕重要性，计算 warp 并写回 2D warp            |
 
 ## 资源
 
@@ -38,7 +38,9 @@ Alpha Piscium 的阴影由 shadow raster、RTWSM warp、屏幕空间 shadow samp
 - `persistent_rtwsm_warp`、`persistent_rtwsm_texelSize`：256×2 R32F。
 - `persistent_rtwsm_warpTexelSize`：256×256 RGBA16。
 
-这些固定 tile 会跨 raster/composite 边界保存 importance、warp 和 texel-size 数据。[`scripts/shaders.properties`](../../../scripts/shaders.properties) 也管理 shadow blending；不要把 blend 行为移入 shader heuristic。
+这些固定 tile 会跨 raster/composite 边界保存 importance、warp 和 texel-size 数据。[
+`scripts/shaders.properties`](../../../scripts/shaders.properties) 也管理 shadow blending；不要把 blend 行为移入 shader
+heuristic。
 
 ## 设置
 
@@ -47,7 +49,8 @@ Alpha Piscium 的阴影由 shadow raster、RTWSM warp、屏幕空间 shadow samp
 - PCSS：blocker-search count、sample count、blocker/visibility penumbra factors。
 - SSS：样本数和深度/扩散范围在材质 screen 中。
 
-Profiles 会缩放 shadow resolution、distance、blocker search 和 sample count。设置声明在 [`scripts/options.main.kts`](../../../scripts/options.main.kts) 中；项目属性会将 RTWSM 最小值派生为 custom uniforms。
+Profiles 会缩放 shadow resolution、distance、blocker search 和 sample count。设置声明在 [
+`scripts/options.main.kts`](../../../scripts/options.main.kts) 中；项目属性会将 RTWSM 最小值派生为 custom uniforms。
 
 ## 远景（Distant Horizons）
 
