@@ -20,15 +20,15 @@ shadow rasterization.
 
 ## Per-frame flow
 
-| Order | Pass / stage | Description |
-| --- | --- | --- |
-| 1 | [`ClearRTWSM`](../../../shaders/pass/begin/ClearRTWSM.comp.glsl) | Clears per-frame RTWSM accumulation/queue state |
-| 2 | Shadow wrappers; [`ShadowPass.vert.glsl`](../../../shaders/pass/geometry/ShadowPass.vert.glsl) | Rasterizes through the current RTWSM warp; performs forward analysis during shadow rasterization |
-| 3 | [`EvaluateShadowWaterNormal`](../../../shaders/pass/shadowcomp/EvaluateShadowWaterNormal.glsl) | Evaluates shadow-water normals |
-| 4 | [`ShadowSampleSetup`](../../../shaders/pass/composite/ShadowSampleSetup.comp.glsl) | Creates the sampling work |
-| 5 | [`ShadowSampleSSS`](../../../shaders/pass/composite/ShadowSampleSSS.comp.glsl) | Runs through indirect dispatch from SSBO 0 offset 32 |
-| 6 | [`ShadowSample`](../../../shaders/pass/composite/ShadowSample.comp.glsl); [`DirectLighting`](../../../shaders/pass/composite/DirectLighting.glsl) | Performs main shadow filtering and accompanying backward analysis; DirectLighting consumes the result |
-| 7 | [`IMapCollapse`](../../../shaders/techniques/rtwsm/IMapCollapse.comp.glsl), [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl), [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl), [`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl) | After translucency/volumetrics, collapses and blurs current screen importance, computes a warp, and writes the 2D warp back |
+| Order | Pass / stage                                                                                                                                                                                                                                                                               | Description                                                                                                                 |
+|-------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-----------------------------------------------------------------------------------------------------------------------------|
+| 1     | [`ClearRTWSM`](../../../shaders/pass/begin/ClearRTWSM.comp.glsl)                                                                                                                                                                                                                           | Clears per-frame RTWSM accumulation/queue state                                                                             |
+| 2     | Shadow wrappers; [`ShadowPass.vert.glsl`](../../../shaders/pass/geometry/ShadowPass.vert.glsl)                                                                                                                                                                                             | Rasterizes through the current RTWSM warp; performs forward analysis during shadow rasterization                            |
+| 3     | [`EvaluateShadowWaterNormal`](../../../shaders/pass/shadowcomp/EvaluateShadowWaterNormal.glsl)                                                                                                                                                                                             | Evaluates shadow-water normals                                                                                              |
+| 4     | [`ShadowSampleSetup`](../../../shaders/pass/composite/ShadowSampleSetup.comp.glsl)                                                                                                                                                                                                         | Creates the sampling work                                                                                                   |
+| 5     | [`ShadowSampleSSS`](../../../shaders/pass/composite/ShadowSampleSSS.comp.glsl)                                                                                                                                                                                                             | Runs through indirect dispatch from SSBO 0 offset 32                                                                        |
+| 6     | [`ShadowSample`](../../../shaders/pass/composite/ShadowSample.comp.glsl); [`DirectLighting`](../../../shaders/pass/composite/DirectLighting.glsl)                                                                                                                                          | Performs main shadow filtering and accompanying backward analysis; DirectLighting consumes the result                       |
+| 7     | [`IMapCollapse`](../../../shaders/techniques/rtwsm/IMapCollapse.comp.glsl), [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl), [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl), [`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl) | After translucency/volumetrics, collapses and blurs current screen importance, computes a warp, and writes the 2D warp back |
 
 ## Resources
 
@@ -39,7 +39,9 @@ Fixed RTWSM tiles in [`shaders/shadesmith.json`](../../../shaders/shadesmith.jso
 - `persistent_rtwsm_warp`, `persistent_rtwsm_texelSize`: 256×2 R32F.
 - `persistent_rtwsm_warpTexelSize`: 256×256 RGBA16.
 
-The fixed tiles persist importance, warp, and texel-size data across the raster/composite boundary. [`scripts/shaders.properties`](../../../scripts/shaders.properties) also owns shadow blending; do not move blend behavior into shader heuristics.
+The fixed tiles persist importance, warp, and texel-size data across the raster/composite boundary. [
+`scripts/shaders.properties`](../../../scripts/shaders.properties) also owns shadow blending; do not move blend behavior
+into shader heuristics.
 
 ## Settings
 
@@ -48,7 +50,9 @@ The fixed tiles persist importance, warp, and texel-size data across the raster/
 - PCSS: blocker-search count, sample count, blocker/visibility penumbra factors.
 - SSS: sample count and depth/diffuse ranges in the material screen.
 
-Profiles scale shadow resolution, distance, blocker search, and sample count. Settings are declared in [`scripts/options.main.kts`](../../../scripts/options.main.kts); project properties derive RTWSM minimum values as custom uniforms.
+Profiles scale shadow resolution, distance, blocker search, and sample count. Settings are declared in [
+`scripts/options.main.kts`](../../../scripts/options.main.kts); project properties derive RTWSM minimum values as custom
+uniforms.
 
 ## Distant Horizons
 

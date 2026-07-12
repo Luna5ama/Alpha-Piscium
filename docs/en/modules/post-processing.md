@@ -38,7 +38,7 @@ manual-focus distance, focus time, and focus-plane debug.
 | 1     | [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) | Produces temporal input, luma difference, and supporting data                                        |
 | 2     | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) | Uses `history_taa`, motion/reprojection data, and current-frame input to write `transient_taaOutput` |
 | 3     | [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl)             | Writes `transient_fxaaOutput`                                                                        |
-| 4     | `RCAS`                                                               | Performs final spatial sharpening                                                                    |
+| 4     | [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl)             | Performs final spatial sharpening                                                                    |
 
 All four passes are present in the program list; settings select behavior inside the shaders rather than
 enabling/disabling separate program numbers.
