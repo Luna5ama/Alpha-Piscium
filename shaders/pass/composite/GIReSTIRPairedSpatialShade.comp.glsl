@@ -57,12 +57,13 @@ void main() {
     uint rayIndex = 0xFFFFFFFFu;
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        SpatialSampleData centerSampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
-        history_restir_prevSample_store(texelPos, centerSampleData.sampleValue);
-        history_restir_prevHitNormal_store(texelPos, vec4(centerSampleData.hitNormal * 0.5 + 0.5, 0.0));
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
 
         if (viewZ > -65536.0) {
+            SpatialSampleData centerSampleData = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
+            history_restir_prevSample_store(texelPos, centerSampleData.sampleValue);
+            history_restir_prevHitNormal_store(texelPos, vec4(centerSampleData.hitNormal * 0.5 + 0.5, 0.0));
+
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
             vec3 V = normalize(-viewPos);
@@ -136,7 +137,8 @@ void main() {
             ssgiDiffOut = vec4(radianceWeight * outBRDF.diffuse, winHitDist);
             ssgiSpecOut = vec4(radianceWeight * outBRDF.specular, winHitDist);
             vec3 specAlbedo = resampleMaterial_specularAlbedo(centerMaterial, NDotV);
-            ssgiSpecOut.rgb *= safeRcp(specAlbedo);
+            // Floor the demodulation albedo so dividing it back out can't blow up the ratio estimator
+            ssgiSpecOut.rgb *= safeRcp(max(specAlbedo, vec3(0.01)));
             ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);
             ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
             transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);

@@ -4,7 +4,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.absolute
 import kotlin.io.path.name
 
-var versionArg = args.getOrNull(0)
+val versionArg = args.firstOrNull { it != "--no-commit-hash" }
 val noCommitHash = "--no-commit-hash" in args
 val version = if (versionArg == null) {
     ""
@@ -18,6 +18,7 @@ val projectRootPath = currDirPath.parent
 val branchName =
     Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD")).inputStream.bufferedReader()
         .readText().trim().takeIf { it != "main" && it != "dev" }
+        ?.replace('/', '-')
 val commitTag =
     Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD")).inputStream.bufferedReader().readText()
         .trim()

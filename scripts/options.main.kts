@@ -2348,6 +2348,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
             lang(Locale.SIMPLIFIED_CHINESE) {
                 name = "后处理"
             }
+            toggle("SETTING_TONE_MAPPING_LOOK", 3, 0..3) {
+                lang {
+                    name = "AgX Preset"
+                    comment =
+                        "Pre-configured color grading styles. Choose Custom to manually adjust colors below, including the Color Calibration and HSL Color Mixer screens."
+                    0 value "Default"
+                    1 value "Golden"
+                    2 value "Punchy"
+                    3 value "Custom"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "风格"
+                    comment = "预配置的调色风格。选择自定义以手动调整下面的颜色，包括颜色校准和 HSL 颜色混合器屏幕。"
+                    0 value "默认"
+                    1 value "金色"
+                    2 value "鲜明"
+                    3 value "自定义"
+                }
+            }
+            empty()
             screen(1) {
                 lang {
                     name = "Depth of Field"
@@ -2959,26 +2979,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                toggle("SETTING_TONE_MAPPING_LOOK", 3, 0..3) {
-                    lang {
-                        name = "AgX Preset"
-                        comment =
-                            "Pre-configured color grading styles. Choose Custom to manually adjust colors below."
-                        0 value "Default"
-                        1 value "Golden"
-                        2 value "Punchy"
-                        3 value "Custom"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "风格"
-                        comment = "预配置的调色风格。选择自定义以手动调整下面的颜色。"
-                        0 value "默认"
-                        1 value "金色"
-                        2 value "鲜明"
-                        3 value "自定义"
-                    }
-                }
-                empty()
                 slider("SETTING_TONE_MAPPING_OFFSET_R", 0.0, -1.0..1.0 step 0.01) {
                     lang {
                         name = "Red Lift"
@@ -3090,6 +3090,332 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "饱和度"
                         comment = "整体颜色强度。0 = 黑白，1 = 正常，2 = 超饱和。"
+                    }
+                }
+                empty()
+            }
+            screen(1) {
+                lang {
+                    name = "Color Calibration"
+                }
+                empty()
+                slider("RED_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Red Primary Hue"
+                        comment = "Rotates the red primary's chromaticity around white, like ACR's Camera Calibration panel."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "红色原色色相"
+                        comment = "围绕白点旋转红色原色的色度，效果类似于 ACR 的相机校准面板。"
+                    }
+                }
+                slider("RED_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Red Primary Sat"
+                        comment = "Scales the red primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "红色原色饱和度"
+                        comment = "缩放红色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。"
+                    }
+                }
+                empty()
+                slider("GREEN_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Green Primary Hue"
+                        comment = "Rotates the green primary's chromaticity around white, like ACR's Camera Calibration panel."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "绿色原色色相"
+                        comment = "围绕白点旋转绿色原色的色度，效果类似于 ACR 的相机校准面板。"
+                    }
+                }
+                slider("GREEN_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Green Primary Sat"
+                        comment = "Scales the green primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "绿色原色饱和度"
+                        comment = "缩放绿色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。"
+                    }
+                }
+                empty()
+                slider("BLUE_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Blue Primary Hue"
+                        comment = "Rotates the blue primary's chromaticity around white, like ACR's Camera Calibration panel."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "蓝色原色色相"
+                        comment = "围绕白点旋转蓝色原色的色度，效果类似于 ACR 的相机校准面板。"
+                    }
+                }
+                slider("BLUE_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Blue Primary Sat"
+                        comment = "Scales the blue primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "蓝色原色饱和度"
+                        comment = "缩放蓝色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。"
+                    }
+                }
+            }
+            screen(1) {
+                lang {
+                    name = "HSL Color Mixer"
+                    comment = "Adjusts saturation and lightness of 8 hue bands independently, like Lightroom's HSL/Color panel. Only pixels whose hue falls in (or near) a band are affected."
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "HSL 颜色混合器"
+                    comment = "独立调整8个色相区间的饱和度和明度，类似 Lightroom 的 HSL/颜色面板。只影响色相落在（或接近）该区间的像素。"
+                }
+                slider("HSL_RED_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Red Hue"
+                        comment = "Rotates the hue of red-hued pixels only. 0 = unchanged, negative = rotates toward pink/magenta, positive = rotates toward orange."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "红色色相"
+                        comment = "仅旋转红色色相像素的色相。0 = 不变，负值 = 转向粉色/洋红色，正值 = 转向橙色。"
+                    }
+                }
+                slider("HSL_RED_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Red Saturation"
+                        comment = "Scales the saturation of red-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "红色饱和度"
+                        comment = "仅缩放红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                    }
+                }
+                slider("HSL_RED_LUM", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Red Luminance"
+                        comment = "Shifts the lightness of red-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "红色明度"
+                        comment = "仅调整红色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                    }
+                }
+                empty()
+                slider("HSL_ORANGE_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Orange Hue"
+                        comment = "Rotates the hue of orange-hued pixels only. 0 = unchanged, negative = rotates toward red, positive = rotates toward yellow."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "橙色色相"
+                        comment = "仅旋转橙色色相像素的色相。0 = 不变，负值 = 转向红色，正值 = 转向黄色。"
+                    }
+                }
+                slider("HSL_ORANGE_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Orange Saturation"
+                        comment = "Scales the saturation of orange-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "橙色饱和度"
+                        comment = "仅缩放橙色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                    }
+                }
+                slider("HSL_ORANGE_LUM", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Orange Luminance"
+                        comment = "Shifts the lightness of orange-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "橙色明度"
+                        comment = "仅调整橙色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                    }
+                }
+                empty()
+                slider("HSL_YELLOW_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Yellow Hue"
+                        comment = "Rotates the hue of yellow-hued pixels only. 0 = unchanged, negative = rotates toward orange, positive = rotates toward green."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "黄色色相"
+                        comment = "仅旋转黄色色相像素的色相。0 = 不变，负值 = 转向橙色，正值 = 转向绿色。"
+                    }
+                }
+                slider("HSL_YELLOW_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Yellow Saturation"
+                        comment = "Scales the saturation of yellow-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "黄色饱和度"
+                        comment = "仅缩放黄色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                    }
+                }
+                slider("HSL_YELLOW_LUM", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Yellow Luminance"
+                        comment = "Shifts the lightness of yellow-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "黄色明度"
+                        comment = "仅调整黄色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                    }
+                }
+                empty()
+                slider("HSL_GREEN_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Green Hue"
+                        comment = "Rotates the hue of green-hued pixels only. 0 = unchanged, negative = rotates toward yellow, positive = rotates toward aqua."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "绿色色相"
+                        comment = "仅旋转绿色色相像素的色相。0 = 不变，负值 = 转向黄色，正值 = 转向青色。"
+                    }
+                }
+                slider("HSL_GREEN_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Green Saturation"
+                        comment = "Scales the saturation of green-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "绿色饱和度"
+                        comment = "仅缩放绿色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                    }
+                }
+                slider("HSL_GREEN_LUM", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Green Luminance"
+                        comment = "Shifts the lightness of green-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "绿色明度"
+                        comment = "仅调整绿色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                    }
+                }
+                empty()
+                slider("HSL_AQUA_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Aqua Hue"
+                        comment = "Rotates the hue of aqua-hued pixels only. 0 = unchanged, negative = rotates toward green, positive = rotates toward blue."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "青色色相"
+                        comment = "仅旋转青色色相像素的色相。0 = 不变，负值 = 转向绿色，正值 = 转向蓝色。"
+                    }
+                }
+                slider("HSL_AQUA_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Aqua Saturation"
+                        comment = "Scales the saturation of aqua-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "青色饱和度"
+                        comment = "仅缩放青色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                    }
+                }
+                slider("HSL_AQUA_LUM", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Aqua Luminance"
+                        comment = "Shifts the lightness of aqua-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "青色明度"
+                        comment = "仅调整青色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                    }
+                }
+                empty()
+                slider("HSL_BLUE_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Blue Hue"
+                        comment = "Rotates the hue of blue-hued pixels only. 0 = unchanged, negative = rotates toward aqua, positive = rotates toward magenta."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "蓝色色相"
+                        comment = "仅旋转蓝色色相像素的色相。0 = 不变，负值 = 转向青色，正值 = 转向洋红色。"
+                    }
+                }
+                slider("HSL_BLUE_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Blue Saturation"
+                        comment = "Scales the saturation of blue-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "蓝色饱和度"
+                        comment = "仅缩放蓝色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                    }
+                }
+                slider("HSL_BLUE_LUM", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Blue Luminance"
+                        comment = "Shifts the lightness of blue-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "蓝色明度"
+                        comment = "仅调整蓝色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                    }
+                }
+                empty()
+                slider("HSL_MAGENTA_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Magenta Hue"
+                        comment = "Rotates the hue of magenta-hued pixels only. 0 = unchanged, negative = rotates toward blue, positive = rotates toward pink."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "洋红色色相"
+                        comment = "仅旋转洋红色色相像素的色相。0 = 不变，负值 = 转向蓝色，正值 = 转向粉色。"
+                    }
+                }
+                slider("HSL_MAGENTA_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Magenta Saturation"
+                        comment = "Scales the saturation of magenta-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "洋红色饱和度"
+                        comment = "仅缩放洋红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                    }
+                }
+                slider("HSL_MAGENTA_LUM", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Magenta Luminance"
+                        comment = "Shifts the lightness of magenta-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "洋红色明度"
+                        comment = "仅调整洋红色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                    }
+                }
+                empty()
+                slider("HSL_PINK_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Pink Hue"
+                        comment = "Rotates the hue of pink-hued pixels only. 0 = unchanged, negative = rotates toward magenta, positive = rotates toward red."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "粉色色相"
+                        comment = "仅旋转粉色色相像素的色相。0 = 不变，负值 = 转向洋红色，正值 = 转向红色。"
+                    }
+                }
+                slider("HSL_PINK_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Pink Saturation"
+                        comment = "Scales the saturation of pink-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "粉色饱和度"
+                        comment = "仅缩放粉色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                    }
+                }
+                slider("HSL_PINK_LUM", 0.0, -100.0..100.0 step 1.0) {
+                    lang {
+                        name = "Pink Luminance"
+                        comment = "Shifts the lightness of pink-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "粉色明度"
+                        comment = "仅调整粉色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
                     }
                 }
             }

@@ -6,6 +6,7 @@ import java.util.zip.ZipOutputStream
 import kotlin.io.path.*
 
 fun makeZip(zipFilePath: Path) {
+    zipFilePath.parent.createDirectories()
     val currDirPath = Path("").absolute()
     val projectRootPath = currDirPath.parent
     val shadesmithJarPath = currDirPath.resolve("shadesmith.jar")
@@ -50,8 +51,8 @@ fun makeZip(zipFilePath: Path) {
     val shadesmithRun = ProcessBuilder()
         .command(
             "$java/bin/java",
-            "-jar",
             "-XX:AOTCache=${shadesmithAotCachePath}",
+            "-jar",
             shadesmithJarPath.toString(),
             shadersPath.toString(),
             shadesmithShadersPath.toString()
@@ -62,12 +63,10 @@ fun makeZip(zipFilePath: Path) {
     val included = setOf(
         "changelogs",
         "licenses",
-        "shaders/lang",
-        "shaders/textures",
         "shaders",
-        "LICENSE",
-        "README.md"
+        "LICENSE"
     )
+    val rootReadmePattern = Regex("^README(?:\\.[^.]+)?\\.md$", RegexOption.IGNORE_CASE)
 
     ZipOutputStream(zipFilePath.outputStream(), Charsets.UTF_8).use { zipOut ->
         zipOut.setLevel(Deflater.DEFAULT_COMPRESSION)
@@ -99,12 +98,11 @@ fun makeZip(zipFilePath: Path) {
         shadesmithRun.waitFor()
         addStuff(shadesmithOutputPath, shadesmithShadersPath.walk())
         addStuff(projectRootPath, projectRootPath.walk(PathWalkOption.FOLLOW_LINKS).filter { file ->
-            val baseDirName = file
-                .relativeTo(projectRootPath)
-                .invariantSeparatorsPathString
-                .substringBeforeLast('/')
-            if (baseDirName.contains('.')) return@filter false
-            baseDirName in included
+            val relativePath = file.relativeTo(projectRootPath).invariantSeparatorsPathString
+            val isRootReadme = file.parent == projectRootPath &&
+                rootReadmePattern.matches(file.fileName.toString())
+            if (!isRootReadme && (relativePath.startsWith(".") || relativePath.contains("/."))) return@filter false
+            isRootReadme || included.any { relativePath == it || relativePath.startsWith("$it/") }
         })
     }
 }

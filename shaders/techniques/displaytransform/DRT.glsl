@@ -16,6 +16,7 @@
 */
 
 #include "/util/Colors2.glsl"
+#include "HSLMixer.glsl"
 
 // All values used to derive this implementation are sourced from Troy’s initial AgX implementation/OCIO config file available here:
 //   https://github.com/sobotka/AgX
@@ -100,11 +101,84 @@ vec3 agxLook(vec3 val) {
     #endif
 
     // ASC CDL
-    val = pow(val * slope + offset, power);
+    val = pow(max(val * slope + offset, 0.0), power);
 
     float luma = colors2_colorspaces_luma(COLORS2_DRT_WORKING_COLORSPACE, val);
 
     return luma + sat * (val - luma);
+}
+
+#ifndef COLOR_CALIBRATION_INCLUDED
+#define COLOR_CALIBRATION_INCLUDED
+
+// Adobe Camera Raw's Calibration panel rotates each primary's CIE xy
+// chromaticity around the working white point (Hue) and scales its distance
+// from that white point (Saturation), then rebuilds the RGB->XYZ matrix from
+// the shifted primaries. This mirrors the DNG SDK's dng_color_spec model
+// (Adobe DNG SDK, dng_color_spec.cpp) rather than a naive RGB hue rotation,
+// which cannot reproduce the panel's actual behavior.
+//
+// Rebuilding the matrix (instead of just projecting each rotated primary
+// back to sRGB and blending by the pixel's own r/g/b) is required to keep
+// the matrix mapping (1,1,1) to the white point exactly: without that
+// constraint, neutrals (grays, whites) drift with the same hue rotation as
+// saturated pixels, tinting the whole image instead of isolating the reds,
+// greens and blues like ACR does.
+vec2 calib_XYZ2xy(vec3 XYZ) {
+    float sum = max(XYZ.x + XYZ.y + XYZ.z, 1.0e-6);
+    return XYZ.xy / sum;
+}
+
+vec3 calib_xy2XYZ(vec2 xy) {
+    float y = max(xy.y, 1.0e-6);
+    return vec3(xy.x / y, 1.0, (1.0 - xy.x - xy.y) / y);
+}
+
+// Done in sRGB rather than the internal (much wider, far more saturated)
+// working colorspace: rotating a primary that already sits deep in a huge
+// gamut turns a modest-looking slider value into a near-total hue swap,
+// since its distance from white is so much larger than a real camera's.
+vec2 calib_rotatePrimaryXy(vec2 primaryXy, vec2 whiteXy, float hueDeg, float satMult) {
+    vec2 fromWhite = primaryXy - whiteXy;
+
+    float angle = radians(hueDeg);
+    float cosA = cos(angle);
+    float sinA = sin(angle);
+    fromWhite = vec2(fromWhite.x * cosA - fromWhite.y * sinA, fromWhite.x * sinA + fromWhite.y * cosA) * satMult;
+
+    return whiteXy + fromWhite;
+}
+
+vec3 applyColorCalibration(vec3 color) {
+    vec3 srgbColor = colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_COLORSPACES_SRGB, color);
+
+    vec3 whiteXYZ = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(1.0));
+    vec2 whiteXy = calib_XYZ2xy(whiteXYZ);
+    vec2 redXy = calib_XYZ2xy(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(1.0, 0.0, 0.0)));
+    vec2 greenXy = calib_XYZ2xy(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(0.0, 1.0, 0.0)));
+    vec2 blueXy = calib_XYZ2xy(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(0.0, 0.0, 1.0)));
+
+    // Sliders use ACR's own -100..100 convention. ACR's own range only ever
+    // nudges hue a small amount (its 100 is nowhere near a literal 100 degree
+    // spin), so the reading is rescaled down to a realistic rotation.
+    // Saturation is a percent offset from the primary's natural distance
+    // from white (0 = unchanged, -100 = fully desaturated, 100 = doubled).
+    const float CALIB_HUE_RANGE_DEG = 25.0;
+    vec3 rXYZ = calib_xy2XYZ(calib_rotatePrimaryXy(redXy, whiteXy, RED_HUE / 100.0 * CALIB_HUE_RANGE_DEG, 1.0 + RED_SAT / 100.0));
+    vec3 gXYZ = calib_xy2XYZ(calib_rotatePrimaryXy(greenXy, whiteXy, GREEN_HUE / 100.0 * CALIB_HUE_RANGE_DEG, 1.0 + GREEN_SAT / 100.0));
+    vec3 bXYZ = calib_xy2XYZ(calib_rotatePrimaryXy(blueXy, whiteXy, BLUE_HUE / 100.0 * CALIB_HUE_RANGE_DEG, 1.0 + BLUE_SAT / 100.0));
+
+    // Rescale the shifted primaries so the matrix still maps white (1,1,1)
+    // to the correct XYZ white point, exactly like the DNG SDK's matrix
+    // build (dng_color_spec::NewColorMatrix using the shifted primaries and
+    // the same calibration illuminant white).
+    mat3 primariesToXYZ = mat3(rXYZ, gXYZ, bXYZ);
+    vec3 primaryScale = inverse(primariesToXYZ) * whiteXYZ;
+    mat3 calibMatrix = mat3(rXYZ * primaryScale.x, gXYZ * primaryScale.y, bXYZ * primaryScale.z);
+
+    vec3 calibratedXYZ = calibMatrix * srgbColor;
+    vec3 calibrated = colors2_colorspaces_convert(COLORS2_COLORSPACES_CIE_XYZ, COLORS2_COLORSPACES_SRGB, calibratedXYZ);
+    return colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, calibrated);
 }
 
 vec3 _displaytransform_DRT_AgX(vec3 color) {
@@ -116,11 +190,27 @@ vec3 _displaytransform_DRT_AgX(vec3 color) {
 
 void _displaytransform_DRT_apply(inout vec4 color) {
     color.rgb = max(color.rgb, 0.0);
+
+    #if SETTING_TONE_MAPPING_LOOK == 3
+    // Camera Raw Color Calibration only makes sense paired with the Custom look
+    color.rgb = applyColorCalibration(color.rgb);
+    color.rgb = max(color.rgb, 0.0); // Ensure no negative values after shift
+    #endif
+
     color.rgb = colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_DRT_WORKING_COLORSPACE, color.rgb);
     color.rgb = max(color.rgb, 0.0);
     color.rgb = _displaytransform_DRT_AgX(color.rgb);
     color.rgb = colors2_colorspaces_convert(COLORS2_DRT_WORKING_COLORSPACE, COLORS2_OUTPUT_COLORSPACE, color.rgb);
     color.rgb = saturate(color.rgb);
+
+    #if SETTING_TONE_MAPPING_LOOK == 3
+    // Runs on the final display-referred [0,1] color, like a raster editor's HSL panel would
+    color.rgb = applyHSLMixer(color.rgb);
+    color.rgb = saturate(color.rgb);
+    #endif
+
     color.rgb = colors2_oetf(COLORS2_OUTPUT_TF, color.rgb);
     color.rgb = saturate(color.rgb);
 }
+
+#endif // COLOR_CALIBRATION_INCLUDED
