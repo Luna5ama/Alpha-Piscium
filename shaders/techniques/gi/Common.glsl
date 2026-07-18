@@ -19,7 +19,6 @@
 const float HISTORY_LENGTH = float(SETTING_DENOISER_HISTORY_LENGTH);
 const float TOTAL_HISTORY_LENGTH = 255.0;
 
-#define GI_MB 1.0
 /*
     Diffuse Color : 48 bits         (1)
     Specular Hit Distance: 16 bits  (1)

@@ -5,3 +5,6 @@ builds/
 stuff/
 .run/
 agent_inputs/
+.tmp/
+__pycache__/
+.omo/

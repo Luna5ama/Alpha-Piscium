@@ -15,16 +15,17 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-
 layout(rgba16f) uniform writeonly image2D uimg_main;
+layout(rgba8) uniform restrict image2D uimg_overlays;
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(rgba16f) uniform restrict image2D uimg_temp3;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
+layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 
-ivec2 texelPos;
+#include "/techniques/atmospherics/SkyComposite.glsl"
 
-void doLighting(Material material, vec3 viewPos, vec3 N, inout vec3 mainOut, inout vec4 giOut1, inout vec4 giOut2) {
+void doLighting(ivec2 texelPos, Material material, vec3 viewPos, vec3 N, inout vec3 mainOut, inout vec4 giOut1, inout vec4 giOut2) {
     vec3 emissiveV = material.emissive;
 
     AtmosphereParameters atmosphere = getAtmosphereParameters();
@@ -81,13 +82,17 @@ void main() {
     uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
-    texelPos = ivec2(mortonGlobalPosU);
+    ivec2 texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        ivec2 texelPos2x2 = texelPos >> 1;
-        vec2 screenPos = (vec2(texelPos) + 0.5) * uval_mainImageSizeRcp;
+
+        vec4 mainOut = vec4(0.0);
 
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
+        vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
+        vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+        ScatteringResult sctrResult = atmospherics_skyComposite(texelPos, viewPos);
+
         if (viewZ > -65536.0) {
             gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), lighting_gData);
             gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), lighting_gData);
@@ -99,48 +104,39 @@ void main() {
             glintColor *= exp2(SETTING_EMISSIVE_STRENGTH + SETTING_EMISSIVE_ARMOR_GLINT_MULT);
             material.emissive += glintColor + material.albedo * glintColor * 4.0;
 
-            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-            ivec2 texelPos2x2 = texelPos >> 1;
-            ivec2 radianceTexelPos = texelPos2x2 + ivec2(0, global_mipmapSizesI[1].y);
-
             vec4 giOut1 = vec4(0.0);
             vec4 giOut2 = vec4(0.0);
 
-            giOut1.rgb = transient_gi2Reprojected_fetch(texelPos).rgb;
-
-            vec4 mainOut = vec4(0.0, 0.0, 0.0, 1.0);
             if (lighting_gData.materialID == 65534u) {
                 mainOut = vec4(material.albedo * 0.01, 2.0);
                 giOut1 = vec4(0.0);
             } else {
                 // Specular MB later
-                giOut1.rgb *= min(material.albedo, 0.95);
-                giOut1.rgb *= GI_MB;
-                doLighting(material, viewPos, lighting_gData.normal, mainOut.rgb, giOut1, giOut2);
-                float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(material.albedo));
-                float emissiveFlag = float(any(greaterThan(material.emissive, vec3(0.0))));
+                doLighting(texelPos, material, viewPos, lighting_gData.normal, mainOut.rgb, giOut1, giOut2);
             }
+            giOut1.rgb += transient_gi2Reprojected_fetch(texelPos).rgb * min(material.albedo, 0.95);
 
-            mainOut.rgb = clamp(mainOut.rgb, 0.0, FP16_MAX);
             giOut1.rgb = clamp(giOut1.rgb, 0.0, FP16_MAX);
             giOut2.rgb = clamp(giOut2.rgb, 0.0, FP16_MAX);
 
-            uvec4 packedZNOut = uvec4(0u);
-            nzpacking_pack(packedZNOut.xy, lighting_gData.normal, viewZ);
-
-            imageStore(uimg_main, texelPos, mainOut);
             uvec4 giRadianceInput = uvec4(0u);
             giRadianceInput.x = colors_workingColorToFP16Luv(giOut1.rgb);
             giRadianceInput.y = colors_workingColorToFP16Luv(giOut2.rgb);
             transient_giRadianceInputs_store(texelPos, giRadianceInput);
-            return;
-        }
+        } else {
+            vec4 temp6Out = texelFetch(usam_overlays, texelPos, 0);
+            mainOut = celestial_render(texelPos, temp6Out);
 
-        {
-            uvec4 packedZNOut = uvec4(0u);
-            packedZNOut.y = floatBitsToUint(-65536.0);
+            #ifdef SETTING_CONSTELLATIONS
+            imageStore(uimg_overlays, texelPos, temp6Out);
+            #endif
+            mainOut.rgb = scatteringResult_apply(sctrResult, mainOut.rgb);
+
             transient_giRadianceInputs_store(texelPos, uvec4(0u));
             transient_lmCoord_store(texelPos, vec4(0.0));
         }
+
+        mainOut.rgb = clamp(mainOut.rgb, 0.0, FP16_MAX);
+        imageStore(uimg_main, texelPos, mainOut);
     }
 }
