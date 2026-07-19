@@ -9,7 +9,7 @@
 #define RC_CLIP_MASK 63u
 #define RC_INVALID 0xffffffffu
 #define RC_ENTRY_COUNT 1310720u
-#define RC_RESERVOIR_RECORDS 3u
+#define RC_RESERVOIR_RECORDS 4u
 
 #define RC_FACE_POS_X 0u
 #define RC_FACE_NEG_X 1u
@@ -39,7 +39,7 @@
 #define RC_DATA_MODIFIER restrict buffer
 #endif
 
-const float RC_MAX_ROUGHNESS = 0.5;
+const float RC_MAX_ROUGHNESS = 0.25;
 
 // x: reservoir base index, or RC_INVALID if no reservoir allocated for this entry
 // y: bitmask of valid faces
@@ -60,6 +60,7 @@ struct RCReservoir {
     float m;
     vec3 hitPos;
     uint meta;
+    vec3 estimate;
 };
 
 RCReservoir rc_reservoirInit() {
@@ -70,6 +71,7 @@ RCReservoir rc_reservoirInit() {
     reservoir.m = 0.0;
     reservoir.hitPos = vec3(0.0);
     reservoir.meta = 0u;
+    reservoir.estimate = vec3(0.0);
     return reservoir;
 }
 
@@ -91,6 +93,7 @@ RCReservoir rc_reservoirLoad(uint side, uint reservoirIndex) {
     uvec4 r0 = rc_reservoirs[recordIndex + 0u];
     uvec4 r1 = rc_reservoirs[recordIndex + 1u];
     uvec4 r2 = rc_reservoirs[recordIndex + 2u];
+    uvec4 r3 = rc_reservoirs[recordIndex + 3u];
     RCReservoir reservoir;
     reservoir.radiance = uintBitsToFloat(r0.xyz);
     reservoir.avgWY = uintBitsToFloat(r0.w);
@@ -98,6 +101,7 @@ RCReservoir rc_reservoirLoad(uint side, uint reservoirIndex) {
     reservoir.m = uintBitsToFloat(r1.w);
     reservoir.hitPos = uintBitsToFloat(r2.xyz);
     reservoir.meta = r2.w;
+    reservoir.estimate = uintBitsToFloat(r3.xyz);
     return reservoir;
 }
 
@@ -414,6 +418,7 @@ void rc_reservoirStore(uint side, uint reservoirIndex, RCReservoir reservoir) {
     rc_reservoirs[recordIndex + 0u] = uvec4(floatBitsToUint(reservoir.radiance), floatBitsToUint(reservoir.avgWY));
     rc_reservoirs[recordIndex + 1u] = uvec4(floatBitsToUint(reservoir.sampleDir), floatBitsToUint(reservoir.m));
     rc_reservoirs[recordIndex + 2u] = uvec4(floatBitsToUint(reservoir.hitPos), reservoir.meta);
+    rc_reservoirs[recordIndex + 3u] = uvec4(floatBitsToUint(reservoir.estimate), 0u);
 }
 
 float rc_luminance(vec3 radiance) {
@@ -424,7 +429,7 @@ vec3 rc_reservoirEstimateRadiance(RCReservoir reservoir) {
     vec3 result = vec3(0.0);
 
     if (rc_reservoirValid(reservoir)) {
-        result = max(reservoir.radiance * reservoir.avgWY, 0.0);
+        result = reservoir.estimate;
     }
 
     return result;
