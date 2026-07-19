@@ -5,15 +5,18 @@
 #include "/techniques/voxel/SurfaceData.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
 
-void rc_lookupSampleFaceWeighted(
+void rc_lookupSampleFace(
     inout RCLookupResult result,
     vec3 V,
     vec3 P,
     vec3 N,
+    vec3 faceNormal,
+    float normalWeight,
     uint level,
     ivec3 worldCellCoord,
     uint faceId,
-    float interpWeight
+    float interpWeight,
+    float thickness
 ) {
     if (interpWeight <= 0.0) {
         return;
@@ -25,13 +28,11 @@ void rc_lookupSampleFaceWeighted(
 
     uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
 
-    if (
-    entry.x == RC_INVALID ||
-    entry.z != worldKeyHash ||
-    !rc_entryMetaValid(entry.w) ||
-    rc_entryMetaLevel(entry.w) != level ||
-    !rc_hasFace(entry.y, faceId)
-    ) {
+    if (entry.x == RC_INVALID ||
+        entry.z != worldKeyHash ||
+        !rc_entryMetaValid(entry.w) ||
+        rc_entryMetaLevel(entry.w) != level ||
+        !rc_hasFace(entry.y, faceId)) {
         result.misses++;
         return;
     }
@@ -50,32 +51,19 @@ void rc_lookupSampleFaceWeighted(
         return;
     }
 
-    vec3 faceNormal = rc_faceNormal(faceId);
-
-    float normalWeight = saturate(dot(N, faceNormal));
     if (normalWeight <= 0.0) {
         result.misses++;
         return;
     }
 
     vec3 faceCenter = rc_faceCenter(worldCellCoord, level, faceId);
-
-    float thickness = ldexp(1.0, int(level));
-
     float side = dot(P - faceCenter, faceNormal);
     if (side < -thickness) {
         result.misses++;
         return;
     }
 
-    uint age = rc_reservoirMetaAge(reservoir.meta);
-
     float w = interpWeight * normalWeight;
-
-    if (w <= 0.0) {
-        result.misses++;
-        return;
-    }
 
     // Move into the owner voxel so the face owner is stable.
     // For +Y face, this moves slightly below the surface.
@@ -93,8 +81,8 @@ void rc_lookupSampleFaceWeighted(
     vec3 wi = normalize(reservoir.sampleDir);
 
     float faceNoL = max(dot(faceNormal, wi), 0.0);
-    float NoL     = max(dot(N, wi), 0.0);
-    float NoV     = max(dot(N, V), 0.0);
+    float NoL = max(dot(N, wi), 0.0);
+    float NoV = max(dot(N, V), 0.0);
 
     if (faceNoL <= 1e-4 || NoL <= 0.0 || NoV <= 0.0) {
         result.misses++;
@@ -119,12 +107,8 @@ void rc_lookupSampleFaceWeighted(
 
     vec3 f = surface.material.albedo * brdf.diffuse + vec3(brdf.specular);
 
-    vec3 estimatedRadiance =
-    reservoir.radiance *
-    reservoir.avgWY *
-    f *
-    NoL *
-    safeRcp(max(pCache, 1e-4));
+    vec3 cachedRadiance = rc_reservoirEstimateRadiance(reservoir);
+    vec3 estimatedRadiance = cachedRadiance * f * NoL * safeRcp(max(pCache, 1e-4));
     if (rc_luminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
         result.misses++;
         return;
@@ -137,7 +121,7 @@ void rc_lookupSampleFaceWeighted(
     result.levelMask |= 1u << level;
     result.faceMask |= rc_faceBit(faceId);
     result.m = max(result.m, reservoir.m);
-    result.age = max(result.age, age);
+    result.age = max(result.age, rc_reservoirMetaAge(reservoir.meta));
     result.debug = reservoir.meta & 0xFF;
 }
 
@@ -148,12 +132,12 @@ RCLookupResult rc_lookupDiffuseGISmooth(vec3 V, vec3 P, vec3 N, vec3 geomN) {
 
     uint faceId = rc_dominantFaceId(geomN);
     vec3 faceNormal = rc_faceNormal(faceId);
+    float normalWeight = saturate(dot(N, faceNormal));
+    float thickness = ldexp(1.0, int(level));
 
     uint axis0;
     uint axis1;
     rc_faceTangentAxes(faceId, axis0, axis1);
-
-    uint normalAxis = rc_faceAxis(faceId);
 
     // Move slightly behind the queried surface so the owner cell is stable.
     // For +Y face, this moves into the solid cell below the face.
@@ -212,155 +196,16 @@ RCLookupResult rc_lookupDiffuseGISmooth(vec3 V, vec3 P, vec3 N, vec3 geomN) {
     cell11[int(axis0)] = u0 + 1;
     cell11[int(axis1)] = v0 + 1;
 
-    // The normal-axis coordinate remains fixed from ownerCell.
-    // This is what turns the lookup from 2x2x2 into 2x2x1.
-    cell00[int(normalAxis)] = ownerCell[int(normalAxis)];
-    cell10[int(normalAxis)] = ownerCell[int(normalAxis)];
-    cell01[int(normalAxis)] = ownerCell[int(normalAxis)];
-    cell11[int(normalAxis)] = ownerCell[int(normalAxis)];
-
-    rc_lookupSampleFaceWeighted(result, V, P, N, level, cell00, faceId, w00);
-    rc_lookupSampleFaceWeighted(result, V, P, N, level, cell10, faceId, w10);
-    rc_lookupSampleFaceWeighted(result, V, P, N, level, cell01, faceId, w01);
-    rc_lookupSampleFaceWeighted(result, V, P, N, level, cell11, faceId, w11);
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell00, faceId, w00, thickness);
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell10, faceId, w10, thickness);
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell01, faceId, w01, thickness);
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell11, faceId, w11, thickness);
 
     if (result.weight > 0.0) {
         result.radiance /= result.weight;
     }
 
     return result;
-}
-void rc_lookupSampleFace1x1(
-    inout RCLookupResult result,
-    vec3 V,
-    vec3 P,
-    vec3 N,
-    uint level,
-    ivec3 worldCellCoord,
-    uint faceId
-) {
-    uint entryIndex = rc_entryIndex(level, worldCellCoord);
-    uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
-    uvec4 entry = rc_indirection[bufferIndex];
-
-    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
-
-    if (
-    entry.x == RC_INVALID ||
-    entry.z != worldKeyHash ||
-    !rc_entryMetaValid(entry.w) ||
-    rc_entryMetaLevel(entry.w) != level ||
-    !rc_hasFace(entry.y, faceId)
-    ) {
-        result.misses++;
-        return;
-    }
-
-    uint reservoirIndex = rc_faceReservoirIndex(entry.x, entry.y, faceId);
-
-    if (reservoirIndex >= uint(SETTING_RC_POOL_SIZE)) {
-        result.misses++;
-        return;
-    }
-
-    RCReservoir reservoir = rc_reservoirLoad(rc_currentSide(), reservoirIndex);
-
-    if (!rc_reservoirValid(reservoir)) {
-        result.misses++;
-        return;
-    }
-
-    vec3 faceNormal = rc_faceNormal(faceId);
-
-    float normalWeight = max(dot(N, faceNormal), 0.0);
-    if (normalWeight <= 0.0) {
-        result.misses++;
-        return;
-    }
-
-    vec3 faceCenter = rc_faceCenter(worldCellCoord, level, faceId);
-
-    float thickness = ldexp(2.0, int(level));
-
-    float side = dot(P - faceCenter, faceNormal);
-    if (side < -thickness) {
-        result.misses++;
-        return;
-    }
-
-    uint age = rc_reservoirMetaAge(reservoir.meta);
-
-    // 1x1 lookup: no bilinear and no tangent distance filter.
-    // Weight only by normal compatibility and history freshness.
-    float w = normalWeight;
-
-    if (w <= 0.0) {
-        result.misses++;
-        return;
-    }
-
-    // Move into the owner voxel so the face owner is stable.
-    // For +Y face, this moves slightly below the surface.
-    // For -Y face, this moves slightly above the surface.
-    float surfaceEpsilon = max(ldexp(1e-3, int(level)), 1e-3);
-    vec3 ownerP = P - faceNormal * surfaceEpsilon;
-
-    VoxelHit hit;
-    hit.hit = true;
-    hit.hitPos = P;
-    hit.normal = faceNormal;
-    hit.materialID = voxel_getMaterialID(ivec3(floor(ownerP)));
-    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
-    surface.material.roughness = max(surface.material.roughness, RC_MAX_ROUGHNESS);
-    vec3 wi = normalize(reservoir.sampleDir);
-
-    float faceNoL = max(dot(faceNormal, wi), 0.0);
-    float NoL     = max(dot(N, wi), 0.0);
-    float NoV     = max(dot(N, V), 0.0);
-
-    if (faceNoL <= 1e-4 || NoL <= 0.0 || NoV <= 0.0) {
-        result.misses++;
-        return;
-    }
-
-    float pCache = faceNoL * RCP_PI;
-
-    vec3 H = normalize(wi + V);
-    float NoH = saturate(dot(N, H));
-    float LoH = saturate(dot(wi, H));
-
-    ResampleMaterial material = resampleMaterial_fromMaterial(surface.material);
-
-    ResampleBRDF brdf = resampleMaterial_evalBRDF(
-        material,
-        NoL,
-        NoV,
-        NoH,
-        LoH
-    );
-
-    vec3 f = surface.material.albedo * brdf.diffuse + vec3(brdf.specular);
-
-    vec3 estimatedRadiance =
-    reservoir.radiance *
-    reservoir.avgWY *
-    f *
-    NoL *
-    safeRcp(max(pCache, 1e-4));
-    if (rc_luminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
-        result.misses++;
-        return;
-    }
-
-    result.radiance += estimatedRadiance * w;
-    result.weight += w;
-
-    result.hits++;
-    result.levelMask |= 1u << level;
-    result.faceMask |= rc_faceBit(faceId);
-    result.m = max(result.m, reservoir.m);
-    result.age = max(result.age, age);
-    result.debug = reservoir.meta & 0xFF;
 }
 
 RCLookupResult rc_lookupDiffuseGI(vec3 V, vec3 P, vec3 N, vec3 geomN) {
@@ -370,6 +215,7 @@ RCLookupResult rc_lookupDiffuseGI(vec3 V, vec3 P, vec3 N, vec3 geomN) {
 
     uint faceId = rc_dominantFaceId(geomN);
     vec3 faceNormal = rc_faceNormal(faceId);
+    float normalWeight = max(dot(N, faceNormal), 0.0);
 
     // Move into the owner voxel so the face owner is stable.
     // For +Y face, this moves slightly below the surface.
@@ -379,14 +225,18 @@ RCLookupResult rc_lookupDiffuseGI(vec3 V, vec3 P, vec3 N, vec3 geomN) {
 
     ivec3 ownerCell = rc_worldCellCoord(ownerP, level);
 
-    rc_lookupSampleFace1x1(
+    rc_lookupSampleFace(
         result,
         V,
         P,
         N,
+        faceNormal,
+        normalWeight,
         level,
         ownerCell,
-        faceId
+        faceId,
+        1.0,
+        ldexp(2.0, int(level))
     );
 
     if (result.weight > 0.0) {
