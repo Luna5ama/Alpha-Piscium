@@ -157,7 +157,7 @@ vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
         return valid ? missRadiance : vec3(0.0);
     }
 
-    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 8.0);
+    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
     if (!surface.valid) {
         return vec3(0.0);
     }
