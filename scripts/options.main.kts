@@ -3750,7 +3750,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         name = "Voxel Debug Counter"
                     }
                 }
-                    slider("SETTING_DEBUG_RC_MODE", 0, 0..9) {
+                    slider("SETTING_DEBUG_RC_MODE", 0, 0..10) {
                         lang {
                             name = "RC Debug Mode"
                             0 value "Off"
