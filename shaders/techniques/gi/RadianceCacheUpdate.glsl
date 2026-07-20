@@ -33,6 +33,52 @@ struct RCCandidate {
     bool valid;
 };
 
+const float RC_CV_ALPHA = 1.0;
+const float RC_CV_M_CAP = 128.0;
+const float RC_SPATIAL_M_CAP = 8.0;
+
+struct RCCVAccumulator {
+    vec3 estimateSum;
+    float weightSum;
+    bool invalid;
+};
+
+RCCVAccumulator rc_cvAccumulatorInit() {
+    RCCVAccumulator accumulator;
+    accumulator.estimateSum = vec3(0.0);
+    accumulator.weightSum = 0.0;
+    accumulator.invalid = false;
+    return accumulator;
+}
+
+vec3 rc_cvInitialEstimate(RCCandidate candidate) {
+    return candidate.valid ? candidate.radiance : vec3(0.0);
+}
+
+void rc_cvAccumulatorAdd(inout RCCVAccumulator accumulator, vec3 estimate, float weight) {
+    if (weight <= 0.0) {
+        return;
+    }
+    if (isnan(weight) || any(isnan(estimate))) {
+        accumulator.invalid = true;
+        return;
+    }
+
+    accumulator.estimateSum += estimate * weight;
+    accumulator.weightSum += weight;
+}
+
+bool rc_cvAccumulatorValid(RCCVAccumulator accumulator) {
+    return !accumulator.invalid
+        && accumulator.weightSum > 0.0
+        && !isnan(accumulator.weightSum)
+        && !any(isnan(accumulator.estimateSum));
+}
+
+vec3 rc_cvAccumulatorResolve(RCCVAccumulator accumulator) {
+    return accumulator.estimateSum * safeRcp(accumulator.weightSum);
+}
+
 uint rc_feedbackRecordIndex(uint side, uint entryIndex) {
     return rc_bufferEntryIndex(side, entryIndex);
 }
@@ -305,47 +351,33 @@ bool rc_loadRandomSpatialNeighbor(
 float rc_pairwiseSpatialMIS_MAware(
     vec3 targetOrigin,
     vec3 targetNormal,
-    vec3 neighborOrigin,
-    vec3 neighborNormal,
+    vec3 sourceOrigin,
+    vec3 sourceNormal,
     vec3 hitPos,
     vec3 hitNormal,
     float targetM,
-    float sourceM
+    float targetShiftedWeight,
+    float sourceM,
+    float sourceTargetWeight,
+    out float shiftWeight
 ) {
-    float pTarget = rc_areaPdfCosineConnection(targetOrigin, targetNormal, hitPos, hitNormal);
-    float pNeighbor = rc_areaPdfCosineConnection(neighborOrigin, neighborNormal, hitPos, hitNormal);
+    float pTargetArea = rc_areaPdfCosineConnection(targetOrigin, targetNormal, hitPos, hitNormal);
+    float pSourceArea = rc_areaPdfCosineConnection(sourceOrigin, sourceNormal, hitPos, hitNormal);
+    shiftWeight = 0.0;
 
-    if (pTarget <= 0.0 || pNeighbor <= 0.0) {
+    if (pTargetArea <= 0.0 || pSourceArea <= 0.0) {
         return 0.0;
     }
 
-    float targetMass = max(targetM, 1.0);
-    float sourceMass = max(sourceM, 1.0);
-    float denom = targetMass * pTarget + sourceMass * pNeighbor;
-    if (denom <= 1e-6) {
+    shiftWeight = pTargetArea * safeRcp(pSourceArea);
+    float sourceMass = sourceM * sourceTargetWeight;
+    float targetMass = targetM * targetShiftedWeight * shiftWeight;
+    float denom = sourceMass + targetMass;
+    if (denom <= 0.0) {
         return 0.0;
     }
 
-    return targetMass * pTarget * safeRcp(denom);
-}
-
-float rc_spatialEffectiveSourceM(RCReservoir neighborReservoir) {
-    float m = neighborReservoir.m;
-    if (isnan(m) || m <= 0.0) {
-        return 0.0;
-    }
-
-    float maxSpatialM = min(float(SETTING_RC_M_CAP), 8.0);
-    return clamp(m, 1.0, maxSpatialM);
-}
-
-float rc_spatialSourceCorrection(RCReservoir neighborReservoir) {
-    float wy = neighborReservoir.avgWY;
-    if (isnan(wy) || wy <= 0.0) {
-        return 0.0;
-    }
-
-    return clamp(wy, 0.0, 2.0);
+    return sourceMass * safeRcp(denom);
 }
 
 RCCandidate rc_generateCandidate(uint entryIndex, ivec3 worldCellCoord, uint level, uint faceId, bool allowHitFeedback) {
@@ -404,13 +436,13 @@ bool rc_generateSpatialCandidate(
     ivec3 worldCellCoord,
     uint level,
     uint faceId,
-    ivec3 neighborCell,
-    vec3 neighborOrigin,
-    RCReservoir neighborReservoir,
+    vec3 sourceOrigin,
+    RCReservoir sourceReservoir,
     float targetM,
     float sourceM,
     out RCCandidate candidate,
-    out float spatialMInc
+    out float misWeight,
+    out float shiftWeight
 ) {
     candidate.radiance = vec3(0.0);
     candidate.dir = rc_faceNormal(faceId);
@@ -419,7 +451,8 @@ bool rc_generateSpatialCandidate(
     candidate.targetWeight = 0.0;
     candidate.flags = 0u;
     candidate.valid = false;
-    spatialMInc = 0.0;
+    misWeight = 0.0;
+    shiftWeight = 0.0;
 
     #ifndef SETTING_RC_SPATIAL_ENABLE
         return false;
@@ -427,20 +460,20 @@ bool rc_generateSpatialCandidate(
         vec3 targetNormal = rc_faceNormal(faceId);
         vec3 targetOrigin = rc_faceRayOrigin(worldCellCoord, level, faceId);
 
-        vec3 hitPos = neighborReservoir.hitPos;
+        vec3 hitPos = sourceReservoir.hitPos;
         if (any(isnan(hitPos)) || dot(hitPos, hitPos) <= 1e-6) {
             return false;
         }
 
-        vec3 neighborDir = normalize(neighborReservoir.sampleDir);
-        vec3 neighborToHit = hitPos - neighborOrigin;
-        float neighborHitDist = dot(neighborToHit, neighborDir);
-        if (neighborHitDist <= 0.05) {
+        vec3 sourceDir = normalize(sourceReservoir.sampleDir);
+        vec3 sourceToHit = hitPos - sourceOrigin;
+        float sourceHitDist = dot(sourceToHit, sourceDir);
+        if (sourceHitDist <= 0.05) {
             return false;
         }
 
-        vec3 expectedHitDir = normalize(neighborToHit);
-        if (dot(expectedHitDir, neighborDir) < 0.95) {
+        vec3 expectedHitDir = normalize(sourceToHit);
+        if (dot(expectedHitDir, sourceDir) < 0.95) {
             return false;
         }
 
@@ -473,6 +506,7 @@ bool rc_generateSpatialCandidate(
         bool radianceValid = false;
         vec3 radiance = rc_sampleHitRadiance(hit, -shiftedDir, radianceValid);
         float targetWeight = rc_luminance(radiance);
+        float sourceTargetWeight = rc_luminance(sourceReservoir.radiance);
         if (
             !radianceValid
             || targetWeight <= 0.0
@@ -482,17 +516,20 @@ bool rc_generateSpatialCandidate(
             return false;
         }
 
-        float misWeight = rc_pairwiseSpatialMIS_MAware(
+        misWeight = rc_pairwiseSpatialMIS_MAware(
             targetOrigin,
             targetNormal,
-            neighborOrigin,
+            sourceOrigin,
             targetNormal,
-            hit.hitPos,
+            hitPos,
             hit.normal,
             targetM,
-            sourceM
+            targetWeight,
+            sourceM,
+            sourceTargetWeight,
+            shiftWeight
         );
-        if (misWeight <= 0.0) {
+        if (misWeight <= 0.0 || shiftWeight <= 0.0) {
             return false;
         }
 
@@ -503,7 +540,6 @@ bool rc_generateSpatialCandidate(
         candidate.targetWeight = targetWeight;
         candidate.flags = RC_RES_FLAG_SURFACE_HIT;
         candidate.valid = true;
-        spatialMInc = sourceM * misWeight;
         return true;
     #endif
 }
@@ -517,6 +553,7 @@ RCReservoir rc_reservoirInitFromCandidate(RCCandidate candidate) {
         reservoir.m = 1.0;
         reservoir.hitPos = candidate.hitPos;
         reservoir.meta = rc_packReservoirMeta(0u, true, candidate.flags);
+        reservoir.estimate = candidate.radiance;
     } else {
         reservoir = rc_reservoirInit();
     }
@@ -540,6 +577,9 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
 
     RCCandidate candidate = rc_generateCandidate(entryIndex, worldCellCoord, level, faceId, allowHitFeedback);
     RCReservoir reservoir = rc_reservoirInit();
+    RCCVAccumulator cvAccumulator = rc_cvAccumulatorInit();
+    float qInit = candidate.valid ? 1.0 : 0.0;
+    rc_cvAccumulatorAdd(cvAccumulator, rc_cvInitialEstimate(candidate), qInit);
 
     uint prevBufferIndex = rc_bufferEntryIndex(rc_previousSide(), entryIndex);
     uvec4 prevEntry = rc_indirection[prevBufferIndex];
@@ -559,19 +599,21 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
                 historyAge = rc_reservoirMetaAge(reservoir.meta);
                 historyValid = reservoir.avgWY > 0.0
                     && reservoir.m > 0.0
-                    && all(greaterThan(reservoir.radiance, vec3(0.0)))
+                    && rc_luminance(reservoir.radiance) > 0.0
                     && !isnan(reservoir.avgWY)
                     && !isnan(reservoir.m)
-                    && !any(isnan(reservoir.radiance));
+                    && !any(isnan(reservoir.radiance))
+                    && !any(isinf(reservoir.radiance));
             }
         } else {
             historyValid = false;
         }
     }
     float wSum = 0.0;
+    RCReservoir historyBeforeRevalidate = reservoir;
     if (historyValid) {
-        wSum = reservoir.avgWY * rc_luminance(reservoir.radiance);
-        uint validateId = gl_WorkGroupID.x + (gl_WorkGroupID.x >> 3);
+        historyBeforeRevalidate = reservoir;
+        uint validateId = worldKeyHash + faceId;
         if ((validateId & 7u) == (uint(frameCounter) & 7u)) {
             historyValid = rc_revalidateHistoryReservoir(
                 worldCellCoord,
@@ -584,6 +626,17 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
             }
         }
     }
+    if (historyValid) {
+        wSum = historyBeforeRevalidate.avgWY
+            * rc_luminance(historyBeforeRevalidate.radiance) * reservoir.m;
+        float historyM = reservoir.m;
+        float qHistory = min(historyM, RC_CV_M_CAP);
+        // Stored history cannot represent the reverse previous-frame shift. This is
+        // the one-sided ownership-1 estimator under bijective, full-support reprojection.
+        vec3 fromHistory = RC_CV_ALPHA * historyBeforeRevalidate.estimate
+            + reservoir.avgWY * (reservoir.radiance - RC_CV_ALPHA * historyBeforeRevalidate.radiance);
+        rc_cvAccumulatorAdd(cvAccumulator, fromHistory, qHistory);
+    }
 
     uint selectedFlags = historyValid ? rc_reservoirMetaFlags(reservoir.meta) : 0u;
     uint selectedAge = historyValid ? min(historyAge + 1u, 255u) : 0u;
@@ -593,7 +646,6 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
 
     if (historyValid) {
         float randValue = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x85EBCA6Bu)));
-        wSum *= reservoir.m;
         selectedCandidate = rc_reservoirUpdateWeighted(
             reservoir,
             wSum,
@@ -610,6 +662,16 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
         }
     }
 
+    if (selectedCandidate) {
+        selectedAge = 0u;
+        selectedFlags = candidate.flags;
+    }
+
+    float preSpatialTargetWeight = rc_luminance(reservoir.radiance);
+    reservoir.avgWY = reservoir.m > 0.0 && wSum > 0.0 && preSpatialTargetWeight > 0.0
+        ? wSum * safeRcp(reservoir.m) * safeRcp(preSpatialTargetWeight)
+        : 0.0;
+
     #ifdef SETTING_RC_SPATIAL_ENABLE
         ivec3 neighborCell = worldCellCoord;
         vec3 neighborOrigin = vec3(0.0);
@@ -624,47 +686,78 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
             neighborReservoir
         );
         RCCandidate spatialCandidate;
-        float spatialMInc;
-        float sourceM = rc_spatialEffectiveSourceM(neighborReservoir);
-        float targetM = clamp(max(reservoir.m, 1.0), 1.0, float(SETTING_RC_M_CAP));
-        if (spatialNeighborValid && sourceM > 0.0 && SETTING_RC_SPATIAL_STRENGTH > 0.0 && rc_generateSpatialCandidate(
-            worldCellCoord,
-            level,
-            faceId,
-            neighborCell,
-            neighborOrigin,
-            neighborReservoir,
-            targetM,
-            sourceM,
-            spatialCandidate,
-            spatialMInc
-        )) {
-            float randSpatial = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x27D4EB2Du)));
-            float sourceCorrection = rc_spatialSourceCorrection(neighborReservoir);
-            float spatialStrength = SETTING_RC_SPATIAL_STRENGTH;
-            float spatialUpdateWeight =
-                spatialCandidate.targetWeight *
-                sourceCorrection *
-                spatialMInc *
-                spatialStrength;
-            float spatialEffectiveMInc = spatialMInc * spatialStrength;
-            selectedSpatial = rc_reservoirUpdateWeighted(
-                reservoir,
-                wSum,
+        float storedSourceM = neighborReservoir.m;
+        float sourceM = min(storedSourceM, RC_SPATIAL_M_CAP);
+        float targetM = max(reservoir.m, 0.0);
+        if (spatialNeighborValid && sourceM > 0.0 && SETTING_RC_SPATIAL_STRENGTH > 0.0) {
+            float sourceMIS;
+            float sourceShiftWeight;
+            bool sourceShiftValid = rc_generateSpatialCandidate(
+                worldCellCoord,
+                level,
+                faceId,
+                neighborOrigin,
+                neighborReservoir,
+                targetM,
+                sourceM,
                 spatialCandidate,
-                spatialUpdateWeight,
-                spatialEffectiveMInc,
-                randSpatial
+                sourceMIS,
+                sourceShiftWeight
             );
+            RCCandidate targetShiftCandidate = spatialCandidate;
+            float targetMIS = 0.0;
+            float targetShiftWeight = 0.0;
+            bool targetShiftValid = false;
+            if (targetM > 0.0 && (selectedFlags & RC_RES_FLAG_SURFACE_HIT) != 0u) {
+                targetShiftValid = rc_generateSpatialCandidate(
+                    neighborCell,
+                    level,
+                    faceId,
+                    rc_faceRayOrigin(worldCellCoord, level, faceId),
+                    reservoir,
+                    sourceM,
+                    targetM,
+                    targetShiftCandidate,
+                    targetMIS,
+                    targetShiftWeight
+                );
+            }
+            float spatialConfidence = min(max(targetM, 1.0) * safeRcp(sourceM), 1.0);
+            float spatialStrength = SETTING_RC_SPATIAL_STRENGTH * spatialConfidence;
+            float qSpatial = min(sourceM, RC_CV_M_CAP) * spatialStrength;
+            float sourceMISWeight = sourceShiftValid ? sourceMIS : 1.0;
+            float targetMISWeight = targetShiftValid ? targetMIS : 1.0;
+            vec3 shiftedSource = sourceShiftValid ? sourceShiftWeight * spatialCandidate.radiance : vec3(0.0);
+            vec3 shiftedTarget = targetShiftValid ? targetShiftWeight * targetShiftCandidate.radiance : vec3(0.0);
+            vec3 targetTerm = targetMISWeight * reservoir.avgWY * (reservoir.radiance - RC_CV_ALPHA * shiftedTarget);
+            vec3 sourceTerm = sourceMISWeight * neighborReservoir.avgWY * (shiftedSource - RC_CV_ALPHA * neighborReservoir.radiance);
+            vec3 spatialDifference = targetTerm + sourceTerm;
+            vec3 fromSpatial = RC_CV_ALPHA * neighborReservoir.estimate + spatialDifference;
+            rc_cvAccumulatorAdd(cvAccumulator, fromSpatial, qSpatial);
+
+            if (sourceShiftValid) {
+                float randSpatial = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x27D4EB2Du)));
+                float spatialUpdateWeight = spatialCandidate.targetWeight
+                    * sourceShiftWeight
+                    * neighborReservoir.avgWY
+                    * sourceM
+                    * sourceMISWeight
+                    * spatialStrength;
+                float spatialEffectiveMInc = sourceM * spatialStrength;
+                selectedSpatial = rc_reservoirUpdateWeighted(
+                    reservoir,
+                    wSum,
+                    spatialCandidate,
+                    spatialUpdateWeight,
+                    spatialEffectiveMInc,
+                    randSpatial
+                );
+            }
         } else {
             spatialNeighborValid = false;
         }
     #endif
 
-    if (selectedCandidate) {
-        selectedAge = 0u;
-        selectedFlags = candidate.flags;
-    }
     #ifdef SETTING_RC_SPATIAL_ENABLE
     if (selectedSpatial) {
         selectedAge = 0u;
@@ -689,8 +782,13 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
     reservoir.avgWY = reservoirValid ? wSum * safeRcp(reservoir.m) * safeRcp(selectedTargetWeight) : 0.0;
     reservoir.meta = rc_packReservoirMeta(selectedAge, reservoirValid, selectedFlags);
 
-    if (spatialNeighborValid) {
-        reservoir.meta |= 1u;
+    if (reservoirValid && rc_cvAccumulatorValid(cvAccumulator)) {
+        reservoir.estimate = rc_cvAccumulatorResolve(cvAccumulator);
+        if (spatialNeighborValid) {
+            reservoir.meta |= 1u;
+        }
+    } else {
+        reservoir = rc_reservoirInit();
     }
 
     rc_reservoirStore(rc_currentSide(), reservoirIndex, reservoir);

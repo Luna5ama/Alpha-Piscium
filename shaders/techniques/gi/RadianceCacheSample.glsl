@@ -119,9 +119,9 @@ void rc_lookupSampleFaceWeighted(
 
     vec3 f = surface.material.albedo * brdf.diffuse + vec3(brdf.specular);
 
+    vec3 cachedRadiance = rc_reservoirEstimateRadiance(reservoir);
     vec3 estimatedRadiance =
-    reservoir.radiance *
-    reservoir.avgWY *
+    cachedRadiance *
     f *
     NoL *
     safeRcp(max(pCache, 1e-4));
@@ -341,9 +341,9 @@ void rc_lookupSampleFace1x1(
 
     vec3 f = surface.material.albedo * brdf.diffuse + vec3(brdf.specular);
 
+    vec3 cachedRadiance = rc_reservoirEstimateRadiance(reservoir);
     vec3 estimatedRadiance =
-    reservoir.radiance *
-    reservoir.avgWY *
+    cachedRadiance *
     f *
     NoL *
     safeRcp(max(pCache, 1e-4));

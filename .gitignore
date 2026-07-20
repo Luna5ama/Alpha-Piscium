@@ -7,3 +7,4 @@ stuff/
 agent_inputs/
 .tmp/
 __pycache__/
+.omo/
