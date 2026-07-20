@@ -254,8 +254,8 @@ def build_argv(
     common.append_flag(argv, "--multi-pass-metrics",          multi_pass_metrics)
     common.append_flag(argv, "--time-every-action",           time_every_action)
     common.append_flag(argv, "--real-time-shader-profiler",   real_time_shader_profiler)
-    common.append_flag(argv, "--per-line-active-threads-per-warp",
-                       per_line_active_threads_per_warp)
+    common.append_optional(argv, "--per-line-active-threads-per-warp",
+                           "true" if per_line_active_threads_per_warp else None)
     common.append_optional(argv, "--pc-samples-per-pm-interval-per-sm",
                            pc_samples_per_pm_interval_per_sm)
     common.append_optional(argv, "--pm-bandwidth-limit", pm_bandwidth_limit)
