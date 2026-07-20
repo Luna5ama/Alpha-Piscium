@@ -1,13 +1,6 @@
 ---
 name: vibris
 description: Use Iris capture control, glc2vk OpenGL/Vulkan replayers, and Nsight GPU Trace for Alpha-Piscium compute shader debugging and profiling.
-metadata:
-  version: 0.1.0
-  categories:
-    - minecraft
-    - iris
-    - glc2vk
-    - gpu
 ---
 
 # Vibris
@@ -67,10 +60,13 @@ reference resources that only appear in other passes.
 If `-Path` is omitted, capture actions create a timestamped path under
 `config.json`'s `capture_path`.
 
-The returned directory is the capture directory to feed into the replayers.
-Resources are captured on first reference during capture. If a replacement
-shader later references a uniform or resource that was not captured, the
-replayer should fail instead of continuing with invalid bindings.
+Capture requests are queued for the next rendered frame and saved
+asynchronously. After queueing one, run `status` until `pending`, `active`, and
+`saving` are all false. Stop on `lastError`; otherwise use `lastOutputPath` as
+the capture directory to feed into the replayers. Resources are captured on
+first reference during capture. If a replacement shader later references a
+uniform or resource that was not captured, the replayer should fail instead of
+continuing with invalid bindings.
 
 ## Replayer Usage
 
@@ -172,10 +168,11 @@ Read `summary.json` first, then drill with `gputrace-stages`,
 2. Reload the active shader pack through Iris control after shader source changes.
 3. Capture only the target pass for a known hotspot; otherwise capture the
    relevant composite-like program type.
-4. Verify replay correctness with the OpenGL replayer.
-5. Collect GPU Trace with the OpenGL replayer unless Vulkan-only diagnostics
+4. Wait for Iris status to report that capture and saving are complete.
+5. Verify replay correctness with the OpenGL replayer.
+6. Collect GPU Trace with the OpenGL replayer unless Vulkan-only diagnostics
    are required.
-6. Inspect the generated summary JSON first. Use analyzer drill-down commands
+7. Inspect the generated summary JSON first. Use analyzer drill-down commands
    only after confirming `bundle_complete=True`.
 
 For shader experiments, edit shaderpack sources and pass `-ShaderRoot`; do not
