@@ -1,109 +1,107 @@
-# Coding Instructions
+# PROJECT KNOWLEDGE BASE
 
-Write clean, direct, maintainer-style code.
+**Generated:** 2026-07-19
+**Commit:** 2fa383c3
+**Branch:** dev
 
-Prefer:
-- minimal diffs
-- simple control flow
-- deleting obsolete code
-- replacing old paths cleanly
-- explicit logic over generic abstractions
-- targeted fixes over broad frameworks
-- compact formatting without alignment padding
+## Overview
 
-Avoid:
-- overengineering
-- speculative abstractions
-- defensive checks for impossible states
-- fallback paths that hide bugs
-- preserving legacy behavior unless explicitly required
-- compatibility wrappers during refactors
-- feature flags/options with only one real use
-- verbose comments explaining obvious code
+Alpha Piscium is an Iris-targeted Minecraft shader pack implemented in GLSL, with Kotlin and PowerShell tooling for
+program registration, options, generated bindings, packaging, and offline assets.
 
-Do not add extra spaces only to align variable names, type declarations, or operators across multiple lines.
+## Structure
 
-## Refactoring
-
-When a new implementation replaces an old one, remove the old code.
-
-Do not keep both old and new paths unless compatibility is explicitly required.
-
-Update call sites directly instead of adding adapters or aliases.
-
-Delete dead code, stale helpers, obsolete comments, and unused settings in the same change.
-
-## Defensive Code
-
-Only validate real trust boundaries: user input, files, external APIs, GPU/driver output, or serialized data.
-
-Do not add null checks, bounds checks, fallbacks, or catch-all handling for states that should be impossible by construction.
-
-Prefer failing visibly over silently masking invalid state.
-
-## Abstractions
-
-Do not add a new abstraction unless it has at least two real uses now.
-
-Prefer plain functions and direct data flow over managers, factories, registries, services, or generic pipelines.
-
-## Graphics / Shader Code
-
-For rendering, GI, ReSTIR, denoising, atmosphere, and shader code:
-
-- keep estimator, PDF, weight, and bias logic explicit
-- do not hide estimator changes behind clamps or fallbacks
-- avoid heuristic fixes unless clearly justified
-- prefer physically meaningful names
-- prioritize mathematical correctness over defensive engineering
-- prioritize performance and optimization, even when deliberate redundancy is faster
-- never index `const` arrays or local variable arrays with runtime indices in GLSL; use shared memory, if-chains, or direct computation instead
-- keep Iris `workGroups` and `workGroupRender` values as constant literals or macros that expand to constant literals
-- use preprocessor conditionals for alternate Iris work group values; do not use math expressions such as `VOXEL_POOL_SIZE * 16` in the directive
-
-## Shader Project Structure
-
-Use `.glsl` for shared utilities or shader code without an entrypoint (`main` function).
-
-Use `frag.glsl`, `geom.glsl`, `comp.glsl`, and `vert.glsl` for shaders with an entrypoint. The `.csh`, `.fsh`, `.gsh`, and `.vsh` files exist only for Iris compatibility or requirements.
-
-`shaders/pass/` should only contain shaders with an entrypoint. Put all other shader code under `shaders/techniques/` or `shaders/util/`.
-
-## Generated Shader Files
-
-Only run Shadesmith when `shaders/shadesmith.json` changes. Changes to `.glsl` files do not require a Shadesmith rebuild because `.csh` files include them at runtime.
-
-Run Shadesmith from the repository root with:
-
-```powershell
-.\scripts\shadesmith.ps1
+```text
+shaders/
+├─ Base.glsl       common include root
+├─ base/           shared interfaces and generated bindings
+├─ pass/           standard home for shader entry points
+├─ techniques/     reusable rendering modules and existing direct compute entries
+├─ util/           cross-module GLSL helpers
+└─ textures/       runtime LUT, noise, sky, cloud, and sampling assets
+scripts/           generators, packaging, release, and offline asset tools
+docs/              bilingual maintainer workflows and rendering-module maps
 ```
 
-When adding a transient, persistent, or history texture tile, update `shaders/shadesmith.json` and run `.\scripts\shadesmith.ps1` to update the Textile macro.
+## Where to Look
 
-Register every new `#ifdef SETTING_*` in `scripts/options.main.kts` before using it in GLSL, then regenerate options:
+| Task | Location | Notes |
+|------|----------|-------|
+| Compute pass order and enable conditions | `scripts/programs.main.kts` | Source of truth for numbered compute wrappers |
+| Settings, profiles, screens, localization | `scripts/options.main.kts` | Uses the DSL in `scripts/options.lib.kts` |
+| Iris properties and custom resources | `scripts/shaders.properties` | Hand-maintained source, unlike the generated shader-root file |
+| Textile tile layout | `shaders/shadesmith.json` | Owns generated `shaders/base/Textile.glsl` bindings |
+| Shader entry points | `shaders/pass/` | Grouped by setup, begin, geometry, shadowcomp, composite, and general |
+| Shared rendering implementations | `shaders/techniques/` | GI, atmospherics, RTWSM, display transform, FFX, and other modules |
+| Cross-module GLSL helpers | `shaders/util/` | Math, coordinates, sampling, material, packing, and color helpers |
+| Pipeline and module contracts | `docs/en/modules/` | Pass flows, resources, settings, limitations, and validation targets |
 
-```sh
-cd scripts
-kotlin options.main.kts
-```
+## Code Map
 
-Run the programs DSL after changing pass order, includes, compile-time defines, or pass enable conditions in `scripts/programs.main.kts`:
+| Symbol / entry | Location | Reach | Role |
+|----------------|----------|-------|------|
+| `Base.glsl` | `shaders/Base.glsl` | 24 direct include sites | Common compatibility, binding, and option interface root |
+| `Rand.glsl` / `Coords.glsl` / `Math.glsl` | `shaders/util/` | 35 / 36 / 41 include sites | Highest-fan-in shared helpers |
+| `ProgramScope.pass` | `scripts/programs.main.kts` | All generated compute wrappers | Records order, grouping, defines, conditions, and indirect dispatch |
+| `OptionBuilder` / `ScreenBuilder` | `scripts/options.lib.kts` | Settings, profiles, screens, languages | Builds option GLSL, localization, and final properties |
+| `main` entry families | `shaders/pass/` and `shaders/techniques/` | 53 standard / 23 existing direct entries | Runtime pass entry points |
 
-```sh
-cd scripts
-kotlin programs.main.kts
-```
+## Project Policy
 
-`programs.main.kts` generates pass wrapper `.csh` files and `scripts/programs.shaders.properties`. Use `pass("/path/to/shader")` for single passes, `pass("...", "...")` for grouped suffixed outputs, and block form for `define`, `constDefine`, and `cond`.
+- Write clean, direct maintainer code with minimal diffs, simple control flow, explicit logic, and compact formatting.
+  Never add spacing only to align declarations or operators.
+- When replacing a path, update callers directly and delete the old path, dead helpers, stale comments, and unused
+  settings. Do not preserve legacy behavior, parallel implementations, adapters, aliases, or compatibility wrappers
+  unless explicitly required.
+- Do not add an abstraction without two real uses. Avoid speculative managers, factories, registries, services, generic
+  frameworks, and feature flags or options with one use.
+- Validate only trust boundaries: user input, files, external APIs, GPU/driver output, and serialized data. Do not add
+  null/bounds checks, catch-all handling, or fallbacks for impossible states; fail visibly.
+- Prefer targeted fixes over broad frameworks. Do not add verbose comments that explain obvious code.
+
+## Scoped Instructions
+
+- Shader implementation and placement rules: `shaders/AGENTS.md`.
+- Generator, packaging, and release rules: `scripts/AGENTS.md`.
+- Documentation and language-parity rules: `docs/AGENTS.md`.
+
+## Generated Files and Commands
+
+Run generators from `scripts/`. Ordinary `.glsl` edits require no generator because wrappers include source at runtime.
+
+| Maintained source or task | Command from `scripts/` | Result |
+|---------------------------|--------------------------|--------|
+| `programs.main.kts` | `kotlin options.main.kts` | Reruns programs, then aggregates wrappers and final properties |
+| `options.main.kts`, `options.lib.kts`, `shaders.properties`, `sponsors.txt` | `kotlin options.main.kts` | Rebuilds options, languages, wrappers, and final properties |
+| `../shaders/shadesmith.json` | `.\shadesmith.ps1` then `kotlin options.main.kts` | Rebuilds Textile/image bindings and final properties |
+| Test package | `kotlin make-zip.main.kts [version] [--no-commit-hash]` | Writes an ignored package under `../builds/` |
+
+On a fresh checkout, run Shadesmith once before the first options generation so the ignored image/atlas fragment exists.
+Except for that bootstrap and ZIP packaging, run Shadesmith only when `shaders/shadesmith.json` changes.
+Use `programs.main.kts` alone only for a quick wrapper-numbering preview; `options.main.kts` is the shortest complete
+generation because it invokes the program generator.
+
+Do not edit tracked generated wrappers, `shaders/base/{Options,TextOptions,Textile}.glsl`, `shaders/lang/*.lang`, or
+`shaders/shaders.properties` directly. Do not commit ignored `scripts/*.shaders.properties` fragments, `shadesmitth/`,
+or AOT caches.
 
 ## Validation
 
-Prefer IDE diagnostics for shader and code validation. Use external validators such as `glslangValidator` only when explicitly requested or when IDE validation is unavailable.
+- Run `git diff --check` and `git diff --cached --check` before committing.
+- Keep tracked generated outputs in the same change as their maintained source.
+- Prefer IDE diagnostics. Use external validators such as `glslangValidator` only when explicitly requested or when IDE validation is unavailable.
+- No automated command replaces target-Iris compilation and visual validation. Check affected settings and profile
+  branches, history resets, and representative scenes.
 
 ## Reference Sources
 
-Check repository-local references before external sources:
+Check the maintained project documentation before external sources:
+
+- Architecture and workflow: `docs/en/development/`
+- Pipeline and rendering-module contracts: `docs/en/modules/`
+- Generic Iris behavior: use the upstream documentation linked from `docs/en/README.md` instead of restating it here.
+
+When present in the working environment, check repository-local references before external sources:
 
 - CG and rendering references: `agent_inputs/cg-resources/`
 - Iris shader documentation: `agent_inputs/iris-docs/`
