@@ -273,8 +273,12 @@ programs {
         }
         pass("/pass/composite/TAAPrepare.comp.glsl")
         pass("/pass/composite/TAAResolve.comp.glsl")
-        pass("/pass/composite/FXAA.comp.glsl")
-        pass("/pass/composite/RCAS.comp.glsl")
+        pass("/pass/composite/FXAA.comp.glsl") {
+            cond("defined(SETTING_TAA)")
+        }
+        pass("/pass/composite/RCAS.comp.glsl") {
+            cond("defined(SETTING_TAA)")
+        }
         for (i in 1..10) {
             pass("/techniques/Bloom.comp.glsl") {
                 constDefine("BLOOM_DOWN_SAMPLE", 1)
