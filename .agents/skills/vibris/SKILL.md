@@ -45,20 +45,10 @@ files are `replay-<backend>.args` and `replay-<backend>.aot`.
 
 Use `scripts/iris-control.ps1` for the same operations exposed by
 `iris_capture_mcp.py`. The script talks directly to Iris' local HTTP control
-server and reads the control file from `config.json`:
-
-```json
-{
-  "iris_control_path": ".minecraft\\iris-capture-control.json"
-}
-```
-
-The Minecraft client must be running before the script can reach Iris. The
-control file is normally created by the running client at:
-
-```text
-.minecraft\iris-capture-control.json
-```
+server and reads `iris_control_path` from `config.json`. The running Minecraft
+client normally creates the control file at
+`.minecraft\iris-capture-control.json` and must be running before the script
+can reach Iris.
 
 Available actions:
 
@@ -68,34 +58,14 @@ Available actions:
 - `capture-multi`: captures all compute dispatches in one composite-like
   program type: `prepare`, `begin`, `deferred`, or `composite`.
 
-When profiling a known hotspot such as `composite20`, prefer `capture-pass`
-for that single pass. It keeps capture, replay, and GPU Trace turnaround much
-faster than `capture-multi`. Use `capture-multi` when the target pass is not
-known yet, when you need program-wide ordering context, or when the shader
-experiment may reference resources that only appear in other passes.
-
-Examples:
-
-```powershell
-.agents\skills\vibris\scripts\iris-control.ps1 -Action status
-
-.agents\skills\vibris\scripts\iris-control.ps1 -Action reload
-
-.agents\skills\vibris\scripts\iris-control.ps1 `
-  -Action capture-pass `
-  -Pass composite20
-
-.agents\skills\vibris\scripts\iris-control.ps1 `
-  -Action capture-multi `
-  -Type composite
-```
+When profiling a known hotspot, prefer `capture-pass` for that single pass. It
+keeps capture, replay, and GPU Trace turnaround much faster than
+`capture-multi`. Use `capture-multi` when the target pass is not known yet,
+when you need program-wide ordering context, or when the shader experiment may
+reference resources that only appear in other passes.
 
 If `-Path` is omitted, capture actions create a timestamped path under
-`config.json`'s `capture_path`, for example:
-
-```text
-R:\vibris\captures\composite-20260610-050000
-```
+`config.json`'s `capture_path`.
 
 The returned directory is the capture directory to feed into the replayers.
 Resources are captured on first reference during capture. If a replacement
@@ -104,50 +74,13 @@ replayer should fail instead of continuing with invalid bindings.
 
 ## Replayer Usage
 
-Run OpenGL replay with defaults from `config.json`:
+Use `scripts/run-replayer.ps1` with `-Backend gl` or `-Backend vk`. Omit
+`-Capture` to use `config.json` capture selection, or pass a capture directory
+explicitly. Use `-ShaderRoot <path>` for replacement shaderpack source and
+`-ShaderPass <passName>` to limit replacement to selected passes.
 
-```powershell
-.agents\skills\vibris\scripts\run-replayer.ps1 -Backend gl
-```
-
-Run Vulkan replay:
-
-```powershell
-.agents\skills\vibris\scripts\run-replayer.ps1 -Backend vk
-```
-
-Run a specific capture:
-
-```powershell
-.agents\skills\vibris\scripts\run-replayer.ps1 `
-  -Backend gl `
-  -Capture R:\vibris\composite-20260610-050000
-```
-
-Run with replacement shader source:
-
-```powershell
-.agents\skills\vibris\scripts\run-replayer.ps1 `
-  -Backend gl `
-  -Capture R:\vibris\composite-20260610-050000 `
-  -ShaderRoot shaders
-```
-
-Run with replacement shader source for only one pass:
-
-```powershell
-.agents\skills\vibris\scripts\run-replayer.ps1 `
-  -Backend gl `
-  -Capture R:\vibris\composite-20260610-050000 `
-  -ShaderRoot shaders `
-  -ShaderPass composite20
-```
-
-The replay CLI accepts:
-
-```text
-<captureDir> [frameLimit] [--shader-path|--shader-root <path>] [--shader-pass <passName>]...
-```
+The underlying replay CLI accepts
+`<captureDir> [frameLimit] [--shader-path|--shader-root <path>] [--shader-pass <passName>]...`.
 
 OpenGL replay uses the captured original OpenGL shader source unless
 `--shader-root` is supplied. Vulkan replay uses runtime patching for shader
@@ -158,19 +91,11 @@ replaced and the other captured passes keep their original shader sources.
 
 ## Nsight GPU Trace
 
-Use the bundled Nsight Analyzer skill through:
-
-```text
-..\nsight-graphics-analyzer\scripts\nsight.py
-```
-
-Do not read `BASE/GPUTRACE_REGIMES.xls` directly. It is large. Use the
-generated JSON files or the analyzer subcommands:
-
-```powershell
-python ..\nsight-graphics-analyzer\scripts\nsight.py `
-  gputrace-stages <trace.ngfx-gputrace> --top 20
-```
+Use the bundled Nsight Analyzer at
+`..\nsight-graphics-analyzer\scripts\nsight.py`. Do not read
+`BASE/GPUTRACE_REGIMES.xls` directly; use the generated JSON files or the
+`gputrace-stages`, `gputrace-actions`, and `gputrace-metric` analyzer
+subcommands.
 
 In most cases, capture GPU Trace with the OpenGL replayer. It uses the same
 OpenGL shader compiler path as the target game and is the best default for
@@ -184,41 +109,11 @@ diagnostic lens, not as exact OpenGL performance truth: Vulkan uses a different
 driver compiler path, so shader codegen and stall behavior may differ from the
 OpenGL shaderpack runtime.
 
-To capture a replay under Nsight using `config.json` defaults:
-
-```powershell
-.agents\skills\vibris\scripts\capture-gputrace.ps1 -Backend gl
-```
-
-Specific capture:
-
-```powershell
-.agents\skills\vibris\scripts\capture-gputrace.ps1 `
-  -Backend gl `
-  -Capture R:\vibris\composite-20260610-050000 `
-  -StartAfterFrames 3 `
-  -MaxDurationMs 3000
-```
-
-Specific replacement pass:
-
-```powershell
-.agents\skills\vibris\scripts\capture-gputrace.ps1 `
-  -Backend gl `
-  -ShaderRoot shaders `
-  -ShaderPass composite20 `
-  -StartAfterFrames 3 `
-  -MaxDurationMs 3000
-```
-
-Fine-grained Vulkan trace:
-
-```powershell
-.agents\skills\vibris\scripts\capture-gputrace.ps1 `
-  -Backend vk `
-  -MultiPassMetrics `
-  -ShaderProfile
-```
+Use `scripts/capture-gputrace.ps1` with `-Backend gl` by default. Select a
+capture with `-Capture`, replacement source with `-ShaderRoot` and
+`-ShaderPass`, and trace timing or limits with the parameters below. For
+fine-grained Vulkan diagnostics, use `-Backend vk` with
+`-MultiPassMetrics` and `-ShaderProfile`.
 
 GPU Trace parameter coverage in `capture-gputrace.ps1`:
 
@@ -256,21 +151,9 @@ When `multi_pass_metrics` is enabled and `-Frames` is not explicitly passed,
 collection; the default process behavior is to exit after the GPU Trace capture
 finishes.
 
-Some raw `ngfx.exe --help-all` options, such as `--num-frames`,
-D3D12-specific flags, or
-`--disable-force-recompile-cached-vk-shader-stage-modules`, are not exposed by
-the current Nsight analyzer wrapper. Prefer the wrapper for normal work because
-it auto-exports the trace and writes the summary/stages/actions JSON files.
-
-The script creates a Java argfile and passes it to Nsight as:
-
-```text
---args @<project-root>/.tmp/vibris/replay-<backend>.args
-```
-
-This is intentional. Passing `--args "-jar ..."` through the Nsight wrapper can
-quote the entire Java command as one argument, causing Java to treat it as a
-class name and exit before trace collection starts.
+Some raw `ngfx.exe --help-all` options are not exposed by the current Nsight
+analyzer wrapper. Prefer the wrapper for normal work because it auto-exports
+the trace and writes the summary/stages/actions JSON files.
 
 Successful Nsight GPU Trace output includes:
 
@@ -286,15 +169,12 @@ Read `summary.json` first, then drill with `gputrace-stages`,
 ## Recommended Workflow
 
 1. Ensure Minecraft/Iris is running in the target scene.
-2. Use `scripts/iris-control.ps1 -Action reload` when shaderpack source changed.
-3. If profiling a known hotspot pass, use
-   `scripts/iris-control.ps1 -Action capture-pass -Pass <passName>` to capture
-   only that pass into a unique path under `config.json`'s `capture_path`.
-   Otherwise, use `scripts/iris-control.ps1 -Action capture-multi -Type composite`.
-4. Run `scripts/run-replayer.ps1 -Backend gl -Capture <captureDir>` to verify
-   replay correctness.
-5. Run `scripts/capture-gputrace.ps1 -Backend gl -Capture <captureDir>` to
-   collect GPU Trace for the replayer.
+2. Reload the active shader pack through Iris control after shader source changes.
+3. Capture only the target pass for a known hotspot; otherwise capture the
+   relevant composite-like program type.
+4. Verify replay correctness with the OpenGL replayer.
+5. Collect GPU Trace with the OpenGL replayer unless Vulkan-only diagnostics
+   are required.
 6. Inspect the generated summary JSON first. Use analyzer drill-down commands
    only after confirming `bundle_complete=True`.
 
