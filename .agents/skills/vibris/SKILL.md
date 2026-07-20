@@ -159,8 +159,24 @@ Successful Nsight GPU Trace output includes:
 - `<name>.gputrace.actions.json`
 - `BASE/*.xls`
 
-Read `summary.json` first, then drill with `gputrace-stages`,
-`gputrace-actions`, or `gputrace-metric`.
+### Replayer trace measurement contract
+
+For `replay-gl.jar` and `replay-vk.jar` traces, use `summary.json` only to
+confirm `bundle_complete=True`. Never use whole-capture duration,
+relative-to-capture values, `analysis.frame_budget`, `fraction_of_gpu`,
+replayer CPU submission, `replay-perf`, Copy work, or sleep/yield time as
+shader performance evidence. Those values include replayer behavior and
+unrelated scheduling noise that do not represent Iris runtime performance.
+
+Report only:
+
+- the duration of an individual pass inside the outer `Replay` marker; or
+- that pass duration divided by the complete outer `Replay` marker duration.
+
+Prefer `gputrace-actions <trace> --in-marker "^Replay$"` to select passes,
+and use the stage tree to read the exact outer `Replay` duration. Exclude the
+outer `Copy` marker and the unmarked tail sentinel dispatch from shader
+comparisons. The sentinel exists only to absorb end-of-replay timing noise.
 
 ## Recommended Workflow
 
@@ -172,8 +188,8 @@ Read `summary.json` first, then drill with `gputrace-stages`,
 5. Verify replay correctness with the OpenGL replayer.
 6. Collect GPU Trace with the OpenGL replayer unless Vulkan-only diagnostics
    are required.
-7. Inspect the generated summary JSON first. Use analyzer drill-down commands
-   only after confirming `bundle_complete=True`.
+7. Confirm `bundle_complete=True`, then inspect only passes inside the outer
+   `Replay` marker under the measurement contract above.
 
 For shader experiments, edit shaderpack sources and pass `-ShaderRoot`; do not
 recapture unless resource or uniform usage changed. If new shader code uses a

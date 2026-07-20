@@ -197,6 +197,8 @@ function Ensure-VibrisJavaAotCache {
         [Parameter(Mandatory = $true)]
         [string]$Java,
         [Parameter(Mandatory = $true)]
+        [string]$Jar,
+        [Parameter(Mandatory = $true)]
         [string]$AotCache,
         [Parameter(Mandatory = $true)]
         [string]$ArgFile,
@@ -204,17 +206,20 @@ function Ensure-VibrisJavaAotCache {
     )
 
     if (Test-Path -LiteralPath $AotCache -PathType Leaf) {
-        return 0
+        if ((Get-Item -LiteralPath $AotCache).LastWriteTimeUtc -ge (Get-Item -LiteralPath $Jar).LastWriteTimeUtc) {
+            return 0
+        }
+        Remove-Item -LiteralPath $AotCache
     }
 
-    Write-Host "$Name AOT cache not found, running once to generate it..."
+    Write-Host "$Name AOT cache missing or stale, running once to generate it..."
 
     $aotArgs = @(
         "-XX:AOTCacheOutput=$AotCache",
         "@$ArgFile"
     )
 
-    & $Java @aotArgs
+    & $Java @aotArgs | Out-Host
     return $LASTEXITCODE
 }
 

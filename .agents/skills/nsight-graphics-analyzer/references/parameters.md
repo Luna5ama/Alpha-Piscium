@@ -9,6 +9,17 @@ Five sub-tables map common decisions to ngfx flags.
 - D. Drill-down workflow after capture
 - E. Advanced tuning (rare)
 
+## Vibris/glc2vk replayer override
+
+For Vibris OpenGL or Vulkan replayer traces, do not use whole-capture
+duration, relative-to-capture values, `analysis.frame_budget`,
+`fraction_of_gpu`, replayer CPU submission, `replay-perf`, Copy work, or
+sleep/yield time as shader evidence. Measure only an individual pass inside
+the complete outer `Replay` marker, or `pass_duration / Replay_duration`.
+Prefer `gputrace-actions --in-marker "^Replay$"`; exclude the outer `Copy`
+marker and the unmarked tail sentinel dispatch. This override takes
+precedence over the generic tables below.
+
 For any subcommand's full flag list run
 `python "<SKILL_DIR>/scripts/nsight.py" <cmd> --help`.
 
