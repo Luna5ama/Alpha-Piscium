@@ -279,10 +279,29 @@ def check_lookup(sources: Sources) -> list[str]:
         re.search(r"reservoir\.radiance\s*\*\s*reservoir\.avgWY", sources.sample) is None,
         "RadianceCacheSample: lookup still uses sample * avgWY",
     )
-    require(
+    require_exprs(
         failures,
-        sources.sample.count("rc_reservoirEstimateRadiance(reservoir)") >= 2,
-        "RadianceCacheSample: both lookup paths must call rc_reservoirEstimateRadiance",
+        function_body(sources.sample, "rc_lookupSampleFace"),
+        "RadianceCacheSample shared lookup",
+        (("rc_reservoirEstimateRadiance(reservoir)", "must use the cached radiance estimate"),),
+    )
+    require_exprs(
+        failures,
+        function_body(sources.sample, "rc_lookupDiffuseGISmooth"),
+        "RadianceCacheSample smooth lookup",
+        (
+            ("rc_lookupSampleFace(", "must use the shared face lookup"),
+            ("float thickness = ldexp(1.0, int(level));", "must retain one-cell depth tolerance"),
+        ),
+    )
+    require_exprs(
+        failures,
+        function_body(sources.sample, "rc_lookupDiffuseGI"),
+        "RadianceCacheSample 1x1 lookup",
+        (
+            ("rc_lookupSampleFace(", "must use the shared face lookup"),
+            ("ldexp(2.0, int(level))", "must retain two-cell depth tolerance"),
+        ),
     )
     require(
         failures,
