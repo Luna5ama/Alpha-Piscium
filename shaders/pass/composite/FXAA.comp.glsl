@@ -116,11 +116,9 @@ void main() {
                 filteredLumaDiff *= 0.25;
                 finalBlend *= filteredLumaDiff;
             }
-
             outputData.rgb = mix(colM, edgeColor, finalBlend);
         }
 
         transient_fxaaOutput_store(texelPos, outputData);
     }
 }
-
