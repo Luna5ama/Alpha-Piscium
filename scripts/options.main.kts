@@ -1721,13 +1721,24 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "云照明"
                     }
-                    slider("SETTING_CLOUDS_MS_RADIUS", -1.0, -4.0..4.0 step 0.25) {
+                    slider("SETTING_CLOUDS_MS_RADIUS", -1.5, -2.0..2.0 step 0.1) {
                         lang {
                             name = "Multi-Scattering Radius"
                             prefix = "2^"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "多重散射半径"
+                        }
+                    }
+                    slider("SETTING_CLOUDS_CU_ISOTROPIC_MS_INTENSITY", 1.0, 0.0..2.0 step 0.05) {
+                        lang {
+                            name = "Isotropic Multiple-Scattering Intensity"
+                            comment =
+                                "Controls isotropic multiple scattering intensity for cumulus clouds. 0 disables it; the default 1.0 is the current artistic gain. 0.25 approximately matches the omitted 3/(4π) normalization reference."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "各向同性多重散射强度"
+                            comment = "控制积云各向同性多重散射的强度。设为 0 可禁用；默认值 1.0 是当前使用的艺术性增益。0.25 近似于省略的 3/(4π) 归一化参考值。"
                         }
                     }
                     slider("SETTING_CLOUDS_AMB_BACKSCATTER_FACTOR", 0.5, 0.0..1.0 step 0.05) {
