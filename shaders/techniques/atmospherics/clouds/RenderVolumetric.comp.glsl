@@ -147,7 +147,7 @@ void render(ivec2 texelPosDownScale) {
         cuFlag &= uint(cuOrigin2RayStart >= 0.0);
 
         if (bool(cuFlag)) {
-            #define CLOUDS_CU_DENSITY (72.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (96.0 * SETTING_CLOUDS_CU_DENSITY)
 
             cuRayLen = min(cuRayLen, CLOUDS_CU_MAX_RAY_LENGTH);
             float cuRaySteps = cuRayLen / CLOUDS_CU_MAX_RAY_LENGTH * float(SETTING_CLOUDS_LOW_STEP_MAX);
