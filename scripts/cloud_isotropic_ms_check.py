@@ -30,29 +30,23 @@ CASE_COUNT: Final = 4096; SOURCE_COUNT: Final = 8; CHANNEL_COUNT: Final = 3
 OMEGA_0: Final = 0.999; ABSORPTION: Final = 0.001; DIFFUSION_K: Final = math.sqrt(3.0 * ABSORPTION)
 CLOUDS_CU_ASYM: Final[Spectral] = (0.8615159687912013, 0.8732937077048064, 0.9375708300315341)
 FP32_NEGATIVE_TOLERANCE: Final = 2.0e-6
-WDT22_BASELINES: Final[tuple[str, ...]] = ("6b1dcf94786340c30793dddbcb4430134f0c81e573f4680beaeb62875112767a", "d81c6af0301b8a63cb7f22d0fe9ebc53693a04a6d0451aefa1c444e3f57a054d", "57f570f7c903a9d85b73ef144cf055cd383e20017e1c61283213f712ca0e92e2")
+WDT22_BASELINE: Final = "6b1dcf94786340c30793dddbcb4430134f0c81e573f4680beaeb62875112767a"
+WDT22_STABILIZER: Final = "fMS = mix(fMS, fMS * 0.95, linearStep(0.9, 1.0, fMS));"
 
 
 @dataclass(frozen=True, slots=True)
 class Source:
-    prefix: Spectral
-    sigma_t: Spectral
-    ds: float
-    boundary: float
-    radius: float
+    prefix: Spectral; sigma_t: Spectral; ds: float; radius: float
 
 
 @dataclass(frozen=True, slots=True)
 class Case:
-    sources: tuple[Source, ...]
-    anisotropy: Spectral
+    sources: tuple[Source, ...]; anisotropy: Spectral
 
 
 @dataclass(frozen=True, slots=True)
 class Factorization:
-    phi: Spectral
-    sum_a: Spectral
-    sum_b: Spectral
+    phi: Spectral; sum_a: Spectral; sum_b: Spectral
 
 
 Tolerance = tuple[float, float]
@@ -76,15 +70,13 @@ def fraction(seed: int) -> float:
 
 def build_case(index: int) -> Case:
     if index == 0:
-        scale, ds, boundary_scale = 0.0, 1.0, 1.0
+        scale, ds = 0.0, 1.0
     elif index == 1:
-        scale, ds, boundary_scale = 0.8, 0.3, 0.0
+        scale, ds = 1.0e-3, 0.01
     elif index == 2:
-        scale, ds, boundary_scale = 1.0e-3, 0.01, 1.0
-    elif index == 3:
-        scale, ds, boundary_scale = 80.0, 4.0, 1.0
+        scale, ds = 80.0, 4.0
     else:
-        scale = 10.0 ** (-3.0 + 6.0 * fraction(index * 13 + 1)); ds = 0.02 + 1.98 * fraction(index * 17 + 2); boundary_scale = 1.0
+        scale = 10.0 ** (-3.0 + 6.0 * fraction(index * 13 + 1)); ds = 0.02 + 1.98 * fraction(index * 17 + 2)
 
     cumulative = [0.0, 0.0, 0.0]; sources: list[Source] = []
     for source_index in range(SOURCE_COUNT):
@@ -98,8 +90,7 @@ def build_case(index: int) -> Case:
             cumulative[1] + 0.5 * sigma_t[1] * ds,
             cumulative[2] + 0.5 * sigma_t[2] * ds,
         )
-        boundary = boundary_scale * (0.2 + 0.8 * fraction(index * 131 + source_index * 7))
-        sources.append(Source(prefix, sigma_t, ds, boundary, (source_index + 0.5) * ds))
+        sources.append(Source(prefix, sigma_t, ds, (source_index + 0.5) * ds))
         for channel in range(CHANNEL_COUNT):
             cumulative[channel] += sigma_t[channel] * ds
     return Case(tuple(sources), CLOUDS_CU_ASYM)
@@ -107,8 +98,7 @@ def build_case(index: int) -> Case:
 
 @dataclass(frozen=True, slots=True)
 class Arithmetic:
-    fp32: bool
-    inverse_radius: bool
+    fp32: bool; inverse_radius: bool
 
 
 FLOAT64: Final = Arithmetic(False, True)
@@ -140,7 +130,6 @@ def exponential(value: float, arithmetic: Arithmetic) -> float:
 def source_weight(source: Source, channel: int, arithmetic: Arithmetic) -> float:
     sigma_t = rounded(source.sigma_t[channel], arithmetic)
     weight = multiply(multiply(multiply(rounded(OMEGA_0, arithmetic), sigma_t, arithmetic), source.ds, arithmetic), sigma_t, arithmetic)
-    weight = multiply(weight, source.boundary, arithmetic)
     if arithmetic.inverse_radius:
         return rounded(weight / rounded(max(source.radius, source.ds * 0.5), arithmetic), arithmetic)
     return weight
@@ -200,59 +189,76 @@ def check_math(cases: Sequence[Case]) -> None:
 
 
 def check_edges(cases: Sequence[Case]) -> None:
-    empty = factorized(cases[0], FLOAT64); zero_boundary = factorized(cases[1], FLOAT64)
+    empty = factorized(cases[0], FLOAT64)
     require(direct(cases[0], FLOAT64) == (0.0, 0.0, 0.0) and empty.phi == (0.0, 0.0, 0.0) and empty.sum_b == (0.0, 0.0, 0.0), "edges: empty density is not exact zero")
-    require(direct(cases[1], FLOAT64) == (0.0, 0.0, 0.0) and zero_boundary.phi == (0.0, 0.0, 0.0) and zero_boundary.sum_b == (0.0, 0.0, 0.0), "edges: zero boundary/B is not exact zero")
-    thin = cases[2]
+    thin = cases[1]
     thin_limit = tuple(sum(source_weight(source, channel, FLOAT64) * (1.0 - thin.anisotropy[channel]) * source.prefix[channel] for source in thin.sources) for channel in range(CHANNEL_COUNT))
     require(close((thin_limit[0], thin_limit[1], thin_limit[2]), direct(thin, FLOAT64), (8.0e-5, 1.0e-18)), "edges: optically-thin limit mismatch")
-    require(all(math.isfinite(value) and value >= 0.0 for value in direct(cases[3], FLOAT64) + factorized(cases[3], FLOAT64).phi), "edges: extreme optical depth is invalid")
-    print("PASS edges: empty density, zero boundary/B, thin limit, and extreme OD")
-
-
-def check_mutations(cases: Sequence[Case]) -> None:
-    case = cases[2048]; reference = direct(case, FLOAT64); correct = factorized(case, FLOAT64)
-    wrong_sign = tuple(correct.sum_a[c] + correct.sum_b[c] for c in range(CHANNEL_COUNT)); no_inverse_radius = factorized(case, Arithmetic(False, False)).phi
-    require(close(reference, correct.phi, FLOAT64_TOLERANCE), "mutations: correct oracle failed")
-    require(not close(reference, (wrong_sign[0], wrong_sign[1], wrong_sign[2]), FLOAT64_TOLERANCE), "mutations: wrong-sign mutant survived")
-    require(not close(reference, no_inverse_radius, FLOAT64_TOLERANCE), "mutations: missing-1/r mutant survived")
-    print("PASS mutations: plus-sign and missing-1/r mutants rejected")
+    require(all(math.isfinite(value) and value >= 0.0 for value in direct(cases[2], FLOAT64) + factorized(cases[2], FLOAT64).phi), "edges: extreme optical depth is invalid")
+    print("PASS edges: empty density, thin limit, and extreme OD")
 
 
 def read_utf8(path: Path) -> str:
     return path.read_text(encoding="utf-8")
 
 
-def debug_gaps(source_root: Path) -> tuple[str, ...]:
-    prefix, total, build = 0.02, 20.0, 0.1; weight = OMEGA_0 * 0.02 / max(0.01, 0.01)
-    correct = weight * math.exp(-ABSORPTION * prefix) * (1.0 - math.exp(-build * prefix)) * math.exp(-DIFFUSION_K * prefix)
-    old = weight * math.exp(-ABSORPTION * (total - prefix)) * (1.0 - math.exp(-build * (total - prefix))) * math.exp(-DIFFUSION_K * prefix)
-    require(old > 100.0 * correct, "debug toy no longer isolates tail-depth amplification")
-    render = read_utf8(source_root / "shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl")
-    light_loop = render.index("for (uint lightStepIndex"); intensity = render.index("isotropicMS *= SETTING_CLOUDS_CU_ISOTROPIC_MS_INTENSITY;")
-    ms_core = render[render.index("vec3 isotropicMSOpticalDepth"):intensity]
-    exp_lines = tuple(line for line in ms_core.splitlines() if "exp(" in line and "isotropicMS" in line)
-    boundary = re.search(r"float\s+\w*[Bb]oundary\w*\s*=\s*[^;]+;", render)
-    soft = re.search(r"isotropicMS\s*=\s*1\.0\s*-\s*exp\(\s*-max\(\s*isotropicMS\s*,\s*(?:vec3\()?0\.0\)?\s*\)\s*\)\s*;", render)
+def wdt22_digest(common: str) -> str:
+    start_token = "vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));"; end_token = "sampleIrradiance += sampleMSIrradiance;"
+    start = common.index(start_token); end = common.index(end_token, start) + len(end_token)
+    return hashlib.sha256(" ".join(common[start:end].split()).encode()).hexdigest()
+
+
+def check_wdt22_numeric() -> None:
+    dense_extinction = multiply(multiply(0.19358580629452912, 96.0, FLOAT32), 4.0, FLOAT32)
+    radius = rounded(2.0 ** -1.5, FLOAT32)
+    raw = subtract(1.0, exponential(-multiply(radius, dense_extinction, FLOAT32), FLOAT32), FLOAT32)
+    unstabilized = math.inf if raw == 1.0 else raw / (1.0 - raw)
+    blend = min(max((raw - 0.9) / 0.1, 0.0), 1.0)
+    stabilized = rounded(raw * (1.0 - blend) + raw * 0.95 * blend, FLOAT32)
+    stabilized_term = rounded(stabilized / subtract(1.0, stabilized, FLOAT32), FLOAT32)
+    require(raw == 1.0 and not math.isfinite(unstabilized), "WDT22: dense FP32 case no longer reaches the nonfinite raw ratio")
+    require(math.isfinite(stabilized_term), "WDT22: stabilized dense FP32 ratio is nonfinite")
+    print(f"PASS WDT22 FP32: raw={raw:.1f}, raw ratio=nonfinite, stabilized ratio={stabilized_term:.6g}")
+
+
+def source_contract_gaps(common: str, render: str) -> tuple[str, ...]:
     gaps: list[str] = []
-    if not exp_lines or "isotropicMSPrevU" in ms_core or any("isotropicMSU" not in line for line in exp_lines):
-        gaps.append(f"near-source tail-depth bright plate (toy old/prefix={old / correct:.1f}x)")
-    boundary_context = "" if boundary is None else render[max(0, boundary.start() - 400):boundary.end()]
-    if boundary is None or boundary.start() > light_loop or not ("heightFraction" in boundary_context or "stepState" in boundary_context):
-        gaps.append("boundary confidence is not evaluated once from the current main sample before the light loop")
-    if soft is None or intensity > soft.start():
-        gaps.append("dense isotropic field lacks post-intensity nonnegative 1-exp(-x) compression")
-    print(f"PASS debug toy: dense-tail nearest 1/r source old/prefix={old / correct:.1f}x")
+    if wdt22_digest(common) != WDT22_BASELINE or WDT22_STABILIZER not in common:
+        gaps.append("exact WDT22 stabilizer/base digest")
+    if "vec3 msPhase = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, 0.7);" not in common or "sampleIrradiance += renderParams.lightIrradiance * tLightToSample * sampleIsotropicMSIrradiance * msPhase;" not in common:
+        gaps.append("msPhase contract")
+    contracts = (
+        ("source constants", ("const float isotropicMSA = 0.001;", "const float isotropicMSK = sqrt(0.003);", "vec3 isotropicMSBuildRate = max(1.0 - CLOUDS_CU_ASYM, vec3(0.0));")),
+        ("jitter-consistent radius/prefix U", ("float lightRaySampleOffset = pow2(x) * lightRayLen;", "lightRayDir * lightRaySampleOffset", "float lightRaySamplePrefixLength = lightRaySampleOffset - pow2(indexF * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP) * lightRayLen;", "isotropicMSOpticalDepth + sigmaTr * lightRaySamplePrefixLength")),
+        ("full-bin source weight/1-r", ("vec3 isotropicMSDeltaOpticalDepth = sigmaTr * lightRayStepLength;", "(sigmaS * lightRayStepLength) * sigmaTr / max(lightRaySampleOffset, 0.5 * lightRayStepLength)")),
+        ("combined absorption/diffusion", ("exp(-(isotropicMSA + isotropicMSK) * isotropicMSU)",)),
+        ("post-intensity compression", ("isotropicMS = 1.0 - exp(-max(isotropicMS, vec3(0.0)));",)),
+    )
+    for label, fragments in contracts:
+        if not all(fragment in render for fragment in fragments):
+            gaps.append(label)
+    order = tuple(render.find(fragment) for fragment in ("vec3 isotropicMSU =", "vec3 isotropicMSW =", "isotropicMS +=", "isotropicMSOpticalDepth +="))
+    if min(order) < 0 or order != tuple(sorted(order)):
+        gaps.append("source contribution/update order")
+    if "isotropicMSBoundaryConfidence" in render:
+        gaps.append("dead boundary confidence scaffolding")
     return tuple(gaps)
 
 
-def check_wdt22(source_root: Path) -> None:
-    common = read_utf8(source_root / "shaders/techniques/atmospherics/clouds/Common.glsl")
-    start_token = "vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));"; end_token = "sampleIrradiance += sampleMSIrradiance;"
-    start = common.index(start_token); end = common.index(end_token, start) + len(end_token)
-    normalized = " ".join(common[start:end].split()); digest = hashlib.sha256(normalized.encode()).hexdigest()
-    require(digest in WDT22_BASELINES and "sampleIsotropicMSIrradiance" not in normalized and "sampleIrradiance += renderParams.lightIrradiance * tLightToSample * sampleIsotropicMSIrradiance" in common[:start], "WDT22 baseline changed or isotropic injection entered core")
-    print(f"PASS WDT22 pinned baseline: {digest}")
+def check_source_contract(common: str, render: str) -> None:
+    gaps = source_contract_gaps(common, render)
+    require(not gaps, f"source contract: {', '.join(gaps)}")
+    print(f"PASS WDT22 pinned baseline: {wdt22_digest(common)}")
+
+
+def check_source_mutations(common: str, render: str) -> None:
+    common_mutations = (("WDT", WDT22_STABILIZER, WDT22_STABILIZER.replace("0.95", "0.96")), ("msPhase mix", "vec3 msPhase = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, 0.7);", "vec3 msPhase = vec3(UNIFORM_PHASE);"), ("msPhase injection", "sampleIsotropicMSIrradiance * msPhase;", "sampleIsotropicMSIrradiance;"))
+    render_mutations = (("A", "const float isotropicMSA = 0.001;", "const float isotropicMSA = 0.002;"), ("K", "const float isotropicMSK = sqrt(0.003);", "const float isotropicMSK = sqrt(0.004);"), ("weight", "(sigmaS * lightRayStepLength) * sigmaTr", "(sigmaS * lightRaySamplePrefixLength) * sigmaTr"), ("1-r", "max(lightRaySampleOffset, 0.5 * lightRayStepLength)", "max(lightRayStepLength, 0.5 * lightRayStepLength)"), ("prefix U", "sigmaTr * lightRaySamplePrefixLength", "0.5 * isotropicMSDeltaOpticalDepth"), ("full-bin update", "vec3 isotropicMSDeltaOpticalDepth = sigmaTr * lightRayStepLength;", "vec3 isotropicMSDeltaOpticalDepth = sigmaTr * lightRaySamplePrefixLength;"), ("update order", "isotropicMS += isotropicMSW", "isotropicMSOpticalDepth += isotropicMSDeltaOpticalDepth;\n                                isotropicMS += isotropicMSW"), ("attenuation", "exp(-(isotropicMSA + isotropicMSK) * isotropicMSU)", "exp(-isotropicMSA * isotropicMSU)"), ("compression", "isotropicMS = 1.0 - exp(-max(isotropicMS, vec3(0.0)));", "isotropicMS = max(isotropicMS, vec3(0.0));"))
+    for label, old, new in common_mutations:
+        require(old in common, f"mutations: missing common target {label}"); require(source_contract_gaps(common.replace(old, new, 1), render), f"mutations: common {label} survived")
+    for label, old, new in render_mutations:
+        require(old in render, f"mutations: missing render target {label}"); require(source_contract_gaps(common, render.replace(old, new, 1)), f"mutations: render {label} survived")
+    print(f"PASS source mutations: {len(common_mutations) + len(render_mutations)} GLSL mutants rejected")
 
 
 def integration_gaps(source_root: Path) -> tuple[str, ...]:
@@ -276,14 +282,6 @@ def integration_gaps(source_root: Path) -> tuple[str, ...]:
             gaps.append(f"obsolete {identifier}")
     if common.count("sampleIsotropicMSIrradiance") < 2:
         gaps.append("Common.glsl argument/term")
-    sample_irradiance_start = common.index("vec3 sampleIrradiance")
-    sample_irradiance_block = common[sample_irradiance_start:common.index("vec3 fMS", sample_irradiance_start)]
-    direct_phase = "sampleIrradiance *= layerParam.medium.phase;"
-    phase_tail = sample_irradiance_block[sample_irradiance_block.index(direct_phase) + len(direct_phase):]
-    ms_phase = re.search(r"^\s*vec3\s+msPhase\s*=\s*mix\(\s*vec3\(\s*UNIFORM_PHASE\s*\)\s*,\s*layerParam\.medium\.phase\s*,\s*([+-]?(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?)\s*\);\s*$", phase_tail, re.MULTILINE)
-    blend = float(ms_phase.group(1)) if ms_phase is not None else math.nan
-    if not math.isfinite(blend) or not 0.0 <= blend <= 1.0: gaps.append("Common.glsl msPhase is not a finite [0,1] phase mix")
-    if re.search(r"^\s*sampleIrradiance\s*\+=\s*renderParams\.lightIrradiance\s*\*\s*tLightToSample\s*\*\s*sampleIsotropicMSIrradiance\s*\*\s*msPhase;\s*$", phase_tail, re.MULTILINE) is None: gaps.append("Common.glsl isotropic injection does not use msPhase exactly")
     cirrus_call = re.search(r"clouds_computeLighting\([^;]+vec3\(0\.0\),\s*vec3\(0\.0\),\s*ciAccum\s*\)", sky, re.DOTALL)
     if cirrus_call is None:
         gaps.append("SkyComposite cirrus zero")
@@ -309,16 +307,18 @@ def main() -> int:
     try:
         source_root = parse_source_root(sys.argv[1:])
         cases = tuple(build_case(index) for index in range(CASE_COUNT))
+        cloud_dir = source_root / "shaders/techniques/atmospherics/clouds"
+        common = read_utf8(cloud_dir / "Common.glsl"); render = read_utf8(cloud_dir / "RenderVolumetric.comp.glsl")
         check_math(cases)
         check_edges(cases)
-        check_mutations(cases)
-        check_wdt22(source_root)
-        debug = debug_gaps(source_root)
+        check_wdt22_numeric()
+        check_source_contract(common, render)
+        check_source_mutations(common, render)
         gaps = integration_gaps(source_root)
-        if debug or gaps:
-            print(f"FAIL debug contract: {', '.join(debug + gaps)}")
+        if gaps:
+            print(f"FAIL integration contract: {', '.join(gaps)}")
             return 1
-        print("PASS debug and integration contracts")
+        print("PASS integration contracts")
         return 0
     except CheckFailure as error:
         print(f"FAIL {error}")
