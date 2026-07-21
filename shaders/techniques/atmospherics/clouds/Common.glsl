@@ -141,12 +141,12 @@ void clouds_computeLighting(
     float D = exp2(SETTING_CLOUDS_MS_RADIUS);
 
     // TODO: Expose the density mix as setting
-    float ambLightDesnity = mix(sampleDensityLod, sampleDensity, 0.4);
+    float ambLightDesnity = mix(sampleDensityLod, sampleDensity, 0.8);
     vec3 ambLightOpticalDepth = layerParam.medium.extinction * ambLightDesnity;
-    float horizonFactor = saturate(pow3(renderParams.cosLightTheta));
-    ambLightOpticalDepth = mix(ambLightOpticalDepth, lightOpticalDepth, horizonFactor);
+    float horizonFactor = saturate(renderParams.cosLightTheta);
+    ambLightOpticalDepth = mix(ambLightOpticalDepth, lightOpticalDepth, 0.0);
     // See [SCH17]
-    vec3 ambientTransmittance = max(exp(-ambLightOpticalDepth), exp(-ambLightOpticalDepth * 0.25) * 0.7);
+    vec3 ambientTransmittance = max(exp(-ambLightOpticalDepth), exp(-ambLightOpticalDepth * 0.3) * 0.7);
 
     vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
     sampleAmbientIrradiance *= ambientTransmittance;
@@ -156,7 +156,7 @@ void clouds_computeLighting(
     sampleIrradiance += sampleAmbientIrradiance;
 
     vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
-    fMS = mix(fMS, fMS * 0.99, linearStep(0.9, 1.0, fMS));
+    fMS = mix(fMS, fMS * 0.95, linearStep(0.9, 1.0, fMS));
     vec3 sampleMSIrradiance = sampleLightIrradiance;
     sampleMSIrradiance *= UNIFORM_PHASE;
     sampleMSIrradiance += sampleAmbientIrradiance;
