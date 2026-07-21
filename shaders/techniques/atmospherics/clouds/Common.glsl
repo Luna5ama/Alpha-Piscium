@@ -158,6 +158,7 @@ void clouds_computeLighting(
     sampleIrradiance += renderParams.lightIrradiance * tLightToSample * sampleIsotropicMSIrradiance * msPhase;
 
     vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
+    fMS = mix(fMS, fMS * 0.95, linearStep(0.9, 1.0, fMS));
     vec3 sampleMSIrradiance = sampleLightIrradiance;
     sampleMSIrradiance *= UNIFORM_PHASE;
     sampleMSIrradiance += sampleAmbientIrradiance;
