@@ -142,7 +142,7 @@ void main() {
             float diffAccumFactor = rcp(1.0 + pow2(0.1 * diffHistoryLength));
             float pDiff = transient_diffBounceProbability_fetch(texelPos).x;
             diffAccumFactor = pow(diffAccumFactor, pDiff);
-            float specAccumFactor = rcp(1.0 + specHistoryLength);
+            float specAccumFactor = rcp(1.0 + pow2(0.1 * diffHistoryLength));
 
             vec2 hitDistFactor = pow2(hitDistanceFactors);
             hitDistFactor = hitDistFactor * 0.95 + 0.05;
@@ -285,7 +285,7 @@ void main() {
                 sigmaFP32 += 8.0 - hitDistFactor.y * 8.0;
                 sigmaFP32 += 0.025 * rcp(pow2(roughnessHistoryFactor));
                 float16_t sigma = float16_t(-sigmaFP32);
-                float baseNormalWeight = specInvAccumFactor * 128.0 + 32.0;
+                float baseNormalWeight = specInvAccumFactor * 64.0 + 256.0;
                 float basePlaneDistWeight = specInvAccumFactor * -256.0 - 256.0;
 
                 vec4 centerSpec = _gi_readSpec(texelPos);

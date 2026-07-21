@@ -163,7 +163,7 @@ void main() {
                 if (hit.hit) {
                     discardSptialReuse = distanceSq(hit.hitPos, expectedHitPos) > 0.05;
                 } else {
-                    discardSptialReuse = resultY.w > 0.0;
+                    discardSptialReuse = spatialReservoir.Y.w > 0.0;
                 }
 
                 if (discardSptialReuse) {

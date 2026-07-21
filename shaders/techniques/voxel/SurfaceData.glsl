@@ -1,7 +1,8 @@
 #ifndef INCLUDE_techniques_voxel_SurfaceData_glsl
 #define INCLUDE_techniques_voxel_SurfaceData_glsl a
 
-#include "VoxelTrace.glsl"
+#include "Voxelization.glsl"
+#include "VoxelHit.glsl"
 #include "VoxelFaceTexcoords.glsl"
 #include "/util/Material.glsl"
 

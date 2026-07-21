@@ -252,7 +252,7 @@ void main() {
                     vec2 hitDitanceFactors;
                     hitDitanceFactors.x = smoothstep(0.0, 4.0, filteredHitDitances.x);
                     const float factor = 0.2;
-                    hitDitanceFactors.y = smoothstep(0.0, 1.0, factor * filteredHitDitances.y * rcp(factor * filteredHitDitances.y + 1.0));
+                    hitDitanceFactors.y = smoothstep(0.0, 1.0, factor * filteredHitDitances.y * rcp(factor *filteredHitDitances.y + 1.0));
                     vec2 hlen = vec2(historyData.historyLength, historyData.specularHistoryLength);
                     vec2 remappedRealHLen = 1.0 - pow4(1.0 - hlen);
                     remappedRealHLen *= vec2(0.5, 0.5);
@@ -334,7 +334,7 @@ void main() {
                     vec2 hitDitanceFactors;
                     hitDitanceFactors.x = smoothstep(0.0, 4.0, filteredHitDitances.x);
                     const float factor = 0.2;
-                    hitDitanceFactors.y = smoothstep(0.0, 1.0, factor * filteredHitDitances.y * rcp(factor * filteredHitDitances.y + 1.0));
+                    hitDitanceFactors.y = smoothstep(0.0, 1.0, factor * filteredHitDitances.y * rcp(factor *filteredHitDitances.y + 1.0));
                     vec2 hlen = vec2(historyData.historyLength, historyData.specularHistoryLength);
                     vec2 remappedRealHLen = 1.0 - pow4(1.0 - hlen);
                     remappedRealHLen *= vec2(0.5, 0.5);
