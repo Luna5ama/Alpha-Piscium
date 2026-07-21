@@ -20,6 +20,8 @@
             https://qiutang98.github.io/post/%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93%E5%BC%80%E5%8F%91/%E5%AE%9E%E6%97%B6%E4%BD%93%E7%A7%AF%E4%BA%91%E6%B8%B2%E6%9F%93/
         [WDT22] Wo De Tian (oh my god). "一个简单的体积云多重散射近似方法" (A Simple Multiple Scattering Approximation for Volumetric Clouds). 2022.
             https://zhuanlan.zhihu.com/p/457997155
+        [ASH25] AshenOneArt. "HanPi Volume Cloud" isotropic multiple-scattering derivation.
+            https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/Docs/PhiFwd_FromRTE.md
 
         You can find full license texts in /licenses
 */
@@ -123,6 +125,7 @@ void clouds_computeLighting(
     float sampleDensity,
     float sampleDensityLod,
     vec3 lightOpticalDepth,
+    vec3 sampleIsotropicMSIrradiance,
     inout CloudRaymarchAccumState accumState
 ) {
     float cosLightZenith = dot(stepState.upVector, renderParams.lightDir);
@@ -143,10 +146,7 @@ void clouds_computeLighting(
     // TODO: Expose the density mix as setting
     float ambLightDesnity = mix(sampleDensityLod, sampleDensity, 0.8);
     vec3 ambLightOpticalDepth = layerParam.medium.extinction * ambLightDesnity;
-    float horizonFactor = saturate(renderParams.cosLightTheta);
-    ambLightOpticalDepth = mix(ambLightOpticalDepth, lightOpticalDepth, 0.0);
-    // See [SCH17]
-    vec3 ambientTransmittance = max(exp(-ambLightOpticalDepth), exp(-ambLightOpticalDepth * 0.3) * 0.7);
+    vec3 ambientTransmittance = exp(-ambLightOpticalDepth);
 
     vec3 sampleAmbientIrradiance = layerParam.ambientIrradiance;
     sampleAmbientIrradiance *= ambientTransmittance;
@@ -154,9 +154,10 @@ void clouds_computeLighting(
     vec3 sampleIrradiance = sampleLightIrradiance;
     sampleIrradiance *= layerParam.medium.phase;
     sampleIrradiance += sampleAmbientIrradiance;
+    vec3 msPhase = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, 0.7);
+    sampleIrradiance += renderParams.lightIrradiance * tLightToSample * sampleIsotropicMSIrradiance * msPhase;
 
     vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
-    fMS = mix(fMS, fMS * 0.95, linearStep(0.9, 1.0, fMS));
     vec3 sampleMSIrradiance = sampleLightIrradiance;
     sampleMSIrradiance *= UNIFORM_PHASE;
     sampleMSIrradiance += sampleAmbientIrradiance;
