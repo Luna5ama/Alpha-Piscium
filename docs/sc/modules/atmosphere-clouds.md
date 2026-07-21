@@ -53,6 +53,41 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 （RGBA32UI）。手写属性片段声明了自定义 cloud phase LUT、cirrus、cumulus base/detail 和 curl 纹理。高层 cirrus 由共享 sky/cloud
 路径采样，不使用独立 compute program。
 
+### 积云各向同性多重散射
+
+积云渲染器复用现有太阳光柱中按顺序排列的 8 个采样。对每个源采样中点，令 `U_i` 为从光柱起点到该中点的前缀光学深度，
+`sigma_s` 为散射系数，`sigma_tr` 为输运系数，`ds` 为采样长度，`r` 为源半径。再令 `a` 为吸收系数，`g` 为各颜色通道的
+不对称因子，且 `k = sqrt(3a)`，直接使用上游前缀的估计为
+
+$$
+W_i=\frac{(\sigma_s\,ds)\sigma_{tr}}{r},\qquad
+\Phi=\sum_{i=1}^{8}W_i e^{-aU_i}
+     \left(1-e^{-(1-g)U_i}\right)e^{-kU_i}.
+$$
+
+实现会把建立率 `1 - g` 钳制为非负值，避免变换后的颜色空间把散射积累变成放大。
+
+强度先应用，再经过固定软压缩：
+
+$$
+\Phi_{\mathrm{mapped}}=1-e^{-\max(\mathrm{intensity}\,\Phi,0)}.
+$$
+
+映射后每个通道的贡献均小于 `1`。`SETTING_CLOUDS_CU_ISOTROPIC_MS_INTENSITY` 提供 `intensity`；设为 `0` 时禁用该贡献，
+默认值 `1.0` 是当前使用的艺术性增益，而 `0.25` 近似于省略的 `3/(4π)` 归一化参考值。结果独立叠加在现有 WDT22
+多重散射项上，不会替代或修改该项。
+
+累积的 `phi_fwd` 场是各向同性的，并遵循前缀估计器；但最终视线路径读取有意使用
+`msPhase = mix(UNIFORM_PHASE, layerParam.medium.phase, 0.7)`，以保留受控的方向结构。这个渲染选择叠加在各向同性场之后，
+不属于其输运递推。
+
+论文中的局部云顶/局部高度边界置信度已禁用（`confidence = 1`），因为当前密度模型若不增加查找，就没有等价的局部代理。
+先前基于全局球形云层高度的代理会形成平面壳层，因此已移除。实现复用现有光柱，因此没有增加 pass、resource、texture 或
+density march。
+
+该估计参考了 AshenOneArt 的 [HanPi Volume Cloud 实现](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/VolumetricClouds.hlsl)
+与[前向通量推导](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/Docs/PhiFwd_FromRTE.md)。
+
 ## 空气、深度层与合成
 
 | 阶段    | Pass/代码                                                                                                                                                    | 作用                                                             |
@@ -75,7 +110,7 @@ setting 启用时绑定 `usam_constellations`。
 | 大气比例与地面 | 高度、密度比例和地面反照率                                                                   |
 | 空气      | epipolar slices/samples；Mie turbidity/time curve；Mie/Rayleigh/ozone multipliers |
 | 天空与光柱   | sky-view 分辨率、sky samples、shaft samples/shadow samples、深度断裂修正和柔和度                |
-| 低云      | 上采样比例；历史长度/置信度/方差；最小/最大步数；高度/厚度/密度/覆盖率/相函数；风和形状频率                               |
+| 低云      | 上采样比例；历史长度/置信度/方差；最小/最大步数；高度/厚度/密度/覆盖率/相函数；各向同性多重散射强度；风和形状频率                 |
 | 高云      | cirrus 高度、密度、覆盖率和相函数                                                            |
 | 天体      | sun/moon 半径、距离、温度/颜色/反照率；star-map 强度/gamma/bright-star boost；以及星座               |
 

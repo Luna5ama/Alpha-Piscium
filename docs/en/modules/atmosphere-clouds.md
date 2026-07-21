@@ -55,6 +55,45 @@ The main screen tiles are `transient_lowCloudRender`, `transient_lowCloudAccumul
 RGBA32UI). The hand-maintained property fragment declares custom cloud phase-LUT, cirrus, cumulus base/detail, and curl
 textures. High cirrus is sampled by the shared sky/cloud path rather than a separate compute program.
 
+### Cumulus isotropic multiple scattering
+
+The cumulus renderer reuses the existing ordered eight-sample sun-light column. For each source midpoint, let `U_i`
+be the prefix optical depth from the start of the light column to that midpoint, `sigma_s` the scattering coefficient,
+`sigma_tr` the transport coefficient, `ds` the sample length, and `r` the source radius. With absorption coefficient
+`a`, per-channel asymmetry `g`, and `k = sqrt(3a)`, the direct upstream-prefix estimator is
+
+$$
+W_i=\frac{(\sigma_s\,ds)\sigma_{tr}}{r},\qquad
+\Phi=\sum_{i=1}^{8}W_i e^{-aU_i}
+     \left(1-e^{-(1-g)U_i}\right)e^{-kU_i}.
+$$
+
+The implementation clamps the build rate `1 - g` to a nonnegative value so transformed color spaces cannot turn
+scattering buildup into amplification.
+
+Intensity is applied before a fixed soft compression:
+
+$$
+\Phi_{\mathrm{mapped}}=1-e^{-\max(\mathrm{intensity}\,\Phi,0)}.
+$$
+
+This bounds each mapped channel below `1`. `SETTING_CLOUDS_CU_ISOTROPIC_MS_INTENSITY` supplies `intensity`; `0`
+disables the contribution, the default `1.0` is the current artistic gain, and `0.25` approximately matches the
+omitted `3/(4π)` normalization reference. The result is added independently of the existing WDT22
+multiple-scattering term; it does not replace or modify that term.
+
+The accumulated `phi_fwd` field is isotropic and follows the prefix estimator, but final view-path readout intentionally
+uses `msPhase = mix(UNIFORM_PHASE, layerParam.medium.phase, 0.7)` to retain controlled directional structure. This
+rendering choice is layered after the isotropic field, not part of its transport recurrence.
+
+The paper's local cloud-top/local-height boundary confidence is disabled (`confidence = 1`) because the current
+density model has no equivalent local proxy without extra lookups. The earlier global spherical-layer-height proxy
+was removed because it creates planar shells. Reusing the light column therefore adds no pass, resource, texture, or
+density march.
+
+The estimator is adapted from AshenOneArt's [HanPi Volume Cloud implementation](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/VolumetricClouds.hlsl)
+and [forward-flux derivation](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/Docs/PhiFwd_FromRTE.md).
+
 ## Air, depth layers, and composition
 
 | Stage               | Pass/code                                                                                                                                                  | Purpose                                                                                                          |
@@ -77,7 +116,7 @@ through its own sky composite and [`Celestial.glsl`](../../../shaders/util/Celes
 | Atmosphere scale/ground | Altitude, density scale, and ground albedo                                                                                                      |
 | Air                     | Epipolar slices/samples; Mie turbidity/time curve; Mie/Rayleigh/ozone multipliers                                                               |
 | Sky/light shafts        | Sky-view resolution, sky samples, shaft samples/shadow samples, depth-break correction, and softness                                            |
-| Low cloud               | Upscale factor; history length/confidence/variance; minimum/maximum steps; height/thickness/density/coverage/phase; wind; and shape frequencies |
+| Low cloud               | Upscale factor; history length/confidence/variance; minimum/maximum steps; height/thickness/density/coverage/phase; isotropic multiple-scattering intensity; wind; and shape frequencies |
 | High cloud              | Cirrus height, density, coverage, and phase                                                                                                     |
 | Celestial               | Sun/moon radius, distance, temperature/color/albedo; star-map intensity/gamma/bright-star boost; and constellations                             |
 
