@@ -29,7 +29,7 @@ HardcodedPBR hardcodedpbr_decode(uint materialID) {
     pbr.sss = unpackU4(bitfieldExtract(rawData.x, 0, 4));
     pbr.emissive = unpackU4(bitfieldExtract(rawData.x, 4, 4));
     pbr.ior = unpackU8(bitfieldExtract(rawData.x, 8, 8)) * 3.0;
-    pbr.roughness = unpackU8(bitfieldExtract(rawData.x, 24, 8));
+    pbr.roughness = unpackU8(bitfieldExtract(rawData.x, 16, 8));
     pbr.metalIndex = bitfieldExtract(metalData, 0, 4);
     pbr.dielectric = unpackU4(bitfieldExtract(metalData, 4, 4));
     pbr.isKnown = isKnown;
