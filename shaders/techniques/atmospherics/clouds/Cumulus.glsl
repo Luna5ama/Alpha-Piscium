@@ -17,10 +17,10 @@ const float _LOW_BASE_FREQ = exp2(SETTING_CLOUDS_LOW_BASE_FREQ);
 const float _LOW_CURL_FREQ = exp2(SETTING_CLOUDS_LOW_CURL_FREQ);
 const float _LOW_BILLOWY_FREQ = exp2(SETTING_CLOUDS_LOW_BILLOWY_FREQ - 1.0);
 const float _LOW_BILLOWY_CURL_STR = exp2(SETTING_CLOUDS_LOW_BILLOWY_CURL_STR - 2.0);
-const float _HIGH_BILLOWY_FREQ = exp2(SETTING_CLOUDS_HIGH_BILLOWY_FREQ - 0.2);
+const float _HIGH_BILLOWY_FREQ = exp2(SETTING_CLOUDS_HIGH_BILLOWY_FREQ);
 const float _HIGH_BILLOWY_CURL_STR = exp2(SETTING_CLOUDS_HIGH_BILLOWY_CURL_STR - 1.0);
 const float _LOW_WISPS_FREQ = exp2(SETTING_CLOUDS_LOW_WISPS_FREQ);
-const float _LOW_WISPS_CURL_STR = exp2(SETTING_CLOUDS_LOW_WISPS_CURL_STR);
+const float _LOW_WISPS_CURL_STR = exp2(SETTING_CLOUDS_LOW_WISPS_CURL_STR - 2.0);
 
 
 /*
@@ -177,9 +177,8 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
         densityOut = linearStep(saturate(detail1Billowy), 1.0, densityOut);
         #endif
 
-        float detail1Wisp = detailNoiseW(rayPos + detailCurl * 1.0 * _LOW_WISPS_CURL_STR);
+        float detail1Wisp = detailNoiseW(rayPos + detailCurl * _LOW_WISPS_CURL_STR);
 
-        detail1Wisp = pow2(detail1Wisp);
         detail1Wisp *= COVERAGE_SQRT;
         float hc2 = _clouds_cu_heightCurveWisp(xs);
         detail1Wisp *= hc2;
@@ -189,9 +188,9 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
         #endif
 
         float hardEdgeBlend = linearStep(0.0, 0.3, heightFraction);
-        float minDetailDensity = mix(0.005, 0.03, hardEdgeBlend);
-        float edgeDesnityRange = mix(0.05, 0.005, hardEdgeBlend);
-        densityOut *= smoothstep(minDetailDensity, minDetailDensity + edgeDesnityRange, densityOut);
+        float minDetailDensity = mix(0.005, 0.02, hardEdgeBlend);
+        float edgeDesnityRange = mix(0.05, 0.01, hardEdgeBlend);
+        densityOut *= sqrt(smoothstep(minDetailDensity, minDetailDensity + edgeDesnityRange, densityOut));
 
         // Make cloud top more dense
         // TODO: Expose height density modifier as setting
