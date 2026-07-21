@@ -6,6 +6,7 @@
 
 #include "/techniques/gi/RadianceCache.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
+#include "/techniques/gi/HitDirectLighting.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
 #include "/techniques/voxel/SurfaceData.glsl"
@@ -207,10 +208,10 @@ vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     if (!surface.valid) {
         return vec3(0.0);
     }
-    surface.material.roughness = max(surface.material.roughness, RC_MAX_ROUGHNESS * 0.5);
-
-    vec3 radiance = surface.material.emissive;
+    vec3 radiance = surface.material.emissive
+        + gi_hitDirectLighting(surface.material, hit.hitPos, outgoingDir, hit.normal, hit.normal);
     valid = rc_luminance(radiance) > 0.0 && !any(isnan(radiance));
+    surface.material.roughness = max(surface.material.roughness, RC_MAX_ROUGHNESS * 0.5);
 
     RCReservoir prevReservoir;
     vec3 faceNormal;
