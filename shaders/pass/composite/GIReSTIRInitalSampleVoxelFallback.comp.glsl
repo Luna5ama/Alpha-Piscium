@@ -27,10 +27,11 @@ void main() {
         return;
     }
 
-    restir_InitialCandidate candidate = restir_initialCandidate_load(texelPos);
-    if (!restir_initialCandidate_needsVoxelFallback(candidate)) {
+    if (transient_restir_initialCandidate_fetch(texelPos).w != RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL) {
         return;
     }
+    vec4 directionAndPdf = transient_restir_initialCandidateDirection_fetch(texelPos);
+    restir_InitialCandidate candidate = restir_initialCandidate_makeVoxelFallback(normalize(directionAndPdf.xyz), directionAndPdf.w);
 
     float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
     if (viewZ <= -65536.0 || candidate.pdf <= 0.0 || any(isnan(candidate.rayDirView))) {
