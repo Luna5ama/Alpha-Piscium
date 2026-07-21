@@ -151,7 +151,7 @@ void main() {
 
         uint baseIndex = (frameCounter % VOXEL_FACE_TEXCOORD_MATERIALS) * 6u;
         for (uint i = 0u; i < 6u; i++) {
-            voxel_faceTexcoords[baseIndex + i] = uvec2(0u);
+            voxel_faceTexcoords[baseIndex + i + VOXEL_FACE_TEXCOORD_COUNT] = uvec2(0u);
         }
     } else if (gl_WorkGroupID.x == 1) {
         ivec2 mainImageSize = imageSize(uimg_main);
