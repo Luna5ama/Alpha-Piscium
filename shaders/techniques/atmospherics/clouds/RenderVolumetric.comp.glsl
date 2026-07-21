@@ -147,7 +147,7 @@ void render(ivec2 texelPosDownScale) {
         cuFlag &= uint(cuOrigin2RayStart >= 0.0);
 
         if (bool(cuFlag)) {
-            #define CLOUDS_CU_DENSITY (48.0 * SETTING_CLOUDS_CU_DENSITY)
+            #define CLOUDS_CU_DENSITY (72.0 * SETTING_CLOUDS_CU_DENSITY)
 
             cuRayLen = min(cuRayLen, CLOUDS_CU_MAX_RAY_LENGTH);
             float cuRaySteps = cuRayLen / CLOUDS_CU_MAX_RAY_LENGTH * float(SETTING_CLOUDS_LOW_STEP_MAX);
@@ -174,6 +174,9 @@ void render(ivec2 texelPosDownScale) {
 
             float mainRayJitterRand = rand_stbnVec1(rand_newStbnPos(texelPosDownScale, 1), frameCounter);
             float lightRayJitterRand = rand_stbnVec1(rand_newStbnPos(texelPosDownScale, 2), frameCounter);
+            const float isotropicMSA = 0.001;
+            const float isotropicMSK = sqrt(0.003);
+            vec3 isotropicMSBuildRate = max(1.0 - CLOUDS_CU_ASYM, vec3(0.0));
 
             for (uint stepIndex = 0; stepIndex < cuRayStepsI; ++stepIndex) {
                 if (stepState.position.w > cuRayLen) break;
@@ -182,6 +185,7 @@ void render(ivec2 texelPosDownScale) {
                 float sampleDensity = 0.0;
                 float sampleDensityLod = 0.0;
                 if (clouds_cu_density(stepState.position.xyz, heightFraction, true, sampleDensity, sampleDensityLod)) {
+                    float isotropicMSBoundaryConfidence = 1.0;
                     sampleDensity *= CLOUDS_CU_DENSITY;
                     sampleDensityLod *= CLOUDS_CU_DENSITY;
 
@@ -189,7 +193,8 @@ void render(ivec2 texelPosDownScale) {
                     #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
                     const float C = 0.5 * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
 
-                    float lightRayTotalDensity = 0.0;
+                    vec3 isotropicMSOpticalDepth = vec3(0.0);
+                    vec3 isotropicMS = vec3(0.0);
                     {
                         float lightRayLen = SETTING_CLOUDS_CU_THICKNESS * 1.0;
                         vec3 lightRayTotalDelta = lightRayDir * lightRayLen;
@@ -208,12 +213,24 @@ void render(ivec2 texelPosDownScale) {
                                 // (x + c)^2 - (x - c)^2 = 4xc
                                 float x = (indexF + 0.5) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
                                 float lightRayStepLength = 4.0 * x * C * lightRayLen;
-                                lightRayTotalDensity += lightSampleDensity * lightRayStepLength;
+                                float rho = lightSampleDensity * CLOUDS_CU_DENSITY;
+                                vec3 sigmaS = cuMedium.scattering * rho;
+                                vec3 sigmaTr = cuMedium.extinction * rho;
+                                vec3 isotropicMSDeltaOpticalDepth = sigmaTr * lightRayStepLength;
+                                vec3 isotropicMSU = isotropicMSOpticalDepth + 0.5 * isotropicMSDeltaOpticalDepth;
+
+                                float radius = distance(lightRaySamplePos, stepState.position.xyz);
+                                vec3 isotropicMSW = (sigmaS * lightRayStepLength) * sigmaTr * isotropicMSBoundaryConfidence / max(radius, 0.5 * lightRayStepLength);
+                                isotropicMS += isotropicMSW * exp(-isotropicMSA * isotropicMSU)
+                                    * (1.0 - exp(-isotropicMSBuildRate * isotropicMSU))
+                                    * exp(-isotropicMSK * isotropicMSU);
+                                isotropicMSOpticalDepth += isotropicMSDeltaOpticalDepth;
                             }
                         }
                     }
-                    lightRayTotalDensity *= CLOUDS_CU_DENSITY;
-                    vec3 lightRayOpticalDepth = cuMedium.extinction * lightRayTotalDensity;
+                    isotropicMS *= SETTING_CLOUDS_CU_ISOTROPIC_MS_INTENSITY;
+                    isotropicMS = 1.0 - exp(-max(isotropicMS, vec3(0.0)));
+                    vec3 lightRayOpticalDepth = isotropicMSOpticalDepth;
 
                     clouds_computeLighting(
                         atmosphere,
@@ -223,6 +240,7 @@ void render(ivec2 texelPosDownScale) {
                         sampleDensity,
                         sampleDensityLod,
                         lightRayOpticalDepth,
+                        isotropicMS,
                         cuAccum
                     );
                 }
