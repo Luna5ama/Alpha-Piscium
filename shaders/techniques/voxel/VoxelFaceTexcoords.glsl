@@ -20,7 +20,7 @@
 #endif
 
 layout(std430, binding = 9) VOXEL_FACE_TEXCOORD_MODIFIER VoxelFaceTexcoordData {
-    uvec2 voxel_faceTexcoords[]; // VOXEL_FACE_TEXCOORD_COUNT entries
+    uvec2 voxel_faceTexcoords[]; // VOXEL_FACE_TEXCOORD_COUNT * 2 entries
 };
 
 // Flat index into voxel_faceTexcoords[].
