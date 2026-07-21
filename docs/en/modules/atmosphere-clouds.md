@@ -57,10 +57,11 @@ textures. High cirrus is sampled by the shared sky/cloud path rather than a sepa
 
 ### Cumulus isotropic multiple scattering
 
-The cumulus renderer reuses the existing ordered eight-sample sun-light column. For each source midpoint, let `U_i`
-be the prefix optical depth from the start of the light column to that midpoint, `sigma_s` the scattering coefficient,
-`sigma_tr` the transport coefficient, `ds` the sample length, and `r` the source radius. With absorption coefficient
-`a`, per-channel asymmetry `g`, and `k = sqrt(3a)`, the direct upstream-prefix estimator is
+The cumulus renderer reuses the existing ordered eight-sample sun-light column. For each jittered in-bin source sample,
+let `U_i` be the prefix optical depth from the start of the light column to that source position, `sigma_s` the scattering coefficient,
+`sigma_tr` the transport coefficient, `ds` the sample length, and `r` the source radius. This diffusion approximation
+uses `sigma_tr ≈ sigma_t` in the implementation. With dimensionless absorption fraction (albedo deficit) `a = 0.001`
+multiplying optical depth, per-channel asymmetry `g`, and `k = sqrt(3a)`, the direct upstream-prefix estimator is
 
 $$
 W_i=\frac{(\sigma_s\,ds)\sigma_{tr}}{r},\qquad
