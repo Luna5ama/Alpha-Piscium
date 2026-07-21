@@ -87,6 +87,7 @@ or AOT caches.
 
 ## Validation
 
+- Vibris is profiling-only and is not a screenshot, debugging, or correctness-validation surface.
 - Run `git diff --check` and `git diff --cached --check` before committing.
 - Keep tracked generated outputs in the same change as their maintained source.
 - Prefer IDE diagnostics. Use external validators such as `glslangValidator` only when explicitly requested or when IDE validation is unavailable.
