@@ -185,7 +185,6 @@ void render(ivec2 texelPosDownScale) {
                 float sampleDensity = 0.0;
                 float sampleDensityLod = 0.0;
                 if (clouds_cu_density(stepState.position.xyz, heightFraction, true, sampleDensity, sampleDensityLod)) {
-                    float isotropicMSBoundaryConfidence = 1.0;
                     sampleDensity *= CLOUDS_CU_DENSITY;
                     sampleDensityLod *= CLOUDS_CU_DENSITY;
 
@@ -197,12 +196,12 @@ void render(ivec2 texelPosDownScale) {
                     vec3 isotropicMS = vec3(0.0);
                     {
                         float lightRayLen = SETTING_CLOUDS_CU_THICKNESS * 1.0;
-                        vec3 lightRayTotalDelta = lightRayDir * lightRayLen;
                         for (uint lightStepIndex = 0; lightStepIndex < CLOUDS_CU_LIGHT_RAYMARCH_STEP; ++lightStepIndex) {
                             // Use x^2 curve to distribute more samples near the starting point
                             float indexF = float(lightStepIndex);
                             float x = (indexF + lightRayJitterRand) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
-                            vec3 lightRaySamplePos = stepState.position.xyz + lightRayTotalDelta * pow2(x);
+                            float lightRaySampleOffset = pow2(x) * lightRayLen;
+                            vec3 lightRaySamplePos = stepState.position.xyz + lightRayDir * lightRaySampleOffset;
 
                             float lightSampleHeight = length(lightRaySamplePos);
                             if (lightSampleHeight > cuMaxHeight) break;
@@ -213,17 +212,16 @@ void render(ivec2 texelPosDownScale) {
                                 // (x + c)^2 - (x - c)^2 = 4xc
                                 float x = (indexF + 0.5) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
                                 float lightRayStepLength = 4.0 * x * C * lightRayLen;
+                                float lightRaySamplePrefixLength = lightRaySampleOffset - pow2(indexF * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP) * lightRayLen;
                                 float rho = lightSampleDensity * CLOUDS_CU_DENSITY;
                                 vec3 sigmaS = cuMedium.scattering * rho;
                                 vec3 sigmaTr = cuMedium.extinction * rho;
                                 vec3 isotropicMSDeltaOpticalDepth = sigmaTr * lightRayStepLength;
-                                vec3 isotropicMSU = isotropicMSOpticalDepth + 0.5 * isotropicMSDeltaOpticalDepth;
+                                vec3 isotropicMSU = isotropicMSOpticalDepth + sigmaTr * lightRaySamplePrefixLength;
 
-                                float radius = distance(lightRaySamplePos, stepState.position.xyz);
-                                vec3 isotropicMSW = (sigmaS * lightRayStepLength) * sigmaTr * isotropicMSBoundaryConfidence / max(radius, 0.5 * lightRayStepLength);
-                                isotropicMS += isotropicMSW * exp(-isotropicMSA * isotropicMSU)
-                                    * (1.0 - exp(-isotropicMSBuildRate * isotropicMSU))
-                                    * exp(-isotropicMSK * isotropicMSU);
+                                vec3 isotropicMSW = (sigmaS * lightRayStepLength) * sigmaTr / max(lightRaySampleOffset, 0.5 * lightRayStepLength);
+                                isotropicMS += isotropicMSW * exp(-(isotropicMSA + isotropicMSK) * isotropicMSU)
+                                    * (1.0 - exp(-isotropicMSBuildRate * isotropicMSU));
                                 isotropicMSOpticalDepth += isotropicMSDeltaOpticalDepth;
                             }
                         }
