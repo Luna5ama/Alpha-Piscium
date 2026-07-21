@@ -185,12 +185,12 @@ bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float
         detail1Wisp *= hc2;
 
         #if DETAIL_NOISE
-//        densityOut = linearStep(saturate(detail1Wisp), 1.0, densityOut);
+        densityOut = linearStep(saturate(detail1Wisp), 1.0, densityOut);
         #endif
 
         float hardEdgeBlend = linearStep(0.0, 0.3, heightFraction);
-        float minDetailDensity = mix(0.01, 0.03, hardEdgeBlend);
-        float edgeDesnityRange = mix(0.1, 0.01, hardEdgeBlend);
+        float minDetailDensity = mix(0.005, 0.03, hardEdgeBlend);
+        float edgeDesnityRange = mix(0.05, 0.005, hardEdgeBlend);
         densityOut *= smoothstep(minDetailDensity, minDetailDensity + edgeDesnityRange, densityOut);
 
         // Make cloud top more dense
