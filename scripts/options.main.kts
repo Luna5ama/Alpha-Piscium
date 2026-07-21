@@ -1721,7 +1721,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "云照明"
                     }
-                    slider("SETTING_CLOUDS_MS_RADIUS", -1.0, -5.0..0.0 step 0.25) {
+                    slider("SETTING_CLOUDS_MS_RADIUS", -1.0, -4.0..4.0 step 0.25) {
                         lang {
                             name = "Multi-Scattering Radius"
                             prefix = "2^"
