@@ -63,6 +63,8 @@ fun makeZip(zipFilePath: Path) {
     val included = setOf(
         "changelogs",
         "licenses",
+        "shaders/lang",
+        "shaders/textures",
         "shaders",
         "LICENSE"
     )
@@ -98,11 +100,14 @@ fun makeZip(zipFilePath: Path) {
         shadesmithRun.waitFor()
         addStuff(shadesmithOutputPath, shadesmithShadersPath.walk())
         addStuff(projectRootPath, projectRootPath.walk(PathWalkOption.FOLLOW_LINKS).filter { file ->
-            val relativePath = file.relativeTo(projectRootPath).invariantSeparatorsPathString
+            val baseDirName = file
+                .relativeTo(projectRootPath)
+                .invariantSeparatorsPathString
+                .substringBeforeLast('/')
             val isRootReadme = file.parent == projectRootPath &&
                 rootReadmePattern.matches(file.fileName.toString())
-            if (!isRootReadme && (relativePath.startsWith(".") || relativePath.contains("/."))) return@filter false
-            isRootReadme || included.any { relativePath == it || relativePath.startsWith("$it/") }
+            if (!isRootReadme && baseDirName.contains('.')) return@filter false
+            isRootReadme || baseDirName in included
         })
     }
 }

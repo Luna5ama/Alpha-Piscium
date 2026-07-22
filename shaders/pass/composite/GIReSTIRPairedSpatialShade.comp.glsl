@@ -137,8 +137,7 @@ void main() {
             ssgiDiffOut = vec4(radianceWeight * outBRDF.diffuse, winHitDist);
             ssgiSpecOut = vec4(radianceWeight * outBRDF.specular, winHitDist);
             vec3 specAlbedo = resampleMaterial_specularAlbedo(centerMaterial, NDotV);
-            // Floor the demodulation albedo so dividing it back out can't blow up the ratio estimator
-            ssgiSpecOut.rgb *= safeRcp(max(specAlbedo, vec3(0.01)));
+            ssgiSpecOut.rgb *= safeRcp(specAlbedo);
             ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);
             ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
             transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);

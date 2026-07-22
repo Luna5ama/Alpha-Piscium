@@ -324,8 +324,7 @@ void main() {
 
                 ssgiSpecOut = vec4(totalOutput * (1.0 - diffRatio), winHitDist);
                 vec3 specAlbedo = resampleMaterial_specularAlbedo(resampleMaterial, winNDotV);
-                // Floor the demodulation albedo so dividing it back out can't blow up the ratio estimator
-                ssgiSpecOut.rgb *= safeRcp(max(specAlbedo, vec3(0.01)));
+                ssgiSpecOut.rgb *= safeRcp(specAlbedo);
 
                 ssgiDiffOut = clamp(ssgiDiffOut, 0.0, FP16_MAX);
                 ssgiSpecOut = clamp(ssgiSpecOut, 0.0, FP16_MAX);
