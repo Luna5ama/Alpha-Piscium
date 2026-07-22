@@ -33,10 +33,13 @@ screen.SCREEN_28=泛光（Bloom）
 screen.SCREEN_29=浦肯野效应（夜视）
 screen.SCREEN_30=曝光
 screen.SCREEN_31=色调映射和调色
-screen.SCREEN_32=抗锯齿
-screen.SCREEN_33=色彩管理
-screen.SCREEN_33.comment=高级色彩空间设置。仅在您知道自己在做什么时更改！
-screen.SCREEN_34=杂项
+screen.SCREEN_32=颜色校准
+screen.SCREEN_33=HSL 颜色混合器
+screen.SCREEN_33.comment=独立调整8个色相区间的饱和度和明度，类似 Lightroom 的 HSL/颜色面板。只影响色相落在（或接近）该区间的像素。
+screen.SCREEN_34=抗锯齿
+screen.SCREEN_35=色彩管理
+screen.SCREEN_35.comment=高级色彩空间设置。仅在您知道自己在做什么时更改！
+screen.SCREEN_36=杂项
 profile.comment=§c§lLow§r: 丐中丐画质, §c§l不推荐§r。\n§e§lMedium§r: 基础性能模式。\n§a§lHigh§r: 画质与性能的平衡。\n§6§lUltra§r: §6§l真正的§r外屏七体验，就是它了。\n§d§lExtreme§r: 更好的体验，只需要§o亿点点§r代价.\n§5§lInsane§r: 《显 卡 危 机》 §kxyz1145141919810§r.
 option.SETTING_PBR_MATERIAL=PBR材质
 option.SETTING_PBR_MATERIAL.comment=启用方块的基于物理的渲染功能，如法线贴图、高光反射和次表面散射。需要兼容的资源包。
@@ -421,6 +424,12 @@ option.SETTING_STARMAP_BRIGHT_STAR_BOOST=亮星增强
 option.SETTING_STARMAP_BRIGHT_STAR_BOOST.comment=为最突出的星星增加亮度。创造更真实的星星大小变化。
 option.SETTING_STARMAP_GAMMA=星星对比度
 option.SETTING_STARMAP_GAMMA.comment=调整明亮和暗淡星星之间的对比度。数值越低，暗淡的星星越可见。
+option.SETTING_TONE_MAPPING_LOOK=风格
+option.SETTING_TONE_MAPPING_LOOK.comment=预配置的调色风格。选择自定义以手动调整下面的颜色，包括颜色校准和 HSL 颜色混合器屏幕。
+value.SETTING_TONE_MAPPING_LOOK.0=默认
+value.SETTING_TONE_MAPPING_LOOK.1=金色
+value.SETTING_TONE_MAPPING_LOOK.2=鲜明
+value.SETTING_TONE_MAPPING_LOOK.3=自定义
 option.SETTING_DOF=启用景深
 option.SETTING_DOF.comment=像相机镜头一样模糊远处或近处的物体，将注意力集中在您正在看的东西上。
 option.SETTING_DOF_FOCAL_LENGTH=焦距
@@ -531,12 +540,6 @@ option.SETTING_EXPOSURE_S_PERCENT=阴影区域占比
 option.SETTING_EXPOSURE_S_PERCENT.comment=保持此百分比的暗像素不变成纯黑。数值越高，整体变亮以显示阴影细节。
 option.SETTING_TONE_MAPPING_DYNAMIC_RANGE=动态范围
 option.SETTING_TONE_MAPPING_DYNAMIC_RANGE.comment=从暗到亮保留的亮度级别范围。数值越高，在极端情况下保留更多细节，但可能看起来平淡。
-option.SETTING_TONE_MAPPING_LOOK=风格
-option.SETTING_TONE_MAPPING_LOOK.comment=预配置的调色风格。选择自定义以手动调整下面的颜色。
-value.SETTING_TONE_MAPPING_LOOK.0=默认
-value.SETTING_TONE_MAPPING_LOOK.1=金色
-value.SETTING_TONE_MAPPING_LOOK.2=鲜明
-value.SETTING_TONE_MAPPING_LOOK.3=自定义
 option.SETTING_TONE_MAPPING_OFFSET_R=红色偏移
 option.SETTING_TONE_MAPPING_OFFSET_R.comment=在所有亮度级别添加或移除红色。负值 = 更少红色，正值 = 更多红色。
 option.SETTING_TONE_MAPPING_OFFSET_G=绿色偏移
@@ -557,6 +560,66 @@ option.SETTING_TONE_MAPPING_POWER_B=蓝色幂值
 option.SETTING_TONE_MAPPING_POWER_B.comment=调整蓝色通道的对比度。数值越高，蓝色对比度越大，使蓝色更具戏剧性。
 option.SETTING_TONE_MAPPING_SATURATION=饱和度
 option.SETTING_TONE_MAPPING_SATURATION.comment=整体颜色强度。0 = 黑白，1 = 正常，2 = 超饱和。
+option.SETTING_COLOR_CALIBRATION_RED_HUE=红色原色色相
+option.SETTING_COLOR_CALIBRATION_RED_HUE.comment=围绕白点旋转红色原色的色度，效果类似于 ACR 的相机校准面板。
+option.SETTING_COLOR_CALIBRATION_RED_SAT=红色原色饱和度
+option.SETTING_COLOR_CALIBRATION_RED_SAT.comment=缩放红色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。
+option.SETTING_COLOR_CALIBRATION_GREEN_HUE=绿色原色色相
+option.SETTING_COLOR_CALIBRATION_GREEN_HUE.comment=围绕白点旋转绿色原色的色度，效果类似于 ACR 的相机校准面板。
+option.SETTING_COLOR_CALIBRATION_GREEN_SAT=绿色原色饱和度
+option.SETTING_COLOR_CALIBRATION_GREEN_SAT.comment=缩放绿色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。
+option.SETTING_COLOR_CALIBRATION_BLUE_HUE=蓝色原色色相
+option.SETTING_COLOR_CALIBRATION_BLUE_HUE.comment=围绕白点旋转蓝色原色的色度，效果类似于 ACR 的相机校准面板。
+option.SETTING_COLOR_CALIBRATION_BLUE_SAT=蓝色原色饱和度
+option.SETTING_COLOR_CALIBRATION_BLUE_SAT.comment=缩放蓝色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。
+option.SETTING_HSL_RED_HUE=红色色相
+option.SETTING_HSL_RED_HUE.comment=仅旋转红色色相像素的色相。0 = 不变，负值 = 转向粉色/洋红色，正值 = 转向橙色。
+option.SETTING_HSL_RED_SAT=红色饱和度
+option.SETTING_HSL_RED_SAT.comment=仅缩放红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HSL_RED_LUM=红色明度
+option.SETTING_HSL_RED_LUM.comment=仅调整红色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HSL_ORANGE_HUE=橙色色相
+option.SETTING_HSL_ORANGE_HUE.comment=仅旋转橙色色相像素的色相。0 = 不变，负值 = 转向红色，正值 = 转向黄色。
+option.SETTING_HSL_ORANGE_SAT=橙色饱和度
+option.SETTING_HSL_ORANGE_SAT.comment=仅缩放橙色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HSL_ORANGE_LUM=橙色明度
+option.SETTING_HSL_ORANGE_LUM.comment=仅调整橙色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HSL_YELLOW_HUE=黄色色相
+option.SETTING_HSL_YELLOW_HUE.comment=仅旋转黄色色相像素的色相。0 = 不变，负值 = 转向橙色，正值 = 转向绿色。
+option.SETTING_HSL_YELLOW_SAT=黄色饱和度
+option.SETTING_HSL_YELLOW_SAT.comment=仅缩放黄色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HSL_YELLOW_LUM=黄色明度
+option.SETTING_HSL_YELLOW_LUM.comment=仅调整黄色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HSL_GREEN_HUE=绿色色相
+option.SETTING_HSL_GREEN_HUE.comment=仅旋转绿色色相像素的色相。0 = 不变，负值 = 转向黄色，正值 = 转向青色。
+option.SETTING_HSL_GREEN_SAT=绿色饱和度
+option.SETTING_HSL_GREEN_SAT.comment=仅缩放绿色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HSL_GREEN_LUM=绿色明度
+option.SETTING_HSL_GREEN_LUM.comment=仅调整绿色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HSL_AQUA_HUE=青色色相
+option.SETTING_HSL_AQUA_HUE.comment=仅旋转青色色相像素的色相。0 = 不变，负值 = 转向绿色，正值 = 转向蓝色。
+option.SETTING_HSL_AQUA_SAT=青色饱和度
+option.SETTING_HSL_AQUA_SAT.comment=仅缩放青色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HSL_AQUA_LUM=青色明度
+option.SETTING_HSL_AQUA_LUM.comment=仅调整青色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HSL_BLUE_HUE=蓝色色相
+option.SETTING_HSL_BLUE_HUE.comment=仅旋转蓝色色相像素的色相。0 = 不变，负值 = 转向青色，正值 = 转向洋红色。
+option.SETTING_HSL_BLUE_SAT=蓝色饱和度
+option.SETTING_HSL_BLUE_SAT.comment=仅缩放蓝色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HSL_BLUE_LUM=蓝色明度
+option.SETTING_HSL_BLUE_LUM.comment=仅调整蓝色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HSL_MAGENTA_HUE=洋红色色相
+option.SETTING_HSL_MAGENTA_HUE.comment=仅旋转洋红色色相像素的色相。0 = 不变，负值 = 转向蓝色，正值 = 转向粉色。
+option.SETTING_HSL_MAGENTA_SAT=洋红色饱和度
+option.SETTING_HSL_MAGENTA_SAT.comment=仅缩放洋红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HSL_MAGENTA_LUM=洋红色明度
+option.SETTING_HSL_MAGENTA_LUM.comment=仅调整洋红色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HSL_PINK_HUE=粉色色相
+option.SETTING_HSL_PINK_HUE.comment=仅旋转粉色色相像素的色相。0 = 不变，负值 = 转向洋红色，正值 = 转向红色。
+option.SETTING_HSL_PINK_SAT=粉色饱和度
+option.SETTING_HSL_PINK_SAT.comment=仅缩放粉色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HSL_PINK_LUM=粉色明度
+option.SETTING_HSL_PINK_LUM.comment=仅调整粉色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
 option.SETTING_TAA=时间抗锯齿（TAA）
 option.SETTING_TAA.comment=通过混合多个帧来平滑锯齿边缘。强烈推荐以获得干净的图像质量。
 option.SETTING_TAA_JITTER=时间抖动

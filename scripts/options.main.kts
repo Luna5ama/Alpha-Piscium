@@ -3098,8 +3098,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 lang {
                     name = "Color Calibration"
                 }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "颜色校准"
+                }
                 empty()
-                slider("RED_HUE", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_COLOR_CALIBRATION_RED_HUE", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Red Primary Hue"
                         comment = "Rotates the red primary's chromaticity around white, like ACR's Camera Calibration panel."
@@ -3109,7 +3112,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "围绕白点旋转红色原色的色度，效果类似于 ACR 的相机校准面板。"
                     }
                 }
-                slider("RED_SAT", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_COLOR_CALIBRATION_RED_SAT", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Red Primary Sat"
                         comment = "Scales the red primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
@@ -3120,7 +3123,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("GREEN_HUE", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_COLOR_CALIBRATION_GREEN_HUE", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Green Primary Hue"
                         comment = "Rotates the green primary's chromaticity around white, like ACR's Camera Calibration panel."
@@ -3130,7 +3133,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "围绕白点旋转绿色原色的色度，效果类似于 ACR 的相机校准面板。"
                     }
                 }
-                slider("GREEN_SAT", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_COLOR_CALIBRATION_GREEN_SAT", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Green Primary Sat"
                         comment = "Scales the green primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
@@ -3141,7 +3144,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("BLUE_HUE", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_COLOR_CALIBRATION_BLUE_HUE", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Blue Primary Hue"
                         comment = "Rotates the blue primary's chromaticity around white, like ACR's Camera Calibration panel."
@@ -3151,7 +3154,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "围绕白点旋转蓝色原色的色度，效果类似于 ACR 的相机校准面板。"
                     }
                 }
-                slider("BLUE_SAT", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_COLOR_CALIBRATION_BLUE_SAT", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Blue Primary Sat"
                         comment = "Scales the blue primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
@@ -3171,7 +3174,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     name = "HSL 颜色混合器"
                     comment = "独立调整8个色相区间的饱和度和明度，类似 Lightroom 的 HSL/颜色面板。只影响色相落在（或接近）该区间的像素。"
                 }
-                slider("HSL_RED_HUE", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_RED_HUE", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Red Hue"
                         comment = "Rotates the hue of red-hued pixels only. 0 = unchanged, negative = rotates toward pink/magenta, positive = rotates toward orange."
@@ -3181,7 +3184,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅旋转红色色相像素的色相。0 = 不变，负值 = 转向粉色/洋红色，正值 = 转向橙色。"
                     }
                 }
-                slider("HSL_RED_SAT", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_RED_SAT", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Red Saturation"
                         comment = "Scales the saturation of red-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3191,7 +3194,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅缩放红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                     }
                 }
-                slider("HSL_RED_LUM", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_RED_LUM", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Red Luminance"
                         comment = "Shifts the lightness of red-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
@@ -3202,7 +3205,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("HSL_ORANGE_HUE", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_ORANGE_HUE", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Orange Hue"
                         comment = "Rotates the hue of orange-hued pixels only. 0 = unchanged, negative = rotates toward red, positive = rotates toward yellow."
@@ -3212,7 +3215,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅旋转橙色色相像素的色相。0 = 不变，负值 = 转向红色，正值 = 转向黄色。"
                     }
                 }
-                slider("HSL_ORANGE_SAT", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_ORANGE_SAT", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Orange Saturation"
                         comment = "Scales the saturation of orange-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3222,7 +3225,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅缩放橙色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                     }
                 }
-                slider("HSL_ORANGE_LUM", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_ORANGE_LUM", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Orange Luminance"
                         comment = "Shifts the lightness of orange-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
@@ -3233,7 +3236,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("HSL_YELLOW_HUE", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_YELLOW_HUE", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Yellow Hue"
                         comment = "Rotates the hue of yellow-hued pixels only. 0 = unchanged, negative = rotates toward orange, positive = rotates toward green."
@@ -3243,7 +3246,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅旋转黄色色相像素的色相。0 = 不变，负值 = 转向橙色，正值 = 转向绿色。"
                     }
                 }
-                slider("HSL_YELLOW_SAT", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_YELLOW_SAT", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Yellow Saturation"
                         comment = "Scales the saturation of yellow-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3253,7 +3256,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅缩放黄色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                     }
                 }
-                slider("HSL_YELLOW_LUM", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_YELLOW_LUM", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Yellow Luminance"
                         comment = "Shifts the lightness of yellow-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
@@ -3264,7 +3267,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("HSL_GREEN_HUE", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_GREEN_HUE", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Green Hue"
                         comment = "Rotates the hue of green-hued pixels only. 0 = unchanged, negative = rotates toward yellow, positive = rotates toward aqua."
@@ -3274,7 +3277,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅旋转绿色色相像素的色相。0 = 不变，负值 = 转向黄色，正值 = 转向青色。"
                     }
                 }
-                slider("HSL_GREEN_SAT", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_GREEN_SAT", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Green Saturation"
                         comment = "Scales the saturation of green-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3284,7 +3287,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅缩放绿色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                     }
                 }
-                slider("HSL_GREEN_LUM", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_GREEN_LUM", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Green Luminance"
                         comment = "Shifts the lightness of green-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
@@ -3295,7 +3298,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("HSL_AQUA_HUE", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_AQUA_HUE", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Aqua Hue"
                         comment = "Rotates the hue of aqua-hued pixels only. 0 = unchanged, negative = rotates toward green, positive = rotates toward blue."
@@ -3305,7 +3308,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅旋转青色色相像素的色相。0 = 不变，负值 = 转向绿色，正值 = 转向蓝色。"
                     }
                 }
-                slider("HSL_AQUA_SAT", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_AQUA_SAT", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Aqua Saturation"
                         comment = "Scales the saturation of aqua-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3315,7 +3318,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅缩放青色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                     }
                 }
-                slider("HSL_AQUA_LUM", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_AQUA_LUM", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Aqua Luminance"
                         comment = "Shifts the lightness of aqua-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
@@ -3326,7 +3329,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("HSL_BLUE_HUE", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_BLUE_HUE", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Blue Hue"
                         comment = "Rotates the hue of blue-hued pixels only. 0 = unchanged, negative = rotates toward aqua, positive = rotates toward magenta."
@@ -3336,7 +3339,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅旋转蓝色色相像素的色相。0 = 不变，负值 = 转向青色，正值 = 转向洋红色。"
                     }
                 }
-                slider("HSL_BLUE_SAT", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_BLUE_SAT", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Blue Saturation"
                         comment = "Scales the saturation of blue-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3346,7 +3349,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅缩放蓝色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                     }
                 }
-                slider("HSL_BLUE_LUM", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_BLUE_LUM", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Blue Luminance"
                         comment = "Shifts the lightness of blue-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
@@ -3357,7 +3360,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("HSL_MAGENTA_HUE", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_MAGENTA_HUE", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Magenta Hue"
                         comment = "Rotates the hue of magenta-hued pixels only. 0 = unchanged, negative = rotates toward blue, positive = rotates toward pink."
@@ -3367,7 +3370,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅旋转洋红色色相像素的色相。0 = 不变，负值 = 转向蓝色，正值 = 转向粉色。"
                     }
                 }
-                slider("HSL_MAGENTA_SAT", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_MAGENTA_SAT", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Magenta Saturation"
                         comment = "Scales the saturation of magenta-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3377,7 +3380,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅缩放洋红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                     }
                 }
-                slider("HSL_MAGENTA_LUM", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_MAGENTA_LUM", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Magenta Luminance"
                         comment = "Shifts the lightness of magenta-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
@@ -3388,7 +3391,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("HSL_PINK_HUE", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_PINK_HUE", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Pink Hue"
                         comment = "Rotates the hue of pink-hued pixels only. 0 = unchanged, negative = rotates toward magenta, positive = rotates toward red."
@@ -3398,7 +3401,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅旋转粉色色相像素的色相。0 = 不变，负值 = 转向洋红色，正值 = 转向红色。"
                     }
                 }
-                slider("HSL_PINK_SAT", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_PINK_SAT", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Pink Saturation"
                         comment = "Scales the saturation of pink-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3408,7 +3411,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "仅缩放粉色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                     }
                 }
-                slider("HSL_PINK_LUM", 0.0, -100.0..100.0 step 1.0) {
+                slider("SETTING_HSL_PINK_LUM", 0.0, -100.0..100.0 step 1.0) {
                     lang {
                         name = "Pink Luminance"
                         comment = "Shifts the lightness of pink-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."

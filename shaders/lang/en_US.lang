@@ -40,12 +40,15 @@ screen.SCREEN_28=Bloom
 screen.SCREEN_29=Purkinje Effect (Night Vision)
 screen.SCREEN_30=Exposure
 screen.SCREEN_31=Tone Mapping & Color Grading
-screen.SCREEN_32=Anti-Aliasing
-screen.SCREEN_33=Color Management
-screen.SCREEN_33.comment=Advanced color space settings. Only change if you know what you're doing!
-screen.SCREEN_34=Miscellaneous
-screen.SCREEN_35=Sponsors
-screen.SCREEN_36=Debug
+screen.SCREEN_32=Color Calibration
+screen.SCREEN_33=HSL Color Mixer
+screen.SCREEN_33.comment=Adjusts saturation and lightness of 8 hue bands independently, like Lightroom's HSL/Color panel. Only pixels whose hue falls in (or near) a band are affected.
+screen.SCREEN_34=Anti-Aliasing
+screen.SCREEN_35=Color Management
+screen.SCREEN_35.comment=Advanced color space settings. Only change if you know what you're doing!
+screen.SCREEN_36=Miscellaneous
+screen.SCREEN_37=Sponsors
+screen.SCREEN_38=Debug
 option.TITLE_VERSION=Alpha Piscium by Luna
 value.TITLE_VERSION.0=§c1.9.1
 value.TITLE_VERSION.1=§e1.9.1
@@ -438,6 +441,12 @@ option.SETTING_STARMAP_BRIGHT_STAR_BOOST=Bright Star Enhancement
 option.SETTING_STARMAP_BRIGHT_STAR_BOOST.comment=Extra brightness for the most prominent stars. Creates more realistic star size variation.
 option.SETTING_STARMAP_GAMMA=Star Contrast
 option.SETTING_STARMAP_GAMMA.comment=Adjusts contrast between bright and dim stars. Lower values make faint stars more visible.
+option.SETTING_TONE_MAPPING_LOOK=AgX Preset
+option.SETTING_TONE_MAPPING_LOOK.comment=Pre-configured color grading styles. Choose Custom to manually adjust colors below, including the Color Calibration and HSL Color Mixer screens.
+value.SETTING_TONE_MAPPING_LOOK.0=Default
+value.SETTING_TONE_MAPPING_LOOK.1=Golden
+value.SETTING_TONE_MAPPING_LOOK.2=Punchy
+value.SETTING_TONE_MAPPING_LOOK.3=Custom
 option.SETTING_DOF=Depth of Field
 option.SETTING_DOF.comment=Blurs distant or nearby objects like a camera lens, focusing attention on what you're looking at.
 option.SETTING_DOF_FOCAL_LENGTH=Focal Length
@@ -555,12 +564,6 @@ option.SETTING_EXPOSURE_S_PERCENT=Shadow Area %
 option.SETTING_EXPOSURE_S_PERCENT.comment=Keeps this percentage of dark pixels from becoming pure black. Higher values brighten overall to reveal shadow detail.
 option.SETTING_TONE_MAPPING_DYNAMIC_RANGE=Dynamic Range
 option.SETTING_TONE_MAPPING_DYNAMIC_RANGE.comment=Range of brightness levels preserved from dark to bright. Higher values maintain more detail in extremes but may look flat.
-option.SETTING_TONE_MAPPING_LOOK=AgX Preset
-option.SETTING_TONE_MAPPING_LOOK.comment=Pre-configured color grading styles. Choose Custom to manually adjust colors below.
-value.SETTING_TONE_MAPPING_LOOK.0=Default
-value.SETTING_TONE_MAPPING_LOOK.1=Golden
-value.SETTING_TONE_MAPPING_LOOK.2=Punchy
-value.SETTING_TONE_MAPPING_LOOK.3=Custom
 option.SETTING_TONE_MAPPING_OFFSET_R=Red Lift
 option.SETTING_TONE_MAPPING_OFFSET_R.comment=Adds or removes red from all brightness levels. Negative = less red, positive = more red.
 option.SETTING_TONE_MAPPING_OFFSET_G=Green Lift
@@ -581,6 +584,66 @@ option.SETTING_TONE_MAPPING_POWER_B=Blue Contrast
 option.SETTING_TONE_MAPPING_POWER_B.comment=Adjusts contrast in blue channel. Higher values increase blue contrast, making blues more dramatic.
 option.SETTING_TONE_MAPPING_SATURATION=Color Saturation
 option.SETTING_TONE_MAPPING_SATURATION.comment=Overall color intensity. 0 = black & white, 1 = normal, 2 = hyper-saturated.
+option.SETTING_COLOR_CALIBRATION_RED_HUE=Red Primary Hue
+option.SETTING_COLOR_CALIBRATION_RED_HUE.comment=Rotates the red primary's chromaticity around white, like ACR's Camera Calibration panel.
+option.SETTING_COLOR_CALIBRATION_RED_SAT=Red Primary Sat
+option.SETTING_COLOR_CALIBRATION_RED_SAT.comment=Scales the red primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled.
+option.SETTING_COLOR_CALIBRATION_GREEN_HUE=Green Primary Hue
+option.SETTING_COLOR_CALIBRATION_GREEN_HUE.comment=Rotates the green primary's chromaticity around white, like ACR's Camera Calibration panel.
+option.SETTING_COLOR_CALIBRATION_GREEN_SAT=Green Primary Sat
+option.SETTING_COLOR_CALIBRATION_GREEN_SAT.comment=Scales the green primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled.
+option.SETTING_COLOR_CALIBRATION_BLUE_HUE=Blue Primary Hue
+option.SETTING_COLOR_CALIBRATION_BLUE_HUE.comment=Rotates the blue primary's chromaticity around white, like ACR's Camera Calibration panel.
+option.SETTING_COLOR_CALIBRATION_BLUE_SAT=Blue Primary Sat
+option.SETTING_COLOR_CALIBRATION_BLUE_SAT.comment=Scales the blue primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled.
+option.SETTING_HSL_RED_HUE=Red Hue
+option.SETTING_HSL_RED_HUE.comment=Rotates the hue of red-hued pixels only. 0 = unchanged, negative = rotates toward pink/magenta, positive = rotates toward orange.
+option.SETTING_HSL_RED_SAT=Red Saturation
+option.SETTING_HSL_RED_SAT.comment=Scales the saturation of red-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HSL_RED_LUM=Red Luminance
+option.SETTING_HSL_RED_LUM.comment=Shifts the lightness of red-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HSL_ORANGE_HUE=Orange Hue
+option.SETTING_HSL_ORANGE_HUE.comment=Rotates the hue of orange-hued pixels only. 0 = unchanged, negative = rotates toward red, positive = rotates toward yellow.
+option.SETTING_HSL_ORANGE_SAT=Orange Saturation
+option.SETTING_HSL_ORANGE_SAT.comment=Scales the saturation of orange-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HSL_ORANGE_LUM=Orange Luminance
+option.SETTING_HSL_ORANGE_LUM.comment=Shifts the lightness of orange-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HSL_YELLOW_HUE=Yellow Hue
+option.SETTING_HSL_YELLOW_HUE.comment=Rotates the hue of yellow-hued pixels only. 0 = unchanged, negative = rotates toward orange, positive = rotates toward green.
+option.SETTING_HSL_YELLOW_SAT=Yellow Saturation
+option.SETTING_HSL_YELLOW_SAT.comment=Scales the saturation of yellow-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HSL_YELLOW_LUM=Yellow Luminance
+option.SETTING_HSL_YELLOW_LUM.comment=Shifts the lightness of yellow-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HSL_GREEN_HUE=Green Hue
+option.SETTING_HSL_GREEN_HUE.comment=Rotates the hue of green-hued pixels only. 0 = unchanged, negative = rotates toward yellow, positive = rotates toward aqua.
+option.SETTING_HSL_GREEN_SAT=Green Saturation
+option.SETTING_HSL_GREEN_SAT.comment=Scales the saturation of green-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HSL_GREEN_LUM=Green Luminance
+option.SETTING_HSL_GREEN_LUM.comment=Shifts the lightness of green-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HSL_AQUA_HUE=Aqua Hue
+option.SETTING_HSL_AQUA_HUE.comment=Rotates the hue of aqua-hued pixels only. 0 = unchanged, negative = rotates toward green, positive = rotates toward blue.
+option.SETTING_HSL_AQUA_SAT=Aqua Saturation
+option.SETTING_HSL_AQUA_SAT.comment=Scales the saturation of aqua-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HSL_AQUA_LUM=Aqua Luminance
+option.SETTING_HSL_AQUA_LUM.comment=Shifts the lightness of aqua-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HSL_BLUE_HUE=Blue Hue
+option.SETTING_HSL_BLUE_HUE.comment=Rotates the hue of blue-hued pixels only. 0 = unchanged, negative = rotates toward aqua, positive = rotates toward magenta.
+option.SETTING_HSL_BLUE_SAT=Blue Saturation
+option.SETTING_HSL_BLUE_SAT.comment=Scales the saturation of blue-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HSL_BLUE_LUM=Blue Luminance
+option.SETTING_HSL_BLUE_LUM.comment=Shifts the lightness of blue-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HSL_MAGENTA_HUE=Magenta Hue
+option.SETTING_HSL_MAGENTA_HUE.comment=Rotates the hue of magenta-hued pixels only. 0 = unchanged, negative = rotates toward blue, positive = rotates toward pink.
+option.SETTING_HSL_MAGENTA_SAT=Magenta Saturation
+option.SETTING_HSL_MAGENTA_SAT.comment=Scales the saturation of magenta-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HSL_MAGENTA_LUM=Magenta Luminance
+option.SETTING_HSL_MAGENTA_LUM.comment=Shifts the lightness of magenta-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HSL_PINK_HUE=Pink Hue
+option.SETTING_HSL_PINK_HUE.comment=Rotates the hue of pink-hued pixels only. 0 = unchanged, negative = rotates toward magenta, positive = rotates toward red.
+option.SETTING_HSL_PINK_SAT=Pink Saturation
+option.SETTING_HSL_PINK_SAT.comment=Scales the saturation of pink-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HSL_PINK_LUM=Pink Luminance
+option.SETTING_HSL_PINK_LUM.comment=Shifts the lightness of pink-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
 option.SETTING_TAA=Temporal Anti-Aliasing (TAA)
 option.SETTING_TAA.comment=Smooths jagged edges by blending multiple frames. Highly recommended for clean image quality.
 option.SETTING_TAA_JITTER=Sub-Pixel Jittering

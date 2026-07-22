@@ -1,20 +1,3 @@
-/*
-    8-band HSL color mixer, modeled after Lightroom/Camera Raw's HSL/Color
-    panel: red, orange, yellow, green, aqua, blue, magenta and pink each get
-    an independent hue, saturation and luminance control. Unlike the
-    primaries Calibration panel (DRT.glsl), which rebuilds a global RGB->XYZ
-    matrix, this tool is explicitly selective: it must only touch pixels
-    whose hue actually falls in (or near) a given band, leaving every other
-    hue alone - including the Hue slider itself, which (like Calibration's
-    primary Hue rotation) only rotates the hue of pixels weighted into that
-    band instead of spinning the whole image's hue wheel.
-
-    Applied to the final display-referred linear color (after the AgX look
-    and the DRT->output colorspace conversion, before the output OETF), the
-    same stage a raster editor's HSL panel would operate on, rather than to
-    scene-linear HDR data where "hue" and "lightness" are less meaningful.
-*/
-
 #ifndef HSL_MIXER_INCLUDED
 #define HSL_MIXER_INCLUDED
 
@@ -48,7 +31,7 @@ vec3 hslmixer_rgb2hsl(vec3 c) {
     float delta = maxC - minC;
 
     float l = (maxC + minC) * 0.5;
-    float s = delta < 1.0e-6 ? 0.0 : delta / (1.0 - abs(2.0 * l - 1.0) + 1.0e-6);
+    float s = delta < 1.0e-6 ? 0.0 : delta / (1.0 - abs(2.0 * l - 1.0));
 
     float h;
     if (delta < 1.0e-6) {
@@ -109,6 +92,7 @@ void hslmixer_bandWeights(
 
 vec3 applyHSLMixer(vec3 color) {
     vec3 hsl = hslmixer_rgb2hsl(color);
+    if (hsl.y < 1.0e-6) return color;
 
     float wRed, wOrange, wYellow, wGreen, wAqua, wBlue, wMagenta, wPink;
     hslmixer_bandWeights(hsl.x, wRed, wOrange, wYellow, wGreen, wAqua, wBlue, wMagenta, wPink);
@@ -120,8 +104,8 @@ vec3 applyHSLMixer(vec3 color) {
     // touch a hue that band has no weight over.
     const float HSL_HUE_RANGE_DEG = 60.0;
     float hueShift =
-        wRed * HSL_RED_HUE + wOrange * HSL_ORANGE_HUE + wYellow * HSL_YELLOW_HUE + wGreen * HSL_GREEN_HUE +
-        wAqua * HSL_AQUA_HUE + wBlue * HSL_BLUE_HUE + wMagenta * HSL_MAGENTA_HUE + wPink * HSL_PINK_HUE;
+        wRed * SETTING_HSL_RED_HUE + wOrange * SETTING_HSL_ORANGE_HUE + wYellow * SETTING_HSL_YELLOW_HUE + wGreen * SETTING_HSL_GREEN_HUE +
+        wAqua * SETTING_HSL_AQUA_HUE + wBlue * SETTING_HSL_BLUE_HUE + wMagenta * SETTING_HSL_MAGENTA_HUE + wPink * SETTING_HSL_PINK_HUE;
     hueShift *= HSL_HUE_RANGE_DEG / 100.0;
 
     // Saturation: same -100..100 -> (1 + x/100) multiplier convention as the
@@ -129,14 +113,14 @@ vec3 applyHSLMixer(vec3 color) {
     // through a curve that fades to 0 at pure black/white so it can't clip
     // otherwise-untouched hues into invalid lightness.
     float satMult =
-        wRed * (1.0 + HSL_RED_SAT / 100.0) + wOrange * (1.0 + HSL_ORANGE_SAT / 100.0) +
-        wYellow * (1.0 + HSL_YELLOW_SAT / 100.0) + wGreen * (1.0 + HSL_GREEN_SAT / 100.0) +
-        wAqua * (1.0 + HSL_AQUA_SAT / 100.0) + wBlue * (1.0 + HSL_BLUE_SAT / 100.0) +
-        wMagenta * (1.0 + HSL_MAGENTA_SAT / 100.0) + wPink * (1.0 + HSL_PINK_SAT / 100.0);
+        wRed * (1.0 + SETTING_HSL_RED_SAT / 100.0) + wOrange * (1.0 + SETTING_HSL_ORANGE_SAT / 100.0) +
+        wYellow * (1.0 + SETTING_HSL_YELLOW_SAT / 100.0) + wGreen * (1.0 + SETTING_HSL_GREEN_SAT / 100.0) +
+        wAqua * (1.0 + SETTING_HSL_AQUA_SAT / 100.0) + wBlue * (1.0 + SETTING_HSL_BLUE_SAT / 100.0) +
+        wMagenta * (1.0 + SETTING_HSL_MAGENTA_SAT / 100.0) + wPink * (1.0 + SETTING_HSL_PINK_SAT / 100.0);
 
     float lumShift =
-        wRed * HSL_RED_LUM + wOrange * HSL_ORANGE_LUM + wYellow * HSL_YELLOW_LUM + wGreen * HSL_GREEN_LUM +
-        wAqua * HSL_AQUA_LUM + wBlue * HSL_BLUE_LUM + wMagenta * HSL_MAGENTA_LUM + wPink * HSL_PINK_LUM;
+        wRed * SETTING_HSL_RED_LUM + wOrange * SETTING_HSL_ORANGE_LUM + wYellow * SETTING_HSL_YELLOW_LUM + wGreen * SETTING_HSL_GREEN_LUM +
+        wAqua * SETTING_HSL_AQUA_LUM + wBlue * SETTING_HSL_BLUE_LUM + wMagenta * SETTING_HSL_MAGENTA_LUM + wPink * SETTING_HSL_PINK_LUM;
     lumShift *= 0.01;
 
     float lumCurve = hsl.z * (1.0 - hsl.z) * 4.0; // 0 at L=0/1, peaks at L=0.5
