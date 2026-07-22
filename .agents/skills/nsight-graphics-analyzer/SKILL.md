@@ -208,6 +208,23 @@ and parses `iteration_times.csv`. Useful for replay-cost regression;
 
 ## How to read the artifacts
 
+### Vibris/glc2vk replayer override
+
+When the traced executable is the Vibris OpenGL or Vulkan replayer, ignore
+all whole-capture and relative-to-capture performance values. This includes
+capture duration, `analysis.frame_budget`, `fraction_of_gpu`, replayer CPU
+submission, `replay-perf`, Copy work, and sleep/yield time. They measure
+replayer and OS behavior, not Iris shader performance.
+
+Use only individual pass durations inside the complete outer `Replay` marker,
+or `pass_duration / Replay_duration`. Prefer `gputrace-actions --in-marker
+"^Replay$"` to select passes and use the stage tree for the exact outer
+`Replay` duration. Exclude the outer `Copy` marker and the unmarked tail
+sentinel dispatch from shader comparisons.
+
+The rules below describe ordinary application captures; this replayer
+override takes precedence.
+
 **Read `summary.json` first.** Four fields that matter:
 
 - `analysis.frame_budget.verdict` → 60fps / 30fps / below_30fps

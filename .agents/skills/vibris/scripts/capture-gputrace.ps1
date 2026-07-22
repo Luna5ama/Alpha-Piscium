@@ -249,7 +249,7 @@ if ($ShaderRoot) {
 
 $argFile = New-VibrisJavaArgFile -Backend $Backend -Jar $jar -Capture $captureDir -Frames $Frames -ShaderRoot $ShaderRoot -ShaderPass $ShaderPass
 $aotCache = Get-VibrisReplayAotCachePath -Jar $jar
-$cacheExitCode = Ensure-VibrisJavaAotCache -Java $java -AotCache $aotCache -ArgFile $argFile -Name 'Replayer'
+$cacheExitCode = Ensure-VibrisJavaAotCache -Java $java -Jar $jar -AotCache $aotCache -ArgFile $argFile -Name 'Replayer'
 if ($cacheExitCode -ne 0) {
     exit $cacheExitCode
 }

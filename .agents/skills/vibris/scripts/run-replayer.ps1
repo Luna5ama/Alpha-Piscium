@@ -28,7 +28,7 @@ $argFile = New-VibrisJavaArgFile -Backend $Backend -Jar $jar -Capture $captureDi
 $aotCache = Get-VibrisReplayAotCachePath -Jar $jar
 
 if (-not $PrintCommand) {
-    $cacheExitCode = Ensure-VibrisJavaAotCache -Java $java -AotCache $aotCache -ArgFile $argFile -Name 'Replayer'
+    $cacheExitCode = Ensure-VibrisJavaAotCache -Java $java -Jar $jar -AotCache $aotCache -ArgFile $argFile -Name 'Replayer'
     if ($cacheExitCode -ne 0) {
         exit $cacheExitCode
     }

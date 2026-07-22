@@ -12,8 +12,11 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
+layout(rgba16f) uniform restrict writeonly image2D uimg_main;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
+
+#ifdef SETTING_TAA
 
 // Shared memory with padding for 4x4 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for Lanczos2 4x4 taps
@@ -199,7 +202,6 @@ void main() {
         float newFrameAccum = lastFrameAccum + 1.0;
 
         vec3 currColor;
-        #ifdef SETTING_TAA
         {
             vec2 centerPixel = unjitterTexelPos - 0.5;
             vec2 centerPixelOrigin = floor(centerPixel);
@@ -225,9 +227,6 @@ void main() {
             }
             currColor = colors_YCoCgToRGB(colorResult / weightSum);
         }
-        #else
-        currColor = texelFetch(usam_main, texelPos, 0).rgb;
-        #endif
         currColor = max(currColor, 0.0);
 
         vec4 taaResetFactor = global_taaResetFactor;
@@ -318,9 +317,6 @@ void main() {
         newFrameAccum = clamp(newFrameAccum, MIN_ACCUM_FRAMES, MAX_ACCUM_FRAMES);
 
         float finalCurrWeight = 1.0 / newFrameAccum;
-        #ifndef SETTING_TAA
-        finalCurrWeight = 1.0;
-        #endif
 
         vec3 finalColor = mix(prevColor, currColor, finalCurrWeight);
         vec4 outputData = vec4(finalColor, newFrameAccum);
@@ -330,3 +326,17 @@ void main() {
     transient_taaOutput_store(texelPos, outputData);
 }
 }
+
+#else
+
+void main() {
+    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        vec3 color = max(texelFetch(usam_main, texelPos, 0).rgb, 0.0);
+        float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 0u), frameCounter);
+        color = dither_fp16(color, ditherNoise);
+        imageStore(uimg_main, texelPos, vec4(agxInvertible_inverse(color), 1.0));
+    }
+}
+
+#endif
