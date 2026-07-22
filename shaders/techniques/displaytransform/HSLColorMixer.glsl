@@ -1,5 +1,5 @@
-#ifndef INCLUDE_techniques_displaytransform_HSL_Color_Mixer_glsl
-#define INCLUDE_techniques_displaytransform_HSL_Color_Mixer_glsl a
+#ifndef INCLUDE_techniques_displaytransform_HSLColorMixer_glsl
+#define INCLUDE_techniques_displaytransform_HSLColorMixer_glsl a
 
 float _displaytransform_hslcolormixer_hueToRgb(float p, float q, float t) {
     if (t < 0.0) t += 1.0;
