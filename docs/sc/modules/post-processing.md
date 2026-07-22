@@ -71,12 +71,9 @@ range、highlight/shadow percentile 及 adaptation 参数。`transient_exposureW
 `DisplayTransform.glsl`](../../../shaders/techniques/displaytransform/DisplayTransform.glsl)，将内部 working color space
 转为 DRT working space，再应用 tone mapping 和 output color space/transfer function。
 
-选择 Custom look 时，[`DRT.glsl`](../../../shaders/techniques/displaytransform/DRT.glsl) 会在 tone mapping 前应用原色色度校准；
-随后，[`HSLColorMixer.glsl`](../../../shaders/techniques/displaytransform/HSLColorMixer.glsl) 在 output transfer function 前，
-以 display-linear output color 调整八个色相区间。Default、Golden 和 Punchy look 不会编译这两个阶段。
+tone mapping 后，结果先转换到配置的调色色彩空间；[`PrimaryColorCalibration`](../../../shaders/techniques/displaytransform/PrimaryColorCalibration.glsl) 调整其线性 RGB 原色，再应用配置的调色传递函数，并由 [`HSLColorMixer`](../../../shaders/techniques/displaytransform/HSLColorMixer.glsl) 调整八个色相区间。结果随后被解码并转换到显示器输出空间。两个阶段分别由独立开关控制。
 
-相关设置包括 material transfer/color space、internal working space、DRT working space、tone-map look/dynamic
-range/offset/slope/power/saturation，以及 output color space/transfer function。
+相关设置包括 material transfer/color space、internal working space、DRT working space、调色色彩空间/传递函数、tone-map look/dynamic range/offset/slope/power/saturation，以及显示器 color space/transfer function。
 
 ## 调试与特殊模式
 

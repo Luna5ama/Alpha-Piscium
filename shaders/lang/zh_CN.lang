@@ -580,68 +580,68 @@ option.SETTING_PURKINJE_EFFECT_CB=夜视色调 - 蓝
 option.SETTING_PURKINJE_EFFECT_CB.comment=单色夜视的蓝色色调。数值越高，夜晚场景越蓝。
 option.SETTING_PRIMARY_COLOR_CALIBRATION=原色校准
 option.SETTING_PRIMARY_COLOR_CALIBRATION.comment=应用下方的原色校准控件。
-option.SETTING_COLOR_CALIBRATION_RED_HUE=红色原色色相
-option.SETTING_COLOR_CALIBRATION_RED_HUE.comment=围绕白点旋转红色原色的色度，效果类似于 ACR 的相机校准面板。
-option.SETTING_COLOR_CALIBRATION_RED_SAT=红色原色饱和度
-option.SETTING_COLOR_CALIBRATION_RED_SAT.comment=缩放红色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。
-option.SETTING_COLOR_CALIBRATION_GREEN_HUE=绿色原色色相
-option.SETTING_COLOR_CALIBRATION_GREEN_HUE.comment=围绕白点旋转绿色原色的色度，效果类似于 ACR 的相机校准面板。
-option.SETTING_COLOR_CALIBRATION_GREEN_SAT=绿色原色饱和度
-option.SETTING_COLOR_CALIBRATION_GREEN_SAT.comment=缩放绿色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。
-option.SETTING_COLOR_CALIBRATION_BLUE_HUE=蓝色原色色相
-option.SETTING_COLOR_CALIBRATION_BLUE_HUE.comment=围绕白点旋转蓝色原色的色度，效果类似于 ACR 的相机校准面板。
-option.SETTING_COLOR_CALIBRATION_BLUE_SAT=蓝色原色饱和度
-option.SETTING_COLOR_CALIBRATION_BLUE_SAT.comment=缩放蓝色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。
-option.SETTING_HSL_COLOR_MIXER=HSL 颜色混合器
-option.SETTING_HSL_COLOR_MIXER.comment=应用下方的 HSL 颜色混合器控件。
-option.SETTING_HSL_RED_HUE=红色色相
-option.SETTING_HSL_RED_HUE.comment=仅旋转红色色相像素的色相。0 = 不变，负值 = 转向粉色/洋红色，正值 = 转向橙色。
-option.SETTING_HSL_RED_SAT=红色饱和度
-option.SETTING_HSL_RED_SAT.comment=仅缩放红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
-option.SETTING_HSL_RED_LUM=红色明度
-option.SETTING_HSL_RED_LUM.comment=仅调整红色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
-option.SETTING_HSL_ORANGE_HUE=橙色色相
-option.SETTING_HSL_ORANGE_HUE.comment=仅旋转橙色色相像素的色相。0 = 不变，负值 = 转向红色，正值 = 转向黄色。
-option.SETTING_HSL_ORANGE_SAT=橙色饱和度
-option.SETTING_HSL_ORANGE_SAT.comment=仅缩放橙色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
-option.SETTING_HSL_ORANGE_LUM=橙色明度
-option.SETTING_HSL_ORANGE_LUM.comment=仅调整橙色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
-option.SETTING_HSL_YELLOW_HUE=黄色色相
-option.SETTING_HSL_YELLOW_HUE.comment=仅旋转黄色色相像素的色相。0 = 不变，负值 = 转向橙色，正值 = 转向绿色。
-option.SETTING_HSL_YELLOW_SAT=黄色饱和度
-option.SETTING_HSL_YELLOW_SAT.comment=仅缩放黄色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
-option.SETTING_HSL_YELLOW_LUM=黄色明度
-option.SETTING_HSL_YELLOW_LUM.comment=仅调整黄色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
-option.SETTING_HSL_GREEN_HUE=绿色色相
-option.SETTING_HSL_GREEN_HUE.comment=仅旋转绿色色相像素的色相。0 = 不变，负值 = 转向黄色，正值 = 转向青色。
-option.SETTING_HSL_GREEN_SAT=绿色饱和度
-option.SETTING_HSL_GREEN_SAT.comment=仅缩放绿色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
-option.SETTING_HSL_GREEN_LUM=绿色明度
-option.SETTING_HSL_GREEN_LUM.comment=仅调整绿色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
-option.SETTING_HSL_AQUA_HUE=青色色相
-option.SETTING_HSL_AQUA_HUE.comment=仅旋转青色色相像素的色相。0 = 不变，负值 = 转向绿色，正值 = 转向蓝色。
-option.SETTING_HSL_AQUA_SAT=青色饱和度
-option.SETTING_HSL_AQUA_SAT.comment=仅缩放青色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
-option.SETTING_HSL_AQUA_LUM=青色明度
-option.SETTING_HSL_AQUA_LUM.comment=仅调整青色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
-option.SETTING_HSL_BLUE_HUE=蓝色色相
-option.SETTING_HSL_BLUE_HUE.comment=仅旋转蓝色色相像素的色相。0 = 不变，负值 = 转向青色，正值 = 转向洋红色。
-option.SETTING_HSL_BLUE_SAT=蓝色饱和度
-option.SETTING_HSL_BLUE_SAT.comment=仅缩放蓝色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
-option.SETTING_HSL_BLUE_LUM=蓝色明度
-option.SETTING_HSL_BLUE_LUM.comment=仅调整蓝色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
-option.SETTING_HSL_MAGENTA_HUE=洋红色色相
-option.SETTING_HSL_MAGENTA_HUE.comment=仅旋转洋红色色相像素的色相。0 = 不变，负值 = 转向蓝色，正值 = 转向粉色。
-option.SETTING_HSL_MAGENTA_SAT=洋红色饱和度
-option.SETTING_HSL_MAGENTA_SAT.comment=仅缩放洋红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
-option.SETTING_HSL_MAGENTA_LUM=洋红色明度
-option.SETTING_HSL_MAGENTA_LUM.comment=仅调整洋红色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
-option.SETTING_HSL_PINK_HUE=粉色色相
-option.SETTING_HSL_PINK_HUE.comment=仅旋转粉色色相像素的色相。0 = 不变，负值 = 转向洋红色，正值 = 转向红色。
-option.SETTING_HSL_PINK_SAT=粉色饱和度
-option.SETTING_HSL_PINK_SAT.comment=仅缩放粉色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
-option.SETTING_HSL_PINK_LUM=粉色明度
-option.SETTING_HSL_PINK_LUM.comment=仅调整粉色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_PCC_RED_HUE=红色原色色相
+option.SETTING_PCC_RED_HUE.comment=围绕白点旋转红色原色的色度，效果类似于 ACR 的相机校准面板。
+option.SETTING_PCC_RED_SAT=红色原色饱和度
+option.SETTING_PCC_RED_SAT.comment=缩放红色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。
+option.SETTING_PCC_GREEN_HUE=绿色原色色相
+option.SETTING_PCC_GREEN_HUE.comment=围绕白点旋转绿色原色的色度，效果类似于 ACR 的相机校准面板。
+option.SETTING_PCC_GREEN_SAT=绿色原色饱和度
+option.SETTING_PCC_GREEN_SAT.comment=缩放绿色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。
+option.SETTING_PCC_BLUE_HUE=蓝色原色色相
+option.SETTING_PCC_BLUE_HUE.comment=围绕白点旋转蓝色原色的色度，效果类似于 ACR 的相机校准面板。
+option.SETTING_PCC_BLUE_SAT=蓝色原色饱和度
+option.SETTING_PCC_BLUE_SAT.comment=缩放蓝色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。
+option.SETTING_HCM_COLOR_MIXER=HSL 颜色混合器
+option.SETTING_HCM_COLOR_MIXER.comment=应用下方的 HSL 颜色混合器控件。
+option.SETTING_HCM_RED_HUE=红色色相
+option.SETTING_HCM_RED_HUE.comment=仅旋转红色色相像素的色相。0 = 不变，负值 = 转向粉色/洋红色，正值 = 转向橙色。
+option.SETTING_HCM_RED_SAT=红色饱和度
+option.SETTING_HCM_RED_SAT.comment=仅缩放红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HCM_RED_LUM=红色明度
+option.SETTING_HCM_RED_LUM.comment=仅调整红色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HCM_ORANGE_HUE=橙色色相
+option.SETTING_HCM_ORANGE_HUE.comment=仅旋转橙色色相像素的色相。0 = 不变，负值 = 转向红色，正值 = 转向黄色。
+option.SETTING_HCM_ORANGE_SAT=橙色饱和度
+option.SETTING_HCM_ORANGE_SAT.comment=仅缩放橙色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HCM_ORANGE_LUM=橙色明度
+option.SETTING_HCM_ORANGE_LUM.comment=仅调整橙色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HCM_YELLOW_HUE=黄色色相
+option.SETTING_HCM_YELLOW_HUE.comment=仅旋转黄色色相像素的色相。0 = 不变，负值 = 转向橙色，正值 = 转向绿色。
+option.SETTING_HCM_YELLOW_SAT=黄色饱和度
+option.SETTING_HCM_YELLOW_SAT.comment=仅缩放黄色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HCM_YELLOW_LUM=黄色明度
+option.SETTING_HCM_YELLOW_LUM.comment=仅调整黄色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HCM_GREEN_HUE=绿色色相
+option.SETTING_HCM_GREEN_HUE.comment=仅旋转绿色色相像素的色相。0 = 不变，负值 = 转向黄色，正值 = 转向青色。
+option.SETTING_HCM_GREEN_SAT=绿色饱和度
+option.SETTING_HCM_GREEN_SAT.comment=仅缩放绿色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HCM_GREEN_LUM=绿色明度
+option.SETTING_HCM_GREEN_LUM.comment=仅调整绿色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HCM_AQUA_HUE=青色色相
+option.SETTING_HCM_AQUA_HUE.comment=仅旋转青色色相像素的色相。0 = 不变，负值 = 转向绿色，正值 = 转向蓝色。
+option.SETTING_HCM_AQUA_SAT=青色饱和度
+option.SETTING_HCM_AQUA_SAT.comment=仅缩放青色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HCM_AQUA_LUM=青色明度
+option.SETTING_HCM_AQUA_LUM.comment=仅调整青色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HCM_BLUE_HUE=蓝色色相
+option.SETTING_HCM_BLUE_HUE.comment=仅旋转蓝色色相像素的色相。0 = 不变，负值 = 转向青色，正值 = 转向洋红色。
+option.SETTING_HCM_BLUE_SAT=蓝色饱和度
+option.SETTING_HCM_BLUE_SAT.comment=仅缩放蓝色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HCM_BLUE_LUM=蓝色明度
+option.SETTING_HCM_BLUE_LUM.comment=仅调整蓝色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HCM_MAGENTA_HUE=洋红色色相
+option.SETTING_HCM_MAGENTA_HUE.comment=仅旋转洋红色色相像素的色相。0 = 不变，负值 = 转向蓝色，正值 = 转向粉色。
+option.SETTING_HCM_MAGENTA_SAT=洋红色饱和度
+option.SETTING_HCM_MAGENTA_SAT.comment=仅缩放洋红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HCM_MAGENTA_LUM=洋红色明度
+option.SETTING_HCM_MAGENTA_LUM.comment=仅调整洋红色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
+option.SETTING_HCM_PINK_HUE=粉色色相
+option.SETTING_HCM_PINK_HUE.comment=仅旋转粉色色相像素的色相。0 = 不变，负值 = 转向洋红色，正值 = 转向红色。
+option.SETTING_HCM_PINK_SAT=粉色饱和度
+option.SETTING_HCM_PINK_SAT.comment=仅缩放粉色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。
+option.SETTING_HCM_PINK_LUM=粉色明度
+option.SETTING_HCM_PINK_LUM.comment=仅调整粉色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。
 option.SETTING_MATERIAL_COLOR_SPACE=纹理色彩空间
 option.SETTING_MATERIAL_COLOR_SPACE.comment=资源包纹理的色彩空间。sRGB是大多数资源包的标准。
 option.SETTING_MATERIAL_TRANSFER_FUNC=纹理伽马曲线
@@ -653,6 +653,13 @@ option.SETTING_WORKING_COLOR_SPACE=内部处理色彩空间
 option.SETTING_WORKING_COLOR_SPACE.comment=用于光照计算的色彩空间。推荐使用ACEScg进行广色域渲染。
 option.SETTING_DRT_WORKING_COLOR_SPACE=色调映射色彩空间
 option.SETTING_DRT_WORKING_COLOR_SPACE.comment=用于色调映射操作的色彩空间。Rec. 2020与AgX色调映射配合更好。
+option.SETTING_COLOR_GRADING_COLOR_SPACE=调色色彩空间
+option.SETTING_COLOR_GRADING_COLOR_SPACE.comment=原色校准和 HSL 颜色混合器使用的色彩空间，独立于显示器色彩空间。
+option.SETTING_COLOR_GRADING_TRANSFER_FUNC=调色传递函数
+option.SETTING_COLOR_GRADING_TRANSFER_FUNC.comment=HSL 颜色混合器编码颜色时使用的传递函数。线性可保持原有行为。
+value.SETTING_COLOR_GRADING_TRANSFER_FUNC.0=线性
+value.SETTING_COLOR_GRADING_TRANSFER_FUNC.4=指数 2.2
+value.SETTING_COLOR_GRADING_TRANSFER_FUNC.5=指数 2.4
 option.SETTING_OUTPUT_COLOR_SPACE=显示器色彩空间
 option.SETTING_OUTPUT_COLOR_SPACE.comment=显示器的色彩空间。标准显示器使用sRGB，广色域显示器使用Rec. 2020或DCI-P3。
 option.SETTING_OUTPUT_TRANSFER_FUNC=显示器伽马曲线

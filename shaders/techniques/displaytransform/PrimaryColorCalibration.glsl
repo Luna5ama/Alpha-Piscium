@@ -20,21 +20,20 @@ vec2 _displaytransform_primarycolorcalibration_rotatePrimaryXy(vec2 primaryXy, v
 }
 
 vec3 displaytransform_primarycolorcalibration_apply(vec3 color) {
-    vec3 srgbColor = colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_COLORSPACES_SRGB, color);
-    vec3 whiteXYZ = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(1.0));
-    vec3 redXYZ = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(1.0, 0.0, 0.0));
-    vec3 greenXYZ = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(0.0, 1.0, 0.0));
-    vec3 blueXYZ = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(0.0, 0.0, 1.0));
+    vec3 whiteXYZ = colors2_colorspaces_convert(COLORS2_GRADING_COLORSPACE, COLORS2_COLORSPACES_CIE_XYZ, vec3(1.0));
+    vec3 redXYZ = colors2_colorspaces_convert(COLORS2_GRADING_COLORSPACE, COLORS2_COLORSPACES_CIE_XYZ, vec3(1.0, 0.0, 0.0));
+    vec3 greenXYZ = colors2_colorspaces_convert(COLORS2_GRADING_COLORSPACE, COLORS2_COLORSPACES_CIE_XYZ, vec3(0.0, 1.0, 0.0));
+    vec3 blueXYZ = colors2_colorspaces_convert(COLORS2_GRADING_COLORSPACE, COLORS2_COLORSPACES_CIE_XYZ, vec3(0.0, 0.0, 1.0));
     vec2 whiteXy = _displaytransform_primarycolorcalibration_XYZ2xy(whiteXYZ);
     const float HUE_RANGE_DEG = 25.0;
-    vec3 rXYZ = _displaytransform_primarycolorcalibration_xy2XYZ(_displaytransform_primarycolorcalibration_rotatePrimaryXy(_displaytransform_primarycolorcalibration_XYZ2xy(redXYZ), whiteXy, SETTING_COLOR_CALIBRATION_RED_HUE * 0.01 * HUE_RANGE_DEG, 1.0 + SETTING_COLOR_CALIBRATION_RED_SAT * 0.01), redXYZ.y);
-    vec3 gXYZ = _displaytransform_primarycolorcalibration_xy2XYZ(_displaytransform_primarycolorcalibration_rotatePrimaryXy(_displaytransform_primarycolorcalibration_XYZ2xy(greenXYZ), whiteXy, SETTING_COLOR_CALIBRATION_GREEN_HUE * 0.01 * HUE_RANGE_DEG, 1.0 + SETTING_COLOR_CALIBRATION_GREEN_SAT * 0.01), greenXYZ.y);
-    vec3 bXYZ = _displaytransform_primarycolorcalibration_xy2XYZ(_displaytransform_primarycolorcalibration_rotatePrimaryXy(_displaytransform_primarycolorcalibration_XYZ2xy(blueXYZ), whiteXy, SETTING_COLOR_CALIBRATION_BLUE_HUE * 0.01 * HUE_RANGE_DEG, 1.0 + SETTING_COLOR_CALIBRATION_BLUE_SAT * 0.01), blueXYZ.y);
+    vec3 rXYZ = _displaytransform_primarycolorcalibration_xy2XYZ(_displaytransform_primarycolorcalibration_rotatePrimaryXy(_displaytransform_primarycolorcalibration_XYZ2xy(redXYZ), whiteXy, float(SETTING_PCC_RED_HUE) * 0.01 * HUE_RANGE_DEG, 1.0 + float(SETTING_PCC_RED_SAT) * 0.01), redXYZ.y);
+    vec3 gXYZ = _displaytransform_primarycolorcalibration_xy2XYZ(_displaytransform_primarycolorcalibration_rotatePrimaryXy(_displaytransform_primarycolorcalibration_XYZ2xy(greenXYZ), whiteXy, float(SETTING_PCC_GREEN_HUE) * 0.01 * HUE_RANGE_DEG, 1.0 + float(SETTING_PCC_GREEN_SAT) * 0.01), greenXYZ.y);
+    vec3 bXYZ = _displaytransform_primarycolorcalibration_xy2XYZ(_displaytransform_primarycolorcalibration_rotatePrimaryXy(_displaytransform_primarycolorcalibration_XYZ2xy(blueXYZ), whiteXy, float(SETTING_PCC_BLUE_HUE) * 0.01 * HUE_RANGE_DEG, 1.0 + float(SETTING_PCC_BLUE_SAT) * 0.01), blueXYZ.y);
     vec3 whiteCorrection = (whiteXYZ - rXYZ - gXYZ - bXYZ) / 3.0;
     mat3 calibMatrix = mat3(rXYZ + whiteCorrection, gXYZ + whiteCorrection, bXYZ + whiteCorrection);
-    vec3 calibratedXYZ = calibMatrix * srgbColor;
-    vec3 calibrated = colors2_colorspaces_convert(COLORS2_COLORSPACES_CIE_XYZ, COLORS2_COLORSPACES_SRGB, calibratedXYZ);
-    return colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, calibrated);
+    vec3 calibratedXYZ = calibMatrix * color;
+    vec3 calibrated = colors2_colorspaces_convert(COLORS2_COLORSPACES_CIE_XYZ, COLORS2_GRADING_COLORSPACE, calibratedXYZ);
+    return calibrated;
 }
 
 #endif

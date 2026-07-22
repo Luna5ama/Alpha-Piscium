@@ -104,8 +104,8 @@ vec3 displaytransform_hslcolormixer_apply(vec3 color) {
     // touch a hue that band has no weight over.
     const float HSL_HUE_RANGE_DEG = 60.0;
     float hueShift =
-        wRed * SETTING_HSL_RED_HUE + wOrange * SETTING_HSL_ORANGE_HUE + wYellow * SETTING_HSL_YELLOW_HUE + wGreen * SETTING_HSL_GREEN_HUE +
-        wAqua * SETTING_HSL_AQUA_HUE + wBlue * SETTING_HSL_BLUE_HUE + wMagenta * SETTING_HSL_MAGENTA_HUE + wPink * SETTING_HSL_PINK_HUE;
+        wRed * float(SETTING_HCM_RED_HUE) + wOrange * float(SETTING_HCM_ORANGE_HUE) + wYellow * float(SETTING_HCM_YELLOW_HUE) + wGreen * float(SETTING_HCM_GREEN_HUE) +
+        wAqua * float(SETTING_HCM_AQUA_HUE) + wBlue * float(SETTING_HCM_BLUE_HUE) + wMagenta * float(SETTING_HCM_MAGENTA_HUE) + wPink * float(SETTING_HCM_PINK_HUE);
     hueShift *= HSL_HUE_RANGE_DEG / 100.0;
 
     // Saturation: same -100..100 -> (1 + x/100) multiplier convention as the
@@ -113,14 +113,14 @@ vec3 displaytransform_hslcolormixer_apply(vec3 color) {
     // through a curve that fades to 0 at pure black/white so it can't clip
     // otherwise-untouched hues into invalid lightness.
     float satMult =
-        wRed * (1.0 + SETTING_HSL_RED_SAT / 100.0) + wOrange * (1.0 + SETTING_HSL_ORANGE_SAT / 100.0) +
-        wYellow * (1.0 + SETTING_HSL_YELLOW_SAT / 100.0) + wGreen * (1.0 + SETTING_HSL_GREEN_SAT / 100.0) +
-        wAqua * (1.0 + SETTING_HSL_AQUA_SAT / 100.0) + wBlue * (1.0 + SETTING_HSL_BLUE_SAT / 100.0) +
-        wMagenta * (1.0 + SETTING_HSL_MAGENTA_SAT / 100.0) + wPink * (1.0 + SETTING_HSL_PINK_SAT / 100.0);
+        wRed * (1.0 + float(SETTING_HCM_RED_SAT) / 100.0) + wOrange * (1.0 + float(SETTING_HCM_ORANGE_SAT) / 100.0) +
+        wYellow * (1.0 + float(SETTING_HCM_YELLOW_SAT) / 100.0) + wGreen * (1.0 + float(SETTING_HCM_GREEN_SAT) / 100.0) +
+        wAqua * (1.0 + float(SETTING_HCM_AQUA_SAT) / 100.0) + wBlue * (1.0 + float(SETTING_HCM_BLUE_SAT) / 100.0) +
+        wMagenta * (1.0 + float(SETTING_HCM_MAGENTA_SAT) / 100.0) + wPink * (1.0 + float(SETTING_HCM_PINK_SAT) / 100.0);
 
     float lumShift =
-        wRed * SETTING_HSL_RED_LUM + wOrange * SETTING_HSL_ORANGE_LUM + wYellow * SETTING_HSL_YELLOW_LUM + wGreen * SETTING_HSL_GREEN_LUM +
-        wAqua * SETTING_HSL_AQUA_LUM + wBlue * SETTING_HSL_BLUE_LUM + wMagenta * SETTING_HSL_MAGENTA_LUM + wPink * SETTING_HSL_PINK_LUM;
+        wRed * float(SETTING_HCM_RED_LUM) + wOrange * float(SETTING_HCM_ORANGE_LUM) + wYellow * float(SETTING_HCM_YELLOW_LUM) + wGreen * float(SETTING_HCM_GREEN_LUM) +
+        wAqua * float(SETTING_HCM_AQUA_LUM) + wBlue * float(SETTING_HCM_BLUE_LUM) + wMagenta * float(SETTING_HCM_MAGENTA_LUM) + wPink * float(SETTING_HCM_PINK_LUM);
     lumShift *= 0.01;
 
     float lumCurve = hsl.z * (1.0 - hsl.z) * 4.0; // 0 at L=0/1, peaks at L=0.5

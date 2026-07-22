@@ -3231,7 +3231,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     empty()
-                    slider("SETTING_COLOR_CALIBRATION_RED_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    slider("SETTING_PCC_RED_HUE", 0, -100..100) {
                         lang {
                             name = "Red Primary Hue"
                             comment = "Rotates the red primary's chromaticity around white, like ACR's Camera Calibration panel."
@@ -3241,7 +3241,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             comment = "围绕白点旋转红色原色的色度，效果类似于 ACR 的相机校准面板。"
                         }
                     }
-                    slider("SETTING_COLOR_CALIBRATION_RED_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    slider("SETTING_PCC_RED_SAT", 0, -100..100) {
                         lang {
                             name = "Red Primary Sat"
                             comment = "Scales the red primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
@@ -3252,7 +3252,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     empty()
-                    slider("SETTING_COLOR_CALIBRATION_GREEN_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    slider("SETTING_PCC_GREEN_HUE", 0, -100..100) {
                         lang {
                             name = "Green Primary Hue"
                             comment = "Rotates the green primary's chromaticity around white, like ACR's Camera Calibration panel."
@@ -3262,7 +3262,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             comment = "围绕白点旋转绿色原色的色度，效果类似于 ACR 的相机校准面板。"
                         }
                     }
-                    slider("SETTING_COLOR_CALIBRATION_GREEN_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    slider("SETTING_PCC_GREEN_SAT", 0, -100..100) {
                         lang {
                             name = "Green Primary Sat"
                             comment = "Scales the green primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
@@ -3273,7 +3273,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     empty()
-                    slider("SETTING_COLOR_CALIBRATION_BLUE_HUE", 0.0, -100.0..100.0 step 1.0) {
+                    slider("SETTING_PCC_BLUE_HUE", 0, -100..100) {
                         lang {
                             name = "Blue Primary Hue"
                             comment = "Rotates the blue primary's chromaticity around white, like ACR's Camera Calibration panel."
@@ -3283,7 +3283,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             comment = "围绕白点旋转蓝色原色的色度，效果类似于 ACR 的相机校准面板。"
                         }
                     }
-                    slider("SETTING_COLOR_CALIBRATION_BLUE_SAT", 0.0, -100.0..100.0 step 1.0) {
+                    slider("SETTING_PCC_BLUE_SAT", 0, -100..100) {
                         lang {
                             name = "Blue Primary Sat"
                             comment = "Scales the blue primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
@@ -3304,7 +3304,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         comment = "独立调整8个色相区间的饱和度和明度，类似 Lightroom 的 HSL/颜色面板。只影响色相落在（或接近）该区间的像素。"
                     }
                     row {
-                        toggle("SETTING_HSL_COLOR_MIXER", false) {
+                        toggle("SETTING_HCM_COLOR_MIXER", false) {
                             lang {
                                 name = "HSL Color Mixer"
                                 comment = "Applies the HSL color mixer controls below."
@@ -3317,7 +3317,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     }
                     empty()
                     row {
-                        slider("SETTING_HSL_RED_HUE", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_RED_HUE", 0, -100..100) {
                             lang {
                                 name = "Red Hue"
                                 comment =
@@ -3328,7 +3328,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅旋转红色色相像素的色相。0 = 不变，负值 = 转向粉色/洋红色，正值 = 转向橙色。"
                             }
                         }
-                        slider("SETTING_HSL_RED_SAT", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_RED_SAT", 0, -100..100) {
                             lang {
                                 name = "Red Saturation"
                                 comment =
@@ -3339,7 +3339,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅缩放红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                             }
                         }
-                        slider("SETTING_HSL_RED_LUM", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_RED_LUM", 0, -100..100) {
                             lang {
                                 name = "Red Luminance"
                                 comment =
@@ -3352,7 +3352,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     row {
-                        slider("SETTING_HSL_ORANGE_HUE", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_ORANGE_HUE", 0, -100..100) {
                             lang {
                                 name = "Orange Hue"
                                 comment =
@@ -3363,7 +3363,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅旋转橙色色相像素的色相。0 = 不变，负值 = 转向红色，正值 = 转向黄色。"
                             }
                         }
-                        slider("SETTING_HSL_ORANGE_SAT", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_ORANGE_SAT", 0, -100..100) {
                             lang {
                                 name = "Orange Saturation"
                                 comment =
@@ -3374,7 +3374,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅缩放橙色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                             }
                         }
-                        slider("SETTING_HSL_ORANGE_LUM", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_ORANGE_LUM", 0, -100..100) {
                             lang {
                                 name = "Orange Luminance"
                                 comment =
@@ -3387,7 +3387,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     row {
-                        slider("SETTING_HSL_YELLOW_HUE", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_YELLOW_HUE", 0, -100..100) {
                             lang {
                                 name = "Yellow Hue"
                                 comment =
@@ -3398,7 +3398,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅旋转黄色色相像素的色相。0 = 不变，负值 = 转向橙色，正值 = 转向绿色。"
                             }
                         }
-                        slider("SETTING_HSL_YELLOW_SAT", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_YELLOW_SAT", 0, -100..100) {
                             lang {
                                 name = "Yellow Saturation"
                                 comment =
@@ -3409,7 +3409,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅缩放黄色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                             }
                         }
-                        slider("SETTING_HSL_YELLOW_LUM", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_YELLOW_LUM", 0, -100..100) {
                             lang {
                                 name = "Yellow Luminance"
                                 comment =
@@ -3422,7 +3422,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     row {
-                        slider("SETTING_HSL_GREEN_HUE", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_GREEN_HUE", 0, -100..100) {
                             lang {
                                 name = "Green Hue"
                                 comment = "Rotates the hue of green-hued pixels only. 0 = unchanged, negative = rotates toward yellow, positive = rotates toward aqua."
@@ -3432,7 +3432,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅旋转绿色色相像素的色相。0 = 不变，负值 = 转向黄色，正值 = 转向青色。"
                             }
                         }
-                        slider("SETTING_HSL_GREEN_SAT", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_GREEN_SAT", 0, -100..100) {
                             lang {
                                 name = "Green Saturation"
                                 comment = "Scales the saturation of green-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3442,7 +3442,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅缩放绿色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                             }
                         }
-                        slider("SETTING_HSL_GREEN_LUM", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_GREEN_LUM", 0, -100..100) {
                             lang {
                                 name = "Green Luminance"
                                 comment = "Shifts the lightness of green-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
@@ -3454,7 +3454,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     row {
-                        slider("SETTING_HSL_AQUA_HUE", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_AQUA_HUE", 0, -100..100) {
                             lang {
                                 name = "Aqua Hue"
                                 comment = "Rotates the hue of aqua-hued pixels only. 0 = unchanged, negative = rotates toward green, positive = rotates toward blue."
@@ -3464,7 +3464,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅旋转青色色相像素的色相。0 = 不变，负值 = 转向绿色，正值 = 转向蓝色。"
                             }
                         }
-                        slider("SETTING_HSL_AQUA_SAT", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_AQUA_SAT", 0, -100..100) {
                             lang {
                                 name = "Aqua Saturation"
                                 comment = "Scales the saturation of aqua-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3474,7 +3474,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅缩放青色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                             }
                         }
-                        slider("SETTING_HSL_AQUA_LUM", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_AQUA_LUM", 0, -100..100) {
                             lang {
                                 name = "Aqua Luminance"
                                 comment = "Shifts the lightness of aqua-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
@@ -3486,7 +3486,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     row {
-                        slider("SETTING_HSL_BLUE_HUE", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_BLUE_HUE", 0, -100..100) {
                             lang {
                                 name = "Blue Hue"
                                 comment = "Rotates the hue of blue-hued pixels only. 0 = unchanged, negative = rotates toward aqua, positive = rotates toward magenta."
@@ -3496,7 +3496,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅旋转蓝色色相像素的色相。0 = 不变，负值 = 转向青色，正值 = 转向洋红色。"
                             }
                         }
-                        slider("SETTING_HSL_BLUE_SAT", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_BLUE_SAT", 0, -100..100) {
                             lang {
                                 name = "Blue Saturation"
                                 comment = "Scales the saturation of blue-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3506,7 +3506,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅缩放蓝色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                             }
                         }
-                        slider("SETTING_HSL_BLUE_LUM", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_BLUE_LUM", 0, -100..100) {
                             lang {
                                 name = "Blue Luminance"
                                 comment = "Shifts the lightness of blue-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
@@ -3518,7 +3518,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     row {
-                        slider("SETTING_HSL_MAGENTA_HUE", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_MAGENTA_HUE", 0, -100..100) {
                             lang {
                                 name = "Magenta Hue"
                                 comment = "Rotates the hue of magenta-hued pixels only. 0 = unchanged, negative = rotates toward blue, positive = rotates toward pink."
@@ -3528,7 +3528,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅旋转洋红色色相像素的色相。0 = 不变，负值 = 转向蓝色，正值 = 转向粉色。"
                             }
                         }
-                        slider("SETTING_HSL_MAGENTA_SAT", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_MAGENTA_SAT", 0, -100..100) {
                             lang {
                                 name = "Magenta Saturation"
                                 comment = "Scales the saturation of magenta-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
@@ -3538,7 +3538,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅缩放洋红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                             }
                         }
-                        slider("SETTING_HSL_MAGENTA_LUM", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_MAGENTA_LUM", 0, -100..100) {
                             lang {
                                 name = "Magenta Luminance"
                                 comment = "Shifts the lightness of magenta-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
@@ -3550,7 +3550,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     row {
-                        slider("SETTING_HSL_PINK_HUE", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_PINK_HUE", 0, -100..100) {
                             lang {
                                 name = "Pink Hue"
                                 comment =
@@ -3561,7 +3561,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅旋转粉色色相像素的色相。0 = 不变，负值 = 转向洋红色，正值 = 转向红色。"
                             }
                         }
-                        slider("SETTING_HSL_PINK_SAT", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_PINK_SAT", 0, -100..100) {
                             lang {
                                 name = "Pink Saturation"
                                 comment =
@@ -3572,7 +3572,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅缩放粉色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
                             }
                         }
-                        slider("SETTING_HSL_PINK_LUM", 0.0, -100.0..100.0 step 1.0) {
+                        slider("SETTING_HCM_PINK_LUM", 0, -100..100) {
                             lang {
                                 name = "Pink Luminance"
                                 comment =
@@ -3677,6 +3677,46 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "色调映射色彩空间"
                     comment = "用于色调映射操作的色彩空间。Rec. 2020与AgX色调映射配合更好。"
+                }
+            }
+            empty()
+            toggle("SETTING_COLOR_GRADING_COLOR_SPACE", 1, 1..8) {
+                lang {
+                    name = "Color Grading Color Space"
+                    comment = "Color space used by Primary Color Calibration and HSL Color Mixer. Independent of Monitor Color Space."
+                    1 value "sRGB"
+                    2 value "Rec. 709"
+                    3 value "Rec. 2020"
+                    4 value "DCI-P3"
+                    5 value "Adobe RGB (1998)"
+                    6 value "ACES2065-1"
+                    7 value "ACEScg"
+                    8 value "Color McSpaceFace"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "调色色彩空间"
+                    comment = "原色校准和 HSL 颜色混合器使用的色彩空间，独立于显示器色彩空间。"
+                }
+            }
+            toggle("SETTING_COLOR_GRADING_TRANSFER_FUNC", 3, 0..7) {
+                lang {
+                    name = "Color Grading Transfer Function"
+                    comment = "Transfer function used to encode colors for HSL Color Mixer. Linear preserves its previous behavior."
+                    0 value "Linear"
+                    1 value "Rec. 601"
+                    2 value "Rec. 709"
+                    3 value "sRGB"
+                    4 value "Exponential 2.2"
+                    5 value "Exponential 2.4"
+                    6 value "ST 2084 (PQ)"
+                    7 value "HLG"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "调色传递函数"
+                    comment = "HSL 颜色混合器编码颜色时使用的传递函数。线性可保持原有行为。"
+                    0 value "线性"
+                    4 value "指数 2.2"
+                    5 value "指数 2.4"
                 }
             }
             empty()
