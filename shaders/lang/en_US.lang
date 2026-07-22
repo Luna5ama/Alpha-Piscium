@@ -35,17 +35,20 @@ screen.SCREEN_23=Outer Space
 screen.SCREEN_24=Sun & Moon
 screen.SCREEN_25=Stars
 screen.SCREEN_26=Post Processing
-screen.SCREEN_27=Depth of Field
-screen.SCREEN_28=Bloom
-screen.SCREEN_29=Purkinje Effect (Night Vision)
+screen.SCREEN_27=Anti-Aliasing
+screen.SCREEN_28=Depth of Field
+screen.SCREEN_29=Bloom
 screen.SCREEN_30=Exposure
-screen.SCREEN_31=Tone Mapping & Color Grading
-screen.SCREEN_32=Anti-Aliasing
-screen.SCREEN_33=Color Management
-screen.SCREEN_33.comment=Advanced color space settings. Only change if you know what you're doing!
-screen.SCREEN_34=Miscellaneous
-screen.SCREEN_35=Sponsors
-screen.SCREEN_36=Debug
+screen.SCREEN_31=Tone Mapping
+screen.SCREEN_32=Purkinje Effect (Night Vision)
+screen.SCREEN_33=Primary Color Calibration
+screen.SCREEN_34=HSL Color Mixer
+screen.SCREEN_34.comment=Adjusts saturation and lightness of 8 hue bands independently, like Lightroom's HSL/Color panel. Only pixels whose hue falls in (or near) a band are affected.
+screen.SCREEN_35=Color Management
+screen.SCREEN_35.comment=Advanced color space settings. Only change if you know what you're doing!
+screen.SCREEN_36=Miscellaneous
+screen.SCREEN_37=Sponsors
+screen.SCREEN_38=Debug
 option.TITLE_VERSION=Alpha Piscium by Luna
 value.TITLE_VERSION.0=§c1.9.2-Alpha
 value.TITLE_VERSION.1=§e1.9.2-Alpha
@@ -438,6 +441,24 @@ option.SETTING_STARMAP_BRIGHT_STAR_BOOST=Bright Star Enhancement
 option.SETTING_STARMAP_BRIGHT_STAR_BOOST.comment=Extra brightness for the most prominent stars. Creates more realistic star size variation.
 option.SETTING_STARMAP_GAMMA=Star Contrast
 option.SETTING_STARMAP_GAMMA.comment=Adjusts contrast between bright and dim stars. Lower values make faint stars more visible.
+option.SETTING_TAA=Temporal Anti-Aliasing (TAA)
+option.SETTING_TAA.comment=Smooths jagged edges by blending multiple frames. Highly recommended for clean image quality.
+option.SETTING_TAA_JITTER=Sub-Pixel Jittering
+option.SETTING_TAA_JITTER.comment=Slightly shifts the camera each frame for better TAA quality. Required for TAA to work effectively.
+option.SETTING_TAA_CURR_FILTER=TAA Current Frame Filter
+option.SETTING_TAA_CURR_FILTER.comment=Type of filter used to filter current frame image for TAA.\nB-Spline: Good at smoothing out aliasing but can be a bit blurry.\nCatmull-Rom: Sharper but may causes ringing or halo.\nLanczos2: Sharp as Catmull-Rom but less ringing or halo. Slightly more performance intensive.
+value.SETTING_TAA_CURR_FILTER.0=B-Spline
+value.SETTING_TAA_CURR_FILTER.1=Catmull-Rom
+value.SETTING_TAA_CURR_FILTER.2=Lanczos2
+option.SETTING_TAA_HISTORY_FILTER=TAA History Frame Filter
+option.SETTING_TAA_HISTORY_FILTER.comment=Type of filter used to filter TAA history frame image.\nBilinear: Fast but blurry.\nCatmull-Rom 5 Tap: Balanced sharpness and performance. May cause minor ringing.\nCatmull-Rom 9 Tap: Sharper but more performance intensive. Less ringing than 5 Tap.\nCatmull-Rom Full: Same quality as 9 Tap but more performance intensive.\nLanczos2: Sharp as Catmull-Rom but less ringing or halo. Most performance intensive.
+value.SETTING_TAA_HISTORY_FILTER.0=Bilinear
+value.SETTING_TAA_HISTORY_FILTER.1=Catmull-Rom 5 Tap
+value.SETTING_TAA_HISTORY_FILTER.2=Catmull-Rom 9 Tap
+value.SETTING_TAA_HISTORY_FILTER.3=Catmull-Rom Full
+value.SETTING_TAA_HISTORY_FILTER.4=Lanczos2
+option.SETTING_TAA_CAS_SHARPNESS=Sharpening Strength
+option.SETTING_TAA_CAS_SHARPNESS.comment=Restores sharpness lost from anti-aliasing using AMD FidelityFX CAS. Higher values create crisper images.
 option.SETTING_DOF=Depth of Field
 option.SETTING_DOF.comment=Blurs distant or nearby objects like a camera lens, focusing attention on what you're looking at.
 option.SETTING_DOF_FOCAL_LENGTH=Focal Length
@@ -495,22 +516,6 @@ option.SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE=Highlight Compression Mode
 option.SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE.comment=Determines how highlight compression is applied. RGB mode compresses saturation, while Luma mode preserves saturation.
 value.SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE.0=RGB
 value.SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE.1=Luma
-option.SETTING_PURKINJE_EFFECT=Purkinje Effect
-option.SETTING_PURKINJE_EFFECT.comment=Simulates how human eyes lose color vision in darkness, creating a more realistic night experience.
-option.SETTING_PURKINJE_EFFECT_MIN_LUM=Minimum Luminance
-option.SETTING_PURKINJE_EFFECT_MIN_LUM.comment=Below this brightness, colors fade to monochrome. Lower = colors disappear in dimmer light.
-prefix.SETTING_PURKINJE_EFFECT_MIN_LUM=10^
-suffix.SETTING_PURKINJE_EFFECT_MIN_LUM=\ cd/m²
-option.SETTING_PURKINJE_EFFECT_MAX_LUM=Maximum Luminance
-option.SETTING_PURKINJE_EFFECT_MAX_LUM.comment=Above this brightness, colors appear fully. Higher = need brighter light to see full colors.
-prefix.SETTING_PURKINJE_EFFECT_MAX_LUM=10^
-suffix.SETTING_PURKINJE_EFFECT_MAX_LUM=\ cd/m²
-option.SETTING_PURKINJE_EFFECT_CR=Night Vision Tint - Red
-option.SETTING_PURKINJE_EFFECT_CR.comment=Red tint of monochrome night vision. Default creates bluish night vision like real eyes.
-option.SETTING_PURKINJE_EFFECT_CG=Night Vision Tint - Green
-option.SETTING_PURKINJE_EFFECT_CG.comment=Green tint of monochrome night vision.
-option.SETTING_PURKINJE_EFFECT_CB=Night Vision Tint - Blue
-option.SETTING_PURKINJE_EFFECT_CB.comment=Blue tint of monochrome night vision. Higher values create bluer night scenes.
 option.SETTING_EXPOSURE_MANUAL=Manual Exposure
 option.SETTING_EXPOSURE_MANUAL.comment=Lock exposure to a fixed value instead of automatically adjusting to scene brightness.
 option.SETTING_EXPOSURE_MANUAL_EV_COARSE=Exposure EV (Coarse)
@@ -581,24 +586,86 @@ option.SETTING_TONE_MAPPING_POWER_B=Blue Contrast
 option.SETTING_TONE_MAPPING_POWER_B.comment=Adjusts contrast in blue channel. Higher values increase blue contrast, making blues more dramatic.
 option.SETTING_TONE_MAPPING_SATURATION=Color Saturation
 option.SETTING_TONE_MAPPING_SATURATION.comment=Overall color intensity. 0 = black & white, 1 = normal, 2 = hyper-saturated.
-option.SETTING_TAA=Temporal Anti-Aliasing (TAA)
-option.SETTING_TAA.comment=Smooths jagged edges by blending multiple frames. Highly recommended for clean image quality.
-option.SETTING_TAA_JITTER=Sub-Pixel Jittering
-option.SETTING_TAA_JITTER.comment=Slightly shifts the camera each frame for better TAA quality. Required for TAA to work effectively.
-option.SETTING_TAA_CURR_FILTER=TAA Current Frame Filter
-option.SETTING_TAA_CURR_FILTER.comment=Type of filter used to filter current frame image for TAA.\nB-Spline: Good at smoothing out aliasing but can be a bit blurry.\nCatmull-Rom: Sharper but may causes ringing or halo.\nLanczos2: Sharp as Catmull-Rom but less ringing or halo. Slightly more performance intensive.
-value.SETTING_TAA_CURR_FILTER.0=B-Spline
-value.SETTING_TAA_CURR_FILTER.1=Catmull-Rom
-value.SETTING_TAA_CURR_FILTER.2=Lanczos2
-option.SETTING_TAA_HISTORY_FILTER=TAA History Frame Filter
-option.SETTING_TAA_HISTORY_FILTER.comment=Type of filter used to filter TAA history frame image.\nBilinear: Fast but blurry.\nCatmull-Rom 5 Tap: Balanced sharpness and performance. May cause minor ringing.\nCatmull-Rom 9 Tap: Sharper but more performance intensive. Less ringing than 5 Tap.\nCatmull-Rom Full: Same quality as 9 Tap but more performance intensive.\nLanczos2: Sharp as Catmull-Rom but less ringing or halo. Most performance intensive.
-value.SETTING_TAA_HISTORY_FILTER.0=Bilinear
-value.SETTING_TAA_HISTORY_FILTER.1=Catmull-Rom 5 Tap
-value.SETTING_TAA_HISTORY_FILTER.2=Catmull-Rom 9 Tap
-value.SETTING_TAA_HISTORY_FILTER.3=Catmull-Rom Full
-value.SETTING_TAA_HISTORY_FILTER.4=Lanczos2
-option.SETTING_TAA_CAS_SHARPNESS=Sharpening Strength
-option.SETTING_TAA_CAS_SHARPNESS.comment=Restores sharpness lost from anti-aliasing using AMD FidelityFX CAS. Higher values create crisper images.
+option.SETTING_PURKINJE_EFFECT=Purkinje Effect
+option.SETTING_PURKINJE_EFFECT.comment=Simulates how human eyes lose color vision in darkness, creating a more realistic night experience.
+option.SETTING_PURKINJE_EFFECT_MIN_LUM=Minimum Luminance
+option.SETTING_PURKINJE_EFFECT_MIN_LUM.comment=Below this brightness, colors fade to monochrome. Lower = colors disappear in dimmer light.
+prefix.SETTING_PURKINJE_EFFECT_MIN_LUM=10^
+suffix.SETTING_PURKINJE_EFFECT_MIN_LUM=\ cd/m²
+option.SETTING_PURKINJE_EFFECT_MAX_LUM=Maximum Luminance
+option.SETTING_PURKINJE_EFFECT_MAX_LUM.comment=Above this brightness, colors appear fully. Higher = need brighter light to see full colors.
+prefix.SETTING_PURKINJE_EFFECT_MAX_LUM=10^
+suffix.SETTING_PURKINJE_EFFECT_MAX_LUM=\ cd/m²
+option.SETTING_PURKINJE_EFFECT_CR=Night Vision Tint - Red
+option.SETTING_PURKINJE_EFFECT_CR.comment=Red tint of monochrome night vision. Default creates bluish night vision like real eyes.
+option.SETTING_PURKINJE_EFFECT_CG=Night Vision Tint - Green
+option.SETTING_PURKINJE_EFFECT_CG.comment=Green tint of monochrome night vision.
+option.SETTING_PURKINJE_EFFECT_CB=Night Vision Tint - Blue
+option.SETTING_PURKINJE_EFFECT_CB.comment=Blue tint of monochrome night vision. Higher values create bluer night scenes.
+option.SETTING_PRIMARY_COLOR_CALIBRATION=Primary Color Calibration
+option.SETTING_PRIMARY_COLOR_CALIBRATION.comment=Applies the primary color calibration controls below.
+option.SETTING_PCC_RED_HUE=Red Primary Hue
+option.SETTING_PCC_RED_HUE.comment=Rotates the red primary's chromaticity around white, like ACR's Camera Calibration panel.
+option.SETTING_PCC_RED_SAT=Red Primary Sat
+option.SETTING_PCC_RED_SAT.comment=Scales the red primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled.
+option.SETTING_PCC_GREEN_HUE=Green Primary Hue
+option.SETTING_PCC_GREEN_HUE.comment=Rotates the green primary's chromaticity around white, like ACR's Camera Calibration panel.
+option.SETTING_PCC_GREEN_SAT=Green Primary Sat
+option.SETTING_PCC_GREEN_SAT.comment=Scales the green primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled.
+option.SETTING_PCC_BLUE_HUE=Blue Primary Hue
+option.SETTING_PCC_BLUE_HUE.comment=Rotates the blue primary's chromaticity around white, like ACR's Camera Calibration panel.
+option.SETTING_PCC_BLUE_SAT=Blue Primary Sat
+option.SETTING_PCC_BLUE_SAT.comment=Scales the blue primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled.
+option.SETTING_HCM_COLOR_MIXER=HSL Color Mixer
+option.SETTING_HCM_COLOR_MIXER.comment=Applies the HSL color mixer controls below.
+option.SETTING_HCM_RED_HUE=Red Hue
+option.SETTING_HCM_RED_HUE.comment=Rotates the hue of red-hued pixels only. 0 = unchanged, negative = rotates toward pink/magenta, positive = rotates toward orange.
+option.SETTING_HCM_RED_SAT=Red Saturation
+option.SETTING_HCM_RED_SAT.comment=Scales the saturation of red-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HCM_RED_LUM=Red Luminance
+option.SETTING_HCM_RED_LUM.comment=Shifts the lightness of red-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HCM_ORANGE_HUE=Orange Hue
+option.SETTING_HCM_ORANGE_HUE.comment=Rotates the hue of orange-hued pixels only. 0 = unchanged, negative = rotates toward red, positive = rotates toward yellow.
+option.SETTING_HCM_ORANGE_SAT=Orange Saturation
+option.SETTING_HCM_ORANGE_SAT.comment=Scales the saturation of orange-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HCM_ORANGE_LUM=Orange Luminance
+option.SETTING_HCM_ORANGE_LUM.comment=Shifts the lightness of orange-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HCM_YELLOW_HUE=Yellow Hue
+option.SETTING_HCM_YELLOW_HUE.comment=Rotates the hue of yellow-hued pixels only. 0 = unchanged, negative = rotates toward orange, positive = rotates toward green.
+option.SETTING_HCM_YELLOW_SAT=Yellow Saturation
+option.SETTING_HCM_YELLOW_SAT.comment=Scales the saturation of yellow-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HCM_YELLOW_LUM=Yellow Luminance
+option.SETTING_HCM_YELLOW_LUM.comment=Shifts the lightness of yellow-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HCM_GREEN_HUE=Green Hue
+option.SETTING_HCM_GREEN_HUE.comment=Rotates the hue of green-hued pixels only. 0 = unchanged, negative = rotates toward yellow, positive = rotates toward aqua.
+option.SETTING_HCM_GREEN_SAT=Green Saturation
+option.SETTING_HCM_GREEN_SAT.comment=Scales the saturation of green-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HCM_GREEN_LUM=Green Luminance
+option.SETTING_HCM_GREEN_LUM.comment=Shifts the lightness of green-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HCM_AQUA_HUE=Aqua Hue
+option.SETTING_HCM_AQUA_HUE.comment=Rotates the hue of aqua-hued pixels only. 0 = unchanged, negative = rotates toward green, positive = rotates toward blue.
+option.SETTING_HCM_AQUA_SAT=Aqua Saturation
+option.SETTING_HCM_AQUA_SAT.comment=Scales the saturation of aqua-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HCM_AQUA_LUM=Aqua Luminance
+option.SETTING_HCM_AQUA_LUM.comment=Shifts the lightness of aqua-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HCM_BLUE_HUE=Blue Hue
+option.SETTING_HCM_BLUE_HUE.comment=Rotates the hue of blue-hued pixels only. 0 = unchanged, negative = rotates toward aqua, positive = rotates toward magenta.
+option.SETTING_HCM_BLUE_SAT=Blue Saturation
+option.SETTING_HCM_BLUE_SAT.comment=Scales the saturation of blue-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HCM_BLUE_LUM=Blue Luminance
+option.SETTING_HCM_BLUE_LUM.comment=Shifts the lightness of blue-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HCM_MAGENTA_HUE=Magenta Hue
+option.SETTING_HCM_MAGENTA_HUE.comment=Rotates the hue of magenta-hued pixels only. 0 = unchanged, negative = rotates toward blue, positive = rotates toward pink.
+option.SETTING_HCM_MAGENTA_SAT=Magenta Saturation
+option.SETTING_HCM_MAGENTA_SAT.comment=Scales the saturation of magenta-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HCM_MAGENTA_LUM=Magenta Luminance
+option.SETTING_HCM_MAGENTA_LUM.comment=Shifts the lightness of magenta-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
+option.SETTING_HCM_PINK_HUE=Pink Hue
+option.SETTING_HCM_PINK_HUE.comment=Rotates the hue of pink-hued pixels only. 0 = unchanged, negative = rotates toward magenta, positive = rotates toward red.
+option.SETTING_HCM_PINK_SAT=Pink Saturation
+option.SETTING_HCM_PINK_SAT.comment=Scales the saturation of pink-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation.
+option.SETTING_HCM_PINK_LUM=Pink Luminance
+option.SETTING_HCM_PINK_LUM.comment=Shifts the lightness of pink-hued pixels only. 0 = unchanged, negative = darker, positive = brighter.
 option.SETTING_MATERIAL_COLOR_SPACE=Texture Color Space
 option.SETTING_MATERIAL_COLOR_SPACE.comment=Color space of your resource pack textures. sRGB is standard for most packs.
 value.SETTING_MATERIAL_COLOR_SPACE.0=CIE XYZ
@@ -642,6 +709,26 @@ value.SETTING_DRT_WORKING_COLOR_SPACE.5=Adobe RGB (1998)
 value.SETTING_DRT_WORKING_COLOR_SPACE.6=ACES2065-1
 value.SETTING_DRT_WORKING_COLOR_SPACE.7=ACEScg
 value.SETTING_DRT_WORKING_COLOR_SPACE.8=Color McSpaceFace
+option.SETTING_COLOR_GRADING_COLOR_SPACE=Color Grading Color Space
+option.SETTING_COLOR_GRADING_COLOR_SPACE.comment=Color space used by Primary Color Calibration and HSL Color Mixer. Independent of Monitor Color Space.
+value.SETTING_COLOR_GRADING_COLOR_SPACE.1=sRGB
+value.SETTING_COLOR_GRADING_COLOR_SPACE.2=Rec. 709
+value.SETTING_COLOR_GRADING_COLOR_SPACE.3=Rec. 2020
+value.SETTING_COLOR_GRADING_COLOR_SPACE.4=DCI-P3
+value.SETTING_COLOR_GRADING_COLOR_SPACE.5=Adobe RGB (1998)
+value.SETTING_COLOR_GRADING_COLOR_SPACE.6=ACES2065-1
+value.SETTING_COLOR_GRADING_COLOR_SPACE.7=ACEScg
+value.SETTING_COLOR_GRADING_COLOR_SPACE.8=Color McSpaceFace
+option.SETTING_COLOR_GRADING_TRANSFER_FUNC=Color Grading Transfer Function
+option.SETTING_COLOR_GRADING_TRANSFER_FUNC.comment=Transfer function used to encode colors for HSL Color Mixer. Linear preserves its previous behavior.
+value.SETTING_COLOR_GRADING_TRANSFER_FUNC.0=Linear
+value.SETTING_COLOR_GRADING_TRANSFER_FUNC.1=Rec. 601
+value.SETTING_COLOR_GRADING_TRANSFER_FUNC.2=Rec. 709
+value.SETTING_COLOR_GRADING_TRANSFER_FUNC.3=sRGB
+value.SETTING_COLOR_GRADING_TRANSFER_FUNC.4=Exponential 2.2
+value.SETTING_COLOR_GRADING_TRANSFER_FUNC.5=Exponential 2.4
+value.SETTING_COLOR_GRADING_TRANSFER_FUNC.6=ST 2084 (PQ)
+value.SETTING_COLOR_GRADING_TRANSFER_FUNC.7=HLG
 option.SETTING_OUTPUT_COLOR_SPACE=Monitor Color Space
 option.SETTING_OUTPUT_COLOR_SPACE.comment=Color space of your monitor. sRGB for standard monitors, Rec. 2020 or DCI-P3 for wide-gamut displays.
 value.SETTING_OUTPUT_COLOR_SPACE.0=CIE XYZ
