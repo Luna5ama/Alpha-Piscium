@@ -1,3 +1,5 @@
+// TODO: Make a proper GLSL unit test framework
+
 import java.io.File
 import kotlin.math.*
 
