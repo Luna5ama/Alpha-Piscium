@@ -106,10 +106,12 @@ listOf(V3(1.0, 0.0, 0.0), V3(0.2, 0.5, 0.9), V3(0.8, 0.3, 0.6)).forEach {
 val gray = V3(0.4, 0.4, 0.4)
 check(rgbToHsl(gray).y == 0.0)
 
-val drt = File("../shaders/techniques/displaytransform/DRT.glsl").readText()
-val mixer = File("../shaders/techniques/displaytransform/HSLMixer.glsl").readText()
-check("whiteCorrection" in drt && "inverse(primariesToXYZ)" !in drt)
+val primaryCalibration = File("../shaders/techniques/displaytransform/PrimaryColorCalibration.glsl").readText()
+val mixer = File("../shaders/techniques/displaytransform/HSLColorMixer.glsl").readText()
+check("whiteCorrection" in primaryCalibration && "inverse(primariesToXYZ)" !in primaryCalibration)
+check("vec3 displaytransform_hslcolormixer_apply(vec3 color)" in mixer)
 check("if (hsl.y < 1.0e-6) return color;" in mixer)
+check("hslmixer_" !in mixer)
 check("+ 1.0e-6)" !in mixer)
 
 println("Color grading math checks passed")

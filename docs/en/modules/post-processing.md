@@ -76,7 +76,7 @@ Root [`final.fsh`](../../../shaders/final.fsh) includes [
 color space to DRT working space, then applies tone mapping and the output color space/transfer function.
 
 With the Custom look selected, [`DRT.glsl`](../../../shaders/techniques/displaytransform/DRT.glsl) applies primary
-chromaticity calibration before tone mapping. [`HSLMixer.glsl`](../../../shaders/techniques/displaytransform/HSLMixer.glsl)
+chromaticity calibration before tone mapping. [`HSLColorMixer.glsl`](../../../shaders/techniques/displaytransform/HSLColorMixer.glsl)
 then adjusts eight hue bands in display-linear output color before the output transfer function. Both stages compile out
 for the Default, Golden, and Punchy looks.
 

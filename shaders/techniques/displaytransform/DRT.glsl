@@ -16,9 +16,8 @@
 */
 
 #include "/util/Colors2.glsl"
-#if SETTING_TONE_MAPPING_LOOK == 3
-#include "HSLMixer.glsl"
-#endif
+#include "PrimaryColorCalibration.glsl"
+#include "HSLColorMixer.glsl"
 
 // All values used to derive this implementation are sourced from Troy’s initial AgX implementation/OCIO config file available here:
 //   https://github.com/sobotka/AgX
@@ -110,43 +109,6 @@ vec3 agxLook(vec3 val) {
     return luma + sat * (val - luma);
 }
 
-#if SETTING_TONE_MAPPING_LOOK == 3
-vec2 calib_XYZ2xy(vec3 XYZ) {
-    float sum = XYZ.x + XYZ.y + XYZ.z;
-    return XYZ.xy / sum;
-}
-
-vec3 calib_xy2XYZ(vec2 xy, float Y) {
-    return vec3(xy.x * Y / xy.y, Y, (1.0 - xy.x - xy.y) * Y / xy.y);
-}
-
-vec2 calib_rotatePrimaryXy(vec2 primaryXy, vec2 whiteXy, float hueDeg, float satMult) {
-    vec2 fromWhite = primaryXy - whiteXy;
-    float angle = radians(hueDeg);
-    float cosA = cos(angle);
-    float sinA = sin(angle);
-    fromWhite = vec2(fromWhite.x * cosA - fromWhite.y * sinA, fromWhite.x * sinA + fromWhite.y * cosA) * satMult;
-    return whiteXy + fromWhite;
-}
-
-vec3 applyColorCalibration(vec3 color) {
-    vec3 srgbColor = colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_COLORSPACES_SRGB, color);
-    vec3 whiteXYZ = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(1.0));
-    vec3 redXYZ = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(1.0, 0.0, 0.0));
-    vec3 greenXYZ = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(0.0, 1.0, 0.0));
-    vec3 blueXYZ = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_CIE_XYZ, vec3(0.0, 0.0, 1.0));
-    vec2 whiteXy = calib_XYZ2xy(whiteXYZ);
-    const float CALIB_HUE_RANGE_DEG = 25.0;
-    vec3 rXYZ = calib_xy2XYZ(calib_rotatePrimaryXy(calib_XYZ2xy(redXYZ), whiteXy, SETTING_COLOR_CALIBRATION_RED_HUE * 0.01 * CALIB_HUE_RANGE_DEG, 1.0 + SETTING_COLOR_CALIBRATION_RED_SAT * 0.01), redXYZ.y);
-    vec3 gXYZ = calib_xy2XYZ(calib_rotatePrimaryXy(calib_XYZ2xy(greenXYZ), whiteXy, SETTING_COLOR_CALIBRATION_GREEN_HUE * 0.01 * CALIB_HUE_RANGE_DEG, 1.0 + SETTING_COLOR_CALIBRATION_GREEN_SAT * 0.01), greenXYZ.y);
-    vec3 bXYZ = calib_xy2XYZ(calib_rotatePrimaryXy(calib_XYZ2xy(blueXYZ), whiteXy, SETTING_COLOR_CALIBRATION_BLUE_HUE * 0.01 * CALIB_HUE_RANGE_DEG, 1.0 + SETTING_COLOR_CALIBRATION_BLUE_SAT * 0.01), blueXYZ.y);
-    vec3 whiteCorrection = (whiteXYZ - rXYZ - gXYZ - bXYZ) / 3.0;
-    mat3 calibMatrix = mat3(rXYZ + whiteCorrection, gXYZ + whiteCorrection, bXYZ + whiteCorrection);
-    vec3 calibratedXYZ = calibMatrix * srgbColor;
-    vec3 calibrated = colors2_colorspaces_convert(COLORS2_COLORSPACES_CIE_XYZ, COLORS2_COLORSPACES_SRGB, calibratedXYZ);
-    return colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, calibrated);
-}
-#endif
 
 vec3 _displaytransform_DRT_AgX(vec3 color) {
     color = agx(color);
@@ -158,8 +120,8 @@ vec3 _displaytransform_DRT_AgX(vec3 color) {
 void _displaytransform_DRT_apply(inout vec4 color) {
     color.rgb = max(color.rgb, 0.0);
 
-    #if SETTING_TONE_MAPPING_LOOK == 3
-    color.rgb = applyColorCalibration(color.rgb);
+    #ifdef SETTING_PRIMARY_COLOR_CALIBRATION
+    color.rgb = displaytransform_primarycolorcalibration_apply(color.rgb);
     color.rgb = max(color.rgb, 0.0);
     #endif
 
@@ -169,8 +131,8 @@ void _displaytransform_DRT_apply(inout vec4 color) {
     color.rgb = colors2_colorspaces_convert(COLORS2_DRT_WORKING_COLORSPACE, COLORS2_OUTPUT_COLORSPACE, color.rgb);
     color.rgb = saturate(color.rgb);
 
-    #if SETTING_TONE_MAPPING_LOOK == 3
-    color.rgb = applyHSLMixer(color.rgb);
+    #ifdef SETTING_HSL_COLOR_MIXER
+    color.rgb = displaytransform_hslcolormixer_apply(color.rgb);
     color.rgb = saturate(color.rgb);
     #endif
 

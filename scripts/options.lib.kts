@@ -478,9 +478,13 @@ class Scope : OptionFactory() {
         }
 
         fun row(block: () -> Unit) {
+            val roundedUp1 = ((items.size + columns - 1) / columns) * columns
+            while (items.size < roundedUp1) {
+                empty()
+            }
             block()
-            val roundedUp = ((items.size + columns - 1) / columns) * columns
-            while (items.size < roundedUp) {
+            val roundedUp2 = ((items.size + columns - 1) / columns) * columns
+            while (items.size < roundedUp2) {
                 empty()
             }
         }

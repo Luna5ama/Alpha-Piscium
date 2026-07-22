@@ -1,7 +1,7 @@
-#ifndef HSL_MIXER_INCLUDED
-#define HSL_MIXER_INCLUDED
+#ifndef INCLUDE_techniques_displaytransform_HSL_Color_Mixer_glsl
+#define INCLUDE_techniques_displaytransform_HSL_Color_Mixer_glsl a
 
-float hslmixer_hueToRgb(float p, float q, float t) {
+float _displaytransform_hslcolormixer_hueToRgb(float p, float q, float t) {
     if (t < 0.0) t += 1.0;
     if (t > 1.0) t -= 1.0;
     if (t < 1.0 / 6.0) return p + (q - p) * 6.0 * t;
@@ -10,7 +10,7 @@ float hslmixer_hueToRgb(float p, float q, float t) {
     return p;
 }
 
-vec3 hslmixer_hsl2rgb(vec3 hsl) {
+vec3 _displaytransform_hslcolormixer_hsl2rgb(vec3 hsl) {
     float h = hsl.x / 360.0;
     float s = hsl.y;
     float l = hsl.z;
@@ -19,13 +19,13 @@ vec3 hslmixer_hsl2rgb(vec3 hsl) {
     float q = l < 0.5 ? l * (1.0 + s) : l + s - l * s;
     float p = 2.0 * l - q;
     return vec3(
-        hslmixer_hueToRgb(p, q, h + 1.0 / 3.0),
-        hslmixer_hueToRgb(p, q, h),
-        hslmixer_hueToRgb(p, q, h - 1.0 / 3.0)
+        _displaytransform_hslcolormixer_hueToRgb(p, q, h + 1.0 / 3.0),
+        _displaytransform_hslcolormixer_hueToRgb(p, q, h),
+        _displaytransform_hslcolormixer_hueToRgb(p, q, h - 1.0 / 3.0)
     );
 }
 
-vec3 hslmixer_rgb2hsl(vec3 c) {
+vec3 _displaytransform_hslcolormixer_rgb2hsl(vec3 c) {
     float maxC = max(c.r, max(c.g, c.b));
     float minC = min(c.r, min(c.g, c.b));
     float delta = maxC - minC;
@@ -55,7 +55,7 @@ vec3 hslmixer_rgb2hsl(vec3 c) {
 // linearly-interpolated weight (a partition of unity) - every other band is
 // left at exactly 0, so a band's slider can only ever move pixels whose hue
 // is in or adjacent to that band.
-void hslmixer_bandWeights(
+void _displaytransform_hslcolormixer_bandWeights(
     float hueDeg,
     out float wRed, out float wOrange, out float wYellow, out float wGreen,
     out float wAqua, out float wBlue, out float wMagenta, out float wPink
@@ -90,12 +90,12 @@ void hslmixer_bandWeights(
     }
 }
 
-vec3 applyHSLMixer(vec3 color) {
-    vec3 hsl = hslmixer_rgb2hsl(color);
+vec3 displaytransform_hslcolormixer_apply(vec3 color) {
+    vec3 hsl = _displaytransform_hslcolormixer_rgb2hsl(color);
     if (hsl.y < 1.0e-6) return color;
 
     float wRed, wOrange, wYellow, wGreen, wAqua, wBlue, wMagenta, wPink;
-    hslmixer_bandWeights(hsl.x, wRed, wOrange, wYellow, wGreen, wAqua, wBlue, wMagenta, wPink);
+    _displaytransform_hslcolormixer_bandWeights(hsl.x, wRed, wOrange, wYellow, wGreen, wAqua, wBlue, wMagenta, wPink);
 
     // Hue: -100..100 -> a rotation in degrees, weighted by the very same
     // band membership used for Saturation/Luminance below, so a band's Hue
@@ -129,7 +129,7 @@ vec3 applyHSLMixer(vec3 color) {
     hsl.y = clamp(hsl.y * satMult, 0.0, 1.0);
     hsl.z = clamp(hsl.z + lumShift * lumCurve * 0.5, 0.0, 1.0);
 
-    return hslmixer_hsl2rgb(hsl);
+    return _displaytransform_hslcolormixer_hsl2rgb(hsl);
 }
 
-#endif // HSL_MIXER_INCLUDED
+#endif
