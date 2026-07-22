@@ -2359,857 +2359,1241 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
             lang(Locale.SIMPLIFIED_CHINESE) {
                 name = "后处理"
             }
-            screen(1) {
-                lang {
-                    name = "Depth of Field"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "景深"
-                }
-                toggle("SETTING_DOF", false) {
+            row {
+                screen(1) {
                     lang {
-                        name = "Depth of Field"
-                        comment =
-                            "Blurs distant or nearby objects like a camera lens, focusing attention on what you're looking at."
+                        name = "Anti-Aliasing"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用景深"
-                        comment = "像相机镜头一样模糊远处或近处的物体，将注意力集中在您正在看的东西上。"
-                    }
-                }
-                empty()
-                slider("SETTING_DOF_FOCAL_LENGTH", 50.0, listOf(18.0, 24.0, 35.0, 50.0, 75.0, 100.0)) {
-                    lang {
-                        name = "Focal Length"
-                        suffix = " mm"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "焦距"
-                        suffix = " 毫米"
-                    }
-                }
-                slider("SETTING_DOF_F_STOP", 1.4, listOf(1.0, 1.4, 2.0, 2.8, 4.0, 5.6, 8.0, 11.0, 16.0)) {
-                    lang {
-                        name = "F-Stop"
-                        prefix = "f/"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "光圈"
-                        prefix = "f/"
-                    }
-                }
-                toggle("SETTING_APERTURE_SHAPE", 1, 0..1) {
-                    lang {
-                        name = "Bokeh Shape"
-                        comment = "Shape of blurred light points (bokeh)."
-                        0 value "Circle"
-                        1 value "Hexagon"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "散景形状"
-                        0 value "圆形"
-                        1 value "六边形"
-                    }
-                }
-                empty()
-                slider("SETTING_DOF_QUALITY", 3, 1..5) {
-                    lang {
-                        name = "Blur Quality"
-                        comment =
-                            "Quality of depth of field blur. Higher values create smoother blur but reduce performance."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "模糊质量"
-                        comment = "景深模糊的质量。数值越高，模糊越平滑，但会降低性能。"
-                    }
-                }
-                slider("SETTING_DOF_MAX_SAMPLE_RADIUS", 8, listOf(2, 4, 8, 12, 16, 20, 24)) {
-                    lang {
-                        name = "Maximum Blur Radius"
-                        comment =
-                            "Maximum blur distance in pixels. Should match your aperture setting - too low cuts off blur, too high causes artifacts."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "最大模糊半径"
-                        comment = "以像素为单位的最大模糊距离。应与您的光圈设置匹配 - 太低会截断模糊，太高会导致伪影。"
-                    }
-                }
-                slider("SETTING_DOF_MASKING_HEURISTIC", 8, 0..32) {
-                    lang {
-                        name = "Masking Heuristic"
-                        comment =
-                            "How strictly to separate foreground from background blur. Higher values prevent blur bleeding between objects."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "遮罩阈值"
-                        comment = "严格分离前景和背景模糊的程度。数值越高，防止物体间的模糊渗透。"
-                    }
-                }
-                empty()
-                toggle("SETTING_DOF_MANUAL_FOCUS", false) {
-                    lang {
-                        name = "Manual Focus"
-                        comment =
-                            "Set focus distance manually instead of automatically focusing on what you're looking at."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "手动对焦"
-                        comment = "手动设置对焦距离，而不是自动对焦到您正在看的东西。"
-                    }
-                }
-                slider("SETTING_DOF_FOCUS_DISTANCE_COARSE_COARSE", 0, 0..10000 step 100) {
-                    lang {
-                        name = "Focus Distance (Coarse x100)"
-                        suffix = " m"
-                        comment =
-                            "Rough focus distance adjustment in meters. Only works with Manual Focus enabled."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "对焦距离（粗调 x100）"
-                        suffix = " 米"
-                        comment = "以米为单位的粗略对焦距离调整。仅在启用手动对焦时有效。"
-                    }
-                }
-                slider("SETTING_DOF_FOCUS_DISTANCE_COARSE", 10, 1..100) {
-                    lang {
-                        name = "Focus Distance (Coarse)"
-                        suffix = " m"
-                        comment =
-                            "Rough focus distance adjustment in meters. Only works with Manual Focus enabled."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "对焦距离（粗调）"
-                        suffix = " 米"
-                        comment = "以米为单位的粗略对焦距离调整。仅在启用手动对焦时有效。"
-                    }
-                }
-                slider("SETTING_DOF_FOCUS_DISTANCE_FINE", 0.0, -1.0..1.0 step 0.01) {
-                    lang {
-                        name = "Focus Distance (Fine-Tune)"
-                        suffix = " m"
-                        comment = "Precise focus distance adjustment. Adds/subtracts from coarse setting."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "对焦距离（微调）"
-                        suffix = " 米"
-                        comment = "精确的对焦距离调整。从粗调设置加/减。"
-                    }
-                }
-                slider("SETTING_DOF_FOCUS_TIME", 2.0, 0.0..10.0 step 0.25) {
-                    lang {
-                        name = "Focus Speed"
-                        comment =
-                            "How quickly focus adjusts when looking at different distances. Lower = faster, higher = more cinematic."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "对焦速度"
-                        comment = "看向不同距离时对焦调整的速度。数值越低 = 越快，数值越高 = 更有电影感。"
-                    }
-                }
-                toggle("SETTING_DOF_SHOW_FOCUS_PLANE", false) {
-                    lang {
-                        name = "Show Focus Plane"
-                        comment =
-                            "Displays the exact distance that's in focus, helpful for adjusting manual focus."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "显示对焦平面"
-                        comment = "显示对焦的确切距离，有助于调整手动对焦。"
-                    }
-                }
-            }
-            screen(1) {
-                lang {
-                    name = "Bloom"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "泛光（Bloom）"
-                }
-                toggle("SETTING_BLOOM", true) {
-                    lang {
-                        name = "Bloom"
-                        comment =
-                            "Makes bright areas glow and bleed into surrounding pixels, like light overexposing a camera."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用泛光"
-                        comment = "使明亮区域发光并渗透到周围像素，就像光线使相机过曝一样。"
-                    }
-                }
-                slider("SETTING_BLOOM_INTENSITY", 0.0, -8.0..8.0 step 0.25) {
-                    lang {
-                        name = "Bloom Intensity"
-                        comment =
-                            "How bright the bloom glow effect is. Higher values create more intense, dramatic glowing."
-                        prefix = "2^"
-                        suffix = " x"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "泛光强度"
-                        comment = "泛光发光效果的亮度。数值越高，发光越强烈、越戏剧化。"
-                    }
-                }
-                slider("SETTING_BLOOM_RADIUS", 1.0, 1.0..5.0 step 0.5) {
-                    lang {
-                        name = "Bloom Spread"
-                        comment =
-                            "How far the bloom glow spreads. Higher values create wider halos but may make the whole screen hazy."
-                        suffix = " x"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "泛光半径"
-                        comment = "泛光发光扩散的距离。数值越高，光晕越宽，但可能使整个屏幕模糊。"
-                    }
-                }
-                slider("SETTING_BLOOM_PASS", 8, 1..10) {
-                    lang {
-                        name = "Bloom Passes"
-                        comment =
-                            "Processing passes for bloom. Higher values increase glow reach and smoothness but reduce performance."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "泛光层级"
-                        comment = "泛光的处理次数。数值越高，发光范围和平滑度越大，但会降低性能。"
-                    }
-                }
-                empty()
-                slider("SETTING_BLOOM_UNDERWATER_BOOST", 2.0, 0.0..8.0 step 0.25) {
-                    lang {
-                        name = "Underwater Glow Boost"
-                        comment =
-                            "Extra bloom intensity when underwater, creating a dreamy, diffused underwater atmosphere."
-                        prefix = "2^"
-                        suffix = " x"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "水下泛光增强"
-                        comment = "水下时的额外泛光强度，创造梦幻般扩散的水下氛围。"
-                    }
-                }
-                empty()
-                slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION", 3, 0..4) {
-                    lang {
-                        name = "Highlight Compression"
-                        comment = "Reduces bloom intensity for extremely bright areas to prevent overwhelming glare. Higher values increase compression intensity."
-                        0 value "Off"
-                        1 value "Low"
-                        2 value "Medium"
-                        3 value "High"
-                        4 value "Hard Clipping"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光压缩"
-                        comment = "减少极亮区域的泛光强度以防止过度眩光。数值越高，压缩强度越大。"
-                        0 value "关闭"
-                        1 value "低"
-                        2 value "中"
-                        3 value "高"
-                    }
-                }
-                slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE", 0, 0..1) {
-                    lang {
-                        name = "Highlight Compression Mode"
-                        comment = "Determines how highlight compression is applied. RGB mode compresses saturation, while Luma mode preserves saturation."
-                        0 value "RGB"
-                        1 value "Luma"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光压缩模式"
-                        comment = "确定高光压缩的应用方式。RGB模式压缩饱和度，而亮度模式保持饱和度。"
-                        0 value "RGB"
-                        1 value "亮度"
-                    }
-                }
-            }
-            screen(1) {
-                lang {
-                    name = "Purkinje Effect (Night Vision)"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "浦肯野效应（夜视）"
-                }
-                toggle("SETTING_PURKINJE_EFFECT", true) {
-                    lang {
-                        name = "Purkinje Effect"
-                        comment =
-                            "Simulates how human eyes lose color vision in darkness, creating a more realistic night experience."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "启用浦肯野效应"
-                        comment = "模拟人眼在黑暗中失去色觉的方式，创造更真实的夜晚体验。"
-                    }
-                }
-                slider("SETTING_PURKINJE_EFFECT_MIN_LUM", -10.0, -10.0..1.0 step 0.5) {
-                    lang {
-                        name = "Minimum Luminance"
-                        prefix = "10^"
-                        suffix = " cd/m²"
-                        comment =
-                            "Below this brightness, colors fade to monochrome. Lower = colors disappear in dimmer light."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "最小亮度"
-                        prefix = "10^"
-                        suffix = " cd/m²"
-                        comment = "低于此亮度，颜色褪为单色。数值越低 = 颜色在更暗的光线中消失。"
-                    }
-                }
-                slider("SETTING_PURKINJE_EFFECT_MAX_LUM", -2.0, -10.0..1.0 step 0.5) {
-                    lang {
-                        name = "Maximum Luminance"
-                        prefix = "10^"
-                        suffix = " cd/m²"
-                        comment =
-                            "Above this brightness, colors appear fully. Higher = need brighter light to see full colors."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "最大亮度"
-                        prefix = "10^"
-                        suffix = " cd/m²"
-                        comment = "高于此亮度，颜色完全显现。数值越高 = 需要更亮的光线才能看到完整的颜色。"
-                    }
-                }
-                empty()
-                slider("SETTING_PURKINJE_EFFECT_CR", 0.9, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Night Vision Tint - Red"
-                        comment =
-                            "Red tint of monochrome night vision. Default creates bluish night vision like real eyes."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "夜视色调 - 红"
-                        comment = "单色夜视的红色色调。默认值创造类似真实眼睛的偏蓝夜视。"
-                    }
-                }
-                slider("SETTING_PURKINJE_EFFECT_CG", 0.95, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Night Vision Tint - Green"
-                        comment = "Green tint of monochrome night vision."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "夜视色调 - 绿"
-                        comment = "单色夜视的绿色色调。"
-                    }
-                }
-                slider("SETTING_PURKINJE_EFFECT_CB", 1.0, 0.0..1.0 step 0.01) {
-                    lang {
-                        name = "Night Vision Tint - Blue"
-                        comment =
-                            "Blue tint of monochrome night vision. Higher values create bluer night scenes."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "夜视色调 - 蓝"
-                        comment = "单色夜视的蓝色色调。数值越高，夜晚场景越蓝。"
-                    }
-                }
-            }
-            screen(1) {
-                lang {
-                    name = "Exposure"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "曝光"
-                }
-                toggle("SETTING_EXPOSURE_MANUAL", false) {
-                    lang {
-                        name = "Manual Exposure"
-                        comment =
-                            "Lock exposure to a fixed value instead of automatically adjusting to scene brightness."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "手动曝光"
-                        comment = "锁定曝光到固定值，而不是自动调整到场景亮度。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_MANUAL_EV_COARSE", 3, -32..32) {
-                    lang {
-                        name = "Exposure EV (Coarse)"
-                        comment =
-                            "Rough brightness adjustment in EV stops. Negative = darker, positive = brighter."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "曝光EV（粗调）"
-                        comment = "以EV档位为单位的粗略亮度调整。负值 = 更暗，正值 = 更亮。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_MANUAL_EV_FINE", 0.0, -1.0..1.0 step 0.01) {
-                    lang {
-                        name = "Exposure EV (Fine-Tune)"
-                        comment = "Precise brightness adjustment. Adds/subtracts from coarse setting."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "曝光EV（微调）"
-                        comment = "精确的亮度调整。从粗调设置加/减。"
-                    }
-                }
-                empty()
-                slider("SETTING_EXPOSURE_MIN_EV", -3.0, -32.0..32.0 step 0.5) {
-                    lang {
-                        name = "Auto Exposure Min EV"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "自动曝光最小值"
-                    }
-                }
-                slider("SETTING_EXPOSURE_MAX_EV", 10.0, -32.0..32.0 step 0.5) {
-                    lang {
-                        name = "Auto Exposure Max EV"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "自动曝光最大值"
-                    }
-                }
-                slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", -3.0, -5.0..5.0 step 0.5) {
-                    lang {
-                        name = "Emissive Weighting"
-                        comment =
-                            "Weighting multiplier for emissive block pixels. Lower value = less influence. Higher value = more influence."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "自发光权重"
-                        comment = "自发光方块像素的权重乘数。数值越低 = 影响越小。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_DISTANCE_WEIGHTING", 0.5, 0.0..5.0 step 0.5) {
-                    lang {
-                        name = "Distance Weighting"
-                        comment =
-                            "How much distance from the player influences exposure. Higher = adjusts more to close scene."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "距离权重"
-                        comment = "玩家距离对曝光的影响程度。数值越高 = 更多地调整到近处的物体。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_CENTER_WEIGHTING", 4.0, 0.0..8.0 step 0.1) {
-                    lang {
-                        name = "Center Focus Priority"
-                        comment =
-                            "How much the center of the screen influences exposure. Higher = adjusts more to what you're looking at directly."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "中心焦点优先级"
-                        comment = "屏幕中心对曝光的影响程度。数值越高 = 更多地调整到您直接看的东西。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE", 3.0, 1.0..8.0 step 0.1) {
-                    lang {
-                        name = "Center Focus Sharpness"
-                        comment =
-                            "How sharply center weighting focuses on the middle. Higher = tighter focus on screen center, ignoring edges more."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "中心焦点锐度"
-                        comment = "中心权重聚焦于中间的锐利程度。数值越高 = 更紧密聚焦于屏幕中心，更多地忽略边缘。"
-                    }
-                }
-                empty()
-                slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.25, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Overall Brightness Method Weight"
-                        comment =
-                            "Influence of overall scene brightness on exposure. Higher = adjusts more to keep average brightness consistent."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "平均亮度权重"
-                        comment = "整体场景亮度对曝光的影响。数值越高 = 更多地调整以保持平均亮度一致。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_AVG_LUM_TIME", 3.0, 0.0..10.0 step 0.25) {
-                    lang {
-                        name = "Overall Brightness Adapt Speed"
-                        comment =
-                            "How quickly exposure adapts based on overall brightness. Lower = faster adjustment."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "平均亮度自动曝光时间"
-                        comment = "基于整体亮度的曝光适应速度。数值越低 = 调整越快。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 40, 1..255) {
-                    lang {
-                        name = "Dark Scene Target Brightness"
-                        comment =
-                            "Target brightness for dark environments (caves, night). Higher values make dark scenes brighter."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "暗场景目标亮度"
-                        comment = "黑暗环境（洞穴、夜晚）的目标亮度。数值越高，暗场景越亮。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 140, 1..255) {
-                    lang {
-                        name = "Bright Scene Target Brightness"
-                        comment =
-                            "Target brightness for bright environments (daylight outdoors). Higher values make bright scenes brighter."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "亮场景目标亮度"
-                        comment = "明亮环境（日光户外）的目标亮度。数值越高，亮场景越亮。"
-                    }
-                }
-                slider(
-                    "SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE",
-                    -2.0,
-                    -4.0..4.0 step 0.1
-                ) {
-                    lang {
-                        name = "Medium Brightness Curve"
-                        comment =
-                            "Affects medium-brightness scenes (sunset/sunrise). Lower values darken these transitional lighting conditions."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "中等亮度曲线"
-                        comment = "影响中等亮度场景（日落/日出）。数值越低，这些过渡光照条件越暗。"
-                    }
-                }
-                empty()
-                slider("SETTING_EXPOSURE_HS_MIX", 1.0, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Highlight/Shadow Areas Method Weight"
-                        comment =
-                            "Influence of brightest and darkest areas on exposure. Higher = prevents over/underexposure of extremes."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光/阴影区域权重"
-                        comment = "最亮和最暗区域对曝光的影响。数值越高 = 防止极端的过曝/欠曝。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_HS_TIME", 2.0, 0.0..10.0 step 0.25) {
-                    lang {
-                        name = "Highlight/Shadow Areas Adapt Speed"
-                        comment =
-                            "How quickly exposure adapts to bright and dark regions. Lower = faster adjustment."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光/阴影区域适应速度"
-                        comment = "曝光适应明亮和黑暗区域的速度。数值越低 = 调整越快。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_HS_MIN_EV_DELTA", -1.5, -4.0..0.0 step 0.1) {
-                    lang {
-                        name = "Highlight/Shadow Areas EV Delta Min"
-                        comment = "How much stops can exposure adjust downwards for highlights/shadows."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光/阴影区域EV最低变化"
-                        comment = "曝光可以为高光/阴影向下调整多少档位。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_HS_MAX_EV_DELTA", 1.5, 0.0..4.0 step 0.1) {
-                    lang {
-                        name = "Highlight/Shadow Areas EV Delta Max"
-                        comment = "How much stops can exposure adjust upwards for highlights/shadows."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光/阴影区域EV最高变化"
-                        comment = "曝光可以为高光/阴影向上调整多少档位。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_H_LUM", 225, 1..255) {
-                    lang {
-                        name = "Highlight Area Threshold"
-                        comment =
-                            "Brightness level considered 'highlight'. Exposure adjusts to prevent these areas from being too bright."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光区域阈值"
-                        comment = "被视为“高光“的亮度级别。曝光调整以防止这些区域过亮。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_H_PERCENT", 5.0, 0.5..10.0 step 0.5) {
-                    lang {
-                        name = "Highlight Area %"
-                        comment =
-                            "Keeps this percentage of bright pixels from overexposing. Higher values darken overall to preserve bright details."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "高光区域占比"
-                        comment = "保持此百分比的明亮像素不过曝。数值越高，整体变暗以保留明亮细节。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_S_LUM", 33, 0..255) {
-                    lang {
-                        name = "Shadow Area Threshold"
-                        comment =
-                            "Brightness level considered 'shadow'. Exposure adjusts to keep these areas visible."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "阴影区域阈值"
-                        comment = "被视为“阴影”的亮度级别。曝光调整以保持这些区域可见。"
-                    }
-                }
-                slider("SETTING_EXPOSURE_S_PERCENT", 3.0, 0.5..10.0 step 0.5) {
-                    lang {
-                        name = "Shadow Area %"
-                        comment =
-                            "Keeps this percentage of dark pixels from becoming pure black. Higher values brighten overall to reveal shadow detail."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "阴影区域占比"
-                        comment = "保持此百分比的暗像素不变成纯黑。数值越高，整体变亮以显示阴影细节。"
-                    }
-                }
-            }
-            screen(1) {
-                lang {
-                    name = "Tone Mapping & Color Grading"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "色调映射和调色"
-                }
-                slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 16.5, 4.0..32.0 step 0.5) {
-                    lang {
-                        name = "Dynamic Range"
-                        comment =
-                            "Range of brightness levels preserved from dark to bright. Higher values maintain more detail in extremes but may look flat."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "动态范围"
-                        comment = "从暗到亮保留的亮度级别范围。数值越高，在极端情况下保留更多细节，但可能看起来平淡。"
-                    }
-                }
-                empty()
-                toggle("SETTING_TONE_MAPPING_LOOK", 3, 0..3) {
-                    lang {
-                        name = "AgX Preset"
-                        comment =
-                            "Pre-configured color grading styles. Choose Custom to manually adjust colors below."
-                        0 value "Default"
-                        1 value "Golden"
-                        2 value "Punchy"
-                        3 value "Custom"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "风格"
-                        comment = "预配置的调色风格。选择自定义以手动调整下面的颜色。"
-                        0 value "默认"
-                        1 value "金色"
-                        2 value "鲜明"
-                        3 value "自定义"
-                    }
-                }
-                empty()
-                slider("SETTING_TONE_MAPPING_OFFSET_R", 0.0, -1.0..1.0 step 0.01) {
-                    lang {
-                        name = "Red Lift"
-                        comment =
-                            "Adds or removes red from all brightness levels. Negative = less red, positive = more red."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "红色偏移"
-                        comment = "在所有亮度级别添加或移除红色。负值 = 更少红色，正值 = 更多红色。"
-                    }
-                }
-                slider("SETTING_TONE_MAPPING_OFFSET_G", 0.0, -1.0..1.0 step 0.01) {
-                    lang {
-                        name = "Green Lift"
-                        comment =
-                            "Adds or removes green from all brightness levels. Negative = less green, positive = more green."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "绿色偏移"
-                        comment = "在所有亮度级别添加或移除绿色。负值 = 更少绿色，正值 = 更多绿色。"
-                    }
-                }
-                slider("SETTING_TONE_MAPPING_OFFSET_B", 0.0, -1.0..1.0 step 0.01) {
-                    lang {
-                        name = "Blue Lift"
-                        comment =
-                            "Adds or removes blue from all brightness levels. Negative = less blue, positive = more blue."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "蓝色偏移"
-                        comment = "在所有亮度级别添加或移除蓝色。负值 = 更少蓝色，正值 = 更多蓝色。"
-                    }
-                }
-                empty()
-                slider("SETTING_TONE_MAPPING_SLOPE_R", 1.05, 0.1..2.0 step 0.01) {
-                    lang {
-                        name = "Red Gain"
-                        comment =
-                            "Multiplies red channel intensity. Below 1.0 reduces red, above 1.0 increases red in mid-tones."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "红色斜率"
-                        comment = "乘以红色通道强度。低于1.0减少红色，高于1.0增加中间色调的红色。"
-                    }
-                }
-                slider("SETTING_TONE_MAPPING_SLOPE_G", 1.05, 0.1..2.0 step 0.01) {
-                    lang {
-                        name = "Green Gain"
-                        comment =
-                            "Multiplies green channel intensity. Below 1.0 reduces green, above 1.0 increases green in mid-tones."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "绿色斜率"
-                        comment = "乘以绿色通道强度。低于1.0减少绿色，高于1.0增加中间色调的绿色。"
-                    }
-                }
-                slider("SETTING_TONE_MAPPING_SLOPE_B", 1.05, 0.1..2.0 step 0.01) {
-                    lang {
-                        name = "Blue Gain"
-                        comment =
-                            "Multiplies blue channel intensity. Below 1.0 reduces blue, above 1.0 increases blue in mid-tones."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "蓝色斜率"
-                        comment = "乘以蓝色通道强度。低于1.0减少蓝色，高于1.0增加中间色调的蓝色。"
-                    }
-                }
-                empty()
-                slider("SETTING_TONE_MAPPING_POWER_R", 1.1, 0.1..2.0 step 0.01) {
-                    lang {
-                        name = "Red Contrast"
-                        comment =
-                            "Adjusts contrast in red channel. Higher values increase red contrast, making reds more dramatic."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "红色幂值"
-                        comment = "调整红色通道的对比度。数值越高，红色对比度越大，使红色更具戏剧性。"
-                    }
-                }
-                slider("SETTING_TONE_MAPPING_POWER_G", 1.1, 0.1..2.0 step 0.01) {
-                    lang {
-                        name = "Green Contrast"
-                        comment =
-                            "Adjusts contrast in green channel. Higher values increase green contrast."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "绿色幂值"
-                        comment = "调整绿色通道的对比度。数值越高，绿色对比度越大。"
-                    }
-                }
-                slider("SETTING_TONE_MAPPING_POWER_B", 1.1, 0.1..2.0 step 0.01) {
-                    lang {
-                        name = "Blue Contrast"
-                        comment =
-                            "Adjusts contrast in blue channel. Higher values increase blue contrast, making blues more dramatic."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "蓝色幂值"
-                        comment = "调整蓝色通道的对比度。数值越高，蓝色对比度越大，使蓝色更具戏剧性。"
-                    }
-                }
-                empty()
-                slider("SETTING_TONE_MAPPING_SATURATION", 1.3, 0.0..2.0 step 0.01) {
-                    lang {
-                        name = "Color Saturation"
-                        comment =
-                            "Overall color intensity. 0 = black & white, 1 = normal, 2 = hyper-saturated."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "饱和度"
-                        comment = "整体颜色强度。0 = 黑白，1 = 正常，2 = 超饱和。"
-                    }
-                }
-            }
-            screen(1) {
-                lang {
-                    name = "Anti-Aliasing"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "抗锯齿"
-                }
-                toggle("SETTING_TAA", true) {
-                    lang {
-                        name = "Temporal Anti-Aliasing (TAA)"
-                        comment =
-                            "Smooths jagged edges by blending multiple frames. Highly recommended for clean image quality."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "时间抗锯齿（TAA）"
-                        comment = "通过混合多个帧来平滑锯齿边缘。强烈推荐以获得干净的图像质量。"
-                    }
-                }
-                toggle("SETTING_TAA_JITTER", true) {
-                    lang {
-                        name = "Sub-Pixel Jittering"
-                        comment =
-                            "Slightly shifts the camera each frame for better TAA quality. Required for TAA to work effectively."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "时间抖动"
-                        comment = "每帧稍微移动相机以获得更好的TAA质量。TAA有效工作所必需的。"
-                    }
-                }
-                toggle("SETTING_TAA_CURR_FILTER", 2, 0..2) {
-                    Profile.Low preset 1
-                    Profile.Medium preset 1
-                    Profile.Ultra preset 2
-                    Profile.Extreme preset 2
-                    Profile.Insane preset 2
+                        name = "抗锯齿"
+                    }
+                    toggle("SETTING_TAA", true) {
+                        lang {
+                            name = "Temporal Anti-Aliasing (TAA)"
+                            comment =
+                                "Smooths jagged edges by blending multiple frames. Highly recommended for clean image quality."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "时间抗锯齿（TAA）"
+                            comment = "通过混合多个帧来平滑锯齿边缘。强烈推荐以获得干净的图像质量。"
+                        }
+                    }
+                    toggle("SETTING_TAA_JITTER", true) {
+                        lang {
+                            name = "Sub-Pixel Jittering"
+                            comment =
+                                "Slightly shifts the camera each frame for better TAA quality. Required for TAA to work effectively."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "时间抖动"
+                            comment = "每帧稍微移动相机以获得更好的TAA质量。TAA有效工作所必需的。"
+                        }
+                    }
+                    toggle("SETTING_TAA_CURR_FILTER", 2, 0..2) {
+                        Profile.Low preset 1
+                        Profile.Medium preset 1
+                        Profile.Ultra preset 2
+                        Profile.Extreme preset 2
+                        Profile.Insane preset 2
 
-                    lang {
-                        name = "TAA Current Frame Filter"
-                        comment =
-                            """Type of filter used to filter current frame image for TAA.
+                        lang {
+                            name = "TAA Current Frame Filter"
+                            comment =
+                                """Type of filter used to filter current frame image for TAA.
 B-Spline: Good at smoothing out aliasing but can be a bit blurry.
 Catmull-Rom: Sharper but may causes ringing or halo.
 Lanczos2: Sharp as Catmull-Rom but less ringing or halo. Slightly more performance intensive."""
-                        0 value "B-Spline"
-                        1 value "Catmull-Rom"
-                        2 value "Lanczos2"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "TAA当前帧滤镜"
-                        comment =
-                            """用于过滤TAA当前帧图像的滤镜类型。
+                            0 value "B-Spline"
+                            1 value "Catmull-Rom"
+                            2 value "Lanczos2"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "TAA当前帧滤镜"
+                            comment =
+                                """用于过滤TAA当前帧图像的滤镜类型。
 B-Spline：适合平滑锯齿，但可能有点模糊。
 Catmull-Rom：更锐利，但可能会引起振铃或光晕。
 Lanczos2：与Catmull-Rom一样锐利，但振铃或光晕较少。性能开销略高。"""
-                        0 value "B-Spline"
-                        1 value "Catmull-Rom"
-                        2 value "Lanczos2"
+                            0 value "B-Spline"
+                            1 value "Catmull-Rom"
+                            2 value "Lanczos2"
+                        }
                     }
-                }
-                toggle("SETTING_TAA_HISTORY_FILTER", 4, 1..4) {
-                    Profile.Low preset 1
-                    Profile.Medium preset 2
-                    Profile.Ultra preset 4
-                    Profile.Extreme preset 4
-                    Profile.Insane preset 4
+                    toggle("SETTING_TAA_HISTORY_FILTER", 4, 1..4) {
+                        Profile.Low preset 1
+                        Profile.Medium preset 2
+                        Profile.Ultra preset 4
+                        Profile.Extreme preset 4
+                        Profile.Insane preset 4
 
-                    lang {
-                        name = "TAA History Frame Filter"
-                        comment =
-                            """Type of filter used to filter TAA history frame image.
+                        lang {
+                            name = "TAA History Frame Filter"
+                            comment =
+                                """Type of filter used to filter TAA history frame image.
 Bilinear: Fast but blurry.
 Catmull-Rom 5 Tap: Balanced sharpness and performance. May cause minor ringing.
 Catmull-Rom 9 Tap: Sharper but more performance intensive. Less ringing than 5 Tap.
 Catmull-Rom Full: Same quality as 9 Tap but more performance intensive.
 Lanczos2: Sharp as Catmull-Rom but less ringing or halo. Most performance intensive."""
-                        0 value "Bilinear"
-                        1 value "Catmull-Rom 5 Tap"
-                        2 value "Catmull-Rom 9 Tap"
-                        3 value "Catmull-Rom Full"
-                        4 value "Lanczos2"
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "TAA历史帧滤镜"
-                        comment =
-                            """用于过滤TAA历史帧图像的滤镜类型。
+                            0 value "Bilinear"
+                            1 value "Catmull-Rom 5 Tap"
+                            2 value "Catmull-Rom 9 Tap"
+                            3 value "Catmull-Rom Full"
+                            4 value "Lanczos2"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "TAA历史帧滤镜"
+                            comment =
+                                """用于过滤TAA历史帧图像的滤镜类型。
 双线性：快速但模糊。
 Catmull-Rom 5采样：平衡的清晰度和性能。可能会引起轻微的振铃。
 Catmull-Rom 9采样：更清晰但性能开销更大。比5采样振铃更少。
 Catmull-Rom 全采样：与9采样相同的质量，但性能开销更大。
 Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销最大。"""
-                        0 value "双线性"
-                        1 value "Catmull-Rom 5采样"
-                        2 value "Catmull-Rom 9采样"
-                        3 value "Catmull-Rom 全采样"
-                        4 value "Lanczos2"
+                            0 value "双线性"
+                            1 value "Catmull-Rom 5采样"
+                            2 value "Catmull-Rom 9采样"
+                            3 value "Catmull-Rom 全采样"
+                            4 value "Lanczos2"
+                        }
+                    }
+                    slider("SETTING_TAA_CAS_SHARPNESS", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Sharpening Strength"
+                            comment =
+                                "Restores sharpness lost from anti-aliasing using AMD FidelityFX CAS. Higher values create crisper images."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "锐化强度"
+                            comment = "使用AMD FidelityFX CAS恢复因抗锯齿而失去的锐度。数值越高，图像越清晰。"
+                        }
                     }
                 }
-                slider("SETTING_TAA_CAS_SHARPNESS", 0.5, 0.0..1.0 step 0.05) {
+            }
+            empty()
+            row {
+                screen(1) {
                     lang {
-                        name = "Sharpening Strength"
-                        comment =
-                            "Restores sharpness lost from anti-aliasing using AMD FidelityFX CAS. Higher values create crisper images."
+                        name = "Depth of Field"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "锐化强度"
-                        comment = "使用AMD FidelityFX CAS恢复因抗锯齿而失去的锐度。数值越高，图像越清晰。"
+                        name = "景深"
+                    }
+                    toggle("SETTING_DOF", false) {
+                        lang {
+                            name = "Depth of Field"
+                            comment =
+                                "Blurs distant or nearby objects like a camera lens, focusing attention on what you're looking at."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "启用景深"
+                            comment = "像相机镜头一样模糊远处或近处的物体，将注意力集中在您正在看的东西上。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_DOF_FOCAL_LENGTH", 50.0, listOf(18.0, 24.0, 35.0, 50.0, 75.0, 100.0)) {
+                        lang {
+                            name = "Focal Length"
+                            suffix = " mm"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "焦距"
+                            suffix = " 毫米"
+                        }
+                    }
+                    slider("SETTING_DOF_F_STOP", 1.4, listOf(1.0, 1.4, 2.0, 2.8, 4.0, 5.6, 8.0, 11.0, 16.0)) {
+                        lang {
+                            name = "F-Stop"
+                            prefix = "f/"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "光圈"
+                            prefix = "f/"
+                        }
+                    }
+                    toggle("SETTING_APERTURE_SHAPE", 1, 0..1) {
+                        lang {
+                            name = "Bokeh Shape"
+                            comment = "Shape of blurred light points (bokeh)."
+                            0 value "Circle"
+                            1 value "Hexagon"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "散景形状"
+                            0 value "圆形"
+                            1 value "六边形"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_DOF_QUALITY", 3, 1..5) {
+                        lang {
+                            name = "Blur Quality"
+                            comment =
+                                "Quality of depth of field blur. Higher values create smoother blur but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "模糊质量"
+                            comment = "景深模糊的质量。数值越高，模糊越平滑，但会降低性能。"
+                        }
+                    }
+                    slider("SETTING_DOF_MAX_SAMPLE_RADIUS", 8, listOf(2, 4, 8, 12, 16, 20, 24)) {
+                        lang {
+                            name = "Maximum Blur Radius"
+                            comment =
+                                "Maximum blur distance in pixels. Should match your aperture setting - too low cuts off blur, too high causes artifacts."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "最大模糊半径"
+                            comment = "以像素为单位的最大模糊距离。应与您的光圈设置匹配 - 太低会截断模糊，太高会导致伪影。"
+                        }
+                    }
+                    slider("SETTING_DOF_MASKING_HEURISTIC", 8, 0..32) {
+                        lang {
+                            name = "Masking Heuristic"
+                            comment =
+                                "How strictly to separate foreground from background blur. Higher values prevent blur bleeding between objects."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "遮罩阈值"
+                            comment = "严格分离前景和背景模糊的程度。数值越高，防止物体间的模糊渗透。"
+                        }
+                    }
+                    empty()
+                    toggle("SETTING_DOF_MANUAL_FOCUS", false) {
+                        lang {
+                            name = "Manual Focus"
+                            comment =
+                                "Set focus distance manually instead of automatically focusing on what you're looking at."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "手动对焦"
+                            comment = "手动设置对焦距离，而不是自动对焦到您正在看的东西。"
+                        }
+                    }
+                    slider("SETTING_DOF_FOCUS_DISTANCE_COARSE_COARSE", 0, 0..10000 step 100) {
+                        lang {
+                            name = "Focus Distance (Coarse x100)"
+                            suffix = " m"
+                            comment =
+                                "Rough focus distance adjustment in meters. Only works with Manual Focus enabled."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "对焦距离（粗调 x100）"
+                            suffix = " 米"
+                            comment = "以米为单位的粗略对焦距离调整。仅在启用手动对焦时有效。"
+                        }
+                    }
+                    slider("SETTING_DOF_FOCUS_DISTANCE_COARSE", 10, 1..100) {
+                        lang {
+                            name = "Focus Distance (Coarse)"
+                            suffix = " m"
+                            comment =
+                                "Rough focus distance adjustment in meters. Only works with Manual Focus enabled."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "对焦距离（粗调）"
+                            suffix = " 米"
+                            comment = "以米为单位的粗略对焦距离调整。仅在启用手动对焦时有效。"
+                        }
+                    }
+                    slider("SETTING_DOF_FOCUS_DISTANCE_FINE", 0.0, -1.0..1.0 step 0.01) {
+                        lang {
+                            name = "Focus Distance (Fine-Tune)"
+                            suffix = " m"
+                            comment = "Precise focus distance adjustment. Adds/subtracts from coarse setting."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "对焦距离（微调）"
+                            suffix = " 米"
+                            comment = "精确的对焦距离调整。从粗调设置加/减。"
+                        }
+                    }
+                    slider("SETTING_DOF_FOCUS_TIME", 2.0, 0.0..10.0 step 0.25) {
+                        lang {
+                            name = "Focus Speed"
+                            comment =
+                                "How quickly focus adjusts when looking at different distances. Lower = faster, higher = more cinematic."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "对焦速度"
+                            comment = "看向不同距离时对焦调整的速度。数值越低 = 越快，数值越高 = 更有电影感。"
+                        }
+                    }
+                    toggle("SETTING_DOF_SHOW_FOCUS_PLANE", false) {
+                        lang {
+                            name = "Show Focus Plane"
+                            comment =
+                                "Displays the exact distance that's in focus, helpful for adjusting manual focus."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "显示对焦平面"
+                            comment = "显示对焦的确切距离，有助于调整手动对焦。"
+                        }
+                    }
+                }
+                screen(1) {
+                    lang {
+                        name = "Bloom"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "泛光（Bloom）"
+                    }
+                    toggle("SETTING_BLOOM", true) {
+                        lang {
+                            name = "Bloom"
+                            comment =
+                                "Makes bright areas glow and bleed into surrounding pixels, like light overexposing a camera."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "启用泛光"
+                            comment = "使明亮区域发光并渗透到周围像素，就像光线使相机过曝一样。"
+                        }
+                    }
+                    slider("SETTING_BLOOM_INTENSITY", 0.0, -8.0..8.0 step 0.25) {
+                        lang {
+                            name = "Bloom Intensity"
+                            comment =
+                                "How bright the bloom glow effect is. Higher values create more intense, dramatic glowing."
+                            prefix = "2^"
+                            suffix = " x"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "泛光强度"
+                            comment = "泛光发光效果的亮度。数值越高，发光越强烈、越戏剧化。"
+                        }
+                    }
+                    slider("SETTING_BLOOM_RADIUS", 1.0, 1.0..5.0 step 0.5) {
+                        lang {
+                            name = "Bloom Spread"
+                            comment =
+                                "How far the bloom glow spreads. Higher values create wider halos but may make the whole screen hazy."
+                            suffix = " x"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "泛光半径"
+                            comment = "泛光发光扩散的距离。数值越高，光晕越宽，但可能使整个屏幕模糊。"
+                        }
+                    }
+                    slider("SETTING_BLOOM_PASS", 8, 1..10) {
+                        lang {
+                            name = "Bloom Passes"
+                            comment =
+                                "Processing passes for bloom. Higher values increase glow reach and smoothness but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "泛光层级"
+                            comment = "泛光的处理次数。数值越高，发光范围和平滑度越大，但会降低性能。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_BLOOM_UNDERWATER_BOOST", 2.0, 0.0..8.0 step 0.25) {
+                        lang {
+                            name = "Underwater Glow Boost"
+                            comment =
+                                "Extra bloom intensity when underwater, creating a dreamy, diffused underwater atmosphere."
+                            prefix = "2^"
+                            suffix = " x"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "水下泛光增强"
+                            comment = "水下时的额外泛光强度，创造梦幻般扩散的水下氛围。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION", 3, 0..4) {
+                        lang {
+                            name = "Highlight Compression"
+                            comment = "Reduces bloom intensity for extremely bright areas to prevent overwhelming glare. Higher values increase compression intensity."
+                            0 value "Off"
+                            1 value "Low"
+                            2 value "Medium"
+                            3 value "High"
+                            4 value "Hard Clipping"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "高光压缩"
+                            comment = "减少极亮区域的泛光强度以防止过度眩光。数值越高，压缩强度越大。"
+                            0 value "关闭"
+                            1 value "低"
+                            2 value "中"
+                            3 value "高"
+                        }
+                    }
+                    slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE", 0, 0..1) {
+                        lang {
+                            name = "Highlight Compression Mode"
+                            comment = "Determines how highlight compression is applied. RGB mode compresses saturation, while Luma mode preserves saturation."
+                            0 value "RGB"
+                            1 value "Luma"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "高光压缩模式"
+                            comment = "确定高光压缩的应用方式。RGB模式压缩饱和度，而亮度模式保持饱和度。"
+                            0 value "RGB"
+                            1 value "亮度"
+                        }
+                    }
+                }
+            }
+            empty()
+            row {
+                screen(1) {
+                    lang {
+                        name = "Exposure"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "曝光"
+                    }
+                    toggle("SETTING_EXPOSURE_MANUAL", false) {
+                        lang {
+                            name = "Manual Exposure"
+                            comment =
+                                "Lock exposure to a fixed value instead of automatically adjusting to scene brightness."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "手动曝光"
+                            comment = "锁定曝光到固定值，而不是自动调整到场景亮度。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_MANUAL_EV_COARSE", 3, -32..32) {
+                        lang {
+                            name = "Exposure EV (Coarse)"
+                            comment =
+                                "Rough brightness adjustment in EV stops. Negative = darker, positive = brighter."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "曝光EV（粗调）"
+                            comment = "以EV档位为单位的粗略亮度调整。负值 = 更暗，正值 = 更亮。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_MANUAL_EV_FINE", 0.0, -1.0..1.0 step 0.01) {
+                        lang {
+                            name = "Exposure EV (Fine-Tune)"
+                            comment = "Precise brightness adjustment. Adds/subtracts from coarse setting."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "曝光EV（微调）"
+                            comment = "精确的亮度调整。从粗调设置加/减。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_EXPOSURE_MIN_EV", -3.0, -32.0..32.0 step 0.5) {
+                        lang {
+                            name = "Auto Exposure Min EV"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "自动曝光最小值"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_MAX_EV", 10.0, -32.0..32.0 step 0.5) {
+                        lang {
+                            name = "Auto Exposure Max EV"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "自动曝光最大值"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_EMISSIVE_WEIGHTING", -3.0, -5.0..5.0 step 0.5) {
+                        lang {
+                            name = "Emissive Weighting"
+                            comment =
+                                "Weighting multiplier for emissive block pixels. Lower value = less influence. Higher value = more influence."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "自发光权重"
+                            comment = "自发光方块像素的权重乘数。数值越低 = 影响越小。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_DISTANCE_WEIGHTING", 0.5, 0.0..5.0 step 0.5) {
+                        lang {
+                            name = "Distance Weighting"
+                            comment =
+                                "How much distance from the player influences exposure. Higher = adjusts more to close scene."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "距离权重"
+                            comment = "玩家距离对曝光的影响程度。数值越高 = 更多地调整到近处的物体。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_CENTER_WEIGHTING", 4.0, 0.0..8.0 step 0.1) {
+                        lang {
+                            name = "Center Focus Priority"
+                            comment =
+                                "How much the center of the screen influences exposure. Higher = adjusts more to what you're looking at directly."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "中心焦点优先级"
+                            comment = "屏幕中心对曝光的影响程度。数值越高 = 更多地调整到您直接看的东西。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE", 3.0, 1.0..8.0 step 0.1) {
+                        lang {
+                            name = "Center Focus Sharpness"
+                            comment =
+                                "How sharply center weighting focuses on the middle. Higher = tighter focus on screen center, ignoring edges more."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "中心焦点锐度"
+                            comment = "中心权重聚焦于中间的锐利程度。数值越高 = 更紧密聚焦于屏幕中心，更多地忽略边缘。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_EXPOSURE_AVG_LUM_MIX", 0.25, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Overall Brightness Method Weight"
+                            comment =
+                                "Influence of overall scene brightness on exposure. Higher = adjusts more to keep average brightness consistent."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "平均亮度权重"
+                            comment = "整体场景亮度对曝光的影响。数值越高 = 更多地调整以保持平均亮度一致。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_AVG_LUM_TIME", 3.0, 0.0..10.0 step 0.25) {
+                        lang {
+                            name = "Overall Brightness Adapt Speed"
+                            comment =
+                                "How quickly exposure adapts based on overall brightness. Lower = faster adjustment."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "平均亮度自动曝光时间"
+                            comment = "基于整体亮度的曝光适应速度。数值越低 = 调整越快。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_AVG_LUM_MIN_TARGET", 40, 1..255) {
+                        lang {
+                            name = "Dark Scene Target Brightness"
+                            comment =
+                                "Target brightness for dark environments (caves, night). Higher values make dark scenes brighter."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "暗场景目标亮度"
+                            comment = "黑暗环境（洞穴、夜晚）的目标亮度。数值越高，暗场景越亮。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_AVG_LUM_MAX_TARGET", 140, 1..255) {
+                        lang {
+                            name = "Bright Scene Target Brightness"
+                            comment =
+                                "Target brightness for bright environments (daylight outdoors). Higher values make bright scenes brighter."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "亮场景目标亮度"
+                            comment = "明亮环境（日光户外）的目标亮度。数值越高，亮场景越亮。"
+                        }
+                    }
+                    slider(
+                        "SETTING_EXPOSURE_AVG_LUM_TARGET_CURVE",
+                        -2.0,
+                        -4.0..4.0 step 0.1
+                    ) {
+                        lang {
+                            name = "Medium Brightness Curve"
+                            comment =
+                                "Affects medium-brightness scenes (sunset/sunrise). Lower values darken these transitional lighting conditions."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "中等亮度曲线"
+                            comment = "影响中等亮度场景（日落/日出）。数值越低，这些过渡光照条件越暗。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_EXPOSURE_HS_MIX", 1.0, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Highlight/Shadow Areas Method Weight"
+                            comment =
+                                "Influence of brightest and darkest areas on exposure. Higher = prevents over/underexposure of extremes."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "高光/阴影区域权重"
+                            comment = "最亮和最暗区域对曝光的影响。数值越高 = 防止极端的过曝/欠曝。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_HS_TIME", 2.0, 0.0..10.0 step 0.25) {
+                        lang {
+                            name = "Highlight/Shadow Areas Adapt Speed"
+                            comment =
+                                "How quickly exposure adapts to bright and dark regions. Lower = faster adjustment."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "高光/阴影区域适应速度"
+                            comment = "曝光适应明亮和黑暗区域的速度。数值越低 = 调整越快。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_HS_MIN_EV_DELTA", -1.5, -4.0..0.0 step 0.1) {
+                        lang {
+                            name = "Highlight/Shadow Areas EV Delta Min"
+                            comment = "How much stops can exposure adjust downwards for highlights/shadows."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "高光/阴影区域EV最低变化"
+                            comment = "曝光可以为高光/阴影向下调整多少档位。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_HS_MAX_EV_DELTA", 1.5, 0.0..4.0 step 0.1) {
+                        lang {
+                            name = "Highlight/Shadow Areas EV Delta Max"
+                            comment = "How much stops can exposure adjust upwards for highlights/shadows."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "高光/阴影区域EV最高变化"
+                            comment = "曝光可以为高光/阴影向上调整多少档位。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_H_LUM", 225, 1..255) {
+                        lang {
+                            name = "Highlight Area Threshold"
+                            comment =
+                                "Brightness level considered 'highlight'. Exposure adjusts to prevent these areas from being too bright."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "高光区域阈值"
+                            comment = "被视为“高光“的亮度级别。曝光调整以防止这些区域过亮。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_H_PERCENT", 5.0, 0.5..10.0 step 0.5) {
+                        lang {
+                            name = "Highlight Area %"
+                            comment =
+                                "Keeps this percentage of bright pixels from overexposing. Higher values darken overall to preserve bright details."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "高光区域占比"
+                            comment = "保持此百分比的明亮像素不过曝。数值越高，整体变暗以保留明亮细节。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_S_LUM", 33, 0..255) {
+                        lang {
+                            name = "Shadow Area Threshold"
+                            comment =
+                                "Brightness level considered 'shadow'. Exposure adjusts to keep these areas visible."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "阴影区域阈值"
+                            comment = "被视为“阴影”的亮度级别。曝光调整以保持这些区域可见。"
+                        }
+                    }
+                    slider("SETTING_EXPOSURE_S_PERCENT", 3.0, 0.5..10.0 step 0.5) {
+                        lang {
+                            name = "Shadow Area %"
+                            comment =
+                                "Keeps this percentage of dark pixels from becoming pure black. Higher values brighten overall to reveal shadow detail."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "阴影区域占比"
+                            comment = "保持此百分比的暗像素不变成纯黑。数值越高，整体变亮以显示阴影细节。"
+                        }
+                    }
+                }
+                screen(1) {
+                    lang {
+                        name = "Tone Mapping"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "色调映射"
+                    }
+                    slider("SETTING_TONE_MAPPING_DYNAMIC_RANGE", 16.5, 4.0..32.0 step 0.5) {
+                        lang {
+                            name = "Dynamic Range"
+                            comment =
+                                "Range of brightness levels preserved from dark to bright. Higher values maintain more detail in extremes but may look flat."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "动态范围"
+                            comment = "从暗到亮保留的亮度级别范围。数值越高，在极端情况下保留更多细节，但可能看起来平淡。"
+                        }
+                    }
+                    empty()
+                    toggle("SETTING_TONE_MAPPING_LOOK", 3, 0..3) {
+                        lang {
+                            name = "AgX Preset"
+                            comment =
+                                "Pre-configured color grading styles. Choose Custom to manually adjust colors below."
+                            0 value "Default"
+                            1 value "Golden"
+                            2 value "Punchy"
+                            3 value "Custom"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "风格"
+                            comment = "预配置的调色风格。选择自定义以手动调整下面的颜色。"
+                            0 value "默认"
+                            1 value "金色"
+                            2 value "鲜明"
+                            3 value "自定义"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_TONE_MAPPING_OFFSET_R", 0.0, -1.0..1.0 step 0.01) {
+                        lang {
+                            name = "Red Lift"
+                            comment =
+                                "Adds or removes red from all brightness levels. Negative = less red, positive = more red."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "红色偏移"
+                            comment = "在所有亮度级别添加或移除红色。负值 = 更少红色，正值 = 更多红色。"
+                        }
+                    }
+                    slider("SETTING_TONE_MAPPING_OFFSET_G", 0.0, -1.0..1.0 step 0.01) {
+                        lang {
+                            name = "Green Lift"
+                            comment =
+                                "Adds or removes green from all brightness levels. Negative = less green, positive = more green."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "绿色偏移"
+                            comment = "在所有亮度级别添加或移除绿色。负值 = 更少绿色，正值 = 更多绿色。"
+                        }
+                    }
+                    slider("SETTING_TONE_MAPPING_OFFSET_B", 0.0, -1.0..1.0 step 0.01) {
+                        lang {
+                            name = "Blue Lift"
+                            comment =
+                                "Adds or removes blue from all brightness levels. Negative = less blue, positive = more blue."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "蓝色偏移"
+                            comment = "在所有亮度级别添加或移除蓝色。负值 = 更少蓝色，正值 = 更多蓝色。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_TONE_MAPPING_SLOPE_R", 1.05, 0.1..2.0 step 0.01) {
+                        lang {
+                            name = "Red Gain"
+                            comment =
+                                "Multiplies red channel intensity. Below 1.0 reduces red, above 1.0 increases red in mid-tones."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "红色斜率"
+                            comment = "乘以红色通道强度。低于1.0减少红色，高于1.0增加中间色调的红色。"
+                        }
+                    }
+                    slider("SETTING_TONE_MAPPING_SLOPE_G", 1.05, 0.1..2.0 step 0.01) {
+                        lang {
+                            name = "Green Gain"
+                            comment =
+                                "Multiplies green channel intensity. Below 1.0 reduces green, above 1.0 increases green in mid-tones."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "绿色斜率"
+                            comment = "乘以绿色通道强度。低于1.0减少绿色，高于1.0增加中间色调的绿色。"
+                        }
+                    }
+                    slider("SETTING_TONE_MAPPING_SLOPE_B", 1.05, 0.1..2.0 step 0.01) {
+                        lang {
+                            name = "Blue Gain"
+                            comment =
+                                "Multiplies blue channel intensity. Below 1.0 reduces blue, above 1.0 increases blue in mid-tones."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "蓝色斜率"
+                            comment = "乘以蓝色通道强度。低于1.0减少蓝色，高于1.0增加中间色调的蓝色。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_TONE_MAPPING_POWER_R", 1.1, 0.1..2.0 step 0.01) {
+                        lang {
+                            name = "Red Contrast"
+                            comment =
+                                "Adjusts contrast in red channel. Higher values increase red contrast, making reds more dramatic."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "红色幂值"
+                            comment = "调整红色通道的对比度。数值越高，红色对比度越大，使红色更具戏剧性。"
+                        }
+                    }
+                    slider("SETTING_TONE_MAPPING_POWER_G", 1.1, 0.1..2.0 step 0.01) {
+                        lang {
+                            name = "Green Contrast"
+                            comment =
+                                "Adjusts contrast in green channel. Higher values increase green contrast."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "绿色幂值"
+                            comment = "调整绿色通道的对比度。数值越高，绿色对比度越大。"
+                        }
+                    }
+                    slider("SETTING_TONE_MAPPING_POWER_B", 1.1, 0.1..2.0 step 0.01) {
+                        lang {
+                            name = "Blue Contrast"
+                            comment =
+                                "Adjusts contrast in blue channel. Higher values increase blue contrast, making blues more dramatic."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "蓝色幂值"
+                            comment = "调整蓝色通道的对比度。数值越高，蓝色对比度越大，使蓝色更具戏剧性。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_TONE_MAPPING_SATURATION", 1.3, 0.0..2.0 step 0.01) {
+                        lang {
+                            name = "Color Saturation"
+                            comment =
+                                "Overall color intensity. 0 = black & white, 1 = normal, 2 = hyper-saturated."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "饱和度"
+                            comment = "整体颜色强度。0 = 黑白，1 = 正常，2 = 超饱和。"
+                        }
+                    }
+                    empty()
+                }
+                screen(1) {
+                    lang {
+                        name = "Purkinje Effect (Night Vision)"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "浦肯野效应（夜视）"
+                    }
+                    toggle("SETTING_PURKINJE_EFFECT", true) {
+                        lang {
+                            name = "Purkinje Effect"
+                            comment =
+                                "Simulates how human eyes lose color vision in darkness, creating a more realistic night experience."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "启用浦肯野效应"
+                            comment = "模拟人眼在黑暗中失去色觉的方式，创造更真实的夜晚体验。"
+                        }
+                    }
+                    slider("SETTING_PURKINJE_EFFECT_MIN_LUM", -10.0, -10.0..1.0 step 0.5) {
+                        lang {
+                            name = "Minimum Luminance"
+                            prefix = "10^"
+                            suffix = " cd/m²"
+                            comment =
+                                "Below this brightness, colors fade to monochrome. Lower = colors disappear in dimmer light."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "最小亮度"
+                            prefix = "10^"
+                            suffix = " cd/m²"
+                            comment = "低于此亮度，颜色褪为单色。数值越低 = 颜色在更暗的光线中消失。"
+                        }
+                    }
+                    slider("SETTING_PURKINJE_EFFECT_MAX_LUM", -2.0, -10.0..1.0 step 0.5) {
+                        lang {
+                            name = "Maximum Luminance"
+                            prefix = "10^"
+                            suffix = " cd/m²"
+                            comment =
+                                "Above this brightness, colors appear fully. Higher = need brighter light to see full colors."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "最大亮度"
+                            prefix = "10^"
+                            suffix = " cd/m²"
+                            comment = "高于此亮度，颜色完全显现。数值越高 = 需要更亮的光线才能看到完整的颜色。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_PURKINJE_EFFECT_CR", 0.9, 0.0..1.0 step 0.01) {
+                        lang {
+                            name = "Night Vision Tint - Red"
+                            comment =
+                                "Red tint of monochrome night vision. Default creates bluish night vision like real eyes."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "夜视色调 - 红"
+                            comment = "单色夜视的红色色调。默认值创造类似真实眼睛的偏蓝夜视。"
+                        }
+                    }
+                    slider("SETTING_PURKINJE_EFFECT_CG", 0.95, 0.0..1.0 step 0.01) {
+                        lang {
+                            name = "Night Vision Tint - Green"
+                            comment = "Green tint of monochrome night vision."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "夜视色调 - 绿"
+                            comment = "单色夜视的绿色色调。"
+                        }
+                    }
+                    slider("SETTING_PURKINJE_EFFECT_CB", 1.0, 0.0..1.0 step 0.01) {
+                        lang {
+                            name = "Night Vision Tint - Blue"
+                            comment =
+                                "Blue tint of monochrome night vision. Higher values create bluer night scenes."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "夜视色调 - 蓝"
+                            comment = "单色夜视的蓝色色调。数值越高，夜晚场景越蓝。"
+                        }
+                    }
+                }
+            }
+            empty()
+            row {
+                screen(1) {
+                    lang {
+                        name = "Primary Color Calibration"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "原色校准"
+                    }
+                    toggle("SETTING_PRIMARY_COLOR_CALIBRATION", false) {
+                        lang {
+                            name = "Primary Color Calibration"
+                            comment = "Applies the primary color calibration controls below."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "原色校准"
+                            comment = "应用下方的原色校准控件。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_PCC_RED_HUE", 0, -100..100) {
+                        lang {
+                            name = "Red Primary Hue"
+                            comment = "Rotates the red primary's chromaticity around white, like ACR's Camera Calibration panel."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "红色原色色相"
+                            comment = "围绕白点旋转红色原色的色度，效果类似于 ACR 的相机校准面板。"
+                        }
+                    }
+                    slider("SETTING_PCC_RED_SAT", 0, -100..100) {
+                        lang {
+                            name = "Red Primary Sat"
+                            comment = "Scales the red primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "红色原色饱和度"
+                            comment = "缩放红色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_PCC_GREEN_HUE", 0, -100..100) {
+                        lang {
+                            name = "Green Primary Hue"
+                            comment = "Rotates the green primary's chromaticity around white, like ACR's Camera Calibration panel."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "绿色原色色相"
+                            comment = "围绕白点旋转绿色原色的色度，效果类似于 ACR 的相机校准面板。"
+                        }
+                    }
+                    slider("SETTING_PCC_GREEN_SAT", 0, -100..100) {
+                        lang {
+                            name = "Green Primary Sat"
+                            comment = "Scales the green primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "绿色原色饱和度"
+                            comment = "缩放绿色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。"
+                        }
+                    }
+                    empty()
+                    slider("SETTING_PCC_BLUE_HUE", 0, -100..100) {
+                        lang {
+                            name = "Blue Primary Hue"
+                            comment = "Rotates the blue primary's chromaticity around white, like ACR's Camera Calibration panel."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "蓝色原色色相"
+                            comment = "围绕白点旋转蓝色原色的色度，效果类似于 ACR 的相机校准面板。"
+                        }
+                    }
+                    slider("SETTING_PCC_BLUE_SAT", 0, -100..100) {
+                        lang {
+                            name = "Blue Primary Sat"
+                            comment = "Scales the blue primary's distance from white. 0 = unchanged, -100 = desaturated, 100 = doubled."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "蓝色原色饱和度"
+                            comment = "缩放蓝色原色与白点的距离。0 = 不变，-100 = 去饱和，100 = 加倍。"
+                        }
+                    }
+                }
+                screen(3) {
+                    lang {
+                        name = "HSL Color Mixer"
+                        comment = "Adjusts saturation and lightness of 8 hue bands independently, like Lightroom's HSL/Color panel. Only pixels whose hue falls in (or near) a band are affected."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "HSL 颜色混合器"
+                        comment = "独立调整8个色相区间的饱和度和明度，类似 Lightroom 的 HSL/颜色面板。只影响色相落在（或接近）该区间的像素。"
+                    }
+                    row {
+                        toggle("SETTING_HCM_COLOR_MIXER", false) {
+                            lang {
+                                name = "HSL Color Mixer"
+                                comment = "Applies the HSL color mixer controls below."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "HSL 颜色混合器"
+                                comment = "应用下方的 HSL 颜色混合器控件。"
+                            }
+                        }
+                    }
+                    empty()
+                    row {
+                        slider("SETTING_HCM_RED_HUE", 0, -100..100) {
+                            lang {
+                                name = "Red Hue"
+                                comment =
+                                    "Rotates the hue of red-hued pixels only. 0 = unchanged, negative = rotates toward pink/magenta, positive = rotates toward orange."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "红色色相"
+                                comment = "仅旋转红色色相像素的色相。0 = 不变，负值 = 转向粉色/洋红色，正值 = 转向橙色。"
+                            }
+                        }
+                        slider("SETTING_HCM_RED_SAT", 0, -100..100) {
+                            lang {
+                                name = "Red Saturation"
+                                comment =
+                                    "Scales the saturation of red-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "红色饱和度"
+                                comment = "仅缩放红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                            }
+                        }
+                        slider("SETTING_HCM_RED_LUM", 0, -100..100) {
+                            lang {
+                                name = "Red Luminance"
+                                comment =
+                                    "Shifts the lightness of red-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "红色明度"
+                                comment = "仅调整红色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                            }
+                        }
+                    }
+                    row {
+                        slider("SETTING_HCM_ORANGE_HUE", 0, -100..100) {
+                            lang {
+                                name = "Orange Hue"
+                                comment =
+                                    "Rotates the hue of orange-hued pixels only. 0 = unchanged, negative = rotates toward red, positive = rotates toward yellow."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "橙色色相"
+                                comment = "仅旋转橙色色相像素的色相。0 = 不变，负值 = 转向红色，正值 = 转向黄色。"
+                            }
+                        }
+                        slider("SETTING_HCM_ORANGE_SAT", 0, -100..100) {
+                            lang {
+                                name = "Orange Saturation"
+                                comment =
+                                    "Scales the saturation of orange-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "橙色饱和度"
+                                comment = "仅缩放橙色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                            }
+                        }
+                        slider("SETTING_HCM_ORANGE_LUM", 0, -100..100) {
+                            lang {
+                                name = "Orange Luminance"
+                                comment =
+                                    "Shifts the lightness of orange-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "橙色明度"
+                                comment = "仅调整橙色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                            }
+                        }
+                    }
+                    row {
+                        slider("SETTING_HCM_YELLOW_HUE", 0, -100..100) {
+                            lang {
+                                name = "Yellow Hue"
+                                comment =
+                                    "Rotates the hue of yellow-hued pixels only. 0 = unchanged, negative = rotates toward orange, positive = rotates toward green."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "黄色色相"
+                                comment = "仅旋转黄色色相像素的色相。0 = 不变，负值 = 转向橙色，正值 = 转向绿色。"
+                            }
+                        }
+                        slider("SETTING_HCM_YELLOW_SAT", 0, -100..100) {
+                            lang {
+                                name = "Yellow Saturation"
+                                comment =
+                                    "Scales the saturation of yellow-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "黄色饱和度"
+                                comment = "仅缩放黄色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                            }
+                        }
+                        slider("SETTING_HCM_YELLOW_LUM", 0, -100..100) {
+                            lang {
+                                name = "Yellow Luminance"
+                                comment =
+                                    "Shifts the lightness of yellow-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "黄色明度"
+                                comment = "仅调整黄色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                            }
+                        }
+                    }
+                    row {
+                        slider("SETTING_HCM_GREEN_HUE", 0, -100..100) {
+                            lang {
+                                name = "Green Hue"
+                                comment = "Rotates the hue of green-hued pixels only. 0 = unchanged, negative = rotates toward yellow, positive = rotates toward aqua."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "绿色色相"
+                                comment = "仅旋转绿色色相像素的色相。0 = 不变，负值 = 转向黄色，正值 = 转向青色。"
+                            }
+                        }
+                        slider("SETTING_HCM_GREEN_SAT", 0, -100..100) {
+                            lang {
+                                name = "Green Saturation"
+                                comment = "Scales the saturation of green-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "绿色饱和度"
+                                comment = "仅缩放绿色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                            }
+                        }
+                        slider("SETTING_HCM_GREEN_LUM", 0, -100..100) {
+                            lang {
+                                name = "Green Luminance"
+                                comment = "Shifts the lightness of green-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "绿色明度"
+                                comment = "仅调整绿色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                            }
+                        }
+                    }
+                    row {
+                        slider("SETTING_HCM_AQUA_HUE", 0, -100..100) {
+                            lang {
+                                name = "Aqua Hue"
+                                comment = "Rotates the hue of aqua-hued pixels only. 0 = unchanged, negative = rotates toward green, positive = rotates toward blue."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "青色色相"
+                                comment = "仅旋转青色色相像素的色相。0 = 不变，负值 = 转向绿色，正值 = 转向蓝色。"
+                            }
+                        }
+                        slider("SETTING_HCM_AQUA_SAT", 0, -100..100) {
+                            lang {
+                                name = "Aqua Saturation"
+                                comment = "Scales the saturation of aqua-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "青色饱和度"
+                                comment = "仅缩放青色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                            }
+                        }
+                        slider("SETTING_HCM_AQUA_LUM", 0, -100..100) {
+                            lang {
+                                name = "Aqua Luminance"
+                                comment = "Shifts the lightness of aqua-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "青色明度"
+                                comment = "仅调整青色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                            }
+                        }
+                    }
+                    row {
+                        slider("SETTING_HCM_BLUE_HUE", 0, -100..100) {
+                            lang {
+                                name = "Blue Hue"
+                                comment = "Rotates the hue of blue-hued pixels only. 0 = unchanged, negative = rotates toward aqua, positive = rotates toward magenta."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "蓝色色相"
+                                comment = "仅旋转蓝色色相像素的色相。0 = 不变，负值 = 转向青色，正值 = 转向洋红色。"
+                            }
+                        }
+                        slider("SETTING_HCM_BLUE_SAT", 0, -100..100) {
+                            lang {
+                                name = "Blue Saturation"
+                                comment = "Scales the saturation of blue-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "蓝色饱和度"
+                                comment = "仅缩放蓝色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                            }
+                        }
+                        slider("SETTING_HCM_BLUE_LUM", 0, -100..100) {
+                            lang {
+                                name = "Blue Luminance"
+                                comment = "Shifts the lightness of blue-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "蓝色明度"
+                                comment = "仅调整蓝色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                            }
+                        }
+                    }
+                    row {
+                        slider("SETTING_HCM_MAGENTA_HUE", 0, -100..100) {
+                            lang {
+                                name = "Magenta Hue"
+                                comment = "Rotates the hue of magenta-hued pixels only. 0 = unchanged, negative = rotates toward blue, positive = rotates toward pink."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "洋红色色相"
+                                comment = "仅旋转洋红色色相像素的色相。0 = 不变，负值 = 转向蓝色，正值 = 转向粉色。"
+                            }
+                        }
+                        slider("SETTING_HCM_MAGENTA_SAT", 0, -100..100) {
+                            lang {
+                                name = "Magenta Saturation"
+                                comment = "Scales the saturation of magenta-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "洋红色饱和度"
+                                comment = "仅缩放洋红色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                            }
+                        }
+                        slider("SETTING_HCM_MAGENTA_LUM", 0, -100..100) {
+                            lang {
+                                name = "Magenta Luminance"
+                                comment = "Shifts the lightness of magenta-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "洋红色明度"
+                                comment = "仅调整洋红色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                            }
+                        }
+                    }
+                    row {
+                        slider("SETTING_HCM_PINK_HUE", 0, -100..100) {
+                            lang {
+                                name = "Pink Hue"
+                                comment =
+                                    "Rotates the hue of pink-hued pixels only. 0 = unchanged, negative = rotates toward magenta, positive = rotates toward red."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "粉色色相"
+                                comment = "仅旋转粉色色相像素的色相。0 = 不变，负值 = 转向洋红色，正值 = 转向红色。"
+                            }
+                        }
+                        slider("SETTING_HCM_PINK_SAT", 0, -100..100) {
+                            lang {
+                                name = "Pink Saturation"
+                                comment =
+                                    "Scales the saturation of pink-hued pixels only. 0 = unchanged, -100 = grayscale, 100 = doubled saturation."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "粉色饱和度"
+                                comment = "仅缩放粉色色相像素的饱和度。0 = 不变，-100 = 灰度，100 = 加倍饱和度。"
+                            }
+                        }
+                        slider("SETTING_HCM_PINK_LUM", 0, -100..100) {
+                            lang {
+                                name = "Pink Luminance"
+                                comment =
+                                    "Shifts the lightness of pink-hued pixels only. 0 = unchanged, negative = darker, positive = brighter."
+                            }
+                            lang(Locale.SIMPLIFIED_CHINESE) {
+                                name = "粉色明度"
+                                comment = "仅调整粉色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
+                            }
+                        }
                     }
                 }
             }
@@ -3304,6 +3688,46 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "色调映射色彩空间"
                     comment = "用于色调映射操作的色彩空间。Rec. 2020与AgX色调映射配合更好。"
+                }
+            }
+            empty()
+            toggle("SETTING_COLOR_GRADING_COLOR_SPACE", 1, 1..8) {
+                lang {
+                    name = "Color Grading Color Space"
+                    comment = "Color space used by Primary Color Calibration and HSL Color Mixer. Independent of Monitor Color Space."
+                    1 value "sRGB"
+                    2 value "Rec. 709"
+                    3 value "Rec. 2020"
+                    4 value "DCI-P3"
+                    5 value "Adobe RGB (1998)"
+                    6 value "ACES2065-1"
+                    7 value "ACEScg"
+                    8 value "Color McSpaceFace"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "调色色彩空间"
+                    comment = "原色校准和 HSL 颜色混合器使用的色彩空间，独立于显示器色彩空间。"
+                }
+            }
+            toggle("SETTING_COLOR_GRADING_TRANSFER_FUNC", 3, 0..7) {
+                lang {
+                    name = "Color Grading Transfer Function"
+                    comment = "Transfer function used to encode colors for HSL Color Mixer. Linear preserves its previous behavior."
+                    0 value "Linear"
+                    1 value "Rec. 601"
+                    2 value "Rec. 709"
+                    3 value "sRGB"
+                    4 value "Exponential 2.2"
+                    5 value "Exponential 2.4"
+                    6 value "ST 2084 (PQ)"
+                    7 value "HLG"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "调色传递函数"
+                    comment = "HSL 颜色混合器编码颜色时使用的传递函数。线性可保持原有行为。"
+                    0 value "线性"
+                    4 value "指数 2.2"
+                    5 value "指数 2.4"
                 }
             }
             empty()
