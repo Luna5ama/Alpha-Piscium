@@ -84,4 +84,8 @@ vec3 resampleMaterial_specularAlbedo(ResampleMaterial material, float NDotV) {
     return splitSumSpecularLUT(material.f0, NDotV, material.roughness);
 }
 
+vec3 resampleMaterial_specularDenoiseFactor(ResampleMaterial material, float NDotV) {
+    return splitSumSpecularDenoiseFactor(material.f0, NDotV, material.roughness);
+}
+
 #endif
