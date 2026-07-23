@@ -270,4 +270,8 @@ float softMax(float x, float minV, float smoothness) {
     return 0.5 * (x + minV + sqrt(pow2(x - minV) + smoothness));
 }
 
+vec3 softMax(vec3 x, float minV, float smoothness) {
+    return 0.5 * (x + minV + sqrt(pow2(x - minV) + smoothness));
+}
+
 #endif

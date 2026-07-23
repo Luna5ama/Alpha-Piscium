@@ -208,7 +208,7 @@ void main() {
 
                     f16vec4 diffSample = f16vec4(_gi_readDiff(sampleTexelPos));
 
-                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
+                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight)) * rcpSamples;
                     diffSumFP16 += diffSample * totalWeight;
                     weightSumFP16 += totalWeight;
                 }
@@ -315,7 +315,7 @@ void main() {
 
                     f16vec4 specSample = f16vec4(_gi_readSpec(sampleTexelPos));
 
-                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
+                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight)) * rcpSamples;
                     specSumFP16 += specSample * totalWeight;
                     weightSumFP16 += totalWeight;
                 }
