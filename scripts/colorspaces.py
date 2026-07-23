@@ -19,14 +19,24 @@ def getColorSpace(csname):
             cctf_encoding=None,
             cctf_decoding=None
         )
+    if csname == "ITU-R BT.709":
+        csname = "sRGB"
 
     try:
         return colour.RGB_COLOURSPACES[csname]
     except KeyError:
         raise ValueError(f"Color space '{csname}' not found in colour-science library.")
 
+def try_get_colorspace_name(csname):
+    try:
+        return getColorSpace(csname).name
+    except KeyError:
+        return csname
+    except ValueError:
+        return csname
+
 def cmat(a, b):
-    if a == b:
+    if a == b or try_get_colorspace_name(a) == try_get_colorspace_name(b):
         return np.identity(3)
     elif (a == "CIE XYZ"):
         mat = getColorSpace(b).matrix_XYZ_to_RGB
@@ -108,6 +118,8 @@ print(section_separator_string("Luma Functions"))
 
 for a_idx, a in enumerate(my_color_spaces):
     if a == "CIE XYZ":
+        print(f"#define {package_name}_CIE_XYZ_luma(x) (x).y")
+        print(f"#define {package_name}_{a_idx}_luma(x) {package_name}_CIE_XYZ_luma(x)\n")
         continue
     a_name = color_space_code_name[a]
     a_to_xyz_mat_name = f"_{package_name}_mat_{a_name}_to_CIE_XYZ"
