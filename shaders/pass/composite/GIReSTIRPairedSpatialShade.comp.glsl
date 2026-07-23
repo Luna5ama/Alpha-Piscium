@@ -136,8 +136,8 @@ void main() {
             vec3 radianceWeight = selectedSampleF.xyz * avgWY;
             ssgiDiffOut = vec4(radianceWeight * outBRDF.diffuse, winHitDist);
             ssgiSpecOut = vec4(radianceWeight * outBRDF.specular, winHitDist);
-            vec3 specAlbedo = resampleMaterial_specularAlbedo(centerMaterial, NDotV);
-            ssgiSpecOut.rgb *= safeRcp(specAlbedo);
+            vec3 specDenoiseFactor = resampleMaterial_specularDenoiseFactor(centerMaterial, NDotV);
+            ssgiSpecOut.rgb *= rcp(specDenoiseFactor);
             ssgiDiffOut.rgb = clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX);
             ssgiSpecOut.rgb = clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX);
             transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);

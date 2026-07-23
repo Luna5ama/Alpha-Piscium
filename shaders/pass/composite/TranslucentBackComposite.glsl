@@ -60,8 +60,14 @@ void main() {
             outputColor.rgb += giDiff.rgb * material.albedo;
 
             float NDotV = saturate(dot(gData.normal, V));
-            vec3 specAlbedo = splitSumSpecularLUT(material.f0RGB, material.f82TintRGB, NDotV, material.roughness);
-            outputColor.rgb += giSpec.rgb * specAlbedo;
+            // ReSTIR demodulation uses scalar F0, so colored-metal remodulation is approximate.
+            vec3 specDenoiseFactor = splitSumSpecularDenoiseFactor(
+                material.f0RGB,
+                material.f82TintRGB,
+                NDotV,
+                material.roughness
+            );
+            outputColor.rgb += giSpec.rgb * specDenoiseFactor;
             imageStore(uimg_temp3, texelPos, vec4(giSpec  ));
         }
 
