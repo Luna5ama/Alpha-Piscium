@@ -29,11 +29,11 @@ vec3 displaytransform_primarycolorcalibration_apply(vec3 color) {
     vec3 rXYZ = _displaytransform_primarycolorcalibration_xy2XYZ(_displaytransform_primarycolorcalibration_rotatePrimaryXy(_displaytransform_primarycolorcalibration_XYZ2xy(redXYZ), whiteXy, float(SETTING_PCC_RED_HUE) * 0.01 * HUE_RANGE_DEG, 1.0 + float(SETTING_PCC_RED_SAT) * 0.01), redXYZ.y);
     vec3 gXYZ = _displaytransform_primarycolorcalibration_xy2XYZ(_displaytransform_primarycolorcalibration_rotatePrimaryXy(_displaytransform_primarycolorcalibration_XYZ2xy(greenXYZ), whiteXy, float(SETTING_PCC_GREEN_HUE) * 0.01 * HUE_RANGE_DEG, 1.0 + float(SETTING_PCC_GREEN_SAT) * 0.01), greenXYZ.y);
     vec3 bXYZ = _displaytransform_primarycolorcalibration_xy2XYZ(_displaytransform_primarycolorcalibration_rotatePrimaryXy(_displaytransform_primarycolorcalibration_XYZ2xy(blueXYZ), whiteXy, float(SETTING_PCC_BLUE_HUE) * 0.01 * HUE_RANGE_DEG, 1.0 + float(SETTING_PCC_BLUE_SAT) * 0.01), blueXYZ.y);
-    vec3 whiteCorrection = (whiteXYZ - rXYZ - gXYZ - bXYZ) / 3.0;
-    mat3 calibMatrix = mat3(rXYZ + whiteCorrection, gXYZ + whiteCorrection, bXYZ + whiteCorrection);
+    mat3 primaryColorWhiteCorrectionMat = mat3(rXYZ, gXYZ, bXYZ);
+    vec3 whiteCorrection = inverse(primaryColorWhiteCorrectionMat) * whiteXYZ;
+    mat3 calibMatrix = mat3(rXYZ * whiteCorrection.x, gXYZ * whiteCorrection.y, bXYZ * whiteCorrection.z);
     vec3 calibratedXYZ = calibMatrix * color;
-    vec3 calibrated = colors2_colorspaces_convert(COLORS2_COLORSPACES_CIE_XYZ, COLORS2_GRADING_COLORSPACE, calibratedXYZ);
-    return calibrated;
+    return colors2_colorspaces_convert(COLORS2_COLORSPACES_CIE_XYZ, COLORS2_GRADING_COLORSPACE, calibratedXYZ);
 }
 
 #endif
