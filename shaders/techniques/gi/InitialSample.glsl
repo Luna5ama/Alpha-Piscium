@@ -6,6 +6,7 @@
 #include "/util/BSDF.glsl"
 #include "/techniques/SST2.glsl"
 #include "/techniques/gi/Common.glsl"
+#include "/techniques/gi/HitDirectLighting.glsl"
 #include "/techniques/gi/RadianceCacheSample.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
@@ -132,9 +133,10 @@ bool restir_initialSample_screenHitQuery(
     }
 
     Material hitMaterial = material_decode(hitData);
-    vec3 queryWorldPos = coords_pos_viewToWorld(hitViewPos - hitData.geomNormal * 0.02, gbufferModelViewInverse) + cameraPosition;
+    vec3 hitWorldPos = coords_pos_viewToWorld(hitViewPos, gbufferModelViewInverse) + cameraPosition;
     vec3 queryWorldNormal = coords_dir_viewToWorld(hitData.normal);
     vec3 queryWorldGeomNormal = coords_dir_viewToWorld(hitData.geomNormal);
+    vec3 queryWorldPos = hitWorldPos - queryWorldGeomNormal * 0.02;
     vec3 V = coords_dir_viewToWorld(normalize(rayOriginView - hitViewPos));
     RCLookupResult rcLookup = rc_lookupDiffuseGI(V, queryWorldPos, queryWorldNormal, queryWorldGeomNormal);
 
@@ -143,7 +145,8 @@ bool restir_initialSample_screenHitQuery(
     candidate.pdf = pdf;
     candidate.hitDistance = hitDistance;
     candidate.hitNormalView = hitData.normal;
-    candidate.radiance = hitMaterial.emissive;
+    candidate.radiance = hitMaterial.emissive
+        + gi_hitDirectLighting(hitMaterial, hitWorldPos, V, queryWorldNormal, queryWorldGeomNormal);
 
     if (rcLookup.weight > 0.0 && !any(isnan(rcLookup.radiance))) {
         candidate.radiance += rcLookup.radiance * hitMaterial.albedo;
@@ -183,7 +186,8 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
 
     vec3 V = normalize(rayOriginWorld - hit.hitPos);
     RCLookupResult rcLookup = rc_lookupDiffuseGI(V, hit.hitPos, hit.normal, hit.normal);
-    candidate.radiance = surface.material.emissive;
+    candidate.radiance = surface.material.emissive
+        + gi_hitDirectLighting(surface.material, hit.hitPos, V, hit.normal, hit.normal);
     if (rcLookup.weight > 0.0 && !any(isnan(rcLookup.radiance))) {
         candidate.radiance += rcLookup.radiance * surface.material.albedo;
     }
