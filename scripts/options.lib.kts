@@ -622,7 +622,12 @@ fun options(
     block: Scope.() -> Unit
 ) {
     val kotlinExec = if (System.getProperty("os.name").lowercase().contains("win")) "kotlin.bat" else "kotlin"
-    ProcessBuilder(kotlinExec, "programs.main.kts").inheritIO().start().waitFor()
+    val programsProcess = ProcessBuilder(kotlinExec, "programs.main.kts").apply {
+        if (kotlinExec == "kotlin.bat") {
+            environment().keys.removeIf { it.equals("JAVA_OPTS", true) || it.equals("KOTLIN_OPTS", true) }
+        }
+    }.inheritIO().start()
+    check(programsProcess.waitFor() == 0) { "Failed to generate programs" }
 
     val absoluteFile = shaderRootDir.absoluteFile
     Scope().apply(block).build(baseShadersProperties)
