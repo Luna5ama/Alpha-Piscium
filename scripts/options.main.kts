@@ -1,4 +1,4 @@
-@file:Import("options.lib.kts")
+@file:Import("./options.lib.kts")
 
 import java.io.File
 import java.util.*

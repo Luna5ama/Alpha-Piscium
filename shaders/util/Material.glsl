@@ -132,8 +132,8 @@ Material material_decode(GBufferData gData) {
         material.f82TintRGB = mix(f82Data.aaa, vec3(1.0), f82Data.rgb);
         material.f82Tint = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f82TintRGB);
     }
-    material.f0 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f0RGB);
     material.f0RGB = max(material.f0RGB, _MATERIAL_F0_EPSILON);
+    material.f0 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f0RGB);
 
 
     vec4 emissiveAlbedo = pow(max(vec4(gData.albedo, albedoLuma), 1e-8), emissiveAlbedoCurve);

@@ -64,11 +64,11 @@ float resampleMaterial_ggx(ResampleMaterial material, float NDotL, float NDotV, 
 }
 
 ResampleBRDF resampleMaterial_evalBRDF(
-ResampleMaterial material,
-float NDotL,
-float NDotV,
-float NDotH,
-float LDotH
+    ResampleMaterial material,
+    float NDotL,
+    float NDotV,
+    float NDotH,
+    float LDotH
 ) {
     ResampleBRDF brdf;
     float fresnel = resampleMaterial_fresnel(material, LDotH);
@@ -80,8 +80,8 @@ float LDotH
     return brdf;
 }
 
-vec3 resampleMaterial_specularAlbedo(ResampleMaterial material, float NDotV) {
-    return splitSumSpecularLUT(material.f0, NDotV, material.roughness);
+vec3 resampleMaterial_specularDenoiseFactor(ResampleMaterial material, float NDotV) {
+    return splitSumSpecularDenoiseFactor(material.f0, NDotV, material.roughness);
 }
 
 #endif

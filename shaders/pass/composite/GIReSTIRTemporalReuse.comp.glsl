@@ -307,8 +307,8 @@ void main() {
                 ssgiDiffOut = vec4(totalOutput * diffRatio, winHitDist);
 
                 ssgiSpecOut = vec4(totalOutput * (1.0 - diffRatio), winHitDist);
-                vec3 specAlbedo = resampleMaterial_specularAlbedo(resampleMaterial, winNDotV);
-                ssgiSpecOut.rgb *= safeRcp(specAlbedo);
+                vec3 specDenoiseFactor = resampleMaterial_specularDenoiseFactor(resampleMaterial, winNDotV);
+                ssgiSpecOut.rgb *= rcp(specDenoiseFactor);
 
                 ssgiDiffOut = clamp(ssgiDiffOut, 0.0, FP16_MAX);
                 ssgiSpecOut = clamp(ssgiSpecOut, 0.0, FP16_MAX);
