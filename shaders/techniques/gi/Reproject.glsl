@@ -231,7 +231,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     );
                     float antiStretching = pow2(linearStep(0.2, 0.0, pow2(packedData5.w) - pow2(glazingAngleFactorHistory)));
                     historyResetFactor *= antiStretching;
-                    packedData5.x *= historyResetFactor;
+                    packedData5.xy *= historyResetFactor;
                     packedData5.w = glazingAngleFactorHistory;
                     packedData5 = saturate(packedData5);
                     transient_gi5Reprojected_store(texelPos, packedData5);
@@ -278,7 +278,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 float antiStretching = pow2(linearStep(0.2, 0.0, pow2(packedData5.w) - pow2(glazingAngleFactorHistory)));
                 historyResetFactor *= antiStretching;
 
-                packedData5.x *= historyResetFactor;
+                packedData5.xy *= historyResetFactor;
                 packedData5.w = glazingAngleFactorHistory;
 
                 packedData5 = saturate(packedData5);
@@ -378,7 +378,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     currViewGeomNormal,
                     curr2PrevViewPos.xyz,
                     glazingAngleFactor,
-                    128.0 * mirrorParallaxFactor + 256.0,
+                    128.0 * mirrorParallaxFactor + 128.0,
                     roughnessWeights,
                     extraNormalWeights,
                     edgeWeights,
