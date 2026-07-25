@@ -101,7 +101,8 @@ N=\mathrm{normalize}(-\partial_xH,1,-\partial_zH),
 $$
 
 $$
-C_{top}=\mathrm{saturate}\!\left(\frac{N\cdot\mathrm{renderParams.lightDir}+0.5}{1.5}\right),\qquad
+C_{top}^{raw}=\mathrm{saturate}\!\left(\frac{N\cdot\mathrm{renderParams.lightDir}+0.5}{1.5}\right),\qquad
+C_{top}=\mathrm{mix}(1,C_{top}^{raw},0.25),\qquad
 C_{bottom}=1-\exp\!\left(-\frac{\max(h_{local},0)}{0.1\,\mathrm{mix}(1,4,h_{column})}\right),\qquad
 B_{eff}=C_{top}C_{bottom}.
 $$
@@ -109,10 +110,11 @@ $$
 Here `baseCoverage_raw` is the existing pre-height coverage value, `h_column = saturate(baseCoverage_raw)` reuses the
 receiver density lookup, and `h_local` is the normalized receiver height (`0` at the cumulus-layer base and `1` at its
 top). The constants correspond to `b = 0`, `p = 1`, and `H_bottom = 0.1`, matching the density model's existing normalized
-`0.1` bottom scale. `C_top` uses the actual `renderParams.lightDir`, not the cone-jittered light-march direction. The gate
-is evaluated once per occupied receiver sample and multiplies every source weight before accumulation, intensity, and
-compression. It costs four extra coverage-proxy evaluations with no extra center lookup, and adds no pass, resource,
-texture resource, or density march.
+`0.1` bottom scale. `C_top` uses the actual `renderParams.lightDir`, not the cone-jittered light-march direction. The
+`0.25` confidence strength keeps the top factor in `[0.75,1]`; full-strength use of the coarse coverage normal exposes
+vertical bands in the cloud body. The gate is evaluated once per occupied receiver sample and multiplies every source
+weight before accumulation, intensity, and compression. It costs four extra coverage-proxy evaluations with no extra
+center lookup, and adds no pass, resource, texture resource, or density march.
 
 The estimator is adapted from AshenOneArt's [HanPi Volume Cloud implementation](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/VolumetricClouds.hlsl)
 and [forward-flux derivation](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/Docs/PhiFwd_FromRTE.md).
