@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/FSR3ShadingChangePyramid.comp.glsl"
+#include "/pass/composite/FSR3LumaPyramid.comp.glsl"

@@ -7,12 +7,14 @@ const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(r32ui) uniform restrict writeonly uimage2D uimg_fsr3ReconstructedDepth;
 
+#ifdef SETTING_FSR3_TRANSLUCENT_SST_DENOISER
 bool hasTranslucentSurface(ivec2 texelPos, float solidViewZ) {
     float waterViewZ = -texelFetch(usam_csr32f, csr32f_tile1_texelToTexel(texelPos), 0).r;
     float translucentViewZ = -texelFetch(usam_csr32f, csr32f_tile3_texelToTexel(texelPos), 0).r;
     float frontViewZ = max(waterViewZ, translucentViewZ);
     return frontViewZ > -65536.0 && frontViewZ > solidViewZ;
 }
+#endif
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
@@ -46,15 +48,21 @@ void main() {
     vec2 previousUv = previousClip.xy / previousClip.w * 0.5 + 0.5;
     vec2 motionVector = validReprojection ? previousUv - currentUv : vec2(0.0);
 
+    float overlayCoverage = texelFetch(usam_overlays, texelPos, 0).a;
+
+    // Start from the solid surface; the optional SST history adds translucent rejection when enabled.
+    float reactiveMask = max(float(solidData.temporalReactive), overlayCoverage);
+    float compositionMask = max(float(solidData.temporalReactive), overlayCoverage);
+
+    #ifdef SETTING_FSR3_TRANSLUCENT_SST_DENOISER
     bool translucentSurface = hasTranslucentSurface(texelPos, viewZ);
     GBufferData translucentData = gbufferData_init();
     gbufferData2_unpack(texelFetch(usam_gbufferTranslucentData2, texelPos, 0), translucentData);
-    float overlayCoverage = texelFetch(usam_overlays, texelPos, 0).a;
-
-    float reactiveMask = max(float(solidData.temporalReactive), overlayCoverage);
     reactiveMask = max(reactiveMask, float(translucentSurface && translucentData.temporalReactive));
+    compositionMask = max(compositionMask, float(translucentSurface));
+    #endif
+
     reactiveMask = max(reactiveMask, float(!validReprojection));
-    float compositionMask = max(float(translucentSurface || solidData.temporalReactive), overlayCoverage);
 
     history_fsr3Motion_store(texelPos, vec4(motionVector, reactiveMask, compositionMask));
     imageStore(uimg_fsr3ReconstructedDepth, texelPos, uvec4(0u));

@@ -262,6 +262,9 @@ programs {
         pass("/pass/composite/EpipolarScatteringWater.comp.glsl")
         pass("/pass/composite/TranslucentBackComposite.glsl")
         pass("/pass/composite/TranslucentSST.glsl")
+        pass("/pass/composite/TranslucentSSTTemporal.comp.glsl") {
+            cond("defined(SETTING_FSR3) && defined(SETTING_FSR3_TRANSLUCENT_SST_DENOISER)")
+        }
         pass("/pass/composite/TranslucentComposite.glsl")
         pass("/techniques/rtwsm/IMapCollapse.comp.glsl")
         pass("/pass/composite/VolumetricLocalCompositeBreakFix.comp.glsl") {

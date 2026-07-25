@@ -4,6 +4,8 @@
         "transient_shadow": "RGBA16F",
         "transient_translucentReflection": "RGBA16F",
         "transient_translucentRefraction": "RGBA16F",
+        "transient_translucentReflectionResolved": "RGBA16F",
+        "transient_translucentRefractionResolved": "RGBA16F",
         "transient_lowCloudRender": "RGBA32UI",
         "transient_lowCloudAccumulated": "RGBA32UI",
         "history_lowCloud": "RGBA32UI",
@@ -77,7 +79,9 @@
         "history_fsr3Pyramid": "RGBA16F",
         "history_fsr3DilatedDepth": "R32F",
         "history_fsr3ShadingChange": "RGBA8",
-        "history_fsr3ReactiveMasks": "RGBA8"
+        "history_fsr3ReactiveMasks": "RGBA8",
+        "history_translucentReflection": "RGBA16F",
+        "history_translucentRefraction": "RGBA16F"
     },
     "fixed": {
         "persistent_multiSctrLUT": {
