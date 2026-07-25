@@ -184,9 +184,16 @@ void render(ivec2 texelPosDownScale) {
                 float heightFraction = linearStep(cuMinHeight, cuMaxHeight, stepState.height);
                 float sampleDensity = 0.0;
                 float sampleDensityLod = 0.0;
-                if (clouds_cu_density(stepState.position.xyz, heightFraction, true, sampleDensity, sampleDensityLod)) {
+                float sampleCoverage = 0.0;
+                if (clouds_cu_density(stepState.position.xyz, heightFraction, true, sampleDensity, sampleDensityLod, sampleCoverage)) {
                     sampleDensity *= CLOUDS_CU_DENSITY;
                     sampleDensityLod *= CLOUDS_CU_DENSITY;
+                    float isotropicMSBoundaryWeight = clouds_cu_isotropicMSBoundaryWeight(
+                        stepState.position.xyz,
+                        heightFraction,
+                        sampleCoverage,
+                        renderParams.lightDir
+                    );
 
                     #define CLOUDS_CU_LIGHT_RAYMARCH_STEP 8
                     #define CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP rcp(float(CLOUDS_CU_LIGHT_RAYMARCH_STEP))
@@ -209,14 +216,15 @@ void render(ivec2 texelPosDownScale) {
                             float lightHeightFraction = linearStep(cuMinHeight, cuMaxHeight, lightSampleHeight);
                             float lightSampleDensity = 0.0;
                             float lightSampleDensityLod = 0.0;
-                            if (clouds_cu_density(lightRaySamplePos, lightHeightFraction, true, lightSampleDensity, lightSampleDensityLod)) {
+                            float lightSampleCoverage = 0.0;
+                            if (clouds_cu_density(lightRaySamplePos, lightHeightFraction, true, lightSampleDensity, lightSampleDensityLod, lightSampleCoverage)) {
                                 float rho = lightSampleDensity * CLOUDS_CU_DENSITY;
                                 vec3 sigmaS = cuMedium.scattering * rho;
                                 vec3 sigmaTr = cuMedium.extinction * rho;
                                 vec3 isotropicMSDeltaOpticalDepth = sigmaTr * lightRayStepLength;
                                 vec3 isotropicMSU = isotropicMSOpticalDepth + sigmaTr * lightRaySamplePrefixLength;
 
-                                vec3 isotropicMSW = (sigmaS * lightRayStepLength) * sigmaTr / max(lightRaySampleOffset, 0.5 * lightRayStepLength);
+                                vec3 isotropicMSW = (sigmaS * lightRayStepLength) * sigmaTr / max(lightRaySampleOffset, 0.5 * lightRayStepLength) * isotropicMSBoundaryWeight;
                                 isotropicMS += isotropicMSW * exp(-(isotropicMSA + isotropicMSK) * isotropicMSU)
                                     * (1.0 - exp(-isotropicMSBuildRate * isotropicMSU));
                                 isotropicMSOpticalDepth += isotropicMSDeltaOpticalDepth;

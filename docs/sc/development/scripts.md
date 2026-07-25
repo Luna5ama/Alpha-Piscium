@@ -67,6 +67,20 @@ kotlin ./options.main.kts
 必须从 [`scripts/`](../../../scripts/) 运行；脚本不会切换到自身目录。由于 options 生成器会再次调用 program 生成器，program
 输出会出现两次；最短的完整生成仍是直接运行 [`options.main.kts`](../../../scripts/options.main.kts)。
 
+## 云验证
+
+从仓库根目录运行这些确定性检查：
+
+```powershell
+uv run scripts/cloud_isotropic_ms_check.py --source-root .
+uv run scripts/cloud_boundary_confidence_check.py --source-root .
+```
+
+[`cloud_isotropic_ms_check.py`](../../../scripts/cloud_isotropic_ms_check.py) 检查各向同性多重散射递推、FP32
+稳定性、采样分布、相函数读出和源项集成契约。[`cloud_boundary_confidence_check.py`](../../../scripts/cloud_boundary_confidence_check.py)
+检查边界置信度公式、FP64/FP32 边界与边缘行为、突变拒绝以及 GLSL 源码契约。这些只是数学与静态检查；不会编译 shader，
+也不能替代目标 Iris 编译和画面验证。
+
 ## 色彩与显示变换实验
 
 | 文件                                                        | 用途                     |
