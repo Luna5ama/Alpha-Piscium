@@ -14,6 +14,7 @@
 layout(rgba16f) uniform image2D uimg_rgba16f;
 layout(r32f) uniform image2D uimg_r32f;
 layout(r32ui) uniform coherent uimage2D uimg_fsr3ReconstructedDepth;
+layout(rgba16f) uniform image2D uimg_fsr3UpscaleAtlas;
 #elif defined(FSR3_BIND_LUMA_PYRAMID)
 layout(rgba16f) uniform coherent image2D uimg_rgba16f;
 #elif defined(FSR3_BIND_SHADING_CHANGE_PYRAMID)
@@ -25,6 +26,7 @@ layout(rgba8) uniform image2D uimg_rgba8;
 layout(rgba16f) uniform image2D uimg_fsr3UpscaleAtlas;
 #elif defined(FSR3_BIND_LUMA_INSTABILITY)
 layout(rgba16f) uniform image2D uimg_rgba16f;
+layout(rgba16f) uniform image2D uimg_fsr3UpscaleAtlas;
 #elif defined(FSR3_BIND_ACCUMULATE)
 layout(rgba16f) uniform image2D uimg_rgba16f;
 layout(rgba16f) uniform image2D uimg_fsr3UpscaleAtlas;
@@ -241,56 +243,68 @@ FfxFloat32 SampleFarthestDepthMip1(FfxFloat32x2 uv) {
     return FSR3_FILTER_TILE(history_fsr3FarthestDepthMip1_fetch, context).r;
 }
 
+FfxInt32x2 FSR3RenderHistoryTexel(FfxInt32x2 pos, FfxInt32x2 tile) {
+    return pos + FfxInt32x2(tile.x * RenderSize().x, UpscaleSize().y + tile.y * RenderSize().y);
+}
+
+#define FSR3_CURRENT_LUMA_EVEN_FETCH(pos) texelFetch(usam_fsr3UpscaleAtlas, FSR3RenderHistoryTexel(pos, FfxInt32x2(0, 0)), 0)
+#define FSR3_CURRENT_LUMA_ODD_FETCH(pos) texelFetch(usam_fsr3UpscaleAtlas, FSR3RenderHistoryTexel(pos, FfxInt32x2(1, 0)), 0)
+#define FSR3_LUMA_HISTORY_EVEN_FETCH(pos) texelFetch(usam_fsr3UpscaleAtlas, FSR3RenderHistoryTexel(pos, FfxInt32x2(0, 1)), 0)
+#define FSR3_LUMA_HISTORY_ODD_FETCH(pos) texelFetch(usam_fsr3UpscaleAtlas, FSR3RenderHistoryTexel(pos, FfxInt32x2(1, 1)), 0)
+
 #ifdef FSR3_BIND_PREPARE_INPUTS
 void StoreCurrentLuma(FfxInt32x2 pos, FfxFloat32 value) {
-    if ((frameCounter & 1) == 0) history_fsr3CurrentLuma1_store(pos, FfxFloat32x4(value));
-    else history_fsr3CurrentLuma2_store(pos, FfxFloat32x4(value));
+    FfxInt32x2 tile = (frameCounter & 1) == 0 ? FfxInt32x2(0, 0) : FfxInt32x2(1, 0);
+    imageStore(uimg_fsr3UpscaleAtlas, FSR3RenderHistoryTexel(pos, tile), FfxFloat32x4(value, 0.0f, 0.0f, 0.0f));
 }
 #endif
 
 FfxFloat32 LoadCurrentLuma(FfxInt32x2 pos) {
     FfxInt32x2 p = clamp(pos, FfxInt32x2(0), RenderSize() - 1);
-    return (frameCounter & 1) == 0 ? history_fsr3CurrentLuma1_fetch(p).r : history_fsr3CurrentLuma2_fetch(p).r;
+    return (frameCounter & 1) == 0 ? FSR3_CURRENT_LUMA_EVEN_FETCH(p).r : FSR3_CURRENT_LUMA_ODD_FETCH(p).r;
 }
 
 FfxFloat32 LoadPreviousLuma(FfxInt32x2 pos) {
     if (FSR3HistoryReset()) return 0.0f;
     FfxInt32x2 p = clamp(pos, FfxInt32x2(0), PreviousFrameRenderSize() - 1);
-    return (frameCounter & 1) == 0 ? history_fsr3CurrentLuma2_fetch(p).r : history_fsr3CurrentLuma1_fetch(p).r;
+    return (frameCounter & 1) == 0 ? FSR3_CURRENT_LUMA_ODD_FETCH(p).r : FSR3_CURRENT_LUMA_EVEN_FETCH(p).r;
 }
 
 FfxFloat32 SampleCurrentLuma(FfxFloat32x2 uv) {
     FSR3BilinearContext context = FSR3CreateBilinearContext(uv, RenderSize());
-    if ((frameCounter & 1) == 0) return FSR3_FILTER_TILE(history_fsr3CurrentLuma1_fetch, context).r;
-    return FSR3_FILTER_TILE(history_fsr3CurrentLuma2_fetch, context).r;
+    if ((frameCounter & 1) == 0) return FSR3_FILTER_TILE(FSR3_CURRENT_LUMA_EVEN_FETCH, context).r;
+    return FSR3_FILTER_TILE(FSR3_CURRENT_LUMA_ODD_FETCH, context).r;
 }
 
 #ifdef FSR3_BIND_LUMA_INSTABILITY
 void StoreLumaHistory(FfxInt32x2 pos, FfxFloat32x4 value) {
-    if ((frameCounter & 1) == 0) history_fsr3LumaHistory1_store(pos, value);
-    else history_fsr3LumaHistory2_store(pos, value);
+    FfxInt32x2 tile = (frameCounter & 1) == 0 ? FfxInt32x2(0, 1) : FfxInt32x2(1, 1);
+    imageStore(uimg_fsr3UpscaleAtlas, FSR3RenderHistoryTexel(pos, tile), value);
 }
 #endif
 
 FfxFloat32x4 SampleLumaHistory(FfxFloat32x2 uv) {
     if (FSR3HistoryReset()) return FfxFloat32x4(0.0f);
     FSR3BilinearContext context = FSR3CreateBilinearContext(uv, PreviousFrameRenderSize());
-    if ((frameCounter & 1) == 0) return FSR3_FILTER_TILE(history_fsr3LumaHistory2_fetch, context);
-    return FSR3_FILTER_TILE(history_fsr3LumaHistory1_fetch, context);
+    if ((frameCounter & 1) == 0) return FSR3_FILTER_TILE(FSR3_LUMA_HISTORY_ODD_FETCH, context);
+    return FSR3_FILTER_TILE(FSR3_LUMA_HISTORY_EVEN_FETCH, context);
 }
 
 #ifdef FSR3_BIND_PREPARE_REACTIVITY
 void StoreAccumulation(FfxInt32x2 pos, FfxFloat32 value) {
-    if ((frameCounter & 1) == 0) history_fsr3Accumulation1_store(pos, FfxFloat32x4(value));
-    else history_fsr3Accumulation2_store(pos, FfxFloat32x4(value));
+    FfxInt32x2 tile = (frameCounter & 1) == 0 ? FfxInt32x2(0, 0) : FfxInt32x2(1, 0);
+    FfxInt32x2 atlasPos = FSR3RenderHistoryTexel(pos, tile);
+    FfxFloat32x4 data = imageLoad(uimg_fsr3UpscaleAtlas, atlasPos);
+    data.g = value;
+    imageStore(uimg_fsr3UpscaleAtlas, atlasPos, data);
 }
 #endif
 
 FfxFloat32 SampleAccumulation(FfxFloat32x2 uv) {
     if (FSR3HistoryReset()) return 0.0f;
     FSR3BilinearContext context = FSR3CreateBilinearContext(uv, PreviousFrameRenderSize());
-    if ((frameCounter & 1) == 0) return FSR3_FILTER_TILE(history_fsr3Accumulation2_fetch, context).r;
-    return FSR3_FILTER_TILE(history_fsr3Accumulation1_fetch, context).r;
+    if ((frameCounter & 1) == 0) return FSR3_FILTER_TILE(FSR3_CURRENT_LUMA_ODD_FETCH, context).g;
+    return FSR3_FILTER_TILE(FSR3_CURRENT_LUMA_EVEN_FETCH, context).g;
 }
 
 #ifdef FSR3_BIND_PREPARE_REACTIVITY
