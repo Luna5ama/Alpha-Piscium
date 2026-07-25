@@ -127,8 +127,8 @@ FFX_MIN16_F4 Bilinear(FetchedBilinearSamplesMin16 BilinearSamples, FFX_MIN16_F2 
 
 FfxFloat32 Lanczos2NoClamp(FfxFloat32 x)
 {
-    const FfxFloat32 PI = 3.141592653589793f; // TODO: share SDK constants
-    return abs(x) < FSR3UPSCALER_EPSILON ? 1.f : (sin(PI * x) / (PI * x)) * (sin(0.5f * PI * x) / (0.5f * PI * x));
+    const FfxFloat32 FSR3_PI = 3.141592653589793f;
+    return abs(x) < FSR3UPSCALER_EPSILON ? 1.f : (sin(FSR3_PI * x) / (FSR3_PI * x)) * (sin(0.5f * FSR3_PI * x) / (0.5f * FSR3_PI * x));
 }
 
 FfxFloat32 Lanczos2(FfxFloat32 x)
@@ -142,8 +142,8 @@ FfxFloat32 Lanczos2(FfxFloat32 x)
 #if 0
 FFX_MIN16_F Lanczos2NoClamp(FFX_MIN16_F x)
 {
-    const FFX_MIN16_F PI = FFX_MIN16_F(3.141592653589793f); // TODO: share SDK constants
-    return abs(x) < FFX_MIN16_F(FSR3UPSCALER_EPSILON) ? FFX_MIN16_F(1.f) : (sin(PI * x) / (PI * x)) * (sin(FFX_MIN16_F(0.5f) * PI * x) / (FFX_MIN16_F(0.5f) * PI * x));
+    const FFX_MIN16_F FSR3_PI = FFX_MIN16_F(3.141592653589793f);
+    return abs(x) < FFX_MIN16_F(FSR3UPSCALER_EPSILON) ? FFX_MIN16_F(1.f) : (sin(FSR3_PI * x) / (FSR3_PI * x)) * (sin(FFX_MIN16_F(0.5f) * FSR3_PI * x) / (FFX_MIN16_F(0.5f) * FSR3_PI * x));
 }
 #endif
 

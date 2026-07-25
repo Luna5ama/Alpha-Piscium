@@ -99,6 +99,7 @@ GBufferData processOutput() {
     #endif
 
     GBufferData gData = gbufferData_init();
+    gData.temporalReactive = true;
     gData.geomNormal = geomViewNormal;
     gData.geomTangent = geomViewTangent;
     gData.bitangentSign = int(bitangentSignF);

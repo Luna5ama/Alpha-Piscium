@@ -196,8 +196,8 @@ void ComputeUpsampledColorAndWeight(const AccumulationPassCommonParams params, F
             const FfxFloat32x2 fOffset          = fOffsetTL + FfxFloat32x2(sampleColRow);
             const FfxFloat32x2 fSrcSampleOffset = fBaseSampleOffset + fOffset;
 
-            const FfxInt32x2 iSrcSamplePos   = FfxInt32x2(iSrcInputPos) + FfxInt32x2(offsetTL) + sampleColRow;
-            const FfxFloat32 fOnScreenFactor = FfxFloat32(IsOnScreen(FfxInt32x2(iSrcSamplePos), FfxInt32x2(RenderSize())));
+            const FfxInt32x2 iWeightSamplePos = FfxInt32x2(iSrcInputPos) + FfxInt32x2(offsetTL) + sampleColRow;
+            const FfxFloat32 fOnScreenFactor = FfxFloat32(IsOnScreen(FfxInt32x2(iWeightSamplePos), FfxInt32x2(RenderSize())));
 
             if (!bIsInitialSample)
             {

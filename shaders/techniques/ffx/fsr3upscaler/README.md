@@ -20,16 +20,17 @@ source, the farthest update is nested inside the nearest-depth branch and can
 never move away from the nucleus depth. This port performs the intended min/max
 reduction over the valid 3x3 neighborhood.
 
-## Scope
+## Active integration
 
 The port contains the complete required upscaler estimator and optional RCAS
 sharpening code. It intentionally omits FSR2, frame generation, optical flow,
 backend/provider code, shader blobs, debug rendering, auto-reactive generation,
-Xbox-only paths, and resource aliasing code.
+Xbox-only paths, and backend resource aliasing code.
 
-There are no entrypoints, resource bindings, pass registrations, settings, or
-allocated textures in this change. These files do not alter the active render
-pipeline until pass-specific callbacks and entrypoints are added.
+`/pass/composite/MotionVectors.comp.glsl` generates camera motion and packs the
+reactive and transparency/composition masks in its Z/W channels. The eight
+FSR3 entrypoints in the same directory bind the callbacks from
+`Integration.glsl`. Surfaces without object transforms are marked reactive.
 
 ## Pass graph
 
@@ -52,33 +53,33 @@ FFX core and FSR1 kernel.
 
 ## Integration contract
 
-The inputs are jittered linear HDR color, device depth, motion vectors,
-exposure, reactive mask, and transparency/composition mask. The integration
-must use the SDK's motion-vector sign and UV units, pass the current and previous
-jitter in render-pixel units, reset all histories on camera cuts or resize, and
-keep pre-exposure consistent across frames.
+The input color is display-transformed sRGB from `PostComposite`; the callbacks
+decode it to linear light for FSR3 and encode the output back to sRGB. The other
+inputs are device depth, motion vectors, exposure, reactive mask, and
+transparency/composition mask. The integration uses the SDK's motion-vector sign
+and UV units, passes current and previous jitter in render-pixel units, resets
+history on temporal discontinuities or resize, and keeps pre-exposure consistent
+across frames.
 
 Persistent ping-pong resources are accumulation (`R8_UNORM`), current luma
 (`R16_FLOAT`), internal upscaled color (`RGBA16_FLOAT`), and luma history
 (`RGBA16_FLOAT`). Transient resources include farthest depth/luma instability
-(`R16_FLOAT`), half-resolution shading change (`R8_UNORM`), output-size new
-locks (`R8_UNORM`), six half-resolution SPD mips (`RG16_FLOAT`),
-half-resolution farthest depth (`R16_FLOAT`), dilated reactive masks
-(`RGBA8_UNORM`), frame info (`RGBA32_FLOAT`, 1x1), and the SPD counter
-(`R32_UINT`, 1x1). Dilated depth is `R32_FLOAT`, dilated motion is
-`RG16_FLOAT`, and reconstructed previous depth is `R32_UINT` because the
-prepare pass updates its float bits atomically.
+(`R16_FLOAT`), half-resolution shading change (`R8_UNORM`), twelve packed SPD
+levels (`RG16_FLOAT`), half-resolution farthest depth (`R16_FLOAT`), and dilated
+reactive masks (`RGBA8_UNORM`). New locks use the output alpha channel, the SPD
+levels share a full-render-size atlas, and frame info plus the SPD counter live
+in the global SSBO. Dilated depth is `R32_FLOAT`, dilated motion is `RG16_FLOAT`,
+and reconstructed previous depth is `R32_UINT` because the prepare pass updates
+its float bits atomically.
 
-Both SPD passes require the binding layer to define
-`void SPD_IncreaseAtomicCounter(inout FfxUInt32 spdCounter)` and
-`void SPD_ResetAtomicCounter()`. These callbacks must use the shared 1x1
-`R32_UINT` resource; a workgroup-shared counter cannot synchronize separate
-workgroups.
+Both SPD passes use `global_atomicCounters[15]` through
+`SPD_IncreaseAtomicCounter` and `SPD_ResetAtomicCounter`; the counter is shared
+across workgroups and reset between the sequential pyramid passes.
 
 FP32 is the baseline path. Enabling `FFX_HALF` requires 16-bit arithmetic type
 support in the entrypoint. Define `FFX_SPD_NO_WAVE_OPERATIONS` when subgroup
 quad operations are unavailable.
 
-The active shaderpack does not currently provide object motion vectors or a
-dedicated reactive mask. Those inputs must be implemented before this code can
-replace the existing TAA chain without temporal artifacts.
+The active shaderpack does not retain previous object transforms. Entities,
+block entities, particles, hands, overlays, and translucent surfaces therefore
+use camera motion with reactive masking instead of incorrect object motion.

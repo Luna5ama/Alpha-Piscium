@@ -30,6 +30,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uvec4 global_dispatchSize2;
     uvec4 global_dispatchSize3;
     uvec4 global_dispatchSize4;
+    uvec4 global_dispatchSize5;
     mat4 gbufferPrevModelViewInverse;
     mat4 global_shadowRotationMatrix;
     mat4 global_shadowRotationMatrixInverse;
@@ -71,6 +72,8 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     float global_historyResetFactor;
     vec4 global_motionFactor; // x: speed, y: speed diff, z: angle dot, w: speed factor
     vec4 global_taaResetFactor; // x: clamp strictness, y: clamp method, z: history reset, w: clamp mix
+    vec4 global_fsr3FrameInfo;
+    ivec4 global_fsr3ImageSizes;
     float global_turbidity;
     AEData global_aeData;
     uint global_atomicCounters[16];

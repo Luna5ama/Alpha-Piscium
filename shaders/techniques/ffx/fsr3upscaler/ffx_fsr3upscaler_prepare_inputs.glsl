@@ -66,11 +66,12 @@ void UpdateDepthExtents(FfxInt32x2 iPos, FfxFloat32 fDepth, FFX_PARAMETER_INOUT 
     if (IsOnScreen(iPos, RenderSize())) {
 #if FFX_FSR3UPSCALER_OPTION_INVERTED_DEPTH
         extents.fFarthest = ffxMin(extents.fFarthest, fDepth);
-        if (fDepth > extents.fNearest) {
+        if (fDepth > extents.fNearest)
 #else
         extents.fFarthest = ffxMax(extents.fFarthest, fDepth);
-        if (fDepth < extents.fNearest) {
+        if (fDepth < extents.fNearest)
 #endif
+        {
             extents.fNearestCoord = iPos;
             extents.fNearest = fDepth;
         }

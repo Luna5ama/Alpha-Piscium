@@ -102,6 +102,9 @@ void processData2() {
     #else
     gData.isHand = false;
     #endif
+    #if defined(GBUFFER_PASS_ENTITY) || defined(GBUFFER_PASS_PARTICLE) || defined(GBUFFER_PASS_HAND) || defined(GBUFFER_PASS_DYNAMIC)
+    gData.temporalReactive = true;
+    #endif
 }
 
 void processData1() {

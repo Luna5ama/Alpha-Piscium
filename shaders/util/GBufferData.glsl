@@ -19,7 +19,7 @@ const uint MATERIAL_ID_UNDEFINED = 65535u;
 //
 // GBuffer Data 8UN (RGBA8UN):
 // Albedo: 24 bits
-// isHand: 1 bit
+// isHand, bitangentSign, forceBuiltInPBR, temporalReactive: 4 bits
 //
 // GBuffer ViewZ (R32F):
 // viewZ: 32 bits
@@ -34,6 +34,7 @@ struct GBufferData {
 
     vec3 albedo; // Still in its input space (Typically gamma encoded sRGB)
     bool isHand;
+    bool temporalReactive;
     bool forceBuiltInPBR;
     int bitangentSign;
 };
@@ -49,6 +50,7 @@ GBufferData gbufferData_init() {
 
     gData.albedo = vec3(0.0);
     gData.isHand = false;
+    gData.temporalReactive = false;
     gData.forceBuiltInPBR = false;
 
     return gData;
@@ -84,6 +86,7 @@ void gbufferData2_pack(out uvec4 packedData, GBufferData gData) {
     packedData.r = bitfieldInsert(packedData.r, uint(gData.isHand), 24, 1);
     packedData.r = bitfieldInsert(packedData.r, uint(clamp(gData.bitangentSign, 0, 1)), 25, 1);
     packedData.r = bitfieldInsert(packedData.r, uint(gData.forceBuiltInPBR), 26, 1);
+    packedData.r = bitfieldInsert(packedData.r, uint(gData.temporalReactive), 27, 1);
 }
 
 void gbufferData2_unpack(uvec4 packedData, inout GBufferData gData) {
@@ -91,6 +94,7 @@ void gbufferData2_unpack(uvec4 packedData, inout GBufferData gData) {
     gData.isHand = bool(bitfieldExtract(packedData.r, 24, 1));
     gData.bitangentSign = int(bitfieldExtract(packedData.r, 25, 1)) * 2 - 1;
     gData.forceBuiltInPBR = bool(bitfieldExtract(packedData.r, 26, 1));
+    gData.temporalReactive = bool(bitfieldExtract(packedData.r, 27, 1));
 }
 
 #endif

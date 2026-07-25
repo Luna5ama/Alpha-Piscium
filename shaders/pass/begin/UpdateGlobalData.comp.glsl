@@ -172,6 +172,7 @@ void main() {
         restirSpatialGroups.x *= 2;
         restirSpatialGroups.y *= 256;
         global_dispatchSize4 = uvec4(restirSpatialGroups.x, restirSpatialGroups.y, 1u, 0u);
+        global_dispatchSize5 = uvec4(uvec2((uval_mainImageSizeI + 63) / 64), 1u, 0u);
         for (uint i = 0u; i < 16u; i++) {
             global_atomicCounters[i] = 0u;
         }

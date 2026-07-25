@@ -3,4 +3,5 @@
 
 #define GBUFFER_PASS_ALPHA_TEST a
 #define GBUFFER_PASS_TEXTURED a
+#define GBUFFER_PASS_DYNAMIC a
 #include "/pass/geometry/GBufferSolid.frag.glsl"

@@ -3610,14 +3610,24 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                 }
-                toggle("SETTING_FSR1", false) {
+                toggle("SETTING_FSR3", false) {
                     lang {
-                        name = "FSR1"
-                        comment = "Uses AMD FidelityFX FSR1 EASU when Render Scale is below 100%."
+                        name = "FSR3 Upscaler"
+                        comment = "Uses AMD FidelityFX FSR3 temporal upscaling and anti-aliasing."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "FSR1"
-                        comment = "渲染分辨率低于 100% 时使用 AMD FidelityFX FSR1 EASU。"
+                        name = "FSR3 超分辨率"
+                        comment = "使用 AMD FidelityFX FSR3 时域超分辨率与抗锯齿。"
+                    }
+                }
+                slider("SETTING_FSR3_SHARPNESS", 0.5, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "FSR3 Sharpening"
+                        comment = "Controls FSR3 RCAS sharpening strength."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "FSR3 锐化强度"
+                        comment = "控制 FSR3 RCAS 锐化强度。"
                     }
                 }
                 slider("SETTING_TAA_CAS_SHARPNESS", 0.5, 0.0..1.0 step 0.05) {

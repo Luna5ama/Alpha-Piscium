@@ -69,7 +69,21 @@
         "transient_spatialReuseRayCount": "R32F",
         "transient_specularPBRData": "RGBA8",
         "history_roughness": "R32F",
-        "history_avgViewZ": "R32F"
+        "history_avgViewZ": "R32F",
+        "history_fsr3Motion": "RGBA16F",
+        "history_fsr3DilatedMotion": "RGBA16F",
+        "history_fsr3FarthestDepth": "RGBA16F",
+        "history_fsr3FarthestDepthMip1": "RGBA16F",
+        "history_fsr3CurrentLuma1": "RGBA16F",
+        "history_fsr3CurrentLuma2": "RGBA16F",
+        "history_fsr3LumaHistory1": "RGBA16F",
+        "history_fsr3LumaHistory2": "RGBA16F",
+        "history_fsr3Pyramid": "RGBA16F",
+        "history_fsr3DilatedDepth": "R32F",
+        "history_fsr3Accumulation1": "RGBA8",
+        "history_fsr3Accumulation2": "RGBA8",
+        "history_fsr3ShadingChange": "RGBA8",
+        "history_fsr3ReactiveMasks": "RGBA8"
     },
     "fixed": {
         "persistent_multiSctrLUT": {
