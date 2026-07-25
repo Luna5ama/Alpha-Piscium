@@ -96,7 +96,8 @@ N=\mathrm{normalize}(-\partial_xH,1,-\partial_zH),
 $$
 
 $$
-C_{top}=\mathrm{saturate}\!\left(\frac{N\cdot\mathrm{renderParams.lightDir}+0.5}{1.5}\right),\qquad
+C_{top}^{raw}=\mathrm{saturate}\!\left(\frac{N\cdot\mathrm{renderParams.lightDir}+0.5}{1.5}\right),\qquad
+C_{top}=\mathrm{mix}(1,C_{top}^{raw},0.25),\qquad
 C_{bottom}=1-\exp\!\left(-\frac{\max(h_{local},0)}{0.1\,\mathrm{mix}(1,4,h_{column})}\right),\qquad
 B_{eff}=C_{top}C_{bottom}.
 $$
@@ -104,8 +105,9 @@ $$
 其中，`baseCoverage_raw` 是现有的高度塑形前覆盖率，`h_column = saturate(baseCoverage_raw)` 直接复用接收点的密度查找，
 `h_local` 是接收点的归一化高度（积云层底部为 `0`，顶部为 `1`）。这些常量对应 `b = 0`、`p = 1` 和
 `H_bottom = 0.1`，与密度模型已有的归一化 `0.1` 底部尺度一致。`C_top` 使用实际的 `renderParams.lightDir`，而不是光线
-步进中经圆锥抖动的方向。该门控在每个有介质的接收点采样处只计算一次，并在累积、强度缩放和压缩前乘入每个源权重。
-它额外执行四次覆盖率代理求值，不增加中心查找，也不新增 pass、resource、texture resource 或 density march。
+步进中经圆锥抖动的方向。`0.25` 的置信度强度把顶部因子限制在 `[0.75,1]`；直接使用粗覆盖率法线的完整权重会在云体中
+显露竖直条纹。该门控在每个有介质的接收点采样处只计算一次，并在累积、强度缩放和压缩前乘入每个源权重。它额外执行
+四次覆盖率代理求值，不增加中心查找，也不新增 pass、resource、texture resource 或 density march。
 
 该估计参考了 AshenOneArt 的 [HanPi Volume Cloud 实现](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/VolumetricClouds.hlsl)
 与[前向通量推导](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/Docs/PhiFwd_FromRTE.md)。
