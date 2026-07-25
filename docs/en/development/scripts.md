@@ -74,6 +74,21 @@ It must be run from [`scripts/`](../../../scripts/); it does not change to its o
 generator invokes the program generator again, program output appears twice. The shortest complete generation remains [
 `options.main.kts`](../../../scripts/options.main.kts) alone.
 
+## Cloud verification
+
+Run these deterministic checks from the repository root:
+
+```powershell
+uv run scripts/cloud_isotropic_ms_check.py --source-root .
+uv run scripts/cloud_boundary_confidence_check.py --source-root .
+```
+
+[`cloud_isotropic_ms_check.py`](../../../scripts/cloud_isotropic_ms_check.py) checks the isotropic multiple-scattering
+recurrence, FP32 stability, sampling distribution, phase readout, and source integration contracts. [
+`cloud_boundary_confidence_check.py`](../../../scripts/cloud_boundary_confidence_check.py) checks the boundary-confidence
+formula, FP64/FP32 bounds and edge behavior, mutation rejection, and its GLSL source contracts. These are mathematical
+and static checks; they do not compile shaders or replace target-Iris and visual validation.
+
 ## Color and display-transform experiments
 
 | File                                                      | Purpose                                                          |

@@ -102,6 +102,28 @@ float coverageNoise(vec2 pos) {
     return baseNoise + higherOctave * 0.75;
 }
 
+float clouds_cu_baseCoverage(vec2 pos) {
+    float baseCoverage = coverageNoise(pos);
+    const float COVERAGE = SETTING_CLOUDS_CU_COVERAGE;
+    float COVERAGE_P = pow2(COVERAGE);
+    baseCoverage = max(baseCoverage - (1.0 - COVERAGE_P) * 0.8, 0.0);
+    return baseCoverage * (1.0 - pow2(1.0 - COVERAGE));
+}
+
+float clouds_cu_isotropicMSBoundaryWeight(vec3 rayPos, float localHeight, float columnHeight, vec3 lightDir) {
+    float sampleStep = clamp(0.05 / _LOW_BASE_FREQ, 0.025, 0.2);
+    float coverageXP = saturate(clouds_cu_baseCoverage(rayPos.xz + vec2(sampleStep, 0.0)));
+    float coverageXN = saturate(clouds_cu_baseCoverage(rayPos.xz - vec2(sampleStep, 0.0)));
+    float coverageZP = saturate(clouds_cu_baseCoverage(rayPos.xz + vec2(0.0, sampleStep)));
+    float coverageZN = saturate(clouds_cu_baseCoverage(rayPos.xz - vec2(0.0, sampleStep)));
+    float dHdx = (coverageXP - coverageXN) * SETTING_CLOUDS_CU_THICKNESS / (2.0 * sampleStep);
+    float dHdz = (coverageZP - coverageZN) * SETTING_CLOUDS_CU_THICKNESS / (2.0 * sampleStep);
+    vec3 normal = normalize(vec3(-dHdx, 1.0, -dHdz));
+    float cTop = saturate((dot(normal, lightDir) + 0.5) / 1.5);
+    float cBottom = 1.0 - exp(-max(localHeight, 0.0) / (0.1 * mix(1.0, 4.0, columnHeight)));
+    return cTop * cBottom;
+}
+
 float detailNoiseB(vec3 pos, vec3 curl) {
     vec3 lowFreqPos = pos * _LOW_BILLOWY_FREQ + curl * _LOW_BILLOWY_CURL_STR;
     float lowFreq = texture(usam_cumulusDetail1, lowFreqPos).x;
@@ -121,16 +143,12 @@ vec3 detailCurlNoise(vec3 pos) {
     return texture(usam_cumulusCurl, pos).xyz;
 }
 
-bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float densityOut, out float densityLodOut) {
-    vec2 baseCoveragePos = rayPos.xz;
-
-    float baseCoverage = coverageNoise(baseCoveragePos);
+bool clouds_cu_density(vec3 rayPos, float heightFraction, bool detail, out float densityOut, out float densityLodOut, out float coverageOut) {
+    float baseCoverage = clouds_cu_baseCoverage(rayPos.xz);
+    coverageOut = saturate(baseCoverage);
+    densityOut = baseCoverage;
     const float COVERAGE = SETTING_CLOUDS_CU_COVERAGE;
-    float COVERAGE_P = pow2(COVERAGE);
     float COVERAGE_SQRT = sqrt(COVERAGE);
-
-    baseCoverage = max(baseCoverage - (1.0 - COVERAGE_P) * 0.8, 0.0);
-    densityOut = baseCoverage * (1.0 - pow2(1.0 - COVERAGE));
 
     float x1 = heightFraction;
     float x2 = x1 * x1;

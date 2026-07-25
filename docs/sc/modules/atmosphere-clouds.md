@@ -82,9 +82,30 @@ $$
 `msPhase = mix(UNIFORM_PHASE, layerParam.medium.phase, 0.7)`，以保留受控的方向结构。这个渲染选择叠加在各向同性场之后，
 不属于其输运递推。
 
-论文中的局部云顶/局部高度边界置信度已禁用（`confidence = 1`），因为当前密度模型若不增加查找，就没有等价的局部代理。
-先前基于全局球形云层高度的代理会形成平面壳层，因此已移除。实现复用现有光柱，因此没有增加 pass、resource、texture 或
-density march。
+接收点局部的边界权重为
+
+$$
+H(x,z)=\mathrm{thickness}\;\mathrm{saturate}(\mathrm{baseCoverage}_{raw}(x,z)),\qquad
+\Delta=\mathrm{clamp}(0.05/\_LOW\_BASE\_FREQ,0.025,0.2),
+$$
+
+$$
+\partial_xH=\frac{H(x+\Delta,z)-H(x-\Delta,z)}{2\Delta},\qquad
+\partial_zH=\frac{H(x,z+\Delta)-H(x,z-\Delta)}{2\Delta},\qquad
+N=\mathrm{normalize}(-\partial_xH,1,-\partial_zH),
+$$
+
+$$
+C_{top}=\mathrm{saturate}\!\left(\frac{N\cdot\mathrm{renderParams.lightDir}+0.5}{1.5}\right),\qquad
+C_{bottom}=1-\exp\!\left(-\frac{\max(h_{local},0)}{0.1\,\mathrm{mix}(1,4,h_{column})}\right),\qquad
+B_{eff}=C_{top}C_{bottom}.
+$$
+
+其中，`baseCoverage_raw` 是现有的高度塑形前覆盖率，`h_column = saturate(baseCoverage_raw)` 直接复用接收点的密度查找，
+`h_local` 是接收点的归一化高度（积云层底部为 `0`，顶部为 `1`）。这些常量对应 `b = 0`、`p = 1` 和
+`H_bottom = 0.1`，与密度模型已有的归一化 `0.1` 底部尺度一致。`C_top` 使用实际的 `renderParams.lightDir`，而不是光线
+步进中经圆锥抖动的方向。该门控在每个有介质的接收点采样处只计算一次，并在累积、强度缩放和压缩前乘入每个源权重。
+它额外执行四次覆盖率代理求值，不增加中心查找，也不新增 pass、resource、texture resource 或 density march。
 
 该估计参考了 AshenOneArt 的 [HanPi Volume Cloud 实现](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/VolumetricClouds.hlsl)
 与[前向通量推导](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/Docs/PhiFwd_FromRTE.md)。
