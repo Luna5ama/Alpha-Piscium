@@ -2457,17 +2457,6 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             4 value "Lanczos2"
                         }
                     }
-                    slider("SETTING_TAA_CAS_SHARPNESS", 0.5, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Sharpening Strength"
-                            comment =
-                                "Restores sharpness lost from anti-aliasing using AMD FidelityFX CAS. Higher values create crisper images."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "锐化强度"
-                            comment = "使用AMD FidelityFX CAS恢复因抗锯齿而失去的锐度。数值越高，图像越清晰。"
-                        }
-                    }
                 }
             }
             empty()
@@ -3604,7 +3593,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                 lang(Locale.SIMPLIFIED_CHINESE) {
                     name = "升采样与分辨率"
                 }
-                toggle("SETTING_RENDER_SCALE", 10, 0..10) {
+                slider("SETTING_RENDER_SCALE", 10, 0..10) {
                     lang {
                         name = "Render Scale"
                         comment =
@@ -3629,6 +3618,17 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "FSR1"
                         comment = "渲染分辨率低于 100% 时使用 AMD FidelityFX FSR1 EASU。"
+                    }
+                }
+                slider("SETTING_TAA_CAS_SHARPNESS", 0.5, 0.0..1.0 step 0.05) {
+                    lang {
+                        name = "Sharpening Strength"
+                        comment =
+                            "Restores sharpness lost from anti-aliasing using AMD FidelityFX CAS. Higher values create crisper images."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "锐化强度"
+                        comment = "使用AMD FidelityFX CAS恢复因抗锯齿而失去的锐度。数值越高，图像越清晰。"
                     }
                 }
             }
