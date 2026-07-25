@@ -119,7 +119,8 @@ float clouds_cu_isotropicMSBoundaryWeight(vec3 rayPos, float localHeight, float 
     float dHdx = (coverageXP - coverageXN) * SETTING_CLOUDS_CU_THICKNESS / (2.0 * sampleStep);
     float dHdz = (coverageZP - coverageZN) * SETTING_CLOUDS_CU_THICKNESS / (2.0 * sampleStep);
     vec3 normal = normalize(vec3(-dHdx, 1.0, -dHdz));
-    float cTop = saturate((dot(normal, lightDir) + 0.5) / 1.5);
+    float rawCTop = saturate((dot(normal, lightDir) + 0.5) / 1.5);
+    float cTop = mix(1.0, rawCTop, 0.25);
     float cBottom = 1.0 - exp(-max(localHeight, 0.0) / (0.1 * mix(1.0, 4.0, columnHeight)));
     return cTop * cBottom;
 }
