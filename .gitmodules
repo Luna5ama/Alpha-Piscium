@@ -1,0 +1,3 @@
+[submodule ".agents/iris-docs"]
+	path = .agents/iris-docs
+	url = https://github.com/Luna5ama/iris-docs.git
