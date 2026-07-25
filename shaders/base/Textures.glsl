@@ -98,6 +98,10 @@ uniform sampler2D usam_shadow_waterMask;
 uniform sampler2D usam_shadow_waterNormal;
 
 // --------------------------------------------------- Custom Images ---------------------------------------------------
+#if defined(SETTING_FSR1) && SETTING_RENDER_SCALE < 10
+uniform sampler2D usam_fsr1Easu;
+#endif
+
 uniform sampler2D usam_csr32f;
 
 uniform sampler3D usam_skyViewLUT;

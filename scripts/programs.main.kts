@@ -317,5 +317,8 @@ programs {
             "/pass/composite/FinalGlobalDataUpdate.comp.glsl",
             "/pass/composite/OverlayComposite.comp.glsl"
         )
+        pass("/pass/composite/EASU.comp.glsl") {
+            cond("defined(SETTING_FSR1) && SETTING_RENDER_SCALE < 10")
+        }
     }
 }

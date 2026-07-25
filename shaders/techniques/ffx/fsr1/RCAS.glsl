@@ -1,43 +1,37 @@
 #include "/Base.glsl"
 
-
 vec4 rcas_loadInput(ivec2 texelPos, bool center);
-void rcas_storeOutput(ivec2 texelPos, vec4 color);
-// Returns sharpness value in [0, 1]
-float rcas_sharpness();
+
+vec4 fsr1_rcasOutput;
 
 vec4 LoadRCas_Input(ivec2 p, bool center) {
     return rcas_loadInput(p, center);
 }
 
 void StoreRCasOutput(ivec2 p, vec4 color) {
-    rcas_storeOutput(p, color);
+    fsr1_rcasOutput = color;
 }
 
 uvec4 RCasSample() {
     return uvec4(0);
 }
 
-
 uvec4 RCasConfig() {
     // https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/blob/v1.1.4/sdk/src/components/fsr3upscaler/ffx_fsr3upscaler.cpp#L1107
-    float sharpnessRemapped = rcas_sharpness() * -2.0 + 2.0;
+    float sharpness = mix(1.0, SETTING_TAA_CAS_SHARPNESS, global_motionFactor.w);
+    float sharpnessRemapped = sharpness * -2.0 + 2.0;
     // https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/blob/v1.1.4/sdk/include/FidelityFX/gpu/fsr1/ffx_fsr1.h#L661-L672
-    float sharpness = exp2(-sharpnessRemapped);
+    float sharpnessConfig = exp2(-sharpnessRemapped);
 
     uvec4 config = uvec4(0);
-    config.x = floatBitsToUint(sharpness);
-    config.y = packHalf2x16(vec2(sharpness));
+    config.x = floatBitsToUint(sharpnessConfig);
+    config.y = packHalf2x16(vec2(sharpnessConfig));
     return config;
 }
 
 #include "ffx_fsr1_rcas.glsl"
 
-layout(local_size_x = 16, local_size_y = 16) in;
-
-void main() {
-    ivec2 pos = ivec2(gl_GlobalInvocationID.xy);
-    vec3 c;
-    FsrRcasF(c.r, c.g, c.b, pos, RCasConfig());
-    StoreRCasOutput(pos, vec4(c, 1.0));
+vec4 fsr1_rcas(ivec2 outputTexelPos) {
+    CurrFilter(FFX_MIN16_U2(outputTexelPos));
+    return fsr1_rcasOutput;
 }

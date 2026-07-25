@@ -5,7 +5,12 @@
 #include "/util/Rand.glsl"
 #if SETTING_RENDER_SCALE < 10
 #ifdef SETTING_FSR1
-#include "/techniques/ffx/fsr1/ffx_fsr1_easu.glsl"
+#include "/techniques/ffx/fsr1/RCAS.glsl"
+
+vec4 rcas_loadInput(ivec2 texelPos, bool center) {
+    ivec2 maxTexel = textureSize(usam_fsr1Easu, 0) - 1;
+    return texelFetch(usam_fsr1Easu, clamp(texelPos, ivec2(0), maxTexel), 0);
+}
 #endif
 #endif
 
@@ -16,7 +21,7 @@ void main() {
     float ditherNoise = rand_IGN(texelPos, frameCounter);
     #if SETTING_RENDER_SCALE < 10
     #ifdef SETTING_FSR1
-    rt_out = vec4(fsr1_easu(texelPos), 1.0);
+    rt_out = fsr1_rcas(texelPos);
     #else
     vec2 outputUV = (vec2(texelPos) + 0.5) * uval_viewImageSizeRcp;
     rt_out = texture(usam_main, outputUV);

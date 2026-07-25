@@ -5,14 +5,21 @@
 const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 
 layout(rgba16f) uniform restrict writeonly image2D uimg_main;
-layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 
 vec4 rcas_loadInput(ivec2 texelPos, bool center) {
     return transient_fxaaOutput_fetch(texelPos);
 }
 
-void rcas_storeOutput(ivec2 texelPos, vec4 color) {
+layout(local_size_x = 16, local_size_y = 16) in;
+
+void main() {
+    ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        #if defined(SETTING_FSR1) && SETTING_RENDER_SCALE < 10
+        vec4 color = rcas_loadInput(texelPos, true);
+        #else
+        vec4 color = fsr1_rcas(texelPos);
+        #endif
         #if SETTING_DEBUG_OUTPUT == 2
         debugOutput(texelPos, color);
         #endif
@@ -20,8 +27,4 @@ void rcas_storeOutput(ivec2 texelPos, vec4 color) {
         color.rgb = agxInvertible_inverse(color.rgb);
         imageStore(uimg_main, texelPos, color);
     }
-}
-
-float rcas_sharpness() {
-    return mix(1.0, SETTING_TAA_CAS_SHARPNESS, global_motionFactor.w);
 }
