@@ -141,7 +141,7 @@ void main() {
                     float parallax = sqrt(length(movementDelta)) * safeRcp(distToPoint * frameTime * 10.0);
 
                     // Close hit specular probably has less ghosting, so allow it to accumulate more
-                    float specAccumReductionHitDistanceFactor = saturate(1.0 - exp2(-pow2(1.0 * historyData.specularHitDistance)));
+                    float specAccumReductionHitDistanceFactor = saturate(1.0 - exp2(-pow2(1.0 * historyData.specularHitDistance)) * historyData.realHistoryLength);
                     float specAccumRecuctionFactor = specAccumReduction(material.roughness, NoV, parallax);
                     specAccumRecuctionFactor = pow(specAccumRecuctionFactor, specAccumReductionHitDistanceFactor);
 

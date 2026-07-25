@@ -105,6 +105,9 @@ if (curseForgeProjectId.isNullOrBlank()) {
 
 val client = OkHttpClient()
 
+fun isSupportedMinecraftVersion(version: String): Boolean =
+    version.matches(Regex("""1\.(?:20\.[56]|21\.\d+)|(?:2[6-9]|[3-9]\d)\.\d+(?:\.\d+)?"""))
+
 
 println("=== Starting Release Process for v$version ===\n")
 
@@ -298,7 +301,7 @@ if (5 !in skippedSteps || 6 !in skippedSteps) {
         for (i in 0 until versionsArray.length()) {
             val versionObj = versionsArray.getJSONObject(i)
             val versionName = versionObj.getString("version")
-            if (versionName.startsWith("1.21.") || versionName == "1.20.5" || versionName == "1.20.6") {
+            if (versionObj.getString("version_type") == "release" && isSupportedMinecraftVersion(versionName)) {
                 supportedVersions.add(versionName)
             }
         }

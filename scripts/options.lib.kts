@@ -621,9 +621,14 @@ fun options(
     textOptionGlslPath: String,
     block: Scope.() -> Unit
 ) {
-    val kotlinExec = if (System.getProperty("os.name").lowercase().contains("win")) "kotlin.bat" else "kotlin"
+    val isWindows = System.getProperty("os.name").lowercase().contains("win")
+    val kotlinExec = if (isWindows) {
+        System.getenv("PATH").split(File.pathSeparatorChar)
+            .flatMap { path -> listOf("kotlin.cmd", "kotlin.bat").map { File(path, it) } }
+            .firstOrNull(File::isFile)?.absolutePath ?: "kotlin.bat"
+    } else "kotlin"
     val programsProcess = ProcessBuilder(kotlinExec, "programs.main.kts").apply {
-        if (kotlinExec == "kotlin.bat") {
+        if (isWindows) {
             environment().keys.removeIf { it.equals("JAVA_OPTS", true) || it.equals("KOTLIN_OPTS", true) }
         }
     }.inheritIO().start()
