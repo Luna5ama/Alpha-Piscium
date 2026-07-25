@@ -23,6 +23,7 @@ Vec3 = tuple[float, float, float]
 WRAP_OFFSET: Final = 0.5
 WRAP_RANGE: Final = 1.5
 BOTTOM_HEIGHT: Final = 0.1
+TOP_CONFIDENCE_STRENGTH: Final = 0.25
 
 
 @dataclass(frozen=True, slots=True)
@@ -61,9 +62,14 @@ def surface_normal(d_h_dx: float, d_h_dz: float, rounding: bool = False) -> Vec3
     return normalize((-d_h_dx, 1.0, -d_h_dz), rounding)
 
 
+def blend_top_confidence(raw: float, strength: float) -> float:
+    return (1.0 - strength) + strength * raw
+
+
 def top_confidence(normal: Vec3, light_dir: Vec3, rounding: bool = False) -> float:
     dot = sum(a * b for a, b in zip(normal, light_dir, strict=True))
-    value = saturate((dot + WRAP_OFFSET) / WRAP_RANGE)
+    raw = saturate((dot + WRAP_OFFSET) / WRAP_RANGE)
+    value = blend_top_confidence(raw, TOP_CONFIDENCE_STRENGTH)
     return fp32(value) if rounding else value
 
 
@@ -94,9 +100,12 @@ def check_normals_and_wrap() -> None:
     slope = surface_normal(1.0, -2.0)
     require(slope[0] < 0.0 < slope[2] and abs(sum(value * value for value in slope) - 1.0) < 1.0e-14, "sloped normal/sign")
     endpoint_light = normalize((math.sqrt(0.75), -0.5, 0.0))
-    require(top_confidence((0.0, 1.0, 0.0), endpoint_light) == 0.0, "wrap lower endpoint")
+    require(top_confidence((0.0, 1.0, 0.0), endpoint_light) == 0.75, "attenuated wrap lower endpoint")
     require(top_confidence((0.0, 1.0, 0.0), (0.0, 1.0, 0.0)) == 1.0, "wrap upper endpoint")
-    print("PASS top: flat/sloped normals and [-0.5, 1] wrap endpoints")
+    raw = saturate((sum(a * b for a, b in zip(slope, endpoint_light, strict=True)) + WRAP_OFFSET) / WRAP_RANGE)
+    require(blend_top_confidence(raw, 0.0) == 1.0, "zero strength must be identity")
+    require(blend_top_confidence(raw, 1.0) == raw, "full strength must recover raw wrap")
+    print("PASS top: flat/sloped normals, 0/1 strength endpoints, default range [0.75,1]")
 
 
 def check_bottom_and_product() -> None:
@@ -141,7 +150,8 @@ def source_gaps(cumulus: str, render: str, common: str) -> tuple[str, ...]:
         "clouds_cu_baseCoverage(rayPos.xz + vec2(0.0, sampleStep))", "clouds_cu_baseCoverage(rayPos.xz - vec2(0.0, sampleStep))",
         "float dHdx = (coverageXP - coverageXN) * SETTING_CLOUDS_CU_THICKNESS / (2.0 * sampleStep);",
         "float dHdz = (coverageZP - coverageZN) * SETTING_CLOUDS_CU_THICKNESS / (2.0 * sampleStep);",
-        "vec3 normal = normalize(vec3(-dHdx, 1.0, -dHdz));", "float cTop = saturate((dot(normal, lightDir) + 0.5) / 1.5);",
+        "vec3 normal = normalize(vec3(-dHdx, 1.0, -dHdz));", "float rawCTop = saturate((dot(normal, lightDir) + 0.5) / 1.5);",
+        "float cTop = mix(1.0, rawCTop, 0.25);",
         "float cBottom = 1.0 - exp(-max(localHeight, 0.0) / (0.1 * mix(1.0, 4.0, columnHeight)));", "return cTop * cBottom;",
     )
     if not all(fragment in cumulus for fragment in cumulus_contract) or cumulus.count("clouds_cu_baseCoverage(") != 6:
@@ -169,6 +179,7 @@ def check_source(cumulus: str, render: str, common: str) -> None:
     mutations = (
         ("normal sign", cumulus, "vec3(-dHdx, 1.0, -dHdz)", "vec3(dHdx, 1.0, dHdz)", render),
         ("wrap", cumulus, "+ 0.5) / 1.5", "+ 0.5) / 1.0", render),
+        ("top strength", cumulus, "mix(1.0, rawCTop, 0.25)", "mix(1.0, rawCTop, 1.0)", render),
         ("bottom", cumulus, "0.1 * mix(1.0, 4.0, columnHeight)", "0.2 * mix(1.0, 4.0, columnHeight)", render),
         ("local height units", render, "stepState.position.xyz,\n                        heightFraction,\n                        sampleCoverage,", "stepState.position.xyz,\n                        stepState.height - cuMinHeight,\n                        sampleCoverage,", cumulus),
         ("omitted gate", render, " * isotropicMSBoundaryWeight;", ";", cumulus),
@@ -179,7 +190,7 @@ def check_source(cumulus: str, render: str, common: str) -> None:
         mutant_cumulus, mutant_render = (target.replace(old, new, 1), other) if target is cumulus else (other, target.replace(old, new, 1))
         require(source_gaps(mutant_cumulus, mutant_render, common), f"mutation survived: {label}")
     print("PASS source: receiver-local gate uses actual lightDir, four neighbors, source-weight placement, unchanged msPhase")
-    print(f"PASS mutations: {len(mutations)} sign/wrap/bottom/units/omitted/misplaced mutants rejected")
+    print(f"PASS mutations: {len(mutations)} sign/wrap/strength/bottom/units/omitted/misplaced mutants rejected")
 
 
 def parse_source_root(arguments: Sequence[str]) -> Path:
