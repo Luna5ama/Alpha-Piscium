@@ -197,10 +197,11 @@ void render(ivec2 texelPosDownScale) {
                     {
                         float lightRayLen = SETTING_CLOUDS_CU_THICKNESS * 1.0;
                         for (uint lightStepIndex = 0; lightStepIndex < CLOUDS_CU_LIGHT_RAYMARCH_STEP; ++lightStepIndex) {
-                            // Use x^2 curve to distribute more samples near the starting point
                             float indexF = float(lightStepIndex);
-                            float x = (indexF + lightRayJitterRand) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
-                            float lightRaySampleOffset = pow2(x) * lightRayLen;
+                            float x = (indexF + 0.5) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
+                            float lightRayStepLength = 4.0 * x * C * lightRayLen;
+                            float lightRaySamplePrefixLength = lightRayJitterRand * lightRayStepLength;
+                            float lightRaySampleOffset = pow2(indexF * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP) * lightRayLen + lightRaySamplePrefixLength;
                             vec3 lightRaySamplePos = stepState.position.xyz + lightRayDir * lightRaySampleOffset;
 
                             float lightSampleHeight = length(lightRaySamplePos);
@@ -209,10 +210,6 @@ void render(ivec2 texelPosDownScale) {
                             float lightSampleDensity = 0.0;
                             float lightSampleDensityLod = 0.0;
                             if (clouds_cu_density(lightRaySamplePos, lightHeightFraction, true, lightSampleDensity, lightSampleDensityLod)) {
-                                // (x + c)^2 - (x - c)^2 = 4xc
-                                float x = (indexF + 0.5) * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP;
-                                float lightRayStepLength = 4.0 * x * C * lightRayLen;
-                                float lightRaySamplePrefixLength = lightRaySampleOffset - pow2(indexF * CLOUDS_CU_LIGHT_RAYMARCH_STEP_RCP) * lightRayLen;
                                 float rho = lightSampleDensity * CLOUDS_CU_DENSITY;
                                 vec3 sigmaS = cuMedium.scattering * rho;
                                 vec3 sigmaTr = cuMedium.extinction * rho;
