@@ -57,7 +57,7 @@ textures. High cirrus is sampled by the shared sky/cloud path rather than a sepa
 
 ### Cumulus isotropic multiple scattering
 
-The cumulus renderer reuses the existing ordered eight-sample sun-light column. For each jittered in-bin source sample,
+The cumulus renderer reuses the existing ordered eight-sample sun-light column. For each source sample jittered uniformly in distance within its quadratic-distance bin,
 let `U_i` be the prefix optical depth from the start of the light column to that source position, `sigma_s` the scattering coefficient,
 `sigma_tr` the transport coefficient, `ds` the sample length, and `r` the source radius. This diffusion approximation
 uses `sigma_tr ≈ sigma_t` in the implementation. With dimensionless absorption fraction (albedo deficit) `a = 0.001`
