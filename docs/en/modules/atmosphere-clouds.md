@@ -87,10 +87,32 @@ The accumulated `phi_fwd` field is isotropic and follows the prefix estimator, b
 uses `msPhase = mix(UNIFORM_PHASE, layerParam.medium.phase, 0.7)` to retain controlled directional structure. This
 rendering choice is layered after the isotropic field, not part of its transport recurrence.
 
-The paper's local cloud-top/local-height boundary confidence is disabled (`confidence = 1`) because the current
-density model has no equivalent local proxy without extra lookups. The earlier global spherical-layer-height proxy
-was removed because it creates planar shells. Reusing the light column therefore adds no pass, resource, texture, or
-density march.
+The receiver-local boundary weight is
+
+$$
+H(x,z)=\mathrm{thickness}\;\mathrm{saturate}(\mathrm{baseCoverage}_{raw}(x,z)),\qquad
+\Delta=\mathrm{clamp}(0.05/\_LOW\_BASE\_FREQ,0.025,0.2),
+$$
+
+$$
+\partial_xH=\frac{H(x+\Delta,z)-H(x-\Delta,z)}{2\Delta},\qquad
+\partial_zH=\frac{H(x,z+\Delta)-H(x,z-\Delta)}{2\Delta},\qquad
+N=\mathrm{normalize}(-\partial_xH,1,-\partial_zH),
+$$
+
+$$
+C_{top}=\mathrm{saturate}\!\left(\frac{N\cdot\mathrm{renderParams.lightDir}+0.5}{1.5}\right),\qquad
+C_{bottom}=1-\exp\!\left(-\frac{\max(h_{local},0)}{0.1\,\mathrm{mix}(1,4,h_{column})}\right),\qquad
+B_{eff}=C_{top}C_{bottom}.
+$$
+
+Here `baseCoverage_raw` is the existing pre-height coverage value, `h_column = saturate(baseCoverage_raw)` reuses the
+receiver density lookup, and `h_local` is the normalized receiver height (`0` at the cumulus-layer base and `1` at its
+top). The constants correspond to `b = 0`, `p = 1`, and `H_bottom = 0.1`, matching the density model's existing normalized
+`0.1` bottom scale. `C_top` uses the actual `renderParams.lightDir`, not the cone-jittered light-march direction. The gate
+is evaluated once per occupied receiver sample and multiplies every source weight before accumulation, intensity, and
+compression. It costs four extra coverage-proxy evaluations with no extra center lookup, and adds no pass, resource,
+texture resource, or density march.
 
 The estimator is adapted from AshenOneArt's [HanPi Volume Cloud implementation](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/VolumetricClouds.hlsl)
 and [forward-flux derivation](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/Docs/PhiFwd_FromRTE.md).
