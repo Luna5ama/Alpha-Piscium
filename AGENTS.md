@@ -106,7 +106,7 @@ Check the maintained project documentation before external sources:
 When present in the working environment, check repository-local references before external sources:
 
 - CG and rendering references: `agent_inputs/cg-resources/`
-- Iris shader documentation: `agent_inputs/iris-docs/`
+- Iris shader documentation: `.agents/iris-docs/`
 
 ## Final Response
 
