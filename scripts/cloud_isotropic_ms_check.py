@@ -5,12 +5,8 @@
 # ///
 
 # ─── How to run ───
-# 1. Install uv (if not installed):
-#      curl -LsSf https://astral.sh/uv/install.sh | sh
-# 2. Run directly (no venv, no pip install needed):
+# 1. Run directly with an existing uv installation:
 #      uv run scripts/cloud_isotropic_ms_check.py --source-root .
-# 3. Or make executable and run:
-#      chmod +x cloud_isotropic_ms_check.py && ./cloud_isotropic_ms_check.py --source-root .
 # ─────────────────
 
 from __future__ import annotations
