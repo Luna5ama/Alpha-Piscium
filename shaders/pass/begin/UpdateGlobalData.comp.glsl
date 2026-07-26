@@ -11,8 +11,6 @@
 layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(3, 1, 1);
 
-layout(rgba16f) uniform writeonly readonly image2D uimg_main;
-
 vec3 rotateAxis(vec3 unitAxis) {
     vec4 p1 = global_shadowView * vec4(unitAxis * -65536.0, 0.0);
     vec4 p2 = global_shadowView * vec4(unitAxis * 65536.0, 0.0);
@@ -51,7 +49,7 @@ mat4 shadowDeRotateMatrix() {
 }
 
 mat4 taaJitterMat(vec2 baseJitter) {
-    vec2 jitter = baseJitter * 2.0 * (1.0 / imageSize(uimg_main));
+    vec2 jitter = baseJitter * 2.0 / uval_mainImageSize;
     return mat4(
         1.0, 0.0, 0.0, 0.0,
         0.0, 1.0, 0.0, 0.0,
@@ -147,7 +145,7 @@ void main() {
             global_cameraData.frustumPlaneCount = pcount;
         }
     } else if (gl_WorkGroupID.x == 1) {
-        ivec2 mainImageSize = imageSize(uimg_main);
+        ivec2 mainImageSize = uval_mainImageSizeI;
         for (uint i = 0; i < 16; i++) {
             ivec2 mipSize = mainImageSize >> i;
             global_mipmapSizes[i] = vec2(mipSize);

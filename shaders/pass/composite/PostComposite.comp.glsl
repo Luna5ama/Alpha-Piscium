@@ -6,7 +6,7 @@
 #include "/Base.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
-const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
+const vec2 workGroupsRender = vec2(POST_PROCESS_SCALE_FACTOR, POST_PROCESS_SCALE_FACTOR);
 
 #include "/techniques/debug/DebugOutput.glsl"
 #include "/techniques/displaytransform/DisplayTransform.glsl"
@@ -30,7 +30,7 @@ void main() {
     bloom_init();
     #endif
 
-    bool valid = all(lessThan(texelPos, uval_mainImageSizeI));
+    bool valid = all(lessThan(texelPos, POST_PROCESS_IMAGE_SIZE_I));
     vec4 outputColor = vec4(0.0);
 
     if (valid) {
@@ -41,7 +41,7 @@ void main() {
         #endif
 
         #if SETTING_DEBUG_OUTPUT == 3
-        debugOutput(texelPos, outputColor);
+        debugOutput(renderScale_postToMainTexel(texelPos), outputColor);
         #endif
 
         #ifdef SETTING_PURKINJE_EFFECT
@@ -61,7 +61,7 @@ void main() {
         outputColor.rgb = mix(scopticColor, outputColor.rgb, saturate(mesopicFactor + float(scopticLuminance <= EPSILON)));
         #endif
 
-        vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+        vec2 screenPos = coords_texelToUV(texelPos, POST_PROCESS_IMAGE_SIZE_RCP);
         vec2 ndcPos = screenPos * 2.0 - 1.0;
         float centerFactor = pow(saturate(1.0 - length(ndcPos)), SETTING_EXPOSURE_CENTER_WEIGHTING_CURVE);
         outputColor.a *= 1.0 + centerFactor * SETTING_EXPOSURE_CENTER_WEIGHTING;

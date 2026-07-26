@@ -73,7 +73,6 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     vec4 global_motionFactor; // x: speed, y: speed diff, z: angle dot, w: speed factor
     vec4 global_taaResetFactor; // x: clamp strictness, y: clamp method, z: history reset, w: clamp mix
     vec4 global_fsr3FrameInfo;
-    ivec4 global_fsr3ImageSizes;
     float global_turbidity;
     AEData global_aeData;
     uint global_atomicCounters[16];

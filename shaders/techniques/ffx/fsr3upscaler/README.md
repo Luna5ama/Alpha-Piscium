@@ -22,14 +22,15 @@ reduction over the valid 3x3 neighborhood.
 
 ## Active integration
 
-The port contains the complete required upscaler estimator and optional RCAS
-sharpening code. It intentionally omits FSR2, frame generation, optical flow,
+The port contains the complete required upscaler estimator. Sharpening uses the
+shaderpack's shared FSR1 RCAS pass. It intentionally omits FSR2, frame generation,
+optical flow,
 backend/provider code, shader blobs, debug rendering, auto-reactive generation,
 Xbox-only paths, and backend resource aliasing code.
 
 `/pass/composite/MotionVectors.comp.glsl` generates camera motion and packs the
-reactive and transparency/composition masks in its Z/W channels. The eight
-FSR3 entrypoints in the same directory bind the callbacks from
+reactive and transparency/composition masks in its Z/W channels. The seven
+FSR3 entrypoints bind the callbacks from
 `Integration.glsl`. Surfaces without object transforms are marked reactive.
 
 ## Pass graph
@@ -43,23 +44,26 @@ The required dispatch order is:
 5. `prepare_reactivity` (8x8 at render size)
 6. `luma_instability` (8x8 at render size)
 7. `accumulate` (8x8 at output size)
-8. `rcas` (optional, 64x1 covering 16x16 output pixels)
+
+The shared `/pass/composite/RCAS.comp.glsl` pass then sharpens the accumulated
+output at presentation resolution and writes it to `main`.
 
 Each pass must provide the SDK callback functions for its bound resources and
 constants before including its algorithm file. The accumulate include order is
 `common`, `sample`, `upsample`, `reproject`, then `accumulate`. The two pyramid
-files include the existing `../spd/ffx_spd.glsl`; RCAS includes the existing
-FFX core and FSR1 kernel.
+files include the existing `../spd/ffx_spd.glsl`.
 
 ## Integration contract
 
-The input color is display-transformed sRGB from `PostComposite`; the callbacks
-decode it to linear light for FSR3 and encode the output back to sRGB. The other
+The input color is unexposed linear HDR from `TAAPrepare`, and FSR3 keeps its
+accumulated output linear. The common RCAS pass applies exposure and the
+invertible AgX transform before sharpening, restores linear output, and writes
+full-resolution `main` for the remaining post-processing passes. The other
 inputs are device depth, motion vectors, exposure, reactive mask, and
 transparency/composition mask. The integration uses the SDK's motion-vector sign
 and UV units, passes current and previous jitter in render-pixel units, resets
-history on temporal discontinuities or resize, and keeps pre-exposure consistent
-across frames.
+history on temporal discontinuities or an incomplete previous frame, and keeps
+pre-exposure consistent across frames.
 
 Persistent ping-pong resources are accumulation (`R8_UNORM`), current luma
 (`R16_FLOAT`), internal upscaled color (`RGBA16_FLOAT`), and luma history
@@ -67,8 +71,9 @@ Persistent ping-pong resources are accumulation (`R8_UNORM`), current luma
 (`R16_FLOAT`), half-resolution shading change (`R8_UNORM`), twelve packed SPD
 levels (`RG16_FLOAT`), half-resolution farthest depth (`R16_FLOAT`), and dilated
 reactive masks (`RGBA8_UNORM`). New locks use the output alpha channel, the SPD
-levels share a full-render-size atlas, and frame info plus the SPD counter live
-in the global SSBO. Dilated depth is `R32_FLOAT`, dilated motion is `RG16_FLOAT`,
+levels share a full-render-size atlas, and frame info, the completed-frame marker,
+plus the SPD counter live in the global SSBO. Dilated depth is `R32_FLOAT`,
+dilated motion is `RG16_FLOAT`,
 and reconstructed previous depth is `R32_UINT` because the prepare pass updates
 its float bits atomically.
 

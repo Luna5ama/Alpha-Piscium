@@ -28,6 +28,7 @@ void main() {
     sst_init(0.005);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        vec2 mainTextureSizeRcp = rcp(vec2(textureSize(usam_main, 0)));
         ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
 
         ivec2 translucentNearDepthTexelPos = csr32f_tile3_texelToTexel(texelPos);
@@ -119,7 +120,7 @@ void main() {
                     refractColor = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
                     if (refractHit) {
                         vec2 refractCoord = refractHitScreen2D;
-                        vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
+                        vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, mainTextureSizeRcp).rgb;
                         refractColor = mix(refractColor, hitColor, sst_edgeReductionFactor(refractCoord.xy, 2.0, vec2(0.0), vec2(1.5)));
                     }
                 }
@@ -130,7 +131,7 @@ void main() {
                 if (refractDepth > startViewZ) {
                     refractCoord = screenPos;
                 }
-                vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
+                vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, saturate(refractCoord) * uval_mainImageSize, 0.0, mainTextureSizeRcp).rgb;
                 refractColor = hitColor.rgb;
             }
 
@@ -167,7 +168,7 @@ void main() {
                 vec3 reflectHitScreen = reflectRay.pRayStart + reflectRay.pRayDir * (reflectRay.pRayVecLen * abs(reflectRay.currT));
                 vec2 sampleCoord = saturate(reflectHitScreen.xy + (uval_taaJitter * uval_mainImageSizeRcp));
                 vec3 hitGeomNormal = transient_geomViewNormal_sample(sampleCoord).rgb;
-                vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, sampleCoord * uval_mainImageSize, 0.0, uval_mainImageSizeRcp).rgb;
+                vec3 hitColor = sampling_catmullBicubic5Tap(usam_main, sampleCoord * uval_mainImageSize, 0.0, mainTextureSizeRcp).rgb;
                 float mixFactor = sst_edgeReductionFactor(reflectHitScreen.xy, 4.0, vec2(0.5), vec2(0.95));
                 hitGeomNormal = normalize(hitGeomNormal * 2.0 - 1.0);
                 float hitDot = dot(-reflectDir, hitGeomNormal);

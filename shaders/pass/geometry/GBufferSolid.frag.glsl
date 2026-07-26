@@ -44,8 +44,13 @@ layout(location = 2) out float rt_gbufferSolidViewZ;
 vec2 dUVdx = vec2(0.0);
 vec2 dUVdy = vec2(0.0);
 #else
+#ifdef SETTING_FSR3
+vec2 dUVdx = dFdx(frag_texCoord) * (0.5 * uval_mainImageScale.x);
+vec2 dUVdy = dFdy(frag_texCoord) * (0.5 * uval_mainImageScale.y);
+#else
 vec2 dUVdx = dFdx(frag_texCoord);
 vec2 dUVdy = dFdy(frag_texCoord);
+#endif
 #endif
 
 ivec2 texelPos = ivec2(gl_FragCoord.xy);
@@ -74,7 +79,8 @@ void processAlbedo() {
     #ifdef GBUFFER_PASS_ALPHA_TEST
     float alphaTestThreshold = 0.05;
     #ifndef SETTING_SCREENSHOT_MODE
-    float alphaLod = textureQueryLod(gtexture, frag_texCoord).y;
+    vec2 texSize = vec2(textureSize(gtexture, 0));
+    float alphaLod = clamp(log2(max(max(length(dUVdx * texSize), length(dUVdy * texSize)), 1.0)), 0.0, float(textureQueryLevels(gtexture) - 1));
     alphaTestThreshold += min(pow(rand_stbnVec1(texelPos, 0), alphaLod * 2.0 + 1.0), 0.9) * saturate(alphaLod);
     #endif
     if (albedo.a < alphaTestThreshold) {

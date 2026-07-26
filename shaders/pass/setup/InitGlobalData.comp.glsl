@@ -16,5 +16,4 @@ void main() {
     global_motionFactor = vec4(1.0);
     global_taaResetFactor = vec4(1.0);
     global_fsr3FrameInfo = vec4(1.0, 1.0e4, 1.0, 0.0);
-    global_fsr3ImageSizes = ivec4(0);
 }

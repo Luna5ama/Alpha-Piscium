@@ -10,14 +10,14 @@
 #include "/techniques/ffx/spd/SPD.comp.glsl"
 
 layout(rgba32ui) uniform coherent uimage2D uimg_rgba32ui;
-const vec2 workGroupsRender = vec2(RENDER_SCALE_QUARTER, RENDER_SCALE_QUARTER);
+const vec2 workGroupsRender = vec2(POST_PROCESS_SCALE_QUARTER, POST_PROCESS_SCALE_QUARTER);
 
 shared ivec2 shared_mipTile6;
 
 vec4 spd_loadInput(ivec2 texelPos, uint slice) {
     vec4 result = vec4(0.0);
-    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        vec4 weightData = transient_exposureWeights_fetch(texelPos);
+    if (all(lessThan(texelPos, POST_PROCESS_IMAGE_SIZE_I))) {
+        vec4 weightData = transient_exposureWeights_fetch(renderScale_postToMainTexel(texelPos));
         float weight = weightData.x * weightData.y;
         vec3 color = texelFetch(usam_main, texelPos, 0).rgb;
         result = vec4(color * weight, weight);
@@ -52,8 +52,7 @@ uint spd_mipCount() {
 
 void spd_init() {
     if (gl_LocalInvocationIndex < 1u) {
-        shared_mipTile6 = global_mipmapTileCeil[6u].zw;
+        shared_mipTile6 = max(ivec2(ceil(ldexp(POST_PROCESS_IMAGE_SIZE, ivec2(-6)))), ivec2(1));
     }
     barrier();
 }
-

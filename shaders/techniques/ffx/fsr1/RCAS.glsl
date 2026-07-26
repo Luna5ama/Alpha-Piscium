@@ -18,7 +18,11 @@ uvec4 RCasSample() {
 
 uvec4 RCasConfig() {
     // https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/blob/v1.1.4/sdk/src/components/fsr3upscaler/ffx_fsr3upscaler.cpp#L1107
+    #ifdef SETTING_FSR3
+    float sharpness = SETTING_FSR3_SHARPNESS;
+    #else
     float sharpness = mix(1.0, SETTING_TAA_CAS_SHARPNESS, global_motionFactor.w);
+    #endif
     float sharpnessRemapped = sharpness * -2.0 + 2.0;
     // https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/blob/v1.1.4/sdk/include/FidelityFX/gpu/fsr1/ffx_fsr1.h#L661-L672
     float sharpnessConfig = exp2(-sharpnessRemapped);

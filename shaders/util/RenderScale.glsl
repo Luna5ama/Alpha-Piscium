@@ -69,7 +69,32 @@
 #define RENDER_SCALE_SIXTEENTH 0.0625
 #endif
 
+#ifdef SETTING_FSR3
+#define POST_PROCESS_SCALE_FACTOR 1.0
+#define POST_PROCESS_SCALE_HALF 0.5
+#define POST_PROCESS_SCALE_QUARTER 0.25
+#define POST_PROCESS_IMAGE_SIZE uval_viewImageSize
+#define POST_PROCESS_IMAGE_SIZE_I ivec2(uval_viewImageSize)
+#define POST_PROCESS_IMAGE_SIZE_RCP uval_viewImageSizeRcp
+#else
+#define POST_PROCESS_SCALE_FACTOR RENDER_SCALE_FACTOR
+#define POST_PROCESS_SCALE_HALF RENDER_SCALE_HALF
+#define POST_PROCESS_SCALE_QUARTER RENDER_SCALE_QUARTER
+#define POST_PROCESS_IMAGE_SIZE uval_mainImageSize
+#define POST_PROCESS_IMAGE_SIZE_I uval_mainImageSizeI
+#define POST_PROCESS_IMAGE_SIZE_RCP uval_mainImageSizeRcp
+#endif
+
 #ifndef SKIP_UNIFORMS
+ivec2 renderScale_postToMainTexel(ivec2 postTexel) {
+#ifdef SETTING_FSR3
+    vec2 viewUV = (vec2(postTexel) + 0.5) * uval_viewImageSizeRcp;
+    return clamp(ivec2(viewUV * uval_mainImageSize), ivec2(0), uval_mainImageSizeI - 1);
+#else
+    return postTexel;
+#endif
+}
+
 void renderScale_applyGBufferScale(inout vec4 position) {
 #if SETTING_RENDER_SCALE < 10
     position.xy = position.xy * uval_mainImageScale + (uval_mainImageScale - 1.0) * position.w;

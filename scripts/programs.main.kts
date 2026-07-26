@@ -281,8 +281,34 @@ programs {
         pass("/pass/composite/FXAA.comp.glsl") {
             cond("!defined(SETTING_FSR3)")
         }
+        pass("/pass/composite/MotionVectors.comp.glsl") {
+            cond("defined(SETTING_FSR3)")
+        }
+        pass("/pass/composite/FSR3PrepareInputs.comp.glsl") {
+            cond("defined(SETTING_FSR3)")
+        }
+        pass("/pass/composite/FSR3LumaPyramid.comp.glsl") {
+            indirect(0, 64)
+            cond("defined(SETTING_FSR3)")
+        }
+        pass("/pass/composite/FSR3ShadingChangePyramid.comp.glsl") {
+            indirect(0, 64)
+            cond("defined(SETTING_FSR3)")
+        }
+        pass("/pass/composite/FSR3ShadingChange.comp.glsl") {
+            cond("defined(SETTING_FSR3)")
+        }
+        pass("/pass/composite/FSR3PrepareReactivity.comp.glsl") {
+            cond("defined(SETTING_FSR3)")
+        }
+        pass("/pass/composite/FSR3LumaInstability.comp.glsl") {
+            cond("defined(SETTING_FSR3)")
+        }
+        pass("/pass/composite/FSR3Accumulate.comp.glsl") {
+            cond("defined(SETTING_FSR3)")
+        }
         pass("/pass/composite/RCAS.comp.glsl") {
-            cond("!defined(SETTING_FSR3)")
+            cond("defined(SETTING_FSR3) || (!defined(SETTING_FSR3) && defined(SETTING_TAA))")
         }
         for (i in 1..10) {
             pass("/techniques/Bloom.comp.glsl") {
@@ -318,38 +344,7 @@ programs {
             "/pass/composite/ExposureGather.comp.glsl",
             "/techniques/rtwsm/Write2DWarp.comp.glsl"
         )
-        pass("/pass/composite/MotionVectors.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
-        }
-        pass(
-            "/pass/composite/FinalGlobalDataUpdate.comp.glsl",
-            "/pass/composite/OverlayComposite.comp.glsl"
-        )
-        pass("/pass/composite/FSR3PrepareInputs.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
-        }
-        pass("/pass/composite/FSR3LumaPyramid.comp.glsl") {
-            indirect(0, 64)
-            cond("defined(SETTING_FSR3)")
-        }
-        pass("/pass/composite/FSR3ShadingChangePyramid.comp.glsl") {
-            indirect(0, 64)
-            cond("defined(SETTING_FSR3)")
-        }
-        pass("/pass/composite/FSR3ShadingChange.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
-        }
-        pass("/pass/composite/FSR3PrepareReactivity.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
-        }
-        pass("/pass/composite/FSR3LumaInstability.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
-        }
-        pass("/pass/composite/FSR3Accumulate.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
-        }
-        pass("/pass/composite/FSR3RCAS.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
-        }
+        pass("/pass/composite/FinalGlobalDataUpdate.comp.glsl")
+        pass("/pass/composite/OverlayComposite.comp.glsl")
     }
 }

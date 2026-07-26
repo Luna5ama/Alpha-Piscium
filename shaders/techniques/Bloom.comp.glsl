@@ -14,7 +14,13 @@
 #endif
 
 #ifndef BLOOM_NON_STANDALONE
-#if BLOOM_SCALE_DIV == 0
+#if defined(SETTING_FSR3) && BLOOM_SCALE_DIV == 0
+const vec2 workGroupsRender = vec2(1.0, 1.0);
+#elif defined(SETTING_FSR3) && BLOOM_SCALE_DIV == 1
+const vec2 workGroupsRender = vec2(0.5, 0.5);
+#elif defined(SETTING_FSR3) && BLOOM_SCALE_DIV == 2
+const vec2 workGroupsRender = vec2(0.25, 0.25);
+#elif BLOOM_SCALE_DIV == 0
 const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 #elif BLOOM_SCALE_DIV == 1
 const vec2 workGroupsRender = vec2(RENDER_SCALE_HALF, RENDER_SCALE_HALF);
@@ -47,6 +53,14 @@ vec4 _bloom_imageLoad(ivec2 coord);
 void _bloom_imageStore(ivec2 coord, vec4 data);
 vec4 _bloom_imageSample(vec2 uv);
 
+#ifdef SETTING_FSR3
+vec4 fsr3Bloom_sample(vec2 uv) {
+    vec2 texel = clamp(uv * POST_PROCESS_IMAGE_SIZE, vec2(0.5), POST_PROCESS_IMAGE_SIZE - 0.5);
+    texel.x += 2.0 * uval_viewImageSize.x;
+    return texture(usam_fsr3UpscaleAtlas, texel / vec2(textureSize(usam_fsr3UpscaleAtlas, 0)));
+}
+#endif
+
 #if BLOOM_DOWN_SAMPLE
 
 #if BLOOM_PASS == 1
@@ -55,22 +69,40 @@ vec4 _bloom_imageSample(vec2 uv) {
 }
 #else
 vec4 _bloom_imageSample(vec2 uv) {
+    #ifdef SETTING_FSR3
+    return fsr3Bloom_sample(uv);
+    #else
     return transient_bloom_sample(uv);
+    #endif
 }
 #endif
 
-layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 vec4 _bloom_imageLoad(ivec2 coord) {
     return vec4(0.0);
 }
+#ifdef SETTING_FSR3
+layout(rgba16f) uniform writeonly image2D uimg_fsr3UpscaleAtlas;
+void fsr3Bloom_store(ivec2 coord, vec4 data) {
+    imageStore(uimg_fsr3UpscaleAtlas, coord + ivec2(2 * int(uval_viewImageSize.x), 0), vec4(data.rgb, 0.0));
+}
+void _bloom_imageStore(ivec2 coord, vec4 data) {
+    fsr3Bloom_store(coord, data);
+}
+#else
+layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 void _bloom_imageStore(ivec2 coord, vec4 data) {
     transient_bloom_store(coord, data);
 }
+#endif
 
 
 #elif BLOOM_UP_SAMPLE
 vec4 _bloom_imageSample(vec2 uv) {
+    #ifdef SETTING_FSR3
+    return fsr3Bloom_sample(uv);
+    #else
     return transient_bloom_sample(uv);
+    #endif
 }
 #if BLOOM_PASS == 1
 vec4 _bloom_imageLoad(ivec2 coord) {
@@ -78,6 +110,21 @@ vec4 _bloom_imageLoad(ivec2 coord) {
 }
 void _bloom_imageStore(ivec2 coord, vec4 data) {
     imageStore(uimg_main, coord, data);
+}
+#else
+#ifdef SETTING_FSR3
+layout(rgba16f) uniform restrict image2D uimg_fsr3UpscaleAtlas;
+vec4 fsr3Bloom_fetch(ivec2 coord) {
+    return imageLoad(uimg_fsr3UpscaleAtlas, coord + ivec2(2 * int(uval_viewImageSize.x), 0));
+}
+void fsr3Bloom_store(ivec2 coord, vec4 data) {
+    imageStore(uimg_fsr3UpscaleAtlas, coord + ivec2(2 * int(uval_viewImageSize.x), 0), vec4(data.rgb, 0.0));
+}
+vec4 _bloom_imageLoad(ivec2 coord) {
+    return fsr3Bloom_fetch(coord);
+}
+void _bloom_imageStore(ivec2 coord, vec4 data) {
+    fsr3Bloom_store(coord, data);
 }
 #else
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
@@ -88,11 +135,38 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
     transient_bloom_store(coord, data);
 }
 #endif
+#endif
 
 #endif
 
 #define BIT_MASK(x) ((1 << (x)) - 1)
 
+#ifdef SETTING_FSR3
+ivec4 fsr3Bloom_mipTile(int level) {
+    ivec4 tile = ivec4(0, 0, POST_PROCESS_IMAGE_SIZE_I);
+    if (level == 0) return tile;
+
+    tile = ivec4(1, 1, max(ivec2(ceil(ldexp(POST_PROCESS_IMAGE_SIZE, ivec2(-1)))), ivec2(1)));
+    for (int i = 2; i <= level; i++) {
+        ivec4 nextTile = ivec4(tile.xy, max(ivec2(ceil(ldexp(POST_PROCESS_IMAGE_SIZE, ivec2(-i)))), ivec2(1)));
+        if (bool(i & 1)) {
+            nextTile.x += tile.z + 1;
+        } else {
+            nextTile.y += tile.w + 1;
+        }
+        tile = nextTile;
+    }
+    return tile;
+}
+
+#if BLOOM_DOWN_SAMPLE
+ivec4 bloom_inputTile = fsr3Bloom_mipTile(BLOOM_PASS - 1);
+ivec4 bloom_outputTile = fsr3Bloom_mipTile(BLOOM_PASS);
+#elif BLOOM_UP_SAMPLE
+ivec4 bloom_inputTile = fsr3Bloom_mipTile(BLOOM_PASS);
+ivec4 bloom_outputTile = fsr3Bloom_mipTile(BLOOM_PASS - 1);
+#endif
+#else
 #if BLOOM_DOWN_SAMPLE
 ivec4 bloom_inputTile = global_mipmapTileCeilPadded[BLOOM_PASS - 1];
 ivec4 bloom_outputTile = global_mipmapTileCeilPadded[BLOOM_PASS];
@@ -102,15 +176,16 @@ ivec4 bloom_inputTile = global_mipmapTileCeilPadded[BLOOM_PASS];
 ivec4 bloom_outputTile = global_mipmapTileCeilPadded[BLOOM_PASS - 1];
 
 #endif
+#endif
 
 ivec2 inputStartTexel = bloom_inputTile.xy;
 ivec2 inputEndTexel = bloom_inputTile.xy + bloom_inputTile.zw;
-vec2 inputStartUV = (vec2(inputStartTexel) + 0.0) * uval_mainImageSizeRcp;
-vec2 inputEndUV = (vec2(inputEndTexel) - 0.0) * uval_mainImageSizeRcp;
+vec2 inputStartUV = (vec2(inputStartTexel) + 0.0) * POST_PROCESS_IMAGE_SIZE_RCP;
+vec2 inputEndUV = (vec2(inputEndTexel) - 0.0) * POST_PROCESS_IMAGE_SIZE_RCP;
 
 #if BLOOM_DOWN_SAMPLE
 vec4 bloom_readInputDown(ivec2 coord) {
-    vec2 readPosUV = vec2(coord + inputStartTexel) * uval_mainImageSizeRcp;
+    vec2 readPosUV = vec2(coord + inputStartTexel) * POST_PROCESS_IMAGE_SIZE_RCP;
     readPosUV = clamp(readPosUV, inputStartUV, inputEndUV);
     vec4 inputValue = _bloom_imageSample(readPosUV);
     return inputValue;
@@ -209,8 +284,8 @@ vec4 bloom_main(ivec2 texelPos) {
 }
 #elif BLOOM_UP_SAMPLE
 vec4 bloom_readInputUp(ivec2 coord, ivec2 offset) {
-    vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartTexel) * uval_mainImageSizeRcp;
-    readPosUV = clamp(readPosUV, inputStartUV + 0.5 * uval_mainImageSizeRcp, inputEndUV - 0.5 * uval_mainImageSizeRcp);
+    vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartTexel) * POST_PROCESS_IMAGE_SIZE_RCP;
+    readPosUV = clamp(readPosUV, inputStartUV + 0.5 * POST_PROCESS_IMAGE_SIZE_RCP, inputEndUV - 0.5 * POST_PROCESS_IMAGE_SIZE_RCP);
     return _bloom_imageSample(readPosUV);
 }
 

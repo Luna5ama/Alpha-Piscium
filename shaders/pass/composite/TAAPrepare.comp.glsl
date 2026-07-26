@@ -19,11 +19,13 @@ void main() {
         #if SETTING_DEBUG_OUTPUT == 1
         debugOutput(texelPos, outputColor);
         #endif
-        outputColor.rgb *= exp2(global_aeData.expValues.z);
         #ifndef SETTING_FSR3
+        outputColor.rgb *= exp2(global_aeData.expValues.z);
         outputColor.rgb = agxInvertible_forward(outputColor.rgb);
         #endif
         imageStore(uimg_main, texelPos, outputColor);
+        #ifndef SETTING_FSR3
         transient_bloom_store(texelPos, vec4(0.0));
+        #endif
     }
 }

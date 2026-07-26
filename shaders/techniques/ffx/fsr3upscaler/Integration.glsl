@@ -1,12 +1,12 @@
 #ifndef INCLUDE_ffx_fsr3upscaler_Integration_glsl
 #define INCLUDE_ffx_fsr3upscaler_Integration_glsl
 
-#include "/util/Colors2.glsl"
+#include "/Base.glsl"
 #include "/techniques/ffx/ffx_core.glsl"
 
 #define FFX_FSR3UPSCALER_OPTION_INVERTED_DEPTH 1
 #define FFX_FSR3UPSCALER_OPTION_LOW_RESOLUTION_MOTION_VECTORS 1
-#define FFX_FSR3UPSCALER_OPTION_HDR_COLOR_INPUT 0
+#define FFX_FSR3UPSCALER_OPTION_HDR_COLOR_INPUT 1
 #define FFX_FSR3UPSCALER_OPTION_APPLY_SHARPENING 1
 #define FSR3UPSCALER_BIND_SRV_FRAME_INFO 1
 
@@ -45,15 +45,15 @@ FfxInt32x2 UpscaleSize() {
 }
 
 FfxBoolean FSR3HistoryReset() {
-    return frameCounter <= 1 || global_taaResetFactor.z < 0.5 || any(notEqual(global_fsr3ImageSizes, ivec4(RenderSize(), UpscaleSize())));
+    return frameCounter <= 1 || global_taaResetFactor.z < 0.5 || int(global_fsr3FrameInfo.w) != frameCounter - 1;
 }
 
 FfxInt32x2 PreviousFrameRenderSize() {
-    return FSR3HistoryReset() ? RenderSize() : global_fsr3ImageSizes.xy;
+    return RenderSize();
 }
 
 FfxInt32x2 PreviousFrameUpscaleSize() {
-    return FSR3HistoryReset() ? UpscaleSize() : global_fsr3ImageSizes.zw;
+    return UpscaleSize();
 }
 
 FfxInt32x2 MaxRenderSize() {
@@ -78,7 +78,7 @@ FfxInt32 FrameIndex() {
 
 FfxFloat32 JitterSequenceLength() {
     FfxFloat32 upscaleRatio = FfxFloat32(UpscaleSize().x) / FfxFloat32(RenderSize().x);
-    return ffxMax(1.0f, round(8.0f * upscaleRatio * upscaleRatio));
+    return FfxFloat32(ffxMax(FfxInt32(1), FfxInt32(8.0f * upscaleRatio * upscaleRatio)));
 }
 
 FfxFloat32 Exposure() {
@@ -157,8 +157,7 @@ FfxFloat32x4 FSR3FilterBilinear(
 
 FfxFloat32x3 LoadInputColor(FfxInt32x2 pos) {
     FfxInt32x2 p = clamp(pos, FfxInt32x2(0), RenderSize() - 1);
-    FfxFloat32x3 encoded = texelFetch(usam_main, p, 0).rgb;
-    return colors2_eotf_sRGB(encoded);
+    return texelFetch(usam_main, p, 0).rgb;
 }
 
 FfxFloat32 LoadInputDepth(FfxInt32x2 pos) {
@@ -458,20 +457,5 @@ void StoreNewLocks(FfxInt32x2 pos, FfxFloat32 value) {
     imageStore(uimg_fsr3UpscaleAtlas, atlasPos, data);
 }
 #endif
-
-#if defined(FSR3_BIND_ACCUMULATE) || defined(FSR3_BIND_RCAS)
-void StoreUpscaledOutput(FfxInt32x2 pos, FfxFloat32x3 value) {
-    FfxFloat32x3 encoded = colors2_oetf_sRGB(ffxMax(value, FfxFloat32x3(0.0f)));
-    imageStore(uimg_fsr3UpscaleAtlas, FSR3OutputTexel(pos), FfxFloat32x4(ffxSaturate(encoded), 0.0f));
-}
-#endif
-
-FfxUInt32x4 RCASConfig() {
-    FfxFloat32 sharpnessConfig = exp2(-2.0f + 2.0f * SETTING_FSR3_SHARPNESS);
-    FfxUInt32x4 config = FfxUInt32x4(0u);
-    config.x = floatBitsToUint(sharpnessConfig);
-    config.y = packHalf2x16(FfxFloat32x2(sharpnessConfig));
-    return config;
-}
 
 #endif

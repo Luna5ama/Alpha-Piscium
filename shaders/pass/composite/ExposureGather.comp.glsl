@@ -44,7 +44,7 @@ void main() {
         uint lumParialMax = shared_maxBinCount[gl_SubgroupInvocationID];
         uint lumMax = subgroupMax(lumParialMax);
         if (subgroupElect()) {
-            uint totalPixel = uval_mainImageSizeI.x * uval_mainImageSizeI.y;
+            uint totalPixel = POST_PROCESS_IMAGE_SIZE_I.x * POST_PROCESS_IMAGE_SIZE_I.y;
             global_aeData.finalAvgLum = float(lumSum) / float(totalPixel);
             global_aeData.lumHistogramMaxBinCount = lumMax;
         }

@@ -1,4 +1,8 @@
 #version 460 compatibility
 #define COMP 1
+/*const*/
+#define BLOOM_UP_SAMPLE 1
+#define BLOOM_PASS 4
+/*const*/
 
-#include "/pass/composite/FSR3PrepareInputs.comp.glsl"
+#include "/techniques/Bloom.comp.glsl"

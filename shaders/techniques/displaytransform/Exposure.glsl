@@ -47,10 +47,11 @@ void _displaytransform_exposure_update(bool valid, inout vec4 color) {
     float groupNoise = rand_stbnVec1(ivec2(gl_WorkGroupID.xy), frameCounter);
     if (valid) {
         ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
+        ivec2 mainTexelPos = renderScale_postToMainTexel(texelPos);
 
         const float BASE_VIEWZ_WEIGHT = exp2(SETTING_EXPOSURE_DISTANCE_WEIGHTING);
-        float emissive = transient_solidAlbedo_fetch(texelPos).a;
-        float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
+        float emissive = transient_solidAlbedo_fetch(mainTexelPos).a;
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, mainTexelPos, 0).r;
 
         float pixelWeight = 1.0;
         pixelWeight *= pow(exp2(SETTING_EXPOSURE_EMISSIVE_WEIGHTING), emissive);
