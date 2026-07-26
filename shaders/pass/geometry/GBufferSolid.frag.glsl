@@ -5,6 +5,10 @@
 #include "/util/Rand.glsl"
 #include "/util/GBufferData.glsl"
 
+#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING)
+#include "/techniques/parallax/Trace.glsl"
+#endif
+
 uniform sampler2D gtexture;
 uniform sampler2D normals;
 uniform sampler2D specular;
@@ -21,6 +25,10 @@ in vec2 frag_texCoord;// 16 x 2 = 32 bits
 in vec2 frag_lmCoord;// 8 x 2 = 16 bits
 flat in uint frag_materialID;// 16 x 1 = 16 bits
 flat in float frag_emissiveOverride;
+
+#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING)
+flat in vec4 frag_spriteBounds;
+#endif
 
 #ifndef GBUFFER_PASS_ALPHA_TEST
 layout(early_fragment_tests) in;
@@ -54,6 +62,18 @@ float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 4u), frameCounter);
 float frag_viewZ = -rcp(gl_FragCoord.w);
 vec4 albedo;
 float viewZ;
+vec2 materialTexCoord = frag_texCoord;
+
+float bitangentSignF;
+vec3 geomViewNormal;
+vec3 geomViewTangent;
+vec3 geomViewBitangent;
+
+#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING)
+vec3 viewPos;
+vec3 viewDir;
+vec3 displacedViewPos;
+#endif
 
 GBufferData gData = gbufferData_init();
 
@@ -62,8 +82,8 @@ void processAlbedo() {
 
     #ifdef GBUFFER_PASS_TEXTURED
     float alphaTestBias = 1.0 - global_taaResetFactor.y * 0.75;
-    vec4 sample1 = textureGrad(gtexture, frag_texCoord, dUVdx * alphaTestBias, dUVdy * alphaTestBias);
-    vec4 sample2 = textureGrad(gtexture, frag_texCoord, dUVdx * 0.25, dUVdy * 0.25);
+    vec4 sample1 = textureGrad(gtexture, materialTexCoord, dUVdx * alphaTestBias, dUVdy * alphaTestBias);
+    vec4 sample2 = textureGrad(gtexture, materialTexCoord, dUVdx * 0.25, dUVdy * 0.25);
     albedo *= vec4(sample2.rgb, sample1.a);
     #endif
 
@@ -74,7 +94,7 @@ void processAlbedo() {
     #ifdef GBUFFER_PASS_ALPHA_TEST
     float alphaTestThreshold = 0.05;
     #ifndef SETTING_SCREENSHOT_MODE
-    float alphaLod = textureQueryLod(gtexture, frag_texCoord).y;
+    float alphaLod = textureQueryLod(gtexture, materialTexCoord).y;
     alphaTestThreshold += min(pow(rand_stbnVec1(texelPos, 0), alphaLod * 2.0 + 1.0), 0.9) * saturate(alphaLod);
     #endif
     if (albedo.a < alphaTestThreshold) {
@@ -90,10 +110,59 @@ void processAlbedo() {
 void processViewZ() {
     #if defined(GBUFFER_PASS_VIEWZ_OVERRIDE)
     viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;
+    #elif defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING)
+    #ifdef SETTING_STEEP_PARALLAX_WRITE_VIEWZ
+    viewZ = displacedViewPos.z;
+    #else
+    viewZ = frag_viewZ;
+    #endif
     #else
     viewZ = frag_viewZ;
     #endif
 }
+
+void processGeometryBasis() {
+    bitangentSignF = float(bitfieldExtract(frag_materialID, 30, 1)) * 2.0 - 1.0;
+
+    vec3 geomWorldNormal;
+    vec3 geomWorldTangent;
+    #ifdef SETTING_TBN_PACKING
+    nzpacking_unpackNormalOct16(frag_worldTN, geomWorldNormal, geomWorldTangent);
+    #else
+    geomWorldNormal = frag_worldNormal;
+    geomWorldTangent = frag_worldTangent;
+    #endif
+
+    geomViewNormal = coords_dir_worldToView(geomWorldNormal);
+    geomViewTangent = coords_dir_worldToView(geomWorldTangent);
+    geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal) * bitangentSignF);
+}
+
+#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING)
+void processSteepParallax() {
+    processGeometryBasis();
+
+    vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp - uval_taaJitterUV;
+    viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
+    viewDir = normalize(-viewPos);
+    displacedViewPos = vec3(0.0, 0.0, frag_viewZ);
+
+    vec3 viewDirTS = transpose(mat3(geomViewTangent, geomViewBitangent, geomViewNormal)) * viewDir;
+    if (viewDirTS.z <= 1e-4) {
+        return;
+    }
+
+    vec2 atlasSize = vec2(textureSize(usam_blocksNormal, 0));
+    vec2 spriteExtentTexels = max((frag_spriteBounds.zw - frag_spriteBounds.xy) * atlasSize, vec2(1.0));
+    vec2 rayDeltaTexels = -viewDirTS.xy / viewDirTS.z * 0.25 * spriteExtentTexels;
+    vec2 hitTexCoord;
+    float hitT;
+    if (traceSteepParallax(materialTexCoord, frag_spriteBounds, rayDeltaTexels, hitTexCoord, hitT)) {
+        materialTexCoord = hitTexCoord;
+        displacedViewPos = viewPos - viewDir * (0.25 * hitT / viewDirTS.z);
+    }
+}
+#endif
 
 void processData2() {
     gData.albedo = albedo.rgb;
@@ -105,20 +174,9 @@ void processData2() {
 }
 
 void processData1() {
-    float bitangentSignF = float(bitfieldExtract(frag_materialID, 30, 1)) * 2.0 - 1.0;
-
-    vec3 geomWorldNormal;
-    vec3 geomWorldTangent;
-    #ifdef SETTING_TBN_PACKING
-    nzpacking_unpackNormalOct16(frag_worldTN, geomWorldNormal, geomWorldTangent);
-    #else
-    geomWorldNormal = frag_worldNormal;
-    geomWorldTangent = frag_worldTangent;
+    #if !defined(GBUFFER_PASS_STEEP_PARALLAX) || !defined(SETTING_NORMAL_MAPPING)
+    processGeometryBasis();
     #endif
-
-    vec3 geomViewNormal = coords_dir_worldToView(geomWorldNormal);
-    vec3 geomViewTangent = coords_dir_worldToView(geomWorldTangent);
-    vec3 geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal) * bitangentSignF);
 
     gData.normal = geomViewNormal;
     gData.geomNormal = geomViewNormal;
@@ -133,8 +191,8 @@ void processData1() {
     gData.materialID = 65534u;
 
     #if defined(GBUFFER_PASS_TEXTURED)
-    vec4 normalSample = textureGrad(normals, frag_texCoord, dUVdx, dUVdy);
-    vec4 specularSample = textureGrad(specular, frag_texCoord, dUVdx, dUVdy);
+    vec4 normalSample = textureGrad(normals, materialTexCoord, dUVdx, dUVdy);
+    vec4 specularSample = textureGrad(specular, materialTexCoord, dUVdx, dUVdy);
 
     gData.pbrSpecular = specularSample;
     gData.lmCoord.y *= normalSample.b;
@@ -183,8 +241,8 @@ void main() {
     #ifdef DISTANT_HORIZONS
     #ifndef GBUFFER_PASS_DH
     vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp;
-    vec3 viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
-    float edgeFactor = linearStep(min(far * 0.75, far - 24.0), far, length(viewPos));
+    vec3 distantViewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
+    float edgeFactor = linearStep(min(far * 0.75, far - 24.0), far, length(distantViewPos));
     if (ditherNoise < edgeFactor) {
         discard;
         return;
@@ -192,6 +250,9 @@ void main() {
     #endif
     #endif
 
+    #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING)
+    processSteepParallax();
+    #endif
     processAlbedo();
     processViewZ();
 

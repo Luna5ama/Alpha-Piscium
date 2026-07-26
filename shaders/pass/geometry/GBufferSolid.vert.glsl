@@ -9,6 +9,11 @@ in vec2 mc_Entity;
 in vec4 at_tangent;
 in vec4 at_midBlock;
 
+#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING)
+in vec2 mc_midTexCoord;
+flat out vec4 frag_spriteBounds;
+#endif
+
 #ifdef SETTING_TBN_PACKING
 out uint frag_worldTN;
 #else
@@ -37,6 +42,11 @@ void main() {
     #endif
 
     frag_texCoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+    #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING)
+    vec2 spriteCenter = (gl_TextureMatrix[0] * vec4(mc_midTexCoord, 0.0, 1.0)).xy;
+    vec2 spriteHalfSize = abs(frag_texCoord - spriteCenter);
+    frag_spriteBounds = vec4(spriteCenter - spriteHalfSize, spriteCenter + spriteHalfSize);
+    #endif
     frag_lmCoord = (gl_TextureMatrix[1] * gl_MultiTexCoord1).xy;
     frag_lmCoord.x = linearStep(0.0625, 0.96875, frag_lmCoord.x);
     frag_lmCoord.y = linearStep(0.125, 0.73438, frag_lmCoord.y);

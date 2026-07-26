@@ -275,6 +275,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "控制表面细节效果的强度。数值越高，深度感越强。实际强度为 2^x。"
                         }
                     }
+                    toggle("SETTING_STEEP_PARALLAX_WRITE_VIEWZ", false) {
+                        lang {
+                            name = "Parallax View Depth"
+                            comment =
+                                "Writes steep parallax displacement to the view-depth buffer. Hardware depth remains unchanged."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "视差视图深度"
+                            comment = "将陡峭视差位移写入视图深度缓冲区。硬件深度保持不变。"
+                        }
+                    }
                     empty()
                     toggle("SETTING_TBN_PACKING", true) {
                         lang {
