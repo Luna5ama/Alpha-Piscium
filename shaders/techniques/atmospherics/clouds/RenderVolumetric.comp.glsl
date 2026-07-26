@@ -277,14 +277,21 @@ void main() {
     }
     barrier();
 
-    if (shared_worldGroupCheck) {
-        uvec2 workGroupOrigin = gl_WorkGroupID.xy << 3;
-        uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
-        uvec2 mortonPos = morton_8bDecode(threadIdx);
-        uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
-        ivec2 texelPos = ivec2(mortonGlobalPosU);
-        if (all(lessThan(texelPos, renderSize))) {
-            render(texelPos);
-        }
+    uvec2 workGroupOrigin = gl_WorkGroupID.xy << 3;
+    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uvec2 mortonPos = morton_8bDecode(threadIdx);
+    uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
+    ivec2 texelPos = ivec2(mortonGlobalPosU);
+    bool inBounds = all(lessThan(texelPos, renderSize));
+
+    if (inBounds) {
+        CloudSSHistoryData clearData = clouds_ss_historyData_init();
+        clearData.hLen = 1.0;
+        uvec4 clearOutput = uvec4(0u);
+        clouds_ss_historyData_pack(clearOutput, clearData);
+        transient_lowCloudRender_store(texelPos, clearOutput);
+    }
+    if (shared_worldGroupCheck && inBounds) {
+        render(texelPos);
     }
 }

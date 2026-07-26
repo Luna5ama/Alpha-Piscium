@@ -75,8 +75,16 @@ const float WEIGHT_EPSILON = 0.0001;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-    if (hiz_groupSkyCheckSubgroup(gl_WorkGroupID.xy, 3)) {
-        if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+    bool skyGroup = hiz_groupSkyCheckSubgroup(gl_WorkGroupID.xy, 3);
+    bool inBounds = all(lessThan(texelPos, uval_mainImageSizeI));
+    if (!skyGroup && inBounds) {
+        CloudSSHistoryData clearData = clouds_ss_historyData_init();
+        uvec4 clearOutput = uvec4(0u);
+        clouds_ss_historyData_pack(clearOutput, clearData);
+        transient_lowCloudAccumulated_store(texelPos, clearOutput);
+    }
+    if (skyGroup) {
+        if (inBounds) {
             vec2 texelCenter = vec2(texelPos) + 0.5;
             vec2 uv = texelCenter * uval_mainImageSizeRcp;
             ivec2 texelPosDownScale = DOWNSCALE_DIVIDE(texelPos);
@@ -122,7 +130,7 @@ void main() {
 
             float prevWeight = prevAvgData.transmittanceHLen.w;
             prevWeight *= global_historyResetFactor;
-            prevWeight = min(prevWeight, 64.0);
+            prevWeight = clamp(prevWeight, 0.0, 64.0);
 
             Vec4PackedData currAvgData = vec4PackedData_init();
             vec3 inSctrMoment1 = vec3(0.0);
@@ -198,34 +206,38 @@ void main() {
                 vec3 prevTransmittanceYCoCg = colors_RGBToYCoCg(prevAvgData.transmittanceHLen.rgb);
 
                 float clippingWeight = SETTING_CLOUDS_LOW_VARIANCE_CLIPPING * rand_stbnVec1(texelPos, frameCounter);
+                float historyResetFactor = max(global_historyResetFactor, WEIGHT_EPSILON);
 
                 // Ellipsoid intersection clipping by Marty
                 const float clippingEps = FLT_MIN;
                 vec3 inSctrStddev = sqrt(max(inSctrMoment2 - inSctrMoment1 * inSctrMoment1, clippingEps));
                 vec3 inSctrDelta = prevInSctrYCoCg - inSctrMoment1;
-                inSctrDelta /= max(1.0, length(inSctrDelta / inSctrStddev / global_historyResetFactor));
+                inSctrDelta /= max(1.0, length(inSctrDelta / inSctrStddev / historyResetFactor));
                 prevInSctrYCoCg = mix(prevInSctrYCoCg, inSctrMoment1 + inSctrDelta, clippingWeight);
 
                 vec3 transmittanceStddev = sqrt(max(transmittanceMoment2 - transmittanceMoment1 * transmittanceMoment1, clippingEps));
                 vec3 transmittanceDelta = prevTransmittanceYCoCg - transmittanceMoment1;
-                transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev / global_historyResetFactor));
+                transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev / historyResetFactor));
                 prevTransmittanceYCoCg = mix(prevTransmittanceYCoCg, transmittanceMoment1 + transmittanceDelta, clippingWeight);
 
                 prevAvgData.inScattering = colors_YCoCgToRGB(prevInSctrYCoCg);
                 prevAvgData.transmittanceHLen.rgb = colors_YCoCgToRGB(prevTransmittanceYCoCg);
             }
 
-            float currWeight = currAvgData.transmittanceHLen.w;
+            float currWeight = max(currAvgData.transmittanceHLen.w, 0.0);
             float newWeight = min(currWeight + prevWeight, CLOUDS_SS_MAX_ACCUM);
 
             Vec4PackedData newData = prevAvgData;
             newData.transmittanceHLen.w = newWeight;
 
-            float alpha = saturate(currWeight / newWeight);
+            float alpha = newWeight > WEIGHT_EPSILON ? saturate(currWeight / newWeight) : 0.0;
             newData.inScattering = mix(newData.inScattering, currAvgData.inScattering, alpha);
             newData.transmittanceHLen.xyz = mix(newData.transmittanceHLen.xyz, currAvgData.transmittanceHLen.xyz, alpha);
 
             CloudSSHistoryData newHistoryData = vec4PackedData_toHistoryData(newData);
+            if (newWeight <= WEIGHT_EPSILON) {
+                newHistoryData = clouds_ss_historyData_init();
+            }
             newHistoryData.inScattering = clamp(newHistoryData.inScattering, 0.0, FP16_MAX);
             newHistoryData.transmittance = saturate(newHistoryData.transmittance);
 

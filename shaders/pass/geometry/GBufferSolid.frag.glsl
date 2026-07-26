@@ -66,10 +66,14 @@ void processAlbedo() {
     albedo = vec4(frag_colorMul, 1.0);
 
     #ifdef GBUFFER_PASS_TEXTURED
+    #ifdef SETTING_FSR3
+    albedo *= textureGrad(gtexture, frag_texCoord, dUVdx, dUVdy);
+    #else
     float alphaTestBias = 1.0 - global_taaResetFactor.y * 0.75;
     vec4 sample1 = textureGrad(gtexture, frag_texCoord, dUVdx * alphaTestBias, dUVdy * alphaTestBias);
     vec4 sample2 = textureGrad(gtexture, frag_texCoord, dUVdx * 0.25, dUVdy * 0.25);
     albedo *= vec4(sample2.rgb, sample1.a);
+    #endif
     #endif
 
     #ifdef GBUFFER_PASS_ENTITY

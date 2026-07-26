@@ -82,7 +82,7 @@ FfxFloat32 JitterSequenceLength() {
 }
 
 FfxFloat32 Exposure() {
-    return 1.0f;
+    return exp2(global_aeData.expValues.z);
 }
 
 FfxFloat32 DeltaPreExposure() {

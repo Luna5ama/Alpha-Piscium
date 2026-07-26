@@ -94,6 +94,7 @@ void clouds_ss_historyData_pack(out uvec4 packedData, CloudSSHistoryData data) {
 void clouds_ss_historyData_unpack(uvec4 packedData, out CloudSSHistoryData data) {
     if (packedData == uvec4(0u)) {
         data = clouds_ss_historyData_init();
+        return;
     }
     vec2 temp1 = unpackHalf2x16(packedData.x);
     vec2 temp2 = unpackHalf2x16(packedData.y);
