@@ -4,7 +4,7 @@
 // ---------------------------------------------------------------------------
 // Per-material per-face atlas texcoord storage
 //
-// Layout: 2048 materials × 6 faces, each entry is vec4(minU, minV, maxU, maxV).
+// Layout: 16384 materials × 6 faces, each entry is vec4(minU, minV, maxU, maxV).
 // Written by ShadowPass vertex shader during voxelization (binding = 9).
 // Read by any pass that needs to sample the block colour atlas by material+face.
 //
@@ -12,7 +12,7 @@
 //   0 = +X,  1 = -X,  2 = +Y,  3 = -Y,  4 = +Z,  5 = -Z
 // ---------------------------------------------------------------------------
 
-#define VOXEL_FACE_TEXCOORD_MATERIALS 2048
+#define VOXEL_FACE_TEXCOORD_MATERIALS 16384
 #define VOXEL_FACE_TEXCOORD_COUNT (VOXEL_FACE_TEXCOORD_MATERIALS * 6)
 
 #ifndef VOXEL_FACE_TEXCOORD_MODIFIER

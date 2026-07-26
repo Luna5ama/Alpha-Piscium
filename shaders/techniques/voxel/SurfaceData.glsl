@@ -36,7 +36,7 @@ voxel_SurfaceData voxel_sampleVoxelSurface(VoxelHit hit, float lod) {
     gData.albedo = albedoData.rgb;
     gData.materialID = hit.materialID;
     gData.pbrSpecular = speuclarData;
-    gData.geomNormal = voxel_faceNormal(faceId);
+    gData.geomNormal = hit.normal;
     gData.normal = gData.geomNormal;
     gData.geomTangent = voxel_faceTangent(faceId);
 

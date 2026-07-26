@@ -15,8 +15,8 @@
 //   Hierarchical descent / ascent through the tree.  The ray starts at the
 //   top level and descends into non-empty children.  When a child is empty
 //   the DDA skips to the exit of that child's cell, then ascends to the
-//   correct parent level.  At the leaf level (L1), a set bit means the
-//   individual block is solid → HIT.
+//   correct parent level. At the leaf level (L1), the material selects the
+//   full-cube fast path or generated block-model intersection.
 //
 // Entry points:
 //   voxelray_setup(origin, dir, callbackData) → VoxelRay
@@ -35,6 +35,8 @@
 #define INCLUDE_techniques_VoxelTrace_glsl a
 
 #include "/techniques/voxel/VoxelRayState.glsl"
+#include "/util/HardcodedPBR.glsl"
+#include "/techniques/voxel/BlockModels.glsl"
 
 layout(std430, binding = 8) restrict readonly buffer VoxelTreeData {
     uint voxel_treeScalar[];
@@ -232,29 +234,54 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
             uint maskPart = voxel_treeScalar[_voxel_levelOffsets[level] + (nodeIdx << 1u) + (childIdx >> 5u)];
             bool isHit = bool((maskPart >> (childIdx & 31u)) & 1u);
 
-            if (isHit) {
-                // Descend into child
-                level--;
-                // ---- Non-empty child ----
-                if (level == 0) {
-                    // Leaf level: individual block is solid → HIT
-                    uint allocID = voxel_brickAllocID[fullMorton >> 12u];
-                    uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
+            if (isHit && level == 1) {
+                uint allocID = voxel_brickAllocID[fullMorton >> 12u];
+                uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
+                HardcodedPBR hardcoded = hardcodedpbr_decode(material);
 
+                if (hardcoded.isFullCube) {
                     VoxelHit result;
-
                     result.hit = true;
                     result.hitPos = fma(worldRayDir, vec3(lastT), worldRayOrigin);
                     result.materialID = material;
 
                     vec3 normalDir = -vec3(stepDir);
                     result.normal = normalDir * vec3(equal(ivec3(lastAxis), ivec3(0, 1, 2)));
+                    ray.level = 0;
 
                     #if VOXEL_TRACE_DEBUG_COUNTERS
                     result.debugCounters = debugCounters;
                     #endif
                     return result;
                 }
+
+                if (hardcoded.hasBlockModel && material != MATERIAL_ID_WATER) {
+                    ivec3 target = blockPos + (ivec3(1) & boundOffsetMask);
+                    vec3 tExit = fma(vec3(target), invDir, tOrig);
+                    float cellExitT = min(min(tExit.x, tExit.y), tExit.z);
+                    vec3 blockLocalRayOrigin = worldRayOrigin - gridOriginF - vec3(blockPos);
+                    float modelT;
+                    vec3 modelNormal;
+                    if (voxel_intersectBlockModel(
+                            material, blockLocalRayOrigin, worldRayDir, lastT, cellExitT, modelT, modelNormal)) {
+                        VoxelHit result;
+                        result.hit = true;
+                        result.hitPos = fma(worldRayDir, vec3(modelT), worldRayOrigin);
+                        result.materialID = material;
+                        result.normal = modelNormal;
+                        ray.level = 0;
+                        #if VOXEL_TRACE_DEBUG_COUNTERS
+                        result.debugCounters = debugCounters;
+                        #endif
+                        return result;
+                    }
+                }
+
+                isHit = false;
+            }
+
+            if (isHit) {
+                level--;
                 #if VOXEL_TRACE_DEBUG_COUNTERS
                 debugCounters.y++;
                 #endif
@@ -294,6 +321,11 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     lastAxis = 0;
                 }
 
+                if (uint(blockPos.x | blockPos.y | blockPos.z) >= uint(GRID_BLOCKS)) {
+                    level = 0;
+                    break;
+                }
+
                 uint oldFullMorton = fullMorton;
                 fullMorton = _voxel_packBlockPos(blockPos);
 
@@ -305,10 +337,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
         }
 
         // Write back state for resumption if still active (not done)
-        if (ray.level != 0) {
+        ray.level = level;
+        if (level != 0) {
             ray.lastT = lastT;
             ray.lastAxis = (lastAxis >= 0 && lastAxis <= 2) ? lastAxis : 2;
-            ray.level = level;
             ray.fullMorton = fullMorton;
         }
     }
