@@ -42,18 +42,6 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printInt(SETTING_GI_SPATIAL_REUSE_COUNT);
     printLine();
 
-    printString((_S, _p, _a, _t, _i, _a, _l, _space));
-    printString((_r, _e, _u, _s, _e, _space));
-    printString((_r, _a, _d, _i, _u, _s, _colon, _space));
-    printInt(SETTING_GI_SPATIAL_REUSE_RADIUS);
-    printLine();
-
-    printString((_S, _p, _a, _t, _i, _a, _l, _space));
-    printString((_r, _e, _u, _s, _e, _space));
-    printString((_f, _e, _e, _d, _b, _a, _c, _k, _colon, _space));
-    printInt(SETTING_GI_SPATIAL_REUSE_FEEDBACK);
-    printLine();
-
 
     #elif USE_REFERENCE == 1
     printString((_M, _o, _n, _t, _e, _space, _C, _a, _r, _l, _o));
