@@ -93,6 +93,17 @@ expect(models, "bool voxel_intersectBlockModel(", "model API")
 expect(models, "uint modelID = modelData >> 9u;", "packed model ID decode")
 expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
+val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
+if (!modelFunction.contains("if (modelID <")) failures += "model dispatch is not a binary if/else tree"
+if (Regex("(?m)^    bool hit = false;$").findAll(modelFunction).count() != 1) {
+    failures += "model function does not have exactly one hit accumulator"
+}
+if (Regex("_voxel_unrotateBlockModelVector").findAll(modelFunction).count() != 1) {
+    failures += "model function duplicates final normal rotation"
+}
+if (modelFunction.lineSequence().count { it.trimStart().startsWith("return ") } != 1) {
+    failures += "model function contains early or duplicate returns"
+}
 if (Regex("(?m)\\b(?:const\\s+)?(?:vec[234]|u?int|float|bool)\\s+\\w+\\s*\\[").containsMatchIn(models)) failures += "generated local/const array"
 
 expect(hardcoded, "uint blockModelID;", "PBR model ID member")
