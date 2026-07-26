@@ -37,7 +37,7 @@ bool _voxel_intersectBlockModelAABB(
     int texelIndex = int(aabbIndex * 3u);
     vec4 quaternion = normalize(texelFetch(usam_blockModelAABBs, texelIndex, 0) * 2.0 - 1.0);
     vec3 origin = texelFetch(usam_blockModelAABBs, texelIndex + 1, 0).xyz;
-    vec3 halfSize = texelFetch(usam_blockModelAABBs, texelIndex + 2, 0).xyz * 1.4142135623730951 * 0.5;
+    vec3 halfSize = texelFetch(usam_blockModelAABBs, texelIndex + 2, 0).xyz * 1.4142135623730951 * 0.5 + 1e-6;
     vec4 inverseQuaternion = vec4(-quaternion.xyz, quaternion.w);
     vec3 localOrigin = _voxel_rotateBlockModelQuaternion(inverseQuaternion, rayOrigin - origin);
     vec3 localDir = _voxel_rotateBlockModelQuaternion(inverseQuaternion, rayDir);
@@ -47,7 +47,7 @@ bool _voxel_intersectBlockModelAABB(
     vec3 exitNormal = vec3(0.0);
     for (int axis = 0; axis < 3; ++axis) {
         if (abs(localDir[axis]) <= 1e-8) {
-            if (abs(localOrigin[axis]) > halfSize[axis] + 1e-6) return false;
+            if (abs(localOrigin[axis]) > halfSize[axis]) return false;
             continue;
         }
         float nearT = (-halfSize[axis] - localOrigin[axis]) / localDir[axis];
