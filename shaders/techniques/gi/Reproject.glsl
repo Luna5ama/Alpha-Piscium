@@ -351,8 +351,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
 
         vec4 virtualPrevViewPos = coord_viewCurrToPrev(vec4(virtualViewPos, 1.0), gData.isHand);
         vec4 virtualPrevClipPos = global_prevCamProj * virtualPrevViewPos;
-        uint clipFlag = uint(curr2PrevClipPos.z > 0.0);
-        clipFlag &= uint(all(lessThan(abs(curr2PrevClipPos.xy), curr2PrevClipPos.ww)));
+        uint clipFlag = uint(virtualPrevClipPos.z > 0.0);
+        clipFlag &= uint(all(lessThan(abs(virtualPrevClipPos.xy), virtualPrevClipPos.ww)));
 
         if (bool(clipFlag)) {
             vec2 virtualPrevNDC = virtualPrevClipPos.xy / virtualPrevClipPos.w;
@@ -376,7 +376,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     currRoughness,
                     currViewNormal,
                     currViewGeomNormal,
-                    curr2PrevViewPos.xyz,
+                    virtualPrevViewPos.xyz,
                     glazingAngleFactor,
                     128.0 * mirrorParallaxFactor + 128.0,
                     roughnessWeights,
@@ -397,7 +397,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 vec4 finalWeights = edgeWeights * blinearWeights4;
                 float weightSum = dot(finalWeights, vec4(1.0));
 
-                if (weightSum > 0.001) {
+                if (!edgeFlag && weightSum > 0.001) {
                     specValid = true;
                     finalWeights *= rcp(weightSum);
                     float pSpec = 1.0;
