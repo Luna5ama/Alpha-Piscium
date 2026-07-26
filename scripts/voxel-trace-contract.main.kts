@@ -74,14 +74,13 @@ val modelRotationMask = 0x1FFu
 fun modelId(modelData: UInt) = modelData shr modelRotationBits
 val selectedModelData = ids.filter { it >= 0 }.map { lutUInt(modelLutBytes, it) }
 if (selectedModelData.any { it == 0u }) failures += "selected non-full state has model data zero"
-val selectedModelIds = selectedModelData.map(::modelId)
-selectedModelIds.distinct().forEach { expect(models, "if (modelID == " + it + "u)", "model ID dispatch") }
 if (models.contains("switch")) failures += "generated model dispatch still uses switch"
-val shaderModelIds = Regex("if \\(modelID == (\\d+)u\\)").findAll(models)
-    .map { it.groupValues[1].toUInt() }.toSet()
 val lutModelData = allIds.map { lutUInt(modelLutBytes, it) }.filter { it != 0u }
 val lutModelIds = lutModelData.map(::modelId)
-if (shaderModelIds != lutModelIds.toSet()) failures += "model LUT IDs do not match generated geometry IDs"
+val uniqueModelIds = lutModelIds.distinct().sorted()
+if (uniqueModelIds.firstOrNull() != 1u || uniqueModelIds.zipWithNext().any { (a, b) -> b != a + 1u }) {
+    failures += "model LUT IDs are not contiguous"
+}
 if (lutModelIds.size <= lutModelIds.distinct().size) failures += "model LUT does not deduplicate shared quad geometry"
 if (lutModelData.distinct().size <= lutModelIds.distinct().size) failures += "model LUT does not preserve rotated instances"
 if (lutModelData.any { modelId(it) == 0u || it and modelRotationMask == 0u }) {
@@ -95,6 +94,9 @@ expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
 val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
 if (!modelFunction.contains("if (modelID <")) failures += "model dispatch is not a binary if/else tree"
+if (!Regex("(?m)^\\s*} else \\{\\r?\\n\\s*hit = _voxel_intersectBlockModelQuad").containsMatchIn(modelFunction)) {
+    failures += "model dispatch does not fold any two-leaf branch"
+}
 if (Regex("(?m)^    bool hit = false;$").findAll(modelFunction).count() != 1) {
     failures += "model function does not have exactly one hit accumulator"
 }
