@@ -36,6 +36,9 @@ uvec4 RCasConfig() {
 #include "ffx_fsr1_rcas.glsl"
 
 vec4 fsr1_rcas(ivec2 outputTexelPos) {
+    #ifdef SETTING_FSR3
+    if (SETTING_FSR3_SHARPNESS == 0.0) return rcas_loadInput(outputTexelPos, true);
+    #endif
     CurrFilter(FFX_MIN16_U2(outputTexelPos));
     return fsr1_rcasOutput;
 }
