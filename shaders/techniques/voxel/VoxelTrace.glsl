@@ -255,12 +255,12 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     return result;
                 }
 
-                if (hardcoded.blockModelID != 0u && material != MATERIAL_ID_WATER) {
+                if (hardcoded.blockModelMetadata != 0u && material != MATERIAL_ID_WATER) {
                     vec3 blockLocalRayOrigin = worldRayOrigin - gridOriginF - vec3(blockPos);
                     float modelT;
                     vec3 modelNormal;
                     if (voxel_intersectBlockModel(
-                            hardcoded.blockModelID, blockLocalRayOrigin, worldRayDir, modelT, modelNormal)) {
+                            hardcoded.blockModelMetadata, blockLocalRayOrigin, worldRayDir, modelT, modelNormal)) {
                         VoxelHit result;
                         result.hit = true;
                         result.hitPos = fma(worldRayDir, vec3(modelT), worldRayOrigin);
