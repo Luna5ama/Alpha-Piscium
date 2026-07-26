@@ -84,7 +84,7 @@ void main() {
         // (assigned by last frame's VoxelAllocator begin pass)
         uint allocID = voxel_brickAllocID[brickMorton];
 
-        if (hardcoded.isFullCube || hardcoded.hasBlockModel) {
+        if (hardcoded.isFullCube || hardcoded.blockModelID != 0u) {
             if (all(greaterThanEqual(brickRelCoord, ivec3(0))) &&
                     all(lessThan(brickRelCoord, ivec3(VOXEL_GRID_SIZE)))) {
 

@@ -11,7 +11,7 @@ struct HardcodedPBR {
     int emissiveMultiplier;
     bool isFullCube;
     bool isSmallFoliage;
-    bool hasBlockModel;
+    uint blockModelID;
 };
 
 HardcodedPBR hardcodedpbr_decode(uint materialID) {
@@ -28,7 +28,7 @@ HardcodedPBR hardcodedpbr_decode(uint materialID) {
     pbr.emissiveMultiplier = temp | (0 - (temp & 0x8));
     pbr.isFullCube = bitfieldExtract(rawData.x, 28, 1) == 1u;
     pbr.isSmallFoliage = bitfieldExtract(rawData.x, 29, 1) == 1u;
-    pbr.hasBlockModel = bitfieldExtract(rawData.x, 30, 1) == 1u;
+    pbr.blockModelID = texelFetch(usam_pbrLUT1, int(materialID), 0).x;
     return pbr;
 }
 
