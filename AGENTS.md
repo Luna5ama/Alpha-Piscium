@@ -87,6 +87,7 @@ or AOT caches.
 
 ## Validation
 
+- Keep routine QA brief; the user performs manual acceptance. Do deeper review or validation only when explicitly requested in the current turn.
 - Vibris is profiling-only and is not a screenshot, debugging, or correctness-validation surface.
 - Run `git diff --check` and `git diff --cached --check` before committing.
 - Keep tracked generated outputs in the same change as their maintained source.
