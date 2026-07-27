@@ -146,12 +146,15 @@ expect(models, "uint discreteRotation = uint(originData.w * 255.0 + 0.5);", "dis
 expect(models, "_voxel_unrotateBlockModelVector(discreteRotation, localNormal)", "discrete normal rotation")
 expect(models, "int entryAxis = 0;", "scalar entry axis")
 expect(models, "int exitAxis = 0;", "scalar exit axis")
-expect(models, "entryAxis = axis;", "entry axis tracking")
-expect(models, "exitAxis = axis;", "exit axis tracking")
 expect(models, "float signedHalfSize = halfSize[axis] * sign(localDir[axis]);", "signed slab half-size")
 expect(models, "float nearT = (-signedHalfSize - localOrigin[axis]) / localDir[axis];", "signed slab near distance")
 expect(models, "float farT = (signedHalfSize - localOrigin[axis]) / localDir[axis];", "signed slab far distance")
-expect(models, "localNormal[normalAxis] = -sign(localDir[normalAxis]);", "signed slab normal")
+expect(models, "int encodedAxis = nearT == farT && localDir[axis] < 0.0 ? -axis - 1 : axis;", "collapsed axis encoding")
+expect(models, "entryAxis = encodedAxis;", "entry axis tracking")
+expect(models, "exitAxis = encodedAxis;", "exit axis tracking")
+expect(models, "bool collapsedNegative = normalAxis < 0;", "collapsed negative flag")
+expect(models, "normalAxis = max(normalAxis, -normalAxis - 1);", "collapsed axis decode")
+expect(models, "localNormal[normalAxis] = collapsedNegative ? -1.0 : -sign(localDir[normalAxis]);", "signed slab normal")
 listOf("entryNormal", "exitNormal", "nearSign", "farSign", "if (nearT > farT)").forEach {
     if (models.contains(it)) failures += "generated model code still uses obsolete slab token: " + it
 }

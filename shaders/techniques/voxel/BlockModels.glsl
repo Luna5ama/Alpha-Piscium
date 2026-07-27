@@ -75,13 +75,14 @@ bool _voxel_intersectBlockModelAABB(
         float signedHalfSize = halfSize[axis] * sign(localDir[axis]);
         float nearT = (-signedHalfSize - localOrigin[axis]) / localDir[axis];
         float farT = (signedHalfSize - localOrigin[axis]) / localDir[axis];
+        int encodedAxis = nearT == farT && localDir[axis] < 0.0 ? -axis - 1 : axis;
         if (nearT > entryT) {
             entryT = nearT;
-            entryAxis = axis;
+            entryAxis = encodedAxis;
         }
         if (farT < exitT) {
             exitT = farT;
-            exitAxis = axis;
+            exitAxis = encodedAxis;
         }
         if (entryT > exitT) return false;
     }
@@ -89,8 +90,10 @@ bool _voxel_intersectBlockModelAABB(
     float t = startsInside ? exitT : entryT;
     if (!(t >= 0.0 && t <= hitT)) return false;
     int normalAxis = startsInside ? exitAxis : entryAxis;
+    bool collapsedNegative = normalAxis < 0;
+    normalAxis = max(normalAxis, -normalAxis - 1);
     vec3 localNormal = vec3(0.0);
-    localNormal[normalAxis] = -sign(localDir[normalAxis]);
+    localNormal[normalAxis] = collapsedNegative ? -1.0 : -sign(localDir[normalAxis]);
     hitT = t;
     if (discrete) {
         hitNormal = _voxel_unrotateBlockModelVector(discreteRotation, localNormal);
