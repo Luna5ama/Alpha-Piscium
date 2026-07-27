@@ -65,40 +65,32 @@ bool _voxel_intersectBlockModelAABB(
     }
     float entryT = -uintBitsToFloat(0x7F800000u);
     float exitT = uintBitsToFloat(0x7F800000u);
-    vec3 entryNormal = vec3(0.0);
-    vec3 exitNormal = vec3(0.0);
+    int entryAxis = 0;
+    int exitAxis = 0;
     for (int axis = 0; axis < 3; ++axis) {
         if (abs(localDir[axis]) <= 1e-8) {
             if (abs(localOrigin[axis]) > halfSize[axis]) return false;
             continue;
         }
-        float nearT = (-halfSize[axis] - localOrigin[axis]) / localDir[axis];
-        float farT = (halfSize[axis] - localOrigin[axis]) / localDir[axis];
-        float nearSign = -1.0;
-        float farSign = 1.0;
-        if (nearT > farT) {
-            float swapT = nearT;
-            nearT = farT;
-            farT = swapT;
-            nearSign = 1.0;
-            farSign = -1.0;
-        }
+        float signedHalfSize = halfSize[axis] * sign(localDir[axis]);
+        float nearT = (-signedHalfSize - localOrigin[axis]) / localDir[axis];
+        float farT = (signedHalfSize - localOrigin[axis]) / localDir[axis];
         if (nearT > entryT) {
             entryT = nearT;
-            entryNormal = vec3(0.0);
-            entryNormal[axis] = nearSign;
+            entryAxis = axis;
         }
         if (farT < exitT) {
             exitT = farT;
-            exitNormal = vec3(0.0);
-            exitNormal[axis] = farSign;
+            exitAxis = axis;
         }
         if (entryT > exitT) return false;
     }
     bool startsInside = entryT < 0.0;
     float t = startsInside ? exitT : entryT;
     if (!(t >= 0.0 && t <= hitT)) return false;
-    vec3 localNormal = startsInside ? -exitNormal : entryNormal;
+    int normalAxis = startsInside ? exitAxis : entryAxis;
+    vec3 localNormal = vec3(0.0);
+    localNormal[normalAxis] = -sign(localDir[normalAxis]);
     hitT = t;
     if (discrete) {
         hitNormal = _voxel_unrotateBlockModelVector(discreteRotation, localNormal);

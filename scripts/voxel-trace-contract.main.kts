@@ -144,6 +144,17 @@ expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
 expect(models, "uint discreteRotation = uint(originData.w * 255.0 + 0.5);", "discrete AABB fast path")
 expect(models, "_voxel_unrotateBlockModelVector(discreteRotation, localNormal)", "discrete normal rotation")
+expect(models, "int entryAxis = 0;", "scalar entry axis")
+expect(models, "int exitAxis = 0;", "scalar exit axis")
+expect(models, "entryAxis = axis;", "entry axis tracking")
+expect(models, "exitAxis = axis;", "exit axis tracking")
+expect(models, "float signedHalfSize = halfSize[axis] * sign(localDir[axis]);", "signed slab half-size")
+expect(models, "float nearT = (-signedHalfSize - localOrigin[axis]) / localDir[axis];", "signed slab near distance")
+expect(models, "float farT = (signedHalfSize - localOrigin[axis]) / localDir[axis];", "signed slab far distance")
+expect(models, "localNormal[normalAxis] = -sign(localDir[normalAxis]);", "signed slab normal")
+listOf("entryNormal", "exitNormal", "nearSign", "farSign", "if (nearT > farT)").forEach {
+    if (models.contains(it)) failures += "generated model code still uses obsolete slab token: " + it
+}
 if (discreteAABBCount <= aabbCount / 2) failures += "discrete AABB encoding does not cover the majority of models"
 val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
 if (Regex("texelFetch\\(usam_blockModelAABBs").findAll(models).count() != 3) failures += "generated model code does not fetch exactly three AABB texels"
