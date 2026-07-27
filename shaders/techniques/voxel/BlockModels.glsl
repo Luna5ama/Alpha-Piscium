@@ -35,7 +35,7 @@ bool _voxel_intersectBlockModelAABB(
     vec3 rayOrigin, vec3 rayDir, uint aabbIndex, inout float hitT, inout vec3 hitNormal
 ) {
     int texelIndex = int(aabbIndex * 3u);
-    vec4 quaternion = normalize(texelFetch(usam_blockModelAABBs, texelIndex, 0) * 2.0 - 1.0);
+    vec4 quaternion = normalize(texelFetch(usam_blockModelAABBs, texelIndex, 0) * (255.0 / 127.0) - 1.0);
     vec3 origin = texelFetch(usam_blockModelAABBs, texelIndex + 1, 0).xyz;
     vec3 halfSize = texelFetch(usam_blockModelAABBs, texelIndex + 2, 0).xyz * 1.4142135623730951 * 0.5 + 1e-6;
     vec4 inverseQuaternion = vec4(-quaternion.xyz, quaternion.w);
