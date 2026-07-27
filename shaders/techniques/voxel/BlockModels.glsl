@@ -31,18 +31,33 @@ vec3 _voxel_rotateBlockModelQuaternion(vec4 quaternion, vec3 value) {
     return value + 2.0 * cross(quaternion.xyz, cross(quaternion.xyz, value) + quaternion.w * value);
 }
 
+uint _voxel_expandBlockModelRotation(uint rotation) {
+    uint x = rotation & 7u;
+    uint y = (rotation >> 3u) & 7u;
+    uint xAxis = x & 3u;
+    uint yAxis = y & 3u;
+    uint zAxis = 3u - xAxis - yAxis;
+    uint z = zAxis | ((rotation >> 4u) & 4u);
+    return x | (y << 3u) | (z << 6u);
+}
+
 bool _voxel_intersectBlockModelAABB(
     vec3 rayOrigin, vec3 rayDir, uint aabbIndex, inout float hitT, inout vec3 hitNormal
 ) {
     int texelIndex = int(aabbIndex * 3u);
     vec4 originData = texelFetch(usam_blockModelAABBs, texelIndex + 1, 0);
-    bool axisAligned = originData.w > 0.5;
+    uint discreteRotation = uint(originData.w * 255.0 + 0.5);
+    bool discrete = discreteRotation != 255u;
+    if (discrete) discreteRotation = _voxel_expandBlockModelRotation(discreteRotation);
     vec4 quaternion = vec4(0.0, 0.0, 0.0, 1.0);
     vec3 origin = originData.xyz;
     vec3 halfSize = texelFetch(usam_blockModelAABBs, texelIndex + 2, 0).xyz * 1.4142135623730951 * 0.5 + 1e-6;
     vec3 localOrigin = rayOrigin - origin;
     vec3 localDir = rayDir;
-    if (!axisAligned) {
+    if (discrete) {
+        localOrigin = _voxel_rotateBlockModelVector(discreteRotation, localOrigin);
+        localDir = _voxel_rotateBlockModelVector(discreteRotation, localDir);
+    } else {
         quaternion = normalize(texelFetch(usam_blockModelAABBs, texelIndex, 0) * (255.0 / 126.0) - 1.0);
         vec4 inverseQuaternion = vec4(-quaternion.xyz, quaternion.w);
         localOrigin = _voxel_rotateBlockModelQuaternion(inverseQuaternion, localOrigin);
@@ -85,8 +100,11 @@ bool _voxel_intersectBlockModelAABB(
     if (!(t >= 0.0 && t <= hitT)) return false;
     vec3 localNormal = startsInside ? -exitNormal : entryNormal;
     hitT = t;
-    hitNormal = localNormal;
-    if (!axisAligned) hitNormal = _voxel_rotateBlockModelQuaternion(quaternion, localNormal);
+    if (discrete) {
+        hitNormal = _voxel_unrotateBlockModelVector(discreteRotation, localNormal);
+    } else {
+        hitNormal = _voxel_rotateBlockModelQuaternion(quaternion, localNormal);
+    }
     return true;
 }
 

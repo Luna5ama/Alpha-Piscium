@@ -8,6 +8,31 @@ import kotlin.math.sqrt
 data class V3(val x: Double, val y: Double, val z: Double) {
     operator fun minus(v: V3) = V3(x - v.x, y - v.y, z - v.z)
     fun cross(v: V3) = V3(y * v.z - z * v.y, z * v.x - x * v.z, x * v.y - y * v.x)
+    fun component(axis: Int) = when (axis) { 0 -> x; 1 -> y; else -> z }
+}
+fun expandDiscreteRotation(marker: Int): Int {
+    val rotation = marker
+    val x = rotation and 7
+    val y = rotation shr 3 and 7
+    val xAxis = x and 3
+    val yAxis = y and 3
+    val zAxis = 3 - xAxis - yAxis
+    val z = zAxis or (rotation shr 4 and 4)
+    return x or (y shl 3) or (z shl 6)
+}
+fun rotateDiscrete(marker: Int, value: V3): V3 {
+    val rotation = expandDiscreteRotation(marker)
+    fun component(transform: Int) = value.component(transform and 3) * if (transform and 4 == 0) 1.0 else -1.0
+    return V3(component(rotation), component(rotation shr 3), component(rotation shr 6))
+}
+fun unrotateDiscrete(marker: Int, value: V3): V3 {
+    var rotation = expandDiscreteRotation(marker)
+    val result = DoubleArray(3)
+    listOf(value.x, value.y, value.z).forEach { component ->
+        result[rotation and 3] = component * if (rotation and 4 == 0) 1.0 else -1.0
+        rotation = rotation shr 3
+    }
+    return V3(result[0], result[1], result[2])
 }
 fun rayBox(o: V3, d: V3, lo: V3, hi: V3): Pair<Double, V3>? {
     val os = doubleArrayOf(o.x, o.y, o.z)
@@ -78,19 +103,16 @@ if (modelLutBytes.size != lutBytes.size) failures += "model LUT width differs fr
 if (aabbBytes.size % 12 != 0) failures += "block-model AABB texture size is not 12 bytes per AABB"
 val aabbCount = aabbBytes.size / 12
 val aabbTexelWidth = aabbBytes.size / 4
-val axisAlignedAABBCount = (aabbBytes.indices step 12).count { offset ->
-    aabbBytes[offset + 7].toUByte().toInt() == 255
+val discreteAABBCount = (aabbBytes.indices step 12).count { offset ->
+    aabbBytes[offset + 7].toUByte().toInt() != 255
 }
 if ((aabbBytes.indices step 12).any { offset ->
         val marker = aabbBytes[offset + 7].toUByte().toInt()
-        marker != 0 && marker != 255
-    }) failures += "axis-aligned AABB marker is not binary"
-if ((aabbBytes.indices step 12).any { offset ->
-        aabbBytes[offset + 7].toUByte().toInt() == 255 &&
-            (aabbBytes[offset].toUByte().toInt() != 126 ||
-                aabbBytes[offset + 1].toUByte().toInt() != 126 ||
-                aabbBytes[offset + 2].toUByte().toInt() != 126)
-    }) failures += "axis-aligned AABB marker has a non-identity quaternion"
+        marker != 255 && (marker > 118 || run {
+            val rotation = marker
+            (rotation and 3) == (rotation shr 3 and 3)
+        })
+    }) failures += "discrete AABB marker is invalid"
 fun lutUInt(bytes: ByteArray, materialId: Int) = ByteBuffer.wrap(bytes)
     .order(ByteOrder.LITTLE_ENDIAN).getInt(materialId * 4).toUInt()
 val modelRotationBits = 9
@@ -120,9 +142,9 @@ expect(models, "uint aabbCount = modelData >> 24u;", "packed AABB count decode")
 expect(models, "for (uint i = 0u; i < aabbCount; ++i)", "AABB loop")
 expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
-expect(models, "bool axisAligned = originData.w > 0.5;", "axis-aligned AABB fast path")
-expect(models, "if (!axisAligned) hitNormal = _voxel_rotateBlockModelQuaternion", "axis-aligned normal fast path")
-if (axisAlignedAABBCount <= aabbCount / 2) failures += "axis-aligned AABB encoding does not cover the majority of models"
+expect(models, "uint discreteRotation = uint(originData.w * 255.0 + 0.5);", "discrete AABB fast path")
+expect(models, "_voxel_unrotateBlockModelVector(discreteRotation, localNormal)", "discrete normal rotation")
+if (discreteAABBCount <= aabbCount / 2) failures += "discrete AABB encoding does not cover the majority of models"
 val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
 if (Regex("texelFetch\\(usam_blockModelAABBs").findAll(models).count() != 3) failures += "generated model code does not fetch exactly three AABB texels"
 if (models.contains("_voxel_intersectBlockModelQuad") || models.contains("modelID")) failures += "generated model code still hardcodes quad/model ID dispatch"
@@ -194,6 +216,16 @@ val down = rayBox(V3(.25,1.0,.25), V3(0.0,-1.0,0.0), V3(0.0,0.0,0.0), V3(1.0,.5,
 val up = rayBox(V3(.25,0.0,.25), V3(0.0,1.0,0.0), V3(0.0,.5,0.0), V3(1.0,1.0,1.0))
 if (down != (0.5 to V3(0.0,1.0,0.0))) failures += "bottom slab numeric hit"
 if (up != (0.5 to V3(0.0,-1.0,0.0))) failures += "top slab numeric hit"
+val tieMarker = 2
+val tieHit = rayBox(
+    rotateDiscrete(tieMarker, V3(0.0, 2.0, 2.0)),
+    rotateDiscrete(tieMarker, V3(0.0, -1.0, -1.0)),
+    V3(-0.4375, -0.03125, -0.4375),
+    V3(0.4375, 0.03125, 0.4375)
+)
+if (tieHit?.first != 1.5625 || tieHit.second.let { unrotateDiscrete(tieMarker, it) } != V3(0.0, 0.0, 1.0)) {
+    failures += "discrete AABB axis-tie normal"
+}
 val n = (V3(1.0,0.0,1.0) - V3(0.0,0.0,0.0)).cross(V3(0.0,1.0,0.0) - V3(0.0,0.0,0.0))
 val len = sqrt(n.x*n.x + n.y*n.y + n.z*n.z)
 if (abs(abs(n.x/len) - sqrt(.5)) > 1e-9 || abs(abs(n.z/len) - sqrt(.5)) > 1e-9) failures += "rotated normal"
@@ -222,4 +254,4 @@ if (negativeEdge.level != 0 || negativeEdge.packedBlockPos != null) failures += 
 if (interior.level == 0 || interior.packedBlockPos != 18) failures += "interior step must remain active and pack"
 
 check(failures.isEmpty()) { "Voxel trace contract failed:\n" + failures.joinToString("\n") { "- " + it } }
-println("Voxel trace contract PASS: " + allIds.size + " mappings, " + aabbCount + " AABBs (" + axisAlignedAABBCount + " axis-aligned), max " + lutModelData.maxOf(::aabbCount) + "/model, " + aabbTexelWidth + " texels, Minecraft 26.2")
+println("Voxel trace contract PASS: " + allIds.size + " mappings, " + aabbCount + " AABBs (" + discreteAABBCount + " discrete), max " + lutModelData.maxOf(::aabbCount) + "/model, " + aabbTexelWidth + " texels, Minecraft 26.2")
