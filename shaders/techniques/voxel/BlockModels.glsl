@@ -35,12 +35,19 @@ bool _voxel_intersectBlockModelAABB(
     vec3 rayOrigin, vec3 rayDir, uint aabbIndex, inout float hitT, inout vec3 hitNormal
 ) {
     int texelIndex = int(aabbIndex * 3u);
-    vec4 quaternion = normalize(texelFetch(usam_blockModelAABBs, texelIndex, 0) * (255.0 / 126.0) - 1.0);
-    vec3 origin = texelFetch(usam_blockModelAABBs, texelIndex + 1, 0).xyz;
+    vec4 originData = texelFetch(usam_blockModelAABBs, texelIndex + 1, 0);
+    bool axisAligned = originData.w > 0.5;
+    vec4 quaternion = vec4(0.0, 0.0, 0.0, 1.0);
+    vec3 origin = originData.xyz;
     vec3 halfSize = texelFetch(usam_blockModelAABBs, texelIndex + 2, 0).xyz * 1.4142135623730951 * 0.5 + 1e-6;
-    vec4 inverseQuaternion = vec4(-quaternion.xyz, quaternion.w);
-    vec3 localOrigin = _voxel_rotateBlockModelQuaternion(inverseQuaternion, rayOrigin - origin);
-    vec3 localDir = _voxel_rotateBlockModelQuaternion(inverseQuaternion, rayDir);
+    vec3 localOrigin = rayOrigin - origin;
+    vec3 localDir = rayDir;
+    if (!axisAligned) {
+        quaternion = normalize(texelFetch(usam_blockModelAABBs, texelIndex, 0) * (255.0 / 126.0) - 1.0);
+        vec4 inverseQuaternion = vec4(-quaternion.xyz, quaternion.w);
+        localOrigin = _voxel_rotateBlockModelQuaternion(inverseQuaternion, localOrigin);
+        localDir = _voxel_rotateBlockModelQuaternion(inverseQuaternion, localDir);
+    }
     float entryT = -uintBitsToFloat(0x7F800000u);
     float exitT = uintBitsToFloat(0x7F800000u);
     vec3 entryNormal = vec3(0.0);
@@ -78,7 +85,8 @@ bool _voxel_intersectBlockModelAABB(
     if (!(t >= 0.0 && t <= hitT)) return false;
     vec3 localNormal = startsInside ? -exitNormal : entryNormal;
     hitT = t;
-    hitNormal = _voxel_rotateBlockModelQuaternion(quaternion, localNormal);
+    hitNormal = localNormal;
+    if (!axisAligned) hitNormal = _voxel_rotateBlockModelQuaternion(quaternion, localNormal);
     return true;
 }
 

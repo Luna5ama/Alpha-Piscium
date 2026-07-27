@@ -78,6 +78,19 @@ if (modelLutBytes.size != lutBytes.size) failures += "model LUT width differs fr
 if (aabbBytes.size % 12 != 0) failures += "block-model AABB texture size is not 12 bytes per AABB"
 val aabbCount = aabbBytes.size / 12
 val aabbTexelWidth = aabbBytes.size / 4
+val axisAlignedAABBCount = (aabbBytes.indices step 12).count { offset ->
+    aabbBytes[offset + 7].toUByte().toInt() == 255
+}
+if ((aabbBytes.indices step 12).any { offset ->
+        val marker = aabbBytes[offset + 7].toUByte().toInt()
+        marker != 0 && marker != 255
+    }) failures += "axis-aligned AABB marker is not binary"
+if ((aabbBytes.indices step 12).any { offset ->
+        aabbBytes[offset + 7].toUByte().toInt() == 255 &&
+            (aabbBytes[offset].toUByte().toInt() != 126 ||
+                aabbBytes[offset + 1].toUByte().toInt() != 126 ||
+                aabbBytes[offset + 2].toUByte().toInt() != 126)
+    }) failures += "axis-aligned AABB marker has a non-identity quaternion"
 fun lutUInt(bytes: ByteArray, materialId: Int) = ByteBuffer.wrap(bytes)
     .order(ByteOrder.LITTLE_ENDIAN).getInt(materialId * 4).toUInt()
 val modelRotationBits = 9
@@ -107,6 +120,9 @@ expect(models, "uint aabbCount = modelData >> 24u;", "packed AABB count decode")
 expect(models, "for (uint i = 0u; i < aabbCount; ++i)", "AABB loop")
 expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
+expect(models, "bool axisAligned = originData.w > 0.5;", "axis-aligned AABB fast path")
+expect(models, "if (!axisAligned) hitNormal = _voxel_rotateBlockModelQuaternion", "axis-aligned normal fast path")
+if (axisAlignedAABBCount <= aabbCount / 2) failures += "axis-aligned AABB encoding does not cover the majority of models"
 val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
 if (Regex("texelFetch\\(usam_blockModelAABBs").findAll(models).count() != 3) failures += "generated model code does not fetch exactly three AABB texels"
 if (models.contains("_voxel_intersectBlockModelQuad") || models.contains("modelID")) failures += "generated model code still hardcodes quad/model ID dispatch"
@@ -206,4 +222,4 @@ if (negativeEdge.level != 0 || negativeEdge.packedBlockPos != null) failures += 
 if (interior.level == 0 || interior.packedBlockPos != 18) failures += "interior step must remain active and pack"
 
 check(failures.isEmpty()) { "Voxel trace contract failed:\n" + failures.joinToString("\n") { "- " + it } }
-println("Voxel trace contract PASS: " + allIds.size + " mappings, " + aabbCount + " AABBs, max " + lutModelData.maxOf(::aabbCount) + "/model, " + aabbTexelWidth + " texels, Minecraft 26.2")
+println("Voxel trace contract PASS: " + allIds.size + " mappings, " + aabbCount + " AABBs (" + axisAlignedAABBCount + " axis-aligned), max " + lutModelData.maxOf(::aabbCount) + "/model, " + aabbTexelWidth + " texels, Minecraft 26.2")
