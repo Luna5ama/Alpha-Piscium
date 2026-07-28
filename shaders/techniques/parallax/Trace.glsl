@@ -16,10 +16,26 @@ float materialDepthMaxAlpha(ivec2 atlasTexel, int level, ivec2 atlasSize) {
     return texelFetch(usam_materialDepthMip, mipPackedOffset(atlasSize, level) + mipTexel, 0).r;
 }
 
-#if SETTING_PARALLAX_MODE == 1
+#if SETTING_PARALLAX_MODE != 0
 ivec2 wrapParallaxCell(ivec2 cell, ivec2 cellMin, ivec2 cellMax) {
     ivec2 cellExtent = max(cellMax - cellMin, ivec2(1));
     return cellMin + ivec2(mod(vec2(cell - cellMin), vec2(cellExtent)));
+}
+#endif
+
+#if SETTING_PARALLAX_MODE == 2
+float smoothstepBilinearDepth(vec4 depths, vec2 position) {
+    vec2 weight = position * position * (3.0 - 2.0 * position);
+    return mix(mix(depths.x, depths.y, weight.x), mix(depths.z, depths.w, weight.x), weight.y);
+}
+
+vec2 smoothstepBilinearGradient(vec4 depths, vec2 position) {
+    vec2 weight = position * position * (3.0 - 2.0 * position);
+    vec2 weightGradient = 6.0 * position * (1.0 - position);
+    return weightGradient * vec2(
+        mix(depths.y - depths.x, depths.w - depths.z, weight.y),
+        mix(depths.z - depths.x, depths.w - depths.y, weight.x)
+    );
 }
 #endif
 
@@ -38,7 +54,7 @@ bool traceParallax(
     vec2 spriteMin = clamp(spriteBounds.xy * atlasSize, vec2(0.0), atlasSize);
     vec2 spriteMax = clamp(spriteBounds.zw * atlasSize, spriteMin + texelEpsilon, atlasSize);
     vec2 spriteExtent = spriteMax - spriteMin;
-    #if SETTING_PARALLAX_MODE == 1
+    #if SETTING_PARALLAX_MODE != 0
     ivec2 spriteTexelMin = ivec2(round(spriteMin));
     ivec2 spriteTexelMax = ivec2(round(spriteMax));
     #endif
@@ -90,13 +106,14 @@ bool traceParallax(
             float depth10 = 1.0 - materialDepthMaxAlpha(texel10, 0, atlasSizeI);
             float depth01 = 1.0 - materialDepthMaxAlpha(texel01, 0, atlasSizeI);
             float depth11 = 1.0 - materialDepthMaxAlpha(texel11, 0, atlasSizeI);
+            vec2 localPosition = samplePosition - mix(vec2(0.0), rayStep * texelEpsilon, activeAxis) - vec2(cell);
+            float segmentLength = max(tExit - t, 0.0);
+            vec2 segmentDelta = rayDeltaTexels * segmentLength;
+            #if SETTING_PARALLAX_MODE == 1
             float depthX = depth10 - depth00;
             float depthY = depth01 - depth00;
             float depthXY = depth11 - depth10 - depth01 + depth00;
 
-            vec2 localPosition = samplePosition - mix(vec2(0.0), rayStep * texelEpsilon, activeAxis) - vec2(cell);
-            float segmentLength = max(tExit - t, 0.0);
-            vec2 segmentDelta = rayDeltaTexels * segmentLength;
             float depthStart = depth00 + depthX * localPosition.x + depthY * localPosition.y
                 + depthXY * localPosition.x * localPosition.y;
             float constantTerm = t - depthStart;
@@ -128,6 +145,73 @@ bool traceParallax(
                 vec2 depthGradient = vec2(depthX + depthXY * hitPosition.y, depthY + depthXY * hitPosition.x);
                 hitSurfaceNormal = vec3(depthGradient * SETTING_STEEP_PARALLAX_DEPTH * spriteExtent, 1.0);
             }
+            #else
+            vec4 depths = vec4(depth00, depth10, depth01, depth11);
+            float hitSegment = 2.0;
+            float previousSegment = 0.0;
+            float startDifference = t - smoothstepBilinearDepth(depths, localPosition);
+            float previousDerivative = segmentLength
+                - dot(smoothstepBilinearGradient(depths, localPosition), segmentDelta);
+            if (startDifference >= -tEpsilon) {
+                hitSegment = 0.0;
+            } else {
+                for (int step = 1; step <= 8; step++) {
+                    float candidateSegment = float(step) * 0.125;
+                    vec2 candidatePosition = localPosition + segmentDelta * candidateSegment;
+                    float candidateDifference = t + segmentLength * candidateSegment
+                        - smoothstepBilinearDepth(depths, candidatePosition);
+                    float candidateDerivative = segmentLength
+                        - dot(smoothstepBilinearGradient(depths, candidatePosition), segmentDelta);
+                    float upperSegment = candidateSegment;
+                    bool bracketed = candidateDifference >= -tEpsilon;
+                    if (!bracketed && previousDerivative > 0.0 && candidateDerivative < 0.0) {
+                        float derivativeLower = previousSegment;
+                        float derivativeUpper = candidateSegment;
+                        for (int refinement = 0; refinement < 8; refinement++) {
+                            float middleSegment = (derivativeLower + derivativeUpper) * 0.5;
+                            vec2 middlePosition = localPosition + segmentDelta * middleSegment;
+                            float middleDerivative = segmentLength
+                                - dot(smoothstepBilinearGradient(depths, middlePosition), segmentDelta);
+                            if (middleDerivative > 0.0) {
+                                derivativeLower = middleSegment;
+                            } else {
+                                derivativeUpper = middleSegment;
+                            }
+                        }
+                        upperSegment = (derivativeLower + derivativeUpper) * 0.5;
+                        vec2 peakPosition = localPosition + segmentDelta * upperSegment;
+                        float peakDifference = t + segmentLength * upperSegment
+                            - smoothstepBilinearDepth(depths, peakPosition);
+                        bracketed = peakDifference >= -tEpsilon;
+                    }
+                    if (bracketed) {
+                        float lowerSegment = previousSegment;
+                        for (int refinement = 0; refinement < 6; refinement++) {
+                            float middleSegment = (lowerSegment + upperSegment) * 0.5;
+                            vec2 middlePosition = localPosition + segmentDelta * middleSegment;
+                            float middleDifference = t + segmentLength * middleSegment
+                                - smoothstepBilinearDepth(depths, middlePosition);
+                            if (middleDifference >= -tEpsilon) {
+                                upperSegment = middleSegment;
+                            } else {
+                                lowerSegment = middleSegment;
+                            }
+                        }
+                        hitSegment = upperSegment;
+                        break;
+                    }
+                    previousSegment = candidateSegment;
+                    previousDerivative = candidateDerivative;
+                }
+            }
+            leafHit = hitSegment <= 1.0;
+            if (leafHit) {
+                hitT = t + segmentLength * hitSegment;
+                vec2 hitPosition = localPosition + segmentDelta * hitSegment;
+                vec2 depthGradient = smoothstepBilinearGradient(depths, hitPosition);
+                hitSurfaceNormal = vec3(depthGradient * SETTING_STEEP_PARALLAX_DEPTH * spriteExtent, 1.0);
+            }
+            #endif
             #endif
             if (leafHit) {
                 vec2 hitTexel = spriteMin + mod(rayStart + rayDeltaTexels * hitT + rayStep * texelEpsilon - spriteMin, spriteExtent);
