@@ -70,10 +70,8 @@ vec3 geomViewTangent;
 vec3 geomViewBitangent;
 
 #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
-vec3 viewPos;
-vec3 viewDir;
-vec3 displacedViewPos;
-vec3 parallaxTangentNormal = vec3(0.0, 0.0, 1.0);
+float displacedViewZ;
+vec2 parallaxSideNormal = vec2(0.0);
 #endif
 
 GBufferData gData = gbufferData_init();
@@ -113,7 +111,7 @@ void processViewZ() {
     viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;
     #elif defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
     #ifdef SETTING_STEEP_PARALLAX_WRITE_VIEWZ
-    viewZ = displacedViewPos.z;
+    viewZ = displacedViewZ;
     #else
     viewZ = frag_viewZ;
     #endif
@@ -144,23 +142,24 @@ void processSteepParallax() {
     processGeometryBasis();
 
     vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp - uval_taaJitterUV;
-    viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
-    viewDir = normalize(-viewPos);
-    displacedViewPos = vec3(0.0, 0.0, frag_viewZ);
+    vec3 viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
+    vec3 viewRay = -viewPos;
+    displacedViewZ = frag_viewZ;
 
-    vec3 viewDirTS = transpose(mat3(geomViewTangent, geomViewBitangent, geomViewNormal)) * viewDir;
-    if (viewDirTS.z <= 1e-4) {
+    vec3 viewRayTS = transpose(mat3(geomViewTangent, geomViewBitangent, geomViewNormal)) * viewRay;
+    if (viewRayTS.z <= 0.0 || viewRayTS.z * viewRayTS.z <= dot(viewRay, viewRay) * 1e-8) {
         return;
     }
 
     vec2 atlasSize = vec2(textureSize(usam_blocksNormal, 0));
     vec2 spriteExtentTexels = max((frag_spriteBounds.zw - frag_spriteBounds.xy) * atlasSize, vec2(1.0));
-    vec2 rayDeltaTexels = -viewDirTS.xy / viewDirTS.z * SETTING_STEEP_PARALLAX_DEPTH * spriteExtentTexels;
+    float parallaxScale = SETTING_STEEP_PARALLAX_DEPTH / viewRayTS.z;
+    vec2 rayDeltaTexels = -viewRayTS.xy * parallaxScale * spriteExtentTexels;
     vec2 hitTexCoord;
     float hitT;
-    if (traceSteepParallax(materialTexCoord, frag_spriteBounds, rayDeltaTexels, hitTexCoord, hitT, parallaxTangentNormal)) {
+    if (traceSteepParallax(materialTexCoord, frag_spriteBounds, rayDeltaTexels, hitTexCoord, hitT, parallaxSideNormal)) {
         materialTexCoord = hitTexCoord;
-        displacedViewPos = viewPos - viewDir * (SETTING_STEEP_PARALLAX_DEPTH * hitT / viewDirTS.z);
+        displacedViewZ = frag_viewZ - viewRay.z * parallaxScale * hitT;
     }
 }
 #endif
@@ -212,10 +211,11 @@ void processData1() {
     tangentNormal.xy *= exp2(SETTING_NORMAL_MAPPING_STRENGTH);
     tangentNormal = normalize(tangentNormal);
     #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_STEEP_PARALLAX) && defined(SETTING_STEEP_PARALLAX_NORMAL)
-    vec3 parallaxTangentReference = abs(parallaxTangentNormal.y) < 0.999 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
-    vec3 parallaxTangent = normalize(cross(parallaxTangentReference, parallaxTangentNormal));
-    vec3 parallaxBitangent = cross(parallaxTangentNormal, parallaxTangent);
-    tangentNormal = normalize(mat3(parallaxTangent, parallaxBitangent, parallaxTangentNormal) * tangentNormal);
+    if (parallaxSideNormal.x != 0.0) {
+        tangentNormal = vec3(parallaxSideNormal.x * tangentNormal.z, tangentNormal.y, -parallaxSideNormal.x * tangentNormal.x);
+    } else if (parallaxSideNormal.y != 0.0) {
+        tangentNormal = vec3(tangentNormal.y, parallaxSideNormal.y * tangentNormal.z, parallaxSideNormal.y * tangentNormal.x);
+    }
     #endif
     gData.normal = normalize(tbn * tangentNormal);
     #endif

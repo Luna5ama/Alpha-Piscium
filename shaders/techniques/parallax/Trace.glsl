@@ -16,24 +16,13 @@ float materialDepthMaxAlpha(ivec2 atlasTexel, int level, ivec2 atlasSize) {
     return texelFetch(usam_materialDepthMip, mipPackedOffset(atlasSize, level) + mipTexel, 0).r;
 }
 
-float materialDepthAxisExit(float origin, float delta, float lower, float upper) {
-    if (delta > 0.0) {
-        return (upper - origin) / delta;
-    }
-    if (delta < 0.0) {
-        return (lower - origin) / delta;
-    }
-    return 1.0;
-}
-
-
 bool traceSteepParallax(
     vec2 atlasTexCoord,
     vec4 spriteBounds,
     vec2 rayDeltaTexels,
     out vec2 hitTexCoord,
     out float hitT,
-    out vec3 hitTangentNormal
+    out vec2 hitSideNormal
 ) {
     const float texelEpsilon = 1e-3;
     float tEpsilon = texelEpsilon / max(max(abs(rayDeltaTexels.x), abs(rayDeltaTexels.y)), 1.0);
@@ -42,6 +31,8 @@ bool traceSteepParallax(
     vec2 spriteMin = clamp(spriteBounds.xy * atlasSize, vec2(0.0), atlasSize);
     vec2 spriteMax = clamp(spriteBounds.zw * atlasSize, spriteMin + texelEpsilon, atlasSize);
     vec2 rayStart = clamp(atlasTexCoord * atlasSize, spriteMin + texelEpsilon, spriteMax - texelEpsilon);
+    vec2 rayStep = sign(rayDeltaTexels);
+    vec2 rayDeltaRcp = rayStep / max(abs(rayDeltaTexels), vec2(1e-20));
 
     float rayMaxT = 1.0;
 
@@ -54,40 +45,36 @@ bool traceSteepParallax(
 
     while (t <= rayMaxT) {
         vec2 rawPosition = rayStart + rayDeltaTexels * t;
-        vec2 position = clamp(rawPosition, spriteMin + texelEpsilon, spriteMax - texelEpsilon);
-        vec2 activeDelta = rayDeltaTexels;
-        if ((activeDelta.x < 0.0 && rawPosition.x <= spriteMin.x) || (activeDelta.x > 0.0 && rawPosition.x >= spriteMax.x)) {
-            activeDelta.x = 0.0;
+        bvec2 activeAxis = notEqual(rayDeltaTexels, vec2(0.0));
+        if ((rayStep.x < 0.0 && rawPosition.x <= spriteMin.x) || (rayStep.x > 0.0 && rawPosition.x >= spriteMax.x)) {
+            activeAxis.x = false;
         }
-        if ((activeDelta.y < 0.0 && rawPosition.y <= spriteMin.y) || (activeDelta.y > 0.0 && rawPosition.y >= spriteMax.y)) {
-            activeDelta.y = 0.0;
+        if ((rayStep.y < 0.0 && rawPosition.y <= spriteMin.y) || (rayStep.y > 0.0 && rawPosition.y >= spriteMax.y)) {
+            activeAxis.y = false;
         }
-        vec2 samplePosition = clamp(position + sign(activeDelta) * texelEpsilon, spriteMin + texelEpsilon, spriteMax - texelEpsilon);
+        vec2 samplePosition = clamp(rawPosition + mix(vec2(0.0), rayStep * texelEpsilon, activeAxis), spriteMin + texelEpsilon, spriteMax - texelEpsilon);
         int cellScaleI = 1 << level;
         float cellScale = float(cellScaleI);
-        ivec2 cell = ivec2(floor(samplePosition / cellScale));
+        ivec2 cell = ivec2(samplePosition / cellScale);
         vec2 cellMin = max(vec2(cell * cellScaleI), spriteMin);
         vec2 cellMax = min(vec2((cell + 1) * cellScaleI), spriteMax);
 
-        float tExitX = materialDepthAxisExit(rayStart.x, activeDelta.x, cellMin.x, cellMax.x);
-        float tExitY = materialDepthAxisExit(rayStart.y, activeDelta.y, cellMin.y, cellMax.y);
-        float tExit = min(rayMaxT, min(tExitX, tExitY));
-        float maxAlpha = materialDepthMaxAlpha(cell, level, atlasSizeI);
-        float minSurfaceDepth = 1.0 - maxAlpha;
+        vec2 cellExit = mix(cellMin, cellMax, greaterThan(rayStep, vec2(0.0)));
+        vec2 tExitXY = mix(vec2(rayMaxT), (cellExit - rayStart) * rayDeltaRcp, activeAxis);
+        float tExit = min(rayMaxT, min(tExitXY.x, tExitXY.y));
+        float surfaceDepth = 1.0 - materialDepthMaxAlpha(cell, level, atlasSizeI);
 
         if (level == 0) {
-            float alpha = maxAlpha;
-            float surfaceDepth = 1.0 - alpha;
-            bool sideHit = dot(entryNormal, entryNormal) > 0.0 && surfaceDepth + tEpsilon < entryT;
+            bool sideHit = any(notEqual(entryNormal, vec2(0.0))) && surfaceDepth + tEpsilon < entryT;
             float candidateT = max(t, surfaceDepth);
             if (candidateT <= tExit + tEpsilon) {
                 hitT = sideHit ? entryT : candidateT;
                 vec2 hitTexel = clamp(rayStart + rayDeltaTexels * hitT, spriteMin + texelEpsilon, spriteMax - texelEpsilon);
                 hitTexCoord = hitTexel / atlasSize;
-                hitTangentNormal = sideHit ? normalize(vec3(entryNormal, 0.0)) : vec3(0.0, 0.0, 1.0);
+                hitSideNormal = sideHit ? entryNormal : vec2(0.0);
                 return true;
             }
-        } else if (tExit + tEpsilon >= minSurfaceDepth) {
+        } else if (tExit + tEpsilon >= surfaceDepth) {
             level -= 1;
             continue;
         }
@@ -101,19 +88,18 @@ bool traceSteepParallax(
         }
         entryT = tExit;
         entryNormal = vec2(0.0);
-        if (activeDelta.x != 0.0 && tExitX <= tExitY) {
-            entryNormal.x = -sign(rayDeltaTexels.x);
-        } else if (activeDelta.y != 0.0) {
-            entryNormal.y = -sign(rayDeltaTexels.y);
+        if (activeAxis.x && tExitXY.x <= tExitXY.y) {
+            entryNormal.x = -rayStep.x;
+        } else if (activeAxis.y) {
+            entryNormal.y = -rayStep.y;
         }
         t = nextT;
-        level += 1;
-        level = min(startLevel, level);
+        level = min(startLevel, level + 1);
     }
 
     hitTexCoord = atlasTexCoord;
     hitT = 0.0;
-    hitTangentNormal = vec3(0.0, 0.0, 1.0);
+    hitSideNormal = vec2(0.0);
     return false;
 }
 
