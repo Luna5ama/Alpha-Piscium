@@ -28,9 +28,8 @@ vec3 _voxel_unrotateBlockModelVector(uint rotation, vec3 value) {
 }
 
 bool _voxel_intersectBlockModelQuad(
-    vec3 rayOrigin, vec3 rayDir, uint quadIndex, inout float hitT, inout vec3 hitNormal
+    vec3 rayOrigin, vec3 rayDir, ivec2 texelCoord, inout float hitT, inout vec3 hitNormal
 ) {
-    ivec2 texelCoord = ivec2(int((quadIndex << 1u) & 0x7FFFu), int(quadIndex >> 14u));
     vec4 originNormalX = texelFetch(usam_blockModelQuads, texelCoord, 0);
     vec4 normalYZHalfSize = texelFetch(usam_blockModelQuads, texelCoord + ivec2(1, 0), 0);
     vec3 origin = originNormalX.xyz;
@@ -56,15 +55,17 @@ bool voxel_intersectBlockModel(
     out float hitT, out vec3 hitNormal
 ) {
     uint rotation = modelData & 0x1FFu;
-    uint quadOffset = (modelData >> 9u) & 0xFFFFu;
     uint quadCount = modelData >> 25u;
+    ivec2 texelCoord = ivec2(int((modelData >> 8u) & 0x7FFEu), int((modelData >> 23u) & 3u));
     rayOrigin = _voxel_rotateBlockModelVector(rotation, rayOrigin - vec3(0.5)) + vec3(0.5);
     rayDir = _voxel_rotateBlockModelVector(rotation, rayDir);
     hitT = uintBitsToFloat(0x7F800000u);
     hitNormal = vec3(0.0);
     bool hit = false;
-    for (uint i = 0u; i < quadCount; ++i) {
-        hit = _voxel_intersectBlockModelQuad(rayOrigin, rayDir, quadOffset + i, hitT, hitNormal) || hit;
+    while (quadCount != 0u) {
+        hit = _voxel_intersectBlockModelQuad(rayOrigin, rayDir, texelCoord, hitT, hitNormal) || hit;
+        texelCoord.x += 2;
+        --quadCount;
     }
     if (hit) hitNormal = _voxel_unrotateBlockModelVector(rotation, normalize(hitNormal));
     return hit;
