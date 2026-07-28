@@ -34,30 +34,47 @@ fun unrotateDiscrete(marker: Int, value: V3): V3 {
     }
     return V3(result[0], result[1], result[2])
 }
-fun rayBox(o: V3, d: V3, lo: V3, hi: V3): Pair<Double, V3>? {
+fun rayBox(
+    o: V3,
+    d: V3,
+    lo: V3,
+    hi: V3,
+    rayMin: Double = 0.0,
+    rayMax: Double = Double.POSITIVE_INFINITY,
+    parallelEpsilon: Double = 1e-12
+): Pair<Double, V3>? {
     val os = doubleArrayOf(o.x, o.y, o.z)
     val ds = doubleArrayOf(d.x, d.y, d.z)
     val ls = doubleArrayOf(lo.x, lo.y, lo.z)
     val hs = doubleArrayOf(hi.x, hi.y, hi.z)
     var enter = Double.NEGATIVE_INFINITY
     var exit = Double.POSITIVE_INFINITY
-    var normal = V3(0.0, 0.0, 0.0)
+    var enterNormal = V3(0.0, 0.0, 0.0)
+    var exitNormal = V3(0.0, 0.0, 0.0)
     for (axis in 0..2) {
-        if (abs(ds[axis]) < 1e-12) {
+        if (abs(ds[axis]) <= parallelEpsilon) {
             if (os[axis] !in ls[axis]..hs[axis]) return null
             continue
         }
         val a = (ls[axis] - os[axis]) / ds[axis]
         val b = (hs[axis] - os[axis]) / ds[axis]
         val near = minOf(a, b)
+        val far = maxOf(a, b)
         if (near > enter) {
             enter = near
             val s = if (ds[axis] > 0) -1.0 else 1.0
-            normal = when (axis) { 0 -> V3(s,0.0,0.0); 1 -> V3(0.0,s,0.0); else -> V3(0.0,0.0,s) }
+            enterNormal = when (axis) { 0 -> V3(s,0.0,0.0); 1 -> V3(0.0,s,0.0); else -> V3(0.0,0.0,s) }
         }
-        exit = minOf(exit, maxOf(a, b))
+        if (far < exit) {
+            exit = far
+            val s = if (ds[axis] > 0) 1.0 else -1.0
+            exitNormal = when (axis) { 0 -> V3(s,0.0,0.0); 1 -> V3(0.0,s,0.0); else -> V3(0.0,0.0,s) }
+        }
     }
-    return if (enter <= exit && exit >= 0) maxOf(enter, 0.0) to normal else null
+    val startsInside = enter < rayMin
+    val t = if (startsInside) exit else enter
+    val normal = if (startsInside) exitNormal else enterNormal
+    return if (enter <= exit && t in rayMin..rayMax) t to normal else null
 }
 val root = Path.of("..").toAbsolutePath().normalize()
 fun read(path: String) = Files.readString(root.resolve(path))
@@ -146,16 +163,17 @@ expect(models, "uint discreteRotation = uint(originData.w * 255.0 + 0.5);", "dis
 expect(models, "_voxel_unrotateBlockModelVector(discreteRotation, localNormal)", "discrete normal rotation")
 expect(models, "int entryAxis = 0;", "scalar entry axis")
 expect(models, "int exitAxis = 0;", "scalar exit axis")
+expect(models, "float rayMinT, float rayMaxT", "leaf ray interval")
+expect(models, "if (abs(localDir[axis]) <= 1e-6)", "sanitized parallel direction")
 expect(models, "float signedHalfSize = halfSize[axis] * sign(localDir[axis]);", "signed slab half-size")
 expect(models, "float nearT = (-signedHalfSize - localOrigin[axis]) / localDir[axis];", "signed slab near distance")
 expect(models, "float farT = (signedHalfSize - localOrigin[axis]) / localDir[axis];", "signed slab far distance")
-expect(models, "int encodedAxis = nearT == farT && localDir[axis] < 0.0 ? -axis - 1 : axis;", "collapsed axis encoding")
-expect(models, "entryAxis = encodedAxis;", "entry axis tracking")
-expect(models, "exitAxis = encodedAxis;", "exit axis tracking")
-expect(models, "bool collapsedNegative = normalAxis < 0;", "collapsed negative flag")
-expect(models, "normalAxis = max(normalAxis, -normalAxis - 1);", "collapsed axis decode")
-expect(models, "localNormal[normalAxis] = collapsedNegative ? -1.0 : -sign(localDir[normalAxis]);", "signed slab normal")
-listOf("entryNormal", "exitNormal", "nearSign", "farSign", "if (nearT > farT)").forEach {
+expect(models, "entryAxis = axis;", "entry axis tracking")
+expect(models, "exitAxis = axis;", "exit axis tracking")
+expect(models, "bool startsInside = entryT < rayMinT;", "bounded inside selection")
+expect(models, "if (!(t >= rayMinT && t <= min(rayMaxT, hitT))) return false;", "bounded slab hit")
+expect(models, "localNormal[normalAxis] = -sign(localDir[normalAxis]);", "signed slab normal")
+listOf("entryNormal", "exitNormal", "nearSign", "farSign", "encodedAxis", "collapsedNegative", "if (nearT > farT)").forEach {
     if (models.contains(it)) failures += "generated model code still uses obsolete slab token: " + it
 }
 if (discreteAABBCount <= aabbCount / 2) failures += "discrete AABB encoding does not cover the majority of models"
@@ -184,6 +202,7 @@ expect(shadow, "materialID != MATERIAL_ID_WATER", "water exclusion")
 expect(trace, "#include \"/util/HardcodedPBR.glsl\"", "trace PBR include")
 expect(trace, "#include \"/techniques/voxel/BlockModels.glsl\"", "trace model include")
 expect(trace, "voxel_intersectBlockModel(", "trace model call")
+expect(trace, "lastT, blockExitT, modelT, modelNormal", "trace leaf interval")
 expect(trace, "hardcoded.isFullCube", "full-cube fast path")
 expect(trace, "hardcoded.blockModelMetadata != 0u", "unsupported exclusion")
 listOf("ray.lastT = lastT;", "ray.level = level;", "ray.fullMorton = fullMorton;").forEach { expect(trace, it, "resumable state") }
@@ -247,6 +266,24 @@ val first = rayBox(V3(-1.0,.75,.5), V3(1.0,0.0,0.0), V3(0.0,0.0,0.0), V3(1.0,.5,
 val later = rayBox(V3(-1.0,.75,.5), V3(1.0,0.0,0.0), V3(2.0,0.0,0.0), V3(3.0,1.0,1.0))
 if (first != null || later?.first != 3.0) failures += "model-miss continuation"
 if (rayBox(V3(-1.0,.25,.25), V3(1.0,0.0,0.0), V3(0.0,0.0,0.0), V3(1.0,1.0,1.0))?.first != 1.0) failures += "full-cube entry"
+if (rayBox(
+        V3(2.0, .5, .5), V3(-1.0, 0.0, 0.0),
+        V3(1.05, .4, .4), V3(1.1, .6, .6), 1.0, 2.0
+    ) != null) failures += "out-of-cell model hit"
+if (rayBox(
+        V3(2.0, .5, .5), V3(-1.0, 0.0, 0.0),
+        V3(.5, .4, .4), V3(1.1, .6, .6), 1.0, 2.0
+    )?.first != 1.5) failures += "model interval inside exit"
+if (rayBox(
+        V3(-100.5, .25, 0.0), V3(1.0, 1e-7, 1e-7),
+        V3(-.250001, -.250001, -.250001), V3(.250001, .250001, .250001),
+        parallelEpsilon = 1e-6
+    ) == null) failures += "sanitized parallel grazing hit"
+if (rayBox(
+        V3(0.0, 100.0, 0.0), V3(1e-7, -1.0, 1e-7),
+        V3(-.5, 0.0, -.5), V3(.5, 0.0, .5),
+        parallelEpsilon = 1e-6
+    )?.second != V3(0.0, 1.0, 0.0)) failures += "collapsed slab face-forward normal"
 fun voxelized(id: Int, full: Boolean, model: Boolean) = id != 0 && id != 1 && (full || model)
 if (voxelized(1,false,true) || voxelized(0,true,false) || voxelized(2,false,false)) failures += "water/zero/unsupported exclusion"
 data class DdaStep(val level: Int, val packedBlockPos: Int?)

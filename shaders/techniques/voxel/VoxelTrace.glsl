@@ -161,7 +161,7 @@ VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData
     startPos = clamp(startPos, vec3(EPS), vec3(float(GRID_BLOCKS) - EPS));
     ivec3 blockPos = ivec3(floor(startPos));
 
-    ray.lastT = tCurrent;
+    ray.lastT = max(tEnter, 0.0);
 
     // Entry axis (only meaningful when ray started outside the grid)
     ray.lastAxis = -1;
@@ -257,10 +257,14 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
                 if (hardcoded.blockModelMetadata != 0u && material != MATERIAL_ID_WATER) {
                     vec3 blockLocalRayOrigin = worldRayOrigin - gridOriginF - vec3(blockPos);
+                    ivec3 blockTarget = blockPos + (ivec3(1) & boundOffsetMask);
+                    vec3 blockExit = fma(vec3(blockTarget), invDir, tOrig);
+                    float blockExitT = min(min(blockExit.x, blockExit.y), blockExit.z);
                     float modelT;
                     vec3 modelNormal;
                     if (voxel_intersectBlockModel(
-                            hardcoded.blockModelMetadata, blockLocalRayOrigin, worldRayDir, modelT, modelNormal)) {
+                            hardcoded.blockModelMetadata, blockLocalRayOrigin, worldRayDir,
+                            lastT, blockExitT, modelT, modelNormal)) {
                         VoxelHit result;
                         result.hit = true;
                         result.hitPos = fma(worldRayDir, vec3(modelT), worldRayOrigin);

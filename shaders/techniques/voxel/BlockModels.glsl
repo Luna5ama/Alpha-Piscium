@@ -42,7 +42,8 @@ uint _voxel_expandBlockModelRotation(uint rotation) {
 }
 
 bool _voxel_intersectBlockModelAABB(
-    vec3 rayOrigin, vec3 rayDir, uint aabbIndex, inout float hitT, inout vec3 hitNormal
+    vec3 rayOrigin, vec3 rayDir, uint aabbIndex, float rayMinT, float rayMaxT,
+    inout float hitT, inout vec3 hitNormal
 ) {
     int texelIndex = int(aabbIndex * 3u);
     vec4 originData = texelFetch(usam_blockModelAABBs, texelIndex + 1, 0);
@@ -68,32 +69,29 @@ bool _voxel_intersectBlockModelAABB(
     int entryAxis = 0;
     int exitAxis = 0;
     for (int axis = 0; axis < 3; ++axis) {
-        if (abs(localDir[axis]) <= 1e-8) {
+        if (abs(localDir[axis]) <= 1e-6) {
             if (abs(localOrigin[axis]) > halfSize[axis]) return false;
             continue;
         }
         float signedHalfSize = halfSize[axis] * sign(localDir[axis]);
         float nearT = (-signedHalfSize - localOrigin[axis]) / localDir[axis];
         float farT = (signedHalfSize - localOrigin[axis]) / localDir[axis];
-        int encodedAxis = nearT == farT && localDir[axis] < 0.0 ? -axis - 1 : axis;
         if (nearT > entryT) {
             entryT = nearT;
-            entryAxis = encodedAxis;
+            entryAxis = axis;
         }
         if (farT < exitT) {
             exitT = farT;
-            exitAxis = encodedAxis;
+            exitAxis = axis;
         }
         if (entryT > exitT) return false;
     }
-    bool startsInside = entryT < 0.0;
+    bool startsInside = entryT < rayMinT;
     float t = startsInside ? exitT : entryT;
-    if (!(t >= 0.0 && t <= hitT)) return false;
+    if (!(t >= rayMinT && t <= min(rayMaxT, hitT))) return false;
     int normalAxis = startsInside ? exitAxis : entryAxis;
-    bool collapsedNegative = normalAxis < 0;
-    normalAxis = max(normalAxis, -normalAxis - 1);
     vec3 localNormal = vec3(0.0);
-    localNormal[normalAxis] = collapsedNegative ? -1.0 : -sign(localDir[normalAxis]);
+    localNormal[normalAxis] = -sign(localDir[normalAxis]);
     hitT = t;
     if (discrete) {
         hitNormal = _voxel_unrotateBlockModelVector(discreteRotation, localNormal);
@@ -104,7 +102,7 @@ bool _voxel_intersectBlockModelAABB(
 }
 
 bool voxel_intersectBlockModel(
-    uint modelData, vec3 rayOrigin, vec3 rayDir,
+    uint modelData, vec3 rayOrigin, vec3 rayDir, float rayMinT, float rayMaxT,
     out float hitT, out vec3 hitNormal
 ) {
     uint rotation = modelData & 511u;
@@ -116,7 +114,9 @@ bool voxel_intersectBlockModel(
     hitNormal = vec3(0.0);
     bool hit = false;
     for (uint i = 0u; i < aabbCount; ++i) {
-        hit = _voxel_intersectBlockModelAABB(rayOrigin, rayDir, aabbOffset + i, hitT, hitNormal) || hit;
+        hit = _voxel_intersectBlockModelAABB(
+            rayOrigin, rayDir, aabbOffset + i, rayMinT, rayMaxT, hitT, hitNormal
+        ) || hit;
     }
     if (hit) hitNormal = _voxel_unrotateBlockModelVector(rotation, hitNormal);
     return hit;
