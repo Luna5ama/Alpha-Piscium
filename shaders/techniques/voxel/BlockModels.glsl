@@ -30,9 +30,9 @@ vec3 _voxel_unrotateBlockModelVector(uint rotation, vec3 value) {
 bool _voxel_intersectBlockModelQuad(
     vec3 rayOrigin, vec3 rayDir, uint quadIndex, inout float hitT, inout vec3 hitNormal
 ) {
-    int texelIndex = int(quadIndex * 2u);
-    vec4 originNormalX = texelFetch(usam_blockModelQuads, texelIndex, 0);
-    vec4 normalYZHalfSize = texelFetch(usam_blockModelQuads, texelIndex + 1, 0);
+    ivec2 texelCoord = ivec2(int((quadIndex << 1u) & 0x7FFFu), int(quadIndex >> 14u));
+    vec4 originNormalX = texelFetch(usam_blockModelQuads, texelCoord, 0);
+    vec4 normalYZHalfSize = texelFetch(usam_blockModelQuads, texelCoord + ivec2(1, 0), 0);
     vec3 origin = originNormalX.xyz;
     vec3 normal = normalize(vec3(originNormalX.w, normalYZHalfSize.xy) * (255.0 / 126.0) - 1.0);
     vec2 halfSize = normalYZHalfSize.zw + 1e-6;

@@ -182,6 +182,12 @@ programs {
     ProgramType.PREPARE {
         pass("/pass/shadowcomp/EvaluateShadowWaterNormal.glsl")
         pass("/pass/shadow/VoxelTreeBuilder.comp.glsl")
+        pass("/pass/shadow/VoxelFaceMask.comp.glsl") {
+            define("VOXEL_FACE_MASK_PARITY", 0)
+        }
+        pass("/pass/shadow/VoxelFaceMask.comp.glsl") {
+            define("VOXEL_FACE_MASK_PARITY", 1)
+        }
         pass("/pass/shadow/VoxelTreePropagator.comp.glsl") {
             cond("SETTING_VOXEL_GRID_SIZE < 64")
         }
