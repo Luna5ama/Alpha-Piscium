@@ -442,6 +442,23 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "控制陡峭视差位移的最大深度，单位为方块。"
                         }
                     }
+                    slider("SETTING_STEEP_PARALLAX_MAX_ITERATIONS", 128, powerOfTwoAndHalfRange(5..8)) {
+                        Profile.Low preset 48
+                        Profile.Medium preset 64
+                        Profile.High preset 96
+                        Profile.Ultra preset 128
+                        Profile.Extreme preset 192
+                        Profile.Insane preset 256
+
+                        lang {
+                            name = "Parallax Max Iterations"
+                            comment = "Maximum steep parallax tracing iterations. Higher values improve quality but reduce performance."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "视差最大迭代次数"
+                            comment = "陡峭视差追踪的最大迭代次数。数值越高，质量越好，但会降低性能。"
+                        }
+                    }
                     toggle("SETTING_STEEP_PARALLAX_WRITE_VIEWZ", true) {
                         lang {
                             name = "Parallax View Depth"
