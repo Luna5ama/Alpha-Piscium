@@ -21,20 +21,58 @@ ivec2 wrapParallaxCell(ivec2 cell, ivec2 cellMin, ivec2 cellMax) {
     ivec2 cellExtent = max(cellMax - cellMin, ivec2(1));
     return cellMin + ivec2(mod(vec2(cell - cellMin), vec2(cellExtent)));
 }
+
+float wrappedMaterialDepth(ivec2 cell, ivec2 cellMin, ivec2 cellMax, ivec2 atlasSize) {
+    return 1.0 - materialDepthMaxAlpha(wrapParallaxCell(cell, cellMin, cellMax), 0, atlasSize);
+}
 #endif
 
 #if SETTING_PARALLAX_MODE == 2
-float smoothstepBilinearDepth(vec4 depths, vec2 position) {
+float continuousParallaxDepth(vec4 depths, vec2 position) {
     vec2 weight = position * position * (3.0 - 2.0 * position);
     return mix(mix(depths.x, depths.y, weight.x), mix(depths.z, depths.w, weight.x), weight.y);
 }
 
-vec2 smoothstepBilinearGradient(vec4 depths, vec2 position) {
+vec2 continuousParallaxGradient(vec4 depths, vec2 position) {
     vec2 weight = position * position * (3.0 - 2.0 * position);
     vec2 weightGradient = 6.0 * position * (1.0 - position);
     return weightGradient * vec2(
         mix(depths.y - depths.x, depths.w - depths.z, weight.y),
         mix(depths.z - depths.x, depths.w - depths.y, weight.x)
+    );
+}
+#elif SETTING_PARALLAX_MODE == 3
+vec4 bSplineWeights(float position) {
+    float position2 = position * position;
+    float position3 = position2 * position;
+    return vec4(
+        1.0 - 3.0 * position + 3.0 * position2 - position3,
+        4.0 - 6.0 * position2 + 3.0 * position3,
+        1.0 + 3.0 * position + 3.0 * position2 - 3.0 * position3,
+        position3
+    ) * (1.0 / 6.0);
+}
+
+vec4 bSplineWeightGradients(float position) {
+    float position2 = position * position;
+    return vec4(
+        -3.0 + 6.0 * position - 3.0 * position2,
+        -12.0 * position + 9.0 * position2,
+        3.0 + 6.0 * position - 9.0 * position2,
+        3.0 * position2
+    ) * (1.0 / 6.0);
+}
+
+float continuousParallaxDepth(mat4 depths, vec2 position) {
+    return dot(bSplineWeights(position.x), depths * bSplineWeights(position.y));
+}
+
+vec2 continuousParallaxGradient(mat4 depths, vec2 position) {
+    vec4 weightX = bSplineWeights(position.x);
+    vec4 weightY = bSplineWeights(position.y);
+    return vec2(
+        dot(bSplineWeightGradients(position.x), depths * weightY),
+        dot(weightX, depths * bSplineWeightGradients(position.y))
     );
 }
 #endif
@@ -98,17 +136,42 @@ bool traceParallax(
                 hitSurfaceNormal = sideHit ? vec3(entryNormal, 0.0) : vec3(0.0, 0.0, 1.0);
             }
             #else
-            ivec2 texel00 = wrapParallaxCell(cell, spriteTexelMin, spriteTexelMax);
-            ivec2 texel10 = wrapParallaxCell(cell + ivec2(1, 0), spriteTexelMin, spriteTexelMax);
-            ivec2 texel01 = wrapParallaxCell(cell + ivec2(0, 1), spriteTexelMin, spriteTexelMax);
-            ivec2 texel11 = wrapParallaxCell(cell + ivec2(1), spriteTexelMin, spriteTexelMax);
-            float depth00 = 1.0 - materialDepthMaxAlpha(texel00, 0, atlasSizeI);
-            float depth10 = 1.0 - materialDepthMaxAlpha(texel10, 0, atlasSizeI);
-            float depth01 = 1.0 - materialDepthMaxAlpha(texel01, 0, atlasSizeI);
-            float depth11 = 1.0 - materialDepthMaxAlpha(texel11, 0, atlasSizeI);
             vec2 localPosition = samplePosition - mix(vec2(0.0), rayStep * texelEpsilon, activeAxis) - vec2(cell);
             float segmentLength = max(tExit - t, 0.0);
             vec2 segmentDelta = rayDeltaTexels * segmentLength;
+            #if SETTING_PARALLAX_MODE == 3
+            mat4 depthSamples = mat4(
+                vec4(
+                    wrappedMaterialDepth(cell + ivec2(-1, -1), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(0, -1), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(1, -1), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(2, -1), spriteTexelMin, spriteTexelMax, atlasSizeI)
+                ),
+                vec4(
+                    wrappedMaterialDepth(cell + ivec2(-1, 0), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(0, 0), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(1, 0), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(2, 0), spriteTexelMin, spriteTexelMax, atlasSizeI)
+                ),
+                vec4(
+                    wrappedMaterialDepth(cell + ivec2(-1, 1), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(0, 1), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(1, 1), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(2, 1), spriteTexelMin, spriteTexelMax, atlasSizeI)
+                ),
+                vec4(
+                    wrappedMaterialDepth(cell + ivec2(-1, 2), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(0, 2), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(1, 2), spriteTexelMin, spriteTexelMax, atlasSizeI),
+                    wrappedMaterialDepth(cell + ivec2(2, 2), spriteTexelMin, spriteTexelMax, atlasSizeI)
+                )
+            );
+            #else
+            float depth00 = wrappedMaterialDepth(cell, spriteTexelMin, spriteTexelMax, atlasSizeI);
+            float depth10 = wrappedMaterialDepth(cell + ivec2(1, 0), spriteTexelMin, spriteTexelMax, atlasSizeI);
+            float depth01 = wrappedMaterialDepth(cell + ivec2(0, 1), spriteTexelMin, spriteTexelMax, atlasSizeI);
+            float depth11 = wrappedMaterialDepth(cell + ivec2(1), spriteTexelMin, spriteTexelMax, atlasSizeI);
+            #endif
             #if SETTING_PARALLAX_MODE == 1
             float depthX = depth10 - depth00;
             float depthY = depth01 - depth00;
@@ -146,12 +209,16 @@ bool traceParallax(
                 hitSurfaceNormal = vec3(depthGradient * SETTING_STEEP_PARALLAX_DEPTH * spriteExtent, 1.0);
             }
             #else
+            #if SETTING_PARALLAX_MODE == 2
             vec4 depths = vec4(depth00, depth10, depth01, depth11);
+            #else
+            mat4 depths = depthSamples;
+            #endif
             float hitSegment = 2.0;
             float previousSegment = 0.0;
-            float startDifference = t - smoothstepBilinearDepth(depths, localPosition);
+            float startDifference = t - continuousParallaxDepth(depths, localPosition);
             float previousDerivative = segmentLength
-                - dot(smoothstepBilinearGradient(depths, localPosition), segmentDelta);
+                - dot(continuousParallaxGradient(depths, localPosition), segmentDelta);
             if (startDifference >= -tEpsilon) {
                 hitSegment = 0.0;
             } else {
@@ -159,9 +226,9 @@ bool traceParallax(
                     float candidateSegment = float(step) * 0.125;
                     vec2 candidatePosition = localPosition + segmentDelta * candidateSegment;
                     float candidateDifference = t + segmentLength * candidateSegment
-                        - smoothstepBilinearDepth(depths, candidatePosition);
+                        - continuousParallaxDepth(depths, candidatePosition);
                     float candidateDerivative = segmentLength
-                        - dot(smoothstepBilinearGradient(depths, candidatePosition), segmentDelta);
+                        - dot(continuousParallaxGradient(depths, candidatePosition), segmentDelta);
                     float upperSegment = candidateSegment;
                     bool bracketed = candidateDifference >= -tEpsilon;
                     if (!bracketed && previousDerivative > 0.0 && candidateDerivative < 0.0) {
@@ -171,7 +238,7 @@ bool traceParallax(
                             float middleSegment = (derivativeLower + derivativeUpper) * 0.5;
                             vec2 middlePosition = localPosition + segmentDelta * middleSegment;
                             float middleDerivative = segmentLength
-                                - dot(smoothstepBilinearGradient(depths, middlePosition), segmentDelta);
+                                - dot(continuousParallaxGradient(depths, middlePosition), segmentDelta);
                             if (middleDerivative > 0.0) {
                                 derivativeLower = middleSegment;
                             } else {
@@ -181,7 +248,7 @@ bool traceParallax(
                         upperSegment = (derivativeLower + derivativeUpper) * 0.5;
                         vec2 peakPosition = localPosition + segmentDelta * upperSegment;
                         float peakDifference = t + segmentLength * upperSegment
-                            - smoothstepBilinearDepth(depths, peakPosition);
+                            - continuousParallaxDepth(depths, peakPosition);
                         bracketed = peakDifference >= -tEpsilon;
                     }
                     if (bracketed) {
@@ -190,7 +257,7 @@ bool traceParallax(
                             float middleSegment = (lowerSegment + upperSegment) * 0.5;
                             vec2 middlePosition = localPosition + segmentDelta * middleSegment;
                             float middleDifference = t + segmentLength * middleSegment
-                                - smoothstepBilinearDepth(depths, middlePosition);
+                                - continuousParallaxDepth(depths, middlePosition);
                             if (middleDifference >= -tEpsilon) {
                                 upperSegment = middleSegment;
                             } else {
@@ -208,7 +275,7 @@ bool traceParallax(
             if (leafHit) {
                 hitT = t + segmentLength * hitSegment;
                 vec2 hitPosition = localPosition + segmentDelta * hitSegment;
-                vec2 depthGradient = smoothstepBilinearGradient(depths, hitPosition);
+                vec2 depthGradient = continuousParallaxGradient(depths, hitPosition);
                 hitSurfaceNormal = vec3(depthGradient * SETTING_STEEP_PARALLAX_DEPTH * spriteExtent, 1.0);
             }
             #endif
@@ -224,6 +291,15 @@ bool traceParallax(
             #else
             ivec2 mipCellMin = ivec2(floor(spriteMin / cellScale));
             ivec2 mipCellMax = ivec2(ceil(spriteMax / cellScale));
+            #if SETTING_PARALLAX_MODE == 3
+            float maxSurfaceAlpha = 0.0;
+            for (int cellY = -1; cellY <= 1; cellY++) {
+                for (int cellX = -1; cellX <= 1; cellX++) {
+                    ivec2 wrappedCell = wrapParallaxCell(cell + ivec2(cellX, cellY), mipCellMin, mipCellMax);
+                    maxSurfaceAlpha = max(maxSurfaceAlpha, materialDepthMaxAlpha(wrappedCell, level, atlasSizeI));
+                }
+            }
+            #else
             ivec2 cellX = wrapParallaxCell(cell + ivec2(1, 0), mipCellMin, mipCellMax);
             ivec2 cellY = wrapParallaxCell(cell + ivec2(0, 1), mipCellMin, mipCellMax);
             ivec2 cellXY = wrapParallaxCell(cell + ivec2(1), mipCellMin, mipCellMax);
@@ -231,6 +307,7 @@ bool traceParallax(
             maxSurfaceAlpha = max(maxSurfaceAlpha, materialDepthMaxAlpha(cellX, level, atlasSizeI));
             maxSurfaceAlpha = max(maxSurfaceAlpha, materialDepthMaxAlpha(cellY, level, atlasSizeI));
             maxSurfaceAlpha = max(maxSurfaceAlpha, materialDepthMaxAlpha(cellXY, level, atlasSizeI));
+            #endif
             float surfaceDepth = 1.0 - maxSurfaceAlpha;
             #endif
             if (tExit + tEpsilon >= surfaceDepth) {
