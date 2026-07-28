@@ -5,7 +5,7 @@
 //   Level 2 (brick root, 1 uvec2 per brick): bit j = 1 if sub-region j has any solid block.
 //
 // Tree nodes are written to the dense layout (indexed by brickMorton, not allocID).
-// Material data is read via allocID (sparse pool).
+// Material data is still read via allocID (sparse pool).
 //
 // Dispatch: one workgroup per 4 bricks in the VOXEL_GRID_SIZE^3 grid.
 // Threads per workgroup: 256 (64 per brick × 4 bricks, one thread per sub-region).
@@ -31,7 +31,9 @@
 #define VOXEL_MATERIAL_VEC4 a
 #define VOXEL_MATERIAL_DATA_MODIFIER restrict readonly buffer
 #define VOXEL_TREE_DATA_MODIFIER buffer
+#define RC_DATA_MODIFIER restrict buffer
 #include "/techniques/voxel/Voxelization.glsl"
+#include "/techniques/gi/RadianceCache.glsl"
 
 layout(std430, binding = 8) VOXEL_TREE_DATA_MODIFIER VoxelTreeData {
     uvec2 voxel_tree[];       // VOXEL_TREE_TOTAL uvec2 entries
@@ -49,6 +51,49 @@ const ivec3 workGroups = ivec3(1024, 1, 1);
 
 shared uint rootMaskLo[4];
 shared uint rootMaskHi[4];
+
+bool voxel_isGIOpaqueMaterial(uint materialID) {
+    return materialID != 0u && materialID != MATERIAL_ID_WATER;
+}
+
+uint voxel_loadMaterialID(uint allocID, uint blockMorton) {
+    uint packedIndex = allocID * 1024u + (blockMorton >> 2u);
+    uvec4 packedMaterialData = voxel_materials_v4[packedIndex];
+    uint lane = blockMorton & 3u;
+    if (lane == 0u) return packedMaterialData.x;
+    if (lane == 1u) return packedMaterialData.y;
+    if (lane == 2u) return packedMaterialData.z;
+    return packedMaterialData.w;
+}
+
+bool voxel_opaqueAtGridBlock(ivec3 gridBlockPos) {
+    int gridExtent = VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE;
+    if (any(lessThan(gridBlockPos, ivec3(0))) || any(greaterThanEqual(gridBlockPos, ivec3(gridExtent)))) {
+        return false;
+    }
+
+    ivec3 brickCoord = gridBlockPos >> 4;
+    uint brickMorton = voxel_brickMorton(brickCoord);
+    uint allocID = voxel_brickAllocID[brickMorton];
+    if (allocID == VOXEL_UNALLOCATED) {
+        return false;
+    }
+
+    uint blockMorton = voxel_blockMorton(gridBlockPos & 15);
+    return voxel_isGIOpaqueMaterial(voxel_loadMaterialID(allocID, blockMorton));
+}
+
+void rc_markPendingVisibleFace(ivec3 worldBlockPos, uint faceBits) {
+    vec3 ownerBlockCenter = vec3(worldBlockPos) + vec3(0.5);
+    for (uint level = 0u; level < RC_CLIP_LEVELS; level++) {
+        ivec3 worldCellCoord = rc_worldCellCoord(ownerBlockCenter, level);
+        if (rc_worldCellInCurrentClip(level, worldCellCoord)) {
+            uint entryIndex = rc_entryIndex(level, worldCellCoord);
+            uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
+            atomicOr(rc_indirection[bufferIndex].w, rc_entryMetaPendingFaceBits(faceBits));
+        }
+    }
+}
 
 void main() {
     uint localID    = gl_LocalInvocationID.x;
@@ -74,7 +119,7 @@ void main() {
 
         // First 8 uvec4 reads → 32 blocks → leafLow (bits 0..31)
         for (uint i = 0u; i < 8u; i++) {
-            uvec4 mats = voxel_materials_v4[baseIdx + i] & uvec4(0xFFFFu);
+            uvec4 mats = voxel_materials_v4[baseIdx + i];
             uvec4 bits4 = uvec4(notEqual(mats, uvec4(0u))) << uvec4(0u, 1u, 2u, 3u);
             uint bits = bits4.x + bits4.y + bits4.z + bits4.w;
             leafLow |= bits << (i * 4u);
@@ -82,7 +127,7 @@ void main() {
 
         // Next 8 uvec4 reads → 32 blocks → leafHigh (bits 0..31)
         for (uint i = 0u; i < 8u; i++) {
-            uvec4 mats = voxel_materials_v4[baseIdx + 8u + i] & uvec4(0xFFFFu);
+            uvec4 mats = voxel_materials_v4[baseIdx + 8u + i];
             uvec4 bits4 = uvec4(notEqual(mats, uvec4(0u))) << uvec4(0u, 1u, 2u, 3u);
             uint bits = bits4.x + bits4.y + bits4.z + bits4.w;
             leafHigh |= bits << (i * 4u);
@@ -91,6 +136,39 @@ void main() {
         // Write Level-1 leaf node
         uint leafIdx = uint(VOXEL_TREE_OFFSET_L1) + brickMorton * 64u + subRegion;
         voxel_tree[leafIdx] = uvec2(leafLow, leafHigh);
+
+        ivec3 cameraBrick = cameraPositionInt >> 4;
+        ivec3 gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
+        uvec3 brickCoordU = morton3D_30bDecode(brickMorton);
+        ivec3 brickBlockBase = ivec3(brickCoordU << 4u);
+
+        for (uint i = 0u; i < 16u; i++) {
+            uvec4 mats = voxel_materials_v4[baseIdx + i];
+            for (uint lane = 0u; lane < 4u; lane++) {
+                uint blockInSubRegion = i * 4u + lane;
+                uint materialID = lane == 0u ? mats.x : (lane == 1u ? mats.y : (lane == 2u ? mats.z : mats.w));
+                if (!voxel_isGIOpaqueMaterial(materialID)) {
+                    continue;
+                }
+
+                uint blockMorton = subRegion * 64u + blockInSubRegion;
+                ivec3 blockInBrick = ivec3(morton3D_12bDecode(blockMorton));
+                ivec3 gridBlockPos = brickBlockBase + blockInBrick;
+                ivec3 worldBlockPos = gridOrigin + gridBlockPos;
+
+                uint faceBits = 0u;
+                for (uint faceId = 0u; faceId < 6u; faceId++) {
+                    ivec3 faceNormalI = rc_faceNormalI(faceId);
+                    ivec3 neighborGridBlock = gridBlockPos + faceNormalI;
+                    if (!voxel_opaqueAtGridBlock(neighborGridBlock)) {
+                        faceBits |= rc_faceBit(faceId);
+                    }
+                }
+                if (faceBits != 0u) {
+                    rc_markPendingVisibleFace(worldBlockPos, faceBits);
+                }
+            }
+        }
 
         // Parallel reduction: compute bit(s) this thread contributes to the root mask
         bool subRegionNonEmpty = (leafLow | leafHigh) != 0u;

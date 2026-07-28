@@ -1,5 +1,4 @@
 #version 460 compatibility
 #define COMP 1
-#define VOXEL_FACE_MASK_PARITY 1
 
-#include "/pass/shadow/VoxelFaceMask.comp.glsl"
+#include "/pass/shadow/VoxelTreePropagatorLower.comp.glsl"

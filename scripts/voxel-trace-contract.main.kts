@@ -62,12 +62,6 @@ val voxelization = read("shaders/techniques/voxel/Voxelization.glsl")
 val builder = read("shaders/pass/shadow/VoxelTreeBuilder.comp.glsl")
 val faceMaskPath = root.resolve("shaders/pass/shadow/VoxelFaceMask.comp.glsl")
 val faceMaskImplementationPath = root.resolve("shaders/techniques/voxel/VoxelFaceMask.glsl")
-val faceMask = if (Files.exists(faceMaskPath) && Files.exists(faceMaskImplementationPath)) {
-    Files.readString(faceMaskPath) + Files.readString(faceMaskImplementationPath)
-} else {
-    failures += "voxel face-mask publisher missing"
-    ""
-}
 val programs = read("scripts/programs.main.kts")
 val properties = read("scripts/shaders.properties")
 val finalProperties = read("shaders/shaders.properties")
@@ -155,30 +149,26 @@ if (Regex("(?m)\\b(?:const\\s+)?(?:vec[234]|u?int|float|bool)\\s+\\w+\\s*\\[").c
 }
 
 expect(hardcoded, "uint blockModelMetadata;", "PBR model metadata member")
-expect(hardcoded, Regex("HardcodedPBR\\s+hardcodedpbr_decode\\s*\\(\\s*uint\\s+materialID\\s*,\\s*uint\\s+openFaceMask\\s*\\)"), "open-face decode API")
-expect(hardcoded, Regex("texelFetch\\s*\\(\\s*usam_pbrLUT1\\s*,\\s*ivec2\\s*\\(\\s*int\\s*\\(\\s*openFaceMask\\s*\\)\\s*,\\s*int\\s*\\(\\s*materialID\\s*\\)\\s*\\)\\s*,\\s*0\\s*\\)"), "row-major 2D model metadata fetch")
+expect(hardcoded, Regex("HardcodedPBR\\s+hardcodedpbr_decode\\s*\\(\\s*uint\\s+materialID\\s*,\\s*uint\\s+faceMask\\s*\\)"), "face-mask decode API")
+expect(hardcoded, Regex("texelFetch\\s*\\(\\s*usam_pbrLUT1\\s*,\\s*ivec2\\s*\\(\\s*int\\s*\\(\\s*faceMask\\s*\\)\\s*,\\s*int\\s*\\(\\s*materialID\\s*\\)\\s*\\)\\s*,\\s*0\\s*\\)"), "row-major 2D model metadata fetch")
 expect(hardcoded, Regex("hardcodedpbr_decode\\s*\\(\\s*materialID\\s*,\\s*63u\\s*\\)"), "one-argument mask-63 decode")
 
 expect(builder, Regex("#define\\s+VOXEL_MATERIAL_DATA_MODIFIER\\s+(?:restrict\\s+)?readonly\\s+buffer"), "read-only tree-builder material buffer")
 reject(builder, Regex("voxel_materials_v4\\s*\\[[^]]+]\\s*="), "tree-builder material writeback")
-expect(faceMask, Regex("#define\\s+VOXEL_MATERIAL_DATA_MODIFIER\\s+(?:restrict\\s+)?buffer"), "writable face-mask material buffer")
-val publisherPacksFaceBits = Regex("faceBits\\s*<<\\s*16u").containsMatchIn(faceMask) ||
-    Regex("bitfieldInsert\\s*\\([^)]*faceBits\\s*,\\s*16\\s*,\\s*6\\s*\\)").containsMatchIn(faceMask)
-if (!publisherPacksFaceBits) failures += "voxel face-mask publisher does not pack open faceBits into bits 16..21"
-expect(faceMask, Regex("voxel_materials_v4\\s*\\[[^]]+]\\s*="), "packed material writeback")
-expect(faceMask, Regex("shared\\s+uvec4\\s+brickMaterials\\s*\\[\\s*1024\\s*]"), "shared immutable brick material snapshot")
-expect(faceMask, "barrier();", "shared material snapshot barrier")
-expect(faceMask, Regex("texelFetch\\s*\\(\\s*usam_pbrLUT0"), "neighbor full-cube LUT lookup")
-expect(faceMask, Regex(">>\\s*28u?\\s*\\)??\\s*&\\s*1u"), "neighbor full-cube bit decode")
-if (Regex("pass\\(\\\"/pass/shadow/VoxelFaceMask\\.comp\\.glsl\\\"\\)").findAll(programs).count() != 2) {
-    failures += "voxel face-mask publisher must run in two parity passes"
+expect(builder, "rc_markPendingVisibleFace", "tree-builder RC visible-face publication")
+if (Files.exists(faceMaskPath) || Files.exists(faceMaskImplementationPath)) failures += "obsolete voxel face-mask publisher remains"
+reject(programs, Regex("VoxelFaceMask"), "voxel face-mask program registration")
+reject(voxelization, Regex("open-face mask|0xFFFFu"), "packed face-mask material layout")
+reject(trace, Regex("packedMaterial|openFaceMask|>>\\s*16u"), "packed neighbor face-mask consumption")
+expect(trace, "uint rayFaceMask = uint((boundOffsetMask.x & 1) + 1) |", "ray X face selection")
+expect(trace, "uint(((boundOffsetMask.y & 1) + 1) << 2) |", "ray Y face selection")
+expect(trace, "uint(((boundOffsetMask.z & 1) + 1) << 4);", "ray Z face selection")
+expect(trace, Regex("hardcodedpbr_decode\\s*\\(\\s*material\\s*,\\s*rayFaceMask\\s*\\)"), "ray-selected 2D model metadata lookup")
+fun rayFaceMask(positiveX: Boolean, positiveY: Boolean, positiveZ: Boolean) =
+    (if (positiveX) 2u else 1u) or (if (positiveY) 8u else 4u) or (if (positiveZ) 32u else 16u)
+if (rayFaceMask(true, true, true) != 42u || rayFaceMask(false, false, false) != 21u) {
+    failures += "ray face mask must select normals opposing each ray component"
 }
-if (Regex("voxel_materials\\s*\\[[^]]+]\\s*&\\s*0xFFFFu").findAll(voxelization).count() < 2) {
-    failures += "Voxelization material readers do not mask both IDs to low 16 bits"
-}
-expect(trace, Regex("material\\s*=\\s*packedMaterial\\s*&\\s*0xFFFFu"), "trace low-16 material extraction")
-expect(trace, Regex("openFaceMask\\s*=\\s*\\(packedMaterial\\s*>>\\s*16u\\)\\s*&\\s*63u"), "trace open-face mask extraction")
-expect(trace, Regex("hardcodedpbr_decode\\s*\\(\\s*material\\s*,\\s*openFaceMask\\s*\\)"), "trace 2D model metadata lookup")
 val modelCall = trace.indexOf("if (voxel_intersectBlockModel(")
 val modelMiss = trace.indexOf("isHit = false;", modelCall)
 if (modelCall < 0 || modelMiss < 0) failures += "model miss does not continue hierarchical traversal"

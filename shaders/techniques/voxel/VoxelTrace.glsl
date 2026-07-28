@@ -200,6 +200,9 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
         // ---- Precompute DDA stepping ----
         ivec3 boundOffsetMask = ~(floatBitsToInt(worldRayDir) >> 31);
+        uint rayFaceMask = uint((boundOffsetMask.x & 1) + 1) |
+            uint(((boundOffsetMask.y & 1) + 1) << 2) |
+            uint(((boundOffsetMask.z & 1) + 1) << 4);
         vec3 tOrig = -posGrid * invDir;
         ivec3 stepDir = ivec3(sign(worldRayDir));
         ivec3 stepBack = min(stepDir, ivec3(0));
@@ -236,10 +239,8 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
             if (isHit && level == 1) {
                 uint allocID = voxel_brickAllocID[fullMorton >> 12u];
-                uint packedMaterial = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
-                uint material = packedMaterial & 0xFFFFu;
-                uint openFaceMask = (packedMaterial >> 16u) & 63u;
-                HardcodedPBR hardcoded = hardcodedpbr_decode(material, openFaceMask);
+                uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
+                HardcodedPBR hardcoded = hardcodedpbr_decode(material, rayFaceMask);
 
                 if (hardcoded.isFullCube) {
                     VoxelHit result;
