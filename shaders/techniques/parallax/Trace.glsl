@@ -64,7 +64,7 @@ bool traceSteepParallax(
             float candidateT = max(t, surfaceDepth);
             if (candidateT <= tExit + tEpsilon) {
                 hitT = sideHit ? entryT : candidateT;
-                vec2 hitTexel = spriteMin + mod(rayStart + rayDeltaTexels * hitT - spriteMin, spriteExtent);
+                vec2 hitTexel = spriteMin + mod(rayStart + rayDeltaTexels * hitT + rayStep * texelEpsilon - spriteMin, spriteExtent);
                 hitTexCoord = hitTexel / atlasSize;
                 hitSideNormal = sideHit ? entryNormal : vec2(0.0);
                 return true;
