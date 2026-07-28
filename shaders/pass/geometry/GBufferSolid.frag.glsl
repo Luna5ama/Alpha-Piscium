@@ -71,7 +71,7 @@ vec3 geomViewBitangent;
 
 #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
 float displacedViewZ;
-vec2 parallaxSideNormal = vec2(0.0);
+vec3 parallaxSurfaceNormal = vec3(0.0, 0.0, 1.0);
 #endif
 
 GBufferData gData = gbufferData_init();
@@ -138,7 +138,7 @@ void processGeometryBasis() {
 }
 
 #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
-void processSteepParallax() {
+void processParallax() {
     processGeometryBasis();
 
     vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp - uval_taaJitterUV;
@@ -157,7 +157,7 @@ void processSteepParallax() {
     vec2 rayDeltaTexels = -viewRayTS.xy * parallaxScale * spriteExtentTexels;
     vec2 hitTexCoord;
     float hitT;
-    if (traceSteepParallax(materialTexCoord, frag_spriteBounds, rayDeltaTexels, hitTexCoord, hitT, parallaxSideNormal)) {
+    if (traceParallax(materialTexCoord, frag_spriteBounds, rayDeltaTexels, hitTexCoord, hitT, parallaxSurfaceNormal)) {
         materialTexCoord = hitTexCoord;
         displacedViewZ = frag_viewZ - viewRay.z * parallaxScale * hitT;
     }
@@ -211,11 +211,18 @@ void processData1() {
     tangentNormal.xy *= exp2(SETTING_NORMAL_MAPPING_STRENGTH);
     tangentNormal = normalize(tangentNormal);
     #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_STEEP_PARALLAX) && defined(SETTING_STEEP_PARALLAX_NORMAL)
-    if (parallaxSideNormal.x != 0.0) {
-        tangentNormal = vec3(parallaxSideNormal.x * tangentNormal.z, tangentNormal.y, -parallaxSideNormal.x * tangentNormal.x);
-    } else if (parallaxSideNormal.y != 0.0) {
-        tangentNormal = vec3(tangentNormal.y, parallaxSideNormal.y * tangentNormal.z, parallaxSideNormal.y * tangentNormal.x);
+    #if SETTING_PARALLAX_MODE == 0
+    if (parallaxSurfaceNormal.x != 0.0) {
+        tangentNormal = vec3(parallaxSurfaceNormal.x * tangentNormal.z, tangentNormal.y, -parallaxSurfaceNormal.x * tangentNormal.x);
+    } else if (parallaxSurfaceNormal.y != 0.0) {
+        tangentNormal = vec3(tangentNormal.y, parallaxSurfaceNormal.y * tangentNormal.z, parallaxSurfaceNormal.y * tangentNormal.x);
     }
+    #else
+    vec3 surfaceNormal = normalize(parallaxSurfaceNormal);
+    vec3 surfaceTangent = normalize(vec3(1.0, 0.0, -parallaxSurfaceNormal.x));
+    vec3 surfaceBitangent = cross(surfaceNormal, surfaceTangent);
+    tangentNormal = mat3(surfaceTangent, surfaceBitangent, surfaceNormal) * tangentNormal;
+    #endif
     #endif
     gData.normal = normalize(tbn * tangentNormal);
     #endif
@@ -258,7 +265,7 @@ void main() {
     #endif
 
     #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
-    processSteepParallax();
+    processParallax();
     #endif
     processAlbedo();
     processViewZ();

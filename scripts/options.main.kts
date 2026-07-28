@@ -415,11 +415,25 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     toggle("SETTING_STEEP_PARALLAX", false) {
                         lang {
                             name = "Parallax Mapping"
-                            comment = "Enables steep parallax mapping for block materials."
+                            comment = "Enables parallax mapping for block materials."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "启用视差贴图"
-                            comment = "为方块材质启用陡峭视差贴图。"
+                            comment = "为方块材质启用视差贴图。"
+                        }
+                    }
+                    slider("SETTING_PARALLAX_MODE", 0, 0..1) {
+                        lang {
+                            name = "Parallax Mode"
+                            comment = "Steep preserves sharp height steps. Smooth traces a continuous bilinear height surface."
+                            0 value "Steep"
+                            1 value "Smooth"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "视差模式"
+                            comment = "陡峭模式保留清晰的高度台阶。平滑模式追踪连续的双线性高度曲面。"
+                            0 value "陡峭"
+                            1 value "平滑"
                         }
                     }
                     toggle("SETTING_STEEP_PARALLAX_NORMAL", true) {
@@ -435,11 +449,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     slider("SETTING_STEEP_PARALLAX_DEPTH", 0.25, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Parallax Depth"
-                            comment = "Controls the maximum depth of steep parallax displacement in block units."
+                            comment = "Controls the maximum depth of parallax displacement in block units."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "视差深度"
-                            comment = "控制陡峭视差位移的最大深度，单位为方块。"
+                            comment = "控制视差位移的最大深度，单位为方块。"
                         }
                     }
                     slider("SETTING_STEEP_PARALLAX_MAX_ITERATIONS", 128, powerOfTwoAndHalfRange(5..8)) {
@@ -452,21 +466,21 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
 
                         lang {
                             name = "Parallax Max Iterations"
-                            comment = "Maximum steep parallax tracing iterations. Higher values improve quality but reduce performance."
+                            comment = "Maximum hierarchical parallax tracing iterations. Higher values improve quality but reduce performance."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "视差最大迭代次数"
-                            comment = "陡峭视差追踪的最大迭代次数。数值越高，质量越好，但会降低性能。"
+                            comment = "层级视差追踪的最大迭代次数。数值越高，质量越好，但会降低性能。"
                         }
                     }
                     toggle("SETTING_STEEP_PARALLAX_WRITE_VIEWZ", true) {
                         lang {
                             name = "Parallax View Depth"
-                            comment = "Writes steep parallax displacement to the view-depth buffer. Hardware depth remains unchanged."
+                            comment = "Writes parallax displacement to the view-depth buffer. Hardware depth remains unchanged."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "视差视图深度"
-                            comment = "将陡峭视差位移写入视图深度缓冲区。硬件深度保持不变。"
+                            comment = "将视差位移写入视图深度缓冲区。硬件深度保持不变。"
                         }
                     }
                 }
