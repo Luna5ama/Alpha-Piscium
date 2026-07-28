@@ -144,6 +144,10 @@ expect(models, Regex("quadCount\\s*=\\s*modelData\\s*>>\\s*25u"), "packed quad c
 expect(models, Regex("for\\s*\\([^)]*<\\s*quadCount\\s*;"), "quad loop")
 expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
+val quadIntersection = models.substringAfter("bool _voxel_intersectBlockModelQuad(")
+    .substringBefore("bool voxel_intersectBlockModel(")
+reject(quadIntersection, Regex("normalize\\s*\\("), "per-quad basis normalization")
+expect(models, Regex("if\\s*\\(hit\\)\\s+hitNormal\\s*=\\s*_voxel_unrotateBlockModelVector\\([^;]*normalize\\s*\\(hitNormal\\)"), "post-loop hit normal normalization")
 if (Regex("(?m)\\b(?:const\\s+)?(?:vec[234]|u?int|float|bool)\\s+\\w+\\s*\\[").containsMatchIn(models)) {
     failures += "block-model runtime uses a local or const array"
 }
