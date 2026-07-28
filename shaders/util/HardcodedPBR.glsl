@@ -14,7 +14,7 @@ struct HardcodedPBR {
     uint blockModelMetadata;
 };
 
-HardcodedPBR hardcodedpbr_decode(uint materialID) {
+HardcodedPBR hardcodedpbr_decode(uint materialID, uint openFaceMask) {
     if (materialID >= textureSize(usam_pbrLUT0, 0).x) {
         materialID = 0u;
     }
@@ -28,8 +28,12 @@ HardcodedPBR hardcodedpbr_decode(uint materialID) {
     pbr.emissiveMultiplier = temp | (0 - (temp & 0x8));
     pbr.isFullCube = bitfieldExtract(rawData.x, 28, 1) == 1u;
     pbr.isSmallFoliage = bitfieldExtract(rawData.x, 29, 1) == 1u;
-    pbr.blockModelMetadata = texelFetch(usam_pbrLUT1, int(materialID), 0).x;
+    pbr.blockModelMetadata = texelFetch(usam_pbrLUT1, ivec2(int(openFaceMask), int(materialID)), 0).x;
     return pbr;
+}
+
+HardcodedPBR hardcodedpbr_decode(uint materialID) {
+    return hardcodedpbr_decode(materialID, 63u);
 }
 
 #endif

@@ -27,79 +27,27 @@ vec3 _voxel_unrotateBlockModelVector(uint rotation, vec3 value) {
     return result;
 }
 
-vec3 _voxel_rotateBlockModelQuaternion(vec4 quaternion, vec3 value) {
-    return value + 2.0 * cross(quaternion.xyz, cross(quaternion.xyz, value) + quaternion.w * value);
-}
-
-uint _voxel_expandBlockModelRotation(uint rotation) {
-    uint x = rotation & 7u;
-    uint y = (rotation >> 3u) & 7u;
-    uint xAxis = x & 3u;
-    uint yAxis = y & 3u;
-    uint zAxis = 3u - xAxis - yAxis;
-    uint z = zAxis | ((rotation >> 4u) & 4u);
-    return x | (y << 3u) | (z << 6u);
-}
-
-bool _voxel_intersectBlockModelAABB(
-    vec3 rayOrigin, vec3 rayDir, uint aabbIndex, inout float hitT, inout vec3 hitNormal
+bool _voxel_intersectBlockModelQuad(
+    vec3 rayOrigin, vec3 rayDir, uint quadIndex, inout float hitT, inout vec3 hitNormal
 ) {
-    int texelIndex = int(aabbIndex * 3u);
-    vec4 originData = texelFetch(usam_blockModelAABBs, texelIndex + 1, 0);
-    uint discreteRotation = uint(originData.w * 255.0 + 0.5);
-    bool discrete = discreteRotation != 255u;
-    if (discrete) discreteRotation = _voxel_expandBlockModelRotation(discreteRotation);
-    vec4 quaternion = vec4(0.0, 0.0, 0.0, 1.0);
-    vec3 origin = originData.xyz;
-    vec3 halfSize = texelFetch(usam_blockModelAABBs, texelIndex + 2, 0).xyz * 1.4142135623730951 * 0.5 + 1e-6;
-    vec3 localOrigin = rayOrigin - origin;
-    vec3 localDir = rayDir;
-    if (discrete) {
-        localOrigin = _voxel_rotateBlockModelVector(discreteRotation, localOrigin);
-        localDir = _voxel_rotateBlockModelVector(discreteRotation, localDir);
-    } else {
-        quaternion = normalize(texelFetch(usam_blockModelAABBs, texelIndex, 0) * (255.0 / 126.0) - 1.0);
-        vec4 inverseQuaternion = vec4(-quaternion.xyz, quaternion.w);
-        localOrigin = _voxel_rotateBlockModelQuaternion(inverseQuaternion, localOrigin);
-        localDir = _voxel_rotateBlockModelQuaternion(inverseQuaternion, localDir);
-    }
-    float entryT = -uintBitsToFloat(0x7F800000u);
-    float exitT = uintBitsToFloat(0x7F800000u);
-    int entryAxis = 0;
-    int exitAxis = 0;
-    for (int axis = 0; axis < 3; ++axis) {
-        if (abs(localDir[axis]) <= 1e-8) {
-            if (abs(localOrigin[axis]) > halfSize[axis]) return false;
-            continue;
-        }
-        float signedHalfSize = halfSize[axis] * sign(localDir[axis]);
-        float nearT = (-signedHalfSize - localOrigin[axis]) / localDir[axis];
-        float farT = (signedHalfSize - localOrigin[axis]) / localDir[axis];
-        int encodedAxis = nearT == farT && localDir[axis] < 0.0 ? -axis - 1 : axis;
-        if (nearT > entryT) {
-            entryT = nearT;
-            entryAxis = encodedAxis;
-        }
-        if (farT < exitT) {
-            exitT = farT;
-            exitAxis = encodedAxis;
-        }
-        if (entryT > exitT) return false;
-    }
-    bool startsInside = entryT < 0.0;
-    float t = startsInside ? exitT : entryT;
+    int texelIndex = int(quadIndex * 2u);
+    vec4 originNormalX = texelFetch(usam_blockModelQuads, texelIndex, 0);
+    vec4 normalYZHalfSize = texelFetch(usam_blockModelQuads, texelIndex + 1, 0);
+    vec3 origin = originNormalX.xyz;
+    vec3 normal = normalize(vec3(originNormalX.w, normalYZHalfSize.xy) * (255.0 / 126.0) - 1.0);
+    vec2 halfSize = normalYZHalfSize.zw + 1e-6;
+    float denominator = dot(normal, rayDir);
+    if (abs(denominator) <= 1e-8) return false;
+    float t = dot(normal, origin - rayOrigin) / denominator;
     if (!(t >= 0.0 && t <= hitT)) return false;
-    int normalAxis = startsInside ? exitAxis : entryAxis;
-    bool collapsedNegative = normalAxis < 0;
-    normalAxis = max(normalAxis, -normalAxis - 1);
-    vec3 localNormal = vec3(0.0);
-    localNormal[normalAxis] = collapsedNegative ? -1.0 : -sign(localDir[normalAxis]);
+    vec3 axis = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+    vec3 u = normalize(cross(axis, normal));
+    vec3 v = cross(normal, u);
+    vec3 offset = rayOrigin + rayDir * t - origin;
+    vec2 projected = abs(vec2(dot(offset, u), dot(offset, v)));
+    if (any(greaterThan(projected, halfSize))) return false;
     hitT = t;
-    if (discrete) {
-        hitNormal = _voxel_unrotateBlockModelVector(discreteRotation, localNormal);
-    } else {
-        hitNormal = _voxel_rotateBlockModelQuaternion(quaternion, localNormal);
-    }
+    hitNormal = denominator < 0.0 ? normal : -normal;
     return true;
 }
 
@@ -107,16 +55,16 @@ bool voxel_intersectBlockModel(
     uint modelData, vec3 rayOrigin, vec3 rayDir,
     out float hitT, out vec3 hitNormal
 ) {
-    uint rotation = modelData & 511u;
-    uint aabbOffset = (modelData >> 9u) & 0x7FFFu;
-    uint aabbCount = modelData >> 24u;
+    uint rotation = modelData & 0x1FFu;
+    uint quadOffset = (modelData >> 9u) & 0xFFFFu;
+    uint quadCount = modelData >> 25u;
     rayOrigin = _voxel_rotateBlockModelVector(rotation, rayOrigin - vec3(0.5)) + vec3(0.5);
     rayDir = _voxel_rotateBlockModelVector(rotation, rayDir);
     hitT = uintBitsToFloat(0x7F800000u);
     hitNormal = vec3(0.0);
     bool hit = false;
-    for (uint i = 0u; i < aabbCount; ++i) {
-        hit = _voxel_intersectBlockModelAABB(rayOrigin, rayDir, aabbOffset + i, hitT, hitNormal) || hit;
+    for (uint i = 0u; i < quadCount; ++i) {
+        hit = _voxel_intersectBlockModelQuad(rayOrigin, rayDir, quadOffset + i, hitT, hitNormal) || hit;
     }
     if (hit) hitNormal = _voxel_unrotateBlockModelVector(rotation, hitNormal);
     return hit;

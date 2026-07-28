@@ -236,8 +236,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
             if (isHit && level == 1) {
                 uint allocID = voxel_brickAllocID[fullMorton >> 12u];
-                uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
-                HardcodedPBR hardcoded = hardcodedpbr_decode(material);
+                uint packedMaterial = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
+                uint material = packedMaterial & 0xFFFFu;
+                uint openFaceMask = (packedMaterial >> 16u) & 63u;
+                HardcodedPBR hardcoded = hardcodedpbr_decode(material, openFaceMask);
 
                 if (hardcoded.isFullCube) {
                     VoxelHit result;

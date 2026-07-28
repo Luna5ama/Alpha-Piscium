@@ -126,8 +126,8 @@ uniform sampler3D usam_cumulusCurl;
 uniform sampler2D usam_cumulusBase;
 
 uniform usampler1D usam_pbrLUT0;
-uniform usampler1D usam_pbrLUT1;
-uniform sampler1D usam_blockModelAABBs;
+uniform usampler2D usam_pbrLUT1;
+uniform sampler1D usam_blockModelQuads;
 uniform sampler1D usam_f82;
 uniform sampler2D usam_specBRDFLUT;
 

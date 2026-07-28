@@ -44,7 +44,8 @@ layout(std430, binding = 3) VOXEL_BRICK_DATA_MODIFIER VoxelBrickData {
 // ---------------------------------------------------------------------------
 // SSBO 4 – Voxel Material Data
 //   Indexed by (brickAllocID * 4096 + blockMorton)
-//   Value: 16-bit material ID cast to uint; 0 = empty
+//   Bits 0..15: 16-bit material ID; 0 = empty
+//   Bits 16..21: open-face mask in +X, -X, +Y, -Y, +Z, -Z order
 //
 //   VOXEL_MATERIAL_VEC4: define before including to get a uvec4 view instead.
 //   Within a sub-region, blockMorton = subRegion * 64 + blockInSr, so all 64
@@ -174,7 +175,7 @@ bool voxel_opaqueAtBlock(ivec3 worldBlockPos) {
 
     ivec3 blockInBrick = gridBlockPos & 15;
     uint blockMorton = voxel_blockMorton(blockInBrick);
-    uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
+    uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)] & 0xFFFFu;
     return materialID != 0u && materialID != MATERIAL_ID_WATER;
 }
 uint voxel_getMaterialID(ivec3 worldBlockPos) {
@@ -194,7 +195,7 @@ uint voxel_getMaterialID(ivec3 worldBlockPos) {
 
     ivec3 blockInBrick = gridBlockPos & 15;
     uint blockMorton = voxel_blockMorton(blockInBrick);
-    uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
+    uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)] & 0xFFFFu;
     return materialID;
 }
 #endif
