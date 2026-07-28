@@ -71,10 +71,10 @@ fun rayBox(
             exitNormal = when (axis) { 0 -> V3(s,0.0,0.0); 1 -> V3(0.0,s,0.0); else -> V3(0.0,0.0,s) }
         }
     }
-    val startsInside = enter < rayMin
-    val t = if (startsInside) exit else enter
-    val normal = if (startsInside) exitNormal else enterNormal
-    return if (enter <= exit && t in rayMin..rayMax) t to normal else null
+    val exitsInside = enter < rayMin && exit <= rayMax
+    val t = if (enter < rayMin) if (exitsInside) exit else rayMin else enter
+    val normal = if (exitsInside) exitNormal else enterNormal
+    return if (enter <= exit && exit >= rayMin && t <= rayMax) t to normal else null
 }
 val root = Path.of("..").toAbsolutePath().normalize()
 fun read(path: String) = Files.readString(root.resolve(path))
@@ -170,10 +170,11 @@ expect(models, "float nearT = (-signedHalfSize - localOrigin[axis]) / localDir[a
 expect(models, "float farT = (signedHalfSize - localOrigin[axis]) / localDir[axis];", "signed slab far distance")
 expect(models, "entryAxis = axis;", "entry axis tracking")
 expect(models, "exitAxis = axis;", "exit axis tracking")
-expect(models, "bool startsInside = entryT < rayMinT;", "bounded inside selection")
-expect(models, "if (!(t >= rayMinT && t <= min(rayMaxT, hitT))) return false;", "bounded slab hit")
+expect(models, "bool exitsInside = entryT < rayMinT && exitT <= min(rayMaxT, hitT);", "bounded inside selection")
+expect(models, "float t = entryT < rayMinT ? (exitsInside ? exitT : rayMinT) : entryT;", "full-leaf overlap")
+expect(models, "if (exitT < rayMinT || t > min(rayMaxT, hitT)) return false;", "bounded slab hit")
 expect(models, "localNormal[normalAxis] = -sign(localDir[normalAxis]);", "signed slab normal")
-listOf("entryNormal", "exitNormal", "nearSign", "farSign", "encodedAxis", "collapsedNegative", "if (nearT > farT)").forEach {
+listOf("entryNormal", "exitNormal", "nearSign", "farSign", "encodedAxis", "collapsedNegative", "startsInside", "if (nearT > farT)").forEach {
     if (models.contains(it)) failures += "generated model code still uses obsolete slab token: " + it
 }
 if (discreteAABBCount <= aabbCount / 2) failures += "discrete AABB encoding does not cover the majority of models"
@@ -274,6 +275,10 @@ if (rayBox(
         V3(2.0, .5, .5), V3(-1.0, 0.0, 0.0),
         V3(.5, .4, .4), V3(1.1, .6, .6), 1.0, 2.0
     )?.first != 1.5) failures += "model interval inside exit"
+if (rayBox(
+        V3(-1.0, .5, .5), V3(1.0, 0.0, 0.0),
+        V3(-.006642, .4, .4), V3(1.006642, .6, .6), 1.0, 2.0
+    )?.first != 1.0) failures += "model interval full-leaf overlap"
 if (rayBox(
         V3(-100.5, .25, 0.0), V3(1.0, 1e-7, 1e-7),
         V3(-.250001, -.250001, -.250001), V3(.250001, .250001, .250001),
