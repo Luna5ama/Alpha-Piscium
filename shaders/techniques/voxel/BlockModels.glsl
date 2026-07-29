@@ -33,55 +33,20 @@ bool _voxel_intersectBlockModelQuad(
     vec4 originNormalX = texelFetch(usam_blockModelQuads, texelCoord, 0);
     vec4 normalYZHalfSize = texelFetch(usam_blockModelQuads, texelCoord + ivec2(1, 0), 0);
     vec3 origin = originNormalX.xyz;
+    vec3 normal = vec3(originNormalX.w, normalYZHalfSize.xy) * (255.0 / 126.0) - 1.0;
     vec2 halfSize = normalYZHalfSize.zw + 1e-6;
-    const float encodedNormalZero = 126.0 / 255.0;
-    vec3 localOrigin;
-    vec3 localRayOrigin;
-    vec3 localRayDir;
-    vec3 normal;
-    bool axisAligned = true;
-    if (all(equal(normalYZHalfSize.xy, vec2(encodedNormalZero)))) {
-        localOrigin = origin.yzx;
-        localRayOrigin = rayOrigin.yzx;
-        localRayDir = rayDir.yzx;
-        normal = vec3(rayDir.x < 0.0 ? 1.0 : -1.0, 0.0, 0.0);
-    } else if (originNormalX.w == encodedNormalZero && normalYZHalfSize.y == encodedNormalZero) {
-        localOrigin = origin.xzy;
-        localRayOrigin = rayOrigin.xzy;
-        localRayDir = rayDir.xzy;
-        normal = vec3(0.0, rayDir.y < 0.0 ? 1.0 : -1.0, 0.0);
-    } else if (originNormalX.w == encodedNormalZero && normalYZHalfSize.x == encodedNormalZero) {
-        localOrigin = origin;
-        localRayOrigin = rayOrigin;
-        localRayDir = rayDir;
-        normal = vec3(0.0, 0.0, rayDir.z < 0.0 ? 1.0 : -1.0);
-    } else {
-        axisAligned = false;
-        normal = vec3(originNormalX.w, normalYZHalfSize.xy) * (255.0 / 126.0) - 1.0;
-    }
-    float t;
-    vec2 projected;
-    if (axisAligned) {
-        float denominator = localRayDir.z;
-        if (abs(denominator) <= 1e-8) return false;
-        t = (localOrigin.z - localRayOrigin.z) / denominator;
-        if (!(t >= 0.0 && t <= hitT)) return false;
-        projected = abs(localRayOrigin.xy + localRayDir.xy * t - localOrigin.xy);
-    } else {
-        float denominator = dot(normal, rayDir);
-        if (abs(denominator) <= 1e-8) return false;
-        t = dot(normal, origin - rayOrigin) / denominator;
-        if (!(t >= 0.0 && t <= hitT)) return false;
-        vec3 axis = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
-        vec3 u = cross(axis, normal);
-        vec3 v = cross(normal, u);
-        vec3 offset = rayOrigin + rayDir * t - origin;
-        projected = abs(vec2(dot(offset, u), dot(offset, v)));
-        normal = denominator < 0.0 ? normal : -normal;
-    }
+    float denominator = dot(normal, rayDir);
+    if (abs(denominator) <= 1e-8) return false;
+    float t = dot(normal, origin - rayOrigin) / denominator;
+    if (!(t >= 0.0 && t <= hitT)) return false;
+    vec3 axis = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
+    vec3 u = cross(axis, normal);
+    vec3 v = cross(normal, u);
+    vec3 offset = rayOrigin + rayDir * t - origin;
+    vec2 projected = abs(vec2(dot(offset, u), dot(offset, v)));
     if (any(greaterThan(projected, halfSize))) return false;
     hitT = t;
-    hitNormal = normal;
+    hitNormal = denominator < 0.0 ? normal : -normal;
     return true;
 }
 
