@@ -1,3 +1,4 @@
+#define GLOBAL_DATA_MODIFIER buffer
 #include "/Base.glsl"
 #include "/techniques/parallax/Common.glsl"
 
@@ -11,6 +12,16 @@ void main() {
     ivec2 baseSize = textureSize(usam_blocksNormal, 0);
     ivec2 outputSize = parallax_mipPackedSize(baseSize, MATERIAL_DEPTH_MIP_LEVEL);
     ivec2 outputTexel = ivec2(gl_GlobalInvocationID.xy);
+#if MATERIAL_DEPTH_MIP_LEVEL == 0
+    if (all(equal(gl_GlobalInvocationID.xy, uvec2(0)))) {
+        for (int level = 0; level < 15; level++) {
+            global_parallaxMipPackedData[level] = ivec4(
+                parallax_mipPackedSize(baseSize, level),
+                parallax_mipPackedOffset(baseSize, level)
+            );
+        }
+    }
+#endif
     if (any(greaterThanEqual(outputTexel, outputSize))) {
         return;
     }
