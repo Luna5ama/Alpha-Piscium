@@ -9,6 +9,7 @@ layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 
 #include "/techniques/gi/InitialSample.glsl"
+#include "/techniques/voxel/VoxelTrace.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Morton.glsl"
 #include "/util/ThreadGroupTiling.glsl"
