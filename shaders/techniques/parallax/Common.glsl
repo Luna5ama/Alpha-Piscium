@@ -8,12 +8,12 @@ ivec2 parallax_mipPackedSize(ivec2 baseSize, int level) {
 }
 
 ivec2 parallax_mipPackedOffset(ivec2 baseSize, int level) {
-    if (level <= 1) {
+    if (level == 0) {
         return ivec2(0);
     }
 
-    ivec2 offset = ivec2(0, parallax_mipPackedSize(baseSize, 1).y);
-    for (int i = 2; i < level; i++) {
+    ivec2 offset = ivec2(0, parallax_mipPackedSize(baseSize, 0).y);
+    for (int i = 1; i < level; i++) {
         offset.x += parallax_mipPackedSize(baseSize, i).x;
     }
     return offset;

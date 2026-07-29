@@ -7,10 +7,6 @@ uniform sampler2D usam_blocksNormal;
 uniform sampler2D usam_materialDepthMip;
 
 float materialDepthMaxAlpha(ivec2 atlasTexel, int level, ivec2 atlasSize) {
-    if (level == 0) {
-        return texelFetch(usam_blocksNormal, clamp(atlasTexel, ivec2(0), atlasSize - 1), 0).a;
-    }
-
     ivec2 mipSize = parallax_mipPackedSize(atlasSize, level);
     ivec2 mipTexel = clamp(atlasTexel, ivec2(0), mipSize - 1);
     return texelFetch(usam_materialDepthMip, parallax_mipPackedOffset(atlasSize, level) + mipTexel, 0).r;
