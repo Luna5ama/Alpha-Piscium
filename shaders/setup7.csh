@@ -2,7 +2,7 @@
 #define COMP 1
 /*const*/
 #define MATERIAL_DEPTH_MIP_LEVEL 1
-#define MATERIAL_DEPTH_MIP_WORK_GROUPS 1024
+#define MATERIAL_DEPTH_MIP_WORK_GROUPS 512
 /*const*/
 
-#include "/pass/setup/MaterialDepthMip.comp.glsl"
+#include "/techniques/parallax/MaterialDepthMip.comp.glsl"

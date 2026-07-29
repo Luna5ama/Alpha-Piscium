@@ -1,20 +1,20 @@
-#ifndef PARALLAX_COMMON_GLSL
-#define PARALLAX_COMMON_GLSL
+#ifndef INCLUDE_techniques_parallax_Common_glsl
+#define INCLUDE_techniques_parallax_Common_glsl a
 
 const ivec2 MATERIAL_DEPTH_MIP_IMAGE_SIZE = ivec2(8192, 12288);
 
-ivec2 mipPackedSize(ivec2 baseSize, int level) {
+ivec2 parallax_mipPackedSize(ivec2 baseSize, int level) {
     return ((baseSize - 1) >> level) + 1;
 }
 
-ivec2 mipPackedOffset(ivec2 baseSize, int level) {
+ivec2 parallax_mipPackedOffset(ivec2 baseSize, int level) {
     if (level <= 1) {
         return ivec2(0);
     }
 
-    ivec2 offset = ivec2(0, mipPackedSize(baseSize, 1).y);
+    ivec2 offset = ivec2(0, parallax_mipPackedSize(baseSize, 1).y);
     for (int i = 2; i < level; i++) {
-        offset.x += mipPackedSize(baseSize, i).x;
+        offset.x += parallax_mipPackedSize(baseSize, i).x;
     }
     return offset;
 }

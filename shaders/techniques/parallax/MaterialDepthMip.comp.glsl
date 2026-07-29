@@ -1,7 +1,7 @@
 #include "/Base.glsl"
 #include "/techniques/parallax/Common.glsl"
 
-layout(local_size_x = 8, local_size_y = 8) in;
+layout(local_size_x = 16, local_size_y = 16) in;
 const ivec3 workGroups = ivec3(MATERIAL_DEPTH_MIP_WORK_GROUPS, MATERIAL_DEPTH_MIP_WORK_GROUPS, 1);
 
 uniform sampler2D usam_blocksNormal;
@@ -12,19 +12,19 @@ float loadMaterialDepth(ivec2 texelPos) {
     return texelFetch(usam_blocksNormal, texelPos, 0).a;
 #else
     ivec2 baseSize = textureSize(usam_blocksNormal, 0);
-    return imageLoad(uimg_materialDepthMip, mipPackedOffset(baseSize, MATERIAL_DEPTH_MIP_LEVEL - 1) + texelPos).r;
+    return imageLoad(uimg_materialDepthMip, parallax_mipPackedOffset(baseSize, MATERIAL_DEPTH_MIP_LEVEL - 1) + texelPos).r;
 #endif
 }
 
 void main() {
     ivec2 baseSize = textureSize(usam_blocksNormal, 0);
-    ivec2 outputSize = mipPackedSize(baseSize, MATERIAL_DEPTH_MIP_LEVEL);
+    ivec2 outputSize = parallax_mipPackedSize(baseSize, MATERIAL_DEPTH_MIP_LEVEL);
     ivec2 outputTexel = ivec2(gl_GlobalInvocationID.xy);
     if (any(greaterThanEqual(outputTexel, outputSize))) {
         return;
     }
 
-    ivec2 sourceSize = mipPackedSize(baseSize, MATERIAL_DEPTH_MIP_LEVEL - 1);
+    ivec2 sourceSize = parallax_mipPackedSize(baseSize, MATERIAL_DEPTH_MIP_LEVEL - 1);
     float maxDepth = 0.0;
     for (int y = 0; y < 2; y++) {
         for (int x = 0; x < 2; x++) {
@@ -33,7 +33,7 @@ void main() {
         }
     }
 
-    ivec2 storeTexel = mipPackedOffset(baseSize, MATERIAL_DEPTH_MIP_LEVEL) + outputTexel;
+    ivec2 storeTexel = parallax_mipPackedOffset(baseSize, MATERIAL_DEPTH_MIP_LEVEL) + outputTexel;
     if (all(lessThan(storeTexel, imageSize(uimg_materialDepthMip)))) {
         imageStore(uimg_materialDepthMip, storeTexel, vec4(maxDepth));
     }

@@ -1,5 +1,5 @@
-#ifndef PARALLAX_TRACE_GLSL
-#define PARALLAX_TRACE_GLSL
+#ifndef INCLUDE_techniques_parallax_Trace_glsl
+#define INCLUDE_techniques_parallax_Trace_glsl a
 
 #include "/techniques/parallax/Common.glsl"
 
@@ -11,9 +11,9 @@ float materialDepthMaxAlpha(ivec2 atlasTexel, int level, ivec2 atlasSize) {
         return texelFetch(usam_blocksNormal, clamp(atlasTexel, ivec2(0), atlasSize - 1), 0).a;
     }
 
-    ivec2 mipSize = mipPackedSize(atlasSize, level);
+    ivec2 mipSize = parallax_mipPackedSize(atlasSize, level);
     ivec2 mipTexel = clamp(atlasTexel, ivec2(0), mipSize - 1);
-    return texelFetch(usam_materialDepthMip, mipPackedOffset(atlasSize, level) + mipTexel, 0).r;
+    return texelFetch(usam_materialDepthMip, parallax_mipPackedOffset(atlasSize, level) + mipTexel, 0).r;
 }
 
 #if SETTING_PARALLAX_MODE != 0
