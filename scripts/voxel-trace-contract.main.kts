@@ -102,7 +102,7 @@ val quadCount = if (modelLutBytes.size == expectedModelLutBytes) {
     val modelLut = ByteBuffer.wrap(modelLutBytes).order(ByteOrder.LITTLE_ENDIAN)
     (0 until materialCount * 64).maxOf { index ->
         val metadata = modelLut.getInt(index * 4).toUInt()
-        ((metadata shr 9) and 0xFFFFu) + (metadata shr 25)
+        ((metadata shr 9) and 0xFFFFu) + ((metadata shr 25) and 0x3Fu)
     }.toInt()
 } else 0
 val expectedQuadTextureHeight = (quadCount * 2 + quadTextureWidth - 1) / quadTextureWidth
@@ -140,7 +140,8 @@ if (Regex("texelFetch\\s*\\(\\s*usam_blockModelQuads\\b").findAll(models).count(
     failures += "quad intersection must fetch exactly two quad texels"
 }
 expect(models, Regex("rotation\\s*=\\s*modelData\\s*&\\s*0x1FFu"), "packed rotation decode")
-expect(models, Regex("quadCount\\s*=\\s*modelData\\s*>>\\s*25u"), "packed quad count decode")
+expect(models, Regex("quadCount\\s*=\\s*\\(modelData\\s*>>\\s*25u\\)\\s*&\\s*0x3Fu"), "packed quad count decode")
+expect(models, Regex("axisAligned\\s*=\\s*\\(modelData\\s*&\\s*0x80000000u\\)\\s*!=\\s*0u"), "packed axis-aligned model flag")
 expect(models, Regex("while\\s*\\(\\s*quadCount\\s*!=\\s*0u\\s*\\)"), "countdown quad loop")
 expect(models, Regex("--quadCount"), "quad loop countdown")
 expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
@@ -187,19 +188,32 @@ if (modelLutBytes.size == expectedModelLutBytes && pbrBytes.size == materialCoun
         val axes = listOf(rotation and 3u, rotation shr 3 and 3u, rotation shr 6 and 3u)
         return axes.all { it < 3u } && axes.distinct().size == 3
     }
+    val checkedCompactModels = hashSetOf<UInt>()
+    var invalidCompactAxis = false
     for (mask in 0..63) for (materialId in 0 until materialCount) {
         val metadata = modelData(materialId, mask)
         if (metadata == 0u) continue
         val rotation = metadata and 0x1FFu
         val offset = (metadata shr 9).toInt() and 0xFFFF
-        val count = (metadata shr 25).toInt()
+        val count = ((metadata shr 25) and 0x3Fu).toInt()
         if (!validRotation(rotation) || count == 0 || offset + count > quadCount) {
             failures += "material $materialId mask $mask has invalid rotation/quad bounds"
         }
         if (offset % (quadTextureWidth / 2) + count > quadTextureWidth / 2) {
             failures += "material $materialId mask $mask crosses a quad texture row"
         }
+        if (metadata and 0x80000000u != 0u && checkedCompactModels.add(metadata)) {
+            for (quad in offset until offset + count) {
+                val byteOffset = quad * 8
+                val axis = quadBytes[byteOffset + 3].toUByte().toInt()
+                if (axis !in 253..255 || quadBytes[byteOffset + 4] != 0.toByte() || quadBytes[byteOffset + 5] != 0.toByte()) {
+                    invalidCompactAxis = true
+                    break
+                }
+            }
+        }
     }
+    if (invalidCompactAxis) failures += "axis-aligned model metadata references a non-compact quad"
     ids.filter { it >= 0 }.forEach { if (modelData(it, 63) == 0u) failures += "representative model $it has zero mask-63 metadata" }
     val fullCubeIds = (0 until materialCount).filter { (pbrLut.getInt(it * 4).toUInt() shr 28) and 1u == 1u }
     if ((fullCubeIds + listOf(0, 1)).any { id -> (0..63).any { mask -> modelData(id, mask) != 0u } }) {
