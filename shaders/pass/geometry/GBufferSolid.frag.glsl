@@ -6,7 +6,7 @@
 #include "/util/GBufferData.glsl"
 
 #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
-#include "/techniques/parallax/Trace.glsl"
+#include "/techniques/parallax/ParallaxTrace.glsl"
 #endif
 
 uniform sampler2D gtexture;
@@ -157,7 +157,7 @@ void processParallax() {
     vec2 rayDeltaTexels = -viewRayTS.xy * parallaxScale * spriteExtentTexels;
     vec2 hitTexCoord;
     float hitT;
-    if (traceParallax(materialTexCoord, frag_spriteBounds, rayDeltaTexels, hitTexCoord, hitT, parallaxSurfaceNormal)) {
+    if (parallax_traceParallax(materialTexCoord, frag_spriteBounds, rayDeltaTexels, hitTexCoord, hitT, parallaxSurfaceNormal)) {
         materialTexCoord = hitTexCoord;
         displacedViewZ = frag_viewZ - viewRay.z * parallaxScale * hitT;
     }
