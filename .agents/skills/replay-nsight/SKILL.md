@@ -1,9 +1,9 @@
 ---
-name: vibris
-description: Use Vibris MCP for live profiling and captures, plus glc2vk replayers and Nsight GPU Trace for offline Alpha-Piscium diagnostics.
+name: replay-nsight
+description: Use glc2vk replayers and Nsight GPU Trace for offline Alpha-Piscium diagnostics after Vibris MCP captures.
 ---
 
-# Vibris
+# Replay Nsight
 
 Use Vibris MCP directly for shader reloads, live captures, and performance
 profiles. Use this skill only for offline glc2vk replay or Nsight GPU Trace

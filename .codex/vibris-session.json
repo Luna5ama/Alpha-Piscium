@@ -1,0 +1,11 @@
+{
+  "camera_preset_id": "parallax-1",
+  "default_warmup_frames": 120,
+  "dimension_id": "minecraft:overworld",
+  "fov": 60.0,
+  "save_id": "new-world-7",
+  "schema_version": 1,
+  "shader_directory": "shaders",
+  "time_preset_id": "parallax-1",
+  "workspace_id": "c77624e9-6980-4ea0-87aa-dafa6f2d0a67"
+}
