@@ -303,7 +303,7 @@ bool parallax_traceParallax(
                         float lowerSegment = previousSegment;
                         #if SETTING_PARALLAX_MODE == 4
                         float lowerDifference = previousDifference;
-                        for (int refinement = 0; refinement < 5; refinement++) {
+                        for (int refinement = 0; refinement < 4; refinement++) {
                             float middleSegment = (lowerSegment + upperSegment) * 0.5;
                             vec2 middlePosition = localPosition + segmentDelta * middleSegment;
                             float middleDepth = _parallax_continuousParallaxSurface(depths, middlePosition).x;
