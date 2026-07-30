@@ -5,7 +5,7 @@
 #include "/util/Rand.glsl"
 #include "/util/GBufferData.glsl"
 
-#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
+#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && SETTING_PARALLAX_MODE != 0
 #include "/techniques/parallax/ParallaxTrace.glsl"
 #endif
 
@@ -26,7 +26,7 @@ in vec2 frag_lmCoord;// 8 x 2 = 16 bits
 flat in uint frag_materialID;// 16 x 1 = 16 bits
 flat in float frag_emissiveOverride;
 
-#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
+#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && SETTING_PARALLAX_MODE != 0
 flat in vec4 frag_spriteBounds;
 #endif
 
@@ -69,7 +69,7 @@ vec3 geomViewNormal;
 vec3 geomViewTangent;
 vec3 geomViewBitangent;
 
-#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
+#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && SETTING_PARALLAX_MODE != 0
 float displacedViewZ;
 vec3 parallaxSurfaceNormal = vec3(0.0, 0.0, 1.0);
 #endif
@@ -109,7 +109,7 @@ void processAlbedo() {
 void processViewZ() {
     #if defined(GBUFFER_PASS_VIEWZ_OVERRIDE)
     viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;
-    #elif defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
+    #elif defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && SETTING_PARALLAX_MODE != 0
     #ifdef SETTING_STEEP_PARALLAX_WRITE_VIEWZ
     viewZ = displacedViewZ;
     #else
@@ -137,7 +137,7 @@ void processGeometryBasis() {
     geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal) * bitangentSignF);
 }
 
-#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
+#if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && SETTING_PARALLAX_MODE != 0
 void processParallax() {
     processGeometryBasis();
 
@@ -174,7 +174,7 @@ void processData2() {
 }
 
 void processData1() {
-    #if !defined(GBUFFER_PASS_STEEP_PARALLAX) || !defined(SETTING_NORMAL_MAPPING) || !defined(SETTING_STEEP_PARALLAX)
+    #if !defined(GBUFFER_PASS_STEEP_PARALLAX) || !defined(SETTING_NORMAL_MAPPING) || SETTING_PARALLAX_MODE == 0
     processGeometryBasis();
     #endif
 
@@ -210,8 +210,8 @@ void processData1() {
     tangentNormal.z = sqrt(saturate(1.0 - dot(tangentNormal.xy, tangentNormal.xy)));
     tangentNormal.xy *= exp2(SETTING_NORMAL_MAPPING_STRENGTH);
     tangentNormal = normalize(tangentNormal);
-    #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_STEEP_PARALLAX) && defined(SETTING_STEEP_PARALLAX_NORMAL)
-    #if SETTING_PARALLAX_MODE == 0
+    #if defined(GBUFFER_PASS_STEEP_PARALLAX) && SETTING_PARALLAX_MODE != 0 && defined(SETTING_STEEP_PARALLAX_NORMAL)
+    #if SETTING_PARALLAX_MODE == 1
     if (parallaxSurfaceNormal.x != 0.0) {
         tangentNormal = vec3(parallaxSurfaceNormal.x * tangentNormal.z, tangentNormal.y, -parallaxSurfaceNormal.x * tangentNormal.x);
     } else if (parallaxSurfaceNormal.y != 0.0) {
@@ -264,7 +264,7 @@ void main() {
     #endif
     #endif
 
-    #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && defined(SETTING_STEEP_PARALLAX)
+    #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && SETTING_PARALLAX_MODE != 0
     processParallax();
     #endif
     processAlbedo();

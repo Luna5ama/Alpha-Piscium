@@ -412,32 +412,24 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "视差贴图"
                     }
-                    toggle("SETTING_STEEP_PARALLAX", false) {
-                        lang {
-                            name = "Parallax Mapping"
-                            comment = "Enables parallax mapping for block materials."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "启用视差贴图"
-                            comment = "为方块材质启用视差贴图。"
-                        }
-                    }
-                    slider("SETTING_PARALLAX_MODE", 0, 0..3) {
+                    slider("SETTING_PARALLAX_MODE", 0, 0..4) {
                         lang {
                             name = "Parallax Mode"
-                            comment = "Steep preserves sharp height steps. Smooth modes trace continuous filtered height surfaces."
-                            0 value "Steep"
-                            1 value "Smooth (Bilinear)"
-                            2 value "Smooth (Smoothstep Bilinear)"
-                            3 value "Smooth (B-Spline Bicubic)"
+                            comment = "Selects the parallax mapping mode for block materials."
+                            0 value "Off"
+                            1 value "Steep"
+                            2 value "Smooth (Bilinear)"
+                            3 value "Smooth (Smoothstep Bilinear)"
+                            4 value "Smooth (B-Spline Bicubic)"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "视差模式"
-                            comment = "陡峭模式保留清晰的高度台阶。平滑模式追踪连续的滤波高度曲面。"
-                            0 value "陡峭"
-                            1 value "平滑（双线性）"
-                            2 value "平滑（Smoothstep双线性）"
-                            3 value "平滑（B-Spline双三次）"
+                            comment = "选择方块材质的视差贴图模式。"
+                            0 value "关闭"
+                            1 value "陡峭"
+                            2 value "平滑（双线性）"
+                            3 value "平滑（Smoothstep双线性）"
+                            4 value "平滑（B-Spline双三次）"
                         }
                     }
                     toggle("SETTING_STEEP_PARALLAX_NORMAL", true) {
