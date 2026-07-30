@@ -7,61 +7,77 @@ uniform sampler2D usam_blocksNormal;
 uniform sampler2D usam_materialDepthMip;
 
 float _parallax_materialDepthMaxAlpha(ivec2 atlasTexel, ivec4 mipData) {
-    ivec2 mipTexel = clamp(atlasTexel, ivec2(0), mipData.xy - 1);
-    return texelFetch(usam_materialDepthMip, mipData.zw + mipTexel, 0).r;
+    return texelFetch(usam_materialDepthMip, mipData.zw + atlasTexel, 0).r;
 }
 
 #if SETTING_PARALLAX_MODE != 0
 ivec2 _parallax_wrapParallaxCell(ivec2 cell, ivec2 cellMin, ivec2 cellMax) {
     ivec2 cellExtent = max(cellMax - cellMin, ivec2(1));
-    return cellMin + ivec2(mod(vec2(cell - cellMin), vec2(cellExtent)));
+    cell = mix(cell, cell + cellExtent, lessThan(cell, cellMin));
+    cell = mix(cell, cell - cellExtent, greaterThanEqual(cell, cellMax));
+    return mix(cell, cell - cellExtent, greaterThanEqual(cell, cellMax));
 }
 
 float _parallax_wrappedMaterialDepth(ivec2 cell, ivec2 cellMin, ivec2 cellMax, ivec4 mipData) {
     return 1.0 - _parallax_materialDepthMaxAlpha(_parallax_wrapParallaxCell(cell, cellMin, cellMax), mipData);
 }
+
+#if SETTING_PARALLAX_MODE > 1
+vec4 _parallax_gatherMaterialDepthAlpha(ivec2 cell, ivec4 mipData, vec2 packedTexelRcp) {
+    vec2 texCoord = (vec2(mipData.zw + cell) + 1.0) * packedTexelRcp;
+    return textureGather(usam_materialDepthMip, texCoord).wzxy;
+}
+#endif
 #endif
 
 #if SETTING_PARALLAX_MODE == 3
-vec3 _parallax_continuousParallaxSurface(vec4 depths, vec2 position) {
+vec3 _parallax_continuousParallaxSurface(vec4 coefficients, vec2 position) {
     vec2 weight = position * position * (3.0 - 2.0 * position);
     vec2 weightGradient = 6.0 * position * (1.0 - position);
-    vec2 gradient = weightGradient * vec2(
-        mix(depths.y - depths.x, depths.w - depths.z, weight.y),
-        mix(depths.z - depths.x, depths.w - depths.y, weight.x)
+    return vec3(
+        coefficients.x + coefficients.y * weight.x + coefficients.z * weight.y
+            + coefficients.w * weight.x * weight.y,
+        weightGradient * vec2(
+            coefficients.y + coefficients.w * weight.y,
+            coefficients.z + coefficients.w * weight.x
+        )
     );
-    return vec3(mix(mix(depths.x, depths.y, weight.x), mix(depths.z, depths.w, weight.x), weight.y), gradient);
 }
 #elif SETTING_PARALLAX_MODE == 4
-vec4 _parallax_bSplineWeights(float position) {
-    float position2 = position * position;
-    float position3 = position2 * position;
+vec4 _parallax_bSplineAxisCoefficients(vec4 samples) {
     return vec4(
-        1.0 - 3.0 * position + 3.0 * position2 - position3,
-        4.0 - 6.0 * position2 + 3.0 * position3,
-        1.0 + 3.0 * position + 3.0 * position2 - 3.0 * position3,
-        position3
-    ) * (1.0 / 6.0);
+        (samples.x + 4.0 * samples.y + samples.z) * (1.0 / 6.0),
+        (samples.z - samples.x) * 0.5,
+        (samples.x - 2.0 * samples.y + samples.z) * 0.5,
+        (-samples.x + 3.0 * samples.y - 3.0 * samples.z + samples.w) * (1.0 / 6.0)
+    );
 }
 
-vec4 _parallax_bSplineWeightGradients(float position) {
-    float position2 = position * position;
-    return vec4(
-        -3.0 + 6.0 * position - 3.0 * position2,
-        -12.0 * position + 9.0 * position2,
-        3.0 + 6.0 * position - 9.0 * position2,
-        3.0 * position2
-    ) * (1.0 / 6.0);
+mat4 _parallax_bSplineCoefficients(mat4 depths) {
+    mat4 coefficientsY = mat4(
+        (depths[0] + 4.0 * depths[1] + depths[2]) * (1.0 / 6.0),
+        (depths[2] - depths[0]) * 0.5,
+        (depths[0] - 2.0 * depths[1] + depths[2]) * 0.5,
+        (-depths[0] + 3.0 * depths[1] - 3.0 * depths[2] + depths[3]) * (1.0 / 6.0)
+    );
+    return mat4(
+        _parallax_bSplineAxisCoefficients(coefficientsY[0]),
+        _parallax_bSplineAxisCoefficients(coefficientsY[1]),
+        _parallax_bSplineAxisCoefficients(coefficientsY[2]),
+        _parallax_bSplineAxisCoefficients(coefficientsY[3])
+    );
 }
 
-vec3 _parallax_continuousParallaxSurface(mat4 depths, vec2 position) {
-    vec4 weightX = _parallax_bSplineWeights(position.x);
-    vec4 weightY = _parallax_bSplineWeights(position.y);
-    vec4 weightedY = depths * weightY;
+vec3 _parallax_continuousParallaxSurface(mat4 coefficients, vec2 position) {
+    vec4 coefficientsX = ((coefficients[3] * position.y + coefficients[2]) * position.y
+        + coefficients[1]) * position.y + coefficients[0];
+    vec4 coefficientsDerivativeY = (3.0 * coefficients[3] * position.y
+        + 2.0 * coefficients[2]) * position.y + coefficients[1];
     return vec3(
-        dot(weightX, weightedY),
-        dot(_parallax_bSplineWeightGradients(position.x), weightedY),
-        dot(weightX, depths * _parallax_bSplineWeightGradients(position.y))
+        ((coefficientsX.w * position.x + coefficientsX.z) * position.x + coefficientsX.y) * position.x + coefficientsX.x,
+        (3.0 * coefficientsX.w * position.x + 2.0 * coefficientsX.z) * position.x + coefficientsX.y,
+        ((coefficientsDerivativeY.w * position.x + coefficientsDerivativeY.z) * position.x
+            + coefficientsDerivativeY.y) * position.x + coefficientsDerivativeY.x
     );
 }
 #endif
@@ -84,6 +100,9 @@ bool parallax_traceParallax(
     #if SETTING_PARALLAX_MODE != 0
     ivec2 spriteTexelMin = ivec2(round(spriteMin));
     ivec2 spriteTexelMax = ivec2(round(spriteMax));
+    #if SETTING_PARALLAX_MODE > 1
+    vec2 packedTexelRcp = 1.0 / vec2(textureSize(usam_materialDepthMip, 0));
+    #endif
     #endif
     vec2 rayStart = clamp(atlasTexCoord * atlasSize, spriteMin + texelEpsilon, spriteMax - texelEpsilon);
     vec2 rayStep = sign(rayDeltaTexels);
@@ -131,39 +150,64 @@ bool parallax_traceParallax(
             float segmentLength = max(tExit - t, 0.0);
             vec2 segmentDelta = rayDeltaTexels * segmentLength;
             #if SETTING_PARALLAX_MODE == 4
-            mat4 depthSamples = mat4(
-                vec4(
-                    _parallax_wrappedMaterialDepth(cell + ivec2(-1, -1), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(0, -1), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(1, -1), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(2, -1), spriteTexelMin, spriteTexelMax, mipData)
-                ),
-                vec4(
-                    _parallax_wrappedMaterialDepth(cell + ivec2(-1, 0), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(0, 0), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(1, 0), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(2, 0), spriteTexelMin, spriteTexelMax, mipData)
-                ),
-                vec4(
-                    _parallax_wrappedMaterialDepth(cell + ivec2(-1, 1), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(0, 1), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(1, 1), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(2, 1), spriteTexelMin, spriteTexelMax, mipData)
-                ),
-                vec4(
-                    _parallax_wrappedMaterialDepth(cell + ivec2(-1, 2), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(0, 2), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(1, 2), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(2, 2), spriteTexelMin, spriteTexelMax, mipData)
-                )
-            );
+            mat4 depthSamples;
+            if (all(greaterThan(cell, spriteTexelMin)) && all(lessThan(cell + ivec2(2), spriteTexelMax))) {
+                vec4 gather00 = 1.0 - _parallax_gatherMaterialDepthAlpha(cell + ivec2(-1), mipData, packedTexelRcp);
+                vec4 gather10 = 1.0 - _parallax_gatherMaterialDepthAlpha(cell + ivec2(1, -1), mipData, packedTexelRcp);
+                vec4 gather01 = 1.0 - _parallax_gatherMaterialDepthAlpha(cell + ivec2(-1, 1), mipData, packedTexelRcp);
+                vec4 gather11 = 1.0 - _parallax_gatherMaterialDepthAlpha(cell + ivec2(1), mipData, packedTexelRcp);
+                depthSamples = mat4(
+                    vec4(gather00.xy, gather10.xy),
+                    vec4(gather00.zw, gather10.zw),
+                    vec4(gather01.xy, gather11.xy),
+                    vec4(gather01.zw, gather11.zw)
+                );
+            } else {
+                depthSamples = mat4(
+                    vec4(
+                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, -1), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(0, -1), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(1, -1), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(2, -1), spriteTexelMin, spriteTexelMax, mipData)
+                    ),
+                    vec4(
+                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, 0), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(0, 0), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(1, 0), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(2, 0), spriteTexelMin, spriteTexelMax, mipData)
+                    ),
+                    vec4(
+                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, 1), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(0, 1), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(1, 1), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(2, 1), spriteTexelMin, spriteTexelMax, mipData)
+                    ),
+                    vec4(
+                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, 2), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(0, 2), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(1, 2), spriteTexelMin, spriteTexelMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(2, 2), spriteTexelMin, spriteTexelMax, mipData)
+                    )
+                );
+            }
             #else
-            float depth00 = _parallax_wrappedMaterialDepth(cell, spriteTexelMin, spriteTexelMax, mipData);
-            float depth10 = _parallax_wrappedMaterialDepth(cell + ivec2(1, 0), spriteTexelMin, spriteTexelMax, mipData);
-            float depth01 = _parallax_wrappedMaterialDepth(cell + ivec2(0, 1), spriteTexelMin, spriteTexelMax, mipData);
-            float depth11 = _parallax_wrappedMaterialDepth(cell + ivec2(1), spriteTexelMin, spriteTexelMax, mipData);
+            vec4 depths;
+            if (all(lessThan(cell + ivec2(1), spriteTexelMax))) {
+                depths = 1.0 - _parallax_gatherMaterialDepthAlpha(cell, mipData, packedTexelRcp);
+            } else {
+                depths = vec4(
+                    _parallax_wrappedMaterialDepth(cell, spriteTexelMin, spriteTexelMax, mipData),
+                    _parallax_wrappedMaterialDepth(cell + ivec2(1, 0), spriteTexelMin, spriteTexelMax, mipData),
+                    _parallax_wrappedMaterialDepth(cell + ivec2(0, 1), spriteTexelMin, spriteTexelMax, mipData),
+                    _parallax_wrappedMaterialDepth(cell + ivec2(1), spriteTexelMin, spriteTexelMax, mipData)
+                );
+            }
             #endif
             #if SETTING_PARALLAX_MODE == 2
+            float depth00 = depths.x;
+            float depth10 = depths.y;
+            float depth01 = depths.z;
+            float depth11 = depths.w;
             float depthX = depth10 - depth00;
             float depthY = depth01 - depth00;
             float depthXY = depth11 - depth10 - depth01 + depth00;
@@ -201,9 +245,14 @@ bool parallax_traceParallax(
             }
             #else
             #if SETTING_PARALLAX_MODE == 3
-            vec4 depths = vec4(depth00, depth10, depth01, depth11);
-            #else
-            mat4 depths = depthSamples;
+            depths = vec4(
+                depths.x,
+                depths.y - depths.x,
+                depths.z - depths.x,
+                depths.w - depths.y - depths.z + depths.x
+            );
+            #elif SETTING_PARALLAX_MODE == 4
+            mat4 depths = _parallax_bSplineCoefficients(depthSamples);
             #endif
             float hitSegment = 2.0;
             float previousSegment = 0.0;
@@ -279,8 +328,8 @@ bool parallax_traceParallax(
             #if SETTING_PARALLAX_MODE == 1
             float surfaceDepth = 1.0 - _parallax_materialDepthMaxAlpha(cell, mipData);
             #else
-            ivec2 mipCellMin = ivec2(floor(spriteMin / cellScale));
-            ivec2 mipCellMax = ivec2(ceil(spriteMax / cellScale));
+            ivec2 mipCellMin = spriteTexelMin >> level;
+            ivec2 mipCellMax = (spriteTexelMax + cellScaleI - 1) >> level;
             #if SETTING_PARALLAX_MODE == 4
             float maxSurfaceAlpha = 0.0;
             for (int cellY = -1; cellY <= 1; cellY++) {
@@ -290,13 +339,19 @@ bool parallax_traceParallax(
                 }
             }
             #else
-            ivec2 cellX = _parallax_wrapParallaxCell(cell + ivec2(1, 0), mipCellMin, mipCellMax);
-            ivec2 cellY = _parallax_wrapParallaxCell(cell + ivec2(0, 1), mipCellMin, mipCellMax);
-            ivec2 cellXY = _parallax_wrapParallaxCell(cell + ivec2(1), mipCellMin, mipCellMax);
-            float maxSurfaceAlpha = _parallax_materialDepthMaxAlpha(cell, mipData);
-            maxSurfaceAlpha = max(maxSurfaceAlpha, _parallax_materialDepthMaxAlpha(cellX, mipData));
-            maxSurfaceAlpha = max(maxSurfaceAlpha, _parallax_materialDepthMaxAlpha(cellY, mipData));
-            maxSurfaceAlpha = max(maxSurfaceAlpha, _parallax_materialDepthMaxAlpha(cellXY, mipData));
+            float maxSurfaceAlpha;
+            if (all(lessThan(cell + ivec2(1), mipCellMax))) {
+                vec4 gatheredAlpha = _parallax_gatherMaterialDepthAlpha(cell, mipData, packedTexelRcp);
+                maxSurfaceAlpha = max(max(gatheredAlpha.x, gatheredAlpha.y), max(gatheredAlpha.z, gatheredAlpha.w));
+            } else {
+                ivec2 cellX = _parallax_wrapParallaxCell(cell + ivec2(1, 0), mipCellMin, mipCellMax);
+                ivec2 cellY = _parallax_wrapParallaxCell(cell + ivec2(0, 1), mipCellMin, mipCellMax);
+                ivec2 cellXY = _parallax_wrapParallaxCell(cell + ivec2(1), mipCellMin, mipCellMax);
+                maxSurfaceAlpha = _parallax_materialDepthMaxAlpha(cell, mipData);
+                maxSurfaceAlpha = max(maxSurfaceAlpha, _parallax_materialDepthMaxAlpha(cellX, mipData));
+                maxSurfaceAlpha = max(maxSurfaceAlpha, _parallax_materialDepthMaxAlpha(cellY, mipData));
+                maxSurfaceAlpha = max(maxSurfaceAlpha, _parallax_materialDepthMaxAlpha(cellXY, mipData));
+            }
             #endif
             float surfaceDepth = 1.0 - maxSurfaceAlpha;
             #endif
