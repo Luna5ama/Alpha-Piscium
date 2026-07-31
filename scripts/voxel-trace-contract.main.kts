@@ -105,7 +105,8 @@ val allIds = Regex("(?m)^block\\.(\\d+) =").findAll(mappings).map { it.groupValu
 val maxId = allIds.maxOrNull()!!
 if (maxId >= 16384) failures += "material ID >= 16384"
 val lutBytes = Files.readAllBytes(root.resolve("shaders/textures/pbr_lut_0.bin"))
-val modelLutBytes = Files.readAllBytes(root.resolve("shaders/textures/pbr_lut_1.bin"))
+val flagLutBytes = Files.readAllBytes(root.resolve("shaders/textures/pbr_lut_1.bin"))
+val modelLutBytes = Files.readAllBytes(root.resolve("shaders/textures/pbr_lut_2.bin"))
 val aabbPath = root.resolve("shaders/textures/block_model_aabbs.bin")
 val aabbBytes = if (Files.exists(aabbPath)) {
     Files.readAllBytes(aabbPath)
@@ -116,6 +117,7 @@ val aabbBytes = if (Files.exists(aabbPath)) {
 if (lutBytes.size % 4 != 0) failures += "PBR LUT byte size not divisible by 4"
 val lutWidth = lutBytes.size / 4L
 if (lutWidth != maxId + 1L) failures += "PBR LUT width $lutWidth != max material ID + 1 (${maxId + 1})"
+if (flagLutBytes.size != lutBytes.size) failures += "flag LUT width differs from packed PBR LUT"
 if (modelLutBytes.size != lutBytes.size) failures += "model LUT width differs from packed PBR LUT"
 if (aabbBytes.size % 12 != 0) failures += "block-model AABB texture size is not 12 bytes per AABB"
 val aabbCount = aabbBytes.size / 12
@@ -193,12 +195,13 @@ if (modelFunction.lineSequence().count { it.trimStart().startsWith("return ") } 
 if (Regex("(?m)\\b(?:const\\s+)?(?:vec[234]|u?int|float|bool)\\s+\\w+\\s*\\[").containsMatchIn(models)) failures += "generated local/const array"
 
 expect(hardcoded, "uint blockModelMetadata;", "PBR model metadata member")
-expect(hardcoded, "texelFetch(usam_pbrLUT1", "PBR model LUT fetch")
+expect(hardcoded, "texelFetch(usam_pbrLUT1", "PBR flag LUT fetch")
+expect(hardcoded, "texelFetch(usam_pbrLUT2", "PBR model LUT fetch")
 expect(hardcoded, "pbr.blockModelMetadata =", "PBR model metadata decode")
-expect(hardcoded, "pbr.roughness = unpackU8(bitfieldExtract(rawData.x, 16, 8));", "PBR roughness bit 16")
-if (hardcoded.contains("pbr.roughness = unpackU8(bitfieldExtract(rawData.x, 24, 8));")) failures += "PBR roughness still decodes obsolete bit 24"
+expect(hardcoded, "pbr.roughness = unpackU8(bitfieldExtract(materialData.x, 16, 8));", "PBR roughness bit 16")
+if (hardcoded.contains("pbr.roughness = unpackU8(bitfieldExtract(materialData.x, 24, 8));")) failures += "PBR roughness still decodes obsolete bit 24"
 expect(shadow, "hardcoded.isFullCube || hardcoded.blockModelMetadata != 0u", "voxelization gate")
-if (shadow.contains("hardcoded.emissive > 0.0")) failures += "obsolete emissive voxelization"
+expect(shadow, "hardcoded.emissive > 0.0", "emissive voxelization")
 expect(shadow, "materialID != MATERIAL_ID_WATER", "water exclusion")
 expect(trace, "#include \"/util/HardcodedPBR.glsl\"", "trace PBR include")
 expect(trace, "#include \"/techniques/voxel/BlockModels.glsl\"", "trace model include")

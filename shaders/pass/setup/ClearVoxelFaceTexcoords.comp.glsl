@@ -12,4 +12,3 @@ const ivec3 workGroups = ivec3(768, 1, 1);
 void main() {
     voxel_faceTexcoords[gl_GlobalInvocationID.x] = uvec2(0);
 }
-

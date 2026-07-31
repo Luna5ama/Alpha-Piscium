@@ -66,7 +66,7 @@ void main() {
     // Skipped for translucent geometry (water handled separately later).
     // -------------------------------------------------------------------
     #ifdef SHADOW_PASS_VOXELIZE
-    if ((gl_VertexID & 3) == 0 && materialID != 0u && materialID != MATERIAL_ID_WATER) {
+    if ((gl_VertexID & 3) == 0 && materialID != MATERIAL_ID_WATER) {
         HardcodedPBR hardcoded = hardcodedpbr_decode(materialID);
         // Absolute integer block position of the center of this block.
         // scenePos is camera-relative; add camera's integer + fractional parts.
@@ -84,7 +84,7 @@ void main() {
         // (assigned by last frame's VoxelAllocator begin pass)
         uint allocID = voxel_brickAllocID[brickMorton];
 
-        if (hardcoded.isFullCube || hardcoded.blockModelMetadata != 0u) {
+        if (hardcoded.isFullCube || hardcoded.blockModelMetadata != 0u || hardcoded.emissive > 0.0) {
             if (all(greaterThanEqual(brickRelCoord, ivec3(0))) &&
                     all(lessThan(brickRelCoord, ivec3(VOXEL_GRID_SIZE)))) {
 
@@ -95,7 +95,15 @@ void main() {
                     ivec3 blockInBrick = blockWorldPos & ivec3(VOXEL_BRICK_SIZE - 1);
                     uint blockMorton = voxel_blockMorton(blockInBrick);
                     uint matIdx = voxel_materialIndex(allocID, blockMorton);
-                    atomicMax(voxel_materials[matIdx], materialID);
+                    // Only write a non-zero material ID; 0 means "no entity mapping".
+                    // atomicMax ensures a real ID beats the cleared-to-0 state.
+                    if (materialID != 0u) {
+                        atomicMax(voxel_materials[matIdx], materialID);
+                    } else {
+                        // Block exists but has no material ID mapping: write a
+                        // placeholder (1) so the tree knows the voxel is solid.
+                        atomicMax(voxel_materials[matIdx], 1u);
+                    }
                 }
             }
         }
