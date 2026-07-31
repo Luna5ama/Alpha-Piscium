@@ -279,7 +279,7 @@ programs {
             cond("!defined(SETTING_FSR3)")
         }
         pass("/pass/composite/FXAA.comp.glsl") {
-            cond("!defined(SETTING_FSR3)")
+            cond("!defined(SETTING_FSR3) && defined(SETTING_TAA)")
         }
         pass("/pass/composite/MotionVectors.comp.glsl") {
             cond("defined(SETTING_FSR3)")
