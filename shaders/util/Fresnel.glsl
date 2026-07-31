@@ -15,9 +15,6 @@
         [BEL25a] Belmu. "fresnel.glsl". Noble Shaders.
             GPL v3.0 License. Copyright (c) 2025 Belmu
             https://github.com/BelmuTM/Noble/blob/4d3544b078e9c71debc0c6ac9936b9e9847b442d/shaders/include/fragment/fresnel.glsl
-        [BEL25b] Belmu. "material.glsl". Noble Shaders.
-            GPL v3.0 License. Copyright (c) 2025 Belmu
-            https://github.com/BelmuTM/Noble/blob/4d3544b078e9c71debc0c6ac9936b9e9847b442d/shaders/include/utility/material.glsl
 
         You can find full license texts in /licenses
 
@@ -26,26 +23,7 @@
 */
 
 #include "Material.glsl"
-
-const float AIR_IOR = 1.00029;
-const float WATER_IOR = 1.333;
-
-// [BEL25b]
-vec3 fresnel_f0ToIor(vec3 f0) {
-    vec3 f0Sqrt = sqrt(f0) * 0.99999;
-    return AIR_IOR * ((1.0 + f0Sqrt) / (1.0 - f0Sqrt));
-}
-
-// [BEL25b]
-float fresnel_f0ToIor(float f0) {
-    float f0Sqrt = sqrt(f0) * 0.99999;
-    return AIR_IOR * ((1.0 + f0Sqrt) / (1.0 - f0Sqrt));
-}
-
-// [BEL25b]
-float fresnel_iorToF0(float ior) {
-    return pow2((ior - AIR_IOR) / (ior + AIR_IOR));
-}
+#include "IOR.glsl"
 
 // [BEL25a]
 vec3 fresnel_dielectricDielectric_reflection(float cosThetaI, vec3 n1, vec3 n2) {
