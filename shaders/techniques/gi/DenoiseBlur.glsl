@@ -45,19 +45,21 @@ GeomData _gi_readGeomData(ivec2 texelPos, vec2 screenPos) {
     return geomData;
 }
 
+const float RCP_SAMPLES = rcp(float(SETTING_DENOISER_SPATIAL_SAMPLES));
+
 vec4 _gi_readDiff(ivec2 texelPos) {
     #if GI_DENOISE_PASS == 1
-    return transient_gi_blurDiff2_fetch(texelPos);
+    return transient_gi_blurDiff2_fetch(texelPos) * RCP_SAMPLES;
     #elif GI_DENOISE_PASS == 2
-    return transient_gi_blurDiff1_fetch(texelPos);
+    return transient_gi_blurDiff1_fetch(texelPos) * RCP_SAMPLES;
     #endif
 }
 
 vec4 _gi_readSpec(ivec2 texelPos) {
     #if GI_DENOISE_PASS == 1
-    return transient_gi_blurSpec2_fetch(texelPos);
+    return transient_gi_blurSpec2_fetch(texelPos) * RCP_SAMPLES;
     #elif GI_DENOISE_PASS == 2
-    return transient_gi_blurSpec1_fetch(texelPos);
+    return transient_gi_blurSpec1_fetch(texelPos) * RCP_SAMPLES;
     #endif
 }
 
@@ -208,14 +210,14 @@ void main() {
 
                     f16vec4 diffSample = f16vec4(_gi_readDiff(sampleTexelPos));
 
-                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight)) * rcpSamples;
+                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
                     diffSumFP16 += diffSample * totalWeight;
                     weightSumFP16 += totalWeight;
                 }
 
                 {
                     vec4 diffResult = vec4(diffSumFP16);
-                    float weightSum = float(weightSumFP16);
+                    float weightSum = float(weightSumFP16) * RCP_SAMPLES;
 
                     diffResult *= rcp(weightSum);
 
@@ -315,14 +317,14 @@ void main() {
 
                     f16vec4 specSample = f16vec4(_gi_readSpec(sampleTexelPos));
 
-                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight)) * rcpSamples;
+                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
                     specSumFP16 += specSample * totalWeight;
                     weightSumFP16 += totalWeight;
                 }
 
                 {
                     vec4 specResult = vec4(specSumFP16);
-                    float weightSum = float(weightSumFP16);
+                    float weightSum = float(weightSumFP16) * RCP_SAMPLES;
 
                     specResult *= rcp(weightSum);
 
