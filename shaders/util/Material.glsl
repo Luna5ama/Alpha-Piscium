@@ -8,6 +8,7 @@
 #include "Rand.glsl"
 #include "HardcodedPBR.glsl"
 #include "MaterialIDConst.glsl"
+#include "IOR.glsl"
 
 struct Material {
     vec3 albedo; // Working space
@@ -99,16 +100,30 @@ Material material_decode(GBufferData gData) {
     #endif
     material.roughness = roughness;
 
-    bool dielectric = gData.pbrSpecular.g < (229.5 / 255.0);
-    material.dielectric = float(dielectric);
-    if (dielectric) {
-        material.f0RGB = vec3(gData.pbrSpecular.g);
+    bool resourceMetal = gData.pbrSpecular.g >= (229.5 / 255.0);
+    #ifdef SETTING_BUILTIN_METALNESS
+    bool useBuiltInMetalness = hardcoded.isKnown;
+    #else
+    bool useBuiltInMetalness = false;
+    #endif
+    material.dielectric = useBuiltInMetalness ? hardcoded.dielectric : float(!resourceMetal);
+
+    float dielectricF0 = useBuiltInPBR || resourceMetal
+        ? ior_iorToF0(hardcoded.ior)
+        : gData.pbrSpecular.g;
+    if (material.dielectric == 1.0) {
+        material.f0RGB = vec3(dielectricF0);
         material.f82TintRGB = vec3(1.0);
         material.f82Tint = 1.0;
     } else {
-        material.f0RGB = material.albedo;
-        vec4 f82Data = texelFetch(usam_f82, int(gData.pbrSpecular.g * 255.0), 0);
-        material.f82TintRGB = mix(f82Data.aaa, vec3(1.0), f82Data.rgb);
+        int metalIndex = useBuiltInMetalness && hardcoded.metalIndex != 0u
+            ? int(hardcoded.metalIndex) + 229
+            : resourceMetal ? int(gData.pbrSpecular.g * 255.0) : 255;
+        vec4 f82Data = texelFetch(usam_f82, metalIndex, 0);
+        vec3 metalF82Tint = mix(f82Data.aaa, vec3(1.0), f82Data.rgb);
+
+        material.f0RGB = mix(material.albedo, vec3(dielectricF0), material.dielectric);
+        material.f82TintRGB = mix(metalF82Tint, vec3(1.0), material.dielectric);
         material.f82Tint = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f82TintRGB);
     }
     material.f0RGB = max(material.f0RGB, _MATERIAL_F0_EPSILON);

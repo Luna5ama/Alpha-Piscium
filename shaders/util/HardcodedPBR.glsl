@@ -8,15 +8,22 @@ struct HardcodedPBR {
     float emissive;
     float ior;
     float roughness;
+    float dielectric;
+    uint metalIndex;
     int emissiveMultiplier;
     bool isSmallFoliage;
+    bool isKnown;
 };
 
 HardcodedPBR hardcodedpbr_decode(uint materialID) {
-    if (materialID >= textureSize(usam_pbrLUT0, 0).x) {
+    bool isKnown = materialID != 0u &&
+        materialID < textureSize(usam_pbrLUT0, 0).x &&
+        materialID < textureSize(usam_pbrLUT1, 0).x;
+    if (!isKnown) {
         materialID = 0u;
     }
     uvec4 rawData = uvec4(texelFetch(usam_pbrLUT0, int(materialID), 0));
+    uint metalData = texelFetch(usam_pbrLUT1, int(materialID), 0).r;
     HardcodedPBR pbr;
     pbr.sss = unpackU4(bitfieldExtract(rawData.x, 0, 4));
     pbr.emissive = unpackU4(bitfieldExtract(rawData.x, 4, 4));
@@ -25,6 +32,9 @@ HardcodedPBR hardcodedpbr_decode(uint materialID) {
      pbr.emissiveMultiplier = temp | (0 - (temp & 0x8));
     pbr.isSmallFoliage = bitfieldExtract(rawData.x, 20, 1) == 1u;
     pbr.roughness = unpackU8(bitfieldExtract(rawData.x, 24, 8));
+    pbr.metalIndex = bitfieldExtract(metalData, 0, 4);
+    pbr.dielectric = unpackU4(bitfieldExtract(metalData, 4, 4));
+    pbr.isKnown = isKnown;
     return pbr;
 }
 
