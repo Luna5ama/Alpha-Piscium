@@ -62,10 +62,12 @@ val allIds = Regex("(?m)^block\\.(\\d+) =").findAll(mappings).map { it.groupValu
 val maxId = allIds.maxOrNull()!!
 if (maxId >= 16384) failures += "material ID >= 16384"
 val lutBytes = Files.readAllBytes(root.resolve("shaders/textures/pbr_lut_0.bin"))
-val modelLutBytes = Files.readAllBytes(root.resolve("shaders/textures/pbr_lut_1.bin"))
+val flagLutBytes = Files.readAllBytes(root.resolve("shaders/textures/pbr_lut_1.bin"))
+val modelLutBytes = Files.readAllBytes(root.resolve("shaders/textures/pbr_lut_2.bin"))
 if (lutBytes.size % 4 != 0) failures += "PBR LUT byte size not divisible by 4"
 val lutWidth = lutBytes.size / 4L
 if (lutWidth != maxId + 1L) failures += "PBR LUT width $lutWidth != max material ID + 1 (${maxId + 1})"
+if (flagLutBytes.size != lutBytes.size) failures += "flag LUT width differs from packed PBR LUT"
 if (modelLutBytes.size != lutBytes.size) failures += "model LUT width differs from packed PBR LUT"
 fun lutUInt(bytes: ByteArray, materialId: Int) = ByteBuffer.wrap(bytes)
     .order(ByteOrder.LITTLE_ENDIAN).getInt(materialId * 4).toUInt()
@@ -94,7 +96,7 @@ expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
 val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
 if (!modelFunction.contains("if (modelID <")) failures += "model dispatch is not a binary if/else tree"
-if (!Regex("(?m)^\\s*} else \\{\\r?\\n\\s*hit = _voxel_intersectBlockModelQuad").containsMatchIn(modelFunction)) {
+if (!Regex("(?m)^\\s*} else \\{\\r?\\n\\s*hit = hit \\|\\| _voxel_intersectBlockModelQuad").containsMatchIn(modelFunction)) {
     failures += "model dispatch does not fold any two-leaf branch"
 }
 if (Regex("(?m)^    bool hit = false;$").findAll(modelFunction).count() != 1) {
@@ -109,10 +111,11 @@ if (modelFunction.lineSequence().count { it.trimStart().startsWith("return ") } 
 if (Regex("(?m)\\b(?:const\\s+)?(?:vec[234]|u?int|float|bool)\\s+\\w+\\s*\\[").containsMatchIn(models)) failures += "generated local/const array"
 
 expect(hardcoded, "uint blockModelID;", "PBR model ID member")
-expect(hardcoded, "texelFetch(usam_pbrLUT1", "PBR model LUT fetch")
+expect(hardcoded, "texelFetch(usam_pbrLUT1", "PBR flag LUT fetch")
+expect(hardcoded, "texelFetch(usam_pbrLUT2", "PBR model LUT fetch")
 expect(hardcoded, "pbr.blockModelID =", "PBR model ID decode")
-expect(hardcoded, "pbr.roughness = unpackU8(bitfieldExtract(rawData.x, 16, 8));", "PBR roughness bit 16")
-if (hardcoded.contains("pbr.roughness = unpackU8(bitfieldExtract(rawData.x, 24, 8));")) failures += "PBR roughness still decodes obsolete bit 24"
+expect(hardcoded, "pbr.roughness = unpackU8(bitfieldExtract(materialData.x, 16, 8));", "PBR roughness bit 16")
+if (hardcoded.contains("pbr.roughness = unpackU8(bitfieldExtract(materialData.x, 24, 8));")) failures += "PBR roughness still decodes obsolete bit 24"
 expect(shadow, "hardcoded.isFullCube || hardcoded.blockModelID != 0u", "voxelization gate")
 if (shadow.contains("hardcoded.emissive > 0.0")) failures += "obsolete emissive voxelization"
 expect(shadow, "materialID != MATERIAL_ID_WATER", "water exclusion")
@@ -156,7 +159,8 @@ expect(surface, "gData.geomNormal = hit.normal;", "exact normal")
 expect(texcoords, "#define VOXEL_FACE_TEXCOORD_MATERIALS 16384", "texcoord capacity")
 expect(clear, "const ivec3 workGroups = ivec3(768, 1, 1);", "clear size")
 expect(properties, "customTexture.usam_pbrLUT0=textures/pbr_lut_0.bin TEXTURE_1D R32UI $lutWidth ", "LUT width")
-expect(properties, "customTexture.usam_pbrLUT1=textures/pbr_lut_1.bin TEXTURE_1D R32UI $lutWidth ", "model LUT width")
+expect(properties, "customTexture.usam_pbrLUT1=textures/pbr_lut_1.bin TEXTURE_1D R32UI $lutWidth ", "flag LUT width")
+expect(properties, "customTexture.usam_pbrLUT2=textures/pbr_lut_2.bin TEXTURE_1D R32UI $lutWidth ", "model LUT width")
 expect(properties, "bufferObject.9=1572864", "SSBO size")
 
 val down = rayBox(V3(.25,1.0,.25), V3(0.0,-1.0,0.0), V3(0.0,0.0,0.0), V3(1.0,.5,1.0))
