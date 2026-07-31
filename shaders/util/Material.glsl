@@ -99,10 +99,12 @@ Material material_decode(GBufferData gData) {
     #endif
     material.roughness = roughness;
 
-    bool dielectric = gData.pbrSpecular.g < (229.5 / 255.0);
+    bool dielectric = useBuiltInPBR || gData.pbrSpecular.g < (229.5 / 255.0);
     material.dielectric = float(dielectric);
     if (dielectric) {
-        material.f0RGB = vec3(gData.pbrSpecular.g);
+        material.f0RGB = useBuiltInPBR
+            ? vec3(pow2((hardcoded.ior - 1.00029) / (hardcoded.ior + 1.00029)))
+            : vec3(gData.pbrSpecular.g);
         material.f82TintRGB = vec3(1.0);
         material.f82Tint = 1.0;
     } else {
