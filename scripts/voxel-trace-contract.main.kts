@@ -117,7 +117,7 @@ expect(hardcoded, "pbr.blockModelID =", "PBR model ID decode")
 expect(hardcoded, "pbr.roughness = unpackU8(bitfieldExtract(materialData.x, 16, 8));", "PBR roughness bit 16")
 if (hardcoded.contains("pbr.roughness = unpackU8(bitfieldExtract(materialData.x, 24, 8));")) failures += "PBR roughness still decodes obsolete bit 24"
 expect(shadow, "hardcoded.isFullCube || hardcoded.blockModelID != 0u", "voxelization gate")
-if (shadow.contains("hardcoded.emissive > 0.0")) failures += "obsolete emissive voxelization"
+expect(shadow, "hardcoded.emissive > 0.0", "emissive voxelization")
 expect(shadow, "materialID != MATERIAL_ID_WATER", "water exclusion")
 expect(trace, "#include \"/util/HardcodedPBR.glsl\"", "trace PBR include")
 expect(trace, "#include \"/techniques/voxel/BlockModels.glsl\"", "trace model include")

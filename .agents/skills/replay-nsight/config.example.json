@@ -1,7 +1,6 @@
 {
   "jdk": "",
   "capture_path": "",
-  "iris_control_path": "",
   "nsight_script": "..\\nsight-graphics-analyzer\\scripts\\nsight.py",
   "trace_output_path": "",
   "replay_frames": 8,

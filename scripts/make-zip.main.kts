@@ -15,9 +15,12 @@ val version = if (versionArg == null) {
 val currDirPath = Path("").absolute()
 val projectRootPath = currDirPath.parent
 
+
+val delimiters = charArrayOf('/', '-', '_')
+
 val branchName =
     Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD")).inputStream.bufferedReader()
-        .readText().trim().takeIf { it != "main" && it != "dev" }
+        .readText().trim().takeIf { it != "main" && !it.splitToSequence(*delimiters).contains("dev") }
         ?.replace('/', '-')
 val commitTag =
     Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD")).inputStream.bufferedReader().readText()

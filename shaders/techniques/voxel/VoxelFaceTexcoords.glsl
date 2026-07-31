@@ -54,4 +54,3 @@ vec2 voxel_faceLocalUV(uint faceIdx, vec3 hitPos) {
 
 
 #endif // INCLUDE_techniques_voxel_VoxelFaceTexcoords_glsl
-

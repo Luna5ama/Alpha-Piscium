@@ -1,12 +1,13 @@
 ---
-name: vibris
-description: Use Iris capture control, glc2vk OpenGL/Vulkan replayers, and Nsight GPU Trace for Alpha-Piscium compute shader debugging and profiling.
+name: replay-nsight
+description: Use glc2vk replayers and Nsight GPU Trace for offline Alpha-Piscium diagnostics after Vibris MCP captures.
 ---
 
-# Vibris
+# Replay Nsight
 
-Use this skill when working on Alpha-Piscium compute shader captures, glc2vk
-replays, direct Iris capture control, or Nsight GPU Trace captures of replays.
+Use Vibris MCP directly for shader reloads, live captures, and performance
+profiles. Use this skill only for offline glc2vk replay or Nsight GPU Trace
+analysis of a capture produced by MCP.
 
 ## Files
 
@@ -14,7 +15,6 @@ replays, direct Iris capture control, or Nsight GPU Trace captures of replays.
 - `bin/replay-vk.jar`: Vulkan replayer.
 - `config.json`: local machine defaults. This file is ignored by git.
 - `config.example.json`: portable template.
-- `scripts/iris-control.ps1`: direct Iris capture control over the local HTTP backend.
 - `scripts/run-replayer.ps1`: runs the OpenGL or Vulkan replayer.
 - `scripts/capture-gputrace.ps1`: runs a replayer under Nsight GPU Trace.
 - `<project-root>/.tmp/vibris/`: generated replay argfiles and replay AOT caches.
@@ -34,39 +34,18 @@ Both replay scripts write generated argfiles and replay AOT caches under the
 project root at `.tmp/vibris/`, not under the skill directory. The current
 files are `replay-<backend>.args` and `replay-<backend>.aot`.
 
-## Iris Control
+## Live control
 
-Use `scripts/iris-control.ps1` for the same operations exposed by
-`iris_capture_mcp.py`. The script talks directly to Iris' local HTTP control
-server and reads `iris_control_path` from `config.json`. The running Minecraft
-client normally creates the control file at
-`.minecraft\iris-capture-control.json` and must be running before the script
-can reach Iris.
+Use `vibris_profile` for routine performance comparisons. It snapshots the
+worktree, applies shader config, reloads, resets temporal state, warms up, and
+measures the requested future frames in the running game. Use
+`vibris_capture_pass` for a known compute pass or `vibris_capture_multi` for a
+prepare, begin, deferred, or composite group. Poll `vibris_get_capture_status`
+until capture and saving complete, then pass its output path to the replayers.
 
-Available actions:
-
-- `status`: checks the capture backend state.
-- `reload`: reloads the active Iris shader pack.
-- `capture-pass`: captures one compute pass.
-- `capture-multi`: captures all compute dispatches in one composite-like
-  program type: `prepare`, `begin`, `deferred`, or `composite`.
-
-When profiling a known hotspot, prefer `capture-pass` for that single pass. It
-keeps capture, replay, and GPU Trace turnaround much faster than
-`capture-multi`. Use `capture-multi` when the target pass is not known yet,
-when you need program-wide ordering context, or when the shader experiment may
-reference resources that only appear in other passes.
-
-If `-Path` is omitted, capture actions create a timestamped path under
-`config.json`'s `capture_path`.
-
-Capture requests are queued for the next rendered frame and saved
-asynchronously. After queueing one, run `status` until `pending`, `active`, and
-`saving` are all false. Stop on `lastError`; otherwise use `lastOutputPath` as
-the capture directory to feed into the replayers. Resources are captured on
-first reference during capture. If a replacement shader later references a
-uniform or resource that was not captured, the replayer should fail instead of
-continuing with invalid bindings.
+Captured resources are recorded on first reference. If replacement shader code
+uses a resource absent from the capture, recapture instead of accepting an
+invalid replay.
 
 ## Replayer Usage
 
@@ -181,10 +160,10 @@ comparisons. The sentinel exists only to absorb end-of-replay timing noise.
 ## Recommended Workflow
 
 1. Ensure Minecraft/Iris is running in the target scene.
-2. Reload the active shader pack through Iris control after shader source changes.
-3. Capture only the target pass for a known hotspot; otherwise capture the
+2. Run `vibris_profile` for normal in-game performance comparisons.
+3. For offline diagnostics, capture only the target pass for a known hotspot; otherwise capture the
    relevant composite-like program type.
-4. Wait for Iris status to report that capture and saving are complete.
+4. Wait for `vibris_get_capture_status` to report that capture and saving are complete.
 5. Verify replay correctness with the OpenGL replayer.
 6. Collect GPU Trace with the OpenGL replayer unless Vulkan-only diagnostics
    are required.
