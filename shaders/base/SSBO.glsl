@@ -56,6 +56,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     ivec2 global_mipmapSizesI[16];
     ivec2 global_mipmapSizePrefixesPadded[16];
     ivec2 global_mipmapSizePrefixes[16];
+    ivec4 global_parallaxMipPackedData[15];
     ivec4 global_hizTiles[16];
     ivec4 global_mipmapTileCeil[16];
     ivec4 global_mipmapTileCeilPadded[16];
