@@ -28,15 +28,28 @@ vec3 _voxel_unrotateBlockModelVector(uint rotation, vec3 value) {
 }
 
 bool _voxel_intersectBlockModelQuad(
-    vec3 rayOrigin, vec3 rayDir, ivec2 texelCoord, inout float hitT, inout vec3 hitNormal
+    bool axisAligned, vec3 rayOrigin, vec3 rayDir, ivec2 texelCoord,
+    inout float hitT, inout vec3 hitNormal
 ) {
     vec4 originNormalX = texelFetch(usam_blockModelQuads, texelCoord, 0);
     vec4 normalYZHalfSize = texelFetch(usam_blockModelQuads, texelCoord + ivec2(1, 0), 0);
     vec3 origin = originNormalX.xyz;
-    vec3 normal = vec3(originNormalX.w, normalYZHalfSize.xy) * (255.0 / 126.0) - 1.0;
     vec2 halfSize = normalYZHalfSize.zw + 1e-6;
+    if (axisAligned) {
+        int axis = int(originNormalX.w * 255.0 + 0.5) - 253;
+        float denominator = rayDir[axis];
+        float t = (origin[axis] - rayOrigin[axis]) / denominator;
+        if (!(t >= 0.0 && t <= hitT)) return false;
+        vec3 offset = abs(rayOrigin + rayDir * t - origin);
+        vec2 projected = axis == 0 ? offset.yz : axis == 1 ? offset.xz : offset.xy;
+        if (any(greaterThan(projected, halfSize))) return false;
+        hitT = t;
+        hitNormal = vec3(0.0);
+        hitNormal[axis] = denominator < 0.0 ? 1.0 : -1.0;
+        return true;
+    }
+    vec3 normal = vec3(originNormalX.w, normalYZHalfSize.xy) * (255.0 / 126.0) - 1.0;
     float denominator = dot(normal, rayDir);
-    if (abs(denominator) <= 1e-8) return false;
     float t = dot(normal, origin - rayOrigin) / denominator;
     if (!(t >= 0.0 && t <= hitT)) return false;
     vec3 axis = abs(normal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(0.0, 1.0, 0.0);
@@ -55,7 +68,8 @@ bool voxel_intersectBlockModel(
     out float hitT, out vec3 hitNormal
 ) {
     uint rotation = modelData & 0x1FFu;
-    uint quadCount = modelData >> 25u;
+    uint quadCount = (modelData >> 25u) & 0x3Fu;
+    bool axisAligned = (modelData & 0x80000000u) != 0u;
     ivec2 texelCoord = ivec2(int((modelData >> 8u) & 0x7FFEu), int((modelData >> 23u) & 3u));
     rayOrigin = _voxel_rotateBlockModelVector(rotation, rayOrigin - vec3(0.5)) + vec3(0.5);
     rayDir = _voxel_rotateBlockModelVector(rotation, rayDir);
@@ -63,7 +77,7 @@ bool voxel_intersectBlockModel(
     hitNormal = vec3(0.0);
     bool hit = false;
     while (quadCount != 0u) {
-        hit = _voxel_intersectBlockModelQuad(rayOrigin, rayDir, texelCoord, hitT, hitNormal) || hit;
+        hit = _voxel_intersectBlockModelQuad(axisAligned, rayOrigin, rayDir, texelCoord, hitT, hitNormal) || hit;
         texelCoord.x += 2;
         --quadCount;
     }

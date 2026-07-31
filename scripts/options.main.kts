@@ -125,6 +125,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             2 value "LabPBR（强制）"
                         }
                     }
+                    toggle("SETTING_BUILTIN_METALNESS", true) {
+                        lang {
+                            name = "Built-in Metalness"
+                            comment =
+                                "Overrides resource-pack metalness for known blocks with built-in metal and dielectric proportions. Disable this for materials that intentionally render metals as dielectrics."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "内置金属度"
+                            comment = "使用内置金属和介电质比例覆盖已知方块的资源包金属度。若材质有意将金属表现为介电质，可关闭此选项。"
+                        }
+                    }
                 }
                 screen(1) {
                     lang {

@@ -16,7 +16,7 @@ const float GI_SPEC_DENOISE_MIN_FACTOR = 0.05;
 
 vec3 splitSumSpecularDenoiseFactor(vec3 F0, vec3 F82Tint, float NDotV, float roughness) {
     vec3 physicalAlbedo = splitSumSpecularLUT(F0, F82Tint, NDotV, roughness);
-    return mix(vec3(GI_SPEC_DENOISE_MIN_FACTOR), vec3(1.0), physicalAlbedo);
+    return softMax(physicalAlbedo, 0.0, 0.001);
 }
 
 vec3 splitSumSpecularDenoiseFactor(float F0, float NDotV, float roughness) {
