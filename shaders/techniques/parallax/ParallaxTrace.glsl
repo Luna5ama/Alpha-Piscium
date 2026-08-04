@@ -43,6 +43,61 @@ vec3 _parallax_continuousParallaxSurface(vec4 coefficients, vec2 position) {
         )
     );
 }
+
+vec4 _parallax_smoothstepLineCoefficients(float origin, float delta) {
+    float deltaSquared = delta * delta;
+    return vec4(
+        origin * origin * (3.0 - 2.0 * origin),
+        6.0 * origin * (1.0 - origin) * delta,
+        3.0 * (1.0 - 2.0 * origin) * deltaSquared,
+        -2.0 * deltaSquared * delta
+    );
+}
+
+mat2x4 _parallax_continuousLineCoefficients(vec4 coefficients, vec2 origin, vec2 delta) {
+    vec4 x = _parallax_smoothstepLineCoefficients(origin.x, delta.x);
+    vec4 y = _parallax_smoothstepLineCoefficients(origin.y, delta.y);
+    return mat2x4(
+        vec4(
+            coefficients.x + coefficients.y * x.x + coefficients.z * y.x + coefficients.w * x.x * y.x,
+            coefficients.y * x.y + coefficients.z * y.y + coefficients.w * (x.x * y.y + x.y * y.x),
+            coefficients.y * x.z + coefficients.z * y.z
+                + coefficients.w * (x.x * y.z + x.y * y.y + x.z * y.x),
+            coefficients.y * x.w + coefficients.z * y.w
+                + coefficients.w * (x.x * y.w + x.y * y.z + x.z * y.y + x.w * y.x)
+        ),
+        vec4(
+            coefficients.w * (x.y * y.w + x.z * y.z + x.w * y.y),
+            coefficients.w * (x.z * y.w + x.w * y.z),
+            coefficients.w * x.w * y.w,
+            0.0
+        )
+    );
+}
+
+vec2 _parallax_continuousLineSurface(mat2x4 coefficients, float position) {
+    vec4 low = coefficients[0];
+    vec4 high = coefficients[1];
+    float depth = (((((high.z * position + high.y) * position + high.x) * position
+        + low.w) * position + low.z) * position + low.y) * position + low.x;
+    float derivative = ((((6.0 * high.z * position + 5.0 * high.y) * position
+        + 4.0 * high.x) * position + 3.0 * low.w) * position + 2.0 * low.z) * position + low.y;
+    return vec2(depth, derivative);
+}
+
+float _parallax_continuousLineDepth(mat2x4 coefficients, float position) {
+    vec4 low = coefficients[0];
+    vec4 high = coefficients[1];
+    return (((((high.z * position + high.y) * position + high.x) * position
+        + low.w) * position + low.z) * position + low.y) * position + low.x;
+}
+
+float _parallax_continuousLineDerivative(mat2x4 coefficients, float position) {
+    vec4 low = coefficients[0];
+    vec4 high = coefficients[1];
+    return ((((6.0 * high.z * position + 5.0 * high.y) * position
+        + 4.0 * high.x) * position + 3.0 * low.w) * position + 2.0 * low.z) * position + low.y;
+}
 #elif SETTING_PARALLAX_MODE == 4
 vec4 _parallax_bSplineAxisCoefficients(vec4 samples) {
     return vec4(
@@ -327,6 +382,7 @@ bool parallax_traceParallax(
                 depths.z - depths.x,
                 depths.w - depths.y - depths.z + depths.x
             );
+            mat2x4 lineDepths = _parallax_continuousLineCoefficients(depths, localPosition, segmentDelta);
             #elif SETTING_PARALLAX_MODE == 4
             mat4 depths = _parallax_bSplineCoefficients(depthSamples);
             mat2x4 lineDepths = _parallax_bSplineLineCoefficients(depths, localPosition, segmentDelta);
@@ -337,6 +393,10 @@ bool parallax_traceParallax(
             vec2 startLineSurface = _parallax_bSplineLineSurface(lineDepths, 0.0);
             float startDifference = t - startLineSurface.x;
             float previousDifference = startDifference;
+            float previousDerivative = segmentLength - startLineSurface.y;
+            #elif SETTING_PARALLAX_MODE == 3
+            vec2 startLineSurface = _parallax_continuousLineSurface(lineDepths, 0.0);
+            float startDifference = t - startLineSurface.x;
             float previousDerivative = segmentLength - startLineSurface.y;
             #else
             vec3 startSurface = _parallax_continuousParallaxSurface(depths, localPosition);
@@ -350,6 +410,10 @@ bool parallax_traceParallax(
                     float candidateSegment = float(step) * 0.125;
                     #if SETTING_PARALLAX_MODE == 4
                     vec2 candidateSurface = _parallax_bSplineLineSurface(lineDepths, candidateSegment);
+                    float candidateDifference = t + segmentLength * candidateSegment - candidateSurface.x;
+                    float candidateDerivative = segmentLength - candidateSurface.y;
+                    #elif SETTING_PARALLAX_MODE == 3
+                    vec2 candidateSurface = _parallax_continuousLineSurface(lineDepths, candidateSegment);
                     float candidateDifference = t + segmentLength * candidateSegment - candidateSurface.x;
                     float candidateDerivative = segmentLength - candidateSurface.y;
                     #else
@@ -373,6 +437,9 @@ bool parallax_traceParallax(
                             #if SETTING_PARALLAX_MODE == 4
                             float middleDerivative = segmentLength
                                 - _parallax_bSplineLineDerivative(lineDepths, middleSegment);
+                            #elif SETTING_PARALLAX_MODE == 3
+                            float middleDerivative = segmentLength
+                                - _parallax_continuousLineDerivative(lineDepths, middleSegment);
                             #else
                             vec2 middlePosition = localPosition + segmentDelta * middleSegment;
                             vec2 middleGradient = _parallax_continuousParallaxSurface(depths, middlePosition).yz;
@@ -390,6 +457,8 @@ bool parallax_traceParallax(
                         upperSegment = mix(derivativeLower, derivativeUpper, peakWeight);
                         #if SETTING_PARALLAX_MODE == 4
                         float peakDepth = _parallax_bSplineLineDepth(lineDepths, upperSegment);
+                        #elif SETTING_PARALLAX_MODE == 3
+                        float peakDepth = _parallax_continuousLineDepth(lineDepths, upperSegment);
                         #else
                         vec2 peakPosition = localPosition + segmentDelta * upperSegment;
                         float peakDepth = _parallax_continuousParallaxSurface(depths, peakPosition).x;
@@ -418,6 +487,18 @@ bool parallax_traceParallax(
                         }
                         float rootWeight = (-tEpsilon - lowerDifference) / (upperDifference - lowerDifference);
                         hitSegment = mix(lowerSegment, upperSegment, rootWeight);
+                        #elif SETTING_PARALLAX_MODE == 3
+                        for (int refinement = 0; refinement < 6; refinement++) {
+                            float middleSegment = (lowerSegment + upperSegment) * 0.5;
+                            float middleDepth = _parallax_continuousLineDepth(lineDepths, middleSegment);
+                            float middleDifference = t + segmentLength * middleSegment - middleDepth;
+                            if (middleDifference >= -tEpsilon) {
+                                upperSegment = middleSegment;
+                            } else {
+                                lowerSegment = middleSegment;
+                            }
+                        }
+                        hitSegment = upperSegment;
                         #else
                         for (int refinement = 0; refinement < 6; refinement++) {
                             float middleSegment = (lowerSegment + upperSegment) * 0.5;
