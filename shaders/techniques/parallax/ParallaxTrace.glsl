@@ -279,18 +279,23 @@ bool parallax_traceParallax(
                     if (!bracketed && previousDerivative > 0.0 && candidateDerivative < 0.0) {
                         float derivativeLower = previousSegment;
                         float derivativeUpper = candidateSegment;
-                        for (int refinement = 0; refinement < 8; refinement++) {
+                        float derivativeLowerValue = previousDerivative;
+                        float derivativeUpperValue = candidateDerivative;
+                        for (int refinement = 0; refinement < 4; refinement++) {
                             float middleSegment = (derivativeLower + derivativeUpper) * 0.5;
                             vec2 middlePosition = localPosition + segmentDelta * middleSegment;
                             vec2 middleGradient = _parallax_continuousParallaxSurface(depths, middlePosition).yz;
                             float middleDerivative = segmentLength - dot(middleGradient, segmentDelta);
                             if (middleDerivative > 0.0) {
                                 derivativeLower = middleSegment;
+                                derivativeLowerValue = middleDerivative;
                             } else {
                                 derivativeUpper = middleSegment;
+                                derivativeUpperValue = middleDerivative;
                             }
                         }
-                        upperSegment = (derivativeLower + derivativeUpper) * 0.5;
+                        float peakWeight = derivativeLowerValue / (derivativeLowerValue - derivativeUpperValue);
+                        upperSegment = mix(derivativeLower, derivativeUpper, peakWeight);
                         vec2 peakPosition = localPosition + segmentDelta * upperSegment;
                         float peakDepth = _parallax_continuousParallaxSurface(depths, peakPosition).x;
                         float peakDifference = t + segmentLength * upperSegment - peakDepth;
