@@ -466,21 +466,9 @@ bool parallax_traceParallax(
                 && all(lessThan(cell + ivec2(1), mipCellMax));
             float maxSurfaceAlpha = interiorCell ? _parallax_materialDepthMaxAlpha(cell, mipData) : 1.0;
             #else
-            ivec2 mipCellMin = spriteTexelMin >> level;
             ivec2 mipCellMax = (spriteTexelMax + cellScaleI - 1) >> level;
-            float maxSurfaceAlpha;
-            if (all(lessThan(cell + ivec2(1), mipCellMax))) {
-                vec4 gatheredAlpha = _parallax_gatherMaterialDepthAlpha(cell, mipData, packedTexelRcp);
-                maxSurfaceAlpha = max(max(gatheredAlpha.x, gatheredAlpha.y), max(gatheredAlpha.z, gatheredAlpha.w));
-            } else {
-                ivec2 cellX = _parallax_wrapParallaxCell(cell + ivec2(1, 0), mipCellMin, mipCellMax);
-                ivec2 cellY = _parallax_wrapParallaxCell(cell + ivec2(0, 1), mipCellMin, mipCellMax);
-                ivec2 cellXY = _parallax_wrapParallaxCell(cell + ivec2(1), mipCellMin, mipCellMax);
-                maxSurfaceAlpha = _parallax_materialDepthMaxAlpha(cell, mipData);
-                maxSurfaceAlpha = max(maxSurfaceAlpha, _parallax_materialDepthMaxAlpha(cellX, mipData));
-                maxSurfaceAlpha = max(maxSurfaceAlpha, _parallax_materialDepthMaxAlpha(cellY, mipData));
-                maxSurfaceAlpha = max(maxSurfaceAlpha, _parallax_materialDepthMaxAlpha(cellXY, mipData));
-            }
+            bool interiorCell = all(lessThan(cell + ivec2(1), mipCellMax));
+            float maxSurfaceAlpha = interiorCell ? _parallax_materialDepthMaxAlpha(cell, mipData) : 1.0;
             #endif
             float surfaceDepth = 1.0 - maxSurfaceAlpha;
             #endif
