@@ -142,6 +142,20 @@ vec2 _parallax_bSplineLineSurface(mat2x4 coefficients, float position) {
         + 4.0 * high.x) * position + 3.0 * low.w) * position + 2.0 * low.z) * position + low.y;
     return vec2(depth, derivative);
 }
+
+float _parallax_bSplineLineDepth(mat2x4 coefficients, float position) {
+    vec4 low = coefficients[0];
+    vec4 high = coefficients[1];
+    return (((((high.z * position + high.y) * position + high.x) * position
+        + low.w) * position + low.z) * position + low.y) * position + low.x;
+}
+
+float _parallax_bSplineLineDerivative(mat2x4 coefficients, float position) {
+    vec4 low = coefficients[0];
+    vec4 high = coefficients[1];
+    return ((((6.0 * high.z * position + 5.0 * high.y) * position
+        + 4.0 * high.x) * position + 3.0 * low.w) * position + 2.0 * low.z) * position + low.y;
+}
 #endif
 
 bool parallax_traceParallax(
@@ -358,7 +372,7 @@ bool parallax_traceParallax(
                             float middleSegment = (derivativeLower + derivativeUpper) * 0.5;
                             #if SETTING_PARALLAX_MODE == 4
                             float middleDerivative = segmentLength
-                                - _parallax_bSplineLineSurface(lineDepths, middleSegment).y;
+                                - _parallax_bSplineLineDerivative(lineDepths, middleSegment);
                             #else
                             vec2 middlePosition = localPosition + segmentDelta * middleSegment;
                             vec2 middleGradient = _parallax_continuousParallaxSurface(depths, middlePosition).yz;
@@ -375,7 +389,7 @@ bool parallax_traceParallax(
                         float peakWeight = derivativeLowerValue / (derivativeLowerValue - derivativeUpperValue);
                         upperSegment = mix(derivativeLower, derivativeUpper, peakWeight);
                         #if SETTING_PARALLAX_MODE == 4
-                        float peakDepth = _parallax_bSplineLineSurface(lineDepths, upperSegment).x;
+                        float peakDepth = _parallax_bSplineLineDepth(lineDepths, upperSegment);
                         #else
                         vec2 peakPosition = localPosition + segmentDelta * upperSegment;
                         float peakDepth = _parallax_continuousParallaxSurface(depths, peakPosition).x;
@@ -392,7 +406,7 @@ bool parallax_traceParallax(
                         float lowerDifference = previousDifference;
                         for (int refinement = 0; refinement < 3; refinement++) {
                             float middleSegment = (lowerSegment + upperSegment) * 0.5;
-                            float middleDepth = _parallax_bSplineLineSurface(lineDepths, middleSegment).x;
+                            float middleDepth = _parallax_bSplineLineDepth(lineDepths, middleSegment);
                             float middleDifference = t + segmentLength * middleSegment - middleDepth;
                             if (middleDifference >= -tEpsilon) {
                                 upperSegment = middleSegment;
