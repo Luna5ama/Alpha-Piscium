@@ -40,6 +40,14 @@ void main() {
     for (int y = -1; y <= 2; y++) {
         for (int x = -1; x <= 2; x++) {
 #endif
+#elif SETTING_PARALLAX_MODE > 1
+#if MATERIAL_DEPTH_MIP_LEVEL == 1
+    for (int y = 0; y <= 3; y++) {
+        for (int x = 0; x <= 3; x++) {
+#else
+    for (int y = 0; y <= 2; y++) {
+        for (int x = 0; x <= 2; x++) {
+#endif
 #else
     for (int y = 0; y < 2; y++) {
         for (int x = 0; x < 2; x++) {
