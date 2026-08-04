@@ -49,14 +49,23 @@ layout(location = 0) out uvec4 rt_gbufferSolidData1;
 layout(location = 1) out uvec4 rt_gbufferSolidData2;
 layout(location = 2) out vec4 rt_translucentColor;
 
+#ifdef SETTING_SCREENSHOT_MODE
+vec2 dUVdx = vec2(0.0);
+vec2 dUVdy = vec2(0.0);
+#else
+#ifdef SETTING_FSR3
+vec2 dUVdx = dFdx(frag_texCoord) * (0.5 * uval_mainImageScale.x);
+vec2 dUVdy = dFdy(frag_texCoord) * (0.5 * uval_mainImageScale.y);
+#else
+vec2 dUVdx = dFdx(frag_texCoord);
+vec2 dUVdy = dFdy(frag_texCoord);
+#endif
+#endif
+
 vec4 processAlbedo() {
     vec4 albedo = frag_colorMul;
     if (!isWater) {
-        #ifdef SETTING_SCREENSHOT_MODE
-        albedo *= textureLod(gtexture, frag_texCoord, 0.0);
-        #else
-        albedo *= texture(gtexture, frag_texCoord);
-        #endif
+        albedo *= textureGrad(gtexture, frag_texCoord, dUVdx, dUVdy);
     }
     #ifdef SETTING_DEBUG_WHITE_WORLD
     return vec4(1.0);
@@ -115,13 +124,8 @@ GBufferData processOutput() {
     #endif
     #endif
 
-    #ifdef SETTING_SCREENSHOT_MODE
-    vec4 normalSample = textureLod(normals, frag_texCoord, 0.0);
-    vec4 specularSample = textureLod(specular, frag_texCoord, 0.0);
-    #else
-    vec4 normalSample = texture(normals, frag_texCoord);
-    vec4 specularSample = texture(specular, frag_texCoord);
-    #endif
+    vec4 normalSample = textureGrad(normals, frag_texCoord, dUVdx, dUVdy);
+    vec4 specularSample = textureGrad(specular, frag_texCoord, dUVdx, dUVdy);
 
     #ifdef GBUFFER_PASS_DH
     specularSample.x = 232.0 / 255.0;
