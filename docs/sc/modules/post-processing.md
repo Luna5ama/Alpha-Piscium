@@ -30,17 +30,18 @@
 设置包括 focal length、f-stop、aperture shape、quality、maximum sample radius、masking heuristic、三段 manual-focus
 distance、focus time 和 focus-plane debug。
 
-## 时序 AA 与升采样
+## 抗锯齿与超采样
 
 [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) 在管线分支前应用公共的 DOF 输入。随后 program list
 启用以下路径之一：
 
 | 路径 | Pass 流程 | 作用 |
 |------|-----------|------|
-| 非 FSR3 | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → 可选 [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Resolve `history_taa`、执行空间抗锯齿，并锐化渲染分辨率输出。关闭 TAA 时，`TAAResolve` 直接写入未滤波结果，并跳过 FXAA/RCAS。 |
-| FSR3 | [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | 构建 motion/reactive 输入、累积全分辨率结果，再通过公共 RCAS pass 执行可选锐化和最终颜色空间转换。 |
+| 关闭 | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) | 直接写入未滤波的当前帧，不执行时域或空间抗锯齿。 |
+| TAA | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Resolve `history_taa`、执行空间抗锯齿，并锐化渲染分辨率输出。 |
+| FSR 3 | [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | 构建 motion/reactive 输入、累积全分辨率结果，再通过公共 RCAS pass 执行锐化和最终颜色空间转换。 |
 
-TAA 设置包括 enable、jitter、current/history filter 和 CAS sharpness。current/previous jitter custom uniform 在 [
+抗锯齿 / 超采样 screen 控制模式、渲染分辨率比例、jitter、TAA current/history filter、半透明 SST 降噪和公共 RCAS 锐化强度。current/previous jitter custom uniform 在 [
 `scripts/shaders.properties`](../../../scripts/shaders.properties) 中由 R2 frame sequence 生成；改变采样序列时，也要同步更新
 reprojection 约定。
 

@@ -98,7 +98,7 @@ uniform sampler2D usam_shadow_waterMask;
 uniform sampler2D usam_shadow_waterNormal;
 
 // --------------------------------------------------- Custom Images ---------------------------------------------------
-#ifdef SETTING_FSR3
+#if SETTING_AA_MODE == 2
 uniform usampler2D usam_fsr3ReconstructedDepth;
 uniform sampler2D usam_fsr3UpscaleAtlas;
 #endif

@@ -26,7 +26,7 @@ water and translucent geometry
   ↓
 scene-preparation, GI, caustics, cloud, shadow, and lighting passes
   ↓
-DOFPrepare, TAAPrepare, then TAA/FXAA or FSR3, followed by RCAS
+DOFPrepare, TAAPrepare, then the selected Off/TAA/FSR 3 path, followed by shared RCAS when enabled
   ↓
 Bloom downsample/upsample
   ↓

@@ -25,7 +25,7 @@ deferred（当前为空）
   ↓
 场景准备、GI、焦散、云、阴影、光照与体积 pass
   ↓
-DOFPrepare、TAAPrepare，随后选择 TAA/FXAA 或 FSR3，最后执行 RCAS
+DOFPrepare、TAAPrepare，随后选择关闭/TAA/FSR 3 路径，并在启用时执行公共 RCAS
   ↓
 Bloom downsample/upsample
   ↓

@@ -1,8 +1,15 @@
 #define GLOBAL_DATA_MODIFIER restrict buffer
 #include "/Base.glsl"
+
+#define SETTING_TAA_CAS_SHARPNESS SETTING_AA_SHARPNESS
+#if SETTING_AA_MODE == 2
+#define SETTING_FSR3
+#define SETTING_FSR3_SHARPNESS SETTING_AA_SHARPNESS
+#endif
+
 #include "/techniques/ffx/fsr1/RCAS.glsl"
 
-#ifdef SETTING_FSR3
+#if SETTING_AA_MODE == 2
 #define FSR3_BIND_RCAS
 #include "/techniques/ffx/fsr3upscaler/Integration.glsl"
 #endif
@@ -15,7 +22,7 @@ const vec2 workGroupsRender = vec2(POST_PROCESS_SCALE_FACTOR, POST_PROCESS_SCALE
 layout(rgba16f) uniform restrict writeonly image2D uimg_main;
 
 vec4 rcas_loadInput(ivec2 texelPos, bool center) {
-    #ifdef SETTING_FSR3
+    #if SETTING_AA_MODE == 2
     vec4 color = LoadRCAS_Input(texelPos);
     color.rgb *= exp2(global_aeData.expValues.z);
     color.rgb = agxInvertible_forward(color.rgb);
@@ -38,7 +45,7 @@ void main() {
         color.a = 1.0;
         imageStore(uimg_main, texelPos, color);
     }
-    #ifdef SETTING_FSR3
+    #if SETTING_AA_MODE == 2
     if (all(equal(gl_GlobalInvocationID, uvec3(0)))) {
         global_fsr3FrameInfo.w = float(frameCounter);
     }
