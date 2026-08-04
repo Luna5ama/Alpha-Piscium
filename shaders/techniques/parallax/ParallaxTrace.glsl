@@ -245,6 +245,9 @@ bool parallax_traceParallax(
 
     int maxExtent = max(1, int(ceil(max(spriteMax.x - spriteMin.x, spriteMax.y - spriteMin.y))));
     int startLevel = min(14, findMSB(maxExtent - 1) + 1);
+    #if SETTING_PARALLAX_MODE == 1
+    startLevel = max(startLevel - 1, 0);
+    #endif
     int level = startLevel;
     float t = 0.0;
     #if SETTING_PARALLAX_MODE == 1
@@ -397,6 +400,7 @@ bool parallax_traceParallax(
             #elif SETTING_PARALLAX_MODE == 3
             vec2 startLineSurface = _parallax_continuousLineSurface(lineDepths, 0.0);
             float startDifference = t - startLineSurface.x;
+            float previousDifference = startDifference;
             float previousDerivative = segmentLength - startLineSurface.y;
             #else
             vec3 startSurface = _parallax_continuousParallaxSurface(depths, localPosition);
@@ -423,7 +427,7 @@ bool parallax_traceParallax(
                     float candidateDerivative = segmentLength - dot(candidateSurface.yz, segmentDelta);
                     #endif
                     float upperSegment = candidateSegment;
-                    #if SETTING_PARALLAX_MODE == 4
+                    #if SETTING_PARALLAX_MODE > 2
                     float upperDifference = candidateDifference;
                     #endif
                     bool bracketed = candidateDifference >= -tEpsilon;
@@ -464,7 +468,7 @@ bool parallax_traceParallax(
                         float peakDepth = _parallax_continuousParallaxSurface(depths, peakPosition).x;
                         #endif
                         float peakDifference = t + segmentLength * upperSegment - peakDepth;
-                        #if SETTING_PARALLAX_MODE == 4
+                        #if SETTING_PARALLAX_MODE > 2
                         upperDifference = peakDifference;
                         #endif
                         bracketed = peakDifference >= -tEpsilon;
@@ -488,17 +492,21 @@ bool parallax_traceParallax(
                         float rootWeight = (-tEpsilon - lowerDifference) / (upperDifference - lowerDifference);
                         hitSegment = mix(lowerSegment, upperSegment, rootWeight);
                         #elif SETTING_PARALLAX_MODE == 3
-                        for (int refinement = 0; refinement < 6; refinement++) {
+                        float lowerDifference = previousDifference;
+                        for (int refinement = 0; refinement < 4; refinement++) {
                             float middleSegment = (lowerSegment + upperSegment) * 0.5;
                             float middleDepth = _parallax_continuousLineDepth(lineDepths, middleSegment);
                             float middleDifference = t + segmentLength * middleSegment - middleDepth;
                             if (middleDifference >= -tEpsilon) {
                                 upperSegment = middleSegment;
+                                upperDifference = middleDifference;
                             } else {
                                 lowerSegment = middleSegment;
+                                lowerDifference = middleDifference;
                             }
                         }
-                        hitSegment = upperSegment;
+                        float rootWeight = (-tEpsilon - lowerDifference) / (upperDifference - lowerDifference);
+                        hitSegment = mix(lowerSegment, upperSegment, rootWeight);
                         #else
                         for (int refinement = 0; refinement < 6; refinement++) {
                             float middleSegment = (lowerSegment + upperSegment) * 0.5;
@@ -516,7 +524,7 @@ bool parallax_traceParallax(
                         break;
                     }
                     previousSegment = candidateSegment;
-                    #if SETTING_PARALLAX_MODE == 4
+                    #if SETTING_PARALLAX_MODE > 2
                     previousDifference = candidateDifference;
                     #endif
                     previousDerivative = candidateDerivative;
