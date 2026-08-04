@@ -69,7 +69,7 @@
 #define RENDER_SCALE_SIXTEENTH 0.0625
 #endif
 
-#ifdef SETTING_FSR3
+#if SETTING_AA_MODE == 2
 #define POST_PROCESS_SCALE_FACTOR 1.0
 #define POST_PROCESS_SCALE_HALF 0.5
 #define POST_PROCESS_SCALE_QUARTER 0.25
@@ -88,7 +88,7 @@
 #ifdef SETTING_SCREENSHOT_MODE
 #define GBUFFER_TEXTURE_GRAD_X(uv) vec2(0.0)
 #define GBUFFER_TEXTURE_GRAD_Y(uv) vec2(0.0)
-#elif defined(SETTING_FSR3)
+#elif SETTING_AA_MODE == 2
 #define GBUFFER_TEXTURE_GRAD_X(uv) (dFdx(uv) * (0.5 * uval_mainImageScale.x))
 #define GBUFFER_TEXTURE_GRAD_Y(uv) (dFdy(uv) * (0.5 * uval_mainImageScale.y))
 #else
@@ -98,7 +98,7 @@
 
 #ifndef SKIP_UNIFORMS
 ivec2 renderScale_postToMainTexel(ivec2 postTexel) {
-#ifdef SETTING_FSR3
+#if SETTING_AA_MODE == 2
     vec2 viewUV = (vec2(postTexel) + 0.5) * uval_viewImageSizeRcp;
     return clamp(ivec2(viewUV * uval_mainImageSize), ivec2(0), uval_mainImageSizeI - 1);
 #else

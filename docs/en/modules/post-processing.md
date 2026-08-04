@@ -32,17 +32,19 @@ runs.
 Settings cover focal length, f-stop, aperture shape, quality, maximum sample radius, masking heuristic, three-part
 manual-focus distance, focus time, and focus-plane debug.
 
-## Temporal AA and upscaling
+## Anti-aliasing and super resolution
 
 [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) applies the common DOF input before the pipeline
 branches. The program list then enables one of these paths:
 
 | Path | Pass flow | Purpose |
 |------|-----------|---------|
-| Non-FSR3 | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → optional [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Resolves `history_taa`, applies spatial AA, and sharpens the render-resolution output. With TAA disabled, `TAAResolve` writes the unfiltered result and skips FXAA/RCAS. |
-| FSR3 | [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Builds motion/reactive inputs, accumulates a full-resolution result, then uses the shared RCAS pass for optional sharpening and final color-space conversion. |
+| Off | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) | Writes the unfiltered current frame without temporal or spatial AA. |
+| TAA | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Resolves `history_taa`, applies spatial AA, and sharpens the render-resolution output. |
+| FSR 3 | [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Builds motion/reactive inputs, accumulates a full-resolution result, then uses the shared RCAS pass for sharpening and final color-space conversion. |
 
-TAA settings cover enable, jitter, current/history filters, and CAS sharpness. Current/previous-jitter custom uniforms
+The Anti-Aliasing / Super Resolution screen controls the mode, render scale, jitter, TAA current/history filters,
+translucent SST denoising, and the shared RCAS sharpening strength. Current/previous-jitter custom uniforms
 are generated from the R2 frame sequence in [`scripts/shaders.properties`](../../../scripts/shaders.properties);
 changing the sampling sequence requires updating reprojection conventions as well.
 

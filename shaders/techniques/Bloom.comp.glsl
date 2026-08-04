@@ -47,7 +47,7 @@ vec4 _bloom_imageLoad(ivec2 coord);
 void _bloom_imageStore(ivec2 coord, vec4 data);
 vec4 _bloom_imageSample(vec2 uv);
 
-#ifdef SETTING_FSR3
+#if SETTING_AA_MODE == 2
 ivec2 fsr3Bloom_atlasTexel(ivec2 texel) {
     return texel + ivec2(2 * int(uval_viewImageSize.x), 0);
 }
@@ -67,7 +67,7 @@ vec4 _bloom_imageSample(vec2 uv) {
 }
 #else
 vec4 _bloom_imageSample(vec2 uv) {
-    #ifdef SETTING_FSR3
+    #if SETTING_AA_MODE == 2
     return fsr3Bloom_sample(uv);
     #else
     return transient_bloom_sample(uv);
@@ -78,7 +78,7 @@ vec4 _bloom_imageSample(vec2 uv) {
 vec4 _bloom_imageLoad(ivec2 coord) {
     return vec4(0.0);
 }
-#ifdef SETTING_FSR3
+#if SETTING_AA_MODE == 2
 layout(rgba16f) uniform writeonly image2D uimg_fsr3UpscaleAtlas;
 void _bloom_imageStore(ivec2 coord, vec4 data) {
     imageStore(uimg_fsr3UpscaleAtlas, fsr3Bloom_atlasTexel(coord), vec4(data.rgb, 0.0));
@@ -93,7 +93,7 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
 
 #elif BLOOM_UP_SAMPLE
 vec4 _bloom_imageSample(vec2 uv) {
-    #ifdef SETTING_FSR3
+    #if SETTING_AA_MODE == 2
     return fsr3Bloom_sample(uv);
     #else
     return transient_bloom_sample(uv);
@@ -107,7 +107,7 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
     imageStore(uimg_main, coord, data);
 }
 #else
-#ifdef SETTING_FSR3
+#if SETTING_AA_MODE == 2
 layout(rgba16f) uniform restrict image2D uimg_fsr3UpscaleAtlas;
 vec4 _bloom_imageLoad(ivec2 coord) {
     return imageLoad(uimg_fsr3UpscaleAtlas, fsr3Bloom_atlasTexel(coord));
@@ -128,7 +128,7 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
 
 #endif
 
-#ifdef SETTING_FSR3
+#if SETTING_AA_MODE == 2
 ivec4 fsr3Bloom_mipTile(int level) {
     ivec4 tile = ivec4(0, 0, POST_PROCESS_IMAGE_SIZE_I);
     if (level == 0) return tile;

@@ -270,7 +270,7 @@ programs {
         pass("/pass/composite/TranslucentBackComposite.glsl")
         pass("/pass/composite/TranslucentSST.glsl")
         pass("/pass/composite/TranslucentSSTTemporal.comp.glsl") {
-            cond("defined(SETTING_FSR3) && defined(SETTING_FSR3_TRANSLUCENT_SST_DENOISER)")
+            cond("SETTING_AA_MODE == 2 && defined(SETTING_FSR3_TRANSLUCENT_SST_DENOISER)")
         }
         pass("/pass/composite/TranslucentComposite.glsl")
         pass("/techniques/rtwsm/IMapCollapse.comp.glsl")
@@ -283,39 +283,39 @@ programs {
         }
         pass("/pass/composite/TAAPrepare.comp.glsl")
         pass("/pass/composite/TAAResolve.comp.glsl") {
-            cond("!defined(SETTING_FSR3)")
+            cond("SETTING_AA_MODE != 2")
         }
         pass("/pass/composite/FXAA.comp.glsl") {
-            cond("!defined(SETTING_FSR3) && defined(SETTING_TAA)")
+            cond("SETTING_AA_MODE == 1")
         }
         pass("/pass/composite/FSR3MotionVectors.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
+            cond("SETTING_AA_MODE == 2")
         }
         pass("/pass/composite/FSR3PrepareInputs.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
+            cond("SETTING_AA_MODE == 2")
         }
         pass("/pass/composite/FSR3LumaPyramid.comp.glsl") {
             indirect(0, 64)
-            cond("defined(SETTING_FSR3)")
+            cond("SETTING_AA_MODE == 2")
         }
         pass("/pass/composite/FSR3ShadingChangePyramid.comp.glsl") {
             indirect(0, 64)
-            cond("defined(SETTING_FSR3)")
+            cond("SETTING_AA_MODE == 2")
         }
         pass("/pass/composite/FSR3ShadingChange.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
+            cond("SETTING_AA_MODE == 2")
         }
         pass("/pass/composite/FSR3PrepareReactivity.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
+            cond("SETTING_AA_MODE == 2")
         }
         pass("/pass/composite/FSR3LumaInstability.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
+            cond("SETTING_AA_MODE == 2")
         }
         pass("/pass/composite/FSR3Accumulate.comp.glsl") {
-            cond("defined(SETTING_FSR3)")
+            cond("SETTING_AA_MODE == 2")
         }
         pass("/pass/composite/RCAS.comp.glsl") {
-            cond("defined(SETTING_FSR3) || defined(SETTING_TAA)")
+            cond("SETTING_AA_MODE != 0")
         }
         for (i in 1..10) {
             pass("/techniques/Bloom.comp.glsl") {

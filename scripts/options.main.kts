@@ -2448,20 +2448,42 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
             row {
                 screen(1) {
                     lang {
-                        name = "Anti-Aliasing"
+                        name = "Anti-Aliasing / Super Resolution"
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "抗锯齿"
+                        name = "抗锯齿 / 超采样"
                     }
-                    toggle("SETTING_TAA", true) {
+                    toggle("SETTING_AA_MODE", 1, 0..2) {
                         lang {
-                            name = "Temporal Anti-Aliasing (TAA)"
-                            comment =
-                                "Smooths jagged edges by blending multiple frames. Highly recommended for clean image quality."
+                            name = "Anti-Aliasing / Super Resolution Mode"
+                            comment = "Selects the temporal anti-aliasing and upscaling mode."
+                            0 value "Off"
+                            1 value "TAA"
+                            2 value "FSR 3"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "时间抗锯齿（TAA）"
-                            comment = "通过混合多个帧来平滑锯齿边缘。强烈推荐以获得干净的图像质量。"
+                            name = "抗锯齿 / 超采样模式"
+                            comment = "选择时域抗锯齿和超采样模式。"
+                            0 value "关闭"
+                            1 value "TAA"
+                            2 value "FSR 3"
+                        }
+                    }
+                    slider("SETTING_RENDER_SCALE", 10, 0..10) {
+                        lang {
+                            name = "Render Scale"
+                            comment =
+                                "Renders lighting and post-processing at a lower resolution, then upscales to the window. Lower values improve performance but reduce image detail."
+                            for (i in 0..10) {
+                                i value "${50 + i * 5}%"
+                            }
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "渲染分辨率比例"
+                            comment = "以较低分辨率渲染光照和后处理，再升采样到窗口分辨率。数值越低性能越高，但图像细节越少。"
+                            for (i in 0..10) {
+                                i value "${50 + i * 5}%"
+                            }
                         }
                     }
                     toggle("SETTING_TAA_JITTER", true) {
@@ -2541,6 +2563,27 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             2 value "Catmull-Rom 9采样"
                             3 value "Catmull-Rom 全采样"
                             4 value "Lanczos2"
+                        }
+                    }
+                    toggle("SETTING_FSR3_TRANSLUCENT_SST_DENOISER", false) {
+                        lang {
+                            name = "Translucent SST Denoiser"
+                            comment = "Temporally filters translucent SST reflections and refractions. Reduces noise but can soften motion."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "半透明 SST 时域降噪"
+                            comment = "对半透明 SST 反射和折射进行时域滤波。可减少噪点，但可能使运动画面变软。"
+                        }
+                    }
+                    slider("SETTING_AA_SHARPNESS", 0.5, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Sharpening Strength"
+                            comment =
+                                "Controls the shared AMD FidelityFX RCAS sharpening strength for TAA and FSR 3. Higher values create crisper images."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "锐化强度"
+                            comment = "控制 TAA 和 FSR 3 共用的 AMD FidelityFX RCAS 锐化强度。数值越高，图像越清晰。"
                         }
                     }
                 }
@@ -3669,72 +3712,6 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                                 comment = "仅调整粉色色相像素的明度。0 = 不变，负值 = 更暗，正值 = 更亮。"
                             }
                         }
-                    }
-                }
-            }
-            screen(1) {
-                lang {
-                    name = "Upscaling & Resolution"
-                }
-                lang(Locale.SIMPLIFIED_CHINESE) {
-                    name = "升采样与分辨率"
-                }
-                slider("SETTING_RENDER_SCALE", 10, 0..10) {
-                    lang {
-                        name = "Render Scale"
-                        comment =
-                            "Renders lighting and post-processing at a lower resolution, then upscales to the window. Lower values improve performance but reduce image detail."
-                        for (i in 0..10) {
-                            i value "${50 + i * 5}%"
-                        }
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "渲染分辨率比例"
-                        comment = "以较低分辨率渲染光照和后处理，再升采样到窗口分辨率。数值越低性能越高，但图像细节越少。"
-                        for (i in 0..10) {
-                            i value "${50 + i * 5}%"
-                        }
-                    }
-                }
-                toggle("SETTING_FSR3", false) {
-                    lang {
-                        name = "FSR3 Upscaler"
-                        comment = "Uses AMD FidelityFX FSR3 temporal upscaling and anti-aliasing."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "FSR3 超分辨率"
-                        comment = "使用 AMD FidelityFX FSR3 时域超分辨率与抗锯齿。"
-                    }
-                }
-                toggle("SETTING_FSR3_TRANSLUCENT_SST_DENOISER", false) {
-                    lang {
-                        name = "Translucent SST Denoiser"
-                        comment = "Temporally filters translucent SST reflections and refractions. Reduces noise but can soften motion."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "半透明 SST 时域降噪"
-                        comment = "对半透明 SST 反射和折射进行时域滤波。可减少噪点，但可能使运动画面变软。"
-                    }
-                }
-                slider("SETTING_FSR3_SHARPNESS", 0.0, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "FSR3 Sharpening"
-                        comment = "Controls FSR3 RCAS sharpening strength."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "FSR3 锐化强度"
-                        comment = "控制 FSR3 RCAS 锐化强度。"
-                    }
-                }
-                slider("SETTING_TAA_CAS_SHARPNESS", 0.5, 0.0..1.0 step 0.05) {
-                    lang {
-                        name = "Sharpening Strength"
-                        comment =
-                            "Restores sharpness lost from anti-aliasing using AMD FidelityFX CAS. Higher values create crisper images."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "锐化强度"
-                        comment = "使用AMD FidelityFX CAS恢复因抗锯齿而失去的锐度。数值越高，图像越清晰。"
                     }
                 }
             }

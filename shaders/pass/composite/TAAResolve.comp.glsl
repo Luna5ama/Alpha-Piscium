@@ -16,7 +16,7 @@ layout(rgba16f) uniform restrict writeonly image2D uimg_main;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 
-#ifdef SETTING_TAA
+#if SETTING_AA_MODE == 1
 
 // Shared memory with padding for 4x4 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for Lanczos2 4x4 taps
