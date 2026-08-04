@@ -49,18 +49,8 @@ layout(location = 0) out uvec4 rt_gbufferSolidData1;
 layout(location = 1) out uvec4 rt_gbufferSolidData2;
 layout(location = 2) out vec4 rt_translucentColor;
 
-#ifdef SETTING_SCREENSHOT_MODE
-vec2 dUVdx = vec2(0.0);
-vec2 dUVdy = vec2(0.0);
-#else
-#ifdef SETTING_FSR3
-vec2 dUVdx = dFdx(frag_texCoord) * (0.5 * uval_mainImageScale.x);
-vec2 dUVdy = dFdy(frag_texCoord) * (0.5 * uval_mainImageScale.y);
-#else
-vec2 dUVdx = dFdx(frag_texCoord);
-vec2 dUVdy = dFdy(frag_texCoord);
-#endif
-#endif
+vec2 dUVdx = GBUFFER_TEXTURE_GRAD_X(frag_texCoord);
+vec2 dUVdy = GBUFFER_TEXTURE_GRAD_Y(frag_texCoord);
 
 vec4 processAlbedo() {
     vec4 albedo = frag_colorMul;

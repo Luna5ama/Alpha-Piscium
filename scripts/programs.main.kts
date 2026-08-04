@@ -288,7 +288,7 @@ programs {
         pass("/pass/composite/FXAA.comp.glsl") {
             cond("!defined(SETTING_FSR3) && defined(SETTING_TAA)")
         }
-        pass("/pass/composite/MotionVectors.comp.glsl") {
+        pass("/pass/composite/FSR3MotionVectors.comp.glsl") {
             cond("defined(SETTING_FSR3)")
         }
         pass("/pass/composite/FSR3PrepareInputs.comp.glsl") {
@@ -315,7 +315,7 @@ programs {
             cond("defined(SETTING_FSR3)")
         }
         pass("/pass/composite/RCAS.comp.glsl") {
-            cond("defined(SETTING_FSR3) || (!defined(SETTING_FSR3) && defined(SETTING_TAA))")
+            cond("defined(SETTING_FSR3) || defined(SETTING_TAA)")
         }
         for (i in 1..10) {
             pass("/techniques/Bloom.comp.glsl") {

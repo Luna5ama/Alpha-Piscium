@@ -28,7 +28,7 @@ optical flow,
 backend/provider code, shader blobs, debug rendering, auto-reactive generation,
 Xbox-only paths, and backend resource aliasing code.
 
-`/pass/composite/MotionVectors.comp.glsl` generates camera motion and packs the
+`/pass/composite/FSR3MotionVectors.comp.glsl` generates camera motion and packs the
 reactive and transparency/composition masks in its Z/W channels. The seven
 FSR3 entrypoints bind the callbacks from
 `Integration.glsl`. Surfaces without object transforms are marked reactive.

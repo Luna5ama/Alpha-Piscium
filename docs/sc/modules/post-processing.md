@@ -12,6 +12,7 @@
 | [`shaders/techniques/DOF.glsl`](../../../shaders/techniques/DOF.glsl)                                                                                                           | DOF 公共采样与 circle-of-confusion 逻辑 |
 | [`DOFFocus.comp.glsl`](../../../shaders/pass/composite/DOFFocus.comp.glsl)、[`DOFPrepare.comp.glsl`](../../../shaders/pass/composite/DOFPrepare.comp.glsl)                       | 自动 focus 与 DOF 输入准备              |
 | [`TAAPrepare.comp.glsl`](../../../shaders/pass/composite/TAAPrepare.comp.glsl)、[`TAAResolve.comp.glsl`](../../../shaders/pass/composite/TAAResolve.comp.glsl)                   | 时序 AA 准备与 resolve                |
+| [`FSR3MotionVectors.comp.glsl`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl)、[`FSR3Accumulate.comp.glsl`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) | FSR3 输入、时域升采样与累积                 |
 | [`FXAA.comp.glsl`](../../../shaders/pass/composite/FXAA.comp.glsl)                                                                                                              | 空间抗锯齿                            |
 | [`RCAS.comp.glsl`](../../../shaders/pass/composite/RCAS.comp.glsl)、[`techniques/ffx/fsr1/`](../../../shaders/techniques/ffx/fsr1/)                                              | RCAS 锐化                          |
 | [`techniques/Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl)                                                                                                     | Bloom downsample/upsample 金字塔    |
@@ -29,16 +30,15 @@
 设置包括 focal length、f-stop、aperture shape、quality、maximum sample radius、masking heuristic、三段 manual-focus
 distance、focus time 和 focus-plane debug。
 
-## 时序与空间 AA
+## 时序 AA 与升采样
 
-| 顺序 | Pass                                                                 | 作用                                                                       |
-|----|----------------------------------------------------------------------|--------------------------------------------------------------------------|
-| 1  | [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) | 生成 temporal input、luma difference 和辅助数据                                  |
-| 2  | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) | 使用 `history_taa`、motion/reprojection data 和当前帧输入写入 `transient_taaOutput` |
-| 3  | [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl)             | 写入 `transient_fxaaOutput`                                                |
-| 4  | [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl)             | 执行最终空间锐化                                                                 |
+[`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) 在管线分支前应用公共的 DOF 输入。随后 program list
+启用以下路径之一：
 
-四个 pass 都存在于 program list 中；setting 在 shader 内选择行为，而不是启用/禁用不同的 program number。
+| 路径 | Pass 流程 | 作用 |
+|------|-----------|------|
+| 非 FSR3 | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → 可选 [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Resolve `history_taa`、执行空间抗锯齿，并锐化渲染分辨率输出。关闭 TAA 时，`TAAResolve` 直接写入未滤波结果，并跳过 FXAA/RCAS。 |
+| FSR3 | [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | 构建 motion/reactive 输入、累积全分辨率结果，再通过公共 RCAS pass 执行可选锐化和最终颜色空间转换。 |
 
 TAA 设置包括 enable、jitter、current/history filter 和 CAS sharpness。current/previous jitter custom uniform 在 [
 `scripts/shaders.properties`](../../../scripts/shaders.properties) 中由 R2 frame sequence 生成；改变采样序列时，也要同步更新
@@ -47,8 +47,8 @@ reprojection 约定。
 ## Bloom
 
 启用 `SETTING_BLOOM` 时，[`Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl) 通过 `BLOOM_DOWN_SAMPLE` 和
-`BLOOM_PASS=1..10` 构建第 1–10 层，再通过 `BLOOM_UP_SAMPLE` 重建第 10–2 层。`SETTING_BLOOM_PASS` 在 program 层禁用未使用的高层，资源为
-`transient_bloom`。
+`BLOOM_PASS=1..10` 构建第 1–10 层，再通过 `BLOOM_UP_SAMPLE` 重建第 10–2 层。`SETTING_BLOOM_PASS` 在 program 层禁用未使用的高层。
+非 FSR3 路径使用 `transient_bloom`；FSR3 路径在 accumulation 和 RCAS 后复用 `usam_fsr3UpscaleAtlas` 的第三个区域。
 
 ## 后期合成与曝光
 

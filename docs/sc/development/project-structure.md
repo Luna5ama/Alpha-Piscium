@@ -68,7 +68,7 @@ shaders/
 - `atmospherics/`：空气散射 LUT、epipolar scattering、水下体积和云。
 - `rtwsm/`：阴影重要性图、warp 与坐标映射。
 - `displaytransform/`：exposure、DRT 和最终显示变换。
-- `ffx/`：当前使用的 FSR1/RCAS/SPD 代码及第三方兼容层。
+- `ffx/`：FidelityFX FSR3 升采样、FSR1 RCAS、SPD kernel 与第三方兼容层。
 - 根部文件包括 bloom、DOF、Hi-Z、lighting、environment probe 和 water wave 等共享实现。
 
 这些现存的直接 compute 入口属于既有布局，不应作为新增入口的模板。

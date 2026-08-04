@@ -13,6 +13,7 @@ transform.
 | [`shaders/techniques/DOF.glsl`](../../../shaders/techniques/DOF.glsl)                                                                                                            | Shared DOF sampling and circle-of-confusion logic |
 | [`DOFFocus.comp.glsl`](../../../shaders/pass/composite/DOFFocus.comp.glsl), [`DOFPrepare.comp.glsl`](../../../shaders/pass/composite/DOFPrepare.comp.glsl)                       | Automatic focus and DOF input preparation         |
 | [`TAAPrepare.comp.glsl`](../../../shaders/pass/composite/TAAPrepare.comp.glsl), [`TAAResolve.comp.glsl`](../../../shaders/pass/composite/TAAResolve.comp.glsl)                   | Temporal-AA preparation and resolve               |
+| [`FSR3MotionVectors.comp.glsl`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl), [`FSR3Accumulate.comp.glsl`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) | FSR3 inputs, temporal upscaling, and accumulation |
 | [`FXAA.comp.glsl`](../../../shaders/pass/composite/FXAA.comp.glsl)                                                                                                               | Spatial antialiasing                              |
 | [`RCAS.comp.glsl`](../../../shaders/pass/composite/RCAS.comp.glsl), [`techniques/ffx/fsr1/`](../../../shaders/techniques/ffx/fsr1/)                                              | RCAS sharpening                                   |
 | [`techniques/Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl)                                                                                                      | Bloom downsample/upsample pyramid                 |
@@ -31,17 +32,15 @@ runs.
 Settings cover focal length, f-stop, aperture shape, quality, maximum sample radius, masking heuristic, three-part
 manual-focus distance, focus time, and focus-plane debug.
 
-## Temporal and spatial AA
+## Temporal AA and upscaling
 
-| Order | Pass                                                                 | Purpose                                                                                              |
-|-------|----------------------------------------------------------------------|------------------------------------------------------------------------------------------------------|
-| 1     | [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) | Produces temporal input, luma difference, and supporting data                                        |
-| 2     | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) | Uses `history_taa`, motion/reprojection data, and current-frame input to write `transient_taaOutput` |
-| 3     | [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl)             | Writes `transient_fxaaOutput`                                                                        |
-| 4     | [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl)             | Performs final spatial sharpening                                                                    |
+[`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) applies the common DOF input before the pipeline
+branches. The program list then enables one of these paths:
 
-All four passes are present in the program list; settings select behavior inside the shaders rather than
-enabling/disabling separate program numbers.
+| Path | Pass flow | Purpose |
+|------|-----------|---------|
+| Non-FSR3 | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → optional [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Resolves `history_taa`, applies spatial AA, and sharpens the render-resolution output. With TAA disabled, `TAAResolve` writes the unfiltered result and skips FXAA/RCAS. |
+| FSR3 | [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Builds motion/reactive inputs, accumulates a full-resolution result, then uses the shared RCAS pass for optional sharpening and final color-space conversion. |
 
 TAA settings cover enable, jitter, current/history filters, and CAS sharpness. Current/previous-jitter custom uniforms
 are generated from the R2 frame sequence in [`scripts/shaders.properties`](../../../scripts/shaders.properties);
@@ -51,7 +50,8 @@ changing the sampling sequence requires updating reprojection conventions as wel
 
 When `SETTING_BLOOM` is enabled, [`Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl) builds levels 1–10
 with `BLOOM_DOWN_SAMPLE` and `BLOOM_PASS=1..10`, then reconstructs levels 10–2 with `BLOOM_UP_SAMPLE`.
-`SETTING_BLOOM_PASS` disables unused high levels at the program layer, and the resource is `transient_bloom`.
+`SETTING_BLOOM_PASS` disables unused high levels at the program layer. The non-FSR3 path uses `transient_bloom`; the FSR3
+path reuses the third region of `usam_fsr3UpscaleAtlas` after accumulation and RCAS.
 
 ## Post composition and exposure
 

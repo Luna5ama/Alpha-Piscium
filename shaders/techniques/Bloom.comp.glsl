@@ -14,18 +14,12 @@
 #endif
 
 #ifndef BLOOM_NON_STANDALONE
-#if defined(SETTING_FSR3) && BLOOM_SCALE_DIV == 0
-const vec2 workGroupsRender = vec2(1.0, 1.0);
-#elif defined(SETTING_FSR3) && BLOOM_SCALE_DIV == 1
-const vec2 workGroupsRender = vec2(0.5, 0.5);
-#elif defined(SETTING_FSR3) && BLOOM_SCALE_DIV == 2
-const vec2 workGroupsRender = vec2(0.25, 0.25);
-#elif BLOOM_SCALE_DIV == 0
-const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
+#if BLOOM_SCALE_DIV == 0
+const vec2 workGroupsRender = vec2(POST_PROCESS_SCALE_FACTOR, POST_PROCESS_SCALE_FACTOR);
 #elif BLOOM_SCALE_DIV == 1
-const vec2 workGroupsRender = vec2(RENDER_SCALE_HALF, RENDER_SCALE_HALF);
+const vec2 workGroupsRender = vec2(POST_PROCESS_SCALE_HALF, POST_PROCESS_SCALE_HALF);
 #elif BLOOM_SCALE_DIV == 2
-const vec2 workGroupsRender = vec2(RENDER_SCALE_QUARTER, RENDER_SCALE_QUARTER);
+const vec2 workGroupsRender = vec2(POST_PROCESS_SCALE_QUARTER, POST_PROCESS_SCALE_QUARTER);
 #elif BLOOM_SCALE_DIV == 3
 const vec2 workGroupsRender = vec2(0.125, 0.125);
 #elif BLOOM_SCALE_DIV == 4
@@ -54,6 +48,10 @@ void _bloom_imageStore(ivec2 coord, vec4 data);
 vec4 _bloom_imageSample(vec2 uv);
 
 #ifdef SETTING_FSR3
+ivec2 fsr3Bloom_atlasTexel(ivec2 texel) {
+    return texel + ivec2(2 * int(uval_viewImageSize.x), 0);
+}
+
 vec4 fsr3Bloom_sample(vec2 uv) {
     vec2 texel = clamp(uv * POST_PROCESS_IMAGE_SIZE, vec2(0.5), POST_PROCESS_IMAGE_SIZE - 0.5);
     texel.x += 2.0 * uval_viewImageSize.x;
@@ -82,11 +80,8 @@ vec4 _bloom_imageLoad(ivec2 coord) {
 }
 #ifdef SETTING_FSR3
 layout(rgba16f) uniform writeonly image2D uimg_fsr3UpscaleAtlas;
-void fsr3Bloom_store(ivec2 coord, vec4 data) {
-    imageStore(uimg_fsr3UpscaleAtlas, coord + ivec2(2 * int(uval_viewImageSize.x), 0), vec4(data.rgb, 0.0));
-}
 void _bloom_imageStore(ivec2 coord, vec4 data) {
-    fsr3Bloom_store(coord, data);
+    imageStore(uimg_fsr3UpscaleAtlas, fsr3Bloom_atlasTexel(coord), vec4(data.rgb, 0.0));
 }
 #else
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
@@ -114,17 +109,11 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
 #else
 #ifdef SETTING_FSR3
 layout(rgba16f) uniform restrict image2D uimg_fsr3UpscaleAtlas;
-vec4 fsr3Bloom_fetch(ivec2 coord) {
-    return imageLoad(uimg_fsr3UpscaleAtlas, coord + ivec2(2 * int(uval_viewImageSize.x), 0));
-}
-void fsr3Bloom_store(ivec2 coord, vec4 data) {
-    imageStore(uimg_fsr3UpscaleAtlas, coord + ivec2(2 * int(uval_viewImageSize.x), 0), vec4(data.rgb, 0.0));
-}
 vec4 _bloom_imageLoad(ivec2 coord) {
-    return fsr3Bloom_fetch(coord);
+    return imageLoad(uimg_fsr3UpscaleAtlas, fsr3Bloom_atlasTexel(coord));
 }
 void _bloom_imageStore(ivec2 coord, vec4 data) {
-    fsr3Bloom_store(coord, data);
+    imageStore(uimg_fsr3UpscaleAtlas, fsr3Bloom_atlasTexel(coord), vec4(data.rgb, 0.0));
 }
 #else
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
@@ -138,8 +127,6 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
 #endif
 
 #endif
-
-#define BIT_MASK(x) ((1 << (x)) - 1)
 
 #ifdef SETTING_FSR3
 ivec4 fsr3Bloom_mipTile(int level) {
@@ -180,8 +167,8 @@ ivec4 bloom_outputTile = global_mipmapTileCeilPadded[BLOOM_PASS - 1];
 
 ivec2 inputStartTexel = bloom_inputTile.xy;
 ivec2 inputEndTexel = bloom_inputTile.xy + bloom_inputTile.zw;
-vec2 inputStartUV = (vec2(inputStartTexel) + 0.0) * POST_PROCESS_IMAGE_SIZE_RCP;
-vec2 inputEndUV = (vec2(inputEndTexel) - 0.0) * POST_PROCESS_IMAGE_SIZE_RCP;
+vec2 inputStartUV = vec2(inputStartTexel) * POST_PROCESS_IMAGE_SIZE_RCP;
+vec2 inputEndUV = vec2(inputEndTexel) * POST_PROCESS_IMAGE_SIZE_RCP;
 
 #if BLOOM_DOWN_SAMPLE
 vec4 bloom_readInputDown(ivec2 coord) {

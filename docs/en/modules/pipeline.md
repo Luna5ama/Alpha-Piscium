@@ -26,7 +26,7 @@ water and translucent geometry
   ↓
 scene-preparation, GI, caustics, cloud, shadow, and lighting passes
   ↓
-DOFPrepare, TAAPrepare, TAAResolve, FXAA, and RCAS
+DOFPrepare, TAAPrepare, then TAA/FXAA or FSR3, followed by RCAS
   ↓
 Bloom downsample/upsample
   ↓
@@ -130,7 +130,8 @@ The last stage uses indirect dispatch from SSBO 0 offset 0.
 | Range                                                                                                                                                                                                                                                             | Flow                                                                            |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
 | [`DOFPrepare`](../../../shaders/pass/composite/DOFPrepare.comp.glsl)                                                                                                                                                                                              | Optional DOF prepare                                                            |
-| [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) → [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Temporal AA, spatial AA, and sharpening                                         |
+| [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) → [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Non-FSR3 temporal AA, optional spatial AA, and sharpening                        |
+| [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → FSR3 pyramid/reactivity stages → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | FSR3 temporal upscaling and shared RCAS output                                  |
 | [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl)                                                                                                                                                                                                            | Downsample levels 1–10 and upsample levels 10–2, capped by `SETTING_BLOOM_PASS` |
 | [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) → [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                                   | RTWSM importance blur and post composite                                        |
 | [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl) → [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl)                                                                                                                         | Next-frame RTWSM warp and exposure mip                                          |
