@@ -359,17 +359,15 @@ bool parallax_traceParallax(
             #if SETTING_PARALLAX_MODE == 1
             float surfaceDepth = 1.0 - _parallax_materialDepthMaxAlpha(cell, mipData);
             #else
+            #if SETTING_PARALLAX_MODE == 4
             ivec2 mipCellMin = spriteTexelMin >> level;
             ivec2 mipCellMax = (spriteTexelMax + cellScaleI - 1) >> level;
-            #if SETTING_PARALLAX_MODE == 4
-            float maxSurfaceAlpha = 0.0;
-            for (int cellY = -1; cellY <= 1; cellY++) {
-                for (int cellX = -1; cellX <= 1; cellX++) {
-                    ivec2 wrappedCell = _parallax_wrapParallaxCell(cell + ivec2(cellX, cellY), mipCellMin, mipCellMax);
-                    maxSurfaceAlpha = max(maxSurfaceAlpha, _parallax_materialDepthMaxAlpha(wrappedCell, mipData));
-                }
-            }
+            bool interiorCell = all(greaterThan(cell, mipCellMin))
+                && all(lessThan(cell + ivec2(1), mipCellMax));
+            float maxSurfaceAlpha = interiorCell ? _parallax_materialDepthMaxAlpha(cell, mipData) : 1.0;
             #else
+            ivec2 mipCellMin = spriteTexelMin >> level;
+            ivec2 mipCellMax = (spriteTexelMax + cellScaleI - 1) >> level;
             float maxSurfaceAlpha;
             if (all(lessThan(cell + ivec2(1), mipCellMax))) {
                 vec4 gatheredAlpha = _parallax_gatherMaterialDepthAlpha(cell, mipData, packedTexelRcp);
