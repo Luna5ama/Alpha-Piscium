@@ -85,10 +85,16 @@ Do not edit tracked generated wrappers, `shaders/base/{Options,TextOptions,Texti
 `shaders/shaders.properties` directly. Do not commit ignored `scripts/*.shaders.properties` fragments, `shadesmitth/`,
 or AOT caches.
 
+## Vibris MCP
+
+- Vibris MCP is available for work that needs a live Minecraft instance, including but not limited to compiling and
+  running shaders, measuring performance, comparing results, capturing runtime data, and related diagnostics.
+- Prefer Vibris for performance measurement and regression comparisons, using comparable test conditions.
+- Use Nsight only when deeply optimizing shader code and Vibris measurements are not sufficient.
+
 ## Validation
 
 - Keep routine QA brief; the user performs manual acceptance. Do deeper review or validation only when explicitly requested in the current turn.
-- Vibris is profiling-only and is not a screenshot, debugging, or correctness-validation surface.
 - Run `git diff --check` and `git diff --cached --check` before committing.
 - Keep tracked generated outputs in the same change as their maintained source.
 - Prefer IDE diagnostics. Use external validators such as `glslangValidator` only when explicitly requested or when IDE validation is unavailable.
