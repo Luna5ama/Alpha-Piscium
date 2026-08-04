@@ -32,9 +32,27 @@ void main() {
 #else
     ivec2 sourceSize = parallax_mipPackedSize(baseSize, MATERIAL_DEPTH_MIP_LEVEL - 1);
     maxDepth = 0.0;
+#if SETTING_PARALLAX_MODE == 4
+#if MATERIAL_DEPTH_MIP_LEVEL == 1
+    for (int y = -2; y <= 3; y++) {
+        for (int x = -2; x <= 3; x++) {
+#else
+    for (int y = -1; y <= 2; y++) {
+        for (int x = -1; x <= 2; x++) {
+#endif
+#elif SETTING_PARALLAX_MODE > 1
+#if MATERIAL_DEPTH_MIP_LEVEL == 1
+    for (int y = 0; y <= 3; y++) {
+        for (int x = 0; x <= 3; x++) {
+#else
+    for (int y = 0; y <= 2; y++) {
+        for (int x = 0; x <= 2; x++) {
+#endif
+#else
     for (int y = 0; y < 2; y++) {
         for (int x = 0; x < 2; x++) {
-            ivec2 sourceTexel = min(outputTexel * 2 + ivec2(x, y), sourceSize - 1);
+#endif
+            ivec2 sourceTexel = clamp(outputTexel * 2 + ivec2(x, y), ivec2(0), sourceSize - 1);
             ivec2 sourceStoreTexel = parallax_mipPackedOffset(baseSize, MATERIAL_DEPTH_MIP_LEVEL - 1) + sourceTexel;
             maxDepth = max(maxDepth, imageLoad(uimg_materialDepthMip, sourceStoreTexel).r);
         }
