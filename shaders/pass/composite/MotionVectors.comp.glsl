@@ -7,14 +7,12 @@ const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(r32ui) uniform restrict writeonly uimage2D uimg_fsr3ReconstructedDepth;
 
-#ifdef SETTING_FSR3_TRANSLUCENT_SST_DENOISER
 bool hasTranslucentSurface(ivec2 texelPos, float solidViewZ) {
     float waterViewZ = -texelFetch(usam_csr32f, csr32f_tile1_texelToTexel(texelPos), 0).r;
     float translucentViewZ = -texelFetch(usam_csr32f, csr32f_tile3_texelToTexel(texelPos), 0).r;
     float frontViewZ = max(waterViewZ, translucentViewZ);
     return frontViewZ > -65536.0 && frontViewZ > solidViewZ;
 }
-#endif
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
@@ -50,17 +48,15 @@ void main() {
 
     float overlayCoverage = texelFetch(usam_overlays, texelPos, 0).a;
 
-    // Start from the solid surface; the optional SST history adds translucent rejection when enabled.
+    // Start from the solid surface and include the front translucent layer in the FSR masks.
     float reactiveMask = max(float(solidData.temporalReactive), overlayCoverage);
     float compositionMask = max(float(solidData.temporalReactive), overlayCoverage);
 
-    #ifdef SETTING_FSR3_TRANSLUCENT_SST_DENOISER
     bool translucentSurface = hasTranslucentSurface(texelPos, viewZ);
     GBufferData translucentData = gbufferData_init();
     gbufferData2_unpack(texelFetch(usam_gbufferTranslucentData2, texelPos, 0), translucentData);
-    reactiveMask = max(reactiveMask, float(translucentSurface && translucentData.temporalReactive));
+    reactiveMask = max(reactiveMask, float(translucentSurface && translucentData.temporalReactive) * 0.9);
     compositionMask = max(compositionMask, float(translucentSurface));
-    #endif
 
     reactiveMask = max(reactiveMask, float(!validReprojection));
 
