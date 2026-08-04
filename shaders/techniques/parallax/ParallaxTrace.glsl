@@ -245,6 +245,9 @@ bool parallax_traceParallax(
 
     int maxExtent = max(1, int(ceil(max(spriteMax.x - spriteMin.x, spriteMax.y - spriteMin.y))));
     int startLevel = min(14, findMSB(maxExtent - 1) + 1);
+    #if SETTING_PARALLAX_MODE == 1
+    startLevel = max(startLevel - 1, 0);
+    #endif
     int level = startLevel;
     float t = 0.0;
     #if SETTING_PARALLAX_MODE == 1
