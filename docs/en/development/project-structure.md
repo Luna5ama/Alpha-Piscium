@@ -70,7 +70,7 @@ points registered directly in the program list, including [
 - `atmospherics/`: atmospheric-scattering LUTs, epipolar scattering, underwater volumetrics, and clouds.
 - `rtwsm/`: shadow importance maps, warping, and coordinate mapping.
 - `displaytransform/`: exposure, DRT, and final display transforms.
-- `ffx/`: the FSR1/RCAS/SPD code currently in use and third-party compatibility layers.
+- `ffx/`: FidelityFX FSR3 upscaling, FSR1 RCAS, SPD kernels, and third-party compatibility layers.
 - Files at the directory root include shared bloom, DOF, Hi-Z, lighting, environment-probe, and water-wave
   implementations.
 

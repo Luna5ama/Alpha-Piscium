@@ -32,11 +32,7 @@ void main() {
     if (all(lessThan(texelPos, POST_PROCESS_IMAGE_SIZE_I))) {
         vec4 color = fsr1_rcas(texelPos);
         #if SETTING_DEBUG_OUTPUT == 2
-        #ifdef SETTING_FSR3
         debugOutput(renderScale_postToMainTexel(texelPos), color);
-        #else
-        debugOutput(texelPos, color);
-        #endif
         #endif
         color.rgb = agxInvertible_inverse(color.rgb);
         color.a = 1.0;

@@ -85,6 +85,17 @@
 #define POST_PROCESS_IMAGE_SIZE_RCP uval_mainImageSizeRcp
 #endif
 
+#ifdef SETTING_SCREENSHOT_MODE
+#define GBUFFER_TEXTURE_GRAD_X(uv) vec2(0.0)
+#define GBUFFER_TEXTURE_GRAD_Y(uv) vec2(0.0)
+#elif defined(SETTING_FSR3)
+#define GBUFFER_TEXTURE_GRAD_X(uv) (dFdx(uv) * (0.5 * uval_mainImageScale.x))
+#define GBUFFER_TEXTURE_GRAD_Y(uv) (dFdy(uv) * (0.5 * uval_mainImageScale.y))
+#else
+#define GBUFFER_TEXTURE_GRAD_X(uv) dFdx(uv)
+#define GBUFFER_TEXTURE_GRAD_Y(uv) dFdy(uv)
+#endif
+
 #ifndef SKIP_UNIFORMS
 ivec2 renderScale_postToMainTexel(ivec2 postTexel) {
 #ifdef SETTING_FSR3

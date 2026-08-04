@@ -25,7 +25,7 @@ deferred（当前为空）
   ↓
 场景准备、GI、焦散、云、阴影、光照与体积 pass
   ↓
-DOFPrepare、TAAPrepare、TAAResolve、FXAA 与 RCAS
+DOFPrepare、TAAPrepare，随后选择 TAA/FXAA 或 FSR3，最后执行 RCAS
   ↓
 Bloom downsample/upsample
   ↓
@@ -124,7 +124,8 @@ dispatch。[`EnvProbeUpdate2ReprojectDilate`](../../../shaders/pass/composite/En
 | 范围                                                                                                                                                                                                                                                                | 流程                                                                            |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
 | [`DOFPrepare`](../../../shaders/pass/composite/DOFPrepare.comp.glsl)                                                                                                                                                                                              | 可选 DOF prepare                                                                |
-| [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) → [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | TAA prepare、resolve、FXAA 与 RCAS                                               |
+| [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) → [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | 非 FSR3 的时序 AA、可选空间 AA 与锐化                                             |
+| [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → FSR3 pyramid/reactivity 阶段 → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | FSR3 时域升采样与公共 RCAS 输出                                                  |
 | [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl)                                                                                                                                                                                                            | bloom downsample levels 1–10 与 upsample levels 10–2，按 `SETTING_BLOOM_PASS` 截断 |
 | [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) → [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                                   | RTWSM importance blur 与 post composite                                        |
 | [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl) → [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl)                                                                                                                         | next-frame RTWSM warp 与 exposure mip                                          |
