@@ -27,9 +27,8 @@ layout(early_fragment_tests) in;
 #endif
 
 #if defined(GBUFFER_PASS_NO_LIGHTING)
-/* RENDERTARGETS:6,10 */
+/* RENDERTARGETS:6 */
 layout(location = 0) out vec4 rt_color;
-layout(location = 1) out float rt_gbufferSolidViewZ;
 #elif defined(GBUFFER_PASS_ARMOR_GLINT)
 /* RENDERTARGETS:4 */
 layout(location = 0) out vec4 rt_glintColor;
@@ -197,7 +196,6 @@ void main() {
 
     #if defined(GBUFFER_PASS_NO_LIGHTING)
     rt_color = albedo;
-    rt_gbufferSolidViewZ = viewZ;
     #elif defined(GBUFFER_PASS_ARMOR_GLINT)
     rt_glintColor = dither_u8(albedo, ditherNoise);
     #else
