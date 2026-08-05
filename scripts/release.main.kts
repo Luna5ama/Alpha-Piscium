@@ -170,26 +170,9 @@ if (2 !in skippedSteps) {
 if (3 !in skippedSteps) {
     println("\nStep 3: Creating and pushing git tag...")
     val githubReleaseTag = "v$version"
-    val targetBranch = if (isBeta) "dev" else "main"
+    val targetBranch = branchNameFull
 
-    // Get current branch
-    val currentBranch = Runtime.getRuntime()
-        .exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD"))
-        .inputStream.bufferedReader().readText().trim()
-
-    println("Current branch: $currentBranch")
     println("Target branch for tag: $targetBranch")
-
-    // Checkout target branch if needed
-    if (currentBranch != targetBranch) {
-        println("Checking out $targetBranch branch...")
-        val checkoutProcess = Runtime.getRuntime().exec(arrayOf("git", "checkout", targetBranch))
-        checkoutProcess.waitFor()
-        if (checkoutProcess.exitValue() != 0) {
-            println("Error: Failed to checkout $targetBranch branch")
-            exitProcess(1)
-        }
-    }
 
     // Create the tag
     println("Creating tag $githubReleaseTag on $targetBranch branch...")
@@ -210,13 +193,6 @@ if (3 !in skippedSteps) {
     }
 
     println("Tag $githubReleaseTag created and pushed successfully")
-
-    // Checkout back to original branch if needed
-    if (currentBranch != targetBranch) {
-        println("Checking out back to $currentBranch branch...")
-        val checkoutBackProcess = Runtime.getRuntime().exec(arrayOf("git", "checkout", currentBranch))
-        checkoutBackProcess.waitFor()
-    }
 } else {
     println("Step 3: Skipped")
 }
@@ -225,7 +201,7 @@ if (3 !in skippedSteps) {
 if (4 !in skippedSteps) {
     println("\nStep 4: Creating GitHub release...")
     val githubReleaseTag = "v$version"
-    val targetBranch = if (isBeta) "dev" else "main"
+    val targetBranch = branchNameFull
     val githubReleaseName = "Alpha Piscium v$version"
 
     // Create the release
