@@ -145,17 +145,26 @@ expect(models, Regex("bool\\s+voxel_intersectBlockModel\\s*\\("), "model API")
 expect(models, Regex("ivec2\\s+texelCoord\\s*=\\s*ivec2\\s*\\(\\s*int\\s*\\(\\s*\\(modelData\\s*>>\\s*8u\\)\\s*&\\s*0x7FFEu\\s*\\)\\s*,\\s*int\\s*\\(\\s*\\(modelData\\s*>>\\s*23u\\)\\s*&\\s*3u\\s*\\)\\s*\\)"), "model-level 2D quad texel address")
 expect(models, Regex("texelCoord\\.x\\s*\\+=\\s*2"), "linear quad texel advance")
 expect(models, Regex("texelCoord\\s*\\+\\s*ivec2\\s*\\(\\s*1\\s*,\\s*0\\s*\\)"), "adjacent second quad texel")
-if (Regex("texelFetch\\s*\\(\\s*usam_blockModelQuads\\b").findAll(models).count() != 2) {
-    failures += "quad intersection must fetch exactly two quad texels"
-}
 expect(models, Regex("rotation\\s*=\\s*modelData\\s*&\\s*0x1FFu"), "packed rotation decode")
 expect(models, Regex("quadCount\\s*=\\s*\\(modelData\\s*>>\\s*25u\\)\\s*&\\s*0x3Fu"), "packed quad count decode")
-expect(models, Regex("while\\s*\\(\\s*quadCount\\s*!=\\s*0u\\s*\\)"), "countdown quad loop")
+if (Regex("while\\s*\\(\\s*quadCount\\s*!=\\s*0u\\s*\\)").findAll(models).count() != 2) {
+    failures += "model-level axis split must have exactly two countdown quad loops"
+}
 expect(models, Regex("--quadCount"), "quad loop countdown")
 expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
+val axisQuadIntersection = models.substringAfter("bool _voxel_intersectBlockModelAxisAlignedQuad(")
+    .substringBefore("bool _voxel_intersectBlockModelQuad(")
 val quadIntersection = models.substringAfter("bool _voxel_intersectBlockModelQuad(")
     .substringBefore("bool voxel_intersectBlockModel(")
+for ((label, intersection) in listOf("axis-aligned" to axisQuadIntersection, "general" to quadIntersection)) {
+    if (Regex("texelFetch\\s*\\(\\s*usam_blockModelQuads\\b").findAll(intersection).count() != 2) {
+        failures += "$label quad intersection must fetch exactly two quad texels"
+    }
+}
+reject(axisQuadIntersection, Regex("\\baxisAligned\\b"), "per-quad axis-aligned branch")
+expect(models, "vec3 inverseRayDir = 1.0 / rayDir;", "model-level reciprocal ray direction")
+expect(axisQuadIntersection, "float t = (origin[axis] - rayOrigin[axis]) * inverseRayDir[axis];", "reciprocal axis-plane intersection")
 reject(quadIntersection, Regex("\\bquadIndex\\b"), "per-quad 2D texel address")
 reject(quadIntersection, Regex("normalize\\s*\\("), "per-quad basis normalization")
 expect(models, Regex("if\\s*\\(hit\\)\\s+hitNormal\\s*=\\s*_voxel_unrotateBlockModelVector\\([^;]*normalize\\s*\\(hitNormal\\)"), "post-loop hit normal normalization")
