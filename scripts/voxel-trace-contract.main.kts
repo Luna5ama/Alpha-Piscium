@@ -168,6 +168,7 @@ expect(models, "int texelIndex = int(aabbOffset * 3u);", "linear AABB texel star
 expect(models, "texelIndex += 3;", "linear AABB texel advance")
 expect(models, "int((aabbOffset + i) * 3u)", "indexed AABB texel fallback")
 expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
+expect(models, "_voxel_rotateBlockModelRay", "shared packed ray rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
 expect(models, "uint discreteRotation = uint(originData.w * 255.0 + 0.5);", "discrete AABB fast path")
 expect(models, "_voxel_unrotateBlockModelVector(discreteRotation, localNormal)", "discrete normal rotation")
