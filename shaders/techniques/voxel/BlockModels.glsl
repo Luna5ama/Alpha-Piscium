@@ -57,9 +57,9 @@ bool voxel_intersectBlockModel(
     hitT = uintBitsToFloat(0x7F800000u);
     hitNormal = vec3(0.0);
     bool hit = false;
-    if (modelID < 172u) {
-        if (modelID < 86u) {
-            if (modelID < 43u) {
+    if (modelID < 173u) {
+        if (modelID < 87u) {
+            if (modelID < 44u) {
                 if (modelID < 22u) {
                     if (modelID < 11u) {
                         if (modelID < 6u) {
@@ -553,7 +553,7 @@ bool voxel_intersectBlockModel(
                         }
                     }
                 } else {
-                    if (modelID < 32u) {
+                    if (modelID < 33u) {
                         if (modelID < 27u) {
                             if (modelID < 24u) {
                                 if (modelID == 22u) {
@@ -613,35 +613,35 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 29u) {
-                                if (modelID == 27u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.022115, 0.347153), vec3(0.0, 0.054005, 0.270163), vec3(0.416667, 0.054005, 0.270163), vec3(0.416667, 0.022115, 0.347153), vec3(0.0, -0.923881, -0.38268), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.022115, 0.347153), vec3(0.0, 0.945995, 0.729837), vec3(0.0, 0.977885, 0.652847), vec3(0.0, 0.054005, 0.270163), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.022115, 0.347153), vec3(0.416667, 0.022115, 0.347153), vec3(0.416667, 0.945995, 0.729837), vec3(0.0, 0.945995, 0.729837), vec3(0.0, -0.382684, 0.923879), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.054005, 0.270163), vec3(0.0, 0.977885, 0.652847), vec3(0.416667, 0.977885, 0.652847), vec3(0.416667, 0.054005, 0.270163), vec3(0.0, 0.382684, -0.923879), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.945995, 0.729837), vec3(0.416667, 0.945995, 0.729837), vec3(0.416667, 0.977885, 0.652847), vec3(0.0, 0.977885, 0.652847), vec3(0.0, 0.923881, 0.38268), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.022115, 0.347153), vec3(0.416667, 0.054005, 0.270163), vec3(0.416667, 0.977885, 0.652847), vec3(0.416667, 0.945995, 0.729837), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.44556, 0.52255), vec3(0.416667, 0.47745, 0.44556), vec3(1.0, 0.47745, 0.44556), vec3(1.0, 0.44556, 0.52255), vec3(0.0, -0.923881, -0.38268), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.44556, 0.52255), vec3(1.0, 0.44556, 0.52255), vec3(1.0, 0.52255, 0.55444), vec3(0.416667, 0.52255, 0.55444), vec3(0.0, -0.38268, 0.923881), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.47745, 0.44556), vec3(0.416667, 0.55444, 0.47745), vec3(1.0, 0.55444, 0.47745), vec3(1.0, 0.47745, 0.44556), vec3(0.0, 0.38268, -0.923881), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.52255, 0.55444), vec3(1.0, 0.52255, 0.55444), vec3(1.0, 0.55444, 0.47745), vec3(0.416667, 0.55444, 0.47745), vec3(0.0, 0.923881, 0.38268), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.44556, 0.52255), vec3(1.0, 0.47745, 0.44556), vec3(1.0, 0.55444, 0.47745), vec3(1.0, 0.52255, 0.55444), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                            if (modelID < 30u) {
+                                if (modelID < 28u) {
+                                    if (modelID == 27u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.022115, 0.347153), vec3(0.0, 0.054005, 0.270163), vec3(0.416667, 0.054005, 0.270163), vec3(0.416667, 0.022115, 0.347153), vec3(0.0, -0.923881, -0.38268), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.022115, 0.347153), vec3(0.0, 0.945995, 0.729837), vec3(0.0, 0.977885, 0.652847), vec3(0.0, 0.054005, 0.270163), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.022115, 0.347153), vec3(0.416667, 0.022115, 0.347153), vec3(0.416667, 0.945995, 0.729837), vec3(0.0, 0.945995, 0.729837), vec3(0.0, -0.382684, 0.923879), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.054005, 0.270163), vec3(0.0, 0.977885, 0.652847), vec3(0.416667, 0.977885, 0.652847), vec3(0.416667, 0.054005, 0.270163), vec3(0.0, 0.382684, -0.923879), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.945995, 0.729837), vec3(0.416667, 0.945995, 0.729837), vec3(0.416667, 0.977885, 0.652847), vec3(0.0, 0.977885, 0.652847), vec3(0.0, 0.923881, 0.38268), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.022115, 0.347153), vec3(0.416667, 0.054005, 0.270163), vec3(0.416667, 0.977885, 0.652847), vec3(0.416667, 0.945995, 0.729837), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.44556, 0.52255), vec3(0.416667, 0.47745, 0.44556), vec3(1.0, 0.47745, 0.44556), vec3(1.0, 0.44556, 0.52255), vec3(0.0, -0.923881, -0.38268), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.44556, 0.52255), vec3(1.0, 0.44556, 0.52255), vec3(1.0, 0.52255, 0.55444), vec3(0.416667, 0.52255, 0.55444), vec3(0.0, -0.38268, 0.923881), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.47745, 0.44556), vec3(0.416667, 0.55444, 0.47745), vec3(1.0, 0.55444, 0.47745), vec3(1.0, 0.47745, 0.44556), vec3(0.0, 0.38268, -0.923881), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.52255, 0.55444), vec3(1.0, 0.52255, 0.55444), vec3(1.0, 0.55444, 0.47745), vec3(0.416667, 0.55444, 0.47745), vec3(0.0, 0.923881, 0.38268), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.44556, 0.52255), vec3(1.0, 0.47745, 0.44556), vec3(1.0, 0.55444, 0.47745), vec3(1.0, 0.52255, 0.55444), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
                                 } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.116984, 0.17591), vec3(0.0, 0.17591, 0.116984), vec3(0.416667, 0.17591, 0.116984), vec3(0.416667, 0.116984, 0.17591), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.116984, 0.17591), vec3(0.0, 0.82409, 0.883016), vec3(0.0, 0.883016, 0.82409), vec3(0.0, 0.17591, 0.116984), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.116984, 0.17591), vec3(0.416667, 0.116984, 0.17591), vec3(0.416667, 0.82409, 0.883016), vec3(0.0, 0.82409, 0.883016), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.17591, 0.116984), vec3(0.0, 0.883016, 0.82409), vec3(0.416667, 0.883016, 0.82409), vec3(0.416667, 0.17591, 0.116984), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.82409, 0.883016), vec3(0.416667, 0.82409, 0.883016), vec3(0.416667, 0.883016, 0.82409), vec3(0.0, 0.883016, 0.82409), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.116984, 0.17591), vec3(0.416667, 0.17591, 0.116984), vec3(0.416667, 0.883016, 0.82409), vec3(0.416667, 0.82409, 0.883016), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.441074, 0.5), vec3(0.416667, 0.5, 0.441074), vec3(1.0, 0.5, 0.441074), vec3(1.0, 0.441074, 0.5), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.441074, 0.5), vec3(1.0, 0.441074, 0.5), vec3(1.0, 0.5, 0.558926), vec3(0.416667, 0.5, 0.558926), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.5, 0.441074), vec3(0.416667, 0.558926, 0.5), vec3(1.0, 0.558926, 0.5), vec3(1.0, 0.5, 0.441074), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.5, 0.558926), vec3(1.0, 0.5, 0.558926), vec3(1.0, 0.558926, 0.5), vec3(0.416667, 0.558926, 0.5), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.441074, 0.5), vec3(1.0, 0.5, 0.441074), vec3(1.0, 0.558926, 0.5), vec3(1.0, 0.5, 0.558926), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                }
-                            } else {
-                                if (modelID < 30u) {
-                                    if (modelID == 29u) {
+                                    if (modelID == 28u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.116984, 0.17591), vec3(0.0, 0.17591, 0.116984), vec3(0.416667, 0.17591, 0.116984), vec3(0.416667, 0.116984, 0.17591), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.116984, 0.17591), vec3(0.0, 0.82409, 0.883016), vec3(0.0, 0.883016, 0.82409), vec3(0.0, 0.17591, 0.116984), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.116984, 0.17591), vec3(0.416667, 0.116984, 0.17591), vec3(0.416667, 0.82409, 0.883016), vec3(0.0, 0.82409, 0.883016), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.17591, 0.116984), vec3(0.0, 0.883016, 0.82409), vec3(0.416667, 0.883016, 0.82409), vec3(0.416667, 0.17591, 0.116984), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.82409, 0.883016), vec3(0.416667, 0.82409, 0.883016), vec3(0.416667, 0.883016, 0.82409), vec3(0.0, 0.883016, 0.82409), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.116984, 0.17591), vec3(0.416667, 0.17591, 0.116984), vec3(0.416667, 0.883016, 0.82409), vec3(0.416667, 0.82409, 0.883016), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.441074, 0.5), vec3(0.416667, 0.5, 0.441074), vec3(1.0, 0.5, 0.441074), vec3(1.0, 0.441074, 0.5), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.441074, 0.5), vec3(1.0, 0.441074, 0.5), vec3(1.0, 0.5, 0.558926), vec3(0.416667, 0.5, 0.558926), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.5, 0.441074), vec3(0.416667, 0.558926, 0.5), vec3(1.0, 0.558926, 0.5), vec3(1.0, 0.5, 0.441074), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.5, 0.558926), vec3(1.0, 0.5, 0.558926), vec3(1.0, 0.558926, 0.5), vec3(0.416667, 0.558926, 0.5), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.441074, 0.5), vec3(1.0, 0.5, 0.441074), vec3(1.0, 0.558926, 0.5), vec3(1.0, 0.5, 0.558926), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.022115, 0.652847), vec3(0.0, 0.054005, 0.729837), vec3(0.0, 0.977885, 0.347153), vec3(0.0, 0.945995, 0.270163), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.022115, 0.652847), vec3(0.0, 0.945995, 0.270163), vec3(0.416667, 0.945995, 0.270163), vec3(0.416667, 0.022115, 0.652847), vec3(0.0, -0.382684, -0.923879), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.022115, 0.652847), vec3(0.416667, 0.022115, 0.652847), vec3(0.416667, 0.054005, 0.729837), vec3(0.0, 0.054005, 0.729837), vec3(0.0, -0.923881, 0.38268), hitT, hitNormal);
@@ -654,7 +654,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.416667, 0.52255, 0.44556), vec3(0.416667, 0.55444, 0.52255), vec3(1.0, 0.55444, 0.52255), vec3(1.0, 0.52255, 0.44556), vec3(0.0, 0.923881, -0.38268), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.44556, 0.47745), vec3(1.0, 0.52255, 0.44556), vec3(1.0, 0.55444, 0.52255), vec3(1.0, 0.47745, 0.55444), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                } else {
+                                }
+                            } else {
+                                if (modelID < 31u) {
                                     if (modelID == 30u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -662,7 +664,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 1.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.5), vec3(1.0, 1.0, 0.5), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 31u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, 0.5, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.5, 0.0), vec3(0.5, 0.5, 0.0), vec3(0.5, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.5, 0.0, 0.0), vec3(0.5, 0.0, 0.5), vec3(0.0, 0.0, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -678,26 +682,26 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.5, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 1.0, 0.0), vec3(0.5, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    } else {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, 0.5, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.5, 0.0), vec3(0.5, 0.5, 0.0), vec3(0.5, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.5, 0.0, 0.0), vec3(0.5, 0.0, 0.5), vec3(0.0, 0.0, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(1.0, 1.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.0), vec3(0.0, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.5), vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.0), vec3(0.5, 0.5, 0.0), vec3(0.5, 0.5, 0.5), vec3(0.5, 0.0, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.5), vec3(1.0, 1.0, 0.5), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     } else {
-                        if (modelID < 37u) {
-                            if (modelID < 34u) {
-                                if (modelID == 32u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, 0.5, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.5, 0.0), vec3(0.5, 0.5, 0.0), vec3(0.5, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.5, 0.0, 0.0), vec3(0.5, 0.0, 0.5), vec3(0.0, 0.0, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(1.0, 1.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.0), vec3(0.0, 0.5, 0.5), vec3(0.5, 0.5, 0.5), vec3(0.5, 0.5, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.5), vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.0), vec3(0.5, 0.5, 0.0), vec3(0.5, 0.5, 0.5), vec3(0.5, 0.0, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.5), vec3(1.0, 1.0, 0.5), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
+                        if (modelID < 38u) {
+                            if (modelID < 35u) {
+                                if (modelID == 33u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, 0.5, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.5, 0.0), vec3(1.0, 0.5, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -709,18 +713,16 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.5), vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 0.5, 0.0), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.5), vec3(1.0, 1.0, 0.5), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.1875), vec3(0.0, 1.0, 0.1875), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.1875), vec3(0.0, 0.0, 0.1875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.1875), vec3(1.0, 0.0, 0.1875), vec3(1.0, 1.0, 0.1875), vec3(0.0, 1.0, 0.1875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.1875), vec3(1.0, 1.0, 0.1875), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.1875), vec3(1.0, 0.0, 0.1875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 35u) {
-                                    if (modelID == 34u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.1875), vec3(0.0, 1.0, 0.1875), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.1875), vec3(0.0, 0.0, 0.1875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.1875), vec3(1.0, 0.0, 0.1875), vec3(1.0, 1.0, 0.1875), vec3(0.0, 1.0, 0.1875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.1875), vec3(1.0, 1.0, 0.1875), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.1875), vec3(1.0, 0.0, 0.1875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
+                                if (modelID < 36u) {
                                     if (modelID == 35u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.375), vec3(0.0, 0.0, 0.625), vec3(0.0, 0.125, 0.625), vec3(0.0, 0.125, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.375), vec3(0.0, 0.125, 0.375), vec3(1.0, 0.125, 0.375), vec3(1.0, 0.0, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -742,28 +744,30 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.746209, 0.25, 0.433709), vec3(0.878791, 0.25, 0.566291), vec3(0.878791, 0.375, 0.566291), vec3(0.746209, 0.375, 0.433709), vec3(-0.707107, 0.0, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.9375, 0.375, 0.4375), vec3(0.9375, 1.0, 0.4375), vec3(0.9375, 1.0, 0.5625), vec3(0.9375, 0.375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.375), vec3(1.0, 0.125, 0.375), vec3(1.0, 0.125, 0.625), vec3(1.0, 0.0, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 36u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.020833, 0.229167), vec3(0.0, 0.020833, 0.729167), vec3(0.0, 0.104167, 0.729167), vec3(0.0, 0.104167, 0.229167), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.020833, 0.229167), vec3(0.0, 0.104167, 0.229167), vec3(1.0, 0.104167, 0.229167), vec3(1.0, 0.020833, 0.229167), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.020833, 0.229167), vec3(1.0, 0.020833, 0.229167), vec3(1.0, 0.020833, 0.729167), vec3(0.0, 0.020833, 0.729167), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.020833, 0.729167), vec3(1.0, 0.020833, 0.729167), vec3(1.0, 0.104167, 0.729167), vec3(0.0, 0.104167, 0.729167), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.104167, 0.229167), vec3(0.0, 0.104167, 0.729167), vec3(1.0, 0.104167, 0.729167), vec3(1.0, 0.104167, 0.229167), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.020833, 0.229167), vec3(1.0, 0.104167, 0.229167), vec3(1.0, 0.104167, 0.729167), vec3(1.0, 0.020833, 0.729167), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    } else {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(0.9375, 1.0, 1.0), vec3(0.9375, 1.0, 0.0), vec3(-0.729537, 0.683941, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.9375, 1.0, 0.0), vec3(0.9375, 1.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.729537, -0.683941, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         } else {
-                            if (modelID < 40u) {
-                                if (modelID < 38u) {
-                                    if (modelID == 37u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(0.9375, 1.0, 1.0), vec3(0.9375, 1.0, 0.0), vec3(-0.729537, 0.683941, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.9375, 1.0, 0.0), vec3(0.9375, 1.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.729537, -0.683941, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
+                            if (modelID < 41u) {
+                                if (modelID < 39u) {
                                     if (modelID == 38u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(1.0, 1.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(1.0, 1.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 39u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -784,11 +788,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 1.0), vec3(0.875, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.5, 0.3125), vec3(0.875, 1.0, 0.3125), vec3(0.875, 1.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                }
-                            } else {
-                                if (modelID < 41u) {
-                                    if (modelID == 40u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -805,7 +805,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 1.0), vec3(0.875, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                } else {
+                                }
+                            } else {
+                                if (modelID < 42u) {
                                     if (modelID == 41u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -827,7 +829,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 1.0), vec3(0.875, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 42u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -854,6 +858,28 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 1.0), vec3(0.875, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.5, 0.3125), vec3(0.875, 1.0, 0.3125), vec3(0.875, 1.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    } else {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(1.0, 0.25, 0.25), vec3(1.0, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.75, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.6875, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.3125, 0.5), vec3(0.0, 0.3125, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.3125, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.6875, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.875, 0.3125, 0.5), vec3(0.875, 0.3125, 1.0), vec3(0.0, 0.3125, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 1.0), vec3(0.875, 0.3125, 1.0), vec3(0.875, 0.6875, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 1.0), vec3(0.875, 0.6875, 1.0), vec3(0.875, 0.6875, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.25), vec3(0.0, 0.75, 0.75), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.75, 0.25), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 1.0), vec3(0.875, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
@@ -861,33 +887,11 @@ bool voxel_intersectBlockModel(
                     }
                 }
             } else {
-                if (modelID < 64u) {
-                    if (modelID < 53u) {
-                        if (modelID < 48u) {
-                            if (modelID < 45u) {
-                                if (modelID == 43u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(1.0, 0.25, 0.25), vec3(1.0, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.75, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.6875, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.3125, 0.5), vec3(0.0, 0.3125, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.3125, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.6875, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.875, 0.3125, 0.5), vec3(0.875, 0.3125, 1.0), vec3(0.0, 0.3125, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 1.0), vec3(0.875, 0.3125, 1.0), vec3(0.875, 0.6875, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 1.0), vec3(0.875, 0.6875, 1.0), vec3(0.875, 0.6875, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.25), vec3(0.0, 0.75, 0.75), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.75, 0.25), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 1.0), vec3(0.875, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
+                if (modelID < 65u) {
+                    if (modelID < 54u) {
+                        if (modelID < 49u) {
+                            if (modelID < 46u) {
+                                if (modelID == 44u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -914,22 +918,20 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 1.0), vec3(0.875, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.6875, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.3125, 0.5), vec3(0.0, 0.3125, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 46u) {
-                                    if (modelID == 45u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.6875, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.3125, 0.5), vec3(0.0, 0.3125, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
+                                if (modelID < 47u) {
                                     if (modelID == 46u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -946,7 +948,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 47u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -963,34 +967,34 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    } else {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(1.0, 0.25, 0.25), vec3(1.0, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.75, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.6875, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.3125, 0.5), vec3(0.0, 0.3125, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 0.5, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.25), vec3(0.0, 0.75, 0.75), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.75, 0.25), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         } else {
-                            if (modelID < 50u) {
-                                if (modelID == 48u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(1.0, 0.25, 0.25), vec3(1.0, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.75, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.6875, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.3125, 0.5), vec3(0.0, 0.3125, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 0.5, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.25), vec3(0.0, 0.75, 0.75), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.75, 0.25), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
+                            if (modelID < 51u) {
+                                if (modelID == 49u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1006,32 +1010,30 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.6875, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.3125, 0.5), vec3(0.0, 0.3125, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.3125, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.6875, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.3125, 1.0), vec3(0.0, 0.3125, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.6875, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 0.5, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 1.0), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.6875, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 51u) {
-                                    if (modelID == 50u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.6875, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.3125, 0.5), vec3(0.0, 0.3125, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.3125, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.6875, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.3125, 1.0), vec3(0.0, 0.3125, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.6875, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 0.5, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 1.0), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.6875, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
+                                if (modelID < 52u) {
                                     if (modelID == 51u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -1054,7 +1056,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.3125, 0.0), vec3(0.875, 0.6875, 0.0), vec3(0.875, 0.6875, 0.5), vec3(0.875, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 52u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1081,46 +1085,44 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                }
-                            }
-                        }
-                    } else {
-                        if (modelID < 58u) {
-                            if (modelID < 55u) {
-                                if (modelID == 53u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 0.5, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(0.875, 1.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.875, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(0.875, 1.0, 0.6875), vec3(0.875, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.5, 0.3125), vec3(0.875, 1.0, 0.3125), vec3(0.875, 1.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                }
-                            } else {
-                                if (modelID < 56u) {
-                                    if (modelID == 55u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 0.5, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(0.875, 1.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.875, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(0.875, 1.0, 0.6875), vec3(0.875, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.5, 0.3125), vec3(0.875, 1.0, 0.3125), vec3(0.875, 1.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
+                                }
+                            }
+                        }
+                    } else {
+                        if (modelID < 59u) {
+                            if (modelID < 56u) {
+                                if (modelID == 54u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 } else {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 0.5, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                }
+                            } else {
+                                if (modelID < 57u) {
                                     if (modelID == 56u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -1138,7 +1140,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.5, 0.3125), vec3(0.875, 1.0, 0.3125), vec3(0.875, 1.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 57u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1150,13 +1154,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.25), vec3(0.0, 0.75, 0.75), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.75, 0.25), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                }
-                            }
-                        } else {
-                            if (modelID < 61u) {
-                                if (modelID < 59u) {
-                                    if (modelID == 58u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1174,7 +1172,11 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                } else {
+                                }
+                            }
+                        } else {
+                            if (modelID < 62u) {
+                                if (modelID < 60u) {
                                     if (modelID == 59u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -1191,7 +1193,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.5, 0.3125), vec3(0.875, 1.0, 0.3125), vec3(0.875, 1.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 60u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1202,11 +1206,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 1.0), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.6875, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                }
-                            } else {
-                                if (modelID < 62u) {
-                                    if (modelID == 61u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1223,7 +1223,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                } else {
+                                }
+                            } else {
+                                if (modelID < 63u) {
                                     if (modelID == 62u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -1246,7 +1248,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.5, 0.3125), vec3(0.875, 1.0, 0.3125), vec3(0.875, 1.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 63u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1263,38 +1267,38 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    } else {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(1.0, 0.25, 0.25), vec3(1.0, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.75, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.3125, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.6875, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.3125, 1.0), vec3(0.0, 0.3125, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.6875, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 0.5, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 1.0), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.6875, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.25), vec3(0.0, 0.75, 0.75), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.75, 0.25), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     }
                 } else {
-                    if (modelID < 75u) {
-                        if (modelID < 69u) {
-                            if (modelID < 66u) {
-                                if (modelID == 64u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(1.0, 0.25, 0.25), vec3(1.0, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.75, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.3125, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.6875, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.3125, 1.0), vec3(0.0, 0.3125, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.6875, 1.0), vec3(0.0, 0.6875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 0.5, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 1.0), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.6875, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.25), vec3(0.0, 0.75, 0.75), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.75, 0.25), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
+                    if (modelID < 76u) {
+                        if (modelID < 70u) {
+                            if (modelID < 67u) {
+                                if (modelID == 65u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1305,27 +1309,25 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.3125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.3125, 0.5), vec3(0.0, 0.3125, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 0.5, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 67u) {
-                                    if (modelID == 66u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(0.875, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.6875, 0.5), vec3(0.0, 0.6875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(0.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.3125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.0), vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.3125, 0.5), vec3(0.0, 0.3125, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 0.5, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
+                                if (modelID < 68u) {
                                     if (modelID == 67u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -1343,7 +1345,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 68u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1365,13 +1369,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                }
-                            }
-                        } else {
-                            if (modelID < 72u) {
-                                if (modelID < 70u) {
-                                    if (modelID == 69u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1393,7 +1391,11 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                } else {
+                                }
+                            }
+                        } else {
+                            if (modelID < 73u) {
+                                if (modelID < 71u) {
                                     if (modelID == 70u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -1410,7 +1412,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.5, 0.6875), vec3(0.875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 71u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1431,11 +1435,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                }
-                            } else {
-                                if (modelID < 73u) {
-                                    if (modelID == 72u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1463,7 +1463,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                } else {
+                                }
+                            } else {
+                                if (modelID < 74u) {
                                     if (modelID == 73u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -1486,7 +1488,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 74u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.875, 0.5, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.875, 0.0, 0.3125), vec3(0.875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1513,43 +1517,41 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    } else {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     } else {
-                        if (modelID < 80u) {
-                            if (modelID < 77u) {
-                                if (modelID == 75u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
+                        if (modelID < 81u) {
+                            if (modelID < 78u) {
+                                if (modelID == 76u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(1.0, 0.25, 0.25), vec3(1.0, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.75, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.25), vec3(0.0, 0.75, 0.75), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.75, 0.25), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(1.0, 0.25, 0.25), vec3(1.0, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.75, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.25), vec3(0.0, 0.75, 0.75), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.75, 0.25), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 78u) {
-                                    if (modelID == 77u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(1.0, 0.25, 0.25), vec3(1.0, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.75, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.25), vec3(0.0, 0.75, 0.75), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.75, 0.25), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
+                                if (modelID < 79u) {
                                     if (modelID == 78u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -1561,7 +1563,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.0), vec3(0.0, 0.6875, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 79u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1578,13 +1582,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                }
-                            }
-                        } else {
-                            if (modelID < 83u) {
-                                if (modelID < 81u) {
-                                    if (modelID == 80u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1596,7 +1594,11 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                } else {
+                                }
+                            }
+                        } else {
+                            if (modelID < 84u) {
+                                if (modelID < 82u) {
                                     if (modelID == 81u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -1613,7 +1615,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 82u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1630,11 +1634,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                }
-                            } else {
-                                if (modelID < 84u) {
-                                    if (modelID == 83u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1657,7 +1657,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                } else {
+                                }
+                            } else {
+                                if (modelID < 85u) {
                                     if (modelID == 84u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -1679,7 +1681,9 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                } else {
+                                    if (modelID == 85u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(1.0, 0.5, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.3125), vec3(1.0, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1706,6 +1710,28 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.6875, 0.0), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.5), vec3(1.0, 0.6875, 0.5), vec3(1.0, 0.6875, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5, 0.3125), vec3(1.0, 1.0, 0.3125), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    } else {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.1875), vec3(0.0, 0.0, 0.8125), vec3(0.0, 0.375, 0.8125), vec3(0.0, 0.375, 0.1875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.1875), vec3(0.0, 0.375, 0.1875), vec3(1.0, 0.375, 0.1875), vec3(1.0, 0.0, 0.1875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.1875), vec3(1.0, 0.0, 0.1875), vec3(1.0, 0.0, 0.8125), vec3(0.0, 0.0, 0.8125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.8125), vec3(1.0, 0.0, 0.8125), vec3(1.0, 0.375, 0.8125), vec3(0.0, 0.375, 0.8125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.1875), vec3(0.0, 0.375, 0.8125), vec3(1.0, 0.375, 0.8125), vec3(1.0, 0.375, 0.1875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.75, 0.125), vec3(0.125, 0.75, 0.875), vec3(0.125, 1.0, 0.875), vec3(0.125, 1.0, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.75, 0.125), vec3(0.125, 1.0, 0.125), vec3(0.875, 1.0, 0.125), vec3(0.875, 0.75, 0.125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.75, 0.125), vec3(0.875, 0.75, 0.125), vec3(0.875, 0.75, 0.875), vec3(0.125, 0.75, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.75, 0.875), vec3(0.875, 0.75, 0.875), vec3(0.875, 1.0, 0.875), vec3(0.125, 1.0, 0.875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 1.0, 0.125), vec3(0.125, 1.0, 0.875), vec3(0.875, 1.0, 0.875), vec3(0.875, 1.0, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.6875, 0.25), vec3(0.1875, 0.6875, 0.75), vec3(0.1875, 0.75, 0.75), vec3(0.1875, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.6875, 0.25), vec3(0.1875, 0.75, 0.25), vec3(0.8125, 0.75, 0.25), vec3(0.8125, 0.6875, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.6875, 0.25), vec3(0.8125, 0.6875, 0.25), vec3(0.8125, 0.6875, 0.75), vec3(0.1875, 0.6875, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.6875, 0.75), vec3(0.8125, 0.6875, 0.75), vec3(0.8125, 0.75, 0.75), vec3(0.1875, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.375), vec3(0.25, 0.375, 0.625), vec3(0.25, 0.6875, 0.625), vec3(0.25, 0.6875, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.375), vec3(0.25, 0.6875, 0.375), vec3(0.75, 0.6875, 0.375), vec3(0.75, 0.375, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.625), vec3(0.75, 0.375, 0.625), vec3(0.75, 0.6875, 0.625), vec3(0.25, 0.6875, 0.625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.375, 0.375), vec3(0.75, 0.6875, 0.375), vec3(0.75, 0.6875, 0.625), vec3(0.75, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.8125, 0.6875, 0.25), vec3(0.8125, 0.75, 0.25), vec3(0.8125, 0.75, 0.75), vec3(0.8125, 0.6875, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.75, 0.125), vec3(0.875, 1.0, 0.125), vec3(0.875, 1.0, 0.875), vec3(0.875, 0.75, 0.875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.1875), vec3(1.0, 0.375, 0.1875), vec3(1.0, 0.375, 0.8125), vec3(1.0, 0.0, 0.8125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
@@ -1714,60 +1740,36 @@ bool voxel_intersectBlockModel(
                 }
             }
         } else {
-            if (modelID < 129u) {
-                if (modelID < 107u) {
-                    if (modelID < 96u) {
-                        if (modelID < 91u) {
-                            if (modelID < 88u) {
-                                if (modelID == 86u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.1875), vec3(0.0, 0.0, 0.8125), vec3(0.0, 0.375, 0.8125), vec3(0.0, 0.375, 0.1875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.1875), vec3(0.0, 0.375, 0.1875), vec3(1.0, 0.375, 0.1875), vec3(1.0, 0.0, 0.1875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.1875), vec3(1.0, 0.0, 0.1875), vec3(1.0, 0.0, 0.8125), vec3(0.0, 0.0, 0.8125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.8125), vec3(1.0, 0.0, 0.8125), vec3(1.0, 0.375, 0.8125), vec3(0.0, 0.375, 0.8125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.1875), vec3(0.0, 0.375, 0.8125), vec3(1.0, 0.375, 0.8125), vec3(1.0, 0.375, 0.1875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.75, 0.125), vec3(0.125, 0.75, 0.875), vec3(0.125, 1.0, 0.875), vec3(0.125, 1.0, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.75, 0.125), vec3(0.125, 1.0, 0.125), vec3(0.875, 1.0, 0.125), vec3(0.875, 0.75, 0.125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.75, 0.125), vec3(0.875, 0.75, 0.125), vec3(0.875, 0.75, 0.875), vec3(0.125, 0.75, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.75, 0.875), vec3(0.875, 0.75, 0.875), vec3(0.875, 1.0, 0.875), vec3(0.125, 1.0, 0.875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 1.0, 0.125), vec3(0.125, 1.0, 0.875), vec3(0.875, 1.0, 0.875), vec3(0.875, 1.0, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.6875, 0.25), vec3(0.1875, 0.6875, 0.75), vec3(0.1875, 0.75, 0.75), vec3(0.1875, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.6875, 0.25), vec3(0.1875, 0.75, 0.25), vec3(0.8125, 0.75, 0.25), vec3(0.8125, 0.6875, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.6875, 0.25), vec3(0.8125, 0.6875, 0.25), vec3(0.8125, 0.6875, 0.75), vec3(0.1875, 0.6875, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.6875, 0.75), vec3(0.8125, 0.6875, 0.75), vec3(0.8125, 0.75, 0.75), vec3(0.1875, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.375), vec3(0.25, 0.375, 0.625), vec3(0.25, 0.6875, 0.625), vec3(0.25, 0.6875, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.375), vec3(0.25, 0.6875, 0.375), vec3(0.75, 0.6875, 0.375), vec3(0.75, 0.375, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.625), vec3(0.75, 0.375, 0.625), vec3(0.75, 0.6875, 0.625), vec3(0.25, 0.6875, 0.625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.375, 0.375), vec3(0.75, 0.6875, 0.375), vec3(0.75, 0.6875, 0.625), vec3(0.75, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.8125, 0.6875, 0.25), vec3(0.8125, 0.75, 0.25), vec3(0.8125, 0.75, 0.75), vec3(0.8125, 0.6875, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.75, 0.125), vec3(0.875, 1.0, 0.125), vec3(0.875, 1.0, 0.875), vec3(0.875, 0.75, 0.875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.1875), vec3(1.0, 0.375, 0.1875), vec3(1.0, 0.375, 0.8125), vec3(1.0, 0.0, 0.8125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
+            if (modelID < 130u) {
+                if (modelID < 108u) {
+                    if (modelID < 97u) {
+                        if (modelID < 92u) {
+                            if (modelID < 89u) {
+                                if (modelID == 87u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.4375), vec3(1.0, 1.0, 0.4375), vec3(1.0, 1.0, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.4375), vec3(0.0, 0.0, 0.4375), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.0), vec3(0.0, 0.5, 1.0), vec3(0.5625, 0.5, 1.0), vec3(0.5625, 0.5, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.0), vec3(0.5625, 0.5, 0.0), vec3(0.5625, 0.5, 1.0), vec3(0.0, 0.5, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.4375), vec3(0.0, 1.0, 0.4375), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                } else {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.000625, 0.0), vec3(0.0, 0.000625, 0.6875), vec3(1.0, 0.000625, 0.6875), vec3(1.0, 0.000625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.999375, 0.0), vec3(1.0, 0.999375, 0.0), vec3(1.0, 0.999375, 0.6875), vec3(0.0, 0.999375, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 1.0, 0.0), vec3(0.000625, 1.0, 0.6875), vec3(0.000625, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.00625, 0.00625, 0.00625), vec3(0.00625, 0.00625, 1.0), vec3(0.99375, 0.99375, 1.0), vec3(0.99375, 0.99375, 0.00625), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.00625, 0.00625, 0.00625), vec3(0.99375, 0.99375, 0.00625), vec3(0.99375, 0.99375, 1.0), vec3(0.00625, 0.00625, 1.0), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.00625, 0.99375, 0.00625), vec3(0.00625, 0.99375, 1.0), vec3(0.99375, 0.00625, 1.0), vec3(0.99375, 0.00625, 0.00625), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.00625, 0.99375, 0.00625), vec3(0.99375, 0.00625, 0.00625), vec3(0.99375, 0.00625, 1.0), vec3(0.00625, 0.99375, 1.0), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 0.0, 0.6875), vec3(0.999375, 1.0, 0.6875), vec3(0.999375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 89u) {
-                                    if (modelID == 88u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.6875), vec3(0.0, 1.0, 0.6875), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.000625, 0.0), vec3(0.0, 0.000625, 0.6875), vec3(1.0, 0.000625, 0.6875), vec3(1.0, 0.000625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.999375, 0.0), vec3(1.0, 0.999375, 0.0), vec3(1.0, 0.999375, 0.6875), vec3(0.0, 0.999375, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.6875), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 1.0, 0.0), vec3(0.000625, 1.0, 0.6875), vec3(0.000625, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.00625, 0.00625, 0.00625), vec3(0.00625, 0.00625, 1.0), vec3(0.99375, 0.99375, 1.0), vec3(0.99375, 0.99375, 0.00625), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.00625, 0.00625, 0.00625), vec3(0.99375, 0.99375, 0.00625), vec3(0.99375, 0.99375, 1.0), vec3(0.00625, 0.00625, 1.0), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.00625, 0.99375, 0.00625), vec3(0.00625, 0.99375, 1.0), vec3(0.99375, 0.00625, 1.0), vec3(0.99375, 0.00625, 0.00625), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.00625, 0.99375, 0.00625), vec3(0.99375, 0.00625, 0.00625), vec3(0.99375, 0.00625, 1.0), vec3(0.00625, 0.99375, 1.0), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 0.0, 0.6875), vec3(0.999375, 1.0, 0.6875), vec3(0.999375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.6875), vec3(1.0, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
+                                if (modelID < 90u) {
                                     if (modelID == 89u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.05, 0.5), vec3(0.0, 0.95, 0.5), vec3(1.0, 0.95, 0.5), vec3(1.0, 0.05, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.05, 0.5), vec3(1.0, 0.05, 0.5), vec3(1.0, 0.95, 0.5), vec3(0.0, 0.95, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
@@ -1777,6 +1779,15 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.05), vec3(0.0, 0.5, 0.95), vec3(1.0, 0.5, 0.95), vec3(1.0, 0.5, 0.05), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.05), vec3(1.0, 0.5, 0.05), vec3(1.0, 0.5, 0.95), vec3(0.0, 0.5, 0.95), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5625, 0.4375), vec3(0.0, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 90u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.5625, 0.4375), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5625, 0.4375), vec3(0.0, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     } else {
@@ -1794,8 +1805,15 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 93u) {
-                                if (modelID == 91u) {
+                            if (modelID < 94u) {
+                                if (modelID == 92u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.40625, 0.40625), vec3(0.0, 0.40625, 0.59375), vec3(0.0, 0.59375, 0.59375), vec3(0.0, 0.59375, 0.40625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.40625, 0.40625), vec3(0.0, 0.59375, 0.40625), vec3(1.0, 0.59375, 0.40625), vec3(1.0, 0.40625, 0.40625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.40625, 0.40625), vec3(1.0, 0.40625, 0.40625), vec3(1.0, 0.40625, 0.59375), vec3(0.0, 0.40625, 0.59375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.40625, 0.59375), vec3(1.0, 0.40625, 0.59375), vec3(1.0, 0.59375, 0.59375), vec3(0.0, 0.59375, 0.59375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.59375, 0.40625), vec3(0.0, 0.59375, 0.59375), vec3(1.0, 0.59375, 0.59375), vec3(1.0, 0.59375, 0.40625), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.40625, 0.40625), vec3(1.0, 0.59375, 0.40625), vec3(1.0, 0.59375, 0.59375), vec3(1.0, 0.40625, 0.59375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.125, 0.5625), vec3(0.0, 0.125, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.125, 0.4375), vec3(0.6875, 0.125, 0.4375), vec3(0.6875, 0.0, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.6875, 0.0, 0.4375), vec3(0.6875, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1834,49 +1852,51 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.625, 0.4375), vec3(0.625, 0.875, 0.4375), vec3(0.625, 0.875, 0.5625), vec3(0.625, 0.625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.6875, 0.0, 0.4375), vec3(0.6875, 0.125, 0.4375), vec3(0.6875, 0.125, 0.5625), vec3(0.6875, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.6875, 0.875, 0.4375), vec3(0.6875, 1.0, 0.4375), vec3(0.6875, 1.0, 0.5625), vec3(0.6875, 0.875, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.4375), vec3(0.0, 0.125, 0.5625), vec3(0.0, 0.8125, 0.5625), vec3(0.0, 0.8125, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.4375), vec3(0.0, 0.8125, 0.4375), vec3(0.125, 0.8125, 0.4375), vec3(0.125, 0.125, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.4375), vec3(0.125, 0.125, 0.4375), vec3(0.125, 0.125, 0.5625), vec3(0.0, 0.125, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.5625), vec3(0.125, 0.125, 0.5625), vec3(0.125, 0.8125, 0.5625), vec3(0.0, 0.8125, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.8125, 0.4375), vec3(0.0, 0.8125, 0.5625), vec3(0.125, 0.8125, 0.5625), vec3(0.125, 0.8125, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.125, 0.4375), vec3(0.125, 0.8125, 0.4375), vec3(0.125, 0.8125, 0.5625), vec3(0.125, 0.125, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.4375), vec3(0.125, 0.375, 0.4375), vec3(0.375, 0.375, 0.4375), vec3(0.375, 0.1875, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.4375), vec3(0.375, 0.1875, 0.4375), vec3(0.375, 0.1875, 0.5625), vec3(0.125, 0.1875, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.5625), vec3(0.375, 0.1875, 0.5625), vec3(0.375, 0.375, 0.5625), vec3(0.125, 0.375, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.375, 0.4375), vec3(0.125, 0.375, 0.5625), vec3(0.375, 0.375, 0.5625), vec3(0.375, 0.375, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.4375), vec3(0.125, 0.75, 0.4375), vec3(0.375, 0.75, 0.4375), vec3(0.375, 0.5625, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.4375), vec3(0.375, 0.5625, 0.4375), vec3(0.375, 0.5625, 0.5625), vec3(0.125, 0.5625, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.5625), vec3(0.375, 0.5625, 0.5625), vec3(0.375, 0.75, 0.5625), vec3(0.125, 0.75, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.75, 0.4375), vec3(0.125, 0.75, 0.5625), vec3(0.375, 0.75, 0.5625), vec3(0.375, 0.75, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.1875, 0.4375), vec3(0.375, 0.1875, 0.5625), vec3(0.375, 0.75, 0.5625), vec3(0.375, 0.75, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.1875, 0.4375), vec3(0.375, 0.75, 0.4375), vec3(0.5, 0.75, 0.4375), vec3(0.5, 0.1875, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.1875, 0.4375), vec3(0.5, 0.1875, 0.4375), vec3(0.5, 0.1875, 0.5625), vec3(0.375, 0.1875, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.1875, 0.5625), vec3(0.5, 0.1875, 0.5625), vec3(0.5, 0.75, 0.5625), vec3(0.375, 0.75, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.75, 0.4375), vec3(0.375, 0.75, 0.5625), vec3(0.5, 0.75, 0.5625), vec3(0.5, 0.75, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.1875, 0.4375), vec3(0.5, 0.75, 0.4375), vec3(0.625, 0.75, 0.4375), vec3(0.625, 0.1875, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.1875, 0.4375), vec3(0.625, 0.1875, 0.4375), vec3(0.625, 0.1875, 0.5625), vec3(0.5, 0.1875, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.1875, 0.5625), vec3(0.625, 0.1875, 0.5625), vec3(0.625, 0.75, 0.5625), vec3(0.5, 0.75, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.75, 0.4375), vec3(0.5, 0.75, 0.5625), vec3(0.625, 0.75, 0.5625), vec3(0.625, 0.75, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.1875, 0.4375), vec3(0.625, 0.375, 0.4375), vec3(0.875, 0.375, 0.4375), vec3(0.875, 0.1875, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.1875, 0.4375), vec3(0.625, 0.75, 0.4375), vec3(0.625, 0.75, 0.5625), vec3(0.625, 0.1875, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.1875, 0.4375), vec3(0.875, 0.1875, 0.4375), vec3(0.875, 0.1875, 0.5625), vec3(0.625, 0.1875, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.1875, 0.5625), vec3(0.875, 0.1875, 0.5625), vec3(0.875, 0.375, 0.5625), vec3(0.625, 0.375, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.375, 0.4375), vec3(0.625, 0.375, 0.5625), vec3(0.875, 0.375, 0.5625), vec3(0.875, 0.375, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.75, 0.4375), vec3(0.875, 0.75, 0.4375), vec3(0.875, 0.5625, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.5625, 0.4375), vec3(0.875, 0.5625, 0.4375), vec3(0.875, 0.5625, 0.5625), vec3(0.625, 0.5625, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.5625, 0.5625), vec3(0.875, 0.5625, 0.5625), vec3(0.875, 0.75, 0.5625), vec3(0.625, 0.75, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.75, 0.4375), vec3(0.625, 0.75, 0.5625), vec3(0.875, 0.75, 0.5625), vec3(0.875, 0.75, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.4375), vec3(0.875, 0.125, 0.5625), vec3(0.875, 0.8125, 0.5625), vec3(0.875, 0.8125, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.4375), vec3(0.875, 0.8125, 0.4375), vec3(1.0, 0.8125, 0.4375), vec3(1.0, 0.125, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.4375), vec3(1.0, 0.125, 0.4375), vec3(1.0, 0.125, 0.5625), vec3(0.875, 0.125, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.5625), vec3(1.0, 0.125, 0.5625), vec3(1.0, 0.8125, 0.5625), vec3(0.875, 0.8125, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.8125, 0.4375), vec3(0.875, 0.8125, 0.5625), vec3(1.0, 0.8125, 0.5625), vec3(1.0, 0.8125, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.125, 0.4375), vec3(1.0, 0.8125, 0.4375), vec3(1.0, 0.8125, 0.5625), vec3(1.0, 0.125, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 94u) {
-                                    if (modelID == 93u) {
+                                if (modelID < 95u) {
+                                    if (modelID == 94u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.4375), vec3(0.0, 0.125, 0.5625), vec3(0.0, 0.8125, 0.5625), vec3(0.0, 0.8125, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.4375), vec3(0.0, 0.8125, 0.4375), vec3(0.125, 0.8125, 0.4375), vec3(0.125, 0.125, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.4375), vec3(0.125, 0.125, 0.4375), vec3(0.125, 0.125, 0.5625), vec3(0.0, 0.125, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.5625), vec3(0.125, 0.125, 0.5625), vec3(0.125, 0.8125, 0.5625), vec3(0.0, 0.8125, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.8125, 0.4375), vec3(0.0, 0.8125, 0.5625), vec3(0.125, 0.8125, 0.5625), vec3(0.125, 0.8125, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.125, 0.4375), vec3(0.125, 0.8125, 0.4375), vec3(0.125, 0.8125, 0.5625), vec3(0.125, 0.125, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.4375), vec3(0.125, 0.375, 0.4375), vec3(0.375, 0.375, 0.4375), vec3(0.375, 0.1875, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.4375), vec3(0.375, 0.1875, 0.4375), vec3(0.375, 0.1875, 0.5625), vec3(0.125, 0.1875, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.5625), vec3(0.375, 0.1875, 0.5625), vec3(0.375, 0.375, 0.5625), vec3(0.125, 0.375, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.375, 0.4375), vec3(0.125, 0.375, 0.5625), vec3(0.375, 0.375, 0.5625), vec3(0.375, 0.375, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.4375), vec3(0.125, 0.75, 0.4375), vec3(0.375, 0.75, 0.4375), vec3(0.375, 0.5625, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.4375), vec3(0.375, 0.5625, 0.4375), vec3(0.375, 0.5625, 0.5625), vec3(0.125, 0.5625, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.5625), vec3(0.375, 0.5625, 0.5625), vec3(0.375, 0.75, 0.5625), vec3(0.125, 0.75, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.75, 0.4375), vec3(0.125, 0.75, 0.5625), vec3(0.375, 0.75, 0.5625), vec3(0.375, 0.75, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.1875, 0.4375), vec3(0.375, 0.1875, 0.5625), vec3(0.375, 0.75, 0.5625), vec3(0.375, 0.75, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.1875, 0.4375), vec3(0.375, 0.75, 0.4375), vec3(0.5, 0.75, 0.4375), vec3(0.5, 0.1875, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.1875, 0.4375), vec3(0.5, 0.1875, 0.4375), vec3(0.5, 0.1875, 0.5625), vec3(0.375, 0.1875, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.1875, 0.5625), vec3(0.5, 0.1875, 0.5625), vec3(0.5, 0.75, 0.5625), vec3(0.375, 0.75, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.75, 0.4375), vec3(0.375, 0.75, 0.5625), vec3(0.5, 0.75, 0.5625), vec3(0.5, 0.75, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.1875, 0.4375), vec3(0.5, 0.75, 0.4375), vec3(0.625, 0.75, 0.4375), vec3(0.625, 0.1875, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.1875, 0.4375), vec3(0.625, 0.1875, 0.4375), vec3(0.625, 0.1875, 0.5625), vec3(0.5, 0.1875, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.1875, 0.5625), vec3(0.625, 0.1875, 0.5625), vec3(0.625, 0.75, 0.5625), vec3(0.5, 0.75, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.75, 0.4375), vec3(0.5, 0.75, 0.5625), vec3(0.625, 0.75, 0.5625), vec3(0.625, 0.75, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.1875, 0.4375), vec3(0.625, 0.375, 0.4375), vec3(0.875, 0.375, 0.4375), vec3(0.875, 0.1875, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.1875, 0.4375), vec3(0.625, 0.75, 0.4375), vec3(0.625, 0.75, 0.5625), vec3(0.625, 0.1875, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.1875, 0.4375), vec3(0.875, 0.1875, 0.4375), vec3(0.875, 0.1875, 0.5625), vec3(0.625, 0.1875, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.1875, 0.5625), vec3(0.875, 0.1875, 0.5625), vec3(0.875, 0.375, 0.5625), vec3(0.625, 0.375, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.375, 0.4375), vec3(0.625, 0.375, 0.5625), vec3(0.875, 0.375, 0.5625), vec3(0.875, 0.375, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.75, 0.4375), vec3(0.875, 0.75, 0.4375), vec3(0.875, 0.5625, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.5625, 0.4375), vec3(0.875, 0.5625, 0.4375), vec3(0.875, 0.5625, 0.5625), vec3(0.625, 0.5625, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.5625, 0.5625), vec3(0.875, 0.5625, 0.5625), vec3(0.875, 0.75, 0.5625), vec3(0.625, 0.75, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.75, 0.4375), vec3(0.625, 0.75, 0.5625), vec3(0.875, 0.75, 0.5625), vec3(0.875, 0.75, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.4375), vec3(0.875, 0.125, 0.5625), vec3(0.875, 0.8125, 0.5625), vec3(0.875, 0.8125, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.4375), vec3(0.875, 0.8125, 0.4375), vec3(1.0, 0.8125, 0.4375), vec3(1.0, 0.125, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.4375), vec3(1.0, 0.125, 0.4375), vec3(1.0, 0.125, 0.5625), vec3(0.875, 0.125, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.5625), vec3(1.0, 0.125, 0.5625), vec3(1.0, 0.8125, 0.5625), vec3(0.875, 0.8125, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.8125, 0.4375), vec3(0.875, 0.8125, 0.5625), vec3(1.0, 0.8125, 0.5625), vec3(1.0, 0.8125, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.125, 0.4375), vec3(1.0, 0.8125, 0.4375), vec3(1.0, 0.8125, 0.5625), vec3(1.0, 0.125, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 95u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.25), vec3(0.0, 0.9375, 0.25), vec3(1.0, 0.9375, 0.25), vec3(1.0, 0.0, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.25), vec3(1.0, 0.0, 0.25), vec3(1.0, 0.9375, 0.25), vec3(0.0, 0.9375, 0.25), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.75), vec3(0.0, 0.9375, 0.75), vec3(1.0, 0.9375, 0.75), vec3(1.0, 0.0, 0.75), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -1885,29 +1905,27 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.0, 0.0), vec3(0.25, 0.9375, 0.0), vec3(0.25, 0.9375, 1.0), vec3(0.25, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.0), vec3(0.75, 0.0, 1.0), vec3(0.75, 0.9375, 1.0), vec3(0.75, 0.9375, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.0), vec3(0.75, 0.9375, 0.0), vec3(0.75, 0.9375, 1.0), vec3(0.75, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 94u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.5625, 0.4375), vec3(0.1875, 0.5625, 0.4375), vec3(0.1875, 0.4375, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.1875, 0.4375, 0.4375), vec3(0.1875, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5625), vec3(0.1875, 0.4375, 0.5625), vec3(0.1875, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5625, 0.4375), vec3(0.0, 0.5625, 0.5625), vec3(0.1875, 0.5625, 0.5625), vec3(0.1875, 0.5625, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.0625, 0.5625), vec3(0.0, 0.1875, 0.5625), vec3(0.0, 0.1875, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.1875, 0.4375), vec3(1.0, 0.1875, 0.4375), vec3(1.0, 0.0625, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(1.0, 0.0625, 0.4375), vec3(1.0, 0.0625, 0.5625), vec3(0.0, 0.0625, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.5625), vec3(1.0, 0.0625, 0.5625), vec3(1.0, 0.1875, 0.5625), vec3(0.0, 0.1875, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.4375), vec3(0.0, 0.1875, 0.5625), vec3(1.0, 0.1875, 0.5625), vec3(1.0, 0.1875, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0625, 0.4375), vec3(1.0, 0.1875, 0.4375), vec3(1.0, 0.1875, 0.5625), vec3(1.0, 0.0625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     } else {
-                        if (modelID < 101u) {
-                            if (modelID < 98u) {
-                                if (modelID == 96u) {
+                        if (modelID < 102u) {
+                            if (modelID < 99u) {
+                                if (modelID == 97u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.0625, 0.5625), vec3(0.0, 0.1875, 0.5625), vec3(0.0, 0.1875, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.1875, 0.4375), vec3(1.0, 0.1875, 0.4375), vec3(1.0, 0.0625, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(1.0, 0.0625, 0.4375), vec3(1.0, 0.0625, 0.5625), vec3(0.0, 0.0625, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.5625), vec3(1.0, 0.0625, 0.5625), vec3(1.0, 0.1875, 0.5625), vec3(0.0, 0.1875, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.4375), vec3(0.0, 0.1875, 0.5625), vec3(1.0, 0.1875, 0.5625), vec3(1.0, 0.1875, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0625, 0.4375), vec3(1.0, 0.1875, 0.4375), vec3(1.0, 0.1875, 0.5625), vec3(1.0, 0.0625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.375), vec3(0.0, 0.0, 0.625), vec3(0.0, 0.125, 0.625), vec3(0.0, 0.125, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.375), vec3(0.0, 0.125, 0.375), vec3(1.0, 0.125, 0.375), vec3(1.0, 0.0, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.375), vec3(1.0, 0.0, 0.375), vec3(1.0, 0.0, 0.625), vec3(0.0, 0.0, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1924,17 +1942,19 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.125, 0.4375), vec3(0.1875, 0.875, 0.4375), vec3(0.1875, 0.875, 0.5625), vec3(0.1875, 0.125, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.375), vec3(1.0, 0.125, 0.375), vec3(1.0, 0.125, 0.625), vec3(1.0, 0.0, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.875, 0.375), vec3(1.0, 1.0, 0.375), vec3(1.0, 1.0, 0.625), vec3(1.0, 0.875, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.0625, 0.5625), vec3(0.0, 0.1875, 0.5625), vec3(0.0, 0.1875, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.1875, 0.4375), vec3(0.8125, 0.1875, 0.4375), vec3(0.8125, 0.0625, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(0.8125, 0.0625, 0.4375), vec3(0.8125, 0.0625, 0.5625), vec3(0.0, 0.0625, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.5625), vec3(0.8125, 0.0625, 0.5625), vec3(0.8125, 0.1875, 0.5625), vec3(0.0, 0.1875, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.4375), vec3(0.0, 0.1875, 0.5625), vec3(0.8125, 0.1875, 0.5625), vec3(0.8125, 0.1875, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.8125, 0.0625, 0.4375), vec3(0.8125, 0.1875, 0.4375), vec3(0.8125, 0.1875, 0.5625), vec3(0.8125, 0.0625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 99u) {
-                                    if (modelID == 98u) {
+                                if (modelID < 100u) {
+                                    if (modelID == 99u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.0625, 0.5625), vec3(0.0, 0.1875, 0.5625), vec3(0.0, 0.1875, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.1875, 0.4375), vec3(0.8125, 0.1875, 0.4375), vec3(0.8125, 0.0625, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.4375), vec3(0.8125, 0.0625, 0.4375), vec3(0.8125, 0.0625, 0.5625), vec3(0.0, 0.0625, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.5625), vec3(0.8125, 0.0625, 0.5625), vec3(0.8125, 0.1875, 0.5625), vec3(0.0, 0.1875, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.4375), vec3(0.0, 0.1875, 0.5625), vec3(0.8125, 0.1875, 0.5625), vec3(0.8125, 0.1875, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.8125, 0.0625, 0.4375), vec3(0.8125, 0.1875, 0.4375), vec3(0.8125, 0.1875, 0.5625), vec3(0.8125, 0.0625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 100u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 0.0, 0.239277), vec3(0.0, 0.53033, 0.946383), vec3(0.0, 0.707107, 0.769607), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 0.707107, 0.769607), vec3(1.0, 0.707107, 0.769607), vec3(1.0, 0.0, 0.0625), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(1.0, 0.707107, 0.769607), vec3(0.0, 0.707107, 0.769607), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
@@ -1947,9 +1967,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.4375, 0.0625), vec3(0.6875, 0.0625, 0.0625), vec3(0.6875, 0.0625, 1.0), vec3(0.3125, 0.4375, 1.0), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999875, 0.0, 0.0625), vec3(0.999875, 0.0, 0.239277), vec3(0.999875, 0.53033, 0.946383), vec3(0.999875, 0.707107, 0.769607), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0625), vec3(1.0, 0.707107, 0.769607), vec3(1.0, 0.53033, 0.946383), vec3(1.0, 0.0, 0.239277), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 99u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 0.0, 0.3125), vec3(0.0, 1.0, 0.3125), vec3(0.0, 1.0, 0.0625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(1.0, 1.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.3125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -1962,7 +1980,13 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.3125, 0.0625), vec3(0.9375, 0.6875, 0.0625), vec3(0.9375, 0.6875, 1.0), vec3(0.5625, 0.3125, 1.0), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.6875, 0.0625), vec3(0.5625, 0.6875, 1.0), vec3(0.9375, 0.3125, 1.0), vec3(0.9375, 0.3125, 0.0625), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.6875, 0.0625), vec3(0.9375, 0.3125, 0.0625), vec3(0.9375, 0.3125, 1.0), vec3(0.5625, 0.6875, 1.0), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            }
+                        } else {
+                            if (modelID < 105u) {
+                                if (modelID < 103u) {
+                                    if (modelID == 102u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 0.0, 0.29347), vec3(0.0, 0.828209, 0.676153), vec3(0.0, 0.92388, 0.445183), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 0.92388, 0.445183), vec3(1.0, 0.92388, 0.445183), vec3(1.0, 0.0, 0.0625), vec3(0.0, 0.382683, -0.92388), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(1.0, 0.92388, 0.445183), vec3(0.0, 0.92388, 0.445183), vec3(0.0, -0.382683, 0.92388), hitT, hitNormal);
@@ -1976,19 +2000,13 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999875, 0.0, 0.0625), vec3(0.999875, 0.0, 0.29347), vec3(0.999875, 0.828209, 0.676153), vec3(0.999875, 0.92388, 0.445183), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0625), vec3(1.0, 0.92388, 0.445183), vec3(1.0, 0.828209, 0.676153), vec3(1.0, 0.0, 0.29347), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            }
-                        } else {
-                            if (modelID < 104u) {
-                                if (modelID < 102u) {
-                                    if (modelID == 101u) {
+                                } else {
+                                    if (modelID == 103u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.3125), vec3(0.0, 0.4375, 0.6875), vec3(1.0, 0.4375, 0.6875), vec3(1.0, 0.0625, 0.3125), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.3125), vec3(1.0, 0.0625, 0.3125), vec3(1.0, 0.4375, 0.6875), vec3(0.0, 0.4375, 0.6875), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.6875), vec3(0.0, 0.4375, 0.3125), vec3(1.0, 0.4375, 0.3125), vec3(1.0, 0.0625, 0.6875), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.6875), vec3(1.0, 0.0625, 0.6875), vec3(1.0, 0.4375, 0.3125), vec3(0.0, 0.4375, 0.3125), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 102u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.1875), vec3(0.0, 0.1875, 0.1875), vec3(0.0, 0.1875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.1875, 0.0), vec3(0.1875, 0.1875, 0.0), vec3(0.1875, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.1875, 0.0, 0.0), vec3(0.1875, 0.0, 0.1875), vec3(0.0, 0.0, 0.1875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2004,7 +2022,11 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.1875), vec3(0.0, 1.0, 0.5625), vec3(1.0, 1.0, 0.5625), vec3(1.0, 1.0, 0.1875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.0), vec3(0.1875, 0.1875, 0.0), vec3(0.1875, 0.1875, 0.1875), vec3(0.1875, 0.0, 0.1875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.8125, 0.0), vec3(0.1875, 1.0, 0.0), vec3(0.1875, 1.0, 0.1875), vec3(0.1875, 0.8125, 0.1875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            } else {
+                                if (modelID < 106u) {
+                                    if (modelID == 105u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.5625, 0.4375), vec3(0.375, 0.5625, 0.4375), vec3(0.375, 0.4375, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.375, 0.4375, 0.4375), vec3(0.375, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2016,10 +2038,8 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.477903, 0.522097), vec3(0.375, 0.522097, 0.477903), vec3(0.4375, 0.522097, 0.477903), vec3(0.4375, 0.477903, 0.522097), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.477903, 0.522097), vec3(0.4375, 0.477903, 0.522097), vec3(0.4375, 0.522097, 0.477903), vec3(0.375, 0.522097, 0.477903), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
                                     }
-                                }
-                            } else {
-                                if (modelID < 105u) {
-                                    if (modelID == 104u) {
+                                } else {
+                                    if (modelID == 106u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.4375, 0.5), vec3(0.0, 0.4375, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.0, 0.4375, 0.375), vec3(0.375, 0.4375, 0.375), vec3(0.375, 0.3125, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.3125, 0.5), vec3(0.0, 0.3125, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2040,9 +2060,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.352903, 0.415403), vec3(0.4375, 0.352903, 0.415403), vec3(0.4375, 0.397097, 0.459597), vec3(0.375, 0.397097, 0.459597), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.352903, 0.459597), vec3(0.375, 0.397097, 0.415403), vec3(0.4375, 0.397097, 0.415403), vec3(0.4375, 0.352903, 0.459597), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.352903, 0.459597), vec3(0.4375, 0.352903, 0.459597), vec3(0.4375, 0.397097, 0.415403), vec3(0.375, 0.397097, 0.415403), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 105u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.4375), vec3(0.0, 0.3125, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(0.1875, 0.4375, 0.4375), vec3(0.1875, 0.3125, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.4375), vec3(0.1875, 0.3125, 0.4375), vec3(0.1875, 0.3125, 0.5625), vec3(0.0, 0.3125, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2073,57 +2091,57 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.540403, 0.415403), vec3(0.4375, 0.540403, 0.415403), vec3(0.4375, 0.584597, 0.459597), vec3(0.375, 0.584597, 0.459597), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.540403, 0.459597), vec3(0.375, 0.584597, 0.415403), vec3(0.4375, 0.584597, 0.415403), vec3(0.4375, 0.540403, 0.459597), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.540403, 0.459597), vec3(0.4375, 0.540403, 0.459597), vec3(0.4375, 0.584597, 0.415403), vec3(0.375, 0.584597, 0.415403), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.3125, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.4375, 0.3125), vec3(0.3125, 0.4375, 0.3125), vec3(0.3125, 0.3125, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.3125, 0.3125, 0.3125), vec3(0.3125, 0.3125, 0.4375), vec3(0.0, 0.3125, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.4375), vec3(0.3125, 0.3125, 0.4375), vec3(0.3125, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.4375, 0.625), vec3(0.0, 0.4375, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.4375, 0.5), vec3(0.375, 0.4375, 0.5), vec3(0.375, 0.3125, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.375, 0.3125, 0.5), vec3(0.375, 0.3125, 0.625), vec3(0.0, 0.3125, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.375, 0.3125, 0.625), vec3(0.375, 0.4375, 0.625), vec3(0.0, 0.4375, 0.625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.3125), vec3(0.0, 0.4375, 0.4375), vec3(0.3125, 0.4375, 0.4375), vec3(0.3125, 0.4375, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5), vec3(0.0, 0.4375, 0.625), vec3(0.375, 0.4375, 0.625), vec3(0.375, 0.4375, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.375), vec3(0.0, 0.5, 0.5), vec3(0.0, 0.625, 0.5), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.375), vec3(0.0, 0.625, 0.375), vec3(0.1875, 0.625, 0.375), vec3(0.1875, 0.5, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.375), vec3(0.1875, 0.5, 0.375), vec3(0.1875, 0.5, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(0.1875, 0.5, 0.5), vec3(0.1875, 0.625, 0.5), vec3(0.0, 0.625, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5625), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.625, 0.6875), vec3(0.0, 0.625, 0.5625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5625), vec3(0.0, 0.625, 0.5625), vec3(0.3125, 0.625, 0.5625), vec3(0.3125, 0.5, 0.5625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5625), vec3(0.3125, 0.5, 0.5625), vec3(0.3125, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(0.3125, 0.5, 0.6875), vec3(0.3125, 0.625, 0.6875), vec3(0.0, 0.625, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.0, 0.625, 0.5), vec3(0.1875, 0.625, 0.5), vec3(0.1875, 0.625, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.5625), vec3(0.0, 0.625, 0.6875), vec3(0.3125, 0.625, 0.6875), vec3(0.3125, 0.625, 0.5625), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.5, 0.375), vec3(0.1875, 0.625, 0.375), vec3(0.1875, 0.625, 0.5), vec3(0.1875, 0.5, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.540403, 0.415403), vec3(0.1875, 0.584597, 0.459597), vec3(0.25, 0.584597, 0.459597), vec3(0.25, 0.540403, 0.415403), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.540403, 0.415403), vec3(0.25, 0.540403, 0.415403), vec3(0.25, 0.584597, 0.459597), vec3(0.1875, 0.584597, 0.459597), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.540403, 0.459597), vec3(0.1875, 0.584597, 0.415403), vec3(0.25, 0.584597, 0.415403), vec3(0.25, 0.540403, 0.459597), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.540403, 0.459597), vec3(0.25, 0.540403, 0.459597), vec3(0.25, 0.584597, 0.415403), vec3(0.1875, 0.584597, 0.415403), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.3125, 0.3125), vec3(0.3125, 0.4375, 0.3125), vec3(0.3125, 0.4375, 0.4375), vec3(0.3125, 0.3125, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.352903, 0.352903), vec3(0.3125, 0.397097, 0.397097), vec3(0.375, 0.397097, 0.397097), vec3(0.375, 0.352903, 0.352903), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.352903, 0.352903), vec3(0.375, 0.352903, 0.352903), vec3(0.375, 0.397097, 0.397097), vec3(0.3125, 0.397097, 0.397097), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.352903, 0.397097), vec3(0.3125, 0.397097, 0.352903), vec3(0.375, 0.397097, 0.352903), vec3(0.375, 0.352903, 0.397097), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.352903, 0.397097), vec3(0.375, 0.352903, 0.397097), vec3(0.375, 0.397097, 0.352903), vec3(0.3125, 0.397097, 0.352903), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.5, 0.5625), vec3(0.3125, 0.625, 0.5625), vec3(0.3125, 0.625, 0.6875), vec3(0.3125, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.540403, 0.602903), vec3(0.3125, 0.584597, 0.647097), vec3(0.375, 0.584597, 0.647097), vec3(0.375, 0.540403, 0.602903), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.540403, 0.602903), vec3(0.375, 0.540403, 0.602903), vec3(0.375, 0.584597, 0.647097), vec3(0.3125, 0.584597, 0.647097), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.540403, 0.647097), vec3(0.3125, 0.584597, 0.602903), vec3(0.375, 0.584597, 0.602903), vec3(0.375, 0.540403, 0.647097), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.540403, 0.647097), vec3(0.375, 0.540403, 0.647097), vec3(0.375, 0.584597, 0.602903), vec3(0.3125, 0.584597, 0.602903), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.5), vec3(0.375, 0.4375, 0.5), vec3(0.375, 0.4375, 0.625), vec3(0.375, 0.3125, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.352903, 0.540403), vec3(0.375, 0.397097, 0.584597), vec3(0.4375, 0.397097, 0.584597), vec3(0.4375, 0.352903, 0.540403), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.352903, 0.540403), vec3(0.4375, 0.352903, 0.540403), vec3(0.4375, 0.397097, 0.584597), vec3(0.375, 0.397097, 0.584597), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.352903, 0.584597), vec3(0.375, 0.397097, 0.540403), vec3(0.4375, 0.397097, 0.540403), vec3(0.4375, 0.352903, 0.584597), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.352903, 0.584597), vec3(0.4375, 0.352903, 0.584597), vec3(0.4375, 0.397097, 0.540403), vec3(0.375, 0.397097, 0.540403), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     }
                 } else {
-                    if (modelID < 118u) {
-                        if (modelID < 112u) {
-                            if (modelID < 109u) {
-                                if (modelID == 107u) {
+                    if (modelID < 119u) {
+                        if (modelID < 113u) {
+                            if (modelID < 110u) {
+                                if (modelID == 108u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.3125, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.4375, 0.3125), vec3(0.3125, 0.4375, 0.3125), vec3(0.3125, 0.3125, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.3125, 0.3125, 0.3125), vec3(0.3125, 0.3125, 0.4375), vec3(0.0, 0.3125, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.4375), vec3(0.3125, 0.3125, 0.4375), vec3(0.3125, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.4375, 0.625), vec3(0.0, 0.4375, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.0, 0.4375, 0.5), vec3(0.375, 0.4375, 0.5), vec3(0.375, 0.3125, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.5), vec3(0.375, 0.3125, 0.5), vec3(0.375, 0.3125, 0.625), vec3(0.0, 0.3125, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.375, 0.3125, 0.625), vec3(0.375, 0.4375, 0.625), vec3(0.0, 0.4375, 0.625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.3125), vec3(0.0, 0.4375, 0.4375), vec3(0.3125, 0.4375, 0.4375), vec3(0.3125, 0.4375, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5), vec3(0.0, 0.4375, 0.625), vec3(0.375, 0.4375, 0.625), vec3(0.375, 0.4375, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.375), vec3(0.0, 0.5, 0.5), vec3(0.0, 0.625, 0.5), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.375), vec3(0.0, 0.625, 0.375), vec3(0.1875, 0.625, 0.375), vec3(0.1875, 0.5, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.375), vec3(0.1875, 0.5, 0.375), vec3(0.1875, 0.5, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(0.1875, 0.5, 0.5), vec3(0.1875, 0.625, 0.5), vec3(0.0, 0.625, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5625), vec3(0.0, 0.5, 0.6875), vec3(0.0, 0.625, 0.6875), vec3(0.0, 0.625, 0.5625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5625), vec3(0.0, 0.625, 0.5625), vec3(0.3125, 0.625, 0.5625), vec3(0.3125, 0.5, 0.5625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5625), vec3(0.3125, 0.5, 0.5625), vec3(0.3125, 0.5, 0.6875), vec3(0.0, 0.5, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.6875), vec3(0.3125, 0.5, 0.6875), vec3(0.3125, 0.625, 0.6875), vec3(0.0, 0.625, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.0, 0.625, 0.5), vec3(0.1875, 0.625, 0.5), vec3(0.1875, 0.625, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.5625), vec3(0.0, 0.625, 0.6875), vec3(0.3125, 0.625, 0.6875), vec3(0.3125, 0.625, 0.5625), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.5, 0.375), vec3(0.1875, 0.625, 0.375), vec3(0.1875, 0.625, 0.5), vec3(0.1875, 0.5, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.540403, 0.415403), vec3(0.1875, 0.584597, 0.459597), vec3(0.25, 0.584597, 0.459597), vec3(0.25, 0.540403, 0.415403), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.540403, 0.415403), vec3(0.25, 0.540403, 0.415403), vec3(0.25, 0.584597, 0.459597), vec3(0.1875, 0.584597, 0.459597), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.540403, 0.459597), vec3(0.1875, 0.584597, 0.415403), vec3(0.25, 0.584597, 0.415403), vec3(0.25, 0.540403, 0.459597), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.540403, 0.459597), vec3(0.25, 0.540403, 0.459597), vec3(0.25, 0.584597, 0.415403), vec3(0.1875, 0.584597, 0.415403), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.3125, 0.3125), vec3(0.3125, 0.4375, 0.3125), vec3(0.3125, 0.4375, 0.4375), vec3(0.3125, 0.3125, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.352903, 0.352903), vec3(0.3125, 0.397097, 0.397097), vec3(0.375, 0.397097, 0.397097), vec3(0.375, 0.352903, 0.352903), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.352903, 0.352903), vec3(0.375, 0.352903, 0.352903), vec3(0.375, 0.397097, 0.397097), vec3(0.3125, 0.397097, 0.397097), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.352903, 0.397097), vec3(0.3125, 0.397097, 0.352903), vec3(0.375, 0.397097, 0.352903), vec3(0.375, 0.352903, 0.397097), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.352903, 0.397097), vec3(0.375, 0.352903, 0.397097), vec3(0.375, 0.397097, 0.352903), vec3(0.3125, 0.397097, 0.352903), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.5, 0.5625), vec3(0.3125, 0.625, 0.5625), vec3(0.3125, 0.625, 0.6875), vec3(0.3125, 0.5, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.540403, 0.602903), vec3(0.3125, 0.584597, 0.647097), vec3(0.375, 0.584597, 0.647097), vec3(0.375, 0.540403, 0.602903), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.540403, 0.602903), vec3(0.375, 0.540403, 0.602903), vec3(0.375, 0.584597, 0.647097), vec3(0.3125, 0.584597, 0.647097), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.540403, 0.647097), vec3(0.3125, 0.584597, 0.602903), vec3(0.375, 0.584597, 0.602903), vec3(0.375, 0.540403, 0.647097), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.540403, 0.647097), vec3(0.375, 0.540403, 0.647097), vec3(0.375, 0.584597, 0.602903), vec3(0.3125, 0.584597, 0.602903), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.5), vec3(0.375, 0.4375, 0.5), vec3(0.375, 0.4375, 0.625), vec3(0.375, 0.3125, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.352903, 0.540403), vec3(0.375, 0.397097, 0.584597), vec3(0.4375, 0.397097, 0.584597), vec3(0.4375, 0.352903, 0.540403), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.352903, 0.540403), vec3(0.4375, 0.352903, 0.540403), vec3(0.4375, 0.397097, 0.584597), vec3(0.375, 0.397097, 0.584597), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.352903, 0.584597), vec3(0.375, 0.397097, 0.540403), vec3(0.4375, 0.397097, 0.540403), vec3(0.4375, 0.352903, 0.584597), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.352903, 0.584597), vec3(0.4375, 0.352903, 0.584597), vec3(0.4375, 0.397097, 0.540403), vec3(0.375, 0.397097, 0.540403), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.0, 0.0625, 0.9375), vec3(0.0, 0.9375, 0.9375), vec3(0.0, 0.9375, 0.0625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.0, 0.9375, 0.0625), vec3(0.5, 0.9375, 0.0625), vec3(0.5, 0.0625, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.5, 0.0625, 0.0625), vec3(0.5, 0.0625, 0.9375), vec3(0.0, 0.0625, 0.9375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2140,26 +2158,19 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.477903, 0.477903), vec3(0.9375, 0.477903, 0.477903), vec3(0.9375, 0.522097, 0.522097), vec3(0.875, 0.522097, 0.522097), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.477903, 0.522097), vec3(0.875, 0.522097, 0.477903), vec3(0.9375, 0.522097, 0.477903), vec3(0.9375, 0.477903, 0.522097), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.477903, 0.522097), vec3(0.9375, 0.477903, 0.522097), vec3(0.9375, 0.522097, 0.477903), vec3(0.875, 0.522097, 0.477903), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0625), vec3(0.0, 0.0, 0.0625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(1.0, 1.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0625), vec3(1.0, 1.0, 0.0625), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 110u) {
-                                    if (modelID == 109u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.5625, 0.4375), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5625, 0.4375), vec3(0.0, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                if (modelID < 111u) {
+                                    if (modelID == 110u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0625), vec3(0.0, 0.0, 0.0625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(1.0, 1.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0625), vec3(1.0, 1.0, 0.0625), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 110u) {
+                                    if (modelID == 111u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2189,9 +2200,9 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 115u) {
-                                if (modelID < 113u) {
-                                    if (modelID == 112u) {
+                            if (modelID < 116u) {
+                                if (modelID < 114u) {
+                                    if (modelID == 113u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2208,7 +2219,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.5625, 0.4375), vec3(1.0, 1.0, 0.4375), vec3(1.0, 1.0, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 113u) {
+                                    if (modelID == 114u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2253,8 +2264,8 @@ bool voxel_intersectBlockModel(
                                     }
                                 }
                             } else {
-                                if (modelID < 116u) {
-                                    if (modelID == 115u) {
+                                if (modelID < 117u) {
+                                    if (modelID == 116u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.382683), vec3(0.0, 0.5, 0.0), vec3(1.0, 0.5, 0.0), vec3(1.0, 0.0, 0.382683), vec3(0.0, -0.607781, -0.794105), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.382683), vec3(0.0, 1.0, 0.382683), vec3(0.5, 1.0, 0.0), vec3(0.5, 0.0, 0.0), vec3(-0.607781, 0.0, -0.794105), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.382683), vec3(0.5, 0.0, 0.0), vec3(0.5, 1.0, 0.0), vec3(0.0, 1.0, 0.382683), vec3(0.607781, 0.0, 0.794105), hitT, hitNormal);
@@ -2265,7 +2276,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.0), vec3(1.0, 0.0, 0.382683), vec3(1.0, 1.0, 0.382683), vec3(0.5, 1.0, 0.0), vec3(-0.607781, 0.0, 0.794105), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 116u) {
+                                    if (modelID == 117u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.137563), vec3(0.0, 1.0, 0.137563), vec3(1.0, 1.0, 0.551777), vec3(1.0, 0.0, 0.551777), vec3(0.382684, 0.0, -0.923879), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.137563), vec3(1.0, 0.0, 0.551777), vec3(1.0, 1.0, 0.551777), vec3(0.0, 1.0, 0.137563), vec3(-0.382684, 0.0, 0.923879), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.862437), vec3(0.0, 1.0, 0.862437), vec3(1.0, 1.0, 0.448223), vec3(1.0, 0.0, 0.448223), vec3(-0.382684, 0.0, -0.923879), hitT, hitNormal);
@@ -2306,9 +2317,9 @@ bool voxel_intersectBlockModel(
                             }
                         }
                     } else {
-                        if (modelID < 123u) {
-                            if (modelID < 120u) {
-                                if (modelID == 118u) {
+                        if (modelID < 124u) {
+                            if (modelID < 121u) {
+                                if (modelID == 119u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(1.0, 1.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.9375), vec3(1.0, 0.0, 0.9375), vec3(1.0, 1.0, 0.9375), vec3(0.0, 1.0, 0.9375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
@@ -2324,8 +2335,8 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0625, 0.0625), vec3(0.5, 0.9375, 0.0625), vec3(0.5, 0.9375, 0.9375), vec3(0.5, 0.0625, 0.9375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 121u) {
-                                    if (modelID == 120u) {
+                                if (modelID < 122u) {
+                                    if (modelID == 121u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.0, 0.0625, 0.8125), vec3(0.0, 0.9375, 0.8125), vec3(0.0, 0.9375, 0.0625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.0, 0.9375, 0.0625), vec3(0.5, 0.9375, 0.0625), vec3(0.5, 0.0625, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.5, 0.0625, 0.0625), vec3(0.5, 0.0625, 0.8125), vec3(0.0, 0.0625, 0.8125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2334,7 +2345,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0625, 0.0625), vec3(0.5, 0.9375, 0.0625), vec3(0.5, 0.9375, 0.8125), vec3(0.5, 0.0625, 0.8125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 121u) {
+                                    if (modelID == 122u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.0, 0.0625, 0.6875), vec3(0.0, 0.9375, 0.6875), vec3(0.0, 0.9375, 0.0625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.0, 0.9375, 0.0625), vec3(0.5, 0.9375, 0.0625), vec3(0.5, 0.0625, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.5, 0.0625, 0.0625), vec3(0.5, 0.0625, 0.6875), vec3(0.0, 0.0625, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2352,9 +2363,9 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 126u) {
-                                if (modelID < 124u) {
-                                    if (modelID == 123u) {
+                            if (modelID < 127u) {
+                                if (modelID < 125u) {
+                                    if (modelID == 124u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.9375, 0.4375), vec3(0.0, 0.9375, 0.0625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.0, 0.9375, 0.0625), vec3(0.5, 0.9375, 0.0625), vec3(0.5, 0.0625, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.5, 0.0625, 0.0625), vec3(0.5, 0.0625, 0.4375), vec3(0.0, 0.0625, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2363,7 +2374,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0625, 0.0625), vec3(0.5, 0.9375, 0.0625), vec3(0.5, 0.9375, 0.4375), vec3(0.5, 0.0625, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 124u) {
+                                    if (modelID == 125u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.0, 0.0625, 0.3125), vec3(0.0, 0.9375, 0.3125), vec3(0.0, 0.9375, 0.0625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.0, 0.9375, 0.0625), vec3(0.5, 0.9375, 0.0625), vec3(0.5, 0.0625, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.0625), vec3(0.5, 0.0625, 0.0625), vec3(0.5, 0.0625, 0.3125), vec3(0.0, 0.0625, 0.3125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2380,8 +2391,8 @@ bool voxel_intersectBlockModel(
                                     }
                                 }
                             } else {
-                                if (modelID < 127u) {
-                                    if (modelID == 126u) {
+                                if (modelID < 128u) {
+                                    if (modelID == 127u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2402,7 +2413,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 127u) {
+                                    if (modelID == 128u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.25, 0.3125), vec3(0.0, 0.25, 0.0625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 0.25, 0.0625), vec3(1.0, 0.25, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.3125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2471,11 +2482,11 @@ bool voxel_intersectBlockModel(
                     }
                 }
             } else {
-                if (modelID < 150u) {
-                    if (modelID < 139u) {
-                        if (modelID < 134u) {
-                            if (modelID < 131u) {
-                                if (modelID == 129u) {
+                if (modelID < 151u) {
+                    if (modelID < 140u) {
+                        if (modelID < 135u) {
+                            if (modelID < 132u) {
+                                if (modelID == 130u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 0.1875, 0.125), vec3(0.0, 0.1875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.1875, 0.0), vec3(0.25, 0.1875, 0.0), vec3(0.25, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.25, 0.0, 0.0), vec3(0.25, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2543,8 +2554,8 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 132u) {
-                                    if (modelID == 131u) {
+                                if (modelID < 133u) {
+                                    if (modelID == 132u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.25, 0.25), vec3(0.25, 0.25, 0.75), vec3(0.25, 0.75, 0.75), vec3(0.25, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.25, 0.25), vec3(0.25, 0.75, 0.25), vec3(0.75, 0.75, 0.25), vec3(0.75, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.25, 0.25), vec3(0.75, 0.25, 0.25), vec3(0.75, 0.25, 0.75), vec3(0.25, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2553,7 +2564,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.25, 0.25), vec3(0.75, 0.75, 0.25), vec3(0.75, 0.75, 0.75), vec3(0.75, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 132u) {
+                                    if (modelID == 133u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(0.25, 0.75, 0.25), vec3(0.25, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.25, 0.25, 0.25), vec3(0.25, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2583,8 +2594,8 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 136u) {
-                                if (modelID == 134u) {
+                            if (modelID < 137u) {
+                                if (modelID == 135u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(0.25, 0.75, 0.25), vec3(0.25, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.25, 0.25, 0.25), vec3(0.25, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2620,8 +2631,8 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 137u) {
-                                    if (modelID == 136u) {
+                                if (modelID < 138u) {
+                                    if (modelID == 137u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(0.25, 0.75, 0.25), vec3(0.25, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.25, 0.25, 0.25), vec3(0.25, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2642,7 +2653,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.75, 0.25), vec3(0.75, 1.0, 0.25), vec3(0.75, 1.0, 0.75), vec3(0.75, 0.75, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 137u) {
+                                    if (modelID == 138u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(0.25, 0.75, 0.25), vec3(0.25, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.25, 0.25, 0.25), vec3(0.25, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2693,9 +2704,9 @@ bool voxel_intersectBlockModel(
                             }
                         }
                     } else {
-                        if (modelID < 144u) {
-                            if (modelID < 141u) {
-                                if (modelID == 139u) {
+                        if (modelID < 145u) {
+                            if (modelID < 142u) {
+                                if (modelID == 140u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(0.25, 0.75, 0.25), vec3(0.25, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.25, 0.25, 0.25), vec3(0.25, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2755,8 +2766,8 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.25, 0.25), vec3(1.0, 0.75, 0.25), vec3(1.0, 0.75, 0.75), vec3(1.0, 0.25, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 142u) {
-                                    if (modelID == 141u) {
+                                if (modelID < 143u) {
+                                    if (modelID == 142u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.25, 0.5), vec3(0.25, 0.25, 0.5), vec3(0.25, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.25, 0.0, 0.5), vec3(0.25, 0.25, 0.5), vec3(0.0, 0.25, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0625, 0.25, 0.375), vec3(0.0625, 0.25, 0.625), vec3(0.0625, 0.5625, 0.625), vec3(0.0625, 0.5625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
@@ -2767,7 +2778,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.25, 0.375), vec3(0.3125, 0.5625, 0.375), vec3(0.3125, 0.5625, 0.625), vec3(0.3125, 0.25, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 142u) {
+                                    if (modelID == 143u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.25, 0.5), vec3(0.25, 0.25, 0.5), vec3(0.25, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.25, 0.0, 0.5), vec3(0.25, 0.25, 0.5), vec3(0.0, 0.25, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0625, 0.25, 0.3125), vec3(0.0625, 0.25, 0.6875), vec3(0.0625, 0.6875, 0.6875), vec3(0.0625, 0.6875, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
@@ -2789,9 +2800,9 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 147u) {
-                                if (modelID < 145u) {
-                                    if (modelID == 144u) {
+                            if (modelID < 148u) {
+                                if (modelID < 146u) {
+                                    if (modelID == 145u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2815,7 +2826,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 145u) {
+                                    if (modelID == 146u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2880,8 +2891,8 @@ bool voxel_intersectBlockModel(
                                     }
                                 }
                             } else {
-                                if (modelID < 148u) {
-                                    if (modelID == 147u) {
+                                if (modelID < 149u) {
+                                    if (modelID == 148u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2923,7 +2934,26 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 148u) {
+                                    if (modelID == 149u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.0, 0.0, 0.875), vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.875), vec3(1.0, 0.125, 0.875), vec3(1.0, 0.125, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(0.0, 0.875, 0.875), vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(1.0, 0.875, 0.125), vec3(1.0, 0.875, 0.875), vec3(0.0, 0.875, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.0), vec3(0.875, 0.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2943,36 +2973,36 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.8125, 0.125, 0.125), vec3(0.8125, 0.125, 0.875), vec3(0.8125, 0.875, 0.875), vec3(0.8125, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.0), vec3(0.875, 0.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.0, 0.0, 0.875), vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.875), vec3(1.0, 0.125, 0.875), vec3(1.0, 0.125, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(0.0, 0.875, 0.875), vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(1.0, 0.875, 0.125), vec3(1.0, 0.875, 0.875), vec3(0.0, 0.875, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.6875, 0.125, 0.125), vec3(0.6875, 0.125, 0.875), vec3(0.6875, 0.875, 0.875), vec3(0.6875, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.0), vec3(0.875, 0.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     }
                 } else {
-                    if (modelID < 161u) {
-                        if (modelID < 155u) {
-                            if (modelID < 152u) {
-                                if (modelID == 150u) {
+                    if (modelID < 162u) {
+                        if (modelID < 156u) {
+                            if (modelID < 153u) {
+                                if (modelID == 151u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.0, 0.0, 0.875), vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.875), vec3(1.0, 0.125, 0.875), vec3(1.0, 0.125, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(0.0, 0.875, 0.875), vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(1.0, 0.875, 0.125), vec3(1.0, 0.875, 0.875), vec3(0.0, 0.875, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.6875, 0.125, 0.125), vec3(0.6875, 0.125, 0.875), vec3(0.6875, 0.875, 0.875), vec3(0.6875, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.0), vec3(0.875, 0.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -2992,30 +3022,32 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.125, 0.125), vec3(0.5625, 0.125, 0.875), vec3(0.5625, 0.875, 0.875), vec3(0.5625, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.0), vec3(0.875, 0.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.0, 0.0, 0.875), vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.875), vec3(1.0, 0.125, 0.875), vec3(1.0, 0.125, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(0.0, 0.875, 0.875), vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(1.0, 0.875, 0.125), vec3(1.0, 0.875, 0.875), vec3(0.0, 0.875, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.125, 0.125), vec3(0.4375, 0.125, 0.875), vec3(0.4375, 0.875, 0.875), vec3(0.4375, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.0), vec3(0.875, 0.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 153u) {
-                                    if (modelID == 152u) {
+                                if (modelID < 154u) {
+                                    if (modelID == 153u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.0, 0.0, 0.875), vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.875), vec3(1.0, 0.125, 0.875), vec3(1.0, 0.125, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(0.0, 0.875, 0.875), vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(1.0, 0.875, 0.125), vec3(1.0, 0.875, 0.875), vec3(0.0, 0.875, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.125, 0.125), vec3(0.4375, 0.125, 0.875), vec3(0.4375, 0.875, 0.875), vec3(0.4375, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.0), vec3(0.875, 0.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 154u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -3035,9 +3067,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.125, 0.125), vec3(0.3125, 0.125, 0.875), vec3(0.3125, 0.875, 0.875), vec3(0.3125, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.0), vec3(0.875, 0.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 153u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -3057,7 +3087,13 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.125, 0.125), vec3(0.1875, 0.125, 0.875), vec3(0.1875, 0.875, 0.875), vec3(0.1875, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.0), vec3(0.875, 0.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            }
+                        } else {
+                            if (modelID < 159u) {
+                                if (modelID < 157u) {
+                                    if (modelID == 156u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -3078,12 +3114,8 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.0), vec3(0.875, 0.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            }
-                        } else {
-                            if (modelID < 158u) {
-                                if (modelID < 156u) {
-                                    if (modelID == 155u) {
+                                } else {
+                                    if (modelID == 157u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5), vec3(0.0, 0.5625, 0.5), vec3(1.0, 0.5625, 0.5), vec3(1.0, 0.4375, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5), vec3(1.0, 0.4375, 0.5), vec3(1.0, 0.5625, 0.5), vec3(0.0, 0.5625, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.4375), vec3(0.0, 0.5, 0.5625), vec3(1.0, 0.5, 0.5625), vec3(1.0, 0.5, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
@@ -3092,9 +3124,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.4375, 0.4375), vec3(0.000062, 0.5625, 0.4375), vec3(0.000062, 0.5625, 0.5625), vec3(0.000062, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.4375, 0.5625), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.5625, 0.4375), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 156u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3112,7 +3142,11 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.4375, 0.5625), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.5625, 0.4375), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            } else {
+                                if (modelID < 160u) {
+                                    if (modelID == 159u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3136,10 +3170,8 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.4375, 0.0), vec3(1.0, 0.5625, 0.0), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            } else {
-                                if (modelID < 159u) {
-                                    if (modelID == 158u) {
+                                } else {
+                                    if (modelID == 160u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 1.0, 0.5625), vec3(0.0, 1.0, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(0.5, 1.0, 0.5), vec3(0.5, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.5, 0.0, 0.5), vec3(0.5, 1.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
@@ -3155,9 +3187,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.5), vec3(0.5625, 0.0, 0.5), vec3(0.5625, 1.0, 0.5), vec3(0.5, 1.0, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.4375), vec3(0.5625, 0.0, 0.5625), vec3(0.5625, 1.0, 0.5625), vec3(0.5625, 1.0, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.4375), vec3(0.5625, 1.0, 0.4375), vec3(0.5625, 1.0, 0.5625), vec3(0.5625, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 159u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3178,35 +3208,35 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.4375, 0.5625), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.5625, 0.4375), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.5, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(0.0, 1.0, 0.5), vec3(1.0, 1.0, 0.5), vec3(1.0, 0.5, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 1.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.4375), vec3(0.0, 1.0, 0.5625), vec3(1.0, 1.0, 0.5625), vec3(1.0, 1.0, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.0, 0.4375), vec3(0.000062, 0.0, 0.5625), vec3(0.000062, 0.4375, 0.5625), vec3(0.000062, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.0, 0.4375), vec3(0.000062, 0.4375, 0.4375), vec3(0.000062, 0.4375, 0.5625), vec3(0.000062, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.4375, 0.4375), vec3(0.000062, 0.4375, 0.5625), vec3(0.000062, 0.5625, 0.5625), vec3(0.000062, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.4375, 0.4375), vec3(0.000062, 0.5625, 0.4375), vec3(0.000062, 0.5625, 0.5625), vec3(0.000062, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.5625, 0.4375), vec3(0.000062, 0.5625, 0.5625), vec3(0.000062, 1.0, 0.5625), vec3(0.000062, 1.0, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.5625, 0.4375), vec3(0.000062, 1.0, 0.4375), vec3(0.000062, 1.0, 0.5625), vec3(0.000062, 0.5625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.0, 0.4375), vec3(0.999937, 0.0, 0.5625), vec3(0.999937, 0.4375, 0.5625), vec3(0.999937, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.0, 0.4375), vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.4375, 0.5625), vec3(0.999937, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.4375, 0.5625), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.5625, 0.4375), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.5625, 0.4375), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 1.0, 0.5625), vec3(0.999937, 1.0, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.5625, 0.4375), vec3(0.999937, 1.0, 0.4375), vec3(0.999937, 1.0, 0.5625), vec3(0.999937, 0.5625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     } else {
-                        if (modelID < 166u) {
-                            if (modelID < 163u) {
-                                if (modelID == 161u) {
+                        if (modelID < 167u) {
+                            if (modelID < 164u) {
+                                if (modelID == 162u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.5, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(0.0, 1.0, 0.5), vec3(1.0, 1.0, 0.5), vec3(1.0, 0.5, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 1.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.4375), vec3(0.0, 1.0, 0.5625), vec3(1.0, 1.0, 0.5625), vec3(1.0, 1.0, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.0, 0.4375), vec3(0.000062, 0.0, 0.5625), vec3(0.000062, 0.4375, 0.5625), vec3(0.000062, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.0, 0.4375), vec3(0.000062, 0.4375, 0.4375), vec3(0.000062, 0.4375, 0.5625), vec3(0.000062, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.4375, 0.4375), vec3(0.000062, 0.4375, 0.5625), vec3(0.000062, 0.5625, 0.5625), vec3(0.000062, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.4375, 0.4375), vec3(0.000062, 0.5625, 0.4375), vec3(0.000062, 0.5625, 0.5625), vec3(0.000062, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.5625, 0.4375), vec3(0.000062, 0.5625, 0.5625), vec3(0.000062, 1.0, 0.5625), vec3(0.000062, 1.0, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000062, 0.5625, 0.4375), vec3(0.000062, 1.0, 0.4375), vec3(0.000062, 1.0, 0.5625), vec3(0.000062, 0.5625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.0, 0.4375), vec3(0.999937, 0.0, 0.5625), vec3(0.999937, 0.4375, 0.5625), vec3(0.999937, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.0, 0.4375), vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.4375, 0.5625), vec3(0.999937, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.4375, 0.5625), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.4375, 0.4375), vec3(0.999937, 0.5625, 0.4375), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.5625, 0.4375), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 1.0, 0.5625), vec3(0.999937, 1.0, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.5625, 0.4375), vec3(0.999937, 1.0, 0.4375), vec3(0.999937, 1.0, 0.5625), vec3(0.999937, 0.5625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3236,31 +3266,33 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.4375, 0.5625), vec3(0.999938, 0.5625, 0.5625), vec3(0.999938, 0.5625, 1.0), vec3(0.999938, 0.4375, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.4375, 0.0), vec3(1.0, 0.5625, 0.0), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.5, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.0), vec3(0.0, 0.5625, 0.0), vec3(1.0, 0.5625, 0.0), vec3(1.0, 0.4375, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.0), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.5, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.0), vec3(1.0, 0.5, 0.0), vec3(1.0, 0.5, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.0, 0.4375), vec3(0.000063, 0.0, 0.5625), vec3(0.000063, 0.4375, 0.5625), vec3(0.000063, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.0, 0.4375), vec3(0.000063, 0.4375, 0.4375), vec3(0.000063, 0.4375, 0.5625), vec3(0.000063, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.4375, 0.0), vec3(0.000063, 0.4375, 0.4375), vec3(0.000063, 0.5625, 0.4375), vec3(0.000063, 0.5625, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.4375, 0.0), vec3(0.000063, 0.5625, 0.0), vec3(0.000063, 0.5625, 0.4375), vec3(0.000063, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.4375, 0.4375), vec3(0.000063, 0.4375, 0.5625), vec3(0.000063, 0.5625, 0.5625), vec3(0.000063, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.4375, 0.4375), vec3(0.000063, 0.5625, 0.4375), vec3(0.000063, 0.5625, 0.5625), vec3(0.000063, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.0, 0.4375), vec3(0.999938, 0.0, 0.5625), vec3(0.999938, 0.4375, 0.5625), vec3(0.999938, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.0, 0.4375), vec3(0.999938, 0.4375, 0.4375), vec3(0.999938, 0.4375, 0.5625), vec3(0.999938, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.4375, 0.0), vec3(0.999938, 0.4375, 0.4375), vec3(0.999938, 0.5625, 0.4375), vec3(0.999938, 0.5625, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.4375, 0.0), vec3(0.999938, 0.5625, 0.0), vec3(0.999938, 0.5625, 0.4375), vec3(0.999938, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.4375, 0.4375), vec3(0.999938, 0.4375, 0.5625), vec3(0.999938, 0.5625, 0.5625), vec3(0.999938, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.4375, 0.4375), vec3(0.999938, 0.5625, 0.4375), vec3(0.999938, 0.5625, 0.5625), vec3(0.999938, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 164u) {
-                                    if (modelID == 163u) {
+                                if (modelID < 165u) {
+                                    if (modelID == 164u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.5, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.0), vec3(0.0, 0.5625, 0.0), vec3(1.0, 0.5625, 0.0), vec3(1.0, 0.4375, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.0), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.5, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.0), vec3(1.0, 0.5, 0.0), vec3(1.0, 0.5, 0.5), vec3(0.0, 0.5, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.0, 0.4375), vec3(0.000063, 0.0, 0.5625), vec3(0.000063, 0.4375, 0.5625), vec3(0.000063, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.0, 0.4375), vec3(0.000063, 0.4375, 0.4375), vec3(0.000063, 0.4375, 0.5625), vec3(0.000063, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.4375, 0.0), vec3(0.000063, 0.4375, 0.4375), vec3(0.000063, 0.5625, 0.4375), vec3(0.000063, 0.5625, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.4375, 0.0), vec3(0.000063, 0.5625, 0.0), vec3(0.000063, 0.5625, 0.4375), vec3(0.000063, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.4375, 0.4375), vec3(0.000063, 0.4375, 0.5625), vec3(0.000063, 0.5625, 0.5625), vec3(0.000063, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000063, 0.4375, 0.4375), vec3(0.000063, 0.5625, 0.4375), vec3(0.000063, 0.5625, 0.5625), vec3(0.000063, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.0, 0.4375), vec3(0.999938, 0.0, 0.5625), vec3(0.999938, 0.4375, 0.5625), vec3(0.999938, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.0, 0.4375), vec3(0.999938, 0.4375, 0.4375), vec3(0.999938, 0.4375, 0.5625), vec3(0.999938, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.4375, 0.0), vec3(0.999938, 0.4375, 0.4375), vec3(0.999938, 0.5625, 0.4375), vec3(0.999938, 0.5625, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.4375, 0.0), vec3(0.999938, 0.5625, 0.0), vec3(0.999938, 0.5625, 0.4375), vec3(0.999938, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.4375, 0.4375), vec3(0.999938, 0.4375, 0.5625), vec3(0.999938, 0.5625, 0.5625), vec3(0.999938, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.4375, 0.4375), vec3(0.999938, 0.5625, 0.4375), vec3(0.999938, 0.5625, 0.5625), vec3(0.999938, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 165u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3290,9 +3322,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.4375, 0.5625), vec3(0.999937, 0.5625, 0.5625), vec3(0.999937, 0.5625, 1.0), vec3(0.999937, 0.4375, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.4375, 0.0), vec3(1.0, 0.5625, 0.0), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 164u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 1.0, 0.5625), vec3(0.0, 1.0, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(0.5, 1.0, 0.5), vec3(0.5, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.5, 0.0, 0.5), vec3(0.5, 1.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
@@ -3311,7 +3341,13 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.999937, 0.4375), vec3(0.5625, 0.999937, 0.4375), vec3(0.5625, 0.999937, 0.5625), vec3(0.4375, 0.999937, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.0), vec3(0.5, 0.0, 0.5), vec3(0.5, 1.0, 0.5), vec3(0.5, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.0), vec3(0.5, 1.0, 0.0), vec3(0.5, 1.0, 0.5), vec3(0.5, 0.0, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            }
+                        } else {
+                            if (modelID < 170u) {
+                                if (modelID < 168u) {
+                                    if (modelID == 167u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3340,12 +3376,8 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.5625, 0.4375), vec3(0.999937, 1.0, 0.4375), vec3(0.999937, 1.0, 0.5625), vec3(0.999937, 0.5625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            }
-                        } else {
-                            if (modelID < 169u) {
-                                if (modelID < 167u) {
-                                    if (modelID == 166u) {
+                                } else {
+                                    if (modelID == 168u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3373,9 +3405,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.5625, 0.4375), vec3(0.999938, 0.5625, 0.5625), vec3(0.999938, 1.0, 0.5625), vec3(0.999938, 1.0, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999938, 0.5625, 0.4375), vec3(0.999938, 1.0, 0.4375), vec3(0.999938, 1.0, 0.5625), vec3(0.999938, 0.5625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 167u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.5, 0.5), vec3(1.0, 0.5, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3412,16 +3442,18 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999937, 0.5625, 0.4375), vec3(0.999937, 1.0, 0.4375), vec3(0.999937, 1.0, 0.5625), vec3(0.999937, 0.5625, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.4375, 0.0), vec3(1.0, 0.5625, 0.0), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            } else {
+                                if (modelID < 171u) {
+                                    if (modelID == 170u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.433709, 0.433709), vec3(0.0, 0.566291, 0.566291), vec3(1.0, 0.566291, 0.566291), vec3(1.0, 0.433709, 0.433709), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.433709, 0.433709), vec3(1.0, 0.433709, 0.433709), vec3(1.0, 0.566291, 0.566291), vec3(0.0, 0.566291, 0.566291), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.433709, 0.566291), vec3(0.0, 0.566291, 0.433709), vec3(1.0, 0.566291, 0.433709), vec3(1.0, 0.433709, 0.566291), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.433709, 0.566291), vec3(1.0, 0.433709, 0.566291), vec3(1.0, 0.566291, 0.433709), vec3(0.0, 0.566291, 0.433709), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
                                     }
-                                }
-                            } else {
-                                if (modelID < 170u) {
-                                    if (modelID == 169u) {
+                                } else {
+                                    if (modelID == 171u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.3125, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.6875, 0.3125), vec3(0.4375, 0.6875, 0.3125), vec3(0.4375, 0.3125, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.4375, 0.3125, 0.3125), vec3(0.4375, 0.3125, 0.6875), vec3(0.0, 0.3125, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -3437,9 +3469,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.433709, 0.433709), vec3(0.6875, 0.433709, 0.433709), vec3(0.6875, 0.566291, 0.566291), vec3(0.5625, 0.566291, 0.566291), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.433709, 0.566291), vec3(0.5625, 0.566291, 0.433709), vec3(0.6875, 0.566291, 0.433709), vec3(0.6875, 0.433709, 0.566291), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.433709, 0.566291), vec3(0.6875, 0.433709, 0.566291), vec3(0.6875, 0.566291, 0.433709), vec3(0.5625, 0.566291, 0.433709), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 170u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.433709, 0.433709), vec3(0.0, 0.566291, 0.566291), vec3(0.375, 0.566291, 0.566291), vec3(0.375, 0.433709, 0.433709), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.433709, 0.433709), vec3(0.375, 0.433709, 0.433709), vec3(0.375, 0.566291, 0.566291), vec3(0.0, 0.566291, 0.566291), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0625, 0.433709, 0.566291), vec3(0.0625, 0.566291, 0.433709), vec3(0.3125, 0.566291, 0.433709), vec3(0.3125, 0.433709, 0.566291), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
@@ -3456,13 +3486,6 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.375, 0.375), vec3(0.5, 0.625, 0.375), vec3(0.5, 0.625, 0.625), vec3(0.5, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.6875, 0.3125), vec3(0.5, 0.6875, 0.6875), vec3(0.9375, 0.6875, 0.6875), vec3(0.9375, 0.6875, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.9375, 0.3125, 0.3125), vec3(0.9375, 0.6875, 0.3125), vec3(0.9375, 0.6875, 0.6875), vec3(0.9375, 0.3125, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.5625, 0.4375), vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.4375, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.625, 0.4375, 0.4375), vec3(0.625, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5625), vec3(0.625, 0.4375, 0.5625), vec3(0.625, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5625, 0.4375), vec3(0.0, 0.5625, 0.5625), vec3(0.625, 0.5625, 0.5625), vec3(0.625, 0.5625, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.4375, 0.4375), vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.5625, 0.5625), vec3(0.625, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
@@ -3472,39 +3495,46 @@ bool voxel_intersectBlockModel(
             }
         }
     } else {
-        if (modelID < 257u) {
-            if (modelID < 214u) {
-                if (modelID < 193u) {
-                    if (modelID < 182u) {
-                        if (modelID < 177u) {
-                            if (modelID < 174u) {
-                                if (modelID == 172u) {
+        if (modelID < 259u) {
+            if (modelID < 216u) {
+                if (modelID < 194u) {
+                    if (modelID < 183u) {
+                        if (modelID < 178u) {
+                            if (modelID < 175u) {
+                                if (modelID == 173u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.5625, 0.4375), vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.4375, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.625, 0.4375, 0.4375), vec3(0.625, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5625), vec3(0.625, 0.4375, 0.5625), vec3(0.625, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5625, 0.4375), vec3(0.0, 0.5625, 0.5625), vec3(0.625, 0.5625, 0.5625), vec3(0.625, 0.5625, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.4375, 0.4375), vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.5625, 0.5625), vec3(0.625, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.4375), vec3(0.0, 0.242668, 0.5625), vec3(0.181435, 0.820092, 0.5625), vec3(0.181435, 0.820092, 0.4375), vec3(-0.954013, 0.299765, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.4375), vec3(0.057742, 0.194832, 0.4375), vec3(0.057742, 0.194832, 0.5625), vec3(0.0, 0.242668, 0.5625), vec3(-0.63796, -0.77007, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.4375), vec3(0.181435, 0.820092, 0.4375), vec3(0.29692, 0.772257, 0.4375), vec3(0.057742, 0.194832, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.5625), vec3(0.057742, 0.194832, 0.5625), vec3(0.29692, 0.772257, 0.5625), vec3(0.181435, 0.820092, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.057742, 0.194832, 0.4375), vec3(0.29692, 0.772257, 0.4375), vec3(0.29692, 0.772257, 0.5625), vec3(0.057742, 0.194832, 0.5625), vec3(0.923879, -0.382684, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.181435, 0.820092, 0.4375), vec3(0.181435, 0.820092, 0.5625), vec3(0.29692, 0.772257, 0.5625), vec3(0.29692, 0.772257, 0.4375), vec3(0.38268, 0.923881, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.375), vec3(0.0, 1.0, 0.375), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.375), vec3(0.0, 0.0, 0.375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.375), vec3(1.0, 0.0, 0.375), vec3(1.0, 1.0, 0.375), vec3(0.0, 1.0, 0.375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.375), vec3(1.0, 1.0, 0.375), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.375), vec3(1.0, 0.0, 0.375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 175u) {
-                                    if (modelID == 174u) {
+                                if (modelID < 176u) {
+                                    if (modelID == 175u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.375), vec3(0.0, 1.0, 0.375), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.375), vec3(0.0, 0.0, 0.375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.375), vec3(1.0, 0.0, 0.375), vec3(1.0, 1.0, 0.375), vec3(0.0, 1.0, 0.375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.375), vec3(1.0, 1.0, 0.375), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.375), vec3(1.0, 0.0, 0.375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 176u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.9375), vec3(0.0, 1.0, 0.9375), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.9375), vec3(0.0, 0.0, 0.9375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.9375), vec3(1.0, 0.0, 0.9375), vec3(1.0, 1.0, 0.9375), vec3(0.0, 1.0, 0.9375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.9375), vec3(1.0, 1.0, 0.9375), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.9375), vec3(1.0, 0.0, 0.9375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 175u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.0, 0.1875, 0.8125), vec3(0.0, 0.8125, 0.8125), vec3(0.0, 0.8125, 0.1875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.0, 0.8125, 0.1875), vec3(0.8125, 0.8125, 0.1875), vec3(0.8125, 0.1875, 0.1875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.8125, 0.1875, 0.1875), vec3(0.8125, 0.1875, 0.8125), vec3(0.0, 0.1875, 0.8125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -3538,72 +3568,74 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.9375, 0.375, 0.625), vec3(1.0, 0.375, 0.625), vec3(1.0, 0.625, 0.625), vec3(0.9375, 0.625, 0.625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.9375, 0.625, 0.375), vec3(0.9375, 0.625, 0.625), vec3(1.0, 0.625, 0.625), vec3(1.0, 0.625, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.375, 0.375), vec3(1.0, 0.625, 0.375), vec3(1.0, 0.625, 0.625), vec3(1.0, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.0625, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0625, 0.3125), vec3(0.1875, 0.0625, 0.3125), vec3(0.1875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.1875, 0.0, 0.3125), vec3(0.1875, 0.0, 0.4375), vec3(0.0, 0.0, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.1875, 0.0, 0.4375), vec3(0.1875, 0.0625, 0.4375), vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.0625, 0.6875), vec3(0.0, 0.0625, 0.5625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.0625, 0.5625), vec3(0.1875, 0.0625, 0.5625), vec3(0.1875, 0.0, 0.5625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5625), vec3(0.1875, 0.0, 0.5625), vec3(0.1875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.1875, 0.0, 0.6875), vec3(0.1875, 0.0625, 0.6875), vec3(0.0, 0.0625, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.3125), vec3(0.0, 0.0625, 0.4375), vec3(0.1875, 0.0625, 0.4375), vec3(0.1875, 0.0625, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.5625), vec3(0.0, 0.0625, 0.6875), vec3(0.1875, 0.0625, 0.6875), vec3(0.1875, 0.0625, 0.5625), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.1875), vec3(0.1875, 0.0, 0.8125), vec3(0.1875, 0.625, 0.8125), vec3(0.1875, 0.625, 0.1875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.1875), vec3(0.1875, 0.625, 0.1875), vec3(0.8125, 0.625, 0.1875), vec3(0.8125, 0.0, 0.1875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.1875), vec3(0.8125, 0.0, 0.1875), vec3(0.8125, 0.0, 0.8125), vec3(0.1875, 0.0, 0.8125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.3125), vec3(0.1875, 0.0625, 0.3125), vec3(0.1875, 0.0625, 0.4375), vec3(0.1875, 0.0, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.5625), vec3(0.1875, 0.0625, 0.5625), vec3(0.1875, 0.0625, 0.6875), vec3(0.1875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.8125), vec3(0.8125, 0.0, 0.8125), vec3(0.8125, 0.625, 0.8125), vec3(0.1875, 0.625, 0.8125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.625, 0.1875), vec3(0.1875, 0.625, 0.8125), vec3(0.8125, 0.625, 0.8125), vec3(0.8125, 0.625, 0.1875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.0), vec3(0.3125, 0.0, 0.1875), vec3(0.3125, 0.0625, 0.1875), vec3(0.3125, 0.0625, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.0), vec3(0.3125, 0.0625, 0.0), vec3(0.4375, 0.0625, 0.0), vec3(0.4375, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.0), vec3(0.4375, 0.0, 0.0), vec3(0.4375, 0.0, 0.1875), vec3(0.3125, 0.0, 0.1875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.1875), vec3(0.4375, 0.0, 0.1875), vec3(0.4375, 0.0625, 0.1875), vec3(0.3125, 0.0625, 0.1875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.8125), vec3(0.3125, 0.0, 1.0), vec3(0.3125, 0.0625, 1.0), vec3(0.3125, 0.0625, 0.8125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.8125), vec3(0.3125, 0.0625, 0.8125), vec3(0.4375, 0.0625, 0.8125), vec3(0.4375, 0.0, 0.8125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.8125), vec3(0.4375, 0.0, 0.8125), vec3(0.4375, 0.0, 1.0), vec3(0.3125, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 1.0), vec3(0.4375, 0.0, 1.0), vec3(0.4375, 0.0625, 1.0), vec3(0.3125, 0.0625, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0625, 0.0), vec3(0.3125, 0.0625, 0.1875), vec3(0.4375, 0.0625, 0.1875), vec3(0.4375, 0.0625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0625, 0.8125), vec3(0.3125, 0.0625, 1.0), vec3(0.4375, 0.0625, 1.0), vec3(0.4375, 0.0625, 0.8125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.0, 0.0), vec3(0.4375, 0.0625, 0.0), vec3(0.4375, 0.0625, 0.1875), vec3(0.4375, 0.0, 0.1875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.0, 0.8125), vec3(0.4375, 0.0625, 0.8125), vec3(0.4375, 0.0625, 1.0), vec3(0.4375, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.0), vec3(0.5625, 0.0, 0.1875), vec3(0.5625, 0.0625, 0.1875), vec3(0.5625, 0.0625, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.0), vec3(0.5625, 0.0625, 0.0), vec3(0.6875, 0.0625, 0.0), vec3(0.6875, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.0), vec3(0.6875, 0.0, 0.0), vec3(0.6875, 0.0, 0.1875), vec3(0.5625, 0.0, 0.1875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.1875), vec3(0.6875, 0.0, 0.1875), vec3(0.6875, 0.0625, 0.1875), vec3(0.5625, 0.0625, 0.1875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.8125), vec3(0.5625, 0.0, 1.0), vec3(0.5625, 0.0625, 1.0), vec3(0.5625, 0.0625, 0.8125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.8125), vec3(0.5625, 0.0625, 0.8125), vec3(0.6875, 0.0625, 0.8125), vec3(0.6875, 0.0, 0.8125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.8125), vec3(0.6875, 0.0, 0.8125), vec3(0.6875, 0.0, 1.0), vec3(0.5625, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 1.0), vec3(0.6875, 0.0, 1.0), vec3(0.6875, 0.0625, 1.0), vec3(0.5625, 0.0625, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0625, 0.0), vec3(0.5625, 0.0625, 0.1875), vec3(0.6875, 0.0625, 0.1875), vec3(0.6875, 0.0625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0625, 0.8125), vec3(0.5625, 0.0625, 1.0), vec3(0.6875, 0.0625, 1.0), vec3(0.6875, 0.0625, 0.8125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.6875, 0.0, 0.0), vec3(0.6875, 0.0625, 0.0), vec3(0.6875, 0.0625, 0.1875), vec3(0.6875, 0.0, 0.1875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.6875, 0.0, 0.8125), vec3(0.6875, 0.0625, 0.8125), vec3(0.6875, 0.0625, 1.0), vec3(0.6875, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.8125, 0.0, 0.1875), vec3(0.8125, 0.625, 0.1875), vec3(0.8125, 0.625, 0.8125), vec3(0.8125, 0.0, 0.8125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         } else {
-                            if (modelID < 179u) {
-                                if (modelID == 177u) {
+                            if (modelID < 180u) {
+                                if (modelID == 178u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0, 0.4375), vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.0625, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.0, 0.0625, 0.3125), vec3(0.1875, 0.0625, 0.3125), vec3(0.1875, 0.0, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.3125), vec3(0.1875, 0.0, 0.3125), vec3(0.1875, 0.0, 0.4375), vec3(0.0, 0.0, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.4375), vec3(0.1875, 0.0, 0.4375), vec3(0.1875, 0.0625, 0.4375), vec3(0.0, 0.0625, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.6875), vec3(0.0, 0.0625, 0.6875), vec3(0.0, 0.0625, 0.5625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5625), vec3(0.0, 0.0625, 0.5625), vec3(0.1875, 0.0625, 0.5625), vec3(0.1875, 0.0, 0.5625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5625), vec3(0.1875, 0.0, 0.5625), vec3(0.1875, 0.0, 0.6875), vec3(0.0, 0.0, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.6875), vec3(0.1875, 0.0, 0.6875), vec3(0.1875, 0.0625, 0.6875), vec3(0.0, 0.0625, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.3125), vec3(0.0, 0.0625, 0.4375), vec3(0.1875, 0.0625, 0.4375), vec3(0.1875, 0.0625, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.5625), vec3(0.0, 0.0625, 0.6875), vec3(0.1875, 0.0625, 0.6875), vec3(0.1875, 0.0625, 0.5625), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.1875), vec3(0.1875, 0.0, 0.8125), vec3(0.1875, 0.625, 0.8125), vec3(0.1875, 0.625, 0.1875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.1875), vec3(0.1875, 0.625, 0.1875), vec3(0.8125, 0.625, 0.1875), vec3(0.8125, 0.0, 0.1875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.1875), vec3(0.8125, 0.0, 0.1875), vec3(0.8125, 0.0, 0.8125), vec3(0.1875, 0.0, 0.8125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.3125), vec3(0.1875, 0.0625, 0.3125), vec3(0.1875, 0.0625, 0.4375), vec3(0.1875, 0.0, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.5625), vec3(0.1875, 0.0625, 0.5625), vec3(0.1875, 0.0625, 0.6875), vec3(0.1875, 0.0, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.0, 0.8125), vec3(0.8125, 0.0, 0.8125), vec3(0.8125, 0.625, 0.8125), vec3(0.1875, 0.625, 0.8125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.625, 0.1875), vec3(0.1875, 0.625, 0.8125), vec3(0.8125, 0.625, 0.8125), vec3(0.8125, 0.625, 0.1875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.0), vec3(0.3125, 0.0, 0.1875), vec3(0.3125, 0.0625, 0.1875), vec3(0.3125, 0.0625, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.0), vec3(0.3125, 0.0625, 0.0), vec3(0.4375, 0.0625, 0.0), vec3(0.4375, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.0), vec3(0.4375, 0.0, 0.0), vec3(0.4375, 0.0, 0.1875), vec3(0.3125, 0.0, 0.1875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.1875), vec3(0.4375, 0.0, 0.1875), vec3(0.4375, 0.0625, 0.1875), vec3(0.3125, 0.0625, 0.1875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.8125), vec3(0.3125, 0.0, 1.0), vec3(0.3125, 0.0625, 1.0), vec3(0.3125, 0.0625, 0.8125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.8125), vec3(0.3125, 0.0625, 0.8125), vec3(0.4375, 0.0625, 0.8125), vec3(0.4375, 0.0, 0.8125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 0.8125), vec3(0.4375, 0.0, 0.8125), vec3(0.4375, 0.0, 1.0), vec3(0.3125, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0, 1.0), vec3(0.4375, 0.0, 1.0), vec3(0.4375, 0.0625, 1.0), vec3(0.3125, 0.0625, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0625, 0.0), vec3(0.3125, 0.0625, 0.1875), vec3(0.4375, 0.0625, 0.1875), vec3(0.4375, 0.0625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.0625, 0.8125), vec3(0.3125, 0.0625, 1.0), vec3(0.4375, 0.0625, 1.0), vec3(0.4375, 0.0625, 0.8125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.0, 0.0), vec3(0.4375, 0.0625, 0.0), vec3(0.4375, 0.0625, 0.1875), vec3(0.4375, 0.0, 0.1875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.0, 0.8125), vec3(0.4375, 0.0625, 0.8125), vec3(0.4375, 0.0625, 1.0), vec3(0.4375, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.0), vec3(0.5625, 0.0, 0.1875), vec3(0.5625, 0.0625, 0.1875), vec3(0.5625, 0.0625, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.0), vec3(0.5625, 0.0625, 0.0), vec3(0.6875, 0.0625, 0.0), vec3(0.6875, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.0), vec3(0.6875, 0.0, 0.0), vec3(0.6875, 0.0, 0.1875), vec3(0.5625, 0.0, 0.1875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.1875), vec3(0.6875, 0.0, 0.1875), vec3(0.6875, 0.0625, 0.1875), vec3(0.5625, 0.0625, 0.1875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.8125), vec3(0.5625, 0.0, 1.0), vec3(0.5625, 0.0625, 1.0), vec3(0.5625, 0.0625, 0.8125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.8125), vec3(0.5625, 0.0625, 0.8125), vec3(0.6875, 0.0625, 0.8125), vec3(0.6875, 0.0, 0.8125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 0.8125), vec3(0.6875, 0.0, 0.8125), vec3(0.6875, 0.0, 1.0), vec3(0.5625, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0, 1.0), vec3(0.6875, 0.0, 1.0), vec3(0.6875, 0.0625, 1.0), vec3(0.5625, 0.0625, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0625, 0.0), vec3(0.5625, 0.0625, 0.1875), vec3(0.6875, 0.0625, 0.1875), vec3(0.6875, 0.0625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.0625, 0.8125), vec3(0.5625, 0.0625, 1.0), vec3(0.6875, 0.0625, 1.0), vec3(0.6875, 0.0625, 0.8125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.6875, 0.0, 0.0), vec3(0.6875, 0.0625, 0.0), vec3(0.6875, 0.0625, 0.1875), vec3(0.6875, 0.0, 0.1875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.6875, 0.0, 0.8125), vec3(0.6875, 0.0625, 0.8125), vec3(0.6875, 0.0625, 1.0), vec3(0.6875, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.8125, 0.0, 0.1875), vec3(0.8125, 0.625, 0.1875), vec3(0.8125, 0.625, 0.8125), vec3(0.8125, 0.0, 0.8125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.75), vec3(0.0, 1.0, 0.75), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.75), vec3(0.0, 0.0, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.75), vec3(1.0, 0.0, 0.75), vec3(1.0, 1.0, 0.75), vec3(0.0, 1.0, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.75), vec3(1.0, 1.0, 0.75), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.75), vec3(1.0, 0.0, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.8125), vec3(0.0, 1.0, 0.8125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.8125), vec3(0.0, 0.0, 0.8125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.8125), vec3(1.0, 0.0, 0.8125), vec3(1.0, 1.0, 0.8125), vec3(0.0, 1.0, 0.8125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.8125), vec3(1.0, 1.0, 0.8125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.8125), vec3(1.0, 0.0, 0.8125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 180u) {
-                                    if (modelID == 179u) {
+                                if (modelID < 181u) {
+                                    if (modelID == 180u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.8125), vec3(0.0, 1.0, 0.8125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.8125), vec3(0.0, 0.0, 0.8125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.8125), vec3(1.0, 0.0, 0.8125), vec3(1.0, 1.0, 0.8125), vec3(0.0, 1.0, 0.8125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.8125), vec3(1.0, 1.0, 0.8125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.8125), vec3(1.0, 0.0, 0.8125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 181u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.8125), vec3(0.0, 1.0, 0.8125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.8125), vec3(0.0, 0.0, 0.8125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -3615,9 +3647,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.75, 0.8125), vec3(0.25, 0.75, 1.0), vec3(0.75, 0.75, 1.0), vec3(0.75, 0.75, 0.8125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.25, 0.8125), vec3(0.75, 0.75, 0.8125), vec3(0.75, 0.75, 1.0), vec3(0.75, 0.25, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.8125), vec3(1.0, 0.0, 0.8125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 180u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.625, 0.375), vec3(0.0625, 0.625, 0.375), vec3(0.0625, 0.375, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0625, 0.375, 0.375), vec3(0.0625, 0.375, 0.625), vec3(0.0, 0.375, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -3629,26 +3659,26 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0625, 0.4375, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(0.0625, 0.5625, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0625, 0.5625, 0.4375), vec3(0.0625, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.625, 0.375), vec3(0.25, 0.625, 0.375), vec3(0.25, 0.375, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.25, 0.375, 0.375), vec3(0.25, 0.375, 0.625), vec3(0.0, 0.375, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.625), vec3(0.25, 0.375, 0.625), vec3(0.25, 0.625, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.0, 0.625, 0.625), vec3(0.25, 0.625, 0.625), vec3(0.25, 0.625, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.375), vec3(0.25, 0.625, 0.375), vec3(0.25, 0.625, 0.625), vec3(0.25, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.4375, 0.4375), vec3(0.25, 0.5625, 0.4375), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(0.25, 0.4375, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.4375, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(0.25, 0.5625, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.5625, 0.4375), vec3(0.25, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     } else {
-                        if (modelID < 187u) {
-                            if (modelID < 184u) {
-                                if (modelID == 182u) {
+                        if (modelID < 188u) {
+                            if (modelID < 185u) {
+                                if (modelID == 183u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.625, 0.375), vec3(0.25, 0.625, 0.375), vec3(0.25, 0.375, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.25, 0.375, 0.375), vec3(0.25, 0.375, 0.625), vec3(0.0, 0.375, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.625), vec3(0.25, 0.375, 0.625), vec3(0.25, 0.625, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.0, 0.625, 0.625), vec3(0.25, 0.625, 0.625), vec3(0.25, 0.625, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.375), vec3(0.25, 0.625, 0.375), vec3(0.25, 0.625, 0.625), vec3(0.25, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.4375, 0.4375), vec3(0.25, 0.5625, 0.4375), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.4375, 0.5625), vec3(0.25, 0.4375, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.4375, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(0.25, 0.5625, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.5625, 0.4375), vec3(0.25, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.5625, 0.4375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.4375, 0.4375), vec3(1.0, 0.5625, 0.4375), vec3(1.0, 0.5625, 0.5625), vec3(1.0, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.077208), vec3(1.0, 0.0, 0.077208), vec3(1.0, 1.0, 0.657107), vec3(0.0, 1.0, 0.657107), vec3(0.0, -0.501653, 0.865069), hitT, hitNormal);
@@ -3661,48 +3691,52 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.242893, 0.979289, 0.0), vec3(0.822792, 0.0, 0.0), vec3(0.822792, 0.0, 1.0), vec3(0.242893, 0.979289, 1.0), vec3(-0.860453, -0.509529, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 0.0, 1.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 1.0, 0.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 185u) {
-                                    if (modelID == 184u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.414214, 0.0), vec3(0.0, 0.414214, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(0.382684, 0.923879, 0.0), hitT, hitNormal);
+                                if (modelID < 186u) {
+                                    if (modelID == 185u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 185u) {
+                                    if (modelID == 186u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.414214, 0.0), vec3(0.0, 0.414214, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(0.382684, 0.923879, 0.0), hitT, hitNormal);
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.414214, 0.0), vec3(0.0, 0.414214, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(0.382684, 0.923879, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 0.0, 1.0), vec3(0.000625, 1.0, 1.0), vec3(0.000625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 1.0, 0.0), vec3(0.000625, 1.0, 1.0), vec3(0.000625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            }
+                        } else {
+                            if (modelID < 191u) {
+                                if (modelID < 189u) {
+                                    if (modelID == 188u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.000625, 0.0), vec3(0.0, 0.000625, 1.0), vec3(1.0, 0.000625, 1.0), vec3(1.0, 0.000625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.000625, 0.0), vec3(1.0, 0.000625, 0.0), vec3(1.0, 0.000625, 1.0), vec3(0.0, 0.000625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            }
-                        } else {
-                            if (modelID < 190u) {
-                                if (modelID < 188u) {
-                                    if (modelID == 187u) {
+                                } else {
+                                    if (modelID == 189u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.414214, 0.0), vec3(0.0, 0.414214, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(0.382684, 0.923879, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 188u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.414214, 0.0), vec3(0.0, 0.414214, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(0.382684, 0.923879, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 0.0, 1.0), vec3(0.000625, 1.0, 1.0), vec3(0.000625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 1.0, 0.0), vec3(0.000625, 1.0, 1.0), vec3(0.000625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            } else {
+                                if (modelID < 192u) {
+                                    if (modelID == 191u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
@@ -3710,40 +3744,36 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 0.0, 1.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 1.0, 0.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            } else {
-                                if (modelID < 191u) {
-                                    if (modelID == 190u) {
+                                } else {
+                                    if (modelID == 192u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.999375), vec3(0.0, 1.0, 0.999375), vec3(1.0, 1.0, 0.999375), vec3(1.0, 0.0, 0.999375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.999375), vec3(1.0, 0.0, 0.999375), vec3(1.0, 1.0, 0.999375), vec3(0.0, 1.0, 0.999375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 191u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.999375), vec3(0.0, 1.0, 0.999375), vec3(1.0, 1.0, 0.999375), vec3(1.0, 0.0, 0.999375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.999375), vec3(1.0, 0.0, 0.999375), vec3(1.0, 1.0, 0.999375), vec3(0.0, 1.0, 0.999375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.000625, 0.0), vec3(0.0, 0.000625, 1.0), vec3(1.0, 0.000625, 1.0), vec3(1.0, 0.000625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.000625, 0.0), vec3(1.0, 0.000625, 0.0), vec3(1.0, 0.000625, 1.0), vec3(0.0, 0.000625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.999375), vec3(0.0, 1.0, 0.999375), vec3(1.0, 1.0, 0.999375), vec3(1.0, 0.0, 0.999375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.999375), vec3(1.0, 0.0, 0.999375), vec3(1.0, 1.0, 0.999375), vec3(0.0, 1.0, 0.999375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.414214, 0.0), vec3(0.0, 0.414214, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(0.382684, 0.923879, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     }
                 } else {
-                    if (modelID < 203u) {
-                        if (modelID < 198u) {
-                            if (modelID < 195u) {
-                                if (modelID == 193u) {
+                    if (modelID < 205u) {
+                        if (modelID < 199u) {
+                            if (modelID < 196u) {
+                                if (modelID == 194u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.999375), vec3(0.0, 1.0, 0.999375), vec3(1.0, 1.0, 0.999375), vec3(1.0, 0.0, 0.999375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.999375), vec3(1.0, 0.0, 0.999375), vec3(1.0, 1.0, 0.999375), vec3(0.0, 1.0, 0.999375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.414214, 0.0), vec3(0.0, 0.414214, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(0.382684, 0.923879, 0.0), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
@@ -3752,17 +3782,19 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.414214, 0.0), vec3(0.0, 0.414214, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(0.382684, 0.923879, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 0.0, 1.0), vec3(0.000625, 1.0, 1.0), vec3(0.000625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 1.0, 0.0), vec3(0.000625, 1.0, 1.0), vec3(0.000625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.414214, 0.0), vec3(0.0, 0.414214, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(0.382684, 0.923879, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 0.0, 1.0), vec3(0.000625, 1.0, 1.0), vec3(0.000625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 1.0, 0.0), vec3(0.000625, 1.0, 1.0), vec3(0.000625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 0.0, 1.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 1.0, 0.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 196u) {
-                                    if (modelID == 195u) {
+                                if (modelID < 197u) {
+                                    if (modelID == 196u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.414214, 0.0), vec3(0.0, 0.414214, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), vec3(0.382684, 0.923879, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 0.0, 1.0), vec3(0.000625, 1.0, 1.0), vec3(0.000625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 1.0, 0.0), vec3(0.000625, 1.0, 1.0), vec3(0.000625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 0.0, 1.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 1.0, 0.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 197u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
@@ -3771,9 +3803,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000625, 0.0, 0.0), vec3(0.000625, 1.0, 0.0), vec3(0.000625, 1.0, 1.0), vec3(0.000625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 0.0, 1.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 1.0, 0.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 196u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.999375), vec3(0.0, 1.0, 0.999375), vec3(1.0, 1.0, 0.999375), vec3(1.0, 0.0, 0.999375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3782,7 +3812,13 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.000625, 0.0), vec3(1.0, 0.000625, 0.0), vec3(1.0, 0.000625, 1.0), vec3(0.0, 0.000625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.999375, 0.0), vec3(0.0, 0.999375, 1.0), vec3(1.0, 0.999375, 1.0), vec3(1.0, 0.999375, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.999375, 0.0), vec3(1.0, 0.999375, 0.0), vec3(1.0, 0.999375, 1.0), vec3(0.0, 0.999375, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            }
+                        } else {
+                            if (modelID < 202u) {
+                                if (modelID < 200u) {
+                                    if (modelID == 199u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(1.0, 0.414214, 1.0), vec3(1.0, 0.414214, 0.0), vec3(-0.382684, 0.923879, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.000625), vec3(1.0, 0.0, 0.000625), vec3(1.0, 1.0, 0.000625), vec3(0.0, 1.0, 0.000625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
@@ -3794,40 +3830,38 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 0.0, 1.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 1.0, 0.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            }
-                        } else {
-                            if (modelID < 200u) {
-                                if (modelID == 198u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.3125, 0.375), vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.6875, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.6875, 0.3125), vec3(0.375, 0.6875, 0.3125), vec3(0.375, 0.3125, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.375, 0.3125, 0.3125), vec3(0.375, 0.3125, 0.375), vec3(0.0, 0.3125, 0.375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.375, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.3125, 0.625), vec3(0.0, 0.3125, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.3125, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.6875, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.3125, 0.625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.375, 0.3125, 0.625), vec3(0.375, 0.3125, 0.6875), vec3(0.0, 0.3125, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.6875), vec3(0.375, 0.3125, 0.6875), vec3(0.375, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.375, 0.375, 0.625), vec3(0.375, 0.375, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.6875, 0.625), vec3(0.0, 0.6875, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.375, 0.625, 0.375), vec3(0.375, 0.625, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.3125), vec3(0.0, 0.6875, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.6875, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.6875, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.6875, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.625), vec3(0.0, 0.6875, 0.6875), vec3(0.375, 0.6875, 0.6875), vec3(0.375, 0.6875, 0.625), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.375), vec3(0.25, 0.625, 0.375), vec3(0.25, 0.625, 0.625), vec3(0.25, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.3125), vec3(0.375, 0.6875, 0.3125), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.3125, 0.375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.375, 0.375), vec3(0.375, 0.375, 0.625), vec3(0.375, 0.3125, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.6875, 0.6875), vec3(0.375, 0.3125, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.625, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.625, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    if (modelID == 200u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.3125, 0.375), vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.6875, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.6875, 0.3125), vec3(0.375, 0.6875, 0.3125), vec3(0.375, 0.3125, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.375, 0.3125, 0.3125), vec3(0.375, 0.3125, 0.375), vec3(0.0, 0.3125, 0.375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.375, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.3125, 0.625), vec3(0.0, 0.3125, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.3125, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.6875, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.3125, 0.625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.375, 0.3125, 0.625), vec3(0.375, 0.3125, 0.6875), vec3(0.0, 0.3125, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.6875), vec3(0.375, 0.3125, 0.6875), vec3(0.375, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.375, 0.375, 0.625), vec3(0.375, 0.375, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.6875, 0.625), vec3(0.0, 0.6875, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.375, 0.625, 0.375), vec3(0.375, 0.625, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.3125), vec3(0.0, 0.6875, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.6875, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.6875, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.6875, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.625), vec3(0.0, 0.6875, 0.6875), vec3(0.375, 0.6875, 0.6875), vec3(0.375, 0.6875, 0.625), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.375), vec3(0.25, 0.625, 0.375), vec3(0.25, 0.625, 0.625), vec3(0.25, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.3125), vec3(0.375, 0.6875, 0.3125), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.3125, 0.375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.375, 0.375), vec3(0.375, 0.375, 0.625), vec3(0.375, 0.3125, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.6875, 0.6875), vec3(0.375, 0.3125, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.625, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.625, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    } else {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    }
                                 }
                             } else {
-                                if (modelID < 201u) {
-                                    if (modelID == 200u) {
+                                if (modelID < 203u) {
+                                    if (modelID == 202u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.1875), vec3(0.0, 0.875, 0.1875), vec3(0.0, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.875, 0.125), vec3(0.0625, 0.875, 0.125), vec3(0.0625, 0.125, 0.125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0625, 0.125, 0.125), vec3(0.0625, 0.125, 0.1875), vec3(0.0, 0.125, 0.1875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -3852,7 +3886,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0625, 0.8125, 0.1875), vec3(0.0625, 0.875, 0.1875), vec3(0.0625, 0.875, 0.8125), vec3(0.0625, 0.8125, 0.8125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 201u) {
+                                    if (modelID == 203u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.062437), vec3(0.0, 0.0625, 0.062437), vec3(0.0, 0.0625, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0625, 0.0), vec3(1.0, 0.0625, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.062437), vec3(0.0, 0.0, 0.062437), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -3893,9 +3927,9 @@ bool voxel_intersectBlockModel(
                             }
                         }
                     } else {
-                        if (modelID < 208u) {
-                            if (modelID < 205u) {
-                                if (modelID == 203u) {
+                        if (modelID < 210u) {
+                            if (modelID < 207u) {
+                                if (modelID == 205u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.00625), vec3(0.0, 1.0, 0.00625), vec3(1.0, 1.0, 0.00625), vec3(1.0, 0.0, 0.00625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.00625), vec3(1.0, 0.0, 0.00625), vec3(1.0, 1.0, 0.00625), vec3(0.0, 1.0, 0.00625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                 } else {
@@ -3905,8 +3939,8 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.00625, 0.0), vec3(1.0, 0.00625, 0.0), vec3(1.0, 0.00625, 1.0), vec3(0.0, 0.00625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 206u) {
-                                    if (modelID == 205u) {
+                                if (modelID < 208u) {
+                                    if (modelID == 207u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.00625), vec3(0.0, 1.0, 0.00625), vec3(1.0, 1.0, 0.00625), vec3(1.0, 0.0, 0.00625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.00625), vec3(1.0, 0.0, 0.00625), vec3(1.0, 1.0, 0.00625), vec3(0.0, 1.0, 0.00625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.00625, 0.0), vec3(0.0, 0.00625, 1.0), vec3(1.0, 0.00625, 1.0), vec3(1.0, 0.00625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
@@ -3915,7 +3949,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.00625, 0.0, 0.0), vec3(0.00625, 1.0, 0.0), vec3(0.00625, 1.0, 1.0), vec3(0.00625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 206u) {
+                                    if (modelID == 208u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.00625), vec3(0.0, 1.0, 0.00625), vec3(1.0, 1.0, 0.00625), vec3(1.0, 0.0, 0.00625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.00625), vec3(1.0, 0.0, 0.00625), vec3(1.0, 1.0, 0.00625), vec3(0.0, 1.0, 0.00625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.99375), vec3(0.0, 1.0, 0.99375), vec3(1.0, 1.0, 0.99375), vec3(1.0, 0.0, 0.99375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3931,9 +3965,9 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 211u) {
-                                if (modelID < 209u) {
-                                    if (modelID == 208u) {
+                            if (modelID < 213u) {
+                                if (modelID < 211u) {
+                                    if (modelID == 210u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.00625), vec3(0.0, 1.0, 0.00625), vec3(1.0, 1.0, 0.00625), vec3(1.0, 0.0, 0.00625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.00625), vec3(1.0, 0.0, 0.00625), vec3(1.0, 1.0, 0.00625), vec3(0.0, 1.0, 0.00625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.99375), vec3(0.0, 1.0, 0.99375), vec3(1.0, 1.0, 0.99375), vec3(1.0, 0.0, 0.99375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3944,7 +3978,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.00625, 0.0, 0.0), vec3(0.00625, 1.0, 0.0), vec3(0.00625, 1.0, 1.0), vec3(0.00625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 209u) {
+                                    if (modelID == 211u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.00625), vec3(0.0, 1.0, 0.00625), vec3(1.0, 1.0, 0.00625), vec3(1.0, 0.0, 0.00625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.00625), vec3(1.0, 0.0, 0.00625), vec3(1.0, 1.0, 0.00625), vec3(0.0, 1.0, 0.00625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.99375), vec3(0.0, 1.0, 0.99375), vec3(1.0, 1.0, 0.99375), vec3(1.0, 0.0, 0.99375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -3967,8 +4001,8 @@ bool voxel_intersectBlockModel(
                                     }
                                 }
                             } else {
-                                if (modelID < 212u) {
-                                    if (modelID == 211u) {
+                                if (modelID < 214u) {
+                                    if (modelID == 213u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.25), vec3(0.0, 0.125, 0.75), vec3(0.0, 0.875, 0.75), vec3(0.0, 0.875, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.25), vec3(0.0, 0.875, 0.25), vec3(0.75, 0.875, 0.25), vec3(0.75, 0.125, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.25), vec3(0.75, 0.125, 0.25), vec3(0.75, 0.125, 0.75), vec3(0.0, 0.125, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -3997,7 +4031,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.375, 0.75), vec3(1.0, 0.625, 0.75), vec3(1.0, 0.625, 0.875), vec3(1.0, 0.375, 0.875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 212u) {
+                                    if (modelID == 214u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.25, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.25), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.0, 0.75, 0.25), vec3(0.5, 0.75, 0.25), vec3(0.5, 0.25, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.25), vec3(0.5, 0.25, 0.25), vec3(0.5, 0.25, 0.75), vec3(0.0, 0.25, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4024,11 +4058,11 @@ bool voxel_intersectBlockModel(
                     }
                 }
             } else {
-                if (modelID < 235u) {
-                    if (modelID < 224u) {
-                        if (modelID < 219u) {
-                            if (modelID < 216u) {
-                                if (modelID == 214u) {
+                if (modelID < 237u) {
+                    if (modelID < 226u) {
+                        if (modelID < 221u) {
+                            if (modelID < 218u) {
+                                if (modelID == 216u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 0.3125, 0.125), vec3(0.0, 0.3125, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.3125, 0.0), vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4096,13 +4130,13 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.0), vec3(1.0, 0.375, 0.0), vec3(1.0, 0.375, 1.0), vec3(1.0, 0.3125, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 217u) {
-                                    if (modelID == 216u) {
+                                if (modelID < 219u) {
+                                    if (modelID == 218u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.05), vec3(0.0, 1.0, 0.05), vec3(1.0, 1.0, 0.05), vec3(1.0, 0.0, 0.05), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.05), vec3(1.0, 0.0, 0.05), vec3(1.0, 1.0, 0.05), vec3(0.0, 1.0, 0.05), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 217u) {
+                                    if (modelID == 219u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 0.1875, 0.125), vec3(0.0, 0.1875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.1875, 0.0), vec3(0.25, 0.1875, 0.0), vec3(0.25, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.25, 0.0, 0.0), vec3(0.25, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4169,8 +4203,8 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 221u) {
-                                if (modelID == 219u) {
+                            if (modelID < 223u) {
+                                if (modelID == 221u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                 } else {
@@ -4180,8 +4214,8 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 222u) {
-                                    if (modelID == 221u) {
+                                if (modelID < 224u) {
+                                    if (modelID == 223u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4200,7 +4234,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 222u) {
+                                    if (modelID == 224u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.3125), vec3(0.0, 0.25, 0.6875), vec3(0.0, 0.75, 0.6875), vec3(0.0, 0.75, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.3125), vec3(0.0, 0.75, 0.3125), vec3(0.18625, 0.75, 0.3125), vec3(0.18625, 0.25, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.3125), vec3(0.18625, 0.25, 0.3125), vec3(0.18625, 0.25, 0.6875), vec3(0.0, 0.25, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4236,9 +4270,9 @@ bool voxel_intersectBlockModel(
                             }
                         }
                     } else {
-                        if (modelID < 229u) {
-                            if (modelID < 226u) {
-                                if (modelID == 224u) {
+                        if (modelID < 231u) {
+                            if (modelID < 228u) {
+                                if (modelID == 226u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.455806, 0.455806), vec3(0.0, 0.544194, 0.544194), vec3(0.125, 0.544194, 0.544194), vec3(0.125, 0.455806, 0.455806), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.455806, 0.455806), vec3(0.125, 0.455806, 0.455806), vec3(0.125, 0.544194, 0.544194), vec3(0.0, 0.544194, 0.544194), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.455806, 0.544194), vec3(0.0, 0.544194, 0.455806), vec3(0.125, 0.544194, 0.455806), vec3(0.125, 0.455806, 0.544194), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
@@ -4294,8 +4328,8 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.455806, 0.544194), vec3(0.5625, 0.455806, 0.544194), vec3(0.5625, 0.544194, 0.455806), vec3(0.375, 0.544194, 0.455806), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 227u) {
-                                    if (modelID == 226u) {
+                                if (modelID < 229u) {
+                                    if (modelID == 228u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.455806, 0.455806), vec3(0.0, 0.544194, 0.544194), vec3(0.125, 0.544194, 0.544194), vec3(0.125, 0.455806, 0.455806), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.455806, 0.455806), vec3(0.125, 0.455806, 0.455806), vec3(0.125, 0.544194, 0.544194), vec3(0.0, 0.544194, 0.544194), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.455806, 0.544194), vec3(0.0, 0.544194, 0.455806), vec3(0.125, 0.544194, 0.455806), vec3(0.125, 0.455806, 0.544194), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
@@ -4326,7 +4360,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.455806, 0.544194), vec3(0.8125, 0.455806, 0.544194), vec3(0.8125, 0.544194, 0.455806), vec3(0.375, 0.544194, 0.455806), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 227u) {
+                                    if (modelID == 229u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.455806, 0.455806), vec3(0.0, 0.544194, 0.544194), vec3(0.125, 0.544194, 0.544194), vec3(0.125, 0.455806, 0.455806), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.455806, 0.455806), vec3(0.125, 0.455806, 0.455806), vec3(0.125, 0.544194, 0.544194), vec3(0.0, 0.544194, 0.544194), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.455806, 0.544194), vec3(0.0, 0.544194, 0.455806), vec3(0.125, 0.544194, 0.455806), vec3(0.125, 0.455806, 0.544194), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
@@ -4368,16 +4402,16 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 232u) {
-                                if (modelID < 230u) {
-                                    if (modelID == 229u) {
+                            if (modelID < 234u) {
+                                if (modelID < 232u) {
+                                    if (modelID == 231u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0625), vec3(1.0, 1.0, 0.0625), vec3(1.0, 1.0, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0625), vec3(0.0, 0.0, 0.0625), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 230u) {
+                                    if (modelID == 232u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.1875), vec3(1.0, 1.0, 0.1875), vec3(1.0, 1.0, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.1875), vec3(0.0, 0.0, 0.1875), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.1875), vec3(1.0, 0.0, 0.1875), vec3(1.0, 0.0, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
@@ -4390,15 +4424,15 @@ bool voxel_intersectBlockModel(
                                     }
                                 }
                             } else {
-                                if (modelID < 233u) {
-                                    if (modelID == 232u) {
+                                if (modelID < 235u) {
+                                    if (modelID == 234u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.4375), vec3(1.0, 1.0, 0.4375), vec3(1.0, 1.0, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.4375), vec3(0.0, 0.0, 0.4375), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.4375), vec3(1.0, 0.0, 0.4375), vec3(1.0, 0.0, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.4375), vec3(0.0, 1.0, 0.4375), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 233u) {
+                                    if (modelID == 235u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.5625), vec3(1.0, 1.0, 0.5625), vec3(1.0, 1.0, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.5625), vec3(1.0, 0.0, 0.5625), vec3(1.0, 0.0, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
@@ -4414,10 +4448,10 @@ bool voxel_intersectBlockModel(
                         }
                     }
                 } else {
-                    if (modelID < 246u) {
-                        if (modelID < 240u) {
-                            if (modelID < 237u) {
-                                if (modelID == 235u) {
+                    if (modelID < 248u) {
+                        if (modelID < 242u) {
+                            if (modelID < 239u) {
+                                if (modelID == 237u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.8125), vec3(1.0, 1.0, 0.8125), vec3(1.0, 1.0, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.8125), vec3(0.0, 0.0, 0.8125), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.8125), vec3(1.0, 0.0, 0.8125), vec3(1.0, 0.0, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
@@ -4429,13 +4463,13 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.9375), vec3(0.0, 1.0, 0.9375), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 238u) {
-                                    if (modelID == 237u) {
+                                if (modelID < 240u) {
+                                    if (modelID == 239u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.375), vec3(0.0, 1.0, 0.375), vec3(1.0, 1.0, 0.375), vec3(1.0, 0.0, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.625), vec3(1.0, 0.0, 0.625), vec3(1.0, 1.0, 0.625), vec3(0.0, 1.0, 0.625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 238u) {
+                                    if (modelID == 240u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0625), vec3(0.0, 0.0, 0.0625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4467,9 +4501,9 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 243u) {
-                                if (modelID < 241u) {
-                                    if (modelID == 240u) {
+                            if (modelID < 245u) {
+                                if (modelID < 243u) {
+                                    if (modelID == 242u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0625), vec3(0.0, 0.0, 0.0625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4482,7 +4516,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0625), vec3(1.0, 0.0, 0.0625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 241u) {
+                                    if (modelID == 243u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.0625), vec3(0.0, 1.0, 0.0625), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0625), vec3(0.0, 0.0, 0.0625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4505,31 +4539,25 @@ bool voxel_intersectBlockModel(
                                     }
                                 }
                             } else {
-                                if (modelID < 244u) {
-                                    if (modelID == 243u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 0.5, 0.0625), vec3(0.5, 0.5, 0.0625), vec3(0.5, 0.0, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.5, 0.0, 0.0625), vec3(0.5, 0.5, 0.0625), vec3(0.0, 0.5, 0.0625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.186875), vec3(0.0, 1.0, 0.186875), vec3(0.5, 1.0, 0.186875), vec3(0.5, 0.5, 0.186875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.186875), vec3(0.5, 0.5, 0.186875), vec3(0.5, 1.0, 0.186875), vec3(0.0, 1.0, 0.186875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.070711, 0.637608, 0.0), vec3(0.070711, 0.637608, 0.186875), vec3(0.114905, 0.681802, 0.186875), vec3(0.114905, 0.681802, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.070711, 0.637608, 0.0), vec3(0.114905, 0.681802, 0.0), vec3(0.114905, 0.681802, 0.186875), vec3(0.070711, 0.637608, 0.186875), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.070711, 0.681802, 0.0), vec3(0.070711, 0.681802, 0.186875), vec3(0.114905, 0.637608, 0.186875), vec3(0.114905, 0.637608, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.070711, 0.681802, 0.0), vec3(0.114905, 0.637608, 0.0), vec3(0.114905, 0.637608, 0.186875), vec3(0.070711, 0.681802, 0.186875), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.258536, 0.882885, 0.0), vec3(0.258536, 0.882885, 0.186875), vec3(0.30273, 0.92708, 0.186875), vec3(0.30273, 0.92708, 0.0), vec3(-0.707115, 0.707099, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.258536, 0.882885, 0.0), vec3(0.30273, 0.92708, 0.0), vec3(0.30273, 0.92708, 0.186875), vec3(0.258536, 0.882885, 0.186875), vec3(0.707115, -0.707099, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.258536, 0.92708, 0.0), vec3(0.258536, 0.92708, 0.186875), vec3(0.30273, 0.882885, 0.186875), vec3(0.30273, 0.882885, 0.0), vec3(0.707115, 0.707099, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.258536, 0.92708, 0.0), vec3(0.30273, 0.882885, 0.0), vec3(0.30273, 0.882885, 0.186875), vec3(0.258536, 0.92708, 0.186875), vec3(-0.707115, -0.707099, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.260746, 0.25691, 0.0), vec3(0.260746, 0.25691, 0.0625), vec3(0.30494, 0.301104, 0.0625), vec3(0.30494, 0.301104, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.260746, 0.25691, 0.0), vec3(0.30494, 0.301104, 0.0), vec3(0.30494, 0.301104, 0.0625), vec3(0.260746, 0.25691, 0.0625), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.260746, 0.301104, 0.0), vec3(0.260746, 0.301104, 0.0625), vec3(0.30494, 0.25691, 0.0625), vec3(0.30494, 0.25691, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.260746, 0.301104, 0.0), vec3(0.30494, 0.25691, 0.0), vec3(0.30494, 0.25691, 0.0625), vec3(0.260746, 0.301104, 0.0625), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.571317, 0.0), vec3(0.38007, 0.571317, 0.186875), vec3(0.424264, 0.615511, 0.186875), vec3(0.424264, 0.615511, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.571317, 0.0), vec3(0.424264, 0.615511, 0.0), vec3(0.424264, 0.615511, 0.186875), vec3(0.38007, 0.571317, 0.186875), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.615511, 0.0), vec3(0.38007, 0.615511, 0.186875), vec3(0.424264, 0.571317, 0.186875), vec3(0.424264, 0.571317, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.615511, 0.0), vec3(0.424264, 0.571317, 0.0), vec3(0.424264, 0.571317, 0.186875), vec3(0.38007, 0.615511, 0.186875), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                if (modelID < 246u) {
+                                    if (modelID == 245u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.186875), vec3(0.0, 0.5, 0.186875), vec3(0.5, 0.5, 0.186875), vec3(0.5, 0.0, 0.186875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.186875), vec3(0.5, 0.0, 0.186875), vec3(0.5, 0.5, 0.186875), vec3(0.0, 0.5, 0.186875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.07292, 0.258536, 0.0), vec3(0.07292, 0.258536, 0.186875), vec3(0.117115, 0.30273, 0.186875), vec3(0.117115, 0.30273, 0.0), vec3(-0.707099, 0.707115, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.07292, 0.258536, 0.0), vec3(0.117115, 0.30273, 0.0), vec3(0.117115, 0.30273, 0.186875), vec3(0.07292, 0.258536, 0.186875), vec3(0.707099, -0.707115, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.07292, 0.30273, 0.0), vec3(0.07292, 0.30273, 0.186875), vec3(0.117115, 0.258536, 0.186875), vec3(0.117115, 0.258536, 0.0), vec3(0.707099, 0.707115, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.07292, 0.30273, 0.0), vec3(0.117115, 0.258536, 0.0), vec3(0.117115, 0.258536, 0.186875), vec3(0.07292, 0.30273, 0.186875), vec3(-0.707099, -0.707115, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.318198, 0.070711, 0.0), vec3(0.318198, 0.070711, 0.186875), vec3(0.362392, 0.114905, 0.186875), vec3(0.362392, 0.114905, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.318198, 0.070711, 0.0), vec3(0.362392, 0.114905, 0.0), vec3(0.362392, 0.114905, 0.186875), vec3(0.318198, 0.070711, 0.186875), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.318198, 0.114905, 0.0), vec3(0.318198, 0.114905, 0.186875), vec3(0.362392, 0.070711, 0.186875), vec3(0.362392, 0.070711, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.318198, 0.114905, 0.0), vec3(0.362392, 0.070711, 0.0), vec3(0.362392, 0.070711, 0.186875), vec3(0.318198, 0.114905, 0.186875), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.384489, 0.38007, 0.0), vec3(0.384489, 0.38007, 0.186875), vec3(0.428683, 0.424264, 0.186875), vec3(0.428683, 0.424264, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.384489, 0.38007, 0.0), vec3(0.428683, 0.424264, 0.0), vec3(0.428683, 0.424264, 0.186875), vec3(0.384489, 0.38007, 0.186875), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.384489, 0.424264, 0.0), vec3(0.384489, 0.424264, 0.186875), vec3(0.428683, 0.38007, 0.186875), vec3(0.428683, 0.38007, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.384489, 0.424264, 0.0), vec3(0.428683, 0.38007, 0.0), vec3(0.428683, 0.38007, 0.186875), vec3(0.384489, 0.424264, 0.186875), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 244u) {
+                                    if (modelID == 246u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 0.5, 0.0625), vec3(0.5, 0.5, 0.0625), vec3(0.5, 0.0, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.5, 0.0, 0.0625), vec3(0.5, 0.5, 0.0625), vec3(0.0, 0.5, 0.0625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.186875), vec3(0.0, 1.0, 0.186875), vec3(0.5, 1.0, 0.186875), vec3(0.5, 0.5, 0.186875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -4550,20 +4578,6 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.571317, 0.0), vec3(0.424264, 0.615511, 0.0), vec3(0.424264, 0.615511, 0.186875), vec3(0.38007, 0.571317, 0.186875), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.615511, 0.0), vec3(0.38007, 0.615511, 0.186875), vec3(0.424264, 0.571317, 0.186875), vec3(0.424264, 0.571317, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.615511, 0.0), vec3(0.424264, 0.571317, 0.0), vec3(0.424264, 0.571317, 0.186875), vec3(0.38007, 0.615511, 0.186875), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.125), vec3(0.5, 0.5, 0.125), vec3(1.0, 0.5, 0.125), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.5, 0.125), vec3(0.5, 0.5, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.385701, 0.0), vec3(0.570105, 0.385701, 0.125), vec3(0.614299, 0.429895, 0.125), vec3(0.614299, 0.429895, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.385701, 0.0), vec3(0.614299, 0.429895, 0.0), vec3(0.614299, 0.429895, 0.125), vec3(0.570105, 0.385701, 0.125), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.429895, 0.0), vec3(0.570105, 0.429895, 0.125), vec3(0.614299, 0.385701, 0.125), vec3(0.614299, 0.385701, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.429895, 0.0), vec3(0.614299, 0.385701, 0.0), vec3(0.614299, 0.385701, 0.125), vec3(0.570105, 0.429895, 0.125), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.727308, 0.104754, 0.0), vec3(0.727308, 0.104754, 0.125), vec3(0.771502, 0.148948, 0.125), vec3(0.771502, 0.148948, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.727308, 0.104754, 0.0), vec3(0.771502, 0.148948, 0.0), vec3(0.771502, 0.148948, 0.125), vec3(0.727308, 0.104754, 0.125), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.727308, 0.148948, 0.0), vec3(0.727308, 0.148948, 0.125), vec3(0.771502, 0.104754, 0.125), vec3(0.771502, 0.104754, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.727308, 0.148948, 0.0), vec3(0.771502, 0.104754, 0.0), vec3(0.771502, 0.104754, 0.125), vec3(0.727308, 0.148948, 0.125), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.883883, 0.323829, 0.0), vec3(0.883883, 0.323829, 0.125), vec3(0.928078, 0.368023, 0.125), vec3(0.928078, 0.368023, 0.0), vec3(-0.707099, 0.707115, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.883883, 0.323829, 0.0), vec3(0.928078, 0.368023, 0.0), vec3(0.928078, 0.368023, 0.125), vec3(0.883883, 0.323829, 0.125), vec3(0.707099, -0.707115, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.883883, 0.368023, 0.0), vec3(0.883883, 0.368023, 0.125), vec3(0.928078, 0.323829, 0.125), vec3(0.928078, 0.323829, 0.0), vec3(0.707099, 0.707115, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.883883, 0.368023, 0.0), vec3(0.928078, 0.323829, 0.0), vec3(0.928078, 0.323829, 0.125), vec3(0.883883, 0.368023, 0.125), vec3(-0.707099, -0.707115, 0.0), hitT, hitNormal);
                                     } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 0.5, 0.0625), vec3(0.5, 0.5, 0.0625), vec3(0.5, 0.0, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.5, 0.0, 0.0625), vec3(0.5, 0.5, 0.0625), vec3(0.0, 0.5, 0.0625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
@@ -4587,16 +4601,10 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.615511, 0.0), vec3(0.424264, 0.571317, 0.0), vec3(0.424264, 0.571317, 0.186875), vec3(0.38007, 0.615511, 0.186875), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.125), vec3(0.5, 0.5, 0.125), vec3(1.0, 0.5, 0.125), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.5, 0.125), vec3(0.5, 0.5, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.5, 0.125), vec3(0.5, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.5, 0.125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.5, 0.125), vec3(1.0, 0.5, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.5, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.385701, 0.0), vec3(0.570105, 0.385701, 0.125), vec3(0.614299, 0.429895, 0.125), vec3(0.614299, 0.429895, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.385701, 0.0), vec3(0.614299, 0.429895, 0.0), vec3(0.614299, 0.429895, 0.125), vec3(0.570105, 0.385701, 0.125), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.429895, 0.0), vec3(0.570105, 0.429895, 0.125), vec3(0.614299, 0.385701, 0.125), vec3(0.614299, 0.385701, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.429895, 0.0), vec3(0.614299, 0.385701, 0.0), vec3(0.614299, 0.385701, 0.125), vec3(0.570105, 0.429895, 0.125), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.69322, 0.758817, 0.0), vec3(0.69322, 0.758817, 0.125), vec3(0.737415, 0.803011, 0.125), vec3(0.737415, 0.803011, 0.0), vec3(-0.707099, 0.707115, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.69322, 0.758817, 0.0), vec3(0.737415, 0.803011, 0.0), vec3(0.737415, 0.803011, 0.125), vec3(0.69322, 0.758817, 0.125), vec3(0.707099, -0.707115, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.69322, 0.803011, 0.0), vec3(0.69322, 0.803011, 0.125), vec3(0.737415, 0.758817, 0.125), vec3(0.737415, 0.758817, 0.0), vec3(0.707099, 0.707115, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.69322, 0.803011, 0.0), vec3(0.737415, 0.758817, 0.0), vec3(0.737415, 0.758817, 0.125), vec3(0.69322, 0.803011, 0.125), vec3(-0.707099, -0.707115, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.727308, 0.104754, 0.0), vec3(0.727308, 0.104754, 0.125), vec3(0.771502, 0.148948, 0.125), vec3(0.771502, 0.148948, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.727308, 0.104754, 0.0), vec3(0.771502, 0.148948, 0.0), vec3(0.771502, 0.148948, 0.125), vec3(0.727308, 0.104754, 0.125), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.727308, 0.148948, 0.0), vec3(0.727308, 0.148948, 0.125), vec3(0.771502, 0.104754, 0.125), vec3(0.771502, 0.104754, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
@@ -4610,9 +4618,50 @@ bool voxel_intersectBlockModel(
                             }
                         }
                     } else {
-                        if (modelID < 251u) {
-                            if (modelID < 248u) {
-                                if (modelID == 246u) {
+                        if (modelID < 253u) {
+                            if (modelID < 250u) {
+                                if (modelID == 248u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.0, 0.5, 0.0625), vec3(0.5, 0.5, 0.0625), vec3(0.5, 0.0, 0.0625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0625), vec3(0.5, 0.0, 0.0625), vec3(0.5, 0.5, 0.0625), vec3(0.0, 0.5, 0.0625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.186875), vec3(0.0, 1.0, 0.186875), vec3(0.5, 1.0, 0.186875), vec3(0.5, 0.5, 0.186875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.186875), vec3(0.5, 0.5, 0.186875), vec3(0.5, 1.0, 0.186875), vec3(0.0, 1.0, 0.186875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.070711, 0.637608, 0.0), vec3(0.070711, 0.637608, 0.186875), vec3(0.114905, 0.681802, 0.186875), vec3(0.114905, 0.681802, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.070711, 0.637608, 0.0), vec3(0.114905, 0.681802, 0.0), vec3(0.114905, 0.681802, 0.186875), vec3(0.070711, 0.637608, 0.186875), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.070711, 0.681802, 0.0), vec3(0.070711, 0.681802, 0.186875), vec3(0.114905, 0.637608, 0.186875), vec3(0.114905, 0.637608, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.070711, 0.681802, 0.0), vec3(0.114905, 0.637608, 0.0), vec3(0.114905, 0.637608, 0.186875), vec3(0.070711, 0.681802, 0.186875), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.258536, 0.882885, 0.0), vec3(0.258536, 0.882885, 0.186875), vec3(0.30273, 0.92708, 0.186875), vec3(0.30273, 0.92708, 0.0), vec3(-0.707115, 0.707099, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.258536, 0.882885, 0.0), vec3(0.30273, 0.92708, 0.0), vec3(0.30273, 0.92708, 0.186875), vec3(0.258536, 0.882885, 0.186875), vec3(0.707115, -0.707099, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.258536, 0.92708, 0.0), vec3(0.258536, 0.92708, 0.186875), vec3(0.30273, 0.882885, 0.186875), vec3(0.30273, 0.882885, 0.0), vec3(0.707115, 0.707099, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.258536, 0.92708, 0.0), vec3(0.30273, 0.882885, 0.0), vec3(0.30273, 0.882885, 0.186875), vec3(0.258536, 0.92708, 0.186875), vec3(-0.707115, -0.707099, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.260746, 0.25691, 0.0), vec3(0.260746, 0.25691, 0.0625), vec3(0.30494, 0.301104, 0.0625), vec3(0.30494, 0.301104, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.260746, 0.25691, 0.0), vec3(0.30494, 0.301104, 0.0), vec3(0.30494, 0.301104, 0.0625), vec3(0.260746, 0.25691, 0.0625), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.260746, 0.301104, 0.0), vec3(0.260746, 0.301104, 0.0625), vec3(0.30494, 0.25691, 0.0625), vec3(0.30494, 0.25691, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.260746, 0.301104, 0.0), vec3(0.30494, 0.25691, 0.0), vec3(0.30494, 0.25691, 0.0625), vec3(0.260746, 0.301104, 0.0625), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.571317, 0.0), vec3(0.38007, 0.571317, 0.186875), vec3(0.424264, 0.615511, 0.186875), vec3(0.424264, 0.615511, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.571317, 0.0), vec3(0.424264, 0.615511, 0.0), vec3(0.424264, 0.615511, 0.186875), vec3(0.38007, 0.571317, 0.186875), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.615511, 0.0), vec3(0.38007, 0.615511, 0.186875), vec3(0.424264, 0.571317, 0.186875), vec3(0.424264, 0.571317, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.38007, 0.615511, 0.0), vec3(0.424264, 0.571317, 0.0), vec3(0.424264, 0.571317, 0.186875), vec3(0.38007, 0.615511, 0.186875), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.125), vec3(0.5, 0.5, 0.125), vec3(1.0, 0.5, 0.125), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.5, 0.125), vec3(0.5, 0.5, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.5, 0.125), vec3(0.5, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.5, 0.125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.5, 0.125), vec3(1.0, 0.5, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.5, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.385701, 0.0), vec3(0.570105, 0.385701, 0.125), vec3(0.614299, 0.429895, 0.125), vec3(0.614299, 0.429895, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.385701, 0.0), vec3(0.614299, 0.429895, 0.0), vec3(0.614299, 0.429895, 0.125), vec3(0.570105, 0.385701, 0.125), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.429895, 0.0), vec3(0.570105, 0.429895, 0.125), vec3(0.614299, 0.385701, 0.125), vec3(0.614299, 0.385701, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.570105, 0.429895, 0.0), vec3(0.614299, 0.385701, 0.0), vec3(0.614299, 0.385701, 0.125), vec3(0.570105, 0.429895, 0.125), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.69322, 0.758817, 0.0), vec3(0.69322, 0.758817, 0.125), vec3(0.737415, 0.803011, 0.125), vec3(0.737415, 0.803011, 0.0), vec3(-0.707099, 0.707115, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.69322, 0.758817, 0.0), vec3(0.737415, 0.803011, 0.0), vec3(0.737415, 0.803011, 0.125), vec3(0.69322, 0.758817, 0.125), vec3(0.707099, -0.707115, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.69322, 0.803011, 0.0), vec3(0.69322, 0.803011, 0.125), vec3(0.737415, 0.758817, 0.125), vec3(0.737415, 0.758817, 0.0), vec3(0.707099, 0.707115, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.69322, 0.803011, 0.0), vec3(0.737415, 0.758817, 0.0), vec3(0.737415, 0.758817, 0.125), vec3(0.69322, 0.803011, 0.125), vec3(-0.707099, -0.707115, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.727308, 0.104754, 0.0), vec3(0.727308, 0.104754, 0.125), vec3(0.771502, 0.148948, 0.125), vec3(0.771502, 0.148948, 0.0), vec3(-0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.727308, 0.104754, 0.0), vec3(0.771502, 0.148948, 0.0), vec3(0.771502, 0.148948, 0.125), vec3(0.727308, 0.104754, 0.125), vec3(0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.727308, 0.148948, 0.0), vec3(0.727308, 0.148948, 0.125), vec3(0.771502, 0.104754, 0.125), vec3(0.771502, 0.104754, 0.0), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.727308, 0.148948, 0.0), vec3(0.771502, 0.104754, 0.0), vec3(0.771502, 0.104754, 0.125), vec3(0.727308, 0.148948, 0.125), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.883883, 0.323829, 0.0), vec3(0.883883, 0.323829, 0.125), vec3(0.928078, 0.368023, 0.125), vec3(0.928078, 0.368023, 0.0), vec3(-0.707099, 0.707115, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.883883, 0.323829, 0.0), vec3(0.928078, 0.368023, 0.0), vec3(0.928078, 0.368023, 0.125), vec3(0.883883, 0.323829, 0.125), vec3(0.707099, -0.707115, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.883883, 0.368023, 0.0), vec3(0.883883, 0.368023, 0.125), vec3(0.928078, 0.323829, 0.125), vec3(0.928078, 0.323829, 0.0), vec3(0.707099, 0.707115, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.883883, 0.368023, 0.0), vec3(0.928078, 0.323829, 0.0), vec3(0.928078, 0.323829, 0.125), vec3(0.883883, 0.368023, 0.125), vec3(-0.707099, -0.707115, 0.0), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.25), vec3(0.0, 1.0, 0.25), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.25), vec3(0.0, 0.0, 0.25), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4623,17 +4672,19 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.625, 0.25), vec3(0.375, 0.625, 1.0), vec3(0.625, 0.625, 1.0), vec3(0.625, 0.625, 0.25), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.375, 0.25), vec3(0.625, 0.625, 0.25), vec3(0.625, 0.625, 1.0), vec3(0.625, 0.375, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.25), vec3(1.0, 0.0, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.3125, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.6875, 0.3125), vec3(0.1875, 0.6875, 0.3125), vec3(0.1875, 0.3125, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.1875, 0.3125, 0.3125), vec3(0.1875, 0.3125, 0.6875), vec3(0.0, 0.3125, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.6875), vec3(0.1875, 0.3125, 0.6875), vec3(0.1875, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.3125), vec3(0.0, 0.6875, 0.6875), vec3(0.1875, 0.6875, 0.6875), vec3(0.1875, 0.6875, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.3125, 0.3125), vec3(0.1875, 0.6875, 0.3125), vec3(0.1875, 0.6875, 0.6875), vec3(0.1875, 0.3125, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 249u) {
-                                    if (modelID == 248u) {
+                                if (modelID < 251u) {
+                                    if (modelID == 250u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.3125, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.6875, 0.3125), vec3(0.1875, 0.6875, 0.3125), vec3(0.1875, 0.3125, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.1875, 0.3125, 0.3125), vec3(0.1875, 0.3125, 0.6875), vec3(0.0, 0.3125, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.6875), vec3(0.1875, 0.3125, 0.6875), vec3(0.1875, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.3125), vec3(0.0, 0.6875, 0.6875), vec3(0.1875, 0.6875, 0.6875), vec3(0.1875, 0.6875, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.1875, 0.3125, 0.3125), vec3(0.1875, 0.6875, 0.3125), vec3(0.1875, 0.6875, 0.6875), vec3(0.1875, 0.3125, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 251u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.146447), vec3(0.0, 0.853553, 0.853553), vec3(0.6875, 0.853553, 0.853553), vec3(0.6875, 0.146447, 0.146447), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.146447), vec3(0.6875, 0.146447, 0.146447), vec3(0.6875, 0.853553, 0.853553), vec3(0.0, 0.853553, 0.853553), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.853553), vec3(0.0, 0.853553, 0.146447), vec3(0.6875, 0.853553, 0.146447), vec3(0.6875, 0.146447, 0.853553), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
@@ -4644,9 +4695,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.6875, 0.1875, 0.8125), vec3(1.0, 0.1875, 0.8125), vec3(1.0, 0.8125, 0.8125), vec3(0.6875, 0.8125, 0.8125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.6875, 0.8125, 0.1875), vec3(0.6875, 0.8125, 0.8125), vec3(1.0, 0.8125, 0.8125), vec3(1.0, 0.8125, 0.1875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.1875, 0.1875), vec3(1.0, 0.8125, 0.1875), vec3(1.0, 0.8125, 0.8125), vec3(1.0, 0.1875, 0.8125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 249u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.146447), vec3(0.0, 0.853553, 0.853553), vec3(1.0, 0.853553, 0.853553), vec3(1.0, 0.146447, 0.146447), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.146447), vec3(1.0, 0.146447, 0.146447), vec3(1.0, 0.853553, 0.853553), vec3(0.0, 0.853553, 0.853553), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.853553), vec3(0.0, 0.853553, 0.146447), vec3(1.0, 0.853553, 0.146447), vec3(1.0, 0.146447, 0.853553), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
@@ -4657,25 +4706,25 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.8125), vec3(0.3125, 0.1875, 0.8125), vec3(0.3125, 0.8125, 0.8125), vec3(0.0, 0.8125, 0.8125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.8125, 0.1875), vec3(0.0, 0.8125, 0.8125), vec3(0.3125, 0.8125, 0.8125), vec3(0.3125, 0.8125, 0.1875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.1875, 0.1875), vec3(0.3125, 0.8125, 0.1875), vec3(0.3125, 0.8125, 0.8125), vec3(0.3125, 0.1875, 0.8125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            }
+                        } else {
+                            if (modelID < 256u) {
+                                if (modelID < 254u) {
+                                    if (modelID == 253u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.146447), vec3(0.0, 0.853553, 0.853553), vec3(1.0, 0.853553, 0.853553), vec3(1.0, 0.146447, 0.146447), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.146447), vec3(1.0, 0.146447, 0.146447), vec3(1.0, 0.853553, 0.853553), vec3(0.0, 0.853553, 0.853553), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.853553), vec3(0.0, 0.853553, 0.146447), vec3(1.0, 0.853553, 0.146447), vec3(1.0, 0.146447, 0.853553), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.853553), vec3(1.0, 0.146447, 0.853553), vec3(1.0, 0.853553, 0.146447), vec3(0.0, 0.853553, 0.146447), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
                                     }
-                                }
-                            }
-                        } else {
-                            if (modelID < 254u) {
-                                if (modelID < 252u) {
-                                    if (modelID == 251u) {
+                                } else {
+                                    if (modelID == 254u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.146447), vec3(0.0, 0.853553, 0.853553), vec3(0.6875, 0.853553, 0.853553), vec3(0.6875, 0.146447, 0.146447), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.146447), vec3(0.6875, 0.146447, 0.146447), vec3(0.6875, 0.853553, 0.853553), vec3(0.0, 0.853553, 0.853553), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.853553), vec3(0.0, 0.853553, 0.146447), vec3(0.6875, 0.853553, 0.146447), vec3(0.6875, 0.146447, 0.853553), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.146447, 0.853553), vec3(0.6875, 0.146447, 0.853553), vec3(0.6875, 0.853553, 0.146447), vec3(0.0, 0.853553, 0.146447), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 252u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1625, 0.1625), vec3(0.0, 0.8375, 0.8375), vec3(0.75, 0.8375, 0.8375), vec3(0.75, 0.1625, 0.1625), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1625, 0.1625), vec3(0.75, 0.1625, 0.1625), vec3(0.75, 0.8375, 0.8375), vec3(0.0, 0.8375, 0.8375), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1625, 0.8375), vec3(0.0, 0.8375, 0.1625), vec3(0.75, 0.8375, 0.1625), vec3(0.75, 0.1625, 0.8375), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
@@ -4702,7 +4751,11 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.3125, 0.625), vec3(1.0, 0.6875, 0.625), vec3(1.0, 0.6875, 0.6875), vec3(1.0, 0.3125, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.375, 0.375), vec3(1.0, 0.625, 0.375), vec3(1.0, 0.625, 0.625), vec3(1.0, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.625, 0.375), vec3(1.0, 0.6875, 0.375), vec3(1.0, 0.6875, 0.625), vec3(1.0, 0.625, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            } else {
+                                if (modelID < 257u) {
+                                    if (modelID == 256u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1625, 0.1625), vec3(0.0, 0.8375, 0.8375), vec3(0.75, 0.8375, 0.8375), vec3(0.75, 0.1625, 0.1625), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1625, 0.1625), vec3(0.75, 0.1625, 0.1625), vec3(0.75, 0.8375, 0.8375), vec3(0.0, 0.8375, 0.8375), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1625, 0.8375), vec3(0.0, 0.8375, 0.1625), vec3(0.75, 0.8375, 0.1625), vec3(0.75, 0.1625, 0.8375), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
@@ -4740,10 +4793,8 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.375, 0.375), vec3(1.0, 0.625, 0.375), vec3(1.0, 0.625, 0.625), vec3(1.0, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.625, 0.375), vec3(1.0, 0.6875, 0.375), vec3(1.0, 0.6875, 0.625), vec3(1.0, 0.625, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            } else {
-                                if (modelID < 255u) {
-                                    if (modelID == 254u) {
+                                } else {
+                                    if (modelID == 257u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(0.0, 0.875, 0.5), vec3(1.0, 0.875, 0.5), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.875, 0.5), vec3(0.0, 0.875, 0.5), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.625, 0.3125), vec3(0.3125, 0.625, 0.6875), vec3(0.3125, 1.0, 0.6875), vec3(0.3125, 1.0, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
@@ -4773,9 +4824,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.625, 0.6875), vec3(0.6875, 0.625, 0.6875), vec3(0.6875, 1.0, 0.6875), vec3(0.625, 1.0, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 1.0, 0.3125), vec3(0.625, 1.0, 0.6875), vec3(0.6875, 1.0, 0.6875), vec3(0.6875, 1.0, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.6875, 0.625, 0.3125), vec3(0.6875, 1.0, 0.3125), vec3(0.6875, 1.0, 0.6875), vec3(0.6875, 0.625, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 255u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.3125, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.6875, 0.3125), vec3(0.375, 0.6875, 0.3125), vec3(0.375, 0.3125, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.375, 0.3125, 0.3125), vec3(0.375, 0.3125, 0.6875), vec3(0.0, 0.3125, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4787,37 +4836,6 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.3125, 0.625, 0.375), vec3(0.3125, 0.625, 0.625), vec3(1.0, 0.625, 0.625), vec3(1.0, 0.625, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.3125), vec3(0.375, 0.6875, 0.3125), vec3(0.375, 0.6875, 0.6875), vec3(0.375, 0.3125, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.375, 0.375), vec3(1.0, 0.625, 0.375), vec3(1.0, 0.625, 0.625), vec3(1.0, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.3125, 0.375), vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.6875, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.6875, 0.3125), vec3(0.375, 0.6875, 0.3125), vec3(0.375, 0.3125, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.375, 0.3125, 0.3125), vec3(0.375, 0.3125, 0.375), vec3(0.0, 0.3125, 0.375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.375, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.3125, 0.625), vec3(0.0, 0.3125, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.3125, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.6875, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.3125, 0.625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.375, 0.3125, 0.625), vec3(0.375, 0.3125, 0.6875), vec3(0.0, 0.3125, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.6875), vec3(0.375, 0.3125, 0.6875), vec3(0.375, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.375, 0.375, 0.625), vec3(0.375, 0.375, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.5625, 0.5625), vec3(0.5625, 0.5625, 0.5625), vec3(0.5625, 0.4375, 0.4375), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.5625, 0.4375, 0.4375), vec3(0.5625, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.5625, 0.4375), vec3(0.5625, 0.5625, 0.4375), vec3(0.5625, 0.4375, 0.5625), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5625), vec3(0.5625, 0.4375, 0.5625), vec3(0.5625, 0.5625, 0.4375), vec3(0.0, 0.5625, 0.4375), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.6875, 0.625), vec3(0.0, 0.6875, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.375, 0.625, 0.375), vec3(0.375, 0.625, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.3125), vec3(0.0, 0.6875, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.6875, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.6875, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.6875, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.625), vec3(0.0, 0.6875, 0.6875), vec3(0.375, 0.6875, 0.6875), vec3(0.375, 0.6875, 0.625), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.375), vec3(0.25, 0.625, 0.375), vec3(0.25, 0.625, 0.625), vec3(0.25, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.3125), vec3(0.375, 0.6875, 0.3125), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.3125, 0.375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.375, 0.375), vec3(0.375, 0.375, 0.625), vec3(0.375, 0.3125, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.6875, 0.6875), vec3(0.375, 0.3125, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.625, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.625, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.28125, 0.28125), vec3(0.5625, 0.71875, 0.71875), vec3(0.9375, 0.71875, 0.71875), vec3(0.9375, 0.28125, 0.28125), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.28125, 0.28125), vec3(0.9375, 0.28125, 0.28125), vec3(0.9375, 0.71875, 0.71875), vec3(0.5625, 0.71875, 0.71875), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.28125, 0.71875), vec3(0.5625, 0.71875, 0.28125), vec3(0.9375, 0.71875, 0.28125), vec3(0.9375, 0.28125, 0.71875), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.28125, 0.71875), vec3(0.9375, 0.28125, 0.71875), vec3(0.9375, 0.71875, 0.28125), vec3(0.5625, 0.71875, 0.28125), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
                                     }
                                 }
                             }
@@ -4826,12 +4844,43 @@ bool voxel_intersectBlockModel(
                 }
             }
         } else {
-            if (modelID < 300u) {
-                if (modelID < 278u) {
-                    if (modelID < 267u) {
-                        if (modelID < 262u) {
-                            if (modelID < 259u) {
-                                if (modelID == 257u) {
+            if (modelID < 302u) {
+                if (modelID < 280u) {
+                    if (modelID < 269u) {
+                        if (modelID < 264u) {
+                            if (modelID < 261u) {
+                                if (modelID == 259u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.3125, 0.375), vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.6875, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.0, 0.6875, 0.3125), vec3(0.375, 0.6875, 0.3125), vec3(0.375, 0.3125, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.3125), vec3(0.375, 0.3125, 0.3125), vec3(0.375, 0.3125, 0.375), vec3(0.0, 0.3125, 0.375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.375, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.3125, 0.625), vec3(0.0, 0.3125, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.375), vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.3125, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.0, 0.6875, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.3125, 0.625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.625), vec3(0.375, 0.3125, 0.625), vec3(0.375, 0.3125, 0.6875), vec3(0.0, 0.3125, 0.6875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.3125, 0.6875), vec3(0.375, 0.3125, 0.6875), vec3(0.375, 0.6875, 0.6875), vec3(0.0, 0.6875, 0.6875), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.375, 0.375, 0.625), vec3(0.375, 0.375, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.5625, 0.5625), vec3(0.5625, 0.5625, 0.5625), vec3(0.5625, 0.4375, 0.4375), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.5625, 0.4375, 0.4375), vec3(0.5625, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.5625, 0.4375), vec3(0.5625, 0.5625, 0.4375), vec3(0.5625, 0.4375, 0.5625), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.5625), vec3(0.5625, 0.4375, 0.5625), vec3(0.5625, 0.5625, 0.4375), vec3(0.0, 0.5625, 0.4375), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.6875, 0.625), vec3(0.0, 0.6875, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.375, 0.625, 0.375), vec3(0.375, 0.625, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.3125), vec3(0.0, 0.6875, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.6875, 0.3125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.375), vec3(0.0, 0.6875, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.6875, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.6875, 0.625), vec3(0.0, 0.6875, 0.6875), vec3(0.375, 0.6875, 0.6875), vec3(0.375, 0.6875, 0.625), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.375, 0.375), vec3(0.25, 0.625, 0.375), vec3(0.25, 0.625, 0.625), vec3(0.25, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.3125), vec3(0.375, 0.6875, 0.3125), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.3125, 0.375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.375), vec3(0.375, 0.375, 0.375), vec3(0.375, 0.375, 0.625), vec3(0.375, 0.3125, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.3125, 0.625), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.6875, 0.6875), vec3(0.375, 0.3125, 0.6875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.625, 0.375), vec3(0.375, 0.6875, 0.375), vec3(0.375, 0.6875, 0.625), vec3(0.375, 0.625, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.28125, 0.28125), vec3(0.5625, 0.71875, 0.71875), vec3(0.9375, 0.71875, 0.71875), vec3(0.9375, 0.28125, 0.28125), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.28125, 0.28125), vec3(0.9375, 0.28125, 0.28125), vec3(0.9375, 0.71875, 0.71875), vec3(0.5625, 0.71875, 0.71875), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.28125, 0.71875), vec3(0.5625, 0.71875, 0.28125), vec3(0.9375, 0.71875, 0.28125), vec3(0.9375, 0.28125, 0.71875), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.28125, 0.71875), vec3(0.9375, 0.28125, 0.71875), vec3(0.9375, 0.71875, 0.28125), vec3(0.5625, 0.71875, 0.28125), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4844,70 +4893,72 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.000125, 0.0, 0.0), vec3(0.000125, 1.0, 0.0), vec3(0.000125, 1.0, 1.0), vec3(0.000125, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999875, 0.0, 0.0), vec3(0.999875, 0.0, 1.0), vec3(0.999875, 1.0, 1.0), vec3(0.999875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 0.1875, 0.125), vec3(0.0, 0.1875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.1875, 0.0), vec3(0.25, 0.1875, 0.0), vec3(0.25, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.25, 0.0, 0.0), vec3(0.25, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.0, 0.0, 0.25), vec3(0.0, 0.1875, 0.25), vec3(0.0, 0.1875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.125, 0.0, 0.125), vec3(0.125, 0.0, 0.25), vec3(0.0, 0.0, 0.25), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.25, 0.0, 0.125), vec3(0.25, 0.1875, 0.125), vec3(0.0, 0.1875, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.25), vec3(0.125, 0.0, 0.25), vec3(0.125, 0.1875, 0.25), vec3(0.0, 0.1875, 0.25), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.75), vec3(0.0, 0.0, 0.875), vec3(0.0, 0.1875, 0.875), vec3(0.0, 0.1875, 0.75), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.75), vec3(0.0, 0.1875, 0.75), vec3(0.125, 0.1875, 0.75), vec3(0.125, 0.0, 0.75), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.75), vec3(0.125, 0.0, 0.75), vec3(0.125, 0.0, 0.875), vec3(0.0, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.0, 1.0), vec3(0.0, 0.1875, 1.0), vec3(0.0, 0.1875, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.1875, 0.875), vec3(0.25, 0.1875, 0.875), vec3(0.25, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.25, 0.0, 0.875), vec3(0.25, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(0.25, 0.0, 1.0), vec3(0.25, 0.1875, 1.0), vec3(0.0, 0.1875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.0), vec3(0.0, 0.1875, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.125, 1.0, 0.0), vec3(0.125, 0.1875, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.0), vec3(0.125, 0.1875, 0.0), vec3(0.125, 0.1875, 1.0), vec3(0.0, 0.1875, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 1.0), vec3(0.125, 0.1875, 1.0), vec3(0.125, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 1.0), vec3(0.125, 1.0, 1.0), vec3(0.125, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.0, 0.125), vec3(0.125, 0.1875, 0.125), vec3(0.125, 0.1875, 0.25), vec3(0.125, 0.0, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.0, 0.75), vec3(0.125, 0.1875, 0.75), vec3(0.125, 0.1875, 0.875), vec3(0.125, 0.0, 0.875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.0), vec3(0.125, 1.0, 0.0), vec3(0.125, 1.0, 1.0), vec3(0.125, 0.1875, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.0), vec3(0.125, 1.0, 0.0), vec3(0.875, 1.0, 0.0), vec3(0.875, 0.1875, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.0), vec3(0.875, 0.1875, 0.0), vec3(0.875, 0.1875, 0.125), vec3(0.125, 0.1875, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.125), vec3(0.875, 0.1875, 0.125), vec3(0.875, 0.1875, 0.875), vec3(0.125, 0.1875, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.125), vec3(0.875, 0.1875, 0.125), vec3(0.875, 1.0, 0.125), vec3(0.125, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.875), vec3(0.125, 1.0, 0.875), vec3(0.875, 1.0, 0.875), vec3(0.875, 0.1875, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.875), vec3(0.875, 0.1875, 0.875), vec3(0.875, 0.1875, 1.0), vec3(0.125, 0.1875, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 1.0), vec3(0.875, 0.1875, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.125, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.25, 0.125), vec3(0.125, 0.25, 0.875), vec3(0.875, 0.25, 0.875), vec3(0.875, 0.25, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.125), vec3(0.125, 0.5625, 0.875), vec3(0.875, 0.5625, 0.875), vec3(0.875, 0.5625, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 1.0, 0.0), vec3(0.125, 1.0, 0.125), vec3(0.875, 1.0, 0.125), vec3(0.875, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 1.0, 0.875), vec3(0.125, 1.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.0, 0.0), vec3(0.25, 0.1875, 0.0), vec3(0.25, 0.1875, 0.125), vec3(0.25, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.0, 0.875), vec3(0.25, 0.1875, 0.875), vec3(0.25, 0.1875, 1.0), vec3(0.25, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.0), vec3(0.75, 0.0, 0.125), vec3(0.75, 0.1875, 0.125), vec3(0.75, 0.1875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.0), vec3(0.75, 0.1875, 0.0), vec3(1.0, 0.1875, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.75, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.1875, 0.125), vec3(0.75, 0.1875, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.875), vec3(0.75, 0.0, 1.0), vec3(0.75, 0.1875, 1.0), vec3(0.75, 0.1875, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.875), vec3(0.75, 0.1875, 0.875), vec3(1.0, 0.1875, 0.875), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 1.0), vec3(0.75, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.1875, 1.0), vec3(0.75, 0.1875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.125), vec3(0.875, 0.0, 0.25), vec3(0.875, 0.1875, 0.25), vec3(0.875, 0.1875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.25), vec3(0.875, 0.0, 0.25), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.25), vec3(1.0, 0.0, 0.25), vec3(1.0, 0.1875, 0.25), vec3(0.875, 0.1875, 0.25), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.75), vec3(0.875, 0.0, 0.875), vec3(0.875, 0.1875, 0.875), vec3(0.875, 0.1875, 0.75), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.75), vec3(0.875, 0.1875, 0.75), vec3(1.0, 0.1875, 0.75), vec3(1.0, 0.0, 0.75), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.75), vec3(1.0, 0.0, 0.75), vec3(1.0, 0.0, 0.875), vec3(0.875, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.1875, 0.0), vec3(0.875, 0.1875, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.1875, 0.0), vec3(0.875, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.1875, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.1875, 0.0), vec3(1.0, 0.1875, 0.0), vec3(1.0, 0.1875, 1.0), vec3(0.875, 0.1875, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.1875, 1.0), vec3(1.0, 0.1875, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 1.0, 0.0), vec3(0.875, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 0.1875, 0.0), vec3(1.0, 0.1875, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.125), vec3(1.0, 0.1875, 0.125), vec3(1.0, 0.1875, 0.25), vec3(1.0, 0.0, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.75), vec3(1.0, 0.1875, 0.75), vec3(1.0, 0.1875, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.875), vec3(1.0, 0.1875, 0.875), vec3(1.0, 0.1875, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.1875, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.1875, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 260u) {
-                                    if (modelID == 259u) {
+                                if (modelID < 262u) {
+                                    if (modelID == 261u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 0.1875, 0.125), vec3(0.0, 0.1875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.1875, 0.0), vec3(0.25, 0.1875, 0.0), vec3(0.25, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.25, 0.0, 0.0), vec3(0.25, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.0, 0.0, 0.25), vec3(0.0, 0.1875, 0.25), vec3(0.0, 0.1875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.125, 0.0, 0.125), vec3(0.125, 0.0, 0.25), vec3(0.0, 0.0, 0.25), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.25, 0.0, 0.125), vec3(0.25, 0.1875, 0.125), vec3(0.0, 0.1875, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.25), vec3(0.125, 0.0, 0.25), vec3(0.125, 0.1875, 0.25), vec3(0.0, 0.1875, 0.25), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.75), vec3(0.0, 0.0, 0.875), vec3(0.0, 0.1875, 0.875), vec3(0.0, 0.1875, 0.75), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.75), vec3(0.0, 0.1875, 0.75), vec3(0.125, 0.1875, 0.75), vec3(0.125, 0.0, 0.75), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.75), vec3(0.125, 0.0, 0.75), vec3(0.125, 0.0, 0.875), vec3(0.0, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.0, 1.0), vec3(0.0, 0.1875, 1.0), vec3(0.0, 0.1875, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.1875, 0.875), vec3(0.25, 0.1875, 0.875), vec3(0.25, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.25, 0.0, 0.875), vec3(0.25, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(0.25, 0.0, 1.0), vec3(0.25, 0.1875, 1.0), vec3(0.0, 0.1875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.0), vec3(0.0, 0.1875, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.0), vec3(0.0, 1.0, 0.0), vec3(0.125, 1.0, 0.0), vec3(0.125, 0.1875, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.0), vec3(0.125, 0.1875, 0.0), vec3(0.125, 0.1875, 1.0), vec3(0.0, 0.1875, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 1.0), vec3(0.125, 0.1875, 1.0), vec3(0.125, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 1.0), vec3(0.125, 1.0, 1.0), vec3(0.125, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.0, 0.125), vec3(0.125, 0.1875, 0.125), vec3(0.125, 0.1875, 0.25), vec3(0.125, 0.0, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.0, 0.75), vec3(0.125, 0.1875, 0.75), vec3(0.125, 0.1875, 0.875), vec3(0.125, 0.0, 0.875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.0), vec3(0.125, 1.0, 0.0), vec3(0.125, 1.0, 1.0), vec3(0.125, 0.1875, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.0), vec3(0.125, 1.0, 0.0), vec3(0.875, 1.0, 0.0), vec3(0.875, 0.1875, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.0), vec3(0.875, 0.1875, 0.0), vec3(0.875, 0.1875, 0.125), vec3(0.125, 0.1875, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.125), vec3(0.875, 0.1875, 0.125), vec3(0.875, 0.1875, 0.875), vec3(0.125, 0.1875, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.125), vec3(0.875, 0.1875, 0.125), vec3(0.875, 1.0, 0.125), vec3(0.125, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.875), vec3(0.125, 1.0, 0.875), vec3(0.875, 1.0, 0.875), vec3(0.875, 0.1875, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 0.875), vec3(0.875, 0.1875, 0.875), vec3(0.875, 0.1875, 1.0), vec3(0.125, 0.1875, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.1875, 1.0), vec3(0.875, 0.1875, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.125, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.25, 0.125), vec3(0.125, 0.25, 0.875), vec3(0.875, 0.25, 0.875), vec3(0.875, 0.25, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.125), vec3(0.125, 0.5625, 0.875), vec3(0.875, 0.5625, 0.875), vec3(0.875, 0.5625, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 1.0, 0.0), vec3(0.125, 1.0, 0.125), vec3(0.875, 1.0, 0.125), vec3(0.875, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 1.0, 0.875), vec3(0.125, 1.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.0, 0.0), vec3(0.25, 0.1875, 0.0), vec3(0.25, 0.1875, 0.125), vec3(0.25, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.0, 0.875), vec3(0.25, 0.1875, 0.875), vec3(0.25, 0.1875, 1.0), vec3(0.25, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.0), vec3(0.75, 0.0, 0.125), vec3(0.75, 0.1875, 0.125), vec3(0.75, 0.1875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.0), vec3(0.75, 0.1875, 0.0), vec3(1.0, 0.1875, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.75, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.1875, 0.125), vec3(0.75, 0.1875, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.875), vec3(0.75, 0.0, 1.0), vec3(0.75, 0.1875, 1.0), vec3(0.75, 0.1875, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.875), vec3(0.75, 0.1875, 0.875), vec3(1.0, 0.1875, 0.875), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 1.0), vec3(0.75, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.1875, 1.0), vec3(0.75, 0.1875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.125), vec3(0.875, 0.0, 0.25), vec3(0.875, 0.1875, 0.25), vec3(0.875, 0.1875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.25), vec3(0.875, 0.0, 0.25), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.25), vec3(1.0, 0.0, 0.25), vec3(1.0, 0.1875, 0.25), vec3(0.875, 0.1875, 0.25), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.75), vec3(0.875, 0.0, 0.875), vec3(0.875, 0.1875, 0.875), vec3(0.875, 0.1875, 0.75), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.75), vec3(0.875, 0.1875, 0.75), vec3(1.0, 0.1875, 0.75), vec3(1.0, 0.0, 0.75), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.75), vec3(1.0, 0.0, 0.75), vec3(1.0, 0.0, 0.875), vec3(0.875, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.1875, 0.0), vec3(0.875, 0.1875, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.875, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.1875, 0.0), vec3(0.875, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.1875, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.1875, 0.0), vec3(1.0, 0.1875, 0.0), vec3(1.0, 0.1875, 1.0), vec3(0.875, 0.1875, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.1875, 1.0), vec3(1.0, 0.1875, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.875, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 1.0, 0.0), vec3(0.875, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 0.1875, 0.0), vec3(1.0, 0.1875, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.125), vec3(1.0, 0.1875, 0.125), vec3(1.0, 0.1875, 0.25), vec3(1.0, 0.0, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.75), vec3(1.0, 0.1875, 0.75), vec3(1.0, 0.1875, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.875), vec3(1.0, 0.1875, 0.875), vec3(1.0, 0.1875, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.1875, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.1875, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 262u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 0.1875, 0.125), vec3(0.0, 0.1875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.1875, 0.0), vec3(0.25, 0.1875, 0.0), vec3(0.25, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.25, 0.0, 0.0), vec3(0.25, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4967,9 +5018,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.75), vec3(1.0, 0.1875, 0.75), vec3(1.0, 0.1875, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.875), vec3(1.0, 0.1875, 0.875), vec3(1.0, 0.1875, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.1875, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.1875, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 260u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.5625), vec3(0.0, 0.5625, 0.5625), vec3(0.0, 0.5625, 0.4375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.5625, 0.4375), vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.4375, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.4375), vec3(0.625, 0.4375, 0.4375), vec3(0.625, 0.4375, 0.5625), vec3(0.0, 0.4375, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -4982,40 +5031,42 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.46875, 0.59375, 0.40625), vec3(0.65625, 0.59375, 0.40625), vec3(0.65625, 0.59375, 0.59375), vec3(0.46875, 0.59375, 0.59375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.4375, 0.4375), vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.5625, 0.5625), vec3(0.625, 0.4375, 0.5625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.65625, 0.40625, 0.40625), vec3(0.65625, 0.40625, 0.59375), vec3(0.65625, 0.59375, 0.59375), vec3(0.65625, 0.59375, 0.40625), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.4375), vec3(0.0, 0.242668, 0.5625), vec3(0.181435, 0.820092, 0.5625), vec3(0.181435, 0.820092, 0.4375), vec3(-0.954013, 0.299765, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.4375), vec3(0.057742, 0.194832, 0.4375), vec3(0.057742, 0.194832, 0.5625), vec3(0.0, 0.242668, 0.5625), vec3(-0.63796, -0.77007, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.4375), vec3(0.181435, 0.820092, 0.4375), vec3(0.29692, 0.772257, 0.4375), vec3(0.057742, 0.194832, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.5625), vec3(0.057742, 0.194832, 0.5625), vec3(0.29692, 0.772257, 0.5625), vec3(0.181435, 0.820092, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.057742, 0.194832, 0.4375), vec3(0.29692, 0.772257, 0.4375), vec3(0.29692, 0.772257, 0.5625), vec3(0.057742, 0.194832, 0.5625), vec3(0.923879, -0.382684, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.092769, 0.687695, 0.40625), vec3(0.092769, 0.687695, 0.59375), vec3(0.265997, 0.615942, 0.59375), vec3(0.265997, 0.615942, 0.40625), vec3(0.382682, 0.92388, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.092769, 0.687695, 0.40625), vec3(0.164522, 0.860923, 0.40625), vec3(0.164522, 0.860923, 0.59375), vec3(0.092769, 0.687695, 0.59375), vec3(0.92388, -0.382682, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.092769, 0.687695, 0.40625), vec3(0.265997, 0.615942, 0.40625), vec3(0.33775, 0.789169, 0.40625), vec3(0.164522, 0.860923, 0.40625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.092769, 0.687695, 0.59375), vec3(0.164522, 0.860923, 0.59375), vec3(0.33775, 0.789169, 0.59375), vec3(0.265997, 0.615942, 0.59375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.164522, 0.860923, 0.40625), vec3(0.33775, 0.789169, 0.40625), vec3(0.33775, 0.789169, 0.59375), vec3(0.164522, 0.860923, 0.59375), vec3(-0.382686, -0.923878, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.181435, 0.820092, 0.4375), vec3(0.181435, 0.820092, 0.5625), vec3(0.29692, 0.772257, 0.5625), vec3(0.29692, 0.772257, 0.4375), vec3(0.38268, 0.923881, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.265997, 0.615942, 0.40625), vec3(0.265997, 0.615942, 0.59375), vec3(0.33775, 0.789169, 0.59375), vec3(0.33775, 0.789169, 0.40625), vec3(-0.923879, 0.382684, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         } else {
-                            if (modelID < 264u) {
-                                if (modelID == 262u) {
+                            if (modelID < 266u) {
+                                if (modelID == 264u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.4375), vec3(0.0, 0.242668, 0.5625), vec3(0.181435, 0.820092, 0.5625), vec3(0.181435, 0.820092, 0.4375), vec3(-0.954013, 0.299765, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.4375), vec3(0.057742, 0.194832, 0.4375), vec3(0.057742, 0.194832, 0.5625), vec3(0.0, 0.242668, 0.5625), vec3(-0.63796, -0.77007, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.4375), vec3(0.181435, 0.820092, 0.4375), vec3(0.29692, 0.772257, 0.4375), vec3(0.057742, 0.194832, 0.4375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.242668, 0.5625), vec3(0.057742, 0.194832, 0.5625), vec3(0.29692, 0.772257, 0.5625), vec3(0.181435, 0.820092, 0.5625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.057742, 0.194832, 0.4375), vec3(0.29692, 0.772257, 0.4375), vec3(0.29692, 0.772257, 0.5625), vec3(0.057742, 0.194832, 0.5625), vec3(0.923879, -0.382684, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.092769, 0.687695, 0.40625), vec3(0.092769, 0.687695, 0.59375), vec3(0.265997, 0.615942, 0.59375), vec3(0.265997, 0.615942, 0.40625), vec3(0.382682, 0.92388, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.092769, 0.687695, 0.40625), vec3(0.164522, 0.860923, 0.40625), vec3(0.164522, 0.860923, 0.59375), vec3(0.092769, 0.687695, 0.59375), vec3(0.92388, -0.382682, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.092769, 0.687695, 0.40625), vec3(0.265997, 0.615942, 0.40625), vec3(0.33775, 0.789169, 0.40625), vec3(0.164522, 0.860923, 0.40625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.092769, 0.687695, 0.59375), vec3(0.164522, 0.860923, 0.59375), vec3(0.33775, 0.789169, 0.59375), vec3(0.265997, 0.615942, 0.59375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.164522, 0.860923, 0.40625), vec3(0.33775, 0.789169, 0.40625), vec3(0.33775, 0.789169, 0.59375), vec3(0.164522, 0.860923, 0.59375), vec3(-0.382686, -0.923878, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.181435, 0.820092, 0.4375), vec3(0.181435, 0.820092, 0.5625), vec3(0.29692, 0.772257, 0.5625), vec3(0.29692, 0.772257, 0.4375), vec3(0.38268, 0.923881, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.265997, 0.615942, 0.40625), vec3(0.265997, 0.615942, 0.59375), vec3(0.33775, 0.789169, 0.59375), vec3(0.33775, 0.789169, 0.40625), vec3(-0.923879, 0.382684, 0.0), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 265u) {
-                                    if (modelID == 264u) {
+                                if (modelID < 267u) {
+                                    if (modelID == 266u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 267u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -5024,17 +5075,6 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 0.0, 1.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 1.0, 0.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 265u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -5044,69 +5084,43 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 0.0, 1.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 1.0, 0.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     } else {
-                        if (modelID < 272u) {
-                            if (modelID < 269u) {
-                                if (modelID == 267u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                } else {
+                        if (modelID < 274u) {
+                            if (modelID < 271u) {
+                                if (modelID == 269u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 0.0, 1.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 1.0, 0.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 270u) {
-                                    if (modelID == 269u) {
+                                if (modelID < 272u) {
+                                    if (modelID == 271u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 270u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    }
-                                }
-                            }
-                        } else {
-                            if (modelID < 275u) {
-                                if (modelID < 273u) {
                                     if (modelID == 272u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -5116,13 +5130,48 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    } else {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    }
+                                }
+                            }
+                        } else {
+                            if (modelID < 277u) {
+                                if (modelID < 275u) {
+                                    if (modelID == 274u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 275u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 0.0, 1.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 1.0, 0.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 273u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -5133,7 +5182,11 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(0.0, 0.984375, 1.0), vec3(1.0, 0.984375, 1.0), vec3(1.0, 0.984375, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(1.0, 0.984375, 0.0), vec3(1.0, 0.984375, 1.0), vec3(0.0, 0.984375, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            } else {
+                                if (modelID < 278u) {
+                                    if (modelID == 277u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -5147,27 +5200,10 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     }
-                                }
-                            } else {
-                                if (modelID < 276u) {
-                                    if (modelID == 275u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(0.0, 0.984375, 1.0), vec3(1.0, 0.984375, 1.0), vec3(1.0, 0.984375, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(1.0, 0.984375, 0.0), vec3(1.0, 0.984375, 1.0), vec3(0.0, 0.984375, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    }
                                 } else {
-                                    if (modelID == 276u) {
+                                    if (modelID == 278u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -5187,29 +5223,16 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(0.0, 0.984375, 1.0), vec3(1.0, 0.984375, 1.0), vec3(1.0, 0.984375, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(1.0, 0.984375, 0.0), vec3(1.0, 0.984375, 1.0), vec3(0.0, 0.984375, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 0.0, 1.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 1.0, 0.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     }
                 } else {
-                    if (modelID < 289u) {
-                        if (modelID < 283u) {
-                            if (modelID < 280u) {
-                                if (modelID == 278u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                } else {
+                    if (modelID < 291u) {
+                        if (modelID < 285u) {
+                            if (modelID < 282u) {
+                                if (modelID == 280u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -5220,12 +5243,40 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(0.0, 0.984375, 1.0), vec3(1.0, 0.984375, 1.0), vec3(1.0, 0.984375, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(1.0, 0.984375, 0.0), vec3(1.0, 0.984375, 1.0), vec3(0.0, 0.984375, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 0.0, 1.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 1.0, 0.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 281u) {
-                                    if (modelID == 280u) {
+                                if (modelID < 283u) {
+                                    if (modelID == 282u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 283u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -5238,23 +5289,6 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 0.0, 1.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 1.0, 0.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 281u) {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(0.0, 0.984375, 1.0), vec3(1.0, 0.984375, 1.0), vec3(1.0, 0.984375, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(1.0, 0.984375, 0.0), vec3(1.0, 0.984375, 1.0), vec3(0.0, 0.984375, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     } else {
@@ -5270,17 +5304,34 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(0.0, 0.984375, 1.0), vec3(1.0, 0.984375, 1.0), vec3(1.0, 0.984375, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(1.0, 0.984375, 0.0), vec3(1.0, 0.984375, 1.0), vec3(0.0, 0.984375, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 0.0, 1.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 1.0, 0.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         } else {
-                            if (modelID < 286u) {
-                                if (modelID < 284u) {
-                                    if (modelID == 283u) {
+                            if (modelID < 288u) {
+                                if (modelID < 286u) {
+                                    if (modelID == 285u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(0.0, 0.015625, 1.0), vec3(1.0, 0.015625, 1.0), vec3(1.0, 0.015625, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.015625, 0.0), vec3(1.0, 0.015625, 0.0), vec3(1.0, 0.015625, 1.0), vec3(0.0, 0.015625, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(0.0, 0.984375, 1.0), vec3(1.0, 0.984375, 1.0), vec3(1.0, 0.984375, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.984375, 0.0), vec3(1.0, 0.984375, 0.0), vec3(1.0, 0.984375, 1.0), vec3(0.0, 0.984375, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 0.0, 1.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.015625, 0.0, 0.0), vec3(0.015625, 1.0, 0.0), vec3(0.015625, 1.0, 1.0), vec3(0.015625, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 286u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 0.5, 0.015625), vec3(1.0, 0.5, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.5, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.015625), vec3(0.0, 1.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -5299,9 +5350,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.0, 0.015625), vec3(1.0, 0.0, 0.015625), vec3(1.0, 1.0, 0.015625), vec3(0.5, 1.0, 0.015625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.984375, 0.0, 0.0), vec3(0.984375, 0.0, 1.0), vec3(0.984375, 1.0, 1.0), vec3(0.984375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.984375, 0.0, 0.0), vec3(0.984375, 1.0, 0.0), vec3(0.984375, 1.0, 1.0), vec3(0.984375, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 284u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5318,7 +5367,11 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.5625, 0.125), vec3(0.375, 0.5625, 0.4375), vec3(0.5, 0.5625, 0.4375), vec3(0.5, 0.5625, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.4375, 0.125), vec3(0.5, 0.5625, 0.125), vec3(0.5, 0.5625, 0.4375), vec3(0.5, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            } else {
+                                if (modelID < 289u) {
+                                    if (modelID == 288u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5348,10 +5401,8 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.53125, 0.40625, 0.28125), vec3(0.53125, 0.40625, 0.46875), vec3(0.53125, 0.59375, 0.46875), vec3(0.53125, 0.59375, 0.28125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            } else {
-                                if (modelID < 287u) {
-                                    if (modelID == 286u) {
+                                } else {
+                                    if (modelID == 289u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5368,9 +5419,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.125, 0.125), vec3(0.5625, 0.25, 0.125), vec3(0.5625, 0.25, 0.4375), vec3(0.5625, 0.125, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.375, 0.125), vec3(0.875, 0.5, 0.125), vec3(0.875, 0.5, 0.25), vec3(0.875, 0.375, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 287u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5393,31 +5442,31 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.875, 0.125), vec3(0.375, 0.875, 0.25), vec3(0.5, 0.875, 0.25), vec3(0.5, 0.875, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.125, 0.125), vec3(0.5, 0.875, 0.125), vec3(0.5, 0.875, 0.25), vec3(0.5, 0.125, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.125), vec3(0.125, 0.4375, 0.4375), vec3(0.125, 0.5625, 0.4375), vec3(0.125, 0.5625, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.125), vec3(0.25, 0.4375, 0.125), vec3(0.25, 0.4375, 0.4375), vec3(0.125, 0.4375, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.4375), vec3(0.25, 0.4375, 0.4375), vec3(0.25, 0.5625, 0.4375), vec3(0.125, 0.5625, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.125), vec3(0.125, 0.5625, 0.4375), vec3(0.25, 0.5625, 0.4375), vec3(0.25, 0.5625, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.4375, 0.125), vec3(0.25, 0.5625, 0.125), vec3(0.25, 0.5625, 0.4375), vec3(0.25, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.4375, 0.125), vec3(0.5, 0.4375, 0.4375), vec3(0.5, 0.5625, 0.4375), vec3(0.5, 0.5625, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.4375, 0.125), vec3(0.625, 0.4375, 0.125), vec3(0.625, 0.4375, 0.4375), vec3(0.5, 0.4375, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.4375, 0.4375), vec3(0.625, 0.4375, 0.4375), vec3(0.625, 0.5625, 0.4375), vec3(0.5, 0.5625, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.5625, 0.125), vec3(0.5, 0.5625, 0.4375), vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.5625, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.4375, 0.125), vec3(0.625, 0.5625, 0.125), vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
                         }
                     } else {
-                        if (modelID < 294u) {
-                            if (modelID < 291u) {
-                                if (modelID == 289u) {
+                        if (modelID < 296u) {
+                            if (modelID < 293u) {
+                                if (modelID == 291u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.125), vec3(0.125, 0.4375, 0.4375), vec3(0.125, 0.5625, 0.4375), vec3(0.125, 0.5625, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.125), vec3(0.25, 0.4375, 0.125), vec3(0.25, 0.4375, 0.4375), vec3(0.125, 0.4375, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.4375), vec3(0.25, 0.4375, 0.4375), vec3(0.25, 0.5625, 0.4375), vec3(0.125, 0.5625, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.125), vec3(0.125, 0.5625, 0.4375), vec3(0.25, 0.5625, 0.4375), vec3(0.25, 0.5625, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.4375, 0.125), vec3(0.25, 0.5625, 0.125), vec3(0.25, 0.5625, 0.4375), vec3(0.25, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.4375, 0.125), vec3(0.5, 0.4375, 0.4375), vec3(0.5, 0.5625, 0.4375), vec3(0.5, 0.5625, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.4375, 0.125), vec3(0.625, 0.4375, 0.125), vec3(0.625, 0.4375, 0.4375), vec3(0.5, 0.4375, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.4375, 0.4375), vec3(0.625, 0.4375, 0.4375), vec3(0.625, 0.5625, 0.4375), vec3(0.5, 0.5625, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.5625, 0.125), vec3(0.5, 0.5625, 0.4375), vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.5625, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.4375, 0.125), vec3(0.625, 0.5625, 0.125), vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5446,27 +5495,29 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.4375, 0.125), vec3(0.625, 0.5625, 0.125), vec3(0.625, 0.5625, 0.4375), vec3(0.625, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.65625, 0.40625, 0.28125), vec3(0.65625, 0.40625, 0.46875), vec3(0.65625, 0.59375, 0.46875), vec3(0.65625, 0.59375, 0.28125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.375, 0.125), vec3(0.125, 0.375, 0.25), vec3(0.125, 0.5, 0.25), vec3(0.125, 0.5, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.375, 0.125), vec3(0.875, 0.375, 0.125), vec3(0.875, 0.375, 0.25), vec3(0.125, 0.375, 0.25), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.375, 0.25), vec3(0.875, 0.375, 0.25), vec3(0.875, 0.5, 0.25), vec3(0.125, 0.5, 0.25), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5, 0.125), vec3(0.125, 0.5, 0.25), vec3(0.875, 0.5, 0.25), vec3(0.875, 0.5, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.75, 0.125), vec3(0.4375, 0.75, 0.4375), vec3(0.4375, 0.875, 0.4375), vec3(0.4375, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.75, 0.125), vec3(0.5625, 0.75, 0.125), vec3(0.5625, 0.75, 0.4375), vec3(0.4375, 0.75, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.75, 0.4375), vec3(0.5625, 0.75, 0.4375), vec3(0.5625, 0.875, 0.4375), vec3(0.4375, 0.875, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.875, 0.125), vec3(0.4375, 0.875, 0.4375), vec3(0.5625, 0.875, 0.4375), vec3(0.5625, 0.875, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.75, 0.125), vec3(0.5625, 0.875, 0.125), vec3(0.5625, 0.875, 0.4375), vec3(0.5625, 0.75, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.375, 0.125), vec3(0.875, 0.5, 0.125), vec3(0.875, 0.5, 0.25), vec3(0.875, 0.375, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 292u) {
-                                    if (modelID == 291u) {
+                                if (modelID < 294u) {
+                                    if (modelID == 293u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.375, 0.125), vec3(0.125, 0.375, 0.25), vec3(0.125, 0.5, 0.25), vec3(0.125, 0.5, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.375, 0.125), vec3(0.875, 0.375, 0.125), vec3(0.875, 0.375, 0.25), vec3(0.125, 0.375, 0.25), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.375, 0.25), vec3(0.875, 0.375, 0.25), vec3(0.875, 0.5, 0.25), vec3(0.125, 0.5, 0.25), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5, 0.125), vec3(0.125, 0.5, 0.25), vec3(0.875, 0.5, 0.25), vec3(0.875, 0.5, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.75, 0.125), vec3(0.4375, 0.75, 0.4375), vec3(0.4375, 0.875, 0.4375), vec3(0.4375, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.75, 0.125), vec3(0.5625, 0.75, 0.125), vec3(0.5625, 0.75, 0.4375), vec3(0.4375, 0.75, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.75, 0.4375), vec3(0.5625, 0.75, 0.4375), vec3(0.5625, 0.875, 0.4375), vec3(0.4375, 0.875, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.875, 0.125), vec3(0.4375, 0.875, 0.4375), vec3(0.5625, 0.875, 0.4375), vec3(0.5625, 0.875, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.75, 0.125), vec3(0.5625, 0.875, 0.125), vec3(0.5625, 0.875, 0.4375), vec3(0.5625, 0.75, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.375, 0.125), vec3(0.875, 0.5, 0.125), vec3(0.875, 0.5, 0.25), vec3(0.875, 0.375, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 294u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5489,9 +5540,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5, 0.875, 0.125), vec3(0.5, 0.875, 0.25), vec3(0.625, 0.875, 0.25), vec3(0.625, 0.875, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.125, 0.125), vec3(0.625, 0.875, 0.125), vec3(0.625, 0.875, 0.25), vec3(0.625, 0.125, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 292u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5508,7 +5557,13 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.5625, 0.125), vec3(0.625, 0.5625, 0.4375), vec3(0.75, 0.5625, 0.4375), vec3(0.75, 0.5625, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.4375, 0.125), vec3(0.75, 0.5625, 0.125), vec3(0.75, 0.5625, 0.4375), vec3(0.75, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            }
+                        } else {
+                            if (modelID < 299u) {
+                                if (modelID < 297u) {
+                                    if (modelID == 296u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5538,12 +5593,8 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.78125, 0.40625, 0.28125), vec3(0.78125, 0.40625, 0.46875), vec3(0.78125, 0.59375, 0.46875), vec3(0.78125, 0.59375, 0.28125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            }
-                        } else {
-                            if (modelID < 297u) {
-                                if (modelID < 295u) {
-                                    if (modelID == 294u) {
+                                } else {
+                                    if (modelID == 297u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5560,9 +5611,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.75, 0.125), vec3(0.5625, 0.875, 0.125), vec3(0.5625, 0.875, 0.4375), vec3(0.5625, 0.75, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.25, 0.125), vec3(0.875, 0.375, 0.125), vec3(0.875, 0.375, 0.25), vec3(0.875, 0.25, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 295u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5585,7 +5634,11 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.625, 0.875, 0.125), vec3(0.625, 0.875, 0.25), vec3(0.75, 0.875, 0.25), vec3(0.75, 0.875, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.125, 0.125), vec3(0.75, 0.875, 0.125), vec3(0.75, 0.875, 0.25), vec3(0.75, 0.125, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            } else {
+                                if (modelID < 300u) {
+                                    if (modelID == 299u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5603,10 +5656,8 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.4375, 0.125), vec3(0.875, 0.5625, 0.125), vec3(0.875, 0.5625, 0.4375), vec3(0.875, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            } else {
-                                if (modelID < 298u) {
-                                    if (modelID == 297u) {
+                                } else {
+                                    if (modelID == 300u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5635,9 +5686,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.4375, 0.125), vec3(0.875, 0.5625, 0.125), vec3(0.875, 0.5625, 0.4375), vec3(0.875, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.90625, 0.40625, 0.28125), vec3(0.90625, 0.40625, 0.46875), vec3(0.90625, 0.59375, 0.46875), vec3(0.90625, 0.59375, 0.28125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 298u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5654,29 +5703,6 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.5625, 0.75, 0.125), vec3(0.5625, 0.875, 0.125), vec3(0.5625, 0.875, 0.4375), vec3(0.5625, 0.75, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.125), vec3(0.875, 0.25, 0.125), vec3(0.875, 0.25, 0.25), vec3(0.875, 0.125, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.09375, 0.40625, 0.28125), vec3(0.09375, 0.40625, 0.46875), vec3(0.28125, 0.40625, 0.46875), vec3(0.28125, 0.40625, 0.28125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.09375, 0.40625, 0.28125), vec3(0.09375, 0.59375, 0.28125), vec3(0.09375, 0.59375, 0.46875), vec3(0.09375, 0.40625, 0.46875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.09375, 0.40625, 0.28125), vec3(0.28125, 0.40625, 0.28125), vec3(0.28125, 0.59375, 0.28125), vec3(0.09375, 0.59375, 0.28125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.09375, 0.40625, 0.46875), vec3(0.09375, 0.59375, 0.46875), vec3(0.28125, 0.59375, 0.46875), vec3(0.28125, 0.40625, 0.46875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.09375, 0.59375, 0.28125), vec3(0.28125, 0.59375, 0.28125), vec3(0.28125, 0.59375, 0.46875), vec3(0.09375, 0.59375, 0.46875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.125), vec3(0.125, 0.4375, 0.4375), vec3(0.125, 0.5625, 0.4375), vec3(0.125, 0.5625, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.125), vec3(0.25, 0.4375, 0.125), vec3(0.25, 0.4375, 0.4375), vec3(0.125, 0.4375, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.4375), vec3(0.25, 0.4375, 0.4375), vec3(0.25, 0.5625, 0.4375), vec3(0.125, 0.5625, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.125), vec3(0.125, 0.5625, 0.4375), vec3(0.25, 0.5625, 0.4375), vec3(0.25, 0.5625, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.4375, 0.125), vec3(0.25, 0.5625, 0.125), vec3(0.25, 0.5625, 0.4375), vec3(0.25, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.28125, 0.40625, 0.28125), vec3(0.28125, 0.40625, 0.46875), vec3(0.28125, 0.59375, 0.46875), vec3(0.28125, 0.59375, 0.28125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.125, 0.125), vec3(0.75, 0.125, 0.25), vec3(0.75, 0.875, 0.25), vec3(0.75, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.125, 0.125), vec3(0.875, 0.125, 0.125), vec3(0.875, 0.125, 0.25), vec3(0.75, 0.125, 0.25), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.125, 0.25), vec3(0.875, 0.125, 0.25), vec3(0.875, 0.875, 0.25), vec3(0.75, 0.875, 0.25), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.875, 0.125), vec3(0.75, 0.875, 0.25), vec3(0.875, 0.875, 0.25), vec3(0.875, 0.875, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.125), vec3(0.875, 0.875, 0.125), vec3(0.875, 0.875, 0.25), vec3(0.875, 0.125, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 }
                             }
@@ -5684,80 +5710,54 @@ bool voxel_intersectBlockModel(
                     }
                 }
             } else {
-                if (modelID < 321u) {
-                    if (modelID < 310u) {
-                        if (modelID < 305u) {
-                            if (modelID < 302u) {
-                                if (modelID == 300u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.125, 0.0), vec3(1.0, 0.125, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                if (modelID < 324u) {
+                    if (modelID < 313u) {
+                        if (modelID < 307u) {
+                            if (modelID < 304u) {
+                                if (modelID == 302u) {
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.125, 0.125), vec3(0.0, 0.125, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.0, 1.0), vec3(0.0, 0.125, 1.0), vec3(0.0, 0.125, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.125, 0.875), vec3(1.0, 0.125, 0.875), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.125, 1.0), vec3(0.0, 0.125, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.0), vec3(0.0, 0.125, 0.125), vec3(1.0, 0.125, 0.125), vec3(1.0, 0.125, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 1.0), vec3(1.0, 0.125, 1.0), vec3(1.0, 0.125, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.0), vec3(0.0, 0.875, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.875, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.0), vec3(1.0, 0.875, 0.0), vec3(1.0, 0.875, 0.125), vec3(0.0, 0.875, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(1.0, 0.875, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.875), vec3(0.0, 0.875, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.875), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 0.875, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.875), vec3(1.0, 0.875, 0.875), vec3(1.0, 0.875, 1.0), vec3(0.0, 0.875, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 1.0), vec3(1.0, 0.875, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.125), vec3(0.875, 0.0, 0.875), vec3(0.875, 0.125, 0.875), vec3(0.875, 0.125, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.875), vec3(0.875, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.0), vec3(0.875, 0.125, 0.125), vec3(0.875, 0.875, 0.125), vec3(0.875, 0.875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.0), vec3(0.875, 0.875, 0.0), vec3(1.0, 0.875, 0.0), vec3(1.0, 0.125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.125), vec3(0.875, 0.125, 0.875), vec3(1.0, 0.125, 0.875), vec3(1.0, 0.125, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.125), vec3(1.0, 0.125, 0.125), vec3(1.0, 0.875, 0.125), vec3(0.875, 0.875, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.875), vec3(0.875, 0.125, 1.0), vec3(0.875, 0.875, 1.0), vec3(0.875, 0.875, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.875), vec3(0.875, 0.875, 0.875), vec3(1.0, 0.875, 0.875), vec3(1.0, 0.125, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 1.0), vec3(1.0, 0.125, 1.0), vec3(1.0, 0.875, 1.0), vec3(0.875, 0.875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.875, 0.125), vec3(0.875, 0.875, 0.875), vec3(0.875, 1.0, 0.875), vec3(0.875, 1.0, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.875, 0.125), vec3(1.0, 0.875, 0.125), vec3(1.0, 0.875, 0.875), vec3(0.875, 0.875, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 1.0, 0.125), vec3(0.875, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 0.0, 1.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.09375, 0.40625, 0.28125), vec3(0.09375, 0.40625, 0.46875), vec3(0.28125, 0.40625, 0.46875), vec3(0.28125, 0.40625, 0.28125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.09375, 0.40625, 0.28125), vec3(0.09375, 0.59375, 0.28125), vec3(0.09375, 0.59375, 0.46875), vec3(0.09375, 0.40625, 0.46875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.09375, 0.40625, 0.28125), vec3(0.28125, 0.40625, 0.28125), vec3(0.28125, 0.59375, 0.28125), vec3(0.09375, 0.59375, 0.28125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.09375, 0.40625, 0.46875), vec3(0.09375, 0.59375, 0.46875), vec3(0.28125, 0.59375, 0.46875), vec3(0.28125, 0.40625, 0.46875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.09375, 0.59375, 0.28125), vec3(0.28125, 0.59375, 0.28125), vec3(0.28125, 0.59375, 0.46875), vec3(0.09375, 0.59375, 0.46875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.125), vec3(0.125, 0.4375, 0.4375), vec3(0.125, 0.5625, 0.4375), vec3(0.125, 0.5625, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.125), vec3(0.25, 0.4375, 0.125), vec3(0.25, 0.4375, 0.4375), vec3(0.125, 0.4375, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.4375, 0.4375), vec3(0.25, 0.4375, 0.4375), vec3(0.25, 0.5625, 0.4375), vec3(0.125, 0.5625, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.5625, 0.125), vec3(0.125, 0.5625, 0.4375), vec3(0.25, 0.5625, 0.4375), vec3(0.25, 0.5625, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.4375, 0.125), vec3(0.25, 0.5625, 0.125), vec3(0.25, 0.5625, 0.4375), vec3(0.25, 0.4375, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.28125, 0.40625, 0.28125), vec3(0.28125, 0.40625, 0.46875), vec3(0.28125, 0.59375, 0.46875), vec3(0.28125, 0.59375, 0.28125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.125, 0.125), vec3(0.75, 0.125, 0.25), vec3(0.75, 0.875, 0.25), vec3(0.75, 0.875, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.125, 0.125), vec3(0.875, 0.125, 0.125), vec3(0.875, 0.125, 0.25), vec3(0.75, 0.125, 0.25), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.125, 0.25), vec3(0.875, 0.125, 0.25), vec3(0.875, 0.875, 0.25), vec3(0.75, 0.875, 0.25), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.875, 0.125), vec3(0.75, 0.875, 0.25), vec3(0.875, 0.875, 0.25), vec3(0.875, 0.875, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.125), vec3(0.875, 0.875, 0.125), vec3(0.875, 0.875, 0.25), vec3(0.875, 0.125, 0.25), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 } else {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.125, 0.0), vec3(1.0, 0.125, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.0, 0.0, 0.875), vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.125, 0.0, 0.125), vec3(0.125, 0.0, 0.875), vec3(0.0, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.125, 0.125), vec3(0.0, 0.125, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.0, 1.0), vec3(0.0, 0.125, 1.0), vec3(0.0, 0.125, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.125, 0.875), vec3(1.0, 0.125, 0.875), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.125, 1.0), vec3(0.0, 0.125, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.0), vec3(0.0, 0.125, 0.125), vec3(0.0, 0.875, 0.125), vec3(0.0, 0.875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.0), vec3(0.0, 0.125, 0.125), vec3(1.0, 0.125, 0.125), vec3(1.0, 0.125, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.0), vec3(0.0, 0.875, 0.0), vec3(0.125, 0.875, 0.0), vec3(0.125, 0.125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.875), vec3(0.125, 0.125, 0.875), vec3(0.125, 0.125, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.125, 0.125, 0.125), vec3(0.125, 0.875, 0.125), vec3(0.0, 0.875, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 1.0), vec3(0.0, 0.875, 1.0), vec3(0.0, 0.875, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 1.0), vec3(1.0, 0.125, 1.0), vec3(1.0, 0.125, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.875), vec3(0.0, 0.875, 0.875), vec3(0.125, 0.875, 0.875), vec3(0.125, 0.125, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 1.0), vec3(0.125, 0.125, 1.0), vec3(0.125, 0.875, 1.0), vec3(0.0, 0.875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.0), vec3(0.0, 0.875, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.875, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.0), vec3(1.0, 0.875, 0.0), vec3(1.0, 0.875, 0.125), vec3(0.0, 0.875, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(0.0, 0.875, 0.875), vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(0.125, 0.875, 0.125), vec3(0.125, 0.875, 0.875), vec3(0.0, 0.875, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(1.0, 0.875, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.875), vec3(0.0, 0.875, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.875), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 0.875, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.875), vec3(1.0, 0.875, 0.875), vec3(1.0, 0.875, 1.0), vec3(0.0, 0.875, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 1.0), vec3(1.0, 0.875, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.875), vec3(0.125, 1.0, 0.875), vec3(0.125, 1.0, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.124375, 0.0, 0.0), vec3(0.124375, 0.0, 1.0), vec3(0.124375, 1.0, 1.0), vec3(0.124375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.0, 0.0), vec3(0.125, 1.0, 0.0), vec3(0.125, 1.0, 1.0), vec3(0.125, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.125), vec3(0.875, 0.0, 0.875), vec3(0.875, 0.125, 0.875), vec3(0.875, 0.125, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.875), vec3(0.875, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.0), vec3(0.875, 0.125, 0.125), vec3(0.875, 0.875, 0.125), vec3(0.875, 0.875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
@@ -5774,8 +5774,59 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 303u) {
-                                    if (modelID == 302u) {
+                                if (modelID < 305u) {
+                                    if (modelID == 304u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.125, 0.0), vec3(1.0, 0.125, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.0, 0.0, 0.875), vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(0.125, 0.0, 0.125), vec3(0.125, 0.0, 0.875), vec3(0.0, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.125, 0.125), vec3(0.0, 0.125, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.0, 1.0), vec3(0.0, 0.125, 1.0), vec3(0.0, 0.125, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(0.0, 0.125, 0.875), vec3(1.0, 0.125, 0.875), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.875), vec3(1.0, 0.0, 0.875), vec3(1.0, 0.0, 1.0), vec3(0.0, 0.0, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.125, 1.0), vec3(0.0, 0.125, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.0), vec3(0.0, 0.125, 0.125), vec3(0.0, 0.875, 0.125), vec3(0.0, 0.875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.0), vec3(0.0, 0.125, 0.125), vec3(1.0, 0.125, 0.125), vec3(1.0, 0.125, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.0), vec3(0.0, 0.875, 0.0), vec3(0.125, 0.875, 0.0), vec3(0.125, 0.125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.875), vec3(0.125, 0.125, 0.875), vec3(0.125, 0.125, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.125, 0.125, 0.125), vec3(0.125, 0.875, 0.125), vec3(0.0, 0.875, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 1.0), vec3(0.0, 0.875, 1.0), vec3(0.0, 0.875, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.875), vec3(0.0, 0.125, 1.0), vec3(1.0, 0.125, 1.0), vec3(1.0, 0.125, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.875), vec3(0.0, 0.875, 0.875), vec3(0.125, 0.875, 0.875), vec3(0.125, 0.125, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 1.0), vec3(0.125, 0.125, 1.0), vec3(0.125, 0.875, 1.0), vec3(0.0, 0.875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.0), vec3(0.0, 0.875, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.875, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.0), vec3(1.0, 0.875, 0.0), vec3(1.0, 0.875, 0.125), vec3(0.0, 0.875, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(0.0, 0.875, 0.875), vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(0.125, 0.875, 0.125), vec3(0.125, 0.875, 0.875), vec3(0.0, 0.875, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.125), vec3(1.0, 0.875, 0.125), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.875), vec3(0.0, 0.875, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 1.0, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.875), vec3(0.0, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 0.875, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 0.875), vec3(1.0, 0.875, 0.875), vec3(1.0, 0.875, 1.0), vec3(0.0, 0.875, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.875, 1.0), vec3(1.0, 0.875, 1.0), vec3(1.0, 1.0, 1.0), vec3(0.0, 1.0, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.0), vec3(0.0, 1.0, 0.125), vec3(1.0, 1.0, 0.125), vec3(1.0, 1.0, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.875), vec3(0.125, 1.0, 0.875), vec3(0.125, 1.0, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 1.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 1.0, 0.875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.124375, 0.0, 0.0), vec3(0.124375, 0.0, 1.0), vec3(0.124375, 1.0, 1.0), vec3(0.124375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.125, 0.0, 0.0), vec3(0.125, 1.0, 0.0), vec3(0.125, 1.0, 1.0), vec3(0.125, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.125), vec3(0.875, 0.0, 0.875), vec3(0.875, 0.125, 0.875), vec3(0.875, 0.125, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.0, 0.125), vec3(1.0, 0.0, 0.125), vec3(1.0, 0.0, 0.875), vec3(0.875, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.0), vec3(0.875, 0.125, 0.125), vec3(0.875, 0.875, 0.125), vec3(0.875, 0.875, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.0), vec3(0.875, 0.875, 0.0), vec3(1.0, 0.875, 0.0), vec3(1.0, 0.125, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.125), vec3(0.875, 0.125, 0.875), vec3(1.0, 0.125, 0.875), vec3(1.0, 0.125, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.125), vec3(1.0, 0.125, 0.125), vec3(1.0, 0.875, 0.125), vec3(0.875, 0.875, 0.125), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.875), vec3(0.875, 0.125, 1.0), vec3(0.875, 0.875, 1.0), vec3(0.875, 0.875, 0.875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 0.875), vec3(0.875, 0.875, 0.875), vec3(1.0, 0.875, 0.875), vec3(1.0, 0.125, 0.875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.125, 1.0), vec3(1.0, 0.125, 1.0), vec3(1.0, 0.875, 1.0), vec3(0.875, 0.875, 1.0), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.875, 0.125), vec3(0.875, 0.875, 0.875), vec3(0.875, 1.0, 0.875), vec3(0.875, 1.0, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 0.875, 0.125), vec3(1.0, 0.875, 0.125), vec3(1.0, 0.875, 0.875), vec3(0.875, 0.875, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.875, 1.0, 0.125), vec3(0.875, 1.0, 0.875), vec3(1.0, 1.0, 0.875), vec3(1.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.999375, 0.0, 0.0), vec3(0.999375, 0.0, 1.0), vec3(0.999375, 1.0, 1.0), vec3(0.999375, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 1.0), vec3(1.0, 0.0, 1.0), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
+                                } else {
+                                    if (modelID == 305u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5790,9 +5841,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.635723, 0.989277, 0.5), vec3(0.635723, 0.989277, 1.0), vec3(0.989277, 0.635723, 1.0), vec3(0.989277, 0.635723, 0.5), vec3(0.707107, 0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.635723, 0.989277, 0.5), vec3(0.989277, 0.635723, 0.5), vec3(0.989277, 0.635723, 1.0), vec3(0.635723, 0.989277, 1.0), vec3(-0.707107, -0.707107, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    }
-                                } else {
-                                    if (modelID == 303u) {
+                                    } else {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.5), vec3(0.0, 1.0, 0.5), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.5), vec3(0.0, 0.0, 0.5), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5809,7 +5858,13 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.93625, 0.0625, 0.5), vec3(0.93625, 0.0625, 0.9375), vec3(0.93625, 0.9375, 0.9375), vec3(0.93625, 0.9375, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.9375, 0.0625, 0.5), vec3(0.9375, 0.9375, 0.5), vec3(0.9375, 0.9375, 0.9375), vec3(0.9375, 0.0625, 0.9375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.5), vec3(1.0, 0.0, 0.5), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    } else {
+                                    }
+                                }
+                            }
+                        } else {
+                            if (modelID < 310u) {
+                                if (modelID < 308u) {
+                                    if (modelID == 307u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.625, 0.375), vec3(0.375, 0.625, 0.375), vec3(0.375, 0.375, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.375, 0.375, 0.375), vec3(0.375, 0.375, 0.625), vec3(0.0, 0.375, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5818,41 +5873,39 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.371875, 0.375, 0.375), vec3(0.371875, 0.625, 0.375), vec3(0.371875, 0.625, 0.625), vec3(0.371875, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.375, 0.375), vec3(0.375, 0.625, 0.375), vec3(0.375, 0.625, 0.625), vec3(0.375, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
-                                }
-                            }
-                        } else {
-                            if (modelID < 307u) {
-                                if (modelID == 305u) {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.625, 0.375), vec3(0.375, 0.625, 0.375), vec3(0.375, 0.375, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.375, 0.375, 0.375), vec3(0.375, 0.375, 0.625), vec3(0.0, 0.375, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.625), vec3(0.375, 0.375, 0.625), vec3(0.375, 0.625, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.0, 0.625, 0.625), vec3(0.375, 0.625, 0.625), vec3(0.375, 0.625, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.325, 0.46875, 0.46875), vec3(0.325, 0.53125, 0.53125), vec3(0.54375, 0.53125, 0.53125), vec3(0.54375, 0.46875, 0.46875), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.325, 0.46875, 0.46875), vec3(0.54375, 0.46875, 0.46875), vec3(0.54375, 0.53125, 0.53125), vec3(0.325, 0.53125, 0.53125), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.325, 0.46875, 0.53125), vec3(0.325, 0.53125, 0.46875), vec3(0.54375, 0.53125, 0.46875), vec3(0.54375, 0.46875, 0.53125), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.325, 0.46875, 0.53125), vec3(0.54375, 0.46875, 0.53125), vec3(0.54375, 0.53125, 0.46875), vec3(0.325, 0.53125, 0.46875), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.371875, 0.375, 0.375), vec3(0.371875, 0.625, 0.375), vec3(0.371875, 0.625, 0.625), vec3(0.371875, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.375, 0.375), vec3(0.375, 0.625, 0.375), vec3(0.375, 0.625, 0.625), vec3(0.375, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 } else {
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.0, 0.1875, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.1875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.0, 0.4375, 0.1875), vec3(0.375, 0.4375, 0.1875), vec3(0.375, 0.1875, 0.1875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.375, 0.1875, 0.1875), vec3(0.375, 0.1875, 0.4375), vec3(0.0, 0.1875, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.4375), vec3(0.375, 0.1875, 0.4375), vec3(0.375, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.1875), vec3(0.0, 0.4375, 0.4375), vec3(0.375, 0.4375, 0.4375), vec3(0.375, 0.4375, 0.1875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(0.0, 0.5, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(0.0, 0.75, 0.5), vec3(0.25, 0.75, 0.5), vec3(0.25, 0.5, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(0.25, 0.5, 0.5), vec3(0.25, 0.5, 0.75), vec3(0.0, 0.5, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.75), vec3(0.25, 0.5, 0.75), vec3(0.25, 0.75, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.5), vec3(0.0, 0.75, 0.75), vec3(0.25, 0.75, 0.75), vec3(0.25, 0.75, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.246875, 0.5, 0.5), vec3(0.246875, 0.75, 0.5), vec3(0.246875, 0.75, 0.75), vec3(0.246875, 0.5, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.5, 0.5), vec3(0.25, 0.75, 0.5), vec3(0.25, 0.75, 0.75), vec3(0.25, 0.5, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.371875, 0.1875, 0.1875), vec3(0.371875, 0.4375, 0.1875), vec3(0.371875, 0.4375, 0.4375), vec3(0.371875, 0.1875, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
-                                    hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.1875, 0.1875), vec3(0.375, 0.4375, 0.1875), vec3(0.375, 0.4375, 0.4375), vec3(0.375, 0.1875, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    if (modelID == 308u) {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.0, 0.625, 0.375), vec3(0.375, 0.625, 0.375), vec3(0.375, 0.375, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.375), vec3(0.375, 0.375, 0.375), vec3(0.375, 0.375, 0.625), vec3(0.0, 0.375, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.375, 0.625), vec3(0.375, 0.375, 0.625), vec3(0.375, 0.625, 0.625), vec3(0.0, 0.625, 0.625), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.625, 0.375), vec3(0.0, 0.625, 0.625), vec3(0.375, 0.625, 0.625), vec3(0.375, 0.625, 0.375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.325, 0.46875, 0.46875), vec3(0.325, 0.53125, 0.53125), vec3(0.54375, 0.53125, 0.53125), vec3(0.54375, 0.46875, 0.46875), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.325, 0.46875, 0.46875), vec3(0.54375, 0.46875, 0.46875), vec3(0.54375, 0.53125, 0.53125), vec3(0.325, 0.53125, 0.53125), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.325, 0.46875, 0.53125), vec3(0.325, 0.53125, 0.46875), vec3(0.54375, 0.53125, 0.46875), vec3(0.54375, 0.46875, 0.53125), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.325, 0.46875, 0.53125), vec3(0.54375, 0.46875, 0.53125), vec3(0.54375, 0.53125, 0.46875), vec3(0.325, 0.53125, 0.46875), vec3(0.0, 0.707107, 0.707107), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.371875, 0.375, 0.375), vec3(0.371875, 0.625, 0.375), vec3(0.371875, 0.625, 0.625), vec3(0.371875, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.375, 0.375), vec3(0.375, 0.625, 0.375), vec3(0.375, 0.625, 0.625), vec3(0.375, 0.375, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    } else {
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.0, 0.1875, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.1875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.0, 0.4375, 0.1875), vec3(0.375, 0.4375, 0.1875), vec3(0.375, 0.1875, 0.1875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.375, 0.1875, 0.1875), vec3(0.375, 0.1875, 0.4375), vec3(0.0, 0.1875, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.4375), vec3(0.375, 0.1875, 0.4375), vec3(0.375, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.4375, 0.1875), vec3(0.0, 0.4375, 0.4375), vec3(0.375, 0.4375, 0.4375), vec3(0.375, 0.4375, 0.1875), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(0.0, 0.5, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.75, 0.5), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(0.0, 0.75, 0.5), vec3(0.25, 0.75, 0.5), vec3(0.25, 0.5, 0.5), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.5), vec3(0.25, 0.5, 0.5), vec3(0.25, 0.5, 0.75), vec3(0.0, 0.5, 0.75), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.5, 0.75), vec3(0.25, 0.5, 0.75), vec3(0.25, 0.75, 0.75), vec3(0.0, 0.75, 0.75), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.5), vec3(0.0, 0.75, 0.75), vec3(0.25, 0.75, 0.75), vec3(0.25, 0.75, 0.5), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.246875, 0.5, 0.5), vec3(0.246875, 0.75, 0.5), vec3(0.246875, 0.75, 0.75), vec3(0.246875, 0.5, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.5, 0.5), vec3(0.25, 0.75, 0.5), vec3(0.25, 0.75, 0.75), vec3(0.25, 0.5, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.371875, 0.1875, 0.1875), vec3(0.371875, 0.4375, 0.1875), vec3(0.371875, 0.4375, 0.4375), vec3(0.371875, 0.1875, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                        hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.1875, 0.1875), vec3(0.375, 0.4375, 0.1875), vec3(0.375, 0.4375, 0.4375), vec3(0.375, 0.1875, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
+                                    }
                                 }
                             } else {
-                                if (modelID < 308u) {
-                                    if (modelID == 307u) {
+                                if (modelID < 311u) {
+                                    if (modelID == 310u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.0, 0.1875, 0.4375), vec3(0.0, 0.4375, 0.4375), vec3(0.0, 0.4375, 0.1875), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.0, 0.4375, 0.1875), vec3(0.375, 0.4375, 0.1875), vec3(0.375, 0.1875, 0.1875), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.1875, 0.1875), vec3(0.375, 0.1875, 0.1875), vec3(0.375, 0.1875, 0.4375), vec3(0.0, 0.1875, 0.4375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5877,7 +5930,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.375, 0.1875, 0.1875), vec3(0.375, 0.4375, 0.1875), vec3(0.375, 0.4375, 0.4375), vec3(0.375, 0.1875, 0.4375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 308u) {
+                                    if (modelID == 311u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.375), vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.375, 0.125), vec3(0.25, 0.375, 0.125), vec3(0.25, 0.125, 0.125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.25, 0.125, 0.125), vec3(0.25, 0.125, 0.375), vec3(0.0, 0.125, 0.375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -5938,9 +5991,9 @@ bool voxel_intersectBlockModel(
                             }
                         }
                     } else {
-                        if (modelID < 315u) {
-                            if (modelID < 312u) {
-                                if (modelID == 310u) {
+                        if (modelID < 318u) {
+                            if (modelID < 315u) {
+                                if (modelID == 313u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.125, 0.375), vec3(0.0, 0.375, 0.375), vec3(0.0, 0.375, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.0, 0.375, 0.125), vec3(0.375, 0.375, 0.125), vec3(0.375, 0.125, 0.125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.125, 0.125), vec3(0.375, 0.125, 0.125), vec3(0.375, 0.125, 0.375), vec3(0.0, 0.125, 0.375), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -6016,8 +6069,8 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.5, 0.125), vec3(0.4375, 0.75, 0.125), vec3(0.4375, 0.75, 0.375), vec3(0.4375, 0.5, 0.375), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 313u) {
-                                    if (modelID == 312u) {
+                                if (modelID < 316u) {
+                                    if (modelID == 315u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.25), vec3(0.0, 1.0, 0.25), vec3(1.0, 1.0, 0.25), vec3(1.0, 0.0, 0.25), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.25), vec3(1.0, 0.0, 0.25), vec3(1.0, 1.0, 0.25), vec3(0.0, 1.0, 0.25), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.75), vec3(0.0, 1.0, 0.75), vec3(1.0, 1.0, 0.75), vec3(1.0, 0.0, 0.75), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -6028,7 +6081,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.75, 0.0), vec3(1.0, 0.75, 0.0), vec3(1.0, 0.75, 1.0), vec3(0.0, 0.75, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 313u) {
+                                    if (modelID == 316u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.34532, 0.34532), vec3(0.0, 0.65468, 0.65468), vec3(0.875, 0.65468, 0.65468), vec3(0.875, 0.34532, 0.34532), vec3(0.0, 0.707107, -0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.34532, 0.34532), vec3(0.875, 0.34532, 0.34532), vec3(0.875, 0.65468, 0.65468), vec3(0.0, 0.65468, 0.65468), vec3(0.0, -0.707107, 0.707107), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.34532, 0.65468), vec3(0.0, 0.65468, 0.34532), vec3(0.875, 0.65468, 0.34532), vec3(0.875, 0.34532, 0.65468), vec3(0.0, -0.707107, -0.707107), hitT, hitNormal);
@@ -6060,9 +6113,9 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 318u) {
-                                if (modelID < 316u) {
-                                    if (modelID == 315u) {
+                            if (modelID < 321u) {
+                                if (modelID < 319u) {
+                                    if (modelID == 318u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.125), vec3(0.0, 0.0625, 0.875), vec3(0.0, 0.9375, 0.875), vec3(0.0, 0.9375, 0.125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.125), vec3(0.0, 0.9375, 0.125), vec3(1.0, 0.9375, 0.125), vec3(1.0, 0.0625, 0.125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.125), vec3(1.0, 0.0625, 0.125), vec3(1.0, 0.0625, 0.875), vec3(0.0, 0.0625, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -6071,7 +6124,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0625, 0.125), vec3(1.0, 0.9375, 0.125), vec3(1.0, 0.9375, 0.875), vec3(1.0, 0.0625, 0.875), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 316u) {
+                                    if (modelID == 319u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.125), vec3(0.0, 1.0, 0.125), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.125), vec3(0.0, 0.0, 0.125), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -6088,8 +6141,8 @@ bool voxel_intersectBlockModel(
                                     }
                                 }
                             } else {
-                                if (modelID < 319u) {
-                                    if (modelID == 318u) {
+                                if (modelID < 322u) {
+                                    if (modelID == 321u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.625), vec3(0.0, 1.0, 0.625), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.625), vec3(0.0, 0.0, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -6098,7 +6151,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(1.0, 0.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 1.0, 0.625), vec3(1.0, 0.0, 0.625), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 319u) {
+                                    if (modelID == 322u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.875), vec3(0.0, 1.0, 0.875), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.875), vec3(0.0, 0.0, 0.875), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -6122,10 +6175,10 @@ bool voxel_intersectBlockModel(
                         }
                     }
                 } else {
-                    if (modelID < 332u) {
-                        if (modelID < 326u) {
-                            if (modelID < 323u) {
-                                if (modelID == 321u) {
+                    if (modelID < 335u) {
+                        if (modelID < 329u) {
+                            if (modelID < 326u) {
+                                if (modelID == 324u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 0.0, 0.5625), vec3(0.0, 1.0, 0.5625), vec3(0.0, 1.0, 0.0), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), vec3(1.0, 1.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.0), vec3(1.0, 0.0, 0.0), vec3(1.0, 0.0, 0.5625), vec3(0.0, 0.0, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -6143,8 +6196,8 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.167005), vec3(0.978921, 0.0625, 0.581218), vec3(0.978921, 0.9375, 0.581218), vec3(0.0, 0.9375, 0.167005), vec3(-0.389683, 0.0, 0.920949), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 324u) {
-                                    if (modelID == 323u) {
+                                if (modelID < 327u) {
+                                    if (modelID == 326u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.09375, 0.484375), vec3(0.0, 0.09375, 0.515625), vec3(0.25, 0.09375, 0.515625), vec3(0.25, 0.09375, 0.484375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.515625), vec3(0.0, 0.09375, 0.515625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.515625), vec3(0.5, 0.09375, 0.515625), vec3(0.5, 0.09375, 0.484375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
@@ -6155,7 +6208,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.75, 0.09375, 0.484375), vec3(1.0, 0.09375, 0.484375), vec3(1.0, 0.09375, 0.515625), vec3(0.75, 0.09375, 0.515625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 324u) {
+                                    if (modelID == 327u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.09375, 0.484375), vec3(0.0, 0.09375, 0.515625), vec3(0.25, 0.09375, 0.515625), vec3(0.25, 0.09375, 0.484375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.515625), vec3(0.0, 0.09375, 0.515625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.515625), vec3(0.5, 0.09375, 0.515625), vec3(0.5, 0.09375, 0.484375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
@@ -6175,9 +6228,9 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 329u) {
-                                if (modelID < 327u) {
-                                    if (modelID == 326u) {
+                            if (modelID < 332u) {
+                                if (modelID < 330u) {
+                                    if (modelID == 329u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.09375, 0.484375), vec3(0.0, 0.09375, 0.515625), vec3(0.25, 0.09375, 0.515625), vec3(0.25, 0.09375, 0.484375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.515625), vec3(0.0, 0.09375, 0.515625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.515625), vec3(0.5, 0.09375, 0.515625), vec3(0.5, 0.09375, 0.484375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
@@ -6192,7 +6245,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.484375, 0.09375, 0.75), vec3(0.515625, 0.09375, 0.75), vec3(0.515625, 0.09375, 1.0), vec3(0.484375, 0.09375, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 327u) {
+                                    if (modelID == 330u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.09375, 0.484375), vec3(0.0, 0.09375, 0.515625), vec3(0.25, 0.09375, 0.515625), vec3(0.25, 0.09375, 0.484375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.515625), vec3(0.0, 0.09375, 0.515625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.25, 0.09375, 0.484375), vec3(0.25, 0.09375, 0.515625), vec3(0.5, 0.09375, 0.515625), vec3(0.5, 0.09375, 0.484375), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
@@ -6235,8 +6288,8 @@ bool voxel_intersectBlockModel(
                                     }
                                 }
                             } else {
-                                if (modelID < 330u) {
-                                    if (modelID == 329u) {
+                                if (modelID < 333u) {
+                                    if (modelID == 332u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.375), vec3(0.0, 0.0625, 0.625), vec3(0.0, 0.5625, 0.625), vec3(0.0, 0.5625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.375), vec3(0.0, 0.5625, 0.375), vec3(0.125, 0.5625, 0.375), vec3(0.125, 0.0625, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.375), vec3(0.125, 0.0625, 0.375), vec3(0.125, 0.0625, 0.625), vec3(0.0, 0.0625, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -6261,7 +6314,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.58125, 0.2625, 0.3875), vec3(0.58125, 0.3125, 0.3875), vec3(0.58125, 0.3125, 0.6125), vec3(0.58125, 0.2625, 0.6125), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 330u) {
+                                    if (modelID == 333u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.375), vec3(0.0, 0.0625, 0.625), vec3(0.0, 0.5625, 0.625), vec3(0.0, 0.5625, 0.375), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.375), vec3(0.0, 0.5625, 0.375), vec3(0.125, 0.5625, 0.375), vec3(0.125, 0.0625, 0.375), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.375), vec3(0.125, 0.0625, 0.375), vec3(0.125, 0.0625, 0.625), vec3(0.0, 0.0625, 0.625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -6315,9 +6368,9 @@ bool voxel_intersectBlockModel(
                             }
                         }
                     } else {
-                        if (modelID < 337u) {
-                            if (modelID < 334u) {
-                                if (modelID == 332u) {
+                        if (modelID < 340u) {
+                            if (modelID < 337u) {
+                                if (modelID == 335u) {
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.3125), vec3(0.0, 0.25, 0.5625), vec3(0.0, 0.5, 0.5625), vec3(0.0, 0.5, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.3125), vec3(0.0, 0.5, 0.3125), vec3(0.4375, 0.5, 0.3125), vec3(0.4375, 0.25, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.25, 0.3125), vec3(0.4375, 0.25, 0.3125), vec3(0.4375, 0.25, 0.5625), vec3(0.0, 0.25, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -6339,8 +6392,8 @@ bool voxel_intersectBlockModel(
                                     hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.3125, 0.5), vec3(0.4375, 0.5625, 0.5), vec3(0.4375, 0.5625, 0.75), vec3(0.4375, 0.3125, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                 }
                             } else {
-                                if (modelID < 335u) {
-                                    if (modelID == 334u) {
+                                if (modelID < 338u) {
+                                    if (modelID == 337u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.3125), vec3(0.0, 0.0625, 0.5625), vec3(0.0, 0.3125, 0.5625), vec3(0.0, 0.3125, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.3125), vec3(0.0, 0.3125, 0.3125), vec3(0.3125, 0.3125, 0.3125), vec3(0.3125, 0.0625, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.3125), vec3(0.3125, 0.0625, 0.3125), vec3(0.3125, 0.0625, 0.5625), vec3(0.0, 0.0625, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -6361,7 +6414,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.4375, 0.3125, 0.5), vec3(0.4375, 0.5625, 0.5), vec3(0.4375, 0.5625, 0.75), vec3(0.4375, 0.3125, 0.75), vec3(1.0, 0.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 335u) {
+                                    if (modelID == 338u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.3125), vec3(0.0, 0.0625, 0.5625), vec3(0.0, 0.3125, 0.5625), vec3(0.0, 0.3125, 0.3125), vec3(-1.0, 0.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.3125), vec3(0.0, 0.3125, 0.3125), vec3(0.3125, 0.3125, 0.3125), vec3(0.3125, 0.0625, 0.3125), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0625, 0.3125), vec3(0.3125, 0.0625, 0.3125), vec3(0.3125, 0.0625, 0.5625), vec3(0.0, 0.0625, 0.5625), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
@@ -6401,16 +6454,16 @@ bool voxel_intersectBlockModel(
                                 }
                             }
                         } else {
-                            if (modelID < 340u) {
-                                if (modelID < 338u) {
-                                    if (modelID == 337u) {
+                            if (modelID < 343u) {
+                                if (modelID < 341u) {
+                                    if (modelID == 340u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.05), vec3(0.0, 1.0, 0.05), vec3(1.0, 1.0, 0.05), vec3(1.0, 0.0, 0.05), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.05), vec3(1.0, 0.0, 0.05), vec3(1.0, 1.0, 0.05), vec3(0.0, 1.0, 0.05), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.05, 0.0), vec3(0.0, 0.05, 1.0), vec3(1.0, 0.05, 1.0), vec3(1.0, 0.05, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.05, 0.0), vec3(1.0, 0.05, 0.0), vec3(1.0, 0.05, 1.0), vec3(0.0, 0.05, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 338u) {
+                                    if (modelID == 341u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.05), vec3(0.0, 1.0, 0.05), vec3(1.0, 1.0, 0.05), vec3(1.0, 0.0, 0.05), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.05), vec3(1.0, 0.0, 0.05), vec3(1.0, 1.0, 0.05), vec3(0.0, 1.0, 0.05), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.05, 0.0), vec3(0.0, 0.05, 1.0), vec3(1.0, 0.05, 1.0), vec3(1.0, 0.05, 0.0), vec3(0.0, 1.0, 0.0), hitT, hitNormal);
@@ -6425,8 +6478,8 @@ bool voxel_intersectBlockModel(
                                     }
                                 }
                             } else {
-                                if (modelID < 341u) {
-                                    if (modelID == 340u) {
+                                if (modelID < 344u) {
+                                    if (modelID == 343u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.05), vec3(0.0, 1.0, 0.05), vec3(1.0, 1.0, 0.05), vec3(1.0, 0.0, 0.05), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.05), vec3(1.0, 0.0, 0.05), vec3(1.0, 1.0, 0.05), vec3(0.0, 1.0, 0.05), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.95), vec3(0.0, 1.0, 0.95), vec3(1.0, 1.0, 0.95), vec3(1.0, 0.0, 0.95), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
@@ -6435,7 +6488,7 @@ bool voxel_intersectBlockModel(
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.05, 0.0), vec3(1.0, 0.05, 0.0), vec3(1.0, 0.05, 1.0), vec3(0.0, 0.05, 1.0), vec3(0.0, -1.0, 0.0), hitT, hitNormal);
                                     }
                                 } else {
-                                    if (modelID == 341u) {
+                                    if (modelID == 344u) {
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.05), vec3(0.0, 1.0, 0.05), vec3(1.0, 1.0, 0.05), vec3(1.0, 0.0, 0.05), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.05), vec3(1.0, 0.0, 0.05), vec3(1.0, 1.0, 0.05), vec3(0.0, 1.0, 0.05), vec3(0.0, 0.0, 1.0), hitT, hitNormal);
                                         hit = hit || _voxel_intersectBlockModelQuad(rayOrigin, rayDir, vec3(0.0, 0.0, 0.95), vec3(0.0, 1.0, 0.95), vec3(1.0, 1.0, 0.95), vec3(1.0, 0.0, 0.95), vec3(0.0, 0.0, -1.0), hitT, hitNormal);
