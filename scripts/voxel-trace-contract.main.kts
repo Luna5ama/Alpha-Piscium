@@ -113,9 +113,16 @@ if (quadBytes.size != quadTextureRowBytes * expectedQuadTextureHeight) {
 }
 if (quadBytes.drop(quadCount * 8).any { it != 0.toByte() }) failures += "quad texture padding is not zero"
 
-val expectedPbrProperty = "customTexture.usam_pbrLUT2=textures/pbr_lut_2.bin TEXTURE_2D R32UI 64 $materialCount RED_INTEGER UNSIGNED_INT"
-expect(properties, expectedPbrProperty, "maintained 2D model LUT property")
-expect(finalProperties, expectedPbrProperty, "final 2D model LUT property")
+for (index in 0..1) {
+    val expectedPbrProperty =
+        "customTexture.usam_pbrLUT$index=textures/pbr_lut_$index.bin TEXTURE_1D R32UI $materialCount RED_INTEGER UNSIGNED_INT"
+    expect(properties, expectedPbrProperty, "maintained PBR LUT $index property")
+    expect(finalProperties, expectedPbrProperty, "final PBR LUT $index property")
+}
+val expectedModelLutProperty =
+    "customTexture.usam_pbrLUT2=textures/pbr_lut_2.bin TEXTURE_2D R32UI 64 $materialCount RED_INTEGER UNSIGNED_INT"
+expect(properties, expectedModelLutProperty, "maintained 2D model LUT property")
+expect(finalProperties, expectedModelLutProperty, "final 2D model LUT property")
 fun checkQuadProperty(text: String, label: String) {
     val match = Regex("(?m)^customTexture\\.usam_blockModelQuads=textures/block_model_quads\\.bin TEXTURE_2D RGBA8 (\\d+) (\\d+) RGBA UNSIGNED_BYTE$").find(text)
     if (match == null) failures += "$label: 2D normalized quad texture declaration missing"
