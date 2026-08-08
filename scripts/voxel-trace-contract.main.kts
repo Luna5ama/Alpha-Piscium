@@ -90,6 +90,7 @@ val surface = read("shaders/techniques/voxel/SurfaceData.glsl")
 val texcoords = read("shaders/techniques/voxel/VoxelFaceTexcoords.glsl")
 val clear = read("shaders/pass/setup/ClearVoxelFaceTexcoords.comp.glsl")
 val properties = read("scripts/shaders.properties")
+val finalProperties = read("shaders/shaders.properties")
 val textures = read("shaders/base/Textures.glsl")
 
 val states = listOf(
@@ -243,8 +244,12 @@ if (writebackStart < 0 || resultStart < 0) {
 expect(surface, "gData.geomNormal = hit.normal;", "exact normal")
 expect(texcoords, "#define VOXEL_FACE_TEXCOORD_MATERIALS 16384", "texcoord capacity")
 expect(clear, "const ivec3 workGroups = ivec3(768, 1, 1);", "clear size")
-expect(properties, "customTexture.usam_pbrLUT0=textures/pbr_lut_0.bin TEXTURE_1D R32UI $lutWidth ", "LUT width")
-expect(properties, "customTexture.usam_pbrLUT1=textures/pbr_lut_1.bin TEXTURE_1D R32UI $lutWidth ", "model LUT width")
+for (index in 0..2) {
+    val expectedPbrProperty =
+        "customTexture.usam_pbrLUT$index=textures/pbr_lut_$index.bin TEXTURE_1D R32UI $lutWidth RED_INTEGER UNSIGNED_INT"
+    expect(properties, expectedPbrProperty, "maintained PBR LUT $index property")
+    expect(finalProperties, expectedPbrProperty, "final PBR LUT $index property")
+}
 expect(properties, "customTexture.usam_blockModelAABBs=textures/block_model_aabbs.bin TEXTURE_1D RGBA8 $aabbTexelWidth RGBA UNSIGNED_BYTE", "block-model AABB texture")
 expect(textures, "uniform sampler1D usam_blockModelAABBs;", "block-model AABB sampler")
 expect(properties, "bufferObject.9=1572864", "SSBO size")
