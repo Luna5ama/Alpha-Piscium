@@ -23,22 +23,22 @@
                 "distance_function": "Euclidean",
                 "smooth_worley": {
                     "flip": false,
-                    "mix_weight": "1.00000",
-                    "smoothness": "0.37500",
-                    "rand_power": "0.5",
-                    "min_bound": "0.7500",
-                    "max_bound": "1.2500",
-                    "step_function_type": "LinearStep"
+                    "mix_weight": "-0.37500",
+                    "smoothness": "1.00000",
+                    "rand_power": "1.2500",
+                    "min_bound": "0.0000",
+                    "max_bound": "0.2500",
+                    "step_function_type": "SmoothStep"
                 },
                 "regular_worley": {
                     "f1_flip": false,
                     "f2_flip": false,
-                    "f1_mix_weight": "0.50000",
-                    "f2_mix_weight": "-1.00000",
-                    "rand_power": "2.0000",
+                    "f1_mix_weight": "1.00000",
+                    "f2_mix_weight": "-0.75000",
+                    "rand_power": "1.2500",
                     "min_bound": "0.0000",
                     "max_bound": "1",
-                    "step_function_type": "LinearStep"
+                    "step_function_type": "SmoothStep"
                 }
             }
         }
@@ -54,9 +54,9 @@
     "viewer_parameters": {
         "color_mode": "RGB",
         "tilling": false,
-        "center_x": "-81.83",
-        "center_y": "7.700",
+        "center_x": "-84.87",
+        "center_y": "-21.22",
         "slice": "0.0",
-        "zoom": "1.887"
+        "zoom": "2.930"
     }
 }

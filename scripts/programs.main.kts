@@ -134,6 +134,13 @@ programs {
         pass("/pass/setup/ClearRGB10A2.glsl")
         pass("/pass/setup/ClearRGBA8.glsl")
         pass("/pass/setup/ClearR32F.glsl")
+        for (mipLevel in 0..14) {
+            pass("/techniques/parallax/MaterialDepthMip.comp.glsl") {
+                constDefine("MATERIAL_DEPTH_MIP_LEVEL", mipLevel)
+                constDefine("MATERIAL_DEPTH_MIP_WORK_GROUPS", maxOf(1, 512 shr mipLevel))
+                cond("defined(SETTING_NORMAL_MAPPING)")
+            }
+        }
         pass("/pass/setup/ClearVoxelFaceTexcoords.comp.glsl")
     }
 
