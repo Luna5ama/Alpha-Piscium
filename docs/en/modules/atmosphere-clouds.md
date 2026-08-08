@@ -55,6 +55,70 @@ The main screen tiles are `transient_lowCloudRender`, `transient_lowCloudAccumul
 RGBA32UI). The hand-maintained property fragment declares custom cloud phase-LUT, cirrus, cumulus base/detail, and curl
 textures. High cirrus is sampled by the shared sky/cloud path rather than a separate compute program.
 
+### Cumulus isotropic multiple scattering
+
+The cumulus renderer reuses the existing ordered eight-sample sun-light column. For each source sample jittered uniformly in distance within its quadratic-distance bin,
+let `U_i` be the prefix optical depth from the start of the light column to that source position, `sigma_s` the scattering coefficient,
+`sigma_tr` the transport coefficient, `ds` the sample length, and `r` the source radius. This diffusion approximation
+uses `sigma_tr ≈ sigma_t` in the implementation. With dimensionless absorption fraction (albedo deficit) `a = 0.001`
+multiplying optical depth, per-channel asymmetry `g`, and `k = sqrt(3a)`, the direct upstream-prefix estimator is
+
+$$
+W_i=\frac{(\sigma_s\,ds)\sigma_{tr}}{r},\qquad
+\Phi=\sum_{i=1}^{8}W_i e^{-aU_i}
+     \left(1-e^{-(1-g)U_i}\right)e^{-kU_i}.
+$$
+
+The implementation clamps the build rate `1 - g` to a nonnegative value so transformed color spaces cannot turn
+scattering buildup into amplification.
+
+Intensity is applied before a fixed soft compression:
+
+$$
+\Phi_{\mathrm{mapped}}=1-e^{-\max(\mathrm{intensity}\,\Phi,0)}.
+$$
+
+This bounds each mapped channel below `1`. `SETTING_CLOUDS_CU_ISOTROPIC_MS_INTENSITY` supplies `intensity`; `0`
+disables the contribution, the default `1.0` is the current artistic gain, and `0.25` approximately matches the
+omitted `3/(4π)` normalization reference. The result is added independently of the existing WDT22
+multiple-scattering term; it does not replace or modify that term.
+
+The accumulated `phi_fwd` field is isotropic and follows the prefix estimator, but final view-path readout intentionally
+uses `msPhase = mix(UNIFORM_PHASE, layerParam.medium.phase, 0.7)` to retain controlled directional structure. This
+rendering choice is layered after the isotropic field, not part of its transport recurrence.
+
+The receiver-local boundary weight is
+
+$$
+H(x,z)=\mathrm{thickness}\;\mathrm{saturate}(\mathrm{baseCoverage}_{raw}(x,z)),\qquad
+\Delta=\mathrm{clamp}(0.05/\_LOW\_BASE\_FREQ,0.025,0.2),
+$$
+
+$$
+\partial_xH=\frac{H(x+\Delta,z)-H(x-\Delta,z)}{2\Delta},\qquad
+\partial_zH=\frac{H(x,z+\Delta)-H(x,z-\Delta)}{2\Delta},\qquad
+N=\mathrm{normalize}(-\partial_xH,1,-\partial_zH),
+$$
+
+$$
+C_{top}^{raw}=\mathrm{saturate}\!\left(\frac{N\cdot\mathrm{renderParams.lightDir}+0.5}{1.5}\right),\qquad
+C_{top}=\mathrm{mix}(1,C_{top}^{raw},0.25),\qquad
+C_{bottom}=1-\exp\!\left(-\frac{\max(h_{local},0)}{0.1\,\mathrm{mix}(1,4,h_{column})}\right),\qquad
+B_{eff}=C_{top}C_{bottom}.
+$$
+
+Here `baseCoverage_raw` is the existing pre-height coverage value, `h_column = saturate(baseCoverage_raw)` reuses the
+receiver density lookup, and `h_local` is the normalized receiver height (`0` at the cumulus-layer base and `1` at its
+top). The constants correspond to `b = 0`, `p = 1`, and `H_bottom = 0.1`, matching the density model's existing normalized
+`0.1` bottom scale. `C_top` uses the actual `renderParams.lightDir`, not the cone-jittered light-march direction. The
+`0.25` confidence strength keeps the top factor in `[0.75,1]`; full-strength use of the coarse coverage normal exposes
+vertical bands in the cloud body. The gate is evaluated once per occupied receiver sample and multiplies every source
+weight before accumulation, intensity, and compression. It costs four extra coverage-proxy evaluations with no extra
+center lookup, and adds no pass, resource, texture resource, or density march.
+
+The estimator is adapted from AshenOneArt's [HanPi Volume Cloud implementation](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/VolumetricClouds.hlsl)
+and [forward-flux derivation](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/Docs/PhiFwd_FromRTE.md).
+
 ## Air, depth layers, and composition
 
 | Stage               | Pass/code                                                                                                                                                  | Purpose                                                                                                          |
@@ -77,7 +141,7 @@ through its own sky composite and [`Celestial.glsl`](../../../shaders/util/Celes
 | Atmosphere scale/ground | Altitude, density scale, and ground albedo                                                                                                      |
 | Air                     | Epipolar slices/samples; Mie turbidity/time curve; Mie/Rayleigh/ozone multipliers                                                               |
 | Sky/light shafts        | Sky-view resolution, sky samples, shaft samples/shadow samples, depth-break correction, and softness                                            |
-| Low cloud               | Upscale factor; history length/confidence/variance; minimum/maximum steps; height/thickness/density/coverage/phase; wind; and shape frequencies |
+| Low cloud               | Upscale factor; history length/confidence/variance; minimum/maximum steps; height/thickness/density/coverage/phase; isotropic multiple-scattering intensity; wind; and shape frequencies |
 | High cloud              | Cirrus height, density, coverage, and phase                                                                                                     |
 | Celestial               | Sun/moon radius, distance, temperature/color/albedo; star-map intensity/gamma/bright-star boost; and constellations                             |
 
