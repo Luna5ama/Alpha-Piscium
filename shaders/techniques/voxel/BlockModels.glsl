@@ -37,10 +37,17 @@ bool _voxel_intersectBlockModelQuad(
     if (!(t >= 0.0 && t <= hitT)) return false;
     vec3 point = rayOrigin + rayDir * t;
     const float edgeTolerance = 5e-5;
+#ifdef VOXEL_BLOCK_MODEL_TRIPLE_PRODUCT
+    if (dot(point - v0, cross(normal, v1 - v0)) < -edgeTolerance) return false;
+    if (dot(point - v1, cross(normal, v2 - v1)) < -edgeTolerance) return false;
+    if (dot(point - v2, cross(normal, v3 - v2)) < -edgeTolerance) return false;
+    if (dot(point - v3, cross(normal, v0 - v3)) < -edgeTolerance) return false;
+#else
     if (dot(cross(v1 - v0, point - v0), normal) < -edgeTolerance) return false;
     if (dot(cross(v2 - v1, point - v1), normal) < -edgeTolerance) return false;
     if (dot(cross(v3 - v2, point - v2), normal) < -edgeTolerance) return false;
     if (dot(cross(v0 - v3, point - v3), normal) < -edgeTolerance) return false;
+#endif
     hitT = t;
     hitNormal = denominator < 0.0 ? normal : -normal;
     return true;
