@@ -6,33 +6,22 @@
 @file:OptIn(ExperimentalPathApi::class)
 @file:Import("make-zip.kts")
 
-import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.RequestBody.Companion.asRequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.StandardCopyOption
-import java.util.Properties
-import java.util.zip.Deflater
-import java.util.zip.ZipEntry
-import java.util.zip.ZipOutputStream
+import java.util.*
 import kotlin.io.path.ExperimentalPathApi
 import kotlin.io.path.Path
-import kotlin.io.path.PathWalkOption
 import kotlin.io.path.absolute
-import kotlin.io.path.extension
-import kotlin.io.path.inputStream
-import kotlin.io.path.invariantSeparatorsPathString
-import kotlin.io.path.isDirectory
-import kotlin.io.path.listDirectoryEntries
 import kotlin.io.path.name
-import kotlin.io.path.outputStream
-import kotlin.io.path.relativeTo
-import kotlin.io.path.walk
 import kotlin.system.exitProcess
 
 // Check if version argument is provided
@@ -53,6 +42,20 @@ if (skippedSteps.isNotEmpty()) {
 }
 
 val isBeta = version.contains("beta", true)
+
+val branchNameFull =
+    Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD")).inputStream.bufferedReader()
+        .readText().trim()
+val delimiters = charArrayOf('/', '-', '_')
+val isOnMainBranch = branchNameFull == "main"
+val isOnDevBranch = branchNameFull.splitToSequence(*delimiters).contains("dev")
+
+if (isBeta && !isOnDevBranch) {
+    error("Error: You are creating a beta release while not on the 'dev' branch. Current branch: $branchNameFull")
+} else if (!isBeta && !isOnMainBranch) {
+    error("Error: You are creating a stable release while not on the 'main' branch. Current branch: $branchNameFull")
+}
+
 val rootDir = File("").absoluteFile.parentFile
 val buildDir = File(rootDir, "builds")
 val changelogFile = File(rootDir, "changelogs/$version.md")
@@ -132,12 +135,13 @@ if (1 !in skippedSteps) {
 
         val branchName =
             Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD")).inputStream.bufferedReader()
-                .readText().trim().takeIf { it != "main" && it != "dev" }
+                .readText().trim().takeIf { !isOnMainBranch && !isOnDevBranch }
+                ?.replace('/', '-')
         val commitTag =
             Runtime.getRuntime().exec(arrayOf("git", "rev-parse", "--short", "HEAD")).inputStream.bufferedReader().readText()
                 .trim()
-        val suffix = listOfNotNull(version, commitTag, branchName).joinToString("-")
-        val zipFileName = "${projectRootPath.name.replace("-", " ")}$suffix.zip"
+        val suffixStr = listOfNotNull(version, commitTag, branchName).joinToString("-")
+        val zipFileName = "${projectRootPath.name.replace("-", " ")}$suffixStr.zip"
         val zipFilePath = projectRootPath.resolve("builds").resolve(zipFileName)
 
         makeZip(zipFilePath)
@@ -166,26 +170,9 @@ if (2 !in skippedSteps) {
 if (3 !in skippedSteps) {
     println("\nStep 3: Creating and pushing git tag...")
     val githubReleaseTag = "v$version"
-    val targetBranch = if (isBeta) "dev" else "main"
+    val targetBranch = branchNameFull
 
-    // Get current branch
-    val currentBranch = Runtime.getRuntime()
-        .exec(arrayOf("git", "rev-parse", "--abbrev-ref", "HEAD"))
-        .inputStream.bufferedReader().readText().trim()
-
-    println("Current branch: $currentBranch")
     println("Target branch for tag: $targetBranch")
-
-    // Checkout target branch if needed
-    if (currentBranch != targetBranch) {
-        println("Checking out $targetBranch branch...")
-        val checkoutProcess = Runtime.getRuntime().exec(arrayOf("git", "checkout", targetBranch))
-        checkoutProcess.waitFor()
-        if (checkoutProcess.exitValue() != 0) {
-            println("Error: Failed to checkout $targetBranch branch")
-            exitProcess(1)
-        }
-    }
 
     // Create the tag
     println("Creating tag $githubReleaseTag on $targetBranch branch...")
@@ -206,13 +193,6 @@ if (3 !in skippedSteps) {
     }
 
     println("Tag $githubReleaseTag created and pushed successfully")
-
-    // Checkout back to original branch if needed
-    if (currentBranch != targetBranch) {
-        println("Checking out back to $currentBranch branch...")
-        val checkoutBackProcess = Runtime.getRuntime().exec(arrayOf("git", "checkout", currentBranch))
-        checkoutBackProcess.waitFor()
-    }
 } else {
     println("Step 3: Skipped")
 }
@@ -221,7 +201,7 @@ if (3 !in skippedSteps) {
 if (4 !in skippedSteps) {
     println("\nStep 4: Creating GitHub release...")
     val githubReleaseTag = "v$version"
-    val targetBranch = if (isBeta) "dev" else "main"
+    val targetBranch = branchNameFull
     val githubReleaseName = "Alpha Piscium v$version"
 
     // Create the release
