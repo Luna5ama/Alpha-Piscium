@@ -97,8 +97,20 @@ expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
 val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
 if (!modelFunction.contains("if (modelID <")) failures += "model dispatch is not a binary if/else tree"
-if (!Regex("(?m)^\\s*} else \\{\\r?\\n\\s*hit = hit \\|\\| _voxel_intersectBlockModelQuad").containsMatchIn(modelFunction)) {
-    failures += "model dispatch does not fold any two-leaf branch"
+if (modelFunction.contains("hit = hit || _voxel_intersectBlockModelQuad")) {
+    failures += "model dispatch still short-circuits reordered quad tests"
+}
+val modelLines = modelFunction.lines()
+val branchIndents = modelLines.asSequence()
+    .filter { it.trimStart().startsWith("if (modelID <") }
+    .map { it.indexOfFirst { char -> !char.isWhitespace() } }
+    .toSet()
+val quadIndents = modelLines.asSequence()
+    .filter { it.trimStart().startsWith("hit = _voxel_intersectBlockModelQuad") }
+    .map { it.indexOfFirst { char -> !char.isWhitespace() } }
+    .toSet()
+if (branchIndents.intersect(quadIndents).isEmpty()) {
+    failures += "model dispatch does not hoist shared quad tests into internal nodes"
 }
 if (Regex("(?m)^    bool hit = false;$").findAll(modelFunction).count() != 1) {
     failures += "model function does not have exactly one hit accumulator"
