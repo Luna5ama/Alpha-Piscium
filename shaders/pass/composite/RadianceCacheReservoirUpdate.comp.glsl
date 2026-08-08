@@ -1,5 +1,6 @@
 layout(local_size_x = 128) in;
 
+#define VOXEL_BLOCK_MODEL_LINEAR_AABB_TEXELS
 #include "/techniques/gi/RadianceCacheUpdate.glsl"
 
 void main() {

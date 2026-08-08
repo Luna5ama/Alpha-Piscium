@@ -10,6 +10,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/gi/PairwiseMISMetadata.glsl"
+#define VOXEL_BLOCK_MODEL_LINEAR_AABB_TEXELS
 #include "/techniques/voxel/VoxelTrace.glsl"
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);

@@ -42,10 +42,9 @@ uint _voxel_expandBlockModelRotation(uint rotation) {
 }
 
 bool _voxel_intersectBlockModelAABB(
-    vec3 rayOrigin, vec3 rayDir, uint aabbIndex, float rayMinT, float rayMaxT,
+    vec3 rayOrigin, vec3 rayDir, int texelIndex, float rayMinT, float rayMaxT,
     inout float hitT, inout vec3 hitNormal
 ) {
-    int texelIndex = int(aabbIndex * 3u);
     vec4 originData = texelFetch(usam_blockModelAABBs, texelIndex + 1, 0);
     uint discreteRotation = uint(originData.w * 255.0 + 0.5);
     bool discrete = discreteRotation != 255u;
@@ -171,11 +170,21 @@ bool voxel_intersectBlockModel(
     hitT = uintBitsToFloat(0x7F800000u);
     hitNormal = vec3(0.0);
     bool hit = false;
+#ifdef VOXEL_BLOCK_MODEL_LINEAR_AABB_TEXELS
+    int texelIndex = int(aabbOffset * 3u);
     for (uint i = 0u; i < aabbCount; ++i) {
         hit = _voxel_intersectBlockModelAABB(
-            rayOrigin, rayDir, aabbOffset + i, rayMinT, rayMaxT, hitT, hitNormal
+            rayOrigin, rayDir, texelIndex, rayMinT, rayMaxT, hitT, hitNormal
+        ) || hit;
+        texelIndex += 3;
+    }
+#else
+    for (uint i = 0u; i < aabbCount; ++i) {
+        hit = _voxel_intersectBlockModelAABB(
+            rayOrigin, rayDir, int((aabbOffset + i) * 3u), rayMinT, rayMaxT, hitT, hitNormal
         ) || hit;
     }
+#endif
     if (hit) hitNormal = _voxel_unrotateBlockModelVector(rotation, hitNormal);
     return hit;
 }
