@@ -4,17 +4,12 @@
 #ifndef INCLUDE_techniques_voxel_BlockModels_glsl
 #define INCLUDE_techniques_voxel_BlockModels_glsl a
 
-float _voxel_rotateBlockModelComponent(uint transform, vec3 value) {
-    float result = value[int(transform & 3u)];
-    return (transform & 4u) == 0u ? result : -result;
-}
-
-vec3 _voxel_rotateBlockModelVector(uint rotation, vec3 value) {
-    return vec3(
-        _voxel_rotateBlockModelComponent(rotation, value),
-        _voxel_rotateBlockModelComponent(rotation >> 3u, value),
-        _voxel_rotateBlockModelComponent(rotation >> 6u, value)
-    );
+void _voxel_rotateBlockModelRay(uint rotation, inout vec3 rayOrigin, inout vec3 rayDir) {
+    uvec3 transform = uvec3(rotation, rotation >> 3u, rotation >> 6u);
+    ivec3 axis = ivec3(transform & 3u);
+    vec3 transformSign = mix(vec3(1.0), vec3(-1.0), notEqual(transform & 4u, uvec3(0u)));
+    rayOrigin = vec3(rayOrigin[axis.x], rayOrigin[axis.y], rayOrigin[axis.z]) * transformSign;
+    rayDir = vec3(rayDir[axis.x], rayDir[axis.y], rayDir[axis.z]) * transformSign;
 }
 
 vec3 _voxel_unrotateBlockModelVector(uint rotation, vec3 value) {
@@ -78,8 +73,9 @@ bool voxel_intersectBlockModel(
     uint quadCount = (modelData >> 25u) & 0x3Fu;
     bool axisAligned = (modelData & 0x80000000u) != 0u;
     ivec2 texelCoord = ivec2(int((modelData >> 8u) & 0x7FFEu), int((modelData >> 23u) & 3u));
-    rayOrigin = _voxel_rotateBlockModelVector(rotation, rayOrigin - vec3(0.5)) + vec3(0.5);
-    rayDir = _voxel_rotateBlockModelVector(rotation, rayDir);
+    rayOrigin -= vec3(0.5);
+    _voxel_rotateBlockModelRay(rotation, rayOrigin, rayDir);
+    rayOrigin += vec3(0.5);
     hitT = uintBitsToFloat(0x7F800000u);
     hitNormal = vec3(0.0);
     bool hit = false;

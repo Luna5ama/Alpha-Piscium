@@ -151,7 +151,8 @@ if (Regex("while\\s*\\(\\s*quadCount\\s*!=\\s*0u\\s*\\)").findAll(models).count(
     failures += "model-level axis split must have exactly two countdown quad loops"
 }
 expect(models, Regex("--quadCount"), "quad loop countdown")
-expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
+expect(models, "_voxel_rotateBlockModelRay", "shared packed ray rotation")
+reject(models, Regex("_voxel_rotateBlockModelComponent"), "duplicated component rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
 val axisQuadIntersection = models.substringAfter("bool _voxel_intersectBlockModelAxisAlignedQuad(")
     .substringBefore("bool _voxel_intersectBlockModelQuad(")
