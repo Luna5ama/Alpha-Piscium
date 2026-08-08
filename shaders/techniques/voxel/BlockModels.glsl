@@ -68,6 +68,62 @@ bool _voxel_intersectBlockModelAABB(
     float exitT = uintBitsToFloat(0x7F800000u);
     int entryAxis = 0;
     int exitAxis = 0;
+#ifdef VOXEL_BLOCK_MODEL_UNROLL_SLABS
+    {
+        if (abs(localDir.x) <= 1e-6) {
+            if (abs(localOrigin.x) > halfSize.x) return false;
+        } else {
+            float signedHalfSize = halfSize.x * sign(localDir.x);
+            float nearT = (-signedHalfSize - localOrigin.x) / localDir.x;
+            float farT = (signedHalfSize - localOrigin.x) / localDir.x;
+            if (nearT > entryT) {
+                entryT = nearT;
+                entryAxis = 0;
+            }
+            if (farT < exitT) {
+                exitT = farT;
+                exitAxis = 0;
+            }
+            if (entryT > exitT) return false;
+        }
+    }
+    {
+        if (abs(localDir.y) <= 1e-6) {
+            if (abs(localOrigin.y) > halfSize.y) return false;
+        } else {
+            float signedHalfSize = halfSize.y * sign(localDir.y);
+            float nearT = (-signedHalfSize - localOrigin.y) / localDir.y;
+            float farT = (signedHalfSize - localOrigin.y) / localDir.y;
+            if (nearT > entryT) {
+                entryT = nearT;
+                entryAxis = 1;
+            }
+            if (farT < exitT) {
+                exitT = farT;
+                exitAxis = 1;
+            }
+            if (entryT > exitT) return false;
+        }
+    }
+    {
+        if (abs(localDir.z) <= 1e-6) {
+            if (abs(localOrigin.z) > halfSize.z) return false;
+        } else {
+            float signedHalfSize = halfSize.z * sign(localDir.z);
+            float nearT = (-signedHalfSize - localOrigin.z) / localDir.z;
+            float farT = (signedHalfSize - localOrigin.z) / localDir.z;
+            if (nearT > entryT) {
+                entryT = nearT;
+                entryAxis = 2;
+            }
+            if (farT < exitT) {
+                exitT = farT;
+                exitAxis = 2;
+            }
+            if (entryT > exitT) return false;
+        }
+    }
+#else
     for (int axis = 0; axis < 3; ++axis) {
         if (abs(localDir[axis]) <= 1e-6) {
             if (abs(localOrigin[axis]) > halfSize[axis]) return false;
@@ -86,9 +142,11 @@ bool _voxel_intersectBlockModelAABB(
         }
         if (entryT > exitT) return false;
     }
-    bool exitsInside = entryT < rayMinT && exitT <= min(rayMaxT, hitT);
+#endif
+    float maxT = min(rayMaxT, hitT);
+    bool exitsInside = entryT < rayMinT && exitT <= maxT;
     float t = entryT < rayMinT ? (exitsInside ? exitT : rayMinT) : entryT;
-    if (exitT < rayMinT || t > min(rayMaxT, hitT)) return false;
+    if (exitT < rayMinT || t > maxT) return false;
     int normalAxis = exitsInside ? exitAxis : entryAxis;
     vec3 localNormal = vec3(0.0);
     localNormal[normalAxis] = -sign(localDir[normalAxis]);
