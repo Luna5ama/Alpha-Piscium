@@ -31,14 +31,26 @@ bool _voxel_intersectBlockModelAxisAlignedQuad(
     vec3 origin = originNormalX.xyz;
     vec2 halfSize = normalYZHalfSize.zw + 1e-6;
     int axis = int(originNormalX.w * 255.0 + 0.5) - 253;
-    float t = (origin[axis] - rayOrigin[axis]) * inverseRayDir[axis];
+    float t;
+    vec2 projected;
+    vec3 normal = vec3(0.0);
+    if (axis == 0) {
+        t = (origin.x - rayOrigin.x) * inverseRayDir.x;
+        projected = abs(rayOrigin.yz + rayDir.yz * t - origin.yz);
+        normal.x = inverseRayDir.x < 0.0 ? 1.0 : -1.0;
+    } else if (axis == 1) {
+        t = (origin.y - rayOrigin.y) * inverseRayDir.y;
+        projected = abs(rayOrigin.xz + rayDir.xz * t - origin.xz);
+        normal.y = inverseRayDir.y < 0.0 ? 1.0 : -1.0;
+    } else {
+        t = (origin.z - rayOrigin.z) * inverseRayDir.z;
+        projected = abs(rayOrigin.xy + rayDir.xy * t - origin.xy);
+        normal.z = inverseRayDir.z < 0.0 ? 1.0 : -1.0;
+    }
     if (!(t >= 0.0 && t <= hitT)) return false;
-    vec3 offset = abs(rayOrigin + rayDir * t - origin);
-    vec2 projected = axis == 0 ? offset.yz : axis == 1 ? offset.xz : offset.xy;
     if (projected.x > halfSize.x || projected.y > halfSize.y) return false;
     hitT = t;
-    hitNormal = vec3(0.0);
-    hitNormal[axis] = inverseRayDir[axis] < 0.0 ? 1.0 : -1.0;
+    hitNormal = normal;
     return true;
 }
 

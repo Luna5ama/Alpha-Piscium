@@ -166,7 +166,9 @@ for ((label, intersection) in listOf("axis-aligned" to axisQuadIntersection, "ge
 }
 reject(axisQuadIntersection, Regex("\\baxisAligned\\b"), "per-quad axis-aligned branch")
 expect(models, "vec3 inverseRayDir = 1.0 / rayDir;", "model-level reciprocal ray direction")
-expect(axisQuadIntersection, "float t = (origin[axis] - rayOrigin[axis]) * inverseRayDir[axis];", "reciprocal axis-plane intersection")
+expect(axisQuadIntersection, "t = (origin.x - rayOrigin.x) * inverseRayDir.x;", "reciprocal X axis-plane intersection")
+expect(axisQuadIntersection, "t = (origin.y - rayOrigin.y) * inverseRayDir.y;", "reciprocal Y axis-plane intersection")
+expect(axisQuadIntersection, "t = (origin.z - rayOrigin.z) * inverseRayDir.z;", "reciprocal Z axis-plane intersection")
 reject(quadIntersection, Regex("\\bquadIndex\\b"), "per-quad 2D texel address")
 reject(quadIntersection, Regex("normalize\\s*\\("), "per-quad basis normalization")
 if (Regex("projected\\.x > halfSize\\.x \\|\\| projected\\.y > halfSize\\.y").findAll(models).count() != 2) {
