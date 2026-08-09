@@ -232,8 +232,13 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                 uint blockFlags = texelFetch(usam_pbrLUT1, int(material), 0).r;
                 bool isFullCube = bitfieldExtract(blockFlags, 4, 1) == 1u;
                 #else
-                HardcodedPBR hardcoded = hardcodedpbr_decode(material, rayFaceMask);
-                bool isFullCube = hardcoded.isFullCube;
+                bool isKnown = material != 0u &&
+                    material < textureSize(usam_pbrLUT0, 0).x &&
+                    material < textureSize(usam_pbrLUT1, 0).x &&
+                    material < textureSize(usam_pbrLUT2, 0).y;
+                uint lookupMaterial = isKnown ? material : 0u;
+                uint blockFlags = texelFetch(usam_pbrLUT1, int(lookupMaterial), 0).r;
+                bool isFullCube = bitfieldExtract(blockFlags, 4, 1) == 1u;
                 #endif
 
                 if (isFullCube) {
@@ -257,7 +262,9 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     usam_pbrLUT2, ivec2(int(rayFaceMask), int(material)), 0
                 ).x;
                 #else
-                uint blockModelMetadata = hardcoded.blockModelMetadata;
+                uint blockModelMetadata = texelFetch(
+                    usam_pbrLUT2, ivec2(int(rayFaceMask), int(lookupMaterial)), 0
+                ).x;
                 #endif
                 if (blockModelMetadata != 0u && material != MATERIAL_ID_WATER) {
                     vec3 blockLocalRayOrigin = worldRayOrigin - gridOriginF - vec3(blockPos);

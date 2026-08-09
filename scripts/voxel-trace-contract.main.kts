@@ -203,7 +203,8 @@ expect(initialTrace, "#define VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "initial tr
 expect(trace, "#ifdef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "selectable deferred model decode")
 expect(trace, "uint blockFlags = texelFetch(usam_pbrLUT1, int(material), 0).r;", "early trace full-cube lookup")
 expect(trace, "usam_pbrLUT2, ivec2(int(rayFaceMask), int(material)), 0", "deferred ray-selected model lookup")
-expect(trace, "HardcodedPBR hardcoded = hardcodedpbr_decode(material, rayFaceMask);", "default full PBR decode")
+reject(trace, Regex("HardcodedPBR\\s+hardcoded\\s*=\\s*hardcodedpbr_decode\\s*\\(\\s*material\\s*,\\s*rayFaceMask\\s*\\)"), "full PBR decode in voxel tracing")
+expect(trace, "uint lookupMaterial = isKnown ? material : 0u;", "safe default model lookup material")
 fun rayFaceMask(positiveX: Boolean, positiveY: Boolean, positiveZ: Boolean) =
     (if (positiveX) 2u else 1u) or (if (positiveY) 8u else 4u) or (if (positiveZ) 32u else 16u)
 if (rayFaceMask(true, true, true) != 42u || rayFaceMask(false, false, false) != 21u) {
