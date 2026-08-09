@@ -133,8 +133,8 @@ bool _voxel_intersectBlockModelAABB(
             exitT = farT;
             exitAxis = axis;
         }
-        if (entryT > exitT) return false;
     }
+    if (entryT > exitT) return false;
 #endif
     float maxT = min(rayMaxT, hitT);
     bool exitsInside = entryT < rayMinT && exitT <= maxT;
