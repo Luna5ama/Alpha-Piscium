@@ -157,14 +157,30 @@ bool voxel_intersectBlockModel(
     out float hitT, out vec3 hitNormal
 ) {
     uint rotation = modelData & 511u;
-    uint aabbOffset = (modelData >> 9u) & 0x7FFFu;
+    uint aabbOffset = (modelData >> 9u) & 0x7FFu;
     uint aabbCount = modelData >> 24u;
-    rayOrigin -= vec3(0.5);
-    _voxel_rotateBlockModelRay(rotation, rayOrigin, rayDir);
-    rayOrigin += vec3(0.5);
+#ifdef VOXEL_BLOCK_MODEL_UNROLL_SLABS
+    uint modelRadius = (modelData >> 20u) & 0xFu;
+#endif
     const float noHitT = uintBitsToFloat(0x7F800000u);
     hitT = noHitT;
     hitNormal = vec3(0.0);
+#ifdef VOXEL_BLOCK_MODEL_UNROLL_SLABS
+    vec3 modelSphereOrigin = rayOrigin - vec3(0.5);
+    float modelSphereB = dot(modelSphereOrigin, rayDir);
+    float modelSphereC = dot(modelSphereOrigin, modelSphereOrigin) - float(modelRadius * modelRadius) * 0.01;
+    float modelSphereDiscriminant = modelSphereB * modelSphereB - modelSphereC;
+    float modelSphereRoot = sqrt(max(modelSphereDiscriminant, 0.0));
+    float modelSphereEntry = -modelSphereB - modelSphereRoot;
+    float modelSphereExit = -modelSphereB + modelSphereRoot;
+    float modelMaxT = min(rayMaxT, hitT);
+    bool modelSphereHit = modelSphereDiscriminant >= 0.0 &&
+        modelSphereExit >= rayMinT && modelSphereEntry <= modelMaxT;
+    if (!modelSphereHit) return false;
+#endif
+    rayOrigin -= vec3(0.5);
+    _voxel_rotateBlockModelRay(rotation, rayOrigin, rayDir);
+    rayOrigin += vec3(0.5);
 #ifdef VOXEL_BLOCK_MODEL_LINEAR_AABB_TEXELS
     int texelIndex = int(aabbOffset * 3u);
     for (uint i = 0u; i < aabbCount; ++i) {
