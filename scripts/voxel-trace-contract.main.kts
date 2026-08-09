@@ -167,10 +167,11 @@ expect(models, "#ifdef VOXEL_BLOCK_MODEL_LINEAR_AABB_TEXELS", "selectable linear
 expect(models, "int texelIndex = int(aabbOffset * 3u);", "linear AABB texel start")
 expect(models, "texelIndex += 3;", "linear AABB texel advance")
 expect(models, "int((aabbOffset + i) * 3u)", "indexed AABB texel fallback")
-expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
 expect(models, "_voxel_rotateBlockModelRay", "shared packed ray rotation")
 expect(models, "_voxel_rotateBlockModelRay(discreteRotation, localOrigin, localDir);", "shared discrete AABB ray rotation")
-if (models.contains("_voxel_rotateBlockModelVector(discreteRotation")) failures += "discrete AABB path still decodes ray rotation twice"
+if (models.contains("_voxel_rotateBlockModelVector") || models.contains("_voxel_rotateBlockModelComponent")) {
+    failures += "generated model code retains obsolete single-vector rotation helpers"
+}
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
 expect(models, "uint discreteRotation = uint(originData.w * 255.0 + 0.5);", "discrete AABB fast path")
 expect(models, "_voxel_unrotateBlockModelVector(discreteRotation, localNormal)", "discrete normal rotation")

@@ -4,19 +4,6 @@
 #ifndef INCLUDE_techniques_voxel_BlockModels_glsl
 #define INCLUDE_techniques_voxel_BlockModels_glsl a
 
-float _voxel_rotateBlockModelComponent(uint transform, vec3 value) {
-    float result = value[int(transform & 3u)];
-    return (transform & 4u) == 0u ? result : -result;
-}
-
-vec3 _voxel_rotateBlockModelVector(uint rotation, vec3 value) {
-    return vec3(
-        _voxel_rotateBlockModelComponent(rotation, value),
-        _voxel_rotateBlockModelComponent(rotation >> 3u, value),
-        _voxel_rotateBlockModelComponent(rotation >> 6u, value)
-    );
-}
-
 void _voxel_rotateBlockModelRay(uint rotation, inout vec3 rayOrigin, inout vec3 rayDir) {
     uvec3 transform = uvec3(rotation, rotation >> 3u, rotation >> 6u);
     ivec3 axis = ivec3(transform & 3u);
