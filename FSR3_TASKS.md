@@ -541,9 +541,9 @@ Acceptance:
 
 ### FSR3-T05 — Resolve the SPD/debug atomic-counter collision
 
-Status: `READY`
+Status: `DONE`
 Dependencies: FSR3-T02
-Expected commit: focused debug-state fix
+Commit: this task's commit
 
 Scope:
 
@@ -560,7 +560,7 @@ Acceptance:
 
 ### FSR3-T06 — Perform static integration review and cleanup
 
-Status: `PENDING`
+Status: `READY`
 Dependencies: FSR3-T02, FSR3-T03, FSR3-T04, FSR3-T05
 Expected commit: cleanup/docs, or ledger evidence only if no cleanup is needed
 
@@ -698,7 +698,7 @@ The serial goal executes numeric task order even where dependencies permit paral
 - [x] Lossy highlight compression is separated and intentionally placed.
 - [x] Sharpness zero has the agreed identity behavior.
 - [x] Off, TAA, and FSR3 share consistent RCAS/Bloom contracts.
-- [ ] FSR3 SPD and SST debug do not share atomic synchronization state.
+- [x] FSR3 SPD and SST debug do not share atomic synchronization state.
 - [ ] Render/upscale sizes, G-buffer LOD bias, reactive masks, atlas bounds, and history reset are correct.
 - [ ] Generated outputs match maintained sources.
 - [ ] `night-gi-1` shows no white leakage, desaturated outline, ringing, flash, or unstable edge.
@@ -758,3 +758,11 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Extended `scripts/test/agx-invertible-check.main.kts` with the shared zero-sharpness roundtrip, default-sharpness pure-primary edge cases, and static integration assertions. It reported maximum zero-sharpness error `0.0859375` and maximum pure-channel leakage `0.021972656`, finite and within absolute tolerance `5e-7` plus relative tolerance `4e-6`.
 - Vibris validation snapshot `54f069ac030e2c3f0cb95983d7605b5d287f0cca` passed all five target Minecraft 1.21.5/Iris cases: Off/zero, TAA/zero, TAA/default, FSR3/zero, and FSR3/default. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 5`, `failed: 0`).
 - Updated paired English and Simplified Chinese post-processing documentation. Protected AMD FSR3, FSR1, SPD, and FFX core sources remained byte-identical to baseline `0a8f7843`; no generator was run because no maintained generator input changed.
+
+### FSR3-T05
+
+- Inventoried every `global_atomicCounters` access. Generic SPD indexes directly by dispatch slice: HiZ and Exposure use slice 0, while the three-layer GI mip dispatch uses slices 0–2. Slots 0–13 are now reserved for generic SPD, slot 14 is dedicated to FSR3 SPD, and slot 15 is dedicated to SST step debugging; every named index is within the unchanged 16-element array.
+- Replaced all FSR3 and SST literal indices with shared constants. Both FSR3 pyramid callbacks use only slot 14; the conditional SST producer plus `SSTStepDebug` and final debug-text consumers use only slot 15.
+- Verified lifetimes: `UpdateGlobalData` clears all 16 counters at frame begin, generic SPD resets each active slice after its final workgroup, each sequential FSR3 pyramid pass resets slot 14 after its final workgroup, and FSR3 no longer modifies the frame-local SST value in slot 15.
+- Vibris validation snapshot `10f4e04491c7f70f3ac1e6c97cd9b3aaa123f2f9` passed target Minecraft 1.21.5/Iris with FSR3 at 65% render scale for both `SETTING_DEBUG_SST_STEPS` disabled and enabled. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 2`, `failed: 0`).
+- The global SSBO member order, member sizes, and 16-counter layout were unchanged. Protected AMD FSR3, FSR1, SPD, and FFX core sources remained byte-identical to baseline `0a8f7843`; only project-owned integration and README files changed under `shaders/techniques/ffx`. No generator was run because no maintained generator input changed.
