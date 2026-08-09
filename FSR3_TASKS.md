@@ -687,9 +687,9 @@ Evidence:
 
 ### FSR3-T08 — Measure FSR3 performance and regressions
 
-Status: `READY`
+Status: `DONE`
 Dependencies: FSR3-T07A
-Expected commit: measured evidence in this ledger; performance fixes require inserted tasks
+Commit: this task's commit
 
 Scope:
 
@@ -708,7 +708,7 @@ Acceptance:
 
 ### FSR3-T09 — Finalize documentation and manual-acceptance handoff
 
-Status: `PENDING`
+Status: `READY`
 Dependencies: FSR3-T07, FSR3-T07A, FSR3-T08
 Expected commit: final docs/ledger cleanup
 
@@ -756,7 +756,7 @@ The serial goal executes numeric task order even where dependencies permit paral
 - [x] Generated outputs match maintained sources.
 - [x] `night-gi-1` shows no white leakage, desaturated outline, ringing, flash, or unstable edge.
 - [x] Target Minecraft 1.21.11/Iris compilation passes.
-- [ ] Vibris performance comparison is recorded with no unexplained material regression.
+- [x] Vibris performance comparison is recorded with no unexplained material regression.
 - [x] English and Simplified Chinese documentation are synchronized.
 - [x] Imported AMD FFX implementation remains byte-identical to baseline.
 - [x] Every task commit passes `git diff --check` and `git diff --cached --check`.
@@ -849,3 +849,24 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Injected reversible AgX inside FSR upsample/accumulation through the project-owned entrypoint while leaving all imported AMD `ffx_*` files unchanged.
 - Replaced the hard lower-EV clamp with a zero-preserving offset-log pair and added an FSR-specific `[-24, 32]` range plus numeric/static regression coverage.
 - Regenerated all affected outputs and passed Minecraft 1.21.11/Iris compilation, six-frame stable-image inspection, and matched pre-fix/candidate temporal-difference checks.
+
+### FSR3-T08
+
+- Profiled commit `8a7fbbe5ca5340981ed5296a1a61c58d331ad39c` in Minecraft 1.21.11/Iris at `night-gi-1`, 1920x1080, FOV 70, clear weather, sharpness `0.5`, and the default shader preset. Every case used 64 warmup frames and 128 measured frames; the scene context hash was `517eb157bff24165ce0186cf70fdcce675ef7c3208b775a98836a1eb198ae93b`.
+- The main matrix ran five interleaved repetitions per case. Vibris exposes no single `frame_total`, so accounted GPU time is the sum of each case's p50 for non-overlapping top-level GPU scopes, followed by the median across repetitions. Brackets show the five-run p50 range; MAD records cross-run variability.
+
+| Mode / render scale | Accounted GPU p50 ms | MAD ms | FSR3 45-52 compute ms | RCAS compute ms | Bloom compute ms |
+|---------------------|-----------------------|--------|-----------------------|-----------------|------------------|
+| Off / 100% | `13.727 [13.556, 14.685]` | `0.101` | N/A | N/A | `0.180` |
+| TAA / 100% | `14.938 [14.596, 15.501]` | `0.342` | N/A | `0.047` | `0.179` |
+| FSR3 / 100% | `15.884 [15.044, 16.651]` | `0.734` | `1.160` | `0.065` | `0.176` |
+| Off / 65% | `9.493 [9.279, 9.872]` | `0.115` | N/A | N/A | `0.150` |
+| TAA / 65% | `9.686 [9.428, 9.877]` | `0.073` | N/A | `0.026` | `0.152` |
+| FSR3 / 65% | `10.921 [10.470, 11.122]` | `0.136` | `0.793` | `0.065` | `0.175` |
+| FSR3 / 50% | `8.987 [8.804, 9.252]` | `0.091` | `0.691` | `0.065` | `0.175` |
+
+- FSR3 costs are internally consistent: eight-pass compute ranges were `1.158-1.163 ms` at 100%, `0.792-0.795 ms` at 65%, and `0.690-0.692 ms` at 50%. Output-resolution Accumulate stayed at `0.437-0.439 ms`; input-resolution passes decreased with render scale. RCAS and post-upscale Bloom remained output-sized in FSR3, as required.
+- At equal 100% scale, FSR3 cost `0.946 ms` (`6.33%`) more accounted GPU time than TAA. At equal 65% scale, it cost `1.235 ms` (`12.75%`) more. The intended 65% FSR3 path was nevertheless `4.963 ms` (`31.25%`) faster than native FSR3, while the 50% endpoint was `6.897 ms` (`43.42%`) faster. `Terrain solid_total` was stable at `0.536 ms` at 100%, `0.431 ms` at 65%, and `0.411 ms` at 50%, so the scale comparison was not caused by scene drift.
+- A separate three-pair composite40-77 audit explained the material 65% FSR3/TAA delta. FSR3 core compute added `0.795 ms` while replacing `0.140 ms` of TAA resolve/FXAA work; output-sized RCAS added `0.040 ms`, Bloom added `0.027 ms`, and IMapBlur/GetWarp/Overlay added `0.067 ms`. Per-pass totals explained `0.902 ms` of the `1.009 ms` composite aggregate delta; the remaining `0.108 ms` was below repeated composite-range noise and reflects aggregate-median/boundary overhead rather than an isolated regressing pass.
+- All 41 recorded cases passed with complete provenance and non-empty metrics: main jobs `aa835507-dd95-4876-8187-145fe3c8c587`, `6a38984c-d593-4530-aca1-d8c454fd3445`, and `c330b7e6-79f6-46c1-848d-ca809e036020`; audit job `73db98b6-0321-4595-be83-a36ebef5dc18`. Results are retained beneath `I:\code\mcshaders\Alpha-Piscium\.vibris\artifact\` because the live MCP workspace is rooted there, while every source provenance record resolves the AP8 commit above.
+- No shader, generator, generated output, or imported AMD source changed. Nsight was not used because Vibris pass timings fully explained the only material same-scale cost increase; no speculative optimization was attempted.
