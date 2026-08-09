@@ -34,7 +34,8 @@ FSR3 entrypoints bind the callbacks from
 
 ## Pass graph
 
-The required dispatch order is:
+After the motion-vector prepass, the seven SDK estimator entrypoints dispatch in
+this order:
 
 1. `prepare_inputs` (8x8 at render size)
 2. `luma_pyramid` (256x1 SPD)
@@ -45,7 +46,8 @@ The required dispatch order is:
 7. `accumulate` (16x8 at output size)
 
 The shared `/pass/composite/RCAS.comp.glsl` pass then sharpens the accumulated
-output at presentation resolution and writes it to `main`.
+output at presentation resolution, restores exposed-linear color, and writes it
+to `main`.
 
 Each pass must provide the SDK callback functions for its bound resources and
 constants before including its algorithm file. The accumulate include order is
@@ -117,9 +119,10 @@ FP32 is the baseline path. Enabling `FFX_HALF` requires 16-bit arithmetic type
 support in the entrypoint. Define `FFX_SPD_NO_WAVE_OPERATIONS` when subgroup
 quad operations are unavailable.
 
-The active shaderpack does not retain previous object transforms. Entities,
-block entities, particles, hands, and overlays therefore use camera motion with
-reactive masking instead of incorrect object motion. Translucent reflection and
-refraction intentionally have no separate temporal denoiser or reactive mask:
-their rough stochastic result is accumulated with the solid-surface contract to
-avoid frame-to-frame flashing.
+The active shaderpack does not retain previous object transforms. Dynamic
+surfaces written to the solid G-buffer therefore use camera motion with the
+solid temporal-reactive flag instead of incorrect object motion, while overlays
+add their own coverage. Translucent reflection and refraction intentionally have
+no separate temporal denoiser or reactive/composition mask: their rough
+stochastic result is accumulated with the solid-surface contract to avoid
+frame-to-frame flashing.
