@@ -48,6 +48,11 @@ translucent SST denoising, and the shared RCAS sharpening strength. Current/prev
 are generated from the R2 frame sequence in [`scripts/shaders.properties`](../../../scripts/shaders.properties);
 changing the sampling sequence requires updating reprojection conventions as well.
 
+TAA and FSR 3 feed the same reversible matrix/log working domain to the shared RCAS implementation and use the selected
+sharpening strength directly. A strength of zero bypasses the spatial filter and returns its center sample; only the
+required display exposure and reversible working-domain roundtrip remain. Off does not schedule RCAS. Every mode writes
+exposed-linear `main` before output-resolution Bloom and the display transform.
+
 ## Bloom
 
 When `SETTING_BLOOM` is enabled, [`Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl) builds levels 1–10
