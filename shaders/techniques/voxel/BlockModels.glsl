@@ -74,7 +74,7 @@ bool _voxel_intersectBlockModelQuad(
     if (projectedU > halfSize.x) return false;
     if (abs(dot(offset, v)) > halfSize.y) return false;
     hitT = t;
-    hitNormal = denominator < 0.0 ? normal : -normal;
+    hitNormal = normal;
     return true;
 }
 
@@ -108,7 +108,10 @@ bool voxel_intersectBlockModel(
         }
     }
     if (hit) {
-        if (!axisAligned) hitNormal = normalize(hitNormal);
+        if (!axisAligned) {
+            hitNormal = normalize(hitNormal);
+            if (dot(hitNormal, rayDir) > 0.0) hitNormal = -hitNormal;
+        }
         hitNormal = _voxel_unrotateBlockModelVector(rotation, hitNormal);
     }
     return hit;
