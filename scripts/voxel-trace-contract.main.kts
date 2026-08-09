@@ -95,6 +95,8 @@ expect(models, "bool voxel_intersectBlockModel(", "model API")
 expect(models, "uint modelID = modelData >> 9u;", "packed model ID decode")
 expect(models, "_voxel_rotateBlockModelVector", "packed model rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
+expect(models, "uv.x < -edgeTolerance || uv.x > 1.0 + edgeTolerance || uv.y < -edgeTolerance || uv.y > 1.0 + edgeTolerance", "short-circuit parallelogram bounds")
+if (models.contains("lessThan(uv") || models.contains("greaterThan(uv")) failures += "parallelogram path still uses eager vector bounds"
 val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
 if (!modelFunction.contains("if (modelID <")) failures += "model dispatch is not a binary if/else tree"
 if (modelFunction.contains("|| hit") || modelFunction.contains("hit = _voxel_intersectBlockModel")) {

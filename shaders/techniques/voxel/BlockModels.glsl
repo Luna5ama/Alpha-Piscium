@@ -63,7 +63,7 @@ bool _voxel_intersectBlockModelParallelogram(
     if (!(t >= 0.0 && t <= hitT)) return false;
     vec3 offset = rayOrigin + rayDir * t - origin;
     vec2 uv = vec2(dot(offset, dualU), dot(offset, dualV));
-    if (any(lessThan(uv, vec2(-edgeTolerance))) || any(greaterThan(uv, vec2(1.0 + edgeTolerance)))) return false;
+    if (uv.x < -edgeTolerance || uv.x > 1.0 + edgeTolerance || uv.y < -edgeTolerance || uv.y > 1.0 + edgeTolerance) return false;
     hitT = t;
     hitNormal = denominator < 0.0 ? normal : -normal;
     return true;
