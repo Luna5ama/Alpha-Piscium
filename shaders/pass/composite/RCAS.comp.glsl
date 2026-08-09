@@ -1,11 +1,7 @@
 #define GLOBAL_DATA_MODIFIER restrict buffer
 #include "/Base.glsl"
 
-#define SETTING_TAA_CAS_SHARPNESS SETTING_AA_SHARPNESS
-#if SETTING_AA_MODE == 2
-#define SETTING_FSR3
-#define SETTING_FSR3_SHARPNESS SETTING_AA_SHARPNESS
-#endif
+#define SETTING_RCAS_SHARPNESS SETTING_AA_SHARPNESS
 
 #include "/techniques/ffx/fsr1/RCAS.glsl"
 

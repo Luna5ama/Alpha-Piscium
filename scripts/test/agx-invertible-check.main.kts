@@ -3,7 +3,9 @@ import kotlin.math.*
 
 data class V3(val x: Float, val y: Float, val z: Float) {
     operator fun plus(other: V3) = V3(x + other.x, y + other.y, z + other.z)
+    operator fun minus(other: V3) = V3(x - other.x, y - other.y, z - other.z)
     operator fun times(scale: Float) = V3(x * scale, y * scale, z * scale)
+    operator fun div(scale: Float) = this * (1.0f / scale)
     fun components() = listOf(x, y, z)
 }
 
@@ -109,11 +111,89 @@ check(abs(lumaCompressed.x / lumaCompressed.y - saturated.x / saturated.y) <= 1.
 check(abs(lumaCompressed.y / lumaCompressed.z - saturated.y / saturated.z) <= 1.0e-6f)
 check(compressLuma(V3(0.0f, 0.0f, 0.0f), 3) == V3(0.0f, 0.0f, 0.0f))
 
+fun saturate(value: Float) = value.coerceIn(0.0f, 1.0f)
+fun rcasLuma(color: V3) = color.z * 0.5f + color.x * 0.5f + color.y
+fun rcasFilter(center: V3, ring: List<V3>, sharpness: Float): V3 {
+    if (sharpness == 0.0f) return center
+    check(ring.size == 4)
+
+    val ringLuma = ring.map(::rcasLuma)
+    val centerLuma = rcasLuma(center)
+    val lumaRange = (ringLuma + centerLuma).let { it.max() - it.min() }
+    var noise = if (lumaRange == 0.0f) 0.0f else
+        saturate(abs(ringLuma.average().toFloat() - centerLuma) / lumaRange)
+    noise = 1.0f - 0.5f * noise
+
+    val minimum = V3(
+        ring.minOf { it.x },
+        ring.minOf { it.y },
+        ring.minOf { it.z }
+    )
+    val maximum = V3(
+        ring.maxOf { it.x },
+        ring.maxOf { it.y },
+        ring.maxOf { it.z }
+    )
+    val minimumRingLuma = ringLuma.min()
+    val lowerLimiter = if (minimumRingLuma == 0.0f) 1.0f else saturate(centerLuma / minimumRingLuma)
+    fun channelLobe(mn: Float, mx: Float): Float {
+        val hitMin = if (mx == 0.0f) 0.0f else mn / (4.0f * mx) * lowerLimiter
+        val hitMax = (1.0f - mx) / (4.0f * mn - 4.0f)
+        return max(-hitMin, hitMax)
+    }
+    val limiter = max(
+        channelLobe(minimum.x, maximum.x),
+        max(channelLobe(minimum.y, maximum.y), channelLobe(minimum.z, maximum.z))
+    )
+    val sharpnessConfig = exp2(-(2.0f - 2.0f * sharpness))
+    val lobe = max(-0.1875f, min(limiter, 0.0f)) * sharpnessConfig * noise
+    return (ring.reduce(V3::plus) * lobe + center) / (4.0f * lobe + 1.0f)
+}
+
+var maxZeroSharpnessError = 0.0f
+for (level in levels) {
+    val tolerance = max(roundtripAbsoluteTolerance, level * roundtripRelativeTolerance)
+    for ((name, direction) in directions) {
+        val input = direction * level
+        val encoded = forward(input)
+        val result = inverse(rcasFilter(encoded, List(4) { encoded }, 0.0f))
+        input.components().zip(result.components()).forEachIndexed { channel, (reference, actual) ->
+            val error = abs(actual - reference)
+            maxZeroSharpnessError = max(maxZeroSharpnessError, error)
+            check(error <= tolerance) {
+                "$name at $level zero-sharpness channel $channel error $error exceeds $tolerance"
+            }
+        }
+    }
+}
+
+var maxRcasPureChannelLeakage = 0.0f
+for (level in levels.filter { it >= 1.0f }) {
+    val dimLevel = max(0.001f, level * 0.25f)
+    for ((name, direction) in directions.filter { (_, color) -> color.components().count { it == 0.0f } == 2 }) {
+        val center = forward(direction * level)
+        val ring = List(4) { forward(direction * dimLevel) }
+        val result = inverse(rcasFilter(center, ring, 0.5f))
+        val tolerance = max(roundtripAbsoluteTolerance, result.components().max() * roundtripRelativeTolerance)
+        direction.components().zip(result.components()).forEachIndexed { channel, (source, actual) ->
+            check(actual.isFinite()) { "$name at $level RCAS produced non-finite channel $channel" }
+            if (source == 0.0f) {
+                maxRcasPureChannelLeakage = max(maxRcasPureChannelLeakage, actual)
+                check(actual <= tolerance) {
+                    "$name at $level RCAS channel $channel leakage $actual exceeds $tolerance: $result"
+                }
+            }
+        }
+    }
+}
+
 val agxSource = File("../shaders/util/AgxInvertible.glsl").readText()
 val bloomSource = File("../shaders/techniques/Bloom.comp.glsl").readText()
+val programsSource = File("programs.main.kts").readText()
 val prepareSource = File("../shaders/pass/composite/TAAPrepare.comp.glsl").readText()
 val resolveSource = File("../shaders/pass/composite/TAAResolve.comp.glsl").readText()
 val rcasSource = File("../shaders/pass/composite/RCAS.comp.glsl").readText()
+val rcasIntegrationSource = File("../shaders/techniques/ffx/fsr1/RCAS.glsl").readText()
 check("const float EV_RANGE = 33.0;" in agxSource)
 check("SETTING_BLOOM_HIGHLIGHT_COMPRESSION" !in agxSource)
 check("#if BLOOM_PASS == 1 && SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0" in bloomSource)
@@ -122,6 +202,12 @@ check(Regex("bloom_compressHighlights\\(").findAll(bloomSource).count() == 2)
 check("#if SETTING_AA_MODE != 2" in prepareSource && "agxInvertible_forward" in prepareSource)
 check("agxInvertible_inverse" in resolveSource)
 check("#if SETTING_AA_MODE == 2" in rcasSource && "agxInvertible_forward" in rcasSource && "agxInvertible_inverse" in rcasSource)
+check("#define SETTING_RCAS_SHARPNESS SETTING_AA_SHARPNESS" in rcasSource)
+check("SETTING_TAA_CAS_SHARPNESS" !in rcasIntegrationSource && "SETTING_FSR3_SHARPNESS" !in rcasIntegrationSource)
+check("if (SETTING_RCAS_SHARPNESS == 0.0) return rcas_loadInput(outputTexelPos, true);" in rcasIntegrationSource)
+check("float sharpness = SETTING_RCAS_SHARPNESS;" in rcasIntegrationSource)
+check("cond(\"SETTING_AA_MODE != 0\")" in programsSource)
 
 println("AgX matrix/log roundtrip checks passed: max error=$maxRoundtripError, max pure-channel leakage=$maxPureChannelLeakage")
 println("Bloom highlight compression checks passed")
+println("RCAS checks passed: max zero-sharpness error=$maxZeroSharpnessError, max pure-channel leakage=$maxRcasPureChannelLeakage")

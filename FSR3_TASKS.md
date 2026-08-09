@@ -519,9 +519,9 @@ Acceptance:
 
 ### FSR3-T04 — Correct shared RCAS and zero-sharpness behavior
 
-Status: `READY`
+Status: `DONE`
 Dependencies: FSR3-T03
-Expected commit: shared RCAS integration fix
+Commit: this task's commit
 
 Scope:
 
@@ -541,7 +541,7 @@ Acceptance:
 
 ### FSR3-T05 — Resolve the SPD/debug atomic-counter collision
 
-Status: `PENDING`
+Status: `READY`
 Dependencies: FSR3-T02
 Expected commit: focused debug-state fix
 
@@ -696,8 +696,8 @@ The serial goal executes numeric task order even where dependencies permit paral
 - [x] HDR FSR input remains scene-linear unless an alternative is fully derived and explicitly approved.
 - [x] The reversible AA transform is actually reversible over its documented range.
 - [x] Lossy highlight compression is separated and intentionally placed.
-- [ ] Sharpness zero has the agreed identity behavior.
-- [ ] Off, TAA, and FSR3 share consistent RCAS/Bloom contracts.
+- [x] Sharpness zero has the agreed identity behavior.
+- [x] Off, TAA, and FSR3 share consistent RCAS/Bloom contracts.
 - [ ] FSR3 SPD and SST debug do not share atomic synchronization state.
 - [ ] Render/upscale sizes, G-buffer LOD bias, reactive masks, atlas bounds, and history reset are correct.
 - [ ] Generated outputs match maintained sources.
@@ -749,3 +749,12 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Updated paired English and Simplified Chinese post-processing documentation and removed the now-unused `AgxInvertible` include from Post Composite.
 - Vibris validation snapshot `67f0e8c31875aa00044fc50aee7e4d424892bca4` passed all four target Minecraft 1.21.5/Iris cases: Off/RGB, TAA/RGB, FSR3/RGB, and FSR3/Luma-low. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 4`, `failed: 0`).
 - Protected AMD FSR3, FSR1, SPD, and FFX core sources remained byte-identical to baseline `0a8f7843`. No generator was run because no maintained generator input changed.
+
+### FSR3-T04
+
+- Unified TAA and FSR3 on `SETTING_AA_SHARPNESS` through one `SETTING_RCAS_SHARPNESS` integration macro; removed the mode-specific TAA/FSR3 aliases and the TAA motion-dependent sharpness override.
+- Defined sharpness `0` as the shared spatial/color identity path: both TAA and FSR3 return the center sample without evaluating the RCAS neighborhood filter, while Off continues to omit the RCAS pass entirely.
+- Kept both active modes in the same reversible AgX matrix/log working domain. Static call-site and program-order review confirmed display exposure and reversible transforms occur once, then Bloom consumes exposed-linear main color after AA/upscale at output resolution.
+- Extended `scripts/test/agx-invertible-check.main.kts` with the shared zero-sharpness roundtrip, default-sharpness pure-primary edge cases, and static integration assertions. It reported maximum zero-sharpness error `0.0859375` and maximum pure-channel leakage `0.021972656`, finite and within absolute tolerance `5e-7` plus relative tolerance `4e-6`.
+- Vibris validation snapshot `54f069ac030e2c3f0cb95983d7605b5d287f0cca` passed all five target Minecraft 1.21.5/Iris cases: Off/zero, TAA/zero, TAA/default, FSR3/zero, and FSR3/default. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 5`, `failed: 0`).
+- Updated paired English and Simplified Chinese post-processing documentation. Protected AMD FSR3, FSR1, SPD, and FFX core sources remained byte-identical to baseline `0a8f7843`; no generator was run because no maintained generator input changed.

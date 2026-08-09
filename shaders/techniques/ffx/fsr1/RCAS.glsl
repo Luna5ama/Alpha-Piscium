@@ -18,11 +18,7 @@ uvec4 RCasSample() {
 
 uvec4 RCasConfig() {
     // https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/blob/v1.1.4/sdk/src/components/fsr3upscaler/ffx_fsr3upscaler.cpp#L1107
-    #ifdef SETTING_FSR3
-    float sharpness = SETTING_FSR3_SHARPNESS;
-    #else
-    float sharpness = mix(1.0, SETTING_TAA_CAS_SHARPNESS, global_motionFactor.w);
-    #endif
+    float sharpness = SETTING_RCAS_SHARPNESS;
     float sharpnessRemapped = sharpness * -2.0 + 2.0;
     // https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/blob/v1.1.4/sdk/include/FidelityFX/gpu/fsr1/ffx_fsr1.h#L661-L672
     float sharpnessConfig = exp2(-sharpnessRemapped);
@@ -36,9 +32,7 @@ uvec4 RCasConfig() {
 #include "ffx_fsr1_rcas.glsl"
 
 vec4 fsr1_rcas(ivec2 outputTexelPos) {
-    #ifdef SETTING_FSR3
-    if (SETTING_FSR3_SHARPNESS == 0.0) return rcas_loadInput(outputTexelPos, true);
-    #endif
+    if (SETTING_RCAS_SHARPNESS == 0.0) return rcas_loadInput(outputTexelPos, true);
     CurrFilter(FFX_MIN16_U2(outputTexelPos));
     return fsr1_rcasOutput;
 }

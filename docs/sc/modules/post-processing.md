@@ -45,6 +45,10 @@ distance、focus time 和 focus-plane debug。
 `scripts/shaders.properties`](../../../scripts/shaders.properties) 中由 R2 frame sequence 生成；改变采样序列时，也要同步更新
 reprojection 约定。
 
+TAA 与 FSR 3 会把相同的可逆 matrix/log 工作域交给公共 RCAS 实现，并直接使用所选锐化强度。强度为零时会旁路空间滤波并返回
+中心样本；此时只保留必需的显示曝光和可逆工作域往返。关闭模式不会调度 RCAS。所有模式都会在输出分辨率 Bloom 和显示变换之前
+写出 exposed-linear `main`。
+
 ## Bloom
 
 启用 `SETTING_BLOOM` 时，[`Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl) 通过 `BLOOM_DOWN_SAMPLE` 和

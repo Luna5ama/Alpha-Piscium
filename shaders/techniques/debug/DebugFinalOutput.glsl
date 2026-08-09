@@ -223,7 +223,7 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printFloat(mix(2.0, 128.0, pow3(global_motionFactor.w)));
     printLine();
     printString((_C, _a, _s, _space, _S, _h, _a, _r, _p, _n, _e, _s, _s, _colon, _space));
-    printFloat(mix(1.0, SETTING_AA_SHARPNESS, global_motionFactor.w));
+    printFloat(SETTING_AA_SHARPNESS);
     printLine();
     #endif
 
