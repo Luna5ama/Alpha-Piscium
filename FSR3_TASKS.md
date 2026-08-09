@@ -464,9 +464,9 @@ Every result is finite and positive. The three distinct sub-1 cases `0.001`, `0.
 
 ### FSR3-T02 — Implement independent FSR3 exposure
 
-Status: `READY`
+Status: `DONE`
 Dependencies: FSR3-T01
-Expected commit: exposure correctness fix
+Commit: this task's commit
 
 Scope:
 
@@ -490,7 +490,7 @@ Required checks:
 
 ### FSR3-T03 — Define the reversible color transform and add regression coverage
 
-Status: `PENDING`
+Status: `READY`
 Dependencies: FSR3-T02
 Expected commit: deterministic test plus the minimal transform separation it specifies
 
@@ -690,10 +690,10 @@ The serial goal executes numeric task order even where dependencies permit paral
 
 ## Global acceptance checklist
 
-- [ ] Independent FSR3 exposure is live and not unintentionally driven by display fade.
-- [ ] Dark-scene luminance produces distinct finite positive exposure values.
-- [ ] Current/history exposure equations are proven across adaptation/reset.
-- [ ] HDR FSR input remains scene-linear unless an alternative is fully derived and explicitly approved.
+- [x] Independent FSR3 exposure is live and not unintentionally driven by display fade.
+- [x] Dark-scene luminance produces distinct finite positive exposure values.
+- [x] Current/history exposure equations are proven across adaptation/reset.
+- [x] HDR FSR input remains scene-linear unless an alternative is fully derived and explicitly approved.
 - [ ] The reversible AA transform is actually reversible over its documented range.
 - [ ] Lossy highlight compression is separated and intentionally placed.
 - [ ] Sharpness zero has the agreed identity behavior.
@@ -730,3 +730,12 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Selected the existing project-owned level-5 SPD callback correction plus frame-local exposure, with no new resource or pass and no vendor-source edit.
 - Evaluated uniform luminance from zero through FP16 maximum; the selected exposure remains finite and positive and distinguishes useful dark-scene values.
 - Changed no runtime shader, generator, generated output, or protected vendor file in this task.
+
+### FSR3-T02
+
+- `Exposure()` now reads the frame-local FSR3 exposure, while `DeltaPreExposure()` remains one and scene-linear input/history/output storage is unchanged.
+- The project-owned level-5 luma-pyramid callback rebuilds log luminance from the unaffected linear-luminance channel; frame-info reads disable the SDK temporal exposure smoothing without changing imported AMD source.
+- Uniform-luminance checks from `0` through `65504` matched `E(L) = 1 / (9.6 * max(L, 6.10e-5))`; all results were finite and positive, including distinct results for `0.001`, `0.18`, and `1`.
+- Diffed against baseline `0a8f7843`: protected FSR3, FSR1, SPD, and FFX core implementation files were unchanged; only project-owned FSR3 Integration and README changed under `shaders/techniques/ffx`.
+- Vibris case `ap8-t02--fsr3-65` loaded AP8 validation snapshot `267e8062cec8d0fcf27244cb90a26c8785ee4ddd` with FSR3 at 65% render scale in target Minecraft 1.21.5/Iris; load and `inspect_shader` both returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics.
+- No generator was run because no maintained generator input changed.
