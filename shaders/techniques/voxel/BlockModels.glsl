@@ -63,8 +63,7 @@ bool _voxel_intersectBlockModelAABB(
     vec3 localOrigin = rayOrigin - origin;
     vec3 localDir = rayDir;
     if (discrete) {
-        localOrigin = _voxel_rotateBlockModelVector(discreteRotation, localOrigin);
-        localDir = _voxel_rotateBlockModelVector(discreteRotation, localDir);
+        _voxel_rotateBlockModelRay(discreteRotation, localOrigin, localDir);
     } else {
         quaternion = normalize(texelFetch(usam_blockModelAABBs, texelIndex, 0) * (255.0 / 126.0) - 1.0);
         vec4 inverseQuaternion = vec4(-quaternion.xyz, quaternion.w);
