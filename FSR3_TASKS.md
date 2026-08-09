@@ -586,9 +586,27 @@ Acceptance:
 
 ### FSR3-T07 — Validate target compile, resets, and night-scene image quality
 
-Status: `READY`
+Status: `BLOCKED`
 Dependencies: FSR3-T06
 Expected commit: validation evidence in this ledger; implementation fixes require inserted tasks
+
+Blocked state recorded 2026-08-09:
+
+- Required external state: run the existing `I:\MultiMC\instances\1.21.5-Iris` target instance with Vibris reporting `ready: true`. The only visible Minecraft client across three consecutive goal turns was responsive but identified itself as `Minecraft* 1.21.11 - Singleplayer`.
+- Vibris reported `SERVER_STATE_FAILED` and `RUNTIME_STATE_FAILED` with an empty queue across the same three turns. An explicit AP8 reload of `d7cd20bbd6c1f831ab8c83014431fe739815e74f` returned non-retryable `SERVER_NOT_READY`.
+- The failed active source UUID `2210d8f3-4ffb-4ffe-9131-5bfb3b1eac05` was traced to Alpha-Piscium-4 commit `e907fab2`: its `composite14.csh` is byte-identical to the AP4 Radiance Cache wrapper and differs from AP8's DOF Focus wrapper. The Minecraft log's `composite14` parse failure is therefore not an AP8/FSR3 defect.
+- The current seven-tool Vibris surface has no continuous camera-input or window-resize action. The available computer-control skill requires `node_repl`/`sky`, which are absent; custom input injection is not an acceptable substitute. Resume requires either a safe control interface or user-performed continuous-motion and real-window-resize cases.
+- Do not launch, close, or restart Minecraft or its launcher without explicit user instruction.
+
+Completed non-target diagnostic evidence retained for the resumed run:
+
+- AP8 source `d7cd20bb` passed the complete ten-case Off/TAA/FSR3 sharpness/compression matrix with no shader errors at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\65ae390d-8efb-3a2d-9930-595a0dbb9d6f`.
+- Reload/reset frames 1, 2, 4, 8, 16, 32, and 64 were captured at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\70343481-936a-3525-9d39-1e226141e6ca` and `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\d2f373ad-ba70-39f9-8a04-d84e36936389`; still-camera frames 16-64 converged without flash or stale history.
+- Off-to-FSR3 and FSR3-to-TAA-to-Off switches passed at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\98469671-2588-3373-9caf-09723dfb4a14` and `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\202cd929-45e3-30da-8829-1c96d326f4ae`.
+- Render-scale changes 65-to-50 percent and 50-to-100 percent passed without stale-size borders or incorrect Bloom scale at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\32d30b9e-ec0c-3b6f-a148-5781f634a1f9` and `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\a1a23def-9e8b-355c-a50c-4f95c2b61709`.
+- Auto-exposure dark-to-bright and bright-to-dark transitions were captured at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\a1492b14-7ad6-3103-afde-78e978676abf` and `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\07b23c1c-60f4-314c-905c-35e3c6aa521d` without exposure flash or old-scene history overlay.
+- Sky, cloud, vegetation, water, translucent, mushroom, emissive, GI-lit, teleport, and camera-cut diagnostics are retained at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\33063ede-7d7d-3aa3-a817-a3cbec090996` and `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\5720ad52-13f2-352e-b3df-061ba938405c`. Visual inspection found no white leakage, desaturated outline, ringing, ghosting, flicker, or incorrect Bloom scale.
+- These captures were produced by the currently running 1.21.11 client and are diagnostic only. They do not satisfy the required target 1.21.5 visual matrix, continuous camera motion, or real window resize.
 
 Primary scene:
 
