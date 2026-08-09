@@ -106,7 +106,10 @@ bool voxel_intersectBlockModel(
             --quadCount;
         }
     }
-    if (hit) hitNormal = _voxel_unrotateBlockModelVector(rotation, normalize(hitNormal));
+    if (hit) {
+        if (!axisAligned) hitNormal = normalize(hitNormal);
+        hitNormal = _voxel_unrotateBlockModelVector(rotation, hitNormal);
+    }
     return hit;
 }
 

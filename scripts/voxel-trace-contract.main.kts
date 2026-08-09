@@ -178,7 +178,8 @@ reject(models, Regex("greaterThan\\(projected"), "eager projected quad bounds")
 val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
 expect(modelFunction, "hit = hitT != uintBitsToFloat(0x7F800000u);", "axis-aligned post-loop hit inference")
 if (Regex("\\|\\|\\s*hit").findAll(modelFunction).count() != 1) failures += "general quad path must retain exactly one hit accumulation"
-expect(models, Regex("if\\s*\\(hit\\)\\s+hitNormal\\s*=\\s*_voxel_unrotateBlockModelVector\\([^;]*normalize\\s*\\(hitNormal\\)"), "post-loop hit normal normalization")
+expect(models, "if (!axisAligned) hitNormal = normalize(hitNormal);", "general-only post-loop hit normal normalization")
+expect(models, "hitNormal = _voxel_unrotateBlockModelVector(rotation, hitNormal);", "post-loop hit normal inverse rotation")
 if (Regex("(?m)\\b(?:const\\s+)?(?:vec[234]|u?int|float|bool)\\s+\\w+\\s*\\[").containsMatchIn(models)) {
     failures += "block-model runtime uses a local or const array"
 }
