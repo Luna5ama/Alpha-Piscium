@@ -279,9 +279,9 @@ Evidence:
 
 ### FSR3-T01 — Audit the exposure contract and select a vendor-safe design
 
-Status: `READY`
+Status: `DONE`
 Dependencies: FSR3-T00
-Expected commit: ledger/design evidence only
+Commit: this task's commit
 
 Do not change runtime shader behavior in this task.
 
@@ -312,9 +312,159 @@ Acceptance:
 - No shader, generator, generated output, or protected vendor file changes.
 - This ledger is the only file in the task commit.
 
+#### Upstream provenance
+
+The exact imported revision is the public AMD commit `60f4ea81909200d8542eca14dccb2628b763a9a3`, titled `AMD FSR SDK 2.3.0`. The current path at that revision is:
+
+```text
+Kits/FidelityFX/upscalers/fsr3/include/gpu/fsr3upscaler/ffx_fsr3upscaler_luma_pyramid.h
+```
+
+It contains the same expression as the local GLSL port:
+
+```text
+ffxMax(FSR3UPSCALER_EPSILON, log(fLuma))
+```
+
+The expression was not introduced by the GLSL port. The old `sdk/include/...` URL in the source handoff is stale for this revision; use:
+
+<https://github.com/GPUOpen-LibrariesAndSDKs/FidelityFX-SDK/blob/60f4ea81909200d8542eca14dccb2628b763a9a3/Kits/FidelityFX/upscalers/fsr3/include/gpu/fsr3upscaler/ffx_fsr3upscaler_luma_pyramid.h>
+
+The same upstream revision computes:
+
+```text
+deltaPreExposure = currentPreExposure / previousFramePreExposure
+```
+
+and aliases the input-exposure SRV to `frame_info.x` when FSR3 auto exposure is enabled.
+
+#### Complete current dataflow
+
+Let:
+
+```text
+C_t     = current un-pre-exposed scene-linear RGB
+L_t     = dot(max(C_t, 0), Rec.709 luminance coefficients)
+E_t     = FSR reconstruction exposure for the current frame
+P_t     = application pre-exposure; P_t = 1 in this shaderpack
+D_t     = P_t / P_(t-1); therefore D_t = DeltaPreExposure() = 1
+H_(t-1)= stored scene-linear FSR color history
+Q_(t-1)= stored scene-linear luma history
+A_t     = shaderpack display exposure, exp2(global_aeData.expValues.z)
+T       = AMD's temporary HDR max-channel Tonemap/YCoCg reconstruction transform
+```
+
+The reader/writer trace is:
+
+| Value | Writer/storage | Readers and domain |
+|---|---|---|
+| Input color `C_t` | `TAAPrepare` leaves `usam_main` unexposed in FSR3 mode | `LoadInputColor`; Upsample uses `E_t * C_t` |
+| Current luma `L_t` | Prepare Inputs stores alternating R channels in the render-history atlas | Luma Pyramid reads it unexposed; Shading Change, Prepare Reactivity, and Luma Instability multiply it by `E_t` |
+| Previous luma `L_(t-1)` | Opposite parity current-luma tile | Shading Change uses `E_t * D_t * L_(t-1)`; reset returns zero |
+| Luma history `Q_(t-1)` | Luma Instability stores after dividing the entire vector by `E_t` | Next frame samples it, then multiplies by `E_t * D_t`; reset returns zero |
+| Color history `H_(t-1)` | Accumulate stores RGB after inverse internal tonemap and division by `E_t` | Reproject loads it and multiplies by `E_t * D_t`; reset returns zero |
+| Current FSR output | Current parity color-history tile | Shared RCAS reads it as unexposed scene-linear RGB |
+| `frameInfo.x` | Luma Pyramid `StoreFrameInfo` | Currently no reader; T02 makes `Exposure()` read it directly |
+| `frameInfo.y` | Luma Pyramid smoothed log luminance | Only the next Luma Pyramid dispatch reads it |
+| `frameInfo.z` | Luma Pyramid arithmetic scene-average luminance | `SceneAverageLuma()` exists but has no call site |
+| `frameInfo.w` | Shared RCAS writes `frameCounter` | `FSR3HistoryReset()` detects skipped FSR3 frames/mode changes |
+| Display exposure `A_t` | Exposure Gather after the display pipeline | Shared RCAS applies it once after FSR3; it must not enter FSR temporal reconstruction |
+
+`LoadFrameInfo()` is the Luma Pyramid read/write callback. `FrameInfo()` is nominally the read-only callback, but the local port currently aliases it to the reset-substituting `LoadFrameInfo()`. T02 restores the upstream distinction so current frame data remains visible after the Luma Pyramid writes it, including on a reset frame.
+
+`Exposure()` consumers are Upsample, Shading Change Pyramid, Prepare Reactivity, Luma Instability, Reproject, Accumulate, and the unused imported FSR3 RCAS path. The active shared FSR1 RCAS intentionally uses display exposure instead.
+
+#### Exposure and history equations
+
+Current and reprojected color enter the same current-frame reconstruction domain:
+
+```text
+N_current = E_t * C_t
+N_history = E_t * D_t * H_(t-1)
+```
+
+AMD performs rectification and accumulation on `T(N_current)` and `T(N_history)`, reverses `T`, then stores:
+
+```text
+H_t = max(0, inverse_T(reconstruct(T(N_current), T(N_history), ...)) / E_t)
+```
+
+Because `D_t = 1`, `H_t` remains un-pre-exposed scene-linear RGB for any finite positive `E_t`. A changing FSR exposure is applied equally to current and history and is divided out before storage. Replacing `DeltaPreExposure()` with an FSR exposure ratio would apply an extra ratio to history and is incorrect.
+
+Luma comparisons follow the same rule:
+
+```text
+luma_current_domain  = E_t * L_t
+luma_previous_domain = E_t * D_t * L_(t-1)
+luma_history_input   = E_t * D_t * Q_(t-1)
+Q_t                  = updated_luma_history / E_t
+```
+
+Required cases:
+
+| Case | Result |
+|---|---|
+| First frame or reset | Luma Pyramid writes current `E_t` before any consumer; history loaders return zero and `FrameIndex()` returns zero; stored output returns to scene-linear via `/ E_t` |
+| Stable FSR exposure | Current and history use the same constant scale, which cancels at storage |
+| Changing FSR exposure | Both current and stored scene-linear history use the new `E_t`; no prior FSR exposure is required |
+| Display-exposure adaptation | `A_t` is absent from all FSR temporal equations and is applied once after upscale, so its fade cannot move FSR clipping/history decisions |
+| Shader reload / mode switch | initialization or the missing `frameInfo.w == frameCounter - 1` marker resets history; the current Luma Pyramid dispatch still overwrites exposure before use |
+| Resize / render-scale change | exposure has no persistent size-dependent state; the current dispatch reduces the new `RenderSize()`. Temporal resource/reset correctness remains covered by T06/T07 |
+| Teleport / camera cut | exposure is recomputed from the current frame and does not reuse a previous exposure; existing FSR history validity/reactive handling remains independently validated in T06/T07 |
+
+#### Workaround comparison and decision
+
+1. Reading the existing `frameInfo.x` without other changes is rejected: it preserves the upstream sub-1 collapse and the internal temporal smoothing.
+2. Recomputing exposure from the global arithmetic mean in `frameInfo.z` is dark-safe and small, but it is overly biased by bright outliers and diverges more from AMD's documented average-log estimator.
+3. Adding a new exact log-luminance reduction pass/resource is vendor-safe, but duplicates SPD work and changes scheduling/resources without evidence that it is needed.
+4. Encoding luminance before the protected source's `log()` is rejected because it either overflows the FP16 pyramid or destroys the independent arithmetic-luma channel.
+5. Changing `DeltaPreExposure()` to an exposure ratio is mathematically wrong for scene-linear stored history.
+6. Selected: repair the log channel at the existing project-owned SPD storage callback. At FSR3 Luma Pyramid level 5, `value.y` still contains the valid 64x64 linear-luma reduction. Store `log(max(value.y, 6.10e-5))` in `value.x` while preserving `value.y`. Higher SPD levels then average valid per-tile log luminance and retain the arithmetic scene-average channel. For a uniform scene this exactly reproduces the documented estimator; for a non-uniform scene it is the geometric mean of 64x64 tile arithmetic means.
+
+The selected design also makes FSR exposure deliberately frame-local: `LoadFrameInfo()` supplies the `1.0e4` no-smoothing sentinel only to the Luma Pyramid update, while the stored `frameInfo.y` remains the current corrected log value for diagnostics. This skips the imported temporal smoothing branch without changing protected source.
+
+#### Exact T02 implementation contract
+
+T02 changes only project-owned files:
+
+1. `shaders/techniques/ffx/fsr3upscaler/Integration.glsl`
+   - Return raw `global_fsr3FrameInfo.x` from `Exposure()`.
+   - Keep `DeltaPreExposure() == 1.0`.
+   - In `StorePyramid`, only for `FSR3_BIND_LUMA_PYRAMID` and level 5, replace `value.x` with `log(max(value.y, 6.10e-5))` before storing.
+   - Make `LoadFrameInfo()` return reset/current data with only its local `.y` changed to `1.0e4`, disabling FSR exposure smoothing every frame.
+   - Make read-only `FrameInfo()` return raw `global_fsr3FrameInfo`, not the reset-substituting writer view.
+2. `shaders/techniques/ffx/fsr3upscaler/README.md`
+   - Document current-frame internal exposure, the level-5 vendor-safe correction, scene-linear history, and display-exposure separation.
+3. `FSR3_TASKS.md`
+   - Record implementation and validation evidence.
+
+No new image, SSBO field, pass, program-order change, option, generated output, or generator run is required. The existing order `PrepareInputs -> LumaPyramid -> remaining FSR3 stages` guarantees the current exposure is written before its readers.
+
+For a uniform scene, the selected result is:
+
+```text
+E(L) = 1 / (9.6 * max(L, 6.10e-5))
+```
+
+Numeric gates:
+
+| Uniform luminance `L` | Expected `E(L)` |
+|---:|---:|
+| `0` | `1707.650273` |
+| `0.000001` | `1707.650273` |
+| `0.000061` | `1707.650273` |
+| `0.001` | `104.1666667` |
+| `0.18` | `0.5787037037` |
+| `1` | `0.1041666667` |
+| `10` | `0.01041666667` |
+| `100` | `0.001041666667` |
+| `65504` | `0.000001590233675` |
+
+Every result is finite and positive. The three distinct sub-1 cases `0.001`, `0.18`, and `1` must remain distinct. By contrast, the uncorrected upstream expression produces approximately `0.1041603127` for every `0 <= L <= 1`.
+
 ### FSR3-T02 — Implement independent FSR3 exposure
 
-Status: `PENDING`
+Status: `READY`
 Dependencies: FSR3-T01
 Expected commit: exposure correctness fix
 
@@ -571,3 +721,12 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Checked out `1.10/fsr3` in Alpha-Piscium-8.
 - Created this serial execution ledger from the complete prior review handoff.
 - Reverified at branch tip that the exposure callback, dark-luma expression, RCAS wrapper, and AgX highlight-compression behavior remain unchanged from the reviewed snapshot.
+
+### FSR3-T01
+
+- Confirmed the suspicious dark-luma expression is byte-for-byte present in AMD revision `60f4ea8`; the local port did not introduce it.
+- Verified upstream `deltaPreExposure = currentPreExposure / previousPreExposure`; the shaderpack's unit pre-exposure makes `DeltaPreExposure() == 1` exact.
+- Traced all exposure, frame-info, luma, color-history, and output readers/writers and derived first-frame, stable, changing-exposure, reset, and display-adaptation equations.
+- Selected the existing project-owned level-5 SPD callback correction plus frame-local exposure, with no new resource or pass and no vendor-source edit.
+- Evaluated uniform luminance from zero through FP16 maximum; the selected exposure remains finite and positive and distinguishes useful dark-scene values.
+- Changed no runtime shader, generator, generated output, or protected vendor file in this task.
