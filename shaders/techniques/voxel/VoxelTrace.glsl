@@ -227,7 +227,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                 uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
                 #ifdef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE
                 uint blockFlags = texelFetch(usam_pbrLUT1, int(material), 0).r;
-                bool isFullCube = bitfieldExtract(blockFlags, 4, 1) == 1u;
+                bool isFullCube = (blockFlags & 16u) != 0u;
                 #else
                 HardcodedPBR hardcoded = hardcodedpbr_decode(material);
                 bool isFullCube = hardcoded.isFullCube;
