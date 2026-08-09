@@ -24,7 +24,7 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec2 texelPosCenter = vec2(texelPos) + vec2(0.5);
         const uint MAX_ITER = 1024u;
-        uint count = global_atomicCounters[15];
+        uint count = global_atomicCounters[GLOBAL_ATOMIC_COUNTER_SST_STEPS];
 
         vec3 finalColor = texelFetch(uimg_temp5, texelPos, 0).rgb;
 
@@ -76,4 +76,3 @@ void main() {
         // imageStore(uimg_temp5, texelPos, vec4(finalColor, 1.0));
     }
 }
-

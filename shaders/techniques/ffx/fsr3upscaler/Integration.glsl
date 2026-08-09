@@ -394,11 +394,11 @@ FfxInt32x2 WorkGroupOffset() {
 }
 
 void SPD_IncreaseAtomicCounter(inout FfxUInt32 counter) {
-    counter = atomicAdd(global_atomicCounters[15], 1u);
+    counter = atomicAdd(global_atomicCounters[GLOBAL_ATOMIC_COUNTER_FSR3_SPD], 1u);
 }
 
 void SPD_ResetAtomicCounter() {
-    global_atomicCounters[15] = 0u;
+    global_atomicCounters[GLOBAL_ATOMIC_COUNTER_FSR3_SPD] = 0u;
 }
 
 FfxFloat32x4 LoadFrameInfo() {

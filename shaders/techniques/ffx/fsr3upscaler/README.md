@@ -89,9 +89,10 @@ dilated motion is `RG16_FLOAT`,
 and reconstructed previous depth is `R32_UINT` because the prepare pass updates
 its float bits atomically.
 
-Both SPD passes use `global_atomicCounters[15]` through
+Both FSR3 SPD passes use the dedicated `global_atomicCounters[14]` through
 `SPD_IncreaseAtomicCounter` and `SPD_ResetAtomicCounter`; the counter is shared
-across workgroups and reset between the sequential pyramid passes.
+across workgroups and reset between the sequential pyramid passes. Counter 15
+remains dedicated to SST step debugging.
 
 FP32 is the baseline path. Enabling `FFX_HALF` requires 16-bit arithmetic type
 support in the entrypoint. Define `FFX_SPD_NO_WAVE_OPERATIONS` when subgroup

@@ -170,7 +170,7 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
         text.fpPrecision = 8;
 
         printString((_S, _S, _T, _space, _S, _T, _E, _P, _S, _colon, _space));
-        uint count = global_atomicCounters[15];
+        uint count = global_atomicCounters[GLOBAL_ATOMIC_COUNTER_SST_STEPS];
         printUnsignedInt(count);
         printLine();
         //    printVec4(ssbo_testBuffer[count + 1 + 2048]);

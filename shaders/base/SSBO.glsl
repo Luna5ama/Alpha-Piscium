@@ -3,6 +3,9 @@
 
 #endif
 
+const uint GLOBAL_ATOMIC_COUNTER_FSR3_SPD = 14u;
+const uint GLOBAL_ATOMIC_COUNTER_SST_STEPS = 15u;
+
 struct AEData {
     vec4 lastScreenAvgLum;
     vec4 screenAvgLum;
@@ -76,6 +79,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     vec4 global_fsr3FrameInfo;
     float global_turbidity;
     AEData global_aeData;
+    // 0..13: generic SPD slices, 14: FSR3 SPD, 15: SST step debug.
     uint global_atomicCounters[16];
 };
 

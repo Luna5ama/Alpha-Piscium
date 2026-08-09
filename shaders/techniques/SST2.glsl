@@ -260,7 +260,7 @@ void sst_trace(inout SSTRay ray, uint hiZSteps) {
         if (gl_GlobalInvocationID.xy == DEBUG_COORD) {
             ssbo_testBuffer[i + 2048] = vec4(currT, currScreenPosZ, cellZ.x, cellZ.y);
             ssbo_testBuffer[i] = vec4(currScreenPosXY, 0.0, float(currLevel + 2));
-            atomicMax(global_atomicCounters[15], i);
+            atomicMax(global_atomicCounters[GLOBAL_ATOMIC_COUNTER_SST_STEPS], i);
         }
         #endif
         #endif
