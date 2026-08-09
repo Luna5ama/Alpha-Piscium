@@ -51,6 +51,10 @@ reprojection 约定。
 `BLOOM_PASS=1..10` 构建第 1–10 层，再通过 `BLOOM_UP_SAMPLE` 重建第 10–2 层。`SETTING_BLOOM_PASS` 在 program 层禁用未使用的高层。
 非 FSR3 路径使用 `transient_bloom`；FSR3 路径在 accumulation 和 RCAS 后复用 `usam_fsr3UpscaleAtlas` 的第三个区域。
 
+Bloom 高光压缩是有意设计的有损 Bloom 专用操作。它只对进入第一个 downsample 层的 exposed-linear 主颜色样本应用一次，
+并且位于金字塔过滤之前。它不会修改主图像，也不属于 [`AgxInvertible.glsl`](../../../shaders/util/AgxInvertible.glsl)
+中的可逆 matrix/log AA 工作变换。
+
 ## 后期合成与曝光
 
 | 顺序 | Pass                                                                                                                                                                          | 作用                                                  |

@@ -5,6 +5,39 @@
 */
 #include "/Base.glsl"
 
+#if BLOOM_DOWN_SAMPLE && BLOOM_PASS == 1 && SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0
+#if SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE == 1
+#include "/util/Colors2.glsl"
+#endif
+
+float bloom_compressHighlight(float value) {
+    if (value <= 1.0) return value;
+    #if SETTING_BLOOM_HIGHLIGHT_COMPRESSION == 1
+    return 1.0 + log(value);
+    #elif SETTING_BLOOM_HIGHLIGHT_COMPRESSION == 2
+    return 2.0 - exp(-(value - 1.0));
+    #elif SETTING_BLOOM_HIGHLIGHT_COMPRESSION == 3
+    return 2.0 - 1.0 / value;
+    #elif SETTING_BLOOM_HIGHLIGHT_COMPRESSION == 4
+    return 1.0;
+    #endif
+}
+
+vec3 bloom_compressHighlights(vec3 color) {
+    #if SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE == 0
+    return vec3(
+        bloom_compressHighlight(color.r),
+        bloom_compressHighlight(color.g),
+        bloom_compressHighlight(color.b)
+    );
+    #else
+    float luma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, color);
+    if (luma <= 1.0) return color;
+    return color * (bloom_compressHighlight(luma) / luma);
+    #endif
+}
+#endif
+
 /*const*/
 #if BLOOM_DOWN_SAMPLE
 #define BLOOM_SCALE_DIV BLOOM_PASS
@@ -175,6 +208,9 @@ vec4 bloom_readInputDown(ivec2 coord) {
     vec2 readPosUV = vec2(coord + inputStartTexel) * POST_PROCESS_IMAGE_SIZE_RCP;
     readPosUV = clamp(readPosUV, inputStartUV, inputEndUV);
     vec4 inputValue = _bloom_imageSample(readPosUV);
+    #if BLOOM_PASS == 1 && SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0
+    inputValue.rgb = bloom_compressHighlights(max(inputValue.rgb, 0.0));
+    #endif
     return inputValue;
 }
 

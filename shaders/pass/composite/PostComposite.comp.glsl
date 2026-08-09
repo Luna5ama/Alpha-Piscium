@@ -13,7 +13,6 @@ const vec2 workGroupsRender = vec2(POST_PROCESS_SCALE_FACTOR, POST_PROCESS_SCALE
 #include "/util/Colors2.glsl"
 #include "/util/Coords.glsl"
 #include "/util/FullScreenComp.glsl"
-#include "/util/AgxInvertible.glsl"
 
 layout(rgba16f) restrict uniform image2D uimg_main;
 

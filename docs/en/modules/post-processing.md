@@ -55,6 +55,10 @@ with `BLOOM_DOWN_SAMPLE` and `BLOOM_PASS=1..10`, then reconstructs levels 10–2
 `SETTING_BLOOM_PASS` disables unused high levels at the program layer. The non-FSR3 path uses `transient_bloom`; the FSR3
 path reuses the third region of `usam_fsr3UpscaleAtlas` after accumulation and RCAS.
 
+Bloom highlight compression is an intentionally lossy Bloom-only operation. It is applied exactly once to exposed-linear
+main-color samples entering the first downsample level, before pyramid filtering. It does not modify the main image and is
+not part of the reversible matrix/log AA working transform in [`AgxInvertible.glsl`](../../../shaders/util/AgxInvertible.glsl).
+
 ## Post composition and exposure
 
 | Order | Pass                                                                                                                                                                            | Purpose                                                                                                         |

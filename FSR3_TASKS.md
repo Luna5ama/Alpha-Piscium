@@ -490,9 +490,9 @@ Required checks:
 
 ### FSR3-T03 — Define the reversible color transform and add regression coverage
 
-Status: `READY`
+Status: `DONE`
 Dependencies: FSR3-T02
-Expected commit: deterministic test plus the minimal transform separation it specifies
+Commit: this task's commit
 
 Scope:
 
@@ -519,7 +519,7 @@ Acceptance:
 
 ### FSR3-T04 — Correct shared RCAS and zero-sharpness behavior
 
-Status: `PENDING`
+Status: `READY`
 Dependencies: FSR3-T03
 Expected commit: shared RCAS integration fix
 
@@ -694,8 +694,8 @@ The serial goal executes numeric task order even where dependencies permit paral
 - [x] Dark-scene luminance produces distinct finite positive exposure values.
 - [x] Current/history exposure equations are proven across adaptation/reset.
 - [x] HDR FSR input remains scene-linear unless an alternative is fully derived and explicitly approved.
-- [ ] The reversible AA transform is actually reversible over its documented range.
-- [ ] Lossy highlight compression is separated and intentionally placed.
+- [x] The reversible AA transform is actually reversible over its documented range.
+- [x] Lossy highlight compression is separated and intentionally placed.
 - [ ] Sharpness zero has the agreed identity behavior.
 - [ ] Off, TAA, and FSR3 share consistent RCAS/Bloom contracts.
 - [ ] FSR3 SPD and SST debug do not share atomic synchronization state.
@@ -739,3 +739,13 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Diffed against baseline `0a8f7843`: protected FSR3, FSR1, SPD, and FFX core implementation files were unchanged; only project-owned FSR3 Integration and README changed under `shaders/techniques/ffx`.
 - Vibris case `ap8-t02--fsr3-65` loaded AP8 validation snapshot `267e8062cec8d0fcf27244cb90a26c8785ee4ddd` with FSR3 at 65% render scale in target Minecraft 1.21.5/Iris; load and `inspect_shader` both returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics.
 - No generator was run because no maintained generator input changed.
+
+### FSR3-T03
+
+- Restricted `AgxInvertible` to the reversible AgX inset-matrix/log transform and expanded its log range to 33 EV, covering nonnegative RGB whose maximum channel is `0.001` through `65504` without hitting either encoded boundary.
+- Removed Bloom highlight compression and its color-space dependencies from the AA transform. Compression now runs exactly once on exposed-linear main-color samples entering Bloom downsample level 1; it changes only the Bloom contribution and never the main image or AA history/RCAS roundtrip.
+- Added `scripts/test/agx-invertible-check.main.kts`. Its FP32 matrix/log cases cover gray, pure red/green/blue, and three saturated mixed colors at `0.001`, `0.18`, `1`, `100`, `1024`, `4096`, and `65504`, with absolute tolerance `5e-7` and relative tolerance `4e-6`.
+- The numeric test reported maximum roundtrip error `0.0859375` and maximum pure-channel leakage `0.005859375`; all values were finite and within tolerance. Independent compression checks covered strengths 0–4, RGB ratio change, Luma ratio preservation, and black input without division by zero.
+- Updated paired English and Simplified Chinese post-processing documentation and removed the now-unused `AgxInvertible` include from Post Composite.
+- Vibris validation snapshot `67f0e8c31875aa00044fc50aee7e4d424892bca4` passed all four target Minecraft 1.21.5/Iris cases: Off/RGB, TAA/RGB, FSR3/RGB, and FSR3/Luma-low. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 4`, `failed: 0`).
+- Protected AMD FSR3, FSR1, SPD, and FFX core sources remained byte-identical to baseline `0a8f7843`. No generator was run because no maintained generator input changed.
