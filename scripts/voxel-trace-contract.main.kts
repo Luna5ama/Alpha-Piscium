@@ -228,8 +228,13 @@ expect(pairedTrace, "#define VOXEL_BLOCK_MODEL_LINEAR_AABB_TEXELS\n#include \"/t
 expect(radianceCacheTrace, "#define VOXEL_BLOCK_MODEL_LINEAR_AABB_TEXELS\n#include \"/techniques/gi/RadianceCacheUpdate.glsl\"", "radiance cache linear AABB texels")
 expect(trace, "voxel_intersectBlockModel(", "trace model call")
 expect(trace, "lastT, blockExitT, modelT, modelNormal", "trace leaf interval")
-expect(trace, "hardcoded.isFullCube", "full-cube fast path")
-expect(trace, "hardcoded.blockModelMetadata != 0u", "unsupported exclusion")
+expect(initialTrace, "#define VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "initial trace deferred model decode")
+expect(trace, "#ifdef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "selectable deferred model decode")
+expect(trace, "uint blockFlags = texelFetch(usam_pbrLUT1, int(material), 0).r;", "early full-cube lookup")
+expect(trace, "uint blockModelMetadata = texelFetch(usam_pbrLUT2, int(material), 0).x;", "deferred model lookup")
+expect(trace, "HardcodedPBR hardcoded = hardcodedpbr_decode(material);", "default full PBR decode")
+expect(trace, "if (isFullCube)", "full-cube fast path")
+expect(trace, "if (blockModelMetadata != 0u", "unsupported exclusion")
 listOf("ray.lastT = lastT;", "ray.level = level;", "ray.fullMorton = fullMorton;").forEach { expect(trace, it, "resumable state") }
 val emptyStep = trace.indexOf("// ---- Empty child")
 val blockPosUpdate = trace.indexOf("blockPos = exitBlockPos;", emptyStep)
@@ -240,8 +245,8 @@ if (emptyStep < 0 || blockPosUpdate < 0 || finalAxisUpdate < 0 || updatedBounds 
     !(blockPosUpdate < finalAxisUpdate && finalAxisUpdate < updatedBounds && updatedBounds < updatedPack)) {
     failures += "updated blockPos bounds check must precede pack after all axis updates"
 }
-val fullCubeStart = trace.indexOf("if (hardcoded.isFullCube)")
-val modelStart = trace.indexOf("if (hardcoded.blockModelMetadata", fullCubeStart)
+val fullCubeStart = trace.indexOf("if (isFullCube)")
+val modelStart = trace.indexOf("if (blockModelMetadata", fullCubeStart)
 if (fullCubeStart < 0 || modelStart < 0 || !trace.substring(fullCubeStart, modelStart).contains("ray.level = 0;")) {
     failures += "full-cube hit does not clear ray.level"
 }
