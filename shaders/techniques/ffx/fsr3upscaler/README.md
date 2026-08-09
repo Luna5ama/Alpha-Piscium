@@ -24,8 +24,7 @@ reduction over the valid 3x3 neighborhood.
 
 The port contains the complete required upscaler estimator. Sharpening uses the
 shaderpack's shared FSR1 RCAS pass. It intentionally omits FSR2, frame generation,
-optical flow,
-backend/provider code, shader blobs, debug rendering, auto-reactive generation,
+optical flow, backend/provider code, shader blobs, debug rendering, auto-reactive generation,
 Xbox-only paths, and backend resource aliasing code.
 
 `/pass/composite/FSR3MotionVectors.comp.glsl` generates camera motion and packs the
@@ -43,7 +42,7 @@ The required dispatch order is:
 4. `shading_change` (8x8 at half render size)
 5. `prepare_reactivity` (8x8 at render size)
 6. `luma_instability` (8x8 at render size)
-7. `accumulate` (8x8 at output size)
+7. `accumulate` (16x8 at output size)
 
 The shared `/pass/composite/RCAS.comp.glsl` pass then sharpens the accumulated
 output at presentation resolution and writes it to `main`.
@@ -71,6 +70,12 @@ RCAS pass separately applies the shaderpack display exposure exactly once, then
 uses the AgX transform before sharpening, restores linear output, and writes
 full-resolution `main` for Bloom and the remaining post-processing passes.
 
+`RenderSize()` comes from the Iris CPU-side render-image size, while
+`UpscaleSize()` comes from the view/output size. G-buffer texture gradients use
+`0.5 * uval_mainImageScale`; relative to low-resolution raster derivatives this
+implements the recommended `log2(render/output) - 1` mip bias. Accumulation,
+shared RCAS, Bloom, and the remaining post-processing passes use output size.
+
 The other inputs are device depth, motion vectors, reactive mask, and
 transparency/composition mask. The integration uses the SDK's motion-vector sign
 and UV units, passes current and previous jitter in render-pixel units, resets
@@ -88,6 +93,13 @@ plus the SPD counter live in the global SSBO. Dilated depth is `R32_FLOAT`,
 dilated motion is `RG16_FLOAT`,
 and reconstructed previous depth is `R32_UINT` because the prepare pass updates
 its float bits atomically.
+
+The upscaled-color atlas contains two full-output-size color-history regions, a
+third full-output-size new-lock region, and four render-size luma/history tiles
+below them. After accumulation and shared RCAS finish using the new-lock data,
+Bloom reuses the third region's RGB channels. Packed Bloom filtering clamps every
+read to the source tile's texel-center bounds so bilinear samples cannot mix
+neighboring tiles or stale RGB from the previous frame.
 
 Both FSR3 SPD passes use the dedicated `global_atomicCounters[14]` through
 `SPD_IncreaseAtomicCounter` and `SPD_ResetAtomicCounter`; the counter is shared

@@ -8,7 +8,6 @@
 #define FFX_FSR3UPSCALER_OPTION_LOW_RESOLUTION_MOTION_VECTORS 1
 #define FFX_FSR3UPSCALER_OPTION_HDR_COLOR_INPUT 1
 #define FFX_FSR3UPSCALER_OPTION_APPLY_SHARPENING 1
-#define FSR3UPSCALER_BIND_SRV_FRAME_INFO 1
 
 #if defined(FSR3_BIND_PREPARE_INPUTS)
 layout(rgba16f) uniform image2D uimg_rgba16f;
@@ -405,10 +404,6 @@ FfxFloat32x4 LoadFrameInfo() {
     FfxFloat32x4 frameInfo = FSR3HistoryReset() ? FfxFloat32x4(1.0f, 1.0e4f, 1.0f, 0.0f) : global_fsr3FrameInfo;
     frameInfo.y = 1.0e4f;
     return frameInfo;
-}
-
-FfxFloat32x4 FrameInfo() {
-    return global_fsr3FrameInfo;
 }
 
 void StoreFrameInfo(FfxFloat32x4 value) {

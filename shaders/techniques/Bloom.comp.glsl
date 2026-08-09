@@ -200,13 +200,13 @@ ivec4 bloom_outputTile = global_mipmapTileCeilPadded[BLOOM_PASS - 1];
 
 ivec2 inputStartTexel = bloom_inputTile.xy;
 ivec2 inputEndTexel = bloom_inputTile.xy + bloom_inputTile.zw;
-vec2 inputStartUV = vec2(inputStartTexel) * POST_PROCESS_IMAGE_SIZE_RCP;
-vec2 inputEndUV = vec2(inputEndTexel) * POST_PROCESS_IMAGE_SIZE_RCP;
+vec2 inputMinUV = (vec2(inputStartTexel) + 0.5) * POST_PROCESS_IMAGE_SIZE_RCP;
+vec2 inputMaxUV = (vec2(inputEndTexel) - 0.5) * POST_PROCESS_IMAGE_SIZE_RCP;
 
 #if BLOOM_DOWN_SAMPLE
 vec4 bloom_readInputDown(ivec2 coord) {
     vec2 readPosUV = vec2(coord + inputStartTexel) * POST_PROCESS_IMAGE_SIZE_RCP;
-    readPosUV = clamp(readPosUV, inputStartUV, inputEndUV);
+    readPosUV = clamp(readPosUV, inputMinUV, inputMaxUV);
     vec4 inputValue = _bloom_imageSample(readPosUV);
     #if BLOOM_PASS == 1 && SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0
     inputValue.rgb = bloom_compressHighlights(max(inputValue.rgb, 0.0));
@@ -308,7 +308,7 @@ vec4 bloom_main(ivec2 texelPos) {
 #elif BLOOM_UP_SAMPLE
 vec4 bloom_readInputUp(ivec2 coord, ivec2 offset) {
     vec2 readPosUV = vec2((vec2(coord) + offset * SETTING_BLOOM_RADIUS + 0.5) * 0.5 + inputStartTexel) * POST_PROCESS_IMAGE_SIZE_RCP;
-    readPosUV = clamp(readPosUV, inputStartUV + 0.5 * POST_PROCESS_IMAGE_SIZE_RCP, inputEndUV - 0.5 * POST_PROCESS_IMAGE_SIZE_RCP);
+    readPosUV = clamp(readPosUV, inputMinUV, inputMaxUV);
     return _bloom_imageSample(readPosUV);
 }
 

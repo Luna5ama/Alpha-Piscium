@@ -53,12 +53,26 @@ sharpening strength directly. A strength of zero bypasses the spatial filter and
 required display exposure and reversible working-domain roundtrip remain. Off does not schedule RCAS. Every mode writes
 exposed-linear `main` before output-resolution Bloom and the display transform.
 
+FSR 3 consumes render-size, unexposed scene-linear HDR and stores its color and luma histories in that same scene-linear
+domain. Its frame-local reconstruction exposure scales current and history values equally and is divided out before
+storage; shared RCAS applies display exposure exactly once afterward. A completed-frame marker and the common temporal
+reset state reject stale histories after reloads, mode switches, or other temporal discontinuities. Motion is
+current-to-previous in UV units, jitter is supplied in render-pixel units, and reactive/composition masks cover dynamic,
+translucent, or otherwise untracked surfaces.
+
+The FSR 3 estimator runs at render size and accumulates at view/output size; shared RCAS and all later post-processing also
+use output size. Explicit G-buffer gradients multiply low-resolution raster derivatives by
+`0.5 * uval_mainImageScale`, which is equivalent to AMD's `log2(render/output) - 1` mip bias for the actual per-axis render
+scale.
+
 ## Bloom
 
 When `SETTING_BLOOM` is enabled, [`Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl) builds levels 1–10
 with `BLOOM_DOWN_SAMPLE` and `BLOOM_PASS=1..10`, then reconstructs levels 10–2 with `BLOOM_UP_SAMPLE`.
 `SETTING_BLOOM_PASS` disables unused high levels at the program layer. The non-FSR3 path uses `transient_bloom`; the FSR3
 path reuses the third region of `usam_fsr3UpscaleAtlas` after accumulation and RCAS.
+All packed-pyramid reads are clamped to source-tile texel centers, preventing bilinear filtering from crossing into an
+adjacent tile or stale atlas data.
 
 Bloom highlight compression is an intentionally lossy Bloom-only operation. It is applied exactly once to exposed-linear
 main-color samples entering the first downsample level, before pyramid filtering. It does not modify the main image and is
