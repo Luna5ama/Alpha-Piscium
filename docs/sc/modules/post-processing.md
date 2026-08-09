@@ -49,11 +49,21 @@ TAA 与 FSR 3 会把相同的可逆 matrix/log 工作域交给公共 RCAS 实现
 中心样本；此时只保留必需的显示曝光和可逆工作域往返。关闭模式不会调度 RCAS。所有模式都会在输出分辨率 Bloom 和显示变换之前
 写出 exposed-linear `main`。
 
+FSR 3 输入渲染分辨率、未曝光的 scene-linear HDR，并以相同的 scene-linear 域保存颜色与亮度历史。它的逐帧重建曝光会等量缩放
+当前值和历史值，并在保存前除回；随后公共 RCAS 只应用一次显示曝光。completed-frame marker 与公共时序 reset 状态会在重载、模式
+切换或其他时序中断后拒绝陈旧历史。Motion 使用 current-to-previous UV 单位，jitter 使用渲染像素单位；reactive/composition mask
+覆盖动态、半透明或无法跟踪物体变换的表面。
+
+FSR 3 estimator 在渲染分辨率运行，并在 view/output 分辨率累积；公共 RCAS 与后续所有后处理也使用输出分辨率。G-buffer 显式梯度
+会把低分辨率 raster derivative 乘以 `0.5 * uval_mainImageScale`，等价于按实际逐轴渲染比例应用 AMD 的
+`log2(render/output) - 1` mip bias。
+
 ## Bloom
 
 启用 `SETTING_BLOOM` 时，[`Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl) 通过 `BLOOM_DOWN_SAMPLE` 和
 `BLOOM_PASS=1..10` 构建第 1–10 层，再通过 `BLOOM_UP_SAMPLE` 重建第 10–2 层。`SETTING_BLOOM_PASS` 在 program 层禁用未使用的高层。
 非 FSR3 路径使用 `transient_bloom`；FSR3 路径在 accumulation 和 RCAS 后复用 `usam_fsr3UpscaleAtlas` 的第三个区域。
+所有打包金字塔读取都会夹到源 tile 的 texel center 范围内，防止双线性过滤越界混入相邻 tile 或 atlas 陈旧数据。
 
 Bloom 高光压缩是有意设计的有损 Bloom 专用操作。它只对进入第一个 downsample 层的 exposed-linear 主颜色样本应用一次，
 并且位于金字塔过滤之前。它不会修改主图像，也不属于 [`AgxInvertible.glsl`](../../../shaders/util/AgxInvertible.glsl)

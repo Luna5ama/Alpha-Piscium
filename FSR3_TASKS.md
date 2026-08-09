@@ -560,9 +560,9 @@ Acceptance:
 
 ### FSR3-T06 — Perform static integration review and cleanup
 
-Status: `READY`
+Status: `DONE`
 Dependencies: FSR3-T02, FSR3-T03, FSR3-T04, FSR3-T05
-Expected commit: cleanup/docs, or ledger evidence only if no cleanup is needed
+Commit: this task's commit
 
 Review and cleanup:
 
@@ -586,7 +586,7 @@ Acceptance:
 
 ### FSR3-T07 — Validate target compile, resets, and night-scene image quality
 
-Status: `PENDING`
+Status: `READY`
 Dependencies: FSR3-T06
 Expected commit: validation evidence in this ledger; implementation fixes require inserted tasks
 
@@ -699,14 +699,14 @@ The serial goal executes numeric task order even where dependencies permit paral
 - [x] Sharpness zero has the agreed identity behavior.
 - [x] Off, TAA, and FSR3 share consistent RCAS/Bloom contracts.
 - [x] FSR3 SPD and SST debug do not share atomic synchronization state.
-- [ ] Render/upscale sizes, G-buffer LOD bias, reactive masks, atlas bounds, and history reset are correct.
-- [ ] Generated outputs match maintained sources.
+- [x] Render/upscale sizes, G-buffer LOD bias, reactive masks, atlas bounds, and history reset are correct.
+- [x] Generated outputs match maintained sources.
 - [ ] `night-gi-1` shows no white leakage, desaturated outline, ringing, flash, or unstable edge.
 - [ ] Target Minecraft 1.21.5/Iris compilation passes.
 - [ ] Vibris performance comparison is recorded with no unexplained material regression.
-- [ ] English and Simplified Chinese documentation are synchronized.
-- [ ] Imported AMD FFX implementation remains byte-identical to baseline.
-- [ ] Every task commit passes `git diff --check` and `git diff --cached --check`.
+- [x] English and Simplified Chinese documentation are synchronized.
+- [x] Imported AMD FFX implementation remains byte-identical to baseline.
+- [x] Every task commit passes `git diff --check` and `git diff --cached --check`.
 
 ## Copyable continuation prompt
 
@@ -766,3 +766,15 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Verified lifetimes: `UpdateGlobalData` clears all 16 counters at frame begin, generic SPD resets each active slice after its final workgroup, each sequential FSR3 pyramid pass resets slot 14 after its final workgroup, and FSR3 no longer modifies the frame-local SST value in slot 15.
 - Vibris validation snapshot `10f4e04491c7f70f3ac1e6c97cd9b3aaa123f2f9` passed target Minecraft 1.21.5/Iris with FSR3 at 65% render scale for both `SETTING_DEBUG_SST_STEPS` disabled and enabled. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 2`, `failed: 0`).
 - The global SSBO member order, member sizes, and 16-counter layout were unchanged. Protected AMD FSR3, FSR1, SPD, and FFX core sources remained byte-identical to baseline `0a8f7843`; only project-owned integration and README files changed under `shaders/techniques/ffx`. No generator was run because no maintained generator input changed.
+
+### FSR3-T06
+
+- Traced every pass from `TAAPrepare` through `PostComposite`. FSR3 receives unexposed scene-linear HDR; its frame-local reconstruction exposure scales current and scene-linear history equally and is divided out before storage. Shared RCAS then applies display exposure exactly once, returns exposed-linear `main`, and output-size Bloom/Post Composite follow it.
+- Verified reset, motion, jitter, depth, reactive/composition, and translucent contracts. History loaders reject reset frames, the RCAS completed-frame marker rejects interrupted mode sequences, motion is current-to-previous UV, and untracked dynamic/translucent surfaces receive reactive/composition coverage.
+- Verified Iris CPU-side render/view sizes, output-resolution post-processing, image formats, four render-history tiles, three output-width atlas regions, FSR SPD packing, and Bloom mip packing/lifetimes. The G-buffer gradient factor is algebraically equivalent to AMD's `log2(render/output) - 1` mip bias for every supported 50–100% scale.
+- Fixed the one blocking atlas finding: packed Bloom downsample reads now clamp to source-tile texel centers, matching upsample and preventing bilinear reads from crossing into adjacent or previous-frame atlas RGB. Representative packed extents include `961x812` within `1920x1080`; atlas bounds passed every supported scale in representative views, and FSR/Bloom packing passed exhaustive square sizes `64..8192`.
+- Removed the unused `FSR3UPSCALER_BIND_SRV_FRAME_INFO` integration define and `FrameInfo()` callback. The only SDK helper they enabled, `SceneAverageLuma()`, has no call site; live `LoadFrameInfo()`/`StoreFrameInfo()` exposure callbacks remain.
+- Corrected the FSR3 README accumulate workgroup from `8x8` to `16x8` and synchronized English/Simplified Chinese size, exposure, history, LOD, mask, atlas, and Bloom-boundary contracts.
+- Bootstrapped the ignored Shadesmith fragment in this fresh worktree and ran `kotlin options.main.kts`; complete generation passed and left no tracked generated diff. `kotlin test/agx-invertible-check.main.kts` passed AgX, Bloom compression, and shared RCAS checks.
+- Vibris loaded AP8 validation snapshot `b458aff921a1f7829558fefa67128a9745d61e67` in target Minecraft 1.21.5/Iris with FSR3 at 65% render scale. `load_shader` and `inspect_shader` both returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics. T07 retains the reset and night-scene visual matrix.
+- Diffed all FFX files from baseline `0a8f7843`: changes are restricted to project-owned FSR1 RCAS, FSR3 Integration, and README; imported AMD FSR3, FSR1, SPD, and FFX core implementation remains unchanged.
