@@ -27,8 +27,8 @@ shaderpack's shared FSR1 RCAS pass. It intentionally omits FSR2, frame generatio
 optical flow, backend/provider code, shader blobs, debug rendering, auto-reactive generation,
 Xbox-only paths, and backend resource aliasing code.
 
-`/pass/composite/FSR3MotionVectors.comp.glsl` generates camera motion and packs the
-reactive and transparency/composition masks in its Z/W channels. The seven
+`/pass/composite/FSR3MotionVectors.comp.glsl` generates camera motion and packs
+solid-surface reactive and transparency/composition masks in its Z/W channels. The seven
 FSR3 entrypoints bind the callbacks from
 `Integration.glsl`. Surfaces without object transforms are marked reactive.
 
@@ -63,7 +63,12 @@ The frame-info update skips temporal exposure smoothing, and all FSR3 stages rea
 the resulting current-frame exposure from `global_fsr3FrameInfo.x`.
 
 Current color and scene-linear history are multiplied by the same FSR3 exposure.
-Accumulation reverses the internal HDR transform and divides by that exposure
+The accumulate entrypoint replaces the SDK max-channel reconstruction transform
+with the shaderpack's reversible AgX inset-matrix/log transform without changing
+the imported SDK files. Its offset log maps black to zero, has no hard lower-EV
+clamp, and uses `[-24, 32]` EV so the maximum FP16 input multiplied by the maximum
+FSR reconstruction exposure remains inside the normalized range. Accumulation
+reverses that transform and divides by the exposure
 before storing scene-linear history and output. `DeltaPreExposure()` remains one
 because the shaderpack does not pre-expose either input or history. The shared
 RCAS pass separately applies the shaderpack display exposure exactly once, then
@@ -77,7 +82,9 @@ implements the recommended `log2(render/output) - 1` mip bias. Accumulation,
 shared RCAS, Bloom, and the remaining post-processing passes use output size.
 
 The other inputs are device depth, motion vectors, reactive mask, and
-transparency/composition mask. The integration uses the SDK's motion-vector sign
+transparency/composition mask. Translucent SST is already composed into the input
+color and deliberately follows the underlying solid depth, motion, and masks; it
+does not add reactive/composition coverage. The integration uses the SDK's motion-vector sign
 and UV units, passes current and previous jitter in render-pixel units, resets
 history on temporal discontinuities or an incomplete previous frame, and keeps
 pre-exposure consistent across frames.
@@ -111,5 +118,8 @@ support in the entrypoint. Define `FFX_SPD_NO_WAVE_OPERATIONS` when subgroup
 quad operations are unavailable.
 
 The active shaderpack does not retain previous object transforms. Entities,
-block entities, particles, hands, overlays, and translucent surfaces therefore
-use camera motion with reactive masking instead of incorrect object motion.
+block entities, particles, hands, and overlays therefore use camera motion with
+reactive masking instead of incorrect object motion. Translucent reflection and
+refraction intentionally have no separate temporal denoiser or reactive mask:
+their rough stochastic result is accumulated with the solid-surface contract to
+avoid frame-to-frame flashing.

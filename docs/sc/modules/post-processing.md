@@ -41,7 +41,7 @@ distance、focus time 和 focus-plane debug。
 | TAA | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Resolve `history_taa`、执行空间抗锯齿，并锐化渲染分辨率输出。 |
 | FSR 3 | [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | 构建 motion/reactive 输入、累积全分辨率结果，再通过公共 RCAS pass 执行锐化和最终颜色空间转换。 |
 
-抗锯齿 / 超采样 screen 控制模式、渲染分辨率比例、jitter、TAA current/history filter、半透明 SST 降噪和公共 RCAS 锐化强度。current/previous jitter custom uniform 在 [
+抗锯齿 / 超采样 screen 控制模式、渲染分辨率比例、jitter、TAA current/history filter 和公共 RCAS 锐化强度。current/previous jitter custom uniform 在 [
 `scripts/shaders.properties`](../../../scripts/shaders.properties) 中由 R2 frame sequence 生成；改变采样序列时，也要同步更新
 reprojection 约定。
 
@@ -51,8 +51,12 @@ TAA 与 FSR 3 会把相同的可逆 matrix/log 工作域交给公共 RCAS 实现
 
 FSR 3 输入渲染分辨率、未曝光的 scene-linear HDR，并以相同的 scene-linear 域保存颜色与亮度历史。它的逐帧重建曝光会等量缩放
 当前值和历史值，并在保存前除回；随后公共 RCAS 只应用一次显示曝光。completed-frame marker 与公共时序 reset 状态会在重载、模式
-切换或其他时序中断后拒绝陈旧历史。Motion 使用 current-to-previous UV 单位，jitter 使用渲染像素单位；reactive/composition mask
-覆盖动态、半透明或无法跟踪物体变换的表面。
+切换或其他时序中断后拒绝陈旧历史。Motion 使用 current-to-previous UV 单位，jitter 使用渲染像素单位。项目自有的 accumulate
+入口会用可逆 AgX inset-matrix/log 变换替换 SDK 的 max-channel 重建 tonemap；带偏移的 log 能精确保留黑色且不会硬截暗部 EV，
+FSR 专用范围可覆盖 FP16 输入乘以最大逐帧重建曝光。
+
+Reactive/composition mask 覆盖动态或无法跟踪物体变换的 solid 表面与 overlay。半透明 SST 已经合成进输入颜色，并有意沿用下层
+solid 的 depth、motion 与 mask；它既不单独写 reactive mask，也不再使用 SST 时域降噪，因为两者会让粗糙反射/折射噪声逐帧闪烁。
 
 FSR 3 estimator 在渲染分辨率运行，并在 view/output 分辨率累积；公共 RCAS 与后续所有后处理也使用输出分辨率。G-buffer 显式梯度
 会把低分辨率 raster derivative 乘以 `0.5 * uval_mainImageScale`，等价于按实际逐轴渲染比例应用 AMD 的

@@ -183,8 +183,9 @@ Current FSR3 color path:
 ```text
 unexposed scene-linear HDR
   -> multiply Integration.Exposure()
-  -> AMD max-channel Tonemap / YCoCg reconstruction and accumulation
-  -> AMD InverseTonemap
+  -> project reversible AgX inset-matrix/offset-log transform
+  -> YCoCg reconstruction and accumulation
+  -> inverse project AgX transform
   -> divide Integration.Exposure()
   -> unexposed scene-linear atlas history/output
   -> multiply shaderpack display exposure in shared RCAS
@@ -198,7 +199,7 @@ unexposed scene-linear HDR
 
 `DeltaPreExposure() == 1` is currently consistent with un-pre-exposed scene-linear input and history. It must not be replaced with a guessed exposure ratio without re-deriving the complete storage equations.
 
-AMD requires linear HDR input. FSR's internal `Tonemap`/`InverseTonemap` is a temporary reconstruction-domain transform whose output is restored to the input domain. Do not move final display AgX wholesale before HDR FSR3.
+AMD requires linear HDR input. FSR's internal `Tonemap`/`InverseTonemap` is a temporary reconstruction-domain transform whose output is restored to the input domain. T07A replaces only that temporary transform through the project-owned accumulate entrypoint; final display AgX remains after HDR FSR3.
 
 ## Confirmed defects
 
@@ -250,7 +251,7 @@ This can change bright saturated pixels even when spatial sharpening is disabled
 
 ### F6 — AgX around RCAS cannot affect earlier FSR temporal decisions
 
-Rectification, luma instability, deringing, and history accumulation happen before RCAS. A later AgX wrapper cannot make those decisions match final AgX/highlight-compression appearance. This mismatch is real, but it does not prove that replacing AMD's internal transform is the correct fix.
+Rectification, luma instability, deringing, and history accumulation happen before RCAS. A later AgX wrapper cannot make those decisions match the intended AgX working domain. The user explicitly required replacing the internal transform; T07A injects the reversible AgX transform before those temporal decisions without editing imported AMD source.
 
 ### F7 — FSR3 SPD and SST debug share atomic counter 15
 
@@ -652,10 +653,42 @@ Use Vibris MCP for loading, runtime diagnostics, captures, comparisons, and runt
 
 If a case fails, leave T07 `READY`, insert one remediation task before it, complete that task in its own later turn/commit, and rerun the affected matrix.
 
+### FSR3-T07A — Use solid temporal treatment for translucency and AgX reconstruction
+
+Status: `DONE`
+Dependencies: FSR3-T07
+Commit: this task's commit
+
+Scope:
+
+- Remove translucent-surface contributions from FSR3 reactive and transparency/composition masks so composed translucent SST follows the underlying solid depth, motion, and mask contract.
+- Retire the unreliable optional translucent SST temporal denoiser, including its setting, pass, transient/history resources, generated bindings, wrappers, and composition branches.
+- Replace the active SDK max-channel reconstruction `Tonemap`/`InverseTonemap` with the project reversible AgX inset-matrix/log transform before upsample rectification and accumulation.
+- Preserve imported AMD `ffx_*` files by renaming their helpers only inside the project-owned accumulate compilation unit and injecting the active project functions afterward.
+- Remove the hard lower-EV clip from AgX through an offset-log pair that maps black exactly to zero; use the existing `[-16.5, 16.5]` default range and an FSR-specific `[-24, 32]` range.
+
+Acceptance:
+
+- FSR3 motion input no longer reads translucent G-buffer/depth solely to create reactive or composition coverage.
+- The translucent SST denoiser setting, dispatch, implementation, and resources no longer exist.
+- Black and dark values remain distinct and finite; the FSR transform covers FP16 input multiplied by the maximum frame-local FSR exposure and roundtrips within explicit FP32 tolerance.
+- Minecraft 1.21.11/Iris compiles the FSR3 branch with no shader errors or diagnostics.
+- Stable translucent/highlight frames show no white leakage or new temporal flash.
+- Imported AMD implementation files remain byte-identical to baseline.
+
+Evidence:
+
+- `kotlin test/agx-invertible-check.main.kts` passed default AgX, FSR range, Bloom compression, and shared RCAS checks. The FSR set covers zero through `65504 * 1707.65`; maximum absolute error was `120` at approximately `1.119e8` (`1.1e-6` relative), black roundtripped exactly, two sub-floor dark values remained distinct, and negative filter excursions stayed finite.
+- After removing the pass/resources, `kotlin programs.main.kts`, `shadesmith.ps1`, and `kotlin options.main.kts` completed. The complete generator synchronized wrappers, Textile bindings, options, languages, and properties.
+- Validation snapshot `8b14dcb6632023eaa1d55b6b00bb1275e77c2565` loaded in Minecraft 1.21.11/Iris at `night-gi-1`, 1920x1080, FSR3 65 percent, sharpness `0.5`, and RGB Bloom compression `3`; every load and inspect returned `status: ok`, `pack_loaded: true`, with zero errors or diagnostics.
+- Initial image evidence is retained at `R:\vibris\artifacts\73537349-650c-4cda-b65b-7d974491b86e\3a42bda6-a53e-3931-9f74-5f0aa4fd848a`.
+- Six stable candidate frames are retained at `R:\vibris\artifacts\73537349-650c-4cda-b65b-7d974491b86e\6dbb84fe-5783-30e0-95d2-0b215d3cb148`; the matched pre-fix sequence is at `R:\vibris\artifacts\73537349-650c-4cda-b65b-7d974491b86e\3d912bc3-9903-3699-b830-9e648eb7dc64`.
+- Candidate median consecutive-frame MAE improved from `0.651` to `0.563` over the full frame and from `0.665` to `0.629` in the right glass/reflection region. Visual inspection found no white leakage, desaturated highlight edge, or temporal flash.
+
 ### FSR3-T08 — Measure FSR3 performance and regressions
 
 Status: `READY`
-Dependencies: FSR3-T07
+Dependencies: FSR3-T07A
 Expected commit: measured evidence in this ledger; performance fixes require inserted tasks
 
 Scope:
@@ -676,7 +709,7 @@ Acceptance:
 ### FSR3-T09 — Finalize documentation and manual-acceptance handoff
 
 Status: `PENDING`
-Dependencies: FSR3-T07, FSR3-T08
+Dependencies: FSR3-T07, FSR3-T07A, FSR3-T08
 Expected commit: final docs/ledger cleanup
 
 Scope:
@@ -702,7 +735,7 @@ Acceptance:
 T00
   -> T01 -> T02 -> T03 -> T04
                  -> T05
-                 -> T06 -> T07 -> T08 -> T09
+                 -> T06 -> T07 -> T07A -> T08 -> T09
 ```
 
 The serial goal executes numeric task order even where dependencies permit parallel work.
@@ -716,9 +749,10 @@ The serial goal executes numeric task order even where dependencies permit paral
 - [x] The reversible AA transform is actually reversible over its documented range.
 - [x] Lossy highlight compression is separated and intentionally placed.
 - [x] Sharpness zero has the agreed identity behavior.
+- [x] FSR temporal reconstruction uses the reversible AgX transform without dark-range clipping.
 - [x] Off, TAA, and FSR3 share consistent RCAS/Bloom contracts.
 - [x] FSR3 SPD and SST debug do not share atomic synchronization state.
-- [x] Render/upscale sizes, G-buffer LOD bias, reactive masks, atlas bounds, and history reset are correct.
+- [x] Render/upscale sizes, G-buffer LOD bias, solid-only reactive masks, atlas bounds, and history reset are correct.
 - [x] Generated outputs match maintained sources.
 - [x] `night-gi-1` shows no white leakage, desaturated outline, ringing, flash, or unstable edge.
 - [x] Target Minecraft 1.21.11/Iris compilation passes.
@@ -807,3 +841,11 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Performed a real 1920x1080 to 1280x720 to 1920x1080 window resize. Both exact framebuffer sizes were captured cleanly, and the original window bounds were restored.
 - Captured ten frames during continuous camera rotation across saturated night-scene emissives. Visual inspection found no white leakage, desaturated outline/trail, ringing, ghosting, flicker, flash, stale history, or incorrect Bloom scale.
 - No shader or generated file changed in T07; raw artifacts remain outside Git.
+
+### FSR3-T07A
+
+- Removed the translucent reactive/composition contribution and restored solid-surface depth, motion, and mask treatment for composed translucent SST.
+- Deleted the optional translucent SST temporal denoiser end to end: setting, dispatch, shader, four Shadesmith resources, composition branches, and generated bindings/wrappers.
+- Injected reversible AgX inside FSR upsample/accumulation through the project-owned entrypoint while leaving all imported AMD `ffx_*` files unchanged.
+- Replaced the hard lower-EV clamp with a zero-preserving offset-log pair and added an FSR-specific `[-24, 32]` range plus numeric/static regression coverage.
+- Regenerated all affected outputs and passed Minecraft 1.21.11/Iris compilation, six-frame stable-image inspection, and matched pre-fix/candidate temporal-difference checks.

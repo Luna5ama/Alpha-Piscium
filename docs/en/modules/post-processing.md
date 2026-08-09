@@ -44,7 +44,7 @@ branches. The program list then enables one of these paths:
 | FSR 3 | [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Builds motion/reactive inputs, accumulates a full-resolution result, then uses the shared RCAS pass for sharpening and final color-space conversion. |
 
 The Anti-Aliasing / Super Resolution screen controls the mode, render scale, jitter, TAA current/history filters,
-translucent SST denoising, and the shared RCAS sharpening strength. Current/previous-jitter custom uniforms
+and the shared RCAS sharpening strength. Current/previous-jitter custom uniforms
 are generated from the R2 frame sequence in [`scripts/shaders.properties`](../../../scripts/shaders.properties);
 changing the sampling sequence requires updating reprojection conventions as well.
 
@@ -57,8 +57,15 @@ FSR 3 consumes render-size, unexposed scene-linear HDR and stores its color and 
 domain. Its frame-local reconstruction exposure scales current and history values equally and is divided out before
 storage; shared RCAS applies display exposure exactly once afterward. A completed-frame marker and the common temporal
 reset state reject stale histories after reloads, mode switches, or other temporal discontinuities. Motion is
-current-to-previous in UV units, jitter is supplied in render-pixel units, and reactive/composition masks cover dynamic,
-translucent, or otherwise untracked surfaces.
+current-to-previous in UV units, and jitter is supplied in render-pixel units. The SDK max-channel reconstruction
+tonemap is replaced at the project-owned accumulate entrypoint by the reversible AgX inset-matrix/log transform. Its
+offset log preserves black without a hard dark-EV clamp, and its FSR range covers FP16 input multiplied by the maximum
+frame-local reconstruction exposure.
+
+Reactive/composition masks cover dynamic or otherwise untracked solid surfaces and overlays. Translucent SST is already
+composed into the input color and deliberately follows the underlying solid depth, motion, and masks. It has neither a
+separate reactive-mask contribution nor a temporal SST denoiser because that combination makes its rough reflection and
+refraction noise flash between frames.
 
 The FSR 3 estimator runs at render size and accumulates at view/output size; shared RCAS and all later post-processing also
 use output size. Explicit G-buffer gradients multiply low-resolution raster derivatives by

@@ -29,13 +29,24 @@ fun map(color: V3, transform: (Float) -> Float) =
 fun log2(value: Float) = (ln(value.toDouble()) / ln(2.0)).toFloat()
 fun exp2(value: Float) = 2.0.pow(value.toDouble()).toFloat()
 
-val evRange = 33.0f
-val evRangeHalf = evRange * 0.5f
+fun encodeRange(color: V3, evMin: Float, evMax: Float): V3 {
+    val zeroPoint = exp2(evMin)
+    return map(color) { log2(it / zeroPoint + 1.0f) / (evMax - evMin) }
+}
 
-fun encode(color: V3) = map(color) { (max(log2(it), -evRangeHalf) + evRangeHalf) / evRange }
-fun decode(color: V3) = map(color) { exp2(it * evRange - evRangeHalf) }
-fun forward(color: V3) = encode(applyMatrix(agxMatrix, map(color) { max(it, 0.0f) }))
-fun inverse(color: V3) = map(applyMatrix(agxMatrixInverse, decode(map(color) { max(it, 0.0f) }))) { max(it, 0.0f) }
+fun decodeRange(color: V3, evMin: Float, evMax: Float): V3 {
+    val zeroPoint = exp2(evMin)
+    return map(color) { (exp2(it * (evMax - evMin)) - 1.0f) * zeroPoint }
+}
+
+fun forwardRange(color: V3, evMin: Float, evMax: Float) =
+    encodeRange(applyMatrix(agxMatrix, map(color) { max(it, 0.0f) }), evMin, evMax)
+
+fun inverseRange(color: V3, evMin: Float, evMax: Float) =
+    applyMatrix(agxMatrixInverse, decodeRange(color, evMin, evMax))
+
+fun forward(color: V3) = forwardRange(color, -16.5f, 16.5f)
+fun inverse(color: V3) = map(inverseRange(color, -16.5f, 16.5f)) { max(it, 0.0f) }
 
 val levels = listOf(0.001f, 0.18f, 1.0f, 100.0f, 1024.0f, 4096.0f, 65504.0f)
 val directions = listOf(
@@ -52,6 +63,8 @@ val roundtripRelativeTolerance = 4.0e-6f
 
 var maxRoundtripError = 0.0f
 var maxPureChannelLeakage = 0.0f
+check(forward(V3(0.0f, 0.0f, 0.0f)) == V3(0.0f, 0.0f, 0.0f))
+check(inverse(V3(0.0f, 0.0f, 0.0f)) == V3(0.0f, 0.0f, 0.0f))
 for (level in levels) {
     val tolerance = max(roundtripAbsoluteTolerance, level * roundtripRelativeTolerance)
     for ((name, direction) in directions) {
@@ -73,6 +86,46 @@ for (level in levels) {
     }
 }
 check(maxPureChannelLeakage <= levels.last() * roundtripRelativeTolerance)
+
+val fsrEvMin = -24.0f
+val fsrEvMax = 32.0f
+val fp16MinSubnormal = exp2(-24.0f)
+val fp16Max = 65504.0f
+val minFsrExposure = 1.0f / (9.6f * fp16Max)
+val maxFsrExposure = 1.0f / (9.6f * 6.10e-5f)
+val fsrLevels = listOf(
+    0.0f,
+    fp16MinSubnormal * minFsrExposure,
+    0.001f,
+    0.18f,
+    1.0f,
+    fp16Max * maxFsrExposure
+)
+var maxFsrRoundtripError = 0.0f
+for (level in fsrLevels) {
+    val tolerance = max(5.0e-7f, level * 6.0e-6f)
+    for ((name, direction) in directions) {
+        val expected = direction * level
+        val encoded = forwardRange(expected, fsrEvMin, fsrEvMax)
+        check(encoded.components().all { it.isFinite() && it >= 0.0f && it <= 1.0f }) {
+            "$name at normalized FSR level $level falls outside [0, 1]: $encoded"
+        }
+        val actual = inverseRange(encoded, fsrEvMin, fsrEvMax)
+        expected.components().zip(actual.components()).forEachIndexed { channel, (reference, result) ->
+            check(result.isFinite()) { "$name at normalized FSR level $level produced non-finite channel $channel" }
+            val error = abs(result - reference)
+            maxFsrRoundtripError = max(maxFsrRoundtripError, error)
+            check(error <= tolerance) {
+                "$name at normalized FSR level $level channel $channel error $error exceeds $tolerance: $actual"
+            }
+        }
+    }
+}
+val fsrDarkA = forwardRange(V3(fp16MinSubnormal * minFsrExposure, 0.0f, 0.0f), fsrEvMin, fsrEvMax)
+val fsrDarkB = forwardRange(V3(fp16MinSubnormal * minFsrExposure * 2.0f, 0.0f, 0.0f), fsrEvMin, fsrEvMax)
+check(fsrDarkB.x > fsrDarkA.x)
+val negativeFsrExcursion = inverseRange(V3(-0.01f, -0.01f, -0.01f), fsrEvMin, fsrEvMax)
+check(negativeFsrExcursion.components().all { it.isFinite() } && negativeFsrExcursion.components().any { it < 0.0f })
 
 fun compressHighlight(value: Float, strength: Int): Float {
     if (strength == 0 || value <= 1.0f) return value
@@ -193,8 +246,13 @@ val programsSource = File("programs.main.kts").readText()
 val prepareSource = File("../shaders/pass/composite/TAAPrepare.comp.glsl").readText()
 val resolveSource = File("../shaders/pass/composite/TAAResolve.comp.glsl").readText()
 val rcasSource = File("../shaders/pass/composite/RCAS.comp.glsl").readText()
+val fsrAccumulateSource = File("../shaders/pass/composite/FSR3Accumulate.comp.glsl").readText()
+val fsrMotionSource = File("../shaders/pass/composite/FSR3MotionVectors.comp.glsl").readText()
+val optionsSource = File("options.main.kts").readText()
+val shadesmithSource = File("../shaders/shadesmith.json").readText()
 val rcasIntegrationSource = File("../shaders/techniques/ffx/fsr1/RCAS.glsl").readText()
-check("const float EV_RANGE = 33.0;" in agxSource)
+check("log2(x / zeroPoint + 1.0)" in agxSource && "max(log2(x)" !in agxSource)
+check("agxInvertible_forwardRange" in agxSource && "agxInvertible_inverseRange" in agxSource)
 check("SETTING_BLOOM_HIGHLIGHT_COMPRESSION" !in agxSource)
 check("#if BLOOM_PASS == 1 && SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0" in bloomSource)
 check("inputValue.rgb = bloom_compressHighlights" in bloomSource)
@@ -207,7 +265,16 @@ check("SETTING_TAA_CAS_SHARPNESS" !in rcasIntegrationSource && "SETTING_FSR3_SHA
 check("if (SETTING_RCAS_SHARPNESS == 0.0) return rcas_loadInput(outputTexelPos, true);" in rcasIntegrationSource)
 check("float sharpness = SETTING_RCAS_SHARPNESS;" in rcasIntegrationSource)
 check("cond(\"SETTING_AA_MODE != 0\")" in programsSource)
+check("#define Tonemap FSR3VendorTonemap" in fsrAccumulateSource)
+check("return agxInvertible_forwardRange(color, -24.0f, 32.0f);" in fsrAccumulateSource)
+check("return agxInvertible_inverseRange(color, -24.0f, 32.0f);" in fsrAccumulateSource)
+check("hasTranslucentSurface" !in fsrMotionSource && "usam_gbufferTranslucentData2" !in fsrMotionSource)
+check("SETTING_FSR3_TRANSLUCENT_SST_DENOISER" !in optionsSource)
+check("TranslucentSSTTemporal" !in programsSource)
+check("translucentReflectionResolved" !in shadesmithSource && "history_translucentReflection" !in shadesmithSource)
+check(!File("../shaders/pass/composite/TranslucentSSTTemporal.comp.glsl").exists())
 
 println("AgX matrix/log roundtrip checks passed: max error=$maxRoundtripError, max pure-channel leakage=$maxPureChannelLeakage")
+println("FSR AgX range checks passed: max error=$maxFsrRoundtripError")
 println("Bloom highlight compression checks passed")
 println("RCAS checks passed: max zero-sharpness error=$maxZeroSharpnessError, max pure-channel leakage=$maxRcasPureChannelLeakage")
