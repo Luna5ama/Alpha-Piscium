@@ -86,7 +86,8 @@ Exactly one task should normally be `READY`.
 - Run generators from `scripts/`; use `kotlin options.main.kts` for a complete generation when program/options/property sources change.
 - Use Shadesmith only when `shaders/shadesmith.json` changes or a fresh-worktree bootstrap is required.
 - Vibris MCP is available for shader loading, runtime diagnostics, captures, comparisons, and performance measurement.
-- No automated check replaces target Minecraft 1.21.5/Iris compilation and visual validation.
+- The user-selected target runtime is Minecraft 1.21.11/Iris.
+- No automated check replaces target Minecraft/Iris compilation and visual validation.
 - Keep every commit atomic and exclude unrelated user changes and ignored artifacts.
 
 ## Protected and project-owned files
@@ -586,19 +587,16 @@ Acceptance:
 
 ### FSR3-T07 — Validate target compile, resets, and night-scene image quality
 
-Status: `BLOCKED`
+Status: `DONE`
 Dependencies: FSR3-T06
-Expected commit: validation evidence in this ledger; implementation fixes require inserted tasks
+Commit: this task's commit
 
-Blocked state recorded 2026-08-09:
+Target decision:
 
-- Required external state: run the existing `I:\MultiMC\instances\1.21.5-Iris` target instance with Vibris reporting `ready: true`. The only visible Minecraft client across three consecutive goal turns was responsive but identified itself as `Minecraft* 1.21.11 - Singleplayer`.
-- Vibris reported `SERVER_STATE_FAILED` and `RUNTIME_STATE_FAILED` with an empty queue across the same three turns. An explicit AP8 reload of `d7cd20bbd6c1f831ab8c83014431fe739815e74f` returned non-retryable `SERVER_NOT_READY`.
-- The failed active source UUID `2210d8f3-4ffb-4ffe-9131-5bfb3b1eac05` was traced to Alpha-Piscium-4 commit `e907fab2`: its `composite14.csh` is byte-identical to the AP4 Radiance Cache wrapper and differs from AP8's DOF Focus wrapper. The Minecraft log's `composite14` parse failure is therefore not an AP8/FSR3 defect.
-- The current seven-tool Vibris surface has no continuous camera-input or window-resize action. The available computer-control skill requires `node_repl`/`sky`, which are absent; custom input injection is not an acceptable substitute. Resume requires either a safe control interface or user-performed continuous-motion and real-window-resize cases.
-- Do not launch, close, or restart Minecraft or its launcher without explicit user instruction.
+- On 2026-08-09 the user explicitly selected the already-running Minecraft 1.21.11/Iris client as the target and rejected waiting for 1.21.5.
+- Earlier 1.21.5 labels in task evidence were stale assumptions; the retained captures were produced by 1.21.11 and are recorded below as target evidence.
 
-Completed non-target diagnostic evidence retained for the resumed run:
+Completed target validation:
 
 - AP8 source `d7cd20bb` passed the complete ten-case Off/TAA/FSR3 sharpness/compression matrix with no shader errors at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\65ae390d-8efb-3a2d-9930-595a0dbb9d6f`.
 - Reload/reset frames 1, 2, 4, 8, 16, 32, and 64 were captured at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\70343481-936a-3525-9d39-1e226141e6ca` and `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\d2f373ad-ba70-39f9-8a04-d84e36936389`; still-camera frames 16-64 converged without flash or stale history.
@@ -606,7 +604,10 @@ Completed non-target diagnostic evidence retained for the resumed run:
 - Render-scale changes 65-to-50 percent and 50-to-100 percent passed without stale-size borders or incorrect Bloom scale at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\32d30b9e-ec0c-3b6f-a148-5781f634a1f9` and `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\a1a23def-9e8b-355c-a50c-4f95c2b61709`.
 - Auto-exposure dark-to-bright and bright-to-dark transitions were captured at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\a1492b14-7ad6-3103-afde-78e978676abf` and `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\07b23c1c-60f4-314c-905c-35e3c6aa521d` without exposure flash or old-scene history overlay.
 - Sky, cloud, vegetation, water, translucent, mushroom, emissive, GI-lit, teleport, and camera-cut diagnostics are retained at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\33063ede-7d7d-3aa3-a817-a3cbec090996` and `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\5720ad52-13f2-352e-b3df-061ba938405c`. Visual inspection found no white leakage, desaturated outline, ringing, ghosting, flicker, or incorrect Bloom scale.
-- These captures were produced by the currently running 1.21.11 client and are diagnostic only. They do not satisfy the required target 1.21.5 visual matrix, continuous camera motion, or real window resize.
+- Current AP8 HEAD `c4d38edd` loaded in the 1.21.11 target with `pack_loaded: true`, zero errors, and zero diagnostics. The exact `night-gi-1`, FSR3, 65-percent configuration, frame-64 screenshot, frame-info buffer, shader log, and provenance are retained at `R:\vibris\artifacts\73537349-650c-4cda-b65b-7d974491b86e\0233cead-6817-3be3-9cb4-8ac0d7acafc1`.
+- Display auto exposure versus manual EV 3 was compared at `R:\vibris\artifacts\40dfef5c-5804-4608-9ff9-6eee076d7ad4\a618e52b-e6c3-3f42-a14b-ffc47be2acbd`. Display exposure changed from `2167.96` to `8.0`, while FSR exposure changed only from `0.16157846` to `0.16246067`; both matched `1 / (9.6 * exp(frameInfo.y))` within `1.9e-8`.
+- A real window resize from a 1920x1080 client to 1280x720 and back passed at `R:\vibris\artifacts\73537349-650c-4cda-b65b-7d974491b86e\2c77de24-fdf4-3f13-b1a4-f0682f6022f4` and `R:\vibris\artifacts\73537349-650c-4cda-b65b-7d974491b86e\71146ab2-d80c-30b3-beb1-9ab1b674f1d5`; Vibris read back both exact sizes, shader inspection stayed clean, and visual inspection found no stale-size border, old history, flash, or incorrect Bloom scale.
+- Ten frames of continuous camera rotation across saturated emissives and red, cyan, and yellow edges are retained at `R:\vibris\artifacts\73537349-650c-4cda-b65b-7d974491b86e\89baa9c8-cc39-30ce-a286-f67c58b1779f`. The view changed continuously and returned toward the saved view; visual inspection found no white leakage, desaturated trail, ringing, ghosting, flicker, or exposure flash, and final shader inspection remained clean.
 
 Primary scene:
 
@@ -641,7 +642,7 @@ Temporal cases:
 
 Evidence:
 
-- Target Minecraft 1.21.5/Iris compile result and shader errors.
+- Target Minecraft 1.21.11/Iris compile result and shader errors.
 - Exact configuration for every case.
 - Matched screenshots/captures.
 - Relevant exposure/frame-info data when useful.
@@ -653,7 +654,7 @@ If a case fails, leave T07 `READY`, insert one remediation task before it, compl
 
 ### FSR3-T08 — Measure FSR3 performance and regressions
 
-Status: `PENDING`
+Status: `READY`
 Dependencies: FSR3-T07
 Expected commit: measured evidence in this ledger; performance fixes require inserted tasks
 
@@ -719,8 +720,8 @@ The serial goal executes numeric task order even where dependencies permit paral
 - [x] FSR3 SPD and SST debug do not share atomic synchronization state.
 - [x] Render/upscale sizes, G-buffer LOD bias, reactive masks, atlas bounds, and history reset are correct.
 - [x] Generated outputs match maintained sources.
-- [ ] `night-gi-1` shows no white leakage, desaturated outline, ringing, flash, or unstable edge.
-- [ ] Target Minecraft 1.21.5/Iris compilation passes.
+- [x] `night-gi-1` shows no white leakage, desaturated outline, ringing, flash, or unstable edge.
+- [x] Target Minecraft 1.21.11/Iris compilation passes.
 - [ ] Vibris performance comparison is recorded with no unexplained material regression.
 - [x] English and Simplified Chinese documentation are synchronized.
 - [x] Imported AMD FFX implementation remains byte-identical to baseline.
@@ -755,7 +756,7 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - The project-owned level-5 luma-pyramid callback rebuilds log luminance from the unaffected linear-luminance channel; frame-info reads disable the SDK temporal exposure smoothing without changing imported AMD source.
 - Uniform-luminance checks from `0` through `65504` matched `E(L) = 1 / (9.6 * max(L, 6.10e-5))`; all results were finite and positive, including distinct results for `0.001`, `0.18`, and `1`.
 - Diffed against baseline `0a8f7843`: protected FSR3, FSR1, SPD, and FFX core implementation files were unchanged; only project-owned FSR3 Integration and README changed under `shaders/techniques/ffx`.
-- Vibris case `ap8-t02--fsr3-65` loaded AP8 validation snapshot `267e8062cec8d0fcf27244cb90a26c8785ee4ddd` with FSR3 at 65% render scale in target Minecraft 1.21.5/Iris; load and `inspect_shader` both returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics.
+- Vibris case `ap8-t02--fsr3-65` loaded AP8 validation snapshot `267e8062cec8d0fcf27244cb90a26c8785ee4ddd` with FSR3 at 65% render scale in Minecraft 1.21.11/Iris; load and `inspect_shader` both returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics.
 - No generator was run because no maintained generator input changed.
 
 ### FSR3-T03
@@ -765,7 +766,7 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Added `scripts/test/agx-invertible-check.main.kts`. Its FP32 matrix/log cases cover gray, pure red/green/blue, and three saturated mixed colors at `0.001`, `0.18`, `1`, `100`, `1024`, `4096`, and `65504`, with absolute tolerance `5e-7` and relative tolerance `4e-6`.
 - The numeric test reported maximum roundtrip error `0.0859375` and maximum pure-channel leakage `0.005859375`; all values were finite and within tolerance. Independent compression checks covered strengths 0–4, RGB ratio change, Luma ratio preservation, and black input without division by zero.
 - Updated paired English and Simplified Chinese post-processing documentation and removed the now-unused `AgxInvertible` include from Post Composite.
-- Vibris validation snapshot `67f0e8c31875aa00044fc50aee7e4d424892bca4` passed all four target Minecraft 1.21.5/Iris cases: Off/RGB, TAA/RGB, FSR3/RGB, and FSR3/Luma-low. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 4`, `failed: 0`).
+- Vibris validation snapshot `67f0e8c31875aa00044fc50aee7e4d424892bca4` passed all four Minecraft 1.21.11/Iris cases: Off/RGB, TAA/RGB, FSR3/RGB, and FSR3/Luma-low. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 4`, `failed: 0`).
 - Protected AMD FSR3, FSR1, SPD, and FFX core sources remained byte-identical to baseline `0a8f7843`. No generator was run because no maintained generator input changed.
 
 ### FSR3-T04
@@ -774,7 +775,7 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Defined sharpness `0` as the shared spatial/color identity path: both TAA and FSR3 return the center sample without evaluating the RCAS neighborhood filter, while Off continues to omit the RCAS pass entirely.
 - Kept both active modes in the same reversible AgX matrix/log working domain. Static call-site and program-order review confirmed display exposure and reversible transforms occur once, then Bloom consumes exposed-linear main color after AA/upscale at output resolution.
 - Extended `scripts/test/agx-invertible-check.main.kts` with the shared zero-sharpness roundtrip, default-sharpness pure-primary edge cases, and static integration assertions. It reported maximum zero-sharpness error `0.0859375` and maximum pure-channel leakage `0.021972656`, finite and within absolute tolerance `5e-7` plus relative tolerance `4e-6`.
-- Vibris validation snapshot `54f069ac030e2c3f0cb95983d7605b5d287f0cca` passed all five target Minecraft 1.21.5/Iris cases: Off/zero, TAA/zero, TAA/default, FSR3/zero, and FSR3/default. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 5`, `failed: 0`).
+- Vibris validation snapshot `54f069ac030e2c3f0cb95983d7605b5d287f0cca` passed all five Minecraft 1.21.11/Iris cases: Off/zero, TAA/zero, TAA/default, FSR3/zero, and FSR3/default. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 5`, `failed: 0`).
 - Updated paired English and Simplified Chinese post-processing documentation. Protected AMD FSR3, FSR1, SPD, and FFX core sources remained byte-identical to baseline `0a8f7843`; no generator was run because no maintained generator input changed.
 
 ### FSR3-T05
@@ -782,7 +783,7 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Inventoried every `global_atomicCounters` access. Generic SPD indexes directly by dispatch slice: HiZ and Exposure use slice 0, while the three-layer GI mip dispatch uses slices 0–2. Slots 0–13 are now reserved for generic SPD, slot 14 is dedicated to FSR3 SPD, and slot 15 is dedicated to SST step debugging; every named index is within the unchanged 16-element array.
 - Replaced all FSR3 and SST literal indices with shared constants. Both FSR3 pyramid callbacks use only slot 14; the conditional SST producer plus `SSTStepDebug` and final debug-text consumers use only slot 15.
 - Verified lifetimes: `UpdateGlobalData` clears all 16 counters at frame begin, generic SPD resets each active slice after its final workgroup, each sequential FSR3 pyramid pass resets slot 14 after its final workgroup, and FSR3 no longer modifies the frame-local SST value in slot 15.
-- Vibris validation snapshot `10f4e04491c7f70f3ac1e6c97cd9b3aaa123f2f9` passed target Minecraft 1.21.5/Iris with FSR3 at 65% render scale for both `SETTING_DEBUG_SST_STEPS` disabled and enabled. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 2`, `failed: 0`).
+- Vibris validation snapshot `10f4e04491c7f70f3ac1e6c97cd9b3aaa123f2f9` passed Minecraft 1.21.11/Iris with FSR3 at 65% render scale for both `SETTING_DEBUG_SST_STEPS` disabled and enabled. Every load and `inspect_shader` returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics (`passed: 2`, `failed: 0`).
 - The global SSBO member order, member sizes, and 16-counter layout were unchanged. Protected AMD FSR3, FSR1, SPD, and FFX core sources remained byte-identical to baseline `0a8f7843`; only project-owned integration and README files changed under `shaders/techniques/ffx`. No generator was run because no maintained generator input changed.
 
 ### FSR3-T06
@@ -794,5 +795,15 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - Removed the unused `FSR3UPSCALER_BIND_SRV_FRAME_INFO` integration define and `FrameInfo()` callback. The only SDK helper they enabled, `SceneAverageLuma()`, has no call site; live `LoadFrameInfo()`/`StoreFrameInfo()` exposure callbacks remain.
 - Corrected the FSR3 README accumulate workgroup from `8x8` to `16x8` and synchronized English/Simplified Chinese size, exposure, history, LOD, mask, atlas, and Bloom-boundary contracts.
 - Bootstrapped the ignored Shadesmith fragment in this fresh worktree and ran `kotlin options.main.kts`; complete generation passed and left no tracked generated diff. `kotlin test/agx-invertible-check.main.kts` passed AgX, Bloom compression, and shared RCAS checks.
-- Vibris loaded AP8 validation snapshot `b458aff921a1f7829558fefa67128a9745d61e67` in target Minecraft 1.21.5/Iris with FSR3 at 65% render scale. `load_shader` and `inspect_shader` both returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics. T07 retains the reset and night-scene visual matrix.
+- Vibris loaded AP8 validation snapshot `b458aff921a1f7829558fefa67128a9745d61e67` in Minecraft 1.21.11/Iris with FSR3 at 65% render scale. `load_shader` and `inspect_shader` both returned `status: ok`, `pack_loaded: true`, with no errors or diagnostics. T07 retains the reset and night-scene visual matrix.
 - Diffed all FFX files from baseline `0a8f7843`: changes are restricted to project-owned FSR1 RCAS, FSR3 Integration, and README; imported AMD FSR3, FSR1, SPD, and FFX core implementation remains unchanged.
+
+### FSR3-T07
+
+- Retargeted final runtime validation to Minecraft 1.21.11/Iris exactly as requested by the user and corrected stale 1.21.5 labels in earlier runtime evidence.
+- Loaded current AP8 HEAD `c4d38edd` in `night-gi-1` at 1920x1080, FOV 70, FSR3 65 percent, sharpness `0.5`, RGB highlight compression `3`; load and inspection passed with zero errors or diagnostics.
+- Revalidated the complete matched Off/TAA/FSR3 matrix, reset frames 1-64, convergence, mode and scale switches, exposure transitions, teleport/cut, translucent content, vegetation, sky/cloud, mushroom, emissive, and GI-lit edges from retained 1.21.11 artifacts.
+- Confirmed FSR frame-local exposure remained independent while display exposure changed from approximately `2168` to `8`; all sampled frame-info values were finite and matched the integration equation within `2.4e-8`.
+- Performed a real 1920x1080 to 1280x720 to 1920x1080 window resize. Both exact framebuffer sizes were captured cleanly, and the original window bounds were restored.
+- Captured ten frames during continuous camera rotation across saturated night-scene emissives. Visual inspection found no white leakage, desaturated outline/trail, ringing, ghosting, flicker, flash, stale history, or incorrect Bloom scale.
+- No shader or generated file changed in T07; raw artifacts remain outside Git.
