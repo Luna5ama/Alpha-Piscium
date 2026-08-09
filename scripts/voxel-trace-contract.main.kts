@@ -168,6 +168,10 @@ expect(models, "vec3 inverseRayDir = 1.0 / rayDir;", "model-level reciprocal ray
 expect(axisQuadIntersection, "float t = (origin[axis] - rayOrigin[axis]) * inverseRayDir[axis];", "reciprocal axis-plane intersection")
 reject(quadIntersection, Regex("\\bquadIndex\\b"), "per-quad 2D texel address")
 reject(quadIntersection, Regex("normalize\\s*\\("), "per-quad basis normalization")
+if (Regex("projected\\.x > halfSize\\.x \\|\\| projected\\.y > halfSize\\.y").findAll(models).count() != 2) {
+    failures += "quad intersections do not short-circuit projected bounds"
+}
+reject(models, Regex("greaterThan\\(projected"), "eager projected quad bounds")
 val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
 expect(modelFunction, "hit = hitT != uintBitsToFloat(0x7F800000u);", "axis-aligned post-loop hit inference")
 if (Regex("\\|\\|\\s*hit").findAll(modelFunction).count() != 1) failures += "general quad path must retain exactly one hit accumulation"

@@ -35,7 +35,7 @@ bool _voxel_intersectBlockModelAxisAlignedQuad(
     if (!(t >= 0.0 && t <= hitT)) return false;
     vec3 offset = abs(rayOrigin + rayDir * t - origin);
     vec2 projected = axis == 0 ? offset.yz : axis == 1 ? offset.xz : offset.xy;
-    if (any(greaterThan(projected, halfSize))) return false;
+    if (projected.x > halfSize.x || projected.y > halfSize.y) return false;
     hitT = t;
     hitNormal = vec3(0.0);
     hitNormal[axis] = inverseRayDir[axis] < 0.0 ? 1.0 : -1.0;
@@ -59,7 +59,7 @@ bool _voxel_intersectBlockModelQuad(
     vec3 v = cross(normal, u);
     vec3 offset = rayOrigin + rayDir * t - origin;
     vec2 projected = abs(vec2(dot(offset, u), dot(offset, v)));
-    if (any(greaterThan(projected, halfSize))) return false;
+    if (projected.x > halfSize.x || projected.y > halfSize.y) return false;
     hitT = t;
     hitNormal = denominator < 0.0 ? normal : -normal;
     return true;
