@@ -708,9 +708,9 @@ Acceptance:
 
 ### FSR3-T09 — Finalize documentation and manual-acceptance handoff
 
-Status: `READY`
+Status: `DONE`
 Dependencies: FSR3-T07, FSR3-T07A, FSR3-T08
-Expected commit: final docs/ledger cleanup
+Commit: this task's commit
 
 Scope:
 
@@ -760,10 +760,6 @@ The serial goal executes numeric task order even where dependencies permit paral
 - [x] English and Simplified Chinese documentation are synchronized.
 - [x] Imported AMD FFX implementation remains byte-identical to baseline.
 - [x] Every task commit passes `git diff --check` and `git diff --cached --check`.
-
-## Copyable continuation prompt
-
-> Work only in `I:\code\mcshaders\Alpha-Piscium-8` on `1.10/fsr3`. Continue the active FSR3 goal. First read `I:\code\mcshaders\Alpha-Piscium-8\FSR3_TASKS.md` completely, verify worktree/branch/status, then execute exactly the first `READY` task. Do not start another task in the same turn. Preserve user changes, do not modify imported AMD FFX implementation source, run all task gates, update the ledger, and create one atomic commit whose subject includes the task ID. Leave the goal active for the next continuation.
 
 ## Task result log
 
@@ -870,3 +866,30 @@ Append concise task evidence here only when the task section is insufficient. Ke
 - A separate three-pair composite40-77 audit explained the material 65% FSR3/TAA delta. FSR3 core compute added `0.795 ms` while replacing `0.140 ms` of TAA resolve/FXAA work; output-sized RCAS added `0.040 ms`, Bloom added `0.027 ms`, and IMapBlur/GetWarp/Overlay added `0.067 ms`. Per-pass totals explained `0.902 ms` of the `1.009 ms` composite aggregate delta; the remaining `0.108 ms` was below repeated composite-range noise and reflects aggregate-median/boundary overhead rather than an isolated regressing pass.
 - All 41 recorded cases passed with complete provenance and non-empty metrics: main jobs `aa835507-dd95-4876-8187-145fe3c8c587`, `6a38984c-d593-4530-aca1-d8c454fd3445`, and `c330b7e6-79f6-46c1-848d-ca809e036020`; audit job `73db98b6-0321-4595-be83-a36ebef5dc18`. Results are retained beneath `I:\code\mcshaders\Alpha-Piscium\.vibris\artifact\` because the live MCP workspace is rooted there, while every source provenance record resolves the AP8 commit above.
 - No shader, generator, generated output, or imported AMD source changed. Nsight was not used because Vibris pass timings fully explained the only material same-scale cost increase; no speculative optimization was attempted.
+
+### FSR3-T09
+
+- Confirmed every remediation task from T00 through T08 is `DONE`, every global acceptance item is checked, and no `READY`, `PENDING`, or `BLOCKED` task remains after this task.
+- Synchronized the English and Simplified Chinese post-processing descriptions with the final exposed-linear RCAS output contract. The paired post-processing and pipeline documents have matching heading structure and link targets apart from their reciprocal locale link, and every local Markdown link resolves.
+- Clarified the FSR3 README pass graph, exposed-linear RCAS output, solid-G-buffer reactive coverage, and deliberate absence of translucent reactive/composition coverage. Removed the obsolete continuation prompt; tracked searches found no task-time debug marker, obsolete translucent-denoiser implementation, old image-size uniform, or retired sharpness alias outside negative regression assertions.
+- Diffed all FFX files from baseline `0a8f7843`: changes remain restricted to project-owned FSR1 RCAS, FSR3 Integration, and README. Every imported `ffx_fsr3upscaler_*.glsl` file is byte-identical to baseline.
+- `kotlin test/agx-invertible-check.main.kts` passed AgX matrix/log, FSR reconstruction range, Bloom compression, and shared RCAS checks. No generator was run because T09 changed only documentation and this ledger; no maintained generator input changed.
+- Vibris loaded shader commit `4268bc488a3936666c5f228e744e896788c313f2` in Minecraft 1.21.11/Iris at `night-gi-1`, 1920x1080, FSR3 65 percent, sharpness `0.5`, and RGB Bloom highlight compression `3`. After 64 warmup frames, load and inspection both returned `status: ok`, `pack_loaded: true`, with zero errors or diagnostics. T09 changes no runtime shader, generator, or generated output, so this is the shader tree in the final commit.
+- The branch is ready for user manual acceptance. The remaining subjective check is to inspect translucent reflections/refraction, cloud and mushroom silhouettes, saturated highlights, and reset/mode/scale transitions with the configuration above; the automated/runtime gates report no remaining implementation blocker.
+
+#### Final commit series
+
+| Task | Commit |
+|------|--------|
+| T00 | `b93313db32b75d11db8ee77682f46cb63719748e` |
+| T01 | `9e2638ad8136e860d18487bda0e155e930cafa48` |
+| T02 | `4ebc1c87450a5c8a4c0e21bb25b9f8c456ae9447` |
+| T03 | `81525884ffcfb07240d28e99e04dccd9dc04ad23` |
+| T04 | `1c2a3f536149fd571add59ca21544a5ab3fd12a5` |
+| T05 | `942f8e6ae0e3383dfc2eac6fc55883ce658c263b` |
+| T06 | `d7cd20bbd6c1f831ab8c83014431fe739815e74f` |
+| T07 blocker record | `c4d38edd61d5b66c18866c53e9c5a7732cd84e9f` |
+| T07 validation | `fc0173e3d21830488d702a2517eb16a303be63d8` |
+| T07A | `8a7fbbe5ca5340981ed5296a1a61c58d331ad39c` |
+| T08 | `4268bc488a3936666c5f228e744e896788c313f2` |
+| T09 | this task's commit |
