@@ -200,9 +200,9 @@ if (discreteAABBCount <= aabbCount / 2) failures += "discrete AABB encoding does
 val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
 if (Regex("texelFetch\\(usam_blockModelAABBs").findAll(models).count() != 3) failures += "generated model code does not fetch exactly three AABB texels"
 if (models.contains("_voxel_intersectBlockModelQuad") || models.contains("modelID")) failures += "generated model code still hardcodes quad/model ID dispatch"
-if (Regex("(?m)^    bool hit = false;$").findAll(modelFunction).count() != 1) {
-    failures += "model function does not have exactly one hit accumulator"
-}
+expect(modelFunction, "const float noHitT = uintBitsToFloat(0x7F800000u);", "model miss sentinel")
+expect(modelFunction, "if (hitT != noHitT) hitNormal", "model hit normal guard")
+expect(modelFunction, "return hitT != noHitT;", "model hit return")
 if (Regex("_voxel_unrotateBlockModelVector").findAll(modelFunction).count() != 1) {
     failures += "model function duplicates final normal rotation"
 }

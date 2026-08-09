@@ -162,26 +162,26 @@ bool voxel_intersectBlockModel(
     rayOrigin -= vec3(0.5);
     _voxel_rotateBlockModelRay(rotation, rayOrigin, rayDir);
     rayOrigin += vec3(0.5);
-    hitT = uintBitsToFloat(0x7F800000u);
+    const float noHitT = uintBitsToFloat(0x7F800000u);
+    hitT = noHitT;
     hitNormal = vec3(0.0);
-    bool hit = false;
 #ifdef VOXEL_BLOCK_MODEL_LINEAR_AABB_TEXELS
     int texelIndex = int(aabbOffset * 3u);
     for (uint i = 0u; i < aabbCount; ++i) {
-        hit = _voxel_intersectBlockModelAABB(
+        _voxel_intersectBlockModelAABB(
             rayOrigin, rayDir, texelIndex, rayMinT, rayMaxT, hitT, hitNormal
-        ) || hit;
+        );
         texelIndex += 3;
     }
 #else
     for (uint i = 0u; i < aabbCount; ++i) {
-        hit = _voxel_intersectBlockModelAABB(
+        _voxel_intersectBlockModelAABB(
             rayOrigin, rayDir, int((aabbOffset + i) * 3u), rayMinT, rayMaxT, hitT, hitNormal
-        ) || hit;
+        );
     }
 #endif
-    if (hit) hitNormal = _voxel_unrotateBlockModelVector(rotation, hitNormal);
-    return hit;
+    if (hitT != noHitT) hitNormal = _voxel_unrotateBlockModelVector(rotation, hitNormal);
+    return hitT != noHitT;
 }
 
 #endif
