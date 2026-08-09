@@ -1,0 +1,4 @@
+interface:
+  display_name: "Optimization Loop"
+  short_description: "Run measured optimization rounds and commit wins"
+  default_prompt: "Use $optimization-loop to run one measured optimization round and commit a verified win."
