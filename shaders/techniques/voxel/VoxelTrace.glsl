@@ -228,9 +228,15 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
             if (isHit && level == 1) {
                 uint allocID = voxel_brickAllocID[fullMorton >> 12u];
                 uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
+                #ifdef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE
+                uint blockFlags = texelFetch(usam_pbrLUT1, int(material), 0).r;
+                bool isFullCube = bitfieldExtract(blockFlags, 4, 1) == 1u;
+                #else
                 HardcodedPBR hardcoded = hardcodedpbr_decode(material, rayFaceMask);
+                bool isFullCube = hardcoded.isFullCube;
+                #endif
 
-                if (hardcoded.isFullCube) {
+                if (isFullCube) {
                     VoxelHit result;
                     result.hit = true;
                     result.hitPos = fma(worldRayDir, vec3(lastT), worldRayOrigin);
@@ -246,12 +252,19 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     return result;
                 }
 
-                if (hardcoded.blockModelMetadata != 0u && material != MATERIAL_ID_WATER) {
+                #ifdef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE
+                uint blockModelMetadata = texelFetch(
+                    usam_pbrLUT2, ivec2(int(rayFaceMask), int(material)), 0
+                ).x;
+                #else
+                uint blockModelMetadata = hardcoded.blockModelMetadata;
+                #endif
+                if (blockModelMetadata != 0u && material != MATERIAL_ID_WATER) {
                     vec3 blockLocalRayOrigin = worldRayOrigin - gridOriginF - vec3(blockPos);
                     float modelT;
                     vec3 modelNormal;
                     if (voxel_intersectBlockModel(
-                            hardcoded.blockModelMetadata, blockLocalRayOrigin, worldRayDir, modelT, modelNormal)) {
+                            blockModelMetadata, blockLocalRayOrigin, worldRayDir, modelT, modelNormal)) {
                         VoxelHit result;
                         result.hit = true;
                         result.hitPos = fma(worldRayDir, vec3(modelT), worldRayOrigin);
