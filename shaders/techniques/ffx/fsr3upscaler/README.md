@@ -56,10 +56,22 @@ files include the existing `../spd/ffx_spd.glsl`.
 ## Integration contract
 
 The input color is unexposed linear HDR from `TAAPrepare`, and FSR3 keeps its
-accumulated output linear. The common RCAS pass applies exposure and the
-invertible AgX transform before sharpening, restores linear output, and writes
-full-resolution `main` for the remaining post-processing passes. The other
-inputs are device depth, motion vectors, exposure, reactive mask, and
+accumulated output linear. The luma pyramid computes a frame-local reconstruction
+exposure before every stage that consumes it. At SPD level 5, the integration
+rebuilds log luminance from the unaffected 64x64 linear-luminance reduction,
+working around the upstream dark-luminance clamp without changing AMD source.
+The frame-info update skips temporal exposure smoothing, and all FSR3 stages read
+the resulting current-frame exposure from `global_fsr3FrameInfo.x`.
+
+Current color and scene-linear history are multiplied by the same FSR3 exposure.
+Accumulation reverses the internal HDR transform and divides by that exposure
+before storing scene-linear history and output. `DeltaPreExposure()` remains one
+because the shaderpack does not pre-expose either input or history. The shared
+RCAS pass separately applies the shaderpack display exposure exactly once, then
+uses the AgX transform before sharpening, restores linear output, and writes
+full-resolution `main` for Bloom and the remaining post-processing passes.
+
+The other inputs are device depth, motion vectors, reactive mask, and
 transparency/composition mask. The integration uses the SDK's motion-vector sign
 and UV units, passes current and previous jitter in render-pixel units, resets
 history on temporal discontinuities or an incomplete previous frame, and keeps

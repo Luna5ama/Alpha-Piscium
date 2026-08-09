@@ -82,7 +82,7 @@ FfxFloat32 JitterSequenceLength() {
 }
 
 FfxFloat32 Exposure() {
-    return exp2(global_aeData.expValues.z);
+    return global_fsr3FrameInfo.x;
 }
 
 FfxFloat32 DeltaPreExposure() {
@@ -353,6 +353,10 @@ FfxInt32x2 FSR3PyramidOffset(FfxInt32 level) {
 
 #if defined(FSR3_BIND_LUMA_PYRAMID) || defined(FSR3_BIND_SHADING_CHANGE_PYRAMID)
 void StorePyramid(FfxInt32x2 pos, FfxFloat32x2 value, FfxUInt32 level) {
+    #if defined(FSR3_BIND_LUMA_PYRAMID)
+    // Rebuild log luma from the unaffected 64x64 linear-luma reduction.
+    if (level == 5u) value.x = log(ffxMax(value.y, 6.10e-5f));
+    #endif
     history_fsr3Pyramid_store(FSR3PyramidOffset(FfxInt32(level)) + pos, FfxFloat32x4(value, 0.0f, 0.0f));
 }
 
@@ -398,11 +402,13 @@ void SPD_ResetAtomicCounter() {
 }
 
 FfxFloat32x4 LoadFrameInfo() {
-    return FSR3HistoryReset() ? FfxFloat32x4(1.0f, 1.0e4f, 1.0f, 0.0f) : global_fsr3FrameInfo;
+    FfxFloat32x4 frameInfo = FSR3HistoryReset() ? FfxFloat32x4(1.0f, 1.0e4f, 1.0f, 0.0f) : global_fsr3FrameInfo;
+    frameInfo.y = 1.0e4f;
+    return frameInfo;
 }
 
 FfxFloat32x4 FrameInfo() {
-    return LoadFrameInfo();
+    return global_fsr3FrameInfo;
 }
 
 void StoreFrameInfo(FfxFloat32x4 value) {
