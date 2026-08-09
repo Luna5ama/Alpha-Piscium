@@ -42,6 +42,7 @@ fun expect(text: String, token: String, label: String) { if (!text.contains(toke
 val mappings = read("shaders/block.properties")
 val models = read("shaders/techniques/voxel/BlockModels.glsl")
 val hardcoded = read("shaders/util/HardcodedPBR.glsl")
+val initialTrace = read("shaders/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl")
 val shadow = read("shaders/pass/geometry/ShadowPass.vert.glsl")
 val trace = read("shaders/techniques/voxel/VoxelTrace.glsl")
 val surface = read("shaders/techniques/voxel/SurfaceData.glsl")
@@ -137,8 +138,13 @@ expect(shadow, "materialID != MATERIAL_ID_WATER", "water exclusion")
 expect(trace, "#include \"/util/HardcodedPBR.glsl\"", "trace PBR include")
 expect(trace, "#include \"/techniques/voxel/BlockModels.glsl\"", "trace model include")
 expect(trace, "voxel_intersectBlockModel(", "trace model call")
-expect(trace, "hardcoded.isFullCube", "full-cube fast path")
-expect(trace, "hardcoded.blockModelID != 0u", "unsupported exclusion")
+expect(initialTrace, "#define VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "initial trace deferred model decode")
+expect(trace, "#ifdef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "selectable deferred model decode")
+expect(trace, "uint blockFlags = texelFetch(usam_pbrLUT1, int(material), 0).r;", "early full-cube lookup")
+expect(trace, "uint blockModelID = texelFetch(usam_pbrLUT2, int(material), 0).x;", "deferred model lookup")
+expect(trace, "HardcodedPBR hardcoded = hardcodedpbr_decode(material);", "default full PBR decode")
+expect(trace, "if (isFullCube)", "full-cube fast path")
+expect(trace, "if (blockModelID != 0u", "unsupported exclusion")
 listOf("ray.lastT = lastT;", "ray.level = level;", "ray.fullMorton = fullMorton;").forEach { expect(trace, it, "resumable state") }
 val emptyStep = trace.indexOf("// ---- Empty child")
 val blockPosUpdate = trace.indexOf("blockPos = exitBlockPos;", emptyStep)
@@ -149,8 +155,8 @@ if (emptyStep < 0 || blockPosUpdate < 0 || finalAxisUpdate < 0 || updatedBounds 
     !(blockPosUpdate < finalAxisUpdate && finalAxisUpdate < updatedBounds && updatedBounds < updatedPack)) {
     failures += "updated blockPos bounds check must precede pack after all axis updates"
 }
-val fullCubeStart = trace.indexOf("if (hardcoded.isFullCube)")
-val modelStart = trace.indexOf("if (hardcoded.blockModelID", fullCubeStart)
+val fullCubeStart = trace.indexOf("if (isFullCube)")
+val modelStart = trace.indexOf("if (blockModelID", fullCubeStart)
 if (fullCubeStart < 0 || modelStart < 0 || !trace.substring(fullCubeStart, modelStart).contains("ray.level = 0;")) {
     failures += "full-cube hit does not clear ray.level"
 }
