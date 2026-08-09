@@ -25,14 +25,6 @@ void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         vec4 outputColor = texelFetch(usam_main, texelPos, 0);
 
-        #if SETTING_AA_MODE == 2 && defined(SETTING_FSR3_TRANSLUCENT_SST_DENOISER)
-        // Commit after the resolve dispatch; in-place history writes would race reprojected neighbor reads.
-        vec4 resolvedRefraction = transient_translucentRefractionResolved_fetch(texelPos);
-        vec4 resolvedReflection = transient_translucentReflectionResolved_fetch(texelPos);
-        history_translucentRefraction_store(texelPos, resolvedRefraction);
-        history_translucentReflection_store(texelPos, resolvedReflection);
-        #endif
-
         ivec2 waterNearDepthTexelPos = csr32f_tile1_texelToTexel(texelPos);
         ivec2 waterFarDepthTexelPos = csr32f_tile2_texelToTexel(texelPos);
 
@@ -62,10 +54,6 @@ void main() {
 
             vec4 sstData1 = transient_translucentRefraction_fetch(texelPos);
             vec4 sstData2 = transient_translucentReflection_fetch(texelPos);
-            #if SETTING_AA_MODE == 2 && defined(SETTING_FSR3_TRANSLUCENT_SST_DENOISER)
-            sstData1.rgb = resolvedRefraction.rgb;
-            sstData2.rgb = resolvedReflection.rgb;
-            #endif
             vec3 refractColor = sstData1.xyz;
             vec3 reflectColor = sstData2.xyz;
 

@@ -2565,16 +2565,6 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             4 value "Lanczos2"
                         }
                     }
-                    toggle("SETTING_FSR3_TRANSLUCENT_SST_DENOISER", false) {
-                        lang {
-                            name = "Translucent SST Denoiser"
-                            comment = "Temporally filters translucent SST reflections and refractions. Reduces noise but can soften motion."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "半透明 SST 时域降噪"
-                            comment = "对半透明 SST 反射和折射进行时域滤波。可减少噪点，但可能使运动画面变软。"
-                        }
-                    }
                     slider("SETTING_AA_SHARPNESS", 0.5, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Sharpening Strength"

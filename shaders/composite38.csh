@@ -1,4 +1,4 @@
 #version 460 compatibility
 #define COMP 1
 
-#include "/pass/composite/TranslucentSSTTemporal.comp.glsl"
+#include "/pass/composite/TranslucentComposite.glsl"

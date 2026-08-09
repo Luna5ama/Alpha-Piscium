@@ -12,34 +12,35 @@ const mat3 agx_mat_inv = mat3(
 -0.0990297440797205, -0.0989611768448433, 1.15107367264116
 );
 
-vec3 _agxInvertible_encodeLog2Space(vec3 x) {
-    // Reversible domain: nonnegative RGB with max channel in [0.001, 65504].
-    const float EV_RANGE = 33.0;
-    const float EV_RANGE_HALF = EV_RANGE * 0.5;
-    x = max(log2(x), -EV_RANGE_HALF);
-    x = (x + EV_RANGE_HALF) / EV_RANGE;
-    return x;
+vec3 _agxInvertible_encodeLog2Space(vec3 x, float evMin, float evMax) {
+    float zeroPoint = exp2(evMin);
+    return log2(x / zeroPoint + 1.0) / (evMax - evMin);
 }
 
-vec3 _agxInvertible_decodeLog2Space(vec3 x) {
-    const float EV_RANGE = 33.0;
-    const float EV_RANGE_HALF = EV_RANGE * 0.5;
-    x = x * EV_RANGE - EV_RANGE_HALF;
-    x = exp2(x);
+vec3 _agxInvertible_decodeLog2Space(vec3 x, float evMin, float evMax) {
+    float zeroPoint = exp2(evMin);
+    return (exp2(x * (evMax - evMin)) - 1.0) * zeroPoint;
+}
+
+vec3 agxInvertible_forwardRange(vec3 x, float evMin, float evMax) {
+    vec3 y = max(x, 0.0);
+    y = agx_mat * y;
+    y = _agxInvertible_encodeLog2Space(y, evMin, evMax);
+    return y;
+}
+
+vec3 agxInvertible_inverseRange(vec3 y, float evMin, float evMax) {
+    vec3 x = _agxInvertible_decodeLog2Space(y, evMin, evMax);
+    x = agx_mat_inv * x;
     return x;
 }
 
 vec3 agxInvertible_forward(vec3 x) {
-    vec3 y = max(x, 0.0);
-    y = agx_mat * y;
-    y = _agxInvertible_encodeLog2Space(y);
-    return y;
+    return agxInvertible_forwardRange(x, -16.5, 16.5);
 }
 
 vec3 agxInvertible_inverse(vec3 y) {
-    vec3 x = max(y, 0.0);
-    x = _agxInvertible_decodeLog2Space(x);
-    x = agx_mat_inv * x;
+    vec3 x = agxInvertible_inverseRange(y, -16.5, 16.5);
     return max(x, 0.0);
 }
 
