@@ -70,8 +70,9 @@ bool _voxel_intersectBlockModelQuad(
     vec3 u = cross(axis, normal);
     vec3 v = cross(normal, u);
     vec3 offset = rayOrigin + rayDir * t - origin;
-    vec2 projected = abs(vec2(dot(offset, u), dot(offset, v)));
-    if (projected.x > halfSize.x || projected.y > halfSize.y) return false;
+    float projectedU = abs(dot(offset, u));
+    if (projectedU > halfSize.x) return false;
+    if (abs(dot(offset, v)) > halfSize.y) return false;
     hitT = t;
     hitNormal = denominator < 0.0 ? normal : -normal;
     return true;

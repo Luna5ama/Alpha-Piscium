@@ -171,9 +171,12 @@ expect(axisQuadIntersection, "t = (origin.y - rayOrigin.y) * inverseRayDir.y;", 
 expect(axisQuadIntersection, "t = (origin.z - rayOrigin.z) * inverseRayDir.z;", "reciprocal Z axis-plane intersection")
 reject(quadIntersection, Regex("\\bquadIndex\\b"), "per-quad 2D texel address")
 reject(quadIntersection, Regex("normalize\\s*\\("), "per-quad basis normalization")
-if (Regex("projected\\.x > halfSize\\.x \\|\\| projected\\.y > halfSize\\.y").findAll(models).count() != 2) {
-    failures += "quad intersections do not short-circuit projected bounds"
+if (Regex("projected\\.x > halfSize\\.x \\|\\| projected\\.y > halfSize\\.y").findAll(models).count() != 1) {
+    failures += "axis-aligned quad intersection does not short-circuit projected bounds"
 }
+expect(quadIntersection, "float projectedU = abs(dot(offset, u));", "general quad U projection")
+expect(quadIntersection, "if (projectedU > halfSize.x) return false;", "general quad U bound short-circuit")
+expect(quadIntersection, "if (abs(dot(offset, v)) > halfSize.y) return false;", "general quad V bound short-circuit")
 reject(models, Regex("greaterThan\\(projected"), "eager projected quad bounds")
 val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
 expect(modelFunction, "hit = hitT != uintBitsToFloat(0x7F800000u);", "axis-aligned post-loop hit inference")
