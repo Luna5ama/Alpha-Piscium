@@ -82,10 +82,11 @@ bool voxel_intersectBlockModel(
     if (axisAligned) {
         vec3 inverseRayDir = 1.0 / rayDir;
         while (quadCount != 0u) {
-            hit = _voxel_intersectBlockModelAxisAlignedQuad(rayOrigin, rayDir, inverseRayDir, texelCoord, hitT, hitNormal) || hit;
+            _voxel_intersectBlockModelAxisAlignedQuad(rayOrigin, rayDir, inverseRayDir, texelCoord, hitT, hitNormal);
             texelCoord.x += 2;
             --quadCount;
         }
+        hit = hitT != uintBitsToFloat(0x7F800000u);
     } else {
         while (quadCount != 0u) {
             hit = _voxel_intersectBlockModelQuad(rayOrigin, rayDir, texelCoord, hitT, hitNormal) || hit;

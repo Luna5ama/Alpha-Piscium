@@ -168,6 +168,9 @@ expect(models, "vec3 inverseRayDir = 1.0 / rayDir;", "model-level reciprocal ray
 expect(axisQuadIntersection, "float t = (origin[axis] - rayOrigin[axis]) * inverseRayDir[axis];", "reciprocal axis-plane intersection")
 reject(quadIntersection, Regex("\\bquadIndex\\b"), "per-quad 2D texel address")
 reject(quadIntersection, Regex("normalize\\s*\\("), "per-quad basis normalization")
+val modelFunction = models.substringAfter("bool voxel_intersectBlockModel(")
+expect(modelFunction, "hit = hitT != uintBitsToFloat(0x7F800000u);", "axis-aligned post-loop hit inference")
+if (Regex("\\|\\|\\s*hit").findAll(modelFunction).count() != 1) failures += "general quad path must retain exactly one hit accumulation"
 expect(models, Regex("if\\s*\\(hit\\)\\s+hitNormal\\s*=\\s*_voxel_unrotateBlockModelVector\\([^;]*normalize\\s*\\(hitNormal\\)"), "post-loop hit normal normalization")
 if (Regex("(?m)\\b(?:const\\s+)?(?:vec[234]|u?int|float|bool)\\s+\\w+\\s*\\[").containsMatchIn(models)) {
     failures += "block-model runtime uses a local or const array"
