@@ -174,10 +174,16 @@ bool voxel_intersectBlockModel(
         texelIndex += 3;
     }
 #else
-    for (uint i = 0u; i < aabbCount; ++i) {
+    if (aabbCount == 1u) {
         _voxel_intersectBlockModelAABB(
-            rayOrigin, rayDir, int((aabbOffset + i) * 3u), rayMinT, rayMaxT, hitT, hitNormal
+            rayOrigin, rayDir, int(aabbOffset * 3u), rayMinT, rayMaxT, hitT, hitNormal
         );
+    } else {
+        for (uint i = 0u; i < aabbCount; ++i) {
+            _voxel_intersectBlockModelAABB(
+                rayOrigin, rayDir, int((aabbOffset + i) * 3u), rayMinT, rayMaxT, hitT, hitNormal
+            );
+        }
     }
 #endif
     if (hitT != noHitT) hitNormal = _voxel_unrotateBlockModelVector(rotation, hitNormal);
