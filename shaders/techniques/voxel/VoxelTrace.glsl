@@ -203,11 +203,6 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
         // ---- Main hierarchical traversal loop ----
         for (int i = 0; i < maxSteps; i++) {
-            // Bounds check — also serves as grid-exit detection
-            if (uint(blockPos.x | blockPos.y | blockPos.z) >= uint(GRID_BLOCKS)) {
-                break;
-            }
-
             #if VOXEL_TRACE_DEBUG_COUNTERS
             debugCounters.x++;
             #endif
