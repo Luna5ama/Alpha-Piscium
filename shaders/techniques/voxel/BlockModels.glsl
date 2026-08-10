@@ -80,6 +80,7 @@ bool _voxel_intersectBlockModelAABB(
             if (entryT > exitT) return false;
         }
     }
+    if (exitT < rayMinT || entryT > min(rayMaxT, hitT)) return false;
     {
         if (abs(localDir.y) <= 1e-6) {
             if (abs(localOrigin.y) > halfSize.y) return false;
@@ -98,6 +99,7 @@ bool _voxel_intersectBlockModelAABB(
             if (entryT > exitT) return false;
         }
     }
+    if (exitT < rayMinT || entryT > min(rayMaxT, hitT)) return false;
     {
         if (abs(localDir.z) <= 1e-6) {
             if (abs(localOrigin.z) > halfSize.z) return false;
