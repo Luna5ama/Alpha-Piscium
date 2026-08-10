@@ -12,6 +12,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 #include "/techniques/gi/PairwiseMISMetadata.glsl"
 #define VOXEL_BLOCK_MODEL_TRIPLE_PRODUCT
 #define VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE
+#define VOXEL_TRACE_BOUNDED
 #include "/techniques/voxel/VoxelTrace.glsl"
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -158,7 +159,10 @@ void main() {
                 vec3 worldPos = scenePos + vec3(cameraPositionInt) + cameraPositionFract;
                 vec3 worldDir = coords_dir_viewToWorld(winL_out);
                 VoxelRay voxelRay = voxelray_setup(worldPos, worldDir, 0u);
-                VoxelHit hit = voxel_traceRay(voxelRay, 128);
+                float maxT = winHitDist > 0.0
+                    ? winHitDist + sqrt(0.05)
+                    : uintBitsToFloat(0x7F800000u);
+                VoxelHit hit = voxel_traceRay(voxelRay, 128, maxT);
                 vec3 expectedHitPos = worldPos + worldDir * winHitDist;
 
                 bool discardSptialReuse = false;

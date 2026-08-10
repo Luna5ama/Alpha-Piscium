@@ -167,9 +167,19 @@ VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData
 // ---------------------------------------------------------------------------
 // Primary trace function (stateful)
 // ---------------------------------------------------------------------------
+#ifdef VOXEL_TRACE_BOUNDED
+VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, float maxT) {
+#else
 VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
+#endif
     #if VOXEL_TRACE_DEBUG_COUNTERS
     ivec4 debugCounters = ivec4(0);
+    #endif
+
+    #ifdef VOXEL_TRACE_BOUNDED
+    if (ray.level != 0 && ray.lastT > maxT) {
+        ray.level = 0;
+    }
     #endif
 
     // Early-out: ray missed grid or is already complete
@@ -260,6 +270,12 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     vec3 modelNormal;
                     if (voxel_intersectBlockModel(
                             blockModelID, blockLocalRayOrigin, worldRayDir, modelT, modelNormal)) {
+                        #ifdef VOXEL_TRACE_BOUNDED
+                        if (modelT > maxT) {
+                            level = 0;
+                            break;
+                        }
+                        #endif
                         VoxelHit result;
                         result.hit = true;
                         result.hitPos = fma(worldRayDir, vec3(modelT), worldRayOrigin);
@@ -294,6 +310,13 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
                 vec3 tExit = fma(vec3(target), invDir, tOrig);
                 lastT = min(min(tExit.x, tExit.y), tExit.z);
+
+                #ifdef VOXEL_TRACE_BOUNDED
+                if (lastT > maxT) {
+                    level = 0;
+                    break;
+                }
+                #endif
 
                 // Reuse lastT to identify exit axis (saves 3 MIN vs step+min)
                 bvec3 nonExitMask = greaterThan(tExit, vec3(lastT));
