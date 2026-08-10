@@ -255,7 +255,7 @@ bool parallax_traceParallax(
     vec2 entryNormal = vec2(0.0);
     #endif
 
-    for (int iteration = 0; iteration < SETTING_STEEP_PARALLAX_MAX_ITERATIONS && t <= rayMaxT; iteration++) {
+    for (int iteration = 0; iteration < SETTING_PARALLAX_MAX_ITERATIONS && t <= rayMaxT; iteration++) {
         vec2 rawPosition = rayStart + rayDeltaTexels * t;
         vec2 samplePosition = spriteMin + mod(rawPosition + rayBias - spriteMin, spriteExtent);
         int cellScaleI = 1 << level;
@@ -375,7 +375,7 @@ bool parallax_traceParallax(
                 hitT = t + segmentLength * hitSegment;
                 vec2 hitPosition = localPosition + segmentDelta * hitSegment;
                 vec2 depthGradient = vec2(depthX + depthXY * hitPosition.y, depthY + depthXY * hitPosition.x);
-                hitSurfaceNormal = vec3(depthGradient * SETTING_STEEP_PARALLAX_DEPTH * spriteExtent, 1.0);
+                hitSurfaceNormal = vec3(depthGradient * SETTING_PARALLAX_DEPTH * spriteExtent, 1.0);
             }
             #else
             #if SETTING_PARALLAX_MODE == 3
@@ -535,7 +535,7 @@ bool parallax_traceParallax(
                 hitT = t + segmentLength * hitSegment;
                 vec2 hitPosition = localPosition + segmentDelta * hitSegment;
                 vec2 depthGradient = _parallax_continuousParallaxSurface(depths, hitPosition).yz;
-                hitSurfaceNormal = vec3(depthGradient * SETTING_STEEP_PARALLAX_DEPTH * spriteExtent, 1.0);
+                hitSurfaceNormal = vec3(depthGradient * SETTING_PARALLAX_DEPTH * spriteExtent, 1.0);
             }
             #endif
             #endif
