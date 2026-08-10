@@ -168,7 +168,7 @@ VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData
 // Primary trace function (stateful)
 // ---------------------------------------------------------------------------
 #ifdef VOXEL_TRACE_BOUNDED
-VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, float maxT) {
+VoxelHit voxel_traceRayOnce(vec3 worldRayOrigin, vec3 worldRayDir, int maxSteps, float maxT) {
 #else
 VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 #endif
@@ -177,10 +177,40 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
     #endif
 
     #ifdef VOXEL_TRACE_BOUNDED
-    if (ray.level != 0 && ray.lastT > maxT) {
-        ray.level = 0;
-    }
-    #endif
+    const int GRID_BLOCKS = VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE;
+    const float EPS = 1e-4;
+
+    worldRayDir = mix(worldRayDir, vec3(1e-7), lessThan(abs(worldRayDir), vec3(1e-7)));
+
+    ivec3 cameraBrick = cameraPositionInt >> 4;
+    vec3 gridOriginF = vec3((cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4);
+    vec3 posGrid = worldRayOrigin - gridOriginF;
+
+    vec3 invDir = 1.0 / worldRayDir;
+    vec3 tOrig = -posGrid * invDir;
+    ivec3 boundOffsetMask = ~(floatBitsToInt(worldRayDir) >> 31);
+    ivec3 stepDir = ivec3(sign(worldRayDir));
+    ivec3 stepBack = min(stepDir, ivec3(0));
+    vec3 t1g = fma(vec3(float(GRID_BLOCKS)), invDir, tOrig);
+    vec3 tMinG = min(tOrig, t1g);
+    vec3 tMaxG = max(tOrig, t1g);
+    float tEnter = max(max(tMinG.x, tMinG.y), tMinG.z);
+    float tExitG = min(min(tMaxG.x, tMaxG.y), tMaxG.z);
+    float lastT = max(tEnter, 0.0) + EPS;
+
+    if (tEnter <= tExitG && tExitG > 0.0 && lastT <= maxT) {
+        vec3 startPos = fma(worldRayDir, vec3(lastT), posGrid);
+        startPos = clamp(startPos, vec3(EPS), vec3(float(GRID_BLOCKS) - EPS));
+        ivec3 blockPos = ivec3(floor(startPos));
+
+        int lastAxis = -1;
+        if (tEnter > 0.0) {
+            lastAxis = (tMinG.x >= tMinG.y && tMinG.x >= tMinG.z) ? 0 : (tMinG.y >= tMinG.z ? 1 : 2);
+        }
+
+        uint fullMorton = _voxel_packBlockPos(blockPos);
+        int level = 1;
+    #else
 
     // Early-out: ray missed grid or is already complete
     if (ray.level != 0) {
@@ -210,6 +240,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
         // Derive blockPos from the authoritative fullMorton (avoids clamp/bias ambiguity)
         ivec3 blockPos = ivec3(morton3D_30bDecode(fullMorton));
+    #endif
 
         // ---- Main hierarchical traversal loop ----
         for (int i = 0; i < maxSteps; i++) {
@@ -251,7 +282,9 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
                     vec3 normalDir = -vec3(stepDir);
                     result.normal = normalDir * vec3(equal(ivec3(lastAxis), ivec3(0, 1, 2)));
+                    #ifndef VOXEL_TRACE_BOUNDED
                     ray.level = 0;
+                    #endif
 
                     #if VOXEL_TRACE_DEBUG_COUNTERS
                     result.debugCounters = debugCounters;
@@ -281,7 +314,9 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                         result.hitPos = fma(worldRayDir, vec3(modelT), worldRayOrigin);
                         result.materialID = material;
                         result.normal = modelNormal;
+                        #ifndef VOXEL_TRACE_BOUNDED
                         ray.level = 0;
+                        #endif
                         #if VOXEL_TRACE_DEBUG_COUNTERS
                         result.debugCounters = debugCounters;
                         #endif
@@ -355,6 +390,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
             }
         }
 
+        #ifndef VOXEL_TRACE_BOUNDED
         // Write back state for resumption if still active (not done)
         ray.level = level;
         if (level != 0) {
@@ -362,6 +398,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
             ray.lastAxis = (lastAxis >= 0 && lastAxis <= 2) ? lastAxis : 2;
             ray.fullMorton = fullMorton;
         }
+        #endif
     }
 
     VoxelHit result;

@@ -158,11 +158,10 @@ void main() {
                 vec3 scenePos = coords_pos_viewToWorld(viewPos + centerSampleData.geomNormal * 0.05, gbufferModelViewInverse);
                 vec3 worldPos = scenePos + vec3(cameraPositionInt) + cameraPositionFract;
                 vec3 worldDir = coords_dir_viewToWorld(winL_out);
-                VoxelRay voxelRay = voxelray_setup(worldPos, worldDir, 0u);
                 float maxT = winHitDist > 0.0
                     ? winHitDist + sqrt(0.05)
                     : uintBitsToFloat(0x7F800000u);
-                VoxelHit hit = voxel_traceRay(voxelRay, 128, maxT);
+                VoxelHit hit = voxel_traceRayOnce(worldPos, worldDir, 128, maxT);
                 vec3 expectedHitPos = worldPos + worldDir * winHitDist;
 
                 bool discardSptialReuse = false;
