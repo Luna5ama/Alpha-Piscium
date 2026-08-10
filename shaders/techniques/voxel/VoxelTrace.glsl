@@ -225,8 +225,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                 uint material = voxel_decodeMaterialID(materialData);
                 bool isFullCube = bool(materialData & 1u);
                 #ifndef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE
-                bool isKnown = material != 0u &&
-                    material < textureSize(usam_pbrLUT0, 0).x &&
+                bool isKnown = material < textureSize(usam_pbrLUT0, 0).x &&
                     material < textureSize(usam_pbrLUT1, 0).x &&
                     material < textureSize(usam_pbrLUT2, 0).y;
                 uint lookupMaterial = isKnown ? material : 0u;
