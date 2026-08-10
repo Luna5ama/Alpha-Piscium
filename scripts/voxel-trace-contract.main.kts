@@ -165,6 +165,9 @@ for ((label, intersection) in listOf("axis-aligned" to axisQuadIntersection, "ge
     }
 }
 reject(axisQuadIntersection, Regex("\\baxisAligned\\b"), "per-quad axis-aligned branch")
+expect(axisQuadIntersection, "if (originNormalX.w < 253.5 / 255.0)", "direct X axis encoding threshold")
+expect(axisQuadIntersection, "else if (originNormalX.w < 254.5 / 255.0)", "direct Y axis encoding threshold")
+reject(axisQuadIntersection, Regex("int\\s+axis\\s*=\\s*int\\s*\\(\\s*originNormalX\\.w"), "integer axis encoding decode")
 expect(models, "vec3 inverseRayDir = 1.0 / rayDir;", "model-level reciprocal ray direction")
 expect(axisQuadIntersection, "t = (origin.x - rayOrigin.x) * inverseRayDir.x;", "reciprocal X axis-plane intersection")
 expect(axisQuadIntersection, "t = (origin.y - rayOrigin.y) * inverseRayDir.y;", "reciprocal Y axis-plane intersection")

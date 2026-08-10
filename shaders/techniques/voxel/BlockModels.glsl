@@ -30,15 +30,14 @@ bool _voxel_intersectBlockModelAxisAlignedQuad(
     vec4 normalYZHalfSize = texelFetch(usam_blockModelQuads, texelCoord + ivec2(1, 0), 0);
     vec3 origin = originNormalX.xyz;
     vec2 halfSize = normalYZHalfSize.zw + 1e-6;
-    int axis = int(originNormalX.w * 255.0 + 0.5) - 253;
     float t;
     vec2 projected;
     vec3 normal = vec3(0.0);
-    if (axis == 0) {
+    if (originNormalX.w < 253.5 / 255.0) {
         t = (origin.x - rayOrigin.x) * inverseRayDir.x;
         projected = abs(rayOrigin.yz + rayDir.yz * t - origin.yz);
         normal.x = inverseRayDir.x < 0.0 ? 1.0 : -1.0;
-    } else if (axis == 1) {
+    } else if (originNormalX.w < 254.5 / 255.0) {
         t = (origin.y - rayOrigin.y) * inverseRayDir.y;
         projected = abs(rayOrigin.xz + rayDir.xz * t - origin.xz);
         normal.y = inverseRayDir.y < 0.0 ? 1.0 : -1.0;
