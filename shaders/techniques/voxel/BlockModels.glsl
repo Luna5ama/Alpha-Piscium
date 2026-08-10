@@ -77,7 +77,6 @@ bool _voxel_intersectBlockModelAABB(
                 exitT = farT;
                 exitAxis = 0;
             }
-            if (entryT > exitT) return false;
         }
     }
     if (exitT < rayMinT || entryT > min(rayMaxT, hitT)) return false;
