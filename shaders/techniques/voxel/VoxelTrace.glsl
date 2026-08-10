@@ -327,7 +327,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                 // Ascend: O(1) level recomputation via findMSB
                 uint mortonDiff = oldFullMorton ^ fullMorton;
                 int newLevel = ((findMSB(mortonDiff) * 43) >> 8) + 1;
-                level = min(newLevel, VOXEL_TREE_TOP_LEVEL);
+                level = newLevel;
             }
         }
 
