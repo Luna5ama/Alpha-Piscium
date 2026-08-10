@@ -221,18 +221,15 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
             if (isHit && level == 1) {
                 uint allocID = voxel_brickAllocID[fullMorton >> 12u];
-                uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
-                #ifdef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE
-                uint blockFlags = texelFetch(usam_pbrLUT1, int(material), 0).r;
-                bool isFullCube = bitfieldExtract(blockFlags, 4, 1) == 1u;
-                #else
+                uint materialData = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
+                uint material = voxel_decodeMaterialID(materialData);
+                bool isFullCube = bool(materialData & 1u);
+                #ifndef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE
                 bool isKnown = material != 0u &&
                     material < textureSize(usam_pbrLUT0, 0).x &&
                     material < textureSize(usam_pbrLUT1, 0).x &&
                     material < textureSize(usam_pbrLUT2, 0).y;
                 uint lookupMaterial = isKnown ? material : 0u;
-                uint blockFlags = texelFetch(usam_pbrLUT1, int(lookupMaterial), 0).r;
-                bool isFullCube = bitfieldExtract(blockFlags, 4, 1) == 1u;
                 #endif
 
                 if (isFullCube) {

@@ -98,11 +98,12 @@ void main() {
                     // Only write a non-zero material ID; 0 means "no entity mapping".
                     // atomicMax ensures a real ID beats the cleared-to-0 state.
                     if (materialID != 0u) {
-                        atomicMax(voxel_materials[matIdx], materialID);
+                        uint materialData = (materialID << 1u) | uint(hardcoded.isFullCube);
+                        atomicMax(voxel_materials[matIdx], materialData);
                     } else {
                         // Block exists but has no material ID mapping: write a
                         // placeholder (1) so the tree knows the voxel is solid.
-                        atomicMax(voxel_materials[matIdx], 1u);
+                        atomicMax(voxel_materials[matIdx], 1u << 1u);
                     }
                 }
             }

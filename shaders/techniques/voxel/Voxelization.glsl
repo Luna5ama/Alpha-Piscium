@@ -53,13 +53,17 @@ layout(std430, binding = 3) VOXEL_BRICK_DATA_MODIFIER VoxelBrickData {
 // ---------------------------------------------------------------------------
 #ifdef VOXEL_MATERIAL_VEC4
 layout(std430, binding = 4) VOXEL_MATERIAL_DATA_MODIFIER VoxelMaterialData {
-    uvec4 voxel_materials_v4[];   // VOXEL_POOL_SIZE * 1024 uvec4 entries
+    uvec4 voxel_materials_v4[];   // material ID << 1 | full-cube flag
 };
 #else
 layout(std430, binding = 4) VOXEL_MATERIAL_DATA_MODIFIER VoxelMaterialData {
-    uint voxel_materials[];   // VOXEL_POOL_SIZE * 4096 entries
+    uint voxel_materials[];   // material ID << 1 | full-cube flag
 };
 #endif
+
+uint voxel_decodeMaterialID(uint materialData) {
+    return materialData >> 1u;
+}
 
 // ---------------------------------------------------------------------------
 // Dense 64-Tree Layout
@@ -174,8 +178,8 @@ bool voxel_opaqueAtBlock(ivec3 worldBlockPos) {
 
     ivec3 blockInBrick = gridBlockPos & 15;
     uint blockMorton = voxel_blockMorton(blockInBrick);
-    uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
-    return materialID != 0u && materialID != MATERIAL_ID_WATER;
+    uint materialData = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
+    return materialData >= 4u;
 }
 uint voxel_getMaterialID(ivec3 worldBlockPos) {
     ivec3 cameraBrick = cameraPositionInt >> 4;
@@ -194,7 +198,7 @@ uint voxel_getMaterialID(ivec3 worldBlockPos) {
 
     ivec3 blockInBrick = gridBlockPos & 15;
     uint blockMorton = voxel_blockMorton(blockInBrick);
-    uint materialID = voxel_materials[voxel_materialIndex(allocID, blockMorton)];
+    uint materialID = voxel_decodeMaterialID(voxel_materials[voxel_materialIndex(allocID, blockMorton)]);
     return materialID;
 }
 #endif

@@ -60,6 +60,7 @@ val hardcoded = read("shaders/util/HardcodedPBR.glsl")
 val trace = read("shaders/techniques/voxel/VoxelTrace.glsl")
 val initialTrace = read("shaders/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl")
 val voxelization = read("shaders/techniques/voxel/Voxelization.glsl")
+val shadowVertex = read("shaders/pass/geometry/ShadowPass.vert.glsl")
 val builder = read("shaders/pass/shadow/VoxelTreeBuilder.comp.glsl")
 val faceMaskPath = root.resolve("shaders/pass/shadow/VoxelFaceMask.comp.glsl")
 val faceMaskImplementationPath = root.resolve("shaders/techniques/voxel/VoxelFaceMask.glsl")
@@ -80,6 +81,19 @@ val ids = states.map { state -> id(state) ?: run { failures += "mapping missing:
 val allIds = Regex("(?m)^block\\.(\\d+) =").findAll(mappings).map { it.groupValues[1].toInt() }.toList()
 val materialCount = allIds.maxOrNull()!! + 1
 if (materialCount > 65536) failures += "material count exceeds packed 16-bit ID: $materialCount"
+fun voxelMaterialData(materialID: Int, fullCube: Boolean) = (materialID shl 1) or if (fullCube) 1 else 0
+for (materialID in 0 until 65536) {
+    for (fullCube in listOf(false, true)) {
+        val materialData = voxelMaterialData(materialID, fullCube)
+        if ((materialData ushr 1) != materialID || ((materialData and 1) != 0) != fullCube) {
+            failures += "voxel material round trip failed: $materialID $fullCube"
+        }
+    }
+    if (materialID != 65535 && voxelMaterialData(materialID, true) >= voxelMaterialData(materialID + 1, false)) {
+        failures += "voxel material atomic ordering failed: $materialID"
+    }
+}
+if (voxelMaterialData(1, false) != 2) failures += "voxel placeholder encoding changed"
 
 val pbrBytes = Files.readAllBytes(root.resolve("shaders/textures/pbr_lut_0.bin"))
 if (pbrBytes.size != materialCount * 4) failures += "PBR LUT 0 size ${pbrBytes.size} != material count * 4 (${materialCount * 4})"
@@ -201,6 +215,12 @@ expect(hardcoded, Regex("hardcodedpbr_decode\\s*\\(\\s*materialID\\s*,\\s*63u\\s
 
 expect(builder, Regex("#define\\s+VOXEL_MATERIAL_DATA_MODIFIER\\s+(?:restrict\\s+)?readonly\\s+buffer"), "read-only tree-builder material buffer")
 reject(builder, Regex("voxel_materials_v4\\s*\\[[^]]+]\\s*="), "tree-builder material writeback")
+expect(voxelization, "uint voxel_decodeMaterialID(uint materialData)", "voxel material decode API")
+expect(shadowVertex, "uint materialData = (materialID << 1u) | uint(hardcoded.isFullCube);", "voxel full-cube material encoding")
+expect(shadowVertex, "atomicMax(voxel_materials[matIdx], 1u << 1u);", "voxel placeholder encoding")
+expect(voxelization, "return materialData >= 4u;", "encoded voxel opacity classification")
+expect(builder, "bool voxel_isGIOpaqueMaterial(uint materialData)", "encoded tree-builder material classification")
+expect(builder, "return materialData >= 4u;", "tree-builder encoded opacity classification")
 expect(builder, "rc_markPendingVisibleFace", "tree-builder RC visible-face publication")
 if (Files.exists(faceMaskPath) || Files.exists(faceMaskImplementationPath)) failures += "obsolete voxel face-mask publisher remains"
 reject(programs, Regex("VoxelFaceMask"), "voxel face-mask program registration")
@@ -210,8 +230,9 @@ expect(trace, "uint rayFaceMask = uint((boundOffsetMask.x & 1) + 1) |", "ray X f
 expect(trace, "uint(((boundOffsetMask.y & 1) + 1) << 2) |", "ray Y face selection")
 expect(trace, "uint(((boundOffsetMask.z & 1) + 1) << 4);", "ray Z face selection")
 expect(initialTrace, "#define VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "initial trace deferred model decode")
-expect(trace, "#ifdef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "selectable deferred model decode")
-expect(trace, "uint blockFlags = texelFetch(usam_pbrLUT1, int(material), 0).r;", "early trace full-cube lookup")
+expect(trace, "#ifndef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "selectable deferred model decode")
+expect(trace, "bool isFullCube = bool(materialData & 1u);", "cached trace full-cube lookup")
+reject(trace, Regex("texelFetch\\s*\\(\\s*usam_pbrLUT1"), "trace full-cube texture lookup")
 expect(trace, "usam_pbrLUT2, ivec2(int(rayFaceMask), int(material)), 0", "deferred ray-selected model lookup")
 reject(trace, Regex("HardcodedPBR\\s+hardcoded\\s*=\\s*hardcodedpbr_decode\\s*\\(\\s*material\\s*,\\s*rayFaceMask\\s*\\)"), "full PBR decode in voxel tracing")
 expect(trace, "uint lookupMaterial = isKnown ? material : 0u;", "safe default model lookup material")
