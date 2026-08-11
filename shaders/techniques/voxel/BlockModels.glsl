@@ -87,7 +87,7 @@ bool voxel_intersectBlockModel(
     uint rotation = modelData & 0x1FFu;
     uint quadCount = (modelData >> 25u) & 0x3Fu;
     bool axisAligned = (modelData & 0x80000000u) != 0u;
-    ivec2 texelCoord = ivec2(int((modelData >> 8u) & 0x7FFEu), int((modelData >> 23u) & 3u));
+    ivec2 texelCoord = ivec2(int(bitfieldExtract(modelData, 9, 14) << 1u), int(bitfieldExtract(modelData, 23, 2)));
     rayOrigin -= vec3(0.5);
     _voxel_rotateBlockModelRay(rotation, rayOrigin, rayDir);
     rayOrigin += vec3(0.5);
