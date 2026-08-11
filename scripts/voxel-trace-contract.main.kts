@@ -169,6 +169,13 @@ expect(models, Regex("--quadCount"), "quad loop countdown")
 expect(models, "_voxel_rotateBlockModelRay", "shared packed ray rotation")
 reject(models, Regex("_voxel_rotateBlockModelComponent"), "duplicated component rotation")
 expect(models, "_voxel_unrotateBlockModelVector", "model normal inverse rotation")
+expect(models, "uvec3 transform = uvec3(rotation, rotation >> 3u, rotation >> 6u);", "vectorized inverse rotation decode")
+expect(models, "ivec3 axis = ivec3(transform & 3u);", "inverse rotation axis extraction")
+expect(models, "vec3 signedValue = value * mix(vec3(1.0), vec3(-1.0), notEqual(transform & 4u, uvec3(0u)));", "inverse rotation sign extraction")
+expect(models, "result[axis.x] = signedValue.x;", "inverse rotation X indexed write")
+expect(models, "result[axis.y] = signedValue.y;", "inverse rotation Y indexed write")
+expect(models, "result[axis.z] = signedValue.z;", "inverse rotation Z indexed write")
+reject(models, Regex("rotation\\s*>>=\\s*3u"), "serial inverse rotation decode")
 val axisQuadIntersection = models.substringAfter("bool _voxel_intersectBlockModelAxisAlignedQuad(")
     .substringBefore("bool _voxel_intersectBlockModelQuad(")
 val quadIntersection = models.substringAfter("bool _voxel_intersectBlockModelQuad(")
@@ -252,6 +259,48 @@ if (modelLutBytes.size == expectedModelLutBytes && pbrBytes.size == materialCoun
     fun validRotation(rotation: UInt): Boolean {
         val axes = listOf(rotation and 3u, rotation shr 3 and 3u, rotation shr 6 and 3u)
         return axes.all { it < 3u } && axes.distinct().size == 3
+    }
+    fun serialUnrotate(rotation: UInt, value: V3): V3 {
+        val result = DoubleArray(3)
+        var packed = rotation
+        val components = listOf(value.x, value.y, value.z)
+        for (component in 0..2) {
+            val axis = (packed and 3u).toInt()
+            val sign = if ((packed and 4u) == 0u) 1.0 else -1.0
+            result[axis] = components[component] * sign
+            packed = packed shr 3
+        }
+        return V3(result[0], result[1], result[2])
+    }
+    fun vectorizedUnrotate(rotation: UInt, value: V3): V3 {
+        val transform = listOf(rotation, rotation shr 3, rotation shr 6)
+        val result = DoubleArray(3)
+        val components = listOf(value.x, value.y, value.z)
+        for (component in 0..2) {
+            val encoded = transform[component]
+            val axis = (encoded and 3u).toInt()
+            val sign = if ((encoded and 4u) == 0u) 1.0 else -1.0
+            result[axis] = components[component] * sign
+        }
+        return V3(result[0], result[1], result[2])
+    }
+    val normalSamples = listOf(
+        V3(1.0, 0.0, 0.0),
+        V3(0.0, 1.0, 0.0),
+        V3(0.0, 0.0, 1.0),
+        V3(1.0, 2.0, 3.0),
+        V3(-2.5, 0.75, -4.0),
+    )
+    for (rotationValue in 0 until 512) {
+        val rotation = rotationValue.toUInt()
+        if (!validRotation(rotation)) continue
+        for (normal in normalSamples) {
+            val expected = serialUnrotate(rotation, normal)
+            val actual = vectorizedUnrotate(rotation, normal)
+            if (abs(expected.x - actual.x) > 1e-12 || abs(expected.y - actual.y) > 1e-12 || abs(expected.z - actual.z) > 1e-12) {
+                failures += "packed inverse rotation mismatch: rotation=$rotationValue normal=$normal expected=$expected actual=$actual"
+            }
+        }
     }
     for (mask in 0..63) for (materialId in 0 until materialCount) {
         val metadata = modelData(materialId, mask)
