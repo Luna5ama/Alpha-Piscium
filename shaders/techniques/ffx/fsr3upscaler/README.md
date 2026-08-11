@@ -119,10 +119,11 @@ FP32 is the baseline path. Enabling `FFX_HALF` requires 16-bit arithmetic type
 support in the entrypoint. Define `FFX_SPD_NO_WAVE_OPERATIONS` when subgroup
 quad operations are unavailable.
 
-The active shaderpack does not retain previous object transforms. Dynamic
-surfaces written to the solid G-buffer therefore use camera motion with the
-solid temporal-reactive flag instead of incorrect object motion, while overlays
-add their own coverage. Translucent reflection and refraction intentionally have
-no separate temporal denoiser or reactive/composition mask: their rough
-stochastic result is accumulated with the solid-surface contract to avoid
-frame-to-frame flashing.
+The active shaderpack does not retain previous object transforms. Entities,
+particles, and hands written to the solid G-buffer therefore use camera motion
+with the solid temporal-reactive flag instead of incorrect object motion. Tile
+entities follow ordinary solid history without reactive/composition coverage,
+while overlays add their own coverage. Translucent reflection and refraction
+intentionally have no separate temporal denoiser or reactive/composition mask:
+their rough stochastic result is accumulated with the solid-surface contract to
+avoid frame-to-frame flashing.
