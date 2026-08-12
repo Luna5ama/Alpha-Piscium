@@ -236,12 +236,18 @@ reject(trace, Regex("packedMaterial|openFaceMask|>>\\s*16u"), "packed neighbor f
 expect(trace, "uint rayFaceMask = uint((boundOffsetMask.x & 1) + 1) |", "ray X face selection")
 expect(trace, "uint(((boundOffsetMask.y & 1) + 1) << 2) |", "ray Y face selection")
 expect(trace, "uint(((boundOffsetMask.z & 1) + 1) << 4);", "ray Z face selection")
+expect(trace, "bool isHit = bool((maskPart >> (mortonPrefix & 31u)) & 1u);", "direct child occupancy bit index")
+reject(trace, Regex("uint\\s+childIdx\\s*="), "redundant 6-bit child index")
 expect(initialTrace, "#define VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "initial trace deferred model decode")
 expect(trace, "#ifndef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "selectable deferred model decode")
 expect(trace, "bool isFullCube = bool(materialData & 1u);", "cached trace full-cube lookup")
 reject(trace, Regex("texelFetch\\s*\\(\\s*usam_pbrLUT1"), "trace full-cube texture lookup")
 expect(trace, "usam_pbrLUT2, ivec2(int(rayFaceMask), int(material)), 0", "deferred ray-selected model lookup")
 reject(trace, Regex("HardcodedPBR\\s+hardcoded\\s*=\\s*hardcodedpbr_decode\\s*\\(\\s*material\\s*,\\s*rayFaceMask\\s*\\)"), "full PBR decode in voxel tracing")
+expect(trace, "bool isKnown = material < textureSize(usam_pbrLUT0, 0).x &&\n                    material < textureSize(usam_pbrLUT1, 0).x &&\n                    material < textureSize(usam_pbrLUT2, 0).y;", "short-circuit PBR LUT bounds")
+if (Regex("textureSize\\s*\\(\\s*usam_pbrLUT[012]").findAll(trace).count() != 3) {
+    failures += "voxel trace must retain exactly three local PBR LUT size queries"
+}
 expect(trace, "uint lookupMaterial = isKnown ? material : 0u;", "safe default model lookup material")
 fun rayFaceMask(positiveX: Boolean, positiveY: Boolean, positiveZ: Boolean) =
     (if (positiveX) 2u else 1u) or (if (positiveY) 8u else 4u) or (if (positiveZ) 32u else 16u)

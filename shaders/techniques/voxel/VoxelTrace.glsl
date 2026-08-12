@@ -213,11 +213,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
             // Load node mask at current level
             uint childShift = 6u * uint(level - 1);
             uint mortonPrefix = fullMorton >> childShift;
-            uint childIdx = mortonPrefix & 63u;
 
             // Branchless bit check
             uint maskPart = voxel_treeScalar[_voxel_levelOffsets[level] + (mortonPrefix >> 5u)];
-            bool isHit = bool((maskPart >> (childIdx & 31u)) & 1u);
+            bool isHit = bool((maskPart >> (mortonPrefix & 31u)) & 1u);
 
             if (isHit && level == 1) {
                 uint allocID = voxel_brickAllocID[fullMorton >> 12u];
