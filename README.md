@@ -36,5 +36,8 @@ Discord server link: https://discord.gg/E2Uq2MmHgq
 - **AMD GPU**: Check if your GPU driver is newer than 22.7.1. If older, please update your driver.
 - **Other loading errors**: Press Ctrl+D in Iris's shaderpack selection screen, then reload the shaderpack. Make an [issue](https://github.com/Luna5ama/Alpha-Piscium/issues) with the error message and the relevant files in `.minecraft/patched_shaders` as shown in the error message.
 
+## AI / LLM Code Disclosure & Compliance Notice
+Please be advised that this codebase incorporates software components generated or assisted by Large Language Models (LLMs). If your personal policy, regulatory constraints, or usage criteria prohibit the deployment or execution of AI-generated software, you are requested to immediately cease utilization and remove all instances of Alpha Piscium from your systems.
+
 ## License
 Files under the `scripts` directory are licensed under the MIT License. All other files are licensed under the GNU General Public License v3.0.
