@@ -933,6 +933,17 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "限制GI时间累积可以重用多少前一帧。数值越高，质量越好，但会增加光照延迟。"
                     }
                 }
+                toggle("SETTING_GI_TEMPORAL_BACKUP_SAMPLE", false) {
+                    lang {
+                        name = "Temporal Backup Sample"
+                        comment =
+                            "Adds a previous-frame sample selected by stochastic bilinear motion-vector reprojection to fill holes left by temporal reservoir splatting. Improves robustness with additional temporal resampling work."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "时间备用样本"
+                        comment = "添加一个通过随机双线性运动矢量重投影选取的前一帧样本，以填补时间Reservoir Splatting留下的空洞。可提高稳定性，但会增加时间重采样工作量。"
+                    }
+                }
                 empty()
                 toggle("SETTING_GI_SPATIAL_REUSE", true) {
                     lang {

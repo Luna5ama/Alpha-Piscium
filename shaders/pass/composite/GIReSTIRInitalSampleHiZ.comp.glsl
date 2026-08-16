@@ -5,11 +5,14 @@ layout(local_size_x = 16, local_size_y = 16) in;
 
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
+layout(r32ui) uniform restrict writeonly uimage2D uimg_r32ui;
+layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
+#define RESTIR_INITIAL_CANDIDATE_WRITE
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/SST2.glsl"
 #include "/techniques/gi/InitialSample.glsl"
@@ -38,7 +41,7 @@ void main() {
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
 
         if (viewZ > -65536.0) {
-            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
             vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
 
             GBufferData gData = gbufferData_init();
@@ -53,7 +56,7 @@ void main() {
 
             vec3 V = normalize(-viewPos);
             float rayPdf = 0.0;
-            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, gData.normal, V, material, rayPdf);
+            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, V, material, rayPdf);
             candidate = restir_initialCandidate_makeInvalid(rayDirView);
 
             if (rayPdf > 0.0) {

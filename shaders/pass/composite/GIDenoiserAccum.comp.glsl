@@ -91,6 +91,9 @@ void main() {
         transient_gi_diffMip_store(texelPos, vec4(0.0));
         transient_gi_specMip_store(texelPos, vec4(0.0));
         transient_geomNormalMip_store(texelPos, vec4(0.0));
+        #if SETTING_DEBUG_OUTPUT && SETTING_DEBUG_TEMP_TEX == 2
+        imageStore(uimg_temp2, texelPos, vec4(0.0));
+        #endif
     }
 
     if (hiz_groupGroundCheck(swizzledWGPos, 4)) {
@@ -110,9 +113,8 @@ void main() {
                 gi_historyData_unpack3(historyData, transient_gi3Reprojected_fetch(texelPos));
                 gi_historyData_unpack4(historyData, transient_gi4Reprojected_fetch(texelPos));
                 gi_historyData_unpack5(historyData, transient_gi5Reprojected_fetch(texelPos));
-                #if SETTING_DEBUG_OUTPUT
+                #if SETTING_DEBUG_OUTPUT && SETTING_DEBUG_TEMP_TEX == 2
                 imageStore(uimg_temp2, texelPos, newDiffuse);
-//                imageStore(uimg_temp1, texelPos, historyData.realHistoryLength.xxxx);
                 #endif
                 barrier();
 

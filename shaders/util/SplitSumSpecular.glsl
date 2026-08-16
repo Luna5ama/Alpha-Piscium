@@ -4,7 +4,8 @@
 #include "Math.glsl"
 
 vec3 splitSumSpecularLUT(vec3 F0, vec3 F82Tint, float NDotV, float roughness) {
-    vec3 specBrdf = texture(usam_specBRDFLUT, vec2(saturate(NDotV), roughness)).rgb;
+    vec2 lutCoord = vec2(saturate(NDotV), 1.0 - saturate(roughness));
+    vec3 specBrdf = texture(usam_specBRDFLUT, lutCoord).rgb;
     return saturate(F0 * specBrdf.x + F82Tint * specBrdf.y + specBrdf.z);
 }
 
@@ -16,7 +17,7 @@ const float GI_SPEC_DENOISE_MIN_FACTOR = 0.05;
 
 vec3 splitSumSpecularDenoiseFactor(vec3 F0, vec3 F82Tint, float NDotV, float roughness) {
     vec3 physicalAlbedo = splitSumSpecularLUT(F0, F82Tint, NDotV, roughness);
-    return softMax(physicalAlbedo, 0.0, 0.001);
+    return max(physicalAlbedo, vec3(GI_SPEC_DENOISE_MIN_FACTOR));
 }
 
 vec3 splitSumSpecularDenoiseFactor(float F0, float NDotV, float roughness) {

@@ -33,20 +33,39 @@ float dither_u8(float x, float noiseV) {
     return result;
 }
 
-vec4 dither_fp16(vec4 x, float noiseV) {
-    return uintBitsToFloat(floatBitsToUint(x) + uint(float(0x7FFFu) * (noiseV - 0.5)));
-}
+const int DITHER_FP16_MAX_BITS = 0x477FE000;
 
-vec3 dither_fp16(vec3 x, float noiseV) {
-    return uintBitsToFloat(floatBitsToUint(x) + uint(float(0x7FFFu) * (noiseV - 0.5)));
+float dither_fp16(float x, float noiseV) {
+    if (isnan(x) || x == 0.0) {
+        return 0.0;
+    }
+    uint bits = floatBitsToUint(x);
+    uint signBit = bits & 0x80000000u;
+    int magnitudeBits = min(int(bits & 0x7fffffffu), DITHER_FP16_MAX_BITS);
+    int delta = int(float(0x7fffu) * (noiseV - 0.5));
+    magnitudeBits = clamp(magnitudeBits + delta, 0, DITHER_FP16_MAX_BITS);
+    return uintBitsToFloat(signBit | uint(magnitudeBits));
 }
 
 vec2 dither_fp16(vec2 x, float noiseV) {
-    return uintBitsToFloat(floatBitsToUint(x) + uint(float(0x7FFFu) * (noiseV - 0.5)));
+    return vec2(dither_fp16(x.x, noiseV), dither_fp16(x.y, noiseV));
 }
 
-float dither_fp16(float x, float noiseV) {
-    return uintBitsToFloat(floatBitsToUint(x) + uint(float(0x7FFFu) * (noiseV - 0.5)));
+vec3 dither_fp16(vec3 x, float noiseV) {
+    return vec3(
+        dither_fp16(x.x, noiseV),
+        dither_fp16(x.y, noiseV),
+        dither_fp16(x.z, noiseV)
+    );
+}
+
+vec4 dither_fp16(vec4 x, float noiseV) {
+    return vec4(
+        dither_fp16(x.x, noiseV),
+        dither_fp16(x.y, noiseV),
+        dither_fp16(x.z, noiseV),
+        dither_fp16(x.w, noiseV)
+    );
 }
 
 #endif
