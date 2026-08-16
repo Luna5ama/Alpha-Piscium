@@ -443,7 +443,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             4 value "平滑（B-Spline双三次）"
                         }
                     }
-                    slider("SETTING_PARALLAX_MAX_ITERATIONS", 128, powerOfTwoAndHalfRange(5..8)) {
+                    slider("SETTING_PARALLAX_MAX_ITERATIONS", 96, powerOfTwoAndHalfRange(5..8)) {
                         Profile.Low preset 32
                         Profile.Medium preset 48
                         Profile.High preset 64
