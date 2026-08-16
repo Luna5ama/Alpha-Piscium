@@ -6,8 +6,11 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
+layout(r32ui) uniform restrict writeonly uimage2D uimg_r32ui;
+layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 
+#define RESTIR_INITIAL_CANDIDATE_WRITE
 #include "/techniques/gi/InitialSample.glsl"
 #define VOXEL_TRACE_TRUST_MATERIAL_ID
 #include "/techniques/voxel/VoxelTrace.glsl"
@@ -32,11 +35,14 @@ void main() {
     if (transient_restir_initialCandidate_fetch(texelPos).w != RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL) {
         return;
     }
-    vec4 directionAndPdf = transient_restir_initialCandidateDirection_fetch(texelPos);
-    restir_InitialCandidate candidate = restir_initialCandidate_makeVoxelFallback(normalize(directionAndPdf.xyz), directionAndPdf.w);
+    uvec4 directionAndPdf = transient_restir_initialCandidateDirection_fetch(texelPos);
+    restir_InitialCandidate candidate = restir_initialCandidate_makeVoxelFallback(
+        nzpacking_unpackNormalOct32(directionAndPdf.x),
+        uintBitsToFloat(directionAndPdf.y)
+    );
 
     float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
-    if (viewZ <= -65536.0 || candidate.pdf <= 0.0 || any(isnan(candidate.rayDirView))) {
+    if (viewZ <= -65536.0 || candidate.pdf <= 0.0 || !restir_initialSample_isFinite(candidate.rayDirView)) {
         restir_initialCandidate_store(texelPos, restir_initialCandidate_makeInvalid(candidate.rayDirView));
         return;
     }

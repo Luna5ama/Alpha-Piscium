@@ -126,6 +126,15 @@ Material material_decode(GBufferData gData) {
 
     roughness = pow2(roughness);
     roughness *= _MATERIAL_ROUGHNESS_MULTIPLIER;
+    float roughnessMinimum = min(_MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS);
+    float roughnessMaximum = max(_MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS);
+    roughness = roughnessMaximum > roughnessMinimum
+        ? mix(
+            roughnessMinimum,
+            roughnessMaximum,
+            smoothstep(roughnessMinimum, roughnessMaximum, roughness)
+        )
+        : roughnessMinimum;
 
     #ifdef MATERIAL_TRANSLUCENT
     roughness = isWater ? _MATERIAL_WATER_ROUGHNESS : roughness;
@@ -133,9 +142,6 @@ Material material_decode(GBufferData gData) {
 
     emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
 
-    #ifndef MATERIAL_TRANSLUCENT
-    roughness = max(roughness, 0.001);
-    #endif
     material.roughness = roughness;
 
     bool resourceMetal = gData.pbrSpecular.g >= (229.5 / 255.0);

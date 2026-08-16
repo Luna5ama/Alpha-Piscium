@@ -34,12 +34,12 @@ ResampleMaterial resampleMaterial_fromMaterial(Material material) {
 }
 
 vec4 resampleMaterial_pack(ResampleMaterial material) {
-    return vec4(material.f0, material.dielectric, sqrt(material.roughness), 0.0);
+    return vec4(sqrt(max(material.f0, 0.0)), material.dielectric, sqrt(material.roughness), 0.0);
 }
 
 ResampleMaterial resampleMaterial_unpack(vec4 packedData) {
     ResampleMaterial material;
-    material.f0 = packedData.x;
+    material.f0 = pow2(packedData.x);
     material.dielectric = packedData.y;
     material.roughness = pow2(packedData.z);
     return material;
@@ -54,7 +54,8 @@ float resampleMaterial_ggx(ResampleMaterial material, float NDotL, float NDotV, 
     if (NDotL > 0.0) {
         float NDotH2 = pow2(NDotH);
         float a2 = pow2(material.roughness);
-        float d = a2 / max(PI * pow2(NDotH2 * (a2 - 1.0) + 1.0), 1e-16);
+        float dDenominator = (1.0 - NDotH2) + a2 * NDotH2;
+        float d = a2 / max(PI * pow2(dDenominator), 1e-16);
         float k = material.roughness * 0.5;
         float vL = NDotL * (1.0 - k) + k;
         float vV = saturate(NDotV) * (1.0 - k) + k;
@@ -78,6 +79,43 @@ ResampleBRDF resampleMaterial_evalBRDF(
     brdf.specular = specularBRDF;
     brdf.full = diffuseBRDF + specularBRDF;
     return brdf;
+}
+
+ResampleBRDF resampleMaterial_evalBRDF(
+    ResampleMaterial material,
+    vec3 normal,
+    vec3 lightDir,
+    vec3 viewDir
+) {
+    ResampleBRDF brdf;
+    brdf.diffuse = 0.0;
+    brdf.specular = 0.0;
+    brdf.full = 0.0;
+
+    float NDotL = dot(normal, lightDir);
+    float NDotV = dot(normal, viewDir);
+    vec3 halfVector = lightDir + viewDir;
+    float halfLength2 = dot(halfVector, halfVector);
+    if (NDotL <= 0.0 || NDotV <= 0.0 || halfLength2 <= 1e-12) {
+        return brdf;
+    }
+
+    vec3 H = halfVector * inversesqrt(halfLength2);
+    return resampleMaterial_evalBRDF(
+        material,
+        NDotL,
+        NDotV,
+        saturate(dot(normal, H)),
+        saturate(dot(lightDir, H))
+    );
+}
+
+vec3 resampleMaterial_resolveNormal(
+    vec3 geomNormal,
+    vec3 normal,
+    vec3 viewDir
+) {
+    return dot(normal, viewDir) > 0.0 ? normal : geomNormal;
 }
 
 vec3 resampleMaterial_specularDenoiseFactor(ResampleMaterial material, float NDotV) {

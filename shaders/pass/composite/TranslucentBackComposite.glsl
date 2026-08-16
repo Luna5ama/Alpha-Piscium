@@ -2,8 +2,6 @@
 
 #define GLOBAL_DATA_MODIFIER buffer
 
-#define MATERIAL_TRANSLUCENT a
-
 #include "/techniques/atmospherics/LocalComposite.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 #include "/util/FullScreenComp.glsl"
@@ -31,7 +29,7 @@ void main() {
         exposureWeights.x *= sqrt(BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + log2(1.0 + abs(solidViewZ))));
 
         if (solidViewZ > -65536.0) {
-            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
             vec3 solidViewPos = coords_toViewCoord(screenPos, solidViewZ, global_camProjInverse);
             vec3 V = normalize(-solidViewPos);
             GBufferData gData = gbufferData_init();

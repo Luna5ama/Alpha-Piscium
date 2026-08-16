@@ -13,6 +13,7 @@
 #include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Hash.glsl"
+#include "/util/NZPacking.glsl"
 
 struct restir_InitialSampleData {
     vec4 directionAndLength;
@@ -42,22 +43,44 @@ restir_InitialCandidate restir_initialCandidate_init() {
     return candidate;
 }
 
+bool restir_initialSample_isFinite(vec3 value) {
+    return !any(isnan(value)) && !any(isinf(value));
+}
+
+vec3 restir_initialSample_sanitizeRadiance(vec3 radiance) {
+    return restir_initialSample_isFinite(radiance)
+        ? clamp(radiance, 0.0, FP16_MAX)
+        : vec3(0.0);
+}
+
+#ifdef RESTIR_INITIAL_CANDIDATE_WRITE
 void restir_initialCandidate_store(ivec2 texelPos, restir_InitialCandidate candidate) {
     transient_restir_initialCandidate_store(texelPos, vec4(candidate.radiance, candidate.hitDistance));
-    transient_restir_initialCandidateDirection_store(texelPos, vec4(candidate.rayDirView, candidate.pdf));
-    transient_restir_initialCandidateNormal_store(texelPos, vec4(candidate.hitNormalView * 0.5 + 0.5, 1.0));
+    transient_restir_initialCandidateDirection_store(texelPos, uvec4(
+        nzpacking_packNormalOct32(candidate.rayDirView),
+        floatBitsToUint(candidate.pdf),
+        0u,
+        0u
+    ));
+    uint packedHitNormal = candidate.hitDistance > 0.0
+        ? nzpacking_packNormalOct32(candidate.hitNormalView)
+        : 0u;
+    transient_restir_initialCandidateNormal_store(texelPos, uvec4(packedHitNormal));
 }
+#endif
 
 restir_InitialCandidate restir_initialCandidate_load(ivec2 texelPos) {
     restir_InitialCandidate candidate = restir_initialCandidate_init();
     vec4 radianceAndDistance = transient_restir_initialCandidate_fetch(texelPos);
-    vec4 directionAndPdf = transient_restir_initialCandidateDirection_fetch(texelPos);
-    vec4 hitNormalData = transient_restir_initialCandidateNormal_fetch(texelPos);
+    uvec4 directionAndPdf = transient_restir_initialCandidateDirection_fetch(texelPos);
+    uint packedHitNormal = transient_restir_initialCandidateNormal_fetch(texelPos).x;
     candidate.radiance = radianceAndDistance.rgb;
     candidate.hitDistance = radianceAndDistance.w;
-    candidate.rayDirView = normalize(directionAndPdf.xyz);
-    candidate.pdf = directionAndPdf.w;
-    candidate.hitNormalView = hitNormalData.rgb * 2.0 - 1.0;
+    candidate.rayDirView = nzpacking_unpackNormalOct32(directionAndPdf.x);
+    candidate.pdf = uintBitsToFloat(directionAndPdf.y);
+    candidate.hitNormalView = candidate.hitDistance > 0.0
+        ? nzpacking_unpackNormalOct32(packedHitNormal)
+        : vec3(0.0);
     return candidate;
 }
 
@@ -73,10 +96,6 @@ restir_InitialCandidate restir_initialCandidate_makeVoxelFallback(vec3 rayDirVie
     candidate.pdf = pdf;
     candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL;
     return candidate;
-}
-
-bool restir_initialCandidate_needsVoxelFallback(restir_InitialCandidate candidate) {
-    return candidate.hitDistance == RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL;
 }
 
 vec3 restir_initialSample_sampleSky(ivec2 texelPos, vec3 worldDirection) {
@@ -144,15 +163,15 @@ bool restir_initialSample_screenHitQuery(
     candidate.rayDirView = rayDirView;
     candidate.pdf = pdf;
     candidate.hitDistance = hitDistance;
-    candidate.hitNormalView = hitData.normal;
+    candidate.hitNormalView = hitData.geomNormal;
     candidate.radiance = hitMaterial.emissive
         + gi_hitDirectLighting(hitMaterial, hitWorldPos, V, queryWorldNormal, queryWorldGeomNormal);
 
-    if (rcLookup.weight > 0.0 && !any(isnan(rcLookup.radiance))) {
+    if (rcLookup.weight > 0.0 && restir_initialSample_isFinite(rcLookup.radiance)) {
         candidate.radiance += rcLookup.radiance * hitMaterial.albedo;
     }
 
-    candidate.radiance = clamp(candidate.radiance, 0.0, FP16_MAX);
+    candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
     return true;
 }
 
@@ -172,7 +191,9 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
 
     if (!hit.hit) {
         candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_SKY_MISS;
-        candidate.radiance = clamp(restir_initialSample_sampleSky(texelPos, rayWorldDir), 0.0, FP16_MAX);
+        candidate.radiance = restir_initialSample_sanitizeRadiance(
+            restir_initialSample_sampleSky(texelPos, rayWorldDir)
+        );
         return candidate;
     }
 
@@ -188,85 +209,128 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
     RCLookupResult rcLookup = rc_lookupDiffuseGI(V, hit.hitPos, hit.normal, hit.normal);
     candidate.radiance = surface.material.emissive
         + gi_hitDirectLighting(surface.material, hit.hitPos, V, hit.normal, hit.normal);
-    if (rcLookup.weight > 0.0 && !any(isnan(rcLookup.radiance))) {
+    if (rcLookup.weight > 0.0 && restir_initialSample_isFinite(rcLookup.radiance)) {
         candidate.radiance += rcLookup.radiance * surface.material.albedo;
     }
-    candidate.radiance = clamp(candidate.radiance, 0.0, FP16_MAX);
+    candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
     return candidate;
 }
 
-// Stochastic VNDF/cosine sampling with MIS balance heuristic pdf.
-// Slot 0 (RANDOM_FRAME/64u)   → choice random (stbnVec1)
-// Slot 1 (RANDOM_FRAME/64u+1) → direction random (stbnVec2 or stbnUnitVec3Cosine)
-vec3 restir_initialSample_generateRayDir(ivec2 texelPos, vec3 geomNormal, vec3 normal, vec3 V, Material material, out float pdf) {
-    const float RESTIR_VNDF_TRIM = 0.25;
-
-    float roughness = material.roughness;
-    vec3 wiTangent = normalize(material.tbnInv * V);
-
-    // Specular bounce probability: F / (albedo*(1-F) + F)
-    float pSpec = 1.0;
-    if (material.dielectric > 0.0) {
-        float NdotV = saturate(wiTangent.z);
-        vec3 fresnelV = saturate(fresnel_evalMaterial(material, NdotV));
-        vec3 fresnelT = vec3(1.0) - fresnelV;
-        vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
-        pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV * safeRcp(totalEnergy));
-        // Clamping this to avoid dead locks that causes fireflies
-        pSpec = sqrt(clamp(pSpec, 0.01, 0.99));
+float restir_initialSample_specularProbability(vec3 wiTangent, Material material) {
+    if (material.dielectric <= 0.0) {
+        return 1.0;
     }
 
-    ivec2 sampleDirRandKey = rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u);
-    vec2 xi = rand_stbnVec2(sampleDirRandKey, RANDOM_FRAME);
-    float choiceRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u), RANDOM_FRAME);
+    vec3 fresnelV = saturate(fresnel_evalMaterial(material, wiTangent.z));
+    vec3 totalEnergy = material.albedo * (vec3(1.0) - fresnelV) + fresnelV;
+    float pSpec = colors2_colorspaces_luma(
+        COLORS2_WORKING_COLORSPACE,
+        fresnelV * safeRcp(totalEnergy)
+    );
+    float discreteBin = clamp(floor(pSpec * 256.0), 13.0, 243.0);
+    return discreteBin * (1.0 / 256.0);
+}
 
-    vec3 sampleDirTangent;
+bool restir_initialSample_useGeomSamplingFrame(
+    vec3 V,
+    Material material,
+    out vec3 wiTangent
+) {
+    wiTangent = normalize(material.tbnInv * V);
+    bool useGeomFrame = wiTangent.z <= 0.0
+        && restir_initialSample_isFinite(wiTangent);
+    if (useGeomFrame) {
+        wiTangent = normalize(material.geomTbnInv * V);
+    }
+    return useGeomFrame;
+}
 
-    if (choiceRand < pSpec) {
-        // VNDF specular sample
-        vec3 wmTangent = bsdf_VNDFSphericalCapTrimmed(wiTangent, roughness, xi, RESTIR_VNDF_TRIM);
-        sampleDirTangent = reflect(-wiTangent, wmTangent.xyz);
-    } else {
-        // Cosine-weighted diffuse sample around shading normal
-        sampleDirTangent = rand_stbnUnitVec3Cosine(sampleDirRandKey, RANDOM_FRAME);
+float restir_initialSample_evaluateRayPdf(
+    vec3 rayDirView,
+    vec3 geomNormal,
+    vec3 V,
+    Material material
+) {
+    vec3 wiTangent;
+    bool useGeomFrame = restir_initialSample_useGeomSamplingFrame(V, material, wiTangent);
+    mat3 samplingTbnInv = useGeomFrame ? material.geomTbnInv : material.tbnInv;
+
+    vec3 lightTangent = normalize(samplingTbnInv * rayDirView);
+    if (
+        wiTangent.z <= 0.0
+        || lightTangent.z <= 0.0
+        || dot(rayDirView, geomNormal) <= 0.0
+        || !restir_initialSample_isFinite(wiTangent)
+        || !restir_initialSample_isFinite(lightTangent)
+    ) {
+        return 0.0;
     }
 
-    vec3 sampleDirView = normalize(material.tbn * sampleDirTangent);
-
-    // Discard the sample if it's below the geometric normal.
-    // This can happen with VNDF sampling or normal mapping.
-    pdf = 0.0;
-    if (dot(sampleDirView, geomNormal) > 0.0&& sampleDirTangent.z > 0.0) {
-        // Compute full MIS balance heuristic pdf for the chosen direction.
-        // Both VNDF and cosine pdfs are evaluated for the ACTUAL sampled direction,
-        // regardless of which branch was taken.
-        vec3 LTangent = sampleDirTangent;
-        float NDotL = max(LTangent.z, 1e-7);
-
-        // Cosine-hemisphere pdf
-        float cosinePdf = NDotL * RCP_PI;
-
-        float vndfPdf = 0.0;
-        vec3 H = normalize(LTangent + wiTangent);
-
-        if (H.z > 0.0) {
+    float pSpec = restir_initialSample_specularProbability(wiTangent, material);
+    float cosinePdf = lightTangent.z * RCP_PI;
+    float vndfPdf = 0.0;
+    vec3 halfVector = lightTangent + wiTangent;
+    float halfLength2 = dot(halfVector, halfVector);
+    if (halfLength2 > 1e-12) {
+        vec3 H = halfVector * inversesqrt(halfLength2);
+        if (H.z > 0.0 && dot(wiTangent, H) > 0.0) {
+            float a2 = pow2(material.roughness);
             float NdotH2 = pow2(H.z);
-            float a2 = pow2(roughness);
-            float VdotH = saturate(dot(wiTangent, H));
-
-            float d = a2 / max(PI * pow2(NdotH2 * (a2 - 1.0) + 1.0), 1e-16);
-            float g1V = bsdf_smithG1(wiTangent.z, roughness);
-            vec3 V_stretch = normalize(vec3(roughness * wiTangent.xy, wiTangent.z));
-            float yMax = saturate(1.0 - RESTIR_VNDF_TRIM / (1.0 + V_stretch.z));
-            float pdfH = (d * g1V * VdotH) / wiTangent.z / yMax;
-            vndfPdf = pdfH / max(4.0 * VdotH, 1e-5);
+            float dDenominator = dot(H.xy, H.xy) + a2 * NdotH2;
+            float d = a2 / (PI * pow2(dDenominator));
+            float smithDenominator = wiTangent.z
+                + sqrt(a2 + (1.0 - a2) * pow2(wiTangent.z));
+            vndfPdf = d / (2.0 * smithDenominator);
         }
-
-        // Combined mixture pdf (balance heuristic)
-        pdf = pSpec * vndfPdf + (1.0 - pSpec) * cosinePdf;
     }
 
-    return sampleDirView;
+    float pdf = pSpec * vndfPdf + (1.0 - pSpec) * cosinePdf;
+    return pdf > 0.0 && !isnan(pdf) && !isinf(pdf) ? pdf : 0.0;
+}
+
+// Slot 0 (RANDOM_FRAME/64u)   -> branch random (stbnVec1)
+// Slot 1 (RANDOM_FRAME/64u+1) -> direction random (stbnVec2 or stbnUnitVec3Cosine)
+vec3 restir_initialSample_generateRayDir(
+    ivec2 texelPos,
+    vec3 geomNormal,
+    vec3 V,
+    Material material,
+    out float pdf
+) {
+    vec3 wiTangent;
+    bool useGeomFrame = restir_initialSample_useGeomSamplingFrame(V, material, wiTangent);
+    mat3 samplingTbn = useGeomFrame ? material.geomTbn : material.tbn;
+    pdf = 0.0;
+    if (wiTangent.z <= 0.0 || !restir_initialSample_isFinite(wiTangent)) {
+        return normalize(geomNormal);
+    }
+
+    ivec2 directionRandKey = rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u);
+    vec2 xi = rand_stbnVec2(directionRandKey, RANDOM_FRAME);
+    xi = (xi * 255.0 + 0.5) * (1.0 / 256.0);
+    float choiceRand = rand_stbnVec1(
+        rand_newStbnPos(texelPos, RANDOM_FRAME / 64u),
+        RANDOM_FRAME
+    );
+    choiceRand = (choiceRand * 255.0 + 0.5) * (1.0 / 256.0);
+
+    float pSpec = restir_initialSample_specularProbability(wiTangent, material);
+    vec3 sampleDirTangent;
+    if (choiceRand < pSpec) {
+        vec3 halfTangent = bsdf_VNDFSphericalCap(
+            wiTangent,
+            vec2(material.roughness),
+            xi
+        );
+        sampleDirTangent = reflect(-wiTangent, halfTangent);
+    } else {
+        sampleDirTangent = rand_stbnUnitVec3Cosine(directionRandKey, RANDOM_FRAME);
+    }
+
+    vec3 rayDirView = normalize(samplingTbn * sampleDirTangent);
+    rayDirView = nzpacking_unpackNormalOct32(nzpacking_packNormalOct32(rayDirView));
+    pdf = restir_initialSample_evaluateRayPdf(rayDirView, geomNormal, V, material);
+    return rayDirView;
 }
 
 restir_InitialSampleData restir_initalSample_restoreData(ivec2 texelPos, float viewZ, vec3 geomNormal, vec3 normal, Material selfMaterial, float hitDistance) {
@@ -276,7 +340,7 @@ restir_InitialSampleData restir_initalSample_restoreData(ivec2 texelPos, float v
     vec3 V = normalize(-rayOriginView);
 
     float pdf;
-    vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, geomNormal, normal, V, selfMaterial, pdf);
+    vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, geomNormal, V, selfMaterial, pdf);
     initialSampleData.directionAndLength.xyz = rayDirView;
     initialSampleData.directionAndLength.w = hitDistance;
     initialSampleData.pdf = pdf;

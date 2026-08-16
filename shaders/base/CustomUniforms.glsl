@@ -34,8 +34,8 @@ uniform vec2 uval_taaJitterUV;
 uniform vec2 uval_prevTaaJitterUV;
 uniform vec2 uval_r2Frame;
 uniform int uval_restirSpatialTileOffsetX;
-uniform int uval_restirSpatialTileOffsety;
-ivec2 uval_restirSpatialTileOffset = ivec2(uval_restirSpatialTileOffsetX, uval_restirSpatialTileOffsety);
+uniform int uval_restirSpatialTileOffsetY;
+ivec2 uval_restirSpatialTileOffset = ivec2(uval_restirSpatialTileOffsetX, uval_restirSpatialTileOffsetY);
 #endif
 
 ivec2 uval_mainImageSizeI = ivec2(uval_mainImageSizeIX, uval_mainImageSizeIY);

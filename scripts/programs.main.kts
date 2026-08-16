@@ -282,6 +282,8 @@ programs {
                 cond("SETTING_GI_INITIAL_SST_STEPS >= 64")
             }
         }
+        pass("/pass/composite/GIReSTIRTemporalSplatClear.comp.glsl")
+        pass("/pass/composite/GIReSTIRTemporalSplat.comp.glsl")
         pass("/pass/composite/GIReSTIRTemporalReuse.comp.glsl")
         pass("/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl") {
             cond("defined(SETTING_GI_DECORRELATE)")

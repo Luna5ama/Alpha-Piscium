@@ -9,6 +9,7 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "/techniques/gi/Reservoir.glsl"
+#include "/techniques/gi/ReservoirSplat.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Rand.glsl"
 #include "/util/ThreadGroupTiling.glsl"
@@ -49,10 +50,11 @@ void main() {
                 packedRes = history_restir_reservoirTemporal2_fetch(loadPos);
             }
             ReSTIRReservoir r = restir_reservoir_unpack(packedRes);
-            vec2 screenPos = coords_texelToUV(loadPos, uval_mainImageSizeRcp);
-            float viewZ = texelFetch(usam_gbufferSolidViewZ, loadPos, 0).x;
-            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-            hitViewPos = vec4(viewPos + r.Y.xyz * r.Y.w, 1.0);
+            uint packedPrimary = restir_splatFetchCurrentPrimary(loadPos);
+            if (restir_isReservoirValid(r) && packedPrimary != 0u) {
+                vec3 primaryViewPos = restir_splatUnpackPrimary(loadPos, packedPrimary, global_camProjInverse);
+                hitViewPos = vec4(primaryViewPos + r.Y.xyz * r.Y.w, 1.0);
+            }
         }
         sm_hitViewPos[smPos.y * 32 + smPos.x] = hitViewPos;
     }

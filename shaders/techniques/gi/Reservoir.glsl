@@ -28,6 +28,22 @@
 #define RESTIR_REUSE_TILE_BITS 8
 #define RESTIR_REUSE_TILE_MASK 255
 
+bool restir_isFinite(float value) {
+    return !isnan(value) && !isinf(value);
+}
+
+bool restir_isFinite(vec3 value) {
+    return !any(isnan(value)) && !any(isinf(value));
+}
+
+bool restir_isFinite(vec4 value) {
+    return !any(isnan(value)) && !any(isinf(value));
+}
+
+bool restir_isPositiveFinite(float value) {
+    return value > 0.0 && restir_isFinite(value);
+}
+
 struct SpatialSampleData {
     vec3 geomNormal;
     vec3 normal;
@@ -46,16 +62,23 @@ SpatialSampleData spatialSampleData_init() {
 
 uvec4 spatialSampleData_pack(SpatialSampleData data) {
     uvec4 packedData;
-    nzpacking_packNormalOct16(packedData.x, data.geomNormal, data.hitNormal);
-    packedData.y = nzpacking_packNormalOct32(data.normal);
+    packedData.x = restir_isFinite(data.geomNormal)
+        && dot(data.geomNormal, data.geomNormal) > 1e-8
+        ? nzpacking_packNormalOct32(data.geomNormal)
+        : 0u;
+    packedData.y = restir_isFinite(data.hitNormal)
+        && dot(data.hitNormal, data.hitNormal) > 1e-8
+        ? nzpacking_packNormalOct32(data.hitNormal)
+        : 0u;
     packedData.zw = packHalf4x16(clamp(data.sampleValue, 0.0, FP16_MAX));
     return packedData;
 }
 
 SpatialSampleData spatialSampleData_unpack(uvec4 packedData) {
     SpatialSampleData data;
-    nzpacking_unpackNormalOct16(packedData.x, data.geomNormal, data.hitNormal);
-    data.normal = nzpacking_unpackNormalOct32(packedData.y);
+    data.geomNormal = nzpacking_unpackNormalOct32(packedData.x);
+    data.normal = vec3(0.0);
+    data.hitNormal = nzpacking_unpackNormalOct32(packedData.y);
     data.sampleValue = unpackHalf4x16(packedData.zw);
     return data;
 }
@@ -66,6 +89,26 @@ struct ReSTIRReservoir {
     float m;
 };
 
+float restir_stabilizeTemporalTargetPHat(float pHat) {
+    if (!restir_isFinite(pHat) || pHat <= 0.0) {
+        return 0.0;
+    }
+
+    float quantizedPHat = unpackHalf2x16(packHalf2x16(vec2(pHat, 0.0))).x;
+    float minStablePHat = float(SETTING_GI_TEMPORAL_REUSE_LIMIT) * 2.98023223876953125e-8;
+    return restir_isFinite(quantizedPHat) && quantizedPHat >= minStablePHat ? quantizedPHat : pHat;
+}
+
+float restir_quantizeStoredTargetPHat(float pHat) {
+    if (!restir_isFinite(pHat) || pHat <= 0.0) {
+        return 0.0;
+    }
+
+    float quantizedPHat = unpackHalf2x16(packHalf2x16(vec2(pHat, 0.0))).x;
+    float minStablePHat = float(SETTING_GI_TEMPORAL_REUSE_LIMIT) * 2.98023223876953125e-8;
+    return restir_isFinite(quantizedPHat) && quantizedPHat >= minStablePHat ? quantizedPHat : 0.0;
+}
+
 ReSTIRReservoir restir_initReservoir() {
     ReSTIRReservoir reservoir;
     reservoir.Y = vec4(0.0, 0.0, 0.0, -1.0);
@@ -75,18 +118,38 @@ ReSTIRReservoir restir_initReservoir() {
 }
 
 bool restir_isReservoirValid(ReSTIRReservoir reservoir) {
-    return reservoir.m > 0.0;
+    return reservoir.m > 0.0
+        && reservoir.avgWY > 0.0
+        && restir_isFinite(reservoir.m)
+        && restir_isFinite(reservoir.avgWY)
+        && restir_isFinite(reservoir.Y);
 }
-
-const float EPSILON = 0.0000001;
 
 float restir_updateRand(ivec2 texelPos, uint randSeed) {
     return hash_uintToFloat(hash_44_q3(uvec4(texelPos, frameCounter, randSeed)).x);
 }
 
 bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, vec4 X, float wi, float m, float rand) {
-    wSum += wi;
-    reservoir.m += m;
+    if (
+        !restir_isFinite(wSum)
+        || wSum < 0.0
+        || !restir_isFinite(reservoir.m)
+        || reservoir.m < 0.0
+        || !restir_isFinite(wi)
+        || wi <= 0.0
+        || !restir_isFinite(m)
+        || m < 0.0
+    ) {
+        return false;
+    }
+
+    float nextWSum = wSum + wi;
+    float nextM = reservoir.m + m;
+    if (!restir_isFinite(nextWSum) || !restir_isFinite(nextM)) {
+        return false;
+    }
+    wSum = nextWSum;
+    reservoir.m = nextM;
     bool updateCond = rand < wi / wSum;
     if (updateCond) {
         reservoir.Y = X;
@@ -106,33 +169,58 @@ ReSTIRReservoir restir_reservoir_unpack(uvec4 packedData) {
 
 uvec4 restir_reservoir_pack(ReSTIRReservoir reservoir) {
     uvec4 packedData = uvec4(0u);
-    packedData.x = nzpacking_packNormalOct32(reservoir.Y.xyz);
+    packedData.x = restir_isFinite(reservoir.Y.xyz) && dot(reservoir.Y.xyz, reservoir.Y.xyz) > 1e-8
+        ? nzpacking_packNormalOct32(reservoir.Y.xyz)
+        : 0u;
     packedData.y = floatBitsToUint(reservoir.m);
     packedData.z = floatBitsToUint(reservoir.avgWY);
     packedData.w = floatBitsToUint(reservoir.Y.w);
     return packedData;
 }
 
-float evalTargetFunction(vec3 irradiance, vec3 normal, vec3 lightDir, vec3 viewDir, ResampleMaterial material) {
-    // Assumes rawNdotL is the un-clamped dot product. Ensure no pre-saturation occurred if passed from an external scope.
-    float rawNdotL = dot(normal, lightDir);
+const float RESTIR_RECONNECTION_MIN_COSINE = 0.02;
+const float RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN = 5.0;
+const float RESTIR_RECONNECTION_MAX_DENSITY_RATIO = 32.0;
+
+bool restir_reconnectionDensityRatioValid(
+    float sourcePHat,
+    float mappedTargetPHat
+) {
+    if (
+        sourcePHat <= 0.0
+        || mappedTargetPHat <= 0.0
+        || !restir_isFinite(sourcePHat)
+        || !restir_isFinite(mappedTargetPHat)
+    ) {
+        return false;
+    }
+    return mappedTargetPHat <= sourcePHat * RESTIR_RECONNECTION_MAX_DENSITY_RATIO
+        && sourcePHat <= mappedTargetPHat * RESTIR_RECONNECTION_MAX_DENSITY_RATIO;
+}
+
+float evalTargetFunction(
+    vec3 irradiance,
+    vec3 geomNormal,
+    vec3 normal,
+    vec3 lightDir,
+    vec3 viewDir,
+    ResampleMaterial material
+) {
+    vec3 resolvedNormal = resampleMaterial_resolveNormal(geomNormal, normal, viewDir);
+    float rawNdotL = dot(resolvedNormal, lightDir);
     float result = 0.0;
 
-    if (rawNdotL > 0.0) {
-        float rawNdotV = dot(normal, viewDir);
-        float LdotV    = dot(lightDir, viewDir);
-
-        // Compute inverse length of ||L+V||. The 1e-5 bias prevents rsqrt(0) NaN generation when L and V are perfectly opposed (LdotV = -1.0).
-        float invLen = inversesqrt(max(2.0 + 2.0 * LdotV, 1e-5));
-
-        // Pure scalar expansion. Replaces explicit vec3 H = normalize(...) and subsequent vector dot products.
-        float NdotV = saturate(rawNdotV);
-        float NdotH = saturate((rawNdotL + rawNdotV) * invLen);
-
-        // LdotH is mathematically bounded to [0, 1] (max angle between L and V is 180 deg, bounding half-angle to 90 deg). saturate() omitted.
-        float LdotH = (1.0 + LdotV) * invLen;
-
-        ResampleBRDF brdf = resampleMaterial_evalBRDF(material, rawNdotL, NdotV, NdotH, LdotH);
+    if (
+        rawNdotL > 0.0
+        && dot(geomNormal, lightDir) > 0.0
+        && dot(geomNormal, viewDir) > 0.0
+    ) {
+        ResampleBRDF brdf = resampleMaterial_evalBRDF(
+            material,
+            resolvedNormal,
+            lightDir,
+            viewDir
+        );
         vec3 radiance = irradiance * brdf.full;
         result = length(radiance);
     }
@@ -142,17 +230,15 @@ float evalTargetFunction(vec3 irradiance, vec3 normal, vec3 lightDir, vec3 viewD
 struct ShiftMapping {
     vec4 Y;
     float targetPHat;
+    float unmappedTargetPHat;
 };
 
 ShiftMapping shiftMapping_init() {
     ShiftMapping mapping;
     mapping.Y = vec4(0.0, 0.0, 0.0, -1.0);
     mapping.targetPHat = 0.0;
+    mapping.unmappedTargetPHat = 0.0;
     return mapping;
-}
-
-bool shiftMapping_hasTarget(ShiftMapping mapping) {
-    return abs(mapping.targetPHat) > 0.0;
 }
 
 bool shiftMapping_isReusable(ShiftMapping mapping) {
@@ -173,18 +259,40 @@ ShiftMapping evaluateShiftMapping(
     float dist2 = dot(diffSRCtoDST, diffSRCtoDST);
     if (dist2 > 1e-6 && canonResSRC.Y.w > 1e-6 && restir_isReservoirValid(canonResSRC)) {
         vec3 dirSRCtoDST = diffSRCtoDST * inversesqrt(dist2);
-        float cosSRC = dot(sampleSRC.normal, canonResSRC.Y.xyz);
         float cosPhiSRC = -dot(canonResSRC.Y.xyz, sampleSRC.hitNormal);
         float cosPhiDST = -dot(dirSRCtoDST, sampleSRC.hitNormal);
-        if (cosPhiSRC > 0.0 && cosPhiDST > 0.0) {
+        float sourceGeomCos = dot(sampleSRC.geomNormal, canonResSRC.Y.xyz);
+        float targetGeomCos = dot(sampleDST.geomNormal, dirSRCtoDST);
+        if (
+            cosPhiSRC > RESTIR_RECONNECTION_MIN_COSINE
+            && cosPhiDST > RESTIR_RECONNECTION_MIN_COSINE
+            && sourceGeomCos > RESTIR_RECONNECTION_MIN_COSINE
+            && targetGeomCos > RESTIR_RECONNECTION_MIN_COSINE
+            && dot(sampleSRC.normal, canonResSRC.Y.xyz) > 0.0
+        ) {
             vec3 VDST = normalize(-viewPosDST);
-            float pHat = evalTargetFunction(sampleSRC.sampleValue.xyz, sampleDST.normal, dirSRCtoDST, VDST, matDST);
-            if (pHat > 0.0) {
-                float jacobian_DST = clamp(((canonResSRC.Y.w * canonResSRC.Y.w) * cosPhiDST) / (dist2 * cosPhiSRC), 0.0, 256.0);
-                mapping.Y = vec4(dirSRCtoDST, sqrt(dist2));
-                mapping.targetPHat = pHat * jacobian_DST;
-                if (cosSRC <= 0.0) {
-                    mapping.targetPHat = -mapping.targetPHat;
+            float pHat = evalTargetFunction(
+                sampleSRC.sampleValue.xyz,
+                sampleDST.geomNormal,
+                sampleDST.normal,
+                dirSRCtoDST,
+                VDST,
+                matDST
+            );
+            if (pHat > 0.0 && restir_isFinite(pHat)) {
+                float log2Jacobian = 2.0 * log2(canonResSRC.Y.w)
+                    + log2(cosPhiDST)
+                    - log2(dist2)
+                    - log2(cosPhiSRC);
+                if (abs(log2Jacobian) > RESTIR_RECONNECTION_MAX_LOG2_JACOBIAN) {
+                    return mapping;
+                }
+                float jacobian_DST = exp2(log2Jacobian);
+                float targetPHat = pHat * jacobian_DST;
+                if (restir_reconnectionDensityRatioValid(sampleSRC.sampleValue.w, targetPHat)) {
+                    mapping.Y = vec4(dirSRCtoDST, sqrt(dist2));
+                    mapping.targetPHat = targetPHat;
+                    mapping.unmappedTargetPHat = pHat;
                 }
             }
         }

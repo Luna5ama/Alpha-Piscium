@@ -94,7 +94,10 @@ void getSpecularKernelBasis(
     vec3 R = reflect(-bentD, N);
     T = cross(N, R);
     if (dot(T, T) < 0.000001) {
-        T = cross(N, vec3(0.0, 1.0, 0.0));
+        vec3 fallbackAxis = abs(N.y) < 0.999
+            ? vec3(0.0, 1.0, 0.0)
+            : vec3(1.0, 0.0, 0.0);
+        T = cross(N, fallbackAxis);
     }
     T = normalize(T);
     B = cross(R, T);
@@ -142,7 +145,7 @@ void main() {
             float diffAccumFactor = rcp(1.0 + pow2(0.1 * diffHistoryLength));
             float pDiff = transient_diffBounceProbability_fetch(texelPos).x;
             diffAccumFactor = pow(diffAccumFactor, pDiff);
-            float specAccumFactor = rcp(1.0 + pow2(0.1 * diffHistoryLength));
+            float specAccumFactor = rcp(1.0 + pow2(0.1 * specHistoryLength));
 
             vec2 hitDistFactor = pow2(hitDistanceFactors);
             hitDistFactor = hitDistFactor * 0.95 + 0.05;
@@ -182,8 +185,8 @@ void main() {
                 float basePlaneDistWeight = diffInvAccumFactor * -128.0 - 128.0;
 
                 vec4 centerDiff = _gi_readDiff(texelPos);
-                f16vec4 diffSumFP16 = f16vec4(centerDiff);
-                float16_t weightSumFP16 = float16_t(1.0);
+                vec4 diffSum = centerDiff;
+                float weightSum = 1.0;
 
                 f16vec2 dir = f16vec2(cos(angle), sin(angle));
                 for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
@@ -213,18 +216,18 @@ void main() {
                     );
                     float16_t edgeWeight = float16_t(edgeWeightFP32);
 
-                    f16vec4 diffSample = f16vec4(_gi_readDiff(sampleTexelPos));
+                    vec4 diffSample = _gi_readDiff(sampleTexelPos);
 
-                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
-                    diffSumFP16 += diffSample * totalWeight;
-                    weightSumFP16 += totalWeight;
+                    float totalWeight = float(kernelWeight) * smoothstep(0.0, 1.0, float(edgeWeight));
+                    diffSum += diffSample * totalWeight;
+                    weightSum += totalWeight;
                 }
 
                 {
-                    vec4 diffResult = vec4(diffSumFP16);
-                    float weightSum = float(weightSumFP16) * RCP_SAMPLES;
+                    vec4 diffResult = diffSum;
+                    float normalizedWeightSum = weightSum * RCP_SAMPLES;
 
-                    diffResult *= rcp(weightSum);
+                    diffResult *= rcp(normalizedWeightSum);
 
                     float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 5u + GI_DENOISE_PASS), frameCounter);
                     diffResult = dither_fp16(diffResult, ditherNoise);
@@ -237,7 +240,6 @@ void main() {
 
                     vec4 packedData1 = transient_gi1Reprojected_fetch(texelPos);
                     packedData1.rgb = diffResult.rgb;
-                    packedData1 = dither_fp16(packedData1, ditherNoise);
                     packedData1 = clamp(packedData1, 0.0, FP16_MAX);
                     history_gi1_store(texelPos, packedData1);
                     #endif
@@ -289,8 +291,8 @@ void main() {
                 float basePlaneDistWeight = specInvAccumFactor * -256.0 - 256.0;
 
                 vec4 centerSpec = _gi_readSpec(texelPos);
-                f16vec4 specSumFP16 = f16vec4(centerSpec);
-                float16_t weightSumFP16 = float16_t(1.0);
+                vec4 specSum = centerSpec;
+                float weightSum = 1.0;
 
                 f16vec2 dir = f16vec2(cos(angle), sin(angle));
                 for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
@@ -322,18 +324,18 @@ void main() {
                     edgeWeightFP32 *= gi_roughnessWeight(centerGeomData.roughness, geomData.roughness);
                     float16_t edgeWeight = float16_t(edgeWeightFP32);
 
-                    f16vec4 specSample = f16vec4(_gi_readSpec(sampleTexelPos));
+                    vec4 specSample = _gi_readSpec(sampleTexelPos);
 
-                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
-                    specSumFP16 += specSample * totalWeight;
-                    weightSumFP16 += totalWeight;
+                    float totalWeight = float(kernelWeight) * smoothstep(0.0, 1.0, float(edgeWeight));
+                    specSum += specSample * totalWeight;
+                    weightSum += totalWeight;
                 }
 
                 {
-                    vec4 specResult = vec4(specSumFP16);
-                    float weightSum = float(weightSumFP16) * RCP_SAMPLES;
+                    vec4 specResult = specSum;
+                    float normalizedWeightSum = weightSum * RCP_SAMPLES;
 
-                    specResult *= rcp(weightSum);
+                    specResult *= rcp(normalizedWeightSum);
 
                     float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 7u + GI_DENOISE_PASS), frameCounter);
                     specResult = dither_fp16(specResult, ditherNoise);
@@ -346,7 +348,6 @@ void main() {
 
                     vec4 packedData3 = transient_gi3Reprojected_fetch(texelPos);
                     packedData3.rgb = specResult.rgb;
-                    packedData3 = dither_fp16(packedData3, ditherNoise);
                     packedData3 = clamp(packedData3, 0.0, FP16_MAX);
                     history_gi3_store(texelPos, packedData3);
                     #endif
