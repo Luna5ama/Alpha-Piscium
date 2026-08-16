@@ -44,7 +44,7 @@ layout(std430, binding = 3) VOXEL_BRICK_DATA_MODIFIER VoxelBrickData {
 // ---------------------------------------------------------------------------
 // SSBO 4 – Voxel Material Data
 //   Indexed by (brickAllocID * 4096 + blockMorton)
-//   Value: 16-bit material ID cast to uint; 0 = empty
+//   Value: material ID << 1 | full-cube flag; 0 = empty
 //
 //   VOXEL_MATERIAL_VEC4: define before including to get a uvec4 view instead.
 //   Within a sub-region, blockMorton = subRegion * 64 + blockInSr, so all 64
@@ -198,8 +198,7 @@ uint voxel_getMaterialID(ivec3 worldBlockPos) {
 
     ivec3 blockInBrick = gridBlockPos & 15;
     uint blockMorton = voxel_blockMorton(blockInBrick);
-    uint materialID = voxel_decodeMaterialID(voxel_materials[voxel_materialIndex(allocID, blockMorton)]);
-    return materialID;
+    return voxel_decodeMaterialID(voxel_materials[voxel_materialIndex(allocID, blockMorton)]);
 }
 #endif
 

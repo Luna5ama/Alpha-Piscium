@@ -36,7 +36,6 @@
 
 #include "/techniques/voxel/VoxelRayState.glsl"
 #include "/techniques/voxel/VoxelHit.glsl"
-#include "/util/HardcodedPBR.glsl"
 #include "/techniques/voxel/BlockModels.glsl"
 
 layout(std430, binding = 8) restrict readonly buffer VoxelTreeData {
@@ -223,11 +222,13 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                 uint materialData = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
                 uint material = voxel_decodeMaterialID(materialData);
                 bool isFullCube = bool(materialData & 1u);
-                #ifndef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE
+                #ifndef VOXEL_TRACE_TRUST_MATERIAL_ID
                 bool isKnown = material < textureSize(usam_pbrLUT0, 0).x &&
                     material < textureSize(usam_pbrLUT1, 0).x &&
                     material < textureSize(usam_pbrLUT2, 0).y;
                 uint lookupMaterial = isKnown ? material : 0u;
+                #else
+                uint lookupMaterial = material;
                 #endif
 
                 if (isFullCube) {
@@ -246,15 +247,9 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     return result;
                 }
 
-                #ifdef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE
-                uint blockModelMetadata = texelFetch(
-                    usam_pbrLUT2, ivec2(int(rayFaceMask), int(material)), 0
-                ).x;
-                #else
                 uint blockModelMetadata = texelFetch(
                     usam_pbrLUT2, ivec2(int(rayFaceMask), int(lookupMaterial)), 0
                 ).x;
-                #endif
                 if (blockModelMetadata != 0u && material != MATERIAL_ID_WATER) {
                     vec3 blockLocalRayOrigin = worldRayOrigin - gridOriginF - vec3(blockPos);
                     float modelT;

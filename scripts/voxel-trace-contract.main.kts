@@ -176,7 +176,8 @@ expect(models, "result[axis.x] = signedValue.x;", "inverse rotation X indexed wr
 expect(models, "result[axis.y] = signedValue.y;", "inverse rotation Y indexed write")
 expect(models, "result[axis.z] = signedValue.z;", "inverse rotation Z indexed write")
 reject(models, Regex("rotation\\s*>>=\\s*3u"), "serial inverse rotation decode")
-val axisQuadIntersection = models.substringAfter("bool _voxel_intersectBlockModelAxisAlignedQuad(")
+expect(models, Regex("void\\s+_voxel_intersectBlockModelAxisAlignedQuad\\s*\\("), "axis-aligned quad helper API")
+val axisQuadIntersection = models.substringAfter("void _voxel_intersectBlockModelAxisAlignedQuad(")
     .substringBefore("bool _voxel_intersectBlockModelQuad(")
 val quadIntersection = models.substringAfter("bool _voxel_intersectBlockModelQuad(")
     .substringBefore("bool voxel_intersectBlockModel(")
@@ -215,10 +216,9 @@ if (Regex("(?m)\\b(?:const\\s+)?(?:vec[234]|u?int|float|bool)\\s+\\w+\\s*\\[").c
     failures += "block-model runtime uses a local or const array"
 }
 
-expect(hardcoded, "uint blockModelMetadata;", "PBR model metadata member")
-expect(hardcoded, Regex("HardcodedPBR\\s+hardcodedpbr_decode\\s*\\(\\s*uint\\s+materialID\\s*,\\s*uint\\s+faceMask\\s*\\)"), "face-mask decode API")
-expect(hardcoded, Regex("texelFetch\\s*\\(\\s*usam_pbrLUT2\\s*,\\s*ivec2\\s*\\(\\s*int\\s*\\(\\s*faceMask\\s*\\)\\s*,\\s*int\\s*\\(\\s*materialID\\s*\\)\\s*\\)\\s*,\\s*0\\s*\\)"), "row-major 2D model metadata fetch")
-expect(hardcoded, Regex("hardcodedpbr_decode\\s*\\(\\s*materialID\\s*,\\s*63u\\s*\\)"), "one-argument mask-63 decode")
+reject(hardcoded, Regex("blockModelMetadata|usam_pbrLUT2"), "unconditional model metadata decode")
+expect(shadowVertex, "uint lookupMaterial = hardcoded.isKnown ? materialID : 0u;", "safe voxelization model lookup")
+expect(shadowVertex, "uint blockModelMetadata = texelFetch(usam_pbrLUT2, ivec2(63, int(lookupMaterial)), 0).x;", "voxelization model metadata lookup")
 
 expect(builder, Regex("#define\\s+VOXEL_MATERIAL_DATA_MODIFIER\\s+(?:restrict\\s+)?readonly\\s+buffer"), "read-only tree-builder material buffer")
 reject(builder, Regex("voxel_materials_v4\\s*\\[[^]]+]\\s*="), "tree-builder material writeback")
@@ -238,11 +238,12 @@ expect(trace, "uint(((boundOffsetMask.y & 1) + 1) << 2) |", "ray Y face selectio
 expect(trace, "uint(((boundOffsetMask.z & 1) + 1) << 4);", "ray Z face selection")
 expect(trace, "bool isHit = bool((maskPart >> (mortonPrefix & 31u)) & 1u);", "direct child occupancy bit index")
 reject(trace, Regex("uint\\s+childIdx\\s*="), "redundant 6-bit child index")
-expect(initialTrace, "#define VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "initial trace deferred model decode")
-expect(trace, "#ifndef VOXEL_TRACE_DEFER_BLOCK_MODEL_DECODE", "selectable deferred model decode")
+expect(initialTrace, "#define VOXEL_TRACE_TRUST_MATERIAL_ID", "trusted initial trace material ID")
+expect(trace, "#ifndef VOXEL_TRACE_TRUST_MATERIAL_ID", "selectable material ID validation")
 expect(trace, "bool isFullCube = bool(materialData & 1u);", "cached trace full-cube lookup")
 reject(trace, Regex("texelFetch\\s*\\(\\s*usam_pbrLUT1"), "trace full-cube texture lookup")
-expect(trace, "usam_pbrLUT2, ivec2(int(rayFaceMask), int(material)), 0", "deferred ray-selected model lookup")
+expect(trace, "usam_pbrLUT2, ivec2(int(rayFaceMask), int(lookupMaterial)), 0", "ray-selected model lookup")
+reject(trace, Regex("#include\\s+\"/util/HardcodedPBR\\.glsl\""), "unused hardcoded PBR include")
 reject(trace, Regex("HardcodedPBR\\s+hardcoded\\s*=\\s*hardcodedpbr_decode\\s*\\(\\s*material\\s*,\\s*rayFaceMask\\s*\\)"), "full PBR decode in voxel tracing")
 expect(trace, "bool isKnown = material < textureSize(usam_pbrLUT0, 0).x &&\n                    material < textureSize(usam_pbrLUT1, 0).x &&\n                    material < textureSize(usam_pbrLUT2, 0).y;", "short-circuit PBR LUT bounds")
 if (Regex("textureSize\\s*\\(\\s*usam_pbrLUT[012]").findAll(trace).count() != 3) {

@@ -52,5 +52,4 @@ vec2 voxel_faceLocalUV(uint faceIdx, vec3 hitPos) {
     return vec2(positiveFace ? f.x : 1.0 - f.x, f.y);
 }
 
-
 #endif // INCLUDE_techniques_voxel_VoxelFaceTexcoords_glsl
