@@ -139,6 +139,7 @@ void processGeometryBasis() {
 #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && SETTING_PARALLAX_MODE != 0
 void processParallax() {
     processGeometryBasis();
+    int parallaxLod = max(int(textureQueryLod(normals, materialTexCoord).x + ditherNoise), 0);
 
     vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp - uval_taaJitterUV;
     vec3 viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
@@ -156,7 +157,7 @@ void processParallax() {
     vec2 rayDeltaTexels = -viewRayTS.xy * parallaxScale * spriteExtentTexels;
     vec2 hitTexCoord;
     float hitT;
-    if (parallax_traceParallax(materialTexCoord, frag_spriteBounds, rayDeltaTexels, hitTexCoord, hitT, parallaxSurfaceNormal)) {
+    if (parallax_traceParallax(materialTexCoord, frag_spriteBounds, rayDeltaTexels, parallaxLod, hitTexCoord, hitT, parallaxSurfaceNormal)) {
         materialTexCoord = hitTexCoord;
         displacedViewZ = frag_viewZ - viewRay.z * parallaxScale * hitT;
     }
