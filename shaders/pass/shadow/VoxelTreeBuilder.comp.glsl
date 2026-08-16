@@ -52,11 +52,11 @@ const ivec3 workGroups = ivec3(1024, 1, 1);
 shared uint rootMaskLo[4];
 shared uint rootMaskHi[4];
 
-bool voxel_isGIOpaqueMaterial(uint materialID) {
-    return materialID != 0u && materialID != MATERIAL_ID_WATER;
+bool voxel_isGIOpaqueMaterial(uint materialData) {
+    return materialData >= 4u;
 }
 
-uint voxel_loadMaterialID(uint allocID, uint blockMorton) {
+uint voxel_loadMaterialData(uint allocID, uint blockMorton) {
     uint packedIndex = allocID * 1024u + (blockMorton >> 2u);
     uvec4 packedMaterialData = voxel_materials_v4[packedIndex];
     uint lane = blockMorton & 3u;
@@ -80,7 +80,7 @@ bool voxel_opaqueAtGridBlock(ivec3 gridBlockPos) {
     }
 
     uint blockMorton = voxel_blockMorton(gridBlockPos & 15);
-    return voxel_isGIOpaqueMaterial(voxel_loadMaterialID(allocID, blockMorton));
+    return voxel_isGIOpaqueMaterial(voxel_loadMaterialData(allocID, blockMorton));
 }
 
 void rc_markPendingVisibleFace(ivec3 worldBlockPos, uint faceBits) {
@@ -146,8 +146,8 @@ void main() {
             uvec4 mats = voxel_materials_v4[baseIdx + i];
             for (uint lane = 0u; lane < 4u; lane++) {
                 uint blockInSubRegion = i * 4u + lane;
-                uint materialID = lane == 0u ? mats.x : (lane == 1u ? mats.y : (lane == 2u ? mats.z : mats.w));
-                if (!voxel_isGIOpaqueMaterial(materialID)) {
+                uint materialData = lane == 0u ? mats.x : (lane == 1u ? mats.y : (lane == 2u ? mats.z : mats.w));
+                if (!voxel_isGIOpaqueMaterial(materialData)) {
                     continue;
                 }
 

@@ -67,6 +67,8 @@ void main() {
     #ifdef SHADOW_PASS_VOXELIZE
     if ((gl_VertexID & 3) == 0 && materialID != MATERIAL_ID_WATER) {
         HardcodedPBR hardcoded = hardcodedpbr_decode(materialID);
+        uint lookupMaterial = hardcoded.isKnown ? materialID : 0u;
+        uint blockModelMetadata = texelFetch(usam_pbrLUT2, ivec2(63, int(lookupMaterial)), 0).x;
         // Absolute integer block position of the center of this block.
         // scenePos is camera-relative; add camera's integer + fractional parts.
         ivec3 blockWorldPos = ivec3(floor(scenePos.xyz + cameraPositionFract + at_midBlock.xyz / 64.0))
@@ -83,7 +85,7 @@ void main() {
         // (assigned by last frame's VoxelAllocator begin pass)
         uint allocID = voxel_brickAllocID[brickMorton];
 
-        if (hardcoded.isFullCube || hardcoded.emissive > 0.0) {
+        if (hardcoded.isFullCube || blockModelMetadata != 0u || hardcoded.emissive > 0.0) {
             if (all(greaterThanEqual(brickRelCoord, ivec3(0))) &&
                     all(lessThan(brickRelCoord, ivec3(VOXEL_GRID_SIZE)))) {
 
@@ -97,11 +99,12 @@ void main() {
                     // Only write a non-zero material ID; 0 means "no entity mapping".
                     // atomicMax ensures a real ID beats the cleared-to-0 state.
                     if (materialID != 0u) {
-                        atomicMax(voxel_materials[matIdx], materialID);
+                        uint materialData = (materialID << 1u) | uint(hardcoded.isFullCube);
+                        atomicMax(voxel_materials[matIdx], materialData);
                     } else {
                         // Block exists but has no material ID mapping: write a
-                        // placeholder (1) so the tree knows the voxel is solid.
-                        atomicMax(voxel_materials[matIdx], 1u);
+                        // Placeholder material ID 1 so the tree knows the voxel is solid.
+                        atomicMax(voxel_materials[matIdx], 1u << 1u);
                     }
                 }
             }

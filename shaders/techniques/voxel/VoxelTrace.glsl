@@ -15,8 +15,8 @@
 //   Hierarchical descent / ascent through the tree.  The ray starts at the
 //   top level and descends into non-empty children.  When a child is empty
 //   the DDA skips to the exit of that child's cell, then ascends to the
-//   correct parent level.  At the leaf level (L1), a set bit means the
-//   individual block is solid → HIT.
+//   correct parent level. At the leaf level (L1), the material selects the
+//   full-cube fast path or generated block-model intersection.
 //
 // Entry points:
 //   voxelray_setup(origin, dir, callbackData) → VoxelRay
@@ -36,6 +36,7 @@
 
 #include "/techniques/voxel/VoxelRayState.glsl"
 #include "/techniques/voxel/VoxelHit.glsl"
+#include "/techniques/voxel/BlockModels.glsl"
 
 layout(std430, binding = 8) restrict readonly buffer VoxelTreeData {
     uint voxel_treeScalar[];
@@ -186,6 +187,9 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
         // ---- Precompute DDA stepping ----
         ivec3 boundOffsetMask = ~(floatBitsToInt(worldRayDir) >> 31);
+        uint rayFaceMask = uint((boundOffsetMask.x & 1) + 1) |
+            uint(((boundOffsetMask.y & 1) + 1) << 2) |
+            uint(((boundOffsetMask.z & 1) + 1) << 4);
         vec3 tOrig = -posGrid * invDir;
         ivec3 stepDir = ivec3(sign(worldRayDir));
         ivec3 stepBack = min(stepDir, ivec3(0));
@@ -201,11 +205,6 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
 
         // ---- Main hierarchical traversal loop ----
         for (int i = 0; i < maxSteps; i++) {
-            // Bounds check — also serves as grid-exit detection
-            if (uint(blockPos.x | blockPos.y | blockPos.z) >= uint(GRID_BLOCKS)) {
-                break;
-            }
-
             #if VOXEL_TRACE_DEBUG_COUNTERS
             debugCounters.x++;
             #endif
@@ -213,36 +212,68 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
             // Load node mask at current level
             uint childShift = 6u * uint(level - 1);
             uint mortonPrefix = fullMorton >> childShift;
-            uint nodeIdx = (mortonPrefix >> 6u);
-            uint childIdx = mortonPrefix & 63u;
 
             // Branchless bit check
-            uint maskPart = voxel_treeScalar[_voxel_levelOffsets[level] + (nodeIdx << 1u) + (childIdx >> 5u)];
-            bool isHit = bool((maskPart >> (childIdx & 31u)) & 1u);
+            uint maskPart = voxel_treeScalar[_voxel_levelOffsets[level] + (mortonPrefix >> 5u)];
+            bool isHit = bool((maskPart >> (mortonPrefix & 31u)) & 1u);
 
-            if (isHit) {
-                // Descend into child
-                level--;
-                // ---- Non-empty child ----
-                if (level == 0) {
-                    // Leaf level: individual block is solid → HIT
-                    uint allocID = voxel_brickAllocID[fullMorton >> 12u];
-                    uint material = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
+            if (isHit && level == 1) {
+                uint allocID = voxel_brickAllocID[fullMorton >> 12u];
+                uint materialData = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
+                uint material = voxel_decodeMaterialID(materialData);
+                bool isFullCube = bool(materialData & 1u);
+                #ifndef VOXEL_TRACE_TRUST_MATERIAL_ID
+                bool isKnown = material < textureSize(usam_pbrLUT0, 0).x &&
+                    material < textureSize(usam_pbrLUT1, 0).x &&
+                    material < textureSize(usam_pbrLUT2, 0).y;
+                uint lookupMaterial = isKnown ? material : 0u;
+                #else
+                uint lookupMaterial = material;
+                #endif
 
+                if (isFullCube) {
                     VoxelHit result;
-
                     result.hit = true;
                     result.hitPos = fma(worldRayDir, vec3(lastT), worldRayOrigin);
                     result.materialID = material;
 
                     vec3 normalDir = -vec3(stepDir);
                     result.normal = normalDir * vec3(equal(ivec3(lastAxis), ivec3(0, 1, 2)));
+                    ray.level = 0;
 
                     #if VOXEL_TRACE_DEBUG_COUNTERS
                     result.debugCounters = debugCounters;
                     #endif
                     return result;
                 }
+
+                uint blockModelMetadata = texelFetch(
+                    usam_pbrLUT2, ivec2(int(rayFaceMask), int(lookupMaterial)), 0
+                ).x;
+                if (blockModelMetadata != 0u && material != MATERIAL_ID_WATER) {
+                    vec3 blockLocalRayOrigin = worldRayOrigin - gridOriginF - vec3(blockPos);
+                    float modelT;
+                    vec3 modelNormal;
+                    if (voxel_intersectBlockModel(
+                            blockModelMetadata, blockLocalRayOrigin, worldRayDir, modelT, modelNormal)) {
+                        VoxelHit result;
+                        result.hit = true;
+                        result.hitPos = fma(worldRayDir, vec3(modelT), worldRayOrigin);
+                        result.materialID = material;
+                        result.normal = modelNormal;
+                        ray.level = 0;
+                        #if VOXEL_TRACE_DEBUG_COUNTERS
+                        result.debugCounters = debugCounters;
+                        #endif
+                        return result;
+                    }
+                }
+
+                isHit = false;
+            }
+
+            if (isHit) {
+                level--;
                 #if VOXEL_TRACE_DEBUG_COUNTERS
                 debugCounters.y++;
                 #endif
@@ -282,21 +313,26 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
                     lastAxis = 0;
                 }
 
+                if (uint(blockPos.x | blockPos.y | blockPos.z) >= uint(GRID_BLOCKS)) {
+                    level = 0;
+                    break;
+                }
+
                 uint oldFullMorton = fullMorton;
                 fullMorton = _voxel_packBlockPos(blockPos);
 
                 // Ascend: O(1) level recomputation via findMSB
                 uint mortonDiff = oldFullMorton ^ fullMorton;
                 int newLevel = ((findMSB(mortonDiff) * 43) >> 8) + 1;
-                level = min(newLevel, VOXEL_TREE_TOP_LEVEL);
+                level = newLevel;
             }
         }
 
         // Write back state for resumption if still active (not done)
-        if (ray.level != 0) {
+        ray.level = level;
+        if (level != 0) {
             ray.lastT = lastT;
             ray.lastAxis = (lastAxis >= 0 && lastAxis <= 2) ? lastAxis : 2;
-            ray.level = level;
             ray.fullMorton = fullMorton;
         }
     }
