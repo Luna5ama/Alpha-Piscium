@@ -1,4 +1,4 @@
 interface:
   display_name: "Optimization Loop Multi"
-  short_description: "Run parallel optimization rounds and commit wins"
-  default_prompt: "Use $optimization-loop-multi with two or more specified worktrees to run one measured multi-agent optimization round and commit a verified win."
+  short_description: "Optimize in parallel onto one target branch"
+  default_prompt: "Use $optimization-loop-multi with two or more specified worktrees and one target branch to run one measured multi-agent optimization round and commit every verified win to that branch."
