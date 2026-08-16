@@ -148,6 +148,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     float glazingAngleFactorHistory = pow2(1.0 - glazingCosTheta);
     bool valid = false;
     float specularHitDistance = 0.0;
+    float specularHistoryLength = 0.0;
     vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
     vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
 
@@ -231,6 +232,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     float antiStretching = pow2(linearStep(0.2, 0.0, pow2(packedData5.w) - pow2(glazingAngleFactorHistory)));
                     historyResetFactor *= antiStretching;
                     packedData5.xy *= historyResetFactor;
+                    specularHistoryLength = packedData5.y;
                     packedData5.w = glazingAngleFactorHistory;
                     packedData5 = saturate(packedData5);
                     transient_gi5Reprojected_store(texelPos, packedData5);
@@ -278,6 +280,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 historyResetFactor *= antiStretching;
 
                 packedData5.xy *= historyResetFactor;
+                specularHistoryLength = packedData5.y;
                 packedData5.w = glazingAngleFactorHistory;
 
                 packedData5 = saturate(packedData5);
@@ -423,7 +426,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         packedData4 = dither_fp16(packedData4, ditherNoiseV);
                         transient_gi4Reprojected_store(texelPos, packedData4);
                     } else {
-                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, 0.5, uval_mainImageSizeRcp);
+                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, pow2(mix(0.5, 0.0, specularHistoryLength)), uval_mainImageSizeRcp);
 
                         vec4 packedData3 = sampling_catmullBicubic5Tap_sum(
                             history_gi3_sample(vTapData.uv1AndWeight.xy),
