@@ -12,12 +12,13 @@
 | [`shaders/techniques/DOF.glsl`](../../../shaders/techniques/DOF.glsl)                                                                                                           | DOF 公共采样与 circle-of-confusion 逻辑 |
 | [`DOFFocus.comp.glsl`](../../../shaders/pass/composite/DOFFocus.comp.glsl)、[`DOFPrepare.comp.glsl`](../../../shaders/pass/composite/DOFPrepare.comp.glsl)                       | 自动 focus 与 DOF 输入准备              |
 | [`TAAPrepare.comp.glsl`](../../../shaders/pass/composite/TAAPrepare.comp.glsl)、[`TAAResolve.comp.glsl`](../../../shaders/pass/composite/TAAResolve.comp.glsl)                   | 时序 AA 准备与 resolve                |
-| [`FSR3MotionVectors.comp.glsl`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl)、[`FSR3Accumulate.comp.glsl`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) | FSR3 输入、时域升采样与累积                 |
+| [`GenerateMotionVectors.comp.glsl`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl)、[`FSR3Accumulate.comp.glsl`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) | 公共 motion 生成、内部 FSR3 输入与累积          |
 | [`FXAA.comp.glsl`](../../../shaders/pass/composite/FXAA.comp.glsl)                                                                                                              | 空间抗锯齿                            |
 | [`RCAS.comp.glsl`](../../../shaders/pass/composite/RCAS.comp.glsl)、[`techniques/ffx/fsr1/`](../../../shaders/techniques/ffx/fsr1/)                                              | RCAS 锐化                          |
 | [`techniques/Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl)                                                                                                     | Bloom downsample/upsample 金字塔    |
 | [`ExposureMip.comp.glsl`](../../../shaders/pass/composite/ExposureMip.comp.glsl)、[`ExposureGather.comp.glsl`](../../../shaders/pass/composite/ExposureGather.comp.glsl)         | 自动曝光权重、mip 与统计                   |
 | [`PostComposite.comp.glsl`](../../../shaders/pass/composite/PostComposite.comp.glsl)、[`OverlayComposite.comp.glsl`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | 主后期合成与 overlay                   |
+| [`superresolution.v3.json`](../../../shaders/superresolution.v3.json)                                                                                                              | 外部 Super Resolution 接口与触发点        |
 | [`techniques/displaytransform/`](../../../shaders/techniques/displaytransform/)                                                                                                 | 曝光、DRT 与显示变换                     |
 | [`FinalGlobalDataUpdate.comp.glsl`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl)、[`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl)       | 下一帧状态与最终屏幕输出                     |
 
@@ -39,11 +40,16 @@ distance、focus time 和 focus-plane debug。
 |------|-----------|------|
 | 关闭 | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) | 直接写入未滤波的当前帧，不执行时域或空间抗锯齿。 |
 | TAA | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Resolve `history_taa`、执行空间抗锯齿，并锐化渲染分辨率输出。 |
-| FSR 3 | [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | 构建 motion/reactive 输入、累积全分辨率结果，再通过公共 RCAS pass 执行锐化并输出已曝光的线性颜色。 |
+| FSR 3 | [`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | 构建 motion/reactive 输入、累积全分辨率结果，再通过公共 RCAS pass 执行锐化并输出已曝光的线性颜色。 |
+| 外部 SR | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) → 常规渲染分辨率后处理 → [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) → 外部 SR | 跳过内部 TAA、FXAA、FSR3 累积和 RCAS；SR 读取完成的显示域帧并生成全分辨率输出。 |
 
 抗锯齿 / 超采样 screen 控制模式、渲染分辨率比例、jitter、TAA current/history filter 和公共 RCAS 锐化强度。current/previous jitter custom uniform 在 [
 `scripts/shaders.properties`](../../../scripts/shaders.properties) 中由 R2 frame sequence 生成；改变采样序列时，也要同步更新
 reprojection 约定。
+
+`SR_ENABLE` 激活时，外部接口通过 `SR_RENDER_SCALE_FACTOR` 与 `SRJitterOffset` 接管渲染比例和 jitter。无论
+`SETTING_AA_MODE` 的值为何，内部 TAA、FXAA、FSR3 累积和 RCAS 都会禁用。仅帧生成模式仍通过同一接口保持激活，但
+`SR_SHOULD_APPLY_SCALE` 与 `SR_SHOULD_APPLY_JITTER` 为零，因此光影以原生分辨率、无 jitter 渲染。
 
 TAA 与 FSR 3 会把相同的可逆 matrix/log 工作域交给公共 RCAS 实现，并直接使用所选锐化强度。强度为零时会旁路空间滤波并返回
 中心样本；此时只保留必需的显示曝光和可逆工作域往返。关闭模式不会调度 RCAS。所有模式都会在输出分辨率 Bloom 和显示变换之前
@@ -58,6 +64,16 @@ FSR 专用范围可覆盖 FP16 输入乘以最大逐帧重建曝光。
 Reactive/composition mask 覆盖动态或无法跟踪物体变换的 solid 表面与 overlay。半透明 SST 已经合成进输入颜色，并有意沿用下层
 solid 的 depth、motion 与 mask；它既不单独写 reactive mask，也不再使用 SST 时域降噪，因为两者会让粗糙反射/折射噪声逐帧闪烁。
 
+[`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) 只计算一次公共的
+current-to-previous UV 向量。编译期输出宏会将其写入内部 FSR3 history，并附带 reactive/composition mask，或写入供外部
+SR 使用的渲染分辨率 `colortex31.rg`。外部路径使用 `colortex0` color、`noTranslucentDepthtex` depth 和
+`colortex31` motion，并在 [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) 之后、显示变换完成后
+触发，因此声明为 SDR 输入和常量预曝光 `1.0`。SR 把全分辨率结果写回 `colortex0`；仅帧生成模式仍读取三项输入，但不会写入该
+color 输出。
+
+当前 motion vector 覆盖相机重投影、天空、手部和 solid 表面，但不包含骨骼动画、粒子或任意程序化形变的完整逐物体运动；这些
+表面可能产生外部超采样或帧生成伪影。屏幕 overlay 也会沿用下层场景的 motion。
+
 FSR 3 estimator 在渲染分辨率运行，并在 view/output 分辨率累积；公共 RCAS 与后续所有后处理也使用输出分辨率。G-buffer 显式梯度
 会把低分辨率 raster derivative 乘以 `0.5 * uval_mainImageScale`，等价于按实际逐轴渲染比例应用 AMD 的
 `log2(render/output) - 1` mip bias。
@@ -66,7 +82,7 @@ FSR 3 estimator 在渲染分辨率运行，并在 view/output 分辨率累积；
 
 启用 `SETTING_BLOOM` 时，[`Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl) 通过 `BLOOM_DOWN_SAMPLE` 和
 `BLOOM_PASS=1..10` 构建第 1–10 层，再通过 `BLOOM_UP_SAMPLE` 重建第 10–2 层。`SETTING_BLOOM_PASS` 在 program 层禁用未使用的高层。
-非 FSR3 路径使用 `transient_bloom`；FSR3 路径在 accumulation 和 RCAS 后复用 `usam_fsr3UpscaleAtlas` 的第三个区域。
+非内部 FSR3 路径使用 `transient_bloom`；FSR3 路径在 accumulation 和 RCAS 后复用 `usam_fsr3UpscaleAtlas` 的第三个区域。
 所有打包金字塔读取都会夹到源 tile 的 texel center 范围内，防止双线性过滤越界混入相邻 tile 或 atlas 陈旧数据。
 
 Bloom 高光压缩是有意设计的有损 Bloom 专用操作。它只对进入第一个 downsample 层的 exposed-linear 主颜色样本应用一次，

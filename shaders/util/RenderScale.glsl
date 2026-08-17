@@ -1,7 +1,14 @@
 #ifndef INCLUDE_util_RenderScale_glsl
 #define INCLUDE_util_RenderScale_glsl a
 
-#if SETTING_RENDER_SCALE == 0
+#if SUPER_RESOLUTION_ACTIVE
+#define RENDER_SCALE_FACTOR SR_RENDER_SCALE_FACTOR
+#define RENDER_SCALE_HALF SR_RENDER_SCALE_FACTOR_HALF
+// Iris requires literal workGroupsRender values. These conservative values over-dispatch into existing bounds checks.
+#define RENDER_SCALE_QUARTER 0.25
+#define RENDER_SCALE_TRIPLE 3.0
+#define RENDER_SCALE_SIXTEENTH 0.0625
+#elif SETTING_RENDER_SCALE == 0
 #define RENDER_SCALE_FACTOR 0.5
 #define RENDER_SCALE_HALF 0.25
 #define RENDER_SCALE_QUARTER 0.125
@@ -69,7 +76,7 @@
 #define RENDER_SCALE_SIXTEENTH 0.0625
 #endif
 
-#if SETTING_AA_MODE == 2
+#if INTERNAL_FSR3_ACTIVE
 #define POST_PROCESS_SCALE_FACTOR 1.0
 #define POST_PROCESS_SCALE_HALF 0.5
 #define POST_PROCESS_SCALE_QUARTER 0.25
@@ -88,7 +95,7 @@
 #ifdef SETTING_SCREENSHOT_MODE
 #define GBUFFER_TEXTURE_GRAD_X(uv) vec2(0.0)
 #define GBUFFER_TEXTURE_GRAD_Y(uv) vec2(0.0)
-#elif SETTING_AA_MODE == 2
+#elif UPSCALER_RECONSTRUCTION_ACTIVE
 #define GBUFFER_TEXTURE_GRAD_X(uv) (dFdx(uv) * (0.5 * uval_mainImageScale.x))
 #define GBUFFER_TEXTURE_GRAD_Y(uv) (dFdy(uv) * (0.5 * uval_mainImageScale.y))
 #else
@@ -98,7 +105,7 @@
 
 #ifndef SKIP_UNIFORMS
 ivec2 renderScale_postToMainTexel(ivec2 postTexel) {
-#if SETTING_AA_MODE == 2
+#if INTERNAL_FSR3_ACTIVE
     vec2 viewUV = (vec2(postTexel) + 0.5) * uval_viewImageSizeRcp;
     return clamp(ivec2(viewUV * uval_mainImageSize), ivec2(0), uval_mainImageSizeI - 1);
 #else
@@ -107,20 +114,20 @@ ivec2 renderScale_postToMainTexel(ivec2 postTexel) {
 }
 
 void renderScale_applyGBufferScale(inout vec4 position) {
-#if SETTING_RENDER_SCALE < 10
+#if RENDER_SCALE_ACTIVE
     position.xy = position.xy * uval_mainImageScale + (uval_mainImageScale - 1.0) * position.w;
 #endif
 }
 
 bool renderScale_isOutsideMainViewport(vec2 fragCoord) {
-#if SETTING_RENDER_SCALE < 10
+#if RENDER_SCALE_ACTIVE
     return any(greaterThanEqual(fragCoord, uval_mainImageSize));
 #else
     return false;
 #endif
 }
 
-#if SETTING_RENDER_SCALE < 10
+#if RENDER_SCALE_ACTIVE
 #undef _shadesmith_RGBA16F_ATLAS_SIZE_RCP
 #undef _shadesmith_R32F_ATLAS_SIZE_RCP
 #undef _shadesmith_RGB10_A2_ATLAS_SIZE_RCP

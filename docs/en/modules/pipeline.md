@@ -26,13 +26,15 @@ water and translucent geometry
   ↓
 scene-preparation, GI, caustics, cloud, shadow, and lighting passes
   ↓
-DOFPrepare, TAAPrepare, then the selected Off/TAA/FSR 3 path, followed by shared RCAS when enabled
+DOFPrepare, TAAPrepare, then the selected internal Off/TAA/FSR 3 or external-SR preparation path
   ↓
 Bloom downsample/upsample
   ↓
-PostComposite, exposure, next-frame state, and OverlayComposite
+PostComposite display transform, exposure, next-frame state, and OverlayComposite
   ↓
-final (display transform and screen output)
+optional external Super Resolution after OverlayComposite
+  ↓
+final (dither and screen output)
 ```
 
 This is the project-local dependency order, not a replacement for Iris program-stage semantics.
@@ -130,16 +132,17 @@ The last stage uses indirect dispatch from SSBO 0 offset 0.
 | Range                                                                                                                                                                                                                                                             | Flow                                                                            |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|---------------------------------------------------------------------------------|
 | [`DOFPrepare`](../../../shaders/pass/composite/DOFPrepare.comp.glsl)                                                                                                                                                                                              | Optional DOF prepare                                                            |
-| [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) → [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Non-FSR3 temporal AA, optional spatial AA, and sharpening                        |
-| [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → FSR3 pyramid/reactivity stages → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | FSR3 temporal upscaling and shared RCAS output                                  |
+| [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) → [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Internal non-FSR3 temporal AA, optional spatial AA, and sharpening               |
+| [`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → FSR3 pyramid/reactivity stages → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Internal FSR3 temporal upscaling and shared RCAS output                         |
 | [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl)                                                                                                                                                                                                            | Downsample levels 1–10 and upsample levels 10–2, capped by `SETTING_BLOOM_PASS` |
-| [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) → [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                                   | RTWSM importance blur and post composite                                        |
+| [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) → [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                                   | RTWSM importance blur, post composite, and display transform                    |
 | [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl) → [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl)                                                                                                                         | Next-frame RTWSM warp and exposure mip                                          |
 | [`ExposureGather`](../../../shaders/pass/composite/ExposureGather.comp.glsl) → [`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl)                                                                                                           | Exposure gather and RTWSM 2D warp write                                         |
 | [`FinalGlobalDataUpdate`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl) → [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl)                                                                                     | Final global-data update and overlay composite                                  |
+| [`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) → [`superresolution.v3.json`](../../../shaders/superresolution.v3.json) after [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | External SR consumes `colortex31` motion and the completed SDR frame; disabled internal AA/FSR3/RCAS passes are skipped |
 
 Root [`final.fsh`](../../../shaders/final.fsh) includes [
-`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl), which applies the final display transform and
+`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl), which dithers the completed `colortex0` image and
 writes the screen output. See [Post-processing](post-processing.md).
 
 ## Conditions and generation

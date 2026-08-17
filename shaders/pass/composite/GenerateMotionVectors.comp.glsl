@@ -1,10 +1,21 @@
+#include "/Base.glsl"
 #include "/util/GBufferData.glsl"
+
+#if SUPER_RESOLUTION_ACTIVE
+#define GENERATE_MOTION_VECTORS_SUPER_RESOLUTION
+#elif INTERNAL_FSR3_ACTIVE
+#define GENERATE_MOTION_VECTORS_FSR3
+#endif
 
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 
+#ifdef GENERATE_MOTION_VECTORS_FSR3
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(r32ui) uniform restrict writeonly uimage2D uimg_fsr3ReconstructedDepth;
+#elif defined(GENERATE_MOTION_VECTORS_SUPER_RESOLUTION)
+layout(rg16f) uniform restrict writeonly image2D uimg_superResolutionMotionVectors;
+#endif
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
@@ -38,6 +49,7 @@ void main() {
     vec2 previousUv = previousClip.xy / previousClip.w * 0.5 + 0.5;
     vec2 motionVector = validReprojection ? previousUv - currentUv : vec2(0.0);
 
+    #ifdef GENERATE_MOTION_VECTORS_FSR3
     float overlayCoverage = texelFetch(usam_overlays, texelPos, 0).a;
 
     // Translucent SST is composed into main but follows the solid surface's temporal contract.
@@ -48,4 +60,7 @@ void main() {
 
     history_fsr3Motion_store(texelPos, vec4(motionVector, reactiveMask, compositionMask));
     imageStore(uimg_fsr3ReconstructedDepth, texelPos, uvec4(0u));
+    #elif defined(GENERATE_MOTION_VECTORS_SUPER_RESOLUTION)
+    imageStore(uimg_superResolutionMotionVectors, texelPos, vec4(motionVector, 0.0, 0.0));
+    #endif
 }

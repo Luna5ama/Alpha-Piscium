@@ -27,7 +27,7 @@ shaderpack's shared FSR1 RCAS pass. It intentionally omits FSR2, frame generatio
 optical flow, backend/provider code, shader blobs, debug rendering, auto-reactive generation,
 Xbox-only paths, and backend resource aliasing code.
 
-`/pass/composite/FSR3MotionVectors.comp.glsl` generates camera motion and packs
+`/pass/composite/GenerateMotionVectors.comp.glsl` generates camera motion and packs
 solid-surface reactive and transparency/composition masks in its Z/W channels. The seven
 FSR3 entrypoints bind the callbacks from
 `Integration.glsl`. Surfaces without object transforms are marked reactive.

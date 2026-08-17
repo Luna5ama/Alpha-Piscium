@@ -25,13 +25,15 @@ deferred（当前为空）
   ↓
 场景准备、GI、焦散、云、阴影、光照与体积 pass
   ↓
-DOFPrepare、TAAPrepare，随后选择关闭/TAA/FSR 3 路径，并在启用时执行公共 RCAS
+DOFPrepare、TAAPrepare，随后选择内部关闭/TAA/FSR 3 或外部 SR 准备路径
   ↓
 Bloom downsample/upsample
   ↓
-PostComposite、曝光、下一帧状态与 OverlayComposite
+PostComposite 显示变换、曝光、下一帧状态与 OverlayComposite
   ↓
-final（显示变换和屏幕输出）
+可选的外部 Super Resolution，在 OverlayComposite 后执行
+  ↓
+final（dither 和屏幕输出）
 ```
 
 这是项目内的数据依赖图，不替代 Iris 对各 program stage 的定义。
@@ -124,17 +126,18 @@ dispatch。[`EnvProbeUpdate2ReprojectDilate`](../../../shaders/pass/composite/En
 | 范围                                                                                                                                                                                                                                                                | 流程                                                                            |
 |-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|-------------------------------------------------------------------------------|
 | [`DOFPrepare`](../../../shaders/pass/composite/DOFPrepare.comp.glsl)                                                                                                                                                                                              | 可选 DOF prepare                                                                |
-| [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) → [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | 非 FSR3 的时序 AA、可选空间 AA 与锐化                                             |
-| [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → FSR3 pyramid/reactivity 阶段 → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | FSR3 时域升采样与公共 RCAS 输出                                                  |
+| [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) → [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | 内部非 FSR3 的时序 AA、可选空间 AA 与锐化                                          |
+| [`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → FSR3 pyramid/reactivity 阶段 → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | 内部 FSR3 时域升采样与公共 RCAS 输出                                               |
 | [`Bloom`](../../../shaders/techniques/Bloom.comp.glsl)                                                                                                                                                                                                            | bloom downsample levels 1–10 与 upsample levels 10–2，按 `SETTING_BLOOM_PASS` 截断 |
-| [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) → [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                                   | RTWSM importance blur 与 post composite                                        |
+| [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) → [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                                   | RTWSM importance blur、post composite 与显示变换                                  |
 | [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl) → [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl)                                                                                                                         | next-frame RTWSM warp 与 exposure mip                                          |
 | [`ExposureGather`](../../../shaders/pass/composite/ExposureGather.comp.glsl) → [`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl)                                                                                                           | exposure gather 与 RTWSM 2D warp write                                         |
 | [`FinalGlobalDataUpdate`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl) → [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl)                                                                                     | final global-data update 与 overlay composite                                  |
+| [`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) → [`superresolution.v3.json`](../../../shaders/superresolution.v3.json)，在 [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) 后触发 | 外部 SR 读取 `colortex31` motion 与完成的 SDR 帧；被禁用的内部 AA/FSR3/RCAS pass 会跳过 |
 
 根部 [`final.fsh`](../../../shaders/final.fsh) include [
 `Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl)
-，应用最终显示变换并输出屏幕。详见[后处理模块](post-processing.md)。
+，对完成的 `colortex0` 图像执行 dither 并输出屏幕。详见[后处理模块](post-processing.md)。
 
 ## 条件与生成
 

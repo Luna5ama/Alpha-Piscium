@@ -29,7 +29,7 @@ out float frag_emissiveOverride;
 
 void main() {
     gl_Position = global_taaJitterMat * ftransform();
-    #if SETTING_RENDER_SCALE < 10
+    #if RENDER_SCALE_ACTIVE
     renderScale_applyGBufferScale(gl_Position);
     #endif
 

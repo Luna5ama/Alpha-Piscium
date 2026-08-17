@@ -19,12 +19,12 @@ void main() {
         #if SETTING_DEBUG_OUTPUT == 1
         debugOutput(texelPos, outputColor);
         #endif
-        #if SETTING_AA_MODE != 2
+        #if !INTERNAL_FSR3_ACTIVE
         outputColor.rgb *= exp2(global_aeData.expValues.z);
         outputColor.rgb = agxInvertible_forward(outputColor.rgb);
         #endif
         imageStore(uimg_main, texelPos, outputColor);
-        #if SETTING_AA_MODE != 2
+        #if !INTERNAL_FSR3_ACTIVE
         transient_bloom_store(texelPos, vec4(0.0));
         #endif
     }
