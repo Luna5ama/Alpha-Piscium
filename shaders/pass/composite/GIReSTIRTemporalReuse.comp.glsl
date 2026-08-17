@@ -34,8 +34,6 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 #include "/techniques/gi/ReservoirSplat.glsl"
 #include "/techniques/gi/InitialSample.glsl"
 #include "/techniques/gi/ReprojectInfo.glsl"
-#include "/util/GBufferData.glsl"
-#include "/util/Material.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Sampling.glsl"
 #include "/techniques/HiZCheck.glsl"
@@ -773,10 +771,6 @@ void main() {
 
             vec3 V = normalize(-viewPos);
 
-            GBufferData gData = gbufferData_init();
-            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
-            gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
-            Material material = material_decode(gData);
             vec3 targetGeomNormal = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
             vec3 targetNormal = normalize(transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
             restir_InitialCandidate initialCandidate = restir_initialCandidate_load(texelPos);
@@ -827,20 +821,22 @@ void main() {
             vec2 temporalPreviousScreenPos = reprojInfo.curr2PrevScreenPos;
             float ageResetRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 1u), RANDOM_FRAME);
             float pSpec = 1.0;
-            if (material.dielectric > 0.0) {
-                float NdotV = saturate(dot(gData.normal, V));
-                vec3 fresnelV = saturate(fresnel_evalMaterial(material, NdotV));
-                vec3 fresnelT = vec3(1.0) - fresnelV;
-                vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
-                pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV * safeRcp(totalEnergy));
+            uint packedGBufferData2 = texelFetch(usam_gbufferSolidData2, texelPos, 0).r;
+            if (storedMaterial.dielectric > 0.0) {
+                float NdotV = saturate(dot(targetNormal, V));
+                float fresnelV = saturate(resampleMaterial_fresnel(storedMaterial, NdotV));
+                vec3 albedo = colors2_material_toWorkSpace(unpackUnorm4x8(packedGBufferData2).rgb);
+                float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, albedo);
+                pSpec = fresnelV * safeRcp(albedoLuma * (1.0 - fresnelV) + fresnelV);
                 // Clamping this to avoid dead locks that causes fireflies
                 pSpec = sqrt(clamp(pSpec, 0.01, 0.99));
             }
-            pSpec = pow(material.roughness, pSpec);
+            pSpec = pow(storedMaterial.roughness, pSpec);
             transient_diffBounceProbability_store(texelPos, vec4(pSpec));
 
             float historyRetention = global_historyResetFactor * reprojInfo.historyResetFactor;
-            bool historyReusable = !gData.isHand && historyRetention > ageResetRand;
+            bool isHand = bool(bitfieldExtract(packedGBufferData2, 24, 1));
+            bool historyReusable = !isHand && historyRetention > ageResetRand;
             #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
             TemporalHistorySample backupSource = temporalHistorySample_init();
             TemporalPathShift backupShift;
@@ -904,7 +900,7 @@ void main() {
                             backupSubpixelDelta,
                             viewZ,
                             viewPos,
-                            gData.geomNormal,
+                            targetGeomNormal,
                             backupTargetPrimary
                         )
                         && shiftTemporalPathReconnect(backupSource, backupTargetPrimary, backupShift)
@@ -934,7 +930,7 @@ void main() {
             if (canonicalTerm > 0.0 && historyReusable) {
                 canonicalDenominator += evaluateSplatProposalTerm(
                     viewPos,
-                    gData.geomNormal,
+                    targetGeomNormal,
                     sampleDirView,
                     hitDistance,
                     hitRadiance,
@@ -975,7 +971,7 @@ void main() {
                 float backupDenominator = canonicalConfidence * backupPHat + backupTerm;
                 backupDenominator += evaluateSplatProposalTerm(
                     backupTargetPrimary,
-                    gData.geomNormal,
+                    targetGeomNormal,
                     backupShift.Y.xyz,
                     backupShift.Y.w,
                     backupSource.sampleValue.rgb,
@@ -1084,7 +1080,7 @@ void main() {
             storageGeometryValid = storageGeometryValid
                 && (!finiteSecondaryHit || restir_isFinite(storageHitViewPos));
             if (storageGeometryValid) {
-                if (!gData.isHand) {
+                if (!isHand) {
                     packedPrimary = restir_splatPackPrimary(
                         texelPos,
                         finalPrimaryViewPos,
@@ -1178,7 +1174,7 @@ void main() {
                 finalHitNormal = vec3(0.0);
             }
 
-            if (!restir_isReservoirValid(temporalReservoir) || gData.isHand) {
+            if (!restir_isReservoirValid(temporalReservoir) || isHand) {
                 packedPrimary = 0u;
             }
             writeCurrentPrimary(texelPos, packedPrimary, oddFrame);

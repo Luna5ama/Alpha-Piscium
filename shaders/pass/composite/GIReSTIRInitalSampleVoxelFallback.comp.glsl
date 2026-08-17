@@ -43,7 +43,7 @@ void main() {
 
     float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
     if (viewZ <= -65536.0 || candidate.pdf <= 0.0 || !restir_initialSample_isFinite(candidate.rayDirView)) {
-        restir_initialCandidate_store(texelPos, restir_initialCandidate_makeInvalid(candidate.rayDirView));
+        restir_initialCandidate_storeResult(texelPos, restir_initialCandidate_makeInvalid(candidate.rayDirView));
         return;
     }
 
@@ -55,5 +55,5 @@ void main() {
     VoxelRay voxelRay = voxelray_setup(rayOriginWorld + rayWorldDir * 0.01, rayWorldDir, 0u);
     VoxelHit hit = voxel_traceRay(voxelRay, 256);
     candidate = restir_initialSample_buildVoxelCandidate(texelPos, rayOriginView, candidate.rayDirView, candidate.pdf, hit);
-    restir_initialCandidate_store(texelPos, candidate);
+    restir_initialCandidate_storeResult(texelPos, candidate);
 }
