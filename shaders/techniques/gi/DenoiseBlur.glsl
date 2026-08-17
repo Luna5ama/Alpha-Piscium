@@ -164,6 +164,7 @@ void main() {
             float16_t jitterR = float16_t(blurJitter.y);
             float angle = blurJitter.x * PI_2;
             float16_t rcpSamples = float16_t(1.0 / float(GI_DENOISE_SAMPLES));
+            f16vec2 initialDir = f16vec2(cos(angle), sin(angle));
 
             // --- Diffuse loop: screen-space kernel with view-angle stretch ---
             if (centerGeomData.dielectric > 0.0) {
@@ -188,7 +189,7 @@ void main() {
                 vec4 diffSum = centerDiff;
                 float weightSum = 1.0;
 
-                f16vec2 dir = f16vec2(cos(angle), sin(angle));
+                f16vec2 dir = initialDir;
                 for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
                     f16vec2 tempDir = dir;
                     dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
@@ -294,7 +295,7 @@ void main() {
                 vec4 specSum = centerSpec;
                 float weightSum = 1.0;
 
-                f16vec2 dir = f16vec2(cos(angle), sin(angle));
+                f16vec2 dir = initialDir;
                 for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
                     f16vec2 tempDir = dir;
                     dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));

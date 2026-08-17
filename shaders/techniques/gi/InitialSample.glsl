@@ -54,18 +54,22 @@ vec3 restir_initialSample_sanitizeRadiance(vec3 radiance) {
 }
 
 #ifdef RESTIR_INITIAL_CANDIDATE_WRITE
-void restir_initialCandidate_store(ivec2 texelPos, restir_InitialCandidate candidate) {
+void restir_initialCandidate_storeResult(ivec2 texelPos, restir_InitialCandidate candidate) {
     transient_restir_initialCandidate_store(texelPos, vec4(candidate.radiance, candidate.hitDistance));
+    uint packedHitNormal = candidate.hitDistance > 0.0
+        ? nzpacking_packNormalOct32(candidate.hitNormalView)
+        : 0u;
+    transient_restir_initialCandidateNormal_store(texelPos, uvec4(packedHitNormal));
+}
+
+void restir_initialCandidate_store(ivec2 texelPos, restir_InitialCandidate candidate) {
+    restir_initialCandidate_storeResult(texelPos, candidate);
     transient_restir_initialCandidateDirection_store(texelPos, uvec4(
         nzpacking_packNormalOct32(candidate.rayDirView),
         floatBitsToUint(candidate.pdf),
         0u,
         0u
     ));
-    uint packedHitNormal = candidate.hitDistance > 0.0
-        ? nzpacking_packNormalOct32(candidate.hitNormalView)
-        : 0u;
-    transient_restir_initialCandidateNormal_store(texelPos, uvec4(packedHitNormal));
 }
 #endif
 

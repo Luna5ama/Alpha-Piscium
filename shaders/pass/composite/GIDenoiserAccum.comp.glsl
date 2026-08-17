@@ -88,9 +88,6 @@ void main() {
     ivec2 texelPos = ivec2(mortonGlobalPosU);
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        transient_gi_diffMip_store(texelPos, vec4(0.0));
-        transient_gi_specMip_store(texelPos, vec4(0.0));
-        transient_geomNormalMip_store(texelPos, vec4(0.0));
         #if SETTING_DEBUG_OUTPUT && SETTING_DEBUG_TEMP_TEX == 2
         imageStore(uimg_temp2, texelPos, vec4(0.0));
         #endif
