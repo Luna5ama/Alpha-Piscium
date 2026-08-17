@@ -104,6 +104,9 @@ uniform sampler2D usam_shadow_waterNormal;
 uniform usampler2D usam_fsr3ReconstructedDepth;
 uniform sampler2D usam_fsr3UpscaleAtlas;
 #endif
+#if EXTERNAL_SR_UPSCALING_ACTIVE
+uniform sampler2D usam_superResolutionBloom;
+#endif
 
 uniform sampler2D usam_csr32f;
 

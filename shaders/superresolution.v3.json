@@ -10,7 +10,7 @@
         "enabled": true,
         "internal_format": "rgba16f",
         "auto_exposure": false,
-        "hdr": false,
+        "hdr": true,
         "motion_jittered": false,
         "supports_frame_generation_only": true,
         "pre_exposure": {
@@ -19,8 +19,8 @@
           "value": 1.0
         },
         "trigger": {
-          "type": "AFTER",
-          "pass": "composite77"
+          "type": "BEFORE",
+          "pass": "composite54"
         },
         "inputs": {
           "color": {

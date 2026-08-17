@@ -76,7 +76,7 @@
 #define RENDER_SCALE_SIXTEENTH 0.0625
 #endif
 
-#if INTERNAL_FSR3_ACTIVE
+#if UPSCALER_RECONSTRUCTION_ACTIVE
 #define POST_PROCESS_SCALE_FACTOR 1.0
 #define POST_PROCESS_SCALE_HALF 0.5
 #define POST_PROCESS_SCALE_QUARTER 0.25
@@ -105,7 +105,7 @@
 
 #ifndef SKIP_UNIFORMS
 ivec2 renderScale_postToMainTexel(ivec2 postTexel) {
-#if INTERNAL_FSR3_ACTIVE
+#if UPSCALER_RECONSTRUCTION_ACTIVE
     vec2 viewUV = (vec2(postTexel) + 0.5) * uval_viewImageSizeRcp;
     return clamp(ivec2(viewUV * uval_mainImageSize), ivec2(0), uval_mainImageSizeI - 1);
 #else

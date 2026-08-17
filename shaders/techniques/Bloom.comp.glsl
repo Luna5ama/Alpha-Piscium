@@ -80,15 +80,23 @@ vec4 _bloom_imageLoad(ivec2 coord);
 void _bloom_imageStore(ivec2 coord, vec4 data);
 vec4 _bloom_imageSample(vec2 uv);
 
-#if INTERNAL_FSR3_ACTIVE
-ivec2 fsr3Bloom_atlasTexel(ivec2 texel) {
+#if UPSCALER_RECONSTRUCTION_ACTIVE
+ivec2 upscaledBloom_atlasTexel(ivec2 texel) {
+    #if INTERNAL_FSR3_ACTIVE
     return texel + ivec2(2 * int(uval_viewImageSize.x), 0);
+    #else
+    return texel;
+    #endif
 }
 
-vec4 fsr3Bloom_sample(vec2 uv) {
+vec4 upscaledBloom_sample(vec2 uv) {
     vec2 texel = clamp(uv * POST_PROCESS_IMAGE_SIZE, vec2(0.5), POST_PROCESS_IMAGE_SIZE - 0.5);
+    #if INTERNAL_FSR3_ACTIVE
     texel.x += 2.0 * uval_viewImageSize.x;
     return texture(usam_fsr3UpscaleAtlas, texel / vec2(textureSize(usam_fsr3UpscaleAtlas, 0)));
+    #else
+    return texture(usam_superResolutionBloom, texel / vec2(textureSize(usam_superResolutionBloom, 0)));
+    #endif
 }
 #endif
 
@@ -100,8 +108,8 @@ vec4 _bloom_imageSample(vec2 uv) {
 }
 #else
 vec4 _bloom_imageSample(vec2 uv) {
-    #if INTERNAL_FSR3_ACTIVE
-    return fsr3Bloom_sample(uv);
+    #if UPSCALER_RECONSTRUCTION_ACTIVE
+    return upscaledBloom_sample(uv);
     #else
     return transient_bloom_sample(uv);
     #endif
@@ -114,7 +122,12 @@ vec4 _bloom_imageLoad(ivec2 coord) {
 #if INTERNAL_FSR3_ACTIVE
 layout(rgba16f) uniform writeonly image2D uimg_fsr3UpscaleAtlas;
 void _bloom_imageStore(ivec2 coord, vec4 data) {
-    imageStore(uimg_fsr3UpscaleAtlas, fsr3Bloom_atlasTexel(coord), vec4(data.rgb, 0.0));
+    imageStore(uimg_fsr3UpscaleAtlas, upscaledBloom_atlasTexel(coord), vec4(data.rgb, 0.0));
+}
+#elif EXTERNAL_SR_UPSCALING_ACTIVE
+layout(rgba16f) uniform writeonly image2D uimg_superResolutionBloom;
+void _bloom_imageStore(ivec2 coord, vec4 data) {
+    imageStore(uimg_superResolutionBloom, upscaledBloom_atlasTexel(coord), vec4(data.rgb, 0.0));
 }
 #else
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
@@ -126,8 +139,8 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
 
 #elif BLOOM_UP_SAMPLE
 vec4 _bloom_imageSample(vec2 uv) {
-    #if INTERNAL_FSR3_ACTIVE
-    return fsr3Bloom_sample(uv);
+    #if UPSCALER_RECONSTRUCTION_ACTIVE
+    return upscaledBloom_sample(uv);
     #else
     return transient_bloom_sample(uv);
     #endif
@@ -143,10 +156,18 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
 #if INTERNAL_FSR3_ACTIVE
 layout(rgba16f) uniform restrict image2D uimg_fsr3UpscaleAtlas;
 vec4 _bloom_imageLoad(ivec2 coord) {
-    return imageLoad(uimg_fsr3UpscaleAtlas, fsr3Bloom_atlasTexel(coord));
+    return imageLoad(uimg_fsr3UpscaleAtlas, upscaledBloom_atlasTexel(coord));
 }
 void _bloom_imageStore(ivec2 coord, vec4 data) {
-    imageStore(uimg_fsr3UpscaleAtlas, fsr3Bloom_atlasTexel(coord), vec4(data.rgb, 0.0));
+    imageStore(uimg_fsr3UpscaleAtlas, upscaledBloom_atlasTexel(coord), vec4(data.rgb, 0.0));
+}
+#elif EXTERNAL_SR_UPSCALING_ACTIVE
+layout(rgba16f) uniform restrict image2D uimg_superResolutionBloom;
+vec4 _bloom_imageLoad(ivec2 coord) {
+    return imageLoad(uimg_superResolutionBloom, upscaledBloom_atlasTexel(coord));
+}
+void _bloom_imageStore(ivec2 coord, vec4 data) {
+    imageStore(uimg_superResolutionBloom, upscaledBloom_atlasTexel(coord), vec4(data.rgb, 0.0));
 }
 #else
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
@@ -161,8 +182,8 @@ void _bloom_imageStore(ivec2 coord, vec4 data) {
 
 #endif
 
-#if INTERNAL_FSR3_ACTIVE
-ivec4 fsr3Bloom_mipTile(int level) {
+#if UPSCALER_RECONSTRUCTION_ACTIVE
+ivec4 upscaledBloom_mipTile(int level) {
     ivec4 tile = ivec4(0, 0, POST_PROCESS_IMAGE_SIZE_I);
     if (level == 0) return tile;
 
@@ -180,11 +201,11 @@ ivec4 fsr3Bloom_mipTile(int level) {
 }
 
 #if BLOOM_DOWN_SAMPLE
-ivec4 bloom_inputTile = fsr3Bloom_mipTile(BLOOM_PASS - 1);
-ivec4 bloom_outputTile = fsr3Bloom_mipTile(BLOOM_PASS);
+ivec4 bloom_inputTile = upscaledBloom_mipTile(BLOOM_PASS - 1);
+ivec4 bloom_outputTile = upscaledBloom_mipTile(BLOOM_PASS);
 #elif BLOOM_UP_SAMPLE
-ivec4 bloom_inputTile = fsr3Bloom_mipTile(BLOOM_PASS);
-ivec4 bloom_outputTile = fsr3Bloom_mipTile(BLOOM_PASS - 1);
+ivec4 bloom_inputTile = upscaledBloom_mipTile(BLOOM_PASS);
+ivec4 bloom_outputTile = upscaledBloom_mipTile(BLOOM_PASS - 1);
 #endif
 #else
 #if BLOOM_DOWN_SAMPLE
