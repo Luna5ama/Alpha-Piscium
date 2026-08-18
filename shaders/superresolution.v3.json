@@ -9,7 +9,6 @@
       "upscale": {
         "enabled": true,
         "internal_format": "rgba16f",
-        "auto_exposure": true,
         "hdr": true,
         "motion_jittered": false,
         "supports_frame_generation_only": true,
@@ -37,6 +36,11 @@
             "enabled": true,
             "src": "autotex31",
             "region": [0, 0, -1, -1]
+          },
+          "exposure": {
+            "enabled": true,
+            "src": "autotex30",
+            "region": [0, 0, 1, 1]
           }
         },
         "outputs": {

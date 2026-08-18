@@ -14,6 +14,7 @@ const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(r32ui) uniform restrict writeonly uimage2D uimg_fsr3ReconstructedDepth;
 #elif defined(GENERATE_MOTION_VECTORS_SUPER_RESOLUTION)
+layout(r32f) uniform restrict writeonly image2D uimg_superResolutionExposure;
 layout(rg16f) uniform restrict writeonly image2D uimg_superResolutionMotionVectors;
 #endif
 
@@ -62,5 +63,8 @@ void main() {
     imageStore(uimg_fsr3ReconstructedDepth, texelPos, uvec4(0u));
     #elif defined(GENERATE_MOTION_VECTORS_SUPER_RESOLUTION)
     imageStore(uimg_superResolutionMotionVectors, texelPos, vec4(motionVector, 0.0, 0.0));
+    if (all(equal(texelPos, ivec2(0)))) {
+        imageStore(uimg_superResolutionExposure, texelPos, vec4(exp2(global_aeData.expValues.z)));
+    }
     #endif
 }

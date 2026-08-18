@@ -51,6 +51,9 @@
 #define usam_voxyTranslucentColor colortex18
 #define uimg_voxyTranslucentColor colorimg18
 
+#if SUPER_RESOLUTION_ACTIVE
+#define uimg_superResolutionExposure colorimg30
+#endif
 #define uimg_superResolutionMotionVectors colorimg31
 
 // ------------------------------------------------- Shadowcolor Names -------------------------------------------------

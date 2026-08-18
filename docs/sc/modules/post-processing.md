@@ -67,9 +67,12 @@ solid 的 depth、motion 与 mask；它既不单独写 reactive mask，也不再
 [`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) 只计算一次公共的
 current-to-previous UV 向量。编译期输出宏会将其写入内部 FSR3 history，并附带 reactive/composition mask，或写入供外部
 SR 使用的渲染分辨率 `colortex31.rg`。外部路径使用 `colortex0` color、`noTranslucentDepthtex` depth 和
-`colortex31` motion，并在被禁用的内部 FSR3 与 RCAS program 之后、Bloom 之前立即触发，因此输入是常量预曝光 `1.0` 的
-exposed-linear HDR。SR 把全分辨率结果写回 `colortex0`，随后 Bloom、显示变换、曝光分析与 overlay 合成都在输出分辨率运行。
-仅帧生成模式仍读取三项输入，但不会写入 color 输出；此时渲染与后处理都使用原生分辨率。
+`colortex31` motion，以及持久化的 1x1 `colortex30.r` exposure，并在被禁用的内部 FSR3 与 RCAS program 之后、Bloom
+之前立即触发，因此输入是常量预曝光 `1.0` 的 exposed-linear HDR。
+同一个 motion-vector pass 向显式 exposure 输入写入 `exp2(global_aeData.expValues.z)`；它是上一帧的最终显示曝光倍率，
+也正是 [`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) 已施加到输入颜色的倍率。SR 把全分辨率结果写回
+`colortex0`，随后 Bloom、显示变换、曝光分析与 overlay 合成都在输出分辨率运行。仅帧生成模式仍读取四项输入，但不会写入
+color 输出；此时渲染与后处理都使用原生分辨率。
 
 当前 motion vector 覆盖相机重投影、天空、手部和 solid 表面，但不包含骨骼动画、粒子或任意程序化形变的完整逐物体运动；这些
 表面可能产生外部超采样或帧生成伪影。屏幕 overlay 也会沿用下层场景的 motion。

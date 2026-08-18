@@ -77,11 +77,14 @@ refraction noise flash between frames.
 [`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) computes the shared
 current-to-previous UV vector once. Compile-time output macros route it either to the internal FSR3 history, together
 with reactive/composition masks, or to render-resolution `colortex31.rg` for external SR. The external path uses
-`colortex0` color, `noTranslucentDepthtex` depth, and `colortex31` motion. It is triggered immediately before Bloom,
-after the disabled internal FSR3 and RCAS programs, so its input is exposed-linear HDR with constant pre-exposure `1.0`.
-SR writes the full-resolution result back to `colortex0`; Bloom, display transformation, exposure analysis, and overlay
-composition then run at output resolution. In frame-generation-only mode SR still consumes all three inputs but does
-not write the color output; render and post-processing resolutions are both native.
+`colortex0` color, `noTranslucentDepthtex` depth, `colortex31` motion, and persistent 1x1 `colortex30.r` exposure. It is
+triggered immediately before Bloom, after the disabled internal FSR3 and RCAS programs, so its input is exposed-linear
+HDR with constant pre-exposure `1.0`. The same motion-vector pass writes `exp2(global_aeData.expValues.z)` to the
+explicit exposure input; this is the previous frame's final display-exposure multiplier already applied by
+[`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) to the input color. SR writes the full-resolution
+result back to `colortex0`; Bloom, display transformation, exposure analysis, and overlay composition then run at output
+resolution. In frame-generation-only mode SR still consumes all four inputs but does not write the color output; render
+and post-processing resolutions are both native.
 
 The generated vectors cover camera reprojection, sky, hand, and solid surfaces. They do not provide complete
 per-object motion for skeletal animation, particles, or arbitrary procedural deformation; those surfaces can therefore
