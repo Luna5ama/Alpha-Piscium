@@ -35,8 +35,8 @@ struct RCCandidate {
 };
 
 const float RC_CV_ALPHA = 1.0;
-const float RC_CV_M_CAP = 128.0;
-const float RC_SPATIAL_M_CAP = 8.0;
+const float RC_CV_M_CAP = 64.0;
+const float RC_SPATIAL_M_CAP = 32.0;
 
 struct RCCVAccumulator {
     vec3 estimateSum;
