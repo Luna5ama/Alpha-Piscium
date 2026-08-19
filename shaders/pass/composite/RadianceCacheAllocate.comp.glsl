@@ -44,8 +44,9 @@ void main() {
 
         reservoirBaseIndex = subgroupBroadcast(reservoirBaseIndex, gl_SubgroupSize - 1) + classSizePrefix;
         bool overflow = activeFlag && reservoirBaseIndex + classSize > poolSize;
-        uint subgroupOverflowCount = subgroupAdd(overflow ? 1u : 0u);
-        if (subgroupOverflowCount != 0u) {
+        if (subgroupAny(overflow)) {
+            uvec4 overflowMask = subgroupBallot(overflow);
+            uint subgroupOverflowCount = uint(bitCount(overflowMask.x) + bitCount(overflowMask.y) + bitCount(overflowMask.z) + bitCount(overflowMask.w));
             if (subgroupElect()) {
                 atomicAdd(rc_poolOverflowCounter, subgroupOverflowCount);
             }

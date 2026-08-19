@@ -18,16 +18,24 @@ void main() {
     }
 
     if (idx < RC_ENTRY_COUNT) {
-        uint currentBufferIndex = rc_bufferEntryIndex(rc_currentSide(), idx);
-        uint previousBufferIndex = rc_bufferEntryIndex(rc_previousSide(), idx);
-        uint previousFeedbackIndex = rc_feedbackRecordIndex(rc_previousSide(), idx);
+        uint currentSide = rc_currentSide();
+        uint previousSide = rc_previousSide();
+        uint currentBufferIndex = rc_bufferEntryIndex(currentSide, idx);
         uvec4 currentEntry = rc_indirection[currentBufferIndex];
+        uint pendingVisibleFaceMask = rc_entryMetaPendingFaceMask(currentEntry.w);
+        if (pendingVisibleFaceMask == 0u) {
+            rc_indirection[currentBufferIndex] = uvec4(RC_INVALID, 0u, RC_INVALID, rc_entryMetaClearPendingFaces(0u));
+            rc_feedbackClearRecord(currentSide, idx);
+            return;
+        }
+
+        uint previousBufferIndex = rc_bufferEntryIndex(previousSide, idx);
+        uint previousFeedbackIndex = rc_feedbackRecordIndex(previousSide, idx);
         uvec4 previousEntry = rc_indirection[previousBufferIndex];
         uint level = rc_entryLevel(idx);
         ivec3 worldCellCoord = rc_worldCellCoordFromEntryIndex(idx);
         uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
         uint previousFaceMask = previousEntry.y & 0x3fu;
-        uint pendingVisibleFaceMask = rc_entryMetaPendingFaceMask(currentEntry.w);
         uvec2 previousFeedback = rc_feedback[previousFeedbackIndex];
 
         uint carriedFaceMask = 0u;
@@ -56,6 +64,6 @@ void main() {
         }
         rc_indirection[currentBufferIndex] = newEntry;
 
-        rc_feedbackClearRecord(rc_currentSide(), idx);
+        rc_feedbackClearRecord(currentSide, idx);
     }
 }
