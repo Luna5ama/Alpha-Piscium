@@ -19,11 +19,12 @@ bool rc_touchFace(uint level, ivec3 worldCellCoord, uint faceId) {
     uint entryIndex = rc_entryIndex(level, worldCellCoord);
     uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
     uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
+    uint faceBit = rc_faceBit(faceId);
     uint oldKey = atomicCompSwap(rc_indirection[bufferIndex].z, RC_INVALID, worldKeyHash);
     if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
         uvec4 entry = rc_indirection[bufferIndex];
         uint oldFaceMask = entry.y & 0x3fu;
-        uint newFaceMask = oldFaceMask | rc_faceBit(faceId);
+        uint newFaceMask = oldFaceMask | faceBit;
         bool canGrowFaceMask = entry.x == RC_INVALID || newFaceMask == oldFaceMask;
         if (!canGrowFaceMask) {
             uint allocatedClassSize = rc_allocClassSize(bitCount(oldFaceMask));
@@ -33,7 +34,9 @@ bool rc_touchFace(uint level, ivec3 worldCellCoord, uint faceId) {
             return false;
         }
 
-        atomicOr(rc_indirection[bufferIndex].y, rc_faceBit(faceId));
+        if (newFaceMask != oldFaceMask) {
+            atomicOr(rc_indirection[bufferIndex].y, faceBit);
+        }
         uint pendingFaceBits = rc_indirection[bufferIndex].w & RC_ENTRY_META_PENDING_FACE_MASK;
         rc_indirection[bufferIndex].w = rc_packEntryMeta(level, true) | pendingFaceBits;
         return true;

@@ -105,9 +105,14 @@ void rc_markScreenTouchedFace(uint level, ivec3 worldCellCoord, uint faceId) {
     uint entryIndex = rc_entryIndex(level, worldCellCoord);
     uint recordIndex = rc_feedbackRecordIndex(rc_currentSide(), entryIndex);
     uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
+    uint feedbackBits = rc_feedbackScreenBits(rc_faceBit(faceId));
+    uvec2 feedback = rc_feedback[recordIndex];
+    if (feedback.x == worldKeyHash && (feedback.y & feedbackBits) != 0u) {
+        return;
+    }
     uint oldKey = atomicCompSwap(rc_feedback[recordIndex].x, RC_INVALID, worldKeyHash);
     if (oldKey == RC_INVALID || oldKey == worldKeyHash) {
-        atomicOr(rc_feedback[recordIndex].y, rc_feedbackScreenBits(rc_faceBit(faceId)));
+        atomicOr(rc_feedback[recordIndex].y, feedbackBits);
     }
 }
 
