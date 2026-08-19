@@ -7,7 +7,6 @@ in vec2 mc_Entity;
 #endif
 
 in vec4 at_tangent;
-in vec4 at_midBlock;
 
 #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && SETTING_PARALLAX_MODE != 0
 in vec2 mc_midTexCoord;
@@ -15,7 +14,7 @@ flat out vec4 frag_spriteBounds;
 #endif
 
 #ifdef SETTING_TBN_PACKING
-out uint frag_worldTN;
+out uint frag_viewTN;
 #else
 out vec3 frag_worldTangent;
 out vec3 frag_worldNormal;// 11 + 11 + 10 = 32 bits
@@ -25,18 +24,20 @@ out vec3 frag_colorMul; // 8 x 4 = 32 bits
 out vec2 frag_texCoord; // 16 x 2 = 32 bits
 out vec2 frag_lmCoord; // 8 x 2 = 16 bits
 out uint frag_materialID; // 16 x 1 = 16 bits
+#ifdef GBUFFER_PASS_DH
 out float frag_emissiveOverride;
+#endif
 
 void main() {
     gl_Position = global_taaJitterMat * ftransform();
 
     vec3 viewNormal = gl_NormalMatrix * normalize(gl_Normal.xyz);
     vec3 viewTangent = gl_NormalMatrix * normalize(at_tangent.xyz);
+    #ifdef SETTING_TBN_PACKING
+    nzpacking_packNormalOct16(frag_viewTN, viewNormal, viewTangent);
+    #else
     vec3 worldNormal = coords_dir_viewToWorld(viewNormal);
     vec3 worldTangent = coords_dir_viewToWorld(viewTangent);
-    #ifdef SETTING_TBN_PACKING
-    nzpacking_packNormalOct16(frag_worldTN, worldNormal, worldTangent);
-    #else
     frag_worldTangent = worldTangent;
     frag_worldNormal = worldNormal;
     #endif
@@ -59,8 +60,6 @@ void main() {
     if (dhMaterialId == DH_BLOCK_ILLUMINATED) {
         frag_emissiveOverride = 0.8;
     }
-    #else
-    frag_emissiveOverride = at_midBlock.w;
     #endif
 
     #ifdef GBUFFER_PASS_MATERIAL_ID
