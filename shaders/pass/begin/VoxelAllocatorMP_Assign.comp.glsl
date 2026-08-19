@@ -46,7 +46,7 @@ void main() {
 
     // Accumulate allocated count using subgroup reduction to reduce atomic pressure
     uint sgCount = subgroupAdd(threadAllocCount);
-    if (subgroupElect()) {
+    if (subgroupElect() && sgCount != 0u) {
         atomicAdd(voxel_brickAllocCounter, sgCount);
     }
 }
