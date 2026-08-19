@@ -123,7 +123,7 @@ uint voxel_brickMorton(ivec3 brickCoord) {
     return morton3D_12bEncode(uvec3(brickCoord));
     #else
     // Grid=32: coords 0..31 (5-bit), Grid=64: coords 0..63 (6-bit)
-    return morton3D_30bEncode(uvec3(brickCoord));
+    return morton3D_24bEncode(uvec3(brickCoord));
     #endif
 }
 
