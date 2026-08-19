@@ -32,7 +32,7 @@ val versionStr = args.getOrElse(0) {
         }
     }
 
-    val delimiter = """\d+\.\d+\.\d+((?:-beta\d+)?)""".toRegex(RegexOption.IGNORE_CASE)
+    val versionFilePattern = """\d+\.\d+\.\d+(?:-(?:beta|hotfix)\d+)?""".toRegex(RegexOption.IGNORE_CASE)
     fun parseVersion(str: String): Version {
         val splitStr = str.split('.', '-')
         val major = splitStr[0].toInt()
@@ -56,6 +56,7 @@ val versionStr = args.getOrElse(0) {
     val changelogPath = Path("../changelogs")
     changelogPath.listDirectoryEntries("*.md").asSequence()
         .map { it.nameWithoutExtension }
+        .filter(versionFilePattern::matches)
         .map { parseVersion(it) }
         .max()
         .toString()
