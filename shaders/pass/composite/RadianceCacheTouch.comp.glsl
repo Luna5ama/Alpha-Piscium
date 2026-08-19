@@ -16,6 +16,10 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(0.25, 0.25);
 
 bool rc_touchFace(uint level, ivec3 worldCellCoord, uint faceId) {
+    if (!rc_worldCellInCurrentClip(level, worldCellCoord)) {
+        return false;
+    }
+
     uint entryIndex = rc_entryIndex(level, worldCellCoord);
     uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
     uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);

@@ -1,4 +1,3 @@
-#define GLOBAL_DATA_MODIFIER buffer
 #include "/techniques/EnvProbe.glsl"
 #include "/util/Morton.glsl"
 #include "/techniques/gi/RadianceCache.glsl"
@@ -15,9 +14,6 @@ vec3 envProbe_decodeScenePos(uvec4 packedData) {
 }
 
 void main() {
-    if (gl_GlobalInvocationID == uvec3(0)) {
-        global_dispatchSize3 = uvec4((rc_entryCounter + 127u) / 128u, 1u, 1u, 0u);
-    }
     ivec2 sliceTexelPos = ivec2(morton_32bDecode(gl_GlobalInvocationID.x));
     ivec2 sliceID = ivec2(gl_GlobalInvocationID.yz);
     ivec2 inputPos = sliceTexelPos + sliceID * ENV_PROBE_SIZEI;
