@@ -109,7 +109,7 @@ void processViewZ() {
     #if defined(GBUFFER_PASS_VIEWZ_OVERRIDE)
     viewZ = GBUFFER_PASS_VIEWZ_OVERRIDE;
     #elif defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && SETTING_PARALLAX_MODE != 0
-    #ifdef SETTING_STEEP_PARALLAX_WRITE_VIEWZ
+    #ifdef SETTING_PARALLAX_WRITE_VIEWZ
     viewZ = displacedViewZ;
     #else
     viewZ = frag_viewZ;
@@ -139,6 +139,7 @@ void processGeometryBasis() {
 #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && SETTING_PARALLAX_MODE != 0
 void processParallax() {
     processGeometryBasis();
+    int parallaxLod = max(int(textureQueryLod(normals, materialTexCoord).x + ditherNoise), 0);
 
     vec2 screenPos = gl_FragCoord.xy * uval_mainImageSizeRcp - uval_taaJitterUV;
     vec3 viewPos = coords_toViewCoord(screenPos, frag_viewZ, global_camProjInverse);
@@ -152,11 +153,11 @@ void processParallax() {
 
     vec2 atlasSize = vec2(textureSize(usam_blocksNormal, 0));
     vec2 spriteExtentTexels = max((frag_spriteBounds.zw - frag_spriteBounds.xy) * atlasSize, vec2(1.0));
-    float parallaxScale = SETTING_STEEP_PARALLAX_DEPTH / viewRayTS.z;
+    float parallaxScale = SETTING_PARALLAX_DEPTH / viewRayTS.z;
     vec2 rayDeltaTexels = -viewRayTS.xy * parallaxScale * spriteExtentTexels;
     vec2 hitTexCoord;
     float hitT;
-    if (parallax_traceParallax(materialTexCoord, frag_spriteBounds, rayDeltaTexels, hitTexCoord, hitT, parallaxSurfaceNormal)) {
+    if (parallax_traceParallax(materialTexCoord, frag_spriteBounds, rayDeltaTexels, parallaxLod, hitTexCoord, hitT, parallaxSurfaceNormal)) {
         materialTexCoord = hitTexCoord;
         displacedViewZ = frag_viewZ - viewRay.z * parallaxScale * hitT;
     }
@@ -212,7 +213,7 @@ void processData1() {
     tangentNormal.z = sqrt(saturate(1.0 - dot(tangentNormal.xy, tangentNormal.xy)));
     tangentNormal.xy *= exp2(SETTING_NORMAL_MAPPING_STRENGTH);
     tangentNormal = normalize(tangentNormal);
-    #if defined(GBUFFER_PASS_STEEP_PARALLAX) && SETTING_PARALLAX_MODE != 0 && defined(SETTING_STEEP_PARALLAX_NORMAL)
+    #if defined(GBUFFER_PASS_STEEP_PARALLAX) && SETTING_PARALLAX_MODE != 0 && defined(SETTING_PARALLAX_NORMAL)
     #if SETTING_PARALLAX_MODE == 1
     if (parallaxSurfaceNormal.x != 0.0) {
         tangentNormal = vec3(parallaxSurfaceNormal.x * tangentNormal.z, tangentNormal.y, -parallaxSurfaceNormal.x * tangentNormal.x);

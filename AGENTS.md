@@ -90,6 +90,7 @@ or AOT caches.
 - Vibris MCP is available for work that needs a live Minecraft instance, including but not limited to compiling and
   running shaders, measuring performance, comparing results, capturing runtime data, and related diagnostics.
 - Prefer Vibris for performance measurement and regression comparisons, using comparable test conditions.
+- Prioritize 720p presets over 1080p unless the user explicitly requests 1080p or 720p workload is too light to measure.
 - Use Nsight only when deeply optimizing shader code and Vibris measurements are not sufficient.
 
 ## Validation

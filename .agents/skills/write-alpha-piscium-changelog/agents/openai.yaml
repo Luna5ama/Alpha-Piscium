@@ -1,0 +1,4 @@
+interface:
+  display_name: "Alpha Piscium Changelog"
+  short_description: "Draft and finalize bilingual release changelogs"
+  default_prompt: "Use $write-alpha-piscium-changelog to draft a changelog for the next Alpha Piscium release."

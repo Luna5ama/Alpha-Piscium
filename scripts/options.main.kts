@@ -443,33 +443,13 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             4 value "平滑（B-Spline双三次）"
                         }
                     }
-                    toggle("SETTING_STEEP_PARALLAX_NORMAL", true) {
-                        lang {
-                            name = "Parallax Normal"
-                            comment = "Applies normal mapping to the parallax hit face without changing gbuffer geometry normals."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "视差法线"
-                            comment = "将法线贴图应用到视差命中面，同时不改变gbuffer几何法线。"
-                        }
-                    }
-                    slider("SETTING_STEEP_PARALLAX_DEPTH", 0.25, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Parallax Depth"
-                            comment = "Controls the maximum depth of parallax displacement in block units."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "视差深度"
-                            comment = "控制视差位移的最大深度，单位为方块。"
-                        }
-                    }
-                    slider("SETTING_STEEP_PARALLAX_MAX_ITERATIONS", 128, powerOfTwoAndHalfRange(5..8)) {
-                        Profile.Low preset 48
-                        Profile.Medium preset 64
-                        Profile.High preset 96
-                        Profile.Ultra preset 128
-                        Profile.Extreme preset 192
-                        Profile.Insane preset 256
+                    slider("SETTING_PARALLAX_MAX_ITERATIONS", 96, powerOfTwoAndHalfRange(5..8)) {
+                        Profile.Low preset 32
+                        Profile.Medium preset 48
+                        Profile.High preset 64
+                        Profile.Ultra preset 96
+                        Profile.Extreme preset 128
+                        Profile.Insane preset 192
 
                         lang {
                             name = "Parallax Max Iterations"
@@ -480,7 +460,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "层级视差追踪的最大迭代次数。数值越高，质量越好，但会降低性能。"
                         }
                     }
-                    toggle("SETTING_STEEP_PARALLAX_WRITE_VIEWZ", true) {
+                    slider("SETTING_PARALLAX_DEPTH", 0.25, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Parallax Depth"
+                            comment = "Controls the maximum depth of parallax displacement in block units."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "视差深度"
+                            comment = "控制视差位移的最大深度，单位为方块。"
+                        }
+                    }
+                    emptyRow()
+                    toggle("SETTING_PARALLAX_NORMAL", true) {
+                        lang {
+                            name = "Parallax Normal"
+                            comment = "Applies normal mapping to the parallax hit face without changing gbuffer geometry normals."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "视差法线"
+                            comment = "将法线贴图应用到视差命中面，同时不改变gbuffer几何法线。"
+                        }
+                    }
+                    toggle("SETTING_PARALLAX_WRITE_VIEWZ", true) {
                         lang {
                             name = "Parallax View Depth"
                             comment = "Writes parallax displacement to the view-depth buffer. Hardware depth remains unchanged."

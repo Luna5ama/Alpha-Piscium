@@ -217,6 +217,7 @@ bool parallax_traceParallax(
     vec2 atlasTexCoord,
     vec4 spriteBounds,
     vec2 rayDeltaTexels,
+    int minLevel,
     out vec2 hitTexCoord,
     out float hitT,
     out vec3 hitSurfaceNormal
@@ -248,6 +249,7 @@ bool parallax_traceParallax(
     #if SETTING_PARALLAX_MODE == 1
     startLevel = max(startLevel - 1, 0);
     #endif
+    minLevel = clamp(minLevel, 0, startLevel);
     int level = startLevel;
     float t = 0.0;
     #if SETTING_PARALLAX_MODE == 1
@@ -255,7 +257,7 @@ bool parallax_traceParallax(
     vec2 entryNormal = vec2(0.0);
     #endif
 
-    for (int iteration = 0; iteration < SETTING_STEEP_PARALLAX_MAX_ITERATIONS && t <= rayMaxT; iteration++) {
+    for (int iteration = 0; iteration < SETTING_PARALLAX_MAX_ITERATIONS && t <= rayMaxT; iteration++) {
         vec2 rawPosition = rayStart + rayDeltaTexels * t;
         vec2 samplePosition = spriteMin + mod(rawPosition + rayBias - spriteMin, spriteExtent);
         int cellScaleI = 1 << level;
@@ -268,7 +270,7 @@ bool parallax_traceParallax(
         vec2 cellExit = mix(cellMin, cellMax, greaterThan(rayStep, vec2(0.0)));
         vec2 tExitXY = mix(vec2(rayMaxT), t + (cellExit - samplePosition + rayStep * texelEpsilon) * rayDeltaRcp, activeAxis);
         float tExit = min(rayMaxT, min(tExitXY.x, tExitXY.y));
-        if (level == 0) {
+        if (level == minLevel) {
             bool leafHit;
             #if SETTING_PARALLAX_MODE == 1
             float surfaceDepth = 1.0 - _parallax_materialDepthMaxAlpha(cell, mipData);
@@ -280,12 +282,14 @@ bool parallax_traceParallax(
                 hitSurfaceNormal = sideHit ? vec3(entryNormal, 0.0) : vec3(0.0, 0.0, 1.0);
             }
             #else
-            vec2 localPosition = samplePosition - rayBias - vec2(cell);
+            ivec2 leafCellMin = spriteTexelMin >> level;
+            ivec2 leafCellMax = (spriteTexelMax + cellScaleI - 1) >> level;
+            vec2 localPosition = (samplePosition - rayBias) / cellScale - vec2(cell);
             float segmentLength = max(tExit - t, 0.0);
-            vec2 segmentDelta = rayDeltaTexels * segmentLength;
+            vec2 segmentDelta = rayDeltaTexels * segmentLength / cellScale;
             #if SETTING_PARALLAX_MODE == 4
             mat4 depthSamples;
-            if (all(greaterThan(cell, spriteTexelMin)) && all(lessThan(cell + ivec2(2), spriteTexelMax))) {
+            if (all(greaterThan(cell, leafCellMin)) && all(lessThan(cell + ivec2(2), leafCellMax))) {
                 vec4 gather00 = 1.0 - _parallax_gatherMaterialDepthAlpha(cell + ivec2(-1), mipData, packedTexelRcp);
                 vec4 gather10 = 1.0 - _parallax_gatherMaterialDepthAlpha(cell + ivec2(1, -1), mipData, packedTexelRcp);
                 vec4 gather01 = 1.0 - _parallax_gatherMaterialDepthAlpha(cell + ivec2(-1, 1), mipData, packedTexelRcp);
@@ -299,41 +303,41 @@ bool parallax_traceParallax(
             } else {
                 depthSamples = mat4(
                     vec4(
-                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, -1), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(0, -1), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(1, -1), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(2, -1), spriteTexelMin, spriteTexelMax, mipData)
+                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, -1), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(0, -1), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(1, -1), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(2, -1), leafCellMin, leafCellMax, mipData)
                     ),
                     vec4(
-                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, 0), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(0, 0), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(1, 0), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(2, 0), spriteTexelMin, spriteTexelMax, mipData)
+                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, 0), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(0, 0), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(1, 0), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(2, 0), leafCellMin, leafCellMax, mipData)
                     ),
                     vec4(
-                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, 1), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(0, 1), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(1, 1), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(2, 1), spriteTexelMin, spriteTexelMax, mipData)
+                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, 1), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(0, 1), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(1, 1), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(2, 1), leafCellMin, leafCellMax, mipData)
                     ),
                     vec4(
-                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, 2), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(0, 2), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(1, 2), spriteTexelMin, spriteTexelMax, mipData),
-                        _parallax_wrappedMaterialDepth(cell + ivec2(2, 2), spriteTexelMin, spriteTexelMax, mipData)
+                        _parallax_wrappedMaterialDepth(cell + ivec2(-1, 2), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(0, 2), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(1, 2), leafCellMin, leafCellMax, mipData),
+                        _parallax_wrappedMaterialDepth(cell + ivec2(2, 2), leafCellMin, leafCellMax, mipData)
                     )
                 );
             }
             #else
             vec4 depths;
-            if (all(lessThan(cell + ivec2(1), spriteTexelMax))) {
+            if (all(lessThan(cell + ivec2(1), leafCellMax))) {
                 depths = 1.0 - _parallax_gatherMaterialDepthAlpha(cell, mipData, packedTexelRcp);
             } else {
                 depths = vec4(
-                    _parallax_wrappedMaterialDepth(cell, spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(1, 0), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(0, 1), spriteTexelMin, spriteTexelMax, mipData),
-                    _parallax_wrappedMaterialDepth(cell + ivec2(1), spriteTexelMin, spriteTexelMax, mipData)
+                    _parallax_wrappedMaterialDepth(cell, leafCellMin, leafCellMax, mipData),
+                    _parallax_wrappedMaterialDepth(cell + ivec2(1, 0), leafCellMin, leafCellMax, mipData),
+                    _parallax_wrappedMaterialDepth(cell + ivec2(0, 1), leafCellMin, leafCellMax, mipData),
+                    _parallax_wrappedMaterialDepth(cell + ivec2(1), leafCellMin, leafCellMax, mipData)
                 );
             }
             #endif
@@ -375,7 +379,7 @@ bool parallax_traceParallax(
                 hitT = t + segmentLength * hitSegment;
                 vec2 hitPosition = localPosition + segmentDelta * hitSegment;
                 vec2 depthGradient = vec2(depthX + depthXY * hitPosition.y, depthY + depthXY * hitPosition.x);
-                hitSurfaceNormal = vec3(depthGradient * SETTING_STEEP_PARALLAX_DEPTH * spriteExtent, 1.0);
+                hitSurfaceNormal = vec3(depthGradient * SETTING_PARALLAX_DEPTH * spriteExtent / cellScale, 1.0);
             }
             #else
             #if SETTING_PARALLAX_MODE == 3
@@ -535,7 +539,7 @@ bool parallax_traceParallax(
                 hitT = t + segmentLength * hitSegment;
                 vec2 hitPosition = localPosition + segmentDelta * hitSegment;
                 vec2 depthGradient = _parallax_continuousParallaxSurface(depths, hitPosition).yz;
-                hitSurfaceNormal = vec3(depthGradient * SETTING_STEEP_PARALLAX_DEPTH * spriteExtent, 1.0);
+                hitSurfaceNormal = vec3(depthGradient * SETTING_PARALLAX_DEPTH * spriteExtent / cellScale, 1.0);
             }
             #endif
             #endif
