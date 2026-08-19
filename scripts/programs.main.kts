@@ -316,13 +316,10 @@ programs {
             "/techniques/rtwsm/GetWarp.comp.glsl",
             "/pass/composite/ExposureMip.comp.glsl"
         )
-        pass(
-            "/pass/composite/ExposureGather.comp.glsl",
-            "/techniques/rtwsm/Write2DWarp.comp.glsl"
-        )
-        pass(
-            "/pass/composite/FinalGlobalDataUpdate.comp.glsl",
-            "/pass/composite/OverlayComposite.comp.glsl"
-        )
+        pass("/pass/composite/ExposureGather.comp.glsl") {
+            cond("defined(SETTING_DEBUG_AE)")
+        }
+        pass("/techniques/rtwsm/Write2DWarp.comp.glsl")
+        pass("/pass/composite/OverlayComposite.comp.glsl")
     }
 }

@@ -22,6 +22,8 @@ void main() {
         outputColor.rgb *= exp2(global_aeData.expValues.z);
         outputColor.rgb = agxInvertible_forward(outputColor.rgb);
         imageStore(uimg_main, texelPos, outputColor);
+        #ifdef SETTING_BLOOM
         transient_bloom_store(texelPos, vec4(0.0));
+        #endif
     }
 }

@@ -33,7 +33,7 @@ uvec4 RCasConfig() {
 
 #include "ffx_fsr1_rcas.glsl"
 
-layout(local_size_x = 16, local_size_y = 16) in;
+layout(local_size_x = 16, local_size_y = 8) in;
 
 void main() {
     ivec2 pos = ivec2(gl_GlobalInvocationID.xy);

@@ -8,7 +8,7 @@
 #include "/util/MaterialIDConst.glsl"
 #include "/util/AgxInvertible.glsl"
 
-layout(local_size_x = 16, local_size_y = 16) in;
+layout(local_size_x = 16, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
@@ -19,8 +19,8 @@ layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 #ifdef SETTING_TAA
 
 // Shared memory with padding for 4x4 tap (-2 to +2)
-// Each work group is 16x16, need +2 padding on each side for Lanczos2 4x4 taps
-shared vec3 shared_colorData[20][20];
+// Each work group needs +2 padding on each side for Lanczos2 4x4 taps
+shared vec3 shared_colorData[12][20];
 shared vec4 shared_weightsX;
 shared vec4 shared_weightsY;
 shared float shared_kernelDist2[9];
@@ -58,14 +58,8 @@ vec3 clipAABB(vec3 avg, vec3 sigma, vec3 prev) {
     return avg + dir / t_max;
 }
 
-float kernelWeight(vec2 centerPos, vec2 samplePos, float param) {
-    vec2 diff = abs(samplePos - centerPos);
-    float dist2 = dot(diff, diff);
-    return exp(param * dist2);
-}
-
 void loadSharedColorData(uvec2 groupOriginTexelPos, uint index) {
-    if (index < 400u) { // 20 * 20 = 400
+    if (index < 240u) { // 20 * 12 = 240
         uvec2 sharedXY = uvec2(index % 20u, index / 20u);
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2;
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
@@ -80,11 +74,11 @@ void main() {
     vec2 screenPos = texelCenter * uval_mainImageSizeRcp;
 
     // Calculate work group origin for shared memory loading
-    uvec2 workGroupOrigin = gl_WorkGroupID.xy << 4u; // * 16
+    uvec2 workGroupOrigin = uvec2(gl_WorkGroupID.x << 4u, gl_WorkGroupID.y << 3u);
 
-    // Load shared memory cooperatively (20x20 = 400 elements, 16x16 = 256 threads)
+    // Load shared memory cooperatively (20x12 = 240 elements, 16x8 = 128 threads)
     loadSharedColorData(workGroupOrigin, gl_LocalInvocationIndex);
-    loadSharedColorData(workGroupOrigin, gl_LocalInvocationIndex + 256u);
+    loadSharedColorData(workGroupOrigin, gl_LocalInvocationIndex + 128u);
 
     if (gl_LocalInvocationIndex == 0u) {
         vec2 pixelPosFract = fract(uval_taaJitter);
@@ -156,8 +150,8 @@ void main() {
                     tapData5
                 );
                 #elif SETTING_TAA_HISTORY_FILTER == 2
-                CatmullRomBicubic9TapData tapData9 = sampling_catmullRomBicubic9Tap_init(prevTexelPos, uval_mainImageSizeRcp);
-                prevResult = sampling_catmullRomBicubic9Tap_sum(
+                Separable9TapData tapData9 = sampling_catmullRomBicubic9Tap_init(prevTexelPos, uval_mainImageSizeRcp);
+                prevResult = sampling_separable9Tap_sum(
                     history_taa_sample(tapData9.uv00),
                     history_taa_sample(tapData9.uv12_0),
                     history_taa_sample(tapData9.uv30),
@@ -169,18 +163,13 @@ void main() {
                     history_taa_sample(tapData9.uv33),
                     tapData9
                 );
-                #else
+                #elif SETTING_TAA_HISTORY_FILTER == 3
                 vec2 centerPixel = prevTexelPos - 0.5;
                 vec2 centerPixelOrigin = floor(centerPixel);
                 vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
-                #if SETTING_TAA_HISTORY_FILTER == 3
                 vec4 weightX = sampling_catmullRomWeights(pixelPosFract.x);
                 vec4 weightY = sampling_catmullRomWeights(pixelPosFract.y);
-                #elif SETTING_TAA_HISTORY_FILTER == 4
-                vec4 weightX = sampling_lanczoc2Weights(pixelPosFract.x);
-                vec4 weightY = sampling_lanczoc2Weights(pixelPosFract.y);
-                #endif
 
                 ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
                 float weightSum = 0.0;
@@ -194,6 +183,20 @@ void main() {
                     }
                 }
                 prevResult /= weightSum;
+                #else
+                Separable9TapData tapData9 = sampling_lanczos2Separable9Tap_init(prevTexelPos, uval_mainImageSizeRcp);
+                prevResult = sampling_separable9Tap_sum(
+                    history_taa_sample(tapData9.uv00),
+                    history_taa_sample(tapData9.uv12_0),
+                    history_taa_sample(tapData9.uv30),
+                    history_taa_sample(tapData9.uv01_2),
+                    history_taa_sample(tapData9.uv12_12),
+                    history_taa_sample(tapData9.uv31_2),
+                    history_taa_sample(tapData9.uv03),
+                    history_taa_sample(tapData9.uv12_3),
+                    history_taa_sample(tapData9.uv33),
+                    tapData9
+                );
                 #endif
             }
             prevColor = max(prevResult.rgb, 0.0);
@@ -205,7 +208,6 @@ void main() {
         {
             vec2 centerPixel = unjitterTexelPos - 0.5;
             vec2 centerPixelOrigin = floor(centerPixel);
-            vec2 pixelPosFract = centerPixel - centerPixelOrigin;
 
             vec4 weightX = shared_weightsX;
             vec4 weightY = shared_weightsY;
@@ -275,16 +277,15 @@ void main() {
 
             const float clippingEps = FLT_MIN;
             vec3 delta = prevColorYCoCg - mean;
-            delta /= max(1.0, length(delta / stddev));
+            vec3 normalizedDelta = delta * safeRcp(stddev);
+            delta *= inversesqrt(max(dot(normalizedDelta, normalizedDelta), 1.0));
 
-            vec3 prevColorYCoCgAABBClamped = clamp(prevColorYCoCg, box.minVal, box.maxVal);
-            prevColorYCoCgAABBClamped = clipAABB((box.maxVal + box.minVal) * 0.5, (box.maxVal - box.minVal) * 0.5 + clippingEps, prevColorYCoCgAABBClamped);
+            vec3 prevColorYCoCgAABBClamped = clipAABB((box.maxVal + box.minVal) * 0.5, (box.maxVal - box.minVal) * 0.5 + clippingEps, prevColorYCoCg);
 
-            vec3 prevColorYCoCgVarianceAABBClamped = clamp(prevColorYCoCgAABBClamped, varianceAABBMin, varianceAABBMax);
-            prevColorYCoCgVarianceAABBClamped = clipAABB(mean, stddev * varianceAABBSize, prevColorYCoCgVarianceAABBClamped);
+            vec3 prevColorYCoCgVarianceAABBClamped = clipAABB(mean, stddev * varianceAABBSize, prevColorYCoCg);
 
-            vec3 prevColorYCoCgEllipsoid = clamp(mean + delta, box.minVal, box.maxVal);
-            prevColorYCoCgEllipsoid = clamp(prevColorYCoCgEllipsoid, varianceAABBMin, varianceAABBMax);
+            vec3 prevColorYCoCgEllipsoid = clamp(mean + delta, varianceAABBMin, varianceAABBMax);
+            prevColorYCoCgEllipsoid = clipAABB(mean, stddev * varianceAABBSize, prevColorYCoCgEllipsoid);
 
             float clampMethod = taaResetFactor.y;
 

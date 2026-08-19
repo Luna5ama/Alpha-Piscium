@@ -1,12 +1,12 @@
 #include "/util/Colors2.glsl"
 
-layout(local_size_x = 16, local_size_y = 16) in;
+layout(local_size_x = 16, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict image2D uimg_rgba16f;
 
-// 18x18 shared memory: 16x16 workgroup + 1 px border each side
-shared vec4 s_data[18][18];
+// 18x10 shared memory: 16x8 workgroup + 1 px border each side
+shared vec4 s_data[10][18];
 
 float fxaa_luma(vec3 rgb) {
     return mmax3(rgb);
@@ -14,11 +14,11 @@ float fxaa_luma(vec3 rgb) {
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
-    uvec2 groupOrigin = gl_WorkGroupID.xy << 4u;
+    uvec2 groupOrigin = uvec2(gl_WorkGroupID.x << 4u, gl_WorkGroupID.y << 3u);
 
-    // Cooperatively load 18*18 = 324 texels using 256 threads (2 rounds)
+    // Cooperatively load 18*10 = 180 texels using 128 threads (2 rounds)
     uint idx = gl_LocalInvocationIndex;
-    for (uint i = idx; i < 324u; i += 256u) {
+    for (uint i = idx; i < 180u; i += 128u) {
         uvec2 sxy = uvec2(i % 18u, i / 18u);
         ivec2 src = ivec2(groupOrigin) + ivec2(sxy) - 1;
         src = clamp(src, ivec2(0), uval_mainImageSizeI - 1);
