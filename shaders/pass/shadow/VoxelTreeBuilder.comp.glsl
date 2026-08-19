@@ -51,6 +51,8 @@ shared uint rootMaskLo[4];
 shared uint rootMaskHi[4];
 shared uint adjacentBrickAllocIDs[24];
 shared uvec2 brickOpaqueMasks[256];
+shared ivec3 gridOrigin;
+shared ivec3 brickBlockBase[4];
 
 bool voxel_isGIOpaqueMaterial(uint materialData) {
     return materialData >= 4u;
@@ -84,14 +86,17 @@ void main() {
     if (subRegion == 0u) {
         rootMaskLo[groupBrick] = 0u;
         rootMaskHi[groupBrick] = 0u;
+        brickBlockBase[groupBrick] = ivec3(morton3D_30bDecode(brickMorton) << 4u);
+        if (groupBrick == 0u) {
+            ivec3 cameraBrick = cameraPositionInt >> 4;
+            gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
+        }
     }
     uint allocID = voxel_brickAllocID[brickMorton];
     uint leafLow  = 0u;
     uint leafHigh = 0u;
     uint opaqueLow = 0u;
     uint opaqueHigh = 0u;
-    ivec3 gridOrigin;
-    ivec3 brickBlockBase;
     ivec3 subRegionCoord;
     ivec3 subRegionBlockBase;
 
@@ -117,10 +122,6 @@ void main() {
         // All 64 entries are contiguous, so read 4-at-a-time as uvec4.
         uint baseIdx = allocID * 1024u + subRegion * 16u;
 
-        ivec3 cameraBrick = cameraPositionInt >> 4;
-        gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
-        uvec3 brickCoordU = morton3D_30bDecode(brickMorton);
-        brickBlockBase = ivec3(brickCoordU << 4u);
         subRegionCoord = ivec3(morton3D_6bDecode(subRegion));
         subRegionBlockBase = subRegionCoord << 2;
 
@@ -152,7 +153,7 @@ void main() {
                 opaqueMask &= opaqueMask - 1u;
                 ivec3 blockInSubRegionCoord = ivec3(morton3D_6bDecode(blockInSubRegion));
                 ivec3 blockInBrick = subRegionBlockBase + blockInSubRegionCoord;
-                ivec3 gridBlockPos = brickBlockBase + blockInBrick;
+                ivec3 gridBlockPos = brickBlockBase[groupBrick] + blockInBrick;
                 ivec3 worldBlockPos = gridOrigin + gridBlockPos;
 
                 uint faceBits = 0u;
