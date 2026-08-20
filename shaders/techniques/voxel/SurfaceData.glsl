@@ -16,7 +16,7 @@ voxel_SurfaceData voxel_sampleVoxelSurface(VoxelHit hit, float lod) {
     surface.valid = false;
     surface.material = material_init();
 
-    if (!hit.hit || hit.materialID == 0u || hit.materialID == MATERIAL_ID_WATER) {
+    if (hit.materialID == 0u || hit.materialID == MATERIAL_ID_WATER) {
         return surface;
     }
 
