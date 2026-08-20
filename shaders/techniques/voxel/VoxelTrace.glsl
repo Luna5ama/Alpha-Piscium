@@ -218,7 +218,19 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
             uint maskPart = voxel_treeScalar[_voxel_levelOffsets[level] + (mortonPrefix >> 5u)];
             bool isHit = bool((maskPart >> (mortonPrefix & 31u)) & 1u);
 
+            #if defined(RESTIR_INITIAL_CANDIDATE_WRITE) || defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
+            if (isHit && level != 1) {
+                level--;
+                #if VOXEL_TRACE_DEBUG_COUNTERS
+                debugCounters.y++;
+                #endif
+                continue;
+            }
+
+            if (isHit) {
+            #else
             if (isHit && level == 1) {
+            #endif
                 uint allocID = voxel_brickAllocID[fullMorton >> 12u];
                 uint materialData = voxel_materials[(allocID << 12u) + (fullMorton & 0xFFFu)];
                 uint material = voxel_decodeMaterialID(materialData);
@@ -273,12 +285,14 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                 isHit = false;
             }
 
+            #if !defined(RESTIR_INITIAL_CANDIDATE_WRITE) && !defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
             if (isHit) {
                 level--;
                 #if VOXEL_TRACE_DEBUG_COUNTERS
                 debugCounters.y++;
                 #endif
             } else {
+            #endif
                 // ---- Empty child — skip to exit of child cell ----
                 #if VOXEL_TRACE_DEBUG_COUNTERS
                 if (level == 1) debugCounters.w++;
@@ -334,7 +348,9 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                 uint mortonDiff = oldFullMorton ^ fullMorton;
                 int newLevel = ((findMSB(mortonDiff) * 43) >> 8) + 1;
                 level = newLevel;
+            #if !defined(RESTIR_INITIAL_CANDIDATE_WRITE) && !defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
             }
+            #endif
         }
 
         // Write back state for resumption if still active (not done)
