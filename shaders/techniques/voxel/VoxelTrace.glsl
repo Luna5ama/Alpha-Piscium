@@ -189,9 +189,8 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
         // ---- Precompute DDA stepping ----
         ivec3 directionSign = floatBitsToInt(worldRayDir) >> 31;
         ivec3 boundOffsetMask = ~directionSign;
-        uint rayFaceMask = uint((boundOffsetMask.x & 1) + 1) |
-            uint(((boundOffsetMask.y & 1) + 1) << 2) |
-            uint(((boundOffsetMask.z & 1) + 1) << 4);
+        uint rayFaceMask = uint(42 + directionSign.x +
+            (directionSign.y << 2) + (directionSign.z << 4));
         vec3 tOrig = -posGrid * invDir;
         ivec3 stepDir = reuseDirectionSign ? (boundOffsetMask & 2) - 1 : ivec3(sign(worldRayDir));
         ivec3 stepBack = reuseDirectionSign ? directionSign : min(stepDir, ivec3(0));
