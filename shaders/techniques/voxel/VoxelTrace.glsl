@@ -297,6 +297,13 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
 
                 ivec3 cellMax = cellMin + sizeMask.y - 1;
                 ivec3 exitBlockPos = target + stepBack;
+                #ifdef INCLUDE_techniques_gi_PairwiseMISMetadata_glsl
+                ivec3 tracedBlockPos = clamp(
+                    ivec3(floor(fma(worldRayDir, vec3(lastT), posGrid))), cellMin, cellMax
+                );
+                blockPos = mix(exitBlockPos, tracedBlockPos, nonExitMask);
+                lastAxis = !nonExitMask.x ? 0 : (!nonExitMask.y ? 1 : 2);
+                #else
                 blockPos = exitBlockPos;
                 if (nonExitMask.z) {
                     blockPos.z = clamp(int(floor(fma(worldRayDir.z, lastT, posGrid.z))), cellMin.z, cellMax.z);
@@ -313,6 +320,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                 } else {
                     lastAxis = 0;
                 }
+                #endif
 
                 if (uint(blockPos.x | blockPos.y | blockPos.z) >= uint(GRID_BLOCKS)) {
                     level = 0;
