@@ -42,7 +42,7 @@ void main() {
     );
 
     float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
-    if (viewZ <= -65536.0 || candidate.pdf <= 0.0 || !restir_initialSample_isFinite(candidate.rayDirView)) {
+    if (viewZ <= -65536.0 || candidate.pdf <= 0.0) {
         restir_initialCandidate_storeResult(texelPos, restir_initialCandidate_makeInvalid(candidate.rayDirView));
         return;
     }
