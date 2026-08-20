@@ -82,6 +82,21 @@ val allIds = Regex("(?m)^block\\.(\\d+) =").findAll(mappings).map { it.groupValu
 val materialCount = allIds.maxOrNull()!! + 1
 if (materialCount > 65536) failures += "material count exceeds packed 16-bit ID: $materialCount"
 fun voxelMaterialData(materialID: Int, fullCube: Boolean) = (materialID shl 1) or if (fullCube) 1 else 0
+fun spreadMortonBits(value: Int) = (0 until 10).fold(0) { result, bit ->
+    result or (((value ushr bit) and 1) shl (bit * 3))
+}
+fun splitSpreadMortonBits(value: Int): Int {
+    val high = value ushr 8
+    return spreadMortonBits(value and 255) +
+        ((high and 1) shl 24) +
+        ((high and 2) shl 26)
+}
+for (value in 0 until 1024) {
+    if (splitSpreadMortonBits(value) != spreadMortonBits(value)) {
+        failures += "split Morton spread failed: $value"
+    }
+}
+expect(trace, "shared uint _voxel_spreadLUT[256]", "compact Morton spread LUT")
 for (materialID in 0 until 65536) {
     for (fullCube in listOf(false, true)) {
         val materialData = voxelMaterialData(materialID, fullCube)
