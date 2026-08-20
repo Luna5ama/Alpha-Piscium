@@ -229,7 +229,7 @@ void main() {
                     vec3 worldPos = coords_pos_viewToWorld(rayOriginView, gbufferModelViewInverse) + vec3(cameraPositionInt) + cameraPositionFract;
                     vec3 worldDir = coords_dir_viewToWorld(rayOffsetView * rcp(expectedHitDistance));
                     VoxelRay voxelRay = voxelray_setup(worldPos, worldDir, 0u);
-                    VoxelHit hit = voxel_traceRay(voxelRay, 128);
+                    VoxelHit hit = voxel_traceRay(voxelRay, 128, true);
                     vec3 expectedHitPos = worldPos + worldDir * expectedHitDistance;
                     discardSptialReuse = !hit.hit || distanceSq(hit.hitPos, expectedHitPos) > 0.05;
                 }

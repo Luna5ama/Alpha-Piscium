@@ -53,7 +53,7 @@ void main() {
     vec3 rayWorldDir = coords_dir_viewToWorld(candidate.rayDirView);
 
     VoxelRay voxelRay = voxelray_setup(rayOriginWorld + rayWorldDir * 0.01, rayWorldDir, 0u);
-    VoxelHit hit = voxel_traceRay(voxelRay, 256);
+    VoxelHit hit = voxel_traceRay(voxelRay, 256, true);
     candidate = restir_initialSample_buildVoxelCandidate(texelPos, rayOriginView, candidate.rayDirView, candidate.pdf, hit);
     restir_initialCandidate_storeResult(texelPos, candidate);
 }

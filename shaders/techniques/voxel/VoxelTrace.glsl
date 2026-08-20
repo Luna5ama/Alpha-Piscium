@@ -168,7 +168,7 @@ VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData
 // ---------------------------------------------------------------------------
 // Primary trace function (stateful)
 // ---------------------------------------------------------------------------
-VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
+VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSign) {
     #if VOXEL_TRACE_DEBUG_COUNTERS
     ivec4 debugCounters = ivec4(0);
     #endif
@@ -187,13 +187,14 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
         vec3 invDir = 1.0 / worldRayDir;
 
         // ---- Precompute DDA stepping ----
-        ivec3 boundOffsetMask = ~(floatBitsToInt(worldRayDir) >> 31);
+        ivec3 directionSign = floatBitsToInt(worldRayDir) >> 31;
+        ivec3 boundOffsetMask = ~directionSign;
         uint rayFaceMask = uint((boundOffsetMask.x & 1) + 1) |
             uint(((boundOffsetMask.y & 1) + 1) << 2) |
             uint(((boundOffsetMask.z & 1) + 1) << 4);
         vec3 tOrig = -posGrid * invDir;
-        ivec3 stepDir = ivec3(sign(worldRayDir));
-        ivec3 stepBack = min(stepDir, ivec3(0));
+        ivec3 stepDir = reuseDirectionSign ? (boundOffsetMask & 2) - 1 : ivec3(sign(worldRayDir));
+        ivec3 stepBack = reuseDirectionSign ? directionSign : min(stepDir, ivec3(0));
 
         // ---- Seed DDA state from ray ----
         float lastT = ray.lastT;
@@ -347,6 +348,10 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
     result.debugCounters = debugCounters;
     #endif
     return result;
+}
+
+VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
+    return voxel_traceRay(ray, maxSteps, false);
 }
 
 #endif // INCLUDE_techniques_VoxelTrace_glsl
