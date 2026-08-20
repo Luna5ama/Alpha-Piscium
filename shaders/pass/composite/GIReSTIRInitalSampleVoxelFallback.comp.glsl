@@ -54,6 +54,8 @@ void main() {
 
     VoxelRay voxelRay = voxelray_setup(rayOriginWorld + rayWorldDir * 0.01, rayWorldDir, 0u);
     VoxelHit hit = voxel_traceRay(voxelRay, 256, true);
-    candidate = restir_initialSample_buildVoxelCandidate(texelPos, rayOriginView, candidate.rayDirView, candidate.pdf, hit);
+    candidate = restir_initialSample_buildVoxelCandidate(
+        texelPos, rayOriginWorld, candidate.rayDirView, rayWorldDir, candidate.pdf, hit
+    );
     restir_initialCandidate_storeResult(texelPos, candidate);
 }
