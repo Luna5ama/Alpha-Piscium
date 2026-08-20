@@ -44,7 +44,7 @@ restir_InitialCandidate restir_initialCandidate_init() {
 }
 
 bool restir_initialSample_isFinite(vec3 value) {
-    return !any(isnan(value)) && !any(isinf(value));
+    return all(lessThanEqual(abs(value), vec3(FLT_MAX)));
 }
 
 vec3 restir_initialSample_sanitizeRadiance(vec3 radiance) {
