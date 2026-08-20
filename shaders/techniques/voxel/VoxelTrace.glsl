@@ -46,34 +46,34 @@ layout(std430, binding = 8) restrict readonly buffer VoxelTreeData {
 // Internal helpers
 // ---------------------------------------------------------------------------
 
-#if VOXEL_GRID_SIZE == 16
 uint _voxel_spreadBits(uint x) {
     x = (x * 257u) & 0x00F00Fu;
     x = (x * 17u) & 0x0C30C3u;
     x = (x * 5u) & 0x249249u;
     return x;
 }
-#else
-uint _voxel_spreadBits(uint x) {
-    x &= 0x000003FFu;
-    x = (x * 0x00010001u) & 0xFF0000FFu;
-    x = (x * 0x00000101u) & 0x0F00F00Fu;
-    x = (x * 0x00000011u) & 0xC30C30C3u;
-    x = (x * 0x00000005u) & 0x49249249u;
-    return x;
-}
-#endif
 
 shared uint _voxel_levelOffsets[6];
 shared ivec2 _voxel_levelSizeMask[6];
-shared uint _voxel_spreadLUT[VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE];
+shared uint _voxel_spreadLUT[256];
 shared vec3 _voxel_gridOriginF;
 
 uint _voxel_packBlockPos(ivec3 blockPos) {
+    uvec3 pos = uvec3(blockPos);
+    uvec3 spreadPos = uvec3(
+        _voxel_spreadLUT[pos.x & 255u],
+        _voxel_spreadLUT[pos.y & 255u],
+        _voxel_spreadLUT[pos.z & 255u]
+    );
+    #if VOXEL_GRID_SIZE >= 32
+    uvec3 high = pos >> 8u;
+    spreadPos += (high & 1u) << 24u;
+    #if VOXEL_GRID_SIZE == 64
+    spreadPos += (high & 2u) << 26u;
+    #endif
+    #endif
     // Integer add/sub is 2x faster on Nvidia GPUs
-    return _voxel_spreadLUT[uint(blockPos.x)] +
-        (_voxel_spreadLUT[uint(blockPos.y)] << 1u) +
-        (_voxel_spreadLUT[uint(blockPos.z)] << 2u);
+    return spreadPos.x + (spreadPos.y << 1u) + (spreadPos.z << 2u);
 }
 
 void voxel_initShared() {
@@ -93,7 +93,7 @@ void voxel_initShared() {
     }
 
     uint localSize = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
-    uint lutSize = uint(VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE);
+    const uint lutSize = 256u;
     for (uint i = gl_LocalInvocationIndex; i < lutSize; i += localSize) {
         _voxel_spreadLUT[i] = _voxel_spreadBits(i);
     }
