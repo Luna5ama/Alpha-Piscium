@@ -36,15 +36,15 @@ void _voxel_intersectBlockModelAxisAlignedQuad(
     int axis;
     if (originNormalX.w < 253.5 / 255.0) {
         t = (origin.x - rayOrigin.x) * inverseRayDir.x;
-        projected = abs(rayOrigin.yz + rayDir.yz * t - origin.yz);
+        projected = abs(fma(rayDir.yz, vec2(t), rayOrigin.yz - origin.yz));
         axis = 0;
     } else if (originNormalX.w < 254.5 / 255.0) {
         t = (origin.y - rayOrigin.y) * inverseRayDir.y;
-        projected = abs(rayOrigin.xz + rayDir.xz * t - origin.xz);
+        projected = abs(fma(rayDir.xz, vec2(t), rayOrigin.xz - origin.xz));
         axis = 1;
     } else {
         t = (origin.z - rayOrigin.z) * inverseRayDir.z;
-        projected = abs(rayOrigin.xy + rayDir.xy * t - origin.xy);
+        projected = abs(fma(rayDir.xy, vec2(t), rayOrigin.xy - origin.xy));
         axis = 2;
     }
     if (!(t >= 0.0 && t <= hitT)) return;
