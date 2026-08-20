@@ -238,14 +238,8 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
                     result.hitPos = fma(worldRayDir, vec3(lastT), worldRayOrigin);
                     result.materialID = material;
 
-                    result.normal = vec3(0.0);
-                    if (lastAxis == 0) {
-                        result.normal.x = -float(stepDir.x);
-                    } else if (lastAxis == 1) {
-                        result.normal.y = -float(stepDir.y);
-                    } else {
-                        result.normal.z = -float(stepDir.z);
-                    }
+                    vec3 normalDir = -vec3(stepDir);
+                    result.normal = normalDir * vec3(equal(ivec3(lastAxis), ivec3(0, 1, 2)));
                     ray.level = 0;
 
                     #if VOXEL_TRACE_DEBUG_COUNTERS
