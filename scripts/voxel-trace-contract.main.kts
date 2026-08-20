@@ -248,9 +248,8 @@ if (Files.exists(faceMaskPath) || Files.exists(faceMaskImplementationPath)) fail
 reject(programs, Regex("VoxelFaceMask"), "voxel face-mask program registration")
 reject(voxelization, Regex("open-face mask|0xFFFFu"), "packed face-mask material layout")
 reject(trace, Regex("packedMaterial|openFaceMask|>>\\s*16u"), "packed neighbor face-mask consumption")
-expect(trace, "uint rayFaceMask = uint((boundOffsetMask.x & 1) + 1) |", "ray X face selection")
-expect(trace, "uint(((boundOffsetMask.y & 1) + 1) << 2) |", "ray Y face selection")
-expect(trace, "uint(((boundOffsetMask.z & 1) + 1) << 4);", "ray Z face selection")
+expect(trace, "uint rayFaceMask = uint(42 + directionSign.x +", "ray X face selection")
+expect(trace, "(directionSign.y << 2) + (directionSign.z << 4));", "ray YZ face selection")
 expect(trace, "bool isHit = bool((maskPart >> (mortonPrefix & 31u)) & 1u);", "direct child occupancy bit index")
 reject(trace, Regex("uint\\s+childIdx\\s*="), "redundant 6-bit child index")
 expect(initialTrace, "#define VOXEL_TRACE_TRUST_MATERIAL_ID", "trusted initial trace material ID")
@@ -267,7 +266,12 @@ if (Regex("textureSize\\s*\\(\\s*usam_pbrLUT[012]").findAll(trace).count() != 3)
 expect(trace, "uint lookupMaterial = isKnown ? material : 0u;", "safe default model lookup material")
 fun rayFaceMask(positiveX: Boolean, positiveY: Boolean, positiveZ: Boolean) =
     (if (positiveX) 2u else 1u) or (if (positiveY) 8u else 4u) or (if (positiveZ) 32u else 16u)
-if (rayFaceMask(true, true, true) != 42u || rayFaceMask(false, false, false) != 21u) {
+fun directionSignFaceMask(positiveX: Boolean, positiveY: Boolean, positiveZ: Boolean) =
+    (42 + (if (positiveX) 0 else -1) + (if (positiveY) 0 else -4) + (if (positiveZ) 0 else -16)).toUInt()
+val directions = listOf(false, true)
+if (directions.any { x -> directions.any { y -> directions.any { z ->
+        rayFaceMask(x, y, z) != directionSignFaceMask(x, y, z)
+    } } }) {
     failures += "ray face mask must select normals opposing each ray component"
 }
 val modelCall = trace.indexOf("if (voxel_intersectBlockModel(")
