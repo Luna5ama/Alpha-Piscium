@@ -67,6 +67,7 @@ uint _voxel_spreadBits(uint x) {
 shared uint _voxel_levelOffsets[6];
 shared ivec2 _voxel_levelSizeMask[6];
 shared uint _voxel_spreadLUT[VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE];
+shared vec3 _voxel_gridOriginF;
 
 uint _voxel_packBlockPos(ivec3 blockPos) {
     // Integer add/sub is 2x faster on Nvidia GPUs
@@ -77,6 +78,8 @@ uint _voxel_packBlockPos(ivec3 blockPos) {
 
 void voxel_initShared() {
     if (gl_LocalInvocationIndex == 0u) {
+        ivec3 cameraBrick = cameraPositionInt >> 4;
+        _voxel_gridOriginF = vec3((cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4);
         _voxel_levelOffsets[0] = 0u << 1u;
         _voxel_levelOffsets[1] = uint(VOXEL_TREE_OFFSET_L1) << 1u;
         _voxel_levelOffsets[2] = uint(VOXEL_TREE_OFFSET_L2) << 1u;
@@ -126,8 +129,7 @@ VoxelRay voxelray_setup(vec3 worldRayOrigin, vec3 worldRayDir, uint callbackData
     worldRayDir = mix(worldRayDir, vec3(1e-7), lessThan(abs(worldRayDir), vec3(1e-7)));
     ray.worldRayDir = worldRayDir;
 
-    ivec3 cameraBrick = cameraPositionInt >> 4;
-    vec3 gridOriginF = vec3((cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4);
+    vec3 gridOriginF = _voxel_gridOriginF;
     vec3 posGrid = worldRayOrigin - gridOriginF;
 
     vec3 invDir = 1.0 / worldRayDir;
@@ -179,8 +181,7 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
         vec3 worldRayDir = ray.worldRayDir;
 
         // ---- Coordinate frame: grid-local block space [0, GRID_BLOCKS) ----
-        ivec3 cameraBrick = cameraPositionInt >> 4;
-        vec3 gridOriginF = vec3((cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4);
+        vec3 gridOriginF = _voxel_gridOriginF;
         vec3 posGrid = worldRayOrigin - gridOriginF;
 
         vec3 invDir = 1.0 / worldRayDir;
