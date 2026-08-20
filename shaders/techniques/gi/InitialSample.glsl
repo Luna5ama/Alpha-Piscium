@@ -181,17 +181,15 @@ bool restir_initialSample_screenHitQuery(
 
 restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
     ivec2 texelPos,
-    vec3 rayOriginView,
+    vec3 rayOriginWorld,
     vec3 rayDirView,
+    vec3 rayWorldDir,
     float pdf,
     VoxelHit hit
 ) {
     restir_InitialCandidate candidate = restir_initialCandidate_init();
     candidate.rayDirView = rayDirView;
     candidate.pdf = pdf;
-
-    vec3 rayOriginWorld = coords_pos_viewToWorld(rayOriginView, gbufferModelViewInverse) + cameraPosition;
-    vec3 rayWorldDir = coords_dir_viewToWorld(rayDirView);
 
     if (!hit.hit) {
         candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_SKY_MISS;
