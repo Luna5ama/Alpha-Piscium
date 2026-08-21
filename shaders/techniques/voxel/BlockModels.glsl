@@ -16,7 +16,7 @@ vec3 _voxel_unrotateBlockModelVector(uint rotation, vec3 value) {
     uvec3 transform = uvec3(rotation, rotation >> 3u, rotation >> 6u);
     ivec3 axis = ivec3(transform & 3u);
     vec3 signedValue = value * mix(vec3(1.0), vec3(-1.0), notEqual(transform & 4u, uvec3(0u)));
-    vec3 result = vec3(0.0);
+    vec3 result;
     result[axis.x] = signedValue.x;
     result[axis.y] = signedValue.y;
     result[axis.z] = signedValue.z;
