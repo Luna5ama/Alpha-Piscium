@@ -323,7 +323,7 @@ void main() {
             }
             geomNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.x);
             hitNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.y);
-            normalMe = normalize(transient_viewNormal_fetch(texelMe).xyz * 2.0 - 1.0);
+            normalMe = transient_viewNormal_fetch(texelMe).xyz * 2.0 - 1.0;
             sampleValueMe = unpackHalf4x16(spatialSamplePackedDataMe.zw);
             materialMe = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelMe));
             #if PASS_INDEX != 0
