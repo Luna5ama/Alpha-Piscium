@@ -1247,11 +1247,12 @@ void main() {
             transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
             #endif
         }
-        if (!restir_isReservoirValid(temporalReservoir)) {
+        bool finalReservoirValid = restir_isReservoirValid(temporalReservoir);
+        if (!finalReservoirValid) {
             temporalReservoir.Y.w = -1.0;
         }
         uvec4 packedReservoir = restir_reservoir_pack(temporalReservoir);
-        if (packedReservoirDirectionValid && restir_isReservoirValid(temporalReservoir)) {
+        if (packedReservoirDirectionValid && finalReservoirValid) {
             packedReservoir.x = packedReservoirDirection;
         }
         if (bool(frameCounter & 1)) {
