@@ -93,9 +93,16 @@ void voxel_initShared() {
     }
 
     uint localSize = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
-    uint lutSize = uint(VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE);
-    for (uint i = gl_LocalInvocationIndex; i < lutSize; i += localSize) {
-        _voxel_spreadLUT[i] = _voxel_spreadBits(i);
+    for (uint i = gl_LocalInvocationIndex; i < 256u; i += localSize) {
+        uint spread = _voxel_spreadBits(i);
+        _voxel_spreadLUT[i] = spread;
+        #if VOXEL_GRID_SIZE >= 32
+        _voxel_spreadLUT[i + 256u] = spread | 0x01000000u;
+        #endif
+        #if VOXEL_GRID_SIZE >= 64
+        _voxel_spreadLUT[i + 512u] = spread | 0x08000000u;
+        _voxel_spreadLUT[i + 768u] = spread | 0x09000000u;
+        #endif
     }
 
     if (gl_LocalInvocationIndex == 0u) {
