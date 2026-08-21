@@ -103,13 +103,7 @@ bool voxel_intersectBlockModel(
         hit = hitT != uintBitsToFloat(0x7F800000u);
         if (hit) {
             vec3 normalDir = mix(vec3(-1.0), vec3(1.0), lessThan(inverseRayDir, vec3(0.0)));
-            if (hitAxis == 0) {
-                hitNormal = vec3(normalDir.x, 0.0, 0.0);
-            } else if (hitAxis == 1) {
-                hitNormal = vec3(0.0, normalDir.y, 0.0);
-            } else {
-                hitNormal = vec3(0.0, 0.0, normalDir.z);
-            }
+            hitNormal = normalDir * vec3(equal(ivec3(hitAxis), ivec3(0, 1, 2)));
         }
     } else {
         while (quadCount != 0u) {
