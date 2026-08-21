@@ -167,11 +167,15 @@ ReSTIRReservoir restir_reservoir_unpack(uvec4 packedData) {
     return reservoir;
 }
 
+uint restir_reservoir_packDirection(vec3 direction) {
+    return restir_isFinite(direction) && dot(direction, direction) > 1e-8
+        ? nzpacking_packNormalOct32(direction)
+        : 0u;
+}
+
 uvec4 restir_reservoir_pack(ReSTIRReservoir reservoir) {
     uvec4 packedData = uvec4(0u);
-    packedData.x = restir_isFinite(reservoir.Y.xyz) && dot(reservoir.Y.xyz, reservoir.Y.xyz) > 1e-8
-        ? nzpacking_packNormalOct32(reservoir.Y.xyz)
-        : 0u;
+    packedData.x = restir_reservoir_packDirection(reservoir.Y.xyz);
     packedData.y = floatBitsToUint(reservoir.m);
     packedData.z = floatBitsToUint(reservoir.avgWY);
     packedData.w = floatBitsToUint(reservoir.Y.w);

@@ -1251,10 +1251,15 @@ void main() {
         if (!finalReservoirValid) {
             temporalReservoir.Y.w = -1.0;
         }
-        uvec4 packedReservoir = restir_reservoir_pack(temporalReservoir);
-        if (packedReservoirDirectionValid && finalReservoirValid) {
-            packedReservoir.x = packedReservoirDirection;
-        }
+        uint finalPackedDirection = packedReservoirDirectionValid && finalReservoirValid
+            ? packedReservoirDirection
+            : restir_reservoir_packDirection(temporalReservoir.Y.xyz);
+        uvec4 packedReservoir = uvec4(
+            finalPackedDirection,
+            floatBitsToUint(temporalReservoir.m),
+            floatBitsToUint(temporalReservoir.avgWY),
+            floatBitsToUint(temporalReservoir.Y.w)
+        );
         if (bool(frameCounter & 1)) {
             history_restir_reservoirTemporal1_store(texelPos, packedReservoir);
         } else {
