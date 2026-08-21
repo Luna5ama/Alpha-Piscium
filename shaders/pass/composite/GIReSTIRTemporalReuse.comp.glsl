@@ -215,7 +215,7 @@ bool loadTemporalHistorySample(ivec2 texelPos, bool oddFrame, inout TemporalHist
         return false;
     }
     source.previousGeomNormal = normalize(previousGeomNormal);
-    source.currentGeomNormal = normalize(shared_prevViewToCurrView * source.previousGeomNormal);
+    source.currentGeomNormal = shared_prevViewToCurrView * source.previousGeomNormal;
     if (!restir_isFinite(source.currentGeomNormal)) {
         return false;
     }
@@ -230,7 +230,7 @@ bool loadTemporalHistorySample(ivec2 texelPos, bool oddFrame, inout TemporalHist
         if (!restir_isFinite(source.currentHit) || !restir_isFinite(previousHitNormal) || dot(previousHitNormal, previousHitNormal) <= 1e-4) {
             return false;
         }
-        source.currentHitNormal = normalize(shared_prevViewToCurrView * previousHitNormal);
+        source.currentHitNormal = shared_prevViewToCurrView * previousHitNormal;
         if (!restir_isFinite(source.currentHitNormal)) {
             return false;
         }
