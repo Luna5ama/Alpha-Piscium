@@ -772,7 +772,7 @@ void main() {
             vec3 V = normalize(-viewPos);
 
             vec3 targetGeomNormal = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
-            vec3 targetNormal = normalize(transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
+            vec3 targetNormal = transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
             restir_InitialCandidate initialCandidate = restir_initialCandidate_load(texelPos);
             float hitDistance = initialCandidate.hitDistance;
             vec3 hitRadiance = initialCandidate.radiance;
