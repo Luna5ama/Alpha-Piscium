@@ -22,12 +22,7 @@ const vec2 workGroupsRender = vec2(1.0, 1.0);
 #include "/util/Morton.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 
-const uint GI_INITIAL_HIZ_STEPS = 32u;
-const float GI_INITIAL_HIZ_THICKNESS = 0.8;
-
 void main() {
-    sst_init(GI_INITIAL_HIZ_THICKNESS);
-
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
     uvec2 workGroupOrigin = swizzledWGPos << 4u;
