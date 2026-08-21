@@ -76,14 +76,6 @@ void main() {
             vec4 packedResampleMaterial = transient_restir_resampleMaterial_fetch(texelPos);
             history_restir_prevResampleMaterial_store(texelPos, packedResampleMaterial);
 
-            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
-            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-            vec3 primaryViewPos = packedPrimary != 0u
-                ? restir_splatUnpackPrimary(texelPos, packedPrimary, global_camProjInverse)
-                : viewPos;
-            vec3 V = normalize(-primaryViewPos);
-            ResampleMaterial centerMaterial = resampleMaterial_unpack(packedResampleMaterial);
-
             ReSTIRReservoir spatialReservoir = readTemporalReservoir(texelPos);
             if (
                 !restir_isReservoirValid(spatialReservoir)
@@ -94,6 +86,15 @@ void main() {
                 transient_ssgiSpecOut_store(texelPos, vec4(0.0));
                 return;
             }
+
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
+            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+            vec3 primaryViewPos = packedPrimary != 0u
+                ? restir_splatUnpackPrimary(texelPos, packedPrimary, global_camProjInverse)
+                : viewPos;
+            vec3 V = normalize(-primaryViewPos);
+            ResampleMaterial centerMaterial = resampleMaterial_unpack(packedResampleMaterial);
+
             PairwiseMISMetadata metadata = pairwiseMISMetadata_init();
             metadata.accumM = spatialReservoir.m;
             float spatialTechniqueCount = 1.0;
