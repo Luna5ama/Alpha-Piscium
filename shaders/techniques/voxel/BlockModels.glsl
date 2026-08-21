@@ -90,7 +90,9 @@ bool voxel_intersectBlockModel(
     _voxel_rotateBlockModelRay(rotation, rayOrigin, rayDir);
     rayOrigin += vec3(0.5);
     hitT = uintBitsToFloat(0x7F800000u);
+    #ifndef INCLUDE_techniques_gi_RadianceCacheUpdate_glsl
     hitNormal = vec3(0.0);
+    #endif
     bool hit = false;
     if (axisAligned) {
         vec3 inverseRayDir = 1.0 / rayDir;
