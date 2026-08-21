@@ -66,26 +66,14 @@ uint _voxel_spreadBits(uint x) {
 
 shared uint _voxel_levelOffsets[6];
 shared ivec2 _voxel_levelSizeMask[6];
-#if defined(INCLUDE_techniques_gi_RadianceCacheUpdate_glsl) || defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
-shared uint _voxel_spreadLUTX[VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE];
-shared uint _voxel_spreadLUTY[VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE];
-shared uint _voxel_spreadLUTZ[VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE];
-#else
 shared uint _voxel_spreadLUT[VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE];
-#endif
 shared vec3 _voxel_gridOriginF;
 
 uint _voxel_packBlockPos(ivec3 blockPos) {
     // Integer add/sub is 2x faster on Nvidia GPUs
-    #if defined(INCLUDE_techniques_gi_RadianceCacheUpdate_glsl) || defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
-    return _voxel_spreadLUTX[uint(blockPos.x)] +
-        _voxel_spreadLUTY[uint(blockPos.y)] +
-        _voxel_spreadLUTZ[uint(blockPos.z)];
-    #else
     return _voxel_spreadLUT[uint(blockPos.x)] +
         (_voxel_spreadLUT[uint(blockPos.y)] << 1u) +
         (_voxel_spreadLUT[uint(blockPos.z)] << 2u);
-    #endif
 }
 
 void voxel_initShared() {
@@ -107,14 +95,7 @@ void voxel_initShared() {
     uint localSize = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
     uint lutSize = uint(VOXEL_GRID_SIZE * VOXEL_BRICK_SIZE);
     for (uint i = gl_LocalInvocationIndex; i < lutSize; i += localSize) {
-        #if defined(INCLUDE_techniques_gi_RadianceCacheUpdate_glsl) || defined(INCLUDE_techniques_gi_PairwiseMISMetadata_glsl)
-        uint spreadBits = _voxel_spreadBits(i);
-        _voxel_spreadLUTX[i] = spreadBits;
-        _voxel_spreadLUTY[i] = spreadBits << 1u;
-        _voxel_spreadLUTZ[i] = spreadBits << 2u;
-        #else
         _voxel_spreadLUT[i] = _voxel_spreadBits(i);
-        #endif
     }
 
     if (gl_LocalInvocationIndex == 0u) {
