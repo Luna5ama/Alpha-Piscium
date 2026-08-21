@@ -43,7 +43,6 @@ ReSTIRReservoir readTemporalReservoir(ivec2 texelPos) {
 
 void main() {
     voxel_initShared();
-    sst_init(SETTING_GI_SST_THICKNESS);
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
     uvec2 workGroupOrigin = swizzledWGPos << 4u;
