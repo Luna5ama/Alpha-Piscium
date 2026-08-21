@@ -1118,16 +1118,17 @@ void main() {
                 packedReservoirDirectionValid = storageGeometryValid;
             }
 
+            float finalTargetBRDF = 0.0;
             if (storageGeometryValid && restir_isFinite(finalSample.rgb)) {
+                finalTargetBRDF = evalTargetBRDF(
+                    targetGeomNormal,
+                    targetNormal,
+                    temporalReservoir.Y.xyz,
+                    normalize(-finalPrimaryViewPos),
+                    storedMaterial
+                );
                 finalSample.w = restir_stabilizeTemporalTargetPHat(
-                    evalTargetFunction(
-                        finalSample.rgb,
-                        targetGeomNormal,
-                        targetNormal,
-                        temporalReservoir.Y.xyz,
-                        normalize(-finalPrimaryViewPos),
-                        storedMaterial
-                    )
+                    length(finalSample.rgb * finalTargetBRDF)
                 );
             } else {
                 finalSample = vec4(0.0);
@@ -1139,14 +1140,7 @@ void main() {
                     vec4 scaledSample = vec4(finalSample.rgb * sampleScale, 0.0);
                     finalSample.rgb = unpackHalf4x16(packHalf4x16(clamp(scaledSample, 0.0, FP16_MAX))).rgb;
                     finalSample.w = restir_quantizeStoredTargetPHat(
-                        evalTargetFunction(
-                            finalSample.rgb,
-                            targetGeomNormal,
-                            targetNormal,
-                            temporalReservoir.Y.xyz,
-                            normalize(-finalPrimaryViewPos),
-                            storedMaterial
-                        )
+                        length(finalSample.rgb * finalTargetBRDF)
                     );
                     if (!restir_isPositiveFinite(finalSample.w)) {
                         finalSample = vec4(0.0);
