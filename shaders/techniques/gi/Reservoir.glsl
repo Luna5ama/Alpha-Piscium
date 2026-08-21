@@ -198,8 +198,7 @@ bool restir_reconnectionDensityRatioValid(
         && sourcePHat <= mappedTargetPHat * RESTIR_RECONNECTION_MAX_DENSITY_RATIO;
 }
 
-float evalTargetFunction(
-    vec3 irradiance,
+float evalTargetBRDF(
     vec3 geomNormal,
     vec3 normal,
     vec3 lightDir,
@@ -221,10 +220,26 @@ float evalTargetFunction(
             lightDir,
             viewDir
         );
-        vec3 radiance = irradiance * brdf.full;
-        result = length(radiance);
+        result = brdf.full;
     }
     return result;
+}
+
+float evalTargetFunction(
+    vec3 irradiance,
+    vec3 geomNormal,
+    vec3 normal,
+    vec3 lightDir,
+    vec3 viewDir,
+    ResampleMaterial material
+) {
+    return length(irradiance * evalTargetBRDF(
+        geomNormal,
+        normal,
+        lightDir,
+        viewDir,
+        material
+    ));
 }
 
 struct ShiftMapping {
