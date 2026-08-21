@@ -182,6 +182,7 @@ void main() {
                 V
             );
             float rawNDotL = dot(resolvedNormal, winL_out);
+            float rawNDotV = dot(resolvedNormal, V);
             if (
                 rawNDotL <= 0.0
                 || dot(centerSampleData.geomNormal, winL_out) <= 0.0
@@ -191,11 +192,13 @@ void main() {
                 transient_ssgiSpecOut_store(texelPos, vec4(0.0));
                 return;
             }
+            vec3 halfVector = normalize(winL_out + V);
             ResampleBRDF outBRDF = resampleMaterial_evalBRDF(
                 centerMaterial,
-                resolvedNormal,
-                winL_out,
-                V
+                rawNDotL,
+                rawNDotV,
+                saturate(dot(resolvedNormal, halfVector)),
+                saturate(dot(winL_out, halfVector))
             );
 
             ssgiDiffOut = vec4((selectedSampleF.xyz * outBRDF.diffuse) * avgWY, winHitDist);
