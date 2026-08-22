@@ -81,10 +81,8 @@ float temporalProposalMulDiv(float factorA, float factorB, float divisor) {
 shared mat3 shared_prevViewToCurrView;
 shared vec3 shared_prevViewToCurrViewTrans;
 
-ReSTIRReservoir readPreviousReservoir(ivec2 texelPos, bool oddFrame) {
-    uvec4 packedReservoir = oddFrame
-        ? history_restir_reservoirTemporal2_load(texelPos)
-        : history_restir_reservoirTemporal1_load(texelPos);
+ReSTIRReservoir readPreviousReservoir(ivec2 texelPos) {
+    uvec4 packedReservoir = history_restir_reservoirTemporal_load(texelPos);
     return restir_reservoir_unpack(packedReservoir);
 }
 
@@ -181,7 +179,7 @@ TemporalHistorySample temporalHistorySample_init() {
 
 bool loadTemporalHistorySample(ivec2 texelPos, bool oddFrame, inout TemporalHistorySample source) {
     source.texelPos = texelPos;
-    source.reservoir = readPreviousReservoir(texelPos, oddFrame);
+    source.reservoir = readPreviousReservoir(texelPos);
     source.packedPrimary = readPreviousPrimary(texelPos, oddFrame);
     if (
         !restir_isReservoirValid(source.reservoir)
@@ -518,7 +516,7 @@ float readPreviousConfidence(ivec2 texelPos, bool oddFrame) {
     if (readPreviousPrimary(texelPos, oddFrame) == 0u) {
         return 0.0;
     }
-    ReSTIRReservoir previousReservoir = readPreviousReservoir(texelPos, oddFrame);
+    ReSTIRReservoir previousReservoir = readPreviousReservoir(texelPos);
     if (!restir_isReservoirValid(previousReservoir)) {
         return 0.0;
     }
@@ -660,7 +658,7 @@ float evaluateSplatProposalTerm(
         return 0.0;
     }
 
-    ReSTIRReservoir reverseReservoir = readPreviousReservoir(prevTexelPos, oddFrame);
+    ReSTIRReservoir reverseReservoir = readPreviousReservoir(prevTexelPos);
     if (
         !restir_isReservoirValid(reverseReservoir)
         || readPreviousPrimary(prevTexelPos, oddFrame) == 0u
@@ -1260,10 +1258,6 @@ void main() {
             floatBitsToUint(temporalReservoir.avgWY),
             floatBitsToUint(temporalReservoir.Y.w)
         );
-        if (bool(frameCounter & 1)) {
-            history_restir_reservoirTemporal1_store(texelPos, packedReservoir);
-        } else {
-            history_restir_reservoirTemporal2_store(texelPos, packedReservoir);
-        }
+        transient_restir_reservoirTemporal_store(texelPos, packedReservoir);
     }
 }

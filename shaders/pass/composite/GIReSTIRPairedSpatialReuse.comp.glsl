@@ -330,12 +330,7 @@ void main() {
             metaMe = pairwiseMISMetadata_unpack(transient_restir_pairwiseMISMetadata_fetch(texelMe));
             #endif
 
-            uvec4 repMe;
-            if (bool(frameCounter & 1)) {
-                repMe = history_restir_reservoirTemporal1_fetch(texelMe);
-            } else {
-                repMe = history_restir_reservoirTemporal2_fetch(texelMe);
-            }
+            uvec4 repMe = transient_restir_reservoirTemporal_fetch(texelMe);
             ReSTIRReservoir reservoirMe = restir_reservoir_unpack(repMe);
             if (
                 !restir_isReservoirValid(reservoirMe)

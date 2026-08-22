@@ -27,17 +27,13 @@ layout(rgba16f) uniform image2D uimg_rgba16f;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(r32f) uniform image2D uimg_r32f;
 layout(r32ui) uniform restrict writeonly uimage2D uimg_r32ui;
+layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 
 shared uint shared_rayCount[16];
 
 ReSTIRReservoir readTemporalReservoir(ivec2 texelPos) {
-    uvec4 reprojectedData;
-    if (bool(frameCounter & 1)) {
-        reprojectedData = history_restir_reservoirTemporal1_fetch(texelPos);
-    } else {
-        reprojectedData = history_restir_reservoirTemporal2_fetch(texelPos);
-    }
+    uvec4 reprojectedData = transient_restir_reservoirTemporal_fetch(texelPos);
     return restir_reservoir_unpack(reprojectedData);
 }
 
@@ -61,6 +57,8 @@ void main() {
     uint rayIndex = 0xFFFFFFFFu;
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        uvec4 packedTemporalReservoir = transient_restir_reservoirTemporal_fetch(texelPos);
+        history_restir_reservoirTemporal_store(texelPos, packedTemporalReservoir);
         uint packedPrimary = restir_splatFetchCurrentPrimary(texelPos);
 
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
@@ -76,7 +74,7 @@ void main() {
             vec4 packedResampleMaterial = transient_restir_resampleMaterial_fetch(texelPos);
             history_restir_prevResampleMaterial_store(texelPos, packedResampleMaterial);
 
-            ReSTIRReservoir spatialReservoir = readTemporalReservoir(texelPos);
+            ReSTIRReservoir spatialReservoir = restir_reservoir_unpack(packedTemporalReservoir);
             if (
                 !restir_isReservoirValid(spatialReservoir)
                 || !restir_isFinite(centerSampleData.sampleValue)

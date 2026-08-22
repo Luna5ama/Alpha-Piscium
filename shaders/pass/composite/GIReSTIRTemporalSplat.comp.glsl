@@ -16,9 +16,7 @@ shared mat3 shared_prevViewToCurrView;
 shared vec3 shared_prevViewToCurrViewTrans;
 
 ReSTIRReservoir readPreviousReservoir(ivec2 texelPos) {
-    uvec4 packedReservoir = bool(frameCounter & 1)
-        ? history_restir_reservoirTemporal2_load(texelPos)
-        : history_restir_reservoirTemporal1_load(texelPos);
+    uvec4 packedReservoir = history_restir_reservoirTemporal_load(texelPos);
     return restir_reservoir_unpack(packedReservoir);
 }
 
