@@ -204,7 +204,7 @@ vec3 rc_sampleMissRadiance(vec3 rayDir) {
 vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     valid = false;
     if (!hit.hit) {
-        vec3 missRadiance = rc_sampleMissRadiance(normalize(-outgoingDir));
+        vec3 missRadiance = rc_sampleMissRadiance(-outgoingDir);
         valid = rc_luminance(missRadiance) > 0.0 && !any(isnan(missRadiance));
         return valid ? missRadiance : vec3(0.0);
     }
@@ -225,7 +225,7 @@ vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     }
 
     vec3 incomingDir = normalize(prevReservoir.sampleDir);
-    vec3 viewDir = normalize(outgoingDir);
+    vec3 viewDir = outgoingDir;
     float NDotL = dot(faceNormal, incomingDir);
     float NDotV = dot(faceNormal, viewDir);
     if (NDotL <= 0.0 || NDotV <= 0.0) {
