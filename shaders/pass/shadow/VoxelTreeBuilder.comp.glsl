@@ -90,10 +90,6 @@ void main() {
     uint leafHigh = 0u;
     uint opaqueLow = 0u;
     uint opaqueHigh = 0u;
-    ivec3 gridOrigin;
-    ivec3 brickBlockBase;
-    ivec3 subRegionCoord;
-    ivec3 subRegionBlockBase;
 
     if (localID < 24u) {
         uint adjacentGroupBrick = localID / 6u;
@@ -117,13 +113,6 @@ void main() {
         // All 64 entries are contiguous, so read 4-at-a-time as uvec4.
         uint baseIdx = allocID * 1024u + subRegion * 16u;
 
-        ivec3 cameraBrick = cameraPositionInt >> 4;
-        gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
-        uvec3 brickCoordU = morton3D_30bDecode(brickMorton);
-        brickBlockBase = ivec3(brickCoordU << 4u);
-        subRegionCoord = ivec3(morton3D_6bDecode(subRegion));
-        subRegionBlockBase = subRegionCoord << 2;
-
         for (uint i = 0u; i < 16u; i++) {
             uvec4 mats = voxel_materials_v4[baseIdx + i];
             uvec4 bits4 = uvec4(notEqual(mats, uvec4(0u))) << uvec4(0u, 1u, 2u, 3u);
@@ -144,6 +133,12 @@ void main() {
     barrier();
 
     if (allocID != VOXEL_UNALLOCATED) {
+        ivec3 cameraBrick = cameraPositionInt >> 4;
+        ivec3 gridOrigin = (cameraBrick - ivec3(VOXEL_GRID_SIZE / 2)) << 4;
+        uvec3 brickCoordU = morton3D_30bDecode(brickMorton);
+        ivec3 brickBlockBase = ivec3(brickCoordU << 4u);
+        ivec3 subRegionCoord = ivec3(morton3D_6bDecode(subRegion));
+        ivec3 subRegionBlockBase = subRegionCoord << 2;
         uint coarseFaceBits = 0u;
         for (uint wordIndex = 0u; wordIndex < 2u; wordIndex++) {
             uint opaqueMask = wordIndex == 0u ? opaqueLow : opaqueHigh;
