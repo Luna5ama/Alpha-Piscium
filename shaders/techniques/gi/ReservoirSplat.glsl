@@ -22,9 +22,7 @@ ivec2 restir_splatDecodeNode(uint node) {
 }
 
 uint restir_splatFetchCurrentPrimary(ivec2 texelPos) {
-    return bool(frameCounter & 1)
-        ? history_restir_primary1_fetch(texelPos).x
-        : history_restir_primary2_fetch(texelPos).x;
+    return transient_restir_primary_fetch(texelPos).x;
 }
 
 uint restir_splatPackPrimary(ivec2 texelPos, vec3 viewPos, mat4 projection) {
