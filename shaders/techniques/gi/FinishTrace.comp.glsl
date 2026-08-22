@@ -1,5 +1,3 @@
-//#extension GL_KHR_shader_subgroup_ballot : enable
-
 #include "/techniques/SST2.glsl"
 #include "/util/ThreadGroupTiling.glsl"
 #include "/util/Coords.glsl"
@@ -8,14 +6,6 @@
 layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-//layout(std430, binding = 5) readonly buffer RayData {
-//    uvec4 ssbo_rayData[];
-//};
-//
-//layout(std430, binding = 6) readonly buffer RayDataIndices {
-//    uint ssbo_rayDataIndices[];
-//};
-
 void handleRayResult(SSTRay sstRay);
 
 void main() {
@@ -23,7 +13,6 @@ void main() {
 
     uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
     uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
-    uvec2 workGroupOrigin = swizzledWGPos << 4u;
 
     uvec2 binId = swizzledWGPos >> 1; // 32x32 bin = 4x4 work groups
     uint numBinX = (uval_mainImageSizeI.x + 31) >> 5; // 32x32 bin

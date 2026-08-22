@@ -1,11 +1,9 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
-#extension GL_KHR_shader_subgroup_arithmetic : enable
 
 layout(local_size_x = 16, local_size_y = 16) in;
 
 #include "/util/Material.glsl"
 #include "/util/ThreadGroupTiling.glsl"
-#include "/techniques/SST2.glsl"
 #include "/techniques/gi/Common.glsl"
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/gi/ReservoirSplat.glsl"
@@ -15,22 +13,12 @@ layout(local_size_x = 16, local_size_y = 16) in;
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
-//layout(std430, binding = 5) buffer RayData {
-//    uvec4 ssbo_rayData[];
-//};
-//
-//layout(std430, binding = 6) buffer RayIndexData {
-//    uint ssbo_rayDataIndices[];
-//};
-
 layout(rgba16f) uniform image2D uimg_rgba16f;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(r32f) uniform image2D uimg_r32f;
 layout(r32ui) uniform restrict writeonly uimage2D uimg_r32ui;
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
-
-shared uint shared_rayCount[16];
 
 ReSTIRReservoir readTemporalReservoir(ivec2 texelPos) {
     uvec4 reprojectedData = transient_restir_reservoirTemporal_fetch(texelPos);
@@ -46,15 +34,6 @@ void main() {
     uvec2 mortonPos = morton_8bDecode(threadIdx);
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     ivec2 texelPos = ivec2(mortonGlobalPosU);
-
-    uvec2 binId = swizzledWGPos >> 1u;
-    uint numBinX = (uval_mainImageSizeI.x + 31) >> 5;
-    uint binIdx = binId.y * numBinX + binId.x;
-    ivec2 binLocalPos = texelPos & 31;
-    uint binLocalIndex = sst2_encodeBinLocalIndex(binLocalPos);
-    uint binWriteBaseIndex = binIdx * 1024;
-    uint dataIndex = binWriteBaseIndex + binLocalIndex;
-    uint rayIndex = 0xFFFFFFFFu;
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         uvec4 packedTemporalReservoir = transient_restir_reservoirTemporal_fetch(texelPos);
@@ -153,7 +132,6 @@ void main() {
                 spatialWSum,
                 originalSample,
                 canonicalWi,
-                0.0,
                 canonicalRand
             );
 
@@ -252,17 +230,4 @@ void main() {
             transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
         }
     }
-    //    ssbo_rayDataIndices[dataIndex] = rayIndex;
-    //    uvec4 subgroupRayCountBalllot = subgroupBallot(rayIndex < 0xFFFFFFFFu);
-    //    if (subgroupElect()) {
-    //        shared_rayCount[gl_SubgroupID] = subgroupBallotBitCount(subgroupRayCountBalllot);
-    //    }
-    //    barrier();
-    //    if (gl_SubgroupID == 0u) {
-    //        uint partialRayCount = gl_SubgroupInvocationID < gl_NumSubgroups ? shared_rayCount[gl_SubgroupInvocationID] : 0u;
-    //        uint totalRayCount = subgroupAdd(partialRayCount);
-    //        if (subgroupElect()) {
-    //            transient_spatialReuseRayCount_store(ivec2(swizzledWGPos), vec4(float(totalRayCount)));
-    //        }
-    //    }
 }
