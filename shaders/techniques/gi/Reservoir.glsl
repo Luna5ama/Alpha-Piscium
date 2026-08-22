@@ -129,7 +129,7 @@ float restir_updateRand(ivec2 texelPos, uint randSeed) {
     return hash_uintToFloat(hash_44_q3(uvec4(texelPos, frameCounter, randSeed)).x);
 }
 
-bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, vec4 X, float wi, float m, float rand) {
+bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, vec4 X, float wi, float rand) {
     if (
         !restir_isFinite(wSum)
         || wSum < 0.0
@@ -137,19 +137,15 @@ bool restir_updateReservoir(inout ReSTIRReservoir reservoir, inout float wSum, v
         || reservoir.m < 0.0
         || !restir_isFinite(wi)
         || wi <= 0.0
-        || !restir_isFinite(m)
-        || m < 0.0
     ) {
         return false;
     }
 
     float nextWSum = wSum + wi;
-    float nextM = reservoir.m + m;
-    if (!restir_isFinite(nextWSum) || !restir_isFinite(nextM)) {
+    if (!restir_isFinite(nextWSum)) {
         return false;
     }
     wSum = nextWSum;
-    reservoir.m = nextM;
     bool updateCond = rand < wi / wSum;
     if (updateCond) {
         reservoir.Y = X;
@@ -171,15 +167,6 @@ uint restir_reservoir_packDirection(vec3 direction) {
     return restir_isFinite(direction) && dot(direction, direction) > 1e-8
         ? nzpacking_packNormalOct32(direction)
         : 0u;
-}
-
-uvec4 restir_reservoir_pack(ReSTIRReservoir reservoir) {
-    uvec4 packedData = uvec4(0u);
-    packedData.x = restir_reservoir_packDirection(reservoir.Y.xyz);
-    packedData.y = floatBitsToUint(reservoir.m);
-    packedData.z = floatBitsToUint(reservoir.avgWY);
-    packedData.w = floatBitsToUint(reservoir.Y.w);
-    return packedData;
 }
 
 const float RESTIR_RECONNECTION_MIN_COSINE = 0.02;

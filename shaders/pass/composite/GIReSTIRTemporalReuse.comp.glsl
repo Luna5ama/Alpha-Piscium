@@ -148,7 +148,7 @@ bool temporalReconnectionJacobian(
         return false;
     }
     jacobian = exp2(log2Jacobian);
-    return restir_isPositiveFinite(jacobian);
+    return true;
 }
 
 TemporalHistorySample temporalHistorySample_init() {
@@ -171,20 +171,12 @@ TemporalHistorySample temporalHistorySample_init() {
 
 bool loadTemporalHistorySample(ivec2 texelPos, inout TemporalHistorySample source) {
     source.texelPos = texelPos;
-    source.reservoir = readPreviousReservoir(texelPos);
     source.packedPrimary = readPreviousPrimary(texelPos);
-    if (
-        !restir_isReservoirValid(source.reservoir)
-        || !restir_isFinite(source.reservoir.Y.w)
-        || source.packedPrimary == 0u
-    ) {
+    if (source.packedPrimary == 0u) {
         return false;
     }
-
+    source.reservoir = readPreviousReservoir(texelPos);
     source.sampleValue = history_restir_prevSample_fetch(texelPos);
-    if (!restir_isPositiveFinite(source.sampleValue.w) || !restir_isFinite(source.sampleValue.rgb)) {
-        return false;
-    }
     #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
     source.previousMaterial = resampleMaterial_unpack(history_restir_prevResampleMaterial_fetch(texelPos));
     #endif
@@ -206,9 +198,6 @@ bool loadTemporalHistorySample(ivec2 texelPos, inout TemporalHistorySample sourc
     }
     source.previousGeomNormal = normalize(previousGeomNormal);
     source.currentGeomNormal = shared_prevViewToCurrView * source.previousGeomNormal;
-    if (!restir_isFinite(source.currentGeomNormal)) {
-        return false;
-    }
     source.currentHit = vec3(0.0);
     source.currentHitNormal = vec3(0.0);
     if (source.reservoir.Y.w > 0.0) {
@@ -217,13 +206,7 @@ bool loadTemporalHistorySample(ivec2 texelPos, inout TemporalHistorySample sourc
         vec3 previousHitNormal = nzpacking_unpackNormalOct32(
             history_restir_prevHitNormal_fetch(texelPos).x
         );
-        if (!restir_isFinite(source.currentHit) || !restir_isFinite(previousHitNormal) || dot(previousHitNormal, previousHitNormal) <= 1e-4) {
-            return false;
-        }
         source.currentHitNormal = shared_prevViewToCurrView * previousHitNormal;
-        if (!restir_isFinite(source.currentHitNormal)) {
-            return false;
-        }
     }
     return true;
 }
@@ -250,7 +233,7 @@ bool shiftTemporalPathPrimary(
 
     vec3 sourceDirection = sourceOffset * inversesqrt(sourceDistance2);
     shiftedY = vec4(sourceDirection, sqrt(sourceDistance2));
-    return restir_isFinite(shiftedY.xyz);
+    return true;
 }
 
 bool shiftTemporalPathReconnect(
@@ -292,37 +275,13 @@ bool shiftTemporalPathReconnect(
     }
     shifted.Y = vec4(targetDirection, sqrt(targetDistance2));
     shifted.hitNormal = source.currentHitNormal;
-    return restir_isPositiveFinite(shifted.jacobian)
-        && restir_isFinite(shifted.Y.xyz);
+    return true;
 }
 
 #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
 bool temporalRasterSubpixelInBounds(vec2 rasterSubpixel) {
     return all(greaterThanEqual(rasterSubpixel, vec2(0.0)))
         && all(lessThan(rasterSubpixel, vec2(1.0)));
-}
-
-float temporalReprojectionSurfaceWeight(ReprojectInfo reprojInfo, ivec2 texelPos) {
-    vec2 previousTexelPos = clamp(
-        reprojInfo.curr2PrevScreenPos * uval_mainImageSize,
-        vec2(1.0),
-        uval_mainImageSize - 1.0
-    );
-    ivec2 gatherTexelPos = ivec2(floor(previousTexelPos - 0.5) + 1.0);
-    ivec2 gatherOffset = texelPos - gatherTexelPos;
-    if (gatherOffset == ivec2(-1, 0)) {
-        return reprojInfo.bilateralWeights.x;
-    }
-    if (gatherOffset == ivec2(0, 0)) {
-        return reprojInfo.bilateralWeights.y;
-    }
-    if (gatherOffset == ivec2(0, -1)) {
-        return reprojInfo.bilateralWeights.z;
-    }
-    if (gatherOffset == ivec2(-1, -1)) {
-        return reprojInfo.bilateralWeights.w;
-    }
-    return 0.0;
 }
 
 bool reconstructPrimaryOnPlane(
@@ -452,9 +411,6 @@ float evaluateBackupProposalTerm(
         vec3 sourceDirection = sourceOffset * inversesqrt(sourceDistance2);
         float sourceCosine = -dot(sourceDirection, currentHitNormal);
         float targetCosine = -dot(candidateY.xyz, currentHitNormal);
-        if (!restir_isPositiveFinite(sourceCosine) || !restir_isPositiveFinite(targetCosine)) {
-            return 0.0;
-        }
         if (!temporalReconnectionJacobian(
             sourceDistance2,
             targetDistance2,
@@ -492,7 +448,7 @@ float evaluateBackupProposalTerm(
     if (!restir_reconnectionDensityRatioValid(previousPHat, candidateTargetPHat * forwardJacobian)) {
         return 0.0;
     }
-    float confidence = clamp(backupSource.reservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
+    float confidence = min(backupSource.reservoir.m, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
     return temporalProposalMulDiv(
         RESTIR_BACKUP_PRIOR_PROPOSAL_MIX * confidence,
         previousPHat,
@@ -502,18 +458,21 @@ float evaluateBackupProposalTerm(
 #endif
 
 float readPreviousConfidence(ivec2 texelPos) {
-    if (any(lessThan(texelPos, ivec2(0))) || any(greaterThanEqual(texelPos, uval_mainImageSizeI))) {
-        return 0.0;
-    }
     if (readPreviousPrimary(texelPos) == 0u) {
         return 0.0;
     }
-    ReSTIRReservoir previousReservoir = readPreviousReservoir(texelPos);
-    if (!restir_isReservoirValid(previousReservoir)) {
+    uvec4 packedReservoir = history_restir_reservoirTemporal_load(texelPos);
+    float confidence = uintBitsToFloat(packedReservoir.y);
+    float avgWY = uintBitsToFloat(packedReservoir.z);
+    float hitDistance = uintBitsToFloat(packedReservoir.w);
+    if (
+        !restir_isPositiveFinite(confidence)
+        || !restir_isPositiveFinite(avgWY)
+        || !restir_isFinite(hitDistance)
+    ) {
         return 0.0;
     }
-    float confidence = previousReservoir.m;
-    return restir_isFinite(confidence) ? max(confidence, 0.0) : 0.0;
+    return confidence;
 }
 
 void sampleTemporalSplat(
@@ -546,10 +505,9 @@ void sampleTemporalSplat(
         source.currentPrimary,
         source.currentGeomNormal
     );
-    if (!restir_isPositiveFinite(primaryJacobian)) {
+    if (primaryJacobian == 0.0) {
         return;
     }
-
     vec4 shiftedY;
     if (!shiftTemporalPathPrimary(source, shiftedY)) {
         return;
@@ -566,11 +524,8 @@ void sampleTemporalSplat(
             material
         )
     );
-    float previousPHat = max(source.sampleValue.w, 0.0);
-    float previousConfidence = clamp(source.reservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
-    if (!restir_isPositiveFinite(currentPHat) || !restir_isPositiveFinite(previousPHat) || !restir_isPositiveFinite(previousConfidence)) {
-        return;
-    }
+    float previousPHat = source.sampleValue.w;
+    float previousConfidence = min(source.reservoir.m, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
     if (!restir_reconnectionDensityRatioValid(previousPHat, currentPHat * primaryJacobian)) {
         return;
     }
@@ -595,15 +550,15 @@ void sampleTemporalSplat(
         proposalDenominator += backupTerm;
     }
     #endif
-    float sourceMass = max(source.reservoir.avgWY, 0.0) * previousPHat;
+    float sourceMass = source.reservoir.avgWY * previousPHat;
     float candidateWeight = sourceMass
         * temporalScaledRatio(currentPHat, splatConfidence, proposalDenominator);
-    if (!restir_isPositiveFinite(sourceMass) || !restir_isPositiveFinite(candidateWeight) || !restir_isFinite(wSum)) {
+    if (!restir_isPositiveFinite(candidateWeight)) {
         return;
     }
 
     float candidateRand = restir_updateRand(texelPos, sourceNode ^ 0x9e3779b9u);
-    if (restir_updateReservoir(reservoir, wSum, shiftedY, candidateWeight, 0.0, candidateRand)) {
+    if (restir_updateReservoir(reservoir, wSum, shiftedY, candidateWeight, candidateRand)) {
         finalSample = vec4(source.sampleValue.rgb, currentPHat);
         finalHitNormal = source.currentHitNormal;
         finalPrimaryViewPos = source.currentPrimary;
@@ -616,13 +571,8 @@ float evaluateSplatProposalTerm(
     vec3 sampleDirection,
     float hitDistance,
     vec3 hitRadiance,
-    float currentPHat,
-    bool historyReusable
+    float currentPHat
 ) {
-    if (!historyReusable) {
-        return 0.0;
-    }
-
     vec3 prevPrimary = coord_viewCurrToPrev(vec4(currentPrimary, 1.0), false).xyz;
     vec4 prevClip = global_prevCamProj * vec4(prevPrimary, 1.0);
     if (prevClip.z <= 0.0 || any(greaterThanEqual(abs(prevClip.xy), prevClip.ww))) {
@@ -648,17 +598,11 @@ float evaluateSplatProposalTerm(
         return 0.0;
     }
 
+    if (readPreviousPrimary(prevTexelPos) == 0u) {
+        return 0.0;
+    }
     ReSTIRReservoir reverseReservoir = readPreviousReservoir(prevTexelPos);
-    if (
-        !restir_isReservoirValid(reverseReservoir)
-        || readPreviousPrimary(prevTexelPos) == 0u
-    ) {
-        return 0.0;
-    }
-    float reverseConfidence = clamp(reverseReservoir.m, 0.0, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
-    if (reverseConfidence <= 0.0) {
-        return 0.0;
-    }
+    float reverseConfidence = min(reverseReservoir.m, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
 
     vec3 prevSampleDirection;
     if (hitDistance > 0.0) {
@@ -686,9 +630,6 @@ float evaluateSplatProposalTerm(
         )
     );
     float forwardJacobian = restir_splatPrimaryJacobian(prevPrimary, prevGeomNormal, currentPrimary, geomNormal);
-    if (!restir_isPositiveFinite(previousPHat) || !restir_isPositiveFinite(forwardJacobian)) {
-        return 0.0;
-    }
     if (!restir_reconnectionDensityRatioValid(previousPHat, currentPHat * forwardJacobian)) {
         return 0.0;
     }
@@ -699,26 +640,11 @@ float evaluateSplatProposalTerm(
     return temporalProposalMulDiv(reverseConfidence, previousPHat, forwardJacobian);
 }
 
-float evaluateTemporalConfidence(vec2 previousScreenPos, float canonicalConfidence, bool historyReusable) {
-    if (!historyReusable) {
-        return canonicalConfidence;
-    }
-
-    vec2 curr2PrevTexelPos = clamp(
-        previousScreenPos * uval_mainImageSize,
-        vec2(1.0),
-        uval_mainImageSize - 1.0
-    );
-    vec2 prevBase = curr2PrevTexelPos - 0.5;
-    ivec2 gatherTexelPos = ivec2(floor(prevBase) + 1.0);
-    vec2 f = fract(prevBase);
-    vec4 bilinearWeights = vec4(
-        (1.0 - f.x) * f.y,
-        f.x * f.y,
-        f.x * (1.0 - f.y),
-        (1.0 - f.x) * (1.0 - f.y)
-    );
-
+float evaluateTemporalConfidence(
+    ivec2 gatherTexelPos,
+    vec4 bilinearWeights,
+    float canonicalConfidence
+) {
     vec4 previousConfidence = vec4(
         readPreviousConfidence(gatherTexelPos + ivec2(-1, 0)),
         readPreviousConfidence(gatherTexelPos),
@@ -747,6 +673,7 @@ void main() {
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         ReSTIRReservoir temporalReservoir = restir_initReservoir();
+        bool finalReservoirValid = false;
         uint packedReservoirDirection = 0u;
         bool packedReservoirDirectionValid = false;
         uint splatHead = readCurrentPrimary(texelPos);
@@ -784,7 +711,7 @@ void main() {
             float canonicalConfidence = 1.0;
             float canonicalPHat = 0.0;
             float canonicalBaseWeight = 0.0;
-            if (samplePdf > 0.0) {
+            if (initialValid) {
                 canonicalPHat = restir_stabilizeTemporalTargetPHat(
                     evalTargetFunction(
                         hitRadiance,
@@ -824,6 +751,25 @@ void main() {
             float historyRetention = global_historyResetFactor * reprojInfo.historyResetFactor;
             bool isHand = bool(bitfieldExtract(packedGBufferData2, 24, 1));
             bool historyReusable = !isHand && historyRetention > ageResetRand;
+            ivec2 temporalGatherTexelPos = ivec2(0);
+            vec2 temporalBilinearFraction = vec2(0.0);
+            vec4 temporalBilinearWeights = vec4(0.0);
+            if (historyReusable) {
+                vec2 previousTexelPos = clamp(
+                    temporalPreviousScreenPos * uval_mainImageSize,
+                    vec2(1.0),
+                    uval_mainImageSize - 1.0
+                );
+                vec2 previousBase = previousTexelPos - 0.5;
+                temporalGatherTexelPos = ivec2(floor(previousBase) + 1.0);
+                temporalBilinearFraction = fract(previousBase);
+                temporalBilinearWeights = vec4(
+                    (1.0 - temporalBilinearFraction.x) * temporalBilinearFraction.y,
+                    temporalBilinearFraction.x * temporalBilinearFraction.y,
+                    temporalBilinearFraction.x * (1.0 - temporalBilinearFraction.y),
+                    (1.0 - temporalBilinearFraction.x) * (1.0 - temporalBilinearFraction.y)
+                );
+            }
             #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
             TemporalHistorySample backupSource = temporalHistorySample_init();
             TemporalPathShift backupShift;
@@ -837,51 +783,36 @@ void main() {
             float backupConfidence = 0.0;
             vec2 backupSubpixelDelta = vec2(0.0);
             if (historyReusable) {
-                vec2 previousTexelPos = clamp(
-                    temporalPreviousScreenPos * uval_mainImageSize,
-                    vec2(1.0),
-                    uval_mainImageSize - 1.0
-                );
-                vec2 previousBase = previousTexelPos - 0.5;
-                ivec2 gatherTexelPos = ivec2(floor(previousBase) + 1.0);
-                vec2 bilinearFraction = fract(previousBase);
-                vec4 bilinearWeights = vec4(
-                    (1.0 - bilinearFraction.x) * bilinearFraction.y,
-                    bilinearFraction.x * bilinearFraction.y,
-                    bilinearFraction.x * (1.0 - bilinearFraction.y),
-                    (1.0 - bilinearFraction.x) * (1.0 - bilinearFraction.y)
-                );
-
                 float backupSelect = rand_r2Seq1(frameCounter);
                 ivec2 backupOffset = ivec2(-1, -1);
-                if (backupSelect < bilinearWeights.x) {
+                float backupSurfaceWeight = reprojInfo.bilateralWeights.w;
+                if (backupSelect < temporalBilinearWeights.x) {
                     backupOffset = ivec2(-1, 0);
-                } else if (backupSelect < bilinearWeights.x + bilinearWeights.y) {
+                    backupSurfaceWeight = reprojInfo.bilateralWeights.x;
+                } else if (backupSelect < temporalBilinearWeights.x + temporalBilinearWeights.y) {
                     backupOffset = ivec2(0, 0);
-                } else if (backupSelect < bilinearWeights.x + bilinearWeights.y + bilinearWeights.z) {
+                    backupSurfaceWeight = reprojInfo.bilateralWeights.y;
+                } else if (
+                    backupSelect
+                    < temporalBilinearWeights.x + temporalBilinearWeights.y + temporalBilinearWeights.z
+                ) {
                     backupOffset = ivec2(0, -1);
+                    backupSurfaceWeight = reprojInfo.bilateralWeights.z;
                 }
 
-                ivec2 backupTexelPos = gatherTexelPos + backupOffset;
-                float backupSurfaceWeight = temporalReprojectionSurfaceWeight(reprojInfo, backupTexelPos);
-                ivec2 previousBaseTexel = ivec2(floor(previousBase));
-                backupSubpixelDelta = vec2(backupTexelPos - previousBaseTexel) - bilinearFraction;
-                bool backupInBounds = all(greaterThanEqual(backupTexelPos, ivec2(0)))
-                    && all(lessThan(backupTexelPos, uval_mainImageSizeI));
+                ivec2 backupTexelPos = temporalGatherTexelPos + backupOffset;
+                backupSubpixelDelta = vec2(backupOffset + ivec2(1)) - temporalBilinearFraction;
                 if (
-                    backupInBounds
-                    && backupSurfaceWeight > 0.9
+                    backupSurfaceWeight > 0.9
                     && loadTemporalHistorySample(backupTexelPos, backupSource)
                 ) {
-                    backupConfidence = clamp(
+                    backupConfidence = min(
                         backupSource.reservoir.m,
-                        0.0,
                         float(SETTING_GI_TEMPORAL_REUSE_LIMIT)
                     );
-                    backupProposalValid = backupConfidence > 0.0;
+                    backupProposalValid = true;
                     if (
-                        backupProposalValid
-                        && reconstructBackupTargetPrimary(
+                        reconstructBackupTargetPrimary(
                             texelPos,
                             backupSource.packedPrimary,
                             backupSubpixelDelta,
@@ -902,11 +833,10 @@ void main() {
                                 storedMaterial
                             )
                         );
-                        backupCandidateValid = restir_isPositiveFinite(backupPHat)
-                            && restir_reconnectionDensityRatioValid(
-                                backupSource.sampleValue.w,
-                                backupPHat * backupShift.jacobian
-                            );
+                        backupCandidateValid = restir_reconnectionDensityRatioValid(
+                            backupSource.sampleValue.w,
+                            backupPHat * backupShift.jacobian
+                        );
                     }
                 }
             }
@@ -921,8 +851,7 @@ void main() {
                     sampleDirView,
                     hitDistance,
                     hitRadiance,
-                    canonicalPHat,
-                    historyReusable
+                    canonicalPHat
                 );
                 #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
                 if (backupProposalValid) {
@@ -961,31 +890,22 @@ void main() {
                     backupShift.Y.xyz,
                     backupShift.Y.w,
                     backupSource.sampleValue.rgb,
-                    backupPHat,
-                    historyReusable
+                    backupPHat
                 );
-                float backupSourceMass = max(backupSource.reservoir.avgWY, 0.0)
+                float backupSourceMass = backupSource.reservoir.avgWY
                     * backupSource.sampleValue.w;
                 float backupWeight = backupSourceMass * temporalScaledRatio(
                     backupPHat,
                     RESTIR_BACKUP_PRIOR_PROPOSAL_MIX * backupConfidence,
                     backupDenominator
                 );
-                if (
-                    restir_isPositiveFinite(backupSourceMass)
-                    && backupTerm >= 0.0
-                    && restir_isFinite(backupTerm)
-                    && restir_isPositiveFinite(backupDenominator)
-                    && restir_isPositiveFinite(backupWeight)
-                    && restir_isFinite(wSum)
-                ) {
+                if (restir_isPositiveFinite(backupWeight)) {
                     float backupRand = restir_updateRand(texelPos, 0x6a09e667u);
                     if (restir_updateReservoir(
                         temporalReservoir,
                         wSum,
                         backupShift.Y,
                         backupWeight,
-                        0.0,
                         backupRand
                     )) {
                         finalSample = vec4(backupSource.sampleValue.rgb, backupPHat);
@@ -1026,11 +946,14 @@ void main() {
             }
 
             bool chainOverflow = historyReusable && splatNode != RESTIR_SPLAT_NULL;
-            float temporalConfidence = evaluateTemporalConfidence(
-                temporalPreviousScreenPos,
-                canonicalConfidence,
-                historyReusable
-            );
+            float temporalConfidence = canonicalConfidence;
+            if (historyReusable) {
+                temporalConfidence = evaluateTemporalConfidence(
+                    temporalGatherTexelPos,
+                    temporalBilinearWeights,
+                    canonicalConfidence
+                );
+            }
             #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
             if (backupProposalValid) {
                 temporalConfidence = min(
@@ -1060,8 +983,6 @@ void main() {
             vec3 storageHitViewPos = finiteSecondaryHit
                 ? finalPrimaryViewPos + temporalReservoir.Y.xyz * temporalReservoir.Y.w
                 : vec3(0.0);
-            storageGeometryValid = storageGeometryValid
-                && (!finiteSecondaryHit || restir_isFinite(storageHitViewPos));
             if (storageGeometryValid) {
                 if (!isHand) {
                     packedPrimary = restir_splatPackPrimary(
@@ -1096,8 +1017,6 @@ void main() {
                         temporalReservoir.Y.w = projectedHitDistance;
                     }
                 }
-                storageGeometryValid = restir_isFinite(finalPrimaryViewPos)
-                    && restir_isFinite(temporalReservoir.Y);
                 packedReservoirDirectionValid = storageGeometryValid;
             }
 
@@ -1151,7 +1070,8 @@ void main() {
                 finalHitNormal = vec3(0.0);
             }
 
-            if (!restir_isReservoirValid(temporalReservoir) || isHand) {
+            finalReservoirValid = restir_isReservoirValid(temporalReservoir);
+            if (!finalReservoirValid || isHand) {
                 packedPrimary = 0u;
             }
             writeCurrentPrimary(texelPos, packedPrimary);
@@ -1165,7 +1085,7 @@ void main() {
             #if USE_REFERENCE || !defined(SETTING_GI_SPATIAL_REUSE)
             vec4 ssgiDiffOut = vec4(0.0);
             vec4 ssgiSpecOut = vec4(0.0);
-            bool outputValid = restir_isReservoirValid(temporalReservoir);
+            bool outputValid = finalReservoirValid;
             #if USE_REFERENCE
             outputValid = initialValid;
             #endif
@@ -1213,12 +1133,13 @@ void main() {
                     vec3 specDenoiseFactor = resampleMaterial_specularDenoiseFactor(storedMaterial, denoiseNDotV);
                     ssgiSpecOut.rgb *= rcp(specDenoiseFactor);
 
-                    if (restir_isFinite(ssgiDiffOut.rgb) && restir_isFinite(ssgiDiffOut.w)) {
+                    bool hitDistanceFinite = restir_isFinite(winHitDist);
+                    if (restir_isFinite(ssgiDiffOut.rgb) && hitDistanceFinite) {
                         ssgiDiffOut = clamp(ssgiDiffOut, 0.0, FP16_MAX);
                     } else {
                         ssgiDiffOut = vec4(0.0);
                     }
-                    if (restir_isFinite(ssgiSpecOut.rgb) && restir_isFinite(ssgiSpecOut.w)) {
+                    if (restir_isFinite(ssgiSpecOut.rgb) && hitDistanceFinite) {
                         ssgiSpecOut = clamp(ssgiSpecOut, 0.0, FP16_MAX);
                     } else {
                         ssgiSpecOut = vec4(0.0);
@@ -1230,13 +1151,15 @@ void main() {
             transient_ssgiSpecOut_store(texelPos, ssgiSpecOut);
             #endif
         }
-        bool finalReservoirValid = restir_isReservoirValid(temporalReservoir);
         if (!finalReservoirValid) {
             temporalReservoir.Y.w = -1.0;
         }
-        uint finalPackedDirection = packedReservoirDirectionValid && finalReservoirValid
-            ? packedReservoirDirection
-            : restir_reservoir_packDirection(temporalReservoir.Y.xyz);
+        uint finalPackedDirection = 0u;
+        if (finalReservoirValid) {
+            finalPackedDirection = packedReservoirDirectionValid
+                ? packedReservoirDirection
+                : restir_reservoir_packDirection(temporalReservoir.Y.xyz);
+        }
         uvec4 packedReservoir = uvec4(
             finalPackedDirection,
             floatBitsToUint(temporalReservoir.m),

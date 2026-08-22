@@ -56,21 +56,6 @@ void main() {
 
             if (rayPdf > 0.0) {
                 candidate = restir_initialCandidate_makeVoxelFallback(rayDirView, rayPdf);
-                //                SSTRay sstRay = sstray_setup(texelPos, viewPos, rayDirView);
-                //                sst_trace(sstRay, GI_INITIAL_HIZ_STEPS);
-                //
-                //                if (sstRay.currT < 0.0) {
-                //                    candidate = restir_initialCandidate_makeVoxelFallback(rayDirView, rayPdf);
-                //                } else {
-                //                    float hitDistance = restir_initialSample_handleRayResult(sstRay);
-                //                    if (hitDistance > 0.0) {
-                //                        if (!restir_initialSample_screenHitQuery(texelPos, gData.geomNormal, viewPos, rayDirView, rayPdf, hitDistance, candidate)) {
-                //                            candidate = restir_initialCandidate_makeVoxelFallback(rayDirView, rayPdf);
-                //                        }
-                //                    } else {
-                //                        candidate = restir_initialCandidate_makeVoxelFallback(rayDirView, rayPdf);
-                //                    }
-                //                }
             }
         } else {
             transient_geomViewNormal_store(texelPos, vec4(0.0));

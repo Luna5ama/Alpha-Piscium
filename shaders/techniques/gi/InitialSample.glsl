@@ -15,12 +15,6 @@
 #include "/util/Hash.glsl"
 #include "/util/NZPacking.glsl"
 
-struct restir_InitialSampleData {
-    vec4 directionAndLength;
-    vec3 hitRadiance;
-    float pdf;
-};
-
 const float RESTIR_INITIAL_CANDIDATE_SKY_MISS = -1.0;
 const float RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL = -2.0;
 const float RESTIR_INITIAL_CANDIDATE_INVALID = -3.0;
@@ -333,34 +327,6 @@ vec3 restir_initialSample_generateRayDir(
     rayDirView = nzpacking_unpackNormalOct32(nzpacking_packNormalOct32(rayDirView));
     pdf = restir_initialSample_evaluateRayPdf(rayDirView, geomNormal, V, material);
     return rayDirView;
-}
-
-restir_InitialSampleData restir_initalSample_restoreData(ivec2 texelPos, float viewZ, vec3 geomNormal, vec3 normal, Material selfMaterial, float hitDistance) {
-    restir_InitialSampleData initialSampleData;
-    vec2 rayOriginScreenXY = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
-    vec3 rayOriginView = coords_toViewCoord(rayOriginScreenXY, viewZ, global_camProjInverse);
-    vec3 V = normalize(-rayOriginView);
-
-    float pdf;
-    vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, geomNormal, V, selfMaterial, pdf);
-    initialSampleData.directionAndLength.xyz = rayDirView;
-    initialSampleData.directionAndLength.w = hitDistance;
-    initialSampleData.pdf = pdf;
-
-    if (hitDistance <= -1.0) {
-        // Miss
-        vec3 rayOriginScene = coords_pos_viewToWorld(rayOriginView, gbufferModelViewInverse);
-        vec3 rayWorldDir = coords_dir_viewToWorld(rayDirView);
-        initialSampleData.hitRadiance = restir_irradiance_sampleIrradianceMiss(texelPos, rayOriginScene, rayWorldDir);
-    } else {
-        vec3 rayEndView = rayOriginView + rayDirView * hitDistance;
-        vec3 rayEndScreen = coords_viewToScreen(rayEndView, global_camProj);
-        vec2 hitTexelPosF = floor(rayEndScreen.xy * uval_mainImageSize);
-        ivec2 hitTexelPos = ivec2(hitTexelPosF);
-        initialSampleData.hitRadiance = restir_irradiance_sampleIrradiance(texelPos, selfMaterial, hitTexelPos, -rayDirView);
-    }
-
-    return initialSampleData;
 }
 
 float restir_initialSample_handleRayResult(SSTRay sstRay) {

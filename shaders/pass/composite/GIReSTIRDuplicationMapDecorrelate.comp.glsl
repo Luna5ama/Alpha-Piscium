@@ -18,7 +18,6 @@ layout(local_size_x = 16, local_size_y = 16) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba32ui) uniform restrict uimage2D uimg_rgba32ui;
-layout(rgba16f) uniform writeonly image2D uimg_temp1;
 
 shared vec4 sm_hitViewPos[1024];
 
@@ -56,13 +55,12 @@ void main() {
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
         uvec4 centerPackedReservoir = transient_restir_reservoirTemporal_fetch(texelPos);
-        ReSTIRReservoir centerReservoir = restir_reservoir_unpack(centerPackedReservoir);
-
         ivec2 centerSmPos = ivec2(mortonPos) + ivec2(8);
         vec3 centerHitViewPos = sm_hitViewPos[centerSmPos.y * 32 + centerSmPos.x].xyz;
 
         float dupCount = 0.0;
         const int radius = 8;
+        const float distanceEpsilon = 1e-10;
         for(int y = -radius; y <= radius; y++) {
             for(int x = -radius; x <= radius; x++) {
                 if(x == 0 && y == 0) continue;
@@ -73,28 +71,22 @@ void main() {
                 if (neighborInfo.w > 0.0) {
                     vec3 diff = centerHitViewPos - neighborInfo.xyz;
                     float d = dot(diff, diff);
-                    float a = pow2(0.00001);
-                    float score = a * rcp(a + d);
+                    float score = distanceEpsilon * rcp(distanceEpsilon + d);
 
                     dupCount += score;
                 }
             }
         }
 
-        float duplicationScore = dupCount / 288.0;
-        duplicationScore = saturate(duplicationScore);
+        float duplicationScore = min(dupCount / 288.0, 1.0);
 
-        ReSTIRReservoir reservoir = restir_reservoir_unpack(centerPackedReservoir);
         const float cCapDefault = float(SETTING_GI_TEMPORAL_REUSE_LIMIT);
         float cCapMin = 1.0;
         float alpha = 0.1;
         float duplicationScorePower = pow(duplicationScore, alpha);
         float expectedCCap = mix(cCapDefault, cCapMin, duplicationScorePower);
-//        #if SETTING_DEBUG_OUTPUT
-//        imageStore(uimg_temp1, texelPos, vec4(duplicationScorePower));
-//        #endif
-        reservoir.m = min(reservoir.m, expectedCCap);
-        uvec4 packedReservoir = restir_reservoir_pack(reservoir);
-        transient_restir_reservoirTemporal_store(texelPos, packedReservoir);
+        float reservoirM = uintBitsToFloat(centerPackedReservoir.y);
+        centerPackedReservoir.y = floatBitsToUint(min(reservoirM, expectedCCap));
+        transient_restir_reservoirTemporal_store(texelPos, centerPackedReservoir);
     }
 }

@@ -314,31 +314,23 @@ void main() {
     if (bool(validMe)) {
         viewZMe = texelFetch(usam_gbufferSolidViewZ, texelMe, 0).x;
         if (viewZMe > -65536.0) {
-            uvec4 spatialSamplePackedDataMe = transient_restir_spatialInput_fetch(texelMe);
             uint packedPrimaryMe = restir_splatFetchCurrentPrimary(texelMe);
             if (packedPrimaryMe == 0u) {
                 validMe = 0u;
             } else {
+                uvec4 spatialSamplePackedDataMe = transient_restir_spatialInput_fetch(texelMe);
                 primaryViewPosMe = restir_splatUnpackPrimary(texelMe, packedPrimaryMe, global_camProjInverse);
-            }
-            geomNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.x);
-            hitNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.y);
-            normalMe = transient_viewNormal_fetch(texelMe).xyz * 2.0 - 1.0;
-            sampleValueMe = unpackHalf4x16(spatialSamplePackedDataMe.zw);
-            materialMe = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelMe));
-            #if PASS_INDEX != 0
-            metaMe = pairwiseMISMetadata_unpack(transient_restir_pairwiseMISMetadata_fetch(texelMe));
-            #endif
+                geomNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.x);
+                hitNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.y);
+                normalMe = transient_viewNormal_fetch(texelMe).xyz * 2.0 - 1.0;
+                sampleValueMe = unpackHalf4x16(spatialSamplePackedDataMe.zw);
+                materialMe = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelMe));
+                #if PASS_INDEX != 0
+                metaMe = pairwiseMISMetadata_unpack(transient_restir_pairwiseMISMetadata_fetch(texelMe));
+                #endif
 
-            uvec4 repMe = transient_restir_reservoirTemporal_fetch(texelMe);
-            ReSTIRReservoir reservoirMe = restir_reservoir_unpack(repMe);
-            if (
-                !restir_isReservoirValid(reservoirMe)
-                || !restir_isFinite(sampleValueMe.w)
-                || sampleValueMe.w <= 0.0
-            ) {
-                validMe = 0u;
-            } else {
+                uvec4 repMe = transient_restir_reservoirTemporal_fetch(texelMe);
+                ReSTIRReservoir reservoirMe = restir_reservoir_unpack(repMe);
                 canonYMe = reservoirMe.Y;
                 canonMMe = reservoirMe.m;
                 canonAvgWYMe = reservoirMe.avgWY;
