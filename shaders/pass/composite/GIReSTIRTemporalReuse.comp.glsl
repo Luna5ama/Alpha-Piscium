@@ -86,28 +86,20 @@ ReSTIRReservoir readPreviousReservoir(ivec2 texelPos) {
     return restir_reservoir_unpack(packedReservoir);
 }
 
-uint readPreviousPrimary(ivec2 texelPos, bool oddFrame) {
-    return oddFrame
-        ? history_restir_primary2_load(texelPos).x
-        : history_restir_primary1_load(texelPos).x;
+uint readPreviousPrimary(ivec2 texelPos) {
+    return history_restir_primary_load(texelPos).x;
 }
 
 uint readSplatNext(ivec2 texelPos) {
     return transient_restir_pairwiseMISMetadata_load(texelPos).x;
 }
 
-uint readCurrentPrimary(ivec2 texelPos, bool oddFrame) {
-    return oddFrame
-        ? history_restir_primary1_load(texelPos).x
-        : history_restir_primary2_load(texelPos).x;
+uint readCurrentPrimary(ivec2 texelPos) {
+    return transient_restir_primary_load(texelPos).x;
 }
 
-void writeCurrentPrimary(ivec2 texelPos, uint packedPrimary, bool oddFrame) {
-    if (oddFrame) {
-        history_restir_primary1_store(texelPos, uvec4(packedPrimary));
-    } else {
-        history_restir_primary2_store(texelPos, uvec4(packedPrimary));
-    }
+void writeCurrentPrimary(ivec2 texelPos, uint packedPrimary) {
+    transient_restir_primary_store(texelPos, uvec4(packedPrimary));
 }
 
 struct TemporalHistorySample {
@@ -177,10 +169,10 @@ TemporalHistorySample temporalHistorySample_init() {
     return source;
 }
 
-bool loadTemporalHistorySample(ivec2 texelPos, bool oddFrame, inout TemporalHistorySample source) {
+bool loadTemporalHistorySample(ivec2 texelPos, inout TemporalHistorySample source) {
     source.texelPos = texelPos;
     source.reservoir = readPreviousReservoir(texelPos);
-    source.packedPrimary = readPreviousPrimary(texelPos, oddFrame);
+    source.packedPrimary = readPreviousPrimary(texelPos);
     if (
         !restir_isReservoirValid(source.reservoir)
         || !restir_isFinite(source.reservoir.Y.w)
@@ -509,11 +501,11 @@ float evaluateBackupProposalTerm(
 }
 #endif
 
-float readPreviousConfidence(ivec2 texelPos, bool oddFrame) {
+float readPreviousConfidence(ivec2 texelPos) {
     if (any(lessThan(texelPos, ivec2(0))) || any(greaterThanEqual(texelPos, uval_mainImageSizeI))) {
         return 0.0;
     }
-    if (readPreviousPrimary(texelPos, oddFrame) == 0u) {
+    if (readPreviousPrimary(texelPos) == 0u) {
         return 0.0;
     }
     ReSTIRReservoir previousReservoir = readPreviousReservoir(texelPos);
@@ -532,7 +524,6 @@ void sampleTemporalSplat(
     vec3 centerNormal,
     ResampleMaterial material,
     float canonicalConfidence,
-    bool oddFrame,
     #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
     bool backupProposalValid,
     TemporalHistorySample backupSource,
@@ -545,7 +536,7 @@ void sampleTemporalSplat(
     inout vec3 finalPrimaryViewPos
 ) {
     TemporalHistorySample source = temporalHistorySample_init();
-    if (!loadTemporalHistorySample(sourceTexelPos, oddFrame, source)) {
+    if (!loadTemporalHistorySample(sourceTexelPos, source)) {
         return;
     }
 
@@ -626,7 +617,6 @@ float evaluateSplatProposalTerm(
     float hitDistance,
     vec3 hitRadiance,
     float currentPHat,
-    bool oddFrame,
     bool historyReusable
 ) {
     if (!historyReusable) {
@@ -661,7 +651,7 @@ float evaluateSplatProposalTerm(
     ReSTIRReservoir reverseReservoir = readPreviousReservoir(prevTexelPos);
     if (
         !restir_isReservoirValid(reverseReservoir)
-        || readPreviousPrimary(prevTexelPos, oddFrame) == 0u
+        || readPreviousPrimary(prevTexelPos) == 0u
     ) {
         return 0.0;
     }
@@ -709,7 +699,7 @@ float evaluateSplatProposalTerm(
     return temporalProposalMulDiv(reverseConfidence, previousPHat, forwardJacobian);
 }
 
-float evaluateTemporalConfidence(vec2 previousScreenPos, float canonicalConfidence, bool oddFrame, bool historyReusable) {
+float evaluateTemporalConfidence(vec2 previousScreenPos, float canonicalConfidence, bool historyReusable) {
     if (!historyReusable) {
         return canonicalConfidence;
     }
@@ -730,10 +720,10 @@ float evaluateTemporalConfidence(vec2 previousScreenPos, float canonicalConfiden
     );
 
     vec4 previousConfidence = vec4(
-        readPreviousConfidence(gatherTexelPos + ivec2(-1, 0), oddFrame),
-        readPreviousConfidence(gatherTexelPos, oddFrame),
-        readPreviousConfidence(gatherTexelPos + ivec2(0, -1), oddFrame),
-        readPreviousConfidence(gatherTexelPos + ivec2(-1, -1), oddFrame)
+        readPreviousConfidence(gatherTexelPos + ivec2(-1, 0)),
+        readPreviousConfidence(gatherTexelPos),
+        readPreviousConfidence(gatherTexelPos + ivec2(0, -1)),
+        readPreviousConfidence(gatherTexelPos + ivec2(-1, -1))
     );
     float historyConfidence = dot(bilinearWeights, previousConfidence);
     return min(canonicalConfidence + historyConfidence, float(SETTING_GI_TEMPORAL_REUSE_LIMIT));
@@ -759,9 +749,8 @@ void main() {
         ReSTIRReservoir temporalReservoir = restir_initReservoir();
         uint packedReservoirDirection = 0u;
         bool packedReservoirDirectionValid = false;
-        bool oddFrame = bool(frameCounter & 1);
-        uint splatHead = readCurrentPrimary(texelPos, oddFrame);
-        writeCurrentPrimary(texelPos, RESTIR_SPLAT_NULL, oddFrame);
+        uint splatHead = readCurrentPrimary(texelPos);
+        writeCurrentPrimary(texelPos, RESTIR_SPLAT_NULL);
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos.xy, 4, texelPos);
         if (viewZ > -65536.0) {
             vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
@@ -882,7 +871,7 @@ void main() {
                 if (
                     backupInBounds
                     && backupSurfaceWeight > 0.9
-                    && loadTemporalHistorySample(backupTexelPos, oddFrame, backupSource)
+                    && loadTemporalHistorySample(backupTexelPos, backupSource)
                 ) {
                     backupConfidence = clamp(
                         backupSource.reservoir.m,
@@ -933,7 +922,6 @@ void main() {
                     hitDistance,
                     hitRadiance,
                     canonicalPHat,
-                    oddFrame,
                     historyReusable
                 );
                 #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
@@ -974,7 +962,6 @@ void main() {
                     backupShift.Y.w,
                     backupSource.sampleValue.rgb,
                     backupPHat,
-                    oddFrame,
                     historyReusable
                 );
                 float backupSourceMass = max(backupSource.reservoir.avgWY, 0.0)
@@ -1022,7 +1009,6 @@ void main() {
                         targetNormal,
                         storedMaterial,
                         canonicalConfidence,
-                        oddFrame,
                         #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
                         backupProposalValid,
                         backupSource,
@@ -1043,7 +1029,6 @@ void main() {
             float temporalConfidence = evaluateTemporalConfidence(
                 temporalPreviousScreenPos,
                 canonicalConfidence,
-                oddFrame,
                 historyReusable
             );
             #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
@@ -1169,7 +1154,7 @@ void main() {
             if (!restir_isReservoirValid(temporalReservoir) || isHand) {
                 packedPrimary = 0u;
             }
-            writeCurrentPrimary(texelPos, packedPrimary, oddFrame);
+            writeCurrentPrimary(texelPos, packedPrimary);
 
             SpatialSampleData spatialSample = spatialSampleData_init();
             spatialSample.sampleValue = finalSample;

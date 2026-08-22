@@ -7,10 +7,6 @@ layout(r32ui) uniform restrict writeonly uimage2D uimg_r32ui;
 
 void main() {
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        if (bool(frameCounter & 1)) {
-            history_restir_primary1_store(texelPos, uvec4(0u));
-        } else {
-            history_restir_primary2_store(texelPos, uvec4(0u));
-        }
+        transient_restir_primary_store(texelPos, uvec4(0u));
     }
 }

@@ -60,6 +60,7 @@ void main() {
         uvec4 packedTemporalReservoir = transient_restir_reservoirTemporal_fetch(texelPos);
         history_restir_reservoirTemporal_store(texelPos, packedTemporalReservoir);
         uint packedPrimary = restir_splatFetchCurrentPrimary(texelPos);
+        history_restir_primary_store(texelPos, uvec4(packedPrimary));
 
         float viewZ = hiz_groupGroundCheckSubgroupLoadViewZ(swizzledWGPos, 4, texelPos);
 

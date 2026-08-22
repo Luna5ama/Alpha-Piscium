@@ -58,11 +58,11 @@ RGBA16F）。[`ClearEnvProbe`](../../../shaders/pass/begin/ClearEnvProbe.comp.gl
 | 8  | [`GIReSTIRSpatialReuseTrace`](../../../shaders/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl)                                                                                                                           | 完成 spatial visibility/SST             |
 
 四个 spatial-reuse pass 的 `PASS_INDEX` 为 0–3，`PASS_BASE_SAMPLE_INDEX` 为 0/7/14/21；它们从 SSBO 0 offset 48 indirect
-dispatch。`history_restir_reservoirTemporal`、`history_restir_prevSample`、`history_restir_prevHitNormal` 保存上一帧
-输入，`transient_restir_reservoirTemporal`、`transient_restir_spatialInput` 和
-`transient_restir_pairwiseMISMetadata` 连接本帧阶段。[
+dispatch。`history_restir_reservoirTemporal`、`history_restir_primary`、`history_restir_prevSample` 和
+`history_restir_prevHitNormal` 保存上一帧输入，`transient_restir_reservoirTemporal`、`transient_restir_primary`、
+`transient_restir_spatialInput` 和 `transient_restir_pairwiseMISMetadata` 连接本帧阶段。[
 `GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl) 会在执行本帧最后一轮读取时，
-将当前 temporal reservoir 复制到固定的 history tile。所有 tile 定义见 [
+将当前 temporal reservoir 与 primary 数据复制到各自固定的 history tile。所有 tile 定义见 [
 `shaders/shadesmith.json`](../../../shaders/shadesmith.json)。
 
 ## GI 降噪

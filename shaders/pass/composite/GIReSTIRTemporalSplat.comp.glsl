@@ -21,9 +21,7 @@ ReSTIRReservoir readPreviousReservoir(ivec2 texelPos) {
 }
 
 uint readPreviousPrimary(ivec2 texelPos) {
-    return bool(frameCounter & 1)
-        ? history_restir_primary2_load(texelPos).x
-        : history_restir_primary1_load(texelPos).x;
+    return history_restir_primary_load(texelPos).x;
 }
 
 void writeSplatNext(ivec2 texelPos, uint nextNode) {
@@ -32,9 +30,7 @@ void writeSplatNext(ivec2 texelPos, uint nextNode) {
 }
 
 uint exchangeSplatHead(ivec2 texelPos, uint node) {
-    return bool(frameCounter & 1)
-        ? history_restir_primary1_atomicExchange(texelPos, node)
-        : history_restir_primary2_atomicExchange(texelPos, node);
+    return transient_restir_primary_atomicExchange(texelPos, node);
 }
 
 void main() {
