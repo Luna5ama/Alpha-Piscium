@@ -60,9 +60,12 @@ The runtime resources are `uimg_envProbe`, declared as 1024×768 RGBA32UI in [
 | 8     | [`GIReSTIRSpatialReuseTrace`](../../../shaders/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl)                                                                                                                           | Completes spatial visibility/SST                                   |
 
 The four spatial-reuse passes use `PASS_INDEX` 0–3 and `PASS_BASE_SAMPLE_INDEX` 0/7/14/21, dispatched indirectly from
-SSBO 0 offset 48. `history_restir_reservoirTemporal1/2`, `history_restir_prevSample`, and `history_restir_prevHitNormal`
-retain temporal inputs; `transient_restir_spatialInput` and `transient_restir_pairwiseMISMetadata` connect the spatial
-stages. All tile definitions live in [`shaders/shadesmith.json`](../../../shaders/shadesmith.json).
+SSBO 0 offset 48. `history_restir_reservoirTemporal`, `history_restir_prevSample`, and `history_restir_prevHitNormal`
+retain previous-frame inputs; `transient_restir_reservoirTemporal`, `transient_restir_spatialInput`, and
+`transient_restir_pairwiseMISMetadata` connect the current-frame stages. [
+`GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl) copies the current
+temporal reservoir to its fixed history tile while performing the final current-frame reads. All tile definitions live
+in [`shaders/shadesmith.json`](../../../shaders/shadesmith.json).
 
 ## GI denoising
 

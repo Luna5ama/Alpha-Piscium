@@ -31,8 +31,6 @@ void main() {
     uvec2 mortonGlobalPosU = workGroupOrigin + mortonPos;
     ivec2 texelPos = ivec2(mortonGlobalPosU);
 
-    bool frameCond = bool(frameCounter & 1);
-
     ivec2 basePos = ivec2(workGroupOrigin) - ivec2(8);
     uvec2 localId = gl_LocalInvocationID.xy;
 
@@ -43,12 +41,7 @@ void main() {
 
         vec4 hitViewPos = vec4(0.0);
         if (all(greaterThanEqual(loadPos, ivec2(0))) && all(lessThan(loadPos, uval_mainImageSizeI))) {
-            uvec4 packedRes;
-            if (frameCond) {
-                packedRes = history_restir_reservoirTemporal1_fetch(loadPos);
-            } else {
-                packedRes = history_restir_reservoirTemporal2_fetch(loadPos);
-            }
+            uvec4 packedRes = transient_restir_reservoirTemporal_fetch(loadPos);
             ReSTIRReservoir r = restir_reservoir_unpack(packedRes);
             uint packedPrimary = restir_splatFetchCurrentPrimary(loadPos);
             if (restir_isReservoirValid(r) && packedPrimary != 0u) {
@@ -62,12 +55,7 @@ void main() {
     barrier();
 
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        uvec4 centerPackedReservoir;
-        if (frameCond) {
-            centerPackedReservoir = history_restir_reservoirTemporal1_fetch(texelPos);
-        } else {
-            centerPackedReservoir = history_restir_reservoirTemporal2_fetch(texelPos);
-        }
+        uvec4 centerPackedReservoir = transient_restir_reservoirTemporal_fetch(texelPos);
         ReSTIRReservoir centerReservoir = restir_reservoir_unpack(centerPackedReservoir);
 
         ivec2 centerSmPos = ivec2(mortonPos) + ivec2(8);
@@ -107,10 +95,6 @@ void main() {
 //        #endif
         reservoir.m = min(reservoir.m, expectedCCap);
         uvec4 packedReservoir = restir_reservoir_pack(reservoir);
-        if (frameCond) {
-            history_restir_reservoirTemporal1_store(texelPos, packedReservoir);
-        } else {
-            history_restir_reservoirTemporal2_store(texelPos, packedReservoir);
-        }
+        transient_restir_reservoirTemporal_store(texelPos, packedReservoir);
     }
 }
