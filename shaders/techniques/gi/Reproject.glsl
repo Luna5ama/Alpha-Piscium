@@ -28,6 +28,8 @@ void computeEdgeWeights(
     vec3 currViewNormal,
     vec3 currViewGeomNormal,
     vec3 curr2PrevViewPos,
+    vec3 curr2PrevViewNormal,
+    vec3 curr2PrevViewGeomNormal,
     float glazingAngleFactor,
     float normalBaseWeight,
     out vec4 roughnessWeights,
@@ -50,11 +52,6 @@ void computeEdgeWeights(
     viewNormalXs = viewNormalXs * 2.0 - 1.0;
     viewNormalYs = viewNormalYs * 2.0 - 1.0;
     viewNormalZs = viewNormalZs * 2.0 - 1.0;
-
-    vec3 currWorldGeomNormal = coords_dir_viewToWorld(currViewGeomNormal);
-    vec3 currWorldNormal = coords_dir_viewToWorld(currViewNormal);
-    vec3 curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
-    vec3 curr2PrevViewGeomNormal = coords_dir_worldToViewPrev(currWorldGeomNormal);
 
     float currEdgeFactor = min4(transient_edgeMask_gather(screenPos, 0));
 
@@ -149,6 +146,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     bool valid = false;
     float specularHitDistance = 0.0;
     float specularHistoryLength = 0.0;
+    vec3 curr2PrevViewNormal;
+    vec3 curr2PrevViewGeomNormal;
     vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
     vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
 
@@ -165,6 +164,10 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
             vec4 edgeWeights;
             vec4 extraNormalWeights;
             vec4 roughnessWeights;
+            vec3 currWorldGeomNormal = coords_dir_viewToWorld(currViewGeomNormal);
+            vec3 currWorldNormal = coords_dir_viewToWorld(currViewNormal);
+            curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
+            curr2PrevViewGeomNormal = coords_dir_worldToViewPrev(currWorldGeomNormal);
 
             computeEdgeWeights(
                 screenPos,
@@ -173,6 +176,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 currViewNormal,
                 currViewGeomNormal,
                 curr2PrevViewPos.xyz,
+                curr2PrevViewNormal,
+                curr2PrevViewGeomNormal,
                 glazingAngleFactor,
                 4.0,
                 roughnessWeights,
@@ -379,6 +384,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     currViewNormal,
                     currViewGeomNormal,
                     curr2PrevViewPos.xyz,
+                    curr2PrevViewNormal,
+                    curr2PrevViewGeomNormal,
                     glazingAngleFactor,
                     128.0 * mirrorParallaxFactor + 128.0,
                     roughnessWeights,
