@@ -216,43 +216,44 @@ void processGroupCandidate(
 ) {
     ivec2 texelOther = subgroupShuffleXor(texelMe, shuffleMask);
     uint reusableOther = subgroupShuffleXor(reusableMe, shuffleMask);
-    vec3 primaryViewPosOther = subgroupShuffleXor(primaryViewPosMe, shuffleMask);
-    vec3 geomNormalOther = subgroupShuffleXor(geomNormalMe, shuffleMask);
-    vec3 normalOther = subgroupShuffleXor(normalMe, shuffleMask);
     float sampleValueWOther = subgroupShuffleXor(sampleValueMe.w, shuffleMask);
     float canonMOther = subgroupShuffleXor(canonMMe, shuffleMask);
     float canonAvgWYOther = subgroupShuffleXor(canonAvgWYMe, shuffleMask);
-    ResampleMaterial materialOther;
-    materialOther.f0 = subgroupShuffleXor(materialMe.f0, shuffleMask);
-    materialOther.dielectric = subgroupShuffleXor(materialMe.dielectric, shuffleMask);
-    materialOther.roughness = subgroupShuffleXor(materialMe.roughness, shuffleMask);
 
     uint pairValid = reusableMe & reusableOther & uint(texelMe != texelOther);
     bool pairReusable = false;
+    float meToOtherTargetPHat = 0.0;
     if (bool(pairValid)) {
+        vec3 primaryViewPosOther = subgroupShuffleXor(primaryViewPosMe, shuffleMask);
+        vec3 geomNormalOther = subgroupShuffleXor(geomNormalMe, shuffleMask);
         if (dot(geomNormalMe, geomNormalOther) > 0.99) {
             vec3 viewPosDelta = primaryViewPosMe - primaryViewPosOther;
             float planeDistance = max(abs(dot(viewPosDelta, geomNormalOther)), abs(dot(viewPosDelta, geomNormalMe)));
             float viewZMin = min(abs(primaryViewPosMe.z), abs(primaryViewPosOther.z));
             pairReusable = planeDistance < viewZMin * 0.01;
         }
-    }
 
-    float meToOtherTargetPHat = 0.0;
-    if (pairReusable) {
-        meToOtherTargetPHat = evaluateShiftTargetPHat(
-            canonYMe,
-            geomNormalOther,
-            normalOther,
-            geomNormalMe,
-            hitNormalMe,
-            cosMe,
-            cosPhiMe,
-            sampleValueMe,
-            primaryViewPosOther,
-            primaryViewPosMe,
-            materialOther
-        );
+        if (pairReusable) {
+            vec3 normalOther = subgroupShuffleXor(normalMe, shuffleMask);
+            ResampleMaterial materialOther;
+            materialOther.f0 = subgroupShuffleXor(materialMe.f0, shuffleMask);
+            materialOther.dielectric = subgroupShuffleXor(materialMe.dielectric, shuffleMask);
+            materialOther.roughness = subgroupShuffleXor(materialMe.roughness, shuffleMask);
+
+            meToOtherTargetPHat = evaluateShiftTargetPHat(
+                canonYMe,
+                geomNormalOther,
+                normalOther,
+                geomNormalMe,
+                hitNormalMe,
+                cosMe,
+                cosPhiMe,
+                sampleValueMe,
+                primaryViewPosOther,
+                primaryViewPosMe,
+                materialOther
+            );
+        }
     }
     float otherToMeTargetPHat = subgroupShuffleXor(meToOtherTargetPHat, shuffleMask);
     accumulateResample(
