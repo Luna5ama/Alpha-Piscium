@@ -46,7 +46,21 @@ shared vec3 shared_historyLengths[18][18];
 
 void loadSharedHistoryLengths(uvec2 groupOriginTexelPos, uint index) {
     if (index < 324u) { // 18 * 18 = 324
-        uvec2 sharedXY = uvec2(index % 18u, index / 18u);
+        uvec2 sharedXY;
+        if (index < 256u) {
+            sharedXY = uvec2(gl_LocalInvocationID.xy) + 1u;
+        } else {
+            uint borderIndex = index - 256u;
+            if (borderIndex < 18u) {
+                sharedXY = uvec2(borderIndex, 0u);
+            } else if (borderIndex < 36u) {
+                sharedXY = uvec2(borderIndex - 18u, 17u);
+            } else if (borderIndex < 52u) {
+                sharedXY = uvec2(0u, borderIndex - 36u);
+            } else {
+                sharedXY = uvec2(17u, borderIndex - 52u);
+            }
+        }
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 1;
         vec4 data5 = transient_gi5Reprojected_fetch(srcXY);
         shared_historyLengths[sharedXY.y][sharedXY.x] = data5.xyz;
