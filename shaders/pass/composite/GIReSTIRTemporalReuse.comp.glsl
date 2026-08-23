@@ -107,15 +107,21 @@ struct TemporalHistorySample {
     uint packedPrimary;
     ReSTIRReservoir reservoir;
     vec4 sampleValue;
+    #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
+    ResampleMaterial previousMaterial;
+    #endif
+};
+
+struct TemporalPrimaryGeometry {
     vec3 previousPrimary;
     vec3 currentPrimary;
     vec3 previousGeomNormal;
     vec3 currentGeomNormal;
+};
+
+struct TemporalHitGeometry {
     vec3 currentHit;
     vec3 currentHitNormal;
-    #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
-    ResampleMaterial previousMaterial;
-    #endif
 };
 
 struct TemporalPathShift {
@@ -157,19 +163,34 @@ TemporalHistorySample temporalHistorySample_init() {
     source.packedPrimary = 0u;
     source.reservoir = restir_initReservoir();
     source.sampleValue = vec4(0.0);
-    source.previousPrimary = vec3(0.0);
-    source.currentPrimary = vec3(0.0);
-    source.previousGeomNormal = vec3(0.0);
-    source.currentGeomNormal = vec3(0.0);
-    source.currentHit = vec3(0.0);
-    source.currentHitNormal = vec3(0.0);
     #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
     source.previousMaterial = resampleMaterial_init();
     #endif
     return source;
 }
 
-bool loadTemporalHistorySample(ivec2 texelPos, inout TemporalHistorySample source) {
+TemporalPrimaryGeometry temporalPrimaryGeometry_init() {
+    TemporalPrimaryGeometry geometry;
+    geometry.previousPrimary = vec3(0.0);
+    geometry.currentPrimary = vec3(0.0);
+    geometry.previousGeomNormal = vec3(0.0);
+    geometry.currentGeomNormal = vec3(0.0);
+    return geometry;
+}
+
+TemporalHitGeometry temporalHitGeometry_init() {
+    TemporalHitGeometry geometry;
+    geometry.currentHit = vec3(0.0);
+    geometry.currentHitNormal = vec3(0.0);
+    return geometry;
+}
+
+bool loadTemporalHistorySample(
+    ivec2 texelPos,
+    inout TemporalHistorySample source,
+    inout TemporalPrimaryGeometry primaryGeometry,
+    inout TemporalHitGeometry hitGeometry
+) {
     source.texelPos = texelPos;
     source.packedPrimary = readPreviousPrimary(texelPos);
     if (source.packedPrimary == 0u) {
@@ -181,43 +202,47 @@ bool loadTemporalHistorySample(ivec2 texelPos, inout TemporalHistorySample sourc
     source.previousMaterial = resampleMaterial_unpack(history_restir_prevResampleMaterial_fetch(texelPos));
     #endif
 
-    source.previousPrimary = restir_splatUnpackPrimary(
+    primaryGeometry.previousPrimary = restir_splatUnpackPrimary(
         texelPos,
         source.packedPrimary,
         global_prevCamProjInverse
     );
-    source.currentPrimary = shared_prevViewToCurrView * source.previousPrimary + shared_prevViewToCurrViewTrans;
+    primaryGeometry.currentPrimary = shared_prevViewToCurrView
+        * primaryGeometry.previousPrimary
+        + shared_prevViewToCurrViewTrans;
     vec3 previousGeomNormal = history_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
     if (
-        !restir_isFinite(source.previousPrimary)
-        || !restir_isFinite(source.currentPrimary)
+        !restir_isFinite(primaryGeometry.previousPrimary)
+        || !restir_isFinite(primaryGeometry.currentPrimary)
         || !restir_isFinite(previousGeomNormal)
         || dot(previousGeomNormal, previousGeomNormal) <= 1e-4
     ) {
         return false;
     }
-    source.previousGeomNormal = normalize(previousGeomNormal);
-    source.currentGeomNormal = shared_prevViewToCurrView * source.previousGeomNormal;
-    source.currentHit = vec3(0.0);
-    source.currentHitNormal = vec3(0.0);
+    primaryGeometry.previousGeomNormal = normalize(previousGeomNormal);
+    primaryGeometry.currentGeomNormal = shared_prevViewToCurrView * primaryGeometry.previousGeomNormal;
+    hitGeometry.currentHit = vec3(0.0);
+    hitGeometry.currentHitNormal = vec3(0.0);
     if (source.reservoir.Y.w > 0.0) {
-        vec3 previousHit = source.previousPrimary + source.reservoir.Y.xyz * source.reservoir.Y.w;
-        source.currentHit = shared_prevViewToCurrView * previousHit + shared_prevViewToCurrViewTrans;
+        vec3 previousHit = primaryGeometry.previousPrimary + source.reservoir.Y.xyz * source.reservoir.Y.w;
+        hitGeometry.currentHit = shared_prevViewToCurrView * previousHit + shared_prevViewToCurrViewTrans;
         vec3 previousHitNormal = nzpacking_unpackNormalOct32(
             history_restir_prevHitNormal_fetch(texelPos).x
         );
-        source.currentHitNormal = shared_prevViewToCurrView * previousHitNormal;
+        hitGeometry.currentHitNormal = shared_prevViewToCurrView * previousHitNormal;
     }
     return true;
 }
 
 bool shiftTemporalPathPrimary(
-    TemporalHistorySample source,
+    ReSTIRReservoir sourceReservoir,
+    TemporalPrimaryGeometry primaryGeometry,
+    TemporalHitGeometry hitGeometry,
     out vec4 shiftedY
 ) {
-    shiftedY = source.reservoir.Y;
-    if (source.reservoir.Y.w <= 0.0) {
-        vec3 currentDirection = shared_prevViewToCurrView * source.reservoir.Y.xyz;
+    shiftedY = sourceReservoir.Y;
+    if (sourceReservoir.Y.w <= 0.0) {
+        vec3 currentDirection = shared_prevViewToCurrView * sourceReservoir.Y.xyz;
         if (!restir_isFinite(currentDirection) || dot(currentDirection, currentDirection) <= 1e-8) {
             return false;
         }
@@ -225,7 +250,7 @@ bool shiftTemporalPathPrimary(
         return true;
     }
 
-    vec3 sourceOffset = source.currentHit - source.currentPrimary;
+    vec3 sourceOffset = hitGeometry.currentHit - primaryGeometry.currentPrimary;
     float sourceDistance2 = dot(sourceOffset, sourceOffset);
     if (!restir_isPositiveFinite(sourceDistance2)) {
         return false;
@@ -237,23 +262,25 @@ bool shiftTemporalPathPrimary(
 }
 
 bool shiftTemporalPathReconnect(
-    TemporalHistorySample source,
+    ReSTIRReservoir sourceReservoir,
+    TemporalPrimaryGeometry primaryGeometry,
+    TemporalHitGeometry hitGeometry,
     vec3 targetPrimary,
     out TemporalPathShift shifted
 ) {
-    shifted.Y = source.reservoir.Y;
+    shifted.Y = sourceReservoir.Y;
     shifted.hitNormal = vec3(0.0);
     shifted.jacobian = 1.0;
-    if (source.reservoir.Y.w <= 0.0) {
-        vec3 currentDirection = shared_prevViewToCurrView * source.reservoir.Y.xyz;
+    if (sourceReservoir.Y.w <= 0.0) {
+        vec3 currentDirection = shared_prevViewToCurrView * sourceReservoir.Y.xyz;
         if (!restir_isFinite(currentDirection) || dot(currentDirection, currentDirection) <= 1e-8) {
             return false;
         }
         shifted.Y.xyz = normalize(currentDirection);
         return true;
     }
-    vec3 sourceOffset = source.currentHit - source.currentPrimary;
-    vec3 targetOffset = source.currentHit - targetPrimary;
+    vec3 sourceOffset = hitGeometry.currentHit - primaryGeometry.currentPrimary;
+    vec3 targetOffset = hitGeometry.currentHit - targetPrimary;
     float sourceDistance2 = dot(sourceOffset, sourceOffset);
     float targetDistance2 = dot(targetOffset, targetOffset);
     if (!restir_isPositiveFinite(sourceDistance2) || !restir_isPositiveFinite(targetDistance2)) {
@@ -262,8 +289,8 @@ bool shiftTemporalPathReconnect(
 
     vec3 targetDirection = targetOffset * inversesqrt(targetDistance2);
     vec3 sourceDirection = sourceOffset * inversesqrt(sourceDistance2);
-    float sourceCosine = -dot(sourceDirection, source.currentHitNormal);
-    float targetCosine = -dot(targetDirection, source.currentHitNormal);
+    float sourceCosine = -dot(sourceDirection, hitGeometry.currentHitNormal);
+    float targetCosine = -dot(targetDirection, hitGeometry.currentHitNormal);
     if (!temporalReconnectionJacobian(
         sourceDistance2,
         targetDistance2,
@@ -274,7 +301,7 @@ bool shiftTemporalPathReconnect(
         return false;
     }
     shifted.Y = vec4(targetDirection, sqrt(targetDistance2));
-    shifted.hitNormal = source.currentHitNormal;
+    shifted.hitNormal = hitGeometry.currentHitNormal;
     return true;
 }
 
@@ -343,7 +370,8 @@ bool reconstructBackupTargetPrimary(
 bool reconstructBackupProposalSourcePrimary(
     ivec2 outputTexelPos,
     vec3 candidateCurrentPrimary,
-    TemporalHistorySample backupSource,
+    ivec2 backupTexelPos,
+    TemporalPrimaryGeometry backupPrimaryGeometry,
     vec2 backupSubpixelDelta,
     out vec3 candidatePreviousPrimary,
     out vec3 candidateSourceCurrentPrimary
@@ -357,11 +385,11 @@ bool reconstructBackupProposalSourcePrimary(
         return false;
     }
     if (!reconstructPrimaryOnPlane(
-        backupSource.texelPos,
+        backupTexelPos,
         sourceRasterSubpixel,
-        backupSource.previousPrimary.z,
-        backupSource.previousPrimary,
-        backupSource.previousGeomNormal,
+        backupPrimaryGeometry.previousPrimary.z,
+        backupPrimaryGeometry.previousPrimary,
+        backupPrimaryGeometry.previousGeomNormal,
         uval_prevTaaJitterUV,
         global_prevCamProjInverse,
         candidatePreviousPrimary
@@ -377,6 +405,7 @@ bool reconstructBackupProposalSourcePrimary(
 float evaluateBackupProposalTerm(
     ivec2 outputTexelPos,
     TemporalHistorySample backupSource,
+    TemporalPrimaryGeometry backupPrimaryGeometry,
     vec2 backupSubpixelDelta,
     vec3 currentPrimary,
     vec4 candidateY,
@@ -389,7 +418,8 @@ float evaluateBackupProposalTerm(
     if (!reconstructBackupProposalSourcePrimary(
         outputTexelPos,
         currentPrimary,
-        backupSource,
+        backupSource.texelPos,
+        backupPrimaryGeometry,
         backupSubpixelDelta,
         candidatePreviousPrimary,
         candidateSourceCurrentPrimary
@@ -438,7 +468,7 @@ float evaluateBackupProposalTerm(
     float previousPHat = restir_stabilizeTemporalTargetPHat(
         evalTargetFunction(
             candidateRadiance,
-            backupSource.previousGeomNormal,
+            backupPrimaryGeometry.previousGeomNormal,
             previousNormal,
             previousDirection,
             normalize(-candidatePreviousPrimary),
@@ -486,6 +516,7 @@ void sampleTemporalSplat(
     #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
     bool backupProposalValid,
     TemporalHistorySample backupSource,
+    TemporalPrimaryGeometry backupPrimaryGeometry,
     vec2 backupSubpixelDelta,
     #endif
     inout ReSTIRReservoir reservoir,
@@ -495,25 +526,27 @@ void sampleTemporalSplat(
     inout vec3 finalPrimaryViewPos
 ) {
     TemporalHistorySample source = temporalHistorySample_init();
-    if (!loadTemporalHistorySample(sourceTexelPos, source)) {
+    TemporalPrimaryGeometry primaryGeometry = temporalPrimaryGeometry_init();
+    TemporalHitGeometry hitGeometry = temporalHitGeometry_init();
+    if (!loadTemporalHistorySample(sourceTexelPos, source, primaryGeometry, hitGeometry)) {
         return;
     }
 
     float primaryJacobian = restir_splatPrimaryJacobian(
-        source.previousPrimary,
-        source.previousGeomNormal,
-        source.currentPrimary,
-        source.currentGeomNormal
+        primaryGeometry.previousPrimary,
+        primaryGeometry.previousGeomNormal,
+        primaryGeometry.currentPrimary,
+        primaryGeometry.currentGeomNormal
     );
     if (primaryJacobian == 0.0) {
         return;
     }
     vec4 shiftedY;
-    if (!shiftTemporalPathPrimary(source, shiftedY)) {
+    if (!shiftTemporalPathPrimary(source.reservoir, primaryGeometry, hitGeometry, shiftedY)) {
         return;
     }
 
-    vec3 viewDirection = normalize(-source.currentPrimary);
+    vec3 viewDirection = normalize(-primaryGeometry.currentPrimary);
     float currentPHat = restir_stabilizeTemporalTargetPHat(
         evalTargetFunction(
             source.sampleValue.rgb,
@@ -540,10 +573,11 @@ void sampleTemporalSplat(
         float backupTerm = evaluateBackupProposalTerm(
             texelPos,
             backupSource,
+            backupPrimaryGeometry,
             backupSubpixelDelta,
-            source.currentPrimary,
+            primaryGeometry.currentPrimary,
             shiftedY,
-            source.currentHitNormal,
+            hitGeometry.currentHitNormal,
             source.sampleValue.rgb,
             currentPHat
         );
@@ -560,8 +594,8 @@ void sampleTemporalSplat(
     float candidateRand = restir_updateRand(texelPos, sourceNode ^ 0x9e3779b9u);
     if (restir_updateReservoir(reservoir, wSum, shiftedY, candidateWeight, candidateRand)) {
         finalSample = vec4(source.sampleValue.rgb, currentPHat);
-        finalHitNormal = source.currentHitNormal;
-        finalPrimaryViewPos = source.currentPrimary;
+        finalHitNormal = hitGeometry.currentHitNormal;
+        finalPrimaryViewPos = primaryGeometry.currentPrimary;
     }
 }
 
@@ -772,6 +806,8 @@ void main() {
             }
             #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
             TemporalHistorySample backupSource = temporalHistorySample_init();
+            TemporalPrimaryGeometry backupPrimaryGeometry = temporalPrimaryGeometry_init();
+            TemporalHitGeometry backupHitGeometry = temporalHitGeometry_init();
             TemporalPathShift backupShift;
             backupShift.Y = vec4(0.0, 0.0, 0.0, -1.0);
             backupShift.hitNormal = vec3(0.0);
@@ -804,7 +840,12 @@ void main() {
                 backupSubpixelDelta = vec2(backupOffset + ivec2(1)) - temporalBilinearFraction;
                 if (
                     backupSurfaceWeight > 0.9
-                    && loadTemporalHistorySample(backupTexelPos, backupSource)
+                    && loadTemporalHistorySample(
+                        backupTexelPos,
+                        backupSource,
+                        backupPrimaryGeometry,
+                        backupHitGeometry
+                    )
                 ) {
                     backupConfidence = min(
                         backupSource.reservoir.m,
@@ -821,7 +862,13 @@ void main() {
                             targetGeomNormal,
                             backupTargetPrimary
                         )
-                        && shiftTemporalPathReconnect(backupSource, backupTargetPrimary, backupShift)
+                        && shiftTemporalPathReconnect(
+                            backupSource.reservoir,
+                            backupPrimaryGeometry,
+                            backupHitGeometry,
+                            backupTargetPrimary,
+                            backupShift
+                        )
                     ) {
                         backupPHat = restir_stabilizeTemporalTargetPHat(
                             evalTargetFunction(
@@ -858,6 +905,7 @@ void main() {
                     canonicalDenominator += evaluateBackupProposalTerm(
                         texelPos,
                         backupSource,
+                        backupPrimaryGeometry,
                         backupSubpixelDelta,
                         viewPos,
                         vec4(sampleDirView, hitDistance),
@@ -932,6 +980,7 @@ void main() {
                         #ifdef SETTING_GI_TEMPORAL_BACKUP_SAMPLE
                         backupProposalValid,
                         backupSource,
+                        backupPrimaryGeometry,
                         backupSubpixelDelta,
                         #endif
                         temporalReservoir,
