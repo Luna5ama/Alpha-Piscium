@@ -4,7 +4,7 @@
 
 layout(rgba8) uniform writeonly restrict image2D uimg_rgba8;
 
-shared uvec2 shared_data[18][18];
+shared uvec4 shared_data[18][18];
 
 uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 4u;
 
@@ -19,9 +19,10 @@ void loadSharedData(uint index) {
         uvec4 gbufferData1 = texelFetch(usam_gbufferSolidData1, srcXY, 0);
         vec3 geomNormal = coords_octDecode11(unpackSnorm4x8(gbufferData1.r).xy);
 
-        uvec2 packedData = uvec2(0u);
+        uvec4 packedData = uvec4(0u);
         packedData.x = floatBitsToUint(viewZ);
-        packedData.y = packSnorm4x8(vec4(geomNormal, 0.0));
+        geomNormal = normalize(unpackSnorm4x8(packSnorm4x8(vec4(geomNormal, 0.0))).xyz);
+        packedData.yzw = floatBitsToUint(geomNormal);
 
         shared_data[sharedXY.y][sharedXY.x] = packedData;
     }
@@ -34,9 +35,9 @@ struct SampleData {
 
 SampleData loadSampleData(ivec2 texelPos) {
     SampleData sData;
-    uvec2 packedData = shared_data[texelPos.y][texelPos.x];
+    uvec4 packedData = shared_data[texelPos.y][texelPos.x];
     sData.viewZ = uintBitsToFloat(packedData.x);
-    sData.geomNormal = normalize(unpackSnorm4x8(packedData.y).xyz);
+    sData.geomNormal = uintBitsToFloat(packedData.yzw);
     return sData;
 }
 
