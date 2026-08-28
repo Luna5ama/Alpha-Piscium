@@ -90,8 +90,17 @@ or AOT caches.
 - Vibris MCP is available for work that needs a live Minecraft instance, including but not limited to compiling and
   running shaders, measuring performance, comparing results, capturing runtime data, and related diagnostics.
 - Prefer Vibris for performance measurement and regression comparisons, using comparable test conditions.
+- Before accepting runtime evidence, verify that the intended shader pack, source revision, scene, preset, shader
+  configuration, and affected setting branches loaded successfully. Reject samples from failed compilation, the wrong
+  pack or revision, a changed scene, a missing pass, or a mismatched configuration.
+- Measure passes that execute the changed path, relevant sibling passes, and a stable workload sentinel. Do not
+  substitute whole-pipeline time for the affected pass unless the user requests it. Keep source ordering, scene,
+  shader configuration, warmup, sample count, and statistic comparable; use adjacent/reverse pairs or repeated rounds
+  when noise or drift matters.
 - Prioritize 720p presets over 1080p unless the user explicitly requests 1080p or 720p workload is too light to measure.
 - Use Nsight only when deeply optimizing shader code and Vibris measurements are not sufficient.
+- Never restart Minecraft or its launcher unless the user explicitly requests it. Exhaust safe non-restart recovery;
+  if Vibris remains unusable, stop and report the blocker instead of silently switching to replay or another runtime.
 
 ## Validation
 
