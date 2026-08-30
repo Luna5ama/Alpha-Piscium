@@ -71,7 +71,7 @@ FSR 3 estimator 在渲染分辨率运行，并在 view/output 分辨率累积；
 
 Bloom 高光压缩是有意设计的有损 Bloom 专用操作。它只对进入第一个 downsample 层的 exposed-linear 主颜色样本应用一次，
 并且位于金字塔过滤之前。它不会修改主图像，也不属于 [`AgxInvertible.glsl`](../../../shaders/util/AgxInvertible.glsl)
-中的可逆 matrix/log AA 工作变换。
+中的可逆 matrix/log AA 工作变换。该选项默认关闭，以保留标准管线未压缩的 Bloom 能量。
 
 ## 后期合成与曝光
 
