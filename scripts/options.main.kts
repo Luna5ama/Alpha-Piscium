@@ -32,7 +32,7 @@ val versionStr = args.getOrElse(0) {
         }
     }
 
-    val delimiter = """\d+\.\d+\.\d+((?:-beta\d+)?)""".toRegex(RegexOption.IGNORE_CASE)
+    val versionFilePattern = """\d+\.\d+\.\d+(?:-(?:beta|hotfix)\d+)?""".toRegex(RegexOption.IGNORE_CASE)
     fun parseVersion(str: String): Version {
         val splitStr = str.split('.', '-')
         val major = splitStr[0].toInt()
@@ -56,6 +56,7 @@ val versionStr = args.getOrElse(0) {
     val changelogPath = Path("../changelogs")
     changelogPath.listDirectoryEntries("*.md").asSequence()
         .map { it.nameWithoutExtension }
+        .filter(versionFilePattern::matches)
         .map { parseVersion(it) }
         .max()
         .toString()
@@ -2769,18 +2770,6 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "泛光强度"
                             comment = "泛光发光效果的亮度。数值越高，发光越强烈、越戏剧化。"
-                        }
-                    }
-                    slider("SETTING_BLOOM_RADIUS", 1.0, 1.0..5.0 step 0.5) {
-                        lang {
-                            name = "Bloom Spread"
-                            comment =
-                                "How far the bloom glow spreads. Higher values create wider halos but may make the whole screen hazy."
-                            suffix = " x"
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "泛光半径"
-                            comment = "泛光发光扩散的距离。数值越高，光晕越宽，但可能使整个屏幕模糊。"
                         }
                     }
                     slider("SETTING_BLOOM_PASS", 8, 1..10) {

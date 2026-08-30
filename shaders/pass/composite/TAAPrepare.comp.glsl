@@ -25,7 +25,9 @@ void main() {
         #endif
         imageStore(uimg_main, texelPos, outputColor);
         #if SETTING_AA_MODE != 2
+        #ifdef SETTING_BLOOM
         transient_bloom_store(texelPos, vec4(0.0));
+        #endif
         #endif
     }
 }
