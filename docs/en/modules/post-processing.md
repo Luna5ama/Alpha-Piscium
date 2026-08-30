@@ -84,6 +84,7 @@ adjacent tile or stale atlas data.
 Bloom highlight compression is an intentionally lossy Bloom-only operation. It is applied exactly once to exposed-linear
 main-color samples entering the first downsample level, before pyramid filtering. It does not modify the main image and is
 not part of the reversible matrix/log AA working transform in [`AgxInvertible.glsl`](../../../shaders/util/AgxInvertible.glsl).
+It is disabled by default to preserve the uncompressed Bloom energy of the standard pipeline.
 
 ## Post composition and exposure
 

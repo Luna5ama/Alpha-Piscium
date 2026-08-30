@@ -2809,7 +2809,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                         }
                     }
                     empty()
-                    slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION", 3, 0..4) {
+                    slider("SETTING_BLOOM_HIGHLIGHT_COMPRESSION", 0, 0..4) {
                         lang {
                             name = "Highlight Compression"
                             comment = "Reduces bloom intensity for extremely bright areas to prevent overwhelming glare. Higher values increase compression intensity."
