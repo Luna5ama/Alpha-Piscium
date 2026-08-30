@@ -28,7 +28,7 @@ vec4 rcas_loadInput(ivec2 texelPos, bool center) {
     #endif
 }
 
-layout(local_size_x = 16, local_size_y = 16) in;
+layout(local_size_x = 16, local_size_y = 8) in;
 
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);

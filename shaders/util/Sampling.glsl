@@ -421,7 +421,7 @@ vec4 sampling_catmullRomBicubic9Tap(sampler2D texSampler, vec2 uv) {
 }
 
 // Data structure for 9-tap sampling initialization (for reuse across multiple textures)
-struct CatmullRomBicubic9TapData {
+struct Separable9TapData {
     vec2 uv00;
     vec2 uv12_0;
     vec2 uv30;
@@ -434,33 +434,20 @@ struct CatmullRomBicubic9TapData {
     vec2 weight0;
     vec2 weight12;
     vec2 weight3;
+    float normalization;
 };
 
-// Initialize 9-tap Catmull-Rom sampling parameters for reuse across multiple textures
-CatmullRomBicubic9TapData sampling_catmullRomBicubic9Tap_init(vec2 texelPos, vec2 texRcpSize) {
-    // Sample position and starting texel
-    vec2 samplePos = texelPos;
-    vec2 texPos1 = floor(samplePos - 0.5) + 0.5;
-
-    // Fractional offset from starting texel
-    vec2 f = samplePos - texPos1;
-
-    // Catmull-Rom weights for each axis
-    vec2 w0 = f * (-0.5 + f * (1.0 - 0.5 * f));
-    vec2 w1 = 1.0 + f * f * (-2.5 + 1.5 * f);
-    vec2 w2 = f * (0.5 + f * (2.0 - 1.5 * f));
-    vec2 w3 = f * f * (-0.5 + 0.5 * f);
-
-    // Combine w1 and w2 for bilinear filtering optimization
+// Initialize separable 9-tap sampling parameters by combining the two positive center taps.
+Separable9TapData sampling_separable9Tap_init(vec2 texelPos, vec2 texRcpSize, vec2 w0, vec2 w1, vec2 w2, vec2 w3, float normalization) {
+    vec2 texPos1 = floor(texelPos - 0.5) + 0.5;
     vec2 w12 = w1 + w2;
     vec2 offset12 = w2 / w12;
 
-    // Compute UV coordinates (in texture space)
     vec2 texPos0 = (texPos1 - 1.0) * texRcpSize;
     vec2 texPos3 = (texPos1 + 2.0) * texRcpSize;
     vec2 texPos12 = (texPos1 + offset12) * texRcpSize;
 
-    CatmullRomBicubic9TapData params;
+    Separable9TapData params;
     params.uv00 = vec2(texPos0.x, texPos0.y);
     params.uv12_0 = vec2(texPos12.x, texPos0.y);
     params.uv30 = vec2(texPos3.x, texPos0.y);
@@ -473,28 +460,43 @@ CatmullRomBicubic9TapData sampling_catmullRomBicubic9Tap_init(vec2 texelPos, vec
     params.weight0 = w0;
     params.weight12 = w12;
     params.weight3 = w3;
+    params.normalization = normalization;
     return params;
 }
 
-// Sum pre-fetched 9 samples with Catmull-Rom weights
-vec4 sampling_catmullRomBicubic9Tap_sum(vec4 c00, vec4 c12_0, vec4 c30,
-                                        vec4 c01_2, vec4 c12_12, vec4 c31_2,
-                                        vec4 c03, vec4 c12_3, vec4 c33,
-                                        CatmullRomBicubic9TapData params) {
-    vec4 result = vec4(0.0);
-    result += c00 * params.weight0.x * params.weight0.y;
-    result += c12_0 * params.weight12.x * params.weight0.y;
-    result += c30 * params.weight3.x * params.weight0.y;
+// Initialize 9-tap Catmull-Rom sampling parameters for reuse across multiple textures
+Separable9TapData sampling_catmullRomBicubic9Tap_init(vec2 texelPos, vec2 texRcpSize) {
+    vec2 f = fract(texelPos - 0.5);
+    vec2 w0 = f * (-0.5 + f * (1.0 - 0.5 * f));
+    vec2 w1 = 1.0 + f * f * (-2.5 + 1.5 * f);
+    vec2 w2 = f * (0.5 + f * (2.0 - 1.5 * f));
+    vec2 w3 = f * f * (-0.5 + 0.5 * f);
+    return sampling_separable9Tap_init(texelPos, texRcpSize, w0, w1, w2, w3, 1.0);
+}
 
-    result += c01_2 * params.weight0.x * params.weight12.y;
-    result += c12_12 * params.weight12.x * params.weight12.y;
-    result += c31_2 * params.weight3.x * params.weight12.y;
+Separable9TapData sampling_lanczos2Separable9Tap_init(vec2 texelPos, vec2 texRcpSize) {
+    vec2 f = fract(texelPos - 0.5);
+    vec4 wx = sampling_lanczoc2Weights(f.x);
+    vec4 wy = sampling_lanczoc2Weights(f.y);
+    return sampling_separable9Tap_init(
+        texelPos,
+        texRcpSize,
+        vec2(wx.x, wy.x),
+        vec2(wx.y, wy.y),
+        vec2(wx.z, wy.z),
+        vec2(wx.w, wy.w),
+        rcp(sum4(wx) * sum4(wy))
+    );
+}
 
-    result += c03 * params.weight0.x * params.weight3.y;
-    result += c12_3 * params.weight12.x * params.weight3.y;
-    result += c33 * params.weight3.x * params.weight3.y;
-
-    return result;
+vec4 sampling_separable9Tap_sum(vec4 c00, vec4 c12_0, vec4 c30,
+                                vec4 c01_2, vec4 c12_12, vec4 c31_2,
+                                vec4 c03, vec4 c12_3, vec4 c33,
+                                Separable9TapData params) {
+    vec4 row0 = c00 * params.weight0.x + c12_0 * params.weight12.x + c30 * params.weight3.x;
+    vec4 row12 = c01_2 * params.weight0.x + c12_12 * params.weight12.x + c31_2 * params.weight3.x;
+    vec4 row3 = c03 * params.weight0.x + c12_3 * params.weight12.x + c33 * params.weight3.x;
+    return (row0 * params.weight0.y + row12 * params.weight12.y + row3 * params.weight3.y) * params.normalization;
 }
 
 #endif

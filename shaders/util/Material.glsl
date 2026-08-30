@@ -28,6 +28,23 @@ struct Material {
     mat3 geomTbnInv;
 };
 
+float material_decodeSSS(uint materialID, float resourceSSS, bool forceBuiltInPBR) {
+    #if defined(MC_TEXTURE_FORMAT_LAB_PBR) && SETTING_PBR_MATERIAL == 1 || SETTING_PBR_MATERIAL == 2
+    if (!forceBuiltInPBR) {
+        const float _65o255 = 65.0 / 255.0;
+        float sss = linearStep(_65o255, 1.0, resourceSSS);
+        sss *= step(_65o255, resourceSSS);
+        return sqrt(sss);
+    }
+    #endif
+
+    if (materialID >= uint(textureSize(usam_pbrLUT0, 0))) {
+        materialID = 0u;
+    }
+    uint rawData = texelFetch(usam_pbrLUT0, int(materialID), 0).r;
+    return unpackU4(bitfieldExtract(rawData, 0, 4));
+}
+
 #ifdef MATERIAL_TRANSLUCENT
 const float _MATERIAL_F0_EPSILON = exp2(-SETTING_MINIMUM_F0);
 const float _MATERIAL_ROUGHNESS_MULTIPLIER = exp2(-SETTING_TRANSLUCENT_ROUGHNESS_REDUCTION);

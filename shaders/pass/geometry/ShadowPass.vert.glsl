@@ -41,7 +41,6 @@ void main() {
     vec2 texelSize;
     gl_Position.xy = rtwsm_warpTexCoordTexelSize(shadowScreenPosUnwarpped, texelSize) * 2.0 - 1.0;
 
-    shadowViewPos /= shadowViewPos.w;
     vec4 camViewPos = gbufferModelView * scenePos;
     camViewPos /= camViewPos.w;
 

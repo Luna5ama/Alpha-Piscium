@@ -14,7 +14,7 @@ uniform sampler2D normals;
 uniform sampler2D specular;
 
 #ifdef SETTING_TBN_PACKING
-flat in uint frag_worldTN;
+flat in uint frag_viewTN;
 #else
 in vec3 frag_worldTangent;
 in vec3 frag_worldNormal;// 11 + 11 + 10 = 32 bits
@@ -24,7 +24,9 @@ in vec3 frag_colorMul;// 8 x 4 = 32 bits
 in vec2 frag_texCoord;// 16 x 2 = 32 bits
 in vec2 frag_lmCoord;// 8 x 2 = 16 bits
 flat in uint frag_materialID;// 16 x 1 = 16 bits
+#ifdef GBUFFER_PASS_DH
 flat in float frag_emissiveOverride;
+#endif
 
 #if defined(GBUFFER_PASS_STEEP_PARALLAX) && defined(SETTING_NORMAL_MAPPING) && SETTING_PARALLAX_MODE != 0
 flat in vec4 frag_spriteBounds;
@@ -122,17 +124,14 @@ void processViewZ() {
 void processGeometryBasis() {
     bitangentSignF = float(bitfieldExtract(frag_materialID, 30, 1)) * 2.0 - 1.0;
 
-    vec3 geomWorldNormal;
-    vec3 geomWorldTangent;
     #ifdef SETTING_TBN_PACKING
-    nzpacking_unpackNormalOct16(frag_worldTN, geomWorldNormal, geomWorldTangent);
+    nzpacking_unpackNormalOct16(frag_viewTN, geomViewNormal, geomViewTangent);
     #else
-    geomWorldNormal = frag_worldNormal;
-    geomWorldTangent = frag_worldTangent;
-    #endif
-
+    vec3 geomWorldNormal = frag_worldNormal;
+    vec3 geomWorldTangent = frag_worldTangent;
     geomViewNormal = coords_dir_worldToView(geomWorldNormal);
     geomViewTangent = coords_dir_worldToView(geomWorldTangent);
+    #endif
     geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal) * bitangentSignF);
 }
 
