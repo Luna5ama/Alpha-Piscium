@@ -55,11 +55,7 @@ void main() {
             history_restir_prevResampleMaterial_store(texelPos, packedResampleMaterial);
 
             ReSTIRReservoir spatialReservoir = restir_reservoir_unpack(packedTemporalReservoir);
-            if (
-                !restir_isReservoirValid(spatialReservoir)
-                || !restir_isFinite(centerSampleData.sampleValue)
-                || centerSampleData.sampleValue.w <= 0.0
-            ) {
+            if (!restir_isFinite(centerSampleData.sampleValue)) {
                 transient_ssgiDiffOut_store(texelPos, vec4(0.0));
                 transient_ssgiSpecOut_store(texelPos, vec4(0.0));
                 return;
@@ -78,7 +74,7 @@ void main() {
             float spatialTechniqueCount = 1.0;
             #if defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > 0
             uvec4 packedMetadata = transient_restir_pairwiseMISMetadata_fetch(texelPos);
-            if (packedPrimary != 0u && packedMetadata.z != 0u) {
+            if (packedMetadata.z != 0u) {
                 metadata = pairwiseMISMetadata_unpack(packedMetadata);
                 spatialTechniqueCount = float(SETTING_GI_SPATIAL_REUSE_COUNT + 1);
             }
