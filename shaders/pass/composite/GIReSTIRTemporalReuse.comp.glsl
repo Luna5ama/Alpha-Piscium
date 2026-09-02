@@ -1114,6 +1114,9 @@ void main() {
                 temporalReservoir.m = temporalConfidence;
             } else {
                 temporalReservoir = restir_initReservoir();
+                temporalReservoir.m = restir_isPositiveFinite(temporalConfidence)
+                    ? temporalConfidence
+                    : 0.0;
                 temporalReservoir.Y.w = -1.0;
                 finalSample = vec4(0.0);
                 finalHitNormal = vec3(0.0);
