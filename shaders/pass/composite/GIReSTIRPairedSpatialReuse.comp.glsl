@@ -315,12 +315,28 @@ void main() {
     if (bool(validMe)) {
         viewZMe = texelFetch(usam_gbufferSolidViewZ, texelMe, 0).x;
         if (viewZMe > -65536.0) {
+            uint packedGBufferData2 = texelFetch(usam_gbufferSolidData2, texelMe, 0).r;
+            bool isHand = bool(bitfieldExtract(packedGBufferData2, 24, 1));
             uint packedPrimaryMe = restir_splatFetchCurrentPrimary(texelMe);
-            if (packedPrimaryMe == 0u) {
+            if (isHand) {
                 validMe = 0u;
             } else {
                 uvec4 spatialSamplePackedDataMe = transient_restir_spatialInput_fetch(texelMe);
-                primaryViewPosMe = restir_splatUnpackPrimary(texelMe, packedPrimaryMe, global_camProjInverse);
+                if (packedPrimaryMe != 0u) {
+                    primaryViewPosMe = restir_splatUnpackPrimary(
+                        texelMe,
+                        packedPrimaryMe,
+                        global_camProjInverse
+                    );
+                } else {
+                    vec2 screenPos = coords_texelToUV(texelMe, uval_mainImageSizeRcp)
+                        - uval_taaJitterUV;
+                    primaryViewPosMe = coords_toViewCoord(
+                        screenPos,
+                        viewZMe,
+                        global_camProjInverse
+                    );
+                }
                 geomNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.x);
                 hitNormalMe = nzpacking_unpackNormalOct32(spatialSamplePackedDataMe.y);
                 normalMe = transient_viewNormal_fetch(texelMe).xyz * 2.0 - 1.0;
