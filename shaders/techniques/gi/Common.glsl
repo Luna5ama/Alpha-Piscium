@@ -16,7 +16,6 @@
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
 #define MC_SPP 16
 
-const float HISTORY_LENGTH = float(SETTING_DENOISER_HISTORY_LENGTH);
 const float TOTAL_HISTORY_LENGTH = 255.0;
 
 /*
