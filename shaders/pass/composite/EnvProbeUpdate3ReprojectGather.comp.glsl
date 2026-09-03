@@ -27,8 +27,7 @@ void main() {
     coords_cubeMapBackward(centerCurrWorldDir, centerCurrSliceUV, centerCurrSliceID);
 
     vec3 currScenePos = worldDistance * centerCurrWorldDir;
-    vec3 cameraDelta = uval_cameraDelta;
-    vec3 currToPrevScenePos = currScenePos + cameraDelta;
+    vec3 currToPrevScenePos = currScenePos + uval_cameraDelta;
     vec3 currToPrevWorldDir = normalize(currToPrevScenePos);
     vec2 currToPrevSliceUV = vec2(-1.0);
     vec2 currToPrevSliceID = vec2(-1.0);
@@ -54,7 +53,7 @@ void main() {
                 uvec4 samplePackedData = texelFetch(usam_envProbe, samplePos, 0);
 
                 vec3 samplePrevPos = envProbe_decodeScenePos(samplePackedData);
-                vec3 sampleCurrPos = samplePrevPos - cameraDelta;
+                vec3 sampleCurrPos = samplePrevPos - uval_cameraDelta;
                 vec3 sampleCurrDir = normalize(sampleCurrPos);
                 float samplePrevDistSq = dot(samplePrevPos, samplePrevPos);
                 if (samplePrevDistSq == 0.0 || samplePrevDistSq > 4194304.0) {

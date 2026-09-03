@@ -149,9 +149,9 @@ void main() {
                     vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
                     vec3 V = normalize(-viewPos);
                     float NoV = saturate(dot(gData.normal, V));
-                    vec3 movementDelta = gData.isHand ? vec3(0.0) : uval_cameraDelta;
+                    float movementSpeed = gData.isHand ? 0.0 : uval_cameraSpeed;
                     float distToPoint = max(length(viewPos), 4.0);
-                    float parallax = sqrt(length(movementDelta)) * safeRcp(distToPoint * frameTime * 50.0);
+                    float parallax = sqrt(movementSpeed) * safeRcp(distToPoint * frameTime * 50.0);
 
                     // Close hit specular probably has less ghosting, so allow it to accumulate more
                     float specAccumReductionHitDistanceFactor = saturate(1.0 - exp2(-pow2(1.0 * historyData.specularHitDistance)) * historyData.realHistoryLength);
