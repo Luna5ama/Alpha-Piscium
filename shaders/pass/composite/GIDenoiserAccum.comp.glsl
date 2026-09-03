@@ -158,7 +158,7 @@ void main() {
                     float specAccumRecuctionFactor = specAccumReduction(material.roughness, NoV, parallax);
                     specAccumRecuctionFactor = pow(specAccumRecuctionFactor, specAccumReductionHitDistanceFactor);
 
-                    float maxSpecularHistoryLength = max(HISTORY_LENGTH * specAccumRecuctionFactor, SETTING_DENOISER_FAST_HISTORY_LENGTH * 0.5);
+                    float maxSpecularHistoryLength = max(SETTING_DENOISER_HISTORY_LENGTH * specAccumRecuctionFactor, SETTING_DENOISER_FAST_HISTORY_LENGTH * 0.5);
 
                     #ifdef SETTING_DENOISER_ACCUM
                     historyLengths = vec3(historyData.historyLength, historyData.specularHistoryLength, historyData.realHistoryLength);
@@ -167,7 +167,7 @@ void main() {
 
                     historyLengths = clamp(historyLengths, 1.0, TOTAL_HISTORY_LENGTH);
                     historyLengths.y = min(historyLengths.y, maxSpecularHistoryLength);
-                    historyLengths.xy = min(historyLengths.xy, historyLengths.z);
+                    historyLengths.xy = min(historyLengths.xy, min(historyLengths.z, SETTING_DENOISER_HISTORY_LENGTH));
 
                     #if SETTING_DENOISER_FLICKER_SUPPRESSION
                     // Idea from Belmu to limit firefly based on luma difference
