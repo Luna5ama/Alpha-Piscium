@@ -220,7 +220,7 @@ bool loadTemporalHistorySample(
         return false;
     }
     primaryGeometry.previousGeomNormal = normalize(previousGeomNormal);
-    primaryGeometry.currentGeomNormal = shared_prevViewToCurrView * primaryGeometry.previousGeomNormal;
+    primaryGeometry.currentGeomNormal = normalize(shared_prevViewToCurrView * primaryGeometry.previousGeomNormal);
     hitGeometry.currentHit = vec3(0.0);
     hitGeometry.currentHitNormal = vec3(0.0);
     if (source.reservoir.Y.w > 0.0) {
@@ -229,7 +229,7 @@ bool loadTemporalHistorySample(
         vec3 previousHitNormal = nzpacking_unpackNormalOct32(
             history_restir_prevHitNormal_fetch(texelPos).x
         );
-        hitGeometry.currentHitNormal = shared_prevViewToCurrView * previousHitNormal;
+        hitGeometry.currentHitNormal = normalize(shared_prevViewToCurrView * previousHitNormal);
     }
     return true;
 }
@@ -720,7 +720,7 @@ void main() {
             vec3 V = normalize(-viewPos);
 
             vec3 targetGeomNormal = normalize(transient_geomViewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
-            vec3 targetNormal = transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0;
+            vec3 targetNormal = normalize(transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
             restir_InitialCandidate initialCandidate = restir_initialCandidate_load(texelPos);
             float hitDistance = initialCandidate.hitDistance;
             vec3 hitRadiance = initialCandidate.radiance;
