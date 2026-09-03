@@ -48,16 +48,24 @@ docs/              bilingual maintainer workflows and rendering-module maps
 
 ## Project Policy
 
-- Write clean, direct maintainer code with minimal diffs, simple control flow, explicit logic, and compact formatting.
+- Write clean, direct maintainer code with simple control flow, explicit logic, compact formatting, and coherent
+  ownership. When the existing organization obstructs the requested change, restructure it within scope instead of
+  accumulating local patches around awkward boundaries. Do not turn that restructuring into an unrelated redesign.
   Never add spacing only to align declarations or operators.
 - When replacing a path, update callers directly and delete the old path, dead helpers, stale comments, and unused
-  settings. Do not preserve legacy behavior, parallel implementations, adapters, aliases, or compatibility wrappers
-  unless explicitly required.
+  settings. Do not preserve legacy behavior, parallel implementations, migration shims, adapters, aliases, fallbacks,
+  or old-data backfills unless explicitly required.
 - Do not add an abstraction without two real uses. Avoid speculative managers, factories, registries, services, generic
-  frameworks, and feature flags or options with one use.
-- Validate only trust boundaries: user input, files, external APIs, GPU/driver output, and serialized data. Do not add
-  null/bounds checks, catch-all handling, or fallbacks for impossible states; fail visibly.
-- Prefer targeted fixes over broad frameworks. Do not add verbose comments that explain obvious code.
+  frameworks, and feature flags or options with one use. Do not encode maintainer judgment as hardcoded validators,
+  closed error-code sets, alias tables, or rule engines unless they are required product behavior.
+- Validate once at trust boundaries: user input, files, external APIs, GPU/driver output, and serialized data. Do not
+  duplicate checks or bookkeeping across layers, and do not add null/bounds checks, catch-all handling, or fallbacks for
+  impossible states; fail visibly.
+- Before adding an abstraction layer, configuration surface, more than about five new files, or any speculative option,
+  separate the requirement-sized implementation from the proposed additions and default to the requirement-sized one.
+  Error-handling rigor applies to real error paths in the requested change and does not justify expanding its scope.
+- If the user says a design is over-engineered, simplify or remove it rather than defending it. Do not add verbose
+  comments that explain obvious code.
 
 ## Scoped Instructions
 
