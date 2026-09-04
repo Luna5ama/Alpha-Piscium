@@ -14,7 +14,7 @@ uniform sampler2D normals;
 uniform sampler2D specular;
 
 #ifdef SETTING_TBN_PACKING
-flat in uint frag_viewTN;
+flat in uint frag_worldTN;
 #else
 in vec3 frag_worldTangent;
 in vec3 frag_worldNormal;// 11 + 11 + 10 = 32 bits
@@ -124,14 +124,17 @@ void processViewZ() {
 void processGeometryBasis() {
     bitangentSignF = float(bitfieldExtract(frag_materialID, 30, 1)) * 2.0 - 1.0;
 
+    vec3 geomWorldNormal;
+    vec3 geomWorldTangent;
     #ifdef SETTING_TBN_PACKING
-    nzpacking_unpackNormalOct16(frag_viewTN, geomViewNormal, geomViewTangent);
+    nzpacking_unpackNormalOct16(frag_worldTN, geomWorldNormal, geomWorldTangent);
     #else
-    vec3 geomWorldNormal = frag_worldNormal;
-    vec3 geomWorldTangent = frag_worldTangent;
+    geomWorldNormal = frag_worldNormal;
+    geomWorldTangent = frag_worldTangent;
+    #endif
+
     geomViewNormal = coords_dir_worldToView(geomWorldNormal);
     geomViewTangent = coords_dir_worldToView(geomWorldTangent);
-    #endif
     geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal) * bitangentSignF);
 }
 

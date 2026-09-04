@@ -14,7 +14,7 @@ flat out vec4 frag_spriteBounds;
 #endif
 
 #ifdef SETTING_TBN_PACKING
-out uint frag_viewTN;
+out uint frag_worldTN;
 #else
 out vec3 frag_worldTangent;
 out vec3 frag_worldNormal;// 11 + 11 + 10 = 32 bits
@@ -33,11 +33,11 @@ void main() {
 
     vec3 viewNormal = gl_NormalMatrix * normalize(gl_Normal.xyz);
     vec3 viewTangent = gl_NormalMatrix * normalize(at_tangent.xyz);
-    #ifdef SETTING_TBN_PACKING
-    nzpacking_packNormalOct16(frag_viewTN, viewNormal, viewTangent);
-    #else
     vec3 worldNormal = coords_dir_viewToWorld(viewNormal);
     vec3 worldTangent = coords_dir_viewToWorld(viewTangent);
+    #ifdef SETTING_TBN_PACKING
+    nzpacking_packNormalOct16(frag_worldTN, worldNormal, worldTangent);
+    #else
     frag_worldTangent = worldTangent;
     frag_worldNormal = worldNormal;
     #endif
