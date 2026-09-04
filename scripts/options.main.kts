@@ -1146,17 +1146,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FLICKER_SUPPRESSION", 3, 0..10) {
-                    lang {
-                        name = "Flicker Suppression Strength"
-                        comment =
-                            "Reduces GI flickering. Higher values increase suppression but can introduce lighting lags."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "闪烁抑制强度"
-                        comment = "减少GI闪烁。数值越高，抑制越强，但可能会引入光照延迟。"
-                    }
-                }
                 toggle("SETTING_DENOISER_ANTI_FIREFLY", true) {
                     lang {
                         name = "RCRS Firefly Suppression"
