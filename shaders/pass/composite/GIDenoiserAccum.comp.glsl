@@ -53,18 +53,6 @@ void loadSharedHistoryLengths(uvec2 groupOriginTexelPos, uint index) {
     }
 }
 
-float computeOutputLumaDiffWeight(vec3 prevLinearColor, vec3 newLinearColor, float expMul, float threshold) {
-    vec3 prevOutputSim = colors_reversibleTonemap(prevLinearColor * expMul);
-    float prevOutputSimLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, prevOutputSim);
-    vec3 newInputSim = colors_reversibleTonemap(newLinearColor * expMul);
-    float newInputSimLuma = colors2_colorspaces_luma(SETTING_WORKING_COLOR_SPACE, newInputSim);
-    // Only suppress when new sample is brighter than history (firefly).
-    // Allow free dimming so corrupted bright history can recover.
-    float lumaDiff = max(0.0, newInputSimLuma - prevOutputSimLuma);
-
-    return threshold / (threshold + pow2(lumaDiff));
-}
-
 const float SPEC_ACCUM_CURVE = 0.5;
 const float SPEC_ACCUM_BASE_POWER = 0.5;
 
@@ -155,17 +143,6 @@ void main() {
                     historyLengths.y = min(historyLengths.y, maxSpecularHistoryLength);
                     historyLengths.xy = min(historyLengths.xy, min(historyLengths.z, SETTING_DENOISER_HISTORY_LENGTH));
 
-                    #if SETTING_DENOISER_FLICKER_SUPPRESSION
-                    // Idea from Belmu to limit firefly based on luma difference
-                    if (historyData.realHistoryLength > 0.0) {
-                        float expMul = exp2(global_aeData.expValues.z);
-                        float threshold = ldexp(1.0, -SETTING_DENOISER_FLICKER_SUPPRESSION);
-                        newWeights.x = computeOutputLumaDiffWeight(historyData.diffuseColor, newDiffuse.rgb, expMul, threshold);
-                        if (historyData.specularHistoryLength > 0.0) {
-                            newWeights.y = computeOutputLumaDiffWeight(historyData.specularColor, newSpecular.rgb, expMul, threshold);
-                        }
-                    }
-                    #endif
                     #endif
 
                     // x: regular, diffuse
