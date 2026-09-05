@@ -59,24 +59,31 @@ textures. High cirrus is sampled by the shared sky/cloud path rather than a sepa
 ### Cumulus congestus
 
 [`Cumulus.glsl`](../../../shaders/techniques/atmospherics/clouds/Cumulus.glsl) builds each cell from three overlapping
-vertical thermals of different heights, clipped at a common condensation level. Cell radius scales with height;
-lean and side branches vary per cell. Curl-warped 3D billows stretch vertically, and two finer erosion scales shape
-the surface. Erosion is relative to cell radius so small cells retain a coherent interior. Liquid-water density
-increases above the narrow condensation transition. The default layer starts at 1 km and is 3.5 km deep.
+vertical thermals of different heights, each with a broad head and a connected stem. A broad moisture field varies
+local coverage and development, grouping towers into banks and leaving gaps. Cell radius scales with height;
+lean and side branches vary per cell. Neighbor bounds cover each cell's full reach, including wide cells crossing
+the nominal grid neighborhood. Curl-warped 3D billows stretch vertically, and two finer erosion scales shape the
+surface. Both lobe blending and erosion scale with cell radius. The condensation boundary follows the billow field,
+and liquid-water density increases above its narrow transition. The default layer starts at 1 km and is 3.5 km deep.
 
 [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) uses the spherical-shell
 intersection in [`clouds/Common.glsl`](../../../shaders/techniques/atmospherics/clouds/Common.glsl). The main march covers the entire
-visible interval with nonuniform distance bins and one uniformly jittered sample per bin. Integration uses each
-bin's actual length and the analytic constant-medium Beer-Lambert integral. Ground intersections clip the march;
+visible interval with nonuniform distance bins and one uniformly jittered sample per bin. At an empty-to-occupied
+transition, four bisections refine the first interface. Lighting is evaluated approximately one mean free path
+inside it, bounded by the original occupied sample, and integration starts at the refined interface. This reduces
+surface shading bias from coarse bins; it is not an unbiased path tracer. Other bins use their actual lengths and
+the analytic constant-medium Beer-Lambert integral. Ground intersections clip the march;
 the cloud interval is capped at 60 km, with a maximum distance of 120 km from the camera.
+When residual transmittance falls below `0.005`, the march completes the opaque tail with the local source and
+sets transmission to zero. This avoids bright-sky leakage and termination bands inside dense clouds.
 
-Each occupied sample integrates a 16-sample sunlight column and separate six-sample sky and four-sample ground
-columns. All use the same density field and exponential distance bins, with more samples near the surface.
+Each occupied sample integrates a 16-sample sunlight column and separate six-sample sky and ground columns along
+uniform hemisphere directions. All use the same density field and exponential distance bins, with more samples near the surface.
 A uniform lower-hemisphere direction samples the ground footprint; a ten-sample cloud column shadows its direct
 reflection. The lower-atmosphere contribution remains separate, and diffuse ground skylight uses the configured
 ground albedo and the upper-hemisphere integral. The sunlight phase starts with the
 configured cumulus phase function. Four additional scattering orders use amplitudes `0.6^n`, optical-depth scales
-`0.45^n`, and progressively less directional Henyey-Greenstein phases. Ambient visibility uses the two vertical
+`0.45^n`, and progressively less directional Henyey-Greenstein phases. Ambient visibility uses the two hemisphere
 columns with a transport optical-depth scale of `0.15`. These finite-order approximations provide interior fill and
 self-shadowed lobes; they are not a full multiple-scattering solution.
 

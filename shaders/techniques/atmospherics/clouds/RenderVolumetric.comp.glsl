@@ -50,6 +50,7 @@ void render(ivec2 texelPos) {
         const vec3 groundColor = vec3(SETTING_ATM_GROUND_ALBEDO_R, SETTING_ATM_GROUND_ALBEDO_G, SETTING_ATM_GROUND_ALBEDO_B) / 255.0;
         const vec3 groundAlbedo = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, groundColor);
         vec2 groundJitter = rand_stbnVec2(rand_newStbnPos(texelPos, 3), frameCounter);
+        vec2 skyJitter = rand_stbnVec2(rand_newStbnPos(texelPos, 4), frameCounter);
         float jitter = rand_stbnVec1(rand_newStbnPos(texelPos, 1), frameCounter);
         float lightJitter = rand_stbnVec1(rand_newStbnPos(texelPos, 2), frameCounter);
         vec3 shadowDir = rand_sampleInCone(lightDir, SUN_ANGULAR_RADIUS, ambientJitter);
@@ -62,6 +63,8 @@ void render(ivec2 texelPos) {
         ScatteringParameters airScattering = scatteringParameters_init(sunParams, moonParams, 1.0);
         ScatteringResult air = scatteringResult_init();
         float airDistance = 0.0;
+        float emptyDistance = interval.x;
+        bool inside = interval.x == 0.0 && clouds_cu_density(origin, (length(origin) - layerRange.x) / (layerRange.y - layerRange.x)) > 0.0;
 
         for (int i = 0; i < steps; ++i) {
             float u0 = float(i) / float(steps);
@@ -73,7 +76,31 @@ void render(ivec2 texelPos) {
             float height = length(pos);
             float heightFraction = (height - layerRange.x) / (layerRange.y - layerRange.x);
             float density = clouds_cu_density(pos, heightFraction);
-            if (density <= 0.0) continue;
+            if (density <= 0.0) {
+                emptyDistance = distance;
+                inside = false;
+                continue;
+            }
+            float occupiedStart = interval.x + start;
+            if (!inside) {
+                // Resolve the first interface, then shade near the first scattering event in the occupied segment.
+                float occupiedDistance = distance;
+                for (int refine = 0; refine < 4; ++refine) {
+                    float midpoint = (emptyDistance + occupiedDistance) * 0.5;
+                    vec3 midpointPos = origin + direction * midpoint;
+                    float midpointHeight = (length(midpointPos) - layerRange.x) / (layerRange.y - layerRange.x);
+                    if (clouds_cu_density(midpointPos, midpointHeight) > 0.0) occupiedDistance = midpoint;
+                    else emptyDistance = midpoint;
+                }
+                occupiedStart = occupiedDistance;
+                float meanFreePath = 1.0 / (CU_DENSITY_SCALE * dot(medium.extinction, vec3(1.0 / 3.0)) * mix(0.55, 1.35, smoothstep(0.0, 0.32, heightFraction)));
+                distance = min(occupiedDistance + meanFreePath, distance);
+                pos = origin + direction * distance;
+                height = length(pos);
+                heightFraction = (height - layerRange.x) / (layerRange.y - layerRange.x);
+                density = clouds_cu_density(pos, heightFraction);
+            }
+            inside = true;
 
             RaymarchParameters airParams = raymarchParameters_init();
             airParams.rayStart = airOrigin + direction * airDistance;
@@ -84,9 +111,10 @@ void render(ivec2 texelPos) {
 
             vec3 up = pos / height;
             vec3 sunOpticalDepth = medium.extinction * clouds_cu_column(pos, shadowDir, layerRange, 16, 6.0, lightJitter);
-            vec3 skyOpticalDepth = medium.extinction * clouds_cu_column(pos, up, layerRange, 6, 3.0, 0.5);
-            vec3 groundOpticalDepth = medium.extinction * clouds_cu_column(pos, -up, layerRange, 4, 3.0, 0.5);
+            vec3 skyDir = rand_sampleInCone(up, PI * 0.5, skyJitter);
             vec3 groundDir = rand_sampleInCone(-up, PI * 0.5, groundJitter);
+            vec3 skyOpticalDepth = medium.extinction * clouds_cu_column(pos, skyDir, layerRange, 6, 6.0, 0.5);
+            vec3 groundOpticalDepth = medium.extinction * clouds_cu_column(pos, groundDir, layerRange, 6, 6.0, 0.5);
             float groundDistance = raySphereIntersectNearest(pos, groundDir, vec3(0.0), atmosphere.bottom);
             vec3 groundVisibility = vec3(1.0);
             if (groundDistance >= 0.0) {
@@ -109,12 +137,17 @@ void render(ivec2 texelPos) {
             vec3 groundAmbient = groundAirAmbient + groundDirectAmbient * groundVisibility + groundAlbedo * skyAmbient;
             vec3 ambient = skyAmbient * exp(-skyOpticalDepth * 0.15) + groundAmbient * exp(-groundOpticalDepth * 0.15);
             vec3 source = illuminance * atmosphereTransmittance * sunlight + ambient;
-            vec3 transmittance = exp(-medium.extinction * density * (end - start));
+            vec3 transmittance = exp(-medium.extinction * density * (interval.x + end - occupiedStart));
             // Opacity weights the clear-air radiance up to each actual cloud sample.
             vec3 radiance = albedo * source * air.transmittance + air.inScattering;
             result.inScattering += result.transmittance * (1.0 - transmittance) * radiance;
             result.transmittance *= transmittance;
-            if (mmax3(result.transmittance) < 0.005) break;
+            if (mmax3(result.transmittance) < 0.005) {
+                // Complete the opaque tail with the local source instead of leaking an arbitrary fraction of the sky.
+                result.inScattering += result.transmittance * radiance;
+                result.transmittance = vec3(0.0);
+                break;
+            }
         }
     }
 
