@@ -30,14 +30,15 @@ The current program-list order is:
 | 1     | [`GenerateTransmittance`](../../../shaders/techniques/atmospherics/air/lut/GenerateTransmittance.comp.glsl) | Updates the 256×64 `persistent_transmittanceLUT`   |
 | 2     | [`SliceEndPoints`](../../../shaders/techniques/atmospherics/air/SliceEndPoints.comp.glsl)                   | Updates epipolar geometry for the frame            |
 | 3     | [`GenerateMultiSctr`](../../../shaders/techniques/atmospherics/air/lut/GenerateMultiSctr.comp.glsl)         | Updates the 32×32 `persistent_multiSctrLUT`        |
-| 4     | [`clouds/amblut/Sample`](../../../shaders/techniques/atmospherics/clouds/amblut/Sample.comp.glsl)           | Samples previous/current cloud ambient information |
+| 4     | [`clouds/amblut/Sample`](../../../shaders/techniques/atmospherics/clouds/amblut/Sample.comp.glsl)           | Alternates cumulus and cirrus heights; samples 1024 full-sphere atmospheric rays and stores direct ground reflection separately |
 | 5     | [`GenerateSkyViewLUT`](../../../shaders/techniques/atmospherics/air/lut/GenerateSkyViewLUT.comp.glsl)       | Writes `uimg_skyViewLUT`                           |
-| 6     | [`clouds/amblut/Gather`](../../../shaders/techniques/atmospherics/clouds/amblut/Gather.comp.glsl)           | Writes the 32×192 `persistent_cloudsAmbLUT`        |
+| 6     | [`clouds/amblut/Gather`](../../../shaders/techniques/atmospherics/clouds/amblut/Gather.comp.glsl)           | Writes the 32×33 `persistent_cloudsAmbLUT`: a 32×32 directional cirrus tile and three cumulus values in the last row (upper atmosphere, lower atmosphere, direct ground bounce); reduces all subgroups and resets inactive history on transitions |
 
 Fixed LUT dimensions are declared in [`shaders/shadesmith.json`](../../../shaders/shadesmith.json);
 screen-sized/configurable images are declared in [`scripts/shaders.properties`](../../../scripts/shaders.properties).
 
-Both `uimg_skyViewLUT` dimensions use `SETTING_SKYVIEW_RES`. `uimg_epipolarData` uses `SETTING_EPIPOLAR_SLICES` for its
+Both `uimg_skyViewLUT` screen dimensions use `SETTING_SKYVIEW_RES`; its six slices hold scattering/transmittance pairs
+for the full atmosphere and the regions below/above cirrus. `uimg_epipolarData` uses `SETTING_EPIPOLAR_SLICES` for its
 width, and maps `SETTING_SLICE_SAMPLES` to a height of 385, 769, 1537, or 3073. Adding a supported sample count requires
 updating both the property-size mapping and shader indexing logic.
 
@@ -57,28 +58,33 @@ textures. High cirrus is sampled by the shared sky/cloud path rather than a sepa
 
 ### Cumulus congestus
 
-[`Cumulus.glsl`](../../../shaders/techniques/atmospherics/clouds/Cumulus.glsl) builds each convective cell from three
-overlapping lobes with a common condensation level. Cell heights and lean vary independently. Curl-warped 3D billows
-shape the silhouette; two finer erosion scales affect the interface while leaving a coherent interior. Erosion grows
-stronger above the condensation base, while liquid-water density increases above its narrow transition. The default
-layer starts at 1 km and is 3.5 km deep.
+[`Cumulus.glsl`](../../../shaders/techniques/atmospherics/clouds/Cumulus.glsl) builds each cell from three overlapping
+vertical thermals of different heights, clipped at a common condensation level. Cell radius scales with height;
+lean and side branches vary per cell. Curl-warped 3D billows stretch vertically, and two finer erosion scales shape
+the surface. Erosion is relative to cell radius so small cells retain a coherent interior. Liquid-water density
+increases above the narrow condensation transition. The default layer starts at 1 km and is 3.5 km deep.
 
-[`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) and
-[`SkyComposite.glsl`](../../../shaders/techniques/atmospherics/SkyComposite.glsl) share the spherical-shell intersection
-in [`clouds/Common.glsl`](../../../shaders/techniques/atmospherics/clouds/Common.glsl). The main march covers the entire
+[`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) uses the spherical-shell
+intersection in [`clouds/Common.glsl`](../../../shaders/techniques/atmospherics/clouds/Common.glsl). The main march covers the entire
 visible interval with nonuniform distance bins and one uniformly jittered sample per bin. Integration uses each
 bin's actual length and the analytic constant-medium Beer-Lambert integral. Ground intersections clip the march;
 the cloud interval is capped at 60 km, with a maximum distance of 120 km from the camera.
 
-Each occupied sample integrates a ten-sample sunlight column and separate four-sample sky and three-sample ground
-columns. All three use the same density field and quadratic distance bins. The sunlight phase starts with the
+Each occupied sample integrates a 16-sample sunlight column and separate six-sample sky and four-sample ground
+columns. All use the same density field and exponential distance bins, with more samples near the surface.
+A uniform lower-hemisphere direction samples the ground footprint; a ten-sample cloud column shadows its direct
+reflection. The lower-atmosphere contribution remains separate, and diffuse ground skylight uses the configured
+ground albedo and the upper-hemisphere integral. The sunlight phase starts with the
 configured cumulus phase function. Four additional scattering orders use amplitudes `0.6^n`, optical-depth scales
 `0.45^n`, and progressively less directional Henyey-Greenstein phases. Ambient visibility uses the two vertical
 columns with a transport optical-depth scale of `0.15`. These finite-order approximations provide interior fill and
 self-shadowed lobes; they are not a full multiple-scattering solution.
 
-The existing ambient LUT, cloud-history packing, accumulation, and atmosphere composition remain the integration
-points. Wind translates the field and its detail together; screenshot mode freezes it. A zero coverage, density, or
+Air scattering and transmission are integrated incrementally to occupied cloud samples with 4–32 samples per segment.
+Their clear-air radiance is weighted by the cloud opacity at that distance. [`SkyComposite.glsl`](../../../shaders/techniques/atmospherics/SkyComposite.glsl)
+then composites the result over the sky; it no longer places cumulus at a fixed middle-altitude plane.
+When viewed from above cirrus, its foreground scattering and transmission are applied to the cumulus contribution.
+Cloud-history packing and accumulation remain the integration points. Wind translates the field and its detail together; screenshot mode freezes it. A zero coverage, density, or
 layer thickness gives an empty cloud result. Cirrus retains its separate lighting model and multiple-scattering-radius
 control.
 

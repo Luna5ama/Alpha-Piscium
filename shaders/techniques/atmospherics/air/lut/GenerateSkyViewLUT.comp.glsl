@@ -13,7 +13,7 @@
 
 layout(local_size_x = 16, local_size_y = 16) in;
 
-const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 4);
+const ivec3 workGroups = ivec3(SKYVIEW_RES_D16, SKYVIEW_RES_D16, 3);
 
 /*const*/
 #define ATMOSPHERE_RAYMARCHING_SKY a
@@ -128,12 +128,6 @@ bool setupRayEndLayered(AtmosphereParameters atmosphere, inout RaymarchParameter
     return true;
 }
 
-const vec2[3] LAYER_BOUNDS = {
-    vec2(-100.0, SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS * 0.5),
-    vec2(SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS * 0.5, SETTING_CLOUDS_CI_HEIGHT),
-    vec2(SETTING_CLOUDS_CI_HEIGHT, 100.0)
-};
-
 void main() {
     ivec2 texelPos = ivec2(gl_GlobalInvocationID.xy);
     vec2 screenPos = (texelPos + 0.5) / SKYVIEW_LUT_SIZE_F;
@@ -167,7 +161,8 @@ void main() {
             result = raymarchSky(atmosphere, params, scatteringParams, BOTTOM_OFFSET);
         }
     } else {
-        vec2 layerBound = LAYER_BOUNDS[layerIndex - 1] + atmosphere.bottom;
+        vec2 layerBound = layerIndex == 1 ? vec2(-100.0, SETTING_CLOUDS_CI_HEIGHT) : vec2(SETTING_CLOUDS_CI_HEIGHT, 100.0);
+        layerBound += atmosphere.bottom;
         layerBound = min(layerBound, vec2(atmosphere.top));
 
         if (setupRayEndLayered(atmosphere, params, rayDir, layerBound)) {

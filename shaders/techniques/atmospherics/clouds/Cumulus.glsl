@@ -5,9 +5,9 @@
 #include "/util/Hash.glsl"
 
 const float CU_CELL_FREQUENCY = 0.24 * exp2(SETTING_CLOUDS_LOW_BASE_FREQ);
-const float CU_BILLOW_FREQUENCY = 0.65 * exp2(SETTING_CLOUDS_LOW_BILLOWY_FREQ);
-const float CU_DETAIL_FREQUENCY = 1.2 * exp2(SETTING_CLOUDS_HIGH_BILLOWY_FREQ);
-const float CU_DENSITY_SCALE = 96.0 * SETTING_CLOUDS_CU_DENSITY;
+const float CU_BILLOW_FREQUENCY = 0.95 * exp2(SETTING_CLOUDS_LOW_BILLOWY_FREQ);
+const float CU_DETAIL_FREQUENCY = 2.1 * exp2(SETTING_CLOUDS_HIGH_BILLOWY_FREQ);
+const float CU_DENSITY_SCALE = 240.0 * SETTING_CLOUDS_CU_DENSITY;
 
 float clouds_cu_lobe(vec2 offset, float height, float centerHeight, float radius, float verticalRadius) {
     return (1.0 - length(vec3(offset / radius, (height - centerHeight) / verticalRadius))) * radius;
@@ -38,46 +38,53 @@ float clouds_cu_density(vec3 rayPos, float heightFraction) {
             vec3 seed = hash_uintToFloat(hash_33_q3(uvec3(uvec2(cell + offset), 0x1919810u)));
             vec2 center = vec2(offset) + mix(vec2(0.18), vec2(0.82), seed.xy);
             vec2 delta = localPos - center;
-            float radius = mix(0.12, 0.86, SETTING_CLOUDS_CU_COVERAGE) * mix(0.8, 1.12, seed.x);
             float top = mix(0.28, 0.94, smoothstep(0.1, 0.92, seed.z));
+            float radius = mix(0.12, 0.86, SETTING_CLOUDS_CU_COVERAGE) * mix(0.8, 1.12, seed.x) * sqrt(top);
             if (dot(delta, delta) > pow2(radius + 0.22) || heightFraction > top + 0.12) continue;
 
-            vec2 lean = (seed.xy - 0.5) * radius * 0.65;
-            float base = clouds_cu_lobe(delta, heightFraction, top * 0.12, radius, top * 0.28);
-            float body = clouds_cu_lobe(delta - lean, heightFraction, top * 0.40, radius * 0.77, top * 0.36);
-            float crown = clouds_cu_lobe(delta - lean * 1.6, heightFraction, top * 0.71, radius * 0.57, top * 0.29);
-            shape = clouds_cu_union(shape, clouds_cu_union(base, clouds_cu_union(body, crown)));
+            float angle = seed.x * (2.0 * PI);
+            vec2 axis = vec2(cos(angle), sin(angle));
+            vec2 lean = (seed.xy - 0.5) * radius * heightFraction / top;
+            vec2 thermalPos = delta - lean;
+            float mainThermal = clouds_cu_lobe(thermalPos, heightFraction, top * 0.32, radius * 0.65, top * 0.68);
+            float sideHeight = top * mix(0.58, 0.86, seed.y);
+            float sideThermal = clouds_cu_lobe(thermalPos - axis * radius * 0.43, heightFraction, sideHeight * 0.30, radius * 0.53, sideHeight * 0.70);
+            float youngHeight = top * mix(0.36, 0.65, seed.x);
+            float youngThermal = clouds_cu_lobe(thermalPos + axis * radius * 0.48, heightFraction, youngHeight * 0.28, radius * 0.56, youngHeight * 0.72);
+            float thermals = clouds_cu_union(mainThermal, clouds_cu_union(sideThermal, youngThermal));
+            shape = clouds_cu_union(shape, thermals / radius);
         }
     }
     if (shape <= 0.0) return 0.0;
 
     vec3 curl = texture(usam_cumulusCurl, pos * 0.35).xyz;
     vec3 billowPos = pos * CU_BILLOW_FREQUENCY + curl * 0.09;
+    billowPos.y *= 0.75;
     float billow = texture(usam_cumulusDetail1, billowPos).r;
-    float entrainment = mix(0.35, 1.0, smoothstep(0.04, 0.2, heightFraction));
-    shape -= pow3(1.0 - billow) * 0.32 * entrainment;
+    float entrainment = mix(0.7, 1.0, smoothstep(0.02, 0.15, heightFraction));
+    shape -= (1.0 - sqrt(billow)) * 0.38 * entrainment;
     if (shape <= 0.0) return 0.0;
 
     // Erode the interface; the interior stays coherent instead of becoming wispy.
     vec3 detailPos = pos * CU_DETAIL_FREQUENCY + curl * 0.13;
-    float erosion = (1.0 - texture(usam_cumulusDetail2, detailPos).r) * 0.045;
-    erosion += (1.0 - texture(usam_cumulusDetail2, detailPos * 3.7).r) * 0.012;
+    float erosion = (1.0 - texture(usam_cumulusDetail2, detailPos).r) * 0.07;
+    erosion += (1.0 - texture(usam_cumulusDetail2, detailPos * 3.7).r) * 0.02;
     shape -= erosion * entrainment;
-    float surface = smoothstep(0.0, 0.04, shape);
-    float condensation = smoothstep(0.0, 0.025, heightFraction);
+    float surface = smoothstep(0.0, 0.015, shape);
+    float condensation = smoothstep(0.0, 0.008, heightFraction);
     float liquidWater = mix(0.55, 1.35, smoothstep(0.0, 0.32, heightFraction));
     return surface * condensation * liquidWater * CU_DENSITY_SCALE;
 }
 
-float clouds_cu_column(vec3 origin, vec3 direction, vec2 layerRange, int steps, float jitter) {
+float clouds_cu_column(vec3 origin, vec3 direction, vec2 layerRange, int steps, float spread, float jitter) {
     vec2 interval;
     if (!clouds_layerInterval(origin, direction, layerRange, interval)) return 0.0;
-    float rayLength = min(interval.y, 12.0);
+    float rayLength = min(interval.y - interval.x, 12.0);
     float column = 0.0;
     for (int i = 0; i < steps; ++i) {
-        float start = pow2(float(i) / float(steps)) * rayLength;
-        float end = pow2(float(i + 1) / float(steps)) * rayLength;
-        vec3 pos = origin + direction * mix(start, end, jitter);
+        float start = (exp2(float(i) / float(steps) * spread) - 1.0) / (exp2(spread) - 1.0) * rayLength;
+        float end = (exp2(float(i + 1) / float(steps) * spread) - 1.0) / (exp2(spread) - 1.0) * rayLength;
+        vec3 pos = origin + direction * (interval.x + mix(start, end, jitter));
         float height = (length(pos) - layerRange.x) / (layerRange.y - layerRange.x);
         column += clouds_cu_density(pos, height) * (end - start);
     }

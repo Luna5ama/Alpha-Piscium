@@ -1921,10 +1921,10 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                     slider("SETTING_CLOUDS_AMB_BACKSCATTER_FACTOR", 0.5, 0.0..1.0 step 0.05) {
                         lang {
-                            name = "Ambient Backscatter Phase Factor"
+                            name = "Cirrus Ambient Backscatter Phase Factor"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "环境后向散射相位因子"
+                            name = "卷云环境后向散射相位因子"
                         }
                     }
                 }

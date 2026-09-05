@@ -85,7 +85,7 @@
         "persistent_cloudsAmbLUT": {
             "format": "RGBA16F",
             "width": 32,
-            "height": 192
+            "height": 33
         },
         "persistent_transmittanceLUT": {
             "format": "RGBA16F",

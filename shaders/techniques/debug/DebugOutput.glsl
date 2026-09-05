@@ -386,14 +386,14 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 
     #ifdef SETTING_DEBUG_CLOUDS_AMBLUT
     #define CLOUDS_AMB_LUT_SIZE 128
-    for (int i = 0; i < 6; i++) {
+    for (int i = 0; i < 4; i++) {
         if (inViewPort(ivec4(0, CLOUDS_AMB_LUT_SIZE * i, CLOUDS_AMB_LUT_SIZE, CLOUDS_AMB_LUT_SIZE), debugTexCoord)) {
-            vec4 sampleResult = clouds_amblut_sampleRaw(debugTexCoord, float(i) + 0.5);
+            vec4 sampleResult = i < 3 ? persistent_cloudsAmbLUT_fetch(ivec2(i, 32)) : clouds_amblut_sampleRaw(debugTexCoord);
             outputColor.rgb = gammaCorrect(applyExposure(sampleResult.rgb));
         }
         if (inViewPort(ivec4(CLOUDS_AMB_LUT_SIZE, CLOUDS_AMB_LUT_SIZE * i, CLOUDS_AMB_LUT_SIZE, CLOUDS_AMB_LUT_SIZE), debugTexCoord)) {
-            vec4 sampleResult = clouds_amblut_sampleRaw(debugTexCoord, float(i) + 0.5);
-            outputColor.rgb = interpolateTurbo(sampleResult.a);
+            vec4 sampleResult = i < 3 ? persistent_cloudsAmbLUT_fetch(ivec2(i, 32)) : clouds_amblut_sampleRaw(debugTexCoord);
+            outputColor.rgb = interpolateTurbo(sampleResult.a / 16.0);
         }
     }
     #endif

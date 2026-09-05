@@ -1,11 +1,15 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 
 #include "Cumulus.glsl"
-#include "./amblut/API.glsl"
 #include "./ss/Common.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Morton.glsl"
 #include "/techniques/HiZ.glsl"
+
+/*const*/
+#define ATMOSPHERE_RAYMARCHING_SKY a
+/*const*/
+#include "/techniques/atmospherics/air/Raymarching.glsl"
 
 layout(local_size_x = 8, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(RENDER_MULTIPLIER, RENDER_MULTIPLIER);
@@ -40,28 +44,55 @@ void render(ivec2 texelPos) {
         vec3 albedo = medium.scattering / medium.extinction;
 
         vec2 ambientJitter = rand_stbnVec2(rand_newStbnPos(texelPos, 1), frameCounter);
-        vec3 ambient = clouds_amblut_sample(cloods_amblut_uv(direction, ambientJitter), CLOUDS_AMBLUT_LAYER_CUMULUS);
+        vec3 skyAmbient = persistent_cloudsAmbLUT_fetch(ivec2(0, 32)).rgb;
+        vec3 groundAirAmbient = persistent_cloudsAmbLUT_fetch(ivec2(1, 32)).rgb;
+        vec3 groundDirectAmbient = persistent_cloudsAmbLUT_fetch(ivec2(2, 32)).rgb;
+        const vec3 groundColor = vec3(SETTING_ATM_GROUND_ALBEDO_R, SETTING_ATM_GROUND_ALBEDO_G, SETTING_ATM_GROUND_ALBEDO_B) / 255.0;
+        const vec3 groundAlbedo = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, groundColor);
+        vec2 groundJitter = rand_stbnVec2(rand_newStbnPos(texelPos, 3), frameCounter);
         float jitter = rand_stbnVec1(rand_newStbnPos(texelPos, 1), frameCounter);
         float lightJitter = rand_stbnVec1(rand_newStbnPos(texelPos, 2), frameCounter);
         vec3 shadowDir = rand_sampleInCone(lightDir, SUN_ANGULAR_RADIUS, ambientJitter);
         float rayLength = interval.y - interval.x;
         int steps = int(clamp(rayLength * 3.0, float(SETTING_CLOUDS_LOW_STEP_MIN), float(max(SETTING_CLOUDS_LOW_STEP_MIN, SETTING_CLOUDS_LOW_STEP_MAX))));
 
+        vec3 airOrigin = atmosphere_viewToAtm(atmosphere, vec3(0.0));
+        LightParameters sunParams = lightParameters_init(atmosphere, SUN_ILLUMINANCE, uval_sunDirWorld, direction);
+        LightParameters moonParams = lightParameters_init(atmosphere, MOON_ILLUMINANCE, uval_moonDirWorld, direction);
+        ScatteringParameters airScattering = scatteringParameters_init(sunParams, moonParams, 1.0);
+        ScatteringResult air = scatteringResult_init();
+        float airDistance = 0.0;
+
         for (int i = 0; i < steps; ++i) {
             float u0 = float(i) / float(steps);
             float u1 = float(i + 1) / float(steps);
             float start = u0 * (0.4 + 0.6 * u0) * rayLength;
             float end = u1 * (0.4 + 0.6 * u1) * rayLength;
-            vec3 pos = origin + direction * (interval.x + mix(start, end, jitter));
+            float distance = interval.x + mix(start, end, jitter);
+            vec3 pos = origin + direction * distance;
             float height = length(pos);
             float heightFraction = (height - layerRange.x) / (layerRange.y - layerRange.x);
             float density = clouds_cu_density(pos, heightFraction);
             if (density <= 0.0) continue;
 
+            RaymarchParameters airParams = raymarchParameters_init();
+            airParams.rayStart = airOrigin + direction * airDistance;
+            airParams.rayEnd = airOrigin + direction * distance;
+            airParams.steps = uint(clamp((distance - airDistance) * 2.0, 4.0, 32.0));
+            air = scatteringResult_blendLayer(air, raymarchSky(atmosphere, airParams, airScattering, 8.0), false);
+            airDistance = distance;
+
             vec3 up = pos / height;
-            vec3 sunOpticalDepth = medium.extinction * clouds_cu_column(pos, shadowDir, layerRange, 10, lightJitter);
-            vec3 skyOpticalDepth = medium.extinction * clouds_cu_column(pos, up, layerRange, 4, 0.5);
-            vec3 groundOpticalDepth = medium.extinction * clouds_cu_column(pos, -up, layerRange, 3, 0.5);
+            vec3 sunOpticalDepth = medium.extinction * clouds_cu_column(pos, shadowDir, layerRange, 16, 6.0, lightJitter);
+            vec3 skyOpticalDepth = medium.extinction * clouds_cu_column(pos, up, layerRange, 6, 3.0, 0.5);
+            vec3 groundOpticalDepth = medium.extinction * clouds_cu_column(pos, -up, layerRange, 4, 3.0, 0.5);
+            vec3 groundDir = rand_sampleInCone(-up, PI * 0.5, groundJitter);
+            float groundDistance = raySphereIntersectNearest(pos, groundDir, vec3(0.0), atmosphere.bottom);
+            vec3 groundVisibility = vec3(1.0);
+            if (groundDistance >= 0.0) {
+                vec3 groundPos = pos + groundDir * groundDistance;
+                groundVisibility = exp(-medium.extinction * clouds_cu_column(groundPos, lightDir, layerRange, 10, 4.0, lightJitter));
+            }
             vec3 atmosphereTransmittance = atmospherics_air_lut_sampleTransmittance(atmosphere, dot(up, lightDir), height);
 
             // Successive scattering orders lose directionality and traverse reduced optical depth.
@@ -75,10 +106,13 @@ void render(ivec2 texelPos) {
                 opticalDepthScale *= 0.45;
                 asymmetry *= 0.5;
             }
-            vec3 ambientVisibility = 0.5 * (exp(-skyOpticalDepth * 0.15) + exp(-groundOpticalDepth * 0.15));
-            vec3 source = illuminance * atmosphereTransmittance * sunlight + ambient * ambientVisibility;
+            vec3 groundAmbient = groundAirAmbient + groundDirectAmbient * groundVisibility + groundAlbedo * skyAmbient;
+            vec3 ambient = skyAmbient * exp(-skyOpticalDepth * 0.15) + groundAmbient * exp(-groundOpticalDepth * 0.15);
+            vec3 source = illuminance * atmosphereTransmittance * sunlight + ambient;
             vec3 transmittance = exp(-medium.extinction * density * (end - start));
-            result.inScattering += result.transmittance * albedo * source * (1.0 - transmittance);
+            // Opacity weights the clear-air radiance up to each actual cloud sample.
+            vec3 radiance = albedo * source * air.transmittance + air.inScattering;
+            result.inScattering += result.transmittance * (1.0 - transmittance) * radiance;
             result.transmittance *= transmittance;
             if (mmax3(result.transmittance) < 0.005) break;
         }

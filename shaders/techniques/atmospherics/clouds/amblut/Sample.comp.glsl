@@ -14,10 +14,10 @@ const ivec3 workGroups = ivec3(SAMPLE_COUNT_D256, 1, 1);
 void main() {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
 
-    int layerIndex = clouds_amblut_currLayerIndex();
-    float lutHeight = atmosphere.bottom + clouds_amblut_height(layerIndex);
+    float cloudHeight = clouds_amblut_isCumulus() ? SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS * 0.5 : SETTING_CLOUDS_CI_HEIGHT;
+    float lutHeight = atmosphere.bottom + cloudHeight;
 
-    vec3 randV = rand_r2Seq3((gl_GlobalInvocationID.x + SAMPLE_COUNT * (frameCounter / 6)) & 0xFFFFu);
+    vec3 randV = rand_r2Seq3((gl_GlobalInvocationID.x + SAMPLE_COUNT * (frameCounter / 2)) & 0xFFFFu);
     float randA = randV.x;
     float randB = randV.y;
     float theta = 2.0 * PI * randA;
@@ -38,6 +38,7 @@ void main() {
     ScatteringParameters scatteringParams = scatteringParameters_init(sunParams, moonParams, 1.0);
 
     ScatteringResult result = scatteringResult_init();
+    vec3 groundDirect = vec3(0.0);
     const vec3 earthCenter = vec3(0.0);
     if (setupRayEnd(atmosphere, params, rayDir)) {
         result = raymarchSky(atmosphere, params, scatteringParams, 0.0);
@@ -59,7 +60,7 @@ void main() {
                 float groundLightTerm1 = earthShadow * NDotL * RCP_PI;
                 vec3 groundLightTerm3 = tLightToGround * result.transmittance * groundAlbedo;
                 vec3 groundLighting = groundLightTerm1 * groundLightTerm3;
-                result.inScattering += groundLighting * SUN_ILLUMINANCE;
+                groundDirect += groundLighting * SUN_ILLUMINANCE;
             }
             {
                 float cosLightZenith = dot(upVector, uval_moonDirWorld);
@@ -70,11 +71,12 @@ void main() {
                 float groundLightTerm1 = earthShadow * NDotL * RCP_PI;
                 vec3 groundLightTerm3 = tLightToGround * result.transmittance * groundAlbedo;
                 vec3 groundLighting = groundLightTerm1 * groundLightTerm3;
-                result.inScattering += groundLighting * MOON_ILLUMINANCE;
+                groundDirect += groundLighting * MOON_ILLUMINANCE;
             }
         }
     }
 
     ssbo_ambLUTWorkingBuffer.rayDir[gl_GlobalInvocationID.x] = vec2(phi, theta);
     ssbo_ambLUTWorkingBuffer.inSctr[gl_GlobalInvocationID.x] = result.inScattering;
+    ssbo_ambLUTWorkingBuffer.groundDirect[gl_GlobalInvocationID.x] = groundDirect;
 }

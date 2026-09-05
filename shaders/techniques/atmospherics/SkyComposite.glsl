@@ -2,7 +2,6 @@
 #include "clouds/Common.glsl"
 #include "clouds/amblut/API.glsl"
 #include "clouds/Cirrus.glsl"
-#include "clouds/Cumulus.glsl"
 #include "clouds/ss/Common.glsl"
 #include "air/lut/API.glsl"
 #include "air/UnwarpEpipolar.glsl"
@@ -78,11 +77,12 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos, vec3 viewPos) {
 
             vec2 jitters = rand_stbnVec2(texelPos, frameCounter);
             vec3 viewDir = mainRayParams.rayDir;
-            vec2 ambLutUV = cloods_amblut_uv(viewDir, jitters);
+            vec2 ambLutUV = clouds_amblut_uv(viewDir, jitters);
 
             vec3 rayEndView = viewPos;
             vec3 rayDir = coords_dir_viewToWorld(rayEndView);
             SkyViewLutParams skyViewLutParams = atmospherics_air_lut_setupSkyViewLutParams(atmosphere, rayDir);
+            ScatteringResult foregroundCirrus = scatteringResult_init();
             #ifdef SETTING_CLOUDS_CU
             uvec4 packedData = transient_lowCloudAccumulated_fetch(texelPos);
             history_lowCloud_store(texelPos, packedData);
@@ -90,34 +90,6 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos, vec3 viewPos) {
             {
                 ScatteringResult layerResult = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyViewLutParams, 1.0);
                 compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, true);
-            }
-
-            #ifdef SETTING_CLOUDS_CU
-            {
-                float cuMinHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
-                float cuMaxHeight = cuMinHeight + SETTING_CLOUDS_CU_THICKNESS;
-                vec2 cuInterval;
-                if (clouds_layerInterval(mainRayParams.rayStart, mainRayParams.rayDir, vec2(cuMinHeight, cuMaxHeight), cuInterval)) {
-                    CloudSSHistoryData historyData = clouds_ss_historyData_init();
-                    clouds_ss_historyData_unpack(packedData, historyData);
-                    bool above = mainRayParams.rayStartHeight >= cuMinHeight;
-                    ScatteringResult layerResult = ScatteringResult(
-                        historyData.transmittance,
-                        historyData.inScattering
-                    );
-                    compositeResult = scatteringResult_blendLayer(
-                        compositeResult,
-                        layerResult,
-                        above
-                    );
-                }
-            }
-            #endif
-
-            {
-                ScatteringResult layerResult = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyViewLutParams, 2.0);
-                bool above = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS * 0.5;
-                compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, above);
             }
 
             #ifdef SETTING_CLOUDS_CI
@@ -131,7 +103,7 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos, vec3 viewPos) {
                 uint ciFlag = uint(sign(ciHeighDiff) == sign(mainRayParams.rayDir.y)) & uint(ciOrigin2RayOffset > 0.0);
 
                 if (bool(ciFlag)) {
-                    vec3 ambientIrradiance = clouds_amblut_sample(ambLutUV, CLOUDS_AMBLUT_LAYER_CIRRUS);
+                    vec3 ambientIrradiance = clouds_amblut_sample(ambLutUV);
                     CloudParticpatingMedium ciMedium = clouds_ci_medium(renderParams.cosLightTheta);
                     CloudRaymarchLayerParam layerParam = clouds_raymarchLayerParam_init(
                         mainRayParams,
@@ -163,16 +135,26 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos, vec3 viewPos) {
                         ciAccum.totalInSctr
                     );
                     bool aboveFlag = ciHeighDiff < 0.0;
+                    if (aboveFlag) foregroundCirrus = layerResult;
                     compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, aboveFlag);
                 }
             }
             #endif
 
+            ScatteringResult upperAir = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyViewLutParams, 2.0);
+            bool aboveCirrus = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CI_HEIGHT;
+            compositeResult = scatteringResult_blendLayer(compositeResult, upperAir, aboveCirrus);
+            #ifdef SETTING_CLOUDS_CU
             {
-                ScatteringResult layerResult = atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyViewLutParams, 3.0);
-                bool above = skyViewLutParams.viewHeight >= atmosphere.bottom + SETTING_CLOUDS_CI_HEIGHT;
-                compositeResult = scatteringResult_blendLayer(compositeResult, layerResult, above);
+                CloudSSHistoryData historyData = clouds_ss_historyData_init();
+                clouds_ss_historyData_unpack(packedData, historyData);
+                ScatteringResult clouds = ScatteringResult(historyData.transmittance, historyData.inScattering);
+                // Preserve cirrus in front of cumulus when viewing the layers from above.
+                vec3 cirrusRadiance = upperAir.inScattering * (1.0 - foregroundCirrus.transmittance) + upperAir.transmittance * foregroundCirrus.inScattering;
+                clouds.inScattering = clouds.inScattering * foregroundCirrus.transmittance + (1.0 - clouds.transmittance) * cirrusRadiance;
+                compositeResult = scatteringResult_blendLayer(compositeResult, clouds, true);
             }
+            #endif
         } else {
             CloudSSHistoryData newHistoryData = clouds_ss_historyData_init();
             uvec4 packedData = uvec4(0u);

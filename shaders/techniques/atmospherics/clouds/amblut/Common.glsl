@@ -3,55 +3,18 @@
 
 #ifndef AMBLUT_DATA_MODIFIER
 #define AMBLUT_DATA_MODIFIER buffer
-
 #endif
 
 #define AMBIENT_IRRADIANCE_LUT_SIZE 32
-#define AMBIENT_IRRADIANCE_LUT_LAYERS 6
 #define SAMPLE_COUNT 1024
 #define SAMPLE_COUNT_D256 4
 
 layout(std430, binding = 2) AMBLUT_DATA_MODIFIER AmbLUTWorkingBuffer {
     vec2 rayDir[SAMPLE_COUNT];
     vec3 inSctr[SAMPLE_COUNT];
+    vec3 groundDirect[SAMPLE_COUNT];
 } ssbo_ambLUTWorkingBuffer;
 
-int clouds_amblut_currLayerIndex() {
-    return frameCounter % 6;
-}
-
-const float _CLOUDS_AMBLUT_HEIGHTS[] = float[](
-    1.0, // Stratus
-    SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS * 0.5, // Cumulus
-    4.0, // Altocumulus
-    SETTING_CLOUDS_CI_HEIGHT, // Cirrus/Cirrocumulus
-    10.0, // Cirrostratus
-    80.0 // Noctilucent
-);
-
-float clouds_amblut_height(int layerIndex) {
-    return _CLOUDS_AMBLUT_HEIGHTS[layerIndex];
-}
-
-vec3 clouds_amblut_phase(float cosTheta, int layerIndex) {
-    vec3 phase = vec3(UNIFORM_PHASE);
-    if (layerIndex == 0) {
-        phase = phasefunc_CornetteShanks(cosTheta, CLOUDS_ST_ASYM);
-    }
-    if (layerIndex == 1) {
-        phase = clouds_phase_cu(cosTheta, SETTING_CLOUDS_CU_PHASE_RATIO * 0.5);
-    }
-    if (layerIndex == 2) {
-        phase = mix(phasefunc_CornetteShanks(cosTheta, CLOUDS_CI_ASYM), phasefunc_CornetteShanks(cosTheta, CLOUDS_CU_ASYM), 0.8);
-    }
-    if (layerIndex == 3) {
-        phase = clouds_phase_ci(cosTheta, SETTING_CLOUDS_CI_PHASE_RATIO * 0.25);
-    }
-    if (layerIndex == 4) {
-        phase = mix(phasefunc_CornetteShanks(cosTheta, CLOUDS_ST_ASYM), phasefunc_CornetteShanks(cosTheta, CLOUDS_CI_ASYM), 0.8);
-    }
-    if (layerIndex == 5) {
-        phase = phasefunc_CornetteShanks(cosTheta, CLOUDS_CI_ASYM);
-    }
-    return phase;
+bool clouds_amblut_isCumulus() {
+    return (frameCounter & 1) == 0;
 }
