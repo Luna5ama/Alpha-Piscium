@@ -1,6 +1,6 @@
 #extension GL_KHR_shader_subgroup_basic : enable
 
-#include "Transport.glsl"
+#include "LocalTransport.glsl"
 #include "./ss/Common.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/Morton.glsl"
@@ -70,6 +70,19 @@ void render(ivec2 texelPos) {
         float airDistance = 0.0;
         float emptyDistance = interval.x;
         bool inside = interval.x == 0.0 && clouds_cu_density(origin, (length(origin) - layerRange.x) / (layerRange.y - layerRange.x)) > 0.0;
+        float depthWeight = 0.0;
+        #if SETTING_CLOUDS_MS_LOCAL_SAMPLES > 0
+        uint rng = hash_pcg3d_33(uvec3(texelPos, frameCounter)).x;
+        float residualWeight = 0.0;
+        CTReservoir reservoir0 = CTReservoir(0.0, vec3(0.0));
+        #if SETTING_CLOUDS_MS_LOCAL_SAMPLES >= 2
+        CTReservoir reservoir1 = CTReservoir(0.0, vec3(0.0));
+        #endif
+        #if SETTING_CLOUDS_MS_LOCAL_SAMPLES == 4
+        CTReservoir reservoir2 = CTReservoir(0.0, vec3(0.0));
+        CTReservoir reservoir3 = CTReservoir(0.0, vec3(0.0));
+        #endif
+        #endif
 
         for (int i = 0; i < steps; ++i) {
             float u0 = float(i) / float(steps);
@@ -133,15 +146,49 @@ void render(ivec2 texelPos) {
             vec3 opacity = mix(1.0 - transmittance, tau * (1.0 - 0.5 * tau + tau * tau / 6.0), lessThan(tau, vec3(0.001)));
             // Opacity weights the clear-air radiance up to each actual cloud sample.
             vec3 radiance = albedo * source * air.transmittance + air.inScattering;
-            result.inScattering += result.transmittance * opacity * radiance;
+            vec3 cameraOpacity = result.transmittance * opacity;
             result.transmittance *= transmittance;
-            if (mmax3(result.transmittance) < 0.005) {
+            bool opaque = mmax3(result.transmittance) < 0.005;
+            if (opaque) {
                 // Complete the opaque tail with the local source instead of leaking an arbitrary fraction of the sky.
-                result.inScattering += result.transmittance * radiance;
+                cameraOpacity += result.transmittance;
                 result.transmittance = vec3(0.0);
-                break;
             }
+            result.inScattering += cameraOpacity * radiance;
+            float depthContribution = dot(cameraOpacity, vec3(1.0 / 3.0));
+            result.distance += depthContribution * distance;
+            depthWeight += depthContribution;
+            #if SETTING_CLOUDS_MS_LOCAL_SAMPLES > 0
+            // These are exactly the spectral weights of the cached MS above,
+            // including foreground air and the completed opaque tail.
+            vec3 weight = cameraOpacity * albedo * air.transmittance;
+            float proposal = mmax3(abs(weight));
+            residualWeight += proposal;
+            ct_updateReservoir(reservoir0, distance, weight, proposal, residualWeight, rng);
+            #if SETTING_CLOUDS_MS_LOCAL_SAMPLES >= 2
+            ct_updateReservoir(reservoir1, distance, weight, proposal, residualWeight, rng);
+            #endif
+            #if SETTING_CLOUDS_MS_LOCAL_SAMPLES == 4
+            ct_updateReservoir(reservoir2, distance, weight, proposal, residualWeight, rng);
+            ct_updateReservoir(reservoir3, distance, weight, proposal, residualWeight, rng);
+            #endif
+            #endif
+            if (opaque) break;
         }
+        if (depthWeight > 0.0) result.distance /= depthWeight;
+        #if SETTING_CLOUDS_MS_LOCAL_SAMPLES > 0
+        if (residualWeight > 0.0) {
+            vec3 residual = ct_localResidual(reservoir0, origin, direction, transportAngles, angularWeights, layerRange, rng);
+            #if SETTING_CLOUDS_MS_LOCAL_SAMPLES >= 2
+            residual += ct_localResidual(reservoir1, origin, direction, transportAngles, angularWeights, layerRange, rng);
+            #endif
+            #if SETTING_CLOUDS_MS_LOCAL_SAMPLES == 4
+            residual += ct_localResidual(reservoir2, origin, direction, transportAngles, angularWeights, layerRange, rng);
+            residual += ct_localResidual(reservoir3, origin, direction, transportAngles, angularWeights, layerRange, rng);
+            #endif
+            result.inScattering += residual * (residualWeight / float(SETTING_CLOUDS_MS_LOCAL_SAMPLES));
+        }
+        #endif
     }
 
     uvec4 packedOutput;

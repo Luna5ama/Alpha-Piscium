@@ -5,28 +5,19 @@
 
 /*const*/
 #define CT_N SETTING_CLOUDS_MS_RESOLUTION
-#if CT_N == 96
-#define CT_CELLS 884736
-#define CT_TREE 1011096
-#define CT_GROUPS 13824
-#define CT_COARSE_LEVEL 4
-#define CT_COARSE_N 6
-#define CT_COARSE_LANES 256
-#elif CT_N == 64
+#if CT_N == 64
 #define CT_CELLS 262144
 #define CT_TREE 299584
 #define CT_GROUPS 4096
 #define CT_COARSE_LEVEL 4
-#define CT_COARSE_N 4
-#define CT_COARSE_LANES 64
 #else
 #define CT_CELLS 32768
 #define CT_TREE 37440
 #define CT_GROUPS 512
 #define CT_COARSE_LEVEL 3
+#endif
 #define CT_COARSE_N 4
 #define CT_COARSE_LANES 64
-#endif
 #define CT_ANGLES 24
 /*const*/
 
@@ -355,19 +346,26 @@ void ct_angularWeights(vec3 omega, out ivec4 angles, out vec4 weights) {
     }
 }
 
-vec3 ct_sample(vec3 pos, ivec4 angles, vec4 angularWeights) {
+bool ct_interpolation(vec3 pos, out ivec3 base, out vec3 f) {
     pos -= ct_worldCenter();
     vec2 horizontal = ct_horizontalGrid(pos.xz);
     float y0 = ctEdges(0).y;
     float y1 = ctEdges(CT_N).y;
     vec3 grid = vec3(horizontal.x, (pos.y - y0) / (y1 - y0), horizontal.y) * CT_N;
     // Interpolate between physical centers, not the inverse edge mapping.
-    if (any(lessThan(grid, vec3(0.0))) || any(greaterThan(grid, vec3(CT_N)))) return vec3(0.0);
+    if (any(lessThan(grid, vec3(0.0))) || any(greaterThan(grid, vec3(CT_N)))) return false;
     ivec3 cell = clamp(ivec3(floor(grid)), ivec3(0), ivec3(CT_N - 1));
-    ivec3 base = clamp(cell - ivec3(lessThan(pos, ct_center(cell, 0))), ivec3(0), ivec3(CT_N - 2));
+    base = clamp(cell - ivec3(lessThan(pos, ct_center(cell, 0))), ivec3(0), ivec3(CT_N - 2));
     vec3 lower = ct_center(base, 0);
     vec3 upper = ct_center(base + 1, 0);
-    vec3 f = clamp((pos - lower) / (upper - lower), vec3(0.0), vec3(1.0));
+    f = clamp((pos - lower) / (upper - lower), vec3(0.0), vec3(1.0));
+    return true;
+}
+
+vec3 ct_sample(vec3 pos, ivec4 angles, vec4 angularWeights) {
+    ivec3 base;
+    vec3 f;
+    if (!ct_interpolation(pos, base, f)) return vec3(0.0);
     vec3 result = vec3(0.0);
     for (int corner = 0; corner < 8; ++corner) {
         ivec3 offset = ivec3(corner) >> ivec3(0, 1, 2) & 1;
@@ -378,6 +376,21 @@ vec3 ct_sample(vec3 pos, ivec4 angles, vec4 angularWeights) {
         result += value * w.x * w.y * w.z;
     }
     return colors2_constants_toWorkSpace(result);
+}
+
+// AP0 S or P S in one discrete direction, using the same spatial predictor.
+vec3 ct_sampleDirection(vec3 pos, int angle, int fieldOffset) {
+    ivec3 base;
+    vec3 f;
+    if (!ct_interpolation(pos, base, f)) return vec3(0.0);
+    vec3 result = vec3(0.0);
+    for (int corner = 0; corner < 8; ++corner) {
+        ivec3 offset = ivec3(corner) >> ivec3(0, 1, 2) & 1;
+        vec3 w = mix(1.0 - f, f, vec3(offset));
+        int i = angle * CT_CELLS + ct_index(base + offset, CT_N);
+        result += ctData[fieldOffset + i].rgb * w.x * w.y * w.z;
+    }
+    return result;
 }
 
 #endif

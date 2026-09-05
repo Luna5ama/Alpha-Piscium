@@ -2024,14 +2024,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     empty()
-                    toggle("SETTING_CLOUDS_MS_RESOLUTION", 96, listOf(32, 64, 96)) {
+                    toggle("SETTING_CLOUDS_MS_RESOLUTION", 32, listOf(32, 64)) {
                         lang {
                             name = "Scattering Volume Resolution"
-                            comment = "Resolution of the shared directional cloud-lighting volume. Higher values resolve smaller light paths and use more GPU time and memory."
+                            comment = "Resolution of the far-field cloud-lighting cache. Local transport reconstructs finer lighting at visible samples. Higher values increase GPU time and memory."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "散射光照体积精度"
-                            comment = "共享方向光照体积的分辨率。更高数值能分辨更细的光路，但增加 GPU 时间和显存占用。"
+                            comment = "远场云光照缓存的分辨率。局部输运在可见采样点重建更细的光照。更高数值增加 GPU 时间和显存占用。"
                         }
                     }
                     toggle("SETTING_CLOUDS_MS_ITERATIONS", 4, listOf(1, 2, 4)) {
@@ -2042,6 +2042,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "散射求解迭代数"
                             comment = "每帧云光照更新次数。更高数值能减小剩余光照误差，但增加 GPU 时间。"
+                        }
+                    }
+                    toggle("SETTING_CLOUDS_MS_LOCAL_SAMPLES", 2, listOf(0, 1, 2, 4)) {
+                        lang {
+                            name = "Local Scattering Samples"
+                            comment = "Local lighting corrections per camera ray. More samples reduce noise and cost more GPU time. Zero shows the far-field cache alone."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "局部散射采样数"
+                            comment = "每条相机射线的局部光照修正数。更多采样能减少噪声，但增加 GPU 时间。零仅显示远场缓存。"
+                        }
+                    }
+                    toggle("SETTING_CLOUDS_MS_LOCAL_STEPS", 8, listOf(4, 8, 16)) {
+                        lang {
+                            name = "Local Scattering Steps"
+                            comment = "Density and lighting samples along each local light path. More steps resolve smaller occluders and illuminated gaps."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "局部散射步数"
+                            comment = "每条局部光路的密度与光照采样数。更多步数能分辨更小的遮挡团块和受光空隙。"
                         }
                     }
                     slider("SETTING_CLOUDS_LOW_STEP_MIN", 128, 16..128 step 8) {

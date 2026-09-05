@@ -13,27 +13,19 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 #elif CT_LEVEL == 0
 const ivec3 workGroups = ivec3(CT_GROUPS, 1, 1);
 #elif CT_LEVEL == 1
-#if CT_N == 96
-const ivec3 workGroups = ivec3(1728, 1, 1);
-#elif CT_N == 64
+#if CT_N == 64
 const ivec3 workGroups = ivec3(512, 1, 1);
 #else
 const ivec3 workGroups = ivec3(64, 1, 1);
 #endif
 #elif CT_LEVEL == 2
-#if CT_N == 96
-const ivec3 workGroups = ivec3(216, 1, 1);
-#elif CT_N == 64
+#if CT_N == 64
 const ivec3 workGroups = ivec3(64, 1, 1);
 #else
 const ivec3 workGroups = ivec3(8, 1, 1);
 #endif
-#elif CT_LEVEL == 3 && CT_N == 96
-const ivec3 workGroups = ivec3(27, 1, 1);
 #elif CT_LEVEL == 3 && CT_N == 64
 const ivec3 workGroups = ivec3(8, 1, 1);
-#elif CT_LEVEL == 4 && CT_N == 96
-const ivec3 workGroups = ivec3(4, 1, 1);
 #else
 const ivec3 workGroups = ivec3(1, 1, 1);
 #endif
@@ -200,24 +192,21 @@ void main() {
     int base = ct_levelOffset(level);
     int i = base + lane;
     ivec3 p = ct_position(lane, CT_COARSE_N);
-    bool valid = lane < CT_COARSE_N * CT_COARSE_N * CT_COARSE_N;
-    bool occupied = valid && ctCoefficient(i, 0).a > 0.0;
+    bool occupied = ctCoefficient(i, 0).a > 0.0;
     vec3 xs = vec3(0.0), xf = vec3(0.0);
-    vec3 rs = valid ? ctRhs(2 * i).rgb : vec3(0.0);
-    vec3 rf = valid ? ctRhs(2 * i + 1).rgb : vec3(0.0);
+    vec3 rs = ctRhs(2 * i).rgb;
+    vec3 rf = ctRhs(2 * i + 1).rgb;
     vec3 ds = vec3(1.0), df = vec3(1.0), exchange = vec3(0.0);
     if (occupied) ct_diagonal(p, level, ds, df, exchange);
     // Each lane owns its solution/residual. Only search directions and one
-    // copy of each shared face need shared memory, including the 6^3 solve.
-    if (valid) {
-        for (int axis = 0; axis < 3; ++axis) {
-            vec3 gs = vec3(0.0), gf = vec3(0.0);
-            ivec3 offset = ivec3(equal(ivec3(axis), ivec3(0, 1, 2)));
-            ivec3 q = p + offset;
-            if (occupied && ct_inside(q, CT_COARSE_N) && ctCoefficient(base + ct_index(q, CT_COARSE_N), 0).a > 0.0) ct_face(p, level, offset, gs, gf);
-            cgFaceS[lane * 3 + axis] = gs;
-            cgFaceF[lane * 3 + axis] = gf;
-        }
+    // copy of each shared face need shared memory.
+    for (int axis = 0; axis < 3; ++axis) {
+        vec3 gs = vec3(0.0), gf = vec3(0.0);
+        ivec3 offset = ivec3(equal(ivec3(axis), ivec3(0, 1, 2)));
+        ivec3 q = p + offset;
+        if (occupied && ct_inside(q, CT_COARSE_N) && ctCoefficient(base + ct_index(q, CT_COARSE_N), 0).a > 0.0) ct_face(p, level, offset, gs, gf);
+        cgFaceS[lane * 3 + axis] = gs;
+        cgFaceF[lane * 3 + axis] = gf;
     }
     vec3 zs, zf;
     ct_blockSolve(rs, rf, ds, df, exchange, zs, zf);
@@ -253,10 +242,8 @@ void main() {
         rz = rzNew;
         residualNorm = ct_sum(rs * rs + rf * rf);
     }
-    if (valid) {
-        ctError(2 * i) = vec4(xs, 0.0);
-        ctError(2 * i + 1) = vec4(xf, 0.0);
-    }
+    ctError(2 * i) = vec4(xs, 0.0);
+    ctError(2 * i + 1) = vec4(xf, 0.0);
     if (lane == 0) ctStats(16 + CT_ITERATION) = vec4(sqrt(ct_quotient(residualNorm, rhsNorm)), float(iteration));
 }
 

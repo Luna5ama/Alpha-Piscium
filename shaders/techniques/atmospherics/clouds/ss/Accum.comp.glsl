@@ -1,6 +1,7 @@
 #extension GL_KHR_shader_subgroup_ballot : enable
 
 #include "Common.glsl"
+#include "../Cumulus.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Sampling.glsl"
 #include "/techniques/HiZCheck.glsl"
@@ -81,19 +82,34 @@ void main() {
             vec2 uv = texelCenter * uval_mainImageSizeRcp;
             ivec2 texelPosDownScale = DOWNSCALE_DIVIDE(texelPos);
 
+            CloudSSHistoryData currentCenter;
+            clouds_ss_historyData_unpack(transient_lowCloudRender_fetch(texelPosDownScale), currentCenter);
             vec3 currView = coords_toViewCoord(uv, -65536.0, global_camProjInverse);
+            if (currentCenter.distance > 0.0) currView = normalize(currView) * (currentCenter.distance * float(SETTING_ATM_D_SCALE));
             vec4 currScene = gbufferModelViewInverse * vec4(currView, 1.0);
             vec4 curr2PrevScene = coord_sceneCurrToPrev(currScene);
+            if (currentCenter.distance > 0.0) {
+                vec3 windDelta = clouds_cu_wind(frameTimeCounter) - clouds_cu_wind(frameTimeCounter - frameTime);
+                curr2PrevScene.xz += windDelta.xz * float(SETTING_ATM_D_SCALE);
+                curr2PrevScene.y += uval_cameraDelta.y * (float(SETTING_ATM_D_SCALE) / float(SETTING_ATM_ALT_SCALE) - 1.0);
+            }
             vec4 curr2PrevView = gbufferPrevModelView * curr2PrevScene;
             vec4 curr2PrevClip = global_prevCamProj * curr2PrevView;
             uint clipFlag = uint(curr2PrevClip.z > 0.0);
             clipFlag &= uint(all(lessThan(abs(curr2PrevClip.xy), curr2PrevClip.ww)));
+            clipFlag &= uint(frameTimeCounter >= frameTime);
 
             Vec4PackedData prevAvgData = vec4PackedData_init();
+            float depthConfidence = 0.0;
             if (bool(clipFlag)) {
                 vec2 curr2PrevNDC = curr2PrevClip.xy / curr2PrevClip.w;
                 vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
                 vec2 curr2PrevTexel = curr2PrevScreen * uval_mainImageSize;
+                CloudSSHistoryData previousCenter;
+                clouds_ss_historyData_unpack(history_lowCloud_fetch(ivec2(curr2PrevTexel)), previousCenter);
+                float expectedDistance = currentCenter.distance > 0.0 ? length(curr2PrevScene.xyz) / float(SETTING_ATM_D_SCALE) : 0.0;
+                float depthError = (previousCenter.distance - expectedDistance) / max(0.03, expectedDistance * 0.03);
+                depthConfidence = exp2(-depthError * depthError);
 
                 vec2 centerPixel = curr2PrevTexel - 0.5;
                 vec2 centerPixelOrigin = floor(centerPixel);
@@ -121,7 +137,7 @@ void main() {
             }
 
             float prevWeight = prevAvgData.transmittanceHLen.w;
-            prevWeight *= global_historyResetFactor;
+            prevWeight *= global_historyResetFactor * depthConfidence;
             prevWeight = min(prevWeight, 64.0);
 
             Vec4PackedData currAvgData = vec4PackedData_init();
@@ -203,12 +219,12 @@ void main() {
                 const float clippingEps = FLT_MIN;
                 vec3 inSctrStddev = sqrt(max(inSctrMoment2 - inSctrMoment1 * inSctrMoment1, clippingEps));
                 vec3 inSctrDelta = prevInSctrYCoCg - inSctrMoment1;
-                inSctrDelta /= max(1.0, length(inSctrDelta / inSctrStddev / global_historyResetFactor));
+                inSctrDelta *= min(1.0, global_historyResetFactor / max(length(inSctrDelta / inSctrStddev), FLT_MIN));
                 prevInSctrYCoCg = mix(prevInSctrYCoCg, inSctrMoment1 + inSctrDelta, clippingWeight);
 
                 vec3 transmittanceStddev = sqrt(max(transmittanceMoment2 - transmittanceMoment1 * transmittanceMoment1, clippingEps));
                 vec3 transmittanceDelta = prevTransmittanceYCoCg - transmittanceMoment1;
-                transmittanceDelta /= max(1.0, length(transmittanceDelta / transmittanceStddev / global_historyResetFactor));
+                transmittanceDelta *= min(1.0, global_historyResetFactor / max(length(transmittanceDelta / transmittanceStddev), FLT_MIN));
                 prevTransmittanceYCoCg = mix(prevTransmittanceYCoCg, transmittanceMoment1 + transmittanceDelta, clippingWeight);
 
                 prevAvgData.inScattering = colors_YCoCgToRGB(prevInSctrYCoCg);
@@ -226,8 +242,8 @@ void main() {
             newData.transmittanceHLen.xyz = mix(newData.transmittanceHLen.xyz, currAvgData.transmittanceHLen.xyz, alpha);
 
             CloudSSHistoryData newHistoryData = vec4PackedData_toHistoryData(newData);
-            newHistoryData.inScattering = clamp(newHistoryData.inScattering, 0.0, FP16_MAX);
             newHistoryData.transmittance = saturate(newHistoryData.transmittance);
+            newHistoryData.distance = currentCenter.distance;
 
             uvec4 packedOutput = uvec4(0u);
             clouds_ss_historyData_pack(packedOutput, newHistoryData);

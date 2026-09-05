@@ -73,6 +73,7 @@ struct CloudSSHistoryData {
     vec3 inScattering;
     vec3 transmittance;
     float hLen;
+    float distance; // Opacity-weighted cloud depth, in atmosphere kilometres.
 };
 
 CloudSSHistoryData clouds_ss_historyData_init() {
@@ -80,27 +81,32 @@ CloudSSHistoryData clouds_ss_historyData_init() {
     data.inScattering = vec3(0.0);
     data.transmittance = vec3(1.0);
     data.hLen = 0.0;
+    data.distance = 0.0;
     return data;
 }
 
 void clouds_ss_historyData_pack(out uvec4 packedData, CloudSSHistoryData data) {
-    data.inScattering = clamp(data.inScattering, 0.0, FP16_MAX);
+    // A control-variate estimate can be negative; keep its signed correction.
+    data.inScattering = clamp(data.inScattering, -FP16_MAX, FP16_MAX);
     packedData.x = packHalf2x16(data.inScattering.xy);
     packedData.y = packHalf2x16(vec2(data.inScattering.z, data.transmittance.x));
     packedData.z = packHalf2x16(data.transmittance.yz);
-    packedData.w = floatBitsToUint(data.hLen);
+    packedData.w = packHalf2x16(vec2(data.hLen, data.distance));
 }
 
 void clouds_ss_historyData_unpack(uvec4 packedData, out CloudSSHistoryData data) {
     if (packedData == uvec4(0u)) {
         data = clouds_ss_historyData_init();
+        return;
     }
     vec2 temp1 = unpackHalf2x16(packedData.x);
     vec2 temp2 = unpackHalf2x16(packedData.y);
     vec2 temp3 = unpackHalf2x16(packedData.z);
     data.inScattering = vec3(temp1.xy, temp2.x);
     data.transmittance = vec3(temp2.y, temp3.xy);
-    data.hLen = uintBitsToFloat(packedData.w);
+    vec2 historyDepth = unpackHalf2x16(packedData.w);
+    data.hLen = historyDepth.x;
+    data.distance = historyDepth.y;
 }
 
 #endif

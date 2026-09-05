@@ -53,27 +53,19 @@ layout(local_size_x = 64) in;
 #if CT_LEVEL == 0
 const ivec3 workGroups = ivec3(CT_GROUPS, 1, 1);
 #elif CT_LEVEL == 1
-#if CT_N == 96
-const ivec3 workGroups = ivec3(1728, 1, 1);
-#elif CT_N == 64
+#if CT_N == 64
 const ivec3 workGroups = ivec3(512, 1, 1);
 #else
 const ivec3 workGroups = ivec3(64, 1, 1);
 #endif
 #elif CT_LEVEL == 2
-#if CT_N == 96
-const ivec3 workGroups = ivec3(216, 1, 1);
-#elif CT_N == 64
+#if CT_N == 64
 const ivec3 workGroups = ivec3(64, 1, 1);
 #else
 const ivec3 workGroups = ivec3(8, 1, 1);
 #endif
-#elif CT_LEVEL == 3 && CT_N == 96
-const ivec3 workGroups = ivec3(27, 1, 1);
 #elif CT_LEVEL == 3 && CT_N == 64
 const ivec3 workGroups = ivec3(8, 1, 1);
-#elif CT_LEVEL == 4 && CT_N == 96
-const ivec3 workGroups = ivec3(4, 1, 1);
 #else
 const ivec3 workGroups = ivec3(1, 1, 1);
 #endif

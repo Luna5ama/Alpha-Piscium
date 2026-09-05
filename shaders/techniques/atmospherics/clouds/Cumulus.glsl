@@ -9,6 +9,17 @@ const float CU_BILLOW_FREQUENCY = 0.65 * exp2(SETTING_CLOUDS_LOW_BILLOWY_FREQ);
 const float CU_DETAIL_FREQUENCY = 2.1 * exp2(SETTING_CLOUDS_HIGH_BILLOWY_FREQ);
 const float CU_DENSITY_SCALE = 240.0 * SETTING_CLOUDS_CU_DENSITY;
 
+vec3 clouds_cu_wind(float time) {
+    #if defined(SETTING_CLOUDS_CU_WIND) && !defined(SETTING_SCREENSHOT_MODE)
+    float speed = exp2(SETTING_CLOUDS_CU_WIND_SPEED);
+    return (vec3(1.0, 0.1, 0.7) * (time * 0.008)
+        + vec3(-0.15, 0.05, 0.09) * (sin(time * 0.6 + 0.5) * 0.006)
+        + vec3(0.23, -0.06, 0.12) * (sin(time * 0.4 + 0.2) * 0.009)) * speed;
+    #else
+    return vec3(0.0);
+    #endif
+}
+
 float clouds_cu_lobe(vec2 offset, float height, float centerHeight, float radius, float verticalRadius) {
     return (1.0 - length(vec3(offset / radius, (height - centerHeight) / verticalRadius))) * radius;
 }
@@ -28,9 +39,7 @@ float clouds_cu_density(vec3 rayPos, float heightFraction) {
     if (heightFraction <= 0.0 || heightFraction >= 1.0 || SETTING_CLOUDS_CU_COVERAGE <= 0.0) return 0.0;
 
     vec3 pos = vec3(rayPos.x, heightFraction * SETTING_CLOUDS_CU_THICKNESS, rayPos.z);
-    #if defined(SETTING_CLOUDS_CU_WIND) && !defined(SETTING_SCREENSHOT_MODE)
-    pos += uval_cuDetailWind;
-    #endif
+    pos += clouds_cu_wind(frameTimeCounter);
 
     vec2 cellPos = pos.xz * CU_CELL_FREQUENCY;
     ivec2 cell = ivec2(floor(cellPos));
