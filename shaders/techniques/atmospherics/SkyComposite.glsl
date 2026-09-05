@@ -96,22 +96,11 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos, vec3 viewPos) {
             {
                 float cuMinHeight = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT;
                 float cuMaxHeight = cuMinHeight + SETTING_CLOUDS_CU_THICKNESS;
-                float cuMidHeight = cuMinHeight + SETTING_CLOUDS_CU_THICKNESS * 0.5;
-                float cuHeightDiff = cuMidHeight - mainRayParams.rayStartHeight;
-
-                float cuRayLenBot = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMinHeight);
-                float cuRayLenTop = raySphereIntersectNearest(mainRayParams.rayStart, mainRayParams.rayDir, earthCenter, cuMaxHeight);
-
-                bool inLayer = abs(cuHeightDiff) < SETTING_CLOUDS_CU_THICKNESS * 0.5;
-                float cuOrigin2RayStart = inLayer ? 0.0 : (cuHeightDiff < 0.0 ? cuRayLenTop : cuRayLenBot);
-
-                uint cuFlag = uint(sign(cuHeightDiff) == sign(mainRayParams.rayDir.y)) | uint(inLayer);
-                cuFlag &= uint(cuOrigin2RayStart >= 0.0);
-
-                if (bool(cuFlag)) {
+                vec2 cuInterval;
+                if (clouds_layerInterval(mainRayParams.rayStart, mainRayParams.rayDir, vec2(cuMinHeight, cuMaxHeight), cuInterval)) {
                     CloudSSHistoryData historyData = clouds_ss_historyData_init();
                     clouds_ss_historyData_unpack(packedData, historyData);
-                    bool above = inLayer || cuHeightDiff < 0.0;
+                    bool above = mainRayParams.rayStartHeight >= cuMinHeight;
                     ScatteringResult layerResult = ScatteringResult(
                         historyData.transmittance,
                         historyData.inScattering
@@ -157,14 +146,13 @@ ScatteringResult atmospherics_skyComposite(ivec2 texelPos, vec3 viewPos) {
                     float sampleDensity = clouds_ci_density(stepState.position.xyz);
                     CloudRaymarchAccumState ciAccum = clouds_raymarchAccumState_init();
                     if (sampleDensity > DENSITY_EPSILON) {
-                        clouds_computeLighting(
+                        clouds_ci_computeLighting(
                             atmosphere,
                             renderParams,
                             layerParam,
                             stepState,
                             sampleDensity,
                             sampleDensity * 0.5,
-                            vec3(0.0),
                             vec3(0.0),
                             ciAccum
                         );

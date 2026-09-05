@@ -1912,22 +1912,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                     slider("SETTING_CLOUDS_MS_RADIUS", -1.5, -2.0..2.0 step 0.1) {
                         lang {
-                            name = "Multi-Scattering Radius"
+                            name = "Cirrus Multi-Scattering Radius"
                             prefix = "2^"
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "多重散射半径"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_CU_ISOTROPIC_MS_INTENSITY", 1.0, 0.0..2.0 step 0.05) {
-                        lang {
-                            name = "Isotropic Multiple-Scattering Intensity"
-                            comment =
-                                "Controls isotropic multiple scattering intensity for cumulus clouds. 0 disables it; the default 1.0 is the current artistic gain. 0.25 approximately matches the omitted 3/(4π) normalization reference."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "各向同性多重散射强度"
-                            comment = "控制积云各向同性多重散射的强度。设为 0 可禁用；默认值 1.0 是当前使用的艺术性增益。0.25 近似于省略的 3/(4π) 归一化参考值。"
+                            name = "卷云多重散射半径"
                         }
                     }
                     slider("SETTING_CLOUDS_AMB_BACKSCATTER_FACTOR", 0.5, 0.0..1.0 step 0.05) {
@@ -1949,11 +1938,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                 toggle("SETTING_CLOUDS_CU", true) {
                     lang {
                         name = "Enable Low Clouds"
-                        comment = "Toggles puffy, volumetric clouds at lower altitudes."
+                        comment = "Toggles towering cumulus congestus clouds."
                     }
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "启用低云"
-                        comment = "开关低空的蓬松体积云。"
+                        comment = "开关具有高耸云塔的浓积云。"
                     }
                 }
                 screen(1) {
@@ -2090,7 +2079,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "积云开始形成的高度。"
                         }
                     }
-                    slider("SETTING_CLOUDS_CU_THICKNESS", 2.0, 0.0..4.0 step 0.1) {
+                    slider("SETTING_CLOUDS_CU_THICKNESS", 3.5, 0.0..4.0 step 0.1) {
                         lang {
                             name = "Cloud Layer Thickness"
                             suffix = " km"
@@ -2150,11 +2139,11 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         lang {
                             name = "Wind Speed"
                             comment =
-                                "Speed of cloud movement. Negative values move clouds in the opposite direction."
+                                "Speed of cloud movement. Negative values slow the movement down."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "风速"
-                            comment = "云移动的速度。负值使云向相反方向移动。"
+                            comment = "云移动的速度。负值使云运动减慢。"
                         }
                     }
                 }
@@ -2165,40 +2154,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "建模高级设置"
                     }
-                    slider("SETTING_CLOUDS_LOW_CONE_FACTOR", 0.5, 0.0..1.0 step 0.05) {
-                        lang {
-                            name = "Cone Factor"
-                            comment =
-                                "Controls the how pointed the cloud structures are. Higher values create sharper clouds."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "锥体因子"
-                            comment = "控制云顶尖锐程度。数值越高，云越尖锐。"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_TOP_CURVE_FACTOR", 48, powerOfTwoAndHalfRange(4..10)) {
-                        lang {
-                            name = "Top Curve Factor"
-                            comment =
-                                "Controls the shape curve of cloud tops. Higher values creates more angular top."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "云顶曲线因子"
-                            comment = "控制云顶的形状曲线。数值越高，云顶越有棱角。"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_BOTTOM_CURVE_FACTOR", 128, powerOfTwoAndHalfRange(4..10)) {
-                        lang {
-                            name = "Bottom Curve Factor"
-                            comment =
-                                "Controls the shape curve of cloud bottoms. Higher values creates more angular bottoms."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "云底曲线因子"
-                            comment = "控制云底的形状曲线。数值越高，云底越有棱角。"
-                        }
-                    }
-                    empty()
                     slider("SETTING_CLOUDS_LOW_BASE_FREQ", 0.0, -4.0..4.0 step 0.1) {
                         lang {
                             name = "Base Noise Frequency"
@@ -2207,17 +2162,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "基础噪声频率"
                             comment = "控制云的基础大小比例。数值越高，云越小。"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_CURL_FREQ", 0.0, -4.0..4.0 step 0.1) {
-                        lang {
-                            name = "Curl Noise Frequency"
-                            comment =
-                                "Controls the scale of turbulent curl patterns in clouds. Higher values create finer curls."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "卷曲噪声频率"
-                            comment = "控制云中湍流卷曲图案的比例。数值越高，卷曲越细。"
                         }
                     }
                     slider("SETTING_CLOUDS_LOW_BILLOWY_FREQ", 0.0, -4.0..4.0 step 0.1) {
@@ -2231,17 +2175,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "控制云中蓬松结构的比例。数值越高，蓬松结构越小。"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_BILLOWY_CURL_STR", 0.0, -4.0..4.0 step 0.1) {
-                        lang {
-                            name = "Base Billowy Curl Strength"
-                            comment =
-                                "Modulates billowy formations with curl noise. Higher values create more turbulent billows."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "基础蓬松卷曲强度"
-                            comment = "用卷曲噪声调制蓬松结构。数值越高，蓬松结构越多湍流。"
-                        }
-                    }
                     slider("SETTING_CLOUDS_HIGH_BILLOWY_FREQ", 0.0, -4.0..4.0 step 0.1) {
                         lang {
                             name = "Detail Billowy Noise Frequency"
@@ -2251,39 +2184,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "细节蓬松噪声频率"
                             comment = "控制云中蓬松结构的比例。数值越高，蓬松结构越小。"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_HIGH_BILLOWY_CURL_STR", 0.0, -4.0..4.0 step 0.1) {
-                        lang {
-                            name = "Detail Billowy Curl Strength"
-                            comment =
-                                "Modulates billowy formations with curl noise. Higher values create more turbulent billows."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "细节蓬松卷曲强度"
-                            comment = "用卷曲噪声调制蓬松结构。数值越高，蓬松结构越多湍流。"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_WISPS_FREQ", 0.0, -4.0..4.0 step 0.1) {
-                        lang {
-                            name = "Wisps Noise Frequency"
-                            comment =
-                                "Controls the scale of wispy details in clouds. Higher values create more and finer wisps."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "丝缕噪声频率"
-                            comment = "控制云中丝缕细节的比例。数值越高，丝缕越细越密集。"
-                        }
-                    }
-                    slider("SETTING_CLOUDS_LOW_WISPS_CURL_STR", 0.0, -4.0..4.0 step 0.1) {
-                        lang {
-                            name = "Wisps Curl Strength"
-                            comment =
-                                "Modulates wispy details with curl noise. Higher values create more dynamic wisps."
-                        }
-                        lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "丝缕卷曲强度"
-                            comment = "用卷曲噪声调制丝缕细节。数值越高，丝缕越动态。"
                         }
                     }
                 }

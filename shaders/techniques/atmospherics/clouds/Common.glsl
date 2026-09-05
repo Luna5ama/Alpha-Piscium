@@ -20,8 +20,6 @@
             https://qiutang98.github.io/post/%E5%AE%9E%E6%97%B6%E6%B8%B2%E6%9F%93%E5%BC%80%E5%8F%91/%E5%AE%9E%E6%97%B6%E4%BD%93%E7%A7%AF%E4%BA%91%E6%B8%B2%E6%9F%93/
         [WDT22] Wo De Tian (oh my god). "一个简单的体积云多重散射近似方法" (A Simple Multiple Scattering Approximation for Volumetric Clouds). 2022.
             https://zhuanlan.zhihu.com/p/457997155
-        [ASH25] AshenOneArt. "HanPi Volume Cloud" isotropic multiple-scattering derivation.
-            https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/Docs/PhiFwd_FromRTE.md
 
         You can find full license texts in /licenses
 */
@@ -30,6 +28,28 @@
 #include "/techniques/atmospherics/air/Constants.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/util/Colors.glsl"
+
+bool clouds_layerInterval(vec3 origin, vec3 direction, vec2 radii, out vec2 interval) {
+    interval = vec2(0.0);
+    if (radii.y <= radii.x) return false;
+    float height = length(origin);
+    float projection = dot(origin, direction);
+    vec2 c = (height - radii) * (height + radii);
+    vec2 discriminant = projection * projection - c;
+    if (discriminant.y < 0.0) return false;
+
+    float topRoot = sqrt(discriminant.y);
+    interval = vec2(max(-projection - topRoot, 0.0), -projection + topRoot);
+    if (discriminant.x >= 0.0) {
+        float bottomRoot = sqrt(discriminant.x);
+        if (height < radii.x) {
+            interval.x = max(interval.x, -projection + bottomRoot);
+        } else if (-projection - bottomRoot >= 0.0) {
+            interval.y = min(interval.y, -projection - bottomRoot);
+        }
+    }
+    return interval.y > interval.x;
+}
 
 struct CloudMainRayParams {
     vec3 rayStart;
@@ -111,13 +131,7 @@ CloudRaymarchStepState clouds_raymarchStepState_init(CloudRaymarchLayerParam lay
     return state;
 }
 
-void clouds_raymarchStepState_update(inout CloudRaymarchStepState state, float stepCount) {
-    state.position = state.origin + state.rayStep * stepCount;
-    state.height = length(state.position.xyz);
-    state.upVector = state.position.xyz / state.height;
-}
-
-void clouds_computeLighting(
+void clouds_ci_computeLighting(
     AtmosphereParameters atmosphere,
     CloudRenderParams renderParams,
     CloudRaymarchLayerParam layerParam,
@@ -125,7 +139,6 @@ void clouds_computeLighting(
     float sampleDensity,
     float sampleDensityLod,
     vec3 lightOpticalDepth,
-    vec3 sampleIsotropicMSIrradiance,
     inout CloudRaymarchAccumState accumState
 ) {
     float cosLightZenith = dot(stepState.upVector, renderParams.lightDir);
@@ -154,8 +167,6 @@ void clouds_computeLighting(
     vec3 sampleIrradiance = sampleLightIrradiance;
     sampleIrradiance *= layerParam.medium.phase;
     sampleIrradiance += sampleAmbientIrradiance;
-    vec3 msPhase = mix(vec3(UNIFORM_PHASE), layerParam.medium.phase, 0.7);
-    sampleIrradiance += renderParams.lightIrradiance * tLightToSample * sampleIsotropicMSIrradiance * msPhase;
 
     vec3 fMS = (sampleScattering / sampleExtinction) * (1.0 - exp(-D * sampleExtinction));
     fMS = mix(fMS, fMS * 0.95, linearStep(0.9, 1.0, fMS));

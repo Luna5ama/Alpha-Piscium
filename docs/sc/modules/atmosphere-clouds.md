@@ -45,72 +45,35 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 
 | 顺序 | Pass                                                                                             | 作用                                                                                                               |
 |----|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
-| 1  | [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) | 使用环境 LUT、大气 LUT、阴影/光照和项目 cloud noise ray march cumulus                                                           |
+| 1  | [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) | 步进对流云塔，积分太阳光和环境光遮挡，并计算有限阶多重散射近似                                                           |
 | 2  | [`clouds/ss/Accum`](../../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl)          | 对低分辨率结果执行历史累积、置信度/方差处理和上采样；该阶段为 [`ss/Accum`](../../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl) |
 | 3  | 后续空气/局部合成                                                                                        | 读取累积后的云散射和透射率                                                                                                    |
 
 主要 screen tile 为 `transient_lowCloudRender`、`transient_lowCloudAccumulated` 和 `history_lowCloud`
-（RGBA32UI）。手写属性片段声明了自定义 cloud phase LUT、cirrus、cumulus base/detail 和 curl 纹理。高层 cirrus 由共享 sky/cloud
+（RGBA32UI）。手写属性片段声明了自定义 cloud phase LUT、cirrus、cumulus detail 和 curl 纹理。高层 cirrus 由共享 sky/cloud
 路径采样，不使用独立 compute program。
 
-### 积云各向同性多重散射
+### 浓积云
 
-积云渲染器复用现有太阳光柱中按顺序排列的 8 个采样。对每个在二次距离 bin 内按距离均匀抖动的源采样位置，令 `U_i` 为从光柱起点到该位置的前缀光学深度，
-`sigma_s` 为散射系数，`sigma_tr` 为输运系数，`ds` 为采样长度，`r` 为源半径。该扩散近似在实现中采用
-`sigma_tr ≈ sigma_t`。再令无量纲吸收分数（反照率亏量）`a = 0.001` 乘以光学深度，`g` 为各颜色通道的不对称因子，且
-`k = sqrt(3a)`，直接使用上游前缀的估计为
+[`Cumulus.glsl`](../../../shaders/techniques/atmospherics/clouds/Cumulus.glsl) 用三个重叠云团构造每个对流单元，
+所有单元共享凝结高度，云塔高度和倾斜方向分别变化。经过 curl 扭曲的三维蓬松噪声塑造轮廓，两级更细的侵蚀作用于表面，
+保留连贯的内部体积。侵蚀在凝结云底上方逐渐增强，液态水密度也在狭窄的云底过渡区上方逐渐增加。
+默认云底高度为 1 千米，云层厚度为 3.5 千米。
 
-$$
-W_i=\frac{(\sigma_s\,ds)\sigma_{tr}}{r},\qquad
-\Phi=\sum_{i=1}^{8}W_i e^{-aU_i}
-     \left(1-e^{-(1-g)U_i}\right)e^{-kU_i}.
-$$
+[`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) 与
+[`SkyComposite.glsl`](../../../shaders/techniques/atmospherics/SkyComposite.glsl) 共用
+[`clouds/Common.glsl`](../../../shaders/techniques/atmospherics/clouds/Common.glsl) 中的球壳求交。
+主光线以非均匀距离区间覆盖整个可见范围，每个区间内按距离均匀抖动一个采样。积分使用区间实际长度及均匀介质的
+Beer-Lambert 解析积分。地表交点截断光线；云内行进距离上限为 60 千米，距相机的最远距离为 120 千米。
 
-实现会把建立率 `1 - g` 钳制为非负值，避免变换后的颜色空间把散射积累变成放大。
+每个非空采样积分包含 10 个采样的太阳光柱，以及分别包含 4 个和 3 个采样的天空、地面方向光柱。
+三者使用相同密度场和二次距离区间。太阳光从设置指定的积云相函数开始，再叠加四阶散射近似：各阶振幅为
+`0.6^n`，光学深度缩放为 `0.45^n`，Henyey-Greenstein 相函数的方向性逐阶减弱。
+环境光可见性使用两个垂直光柱，输运光学深度缩放为 `0.15`。这些有限阶近似提供内部补光和云团自阴影，
+并非完整的多重散射解。
 
-强度先应用，再经过固定软压缩：
-
-$$
-\Phi_{\mathrm{mapped}}=1-e^{-\max(\mathrm{intensity}\,\Phi,0)}.
-$$
-
-映射后每个通道的贡献均小于 `1`。`SETTING_CLOUDS_CU_ISOTROPIC_MS_INTENSITY` 提供 `intensity`；设为 `0` 时禁用该贡献，
-默认值 `1.0` 是当前使用的艺术性增益，而 `0.25` 近似于省略的 `3/(4π)` 归一化参考值。结果独立叠加在现有 WDT22
-多重散射项上，不会替代或修改该项。
-
-累积的 `phi_fwd` 场是各向同性的，并遵循前缀估计器；但最终视线路径读取有意使用
-`msPhase = mix(UNIFORM_PHASE, layerParam.medium.phase, 0.7)`，以保留受控的方向结构。这个渲染选择叠加在各向同性场之后，
-不属于其输运递推。
-
-接收点局部的边界权重为
-
-$$
-H(x,z)=\mathrm{thickness}\;\mathrm{saturate}(\mathrm{baseCoverage}_{raw}(x,z)),\qquad
-\Delta=\mathrm{clamp}(0.05/\_LOW\_BASE\_FREQ,0.025,0.2),
-$$
-
-$$
-\partial_xH=\frac{H(x+\Delta,z)-H(x-\Delta,z)}{2\Delta},\qquad
-\partial_zH=\frac{H(x,z+\Delta)-H(x,z-\Delta)}{2\Delta},\qquad
-N=\mathrm{normalize}(-\partial_xH,1,-\partial_zH),
-$$
-
-$$
-C_{top}^{raw}=\mathrm{saturate}\!\left(\frac{N\cdot\mathrm{renderParams.lightDir}+0.5}{1.5}\right),\qquad
-C_{top}=\mathrm{mix}(1,C_{top}^{raw},0.25),\qquad
-C_{bottom}=1-\exp\!\left(-\frac{\max(h_{local},0)}{0.1\,\mathrm{mix}(1,4,h_{column})}\right),\qquad
-B_{eff}=C_{top}C_{bottom}.
-$$
-
-其中，`baseCoverage_raw` 是现有的高度塑形前覆盖率，`h_column = saturate(baseCoverage_raw)` 直接复用接收点的密度查找，
-`h_local` 是接收点的归一化高度（积云层底部为 `0`，顶部为 `1`）。这些常量对应 `b = 0`、`p = 1` 和
-`H_bottom = 0.1`，与密度模型已有的归一化 `0.1` 底部尺度一致。`C_top` 使用实际的 `renderParams.lightDir`，而不是光线
-步进中经圆锥抖动的方向。`0.25` 的置信度强度把顶部因子限制在 `[0.75,1]`；直接使用粗覆盖率法线的完整权重会在云体中
-显露竖直条纹。该门控在每个有介质的接收点采样处只计算一次，并在累积、强度缩放和压缩前乘入每个源权重。它额外执行
-四次覆盖率代理求值，不增加中心查找，也不新增 pass、resource、texture resource 或 density march。
-
-该估计参考了 AshenOneArt 的 [HanPi Volume Cloud 实现](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/VolumetricClouds.hlsl)
-与[前向通量推导](https://github.com/AshenOneArt/HPVolumeCloud/blob/27e799914493de9fa527179312ed72a39d08e225/Docs/PhiFwd_FromRTE.md)。
+现有环境 LUT、云历史打包、累积和大气合成继续作为集成接口。风同时平移密度场及其细节，截图模式将其冻结。
+覆盖率、密度或云层厚度为零时输出空云层。卷云保留独立的照明模型和多重散射半径控制。
 
 ## 空气、深度层与合成
 
@@ -134,7 +97,7 @@ setting 启用时绑定 `usam_constellations`。
 | 大气比例与地面 | 高度、密度比例和地面反照率                                                                   |
 | 空气      | epipolar slices/samples；Mie turbidity/time curve；Mie/Rayleigh/ozone multipliers |
 | 天空与光柱   | sky-view 分辨率、sky samples、shaft samples/shadow samples、深度断裂修正和柔和度                |
-| 低云      | 上采样比例；历史长度/置信度/方差；最小/最大步数；高度/厚度/密度/覆盖率/相函数；各向同性多重散射强度；风和形状频率                 |
+| 低云      | 上采样比例；历史长度/置信度/方差；最小/最大步数；高度/厚度/密度/覆盖率/相函数；风和形状频率                 |
 | 高云      | cirrus 高度、密度、覆盖率和相函数                                                            |
 | 天体      | sun/moon 半径、距离、温度/颜色/反照率；star-map 强度/gamma/bright-star boost；以及星座               |
 
