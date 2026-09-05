@@ -2024,7 +2024,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     empty()
-                    toggle("SETTING_CLOUDS_MS_RESOLUTION", 32, listOf(32, 64)) {
+                    toggle("SETTING_CLOUDS_MS_RESOLUTION", 96, listOf(32, 64, 96)) {
                         lang {
                             name = "Scattering Volume Resolution"
                             comment = "Resolution of the shared directional cloud-lighting volume. Higher values resolve smaller light paths and use more GPU time and memory."

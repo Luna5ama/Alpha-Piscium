@@ -192,7 +192,7 @@ programs {
         for (level in 0..4) {
             pass("/pass/begin/CloudTransportPrepare.comp.glsl") {
                 constDefine("CT_LEVEL", level)
-                cond(cloudTransportCondition + if (level == 4) " && SETTING_CLOUDS_MS_RESOLUTION == 64" else "")
+                cond(cloudTransportCondition + if (level == 4) " && SETTING_CLOUDS_MS_RESOLUTION >= 64" else "")
             }
         }
         pass("/pass/begin/CloudTransportSweep.comp.glsl") {
@@ -234,7 +234,7 @@ programs {
                 pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
                     constDefine("CT_RESTRICT")
                     constDefine("CT_LEVEL", level)
-                    cond(iterationCondition + if (level == 4) " && SETTING_CLOUDS_MS_RESOLUTION == 64" else "")
+                    cond(iterationCondition + if (level == 4) " && SETTING_CLOUDS_MS_RESOLUTION >= 64" else "")
                 }
             }
             pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
@@ -244,7 +244,7 @@ programs {
                 cond(iterationCondition)
             }
             for (level in 3 downTo 0) {
-                val levelCondition = iterationCondition + if (level == 3) " && SETTING_CLOUDS_MS_RESOLUTION == 64" else ""
+                val levelCondition = iterationCondition + if (level == 3) " && SETTING_CLOUDS_MS_RESOLUTION >= 64" else ""
                 pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
                     constDefine("CT_PROLONG")
                     constDefine("CT_LEVEL", level)

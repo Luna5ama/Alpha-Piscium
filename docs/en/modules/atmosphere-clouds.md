@@ -109,7 +109,7 @@ field and equal integrated basis weights by cubic symmetry; spatial interpolatio
 | 1, begin | [`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl) | Builds camera-centered, horizontally stretched grid edges, the phase matrix and integrated sun/moon injection; four density samples per cell retain the sampled correlation between density and high-resolution direct transmittance; builds the coefficient hierarchy |
 | 2, begin | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl), [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Sweeps uncollided sky/ground boundary light through the grid, forms its scattering source, and initializes `S` to zero |
 | 3, deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl) | Performs a directional source iteration with exact triangular wavefront solves of the selected upwind operator |
-| 4, deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Computes the true directional residual and restricts its scalar part into two coupled diffusion channels; a multigrid V-cycle uses volume-integrated residuals, a 4³ block-preconditioned CG solve, physical-center prolongation and paired red/black smoothing |
+| 4, deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Computes the true directional residual and restricts its scalar part into two coupled diffusion channels; a multigrid V-cycle uses volume-integrated residuals, a 4³ (32³/64³ grids) or 6³ (96³ grid) block-preconditioned CG solve, physical-center prolongation and paired red/black smoothing |
 | 5, deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl), [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Lifts the scalar correction through directional transport, minimizes the actual residual along it subject to nonnegative radiance, then updates `S`; repeats stages 3–5 for the selected iteration budget |
 | 6, deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Records the final residual and injected/escaped/absorbed power, then preconvolves `P S` for the camera |
 
@@ -133,16 +133,19 @@ remain an approximation.
 | Resource | Layout and lifetime |
 |---|---|
 | [`cloud_transport.bin`](../../../shaders/textures/cloud_transport.bin), `usam_cloudTransport` | Static 1024×26 RGBA32F phase/closure asset, 416 KiB |
-| SSBO binding 6 | FP32 AP0 directional fields, source and correction, coupled coefficients/errors/RHS at every level, reductions and grid edges; 56,240,912 bytes at 32³ or 449,858,832 bytes at 64³; recreated from current density and lighting each frame |
+| SSBO binding 6 | FP32 AP0 directional fields, source and correction, coupled coefficients/errors/RHS at every level, reductions and grid edges; 56,240,912 bytes at 32³, 449,858,832 bytes at 64³ or 1,518,246,672 bytes at 96³; recreated from current density and lighting each frame |
 | `persistent_cloudsAmbLUT` | Existing 32×33 atlas: cirrus remains 32×32; last-row x=0 stores the upper-sky integral divided by 4π, x=1…24 store average incident radiance per angular cell |
 | `ctStats` in SSBO 6 | Four raw/corrected residuals and accepted step sizes, final relative residual, injected and escaped-plus-absorbed power, and coarse CG residual/iteration count; inspect with a buffer dump |
 
 The SSBO uses one unsized `vec4[]` with explicit offsets; large sized SSBO arrays cause excessive NVIDIA compile
 times. Its byte allocation and the buffer-dump reader must change together if this packed layout changes.
 
-The grid spans ±121 km horizontally, with finer cells near the camera, and covers the spherical cloud layer down to
-2.5 km below its nominal base. `SETTING_CLOUDS_MS_RESOLUTION` selects 32³ (default) or 64³;
-`SETTING_CLOUDS_MS_ITERATIONS` selects 1, 2 or 4 (default). The field is solved afresh each frame; temporal cloud
+The grid spans ±121 km horizontally. Each horizontal axis assigns 75% of its cells uniformly to ±12 km;
+a continuously differentiable exponential skirt covers the remaining distance. The inverse sampling map and
+physical-center interpolation use the same allocation. The vertical extent covers the spherical cloud layer down to
+2.5 km below its nominal base. `SETTING_CLOUDS_MS_RESOLUTION` selects 32³, 64³ or 96³ (default);
+the inner horizontal spacing is 1 km, 500 m or 333 m respectively. `SETTING_CLOUDS_MS_ITERATIONS` selects 1, 2 or 4
+(default). The field is solved afresh each frame; temporal cloud
 accumulation is only used after camera integration, so wind/camera/light changes do not reuse a stale transport solve.
 
 This implementation does not establish angular or spatial convergence of rendered clouds. The 24-direction

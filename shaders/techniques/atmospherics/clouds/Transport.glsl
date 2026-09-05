@@ -5,22 +5,35 @@
 
 /*const*/
 #define CT_N SETTING_CLOUDS_MS_RESOLUTION
-#if CT_N == 64
+#if CT_N == 96
+#define CT_CELLS 884736
+#define CT_TREE 1011096
+#define CT_GROUPS 13824
+#define CT_COARSE_LEVEL 4
+#define CT_COARSE_N 6
+#define CT_COARSE_LANES 256
+#elif CT_N == 64
 #define CT_CELLS 262144
 #define CT_TREE 299584
 #define CT_GROUPS 4096
 #define CT_COARSE_LEVEL 4
+#define CT_COARSE_N 4
+#define CT_COARSE_LANES 64
 #else
 #define CT_CELLS 32768
 #define CT_TREE 37440
 #define CT_GROUPS 512
 #define CT_COARSE_LEVEL 3
+#define CT_COARSE_N 4
+#define CT_COARSE_LANES 64
 #endif
 #define CT_ANGLES 24
 /*const*/
 
 const float CT_W = SPHERE_SOLID_ANGLE / float(CT_ANGLES);
-const float CT_STRETCH = 4.79585984; // 2 sinh(stretch) = 121 km from the camera in x/z.
+// 75% of each horizontal axis resolves the inner 24 km. A C1 exponential
+// skirt keeps distant illumination and escape paths out to +/-121 km.
+const float CT_SKIRT = 4.90219448065;
 const vec3 CT_EXTINCTION = vec3(0.18067367051236774, 0.18215559145291857, 0.19358580629452912);
 const vec3 CT_SCATTERING = vec3(0.18067349140471628, 0.18215551958414714, 0.19358579492341665);
 const vec3 CT_ABSORPTION = CT_EXTINCTION - CT_SCATTERING;
@@ -156,6 +169,18 @@ float ct_volume(ivec3 p, int level) {
 
 vec3 ct_worldCenter() {
     return vec3(cameraPosition.x, 0.0, cameraPosition.z) / float(SETTING_ATM_D_SCALE);
+}
+
+float ct_horizontalEdge(float t) {
+    float u = t * 2.0 - 1.0;
+    float outer = max(abs(u) - 0.75, 0.0) * 4.0;
+    return sign(u) * (min(abs(u), 0.75) * 16.0 + 4.0 * (exp(CT_SKIRT * outer) - 1.0) / CT_SKIRT);
+}
+
+vec2 ct_horizontalGrid(vec2 x) {
+    vec2 outer = max(abs(x) - 12.0, vec2(0.0));
+    vec2 u = min(abs(x), vec2(12.0)) / 16.0 + log(1.0 + outer * (CT_SKIRT * 0.25)) * (0.25 / CT_SKIRT);
+    return sign(x) * u * 0.5 + 0.5;
 }
 
 vec3 ct_bandFactor(vec3 a1, float h) {
@@ -332,10 +357,10 @@ void ct_angularWeights(vec3 omega, out ivec4 angles, out vec4 weights) {
 
 vec3 ct_sample(vec3 pos, ivec4 angles, vec4 angularWeights) {
     pos -= ct_worldCenter();
-    vec2 horizontal = asinh(pos.xz * 0.5) / CT_STRETCH;
+    vec2 horizontal = ct_horizontalGrid(pos.xz);
     float y0 = ctEdges(0).y;
     float y1 = ctEdges(CT_N).y;
-    vec3 grid = vec3((horizontal.x * 0.5 + 0.5) * CT_N, (pos.y - y0) / (y1 - y0) * CT_N, (horizontal.y * 0.5 + 0.5) * CT_N);
+    vec3 grid = vec3(horizontal.x, (pos.y - y0) / (y1 - y0), horizontal.y) * CT_N;
     // Interpolate between physical centers, not the inverse edge mapping.
     if (any(lessThan(grid, vec3(0.0))) || any(greaterThan(grid, vec3(CT_N)))) return vec3(0.0);
     ivec3 cell = clamp(ivec3(floor(grid)), ivec3(0), ivec3(CT_N - 1));

@@ -1,25 +1,39 @@
+#extension GL_KHR_shader_subgroup_basic : enable
+#extension GL_KHR_shader_subgroup_arithmetic : enable
 #define CT_STORAGE restrict buffer
 #include "/techniques/atmospherics/clouds/Transport.glsl"
 
+#ifdef CT_COARSE
+layout(local_size_x = CT_COARSE_LANES) in;
+#else
 layout(local_size_x = 64) in;
+#endif
 #if defined(CT_REDUCE) || defined(CT_COARSE)
 const ivec3 workGroups = ivec3(1, 1, 1);
 #elif CT_LEVEL == 0
 const ivec3 workGroups = ivec3(CT_GROUPS, 1, 1);
 #elif CT_LEVEL == 1
-#if CT_N == 64
+#if CT_N == 96
+const ivec3 workGroups = ivec3(1728, 1, 1);
+#elif CT_N == 64
 const ivec3 workGroups = ivec3(512, 1, 1);
 #else
 const ivec3 workGroups = ivec3(64, 1, 1);
 #endif
 #elif CT_LEVEL == 2
-#if CT_N == 64
+#if CT_N == 96
+const ivec3 workGroups = ivec3(216, 1, 1);
+#elif CT_N == 64
 const ivec3 workGroups = ivec3(64, 1, 1);
 #else
 const ivec3 workGroups = ivec3(8, 1, 1);
 #endif
+#elif CT_LEVEL == 3 && CT_N == 96
+const ivec3 workGroups = ivec3(27, 1, 1);
 #elif CT_LEVEL == 3 && CT_N == 64
 const ivec3 workGroups = ivec3(8, 1, 1);
+#elif CT_LEVEL == 4 && CT_N == 96
+const ivec3 workGroups = ivec3(4, 1, 1);
 #else
 const ivec3 workGroups = ivec3(1, 1, 1);
 #endif
@@ -72,6 +86,7 @@ void main() {
 void main() {
     int i = int(gl_GlobalInvocationID.x);
     int n = CT_N >> CT_LEVEL;
+    if (i >= n * n * n) return;
     ivec3 p = ct_position(i, n);
     int destination = ct_levelOffset(CT_LEVEL) + i;
     vec3 bs = vec3(0.0), bf = vec3(0.0), xs = vec3(0.0), xf = vec3(0.0);
@@ -155,18 +170,21 @@ void main() {
 }
 
 #elif defined(CT_COARSE)
-shared vec3 cgXs[64], cgXf[64], cgRs[64], cgRf[64], cgPs[64], cgPf[64];
-shared vec3 cgDs[64], cgDf[64], cgExchange[64], cgReduction[64];
-shared vec3 cgFaceS[384], cgFaceF[384];
+shared vec3 cgPs[CT_COARSE_LANES], cgPf[CT_COARSE_LANES], cgReduction[CT_COARSE_LANES];
+shared vec3 cgFaceS[3 * CT_COARSE_N * CT_COARSE_N * CT_COARSE_N];
+shared vec3 cgFaceF[3 * CT_COARSE_N * CT_COARSE_N * CT_COARSE_N];
 
 vec3 ct_sum(vec3 value) {
-    uint lane = gl_LocalInvocationIndex;
-    cgReduction[lane] = value;
+    value = subgroupAdd(value);
+    if (subgroupElect()) cgReduction[gl_SubgroupID] = value;
     barrier();
-    for (uint stride = 32u; stride > 0u; stride >>= 1u) {
-        if (lane < stride) cgReduction[lane] += cgReduction[lane + stride];
-        barrier();
+    if (gl_SubgroupID == 0u) {
+        value = vec3(0.0);
+        for (uint i = gl_SubgroupInvocationID; i < gl_NumSubgroups; i += gl_SubgroupSize) value += cgReduction[i];
+        value = subgroupAdd(value);
+        if (subgroupElect()) cgReduction[0] = value;
     }
+    barrier();
     vec3 result = cgReduction[0];
     barrier();
     return result;
@@ -179,59 +197,66 @@ vec3 ct_quotient(vec3 a, vec3 b) {
 void main() {
     int lane = int(gl_LocalInvocationIndex);
     int level = CT_COARSE_LEVEL;
-    int i = ct_levelOffset(level) + lane;
-    ivec3 p = ct_position(lane, 4);
-    bool occupied = ctCoefficient(i, 0).a > 0.0;
-    cgXs[lane] = vec3(0.0);
-    cgXf[lane] = vec3(0.0);
-    cgRs[lane] = ctRhs(2 * i).rgb;
-    cgRf[lane] = ctRhs(2 * i + 1).rgb;
-    cgDs[lane] = vec3(1.0);
-    cgDf[lane] = vec3(1.0);
-    cgExchange[lane] = vec3(0.0);
-    if (occupied) ct_diagonal(p, level, cgDs[lane], cgDf[lane], cgExchange[lane]);
-    for (int f = 0; f < 6; ++f) {
-        vec3 gs = vec3(0.0), gf = vec3(0.0);
-        ivec3 q = p + ct_neighbor(f);
-        if (occupied && ct_inside(q, 4) && ctCoefficient(ct_levelOffset(level) + ct_index(q, 4), 0).a > 0.0) ct_face(p, level, ct_neighbor(f), gs, gf);
-        cgFaceS[lane * 6 + f] = gs;
-        cgFaceF[lane * 6 + f] = gf;
+    int base = ct_levelOffset(level);
+    int i = base + lane;
+    ivec3 p = ct_position(lane, CT_COARSE_N);
+    bool valid = lane < CT_COARSE_N * CT_COARSE_N * CT_COARSE_N;
+    bool occupied = valid && ctCoefficient(i, 0).a > 0.0;
+    vec3 xs = vec3(0.0), xf = vec3(0.0);
+    vec3 rs = valid ? ctRhs(2 * i).rgb : vec3(0.0);
+    vec3 rf = valid ? ctRhs(2 * i + 1).rgb : vec3(0.0);
+    vec3 ds = vec3(1.0), df = vec3(1.0), exchange = vec3(0.0);
+    if (occupied) ct_diagonal(p, level, ds, df, exchange);
+    // Each lane owns its solution/residual. Only search directions and one
+    // copy of each shared face need shared memory, including the 6^3 solve.
+    if (valid) {
+        for (int axis = 0; axis < 3; ++axis) {
+            vec3 gs = vec3(0.0), gf = vec3(0.0);
+            ivec3 offset = ivec3(equal(ivec3(axis), ivec3(0, 1, 2)));
+            ivec3 q = p + offset;
+            if (occupied && ct_inside(q, CT_COARSE_N) && ctCoefficient(base + ct_index(q, CT_COARSE_N), 0).a > 0.0) ct_face(p, level, offset, gs, gf);
+            cgFaceS[lane * 3 + axis] = gs;
+            cgFaceF[lane * 3 + axis] = gf;
+        }
     }
     vec3 zs, zf;
-    ct_blockSolve(cgRs[lane], cgRf[lane], cgDs[lane], cgDf[lane], cgExchange[lane], zs, zf);
+    ct_blockSolve(rs, rf, ds, df, exchange, zs, zf);
     cgPs[lane] = zs;
     cgPf[lane] = zf;
-    vec3 rz = ct_sum(cgRs[lane] * zs + cgRf[lane] * zf);
-    vec3 rhsNorm = ct_sum(cgRs[lane] * cgRs[lane] + cgRf[lane] * cgRf[lane]);
+    vec3 rz = ct_sum(rs * zs + rf * zf);
+    vec3 rhsNorm = ct_sum(rs * rs + rf * rf);
     vec3 residualNorm = rhsNorm;
     int iteration = 0;
     for (; iteration < 96; ++iteration) {
         if (all(lessThanEqual(residualNorm, rhsNorm * 1e-10))) break;
-        vec3 aps = cgDs[lane] * cgPs[lane] - cgExchange[lane] * cgPf[lane];
-        vec3 apf = cgDf[lane] * cgPf[lane] - cgExchange[lane] * cgPs[lane];
+        vec3 aps = ds * cgPs[lane] - exchange * cgPf[lane];
+        vec3 apf = df * cgPf[lane] - exchange * cgPs[lane];
         for (int f = 0; f < 6; ++f) {
             ivec3 q = p + ct_neighbor(f);
-            if (!ct_inside(q, 4)) continue;
-            int j = ct_index(q, 4);
-            aps -= cgFaceS[lane * 6 + f] * cgPs[j];
-            apf -= cgFaceF[lane * 6 + f] * cgPf[j];
+            if (!occupied || !ct_inside(q, CT_COARSE_N)) continue;
+            int j = ct_index(q, CT_COARSE_N);
+            int face = ((f & 1) == 0 ? lane : j) * 3 + f / 2;
+            aps -= cgFaceS[face] * cgPs[j];
+            apf -= cgFaceF[face] * cgPf[j];
         }
         vec3 pap = ct_sum(cgPs[lane] * aps + cgPf[lane] * apf);
         vec3 alpha = ct_quotient(rz, pap);
-        cgXs[lane] += alpha * cgPs[lane];
-        cgXf[lane] += alpha * cgPf[lane];
-        cgRs[lane] -= alpha * aps;
-        cgRf[lane] -= alpha * apf;
-        ct_blockSolve(cgRs[lane], cgRf[lane], cgDs[lane], cgDf[lane], cgExchange[lane], zs, zf);
-        vec3 rzNew = ct_sum(cgRs[lane] * zs + cgRf[lane] * zf);
+        xs += alpha * cgPs[lane];
+        xf += alpha * cgPf[lane];
+        rs -= alpha * aps;
+        rf -= alpha * apf;
+        ct_blockSolve(rs, rf, ds, df, exchange, zs, zf);
+        vec3 rzNew = ct_sum(rs * zs + rf * zf);
         vec3 beta = ct_quotient(rzNew, rz);
         cgPs[lane] = zs + beta * cgPs[lane];
         cgPf[lane] = zf + beta * cgPf[lane];
         rz = rzNew;
-        residualNorm = ct_sum(cgRs[lane] * cgRs[lane] + cgRf[lane] * cgRf[lane]);
+        residualNorm = ct_sum(rs * rs + rf * rf);
     }
-    ctError(2 * i) = vec4(cgXs[lane], 0.0);
-    ctError(2 * i + 1) = vec4(cgXf[lane], 0.0);
+    if (valid) {
+        ctError(2 * i) = vec4(xs, 0.0);
+        ctError(2 * i + 1) = vec4(xf, 0.0);
+    }
     if (lane == 0) ctStats(16 + CT_ITERATION) = vec4(sqrt(ct_quotient(residualNorm, rhsNorm)), float(iteration));
 }
 

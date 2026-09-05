@@ -17,7 +17,7 @@ void main() {
         AtmosphereParameters atmosphere = getAtmosphereParameters();
         float bottom = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT - 2.5;
         float top = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS + 0.15;
-        ctEdges(lane) = vec4(2.0 * sinh((t * 2.0 - 1.0) * CT_STRETCH), mix(bottom, top, t), 0.0, 0.0);
+        ctEdges(lane) = vec4(ct_horizontalEdge(t), mix(bottom, top, t), 0.0, 0.0);
     }
     for (int i = int(lane); i < CT_ANGLES * CT_ANGLES; i += 256) {
         ctPhase(i) = mix(texelFetch(usam_cloudTransport, ivec2(i, 2), 0), texelFetch(usam_cloudTransport, ivec2(i, 3), 0), SETTING_CLOUDS_CU_PHASE_RATIO);
@@ -53,19 +53,27 @@ layout(local_size_x = 64) in;
 #if CT_LEVEL == 0
 const ivec3 workGroups = ivec3(CT_GROUPS, 1, 1);
 #elif CT_LEVEL == 1
-#if CT_N == 64
+#if CT_N == 96
+const ivec3 workGroups = ivec3(1728, 1, 1);
+#elif CT_N == 64
 const ivec3 workGroups = ivec3(512, 1, 1);
 #else
 const ivec3 workGroups = ivec3(64, 1, 1);
 #endif
 #elif CT_LEVEL == 2
-#if CT_N == 64
+#if CT_N == 96
+const ivec3 workGroups = ivec3(216, 1, 1);
+#elif CT_N == 64
 const ivec3 workGroups = ivec3(64, 1, 1);
 #else
 const ivec3 workGroups = ivec3(8, 1, 1);
 #endif
+#elif CT_LEVEL == 3 && CT_N == 96
+const ivec3 workGroups = ivec3(27, 1, 1);
 #elif CT_LEVEL == 3 && CT_N == 64
 const ivec3 workGroups = ivec3(8, 1, 1);
+#elif CT_LEVEL == 4 && CT_N == 96
+const ivec3 workGroups = ivec3(4, 1, 1);
 #else
 const ivec3 workGroups = ivec3(1, 1, 1);
 #endif
@@ -73,6 +81,7 @@ const ivec3 workGroups = ivec3(1, 1, 1);
 void main() {
     int i = int(gl_GlobalInvocationID.x);
     int n = CT_N >> CT_LEVEL;
+    if (i >= n * n * n) return;
     ivec3 p = ct_position(i, n);
     float density = 0.0;
     #if CT_LEVEL == 0

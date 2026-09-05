@@ -242,7 +242,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('--output', type=Path, required=True)
     parser.add_argument('--gpu-buffer', type=Path)
-    parser.add_argument('--resolution', type=int, choices=(32, 64), default=32)
+    parser.add_argument('--resolution', type=int, choices=(32, 64, 96), default=32)
     args = parser.parse_args()
     assert P.min() >= 0 and np.max(abs(P.sum(axis=1)-1)) < 1e-6
     assert np.max(abs(P-P.T)) < 1e-8

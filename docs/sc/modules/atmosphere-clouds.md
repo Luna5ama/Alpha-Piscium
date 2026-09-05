@@ -101,7 +101,7 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 | 1，begin | [`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl) | 构造以相机为中心、水平拉伸的网格边界、相函数矩阵和积分后的太阳/月亮注入；每单元四个密度采样保留采样点密度与高分辨率直射透射率的相关性，再构造系数层级 |
 | 2，begin | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl)、[`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 将未碰撞天空/地面边界光扫过网格，构造其散射源，并将 `S` 初始化为零 |
 | 3，deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl) | 通过三角波前精确求解所选迎风算子，执行一次方向源迭代 |
-| 4，deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 计算真实方向残差，将标量部分限制到两个耦合扩散通道；多重网格 V-cycle 使用体积积分残差、4³ 块预条件 CG、实际中心延拓及成对红黑平滑 |
+| 4，deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 计算真实方向残差，将标量部分限制到两个耦合扩散通道；多重网格 V-cycle 使用体积积分残差、4³（32³/64³ 网格）或 6³（96³ 网格）块预条件 CG、实际中心延拓及成对红黑平滑 |
 | 5，deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl)、[`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 通过方向输运提升标量校正，在保持辐亮度非负的条件下沿校正方向最小化真实残差，再更新 `S`；按设置预算重复阶段 3–5 |
 | 6，deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 记录最终残差及注入/逃逸/吸收功率，随后预卷积 `P S` 供相机查询 |
 
@@ -124,15 +124,17 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 | 资源 | 布局与生命周期 |
 |---|---|
 | [`cloud_transport.bin`](../../../shaders/textures/cloud_transport.bin)、`usam_cloudTransport` | 静态 1024×26 RGBA32F 相函数/闭合资产，416 KiB |
-| SSBO binding 6 | FP32 AP0 方向光场、源项和校正，各层耦合系数/误差/RHS、归约与网格边界；32³ 为 56,240,912 字节，64³ 为 449,858,832 字节；每帧根据当前密度和光照重新求解 |
+| SSBO binding 6 | FP32 AP0 方向光场、源项和校正，各层耦合系数/误差/RHS、归约与网格边界；32³ 为 56,240,912 字节，64³ 为 449,858,832 字节，96³ 为 1,518,246,672 字节；每帧根据当前密度和光照重新求解 |
 | `persistent_cloudsAmbLUT` | 原有 32×33 atlas：卷云保持 32×32；最后一行 x=0 保存上半球天空积分除以 4π，x=1…24 保存各方向单元平均入射辐亮度 |
 | SSBO 6 内的 `ctStats` | 四轮校正前/后残差及接受步长、最终相对残差、注入与逃逸加吸收功率、粗层 CG 残差及迭代数；通过 buffer dump 检查 |
 
 SSBO 使用单个不定长 `vec4[]` 和显式偏移；大型定长 SSBO 数组会使 NVIDIA 编译耗时异常增长。
 改变此打包布局时，必须同步修改字节分配大小和 buffer 回读程序。
 
-网格水平覆盖 ±121 千米，相机附近分辨率较高，竖直范围覆盖球面云层并延伸到名义云底以下 2.5 千米。
-`SETTING_CLOUDS_MS_RESOLUTION` 选择 32³（默认）或 64³；`SETTING_CLOUDS_MS_ITERATIONS` 选择 1、2 或 4（默认）。
+网格水平覆盖 ±121 千米。每条水平轴将 75% 的单元均匀分配到 ±12 千米范围，其余距离采用一阶导数连续的指数外缘。
+采样逆映射和实际中心插值使用同一套分配。竖直范围覆盖球面云层并延伸到名义云底以下 2.5 千米。
+`SETTING_CLOUDS_MS_RESOLUTION` 选择 32³、64³ 或 96³（默认），内部横向间距分别为 1 千米、500 米和 333 米；
+`SETTING_CLOUDS_MS_ITERATIONS` 选择 1、2 或 4（默认）。
 每帧重新求解光场；时域云累积只位于相机积分之后，因此风、相机或光照变化不会复用旧输运解。
 
 此实现尚未证明云图像的角向或空间收敛。24 方向会柔化低阶方向细节，粗迎风单元会引入数值扩散
