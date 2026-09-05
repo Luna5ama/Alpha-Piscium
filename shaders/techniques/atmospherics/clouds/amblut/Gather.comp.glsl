@@ -2,6 +2,7 @@
 #extension GL_KHR_shader_subgroup_arithmetic : enable
 
 #include "Common.glsl"
+#include "../Transport.glsl"
 #include "/util/Coords.glsl"
 #include "/util/Rand.glsl"
 
@@ -11,8 +12,6 @@ const ivec3 workGroups = ivec3(AMBIENT_IRRADIANCE_LUT_SIZE, AMBIENT_IRRADIANCE_L
 layout(rgba16f) uniform restrict image2D uimg_frgba16f;
 
 shared vec3 shared_skySum[64];
-shared vec3 shared_groundSum[64];
-shared vec3 shared_directSum[64];
 
 void clouds_amblut_accumulate(ivec2 texelPos, vec3 current) {
     vec4 previous = persistent_cloudsAmbLUT_load(texelPos);
@@ -35,65 +34,53 @@ void main() {
             previous.a *= global_historyResetFactor;
             persistent_cloudsAmbLUT_store(texelPos, previous);
         }
-        if (!cumulus && firstGroup && gl_LocalInvocationIndex < 3u) {
+        if (!cumulus && firstGroup && gl_LocalInvocationIndex < 25u) {
             ivec2 resetPos = ivec2(gl_LocalInvocationIndex, 32);
             vec4 previous = persistent_cloudsAmbLUT_load(resetPos);
             previous.a *= global_historyResetFactor;
             persistent_cloudsAmbLUT_store(resetPos, previous);
         }
     }
-    if (cumulus && !firstGroup) return;
+    if (cumulus && (texelPos.y != 0 || texelPos.x > 24)) return;
 
     vec3 skySum = vec3(0.0);
-    vec3 groundSum = vec3(0.0);
-    vec3 directSum = vec3(0.0);
     for (uint i = gl_LocalInvocationIndex; i < SAMPLE_COUNT; i += 64u) {
         vec2 spherical = ssbo_ambLUTWorkingBuffer.rayDir[i];
         float cosPhi = cos(spherical.x);
         vec3 inScattering = ssbo_ambLUTWorkingBuffer.inSctr[i];
         vec3 groundDirect = ssbo_ambLUTWorkingBuffer.groundDirect[i];
+        float sinPhi = sin(spherical.x);
+        vec3 rayDir = vec3(cos(spherical.y) * sinPhi, cosPhi, sin(spherical.y) * sinPhi);
         if (cumulus) {
-            // Uniform sphere PDF and isotropic phase cancel; keep the hemispheres separate.
-            if (cosPhi >= 0.0) skySum += inScattering / float(SAMPLE_COUNT);
-            else groundSum += inScattering / float(SAMPLE_COUNT);
-            directSum += groundDirect / float(SAMPLE_COUNT);
+            if (firstGroup) {
+                if (cosPhi >= 0.0) skySum += inScattering / float(SAMPLE_COUNT);
+            } else if (ct_angle(-rayDir) == texelPos.x - 1) {
+                // Average uncollided radiance in an equal-solid-angle cell.
+                skySum += (inScattering + groundDirect) * (24.0 / float(SAMPLE_COUNT));
+            }
         } else {
             vec2 jitter = rand_r2Seq2(i + 32u * frameCounter);
             vec3 viewDir = coords_equirectanglarBackward((vec2(texelPos) + jitter) / 32.0);
-            float sinPhi = sin(spherical.x);
-            vec3 rayDir = vec3(cos(spherical.y) * sinPhi, cosPhi, sin(spherical.y) * sinPhi);
             float cosTheta = dot(viewDir, rayDir);
             float phase = mix(phasefunc_CornetteShanks(cosTheta, 0.9), phasefunc_CornetteShanks(cosTheta, -0.6), SETTING_CLOUDS_AMB_BACKSCATTER_FACTOR);
             skySum += (inScattering + groundDirect) * phase * SPHERE_SOLID_ANGLE / float(SAMPLE_COUNT);
         }
     }
     skySum = subgroupAdd(skySum);
-    groundSum = subgroupAdd(groundSum);
-    directSum = subgroupAdd(directSum);
     if (subgroupElect()) {
         shared_skySum[gl_SubgroupID] = skySum;
-        shared_groundSum[gl_SubgroupID] = groundSum;
-        shared_directSum[gl_SubgroupID] = directSum;
     }
     barrier();
 
     if (gl_SubgroupID == 0u) {
         skySum = vec3(0.0);
-        groundSum = vec3(0.0);
-        directSum = vec3(0.0);
         for (uint i = gl_SubgroupInvocationID; i < gl_NumSubgroups; i += gl_SubgroupSize) {
             skySum += shared_skySum[i];
-            groundSum += shared_groundSum[i];
-            directSum += shared_directSum[i];
         }
         skySum = subgroupAdd(skySum);
-        groundSum = subgroupAdd(groundSum);
-        directSum = subgroupAdd(directSum);
         if (subgroupElect()) {
             if (cumulus) {
-                clouds_amblut_accumulate(ivec2(0, 32), skySum);
-                clouds_amblut_accumulate(ivec2(1, 32), groundSum);
-                clouds_amblut_accumulate(ivec2(2, 32), directSum);
+                clouds_amblut_accumulate(ivec2(texelPos.x, 32), skySum);
             } else {
                 clouds_amblut_accumulate(texelPos, skySum);
             }

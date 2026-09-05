@@ -32,6 +32,7 @@ CSV，`nishina-e` 只打印数值。运行前先查看尺寸、样本数和输�
 | [`gen-f82-table.main.kts`](../../../scripts/gen-f82-table.main.kts)         | 生成材质 Fresnel/F82 查找表                                           | [`f82.bin`](../../../shaders/textures/f82.bin)                                                                                                      |
 | [`gen-noisetex.main.kts`](../../../scripts/gen-noisetex.main.kts)           | 生成 64³ RGBA16 white-noise volume                               | [`white_noise_64x64x64.bin`](../../../shaders/textures/white_noise_64x64x64.bin)                                                                    |
 | [`extract-opac.main.kts`](../../../scripts/extract-opac.main.kts)           | 解析 [`data/`](../../../data/) 中的 OPAC/CIE 数据，写中间 CSV 和运行时云相函数纹理 | [`data/opac_raw/`](../../../data/opac_raw/)，[`opac_cloud_phases.bin`](../../../shaders/textures/opac_cloud_phases.bin)                              |
+| [`cloud-transport.py`](../../../scripts/cloud-transport.py) | 积分归一化云相函数矩阵/矩，拟合双通道输运闭合（NumPy/SciPy） | [`cloud_transport.bin`](../../../shaders/textures/cloud_transport.bin) |
 | [`nishina-e.main.kts`](../../../scripts/nishina-e.main.kts)                 | 计算并打印 Nishina 相关数值数组                                           | 标准输出                                                                                                                                                |
 
 通常直接运行：

@@ -3,8 +3,8 @@
 语言：简体中文 | [English](../../en/modules/pipeline.md)
 
 Alpha Piscium 的 compute 顺序以 [`scripts/programs.main.kts`](../../../scripts/programs.main.kts) 为唯一源。脚本按 DSL
-顺序生成根部 `.csh` 和 [`scripts/programs.shaders.properties`](../../../scripts/programs.shaders.properties)。当前
-`PREPARE`、`DEFERRED` 没有条目。
+顺序生成根部 `.csh` 和 [`scripts/programs.shaders.properties`](../../../scripts/programs.shaders.properties)。
+`PREPARE` 构造阴影水面/体素数据，`DEFERRED` 求解共享积云光场。
 
 ## 一帧的高层顺序
 
@@ -15,11 +15,11 @@ begin（帧数据、清理、LUT 准备）
   ↓
 shadow 几何 → shadowcomp
   ↓
-prepare（当前为空）
+prepare（阴影水面法线与体素层级）
   ↓
 不透明几何 / G-buffer
   ↓
-deferred（当前为空）
+deferred（方向云输运与双通道校正）
   ↓
 水面与半透明几何
   ↓
@@ -59,6 +59,11 @@ final（显示变换和屏幕输出）
 | [`Gather`](../../../shaders/techniques/atmospherics/clouds/amblut/Gather.comp.glsl)、[`ClearEnvProbe`](../../../shaders/pass/begin/ClearEnvProbe.comp.glsl)、[`InitThreadGroupTilling`](../../../shaders/pass/begin/InitThreadGroupTilling.glsl)                                                                                          | cloud ambient LUT gather；清 environment probe；初始化 thread-group tiling  |
 | [`ClearScreen3`](../../../shaders/pass/begin/ClearScreen3.comp.glsl)                                                                                                                                                                                                                                                                    | 仅 `VOXY`：清第三组屏幕资源                                                     |
 
+原有体素分配 pass 之后，[`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl)、
+[`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl) 和
+[`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) 准备积云网格、照明源项和耦合系数。
+详见[云输运](atmosphere-clouds.md#共享方向输运与双通道校正)。
+
 ## Shadow 与 Shadowcomp
 
 帧准备完成后，根部 `shadow*.vsh/.gsh/.fsh` wrapper 将世界、实体、cutout、水和 block shadow 几何接到 [
@@ -71,6 +76,18 @@ final（显示变换和屏幕输出）
 几何入口不是由 program DSL 排号。活跃的根部 `gbuffers_*`、`dh_*` wrapper include `GBufferSolid.*.glsl` 或
 `GBufferTranslucent.*.glsl`，部分 wrapper 明确接到 NOOP；`voxy_*` 则直接实现 `voxy_emitFragment`。它们写入后续 composite
 使用的材质、深度、法线和半透明数据。详见[几何、G-buffer 与材质](geometry-materials.md)和[水与半透明](water-translucency.md)。
+
+## Deferred 云输运
+
+| 顺序 | Pass | 作用 |
+|---|---|---|
+| 1 | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl) | 方向源迭代 |
+| 2 | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 真实残差、耦合双通道多重网格校正 |
+| 3 | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl)、[`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 输运校正，在非负约束下选择最小化残差的更新；按设置预算重复 |
+| 4 | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 记录残差/功率，生成相机多重散射源 |
+
+这些 pass 随 `SETTING_CLOUDS_CU` 启用，在 composite 的云相机积分前完成，不读取 G-buffer 数据。
+网格、内存布局和近似限制见[大气、天空与云](atmosphere-clouds.md)。
 
 ## 场景准备
 
@@ -129,7 +146,7 @@ dispatch。[`EnvProbeUpdate2ReprojectDilate`](../../../shaders/pass/composite/En
 | [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) → [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                                   | RTWSM importance blur 与 post composite                                        |
 | [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl) → [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl)                                                                                                                         | next-frame RTWSM warp 与 exposure mip                                          |
 | [`ExposureGather`](../../../shaders/pass/composite/ExposureGather.comp.glsl) → [`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl)                                                                                                           | exposure gather 与 RTWSM 2D warp write                                         |
-| [`FinalGlobalDataUpdate`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl) → [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl)                                                                                     | final global-data update 与 overlay composite                                  |
+| [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl)                                                                                     | overlay composite                                  |
 
 根部 [`final.fsh`](../../../shaders/final.fsh) include [
 `Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl)

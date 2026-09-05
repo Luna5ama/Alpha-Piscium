@@ -4,8 +4,8 @@ Language: English | [简体中文](../../sc/modules/pipeline.md)
 
 [`scripts/programs.main.kts`](../../../scripts/programs.main.kts) is the source of truth for Alpha Piscium's compute
 order. It emits root `.csh` wrappers and [
-`scripts/programs.shaders.properties`](../../../scripts/programs.shaders.properties) in DSL order. `PREPARE` and
-`DEFERRED` currently have no entries.
+`scripts/programs.shaders.properties`](../../../scripts/programs.shaders.properties) in DSL order. `PREPARE` builds
+shadow-water/voxel data; `DEFERRED` solves the shared cumulus light field.
 
 ## High-level frame order
 
@@ -16,11 +16,11 @@ begin (frame data, clears, LUT preparation)
   ↓
 shadow geometry → shadowcomp
   ↓
-prepare (currently empty)
+prepare (shadow-water normals and voxel hierarchy)
   ↓
 opaque geometry / G-buffer
   ↓
-deferred (currently empty)
+deferred (directional cloud transport and two-channel correction)
   ↓
 water and translucent geometry
   ↓
@@ -62,6 +62,11 @@ sequencing recorded here. Current groups:
 | [`Gather`](../../../shaders/techniques/atmospherics/clouds/amblut/Gather.comp.glsl), [`ClearEnvProbe`](../../../shaders/pass/begin/ClearEnvProbe.comp.glsl), [`InitThreadGroupTilling`](../../../shaders/pass/begin/InitThreadGroupTilling.glsl)                                                                                           | Cloud ambient-LUT gather, environment-probe clear, thread-group tiling init           |
 | [`ClearScreen3`](../../../shaders/pass/begin/ClearScreen3.comp.glsl)                                                                                                                                                                                                                                                                       | `VOXY` only: clear the third screen-resource group                                    |
 
+After the existing voxel-allocation passes, [`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl),
+[`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl), and
+[`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) prepare the cumulus grid,
+illumination sources and coupled coefficients. See [cloud transport](atmosphere-clouds.md#shared-directional-transport-and-two-channel-correction).
+
 ## Shadow and Shadowcomp
 
 After frame preparation, root `shadow*.vsh/.gsh/.fsh` wrappers connect world, entity, cutout, water, and block shadow
@@ -75,6 +80,18 @@ Geometry entry points are not numbered by the program DSL. Active root `gbuffers
 `GBufferSolid.*.glsl` or `GBufferTranslucent.*.glsl`, while some wrappers are explicit NOOPs; `voxy_*` implements
 `voxy_emitFragment` directly. Their outputs feed composite material, depth, normal, and translucency work.
 See [Geometry, G-buffer, and Materials](geometry-materials.md) and [Water and Translucency](water-translucency.md).
+
+## Deferred cloud transport
+
+| Order | Pass | Purpose |
+|---|---|---|
+| 1 | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl) | Directional source iteration |
+| 2 | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | True residual, coupled two-channel multigrid correction |
+| 3 | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl), [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Transport the correction, choose a nonnegative residual-minimizing update; repeat within the configured budget |
+| 4 | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Record residual/power and resolve the camera's multiple-scattering source |
+
+These passes are enabled with `SETTING_CLOUDS_CU`. They complete before cloud camera integration in composite and
+read no G-buffer data. The grid, memory layout and approximation limits are documented in [Atmosphere, Sky, and Clouds](atmosphere-clouds.md).
 
 ## Scene preparation
 
@@ -135,7 +152,7 @@ The last stage uses indirect dispatch from SSBO 0 offset 0.
 | [`IMapBlur`](../../../shaders/techniques/rtwsm/IMapBlur.comp.glsl) → [`PostComposite`](../../../shaders/pass/composite/PostComposite.comp.glsl)                                                                                                                   | RTWSM importance blur and post composite                                        |
 | [`GetWarp`](../../../shaders/techniques/rtwsm/GetWarp.comp.glsl) → [`ExposureMip`](../../../shaders/pass/composite/ExposureMip.comp.glsl)                                                                                                                         | Next-frame RTWSM warp and exposure mip                                          |
 | [`ExposureGather`](../../../shaders/pass/composite/ExposureGather.comp.glsl) → [`Write2DWarp`](../../../shaders/techniques/rtwsm/Write2DWarp.comp.glsl)                                                                                                           | Exposure gather and RTWSM 2D warp write                                         |
-| [`FinalGlobalDataUpdate`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl) → [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl)                                                                                     | Final global-data update and overlay composite                                  |
+| [`OverlayComposite`](../../../shaders/pass/composite/OverlayComposite.comp.glsl)                                                                                     | Overlay composite                                  |
 
 Root [`final.fsh`](../../../shaders/final.fsh) includes [
 `Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl), which applies the final display transform and

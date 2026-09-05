@@ -17,8 +17,6 @@ const float CLOUDS_ST_R_EFF = 7.33;
 // Cumulus (cont., clean)
 const vec3 CLOUDS_CU_SCATTERING = colors2_constants_toWorkSpace(vec3(0.18067349140471628, 0.18215551958414714, 0.19358579492341665));
 const vec3 CLOUDS_CU_EXTINCTION = colors2_constants_toWorkSpace(vec3(0.18067367051236774, 0.18215559145291857, 0.19358580629452912));
-const vec3 CLOUDS_CU_ASYM = colors2_constants_toWorkSpace(vec3(0.8615159687912013, 0.8732937077048064, 0.9375708300315341));
-const vec3 CLOUDS_CU_E = colors2_constants_toWorkSpace(vec3(935502.5670106385, 3581719.839469918, 4.094123822571251E13));
 const float CLOUDS_CU_R_EFF = 5.77;
 
 // Cirrus 1: -25° C
@@ -46,7 +44,9 @@ vec3 _clouds_samplePhaseLUT(float cosTheta, float type) {
     float v = (type + 0.5) / 3.0;
     // It was encoded from AP0
     vec4 rgbm = texture(usam_cloudPhases, vec2(u, v));
-    return colors2_constants_toWorkSpace(rgbm.rgb * rgbm.a);
+    vec3 phase = rgbm.rgb * rgbm.a;
+    if (type == 1.0) phase /= texelFetch(usam_cloudTransport, ivec2(6, 4), 0).rgb;
+    return colors2_constants_toWorkSpace(phase);
 }
 
 vec3 _clouds_cirrusLUTPhase(float cosTheta) {

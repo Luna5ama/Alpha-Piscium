@@ -3,7 +3,7 @@
 Language: English | [简体中文](../../sc/modules/atmosphere-clouds.md)
 
 Alpha Piscium separates low-frequency LUTs, view-dependent sky-view/epipolar data, volumetric clouds, and final local
-composition. Atmosphere preparation runs in `begin`, clouds render early in composite, and air/water volumes resolve
+composition. Atmosphere and cloud-source preparation run in `begin`, cloud transport runs in `deferred`, clouds render early in composite, and air/water volumes resolve
 after GI but before translucency.
 
 ## Code map
@@ -32,7 +32,7 @@ The current program-list order is:
 | 3     | [`GenerateMultiSctr`](../../../shaders/techniques/atmospherics/air/lut/GenerateMultiSctr.comp.glsl)         | Updates the 32×32 `persistent_multiSctrLUT`        |
 | 4     | [`clouds/amblut/Sample`](../../../shaders/techniques/atmospherics/clouds/amblut/Sample.comp.glsl)           | Alternates cumulus and cirrus heights; samples 1024 full-sphere atmospheric rays and stores direct ground reflection separately |
 | 5     | [`GenerateSkyViewLUT`](../../../shaders/techniques/atmospherics/air/lut/GenerateSkyViewLUT.comp.glsl)       | Writes `uimg_skyViewLUT`                           |
-| 6     | [`clouds/amblut/Gather`](../../../shaders/techniques/atmospherics/clouds/amblut/Gather.comp.glsl)           | Writes the 32×33 `persistent_cloudsAmbLUT`: a 32×32 directional cirrus tile and three cumulus values in the last row (upper atmosphere, lower atmosphere, direct ground bounce); reduces all subgroups and resets inactive history on transitions |
+| 6     | [`clouds/amblut/Gather`](../../../shaders/techniques/atmospherics/clouds/amblut/Gather.comp.glsl)           | Writes the 32×33 `persistent_cloudsAmbLUT`: a 32×32 directional cirrus tile and 25 cumulus values in the last row (upper-sky integral and 24 incident directions); reduces all subgroups and resets inactive history on transitions |
 
 Fixed LUT dimensions are declared in [`shaders/shadesmith.json`](../../../shaders/shadesmith.json);
 screen-sized/configurable images are declared in [`scripts/shaders.properties`](../../../scripts/shaders.properties).
@@ -48,7 +48,7 @@ When `SETTING_CLOUDS_CU` is enabled:
 
 | Order | Pass                                                                                             | Purpose                                                                                                                                                                                                      |
 |-------|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1     | [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) | Ray marches convective towers, integrates sun and ambient occlusion, and evaluates finite-order multiple scattering                                                                                                          |
+| 1     | [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) | Ray marches convective towers with high-resolution single scattering and the shared multiple-scattering field                                                                                                          |
 | 2     | [`clouds/ss/Accum`](../../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl)          | Applies history accumulation, confidence/variance processing, and upscaling to the low-resolution result; this is the [`ss/Accum`](../../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl) stage |
 | 3     | Later air/local composition                                                                      | Reads the accumulated cloud scattering and transmittance                                                                                                                                                     |
 
@@ -79,15 +79,12 @@ the cloud interval is capped at 60 km, with a maximum distance of 120 km from th
 When residual transmittance falls below `0.005`, the march completes the opaque tail with the local source and
 sets transmission to zero. This avoids bright-sky leakage and termination bands inside dense clouds.
 
-Each occupied sample integrates a 16-sample sunlight column and separate six-sample sky and ground columns along
-uniform hemisphere directions. All use the same density field and exponential distance bins, with more samples near the surface.
-A uniform lower-hemisphere direction samples the ground footprint; a ten-sample cloud column shadows its direct
-reflection. The lower-atmosphere contribution remains separate, and diffuse ground skylight uses the configured
-ground albedo and the upper-hemisphere integral. The sunlight phase starts with the
-configured cumulus phase function. Four additional scattering orders use amplitudes `0.6^n`, optical-depth scales
-`0.45^n`, and progressively less directional Henyey-Greenstein phases. Ambient visibility uses the two hemisphere
-columns with a transport optical-depth scale of `0.15`. These finite-order approximations provide interior fill and
-self-shadowed lobes; they are not a full multiple-scattering solution.
+Each occupied sample evaluates single scattering separately from the cached scattered field. Sun and moon each use
+a 16-sample column through the actual density, atmospheric transmittance, Earth occlusion, and the full configured
+phase function. Two phase-importance samples estimate sky/ground single scattering with 12-sample density columns;
+their PDF is an equal mixture of the three AP0 phase densities. The background environment comes from the directional
+ambient LUT. The old extinction octaves, decaying scattering-order weights, and `0.15` ambient optical-depth scale
+have been removed. Camera integration always uses extinction, never the transport coefficient or a fitted MS scale.
 
 Air scattering and transmission are integrated incrementally to occupied cloud samples with 4–32 samples per segment.
 Their clear-air radiance is weighted by the cloud opacity at that distance. [`SkyComposite.glsl`](../../../shaders/techniques/atmospherics/SkyComposite.glsl)
@@ -96,6 +93,78 @@ When viewed from above cirrus, its foreground scattering and transmission are ap
 Cloud-history packing and accumulation remain the integration points. Wind translates the field and its detail together; screenshot mode freezes it. A zero coverage, density, or
 layer thickness gives an empty cloud result. Cirrus retains its separate lighting model and multiple-scattering-radius
 control.
+
+### Shared directional transport and two-channel correction
+
+[`Transport.glsl`](../../../shaders/techniques/atmospherics/clouds/Transport.glsl) stores the cloud-scattered radiance
+`S = L - B` in 24 equal-solid-angle cells. Directions are the signed permutations of `(2,1,1)/sqrt(6)`.
+The target equation is `A S = sigma_s P B`, with finite-volume upwind streaming and zero incoming scattered radiance.
+Empty cells have exactly zero extinction and retain free streaming between clouds. The cached camera source is only
+`P S`; sampling it still requires scattering by the actual high-resolution density. Neither `S` nor the uncollided
+sky contribution is added a second time. Positive interpolation between four angular directions preserves a constant
+field and equal integrated basis weights by cubic symmetry; spatial interpolation uses physical cell centers.
+
+| Order | Pass / stage | Purpose |
+|---|---|---|
+| 1, begin | [`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl) | Builds camera-centered, horizontally stretched grid edges, the phase matrix and integrated sun/moon injection; four density samples per cell retain the sampled correlation between density and high-resolution direct transmittance; builds the coefficient hierarchy |
+| 2, begin | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl), [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Sweeps uncollided sky/ground boundary light through the grid, forms its scattering source, and initializes `S` to zero |
+| 3, deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl) | Performs a directional source iteration with exact triangular wavefront solves of the selected upwind operator |
+| 4, deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Computes the true directional residual and restricts its scalar part into two coupled diffusion channels; a multigrid V-cycle uses volume-integrated residuals, a 4³ block-preconditioned CG solve, physical-center prolongation and paired red/black smoothing |
+| 5, deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl), [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Lifts the scalar correction through directional transport, minimizes the actual residual along it subject to nonnegative radiance, then updates `S`; repeats stages 3–5 for the selected iteration budget |
+| 6, deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Records the final residual and injected/escaped/absorbed power, then preconvolves `P S` for the camera |
+
+The two-channel core uses `a_l = sigma_t - sigma_s beta_l`, `D0 = 1/(3 a1)`, positive slow/fast diffusion roots,
+weights `w, 1-w`, and paired exchange `kappa = w(1-w) sigma_s (1-beta2)`. Harmonic shared-face conductances and
+separate Marshak escape boundaries preserve the conservative symmetric core. A fitted effective `a3` changes the
+intermediate spatial response; it does not change absorption or `D0`. This is the scalar homogeneous P3 response
+represented by two channels, not an exact heterogeneous angular P3 solver. In the renderer it preconditions the
+directional equation rather than replacing that equation or providing an independent light contribution.
+
+[`cloud-transport.py`](../../../scripts/cloud-transport.py) integrates the actual filtered cumulus Mie LUT and the
+[HG+Draine phase function](https://research.nvidia.com/labs/rtr/approximate-mie/publications/approximate-mie.pdf).
+It normalizes the Mie phase before both direct evaluation and moment extraction, constructs a positive symmetric
+stochastic angular matrix by cell integration, and fits `a3` against a P255 continued fraction over the grid's
+Nyquist band. The LUT stores the two inverse CDFs, two phase matrices, phase moments/normalization, and closure fits
+over phase mixtures and transport cell sizes. The existing nominal HG+Draine diameter is 11.54 µm; the independent
+20 µm example fit is not copied into this renderer. This use of a lower-order correction follows
+[synthetic acceleration](https://arxiv.org/html/2402.10488v2); the particular GPU discretization and finite budget
+remain an approximation.
+
+| Resource | Layout and lifetime |
+|---|---|
+| [`cloud_transport.bin`](../../../shaders/textures/cloud_transport.bin), `usam_cloudTransport` | Static 1024×26 RGBA32F phase/closure asset, 416 KiB |
+| SSBO binding 6 | FP32 AP0 directional fields, source and correction, coupled coefficients/errors/RHS at every level, reductions and grid edges; 56,240,912 bytes at 32³ or 449,858,832 bytes at 64³; recreated from current density and lighting each frame |
+| `persistent_cloudsAmbLUT` | Existing 32×33 atlas: cirrus remains 32×32; last-row x=0 stores the upper-sky integral divided by 4π, x=1…24 store average incident radiance per angular cell |
+| `ctStats` in SSBO 6 | Four raw/corrected residuals and accepted step sizes, final relative residual, injected and escaped-plus-absorbed power, and coarse CG residual/iteration count; inspect with a buffer dump |
+
+The SSBO uses one unsized `vec4[]` with explicit offsets; large sized SSBO arrays cause excessive NVIDIA compile
+times. Its byte allocation and the buffer-dump reader must change together if this packed layout changes.
+
+The grid spans ±121 km horizontally, with finer cells near the camera, and covers the spherical cloud layer down to
+2.5 km below its nominal base. `SETTING_CLOUDS_MS_RESOLUTION` selects 32³ (default) or 64³;
+`SETTING_CLOUDS_MS_ITERATIONS` selects 1, 2 or 4 (default). The field is solved afresh each frame; temporal cloud
+accumulation is only used after camera integration, so wind/camera/light changes do not reuse a stale transport solve.
+
+This implementation does not establish angular or spatial convergence of rendered clouds. The 24-direction
+representation softens low-order angular detail, coarse upwind cells add numerical diffusion (their thick-cell
+diffusion limit differs from physical `D0`), and four subcell source samples can miss narrow illuminated features.
+The finite grid uses a spatially uniform sky/ground environment and omits cloud-shadowed ground feedback. A fixed
+iteration budget leaves a measured residual and power defect; conservative core coefficients alone do not prove
+zero error in the whole interpolated camera image. Increasing the grid size is expensive and is an accuracy control,
+not a guarantee that these errors have converged.
+
+Regenerate the asset and run the independent sparse-matrix reference checks from [`scripts/`](../../../scripts/):
+
+```sh
+python cloud-transport.py --output ../builds/cloud-transport/phase.json
+python test/cloud-transport-check.py --output ../builds/cloud-transport/numerics.json
+```
+
+[`cloud-transport-check.py`](../../../scripts/test/cloud-transport-check.py) checks the P3 identity, converged
+finite-volume positivity and power balance, thin-density scaling, vacuum-gap streaming, superposition, and the actual
+upwind diffusion limit. Its `--gpu-buffer PATH --resolution 32` mode verifies an Iris SSBO dump and reports the actual
+fixed-budget residual and power defect. These checks complement target-Iris compilation, buffer capture, images and
+pass timings; they do not substitute for image comparison with reference transport or photographs.
 
 ## Air, depth layers, and composition
 
@@ -119,7 +188,7 @@ through its own sky composite and [`Celestial.glsl`](../../../shaders/util/Celes
 | Atmosphere scale/ground | Altitude, density scale, and ground albedo                                                                                                      |
 | Air                     | Epipolar slices/samples; Mie turbidity/time curve; Mie/Rayleigh/ozone multipliers                                                               |
 | Sky/light shafts        | Sky-view resolution, sky samples, shaft samples/shadow samples, depth-break correction, and softness                                            |
-| Low cloud               | Upscale factor; history length/confidence/variance; minimum/maximum steps; height/thickness/density/coverage/phase; wind; and shape frequencies |
+| Low cloud               | Upscale factor; history length/confidence/variance; minimum/maximum steps; MS grid resolution/iterations; height/thickness/density/coverage/phase; wind; and shape frequencies |
 | High cloud              | Cirrus height, density, coverage, and phase                                                                                                     |
 | Celestial               | Sun/moon radius, distance, temperature/color/albedo; star-map intensity/gamma/bright-star boost; and constellations                             |
 

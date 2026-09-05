@@ -2,7 +2,7 @@
 
 语言：简体中文 | [English](../../en/modules/atmosphere-clouds.md)
 
-Alpha Piscium 把低频 LUT、屏幕相关的 sky-view/epipolar 数据、体积云和最终局部合成分开更新。大气预计算位于 `begin`，云渲染位于
+Alpha Piscium 把低频 LUT、屏幕相关的 sky-view/epipolar 数据、体积云和最终局部合成分开更新。大气及云源项预计算位于 `begin`，云输运位于 `deferred`，云渲染位于
 composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 
 ## 代码位置
@@ -31,7 +31,7 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 | 3  | [`GenerateMultiSctr`](../../../shaders/techniques/atmospherics/air/lut/GenerateMultiSctr.comp.glsl)         | 更新 32×32 `persistent_multiSctrLUT`      |
 | 4  | [`clouds/amblut/Sample`](../../../shaders/techniques/atmospherics/clouds/amblut/Sample.comp.glsl)           | 交替使用积云和卷云高度，采样 1024 条全空间大气光线，并单独存储地面的直接反射光 |
 | 5  | [`GenerateSkyViewLUT`](../../../shaders/techniques/atmospherics/air/lut/GenerateSkyViewLUT.comp.glsl)       | 写入 `uimg_skyViewLUT`                    |
-| 6  | [`clouds/amblut/Gather`](../../../shaders/techniques/atmospherics/clouds/amblut/Gather.comp.glsl)           | 写入 32×33 `persistent_cloudsAmbLUT`：32×32 的卷云方向 tile，以及最后一行的三个积云值（上半球大气、下半球大气、地面直接反射）；归约全部 subgroup，并在状态切换时重置未更新区域的历史 |
+| 6  | [`clouds/amblut/Gather`](../../../shaders/techniques/atmospherics/clouds/amblut/Gather.comp.glsl)           | 写入 32×33 `persistent_cloudsAmbLUT`：32×32 的卷云方向 tile，以及最后一行的25 个积云值（上半球天空积分和 24 个入射方向）；归约全部 subgroup，并在状态切换时重置未更新区域的历史 |
 
 固定尺寸 LUT 在 [`shaders/shadesmith.json`](../../../shaders/shadesmith.json) 中声明；屏幕尺寸或可配置图像在 [
 `scripts/shaders.properties`](../../../scripts/shaders.properties) 中声明。
@@ -46,7 +46,7 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 
 | 顺序 | Pass                                                                                             | 作用                                                                                                               |
 |----|--------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------------------------|
-| 1  | [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) | 步进对流云塔，积分太阳光和环境光遮挡，并计算有限阶多重散射近似                                                           |
+| 1  | [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) | 步进对流云塔，结合高分辨率单次散射和共享多重散射光场                                                           |
 | 2  | [`clouds/ss/Accum`](../../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl)          | 对低分辨率结果执行历史累积、置信度/方差处理和上采样；该阶段为 [`ss/Accum`](../../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl) |
 | 3  | 后续空气/局部合成                                                                                        | 读取累积后的云散射和透射率                                                                                                    |
 
@@ -75,19 +75,83 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 当剩余透射率低于 `0.005` 时，用局部光源项补全不透明尾段，并将透射率归零，
 避免浓云内部出现晴空漏光和提前终止造成的色带。
 
-每个非空采样积分包含 16 个采样的太阳光柱，以及沿半球均匀方向、各包含 6 个采样的天空与地面光柱。
-三者使用相同密度场和指数距离区间，在表面附近分配更多采样。下半球均匀方向采样地面覆盖区域，
-再用包含 10 个采样的云光柱遮挡其直接反射光。下半球大气贡献保持独立，地面的漫反射天光使用配置的地面反照率和上半球积分。
-太阳光从设置指定的积云相函数开始，再叠加四阶散射近似：各阶振幅为
-`0.6^n`，光学深度缩放为 `0.45^n`，Henyey-Greenstein 相函数的方向性逐阶减弱。
-环境光可见性使用两个半球光柱，输运光学深度缩放为 `0.15`。这些有限阶近似提供内部补光和云团自阴影，
-并非完整的多重散射解。
+每个非空采样把单次散射与缓存的散射光场分开计算。太阳和月亮分别使用实际密度上的 16 点光柱、
+大气透射率、地球遮挡及完整的配置相函数。天空/地面单次散射采用两个相函数重要性采样方向，
+各积分 12 点密度光柱；PDF 是三个 AP0 相函数密度的等权混合，背景环境来自方向环境光 LUT。
+旧的 extinction octave、逐阶衰减权重及 `0.15` 环境光学深度缩放已移除。
+相机积分始终使用真实消光，不使用输运系数或拟合的 MS 缩放。
 
 空气散射和透射率逐段积分到非空云采样位置，每段使用 4–32 个采样，再以对应距离的云不透明度加权晴空辐亮度。
 [`SkyComposite.glsl`](../../../shaders/techniques/atmospherics/SkyComposite.glsl) 将结果合成到天空之上，
 不再把积云放置在固定的云层中间高度平面。从卷云上方观察时，卷云的前景散射和透射率会作用于积云贡献。
 云历史打包和累积继续作为集成接口。风同时平移密度场及其细节，截图模式将其冻结。
 覆盖率、密度或云层厚度为零时输出空云层。卷云保留独立的照明模型和多重散射半径控制。
+
+### 共享方向输运与双通道校正
+
+[`Transport.glsl`](../../../shaders/techniques/atmospherics/clouds/Transport.glsl) 将云内散射辐亮度
+`S = L - B` 存储在 24 个等立体角方向单元中，方向为 `(2,1,1)/sqrt(6)` 的带符号排列。
+目标方程是 `A S = sigma_s P B`，使用有限体积迎风输运，入射散射光边界为零。
+空单元的消光严格为零，保留云间自由传播。相机缓存仅存储 `P S`，采样后仍需由实际高分辨率密度散射；
+不会再次叠加 `S` 或未碰撞天空光。四方向正值插值保持常量光场，立方对称性保证各基函数积分权重相等；
+空间插值使用实际单元中心。
+
+| 顺序 | Pass / 阶段 | 作用 |
+|---|---|---|
+| 1，begin | [`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl) | 构造以相机为中心、水平拉伸的网格边界、相函数矩阵和积分后的太阳/月亮注入；每单元四个密度采样保留采样点密度与高分辨率直射透射率的相关性，再构造系数层级 |
+| 2，begin | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl)、[`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 将未碰撞天空/地面边界光扫过网格，构造其散射源，并将 `S` 初始化为零 |
+| 3，deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl) | 通过三角波前精确求解所选迎风算子，执行一次方向源迭代 |
+| 4，deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 计算真实方向残差，将标量部分限制到两个耦合扩散通道；多重网格 V-cycle 使用体积积分残差、4³ 块预条件 CG、实际中心延拓及成对红黑平滑 |
+| 5，deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl)、[`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 通过方向输运提升标量校正，在保持辐亮度非负的条件下沿校正方向最小化真实残差，再更新 `S`；按设置预算重复阶段 3–5 |
+| 6，deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 记录最终残差及注入/逃逸/吸收功率，随后预卷积 `P S` 供相机查询 |
+
+双通道核心使用 `a_l = sigma_t - sigma_s beta_l`、`D0 = 1/(3 a1)`、正的快慢扩散根、
+权重 `w, 1-w` 及成对交换 `kappa = w(1-w) sigma_s (1-beta2)`。
+共享面的调和导通率与各通道独立的 Marshak 逃逸边界保持核心的守恒对称结构。
+拟合的有效 `a3` 改变中等空间尺度响应，但不改变吸收或 `D0`。
+这是标量均匀 P3 响应的双通道表示，并非精确的非均匀角向 P3 求解器。
+渲染器使用它预条件方向方程，而非替换目标方程或额外贡献一份光照。
+
+[`cloud-transport.py`](../../../scripts/cloud-transport.py) 积分实际过滤后的积云 Mie LUT 和
+[HG+Draine 相函数](https://research.nvidia.com/labs/rtr/approximate-mie/publications/approximate-mie.pdf)。
+它在直射求值与矩提取前统一归一化 Mie 相函数，通过方向单元积分构造正、对称、行和为一的矩阵，
+并在网格 Nyquist 频带内对 P255 连分式拟合 `a3`。LUT 保存两个逆 CDF、两个相函数矩阵、
+相函数矩/归一化，以及不同相函数混合与输运单元尺寸的闭合拟合。
+当前 HG+Draine 名义粒径参数为 11.54 µm；未照搬独立示例的 20 µm 拟合值。
+低阶误差校正遵循 [synthetic acceleration](https://arxiv.org/html/2402.10488v2) 的思路；
+具体 GPU 离散与有限迭代预算仍是近似。
+
+| 资源 | 布局与生命周期 |
+|---|---|
+| [`cloud_transport.bin`](../../../shaders/textures/cloud_transport.bin)、`usam_cloudTransport` | 静态 1024×26 RGBA32F 相函数/闭合资产，416 KiB |
+| SSBO binding 6 | FP32 AP0 方向光场、源项和校正，各层耦合系数/误差/RHS、归约与网格边界；32³ 为 56,240,912 字节，64³ 为 449,858,832 字节；每帧根据当前密度和光照重新求解 |
+| `persistent_cloudsAmbLUT` | 原有 32×33 atlas：卷云保持 32×32；最后一行 x=0 保存上半球天空积分除以 4π，x=1…24 保存各方向单元平均入射辐亮度 |
+| SSBO 6 内的 `ctStats` | 四轮校正前/后残差及接受步长、最终相对残差、注入与逃逸加吸收功率、粗层 CG 残差及迭代数；通过 buffer dump 检查 |
+
+SSBO 使用单个不定长 `vec4[]` 和显式偏移；大型定长 SSBO 数组会使 NVIDIA 编译耗时异常增长。
+改变此打包布局时，必须同步修改字节分配大小和 buffer 回读程序。
+
+网格水平覆盖 ±121 千米，相机附近分辨率较高，竖直范围覆盖球面云层并延伸到名义云底以下 2.5 千米。
+`SETTING_CLOUDS_MS_RESOLUTION` 选择 32³（默认）或 64³；`SETTING_CLOUDS_MS_ITERATIONS` 选择 1、2 或 4（默认）。
+每帧重新求解光场；时域云累积只位于相机积分之后，因此风、相机或光照变化不会复用旧输运解。
+
+此实现尚未证明云图像的角向或空间收敛。24 方向会柔化低阶方向细节，粗迎风单元会引入数值扩散
+（厚单元的扩散极限不同于物理 `D0`），每单元四个源项采样也可能遗漏狭窄受光区域。
+有限网格使用空间均匀的天空/地面环境，未包含云影反馈到地面反射的耦合。
+固定迭代预算留下可测量的残差与功率缺口；核心系数守恒不等于整个插值后的相机图像零误差。
+提高网格分辨率成本较高，是精度控制，并不保证上述误差已经收敛。
+
+从 [`scripts/`](../../../scripts/) 重新生成资产并运行独立稀疏矩阵参考检查：
+
+```sh
+python cloud-transport.py --output ../builds/cloud-transport/phase.json
+python test/cloud-transport-check.py --output ../builds/cloud-transport/numerics.json
+```
+
+[`cloud-transport-check.py`](../../../scripts/test/cloud-transport-check.py) 检查 P3 恒等式、收敛后的有限体积正性与
+功率平衡、薄密度缩放、真空间隙传播、叠加线性和实际迎风扩散极限。
+其 `--gpu-buffer PATH --resolution 32` 模式检查 Iris SSBO 回读，并报告实际有限预算残差与功率缺口。
+这些检查补充目标 Iris 编译、buffer 捕获、图像和 pass 耗时，不能替代与参考输运或照片的图像对照。
 
 ## 空气、深度层与合成
 
@@ -111,7 +175,7 @@ setting 启用时绑定 `usam_constellations`。
 | 大气比例与地面 | 高度、密度比例和地面反照率                                                                   |
 | 空气      | epipolar slices/samples；Mie turbidity/time curve；Mie/Rayleigh/ozone multipliers |
 | 天空与光柱   | sky-view 分辨率、sky samples、shaft samples/shadow samples、深度断裂修正和柔和度                |
-| 低云      | 上采样比例；历史长度/置信度/方差；最小/最大步数；高度/厚度/密度/覆盖率/相函数；风和形状频率                 |
+| 低云      | 上采样比例；历史长度/置信度/方差；最小/最大步数；MS 网格分辨率/迭代数；高度/厚度/密度/覆盖率/相函数；风和形状频率                 |
 | 高云      | cirrus 高度、密度、覆盖率和相函数                                                            |
 | 天体      | sun/moon 半径、距离、温度/颜色/反照率；star-map 强度/gamma/bright-star boost；以及星座               |
 

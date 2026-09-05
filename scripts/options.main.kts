@@ -2024,6 +2024,26 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     empty()
+                    toggle("SETTING_CLOUDS_MS_RESOLUTION", 32, listOf(32, 64)) {
+                        lang {
+                            name = "Scattering Volume Resolution"
+                            comment = "Resolution of the shared directional cloud-lighting volume. Higher values resolve smaller light paths and use more GPU time and memory."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "散射光照体积精度"
+                            comment = "共享方向光照体积的分辨率。更高数值能分辨更细的光路，但增加 GPU 时间和显存占用。"
+                        }
+                    }
+                    toggle("SETTING_CLOUDS_MS_ITERATIONS", 4, listOf(1, 2, 4)) {
+                        lang {
+                            name = "Scattering Solver Iterations"
+                            comment = "Cloud-lighting updates per frame. Higher values reduce the remaining lighting error and increase GPU time."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "散射求解迭代数"
+                            comment = "每帧云光照更新次数。更高数值能减小剩余光照误差，但增加 GPU 时间。"
+                        }
+                    }
                     slider("SETTING_CLOUDS_LOW_STEP_MIN", 128, 16..128 step 8) {
                         Profile.Low preset 24
                         Profile.Medium preset 24

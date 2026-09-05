@@ -184,6 +184,26 @@ programs {
         pass("/pass/begin/VoxelAllocator.comp.glsl") {
             cond("SETTING_VOXEL_GRID_SIZE == 16")
         }
+        val cloudTransportCondition = "defined(SETTING_CLOUDS_CU)"
+        pass("/pass/begin/CloudTransportPrepare.comp.glsl") {
+            constDefine("CT_SETUP")
+            cond(cloudTransportCondition)
+        }
+        for (level in 0..4) {
+            pass("/pass/begin/CloudTransportPrepare.comp.glsl") {
+                constDefine("CT_LEVEL", level)
+                cond(cloudTransportCondition + if (level == 4) " && SETTING_CLOUDS_MS_RESOLUTION == 64" else "")
+            }
+        }
+        pass("/pass/begin/CloudTransportSweep.comp.glsl") {
+            constDefine("CT_UNCOLLIDED")
+            cond(cloudTransportCondition)
+        }
+        pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
+            constDefine("CT_INIT")
+            constDefine("CT_LEVEL", 0)
+            cond(cloudTransportCondition)
+        }
     }
 
     ProgramType.PREPARE {
@@ -197,6 +217,68 @@ programs {
         }
         pass("/pass/shadow/VoxelTreePropagatorUpper.comp.glsl") {
             cond("SETTING_VOXEL_GRID_SIZE == 64")
+        }
+    }
+
+    ProgramType.DEFERRED {
+        val cloudTransportCondition = "defined(SETTING_CLOUDS_CU)"
+        for (iteration in 0..<4) {
+            val iterationCondition = "$cloudTransportCondition && SETTING_CLOUDS_MS_ITERATIONS > $iteration"
+            pass("/pass/begin/CloudTransportSweep.comp.glsl") { cond(iterationCondition) }
+            pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
+                constDefine("CT_RESIDUAL")
+                constDefine("CT_LEVEL", 0)
+                cond(iterationCondition)
+            }
+            for (level in 1..4) {
+                pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
+                    constDefine("CT_RESTRICT")
+                    constDefine("CT_LEVEL", level)
+                    cond(iterationCondition + if (level == 4) " && SETTING_CLOUDS_MS_RESOLUTION == 64" else "")
+                }
+            }
+            pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
+                constDefine("CT_COARSE")
+                constDefine("CT_LEVEL", 0)
+                constDefine("CT_ITERATION", iteration)
+                cond(iterationCondition)
+            }
+            for (level in 3 downTo 0) {
+                val levelCondition = iterationCondition + if (level == 3) " && SETTING_CLOUDS_MS_RESOLUTION == 64" else ""
+                pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
+                    constDefine("CT_PROLONG")
+                    constDefine("CT_LEVEL", level)
+                    cond(levelCondition)
+                }
+                for (color in 0..1) {
+                    pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
+                        constDefine("CT_SMOOTH")
+                        constDefine("CT_LEVEL", level)
+                        constDefine("CT_COLOR", color)
+                        cond(levelCondition)
+                    }
+                }
+            }
+            pass("/pass/begin/CloudTransportSweep.comp.glsl") {
+                constDefine("CT_CORRECTION")
+                cond(iterationCondition)
+            }
+            for (stage in listOf("CT_DOT", "CT_REDUCE", "CT_APPLY")) {
+                pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
+                    constDefine(stage)
+                    constDefine("CT_LEVEL", 0)
+                    constDefine("CT_ITERATION", iteration)
+                    cond(iterationCondition)
+                }
+            }
+        }
+        for (stage in listOf("CT_DOT", "CT_REDUCE", "CT_RESOLVE")) {
+            pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
+                constDefine(stage)
+                constDefine("CT_LEVEL", 0)
+                constDefine("CT_FINAL")
+                cond(cloudTransportCondition)
+            }
         }
     }
 
