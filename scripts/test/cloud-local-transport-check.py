@@ -15,7 +15,6 @@ from scipy.special import erf
 
 ROOT = Path(__file__).resolve().parents[2]
 TABLE = np.fromfile(ROOT / 'shaders/textures/cloud_transport.bin', dtype='<f4').reshape(26, 1024, 4).astype(float)
-PHASE = .1 * TABLE[2, :576, :3].reshape(24, 24, 3) + .9 * TABLE[3, :576, :3].reshape(24, 24, 3)
 DIRS = np.array([(np.ones(3) + (np.arange(3) == a // 8)) *
                  (1 - 2 * ((a >> np.arange(3)) & 1)) / np.sqrt(6) for a in range(24)])
 
@@ -48,64 +47,64 @@ def equilibrium():
 
 def reservoir():
     rng = np.random.default_rng(149)
-    depths, trials = 37, 160000
-    # Integrate real spectral camera weights, foreground air, and an opaque tail.
-    tau = rng.uniform(.01, .2, (depths, 3))
-    transmittance = np.exp(-np.cumsum(tau, axis=0))
-    opacity = np.vstack((np.ones(3), transmittance[:-1])) * -np.expm1(-tau)
+    depths, trials = 37, 180000
+    tau = rng.uniform(.01, .2, depths)
+    transmittance = np.exp(-np.cumsum(tau))
+    opacity = np.r_[1., transmittance[:-1]] * -np.expm1(-tau)
     opacity[-1] += transmittance[-1]
-    weights = opacity * rng.uniform(.2, 1, (depths, 3)) * np.array([.99, .98, .97])
-    angular = rng.dirichlet(np.ones(4))
-    row = np.einsum('a,ajc->jc', angular, PHASE[[3, 7, 11, 19]])
-    # The baseline P S and sampled S use identical spatial interpolation.
-    spatial = rng.dirichlet(np.ones(8), depths)
-    cache_corners = rng.uniform(.05, 3, (depths, 8, 24, 3))
-    scattered = np.einsum('di,dijc->djc', spatial, cache_corners)
-    cached_source = np.einsum('di,jc,dijc->dc', spatial, row, cache_corners)
-    consistency = np.max(abs(cached_source - np.einsum('jc,djc->dc', row, scattered)))
-    assert consistency < 2e-15
-    local = scattered * rng.uniform(.05, 1.9, scattered.shape)
-    # The fine angular operator can differ from the coarse P matrix. Store and
-    # subtract the entire per-depth camera predictor, rather than sampled S_c.
-    fine_row = rng.uniform(.01, 1, (24, 3))
-    fine_row /= fine_row.sum(axis=0)
-    single_scattering = rng.uniform(.1, .8, (depths, 3))
-    base = np.sum(weights * cached_source, axis=0)
-    target = np.einsum('dc,jc,djc->c', weights, fine_row, local) + np.sum(weights * single_scattering, axis=0)
-    # Stream depths exactly as WRS, with independent random dimensions.
-    q = abs(weights).max(axis=1)
+    air_t = rng.uniform(.2, 1, (depths, 3))
+    air_l = rng.uniform(.05, .3, (depths, 3))
+    ss = rng.uniform(.1, .8, (depths, 3))
+    local = rng.uniform(.05, 3., (depths, 24, 3))
+    phase = rng.uniform(.01, 1, (24, 3)); phase /= phase.sum(axis=0)
+    angular_pdf = phase.mean(axis=1)
+    albedo = .99
+    target = np.sum(opacity[:,None]*(air_l+air_t*albedo*(ss+np.einsum('ac,dac->dc',phase,local))),axis=0)
+    selected = np.zeros(trials,dtype=int)
     total = 0.
-    selected = np.zeros(trials, dtype=int)
-    for i in range(depths):
-        total += q[i]
-        selected[rng.random(trials) * total < q[i]] = i
-    proposal = fine_row.mean(axis=1)
-    angular_total = 0.
-    angles = np.zeros(trials, dtype=int)
-    for j in range(24):
-        angular_total += proposal[j]
-        angles[rng.random(trials) * angular_total < proposal[j]] = j
-    estimate = base + (total / q[selected])[:, None] * weights[selected] * (
-        (angular_total / proposal[angles])[:, None] * fine_row[angles] * local[selected, angles]
-        - cached_source[selected] + single_scattering[selected])
-    mean = estimate.mean(axis=0)
-    stderr = estimate.std(axis=0, ddof=1) / np.sqrt(trials)
-    z = abs(mean - target) / stderr
-    assert z.max() < 5
-    # Exact enumeration also checks the PDF factors without a statistical tolerance.
-    fine_integral = np.einsum('jc,djc->dc', fine_row, local)
-    expectation = base + np.sum(weights * (fine_integral - cached_source + single_scattering), axis=0)
-    cancellation = np.max(abs(base - np.sum(weights * cached_source, axis=0)))
-    assert cancellation < 1e-13
-    assert np.max(abs(expectation - target)) < 1e-13
-    paired = (estimate[::2] + estimate[1::2]) * .5
-    variance_ratio = paired.var(axis=0) / estimate.var(axis=0)
-    assert np.all((variance_ratio > .48) & (variance_ratio < .52))
-    assert estimate.min() < 0
-    return {'trials': trials, 'predictor_consistency_error': float(consistency), 'stored_predictor_cancellation_error': float(cancellation), 'reference': target.tolist(),
-            'sample_mean': mean.tolist(), 'standard_errors_from_reference': z.tolist(),
-            'two_sample_variance_ratio': variance_ratio.tolist(), 'minimum_signed_estimate': float(estimate.min()),
-            'zero_clamp_bias': (np.maximum(estimate, 0).mean(axis=0) - mean).tolist()}
+    for i, weight in enumerate(opacity):
+        total += weight
+        selected[rng.random(trials)*total < weight] = i
+    angles = rng.choice(24,trials,p=angular_pdf)
+    radiance = phase[angles]/angular_pdf[angles,None]*local[selected,angles]
+    values = total*(air_l[selected]+air_t[selected]*albedo*(ss[selected]+radiance))
+    z = abs(values.mean(axis=0)-target)/(values.std(axis=0)/np.sqrt(trials))
+    assert z.max()<5
+    assert values.min()>=0
+    # Raw UNORM endpoints would select channel 3. Centered bins stay in [0,1).
+    noise = (np.arange(256,dtype=np.float32)+.5)/256
+    for offset in (0., .25, .5, .75):
+        xi = np.mod(noise+offset,1.)
+        assert np.all((xi>=0)&(xi<1)) and np.floor(xi*3).max()==2
+    assert int(np.float32(1.)*3)==3
+    return {'trials': trials, 'standard_errors': z.tolist(), 'target': target.tolist(),
+            'constant_field_normalization_error': float(abs(opacity.sum()-1)), 'UNORM_phase_indices_valid': True,
+            'scope': 'One scalar cloud-opacity PDF for colored air, SS and MS; no stored camera predictor.'}
+
+
+def air_cloud_integral():
+    # Independent closed-form coupled-medium solution verifies the reordered integral.
+    rng = np.random.default_rng(7531)
+    atmosphere = np.array([.02,.1,.4])
+    air_source = np.array([.5,1.,2.])
+    cloud_source = np.array([2.,3.,4.])
+    boundary = np.array([.1,.4,.7]); length = 5.
+    worst = 0.
+    for cloud in (.001,.1,.8,5.):
+        total = cloud+atmosphere
+        exact = (cloud*cloud_source+atmosphere*air_source)/total*(-np.expm1(-total*length))+np.exp(-total*length)*boundary
+        clear = air_source*(-np.expm1(-atmosphere*length))+np.exp(-atmosphere*length)*boundary
+        opacity = -np.expm1(-cloud*length)
+        mean_trans = cloud/total*(-np.expm1(-total*length))/opacity
+        reordered = np.exp(-cloud*length)*clear+opacity*(air_source*(1-mean_trans)+cloud_source*mean_trans)
+        worst = max(worst,float(abs(exact-reordered).max()))
+        distance = -np.log1p(-rng.random(200000)*opacity)/cloud
+        t = np.exp(-distance[:,None]*atmosphere)
+        values = np.exp(-cloud*length)*clear+opacity*(air_source*(1-t)+cloud_source*t)
+        z = abs(values.mean(axis=0)-exact)/(values.std(axis=0)/np.sqrt(len(values)))
+        assert z.max()<5
+    assert worst<1e-14
+    return {'identity_error': worst, 'scope': 'Air/grey-cloud integral identity and opacity-importance sampling; finite GPU air quadrature is separate.'}
 
 
 def flight_distribution(direction, density, source, radius, bound, extinction, scattering, endpoint, steps=16):
@@ -547,7 +546,7 @@ if __name__ == '__main__':
     parser.add_argument('--gpu-history', type=Path, help='Frame-end RGBA32UI atlas dump with its adjacent JSON metadata')
     args = parser.parse_args()
     report = gpu_history(args.gpu_history) if args.gpu_history else {
-              'equilibrium': equilibrium(), 'spectral_reservoir': reservoir(), 'grey_segments': grey_segments(),
+              'equilibrium': equilibrium(), 'opacity_reservoir': reservoir(), 'air_cloud_integral': air_cloud_integral(), 'grey_segments': grey_segments(),
               'angular_sampling': angular_sampling(), 'scattering_orders': scattering_orders(), 'surface_integration': surface_integration(),
               'path_source_reservoir': path_source_reservoir(), 'forced_flight': forced_flight(), 'shadow_quadrature': shadow_quadrature(),
               'ground_illumination': ground_illumination(), 'resummed_transport': resummed_transport(), 'conditional_cache': conditional_cache(), 'fine_geometry': geometry(),

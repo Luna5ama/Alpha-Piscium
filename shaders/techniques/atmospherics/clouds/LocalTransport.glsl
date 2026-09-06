@@ -9,18 +9,8 @@ float ct_random(inout uint rng) {
     return hash_uintToFloat(hash_pcg_11(rng++));
 }
 
-struct CTReservoir {
-    float distance;
-    vec3 weight;
-    vec3 prediction;
-};
-
-void ct_updateReservoir(inout CTReservoir reservoir, float distance, vec3 weight, vec3 prediction, float probabilityWeight, float total, inout uint rng) {
-    if (ct_random(rng) * total < probabilityWeight) {
-        reservoir.distance = distance;
-        reservoir.weight = weight / probabilityWeight;
-        reservoir.prediction = prediction;
-    }
+void ct_updateReservoir(inout float selectedDistance, float distance, float weight, float total, inout uint rng) {
+    if (ct_random(rng) * total < weight) selectedDistance = distance;
 }
 
 // Sample the continuous RGB Mie/HG+Draine mixture, preserving the forward lobe.
@@ -243,15 +233,6 @@ vec3 ct_localRadiance(vec3 pos, vec3 omega, vec2 layerRange, inout uint rng) {
         result += beam.weight * incident * beamWeight;
     }
     return result;
-}
-
-vec3 ct_localResidual(CTReservoir reservoir, vec3 origin, vec3 direction, vec2 layerRange, vec2 xi, inout uint rng) {
-    vec3 phaseWeight;
-    vec3 pos = origin + direction * reservoir.distance;
-    vec3 omega = ct_samplePhase(-direction, xi, phaseWeight);
-    vec3 local = ct_localRadiance(pos, omega, layerRange, rng);
-    // WRS subtracts the complete predictor stored at the selected camera depth.
-    return reservoir.weight * (colors2_constants_toWorkSpace(phaseWeight * local) - reservoir.prediction);
 }
 
 #endif

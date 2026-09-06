@@ -2044,14 +2044,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "每帧云光照更新次数上限。稳定光照在误差较小时提前停止；更高上限改善光照或云体变化后的收敛。"
                         }
                     }
-                    toggle("SETTING_CLOUDS_MS_LOCAL_SAMPLES", 2, listOf(0, 1, 2, 4)) {
+                    toggle("SETTING_CLOUDS_MS_LOCAL_SAMPLES", 1, listOf(0, 1, 2, 4)) {
                         lang {
                             name = "Local Scattering Samples"
-                            comment = "Local lighting corrections per camera ray. More samples reduce noise and cost more GPU time. Zero disables local multiple scattering; direct lighting is still sampled."
+                            comment = "Local multiple-scattering paths per camera ray. More samples reduce noise and cost more GPU time. Zero uses the far-field scattering cache; direct lighting is still sampled."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "局部散射采样数"
-                            comment = "每条相机射线的局部光照修正数。更多采样能减少噪声，但增加 GPU 时间。零关闭局部多次散射，直射光照仍会采样。"
+                            comment = "每条相机射线的局部多重散射路径数。更多采样能减少噪声，但增加 GPU 时间。零使用远场散射缓存，直射光照仍会采样。"
                         }
                     }
                     toggle("SETTING_CLOUDS_MS_LOCAL_BOUNCES", 4, listOf(1, 2, 4, 8, 16, 32)) {

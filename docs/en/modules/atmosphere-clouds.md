@@ -48,7 +48,7 @@ When `SETTING_CLOUDS_CU` is enabled:
 
 | Order | Pass                                                                                             | Purpose                                                                                                                                                                                                      |
 |-------|--------------------------------------------------------------------------------------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| 1     | [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) | Ray marches convective towers with high-resolution single scattering, a cached MS predictor, and sparse local transport residuals |
+| 1     | [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) | Ray marches convective towers with high-resolution single scattering, opacity-weighted lighting samples and local transport |
 | 2     | [`clouds/ss/Accum`](../../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl)          | Applies history accumulation, confidence/variance processing, and upscaling to the low-resolution result; this is the [`ss/Accum`](../../../shaders/techniques/atmospherics/clouds/ss/Accum.comp.glsl) stage |
 | 3     | Later air/local composition                                                                      | Reads the accumulated cloud scattering and transmittance                                                                                                                                                     |
 
@@ -81,9 +81,14 @@ intersections clip the march; the cloud interval is capped at 60 km, with a maxi
 When residual transmittance falls below `0.005`, the march completes the opaque tail with the local source and sets
 transmission to zero.
 
-Each occupied scouting bin evaluates the cached predictor and foreground air at its endpoints. Thin optical
-segments interpolate these low-frequency quantities while sampling full-detail density. Expensive
-single scattering is evaluated at opacity-weighted reservoir depths, using exactly the same spectral camera weights.
+Grey cloud extinction supplies one scalar camera-opacity PDF for all wavelengths. The primary march integrates
+transmission and weighted depth, while reservoirs store only selected distances. Let `A = 1-T_cloud` and
+`d alpha_cloud = T_cloud sigma_t ds`. Reordering the foreground-air integral gives
+`T_cloud L_clear + integral d alpha_cloud [L_air(0,s) + T_air(0,s) albedo (P B + P S)]`.
+This follows the [equation of transfer](https://pbr-book.org/4ed/Light_Transport_II_Volume_Rendering/The_Equation_of_Transfer).
+The renderer samples the bracket only at selected depths, with separate SS/air and MS sample counts. The expectation
+is unchanged for the selected quadrature model; depth-sampling variance replaces repeated cache/air queries.
+No per-depth cached predictor or RGB reservoir weight is stored.
 There are two direct-light samples by default, or four when the local sample budget is four. Sun and moon use
 actual density, atmospheric transmittance, Earth occlusion, and the full phase function at the sampled solar/lunar
 disc direction.
@@ -110,9 +115,10 @@ AP0 coefficients. Illumination and the selected phase function remain RGB. Camer
 flight use this true extinction. Reduced high-order characteristics analytically include repeated within-channel
 scattering; their coefficient is distinct from both true extinction and transport extinction `a1`.
 
-Air scattering and transmission are integrated to scouting-bin endpoints with 4–32 samples per segment.
-Interpolation avoids repeating the air march in every thin optical segment; cloud opacity still weights the
-foreground radiance at each depth. [`SkyComposite.glsl`](../../../shaders/techniques/atmospherics/SkyComposite.glsl)
+Air scattering and transmission are integrated once from the camera to each selected depth, using 4–32 samples.
+Cloud-opacity importance sampling weights foreground radiance and cloud lighting consistently; the primary density
+loop no longer carries air-lighting state or samples the lighting cache.
+[`SkyComposite.glsl`](../../../shaders/techniques/atmospherics/SkyComposite.glsl)
 then composites the result over the sky; it no longer places cumulus at a fixed middle-altitude plane.
 When viewed from above cirrus, its foreground scattering and transmission are applied to the cumulus contribution.
 Cloud history reprojects at its opacity-weighted depth with horizontal wind advection and the atmosphere altitude
@@ -222,7 +228,7 @@ characteristic diffusion limit. Its `--gpu-buffer PATH --resolution 32` mode ver
 fixed-budget residual and power defect. These checks complement target-Iris compilation, buffer capture, images and
 pass timings; they do not substitute for image comparison with reference transport or photographs.
 
-### Local scattering paths and sparse residuals
+### Local scattering paths and opacity sampling
 
 [`LocalTransport.glsl`](../../../shaders/techniques/atmospherics/clouds/LocalTransport.glsl) uses continuous camera
 and second-scattering directions, then the same 24-channel equation as the shared solver. High-order flights
@@ -231,15 +237,15 @@ planar boundary patch, Marshak-to-HG reconstruction, distance blend or density A
 
 | Stage | Operation |
 |---|---|
-| Camera integration | Integrates the complete cached predictor and maintains opacity-weighted depth reservoirs with their exact saved predictor and foreground-air weights |
+| Camera integration | Integrates true cloud transmission and stores only opacity-weighted selected distances |
 | First local flight | Uses true grey extinction and the continuous RGB phase function; the projected angular cache is integrated before selecting its discrete continuation channel |
 | High-order flight | Uses `sigma_f` through actual density, sampling the nonnegative residual phase `P - f I`; camera extinction and physical shadow rays remain unchanged |
 | Terminal flight | Integrates transmission over 16 exponential density bins; WRS selects a position conditional on scattering, and adds both weighted scattering refill and transmitted endpoint light |
 | External sources | Separate positive reservoirs select one sky event and one sun/moon event per path; actual fine shadows evaluate their radiance without subtracting an inaccurate coarse shadow |
-| Camera correction | Adds the signed local-minus-predicted contribution; root directions use stratified spatiotemporal blue noise |
+| Camera shading | Evaluates full local MS, direct light and foreground air at the selected depths; root directions use stratified spatiotemporal blue noise mapped to half-open bin centers |
 
-`SETTING_CLOUDS_MS_LOCAL_SAMPLES` selects 0, 1, 2 (default), or 4 paths; zero disables local MS correction but retains
-direct light. `SETTING_CLOUDS_MS_LOCAL_BOUNCES` selects 1, 2, 4 (default), 8, 16, or 32 transport stages. The first
+`SETTING_CLOUDS_MS_LOCAL_SAMPLES` selects 0, 1 (default), 2, or 4 paths; zero queries the shared MS cache and retains direct light.
+`SETTING_CLOUDS_MS_LOCAL_BOUNCES` selects 1, 2, 4 (default), 8, 16, or 32 transport stages. The first
 stage is continuous. Subsequent stages include arbitrarily many within-channel events, so this is no longer a
 literal physical-scattering count. More stages extend local transport; they do not change an artistic boundary
 weight or guarantee lower finite-sample noise.
@@ -253,14 +259,13 @@ equilibrium remains constant. Finite bin quadrature and a three-coarse-cell flig
 
 At intermediate high-order events, `(P-f I) C` is the known conditional expectation of cached continuation.
 Adding it and subtracting the sampled `C` before continuing leaves the same finite-depth transport target.
-The selected continuous phase LUT's finite sampling accuracy still limits camera/path cancellation.
+The selected continuous phase LUT's finite sampling accuracy remains an approximation. UNORM blue-noise values are mapped into `[0,1)` bin centers so the RGB phase sampler cannot select a fourth component.
 
 Sky source directions are continuous; high-order source evaluation first samples a uniform direction inside the
 selected angular cell. Beam sources use the integrated solar/lunar cell phase. Their positive proposals use
 unoccluded incident power and path/phase weights. A completely occluded source contributes exactly zero, rather
-than noise from subtracting a falsely lit coarse prediction. Sources, projected continuation and the complete
-camera predictor each keep their own probability factors, so neither uncollided nor already-scattered light is
-added twice.
+than noise from subtracting a falsely lit coarse prediction. Sources, projected continuation and camera-depth sampling keep their own probability factors, so neither
+uncollided nor already-scattered light is added twice.
 
 The coarse grid, 24-channel high-order representation, flight radius, density quadrature and terminal field remain
 approximations. Local corrections do not feed net flux into the coarse solve, so its power balance does not prove
@@ -270,7 +275,7 @@ finite-sample noise remain possible. Increasing depth refines this chosen model 
 agreement or full angular/spatial convergence.
 
 [`cloud-local-transport-check.py`](../../../scripts/test/cloud-local-transport-check.py) checks grey flight sampling,
-vacuum/equilibrium, camera and source reservoirs, resummation against an independent continuum slab, conditional
+vacuum/equilibrium, the coupled air/cloud integral identity, UNORM sampling bounds, camera and source reservoirs, resummation against an independent continuum slab, conditional
 continuation, forced-terminal variance, shadow quadrature and equal-mass narrow channels. `--gpu-history PATH`
 checks finite signed scattering, transmission and depth. The main transport checker also verifies the phase CDF,
 frame-end `P S` against an Iris SSBO dump.
