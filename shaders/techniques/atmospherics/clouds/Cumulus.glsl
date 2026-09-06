@@ -7,86 +7,84 @@
 const float CU_CELL_FREQUENCY = 0.24 * exp2(SETTING_CLOUDS_LOW_BASE_FREQ);
 const float CU_BILLOW_FREQUENCY = 0.65 * exp2(SETTING_CLOUDS_LOW_BILLOWY_FREQ);
 const float CU_DETAIL_FREQUENCY = 2.1 * exp2(SETTING_CLOUDS_HIGH_BILLOWY_FREQ);
-const float CU_DENSITY_SCALE = 160.0 * SETTING_CLOUDS_CU_DENSITY;
+const float CU_DENSITY_SCALE = 240.0 * SETTING_CLOUDS_CU_DENSITY;
 
-float clouds_cu_plume(vec2 offset, float height, float top, float radius) {
-    float h = height / top;
-    float width = radius * mix(1.55, 1.0, smoothstep(0.02, 0.72, h));
-    return 1.0 - length(vec3(offset / width, (h - 0.28) / 0.72));
+float clouds_cu_lobe(vec2 offset, float height, float centerHeight, float radius, float verticalRadius) {
+    return (1.0 - length(vec3(offset / radius, (height - centerHeight) / verticalRadius))) * radius;
 }
 
-float clouds_cu_union(float a, float b, float width) {
-    float overlap = max(width - abs(a - b), 0.0);
-    return max(a, b) + overlap * overlap / (4.0 * width);
+float clouds_cu_union(float a, float b) {
+    float overlap = max(0.075 - abs(a - b), 0.0);
+    return max(a, b) + overlap * overlap / 0.3;
+}
+
+float clouds_cu_thermal(vec2 offset, float height, float top, float radius) {
+    float stem = clouds_cu_lobe(offset, height, top * 0.36, radius * 0.68, top * 0.60);
+    float head = clouds_cu_lobe(offset, height, top * 0.70, radius * 0.70, top * 0.30);
+    return clouds_cu_union(stem, head);
 }
 
 float clouds_cu_density(vec3 rayPos, float heightFraction) {
-    if (heightFraction <= 0.0 || heightFraction >= 1.0) return 0.0;
+    if (heightFraction <= 0.0 || heightFraction >= 1.0 || SETTING_CLOUDS_CU_COVERAGE <= 0.0) return 0.0;
 
     vec3 pos = vec3(rayPos.x, heightFraction * SETTING_CLOUDS_CU_THICKNESS, rayPos.z);
     #if defined(SETTING_CLOUDS_CU_WIND) && !defined(SETTING_SCREENSHOT_MODE)
     pos += uval_cuDetailWind;
     #endif
 
-    float moisture = texture(usam_cumulusDetail2, vec3(pos.x * 0.045, 0.37, pos.z * 0.045)).r;
-    float coverage = saturate(SETTING_CLOUDS_CU_COVERAGE * 2.0 + moisture * 2.5 - 1.1);
-    if (coverage <= 0.0) return 0.0;
-    float development = smoothstep(0.05, 0.6, coverage);
-    vec3 curl = texture(usam_cumulusCurl, pos * 0.18).xyz;
-    vec2 cellPos = pos.xz * CU_CELL_FREQUENCY + curl.xz * 0.12;
+    vec2 cellPos = pos.xz * CU_CELL_FREQUENCY;
     ivec2 cell = ivec2(floor(cellPos));
     vec2 localPos = fract(cellPos);
-    float maxReach = 1.90 * 1.05 * coverage + 0.04;
-    ivec2 firstCell = ivec2(ceil(localPos - maxReach - 0.82));
-    ivec2 lastCell = ivec2(floor(localPos + maxReach - 0.18));
+    float coverageRadius = mix(0.12, 0.86, SETTING_CLOUDS_CU_COVERAGE);
+    float maxReach = coverageRadius * 1.12 * 1.7 + 0.075;
+    ivec2 first = ivec2(ceil(localPos - maxReach - 0.82));
+    ivec2 last = ivec2(floor(localPos + maxReach - 0.18));
     float shape = -1.0;
 
-    // Plumes spread into a common lower mass instead of sitting on separate base slabs.
-    for (int z = firstCell.y; z <= lastCell.y; ++z) {
-        for (int x = firstCell.x; x <= lastCell.x; ++x) {
+    // Overlapping thermals share a condensation base but rise to different heights.
+    for (int z = first.y; z <= last.y; ++z) {
+        for (int x = first.x; x <= last.x; ++x) {
             ivec2 offset = ivec2(x, z);
             vec3 seed = hash_uintToFloat(hash_33_q3(uvec3(uvec2(cell + offset), 0x1919810u)));
             vec2 center = vec2(offset) + mix(vec2(0.18), vec2(0.82), seed.xy);
             vec2 delta = localPos - center;
-            float top = mix(0.55, 0.98, smoothstep(0.1, 0.92, seed.z));
-            top *= mix(0.25, 1.0, development);
-            float radius = coverage * mix(0.78, 1.05, seed.x);
-            if (dot(delta, delta) > pow2(radius * 1.90 + 0.04) || heightFraction > top * 1.10) continue;
+            float radius = coverageRadius * mix(0.8, 1.12, seed.x);
+            float top = mix(0.28, 0.94, smoothstep(0.1, 0.92, seed.z));
+            if (dot(delta, delta) > pow2(radius * 1.7 + 0.075) || heightFraction > top + 0.12) continue;
 
             float angle = seed.x * (2.0 * PI);
             vec2 axis = vec2(cos(angle), sin(angle));
-            vec2 lean = (seed.xy - 0.5) * radius * 0.5 * heightFraction / top;
+            vec2 lean = (seed.xy - 0.5) * radius * heightFraction / top;
             vec2 thermalPos = delta - lean;
-            float mainLobe = clouds_cu_plume(thermalPos, heightFraction, top, radius * 0.66);
-            float sideHeight = top * mix(0.58, 0.85, seed.y);
-            float sideLobe = clouds_cu_plume(thermalPos - axis * radius * 0.66, heightFraction, sideHeight, radius * 0.58);
-            float youngHeight = top * mix(0.32, 0.65, seed.x);
-            float youngLobe = clouds_cu_plume(thermalPos + axis * radius * 0.72, heightFraction, youngHeight, radius * 0.61);
-            float lobes = clouds_cu_union(mainLobe, clouds_cu_union(sideLobe, youngLobe, 0.16), 0.14);
-            shape = clouds_cu_union(shape, lobes, 0.10);
+            float base = clouds_cu_lobe(delta, heightFraction, top * 0.04, radius * 0.88, top * 0.16);
+            float mainThermal = clouds_cu_thermal(thermalPos, heightFraction, top, radius);
+            float sideHeight = top * mix(0.58, 0.86, seed.y);
+            float sideThermal = clouds_cu_thermal(thermalPos - axis * radius * 0.43, heightFraction, sideHeight, radius * 0.82);
+            float youngHeight = top * mix(0.36, 0.65, seed.x);
+            float youngThermal = clouds_cu_thermal(thermalPos + axis * radius * 0.48, heightFraction, youngHeight, radius * 0.86);
+            float thermals = clouds_cu_union(mainThermal, clouds_cu_union(sideThermal, youngThermal));
+            shape = clouds_cu_union(shape, clouds_cu_union(base, thermals) / radius);
         }
     }
     if (shape <= 0.0) return 0.0;
-    float envelope = smoothstep(0.0, 0.12, shape);
 
-    vec3 billowPos = pos * CU_BILLOW_FREQUENCY + curl * 0.12;
-    billowPos.y *= 0.85;
-    float billowMass = texture(usam_cumulusDetail1, billowPos * 0.43).r;
+    vec3 curl = texture(usam_cumulusCurl, pos * 0.35).xyz;
+    vec3 billowPos = pos * CU_BILLOW_FREQUENCY + curl * 0.09;
+    billowPos.y *= 0.75;
     float billow = texture(usam_cumulusDetail1, billowPos).r;
-    float smallBillow = texture(usam_cumulusDetail1, billowPos * 2.7 + curl * 0.07).r;
-    float entrainment = mix(0.60, 1.0, smoothstep(0.04, 0.24, heightFraction));
-    shape += ((billowMass - 0.60) * 0.60 + (billow - 0.60) * 0.42 + (smallBillow - 0.55) * 0.20) * entrainment;
+    float entrainment = mix(0.7, 1.0, smoothstep(0.02, 0.15, heightFraction));
+    shape -= (1.0 - sqrt(billow)) * 0.38 * entrainment;
     if (shape <= 0.0) return 0.0;
 
-    // Small entrained eddies modulate a finite transition into the cloud interior.
+    // Erode the interface; the interior stays coherent instead of becoming wispy.
     vec3 detailPos = pos * CU_DETAIL_FREQUENCY + curl * 0.13;
-    float erosion = (1.0 - texture(usam_cumulusDetail2, detailPos).r) * 0.12;
-    erosion += (1.0 - texture(usam_cumulusDetail2, detailPos * 3.7).r) * 0.025;
+    float erosion = (1.0 - texture(usam_cumulusDetail2, detailPos).r) * 0.07;
+    erosion += (1.0 - texture(usam_cumulusDetail2, detailPos * 3.7).r) * 0.02;
     shape -= erosion * entrainment;
-    float surface = smoothstep(0.0, 0.09, shape) * envelope;
-    float condensationHeight = 0.008 + (1.0 - billowMass) * 0.06 + (1.0 - billow) * 0.025;
-    float condensation = smoothstep(condensationHeight, condensationHeight + 0.045, heightFraction);
-    float liquidWater = mix(0.38, 1.20, smoothstep(0.0, 0.38, heightFraction));
+    float surface = smoothstep(0.0, 0.015, shape);
+    float condensationHeight = 0.008 + (1.0 - sqrt(billow)) * 0.025 + erosion * 0.05;
+    float condensation = smoothstep(condensationHeight, condensationHeight + 0.012, heightFraction);
+    float liquidWater = mix(0.55, 1.35, smoothstep(0.0, 0.32, heightFraction));
     return surface * condensation * liquidWater * CU_DENSITY_SCALE;
 }
 

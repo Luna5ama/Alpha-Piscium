@@ -2024,7 +2024,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         }
                     }
                     empty()
-                    slider("SETTING_CLOUDS_LOW_STEP_MIN", 48, 16..128 step 8) {
+                    slider("SETTING_CLOUDS_LOW_STEP_MIN", 128, 16..128 step 8) {
                         Profile.Low preset 24
                         Profile.Medium preset 24
                         Profile.High preset 32
@@ -2041,7 +2041,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "穿过云的最小采样数。此值通常用于正上方的云。数值越高，细节越好，但会降低性能。"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_STEP_MAX", 128, 32..256 step 8) {
+                    slider("SETTING_CLOUDS_LOW_STEP_MAX", 256, 32..256 step 8) {
                         Profile.Low preset 64
                         Profile.Medium preset 64
                         Profile.High preset 96

@@ -35,7 +35,6 @@ counts, and output paths before running. They are not prerequisites for shader r
 | [`gen-spec-brdf-lut.main.kts`](../../../scripts/gen-spec-brdf-lut.main.kts) | Generates the split-sum specular BRDF LUT                                     | [`specular_brdf_lut.bin`](../../../shaders/textures/specular_brdf_lut.bin)                                                                          |
 | [`gen-f82-table.main.kts`](../../../scripts/gen-f82-table.main.kts)         | Generates the material Fresnel/F82 lookup table                               | [`f82.bin`](../../../shaders/textures/f82.bin)                                                                                                      |
 | [`gen-noisetex.main.kts`](../../../scripts/gen-noisetex.main.kts)           | Generates a 64³ RGBA16 white-noise volume                                     | [`white_noise_64x64x64.bin`](../../../shaders/textures/white_noise_64x64x64.bin)                                                                    |
-| [`gen-cumulus-billows.py`](../../../scripts/gen-cumulus-billows.py) | Bakes deterministic periodic cellular billows as a single-scale 128³ R8 volume; requires NumPy | [`cumulus_detail1.bin`](../../../shaders/textures/cumulus_detail1.bin) |
 | [`extract-opac.main.kts`](../../../scripts/extract-opac.main.kts)           | Parses OPAC/CIE data into intermediate CSVs and a runtime cloud phase texture | [`data/opac_raw/`](../../../data/opac_raw/), [`opac_cloud_phases.bin`](../../../shaders/textures/opac_cloud_phases.bin)                             |
 | [`nishina-e.main.kts`](../../../scripts/nishina-e.main.kts)                 | Computes and prints Nishina-related numeric arrays                            | Standard output                                                                                                                                     |
 
@@ -45,8 +44,9 @@ Usually run:
 kotlin <script>.main.kts
 ```
 
-For the cloud billow volume, run `python scripts/gen-cumulus-billows.py` from the repository root.
-The output keeps its existing dimensions, R8 channel layout, and repeat/linear sampling metadata.
+The cloud billow volume uses the Strepitus recipe in
+[`cumulus_detail1.json`](../../../data/strepitus/cumulus_detail1.json). Its four noise octaves are combined into
+[`cumulus_detail1.bin`](../../../shaders/textures/cumulus_detail1.bin), a 128³ R8 volume with repeat/linear sampling.
 
 For runtime texture generators, check binary size/layout and synchronize the `customTexture.*` format, dimensions, and
 type in [`scripts/shaders.properties`](../../../scripts/shaders.properties). On the shader side, synchronize sampler

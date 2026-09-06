@@ -58,25 +58,23 @@ textures. High cirrus is sampled by the shared sky/cloud path rather than a sepa
 
 ### Cumulus congestus
 
-[`Cumulus.glsl`](../../../shaders/techniques/atmospherics/clouds/Cumulus.glsl) builds each cell from three overlapping
-plumes of different heights. Their footprints widen continuously toward the condensation base, merging into a broad
-lower mass without separate stems, caps, or base slabs. Footprint width is independent of plume height; moisture
-varies coverage and development, while cell seeds vary lean and side branches. Neighbor bounds include the full
-spread of the lower cloud body. Curl warps both the envelope and its billows.
+[`Cumulus.glsl`](../../../shaders/techniques/atmospherics/clouds/Cumulus.glsl) joins a broad, shallow condensation base
+to three thermals of different heights. Each thermal combines an elongated body and a round crown. Cell seeds vary
+height, lean, and side branches; coverage controls footprint width independently of height. Neighbor bounds cover
+the base and leaning thermals. The normalized envelope keeps erosion proportional to the cell radius.
 
-Three separately weighted scales of a periodic cellular texture shape the large billows, followed by two finer
-erosion scales. The envelope fades the density at its boundary, limiting detached noise lobes. Surface density and
-condensation both have finite transitions; liquid-water density rises gradually above the base. The default layer
-starts at 1 km and is 3.5 km deep. The single-scale 128³ R8 billow texture is baked by
-[`gen-cumulus-billows.py`](../../../scripts/gen-cumulus-billows.py); the second detail texture supplies moisture and
-fine erosion. The former combined Strepitus recipe for the first detail texture is no longer used.
+A four-octave Worley texture shapes the large billows, with vertical stretching and curl displacement, followed by
+two finer erosion scales. Noise perturbs the condensation boundary over a finite density transition; liquid-water
+density rises above the base. The default layer starts at 1 km and is 3.5 km deep. The 128³ R8 billow texture uses
+the Strepitus recipe in [`cumulus_detail1.json`](../../../data/strepitus/cumulus_detail1.json); the second detail
+texture supplies fine erosion.
 
 [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) uses the spherical-shell
 intersection in [`clouds/Common.glsl`](../../../shaders/techniques/atmospherics/clouds/Common.glsl). The main march covers the entire
-visible interval with nonuniform distance bins and one uniformly jittered sample per bin. Density and lighting are
-evaluated at that sample, using the full bin length in the analytic constant-medium Beer-Lambert integral. The march
-retains the continuous density transition instead of moving the first sample to a nominal opaque surface. This is a
-constant-bin approximation, not an unbiased path tracer. Ground intersections clip the march;
+visible interval with nonuniform distance bins, using 128–256 samples by default. When an empty sample is followed by
+an occupied sample, four bisections locate the interface and move lighting evaluation within one nominal mean free
+path of it. The occupied segment length enters the analytic constant-medium Beer-Lambert integral. This surface
+sampling is a biased approximation that preserves illuminated billows at finite step counts. Ground intersections clip the march;
 the cloud interval is capped at 60 km, with a maximum distance of 120 km from the camera.
 When residual transmittance falls below `0.005`, the march completes the opaque tail with the local source and
 sets transmission to zero. This avoids bright-sky leakage and termination bands inside dense clouds.
