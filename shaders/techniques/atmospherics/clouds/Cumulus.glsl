@@ -8,6 +8,7 @@ const float CU_CELL_FREQUENCY = 0.24 * exp2(SETTING_CLOUDS_LOW_BASE_FREQ);
 const float CU_BILLOW_FREQUENCY = 0.65 * exp2(SETTING_CLOUDS_LOW_BILLOWY_FREQ);
 const float CU_DETAIL_FREQUENCY = 2.1 * exp2(SETTING_CLOUDS_HIGH_BILLOWY_FREQ);
 const float CU_DENSITY_SCALE = 240.0 * SETTING_CLOUDS_CU_DENSITY;
+const float CU_DENSITY_MAX = 1.35 * CU_DENSITY_SCALE;
 
 vec3 clouds_cu_wind(float time) {
     #if defined(SETTING_CLOUDS_CU_WIND) && !defined(SETTING_SCREENSHOT_MODE)
@@ -97,19 +98,54 @@ float clouds_cu_density(vec3 rayPos, float heightFraction) {
     return surface * condensation * liquidWater * CU_DENSITY_SCALE;
 }
 
-float clouds_cu_column(vec3 origin, vec3 direction, vec2 layerRange, int steps, float spread, float jitter) {
+float clouds_cu_column(vec3 origin, vec3 direction, vec2 layerRange, int steps, float jitter) {
     vec2 interval;
-    if (!clouds_layerInterval(origin, direction, layerRange, interval)) return 0.0;
+    if (CU_DENSITY_SCALE <= 0.0 || !clouds_layerInterval(origin, direction, layerRange, interval)) return 0.0;
     float rayLength = min(interval.y - interval.x, 12.0);
+    // Anchor near-field shadow resolution to extinction, independent of the distant layer exit.
+    float lengthScale = 0.25 / (CU_DENSITY_MAX * mmax3(CLOUDS_CU_EXTINCTION));
+    float spread = log2(1.0 + rayLength / lengthScale);
     float column = 0.0;
     for (int i = 0; i < steps; ++i) {
-        float start = (exp2(float(i) / float(steps) * spread) - 1.0) / (exp2(spread) - 1.0) * rayLength;
-        float end = (exp2(float(i + 1) / float(steps) * spread) - 1.0) / (exp2(spread) - 1.0) * rayLength;
+        float start = (exp2(float(i) / float(steps) * spread) - 1.0) * lengthScale;
+        float end = (exp2(float(i + 1) / float(steps) * spread) - 1.0) * lengthScale;
         vec3 pos = origin + direction * (interval.x + mix(start, end, jitter));
         float height = (length(pos) - layerRange.x) / (layerRange.y - layerRange.x);
         column += clouds_cu_density(pos, height) * (end - start);
+        if (column * mmin3(CLOUDS_CU_EXTINCTION) > 12.0) break;
     }
     return column;
+}
+
+vec3 clouds_cu_transmittance(vec3 origin, vec3 direction, vec2 layerRange, vec3 extinction, inout uint rng) {
+    vec2 interval;
+    if (CU_DENSITY_SCALE <= 0.0 || !clouds_layerInterval(origin, direction, layerRange, interval)) return vec3(1.0);
+    float majorant = CU_DENSITY_MAX * mmax3(extinction);
+    float nearEnd = min(interval.y, interval.x + 8.0 / majorant);
+    float distance = interval.x;
+    vec3 transmittance = vec3(1.0);
+    // Ratio tracking resolves near-field occluders without exponentiating an undersampled column.
+    while (true) {
+        float xi = hash_uintToFloat(hash_pcg_11(rng++));
+        distance -= log(1.0 - xi) / majorant;
+        if (distance >= nearEnd) break;
+        vec3 pos = origin + direction * distance;
+        float density = clouds_cu_density(pos, (length(pos) - layerRange.x) / (layerRange.y - layerRange.x));
+        transmittance *= 1.0 - extinction * density / majorant;
+        if (mmax3(transmittance) == 0.0) return transmittance;
+        // Unbiased early exit for opaque near-field shadow paths.
+        float survival = mmax3(transmittance) * 1e6;
+        if (survival < 1.0) {
+            if (hash_uintToFloat(hash_pcg_11(rng++)) >= survival) return vec3(0.0);
+            transmittance /= survival;
+        }
+    }
+    if (nearEnd < interval.y) {
+        float jitter = hash_uintToFloat(hash_pcg_11(rng++));
+        float column = clouds_cu_column(origin + direction * nearEnd, direction, layerRange, 16, jitter);
+        transmittance *= exp(-extinction * column);
+    }
+    return transmittance;
 }
 
 #endif

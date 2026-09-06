@@ -53,10 +53,12 @@ void main() {
         vec3 rayDir = vec3(cos(spherical.y) * sinPhi, cosPhi, sin(spherical.y) * sinPhi);
         if (cumulus) {
             if (firstGroup) {
-                if (cosPhi >= 0.0) skySum += inScattering / float(SAMPLE_COUNT);
+                // Lambertian ground radiance is albedo * E_sky / pi.
+                if (cosPhi >= 0.0) skySum += inScattering * (4.0 * cosPhi / float(SAMPLE_COUNT));
             } else if (ct_angle(-rayDir) == texelPos.x - 1) {
                 // Average uncollided radiance in an equal-solid-angle cell.
-                skySum += (inScattering + groundDirect) * (24.0 / float(SAMPLE_COUNT));
+                // Ground reflection is evaluated at the actual ground intersection by transport.
+                skySum += inScattering * (24.0 / float(SAMPLE_COUNT));
             }
         } else {
             vec2 jitter = rand_r2Seq2(i + 32u * frameCounter);

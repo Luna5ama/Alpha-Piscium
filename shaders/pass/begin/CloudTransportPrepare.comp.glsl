@@ -97,7 +97,7 @@ void main() {
                 vec3 irradiance = light == 0 ? SUN_ILLUMINANCE : MOON_ILLUMINANCE;
                 vec3 airTr = atmospherics_air_lut_sampleTransmittance(atmosphere, dot(pos / height, direction), height);
                 vec3 incident = ct_toAP0(irradiance * airTr);
-                vec3 tr = exp(-CT_EXTINCTION * clouds_cu_column(pos, direction, layerRange, 16, 6.0, 0.5));
+                vec3 tr = exp(-CT_EXTINCTION * clouds_cu_column(pos, direction, layerRange, 16, 0.5));
                 vec3 correlatedSource = incident * tr * (rho * 0.25);
                 if (light == 0) sun += correlatedSource;
                 else moon += correlatedSource;

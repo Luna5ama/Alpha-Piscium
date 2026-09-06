@@ -48,7 +48,7 @@ void main() {
 
         const float HEIGHT_EPS = 0.01;
         float rayEndHeight = length(params.rayEnd);
-        if (abs(rayEndHeight - atmosphere.bottom) < HEIGHT_EPS) {
+        if (!clouds_amblut_isCumulus() && abs(rayEndHeight - atmosphere.bottom) < HEIGHT_EPS) {
             vec3 upVector = params.rayEnd / rayEndHeight;
             float clampedGroundHeight = max(atmosphere.bottom + HEIGHT_EPS, rayEndHeight);
             {

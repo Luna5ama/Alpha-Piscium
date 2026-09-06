@@ -3,6 +3,7 @@
 
 #include "Transport.glsl"
 #include "/util/Celestial.glsl"
+#include "/util/Rand.glsl"
 
 float ct_random(inout uint rng) {
     return hash_uintToFloat(hash_pcg_11(rng++));
@@ -11,89 +12,153 @@ float ct_random(inout uint rng) {
 struct CTReservoir {
     float distance;
     vec3 weight;
+    vec3 prediction;
 };
 
-void ct_updateReservoir(inout CTReservoir reservoir, float distance, vec3 weight, float probabilityWeight, float total, inout uint rng) {
+void ct_updateReservoir(inout CTReservoir reservoir, float distance, vec3 weight, vec3 prediction, float probabilityWeight, float total, inout uint rng) {
     if (ct_random(rng) * total < probabilityWeight) {
         reservoir.distance = distance;
         reservoir.weight = weight / probabilityWeight;
+        reservoir.prediction = prediction;
     }
 }
 
-// Sample the exact interpolated RGB matrix row, not the continuous phase.
-// WRS normalizes the scalar proposal even with FP32 row-sum roundoff.
-int ct_samplePhase(ivec4 angles, vec4 weights, inout uint rng, out vec3 phaseWeight) {
-    float total = 0.0;
-    int selected = 0;
-    for (int incoming = 0; incoming < CT_ANGLES; ++incoming) {
-        vec3 phase = vec3(0.0);
-        for (int a = 0; a < 4; ++a) phase += weights[a] * ctPhase(angles[a] * CT_ANGLES + incoming).rgb;
-        float proposal = dot(phase, vec3(1.0 / 3.0));
-        total += proposal;
-        if (ct_random(rng) * total < proposal) {
-            selected = incoming;
-            phaseWeight = phase / proposal;
-        }
-    }
-    phaseWeight *= total;
-    return selected;
+// Sample the continuous RGB Mie/HG+Draine mixture, preserving the forward lobe.
+vec3 ct_samplePhase(vec3 outgoing, vec2 xi, out vec3 phaseWeight) {
+    float channelXi = xi.x * 3.0;
+    vec3 cosines = ct_phaseCosines(fract(channelXi));
+    float mu = cosines[int(channelXi)];
+    vec3 tangent = normalize(cross(outgoing, abs(outgoing.y) < 0.9 ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0)));
+    vec3 bitangent = cross(outgoing, tangent);
+    vec3 incoming = outgoing * mu + (tangent * cos(2.0 * PI * xi.y) + bitangent * sin(2.0 * PI * xi.y)) * sqrt(1.0 - mu * mu);
+    vec3 phase = ct_toAP0(clouds_phase_cu(mu, SETTING_CLOUDS_CU_PHASE_RATIO));
+    phaseWeight = phase / dot(phase, vec3(1.0 / 3.0));
+    return incoming;
 }
 
-vec3 ct_localRadiance(vec3 pos, int angle, vec2 layerRange, inout uint rng) {
-    ivec3 base;
-    vec3 f;
-    if (!ct_interpolation(pos, base, f)) return vec3(0.0);
-    vec3 omega = ct_direction(angle);
-    // One upstream cell flight length. Exponential bins resolve the near field.
-    vec3 cellSize = mix(ct_size(base, 0), ct_size(base + 1, 0), f);
-    float radius = 1.0 / dot(abs(omega), 1.0 / cellSize);
+// Reduce the beam proposal with path depth so continuation likelihoods do not grow exponentially.
+vec3 ct_sampleLightDirection(vec3 pos, vec3 outgoing, float beamProbability, inout uint rng, out vec3 phaseWeight) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
-    float groundDistance = raySphereIntersectNearest(pos, -omega, vec3(0.0), atmosphere.bottom);
-    bool hitsGround = groundDistance >= 0.0 && groundDistance < radius;
-    if (hitsGround) radius = groundDistance;
-    vec3 skyWeight;
-    int skyAngle = ct_samplePhase(ivec4(angle), vec4(1.0, 0.0, 0.0, 0.0), rng, skyWeight);
-    vec3 skyIncident = ct_boundary(skyAngle) * skyWeight;
-    vec3 transmittance = vec3(1.0);
-    vec3 result = vec3(0.0);
-    float jitter = ct_random(rng);
-    float shadowJitter = ct_random(rng);
-    for (int step = 0; step < SETTING_CLOUDS_MS_LOCAL_STEPS; ++step) {
-        float start = (exp2(float(step) * (4.0 / SETTING_CLOUDS_MS_LOCAL_STEPS)) - 1.0) * (radius / 15.0);
-        float end = (exp2(float(step + 1) * (4.0 / SETTING_CLOUDS_MS_LOCAL_STEPS)) - 1.0) * (radius / 15.0);
-        vec3 samplePos = pos - omega * mix(start, end, jitter);
-        float height = length(samplePos);
-        float density = clouds_cu_density(samplePos, (height - layerRange.x) / (layerRange.y - layerRange.x));
-        if (density == 0.0) continue;
-        vec3 source = ct_sampleDirection(samplePos, angle, CT_SOURCE_OFFSET);
-        // Reuse one sky direction along this local ray; its expectation is P B_h.
-        source += skyIncident * exp(-CT_EXTINCTION * clouds_cu_column(samplePos, -ct_direction(skyAngle), layerRange, 12, 6.0, shadowJitter));
-        for (int light = 0; light < 2; ++light) {
-            vec3 lightDir = light == 0 ? uval_sunDirWorld : uval_moonDirWorld;
-            if (raySphereIntersectNearest(samplePos, lightDir, vec3(0.0), atmosphere.bottom) >= 0.0) continue;
-            vec3 illuminance = light == 0 ? SUN_ILLUMINANCE : MOON_ILLUMINANCE;
-            vec3 phase = light == 0 ? ctSunPhase(angle).rgb : ctMoonPhase(angle).rgb;
-            vec3 airTr = atmospherics_air_lut_sampleTransmittance(atmosphere, dot(samplePos / height, lightDir), height);
-            vec3 shadow = exp(-CT_EXTINCTION * clouds_cu_column(samplePos, lightDir, layerRange, 16, 6.0, shadowJitter));
-            source += ct_toAP0(illuminance * airTr) * phase * shadow;
-        }
-        vec3 tau = CT_EXTINCTION * density * (end - start);
-        vec3 segmentTr = exp(-tau);
-        vec3 opacity = mix(1.0 - segmentTr, tau * (1.0 - 0.5 * tau + tau * tau / 6.0), lessThan(tau, vec3(0.001)));
-        result += transmittance * opacity * (CT_SCATTERING / CT_EXTINCTION) * source;
-        transmittance *= segmentTr;
+    vec3 lightDir = uval_sunDirWorld;
+    if (raySphereIntersectNearest(pos, lightDir, vec3(0.0), atmosphere.bottom) >= 0.0) lightDir = uval_moonDirWorld;
+    bool visible = raySphereIntersectNearest(pos, lightDir, vec3(0.0), atmosphere.bottom) < 0.0;
+    vec3 axis = visible && ct_random(rng) < beamProbability ? -lightDir : outgoing;
+    vec3 incoming = ct_samplePhase(axis, vec2(ct_random(rng), ct_random(rng)), phaseWeight);
+    if (visible) {
+        vec3 phase = ct_toAP0(clouds_phase_cu(clamp(dot(outgoing, incoming), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
+        vec3 lightPhase = ct_toAP0(clouds_phase_cu(clamp(dot(-lightDir, incoming), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
+        phaseWeight = phase / dot(mix(phase, lightPhase, beamProbability), vec3(1.0 / 3.0));
     }
-    if (!hitsGround) result += transmittance * ct_sampleDirection(pos - omega * radius, angle, CT_RADIANCE_OFFSET);
+    return incoming;
+}
+
+struct CTLightReservoir {
+    vec3 pos;
+    vec3 omega;
+    vec3 weight;
+    vec3 prediction;
+};
+
+void ct_updateLightReservoir(inout CTLightReservoir reservoir, vec3 pos, vec3 omega, vec3 weight, vec3 prediction, float proposal, float total, inout uint rng) {
+    if (ct_random(rng) * total < proposal) reservoir = CTLightReservoir(pos, omega, weight / proposal, prediction);
+}
+
+vec3 ct_localSource(CTLightReservoir reservoir, vec2 layerRange, inout uint rng) {
+    vec3 pos = reservoir.pos;
+    vec3 omega = reservoir.omega;
+    AtmosphereParameters atmosphere = getAtmosphereParameters();
+    float height = length(pos);
+    float shadowJitter = ct_random(rng);
+    vec3 skyWeight;
+    vec3 skyDir = ct_samplePhase(omega, vec2(ct_random(rng), ct_random(rng)), skyWeight);
+    vec3 source = ct_boundary(pos, skyDir, layerRange, shadowJitter) * skyWeight * clouds_cu_transmittance(pos, -skyDir, layerRange, CT_EXTINCTION, rng);
+    for (int light = 0; light < 2; ++light) {
+        vec3 lightDir = light == 0 ? uval_sunDirWorld : uval_moonDirWorld;
+        if (raySphereIntersectNearest(pos, lightDir, vec3(0.0), atmosphere.bottom) >= 0.0) continue;
+        vec3 illuminance = light == 0 ? SUN_ILLUMINANCE : MOON_ILLUMINANCE;
+        float radius = light == 0 ? SUN_ANGULAR_RADIUS : MOON_ANGULAR_RADIUS;
+        vec3 shadowDir = rand_sampleInCone(lightDir, radius, vec2(ct_random(rng), ct_random(rng)));
+        vec3 phase = ct_toAP0(clouds_phase_cu(clamp(dot(-omega, shadowDir), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
+        vec3 airTr = atmospherics_air_lut_sampleTransmittance(atmosphere, dot(pos / height, lightDir), height);
+        vec3 shadow = clouds_cu_transmittance(pos, shadowDir, layerRange, CT_EXTINCTION, rng);
+        source += ct_toAP0(illuminance * airTr) * phase * shadow;
+    }
+    return reservoir.weight * (source - reservoir.prediction);
+}
+
+vec3 ct_localRadiance(vec3 pos, vec3 omega, vec2 layerRange, inout uint rng) {
+    AtmosphereParameters atmosphere = getAtmosphereParameters();
+    float referenceExtinction = dot(CT_EXTINCTION, vec3(1.0 / 3.0));
+    float majorant = 1.5 * mmax3(CT_EXTINCTION) * CU_DENSITY_MAX;
+    vec3 throughput = vec3(1.0);
+    vec3 result = vec3(0.0);
+    vec3 sourceFloor = ct_toAP0(SUN_ILLUMINANCE + MOON_ILLUMINANCE) * UNIFORM_PHASE;
+    float lightingWeight = 0.0;
+    CTLightReservoir light0 = CTLightReservoir(pos, omega, vec3(0.0), vec3(0.0));
+    CTLightReservoir light1 = light0;
+    for (int bounce = 0; bounce < SETTING_CLOUDS_MS_LOCAL_BOUNCES; ++bounce) {
+        ivec3 base;
+        vec3 f;
+        if (!ct_interpolation(pos, base, f)) break;
+        vec3 cellSize = mix(ct_size(base, 0), ct_size(base + 1, 0), f);
+        float radius = 1.0 / dot(abs(omega), 1.0 / cellSize);
+        float groundDistance = raySphereIntersectNearest(pos, -omega, vec3(0.0), atmosphere.bottom);
+        bool hitsGround = groundDistance >= 0.0 && groundDistance < radius;
+        if (hitsGround) radius = groundDistance;
+        float distance = 0.0;
+        bool escaped = false;
+        // A padded majorant keeps RGB null weights away from zero. A tight
+        // majorant and least-extinct real events cause rare, huge blue path weights.
+        while (true) {
+            distance -= log(1.0 - ct_random(rng)) / majorant;
+            if (distance >= radius) {
+                if (!hitsGround) result += throughput * ct_sampleRadiance(pos - omega * radius, omega);
+                escaped = true;
+                break;
+            }
+            vec3 samplePos = pos - omega * distance;
+            float height = length(samplePos);
+            float density = clouds_cu_density(samplePos, (height - layerRange.x) / (layerRange.y - layerRange.x));
+            float realRate = density * referenceExtinction;
+            if (ct_random(rng) * majorant < realRate) {
+                pos = samplePos;
+                throughput *= CT_SCATTERING / referenceExtinction;
+                break;
+            }
+            throughput *= (majorant - density * CT_EXTINCTION) / (majorant - realRate);
+        }
+        if (escaped) break;
+        vec3 prediction = ct_sampleExternal(pos, omega);
+        result += throughput * prediction;
+        // A positive isotropic beam floor keeps unresolved coarse cells sampleable.
+        // This proposal changes variance only; the entire source residual is retained.
+        float proposal = mmax3(throughput * (prediction + sourceFloor));
+        lightingWeight += proposal;
+        ct_updateLightReservoir(light0, pos, omega, throughput, prediction, proposal, lightingWeight, rng);
+        ct_updateLightReservoir(light1, pos, omega, throughput, prediction, proposal, lightingWeight, rng);
+        vec3 phaseWeight;
+        omega = ct_sampleLightDirection(pos, omega, 0.0625 / float(bounce + 1), rng, phaseWeight);
+        throughput *= phaseWeight;
+        if (bounce + 1 == SETTING_CLOUDS_MS_LOCAL_BOUNCES) {
+            result += throughput * ct_sampleRadiance(pos, omega);
+            break;
+        }
+    }
+    if (lightingWeight > 0.0) {
+        vec3 residual = ct_localSource(light0, layerRange, rng) + ct_localSource(light1, layerRange, rng);
+        result += residual * (lightingWeight * 0.5);
+    }
     return result;
 }
 
-vec3 ct_localResidual(CTReservoir reservoir, vec3 origin, vec3 direction, ivec4 angles, vec4 weights, vec2 layerRange, inout uint rng) {
+vec3 ct_localResidual(CTReservoir reservoir, vec3 origin, vec3 direction, vec2 layerRange, inout uint rng) {
     vec3 phaseWeight;
-    int angle = ct_samplePhase(angles, weights, rng, phaseWeight);
     vec3 pos = origin + direction * reservoir.distance;
-    vec3 predictor = ct_sampleDirection(pos, angle, CT_RADIANCE_OFFSET);
-    vec3 local = ct_localRadiance(pos, angle, layerRange, rng);
-    return reservoir.weight * colors2_constants_toWorkSpace(phaseWeight * (local - predictor));
+    vec3 omega = ct_sampleLightDirection(pos, -direction, 0.0625, rng, phaseWeight);
+    vec3 local = ct_localRadiance(pos, omega, layerRange, rng);
+    // Subtract the exact camera predictor stored by WRS. Its angular matrix need
+    // not match the continuous local model: the full predictor cancels in expectation.
+    return reservoir.weight * (colors2_constants_toWorkSpace(phaseWeight * local) - reservoir.prediction);
 }
 
 #endif

@@ -1984,7 +1984,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             6 value "4.0 倍"
                         }
                     }
-                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 16, powerOfTwoAndHalfRange(2..7)) {
+                    slider("SETTING_CLOUDS_LOW_MAX_ACCUM", 32, powerOfTwoAndHalfRange(2..7)) {
                         Profile.Low preset 48
                         Profile.Medium preset 32
                         Profile.High preset 24
@@ -2047,21 +2047,21 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     toggle("SETTING_CLOUDS_MS_LOCAL_SAMPLES", 2, listOf(0, 1, 2, 4)) {
                         lang {
                             name = "Local Scattering Samples"
-                            comment = "Local lighting corrections per camera ray. More samples reduce noise and cost more GPU time. Zero shows the far-field cache alone."
+                            comment = "Local lighting corrections per camera ray. More samples reduce noise and cost more GPU time. Zero disables local multiple scattering; direct lighting is still sampled."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "局部散射采样数"
-                            comment = "每条相机射线的局部光照修正数。更多采样能减少噪声，但增加 GPU 时间。零仅显示远场缓存。"
+                            comment = "每条相机射线的局部光照修正数。更多采样能减少噪声，但增加 GPU 时间。零关闭局部多次散射，直射光照仍会采样。"
                         }
                     }
-                    toggle("SETTING_CLOUDS_MS_LOCAL_STEPS", 8, listOf(4, 8, 16)) {
+                    toggle("SETTING_CLOUDS_MS_LOCAL_BOUNCES", 8, listOf(1, 4, 8, 16, 32)) {
                         lang {
-                            name = "Local Scattering Steps"
-                            comment = "Density and lighting samples along each local light path. More steps resolve smaller occluders and illuminated gaps."
+                            name = "Local Scattering Depth"
+                            comment = "Scattering events followed through the actual cloud density before using the far-field cache. Higher values resolve more light exchange within small cloud structures."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "局部散射步数"
-                            comment = "每条局部光路的密度与光照采样数。更多步数能分辨更小的遮挡团块和受光空隙。"
+                            name = "局部散射深度"
+                            comment = "查询远场缓存之前，在真实云密度中追踪的散射事件数。更高数值能解析小云团内部更多的光交换。"
                         }
                     }
                     slider("SETTING_CLOUDS_LOW_STEP_MIN", 128, 16..128 step 8) {

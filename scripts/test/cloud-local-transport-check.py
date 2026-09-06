@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Frozen-source local cloud transport and control-variate reference checks.
+"""Local cloud random walks, surface integration, and control-variate checks.
 
 These are numerical model tests, not GPU image or global power validation.
 Requires numpy and scipy; run from scripts/ with --output PATH.
@@ -10,6 +10,8 @@ from pathlib import Path
 
 import numpy as np
 from scipy.integrate import solve_ivp
+from scipy.linalg import expm
+from scipy.special import erf
 
 ROOT = Path(__file__).resolve().parents[2]
 TABLE = np.fromfile(ROOT / 'shaders/textures/cloud_transport.bin', dtype='<f4').reshape(26, 1024, 4).astype(float)
@@ -63,9 +65,13 @@ def reservoir():
     consistency = np.max(abs(cached_source - np.einsum('jc,djc->dc', row, scattered)))
     assert consistency < 2e-15
     local = scattered * rng.uniform(.05, 1.9, scattered.shape)
-    residual = local - scattered
+    # The fine angular operator can differ from the coarse P matrix. Store and
+    # subtract the entire per-depth camera predictor, rather than sampled S_c.
+    fine_row = rng.uniform(.01, 1, (24, 3))
+    fine_row /= fine_row.sum(axis=0)
+    single_scattering = rng.uniform(.1, .8, (depths, 3))
     base = np.sum(weights * cached_source, axis=0)
-    target = np.einsum('dc,jc,djc->c', weights, row, local)
+    target = np.einsum('dc,jc,djc->c', weights, fine_row, local) + np.sum(weights * single_scattering, axis=0)
     # Stream depths exactly as WRS, with independent random dimensions.
     q = abs(weights).max(axis=1)
     total = 0.
@@ -73,31 +79,278 @@ def reservoir():
     for i in range(depths):
         total += q[i]
         selected[rng.random(trials) * total < q[i]] = i
-    proposal = row.mean(axis=1)
+    proposal = fine_row.mean(axis=1)
     angular_total = 0.
     angles = np.zeros(trials, dtype=int)
     for j in range(24):
         angular_total += proposal[j]
         angles[rng.random(trials) * angular_total < proposal[j]] = j
     estimate = base + (total / q[selected])[:, None] * weights[selected] * (
-        angular_total / proposal[angles])[:, None] * row[angles] * residual[selected, angles]
+        (angular_total / proposal[angles])[:, None] * fine_row[angles] * local[selected, angles]
+        - cached_source[selected] + single_scattering[selected])
     mean = estimate.mean(axis=0)
     stderr = estimate.std(axis=0, ddof=1) / np.sqrt(trials)
     z = abs(mean - target) / stderr
     assert z.max() < 5
     # Exact enumeration also checks the PDF factors without a statistical tolerance.
-    expectation = base + np.einsum('d,j,dc,jc,djc->c', q / total, proposal / angular_total,
-                                   weights * (total / q)[:, None],
-                                   row * (angular_total / proposal)[:, None], residual)
+    fine_integral = np.einsum('jc,djc->dc', fine_row, local)
+    expectation = base + np.sum(weights * (fine_integral - cached_source + single_scattering), axis=0)
+    cancellation = np.max(abs(base - np.sum(weights * cached_source, axis=0)))
+    assert cancellation < 1e-13
     assert np.max(abs(expectation - target)) < 1e-13
     paired = (estimate[::2] + estimate[1::2]) * .5
     variance_ratio = paired.var(axis=0) / estimate.var(axis=0)
     assert np.all((variance_ratio > .48) & (variance_ratio < .52))
     assert estimate.min() < 0
-    return {'trials': trials, 'predictor_consistency_error': float(consistency), 'reference': target.tolist(),
+    return {'trials': trials, 'predictor_consistency_error': float(consistency), 'stored_predictor_cancellation_error': float(cancellation), 'reference': target.tolist(),
             'sample_mean': mean.tolist(), 'standard_errors_from_reference': z.tolist(),
             'two_sample_variance_ratio': variance_ratio.tolist(), 'minimum_signed_estimate': float(estimate.min()),
             'zero_clamp_bias': (np.maximum(estimate, 0).mean(axis=0) - mean).tolist()}
+
+
+def local_update(rng, count, direction, density, source, radius, bound, extinction, scattering, endpoint):
+    reference = np.mean(extinction)
+    majorant = 1.5 * max(extinction) * bound
+    distance = np.zeros(count)
+    throughput = np.ones((count, 3))
+    result = np.zeros_like(throughput)
+    active = np.arange(count)
+    while len(active):
+        distance[active] += -np.log1p(-rng.random(len(active))) / majorant
+        escaped = active[distance[active] >= radius]
+        result[escaped] = throughput[escaped] * endpoint
+        active = active[distance[active] < radius]
+        pos = -distance[active, None] * direction
+        rho = density(pos)
+        real = rng.random(len(active)) * majorant < rho * reference
+        hit = active[real]
+        result[hit] = throughput[hit] * (scattering / reference) * source(pos[real])[:, None]
+        active = active[~real]
+        rho = rho[~real, None]
+        throughput[active] *= (majorant - rho * extinction) / (majorant - rho * reference)
+    return result
+
+
+def spectral_tracking():
+    rng = np.random.default_rng(1129)
+    extinction = np.array([.9, 1., 1.1])
+    scattering = np.array([.88, .96, 1.05])
+    def density(pos):
+        x = -pos[:, 0]
+        return np.where(x < .3, 0., np.where(x < .8, 2., 4.))
+    constant = lambda pos: np.full(len(pos), 1.7)
+    count = 200000
+    samples = local_update(rng, count, np.array([1., 0., 0.]), density, constant, 1.2, 4.,
+                           extinction, scattering, np.array([.2, .4, .8]))
+    column = .5 * 2 + .4 * 4
+    t = np.exp(-extinction * column)
+    exact = t * np.array([.2, .4, .8]) + (1-t) * scattering / extinction * 1.7
+    z = abs(samples.mean(axis=0) - exact) / (samples.std(axis=0, ddof=1) / np.sqrt(count))
+    assert z.max() < 5, z
+    equilibrium = local_update(rng, 10000, np.array([1., 0., 0.]), density, constant, 1.2, 4.,
+                               np.ones(3), np.ones(3), np.full(3, 1.7))
+    assert np.max(abs(equilibrium - 1.7)) == 0
+    vacuum = local_update(rng, 10000, np.array([1., 0., 0.]), lambda p: np.zeros(len(p)), constant, 1.2, 4.,
+                          extinction, scattering, np.array([.2, .4, .8]))
+    assert np.max(abs(vacuum - [.2, .4, .8])) == 0
+    return {'trials': count, 'analytic': exact.tolist(), 'mean': samples.mean(axis=0).tolist(),
+            'standard_errors_from_reference': z.tolist(), 'constant_equilibrium_error': 0., 'vacuum_error': 0.}
+
+
+def angular_guiding():
+    # HG convolution supplies an analytic integral of two sharp phase lobes.
+    rng = np.random.default_rng(318)
+    count = 300000
+    g = np.array([.82, .86, .9])
+    outgoing = np.array([0., 0., 1.])
+    beam = np.array([.8, 0., .6])
+    def hg(mu):
+        return (1-g*g) / (4*np.pi*(1+g*g-2*g*mu[:, None])**1.5)
+    guided = rng.random(count) < .0625
+    axis = np.where(guided[:, None], beam, outgoing)
+    tangent = np.cross(axis, [0., 1., 0.])
+    tangent /= np.linalg.norm(tangent, axis=1)[:, None]
+    bitangent = np.cross(axis, tangent)
+    selected_g = g[rng.integers(0, 3, count)]
+    xi = rng.random(count)
+    mu = (1+selected_g**2 - ((1-selected_g**2)/(1-selected_g+2*selected_g*xi))**2)/(2*selected_g)
+    phi = rng.random(count) * 2*np.pi
+    direction = axis * mu[:, None] + np.sqrt(1-mu*mu)[:, None] * (tangent*np.cos(phi)[:, None] + bitangent*np.sin(phi)[:, None])
+    phase = hg(direction @ outgoing)
+    light_phase = hg(direction @ beam)
+    proposal = (.9375*phase + .0625*light_phase).mean(axis=1)
+    samples = phase*light_phase / proposal[:, None]
+    exact = (1-g**4) / (4*np.pi*(1+g**4-2*g*g*.6)**1.5)
+    z = abs(samples.mean(axis=0)-exact) / (samples.std(axis=0, ddof=1)/np.sqrt(count))
+    assert z.max() < 5, z
+    return {'trials': count, 'analytic_convolution': exact.tolist(), 'means': samples.mean(axis=0).tolist(),
+            'standard_errors_from_reference': z.tolist(), 'beam_proposal_probability': .0625,
+            'scope': 'RGB mixture PDF and source weighting; this does not establish angular LUT convergence.'}
+
+
+def scattering_orders():
+    # Two-stream slab has an independent, analytic transport solution.
+    # Cache=0 makes the truncated local walk a partial sum of positive scattering orders.
+    sigma, albedo, length, x0 = 1.3, .9, 3., .3
+    phase = np.array([[.8, .2], [.2, .8]])
+    direction = np.array([1., -1.])
+    matrix = np.zeros((3, 3))
+    matrix[:2, :2] = direction[:, None] * (sigma * albedo * phase - sigma * np.eye(2))
+    matrix[:2, 2] = direction * sigma * albedo * phase[:, 0]
+    matrix[2, 2] = -sigma
+    propagation = expm(matrix * length)
+    initial = np.array([0., -propagation[1, 2] / propagation[1, 1], 1.])
+    exact = (expm(matrix * x0) @ initial)[1]
+    count = 200000
+    estimates, errors = [], []
+    for bounces in (1, 4, 8, 16):
+        rng = np.random.default_rng(910)
+        x = np.full(count, x0)
+        angle = np.ones(count, dtype=int)
+        throughput = np.ones(count)
+        result = np.zeros(count)
+        active = np.arange(count)
+        for bounce in range(bounces):
+            x[active] -= direction[angle[active]] * -np.log1p(-rng.random(len(active))) / sigma
+            active = active[(x[active] >= 0) & (x[active] < length)]
+            throughput[active] *= albedo
+            result[active] += throughput[active] * phase[angle[active], 0] * np.exp(-sigma*x[active])
+            angle[active] = (rng.random(len(active)) >= phase[angle[active], 0]).astype(int)
+        estimates.append(float(result.mean()))
+        errors.append(float(result.std(ddof=1) / np.sqrt(count)))
+    assert np.all(np.diff(estimates) > 0)
+    assert exact - estimates[-1] < .02
+    assert estimates[-1] < exact + 5*errors[-1]
+    return {'bounces': [1, 4, 8, 16], 'analytic_full_transport': float(exact), 'means': estimates,
+            'standard_errors': errors, 'scope': 'Two-stream slab; the GPU local walk uses continuous directions and a nonzero terminal cache.'}
+
+
+def surface_integration():
+    # A sunlit homogeneous half-space has a closed-form camera integral.
+    # Test both shallow and steep light attenuation, with the same extinction used for camera transmission.
+    ratios = np.array([.2, 1., 4.])
+    exact = 1 / (1 + ratios)
+    errors = []
+    jitter = (np.arange(2048) + .5) / 2048
+    for dt in (.5, .25, .125):
+        start = np.arange(0, 24., dt)
+        source = np.exp(-ratios[:, None, None] * (start[None, :, None] + dt*jitter))
+        weights = np.exp(-start) * -np.expm1(-dt)
+        estimate = np.sum(source * weights[None, :, None], axis=1).mean(axis=1)
+        errors.append(float(max(abs(estimate - exact))))
+    assert errors[-1] < errors[0] * .08
+    assert errors[0] < .016
+    old = np.exp(-ratios)
+    assert max(abs(old-exact)) > .18
+    return {'optical_steps': [.5, .25, .125], 'maximum_errors': errors,
+            'old_one_mean_free_path_error': float(max(abs(old-exact)))}
+
+
+def path_source_reservoir():
+    rng = np.random.default_rng(8499)
+    events, trials = 32, 250000
+    weight = rng.uniform(.05, 2., (events, 3))
+    prediction = rng.lognormal(0., 1.3, (events, 3))
+    source = prediction*rng.uniform(.05, 2., (events, 3))
+    # A missed subcell cloud can have zero source prediction and nonzero actual light.
+    prediction[:4] = 0
+    floor = np.array([.8, 1., .7])
+    proposal = np.max(weight*(prediction+floor), axis=1)
+    selected = np.zeros((2, trials), dtype=int)
+    total = 0.
+    for i in range(events):
+        total += proposal[i]
+        selected[rng.random(selected.shape)*total < proposal[i]] = i
+    base = np.sum(weight*prediction, axis=0)
+    correction = total*weight[selected]/proposal[selected, None]*(source[selected]-prediction[selected])
+    samples = base + correction.mean(axis=0)
+    target = np.sum(weight*source, axis=0)
+    z = abs(samples.mean(axis=0)-target)/(samples.std(axis=0, ddof=1)/np.sqrt(trials))
+    assert z.max() < 5, z
+    assert np.all(np.bincount(selected.ravel(), minlength=events)[:4] > 0)
+    exact = base + np.sum(weight*(source-prediction), axis=0)
+    error = float(np.max(abs(exact-target)))
+    assert error < 1e-12
+    return {'events': events, 'trials': trials, 'exact_predictor_cancellation_error': error,
+            'standard_errors_from_full_source_sum': z.tolist(),
+            'scope': 'Conditional on one sampled scattering path; two source reservoirs, including missed coarse cells.'}
+
+
+def spectral_path_variance():
+    # Fixed scattering order in a uniform conservative medium has unit mean
+    # throughput. Geometric null counts give its second moment in closed form.
+    extinction = np.array([.18067367051236774, .18215559145291857, .19358580629452912])
+    order, trials = 128, 300000
+    def second_moment(reference, majorant):
+        p = reference/majorant
+        null_weight = (majorant-extinction)/(majorant-reference)
+        return ((extinction/reference)**2*p/(1-(1-p)*null_weight**2))**order
+    old = second_moment(extinction.min(), extinction.max())
+    reference, majorant = extinction.mean(), 1.5*extinction.max()
+    new = second_moment(reference, majorant)
+    assert old.max() > 6000 and new.max() < 2
+    rng = np.random.default_rng(4571)
+    nulls = rng.negative_binomial(order, reference/majorant, trials)
+    samples = (extinction/reference)**order * ((majorant-extinction)/(majorant-reference))**nulls[:, None]
+    z = abs(samples.mean(axis=0)-1)/(samples.std(axis=0, ddof=1)/np.sqrt(trials))
+    assert z.max() < 5, z
+    return {'order': order, 'trials': trials, 'old_second_moment': old.tolist(),
+            'padded_second_moment': new.tolist(), 'mean': samples.mean(axis=0).tolist(),
+            'standard_errors_from_unit_mean': z.tolist(),
+            'scope': 'Extinction proposal variance at fixed scattering order; no phase-guiding or image convergence claim.'}
+
+
+def shadow_tracking():
+    # A narrow occluder between coarse column samples. Integrate its Gaussian
+    # optical depth analytically, independently of the sampled ratio product.
+    rng = np.random.default_rng(1783)
+    count, radius, bound = 300000, 2., 1.25
+    extinction = np.array([.3, .7, 1.])
+    center, width = .31, .055
+    column = .05*radius + 1.2*width*np.sqrt(np.pi/2) * (
+        erf((radius-center)/(np.sqrt(2)*width)) - erf(-center/(np.sqrt(2)*width)))
+    exact = np.exp(-extinction*column)
+    distance = np.zeros(count)
+    tr = np.ones((count, 3))
+    active = np.arange(count)
+    while len(active):
+        distance[active] += -np.log1p(-rng.random(len(active))) / bound
+        active = active[distance[active] < radius]
+        density = .05 + 1.2*np.exp(-.5*((distance[active]-center)/width)**2)
+        tr[active] *= 1 - density[:, None]*extinction/bound
+    assert np.all((tr >= 0) & (tr <= 1))
+    z = abs(tr.mean(axis=0)-exact) / (tr.std(axis=0, ddof=1)/np.sqrt(count))
+    assert z.max() < 5, z
+    return {'analytic_transmittance': exact.tolist(), 'mean': tr.mean(axis=0).tolist(),
+            'standard_errors_from_reference': z.tolist(), 'trials': count,
+            'scope': 'Near-field ratio tracking only; the distant exponential column remains approximate.'}
+
+
+def ground_illumination():
+    # Independent angular quadrature of a Lambertian receiver. A horizon-bright
+    # sky distinguishes irradiance from an unweighted hemisphere average.
+    nodes, weights = np.polynomial.legendre.leggauss(96)
+    mu = (nodes + 1) * .5
+    weights *= .5
+    skies = np.array([np.ones_like(mu), 1-mu, mu**4])
+    reflected = 2 * np.sum(skies * mu * weights, axis=1)
+    exact = np.array([1., 1/3, 1/3])
+    error = float(np.max(abs(reflected-exact)))
+    assert error < 2e-14
+    old = np.sum(skies * weights, axis=1)
+    assert abs(old[1] - exact[1]) > .16
+    # Sun -> ground -> cloud: the two cloud legs attenuate the same ground bounce.
+    # Moving a cloud over the sun leg must affect the receiver even if its own
+    # view of the ground is unchanged. The old clear-ground input omitted this.
+    sun_tau = np.array([0., .2, 2., 12.])
+    return_tau = .4
+    relative_light = np.exp(-(sun_tau + return_tau))
+    assert np.all(np.diff(relative_light) < 0)
+    assert relative_light[-1] / relative_light[0] < 1e-5
+    return {'lambertian_quadrature_error': error, 'horizon_sky_radiance': float(reflected[1]),
+            'old_unweighted_horizon_sky': float(old[1]), 'sun_optical_depths': sun_tau.tolist(),
+            'ground_bounce_relative_radiance': relative_light.tolist(),
+            'scope': 'Angular normalization and two-leg uncollided ground paths; no cloud-ground MS coupling proof.'}
 
 
 def geometry():
@@ -125,29 +378,26 @@ def geometry():
         assert sol.success
         return sol.y[1, -1] + sol.y[0, -1] * 2.
     ref = np.array([[reference(direction, arrangement) for direction in DIRS] for arrangement in range(2)])
-    # Frozen positive source; ray-bin estimates are compared with the continuous ODE.
-    errors = []
-    for steps in (4, 8, 16, 32):
-        edges = np.expm1(np.linspace(0, np.log(16), steps + 1)) * (radius / 15)
-        values = []
-        for arrangement in range(2):
-            jitter = (np.arange(128) + .5) / 128
-            t = np.ones((len(jitter), 24)); result = np.zeros_like(t)
-            for start, end in zip(edges[:-1], edges[1:]):
-                s = start + (end - start) * jitter
-                pos = -s[:, None, None] * DIRS[None, :, :]
-                tau = density(pos, arrangement) * (end - start)
-                result += t * -np.expm1(-tau) * source(pos)
-                t *= np.exp(-tau)
-            values.append((result + 2*t).mean(axis=0))
-        errors.append(float(np.sqrt(np.mean((np.array(values) - ref)**2))))
-    assert errors[-1] < errors[0] * .15, errors
+    rng = np.random.default_rng(413)
+    count = 60000
+    means, standard_errors = [], []
+    for arrangement in range(2):
+        estimates, errors = [], []
+        for direction in DIRS:
+            samples = local_update(rng, count, direction, lambda p: density(p, arrangement), source,
+                                   radius, 24*max(scales), np.ones(3), np.ones(3), np.full(3, 2.))[:, 0]
+            estimates.append(samples.mean())
+            errors.append(samples.std(ddof=1) / np.sqrt(count))
+        means.append(estimates)
+        standard_errors.append(errors)
+    z = abs(np.array(means) - ref) / np.array(standard_errors)
+    assert np.max(z) < 5, z
     assert abs(ref[0, 23] - ref[1, 23]) > .5
     coarse_means = [density(cube, arrangement).mean() for arrangement in range(2)]
     assert abs(coarse_means[0] - coarse_means[1]) < 1e-13
     return {'same_coarse_density': list(map(float, coarse_means)), 'channel_radiance': ref[:, 23].tolist(),
-            'steps': [4, 8, 16, 32], 'directional_rms_error_against_ODE': errors,
-            'scope': 'Same coarse cell mass, displaced narrow channel, positive frozen source; not a converged full cloud solve.'}
+            'maximum_standard_errors_from_ODE': float(z.max()), 'trials_per_direction': count,
+            'scope': 'Same coarse mass, displaced narrow channel; continuous null tracking versus the frozen-source ODE.'}
 
 
 def gpu_history(path):
@@ -179,7 +429,10 @@ if __name__ == '__main__':
     parser.add_argument('--gpu-history', type=Path, help='Frame-end RGBA32UI atlas dump with its adjacent JSON metadata')
     args = parser.parse_args()
     report = gpu_history(args.gpu_history) if args.gpu_history else {
-              'equilibrium': equilibrium(), 'spectral_reservoir': reservoir(), 'fine_geometry': geometry(),
+              'equilibrium': equilibrium(), 'spectral_reservoir': reservoir(), 'spectral_tracking': spectral_tracking(),
+              'angular_guiding': angular_guiding(), 'scattering_orders': scattering_orders(), 'surface_integration': surface_integration(),
+              'path_source_reservoir': path_source_reservoir(), 'spectral_path_variance': spectral_path_variance(), 'shadow_tracking': shadow_tracking(),
+              'ground_illumination': ground_illumination(), 'fine_geometry': geometry(),
               'not_established': ['Full transport unbiasedness or global power balance',
                                   'Angular convergence', 'Unbiased temporal filtering', 'Photo agreement']}
     args.output.parent.mkdir(parents=True, exist_ok=True)

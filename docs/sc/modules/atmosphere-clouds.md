@@ -29,9 +29,9 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 | 1  | [`GenerateTransmittance`](../../../shaders/techniques/atmospherics/air/lut/GenerateTransmittance.comp.glsl) | 更新 256×64 `persistent_transmittanceLUT` |
 | 2  | [`SliceEndPoints`](../../../shaders/techniques/atmospherics/air/SliceEndPoints.comp.glsl)                   | 更新本帧 epipolar 几何                        |
 | 3  | [`GenerateMultiSctr`](../../../shaders/techniques/atmospherics/air/lut/GenerateMultiSctr.comp.glsl)         | 更新 32×32 `persistent_multiSctrLUT`      |
-| 4  | [`clouds/amblut/Sample`](../../../shaders/techniques/atmospherics/clouds/amblut/Sample.comp.glsl)           | 交替使用积云和卷云高度，采样 1024 条全空间大气光线，并单独存储地面的直接反射光 |
+| 4  | [`clouds/amblut/Sample`](../../../shaders/techniques/atmospherics/clouds/amblut/Sample.comp.glsl)           | 交替使用积云和卷云高度，采样 1024 条全空间大气光线，为卷云单独存储地面的直接反射光 |
 | 5  | [`GenerateSkyViewLUT`](../../../shaders/techniques/atmospherics/air/lut/GenerateSkyViewLUT.comp.glsl)       | 写入 `uimg_skyViewLUT`                    |
-| 6  | [`clouds/amblut/Gather`](../../../shaders/techniques/atmospherics/clouds/amblut/Gather.comp.glsl)           | 写入 32×33 `persistent_cloudsAmbLUT`：32×32 的卷云方向 tile，以及最后一行的25 个积云值（上半球天空积分和 24 个入射方向）；归约全部 subgroup，并在状态切换时重置未更新区域的历史 |
+| 6  | [`clouds/amblut/Gather`](../../../shaders/techniques/atmospherics/clouds/amblut/Gather.comp.glsl)           | 写入 32×33 `persistent_cloudsAmbLUT`：32×32 的卷云方向 tile，以及最后一行的25 个积云值（余弦加权天空辐照度和 24 个晴空方向）；归约全部 subgroup，并在状态切换时重置未更新区域的历史 |
 
 固定尺寸 LUT 在 [`shaders/shadesmith.json`](../../../shaders/shadesmith.json) 中声明；屏幕尺寸或可配置图像在 [
 `scripts/shaders.properties`](../../../scripts/shaders.properties) 中声明。
@@ -68,19 +68,33 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 
 [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) 使用
 [`clouds/Common.glsl`](../../../shaders/techniques/atmospherics/clouds/Common.glsl) 中的球壳求交。
-主光线以非均匀距离区间覆盖整个可见范围，默认使用 128–256 个采样。空采样之后遇到非空采样时，
-通过四次二分定位边界，并将照明求值位置移到距边界一个名义平均自由程以内。
-均匀介质的 Beer-Lambert 解析积分使用被云占据的区间长度。
-这种表面采样是有偏近似，用于在有限采样数下保留受光鼓包。地表交点截断光线；
+主光线以非均匀距离区间探测整个可见范围，默认使用 128–256 个采样。空采样之后遇到非空采样时，
+通过八次二分定位边界。非空区间再按密度上界细分，使每段名义相机光学深度不超过 0.5，
+替代在长不透明区间内部一个平均自由程处集中求值的方式。均匀介质的 Beer-Lambert 解析积分使用每段实际长度，
+已经积分的区间不会重复计入。密度求积与空区间探测仍是有限分辨率近似。地表交点截断光线；
 云内行进距离上限为 60 千米，距相机的最远距离为 120 千米。
-当剩余透射率低于 `0.005` 时，用局部光源项补全不透明尾段，并将透射率归零，
-避免浓云内部出现晴空漏光和提前终止造成的色带。
+当剩余透射率低于 `0.005` 时，用局部光源项补全不透明尾段，并将透射率归零。
 
-每个非空采样把单次散射与缓存的散射光场分开计算。太阳和月亮分别使用实际密度上的 16 点光柱、
-大气透射率、地球遮挡及完整的配置相函数。天空/地面单次散射采用两个相函数重要性采样方向，
-各积分 12 点密度光柱；PDF 是三个 AP0 相函数密度的等权混合，背景环境来自方向环境光 LUT。
-旧的 extinction octave、逐阶衰减权重及 `0.15` 环境光学深度缩放已移除。
-相机积分始终使用真实消光，不使用输运系数或拟合的 MS 缩放。
+每个非空采样积分便宜的缓存多次散射预测和前景空气。昂贵的单次散射在不透明度加权的 reservoir 深度处求值，
+使用完全相同的光谱相机权重。默认使用两个直射光照采样，局部采样预算为四时使用四个。
+太阳和月亮分别使用实际密度、大气透射率、地球遮挡及采样日月圆盘方向上的完整相函数。
+每个选中深度的天空/地面单次散射使用两个连续相函数重要性方向，PDF 为三个 AP0 相函数密度的等权混合。
+精细阴影光线在前八个上界光学深度内使用比率跟踪，远端尾段使用 16 点指数光柱。
+这能解析近场遮挡物，避免对稀疏密度积分直接取指数；远端求积仍有近似误差。
+近场透射率低于 `1e-6` 时使用带存活补偿的俄罗斯轮盘，避免继续追踪极小的不透明尾段。
+这会改变方差，但不会丢弃其期望贡献。
+
+积云环境方向缓存将晴空辐亮度与地面反射分开。在精细散射点，
+[`Transport.glsl`](../../../shaders/techniques/atmospherics/clouds/Transport.glsl) 将入射光线与地球求交，
+在实际交点计算日月反射，包括地面到光源之间的真实云密度光柱及返回云点的大气透射率，
+替代原来的均匀、未受云影遮挡的地面直射贡献。粗边界在相机水平位置和云层中间高度计算此项。
+地面漫射照明仍采用晴空近似，但用余弦加权的 `E_sky / pi` 替代未加权半球平均的两倍；
+尚未求解云与地面的多次散射耦合。
+
+阴影光柱的指数区间以最小消光平均自由程的四分之一为距离尺度，远处的云层出口不会再将首段阴影采样
+拉伸到跨过小表面结构。光柱最多覆盖 12 千米，达到不透明光学厚度（最小通道深度 12）后停止。
+远处阴影求积仍然较粗。旧的 extinction octave、逐阶衰减权重及 `0.15` 环境光学深度缩放继续保持移除。
+相机与局部光路始终使用真实消光，不使用输运消光或 MS 亮度缩放。
 
 空气散射和透射率逐段积分到非空云采样位置，每段使用 4–32 个采样，再以对应距离的云不透明度加权晴空辐亮度。
 [`SkyComposite.glsl`](../../../shaders/techniques/atmospherics/SkyComposite.glsl) 将结果合成到天空之上，
@@ -128,7 +142,7 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 |---|---|
 | [`cloud_transport.bin`](../../../shaders/textures/cloud_transport.bin)、`usam_cloudTransport` | 静态 1024×26 RGBA32F 相函数/闭合资产，416 KiB |
 | SSBO binding 6 | FP32 AP0 方向光场、源项和校正，各层耦合系数/误差/RHS、归约与网格边界；32³ 为 56,240,912 字节，64³ 为 449,858,832 字节；每帧根据当前密度和光照重新求解 |
-| `persistent_cloudsAmbLUT` | 原有 32×33 atlas：卷云保持 32×32；最后一行 x=0 保存上半球天空积分除以 4π，x=1…24 保存各方向单元平均入射辐亮度 |
+| `persistent_cloudsAmbLUT` | 原有 32×33 atlas：卷云保持 32×32；最后一行 x=0 保存余弦加权天空辐照度除以 π，x=1…24 保存各方向单元平均晴空辐亮度 |
 | SSBO 6 内的 `ctStats` | 四轮校正前/后残差及接受步长、最终相对残差、注入与逃逸加吸收功率、粗层 CG 残差及迭代数；通过 buffer dump 检查 |
 
 SSBO 使用单个不定长 `vec4[]` 和显式偏移；大型定长 SSBO 数组会使 NVIDIA 编译耗时异常增长。
@@ -142,7 +156,8 @@ SSBO 使用单个不定长 `vec4[]` 和显式偏移；大型定长 SSBO 数组�
 
 此实现尚未证明云图像的角向或空间收敛。24 方向会柔化低阶方向细节，粗迎风单元会引入数值扩散
 （厚单元的扩散极限不同于物理 `D0`），每单元四个源项采样也可能遗漏狭窄受光区域。
-有限网格使用空间均匀的天空/地面环境，未包含云影反馈到地面反射的耦合。
+有限网格使用空间均匀环境，其中地面直射项包含代表位置处的云影，局部路径则计算自己的地表交点。
+仍未包含云与地面的多次散射反馈，以及晴空环境中的云影。
 固定迭代预算留下可测量的残差与功率缺口；核心系数守恒不等于整个插值后的相机图像零误差。
 提高网格分辨率成本较高，是精度控制，并不保证上述误差已经收敛。
 
@@ -158,36 +173,59 @@ python test/cloud-transport-check.py --output ../builds/cloud-transport/numerics
 其 `--gpu-buffer PATH --resolution 32` 模式检查 Iris SSBO 回读，并报告实际有限预算残差与功率缺口。
 这些检查补充目标 Iris 编译、buffer 捕获、图像和 pass 耗时，不能替代与参考输运或照片的图像对照。
 
-### 局部输运与稀疏残差
+### 局部散射路径与稀疏残差
 
-[`LocalTransport.glsl`](../../../shaders/techniques/atmospherics/clouds/LocalTransport.glsl) 将粗网格解用作远场预测器。
-沿选中的入射传播方向反向穿过真实密度，积分 `S_local = T S_boundary + integral(T sigma_s P(B_h + S_c))`。
-各段使用常量源函数的解析积分，包含散射回填。消光始终为 `sigma_t`，空段不改变透射率。
-因此它能保持无吸收的恒定各向同性平衡光场，而单纯衰减修正不能。
+[`LocalTransport.glsl`](../../../shaders/techniques/atmospherics/clouds/LocalTransport.glsl) 在查询远场缓存之前，
+先穿过真实密度追踪多个散射事件，替代一次冻结源项更新及固定指数局部区间。
+粗网格双通道求解器及其 24 方向输运场保留原空间算子；局部光路使用连续 Mie/HG+Draine 方向及连续直射相函数求值。
 
 | [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) 内部阶段 | 操作 |
 |---|---|
-| 相机步进 | 每个非空采样积分便宜的 `P S_c` 预测；按 RGB 相机散射权重绝对值的最大分量流式更新独立深度 reservoir，权重包含前景空气和不透明尾段 |
-| 方向选择 | 按预测器使用的同一插值离散相函数矩阵行的 RGB 混合分布采样，显式计算相函数/提议分布权重；连续相函数采样与此缓存卷积不匹配 |
-| 局部重建 | 在一个上游网格单元飞行距离 `1 / sum(abs(omega) / cell_size)` 内使用指数距离区间；采样精细密度和缓存 `P S_c`；太阳/月亮透射率分别重算 16 点光柱，天空/地面方向重算 12 点光柱，并沿局部光线复用该相函数加权方向 |
-| 修正 | 将有符号 `S_local - S_c` 乘以深度和方向 PDF 修正后相加；独立 reservoir 取平均，不改变相机透射率，不重复添加缓存辐亮度 |
+| 相机步进 | 积分缓存 `P S_c`；按 RGB 散射权重绝对值的最大分量更新独立深度 reservoir，包含前景空气和不透明尾段；保存选中深度处的准确相机预测值 |
+| 方向选择 | 混合 RGB 相函数提议与可见太阳/月亮相函数提议，使用完整 PDF；光源概率从 1/16 开始，后续事件按 `1 / (16 * event)` 递减，限制路径权重方差 |
+| 局部自由飞行 | 使用光谱空碰撞跟踪穿过真实密度，飞行距离为一个上游单元尺度 `1 / sum(abs(omega) / cell_size)`；地表截断光路，逃逸时查询端点处正值插值的散射辐亮度 `S_c` |
+| 散射事件 | 累积缓存中的未碰撞源项预测，并更新两个独立源项 reservoir；继续采样连续方向，达到深度预算时，在最后一次相函数卷积之后用方向性 `S_c` 闭合 |
+| 源项重建 | 在两个选中的路径事件处，穿过精细密度重新计算日月及天空/地面光，减去源项预测，并应用事件 PDF 权重 |
+| 修正 | 将相函数加权局部估计减去保存的相机预测值，再施加深度 PDF 修正；保留有符号残差和原相机透射率 |
 
-`SETTING_CLOUDS_MS_LOCAL_SAMPLES` 选择每条相机光线 0、1、2（默认）或 4 个 reservoir，零仅显示预测器以便对比。
-`SETTING_CLOUDS_MS_LOCAL_STEPS` 选择 4、8（默认）或 16 个局部区间。这些预算替代已移除的 96³ 网格路径，
-不增加屏幕图像、体积分配或管线 pass。局部方向的直射注入使用方向单元积分相函数，相机直射单次散射保留尖锐的连续相函数。
-局部天空提议分布独立归一化，并使用高分辨率密度光柱。
+路径跟踪上界为 `1.5 * max(sigma_t) * CU_DENSITY_MAX`，当前密度函数满足
+`CU_DENSITY_MAX = 1.35 * CU_DENSITY_SCALE` 的上界。令 `sigma_ref = mean(sigma_t)`，对 AP0 通道取平均。
+真实事件概率为 `sigma_ref * density / majorant`，事件权重为 `sigma_s / sigma_ref`；空事件权重为
+`(majorant - density * sigma_t) / (majorant - density * sigma_ref)`。
+提高提议上界使空事件权重保持正值，避免紧上界配合最小消光真实事件产生稀少但很大的光谱路径权重。
+这只改变采样方差，不改变消光或吸收。改变密度最大值时必须同步此上界。
+空区域保持自由传播；算法包含散射回填并保持无吸收各向同性平衡光场。
+算法采用[空碰撞输运](https://pbr-book.org/4ed/Light_Transport_II_Volume_Rendering/Volume_Scattering_Integrators)。
 
-在存储与过滤之前，残差估计器在期望上针对所选的离散角向、冻结源项局部模型。
-它不使完整输运无偏：端点与二次源项仍使用粗缓存，局部密度/阴影求积及有限半径留下误差，
-光学上很厚的未解析结构可能需要多次局部更新。相机端残差不会将净通量反馈到粗网格解。
-有符号 FP16 存储保留负估计值；范围饱和、空间重建及时间方差裁剪仍有偏。
-沿用已有局部重建范围，未新增大范围残差模糊。
+`SETTING_CLOUDS_MS_LOCAL_SAMPLES` 选择每条相机光线 0、1、2（默认）或 4 条局部路径；
+零关闭 MS 修正，仍保留采样直射光照。`SETTING_CLOUDS_MS_LOCAL_BOUNCES` 选择 1、4、8（默认）、16 或 32 个散射事件，
+替代已移除的局部区间步数设置。不增加屏幕图像、体积分配或 pass；粗网格 SSBO 仍使用无尺寸 `vec4[]`，
+没有引入大型定长数组。
 
-[`cloud-local-transport-check.py`](../../../scripts/test/cloud-local-transport-check.py) 检查噪声密度平衡、薄介质二阶缩放、
-预测器/PDF 严格一致性、光谱流式 reservoir 期望与方差，以及两种粗密度相同的狭窄受光通道排列。
-局部步数收敛参考积分连续冻结源项 ODE，并非完整云输运参考。
-其 `--gpu-history PATH` 模式读取帧末 RGBA32UI atlas 回读及相邻元数据，检查有符号散射值的有限性、透射率范围、
-历史长度和深度。帧末只有持久历史 tile 仍保存有效云数据。
+每条采样局部路径使用 `ctSky` 和密度相关光束缓存预测未碰撞源项。事件提议为
+`max(throughput * (prediction + (E_sun + E_moon) / (4*pi)))`。
+正的各向同性项使粗网格遗漏的单元仍可被选中；它只改变提议概率，不会作为光照加入结果。
+两个独立 reservoir 修正源项预测之和，因此精细阴影工作量不再乘以整个散射深度。
+给定已经采样的路径，整个源项预测在期望中抵消；提前飞行逃逸时也同样成立。
+
+修正减去整个保存的相机预测值，而不是某个采样离散方向的缓存值。因此，粗角向矩阵无需与连续局部相函数一致：
+在相同深度权重下，原预测器在期望中抵消。单次散射和有符号 MS 修正都使用这些权重，
+不会重复添加缓存 `S_c` 或未碰撞光。额外局部事件解析小结构之间的散射，而不只是衰减平滑缓存值。
+
+空碰撞跟踪消除了固定步长局部密度求积，但有限飞行半径、终点缓存、相函数 LUT、阴影光柱和相机求积仍留下近似误差。
+局部路径不将净通量反馈到粗网格；更多事件减少过早替代为缓存的情况，并不证明完整输运收敛。
+稀疏光路仍有噪声，尖锐前向散射尤其明显；有符号 FP16 范围饱和、空间重建和时间方差裁剪仍然有偏。
+保留已有时间滤波，没有加入额外大范围模糊；默认历史长度为 32 帧，用于稳定稀疏修正。
+历史是否有效仍由重投影和解除遮挡检查控制。
+
+[`cloud-local-transport-check.py`](../../../scripts/test/cloud-local-transport-check.py) 用非均匀平板解析式检验光谱空碰撞跟踪，
+检查灰色介质的严格平衡与真空透射、粗细角向算子不同时保存预测值的抵消、光谱 WRS 期望/方差，
+以及 RGB 光源混合 PDF 与 HG 解析卷积的一致性。另用二方向平板解析解检查局部散射阶数收敛，
+检查光学薄相机段积分，并将相同粗密度的狭窄通道与连续冻结源项 ODE 对照。
+额外检查两个路径源项 reservoir、固定散射阶数的光谱权重方差、近场阴影跟踪与高斯光学厚度积分的一致性、朗伯天空归一化，
+以及地面直接反射路径两段的衰减。
+这些是模型测试，不是完整云图像或全局功率证明。其 `--gpu-history PATH` 模式检查帧末 RGBA32UI atlas 中
+有符号散射的有限性、透射率范围、历史长度和深度；帧末只有持久历史 tile 仍含有效云数据。
 
 ```sh
 python test/cloud-local-transport-check.py --output ../builds/cloud-transport/local-numerics.json
@@ -215,7 +253,7 @@ setting 启用时绑定 `usam_constellations`。
 | 大气比例与地面 | 高度、密度比例和地面反照率                                                                   |
 | 空气      | epipolar slices/samples；Mie turbidity/time curve；Mie/Rayleigh/ozone multipliers |
 | 天空与光柱   | sky-view 分辨率、sky samples、shaft samples/shadow samples、深度断裂修正和柔和度                |
-| 低云      | 上采样比例；历史长度/置信度/方差；最小/最大步数；MS 网格分辨率/迭代数及局部采样数/步数；高度/厚度/密度/覆盖率/相函数；风和形状频率 |
+| 低云      | 上采样比例；历史长度/置信度/方差；最小/最大步数；MS 网格分辨率/迭代数及局部采样数/散射深度；高度/厚度/密度/覆盖率/相函数；风和形状频率 |
 | 高云      | cirrus 高度、密度、覆盖率和相函数                                                            |
 | 天体      | sun/moon 半径、距离、温度/颜色/反照率；star-map 强度/gamma/bright-star boost；以及星座               |
 

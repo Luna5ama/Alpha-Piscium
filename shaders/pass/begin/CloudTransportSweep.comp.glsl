@@ -3,13 +3,21 @@
 
 layout(local_size_x = 1024) in;
 const ivec3 workGroups = ivec3(24, 1, 1);
+#ifdef CT_UNCOLLIDED
+shared vec3 boundary;
+#endif
 
 void main() {
     int angle = int(gl_WorkGroupID.x);
     vec3 omega = ct_direction(angle);
     ivec3 signV = ivec3(sign(omega));
     #ifdef CT_UNCOLLIDED
-    vec3 boundary = ct_boundary(angle);
+    if (gl_LocalInvocationIndex == 0u) {
+        AtmosphereParameters atmosphere = getAtmosphereParameters();
+        vec2 layerRange = atmosphere.bottom + vec2(SETTING_CLOUDS_CU_HEIGHT, SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS);
+        boundary = ct_boundary(ct_worldCenter() + vec3(0.0, (layerRange.x + layerRange.y) * 0.5, 0.0), omega, layerRange, 0.5);
+    }
+    barrier();
     #endif
     // One group owns one ordinate. Planes of x+y+z have no dependencies within
     // a plane; buffer barriers publish every upwind value before the next plane.

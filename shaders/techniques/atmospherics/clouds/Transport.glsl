@@ -2,6 +2,7 @@
 #define INCLUDE_clouds_Transport_glsl a
 
 #include "Cumulus.glsl"
+#include "/util/Celestial.glsl"
 
 /*const*/
 #define CT_N SETTING_CLOUDS_MS_RESOLUTION
@@ -104,14 +105,6 @@ vec3 ct_phaseCosines(float xi) {
     return texture(usam_cloudTransport, vec2(x, (float(row) + 0.5) / 26.0)).rgb;
 }
 
-vec3 ct_boundary(int angle) {
-    vec3 boundary = ct_toAP0(persistent_cloudsAmbLUT_fetch(ivec2(1 + angle, 32)).rgb);
-    if ((angle & 2) != 0) return boundary;
-    const vec3 ground = vec3(SETTING_ATM_GROUND_ALBEDO_R, SETTING_ATM_GROUND_ALBEDO_G, SETTING_ATM_GROUND_ALBEDO_B) / 255.0;
-    vec3 albedo = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_ACES_AP0, ground);
-    return boundary + 2.0 * albedo * ct_toAP0(persistent_cloudsAmbLUT_fetch(ivec2(0, 32)).rgb);
-}
-
 vec3 ct_direction(int angle) {
     int axis = angle / 8;
     vec3 signV = 1.0 - 2.0 * vec3(ivec3(angle) >> ivec3(0, 1, 2) & 1);
@@ -122,6 +115,34 @@ int ct_angle(vec3 omega) {
     vec3 a = abs(omega);
     int axis = a.x >= a.y && a.x >= a.z ? 0 : (a.y >= a.z ? 1 : 2);
     return axis * 8 + int(omega.x < 0.0) + 2 * int(omega.y < 0.0) + 4 * int(omega.z < 0.0);
+}
+
+vec3 ct_boundary(vec3 pos, vec3 omega, vec2 layerRange, float jitter) {
+    int angle = ct_angle(omega);
+    vec3 boundary = ct_toAP0(persistent_cloudsAmbLUT_fetch(ivec2(1 + angle, 32)).rgb);
+    AtmosphereParameters atmosphere = getAtmosphereParameters();
+    float groundDistance = raySphereIntersectNearest(pos, -omega, vec3(0.0), atmosphere.bottom);
+    if (groundDistance < 0.0) return boundary;
+    vec3 groundPos = pos - omega * groundDistance;
+    vec3 groundNormal = normalize(groundPos);
+    groundPos = groundNormal * (atmosphere.bottom + 0.01);
+    const vec3 ground = vec3(SETTING_ATM_GROUND_ALBEDO_R, SETTING_ATM_GROUND_ALBEDO_G, SETTING_ATM_GROUND_ALBEDO_B) / 255.0;
+    vec3 albedo = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_COLORSPACES_ACES_AP0, ground);
+    vec3 reflected = ct_toAP0(persistent_cloudsAmbLUT_fetch(ivec2(0, 32)).rgb);
+    for (int light = 0; light < 2; ++light) {
+        vec3 lightDir = light == 0 ? uval_sunDirWorld : uval_moonDirWorld;
+        float cosine = dot(groundNormal, lightDir);
+        if (cosine <= 0.0) continue;
+        vec3 illuminance = light == 0 ? SUN_ILLUMINANCE : MOON_ILLUMINANCE;
+        vec3 airTr = atmospherics_air_lut_sampleTransmittance(atmosphere, cosine, atmosphere.bottom + 0.01);
+        vec3 cloudTr = exp(-CT_EXTINCTION * clouds_cu_column(groundPos, lightDir, layerRange, 16, jitter));
+        reflected += ct_toAP0(illuminance * airTr) * cloudTr * (cosine * RCP_PI);
+    }
+    // The atmosphere LUT gives transmission to space; its ratio is the ground-to-cloud segment.
+    vec3 groundTr = atmospherics_air_lut_sampleTransmittance(atmosphere, dot(groundNormal, omega), atmosphere.bottom + 0.01);
+    vec3 pointTr = atmospherics_air_lut_sampleTransmittance(atmosphere, dot(normalize(pos), omega), length(pos));
+    vec3 returnTr = min(groundTr / max(pointTr, vec3(1e-20)), vec3(1.0));
+    return boundary + albedo * reflected * ct_toAP0(returnTr);
 }
 
 int ct_index(ivec3 p, int n) {
@@ -362,7 +383,8 @@ bool ct_interpolation(vec3 pos, out ivec3 base, out vec3 f) {
     return true;
 }
 
-vec3 ct_sample(vec3 pos, ivec4 angles, vec4 angularWeights) {
+// AP0, with the same interpolation for the camera predictor and path endpoints.
+vec3 ct_sampleField(vec3 pos, ivec4 angles, vec4 angularWeights, int fieldOffset) {
     ivec3 base;
     vec3 f;
     if (!ct_interpolation(pos, base, f)) return vec3(0.0);
@@ -372,25 +394,47 @@ vec3 ct_sample(vec3 pos, ivec4 angles, vec4 angularWeights) {
         vec3 w = mix(1.0 - f, f, vec3(offset));
         int i = ct_index(base + offset, CT_N);
         vec3 value = vec3(0.0);
-        for (int a = 0; a < 4; ++a) value += angularWeights[a] * ctSource(angles[a] * CT_CELLS + i).rgb;
+        for (int a = 0; a < 4; ++a) value += angularWeights[a] * ctData[fieldOffset + angles[a] * CT_CELLS + i].rgb;
         result += value * w.x * w.y * w.z;
     }
-    return colors2_constants_toWorkSpace(result);
+    return result;
 }
 
-// AP0 S or P S in one discrete direction, using the same spatial predictor.
-vec3 ct_sampleDirection(vec3 pos, int angle, int fieldOffset) {
+// Positive interpolation of scattered radiance in a continuous propagation direction.
+vec3 ct_sampleRadiance(vec3 pos, vec3 omega) {
+    ivec4 angles;
+    vec4 weights;
+    ct_angularWeights(omega, angles, weights);
+    return ct_sampleField(pos, angles, weights, CT_RADIANCE_OFFSET);
+}
+
+vec3 ct_sampleExternal(vec3 pos, vec3 omega) {
     ivec3 base;
     vec3 f;
     if (!ct_interpolation(pos, base, f)) return vec3(0.0);
-    vec3 result = vec3(0.0);
+    ivec4 angles;
+    vec4 angularWeights;
+    ct_angularWeights(omega, angles, angularWeights);
+    vec3 sky = vec3(0.0), sun = vec3(0.0), moon = vec3(0.0);
+    float density = 0.0;
     for (int corner = 0; corner < 8; ++corner) {
         ivec3 offset = ivec3(corner) >> ivec3(0, 1, 2) & 1;
         vec3 w = mix(1.0 - f, f, vec3(offset));
-        int i = angle * CT_CELLS + ct_index(base + offset, CT_N);
-        result += ctData[fieldOffset + i].rgb * w.x * w.y * w.z;
+        float weight = w.x * w.y * w.z;
+        int i = ct_index(base + offset, CT_N);
+        vec4 material = ctMaterialSun(i);
+        sun += material.rgb * weight;
+        moon += ctMaterialMoon(i).rgb * weight;
+        density += material.a * weight;
+        for (int a = 0; a < 4; ++a) sky += ctSky(angles[a] * CT_CELLS + i).rgb * (weight * angularWeights[a]);
     }
-    return result;
+    // The beam cache stores the correlated density * incident-light source.
+    if (density > 0.0) {
+        vec3 sunPhase = ct_toAP0(clouds_phase_cu(clamp(dot(-omega, uval_sunDirWorld), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
+        vec3 moonPhase = ct_toAP0(clouds_phase_cu(clamp(dot(-omega, uval_moonDirWorld), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
+        sky += (sun * sunPhase + moon * moonPhase) / density;
+    }
+    return sky;
 }
 
 #endif
