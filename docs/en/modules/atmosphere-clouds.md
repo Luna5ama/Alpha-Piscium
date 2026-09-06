@@ -87,7 +87,7 @@ single scattering is evaluated at opacity-weighted reservoir depths, using exact
 There are two direct-light samples by default, or four when the local sample budget is four. Sun and moon use
 actual density, atmospheric transmittance, Earth occlusion, and the full phase function at the sampled solar/lunar
 disc direction.
-Two continuous phase-importance directions estimate sky/ground single scattering at each selected depth, with
+One continuous phase-importance direction estimates sky/ground single scattering at each selected depth, with
 an equal mixture of the three AP0 phase densities as the PDF. Fine shadow rays integrate 16 exponential density bins
 with true extinction. This removes ratio-tracking noise and unbounded null-event work, but finite quadrature can
 still miss distant narrow occluders. HG+Draine is the default (`SETTING_CLOUDS_CU_PHASE_RATIO = 0`); direct evaluation,
@@ -105,7 +105,10 @@ Shadow-column exponential bins are anchored to a quarter of the minimum extincti
 layer exit no longer stretches the first shadow segment across small surface details. Columns cover up to 12 km
 and stop after becoming optically opaque (minimum channel depth 12). Distant shadow quadrature is still coarse.
 The old extinction octaves, decaying scattering-order weights, and `0.15` ambient optical-depth scale remain removed.
-Camera and local light paths always use extinction, never transport extinction or an MS brightness scale.
+Cumulus uses grey extinction/scattering coefficients `0.1854716894` and `0.1854716020`, the averages of the previous
+AP0 coefficients. Illumination and the selected phase function remain RGB. Camera, direct shadows and the first local
+flight use this true extinction. Reduced high-order characteristics analytically include repeated within-channel
+scattering; their coefficient is distinct from both true extinction and transport extinction `a1`.
 
 Air scattering and transmission are integrated to scouting-bin endpoints with 4–32 samples per segment.
 Interpolation avoids repeating the air march in every thin optical segment; cloud opacity still weights the
@@ -132,15 +135,22 @@ field and equal integrated basis weights by cubic symmetry; spatial interpolatio
 | Order | Pass / stage | Purpose |
 |---|---|---|
 | 1, begin | [`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl) | Builds the grid, phase matrix and coefficient hierarchy; four volume quadrature points define beam chords with eight density taps each, integrating `rho B` from entry transmission and `1-exp(-tau)` |
-| 2, begin | [`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl), `CT_HISTORY` | Reprojects previous `P S` using camera displacement and cloud advection into a separate scratch field; invalid history supplies zero |
+| 2, begin | [`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl), `CT_HISTORY` | Reprojects previous `(P - f I) S` using camera displacement and cloud advection into a separate scratch field; invalid history supplies zero |
 | 3, begin | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl), [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Computes uncollided sky/ground light, then initializes the current source from `P B` and the reprojected scattered-light guess |
 | 4, deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl) | Solves directional characteristics using a descending shared-memory plane, at most 48 KiB per group |
 | 5, deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Restricts the true directional residual into two coupled diffusion channels; the V-cycle uses 4³ block-preconditioned CG, physical-center prolongation and red/black smoothing |
 | 6, deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl), [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Lifts and damps the correction while preserving nonnegative radiance; later iterations execute only while residual or power-defect tolerance is unmet |
-| 7, deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Records actual residual/power, stores cell-mean scattered radiance and its angular mean, and preconvolves `P S` for the camera and next-frame initialization |
+| 7, deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | Records actual residual/power, stores cell-mean scattered radiance and preconvolves `P S` for the camera and next-frame initialization |
 
-Characteristics distinguish incoming light, outgoing face values and cell averages. With
-`tau = sigma_t / sum(abs(omega)/cell_size)`, uncollided face transmission is `exp(-tau)`.
+Before spatial discretization, repeated scattering within the same angular channel is summed analytically.
+For `f = min_RGB(P_jj)`, define `sigma_f = sigma_t - sigma_s f` and `P_f = P - f I`. The equation becomes
+`omega_j.grad S_j + sigma_f S_j = sigma_s (P B + P_f S)_j`. This is an algebraic rearrangement of the selected
+angular equation, including heterogeneous density. `P_f` stays nonnegative, absorption stays `sigma_t-sigma_s`,
+and the equal-solid-angle matrix retains its power balance. The residual phase CDF occupies phase-record alpha;
+RGB still stores the complete matrix. PDFs are differences of the stored CDF, including floating-point rounding.
+
+Characteristics distinguish incoming light, outgoing face values and cell averages. The optical depth is
+`sigma_f / sum(abs(omega)/cell_size)` for scattered light; uncollided light still uses `sigma_t`.
 The average is `(1-w) L_out + w L_in`, where `w = 1/tau - 1/(exp(tau)-1)` uses a stable thin-limit series.
 Scattering and absorption use that average; shared-face streaming and escape use outgoing values. Residual,
 correction and power operators use the same distinction. This replaces transmitting the cell average to the next
@@ -172,16 +182,18 @@ remain an approximation.
 | `ctStats` in SSBO 6 | Executed residuals/steps, final residual and power, corrected power defects, active iteration count, history validity/displacement, and previous camera/time/light metadata; inspect with a buffer dump |
 
 The SSBO uses one unsized `vec4[]` with explicit offsets; large sized SSBO arrays cause excessive NVIDIA compile
-times. Its byte allocation and the buffer-dump reader must change together if this packed layout changes. At frame end,
-`ctRadiance` holds outgoing values and `ctLifted` holds cell means. Level-zero fast/weight/exchange coefficient alpha
-lanes store the RGB angular mean; these lanes do not participate in the solve.
+times. Offsets and index arithmetic stay unsigned: on the tested NVIDIA path, large signed offsets at 64³
+shifted the scattered-light cache by one vec4 and corrupted reduction addresses. This is an addressing failure, not
+a NaN/Inf failure; validate the decoded mean/source relation and power sums at both resolutions. Its byte allocation and the buffer-dump reader must change together if this packed layout changes. At frame end,
+`ctRadiance` holds outgoing values and `ctLifted` holds cell means. Coefficient RGB retains the solver parameters;
+level-zero fast/weight/exchange alpha lanes are unused and zero. The old boundary mean cache is removed.
 
 The grid spans ±121 km horizontally. Each horizontal axis assigns 75% of its cells uniformly to ±12 km;
 a continuously differentiable exponential skirt covers the remaining distance. The inverse sampling map and
 physical-center interpolation use the same allocation. The vertical extent covers the spherical cloud layer down to
 2.5 km below its nominal base. `SETTING_CLOUDS_MS_RESOLUTION` selects 32³ (default) or 64³;
 the inner horizontal spacing is 1 km or 500 m respectively. `SETTING_CLOUDS_MS_ITERATIONS` selects 1, 2 or 4
-(default), as an upper iteration limit. Previous `P S` is only an initial guess for the current operator and source.
+(default), as an upper iteration limit. Previous `(P - f I) S` is only an initial guess for the current operator and source.
 Frame discontinuities, history resets, or sun/moon changes larger than their angular radius reject that guess.
 At least one full iteration executes; subsequent iterations stop when both predicted relative residual and corrected
 power defect are below `0.005`. Final diagnostics recompute actual residual and power. Cold starts and abrupt changes
@@ -212,57 +224,56 @@ pass timings; they do not substitute for image comparison with reference transpo
 
 ### Local scattering paths and sparse residuals
 
-[`LocalTransport.glsl`](../../../shaders/techniques/atmospherics/clouds/LocalTransport.glsl) reconstructs explicit
-low-order scattering through true density and uses a local boundary approximation for the terminal high-order field.
-The coarse two-channel solver remains the nonlocal predictor; no larger light volume or new screen allocation is used.
+[`LocalTransport.glsl`](../../../shaders/techniques/atmospherics/clouds/LocalTransport.glsl) uses continuous camera
+and second-scattering directions, then the same 24-channel equation as the shared solver. High-order flights
+analytically sum the common diagonal phase mass; the cache supplies the unresolved distant field. No normal,
+planar boundary patch, Marshak-to-HG reconstruction, distance blend or density AO remains in local shading.
 
 | Stage | Operation |
 |---|---|
-| Camera integration | Integrates the complete cached predictor and maintains spectral opacity-weighted depth reservoirs, retaining the predictor at each selected point |
-| Local flight | Divides three upstream cell lengths into 16 exponential bins; samples the integrated segment source using mean AP0 extinction and spectral opacity-ratio weights; vacuum transmits freely and ground clips escape |
-| Local sources | Accumulates nearest-cell sky/beam predictions; separate reservoirs select one sky event and one sun/moon event, with the full continuous beam phase in its proposal; fine shadows correct both predictions |
-| Terminal boundary | Locates the true interface and reconstructs high-order angular light from interior mean and exterior incident scattered light; deep interiors and optically thin details use the directional cache |
-| Camera correction | Adds phase-weighted local light minus the saved camera predictor, retaining signed residuals and true camera extinction |
+| Camera integration | Integrates the complete cached predictor and maintains opacity-weighted depth reservoirs with their exact saved predictor and foreground-air weights |
+| First local flight | Uses true grey extinction and the continuous RGB phase function; the projected angular cache is integrated before selecting its discrete continuation channel |
+| High-order flight | Uses `sigma_f` through actual density, sampling the nonnegative residual phase `P - f I`; camera extinction and physical shadow rays remain unchanged |
+| Terminal flight | Integrates transmission over 16 exponential density bins; WRS selects a position conditional on scattering, and adds both weighted scattering refill and transmitted endpoint light |
+| External sources | Separate positive reservoirs select one sky event and one sun/moon event per path; actual fine shadows evaluate their radiance without subtracting an inaccurate coarse shadow |
+| Camera correction | Adds the signed local-minus-predicted contribution; root directions use stratified spatiotemporal blue noise |
 
 `SETTING_CLOUDS_MS_LOCAL_SAMPLES` selects 0, 1, 2 (default), or 4 paths; zero disables local MS correction but retains
-direct light. `SETTING_CLOUDS_MS_LOCAL_BOUNCES` selects 1, 2 (default), 4, 8, 16, or 32 explicit events. More events delay
-terminal closure but do not guarantee a better finite-sample image.
+direct light. `SETTING_CLOUDS_MS_LOCAL_BOUNCES` selects 1, 2, 4 (default), 8, 16, or 32 transport stages. The first
+stage is continuous. Subsequent stages include arbitrarily many within-channel events, so this is no longer a
+literal physical-scattering count. More stages extend local transport; they do not change an artistic boundary
+weight or guarantee lower finite-sample noise.
 
-For segment column `c`, selection probability is `T_ref * (1-exp(-sigma_ref*c))`, with `sigma_ref = mean(sigma_t)`.
-The spectral numerator is `T * (sigma_s/sigma_t) * (1-exp(-sigma_t*c))`. Their ratio integrates the selected
-piecewise-constant model without null collisions, at the segment's actual density sample. Finite quadrature replaces
-unbounded null tracking and its spectral-weight variance. Shadow rays likewise use bounded exponential quadrature.
+For the last flight, `T` is its integrated endpoint transmission and `A` is the sum of segment scattering-selection
+weights `T_i (1-exp(-tau_i))`. An opacity-weighted reservoir selects position `X`; the estimate is
+`T C_j(endpoint) + A (sigma_s/sigma_f) [(P-f I) C + P B]_j(X)`. Conditional position sampling retains the integral
+expectation while always evaluating the transmitted endpoint. It replaces an all-or-nothing collision/escape
+choice and avoids querying the full cache at every fine density step. Vacuum has `T=1`, `A=0`; constant conservative
+equilibrium remains constant. Finite bin quadrature and a three-coarse-cell flight radius still introduce bias.
 
-Beam proposal is the maximum channel of `throughput * phase * (cached_incident + unoccluded_incident)`. Sky has its
-own positive proposal, so a sharp beam does not consume its samples. Each correction subtracts its own prediction,
-retaining the full source sum in expectation for the sampled path; nearest prediction changes variance, not that
-target. The complete camera predictor also cancels under the same weights, even when the coarse angular matrix
-and continuous local convolution differ.
+At intermediate high-order events, `(P-f I) C` is the known conditional expectation of cached continuation.
+Adding it and subtracting the sampled `C` before continuing leaves the same finite-depth transport target.
+The selected continuous phase LUT's finite sampling accuracy still limits camera/path cancellation.
 
-Boundary reconstruction uses the unclamped interface from
-[`Cumulus.glsl`](../../../shaders/techniques/atmospherics/clouds/Cumulus.glsl), avoiding zero gradients inside a saturated
-density ramp. Four probes estimate the normal; a short search and four bisections locate actual vacuum. It applies
-only when extrapolation length `2 D0` fits inside the smallest modeled billow scale. Interior light comes from the
-coarse angular mean. Twelve characteristic segments reconstruct exterior incident scattered light through actual
-density with attenuation and source refill before querying the far-field endpoint.
+Sky source directions are continuous; high-order source evaluation first samples a uniform direction inside the
+selected angular cell. Beam sources use the integrated solar/lunar cell phase. Their positive proposals use
+unoccluded incident power and path/phase weights. A completely occluded source contributes exactly zero, rather
+than noise from subtracting a falsely lit coarse prediction. Sources, projected continuation and the complete
+camera predictor each keep their own probability factors, so neither uncollided nor already-scattered light is
+added twice.
 
-At one extrapolation length, Marshak matching gives `Phi_0 = (Phi_bulk + Phi_in)/2` and
-`J_n = (Phi_bulk - Phi_in)/4`. A normalized positive HG angular field carries these moments, with asymmetry in
-`[-0.5, 0.5]`, and blends into the directional cache over `2 D0` inside the patch. Equal isotropic interior/incident
-fields remain unchanged under arbitrary density geometry. This is a local high-order approximation: estimated
-normals, incident hemispheres, planar patches and distance blending are not an exact finite-cloud angular solution.
-Explicit low-order paths and the camera still use the full selected phase function.
+The coarse grid, 24-channel high-order representation, flight radius, density quadrature and terminal field remain
+approximations. Local corrections do not feed net flux into the coarse solve, so its power balance does not prove
+image-wide conservation. Default history remains 32 frames with depth/wind reprojection and variance clipping;
+signed radiance is retained, while history counts use positive reconstruction weights. Temporal/FP16 bias and
+finite-sample noise remain possible. Increasing depth refines this chosen model rather than proving photograph
+agreement or full angular/spatial convergence.
 
-Flight radius, quadrature, terminal field and angular LUT remain biased. Local corrections do not feed net flux into
-the coarse solve, so its power balance does not prove image-wide conservation. Default history stays at 32 frames
-with depth reprojection and variance clipping. History counts use positive reconstruction weights; signed radiance
-keeps its existing filter, so Lanczos lobes cannot make confidence negative. Sparse residual noise and temporal/FP16 bias remain possible.
-
-[`cloud-local-transport-check.py`](../../../scripts/test/cloud-local-transport-check.py) checks spectral segment sampling
-against a nonuniform analytic slab, vacuum/equilibrium, camera and source reservoir cancellation, angular sampling,
-scattering-order and shadow-quadrature convergence, equal-mass narrow channels, Lambertian ground input and boundary
-angular power/flux. `--gpu-history PATH` checks finite signed scattering, transmission and depth in the frame-end
-history atlas. These model checks do not establish photograph agreement.
+[`cloud-local-transport-check.py`](../../../scripts/test/cloud-local-transport-check.py) checks grey flight sampling,
+vacuum/equilibrium, camera and source reservoirs, resummation against an independent continuum slab, conditional
+continuation, forced-terminal variance, shadow quadrature and equal-mass narrow channels. `--gpu-history PATH`
+checks finite signed scattering, transmission and depth. The main transport checker also verifies the phase CDF,
+frame-end `P S` against an Iris SSBO dump.
 
 ```sh
 python test/cloud-local-transport-check.py --output ../builds/cloud-transport/local-numerics.json

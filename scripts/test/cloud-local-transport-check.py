@@ -128,10 +128,10 @@ def local_update(rng, count, direction, density, source, radius, bound, extincti
     return integrated[selected]/probabilities[selected, None]
 
 
-def spectral_segments():
+def grey_segments():
     rng = np.random.default_rng(1129)
-    extinction = np.array([.9, 1., 1.1])
-    scattering = np.array([.88, .96, 1.05])
+    extinction = np.ones(3)
+    scattering = np.full(3, .97)
     density = lambda pos: .5+.8*(-pos[:, 0])
     constant = lambda pos: np.full(len(pos), 1.7)
     endpoint = np.array([.2, .4, .8])
@@ -152,10 +152,10 @@ def spectral_segments():
     assert np.max(abs(steady-1.7)) < 1e-14 and np.max(abs(vacuum-endpoint)) == 0
     return {'trials': count, 'analytic': analytic.tolist(), 'mean': samples.mean(axis=0).tolist(),
             'standard_errors_from_reference': z.tolist(), 'constant_equilibrium_error': float(np.max(abs(steady-1.7))),
-            'vacuum_error': 0., 'scope': 'Spectral segment-source selection against a nonuniform analytic slab.'}
+            'vacuum_error': 0., 'scope': 'Grey segment-source selection against a nonuniform analytic slab; colored sources and endpoints.'}
 
 
-def angular_guiding():
+def angular_sampling():
     # HG convolution supplies an analytic integral of two sharp phase lobes.
     rng = np.random.default_rng(318)
     count = 300000
@@ -164,8 +164,7 @@ def angular_guiding():
     beam = np.array([.8, 0., .6])
     def hg(mu):
         return (1-g*g) / (4*np.pi*(1+g*g-2*g*mu[:, None])**1.5)
-    guided = rng.random(count) < .0625
-    axis = np.where(guided[:, None], beam, outgoing)
+    axis = np.broadcast_to(outgoing, (count, 3))
     tangent = np.cross(axis, [0., 1., 0.])
     tangent /= np.linalg.norm(tangent, axis=1)[:, None]
     bitangent = np.cross(axis, tangent)
@@ -176,13 +175,13 @@ def angular_guiding():
     direction = axis * mu[:, None] + np.sqrt(1-mu*mu)[:, None] * (tangent*np.cos(phi)[:, None] + bitangent*np.sin(phi)[:, None])
     phase = hg(direction @ outgoing)
     light_phase = hg(direction @ beam)
-    proposal = (.9375*phase + .0625*light_phase).mean(axis=1)
+    proposal = phase.mean(axis=1)
     samples = phase*light_phase / proposal[:, None]
     exact = (1-g**4) / (4*np.pi*(1+g**4-2*g*g*.6)**1.5)
     z = abs(samples.mean(axis=0)-exact) / (samples.std(axis=0, ddof=1)/np.sqrt(count))
     assert z.max() < 5, z
     return {'trials': count, 'analytic_convolution': exact.tolist(), 'means': samples.mean(axis=0).tolist(),
-            'standard_errors_from_reference': z.tolist(), 'beam_proposal_probability': .0625,
+            'standard_errors_from_reference': z.tolist(), 'beam_proposal_probability': 0.,
             'scope': 'RGB mixture PDF and source weighting; this does not establish angular LUT convergence.'}
 
 
@@ -251,12 +250,9 @@ def path_source_reservoir():
     phase = np.geomspace(.001, 1000., 2*events).reshape(events, 2, 1)
     weight = (throughput[:, None, :]*phase).reshape(-1, 3)
     incident = np.broadcast_to(np.array([1., 1.2, .9]), weight.shape)
-    cached = incident*rng.uniform(0., .9, weight.shape)
     actual = incident*rng.uniform(0., 1., weight.shape)
-    cached[:4] = 0
-    sky_cached = rng.uniform(0., .3, (events, 3))
     sky_actual = rng.uniform(0., .3, (events, 3))
-    beam_p = np.max(weight*(cached+incident), axis=1)
+    beam_p = np.max(weight*incident, axis=1)
     sky_p = np.max(throughput*np.array([.8, 1., .7]), axis=1)
     def select(proposal):
         selected = np.zeros(trials, dtype=int)
@@ -266,33 +262,42 @@ def path_source_reservoir():
             selected[rng.random(trials)*total < p] = i
         return selected
     beam_i, sky_i = select(beam_p), select(sky_p)
-    base = np.sum(weight*cached, axis=0)+np.sum(throughput*sky_cached, axis=0)
-    samples = base+beam_p.sum()*weight[beam_i]/beam_p[beam_i, None]*(actual[beam_i]-cached[beam_i])
-    samples += sky_p.sum()*throughput[sky_i]/sky_p[sky_i, None]*(sky_actual[sky_i]-sky_cached[sky_i])
+    samples = beam_p.sum()*weight[beam_i]/beam_p[beam_i, None]*actual[beam_i]
+    samples += sky_p.sum()*throughput[sky_i]/sky_p[sky_i, None]*sky_actual[sky_i]
     target = np.sum(weight*actual, axis=0)+np.sum(throughput*sky_actual, axis=0)
     z = abs(samples.mean(axis=0)-target)/(samples.std(axis=0, ddof=1)/np.sqrt(trials))
     assert z.max() < 5, z
-    exact = base+np.sum(weight*(actual-cached), axis=0)+np.sum(throughput*(sky_actual-sky_cached), axis=0)
-    error = float(np.max(abs(exact-target)))
-    assert error < 1e-10
-    return {'events': events, 'trials': trials, 'exact_predictor_cancellation_error': error,
+    assert np.min(samples) >= 0
+    occluded = beam_p.sum()*weight[beam_i]/beam_p[beam_i, None]*np.zeros_like(actual[beam_i])
+    assert np.all(occluded == 0)
+    return {'events': events, 'trials': trials, 'fully_occluded_source_variance': float(occluded.var()),
             'standard_errors_from_full_source_sum': z.tolist(),
-            'scope': 'Separate beam and sky selection; six orders of phase variation and missed coarse sources.'}
+            'scope': 'Positive beam and sky selection; six orders of phase variation, no noisy subtraction of a false coarse shadow.'}
 
 
-def spectral_path_variance():
-    extinction = np.array([.18067367051236774, .18215559145291857, .19358580629452912])
-    reference = extinction.mean()
-    probabilities, weighted = flight_distribution(np.array([1., 0., 0.]), lambda p: np.ones(len(p)),
-        lambda p: np.ones(len(p)), 8/reference, 1., extinction, extinction, np.ones(3))
-    weights = weighted/probabilities[:, None]
-    second = np.ones(3)
-    for _ in range(32):
-        second = (probabilities[:-1, None]*weights[:-1]**2).sum(axis=0)*second + probabilities[-1]*weights[-1]**2
-    assert np.max(abs(weighted.sum(axis=0)-1)) < 1e-14
-    assert second.max() < 1.3
-    return {'order': 32, 'unit_equilibrium_mean': weighted.sum(axis=0).tolist(), 'second_moment': second.tolist(),
-            'scope': 'Spectral segment proposal at fixed order; excludes phase and spatial-model error.'}
+def forced_flight():
+    rng = np.random.default_rng(7429)
+    tau = rng.uniform(.001, .2, 16)
+    transmittance = np.exp(-tau.sum())
+    weights = np.exp(-np.r_[0, np.cumsum(tau[:-1])]) * -np.expm1(-tau)
+    assert abs(weights.sum()+transmittance-1) < 1e-14
+    source = 1.3+.05*rng.random((16, 3))
+    endpoint = np.array([.2, .4, .8])
+    target = weights @ source + transmittance*endpoint
+    count = 200000
+    probabilities = np.r_[weights, transmittance]
+    index = rng.choice(17, count, p=probabilities)
+    bernoulli = np.vstack([source, endpoint])[index]
+    index = rng.choice(16, count, p=weights/weights.sum())
+    forced = weights.sum()*source[index]+transmittance*endpoint
+    for values in (bernoulli, forced):
+        z = abs(values.mean(axis=0)-target)/(values.std(axis=0)/np.sqrt(count))
+        assert np.max(z) < 5
+    variance_ratio = forced.var(axis=0)/bernoulli.var(axis=0)
+    assert np.max(variance_ratio) < .01
+    return {'maximum_variance_ratio': float(np.max(variance_ratio)), 'target': target.tolist(),
+            'constant_field_error': float(abs(weights.sum()+transmittance-1)),
+            'scope': 'Split endpoint and collision contributions; WRS selects only the conditional source position.'}
 
 
 def shadow_quadrature():
@@ -315,27 +320,128 @@ def shadow_quadrature():
             'scope': 'Finite exponential shadow bins; reports quadrature bias and convergence.'}
 
 
-def boundary_moments():
-    mu, weight = np.polynomial.legendre.leggauss(160)
-    bulk = np.array([.01, .5, 2., 40., 7.])
-    incident = np.array([2., .5, .01, 0., 20.])
-    mean = .5*(bulk+incident)
-    g = (bulk-incident)/(4*mean)
-    field = mean[:, None]*(1-g[:, None]**2)/(1+g[:, None]**2-2*g[:, None]*mu)**1.5
-    integral = .5*(field@weight)
-    moment = .5*(field@(weight*mu))
-    assert field.min() >= 0 and np.max(abs(g)) <= .5
-    energy_error = np.max(abs(integral-mean))
-    flux_error = np.max(abs(moment-(bulk-incident)/4))
-    assert energy_error < 1e-11 and flux_error < 1e-11
-    # Constant isotropic incident and interior fields must survive every geometry/blend weight.
-    c = 3.7
-    blend = np.linspace(0, 1, 101)
-    equilibrium = (1-blend)*c+blend*(.5*(c+c))
-    assert np.max(abs(equilibrium-c)) < 1e-14
-    return {'angular_power_error': float(energy_error), 'angular_flux_error': float(flux_error),
-            'equilibrium_error': float(np.max(abs(equilibrium-c))),
-            'scope': 'Positive angular closure and Marshak matching; the sampled local boundary and full image remain approximate.'}
+def resummed_transport():
+    # Common RGB diagonal shift, preserving nonnegative residual phase weights.
+    rng = np.random.default_rng(4729)
+    matrix_error = 0.
+    for ratio in (0., .37, 1.):
+        phase = ((1-ratio)*TABLE[2, :576, :3] + ratio*TABLE[3, :576, :3]).reshape(24, 24, 3)
+        for channel in range(3):
+            p = phase[:, :, channel]
+            sigma_s = 1.7 * (.99 - .02*channel)
+            diagonal = np.min(np.diagonal(phase, axis1=0, axis2=1), axis=0)
+            off = p - np.diag(diagonal)
+            original = 1.7*np.eye(24) - sigma_s*p
+            resummed = np.diag(1.7-sigma_s*diagonal) - sigma_s*off
+            matrix_error = max(matrix_error, float(np.max(abs(original-resummed))))
+            assert np.max(abs(original-resummed)) < 1e-15
+            assert np.min(off) >= 0
+            # The same control variate is reconstructed and subtracted.
+            cache = rng.uniform(0, 10, 24)
+            exact = off @ cache
+            pdf = off / off.sum(axis=1)[:, None]
+            np.testing.assert_allclose(np.sum(pdf * np.divide(off, pdf, out=np.zeros_like(off), where=pdf>0) * cache, axis=1), exact, atol=3e-15)
+
+    # Independent continuum two-stream slab oracle, including an uncollided beam.
+    sigma, albedo, length, x0 = 1.3, .97, 3., .3
+    phase = np.array([[.8, .2], [.2, .8]])
+    directions = np.array([1., -1.])
+    a = np.zeros((3, 3))
+    a[:2, :2] = directions[:, None] * (sigma*albedo*phase-sigma*np.eye(2))
+    a[:2, 2] = directions * sigma*albedo*phase[:, 0]
+    a[2, 2] = -sigma
+    propagation = expm(a*length)
+    initial = np.array([0., -propagation[1, 2]/propagation[1, 1], 1.])
+    reference = (expm(a*x0) @ initial)[1]
+    count = 250000
+    results = []
+    for resummed in (False, True):
+        reduced = sigma*(1-albedo*.8) if resummed else sigma
+        off_albedo = sigma*albedo/reduced
+        x = np.full(count, x0)
+        direction = np.ones(count, dtype=int)
+        throughput = np.ones(count)
+        light = np.zeros(count)
+        events = 0
+        for depth in range(256):
+            live = np.flatnonzero(throughput != 0)
+            if len(live) == 0:
+                break
+            x[live] -= directions[direction[live]] * rng.exponential(1/reduced, len(live))
+            escaped = (x[live] <= 0) | (x[live] >= length)
+            throughput[live[escaped]] = 0
+            live = live[~escaped]
+            events += len(live)
+            if len(live) == 0:
+                continue
+            throughput[live] *= off_albedo
+            light[live] += throughput[live] * phase[direction[live], 0] * np.exp(-sigma*x[live])
+            if resummed:
+                direction[live] = 1-direction[live]
+                throughput[live] *= .2
+            else:
+                direction[live] ^= rng.random(len(live)) >= .8
+        stderr = light.std(ddof=1)/np.sqrt(count)
+        z = abs(light.mean()-reference)/stderr
+        assert z < 5, (resummed, z)
+        results.append({'resummed': resummed, 'estimate': float(light.mean()), 'stderr': float(stderr),
+                        'standard_errors': float(z), 'events_per_path': events/count})
+    assert results[1]['events_per_path'] < .4*results[0]['events_per_path']
+    return {'operator_identity_error': matrix_error, 'slab_reference': float(reference), 'slab': results,
+            'same_channel_fraction': TABLE[2, 0, :3].tolist(),
+            'scope': 'Exact algebra for the selected discrete angular equation; continuum slab MC validates source scaling. GPU spatial quadrature remains approximate.'}
+
+
+def conditional_cache():
+    # A high-albedo finite transport problem, independent of the shader's flight loop.
+    rng = np.random.default_rng(7291)
+    n = 24
+    k = rng.uniform(0, 1, (n, n))
+    k /= k.sum(axis=1)[:, None]
+    k *= np.linspace(.35, .85, n)[:, None]
+    q = rng.uniform(0, .5, n)
+    exact = np.linalg.solve(np.eye(n)-k, q)
+    cache = exact + .03*np.sin(np.arange(n))
+    count, depth = 180000, 8
+    probability = k/k.sum(axis=1)[:, None]
+    cdf = probability.cumsum(axis=1)
+    estimates = []
+    for use_cache in (False, True):
+        state = np.zeros(count, dtype=int)
+        weight = np.ones(count)
+        value = np.zeros(count)
+        for bounce in range(depth):
+            value += weight*q[state]
+            if use_cache:
+                value += weight*(k @ cache)[state]
+            next_state = np.sum(rng.random(count)[:, None] > cdf[state], axis=1)
+            weight *= k.sum(axis=1)[state]
+            state = next_state
+            if use_cache:
+                value -= weight*cache[state]
+        value += weight*cache[state]
+        expected = cache.copy()
+        for _ in range(depth):
+            expected = q+k @ expected
+        stderr = value.std(ddof=1)/np.sqrt(count)
+        assert abs(value.mean()-expected[0]) < 5*stderr
+        estimates.append({'mean': float(value.mean()), 'variance': float(value.var()), 'target': float(expected[0])})
+    ratio = estimates[1]['variance']/estimates[0]['variance']
+    assert ratio < .1
+    # With an exact cache, the recursive conditional estimate telescopes exactly.
+    state = np.zeros(count, dtype=int)
+    weight = np.ones(count)
+    value = np.zeros(count)
+    for bounce in range(depth):
+        value += weight*(q+k @ exact)[state]
+        next_state = np.sum(rng.random(count)[:, None] > cdf[state], axis=1)
+        weight *= k.sum(axis=1)[state]
+        state = next_state
+        value -= weight*exact[state]
+    value += weight*exact[state]
+    assert np.max(abs(value-exact[0])) < 1e-14
+    return {'estimates': estimates, 'variance_ratio': float(ratio), 'exact_cache_max_error': float(np.max(abs(value-exact[0]))),
+            'scope': 'Conditional angular continuation control variate, equal finite-depth target; not a claim of zero GPU spatial/source variance.'}
 
 
 def ground_illumination():
@@ -441,10 +547,10 @@ if __name__ == '__main__':
     parser.add_argument('--gpu-history', type=Path, help='Frame-end RGBA32UI atlas dump with its adjacent JSON metadata')
     args = parser.parse_args()
     report = gpu_history(args.gpu_history) if args.gpu_history else {
-              'equilibrium': equilibrium(), 'spectral_reservoir': reservoir(), 'spectral_segments': spectral_segments(),
-              'angular_guiding': angular_guiding(), 'scattering_orders': scattering_orders(), 'surface_integration': surface_integration(),
-              'path_source_reservoir': path_source_reservoir(), 'spectral_path_variance': spectral_path_variance(), 'shadow_quadrature': shadow_quadrature(),
-              'ground_illumination': ground_illumination(), 'boundary_moments': boundary_moments(), 'fine_geometry': geometry(),
+              'equilibrium': equilibrium(), 'spectral_reservoir': reservoir(), 'grey_segments': grey_segments(),
+              'angular_sampling': angular_sampling(), 'scattering_orders': scattering_orders(), 'surface_integration': surface_integration(),
+              'path_source_reservoir': path_source_reservoir(), 'forced_flight': forced_flight(), 'shadow_quadrature': shadow_quadrature(),
+              'ground_illumination': ground_illumination(), 'resummed_transport': resummed_transport(), 'conditional_cache': conditional_cache(), 'fine_geometry': geometry(),
               'not_established': ['Full transport unbiasedness or global power balance',
                                   'Angular convergence', 'Unbiased temporal filtering', 'Photo agreement']}
     args.output.parent.mkdir(parents=True, exist_ok=True)

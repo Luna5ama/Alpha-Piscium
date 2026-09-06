@@ -2054,14 +2054,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "每条相机射线的局部光照修正数。更多采样能减少噪声，但增加 GPU 时间。零关闭局部多次散射，直射光照仍会采样。"
                         }
                     }
-                    toggle("SETTING_CLOUDS_MS_LOCAL_BOUNCES", 2, listOf(1, 2, 4, 8, 16, 32)) {
+                    toggle("SETTING_CLOUDS_MS_LOCAL_BOUNCES", 4, listOf(1, 2, 4, 8, 16, 32)) {
                         lang {
-                            name = "Local Scattering Depth"
-                            comment = "Explicit scattering events before local boundary reconstruction and the distant lighting cache. Higher values increase GPU cost and can increase noise."
+                            name = "Local Transport Depth"
+                            comment = "Local transport stages. High-order stages sum repeated scattering within each angular channel. More stages extend the correction and increase GPU cost."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "局部散射深度"
-                            comment = "使用局部边界重建和远场光照缓存之前的显式散射事件数。更高数值增加 GPU 开销，也可能增加噪声。"
+                            name = "局部输运深度"
+                            comment = "局部输运阶段数。高阶阶段会解析合并同一角向通道内的重复散射；更多阶段延伸光照修正范围，并增加 GPU 开销。"
                         }
                     }
                     slider("SETTING_CLOUDS_LOW_STEP_MIN", 128, 16..128 step 8) {

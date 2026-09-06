@@ -41,11 +41,12 @@ def transport(rho, omega=1.0):
     escape = np.zeros(24 * m)
     for angle, direction in enumerate(DIRS):
         sum_rate = abs(direction).sum()
-        wi = incoming_weight(rho / sum_rate)
+        reduced_extinction = rho * (1-omega*P[angle, angle])
+        wi = incoming_weight(reduced_extinction / sum_rate)
         for index, p in enumerate(np.ndindex((n, n, n))):
             p = np.array(p)
             i = angle * m + index
-            diagonal[i] = sum_rate + rho[index] * (1-wi[index])
+            diagonal[i] = sum_rate + reduced_extinction[index] * (1-wi[index])
             mean_diagonal[i] = 1-wi[index]
             for axis in range(3):
                 rate = abs(direction[axis])
@@ -55,14 +56,14 @@ def transport(rho, omega=1.0):
                     rows.append(i); cols.append(angle * m + np.ravel_multi_index(q, (n, n, n)))
                     mean_weight = wi[index]*rate/sum_rate
                     mean_values.append(mean_weight)
-                    values.append(-rate+rho[index]*mean_weight)
+                    values.append(-rate+reduced_extinction[index]*mean_weight)
                 q = p.copy()
                 q[axis] += int(np.sign(direction[axis]))
                 if np.any(q < 0) or np.any(q >= n):
                     escape[i] += rate
     streaming = coo_matrix((values, (rows, cols)), shape=(24*m, 24*m)).tocsr() + diags(diagonal)
     mean = coo_matrix((mean_values, (rows, cols)), shape=(24*m, 24*m)).tocsr() + diags(mean_diagonal)
-    scatter = kron(P, diags(rho * omega), format='csr') @ mean
+    scatter = kron(P-np.diag(np.diag(P)), diags(rho * omega), format='csr') @ mean
     return streaming, scatter, escape, mean
 
 
@@ -164,7 +165,7 @@ def test_3d():
                     u = core_lu.solve(np.r_[w*r0, (1-w)*r0])
                     phi = w*u[:rho.size]+(1-w)*u[rho.size:]
                     delta = np.tile(phi / (4*np.pi), 24)
-                    if method == 'transported_correction': delta = lu.solve(np.tile(rho.ravel()*omega, 24) * delta)
+                    if method == 'transported_correction': delta = lu.solve(np.repeat(1-np.diag(P), rho.size) * np.tile(rho.ravel()*omega, 24) * delta)
                     ad = a @ delta
                     dd = ad @ ad
                     limit = min(1, np.min(-.99*current[delta < 0]/delta[delta < 0], initial=1))
@@ -185,8 +186,9 @@ def test_3d():
         scaled = rho * epsilon
         b = source * epsilon
         s, *_ = solve_system(scaled, 1, b)
-        _, scatter, _, _ = transport(scaled)
-        energies.append(float((scatter @ s).sum()))
+        _, _, _, mean = transport(scaled)
+        camera_scatter = kron(P, diags(scaled.ravel()), format='csr') @ mean
+        energies.append(float((camera_scatter @ s).sum()))
     powers = np.log(np.array(energies[:-1])/energies[1:]) / np.log(2)
     assert np.max(abs(powers-2)) < .02
     # Superposition and the pure-vacuum zero-source case.
@@ -208,7 +210,7 @@ def spatial_limit():
     for rho in (.1, 1, 10):
         rate = abs(DIRS).sum(axis=1)
         shift = np.exp(-1j*np.sign(DIRS[:, 0])*k)
-        mean = 1 + incoming_weight(rho/rate)*abs(DIRS[:, 0])/rate*(shift-1)
+        mean = 1 + incoming_weight(rho*(1-np.diag(P))/rate)*abs(DIRS[:, 0])/rate*(shift-1)
         symbol = rho*(np.eye(24)-P) @ np.diag(mean)
         symbol += np.diag(abs(DIRS[:, 0]) * (1-shift))
         response = (mean * np.linalg.solve(symbol, np.ones(24))).mean()
@@ -246,7 +248,7 @@ def source_and_history():
             r0 = W*r.reshape(24, -1).sum(axis=0)
             u = core_lu.solve(np.r_[w*r0, (1-w)*r0])
             phi = w*u[:rho.size]+(1-w)*u[rho.size:]
-            delta = lu.solve(np.tile(rho.ravel(), 24)*np.tile(phi/(4*np.pi), 24))
+            delta = lu.solve(np.repeat(1-np.diag(P), rho.size)*np.tile(rho.ravel(), 24)*np.tile(phi/(4*np.pi), 24))
             ad = a@delta
             limit = min(1., np.min(-.99*current[delta < 0]/delta[delta < 0], initial=1.))
             gamma = max(0., min(limit, (r@ad)/(ad@ad)))
@@ -296,16 +298,48 @@ def gpu_readback(path, n):
     emitted = stats[15, :3]
     ratio = np.divide(emitted, incident, out=np.zeros(3), where=incident > 0)
     mean_field = fields['lifted'][:, :3].reshape(24, cells, 3)
-    cached_mean = fields['coefficients'][:4*cells].reshape(cells, 4, 4)[:, 1:4, 3]
-    mean_error = np.max(abs(cached_mean-mean_field.mean(axis=0))/np.maximum(mean_field.mean(axis=0), 1e-7))
+    unused = fields['coefficients'][:4*cells].reshape(cells, 4, 4)[:, 1:4, 3]
+    assert np.all(unused == 0)
+    cdf = fields['phase'][:, 3].reshape(24, 24)
+    assert np.all(np.diff(cdf, axis=1) >= 0) and np.all(cdf[:, -1] == 1)
+    probability = np.diff(np.c_[np.zeros(24), cdf], axis=1)
+    reduced = matrix.copy()
+    for j in range(24):
+        reduced[j, j] -= matrix[j, j].min()
+    assert np.all((probability > 0) | np.all(reduced == 0, axis=2))
     convolution = np.einsum('aic,ijc->ajc', matrix, mean_field)
     camera_source = fields['camera_source'][:, :3].reshape(24, cells, 3)
     convolution_error = np.max(abs(convolution-camera_source)/np.maximum(abs(convolution), 1e-7))
-    assert mean_field.min() >= -1e-6 and mean_error < 1e-5 and convolution_error < 1e-5
+    assert mean_field.min() >= -1e-6 and convolution_error < 1e-5
+    # Recompute diagnostics independently: a large-address fault in the packed
+    # reduction records can report a small residual and a fictitious power loss.
+    h = np.diff(fields['edges'][:, :2].astype(float), axis=0)
+    volume = h[:, 0, None, None]*h[None, :, 1, None]*h[None, None, :, 0]
+    rho = fields['coefficients'][:4*cells].reshape(cells, 4, 4)[:, 0, 3].reshape(n,n,n)
+    sigma_t = float(np.float32(.18547168941993848))
+    sigma_s = float(np.float32(.18547160197076002))
+    mean_grid = mean_field.reshape(24,n,n,n,3)
+    output_reference = np.sum(mean_grid.sum(axis=0)*rho[..., None]*volume[..., None], axis=(0,1,2))*(sigma_t-sigma_s)*W
+    face_areas = (h[:,0,None]*h[None,:,1], h[:,0,None]*h[None,:,0], h[:,1,None]*h[None,:,0])
+    outgoing = fields['radiance'][:, :3].reshape(24,n,n,n,3)
+    for j, direction in enumerate(DIRS):
+        for axis in range(3):
+            face = np.take(outgoing[j], -1 if direction[axis]>0 else 0, axis=2-axis)
+            output_reference += np.sum(face*face_areas[axis][...,None], axis=(0,1))*abs(direction[axis])*W
+    sky_grid = fields['sky'][:, :3].reshape(24,n,n,n,3)
+    material = fields['material'].reshape(n,n,n,2,4)
+    source_reference = rho[...,None]*sky_grid.sum(axis=0)*W
+    source_reference += material[...,0,:3]*fields['sun_phase'][:,:3].sum(axis=0)*W
+    source_reference += material[...,1,:3]*fields['moon_phase'][:,:3].sum(axis=0)*W
+    input_reference = np.sum(source_reference*volume[...,None],axis=(0,1,2))*sigma_s
+    diagnostic_error = max(float(np.max(abs(input_reference-incident)/np.maximum(abs(input_reference),1e-12))),
+                           float(np.max(abs(output_reference-emitted)/np.maximum(abs(output_reference),1e-12))))
+    assert diagnostic_error < 1e-5, diagnostic_error
     iterations = int(stats[24, 0])
     return {'resolution': n, 'bytes': expected, 'all_finite': True,
             'minimum_radiance': float(s.min()), 'maximum_radiance': float(s.max()),
-            'mean_cache_relative_error': float(mean_error), 'phase_convolution_relative_error': float(convolution_error),
+            'phase_cdf_normalized': True, 'phase_convolution_relative_error': float(convolution_error),
+            'power_diagnostic_relative_error': diagnostic_error,
             'iterations': iterations, 'reused_history': bool(stats[24, 1]), 'history_displacement_km': stats[25, :3].tolist(),
             'raw_residuals': stats[1:1+iterations, :3].tolist(), 'predicted_corrected_residuals': stats[5:5+iterations, :3].tolist(),
             'accepted_damping': stats[9:9+iterations, :3].tolist(), 'final_relative_residual': stats[13, :3].tolist(),

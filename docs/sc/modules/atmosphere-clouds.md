@@ -78,7 +78,7 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 每个非空探测区间在两端计算缓存预测和前景空气；精细光学段对这些低频量插值，同时查询完整密度细节。昂贵的单次散射在不透明度加权的 reservoir 深度处求值，
 使用完全相同的光谱相机权重。默认使用两个直射光照采样，局部采样预算为四时使用四个。
 太阳和月亮分别使用实际密度、大气透射率、地球遮挡及采样日月圆盘方向上的完整相函数。
-每个选中深度的天空/地面单次散射使用两个连续相函数重要性方向，PDF 为三个 AP0 相函数密度的等权混合。
+每个选中深度的天空/地面单次散射使用一个连续相函数重要性方向，PDF 为三个 AP0 相函数密度的等权混合。
 精细阴影光线用真实消光积分 16 个指数密度区间，移除比率跟踪噪声和无界空碰撞工作量，
 但有限求积仍可能遗漏远处的狭窄遮挡物。积云默认使用 HG+Draine（`SETTING_CLOUDS_CU_PHASE_RATIO = 0`）；
 直射、方向采样、相函数矩阵和矩系数统一读取同一个混合设置。
@@ -93,7 +93,9 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 阴影光柱的指数区间以最小消光平均自由程的四分之一为距离尺度，远处的云层出口不会再将首段阴影采样
 拉伸到跨过小表面结构。光柱最多覆盖 12 千米，达到不透明光学厚度（最小通道深度 12）后停止。
 远处阴影求积仍然较粗。旧的 extinction octave、逐阶衰减权重及 `0.15` 环境光学深度缩放继续保持移除。
-相机与局部光路始终使用真实消光，不使用输运消光或 MS 亮度缩放。
+积云使用灰色消光/散射系数 `0.1854716894` 和 `0.1854716020`，取自先前 AP0 系数的平均值。
+照明和所选相函数保留 RGB。相机、直射阴影与首段局部飞行使用此真实消光；高阶约化特征线解析包含
+同一角向通道内的重复散射，其系数与真实消光以及输运消光 `a1` 均有区别。
 
 空气散射和透射率积分到探测区间两端，每段使用 4–32 个采样，再在精细光学段内插值，
 避免重复步进空气；前景辐亮度仍按相应深度的云不透明度加权。
@@ -116,16 +118,23 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 | 顺序 | Pass / 阶段 | 作用 |
 |---|---|---|
 | 1，begin | [`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl) | 构造网格、相函数矩阵和系数层级；四个体积求积点各定义一条含八个密度采样的光源弦线，根据入口透射率与 `1-exp(-tau)` 积分 `rho B` |
-| 2，begin | [`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl)，`CT_HISTORY` | 按相机位移和云平流将上一帧 `P S` 重投影到独立暂存区；无效历史提供零初值 |
+| 2，begin | [`CloudTransportPrepare`](../../../shaders/pass/begin/CloudTransportPrepare.comp.glsl)，`CT_HISTORY` | 按相机位移和云平流将上一帧 `(P - f I) S` 重投影到独立暂存区；无效历史提供零初值 |
 | 3，begin | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl)、[`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 计算未碰撞天空/地面光，由 `P B` 和重投影后的散射光初值构造当前源项 |
 | 4，deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl) | 使用降序共享内存平面求解方向特征线，每工作组最多 48 KiB |
 | 5，deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 将真实方向残差限制到两个耦合扩散通道；V-cycle 使用 4³ 块预条件 CG、实际中心延拓和红黑平滑 |
 | 6，deferred | [`CloudTransportSweep`](../../../shaders/pass/begin/CloudTransportSweep.comp.glsl)、[`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 提升并阻尼校正，保持辐亮度非负；残差或功率误差未达标时才执行后续迭代 |
-| 7，deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 记录实际残差/功率，存储单元平均散射光及其角向平均，预卷积 `P S` 供相机和下一帧初值使用 |
+| 7，deferred | [`CloudTransportCorrect`](../../../shaders/pass/begin/CloudTransportCorrect.comp.glsl) | 记录实际残差/功率，存储单元平均散射光，预卷积 `P S` 供相机和下一帧初值使用 |
 
-特征线区分入射光、出射面值和单元平均值。令 `tau = sigma_t / sum(abs(omega)/cell_size)`，
-未碰撞出射透射率为 `exp(-tau)`。平均为 `(1-w) L_out + w L_in`，其中
-`w = 1/tau - 1/(exp(tau)-1)` 在薄介质使用稳定级数。散射和吸收使用平均值，共享面输运与逃逸使用出射值；
+空间离散之前先解析合并同一角向通道内的重复散射。令 `f = min_RGB(P_jj)`，定义
+`sigma_f = sigma_t - sigma_s f`、`P_f = P - f I`，方程变为
+`omega_j.grad S_j + sigma_f S_j = sigma_s (P B + P_f S)_j`。这是所选角向方程的代数重排，
+对非均匀密度同样成立。`P_f` 保持非负，吸收仍为 `sigma_t-sigma_s`，等立体角矩阵保留功率收支。
+相函数记录的 alpha 保存约化相函数 CDF；RGB 仍保存完整矩阵。PDF 由已存储的 CDF 差值计算，包含浮点舍入。
+
+特征线区分入射光、出射面值和单元平均值。散射光的光学厚度为
+`sigma_f / sum(abs(omega)/cell_size)`，未碰撞光仍使用 `sigma_t`。
+平均为 `(1-w) L_out + w L_in`，其中 `w = 1/tau - 1/(exp(tau)-1)` 在薄介质使用稳定级数。
+散射和吸收使用平均值，共享面输运与逃逸使用出射值；
 残差、校正和功率算子保持同样区分。这替代了向下一格传递单元平均值的方式，后者使厚单元未碰撞透射率成为
 `1/(1+tau)`。有限横向求积和段内常量源仍是空间近似。
 
@@ -153,13 +162,16 @@ composite 前段，空气/水体体积在 GI 后、透明合成前完成。
 | SSBO 6 内的 `ctStats` | 已执行的残差/步长、最终残差与功率、校正后功率误差、实际迭代数、历史有效性/位移和上一帧相机/时间/光源元数据；通过 buffer dump 检查 |
 
 SSBO 使用单个不定长 `vec4[]` 和显式偏移；大型定长 SSBO 数组会使 NVIDIA 编译耗时异常增长。
-改变打包布局时须同步修改字节分配和回读程序。帧末 `ctRadiance` 保存出射值，`ctLifted` 保存单元平均值；
-零层 fast/weight/exchange 系数记录原本空闲的 alpha 分量保存 RGB 角向平均，这些分量不参与求解。
+偏移及索引运算保持无符号整数：实测 NVIDIA 路径在 64³ 下错误处理大有符号偏移，使散射光缓存错位一个 vec4，
+并破坏归约地址。这是寻址错误，而非 NaN/Inf；两种分辨率都应核验回读的平均场/源项关系及功率和。
+改变打包布局时须同步修改字节分配和回读程序。帧末 `ctRadiance` 保存出射值，`ctLifted` 保存单元平均值。
+系数 RGB 保留求解器参数，零层 fast/weight/exchange 的 alpha 分量不再使用，保持零值。
+旧边界模型的平均光缓存已移除。
 
 网格水平覆盖 ±121 千米。每条水平轴将 75% 的单元均匀分配到 ±12 千米范围，其余距离采用一阶导数连续的指数外缘。
 采样逆映射和实际中心插值使用同一套分配。竖直范围覆盖球面云层并延伸到名义云底以下 2.5 千米。
 `SETTING_CLOUDS_MS_RESOLUTION` 选择 32³（默认）或 64³，内部横向间距分别为 1 千米和 500 米；
-`SETTING_CLOUDS_MS_ITERATIONS` 选择 1、2 或 4（默认），作为迭代上限。上一帧 `P S` 只提供当前算子和源项的初值。
+`SETTING_CLOUDS_MS_ITERATIONS` 选择 1、2 或 4（默认），作为迭代上限。上一帧 `(P - f I) S` 只提供当前算子和源项的初值。
 帧不连续、历史重置，或日月方向变化超过角半径时拒绝该初值。至少执行一轮完整迭代；
 预测相对残差和校正后功率误差都低于 `0.005` 时，后续迭代提前停止。最终诊断重新计算实际残差与功率。
 冷启动和突变仍可能耗尽预算而尚未收敛。
@@ -185,48 +197,46 @@ python test/cloud-transport-check.py --output ../builds/cloud-transport/numerics
 
 ### 局部散射路径与稀疏残差
 
-[`LocalTransport.glsl`](../../../shaders/techniques/atmospherics/clouds/LocalTransport.glsl) 用真实密度重建显式低阶散射，
-对终止处高阶光场使用局部边界近似。粗双通道仍提供非局部预测，无需扩大光照体积或新增屏幕分配。
+[`LocalTransport.glsl`](../../../shaders/techniques/atmospherics/clouds/LocalTransport.glsl) 对相机与二次散射
+保留连续方向，随后使用与共享求解器相同的 24 通道方程。高阶飞行解析合并相函数的公共对角质量，
+缓存提供未解析的远场。局部着色已移除法线、平面边界块、Marshak 到 HG 的重建、距离混合和密度 AO。
 
 | 阶段 | 操作 |
 |---|---|
-| 相机积分 | 积分完整缓存预测，维护光谱不透明度加权的深度 reservoir，保存选中点预测 |
-| 局部自由飞行 | 将三个上游单元长度划为 16 个指数区间，以 AP0 平均消光采样积分后的段源，并施加光谱不透明度比率权重；真空自由透射，地面截断逃逸 |
-| 局部源项 | 累积最近单元的天空/日月预测；独立 reservoir 各选一个天空与日月事件，日月提议含完整连续相函数，精细阴影修正两份预测 |
-| 终止边界 | 定位真实界面，由内部平均光和外部入射散射光重建高阶角向光；深处与光学薄细节使用方向缓存 |
-| 相机修正 | 加入相函数加权局部光与保存预测之差，保留有符号残差和真实相机消光 |
+| 相机积分 | 积分完整缓存预测，维护按不透明度加权的深度 reservoir，保存对应预测及前景空气权重 |
+| 首段局部飞行 | 使用真实灰色消光及连续 RGB 相函数；选择离散延续通道之前先积分投影后的角向缓存 |
+| 高阶飞行 | 沿实际密度使用 `sigma_f`，采样非负剩余相函数 `P - f I`；相机消光与物理阴影光线不受此移项影响 |
+| 终段飞行 | 在 16 个指数密度区间上积分透射率；WRS 在已发生散射的条件下选择位置，同时加入加权散射回填与透射后的终点来光 |
+| 外部源项 | 每条路径分别用正值 reservoir 选择一个天空事件及一个日/月事件；通过精细阴影计算真实辐亮度，不减去不准确的粗阴影 |
+| 相机修正 | 加入带符号的局部光照减预测值；根方向采用分层时空蓝噪声 |
 
-`SETTING_CLOUDS_MS_LOCAL_SAMPLES` 选择 0、1、2（默认）或 4 条路径；零关闭局部 MS 修正但保留直射。
-`SETTING_CLOUDS_MS_LOCAL_BOUNCES` 选择 1、2（默认）、4、8、16 或 32 次显式事件；更多事件延后终止闭合，
-但不保证有限采样画面更好。
+`SETTING_CLOUDS_MS_LOCAL_SAMPLES` 可选 0、1、2（默认）、4 条路径；零关闭局部 MS 修正，保留直射。
+`SETTING_CLOUDS_MS_LOCAL_BOUNCES` 可选 1、2、4（默认）、8、16、32 个输运阶段。首阶段使用连续方向，
+后续阶段包含任意多次同通道事件，因此不再代表字面上的物理散射次数。更多阶段延伸局部输运，
+不会改变艺术化边界权重，也不保证有限样本噪声更低。
 
-光柱量为 `c` 的段选中概率为 `T_ref * (1-exp(-sigma_ref*c))`，其中 `sigma_ref = mean(sigma_t)`；
-光谱分子为 `T * (sigma_s/sigma_t) * (1-exp(-sigma_t*c))`。两者之比在该段实际密度采样点积分分段常量模型，
-无需空碰撞。有限求积替代了无界空碰撞跟踪及其光谱权重方差；阴影也使用有界指数求积。
+终段中，`T` 是积分到终点的透射率，`A` 是各段散射选择权重 `T_i (1-exp(-tau_i))` 之和。
+按不透明度加权的 reservoir 选出位置 `X`，估计式为
+`T C_j(endpoint) + A (sigma_s/sigma_f) [(P-f I) C + P B]_j(X)`。
+条件位置采样保留积分期望，同时始终计算透射终点，替代散射/逃逸二选一，并避免每个精细密度步都查询完整缓存。
+真空中 `T=1`、`A=0`；保守介质的恒定平衡光场保持不变。有限区间求积及三个粗单元长度的飞行范围仍有偏差。
 
-日月提议为 `throughput * phase * (cached_incident + unoccluded_incident)` 的最大通道。
-天空有独立正提议，避免尖锐光束占用它的采样。每份修正减去自己的预测，在给定路径上保持完整源项和的期望；
-最近单元预测改变方差，不改变该目标。完整相机预测也在同一组权重下消去，即使粗角向矩阵与连续局部卷积不同。
+在中间高阶事件，`(P-f I) C` 是缓存延续光照的已知条件期望。加上此项，减去采样到的 `C` 后继续追踪，
+保持相同的有限深度输运目标。连续相函数 LUT 的有限采样精度仍限制相机/路径抵消的准确性。
 
-边界重建使用 [`Cumulus.glsl`](../../../shaders/techniques/atmospherics/clouds/Cumulus.glsl) 的未截断界面，
-避免不透明密度饱和后的零梯度。四个探针估算法线，短距离搜索与四次二分定位真实真空。
-仅当外推长度 `2 D0` 小于最细鼓包尺度时启用。内部光取自粗角向平均；外侧入射散射光先经过十二个真实密度
-特征线段的衰减和源项回填，再查询远场端点。
+天空源方向连续；高阶源项先在选中的角向单元内均匀采样方向。光束源使用已积分的日/月方向单元相函数。
+正值 proposal 使用未遮挡入射功率及路径/相函数权重。完全遮挡的源严格贡献零，不再靠随机减去错误的
+粗受光预测来抵消。源项、投影延续与完整相机预测分别保留各自的概率因子，避免重复添加未碰撞或已散射光。
 
-在一个外推长度处，Marshak 匹配给出 `Phi_0 = (Phi_bulk + Phi_in)/2` 和
-`J_n = (Phi_bulk - Phi_in)/4`。归一化正 HG 角向场承载这些矩，非对称参数位于 `[-0.5, 0.5]`，
-并在片内按 `2 D0` 与方向缓存混合。内外相同的各向同性场在任意密度几何下保持不变。
-这是局部高阶近似：估算法线、入射半球、局部平面和距离混合并非精确的有限云体角向解；
-显式低阶路径与相机仍使用完整的所选相函数。
+粗网格、24 通道高阶表示、飞行范围、密度求积和终点光场仍是近似。局部修正没有将净通量反馈给粗网格，
+其功率平衡不能证明整张图像守恒。默认历史保持 32 帧，包含深度/风重投影与方差裁剪；
+保留带符号辐亮度，历史计数使用正值重建权重。时间/FP16 偏差和有限样本噪声仍然存在。
+提高深度是在细化所选模型，不能据此证明照片一致性或完整的角向/空间收敛。
 
-自由飞行范围、求积、终止场和角向 LUT 仍有偏差。局部修正不向粗求解反馈净通量，其功率平衡不证明图像全局守恒。
-默认历史仍为 32 帧，保留深度重投影和方差裁剪。历史计数使用正重建权重，有符号辐亮度保留原有过滤，
-避免 Lanczos 负瓣产生负置信度；稀疏残差噪声、时域和 FP16 偏差仍可能存在。
-
-[`cloud-local-transport-check.py`](../../../scripts/test/cloud-local-transport-check.py) 核验非均匀解析平板上的光谱段采样、
-真空/平衡场、相机与源项 reservoir 消去、角向采样、散射阶数与阴影求积收敛、等质量窄通道、Lambert 地面输入及
-边界角向功率/通量。`--gpu-history PATH` 检查帧末历史图集的有限有符号散射、透射率和深度。
-这些模型核验不证明与照片吻合。
+[`cloud-local-transport-check.py`](../../../scripts/test/cloud-local-transport-check.py) 检查灰色飞行采样、
+真空/平衡、相机及源项 reservoir、与独立连续平板对照的解析合并、条件延续、强制终段方差、
+阴影求积和等质量狭窄通道。`--gpu-history PATH` 检查有限的带符号散射、透射率与深度。
+主输运检查还通过 Iris SSBO dump 核验相函数 CDF、帧末 `P S`。
 
 ```sh
 python test/cloud-local-transport-check.py --output ../builds/cloud-transport/local-numerics.json

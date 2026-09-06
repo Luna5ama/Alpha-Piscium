@@ -26,8 +26,8 @@ const float CT_W = SPHERE_SOLID_ANGLE / float(CT_ANGLES);
 // 75% of each horizontal axis resolves the inner 24 km. A C1 exponential
 // skirt keeps distant illumination and escape paths out to +/-121 km.
 const float CT_SKIRT = 4.90219448065;
-const vec3 CT_EXTINCTION = vec3(0.18067367051236774, 0.18215559145291857, 0.19358580629452912);
-const vec3 CT_SCATTERING = vec3(0.18067349140471628, 0.18215551958414714, 0.19358579492341665);
+const vec3 CT_EXTINCTION = vec3(CLOUDS_CU_EXTINCTION_COEFF);
+const vec3 CT_SCATTERING = vec3(CLOUDS_CU_SCATTERING_COEFF);
 const vec3 CT_ABSORPTION = CT_EXTINCTION - CT_SCATTERING;
 
 struct CTCoefficients {
@@ -55,35 +55,35 @@ layout(std430, binding = 6) CT_STORAGE CloudTransport {
 
 // Vec4 offsets preserve the readback layout without large sized SSBO arrays,
 // which cause pathological compile times in the NVIDIA driver.
-const int CT_EDGES_OFFSET = 32;
-const int CT_PHASE_OFFSET = CT_EDGES_OFFSET + CT_N + 1;
-const int CT_SUN_PHASE_OFFSET = CT_PHASE_OFFSET + CT_ANGLES * CT_ANGLES;
-const int CT_MOON_PHASE_OFFSET = CT_SUN_PHASE_OFFSET + CT_ANGLES;
-const int CT_MATERIAL_OFFSET = CT_MOON_PHASE_OFFSET + CT_ANGLES;
-const int CT_COEFFICIENTS_OFFSET = CT_MATERIAL_OFFSET + 2 * CT_CELLS;
-const int CT_RHS_OFFSET = CT_COEFFICIENTS_OFFSET + 4 * CT_TREE;
-const int CT_ERROR_OFFSET = CT_RHS_OFFSET + 2 * CT_TREE;
-const int CT_RADIANCE_OFFSET = CT_ERROR_OFFSET + 2 * CT_TREE;
-const int CT_SOURCE_OFFSET = CT_RADIANCE_OFFSET + CT_ANGLES * CT_CELLS;
-const int CT_SKY_OFFSET = CT_SOURCE_OFFSET + CT_ANGLES * CT_CELLS;
-const int CT_LIFTED_OFFSET = CT_SKY_OFFSET + CT_ANGLES * CT_CELLS;
-const int CT_PARTIALS_OFFSET = CT_LIFTED_OFFSET + CT_ANGLES * CT_CELLS;
+const uint CT_EDGES_OFFSET = 32u;
+const uint CT_PHASE_OFFSET = CT_EDGES_OFFSET + uint(CT_N) + 1u;
+const uint CT_SUN_PHASE_OFFSET = CT_PHASE_OFFSET + uint(CT_ANGLES * CT_ANGLES);
+const uint CT_MOON_PHASE_OFFSET = CT_SUN_PHASE_OFFSET + uint(CT_ANGLES);
+const uint CT_MATERIAL_OFFSET = CT_MOON_PHASE_OFFSET + uint(CT_ANGLES);
+const uint CT_COEFFICIENTS_OFFSET = CT_MATERIAL_OFFSET + 2u * uint(CT_CELLS);
+const uint CT_RHS_OFFSET = CT_COEFFICIENTS_OFFSET + 4u * uint(CT_TREE);
+const uint CT_ERROR_OFFSET = CT_RHS_OFFSET + 2u * uint(CT_TREE);
+const uint CT_RADIANCE_OFFSET = CT_ERROR_OFFSET + 2u * uint(CT_TREE);
+const uint CT_SOURCE_OFFSET = CT_RADIANCE_OFFSET + uint(CT_ANGLES * CT_CELLS);
+const uint CT_SKY_OFFSET = CT_SOURCE_OFFSET + uint(CT_ANGLES * CT_CELLS);
+const uint CT_LIFTED_OFFSET = CT_SKY_OFFSET + uint(CT_ANGLES * CT_CELLS);
+const uint CT_PARTIALS_OFFSET = CT_LIFTED_OFFSET + uint(CT_ANGLES * CT_CELLS);
 
 #define ctStats(i) ctData[(i)]
-#define ctEdges(i) ctData[CT_EDGES_OFFSET + (i)]
-#define ctPhase(i) ctData[CT_PHASE_OFFSET + (i)]
-#define ctSunPhase(i) ctData[CT_SUN_PHASE_OFFSET + (i)]
-#define ctMoonPhase(i) ctData[CT_MOON_PHASE_OFFSET + (i)]
-#define ctMaterialSun(i) ctData[CT_MATERIAL_OFFSET + 2 * (i)]
-#define ctMaterialMoon(i) ctData[CT_MATERIAL_OFFSET + 2 * (i) + 1]
-#define ctCoefficient(i, field) ctData[CT_COEFFICIENTS_OFFSET + 4 * (i) + (field)]
-#define ctRhs(i) ctData[CT_RHS_OFFSET + (i)]
-#define ctError(i) ctData[CT_ERROR_OFFSET + (i)]
-#define ctRadiance(i) ctData[CT_RADIANCE_OFFSET + (i)]
-#define ctSource(i) ctData[CT_SOURCE_OFFSET + (i)]
-#define ctSky(i) ctData[CT_SKY_OFFSET + (i)]
-#define ctLifted(i) ctData[CT_LIFTED_OFFSET + (i)]
-#define ctPartial(i, field) ctData[CT_PARTIALS_OFFSET + 7 * (i) + (field)]
+#define ctEdges(i) ctData[CT_EDGES_OFFSET + uint(i)]
+#define ctPhase(i) ctData[CT_PHASE_OFFSET + uint(i)]
+#define ctSunPhase(i) ctData[CT_SUN_PHASE_OFFSET + uint(i)]
+#define ctMoonPhase(i) ctData[CT_MOON_PHASE_OFFSET + uint(i)]
+#define ctMaterialSun(i) ctData[CT_MATERIAL_OFFSET + 2u * uint(i)]
+#define ctMaterialMoon(i) ctData[CT_MATERIAL_OFFSET + 2u * uint(i) + 1u]
+#define ctCoefficient(i, field) ctData[CT_COEFFICIENTS_OFFSET + 4u * uint(i) + uint(field)]
+#define ctRhs(i) ctData[CT_RHS_OFFSET + uint(i)]
+#define ctError(i) ctData[CT_ERROR_OFFSET + uint(i)]
+#define ctRadiance(i) ctData[CT_RADIANCE_OFFSET + uint(i)]
+#define ctSource(i) ctData[CT_SOURCE_OFFSET + uint(i)]
+#define ctSky(i) ctData[CT_SKY_OFFSET + uint(i)]
+#define ctLifted(i) ctData[CT_LIFTED_OFFSET + uint(i)]
+#define ctPartial(i, field) ctData[CT_PARTIALS_OFFSET + 7u * uint(i) + uint(field)]
 
 bool ct_skipIteration() {
     #if defined(CT_ITERATION) && CT_ITERATION > 0
@@ -99,6 +99,14 @@ CTCoefficients ct_loadCoefficients(int i) {
 
 vec3 ct_toAP0(vec3 value) {
     return colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_COLORSPACES_ACES_AP0, value);
+}
+
+float ct_forwardFraction(int angle) {
+    return mmin3(ctPhase(angle * CT_ANGLES + angle).rgb);
+}
+
+float ct_reducedExtinction(int angle) {
+    return CLOUDS_CU_EXTINCTION_COEFF - CLOUDS_CU_SCATTERING_COEFF * ct_forwardFraction(angle);
 }
 
 vec3 ct_phaseCosines(float xi) {
@@ -325,11 +333,10 @@ vec3 ct_field(int index, bool correction) {
 }
 
 // Mean radiance = (1-w) outgoing + w incoming for a constant-source segment.
-vec3 ct_incomingWeight(vec3 tau) {
-    vec3 safeTau = max(tau, vec3(0.01));
-    vec3 tr = exp(-safeTau);
-    vec3 w = 1.0 / safeTau - tr / (1.0 - tr);
-    return mix(w, 0.5 - tau / 12.0 + tau * tau * tau / 720.0, lessThan(tau, vec3(0.01)));
+float ct_incomingWeight(float tau) {
+    if (tau < 0.01) return 0.5 - tau / 12.0 + tau * tau * tau / 720.0;
+    float tr = exp(-tau);
+    return 1.0 / tau - tr / (1.0 - tr);
 }
 
 vec3 ct_incoming(ivec3 p, int angle, bool correction, vec3 rate) {
@@ -346,7 +353,7 @@ vec3 ct_incoming(ivec3 p, int angle, bool correction, vec3 rate) {
 vec3 ct_cellMean(ivec3 p, int angle, bool correction) {
     vec3 rate = abs(ct_direction(angle)) / ct_size(p, 0);
     int i = ct_index(p, CT_N);
-    vec3 tau = ctCoefficient(i, 0).a * CT_EXTINCTION / (rate.x + rate.y + rate.z);
+    float tau = ctCoefficient(i, 0).a * ct_reducedExtinction(angle) / (rate.x + rate.y + rate.z);
     return mix(ct_field(angle * CT_CELLS + i, correction), ct_incoming(p, angle, correction, rate), ct_incomingWeight(tau));
 }
 
@@ -355,7 +362,7 @@ vec3 ct_streaming(ivec3 p, int angle, bool correction) {
     vec3 rate = abs(omega) / ct_size(p, 0);
     int i = ct_index(p, CT_N);
     float sumRate = rate.x + rate.y + rate.z;
-    vec3 extinction = ctCoefficient(i, 0).a * CT_EXTINCTION;
+    float extinction = ctCoefficient(i, 0).a * ct_reducedExtinction(angle);
     vec3 outgoing = ct_field(angle * CT_CELLS + i, correction);
     vec3 incoming = ct_incoming(p, angle, correction, rate);
     vec3 mean = mix(outgoing, incoming, ct_incomingWeight(extinction / sumRate));
@@ -417,7 +424,7 @@ bool ct_interpolation(vec3 pos, out ivec3 base, out vec3 f) {
 }
 
 // AP0, with the same interpolation for the camera predictor and path endpoints.
-vec3 ct_sampleField(vec3 pos, ivec4 angles, vec4 angularWeights, int fieldOffset) {
+vec3 ct_sampleField(vec3 pos, ivec4 angles, vec4 angularWeights, uint fieldOffset) {
     ivec3 base;
     vec3 f;
     if (!ct_interpolation(pos, base, f)) return vec3(0.0);
@@ -427,7 +434,7 @@ vec3 ct_sampleField(vec3 pos, ivec4 angles, vec4 angularWeights, int fieldOffset
         vec3 w = mix(1.0 - f, f, vec3(offset));
         int i = ct_index(base + offset, CT_N);
         vec3 value = vec3(0.0);
-        for (int a = 0; a < 4; ++a) value += angularWeights[a] * ctData[fieldOffset + angles[a] * CT_CELLS + i].rgb;
+        for (int a = 0; a < 4; ++a) value += angularWeights[a] * ctData[fieldOffset + uint(angles[a] * CT_CELLS + i)].rgb;
         result += value * w.x * w.y * w.z;
     }
     return result;
@@ -441,7 +448,7 @@ vec3 ct_sampleRadiance(vec3 pos, vec3 omega) {
     return ct_sampleField(pos, angles, weights, CT_LIFTED_OFFSET);
 }
 
-vec3 ct_sampleMean(vec3 pos) {
+vec3 ct_sampleChannel(vec3 pos, int angle, uint fieldOffset) {
     ivec3 base;
     vec3 f;
     if (!ct_interpolation(pos, base, f)) return vec3(0.0);
@@ -449,29 +456,9 @@ vec3 ct_sampleMean(vec3 pos) {
     for (int corner = 0; corner < 8; ++corner) {
         ivec3 offset = ivec3(corner) >> ivec3(0, 1, 2) & 1;
         vec3 w = mix(1.0 - f, f, vec3(offset));
-        int i = ct_index(base + offset, CT_N);
-        result += vec3(ctCoefficient(i, 1).a, ctCoefficient(i, 2).a, ctCoefficient(i, 3).a) * (w.x * w.y * w.z);
+        result += ctData[fieldOffset + uint(angle * CT_CELLS + ct_index(base + offset, CT_N))].rgb * (w.x * w.y * w.z);
     }
     return result;
-}
-
-void ct_cachedExternal(vec3 pos, vec3 omega, out vec3 sky, out vec3 sun, out vec3 moon) {
-    sky = vec3(0.0);
-    sun = vec3(0.0);
-    moon = vec3(0.0);
-    ivec3 base;
-    vec3 f;
-    if (!ct_interpolation(pos, base, f)) return;
-    // This predictor is cancelled by the path-source residual. Nearest sampling
-    // saves the repeated 48-tap gather without changing the reconstruction target.
-    int i = ct_index(base + ivec3(greaterThan(f, vec3(0.5))), CT_N);
-    vec4 material = ctMaterialSun(i);
-    sky = ctSky(ct_angle(omega) * CT_CELLS + i).rgb;
-    // The beam cache stores the correlated density * incident-light source.
-    if (material.a > 0.0) {
-        sun = material.rgb / material.a;
-        moon = ctMaterialMoon(i).rgb / material.a;
-    }
 }
 
 #endif

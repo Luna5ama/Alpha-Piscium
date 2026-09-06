@@ -57,9 +57,6 @@ void main() {
     float density = ctCoefficient(i, 0).a;
     ct_cacheMean(p, false);
     vec3 residual = vec3(0.0);
-    #ifdef CT_RESOLVE
-    vec3 meanRadiance = vec3(0.0);
-    #endif
     for (int angle = 0; angle < CT_ANGLES; ++angle) {
         vec3 convolution = vec3(0.0);
         for (int incoming = 0; incoming < CT_ANGLES; ++incoming) {
@@ -73,20 +70,13 @@ void main() {
         // P S still requires one scattering at the high-resolution point.
         ctSource(a) = vec4(convolution, 0.0);
         ctLifted(a) = vec4(angularMean[angle * 64 + int(gl_LocalInvocationIndex)], 0.0);
-        meanRadiance += angularMean[angle * 64 + int(gl_LocalInvocationIndex)] / float(CT_ANGLES);
         #else
-        vec3 q = ct_external(i, angle) + density * CT_SCATTERING * convolution;
+        vec3 reduced = convolution - ct_forwardFraction(angle) * angularMean[angle * 64 + int(gl_LocalInvocationIndex)];
+        vec3 q = ct_external(i, angle) + density * CT_SCATTERING * reduced;
         ctSource(a) = vec4(q, 0.0);
         residual += CT_W * (q - ct_streaming(p, angle, false));
         #endif
     }
-    #ifdef CT_RESOLVE
-    // Coefficient RGB stays immutable. The otherwise unused alpha lanes hold
-    // the final angular mean for local boundary reconstruction.
-    ctCoefficient(i, 1).a = meanRadiance.r;
-    ctCoefficient(i, 2).a = meanRadiance.g;
-    ctCoefficient(i, 3).a = meanRadiance.b;
-    #endif
     #ifdef CT_RESIDUAL
     vec3 bs = vec3(0.0), bf = vec3(0.0), xs = vec3(0.0), xf = vec3(0.0);
     if (density > 0.0) {
@@ -327,6 +317,7 @@ void main() {
         vec3 delta = ctLifted(angle * CT_CELLS + i).rgb;
         vec3 phaseDelta = vec3(0.0);
         for (int incoming = 0; incoming < CT_ANGLES; ++incoming) phaseDelta += ctPhase(angle * CT_ANGLES + incoming).rgb * angularMean[incoming * 64 + lane];
+        phaseDelta -= ct_forwardFraction(angle) * angularMean[angle * 64 + lane];
         vec3 ad = ct_streaming(p, angle, true) - density * CT_SCATTERING * phaseDelta;
         vec3 escape = vec3(0.0);
         vec3 correctionEscape = vec3(0.0);
@@ -409,6 +400,7 @@ void main() {
         int a = angle * CT_CELLS + i;
         vec3 phaseDelta = vec3(0.0);
         for (int incoming = 0; incoming < CT_ANGLES; ++incoming) phaseDelta += ctPhase(angle * CT_ANGLES + incoming).rgb * angularMean[incoming * 64 + int(gl_LocalInvocationIndex)];
+        phaseDelta -= ct_forwardFraction(angle) * angularMean[angle * 64 + int(gl_LocalInvocationIndex)];
         ctRadiance(a).rgb += gamma * ctLifted(a).rgb;
         ctSource(a).rgb += ctCoefficient(i, 0).a * CT_SCATTERING * gamma * phaseDelta;
     }

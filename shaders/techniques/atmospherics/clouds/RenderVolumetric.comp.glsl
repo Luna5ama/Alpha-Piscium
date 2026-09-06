@@ -17,32 +17,24 @@ const vec2 workGroupsRender = vec2(RENDER_MULTIPLIER, RENDER_MULTIPLIER);
 shared bool shared_worldGroupCheck;
 layout(rgba32ui) uniform writeonly uimage2D uimg_rgba32ui;
 
-vec3 skySingleScattering(vec3 pos, vec3 outgoing, vec2 layerRange, vec2 jitter, float lightJitter, inout uint rng) {
-    vec3 result = vec3(0.0);
-    for (uint s = 0u; s < 2u; ++s) {
-        vec2 xi = fract(jitter + rand_r2Seq2(s));
-        vec3 phaseWeight;
-        vec3 incoming = ct_samplePhase(outgoing, xi, phaseWeight);
-        vec3 transmittance = clouds_cu_transmittance(pos, -incoming, layerRange, CT_EXTINCTION);
-        result += ct_boundary(pos, incoming, layerRange, lightJitter) * transmittance * phaseWeight;
-    }
-    return colors2_constants_toWorkSpace(result * 0.5);
-}
-
 vec3 singleScatteringAtReservoir(CTReservoir reservoir, vec3 origin, vec3 direction, vec2 layerRange, inout uint rng) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
     vec3 pos = origin + direction * reservoir.distance;
     float height = length(pos);
     vec2 ambientJitter = vec2(ct_random(rng), ct_random(rng));
     float lightJitter = ct_random(rng);
-    vec3 source = skySingleScattering(pos, -direction, layerRange, ambientJitter, lightJitter, rng);
+    vec3 phaseWeight;
+    vec3 incoming = ct_samplePhase(-direction, ambientJitter, phaseWeight);
+    float skyTransmittance = clouds_cu_transmittance(pos, -incoming, layerRange);
+    vec3 sky = ct_boundary(pos, incoming, layerRange, lightJitter) * phaseWeight * skyTransmittance;
+    vec3 source = colors2_constants_toWorkSpace(sky);
     for (int light = 0; light < 2; ++light) {
         vec3 lightDir = light == 0 ? uval_sunDirWorld : uval_moonDirWorld;
         if (raySphereIntersectNearest(pos, lightDir, vec3(0.0), atmosphere.bottom) >= 0.0) continue;
         vec3 illuminance = light == 0 ? SUN_ILLUMINANCE : MOON_ILLUMINANCE;
         float radius = light == 0 ? SUN_ANGULAR_RADIUS : MOON_ANGULAR_RADIUS;
         vec3 shadowDir = rand_sampleInCone(lightDir, radius, ambientJitter);
-        vec3 shadow = clouds_cu_transmittance(pos, shadowDir, layerRange, CLOUDS_CU_EXTINCTION);
+        float shadow = clouds_cu_transmittance(pos, shadowDir, layerRange);
         vec3 phase = clouds_phase_cu(clamp(dot(direction, shadowDir), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO);
         vec3 atmosphereTr = atmospherics_air_lut_sampleTransmittance(atmosphere, dot(pos / height, lightDir), height);
         source += illuminance * atmosphereTr * phase * shadow;
@@ -66,14 +58,14 @@ void render(ivec2 texelPos) {
     interval.y = min(interval.y, min(interval.x + 60.0, 120.0));
 
     if (intersects && interval.y > interval.x && CU_DENSITY_SCALE > 0.0 && SETTING_CLOUDS_CU_COVERAGE > 0.0) {
-        CloudParticpatingMedium medium = clouds_cu_medium(0.0);
-        vec3 albedo = medium.scattering / medium.extinction;
+        const float albedo = CLOUDS_CU_SCATTERING_COEFF / CLOUDS_CU_EXTINCTION_COEFF;
+        float cameraTransmittance = 1.0;
         ivec4 transportAngles;
         vec4 angularWeights;
         ct_angularWeights(-direction, transportAngles, angularWeights);
         float jitter = rand_stbnVec1(rand_newStbnPos(texelPos, 1), frameCounter);
         float rayLength = interval.y - interval.x;
-        float opticalStep = 0.5 / (CU_DENSITY_MAX * mmax3(medium.extinction));
+        float opticalStep = 0.5 / (CU_DENSITY_MAX * CLOUDS_CU_EXTINCTION_COEFF);
         int steps = int(clamp(rayLength * 3.0, float(SETTING_CLOUDS_LOW_STEP_MIN), float(max(SETTING_CLOUDS_LOW_STEP_MIN, SETTING_CLOUDS_LOW_STEP_MAX))));
 
         vec3 airOrigin = atmosphere_viewToAtm(atmosphere, vec3(0.0));
@@ -162,23 +154,22 @@ void render(ivec2 texelPos) {
                 vec3 source = mix(sourceStart, sourceEnd, segmentFraction);
                 vec3 airTr = mix(airStart.transmittance, air.transmittance, segmentFraction);
                 vec3 airLight = mix(airStart.inScattering, air.inScattering, segmentFraction);
-                vec3 tau = medium.extinction * density * (segmentEnd - segmentStart);
-                vec3 transmittance = exp(-tau);
-                vec3 opacity = mix(1.0 - transmittance, tau * (1.0 - 0.5 * tau + tau * tau / 6.0), lessThan(tau, vec3(0.001)));
+                float tau = CLOUDS_CU_EXTINCTION_COEFF * density * (segmentEnd - segmentStart);
+                float transmittance = exp(-tau);
+                float opacity = tau < 0.001 ? tau * (1.0 - 0.5 * tau + tau * tau / 6.0) : 1.0 - transmittance;
                 // Opacity weights the clear-air radiance up to each actual cloud sample.
                 vec3 radiance = albedo * source * airTr + airLight;
-                vec3 cameraOpacity = result.transmittance * opacity;
-                result.transmittance *= transmittance;
-                bool opaque = mmax3(result.transmittance) < 0.005;
+                float cameraOpacity = cameraTransmittance * opacity;
+                cameraTransmittance *= transmittance;
+                bool opaque = cameraTransmittance < 0.005;
                 if (opaque) {
                     // Complete the opaque tail with the local source instead of leaking an arbitrary fraction of the sky.
-                    cameraOpacity += result.transmittance;
-                    result.transmittance = vec3(0.0);
+                    cameraOpacity += cameraTransmittance;
+                    cameraTransmittance = 0.0;
                 }
                 result.inScattering += cameraOpacity * radiance;
-                float depthContribution = dot(cameraOpacity, vec3(1.0 / 3.0));
-                result.distance += depthContribution * distance;
-                depthWeight += depthContribution;
+                result.distance += cameraOpacity * distance;
+                depthWeight += cameraOpacity;
                 // Use the same spectral camera weights for single scattering and the MS residual,
                 // including foreground air and the completed opaque tail.
                 vec3 weight = cameraOpacity * albedo * airTr;
@@ -192,8 +183,9 @@ void render(ivec2 texelPos) {
                 #endif
                 if (opaque) break;
             }
-            if (mmax3(result.transmittance) == 0.0) break;
+            if (cameraTransmittance == 0.0) break;
         }
+        result.transmittance = vec3(cameraTransmittance);
         if (depthWeight > 0.0) result.distance /= depthWeight;
         if (lightingWeight > 0.0) {
             vec3 singleScattering = singleScatteringAtReservoir(reservoir0, origin, direction, layerRange, rng);
@@ -206,13 +198,14 @@ void render(ivec2 texelPos) {
             result.inScattering += singleScattering * (lightingWeight * 0.5);
             #endif
             #if SETTING_CLOUDS_MS_LOCAL_SAMPLES > 0
-            vec3 residual = ct_localResidual(reservoir0, origin, direction, layerRange, rng);
+            vec2 phaseJitter = rand_stbnVec2(rand_newStbnPos(texelPos, 2u), frameCounter);
+            vec3 residual = ct_localResidual(reservoir0, origin, direction, layerRange, phaseJitter, rng);
             #if SETTING_CLOUDS_MS_LOCAL_SAMPLES >= 2
-            residual += ct_localResidual(reservoir1, origin, direction, layerRange, rng);
+            residual += ct_localResidual(reservoir1, origin, direction, layerRange, fract(phaseJitter + 0.5), rng);
             #endif
             #if SETTING_CLOUDS_MS_LOCAL_SAMPLES == 4
-            residual += ct_localResidual(reservoir2, origin, direction, layerRange, rng);
-            residual += ct_localResidual(reservoir3, origin, direction, layerRange, rng);
+            residual += ct_localResidual(reservoir2, origin, direction, layerRange, fract(phaseJitter + vec2(0.25, 0.75)), rng);
+            residual += ct_localResidual(reservoir3, origin, direction, layerRange, fract(phaseJitter + vec2(0.75, 0.25)), rng);
             #endif
             result.inScattering += residual * (lightingWeight / float(SETTING_CLOUDS_MS_LOCAL_SAMPLES));
             #endif

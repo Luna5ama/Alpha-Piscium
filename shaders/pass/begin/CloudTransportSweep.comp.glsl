@@ -8,6 +8,11 @@ shared float planeRadiance[3 * CT_N * CT_N];
 void main() {
     if (ct_skipIteration()) return;
     int angle = int(gl_WorkGroupID.x);
+    #ifdef CT_UNCOLLIDED
+    float crossSection = CLOUDS_CU_EXTINCTION_COEFF;
+    #else
+    float crossSection = ct_reducedExtinction(angle);
+    #endif
     vec3 omega = ct_direction(angle);
     ivec3 signV = ivec3(sign(omega));
     #ifdef CT_UNCOLLIDED
@@ -35,11 +40,11 @@ void main() {
             vec3 mean = vec3(0.0);
             if (cellValid) {
                 vec3 rates = abs(omega) / ct_size(p, 0);
-                vec3 extinction = ctCoefficient(i, 0).a * CT_EXTINCTION;
+                float extinction = ctCoefficient(i, 0).a * crossSection;
                 #ifdef CT_UNCOLLIDED
                 vec3 source = vec3(0.0);
                 #elif defined(CT_CORRECTION)
-                vec3 source = ctCoefficient(i, 0).a * CT_SCATTERING * ct_delta(p);
+                vec3 source = ctCoefficient(i, 0).a * CLOUDS_CU_SCATTERING_COEFF * (1.0 - ct_forwardFraction(angle)) * ct_delta(p);
                 #else
                 vec3 source = ctSource(angle * CT_CELLS + i).rgb;
                 #endif
@@ -55,10 +60,9 @@ void main() {
                 }
                 float sumRate = rates.x + rates.y + rates.z;
                 incoming /= sumRate;
-                vec3 tau = extinction / sumRate;
-                vec3 tr = exp(-tau);
-                vec3 transfer = (1.0 - tr) / max(tau, vec3(0.001));
-                transfer = mix(transfer, 1.0 - tau * 0.5 + tau * tau / 6.0, lessThan(tau, vec3(0.001)));
+                float tau = extinction / sumRate;
+                float tr = exp(-tau);
+                float transfer = tau < 0.001 ? 1.0 - tau * 0.5 + tau * tau / 6.0 : (1.0 - tr) / tau;
                 radiance = tr * incoming + transfer * (source / sumRate);
                 mean = mix(radiance, incoming, ct_incomingWeight(tau));
             }

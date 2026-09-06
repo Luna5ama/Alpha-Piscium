@@ -36,8 +36,8 @@ float clouds_cu_thermal(vec2 offset, float height, float top, float radius) {
     return clouds_cu_union(stem, head);
 }
 
-vec2 clouds_cu_sample(vec3 rayPos, float heightFraction, bool interfaceOnly) {
-    if (heightFraction <= 0.0 || heightFraction >= 1.0 || SETTING_CLOUDS_CU_COVERAGE <= 0.0) return vec2(0.0, -1.0);
+float clouds_cu_density(vec3 rayPos, float heightFraction) {
+    if (heightFraction <= 0.0 || heightFraction >= 1.0 || SETTING_CLOUDS_CU_COVERAGE <= 0.0) return 0.0;
 
     vec3 pos = vec3(rayPos.x, heightFraction * SETTING_CLOUDS_CU_THICKNESS, rayPos.z);
     pos += clouds_cu_wind(frameTimeCounter);
@@ -76,12 +76,12 @@ vec2 clouds_cu_sample(vec3 rayPos, float heightFraction, bool interfaceOnly) {
             shape = clouds_cu_union(shape, clouds_cu_union(base, thermals) / radius);
             // The remaining erosion is at most 0.47. Beyond this margin the
             // smooth surface and condensation factors are both exactly one.
-            if (!interfaceOnly && shape >= 0.485 && heightFraction >= 0.0495) {
-                return vec2(mix(0.55, 1.35, smoothstep(0.0, 0.32, heightFraction)) * CU_DENSITY_SCALE, shape);
+            if (shape >= 0.485 && heightFraction >= 0.0495) {
+                return mix(0.55, 1.35, smoothstep(0.0, 0.32, heightFraction)) * CU_DENSITY_SCALE;
             }
         }
     }
-    if (!interfaceOnly && shape <= 0.0) return vec2(0.0, shape);
+    if (shape <= 0.0) return 0.0;
 
     vec3 curl = texture(usam_cumulusCurl, pos * 0.35).xyz;
     vec3 billowPos = pos * CU_BILLOW_FREQUENCY + curl * 0.09;
@@ -89,7 +89,7 @@ vec2 clouds_cu_sample(vec3 rayPos, float heightFraction, bool interfaceOnly) {
     float billow = texture(usam_cumulusDetail1, billowPos).r;
     float entrainment = mix(0.7, 1.0, smoothstep(0.02, 0.15, heightFraction));
     shape -= (1.0 - sqrt(billow)) * 0.38 * entrainment;
-    if (!interfaceOnly && shape <= 0.0) return vec2(0.0, shape);
+    if (shape <= 0.0) return 0.0;
 
     // Erode the interface; the interior stays coherent instead of becoming wispy.
     vec3 detailPos = pos * CU_DETAIL_FREQUENCY + curl * 0.13;
@@ -100,15 +100,7 @@ vec2 clouds_cu_sample(vec3 rayPos, float heightFraction, bool interfaceOnly) {
     float condensationHeight = 0.008 + (1.0 - sqrt(billow)) * 0.025 + erosion * 0.05;
     float condensation = smoothstep(condensationHeight, condensationHeight + 0.012, heightFraction);
     float liquidWater = mix(0.55, 1.35, smoothstep(0.0, 0.32, heightFraction));
-    return vec2(surface * condensation * liquidWater * CU_DENSITY_SCALE, shape);
-}
-
-float clouds_cu_density(vec3 rayPos, float heightFraction) {
-    return clouds_cu_sample(rayPos, heightFraction, false).x;
-}
-
-float clouds_cu_interface(vec3 rayPos, float heightFraction) {
-    return clouds_cu_sample(rayPos, heightFraction, true).y;
+    return surface * condensation * liquidWater * CU_DENSITY_SCALE;
 }
 
 float clouds_cu_column(vec3 origin, vec3 direction, vec2 layerRange, int steps, float jitter) {
@@ -116,7 +108,7 @@ float clouds_cu_column(vec3 origin, vec3 direction, vec2 layerRange, int steps, 
     if (CU_DENSITY_SCALE <= 0.0 || !clouds_layerInterval(origin, direction, layerRange, interval)) return 0.0;
     float rayLength = min(interval.y - interval.x, 12.0);
     // Anchor near-field shadow resolution to extinction, independent of the distant layer exit.
-    float lengthScale = 0.25 / (CU_DENSITY_MAX * mmax3(CLOUDS_CU_EXTINCTION));
+    float lengthScale = 0.25 / (CU_DENSITY_MAX * CLOUDS_CU_EXTINCTION_COEFF);
     float spread = log2(1.0 + rayLength / lengthScale);
     float column = 0.0;
     for (int i = 0; i < steps; ++i) {
@@ -125,14 +117,14 @@ float clouds_cu_column(vec3 origin, vec3 direction, vec2 layerRange, int steps, 
         vec3 pos = origin + direction * (interval.x + mix(start, end, jitter));
         float height = (length(pos) - layerRange.x) / (layerRange.y - layerRange.x);
         column += clouds_cu_density(pos, height) * (end - start);
-        if (column * mmin3(CLOUDS_CU_EXTINCTION) > 12.0) break;
+        if (column * CLOUDS_CU_EXTINCTION_COEFF > 12.0) break;
     }
     return column;
 }
 
-vec3 clouds_cu_transmittance(vec3 origin, vec3 direction, vec2 layerRange, vec3 extinction) {
+float clouds_cu_transmittance(vec3 origin, vec3 direction, vec2 layerRange) {
     float column = clouds_cu_column(origin, direction, layerRange, 16, 0.5);
-    return exp(-extinction * column);
+    return exp(-CLOUDS_CU_EXTINCTION_COEFF * column);
 }
 
 #endif

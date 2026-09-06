@@ -36,48 +36,46 @@ vec3 ct_samplePhase(vec3 outgoing, vec2 xi, out vec3 phaseWeight) {
     return incoming;
 }
 
-// Reduce the beam proposal with path depth so continuation likelihoods do not grow exponentially.
-vec3 ct_sampleLightDirection(vec3 pos, vec3 outgoing, float beamProbability, inout uint rng, out vec3 phaseWeight) {
-    AtmosphereParameters atmosphere = getAtmosphereParameters();
-    vec3 lightDir = uval_sunDirWorld;
-    if (raySphereIntersectNearest(pos, lightDir, vec3(0.0), atmosphere.bottom) >= 0.0) lightDir = uval_moonDirWorld;
-    bool visible = raySphereIntersectNearest(pos, lightDir, vec3(0.0), atmosphere.bottom) < 0.0;
-    vec3 axis = visible && ct_random(rng) < beamProbability ? -lightDir : outgoing;
-    vec3 incoming = ct_samplePhase(axis, vec2(ct_random(rng), ct_random(rng)), phaseWeight);
-    if (visible) {
-        vec3 phase = ct_toAP0(clouds_phase_cu(clamp(dot(outgoing, incoming), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
-        vec3 lightPhase = ct_toAP0(clouds_phase_cu(clamp(dot(-lightDir, incoming), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
-        phaseWeight = phase / dot(mix(phase, lightPhase, beamProbability), vec3(1.0 / 3.0));
-    }
-    return incoming;
-}
-
 struct CTLightReservoir {
+    int angle;
     vec3 pos;
     vec3 omega;
     vec3 weight;
-    vec3 prediction;
 };
 
-void ct_updateLightReservoir(inout CTLightReservoir reservoir, vec3 pos, vec3 omega, vec3 weight, vec3 prediction, float proposal, float total, inout uint rng) {
-    if (ct_random(rng) * total < proposal) reservoir = CTLightReservoir(pos, omega, weight / proposal, prediction);
+void ct_updateLightReservoir(inout CTLightReservoir reservoir, int angle, vec3 pos, vec3 omega, vec3 weight, float proposal, float total, inout uint rng) {
+    if (ct_random(rng) * total < proposal) reservoir = CTLightReservoir(angle, pos, omega, weight / proposal);
 }
 
-vec3 ct_localSkyResidual(CTLightReservoir reservoir, vec2 layerRange, inout uint rng) {
+// Uniform solid-angle sampling within one cubic angular cell.
+vec3 ct_sampleAngularCell(int angle, inout uint rng) {
+    int axis = angle / 8;
+    vec3 direction;
+    float norm2;
+    do {
+        direction = vec3(0.0);
+        direction[axis] = 1.0;
+        direction[(axis + 1) % 3] = ct_random(rng);
+        direction[(axis + 2) % 3] = ct_random(rng);
+        norm2 = dot(direction, direction);
+    } while (ct_random(rng) * norm2 * sqrt(norm2) > 1.0);
+    return direction * inversesqrt(norm2) * (1.0 - 2.0 * vec3(ivec3(angle) >> ivec3(0, 1, 2) & 1));
+}
+
+vec3 ct_localSkySource(CTLightReservoir reservoir, vec2 layerRange, inout uint rng) {
     vec3 pos = reservoir.pos;
-    vec3 omega = reservoir.omega;
+    vec3 omega = reservoir.angle < 0 ? reservoir.omega : ct_sampleAngularCell(reservoir.angle, rng);
     float shadowJitter = ct_random(rng);
     vec3 skyWeight;
     vec3 skyDir = ct_samplePhase(omega, vec2(ct_random(rng), ct_random(rng)), skyWeight);
-    vec3 source = ct_boundary(pos, skyDir, layerRange, shadowJitter) * skyWeight * clouds_cu_transmittance(pos, -skyDir, layerRange, CT_EXTINCTION);
-    return reservoir.weight * (source - reservoir.prediction);
+    vec3 source = ct_boundary(pos, skyDir, layerRange, shadowJitter) * skyWeight * clouds_cu_transmittance(pos, -skyDir, layerRange);
+    return reservoir.weight * source;
 }
 
 struct CTBeamReservoir {
     vec3 pos;
     vec3 direction;
     vec3 weight;
-    vec3 prediction;
     int light;
 };
 
@@ -89,128 +87,68 @@ vec3 ct_beamIncident(vec3 pos, int light) {
     return ct_toAP0(illuminance * atmospherics_air_lut_sampleTransmittance(atmosphere, dot(pos / height, direction), height));
 }
 
-struct CTBoundaryClosure {
-    vec3 center;
-    vec3 normal;
-    vec3 mean;
-    vec3 asymmetry;
-    float radius;
-};
-
-vec3 ct_boundaryIncident(vec3 pos, vec3 normal, vec2 layerRange) {
-    ivec3 base;
-    vec3 f;
-    if (!ct_interpolation(pos, base, f)) return vec3(0.0);
-    vec3 cellSize = mix(ct_size(base, 0), ct_size(base + 1, 0), f);
-    float radius = 3.0 / dot(abs(normal), 1.0 / cellSize);
-    AtmosphereParameters atmosphere = getAtmosphereParameters();
-    float ground = raySphereIntersectNearest(pos, normal, vec3(0.0), atmosphere.bottom);
-    bool hitsGround = ground >= 0.0 && ground < radius;
-    if (hitsGround) radius = ground;
-    float lengthScale = 0.25 / (mmax3(CT_EXTINCTION) * CU_DENSITY_MAX);
-    float spread = log2(1.0 + radius / lengthScale);
+int ct_sampleChannelDirection(vec3 omega, inout uint rng) {
     ivec4 angles;
     vec4 weights;
-    ct_angularWeights(-normal, angles, weights);
-    vec3 sunPhase = ct_toAP0(clouds_phase_cu(clamp(dot(normal, uval_sunDirWorld), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
-    vec3 moonPhase = ct_toAP0(clouds_phase_cu(clamp(dot(normal, uval_moonDirWorld), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
-    vec3 tr = vec3(1.0);
-    vec3 result = vec3(0.0);
-    for (int step = 0; step < 12; ++step) {
-        float start = (exp2(float(step) * (spread / 12.0)) - 1.0) * lengthScale;
-        float end = (exp2(float(step + 1) * (spread / 12.0)) - 1.0) * lengthScale;
-        vec3 point = pos + normal * ((start + end) * 0.5);
-        float rho = clouds_cu_density(point, (length(point) - layerRange.x) / (layerRange.y - layerRange.x));
-        if (rho == 0.0) continue;
-        vec3 sky, sun, moon;
-        ct_cachedExternal(point, -normal, sky, sun, moon);
-        vec3 source = (ct_sampleField(point, angles, weights, CT_SOURCE_OFFSET) + sky + sun * sunPhase + moon * moonPhase) * (CT_SCATTERING / CT_EXTINCTION);
-        vec3 tau = CT_EXTINCTION * rho * (end - start);
-        vec3 segmentTr = exp(-tau);
-        vec3 opacity = mix(1.0 - segmentTr, tau * (1.0 - 0.5 * tau), lessThan(tau, vec3(0.001)));
-        result += tr * opacity * source;
-        tr *= segmentTr;
-        if (mmax3(tr) < 0.001) return result + tr * source;
+    ct_angularWeights(omega, angles, weights);
+    float xi = ct_random(rng);
+    for (int i = 0; i < 3; ++i) {
+        if (xi < weights[i]) return angles[i];
+        xi -= weights[i];
     }
-    if (!hitsGround) result += tr * ct_sampleRadiance(pos + normal * radius, -normal);
-    return result;
+    return angles.w;
 }
 
-CTBoundaryClosure ct_boundaryClosure(vec3 pos, vec2 layerRange) {
-    CTBoundaryClosure c = CTBoundaryClosure(pos, vec3(0.0), vec3(0.0), vec3(0.0), 0.0);
-    float rho = clouds_cu_density(pos, (length(pos) - layerRange.x) / (layerRange.y - layerRange.x));
-    if (rho == 0.0) return c;
-    vec3 beta1 = mix(texelFetch(usam_cloudTransport, ivec2(0, 4), 0).rgb, texelFetch(usam_cloudTransport, ivec2(3, 4), 0).rgb, SETTING_CLOUDS_CU_PHASE_RATIO);
-    float transportExtinction = rho * dot(CT_EXTINCTION - CT_SCATTERING * beta1, vec3(1.0 / 3.0));
-    float radius = 2.0 / (3.0 * transportExtinction);
-    // A diffusion boundary closure applies only to optically thick details.
-    if (radius > 1.0 / (3.7 * CU_DETAIL_FREQUENCY)) return c;
-    float stepLength = 1.0 / (16.0 * CU_DETAIL_FREQUENCY);
-    vec3 gradient = vec3(0.0);
-    for (int i = 0; i < 4; ++i) {
-        vec3 offset = vec3(1 - 2 * (i & 1), 1 - 2 * (i >> 1), 1 - 2 * ((i ^ (i >> 1)) & 1));
-        vec3 point = pos + offset * (stepLength * 0.25);
-        // The unclamped interface keeps a usable normal inside the opaque
-        // surface ramp, where a density gradient would already be zero.
-        float shape = clouds_cu_interface(point, (length(point) - layerRange.x) / (layerRange.y - layerRange.x));
-        gradient += offset * shape;
+int ct_sampleReducedPhase(int angle, inout uint rng, out vec3 weight) {
+    int row = angle * CT_ANGLES;
+    float xi = ct_random(rng);
+    int lo = 0, hi = CT_ANGLES - 1;
+    while (lo < hi) {
+        int mid = (lo + hi) / 2;
+        if (xi < ctPhase(row + mid).a) hi = mid;
+        else lo = mid + 1;
     }
-    if (dot(gradient, gradient) == 0.0) return c;
-    vec3 normal = -normalize(gradient);
-    float insideDistance = 0.0;
-    float outsideDistance = 0.0;
-    for (int i = 1; i <= 4; ++i) {
-        float distance = float(i) * stepLength;
-        vec3 point = pos + normal * distance;
-        if (clouds_cu_density(point, (length(point) - layerRange.x) / (layerRange.y - layerRange.x)) == 0.0) {
-            outsideDistance = distance;
-            break;
-        }
-        insideDistance = distance;
-    }
-    if (outsideDistance == 0.0) return c;
-    for (int i = 0; i < 4; ++i) {
-        float distance = (insideDistance + outsideDistance) * 0.5;
-        vec3 point = pos + normal * distance;
-        if (clouds_cu_density(point, (length(point) - layerRange.x) / (layerRange.y - layerRange.x)) == 0.0) outsideDistance = distance;
-        else insideDistance = distance;
-    }
-    c.center = pos + normal * outsideDistance;
-    c.normal = normal;
-    c.radius = radius;
-    vec3 interior = ct_sampleMean(c.center - normal * radius);
-    vec3 incident = ct_boundaryIncident(c.center, normal, layerRange);
-    // Marshak matching at one extrapolation length: Phi_0=(Phi_in+Phi_bulk)/2,
-    // J_n=(Phi_bulk-Phi_in)/4. A normalized positive HG field carries both moments.
-    c.mean = (interior + incident) * 0.5;
-    for (int channel = 0; channel < 3; ++channel) {
-        if (c.mean[channel] > 0.0) c.asymmetry[channel] = (interior[channel] - incident[channel]) / (4.0 * c.mean[channel]);
-    }
-    return c;
+    float forward = ct_forwardFraction(angle);
+    vec3 phase = ctPhase(row + lo).rgb - (lo == angle ? forward : 0.0);
+    float probability = ctPhase(row + lo).a - (lo == 0 ? 0.0 : ctPhase(row + lo - 1).a);
+    weight = phase / probability;
+    return lo;
 }
 
-vec3 ct_boundaryRadiance(CTBoundaryClosure c, vec3 pos, vec3 omega) {
-    vec3 coarse = ct_sampleRadiance(pos, omega);
-    if (c.radius == 0.0) return coarse;
-    float distance = dot(c.center - pos, c.normal);
-    if (distance < 0.0 || length(pos - c.center) > c.radius) return coarse;
-    vec3 boundary = c.mean * SPHERE_SOLID_ANGLE * phasefunc_HenyeyGreenstein(dot(omega, c.normal), c.asymmetry);
-    return mix(coarse, boundary, exp(-distance / c.radius));
+void ct_selectSource(vec3 pos, vec3 omega, int angle, vec3 throughput,
+    inout CTLightReservoir sky, inout float skyWeight,
+    inout CTBeamReservoir beam, inout float beamWeight, inout uint rng) {
+    AtmosphereParameters atmosphere = getAtmosphereParameters();
+    vec3 sourceFloor = ct_toAP0(SUN_ILLUMINANCE + MOON_ILLUMINANCE) * UNIFORM_PHASE;
+    float proposal = mmax3(throughput * sourceFloor);
+    skyWeight += proposal;
+    ct_updateLightReservoir(sky, angle, pos, omega, throughput, proposal, skyWeight, rng);
+    // Beam and sky sources have different angular variation. Select one of
+    // each, including the sharp beam phase in its proposal instead of a flat floor.
+    for (int light = 0; light < 2; ++light) {
+        vec3 direction = light == 0 ? uval_sunDirWorld : uval_moonDirWorld;
+        if (raySphereIntersectNearest(pos, direction, vec3(0.0), atmosphere.bottom) >= 0.0) continue;
+        float radius = light == 0 ? SUN_ANGULAR_RADIUS : MOON_ANGULAR_RADIUS;
+        vec3 shadowDir = rand_sampleInCone(direction, radius, vec2(ct_random(rng), ct_random(rng)));
+        vec3 phase = angle < 0
+            ? ct_toAP0(clouds_phase_cu(clamp(dot(-omega, shadowDir), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO))
+            : (light == 0 ? ctSunPhase(angle).rgb : ctMoonPhase(angle).rgb);
+        vec3 weight = throughput * phase;
+        float beamProposal = mmax3(weight * ct_toAP0(light == 0 ? SUN_ILLUMINANCE : MOON_ILLUMINANCE));
+        beamWeight += beamProposal;
+        if (ct_random(rng) * beamWeight < beamProposal) beam = CTBeamReservoir(pos, shadowDir, weight / beamProposal, light);
+    }
 }
 
 vec3 ct_localRadiance(vec3 pos, vec3 omega, vec2 layerRange, inout uint rng) {
     AtmosphereParameters atmosphere = getAtmosphereParameters();
-    vec3 boundaryOrigin = pos;
-    float referenceExtinction = dot(CT_EXTINCTION, vec3(1.0 / 3.0));
-    float lengthScale = 0.25 / (referenceExtinction * CU_DENSITY_MAX);
+    int angle = -1;
     vec3 throughput = vec3(1.0);
     vec3 result = vec3(0.0);
-    bool reachedDepth = false;
-    vec3 sourceFloor = ct_toAP0(SUN_ILLUMINANCE + MOON_ILLUMINANCE) * UNIFORM_PHASE;
     float skyWeight = 0.0;
     float beamWeight = 0.0;
-    CTLightReservoir sky = CTLightReservoir(pos, omega, vec3(0.0), vec3(0.0));
-    CTBeamReservoir beam = CTBeamReservoir(pos, omega, vec3(0.0), vec3(0.0), 0);
+    CTLightReservoir sky = CTLightReservoir(-1, pos, omega, vec3(0.0));
+    CTBeamReservoir beam = CTBeamReservoir(pos, omega, vec3(0.0), 0);
     for (int bounce = 0; bounce < SETTING_CLOUDS_MS_LOCAL_BOUNCES; ++bounce) {
         ivec3 base;
         vec3 f;
@@ -220,9 +158,17 @@ vec3 ct_localRadiance(vec3 pos, vec3 omega, vec2 layerRange, inout uint rng) {
         float groundDistance = raySphereIntersectNearest(pos, -omega, vec3(0.0), atmosphere.bottom);
         bool hitsGround = groundDistance >= 0.0 && groundDistance < radius;
         if (hitsGround) radius = groundDistance;
+        // Sum the common RGB within-channel mass f analytically; only the
+        // nonnegative remainder P - f I needs explicit direction changes.
+        float forward = angle < 0 ? 0.0 : ct_forwardFraction(angle);
+        float extinction = CLOUDS_CU_EXTINCTION_COEFF - CLOUDS_CU_SCATTERING_COEFF * forward;
+        float lengthScale = 0.25 / (extinction * CU_DENSITY_MAX);
         float spread = log2(1.0 + radius / lengthScale);
+        bool terminal = angle >= 0 && bounce + 1 == SETTING_CLOUDS_MS_LOCAL_BOUNCES;
         float targetTau = -log(1.0 - ct_random(rng));
-        float column = 0.0;
+        float transmittance = 1.0;
+        float collisionWeight = 0.0;
+        vec3 collisionPos = pos;
         bool collided = false;
         for (int step = 0; step < 16; ++step) {
             float start = (exp2(float(step) * (spread / 16.0)) - 1.0) * lengthScale;
@@ -231,73 +177,80 @@ vec3 ct_localRadiance(vec3 pos, vec3 omega, vec2 layerRange, inout uint rng) {
             float height = length(samplePos);
             float density = clouds_cu_density(samplePos, (height - layerRange.x) / (layerRange.y - layerRange.x));
             float segmentColumn = density * (end - start);
-            float tau = referenceExtinction * segmentColumn;
+            float tau = extinction * segmentColumn;
+            if (terminal) {
+                if (tau == 0.0) continue;
+                float opacity = tau < 0.001 ? tau * (1.0 - 0.5 * tau) : 1.0 - exp(-tau);
+                float weight = transmittance * opacity;
+                collisionWeight += weight;
+                if (ct_random(rng) * collisionWeight < weight) collisionPos = samplePos;
+                transmittance *= 1.0 - opacity;
+                if (transmittance == 0.0) break;
+                continue;
+            }
             if (targetTau < tau) {
-                // Sample the analytically integrated segment source. Spectral
-                // opacity ratios preserve the same piecewise-constant equation.
-                vec3 opticalDepth = CT_EXTINCTION * segmentColumn;
-                vec3 opacity = mix(1.0 - exp(-opticalDepth), opticalDepth * (1.0 - 0.5 * opticalDepth), lessThan(opticalDepth, vec3(0.001)));
-                float referenceOpacity = tau < 0.001 ? tau * (1.0 - 0.5 * tau) : 1.0 - exp(-tau);
-                throughput *= exp((referenceExtinction - CT_EXTINCTION) * column) * (CT_SCATTERING / CT_EXTINCTION) * (opacity / referenceOpacity);
+                // Grey extinction gives the same flight PDF in every color.
+                throughput *= CLOUDS_CU_SCATTERING_COEFF / extinction;
                 pos = samplePos;
                 collided = true;
                 break;
             }
             targetTau -= tau;
-            column += segmentColumn;
+        }
+        if (terminal && collisionWeight > 0.0) {
+            vec3 weight = throughput * (collisionWeight * CLOUDS_CU_SCATTERING_COEFF / extinction);
+            vec3 cached = ct_sampleChannel(collisionPos, angle, CT_LIFTED_OFFSET);
+            vec3 convolution = ct_sampleChannel(collisionPos, angle, CT_SOURCE_OFFSET);
+            result += weight * (convolution - forward * cached);
+            ct_selectSource(collisionPos, omega, angle, weight, sky, skyWeight, beam, beamWeight, rng);
         }
         if (!collided) {
-            if (!hitsGround) result += throughput * exp((referenceExtinction - CT_EXTINCTION) * column) * ct_sampleRadiance(pos - omega * radius, omega);
+            if (!hitsGround) {
+                vec3 endpoint = pos - omega * radius;
+                vec3 cached = angle < 0 ? ct_sampleRadiance(endpoint, omega) : ct_sampleChannel(endpoint, angle, CT_LIFTED_OFFSET);
+                result += throughput * transmittance * cached;
+            }
             break;
         }
-        vec3 cachedSky, cachedSun, cachedMoon;
-        ct_cachedExternal(pos, omega, cachedSky, cachedSun, cachedMoon);
-        result += throughput * cachedSky;
-        float proposal = mmax3(throughput * sourceFloor);
-        skyWeight += proposal;
-        ct_updateLightReservoir(sky, pos, omega, throughput, cachedSky, proposal, skyWeight, rng);
-        // Beam and sky sources have different angular variation. Select one of
-        // each, including the sharp beam phase in its proposal instead of a flat floor.
-        for (int light = 0; light < 2; ++light) {
-            vec3 direction = light == 0 ? uval_sunDirWorld : uval_moonDirWorld;
-            if (raySphereIntersectNearest(pos, direction, vec3(0.0), atmosphere.bottom) >= 0.0) continue;
-            float radius = light == 0 ? SUN_ANGULAR_RADIUS : MOON_ANGULAR_RADIUS;
-            vec3 shadowDir = rand_sampleInCone(direction, radius, vec2(ct_random(rng), ct_random(rng)));
-            vec3 phase = ct_toAP0(clouds_phase_cu(clamp(dot(-omega, shadowDir), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
-            vec3 cached = light == 0 ? cachedSun : cachedMoon;
-            vec3 weight = throughput * phase;
-            result += weight * cached;
-            float beamProposal = mmax3(weight * (cached + ct_beamIncident(pos, light)));
-            beamWeight += beamProposal;
-            if (ct_random(rng) * beamWeight < beamProposal) beam = CTBeamReservoir(pos, shadowDir, weight / beamProposal, cached, light);
-        }
+        ct_selectSource(pos, omega, angle, throughput, sky, skyWeight, beam, beamWeight, rng);
         vec3 phaseWeight;
-        omega = ct_sampleLightDirection(pos, omega, 0.0625 / float(bounce + 1), rng, phaseWeight);
-        throughput *= phaseWeight;
+        if (angle < 0) {
+            // The first local event retains continuous low-order scattering.
+            omega = ct_samplePhase(omega, vec2(ct_random(rng), ct_random(rng)), phaseWeight);
+            throughput *= phaseWeight;
+            vec3 prediction = ct_sampleRadiance(pos, omega);
+            angle = ct_sampleChannelDirection(omega, rng);
+            result += throughput * (prediction - ct_sampleChannel(pos, angle, CT_LIFTED_OFFSET));
+        } else {
+            // (P - f I) C is the exact conditional expectation of the cached
+            // continuation. The scalar f <= min(P_jj) keeps every RGB weight positive.
+            vec3 cached = ct_sampleChannel(pos, angle, CT_LIFTED_OFFSET);
+            vec3 convolution = ct_sampleChannel(pos, angle, CT_SOURCE_OFFSET);
+            result += throughput * (convolution - forward * cached);
+            angle = ct_sampleReducedPhase(angle, rng, phaseWeight);
+            throughput *= phaseWeight;
+            result -= throughput * ct_sampleChannel(pos, angle, CT_LIFTED_OFFSET);
+        }
+        omega = ct_direction(angle);
         if (bounce + 1 == SETTING_CLOUDS_MS_LOCAL_BOUNCES) {
-            reachedDepth = true;
+            result += throughput * ct_sampleChannel(pos, angle, CT_LIFTED_OFFSET);
             break;
         }
     }
-    if (skyWeight > 0.0) result += ct_localSkyResidual(sky, layerRange, rng) * skyWeight;
+    if (skyWeight > 0.0) result += ct_localSkySource(sky, layerRange, rng) * skyWeight;
     if (beamWeight > 0.0) {
-        vec3 incident = ct_beamIncident(beam.pos, beam.light) * clouds_cu_transmittance(beam.pos, beam.direction, layerRange, CT_EXTINCTION);
-        result += beam.weight * (incident - beam.prediction) * beamWeight;
-    }
-    if (reachedDepth) {
-        CTBoundaryClosure boundary = ct_boundaryClosure(boundaryOrigin, layerRange);
-        result += throughput * ct_boundaryRadiance(boundary, pos, omega);
+        vec3 incident = ct_beamIncident(beam.pos, beam.light) * clouds_cu_transmittance(beam.pos, beam.direction, layerRange);
+        result += beam.weight * incident * beamWeight;
     }
     return result;
 }
 
-vec3 ct_localResidual(CTReservoir reservoir, vec3 origin, vec3 direction, vec2 layerRange, inout uint rng) {
+vec3 ct_localResidual(CTReservoir reservoir, vec3 origin, vec3 direction, vec2 layerRange, vec2 xi, inout uint rng) {
     vec3 phaseWeight;
     vec3 pos = origin + direction * reservoir.distance;
-    vec3 omega = ct_sampleLightDirection(pos, -direction, 0.0625, rng, phaseWeight);
+    vec3 omega = ct_samplePhase(-direction, xi, phaseWeight);
     vec3 local = ct_localRadiance(pos, omega, layerRange, rng);
-    // Subtract the exact camera predictor stored by WRS. Its angular matrix need
-    // not match the continuous local model: the full predictor cancels in expectation.
+    // WRS subtracts the complete predictor stored at the selected camera depth.
     return reservoir.weight * (colors2_constants_toWorkSpace(phaseWeight * local) - reservoir.prediction);
 }
 

@@ -19,8 +19,21 @@ void main() {
         float top = atmosphere.bottom + SETTING_CLOUDS_CU_HEIGHT + SETTING_CLOUDS_CU_THICKNESS + 0.15;
         ctEdges(lane) = vec4(ct_horizontalEdge(t), mix(bottom, top, t), 0.0, 0.0);
     }
-    for (int i = int(lane); i < CT_ANGLES * CT_ANGLES; i += 256) {
-        ctPhase(i) = mix(texelFetch(usam_cloudTransport, ivec2(i, 2), 0), texelFetch(usam_cloudTransport, ivec2(i, 3), 0), SETTING_CLOUDS_CU_PHASE_RATIO);
+    if (lane < CT_ANGLES) {
+        int row = int(lane) * CT_ANGLES;
+        vec3 diagonal = mix(texelFetch(usam_cloudTransport, ivec2(row + int(lane), 2), 0).rgb,
+            texelFetch(usam_cloudTransport, ivec2(row + int(lane), 3), 0).rgb, SETTING_CLOUDS_CU_PHASE_RATIO);
+        float forward = mmin3(diagonal);
+        float mass = 1.0 - forward;
+        float cdf = 0.0;
+        for (int j = 0; j < CT_ANGLES; ++j) {
+            vec3 phase = mix(texelFetch(usam_cloudTransport, ivec2(row + j, 2), 0).rgb,
+                texelFetch(usam_cloudTransport, ivec2(row + j, 3), 0).rgb, SETTING_CLOUDS_CU_PHASE_RATIO);
+            vec3 reduced = phase - (j == int(lane) ? forward : 0.0);
+            cdf += dot(reduced, vec3(1.0 / 3.0)) / mass;
+            bool last = j == CT_ANGLES - 1 || (int(lane) == CT_ANGLES - 1 && mmax3(diagonal) == forward && j == CT_ANGLES - 2);
+            ctPhase(row + j) = vec4(phase, last ? 1.0 : cdf);
+        }
     }
     barrier();
     if (lane == 0u) {
@@ -81,12 +94,14 @@ void main() {
     if (reuse && !stationary) inside = ct_interpolation(ct_center(ct_position(i, CT_N), 0) + ct_worldCenter() + displacement, base, f);
     for (int angle = 0; angle < CT_ANGLES; ++angle) {
         vec3 previous = vec3(0.0);
-        if (reuse && stationary) previous = ctSource(angle * CT_CELLS + i).rgb;
+        float forward = ct_forwardFraction(angle);
+        if (reuse && stationary) previous = ctSource(angle * CT_CELLS + i).rgb - forward * ctLifted(angle * CT_CELLS + i).rgb;
         else if (inside) {
             for (int corner = 0; corner < 8; ++corner) {
                 ivec3 offset = ivec3(corner) >> ivec3(0, 1, 2) & 1;
                 vec3 w = mix(1.0 - f, f, vec3(offset));
-                previous += ctSource(angle * CT_CELLS + ct_index(base + offset, CT_N)).rgb * (w.x * w.y * w.z);
+                int a = angle * CT_CELLS + ct_index(base + offset, CT_N);
+                previous += (ctSource(a).rgb - forward * ctLifted(a).rgb) * (w.x * w.y * w.z);
             }
         }
         ctRadiance(angle * CT_CELLS + i) = vec4(previous, 0.0);
