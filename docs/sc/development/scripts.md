@@ -31,6 +31,7 @@ CSV，`nishina-e` 只打印数值。运行前先查看尺寸、样本数和输�
 | [`gen-spec-brdf-lut.main.kts`](../../../scripts/gen-spec-brdf-lut.main.kts) | 生成 split-sum specular BRDF LUT                                 | [`specular_brdf_lut.bin`](../../../shaders/textures/specular_brdf_lut.bin)                                                                          |
 | [`gen-f82-table.main.kts`](../../../scripts/gen-f82-table.main.kts)         | 生成材质 Fresnel/F82 查找表                                           | [`f82.bin`](../../../shaders/textures/f82.bin)                                                                                                      |
 | [`gen-noisetex.main.kts`](../../../scripts/gen-noisetex.main.kts)           | 生成 64³ RGBA16 white-noise volume                               | [`white_noise_64x64x64.bin`](../../../shaders/textures/white_noise_64x64x64.bin)                                                                    |
+| [`gen-cumulus-billows.py`](../../../scripts/gen-cumulus-billows.py) | 将确定性的周期胞元鼓包烘焙为单尺度 128³ R8 体积；需要 NumPy | [`cumulus_detail1.bin`](../../../shaders/textures/cumulus_detail1.bin) |
 | [`extract-opac.main.kts`](../../../scripts/extract-opac.main.kts)           | 解析 [`data/`](../../../data/) 中的 OPAC/CIE 数据，写中间 CSV 和运行时云相函数纹理 | [`data/opac_raw/`](../../../data/opac_raw/)，[`opac_cloud_phases.bin`](../../../shaders/textures/opac_cloud_phases.bin)                              |
 | [`nishina-e.main.kts`](../../../scripts/nishina-e.main.kts)                 | 计算并打印 Nishina 相关数值数组                                           | 标准输出                                                                                                                                                |
 
@@ -39,6 +40,9 @@ CSV，`nishina-e` 只打印数值。运行前先查看尺寸、样本数和输�
 ```powershell
 kotlin <script>.main.kts
 ```
+
+云鼓包体积在仓库根目录运行 `python scripts/gen-cumulus-billows.py` 生成。
+输出保留原有尺寸、R8 通道布局和重复寻址、线性采样元数据。
 
 对会生成运行时纹理的脚本，检查二进制尺寸/布局，并同步 [`scripts/shaders.properties`](../../../scripts/shaders.properties)
 的 `customTexture.*` 格式、维度、类型；shader 侧同步 sampler 维度、整数/浮点访问类别及硬编码通道假设。

@@ -5,3 +5,4 @@
 *.tes text linguist-language=glsl
 *.fsh text linguist-language=glsl
 *.csh text linguist-language=glsl
+shaders/textures/*.bin binary

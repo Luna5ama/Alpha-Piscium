@@ -63,8 +63,6 @@ void render(ivec2 texelPos) {
         ScatteringParameters airScattering = scatteringParameters_init(sunParams, moonParams, 1.0);
         ScatteringResult air = scatteringResult_init();
         float airDistance = 0.0;
-        float emptyDistance = interval.x;
-        bool inside = interval.x == 0.0 && clouds_cu_density(origin, (length(origin) - layerRange.x) / (layerRange.y - layerRange.x)) > 0.0;
 
         for (int i = 0; i < steps; ++i) {
             float u0 = float(i) / float(steps);
@@ -76,31 +74,7 @@ void render(ivec2 texelPos) {
             float height = length(pos);
             float heightFraction = (height - layerRange.x) / (layerRange.y - layerRange.x);
             float density = clouds_cu_density(pos, heightFraction);
-            if (density <= 0.0) {
-                emptyDistance = distance;
-                inside = false;
-                continue;
-            }
-            float occupiedStart = interval.x + start;
-            if (!inside) {
-                // Resolve the first interface, then shade near the first scattering event in the occupied segment.
-                float occupiedDistance = distance;
-                for (int refine = 0; refine < 4; ++refine) {
-                    float midpoint = (emptyDistance + occupiedDistance) * 0.5;
-                    vec3 midpointPos = origin + direction * midpoint;
-                    float midpointHeight = (length(midpointPos) - layerRange.x) / (layerRange.y - layerRange.x);
-                    if (clouds_cu_density(midpointPos, midpointHeight) > 0.0) occupiedDistance = midpoint;
-                    else emptyDistance = midpoint;
-                }
-                occupiedStart = occupiedDistance;
-                float meanFreePath = 1.0 / (CU_DENSITY_SCALE * dot(medium.extinction, vec3(1.0 / 3.0)) * mix(0.55, 1.35, smoothstep(0.0, 0.32, heightFraction)));
-                distance = min(occupiedDistance + meanFreePath, distance);
-                pos = origin + direction * distance;
-                height = length(pos);
-                heightFraction = (height - layerRange.x) / (layerRange.y - layerRange.x);
-                density = clouds_cu_density(pos, heightFraction);
-            }
-            inside = true;
+            if (density <= 0.0) continue;
 
             RaymarchParameters airParams = raymarchParameters_init();
             airParams.rayStart = airOrigin + direction * airDistance;
@@ -137,7 +111,7 @@ void render(ivec2 texelPos) {
             vec3 groundAmbient = groundAirAmbient + groundDirectAmbient * groundVisibility + groundAlbedo * skyAmbient;
             vec3 ambient = skyAmbient * exp(-skyOpticalDepth * 0.15) + groundAmbient * exp(-groundOpticalDepth * 0.15);
             vec3 source = illuminance * atmosphereTransmittance * sunlight + ambient;
-            vec3 transmittance = exp(-medium.extinction * density * (interval.x + end - occupiedStart));
+            vec3 transmittance = exp(-medium.extinction * density * (end - start));
             // Opacity weights the clear-air radiance up to each actual cloud sample.
             vec3 radiance = albedo * source * air.transmittance + air.inScattering;
             result.inScattering += result.transmittance * (1.0 - transmittance) * radiance;

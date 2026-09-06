@@ -59,20 +59,24 @@ textures. High cirrus is sampled by the shared sky/cloud path rather than a sepa
 ### Cumulus congestus
 
 [`Cumulus.glsl`](../../../shaders/techniques/atmospherics/clouds/Cumulus.glsl) builds each cell from three overlapping
-vertical thermals of different heights, each with a broad head and a connected stem. A broad moisture field varies
-local coverage and development, grouping towers into banks and leaving gaps. Cell radius scales with height;
-lean and side branches vary per cell. Neighbor bounds cover each cell's full reach, including wide cells crossing
-the nominal grid neighborhood. Curl-warped 3D billows stretch vertically, and two finer erosion scales shape the
-surface. Both lobe blending and erosion scale with cell radius. The condensation boundary follows the billow field,
-and liquid-water density increases above its narrow transition. The default layer starts at 1 km and is 3.5 km deep.
+plumes of different heights. Their footprints widen continuously toward the condensation base, merging into a broad
+lower mass without separate stems, caps, or base slabs. Footprint width is independent of plume height; moisture
+varies coverage and development, while cell seeds vary lean and side branches. Neighbor bounds include the full
+spread of the lower cloud body. Curl warps both the envelope and its billows.
+
+Three separately weighted scales of a periodic cellular texture shape the large billows, followed by two finer
+erosion scales. The envelope fades the density at its boundary, limiting detached noise lobes. Surface density and
+condensation both have finite transitions; liquid-water density rises gradually above the base. The default layer
+starts at 1 km and is 3.5 km deep. The single-scale 128³ R8 billow texture is baked by
+[`gen-cumulus-billows.py`](../../../scripts/gen-cumulus-billows.py); the second detail texture supplies moisture and
+fine erosion. The former combined Strepitus recipe for the first detail texture is no longer used.
 
 [`RenderVolumetric`](../../../shaders/techniques/atmospherics/clouds/RenderVolumetric.comp.glsl) uses the spherical-shell
 intersection in [`clouds/Common.glsl`](../../../shaders/techniques/atmospherics/clouds/Common.glsl). The main march covers the entire
-visible interval with nonuniform distance bins and one uniformly jittered sample per bin. At an empty-to-occupied
-transition, four bisections refine the first interface. Lighting is evaluated approximately one mean free path
-inside it, bounded by the original occupied sample, and integration starts at the refined interface. This reduces
-surface shading bias from coarse bins; it is not an unbiased path tracer. Other bins use their actual lengths and
-the analytic constant-medium Beer-Lambert integral. Ground intersections clip the march;
+visible interval with nonuniform distance bins and one uniformly jittered sample per bin. Density and lighting are
+evaluated at that sample, using the full bin length in the analytic constant-medium Beer-Lambert integral. The march
+retains the continuous density transition instead of moving the first sample to a nominal opaque surface. This is a
+constant-bin approximation, not an unbiased path tracer. Ground intersections clip the march;
 the cloud interval is capped at 60 km, with a maximum distance of 120 km from the camera.
 When residual transmittance falls below `0.005`, the march completes the opaque tail with the local source and
 sets transmission to zero. This avoids bright-sky leakage and termination bands inside dense clouds.
