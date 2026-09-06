@@ -23,7 +23,7 @@ vec3 skySingleScattering(vec3 pos, vec3 outgoing, vec2 layerRange, vec2 jitter, 
         vec2 xi = fract(jitter + rand_r2Seq2(s));
         vec3 phaseWeight;
         vec3 incoming = ct_samplePhase(outgoing, xi, phaseWeight);
-        vec3 transmittance = clouds_cu_transmittance(pos, -incoming, layerRange, CT_EXTINCTION, rng);
+        vec3 transmittance = clouds_cu_transmittance(pos, -incoming, layerRange, CT_EXTINCTION);
         result += ct_boundary(pos, incoming, layerRange, lightJitter) * transmittance * phaseWeight;
     }
     return colors2_constants_toWorkSpace(result * 0.5);
@@ -42,7 +42,7 @@ vec3 singleScatteringAtReservoir(CTReservoir reservoir, vec3 origin, vec3 direct
         vec3 illuminance = light == 0 ? SUN_ILLUMINANCE : MOON_ILLUMINANCE;
         float radius = light == 0 ? SUN_ANGULAR_RADIUS : MOON_ANGULAR_RADIUS;
         vec3 shadowDir = rand_sampleInCone(lightDir, radius, ambientJitter);
-        vec3 shadow = clouds_cu_transmittance(pos, shadowDir, layerRange, CLOUDS_CU_EXTINCTION, rng);
+        vec3 shadow = clouds_cu_transmittance(pos, shadowDir, layerRange, CLOUDS_CU_EXTINCTION);
         vec3 phase = clouds_phase_cu(clamp(dot(direction, shadowDir), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO);
         vec3 atmosphereTr = atmospherics_air_lut_sampleTransmittance(atmosphere, dot(pos / height, lightDir), height);
         source += illuminance * atmosphereTr * phase * shadow;
@@ -126,6 +126,21 @@ void render(ivec2 texelPos) {
             inside = true;
 
             float occupiedEnd = interval.x + end;
+            vec3 sourceStart = colors2_constants_toWorkSpace(ct_sampleField(origin + direction * occupiedStart, transportAngles, angularWeights, CT_SOURCE_OFFSET));
+            vec3 sourceEnd = colors2_constants_toWorkSpace(ct_sampleField(origin + direction * occupiedEnd, transportAngles, angularWeights, CT_SOURCE_OFFSET));
+            RaymarchParameters airParams = raymarchParameters_init();
+            ScatteringResult airStart = air;
+            if (occupiedStart > airDistance) {
+                airParams.rayStart = airOrigin + direction * airDistance;
+                airParams.rayEnd = airOrigin + direction * occupiedStart;
+                airParams.steps = uint(clamp((occupiedStart - airDistance) * 2.0, 4.0, 32.0));
+                airStart = scatteringResult_blendLayer(air, raymarchSky(atmosphere, airParams, airScattering, 8.0), false);
+            }
+            airParams.rayStart = airOrigin + direction * occupiedStart;
+            airParams.rayEnd = airOrigin + direction * occupiedEnd;
+            airParams.steps = uint(clamp((occupiedEnd - occupiedStart) * 2.0, 4.0, 32.0));
+            air = scatteringResult_blendLayer(airStart, raymarchSky(atmosphere, airParams, airScattering, 8.0), false);
+            airDistance = occupiedEnd;
             for (float segmentStart = occupiedStart; segmentStart < occupiedEnd; segmentStart += opticalStep) {
                 float segmentEnd = min(segmentStart + opticalStep, occupiedEnd);
                 integratedEnd = segmentEnd;
@@ -141,19 +156,17 @@ void render(ivec2 texelPos) {
                 }
                 inside = true;
 
-                RaymarchParameters airParams = raymarchParameters_init();
-                airParams.rayStart = airOrigin + direction * airDistance;
-                airParams.rayEnd = airOrigin + direction * distance;
-                airParams.steps = uint(clamp((distance - airDistance) * 2.0, 4.0, 32.0));
-                air = scatteringResult_blendLayer(air, raymarchSky(atmosphere, airParams, airScattering, 8.0), false);
-                airDistance = distance;
-
-                vec3 source = colors2_constants_toWorkSpace(ct_sampleField(pos, transportAngles, angularWeights, CT_SOURCE_OFFSET));
+                // The far-field predictor and clear air vary on the scout scale;
+                // only true cloud extinction needs the thin optical segments.
+                float segmentFraction = (distance - occupiedStart) / (occupiedEnd - occupiedStart);
+                vec3 source = mix(sourceStart, sourceEnd, segmentFraction);
+                vec3 airTr = mix(airStart.transmittance, air.transmittance, segmentFraction);
+                vec3 airLight = mix(airStart.inScattering, air.inScattering, segmentFraction);
                 vec3 tau = medium.extinction * density * (segmentEnd - segmentStart);
                 vec3 transmittance = exp(-tau);
                 vec3 opacity = mix(1.0 - transmittance, tau * (1.0 - 0.5 * tau + tau * tau / 6.0), lessThan(tau, vec3(0.001)));
                 // Opacity weights the clear-air radiance up to each actual cloud sample.
-                vec3 radiance = albedo * source * air.transmittance + air.inScattering;
+                vec3 radiance = albedo * source * airTr + airLight;
                 vec3 cameraOpacity = result.transmittance * opacity;
                 result.transmittance *= transmittance;
                 bool opaque = mmax3(result.transmittance) < 0.005;
@@ -168,7 +181,7 @@ void render(ivec2 texelPos) {
                 depthWeight += depthContribution;
                 // Use the same spectral camera weights for single scattering and the MS residual,
                 // including foreground air and the completed opaque tail.
-                vec3 weight = cameraOpacity * albedo * air.transmittance;
+                vec3 weight = cameraOpacity * albedo * airTr;
                 float proposal = mmax3(abs(weight));
                 lightingWeight += proposal;
                 ct_updateReservoir(reservoir0, distance, weight, source, proposal, lightingWeight, rng);

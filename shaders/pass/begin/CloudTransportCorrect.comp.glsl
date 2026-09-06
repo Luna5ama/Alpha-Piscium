@@ -30,32 +30,62 @@ const ivec3 workGroups = ivec3(8, 1, 1);
 const ivec3 workGroups = ivec3(1, 1, 1);
 #endif
 
+#if defined(CT_INIT) || defined(CT_RESIDUAL) || defined(CT_RESOLVE) || defined(CT_DOT) || defined(CT_APPLY)
+shared vec3 angularMean[CT_ANGLES * 64];
+
+void ct_cacheMean(ivec3 p, bool correction) {
+    int lane = int(gl_LocalInvocationIndex);
+    int i = ct_index(p, CT_N);
+    for (int angle = 0; angle < CT_ANGLES; ++angle) {
+        #ifdef CT_INIT
+        angularMean[angle * 64 + lane] = ctSky(angle * CT_CELLS + i).rgb;
+        #elif defined(CT_RESIDUAL)
+        angularMean[angle * 64 + lane] = ctLifted(angle * CT_CELLS + i).rgb;
+        #else
+        angularMean[angle * 64 + lane] = ct_cellMean(p, angle, correction);
+        #endif
+    }
+    barrier();
+}
+#endif
+
 #if defined(CT_INIT) || defined(CT_RESIDUAL) || defined(CT_RESOLVE)
 void main() {
+    if (ct_skipIteration()) return;
     int i = int(gl_GlobalInvocationID.x);
     ivec3 p = ct_position(i, CT_N);
     float density = ctCoefficient(i, 0).a;
+    ct_cacheMean(p, false);
     vec3 residual = vec3(0.0);
+    #ifdef CT_RESOLVE
+    vec3 meanRadiance = vec3(0.0);
+    #endif
     for (int angle = 0; angle < CT_ANGLES; ++angle) {
         vec3 convolution = vec3(0.0);
         for (int incoming = 0; incoming < CT_ANGLES; ++incoming) {
-            convolution += ctPhase(angle * CT_ANGLES + incoming).rgb * ctRadiance(incoming * CT_CELLS + i).rgb;
+            convolution += ctPhase(angle * CT_ANGLES + incoming).rgb * angularMean[incoming * 64 + int(gl_LocalInvocationIndex)];
         }
         int a = angle * CT_CELLS + i;
         #ifdef CT_INIT
         ctSky(a) = vec4(convolution, 0.0);
-        ctSource(a) = vec4(ct_external(i, angle), 0.0);
+        ctSource(a) = vec4(ct_external(i, angle) + density * CT_SCATTERING * ctRadiance(a).rgb, 0.0);
         #elif defined(CT_RESOLVE)
         // P S still requires one scattering at the high-resolution point.
         ctSource(a) = vec4(convolution, 0.0);
+        ctLifted(a) = vec4(angularMean[angle * 64 + int(gl_LocalInvocationIndex)], 0.0);
+        meanRadiance += angularMean[angle * 64 + int(gl_LocalInvocationIndex)] / float(CT_ANGLES);
         #else
         vec3 q = ct_external(i, angle) + density * CT_SCATTERING * convolution;
         ctSource(a) = vec4(q, 0.0);
         residual += CT_W * (q - ct_streaming(p, angle, false));
         #endif
     }
-    #ifdef CT_INIT
-    for (int angle = 0; angle < CT_ANGLES; ++angle) ctRadiance(angle * CT_CELLS + i) = vec4(0.0);
+    #ifdef CT_RESOLVE
+    // Coefficient RGB stays immutable. The otherwise unused alpha lanes hold
+    // the final angular mean for local boundary reconstruction.
+    ctCoefficient(i, 1).a = meanRadiance.r;
+    ctCoefficient(i, 2).a = meanRadiance.g;
+    ctCoefficient(i, 3).a = meanRadiance.b;
     #endif
     #ifdef CT_RESIDUAL
     vec3 bs = vec3(0.0), bf = vec3(0.0), xs = vec3(0.0), xf = vec3(0.0);
@@ -76,6 +106,7 @@ void main() {
 
 #elif defined(CT_RESTRICT)
 void main() {
+    if (ct_skipIteration()) return;
     int i = int(gl_GlobalInvocationID.x);
     int n = CT_N >> CT_LEVEL;
     if (i >= n * n * n) return;
@@ -103,6 +134,7 @@ void main() {
 
 #elif defined(CT_PROLONG)
 void main() {
+    if (ct_skipIteration()) return;
     int i = int(gl_GlobalInvocationID.x);
     int n = CT_N >> CT_LEVEL;
     ivec3 p = ct_position(i, n);
@@ -135,6 +167,7 @@ void main() {
 
 #elif defined(CT_SMOOTH)
 void main() {
+    if (ct_skipIteration()) return;
     int i = int(gl_GlobalInvocationID.x);
     int n = CT_N >> CT_LEVEL;
     ivec3 p = ct_position(i, n);
@@ -187,6 +220,7 @@ vec3 ct_quotient(vec3 a, vec3 b) {
 }
 
 void main() {
+    if (ct_skipIteration()) return;
     int lane = int(gl_LocalInvocationIndex);
     int level = CT_COARSE_LEVEL;
     int base = ct_levelOffset(level);
@@ -274,6 +308,7 @@ CTPartial ct_addPartial(CTPartial a, CTPartial b) {
 }
 
 void main() {
+    if (ct_skipIteration()) return;
     int lane = int(gl_LocalInvocationIndex);
     CTPartial sums = ct_zeroPartial();
     #ifdef CT_DOT
@@ -282,6 +317,7 @@ void main() {
     float volume = ct_volume(p, 0);
     float density = ctCoefficient(i, 0).a;
     vec3 h = ct_size(p, 0);
+    ct_cacheMean(p, true);
     for (int angle = 0; angle < CT_ANGLES; ++angle) {
         vec3 omega = ct_direction(angle);
         vec3 rate = abs(omega) / h;
@@ -290,19 +326,27 @@ void main() {
         vec3 b = ct_external(i, angle);
         vec3 delta = ctLifted(angle * CT_CELLS + i).rgb;
         vec3 phaseDelta = vec3(0.0);
-        for (int incoming = 0; incoming < CT_ANGLES; ++incoming) phaseDelta += ctPhase(angle * CT_ANGLES + incoming).rgb * ctLifted(incoming * CT_CELLS + i).rgb;
+        for (int incoming = 0; incoming < CT_ANGLES; ++incoming) phaseDelta += ctPhase(angle * CT_ANGLES + incoming).rgb * angularMean[incoming * 64 + lane];
         vec3 ad = ct_streaming(p, angle, true) - density * CT_SCATTERING * phaseDelta;
         vec3 escape = vec3(0.0);
+        vec3 correctionEscape = vec3(0.0);
         for (int axis = 0; axis < 3; ++axis) {
             ivec3 stepV = ivec3(equal(ivec3(axis), ivec3(0, 1, 2))) * ivec3(sign(omega));
-            if (!ct_inside(p + stepV, CT_N)) escape += rate[axis] * s;
+            if (!ct_inside(p + stepV, CT_N)) {
+                escape += rate[axis] * s;
+                correctionEscape += rate[axis] * delta;
+            }
         }
         sums.rd.rgb += r * ad * volume * CT_W;
         sums.dd.rgb += ad * ad * volume * CT_W;
         sums.rr.rgb += r * r * volume * CT_W;
         sums.bb.rgb += b * b * volume * CT_W;
         sums.inputPower.rgb += b * volume * CT_W;
-        sums.outputPower.rgb += (density * CT_ABSORPTION * s + escape) * volume * CT_W;
+        sums.outputPower.rgb += (density * CT_ABSORPTION * ct_cellMean(p, angle, false) + escape) * volume * CT_W;
+        vec3 correctionPower = (density * CT_ABSORPTION * angularMean[angle * 64 + lane] + correctionEscape) * volume * CT_W;
+        sums.rd.a += correctionPower.r;
+        sums.dd.a += correctionPower.g;
+        sums.rr.a += correctionPower.b;
         for (int c = 0; c < 3; ++c) if (delta[c] < 0.0) sums.limit[c] = min(sums.limit[c], -0.99 * s[c] / delta[c]);
     }
     #else
@@ -348,18 +392,23 @@ void main() {
     ctStats(1 + CT_ITERATION) = vec4(relative, 0.0);
     ctStats(5 + CT_ITERATION) = vec4(predicted, 0.0);
     ctStats(9 + CT_ITERATION) = vec4(gamma, 0.0);
+    vec3 correctedPower = sums.outputPower.rgb + gamma * vec3(sums.rd.a, sums.dd.a, sums.rr.a);
+    ctStats(20 + CT_ITERATION) = vec4((correctedPower - sums.inputPower.rgb) / max(sums.inputPower.rgb, vec3(1e-20)), 0.0);
+    ctStats(24).x = float(CT_ITERATION + 1);
     #endif
     #endif
 }
 
 #elif defined(CT_APPLY)
 void main() {
+    if (ct_skipIteration()) return;
     int i = int(gl_GlobalInvocationID.x);
+    ct_cacheMean(ct_position(i, CT_N), true);
     vec3 gamma = ctStats(0).rgb;
     for (int angle = 0; angle < CT_ANGLES; ++angle) {
         int a = angle * CT_CELLS + i;
         vec3 phaseDelta = vec3(0.0);
-        for (int incoming = 0; incoming < CT_ANGLES; ++incoming) phaseDelta += ctPhase(angle * CT_ANGLES + incoming).rgb * ctLifted(incoming * CT_CELLS + i).rgb;
+        for (int incoming = 0; incoming < CT_ANGLES; ++incoming) phaseDelta += ctPhase(angle * CT_ANGLES + incoming).rgb * angularMean[incoming * 64 + int(gl_LocalInvocationIndex)];
         ctRadiance(a).rgb += gamma * ctLifted(a).rgb;
         ctSource(a).rgb += ctCoefficient(i, 0).a * CT_SCATTERING * gamma * phaseDelta;
     }

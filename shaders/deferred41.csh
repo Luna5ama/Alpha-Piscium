@@ -4,6 +4,7 @@
 #define CT_SMOOTH
 #define CT_LEVEL 0
 #define CT_COLOR 0
+#define CT_ITERATION 1
 /*const*/
 
 #include "/pass/begin/CloudTransportCorrect.comp.glsl"

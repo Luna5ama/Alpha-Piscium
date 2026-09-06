@@ -2,6 +2,7 @@
 #define COMP 1
 /*const*/
 #define CT_CORRECTION
+#define CT_ITERATION 3
 /*const*/
 
 #include "/pass/begin/CloudTransportSweep.comp.glsl"

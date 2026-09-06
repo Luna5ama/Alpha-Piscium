@@ -19,37 +19,51 @@ spec = importlib.util.spec_from_file_location('cloud_transport', ROOT / 'scripts
 model = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(model)
 TABLE = np.fromfile(ROOT / 'shaders/textures/cloud_transport.bin', dtype='<f4').reshape(26, 1024, 4).astype(float)
-P = .1 * TABLE[2, :576, 0].reshape(24, 24) + .9 * TABLE[3, :576, 0].reshape(24, 24)
-BETA = np.r_[1, .1 * TABLE[4, :3, 0] + .9 * TABLE[4, 3:6, 0]]
+P = TABLE[2, :576, 0].reshape(24, 24)
+BETA = np.r_[1, TABLE[4, :3, 0]]
 DIRS = model.directions()
 W = model.WEIGHT
+
+
+def incoming_weight(tau):
+    t = np.maximum(tau, .01)
+    tr = np.exp(-t)
+    return np.where(tau < .01, .5-tau/12+tau**3/720, 1/t-tr/(1-tr))
 
 
 def transport(rho, omega=1.0):
     n = rho.shape[0]
     m = rho.size
     rho = rho.ravel()
-    rows, cols, values = [], [], []
-    diagonal = np.tile(rho, 24)
+    rows, cols, values, mean_values = [], [], [], []
+    diagonal = np.zeros(24*m)
+    mean_diagonal = np.zeros(24*m)
     escape = np.zeros(24 * m)
     for angle, direction in enumerate(DIRS):
+        sum_rate = abs(direction).sum()
+        wi = incoming_weight(rho / sum_rate)
         for index, p in enumerate(np.ndindex((n, n, n))):
             p = np.array(p)
             i = angle * m + index
+            diagonal[i] = sum_rate + rho[index] * (1-wi[index])
+            mean_diagonal[i] = 1-wi[index]
             for axis in range(3):
                 rate = abs(direction[axis])
-                diagonal[i] += rate
                 q = p.copy()
                 q[axis] -= int(np.sign(direction[axis]))
                 if np.all(q >= 0) and np.all(q < n):
-                    rows.append(i); cols.append(angle * m + np.ravel_multi_index(q, (n, n, n))); values.append(-rate)
+                    rows.append(i); cols.append(angle * m + np.ravel_multi_index(q, (n, n, n)))
+                    mean_weight = wi[index]*rate/sum_rate
+                    mean_values.append(mean_weight)
+                    values.append(-rate+rho[index]*mean_weight)
                 q = p.copy()
                 q[axis] += int(np.sign(direction[axis]))
                 if np.any(q < 0) or np.any(q >= n):
                     escape[i] += rate
     streaming = coo_matrix((values, (rows, cols)), shape=(24*m, 24*m)).tocsr() + diags(diagonal)
-    scatter = kron(P, diags(rho * omega), format='csr')
-    return streaming, scatter, escape
+    mean = coo_matrix((mean_values, (rows, cols)), shape=(24*m, 24*m)).tocsr() + diags(mean_diagonal)
+    scatter = kron(P, diags(rho * omega), format='csr') @ mean
+    return streaming, scatter, escape, mean
 
 
 def diffusion(rho, omega):
@@ -88,7 +102,7 @@ def diffusion(rho, omega):
 
 
 def solve_system(rho, omega, source):
-    l, scatter, escape = transport(rho, omega)
+    l, scatter, escape, mean = transport(rho, omega)
     a = l - scatter
     lu = splu(l.tocsc())
     solution, status = gmres(a, source, M=LinearOperator(a.shape, matvec=lu.solve), rtol=1e-11, atol=0, restart=80, maxiter=100)
@@ -96,7 +110,7 @@ def solve_system(rho, omega, source):
     residual = np.linalg.norm(source - a @ solution) / np.linalg.norm(source)
     assert residual < 1e-9 and solution.min() >= -1e-10
     pin = W * source.sum()
-    pout = W * np.dot(escape + np.tile(rho.ravel() * (1-omega), 24), solution)
+    pout = W * (escape @ solution + np.tile(rho.ravel() * (1-omega), 24) @ (mean @ solution))
     assert abs(pout / pin - 1) < 1e-8
     return solution, a, scatter, lu, residual, abs(pout/pin-1)
 
@@ -171,7 +185,8 @@ def test_3d():
         scaled = rho * epsilon
         b = source * epsilon
         s, *_ = solve_system(scaled, 1, b)
-        energies.append(float((np.tile(scaled.ravel(), 24) * s).sum()))
+        _, scatter, _, _ = transport(scaled)
+        energies.append(float((scatter @ s).sum()))
     powers = np.log(np.array(energies[:-1])/energies[1:]) / np.log(2)
     assert np.max(abs(powers-2)) < .02
     # Superposition and the pure-vacuum zero-source case.
@@ -180,23 +195,74 @@ def test_3d():
     combined, *_ = solve_system(rho, 1, source + source.reshape(24, -1)[::-1].ravel())
     linearity = np.linalg.norm(combined-s1-s2) / np.linalg.norm(combined)
     assert linearity < 1e-9
-    vacuum_l, _, _ = transport(np.zeros_like(rho))
+    vacuum_l, _, _, _ = transport(np.zeros_like(rho))
     assert np.all(splu(vacuum_l.tocsc()).solve(np.zeros_like(source)) == 0)
     return {'cases': cases, 'thin_limit_exponents': powers.tolist(), 'linearity_error': float(linearity)}
 
 
 def spatial_limit():
     results = []
-    # Actual upwind Fourier symbol, not the continuum diffusion preconditioner.
+    # Actual cell-average/face-flux Fourier symbol, not the diffusion preconditioner.
     # This reports (and does not hide) the coarse-grid artificial diffusion.
     k = 1e-4
     for rho in (.1, 1, 10):
-        symbol = rho*(np.eye(24)-P).astype(complex)
-        symbol += np.diag(abs(DIRS[:, 0]) * (1-np.exp(-1j*np.sign(DIRS[:, 0])*k)))
-        response = np.linalg.solve(symbol, np.ones(24)).mean()
+        rate = abs(DIRS).sum(axis=1)
+        shift = np.exp(-1j*np.sign(DIRS[:, 0])*k)
+        mean = 1 + incoming_weight(rho/rate)*abs(DIRS[:, 0])/rate*(shift-1)
+        symbol = rho*(np.eye(24)-P) @ np.diag(mean)
+        symbol += np.diag(abs(DIRS[:, 0]) * (1-shift))
+        response = (mean * np.linalg.solve(symbol, np.ones(24))).mean()
         numerical_d = (1/response).real / (k*k)
         results.append({'sigma_t_h': rho, 'continuum_D0': float(1/(3*rho*(1-BETA[1]))), 'directional_grid_D': float(numerical_d)})
     return results
+
+
+def source_and_history():
+    tau = np.array([1e-7, .2, 4., 20., 100.])
+    absorbed = -np.expm1(-tau)
+    point_samples = tau*(np.exp(-.25*tau)+np.exp(-.75*tau))*.5
+    assert absorbed[-1] > .999999 and point_samples[-1] < 1e-8
+    # The characteristic's mean and outgoing value must balance their source.
+    incoming = np.array([.2, .7, 1., 3., 4.])
+    source = np.array([1., .8, .7, .5, .3])
+    outgoing = np.exp(-tau)*incoming+absorbed/tau*source
+    mean = (1-incoming_weight(tau))*outgoing+incoming_weight(tau)*incoming
+    balance = float(np.max(abs(outgoing-incoming+tau*mean-source)))
+    assert balance < 1e-12
+
+    rho = np.full((4, 4, 4), 3.)
+    rho[1, 1:3] = 0
+    b = (P[:, 8, None]/W*rho.ravel()).ravel()
+    reference, a, scatter, lu, *_ = solve_system(rho, 1., b)
+    _, _, escape, mean_matrix = transport(rho)
+    core, w, _ = diffusion(rho, 1.)
+    core_lu = splu(core)
+    current = np.zeros_like(b)
+    history = []
+    for frame in range(16):
+        for iteration in range(4):
+            current = lu.solve(b+scatter@current)
+            r = b-a@current
+            r0 = W*r.reshape(24, -1).sum(axis=0)
+            u = core_lu.solve(np.r_[w*r0, (1-w)*r0])
+            phi = w*u[:rho.size]+(1-w)*u[rho.size:]
+            delta = lu.solve(np.tile(rho.ravel(), 24)*np.tile(phi/(4*np.pi), 24))
+            ad = a@delta
+            limit = min(1., np.min(-.99*current[delta < 0]/delta[delta < 0], initial=1.))
+            gamma = max(0., min(limit, (r@ad)/(ad@ad)))
+            power_before = escape@current
+            corrected_power = power_before+gamma*(escape@delta)
+            current += gamma*delta
+            assert abs(corrected_power-escape@current) < 1e-10
+            residual = np.linalg.norm(b-a@current)/np.linalg.norm(b)
+            power_defect = abs((escape@current)/b.sum()-1)
+            if residual < .005 and power_defect < .005: break
+        history.append({'frame': frame+1, 'iterations': iteration+1, 'residual': float(residual), 'power_defect': float(power_defect)})
+    assert history[-1]['iterations'] == 1 and power_defect < .005 and residual < .005
+    assert (mean_matrix@current).min() >= 0
+    return {'characteristic_balance_error': balance, 'beam_absorbed_power': absorbed.tolist(),
+            'old_point_sample_power': point_samples.tolist(), 'warm_start': history,
+            'final_solution_error': float(np.linalg.norm(current-reference)/np.linalg.norm(reference))}
 
 
 def gpu_readback(path, n):
@@ -229,10 +295,21 @@ def gpu_readback(path, n):
     incident = stats[14, :3]
     emitted = stats[15, :3]
     ratio = np.divide(emitted, incident, out=np.zeros(3), where=incident > 0)
+    mean_field = fields['lifted'][:, :3].reshape(24, cells, 3)
+    cached_mean = fields['coefficients'][:4*cells].reshape(cells, 4, 4)[:, 1:4, 3]
+    mean_error = np.max(abs(cached_mean-mean_field.mean(axis=0))/np.maximum(mean_field.mean(axis=0), 1e-7))
+    convolution = np.einsum('aic,ijc->ajc', matrix, mean_field)
+    camera_source = fields['camera_source'][:, :3].reshape(24, cells, 3)
+    convolution_error = np.max(abs(convolution-camera_source)/np.maximum(abs(convolution), 1e-7))
+    assert mean_field.min() >= -1e-6 and mean_error < 1e-5 and convolution_error < 1e-5
+    iterations = int(stats[24, 0])
     return {'resolution': n, 'bytes': expected, 'all_finite': True,
             'minimum_radiance': float(s.min()), 'maximum_radiance': float(s.max()),
-            'raw_residuals': stats[1:5, :3].tolist(), 'predicted_corrected_residuals': stats[5:9, :3].tolist(),
-            'accepted_damping': stats[9:13, :3].tolist(), 'final_relative_residual': stats[13, :3].tolist(),
+            'mean_cache_relative_error': float(mean_error), 'phase_convolution_relative_error': float(convolution_error),
+            'iterations': iterations, 'reused_history': bool(stats[24, 1]), 'history_displacement_km': stats[25, :3].tolist(),
+            'raw_residuals': stats[1:1+iterations, :3].tolist(), 'predicted_corrected_residuals': stats[5:5+iterations, :3].tolist(),
+            'accepted_damping': stats[9:9+iterations, :3].tolist(), 'final_relative_residual': stats[13, :3].tolist(),
+            'predicted_power_defects': stats[20:20+iterations, :3].tolist(),
             'input_power': incident.tolist(), 'escaped_plus_absorbed_power': emitted.tolist(),
             'finite_budget_power_ratio': ratio.tolist(), 'coarse_cg': stats[16:20].tolist(),
             'scope': 'Actual GPU state; fixed-budget residual and power defect, not a converged energy-conservation claim.'}
@@ -248,7 +325,7 @@ if __name__ == '__main__':
     assert np.max(abs(P-P.T)) < 1e-8
     report = gpu_readback(args.gpu_buffer, args.resolution) if args.gpu_buffer else {'p3_identity_error': algebra(), 'phase_matrix_row_error': float(np.max(abs(P.sum(axis=1)-1))),
               'phase_matrix_reciprocity_error': float(np.max(abs(P-P.T))), 'transport_3d': test_3d(),
-              'upwind_diffusion_limit': spatial_limit(),
+              'characteristic_diffusion_limit': spatial_limit(), 'source_and_history': source_and_history(),
               'not_established': ['Angular or spatial grid convergence of rendered clouds', 'Final raymarch global power balance', 'Photo agreement']}
     args.output.parent.mkdir(parents=True, exist_ok=True)
     args.output.write_text(json.dumps(report, indent=2)+'\n', encoding='utf-8')

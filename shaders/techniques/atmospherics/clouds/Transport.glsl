@@ -85,6 +85,14 @@ const int CT_PARTIALS_OFFSET = CT_LIFTED_OFFSET + CT_ANGLES * CT_CELLS;
 #define ctLifted(i) ctData[CT_LIFTED_OFFSET + (i)]
 #define ctPartial(i, field) ctData[CT_PARTIALS_OFFSET + 7 * (i) + (field)]
 
+bool ct_skipIteration() {
+    #if defined(CT_ITERATION) && CT_ITERATION > 0
+    return mmax3(ctStats(5 + CT_ITERATION - 1).rgb) < 0.005 && mmax3(abs(ctStats(20 + CT_ITERATION - 1).rgb)) < 0.005;
+    #else
+    return false;
+    #endif
+}
+
 CTCoefficients ct_loadCoefficients(int i) {
     return CTCoefficients(ctCoefficient(i, 0), ctCoefficient(i, 1), ctCoefficient(i, 2), ctCoefficient(i, 3));
 }
@@ -316,17 +324,42 @@ vec3 ct_field(int index, bool correction) {
     return correction ? ctLifted(index).rgb : ctRadiance(index).rgb;
 }
 
+// Mean radiance = (1-w) outgoing + w incoming for a constant-source segment.
+vec3 ct_incomingWeight(vec3 tau) {
+    vec3 safeTau = max(tau, vec3(0.01));
+    vec3 tr = exp(-safeTau);
+    vec3 w = 1.0 / safeTau - tr / (1.0 - tr);
+    return mix(w, 0.5 - tau / 12.0 + tau * tau * tau / 720.0, lessThan(tau, vec3(0.01)));
+}
+
+vec3 ct_incoming(ivec3 p, int angle, bool correction, vec3 rate) {
+    vec3 incoming = vec3(0.0);
+    ivec3 signV = ivec3(sign(ct_direction(angle)));
+    for (int axis = 0; axis < 3; ++axis) {
+        ivec3 offset = ivec3(equal(ivec3(axis), ivec3(0, 1, 2))) * signV;
+        ivec3 q = p - offset;
+        if (ct_inside(q, CT_N)) incoming += rate[axis] * ct_field(angle * CT_CELLS + ct_index(q, CT_N), correction);
+    }
+    return incoming / (rate.x + rate.y + rate.z);
+}
+
+vec3 ct_cellMean(ivec3 p, int angle, bool correction) {
+    vec3 rate = abs(ct_direction(angle)) / ct_size(p, 0);
+    int i = ct_index(p, CT_N);
+    vec3 tau = ctCoefficient(i, 0).a * CT_EXTINCTION / (rate.x + rate.y + rate.z);
+    return mix(ct_field(angle * CT_CELLS + i, correction), ct_incoming(p, angle, correction, rate), ct_incomingWeight(tau));
+}
+
 vec3 ct_streaming(ivec3 p, int angle, bool correction) {
     vec3 omega = ct_direction(angle);
     vec3 rate = abs(omega) / ct_size(p, 0);
     int i = ct_index(p, CT_N);
-    vec3 result = (ctCoefficient(i, 0).a * CT_EXTINCTION + rate.x + rate.y + rate.z) * ct_field(angle * CT_CELLS + i, correction);
-    for (int axis = 0; axis < 3; ++axis) {
-        ivec3 offset = ivec3(equal(ivec3(axis), ivec3(0, 1, 2))) * ivec3(sign(omega));
-        ivec3 q = p - offset;
-        if (ct_inside(q, CT_N)) result -= rate[axis] * ct_field(angle * CT_CELLS + ct_index(q, CT_N), correction);
-    }
-    return result;
+    float sumRate = rate.x + rate.y + rate.z;
+    vec3 extinction = ctCoefficient(i, 0).a * CT_EXTINCTION;
+    vec3 outgoing = ct_field(angle * CT_CELLS + i, correction);
+    vec3 incoming = ct_incoming(p, angle, correction, rate);
+    vec3 mean = mix(outgoing, incoming, ct_incomingWeight(extinction / sumRate));
+    return sumRate * (outgoing - incoming) + extinction * mean;
 }
 
 vec3 ct_external(int i, int angle) {
@@ -405,36 +438,40 @@ vec3 ct_sampleRadiance(vec3 pos, vec3 omega) {
     ivec4 angles;
     vec4 weights;
     ct_angularWeights(omega, angles, weights);
-    return ct_sampleField(pos, angles, weights, CT_RADIANCE_OFFSET);
+    return ct_sampleField(pos, angles, weights, CT_LIFTED_OFFSET);
 }
 
-vec3 ct_sampleExternal(vec3 pos, vec3 omega) {
+vec3 ct_sampleMean(vec3 pos) {
     ivec3 base;
     vec3 f;
     if (!ct_interpolation(pos, base, f)) return vec3(0.0);
-    ivec4 angles;
-    vec4 angularWeights;
-    ct_angularWeights(omega, angles, angularWeights);
-    vec3 sky = vec3(0.0), sun = vec3(0.0), moon = vec3(0.0);
-    float density = 0.0;
+    vec3 result = vec3(0.0);
     for (int corner = 0; corner < 8; ++corner) {
         ivec3 offset = ivec3(corner) >> ivec3(0, 1, 2) & 1;
         vec3 w = mix(1.0 - f, f, vec3(offset));
-        float weight = w.x * w.y * w.z;
         int i = ct_index(base + offset, CT_N);
-        vec4 material = ctMaterialSun(i);
-        sun += material.rgb * weight;
-        moon += ctMaterialMoon(i).rgb * weight;
-        density += material.a * weight;
-        for (int a = 0; a < 4; ++a) sky += ctSky(angles[a] * CT_CELLS + i).rgb * (weight * angularWeights[a]);
+        result += vec3(ctCoefficient(i, 1).a, ctCoefficient(i, 2).a, ctCoefficient(i, 3).a) * (w.x * w.y * w.z);
     }
+    return result;
+}
+
+void ct_cachedExternal(vec3 pos, vec3 omega, out vec3 sky, out vec3 sun, out vec3 moon) {
+    sky = vec3(0.0);
+    sun = vec3(0.0);
+    moon = vec3(0.0);
+    ivec3 base;
+    vec3 f;
+    if (!ct_interpolation(pos, base, f)) return;
+    // This predictor is cancelled by the path-source residual. Nearest sampling
+    // saves the repeated 48-tap gather without changing the reconstruction target.
+    int i = ct_index(base + ivec3(greaterThan(f, vec3(0.5))), CT_N);
+    vec4 material = ctMaterialSun(i);
+    sky = ctSky(ct_angle(omega) * CT_CELLS + i).rgb;
     // The beam cache stores the correlated density * incident-light source.
-    if (density > 0.0) {
-        vec3 sunPhase = ct_toAP0(clouds_phase_cu(clamp(dot(-omega, uval_sunDirWorld), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
-        vec3 moonPhase = ct_toAP0(clouds_phase_cu(clamp(dot(-omega, uval_moonDirWorld), -1.0, 1.0), SETTING_CLOUDS_CU_PHASE_RATIO));
-        sky += (sun * sunPhase + moon * moonPhase) / density;
+    if (material.a > 0.0) {
+        sun = material.rgb / material.a;
+        moon = ctMaterialMoon(i).rgb / material.a;
     }
-    return sky;
 }
 
 #endif

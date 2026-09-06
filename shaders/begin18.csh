@@ -1,8 +1,7 @@
 #version 460 compatibility
 #define COMP 1
 /*const*/
-#define CT_INIT
-#define CT_LEVEL 0
+#define CT_UNCOLLIDED
 /*const*/
 
-#include "/pass/begin/CloudTransportCorrect.comp.glsl"
+#include "/pass/begin/CloudTransportSweep.comp.glsl"

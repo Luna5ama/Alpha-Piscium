@@ -124,6 +124,8 @@ void main() {
 
                 ivec2 gatherTexelPos = ivec2(centerPixelOrigin) + ivec2(1);
                 float weightSum = 0.0;
+                float countSum = 0.0;
+                float countWeight = 0.0;
                 for (int iy = 0; iy < 4; ++iy) {
                     for (int ix = 0; ix < 4; ++ix) {
                         ivec2 offset = ivec2(ix, iy) - 2;
@@ -131,9 +133,14 @@ void main() {
                         float weight = weightX[ix] * weightY[iy];
                         weightSum += weight;
                         prevAvgData = vec4PackedData_add(prevAvgData, vec4PackedData_mul(sampleData, weight));
+                        float positiveWeight = max(weight, 0.0);
+                        countSum += sampleData.transmittanceHLen.w * positiveWeight;
+                        countWeight += positiveWeight;
                     }
                 }
                 prevAvgData = vec4PackedData_mul(prevAvgData, 1.0 / weightSum);
+                // History counts are nonnegative confidence, not a signed signal.
+                prevAvgData.transmittanceHLen.w = countSum / countWeight;
             }
 
             float prevWeight = prevAvgData.transmittanceHLen.w;

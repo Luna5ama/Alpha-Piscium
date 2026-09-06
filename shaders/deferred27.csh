@@ -3,6 +3,7 @@
 /*const*/
 #define CT_RESTRICT
 #define CT_LEVEL 2
+#define CT_ITERATION 1
 /*const*/
 
 #include "/pass/begin/CloudTransportCorrect.comp.glsl"

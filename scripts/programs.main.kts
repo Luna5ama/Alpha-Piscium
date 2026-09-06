@@ -195,6 +195,10 @@ programs {
                 cond(cloudTransportCondition + if (level == 4) " && SETTING_CLOUDS_MS_RESOLUTION >= 64" else "")
             }
         }
+        pass("/pass/begin/CloudTransportPrepare.comp.glsl") {
+            constDefine("CT_HISTORY")
+            cond(cloudTransportCondition)
+        }
         pass("/pass/begin/CloudTransportSweep.comp.glsl") {
             constDefine("CT_UNCOLLIDED")
             cond(cloudTransportCondition)
@@ -224,16 +228,21 @@ programs {
         val cloudTransportCondition = "defined(SETTING_CLOUDS_CU)"
         for (iteration in 0..<4) {
             val iterationCondition = "$cloudTransportCondition && SETTING_CLOUDS_MS_ITERATIONS > $iteration"
-            pass("/pass/begin/CloudTransportSweep.comp.glsl") { cond(iterationCondition) }
+            pass("/pass/begin/CloudTransportSweep.comp.glsl") {
+                constDefine("CT_ITERATION", iteration)
+                cond(iterationCondition)
+            }
             pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
                 constDefine("CT_RESIDUAL")
                 constDefine("CT_LEVEL", 0)
+                constDefine("CT_ITERATION", iteration)
                 cond(iterationCondition)
             }
             for (level in 1..4) {
                 pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
                     constDefine("CT_RESTRICT")
                     constDefine("CT_LEVEL", level)
+                    constDefine("CT_ITERATION", iteration)
                     cond(iterationCondition + if (level == 4) " && SETTING_CLOUDS_MS_RESOLUTION >= 64" else "")
                 }
             }
@@ -248,6 +257,7 @@ programs {
                 pass("/pass/begin/CloudTransportCorrect.comp.glsl") {
                     constDefine("CT_PROLONG")
                     constDefine("CT_LEVEL", level)
+                    constDefine("CT_ITERATION", iteration)
                     cond(levelCondition)
                 }
                 for (color in 0..1) {
@@ -255,12 +265,14 @@ programs {
                         constDefine("CT_SMOOTH")
                         constDefine("CT_LEVEL", level)
                         constDefine("CT_COLOR", color)
+                        constDefine("CT_ITERATION", iteration)
                         cond(levelCondition)
                     }
                 }
             }
             pass("/pass/begin/CloudTransportSweep.comp.glsl") {
                 constDefine("CT_CORRECTION")
+                constDefine("CT_ITERATION", iteration)
                 cond(iterationCondition)
             }
             for (stage in listOf("CT_DOT", "CT_REDUCE", "CT_APPLY")) {

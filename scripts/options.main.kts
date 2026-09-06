@@ -2036,12 +2036,12 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                     toggle("SETTING_CLOUDS_MS_ITERATIONS", 4, listOf(1, 2, 4)) {
                         lang {
-                            name = "Scattering Solver Iterations"
-                            comment = "Cloud-lighting updates per frame. Higher values reduce the remaining lighting error and increase GPU time."
+                            name = "Scattering Iteration Limit"
+                            comment = "Maximum cloud-lighting updates per frame. Stable lighting stops early when its error is small. Higher limits improve convergence after lighting or cloud changes."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
-                            name = "散射求解迭代数"
-                            comment = "每帧云光照更新次数。更高数值能减小剩余光照误差，但增加 GPU 时间。"
+                            name = "散射迭代上限"
+                            comment = "每帧云光照更新次数上限。稳定光照在误差较小时提前停止；更高上限改善光照或云体变化后的收敛。"
                         }
                     }
                     toggle("SETTING_CLOUDS_MS_LOCAL_SAMPLES", 2, listOf(0, 1, 2, 4)) {
@@ -2054,14 +2054,14 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "每条相机射线的局部光照修正数。更多采样能减少噪声，但增加 GPU 时间。零关闭局部多次散射，直射光照仍会采样。"
                         }
                     }
-                    toggle("SETTING_CLOUDS_MS_LOCAL_BOUNCES", 8, listOf(1, 4, 8, 16, 32)) {
+                    toggle("SETTING_CLOUDS_MS_LOCAL_BOUNCES", 2, listOf(1, 2, 4, 8, 16, 32)) {
                         lang {
                             name = "Local Scattering Depth"
-                            comment = "Scattering events followed through the actual cloud density before using the far-field cache. Higher values resolve more light exchange within small cloud structures."
+                            comment = "Explicit scattering events before local boundary reconstruction and the distant lighting cache. Higher values increase GPU cost and can increase noise."
                         }
                         lang(Locale.SIMPLIFIED_CHINESE) {
                             name = "局部散射深度"
-                            comment = "查询远场缓存之前，在真实云密度中追踪的散射事件数。更高数值能解析小云团内部更多的光交换。"
+                            comment = "使用局部边界重建和远场光照缓存之前的显式散射事件数。更高数值增加 GPU 开销，也可能增加噪声。"
                         }
                     }
                     slider("SETTING_CLOUDS_LOW_STEP_MIN", 128, 16..128 step 8) {
@@ -2156,7 +2156,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                             comment = "云覆盖天空的程度。0 = 晴空，1 = 完全阴天。"
                         }
                     }
-                    slider("SETTING_CLOUDS_CU_PHASE_RATIO", 0.9, 0.0..1.0 step 0.05) {
+                    slider("SETTING_CLOUDS_CU_PHASE_RATIO", 0.0, 0.0..1.0 step 0.05) {
                         lang {
                             name = "Cumulus Phase Ratio"
                         }

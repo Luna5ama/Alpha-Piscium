@@ -36,8 +36,8 @@ float clouds_cu_thermal(vec2 offset, float height, float top, float radius) {
     return clouds_cu_union(stem, head);
 }
 
-float clouds_cu_density(vec3 rayPos, float heightFraction) {
-    if (heightFraction <= 0.0 || heightFraction >= 1.0 || SETTING_CLOUDS_CU_COVERAGE <= 0.0) return 0.0;
+vec2 clouds_cu_sample(vec3 rayPos, float heightFraction, bool interfaceOnly) {
+    if (heightFraction <= 0.0 || heightFraction >= 1.0 || SETTING_CLOUDS_CU_COVERAGE <= 0.0) return vec2(0.0, -1.0);
 
     vec3 pos = vec3(rayPos.x, heightFraction * SETTING_CLOUDS_CU_THICKNESS, rayPos.z);
     pos += clouds_cu_wind(frameTimeCounter);
@@ -74,9 +74,14 @@ float clouds_cu_density(vec3 rayPos, float heightFraction) {
             float youngThermal = clouds_cu_thermal(thermalPos + axis * radius * 0.48, heightFraction, youngHeight, radius * 0.86);
             float thermals = clouds_cu_union(mainThermal, clouds_cu_union(sideThermal, youngThermal));
             shape = clouds_cu_union(shape, clouds_cu_union(base, thermals) / radius);
+            // The remaining erosion is at most 0.47. Beyond this margin the
+            // smooth surface and condensation factors are both exactly one.
+            if (!interfaceOnly && shape >= 0.485 && heightFraction >= 0.0495) {
+                return vec2(mix(0.55, 1.35, smoothstep(0.0, 0.32, heightFraction)) * CU_DENSITY_SCALE, shape);
+            }
         }
     }
-    if (shape <= 0.0) return 0.0;
+    if (!interfaceOnly && shape <= 0.0) return vec2(0.0, shape);
 
     vec3 curl = texture(usam_cumulusCurl, pos * 0.35).xyz;
     vec3 billowPos = pos * CU_BILLOW_FREQUENCY + curl * 0.09;
@@ -84,7 +89,7 @@ float clouds_cu_density(vec3 rayPos, float heightFraction) {
     float billow = texture(usam_cumulusDetail1, billowPos).r;
     float entrainment = mix(0.7, 1.0, smoothstep(0.02, 0.15, heightFraction));
     shape -= (1.0 - sqrt(billow)) * 0.38 * entrainment;
-    if (shape <= 0.0) return 0.0;
+    if (!interfaceOnly && shape <= 0.0) return vec2(0.0, shape);
 
     // Erode the interface; the interior stays coherent instead of becoming wispy.
     vec3 detailPos = pos * CU_DETAIL_FREQUENCY + curl * 0.13;
@@ -95,7 +100,15 @@ float clouds_cu_density(vec3 rayPos, float heightFraction) {
     float condensationHeight = 0.008 + (1.0 - sqrt(billow)) * 0.025 + erosion * 0.05;
     float condensation = smoothstep(condensationHeight, condensationHeight + 0.012, heightFraction);
     float liquidWater = mix(0.55, 1.35, smoothstep(0.0, 0.32, heightFraction));
-    return surface * condensation * liquidWater * CU_DENSITY_SCALE;
+    return vec2(surface * condensation * liquidWater * CU_DENSITY_SCALE, shape);
+}
+
+float clouds_cu_density(vec3 rayPos, float heightFraction) {
+    return clouds_cu_sample(rayPos, heightFraction, false).x;
+}
+
+float clouds_cu_interface(vec3 rayPos, float heightFraction) {
+    return clouds_cu_sample(rayPos, heightFraction, true).y;
 }
 
 float clouds_cu_column(vec3 origin, vec3 direction, vec2 layerRange, int steps, float jitter) {
@@ -117,35 +130,9 @@ float clouds_cu_column(vec3 origin, vec3 direction, vec2 layerRange, int steps, 
     return column;
 }
 
-vec3 clouds_cu_transmittance(vec3 origin, vec3 direction, vec2 layerRange, vec3 extinction, inout uint rng) {
-    vec2 interval;
-    if (CU_DENSITY_SCALE <= 0.0 || !clouds_layerInterval(origin, direction, layerRange, interval)) return vec3(1.0);
-    float majorant = CU_DENSITY_MAX * mmax3(extinction);
-    float nearEnd = min(interval.y, interval.x + 8.0 / majorant);
-    float distance = interval.x;
-    vec3 transmittance = vec3(1.0);
-    // Ratio tracking resolves near-field occluders without exponentiating an undersampled column.
-    while (true) {
-        float xi = hash_uintToFloat(hash_pcg_11(rng++));
-        distance -= log(1.0 - xi) / majorant;
-        if (distance >= nearEnd) break;
-        vec3 pos = origin + direction * distance;
-        float density = clouds_cu_density(pos, (length(pos) - layerRange.x) / (layerRange.y - layerRange.x));
-        transmittance *= 1.0 - extinction * density / majorant;
-        if (mmax3(transmittance) == 0.0) return transmittance;
-        // Unbiased early exit for opaque near-field shadow paths.
-        float survival = mmax3(transmittance) * 1e6;
-        if (survival < 1.0) {
-            if (hash_uintToFloat(hash_pcg_11(rng++)) >= survival) return vec3(0.0);
-            transmittance /= survival;
-        }
-    }
-    if (nearEnd < interval.y) {
-        float jitter = hash_uintToFloat(hash_pcg_11(rng++));
-        float column = clouds_cu_column(origin + direction * nearEnd, direction, layerRange, 16, jitter);
-        transmittance *= exp(-extinction * column);
-    }
-    return transmittance;
+vec3 clouds_cu_transmittance(vec3 origin, vec3 direction, vec2 layerRange, vec3 extinction) {
+    float column = clouds_cu_column(origin, direction, layerRange, 16, 0.5);
+    return exp(-extinction * column);
 }
 
 #endif
