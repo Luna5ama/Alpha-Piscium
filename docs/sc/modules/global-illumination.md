@@ -54,7 +54,7 @@ RGBA16F）。[`ClearEnvProbe`](../../../shaders/pass/begin/ClearEnvProbe.comp.gl
 | 4  | [`GIReSTIRDuplicationMapDecorrelate`](../../../shaders/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl)                                                                                                           | 可选 decorrelation                      |
 | 5  | [`GIReSTIRPairedSpatialReuse`](../../../shaders/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl) × 1–4                                                                                                                   | pairwise spatial reuse；每批最多覆盖 7 个基础样本 |
 | 6  | [`GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl)                                                                                                                         | 对选中样本做 shading，并排队 neighbor visibility ray |
-| 7  | [`GIReSTIRSpatialReuseTrace`](../../../shaders/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl)                                                                                                                           | trace 压缩后的 visibility 队列并拒绝被遮挡的样本     |
+| 7  | [`GIReSTIRSpatialReuseTrace`](../../../shaders/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl)                                                                                                                           | trace 压缩后的 visibility 队列；被遮挡的样本回退到该像素的时间估计 |
 
 四个 spatial-reuse pass 的 `PASS_INDEX` 为 0–3，`PASS_BASE_SAMPLE_INDEX` 为 0/7/14/21；它们从 SSBO 0 offset 48 indirect
 dispatch。`history_restir_reservoirTemporal`、`history_restir_primary`、`history_restir_prevSample` 和
