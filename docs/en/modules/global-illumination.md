@@ -55,9 +55,8 @@ The runtime resources are `uimg_envProbe`, declared as 1024×768 RGBA32UI in [
 | 3     | [`GIReSTIRTemporalReuse`](../../../shaders/pass/composite/GIReSTIRTemporalReuse.comp.glsl)                                                                                                                                   | Reprojects previous reservoirs, samples, hit normals, and material |
 | 4     | [`GIReSTIRDuplicationMapDecorrelate`](../../../shaders/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl)                                                                                                           | Optional decorrelation                                             |
 | 5     | [`GIReSTIRPairedSpatialReuse`](../../../shaders/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl) × 1–4                                                                                                                   | Pairwise reuse in batches of seven base samples                    |
-| 6     | [`GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl)                                                                                                                         | Shades selected samples                                            |
-| 7     | [`GIReSTIRSpatialReuseRaySort`](../../../shaders/pass/composite/GIReSTIRSpatialReuseRaySort.comp.glsl)                                                                                                                       | Compacts rays still requiring a trace                              |
-| 8     | [`GIReSTIRSpatialReuseTrace`](../../../shaders/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl)                                                                                                                           | Completes spatial visibility/SST                                   |
+| 6     | [`GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl)                                                                                                                         | Shades selected samples and queues neighbor visibility rays        |
+| 7     | [`GIReSTIRSpatialReuseTrace`](../../../shaders/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl)                                                                                                                           | Traces the compacted visibility queue and rejects occluded samples |
 
 The four spatial-reuse passes use `PASS_INDEX` 0–3 and `PASS_BASE_SAMPLE_INDEX` 0/7/14/21, dispatched indirectly from
 SSBO 0 offset 48. `history_restir_reservoirTemporal`, `history_restir_primary`, `history_restir_prevSample`, and
@@ -67,6 +66,13 @@ current-frame stages. [
 `GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl) copies the current
 temporal reservoir and primary data to their fixed history tiles while performing the final current-frame reads. All
 tile definitions live in [`shaders/shadesmith.json`](../../../shaders/shadesmith.json).
+
+Spatial shading writes provisional diffuse/specular results immediately. Neighbor selections that need voxel
+visibility store their exact `resultY` bits in `transient_restir_pairwiseMISMetadata`; each 16×16 tile then appends its
+rays to SSBO 1 as one contiguous run ordered by world-direction octant and Morton position, counted by
+`global_restirVisibilityRayCount` (reset in [`UpdateGlobalData`](../../../shaders/pass/begin/UpdateGlobalData.comp.glsl)).
+The trace pass launches over the screen-sized queue capacity, exits past that count, and clears only provisional
+results that fail the voxel visibility test.
 
 ## GI denoising
 
