@@ -31,16 +31,15 @@ void main() {
     vec3 winL_out = resultY.xyz;
     float winHitDist = resultY.w;
 
+    float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
+    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
+    vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
     uint packedPrimary = restir_splatFetchCurrentPrimary(texelPos);
-    vec3 primaryViewPos;
-    if (packedPrimary != 0u) {
-        primaryViewPos = restir_splatUnpackPrimary(texelPos, packedPrimary, global_camProjInverse);
-    } else {
-        float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
-        vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
-        primaryViewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
-    }
-    vec3 geomNormal = nzpacking_unpackNormalOct32(transient_restir_spatialInput_fetch(texelPos).x);
+    vec3 primaryViewPos = packedPrimary != 0u
+        ? restir_splatUnpackPrimary(texelPos, packedPrimary, global_camProjInverse)
+        : viewPos;
+    SpatialSampleData centerSample = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
+    vec3 geomNormal = centerSample.geomNormal;
 
     float normalOffset = min(0.05, winHitDist * 0.25);
     vec3 rayOriginView = primaryViewPos + geomNormal * normalOffset;
@@ -53,8 +52,28 @@ void main() {
     VoxelHit hit = voxel_traceRay(voxelRay, 128, true);
     vec3 expectedHitPos = worldPos + worldDir * expectedHitDistance;
     if (!hit.hit || distanceSq(hit.hitPos, expectedHitPos) > 0.05) {
-        transient_ssgiDiffOut_store(texelPos, vec4(0.0));
-        transient_ssgiSpecOut_store(texelPos, vec4(0.0));
+        // Replace the occluded neighbor sample with this pixel's temporal estimate.
+        // SpatialShade copied the current temporal reservoir into its history tile this frame.
+        ReSTIRReservoir temporalReservoir = restir_reservoir_unpack(history_restir_reservoirTemporal_fetch(texelPos));
+        vec3 normal = normalize(transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
+        ResampleMaterial material = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelPos));
+        vec4 fallbackDiffOut;
+        vec4 fallbackSpecOut;
+        restir_shadeSample(
+            centerSample.sampleValue.rgb,
+            temporalReservoir.Y,
+            temporalReservoir.avgWY,
+            geomNormal,
+            normal,
+            normalize(-primaryViewPos),
+            normalize(-viewPos),
+            material,
+            texelPos,
+            fallbackDiffOut,
+            fallbackSpecOut
+        );
+        transient_ssgiDiffOut_store(texelPos, fallbackDiffOut);
+        transient_ssgiSpecOut_store(texelPos, fallbackSpecOut);
         #if SETTING_DEBUG_OUTPUT
         imageStore(uimg_temp5, texelPos, vec4(1.0, 0.0, 0.0, 0.0));
         #endif
