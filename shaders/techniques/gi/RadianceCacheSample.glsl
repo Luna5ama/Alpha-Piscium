@@ -108,7 +108,8 @@ void rc_lookupSampleFace(
     vec3 f = surface.material.albedo * brdf.diffuse + vec3(brdf.specular);
 
     vec3 cachedRadiance = rc_reservoirEstimateRadiance(reservoir);
-    vec3 estimatedRadiance = cachedRadiance * f * NoL * safeRcp(max(pCache, 1e-4));
+    // f already carries NoL and the estimate is cosine-weighted, so the diffuse term reduces to albedo * (1 - F) * estimate.
+    vec3 estimatedRadiance = cachedRadiance * f * safeRcp(max(pCache, 1e-4));
     if (rc_luminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
         result.misses++;
         return;
