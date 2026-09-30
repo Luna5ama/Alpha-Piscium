@@ -166,8 +166,11 @@ void main() {
                     float specHitDistanceAlpha = rcp(min(historyLengths.y, 16.0));
 
                     if (newHitDistance > 0.0) {
-                        historyData.specularHitDistance = mix(historyData.specularHitDistance, min(newHitDistance, GI_MAX_HIT_DISTANCE), specHitDistanceAlpha);
                         historyData.diffuseHitDistance = pow2(mix(sqrt(historyData.diffuseHitDistance), sqrt(min(newHitDistance, 8.0)), diffHitDistanceAlpha));
+                    }
+                    // Only set when the shaded sample was accepted through the specular lobe.
+                    if (newSpecular.w > 0.0) {
+                        historyData.specularHitDistance = mix(historyData.specularHitDistance, min(newSpecular.w, GI_MAX_HIT_DISTANCE), specHitDistanceAlpha);
                     }
 
                     historyLengths = saturate(historyLengths / TOTAL_HISTORY_LENGTH);
