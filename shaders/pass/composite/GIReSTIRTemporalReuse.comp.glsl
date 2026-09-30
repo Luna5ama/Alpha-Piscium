@@ -1143,60 +1143,29 @@ void main() {
             #endif
             if (outputValid) {
                 #if USE_REFERENCE
-                vec3 winL = sampleDirView;
-                float winHitDist = hitDistance;
+                vec4 winY = vec4(sampleDirView, hitDistance);
                 vec3 winR = hitRadiance * safeRcp(samplePdf);
-                #else
-                vec3 winL = temporalReservoir.Y.xyz;
-                float winHitDist = temporalReservoir.Y.w;
-                vec3 winR = finalSample.rgb;
-                #endif
+                float winW = 1.0;
                 vec3 winV = V;
-                #if !USE_REFERENCE
-                winV = normalize(-finalPrimaryViewPos);
+                #else
+                vec4 winY = temporalReservoir.Y;
+                vec3 winR = finalSample.rgb;
+                float winW = temporalReservoir.avgWY;
+                vec3 winV = normalize(-finalPrimaryViewPos);
                 #endif
-                vec3 winNormal = resampleMaterial_resolveNormal(
+                restir_shadeSample(
+                    winR,
+                    winY,
+                    winW,
                     targetGeomNormal,
                     targetNormal,
-                    winV
+                    winV,
+                    winV,
+                    storedMaterial,
+                    texelPos,
+                    ssgiDiffOut,
+                    ssgiSpecOut
                 );
-                if (
-                    dot(targetGeomNormal, winL) > 0.0
-                    && dot(targetGeomNormal, winV) > 0.0
-                    && dot(winNormal, winL) > 0.0
-                ) {
-                    ResampleBRDF winBRDF = resampleMaterial_evalBRDF(
-                        storedMaterial,
-                        winNormal,
-                        winL,
-                        winV
-                    );
-                    float diffRatio = winBRDF.diffuse * safeRcp(winBRDF.full);
-
-                    #if USE_REFERENCE
-                    vec3 totalOutput = winR * winBRDF.full;
-                    #else
-                    vec3 totalOutput = (winR * winBRDF.full) * temporalReservoir.avgWY;
-                    #endif
-                    ssgiDiffOut = vec4(totalOutput * diffRatio, winHitDist);
-
-                    ssgiSpecOut = vec4(totalOutput * (1.0 - diffRatio), winHitDist);
-                    float denoiseNDotV = saturate(dot(winNormal, winV));
-                    vec3 specDenoiseFactor = resampleMaterial_specularDenoiseFactor(storedMaterial, denoiseNDotV);
-                    ssgiSpecOut.rgb *= rcp(specDenoiseFactor);
-
-                    bool hitDistanceFinite = restir_isFinite(winHitDist);
-                    if (restir_isFinite(ssgiDiffOut.rgb) && hitDistanceFinite) {
-                        ssgiDiffOut = clamp(ssgiDiffOut, 0.0, FP16_MAX);
-                    } else {
-                        ssgiDiffOut = vec4(0.0);
-                    }
-                    if (restir_isFinite(ssgiSpecOut.rgb) && hitDistanceFinite) {
-                        ssgiSpecOut = clamp(ssgiSpecOut, 0.0, FP16_MAX);
-                    } else {
-                        ssgiSpecOut = vec4(0.0);
-                    }
-                }
             }
 
             transient_ssgiDiffOut_store(texelPos, ssgiDiffOut);

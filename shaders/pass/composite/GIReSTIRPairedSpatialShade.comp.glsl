@@ -130,57 +130,33 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos) {
             selectedSampleF = centerSampleData.sampleValue;
         }
 
-        vec4 ssgiDiffOut = vec4(0.0, 0.0, 0.0, -1.0);
-        vec4 ssgiSpecOut = vec4(0.0, 0.0, 0.0, -1.0);
         vec4 resultY = spatialReservoir.Y;
 
         float avgWY = spatialWSum
             / (selectedSampleF.w * spatialTechniqueCount);
-        if (!restir_isFinite(avgWY) || avgWY <= 0.0) {
-            transient_ssgiDiffOut_store(texelPos, vec4(0.0));
-            transient_ssgiSpecOut_store(texelPos, vec4(0.0));
-            return NO_TRACE;
-        }
-
-        vec3 winL_out = resultY.xyz;
-        float winHitDist = resultY.w;
-
-        vec3 resolvedNormal = resampleMaterial_resolveNormal(
-            centerSampleData.geomNormal,
-            centerSampleData.normal,
-            V
-        );
-        float rawNDotL = dot(resolvedNormal, winL_out);
-        float rawNDotV = dot(resolvedNormal, V);
+        vec4 ssgiDiffOut;
+        vec4 ssgiSpecOut;
         if (
-            rawNDotL <= 0.0
-            || dot(centerSampleData.geomNormal, winL_out) <= 0.0
-            || dot(centerSampleData.geomNormal, V) <= 0.0
+            !restir_isFinite(avgWY)
+            || avgWY <= 0.0
+            || !restir_shadeSample(
+                selectedSampleF.xyz,
+                resultY,
+                avgWY,
+                centerSampleData.geomNormal,
+                centerSampleData.normal,
+                V,
+                normalize(-viewPos),
+                centerMaterial,
+                texelPos,
+                ssgiDiffOut,
+                ssgiSpecOut
+            )
         ) {
             transient_ssgiDiffOut_store(texelPos, vec4(0.0));
             transient_ssgiSpecOut_store(texelPos, vec4(0.0));
             return NO_TRACE;
         }
-        vec3 halfVector = normalize(winL_out + V);
-        ResampleBRDF outBRDF = resampleMaterial_evalBRDF(
-            centerMaterial,
-            rawNDotL,
-            rawNDotV,
-            saturate(dot(resolvedNormal, halfVector)),
-            saturate(dot(winL_out, halfVector))
-        );
-
-        ssgiDiffOut = vec4((selectedSampleF.xyz * outBRDF.diffuse) * avgWY, winHitDist);
-        ssgiSpecOut = vec4((selectedSampleF.xyz * outBRDF.specular) * avgWY, winHitDist);
-        float denoiseNDotV = saturate(dot(resolvedNormal, normalize(-viewPos)));
-        vec3 specDenoiseFactor = resampleMaterial_specularDenoiseFactor(centerMaterial, denoiseNDotV);
-        ssgiSpecOut.rgb *= rcp(specDenoiseFactor);
-        ssgiDiffOut.rgb = restir_isFinite(ssgiDiffOut.rgb)
-            ? clamp(ssgiDiffOut.rgb, 0.0, FP16_MAX)
-            : vec3(0.0);
-        ssgiSpecOut.rgb = restir_isFinite(ssgiSpecOut.rgb)
-            ? clamp(ssgiSpecOut.rgb, 0.0, FP16_MAX)
-            : vec3(0.0);
 
         #if SETTING_DEBUG_OUTPUT
         imageStore(uimg_temp5, texelPos, !chooseCanon && selectedNeighbor ? vec4(0.0, 1.0, 0.0, 0.0) : vec4(0.0));
@@ -190,7 +166,7 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos) {
 
         #if defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > 0
         // Neighbor selections are provisional until GIReSTIRSpatialReuseTrace confirms visibility.
-        if (!chooseCanon && selectedNeighbor && winHitDist > 0.0) {
+        if (!chooseCanon && selectedNeighbor && resultY.w > 0.0) {
             transient_restir_pairwiseMISMetadata_store(texelPos, floatBitsToUint(resultY));
             uvec3 dirSign = uvec3(lessThan(mat3(gbufferModelViewInverse) * resultY.xyz, vec3(0.0)));
             return dirSign.x | (dirSign.y << 1u) | (dirSign.z << 2u);

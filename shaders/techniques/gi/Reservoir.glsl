@@ -306,3 +306,44 @@ ShiftMapping evaluateShiftMapping(
 
     return mapping;
 }
+
+// Shades a reservoir sample into demodulated diffuse/specular denoiser inputs, with the hit distance in w.
+// The specular hit distance is kept with probability f_s / (f_d + f_s) so it follows the specular lobe; -1 otherwise.
+bool restir_shadeSample(
+    vec3 sampleRadiance,
+    vec4 Y,
+    float contributionWeight,
+    vec3 geomNormal,
+    vec3 normal,
+    vec3 V,
+    vec3 denoiseV,
+    ResampleMaterial material,
+    ivec2 texelPos,
+    out vec4 diffOut,
+    out vec4 specOut
+) {
+    diffOut = vec4(0.0);
+    specOut = vec4(0.0);
+    vec3 resolvedNormal = resampleMaterial_resolveNormal(geomNormal, normal, V);
+    float NDotL = dot(resolvedNormal, Y.xyz);
+    if (NDotL <= 0.0 || dot(geomNormal, Y.xyz) <= 0.0 || dot(geomNormal, V) <= 0.0) {
+        return false;
+    }
+
+    vec3 H = normalize(Y.xyz + V);
+    ResampleBRDF brdf = resampleMaterial_evalBRDF(
+        material,
+        NDotL,
+        dot(resolvedNormal, V),
+        saturate(dot(resolvedNormal, H)),
+        saturate(dot(Y.xyz, H))
+    );
+    vec3 specDenoiseFactor = resampleMaterial_specularDenoiseFactor(material, saturate(dot(resolvedNormal, denoiseV)));
+    vec3 diffuse = (sampleRadiance * brdf.diffuse) * contributionWeight;
+    vec3 specular = (sampleRadiance * brdf.specular) * contributionWeight * rcp(specDenoiseFactor);
+    float specHitRand = restir_updateRand(texelPos, 0x5bd1e995u);
+    float specHitDistance = specHitRand < brdf.specular * safeRcp(brdf.full) ? Y.w : -1.0;
+    diffOut = vec4(restir_isFinite(diffuse) ? clamp(diffuse, 0.0, FP16_MAX) : vec3(0.0), Y.w);
+    specOut = vec4(restir_isFinite(specular) ? clamp(specular, 0.0, FP16_MAX) : vec3(0.0), specHitDistance);
+    return true;
+}
