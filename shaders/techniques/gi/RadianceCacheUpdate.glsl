@@ -248,7 +248,8 @@ vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     }
 
     vec3 totalBRDF = surface.material.albedo * brdf.diffuse + vec3(brdf.specular);
-    vec3 bounceRadiance = incomingRadiance * totalBRDF;
+    // incomingRadiance is the cosine-weighted mean, so divide the cosine-weighted BRDF by the cosine pdf.
+    vec3 bounceRadiance = incomingRadiance * totalBRDF * (PI / NDotL);
     if (rc_luminance(bounceRadiance) <= 0.0 || any(isnan(bounceRadiance))) {
         return radiance;
     }

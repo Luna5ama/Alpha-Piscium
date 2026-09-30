@@ -166,7 +166,7 @@ bool restir_initialSample_screenHitQuery(
         + gi_hitDirectLighting(hitMaterial, hitWorldPos, V, queryWorldNormal, queryWorldGeomNormal);
 
     if (rcLookup.weight > 0.0 && restir_initialSample_isFinite(rcLookup.radiance)) {
-        candidate.radiance += rcLookup.radiance * hitMaterial.albedo;
+        candidate.radiance += rcLookup.radiance;
     }
 
     candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
@@ -206,7 +206,7 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
     candidate.radiance = surface.material.emissive
         + gi_hitDirectLighting(surface.material, hit.hitPos, V, hit.normal, hit.normal);
     if (rcLookup.weight > 0.0 && restir_initialSample_isFinite(rcLookup.radiance)) {
-        candidate.radiance += rcLookup.radiance * surface.material.albedo;
+        candidate.radiance += rcLookup.radiance;
     }
     candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
     return candidate;
