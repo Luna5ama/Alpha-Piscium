@@ -297,6 +297,9 @@ programs {
             }
         }
         pass("/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl")
+        pass("/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl") {
+            cond("defined(SETTING_GI_SPATIAL_REUSE)")
+        }
         pass("/pass/composite/GIDenoiserAccum.comp.glsl")
         pass("/pass/composite/GIDenoiserAntiFireFly.comp.glsl") {
             cond("defined(SETTING_DENOISER_ANTI_FIREFLY)")

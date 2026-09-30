@@ -53,9 +53,8 @@ RGBA16F）。[`ClearEnvProbe`](../../../shaders/pass/begin/ClearEnvProbe.comp.gl
 | 3  | [`GIReSTIRTemporalReuse`](../../../shaders/pass/composite/GIReSTIRTemporalReuse.comp.glsl)                                                                                                                                   | 从上一帧 reservoir、样本、hit normal 与材质重投影   |
 | 4  | [`GIReSTIRDuplicationMapDecorrelate`](../../../shaders/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl)                                                                                                           | 可选 decorrelation                      |
 | 5  | [`GIReSTIRPairedSpatialReuse`](../../../shaders/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl) × 1–4                                                                                                                   | pairwise spatial reuse；每批最多覆盖 7 个基础样本 |
-| 6  | [`GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl)                                                                                                                         | 对选中样本做 shading                        |
-| 7  | [`GIReSTIRSpatialReuseRaySort`](../../../shaders/pass/composite/GIReSTIRSpatialReuseRaySort.comp.glsl)                                                                                                                       | 整理仍需 trace 的 spatial rays             |
-| 8  | [`GIReSTIRSpatialReuseTrace`](../../../shaders/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl)                                                                                                                           | 完成 spatial visibility/SST             |
+| 6  | [`GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl)                                                                                                                         | 对选中样本做 shading，并排队 neighbor visibility ray |
+| 7  | [`GIReSTIRSpatialReuseTrace`](../../../shaders/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl)                                                                                                                           | trace 压缩后的 visibility 队列并拒绝被遮挡的样本     |
 
 四个 spatial-reuse pass 的 `PASS_INDEX` 为 0–3，`PASS_BASE_SAMPLE_INDEX` 为 0/7/14/21；它们从 SSBO 0 offset 48 indirect
 dispatch。`history_restir_reservoirTemporal`、`history_restir_primary`、`history_restir_prevSample` 和
@@ -64,6 +63,12 @@ dispatch。`history_restir_reservoirTemporal`、`history_restir_primary`、`hist
 `GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl) 会在执行本帧最后一轮读取时，
 将当前 temporal reservoir 与 primary 数据复制到各自固定的 history tile。所有 tile 定义见 [
 `shaders/shadesmith.json`](../../../shaders/shadesmith.json)。
+
+Spatial shading 会立即写入临时的 diffuse/specular 结果。需要 voxel visibility 的 neighbor 选择会把精确的 `resultY`
+bits 存入 `transient_restir_pairwiseMISMetadata`；随后每个 16×16 tile 按 world-direction octant 与 Morton 位置排序，
+把自己的 ray 作为一段连续区间追加到 SSBO 1，数量由 `global_restirVisibilityRayCount` 记录（在
+[`UpdateGlobalData`](../../../shaders/pass/begin/UpdateGlobalData.comp.glsl) 中重置）。Trace pass 按屏幕大小的队列容量启动，
+超出计数的线程直接退出，并且只清除未通过 voxel visibility 测试的临时结果。
 
 ## GI 降噪
 

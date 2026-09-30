@@ -75,6 +75,7 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     float global_turbidity;
     AEData global_aeData;
     uint global_atomicCounters[16];
+    uint global_restirVisibilityRayCount;
 
     uint rc_entryCounter;
     uint rc_allocationCounter;
