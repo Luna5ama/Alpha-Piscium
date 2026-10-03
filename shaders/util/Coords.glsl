@@ -57,16 +57,14 @@ vec4 coord_sceneCurrToPrev(vec4 sceneCurr, bool isHand) {
 }
 
 vec4 coord_sceneCurrToPrev(vec4 sceneCurr) {
-    vec3 cameraDelta = uval_cameraDelta;
     vec4 scenePrev = sceneCurr;
-    scenePrev.xyz += cameraDelta;
+    scenePrev.xyz += uval_cameraDelta;
     return scenePrev;
 }
 
 vec4 coord_scenePrevToCurr(vec4 scenePrev) {
-    vec3 cameraDelta = uval_cameraDelta;
     vec4 sceneCurr = scenePrev;
-    sceneCurr.xyz -= cameraDelta;
+    sceneCurr.xyz -= uval_cameraDelta;
     return sceneCurr;
 }
 
