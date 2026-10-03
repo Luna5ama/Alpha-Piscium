@@ -1,5 +1,4 @@
 #include "/util/Colors.glsl"
-#include "/util/Colors2.glsl"
 #include "/util/Dither.glsl"
 #include "/util/Math.glsl"
 #include "/util/Rand.glsl"
@@ -14,7 +13,7 @@ uniform sampler2D normals;
 uniform sampler2D specular;
 
 #ifdef SETTING_TBN_PACKING
-flat in uint frag_viewTN;
+flat in uint frag_worldTN;
 #else
 in vec3 frag_worldTangent;
 in vec3 frag_worldNormal;// 11 + 11 + 10 = 32 bits
@@ -91,7 +90,7 @@ void processAlbedo() {
     #endif
 
     #ifdef GBUFFER_PASS_ALPHA_TEST
-    float alphaTestThreshold = 0.05;
+    float alphaTestThreshold = alphaTestRef;
     #ifndef SETTING_SCREENSHOT_MODE
     vec2 texSize = vec2(textureSize(gtexture, 0));
     float alphaLod = clamp(log2(max(max(length(dUVdx * texSize), length(dUVdy * texSize)), 1.0)), 0.0, float(textureQueryLevels(gtexture) - 1));
@@ -124,14 +123,17 @@ void processViewZ() {
 void processGeometryBasis() {
     bitangentSignF = float(bitfieldExtract(frag_materialID, 30, 1)) * 2.0 - 1.0;
 
+    vec3 geomWorldNormal;
+    vec3 geomWorldTangent;
     #ifdef SETTING_TBN_PACKING
-    nzpacking_unpackNormalOct16(frag_viewTN, geomViewNormal, geomViewTangent);
+    nzpacking_unpackNormalOct16(frag_worldTN, geomWorldNormal, geomWorldTangent);
     #else
-    vec3 geomWorldNormal = frag_worldNormal;
-    vec3 geomWorldTangent = frag_worldTangent;
+    geomWorldNormal = frag_worldNormal;
+    geomWorldTangent = frag_worldTangent;
+    #endif
+
     geomViewNormal = coords_dir_worldToView(geomWorldNormal);
     geomViewTangent = coords_dir_worldToView(geomWorldTangent);
-    #endif
     geomViewBitangent = normalize(cross(geomViewTangent, geomViewNormal) * bitangentSignF);
 }
 
@@ -243,7 +245,7 @@ void processData1() {
     gData.materialID = 65533u;
     if (SETTING_PARTICLE_EMISSIVE_STRENGTH > 0.0) {
         if (textureQueryLevels(gtexture) == 1) {
-            float particleEmissive = pow2(colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, colors2_material_toWorkSpace(albedo.rgb)));
+            float particleEmissive = pow2(colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, colors_material_toWorkSpace(albedo.rgb)));
             particleEmissive *= SETTING_PARTICLE_EMISSIVE_STRENGTH;
             gData.pbrSpecular.a = saturate(gData.pbrSpecular.a + particleEmissive);
         }

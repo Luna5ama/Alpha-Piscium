@@ -1,6 +1,9 @@
 #ifndef INCLUDE_util_AgxInvertible_glsl
 #define INCLUDE_util_AgxInvertible_glsl a
 
+#include "Math.glsl"
+#include "Colors.glsl"
+
 const mat3 agx_mat = mat3(
 0.842479062253094, 0.0423282422610123, 0.0423756549057051,
 0.0784335999999992, 0.878468636469772, 0.0784336,

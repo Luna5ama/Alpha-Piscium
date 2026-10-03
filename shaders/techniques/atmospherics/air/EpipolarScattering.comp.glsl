@@ -34,13 +34,13 @@ const ivec3 workGroups = ivec3(SETTING_EPIPOLAR_SLICES, 1, 1);
 #define SHARED_MEMORY_SHADOW_SAMPLE a
 #include "RaymarchScreenViewAtmosphere.glsl"
 
-layout(rgba32ui) uniform restrict uimage2D uimg_epipolarData;
+layout(rgba32ui) uniform restrict uimage2D uimg_frgba32ui;
 
 void main() {
     ivec2 imgSizei = ivec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
     vec2 imgSize = vec2(SETTING_EPIPOLAR_SLICES, SETTING_SLICE_SAMPLES);
     uint sliceIndex = gl_WorkGroupID.x;
-    vec4 sliceEndPoints = uintBitsToFloat(texelFetch(usam_epipolarData, ivec2(sliceIndex, 0), 0));
+    vec4 sliceEndPoints = uintBitsToFloat(persistent_epipolarData_fetch(ivec2(sliceIndex, 0)));
 
     uint cond = uint(isValidScreenLocation(sliceEndPoints.xy)) | uint(isValidScreenLocation(sliceEndPoints.zw));
 
@@ -88,7 +88,7 @@ void main() {
                 packEpipolarData(outputData, result, texelPosI);
                 ivec2 writeTexelPos = baseWriteTexelPos;
                 writeTexelPos.y += actualIndex * int(SETTING_SLICE_SAMPLES);
-                imageStore(uimg_epipolarData, writeTexelPos, outputData);
+                persistent_epipolarData_store(writeTexelPos, outputData);
             }
         }
     } else {
@@ -103,7 +103,7 @@ void main() {
                 int actualIndex = layerIndex * 2;
                 ivec2 writeTexelPos = baseWriteTexelPos;
                 writeTexelPos.y += actualIndex * int(SETTING_SLICE_SAMPLES);
-                imageStore(uimg_epipolarData, writeTexelPos, outputData);
+                persistent_epipolarData_store(writeTexelPos, outputData);
             }
         }
     }

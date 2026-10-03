@@ -116,7 +116,7 @@ out ScatteringResult result
 
     for (int i = 0; i < 2; ++i) {
         // Load epipolar line endpoints
-        uvec4 endPointData = texelFetch(usam_epipolarData, ivec2(int(fSrcSliceTexelX[i]), 0), 0);
+        uvec4 endPointData = persistent_epipolarData_fetch(ivec2(int(fSrcSliceTexelX[i]), 0));
         vec4 f4SliceEndpoints = uintBitsToFloat(endPointData);
 
         // Compute line direction on the screen
@@ -174,8 +174,8 @@ out ScatteringResult result
         sampleTexelPos2.y = min(sampleTexelPos2.y, SETTING_SLICE_SAMPLES - 1);
         sampleTexelPos2.y += int(TEXEL_Y_OFFSET);
 
-        uint viewZData1 = texelFetch(usam_epipolarData, sampleTexelPos1, 0).a;
-        uint viewZData2 = texelFetch(usam_epipolarData, sampleTexelPos2, 0).a;
+        uint viewZData1 = persistent_epipolarData_fetch(sampleTexelPos1).a;
+        uint viewZData2 = persistent_epipolarData_fetch(sampleTexelPos2).a;
         uvec2 viewZData = uvec2(viewZData1, viewZData2);
         uvec2 viewZTexelPosXs = bitfieldExtract(viewZData, 0, 16);
         uvec2 viewZTexelPosYs = bitfieldExtract(viewZData, 16, 16);
@@ -233,7 +233,7 @@ out ScatteringResult result
         {
             ScatteringResult sampleResult;
             float viewZ;
-            unpackEpipolarData(texelFetch(usam_epipolarData, sampleTexelPos1, 0), sampleResult, viewZ);
+            unpackEpipolarData(persistent_epipolarData_fetch(sampleTexelPos1), sampleResult, viewZ);
 
             result.inScattering += bilateralVWeights.x * sampleResult.inScattering;
             result.transmittance += bilateralVWeights.x * sampleResult.transmittance;
@@ -242,7 +242,7 @@ out ScatteringResult result
         {
             ScatteringResult sampleResult;
             float viewZ;
-            unpackEpipolarData(texelFetch(usam_epipolarData, sampleTexelPos2, 0), sampleResult, viewZ);
+            unpackEpipolarData(persistent_epipolarData_fetch(sampleTexelPos2), sampleResult, viewZ);
 
             result.inScattering += bilateralVWeights.y * sampleResult.inScattering;
             result.transmittance += bilateralVWeights.y * sampleResult.transmittance;

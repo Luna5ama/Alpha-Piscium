@@ -121,13 +121,17 @@ bool renderScale_isOutsideMainViewport(vec2 fragCoord) {
 }
 
 #if SETTING_RENDER_SCALE < 10
+#undef _shadesmith_RG16F_ATLAS_SIZE_RCP
 #undef _shadesmith_RGBA16F_ATLAS_SIZE_RCP
+#undef _shadesmith_R32UI_ATLAS_SIZE_RCP
 #undef _shadesmith_R32F_ATLAS_SIZE_RCP
 #undef _shadesmith_RGB10_A2_ATLAS_SIZE_RCP
 #undef _shadesmith_RGBA8_ATLAS_SIZE_RCP
 #undef _shadesmith_RGBA32UI_ATLAS_SIZE_RCP
 #undef _shadesmith_RG32UI_ATLAS_SIZE_RCP
+#define _shadesmith_RG16F_ATLAS_SIZE_RCP (vec2(1.0) / vec2(textureSize(usam_rg16f, 0)))
 #define _shadesmith_RGBA16F_ATLAS_SIZE_RCP (vec2(1.0) / vec2(textureSize(usam_rgba16f, 0)))
+#define _shadesmith_R32UI_ATLAS_SIZE_RCP (vec2(1.0) / vec2(textureSize(usam_r32ui, 0)))
 #define _shadesmith_R32F_ATLAS_SIZE_RCP (vec2(1.0) / vec2(textureSize(usam_r32f, 0)))
 #define _shadesmith_RGB10_A2_ATLAS_SIZE_RCP (vec2(1.0) / vec2(textureSize(usam_rgb10_a2, 0)))
 #define _shadesmith_RGBA8_ATLAS_SIZE_RCP (vec2(1.0) / vec2(textureSize(usam_rgba8, 0)))

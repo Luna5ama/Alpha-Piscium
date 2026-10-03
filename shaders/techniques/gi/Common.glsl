@@ -3,45 +3,41 @@
 
 #include "/util/BitPacking.glsl"
 #include "/util/Colors.glsl"
-#include "/util/Colors2.glsl"
 #include "/util/NZPacking.glsl"
 
-#ifdef SETTING_GI_USE_REFERENCE
-#define USE_REFERENCE 1
-#else
-#define USE_REFERENCE 0
-#endif
 #define SKIP_FRAMES 0
 #define MAX_FRAMES 0x7fffffff
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
-#define MC_SPP 16
 
-const float HISTORY_LENGTH = float(SETTING_DENOISER_HISTORY_LENGTH);
 const float TOTAL_HISTORY_LENGTH = 255.0;
 
 /*
-    Diffuse Color : 48 bits         (1)
-    Specular Hit Distance: 16 bits  (1)
-    Diffuse fast color: 48 bits     (2)
-    Diffuse Hit Distance: 16 bits   (2)
+    Diffuse Color : 48 bits (1)
+    Shadow Hint: 16 bits (1)
+    Diffuse fast color: 48 bits (2)
+    Diffuse luma second moment: 16 bits (2)
 
-    Specular Color: 48 bits         (3)
-    Specular fast color: 48 bits    (4)
+    Specular Color: 48 bits (3)
+    Specular luma second moment: 16 bits (3)
+    Specular fast color: 48 bits (4)
+    Specular Hit Distance: 16 bits (4)
 
-    History Length: 8 bits          (5)
-    Real History Length: 8 bits     (5)
+    History Length: 8 bits (5)
+    Real History Length: 8 bits (5)
     Specular History Length: 8 bits (5)
-    Glazing Angle Factor: 8 bits    (5)
+    Glazing Angle Factor: 8 bits (5)
 */
 
 const float GI_MAX_HIT_DISTANCE = 256.0;
 
 struct GIHistoryData {
     vec3 diffuseColor;
+    float shadowHint;
     vec3 diffuseFastColor;
-    float diffuseHitDistance;
+    float diffuseMoment2;
 
     vec3 specularColor;
+    float specularMoment2;
     vec3 specularFastColor;
     float specularHitDistance;
 
@@ -54,10 +50,12 @@ struct GIHistoryData {
 GIHistoryData gi_historyData_init()  {
     GIHistoryData data;
     data.diffuseColor = vec3(0.0);
+    data.shadowHint = 0.0;
     data.diffuseFastColor = vec3(0.0);
-    data.diffuseHitDistance = GI_MAX_HIT_DISTANCE;
+    data.diffuseMoment2 = 0.0;
 
     data.specularColor = vec3(0.0);
+    data.specularMoment2 = 0.0;
     data.specularFastColor = vec3(0.0);
     data.specularHitDistance = GI_MAX_HIT_DISTANCE;
 
@@ -70,15 +68,17 @@ GIHistoryData gi_historyData_init()  {
 
 void gi_historyData_unpack1(inout GIHistoryData data, vec4 packedData) {
     data.diffuseColor = packedData.xyz;
+    data.shadowHint = packedData.w;
 }
 
 void gi_historyData_unpack2(inout GIHistoryData data, vec4 packedData) {
     data.diffuseFastColor = packedData.xyz;
-    data.diffuseHitDistance = packedData.w;
+    data.diffuseMoment2 = packedData.w;
 }
 
 void gi_historyData_unpack3(inout GIHistoryData data, vec4 packedData) {
     data.specularColor = packedData.xyz;
+    data.specularMoment2 = packedData.w;
 }
 
 void gi_historyData_unpack4(inout GIHistoryData data, vec4 packedData) {
@@ -94,15 +94,15 @@ void gi_historyData_unpack5(inout GIHistoryData data, vec4 packedData) {
 }
 
 vec4 gi_historyData_pack1(GIHistoryData data) {
-    return vec4(data.diffuseColor, 0.0);
+    return vec4(data.diffuseColor, data.shadowHint);
 }
 
 vec4 gi_historyData_pack2(GIHistoryData data) {
-    return vec4(data.diffuseFastColor, data.diffuseHitDistance);
+    return vec4(data.diffuseFastColor, data.diffuseMoment2);
 }
 
 vec4 gi_historyData_pack3(GIHistoryData data) {
-    return vec4(data.specularColor, 0.0);
+    return vec4(data.specularColor, data.specularMoment2);
 }
 
 vec4 gi_historyData_pack4(GIHistoryData data) {

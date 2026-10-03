@@ -17,6 +17,7 @@ layout(rgba16f) uniform writeonly image2D uimg_temp2;
 layout(rgba16f) uniform writeonly image2D uimg_temp3;
 layout(rgba16f) uniform writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform writeonly image2D uimg_rgba8;
+layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 
 #ifndef SETTING_DENOISER_SPATIAL
 layout(rgb10_a2) uniform writeonly image2D uimg_rgb10_a2;
@@ -41,6 +42,16 @@ void storeHistorySurfaceData(ivec2 texelPos, float viewZ) {
 }
 #endif
 
+shared vec2 shared_variance[20][20];
+
+void loadSharedVariance(uvec2 groupOriginTexelPos, uint index) {
+    if (index < 400u) {
+        uvec2 sharedXY = uvec2(index % 20u, index / 20u);
+        ivec2 srcXY = clamp(ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2, ivec2(0), uval_mainImageSizeI - 1);
+        shared_variance[sharedXY.y][sharedXY.x] = transient_gi_variance_fetch(srcXY).xy;
+    }
+}
+
 #ifdef SETTING_DENOISER_FAST_HISTORY_CLAMPING
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
@@ -64,7 +75,7 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
         vec3 neighborSpecYCoCg = colors_RGBToYCoCg(neighborSpec);
 
         uvec4 packedData;
-        packedData.xy = packHalf4x16(vec4(neighborDiffYCoCg, diffData.w));
+        packedData.xy = packHalf4x16(vec4(neighborDiffYCoCg, 0.0));
         packedData.zw = packHalf4x16(vec4(neighborSpecYCoCg, specData.w));
         shared_YCoCgData[sharedXY.y][sharedXY.x] = packedData;
     }
@@ -86,7 +97,7 @@ vec3 _clampColor(vec3 colorRGB, vec3 moment1YCoCG, vec3 moment2YCoCG, float clam
     return colors_YCoCgToRGB(colorYCoCG);
 }
 #else
-shared vec2 shared_hitDistances[20][20];
+shared float shared_specHitDistance[20][20];
 
 void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
     if (index < 400u) { // 20 * 20 = 400
@@ -102,9 +113,7 @@ void loadSharedDataMoments(uvec2 groupOriginTexelPos, uint index) {
             history_gi4_store(srcXY, specData);
         }
 
-        vec2 hitDistances = vec2(diffData.w, specData.w);
-        hitDistances = mix(vec2(GI_MAX_HIT_DISTANCE), hitDistances, greaterThan(hitDistances, vec2(0.0)));
-        shared_hitDistances[sharedXY.y][sharedXY.x] = hitDistances;
+        shared_specHitDistance[sharedXY.y][sharedXY.x] = specData.w > 0.0 ? specData.w : GI_MAX_HIT_DISTANCE;
     }
 }
 #endif
@@ -123,6 +132,9 @@ void main() {
     if (hiz_groupGroundCheck(swizzledWGPos, 4)) {
         loadSharedDataMoments(workGroupOrigin, gl_LocalInvocationIndex);
         loadSharedDataMoments(workGroupOrigin, gl_LocalInvocationIndex + 256u);
+        loadSharedVariance(workGroupOrigin, gl_LocalInvocationIndex);
+        loadSharedVariance(workGroupOrigin, gl_LocalInvocationIndex + 256u);
+        barrier();
 
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
             float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
@@ -141,7 +153,7 @@ void main() {
                 // 0.0 = Full fix, 1.0 = No fix
                 float historyFixMix = pow2(linearStep(1.0, 4.0, historyLengthInt));
                 #if SETTING_DEBUG_OUTPUT
-                imageStore(uimg_temp1, texelPos, 1.0 - historyFixMix.xxxx);
+                //imageStore(uimg_temp1, texelPos, 1.0 - historyFixMix.xxxx);
                 #endif
 
                 #ifdef SETTING_DENOISER_HISTORY_FIX
@@ -217,6 +229,9 @@ void main() {
                 #endif
 
                 barrier();
+                #ifdef SETTING_DENOISER_SPATIAL
+                float filteredSpecHitDistance = GI_MAX_HIT_DISTANCE;
+                #endif
                 float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 2u), frameCounter);
                 #ifdef SETTING_DENOISER_FAST_HISTORY_CLAMPING
                 {
@@ -224,9 +239,6 @@ void main() {
                     vec3 diffMoment2 = vec3(0.0);
                     vec3 specMoment1 = vec3(0.0);
                     vec3 specMoment2 = vec3(0.0);
-                    #ifdef SETTING_DENOISER_SPATIAL
-                    vec2 filteredHitDitances = vec2(GI_MAX_HIT_DISTANCE);
-                    #endif
 
                     ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
                     // 5x5 neighborhood using shared memory
@@ -243,25 +255,11 @@ void main() {
                             diffMoment2 += neighborDiffYCoCg * neighborDiffYCoCg;
                             specMoment1 += neighborSpecYCoCg;
                             specMoment2 += neighborSpecYCoCg * neighborSpecYCoCg;
-                            vec2 neighborHitDistances = vec2(diffData.w, specData.w);
                             #ifdef SETTING_DENOISER_SPATIAL
-                            filteredHitDitances = min(filteredHitDitances, neighborHitDistances);
+                            filteredSpecHitDistance = min(filteredSpecHitDistance, specData.w);
                             #endif
                         }
                     }
-                    #ifdef SETTING_DENOISER_SPATIAL
-                    // Adding 0.0001 to avoid making it 0 which can cause issues with pow
-                    vec2 hitDitanceFactors;
-                    hitDitanceFactors.xy = smoothstep(4.0, 0.0, filteredHitDitances.xy);
-                    hitDitanceFactors.xy = 1.00001 - hitDitanceFactors.xy;
-                    const float factor = 0.2;
-                    vec2 hlen = vec2(historyData.historyLength, historyData.specularHistoryLength);
-                    vec2 remappedRealHLen = 1.0 - pow4(1.0 - hlen);
-                    remappedRealHLen *= vec2(0.5, 0.5);
-                    hitDitanceFactors = pow(hitDitanceFactors, remappedRealHLen);
-                    transient_gi_hitDistanceFactors_store(texelPos, vec4(saturate(hitDitanceFactors), 0.0, 0.0));
-                    #endif
-
                     diffMoment1 /= 25.0;
                     diffMoment2 /= 25.0;
                     specMoment1 /= 25.0;
@@ -321,29 +319,15 @@ void main() {
                     #endif
 
                     #ifdef SETTING_DENOISER_SPATIAL
-                    vec2 filteredHitDitances = vec2(GI_MAX_HIT_DISTANCE);
                     ivec2 localPos = ivec2(mortonPos) + 2; // +2 for padding
                     // 5x5 neighborhood using shared memory
                     for (int dy = -2; dy <= 2; ++dy) {
                         for (int dx = -2; dx <= 2; ++dx) {
                             ivec2 samplePos = localPos + ivec2(dx, dy);
-                            vec2 neighborHitDistances = shared_hitDistances[samplePos.y][samplePos.x];
-                            neighborHitDistances = mix(vec2(GI_MAX_HIT_DISTANCE), neighborHitDistances, greaterThan(neighborHitDistances, vec2(0.0)));
-                            filteredHitDitances = min(filteredHitDitances, neighborHitDistances);
+                            float hitDistance = shared_specHitDistance[samplePos.y][samplePos.x];
+                            filteredSpecHitDistance = min(filteredSpecHitDistance, hitDistance);
                         }
                     }
-                    // Adding 0.0001 to avoid making it 0 which can cause issues with pow
-                    vec2 hitDitanceFactors;
-                    hitDitanceFactors.x = smoothstep(4.0, 0.0, filteredHitDitances.x);
-                    hitDitanceFactors.x = 1.00001 - hitDitanceFactors.x;
-                    const float factor = 0.2;
-                    hitDitanceFactors.y = smoothstep(0.0, 1.0, factor * filteredHitDitances.y * rcp(factor *filteredHitDitances.y + 1.0));
-                    vec2 hlen = vec2(historyData.historyLength, historyData.specularHistoryLength);
-                    vec2 remappedRealHLen = 1.0 - pow4(1.0 - hlen);
-                    remappedRealHLen *= vec2(0.5, 0.5);
-                    hitDitanceFactors = pow(hitDitanceFactors, remappedRealHLen);
-                    transient_gi_hitDistanceFactors_store(texelPos, vec4(saturate(hitDitanceFactors), 0.0, 0.0));
-
                     vec3 diffInput = historyData.diffuseColor;
                     diffInput = dither_fp16(diffInput, ditherNoise);
                     transient_gi_blurDiff2_store(texelPos, vec4(diffInput, .00));
@@ -363,6 +347,35 @@ void main() {
                     #endif
                 }
                 #endif
+                vec2 blurGuidance = vec2(0.0);
+                #ifdef SETTING_DENOISER_SPATIAL
+                float shadowScale = pow(1.0 - saturate(historyData.shadowHint), 2.0 * sqrt(historyData.historyLength));
+                float specDistanceScale = smoothstep(0.0, 1.0, filteredSpecHitDistance / (filteredSpecHitDistance + 5.0));
+                float specHistoryExponent = 0.5 * (1.0 - pow4(1.0 - historyData.specularHistoryLength));
+                specDistanceScale = pow(max(specDistanceScale, 0.0001), specHistoryExponent);
+                blurGuidance = vec2(shadowScale, specDistanceScale);
+                #if SETTING_DEBUG_OUTPUT
+                imageStore(uimg_temp5, texelPos, vec4(historyData.shadowHint));
+                #endif
+                #endif
+
+                vec2 filteredVariance = vec2(0.0);
+                ivec2 varianceLocalPos = ivec2(mortonPos) + 2;
+                for (int dy = -2; dy <= 2; ++dy) {
+                    for (int dx = -2; dx <= 2; ++dx) {
+                        ivec2 samplePos = varianceLocalPos + ivec2(dx, dy);
+                        float weight = float((3 - abs(dx)) * (3 - abs(dy)));
+                        filteredVariance += shared_variance[samplePos.y][samplePos.x] * weight;
+                    }
+                }
+                filteredVariance /= 81.0;
+                vec2 fastLuminance = vec2(
+                    colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, transient_gi2Reprojected_fetch(texelPos).rgb),
+                    colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, transient_gi4Reprojected_fetch(texelPos).rgb)
+                );
+                vec2 luminanceSquared = pow2(fastLuminance);
+                vec2 varianceFactor = 1.0 - luminanceSquared * safeRcp(luminanceSquared + filteredVariance * 0.05);
+                transient_gi_blurGuidance_store(texelPos, vec4(blurGuidance, varianceFactor));
             }
         }
     }

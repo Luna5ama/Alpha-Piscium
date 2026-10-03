@@ -43,7 +43,7 @@ void main() {
         result = raymarchSky(atmosphere, params, scatteringParams, 0.0);
 
         const vec3 GROUND_ALBEDO_BASE = vec3(ivec3(SETTING_ATM_GROUND_ALBEDO_R, SETTING_ATM_GROUND_ALBEDO_G, SETTING_ATM_GROUND_ALBEDO_B)) / 255.0;
-        vec3 groundAlbedo = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, GROUND_ALBEDO_BASE);
+        vec3 groundAlbedo = colors_colorspaces_convert(COLORS_COLORSPACES_SRGB, COLORS_WORKING_COLORSPACE, GROUND_ALBEDO_BASE);
 
         const float HEIGHT_EPS = 0.01;
         float rayEndHeight = length(params.rayEnd);

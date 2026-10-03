@@ -266,6 +266,7 @@ float softMin(float x, float maxV) {
     return min(x, phi);
 }
 
+// https://www.desmos.com/calculator/d9tjcs0zv7
 float softMax(float x, float minV, float smoothness) {
     return 0.5 * (x + minV + sqrt(pow2(x - minV) + smoothness));
 }

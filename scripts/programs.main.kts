@@ -40,7 +40,6 @@ class ProgramScope internal constructor() {
         fun pass(shaderPath: String, block: PassScope.() -> Unit = {}) {
             PassScope("$pass${index++}", shaderPath).apply(block).build()
         }
-
         @ProgramDsl
         inner class PassScope(private val passName: String, private val shaderPath: String) {
             private var cond: String? = null
@@ -141,10 +140,7 @@ programs {
                 cond("defined(SETTING_NORMAL_MAPPING)")
             }
         }
-    }
-
-    ProgramType.SHADOWCOMP {
-        pass("/pass/shadowcomp/EvaluateShadowWaterNormal.glsl")
+        pass("/pass/setup/ClearVoxelFaceTexcoords.comp.glsl")
     }
 
     ProgramType.BEGIN {
@@ -166,10 +162,40 @@ programs {
         pass(
             "/techniques/atmospherics/clouds/amblut/Gather.comp.glsl",
             "/pass/begin/ClearEnvProbe.comp.glsl",
-            "/pass/begin/InitThreadGroupTilling.glsl"
+            "/pass/begin/InitThreadGroupTilling.glsl",
+            "/pass/begin/ClearVoxelData.comp.glsl"
         )
         pass("/pass/begin/ClearScreen3.comp.glsl") {
             cond("defined(VOXY)")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_Clear.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_Remap.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_PrefixSum.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocatorMP_Assign.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE > 16")
+        }
+        pass("/pass/begin/VoxelAllocator.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE == 16")
+        }
+    }
+
+    ProgramType.PREPARE {
+        pass("/pass/shadowcomp/EvaluateShadowWaterNormal.glsl")
+        pass("/pass/shadow/VoxelTreeBuilder.comp.glsl")
+        pass("/pass/shadow/VoxelTreePropagator.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE < 64")
+        }
+        pass("/pass/shadow/VoxelTreePropagatorLower.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE == 64")
+        }
+        pass("/pass/shadow/VoxelTreePropagatorUpper.comp.glsl") {
+            cond("SETTING_VOXEL_GRID_SIZE == 64")
         }
     }
 
@@ -220,19 +246,34 @@ programs {
             "/pass/composite/EnvProbeUpdate3ReprojectGather.comp.glsl",
             "/pass/composite/DirectLighting.glsl"
         )
+        pass("/pass/composite/RadianceCacheClear.comp.glsl") {
+            cond("defined(SETTING_RC_ENABLE)")
+        }
+        pass("/pass/composite/RadianceCacheTouch.comp.glsl") {
+            cond("defined(SETTING_RC_ENABLE)")
+        }
+        pass("/pass/composite/RadianceCacheAllocate.comp.glsl") {
+            cond("defined(SETTING_RC_ENABLE)")
+        }
+        pass("/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl")
+        pass("/pass/composite/RadianceCacheReservoirUpdate.comp.glsl") {
+            indirect(0, 32)
+            cond("defined(SETTING_RC_ENABLE)")
+        }
+        pass("/pass/composite/GIPathGuidePrepare.comp.glsl") {
+            indirect(0, 32)
+            cond("defined(SETTING_GI_PATH_GUIDING) && defined(SETTING_RC_ENABLE)")
+        }
         pass("/pass/composite/DOFFocus.comp.glsl") {
             cond("defined(SETTING_DOF) && !defined(SETTING_DOF_MANUAL_FOCUS)")
         }
-        pass(
-            "/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl",
-            "/pass/composite/GIReSTIRInitalSampleRayGenTrace.comp.glsl"
-        )
-        pass("/pass/composite/GIReSTIRInitalSampleRaySort.comp.glsl") {
-            cond("SETTING_GI_INITIAL_SST_STEPS >= 64")
+        pass("/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl")
+        pass("/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl")
+        pass("/pass/composite/GIReferenceAccumulate.comp.glsl") {
+            cond("SETTING_GI_USE_REFERENCE > 0")
         }
-        pass("/pass/composite/GIReSTIRInitalSampleRayFinishTrace.comp.glsl") {
-            cond("SETTING_GI_INITIAL_SST_STEPS >= 64")
-        }
+        pass("/pass/composite/GIReSTIRTemporalSplatClear.comp.glsl")
+        pass("/pass/composite/GIReSTIRTemporalSplat.comp.glsl")
         pass("/pass/composite/GIReSTIRTemporalReuse.comp.glsl")
         pass("/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl") {
             cond("defined(SETTING_GI_DECORRELATE)")
@@ -246,8 +287,12 @@ programs {
             }
         }
         pass("/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl")
-        pass("/pass/composite/GIReSTIRSpatialReuseRaySort.comp.glsl")
-        pass("/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl")
+        pass("/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl") {
+            cond("defined(SETTING_GI_SPATIAL_REUSE)")
+        }
+        pass("/pass/composite/GIPathGuideSplat.comp.glsl") {
+            cond("defined(SETTING_GI_PATH_GUIDING) && defined(SETTING_RC_ENABLE)")
+        }
         pass("/pass/composite/GIDenoiserAccum.comp.glsl")
         pass("/pass/composite/GIDenoiserAntiFireFly.comp.glsl") {
             cond("defined(SETTING_DENOISER_ANTI_FIREFLY)")
@@ -277,6 +322,9 @@ programs {
         }
         pass("/pass/composite/DOFPrepare.comp.glsl") {
             cond("defined(SETTING_DOF)")
+        }
+        pass("/pass/composite/VoxelDebug.comp.glsl") {
+            cond("defined(SETTING_DEBUG_VOXEL_TRACE)")
         }
         pass("/pass/composite/TAAPrepare.comp.glsl")
         pass("/pass/composite/TAAResolve.comp.glsl") {

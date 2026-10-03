@@ -7,7 +7,7 @@
 
 #if BLOOM_DOWN_SAMPLE && BLOOM_PASS == 1 && SETTING_BLOOM_HIGHLIGHT_COMPRESSION != 0
 #if SETTING_BLOOM_HIGHLIGHT_COMPRESSION_MODE == 1
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 #endif
 
 float bloom_compressHighlight(float value) {
@@ -31,7 +31,7 @@ vec3 bloom_compressHighlights(vec3 color) {
         bloom_compressHighlight(color.b)
     );
     #else
-    float luma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, color);
+    float luma = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, color);
     if (luma <= 1.0) return color;
     return color * (bloom_compressHighlight(luma) / luma);
     #endif

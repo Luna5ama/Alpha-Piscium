@@ -41,9 +41,9 @@ jobs:
         run: bun run build
 
       - name: Deploy to Cloudflare Pages
-        uses: cloudflare/pages-action@v1
+        uses: cloudflare/wrangler-action@v4
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: alpha-piscium-landing
-          directory: build # Standard build output. Adjust if your build output is different (e.g., 'build', 'public').
+          packageManager: bun
+          command: pages deploy build --project-name=alpha-piscium-landing

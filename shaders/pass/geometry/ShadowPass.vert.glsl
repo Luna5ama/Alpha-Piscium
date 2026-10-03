@@ -1,9 +1,17 @@
 #include "/techniques/rtwsm/RTWSM.glsl"
 #include "/util/Fresnel.glsl"
+#define VOXEL_BRICK_DATA_MODIFIER buffer
+#define VOXEL_MATERIAL_DATA_MODIFIER buffer
+#include "/techniques/voxel/Voxelization.glsl"
+#define VOXEL_FACE_TEXCOORD_MODIFIER buffer
+#include "/techniques/voxel/VoxelFaceTexcoords.glsl"
+#include "/util/HardcodedPBR.glsl"
 
 layout(r32i) uniform iimage2D uimg_fr32f;
 
 in vec2 mc_Entity;
+in vec4 at_midBlock;
+in vec2 mc_midTexCoord;
 
 #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
 out vec2 vert_texcoord;
@@ -18,8 +26,10 @@ out uint vert_worldNormalMaterialID;
 out uint vert_survived;
 
 void main() {
+    vec2 texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+
     #if defined(SHADOW_PASS_ALPHA_TEST) || defined(SHADOW_PASS_TRANSLUCENT)
-    vert_texcoord = (gl_TextureMatrix[0] * gl_MultiTexCoord0).xy;
+    vert_texcoord = texcoord;
     #if defined(SHADOW_PASS_TRANSLUCENT)
     vert_color = gl_Color.rgb;
     #endif
@@ -48,6 +58,82 @@ void main() {
     vert_survived = survived;
 
     survived &= uint((gl_VertexID & 3) == 0);
+
+    // -------------------------------------------------------------------
+    // Voxelization: mark brick occupancy and write material data.
+    // Only runs once per quad (gl_VertexID & 3 == 0) to reduce atomics.
+    // Skipped for translucent geometry (water handled separately later).
+    // -------------------------------------------------------------------
+    #ifdef SHADOW_PASS_VOXELIZE
+    if ((gl_VertexID & 3) == 0 && materialID != MATERIAL_ID_WATER) {
+        HardcodedPBR hardcoded = hardcodedpbr_decode(materialID);
+        uint lookupMaterial = hardcoded.isKnown ? materialID : 0u;
+        uint blockModelMetadata = texelFetch(usam_pbrLUT2, ivec2(63, int(lookupMaterial)), 0).x;
+        // Absolute integer block position of the center of this block.
+        // scenePos is camera-relative; add camera's integer + fractional parts.
+        ivec3 blockWorldPos = ivec3(floor(scenePos.xyz + cameraPositionFract + at_midBlock.xyz / 64.0))
+        + cameraPositionInt;
+
+        // Brick grid coordinate centered on the camera's brick
+        ivec3 cameraBrickCoord = cameraPositionInt >> 4;
+        ivec3 brickWorldCoord = blockWorldPos >> 4;
+        ivec3 brickRelCoord = brickWorldCoord - cameraBrickCoord + ivec3(VOXEL_GRID_SIZE / 2);
+
+        uint brickMorton = voxel_brickMorton(brickRelCoord);
+
+        // Write material ID if the brick already has a valid alloc ID
+        // (assigned by last frame's VoxelAllocator begin pass)
+        uint allocID = voxel_brickAllocID[brickMorton];
+
+        if (hardcoded.isFullCube || blockModelMetadata != 0u || hardcoded.emissive > 0.0) {
+            if (all(greaterThanEqual(brickRelCoord, ivec3(0))) &&
+                    all(lessThan(brickRelCoord, ivec3(VOXEL_GRID_SIZE)))) {
+
+                // Mark brick occupied for this frame
+                voxel_brickOccupancy[brickMorton] = 1u;
+
+                if (allocID != VOXEL_UNALLOCATED) {
+                    ivec3 blockInBrick = blockWorldPos & ivec3(VOXEL_BRICK_SIZE - 1);
+                    uint blockMorton = voxel_blockMorton(blockInBrick);
+                    uint matIdx = voxel_materialIndex(allocID, blockMorton);
+                    // Only write a non-zero material ID; 0 means "no entity mapping".
+                    // atomicMax ensures a real ID beats the cleared-to-0 state.
+                    if (materialID != 0u) {
+                        uint materialData = (materialID << 1u) | uint(hardcoded.isFullCube);
+                        atomicMax(voxel_materials[matIdx], materialData);
+                    } else {
+                        // Block exists but has no material ID mapping: write a
+                        // Placeholder material ID 1 so the tree knows the voxel is solid.
+                        atomicMax(voxel_materials[matIdx], 1u << 1u);
+                    }
+                }
+            }
+        }
+
+        if (materialID != 0u) {
+            uint faceIdx = voxel_faceIndexFromNormal(worldNormal);
+            uint index = voxel_faceTexcoordIndex(materialID, faceIdx);
+            uint keyIndex = index + VOXEL_FACE_TEXCOORD_COUNT;
+
+            if (((allocID & 31u) == (uint(frameCounter) & 31u)) || voxel_faceTexcoords[keyIndex].x == 0u) {
+                // Store atlas texcoord range for this material+face.
+                vec2 texHalfExtent = abs(texcoord - mc_midTexCoord);
+                vec2 texMin = mc_midTexCoord - texHalfExtent;
+                vec2 texMax = mc_midTexCoord + texHalfExtent;
+                vec2 spriteSize = (texMax - texMin);
+                // -2 to -10
+                float avgSpriteSize = log2(spriteSize.x + spriteSize.y);
+                uint encodedSpriteSize = clamp(int(avgSpriteSize * 2.0 + 20.0), 0, 15);
+                uint key = packU14(1.0 - texMin.y) | (packU14(1.0 - texMin.x) << 14) | (encodedSpriteSize << 28);
+
+                if (atomicMax(voxel_faceTexcoords[keyIndex].x, key) <= key) {
+                    uvec2 packedData = uvec2(packUnorm2x16(texMin), packUnorm2x16(texMax));
+                    voxel_faceTexcoords[index] = packedData;
+                }
+            }
+        }
+    }
+    #endif
 
     #ifdef SETTING_RTWSM_F
     if (bool(survived)){

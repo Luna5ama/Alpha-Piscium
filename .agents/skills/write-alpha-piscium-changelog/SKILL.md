@@ -93,6 +93,12 @@ Omit empty sections instead of adding placeholders.
 
 Write concise, user-readable final outcomes. Preserve necessary product names, setting names, and code identifiers. Avoid raw commit-by-commit narration.
 
+Keep every bullet to one short line that states the outcome. Leave implementation methods, per-pass details, measurements, and debug-mode value lists out of bullets; name the affected feature or system instead.
+
+Choose highlights from the release's most user-visible features, quality gains, and large performance wins. Every highlight must also appear in `New`, `Improvement`, or `Fix`, with matching wording. A highlight may merge closely related lower-section bullets into one line, such as two denoising features. A note that the release includes another release's changes, such as `Includes all changes from Alpha Piscium v1.10.0`, may appear only in `Highlight`.
+
+Start performance bullets with `Optimized`, followed by the result, for example `Optimized ReSTIR spatial visibility tracing, greatly reducing its cost`.
+
 When the range contains intermediate alpha or beta releases:
 
 - Merge duplicate bullets.

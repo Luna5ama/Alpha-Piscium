@@ -1,5 +1,5 @@
 #include "/util/Coords.glsl"
-layout(std430, binding = 3) buffer TestBuffer {
+layout(std430, binding = 11) buffer TestBuffer {
     vec4 ssbo_testBuffer[];
 };
 

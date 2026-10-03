@@ -21,7 +21,7 @@ const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
 layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp1;
-layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
+layout(rgba16f) uniform image2D uimg_temp3;
 layout(rgb10_a2) uniform restrict writeonly image2D uimg_rgb10_a2;
 layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 
@@ -94,14 +94,17 @@ void getSpecularKernelBasis(
     vec3 R = reflect(-bentD, N);
     T = cross(N, R);
     if (dot(T, T) < 0.000001) {
-        T = cross(N, vec3(0.0, 1.0, 0.0));
+        vec3 fallbackAxis = abs(N.y) < 0.999
+            ? vec3(0.0, 1.0, 0.0)
+            : vec3(1.0, 0.0, 0.0);
+        T = cross(N, fallbackAxis);
     }
     T = normalize(T);
     B = cross(R, T);
 
     float NoD = saturate(dot(N, D));
     float skewFactor = mix(0.25 + 0.75 * roughness, 1.0, NoD);
-    skewFactor = mix(skewFactor, 1.0, accumFactor);
+    skewFactor = mix(skewFactor, 1.0, pow2(accumFactor));
     skewFactor = mix(1.0, skewFactor, bentFactor);
 
     T *= worldRadius * skewFactor;
@@ -126,7 +129,7 @@ void main() {
         history_roughness_store(texelPos, vec4(centerGeomData.roughness, 0.0, 0.0, 0.0));
         #endif
 
-        vec4 baseKernelRadius = GI_DENOISE_BLUR_RADIUS;
+        vec3 baseKernelRadius = GI_DENOISE_BLUR_RADIUS;
         vec2 blurJitter = rand_stbnVec2(texelPos + GI_DENOISE_RAND_NOISE_OFFSET, frameCounter);
 
         if (centerGeomData.viewPos.z > -65536.0) {
@@ -135,53 +138,54 @@ void main() {
             history_viewNormal_store(texelPos, vec4(centerGeomData.normal * 0.5 + 0.5, 0.0));
             #endif
 
-            vec2 hitDistanceFactors = transient_gi_hitDistanceFactors_fetch(texelPos).xy;
+            vec4 blurGuidance = transient_gi_blurGuidance_fetch(texelPos);
 
             vec4 historyData5 = transient_gi5Reprojected_fetch(texelPos);
-            float historyLength = max(historyData5.x * TOTAL_HISTORY_LENGTH, 1.0);
-            float specularHistoryLength = max(historyData5.y * TOTAL_HISTORY_LENGTH, 1.0);
-            float diffAccumFactor = rcp(1.0 + pow2(0.05 * historyLength));
-            float specAccumFactor = rcp(1.0 + specularHistoryLength);
+            float diffHistoryLength = max(historyData5.x * TOTAL_HISTORY_LENGTH, 1.0);
+            float specHistoryLength = max(historyData5.y * TOTAL_HISTORY_LENGTH, 1.0);
+            vec2 varianceFactor = blurGuidance.zw;
+            float diffuseMaterialExponent = transient_gi_diffuseBlurExponent_fetch(texelPos).x;
+            // Geometry rejection follows accumulated history, independently of radiance noise.
+            float diffHistoryFactor = pow(rcp(1.0 + pow2(0.1 * diffHistoryLength)), diffuseMaterialExponent);
+            float specHistoryFactor = rcp(1.0 + pow2(0.1 * specHistoryLength));
+            float diffFilterHistory = mix(diffHistoryLength, 1.0, varianceFactor.x);
+            float specFilterHistory = mix(specHistoryLength, 1.0, varianceFactor.y);
+            float diffRadiusScale = pow(rcp(1.0 + pow2(0.1 * diffFilterHistory)), diffuseMaterialExponent);
+            float specRadiusScale = rcp(1.0 + pow2(0.1 * specFilterHistory));
 
-            vec2 hitDistFactor = pow2(hitDistanceFactors);
-            hitDistFactor.x = hitDistFactor.x * 0.95 + 0.05;
-            #if GI_DENOISE_PASS == 2
-            #if SETTING_DEBUG_OUTPUT
-
-//            imageStore(uimg_temp1, texelPos, historyData5.yyyy * 1.0);
-//            imageStore(uimg_temp1, texelPos, specAccumFactor.xxxx);
-//            imageStore(uimg_temp1, texelPos, hitDistFactor.xxxx);
-            #endif
-            #endif
+            // Variance can enlarge the footprint without weakening shadow protection.
+            float diffShadowScale = pow2(blurGuidance.x);
+            float specDistanceScale = mix(pow2(blurGuidance.y) * 0.95 + 0.05, 1.0, varianceFactor.y);
 
             float16_t jitterR = float16_t(blurJitter.y);
             float angle = blurJitter.x * PI_2;
             float16_t rcpSamples = float16_t(1.0 / float(GI_DENOISE_SAMPLES));
+            f16vec2 initialDir = f16vec2(cos(angle), sin(angle));
 
             // --- Diffuse loop: screen-space kernel with view-angle stretch ---
             if (centerGeomData.dielectric > 0.0) {
                 float kernelRadius = baseKernelRadius.x;
-                kernelRadius *= diffAccumFactor;
-                kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
-                kernelRadius *= hitDistFactor.x;
-                float diffInvAccumFactor = saturate(1.0 - diffAccumFactor); // Increases as history accumulates
+                kernelRadius *= diffRadiusScale;
+                kernelRadius = clamp(kernelRadius, baseKernelRadius.y, baseKernelRadius.z);
+                kernelRadius *= diffShadowScale;
+                kernelRadius = max(kernelRadius, baseKernelRadius.y * 0.5);
+                float diffGeometryStrictness = 1.0 - diffHistoryFactor;
 
                 vec3 V = normalize(-centerGeomData.viewPos);
                 float NoV = abs(dot(centerGeomData.geomNormal, V));
                 vec2 stretchFactor = mix(1.0 - abs(centerGeomData.geomNormal.xy), vec2(1.0), NoV);
                 f16vec2 kernelRadius2 = f16vec2(kernelRadius * stretchFactor);
 
-                float sigmaFP32 = 0.69;
-                sigmaFP32 += 8.0 - hitDistFactor.x * 8.0;
-                float16_t sigma = float16_t(-sigmaFP32);
-                float baseNormalWeight = diffInvAccumFactor * 64.0 + 16.0;
-                float basePlaneDistWeight = diffInvAccumFactor * -256.0 - 128.0;
+                float kernelConcentration = 0.69 + 32.0 * (1.0 - diffShadowScale);
+                float16_t sigma = float16_t(-kernelConcentration);
+                float baseNormalWeight = diffGeometryStrictness * 64.0 + 16.0;
+                float basePlaneDistWeight = diffGeometryStrictness * -128.0 - 128.0;
 
                 vec4 centerDiff = _gi_readDiff(texelPos);
-                f16vec4 diffSumFP16 = f16vec4(centerDiff);
-                float16_t weightSumFP16 = float16_t(1.0);
+                vec4 diffSum = centerDiff;
+                float weightSum = 1.0;
 
-                f16vec2 dir = f16vec2(cos(angle), sin(angle));
+                f16vec2 dir = initialDir;
                 for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
                     f16vec2 tempDir = dir;
                     dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
@@ -209,18 +213,18 @@ void main() {
                     );
                     float16_t edgeWeight = float16_t(edgeWeightFP32);
 
-                    f16vec4 diffSample = f16vec4(_gi_readDiff(sampleTexelPos));
+                    vec4 diffSample = _gi_readDiff(sampleTexelPos);
 
-                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
-                    diffSumFP16 += diffSample * totalWeight;
-                    weightSumFP16 += totalWeight;
+                    float totalWeight = float(kernelWeight) * smoothstep(0.0, 1.0, float(edgeWeight));
+                    diffSum += diffSample * totalWeight;
+                    weightSum += totalWeight;
                 }
 
                 {
-                    vec4 diffResult = vec4(diffSumFP16);
-                    float weightSum = float(weightSumFP16) * RCP_SAMPLES;
+                    vec4 diffResult = diffSum;
+                    float normalizedWeightSum = weightSum * RCP_SAMPLES;
 
-                    diffResult *= rcp(weightSum);
+                    diffResult *= rcp(normalizedWeightSum);
 
                     float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 5u + GI_DENOISE_PASS), frameCounter);
                     diffResult = dither_fp16(diffResult, ditherNoise);
@@ -233,7 +237,6 @@ void main() {
 
                     vec4 packedData1 = transient_gi1Reprojected_fetch(texelPos);
                     packedData1.rgb = diffResult.rgb;
-                    packedData1 = dither_fp16(packedData1, ditherNoise);
                     packedData1 = clamp(packedData1, 0.0, FP16_MAX);
                     history_gi1_store(texelPos, packedData1);
                     #endif
@@ -252,14 +255,16 @@ void main() {
 
             // --- Specular loop: world-space specular lobe kernel ---
             {
-                float specInvAccumFactor = saturate(1.0 - specAccumFactor); // Increases as history accumulates
+                float specGeometryStrictness = 1.0 - specHistoryFactor;
 
                 float kernelRadius = baseKernelRadius.x;
-                kernelRadius *= specAccumFactor;
+                kernelRadius *= specRadiusScale;
                 float roughnessHistoryFactor = pow(centerGeomData.roughness, 0.5 * historyData5.y);
                 kernelRadius *= roughnessHistoryFactor;
-                kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
-                kernelRadius *= hitDistFactor.y;
+                kernelRadius = clamp(kernelRadius, baseKernelRadius.y, baseKernelRadius.z);
+                kernelRadius *= specDistanceScale;
+                kernelRadius = max(kernelRadius, baseKernelRadius.y * 0.25);
+                kernelRadius = min(kernelRadius, baseKernelRadius.z);
                 float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
                 vec3 specTFP32, specBFP32;
                 getSpecularKernelBasis(
@@ -267,8 +272,8 @@ void main() {
                     centerGeomData.normal,
                     centerGeomData.roughness,
                     worldRadius,
-                    hitDistFactor.y,
-                    specAccumFactor,
+                    specDistanceScale,
+                    specRadiusScale,
                     specTFP32,
                     specBFP32
                 );
@@ -276,17 +281,17 @@ void main() {
                 f16vec3 specB = f16vec3(specBFP32);
 
                 float sigmaFP32 = 0.69;
-                sigmaFP32 += 8.0 - hitDistFactor.y * 8.0;
+                sigmaFP32 += 8.0 - specDistanceScale * 8.0;
                 sigmaFP32 += 0.025 * rcp(pow2(roughnessHistoryFactor));
                 float16_t sigma = float16_t(-sigmaFP32);
-                float baseNormalWeight = specInvAccumFactor * 128.0 + 32.0;
-                float basePlaneDistWeight = specInvAccumFactor * -256.0 - 256.0;
+                float baseNormalWeight = specGeometryStrictness * 64.0 + 256.0;
+                float basePlaneDistWeight = specGeometryStrictness * -256.0 - 256.0;
 
                 vec4 centerSpec = _gi_readSpec(texelPos);
-                f16vec4 specSumFP16 = f16vec4(centerSpec);
-                float16_t weightSumFP16 = float16_t(1.0);
+                vec4 specSum = centerSpec;
+                float weightSum = 1.0;
 
-                f16vec2 dir = f16vec2(cos(angle), sin(angle));
+                f16vec2 dir = initialDir;
                 for (uint i = 0u; i < GI_DENOISE_SAMPLES; ++i) {
                     f16vec2 tempDir = dir;
                     dir.x = dot(tempDir, f16vec2(-0.737368878, -0.675490294));
@@ -316,18 +321,18 @@ void main() {
                     edgeWeightFP32 *= gi_roughnessWeight(centerGeomData.roughness, geomData.roughness);
                     float16_t edgeWeight = float16_t(edgeWeightFP32);
 
-                    f16vec4 specSample = f16vec4(_gi_readSpec(sampleTexelPos));
+                    vec4 specSample = _gi_readSpec(sampleTexelPos);
 
-                    float16_t totalWeight = float16_t(kernelWeight * smoothstep(0.0, 1.0, edgeWeight));
-                    specSumFP16 += specSample * totalWeight;
-                    weightSumFP16 += totalWeight;
+                    float totalWeight = float(kernelWeight) * smoothstep(0.0, 1.0, float(edgeWeight));
+                    specSum += specSample * totalWeight;
+                    weightSum += totalWeight;
                 }
 
                 {
-                    vec4 specResult = vec4(specSumFP16);
-                    float weightSum = float(weightSumFP16) * RCP_SAMPLES;
+                    vec4 specResult = specSum;
+                    float normalizedWeightSum = weightSum * RCP_SAMPLES;
 
-                    specResult *= rcp(weightSum);
+                    specResult *= rcp(normalizedWeightSum);
 
                     float ditherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 7u + GI_DENOISE_PASS), frameCounter);
                     specResult = dither_fp16(specResult, ditherNoise);
@@ -340,7 +345,6 @@ void main() {
 
                     vec4 packedData3 = transient_gi3Reprojected_fetch(texelPos);
                     packedData3.rgb = specResult.rgb;
-                    packedData3 = dither_fp16(packedData3, ditherNoise);
                     packedData3 = clamp(packedData3, 0.0, FP16_MAX);
                     history_gi3_store(texelPos, packedData3);
                     #endif

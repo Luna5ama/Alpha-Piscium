@@ -933,7 +933,28 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                         comment = "限制GI时间累积可以重用多少前一帧。数值越高，质量越好，但会增加光照延迟。"
                     }
                 }
+                toggle("SETTING_GI_TEMPORAL_BACKUP_SAMPLE", false) {
+                    lang {
+                        name = "Temporal Backup Sample"
+                        comment =
+                            "Adds a previous-frame sample selected by stochastic bilinear motion-vector reprojection to fill holes left by temporal reservoir splatting. Improves robustness with additional temporal resampling work."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "时间备用样本"
+                        comment = "添加一个通过随机双线性运动矢量重投影选取的前一帧样本，以填补时间Reservoir Splatting留下的空洞。可提高稳定性，但会增加时间重采样工作量。"
+                    }
+                }
                 empty()
+                toggle("SETTING_GI_PATH_GUIDING", true) {
+                    lang {
+                        name = "Path Guiding"
+                        comment = "Samples part of the diffuse GI and radiance cache update rays toward directions learned per radiance cache face. Requires the radiance cache."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "路径引导"
+                        comment = "将一部分漫反射GI和辐射缓存更新光线朝每个辐射缓存面学到的方向采样。需要开启辐射缓存。"
+                    }
+                }
                 toggle("SETTING_GI_SPATIAL_REUSE", true) {
                     lang {
                         name = "Spatial Reuse"
@@ -970,6 +991,81 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "ReSITR重复图去相关"
                         comment = "可能会减少火点和其他伪影，但可能会影响性能。"
+                    }
+                }
+            }
+            screen(1) {
+                lang {
+                    name = "Radiance Cache"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "辐射度缓存"
+                }
+                toggle("SETTING_RC_ENABLE", true) {
+                    lang {
+                        name = "Surface Radiance Cache"
+                        comment = "Enables the world-space surface-face radiance cache for diffuse GI."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "表面辐射度缓存"
+                        comment = "启用用于漫反射GI的世界空间表面面缓存。"
+                    }
+                }
+                slider("SETTING_RC_POOL_SIZE", 262144, powerOfTwoRange(16..20)) {
+                    lang {
+                        name = "Reservoir Pool Size"
+                        comment = "Maximum number of radiance-cache face reservoirs."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "Reservoir池大小"
+                        comment = "辐射度缓存面Reservoir的最大数量。"
+                    }
+                }
+                empty()
+                row {
+                    slider("SETTING_RC_M_CAP", 128, powerOfTwoRange(0..10)) {
+                        lang {
+                            name = "Reservoir M Cap"
+                            comment = "Maximum temporal sample count per cached face."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "Reservoir M上限"
+                            comment = "每个缓存面的最大时间样本数。"
+                        }
+                    }
+                    toggle("SETTING_RC_SPATIAL_ENABLE", true) {
+                        lang {
+                            name = "Spatial Reuse"
+                            comment = "Enables same-face 3x3 tangent-plane spatial reuse from the previous cache side."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "空间复用"
+                            comment = "启用来自上一缓存side的同面3x3切平面空间复用。"
+                        }
+                    }
+                    slider("SETTING_RC_SPATIAL_STRENGTH", 1.0, 0.0..1.0 step 0.05) {
+                        lang {
+                            name = "Spatial Strength"
+                            comment = "Scales the spatial reuse contribution and effective sample count."
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "空间强度"
+                            comment = "缩放空间复用的贡献和有效样本数。"
+                        }
+                    }
+                }
+                row {
+                    toggle("SETTING_RC_LOOKUP_MODE", 1, 0..1) {
+                        lang {
+                            name = "Lookup Mode"
+                            0 value "Fallback"
+                            1 value "Cache"
+                        }
+                        lang(Locale.SIMPLIFIED_CHINESE) {
+                            name = "查询模式"
+                            0 value "回退"
+                            1 value "缓存"
+                        }
                     }
                 }
             }
@@ -1060,17 +1156,6 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                slider("SETTING_DENOISER_FLICKER_SUPPRESSION", 3, 0..10) {
-                    lang {
-                        name = "Flicker Suppression Strength"
-                        comment =
-                            "Reduces GI flickering. Higher values increase suppression but can introduce lighting lags."
-                    }
-                    lang(Locale.SIMPLIFIED_CHINESE) {
-                        name = "闪烁抑制强度"
-                        comment = "减少GI闪烁。数值越高，抑制越强，但可能会引入光照延迟。"
-                    }
-                }
                 toggle("SETTING_DENOISER_ANTI_FIREFLY", true) {
                     lang {
                         name = "RCRS Firefly Suppression"
@@ -1111,6 +1196,43 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     lang(Locale.SIMPLIFIED_CHINESE) {
                         name = "遮挡消失修正深度权重"
                         comment = "修正遮挡消失时深度相似度的权重。数值越高，修正对深度变化越敏感，并减少过度模糊。"
+                    }
+                }
+            }
+            screen(1) {
+                lang {
+                    name = "Voxel"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "体素"
+                }
+                slider("SETTING_VOXEL_GRID_SIZE", 64, listOf(16, 32, 64)) {
+                    lang {
+                        name = "Voxel Grid Size"
+                        comment =
+                            "Number of bricks per grid side. Larger values extend voxel coverage further from the camera at a significant VRAM and performance cost. 16 = 4K bricks (256 blocks range), 32 = 32K bricks (512 blocks range), 64 = 262K bricks (1024 blocks range)."
+                        16 value "16 (256 blocks)"
+                        32 value "32 (512 blocks)"
+                        64 value "64 (1024 blocks)"
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "体素网格大小"
+                        comment =
+                            "每侧网格的砖块数量。更大的值将体素覆盖范围延伸至距摄像机更远处，但会显著增加显存占用和性能开销。16 = 4K砖块（256格范围），32 = 32K砖块（512格范围），64 = 262K砖块（1024格范围）。"
+                        16 value "16（256格）"
+                        32 value "32（512格）"
+                        64 value "64（1024格）"
+                    }
+                }
+                slider("SETTING_VOXEL_POOL_SIZE", 16384, powerOfTwoRange(8..16)) {
+                    lang {
+                        name = "Voxel Pool Size"
+                        comment = "Maximum number of simultaneously allocated bricks. Higher values allow more bricks to be active at once, improving voxel coverage in dense/larger scenes. Every 256 bricks consume around 4 MB of VRAM."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "体素池大小"
+                        comment =
+                            "同时分配的砖块最大数量。更高的值允许同时激活更多砖块，在密集/大型场景中提升体素覆盖范围。每256块砖大约消耗4 MB显存。"
                     }
                 }
             }
@@ -2529,7 +2651,7 @@ Lanczos2：与Catmull-Rom一样锐利，但振铃或光晕较少。性能开销�
                             2 value "Lanczos2"
                         }
                     }
-                    toggle("SETTING_TAA_HISTORY_FILTER", 4, 1..4) {
+                    toggle("SETTING_TAA_HISTORY_FILTER", 4, 0..4) {
                         Profile.Low preset 1
                         Profile.Medium preset 2
                         Profile.Ultra preset 4
@@ -2611,7 +2733,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             suffix = " 毫米"
                         }
                     }
-                    slider("SETTING_DOF_F_STOP", 1.4, listOf(1.0, 1.4, 2.0, 2.8, 4.0, 5.6, 8.0, 11.0, 16.0)) {
+                    slider("SETTING_DOF_F_STOP", 4.0, listOf(1.0, 1.4, 2.0, 2.8, 4.0, 5.6, 8.0, 11.0, 16.0)) {
                         lang {
                             name = "F-Stop"
                             prefix = "f/"
@@ -4096,16 +4218,18 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
             empty()
             empty()
             empty()
-            toggle("SETTING_DEBUG_DENOISER", 0, 0..6) {
+            toggle("SETTING_DEBUG_DENOISER", 0, 0..2) {
                 lang {
                     name = "Denoiser"
                     0 value "Off"
-                    1 value "Color"
-                    2 value "Fast Color"
-                    3 value "HLen"
-                    4 value "Moment"
-                    5 value "Moment²"
-                    6 value "Variance"
+                    1 value "Diffuse Variance Factor"
+                    2 value "Specular Variance Factor"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "降噪器"
+                    0 value "关闭"
+                    1 value "漫反射方差因子"
+                    2 value "镜面反射方差因子"
                 }
             }
             toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..6) {
@@ -4199,9 +4323,81 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     name = "TAA"
                 }
             }
-            toggle("SETTING_GI_USE_REFERENCE", false) {
+            toggle("SETTING_DEBUG_VOXEL_TRACE", false) {
+                lang {
+                    name = "Voxel Trace Debug"
+                }
+            }
+            toggle("SETTING_DEBUG_VOXEL_MODE", 0, 0..3) {
+                lang {
+                    name = "Voxel Debug Mode"
+                    0 value "Primary"
+                    1 value "Mirror"
+                    2 value "Uniform"
+                    3 value "Cosine"
+                }
+            }
+            toggle("SETTING_DEBUG_VOXEL_COUNTER", false) {
+                lang {
+                    name = "Voxel Debug Counter"
+                }
+            }
+            slider("SETTING_DEBUG_PATH_GUIDE", 0, 0..6) {
+                lang {
+                    name = "Path Guide Debug"
+                    comment = "1-4 replace the learned guide with a fixed world-up lobe (kappa, alpha). 5 shows the axis of the learned lobe with the larger share scaled by its concentration and 6 the coverage (red: no RC face, yellow: too few or too spread samples, green: guided) through Debug Output."
+                    0 value "Off"
+                    1 value "Up k1 a0.5"
+                    2 value "Up k8 a0.5"
+                    3 value "Up k32 a0.5"
+                    4 value "Up k32 a0.25"
+                    5 value "Learned Lobe"
+                    6 value "Coverage"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "路径引导调试"
+                    comment = "1-4用固定的世界向上lobe（kappa, alpha）替代学习到的引导。5通过调试输出显示份额较大的学习lobe的方向并按集中度缩放，6显示覆盖情况（红：无RC面，黄：样本太少或太分散，绿：已引导）。"
+                    0 value "关闭"
+                    1 value "向上 k1 a0.5"
+                    2 value "向上 k8 a0.5"
+                    3 value "向上 k32 a0.5"
+                    4 value "向上 k32 a0.25"
+                    5 value "学习到的lobe"
+                    6 value "覆盖"
+                }
+            }
+            toggle("SETTING_GI_USE_REFERENCE", 0, 0..3) {
                 lang {
                     name = "Monte Carlo Reference"
+                    comment = "Accumulates the one-sample estimate of the initial GI candidate in FP32 while the camera is static and shows its mean instead of the denoised GI. Frozen Li drops the radiance cache term at hits; Furnace outputs cos/(πq)."
+                    0 value "Off"
+                    1 value "Full Li"
+                    2 value "Frozen Li"
+                    3 value "Furnace"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "蒙特卡洛参考"
+                    comment = "相机静止时以FP32累加初始GI候选的单样本估计，并用其均值替代降噪后的GI。冻结Li会去掉命中点的辐射缓存项；熔炉模式输出cos/(πq)。"
+                    0 value "关闭"
+                    1 value "完整Li"
+                    2 value "冻结Li"
+                    3 value "熔炉测试"
+                }
+                    slider("SETTING_DEBUG_RC_MODE", 0, 0..10) {
+                        lang {
+                            name = "RC Debug Mode"
+                            0 value "Off"
+                            1 value "Clip Level"
+                            2 value "Face Mask"
+                            3 value "Face Count"
+                            4 value "Reservoir M"
+                            5 value "Age"
+                            6 value "Key Mismatch"
+                            7 value "Hit Miss"
+                            8 value "Cached GI"
+                            9 value "Fallback GI"
+                            10 value "Spatial Reuse Neighbor Valid"
+                        }
                 }
             }
         }

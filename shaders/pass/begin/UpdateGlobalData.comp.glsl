@@ -7,6 +7,8 @@
 #include "/util/Rand.glsl"
 #include "/util/Morton.glsl"
 #include "/util/Time.glsl"
+#define VOXEL_FACE_TEXCOORD_MODIFIER buffer
+#include "/techniques/voxel/VoxelFaceTexcoords.glsl"
 
 layout(local_size_x = 1) in;
 const ivec3 workGroups = ivec3(3, 1, 1);
@@ -84,8 +86,6 @@ void main() {
         global_shadowAABBMinNew = ivec3(floor(shadowAABBMin.xyz));
         global_shadowAABBMaxNew = ivec3(ceil(shadowAABBMax.xyz));
 
-        vec3 cameraDelta = uval_cameraDelta;
-
         global_shadowRotationMatrix = shadowDeRotateMatrix();
         global_shadowRotationMatrixInverse = inverse(global_shadowRotationMatrix);
         global_shadowProj = global_shadowProjNext;
@@ -144,6 +144,11 @@ void main() {
             }
             global_cameraData.frustumPlaneCount = pcount;
         }
+
+        uint baseIndex = (frameCounter % VOXEL_FACE_TEXCOORD_MATERIALS) * 6u;
+        for (uint i = 0u; i < 6u; i++) {
+            voxel_faceTexcoords[baseIndex + i + VOXEL_FACE_TEXCOORD_COUNT] = uvec2(0u);
+        }
     } else if (gl_WorkGroupID.x == 1) {
         ivec2 mainImageSize = uval_mainImageSizeI;
         for (uint i = 0; i < 16; i++) {
@@ -171,6 +176,7 @@ void main() {
         restirSpatialGroups.y *= 256;
         global_dispatchSize4 = uvec4(restirSpatialGroups.x, restirSpatialGroups.y, 1u, 0u);
         global_dispatchSize5 = uvec4(uvec2((uval_mainImageSizeI + 63) / 64), 1u, 0u);
+        global_restirVisibilityRayCount = 0u;
         for (uint i = 0u; i < 16u; i++) {
             global_atomicCounters[i] = 0u;
         }
@@ -184,11 +190,9 @@ void main() {
         global_lastWorldTime = worldTime;
 
         vec4 lastMotionFactor = global_motionFactor;
-        vec3 cameraDelta = uval_cameraDelta;
         float lastSmoothCameraSpeed = lastMotionFactor.x;
-        float cameraSpeed = length(cameraDelta);
         float prevCameraSpeed = length(global_prevCameraDelta);
-        float smoothCameraSpeed = mix(cameraSpeed, lastSmoothCameraSpeed, 0.9);
+        float smoothCameraSpeed = mix(uval_cameraSpeed, lastSmoothCameraSpeed, 0.9);
 
         float cameraSpeedDiff = smoothCameraSpeed - lastSmoothCameraSpeed;
         float cameraSpeedDiffAbs = abs(cameraSpeedDiff);
@@ -209,10 +213,10 @@ void main() {
         taaHistoryReset *= newResetFactor;
 
         uint startOrEndMove = uint(cameraSpeedDiffAbs > SPEED_EPS);
-        startOrEndMove &= uint(cameraSpeed < SPEED_EPS) | uint(prevCameraSpeed < SPEED_EPS);
+        startOrEndMove &= uint(uval_cameraSpeed < SPEED_EPS) | uint(prevCameraSpeed < SPEED_EPS);
 
-        if (bool(startOrEndMove) || cameraSpeed < SPEED_EPS && prevCameraSpeed < SPEED_EPS && cameraSpeedDiffAbs < SPEED_DIFF_EPS) {
-            smoothCameraSpeed = cameraSpeed;
+        if (bool(startOrEndMove) || uval_cameraSpeed < SPEED_EPS && prevCameraSpeed < SPEED_EPS && cameraSpeedDiffAbs < SPEED_DIFF_EPS) {
+            smoothCameraSpeed = uval_cameraSpeed;
         }
 
         const float ANGLE_EPS = 1e-16;
@@ -222,7 +226,7 @@ void main() {
 
         float stationary = 1.0;
         stationary *= float(cameraSpeedDiffAbs < 0.00001);
-        stationary *= float(cameraSpeed < 0.0001);
+        stationary *= float(uval_cameraSpeed < 0.0001);
         stationary *= float(frontVecDiff > 0.99999);
 
         float startOrEndMoveF = float(startOrEndMove);
@@ -247,7 +251,7 @@ void main() {
         taaClampMethod *= 1.0 - startOrEndMoveF * 0.5;
         taaClampStrictness += startOrEndMoveF;
 
-        float log2Speed = log2(cameraSpeed + 1.0);
+        float log2Speed = log2(uval_cameraSpeed + 1.0);
 
         const float SPEED_WEIGHT_DECAY = 0.8;
         const float SPEED_WEIGHT_POW = 0.5;
@@ -260,7 +264,7 @@ void main() {
         const float ACCEL_WEIGHT_POW = 0.5;
 
         float accelWeight = 0.0;
-        float rcpSpeed2 = cameraSpeedDiff * safeRcp(pow2(cameraSpeed));
+        float rcpSpeed2 = cameraSpeedDiff * safeRcp(pow2(uval_cameraSpeed));
         accelWeight += max(-0.2 * rcpSpeed2, 0.0);
         accelWeight += max(0.01 * rcpSpeed2, 0.0);
         accelWeight = ACCEL_WEIGHT_DECAY * rcp(ACCEL_WEIGHT_DECAY + pow(accelWeight, ACCEL_WEIGHT_POW));

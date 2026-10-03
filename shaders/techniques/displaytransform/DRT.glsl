@@ -15,7 +15,7 @@
         - GeforceLegend - Optimized AgX curve function (https://github.com/GeForceLegend)
 */
 
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 #include "PrimaryColorCalibration.glsl"
 #include "HSLColorMixer.glsl"
 
@@ -71,7 +71,7 @@ vec3 agxEotf(vec3 val) {
     // sRGB IEC 61966-2-1 2.2 Exponent Reference EOTF Display
     // NOTE: We're linearizing the output here. Comment/adjust when
     // *not* using a sRGB render target
-    val = colors2_eotf(COLORS2_TF_SRGB, val);
+    val = colors_eotf(COLORS_TF_SRGB, val);
 
     return val;
 }
@@ -104,7 +104,7 @@ vec3 agxLook(vec3 val) {
     // ASC CDL
     val = pow(max(val * slope + offset, 0.0), power);
 
-    float luma = colors2_colorspaces_luma(COLORS2_DRT_WORKING_COLORSPACE, val);
+    float luma = colors_colorspaces_luma(COLORS_DRT_WORKING_COLORSPACE, val);
 
     return luma + sat * (val - luma);
 }
@@ -120,40 +120,40 @@ vec3 _displaytransform_DRT_AgX(vec3 color) {
 void _displaytransform_DRT_apply(inout vec4 color) {
     color.rgb = max(color.rgb, 0.0);
 
-    color.rgb = colors2_colorspaces_convert(COLORS2_WORKING_COLORSPACE, COLORS2_DRT_WORKING_COLORSPACE, color.rgb);
+    color.rgb = colors_colorspaces_convert(COLORS_WORKING_COLORSPACE, COLORS_DRT_WORKING_COLORSPACE, color.rgb);
     color.rgb = max(color.rgb, 0.0);
     color.rgb = _displaytransform_DRT_AgX(color.rgb);
 
     #if defined(SETTING_PRIMARY_COLOR_CALIBRATION) || defined(SETTING_HCM_COLOR_MIXER)
     {
-        color.rgb = colors2_colorspaces_convert(COLORS2_DRT_WORKING_COLORSPACE, COLORS2_GRADING_COLORSPACE, color.rgb);
+        color.rgb = colors_colorspaces_convert(COLORS_DRT_WORKING_COLORSPACE, COLORS_GRADING_COLORSPACE, color.rgb);
 
         #ifdef SETTING_PRIMARY_COLOR_CALIBRATION
         color.rgb = displaytransform_primarycolorcalibration_apply(color.rgb);
         #endif
 
         color.rgb = saturate(color.rgb);
-        color.rgb = colors2_oetf(COLORS2_GRADING_TF, color.rgb);
+        color.rgb = colors_oetf(COLORS_GRADING_TF, color.rgb);
 
         #ifdef SETTING_HCM_COLOR_MIXER
         color.rgb = displaytransform_hslcolormixer_apply(color.rgb);
         #endif
 
-        #if COLORS2_GRADING_TF != COLORS2_OUTPUT_TF || COLORS2_GRADING_COLORSPACE != COLORS2_OUTPUT_COLORSPACE
+        #if COLORS_GRADING_TF != COLORS_OUTPUT_TF || COLORS_GRADING_COLORSPACE != COLORS_OUTPUT_COLORSPACE
         color.rgb = saturate(color.rgb);
-        color.rgb = colors2_eotf(COLORS2_GRADING_TF, color.rgb);
-        #if COLORS2_GRADING_COLORSPACE != COLORS2_OUTPUT_COLORSPACE
-        color.rgb = colors2_colorspaces_convert(COLORS2_GRADING_COLORSPACE, COLORS2_OUTPUT_COLORSPACE, color.rgb);
+        color.rgb = colors_eotf(COLORS_GRADING_TF, color.rgb);
+        #if COLORS_GRADING_COLORSPACE != COLORS_OUTPUT_COLORSPACE
+        color.rgb = colors_colorspaces_convert(COLORS_GRADING_COLORSPACE, COLORS_OUTPUT_COLORSPACE, color.rgb);
         #endif
         color.rgb = saturate(color.rgb);
-        color.rgb = colors2_oetf(COLORS2_OUTPUT_TF, color.rgb);
+        color.rgb = colors_oetf(COLORS_OUTPUT_TF, color.rgb);
         #endif
     }
     #else
     {
-        color.rgb = colors2_colorspaces_convert(COLORS2_DRT_WORKING_COLORSPACE, COLORS2_OUTPUT_COLORSPACE, color.rgb);
+        color.rgb = colors_colorspaces_convert(COLORS_DRT_WORKING_COLORSPACE, COLORS_OUTPUT_COLORSPACE, color.rgb);
         color.rgb = saturate(color.rgb);
-        color.rgb = colors2_oetf(COLORS2_OUTPUT_TF, color.rgb);
+        color.rgb = colors_oetf(COLORS_OUTPUT_TF, color.rgb);
     }
     #endif
 

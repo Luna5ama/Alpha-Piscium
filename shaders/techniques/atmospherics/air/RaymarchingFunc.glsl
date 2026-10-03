@@ -249,7 +249,7 @@ ATMOSPHERE_RAYMARCHING_FUNC_RESULT_TYPE ATMOSPHERE_RAYMARCHING_FUNC_NAME(ATMOSPH
     result = tSampleToOrigin;
     #elif ATMOSPHERE_RAYMARCHING_FUNC_TYPE == 1
 
-    vec3 groundAlbedo = colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, GROUND_ALBEDO_BASE);
+    vec3 groundAlbedo = colors_colorspaces_convert(COLORS_COLORSPACES_SRGB, COLORS_WORKING_COLORSPACE, GROUND_ALBEDO_BASE);
 
     const float HEIGHT_EPS = 0.01;
     float rayEndHeight = length(params.rayEnd);

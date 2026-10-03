@@ -1,4 +1,4 @@
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 
 layout(local_size_x = 16, local_size_y = 8) in;
 const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);

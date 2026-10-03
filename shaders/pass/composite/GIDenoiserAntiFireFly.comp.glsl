@@ -23,20 +23,36 @@ uvec2 groupOriginTexelPos = gl_WorkGroupID.xy << 4u;
 
 void loadSharedDataRCRS(uint index) {
     if (index < 324u) { // 18 * 18 = 324
-        uvec2 sharedXY = uvec2(index % 18u, index / 18u);
+        uvec2 sharedXY;
+        if (index < 256u) {
+            sharedXY = uvec2(gl_LocalInvocationID.xy) + 1u;
+        } else {
+            uint borderIndex = index - 256u;
+            if (borderIndex < 18u) {
+                sharedXY = uvec2(borderIndex, 0u);
+            } else if (borderIndex < 36u) {
+                sharedXY = uvec2(borderIndex - 18u, 17u);
+            } else if (borderIndex < 52u) {
+                sharedXY = uvec2(0u, borderIndex - 35u);
+            } else {
+                sharedXY = uvec2(17u, borderIndex - 51u);
+            }
+        }
         ivec2 srcXY = ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 1;
         srcXY = clamp(srcXY, ivec2(0), ivec2(uval_mainImageSize - 1));
 
         vec4 d = transient_gi1AntiFireFlyInput_fetch(srcXY);
         vec4 s = transient_gi3AntiFireFlyInput_fetch(srcXY);
 
+        d.a = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, d.rgb);
+        s.a = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, s.rgb);
+
         shared_diff[sharedXY.y][sharedXY.x] = d;
         shared_spec[sharedXY.y][sharedXY.x] = s;
     }
 }
 
-void updateMinMax(ivec2 samplePos, vec3 sampleColor, inout vec2 minMaxLum, inout ivec4 minMaxPos) {
-    float sampleLum = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, sampleColor);
+void updateMinMax(ivec2 samplePos, float sampleLum, inout vec2 minMaxLum, inout ivec4 minMaxPos) {
     if (sampleLum < minMaxLum.x) {
         minMaxLum.x = sampleLum;
         minMaxPos.xy = samplePos;
@@ -48,10 +64,8 @@ void updateMinMax(ivec2 samplePos, vec3 sampleColor, inout vec2 minMaxLum, inout
 }
 
 void updateMinMaxDiffSpec(ivec2 samplePos, inout vec2 minMaxLumDiff, inout ivec4 minMaxPosDiff, inout vec2 minMaxLumSpec, inout ivec4 minMaxPosSpec) {
-    vec3 sampleDiffColor = shared_diff[samplePos.y][samplePos.x].rgb;
-    vec3 sampleSpecColor = shared_spec[samplePos.y][samplePos.x].rgb;
-    updateMinMax(samplePos, sampleDiffColor, minMaxLumDiff, minMaxPosDiff);
-    updateMinMax(samplePos, sampleSpecColor, minMaxLumSpec, minMaxPosSpec);
+    updateMinMax(samplePos, shared_diff[samplePos.y][samplePos.x].a, minMaxLumDiff, minMaxPosDiff);
+    updateMinMax(samplePos, shared_spec[samplePos.y][samplePos.x].a, minMaxLumSpec, minMaxPosSpec);
 }
 
 void antiFireFlyRCRS(ivec2 texelPos) {
@@ -79,15 +93,15 @@ void antiFireFlyRCRS(ivec2 texelPos) {
         updateMinMaxDiffSpec(localPos + ivec2(0, 1), minMaxLumDiff, minMaxPosDiff, minMaxLumSpec, minMaxPosSpec);
         updateMinMaxDiffSpec(localPos + ivec2(1, 1), minMaxLumDiff, minMaxPosDiff, minMaxLumSpec, minMaxPosSpec);
 
-        vec4 centerDiff = shared_diff[localPos.y][localPos.x];
-        vec4 centerSpec = shared_spec[localPos.y][localPos.x];
+        vec4 centerDiff = transient_gi1AntiFireFlyInput_fetch(texelPos);
+        vec4 centerSpec = transient_gi3AntiFireFlyInput_fetch(texelPos);
 
         // Fixes vignette-like fade in
         float realHistoryLength = transient_gi5Reprojected_fetch(texelPos).z * TOTAL_HISTORY_LENGTH;
         float antiFireFlyMix = linearStep(1.0, 4.0, realHistoryLength);
 
         vec4 newDiff = centerDiff;
-        float centerDiffLum = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, newDiff.rgb);
+        float centerDiffLum = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, newDiff.rgb);
         if (centerDiffLum < minMaxLumDiff.x) {
             newDiff.rgb = shared_diff[minMaxPosDiff.y][minMaxPosDiff.x].rgb;
         }
@@ -99,7 +113,7 @@ void antiFireFlyRCRS(ivec2 texelPos) {
         transient_gi1Reprojected_store(texelPos, newDiff);
 
         vec4 newSpec = centerSpec;
-        float centerSpecLum = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, newSpec.rgb);
+        float centerSpecLum = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, newSpec.rgb);
         if (centerSpecLum < minMaxLumSpec.x) {
             newSpec.rgb = shared_spec[minMaxPosSpec.y][minMaxPosSpec.x].rgb;
         }

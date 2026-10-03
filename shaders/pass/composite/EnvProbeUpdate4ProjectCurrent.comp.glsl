@@ -1,3 +1,4 @@
+#define GLOBAL_DATA_MODIFIER buffer
 #include "/techniques/EnvProbe.glsl"
 #include "/util/Colors.glsl"
 #include "/util/Morton.glsl"
@@ -5,7 +6,7 @@
 layout(local_size_x = 128) in;
 const ivec3 workGroups = ivec3(512, 2, 3);
 
-layout(rgba32ui) uniform restrict uimage2D uimg_envProbe;
+layout(rgba32ui) uniform restrict uimage2D uimg_frgba32ui;
 
 bool envProbe_update(ivec2 sliceTexelPos, ivec2 sliceID, inout EnvProbeData outputData) {
     vec3 pixelWorldDir = vec3(0.0);
@@ -54,6 +55,9 @@ bool envProbe_update(ivec2 sliceTexelPos, ivec2 sliceID, inout EnvProbeData outp
 }
 
 void main() {
+    if (gl_GlobalInvocationID == uvec3(0)) {
+        global_dispatchSize3 = uvec4((rc_entryCounter + 127u) / 128u, 1u, 1u, 0u);
+    }
     ivec2 sliceTexelPos = ivec2(morton_32bDecode(gl_GlobalInvocationID.x));
     ivec2 sliceID = ivec2(gl_GlobalInvocationID.yz);
     ivec2 outputPos = sliceTexelPos + sliceID * ENV_PROBE_SIZEI;
@@ -63,20 +67,20 @@ void main() {
     if (envProbe_update(sliceTexelPos, sliceID, outputData)) {
         ivec2 prevTexelPos = outputPos;
         prevTexelPos.x += ENV_PROBE_SIZEI.x * 2;
-        EnvProbeData prevData = envProbe_decode(imageLoad(uimg_envProbe, prevTexelPos));
+        EnvProbeData prevData = envProbe_decode(persistent_envProbe_load(prevTexelPos));
         if (envProbe_hasData(prevData)) {
             outputData.radiance = mix(outputData.radiance, prevData.radiance, 0.8 * global_historyResetFactor);
             outputData.normal = normalize(mix(outputData.normal, prevData.normal, 0.8 * global_historyResetFactor));
         }
-        imageStore(uimg_envProbe, outputPos, envProbe_encode(outputData));
+        persistent_envProbe_store(outputPos, envProbe_encode(outputData));
     } else {
         if (global_historyResetFactor > 0.1) {
             ivec2 prevTexelPos = outputPos;
             prevTexelPos.x += ENV_PROBE_SIZEI.x * 2;
-            EnvProbeData prevData = envProbe_decode(imageLoad(uimg_envProbe, prevTexelPos));
+            EnvProbeData prevData = envProbe_decode(persistent_envProbe_load(prevTexelPos));
             outputData = prevData;
             outputData.radiance *= global_historyResetFactor;
         }
-        imageStore(uimg_envProbe, outputPos, envProbe_encode(outputData));
+        persistent_envProbe_store(outputPos, envProbe_encode(outputData));
     }
 }

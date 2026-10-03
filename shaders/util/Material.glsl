@@ -2,7 +2,6 @@
 #define INCLUDE_util_Material_glsl a
 #include "BlackBody.glsl"
 #include "Colors.glsl"
-#include "Colors2.glsl"
 #include "GBufferData.glsl"
 #include "Math.glsl"
 #include "Rand.glsl"
@@ -10,6 +9,7 @@
 #include "MaterialIDConst.glsl"
 #include "IOR.glsl"
 
+// TODO: simplified version
 struct Material {
     vec3 albedo; // Working space
     float roughness;
@@ -45,6 +45,26 @@ float material_decodeSSS(uint materialID, float resourceSSS, bool forceBuiltInPB
     return unpackU4(bitfieldExtract(rawData, 0, 4));
 }
 
+Material material_init() {
+    Material material;
+    material.albedo = vec3(0.0);
+    material.roughness = 1.0;
+    material.f0RGB = vec3(0.0);
+    material.f82TintRGB = vec3(1.0);
+    material.f0 = 0.0;
+    material.f82Tint = 1.0;
+    material.dielectric = 1.0;
+    material.emissive = vec3(0.0);
+    material.porosity = 0.0;
+    material.sss = 0.0;
+    material.hardCodedIOR = 1.5;
+    material.tbn = mat3(1.0);
+    material.tbnInv = mat3(1.0);
+    material.geomTbn = mat3(1.0);
+    material.geomTbnInv = mat3(1.0);
+    return material;
+}
+
 #ifdef MATERIAL_TRANSLUCENT
 const float _MATERIAL_F0_EPSILON = exp2(-SETTING_MINIMUM_F0);
 const float _MATERIAL_ROUGHNESS_MULTIPLIER = exp2(-SETTING_TRANSLUCENT_ROUGHNESS_REDUCTION);
@@ -63,9 +83,9 @@ Material material_decode(GBufferData gData) {
     HardcodedPBR hardcoded = hardcodedpbr_decode(gData.materialID);
     bool isWater = gData.materialID == MATERIAL_ID_WATER;
 
-    material.albedo = colors2_material_toWorkSpace(gData.albedo);
+    material.albedo = colors_material_toWorkSpace(gData.albedo);
     vec4 emissiveAlbedoCurve = vec4(vec3(SETTING_EMISSIVE_ALBEDO_COLOR_CURVE), SETTING_EMISSIVE_ALBEDO_LUM_CURVE);
-    float albedoLuma = colors2_colorspaces_luma(COLORS2_MATERIAL_COLORSPACE, gData.albedo);
+    float albedoLuma = colors_colorspaces_luma(COLORS_MATERIAL_COLORSPACE, gData.albedo);
 
     #if defined(MC_TEXTURE_FORMAT_LAB_PBR) && SETTING_PBR_MATERIAL == 1 || SETTING_PBR_MATERIAL == 2
     bool useBuiltInPBR = gData.forceBuiltInPBR;
@@ -105,6 +125,15 @@ Material material_decode(GBufferData gData) {
 
     roughness = pow2(roughness);
     roughness *= _MATERIAL_ROUGHNESS_MULTIPLIER;
+    float roughnessMinimum = min(_MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS);
+    float roughnessMaximum = max(_MATERIAL_MINIMUM_ROUGHNESS, _MATERIAL_MAXIMUM_ROUGHNESS);
+    roughness = roughnessMaximum > roughnessMinimum
+        ? mix(
+            roughnessMinimum,
+            roughnessMaximum,
+            smoothstep(roughnessMinimum, roughnessMaximum, roughness)
+        )
+        : roughnessMinimum;
 
     #ifdef MATERIAL_TRANSLUCENT
     roughness = isWater ? _MATERIAL_WATER_ROUGHNESS : roughness;
@@ -112,9 +141,6 @@ Material material_decode(GBufferData gData) {
 
     emissivePBR = pow(emissivePBR, SETTING_EMISSIVE_PBR_VALUE_CURVE);
 
-    #ifndef MATERIAL_TRANSLUCENT
-    roughness = max(roughness, 0.001);
-    #endif
     material.roughness = roughness;
 
     bool resourceMetal = gData.pbrSpecular.g >= (229.5 / 255.0);
@@ -141,14 +167,14 @@ Material material_decode(GBufferData gData) {
 
         material.f0RGB = mix(material.albedo, vec3(dielectricF0), material.dielectric);
         material.f82TintRGB = mix(metalF82Tint, vec3(1.0), material.dielectric);
-        material.f82Tint = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f82TintRGB);
+        material.f82Tint = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, material.f82TintRGB);
     }
     material.f0RGB = max(material.f0RGB, _MATERIAL_F0_EPSILON);
-    material.f0 = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, material.f0RGB);
+    material.f0 = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, material.f0RGB);
 
 
     vec4 emissiveAlbedo = pow(max(vec4(gData.albedo, albedoLuma), 1e-8), emissiveAlbedoCurve);
-    emissiveAlbedo.rgb = colors2_material_toWorkSpace(emissiveAlbedo.rgb);
+    emissiveAlbedo.rgb = colors_material_toWorkSpace(emissiveAlbedo.rgb);
 
     float emissiveValue = emissivePBR * 0.5;
     emissiveValue *= exp2(SETTING_EMISSIVE_STRENGTH);

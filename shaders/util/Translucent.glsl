@@ -1,7 +1,7 @@
 #ifndef INCLUDE_util_Translucent_glsl
 #define INCLUDE_util_Translucent_glsl a
 
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 #include "/util/MaterialIDConst.glsl"
 
 vec4 translucent_albedoToTransmittance(vec4 inputAlbedo, uint materialID) {
@@ -12,13 +12,13 @@ vec4 translucent_albedoToTransmittance(vec4 inputAlbedo, uint materialID) {
         return vec4(1.0);
     }
     vec3 t = inputAlbedo.rgb;
-    float lumaT = colors2_colorspaces_luma(COLORS2_MATERIAL_COLORSPACE, t);
+    float lumaT = colors_colorspaces_luma(COLORS_MATERIAL_COLORSPACE, t);
     t *= saturate(0.6 / lumaT); // Fix for white glasses
 
-    lumaT = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, t);
+    lumaT = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, t);
     float sat = SETTING_TRANSLUCENT_ABSORPTION_SATURATION;
     t = lumaT + sat * (t - lumaT);
-    t = colors2_material_toWorkSpace(t);
+    t = colors_material_toWorkSpace(t);
     t = pow(t, vec3(SETTING_TRANSLUCENT_ABSORPTION_GAMMA));
 
     float absorptionMultiplier = pow(inputAlbedo.a, SETTING_TRANSLUCENT_ABSORPTION_ALPHA_CURVE);

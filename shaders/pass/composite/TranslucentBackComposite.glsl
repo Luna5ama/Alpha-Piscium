@@ -2,14 +2,12 @@
 
 #define GLOBAL_DATA_MODIFIER buffer
 
-#define MATERIAL_TRANSLUCENT a
-
 #include "/techniques/atmospherics/LocalComposite.glsl"
 #include "/techniques/textile/CSR32F.glsl"
 #include "/util/FullScreenComp.glsl"
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 #include "/util/SplitSumSpecular.glsl"
 
 layout(local_size_x = 16, local_size_y = 16) in;
@@ -31,7 +29,7 @@ void main() {
         exposureWeights.x *= sqrt(BASE_VIEWZ_WEIGHT / (BASE_VIEWZ_WEIGHT + log2(1.0 + abs(solidViewZ))));
 
         if (solidViewZ > -65536.0) {
-            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
             vec3 solidViewPos = coords_toViewCoord(screenPos, solidViewZ, global_camProjInverse);
             vec3 V = normalize(-solidViewPos);
             GBufferData gData = gbufferData_init();
@@ -46,15 +44,22 @@ void main() {
 //            WTF is this even correct?
 //            vec4 glintColorData = texelFetch(usam_temp4, texelPos, 0);
 //            if (any(greaterThan(glintColorData.xyz, vec3(0.0)))) {
-//                vec3 glintColor = colors2_material_toWorkSpace(glintColorData.rgb);
+//                vec3 glintColor = colors_material_toWorkSpace(glintColorData.rgb);
 //                glintColor = pow(glintColor, vec3(SETTING_EMISSIVE_ARMOR_GLINT_CURVE));
-//                float baseColorLuma = colors2_colorspaces_luma(COLORS2_COLORSPACES_SRGB, albedo.rgb);
+//                float baseColorLuma = colors_colorspaces_luma(COLORS_COLORSPACES_SRGB, albedo.rgb);
 //                albedo.rgb += glintColor.rgb * glintColorData.a * (1.0 + baseColorLuma * 12.0) * 8.0;
 //            }
 
             // Full BRDF remodulation for demodulated GI
+            #if SETTING_GI_USE_REFERENCE > 0
+            // Reference mode shows the FP32 running mean of GIReferenceAccumulate instead of the denoised GI.
+            vec4 referenceSpec = uintBitsToFloat(history_giReferenceSpec_fetch(texelPos));
+            vec4 giDiff = uintBitsToFloat(history_giReferenceDiff_fetch(texelPos)) / referenceSpec.a;
+            vec4 giSpec = referenceSpec / referenceSpec.a;
+            #else
             vec4 giDiff = transient_gi_diffShadingOutput_fetch(texelPos);
             vec4 giSpec = transient_gi_specShadingOutput_fetch(texelPos);
+            #endif
 
             // Diffuse buffer has (1-F)*(1-M)*cosθ/π baked in; just remodulate with albedo
             outputColor.rgb += giDiff.rgb * material.albedo;
@@ -68,7 +73,9 @@ void main() {
                 material.roughness
             );
             outputColor.rgb += giSpec.rgb * specDenoiseFactor;
+            #if SETTING_DEBUG_OUTPUT
             imageStore(uimg_temp3, texelPos, vec4(giSpec  ));
+            #endif
         }
 
         transient_exposureWeights_store(texelPos, exposureWeights);

@@ -10,7 +10,7 @@ const vec2 workGroupsRender = vec2(POST_PROCESS_SCALE_FACTOR, POST_PROCESS_SCALE
 
 #include "/techniques/debug/DebugOutput.glsl"
 #include "/techniques/displaytransform/DisplayTransform.glsl"
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 #include "/util/Coords.glsl"
 #include "/util/FullScreenComp.glsl"
 
@@ -50,10 +50,10 @@ void main() {
         const vec3 SCOPTIC_BASE_COLOR = vec3(SETTING_PURKINJE_EFFECT_CR, SETTING_PURKINJE_EFFECT_CG, SETTING_PURKINJE_EFFECT_CB);
         const float EPSILON = 0.00000000001;
 
-        float luminance = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, hdrColor);
+        float luminance = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, hdrColor);
         float rodLuminance = dot(hdrColor, ROD_RESPONSE);
         vec3 scopticColor = SCOPTIC_BASE_COLOR * rodLuminance;
-        float scopticLuminance = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, scopticColor);
+        float scopticLuminance = colors_colorspaces_luma(COLORS_WORKING_COLORSPACE, scopticColor);
         float mesopicFactor = log2(luminance * 1000.0);
         mesopicFactor = linearStep(SETTING_PURKINJE_EFFECT_MIN_LUM, SETTING_PURKINJE_EFFECT_MAX_LUM, mesopicFactor);
         scopticColor *= luminance / max(scopticLuminance, EPSILON);

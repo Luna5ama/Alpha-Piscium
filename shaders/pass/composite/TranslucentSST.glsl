@@ -156,7 +156,7 @@ void main() {
             vec2 envSliceID = vec2(-1.0);
             coords_cubeMapForward(reflectDirWorld, envSliceUV, envSliceID);
             ivec2 envTexel = ivec2((envSliceUV + envSliceID) * ENV_PROBE_SIZE);
-            EnvProbeData envData = envProbe_decode(texelFetch(usam_envProbe, envTexel, 0));
+            EnvProbeData envData = envProbe_decode(persistent_envProbe_fetch(envTexel));
             vec3 reflectColor = envData.radiance.rgb;
             if (envProbe_isSky(envData) && (!isWater || reflectDirWorld.y > 0.0)) {
                 AtmosphereParameters atmosphere = getAtmosphereParameters();

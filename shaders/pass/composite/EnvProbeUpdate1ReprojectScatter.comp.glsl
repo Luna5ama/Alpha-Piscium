@@ -15,8 +15,7 @@ bool envProbe_reproject(vec3 prevScenePos, out vec3 outputScenePos, out ivec4 ou
         return false;
     }
 
-    vec3 cameraDelta = uval_cameraDelta;
-    vec3 currScenePos = prevScenePos - cameraDelta;
+    vec3 currScenePos = prevScenePos - uval_cameraDelta;
     vec3 currWorldDir = normalize(currScenePos);
     vec2 currSliceUV = vec2(-1.0);
     vec2 currSliceID = vec2(-1.0);
@@ -42,7 +41,7 @@ void main() {
     ivec2 sliceTexelPos = ivec2(morton_32bDecode(gl_GlobalInvocationID.x));
     ivec2 sliceID = ivec2(gl_GlobalInvocationID.yz);
     ivec2 inputPos = sliceTexelPos + sliceID * ENV_PROBE_SIZEI;
-    uvec4 prevData = texelFetch(usam_envProbe, inputPos, 0);
+    uvec4 prevData = persistent_envProbe_fetch(inputPos);
     vec3 outputScenePos;
 
     ivec4 outputCubeMapPos;

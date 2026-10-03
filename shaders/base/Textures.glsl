@@ -106,8 +106,6 @@ uniform sampler2D usam_fsr3UpscaleAtlas;
 uniform sampler2D usam_csr32f;
 
 uniform sampler3D usam_skyViewLUT;
-uniform usampler2D usam_epipolarData;
-uniform usampler2D usam_envProbe;
 
 // -------------------------------------------------- Custom Textures --------------------------------------------------
 uniform sampler2D noisetex;
@@ -132,8 +130,14 @@ uniform sampler2D usam_cumulusBase;
 
 uniform usampler1D usam_pbrLUT0;
 uniform usampler1D usam_pbrLUT1;
+uniform usampler2D usam_pbrLUT2;
+uniform sampler2D usam_blockModelQuads;
 uniform sampler1D usam_f82;
 uniform sampler2D usam_specBRDFLUT;
+
+uniform sampler2D usam_blockAtlasColor;
+uniform sampler2D usam_blockAtlasNormal;
+uniform sampler2D usam_blockAtlasSpecular;
 
 uniform usampler2D usam_restirReuseTex0;
 uniform usampler2D usam_restirReuseTex1;

@@ -11,7 +11,7 @@
 layout(local_size_x = 128) in;
 const ivec3 workGroups = ivec3(EPIPOLAR_SLICE_D128, 1, 1);
 
-layout(rgba32ui) uniform writeonly uimage2D uimg_epipolarData;
+layout(rgba32ui) uniform writeonly uimage2D uimg_frgba32ui;
 
 // This function computes entry point of the epipolar line given its exit point
 //
@@ -199,5 +199,5 @@ vec4 generateepipolarSliceEndPS() {
 
 void main() {
     vec4 endPoints = generateepipolarSliceEndPS();
-    imageStore(uimg_epipolarData, ivec2(gl_GlobalInvocationID.xy), floatBitsToUint(endPoints));
+    persistent_epipolarData_store(ivec2(gl_GlobalInvocationID.xy), floatBitsToUint(endPoints));
 }

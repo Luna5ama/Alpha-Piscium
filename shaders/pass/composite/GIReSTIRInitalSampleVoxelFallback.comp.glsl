@@ -1,0 +1,64 @@
+#extension GL_KHR_shader_subgroup_basic : enable
+#extension GL_KHR_shader_subgroup_ballot : enable
+
+layout(local_size_x = 16, local_size_y = 16) in;
+#include "/Base.glsl"
+
+const vec2 workGroupsRender = vec2(RENDER_SCALE_FACTOR, RENDER_SCALE_FACTOR);
+
+layout(rgba16f) uniform restrict image2D uimg_rgba16f;
+layout(r32f) uniform restrict writeonly image2D uimg_r32f;
+layout(r32ui) uniform restrict writeonly uimage2D uimg_r32ui;
+layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
+layout(rgba8) uniform restrict writeonly image2D uimg_rgba8;
+
+#define RESTIR_INITIAL_CANDIDATE_WRITE
+#include "/techniques/gi/InitialSample.glsl"
+#define VOXEL_TRACE_TRUST_MATERIAL_ID
+#include "/techniques/voxel/VoxelTrace.glsl"
+#include "/util/GBufferData.glsl"
+#include "/util/Morton.glsl"
+#include "/util/ThreadGroupTiling.glsl"
+
+void main() {
+    voxel_initShared();
+
+    uint workGroupIdx = gl_WorkGroupID.y * gl_NumWorkGroups.x + gl_WorkGroupID.x;
+    if (!threadGroupTiling_isWorkGroupValid(workGroupIdx)) return;
+    uvec2 swizzledWGPos = ssbo_threadGroupTiling[workGroupIdx];
+    uvec2 workGroupOrigin = swizzledWGPos << 4u;
+    uint threadIdx = gl_SubgroupID * gl_SubgroupSize + gl_SubgroupInvocationID;
+    uvec2 mortonPos = morton_8bDecode(threadIdx);
+    ivec2 texelPos = ivec2(workGroupOrigin + mortonPos);
+
+    if (!all(lessThan(texelPos, uval_mainImageSizeI))) {
+        return;
+    }
+
+    if (transient_restir_initialCandidate_fetch(texelPos).w != RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL) {
+        return;
+    }
+    uvec4 directionAndPdf = transient_restir_initialCandidateDirection_fetch(texelPos);
+    restir_InitialCandidate candidate = restir_initialCandidate_makeVoxelFallback(
+        nzpacking_unpackNormalOct32(directionAndPdf.x),
+        uintBitsToFloat(directionAndPdf.y)
+    );
+
+    float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
+    if (viewZ <= -65536.0 || candidate.pdf <= 0.0) {
+        restir_initialCandidate_storeResult(texelPos, restir_initialCandidate_makeInvalid(candidate.rayDirView));
+        return;
+    }
+
+    vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
+    vec3 rayOriginView = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+    vec3 rayOriginWorld = coords_pos_viewToWorld(rayOriginView, gbufferModelViewInverse) + cameraPosition;
+    vec3 rayWorldDir = coords_dir_viewToWorld(candidate.rayDirView);
+
+    VoxelRay voxelRay = voxelray_setup(rayOriginWorld + rayWorldDir * 0.005, rayWorldDir, 0u);
+    VoxelHit hit = voxel_traceRay(voxelRay, 256, true);
+    candidate = restir_initialSample_buildVoxelCandidate(
+        texelPos, rayOriginWorld, candidate.rayDirView, rayWorldDir, candidate.pdf, hit, voxel_traceExhausted(hit, voxelRay)
+    );
+    restir_initialCandidate_storeResult(texelPos, candidate);
+}

@@ -2,7 +2,6 @@
 #include "/util/GBufferData.glsl"
 #include "/util/Material.glsl"
 #include "/techniques/gi/ReprojectInfo.glsl"
-#include "/util/Fresnel.glsl"
 #include "/util/Sampling.glsl"
 #include "/util/Rand.glsl"
 #include "/util/Dither.glsl"
@@ -29,6 +28,8 @@ void computeEdgeWeights(
     vec3 currViewNormal,
     vec3 currViewGeomNormal,
     vec3 curr2PrevViewPos,
+    vec3 curr2PrevViewNormal,
+    vec3 curr2PrevViewGeomNormal,
     float glazingAngleFactor,
     float normalBaseWeight,
     out vec4 roughnessWeights,
@@ -51,11 +52,6 @@ void computeEdgeWeights(
     viewNormalXs = viewNormalXs * 2.0 - 1.0;
     viewNormalYs = viewNormalYs * 2.0 - 1.0;
     viewNormalZs = viewNormalZs * 2.0 - 1.0;
-
-    vec3 currWorldGeomNormal = coords_dir_viewToWorld(currViewGeomNormal);
-    vec3 currWorldNormal = coords_dir_viewToWorld(currViewNormal);
-    vec3 curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
-    vec3 curr2PrevViewGeomNormal = coords_dir_worldToViewPrev(currWorldGeomNormal);
 
     float currEdgeFactor = min4(transient_edgeMask_gather(screenPos, 0));
 
@@ -129,7 +125,7 @@ void computeEdgeWeights(
 void gi_reproject(ivec2 texelPos, float currViewZ) {
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp);
 
-    screenPos -= uval_taaJitter * uval_mainImageSizeRcp;
+    screenPos -= uval_taaJitterUV;
     GBufferData gData = gbufferData_init();
     gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
     gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, texelPos, 0), gData);
@@ -149,13 +145,16 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     float glazingAngleFactorHistory = pow2(1.0 - glazingCosTheta);
     bool valid = false;
     float specularHitDistance = 0.0;
+    float specularHistoryLength = 0.0;
+    vec3 curr2PrevViewNormal;
+    vec3 curr2PrevViewGeomNormal;
     vec2 curr2PrevNDC = curr2PrevClipPos.xy / curr2PrevClipPos.w;
     vec2 curr2PrevScreen = curr2PrevNDC * 0.5 + 0.5;
 
     if (bool(clipFlag)) {
         vec2 curr2PrevScreenClamped = saturate(curr2PrevScreen);
         if (all(lessThan(abs(curr2PrevScreen - curr2PrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
-            curr2PrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
+            curr2PrevScreen += uval_prevTaaJitterUV;
             vec2 curr2PrevTexelPos = curr2PrevScreen * uval_mainImageSize;
             curr2PrevTexelPos = clamp(curr2PrevTexelPos, vec2(1.0), uval_mainImageSize - 1.0);
 
@@ -165,6 +164,10 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
             vec4 edgeWeights;
             vec4 extraNormalWeights;
             vec4 roughnessWeights;
+            vec3 currWorldGeomNormal = coords_dir_viewToWorld(currViewGeomNormal);
+            vec3 currWorldNormal = coords_dir_viewToWorld(currViewNormal);
+            curr2PrevViewNormal = coords_dir_worldToViewPrev(currWorldNormal);
+            curr2PrevViewGeomNormal = coords_dir_worldToViewPrev(currWorldGeomNormal);
 
             computeEdgeWeights(
                 screenPos,
@@ -173,6 +176,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 currViewNormal,
                 currViewGeomNormal,
                 curr2PrevViewPos.xyz,
+                curr2PrevViewNormal,
+                curr2PrevViewGeomNormal,
                 glazingAngleFactor,
                 4.0,
                 roughnessWeights,
@@ -232,6 +237,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     float antiStretching = pow2(linearStep(0.2, 0.0, pow2(packedData5.w) - pow2(glazingAngleFactorHistory)));
                     historyResetFactor *= antiStretching;
                     packedData5.xy *= historyResetFactor;
+                    specularHistoryLength = packedData5.y;
                     packedData5.w = glazingAngleFactorHistory;
                     packedData5 = saturate(packedData5);
                     transient_gi5Reprojected_store(texelPos, packedData5);
@@ -279,6 +285,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 historyResetFactor *= antiStretching;
 
                 packedData5.xy *= historyResetFactor;
+                specularHistoryLength = packedData5.y;
                 packedData5.w = glazingAngleFactorHistory;
 
                 packedData5 = saturate(packedData5);
@@ -301,6 +308,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     packData15,
                     tapData
                 );
+                packedData1.w = 0.2 * (packData11.w + packData12.w + packData13.w + packData14.w + packData15.w);
                 packedData1 = clamp(packedData1, 0.0, FP16_MAX);
                 packedData1 = dither_fp16(packedData1, ditherNoise);
                 transient_gi1Reprojected_store(texelPos, packedData1);
@@ -357,7 +365,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
         if (bool(clipFlag)) {
             vec2 virtualPrevNDC = virtualPrevClipPos.xy / virtualPrevClipPos.w;
             vec2 virtualPrevScreen = virtualPrevNDC * 0.5 + 0.5;
-            virtualPrevScreen += uval_prevTaaJitter * uval_mainImageSizeRcp;
+            virtualPrevScreen += uval_prevTaaJitterUV;
             vec2 virtualPrevScreenClamped = saturate(virtualPrevScreen);
 
             if (all(lessThan(abs(virtualPrevScreen - virtualPrevScreenClamped), uval_mainImageSizeRcp * 2.0))) {
@@ -377,6 +385,8 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     currViewNormal,
                     currViewGeomNormal,
                     virtualPrevViewPos.xyz,
+                    curr2PrevViewNormal,
+                    curr2PrevViewGeomNormal,
                     glazingAngleFactor,
                     128.0 * mirrorParallaxFactor + 128.0,
                     roughnessWeights,
@@ -400,26 +410,6 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 if (!edgeFlag && weightSum > 0.001) {
                     specValid = true;
                     finalWeights *= rcp(weightSum);
-                    float pSpec = 1.0;
-                    if (material.dielectric > 0.0) {
-                        float NdotV = saturate(dot(currViewNormal, viewDir));
-                        vec3 fresnelV = saturate(fresnel_evalMaterial(material, NdotV));
-                        vec3 fresnelT = vec3(1.0) - fresnelV;
-                        vec3 totalEnergy = material.albedo * fresnelT + fresnelV;
-                        pSpec = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, fresnelV * safeRcp(totalEnergy));
-                        // Clamping this to avoid dead locks that causes fireflies
-                        pSpec = clamp(pSpec, 0.01, 0.99);
-                    }
-
-                    float choiceRand = rand_stbnVec1(rand_newStbnPos(texelPos, RANDOM_FRAME / 64u + 114u), RANDOM_FRAME);
-                    if (choiceRand < pSpec) {
-                        ReprojectInfo reprojInfo = reprojectInfo_unpack(transient_gi_diffuse_reprojInfo_load(texelPos));
-                        // Most edge values are very close to 1.0
-                        // And we also want stricter weights for ReSTIR temporal
-                        reprojInfo.bilateralWeights = edgeWeights;
-                        reprojInfo.curr2PrevScreenPos = virtualPrevScreen;
-                        transient_gi_diffuse_reprojInfo_store(texelPos, reprojectInfo_pack(reprojInfo));
-                    }
 
                     float ditherNoiseV = rand_stbnVec1(rand_newStbnPos(texelPos, 9u), frameCounter);
 
@@ -444,7 +434,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         packedData4 = dither_fp16(packedData4, ditherNoiseV);
                         transient_gi4Reprojected_store(texelPos, packedData4);
                     } else {
-                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, 0.5, uval_mainImageSizeRcp);
+                        CatmullRomBicubic5TapData vTapData = sampling_catmullRomBicubic5Tap_init(virtualPrevTexelPos, pow2(mix(0.5, 0.0, specularHistoryLength)), uval_mainImageSizeRcp);
 
                         vec4 packedData3 = sampling_catmullBicubic5Tap_sum(
                             history_gi3_sample(vTapData.uv1AndWeight.xy),

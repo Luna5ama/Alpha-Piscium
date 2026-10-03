@@ -1,11 +1,12 @@
 #include "Common.glsl"
 #include "/util/BitPacking.glsl"
 #include "/util/Colors.glsl"
-#include "/util/Colors2.glsl"
 #include "/util/Celestial.glsl"
 #include "/util/NZPacking.glsl"
 #include "/util/TextRender.glsl"
 #include "/techniques/EnvProbe.glsl"
+#include "/techniques/gi/RadianceCacheSample.glsl"
+#include "/techniques/gi/PathGuiding.glsl"
 #include "/techniques/atmospherics/air/Common.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/atmospherics/clouds/amblut/API.glsl"
@@ -46,10 +47,6 @@ float applyExposure(float color) {
     return color * exp2(float(SETTING_DEBUG_EV_COARSE) + SETTING_DEBUG_EV_FINE);
 }
 
-vec2 applyExposure(vec2 color) {
-    return color * exp2(float(SETTING_DEBUG_EV_COARSE) + SETTING_DEBUG_EV_FINE);
-}
-
 vec3 applyExposure(vec3 color) {
     return color * exp2(float(SETTING_DEBUG_EV_COARSE) + SETTING_DEBUG_EV_FINE);
 }
@@ -60,26 +57,18 @@ vec4 applyExposure(vec4 color) {
 
 #if defined(SETTING_DEBUG_GAMMA_CORRECT) && (SETTING_DEBUG_OUTPUT == 4)
 float gammaCorrect(float color) {
-    return colors_sRGB_encodeGamma(color);
-}
-
-vec2 gammaCorrect(vec2 color) {
-    return colors_sRGB_encodeGamma(color);
+    return colors_oetf_sRGB(color);
 }
 
 vec3 gammaCorrect(vec3 color) {
-    return colors_sRGB_encodeGamma(color);
+    return colors_oetf_sRGB(color);
 }
 
 vec4 gammaCorrect(vec4 color) {
-    return vec4(colors_sRGB_encodeGamma(color.rgb), color.a);
+    return vec4(colors_oetf_sRGB(color.rgb), color.a);
 }
 #else
 float gammaCorrect(float color) {
-    return color;
-}
-
-vec2 gammaCorrect(vec2 color) {
     return color;
 }
 
@@ -93,10 +82,6 @@ vec4 gammaCorrect(vec4 color) {
 #endif
 
 float expGamma(float color) {
-    return gammaCorrect(applyExposure(color));
-}
-
-vec2 expGamma(vec2 color) {
     return gammaCorrect(applyExposure(color));
 }
 
@@ -119,6 +104,83 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
     printLine();
     text.fpPrecision = 4;
+
+    #ifdef SETTING_RC_ENABLE
+    #if SETTING_DEBUG_RC_MODE
+    ivec2 rcTexelPos = texelPos;
+    if (all(lessThan(rcTexelPos, uval_mainImageSizeI))) {
+        vec2 rcScreenPos = (vec2(rcTexelPos) + 0.5) * uval_mainImageSizeRcp - uval_taaJitterUV;
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, rcTexelPos, 0).r;
+        vec3 viewPos = coords_toViewCoord(rcScreenPos, viewZ, global_camProjInverse);
+
+        GBufferData gData = gbufferData_init();
+        gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, rcTexelPos, 0), gData);
+        gbufferData2_unpack(texelFetch(usam_gbufferSolidData2, rcTexelPos, 0), gData);
+        Material material = material_decode(gData);
+
+        vec3 scenePos = coords_pos_viewToWorld(viewPos - gData.geomNormal * 0.02, gbufferModelViewInverse);
+        vec3 worldPos = scenePos + cameraPosition;
+        vec3 worldNormal = coords_dir_viewToWorld(gData.normal);
+        vec3 worldGeomNormal = coords_dir_viewToWorld(gData.geomNormal);
+        vec3 V = coords_dir_viewToWorld(normalize(-viewPos));
+        RCLookupResult rcLookup = rc_lookupDiffuseGI(V, worldPos, worldNormal, worldGeomNormal);
+//        RCLookupResult rcLookup = rc_lookupDiffuseGISmooth(V, worldPos, worldNormal, worldGeomNormal);
+        bool rcHit = rcLookup.weight > 0.0;
+
+        #if SETTING_DEBUG_RC_MODE == 1
+        outputColor.rgb = vec3(float(max(findMSB(rcLookup.levelMask), 0)) / float(RC_CLIP_LEVELS - 1u));
+        #elif SETTING_DEBUG_RC_MODE == 2
+        outputColor.rgb = vec3(float(rcLookup.faceMask & 1u), float((rcLookup.faceMask >> 2u) & 1u), float((rcLookup.faceMask >> 4u) & 1u));
+        #elif SETTING_DEBUG_RC_MODE == 3
+        outputColor.rgb = vec3(float(bitCount(rcLookup.faceMask)) / 6.0);
+        #elif SETTING_DEBUG_RC_MODE == 4
+        outputColor.rgb = vec3(rcLookup.m / float(SETTING_RC_M_CAP));
+        #elif SETTING_DEBUG_RC_MODE == 5
+        outputColor.rgb = vec3(float(rcLookup.age) / 255.0);
+        #elif SETTING_DEBUG_RC_MODE == 6
+        outputColor.rgb = vec3(float(rc_keyMismatchCounter > 0u), 0.0, 0.0);
+        #elif SETTING_DEBUG_RC_MODE == 7
+        outputColor.rgb = rcHit ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 0.0, 0.0);
+        #elif SETTING_DEBUG_RC_MODE == 8
+        outputColor.rgb = rcHit ? rcLookup.radiance : vec3(0.0);
+        #elif SETTING_DEBUG_RC_MODE == 9
+        outputColor.rgb = fallbackGI;
+        #elif SETTING_DEBUG_RC_MODE == 10
+        outputColor.rgb = vec3(rcLookup.debug);
+        #endif
+        outputColor.rgb *= exp2(global_aeData.expValues.z);
+        outputColor.a = 1.0;
+    }
+    #endif
+    #endif
+
+    #if defined(PATH_GUIDING_ENABLED) && SETTING_DEBUG_PATH_GUIDE >= 5
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
+        vec3 guideColor = vec3(0.0);
+        if (viewZ > -65536.0) {
+            GBufferData gData = gbufferData_init();
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
+            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+            uint slot = pathGuide_faceSlot(viewPos, gData.geomNormal);
+            PathGuide guide = pathGuide_none();
+            if (slot != RC_INVALID) {
+                guide = pathGuide_load(slot);
+            }
+            #if SETTING_DEBUG_PATH_GUIDE == 5
+            PathGuideLobe lobe = guide.lobe1.alpha > guide.lobe0.alpha ? guide.lobe1 : guide.lobe0;
+            if (lobe.alpha > 0.0) {
+                guideColor = (coords_dir_viewToWorld(lobe.axisView) * 0.5 + 0.5) * (lobe.kappa / PG_MAX_KAPPA);
+            }
+            #else
+            bool guided = guide.lobe0.alpha + guide.lobe1.alpha > 0.0;
+            guideColor = slot == RC_INVALID ? vec3(1.0, 0.0, 0.0) : (guided ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 1.0, 0.0));
+            #endif
+        }
+        outputColor = vec4(guideColor, 1.0);
+    }
+    #endif
 
     ivec2 scaledTextureSize = ivec2(uval_mainImageSize * SETTING_DEBUG_SCALE);
     if (all(lessThan(texelPos, scaledTextureSize))) {
@@ -170,6 +232,19 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         outputColor.rgb = vec3(float(gData.isHand));
         #endif
 
+        #if SETTING_DEBUG_DENOISER != 0
+        bool denoiserSolid = texelFetch(usam_gbufferSolidViewZ, scaledTexelPos, 0).x > -65536.0;
+        vec2 denoiserVarianceFactor = vec2(0.0);
+        if (denoiserSolid) {
+            denoiserVarianceFactor = transient_gi_blurGuidance_fetch(scaledTexelPos).zw;
+        }
+        #if SETTING_DEBUG_DENOISER == 1
+        outputColor = vec4(vec3(denoiserVarianceFactor.x), 1.0);
+        #elif SETTING_DEBUG_DENOISER == 2
+        outputColor = vec4(vec3(denoiserVarianceFactor.y), 1.0);
+        #endif
+        #endif
+
         outputColor = applyExposure(outputColor);
 
         #ifdef SETTING_DEBUG_NEGATE
@@ -184,28 +259,6 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 
         outputColor = gammaCorrect(outputColor);
     }
-
-//    #if SETTING_DEBUG_DENOISER != 0
-////    uvec4 svgfData = texelFetch(usam_csrgba32ui, texelPos, 0);
-//    vec3 svgfColor;
-//    vec3 svgfFastColor;
-//    vec2 svgfMoments;
-//    float svgfHLen;
-//    svgf_unpack(svgfData, svgfColor, svgfFastColor, svgfMoments, svgfHLen);
-//    #if SETTING_DEBUG_DENOISER == 1
-//    outputColor.rgb = expGamma(svgfColor);
-//    #elif SETTING_DEBUG_DENOISER == 2
-//    outputColor.rgb = expGamma(svgfFastColor);
-//    #elif SETTING_DEBUG_DENOISER == 3
-//    outputColor.rgb = interpolateTurbo(1.0 - (svgfHLen - 2.0) / (SETTING_DENOISER_MAX_ACCUM - 2.0));
-//    #elif SETTING_DEBUG_DENOISER == 4
-//    outputColor.rgb = svgfMoments.xxx;
-//    #elif SETTING_DEBUG_DENOISER == 5
-//    outputColor.rgb = svgfMoments.yyy;
-//    #elif SETTING_DEBUG_DENOISER == 6
-//    outputColor.rgb = vec3(max(svgfMoments.g - svgfMoments.r * svgfMoments.r, 0.0));
-//    #endif
-//    #endif
 
     #if SETTING_DEBUG_GI_INPUTS != 0
     // TODO: Update for new GI system
@@ -284,12 +337,12 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #endif
 
     #ifdef SETTING_DEBUG_ATMOSPHERE
-    const float EPIPOLAR_SLICE_END_POINTS_V = 0.5 / float(EPIPOLAR_DATA_Y_SIZE);
+    const ivec2 EPIPOLAR_DATA_SIZE = ivec2(SETTING_EPIPOLAR_SLICES, EPIPOLAR_DATA_Y_SIZE);
     if (inViewPort(ivec4(0, 0, 1024, 16), debugTexCoord)) {
-        outputColor.rgb = vec3(uintBitsToFloat(texture(usam_epipolarData, vec2(debugTexCoord.x, EPIPOLAR_SLICE_END_POINTS_V)).rg), 0.0);
+        outputColor.rgb = vec3(uintBitsToFloat(persistent_epipolarData_fetch(ivec2(debugTexCoord.x * EPIPOLAR_DATA_SIZE.x, 0)).rg), 0.0);
     }
     if (inViewPort(ivec4(0, 16, 1024, 16), debugTexCoord)) {
-        outputColor.rgb = vec3(uintBitsToFloat(texture(usam_epipolarData, vec2(debugTexCoord.x, EPIPOLAR_SLICE_END_POINTS_V)).ba), 0.0);
+        outputColor.rgb = vec3(uintBitsToFloat(persistent_epipolarData_fetch(ivec2(debugTexCoord.x * EPIPOLAR_DATA_SIZE.x, 0)).ba), 0.0);
     }
     if (inViewPort(ivec4(0, 32, 256, 64), debugTexCoord)) {
         outputColor.rgb = gammaCorrect(persistent_transmittanceLUT_sample(debugTexCoord).rgb);
@@ -303,7 +356,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         float viewZ;
         vec2 sampleTexCoord = debugTexCoord;
         sampleTexCoord.y = mix(1.0 / EPIPOLAR_DATA_Y_SIZE, 1.0, sampleTexCoord.y);
-        unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
+        unpackEpipolarData(persistent_epipolarData_fetch(min(ivec2(sampleTexCoord * vec2(EPIPOLAR_DATA_SIZE)), EPIPOLAR_DATA_SIZE - 1)), sampleResult, viewZ);
         outputColor.rgb = expGamma(sampleResult.inScattering);
     }
 //    if (inViewPort(ivec4(256, 32 + 256, whRatio * 256, 256), debugTexCoord)) {
@@ -311,13 +364,13 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 //        float viewZ;
 //        vec2 sampleTexCoord = debugTexCoord;
 //        sampleTexCoord.y = mix(1.0 / EPIPOLAR_DATA_Y_SIZE, 1.0, sampleTexCoord.y);
-//        unpackEpipolarData(texture(usam_epipolarData, sampleTexCoord), sampleResult, viewZ);
+//        unpackEpipolarData(persistent_epipolarData_fetch(min(ivec2(sampleTexCoord * vec2(EPIPOLAR_DATA_SIZE)), EPIPOLAR_DATA_SIZE - 1)), sampleResult, viewZ);
 //        outputColor.rgb = gammaCorrect(sampleResult.transmittance);
 //    }
 //    if (inViewPort(ivec4(256, 32 + 512, whRatio * 256, 256), debugTexCoord)) {
 //        ScatteringResult sampleResult;
 //        float viewZ;
-//        unpackEpipolarData(texture(usam_epipolarData, debugTexCoord), sampleResult, viewZ);
+//        unpackEpipolarData(persistent_epipolarData_fetch(min(ivec2(debugTexCoord * vec2(EPIPOLAR_DATA_SIZE)), EPIPOLAR_DATA_SIZE - 1)), sampleResult, viewZ);
 //        float depthV = -viewZ.r / far;
 //        outputColor.rgb = gammaCorrect(depthV).rrr;
 //    }
@@ -367,26 +420,26 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #ifdef SETTING_DEBUG_ENV_PROBE
     if (inViewPort(ivec4(0, 0, 512, 768), debugTexCoord)) {
         ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE * vec2(2.0, 3.0));
-        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+        EnvProbeData envProbeData = envProbe_decode(persistent_envProbe_fetch(texelPos));
         bool envProbeIsSky = envProbe_isSky(envProbeData);
         outputColor.rgb = envProbeIsSky ? vec3(0.0) : envProbeData.radiance;
         outputColor.rgb = expGamma(outputColor.rgb);
     }
 //    if (inViewPort(ivec4(0, 512, 512, 512), debugTexCoord)) {
 //        ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
-//        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+//        EnvProbeData envProbeData = envProbe_decode(persistent_envProbe_fetch(texelPos));
 //        bool envProbeIsSky = envProbe_isSky(envProbeData);
 //        outputColor.rgb = envProbeIsSky ? vec3(0.0, 0.0, 1.0) : vec3(saturate(length(envProbeData.scenePos) / far));
 //    }
 //    if (inViewPort(ivec4(512, 0, 512, 512), debugTexCoord)) {
 //        ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
-//        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+//        EnvProbeData envProbeData = envProbe_decode(persistent_envProbe_fetch(texelPos));
 //        outputColor.rgb = envProbeData.normal * 0.5 + 0.5;
 //    }
 //    if (inViewPort(ivec4(512, 512, 512, 512), debugTexCoord)) {
 //        ivec2 texelPos = ivec2(debugTexCoord * ENV_PROBE_SIZE);
 //        texelPos.x += 512;
-//        EnvProbeData envProbeData = envProbe_decode(texelFetch(usam_envProbe, texelPos, 0));
+//        EnvProbeData envProbeData = envProbe_decode(persistent_envProbe_fetch(texelPos));
 //        bool envProbeIsSky = envProbe_isSky(envProbeData);
 //        outputColor.rgb = envProbeIsSky ? vec3(0.0) : envProbeData.radiance;
 //        outputColor.rgb *= exp2(SETTING_DEBUG_EXP);
@@ -395,7 +448,7 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
     #endif
 
     #ifdef SETTING_DEBUG_STARMAP
-    outputColor.rgb = gammaCorrect(colors2_colorspaces_convert(COLORS2_COLORSPACES_SRGB, COLORS2_WORKING_COLORSPACE, colors_LogLuv32ToSRGB(texture(usam_starmap, screenPos))));
+    outputColor.rgb = gammaCorrect(colors_colorspaces_convert(COLORS_COLORSPACES_SRGB, COLORS_WORKING_COLORSPACE, colors_LogLuv32ToSRGB(texture(usam_starmap, screenPos))));
     #endif
 
     #ifdef SETTING_DEBUG_EPIPOLAR_LINES

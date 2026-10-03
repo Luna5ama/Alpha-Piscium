@@ -22,6 +22,11 @@ float unpackU11(uint v) { return clamp(float(v) / 2047.0, 0.0, 1.0); }
 uint packS11(float v) { return packU11(v * 0.5 + 0.5); }
 float unpackS11(uint v) { return unpackU11(v) * 2.0 - 1.0; }
 
+uint packU14(float v) { return uint(clamp(v, 0.0, 1.0) * 16383.0); }
+float unpackU14(uint v) { return clamp(float(v) / 16383.0, 0.0, 1.0); }
+uint packS14(float v) { return packU14(v * 0.5 + 0.5); }
+float unpackS14(uint v) { return unpackU14(v) * 2.0 - 1.0; }
+
 uint packU15(float v) { return uint(clamp(v, 0.0, 1.0) * 32767.0); }
 float unpackU15(uint v) { return clamp(float(v) / 32767.0, 0.0, 1.0); }
 uint packS15(float v) { return packU15(v * 0.5 + 0.5); }

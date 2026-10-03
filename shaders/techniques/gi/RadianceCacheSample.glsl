@@ -1,0 +1,228 @@
+#ifndef INCLUDE_techniques_gi_RadianceCacheSample_glsl
+#define INCLUDE_techniques_gi_RadianceCacheSample_glsl a
+
+#include "RadianceCache.glsl"
+#include "/techniques/voxel/SurfaceData.glsl"
+#include "/techniques/gi/ResampleMaterial.glsl"
+
+void rc_lookupSampleFace(
+    inout RCLookupResult result,
+    vec3 V,
+    vec3 P,
+    vec3 N,
+    vec3 faceNormal,
+    float normalWeight,
+    uint level,
+    ivec3 worldCellCoord,
+    uint faceId,
+    float interpWeight,
+    float thickness
+) {
+    if (interpWeight <= 0.0) {
+        return;
+    }
+
+    uint entryIndex = rc_entryIndex(level, worldCellCoord);
+    uint bufferIndex = rc_bufferEntryIndex(rc_currentSide(), entryIndex);
+    uvec4 entry = rc_indirection[bufferIndex];
+
+    uint worldKeyHash = rc_worldKeyHash(level, worldCellCoord);
+
+    if (entry.x == RC_INVALID ||
+        entry.z != worldKeyHash ||
+        !rc_entryMetaValid(entry.w) ||
+        rc_entryMetaLevel(entry.w) != level ||
+        !rc_hasFace(entry.y, faceId)) {
+        result.misses++;
+        return;
+    }
+
+    uint reservoirIndex = rc_faceReservoirIndex(entry.x, entry.y, faceId);
+
+    if (reservoirIndex >= uint(SETTING_RC_POOL_SIZE)) {
+        result.misses++;
+        return;
+    }
+
+    RCReservoir reservoir = rc_reservoirLoad(rc_currentSide(), reservoirIndex);
+
+    if (!rc_reservoirValid(reservoir)) {
+        result.misses++;
+        return;
+    }
+
+    if (normalWeight <= 0.0) {
+        result.misses++;
+        return;
+    }
+
+    vec3 faceCenter = rc_faceCenter(worldCellCoord, level, faceId);
+    float side = dot(P - faceCenter, faceNormal);
+    if (side < -thickness) {
+        result.misses++;
+        return;
+    }
+
+    float w = interpWeight * normalWeight;
+
+    // Move into the owner voxel so the face owner is stable.
+    // For +Y face, this moves slightly below the surface.
+    // For -Y face, this moves slightly above the surface.
+    float surfaceEpsilon = max(ldexp(1e-3, int(level)), 1e-3);
+    vec3 ownerP = P - faceNormal * surfaceEpsilon;
+
+    VoxelHit hit;
+    hit.hit = true;
+    hit.hitPos = P;
+    hit.normal = faceNormal;
+    hit.materialID = voxel_getMaterialID(ivec3(floor(ownerP)));
+    voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
+    surface.material.roughness = max(surface.material.roughness, RC_MAX_ROUGHNESS);
+    float NoV = dot(N, V);
+    if (NoV <= 0.0) {
+        result.misses++;
+        return;
+    }
+
+    // The face stores the cosine-weighted mean incident radiance; shade it as uniform incidence so the result
+    // does not depend on the face reservoir's current sample direction. A zero estimate is a valid hit.
+    vec2 uniformAlbedo = resampleMaterial_uniformIncidenceAlbedo(resampleMaterial_fromMaterial(surface.material), NoV);
+    vec3 estimatedRadiance = (surface.material.albedo * uniformAlbedo.x + uniformAlbedo.y) * rc_reservoirEstimateRadiance(reservoir);
+    if (!all(lessThanEqual(abs(estimatedRadiance), vec3(FLT_MAX)))) {
+        result.misses++;
+        return;
+    }
+
+    result.radiance += estimatedRadiance * w;
+    result.weight += w;
+
+    result.hits++;
+    result.levelMask |= 1u << level;
+    result.faceMask |= rc_faceBit(faceId);
+    result.m = max(result.m, reservoir.m);
+    result.age = max(result.age, rc_reservoirMetaAge(reservoir.meta));
+    result.debug = reservoir.meta & 0xFF;
+}
+
+RCLookupResult rc_lookupDiffuseGISmooth(vec3 V, vec3 P, vec3 N, vec3 geomN) {
+    RCLookupResult result = rc_lookupInit();
+
+    uint level = rc_selectLevel(P);
+
+    uint faceId = rc_dominantFaceId(geomN);
+    vec3 faceNormal = rc_faceNormal(faceId);
+    float normalWeight = saturate(dot(N, faceNormal));
+    float thickness = ldexp(1.0, int(level));
+
+    uint axis0;
+    uint axis1;
+    rc_faceTangentAxes(faceId, axis0, axis1);
+
+    // Move slightly behind the queried surface so the owner cell is stable.
+    // For +Y face, this moves into the solid cell below the face.
+    // For -Y face, this moves into the solid cell above the face.
+    float surfaceEpsilon = max(ldexp(1e-3, int(level)), 1e-3);
+    vec3 ownerP = P - faceNormal * surfaceEpsilon;
+
+    ivec3 ownerCell = rc_worldCellCoord(ownerP, level);
+
+    // Face centers lie at cell + 0.5 along tangent axes.
+    // Therefore the bilinear coordinate over face centers is:
+    //
+    //     P_t / voxelSize - 0.5
+    //
+    // The integer part selects the lower face-center cell,
+    // and the fractional part is the interpolation weight.
+    vec3 cellSpace = ldexp(P, ivec3(-int(level))) - vec3(0.5);
+
+    float u = cellSpace[int(axis0)];
+    float v = cellSpace[int(axis1)];
+
+    int u0 = int(floor(u));
+    int v0 = int(floor(v));
+
+    float fu = fract(u);
+    float fv = fract(v);
+
+    // Cubic smoothstep interpolation weights:
+    //
+    //   smoothstep01(t) = t * t * (3 - 2 * t)
+    //
+    // This keeps the same 2x2 footprint as bilinear interpolation, but makes
+    // the transition C1-continuous inside each cell interval.
+    float su = fu * fu * (3.0 - 2.0 * fu);
+    float sv = fv * fv * (3.0 - 2.0 * fv);
+
+    float w00 = (1.0 - su) * (1.0 - sv);
+    float w10 = su * (1.0 - sv);
+    float w01 = (1.0 - su) * sv;
+    float w11 = su * sv;
+
+    ivec3 cell00 = ownerCell;
+    ivec3 cell10 = ownerCell;
+    ivec3 cell01 = ownerCell;
+    ivec3 cell11 = ownerCell;
+
+    cell00[int(axis0)] = u0;
+    cell00[int(axis1)] = v0;
+
+    cell10[int(axis0)] = u0 + 1;
+    cell10[int(axis1)] = v0;
+
+    cell01[int(axis0)] = u0;
+    cell01[int(axis1)] = v0 + 1;
+
+    cell11[int(axis0)] = u0 + 1;
+    cell11[int(axis1)] = v0 + 1;
+
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell00, faceId, w00, thickness);
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell10, faceId, w10, thickness);
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell01, faceId, w01, thickness);
+    rc_lookupSampleFace(result, V, P, N, faceNormal, normalWeight, level, cell11, faceId, w11, thickness);
+
+    if (result.weight > 0.0) {
+        result.radiance /= result.weight;
+    }
+
+    return result;
+}
+
+RCLookupResult rc_lookupDiffuseGI(vec3 V, vec3 P, vec3 N, vec3 geomN) {
+    RCLookupResult result = rc_lookupInit();
+
+    uint level = rc_selectLevel(P);
+
+    uint faceId = rc_dominantFaceId(geomN);
+    vec3 faceNormal = rc_faceNormal(faceId);
+    float normalWeight = max(dot(N, faceNormal), 0.0);
+
+    // Move into the owner voxel so the face owner is stable.
+    // For +Y face, this moves slightly below the surface.
+    // For -Y face, this moves slightly above the surface.
+    float surfaceEpsilon = max(ldexp(1e-3, int(level)), 1e-3);
+    vec3 ownerP = P - faceNormal * surfaceEpsilon;
+
+    ivec3 ownerCell = rc_worldCellCoord(ownerP, level);
+
+    rc_lookupSampleFace(
+        result,
+        V,
+        P,
+        N,
+        faceNormal,
+        normalWeight,
+        level,
+        ownerCell,
+        faceId,
+        1.0,
+        ldexp(2.0, int(level))
+    );
+
+    if (result.weight > 0.0) {
+        result.radiance /= result.weight;
+    }
+
+    return result;
+}
+
+#endif

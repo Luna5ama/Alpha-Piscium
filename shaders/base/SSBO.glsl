@@ -81,6 +81,20 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     AEData global_aeData;
     // 0..13: generic SPD slices, 14: FSR3 SPD, 15: SST step debug.
     uint global_atomicCounters[16];
+    uint global_restirVisibilityRayCount;
+
+    uint rc_entryCounter;
+    uint rc_allocationCounter;
+    uint rc_keyMismatchCounter;
+    uint rc_poolOverflowCounter;
+    uint rc_cacheHitCounter;
+    uint rc_cacheMissCounter;
+    uint pg_selectedCounter;
+    uint pg_splatCounter;
+    uint pg_noSlotCounter;
+    uint pg_neighborCounter;
+    uint pg_skyCounter;
+    uint rc_paddingCounters[6];
 };
 
 layout(std430, binding = 1) GLOBAL_DATA_MODIFIER IndirectComputeData {

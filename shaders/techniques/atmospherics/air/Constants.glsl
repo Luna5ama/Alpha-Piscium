@@ -21,7 +21,7 @@
         Jessie - Helping with Mie coefficients (https://github.com/Jessie-LC)
 */
 
-#include "/util/Colors2.glsl"
+#include "/util/Colors.glsl"
 
 #if SETTING_EPIPOLAR_SLICES == 256
 
@@ -93,7 +93,7 @@ struct AtmosphereParameters {
 vec3 atmosphere_mieCoefficientsPreetham(float turbidity) {
     const vec3 a0 = vec3(-0.00767542206226, -0.00822772032997, -0.0121707541321);
     const vec3 a1 = vec3(0.00771550875198, 0.00827069152678, 0.0122343187466);
-    return max(colors2_constants_toWorkSpace(a0 + a1 * turbidity), 0.0);
+    return max(colors_constants_toWorkSpace(a0 + a1 * turbidity), 0.0);
 }
 
 AtmosphereParameters getAtmosphereParameters() {
@@ -104,7 +104,7 @@ AtmosphereParameters getAtmosphereParameters() {
 
     // https://www.desmos.com/calculator/1qbdlareew
     // Already in km
-    const vec3 RAYLEIGH_SCATTERING_BASE = colors2_constants_toWorkSpace(vec3(0.0120766817597, 0.0129498634753, 0.0275704559807));
+    const vec3 RAYLEIGH_SCATTERING_BASE = colors_constants_toWorkSpace(vec3(0.0120766817597, 0.0129498634753, 0.0275704559807));
 
     vec3 RAYLEIGH_SCATTERING = RAYLEIGH_SCATTERING_BASE * SETTING_ATM_RAY_SCT_MUL;
 
@@ -123,7 +123,7 @@ AtmosphereParameters getAtmosphereParameters() {
 
     // https://www.desmos.com/calculator/ykoihjoqdm
     // cm to km conversion
-    const vec3 OZONE_ABOSORPTION_BASE = colors2_constants_toWorkSpace(vec3(3.2964135827e-10, 2.9538443418e-10, 3.7326149468e-11) * 100000.0);
+    const vec3 OZONE_ABOSORPTION_BASE = colors_constants_toWorkSpace(vec3(3.2964135827e-10, 2.9538443418e-10, 3.7326149468e-11) * 100000.0);
     const vec3 OZONE_ABOSORPTION = OZONE_ABOSORPTION_BASE * SETTING_ATM_OZO_ABS_MUL;
 
     AtmosphereParameters atmosphere;
