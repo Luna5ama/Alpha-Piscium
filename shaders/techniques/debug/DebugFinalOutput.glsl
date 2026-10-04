@@ -23,7 +23,7 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
 
     #ifdef SETTING_DEBUG_GI_TEXT
     printString((_M, _e, _t, _h, _o, _d, _colon, _space));
-    #if USE_REFERENCE == 0
+    #if SETTING_GI_USE_REFERENCE == 0
     printString((_R, _e, _S, _T, _I, _R));
     printLine();
 
@@ -43,23 +43,19 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printLine();
 
 
-    #elif USE_REFERENCE == 1
-    printString((_M, _o, _n, _t, _e, _space, _C, _a, _r, _l, _o));
+    #else
+    printString((_R, _e, _f, _e, _r, _e, _n, _c, _e, _space));
+    #if SETTING_GI_USE_REFERENCE == 1
+    printString((_F, _u, _l, _l, _space, _L, _i));
+    #elif SETTING_GI_USE_REFERENCE == 2
+    printString((_F, _r, _o, _z, _e, _n, _space, _L, _i));
+    #else
+    printString((_F, _u, _r, _n, _a, _c, _e));
+    #endif
     printLine();
 
-    printString((_S, _P, _P, _colon, _space));
-    printInt(MC_SPP);
-    printLine();
-    printLine();
-    printLine();
-    printLine();
-
-
-    #elif USE_REFERENCE == 2
-    printString((_V, _B, _G, _I));
-    printLine();
-    printString((_S, _t, _e, _p, _space, _c, _o, _u, _n, _t, _colon, _space));
-    printInt(SSVBIL_SAMPLE_STEPS222);
+    printString((_S, _a, _m, _p, _l, _e, _s, _colon, _space));
+    printInt(int(texelFetch(usam_giReferenceSpec, uval_mainImageSizeI >> 1, 0).a));
     printLine();
     printLine();
     printLine();
@@ -148,6 +144,23 @@ void debugFinalOutput(ivec2 texelPos, inout vec4 outputColor) {
     printString((_o, _f, _f));
     #endif
     printLine();
+
+    #if defined(SETTING_GI_PATH_GUIDING) && defined(SETTING_RC_ENABLE)
+    printLine();
+    printString((_P, _a, _t, _h, _space, _G, _u, _i, _d, _e, _space, _S, _p, _l, _a, _t, _s, _colon, _space));
+    printUnsignedInt(pg_splatCounter);
+    printString((_space, _minus, _space));
+    printUnsignedInt(pg_selectedCounter);
+    printLine();
+
+    printString((_N, _o, _space, _S, _l, _o, _t, _colon, _space));
+    printUnsignedInt(pg_noSlotCounter);
+    printString((_space, _N, _e, _i, _g, _h, _b, _o, _r, _colon, _space));
+    printUnsignedInt(pg_neighborCounter);
+    printString((_space, _S, _k, _y, _colon, _space));
+    printUnsignedInt(pg_skyCounter);
+    printLine();
+    #endif
     #endif
 
     #ifdef SETTING_DEBUG_AE

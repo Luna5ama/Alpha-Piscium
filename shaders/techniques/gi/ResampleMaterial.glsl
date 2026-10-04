@@ -118,6 +118,14 @@ vec3 resampleMaterial_resolveNormal(
     return dot(normal, viewDir) > 0.0 ? normal : geomNormal;
 }
 
+// Directional albedo under uniform incident radiance, split as (diffuse without albedo, specular):
+// with C_n the cosine-weighted mean incident radiance, L_o = (albedo * x + y) * C_n.
+vec2 resampleMaterial_uniformIncidenceAlbedo(ResampleMaterial material, float NDotV) {
+    float fresnel = resampleMaterial_fresnel(material, NDotV);
+    float specular = splitSumSpecularLUT(material.f0, NDotV, material.roughness).x;
+    return vec2(material.dielectric * (1.0 - fresnel), specular);
+}
+
 vec3 resampleMaterial_specularDenoiseFactor(ResampleMaterial material, float NDotV) {
     return splitSumSpecularDenoiseFactor(material.f0, NDotV, material.roughness);
 }

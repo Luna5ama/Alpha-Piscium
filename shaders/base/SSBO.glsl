@@ -83,7 +83,12 @@ layout(std430, binding = 0) GLOBAL_DATA_MODIFIER GlobalData {
     uint rc_poolOverflowCounter;
     uint rc_cacheHitCounter;
     uint rc_cacheMissCounter;
-    uint rc_paddingCounters[11];
+    uint pg_selectedCounter;
+    uint pg_splatCounter;
+    uint pg_noSlotCounter;
+    uint pg_neighborCounter;
+    uint pg_skyCounter;
+    uint rc_paddingCounters[6];
 };
 
 layout(std430, binding = 1) GLOBAL_DATA_MODIFIER IndirectComputeData {

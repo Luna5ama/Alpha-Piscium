@@ -51,8 +51,15 @@ void main() {
 //            }
 
             // Full BRDF remodulation for demodulated GI
+            #if SETTING_GI_USE_REFERENCE > 0
+            // Reference mode shows the FP32 running mean of GIReferenceAccumulate instead of the denoised GI.
+            vec4 referenceSpec = texelFetch(usam_giReferenceSpec, texelPos, 0);
+            vec4 giDiff = texelFetch(usam_giReferenceDiff, texelPos, 0) / referenceSpec.a;
+            vec4 giSpec = referenceSpec / referenceSpec.a;
+            #else
             vec4 giDiff = transient_gi_diffShadingOutput_fetch(texelPos);
             vec4 giSpec = transient_gi_specShadingOutput_fetch(texelPos);
+            #endif
 
             // Diffuse buffer has (1-F)*(1-M)*cosθ/π baked in; just remodulate with albedo
             outputColor.rgb += giDiff.rgb * material.albedo;

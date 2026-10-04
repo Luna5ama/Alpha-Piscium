@@ -44,6 +44,7 @@
         "transient_ssgiSpecOut": "RGBA16F",
         "transient_restir_initialCandidate": "RGBA16F",
         "transient_restir_initialCandidateDirection": "RG32UI",
+        "transient_pathGuide_trainRecord": "RG32UI",
         "transient_restir_initialCandidateNormal": "R32UI",
         "transient_restir_reservoirTemporal": "RGBA32UI",
         "history_restir_reservoirTemporal": "RGBA32UI",

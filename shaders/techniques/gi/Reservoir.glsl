@@ -308,7 +308,8 @@ ShiftMapping evaluateShiftMapping(
 
 // Shades a reservoir sample into demodulated diffuse/specular denoiser inputs, with the hit distance in w.
 // The specular hit distance is kept with probability f_s / (f_d + f_s) so it follows the specular lobe; -1 otherwise.
-bool restir_shadeSample(
+// Returns the diffuse share f_d / (f_d + f_s) of the sample, or -1 when it cannot be shaded.
+float restir_shadeSample(
     vec3 sampleRadiance,
     vec4 Y,
     float contributionWeight,
@@ -326,7 +327,7 @@ bool restir_shadeSample(
     vec3 resolvedNormal = resampleMaterial_resolveNormal(geomNormal, normal, V);
     float NDotL = dot(resolvedNormal, Y.xyz);
     if (NDotL <= 0.0 || dot(geomNormal, Y.xyz) <= 0.0 || dot(geomNormal, V) <= 0.0) {
-        return false;
+        return -1.0;
     }
 
     vec3 H = normalize(Y.xyz + V);
@@ -344,5 +345,5 @@ bool restir_shadeSample(
     float specHitDistance = specHitRand < brdf.specular * safeRcp(brdf.full) ? Y.w : -1.0;
     diffOut = vec4(restir_isFinite(diffuse) ? clamp(diffuse, 0.0, FP16_MAX) : vec3(0.0), Y.w);
     specOut = vec4(restir_isFinite(specular) ? clamp(specular, 0.0, FP16_MAX) : vec3(0.0), specHitDistance);
-    return true;
+    return brdf.diffuse * safeRcp(brdf.full);
 }

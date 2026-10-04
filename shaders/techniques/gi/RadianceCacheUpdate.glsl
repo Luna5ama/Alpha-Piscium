@@ -5,6 +5,7 @@
 #define GLOBAL_DATA_MODIFIER restrict buffer
 
 #include "/techniques/gi/RadianceCache.glsl"
+#include "/techniques/gi/PathGuiding.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/gi/HitDirectLighting.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
@@ -52,8 +53,8 @@ RCCVAccumulator rc_cvAccumulatorInit() {
     return accumulator;
 }
 
-vec3 rc_cvInitialEstimate(RCCandidate candidate) {
-    return candidate.valid ? candidate.radiance : vec3(0.0);
+vec3 rc_cvInitialEstimate(RCCandidate candidate, float proposalWeight) {
+    return candidate.valid ? candidate.radiance * proposalWeight : vec3(0.0);
 }
 
 void rc_cvAccumulatorAdd(inout RCCVAccumulator accumulator, vec3 estimate, float weight) {
@@ -138,18 +139,16 @@ bool rc_reservoirUpdateWeighted(
     float mInc,
     float randValue
 ) {
-    if (
-        !candidate.valid
-        || candidate.targetWeight <= 0.0
-        || updateWeight <= 0.0
-        || mInc <= 0.0
-    ) {
+    if (!candidate.valid || mInc <= 0.0) {
+        return false;
+    }
+
+    reservoir.m += mInc;
+    if (candidate.targetWeight <= 0.0 || updateWeight <= 0.0) {
         return false;
     }
 
     wSum += updateWeight;
-    reservoir.m += mInc;
-
     float p = updateWeight * safeRcp(wSum);
     if (randValue < p) {
         reservoir.radiance = candidate.radiance;
@@ -201,11 +200,17 @@ vec3 rc_sampleMissRadiance(vec3 rayDir) {
     return atmospherics_air_lut_sampleSkyViewLUT(atmosphere, skyParams, 0.0).inScattering;
 }
 
+bool rc_isFiniteRadiance(vec3 radiance) {
+    return all(lessThanEqual(abs(radiance), vec3(FLT_MAX)));
+}
+
+// valid: the radiance is finite; it may be zero.
 vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     valid = false;
+    // Callers reject exhausted traces, so a miss here left the voxel grid and is treated as sky.
     if (!hit.hit) {
         vec3 missRadiance = rc_sampleMissRadiance(-outgoingDir);
-        valid = rc_luminance(missRadiance) > 0.0 && !any(isnan(missRadiance));
+        valid = rc_isFiniteRadiance(missRadiance);
         return valid ? missRadiance : vec3(0.0);
     }
 
@@ -215,7 +220,10 @@ vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
     }
     vec3 radiance = surface.material.emissive
         + gi_hitDirectLighting(surface.material, hit.hitPos, outgoingDir, hit.normal, hit.normal);
-    valid = rc_luminance(radiance) > 0.0 && !any(isnan(radiance));
+    valid = rc_isFiniteRadiance(radiance);
+    if (!valid) {
+        return vec3(0.0);
+    }
     surface.material.roughness = max(surface.material.roughness, RC_MAX_ROUGHNESS * 0.5);
 
     RCReservoir prevReservoir;
@@ -224,39 +232,18 @@ vec3 rc_sampleHitRadiance(VoxelHit hit, vec3 outgoingDir, out bool valid) {
         return radiance;
     }
 
-    vec3 incomingDir = normalize(prevReservoir.sampleDir);
-    vec3 viewDir = outgoingDir;
-    float NDotL = dot(faceNormal, incomingDir);
-    float NDotV = dot(faceNormal, viewDir);
-    if (NDotL <= 0.0 || NDotV <= 0.0) {
+    float NDotV = dot(faceNormal, outgoingDir);
+    if (NDotV <= 0.0) {
         return radiance;
     }
 
-    vec3 incomingRadiance = rc_reservoirEstimateRadiance(prevReservoir);
-    if (rc_luminance(incomingRadiance) <= 0.0 || any(isnan(incomingRadiance)) || any(isnan(incomingDir))) {
+    // Same uniform-incidence shading of the face estimate as rc_lookupSampleFace.
+    vec2 uniformAlbedo = resampleMaterial_uniformIncidenceAlbedo(resampleMaterial_fromMaterial(surface.material), NDotV);
+    vec3 bounceRadiance = (surface.material.albedo * uniformAlbedo.x + uniformAlbedo.y) * rc_reservoirEstimateRadiance(prevReservoir);
+    if (!rc_isFiniteRadiance(bounceRadiance)) {
         return radiance;
     }
-
-    vec3 H = incomingDir + viewDir;
-    float invHLen = inversesqrt(max(dot(H, H), 1e-6));
-    float NDotH = saturate(dot(faceNormal, H * invHLen));
-    float LDotH = saturate(dot(incomingDir, H * invHLen));
-    ResampleMaterial resampleMaterial = resampleMaterial_fromMaterial(surface.material);
-    ResampleBRDF brdf = resampleMaterial_evalBRDF(resampleMaterial, NDotL, NDotV, NDotH, LDotH);
-    if (brdf.full <= 0.0) {
-        return radiance;
-    }
-
-    vec3 totalBRDF = surface.material.albedo * brdf.diffuse + vec3(brdf.specular);
-    // incomingRadiance is the cosine-weighted mean, so divide the cosine-weighted BRDF by the cosine pdf.
-    vec3 bounceRadiance = incomingRadiance * totalBRDF * (PI / NDotL);
-    if (rc_luminance(bounceRadiance) <= 0.0 || any(isnan(bounceRadiance))) {
-        return radiance;
-    }
-
-    radiance += bounceRadiance;
-    valid = true;
-    return radiance;
+    return radiance + bounceRadiance;
 }
 
 bool rc_revalidateHistoryReservoir(
@@ -277,6 +264,9 @@ bool rc_revalidateHistoryReservoir(
     vec3 rayOrigin = rc_faceRayOrigin(worldCellCoord, level, faceId);
     VoxelRay voxelRay = voxelray_setup(rayOrigin, sampleDir, 0u);
     VoxelHit hit = voxel_traceRay(voxelRay, 128);
+    if (voxel_traceExhausted(hit, voxelRay)) {
+        return false;
+    }
 
     uint flags = rc_reservoirMetaFlags(reservoir.meta);
     bool expectSurfaceHit = (flags & RC_RES_FLAG_SURFACE_HIT) != 0u;
@@ -387,7 +377,8 @@ float rc_pairwiseSpatialMIS_MAware(
     return sourceMass * safeRcp(denom);
 }
 
-RCCandidate rc_generateCandidate(uint entryIndex, ivec3 worldCellCoord, uint level, uint faceId, bool allowHitFeedback) {
+RCCandidate rc_generateCandidate(uint entryIndex, ivec3 worldCellCoord, uint level, uint faceId, bool allowHitFeedback, out float proposalWeight) {
+    proposalWeight = 1.0;
     RCCandidate candidate;
     candidate.radiance = vec3(0.0);
     candidate.dir = rc_faceNormal(faceId);
@@ -401,6 +392,46 @@ RCCandidate rc_generateCandidate(uint entryIndex, ivec3 worldCellCoord, uint lev
     uvec4 randHash = hash_44_q3(uvec4(entryIndex, faceId, frameCounter, 0x9E3779B9u));
     vec2 randValue = hash_uintToFloat(randHash.xy);
     vec4 localSample = rand_sampleInCosineWeightedHemisphere(randValue);
+    #ifdef PATH_GUIDING_ENABLED
+        PathGuide guide;
+        #if SETTING_DEBUG_PATH_GUIDE >= 1 && SETTING_DEBUG_PATH_GUIDE <= 4
+            guide = pathGuide_debugLobe();
+        #else
+            uvec4 stats0;
+            uvec4 stats1;
+            pathGuide_previousStats(entryIndex, rc_worldKeyHash(level, worldCellCoord), level, faceId, stats0, stats1);
+            guide = pathGuide_fit(stats0, stats1);
+        #endif
+        uvec2 guideBins = pathGuide_bins(guide, 0.0);
+        if (guideBins.x + guideBins.y > 0u) {
+            vec3 up = abs(faceNormal.z) < 0.999 ? vec3(0.0, 0.0, 1.0) : vec3(1.0, 0.0, 0.0);
+            vec3 T = normalize(cross(up, faceNormal));
+            vec3 B = cross(faceNormal, T);
+            mat3 worldToTangent = transpose(mat3(T, B, faceNormal));
+            vec3 axis0 = worldToTangent * coords_dir_viewToWorld(guide.lobe0.axisView);
+            vec3 axis1 = worldToTangent * coords_dir_viewToWorld(guide.lobe1.axisView);
+            uint choiceBin = randHash.z & 255u;
+            if (choiceBin < guideBins.x + guideBins.y) {
+                bool firstLobe = choiceBin < guideBins.x;
+                localSample.xyz = pathGuide_sampleFolded(
+                    normalize(firstLobe ? axis0 : axis1),
+                    firstLobe ? guide.lobe0.kappa : guide.lobe1.kappa,
+                    randValue
+                );
+            }
+            float cosinePdf = localSample.z * RCP_PI;
+            vec2 fractions = vec2(guideBins) * (1.0 / 256.0);
+            localSample.w = (1.0 - fractions.x - fractions.y) * cosinePdf;
+            if (guideBins.x > 0u) {
+                localSample.w += fractions.x * pathGuide_foldedPdf(normalize(axis0), guide.lobe0.kappa, localSample.xyz);
+            }
+            if (guideBins.y > 0u) {
+                localSample.w += fractions.y * pathGuide_foldedPdf(normalize(axis1), guide.lobe1.kappa, localSample.xyz);
+            }
+            // The reservoir and spatial shifts remain in the cosine reference measure.
+            proposalWeight = cosinePdf / localSample.w;
+        }
+    #endif
     vec3 worldDir = rc_hemisphereDirection(faceNormal, localSample.xyz);
     float cosTheta = max(dot(faceNormal, worldDir), 0.0);
     if (cosTheta <= 0.0 || localSample.w <= 0.0) {
@@ -410,21 +441,20 @@ RCCandidate rc_generateCandidate(uint entryIndex, ivec3 worldCellCoord, uint lev
     vec3 rayOrigin = rc_faceRayOrigin(worldCellCoord, level, faceId);
     VoxelRay voxelRay = voxelray_setup(rayOrigin, worldDir, 0u);
     VoxelHit hit = voxel_traceRay(voxelRay, 128);
+    if (voxel_traceExhausted(hit, voxelRay)) {
+        return candidate;
+    }
     if (allowHitFeedback && hit.hit) {
         rc_touchHitFeedback(hit);
     }
 
     bool radianceValid = false;
     vec3 radiance = rc_sampleHitRadiance(hit, -worldDir, radianceValid);
-    float targetWeight = rc_luminance(radiance);
-    bool candidateValid = radianceValid
-        && targetWeight > 0.0
-        && !any(isnan(radiance))
-        && !isnan(targetWeight);
-    if (!candidateValid) {
+    if (!radianceValid) {
         return candidate;
     }
 
+    // A zero-radiance sample is legal: it is counted in M and the CV weight but never selected.
     candidate.radiance = radiance;
     candidate.dir = worldDir;
     if (hit.hit) {
@@ -434,7 +464,7 @@ RCCandidate rc_generateCandidate(uint entryIndex, ivec3 worldCellCoord, uint lev
     } else {
         candidate.flags = RC_RES_FLAG_SKY_MISS;
     }
-    candidate.targetWeight = targetWeight;
+    candidate.targetWeight = rc_luminance(radiance);
     candidate.valid = true;
     return candidate;
 }
@@ -551,22 +581,6 @@ bool rc_generateSpatialCandidate(
     #endif
 }
 
-RCReservoir rc_reservoirInitFromCandidate(RCCandidate candidate) {
-    RCReservoir reservoir;
-    if (candidate.valid && candidate.targetWeight > 0.0) {
-        reservoir.radiance = candidate.radiance;
-        reservoir.avgWY = 1.0;
-        reservoir.sampleDir = candidate.dir;
-        reservoir.m = 1.0;
-        reservoir.hitPos = candidate.hitPos;
-        reservoir.meta = rc_packReservoirMeta(0u, true, candidate.flags);
-        reservoir.estimate = candidate.radiance;
-    } else {
-        reservoir = rc_reservoirInit();
-    }
-    return reservoir;
-}
-
 void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint level, uint faceId) {
     uint reservoirIndex = rc_faceReservoirIndex(entry.x, entry.y, faceId);
     if (reservoirIndex >= uint(SETTING_RC_POOL_SIZE)) {
@@ -582,11 +596,12 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
     }
     bool allowHitFeedback = rc_hasFace(screenTouchedFaceMask, faceId);
 
-    RCCandidate candidate = rc_generateCandidate(entryIndex, worldCellCoord, level, faceId, allowHitFeedback);
+    float proposalWeight;
+    RCCandidate candidate = rc_generateCandidate(entryIndex, worldCellCoord, level, faceId, allowHitFeedback, proposalWeight);
     RCReservoir reservoir = rc_reservoirInit();
     RCCVAccumulator cvAccumulator = rc_cvAccumulatorInit();
     float qInit = candidate.valid ? 1.0 : 0.0;
-    rc_cvAccumulatorAdd(cvAccumulator, rc_cvInitialEstimate(candidate), qInit);
+    rc_cvAccumulatorAdd(cvAccumulator, rc_cvInitialEstimate(candidate, proposalWeight), qInit);
 
     uint prevBufferIndex = rc_bufferEntryIndex(rc_previousSide(), entryIndex);
     uvec4 prevEntry = rc_indirection[prevBufferIndex];
@@ -596,30 +611,33 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
         && rc_entryMetaLevel(prevEntry.w) == level
         && rc_hasFace(prevEntry.y, faceId);
 
+    // historyValid: the previous face estimate and M carry over.
+    // historySampleValid: it also holds a selected sample for RIS and revalidation.
     uint historyAge = 0u;
+    bool historySampleValid = false;
     if (historyValid) {
         uint prevReservoirIndex = rc_faceReservoirIndex(prevEntry.x, prevEntry.y, faceId);
         if (prevReservoirIndex < uint(SETTING_RC_POOL_SIZE)) {
             reservoir = rc_reservoirLoad(rc_previousSide(), prevReservoirIndex);
-            historyValid = rc_reservoirValid(reservoir);
-            if (historyValid) {
-                historyAge = rc_reservoirMetaAge(reservoir.meta);
-                historyValid = reservoir.avgWY > 0.0
-                    && reservoir.m > 0.0
-                    && rc_luminance(reservoir.radiance) > 0.0
-                    && !isnan(reservoir.avgWY)
-                    && !isnan(reservoir.m)
-                    && !any(isnan(reservoir.radiance))
-                    && !any(isinf(reservoir.radiance));
-            }
+            historyValid = rc_reservoirValid(reservoir)
+                && !isnan(reservoir.m)
+                && rc_isFiniteRadiance(reservoir.estimate);
+            historySampleValid = historyValid
+                && rc_reservoirHasSample(reservoir)
+                && rc_luminance(reservoir.radiance) > 0.0
+                && !isnan(reservoir.avgWY)
+                && rc_isFiniteRadiance(reservoir.radiance);
+            historyAge = rc_reservoirMetaAge(reservoir.meta);
         } else {
             historyValid = false;
         }
     }
+    if (!historyValid) {
+        reservoir = rc_reservoirInit();
+    }
     float wSum = 0.0;
     RCReservoir historyBeforeRevalidate = reservoir;
-    if (historyValid) {
-        historyBeforeRevalidate = reservoir;
+    if (historySampleValid) {
         uint validateId = worldKeyHash + faceId;
         if ((validateId & 7u) == (uint(frameCounter) & 7u)) {
             historyValid = rc_revalidateHistoryReservoir(
@@ -628,14 +646,17 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
                 faceId,
                 reservoir
             );
+            historySampleValid = historyValid;
             if (!historyValid) {
                 reservoir = rc_reservoirInit();
             }
         }
     }
-    if (historyValid) {
+    if (historySampleValid) {
         wSum = historyBeforeRevalidate.avgWY
             * rc_luminance(historyBeforeRevalidate.radiance) * reservoir.m;
+    }
+    if (historyValid) {
         float historyM = reservoir.m;
         float qHistory = min(historyM, RC_CV_M_CAP);
         // Stored history cannot represent the reverse previous-frame shift. This is
@@ -645,27 +666,32 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
         rc_cvAccumulatorAdd(cvAccumulator, fromHistory, qHistory);
     }
 
-    uint selectedFlags = historyValid ? rc_reservoirMetaFlags(reservoir.meta) : 0u;
+    uint selectedFlags = historySampleValid ? rc_reservoirMetaFlags(reservoir.meta) : 0u;
     uint selectedAge = historyValid ? min(historyAge + 1u, 255u) : 0u;
-    bool selectedCandidate = false;
     bool selectedSpatial = false;
     bool spatialNeighborValid = false;
 
+    bool selectedCandidate = false;
     if (historyValid) {
         float randValue = hash_uintToFloat(hash_41_q5(uvec4(entryIndex, faceId, frameCounter, 0x85EBCA6Bu)));
         selectedCandidate = rc_reservoirUpdateWeighted(
             reservoir,
             wSum,
             candidate,
-            candidate.targetWeight,
+            candidate.targetWeight * proposalWeight,
             1.0,
             randValue
         );
-    } else {
-        reservoir = rc_reservoirInitFromCandidate(candidate);
-        if (rc_reservoirValid(reservoir)) {
-            wSum = candidate.targetWeight;
-            selectedFlags = candidate.flags;
+    } else if (candidate.valid) {
+        // Same result as rc_reservoirUpdateWeighted on an empty reservoir. Spelling it out keeps this kernel
+        // below a register cliff (the shared call measured +43% on night-gi-1-720p).
+        reservoir.m = 1.0;
+        if (candidate.targetWeight > 0.0) {
+            reservoir.radiance = candidate.radiance;
+            reservoir.sampleDir = candidate.dir;
+            reservoir.hitPos = candidate.hitPos;
+            wSum = candidate.targetWeight * proposalWeight;
+            selectedCandidate = true;
         }
     }
 
@@ -780,17 +806,27 @@ void rc_updateFace(uint entryIndex, uvec4 entry, ivec3 worldCellCoord, uint leve
     reservoir.m = clampedM;
 
     float selectedTargetWeight = rc_luminance(reservoir.radiance);
-    bool reservoirValid = reservoir.m > 0.0
+    bool sampleValid = reservoir.m > 0.0
         && wSum > 0.0
         && selectedTargetWeight > 0.0
         && !isnan(selectedTargetWeight)
         && !any(isnan(reservoir.radiance))
         && !isnan(wSum);
-    reservoir.avgWY = reservoirValid ? wSum * safeRcp(reservoir.m) * safeRcp(selectedTargetWeight) : 0.0;
-    reservoir.meta = rc_packReservoirMeta(selectedAge, reservoirValid, selectedFlags);
+    bool estimateValid = reservoir.m > 0.0 && rc_cvAccumulatorValid(cvAccumulator);
 
-    if (reservoirValid && rc_cvAccumulatorValid(cvAccumulator)) {
+    if (estimateValid) {
         reservoir.estimate = rc_cvAccumulatorResolve(cvAccumulator);
+        if (sampleValid) {
+            reservoir.avgWY = wSum * safeRcp(reservoir.m) * safeRcp(selectedTargetWeight);
+        } else {
+            // Only zero-radiance samples were counted: keep the estimate and M without a selected sample.
+            reservoir.radiance = vec3(0.0);
+            reservoir.avgWY = 0.0;
+            reservoir.sampleDir = rc_faceNormal(faceId);
+            reservoir.hitPos = vec3(0.0);
+            selectedFlags = 0u;
+        }
+        reservoir.meta = rc_packReservoirMeta(selectedAge, true, selectedFlags);
         if (spatialNeighborValid) {
             reservoir.meta |= 1u;
         }

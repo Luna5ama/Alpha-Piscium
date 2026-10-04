@@ -945,6 +945,16 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
+                toggle("SETTING_GI_PATH_GUIDING", false) {
+                    lang {
+                        name = "Path Guiding"
+                        comment = "Samples part of the diffuse GI and radiance cache update rays toward directions learned per radiance cache face. Requires the radiance cache."
+                    }
+                    lang(Locale.SIMPLIFIED_CHINESE) {
+                        name = "路径引导"
+                        comment = "将一部分漫反射GI和辐射缓存更新光线朝每个辐射缓存面学到的方向采样。需要开启辐射缓存。"
+                    }
+                }
                 toggle("SETTING_GI_SPATIAL_REUSE", true) {
                     lang {
                         name = "Spatial Reuse"
@@ -4308,9 +4318,46 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                     name = "Voxel Debug Counter"
                 }
             }
-            toggle("SETTING_GI_USE_REFERENCE", false) {
+            slider("SETTING_DEBUG_PATH_GUIDE", 0, 0..6) {
+                lang {
+                    name = "Path Guide Debug"
+                    comment = "1-4 replace the learned guide with a fixed world-up lobe (kappa, alpha). 5 shows the axis of the learned lobe with the larger share scaled by its concentration and 6 the coverage (red: no RC face, yellow: too few or too spread samples, green: guided) through Debug Output."
+                    0 value "Off"
+                    1 value "Up k1 a0.5"
+                    2 value "Up k8 a0.5"
+                    3 value "Up k32 a0.5"
+                    4 value "Up k32 a0.25"
+                    5 value "Learned Lobe"
+                    6 value "Coverage"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "路径引导调试"
+                    comment = "1-4用固定的世界向上lobe（kappa, alpha）替代学习到的引导。5通过调试输出显示份额较大的学习lobe的方向并按集中度缩放，6显示覆盖情况（红：无RC面，黄：样本太少或太分散，绿：已引导）。"
+                    0 value "关闭"
+                    1 value "向上 k1 a0.5"
+                    2 value "向上 k8 a0.5"
+                    3 value "向上 k32 a0.5"
+                    4 value "向上 k32 a0.25"
+                    5 value "学习到的lobe"
+                    6 value "覆盖"
+                }
+            }
+            toggle("SETTING_GI_USE_REFERENCE", 0, 0..3) {
                 lang {
                     name = "Monte Carlo Reference"
+                    comment = "Accumulates the one-sample estimate of the initial GI candidate in FP32 while the camera is static and shows its mean instead of the denoised GI. Frozen Li drops the radiance cache term at hits; Furnace outputs cos/(πq)."
+                    0 value "Off"
+                    1 value "Full Li"
+                    2 value "Frozen Li"
+                    3 value "Furnace"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "蒙特卡洛参考"
+                    comment = "相机静止时以FP32累加初始GI候选的单样本估计，并用其均值替代降噪后的GI。冻结Li会去掉命中点的辐射缓存项；熔炉模式输出cos/(πq)。"
+                    0 value "关闭"
+                    1 value "完整Li"
+                    2 value "冻结Li"
+                    3 value "熔炉测试"
                 }
                     slider("SETTING_DEBUG_RC_MODE", 0, 0..10) {
                         lang {

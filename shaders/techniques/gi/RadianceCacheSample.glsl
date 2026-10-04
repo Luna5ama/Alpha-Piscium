@@ -78,39 +78,17 @@ void rc_lookupSampleFace(
     hit.materialID = voxel_getMaterialID(ivec3(floor(ownerP)));
     voxel_SurfaceData surface = voxel_sampleVoxelSurface(hit, 0.0);
     surface.material.roughness = max(surface.material.roughness, RC_MAX_ROUGHNESS);
-    vec3 wi = normalize(reservoir.sampleDir);
-
-    float faceNoL = max(dot(faceNormal, wi), 0.0);
-    float NoL = max(dot(N, wi), 0.0);
-    float NoV = max(dot(N, V), 0.0);
-
-    if (faceNoL <= 1e-4 || NoL <= 0.0 || NoV <= 0.0) {
+    float NoV = dot(N, V);
+    if (NoV <= 0.0) {
         result.misses++;
         return;
     }
 
-    float pCache = faceNoL * RCP_PI;
-
-    vec3 H = normalize(wi + V);
-    float NoH = saturate(dot(N, H));
-    float LoH = saturate(dot(wi, H));
-
-    ResampleMaterial material = resampleMaterial_fromMaterial(surface.material);
-
-    ResampleBRDF brdf = resampleMaterial_evalBRDF(
-        material,
-        NoL,
-        NoV,
-        NoH,
-        LoH
-    );
-
-    vec3 f = surface.material.albedo * brdf.diffuse + vec3(brdf.specular);
-
-    vec3 cachedRadiance = rc_reservoirEstimateRadiance(reservoir);
-    // f already carries NoL and the estimate is cosine-weighted, so the diffuse term reduces to albedo * (1 - F) * estimate.
-    vec3 estimatedRadiance = cachedRadiance * f * safeRcp(max(pCache, 1e-4));
-    if (rc_luminance(estimatedRadiance) <= 0.0 || any(isnan(estimatedRadiance))) {
+    // The face stores the cosine-weighted mean incident radiance; shade it as uniform incidence so the result
+    // does not depend on the face reservoir's current sample direction. A zero estimate is a valid hit.
+    vec2 uniformAlbedo = resampleMaterial_uniformIncidenceAlbedo(resampleMaterial_fromMaterial(surface.material), NoV);
+    vec3 estimatedRadiance = (surface.material.albedo * uniformAlbedo.x + uniformAlbedo.y) * rc_reservoirEstimateRadiance(reservoir);
+    if (!all(lessThanEqual(abs(estimatedRadiance), vec3(FLT_MAX)))) {
         result.misses++;
         return;
     }

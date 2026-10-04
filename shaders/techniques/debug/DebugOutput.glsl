@@ -7,6 +7,7 @@
 #include "/util/TextRender.glsl"
 #include "/techniques/EnvProbe.glsl"
 #include "/techniques/gi/RadianceCacheSample.glsl"
+#include "/techniques/gi/PathGuiding.glsl"
 #include "/techniques/atmospherics/air/Common.glsl"
 #include "/techniques/atmospherics/air/lut/API.glsl"
 #include "/techniques/atmospherics/clouds/amblut/API.glsl"
@@ -168,6 +169,34 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         outputColor.a = 1.0;
     }
     #endif
+    #endif
+
+    #if defined(PATH_GUIDING_ENABLED) && SETTING_DEBUG_PATH_GUIDE >= 5
+    if (all(lessThan(texelPos, uval_mainImageSizeI))) {
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).r;
+        vec3 guideColor = vec3(0.0);
+        if (viewZ > -65536.0) {
+            GBufferData gData = gbufferData_init();
+            gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
+            vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
+            vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
+            uint slot = pathGuide_faceSlot(viewPos, gData.geomNormal);
+            PathGuide guide = pathGuide_none();
+            if (slot != RC_INVALID) {
+                guide = pathGuide_load(slot);
+            }
+            #if SETTING_DEBUG_PATH_GUIDE == 5
+            PathGuideLobe lobe = guide.lobe1.alpha > guide.lobe0.alpha ? guide.lobe1 : guide.lobe0;
+            if (lobe.alpha > 0.0) {
+                guideColor = (coords_dir_viewToWorld(lobe.axisView) * 0.5 + 0.5) * (lobe.kappa / PG_MAX_KAPPA);
+            }
+            #else
+            bool guided = guide.lobe0.alpha + guide.lobe1.alpha > 0.0;
+            guideColor = slot == RC_INVALID ? vec3(1.0, 0.0, 0.0) : (guided ? vec3(0.0, 1.0, 0.0) : vec3(1.0, 1.0, 0.0));
+            #endif
+        }
+        outputColor = vec4(guideColor, 1.0);
+    }
     #endif
 
     ivec2 scaledTextureSize = ivec2(uval_mainImageSize * SETTING_DEBUG_SCALE);

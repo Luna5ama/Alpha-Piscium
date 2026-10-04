@@ -50,8 +50,19 @@ void main() {
             transient_viewNormal_store(texelPos, vec4(gData.normal * 0.5 + 0.5, 0.0));
 
             vec3 V = normalize(-viewPos);
+            PathGuide guide = pathGuide_none();
+            #ifdef PATH_GUIDING_ENABLED
+            #if SETTING_DEBUG_PATH_GUIDE >= 1 && SETTING_DEBUG_PATH_GUIDE <= 4
+            guide = pathGuide_debugLobe();
+            #else
+            uint guideSlot = pathGuide_faceSlot(viewPos, gData.geomNormal);
+            if (guideSlot != RC_INVALID) {
+                guide = pathGuide_load(guideSlot);
+            }
+            #endif
+            #endif
             float rayPdf = 0.0;
-            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, V, material, rayPdf);
+            vec3 rayDirView = restir_initialSample_generateRayDir(texelPos, gData.geomNormal, V, material, guide, rayPdf);
             candidate = restir_initialCandidate_makeInvalid(rayDirView);
 
             if (rayPdf > 0.0) {

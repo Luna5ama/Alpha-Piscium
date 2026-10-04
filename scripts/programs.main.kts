@@ -261,6 +261,10 @@ programs {
             indirect(0, 32)
             cond("defined(SETTING_RC_ENABLE)")
         }
+        pass("/pass/composite/GIPathGuidePrepare.comp.glsl") {
+            indirect(0, 32)
+            cond("defined(SETTING_GI_PATH_GUIDING) && defined(SETTING_RC_ENABLE)")
+        }
         pass("/pass/composite/DOFFocus.comp.glsl") {
             cond("defined(SETTING_DOF) && !defined(SETTING_DOF_MANUAL_FOCUS)")
         }
@@ -282,6 +286,9 @@ programs {
                 cond("SETTING_GI_INITIAL_SST_STEPS >= 64")
             }
         }
+        pass("/pass/composite/GIReferenceAccumulate.comp.glsl") {
+            cond("SETTING_GI_USE_REFERENCE > 0")
+        }
         pass("/pass/composite/GIReSTIRTemporalSplatClear.comp.glsl")
         pass("/pass/composite/GIReSTIRTemporalSplat.comp.glsl")
         pass("/pass/composite/GIReSTIRTemporalReuse.comp.glsl")
@@ -299,6 +306,9 @@ programs {
         pass("/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl")
         pass("/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl") {
             cond("defined(SETTING_GI_SPATIAL_REUSE)")
+        }
+        pass("/pass/composite/GIPathGuideSplat.comp.glsl") {
+            cond("defined(SETTING_GI_PATH_GUIDING) && defined(SETTING_RC_ENABLE)")
         }
         pass("/pass/composite/GIDenoiserAccum.comp.glsl")
         pass("/pass/composite/GIDenoiserAntiFireFly.comp.glsl") {

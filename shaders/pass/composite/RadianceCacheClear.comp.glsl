@@ -15,6 +15,11 @@ void main() {
         rc_poolOverflowCounter = 0u;
         rc_cacheHitCounter = 0u;
         rc_cacheMissCounter = 0u;
+        pg_selectedCounter = 0u;
+        pg_splatCounter = 0u;
+        pg_noSlotCounter = 0u;
+        pg_neighborCounter = 0u;
+        pg_skyCounter = 0u;
     }
 
     if (idx < RC_ENTRY_COUNT) {

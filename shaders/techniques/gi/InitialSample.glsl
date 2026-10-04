@@ -6,6 +6,7 @@
 #include "/techniques/SST2.glsl"
 #include "/techniques/gi/Common.glsl"
 #include "/techniques/gi/HitDirectLighting.glsl"
+#include "/techniques/gi/PathGuiding.glsl"
 #include "/techniques/gi/RadianceCacheSample.glsl"
 #include "/techniques/gi/ResampleMaterial.glsl"
 #include "/techniques/voxel/SurfaceData.glsl"
@@ -18,6 +19,8 @@
 const float RESTIR_INITIAL_CANDIDATE_SKY_MISS = -1.0;
 const float RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL = -2.0;
 const float RESTIR_INITIAL_CANDIDATE_INVALID = -3.0;
+// The voxel trace ran out of steps: a legal sample with zero radiance, not a sky miss.
+const float RESTIR_INITIAL_CANDIDATE_TRACE_EXHAUSTED = -4.0;
 
 struct restir_InitialCandidate {
     vec3 radiance;
@@ -155,7 +158,6 @@ bool restir_initialSample_screenHitQuery(
     vec3 queryWorldGeomNormal = coords_dir_viewToWorld(hitData.geomNormal);
     vec3 queryWorldPos = hitWorldPos - queryWorldGeomNormal * 0.02;
     vec3 V = coords_dir_viewToWorld(normalize(rayOriginView - hitViewPos));
-    RCLookupResult rcLookup = rc_lookupDiffuseGI(V, queryWorldPos, queryWorldNormal, queryWorldGeomNormal);
 
     candidate = restir_initialCandidate_init();
     candidate.rayDirView = rayDirView;
@@ -165,9 +167,13 @@ bool restir_initialSample_screenHitQuery(
     candidate.radiance = hitMaterial.emissive
         + gi_hitDirectLighting(hitMaterial, hitWorldPos, V, queryWorldNormal, queryWorldGeomNormal);
 
+    // Frozen-Li reference mode drops the RC bounce so the hit radiance does not converge over time.
+    #if SETTING_GI_USE_REFERENCE != 2
+    RCLookupResult rcLookup = rc_lookupDiffuseGI(V, queryWorldPos, queryWorldNormal, queryWorldGeomNormal);
     if (rcLookup.weight > 0.0 && restir_initialSample_isFinite(rcLookup.radiance)) {
         candidate.radiance += rcLookup.radiance;
     }
+    #endif
 
     candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
     return true;
@@ -179,12 +185,19 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
     vec3 rayDirView,
     vec3 rayWorldDir,
     float pdf,
-    VoxelHit hit
+    VoxelHit hit,
+    bool traceExhausted
 ) {
     restir_InitialCandidate candidate = restir_initialCandidate_init();
     candidate.rayDirView = rayDirView;
     candidate.pdf = pdf;
 
+    if (traceExhausted) {
+        candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_TRACE_EXHAUSTED;
+        return candidate;
+    }
+
+    // Leaving the voxel grid is treated as reaching the sky.
     if (!hit.hit) {
         candidate.hitDistance = RESTIR_INITIAL_CANDIDATE_SKY_MISS;
         candidate.radiance = restir_initialSample_sanitizeRadiance(
@@ -202,12 +215,14 @@ restir_InitialCandidate restir_initialSample_buildVoxelCandidate(
     }
 
     vec3 V = normalize(rayOriginWorld - hit.hitPos);
-    RCLookupResult rcLookup = rc_lookupDiffuseGI(V, hit.hitPos, hit.normal, hit.normal);
     candidate.radiance = surface.material.emissive
         + gi_hitDirectLighting(surface.material, hit.hitPos, V, hit.normal, hit.normal);
+    #if SETTING_GI_USE_REFERENCE != 2
+    RCLookupResult rcLookup = rc_lookupDiffuseGI(V, hit.hitPos, hit.normal, hit.normal);
     if (rcLookup.weight > 0.0 && restir_initialSample_isFinite(rcLookup.radiance)) {
         candidate.radiance += rcLookup.radiance;
     }
+    #endif
     candidate.radiance = restir_initialSample_sanitizeRadiance(candidate.radiance);
     return candidate;
 }
@@ -241,11 +256,14 @@ bool restir_initialSample_useGeomSamplingFrame(
     return useGeomFrame;
 }
 
+// Mixture over 256 technique bins: specular VNDF, guide lobe 0, guide lobe 1, then cosine for the rest:
+//   q = pS * qVNDF + (1 - pS) * [(1 - a0 - a1) * qCos + a0 * qLobe0 + a1 * qLobe1],  ak = lobe k bins / diffuse bins
 float restir_initialSample_evaluateRayPdf(
     vec3 rayDirView,
     vec3 geomNormal,
     vec3 V,
-    Material material
+    Material material,
+    PathGuide guide
 ) {
     vec3 wiTangent;
     bool useGeomFrame = restir_initialSample_useGeomSamplingFrame(V, material, wiTangent);
@@ -280,7 +298,20 @@ float restir_initialSample_evaluateRayPdf(
         }
     }
 
-    float pdf = pSpec * vndfPdf + (1.0 - pSpec) * cosinePdf;
+    float diffusePdf = cosinePdf;
+    uvec2 guideBins = pathGuide_bins(guide, pSpec);
+    if (guideBins.x + guideBins.y > 0u) {
+        vec2 guideFractions = vec2(guideBins) / (256.0 - pSpec * 256.0);
+        diffusePdf *= 1.0 - guideFractions.x - guideFractions.y;
+        if (guideBins.x > 0u) {
+            diffusePdf += guideFractions.x * pathGuide_lobePdf(guide.lobe0, samplingTbnInv, lightTangent);
+        }
+        if (guideBins.y > 0u) {
+            diffusePdf += guideFractions.y * pathGuide_lobePdf(guide.lobe1, samplingTbnInv, lightTangent);
+        }
+    }
+
+    float pdf = pSpec * vndfPdf + (1.0 - pSpec) * diffusePdf;
     return pdf > 0.0 && !isnan(pdf) && !isinf(pdf) ? pdf : 0.0;
 }
 
@@ -291,6 +322,7 @@ vec3 restir_initialSample_generateRayDir(
     vec3 geomNormal,
     vec3 V,
     Material material,
+    PathGuide guide,
     out float pdf
 ) {
     vec3 wiTangent;
@@ -311,6 +343,7 @@ vec3 restir_initialSample_generateRayDir(
     choiceRand = (choiceRand * 255.0 + 0.5) * (1.0 / 256.0);
 
     float pSpec = restir_initialSample_specularProbability(wiTangent, material);
+    uvec2 guideBins = pathGuide_bins(guide, pSpec);
     vec3 sampleDirTangent;
     if (choiceRand < pSpec) {
         vec3 halfTangent = bsdf_VNDFSphericalCap(
@@ -319,13 +352,17 @@ vec3 restir_initialSample_generateRayDir(
             xi
         );
         sampleDirTangent = reflect(-wiTangent, halfTangent);
+    } else if (choiceRand < pSpec + float(guideBins.x + guideBins.y) * (1.0 / 256.0)) {
+        PathGuideLobe lobe = choiceRand < pSpec + float(guideBins.x) * (1.0 / 256.0) ? guide.lobe0 : guide.lobe1;
+        mat3 samplingTbnInv = useGeomFrame ? material.geomTbnInv : material.tbnInv;
+        sampleDirTangent = pathGuide_sampleFolded(normalize(samplingTbnInv * lobe.axisView), lobe.kappa, xi);
     } else {
         sampleDirTangent = rand_stbnUnitVec3Cosine(directionRandKey, RANDOM_FRAME);
     }
 
     vec3 rayDirView = normalize(samplingTbn * sampleDirTangent);
     rayDirView = nzpacking_unpackNormalOct32(nzpacking_packNormalOct32(rayDirView));
-    pdf = restir_initialSample_evaluateRayPdf(rayDirView, geomNormal, V, material);
+    pdf = restir_initialSample_evaluateRayPdf(rayDirView, geomNormal, V, material, guide);
     return rayDirView;
 }
 

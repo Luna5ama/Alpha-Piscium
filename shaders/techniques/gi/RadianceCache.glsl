@@ -80,8 +80,16 @@ bool _rcReservoirMetaValid(uint meta) {
 }
 
 
+// The face estimate is valid once any legal sample was counted, including zero-radiance ones.
 bool rc_reservoirValid(RCReservoir reservoir) {
     return _rcReservoirMetaValid(reservoir.meta) && reservoir.m > 0.0;
+}
+
+// A valid face may have no selected sample when every counted sample had zero radiance.
+bool rc_reservoirHasSample(RCReservoir reservoir) {
+    return rc_reservoirValid(reservoir)
+        && (reservoir.meta & (RC_RES_FLAG_SURFACE_HIT | RC_RES_FLAG_SKY_MISS)) != 0u
+        && reservoir.avgWY > 0.0;
 }
 
 uint rc_reservoirRecordIndex(uint side, uint reservoirIndex) {

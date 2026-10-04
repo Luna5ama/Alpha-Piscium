@@ -6,15 +6,9 @@
 #include "/util/Colors2.glsl"
 #include "/util/NZPacking.glsl"
 
-#ifdef SETTING_GI_USE_REFERENCE
-#define USE_REFERENCE 1
-#else
-#define USE_REFERENCE 0
-#endif
 #define SKIP_FRAMES 0
 #define MAX_FRAMES 0x7fffffff
 #define RANDOM_FRAME (frameCounter - SKIP_FRAMES)
-#define MC_SPP 16
 
 const float TOTAL_HISTORY_LENGTH = 255.0;
 

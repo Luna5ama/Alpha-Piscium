@@ -11,6 +11,11 @@ layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 #include "/techniques/gi/Reservoir.glsl"
 #include "/techniques/gi/ReservoirSplat.glsl"
 #include "/techniques/voxel/VoxelTrace.glsl"
+#include "/techniques/gi/PathGuiding.glsl"
+
+#ifdef PATH_GUIDING_ENABLED
+layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
+#endif
 
 void main() {
     uint rayCount = global_restirVisibilityRayCount;
@@ -54,29 +59,14 @@ void main() {
     VoxelHit hit = voxel_traceRay(voxelRay, 128, true);
     vec3 expectedHitPos = worldPos + worldDir * expectedHitDistance;
     if (!hit.hit || distanceSq(hit.hitPos, expectedHitPos) > 0.05) {
-        // Replace the occluded neighbor sample with this pixel's temporal estimate.
-        // SpatialShade copied the current temporal reservoir into its history tile this frame.
-        ReSTIRReservoir temporalReservoir = restir_reservoir_unpack(history_restir_reservoirTemporal_fetch(texelPos));
-        vec3 normal = normalize(transient_viewNormal_fetch(texelPos).xyz * 2.0 - 1.0);
-        ResampleMaterial material = resampleMaterial_unpack(transient_restir_resampleMaterial_fetch(texelPos));
-        vec4 fallbackDiffOut;
-        vec4 fallbackSpecOut;
-        restir_shadeSample(
-            centerSample.sampleValue.rgb,
-            temporalReservoir.Y,
-            temporalReservoir.avgWY,
-            geomNormal,
-            normal,
-            normalize(-primaryViewPos),
-            normalize(-viewPos),
-            material,
-            texelPos,
-            fallbackDiffOut,
-            fallbackSpecOut
-        );
-        transient_ssgiDiffOut_store(texelPos, fallbackDiffOut);
-        fallbackSpecOut.rgb = mix(specularRatio.xyz, fallbackSpecOut.rgb, specularRatio.w);
-        transient_ssgiSpecOut_store(texelPos, fallbackSpecOut);
+        // The occluded neighbor sample contributes nothing: visibility-deferred RIS has zero contribution here.
+        // The BRDF-ratio specular has no visibility term and stays, as in SpatialShade's ratio-only output.
+        transient_ssgiDiffOut_store(texelPos, vec4(0.0));
+        transient_ssgiSpecOut_store(texelPos, vec4(specularRatio.xyz * (1.0 - specularRatio.w), 0.0));
+        #ifdef PATH_GUIDING_ENABLED
+        // The occluded neighbor sample is not a valid training direction for this pixel.
+        transient_pathGuide_trainRecord_store(texelPos, uvec4(0u));
+        #endif
         #if SETTING_DEBUG_OUTPUT
         imageStore(uimg_temp5, texelPos, vec4(1.0, 0.0, 0.0, 0.0));
         #endif

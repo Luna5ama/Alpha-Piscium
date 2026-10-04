@@ -1134,29 +1134,15 @@ void main() {
             spatialSample.hitNormal = finalHitNormal;
             transient_restir_spatialInput_store(texelPos, spatialSampleData_pack(spatialSample));
 
-            #if USE_REFERENCE || !defined(SETTING_GI_SPATIAL_REUSE)
+            #ifndef SETTING_GI_SPATIAL_REUSE
             vec4 ssgiDiffOut = vec4(0.0);
             vec4 ssgiSpecOut = vec4(0.0);
-            bool outputValid = finalReservoirValid;
-            #if USE_REFERENCE
-            outputValid = initialValid;
-            #endif
-            if (outputValid) {
-                #if USE_REFERENCE
-                vec4 winY = vec4(sampleDirView, hitDistance);
-                vec3 winR = hitRadiance * safeRcp(samplePdf);
-                float winW = 1.0;
-                vec3 winV = V;
-                #else
-                vec4 winY = temporalReservoir.Y;
-                vec3 winR = finalSample.rgb;
-                float winW = temporalReservoir.avgWY;
+            if (finalReservoirValid) {
                 vec3 winV = normalize(-finalPrimaryViewPos);
-                #endif
                 restir_shadeSample(
-                    winR,
-                    winY,
-                    winW,
+                    finalSample.rgb,
+                    temporalReservoir.Y,
+                    temporalReservoir.avgWY,
                     targetGeomNormal,
                     targetNormal,
                     winV,

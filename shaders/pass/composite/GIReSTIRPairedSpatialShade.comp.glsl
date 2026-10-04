@@ -11,6 +11,7 @@ layout(local_size_x = 16, local_size_y = 16) in;
 #include "/techniques/gi/ReservoirSplat.glsl"
 #include "/techniques/HiZCheck.glsl"
 #include "/techniques/gi/PairwiseMISMetadata.glsl"
+#include "/techniques/gi/PathGuiding.glsl"
 #include "/util/BitPacking.glsl"
 
 const vec2 workGroupsRender = vec2(1.0, 1.0);
@@ -21,6 +22,9 @@ layout(r32f) uniform image2D uimg_r32f;
 layout(r32ui) uniform restrict writeonly uimage2D uimg_r32ui;
 layout(rgba32ui) uniform restrict writeonly uimage2D uimg_rgba32ui;
 layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
+#ifdef PATH_GUIDING_ENABLED
+layout(rg32ui) uniform restrict writeonly uimage2D uimg_rg32ui;
+#endif
 
 ReSTIRReservoir readTemporalReservoir(ivec2 texelPos) {
     uvec4 reprojectedData = transient_restir_reservoirTemporal_fetch(texelPos);
@@ -30,7 +34,8 @@ ReSTIRReservoir readTemporalReservoir(ivec2 texelPos) {
 // Returns the world-direction octant of a queued visibility ray, or NO_TRACE.
 const uint NO_TRACE = 8u;
 
-uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos) {
+// trainRecord: path guide training record of the final sample (left zero when there is none).
+uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos, inout uvec2 trainRecord) {
     uvec4 packedTemporalReservoir = transient_restir_reservoirTemporal_fetch(texelPos);
     history_restir_reservoirTemporal_store(texelPos, packedTemporalReservoir);
     uint packedPrimary = restir_splatFetchCurrentPrimary(texelPos);
@@ -149,10 +154,9 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos) {
             / (selectedSampleF.w * spatialTechniqueCount);
         vec4 ssgiDiffOut;
         vec4 ssgiSpecOut;
-        if (
-            !restir_isFinite(avgWY)
-            || avgWY <= 0.0
-            || !restir_shadeSample(
+        float diffuseShare = -1.0;
+        if (restir_isFinite(avgWY) && avgWY > 0.0) {
+            diffuseShare = restir_shadeSample(
                 selectedSampleF.xyz,
                 resultY,
                 avgWY,
@@ -164,13 +168,22 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos) {
                 texelPos,
                 ssgiDiffOut,
                 ssgiSpecOut
-            )
-        ) {
+            );
+        }
+        if (diffuseShare < 0.0) {
             transient_ssgiDiffOut_store(texelPos, vec4(0.0));
             transient_ssgiSpecOut_store(texelPos, ratioOnlySpecOut);
             return NO_TRACE;
         }
         ssgiSpecOut.rgb = mix(ratioSpec, ssgiSpecOut.rgb, restirSpecWeight);
+
+        #ifdef PATH_GUIDING_ENABLED
+        // The diffuse guide learns the final sample with probability f_d / (f_d + f_s).
+        uint recordFlags = restir_updateRand(texelPos, 0x68e31da4u) < diffuseShare ? PG_RECORD_VALID : PG_RECORD_SPECULAR;
+        recordFlags |= !chooseCanon && selectedNeighbor ? PG_RECORD_NEIGHBOR : 0u;
+        recordFlags |= resultY.w <= 0.0 ? PG_RECORD_SKY : 0u;
+        trainRecord = uvec2(nzpacking_packNormalOct32(coords_dir_viewToWorld(resultY.xyz)), recordFlags);
+        #endif
 
         #if SETTING_DEBUG_OUTPUT
         imageStore(uimg_temp5, texelPos, !chooseCanon && selectedNeighbor ? vec4(0.0, 1.0, 0.0, 0.0) : vec4(0.0));
@@ -180,7 +193,7 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos) {
 
         #if defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > 0
         // Neighbor selections are provisional until GIReSTIRSpatialReuseTrace confirms visibility.
-        // The trace pass re-blends its temporal fallback with the same ratio part and weight.
+        // The trace pass keeps only the same ratio part for occluded selections.
         if (!chooseCanon && selectedNeighbor && resultY.w > 0.0) {
             transient_restir_pairwiseMISMetadata_store(texelPos, uvec4(
                 nzpacking_packNormalOct32(resultY.xyz),
@@ -208,7 +221,11 @@ void main() {
 
     uint traceBin = NO_TRACE;
     if (all(lessThan(texelPos, uval_mainImageSizeI))) {
-        traceBin = spatialShade(texelPos, swizzledWGPos);
+        uvec2 trainRecord = uvec2(0u);
+        traceBin = spatialShade(texelPos, swizzledWGPos, trainRecord);
+        #ifdef PATH_GUIDING_ENABLED
+        transient_pathGuide_trainRecord_store(texelPos, uvec4(trainRecord, 0u, 0u));
+        #endif
     }
 
     #if defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > 0

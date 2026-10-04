@@ -99,6 +99,10 @@ uniform sampler2D usam_shadow_waterNormal;
 
 // --------------------------------------------------- Custom Images ---------------------------------------------------
 uniform sampler2D usam_csr32f;
+#if SETTING_GI_USE_REFERENCE > 0
+uniform sampler2D usam_giReferenceDiff;
+uniform sampler2D usam_giReferenceSpec;
+#endif
 
 uniform sampler3D usam_skyViewLUT;
 uniform usampler2D usam_epipolarData;

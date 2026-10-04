@@ -28,6 +28,9 @@
 //     written back for resumption (ray.level > 0).  On hit or grid exit
 //     ray.level is set to 0.
 //
+//   voxel_traceExhausted(hit, ray) → bool
+//     True when the step budget ran out before a hit or grid exit.
+//
 // Must be included AFTER /Base.glsl (provides cameraPositionInt/Fract).
 // The VOXEL_*_DATA_MODIFIER defines must be set before including this file.
 
@@ -383,6 +386,11 @@ VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps, bool reuseDirectionSig
 
 VoxelHit voxel_traceRay(inout VoxelRay ray, int maxSteps) {
     return voxel_traceRay(ray, maxSteps, false);
+}
+
+// A trace that neither hit nor left the grid ran out of steps: what lies beyond is unknown, not sky.
+bool voxel_traceExhausted(VoxelHit hit, VoxelRay ray) {
+    return !hit.hit && ray.level != 0;
 }
 
 #endif // INCLUDE_techniques_VoxelTrace_glsl
