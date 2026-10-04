@@ -27,9 +27,11 @@ void main() {
     }
 
     ivec2 texelPos = ivec2(unpackUInt2x16(indirectComputeData[queueIndex]));
-    vec4 resultY = uintBitsToFloat(transient_restir_pairwiseMISMetadata_fetch(texelPos));
-    vec3 winL_out = resultY.xyz;
-    float winHitDist = resultY.w;
+    uvec4 provisional = transient_restir_pairwiseMISMetadata_fetch(texelPos);
+    vec3 winL_out = nzpacking_unpackNormalOct32(provisional.x);
+    float winHitDist = uintBitsToFloat(provisional.y);
+    // xyz: BRDF-ratio specular, w: ReSTIR specular weight (roughness), both from SpatialShade.
+    vec4 specularRatio = unpackHalf4x16(provisional.zw);
 
     float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
     vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
@@ -73,6 +75,7 @@ void main() {
             fallbackSpecOut
         );
         transient_ssgiDiffOut_store(texelPos, fallbackDiffOut);
+        fallbackSpecOut.rgb = mix(specularRatio.xyz, fallbackSpecOut.rgb, specularRatio.w);
         transient_ssgiSpecOut_store(texelPos, fallbackSpecOut);
         #if SETTING_DEBUG_OUTPUT
         imageStore(uimg_temp5, texelPos, vec4(1.0, 0.0, 0.0, 0.0));

@@ -52,8 +52,8 @@ RGBA16F）。[`ClearEnvProbe`](../../../shaders/pass/begin/ClearEnvProbe.comp.gl
 | 2  | [`GIReSTIRInitalSampleRaySort`](../../../shaders/pass/composite/GIReSTIRInitalSampleRaySort.comp.glsl), [`GIReSTIRInitalSampleRayFinishTrace`](../../../shaders/pass/composite/GIReSTIRInitalSampleRayFinishTrace.comp.glsl) | 仅 initial SST steps ≥ 64；排序并完成长路径     |
 | 3  | [`GIReSTIRTemporalReuse`](../../../shaders/pass/composite/GIReSTIRTemporalReuse.comp.glsl)                                                                                                                                   | 从上一帧 reservoir、样本、hit normal 与材质重投影   |
 | 4  | [`GIReSTIRDuplicationMapDecorrelate`](../../../shaders/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl)                                                                                                           | 可选 decorrelation                      |
-| 5  | [`GIReSTIRPairedSpatialReuse`](../../../shaders/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl) × 1–4                                                                                                                   | pairwise spatial reuse；每批最多覆盖 7 个基础样本 |
-| 6  | [`GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl)                                                                                                                         | 对选中样本做 shading，并排队 neighbor visibility ray |
+| 5  | [`GIReSTIRPairedSpatialReuse`](../../../shaders/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl) × 1–4                                                                                                                   | pairwise spatial reuse；每批最多覆盖 7 个基础样本；累积 specular BRDF-ratio resolve |
+| 6  | [`GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl)                                                                                                                         | 对选中样本做 shading，按 roughness 把 specular 混向 ratio resolve，并排队 neighbor visibility ray |
 | 7  | [`GIReSTIRSpatialReuseTrace`](../../../shaders/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl)                                                                                                                           | trace 压缩后的 visibility 队列；被遮挡的样本回退到该像素的时间估计 |
 
 四个 spatial-reuse pass 的 `PASS_INDEX` 为 0–3，`PASS_BASE_SAMPLE_INDEX` 为 0/7/14/21；它们从 SSBO 0 offset 48 indirect
@@ -64,11 +64,18 @@ dispatch。`history_restir_reservoirTemporal`、`history_restir_primary`、`hist
 将当前 temporal reservoir 与 primary 数据复制到各自固定的 history tile。所有 tile 定义见 [
 `shaders/shadesmith.json`](../../../shaders/shadesmith.json)。
 
-Spatial shading 会立即写入临时的 diffuse/specular 结果。需要 voxel visibility 的 neighbor 选择会把精确的 `resultY`
-bits 存入 `transient_restir_pairwiseMISMetadata`；随后每个 16×16 tile 按 world-direction octant 与 Morton 位置排序，
+Spatial shading 会立即写入临时的 diffuse/specular 结果。需要 voxel visibility 的 neighbor 选择会把 octahedral 编码的
+`resultY` 方向、hit distance 以及 ratio 混合参数（ratio specular 与 ReSTIR 权重）存入
+`transient_restir_pairwiseMISMetadata`；随后每个 16×16 tile 按 world-direction octant 与 Morton 位置排序，
 把自己的 ray 作为一段连续区间追加到 SSBO 1，数量由 `global_restirVisibilityRayCount` 记录（在
 [`UpdateGlobalData`](../../../shaders/pass/begin/UpdateGlobalData.comp.glsl) 中重置）。Trace pass 按屏幕大小的队列容量启动，
-超出计数的线程直接退出，并且只清除未通过 voxel visibility 测试的临时结果。
+超出计数的线程直接退出，并且只把未通过 voxel visibility 测试的临时结果替换为该像素的时间估计，再与 ratio specular 重新混合。
+
+Specular 为 `mix(ratioSpec, restirSpec, roughness)`，roughness 为中心像素的线性 GGX roughness。Ratio resolve 覆盖中心像素以及
+所有 spatial 批次中同平面 paired 像素的 temporal 样本。每个样本以中心材质计算其自身帧的 specular 估计 `L·W·f_o`，并以样本自身的
+target BRDF 为上限，权重为 `min(f_r / f_o, 1)`：`f_r` 是中心像素朝样本 hit 点的 specular BRDF，`f_o` 是同一 BRDF 在样本自身帧中的值。
+它不含 visibility 和 Jacobian 项。Paired pass 把加权平均与权重和暂存在 `transient_ssgiSpecOut` 中；在 spatial shading 写入最终结果之前，
+该 tile 不被其他 pass 使用。
 
 ## GI 降噪
 
@@ -105,4 +112,6 @@ Profiles 主要缩放 SST steps、spatial reuse count 和 denoiser sample counts
 - temporal tile 必须与当前/上一帧 jitter、camera transform 和 G-buffer 语义一致。
 - edge classification/dilation 必须保持在 reprojection 与 accumulation 之前。
 - 改 spatial 批大小时，同步 program count thresholds、base sample index 和 indirect 工作队列布局。
+- Paired pass 中的 ratio resolve producer、spatial shading 中的读取以及 trace pass 的重新混合共享 `transient_ssgiSpecOut`
+  与临时记录布局，必须同改。
 - 验证至少覆盖静止收敛、相机移动、disocclusion、屏幕边缘和设置切换后的 history reset。

@@ -54,8 +54,8 @@ The runtime resources are `uimg_envProbe`, declared as 1024×768 RGBA32UI in [
 | 2     | [`GIReSTIRInitalSampleRaySort`](../../../shaders/pass/composite/GIReSTIRInitalSampleRaySort.comp.glsl), [`GIReSTIRInitalSampleRayFinishTrace`](../../../shaders/pass/composite/GIReSTIRInitalSampleRayFinishTrace.comp.glsl) | Only for initial SST steps ≥ 64; sorts and completes long paths    |
 | 3     | [`GIReSTIRTemporalReuse`](../../../shaders/pass/composite/GIReSTIRTemporalReuse.comp.glsl)                                                                                                                                   | Reprojects previous reservoirs, samples, hit normals, and material |
 | 4     | [`GIReSTIRDuplicationMapDecorrelate`](../../../shaders/pass/composite/GIReSTIRDuplicationMapDecorrelate.comp.glsl)                                                                                                           | Optional decorrelation                                             |
-| 5     | [`GIReSTIRPairedSpatialReuse`](../../../shaders/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl) × 1–4                                                                                                                   | Pairwise reuse in batches of seven base samples                    |
-| 6     | [`GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl)                                                                                                                         | Shades selected samples and queues neighbor visibility rays        |
+| 5     | [`GIReSTIRPairedSpatialReuse`](../../../shaders/pass/composite/GIReSTIRPairedSpatialReuse.comp.glsl) × 1–4                                                                                                                   | Pairwise reuse in batches of seven base samples; accumulates the specular BRDF-ratio resolve |
+| 6     | [`GIReSTIRPairedSpatialShade`](../../../shaders/pass/composite/GIReSTIRPairedSpatialShade.comp.glsl)                                                                                                                         | Shades selected samples, blends specular toward the ratio resolve by roughness, and queues neighbor visibility rays |
 | 7     | [`GIReSTIRSpatialReuseTrace`](../../../shaders/pass/composite/GIReSTIRSpatialReuseTrace.comp.glsl)                                                                                                                           | Traces the compacted visibility queue; occluded samples fall back to the pixel's temporal estimate |
 
 The four spatial-reuse passes use `PASS_INDEX` 0–3 and `PASS_BASE_SAMPLE_INDEX` 0/7/14/21, dispatched indirectly from
@@ -68,11 +68,19 @@ temporal reservoir and primary data to their fixed history tiles while performin
 tile definitions live in [`shaders/shadesmith.json`](../../../shaders/shadesmith.json).
 
 Spatial shading writes provisional diffuse/specular results immediately. Neighbor selections that need voxel
-visibility store their exact `resultY` bits in `transient_restir_pairwiseMISMetadata`; each 16×16 tile then appends its
+visibility store the octahedral `resultY` direction, its hit distance, and the ratio blend (ratio specular and ReSTIR
+weight) in `transient_restir_pairwiseMISMetadata`; each 16×16 tile then appends its
 rays to SSBO 1 as one contiguous run ordered by world-direction octant and Morton position, counted by
 `global_restirVisibilityRayCount` (reset in [`UpdateGlobalData`](../../../shaders/pass/begin/UpdateGlobalData.comp.glsl)).
-The trace pass launches over the screen-sized queue capacity, exits past that count, and clears only provisional
-results that fail the voxel visibility test.
+The trace pass launches over the screen-sized queue capacity, exits past that count, and replaces only provisional
+results that fail the voxel visibility test with the pixel's temporal estimate, re-blended with the ratio specular.
+
+Specular is `mix(ratioSpec, restirSpec, roughness)`, with the linear GGX roughness of the center. The ratio resolve
+runs over the center's and every same-plane paired pixel's temporal sample, across all spatial batches. Each sample
+contributes its own-frame specular estimate `L·W·f_o` under the center material, capped by the sample's own target BRDF,
+with weight `min(f_r / f_o, 1)`: `f_r` is the center's specular BRDF toward the sample hit and `f_o` the same BRDF in
+the sample's own frame. It has no visibility or Jacobian term. The paired passes keep the weighted mean and weight sum in
+`transient_ssgiSpecOut`, which is otherwise unused until spatial shading writes the final result.
 
 ## GI denoising
 
@@ -111,4 +119,6 @@ in the options DSL before GLSL or program conditions use it.
 - Temporal tiles must agree with current/previous jitter, camera transforms, and G-buffer semantics.
 - Edge classification/dilation stays before reprojection and accumulation.
 - A spatial batch-size change must update program thresholds, base indices, and the indirect queue layout together.
+- The ratio-resolve producer in the paired passes, its read in spatial shading, and the trace-pass re-blend share the
+  `transient_ssgiSpecOut` and provisional-record layouts and change together.
 - Validate convergence, camera motion, disocclusion, screen edges, and history reset after setting changes.

@@ -1077,7 +1077,7 @@ void main() {
                     temporalReservoir.Y.xyz,
                     normalize(-finalPrimaryViewPos),
                     storedMaterial
-                );
+                ).full;
                 finalSample.w = restir_stabilizeTemporalTargetPHat(
                     length(finalSample.rgb * finalTargetBRDF)
                 );

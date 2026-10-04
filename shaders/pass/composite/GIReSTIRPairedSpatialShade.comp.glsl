@@ -50,11 +50,6 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos) {
         history_restir_prevResampleMaterial_store(texelPos, packedResampleMaterial);
 
         ReSTIRReservoir spatialReservoir = restir_reservoir_unpack(packedTemporalReservoir);
-        if (!restir_isFinite(centerSampleData.sampleValue)) {
-            transient_ssgiDiffOut_store(texelPos, vec4(0.0));
-            transient_ssgiSpecOut_store(texelPos, vec4(0.0));
-            return NO_TRACE;
-        }
 
         vec2 screenPos = coords_texelToUV(texelPos, uval_mainImageSizeRcp) - uval_taaJitterUV;
         vec3 viewPos = coords_toViewCoord(screenPos, viewZ, global_camProjInverse);
@@ -67,13 +62,31 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos) {
         PairwiseMISMetadata metadata = pairwiseMISMetadata_init();
         metadata.accumM = spatialReservoir.m;
         float spatialTechniqueCount = 1.0;
+        // Specular output is mix(ratioSpec, ReSTIR specular, restirSpecWeight); the ratio part has no visibility term.
+        vec3 ratioSpec = vec3(0.0);
+        float restirSpecWeight = 1.0;
         #if defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > 0
         uvec4 packedMetadata = transient_restir_pairwiseMISMetadata_fetch(texelPos);
         if (packedMetadata.z != 0u) {
             metadata = pairwiseMISMetadata_unpack(packedMetadata);
             spatialTechniqueCount = float(SETTING_GI_SPATIAL_REUSE_COUNT + 1);
+            // GIReSTIRPairedSpatialReuse left the BRDF-ratio resolve here: xyz = weighted mean, w = weight sum.
+            vec4 specularRatio = transient_ssgiSpecOut_fetch(texelPos);
+            if (specularRatio.w > 0.0) {
+                vec3 resolvedNormal = resampleMaterial_resolveNormal(centerSampleData.geomNormal, centerSampleData.normal, V);
+                float denoiseNDotV = saturate(dot(resolvedNormal, normalize(-viewPos)));
+                ratioSpec = min(specularRatio.xyz * rcp(resampleMaterial_specularDenoiseFactor(centerMaterial, denoiseNDotV)), FP16_MAX);
+                restirSpecWeight = centerMaterial.roughness;
+            }
         }
         #endif
+        vec4 ratioOnlySpecOut = vec4(ratioSpec * (1.0 - restirSpecWeight), 0.0);
+
+        if (!restir_isFinite(centerSampleData.sampleValue)) {
+            transient_ssgiDiffOut_store(texelPos, vec4(0.0));
+            transient_ssgiSpecOut_store(texelPos, ratioOnlySpecOut);
+            return NO_TRACE;
+        }
 
         ivec2 winTexel = texelPos + metadata.selectedTexelDelta;
         float mc = metadata.mc;
@@ -154,9 +167,10 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos) {
             )
         ) {
             transient_ssgiDiffOut_store(texelPos, vec4(0.0));
-            transient_ssgiSpecOut_store(texelPos, vec4(0.0));
+            transient_ssgiSpecOut_store(texelPos, ratioOnlySpecOut);
             return NO_TRACE;
         }
+        ssgiSpecOut.rgb = mix(ratioSpec, ssgiSpecOut.rgb, restirSpecWeight);
 
         #if SETTING_DEBUG_OUTPUT
         imageStore(uimg_temp5, texelPos, !chooseCanon && selectedNeighbor ? vec4(0.0, 1.0, 0.0, 0.0) : vec4(0.0));
@@ -166,8 +180,13 @@ uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos) {
 
         #if defined(SETTING_GI_SPATIAL_REUSE) && SETTING_GI_SPATIAL_REUSE_COUNT > 0
         // Neighbor selections are provisional until GIReSTIRSpatialReuseTrace confirms visibility.
+        // The trace pass re-blends its temporal fallback with the same ratio part and weight.
         if (!chooseCanon && selectedNeighbor && resultY.w > 0.0) {
-            transient_restir_pairwiseMISMetadata_store(texelPos, floatBitsToUint(resultY));
+            transient_restir_pairwiseMISMetadata_store(texelPos, uvec4(
+                nzpacking_packNormalOct32(resultY.xyz),
+                floatBitsToUint(resultY.w),
+                packHalf4x16(vec4(ratioSpec, restirSpecWeight))
+            ));
             uvec3 dirSign = uvec3(lessThan(mat3(gbufferModelViewInverse) * resultY.xyz, vec3(0.0)));
             return dirSign.x | (dirSign.y << 1u) | (dirSign.z << 2u);
         }
