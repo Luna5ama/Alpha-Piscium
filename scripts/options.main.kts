@@ -2711,7 +2711,7 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
                             suffix = " 毫米"
                         }
                     }
-                    slider("SETTING_DOF_F_STOP", 1.4, listOf(1.0, 1.4, 2.0, 2.8, 4.0, 5.6, 8.0, 11.0, 16.0)) {
+                    slider("SETTING_DOF_F_STOP", 4.0, listOf(1.0, 1.4, 2.0, 2.8, 4.0, 5.6, 8.0, 11.0, 16.0)) {
                         lang {
                             name = "F-Stop"
                             prefix = "f/"

@@ -251,7 +251,7 @@ const float sunPathRotation = -20.0;//[-90.0 -89.0 -88.0 -87.0 -86.0 -85.0 -84.0
 #ifdef SETTING_DOF
 #endif
 #define SETTING_DOF_FOCAL_LENGTH 50.0//[18.0 24.0 35.0 50.0 75.0 100.0]
-#define SETTING_DOF_F_STOP 1.4//[1.0 1.4 2.0 2.8 4.0 5.6 8.0 11.0 16.0]
+#define SETTING_DOF_F_STOP 4.0//[1.0 1.4 2.0 2.8 4.0 5.6 8.0 11.0 16.0]
 #define SETTING_APERTURE_SHAPE 1//[0 1]
 #define SETTING_DOF_QUALITY 3//[1 2 3 4 5]
 #define SETTING_DOF_MAX_SAMPLE_RADIUS 8//[2 4 8 12 16 20 24]
