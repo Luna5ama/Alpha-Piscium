@@ -111,9 +111,6 @@ void main() {
                     // y: specular history length
                     // z: "real" history length
                     vec3 historyLengths = vec3(1.0);
-                    // x: diffuse
-                    // y: specular
-                    vec2 newWeights = vec2(1.0);
 
                     GBufferData gData = gbufferData_init();
                     gbufferData1_unpack(texelFetch(usam_gbufferSolidData1, texelPos, 0), gData);
@@ -154,12 +151,11 @@ void main() {
                     // w: fast, specular
                     vec4 accumHistoryLength = historyLengths.xyzz;
                     accumHistoryLength.zw = min(accumHistoryLength.zw, vec2(SETTING_DENOISER_FAST_HISTORY_LENGTH, min(SETTING_DENOISER_FAST_HISTORY_LENGTH * specAccumRecuctionFactor, historyLengths.y)));
-                    accumHistoryLength.zw = max(accumHistoryLength.zw, 1.0);
-                    vec4 rcpAccumHistoryLength = rcp(accumHistoryLength);
-                    vec4 alpha = vec4(newWeights, pow(newWeights, vec2(0.1))) * rcpAccumHistoryLength;
+                    accumHistoryLength = max(accumHistoryLength, 1.0);
+                    vec4 alpha = saturate(rcp(accumHistoryLength));
 
                     float shadowHint = transient_gi_shadowHint_fetch(texelPos).x;
-                    historyData.shadowHint = mix(historyData.shadowHint, shadowHint, rcpAccumHistoryLength.x);
+                    historyData.shadowHint = mix(historyData.shadowHint, shadowHint, alpha.z);
                     historyData.diffuseColor = mix(historyData.diffuseColor, newDiffuse.rgb, alpha.x);
                     historyData.specularColor = mix(historyData.specularColor, newSpecular.rgb, alpha.y);
 
