@@ -13,12 +13,13 @@ transform.
 | [`shaders/techniques/DOF.glsl`](../../../shaders/techniques/DOF.glsl)                                                                                                            | Shared DOF sampling and circle-of-confusion logic |
 | [`DOFFocus.comp.glsl`](../../../shaders/pass/composite/DOFFocus.comp.glsl), [`DOFPrepare.comp.glsl`](../../../shaders/pass/composite/DOFPrepare.comp.glsl)                       | Automatic focus and DOF input preparation         |
 | [`TAAPrepare.comp.glsl`](../../../shaders/pass/composite/TAAPrepare.comp.glsl), [`TAAResolve.comp.glsl`](../../../shaders/pass/composite/TAAResolve.comp.glsl)                   | Temporal-AA preparation and resolve               |
-| [`FSR3MotionVectors.comp.glsl`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl), [`FSR3Accumulate.comp.glsl`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) | FSR3 inputs, temporal upscaling, and accumulation |
+| [`GenerateMotionVectors.comp.glsl`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl), [`FSR3Accumulate.comp.glsl`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) | Shared motion generation, internal FSR3 inputs, and accumulation |
 | [`FXAA.comp.glsl`](../../../shaders/pass/composite/FXAA.comp.glsl)                                                                                                               | Spatial antialiasing                              |
 | [`RCAS.comp.glsl`](../../../shaders/pass/composite/RCAS.comp.glsl), [`techniques/ffx/fsr1/`](../../../shaders/techniques/ffx/fsr1/)                                              | RCAS sharpening                                   |
 | [`techniques/Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl)                                                                                                      | Bloom downsample/upsample pyramid                 |
 | [`ExposureMip.comp.glsl`](../../../shaders/pass/composite/ExposureMip.comp.glsl), [`ExposureGather.comp.glsl`](../../../shaders/pass/composite/ExposureGather.comp.glsl)         | Auto-exposure weights, mip, and statistics        |
 | [`PostComposite.comp.glsl`](../../../shaders/pass/composite/PostComposite.comp.glsl), [`OverlayComposite.comp.glsl`](../../../shaders/pass/composite/OverlayComposite.comp.glsl) | Main post composition and overlay                 |
+| [`superresolution.v3.json`](../../../shaders/superresolution.v3.json)                                                                                                               | External Super Resolution interface and trigger  |
 | [`techniques/displaytransform/`](../../../shaders/techniques/displaytransform/)                                                                                                  | Exposure, DRT, and display transform              |
 | [`FinalGlobalDataUpdate.comp.glsl`](../../../shaders/pass/composite/FinalGlobalDataUpdate.comp.glsl), [`Final.frag.glsl`](../../../shaders/pass/composite/Final.frag.glsl)       | Next-frame state and final screen output          |
 
@@ -41,12 +42,18 @@ branches. The program list then enables one of these paths:
 |------|-----------|---------|
 | Off | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) | Writes the unfiltered current frame without temporal or spatial AA. |
 | TAA | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`FXAA`](../../../shaders/pass/composite/FXAA.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Resolves `history_taa`, applies spatial AA, and sharpens the render-resolution output. |
-| FSR 3 | [`FSR3MotionVectors`](../../../shaders/pass/composite/FSR3MotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Builds motion/reactive inputs, accumulates a full-resolution result, then uses the shared RCAS pass for sharpening and exposed-linear output. |
+| FSR 3 | [`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) → [`FSR3PrepareInputs`](../../../shaders/pass/composite/FSR3PrepareInputs.comp.glsl) → [`FSR3LumaPyramid`](../../../shaders/pass/composite/FSR3LumaPyramid.comp.glsl) → [`FSR3ShadingChangePyramid`](../../../shaders/pass/composite/FSR3ShadingChangePyramid.comp.glsl) → [`FSR3ShadingChange`](../../../shaders/pass/composite/FSR3ShadingChange.comp.glsl) → [`FSR3PrepareReactivity`](../../../shaders/pass/composite/FSR3PrepareReactivity.comp.glsl) → [`FSR3LumaInstability`](../../../shaders/pass/composite/FSR3LumaInstability.comp.glsl) → [`FSR3Accumulate`](../../../shaders/pass/composite/FSR3Accumulate.comp.glsl) → [`RCAS`](../../../shaders/pass/composite/RCAS.comp.glsl) | Builds motion/reactive inputs, accumulates a full-resolution result, then uses the shared RCAS pass for sharpening and exposed-linear output. |
+| External SR | [`TAAResolve`](../../../shaders/pass/composite/TAAResolve.comp.glsl) → [`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) → external SR → normal output-resolution post-processing | Bypasses internal TAA, FXAA, FSR3 accumulation, and RCAS; SR reconstructs exposed-linear HDR immediately before Bloom. |
 
 The Anti-Aliasing / Super Resolution screen controls the mode, render scale, jitter, TAA current/history filters,
 and the shared RCAS sharpening strength. Current/previous-jitter custom uniforms
 are generated from the R2 frame sequence in [`scripts/shaders.properties`](../../../scripts/shaders.properties);
 changing the sampling sequence requires updating reprojection conventions as well.
+
+When `SR_ENABLE` is active, the external interface owns render scale and jitter through `SR_RENDER_SCALE_FACTOR` and
+`SRJitterOffset`. Internal TAA, FXAA, FSR3 accumulation, and RCAS are disabled regardless of `SETTING_AA_MODE`.
+Frame-generation-only remains active through the same interface, but `SR_SHOULD_APPLY_SCALE` and
+`SR_SHOULD_APPLY_JITTER` are zero, so the pack renders at native resolution without jitter.
 
 TAA and FSR 3 feed the same reversible matrix/log working domain to the shared RCAS implementation and use the selected
 sharpening strength directly. A strength of zero bypasses the spatial filter and returns its center sample; only the
@@ -67,8 +74,24 @@ composed into the input color and deliberately follows the underlying solid dept
 separate reactive-mask contribution nor a temporal SST denoiser because that combination makes its rough reflection and
 refraction noise flash between frames.
 
-The FSR 3 estimator runs at render size and accumulates at view/output size; shared RCAS and all later post-processing also
-use output size. Explicit G-buffer gradients multiply low-resolution raster derivatives by
+[`GenerateMotionVectors`](../../../shaders/pass/composite/GenerateMotionVectors.comp.glsl) computes the shared
+current-to-previous UV vector once. Compile-time output macros route it either to the internal FSR3 history, together
+with reactive/composition masks, or to render-resolution `colortex31.rg` for external SR. The external path uses
+`colortex0` color, `noTranslucentDepthtex` depth, `colortex31` motion, and persistent 1x1 `colortex30.r` exposure. It is
+triggered immediately before Bloom, after the disabled internal FSR3 and RCAS programs, so its input is exposed-linear
+HDR with constant pre-exposure `1.0`. The same motion-vector pass writes `exp2(global_aeData.expValues.z)` to the
+explicit exposure input; this is the previous frame's final display-exposure multiplier already applied by
+[`TAAPrepare`](../../../shaders/pass/composite/TAAPrepare.comp.glsl) to the input color. SR writes the full-resolution
+result back to `colortex0`; Bloom, display transformation, exposure analysis, and overlay composition then run at output
+resolution. In frame-generation-only mode SR still consumes all four inputs but does not write the color output; render
+and post-processing resolutions are both native.
+
+The generated vectors cover camera reprojection, sky, hand, and solid surfaces. They do not provide complete
+per-object motion for skeletal animation, particles, or arbitrary procedural deformation; those surfaces can therefore
+produce external upscaling or frame-generation artifacts. Screen overlays also inherit the underlying scene motion.
+
+Internal FSR 3 and external SR run at render size and reconstruct to view/output size before Bloom; all later
+post-processing uses output size. Explicit G-buffer gradients multiply low-resolution raster derivatives by
 `0.5 * uval_mainImageScale`, which is equivalent to AMD's `log2(render/output) - 1` mip bias for the actual per-axis render
 scale.
 
@@ -76,8 +99,9 @@ scale.
 
 When `SETTING_BLOOM` is enabled, [`Bloom.comp.glsl`](../../../shaders/techniques/Bloom.comp.glsl) builds levels 1–10
 with `BLOOM_DOWN_SAMPLE` and `BLOOM_PASS=1..10`, then reconstructs levels 10–2 with `BLOOM_UP_SAMPLE`.
-`SETTING_BLOOM_PASS` disables unused high levels at the program layer. The non-FSR3 path uses `transient_bloom`; the FSR3
-path reuses the third region of `usam_fsr3UpscaleAtlas` after accumulation and RCAS.
+`SETTING_BLOOM_PASS` disables unused high levels at the program layer. Render-resolution paths use `transient_bloom`;
+internal FSR3 reuses the third region of `usam_fsr3UpscaleAtlas`, while external SR uses the dedicated full-resolution
+`usam_superResolutionBloom` image. Frame-generation-only remains on `transient_bloom` because it renders natively.
 All packed-pyramid reads are clamped to source-tile texel centers, preventing bilinear filtering from crossing into an
 adjacent tile or stale atlas data.
 

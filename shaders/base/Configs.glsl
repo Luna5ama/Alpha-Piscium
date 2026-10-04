@@ -22,6 +22,10 @@ const int colortex11Format = RGBA32UI; // GBuffer Translucent Data 32UI
 const int colortex12Format = R32UI; // GBuffer Translucent Data 8UN
 const int colortex13Format = R32F; // GBuffer Translucent ViewZ
 const int colortex14Format = RGB10_A2; // Translucent Color
+#if defined(SR_ENABLE) && SR_ENABLE
+const int colortex30Format = R32F; // Previous Frame Exposure
+const int colortex31Format = RG16F; // Super Resolution Motion Vectors
+#endif
 
 const int shadowcolor0Format = R16F; // Depth offset
 const int shadowcolor2Format = RGB10_A2; // Translucent color
@@ -56,6 +60,11 @@ const bool colortex13Clear = false;
 
 const bool colortex14Clear = true;
 const vec4 colortex14ClearColor = vec4(1.0, 1.0, 1.0, 0.0);
+
+#if defined(SR_ENABLE) && SR_ENABLE
+const bool colortex30Clear = false;
+const bool colortex31Clear = false;
+#endif
 
 const bool shadowcolor0Clear = true;
 const vec4 shadowcolor0ClearColor = vec4(0.0, 0.0, 0.0, 0.0);

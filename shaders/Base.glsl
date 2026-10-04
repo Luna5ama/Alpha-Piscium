@@ -21,6 +21,7 @@ const vec2 SHADOW_MAP_SIZE = vec2(float(shadowMapResolution), 1.0 / float(shadow
 
 #include "/base/Uniforms.glsl"
 #include "/base/CustomUniforms.glsl"
+#include "/base/SuperResolution.glsl"
 #include "/base/SSBO.glsl"
 #include "/base/Textures.glsl"
 #include "/base/Textile.glsl"

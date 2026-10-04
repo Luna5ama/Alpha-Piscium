@@ -51,6 +51,11 @@
 #define usam_voxyTranslucentColor colortex18
 #define uimg_voxyTranslucentColor colorimg18
 
+#if SUPER_RESOLUTION_ACTIVE
+#define uimg_superResolutionExposure colorimg30
+#endif
+#define uimg_superResolutionMotionVectors colorimg31
+
 // ------------------------------------------------- Shadowcolor Names -------------------------------------------------
 #define usam_shadow_unwarpedUV shadowcolor3
 #define uimg_shadow_unwarpedUV shadowcolorimg3
@@ -98,9 +103,12 @@ uniform sampler2D usam_shadow_waterMask;
 uniform sampler2D usam_shadow_waterNormal;
 
 // --------------------------------------------------- Custom Images ---------------------------------------------------
-#if SETTING_AA_MODE == 2
+#if INTERNAL_FSR3_ACTIVE
 uniform usampler2D usam_fsr3ReconstructedDepth;
 uniform sampler2D usam_fsr3UpscaleAtlas;
+#endif
+#if EXTERNAL_SR_UPSCALING_ACTIVE
+uniform sampler2D usam_superResolutionBloom;
 #endif
 
 uniform sampler2D usam_csr32f;

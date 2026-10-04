@@ -76,7 +76,7 @@ void processAlbedo() {
     albedo = vec4(frag_colorMul, 1.0);
 
     #ifdef GBUFFER_PASS_TEXTURED
-    #if SETTING_AA_MODE == 2
+    #if UPSCALER_RECONSTRUCTION_ACTIVE
     albedo *= textureGrad(gtexture, materialTexCoord, dUVdx, dUVdy);
     #else
     float alphaTestBias = 1.0 - global_taaResetFactor.y * 0.75;
@@ -257,7 +257,7 @@ void processData1() {
 }
 
 void main() {
-    #if SETTING_RENDER_SCALE < 10
+    #if RENDER_SCALE_ACTIVE
     if (renderScale_isOutsideMainViewport(gl_FragCoord.xy)) {
         discard;
         return;

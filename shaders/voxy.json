@@ -5,6 +5,9 @@
 	"version": 1,
     "excludeLodsFromVanillaDepth": true,
 	"uniforms": [
+#if SR_ENABLE
+        "SRJitterOffset",
+#endif
 		"uval_taaJitter",
         "uval_taaJitterUV",
         "far",
@@ -19,7 +22,10 @@
     "samplers": {},
 	"opaqueDrawBuffers": [16],
 	"translucentDrawBuffers": [17, 18],
-#if SETTING_RENDER_SCALE == 0
+#if SR_ENABLE
+    "renderScale": [SR_RENDER_SCALE_FACTOR],
+    "useViewportDims": true,
+#elif SETTING_RENDER_SCALE == 0
     "renderScale": [0.5],
     "useViewportDims": true,
 #elif SETTING_RENDER_SCALE == 1
@@ -54,5 +60,9 @@
         "-1": "off",
         "1": "SRC_ALPHA SRC_COLOR ONE ONE"
     },
+#if SR_ENABLE
+    "taaOffset": "{return SRJitterOffset / vec2(uval_mainImageSizeIX, uval_mainImageSizeIY);}"
+#else
     "taaOffset": "{return uval_taaJitterUV;}"
+#endif
 }

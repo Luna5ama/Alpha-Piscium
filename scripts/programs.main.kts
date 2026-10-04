@@ -280,39 +280,39 @@ programs {
         }
         pass("/pass/composite/TAAPrepare.comp.glsl")
         pass("/pass/composite/TAAResolve.comp.glsl") {
-            cond("SETTING_AA_MODE != 2")
+            cond("SETTING_AA_MODE != 2 || SR_ENABLE")
         }
         pass("/pass/composite/FXAA.comp.glsl") {
-            cond("SETTING_AA_MODE == 1")
+            cond("SETTING_AA_MODE == 1 && !SR_ENABLE")
         }
-        pass("/pass/composite/FSR3MotionVectors.comp.glsl") {
-            cond("SETTING_AA_MODE == 2")
+        pass("/pass/composite/GenerateMotionVectors.comp.glsl") {
+            cond("SETTING_AA_MODE == 2 || SR_ENABLE")
         }
         pass("/pass/composite/FSR3PrepareInputs.comp.glsl") {
-            cond("SETTING_AA_MODE == 2")
+            cond("SETTING_AA_MODE == 2 && !SR_ENABLE")
         }
         pass("/pass/composite/FSR3LumaPyramid.comp.glsl") {
             indirect(0, 64)
-            cond("SETTING_AA_MODE == 2")
+            cond("SETTING_AA_MODE == 2 && !SR_ENABLE")
         }
         pass("/pass/composite/FSR3ShadingChangePyramid.comp.glsl") {
             indirect(0, 64)
-            cond("SETTING_AA_MODE == 2")
+            cond("SETTING_AA_MODE == 2 && !SR_ENABLE")
         }
         pass("/pass/composite/FSR3ShadingChange.comp.glsl") {
-            cond("SETTING_AA_MODE == 2")
+            cond("SETTING_AA_MODE == 2 && !SR_ENABLE")
         }
         pass("/pass/composite/FSR3PrepareReactivity.comp.glsl") {
-            cond("SETTING_AA_MODE == 2")
+            cond("SETTING_AA_MODE == 2 && !SR_ENABLE")
         }
         pass("/pass/composite/FSR3LumaInstability.comp.glsl") {
-            cond("SETTING_AA_MODE == 2")
+            cond("SETTING_AA_MODE == 2 && !SR_ENABLE")
         }
         pass("/pass/composite/FSR3Accumulate.comp.glsl") {
-            cond("SETTING_AA_MODE == 2")
+            cond("SETTING_AA_MODE == 2 && !SR_ENABLE")
         }
         pass("/pass/composite/RCAS.comp.glsl") {
-            cond("SETTING_AA_MODE != 0")
+            cond("SETTING_AA_MODE != 0 && !SR_ENABLE")
         }
         for (i in 1..10) {
             pass("/techniques/Bloom.comp.glsl") {

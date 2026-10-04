@@ -263,7 +263,7 @@ float calculateRayBoxIntersection(vec3 p, vec3 d, vec3 halfSize) {
 }
 
 void main() {
-    #if SETTING_RENDER_SCALE < 10
+    #if RENDER_SCALE_ACTIVE
     if (renderScale_isOutsideMainViewport(gl_FragCoord.xy)) {
         discard;
         return;
