@@ -945,7 +945,7 @@ options(File("shaders.properties"), File("../shaders"), "base/Options.glsl", "ba
                     }
                 }
                 empty()
-                toggle("SETTING_GI_PATH_GUIDING", false) {
+                toggle("SETTING_GI_PATH_GUIDING", true) {
                     lang {
                         name = "Path Guiding"
                         comment = "Samples part of the diffuse GI and radiance cache update rays toward directions learned per radiance cache face. Requires the radiance cache."
