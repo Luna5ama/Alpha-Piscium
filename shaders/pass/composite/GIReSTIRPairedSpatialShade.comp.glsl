@@ -36,6 +36,7 @@ const uint NO_TRACE = 8u;
 
 // trainRecord: path guide training record of the final sample (left zero when there is none).
 uint spatialShade(ivec2 texelPos, uvec2 swizzledWGPos, inout uvec2 trainRecord) {
+    transient_gi_shadowHint_store(texelPos, vec4(0.0));
     uvec4 packedTemporalReservoir = transient_restir_reservoirTemporal_fetch(texelPos);
     history_restir_reservoirTemporal_store(texelPos, packedTemporalReservoir);
     uint packedPrimary = restir_splatFetchCurrentPrimary(texelPos);

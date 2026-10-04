@@ -12,7 +12,6 @@ enum class ProgramType {
 }
 
 val shadersPath = Path("../shaders")
-val useRcGiInitialPath = true
 
 @DslMarker
 annotation class ProgramDsl
@@ -268,24 +267,8 @@ programs {
         pass("/pass/composite/DOFFocus.comp.glsl") {
             cond("defined(SETTING_DOF) && !defined(SETTING_DOF_MANUAL_FOCUS)")
         }
-        if (useRcGiInitialPath) {
-            pass("/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl")
-            pass("/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl")
-            pass("/pass/composite/GIReSTIRInitalSampleRayFinishTrace.comp.glsl") {
-                cond("defined(RESTIR_GI_USE_LEGACY_INITIAL_PATH)")
-            }
-        } else {
-            pass(
-            "/pass/composite/EnvProbeUpdate4ProjectCurrent.comp.glsl",
-            "/pass/composite/GIReSTIRInitalSampleRayGenTrace.comp.glsl"
-        )
-            pass("/pass/composite/GIReSTIRInitalSampleRaySort.comp.glsl") {
-                cond("SETTING_GI_INITIAL_SST_STEPS >= 64")
-            }
-            pass("/pass/composite/GIReSTIRInitalSampleRayFinishTrace.comp.glsl") {
-                cond("SETTING_GI_INITIAL_SST_STEPS >= 64")
-            }
-        }
+        pass("/pass/composite/GIReSTIRInitalSampleHiZ.comp.glsl")
+        pass("/pass/composite/GIReSTIRInitalSampleVoxelFallback.comp.glsl")
         pass("/pass/composite/GIReferenceAccumulate.comp.glsl") {
             cond("SETTING_GI_USE_REFERENCE > 0")
         }

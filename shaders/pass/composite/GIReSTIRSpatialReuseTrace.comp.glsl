@@ -5,6 +5,7 @@ layout(local_size_x = 128) in;
 const vec2 workGroupsRender = vec2(1.0, 1.0);
 
 layout(rgba16f) uniform restrict writeonly image2D uimg_rgba16f;
+layout(r32f) uniform restrict writeonly image2D uimg_r32f;
 layout(rgba8) uniform restrict writeonly image2D uimg_temp5;
 
 #include "/util/BitPacking.glsl"
@@ -48,7 +49,7 @@ void main() {
     SpatialSampleData centerSample = spatialSampleData_unpack(transient_restir_spatialInput_fetch(texelPos));
     vec3 geomNormal = centerSample.geomNormal;
 
-    float normalOffset = min(0.05, winHitDist * 0.25);
+    float normalOffset = min(0.005, winHitDist * 0.25);
     vec3 rayOriginView = primaryViewPos + geomNormal * normalOffset;
     vec3 expectedHitView = primaryViewPos + winL_out * winHitDist;
     vec3 rayOffsetView = expectedHitView - rayOriginView;
@@ -59,6 +60,7 @@ void main() {
     VoxelHit hit = voxel_traceRay(voxelRay, 128, true);
     vec3 expectedHitPos = worldPos + worldDir * expectedHitDistance;
     if (!hit.hit || distanceSq(hit.hitPos, expectedHitPos) > 0.05) {
+        transient_gi_shadowHint_store(texelPos, vec4(1.0));
         // The occluded neighbor sample contributes nothing: visibility-deferred RIS has zero contribution here.
         // The BRDF-ratio specular has no visibility term and stays, as in SpatialShade's ratio-only output.
         transient_ssgiDiffOut_store(texelPos, vec4(0.0));

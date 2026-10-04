@@ -311,6 +311,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     packData15,
                     tapData
                 );
+                packedData1.w = 0.2 * (packData11.w + packData12.w + packData13.w + packData14.w + packData15.w);
                 packedData1 = clamp(packedData1, 0.0, FP16_MAX);
                 packedData1 = dither_fp16(packedData1, ditherNoise);
                 transient_gi1Reprojected_store(texelPos, packedData1);

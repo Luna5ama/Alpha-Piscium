@@ -52,7 +52,7 @@ void main() {
     vec3 rayOriginWorld = coords_pos_viewToWorld(rayOriginView, gbufferModelViewInverse) + cameraPosition;
     vec3 rayWorldDir = coords_dir_viewToWorld(candidate.rayDirView);
 
-    VoxelRay voxelRay = voxelray_setup(rayOriginWorld + rayWorldDir * 0.01, rayWorldDir, 0u);
+    VoxelRay voxelRay = voxelray_setup(rayOriginWorld + rayWorldDir * 0.005, rayWorldDir, 0u);
     VoxelHit hit = voxel_traceRay(voxelRay, 256, true);
     candidate = restir_initialSample_buildVoxelCandidate(
         texelPos, rayOriginWorld, candidate.rayDirView, rayWorldDir, candidate.pdf, hit, voxel_traceExhausted(hit, voxelRay)

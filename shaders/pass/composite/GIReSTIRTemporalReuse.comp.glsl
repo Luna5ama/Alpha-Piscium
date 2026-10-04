@@ -730,12 +730,6 @@ void main() {
                 transient_restir_resampleMaterial_fetch(texelPos)
             );
 
-            float denoiserHitDistance = hitDistance;
-            if (denoiserHitDistance <= RESTIR_INITIAL_CANDIDATE_NEEDS_VOXEL) {
-                denoiserHitDistance = -1.0;
-            }
-            transient_gi_initialSampleHitDistance_store(texelPos, vec4(denoiserHitDistance));
-
             vec4 finalSample = vec4(0.0);
             vec3 finalHitNormal = vec3(0.0);
             vec3 finalPrimaryViewPos = viewPos;
@@ -776,11 +770,10 @@ void main() {
                 vec3 albedo = colors2_material_toWorkSpace(unpackUnorm4x8(packedGBufferData2).rgb);
                 float albedoLuma = colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, albedo);
                 pSpec = fresnelV * safeRcp(albedoLuma * (1.0 - fresnelV) + fresnelV);
-                // Clamping this to avoid dead locks that causes fireflies
                 pSpec = sqrt(clamp(pSpec, 0.01, 0.99));
             }
-            pSpec = pow(storedMaterial.roughness, pSpec);
-            transient_diffBounceProbability_store(texelPos, vec4(pSpec));
+            float diffuseBlurExponent = pow(storedMaterial.roughness, pSpec);
+            transient_gi_diffuseBlurExponent_store(texelPos, vec4(diffuseBlurExponent));
 
             float historyRetention = global_historyResetFactor * reprojInfo.historyResetFactor;
             bool isHand = bool(bitfieldExtract(packedGBufferData2, 24, 1));

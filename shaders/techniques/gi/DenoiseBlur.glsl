@@ -128,7 +128,7 @@ void main() {
         history_roughness_store(texelPos, vec4(centerGeomData.roughness, 0.0, 0.0, 0.0));
         #endif
 
-        vec4 baseKernelRadius = GI_DENOISE_BLUR_RADIUS;
+        vec3 baseKernelRadius = GI_DENOISE_BLUR_RADIUS;
         vec2 blurJitter = rand_stbnVec2(texelPos + GI_DENOISE_RAND_NOISE_OFFSET, frameCounter);
 
         if (centerGeomData.viewPos.z > -65536.0) {
@@ -137,7 +137,7 @@ void main() {
             history_viewNormal_store(texelPos, vec4(centerGeomData.normal * 0.5 + 0.5, 0.0));
             #endif
 
-            vec2 hitDistanceFactors = transient_gi_hitDistanceFactors_fetch(texelPos).xy;
+            vec2 blurGuidance = transient_gi_blurGuidance_fetch(texelPos).xy;
 
             vec4 historyData5 = transient_gi5Reprojected_fetch(texelPos);
             float diffHistoryLength = max(historyData5.x * TOTAL_HISTORY_LENGTH, 1.0);
@@ -149,28 +149,18 @@ void main() {
             );
             vec2 luminanceSquared = pow2(fastLuminance) + 1e-6;
             vec2 varianceFactor = sqrt(luminanceSquared / (luminanceSquared + filteredVariance));
-            diffHistoryLength = mix(1.0, diffHistoryLength, varianceFactor.x);
-            specHistoryLength = mix(1.0, specHistoryLength, varianceFactor.y);
+            float diffuseMaterialExponent = transient_gi_diffuseBlurExponent_fetch(texelPos).x;
+            // Geometry rejection follows accumulated history, independently of radiance noise.
+            float diffHistoryFactor = pow(rcp(1.0 + pow2(0.1 * diffHistoryLength)), diffuseMaterialExponent);
+            float specHistoryFactor = rcp(1.0 + pow2(0.1 * specHistoryLength));
+            float diffFilterHistory = mix(1.0, diffHistoryLength, varianceFactor.x);
+            float specFilterHistory = mix(1.0, specHistoryLength, varianceFactor.y);
+            float diffRadiusScale = pow(rcp(1.0 + pow2(0.1 * diffFilterHistory)), diffuseMaterialExponent);
+            float specRadiusScale = rcp(1.0 + pow2(0.1 * specFilterHistory));
 
-            float diffAccumFactor = rcp(1.0 + pow2(0.1 * diffHistoryLength));
-            float pDiff = transient_diffBounceProbability_fetch(texelPos).x;
-            diffAccumFactor = pow(diffAccumFactor, pDiff);
-            float specAccumFactor = rcp(1.0 + pow2(0.1 * specHistoryLength));
-
-            vec2 hitDistFactor = pow2(hitDistanceFactors);
-            hitDistFactor = hitDistFactor * 0.95 + 0.05;
-            hitDistFactor = mix(vec2(1.0), hitDistFactor, varianceFactor);
-            #if GI_DENOISE_PASS == 2
-            #if SETTING_DEBUG_OUTPUT
-
-                imageStore(uimg_temp1, texelPos, vec4(pDiff));
-//            imageStore(uimg_temp1, texelPos, historyData5.yyyy * 1.0);
-//            imageStore(uimg_temp1, texelPos, specAccumFactor.xxxx);
-//            imageStore(uimg_temp1, texelPos, diffAccumFactor.xxxx);
-//            imageStore(uimg_temp1, texelPos, hitDistFactor.xxxx);
-//                        imageStore(uimg_temp1, texelPos, historyData5.yyyy * 1.0);
-            #endif
-            #endif
+            // Variance can enlarge the footprint without weakening shadow protection.
+            float diffShadowScale = pow2(blurGuidance.x);
+            float specDistanceScale = mix(1.0, pow2(blurGuidance.y) * 0.95 + 0.05, varianceFactor.y);
 
             float16_t jitterR = float16_t(blurJitter.y);
             float angle = blurJitter.x * PI_2;
@@ -180,21 +170,21 @@ void main() {
             // --- Diffuse loop: screen-space kernel with view-angle stretch ---
             if (centerGeomData.dielectric > 0.0) {
                 float kernelRadius = baseKernelRadius.x;
-                kernelRadius *= diffAccumFactor;
-                kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
-                kernelRadius *= hitDistFactor.x;
-                float diffInvAccumFactor = saturate(1.0 - diffAccumFactor); // Increases as history accumulates
+                kernelRadius *= diffRadiusScale;
+                kernelRadius = clamp(kernelRadius, baseKernelRadius.y, baseKernelRadius.z);
+                kernelRadius *= diffShadowScale;
+                kernelRadius = max(kernelRadius, baseKernelRadius.y * 0.5);
+                float diffGeometryStrictness = 1.0 - diffHistoryFactor;
 
                 vec3 V = normalize(-centerGeomData.viewPos);
                 float NoV = abs(dot(centerGeomData.geomNormal, V));
                 vec2 stretchFactor = mix(1.0 - abs(centerGeomData.geomNormal.xy), vec2(1.0), NoV);
                 f16vec2 kernelRadius2 = f16vec2(kernelRadius * stretchFactor);
 
-                float sigmaFP32 = 0.69;
-                sigmaFP32 += 8.0 - hitDistFactor.x * 8.0;
-                float16_t sigma = float16_t(-sigmaFP32);
-                float baseNormalWeight = diffInvAccumFactor * 64.0 + 16.0;
-                float basePlaneDistWeight = diffInvAccumFactor * -128.0 - 128.0;
+                float kernelConcentration = 0.69 + 32.0 * (1.0 - diffShadowScale);
+                float16_t sigma = float16_t(-kernelConcentration);
+                float baseNormalWeight = diffGeometryStrictness * 64.0 + 16.0;
+                float basePlaneDistWeight = diffGeometryStrictness * -128.0 - 128.0;
 
                 vec4 centerDiff = _gi_readDiff(texelPos);
                 vec4 diffSum = centerDiff;
@@ -270,16 +260,16 @@ void main() {
 
             // --- Specular loop: world-space specular lobe kernel ---
             {
-                float specInvAccumFactor = saturate(1.0 - specAccumFactor); // Increases as history accumulates
+                float specGeometryStrictness = 1.0 - specHistoryFactor;
 
                 float kernelRadius = baseKernelRadius.x;
-                kernelRadius *= specAccumFactor;
+                kernelRadius *= specRadiusScale;
                 float roughnessHistoryFactor = pow(centerGeomData.roughness, 0.5 * historyData5.y);
                 kernelRadius *= roughnessHistoryFactor;
-                kernelRadius = clamp(kernelRadius, baseKernelRadius.z, baseKernelRadius.w);
-                kernelRadius *= hitDistFactor.y;
-                kernelRadius = max(kernelRadius, baseKernelRadius.z * 0.25);
-                kernelRadius = min(kernelRadius, baseKernelRadius.w);
+                kernelRadius = clamp(kernelRadius, baseKernelRadius.y, baseKernelRadius.z);
+                kernelRadius *= specDistanceScale;
+                kernelRadius = max(kernelRadius, baseKernelRadius.y * 0.25);
+                kernelRadius = min(kernelRadius, baseKernelRadius.z);
                 float worldRadius = kernelRadius * abs(centerGeomData.viewPos.z) * uval_mainImageSizeRcp.y;
                 vec3 specTFP32, specBFP32;
                 getSpecularKernelBasis(
@@ -287,8 +277,8 @@ void main() {
                     centerGeomData.normal,
                     centerGeomData.roughness,
                     worldRadius,
-                    hitDistFactor.y,
-                    specAccumFactor,
+                    specDistanceScale,
+                    specRadiusScale,
                     specTFP32,
                     specBFP32
                 );
@@ -296,11 +286,11 @@ void main() {
                 f16vec3 specB = f16vec3(specBFP32);
 
                 float sigmaFP32 = 0.69;
-                sigmaFP32 += 8.0 - hitDistFactor.y * 8.0;
+                sigmaFP32 += 8.0 - specDistanceScale * 8.0;
                 sigmaFP32 += 0.025 * rcp(pow2(roughnessHistoryFactor));
                 float16_t sigma = float16_t(-sigmaFP32);
-                float baseNormalWeight = specInvAccumFactor * 64.0 + 256.0;
-                float basePlaneDistWeight = specInvAccumFactor * -256.0 - 256.0;
+                float baseNormalWeight = specGeometryStrictness * 64.0 + 256.0;
+                float basePlaneDistWeight = specGeometryStrictness * -256.0 - 256.0;
 
                 vec4 centerSpec = _gi_readSpec(texelPos);
                 vec4 specSum = centerSpec;

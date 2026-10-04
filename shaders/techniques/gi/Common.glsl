@@ -14,12 +14,12 @@ const float TOTAL_HISTORY_LENGTH = 255.0;
 
 /*
     Diffuse Color : 48 bits         (1)
-    Specular Hit Distance: 16 bits  (1)
+    Shadow Hint: 16 bits (1)
     Diffuse fast color: 48 bits     (2)
-    Diffuse Hit Distance: 16 bits   (2)
 
     Specular Color: 48 bits         (3)
     Specular fast color: 48 bits    (4)
+    Specular Hit Distance: 16 bits  (4)
 
     History Length: 8 bits          (5)
     Real History Length: 8 bits     (5)
@@ -31,8 +31,8 @@ const float GI_MAX_HIT_DISTANCE = 256.0;
 
 struct GIHistoryData {
     vec3 diffuseColor;
+    float shadowHint;
     vec3 diffuseFastColor;
-    float diffuseHitDistance;
 
     vec3 specularColor;
     vec3 specularFastColor;
@@ -47,8 +47,8 @@ struct GIHistoryData {
 GIHistoryData gi_historyData_init()  {
     GIHistoryData data;
     data.diffuseColor = vec3(0.0);
+    data.shadowHint = 0.0;
     data.diffuseFastColor = vec3(0.0);
-    data.diffuseHitDistance = GI_MAX_HIT_DISTANCE;
 
     data.specularColor = vec3(0.0);
     data.specularFastColor = vec3(0.0);
@@ -63,11 +63,11 @@ GIHistoryData gi_historyData_init()  {
 
 void gi_historyData_unpack1(inout GIHistoryData data, vec4 packedData) {
     data.diffuseColor = packedData.xyz;
+    data.shadowHint = packedData.w;
 }
 
 void gi_historyData_unpack2(inout GIHistoryData data, vec4 packedData) {
     data.diffuseFastColor = packedData.xyz;
-    data.diffuseHitDistance = packedData.w;
 }
 
 void gi_historyData_unpack3(inout GIHistoryData data, vec4 packedData) {
@@ -87,11 +87,11 @@ void gi_historyData_unpack5(inout GIHistoryData data, vec4 packedData) {
 }
 
 vec4 gi_historyData_pack1(GIHistoryData data) {
-    return vec4(data.diffuseColor, 0.0);
+    return vec4(data.diffuseColor, data.shadowHint);
 }
 
 vec4 gi_historyData_pack2(GIHistoryData data) {
-    return vec4(data.diffuseFastColor, data.diffuseHitDistance);
+    return vec4(data.diffuseFastColor, 0.0);
 }
 
 vec4 gi_historyData_pack3(GIHistoryData data) {

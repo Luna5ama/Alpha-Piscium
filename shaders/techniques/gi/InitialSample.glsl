@@ -366,20 +366,4 @@ vec3 restir_initialSample_generateRayDir(
     return rayDirView;
 }
 
-float restir_initialSample_handleRayResult(SSTRay sstRay) {
-    float hitDistance = -1.0;
-    if (sstRay.currT > -1.0) {
-        vec3 rayEndScreen = sstRay.pRayStart + sstRay.pRayDir * (sstRay.pRayVecLen * abs(sstRay.currT));
-        // 0.0000007629 = 0.05 (near plane) / 65536
-        if (all(lessThan(vec3(abs(rayEndScreen.xy * 2.0 - 1.0), rayEndScreen.z), vec3(0.99999, 0.99999, 1.0))) && rayEndScreen.z > 0.0000015259) {
-            vec3 rayOriginView = coords_screenToView(sstRay.pRayStart, global_camProjInverse);
-            vec3 rayEndView = coords_screenToView(rayEndScreen, global_camProjInverse);
-            vec3 rayDiffView = rayEndView - rayOriginView;
-            float rayLengthView = length(rayDiffView);
-            hitDistance = rayLengthView;
-        }
-    }
-    return hitDistance;
-}
-
 #endif
