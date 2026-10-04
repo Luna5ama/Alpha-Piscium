@@ -92,7 +92,7 @@ void processAlbedo() {
     #endif
 
     #ifdef GBUFFER_PASS_ALPHA_TEST
-    float alphaTestThreshold = 0.05;
+    float alphaTestThreshold = alphaTestRef;
     #ifndef SETTING_SCREENSHOT_MODE
     float alphaLod = textureQueryLod(gtexture, materialTexCoord).y;
     alphaTestThreshold += min(pow(rand_stbnVec1(texelPos, 0), alphaLod * 2.0 + 1.0), 0.9) * saturate(alphaLod);
