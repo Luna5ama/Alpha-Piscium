@@ -41,6 +41,17 @@ void storeHistorySurfaceData(ivec2 texelPos, float viewZ) {
 }
 #endif
 
+shared vec2 shared_variance[20][20];
+
+void loadSharedVariance(uvec2 groupOriginTexelPos, uint index) {
+    if (index < 400u) {
+        uvec2 sharedXY = uvec2(index % 20u, index / 20u);
+        ivec2 srcXY = clamp(ivec2(groupOriginTexelPos) + ivec2(sharedXY) - 2, ivec2(0), uval_mainImageSizeI - 1);
+        float viewZ = texelFetch(usam_gbufferSolidViewZ, srcXY, 0).x;
+        shared_variance[sharedXY.y][sharedXY.x] = viewZ > -65536.0 ? transient_gi_variance_fetch(srcXY).xy : vec2(0.0);
+    }
+}
+
 #ifdef SETTING_DENOISER_FAST_HISTORY_CLAMPING
 // Shared memory with padding for 5x5 tap (-2 to +2)
 // Each work group is 16x16, need +2 padding on each side for 5x5 taps
@@ -122,6 +133,9 @@ void main() {
     if (hiz_groupGroundCheck(swizzledWGPos, 4)) {
         loadSharedDataMoments(workGroupOrigin, gl_LocalInvocationIndex);
         loadSharedDataMoments(workGroupOrigin, gl_LocalInvocationIndex + 256u);
+        loadSharedVariance(workGroupOrigin, gl_LocalInvocationIndex);
+        loadSharedVariance(workGroupOrigin, gl_LocalInvocationIndex + 256u);
+        barrier();
 
         if (all(lessThan(texelPos, uval_mainImageSizeI))) {
             float viewZ = texelFetch(usam_gbufferSolidViewZ, texelPos, 0).x;
@@ -130,6 +144,18 @@ void main() {
             #endif
 
             if (viewZ > -65536.0) {
+                vec2 filteredVariance = vec2(0.0);
+                ivec2 varianceLocalPos = ivec2(mortonPos) + 2;
+                for (int dy = -2; dy <= 2; ++dy) {
+                    for (int dx = -2; dx <= 2; ++dx) {
+                        ivec2 samplePos = varianceLocalPos + ivec2(dx, dy);
+                        float weight = float((3 - abs(dx)) * (3 - abs(dy)));
+                        filteredVariance += shared_variance[samplePos.y][samplePos.x] * weight;
+                    }
+                }
+                filteredVariance /= 81.0;
+                transient_gi_filteredVariance_store(texelPos, vec4(filteredVariance, sqrt(filteredVariance)));
+
                 // No need to load fast colors here because they are already in the shared memory
                 GIHistoryData historyData = gi_historyData_init();
                 gi_historyData_unpack1(historyData, transient_gi1Reprojected_fetch(texelPos));

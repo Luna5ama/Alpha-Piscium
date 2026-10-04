@@ -249,6 +249,23 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
         outputColor.rgb = vec3(float(gData.isHand));
         #endif
 
+        #if SETTING_DEBUG_DENOISER != 0
+        bool denoiserSolid = texelFetch(usam_gbufferSolidViewZ, scaledTexelPos, 0).x > -65536.0;
+        vec4 denoiserVariance = vec4(0.0);
+        if (denoiserSolid) {
+            denoiserVariance = transient_gi_filteredVariance_fetch(scaledTexelPos);
+        }
+        #if SETTING_DEBUG_DENOISER == 1
+        outputColor = vec4(vec3(denoiserVariance.x), 1.0);
+        #elif SETTING_DEBUG_DENOISER == 2
+        outputColor = vec4(vec3(denoiserVariance.y), 1.0);
+        #elif SETTING_DEBUG_DENOISER == 3
+        outputColor = vec4(vec3(denoiserVariance.z), 1.0);
+        #elif SETTING_DEBUG_DENOISER == 4
+        outputColor = vec4(vec3(denoiserVariance.w), 1.0);
+        #endif
+        #endif
+
         outputColor = applyExposure(outputColor);
 
         #ifdef SETTING_DEBUG_NEGATE
@@ -263,28 +280,6 @@ void debugOutput(ivec2 texelPos, inout vec4 outputColor) {
 
         outputColor = gammaCorrect(outputColor);
     }
-
-//    #if SETTING_DEBUG_DENOISER != 0
-////    uvec4 svgfData = texelFetch(usam_csrgba32ui, texelPos, 0);
-//    vec3 svgfColor;
-//    vec3 svgfFastColor;
-//    vec2 svgfMoments;
-//    float svgfHLen;
-//    svgf_unpack(svgfData, svgfColor, svgfFastColor, svgfMoments, svgfHLen);
-//    #if SETTING_DEBUG_DENOISER == 1
-//    outputColor.rgb = expGamma(svgfColor);
-//    #elif SETTING_DEBUG_DENOISER == 2
-//    outputColor.rgb = expGamma(svgfFastColor);
-//    #elif SETTING_DEBUG_DENOISER == 3
-//    outputColor.rgb = interpolateTurbo(1.0 - (svgfHLen - 2.0) / (SETTING_DENOISER_MAX_ACCUM - 2.0));
-//    #elif SETTING_DEBUG_DENOISER == 4
-//    outputColor.rgb = svgfMoments.xxx;
-//    #elif SETTING_DEBUG_DENOISER == 5
-//    outputColor.rgb = svgfMoments.yyy;
-//    #elif SETTING_DEBUG_DENOISER == 6
-//    outputColor.rgb = vec3(max(svgfMoments.g - svgfMoments.r * svgfMoments.r, 0.0));
-//    #endif
-//    #endif
 
     #if SETTING_DEBUG_GI_INPUTS != 0
     // TODO: Update for new GI system

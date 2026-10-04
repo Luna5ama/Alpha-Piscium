@@ -7,6 +7,7 @@
 #include "/util/Dither.glsl"
 
 layout(rgba16f) uniform restrict writeonly image2D uimg_temp3;
+layout(rg16f) uniform writeonly image2D uimg_rg16f;
 
 vec4 bileratralSum(vec4 xs, vec4 ys, vec4 zs, vec4 ws, vec4 weights) {
     return vec4(
@@ -144,6 +145,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
     float glazingAngleFactor = glazingCosTheta;
     float glazingAngleFactorHistory = pow2(1.0 - glazingCosTheta);
     bool valid = false;
+    vec2 moments2 = vec2(0.0);
     float specularHitDistance = 0.0;
     float specularHistoryLength = 0.0;
     vec3 curr2PrevViewNormal;
@@ -275,6 +277,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     packedData2 = clamp(packedData2, 0.0, FP16_MAX);
                     packedData2 = dither_fp16(packedData2, ditherNoise);
                     transient_gi2Reprojected_store(texelPos, packedData2);
+                    moments2.x = dot(history_gi6_gatherTexel(gatherTexelPos, 0), finalWeights);
 
                     valid = true;
                 }
@@ -313,6 +316,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                 transient_gi1Reprojected_store(texelPos, packedData1);
 
                 vec4 packedData2 = history_gi2_sample(curr2PrevScreen);
+                moments2.x = history_gi6_sample(curr2PrevScreen).x;
                 packedData2 = clamp(packedData2, 0.0, FP16_MAX);
                 packedData2 = dither_fp16(packedData2, ditherNoise);
                 transient_gi2Reprojected_store(texelPos, packedData2);
@@ -413,6 +417,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                     float ditherNoiseV = rand_stbnVec1(rand_newStbnPos(texelPos, 9u), frameCounter);
 
                     if (edgeFlag) {
+                        moments2.y = dot(history_gi6_gatherTexel(gatherTexelPos, 1), finalWeights);
                         vec4 data3X = history_gi3_gatherTexel(gatherTexelPos, 0);
                         vec4 data3Y = history_gi3_gatherTexel(gatherTexelPos, 1);
                         vec4 data3Z = history_gi3_gatherTexel(gatherTexelPos, 2);
@@ -443,6 +448,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                             history_gi3_sample(vTapData.uv5AndWeight.xy),
                             vTapData
                         );
+                        moments2.y = history_gi6_sample(virtualPrevScreen).y;
                         vec4 packedData4 = history_gi4_sample(virtualPrevScreen);
 
                         packedData3 = clamp(packedData3, 0.0, FP16_MAX);
@@ -453,6 +459,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
                         transient_gi3Reprojected_store(texelPos, packedData3);
                         transient_gi4Reprojected_store(texelPos, packedData4);
                     }
+                    moments2.y = dither_fp16(clamp(moments2.y, 0.0, FP16_MAX), ditherNoiseV);
                 }
             }
         }
@@ -465,4 +472,7 @@ void gi_reproject(ivec2 texelPos, float currViewZ) {
             transient_gi5Reprojected_store(texelPos, packedData5);
         }
     }
+    float momentDitherNoise = rand_stbnVec1(rand_newStbnPos(texelPos, 8u), frameCounter);
+    moments2.x = dither_fp16(clamp(moments2.x, 0.0, FP16_MAX), momentDitherNoise);
+    transient_gi6Reprojected_store(texelPos, vec4(moments2, 0.0, 0.0));
 }

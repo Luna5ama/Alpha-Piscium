@@ -89,6 +89,20 @@ ReSTIR shading 后依次执行：
 | 4  | [`GIDenoiserHistoryFix`](../../../shaders/pass/composite/GIDenoiserHistoryFix.comp.glsl)                                                                          | 修复低置信 history                                                   |
 | 5  | [`GIDenoiserBlur`](../../../shaders/pass/composite/GIDenoiserBlur.comp.glsl)、[`GIDenoiserPostBlur`](../../../shaders/pass/composite/GIDenoiserPostBlur.comp.glsl) | 可选 blur 与 post-blur pass                                        |
 
+Accum 还会更新 `history_gi6`，RG 通道存储漫反射/镜面反射亮度的二阶矩，使用 fast history 的 alpha。
+重投影沿用 fast color 的 bilinear 或边缘感知四点权重；镜面反射使用 virtual point。
+一阶矩直接取累积后的 fast color 在工作色彩空间中的亮度。累积完成后，`transient_gi_variance` 的 RG 存储
+漫反射/镜面反射方差，BA 存储绝对标准差，计算发生在 anti-firefly、history fix 和 blur 之前。
+HistoryFix 使用 5x5 tent 核过滤方差（可分离权重 `[1, 2, 3, 2, 1]`，总权重 81），存入
+`transient_gi_filteredVariance`：RG 为过滤后的方差，BA 为其平方根。屏幕边界钳制到最近像素，
+非实体像素贡献零。`SETTING_DEBUG_DENOISER` 以灰度显示过滤后的方差或绝对标准差，
+使用通用的 debug 曝光和 gamma 控制。M2 history 保持纯时域累积，不参与空间滤波；无效 history 与 fast color 一起重置。
+
+两遍 blur 都以 `1 / (1 + variance / (fastLuminance² + 1e-6))` 分别计算漫反射/镜面反射的稳定度因子。
+该因子将有效 history length 从 1 插值到累积值，将 hit-distance 因子从 1 插值到原有值。
+方差越高，有效 history 越短，hit-distance 抑制越弱；随后沿用现有的 accumFactor 和核计算。
+半径限制、几何权重和镜面反射 roughness 对核形状的控制仍然生效；存储的时域 history length 不变。
+
 重投影输入还包括 `history_viewZ`、历史/当前 view normal、geometry normal、edge mask、roughness 和 average view-Z。修改 tile
 格式或生命周期时必须同步 [`shadesmith.json`](../../../shaders/shadesmith.json)，不能只改 sampler。
 

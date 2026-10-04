@@ -94,6 +94,22 @@ After ReSTIR shading, the pipeline runs:
 | 4     | [`GIDenoiserHistoryFix`](../../../shaders/pass/composite/GIDenoiserHistoryFix.comp.glsl)                                                                           | Repairs low-confidence history                                                     |
 | 5     | [`GIDenoiserBlur`](../../../shaders/pass/composite/GIDenoiserBlur.comp.glsl), [`GIDenoiserPostBlur`](../../../shaders/pass/composite/GIDenoiserPostBlur.comp.glsl) | Optional blur and post-blur passes                                                 |
 
+Accum also updates `history_gi6`, whose RG channels store diffuse/specular luminance second moments with the fast-history
+alpha. Reprojection uses the same bilinear or edge-aware four-tap weights as fast color; specular uses the virtual point.
+The first moment is the working-space luminance of accumulated fast color. After accumulation, `transient_gi_variance`
+stores diffuse/specular variance in RG and absolute standard deviation in BA, before anti-firefly, history fix, or blur.
+HistoryFix filters variance with a 5x5 tent kernel (separable weights `[1, 2, 3, 2, 1]`, total weight 81) and stores
+`transient_gi_filteredVariance`: RG contains filtered variance and BA its square root. Screen edges clamp to the
+nearest pixel; non-solid pixels contribute zero. `SETTING_DEBUG_DENOISER` displays filtered variance or absolute
+standard deviation as grayscale, using the common debug exposure and gamma controls. M2 history remains temporally
+accumulated without spatial filtering; invalid history resets with fast color.
+
+Both blur passes compute a stability factor `1 / (1 + variance / (fastLuminance² + 1e-6))`, independently per lobe.
+This interpolates effective history lengths from 1 to their accumulated values, and hit-distance factors from 1 to
+their existing values. Higher variance shortens effective history and relaxes hit-distance suppression before the
+existing accumulation-factor and kernel calculations. Radius limits, geometric weights, and specular roughness
+shaping continue to apply; stored temporal history lengths remain unchanged.
+
 Reprojection also depends on `history_viewZ`, historical/current view normals, geometry normals, edge masks, roughness,
 and average view-Z. Tile lifetime and format changes belong in [
 `shaders/shadesmith.json`](../../../shaders/shadesmith.json), not only in samplers.

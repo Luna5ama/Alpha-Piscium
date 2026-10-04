@@ -142,6 +142,16 @@ void main() {
             vec4 historyData5 = transient_gi5Reprojected_fetch(texelPos);
             float diffHistoryLength = max(historyData5.x * TOTAL_HISTORY_LENGTH, 1.0);
             float specHistoryLength = max(historyData5.y * TOTAL_HISTORY_LENGTH, 1.0);
+            vec2 filteredVariance = transient_gi_filteredVariance_fetch(texelPos).xy;
+            vec2 fastLuminance = vec2(
+                colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, transient_gi2Reprojected_fetch(texelPos).rgb),
+                colors2_colorspaces_luma(COLORS2_WORKING_COLORSPACE, transient_gi4Reprojected_fetch(texelPos).rgb)
+            );
+            vec2 luminanceSquared = pow2(fastLuminance) + 1e-6;
+            vec2 varianceFactor = sqrt(luminanceSquared / (luminanceSquared + filteredVariance));
+            diffHistoryLength = mix(1.0, diffHistoryLength, varianceFactor.x);
+            specHistoryLength = mix(1.0, specHistoryLength, varianceFactor.y);
+
             float diffAccumFactor = rcp(1.0 + pow2(0.1 * diffHistoryLength));
             float pDiff = transient_diffBounceProbability_fetch(texelPos).x;
             diffAccumFactor = pow(diffAccumFactor, pDiff);
@@ -149,6 +159,7 @@ void main() {
 
             vec2 hitDistFactor = pow2(hitDistanceFactors);
             hitDistFactor = hitDistFactor * 0.95 + 0.05;
+            hitDistFactor = mix(vec2(1.0), hitDistFactor, varianceFactor);
             #if GI_DENOISE_PASS == 2
             #if SETTING_DEBUG_OUTPUT
 

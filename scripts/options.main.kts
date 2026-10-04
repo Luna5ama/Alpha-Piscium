@@ -4196,16 +4196,22 @@ Lanczos2：与Catmull-Rom一样清晰，但振铃或光晕较少。性能开销�
             empty()
             empty()
             empty()
-            toggle("SETTING_DEBUG_DENOISER", 0, 0..6) {
+            toggle("SETTING_DEBUG_DENOISER", 0, 0..4) {
                 lang {
                     name = "Denoiser"
                     0 value "Off"
-                    1 value "Color"
-                    2 value "Fast Color"
-                    3 value "HLen"
-                    4 value "Moment"
-                    5 value "Moment²"
-                    6 value "Variance"
+                    1 value "Diffuse Variance"
+                    2 value "Specular Variance"
+                    3 value "Diffuse StdDev"
+                    4 value "Specular StdDev"
+                }
+                lang(Locale.SIMPLIFIED_CHINESE) {
+                    name = "降噪器"
+                    0 value "关闭"
+                    1 value "漫反射方差"
+                    2 value "镜面反射方差"
+                    3 value "漫反射标准差"
+                    4 value "镜面反射标准差"
                 }
             }
             toggle("SETTING_DEBUG_GI_INPUTS", 0, 0..6) {
